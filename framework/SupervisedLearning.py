@@ -2888,19 +2888,16 @@ class PolyExponential(superVisedLearning):
       @ In, kwargs: an arbitrary dictionary of keywords and values
     """
     superVisedLearning.__init__(self,messageHandler,**kwargs)
-    self.printTag          = 'PolyExponential'
-    self.pivotParameterID = kwargs.get("pivotParameter","time")
-    self._dynamicHandling  = True  # This ROM is able to manage the time-series on its own. No need for special treatment outside
-    self.polyExpParams     = {}
-    #self.polyExpParams['maxExpTerms']  = int(kwargs.get('maxNumberExpTerms',20)) # maximum number of exponential terms
-    #self.polyExpParams['maxPolyOrder'] = int(kwargs.get('maxPolyOrder',20))      # the maximum polynomial order
-
-    self.polyExpParams['expTerms']        = int(kwargs.get('numberExpTerms',3))      # the number of exponential terms
-    self.polyExpParams['polyOrder']       = int(kwargs.get('polyOrder',2))           # the polynomial order
-    self.polyExpParams['initialScaling']  = float(kwargs.get('initialScaling',1.))
-    self.polyExpParams['tol']             = float(kwargs.get('tol',0.01))
-    self.polyExpParams['max_iter']        = int(kwargs.get('max_iter',5000))
-    self.polyExpParams['cutPivotValue']   = float(kwargs.get('cutPivotValue',sys.float_info.max))
+    self.printTag                           = 'PolyExponential'                        # Print tag
+    self.pivotParameterID                   = kwargs.get("pivotParameter","time")      # Pivot parameter ID
+    self._dynamicHandling                   = True                                     # This ROM is able to manage the time-series on its own
+    self.polyExpParams                      = {}                                       # poly exponential options' container
+    self.polyExpParams['expTerms']          = int(kwargs.get('numberExpTerms',3))      # the number of exponential terms
+    self.polyExpParams['coeffRegressor']    = kwargs.get('coeffRegressor','spline')    # which regressor to use for interpolating the coefficient
+    self.polyExpParams['polyOrder']         = int(kwargs.get('polyOrder',3))           # the polynomial order
+    self.polyExpParams['initialScaling']    = float(kwargs.get('initialScaling',1.))   # scaling factor for the target values (1. by default)
+    self.polyExpParams['tol']               = float(kwargs.get('tol',0.001))           # optimization tolerance
+    self.polyExpParams['maxNumberIter']     = int(kwargs.get('maxNumberIter',5000))    # maximum number of iterations in optimization
 
     self.model = None
     # check if the pivotParameter is among the targetValues
@@ -2910,7 +2907,7 @@ class PolyExponential(superVisedLearning):
       self.raiseAnError(IOError,"Multi-target PolyExponential not available yet!")
     self.targetID = self.target[self.target.index(self.pivotParameterID) - 1]
 
-  def _localNormalizeData(self,values,names,feat): # This function is not used in this class and can be removed
+  def _localNormalizeData(self,values,names,feat):
     """
       Overwrites default normalization procedure.
       @ In, values, unused
@@ -2929,7 +2926,7 @@ class PolyExponential(superVisedLearning):
       @ In, y, numpy.ndarray, the target values
       @ Out, (fi, 1/taui), tuple(numpy.ndarray, numpy.ndarray), a_i and b_i
     """
-    def objective(s):
+    def _objective(s):
       """
         Objective function for the optimization
         @ In, s, numpy.ndarray, the array of coefficient
@@ -2940,7 +2937,7 @@ class PolyExponential(superVisedLearning):
     x = np.array(x)
     y = np.array(y)
     bounds = [[min(x), max(x)]]*self.polyExpParams['expTerms'] + [[min(y), max(y)]]*self.polyExpParams['expTerms']
-    result = differential_evolution(objective, bounds, maxiter=self.polyExpParams['max_iter'], tol=self.polyExpParams['tol'],disp=False)
+    result = differential_evolution(_objective, bounds, maxiter=self.polyExpParams['maxNumberIter'], tol=self.polyExpParams['tol'],disp=False)
     taui, fi = np.split(result['x'], 2)
     sortIndexes = np.argsort(fi)
     fi = fi[sortIndexes]
@@ -2960,8 +2957,6 @@ class PolyExponential(superVisedLearning):
     print(fi)
     print("taui:")
     print(taui)
-
-
     return fi, 1./taui, prediction
 
   def __evaluateExponentialTerm(self,x, a, b):
@@ -2975,60 +2970,56 @@ class PolyExponential(superVisedLearning):
     """
     return np.dot(a, np.exp(-np.outer(b, x)))
 
-  def __constructPolyString(self):
-    """
-     print
-    """
-    powers = self.model.steps[0][1].powers_
-    featureNames = []
-    for row in powers:
-      inds = np.where(row)[0]
-      if len(inds):
-        name = " ".join("%s^%d" % (self.features[ind], exp)
-                                  if exp != 1 else self.features[ind]
-                                  for ind, exp in zip(inds, row[inds]))
-      else:
-        name = "1"
-      name = name.replace(" ","*")
-      featureNames.append(name)
+  #def __constructPolyString(self):
+    #"""
+     #print
+    #"""
+    #powers = self.model.steps[0][1].powers_
+    #featureNames = []
+    #for row in powers:
+      #inds = np.where(row)[0]
+      #if len(inds):
+        #name = " ".join("%s^%d" % (self.features[ind], exp)
+                                  #if exp != 1 else self.features[ind]
+                                  #for ind, exp in zip(inds, row[inds]))
+      #else:
+        #name = "1"
+      #name = name.replace(" ","*")
+      #featureNames.append(name)
 
-    return featureNames
+    #return featureNames
 
   def __trainLocal__(self,featureVals,targetVals):
     """
       Perform training on input database stored in featureVals.
 
-      @ In, featureVals, array, shape=[n_timeStep, n_dimensions], an array of input data # Not use for ARMA training
-      @ In, targetVals, array, shape = [n_timeStep, n_dimensions], an array of time series data
+      @ In, featureVals, numpy.ndarray, shape= (n_samples, n_timeStep, n_dimensions), an array of input data # Not use for ARMA training
+      @ In, targetVals, numpy.ndarray, shape = (n_samples, n_timeStep, n_dimensions), an array of time series data
     """
-    fileObject = open("poly_exp_"+"_error.csv", mode='w')
+    # check if the data are time-dependent, otherwise error out
+
+
+    #fileObject = open("poly_exp_"+"_error.csv", mode='w')
     pivotParamIndex  = self.target.index(self.pivotParameterID)
     targetParamIndex = self.target.index(self.targetID)
-    for index in range(len(targetVals[0,:,pivotParamIndex])):
-      if targetVals[0,index,pivotParamIndex] >= self.polyExpParams['cutPivotValue']:
-        break
     index+=1
     nsamples = len(targetVals[:,:,pivotParamIndex])
     aij   = np.zeros( (nsamples, self.polyExpParams['expTerms']))
     bij   = np.zeros((nsamples, self.polyExpParams['expTerms']))
 
-    compute = False
     #TODO: this can be parallelized
-    if compute:
-      for smp in range(nsamples):
-        self.raiseADebug("Computing exponential terms for sample ID "+str(smp+1))
-        aij[smp,:],bij[smp,:], prediction = self.__computeExponentialTerms(np.ravel(targetVals[smp,:index,pivotParamIndex]), np.ravel(targetVals[smp,:index,targetParamIndex])/self.polyExpParams['initialScaling'])
-        absolute_difference = np.ravel(targetVals[smp,:index,targetParamIndex]) - prediction*self.polyExpParams['initialScaling']
-        error = absolute_difference/np.ravel(targetVals[smp,:index,targetParamIndex])
-        fileObject.write("Coordinate:\n")
-        fileObject.write(",".join(self.features)+'\n')
-        fileObject.write(",".join([str(elm) for elm in featureVals[smp,:]])+'\n')
-        fileObject.write("time,real_values,prediction,absolute_difference,relative_difference\n")
-        for cnt in range(len(np.ravel(targetVals[smp,:index,pivotParamIndex]))):
-          tooWrite = [str(np.ravel(targetVals[smp,:index,pivotParamIndex])[cnt]),str(np.ravel(targetVals[smp,:index,targetParamIndex])[cnt]),str(prediction[cnt]*self.polyExpParams['initialScaling']),str(absolute_difference[cnt]), str(error[cnt])]
-          fileObject.write(",".join(tooWrite)+"\n")
-    else:
-      aij,bij = constructAB()
+    for smp in range(nsamples):
+      self.raiseADebug("Computing exponential terms for sample ID "+str(smp+1))
+      aij[smp,:],bij[smp,:], prediction = self.__computeExponentialTerms(np.ravel(targetVals[smp,:,pivotParamIndex]), np.ravel(targetVals[smp,:,targetParamIndex])/self.polyExpParams['initialScaling'])
+      absolute_difference = np.ravel(targetVals[smp,:,targetParamIndex]) - prediction*self.polyExpParams['initialScaling']
+      error = absolute_difference/np.ravel(targetVals[smp,:,targetParamIndex])
+      #fileObject.write("Coordinate:\n")
+      #fileObject.write(",".join(self.features)+'\n')
+      #fileObject.write(",".join([str(elm) for elm in featureVals[smp,:]])+'\n')
+      #fileObject.write("time,real_values,prediction,absolute_difference,relative_difference\n")
+      #for cnt in range(len(np.ravel(targetVals[smp,:index,pivotParamIndex]))):
+      #  tooWrite = [str(np.ravel(targetVals[smp,:index,pivotParamIndex])[cnt]),str(np.ravel(targetVals[smp,:index,targetParamIndex])[cnt]),str(prediction[cnt]*self.polyExpParams['initialScaling']),str(absolute_difference[cnt]), str(error[cnt])]
+      #  fileObject.write(",".join(tooWrite)+"\n")
     np.savetxt("expTermCoeff.csv", np.concatenate( (aij,bij), axis=1), delimiter=",")
     self.pivotValues = targetVals[0,:index,pivotParamIndex]
     # the targets are the coefficients
@@ -3040,12 +3031,12 @@ class PolyExponential(superVisedLearning):
 
       self.model.fit(featureVals, expTermCoeff)
       # get feature names
-      featureNames = self.__constructPolyString()
+      #featureNames = self.__constructPolyString()
       # print the coefficient
       coefficients = self.model.steps[1][1].coef_
-      self.raiseAMessage("Polynomial coefficients:")
-      self.raiseAMessage("  Monomials:")
-      self.raiseAMessage("  "+" ".join(featureNames))
+      #self.raiseAMessage("Polynomial coefficients:")
+      #self.raiseAMessage("  Monomials:")
+      #self.raiseAMessage("  "+" ".join(featureNames))
       for l, coeff in enumerate(coefficients):
         if l < self.polyExpParams['expTerms']:
           coeff_str = "    a_"+str(l+1)
@@ -3132,32 +3123,32 @@ class PolyExponential(superVisedLearning):
       returnEvaluation[self.targetID] =  self.__evaluateExponentialTerm(self.pivotValues , evaluation[point][:l], evaluation[point][l:])*self.polyExpParams['initialScaling']
     return returnEvaluation
 
-  def __confidenceLocal__(self,featureVals):
-    """
-      This method is currently not needed for ARMA
-    """
-    pass
+  #def __confidenceLocal__(self,featureVals):
+    #"""
+      #This method is currently not needed for ARMA
+    #"""
+    #pass
 
-  def __resetLocal__(self,featureVals):
-    """
-      After this method the ROM should be described only by the initial parameter settings
-      Currently not implemented for ARMA
-    """
-    pass
+  #def __resetLocal__(self,featureVals):
+    #"""
+      #After this method the ROM should be described only by the initial parameter settings
+      #Currently not implemented for ARMA
+    #"""
+    #pass
 
-  def __returnInitialParametersLocal__(self):
-    """
-      there are no possible default parameters to report
-    """
-    localInitParam = {}
-    return localInitParam
+  #def __returnInitialParametersLocal__(self):
+    #"""
+      #there are no possible default parameters to report
+    #"""
+    #localInitParam = {}
+    #return localInitParam
 
-  def __returnCurrentSettingLocal__(self):
-    """
-      override this method to pass the set of parameters of the ROM that can change during simulation
-      Currently not implemented for ARMA
-    """
-    pass
+  #def __returnCurrentSettingLocal__(self):
+    #"""
+      #override this method to pass the set of parameters of the ROM that can change during simulation
+      #Currently not implemented for ARMA
+    #"""
+    #pass
 
 class DynamicModeDecomposition(superVisedLearning):
   """
