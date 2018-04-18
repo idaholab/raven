@@ -1,0 +1,77 @@
+' THIS INPUT FILE HAS BEEN EPURATED and MODIFIED with fake numbers keeping only few section to test the interface
+' IF YOU WANT TO run this case, you can find the input in your SCALE distribution (./regression/input/)
+=t-depl     parm=(centrm)
+' ----------------------------------------------------------------
+read alias
+  $fuel 11  end
+end alias
+'
+' ----------------------------------------------------------------
+read comp
+'
+' fuel
+u-234 $fuel 0 0.0 900 end
+u-235 $fuel 0 0.0 900 end
+u-236 $fuel 0 0.0 900 end
+u-238 $fuel 0 0.0 900 end
+o-16 $fuel 0 0.0 900 end
+
+' clad
+cr-50 2 0 0.0 600 end
+cr-52 2 0 0.0 600 end
+cr-53 2 0 0.0 600 end
+cr-54 2 0 0.0 600 end
+' coolant
+h-1 3 0 0.0 600 end
+o-16 3 0 0.0 600 end
+
+' gap
+he-4 4 0 0.0 600 end
+
+end comp
+'
+' ----------------------------------------------------------------
+read celldata
+
+  latticecell squarepitch  pitch=   xxxxxxx  3
+                           fuelr=   xxxxxxx  11
+                           gapr=    xxxxxxx  4
+                           cladr=   xxxxxxx  2 end
+
+ centrmdata iup=15 demin=0.0001 npxs=6 end centrmdata
+end celldata
+read depletion
+   11 
+end depletion
+read burndata 
+  power=40  burn=0.25000 nlib=1  down=0  end 
+  power=40  burn=2.50000 nlib=1  down=0  end 
+  power=40  burn=$RAVEN-lastBurn$ nlib=1  down=0  end
+end burndata 
+'
+' ----------------------------------------------------------------
+read model
+  NEWT pincell depletion PoBAT template
+'
+read materials
+  mix=$fuel pn=3 com='fuel'         end
+  mix=2     pn=1 com='clad'         end
+  mix=3     pn=2 com='coolant'      end
+  mix=4     pn=0 com='gap'          end
+end materials
+'
+read geom
+global unit 1
+com='pincell'
+  cylinder 10 xxxxxx chord +x=0 chord +y=0 sides=48
+  cylinder 20 $RAVEN-gap$  chord +x=0 chord +y=0 sides=48
+  cylinder 30 xxxxxx  chord +x=0 chord +y=0 sides=48
+  cuboid 40 xxxx 0 xxxx 0
+  media 11 1  10 
+  media 4 1 -10 20 
+  media 2 1 -20 30 
+  media 3 1 -30 40 
+  boundary 40 2 2
+end geom
+end model
+end

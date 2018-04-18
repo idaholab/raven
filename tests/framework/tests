@@ -212,6 +212,7 @@
   prereq = testExternalModel
   max_time = 100
   rel_err = 0.001
+  prereq = testExternalModel
  [../]
 
  [./test_bison_mc_simple_and_alias_system]
@@ -230,36 +231,6 @@
   output = 'mode_test/FirstMRun/1/out~pump_fake mode_test/FirstMRun/2/out~pump_fake mode_test/output_test.csv mode_test/output_test_1.csv'
   csv = 'mode_test/FirstMRun/2/out~pump_fake.csv'
  [../]
-
- [./test_distributions]
-  #REQUIREMENT_TEST R-RE-1
-  type = 'RavenPython'
-  #python_command = python3
-  input = '../../framework/TestDistributions.py'
-  requires_swig2 = True
- [../]
-
- [./unit_test_Files]
-  type = 'RavenPython'
-  input = '../../framework/TestFiles.py'
- [../]
-
-  [./unit_test_DataSets]
-    type = 'RavenPython'
-    input = '../../framework/DataObjects/TestXDataSet.py'
-  [../]
-  [./unit_test_HistorySets]
-    type = 'RavenPython'
-    input = '../../framework/DataObjects/TestXHistorySet.py'
-  [../]
-  [./unit_test_PointSets]
-    type = 'RavenPython'
-    input = '../../framework/DataObjects/TestXPointSet.py'
-  [../]
-  [./unit_test_HierachicalDataObject]
-    type = 'RavenPython'
-    input = '../../framework/DataObjects/TestHierarchal.py'
-  [../]
 
  [./test_xsd_input_data]
   type = 'RavenPython'

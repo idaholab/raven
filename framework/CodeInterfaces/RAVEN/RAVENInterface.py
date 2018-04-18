@@ -311,7 +311,7 @@ class RAVEN(CodeInterfaceBase):
       # create an instance of the correct data object type
       data = DataObjects.returnInstance(dataObjectInfo[1],None)
       # dummy message handler to handle message parsing, TODO this stinks and should be fixed.
-      data.messageHandler = DataObjects.XDataObject.MessageCourier()
+      data.messageHandler = DataObjects.DataObject.MessageCourier()
       # initialize the data object by reading the XML
       data._readMoreXML(dataObjectInfo[2])
       # set the name, then load the data
