@@ -2993,11 +2993,12 @@ class PolyExponential(superVisedLearning):
     """
       Perform training on input database stored in featureVals.
 
-      @ In, featureVals, numpy.ndarray, shape= (n_samples, n_timeStep, n_dimensions), an array of input data # Not use for ARMA training
-      @ In, targetVals, numpy.ndarray, shape = (n_samples, n_timeStep, n_dimensions), an array of time series data
+      @ In, featureVals, numpy.ndarray, shape= (n_samples, n_dimensions), an array of input data # Not use for ARMA training
+      @ In, targetVals, numpy.ndarray, shape = (n_samples, n_timeStep), an array of time series data
     """
     # check if the data are time-dependent, otherwise error out
-
+    if ( len(targetVals.shape) != 3) :
+      figa
 
     #fileObject = open("poly_exp_"+"_error.csv", mode='w')
     pivotParamIndex  = self.target.index(self.pivotParameterID)
@@ -3123,32 +3124,32 @@ class PolyExponential(superVisedLearning):
       returnEvaluation[self.targetID] =  self.__evaluateExponentialTerm(self.pivotValues , evaluation[point][:l], evaluation[point][l:])*self.polyExpParams['initialScaling']
     return returnEvaluation
 
-  #def __confidenceLocal__(self,featureVals):
-    #"""
-      #This method is currently not needed for ARMA
-    #"""
-    #pass
+  def __confidenceLocal__(self,featureVals):
+    """
+      This method is currently not needed for ARMA
+    """
+    pass
 
-  #def __resetLocal__(self,featureVals):
-    #"""
-      #After this method the ROM should be described only by the initial parameter settings
-      #Currently not implemented for ARMA
-    #"""
-    #pass
+  def __resetLocal__(self,featureVals):
+    """
+      After this method the ROM should be described only by the initial parameter settings
+      Currently not implemented for ARMA
+    """
+    pass
 
-  #def __returnInitialParametersLocal__(self):
-    #"""
-      #there are no possible default parameters to report
-    #"""
-    #localInitParam = {}
-    #return localInitParam
+  def __returnInitialParametersLocal__(self):
+    """
+      there are no possible default parameters to report
+    """
+    localInitParam = {}
+    return localInitParam
 
-  #def __returnCurrentSettingLocal__(self):
-    #"""
-      #override this method to pass the set of parameters of the ROM that can change during simulation
-      #Currently not implemented for ARMA
-    #"""
-    #pass
+  def __returnCurrentSettingLocal__(self):
+    """
+      override this method to pass the set of parameters of the ROM that can change during simulation
+      Currently not implemented for ARMA
+    """
+    pass
 
 class DynamicModeDecomposition(superVisedLearning):
   """
