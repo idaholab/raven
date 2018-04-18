@@ -167,21 +167,34 @@ class Phisics(CodeInterfaceBase):
       raise  ValueError(valueErrorMessage)
     if self.mrtauStandAlone == True and isMrtauStandAlone == 'no':
       raise  ValueError(valueErrorMessage)
+
+  def timeUnit(self,depletionRoot):
+    """
+      Parses the xml depletion file to find the time unit. Default: seconds (string). 
+      @ In, depletionRoot, xml.etree.ElementTree.Element, depletion input xml node
+      @ Out, None
+    """
+    self.timeControl = 'seconds'
+    for child in depletionRoot.findall(".//time_control"):
+      self.timeControl = child.attrib.get("type")
+      break 
       
   def parseControlOptions(self,depletionFile,libPathFile):
     """
-      Parses the xml material file and puts the isotope names as keys and
-      the decay constants relative to the isotopes as values. 
-      @ In, depletionFile, string, depletion_input file
-      @ In, libPathFile, string, lib_inp_path file
+      Parses the xml depletion file and library path name file to obtain the control options. 
+      Verifies if the mrtau flag agree between the RAVEN input and depletion file, Gets the decay heat options. 
+      Gets the job name and synchronizes the files names from RAVEN in the library path file. Get the time units. 
+      @ In, depletionFile, string, xml depletion input file name
+      @ In, libPathFile, string, xml library path file name
       @ Out, None
     """  
     depletionTree = ET.parse(depletionFile)
     depletionRoot = depletionTree.getroot()
     self.verifyMrtauFlagsAgree(depletionRoot)
+    self.findDecayHeatFlag(depletionRoot)
+    self.timeUnit(depletionRoot)
     self.getTitle(depletionRoot)
     self.syncPathToLibFile(depletionRoot,depletionFile,depletionTree,libPathFile)
-    return
   
   def distributeVariablesToParsers(self,perturbedVars):
     """
@@ -307,9 +320,10 @@ class Phisics(CodeInterfaceBase):
       pass
     else:
       phiRel['phiRel'] = False
-    splitWorkDir = workingDir.split('/')
-    self.pertNumber = splitWorkDir[-1]
+    self.pertNumber = workingDir.split(os.path.sep)[-1]
     
+    phisicsDataDict['timeControl'] = self.timeControl
+    phisicsDataDict['decayHeatFlag'] = self.decayHeatFlag
     phisicsDataDict['instantOutput'] = self.instantOutput
     phisicsDataDict['workingDir'] = workingDir
     phisicsDataDict['mrtauStandAlone'] = self.mrtauStandAlone
@@ -369,6 +383,18 @@ class Phisics(CodeInterfaceBase):
       return True,currentInputFiles[self.typeDict['tabmap']].getAbsFile()
     except KeyError: # no tabMap type attribute, hence, no tab Mapping desired
       return False,None 
+  
+  def findDecayHeatFlag(self,depletionRoot):
+    """
+      Parses the xml depletion input, and return the decay heat flag in the input. 
+      1 (default) no decay heat printed, 2 means decay heat in KW, 3 means decay heat in MeV/s
+      @ In, depletionRoot, xml.etree.ElementTree.Element, depletion input xml node
+      @ Out, None
+    """
+    self.decayHeatFlag = 1
+    for child in depletionRoot.findall(".//decay_heat_type"):
+      self.decayHeatFlag = int(child.text)
+      break
     
   def createNewInput(self,currentInputFiles,oriInputFiles,samplerType,**Kwargs):
     """
@@ -395,9 +421,9 @@ class Phisics(CodeInterfaceBase):
     self.outputFileNames(currentInputFiles[self.typeDict['path']].getAbsFile())
     self.instantOutput = self.jobTitle+'.o'
     self.forcePrintLibraries(currentInputFiles[self.typeDict['xs-library']].getAbsFile())
-    self.depInp = currentInputFiles[self.typeDict['depletion_input']].getAbsFile()
+    self.depInp = currentInputFiles[self.typeDict['depletion_input']].getAbsFile() # for PHISICS/RELAP interface
     self.phisicsInp = currentInputFiles[self.typeDict['inp']].getAbsFile()
-    booleanTabMap,tabMapFileName = self.isThereTabMappinp(currentInputFiles)
+    booleanTabMap,tabMapFileName = self.isThereTabMappinp(currentInputFiles)  
     if Kwargs['precommand'] == '':
       self.numberOfMPI = 1
     else: 
