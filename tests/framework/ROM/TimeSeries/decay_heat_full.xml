@@ -71,12 +71,11 @@
 			<Target>time,decay_heat</Target>
 			<Features>enrichment,temperature,burnup</Features>
 			<pivotParameter>time</pivotParameter>
-            <numberExpTerms>10</numberExpTerms>
+            <numberExpTerms>2</numberExpTerms>
             <polyOrder>2</polyOrder>
             <initialScaling>30000.</initialScaling>
             <max_iter>30000</max_iter>
             <tol>0.001</tol>
-            <cutPivotValue>500.</cutPivotValue>
 		</ROM>
         <ROM name='RAVENsurrogate' subType='SciKitLearn'>
             <Target>time,decay_heat</Target>

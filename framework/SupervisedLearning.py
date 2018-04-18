@@ -2887,25 +2887,30 @@ class PolyExponential(superVisedLearning):
                            and printing messages
       @ In, kwargs: an arbitrary dictionary of keywords and values
     """
+    
     superVisedLearning.__init__(self,messageHandler,**kwargs)
-    self.printTag                           = 'PolyExponential'                        # Print tag
-    self.pivotParameterID                   = kwargs.get("pivotParameter","time")      # Pivot parameter ID
-    self._dynamicHandling                   = True                                     # This ROM is able to manage the time-series on its own
-    self.polyExpParams                      = {}                                       # poly exponential options' container
-    self.polyExpParams['expTerms']          = int(kwargs.get('numberExpTerms',3))      # the number of exponential terms
-    self.polyExpParams['coeffRegressor']    = kwargs.get('coeffRegressor','spline')    # which regressor to use for interpolating the coefficient
-    self.polyExpParams['polyOrder']         = int(kwargs.get('polyOrder',3))           # the polynomial order
-    self.polyExpParams['initialScaling']    = float(kwargs.get('initialScaling',1.))   # scaling factor for the target values (1. by default)
-    self.polyExpParams['tol']               = float(kwargs.get('tol',0.001))           # optimization tolerance
-    self.polyExpParams['maxNumberIter']     = int(kwargs.get('maxNumberIter',5000))    # maximum number of iterations in optimization
-
-    self.model = None
+    self.availCoeffRegressors               = ['nearest','poly','spline']                   # avail coeff regressors
+    self.printTag                           = 'PolyExponential'                             # Print tag
+    self.pivotParameterID                   = kwargs.get("pivotParameter","time")           # Pivot parameter ID
+    self._dynamicHandling                   = True                                          # This ROM is able to manage the time-series on its own
+    self.polyExpParams                      = {}                                            # poly exponential options' container
+    self.polyExpParams['expTerms']          = int(kwargs.get('numberExpTerms',3))           # the number of exponential terms
+    self.polyExpParams['coeffRegressor']    = kwargs.get('coeffRegressor','spline').lower() # which regressor to use for interpolating the coefficient
+    self.polyExpParams['polyOrder']         = int(kwargs.get('polyOrder',3))                # the polynomial order
+    self.polyExpParams['initialScaling']    = float(kwargs.get('initialScaling',1.))        # scaling factor for the target values (1. by default)
+    self.polyExpParams['tol']               = float(kwargs.get('tol',0.001))                # optimization tolerance
+    self.polyExpParams['maxNumberIter']     = int(kwargs.get('maxNumberIter',5000))         # maximum number of iterations in optimization
+    self.aij                                = None                                          # a_ij coefficients of the exponential terms ndarray(nsamples, self.polyExpParams['expTerms'])
+    self.bij                                = None                                          # b_ij coefficients of the exponent of the exponential terms ndarray(nsamples, self.polyExpParams['expTerms'])
+    self.model                              = None                                          # the surrogate model itself
     # check if the pivotParameter is among the targetValues
     if self.pivotParameterID not in self.target:
       self.raiseAnError(IOError,"The pivotParameter "+self.pivotParameterID+" must be part of the Target space!")
     if len(self.target) > 2:
       self.raiseAnError(IOError,"Multi-target PolyExponential not available yet!")
     self.targetID = self.target[self.target.index(self.pivotParameterID) - 1]
+    if self.polyExpParams['coeffRegressor'] not in self.availCoeffRegressors:
+      self.raiseAnError(IOError, ' Only the following "coeffRegressor" are available: ' +",".join(self.availCoeffRegressors))
 
   def _localNormalizeData(self,values,names,feat):
     """
@@ -2917,14 +2922,15 @@ class PolyExponential(superVisedLearning):
     """
     self.muAndSigmaFeatures[feat] = (0.0,1.0)
 
-  def __computeExponentialTerms(self, x, y, outputFileObj=None):
+  def __computeExponentialTerms(self, x, y, returnPredictDiff=False):
     """
       Method to compute the coefficients of "n" exponential terms that minimize the
       difference between the training data and the "predicted" data
       y(x) = \sum_{i=1}^n a_i \exp ( - b_i x )
       @ In, x, numpy.ndarray, the x values
       @ In, y, numpy.ndarray, the target values
-      @ Out, (fi, 1/taui), tuple(numpy.ndarray, numpy.ndarray), a_i and b_i
+      @ In, storePredictDiff, bool, optional, True if the prediction differences need to be returned (default False)
+      @ Out, (fi, 1/taui, predictionErr (optional) ), tuple(numpy.ndarray, numpy.ndarray, numpy.ndarray (optional)), a_i and b_i and predictionErr (if returnPredictDiff=True)
     """
     def _objective(s):
       """
@@ -2934,30 +2940,19 @@ class PolyExponential(superVisedLearning):
       """
       l = int(s.size/2)
       return np.sum((y - np.dot(s[l:], np.exp(-np.outer(1./s[:l], x))))**2.)
-    x = np.array(x)
-    y = np.array(y)
-    bounds = [[min(x), max(x)]]*self.polyExpParams['expTerms'] + [[min(y), max(y)]]*self.polyExpParams['expTerms']
-    result = differential_evolution(_objective, bounds, maxiter=self.polyExpParams['maxNumberIter'], tol=self.polyExpParams['tol'],disp=False)
-    taui, fi = np.split(result['x'], 2)
-    sortIndexes = np.argsort(fi)
-    fi = fi[sortIndexes]
-    taui = taui[sortIndexes]
-
-    print("maximum error:")
-    print(np.max(  (y-self.__evaluateExponentialTerm(x, fi, 1./taui))/y  ))
-    print("error per spot:")
-    print(self.pivotParameterID + " , err_" + self.targetID)
-    prediction = self.__evaluateExponentialTerm(x, fi, 1./taui)
-    error = (y-prediction)/y
-    for cnt in range(len(x)):
-      print(str(x[cnt]) + " , " + str(error[cnt]))
-    #print(self.features)
-    #print(x)
-    print("fi:")
-    print(fi)
-    print("taui:")
-    print(taui)
-    return fi, 1./taui, prediction
+    
+    predictionErr = None
+    x, y          = np.array(x), np.array(y)
+    bounds        = [[min(x), max(x)]]*self.polyExpParams['expTerms'] + [[min(y), max(y)]]*self.polyExpParams['expTerms']
+    result        = differential_evolution(_objective, bounds, maxiter=self.polyExpParams['maxNumberIter'], tol=self.polyExpParams['tol'],disp=False)
+    taui, fi      = np.split(result['x'], 2)
+    sortIndexes   = np.argsort(fi)
+    fi, taui      = fi[sortIndexes], taui[sortIndexes]
+    
+    if returnPredictDiff:
+      predictionErr = (y-self.__evaluateExponentialTerm(x, fi, 1./taui))/y
+    
+    return fi, 1./taui, predictionErr
 
   def __evaluateExponentialTerm(self,x, a, b):
     """
@@ -2970,25 +2965,6 @@ class PolyExponential(superVisedLearning):
     """
     return np.dot(a, np.exp(-np.outer(b, x)))
 
-  #def __constructPolyString(self):
-    #"""
-     #print
-    #"""
-    #powers = self.model.steps[0][1].powers_
-    #featureNames = []
-    #for row in powers:
-      #inds = np.where(row)[0]
-      #if len(inds):
-        #name = " ".join("%s^%d" % (self.features[ind], exp)
-                                  #if exp != 1 else self.features[ind]
-                                  #for ind, exp in zip(inds, row[inds]))
-      #else:
-        #name = "1"
-      #name = name.replace(" ","*")
-      #featureNames.append(name)
-
-    #return featureNames
-
   def __trainLocal__(self,featureVals,targetVals):
     """
       Perform training on input database stored in featureVals.
@@ -2997,107 +2973,50 @@ class PolyExponential(superVisedLearning):
       @ In, targetVals, numpy.ndarray, shape = (n_samples, n_timeStep), an array of time series data
     """
     # check if the data are time-dependent, otherwise error out
-    if ( len(targetVals.shape) != 3) :
-      figa
+    if (len(targetVals.shape) != 3) :
+      self.raiseAnError(Exception, "This ROM is specifically usable for time-series data surrogating (i.e. HistorySet)!")
 
     #fileObject = open("poly_exp_"+"_error.csv", mode='w')
     pivotParamIndex  = self.target.index(self.pivotParameterID)
     targetParamIndex = self.target.index(self.targetID)
-    index+=1
     nsamples = len(targetVals[:,:,pivotParamIndex])
-    aij   = np.zeros( (nsamples, self.polyExpParams['expTerms']))
-    bij   = np.zeros((nsamples, self.polyExpParams['expTerms']))
-
+    self.aij   = np.zeros( (nsamples, self.polyExpParams['expTerms']))
+    self.bij   = np.zeros((nsamples, self.polyExpParams['expTerms']))
+    self.predictError = np.zeros( (nsamples, len(targetVals[0,:,targetParamIndex]) ))
     #TODO: this can be parallelized
     for smp in range(nsamples):
       self.raiseADebug("Computing exponential terms for sample ID "+str(smp+1))
-      aij[smp,:],bij[smp,:], prediction = self.__computeExponentialTerms(np.ravel(targetVals[smp,:,pivotParamIndex]), np.ravel(targetVals[smp,:,targetParamIndex])/self.polyExpParams['initialScaling'])
-      absolute_difference = np.ravel(targetVals[smp,:,targetParamIndex]) - prediction*self.polyExpParams['initialScaling']
-      error = absolute_difference/np.ravel(targetVals[smp,:,targetParamIndex])
-      #fileObject.write("Coordinate:\n")
-      #fileObject.write(",".join(self.features)+'\n')
-      #fileObject.write(",".join([str(elm) for elm in featureVals[smp,:]])+'\n')
-      #fileObject.write("time,real_values,prediction,absolute_difference,relative_difference\n")
-      #for cnt in range(len(np.ravel(targetVals[smp,:index,pivotParamIndex]))):
-      #  tooWrite = [str(np.ravel(targetVals[smp,:index,pivotParamIndex])[cnt]),str(np.ravel(targetVals[smp,:index,targetParamIndex])[cnt]),str(prediction[cnt]*self.polyExpParams['initialScaling']),str(absolute_difference[cnt]), str(error[cnt])]
-      #  fileObject.write(",".join(tooWrite)+"\n")
-    np.savetxt("expTermCoeff.csv", np.concatenate( (aij,bij), axis=1), delimiter=",")
-    self.pivotValues = targetVals[0,:index,pivotParamIndex]
+      self.aij[smp,:],self.bij[smp,:], predictionError[smp,:] = self.__computeExponentialTerms(np.ravel(targetVals[smp,:,pivotParamIndex]), 
+                                                                              np.ravel(targetVals[smp,:,targetParamIndex])/self.polyExpParams['initialScaling'],
+                                                                              True)
+    self.pivotValues = targetVals[0,:,pivotParamIndex]
     # the targets are the coefficients
-    expTermCoeff = np.concatenate( (aij,bij), axis=1)
-    what = 4
-    if what == 1:
+    expTermCoeff = np.concatenate( (self.aij,self.bij), axis=1)
+    if self.polyExpParams['coeffRegressor']== 'poly':
       # now that we have the coefficients, we can construct the polynomial expansion whose targets are the just computed coefficients
       self.model = make_pipeline(PolynomialFeatures(self.polyExpParams['polyOrder']), linear_model.Ridge())
-
       self.model.fit(featureVals, expTermCoeff)
-      # get feature names
-      #featureNames = self.__constructPolyString()
       # print the coefficient
-      coefficients = self.model.steps[1][1].coef_
-      #self.raiseAMessage("Polynomial coefficients:")
-      #self.raiseAMessage("  Monomials:")
-      #self.raiseAMessage("  "+" ".join(featureNames))
-      for l, coeff in enumerate(coefficients):
-        if l < self.polyExpParams['expTerms']:
-          coeff_str = "    a_"+str(l+1)
-        else:
-          coeff_str = "    b_"+str((l-self.polyExpParams['expTerms'])+1)
-        coeff_str+="(" + ",".join(self.features)+"):"
-        self.raiseAMessage(coeff_str)
-        self.raiseAMessage("      "+" ".join([str(elm) for elm in coefficients[l]]))
-    if what == 2:
-      #svr
-      from sklearn import preprocessing
-      from sklearn.model_selection import GridSearchCV
+      
+      if getLocalVerbosity() == 'debug':
+        self.raiseADebug("poly coefficients")
+        coefficients = self.model.steps[1][1].coef_
+        for l, coeff in enumerate(coefficients):
+          coeff_str = "    a_"+str(l+1) if l < self.polyExpParams['expTerms'] else "    b_"+str((l-self.polyExpParams['expTerms'])+1) 
+          coeff_str+="(" + ",".join(self.features)+"):"
+          self.raiseADebug(coeff_str)
+          self.raiseADebug("      "+" ".join([str(elm) for elm in coefficients[l]]))
+    elif self.polyExpParams['coeffRegressor']== 'nearest':
       self.scaler = preprocessing.StandardScaler().fit(featureVals)
-      X_scaled = self.scaler.transform(featureVals)
-      fileObject = open("support_vectors.csv","w+")
-      parameters = {
-                    'C':[1.0,5.0,10.0, 30.],
-                    'gamma':[0.3,1.0,1.8,2.4,5.0,10.],
-                    'epsilon':[0.05,0.1,0.2, 0.5]}
-
-      #self.model = [svm.SVR(kernel='rbf', tol=1e-3, C=30,verbose=True) for _ in range(self.polyExpParams['expTerms']*2)]
       self.model = [None for _ in range(self.polyExpParams['expTerms']*2)]
       for cnt in range(len(self.model )):
-      #for cnt, model in enumerate(self.model):
-        clf = GridSearchCV(svm.SVR(), parameters)
-        search = clf.fit(X_scaled, expTermCoeff[:,cnt])
-        model = search.best_estimator_
-        self.model[cnt] = search.best_estimator_
-        #model.fit(X_scaled, expTermCoeff[:,cnt])
-        if cnt < self.polyExpParams['expTerms']:
-          coeff_str = "a_"+str(cnt+1)
-        else:
-          coeff_str = "b_"+str((cnt-self.polyExpParams['expTerms'])+1)
-        fileObject.write("term"+","+"nSV"+",rho\n")
-        fileObject.write(coeff_str+","+str(model.dual_coef_.shape[-1])+","+str(model.intercept_[0])+"\n")
-        fileObject.write("dual_coef,"+",".join(self.features)+"\n")
-        for j in range(model.dual_coef_.shape[-1]):
-          strSupportVectors = [str(elm) for elm in model.support_vectors_[j,:]]
-          fileObject.write(str(model.dual_coef_[0,j]) +","+",".join(strSupportVectors)+"\n")
-      fileObject.close()
-    if what == 4:
-      from sklearn import preprocessing
-      from sklearn.model_selection import GridSearchCV
-      self.scaler = preprocessing.StandardScaler().fit(featureVals)
-      X_scaled = self.scaler.transform(featureVals)
-      self.model = [None for _ in range(self.polyExpParams['expTerms']*2)]
-      for cnt in range(len(self.model )):
-        self.model[cnt] = neighbors.KNeighborsRegressor(n_neighbors=2, weights='distance',p=8)
-        self.model[cnt].fit(X_scaled,expTermCoeff[:,cnt])
-    if what == 3:
-      targets = []
-      for cnt in range(self.polyExpParams['expTerms']*2):
-        if cnt < self.polyExpParams['expTerms']: coeff_str = "a_"+str(cnt+1)
-        else: coeff_str = "b_"+str((cnt-self.polyExpParams['expTerms'])+1)
-        targets.append(coeff_str)
-      self.model = NDinvDistWeight(self.messageHandler,**{'Features':','.join(self.features),'Target':",".join(targets),'p':5})
-      #self.model = [NDsplineRom(self.messageHandler,**{'Features':','.join(self.features),'Target':str(i)}) for i in range(self.polyExpParams['expTerms']*2)]
-      #for cnt in range(len(self.model )):
-      self.model.__class__.__trainLocal__(self.model,featureVals,expTermCoeff)#[:,cnt])
-
+        self.model[cnt] = neighbors.KNeighborsRegressor(n_neighbors=min(nsamples, 2**len(self.features)), weights='distance')
+        self.model[cnt].fit(self.scaler.transform(featureVals),expTermCoeff[:,cnt])
+    else:
+      # spline
+      targets = ["a_"+str(cnt+1) if cnt < self.polyExpParams['expTerms'] else "b_"+str((cnt-self.polyExpParams['expTerms'])+1) for cnt in range(self.polyExpParams['expTerms']*2)]
+      self.model = NDsplineRom(self.messageHandler,**{'Features':','.join(self.features),'Target':",".join(targets)})
+      self.model.__class__.__trainLocal__(self.model,featureVals,expTermCoeff)  
 
   def __evaluateLocal__(self,featureVals):
     """
@@ -3123,6 +3042,98 @@ class PolyExponential(superVisedLearning):
       returnEvaluation[self.pivotParameterID] = self.pivotValues.ravel()
       returnEvaluation[self.targetID] =  self.__evaluateExponentialTerm(self.pivotValues , evaluation[point][:l], evaluation[point][l:])*self.polyExpParams['initialScaling']
     return returnEvaluation
+
+  def _localPrintXML(self,outFile,pivotVal,options={}):
+    """
+      Adds requested entries to XML node.
+      @ In, outFile, Files.File, either StaticXMLOutput or DynamicXMLOutput file
+      @ In, pivotVal, float, value of pivot parameters to use in printing if dynamic
+      @ In, options, dict, optional, dict of string-based options to use, including filename, things to print, etc
+        May include:
+        'what': comma-separated string list, the qualities to print out
+        'pivotVal': float value of dynamic pivotParam value
+      @ Out, None
+    """
+    if not self.amITrained:
+      self.raiseAnError(RuntimeError,'ROM is not yet trained!')
+    #reset stats so they're fresh for this calculation
+    self.mean=None
+    sobolIndices = None
+    partialVars = None
+    sobolTotals = None
+    variance = None
+    #establish what we can handle, and how
+    scalars = ['mean','expectedValue','variance','samples']
+    vectors = ['polyCoeffs','partialVariance','sobolIndices','sobolTotalIndices']
+    canDo = scalars + vectors
+    #lowercase for convenience
+    scalars = list(s.lower() for s in scalars)
+    vectors = list(v.lower() for v in vectors)
+    #establish requests, defaulting to "all"
+    if 'what' in options.keys():
+      requests = list(o.strip() for o in options['what'].split(','))
+    else:
+      requests =['all']
+    # Target
+    target = options.get('Target',self.target[0])
+    #handle "all" option
+    if 'all' in requests:
+      requests = canDo
+    # loop over the requested items
+    for request in requests:
+      request=request.strip()
+      if request.lower() in scalars:
+        if request.lower() in ['mean','expectedvalue']:
+          #only calculate the mean once per printing
+          if self.mean is None:
+            self.mean = self.__mean__(target)
+          val = self.mean
+        elif request.lower() == 'variance':
+          if variance is None:
+            variance = self.__variance__(target)
+          val = variance
+        elif request.lower() == 'samples':
+          if self.numRuns!=None:
+            val = self.numRuns
+          else:
+            val = len(self.sparseGrid)
+        outFile.addScalar(target,request,val,pivotVal=pivotVal)
+      elif request.lower() in vectors:
+        if request.lower() == 'polycoeffs':
+          valueDict = OrderedDict()
+          valueDict['inputVariables'] = ','.join(self.features)
+          keys = self.polyCoeffDict[target].keys()
+          keys.sort()
+          for key in keys:
+            valueDict['_'+'_'.join(str(k) for k in key)+'_'] = self.polyCoeffDict[target][key]
+        elif request.lower() in ['partialvariance','sobolindices','soboltotalindices']:
+          if sobolIndices is None or partialVars is None:
+            sobolIndices,partialVars = self.getSensitivities(target)
+          if sobolTotals is None:
+            sobolTotals = self.getTotalSensitivities(sobolIndices)
+          #sort by value
+          entries = []
+          if request.lower() in ['partialvariance','sobolindices']:
+            #these both will have same sort
+            for key in sobolIndices.keys():
+              entries.append( ('.'.join(key),partialVars[key],key) )
+          elif request.lower() in ['soboltotalindices']:
+            for key in sobolTotals.keys():
+              entries.append( ('.'.join(key),sobolTotals[key],key) )
+          entries.sort(key=lambda x: abs(x[1]),reverse=True)
+          #add entries to results list
+          valueDict=OrderedDict()
+          for entry in entries:
+            name,_,key = entry
+            if request.lower() == 'partialvariance':
+              valueDict[name] = partialVars[key]
+            elif request.lower() == 'sobolindices':
+              valueDict[name] = sobolIndices[key]
+            elif request.lower() == 'soboltotalindices':
+              valueDict[name] = sobolTotals[key]
+        outFile.addVector(target,request,valueDict,pivotVal=pivotVal)
+      else:
+        self.raiseAWarning('ROM does not know how to return "'+request+'".  Skipping...')
 
   def __confidenceLocal__(self,featureVals):
     """
