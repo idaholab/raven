@@ -632,7 +632,7 @@ class phisicsdata():
     """
     test = 0
     count = None
-    if not (self.phisicsRelap and mpi >= numberOfMPI - 1):
+    if not (self.phisicsRelap and mpi == numberOfMPI - 1):
       outfile = open(os.path.join(self.workingDir, self.instantOutputFileMPI[mpi]))
       count = sum([ 1 for line in outfile.readlines() if re.search(r'Medium\s+\d+\s+used',line)])
     return count
@@ -666,7 +666,7 @@ class phisicsdata():
       count = 0
       materialsDict['MPI-'+str(mpi)] = {}
       mediaUsed = self.numberOfMediaUsed(mpi,numberOfMPI)
-      if not (self.phisicsRelap and mpi >= numberOfMPI - 1) : 
+      if not (self.phisicsRelap and mpi == numberOfMPI - 1) : 
         with open(os.path.join(self.workingDir, self.instantOutputFileMPI[mpi])) as outfile:
           for line in outfile:
             if re.search(r'Density spatial moment',line):
