@@ -50,9 +50,10 @@ class ETImporter(PostProcessor):
       @ Out, None
     """
     PostProcessor.__init__(self, messageHandler)
-    self.printTag = 'POSTPROCESSOR ET IMPORTER'
-    self.ETFormat = None
-    self.expand   = False
+    self.printTag  = 'POSTPROCESSOR ET IMPORTER'
+    self.ETFormat  = None
+    self.expand    = False
+    self.factorial = False
     self.allowedFormats = ['OpenPSA']
 
   @classmethod
@@ -67,6 +68,7 @@ class ETImporter(PostProcessor):
     inputSpecification = super(ETImporter, cls).getInputSpecification()
     inputSpecification.addSub(InputData.parameterInputFactory("fileFormat", contentType=InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("expand"    , contentType=InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("factorial" , contentType=InputData.StringType))
     return inputSpecification
 
   def initialize(self, runInfo, inputs, initDict) :
@@ -110,6 +112,15 @@ class ETImporter(PostProcessor):
       self.expand = False
     else:
       self.raiseAnError(IOError, 'ETImporterPostProcessor Post-Processor ' + self.name + ', expand ' + str(self.expand) + ' : is not recognized')
+      
+    #factorial = paramInput.findFirst('factorial')
+    #self.factorial = factorial.value
+    #if self.factorial in ['True','true']:
+    #  self.factorial = True
+    #elif self.factorial in ['false','False']:
+    #  self.factorial = False
+    #else:
+    #  self.raiseAnError(IOError, 'ETImporterPostProcessor Post-Processor ' + self.name + ', factorial ' + str(self.factorial) + ' : is not recognized')
 
   def run(self, inputs):
     """
@@ -134,8 +145,8 @@ class ETImporter(PostProcessor):
       self.raiseAnError(RuntimeError, ' No available output to collect (Run probably is not finished yet) via',self.printTag)
     if not set(output.getParaKeys('inputs')) == set(variables):
       self.raiseAnError(RuntimeError, ' ETImporter: set of branching variables in the '
-                                      'ET ( ' + str(output.getParaKeys('inputs')) + ' ) is not identical to the'
-                                      ' set of input variables specified in the PointSet (' + str(variables) +')')
+                                      'ET ( ' + str(variables)  + ' ) is not identical to the'
+                                      ' set of input variables specified in the PointSet (' + str(output.getParaKeys('inputs')) +')')
     # Output to file
     if output.type in ['PointSet']:
       for key in output.getParaKeys('inputs'):

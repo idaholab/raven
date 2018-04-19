@@ -196,7 +196,7 @@ class DataClassifier(PostProcessor):
           newInput[dataType]['type'] = inputObject.type
           newInput[dataType]['name'] = inputObject.name
 
-          rlzKeys = inputObject.getOutParametersValues.keys()
+          rlzKeys = inputObject.getOutParametersValues().keys()
           newInput[dataType]['historySizes'] = dict.fromkeys(rlzKeys, None)
           for rlzIndex, rlzKey in enumerate(rlzKeys):
             realization = inputObject.getRealization(rlzIndex)
@@ -308,7 +308,7 @@ class DataClassifier(PostProcessor):
       for val in outputDict[self.label]:
         output.updateOutputValue(self.label, val)
     elif output.type == 'HistorySet':
-      rlzKeys = output.getOutParametersValues.keys()
+      rlzKeys = output.getOutParametersValues().keys()
       for ind, key in enumerate(rlzKeys):
         histSize = outputDict['historySizes'][key]
         labelValues = np.empty(histSize)
