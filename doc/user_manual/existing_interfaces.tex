@@ -2591,3 +2591,138 @@ So the user needs to input the following block as well, where the Input and Outp
 \end{lstlisting}
 As mentioned before, this will create $4$ DataObjects.
 %
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%% SERPENT  INTERFACE  %%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{SERPENT Interface}
+\label{subsec:serpentInterface}
+The Serpent interface is meant to run multiple user-defined SERPENT simulations
+while storing the following values: 
+\begin{itemize}
+\item Input composition
+\item Depletion time
+\item Output composition
+\item Beginning Of Cycle / End Of Cycle Keff
+\end{itemize}
+
+It allows users to run SERPENT by varying a value
+(e.g. depletion time, input composition) from a template input file.
+For example, a user can run a \texttt{MultiRun} where the depletion
+time of a fixed input composition is varied, to see the effect of 
+depletion time on the output composition and End Of Cycle Keff.
+
+There are some limitations for this interface:
+\begin{itemize}
+\item Only the parameters mentioned above will be stored in the output csv file
+\item You cannot run multiple depletion steps
+\end{itemize}
+
+Note that due to the number of isotopes to track,
+we use the \xmlnode{ExternalXML} to import from a file.
+The user must edit the \texttt{aux-input-files} so that it
+matches the exact isotope nomenclature used in the SERPENT simulations for the isotopes
+to be in the output csv file. To do so:
+
+\begin{enumerate}
+\item Edit \texttt{aux-input-files/isoFile} to match isotope nomenclature in SERPENT
+\item run \texttt{python generateCustomVariable.py}
+\end{enumerate}
+
+This will automatically generate the feature and target space XML files
+used in the RAVEN input file.
+
+
+\subsubsection{Models}
+In order to run the code, make sure you have a valid SERPENT input file,
+and generated the \texttt{aux-input-files} to match the isotope nomenclature.
+
+In the RAVEN input file, your \xmlnode{Models} node should look like:
+\begin{lstlisting}[style=XML]
+<Models>
+    <Code name="SERPENT" subType="Serpent">
+      <!-- path to your serpent executable -->
+      <executable>/projects/sciteam/bahg/serpent/src/sss2 -omp 32 </executable>
+      <clargs arg="aprun -n 9 -d 32 " type="prepend"/>
+      <clargs arg="" extension=".serpent" type="input"/>
+    </Code>
+</Models>
+\end{lstlisting}
+where the \xmlnode{executable} and \xmlnode{clargs} should me modified
+to create the appropriate run command for SERPENT. In this example, the command
+to run raven is:
+\begin{lstlisting}[language=bash]
+aprun -n 9 -d 32 /projects/sciteam/bahg/serpent/src/sss2 -omp 32 [inputFile]
+\end{lstlisting}
+where the \texttt{inputFile} is defined in the \xmlnode{Files} node as:
+\begin{lstlisting}[style=XML]
+<Files>
+    <Input name="originalInput" type="">serpent_input.serpent</Input>
+</Files>
+\end{lstlisting}
+
+\subsubsection{Files}
+The only input file needed is a complete SERPENT input file,
+which means that it should either be self sufficient, or includes
+the necessary files (e.g. geometry, material definition files).
+The input file extension will depend on the the extension definition
+in the \xmlnode{Models} node.
+
+\subsubsection{Samplers / Optimizers}
+In the \xmlnode{Samplers} block the user can define the variables
+to be sampled.
+\textbf{Example:} If the user wants to vary depletion time from
+10 to 100 days, the SERPENT input file \texttt{dep} definition is as such:
+\begin{lstlisting}
+dep daystep 
+$RAVEN-deptime$ 
+\end{lstlisting}
+
+Then in the RAVEN input file, the \xmlnode{Samplers} block would be:
+\begin{lstlisting}[style=XML]
+  <Samplers>
+    <Grid name="myGrid">
+      <variable name="deptime">
+        <distribution>timedist</distribution>
+        <!-- equally spaced steps with lower and upper bound -->
+        <grid construction="equal" steps="100" type="CDF">0.1 1</grid>
+      </variable>
+    </Grid>
+  </Samplers>
+\end{lstlisting}
+where the distributiong \texttt{timedist} is defined in the \xmlnode{Distributions}:
+\begin{listlisting}[style=XML]
+  <Distributions>
+    <!-- uniform distribution from 0.1 to 1 -->
+    <Uniform name="timedist">
+      <lowerBound>0.0</lowerBound>
+      <upperBound>100</upperBound>
+    </Uniform>
+</Distributions>
+\end{lstlisting}
+
+Then this run would be defined in the \xmlnode{Steps} block as \xmlnode{MultiRun}:
+\begin{lstlisting}[style=XML]
+<MultiRun name="runGrid">
+      <!-- runGrid runs serpent by the number of steps with sampled variable -->
+      <Input   class="Files"       type=""          >originalInput</Input>
+      <Model   class="Models"      type="Code"      >SERPENT</Model>
+      <Sampler class="Samplers"    type="Grid"      >myGrid</Sampler>
+      <Output  class="DataObjects" type="PointSet"  >outPointSet</Output>
+</MultiRun>
+\end{lstlisting}
+
+\subsubsection{Output Files Conversion}
+A single SERPENT run creates at least three output files,
+\texttt{[input]\_res.m, [input].out, [input]\_dep.m}.
+Since the interface is
+focused on acquiring the depleted composition, the \texttt{[input].bumat[n]}
+file is used as well. 
+
+The interface parses through \texttt{[input]\_res.m} file
+to obtain the Beginning Of Cycle and End Of Cycle Keffs, and the 
+\texttt{[input].bumat0} and \texttt{[input].bumat1} file to obtain the
+input / output compositions. In the output csv file, the input compositions
+are prepended with the letter `f', and the output compositions with the letter `d'
+(e.g. f92235, d94239), for separation. 
