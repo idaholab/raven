@@ -309,7 +309,7 @@ class ROM(Dummy):
       targets = ROMtargets
     #this loop is only 1 entry long if not dynamic
     for s,rom in enumerate(engines):
-      if dynamic:
+      if dynamic and not handleDynamicData:
         pivotValue = self.supervisedEngine.historySteps[s]
       else:
         pivotValue = 0
