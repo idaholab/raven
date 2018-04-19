@@ -68,7 +68,7 @@ class Assembler(MessageHandler.MessageUser):
         needDict[value[0]].append((value[1],value[2]))
     return needDict
 
-  def generateAssembler(self,initDict):
+  def generateAssembler(self, initDict):
     """
       This method is used mainly by the Simulation class at the Step construction stage.
       It is used for sending to the instanciated class, which is implementing the method, the objects that have been requested through "whatDoINeed" method
@@ -83,7 +83,7 @@ class Assembler(MessageHandler.MessageUser):
       for interface in value:
         self.assemblerDict[key].append([interface[0],interface[1],interface[2],initDict[interface[0]][interface[2]]])
 
-  def _readAssemblerObjects(self,subXmlNode, found, testObjects):
+  def _readAssemblerObjects(self, subXmlNode, found, testObjects):
     """
       This method is used to look for the assemble objects in an subNodes of an xmlNode
       @ In, subXmlNode, ET, the XML node that needs to be inquired
@@ -105,7 +105,7 @@ class Assembler(MessageHandler.MessageUser):
     returnObject = found, testObjects
     return returnObject
 
-  def _readMoreXML(self,xmlNode):
+  def _readMoreXML(self, xmlNode):
     """
       Function to read the portion of the xml input that belongs to this specialized class
       and initialize some variables based on the inputs got. This method is used to automatically generate the Assembler 'request'
@@ -152,7 +152,7 @@ class Assembler(MessageHandler.MessageUser):
     if '_localReadMoreXML' in dir(self):
       self._localReadMoreXML(xmlNode)
 
-  def addAssemblerObject(self,name,flag, newXmlFlg = None):
+  def addAssemblerObject(self, name,flag, newXmlFlg = None):
     """
       Method to add required assembler objects to the requiredAssObject dictionary.
       @ In, name, string, the node name to search for (e.g. Function, Model)
@@ -167,11 +167,12 @@ class Assembler(MessageHandler.MessageUser):
     self.requiredAssObject[1][0].append(name)
     self.requiredAssObject[1][1].append(flag)
 
-  def retrieveObjectFromAssemblerDict(self,objectMainClass,objectName):
+  def retrieveObjectFromAssemblerDict(self, objectMainClass, objectName, pop=False):
     """
       Method to retrieve an object from the assembler
       @ In, objectName, str, the object name that needs to be retrieved
       @ In, objectMainClass, str, the object main Class name (e.g. Input, Model, etc.) of the object that needs to be retrieved
+      @ In, pop, bool, optional, if found, pop it out (i.e. remove it from the self.assemblerDict?). Default = False
       @ Out, assemblerObject, instance, the instance requested (None if not found)
     """
     assemblerObject = None
@@ -180,4 +181,6 @@ class Assembler(MessageHandler.MessageUser):
         if objectName == assemblerObj[2]:
           assemblerObject = assemblerObj[3]
           break
+      if pop and assemblerObject is not None:
+        self.assemblerDict[objectMainClass].remove(assemblerObj)
     return assemblerObject

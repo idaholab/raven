@@ -32,34 +32,32 @@ import HistorySetSync as HSS
 
 class HistorySetSnapShot(PostProcessorInterfaceBase):
   """
-   This Post-Processor performs the conversion from HistorySet to PointSet
-   The conversion is made so that each history H is converted to a single point P.
-   Assume that each history H is a dict of n output variables x_1=[...],x_n=[...], then the resulting point P can be as follows accordingly to the specified type:
-   - type = timeSlice: at time instant t: P=[x_1[t],...,x_n[t]]
-   - type = min, max, average, value
-
+    This Post-Processor performs the conversion from HistorySet to PointSet
+    The conversion is made so that each history H is converted to a single point P.
+    Assume that each history H is a dict of n output variables x_1=[...],x_n=[...], then the resulting point P can be as follows accordingly to the specified type:
+     - type = timeSlice: at time instant t: P=[x_1[t],...,x_n[t]]
+     - type = min, max, average, value
   """
 
   def initialize(self):
     """
-     Method to initialize the Interfaced Post-processor
-     @ In, None,
-     @ Out, None,
-
+      Method to initialize the Interfaced Post-processor
+      @ In, None,
+      @ Out, None,
     """
 
     PostProcessorInterfaceBase.initialize(self)
     self.inputFormat  = 'HistorySet'
     self.outputFormat = 'PointSet'
 
-    self.type     = None
-    self.pivotParameter   = None
-    self.pivotVar = None
-    self.pivotVal = None
-    self.timeInstant = None
+    self.type            = None
+    self.pivotParameter  = None
+    self.pivotVar        = None
+    self.pivotVal        = None
+    self.timeInstant     = None
 
     self.numberOfSamples = None
-    self.pivotParameter          = None
+    self.pivotParameter  = None
     self.interpolation   = None
 
     self.classifiers = {} #for "mixed" mode
@@ -136,51 +134,49 @@ class HistorySetSnapShot(PostProcessorInterfaceBase):
     if self.type not in set(['min','max','average','value','timeSlice','mixed']):
       self.raiseAnError(IOError, 'HistorySetSnapShot Interfaced Post-Processor "' + str(self.name) + '" : type "%s" is not recognized' %self.type)
 
-
   def run(self,inputDic, pivotVal=None):
     """
-     Method to post-process the dataObjects
-     @ In, inputDic, list, list of dictionaries which contains the data inside the input DataObjects
-     @ Out, outputPSDic, dict, output dictionary
+      Method to post-process the dataObjects
+      @ In, inputDic, list, list of dictionaries which contains the data inside the input DataObjects
+      @ In, pivotVal,  float, value associated to the variable considered (default None)
+      @ Out, outputPSDic, dict, output dictionary
     """
     if len(inputDic)>1:
       self.raiseAnError(IOError, 'HistorySetSnapShot Interfaced Post-Processor ' + str(self.name) + ' accepts only one dataObject')
     else:
       inputDic = inputDic[0]
-      outputPSDic = {}
-      outputHSDic = {}
-
       #for timeSlice we call historySetWindow
       if self.type == 'timeSlice':
         outputHSDic = self.HSsyncPP.run([inputDic])
-        outputPSDic = historySetWindow(outputHSDic,self.timeInstant,self.pivotParameter)
-        return outputPSDic
+        return historySetWindow(outputHSDic,self.timeInstant,inputDic['inpVars'],inputDic['outVars'],inputDic['numberRealizations'],self.pivotParameter)
       #for other non-mixed methods we call historySnapShot
       elif self.type != 'mixed':
         outputPSDic = historySnapShot(inputDic,self.pivotVar,self.type,self.pivotVal,self.pivotParameter)
         return outputPSDic
-      #mixed is more complicated: we pull out values by method instead of a single slice type
+      #   mixed is more complicated: we pull out values by method instead of a single slice type
       #   We use the same methods to get slices, then pick out only the requested variables
       else:
         #establish the output dict
-        outDict = {'data':{'input':{},'output':{}}}
+        outDict = {'data':{}}
         #replicate input space
-        for var in inputDic['data']['input'].values()[0].keys():
-          outDict['data']['input'][var] = np.array(list(inputDic['data']['input'][prefix][var] for prefix in inputDic['data']['input'].keys()))
+        for var in inputDic['inpVars']:
+          outDict['data'][var]  = inputDic['data'][var]
         #replicate metadata
-          outDict['metadata'] = inputDic['metadata']
+          outDict['data']['ProbabilityWeight'] = inputDic['data']['ProbabilityWeight']
+          outDict['data']['prefix'] = inputDic['data']['prefix']
+          outDict['dims'] = {key:[] for key in inputDic['dims'].keys()}
         #loop over the methods requested to fill output space
         for method,entries in self.classifiers.items():
           #min, max take no special effort
           if method in ['min','max']:
             for var in entries:
               getDict = historySnapShot(inputDic,var,method)
-              outDict['data']['output'][var] = getDict['data']['output'][var]
+              outDict['data'][var] = getDict['data'][var]
           #average requires the pivotParameter
           elif method == 'average':
             for var in entries:
-              getDict = historySnapShot(inputDic,var,method,tempID=self.pivotParameter)
-              outDict['data']['output'][var] = getDict['data']['output'][var]
+              getDict = historySnapShot(inputDic,var,method,tempID=self.pivotParameter,pivotVal=self.pivotParameter)
+              outDict['data'][var] = getDict['data'][var]
           #timeSlice requires the time value
           #functionality removed for now until we recall why it's desirable
           #elif method == 'timeSlice':
@@ -190,106 +186,107 @@ class HistorySetSnapShot(PostProcessorInterfaceBase):
           elif method == 'value':
             for var,depVar,depVal in entries:
               getDict = historySnapShot(inputDic,depVar,method,pivotVal=depVal)
-              outDict['data']['output'][var] = getDict['data']['output'][var]
+              outDict['data'][var] = getDict['data'][var]
         return outDict
-
 
 def historySnapShot(inputDic, pivotVar, snapShotType, pivotVal=None, tempID = None):
   """
-  Method do to compute a conversion from HistorySet to PointSet using the methods: min,max,average,value
-  @ In, vars, dict, it is an historySet
-  @ In, pivotVar,  string, variable considered
-  @ In, pivotVal,  double, value associated to the variable considered
-  @ In, snapShotType, string, type of snapShot: min, max, average, value
-  @ Out, outputDic, dict, it contains the temporal slice of all histories
+    Method do to compute a conversion from HistorySet to PointSet using the methods: min,max,average,value
+    @ In, inputDic, dict, it is an historySet
+    @ In, pivotVar,  string, variable considered
+    @ In, pivotVal,  float, value associated to the variable considered (deault None)
+    @ In, snapShotType, string, type of snapShot: min, max, average, value
+    @ In, tempID, string, name of the temporal variable (default None)
+    @ Out, outputDic, dict, it contains the temporal slice of all histories
   """
+  # place to store data results
+  outputDic={'data':{}}
+  # collect metadata, if it exists, to pass through
+  # TODO collecting by name is problemsome; for instance, Optimizers don't produce "probability weight" information
+  ## ProbabilityWeight
+  try:
+    outputDic['data']['ProbabilityWeight'] = inputDic['data']['ProbabilityWeight']
+  except KeyError:
+    pass
+  ## prefix
+  try:
+    outputDic['data']['prefix'] = inputDic['data']['prefix']
+  except KeyError:
+    pass
+  # place to store dimensionalities
+  outputDic['dims'] = {key: [] for key in inputDic['dims'].keys()}
 
-  outputDic={}
-  outputDic['metadata'] = copy.deepcopy(inputDic['metadata'])
-  outputDic['data'] = {}
-  outputDic['data']['input'] = {}
-  outputDic['data']['output'] = {}
+  for var in inputDic['inpVars']:
+    outputDic['data'][var] = inputDic['data'][var]
 
-  historiesID = inputDic['data']['output'].keys()
-  inVars  = inputDic['data']['input'][historiesID[0]].keys()
-  outVars = inputDic['data']['output'][historiesID[0]].keys()
-  #if tempID != None:
-  #  outVars.remove(tempID)
+  outVars = inputDic['data'].keys()
+  outVars = [var for var in outVars if 'Probability' not in var]
+  try:
+    outVars.remove('prefix')
+  except ValueError:
+    pass
+  vars = [var for var in outVars if var not in inputDic['inpVars']]
 
-  for var in inVars:
-    outputDic['data']['input'][var] = np.zeros(0)
-
-  for var in outVars:
-    outputDic['data']['output'][var] = np.zeros(0)
-
-  for history in inputDic['data']['input']:
-    for key in inVars:
-      outputDic['data']['input'][key]  = np.append(outputDic['data']['input'][key],copy.deepcopy(inputDic['data']['input'][history][key]))
-
-  for history in inputDic['data']['output']:
-    if snapShotType == 'min':
-      idx = inputDic['data']['output'][history][pivotVar].returnIndexMin()
-      for vars in outVars:
-        outputDic['data']['output'][vars] = np.append(outputDic['data']['output'][vars] , copy.deepcopy(inputDic['data']['output'][history][vars][idx]))
-    elif snapShotType == 'max':
-      idx = inputDic['data']['output'][history][pivotVar].returnIndexMax()
-      for vars in outVars:
-        outputDic['data']['output'][vars] = np.append(outputDic['data']['output'][vars] , copy.deepcopy(inputDic['data']['output'][history][vars][idx]))
-    elif snapShotType == 'value':
-      idx = inputDic['data']['output'][history][pivotVar].returnIndexFirstPassage(pivotVal)
-      if inputDic['data']['output'][history][pivotVar][idx]>pivotVal:
-        intervalFraction = (pivotVal-inputDic['data']['output'][history][pivotVar][idx-1])/(inputDic['data']['output'][history][pivotVar][idx]-inputDic['data']['output'][history][pivotVar][idx-1])
-        for keys in outVars:
-          value = inputDic['data']['output'][history][keys][idx-1] + (inputDic['data']['output'][history][keys][idx]-inputDic['data']['output'][history][keys][idx-1])*intervalFraction
-          outputDic['data']['output'][keys] = np.append(outputDic['data']['output'][keys],value)
-      else:
-        intervalFraction = (pivotVal-inputDic['data']['output'][history][pivotVar][idx])/(inputDic['data']['output'][history][pivotVar][idx+1]-inputDic['data']['output'][history][pivotVar][idx])
-        for keys in outVars:
-          value = inputDic['data']['output'][history][keys][idx] + (inputDic['data']['output'][history][keys][idx+1]-inputDic['data']['output'][history][keys][idx])*intervalFraction
-          outputDic['data']['output'][keys] = np.append(outputDic['data']['output'][keys],value)
-    elif snapShotType == 'average':
-      for keys in outVars:
+  for var in vars:
+    outputDic['data'][var] = np.zeros(inputDic['numberRealizations'], dtype=object)
+    for history in range(inputDic['numberRealizations']):
+      if snapShotType == 'min':
+        idx = np.argmin(inputDic['data'][pivotVar][history])
+        outputDic['data'][var][history] = inputDic['data'][var][history][idx]
+      if snapShotType == 'max':
+        idx = np.argmax(inputDic['data'][pivotVar][history])
+        outputDic['data'][var][history] = inputDic['data'][var][history][idx]
+      elif snapShotType == 'value':
+        idx = returnIndexFirstPassage(inputDic['data'][pivotVar][history],pivotVal)
+        if inputDic['data'][pivotVar][history][idx]>pivotVal:
+          intervalFraction = (pivotVal-inputDic['data'][pivotVar][history][idx-1])/(inputDic['data'][pivotVar][history][idx]-inputDic['data'][pivotVar][history][idx-1])
+          outputDic['data'][var][history] = inputDic['data'][var][history][idx-1] + (inputDic['data'][var][history][idx]-inputDic['data'][var][history][idx-1])*intervalFraction
+        else:
+          intervalFraction = (pivotVal-inputDic['data'][pivotVar][history][idx])/(inputDic['data'][pivotVar][history][idx+1]-inputDic['data'][pivotVar][history][idx])
+          outputDic['data'][var][history] = inputDic['data'][var][history][idx] + (inputDic['data'][var][history][idx+1]-inputDic['data'][var][history][idx])*intervalFraction
+      elif snapShotType == 'average':
         cumulative=0.0
-        for t in range(1,len(inputDic['data']['output'][history][tempID])):
-          cumulative += (inputDic['data']['output'][history][keys][t] + inputDic['data']['output'][history][keys][t-1]) / 2.0 * (inputDic['data']['output'][history][tempID][t] - inputDic['data']['output'][history][tempID][t-1])
-        value = cumulative / (inputDic['data']['output'][history][tempID][-1] - inputDic['data']['output'][history][tempID][0])
-        outputDic['data']['output'][keys] = np.append(outputDic['data']['output'][keys],value)
-
+        for t in range(1,len(inputDic['data'][tempID][history])):
+          cumulative += (inputDic['data'][var][history][t] + inputDic['data'][var][history][t-1]) / 2.0 * (inputDic['data'][tempID][history][t] - inputDic['data'][tempID][history][t-1])
+        outputDic['data'][var][history] = cumulative / (inputDic['data'][tempID][history][-1] - inputDic['data'][tempID][history][0])
   return outputDic
 
-
-def historySetWindow(inputDic,timeStepID,pivotParameter):
+def historySetWindow(inputDic,timeStepID,inpVars,outVars,N,pivotParameter):
   """
-  Method do to compute a conversion from HistorySet to PointSet using the temporal slice of the historySet
-  @ In, inputDic, dict, it is an historySet
-  @ In, timeStepID, int, number of time sample of each history
-  @ In, pivotParameter, string, ID name of the temporal variable
-  @ Out, outDic, dict, it contains the temporal slice of all histories
+    Method do to compute a conversion from HistorySet to PointSet using the temporal slice of the historySet
+    @ In, inputDic, dict, it is an historySet
+    @ In, timeStepID, int, number of time sample of each history
+    @ In, inpVars, list, list of input variables
+    @ In, outVars, list, list of output variables
+    @ In, pivotParameter, string, ID name of the temporal variable
+    @ In, N, int, number of realizations
+    @ Out, outDic, dict, it contains the temporal slice of all histories
   """
+  outputDic={'data':{}}
+  outputDic['data']['ProbabilityWeight'] = inputDic['data']['ProbabilityWeight']
+  outputDic['data']['prefix'] = inputDic['data']['prefix']
+  outputDic['dims'] = {key:[] for key in inputDic['dims'].keys()}
+  #outputDic['dims'][pivotParameter]=[]
 
-  outputDic={}
-  outputDic['metadata'] = copy.deepcopy(inputDic['metadata'])
-  outputDic['data'] = {}
-  outputDic['data']['input'] = {}
-  outputDic['data']['output'] = {}
-
-  historiesID = inputDic['data']['output'].keys()
-  inVars  = inputDic['data']['input'][historiesID[0]].keys()
-  outVars = inputDic['data']['output'][historiesID[0]].keys()
-  outVars.remove(pivotParameter)
-
-  for var in inVars:
-    outputDic['data']['input'][var] = np.zeros(0)
+  for var in inpVars:
+    outputDic['data'][var] = inputDic['data'][var]
 
   for var in outVars:
-    outputDic['data']['output'][var] = np.zeros(0)
-
-  for history in inputDic['data']['input']:
-    for key in inVars:
-      outputDic['data']['input'][key]  = np.append(outputDic['data']['input'][key],copy.deepcopy(inputDic['data']['input'][history][key]))
-
-  for history in inputDic['data']['output']:
-    for key in outVars:
-      outputDic['data']['output'][key] = np.append(outputDic['data']['output'][key],copy.deepcopy(inputDic['data']['output'][history][key][timeStepID]))
-
+    outputDic['data'][var] = np.zeros(N, dtype=object)
+    for rlz in range(N):
+      outputDic['data'][var][rlz] = inputDic['data'][var][rlz][timeStepID]
   return outputDic
+
+def returnIndexFirstPassage(array,value):
+  """
+    Function that return the index of the element that firstly crosses value
+    @ In, array, np.array, array to be considered in the search
+    @ In, value, double, query value
+    @ Out, index, int, index of the element in the array closest to value
+  """
+  index=-1
+  for i in range(1,array.size):
+    if (array[i]>=value and array[i-1]<=value) or (array[i]<=value and array[i-1]>=value):
+      index = i
+      break
+  return index

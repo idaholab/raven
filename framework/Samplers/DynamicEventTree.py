@@ -212,7 +212,6 @@ class DynamicEventTree(Grid):
       @ Out, None
     """
     self.workingDir = model.workingDir
-
     # returnBranchInfo = self.__readBranchInfo(jobObject.output)
     # Get the parent element tree (xml object) to retrieve the information needed to create the new inputs
     parentNode = self._retrieveParentNode(jobObject.identifier)
@@ -261,10 +260,8 @@ class DynamicEventTree(Grid):
     # get the branchedLevel dictionary
     branchedLevel = {}
     for distk, distpb in zip(endInfo['parentNode'].get('SampledVarsPb').keys(),endInfo['parentNode'].get('SampledVarsPb').values()):
-    #for distk, distpb in zip(endInfo['parentNode'].get('initiatorDistribution'),endInfo['parentNode'].get('PbThreshold')):
       if distk not in self.epistemicVariables.keys():
         branchedLevel[distk] = utils.index(self.branchProbabilities[distk],distpb)
-
     if not branchedLevel:
       self.raiseAnError(RuntimeError,'branchedLevel of node '+jobObject.identifier+'not found!')
     # Loop of the parameters that have been changed after a trigger gets activated
@@ -315,7 +312,6 @@ class DynamicEventTree(Grid):
     # Create the inputs and put them in the runQueue dictionary (if genRunQueue is true)
     if genRunQueue:
       self._createRunningQueue(model,myInput)
-
     return True
 
   def computeConditionalProbability(self,index=None):
@@ -425,7 +421,8 @@ class DynamicEventTree(Grid):
     self.inputInfo['branchChangedParamValue'   ] = [b'None']
     self.inputInfo['startTime'                 ] = -sys.float_info.max
     self.inputInfo['endTimeStep'               ] = 0
-    self.inputInfo['parentID'                  ] = 'root'
+    self.inputInfo['RAVEN_parentID'            ] = "None"
+    self.inputInfo['RAVEN_isEnding'            ] = True
     self.inputInfo['conditionalPb'             ] = [1.0]
     self.inputInfo['conditionalPbr'            ] = 1.0
     self.inputInfo['happenedEvent'             ] = False
@@ -452,13 +449,14 @@ class DynamicEventTree(Grid):
         self.inputInfo['SampledVarsPb'].update(precSample['SampledVarsPb'])
     self.inputInfo['PointProbability' ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
     self.inputInfo['ProbabilityWeight'] = self.inputInfo['PointProbability' ]
+    self.inputInfo.update({'ProbabilityWeight-'+key.strip():value for key,value in self.inputInfo['SampledVarsPb'].items()})
 
     if(self.maxSimulTime):
       self.inputInfo['endTime'] = self.maxSimulTime
     # Add the new input path into the RunQueue system
     newInputs = {'args':[str(self.type)], 'kwargs':dict(self.inputInfo)}
     for key,value in self.inputInfo.items():
-      rootnode.add(key,value)
+      rootnode.add(key,copy.copy(value))
     self.RunQueue['queue'].append(newInputs)
     self.RunQueue['identifiers'].append(self.inputInfo['prefix'].encode())
     self.rootToJob[self.inputInfo['prefix']] = rname
@@ -522,7 +520,6 @@ class DynamicEventTree(Grid):
       branchedLevel = copy.deepcopy(branchedLevelParent)
       # Get Parent node name => the branch name is creating appending to this name  a comma and self.branchCountOnLevel counter
       rname = endInfo['parentNode'].get('name') + '-' + str(self.branchCountOnLevel)
-
       # create a subgroup that will be appended to the parent element in the xml tree structure
       subGroup = ETS.HierarchicalNode(self.messageHandler,rname.encode())
       subGroup.add('parent', endInfo['parentNode'].get('name'))
@@ -591,8 +588,10 @@ class DynamicEventTree(Grid):
                 'branchChangedParamValue':subGroup.get('branchChangedParamValue'),
                 'conditionalPb':subGroup.get('conditionalPbr'),
                 'startTime':endInfo['parentNode'].get('endTime'),
-                'parentID':subGroup.get('parent')}
+                'RAVEN_parentID':subGroup.get('parent'),
+                'RAVEN_isEnding':True}
 
+      #'RAVEN_parentID','RAVEN_isEnding'
       self.inputInfo['happenedEvent'] = subGroup.get('happenedEvent')
       # add additional edits if needed
       model.getAdditionalInputEdits(self.inputInfo)
@@ -640,12 +639,13 @@ class DynamicEventTree(Grid):
           self.inputInfo['SampledVarsPb'].update(precSample['SampledVarsPb'])
       self.inputInfo['PointProbability' ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())*subGroup.get('conditionalPbr')
       self.inputInfo['ProbabilityWeight'] = self.inputInfo['PointProbability' ]
+      self.inputInfo.update({'ProbabilityWeight-'+key.strip():value for key,value in self.inputInfo['SampledVarsPb'].items()})
       # Add the new input path into the RunQueue system
-      newInputs = {'args': [str(self.type)], 'kwargs': dict(self.inputInfo)}
+      newInputs = {'args': [str(self.type)], 'kwargs':dict(self.inputInfo)}
       self.RunQueue['queue'].append(newInputs)
       self.RunQueue['identifiers'].append(self.inputInfo['prefix'])
       for key,value in self.inputInfo.items():
-        subGroup.add(key,value)
+        subGroup.add(key,copy.copy(value))
       popped = endInfo.pop('parentNode')
       subGroup.add('endInfo',copy.deepcopy(endInfo))
       endInfo['parentNode'] = popped
@@ -949,3 +949,5 @@ class DynamicEventTree(Grid):
       #self.branchProbabilities[key] = [self.distDict[self.toBeSampled.keys()[self.toBeSampled.values().index(key)]].cdf(float(self.branchValues[key][index])) for index in range(len(self.branchValues[key]))]
       self.branchProbabilities[key] = [self.distDict[key].cdf(float(self.branchValues[key][index])) for index in range(len(self.branchValues[key]))]
     self.limit = sys.maxsize
+    # add expected metadata
+    self.addMetaKeys(*['RAVEN_parentID','RAVEN_isEnding'])
