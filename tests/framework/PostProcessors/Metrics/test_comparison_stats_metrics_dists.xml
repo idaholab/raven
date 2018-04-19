@@ -5,6 +5,7 @@
     <Sequence>mcRun, PP1</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+
   <TestInfo>
     <name>framework/PostProcessors/Metric/test_comparison_stats_metrics</name>
     <author>joshua-cogliati-inl</author>
@@ -13,12 +14,10 @@
     <description>
       This test checks the Comparison Statistics Metric
     </description>
+    <revisions>
+      <revision author="wangc" date="2017-12-06">convert to using new data objects</revision>
+    </revisions>
   </TestInfo>
-
-  <Files>
-    <Input name="output_metric" type="">output_metric.xml</Input>
-    <Input name="output_metric.csv" type="">output_metric.csv</Input>
-  </Files>
 
   <Models>
     <ExternalModel ModuleToLoad="../compStats/passthru.py" name="passthru" subType="">
@@ -33,8 +32,8 @@
   </Models>
 
   <Metrics>
-    <CDFAreaDifference name="cdf_diff" />
-    <PDFCommonArea name="pdf_area" />
+    <CDFAreaDifference name="cdf_diff"/>
+    <PDFCommonArea name="pdf_area"/>
   </Metrics>
 
   <Distributions>
@@ -75,8 +74,8 @@
       <Input class="Distributions" type="">dist1</Input>
       <Input class="Distributions" type="">dist2</Input>
       <Model class="Models" type="PostProcessor">pp1</Model>
-      <Output class="Files" type="">output_metric</Output>
-      <Output class="Files" type="">output_metric.csv</Output>
+      <Output class="DataObjects" type="PointSet">pp1_metric</Output>
+      <Output class="OutStreams" type="Print">pp1_metric_dump</Output>
     </PostProcess>
   </Steps>
 
@@ -89,13 +88,29 @@
       <Input>x1,x2</Input>
       <Output>ans,ans2</Output>
     </PointSet>
+    <PointSet name="pp1_metric">
+      <Output>pp1_vars</Output>
+    </PointSet>
   </DataObjects>
- 
+
   <OutStreams>
-      <Print name="dumpMC">
-          <type>csv</type>
-          <source>outputDataMC</source>
-      </Print>
+    <Print name="dumpMC">
+      <type>csv</type>
+      <source>outputDataMC</source>
+    </Print>
+    <Print name="pp1_metric_dump">
+      <type>csv</type>
+      <source>pp1_metric</source>
+    </Print>
   </OutStreams>
+
+  <VariableGroups>
+    <Group name="pp1_vars">cdf_diff_ans2_ans,
+                 pdf_area_ans2_ans,
+                 cdf_diff_dist2_dist1,
+                 pdf_area_dist2_dist1,
+                 cdf_diff_outputDataMC-Output-ans2_dist1,
+                 pdf_area_outputDataMC-Output-ans2_dist1</Group>
+  </VariableGroups>
 
 </Simulation>

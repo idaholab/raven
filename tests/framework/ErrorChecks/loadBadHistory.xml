@@ -3,7 +3,7 @@
 
   <RunInfo>
     <WorkingDir>badData</WorkingDir>
-    <Sequence>readData</Sequence> 
+    <Sequence>readData</Sequence>
   </RunInfo>
 
   <Files>
@@ -12,16 +12,19 @@
 
   <DataObjects>
     <HistorySet name="data">
-      <Input>year,scaling_load</Input>
-      <Output>seconds,load</Output>
+      <Input>index,scaling</Input>
+      <Output>number</Output>
+      <options>
+        <pivotParameter>seconds</pivotParameter>
+      </options>
     </HistorySet>
   </DataObjects>
 
   <Steps>
     <IOStep name='readData' pauseAtEnd = 'True'>
       <Input  class='Files'       type=''>rawDataFile</Input>
-      <Output class='DataObjects' type='HistorySet'>data</Output>          
+      <Output class='DataObjects' type='HistorySet'>data</Output>
     </IOStep>
   </Steps>
-  
+
 </Simulation>

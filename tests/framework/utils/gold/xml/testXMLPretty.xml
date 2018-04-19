@@ -1,5 +1,0 @@
-<root ratr="root_attrib">
-  <child catr1="child attrib 1" catr2="child attrib 2">
-    <cchild ccatr="cc_attrib">cchildtext</cchild>
-  </child>
-</root>

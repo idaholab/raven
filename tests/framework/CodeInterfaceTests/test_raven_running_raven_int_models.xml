@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework/CodeInterfaceTests.RAVENrunningRAVEN</name>
+    <name>framework/CodeInterfaceTests.RAVENrunningRAVEN_ROM</name>
     <author>alfoa</author>
     <created>2017-09-16</created>
     <classesTested>Models.Code.RAVEN</classesTested>
@@ -98,10 +98,12 @@
     <Print name="testPrintHistorySet_dump">
       <type>csv</type>
       <source>testPrintHistorySet</source>
+      <what>input,output</what>
     </Print>
     <Print name="testPointSet_dump">
       <type>csv</type>
       <source>testPointSet</source>
+      <what>input,output</what>
     </Print>
   </OutStreams>
 
@@ -112,11 +114,11 @@
       <Output>OutputPlaceHolder</Output>
     </PointSet>
     <PointSet name="testPointSet">
-      <Input>loss_factor,tollerance,DeltaTimeScramToAux,DG1recoveryTime</Input>
+      <Input>loss_factor,DeltaTimeScramToAux,tollerance,DG1recoveryTime</Input>
       <Output>CladTempThreshold</Output>
     </PointSet>
     <HistorySet name="testPrintHistorySet">
-      <Input>loss_factor,tollerance,DeltaTimeScramToAux,DG1recoveryTime</Input>
+      <Input>loss_factor,DeltaTimeScramToAux,tollerance,DG1recoveryTime</Input>
       <Output>CladTempThreshold</Output>
     </HistorySet>
   </DataObjects>

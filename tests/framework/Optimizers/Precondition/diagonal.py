@@ -20,4 +20,4 @@ def initialize(self,runInfo,inputs):
 
 def createNewInput(self,inputs,samplerType,**kwargs):
   self.fromCreate = 64.
-  return {'dummy':32.}
+  return {'fromExtModCreateNewInputReturnDict':32.}

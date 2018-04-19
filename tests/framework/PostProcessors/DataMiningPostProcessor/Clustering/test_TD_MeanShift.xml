@@ -24,6 +24,7 @@
     </MultiRun>
     <IOStep name="plotAllHists" pauseAtEnd="false">
       <Input class="DataObjects" type="HistorySet">outMC</Input>
+      <Output class="OutStreams" type="Print">samples</Output>
       <Output class="OutStreams" type="Plot">plot1</Output>
     </IOStep>
     <PostProcess name="pp1" pauseAtEnd="True">
@@ -144,12 +145,16 @@
       <Output>time,x,y,z</Output>
     </HistorySet>
     <HistorySet name="clusterInfo">
-      <Input>labels</Input>
+      <Input>MeanShiftLabels</Input>
       <Output>time,x,y,z</Output>
     </HistorySet>
   </DataObjects>
 
   <OutStreams>
+    <Print name="samples">
+      <type>csv</type>
+      <source>outMC</source>
+    </Print>
     <Print name="print0">
       <type>csv</type>
       <source>outMC0</source>

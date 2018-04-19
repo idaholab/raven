@@ -5,7 +5,7 @@
   dx = "0.2 -0.3"
   trigger_low = "12.0 5.0"
   trigger_high = "12.1 5.1"
-  start_time = 10.0
+  start_time = 0.0
   end_time = 30.0
   x_start = 1.0
   x_dt = 0.1

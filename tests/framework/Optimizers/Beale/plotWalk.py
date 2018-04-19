@@ -25,7 +25,7 @@ cases = range(5)
 data = {}
 for c,case in enumerate(cases):
   try:
-    with open('opt_export_{}.csv'.format(case),'r') as infile:
+    with open('opt_export_{}.csv'.format(case+1),'r') as infile:
       data[case] = {'x':[],'y':[]}
       for l,line in enumerate(infile):
         line = line.strip().split(',')

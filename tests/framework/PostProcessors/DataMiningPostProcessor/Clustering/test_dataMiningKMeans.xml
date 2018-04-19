@@ -99,7 +99,7 @@
       <Output>Output</Output>
     </PointSet>
     <PointSet name="clusterInfo">
-      <Input>labels</Input>
+      <Input>kMeansLabels</Input>
       <Output>x1,x2</Output>
     </PointSet>
   </DataObjects>
