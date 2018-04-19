@@ -96,3 +96,41 @@ The mean and variance can computed using previous equation, and the results are:
 \begin{equation}
 \text{var}{u(Y)} = 0.063779804051749989
 \end{equation}
+
+\subsection{Changing lower, upper bounds}
+A parametric study can be made by changing the lower and upper bounds of the material opacities.
+
+The objective is to determine the effects on the exit strength $u$ of a beam impinging on a
+unit-length material subdivided into two materials with opacities $y_1, y_2$.  The range of values for
+these opacities varies from lower bound $y_\ell$ to higher bound $y_h$, and the bounds are always
+the same for both opacities.
+
+We consider evaluating the lower and upper bounds
+on a grid, and determine the expected values for the opacity means and exit strength.
+
+The analytic values for the exit strength expected value depends on the lower and upper bound
+as follows:
+\begin{align}
+  \bar u(y_1,y_2) &= \int_{y_\ell}^{y_h}\int_{y_\ell}^{y_h} \left(\frac{1}{y_h-y_\ell}\right)^2
+    e^{-(y_1+y_2)/2} dy_1 dy_2, \\
+    &= \frac{4e^{-y_h-y_\ell}\left(e^{y_h/2}-e^{y_\ell/2}\right)^2}{(y_h-y_\ell)^2}.
+\end{align}
+
+Numerically, the following grid points result in the following expected values:
+
+\begin{table}[h!]
+\centering
+\begin{tabular}{c c|c|c}
+$y_\ell$ & $y_h$ & $\bar y_1=\bar y_2$ & $\bar u$ \\ \hline
+0.00 & 0.50 & 0.250 & 0.782865 \\
+0.00 & 0.75 & 0.375 & 0.695381 \\
+0.00 & 1.00 & 0.500 & 0.619272 \\
+0.25 & 0.50 & 0.375 & 0.688185 \\
+0.25 & 0.75 & 0.500 & 0.609696 \\
+0.25 & 1.00 & 0.625 & 0.541564 \\
+0.50 & 0.50 & 0.500 & 0.606531 \\
+0.50 & 0.75 & 0.625 & 0.535959 \\
+0.50 & 1.00 & 0.750 & 0.474832
+\end{tabular}
+\end{table}
+
