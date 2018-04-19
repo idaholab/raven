@@ -8,6 +8,7 @@
     <WorkingDir>StatisticalAnalysis</WorkingDir>
     <batchSize>40</batchSize>
   </RunInfo>
+
   <TestInfo>
     <name>framework/user_guide/StatisticalAnalysis/StatisticalAnalysis</name>
     <author>talbpw</author>
@@ -18,11 +19,13 @@
       data taken from the analytic bateman model, and demonstrates a typical workflow for using
       the basic statistics postprocessor.
     </description>
+    <revisions>
+      <revision author="wangc" date="2017-12-20">convert test to use the new DataObjects with the new structure of basic statistic</revision>
+    </revisions>
   </TestInfo>
 
   <Files>
     <Input name="referenceInput.xml" type="input">referenceInput.xml</Input>
-    <Input name="output_stat_analysis_mc.xml" type="">output_stat_analysis_mc.xml</Input>
   </Files>
 
   <Models>
@@ -33,22 +36,49 @@
       <clargs arg=" " extension=".csv" type="output"/>
     </Code>
     <PostProcessor name="statisticalAnalysis" subType="BasicStatistics">
-      <all>
+      <skewness prefix="skew">A,B,C,D</skewness>
+      <variationCoefficient prefix="vc">A,B,C,D</variationCoefficient>
+      <percentile prefix="percentile">A,B,C,D</percentile>
+      <expectedValue prefix="mean">A,B,C,D</expectedValue>
+      <kurtosis prefix="kurt">A,B,C,D</kurtosis>
+      <median prefix="median">A,B,C,D</median>
+      <maximum prefix="max">A,B,C,D</maximum>
+      <minimum prefix="min">A,B,C,D</minimum>
+      <samples prefix="samp">A,B,C,D</samples>
+      <variance prefix="var">A,B,C,D</variance>
+      <sigma prefix="sigma">A,B,C,D</sigma>
+      <NormalizedSensitivity prefix="nsen">
         <targets>A,B,C,D</targets>
         <features>sigma-A,sigma-B,decay-A,decay-B</features>
-      </all>
+      </NormalizedSensitivity>
+      <sensitivity prefix="sen">
+        <targets>A,B,C,D</targets>
+        <features>sigma-A,sigma-B,decay-A,decay-B</features>
+      </sensitivity>
+      <pearson prefix="pear">
+        <targets>A,B,C,D</targets>
+        <features>sigma-A,sigma-B,decay-A,decay-B</features>
+      </pearson>
+      <covariance prefix="cov">
+        <targets>A,B,C,D</targets>
+        <features>sigma-A,sigma-B,decay-A,decay-B</features>
+      </covariance>
+      <VarianceDependentSensitivity prefix="vsen">
+        <targets>A,B,C,D</targets>
+        <features>sigma-A,sigma-B,decay-A,decay-B</features>
+      </VarianceDependentSensitivity>
     </PostProcessor>
   </Models>
 
   <Distributions>
-      <Uniform name="sigma">
-          <lowerBound>0</lowerBound>
-          <upperBound>1000</upperBound>
-      </Uniform>
-      <Uniform name="decayConstant">
-          <lowerBound>0.00000001</lowerBound>
-          <upperBound>0.0000001</upperBound>
-      </Uniform>
+    <Uniform name="sigma">
+      <lowerBound>0</lowerBound>
+      <upperBound>1000</upperBound>
+    </Uniform>
+    <Uniform name="decayConstant">
+      <lowerBound>0.00000001</lowerBound>
+      <upperBound>0.0000001</upperBound>
+    </Uniform>
   </Distributions>
 
   <Samplers>
@@ -64,26 +94,27 @@
         <distribution>decayConstant</distribution>
       </variable>
       <variable name="sigma-B">
-          <distribution>sigma</distribution>
+        <distribution>sigma</distribution>
       </variable>
       <variable name="decay-B">
-          <distribution>decayConstant</distribution>
+        <distribution>decayConstant</distribution>
       </variable>
     </MonteCarlo>
   </Samplers>
 
   <Steps>
     <MultiRun name="sampleMC">
-      <Input   class="Files"       type="input">referenceInput.xml</Input>
-      <Model   class="Models"      type="Code">testModel</Model>
-      <Sampler class="Samplers"    type="MonteCarlo">mc</Sampler>
-      <Output  class="DataObjects" type="PointSet">samplesMC</Output>
-      <Output  class="DataObjects" type="HistorySet">histories</Output>
+      <Input class="Files" type="input">referenceInput.xml</Input>
+      <Model class="Models" type="Code">testModel</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
+      <Output class="DataObjects" type="PointSet">samplesMC</Output>
+      <Output class="DataObjects" type="HistorySet">histories</Output>
     </MultiRun>
     <PostProcess name="statisticalAnalysisMC">
-      <Input  class="DataObjects" type="PointSet">samplesMC</Input>
-      <Model  class="Models"      type="PostProcessor">statisticalAnalysis</Model>
-      <Output class="Files"       type="">output_stat_analysis_mc.xml</Output>
+      <Input class="DataObjects" type="PointSet">samplesMC</Input>
+      <Model class="Models" type="PostProcessor">statisticalAnalysis</Model>
+      <Output class="DataObjects" type="PointSet">statisticalAnalysis_basicStatPP</Output>
+      <Output class="OutStreams" type="Print">statisticalAnalysis_basicStatPP_dump</Output>
     </PostProcess>
   </Steps>
 
@@ -92,10 +123,151 @@
       <Input>sigma-A,sigma-B,decay-A,decay-B</Input>
       <Output>A,B,C,D</Output>
     </PointSet>
+    <PointSet name="statisticalAnalysis_basicStatPP">
+        <Output>statisticalAnalysis_vars</Output>
+    </PointSet>
     <HistorySet name="histories">
-        <Input>sigma-A,sigma-B,decay-A,decay-B</Input>
-        <Output>A,B,C,D,time</Output>
+      <Input>sigma-A,sigma-B,decay-A,decay-B</Input>
+      <Output>A,B,C,D,time</Output>
     </HistorySet>
   </DataObjects>
+
+  <VariableGroups>
+    <Group name="statisticalAnalysis_vars">skew_A,
+                 skew_B,
+                 skew_C,
+                 skew_D,
+                 vc_A,
+                 vc_B,
+                 vc_C,
+                 vc_D,
+                 percentile_5_A,
+                 percentile_95_A,
+                 percentile_5_B,
+                 percentile_95_B,
+                 percentile_5_C,
+                 percentile_95_C,
+                 percentile_5_D,
+                 percentile_95_D,
+                 mean_A,
+                 mean_B,
+                 mean_C,
+                 mean_D,
+                 kurt_A,
+                 kurt_B,
+                 kurt_C,
+                 kurt_D,
+                 median_A,
+                 median_B,
+                 median_C,
+                 median_D,
+                 max_A,
+                 max_B,
+                 max_C,
+                 max_D,
+                 min_A,
+                 min_B,
+                 min_C,
+                 min_D,
+                 samp_A,
+                 samp_B,
+                 samp_C,
+                 samp_D,
+                 var_A,
+                 var_B,
+                 var_C,
+                 var_D,
+                 sigma_A,
+                 sigma_B,
+                 sigma_C,
+                 sigma_D,
+                 nsen_A_sigma-A,
+                 nsen_A_sigma-B,
+                 nsen_A_decay-A,
+                 nsen_A_decay-B,
+                 nsen_B_sigma-A,
+                 nsen_B_sigma-B,
+                 nsen_B_decay-A,
+                 nsen_B_decay-B,
+                 nsen_C_sigma-A,
+                 nsen_C_sigma-B,
+                 nsen_C_decay-A,
+                 nsen_C_decay-B,
+                 nsen_D_sigma-A,
+                 nsen_D_sigma-B,
+                 nsen_D_decay-A,
+                 nsen_D_decay-B,
+                 sen_A_sigma-A,
+                 sen_A_sigma-B,
+                 sen_A_decay-A,
+                 sen_A_decay-B,
+                 sen_B_sigma-A,
+                 sen_B_sigma-B,
+                 sen_B_decay-A,
+                 sen_B_decay-B,
+                 sen_C_sigma-A,
+                 sen_C_sigma-B,
+                 sen_C_decay-A,
+                 sen_C_decay-B,
+                 sen_D_sigma-A,
+                 sen_D_sigma-B,
+                 sen_D_decay-A,
+                 sen_D_decay-B,
+                 pear_A_sigma-A,
+                 pear_A_sigma-B,
+                 pear_A_decay-A,
+                 pear_A_decay-B,
+                 pear_B_sigma-A,
+                 pear_B_sigma-B,
+                 pear_B_decay-A,
+                 pear_B_decay-B,
+                 pear_C_sigma-A,
+                 pear_C_sigma-B,
+                 pear_C_decay-A,
+                 pear_C_decay-B,
+                 pear_D_sigma-A,
+                 pear_D_sigma-B,
+                 pear_D_decay-A,
+                 pear_D_decay-B,
+                 cov_A_sigma-A,
+                 cov_A_sigma-B,
+                 cov_A_decay-A,
+                 cov_A_decay-B,
+                 cov_B_sigma-A,
+                 cov_B_sigma-B,
+                 cov_B_decay-A,
+                 cov_B_decay-B,
+                 cov_C_sigma-A,
+                 cov_C_sigma-B,
+                 cov_C_decay-A,
+                 cov_C_decay-B,
+                 cov_D_sigma-A,
+                 cov_D_sigma-B,
+                 cov_D_decay-A,
+                 cov_D_decay-B,
+                 vsen_A_sigma-A,
+                 vsen_A_sigma-B,
+                 vsen_A_decay-A,
+                 vsen_A_decay-B,
+                 vsen_B_sigma-A,
+                 vsen_B_sigma-B,
+                 vsen_B_decay-A,
+                 vsen_B_decay-B,
+                 vsen_C_sigma-A,
+                 vsen_C_sigma-B,
+                 vsen_C_decay-A,
+                 vsen_C_decay-B,
+                 vsen_D_sigma-A,
+                 vsen_D_sigma-B,
+                 vsen_D_decay-A,
+                 vsen_D_decay-B</Group>
+  </VariableGroups>
+
+  <OutStreams>
+    <Print name="statisticalAnalysis_basicStatPP_dump">
+      <type>csv</type>
+      <source>statisticalAnalysis_basicStatPP</source>
+    </Print>
+  </OutStreams>
 
 </Simulation>

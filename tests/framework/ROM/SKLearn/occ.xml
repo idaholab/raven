@@ -57,6 +57,7 @@
     <Print name="outData">
       <type>csv</type>
       <source>outData</source>
+      <what>input,output, metadata|ProbabilityWeight</what>
       <filename>outOCC</filename>
     </Print>
   </OutStreams>

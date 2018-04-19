@@ -1,0 +1,4 @@
+y0 = $RAVEN-y0$
+v0 = $RAVEN-v0$
+ang = $RAVEN-ang$
+m = $RAVEN-m$

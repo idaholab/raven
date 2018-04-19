@@ -83,6 +83,7 @@
     <Print name="testPointSet_dump">
       <type>csv</type>
       <source>testPointSet</source>
+      <what>input,output</what>
     </Print>
   </OutStreams>
 
@@ -93,7 +94,7 @@
       <Output>OutputPlaceHolder</Output>
     </PointSet>
     <PointSet name="testPointSet">
-      <Input>a,b,c</Input>
+      <Input>a,c,b</Input>
       <Output>Xi,monotonicVariable</Output>
     </PointSet>
   </DataObjects>

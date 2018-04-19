@@ -45,7 +45,7 @@ class GenericCode(CodeInterfaceBase):
     self.execPrefix       = ''       # executioner command prefix (e.g., 'python ')
     self.execPostfix      = ''       # executioner command postfix (e.g. -zcvf)
     self.caseName         = None     # base label for outgoing files, should default to inputFileName
-    self.fixedOutFileName = None     # CSV output file name of the run code (in case it is hardcoded in the driven code)
+    self.fixedOutFileName = None     # CSV output filename of the run code (in case it is hardcoded in the driven code)
 
   def _readMoreXML(self,xmlNode):
     """
@@ -147,15 +147,15 @@ class GenericCode(CodeInterfaceBase):
     #outputs
     #FIXME I think if you give multiple output flags this could result in overwriting
     self.caseName = inputFiles[index].getBase()
-    outfile = 'out~'+self.caseName
+    outFile = 'out~'+self.caseName
     if 'output' in clargs:
-      todo+=' '+clargs['output']+' '+outfile
+      todo+=' '+clargs['output']+' '+outFile
     if self.fixedOutFileName is not None:
-      outfile = self.fixedOutFileName
+      outFile = self.fixedOutFileName
     todo+=' '+clargs['text']
     #postpend
     todo+=' '+clargs['post']
-    returnCommand = [('parallel',todo)],outfile
+    returnCommand = [('parallel',todo)],outFile
     print('Execution Command: '+str(returnCommand[0]))
     return returnCommand
 

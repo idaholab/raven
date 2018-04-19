@@ -3,7 +3,6 @@
   type = 'RavenFramework'
   input = 'test_Custom_Sampler_File.xml'
    csv = 'CustomSamplerFromFile/outCustomSampler_dump.csv'
-   xml = 'CustomSamplerFromFile/outCustomSampler_dump.xml'
    rel_err = 0.0001
  [../]
 
@@ -11,7 +10,6 @@
   type = 'RavenFramework'
   input = 'test_Custom_Sampler_DataObject.xml'
    csv = 'CustomSamplerFromDataObject/outCustomSampler_dump.csv'
-   xml = 'CustomSamplerFromDataObject/outCustomSampler_dump.xml'
    prereq = customSamplerFromFile
    rel_err = 0.0001
  [../]

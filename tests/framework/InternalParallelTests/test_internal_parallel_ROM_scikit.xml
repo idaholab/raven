@@ -110,10 +110,12 @@
     <Print name="PrintDataData2">
       <type>csv</type>
       <source>Data2</source>
+      <what>input, output</what>
     </Print>
     <Print name="PrintDataData3">
       <type>csv</type>
       <source>Data3</source>
+      <what>input, output</what>
     </Print>
   </OutStreams>
 

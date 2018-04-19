@@ -111,7 +111,7 @@
     <Print name="stats_td1">
       <type>xml</type>
       <source>rom</source>
-      <what>mean,variance</what>
+      <what>all</what>
     </Print>
   </OutStreams>
 

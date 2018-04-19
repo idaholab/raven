@@ -96,6 +96,7 @@
     <Print name="history_dump">
       <type>csv</type>
       <source>hist</source>
+      <what>input,output</what>
     </Print>
     <Print name="point_dump1">
       <type>csv</type>

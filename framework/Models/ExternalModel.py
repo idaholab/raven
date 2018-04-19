@@ -231,6 +231,8 @@ class ExternalModel(Dummy):
       if not (utils.typeMatch(outcomes[key],self.modelVariableType[key])):
         self.raiseAnError(RuntimeError,'type of variable '+ key + ' is ' + str(type(outcomes[key]))+' and mismatches with respect to the input ones (' + self.modelVariableType[key] +')!!!')
     self._replaceVariablesNamesWithAliasSystem(outcomes,'inout',True)
+    # TODO slow conversion, but provides type consistency
+    outcomes = dict((k,np.atleast_1d(val)) for k,val in outcomes.items())
     return outcomes,self
 
   def evaluateSample(self, myInput, samplerType, kwargs):
@@ -240,7 +242,7 @@ class ExternalModel(Dummy):
         @ In, myInput, list, the inputs (list) to start from to generate the new one
         @ In, samplerType, string, is the type of sampler that is calling to generate a new input
         @ In, kwargs, dict,  is a dictionary that contains the information coming from the sampler,
-           a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
+           a mandatory key is the 'SampledVars' that contains a dictionary {'name variable':value}
         @ Out, returnValue, tuple, This will hold two pieces of information,
           the first item will be the input data used to generate this sample,
           the second item will be the output of this model given the specified
@@ -248,8 +250,19 @@ class ExternalModel(Dummy):
     """
     Input = self.createNewInput(myInput, samplerType, **kwargs)
     inRun = copy.copy(self._manipulateInput(Input[0][0]))
-    returnValue = (inRun,self._externalRun(inRun,Input[1],))
-    return returnValue
+    # collect results from model run
+    result,instSelf = self._externalRun(inRun,Input[1],) #entry [1] is the external model object; it doesn't appear to be needed
+    # build realization
+    ## do it in this order to make sure only the right variables are overwritten
+    ## first inRun, which has everything from self.* and Input[*]
+    rlz =      dict((var,np.atleast_1d(val)) for var,val in inRun.items())
+    ## then result, which has the expected outputs and possibly changed inputs
+    rlz.update(dict((var,np.atleast_1d(val)) for var,val in result.items()))
+    ## then get the metadata from kwargs
+    rlz.update(dict((var,np.atleast_1d(val)) for var,val in kwargs.items()))
+    ## then get the inputs from SampledVars (overwriting any other entries)
+    rlz.update(dict((var,np.atleast_1d(val)) for var,val in kwargs['SampledVars'].items()))
+    return rlz
 
   def collectOutput(self,finishedJob,output,options=None):
     """
@@ -260,20 +273,21 @@ class ExternalModel(Dummy):
       @ Out, None
     """
     evaluation = finishedJob.getEvaluation()
+    # TODO this is done in dummy, so don't do it here?, but need to check before checking history lengths
     if isinstance(evaluation, Runners.Error):
       self.raiseAnError(RuntimeError,"No available Output to collect")
 
-    _, evaluatedOutput = evaluation
-    instanciatedSelf = evaluatedOutput[1]
-    outcomes         = evaluatedOutput[0]
+    # OLD instanciatedSelf = evaluation['RAVEN_instantiated_self']
+    # OLD outcomes         = evaluatedOutput[0]
 
+    # TODO move this check to the data object instead.
     if output.type in ['HistorySet']:
       outputSize = -1
-      for key in output.getParaKeys('outputs'):
-        if key in instanciatedSelf.modelVariableType.keys():
-          if outputSize == -1:
-            outputSize = len(np.atleast_1d(outcomes[key]))
-          if not utils.sizeMatch(outcomes[key],outputSize):
-            self.raiseAnError(Exception,"the time series size needs to be the same for the output space in a HistorySet! Variable:"+key+". Size in the HistorySet="+str(outputSize)+".Size outputed="+str(len(np.atleast_1d(outcomes[key]))))
+      for key in output.getVars('output'):
+        # OLD ? if key in instanciatedSelf.modelVariableType.keys(): #TODO why would it not be in this dict?
+        if outputSize == -1:
+          outputSize = len(np.atleast_1d(evaluation[key]))
+        if not utils.sizeMatch(evaluation[key],outputSize):
+          self.raiseAnError(Exception,"the time series size needs to be the same for the output space in a HistorySet! Variable:"+key+". Size in the HistorySet="+str(outputSize)+".Size outputed="+str(len(np.atleast_1d(outcomes[key]))))
 
     Dummy.collectOutput(self, finishedJob, output, options)

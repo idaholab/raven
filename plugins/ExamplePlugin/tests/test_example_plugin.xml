@@ -60,7 +60,7 @@
       <Output>OutputPlaceHolder</Output>
     </PointSet>
     <PointSet name="sumOfExponentialOutput">
-      <Input>a,b,c</Input>
+      <Input>a,c,b</Input>
       <Output>Xi,monotonicVariable</Output>
     </PointSet>
   </DataObjects>
@@ -82,6 +82,7 @@
     <Print name="dumpSumOfExpOutput">
       <type>csv</type>
       <source>sumOfExponentialOutput</source>
+      <what>input,output</what>
     </Print>
   </OutStreams>
 </Simulation>
