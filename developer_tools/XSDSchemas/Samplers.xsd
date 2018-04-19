@@ -98,6 +98,13 @@
         </xsd:complexContent>
     </xsd:complexType>
 
+    <xsd:complexType name="variableTypeCustomSampler">
+        <xsd:choice>
+            <xsd:element name="function"     type="xsd:string"        minOccurs="0"/>
+        </xsd:choice>
+        <xsd:attribute name="name" type="xsd:string" use="required"/>
+    </xsd:complexType>
+
     <xsd:complexType name="MonteCarloSampler">
         <xsd:sequence>
             <xsd:element name="samplerInit" type="samplerInitType" minOccurs="1"/>
@@ -122,11 +129,8 @@
                     <xsd:attribute name="type"  type="xsd:string" use="required"/>
                 </xsd:complexType>
             </xsd:element>
-            <xsd:element name="variable"     minOccurs="0" maxOccurs="unbounded">
-              <xsd:complexType mixed="true">
-                <xsd:attribute name="name"         type="xsd:string" use="required"/>
-              </xsd:complexType>
-            </xsd:element>
+            <xsd:element name="variable"     type="variableTypeCustomSampler"    minOccurs="0" maxOccurs="unbounded"/>
+            
             <xsd:element name="constant"         minOccurs="0" maxOccurs='unbounded'>
                 <xsd:complexType mixed="true">
                     <xsd:attribute name="name" type="xsd:string" use="required"/>
@@ -137,6 +141,7 @@
         </xsd:sequence>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
     </xsd:complexType>
+
 
     <xsd:complexType name="GridSampler">
         <xsd:sequence>
