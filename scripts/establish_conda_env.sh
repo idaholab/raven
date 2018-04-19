@@ -30,6 +30,9 @@ try_using_raven_environment ()
     fi
 }
 
+# if conda version 4.4+, they use function definitions instead of path inclusion.
+## however, they also define the CONDA_EXE variable, which is available.
+## once loaded, command -v conda works for both versions of conda.
 if [ "${#CONDA_EXE}" -gt 0 ];
 then
   echo sourcing conda function definitions ...
