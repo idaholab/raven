@@ -2887,7 +2887,7 @@ class PolyExponential(superVisedLearning):
                            and printing messages
       @ In, kwargs: an arbitrary dictionary of keywords and values
     """
-    
+
     superVisedLearning.__init__(self,messageHandler,**kwargs)
     self.availCoeffRegressors               = ['nearest','poly','spline']                   # avail coeff regressors
     self.printTag                           = 'PolyExponential'                             # Print tag
@@ -2940,7 +2940,7 @@ class PolyExponential(superVisedLearning):
       """
       l = int(s.size/2)
       return np.sum((y - np.dot(s[l:], np.exp(-np.outer(1./s[:l], x))))**2.)
-    
+
     predictionErr = None
     x, y          = np.array(x), np.array(y)
     bounds        = [[min(x), max(x)]]*self.polyExpParams['expTerms'] + [[min(y), max(y)]]*self.polyExpParams['expTerms']
@@ -2948,10 +2948,10 @@ class PolyExponential(superVisedLearning):
     taui, fi      = np.split(result['x'], 2)
     sortIndexes   = np.argsort(fi)
     fi, taui      = fi[sortIndexes], taui[sortIndexes]
-    
+
     if returnPredictDiff:
       predictionErr = (y-self.__evaluateExponentialTerm(x, fi, 1./taui))/y
-    
+
     return fi, 1./taui, predictionErr
 
   def __evaluateExponentialTerm(self,x, a, b):
@@ -2986,7 +2986,7 @@ class PolyExponential(superVisedLearning):
     #TODO: this can be parallelized
     for smp in range(nsamples):
       self.raiseADebug("Computing exponential terms for sample ID "+str(smp+1))
-      self.aij[smp,:],self.bij[smp,:], predictionError[smp,:] = self.__computeExponentialTerms(np.ravel(targetVals[smp,:,pivotParamIndex]), 
+      self.aij[smp,:],self.bij[smp,:], predictionError[smp,:] = self.__computeExponentialTerms(np.ravel(targetVals[smp,:,pivotParamIndex]),
                                                                               np.ravel(targetVals[smp,:,targetParamIndex])/self.polyExpParams['initialScaling'],
                                                                               True)
     self.pivotValues = targetVals[0,:,pivotParamIndex]
@@ -2997,12 +2997,12 @@ class PolyExponential(superVisedLearning):
       self.model = make_pipeline(PolynomialFeatures(self.polyExpParams['polyOrder']), linear_model.Ridge())
       self.model.fit(featureVals, expTermCoeff)
       # print the coefficient
-      
+
       if getLocalVerbosity() == 'debug':
         self.raiseADebug("poly coefficients")
         coefficients = self.model.steps[1][1].coef_
         for l, coeff in enumerate(coefficients):
-          coeff_str = "    a_"+str(l+1) if l < self.polyExpParams['expTerms'] else "    b_"+str((l-self.polyExpParams['expTerms'])+1) 
+          coeff_str = "    a_"+str(l+1) if l < self.polyExpParams['expTerms'] else "    b_"+str((l-self.polyExpParams['expTerms'])+1)
           coeff_str+="(" + ",".join(self.features)+"):"
           self.raiseADebug(coeff_str)
           self.raiseADebug("      "+" ".join([str(elm) for elm in coefficients[l]]))
@@ -3016,7 +3016,7 @@ class PolyExponential(superVisedLearning):
       # spline
       targets = ["a_"+str(cnt+1) if cnt < self.polyExpParams['expTerms'] else "b_"+str((cnt-self.polyExpParams['expTerms'])+1) for cnt in range(self.polyExpParams['expTerms']*2)]
       self.model = NDsplineRom(self.messageHandler,**{'Features':','.join(self.features),'Target':",".join(targets)})
-      self.model.__class__.__trainLocal__(self.model,featureVals,expTermCoeff)  
+      self.model.__class__.__trainLocal__(self.model,featureVals,expTermCoeff)
 
   def __evaluateLocal__(self,featureVals):
     """

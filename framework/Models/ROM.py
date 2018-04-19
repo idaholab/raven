@@ -282,7 +282,9 @@ class ROM(Dummy):
       @ Out, None
     """
     #determine dynamic or static
-    dynamic          = self.supervisedEngine.isADynamicModel
+    dynamic = self.supervisedEngine.isADynamicModel
+    # determine if it can handle dynamic data
+    handleDynamicData = self.supervisedEngine.canHandleDynamicData
     # get pivot parameter
     pivotParameterId = self.supervisedEngine.pivotParameterId
     # establish file
