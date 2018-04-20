@@ -745,21 +745,13 @@ class RomTrainer(Step):
       @ In, paramInput, ParameterInput, node that represents the portion of the input that belongs to this Step class
       @ Out, None
     """
+    if [item[0] for item in self.parList].count('Input')!=1:
+      self.raiseAnError(IOError,'Only one Input and only one is allowed for a training step. Step name: '+str(self.name))
     if [item[0] for item in self.parList].count('Output')<1:
       self.raiseAnError(IOError,'At least one Output is need in a training step. Step name: '+str(self.name))
     for item in self.parList:
       if item[0]=='Output' and item[2] not in ['ROM']:
         self.raiseAnError(IOError,'Only ROM output class are allowed in a training step. Step name: '+str(self.name))
-    # many ROMs can only take 1 input, correlated ROMs take more.
-    numInputs = [item[0] for item in self.parList].count('Input')
-    # if no inputs, raise an error
-    if numInputs == 0:
-      self.raiseAnError(IOError,'No <Input> provided for training step "{}"!'.format(self.name))
-    # if multiple inputs, only acceptable option is the correlated ARMA
-    ## TODO this is not extensible!  Build a more general framework for correlated ROMs.
-    elif numInputs > 1:
-      # TODO working
-
 
   def _localGetInitParams(self):
     """
