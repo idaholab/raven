@@ -31,7 +31,6 @@
       <initState>initialState</initState>
       <finState>finalState</finState>
       <endTime>500</endTime>
-      <deltaT>1</deltaT>
       <state name='1'> <!-- OK -->
         <transition type='lambda' value='0.8' >2</transition>
       </state>

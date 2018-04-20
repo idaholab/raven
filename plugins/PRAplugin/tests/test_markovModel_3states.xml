@@ -33,7 +33,6 @@
       <initState>initialState</initState>
       <finState>finalState</finState>
       <endTime>1000</endTime>
-      <deltaT>1</deltaT>
       <state name='1'> <!-- Bull market -->
         <transition type='lambda' value='0.02' >2</transition>
         <transition type='lambda' value='0.005'>3</transition>
