@@ -6,39 +6,39 @@ The ET must be specified in a specific format: the OpenPSA format (\href{<url>}{
 As an example, the ET of Fig.~\ref{fig:ET} is translated in the OpenPSA as shown below:
 
 \begin{lstlisting}[style=XML,morekeywords={anAttribute},caption=ETmodel input example., label=lst:ETmodel]
-	<define-event-tree name="eventTree">
-	    <define-functional-event name="ACC"/>
-	    <define-functional-event name="LPI"/>
-	    <define-functional-event name="LPR"/>
-	    <define-sequence name="1"/>
-	    <define-sequence name="2"/>
-	    <define-sequence name="3"/>
-	    <define-sequence name="4"/>
-	    <initial-state>
-	        <fork functional-event="ACC">
-	            <path state="0">
-	                <fork functional-event="LPI">
-	                    <path state="0">
-	                        <fork functional-event="LPR">
-	                            <path state="0">
-	                                <sequence name="1"/>
-	                            </path>
-	                            <path state="+1">
-	                                <sequence name="2"/>
-	                            </path>
-	                        </fork>
-	                    </path>
-	                    <path state="+1">
-	                        <sequence name="3"/>
-	                    </path>
-	                </fork>
-	            </path>
-	            <path state="+1">
-	                <sequence name="4"/>
-	            </path>
-	        </fork>
-	    </initial-state>
-	</define-event-tree>
+<define-event-tree name="eventTree">
+    <define-functional-event name="ACC"/>
+    <define-functional-event name="LPI"/>
+    <define-functional-event name="LPR"/>
+    <define-sequence name="1"/>
+    <define-sequence name="2"/>
+    <define-sequence name="3"/>
+    <define-sequence name="4"/>
+    <initial-state>
+        <fork functional-event="ACC">
+            <path state="0">
+                <fork functional-event="LPI">
+                    <path state="0">
+                        <fork functional-event="LPR">
+                            <path state="0">
+                                <sequence name="1"/>
+                            </path>
+                            <path state="+1">
+                                <sequence name="2"/>
+                            </path>
+                        </fork>
+                    </path>
+                    <path state="+1">
+                        <sequence name="3"/>
+                    </path>
+                </fork>
+            </path>
+            <path state="+1">
+                <sequence name="4"/>
+            </path>
+        </fork>
+    </initial-state>
+</define-event-tree>
 \end{lstlisting} 
 
 \begin{figure}
@@ -55,9 +55,9 @@ As an example, the ET of Fig.~\ref{fig:ET} is translated in the OpenPSA as shown
       <variables>
         statusACC,statusLPI,statusLPR,sequence
       </variables>
-      <map var='statusACC'>ACC</map>
-      <map var='statusLPI'>LPI</map>
-      <map var='statusLPR'>LPR</map>
+      <map var="statusACC">ACC</map>
+      <map var="statusLPI">LPI</map>
+      <map var="statusLPR">LPR</map>
       <sequenceID>sequence</sequenceID>
     </ExternalModel>
     ...

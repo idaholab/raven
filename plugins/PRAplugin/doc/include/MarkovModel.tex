@@ -18,17 +18,17 @@ As an example, the Markov chain of Fig.~\ref{fig:markov} is translated in the Op
       <initState>initialState</initState>
       <finState>finalState</finState>
       <endTime>1000</endTime>
-      <state name='1'> <!-- Bull market -->
-        <transition type='lambda' value='0.02' >2</transition>
-        <transition type='lambda' value='0.005'>3</transition>
+      <state name="1"> <!-- Bull market -->
+        <transition type="lambda" value="0.02" >2</transition>
+        <transition type="lambda" value="0.005">3</transition>
       </state>
-      <state name='2'> <!-- Bear market -->
-        <transition type='lambda' value='0.3'>1</transition>
-        <transition type='lambda' value='0.2'>3</transition>
+      <state name="2"> <!-- Bear market -->
+        <transition type="lambda" value="0.3">1</transition>
+        <transition type="lambda" value="0.2">3</transition>
       </state>
-      <state name='3'> <!-- Stagnant market -->
-        <transition type='lambda' value='0.02'>1</transition>
-        <transition type='lambda' value='0.4' >2</transition>
+      <state name="3"> <!-- Stagnant market -->
+        <transition type="lambda" value="0.02">1</transition>
+        <transition type="lambda" value="0.4" >2</transition>
       </state>      
     </ExternalModel>
   </Models>

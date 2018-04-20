@@ -5,41 +5,41 @@ This model is designed to read from file the structure of the RBD and import suc
 The RBD must be specified in a specific format; as an example, the RBD of Fig.~\ref{fig:RBD} is translated in the RAVEN format as shown below:
 
 \begin{lstlisting}[style=XML,morekeywords={anAttribute},caption=RBD model input example., label=lst:RBDmodel]
-	<Graph name="testGraph">
-	  <node name='CST'>
-	    <childs>1</childs>
-	  </node>
-	  <node name='1'>
-	    <childs>2,3,4</childs>
-	  </node>
-	  <node name='2'>
-	    <childs>5</childs>
-	  </node>
-	  <node name='3'>
-	    <childs>5</childs>
-	  </node>
-	  <node name='4'>
-	    <childs>5</childs>
-	  </node>
-	  <node name='5'>
-	    <childs>6,7,8</childs>
-	  </node>
-	  <node name='6'>
-	    <childs>SG1</childs>
-	  </node>
-	  <node name='7'>
-	    <childs>SG2</childs>
-	  </node>
-	  <node name='8'>
-	    <childs>SG3</childs>
-	  </node>
-	  <node name='SG1'>
-	  </node>
-	  <node name='SG2'>
-	  </node>
-	  <node name='SG3'>
-	  </node>
-	</Graph>
+<Graph name="testGraph">
+  <node name="CST">
+    <childs>1</childs>
+  </node>
+  <node name="1">
+    <childs>2,3,4</childs>
+  </node>
+  <node name="2">
+    <childs>5</childs>
+  </node>
+  <node name="3">
+    <childs>5</childs>
+  </node>
+  <node name="4">
+    <childs>5</childs>
+  </node>
+  <node name="5">
+    <childs>6,7,8</childs>
+  </node>
+  <node name="6">
+    <childs>SG1</childs>
+  </node>
+  <node name="7">
+    <childs>SG2</childs>
+  </node>
+  <node name="8">
+    <childs>SG3</childs>
+  </node>
+  <node name="SG1">
+  </node>
+  <node name="SG2">
+  </node>
+  <node name="SG3">
+  </node>
+</Graph>
 \end{lstlisting} 
 
 \begin{figure}
@@ -60,13 +60,13 @@ The RBD must be specified in a specific format; as an example, the RBD of Fig.~\
       <modelFile>graphTest</modelFile>
       <nodesIN>CST</nodesIN>
       <nodesOUT>SG1,SG2,SG3</nodesOUT>
-      <map var='status2'>2</map>
-      <map var='status3'>3</map>
-      <map var='status4'>4</map>
-      <map var='status5'>5</map>
-      <map var='statusSG1'>SG1</map>
-      <map var='statusSG2'>SG2</map>
-      <map var='statusSG3'>SG3</map>
+      <map var="status2">2</map>
+      <map var="status3">3</map>
+      <map var="status4">4</map>
+      <map var="status5">5</map>
+      <map var="statusSG1">SG1</map>
+      <map var="statusSG2">SG2</map>
+      <map var="statusSG3">SG3</map>
     </ExternalModel>
     ...
   </Models>

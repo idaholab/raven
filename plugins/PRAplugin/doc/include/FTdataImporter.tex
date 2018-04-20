@@ -97,6 +97,24 @@ Important notes and capabilities:
 	\item If the FT is split in two or more FTs (and thus one file for each FT), then it is only required to list 
 	      all files in the Step. RAVEN automatically detect links among FTs and merge all of them into a single PointSet.
 	\item Allowed gates: AND, OR, NOT, ATLEAST, CARDINALITY, IFF, imply, NAND, NOR, XOR
+	\item If an house-event is defined in the FT:
+\begin{lstlisting}[style=XML,morekeywords={anAttribute},caption=FT Importer input example: house-event., label=lst:FT_house event]
+<opsa-mef>
+    <define-fault-tree name="FT">
+        <define-gate name="TOP">
+            <or>
+                <basic-event name="BE1"/>
+                <basic-event name="BE2"/>
+                <house-event name="HE1"/>
+            </or>
+        </define-gate>
+        <define-house-event name="HE1">
+        	<constant value="true"/>
+        </define-house-event>
+    </define-fault-tree>
+</opsa-mef>
+\end{lstlisting}
+           then the HE1 is not part of the PointSet (value is fixed)
 \end{itemize}
 
 \subsection{FT Importer reference tests}
