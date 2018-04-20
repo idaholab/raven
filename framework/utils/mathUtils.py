@@ -625,3 +625,83 @@ def isABoolean(val):
     @ Out, isABoolean, bool, result
   """
   return isinstance(val,(bool,np.bool_))
+
+def computeTruncatedTotalLeastSquare(X, Y, truncationRank):
+  """
+    Compute Total Least Square and truncate it till a rank = truncationRank
+    @ In, X, numpy.ndarray, the first 2D matrix 
+    @ In, Y, numpy.ndarray, the second 2D matrix 
+    @ In, truncationRank, int, optional, the truncation rank
+    @ Out, (dX,dy), tuple, the Leasted squared matrices X and Y              
+  """
+  V = np.linalg.svd(np.append(X, Y, axis=0), full_matrices=False)[-1]
+  rank = min(int(truncationRank), V.shape[0])
+  VV = V[:rank, :].conj().T.dot(V[:rank, :])
+  dX = X.dot(VV)
+  dY = Y.dot(VV)
+  return dX, dY
+
+def computeTruncatedSingularValueDecomposition(X, truncationRank):
+  """
+    Compute Singular Value Decomposition and truncate it till a rank = truncationRank
+    @ In, X, numpy.ndarray, the 2D matrix on which the SVD needs to be performed
+    @ In, truncationRank, int or float, optional, the truncation rank:
+                                                  * -1 = no truncation
+                                                  *  0 = optimal rank is computed
+                                                  *  >1  user-defined truncation rank
+                                                  *  >0. and < 1. computed rank is the number of the biggest sv needed to reach
+                                                                  the energy identified by truncationRank
+    @ Out, (U, s, V), tuple of numpy.ndarray, (left-singular vectors matrix, singular values, right-singular vectors matrix)
+  """
+  U, s, V = np.linalg.svd(X, full_matrices=False)
+  V = V.conj().T
+
+  if truncationRank is 0:
+    omeg = lambda x: 0.56 * x**3 - 0.95 * x**2 + 1.82 * x + 1.43
+    rank = np.sum(s > np.median(s) * omeg(np.divide(*sorted(X.shape))))
+  elif truncationRank > 0 and truncationRank < 1:
+    rank = np.searchsorted(np.cumsum(s / s.sum()), truncationRank) + 1
+  elif truncationRank >= 1 and isinstance(truncationRank, int):
+    rank = min(truncationRank, U.shape[1])
+  else:
+    rank = X.shape[1]
+  U = U[:, :rank]
+  V = V[:, :rank]
+  s = s[:rank]
+  return U, s, V
+
+def computeEigenvaluesAndVectorsFromLowRankOperator(lowOperator, Y, U, s, V, exact=True):
+  """ 
+    Compute the eigenvalues and eigenvectors of the high-dim operator
+    from the low-dim operator and the matrix Y.
+    The lowe-dim operator can be computed with the following numpy-based
+    expression: U.T.conj().dot(Y).dot(V) * np.reciprocal(s)
+    @ In, lowOperator, numpy.ndarray, the lower rank operator (a tilde)
+    @ In, Y, numpy.ndarray, the input matrix Y
+    @ In, U, numpy.ndarray,  2D matrix that contains the left-singular vectors of X, stored by column
+    @ In, s, numpy.ndarray,  1D array  that contains the singular values of X
+    @ In, V, numpy.ndarray,  2D matrix that contains the right-singular vectors of X, stored by column
+    @ In, exactModes, bool, optional, if True the exact modes get computed otherwise the projected ones are (Default = True)
+    @ Out, (eigvals,eigvects), tuple (numpy.ndarray,numpy.ndarray), eigenvalues and eigenvectors
+  """
+  lowrankEigenvals, lowrankEigenvects = np.linalg.eig(lowOperator)
+  # Compute the eigvects and eigvals of the high-dimensional operator
+  eigvects = ((Y.dot(V) * np.reciprocal(s)).dot(lowrankEigenvects)) if exactModes else U.dot(lowrankEigenvects)
+  eigvals  = lowrankEigenvals
+  return eigvals, eigvects
+
+def computeAmplitudeCoefficients(mods, Y, eigs, optmized):
+  """
+    @ In, mods, numpy.ndarray, 2D matrix that contains the modes (by column)
+    @ In, Y, numpy.ndarray, 2D matrix that contains the input matrix (by column)
+    @ In, eigs, numpy.ndarray, 1D array that contains the eigenvalues
+    @ In, optmized, bool, if True  the amplitudes are computed minimizing the error between the mods and all entries (columns) in Y
+                          if False the amplitudes are computed minimizing the error between the mods and the 1st entry (columns) in Y (faster)
+    @ Out, amplitudes, numpy.ndarray, 1D array containing the amplitude coefficients
+  """
+  if optmized:
+    L = np.concatenate([mods.dot(np.diag(eigs**i)) for i in range(Y.shape[1])], axis=0)
+    amplitudes = np.linalg.lstsq(L, np.reshape(Y, (-1, ), order='F'))[0]
+  else:
+    amplitudes = np.linalg.lstsq(mods, Y.T[0])[0]
+  return amplitudes
