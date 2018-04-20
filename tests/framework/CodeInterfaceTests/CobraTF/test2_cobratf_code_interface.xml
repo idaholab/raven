@@ -1,0 +1,104 @@
+<?xml version="1.0" ?>
+<Simulation>
+  <TestInfo>
+    <name>framework/CodeInterfaceTests/CobraTF.test2</name>
+    <author>jyoo</author>
+    <created>2018-04-03</created>
+    <classesTested>Models.Code.CobraTF</classesTested>
+    <description>
+       An example of using the CobraTF code interface. This test is aimed to test the mechanics of the interface using two sampling strategies in cascade (Monte Carlo and Grid sampling).
+    </description>
+    <revisions>
+      <revision author="jyoo" date="2018-04-03">New CobraTF test case</revision>
+    </revisions>
+  </TestInfo>
+  <RunInfo>
+    <WorkingDir>CobraTFinterfaceTest2</WorkingDir>
+    <Sequence>testDummyStep_MC, testDummyStep_Grid</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name="cobra_input" type="" >small_3x3rod_HFP.inp</Input>
+  </Files>
+
+  <Models>
+    <Code name="MyCobraTF" subType="CobraTF">
+      <executable>
+        <!--  /path/to/relap/executable/relap5.x
+         here we should put the executable. Since we want to test the interface only, it is going to be empty -->
+      </executable>
+    </Code>
+  </Models>
+
+  <Distributions>
+    <Normal name="dist_for_GridLoss_1">
+      <mean>0.907</mean>
+      <sigma>0.1</sigma>
+      <upperBound>1.0</upperBound>
+      <lowerBound>0.8</lowerBound>
+    </Normal>
+    <Normal name="dist_for_GridLoss_2">
+      <mean>0.907</mean>
+      <sigma>0.1</sigma>
+      <upperBound>1.0</upperBound>
+      <lowerBound>0.8</lowerBound> 
+    </Normal>
+  </Distributions>
+
+  <Samplers verbosity='debug' >
+    <Grid name='Grid_Sampler' >
+      <variable name='205|1'>
+        <distribution>dist_for_GridLoss_2</distribution>
+        <grid type='CDF' construction='equal'  steps='1'>0.8 0.999</grid>
+      </variable>
+    </Grid>
+    <MonteCarlo name="MC_samp">
+      <samplerInit>
+        <limit>2</limit>
+      </samplerInit>
+      <variable name="200|1">
+        <distribution>dist_for_GridLoss_1</distribution>
+      </variable>
+      <variable name="201|1">
+        <distribution>dist_for_GridLoss_2</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="testDummyStep_MC">
+      <Input class="Files" type="">cobra_input</Input>
+      <Model class="Models" type="Code">MyCobraTF</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MC_samp</Sampler>
+      <Output class="DataObjects" type="PointSet">mc_ps</Output>
+    </MultiRun>
+    <MultiRun name="testDummyStep_Grid" re-seeding="210491">
+      <Input class="Files" type="">cobra_input</Input>
+      <Model class="Models" type="Code">MyCobraTF</Model>
+      <Sampler class="Samplers" type="Grid">Grid_Sampler</Sampler>
+      <Output class="DataObjects" type="PointSet">grid_ps</Output>
+      <Output class="OutStreams" type="Print">cobra_out</Output>
+    </MultiRun>
+  </Steps>
+
+  <OutStreams>
+    <Print name="cobra_out">
+      <type>csv</type>
+      <source>grid_ps</source>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="grid_ps">
+      <Input>205|1</Input>
+      <Output>AVG_ch_ax50_quality,AVG_ch_ax50_voidFractionLiquid,AVG_ch_ax50_voidFractionVapor,AVG_ch_ax50_volumeEntrainFraction,AVG_ch_ax50_massFlowRateLiquid</Output>
+    </PointSet>
+    <PointSet name="mc_ps">
+      <Input>200|1,201|1</Input>
+      <Output>AVG_ch_ax50_quality,AVG_ch_ax50_voidFractionLiquid,AVG_ch_ax50_voidFractionVapor,AVG_ch_ax50_volumeEntrainFraction,AVG_ch_ax50_massFlowRateLiquid</Output>
+    </PointSet>
+
+  </DataObjects>
+
+</Simulation>

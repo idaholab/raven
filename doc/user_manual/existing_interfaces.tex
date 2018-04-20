@@ -20,6 +20,8 @@ If a code contains cross-dependent data, the generic interface is not able to
 edit the correct values.  For example, if a geometry-building script specifies
 inner\_radius, outer\_radius, and thickness, the generic interface cannot
 calculate the thickness given the outer and inner radius, or vice versa.
+In this case, the \textit{function} method explained in the Samplers (see \ref{sec:Samplers}) 
+and Optimizers (see \ref{sec:Optimizers}) sections can be used.
 
  An example of the code interface is shown here.  The input parameters are read
  from the input files \texttt{gen.one} and \texttt{gen.two} respectively.
@@ -78,12 +80,11 @@ case = $RAVEN-out$
 
 
 %%%%
-
 If a code has hard-coded output file names that are not changeable,
 the GenericCode interface can be invoked using the \xmlNode{outputFile}
 node in which the output file name (CSV only) must be specified.
 For example, in the previous example, say instead of \texttt{-a gen.two} and \texttt{-o myOut}
-in the command line, the code always produce a CSV file named ``fixed@output.csv''; 
+in the command line, the code always produce a CSV file named ``fixed\_output.csv'';
 
 Then, our example XML for the code would be
 
@@ -134,9 +135,9 @@ Where,
 \label{subsec:RAVENInterface}
 The RAVEN interface is meant to provide the possibility to execute a RAVEN input file
 driving a set of SLAVE RAVEN calculations. For example, if the user wants to optimize the parameters
-of a surrogate model (e.g. minimizing the distance between the surrogate predictions and the real data), he 
+of a surrogate model (e.g. minimizing the distance between the surrogate predictions and the real data), he
 can achieve this task by setting up  a RAVEN input file (master) that performs an optimization on the feature
-space characterized by the surrogate model parameters, whose training and validation assessment  is performed in the SLAVE 
+space characterized by the surrogate model parameters, whose training and validation assessment  is performed in the SLAVE
 RAVEN runs.
 \\ There are some limitations for this interface:
 \begin{itemize}
@@ -150,7 +151,7 @@ Like for every other interface, most of the RAVEN workflow stays the same indepe
 \\ Similarly to any other code interface, the user provides paths to executables and aliases for sampled variables within the
 \xmlNode{Models} block.  The \xmlNode{Code} block will contain attributes \xmlAttr{name} and
 \xmlAttr{subType}.  \xmlAttr{name} identifies that particular \xmlNode{Code} model within RAVEN, and
-\xmlAttr{subType} specifies which code interface the model will use (In this case \xmlAttr{subType}=``RAVEN''). 
+\xmlAttr{subType} specifies which code interface the model will use (In this case \xmlAttr{subType}=``RAVEN'').
 The \xmlNode{executable}
 block should contain the absolute or relative (with respect to the current working
 directory) path to the RAVEN framework script (\textbf{raven\_framework}).
@@ -167,37 +168,37 @@ directory) path to the RAVEN framework script (\textbf{raven\_framework}).
           \begin{lstlisting}[language=python]
 def manipulateScalarSampledVariables(sampledVariables):
   """
-  This method is aimed to manipulate scalar variables. 
-  The user can create new variables based on the 
+  This method is aimed to manipulate scalar variables.
+  The user can create new variables based on the
   variables sampled by RAVEN
-   @ In, sampledVariables, dict, dictionary of 
+   @ In, sampledVariables, dict, dictionary of
        sampled variables ({"var1":value1,"var2":value2})
-   @ Out, None, the new variables should be 
+   @ Out, None, the new variables should be
                  added in the "sampledVariables" dictionary
   """
-  newVariableValue = 
-    sampledVariables['Distributions|Uniform@name:a_dist|lowerBound'] 
+  newVariableValue =
+    sampledVariables['Distributions|Uniform@name:a_dist|lowerBound']
     + 1.0
-  sampledVariables['Distributions|Uniform@name:a_dist|upperBound'] = 
+  sampledVariables['Distributions|Uniform@name:a_dist|upperBound'] =
     newVariableValue
   return
            \end{lstlisting}
 
-         \item \textbf{\textit{convertNotScalarSampledVariables}}, a method that is aimed to convert not scalar variables (e.g. 1D arrays) into multiple scalar variables 
+         \item \textbf{\textit{convertNotScalarSampledVariables}}, a method that is aimed to convert not scalar variables (e.g. 1D arrays) into multiple scalar variables
          (e.g.  \xmlNode{constant}(s) in a sampling strategy).
-          This method is going to be required in case not scalar variables are detected by the interface. 
+          This method is going to be required in case not scalar variables are detected by the interface.
           Example:
           \begin{lstlisting}[language=python]
  def convertNotScalarSampledVariables(noScalarVariables):
   """
-  This method is aimed to convert not scalar 
+  This method is aimed to convert not scalar
   variables into multiple scalar variables. The user MUST
    create new variables based on the not Scalar Variables
     sampled (and passed in) by RAVEN
-  @ In, noScalarVariables, dict, dictionary of sampled 
+  @ In, noScalarVariables, dict, dictionary of sampled
        variables that are not scalar ({"var1":1Darray1,"var2":1Darray2})
-  @ Out, newVars, dict,  the new variables that have 
-       been created based on the not scalar variables 
+  @ Out, newVars, dict,  the new variables that have
+       been created based on the not scalar variables
        contained in "noScalarVariables" dictionary
   """
   oneDimensionalArray =
@@ -205,7 +206,7 @@ def manipulateScalarSampledVariables(sampledVariables):
   newVars = {}
   for cnt, value in enumerate(oneDimensionalArray):
     newVars['Samplers|MonteCarlo@name:myMC|constant'+
-               '@name=temperatureHistory'+str(cnt)] = 
+               '@name=temperatureHistory'+str(cnt)] =
                oneDimensionalArray[cnt]
   return newVars
            \end{lstlisting}
@@ -225,7 +226,7 @@ Code input example:
     </Code>
 \end{lstlisting}
 
-Like for every other interface,  the syntax of the variable names is important to make the parser understand how to perturb an input file. 
+Like for every other interface,  the syntax of the variable names is important to make the parser understand how to perturb an input file.
 \\ For the RAVEN interface, a syntax inspired by the XPath nomenclature is used.
 \begin{lstlisting}[style=XML]
   <Samplers>
@@ -251,7 +252,7 @@ The first variable above will be pointing to the following XML sub-node ( \xmlNo
 \begin{lstlisting}[style=XML]
       <Models>
         <ROM name="ROM1" subType="SciKitLearn">
-           ...   
+           ...
            <C>10.0</C>
           ...
        </ROM>
@@ -261,7 +262,7 @@ The second variable above will be pointing to the following XML sub-node ( \xmlN
 \begin{lstlisting}[style=XML]
       <Models>
         <ROM name="ROM1" subType="SciKitLearn">
-           ...   
+           ...
            <tol>0.0001</tol>
           ...
        </ROM>
@@ -275,9 +276,9 @@ The third variable above will be pointing to the following XML attribute ( \xmlA
       <variable name="var1">
          ...
         <grid construction="equal" type="value" steps="1">0 1</grid>
-         ... 
+         ...
       </variable>
- 
+
       ...
     </MonteCarlo>
   </Samplers>
@@ -294,6 +295,12 @@ the module that gets specified by the \xmlNode{conversionModule} in the \xmlNode
     </Input>
 </Files>
 \end{lstlisting}
+
+\subsubsection{ExternalXML and RAVEN interface}
+Care must be taken if the SLAVE RAVEN uses \xmlNode{ExternalXML} nodes.  In this case, each file containing
+external XML nodes must be added in the \xmlNode{Step} as an \xmlNode{Input} class \xmlAttr{Files} to make sure it gets copied to
+the individual run directory.  The type for these files can be anything, with the exception of type
+\xmlString{raven}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%% RELAP5  INTERFACE  %%%%%%
@@ -1303,20 +1310,20 @@ The model executable is specified to RAVEN using the \textless Models\textgreate
     ...
 </Simulation>
 \end{lstlisting}
-RAVEN works best with Comma-Separated Value (CSV) files.  Therefore, the default 
+RAVEN works best with Comma-Separated Value (CSV) files.  Therefore, the default
 .mat output type needs to be converted to .csv output.
-The Dymola interface will automatically convert the .mat output to human-readable 
+The Dymola interface will automatically convert the .mat output to human-readable
 forms, i.e., .csv output, through its implementation of the finalizeCodeOutput function.
 \\In order to speed up the reading and conversion of the .mat file, the user can specify
-the list of variables (in addition to the Time variable) that need to be imported and 
-converted into a csv file minimizing 
-the IO memory usage as much as possible. Within the \xmlNode{Code} the following 
-XML 
+the list of variables (in addition to the Time variable) that need to be imported and
+converted into a csv file minimizing
+the IO memory usage as much as possible. Within the \xmlNode{Code} the following
+XML
 node (in addition ot the \xmlNode{executable} one) can be inputted:
 
 \begin{itemize}
-   \item \xmlNode{outputVariablesToLoad}, \xmlDesc{space separated list, optional 
-   parameter}, a space separated list of variables that need be exported from the .mat 
+   \item \xmlNode{outputVariablesToLoad}, \xmlDesc{space separated list, optional
+   parameter}, a space separated list of variables that need be exported from the .mat
    file (in addition to the Time variable). \default{all the variables in the .mat file}.
 \end{itemize}
 For example:
@@ -1933,7 +1940,7 @@ Example:
   <Input name="plant.par" type="">plant.par</Input>
 </Files>
 \end{lstlisting}
-All the files here mentioned in this section
+The files mentioned in this section
  need, then, to be put into the working directory specified
 by the \xmlNode{workingDir} node into the \xmlNode{RunInfo} block.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -2376,7 +2383,7 @@ In addition, it is important to notice that:}
 \end{itemize}
 }
 
-Remeber also that a MELCOR simulation run is considered successfull (i.e., the simualtion did not crash) if it terminates with the
+Remember also that a MELCOR simulation run is considered successful (i.e., the simulation did not crash) if it terminates with the
 following message:
 
 \textcolor{red}{Normal termination}
@@ -2615,3 +2622,728 @@ So the user needs to input the following block as well, where the Input and Outp
 \end{lstlisting}
 As mentioned before, this will create $4$ DataObjects.
 %
+%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%% SCALE  INTERFACE %%%%%% 
+%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{SCALE Interface}
+This section presents the main aspects of the interface between RAVEN and SCALE system,
+the consequent RAVEN input adjustments and the modifications of the SCALE
+files required to run the two coupled codes.
+\\ \textcolor{red}{
+\textbf{\textit{\nb Considering the large amount of SCALE sequences, this interface is
+currently limited in driving the following SCALE calculation codes:}}	
+\begin{itemize}
+  \item \textbf{\textit{ORIGEN}}
+  \item \textbf{\textit{TRITON (using NEWT as transport solver)}}
+\end{itemize}
+}
+
+In the following sections a short explanation on how to use RAVEN coupled with SCALE is reported.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsubsection{Models}
+As for any other Code, in order to activate the SCALE interface, a  \xmlNode{Code} XML node needs to be inputted, within the 
+main XML node \xmlNode{Models}. 
+\\The  \xmlNode{Code} XML node contains the 
+information needed to execute the specific External Code.
+
+\attrsIntro
+%
+\vspace{-5mm}
+\begin{itemize}
+  \itemsep0em
+  \item \nameDescription
+  \item \xmlAttr{subType}, \xmlDesc{required string attribute}, specifies the
+  code that needs to be associated to this Model.
+  %
+  \nb See Section~\ref{sec:existingInterface} for a list of currently supported
+  codes.
+  %
+\end{itemize}
+\vspace{-5mm}
+
+\subnodesIntro
+%
+\begin{itemize}
+  \item \xmlNode{executable} \xmlDesc{string, required field} specifies the path
+  of the executable to be used.
+  %
+  \nb Either an absolute or relative path can be used.
+  \item \aliasSystemDescription{Code}
+  %
+\end{itemize}
+
+In addition (and specifc for the SCALE interface), the  \xmlNode{Code} can contain the following optional nodes:
+
+\begin{itemize}
+  \item \xmlNode{sequence}, optional, comma separated list. In this node the user can specify a list of sequences that need to be
+  executed in sequence. For example, if a TRITON calculation needs to be followed by an ORIGEN decay heat calculation the user
+  would input here the sequence ``\textit{triton,origen}''. \default{triton}. 
+  \\\nb Currently only the following entries are supported:
+    \begin{itemize}
+     \item  ``\textit{triton}''
+     \item  ``\textit{origen}''
+     \item  ``\textit{triton,origen}''
+    \end{itemize}
+  \item \xmlNode{timeUOM}, optional, string. In this node the user can specify  the \textit{units} for the independent variable ``time''.
+   If the outputs are exported by SCALE in a different unit (e.g days, years, etc.), the SCALE interface will convert all the different 
+   time scales into the unit here specified (in order to have a consistent  (and unique) time scale). Available are:
+    \begin{itemize}
+     \item ``\textit{s}'', seconds
+     \item ``\textit{m}'', minutes
+     \item ``\textit{h}'', hours
+     \item ``\textit{d}'', days
+     \item ``\textit{y}'', years
+    \end{itemize}
+    \default{s}
+\end{itemize}
+
+An example  is shown  below:
+\begin{lstlisting}[style=XML]
+<Models>
+    <Code name="MyScale" subType="Scale">
+      <executable>path/to/scalerte</executable>
+      <sequence>triton,origen</sequence>
+      <timeUOM>d</timeUOM>
+    </Code>
+</Models>
+\end{lstlisting}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Files}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+The \xmlNode{Files} XML node has to contain all the files required by the particular 
+sequence (s) of the external code  (SCALE) to be run.
+This involves not only the input file(s) (.inp) but also the auxiliary files that might be needed (e.g. binary initial compositions, etc.).
+As mentioned, the current SCALE interface only supports TRITON and ORIGEN sequences. For this reason, depending on the
+type of sequence (see previous section) to be run, the relative input files need to be marked with the sequence they are associated
+with. This means that the type of the input file must be either ``triton'' or ``origen''. The auxiliary files that might be needed by
+a particular sequence (e.g. binary initial compositions, etc.) should not be marked with any specific type (i.e. \textit{type=``''}).
+Example:
+\begin{lstlisting}[style=XML]
+<Files>
+  <Input name="triton_input" type="triton">pwr_depletion.inp</Input>
+  <Input name="origen_input" type="origen">decay_calc.inp</Input>
+  <Input name="binary_comp" type="">pwr_depletion.f71</Input>
+</Files>
+\end{lstlisting}
+The files mentioned in this section
+ need, then, to be placed into the working directory specified
+by the \xmlNode{workingDir} node in the \xmlNode{RunInfo} XML node.
+
+\paragraph{Output Files conversion}
+Since RAVEN expects to receive a CSV file containing the outputs of the simulation, the results in the SCALE output
+files need to be converted by the code interface.
+\\As mentioned, the current interface \textcolor{red}{ is able to collect data from TRITON and ORIGEN sequences only}.  
+%% TRITON
+\\The following information is collected from TRITON output:
+\begin{itemize}
+  \item \textit{\textbf{k-eff and k-inf time-dep information}}
+  \begin{lstlisting}[basicstyle=\tiny]
+  Outer   Eigenvalue Eigenvalue Max Flux   Max Flux     Max Fuel   Max Fuel     Wall   Elapsed   Iteration  CPU   Inners
+ Iter. #              Delta      Delta   Location(r,g)   Delta   Location(r,g) Clock   CPU Time   CPU Time Usage Converged
+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+     1    1.00000   0.000E+00 6.480E+09 (    4,252)   1.000E+00 (  614,  0) 14:16:42   89.9 s    89.9 s  92.7%    F
+     2    0.35701   1.801E+00 4.149E+01 (  319,  4)   2.673E+00 ( 7035,  0) 14:18:16  182.8 s    92.9 s  98.8%    F
+ k-eff =       0.94724509     Time=      0.00d Nominal conditions                                             
+
+   Four-Factor Estimate of k-infinity.  Fast/Thermal boundary:   0.6250 eV
+      Fiss. neutrons/thermal abs. (eta):          1.279827
+      Thermal utilization (f):                    0.960903
+      Resonance Escape probability (p):           0.706209
+      Fast-fission factor (epsilon):              1.091716
+                                            --------------
+      Infinite neutron multiplication             0.948143
+
+\end{lstlisting}
+   that will be converted in the following way (CSV):
+   \begin{table}[h]
+    \centering
+    \caption{CSV transport info}
+    \label{CSVkeff}
+    \tabcolsep=0.11cm
+    \tiny
+    \begin{tabular}{|c|c|c|c|c|c|c|c|c|c|}
+     time & keff       & iter\_number & keff\_delta & max\_flux\_delta & kinf     & kinf\_epsilon & kinf\_p  & kinf\_f  & kinf\_eta \\
+     0.00 & 0.94724509 & 2            & 1.801E+00   & 4.149e+01        & 0.948143 & 1.091716      & 0.706209 & 0.960903 & 1.279827 
+    \end{tabular}
+   \end{table}
+   
+  \item \textit{\textbf{material powers}}
+  \begin{lstlisting}[basicstyle=\tiny]
+  --- Material powers for depletion pass no.   1 (MW/MITHM) ---
+       Time =     0.00 days (   0.000 y), Burnup =    0.000     GWd/MTIHM, Transport k=  0.9473
+
+                    Total    Fractional  Mixture     Mixture       Mixture
+         Mixture    Power      Power      Power    Thermal Flux  Total Flux
+          Number (MW/MTIHM)    (---)   (MW/MTIHM)  n/(cm^2*sec)  n/(cm^2*sec)
+            13      32.985    0.99054     32.985    5.3666e+13    1.2574e+14    
+             6       0.252    0.00757     N/A       2.7587e+13    9.1781e+13   
+         Total      33.300    1.00000
+\end{lstlisting}
+   that will be converted in the following way (CSV):
+   \begin{table}[h]
+     \centering
+     \caption{CSV material powers}
+     \label{CSVmatPowers}
+     \tabcolsep=0.11cm
+     \tiny
+     \begin{tabular}{|c|c|c|c|c|c|c|c|c|c|l}
+     \cline{1-10}
+     time    & bu  & tot\_power\_mix\_13 & fract\_power\_mix\_13 & th\_flux\_mix\_13 & tot\_flux\_mix\_13 & tot\_power\_mix\_6 & fract\_power\_mix\_6 & th\_flux\_mix\_6 & tot\_flux\_mix\_6 &  \\ \cline{1-10}
+     1.0E-06 & 0.0 & 32.985              & 0.99054               & 5.3666e+13        & 1.2574e+14         & 0.252              & 0.00757              & 2.7587e+13       & 9.1781e+13        &  \\ \cline{1-10}
+     \end{tabular}
+   \end{table}   
+   
+ 
+ \item \textit{\textbf{nuclide/element tables}}
+  \begin{lstlisting}[basicstyle=\tiny]
+            | nuclide concentrations
+            | time: days
+      grams |    0.00e+00d 
+------------+--------------------
+       u235 |   2.9619e+04  
+       u238 |   9.6993e+05  
+   subtotal |   1.0010e+06  
+      total |   1.1858e+06  
+\end{lstlisting}
+   that will be converted in the following way (CSV):
+   \begin{table}[h]
+    \centering
+    \caption{CSV Nuclide/element Tables}
+    \label{CSVnuclideTables}
+    \tabcolsep=0.11cm
+    \tiny
+    \begin{tabular}{|c|c|c|}
+     time & u235\_conc       & u238\_conc   \\
+     0.00 & 2.9619e+04  & 9.6993e+05        
+    \end{tabular}
+   \end{table}
+\end{itemize}
+%% ORIGEN
+The following information is collected from ORIGEN output:
+\begin{itemize}
+  \item \textit{\textbf{history overview}}
+  \begin{lstlisting}[basicstyle=\tiny]
+=========================================================================================================================
+=   History overview for case 'decay' (#1/1)                                                                            =
+-------------------------------------------------------------------------------------------------------------------------
+   step          t0          t1          dt           t        flux     fluence       power      energy
+    (-)       (sec)       (sec)         (s)         (s)   (n/cm2-s)     (n/cm2)        (MW)       (MWd)
+      1  0.0000E+00  1.0000E-06  1.0000E-06  1.0000E-06  0.0000E+00  0.0000E+00  0.0000E+00  0.0000E+00
+\end{lstlisting}
+   that will be converted in the following way (CSV):
+    \begin{table}[h]
+    \centering
+    \caption{CSV History Overview}
+    \label{CSVhistoryOverview}
+    \tabcolsep=0.11cm
+    \tiny
+    \begin{tabular}{|c|c|c|c|c|c|c|c|}
+    \hline
+     time    & t0  & t1      & dt      & flux & fluence & power & energy \\  
+     1.0E-06 & 0.0 & 1.0E-06 & 1.0E-06 & 0.0  & 0.0     & 0.0   & 0.0      
+    \end{tabular}
+   \end{table}
+   
+   \item \textit{\textbf{concentration tables}} 
+  \begin{lstlisting}[basicstyle=\tiny]
+=========================================================================================================================
+=   Nuclide concentrations in watts, actinides for case 'decay' (#1/1)                                                  =
+-------------------------------------------------------------------------------------------------------------------------
+  (relative cutoff; integral of concentrations over time >   1.00E-04 % of integral of all concentrations over time)
+.
+                0.0E+00sec  1.0E-06sec  
+  th231       8.6167E-08  8.6167E-08  
+  th234       7.7763E-09  7.7763E-09 
+------------
+  totals       4.6831E+03  4.6831E+03  
+=========================================================================================================================
+.
+.
+=========================================================================================================================
+=   Nuclide concentrations in watts, fission products for case 'decay' (#1/1)                                           =
+-------------------------------------------------------------------------------------------------------------------------
+  (relative cutoff; integral of concentrations over time >   1.00E-04 % of integral of all concentrations over time)
+.
+                0.0E+00sec  1.0E-06sec  
+  ga74        2.4264E-01  2.4264E-01  
+  ga75        1.8106E+00  1.8106E+00  
+------------
+  totals       1.2266E+06  1.2266E+06 
+  \end{lstlisting}
+  that will be converted in the following way (CSV):
+   \begin{table}[h]
+    \centering
+    \caption{CSV Concentration Tables}
+    \label{CSVconcentrationTables}
+    \tabcolsep=0.11cm
+    \tiny
+    \begin{tabular}{|c|c|c|c|c|c|c|c|}
+    \hline
+     time    & ga74\_watts  & ga75\_watts      & subtotals\_fission\_products      & th231\_watts & th234\_watts & subtotals\_actinides & totals\_watts \\ \hline
+     0.0E+00 & 2.4264E-01 & 1.8106E+00 & 1.2266E+06 & 8.6167E-08  & 7.7763E-09     & 4.6831E+03   & 1.2313E+06    \\ 
+     1.0E-06 & 2.4264E-01 & 1.8106E+00 & 1.2266E+06 & 8.6167E-08  & 7.7763E-09     & 4.6831E+03  & 1.2313E+06      
+    \end{tabular}
+   \end{table}
+\end{itemize}
+
+\textbf{Remember also that a SCALE simulation run is considered successful (i.e., the simulation did not crash) if it does not contain, in 
+the last 20 lines, the following message:}
+
+\textcolor{red}{terminated due to errors}
+
+\textbf{If the a SCALE simulation terminates with this message, the simulation is considered ``failed'', i.e., it will not be saved.}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Samplers or Optimizers}
+In the \xmlNode{Samplers} or  \xmlNode{Optimizers} block we want to define the variables that are going
+to be sampled or optimized.
+%
+\\The perturbation or optimization of the input of any SCALE sequence is performed using the approach detailed in the \textit{Generic Interface} section (see \ref{subsec:genericInterface}). Briefly, this approach uses 
+ ``wild-cards'' (placed in the original input files) for injecting the perturbed values.
+ For example, if the original input file (that needs to be perturbed) is the following:
+\begin{lstlisting}[language=python]
+=origen
+case(actual_mass){
+  lib{ file="end7dec" }
+  mat{ iso=[zr-95=1.0] units="moles" }
+  time=[1.0] %1 day
+}
+end
+\end{lstlisting}
+and  the initial moles of ``zr-95'' need to be perturbed, a RAVEN ``wild-card'' will be defined:
+\begin{lstlisting}[language=python]
+=origen
+case(actual_mass){
+  lib{ file="end7dec" }
+  mat{ iso=[zr-95=$RAVEN-zrMoles$] units="moles" }
+  time=[1.0] %1 day
+}
+end
+\end{lstlisting}
+
+Finally, the variable \textbf{\textit{zrMoles}} needs to be specified in the specific Sampler or Optimizer that will be used:
+
+\begin{lstlisting}[style=XML]
+...
+<Samplers>
+  <aSampler name='aUserDefinedName' >
+    <variable name='zrMoles'>
+      ...
+    </variable>
+  </aSampler>
+</Samplers>
+...
+<Optimizers>
+  <anOptimizer name='aUserDefinedName' >
+    <variable name='zrMoles'>
+      ...
+    </variable>
+  </anOptimizer>
+</Samplers>
+...
+\end{lstlisting}
+%
+%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%% COBRA-TF  INTERFACE %%%%%% 
+%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{COBRA-TF Interface}
+This section presents the main aspects of the interface between RAVEN and Cobra-TF system,
+the consequent RAVEN input adjustments and the modifications of the Cobra-TF
+files required to run the two coupled codes.
+\\ \textcolor{red}{
+\textbf{\textit{\nb This interface is currently working only with the specific type of Cobra-TF output file (.ctf.out) }}	
+}
+
+In the following sections a short explanation on how to use RAVEN coupled with Cobra-TF is reported.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Sequence}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+In the \xmlNode{Sequence} section, the names of the steps declared in the
+\xmlNode{Steps} block should be specified.
+%
+As an example, if we called the first multirun ``Grid\_Sampler'' and the second
+multirun ``MC\_Sampler'' in the sequence section we should see this:
+\begin{lstlisting}[style=XML]
+<Sequence>Grid_Sampler, MC_Sampler</Sequence>
+\end{lstlisting}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{batchSize and mode}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+For the \xmlNode{batchSize} and \xmlNode{mode} sections please refer to the
+\xmlNode{RunInfo} block in the previous chapters.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{RunInfo}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+After all of these blocks are filled out, a standard example RunInfo block may
+look like the example below:
+\begin{lstlisting}[style=XML]
+<RunInfo>
+  <WorkingDir>~/workingDir</WorkingDir>
+  <Sequence>Grid_Sampler,MC_Sampler</Sequence>
+  <batchSize>8</batchSize>
+</RunInfo>
+\end{lstlisting}
+In this example, the \xmlNode{batchSize} is set to $8$; this means that 8 simulatenous (parallel) instances
+of COBRA-TF are going to be executed when a sampling strategy is employed.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Models}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+As any other Code, in order to activate the Cobra-TF interface, a \xmlNode{Code} XML node needs to be inputted, within the 
+main XML node \xmlNode{Models}. 
+\\The  \xmlNode{Code} XML node contains the 
+information needed to execute the specific External Code.
+
+\attrsIntro
+%
+\vspace{-5mm}
+\begin{itemize}
+  \itemsep0em
+  \item \nameDescription
+  \item \xmlAttr{subType}, \xmlDesc{required string attribute}, specifies the
+  code that needs to be associated to this Model.
+  %
+  \nb See Section~\ref{sec:existingInterface} for a list of currently supported
+  codes.
+  %
+\end{itemize}
+\vspace{-5mm}
+
+\subnodesIntro
+%
+\begin{itemize}
+  \item \xmlNode{executable} \xmlDesc{string, required field} specifies the path
+  of the executable to be used.
+  %
+  \nb Either an absolute or relative path can be used.
+  \item \aliasSystemDescription{Code}
+  %
+\end{itemize}
+
+An example  is shown  below:
+\begin{lstlisting}[style=XML]
+<Models>
+    <Code name="MyCobraTF" subType="CobraTF">
+      <executable>path/to/cobratf</executable>
+    </Code>
+</Models>
+\end{lstlisting}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Files}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+The \xmlNode{Files} XML node has to contain all the files required to run the external code  (Cobra-TF). 
+For RAVEN coupled with Cobra-TF, only input file(s) (.inp) are needed.
+
+Example:
+\begin{lstlisting}[style=XML]
+<Files>
+  <Input name="cobraTF_input" type="">case1.inp</Input>
+</Files>
+\end{lstlisting}
+The files mentioned in this section
+ need, then, to be placed into the working directory specified
+by the \xmlNode{workingDir} node in the \xmlNode{RunInfo} XML node.
+
+\paragraph{Output Files conversion}
+Since RAVEN expects to receive a CSV file containing the outputs of the simulation, the results in the Cobra-TF output
+files (.ctf.out) need to be converted by the code interface.
+
+\textcolor{red}{
+\textbf{It is important to note that the interface output collection (i.e., the parser of the Cobra-TF output) is currently able to extract
+major edit data (.ctf.out) only. Only those variables printed in the "major edit" output files are exported and made available to RAVEN.} }
+\\The following information is collected from Cobra-TF output file (.ctf.out):
+\begin{itemize}
+  \item \textit{\textbf{average properties for channels}}
+  \begin{lstlisting}[basicstyle=\tiny]
+
+
+ ************************************************************************************************************************
+          simulation time =      1.03030  seconds           aver. properties for channels
+ node  dist.  quality    void fraction            mass flow               enthalpy incr.    enthalpy    heat added
+  no.   (ft.)                                     (lbm/s)                    (btu/s)         (btu/s)      (btu/s)
+                      liq.  vapor  entr.  liquid vapor entr.  integr.  liquid vapor integr.  mixture  liquid vapor integr.
+
+  50   12.00  -.119   1.000 0.000 0.000   16.39  0.00  0.00  16.39     32.41  0.00  32.41   10683.98  32.37  0.00  32.37
+
+\end{lstlisting}
+
+   that will be converted in the following way (CSV):
+   \begin{table}[h]
+    \centering
+    \caption{CSV transport info (average properties for channels)}
+    \label{CSVaverageProperties}
+    \tabcolsep=0.11cm
+    \tiny
+    \begin{tabular}{|c|c|c|c|c|c|c|c|c|c|c|}
+     time & AVG\_ch\_ax50\_quality  & AVG\_ch\_ax50\_voidFractionLiquid & AVG\_ch\_ax50\_voidFractionVapor & AVG\_ch\_ax50\_volumeEntrainFraction & ...\\
+     1.03030 & -.119 & 1.000  & 0.000   & 0.000  & ... 
+    \end{tabular}
+   \end{table}
+
+  \item \textit{\textbf{fluid properties for each sub-channel}}
+  \begin{lstlisting}[basicstyle=\tiny]
+              simulation time =      0.00000  seconds           fluid properties for channel   19
+ node  dist. pressure  velocity             void fraction           flow rate          flow    heat added         gama
+  no.  (ft.) (psi)     (ft/sec)                                      (lbm/s)           reg.     (btu/s)          (lbm/s)
+                     liquid vapor entr. liquid  vapor  entr.   liquid  vapor   entr.         liquid    vapor
+
+
+ 155 0.00  1251.687  2.66   2.66  0.01  1.0000 0.0000 0.0000  0.12456  0.0000  0.00000  0   0.595E-01  0.000E+00   0.00
+
+  \end{lstlisting}
+   that will be converted in the following way (CSV):
+   \begin{table}[h]
+    \centering
+    \caption{CSV transport info (fluid properties for channels)}
+    \label{CSVfluidProperties}
+    \tabcolsep=0.11cm
+    \tiny
+    \begin{tabular}{|c|c|c|c|c|c|c|c|c|c|c|}
+     time & ch19\_ax155\_pressure  & ch19\_ax155\_velocityLiquid & ch19\_ax155\_velocityVapor & ch19\_ax155\_velocityEntrain & ch19\_ax155\_voidFractionLiquid & ...\\
+     0.00 & 1251.687 & 2.66           & 2.66   & 0.01        & 1.00 & ... 
+    \end{tabular}
+   \end{table}
+   
+  \item \textit{\textbf{nuclear fuel rod}}
+  \begin{lstlisting}[basicstyle=\tiny]
+          nuclear fuel rod no.  1                         simulation time =    0.00 seconds
+             surface no.  1 of  1
+          -----------------------        conducts heat to channels  1  0  0  0  0  0               geometry type =  1
+                                         and azimuthally to surfaces   1 and   1                   no. of radial nodes = 13
+
+ **********************************************************************************************
+
+   rod    axial    fluid temperatures  surface      heat       -clad temperatures-     gap        -fuel temperatures-
+   node  location      (deg-f)         heat flux   transfer          (deg-f)        conductance         (deg-f)
+   no.    (in.)    liquid  vapor       (b/h-ft2)    mode       outside  inside      (b/h-ft2-f)    surface   center
+   ----  --------  ------  -----      ---------    --------    -------  ------      -----------    -------   ------
+
+    10   22.80     464.1   467.1     0.5929E+04     spl        466.08   592.98       1594.2        859.58     2946.22
+\end{lstlisting}
+   that will be converted in the following way (CSV):
+   \begin{table}[h]
+     \centering
+     \caption{CSV transport info (nuclear fuel rod)}
+     \label{CSVfuelRod}
+     \tabcolsep=0.11cm
+     \tiny
+     \begin{tabular}{|c|c|c|c|c|c|c|c|c|c|}
+     time    & fuel\_rod10\_fluidTemperatureLiquid  & fuel\_rod10\_fluidTemperatureVapor & fuel\_rod10\_surfaceHeatflux & fuel\_rod10\_heatTransferMode & fuel\_rod10\_caldOutTemperature & ...  \\ 
+     0.00 & 464.1 & 467.1  & 0.5929E+04               & 0        & 466.08         & ...                      
+     \end{tabular}
+   \end{table}   
+   
+ \item \textit{\textbf{Cobra-TF's Output Variables and Corresponding Names in CSV file}}
+   
+   In CSV file, the output results obtained from the Cobra-TF output file (.ctf.out) will be saved with the names as described in Table 12.
+   \begin{table}[h]
+    \centering
+    \caption[caption]{Variables Name List in CSV File \\\hspace{\textwidth} \textcolor{red}{(NN: Axial Node Number; CN: Channel Number)}}
+    \label{CSVvariableNames}
+    \tabcolsep=0.11cm
+    \scriptsize
+    \begin{tabular}{|l|l|}
+     \hline
+     \textbf{Output Variable} & \textbf{Name in CSV file} \\  \hline
+     simulation time [s] & time   \\
+     channels' average quality [-] & AVG\_ch\_ax\textcolor{red}{NN}\_quality \\
+     channels' average void fraction (liquid) [-] & AVG\_ch\_ax\textcolor{red}{NN}\_voidFractionLiquid \\
+     channels' average void fraction (vapor) [-] & AVG\_ch\_ax\textcolor{red}{NN}\_voidFractionVapor \\
+     channels' average entrainment (volumetric) fraction [-] & AVG\_ch\_ax\textcolor{red}{NN}\_volumeEntrainFraction \\
+     channels' average mass flow rate (liquid) [lbm/s] & AVG\_ch\_ax\textcolor{red}{NN}\_massFlowRateLiquid \\
+     channels' average mass flow rate (vapor) [lbm/s] & AVG\_ch\_ax\textcolor{red}{NN}\_massFlowRateVapor \\
+     channels' average entrainment rate (mass flow rate) [lbm/s] & AVG\_ch\_ax\textcolor{red}{NN}\_massFlowRateEntrain \\
+     channels' average mass flow rate (integrated) [lbm/s] & AVG\_ch\_ax\textcolor{red}{NN}\_massFlowRateIntegrated \\
+     channels' average enthalpy increase (liquid) [btu/s] & AVG\_ch\_ax\textcolor{red}{NN}\_enthalpyIncreaseLiquid \\
+     channels' average enthalpy increase (vapor) [btu/s] & AVG\_ch\_ax\textcolor{red}{NN}\_enthalpyIncreaseVapor \\
+     channels' average enthalpy increase (integrated) [btu/s] & AVG\_ch\_ax\textcolor{red}{NN}\_enthalpyIncreaseIntegrated \\
+     channels' average mixture enthalpy [btu/s] & AVG\_ch\_ax\textcolor{red}{NN}\_enthalpyMixture \\
+     channels' average heat added to liquid [btu/s] & AVG\_ch\_ax\textcolor{red}{NN}\_heatAddedToLiquid \\
+     channels' average heat added to vapor [btu/s] & AVG\_ch\_ax\textcolor{red}{NN}\_heatAddedToVapor \\
+     channels' average heat added (integrated) [btu/s] & AVG\_ch\_ax\textcolor{red}{NN}\_heatAddedIntegrated' \\
+
+     channel pressure [psi] & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_pressure \\
+     channel liquid velocity [ft/s] & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_velocityLiquid \\
+     channel vapor velocity [ft/s] & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_velocityVapor \\ 
+     channel entrainment rate (velocity) [ft/s] & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_velocityEntrain \\  
+     channel void fraction (liquid) [-] & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_voidFractionLiquid \\ 
+     channel void fraction (vapor) [-] & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_voidFractionVapor \\
+     channel volume fraction of entrainment liquid [-] & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_volumeEntrainFraction \\  
+     channel mass flow rate (liquid) [lbm/s] & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_massFlowRateLiquid \\ 
+     channel mass flow rate (vapor) [lbm/s] & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_massFlowRateVapor \\ 
+     channel entrainment rate (mass flow rate) [-] & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_massFlowRateEntrain \\  
+     channel flow regime ID [-] & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_flowRegimeID \\  
+     channel heat added to liquid [btu/s] & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_heatAddedToLiquid \\ 
+     channel heat added to vapor [btu/s] & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_heatAddedToVapor \\ 
+     channel evaporation rate [lbm/s] & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_evaporationRate \\ 
+
+     channel enthalpy of vapor [btu/lbm] & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_enthalpyVapor \\
+     channel enthalpy of saturated vapor [btu/lbm] & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_enthalpySaturatedVapor \\
+     channel enthalpy difference between vapor and saturated vapor [btu/lbm] & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_enthalpyVapor-SaturatedVapor \\
+     channel enthalpy of liquid [btu/lbm] & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_enthalpyLiquid \\
+     channel enthalpy of saturated liquid [btu/lbm] & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_enthalpySaturatedLiquid \\
+     channel enthalpy difference between liquid and saturated liquid [btu/lbm] & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_enthalpyLiquid-SaturatedLiquid \\
+     channel enthalpy of mixture [btu/lbm] & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_enthalpyMixture \\
+     channel density of liquid [lbm/ft3] & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_densityLiquid \\
+     channel density of vapor [lbm/ft3] & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_densityVapor \\
+     channel density of mixture [lbm/ft3] & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_densityMixture \\
+     channel net entrainment rate (difference between entrainment rate and de-entrainment rate) [lbm/s] & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_netEntrainRate \\
+     % gas volumetric analysis 
+     channel enthalpy of the mixture of non-condensable gases & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_enthalpyNonCondensableMixture \\ 
+     channel density of the mixture of non-condensable gases & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_densityNonCondensableMixture \\
+     channel steam volume fraction [0-100] & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_volumeFractionSteam \\
+     channel air volume fraction [0-100] & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_volumeFractionAir \\
+     channel total equivalent diameter of the liquid droplets (all droplets as a single big one) (diam-ld) & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_equiDiameterLiquidDroplet \\ 
+     channel averaged diameter of liquid droplets field (diam-sd) & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_avgDiameterLiquidDroplet \\ 
+     channel averaged flow rate of liquid droplets field (flow-sd) & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_avgFlowRateLiquidDroplet \\ 
+     channel averaged velocity of liquid droplets field (veloc-sd) & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_avgVelocityLiquidDroplet \\ 
+     channel evaporation rate of liquid droplets field (gamsd) & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_evaporationRateLiquidDroplet \\ 
+     % fuel rod
+     fuel rod fluid temperatures (liquid) [deg-f] & fuel\_rod\textcolor{red}{NN}\_fluidTemperatureLiquid \\
+     fuel rod fluid temperatures (vapor) [deg-f] & fuel\_rod\textcolor{red}{NN}\_fluidTemperatureVapor \\
+     fuel rod surface heat flux [btu/h-ft2] & fuel\_rod\textcolor{red}{NN}\_surfaceHeatflux \\
+     %fuel rod surface heat transfer mode [-] & fuel\_rod\textcolor{red}{(Rod Node Number)}\_heatTransferMode \\
+     clad outer surface temperature [deg-f] & fuel\_rod\textcolor{red}{NN}\_caldOutTemperature \\
+     clad inner surface temperature [deg-f] & fuel\_rod\textcolor{red}{NN}\_cladInTemperature \\
+     gap conductance [btu/h-ft2-f] & fuel\_rod\textcolor{red}{NN}\_gapConductance \\
+     fuel outer suface temperature [deg-f] & fuel\_rod\textcolor{red}{NN}\_fuelTemperatureSurface \\
+     fuel center temperature [deg-f] & fuel\_rod\textcolor{red}{NN}\_fuelTemperatureCenter \\
+        
+    \end{tabular}
+
+   \end{table}
+\end{itemize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Distributions}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+The \xmlNode{Distribution} block defines the distributions that are going
+to be used for the sampling of the variables defined in the \xmlNode{Samplers} block.
+%
+For all the possibile distributions and all their possible inputs please see the
+chapter about Distributions (see~\ref{sec:distributions}).
+%
+Here we report an example of a Normal distribution:
+\begin{lstlisting}[style=XML,morekeywords={name,debug}]
+<Distributions verbosity='debug'>
+    <Normal name="GridLossCoeff">
+      <mean>0.7</mean>
+      <sigma>0.1</sigma>
+      <upperBound>0.9</upperBound>
+      <lowerBound>0.6</lowerBound>
+    </Normal>
+ </Distributions>
+\end{lstlisting}
+
+It is good practice to name the distribution something similar to what kind of
+variable is going to be sampled, since there might be many variables with the
+same kind of distributions but different input parameters.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Samplers}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+In the \xmlNode{Samplers} block we want to define the variables that are going to be sampled.
+%
+\\The perturbation is performed by assigning the 'line number' and 'position (word number)' of the values that need to be changed in the original Cobra-TF input to the RAVEN input. 
+Specifically, the variable name in the form of \textbf{\textit{Line Number|Position}} needs to be defined in the specific Sampler.
+
+\textbf{Example}:
+We want to do the sampling of 1 single variable:
+\begin{itemize}
+  \item The Grid Loss Coefficient Data used in the line number 343 and word number 1 (position).
+\end{itemize}
+
+We are going to sample this variable using two different sampling methods: Grid and MonteCarlo.
+The RAVEN input is then written as follows:
+
+\begin{lstlisting}[style=XML,morekeywords={name,type,construction,lowerBound,steps,limit,initialSeed}]
+<Samplers verbosity='debug'>
+  <Grid name='Grid_Sampler' >
+    <variable name='343|1'>
+      <distribution>GridLossCoeff</distribution>
+      <grid type='CDF' construction='equal'  steps='10'>0.001 0.999</grid>
+    </variable>
+  </Grid>
+  <MonteCarlo name='MC_Sampler'>
+     <samplerInit>
+       <limit>1000</limit>
+     </samplerInit>
+    <variable name='343|1'>
+      <distribution>GridLossCoeff</distribution>
+  </MonteCarlo>
+</Samplers>
+\end{lstlisting}
+
+It can be seen that each variable is connected with a proper distribution
+defined in the \\\xmlNode{Distributions} block (from the previous example).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Steps}
+For a Cobra-TF interface, the \xmlNode{MultiRun} step type will most likely be
+used.
+%
+First, the step needs to be named: this name will be one of the names used in
+the \xmlNode{sequence} block.
+%
+In our example, \texttt{Grid\_Sampler} and \texttt{MC\_Sampler}.
+%
+\begin{lstlisting}[style=XML,morekeywords={name,debug,re-seeding}]
+     <MultiRun name='Grid_Sampler' verbosity='debug'>
+\end{lstlisting}
+
+With this step, we need to import all the files needed for the simulation:
+\begin{itemize}
+  \item Cobra-TF input file
+\end{itemize}
+\begin{lstlisting}[style=XML,morekeywords={name,class,type}]
+    <Input   class='Files' type=''>inputFileCobra</Input>
+\end{lstlisting}
+We then need to define which model will be used:
+\begin{lstlisting}[style=XML]
+    <Model  class='Models' type='Code'>MyCobraTF</Model>
+\end{lstlisting}
+We then need to specify which Sampler is used, and this can be done as follows:
+\begin{lstlisting}[style=XML]
+    <Sampler class='Samplers' type='Grid'>Grid_Sampler</Sampler>
+\end{lstlisting}
+And lastly, we need to specify what kind of output the user wants.
+%
+For example the user might want to make a database (in RAVEN the database
+created is an HDF5 file).
+%
+Here is a classical example:
+\begin{lstlisting}[style=XML,morekeywords={class,type}]
+    <Output  class='Databases' type='HDF5'>Grid_out</Output>
+\end{lstlisting}
+Following is the example of two MultiRun steps which use different sampling
+methods (Grid and Monte Carlo), and creating two different databases for each
+one:
+\begin{lstlisting}[style=XML]
+<Steps verbosity='debug'>
+  <MultiRun name='Grid_Sampler' verbosity='debug'>
+    <Input   class='Files' type=''>inputFileCobra.inp</Input>
+    <Model   class='Models'    type='Code'>MyCobraTF</Model>
+    <Sampler class='Samplers'  type='Grid'>Grid_Sampler</Sampler>
+    <Output  class='Databases' type='HDF5'>Grid_out</Output>
+    <Output  class='DataObjects' type='PointSet'   >GridCTFPointSet</Output>
+    <Output  class='DataObjects' type='HistorySet'>GridCTFHistorySet</Output>
+  </MultiRun>
+  <MultiRun name='MC_Sampler' verbosity='debug' re-seeding='210491'>
+    <Input   class='Files' type=''>inputFileCobra.inp</Input>
+    <Model   class='Models'    type='Code'>MyCobraTF</Model>
+    <Sampler class='Samplers'  type='MonteCarlo'>MC_Sampler</Sampler>
+    <Output  class='Databases' type='HDF5'      >MC_out</Output>
+    <Output  class='DataObjects' type='PointSet'   >MonteCarloCobraPointSet</Output>
+    <Output  class='DataObjects' type='HistorySet'>MonteCarloCobraHistorySet</Output>
+  </MultiRun>
+</Steps>
+\end{lstlisting}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Databases, DataObjects, Optimizers???

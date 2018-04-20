@@ -1,0 +1,19 @@
+[Tests]
+  [./test1]
+    type   = 'RavenFramework'
+    input  = 'test1_cobratf_code_interface.xml'
+    output = 'CobraTFinterfaceTest1/testDummyStep_MC/1/case5-15.ctf.csv CobraTFinterfaceTest1/testDummyStep_MC/2/case5-15.ctf.csv'
+    csv    = 'CobraTFinterfaceTest1/cobra_out.csv'
+    test_interface_only = True
+  [../]
+
+  [./test2]
+    type   = 'RavenFramework'
+    input  = 'test2_cobratf_code_interface.xml'
+    output = 'CobraTFinterfaceTest2/testDummyStep_MC/1/small_3x3rod_HFP.ctf.csv CobraTFinterfaceTest2/testDummyStep_MC/2/small_3x3rod_HFP.ctf.csv CobraTFinterfaceTest2/testDummyStep_Grid/1/small_3x3rod_HFP.ctf.csv CobraTFinterfaceTest2/testDummyStep_Grid/2/small_3x3rod_HFP.ctf.csv'
+    text   = 'CobraTFinterfaceTest2/testDummyStep_Grid/2/small_3x3rod_HFP.inp'
+    csv    = 'CobraTFinterfaceTest2/cobra_out.csv'
+    test_interface_only = True
+  [../]
+[]
+
