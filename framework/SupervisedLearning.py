@@ -3181,23 +3181,30 @@ class DynamicModeDecomposition(superVisedLearning):
       @ In, kwargs: an arbitrary dictionary of keywords and values
     """
     superVisedLearning.__init__(self,messageHandler,**kwargs)
-    self.printTag          = 'DynamicModeDecomposition'
-    self.pivotParameterID = kwargs.get("pivotParameter","time")
-    self._dynamicHandling  = True  # This ROM is able to manage the time-series on its own. No need for special treatment outside
-    self.dmdParams     = {}
-    #self.polyExpParams['maxExpTerms']  = int(kwargs.get('maxNumberExpTerms',20)) # maximum number of exponential terms
-    #self.polyExpParams['maxPolyOrder'] = int(kwargs.get('maxPolyOrder',20))      # the maximum polynomial order
+    self.availDmdAlgorithms                = ['dmd','hdmd']                           # available dmd types: basic dmd and high order dmd
+    self.dmdParams                         = {}                                       # dmd settings container
+    self.printTag                          = 'DynamicModeDecomposition'               # print tag
+    self.pivotParameterID                  = kwargs.get("pivotParameter","time")      # pivot parameter
+    self._dynamicHandling                  = True                                     # This ROM is able to manage the time-series on its own. No need for special treatment outside
+    self.dmdParams['rankSVD'             ] = int(kwargs.get('rankSVD',None))          # -1 no truncation, 0 optimal rank is computed, >1 truncation rank
+    self.dmdParams['energyRankSVD'       ] = float(kwargs.get('energyRankSVD',None))  #  0.0 < float < 1.0, computed rank is the number of the biggest sv needed to reach the energy identified by "energyRankSVD"
+    self.dmdParams['rankTotalLeastSquare'] = int(kwargs.get('rankSVD',None))          # truncation rank for total least square
+    self.dmdParams['exactModes'          ] = bool(kwargs.get('exactModes',True))      # True if the exact modes need to be computed (eigs and eigvs), otherwise the projected ones (using the left-singular matrix)
+    self.dmdParams['optimized'           ] = bool(kwargs.get('optimized',True))       # amplitudes computed minimizing the error between the mods and all the timesteps (True) or 1st timestep only (False)
+    self.dmdParams['initialScaling'      ] = float(kwargs.get('initialScaling',1.))   # scaling factor for the target values (1. by default)
+    self.dmdParams['dmdType'             ] = kwargs.get('dmdType',None)               # the dmd type to be applied. Currently we support dmd and hdmd (high order dmd)
 
-    #self.polyExpParams['expTerms']        = int(kwargs.get('numberExpTerms',3))      # the number of exponential terms (by default an optimization problem is run in order to get the best number of terms)
-    #self.polyExpParams['polyOrder']       = int(kwargs.get('polyOrder',2))           # the polynomial order (by default an optimization problem is run in order to get the best order)
-    #self.polyExpParams['initialScaling']  = float(kwargs.get('initialScaling',1.))
-    self.dmdParams['cutPivotValue']   = float(kwargs.get('cutPivotValue',sys.float_info.max))
+    # some checks
+    if self.dmdParams['rankSVD'] is not None and self.dmdParams['energyRankSVD'] is not None:
+      self.raiseAWarning('Both "rankSVD" and "energyRankSVD" have been inputted. "energyRankSVD" is predominant and will be used!')
+    if self.dmdParams['dmdType'] is None:
+      self.raiseAnError(IOError,'dmdType XML node must be inputted! Available types are "'+', '.join(self.availDmdAlgorithms)+'"!')
     self.model = None
     # check if the pivotParameter is among the targetValues
     if self.pivotParameterID not in self.target:
       self.raiseAnError(IOError,"The pivotParameter "+self.pivotParameterID+" must be part of the Target space!")
     if len(self.target) > 2:
-      self.raiseAnError(IOError,"Multi-target PolyExponential not available yet!")
+      self.raiseAnError(IOError,"Multi-target DynamicModeDecomposition not available yet!")
     self.targetID = self.target[self.target.index(self.pivotParameterID) - 1]
 
   def _localNormalizeData(self,values,names,feat): # This function is not used in this class and can be removed
@@ -3210,20 +3217,107 @@ class DynamicModeDecomposition(superVisedLearning):
     """
     self.muAndSigmaFeatures[feat] = (0.0,1.0)
 
+  #######
+  def getDmdTimeScale(self):
+    """
+      Get the ts of the dmd reconstructed time scale.
+      @ In, None
+      @ Out, timeScale, numpy.array, the dmd reconstructed time scale
+    """
+    timeScale = np.arange(self.dmdTimeScale['t0'],
+                          self.dmdTimeScale['tend'] + self.dmdTimeScale['dt'],
+                          self.dmdTimeScale['dt'])
+    return timeScale
+
+  def getTrainingTimeScale(self):
+    """
+      Get the ts of the training time scale
+      @ In, None
+      @ Out, timeScale, numpy.array, the original reconstructed time scale
+    """
+    timeScale = np.arange(self.trainingTimeScale['t0'],
+                          self.trainingTimeScale['tend'] + self.trainingTimeScale['dt'],
+                          self.trainingTimeScale['dt'])
+    return timeScale
+
+  def getTimeEvolution(self):
+    """
+      Get the time evolution of each mode
+      @ In, None
+      @ Out, timeEvol, numpy.ndarray, the matrix that contains all the time evolution (by row)
+    """
+    omega = old_div(np.log(self.self._eigs), self.trainingTimeScale['dt'])
+    van = np.exp(np.multiply(*np.meshgrid(omega, self.getDmdTimeScale())))
+    timeEvol = (vander * self._b).T
+    return timeEvol
+
+  def reconstructData(self):
+    """
+      Retrieve the reconstructed data
+      @ In, None
+      @ Out, timeEvol, numpy.ndarray, the matrix containing the reconstructed data
+    """
+    data = self.self._modes.dot(self.getTimeEvolution())
+    return data
+
+  @staticmethod
+  def __reshapeTrainingData(X):
+    """
+    Private method that takes as input the snapshots and stores them into a
+    2D matrix, by column. If the input data is already formatted as 2D
+    array, the method saves it, otherwise it also saves the original
+    snapshots shape and reshapes the snapshots.
+
+    :param X: the input snapshots.
+    :type X: int or numpy.ndarray
+    :return: the 2D matrix that contains the flatten snapshots, the shape
+        of original snapshots.
+    :rtype: numpy.ndarray, tuple
+    """
+
+    # If the data is already 2D ndarray
+    if isinstance(X, np.ndarray) and X.ndim == 2:
+      return X, None
+
+    input_shapes = [np.asarray(x).shape for x in X]
+
+    if len(set(input_shapes)) is not 1:
+      raise ValueError('Snapshots have not the same dimension.')
+
+    snapshots_shape = input_shapes[0]
+    snapshots = np.transpose([np.asarray(x).flatten() for x in X])
+    return snapshots, snapshots_shape
+
+  #######
+
+
   def __trainLocal__(self,featureVals,targetVals):
     """
       Perform training on input database stored in featureVals.
       @ In, featureVals, array, shape=[n_timeStep, n_dimensions], an array of input data # Not use for ARMA training
       @ In, targetVals, array, shape = [n_timeStep, n_dimensions], an array of time series data
     """
-    from pydmd import DMD, MrDMD
     self.KDTreeFinder = spatial.KDTree(featureVals)
     pivotParamIndex  = self.target.index(self.pivotParameterID)
     targetParamIndex = self.target.index(self.targetID)
     self.pivotValues = targetVals[0,:,pivotParamIndex]
+    originalData     = [targetVals[:,ts,targetParamIndex] for ts in range(len(self.pivotValues))]
+    nsamples         = len(targetVals[:,:,pivotParamIndex])
+    if self.dmdParams['dmdType'].strip() == 'dmd':
+      snaps, shapes = self.__reshapeTrainingData(snapshots)
+      X = snaps[:, :-1]
+      Y = snaps[:, 1:]
+      if self.dmdParams['rankTotalLeastSquare'] is not None:
+        X, Y = mathUtils.computeTruncatedTotalLeastSquare(X, Y, self.dmdParams['rankTotalLeastSquare'])
+      rank = self.dmdParams['energyRankSVD'] if self.dmdParams['energyRankSVD'] is not None else (self.dmdParams['rankSVD'] if self.dmdParams['rankSVD'] is not None else -1)
+      U, s, V = mathUtils.computeTruncatedSingularValueDecomposition(X, rank)
+    else:
+      pass
+
+
     self.model = DMD(svd_rank=-1, exact=True, opt=True)
     # super slow
-    snapshots = [targetVals[:,ts,targetParamIndex] for ts in range(len(self.pivotValues))]
+
     self.model.fit(snapshots)
     #self.model.plot_eigs(show_axes=True, show_unit_circle=True)
 

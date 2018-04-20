@@ -629,10 +629,10 @@ def isABoolean(val):
 def computeTruncatedTotalLeastSquare(X, Y, truncationRank):
   """
     Compute Total Least Square and truncate it till a rank = truncationRank
-    @ In, X, numpy.ndarray, the first 2D matrix 
-    @ In, Y, numpy.ndarray, the second 2D matrix 
+    @ In, X, numpy.ndarray, the first 2D matrix
+    @ In, Y, numpy.ndarray, the second 2D matrix
     @ In, truncationRank, int, optional, the truncation rank
-    @ Out, (dX,dy), tuple, the Leasted squared matrices X and Y              
+    @ Out, (dX,dy), tuple, the Leasted squared matrices X and Y
   """
   V = np.linalg.svd(np.append(X, Y, axis=0), full_matrices=False)[-1]
   rank = min(int(truncationRank), V.shape[0])
@@ -670,8 +670,8 @@ def computeTruncatedSingularValueDecomposition(X, truncationRank):
   s = s[:rank]
   return U, s, V
 
-def computeEigenvaluesAndVectorsFromLowRankOperator(lowOperator, Y, U, s, V, exact=True):
-  """ 
+def computeEigenvaluesAndVectorsFromLowRankOperator(lowOperator, Y, U, s, V, exactModes=True):
+  """
     Compute the eigenvalues and eigenvectors of the high-dim operator
     from the low-dim operator and the matrix Y.
     The lowe-dim operator can be computed with the following numpy-based
