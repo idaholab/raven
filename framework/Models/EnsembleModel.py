@@ -374,7 +374,8 @@ class EnsembleModel(Dummy):
     selectedkwargs['SampledVars'], selectedkwargs['SampledVarsPb'] = {}, {}
     for key in kwargs["SampledVars"].keys():
       if key in self.modelsDictionary[modelName]['Input']:
-        selectedkwargs['SampledVars'][key], selectedkwargs['SampledVarsPb'][key] =  kwargs["SampledVars"][key],  kwargs["SampledVarsPb"][key] if 'SampledVarsPb' in kwargs.keys() else 1.0
+        selectedkwargs['SampledVars'][key]   = kwargs["SampledVars"][key]
+        selectedkwargs['SampledVarsPb'][key] = kwargs["SampledVarsPb"][key] if 'SampledVarsPb' in kwargs.keys() and key in kwargs["SampledVarsPb"].keys() else 1.0
     return selectedkwargs
 
   def createNewInput(self,myInput,samplerType,**kwargs):

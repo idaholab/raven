@@ -23,7 +23,7 @@
       <!-- Either inputRow or inputPivotValue  will be specified (mutually exclusive) -->
       <xsd:choice>
         <xsd:element name="inputRow"         type="xsd:integer" minOccurs="0"/>
-        <xsd:element name="inputPivotValue"  type="xsd:float"   minOccurs="0"/>
+        <!--  <xsd:element name="inputPivotValue"  type="xsd:float"   minOccurs="0"/> -->
       </xsd:choice>
       <xsd:element name="pivotParameter"   type="xsd:string"  minOccurs="0"/>
       <!-- Either operator, outputRow, or outputPivotValue will be specified
@@ -31,7 +31,7 @@
       <xsd:choice>
         <xsd:element name="outputRow"        type="xsd:integer" minOccurs="0"/>
         <xsd:element name="operator"         type="operatorType"  minOccurs="0"/>
-        <xsd:element name="outputPivotValue" type="xsd:string"  minOccurs="0"/>
+        <!-- <xsd:element name="outputPivotValue" type="xsd:string"  minOccurs="0"/> -->
       </xsd:choice>
    </xsd:sequence>
   </xsd:complexType>

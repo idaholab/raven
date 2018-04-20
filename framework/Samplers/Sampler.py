@@ -166,6 +166,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.printTag                      = self.type                 # prefix for all prints (sampler type)
     self.restartData                   = None                      # presampled points to restart from
     self.restartTolerance              = 1e-15                     # strictness with which to find matches in the restart data
+    self.restartIsCompatible           = None                      # flags restart as compatible with the sampling scheme (used to speed up checking)
 
     self._endJobRunnable               = sys.maxsize               # max number of inputs creatable by the sampler right after a job ends (e.g., infinite for MC, 1 for Adaptive, etc)
 
@@ -683,7 +684,15 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     ##### RESTART #####
     #check if point already exists
     if self.restartData is not None:
-      inExisting = self.restartData.getMatchingRealization(self.values,tol=self.restartTolerance)
+      # check if restart data object is compatible
+      if self.restartIsCompatible is None:
+        self.restartIsCompatible = self.restartData.checkInputCompatibility(self.values.keys())
+      # look for matching point if compatible; otherwise, skip search
+      if self.restartIsCompatible:
+        # skip the input check because we only check it once through restartIsCompatible mechanics
+        inExisting = self.restartData.getMatchingRealization(self.values,tol=self.restartTolerance,skipInputCheck=True)
+      else:
+        inExisting = None
     else:
       inExisting = None
     #if not found or not restarting, we have a new point!

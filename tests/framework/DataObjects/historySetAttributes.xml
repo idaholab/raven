@@ -1,0 +1,37 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/DataObjects.test_output_attributes</name>
+    <author>alfoa</author>
+    <created>2018-02-01</created>
+    <classesTested>DataObjects.HistorySet, Models.ExternalModel</classesTested>
+    <description>
+       Test to check the functionalities of DataObjects preprocess the data applying simple 
+       operator (e.g. max value, average, min value, etc.), in the $options$ XML node.
+       In this case it tests the attributes for HistorySet.
+    </description>
+  </TestInfo>
+
+  <ExternalXML node="RunInfo" xmlToLoad="DataobjectsAttributes/RunInfo.xml"/>
+  <ExternalXML node="Models" xmlToLoad="DataobjectsAttributes/Model.xml"/>
+  <ExternalXML node="Distributions" xmlToLoad="DataobjectsAttributes/Distributions.xml"/>
+  <ExternalXML node="Samplers" xmlToLoad="DataobjectsAttributes/Sampler.xml"/>
+
+  <Steps>
+    <MultiRun name="TestDataObjectAttributes">
+      <Input class="DataObjects" type="PointSet">inputHolder</Input>
+      <Model class="Models" type="ExternalModel">PythonModule</Model>
+      <Sampler class="Samplers" type="Grid">myGrid</Sampler>
+      <Output class="DataObjects" type="HistorySet">allStories</Output>
+      <Output class="DataObjects" type="HistorySet">stories1</Output>
+      <Output class="DataObjects" type="HistorySet">stories2</Output>
+      <Output class="OutStreams" type="Print">allStories_dump</Output>
+      <Output class="OutStreams" type="Print">stories1_dump</Output>
+      <Output class="OutStreams" type="Print">stories2_dump</Output>
+    </MultiRun>
+  </Steps>
+
+  <ExternalXML node="OutStreams" xmlToLoad="DataobjectsAttributes/OutStreams.xml"/>
+  <ExternalXML node="DataObjects" xmlToLoad="DataobjectsAttributes/DataObjects.xml"/>
+
+</Simulation>

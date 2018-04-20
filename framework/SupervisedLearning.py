@@ -2207,7 +2207,7 @@ class SciKitLearn(superVisedLearning):
     if self.intrinsicMultiTarget:
       self.ROM[0].fit(featureVals,targetVals)
     else:
-      if not all([len(np.unique(targetVals[:,index]))>1 for index in range(len(self.ROM))]):
+      if all([len(np.unique(targetVals[:,index])) == 1 for index in range(len(self.ROM))]):
         self.myNumber = [np.unique(targetVals[:,index])[0] for index in range(len(self.ROM)) ]
         self.evaluate = self._readdressEvaluateConstResponse
       else:
