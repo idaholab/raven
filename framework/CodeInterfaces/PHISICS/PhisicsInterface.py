@@ -162,7 +162,7 @@ class Phisics(CodeInterfaceBase):
       The flags controlling the Mrtau standalone mode are incorrect. \n \
       The node <standalone> in depletion_input file disagrees with the node <mrtauStandAlone> in the raven input. \n \
       the matching solutions are: \n \
-      <mrtauStandAlone>yes</mrtauStandAlone> and <"+tag+">True<"+tag+">\n <mrtauStandAlone>no</mrtauStandAlone> and <"+tag+">False<"+tag+">"
+      <mrtauStandAlone>True</mrtauStandAlone> and <"+tag+">yes<"+tag+">\n <mrtauStandAlone>False</mrtauStandAlone> and <"+tag+">no<"+tag+">"
     if self.mrtauStandAlone == False and isMrtauStandAlone == 'yes':
       raise  ValueError(valueErrorMessage)
     if self.mrtauStandAlone == True and isMrtauStandAlone == 'no':
@@ -235,24 +235,13 @@ class Phisics(CodeInterfaceBase):
       @ In, xmlNode, xml.etree.ElementTree.Element, xml element node
       @ Out, None.
     """
-    validPerturbation = ['additive', 'multiplicative', 'absolute']
-    self.perturbXS = validPerturbation[1] # default is cross section perturbation multiplicative mode
-    setOfPerturbations = set(validPerturbation)
     #default values if the flag is not in the raven input
-    self.tabulation       = True
     self.mrtauStandAlone  = False
     self.mrtauExecutable  = None
     self.phisicsRelap     = False
     self.printSpatialRR   = False
     self.printSpatialFlux = False
-    
     for child in xmlNode:
-      if child.tag == 'PerturbXS':
-        if child.text.lower() in set(validPerturbation):
-          self.perturbXS = child.text.lower()
-        else:
-          raise ValueError("\n\nThe type of perturbation --"+child.text.lower()+"-- is not valid. You can choose one of the following \n"+"\n".join(set(validPerturbation)))
-
       if child.tag == 'mrtauStandAlone':
         self.mrtauStandAlone = None
         if (child.text.lower() == 't' or child.text.lower() == 'true'):
@@ -413,7 +402,6 @@ class Phisics(CodeInterfaceBase):
     import PathParser
     import XSCreator  
     self.typeDict = {}
-    
     self.typeDict = self.mapInputFileType(currentInputFiles)
     self.distributedPerturbedVars = self.distributeVariablesToParsers(Kwargs['SampledVars'])
     self.parseControlOptions(currentInputFiles[self.typeDict['depletion_input']].getAbsFile(), currentInputFiles[self.typeDict['path']].getAbsFile())

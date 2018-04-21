@@ -64,7 +64,6 @@ class phisicsdata():
         if self.printSpatialRR:
           fissionMatrixInfoMPI = self.getMatrix(markerList[0],markerList[1],phisicsDataDict['numberOfMPI'])
           fissionMatrixInfo = self.summedDictValues(fissionMatrixInfoMPI)
-          print ('aaaaaaaaaaaaaaaaaaaaaaaaa')
         else:
           fissionMatrixInfo = {}
         if self.printSpatialFlux:
@@ -777,7 +776,6 @@ class phisicsdata():
     else:
       for param in self.paramList:
         if param not in ['Group','Region']:
-          print (param)
           rrNames.append(param+'|Total')
           rrValues.append(instantDict.get('reactionRateInfo').get(param))
     if 'Group' in rrNames:

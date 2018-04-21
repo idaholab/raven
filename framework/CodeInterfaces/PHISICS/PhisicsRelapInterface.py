@@ -214,10 +214,11 @@ class PhisicsRelap5(CodeInterfaceBase):
       @ In, Kwargs, dictionary, kwarded dictionary of parameters. In this dictionary there is another dictionary called "SampledVars"
              where RAVEN stores the variables that got sampled (e.g. Kwargs['SampledVars'] => {'var1':10,'var2':40})
       @ Out, currentInputFiles, list, list of newer input files, list of the new input files (modified and not)
-    """
+    """    
+    if self.PhisicsInterface.mrtauStandAlone:  # errors out if MRTAU standalone and PHISICS/RELAP5 are activated simultanously
+      raise ValueError('MRTAU cannot be used in standalone mode in PHISICS/RELAP5 calculations.')        
     self.definePhisicsVariables()
-    self.outputDeck = self.Relap5Interface.outputDeck
-    
+    self.outputDeck = self.Relap5Interface.outputDeck 
     perturbedVars = Kwargs['SampledVars']
     localKwargs = copy.deepcopy(Kwargs)
     perturbedVars = localKwargs.pop('SampledVars')
