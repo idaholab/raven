@@ -18,7 +18,7 @@ def parseLine(line):
 
 def filterTrace(compDict, percentCutoff):
   """
-  Filters isotopes with less than percentCutoff for easier calculation.
+    Filters isotopes with less than percentCutoff for easier calculation.
     @ In, compDict, dictionary, key=isotope
                                 value=atomic density
     @ In, percentCutoff, float, cutoff threshold for ignoring isotopes (0 -1)
@@ -49,7 +49,7 @@ def filterTrace(compDict, percentCutoff):
 
 def bumatRead(bumatFile, percentCutoff):
   """
-  Reads serpent .bumat output file and stores the composition in a dictionary.
+    Reads serpent .bumat output file and stores the composition in a dictionary.
     @ In, bumatFile, string, bumat file path
     @ In, percentCutoff, float, cutoff threshold for ignoring isotopes (0 -1)
     @ Out, compDict, dictionary, key=isotope
@@ -71,7 +71,7 @@ def bumatRead(bumatFile, percentCutoff):
 
 def searchKeff(resFile):
   """
-  Searches and returns the mean keff value in the .res file.
+    Searches and returns the mean keff value in the .res file.
     @ In, resFile, string, path to .res file
     @ Out, keffDict, dictionary, key = keff or sd
                                  value = list of keff or sd
@@ -88,14 +88,14 @@ def searchKeff(resFile):
       sdList.append(keffLineParse(lines[i])[1])
 
   keffDict = {}
-  keffDict['keff'] = keffList 
+  keffDict['keff'] = keffList
   keffDict['sd'] = sdList
   return keffDict
 
 
 def keffLineParse(keffLine):
   """
-  Parses through the anaKeff line in .res file.
+    Parses through the anaKeff line in .res file.
     @ In, keffLine, string, string from .res file listing IMPKEFF
     @ Out, keffTuple, tuple, (mean IMPKEFF, sd of IMPKEFF)
   """
@@ -103,7 +103,7 @@ def keffLineParse(keffLine):
   newKeffLine = keffLine[start:]
   start = newKeffLine.find('[')
   end = newKeffLine.find(']')
-  
+
   # +3 and -1 is to get rid of leading and trailing whitespace
   keffSd = newKeffLine[start + 3:end - 1]
   (keff, sd) = keffSd.split(' ')
@@ -113,11 +113,11 @@ def keffLineParse(keffLine):
 
 def csvRenderDict(csvFilename, dictionary, header):
   """
-  Renders csv given the dictionary column 1 = key, column 2 = value.
+    Renders csv given the dictionary column 1 = key, column 2 = value.
     @ In, csvFilename, string, path of csv file to be created
     @ In, dictionary, dictionary, dictionary to be rendered into csv file
     @ In, header, list, list of length 2 of header strings
-    @ Out, bool, bool, True if successful
+    @ Out, csvRenderDict
   """
   with open(csvFilename, 'w') as csvFile:
     writer = csv.writer(csvFile)
@@ -127,13 +127,13 @@ def csvRenderDict(csvFilename, dictionary, header):
       writer.writerow([key, value])
   return True
 
-def readFileIntoList(file):
-  """ 
-  Reads file into list, every line as element.
-    @ In, file, string, name of file
-    @ Out, listFromFile, list, contents in the file as list
+def readFileIntoList(target):
   """
-  read = open(file, 'r')
+    Reads target file into list, every line as element.
+    @ In, target, string, name of file
+    @ Out, listFromFile, list, contents in the target file as list
+  """
+  read = open(target, 'r')
   lines = read.readlines()
   listFromFile = []
   for line in lines:
@@ -143,7 +143,7 @@ def readFileIntoList(file):
 
 def findDeptime(inputFile):
   """
-  Finds the deptime from the input file.
+    Finds the deptime from the input file.
     @ In, inputFile, string, input file path
     @ Out, deptime, string, depletion time in days
   """
@@ -152,11 +152,9 @@ def findDeptime(inputFile):
     for line in file:
       if line.split(' ')[0] == 'dep':
         if line.split(' ')[1] != 'daystep':
-          print('Currently can only take daystep')
-          raise ValueError()
+          raise ValueError('Currently can only take daystep')
         else:
           hit = True
-          continue
       if hit:
         deptime = line.split(' ')[0]
         break
@@ -164,11 +162,9 @@ def findDeptime(inputFile):
   return deptime
 
 
-
-def makeCsv(csvFilename, inBumatDict, outBumatDict,
-       keffDict, isoList, inputFile):
-  """ 
-  Renders the  csv as filename with the given bumat dict and keff dict.
+def makeCsv(csvFilename, inBumatDict, outBumatDict, keffDict, isoList, inputFile):
+  """
+    Renders the  csv as filename with the given bumat dict and keff dict.
     @ In, csvFilename, string, filename of csv output
     @ In, inBumatDict, dictionary, key=isotope
                                    value=atomic density
@@ -185,7 +181,7 @@ def makeCsv(csvFilename, inBumatDict, outBumatDict,
   bocKeff = keffDict['keff'][0]
   eocKeff = keffDict['keff'][1]
   deptime = findDeptime(inputFile)
-  
+
   with open(csvFilename, 'w') as csvFile:
     writer = csv.writer(csvFile)
     # fresh isoList
@@ -203,7 +199,7 @@ def makeCsv(csvFilename, inBumatDict, outBumatDict,
     for key in outBumatDict:
       if key in isoList:
         index = isoList.index(key)
-        depAdensList[index] = outBumatDict[key] 
+        depAdensList[index] = outBumatDict[key]
 
     row = freshAdensList + [bocKeff, eocKeff, deptime] + depAdensList
     # add keff value to adens list, like header

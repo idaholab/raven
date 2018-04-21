@@ -61,12 +61,8 @@ class Serpent(CodeInterfaceBase):
       @ In, fargs, dict, optional, a dictionary containing the axuiliary input file variables the user can specify in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 aux0extension =0 .aux0/ >< /Code >)
       @ Out, returnCommand, tuple, tuple containing the generated command. returnCommand[0] is the command to run the code (string), returnCommand[1] is the name of the output root
     """
-    if clargs==None:
+    if clargs is None:
       raise IOError('No input file was specified in clargs!')
-    #check for output either in clargs or fargs
-    #if len(fargs['output'])<1 and 'output' not in clargs.keys():
-    #  raise IOError('No output file was specified, either in clargs or fileargs!')
-    #check for duplicate extension use
     usedExt=[]
     for ext in list(clargs['input'][flag] for flag in clargs['input'].keys()) + list(fargs['input'][var] for var in fargs['input'].keys()):
       if ext not in usedExt:
@@ -87,56 +83,6 @@ class Serpent(CodeInterfaceBase):
         if not found:
           raise IOError('input extension "'+ext+'" listed in input but not in inputFiles!')
     #TODO if any remaining, check them against valid inputs
-
-    #PROBLEM this is limited, since we can't figure out which .xml goes to -i and which to -d, for example.
-    def getFileWithExtension(fileList,ext):
-      """
-      Just a script to get the file with extension ext from the fileList.
-      @ In, fileList, the string list of filenames to pick from.
-      @ Out, ext, the string extension that the desired filename ends with.
-      """
-      found = False
-      for index,inputFile in enumerate(fileList):
-        if inputFile.getExt() == ext:
-          found=True
-          break
-      if not found:
-        raise IOError('No InputFile with extension '+ext+' found!')
-      return index,inputFile
-
-    #prepend
-    todo = ''
-    todo += clargs['pre']+' '
-    todo += executable
-    index=None
-    #inputs
-    for flag,exts in clargs['input'].items():
-      if flag == 'noarg':
-        for ext in exts:
-          idx,fname = getFileWithExtension(inputFiles,ext.strip('.'))
-          todo+=' '+fname.getFilename()
-          if index == None:
-            index = idx
-        continue
-      todo += ' '+flag
-      for ext in exts:
-        idx,fname = getFileWithExtension(inputFiles,ext.strip('.'))
-        todo+=' '+fname.getFilename()
-        if index == None:
-          index = idx
-    #outputs
-    #FIXME I think if you give multiple output flags this could result in overwriting
-    self.caseName = inputFiles[index].getBase()
-    outfile = 'out~'+self.caseName
-    if 'output' in clargs.keys():
-      todo+=' '+clargs['output']+' '+outfile
-    #text flags
-    todo+=' '+clargs['text']
-    #postpend
-    todo+=' '+clargs['post']
-    returnCommand = [('parallel',todo)],outfile
-    print('Execution Command: '+str(returnCommand[0]))
-    return returnCommand
 
   def createNewInput(self,currentInputFiles,origInputFiles,samplerType,**Kwargs):
     """
@@ -166,6 +112,13 @@ class Serpent(CodeInterfaceBase):
 
 
   def finalizeCodeOutput(self, command, output, workDir):
+    """
+      This function parses through the output files SERPENT creates into a csv.
+      @ In, command, string, command to call serpent executable
+      @ In, output, string, output file path
+      @ In, workDir, string, working directory path
+      @ Out, finalizeCodeOutput
+    """
     # filename would be 'input.serpent'
     filename = command.strip().split(' ')[-1]
     # filename_without_extension would be 'input'
@@ -182,7 +135,7 @@ class Serpent(CodeInterfaceBase):
     isoList = op.readFileIntoList(isofile)
     # parse files into dictionary
     keffDict = op.searchKeff(resfile)
-    # the second argument is the percent cutoff 
+    # the second argument is the percent cutoff
     inBumatDict = op.bumatRead(inbumatfile, 1e-7)
     outBumatDict = op.bumatRead(outbumatfile, 1e-7)
 
