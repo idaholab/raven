@@ -112,6 +112,13 @@ class Serpent(CodeInterfaceBase):
 
 
   def finalizeCodeOutput(self, command, output, workDir):
+    """
+      This function parses through the output files SERPENT creates into a csv.
+      @ In, command, string, command to call serpent executable
+      @ In, output, string, output file path
+      @ In, workDir, string, working directory path
+      @ Out, finalizeCodeOutput
+    """
     # filename would be 'input.serpent'
     filename = command.strip().split(' ')[-1]
     # filename_without_extension would be 'input'
