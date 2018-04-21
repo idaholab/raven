@@ -2610,7 +2610,7 @@ while storing the following values:
 It allows users to run SERPENT by varying a value
 (e.g. depletion time, input composition) from a template input file.
 For example, a user can run a \texttt{MultiRun} where the depletion
-time of a fixed input composition is varied, to see the effect of 
+time of a fixed input composition is varied, to see the effect of
 depletion time on the output composition and End Of Cycle Keff.
 
 There are some limitations for this interface:
@@ -2621,7 +2621,7 @@ There are some limitations for this interface:
 
 Note that due to the number of isotopes to track,
 we use the \xmlnode{ExternalXML} to import from a file.
-The user must edit the \texttt{aux-input-files} so that it
+The user must edit the \texttt{isoFile} so that it
 matches the exact isotope nomenclature used in the SERPENT simulations for the isotopes
 to be in the output csv file. To do so:
 
