@@ -88,7 +88,7 @@ def searchKeff(resFile):
       sdList.append(keffLineParse(lines[i])[1])
 
   keffDict = {}
-  keffDict['keff'] = keffList 
+  keffDict['keff'] = keffList
   keffDict['sd'] = sdList
   return keffDict
 
@@ -103,7 +103,7 @@ def keffLineParse(keffLine):
   newKeffLine = keffLine[start:]
   start = newKeffLine.find('[')
   end = newKeffLine.find(']')
-  
+
   # +3 and -1 is to get rid of leading and trailing whitespace
   keffSd = newKeffLine[start + 3:end - 1]
   (keff, sd) = keffSd.split(' ')
@@ -128,7 +128,7 @@ def csvRenderDict(csvFilename, dictionary, header):
   return True
 
 def readFileIntoList(target):
-  """ 
+  """
     Reads target file into list, every line as element.
     @ In, target, string, name of file
     @ Out, listFromFile, list, contents in the target file as list
@@ -165,7 +165,7 @@ def findDeptime(inputFile):
 
 
 def makeCsv(csvFilename, inBumatDict, outBumatDict, keffDict, isoList, inputFile):
-  """ 
+  """
     Renders the  csv as filename with the given bumat dict and keff dict.
     @ In, csvFilename, string, filename of csv output
     @ In, inBumatDict, dictionary, key=isotope
@@ -183,7 +183,7 @@ def makeCsv(csvFilename, inBumatDict, outBumatDict, keffDict, isoList, inputFile
   bocKeff = keffDict['keff'][0]
   eocKeff = keffDict['keff'][1]
   deptime = findDeptime(inputFile)
-  
+
   with open(csvFilename, 'w') as csvFile:
     writer = csv.writer(csvFile)
     # fresh isoList
@@ -201,7 +201,7 @@ def makeCsv(csvFilename, inBumatDict, outBumatDict, keffDict, isoList, inputFile
     for key in outBumatDict:
       if key in isoList:
         index = isoList.index(key)
-        depAdensList[index] = outBumatDict[key] 
+        depAdensList[index] = outBumatDict[key]
 
     row = freshAdensList + [bocKeff, eocKeff, deptime] + depAdensList
     # add keff value to adens list, like header
