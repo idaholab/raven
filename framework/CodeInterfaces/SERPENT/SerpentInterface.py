@@ -182,7 +182,7 @@ class Serpent(CodeInterfaceBase):
     isoList = op.readFileIntoList(isofile)
     # parse files into dictionary
     keffDict = op.searchKeff(resfile)
-    # the second argument is the percent cutoff 
+    # the second argument is the percent cutoff
     inBumatDict = op.bumatRead(inbumatfile, 1e-7)
     outBumatDict = op.bumatRead(outbumatfile, 1e-7)
 
