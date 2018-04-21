@@ -152,11 +152,9 @@ def findDeptime(inputFile):
     for line in file:
       if line.split(' ')[0] == 'dep':
         if line.split(' ')[1] != 'daystep':
-          print('Currently can only take daystep')
-          raise ValueError()
+          raise ValueError('Currently can only take daystep')
         else:
           hit = True
-          continue
       if hit:
         deptime = line.split(' ')[0]
         break
