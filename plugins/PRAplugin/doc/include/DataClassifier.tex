@@ -1,4 +1,58 @@
 \section{Data Classifier}
 \label{sec:dataClassifier}
 
-[]
+The \textbf{DataClassifier} post-processor is specifically used to classify the data stored in the DataObjects. It
+accepts two DataObjects, one is used as the classifier which should be always \textbf{PointSet}, the other one is used
+as the input DataObject to be classified. 
+%
+%\ppType{DataClassifier}{DataClassifier}
+%
+\begin{itemize}
+  \item \xmlNode{label}, \xmlDesc{string, required field}, the label in the classifier DataObject whose data is used
+    as the reference of the classifier. The same label will be used in the new DataObject that is employed to be
+    classified.
+  \item \xmlNode{variable}, \xmlDesc{required xml node}. In this node, the following attribute should be specified: 
+    \begin{itemize}
+      \item \xmlAttr{name}, \xmlDesc{required string attribute}, the variable name, which should be exist in
+        the DataObject that is used as classifier.
+    \end{itemize}
+    and the following sub-node should also be specified:
+    \begin{itemize}
+      \item \xmlNode{Function}, \xmlDesc{string, required field}, this function creates the mapping from input DataObject
+        to the Classifier.
+        \begin{itemize}
+          \item \xmlAttr{class}, \xmlDesc{string, required field}, the class of this function (e.g. Functions)
+          \item \xmlAttr{type}, \xmlDesc{string, required field}, the type of this function (e.g. external)
+        \end{itemize}
+    \end{itemize}
+\end{itemize}
+
+\textbf{Example:}
+
+\begin{lstlisting}[style=XML]
+<Simulation>
+ ...
+  <Models>
+    ...
+    <PostProcessor name="ET_Classifier" subType="DataClassifier">
+      <label>sequence</label>
+      <variable name='ACC'>
+        <Function class="Functions" type="External">func_ACC</Function>
+      </variable>
+      <variable name='LPI'>
+        <Function class="Functions" type="External">func_LPI</Function>
+      </variable>
+      <variable name='LPR'>
+        <Function class="Functions" type="External">func_LPR</Function>
+      </variable>
+    </PostProcessor>
+    ...
+  </Models>
+ ...
+</Simulation>
+\end{lstlisting}
+
+\subsection{Data Classifier reference tests}
+\begin{itemize}
+	\item test\_dataClassifier\_postprocessor.xml
+\end{itemize}
