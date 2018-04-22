@@ -22,7 +22,7 @@
 
   <Metrics>
     <SKL name="euclidean">
-      <metricType>euclidean</metricType>
+      <metricType>paired_distance|euclidean</metricType>
     </SKL>
     <SKL name="rbf">
       <metricType>rbf</metricType>
