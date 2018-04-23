@@ -5,5 +5,5 @@
    input = 'test_phisics_interface.xml'
    output = 'phisics/phisicsTest2D/1/HTGR_test-1.csv phisics/phisicsTest2D/1/HTGR_test-2.csv'
    UnorderedCsv = 'phisics/out_streams_RAVEN.xml'
-   text = 'phisics/decay.xml phisics/Material.xml'
+   text = 'phisics/library_fiss/decay.xml phisics/Material.xml'
  [../]
