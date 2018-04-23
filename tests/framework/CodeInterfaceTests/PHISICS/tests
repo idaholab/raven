@@ -1,1 +1,7 @@
 [Tests]
+ [./]
+   type = 'RavenFramework'
+   test_interface_only = 'True'
+   input = 'test_phisics_interface.xml'
+   output = 'phisicsTest2D/1/numbers-0.csv phisicsTest2D/1/numbers-1.csv phisicsTest2D/1/HTGR_test.o-0 phisicsTest2D/1/HTGR_test.o-1 phisicsTest2D/1/Dpl_INSTANT_HTGR_test_flux_mat.csv'
+ [../]
