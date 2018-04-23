@@ -1,0 +1,8 @@
+Actinide Mass
+ISOT    ATOM_WT    MASS(KG)
+ U235_1 235.0439  5.526E-03
+ U238_1 238.04    0.00000
+ END    Fission Product Mass
+ISOT    ATOM_WT    MASS(KG)
+ I-135  134.9100  0.000E+00
+ END
