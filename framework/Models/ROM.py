@@ -181,15 +181,19 @@ class ROM(Dummy):
     inputSpecification.addSub(InputData.parameterInputFactory("validation_fraction", InputData.FloatType))
     inputSpecification.addSub(InputData.parameterInputFactory("beta_1", InputData.FloatType))
     inputSpecification.addSub(InputData.parameterInputFactory("beta_2", InputData.FloatType))
-
+    # PolyExp
     inputSpecification.addSub(InputData.parameterInputFactory("maxNumberExpTerms", InputData.IntegerType))
     inputSpecification.addSub(InputData.parameterInputFactory("numberExpTerms", InputData.IntegerType))
     inputSpecification.addSub(InputData.parameterInputFactory("maxPolyOrder", InputData.IntegerType))
     inputSpecification.addSub(InputData.parameterInputFactory("polyOrder", InputData.IntegerType))
     inputSpecification.addSub(InputData.parameterInputFactory("initialScaling", InputData.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("cutPivotValue", InputData.FloatType))
-
-
+    # DMD
+    inputSpecification.addSub(InputData.parameterInputFactory("rankSVD", InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("energyRankSVD", InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("rankTLSQ", InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("exactModes", InputData.BoolType))
+    inputSpecification.addSub(InputData.parameterInputFactory("optimized", InputData.BoolType))
+    inputSpecification.addSub(InputData.parameterInputFactory("dmdType", InputData.StringType))
 
     #Estimators can include ROMs, and so because baseNode does a copy, this
     #needs to be after the rest of ROMInput is defined.
