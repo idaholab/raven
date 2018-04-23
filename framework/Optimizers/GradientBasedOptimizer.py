@@ -203,25 +203,38 @@ class GradientBasedOptimizer(Optimizer):
     gradient = self.localEvaluateGradient(optVarsValues, traj, gradient)
     # we intend for gradient to give direction only
     # DEBUGG VARIABLE VECTOR OPTION 2: how to find "norm" with mixed vectors?
-    gradientNorm = np.linalg.norm(gradient.values()) #might be infinite!
+    ## pre-normalize vectors, this is mathematically equivalent to flattening the vector first
+    ## NOTE this assumes gradient vectors are 0 or 1 dimensional, not 2 or more! (vectors or scalars, not matrices)
+    preNorms = [np.linalg.norm(vals) if len(np.atleast_1d(vals))>1 else np.atleast_1d(vals)[0] for vals in gradient.values()]
+    print('DEBUGG pres:',preNorms)
+    gradientNorm = np.linalg.norm(preNorms) #might be infinite!
+    print('DEBUGG pregradnorm:',gradientNorm)
     #fix inf
     if gradientNorm == np.inf:
       # if there are infinites, then only infinites should remain, and they are +-1
-      for var in gradient.keys():
-        if gradient[var] == -np.inf:
-          gradient[var] = -1.0
-        elif gradient[var] == np.inf:
-          gradient[var] = 1.0
+      for v,var in enumerate(gradient.keys()):
+        # first, set all non-infinites to 0, since they can't compete with infinites
+        gradient[var][-np.inf < gradient[var] < np.inf] =  0.0
+        # set +- infinites to +- 1 (arbitrary) since they're all equally important
+        gradient[var][gradient[var] == -np.inf] = -1.0
+        gradient[var][gradient[var] ==  np.inf] =  1.0
+        # update prenorm set
+        if len(gradient[var]) > 1:
+          preNorms[v] = np.linalg.norm(gradient[var])
         else:
-          gradient[var] = 0
+          preNorms[v] = gradient[var]
       # set up the new grad norm
-      infGradientNorm = np.linalg.norm(gradient.values())
+      print('DEBUGG inf prenorm:',preNorms)
+      infGradientNorm = np.linalg.norm(preNorms)
       for var in gradient.keys():
-        gradient[var] = gradient[var]/infGradientNorm
-    # else, if no infinites, use normal norm
+        gradient[var] = float(gradient[var]/infGradientNorm)
+      print('DEBUGG inf transformed:')
+      for k,v in gradient.items():
+        print('  ',k,v)
+    # else, if no infinites, use normal norm (if it's zero, ignore it)
     elif gradientNorm > 0.0:
       for var in gradient.keys():
-        gradient[var] = gradient[var]/gradientNorm
+        gradient[var] = float(gradient[var]/gradientNorm)
     self.counter['gradientHistory'][traj][1] = copy.deepcopy(self.counter['gradientHistory'][traj][0])
     self.counter['gradientHistory'][traj][0] = gradient
     self.counter['gradNormHistory'][traj][1] = copy.deepcopy(self.counter['gradNormHistory'][traj][0])
@@ -336,6 +349,7 @@ class GradientBasedOptimizer(Optimizer):
           @ In, gold, float, convergence threshold value
           @ Out, None
         """
+        print('DEBUGG boolCheck,test,gold,diff:',[type(i) for i in [test,gold,test-gold]])
         self.raiseAMessage(printVals.format(name,str(boolCheck),test,gold,abs(test-gold)))
 
       # "min step size" and "gradient norm" are both always valid checks, whether rejecting or accepting new point
