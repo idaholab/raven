@@ -455,6 +455,13 @@ class Optimizer(Sampler):
 
     self.fullOptVars.sort()
 
+    for var in self.getOptVars():
+      if var not in self.variableShapes:
+        self.variableShapes[var] = (1,)
+      else:
+        if len(self.variableShapes[var]) > 1:
+          self.raiseAnError(NotImplementedError,'Matrices as inputs are not yet supported in the Optimizer. For variable "{}" received shape "{}"!'.format(var,self.variableShapes[var]))
+
     for varName in self.fullOptVars:
       if varName not in self.optVarsInit['upperBound'].keys():
         self.raiseAnError(IOError, 'Upper bound for '+varName+' is not provided' )
@@ -938,7 +945,7 @@ class Optimizer(Sampler):
     """
       Method to check whether a set of decision variables satisfy the constraint or not in UNNORMALIZED input space
       @ In, optVars, dict, dictionary containing the value of decision variables to be checked, in form of {varName: varValue}
-      @ Out, satisfaction, tuple, (bool,list) => (variable indicating the satisfaction of constraints at the point optVars, list of the violated constrains)
+      @ Out, satisfaction, tuple, (bool,list) => (variable indicating the satisfaction of constraints at the point optVars, masks for the under/over violations)
     """
     violatedConstrains = {'internal':[],'external':[]}
     if self.constraintFunction == None:
@@ -951,17 +958,23 @@ class Optimizer(Sampler):
       varSatisfy=True
       # this should work whether optVars is an array or a single value
       check = np.atleast_1d(optVars[var])
-      for value in check:
-        if value > self.optVarsInit['upperBound'][var]:
-          violatedConstrains['internal'].append([var,self.optVarsInit['upperBound'][var]])
-          varSatisfy = False
-        elif value < self.optVarsInit['lowerBound'][var]:
-          violatedConstrains['internal'].append([var,self.optVarsInit['lowerBound'][var]])
-          varSatisfy = False
-        if not varSatisfy:
-          self.raiseAWarning('A variable violated boundary constraints! "{}"={}'.format(var,optVars[var]))
-          satisfied=False
-          break
+      overMask = check > self.optVarsInit['upperBound'][var]
+      underMask = check < self.optVarsInit['lowerBound'][var]
+      if np.sum(overMask)+np.sum(underMask) > 0:
+        self.raiseAWarning('A variable violated boundary constraints! "{}"={}'.format(var,optVars[var]))
+        satisfied = False
+        violatedConstrains['internal'].append( (var,underMask,overMask) )
+      #for v,value in enumerate(check):
+      #  if value > self.optVarsInit['upperBound'][var]:
+      #    violatedConstrains['internal'].append([var,v,self.optVarsInit['upperBound'][var]])
+      #    varSatisfy = False
+      #  elif value < self.optVarsInit['lowerBound'][var]:
+      #    violatedConstrains['internal'].append([var,v,self.optVarsInit['lowerBound'][var]])
+      #    varSatisfy = False
+      #  if not varSatisfy:
+      #    self.raiseAWarning('A variable violated boundary constraints! "{}[{}]"={}'.format(var,v,optVars[var]))
+      #    satisfied=False
+      #    break
 
     satisfied = self.localCheckConstraint(optVars, satisfied)
     satisfaction = satisfied,violatedConstrains

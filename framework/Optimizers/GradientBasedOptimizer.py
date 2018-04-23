@@ -323,7 +323,7 @@ class GradientBasedOptimizer(Optimizer):
     # if improved, keep it and move forward; otherwise, reject it and recommend cutting step size
     if newerIsBetter:
       self.status[traj]['reason'] = 'found new opt point'
-      self.raiseADebug('Accepting potential opt point for improved loss value')
+      self.raiseADebug('Accepting potential opt point for improved loss value.  Diff: {}, New: {}, Old: {}'.format(abs(currentLossVal-oldLossVal),currentLossVal,oldLossVal))
       #TODO REWORK this belongs in the base class optimizer; grad shouldn't know about multilevel!!
       #  -> this parameter is how multilevel knows that a successful perturbation of an outer loop has been performed
       #  maybe implement a "acceptPoint" method in base class?
@@ -399,8 +399,6 @@ class GradientBasedOptimizer(Optimizer):
         #same coordinate check
         sameCoordinateCheck = True
         for var,values in self.optVarsHist[traj][varsUpdate].items():
-          print('DEBUGG values :',values)
-          print('DEBUGG compare:',self.counter['recentOptHist'][traj][0][var])
           if hasattr(values,'__len__'):
             if any(values != self.counter['recentOptHist'][traj][0][var]):
               sameCoordinateCheck = False
@@ -582,6 +580,7 @@ class GradientBasedOptimizer(Optimizer):
               rlz.update(self.optVarsHist[traj][self.counter['varsUpdate'][traj]])
               rlz.update(outputs)
               self.counter['recentOptHist'][traj][0] = rlz
+              print('DEBUGG new:',self.denormalizeData(rlz))
               if traj not in self.counter['prefixHistory']:
                 self.counter['prefixHistory'][traj] = []
               self.counter['prefixHistory'][traj].append(prefix)
