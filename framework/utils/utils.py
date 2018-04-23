@@ -31,6 +31,7 @@ import subprocess
 import platform
 import copy
 import numpy
+import six
 from difflib import SequenceMatcher
 
 class Object(object):
@@ -394,7 +395,7 @@ def isString(s):
     @ In, s, object, variable to be tested.
     @ Out, isString, bool, true if variable is a str or unicode.
   """
-  return type(s).__name__ in ['unicode','str']
+  return isinstance(s, six.string_types)
 
 def toBytesIterative(s):
   """

@@ -276,28 +276,30 @@
         <Plot name="plotRowDataAndRAVENsurrogate" overwrite="false" >
             <plotSettings>
                 <plot>
-                    <type>line</type>
+                    <type>scatter</type>
                     <x>synDataRAVENsurrogate|Output|time</x>
                     <y>synDataRAVENsurrogate|Output|decay_heat</y>
-                    <interpPointsX>20000</interpPointsX>
+                    
                 </plot>
                 <plot>
-                    <type>scatter</type>
+                    <type>line</type>
                     <x>rawData|Output|time</x>
                     <y>rawData|Output|decay_heat</y>
+                    <interpPointsX>20000</interpPointsX>
                 </plot>
-                <xlabel>time (days)</xlabel>
+                <xlabel>time (secs)</xlabel>
                 <ylabel>decay heat (kW)</ylabel>
             </plotSettings>
             <actions>
                 <range>
                     <xmin>0</xmin>
-                    <xmax>90</xmax>
+                    <xmax>51940</xmax>
                 </range>
                 <how>png</how>
+                <!--
                 <scale>
                     <xscale>log</xscale>
-                </scale>
+                </scale> -->
                 <title>
                     <text> </text>
                 </title>

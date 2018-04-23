@@ -2968,8 +2968,7 @@ class PolyExponential(superVisedLearning):
   def __trainLocal__(self,featureVals,targetVals):
     """
       Perform training on input database stored in featureVals.
-
-      @ In, featureVals, numpy.ndarray, shape= (n_samples, n_dimensions), an array of input data # Not use for ARMA training
+      @ In, featureVals, numpy.ndarray, shape= (n_samples, n_dimensions), an array of input data
       @ In, targetVals, numpy.ndarray, shape = (n_samples, n_timeStep), an array of time series data
     """
     # check if the data are time-dependent, otherwise error out
@@ -2986,7 +2985,7 @@ class PolyExponential(superVisedLearning):
     #TODO: this can be parallelized
     for smp in range(nsamples):
       self.raiseADebug("Computing exponential terms for sample ID "+str(smp+1))
-      self.aij[smp,:],self.bij[smp,:], predictionError[smp,:] = self.__computeExponentialTerms(np.ravel(targetVals[smp,:,pivotParamIndex]),
+      self.aij[smp,:],self.bij[smp,:], self.predictError[smp,:] = self.__computeExponentialTerms(np.ravel(targetVals[smp,:,pivotParamIndex]),
                                                                               np.ravel(targetVals[smp,:,targetParamIndex])/self.polyExpParams['initialScaling'],
                                                                               True)
     self.pivotValues = targetVals[0,:,pivotParamIndex]
@@ -3017,10 +3016,11 @@ class PolyExponential(superVisedLearning):
       targets = ["a_"+str(cnt+1) if cnt < self.polyExpParams['expTerms'] else "b_"+str((cnt-self.polyExpParams['expTerms'])+1) for cnt in range(self.polyExpParams['expTerms']*2)]
       self.model = NDsplineRom(self.messageHandler,**{'Features':','.join(self.features),'Target':",".join(targets)})
       self.model.__class__.__trainLocal__(self.model,featureVals,expTermCoeff)
+    self.featureVals = featureVals
 
   def __evaluateLocal__(self,featureVals):
     """
-      @ In, featureVals, float, a scalar feature value is passed as scaling factor
+      @ In, featureVals, numpy.ndarray, shape= (n_requests, n_dimensions), an array of input data
       @ Out, returnEvaluation , dict, dictionary of values for each target (and pivot parameter)
     """
     if isinstance(self.model, list):
@@ -3056,122 +3056,78 @@ class PolyExponential(superVisedLearning):
     """
     if not self.amITrained:
       self.raiseAnError(RuntimeError,'ROM is not yet trained!')
-    #reset stats so they're fresh for this calculation
-    self.mean=None
-    sobolIndices = None
-    partialVars = None
-    sobolTotals = None
-    variance = None
-    #establish what we can handle, and how
-    scalars = ['mean','expectedValue','variance','samples']
-    vectors = ['polyCoeffs','partialVariance','sobolIndices','sobolTotalIndices']
-    canDo = scalars + vectors
-    #lowercase for convenience
-    scalars = list(s.lower() for s in scalars)
-    vectors = list(v.lower() for v in vectors)
-    #establish requests, defaulting to "all"
-    if 'what' in options.keys():
-      requests = list(o.strip() for o in options['what'].split(','))
-    else:
-      requests =['all']
+    # check what
+    what = None
+    if 'what' in options:
+      what = options['what'].split(",")
+      if what[0].strip().lower() == 'all':
+        what = None
     # Target
-    target = options.get('Target',self.target[0])
-    #handle "all" option
-    if 'all' in requests:
-      requests = canDo
-    # loop over the requested items
-    for request in requests:
-      request=request.strip()
-      if request.lower() in scalars:
-        if request.lower() in ['mean','expectedvalue']:
-          #only calculate the mean once per printing
-          if self.mean is None:
-            self.mean = self.__mean__(target)
-          val = self.mean
-        elif request.lower() == 'variance':
-          if variance is None:
-            variance = self.__variance__(target)
-          val = variance
-        elif request.lower() == 'samples':
-          if self.numRuns!=None:
-            val = self.numRuns
-          else:
-            val = len(self.sparseGrid)
-        outFile.addScalar(target,request,val,pivotVal=pivotVal)
-      elif request.lower() in vectors:
-        if request.lower() == 'polycoeffs':
-          valueDict = OrderedDict()
-          valueDict['inputVariables'] = ','.join(self.features)
-          keys = self.polyCoeffDict[target].keys()
-          keys.sort()
-          for key in keys:
-            valueDict['_'+'_'.join(str(k) for k in key)+'_'] = self.polyCoeffDict[target][key]
-        elif request.lower() in ['partialvariance','sobolindices','soboltotalindices']:
-          if sobolIndices is None or partialVars is None:
-            sobolIndices,partialVars = self.getSensitivities(target)
-          if sobolTotals is None:
-            sobolTotals = self.getTotalSensitivities(sobolIndices)
-          #sort by value
-          entries = []
-          if request.lower() in ['partialvariance','sobolindices']:
-            #these both will have same sort
-            for key in sobolIndices.keys():
-              entries.append( ('.'.join(key),partialVars[key],key) )
-          elif request.lower() in ['soboltotalindices']:
-            for key in sobolTotals.keys():
-              entries.append( ('.'.join(key),sobolTotals[key],key) )
-          entries.sort(key=lambda x: abs(x[1]),reverse=True)
-          #add entries to results list
-          valueDict=OrderedDict()
-          for entry in entries:
-            name,_,key = entry
-            if request.lower() == 'partialvariance':
-              valueDict[name] = partialVars[key]
-            elif request.lower() == 'sobolindices':
-              valueDict[name] = sobolIndices[key]
-            elif request.lower() == 'soboltotalindices':
-              valueDict[name] = sobolTotals[key]
-        outFile.addVector(target,request,valueDict,pivotVal=pivotVal)
-      else:
-        self.raiseAWarning('ROM does not know how to return "'+request+'".  Skipping...')
+    target = options.get('Target',self.target[-1])
+    toAdd = ['expTerms','coeffRegressor','initialScaling']
+    if self.polyExpParams['coeffRegressor'].strip() == 'poly':
+      toAdd.append('polyOrder')
+    for
+
+    outFile.addScalar(target,"numberExponentialTerms",self.polyExpParams['expTerms'])
+    outFile.addScalar(target,"coefficientRegressor",self.polyExpParams['coeffRegressor'])
+    outFile.addScalar(target,"features",' '.join(self.features))
+    if self.polyExpParams['coeffRegressor'].strip() == 'poly':
+      outFile.addScalar(target,"polynomialOrder",self.polyExpParams['polyOrder'])
+    outFile.addScalar(target,"initialScaling",self.polyExpParams['initialScaling'])
+    outFile.addScalar(target,"timeScale",' '.join([str(elm) for elm in self.pivotValues]))
+
+    for smp in range(len(self.aij)):
+      valDict = {'fi': ' '.join([ str(elm) for elm in self.aij[smp,:]]),
+                 'taui':' '.join([ str(elm) for elm in self.bij[smp,:]]),
+                 'predictionRelDiff' :' '.join([ str(elm) for elm in self.predictError[smp,:]])}
+      attributeDict = {self.features[index]:self.featureVals[smp,index] for index in range(len(self.features))}
+      outFile.addVector("coefficients","realization",valDict,root=target, attrs=attributeDict)
 
   def __confidenceLocal__(self,featureVals):
     """
-      This method is currently not needed for ARMA
+      The confidence associate with a set of requested evaluations
+      @ In, featureVals, numpy.ndarray, shape= (n_requests, n_dimensions), an array of input data
+      @ Out, None
     """
     pass
 
   def __resetLocal__(self,featureVals):
     """
       After this method the ROM should be described only by the initial parameter settings
-      Currently not implemented for ARMA
+      @ In, featureVals, numpy.ndarray, shape= (n_samples, n_dimensions), an array of input data (training data)
+      @ Out, None
     """
-    pass
+    self.aij          = None
+    self.bij          = None
+    self.model        = None
+    self.pivotValues  = None
+    self.predictError = None
+    self.featureVals  = None
 
   def __returnInitialParametersLocal__(self):
     """
-      there are no possible default parameters to report
+      This method returns the initial parameters of the SM
+      @ In, None
+      @ Out, self.polyExpParams, dict, the dict of the SM settings
     """
-    localInitParam = {}
-    return localInitParam
+    return self.polyExpParams
 
   def __returnCurrentSettingLocal__(self):
     """
-      override this method to pass the set of parameters of the ROM that can change during simulation
-      Currently not implemented for ARMA
+      This method is used to pass the set of parameters of the ROM that can change during simulation
+      @ In, None
+      @ Out, self.polyExpParams, dict, the dict of the SM settings
     """
-    pass
+    return self.polyExpParams
 
 class DynamicModeDecomposition(superVisedLearning):
   """
-    This surrogate is aimed to construct a "time-dep" surrogate based on a polynomial sum of exponentials
-    The surrogate will have the form:
-    SM(X,z) = \sum_{i=1}^N P_i(X) \exp ( - Q_i(X) z )
-    where:
-      z is the indipendent monotonic variable (e.g. time)
-      X is the vector of the other independent (parametric) variables
-      P_i(X) is a polynomial of rank M function of the parametric space X
-      Q_i(X) is a polynomial of rank M function of the parametric space X
+    This surrogate is aimed to construct a "time-dep" surrogate based on
+    Dynamic Mode Decomposition method.
+    Ref. Kutz, Brunton, Brunton, Proctor. Dynamic Mode Decomposition:
+        Data-Driven Modeling of Complex Systems. SIAM Other Titles in
+        Applied Mathematics, 2016
   """
   def __init__(self,messageHandler,**kwargs):
     """
@@ -3192,14 +3148,20 @@ class DynamicModeDecomposition(superVisedLearning):
     self.dmdParams['exactModes'          ] = kwargs.get('exactModes',True)            # True if the exact modes need to be computed (eigs and eigvs), otherwise the projected ones (using the left-singular matrix)
     self.dmdParams['optimized'           ] = kwargs.get('optimized',False)            # amplitudes computed minimizing the error between the mods and all the timesteps (True) or 1st timestep only (False)
     self.dmdParams['initialScaling'      ] = kwargs.get('initialScaling',1.)          # scaling factor for the target values (1. by default)
-    self.dmdParams['dmdType'             ] = kwargs.get('dmdType','dmd')               # the dmd type to be applied. Currently we support dmd and hdmd (high order dmd)
+    self.dmdParams['dmdType'             ] = kwargs.get('dmdType','dmd')              # the dmd type to be applied. Currently we support dmd and hdmd (high order dmd)
+    # variables filled up in the training stages
+    self._amplitudes                       = None                                     # vector of amplitudes
+    self._eigs                             = None                                     # vector of eigenvalues
+    self._modes                            = None                                     # matrix of dynamic modes
+    self.__Atilde                          = None                                     # matrix of lowrank operator from the SVD
+    self.pivotValues                       = None                                     # vector of amplitudes
+    self.KDTreeFinder                      = None                                     # kdtree weighting model
 
     # some checks
     if self.dmdParams['rankSVD'] is not None and self.dmdParams['energyRankSVD'] is not None:
       self.raiseAWarning('Both "rankSVD" and "energyRankSVD" have been inputted. "energyRankSVD" is predominant and will be used!')
     if self.dmdParams['dmdType'] not in self.availDmdAlgorithms:
       self.raiseAnError(IOError,'dmdType(s) available are "'+', '.join(self.availDmdAlgorithms)+'"!')
-    self.model = None
     # check if the pivotParameter is among the targetValues
     if self.pivotParameterID not in self.target:
       self.raiseAnError(IOError,"The pivotParameter "+self.pivotParameterID+" must be part of the Target space!")
@@ -3218,78 +3180,35 @@ class DynamicModeDecomposition(superVisedLearning):
     self.muAndSigmaFeatures[feat] = (0.0,1.0)
 
   #######
-  def getDmdTimeScale(self):
+  def __getTimeScale(self,dmd=True):
     """
-      Get the ts of the dmd reconstructed time scale.
-      @ In, None
-      @ Out, timeScale, numpy.array, the dmd reconstructed time scale
+      Get the ts of the dmd (if dmd = True) or training (if dmd = False) reconstructed time scale.
+      @ In, dmd, bool, optional, True if dmd time scale needs to be returned, othewise training one
+      @ Out, timeScale, numpy.array, the dmd or training reconstructed time scale
     """
-    timeScale = np.arange(self.dmdTimeScale['t0'],
-                          self.dmdTimeScale['tend'] + self.dmdTimeScale['dt'],
-                          self.dmdTimeScale['dt'])
+    timeScaleInfo = self.dmdTimeScale if dmd else self.trainingTimeScale
+    timeScale = np.arange(timeScaleInfo['t0'], timeScaleInfo['intervals'] + timeScaleInfo['dt'], timeScaleInfo['dt'])
     return timeScale
 
-  def getTrainingTimeScale(self):
-    """
-      Get the ts of the training time scale
-      @ In, None
-      @ Out, timeScale, numpy.array, the original reconstructed time scale
-    """
-    timeScale = np.arange(self.trainingTimeScale['t0'],
-                          self.trainingTimeScale['tend'] + self.trainingTimeScale['dt'],
-                          self.trainingTimeScale['dt'])
-    return timeScale
-
-  def getTimeEvolution(self):
+  def __getTimeEvolution(self):
     """
       Get the time evolution of each mode
       @ In, None
       @ Out, timeEvol, numpy.ndarray, the matrix that contains all the time evolution (by row)
     """
     omega = np.log(self._eigs) / self.trainingTimeScale['dt']
-    van = np.exp(np.multiply(*np.meshgrid(omega, self.getDmdTimeScale())))
-    timeEvol = (van * self._b).T
+    van = np.exp(np.multiply(*np.meshgrid(omega, self.__getTimeScale())))
+    timeEvol = (van * self._amplitudes).T
     return timeEvol
 
-  def reconstructData(self):
+  def _reconstructData(self):
     """
       Retrieve the reconstructed data
       @ In, None
       @ Out, timeEvol, numpy.ndarray, the matrix containing the reconstructed data
     """
-    data = self._modes.dot(self.getTimeEvolution())
+    data = self._modes.dot(self.__getTimeEvolution())
     return data
-
-  @staticmethod
-  def __reshapeTrainingData(X):
-    """
-    Private method that takes as input the snapshots and stores them into a
-    2D matrix, by column. If the input data is already formatted as 2D
-    array, the method saves it, otherwise it also saves the original
-    snapshots shape and reshapes the snapshots.
-
-    :param X: the input snapshots.
-    :type X: int or numpy.ndarray
-    :return: the 2D matrix that contains the flatten snapshots, the shape
-        of original snapshots.
-    :rtype: numpy.ndarray, tuple
-    """
-
-    # If the data is already 2D ndarray
-    if isinstance(X, np.ndarray) and X.ndim == 2:
-      return X, None
-
-    input_shapes = [np.asarray(x).shape for x in X]
-
-    if len(set(input_shapes)) is not 1:
-      raise ValueError('Snapshots have not the same dimension.')
-
-    snapshots_shape = input_shapes[0]
-    snapshots = np.transpose([np.asarray(x).flatten() for x in X])
-    return snapshots, snapshots_shape
-
-  #######
-
 
   def __trainLocal__(self,featureVals,targetVals):
     """
@@ -3302,9 +3221,9 @@ class DynamicModeDecomposition(superVisedLearning):
     targetParamIndex = self.target.index(self.targetID)
     self.pivotValues = targetVals[0,:,pivotParamIndex]
     originalData     = [targetVals[:,ts,targetParamIndex] for ts in range(len(self.pivotValues))]
-    nsamples         = len(targetVals[:,:,pivotParamIndex])
+    nTimeSteps       = len(self.pivotValues)
     if self.dmdParams['dmdType'].strip() == 'dmd':
-      snaps, shapes = self.__reshapeTrainingData(targetVals[:,:,targetParamIndex])
+      snaps = targetVals[:,:,targetParamIndex]
       # if number of features (i.e. samples) > number of snapshots, we apply the high order DMD or HODMD has been requested
       imposedHODMD = False
       if self.dmdParams['dmdType'] == 'hodmd' or snaps.shape[0] > snaps.shape[1]:
@@ -3321,23 +3240,17 @@ class DynamicModeDecomposition(superVisedLearning):
       self._eigs, self._modes = mathUtils.computeEigenvaluesAndVectorsFromLowRankOperator(self.__Atilde, Y, U, s, V, self.dmdParams['exactModes'])
       if imposedHODMD:
         self._modes = self._modes[:targetVals[:,:,targetParamIndex].shape[0], :]
-      self._b = mathUtils.computeAmplitudeCoefficients(self._modes, snaps,self._eigs, self.dmdParams['optimized'])
-      # Default timesteps
-      self.trainingTimeScale = {'t0': 0, 'tend': nsamples - 1, 'dt': 1}
-      self.dmdTimeScale      = {'t0': 0, 'tend': nsamples - 1, 'dt': 1}
-
-      from pydmd import HODMD
-
-      self.model = HODMD(svd_rank=-1, exact=True, d=8)
-      self.model.fit(targetVals[:,:,targetParamIndex])
-      abc = self.model.reconstructed_data
+      self._amplitudes = mathUtils.computeAmplitudeCoefficients(self._modes, snaps,self._eigs, self.dmdParams['optimized'])
+      # Default timesteps (even if the time history is not equally spaced in time, we "trick" the dmd to think it)
+      self.trainingTimeScale = {'t0': 0, 'intervals': nTimeSteps - 1, 'dt': 1}
+      self.dmdTimeScale      = {'t0': 0, 'intervals': nTimeSteps - 1, 'dt': 1}
 
   def __evaluateLocal__(self,featureVals):
     """
-      @ In, featureVals, float, a scalar feature value is passed as scaling factor
+      @ In, featureVals, numpy.ndarray, shape= (n_requests, n_dimensions), an array of input data
       @ Out, returnEvaluation , dict, dictionary of values for each target (and pivot parameter)
     """
-    reconstructData = self.reconstructData()
+    reconstructData = self._reconstructData().real
     # find the nearest data and compute weights
     weights, indexes = self.KDTreeFinder.query(featureVals, k=min(len(self.features),len(reconstructData)))
     # if 0 (perfect match), assign minimum possible distance
@@ -3353,30 +3266,40 @@ class DynamicModeDecomposition(superVisedLearning):
 
   def __confidenceLocal__(self,featureVals):
     """
-      This method is currently not needed for ARMA
+      The confidence associate with a set of requested evaluations
+      @ In, featureVals, numpy.ndarray, shape= (n_requests, n_dimensions), an array of input data
+      @ Out, None
     """
     pass
 
   def __resetLocal__(self,featureVals):
     """
       After this method the ROM should be described only by the initial parameter settings
-      Currently not implemented for ARMA
+      @ In, featureVals, numpy.ndarray, shape= (n_samples, n_dimensions), an array of input data (training data)
+      @ Out, None
     """
-    pass
+    self._amplitudes  = None
+    self._eigs        = None
+    self._modes       = None
+    self.__Atilde     = None
+    self.pivotValues  = None
+    self.KDTreeFinder = None
 
   def __returnInitialParametersLocal__(self):
     """
-      there are no possible default parameters to report
+      This method returns the initial parameters of the SM
+      @ In, None
+      @ Out, self.dmdParams, dict, the dict of the SM settings
     """
-    localInitParam = {}
-    return localInitParam
+    return self.dmdParams
 
   def __returnCurrentSettingLocal__(self):
     """
-      override this method to pass the set of parameters of the ROM that can change during simulation
-      Currently not implemented for ARMA
+      This method is used to pass the set of parameters of the ROM that can change during simulation
+      @ In, None
+      @ Out, self.dmdParams, dict, the dict of the SM settings
     """
-    pass
+    return self.dmdParams
 
 
 

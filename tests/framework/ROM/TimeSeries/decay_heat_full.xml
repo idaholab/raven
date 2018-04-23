@@ -111,10 +111,12 @@
 		<RomTrainer name='PolyTrain'>
 			<Input    class = 'DataObjects'       type = 'HistorySet'    >rawData</Input>
 			<Output   class='Models' 			  type ='ROM' 	 		 >PolyExp</Output>
+            
 		</RomTrainer>
         <IOStep name='pickleRom' pauseAtEnd = 'True'>
             <Input    class = 'Models'       type = 'ROM'    >PolyExp</Input>
             <Output class="Files" type="">ROMpk</Output>
+            <Output   class='OutStreams'          type ='Print'          >dumpROMxml</Output>
         </IOStep>
 		<MultiRun name='runPoly'>
 			<Input    class = 'DataObjects'       type = 'PointSet'      >dataIn</Input>
@@ -171,7 +173,10 @@
             <type>csv</type>
             <source>synDataPolyExp</source>
         </Print>
-        
+        <Print name = 'dumpROMxml'>
+            <type>xml</type>
+            <source>PolyExp</source>
+        </Print>
         <Print name = 'basicStatrawData_dump'>
             <type>csv</type>
             <source>basicStatrawData</source>

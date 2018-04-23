@@ -296,7 +296,7 @@ class ROM(Dummy):
       filenameLocal = options['filenameroot']
     else:
       filenameLocal = self.name + '_dump'
-    if dynamic:
+    if dynamic and not handleDynamicData:
       outFile = Files.returnInstance('DynamicXMLOutput',self)
     else:
       outFile = Files.returnInstance('StaticXMLOutput',self)
