@@ -309,7 +309,7 @@ class SPSA(GradientBasedOptimizer):
       #if var in self.variableShapes:
       #  gradient.update(dict((var+'_'+str(i),val) for i,val in enumerate(mean)))
       #else:
-      gradient[var] = mean
+      gradient[var] = np.atleast_1d(mean)
     print('DEBUGG gradients:')
     for var,grad in gradient.items():
       print ('DEBUGG  ',var,grad)

@@ -949,15 +949,19 @@ class Optimizer(Sampler):
         violatedConstrains['external'].append(self.constraintFunction.name)
     for var in optVars:
       varSatisfy=True
-      if optVars[var] > self.optVarsInit['upperBound'][var]:
-        violatedConstrains['internal'].append([var,self.optVarsInit['upperBound'][var]])
-        varSatisfy = False
-      elif optVars[var] < self.optVarsInit['lowerBound'][var]:
-        violatedConstrains['internal'].append([var,self.optVarsInit['lowerBound'][var]])
-        varSatisfy = False
-      if not varSatisfy:
-        self.raiseAWarning('A variable violated boundary constraints! "{}"={}'.format(var,optVars[var]))
-        satisfied=False
+      # this should work whether optVars is an array or a single value
+      check = np.atleast_1d(optVars[var])
+      for value in check:
+        if value > self.optVarsInit['upperBound'][var]:
+          violatedConstrains['internal'].append([var,self.optVarsInit['upperBound'][var]])
+          varSatisfy = False
+        elif value < self.optVarsInit['lowerBound'][var]:
+          violatedConstrains['internal'].append([var,self.optVarsInit['lowerBound'][var]])
+          varSatisfy = False
+        if not varSatisfy:
+          self.raiseAWarning('A variable violated boundary constraints! "{}"={}'.format(var,optVars[var]))
+          satisfied=False
+          break
 
     satisfied = self.localCheckConstraint(optVars, satisfied)
     satisfaction = satisfied,violatedConstrains
