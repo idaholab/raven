@@ -300,20 +300,10 @@ class SPSA(GradientBasedOptimizer):
         #if abs(dh) < 1e-15:
         #  self.raiseAnError(RuntimeError,'While calculating the gradArray a "dh" of zero was found for var:',var)
         gradArray[var][i] = lossDiff/dh
-        print('DEBUGG var:',var)
-        print('DEBUGG   dh:',dh)
     gradient = {}
     for var in self.getOptVars(traj=traj):
       mean = gradArray[var].mean()
-      # DEBUGG VARIABLE VECTOR OPTION 1: convert them all into independent variables (bad)
-      #if var in self.variableShapes:
-      #  gradient.update(dict((var+'_'+str(i),val) for i,val in enumerate(mean)))
-      #else:
       gradient[var] = np.atleast_1d(mean)
-    print('DEBUGG gradients:')
-    for var,grad in gradient.items():
-      print ('DEBUGG  ',var,grad)
-    #aaaaa
     return gradient
 
   def localGenerateInput(self,model,oldInput):
@@ -368,15 +358,21 @@ class SPSA(GradientBasedOptimizer):
         varK = dict((var,self.counter['recentOptHist'][traj][0][var]) for var in self.getOptVars(traj))
         #check the submission queue is empty; otherwise something went wrong # TODO this is a sanity check, might be removed for efficiency
         #TODO this same check is in GradientBasedOptimizer.queueUpOptPointRuns, they might benefit from abstracting
-        if len(self.submissionQueue[traj]) > 0:
-          self.raiseAnError(RuntimeError,'Preparing to add grad evals to submission queue for trajectory "{}" but it is not empty: "{}"'.format(traj,self.submissionQueue[traj]))
-        for i in self.perturbationIndices: #perturbation points are odd, not even
+        assert(len(self.submissionQueue[traj])==0)
+        for i in self.perturbationIndices:
           direction = self._getPerturbationDirection(i, traj)
           point = {}
           for varID, var in enumerate(self.getOptVars(traj=traj)):
-            val = varK[var] + ck*direction[varID]
-            val = self._checkBoundariesAndModify(1.0, 0.0, 1.0, val, 0.9999, 0.0001)
-            point[var] = val
+            size = len(np.atleast_1d(varK[var]))
+            if size > 1:
+              new = np.zeros(size)
+              for v,origVal in enumerate(varK[var]):
+                new[v] = origVal + ck*direction[varID]
+                aaaaaaa # TODO WORKING
+            else:
+              val = varK[var] + ck*direction[varID]
+              val = self._checkBoundariesAndModify(1.0, 0.0, 1.0, val, 0.9999, 0.0001)
+              point[var] = val
           #create identifier
           prefix = self._createEvaluationIdentifier(traj,self.counter['varsUpdate'][traj],i)
           #queue it up

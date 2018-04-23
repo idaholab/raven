@@ -354,7 +354,6 @@ class GradientBasedOptimizer(Optimizer):
           @ In, gold, float, convergence threshold value
           @ Out, None
         """
-        print('DEBUGG boolCheck,test,gold,diff:',[type(i) for i in [test,gold,test-gold]])
         self.raiseAMessage(printVals.format(name,str(boolCheck),test,gold,abs(test-gold)))
 
       # "min step size" and "gradient norm" are both always valid checks, whether rejecting or accepting new point
@@ -400,6 +399,8 @@ class GradientBasedOptimizer(Optimizer):
         #same coordinate check
         sameCoordinateCheck = True
         for var,values in self.optVarsHist[traj][varsUpdate].items():
+          print('DEBUGG values :',values)
+          print('DEBUGG compare:',self.counter['recentOptHist'][traj][0][var])
           if hasattr(values,'__len__'):
             if any(values != self.counter['recentOptHist'][traj][0][var]):
               sameCoordinateCheck = False
@@ -675,7 +676,6 @@ class GradientBasedOptimizer(Optimizer):
     # otherwise, no recommendation for this trajectory, so move on
     #if we don't have two evaluated gradients, just return 1.0
     grad1 = self.counter['gradientHistory'][traj][1]
-    print('DEBUGG grad1:',grad1)
     if len(grad1) == 0: # aka if grad1 is empty dict
       return 1.0
     #otherwise, do the dot product between the last two gradients
