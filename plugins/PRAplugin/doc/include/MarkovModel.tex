@@ -1,7 +1,7 @@
 \section{Markov Model}
 \label{sec:MarkovModel}
 
-This model is designed to import a generic continuous time Markov chain as a RAVEN model.
+This model is designed to import a generic Markov chain as a RAVEN model.
 As an example, the Markov chain of Fig.~\ref{fig:markov} is translated in the OpenPSA as shown below:
 
 \begin{figure}
@@ -11,7 +11,7 @@ As an example, the Markov chain of Fig.~\ref{fig:markov} is translated in the Op
     \label{fig:markov}
 \end{figure}
 
-\begin{lstlisting}[style=XML,morekeywords={anAttribute},caption=MarkovModel input example., label=lst:Markov_InputExample]
+\begin{lstlisting}[style=XML,morekeywords={anAttribute},caption=Markov model input example., label=lst:Markov_InputExample]
   <Models>
     <ExternalModel name="markov" subType="markovModel">
       <variables>initialState,finalState</variables>
@@ -34,10 +34,8 @@ As an example, the Markov chain of Fig.~\ref{fig:markov} is translated in the Op
   </Models>
 \end{lstlisting}
 
-All the specifications of the FT model are given in the 
-\xmlNode{ExternalModel} block. 
-Inside the \xmlNode{ExternalModel} block, the XML
-nodes that belong to this models are:
+All the specifications of the Markov model are given in the \xmlNode{ExternalModel} block. 
+Inside the \xmlNode{ExternalModel} block, the XML nodes that belong to this model are:
 \begin{itemize}
   \item  \xmlNode{variables}, \xmlDesc{string, required parameter}, a list containing the names of both the input and output variables of the model
   \item  \xmlNode{initState}, \xmlDesc{string, required parameter}, variable ID corresponding to initial state
@@ -47,7 +45,7 @@ nodes that belong to this models are:
                           in the \xmlNode{transition} xml sub-nodes:
 	  \begin{itemize}
 	  	\item \xmlAttr{transition}, \xmlDesc{required string attribute}, arrival state
-	    \item \xmlAttr{type}, \xmlDesc{required string attribute}, type of transition
+	    \item \xmlAttr{type}, \xmlDesc{required string attribute}, type of transition. Allowed transition types are: The ET of Fig.~\ref{fig:ET} and defined in Listing~\ref{lst:ETmodel} can be defined in the RAVEN input file as follows: lambda, tau, instant and unif (see below)
 	    \item \xmlAttr{value}, \xmlDesc{required string attribute}, value associated to the particular transition
 	  \end{itemize}
 \end{itemize}

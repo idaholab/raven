@@ -1,11 +1,11 @@
 \section{ET Model}
 \label{sec:ETmodel}
 
-This model is designed to read from file the structure of the ET and import such Boolean logic structure as a RAVEN model.
+This model is designed to read from file the structure of the ET and to import such Boolean logic structure as a RAVEN model.
 The ET must be specified in a specific format: the OpenPSA format (\href{<url>}{https://github.com/open-psa}). 
-As an example, the ET of Fig.~\ref{fig:ET} is translated in the OpenPSA as shown below:
+As an example, the ET of Fig.~\ref{fig:ET} is translated in the OpenPSA format as shown below:
 
-\begin{lstlisting}[style=XML,morekeywords={anAttribute},caption=ETmodel input example., label=lst:ETmodel]
+\begin{lstlisting}[style=XML,morekeywords={anAttribute},caption=ET of Fig.~\ref{fig:ET} in OpenPSA format., label=lst:ETmodel]
 <define-event-tree name="eventTree">
     <define-functional-event name="ACC"/>
     <define-functional-event name="LPI"/>
@@ -48,6 +48,7 @@ As an example, the ET of Fig.~\ref{fig:ET} is translated in the OpenPSA as shown
     \label{fig:ET}
 \end{figure}
 
+The ET of Fig.~\ref{fig:ET} and defined in Listing~\ref{lst:ETmodel} can be defined in the RAVEN input file as follows:
 \begin{lstlisting}[style=XML,morekeywords={anAttribute},caption=ET model input example., label=lst:ET_InputExample]
   <Models> 
     ...
@@ -77,7 +78,7 @@ nodes that belong to this models are:
 	  \end{itemize}
 \end{itemize}
 
-Provided this definition, the ET model of Fig.~\ref{fig:ET} and described in Listing~\ref{lst:ETmodel}, 
+Provided this definition and the ET model of Fig.~\ref{fig:ET} and described in Listing~\ref{lst:ETmodel}, 
 the resulting model in RAVEN is characterized by these variables:
 \begin{itemize}
 	\item Input variables: statusACC, statusLPI, statusLPR

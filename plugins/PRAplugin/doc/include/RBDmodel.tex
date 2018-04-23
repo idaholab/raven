@@ -4,7 +4,7 @@
 This model is designed to read from file the structure of the RBD and import such Boolean logic structure as a RAVEN model.
 The RBD must be specified in a specific format; as an example, the RBD of Fig.~\ref{fig:RBD} is translated in the RAVEN format as shown below:
 
-\begin{lstlisting}[style=XML,morekeywords={anAttribute},caption=RBD model input example., label=lst:RBDmodel]
+\begin{lstlisting}[style=XML,morekeywords={anAttribute},caption=RBD input file., label=lst:RBDmodel]
 <Graph name="testGraph">
   <node name="CST">
     <childs>1</childs>
@@ -48,6 +48,8 @@ The RBD must be specified in a specific format; as an example, the RBD of Fig.~\
     \caption{Example of RBD.}
     \label{fig:RBD}
 \end{figure}
+
+The FT of Fig.~\ref{fig:RBD} and defined in Listing~\ref{lst:RBDmodel} can be defined in the RAVEN input file as follows:
 
 \begin{lstlisting}[style=XML,morekeywords={anAttribute},caption=RBD model input example., label=lst:RBD_InputExample]
   <Models> 
