@@ -79,8 +79,9 @@ class phisicsdata():
           matFluxList = [0.]
           powerDensLabelList = ['powerDensLabelList']
           powerDensList = [0.]
-        depLabelList, depList, timeStepList, matList = self.getDepInfo(timeStepIndex, mrtauTimeSteps, phisicsDataDict['numberOfMPI'])
-        decayLabelList, decayList = self.getDecayHeat(timeStepIndex,mrtauTimeSteps,phisicsDataDict['decayHeatFlag'])
+        depLabelList,depList,timeStepList,matList = self.getDepInfo(timeStepIndex, mrtauTimeSteps, phisicsDataDict['numberOfMPI'])
+        decayLabelList,decayList = self.getDecayHeat(timeStepIndex,mrtauTimeSteps,phisicsDataDict['decayHeatFlag'])
+        buLabelList,buList = self.getBurnUp(timeStepIndex,mrtauTimeSteps)
         phisicsDict['keff'] = keff
         phisicsDict['errorKeff'] = errorKeff
         phisicsDict['reactionRateInfo'] = reactionRateInfo
@@ -98,6 +99,8 @@ class phisicsdata():
         phisicsDict['xsLabelList'] = xsLabelList
         phisicsDict['xsList'] = xsList
         phisicsDict['cpuTime'] = cpuTime
+        phisicsDict['buLabelList'] = buLabelList
+        phisicsDict['buList'] = buList
         
         if self.phisicsRelap:
           phisicsDict['powerDensList'] = powerDensList
@@ -649,8 +652,8 @@ class phisicsdata():
           if re.search(r'CPU\s+time\s+\(min\)',line) and self.phisicsRelap is False:
             cpuTimes.append(line.strip().split(' ')[-1])
           if self.phisicsRelap:
-            return 'na'
-    cpuTime = sum ([float(elm) for elm in cpuTimes])
+            return 0.
+    cpuTime = sum([float(elm) for elm in cpuTimes])
     return [cpuTime]
           
   def locateMaterialInFile(self,numberOfMPI):
@@ -757,6 +760,46 @@ class phisicsdata():
             break
     return decayListMrtau
   
+  def getBurnUp(self,timeStepIndex,matchedTimeSteps):
+    """
+      Reads the main output file to get the burn up.
+      @ In, timeStepIndex, integer, number of the timestep considered
+      @ In, matchedTimeSteps, list, list of time steps considered
+      @ Out, decayLabelList, list, list of the decay labels (under the format fuel|isotope)
+      @ Out, decayList, list, list of the decay heat values
+    """
+    materialList = []
+    buLabelList = []
+    buList = []
+    timeStepList = []
+    for mpi in range(len(self.instantOutputFileMPI)):
+      buFlag = 0 
+      breakFlag = 0 
+      matLineFlag = 0 
+      materialCounter = 0
+      print (mpi)
+      with open(os.path.join(self.workingDir, self.instantOutputFileMPI[mpi])) as outfile:
+        for line in outfile:
+          if re.search(r'Burn Up \(GWd/MTHM\)',line):
+            buFlag = 1
+            materialCounter = materialCounter + 1
+            print ('mart ocunt ')
+            print (materialCounter)
+          if re.search(r'Mass \(kg\)',line):
+            breakFlag = 1
+          if buFlag == 1 and breakFlag == 0:
+            line = line.rstrip()
+            buLine = filter(None, line.split(' '))
+            if buLine != []:
+              stringIsFloatNumber = self.isFloatNumber(buLine)
+            if stringIsFloatNumber and buLine != []:
+              if abs(float(buLine[0]) - float(matchedTimeSteps[timeStepIndex])) < 1.0e-10:
+                buLabelList.append('bu'+'|'+self.materialsDict['MPI-'+str(mpi)][materialCounter])
+                buList.append(buLine[1]) # the burn up is on the second colum
+          if breakFlag == 1:
+            break 
+    return buLabelList, buList
+  
   def getRRlist(self,instantDict):
     """
       Puts the reaction rate labels and the reaction rate values in a list.
@@ -791,6 +834,8 @@ class phisicsdata():
       @ In, jobTitle, string, job title parsed from INSTANT input
       @ Out, None
     """
+    print (instantDict.get('buLabelList'))
+    print (instantDict.get('buList'))
     if self.paramList != []:
       rrNames, rrValues = self.getRRlist(instantDict)
       csvOutput = os.path.join(instantDict.get('workingDir'),jobTitle+'-'+self.perturbationNumber+'.csv')
@@ -798,14 +843,14 @@ class phisicsdata():
         with open(csvOutput, 'a+') as f:
           instantWriter = csv.writer(f, delimiter=str(u',').encode('utf-8'),quotechar=str(u',').encode('utf-8'), quoting=csv.QUOTE_MINIMAL)
           if timeStepIndex == 0:
-            instantWriter.writerow(['timeMrTau'] + ['keff'] + ['errorKeff'] + rrNames + instantDict.get('fluxLabelList') + instantDict.get('matFluxLabelList') + instantDict.get('depLabelList') + instantDict.get('decayLabelList') + instantDict.get('xsLabelList') + ['cpuTime'])
-          instantWriter.writerow([str(matchedTimeSteps[timeStepIndex])] + instantDict.get('keff') + instantDict.get('errorKeff') + rrValues + instantDict.get('fluxList') + instantDict.get('matFluxList') + instantDict.get('depList') + instantDict.get('decayList') + instantDict.get('xsList') + instantDict.get('cpuTime'))
+            instantWriter.writerow(['timeMrTau'] + ['keff'] + ['errorKeff'] + rrNames + instantDict.get('fluxLabelList') + instantDict.get('matFluxLabelList') + instantDict.get('depLabelList') + instantDict.get('decayLabelList') + instantDict.get('xsLabelList') + ['cpuTime'] + instantDict.get('buLabelList'))
+          instantWriter.writerow([str(matchedTimeSteps[timeStepIndex])] + instantDict.get('keff') + instantDict.get('errorKeff') + rrValues + instantDict.get('fluxList') + instantDict.get('matFluxList') + instantDict.get('depList') + instantDict.get('decayList') + instantDict.get('xsList') + instantDict.get('cpuTime') + instantDict.get('buList'))
       if self.phisicsRelap:
         with open(csvOutput, 'a+') as f:
           instantWriter = csv.writer(f, delimiter=str(u',').encode('utf-8'),quotechar=str(u',').encode('utf-8'), quoting=csv.QUOTE_MINIMAL)
           if timeStepIndex == 0:
-            instantWriter.writerow(['timeMrTau'] + ['keff'] + ['errorKeff'] + rrNames + instantDict.get('fluxLabelList') + instantDict.get('powerDensLabelList') + instantDict.get('depLabelList') + instantDict.get('decayLabelList') + instantDict.get('xsLabelList') + ['cpuTime'])
-          instantWriter.writerow([str(matchedTimeSteps[timeStepIndex])] + instantDict.get('keff') + instantDict.get('errorKeff') + rrValues + instantDict.get('fluxList') + instantDict.get('powerDensList') + instantDict.get('depList') + instantDict.get('decayList') + instantDict.get('xsList') + [instantDict.get('cpuTime')])
+            instantWriter.writerow(['timeMrTau'] + ['keff'] + ['errorKeff'] + rrNames + instantDict.get('fluxLabelList') + instantDict.get('powerDensLabelList') + instantDict.get('depLabelList') + instantDict.get('decayLabelList') + instantDict.get('xsLabelList') + ['cpuTime'] + instantDict.get('buLabelList'))
+          instantWriter.writerow([str(matchedTimeSteps[timeStepIndex])] + instantDict.get('keff') + instantDict.get('errorKeff') + rrValues + instantDict.get('fluxList') + instantDict.get('powerDensList') + instantDict.get('depList') + instantDict.get('decayList') + instantDict.get('xsList') + [instantDict.get('cpuTime')] + instantDict.get('buList'))
      
   def writeMrtauCSV(self,mrtauDict):
     """
