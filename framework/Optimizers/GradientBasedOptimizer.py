@@ -206,9 +206,7 @@ class GradientBasedOptimizer(Optimizer):
     ## pre-normalize vectors, this is mathematically equivalent to flattening the vector first
     ## NOTE this assumes gradient vectors are 0 or 1 dimensional, not 2 or more! (vectors or scalars, not matrices)
     preNorms = [np.linalg.norm(vals) if len(np.atleast_1d(vals))>1 else np.atleast_1d(vals)[0] for vals in gradient.values()]
-    print('DEBUGG pres:',preNorms)
     gradientNorm = np.linalg.norm(preNorms) #might be infinite!
-    print('DEBUGG pregradnorm:',gradientNorm)
     #fix inf
     if gradientNorm == np.inf:
       # if there are infinites, then only infinites should remain, and they are +-1
@@ -234,7 +232,10 @@ class GradientBasedOptimizer(Optimizer):
     # else, if no infinites, use normal norm (if it's zero, ignore it)
     elif gradientNorm > 0.0:
       for var in gradient.keys():
-        gradient[var] = float(gradient[var]/gradientNorm)
+        gradient[var] = gradient[var]/gradientNorm
+        # if float coming in, make it a float going out
+        if len(gradient[var])==1:
+          gradient[var] = float(gradient[var])
     self.counter['gradientHistory'][traj][1] = copy.deepcopy(self.counter['gradientHistory'][traj][0])
     self.counter['gradientHistory'][traj][0] = gradient
     self.counter['gradNormHistory'][traj][1] = copy.deepcopy(self.counter['gradNormHistory'][traj][0])
