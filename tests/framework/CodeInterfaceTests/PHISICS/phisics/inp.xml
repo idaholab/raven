@@ -1,0 +1,58 @@
+<INSTANT_INPUTS>
+  <Control_parameters>
+     <title>1-node PWR cell</title>
+     <calcul_typ>1</calcul_typ>
+     <ndim>2</ndim>
+     <power>1.0</power>
+  </Control_parameters>
+  <Output_controls>
+     <momprod>0</momprod>
+     <dbgmat>t</dbgmat>
+     <flxgen>t</flxgen>
+     <vtkgen>0</vtkgen>
+     <vtkfile>noexp</vtkfile>
+     <flxmatcsv>true</flxmatcsv>
+  </Output_controls>
+  <Mesh>
+     <multimesh>1</multimesh>
+     <pn>1</pn>
+     <pint>6</pint>
+     <psurf>1</psurf>
+     <psour>3</psour>
+  </Mesh>
+  <IterativeSolver>
+     <echo>2</echo>
+
+     <comment> power ite acceleration    </comment>
+     <oacc_typ>1</oacc_typ>
+     <epskeff>1.0E-06</epskeff>
+     <maxouter>1500</maxouter>
+     <keff0>1.0</keff0>
+
+     <comment> inner acceleration   </comment>
+     <iacc_typ>0</iacc_typ>
+     <epsflux>1.0E-04</epsflux>
+     <maxinner>100</maxinner>
+     <facinner>1E-3</facinner>
+     <PNinner>0</PNinner>
+     <comment> inner acceleration    </comment>
+     <omegaon>f</omegaon>
+
+     <comment> thermal ite acceleration  </comment>
+     <tacc_typ>0</tacc_typ>
+     <maxthml>5</maxthml>
+     <facthml>1E-4</facthml>
+
+  </IterativeSolver>
+  <Geometry type="regular">
+    <NX>3</NX>
+    <NY>1</NY>
+    <DX>3 3 3</DX>
+    <DY>9</DY>
+    <BC>1 1 1 1</BC>
+    <MaterialID>
+      1 2 3 
+    </MaterialID>
+    <triangulated>f</triangulated>
+  </Geometry>
+</INSTANT_INPUTS>
