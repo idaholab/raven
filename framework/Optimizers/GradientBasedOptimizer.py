@@ -450,7 +450,10 @@ class GradientBasedOptimizer(Optimizer):
           if len(inp) < 1: #empty
             continue
           removeLocalFlag = True
-          dist = np.sqrt(np.sum(list((inp[var] - currentInput[var])**2 for var in self.getOptVars(traj=trajToRemove))))
+          # some inputs could be vectors, so pretreat them
+          ## NOTE this assumes variable values are 0 or 1 dimensional, not 2 or more! (vectors or scalars, not matrices)
+          preDists = [np.linalg.norm(inp[var] - currentInput[var]) if len(np.atleast_1d(inp[var]))>1 else np.atleast_1d(inp[var]-currentInput[var])[0] for var in self.getOptVars(traj=trajToRemove)]
+          dist = np.linalg.norm(preDists)
           if dist < self.thresholdTrajRemoval:
             self.raiseADebug('Halting trajectory "{}" because it is following trajectory "{}"'.format(trajToRemove,traj))
             self.trajectoriesKilled[traj].append(trajToRemove)
