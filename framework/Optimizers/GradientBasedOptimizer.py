@@ -400,9 +400,14 @@ class GradientBasedOptimizer(Optimizer):
         #same coordinate check
         sameCoordinateCheck = True
         for var,values in self.optVarsHist[traj][varsUpdate].items():
-          if values != self.counter['recentOptHist'][traj][0][var]:
-            sameCoordinateCheck = False
-            break
+          if hasattr(values,'__len__'):
+            if any(values != self.counter['recentOptHist'][traj][0][var]):
+              sameCoordinateCheck = False
+              break
+          else:
+            if values != self.counter['recentOptHist'][traj][0][var]:
+              sameCoordinateCheck = False
+              break
         self.raiseAMessage(printString.format('Same coordinate check',str(sameCoordinateCheck)))
         converged = converged or sameCoordinateCheck
 
@@ -670,11 +675,14 @@ class GradientBasedOptimizer(Optimizer):
     # otherwise, no recommendation for this trajectory, so move on
     #if we don't have two evaluated gradients, just return 1.0
     grad1 = self.counter['gradientHistory'][traj][1]
-    if len(grad1) < 1:
+    print('DEBUGG grad1:',grad1)
+    if len(grad1) == 0: # aka if grad1 is empty dict
       return 1.0
     #otherwise, do the dot product between the last two gradients
     grad0 = self.counter['gradientHistory'][traj][0]
-    prod = np.sum(list(grad0[key]*grad1[key] for key in grad0.keys()))
+    # scalar product
+    ## NOTE assumes scalar or vector, not matrix, values
+    prod = np.sum( [np.sum(grad0[key]*grad1[key]) for key in grad0.keys()] )
     #rescale from [-1, 1] to [1/g, g]
     if prod > 0:
       frac = self.gainGrowthFactor**prod
