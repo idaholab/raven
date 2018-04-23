@@ -86,13 +86,13 @@ class CobraTF(CodeInterfaceBase):
          break
      if not found:
        raise IOError('There is no CTF input file (*.inp)' )
-     
+
      #commandToRun = executable + ' -i ' + inputFiles[index].getFilename() + ' -o ' + outputfile  + '.o' + ' -r ' + outputfile  + '.r' + addflags
      commandToRun = executable + ' ' + inputFiles[index].getFilename()
      commandToRun = commandToRun.replace("\n"," ")
      #commandToRun  = re.sub("\s\s+" , " ", commandToRun )
      returnCommand = [('parallel', commandToRun)]
      output = inputFiles[index].getBase() + '.ctf'
-     
+
      return returnCommand,output
 

@@ -17,7 +17,7 @@ class ctfdata:
     """Class that parses CTF output file and reads in (types of output files??) and write a csv file"""
 
     def __init__(self, filen):
-        
+
         # Constructor
         # @ In, filen, string, file name to be parsed
         # @ Out, None
@@ -37,22 +37,22 @@ class ctfdata:
         self.majordata, self.HeaderName = self.getMajor(self.lines)
 
     def writeCSV(self, filen):
-        
+
         # Method that writes the csv file from major edit data
         # @ In, filen, string (input file name)
         # @ Out, None
-        
+
         # create string for header names
         header_str = ",".join(self.HeaderName)
         # write & save array as csv file
         np.savetxt(filen, self.majordata, delimiter=',', header=header_str, comments='')
 
     def getTimeDeck(self, lines):
-        
+
         # Method to check ended time of the simulation (multi-deck compatible)
         # @ In, lines, list of lines of the output file
         # @ Out, times, dict containing the information {'time':float,'sliceCoordinates':tuple(startLine,EndLine)}.
-        
+
         times = {}
         startLineNumber, endLineNumber = 0, 1
 
@@ -67,7 +67,7 @@ class ctfdata:
                 times = {'time': end_time, 'sliceCoordinates': (
                     startLineNumber, endLineNumber)}
         return times
-     
+
     def getMajor(self, lines):
         # Method that looks for key word MAJOR EDIT for reading major edit block
         # @ In, lines, list of lines of the output file
