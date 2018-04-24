@@ -94,11 +94,14 @@ class SPSA(GradientBasedOptimizer):
     #FIXME the optimization parameters should probably all operate ONLY on normalized data!
     #  -> perhaps the whole optimizer should only work on optimized data.
 
+    numValues = self._numberOfSamples()
+    print('DEBUGG numValues:',numValues)
+
     #FIXME normalizing doesn't seem to have the desired effect, currently; it makes the step size very small (for large scales)
     #if "a" was defaulted, use the average scale of the input space.
     #This is the suggested value from the paper, missing a 1/gradient term since we don't know it yet.
     if self.paramDict['a'] is None:
-      self.paramDict['a'] = mathUtils.hyperdiagonal(np.ones(len(self.getOptVars()))) # the features are always normalized
+      self.paramDict['a'] = mathUtils.hyperdiagonal(np.ones(numValues)) # the features are always normalized
       self.raiseAMessage('Defaulting "a" gradient parameter to',self.paramDict['a'])
     else:
       self.paramDict['a'] = float(self.paramDict['a'])
@@ -109,7 +112,6 @@ class SPSA(GradientBasedOptimizer):
     self.gradDict['pertNeeded'] = self.gradDict['numIterForAve'] * (self.paramDict['pertSingleGrad']+1)
 
     # determine the number of indpendent variables (scalar and vectors included)
-    numValues = self._numberOfSamples()
     stochDist = self.paramDict.get('stochasticDistribution', 'Hypersphere')
     if stochDist == 'Bernoulli':
       self.stochasticDistribution = Distributions.returnInstance('Bernoulli',self)
@@ -123,6 +125,7 @@ class SPSA(GradientBasedOptimizer):
       self.stochasticEngine = lambda: randomUtils.randPointsOnHypersphere(numValues) if numValues > 1 else [randomUtils.randPointsOnHypersphere(numValues)]
     else:
       self.raiseAnError(IOError, self.paramDict['stochasticEngine']+'is currently not supported for SPSA')
+    print('DEBUGG rand:',self.stochasticEngine())
 
   def localLocalInitialize(self, solutionExport):
     """
@@ -148,6 +151,7 @@ class SPSA(GradientBasedOptimizer):
       @ Out, None
     """
     ak = self._computeGainSequenceAk(self.paramDict,self.counter['varsUpdate'][traj],traj) # Compute the new ak
+    print('DEBUGG ak:',ak)
     self.optVarsHist[traj][self.counter['varsUpdate'][traj]] = {}
     varK = dict((var,self.counter['recentOptHist'][traj][0][var]) for var in self.getOptVars(traj))
     print('DEBUGG adding new point, starting with:',varK)
@@ -745,8 +749,10 @@ class SPSA(GradientBasedOptimizer):
     except KeyError:
       a, A, alpha = paramDict['a'], paramDict['A'], paramDict['alpha']
       ak = a / (iterNum + A) ** alpha
+      print('DEBUGG a,A,alpha:',a,A,alpha)
     # modify step size based on the history of the gradients used
     frac = self.fractionalStepChangeFromGradHistory(traj)
+    print('DEBUGG frac:',frac)
     ak *= frac
     self.raiseADebug('step gain size for traj "{}" iternum "{}": {}'.format(traj,iterNum,ak))
     self.counter['lastStepSize'][traj] = ak
