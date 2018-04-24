@@ -1,0 +1,117 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/Optimizers.Beale</name>
+    <author>talbpaul</author>
+    <created>2017-05-03</created>
+    <classesTested>Optimizer</classesTested>
+    <description>
+      This test runs the optimization on Beale's function.  It tests analytic optimization values
+      as well as the mechanical operation of the test.  Also tests the "gainGrowthFactor" and
+      "gainShrinkFactor" convergence parameters.
+
+      Currently the full optimization path taken for 5 trajectories is printed, and the first two
+      are tested for exact path.
+    </description>
+    <analytic>
+      This test uses Beale's function, which is documented in the analytic tests documentation under
+      the Optimizer functions section.
+    </analytic>
+    <requirements>R-RM-1</requirements>
+    <revisions>
+      <revision author='talbpaul' date='2018-01-04'>added the writeSteps=every option to test default performance</revision>
+    </revisions>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>Vector</WorkingDir>
+    <Sequence>optimize,print</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="optimize">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ExternalModel">parabola</Model>
+      <Optimizer class="Optimizers" type="SPSA">opter</Optimizer>
+      <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
+      <Output class="DataObjects" type="DataSet">optOut</Output>
+    </MultiRun>
+    <IOStep name="print" pauseAtEnd="True">
+      <Input class="DataObjects" type="PointSet">opt_export</Input>
+      <Input class="DataObjects" type="DataSet">optOut</Input>
+      <Output class="OutStreams" type="Print">opt_export</Output>
+      <Output class="OutStreams" type="Print">opt_out</Output>
+    </IOStep>
+  </Steps>
+
+  <Optimizers>
+    <SPSA name="opter">
+      <initialization>
+        <limit>2000</limit>
+        <initialSeed>42</initialSeed>
+        <thresholdTrajRemoval>1e-5</thresholdTrajRemoval>
+        <writeSteps>every</writeSteps>
+      </initialization>
+      <TargetEvaluation class="DataObjects" type="DataSet">optOut</TargetEvaluation>
+      <convergence>
+        <gradientThreshold>1e-3</gradientThreshold>
+        <relativeThreshold>1e-15</relativeThreshold>
+        <gainGrowthFactor>3</gainGrowthFactor>
+        <gainShrinkFactor>1.25</gainShrinkFactor>
+      </convergence>
+      <variable name="x">
+        <upperBound>6</upperBound>
+        <lowerBound>-6</lowerBound>
+        <!--<initial>-2, -2, 2, 2</initial>-->
+        <initial>-2</initial>
+      </variable>
+      <variable name="y">
+        <upperBound>6</upperBound>
+        <lowerBound>-6</lowerBound>
+        <!--<initial>-2, 2, -2, 2</initial>-->
+        <initial>0</initial>
+        <shape>11</shape>
+      </variable>
+      <parameter>
+        <A>50</A>
+      </parameter>
+      <objectVar>ans</objectVar>
+    </SPSA>
+  </Optimizers>
+
+  <Models>
+    <ExternalModel ModuleToLoad="../../../framework/AnalyticModels/optimizing/time_parabola" name="parabola" subType="">
+      <variables>x,y,t,ans</variables>
+    </ExternalModel>
+  </Models>
+
+  <DataObjects>
+    <PointSet name="dummyIN">
+      <Input>x,y</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <DataSet name="optOut">
+      <Input>x,y</Input>
+      <Output>ans</Output>
+      <Index var='t'>y</Index>
+    </DataSet>
+    <PointSet name="opt_export">
+      <Input>trajID</Input>
+      <Output>x,y,ans,varsUpdate</Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="opt_export">
+      <type>csv</type>
+      <source>opt_export</source>
+      <clusterLabel>trajID</clusterLabel>
+    </Print>
+    <Print name="opt_out">
+      <type>csv</type>
+      <source>optOut</source>
+    </Print>
+  </OutStreams>
+
+</Simulation>
