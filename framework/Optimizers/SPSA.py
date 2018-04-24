@@ -150,6 +150,8 @@ class SPSA(GradientBasedOptimizer):
     ak = self._computeGainSequenceAk(self.paramDict,self.counter['varsUpdate'][traj],traj) # Compute the new ak
     self.optVarsHist[traj][self.counter['varsUpdate'][traj]] = {}
     varK = dict((var,self.counter['recentOptHist'][traj][0][var]) for var in self.getOptVars(traj))
+    print('DEBUGG adding new point, starting with:',varK)
+    print('DEBUGG                      denormed, :',self.denormalizeData(varK))
     varKPlus,modded = self._generateVarsUpdateConstrained(traj,ak,gradient,varK)
     #check for redundant paths
     if len(self.optTrajLive) > 1 and self.counter['solutionUpdate'][traj] > 0:
@@ -205,6 +207,7 @@ class SPSA(GradientBasedOptimizer):
           if len(self.submissionQueue[traj]) == 0:
             gradient = self.counter['gradientHistory'][traj][0]
             self._newOptPointAdd(gradient,traj)
+            #### XXX REVIEWING ####
         else:
           self.raiseAnError(RuntimeError,'unexpected reason for submitting new opt points:',reason)
 
@@ -494,10 +497,12 @@ class SPSA(GradientBasedOptimizer):
       @ Out, modded, bool, if True the point was modified by the constraint
     """
     varKPlus = {}
+    # FIXME do we ever use ak[:] instead of the "except"?  This is a slow pattern if ak[:] usually fails
     try:
       gain = ak[:]
     except (TypeError,IndexError):
-      gain = [ak]*self._numberOfSamples() #technically incorrect, but missing ones will be *0 anyway just below here
+      gain = [ak]*self._numberOfSamples() #technically too many entries, but unneeded ones will be *0 anyway just below here
+    print('DEBUGG gain:',gain)
     gain = np.asarray(gain)
     index = 0
     for var in self.getOptVars(traj=traj):
@@ -511,6 +516,8 @@ class SPSA(GradientBasedOptimizer):
           new[i] = varK[var][i] - gain[index] * gradient.get(var,[0.0]*i)[i]
           index += 1
       varKPlus[var] = new
+    print('DEBUGG new trial point:',varKPlus)
+    print('DEBUGG       denormed :',self.denormalizeData(varKPlus))
     satisfied, activeViolations = self.checkConstraint(self.denormalizeData(varKPlus))
     if satisfied:
       return varKPlus, False
