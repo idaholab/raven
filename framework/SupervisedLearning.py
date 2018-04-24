@@ -3067,14 +3067,9 @@ class PolyExponential(superVisedLearning):
     toAdd = ['expTerms','coeffRegressor','initialScaling']
     if self.polyExpParams['coeffRegressor'].strip() == 'poly':
       toAdd.append('polyOrder')
-    for
-
-    outFile.addScalar(target,"numberExponentialTerms",self.polyExpParams['expTerms'])
-    outFile.addScalar(target,"coefficientRegressor",self.polyExpParams['coeffRegressor'])
+    for add in toAdd:
+      outFile.addScalar(target,add,self.polyExpParams[add])
     outFile.addScalar(target,"features",' '.join(self.features))
-    if self.polyExpParams['coeffRegressor'].strip() == 'poly':
-      outFile.addScalar(target,"polynomialOrder",self.polyExpParams['polyOrder'])
-    outFile.addScalar(target,"initialScaling",self.polyExpParams['initialScaling'])
     outFile.addScalar(target,"timeScale",' '.join([str(elm) for elm in self.pivotValues]))
 
     for smp in range(len(self.aij)):
