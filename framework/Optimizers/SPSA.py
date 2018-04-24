@@ -496,6 +496,7 @@ class SPSA(GradientBasedOptimizer):
     varKPlus = {}
     try:
       gain = ak[:]
+      aaaaa
     except (TypeError,IndexError):
       gain = [ak]*self._numberOfSamples() #technically incorrect, but missing ones will be *0 anyway just below here
     gain = np.asarray(gain)
@@ -513,22 +514,26 @@ class SPSA(GradientBasedOptimizer):
     satisfied, activeViolations = self.checkConstraint(self.denormalizeData(varKPlus))
     if satisfied:
       return varKPlus, False
+    print('DEBUGG violations:',activeViolations)
     # else if not satisfied ...
     # check if the active constraints are the boundary ones. In this case, try to project the gradient at an angle
     modded = False
     if len(activeViolations['internal']) > 0:
       modded = True
       projectedOnBoundary= {}
-      # TODO there's not a one-to-one mapping anymore!
       for var,under,over in activeViolations['internal']:
         if np.prod(self.variableShapes[var]) == 1:
-          projectedOnBoundary[var] = boundaryVal
+          if np.sum(over) > 0:
+            projectedOnBoundary[var] = self.optVarsInit['upperBound'][var]
+          elif np.sum(under) > 0:
+            projectedOnBoundary[var] = self.optVarsInit['lowerBound'][var]
           gradient[var] = 0.0
         else:
           projectedOnBoundary[var] = self.denormalizeData({var:varKPlus[var]})[var]
           projectedOnBoundary[var][under] = self.optVarsInit['lowerBound'][var]
           projectedOnBoundary[var][over] = self.optVarsInit['upperBound'][var]
           gradient[var][np.logical_or(under,over)] = 0.0
+      print('DEBUGG fixed:',projectedOnBoundary)
       varKPlus.update(self.normalizeData(projectedOnBoundary))
       newNormWithoutComponents = self.calculateMultivectorMagnitude(gradient.values())#LA.norm(gradient.values())
       for var in gradient.keys():
