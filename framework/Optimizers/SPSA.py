@@ -496,25 +496,24 @@ class SPSA(GradientBasedOptimizer):
     varKPlus = {}
     try:
       gain = ak[:]
-      aaaaa
     except (TypeError,IndexError):
       gain = [ak]*self._numberOfSamples() #technically incorrect, but missing ones will be *0 anyway just below here
     gain = np.asarray(gain)
     index = 0
     for var in self.getOptVars(traj=traj):
       numSamples = np.prod(self.variableShapes[var])
-      new = np.zeros(numSamples)
-      for i in range(numSamples):
-        if numSamples > 1:
-          new[i] = varK[var][i] - gain[index] * gradient.get(var,[0.0]*i)[i]
-        else:
-          new = varK[var]-gain[index]*gradient.get(var,0.0)*1.0
-        varKPlus[var] = new
+      if numSamples == 1:
+        new = varK[var]-gain[index]*gradient.get(var,0.0)*1.0
         index += 1
+      else:
+        new = np.zeros(numSamples)
+        for i in range(numSamples):
+          new[i] = varK[var][i] - gain[index] * gradient.get(var,[0.0]*i)[i]
+          index += 1
+      varKPlus[var] = new
     satisfied, activeViolations = self.checkConstraint(self.denormalizeData(varKPlus))
     if satisfied:
       return varKPlus, False
-    print('DEBUGG violations:',activeViolations)
     # else if not satisfied ...
     # check if the active constraints are the boundary ones. In this case, try to project the gradient at an angle
     modded = False
@@ -533,7 +532,6 @@ class SPSA(GradientBasedOptimizer):
           projectedOnBoundary[var][under] = self.optVarsInit['lowerBound'][var]
           projectedOnBoundary[var][over] = self.optVarsInit['upperBound'][var]
           gradient[var][np.logical_or(under,over)] = 0.0
-      print('DEBUGG fixed:',projectedOnBoundary)
       varKPlus.update(self.normalizeData(projectedOnBoundary))
       newNormWithoutComponents = self.calculateMultivectorMagnitude(gradient.values())#LA.norm(gradient.values())
       for var in gradient.keys():
@@ -541,7 +539,6 @@ class SPSA(GradientBasedOptimizer):
 
     if len(activeViolations['external']) == 0:
       return varKPlus, modded
-    bbbbb
 
     # Try to find varKPlus by shorten the gradient vector
     self.raiseADebug('Trajectory "{}" hit constraints ...'.format(traj))
@@ -556,28 +553,56 @@ class SPSA(GradientBasedOptimizer):
     self.raiseADebug('  Attempting instead to rotate trajectory ...')
     innerLoopLimit = self.constraintHandlingPara['innerLoopLimit']
     if innerLoopLimit < 0:
-      self.raiseAnError(IOError, 'Limit for internal loop for constraint handling shall be nonnegative')
+      self.raiseAnError(IOError, 'Limit for internal loop for constraint handling should be nonnegative')
     loopCounter = 0
     foundPendVector = False
+    # search for the perpendicular vector
     while not foundPendVector and loopCounter < innerLoopLimit:
       loopCounter += 1
+      # randomly choose the index of a variable to be the dependent? pivot
       depVarPos = randomUtils.randomIntegers(0,len(self.getOptVars(traj=traj))-1,self)
+      # if that variable is multidimensional, pick a dimension
+      varSize = np.prod(self.variableShapes[var])
+      if varSize > 1:
+        depVarIdx = randomUtils.randomIntegers(0,varSize-1,self)
       pendVector = {}
       npDot = 0
       for varID, var in enumerate(self.getOptVars(traj=traj)):
-        pendVector[var] = self.stochasticEngineForConstraintHandling.rvs() if varID != depVarPos else 0.0
-        npDot += pendVector[var]*gradient[var]
+        varSize = np.prod(self.variableShapes[var])
+        if varSize == 1:
+          pendVector[var] = self.stochasticEngineForConstraintHandling.rvs() if varID != depVarPos else 0.0
+          npDot += pendVector[var]*gradient[var]
+        else:
+          for i in range(varSize):
+            pendVector[var][i] = self.stochasticEngineForConstraintHandling.rvs() if (varID != depVarPos and depVarIdx != i) else 0.0
+          npDot += np.sum(pendVector[var]*gradient[var])
+      # TODO does this need to be in a separate loop or can it go with above?
       for varID, var in enumerate(self.getOptVars(traj=traj)):
         if varID == depVarPos:
-          pendVector[var] = -npDot/gradient[var]
+          varSize = np.prod(self.variableShapes[var])
+          if varSize == 1:
+            pendVector[var] = -npDot/gradient[var]
+          else:
+            pendVector[var][depVarIdx] = -npDot/gradient[var][depVarIdx]
 
-      r = LA.norm(np.asarray([gradient[var] for var in self.getOptVars(traj=traj)]))/LA.norm(np.asarray([pendVector[var] for var in self.getOptVars(traj=traj)]))
+      r  = self.calculateMultivectorMagnitude([  gradient[var] for var in self.getOptVars(traj=traj)])
+      r /= self.calculateMultivectorMagnitude([pendVector[var] for var in self.getOptVars(traj=traj)])
       for var in self.getOptVars(traj=traj):
         pendVector[var] = copy.deepcopy(pendVector[var])*r
 
       varKPlus = {}
-      for index, var in enumerate(self.getOptVars(traj=traj)):
-        varKPlus[var] = copy.copy(varK[var]-gain[index]*pendVector[var]*1.0)
+      index = 0
+      for var in self.getOptVars(traj=traj):
+        varSize = np.prod(self.variableShapes[var])
+        new = np.zeros(varSize)
+        for i in range(varSize):
+          if varSize == 1:
+            new = copy.copy(varK[var]-gain[index]*pendVector[var]*1.0)
+          else:
+            new[i] = copy.copy(varK[var][i]-gain[index]*pendVector[var][i]*1.0)
+          index += 1
+        varKPlus[var] = new
+
       foundPendVector, activeConstraints = self.checkConstraint(self.denormalizeData(varKPlus))
       if not foundPendVector:
         foundPendVector, varKPlus = self._bisectionForConstrainedInput(traj,varK, gain, pendVector)
@@ -586,20 +611,30 @@ class SPSA(GradientBasedOptimizer):
     if foundPendVector:
       lenPendVector = 0
       for var in self.getOptVars(traj=traj):
-        lenPendVector += pendVector[var]**2
+        lenPendVector += np.sum(pendVector[var]**2)
       lenPendVector = np.sqrt(lenPendVector)
 
       rotateDegreeUpperLimit = 2
       while self.angleBetween(traj,gradient, pendVector) > rotateDegreeUpperLimit:
-        sumVector, lenSumVector = {}, 0
+        sumVector = {}
+        lenSumVector = 0
         for var in self.getOptVars(traj=traj):
           sumVector[var] = gradient[var] + pendVector[var]
-          lenSumVector += sumVector[var]**2
+          lenSumVector += np.sum(sumVector[var]**2)
 
         tempTempVarKPlus = {}
-        for index, var in enumerate(self.getOptVars(traj=traj)):
+        index = 0
+        for var in self.getOptVars(traj=traj):
           sumVector[var] = copy.deepcopy(sumVector[var]/np.sqrt(lenSumVector)*lenPendVector)
-          tempTempVarKPlus[var] = copy.copy(varK[var]-gain[index]*sumVector[var]*1.0)
+          varSize = np.prod(self.variableShapes[var])
+          new = np.zeros(varSize)
+          for i in range(varSize):
+            if varSize == 1:
+              new = copy.copy(varK[var]-gain[index]*sumVector[var]*1.0)
+            else:
+              new[i] = copy.copy(varK[var][i]-gain[index]*sumVector[var][i]*1.0)
+            index += 1
+          tempTempVarKPlus[var] = new
         satisfied, activeConstraints = self.checkConstraint(self.denormalizeData(tempTempVarKPlus))
         if satisfied:
           varKPlus = copy.deepcopy(tempTempVarKPlus)
@@ -625,18 +660,28 @@ class SPSA(GradientBasedOptimizer):
     try:
       gain = ak[:]
     except (TypeError,IndexError):
-      gain = [ak]*len(self.getOptVars(traj=traj))
+      gain = [ak]*self._numberOfSamples() #technically incorrect, but missing ones will be *0 anyway just below here
 
     innerBisectionThreshold = self.constraintHandlingPara['innerBisectionThreshold']
     if innerBisectionThreshold <= 0 or innerBisectionThreshold >= 1: #FIXME REWORK this is an input check, not a runtime check
-      self.raiseAnError(ValueError, 'The innerBisectionThreshold shall be greater than 0 and less than 1')
+      self.raiseAnError(ValueError, 'The innerBisectionThreshold should be greater than 0 and less than 1')
     bounds = [0, 1.0]
     tempVarNew = {}
     frac = 0.5
     while np.absolute(bounds[1]-bounds[0]) >= innerBisectionThreshold:
-      for index, var in enumerate(self.getOptVars(traj=traj)):
-        tempVarNew[var] = copy.copy(varK[var]-gain[index]*vector[var]*1.0*frac)
-      satisfied, activeConstraints = self.checkConstraint(tempVarNew)
+      index = 0
+      for var in self.getOptVars(traj=traj):
+        numSamples = np.prod(self.variableShapes[var])
+        new = np.zeros(numSamples)
+        for i in range(numSamples):
+          if numSamples > 1:
+            new[i] = copy.copy(varK[var][i] - gain[index] * vector[var][i]*1.0*frac) # FIXME is this copy needed?
+          else:
+            new = copy.copy(varK[var]-gain[index]*vector[var]*1.0*frac) # FIXME is this copy needed?
+          index += 1
+        tempVarNew[var] = new
+
+      satisfied,_ = self.checkConstraint(tempVarNew)
       if satisfied:
         bounds[0] = copy.deepcopy(frac)
         if np.absolute(bounds[1]-bounds[0]) >= innerBisectionThreshold:
