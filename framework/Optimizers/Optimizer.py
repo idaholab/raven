@@ -684,10 +684,11 @@ class Optimizer(Sampler):
     # extend multivalue variables (aka vector variables, or variables with "shape")
     ## TODO someday take array of initial values from a data object
     for var,shape in self.variableShapes.items():
-      for traj in self.optTraj:
-        baseVal = self.optVarsInit['initial'][var][traj]
-        newVal = np.ones(shape)*baseVal
-        self.optVarsInit['initial'][var][traj] = newVal
+      if np.prod(shape) > 1:
+        for traj in self.optTraj:
+          baseVal = self.optVarsInit['initial'][var][traj]
+          newVal = np.ones(shape)*baseVal
+          self.optVarsInit['initial'][var][traj] = newVal
 
     if self.initSeed is not None:
       randomUtils.randomSeed(self.initSeed)
@@ -724,6 +725,8 @@ class Optimizer(Sampler):
       if denormalize:
         originalPoint = self.denormalizeData(originalPoint)
       infoDict = {'SampledVars':dict(originalPoint)}
+      for k,v in infoDict['SampledVars'].items():
+        print('   ',k,v)
       # remove preconditioned space from infoDict sampledVars
       # -> we do this because we copy infoDict[SampledVars] values to overwrite results values
       #    but we want to retain the values given by the preconditioner, not the infoDict value.
@@ -733,10 +736,7 @@ class Optimizer(Sampler):
       for key,value in self.constants.items():
         infoDict['SampledVars'][key] = value
       # run the preconditioner
-      try:
-        preResults = precond.evaluateSample([infoDict['SampledVars']],'Optimizer',infoDict)
-      except RuntimeError:
-        self.raiseAnError(RuntimeError,'There was an error running the preconditioner for batch "{}"! See messages above for details.'.format(batch))
+      preResults = precond.evaluateSample([infoDict['SampledVars']],'Optimizer',infoDict)
       # flatten results #TODO breaks for multi-entry arrays
       for key,val in preResults.items():
         preResults[key] = val.item(0)

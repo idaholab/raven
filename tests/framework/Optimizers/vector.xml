@@ -6,8 +6,13 @@
     <created>2018-04-24</created>
     <classesTested>Optimizer</classesTested>
     <description>
-      Tests sampling a vector of variables, treating each element in the vector as an independent sample.  To compare, the test
-      Optimizers.VectorAsScalar performs the same test, but with each element as a scalar instead of collected in a vector.
+      Tests sampling a vector of variables, treating each element in the vector as an independent sample.
+
+      To compare, originally an identical test but using all scalar variables for "y" instead of the vector variable,
+      and it was assured that both workflows followed the same optimization path, before golding the output csv for this
+      test.
+
+      As a result, before any regolding is performed on this test, a similar test and comparison should be made.
     </description>
     <analytic>
       This test uses the "time parabola" $f(x,y,t) = x^2 + (t-y)^2 e^(-t)$, which has a minimum at x=0 and y=t for each value of t,

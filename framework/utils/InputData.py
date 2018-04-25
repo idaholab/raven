@@ -426,8 +426,6 @@ class ParameterInput(object):
       #should this be an error or a warning? Or even that?
       #handleError('XML node "{}" != param spec name "{}"'.format(node.tag,self.name))
       print('Note: XML node "{}" != param spec name "{}".  This should not usually be an issue.'.format(node.tag,self.name))
-    #else: #FIXME
-    print('DEBUGG node:',node,node.text,self.contentType)
     if self.contentType:
       self.value = self.contentType.convert(node.text)
     else:

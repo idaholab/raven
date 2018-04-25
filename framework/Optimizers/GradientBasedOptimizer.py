@@ -220,8 +220,7 @@ class GradientBasedOptimizer(Optimizer):
     gradient = self.localEvaluateGradient(optVarsValues, traj, gradient)
     # we intend for gradient to give direction only, so get the versor
     ## NOTE this assumes gradient vectors are 0 or 1 dimensional, not 2 or more! (vectors or scalars, not matrices)
-    preNorms = [np.linalg.norm(vals) if len(np.atleast_1d(vals))>1 else np.atleast_1d(vals)[0] for vals in gradient.values()]
-    gradientNorm = self.calculateMultivectorMagnitude(gradient.values()) #np.linalg.norm(preNorms) #might be infinite!
+    gradientNorm = self.calculateMultivectorMagnitude(gradient.values())
     # store this norm, infinite or not
     self.counter['gradNormHistory'][traj][0] = gradientNorm
     #fix inf
@@ -234,7 +233,7 @@ class GradientBasedOptimizer(Optimizer):
         gradient[var][gradient[var] == -np.inf] = -1.0
         gradient[var][gradient[var] ==  np.inf] =  1.0
       # set up the new grad norm
-      gradientNorm = self.calculateMultivectorMagnitude(gradient.values())#np.linalg.norm(preNorms)
+      gradientNorm = self.calculateMultivectorMagnitude(gradient.values())
     # normalize gradient (if norm is zero, skip this)
     if gradientNorm != 0.0:
       for var in gradient.keys():
@@ -460,7 +459,6 @@ class GradientBasedOptimizer(Optimizer):
           if len(inp) < 1: #empty
             continue
           removeLocalFlag = True
-          #preDists = [np.linalg.norm(inp[var] - currentInput[var]) if len(np.atleast_1d(inp[var]))>1 else np.atleast_1d(inp[var]-currentInput[var])[0] for var in ]
           dist = self.calculateMultivectorMagnitude( [inp[var] - currentInput[var] for var in self.getOptVars(traj=trajToRemove)] )
           if dist < self.thresholdTrajRemoval:
             self.raiseADebug('Halting trajectory "{}" because it is following trajectory "{}"'.format(trajToRemove,traj))
