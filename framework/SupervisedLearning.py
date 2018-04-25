@@ -3056,6 +3056,14 @@ class PolyExponential(superVisedLearning):
     ##TODO retrieve coefficients from spline interpolator
     if not self.amITrained:
       self.raiseAnError(RuntimeError,'ROM is not yet trained!')
+    outFile.addScalar('ROM',"type",'PolyExponential')
+    # add description
+    description  = ' This XML file contains the main information of the PolyExponential ROM named "'+self.name+'".'
+    description += ' If "modes" (dynamic modes), "eigs" (eigenvalues), "amplitudes" (mode amplitudes)'
+    description += ' and "dmdTimeScale" (internal dmd time scale) are dumped, the method'
+    description += ' is explained in P.J. Schmid, Dynamic mode decomposition'
+    description += ' of numerical and experimental data, Journal of Fluid Mechanics 656.1 (2010), 5–28.'
+    outFile.addScalar('ROM',"description",description)
     # check what
     what = None
     if 'what' in options:
@@ -3277,15 +3285,13 @@ class DynamicModeDecomposition(superVisedLearning):
     """
     if not self.amITrained:
       self.raiseAnError(RuntimeError,'ROM is not yet trained!')
+    outFile.addScalar('ROM',"type",'DMD')
     # add description
-    description  = ' This XML file contains the main information the DMD ROM named "'+self.name+'".'
+    description  = ' This XML file contains the main information of the DMD ROM named "'+self.name+'".'
     description += ' If "modes" (dynamic modes), "eigs" (eigenvalues), "amplitudes" (mode amplitudes)'
-    description += ' and "dmdTimeScale" (internal dmd time scale) are dumped, the evaluation function'
-    description += ' to reconstruct the space is as follows: \n'
-    outFile.addScalar('ROM',add,self.dmdParams[add])
-
-
-
+    description += ' and "dmdTimeScale" (internal dmd time scale) are dumped, the method'
+    description += ' is explained in P.J. Schmid, Dynamic mode decomposition'
+    description += ' of numerical and experimental data, Journal of Fluid Mechanics 656.1 (2010), 5–28.'
     # check what
     what = None
     if 'what' in options:
@@ -3311,6 +3317,8 @@ class DynamicModeDecomposition(superVisedLearning):
       outFile.addScalar(target,"features",' '.join(self.features))
     if ("timeScale" in what) if what is not None else (True):
       outFile.addScalar(target,"timeScale",' '.join([str(elm) for elm in self.pivotValues.ravel()]))
+    if ("dmdTimeScale" in what) if what is not None else (True):
+      outFile.addScalar(target,"dmdTimeScale",' '.join([str(elm) for elm in self.__getTimeScale()]))
     if ("eigs" in what) if what is not None else (True):
       eigsReal = " ".join([str(self._eigs[indx].real) for indx in
                        range(len(self._eigs))])
