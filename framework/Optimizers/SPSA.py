@@ -95,7 +95,6 @@ class SPSA(GradientBasedOptimizer):
     #  -> perhaps the whole optimizer should only work on optimized data.
 
     numValues = self._numberOfSamples()
-    print('DEBUGG numValues:',numValues)
 
     #FIXME normalizing doesn't seem to have the desired effect, currently; it makes the step size very small (for large scales)
     #if "a" was defaulted, use the average scale of the input space.
@@ -125,7 +124,6 @@ class SPSA(GradientBasedOptimizer):
       self.stochasticEngine = lambda: randomUtils.randPointsOnHypersphere(numValues) if numValues > 1 else [randomUtils.randPointsOnHypersphere(numValues)]
     else:
       self.raiseAnError(IOError, self.paramDict['stochasticEngine']+'is currently not supported for SPSA')
-    print('DEBUGG rand:',self.stochasticEngine())
 
   def localLocalInitialize(self, solutionExport):
     """
@@ -151,11 +149,8 @@ class SPSA(GradientBasedOptimizer):
       @ Out, None
     """
     ak = self._computeGainSequenceAk(self.paramDict,self.counter['varsUpdate'][traj],traj) # Compute the new ak
-    print('DEBUGG ak:',ak)
     self.optVarsHist[traj][self.counter['varsUpdate'][traj]] = {}
     varK = dict((var,self.counter['recentOptHist'][traj][0][var]) for var in self.getOptVars(traj))
-    print('DEBUGG adding new point, starting with:',varK)
-    print('DEBUGG                      denormed, :',self.denormalizeData(varK))
     varKPlus,modded = self._generateVarsUpdateConstrained(traj,ak,gradient,varK)
     #check for redundant paths
     if len(self.optTrajLive) > 1 and self.counter['solutionUpdate'][traj] > 0:
@@ -506,13 +501,12 @@ class SPSA(GradientBasedOptimizer):
       gain = ak[:]
     except (TypeError,IndexError):
       gain = [ak]*self._numberOfSamples() #technically too many entries, but unneeded ones will be *0 anyway just below here
-    print('DEBUGG gain:',gain)
     gain = np.asarray(gain)
     index = 0
     for var in self.getOptVars(traj=traj):
       numSamples = np.prod(self.variableShapes[var])
       if numSamples == 1:
-        new = varK[var]-gain[index]*gradient.get(var,0.0)*1.0
+        new = varK[var]-gain[index]*gradient.get(var,0.0)*1.0 # FIXME shouldn't need *1.0
         index += 1
       else:
         new = np.zeros(numSamples)
@@ -520,8 +514,6 @@ class SPSA(GradientBasedOptimizer):
           new[i] = varK[var][i] - gain[index] * gradient.get(var,[0.0]*i)[i]
           index += 1
       varKPlus[var] = new
-    print('DEBUGG new trial point:',varKPlus)
-    print('DEBUGG       denormed :',self.denormalizeData(varKPlus))
     satisfied, activeViolations = self.checkConstraint(self.denormalizeData(varKPlus))
     if satisfied:
       return varKPlus, False
@@ -749,10 +741,8 @@ class SPSA(GradientBasedOptimizer):
     except KeyError:
       a, A, alpha = paramDict['a'], paramDict['A'], paramDict['alpha']
       ak = a / (iterNum + A) ** alpha
-      print('DEBUGG a,A,alpha:',a,A,alpha)
     # modify step size based on the history of the gradients used
     frac = self.fractionalStepChangeFromGradHistory(traj)
-    print('DEBUGG frac:',frac)
     ak *= frac
     self.raiseADebug('step gain size for traj "{}" iternum "{}": {}'.format(traj,iterNum,ak))
     self.counter['lastStepSize'][traj] = ak

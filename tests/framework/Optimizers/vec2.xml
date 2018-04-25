@@ -30,7 +30,7 @@
   </RunInfo>
 
   <VariableGroups>
-    <Group name="y_vars">y0,y1,y2,y3,y4,y5,y6,y7,y8,y9,y10</Group>
+    <Group name="y_vars">yA,yB,yC,yD,yE,yF,yG,yH,yI,yJ,yK</Group>
   </VariableGroups>
 
   <Steps>
@@ -69,57 +69,57 @@
         <lowerBound>-6</lowerBound>
         <initial>-2</initial>
       </variable>
-      <variable name="y0">
+      <variable name="yA">
         <upperBound>6</upperBound>
         <lowerBound>-6</lowerBound>
         <initial>0</initial>
       </variable>
-      <variable name="y1">
+      <variable name="yB">
         <upperBound>6</upperBound>
         <lowerBound>-6</lowerBound>
         <initial>0</initial>
       </variable>
-      <variable name="y2">
+      <variable name="yC">
         <upperBound>6</upperBound>
         <lowerBound>-6</lowerBound>
         <initial>0</initial>
       </variable>
-      <variable name="y3">
+      <variable name="yD">
         <upperBound>6</upperBound>
         <lowerBound>-6</lowerBound>
         <initial>0</initial>
       </variable>
-      <variable name="y4">
+      <variable name="yE">
         <upperBound>6</upperBound>
         <lowerBound>-6</lowerBound>
         <initial>0</initial>
       </variable>
-      <variable name="y5">
+      <variable name="yF">
         <upperBound>6</upperBound>
         <lowerBound>-6</lowerBound>
         <initial>0</initial>
       </variable>
-      <variable name="y6">
+      <variable name="yG">
         <upperBound>6</upperBound>
         <lowerBound>-6</lowerBound>
         <initial>0</initial>
       </variable>
-      <variable name="y7">
+      <variable name="yH">
         <upperBound>6</upperBound>
         <lowerBound>-6</lowerBound>
         <initial>0</initial>
       </variable>
-      <variable name="y8">
+      <variable name="yI">
         <upperBound>6</upperBound>
         <lowerBound>-6</lowerBound>
         <initial>0</initial>
       </variable>
-      <variable name="y9">
+      <variable name="yJ">
         <upperBound>6</upperBound>
         <lowerBound>-6</lowerBound>
         <initial>0</initial>
       </variable>
-      <variable name="y10">
+      <variable name="yK">
         <upperBound>6</upperBound>
         <lowerBound>-6</lowerBound>
         <initial>0</initial>

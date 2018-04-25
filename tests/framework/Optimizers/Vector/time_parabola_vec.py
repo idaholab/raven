@@ -15,7 +15,7 @@ def evaluate(x,y,t):
 def run(self,Input):
   # "x" is scalar, "ans" and "y" depend on vector "t"
   self.t = np.linspace(-5,5,11)
-  ys = np.array([float(x) for x in [self.y0,self.y1,self.y2,self.y3,self.y4,self.y5,self.y6,self.y7,self.y8,self.y9,self.y10]])
+  ys = np.array([float(x) for x in [self.yA,self.yB,self.yC,self.yD,self.yE,self.yF,self.yG,self.yH,self.yI,self.yJ,self.yK]])
   self.ans = evaluate(self.x,ys,self.t)
 
 class A:

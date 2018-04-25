@@ -580,7 +580,6 @@ class GradientBasedOptimizer(Optimizer):
               rlz.update(self.optVarsHist[traj][self.counter['varsUpdate'][traj]])
               rlz.update(outputs)
               self.counter['recentOptHist'][traj][0] = rlz
-              print('DEBUGG new:',self.denormalizeData(rlz))
               if traj not in self.counter['prefixHistory']:
                 self.counter['prefixHistory'][traj] = []
               self.counter['prefixHistory'][traj].append(prefix)

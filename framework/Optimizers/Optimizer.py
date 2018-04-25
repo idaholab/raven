@@ -453,8 +453,6 @@ class Optimizer(Sampler):
     if self.fullOptVars is None:
       self.raiseAnError(IOError, 'Decision variable(s) not specified for optimizer!')
 
-    self.fullOptVars.sort()
-
     for var in self.getOptVars():
       if var not in self.variableShapes:
         self.variableShapes[var] = (1,)
