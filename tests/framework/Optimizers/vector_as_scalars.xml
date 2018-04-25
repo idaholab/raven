@@ -1,26 +1,21 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework/Optimizers.Beale</name>
+    <name>framework/Optimizers.VectorAsScalars</name>
     <author>talbpaul</author>
-    <created>2017-05-03</created>
+    <created>2018-04-24</created>
     <classesTested>Optimizer</classesTested>
     <description>
-      This test runs the optimization on Beale's function.  It tests analytic optimization values
-      as well as the mechanical operation of the test.  Also tests the "gainGrowthFactor" and
-      "gainShrinkFactor" convergence parameters.
+      This test is used to compare against "Optimizers.Vector" to assure both are operating in the same way.
 
-      Currently the full optimization path taken for 5 trajectories is printed, and the first two
-      are tested for exact path.
+      Note that the order of variables is important, hence why variables are named yA through yK,
+      since y0 through y10 get sorted alphanumerically with y10 between y1 and y2.
     </description>
     <analytic>
-      This test uses Beale's function, which is documented in the analytic tests documentation under
-      the Optimizer functions section.
+      This test uses a model based on the "time_parabola", $f(x,y(t)) = x^2 + (t-y)^2 e^(-t)$.  This parabola has a minimum
+      at x=0 and at y=t for every value of t, with the earliest values of y (yA, yB) being much more impactful than the later
+      values of y (yJ,yK).
     </analytic>
-    <requirements>R-RM-1</requirements>
-    <revisions>
-      <revision author='talbpaul' date='2018-01-04'>added the writeSteps=every option to test default performance</revision>
-    </revisions>
   </TestInfo>
 
   <RunInfo>
@@ -60,9 +55,9 @@
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
       <convergence>
         <gradientThreshold>1e-3</gradientThreshold>
-        <relativeThreshold>1e-15</relativeThreshold>
+        <relativeThreshold>1e-5</relativeThreshold>
         <gainGrowthFactor>3</gainGrowthFactor>
-        <gainShrinkFactor>1.25</gainShrinkFactor>
+        <gainShrinkFactor>1.2</gainShrinkFactor>
       </convergence>
       <variable name="x">
         <upperBound>6</upperBound>
@@ -125,6 +120,7 @@
         <initial>0</initial>
       </variable>
       <parameter>
+        <a>3</a>
         <A>50</A>
       </parameter>
       <objectVar>ans</objectVar>
