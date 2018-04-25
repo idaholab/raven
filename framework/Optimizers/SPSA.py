@@ -29,7 +29,6 @@ import sys
 import os
 import copy
 import numpy as np
-from numpy import linalg as LA
 import scipy
 #External Modules End--------------------------------------------------------------------------------
 
@@ -132,14 +131,6 @@ class SPSA(GradientBasedOptimizer):
       @ Out, None
     """
     self._endJobRunnable = (self._endJobRunnable*self.gradDict['pertNeeded'])+len(self.optTraj)
-
-  def _numberOfSamples(self,traj=None):
-    """
-      Calculates the number of independent variables (one for each scalar plus each scalar in each vector).
-      @ In, traj, int, optional, if provided then only count variables in current trajectory
-      @ Out, _numberOfSamples, int, total number of independent values that need sampling
-    """
-    return sum(np.prod(self.variableShapes[var]) for var in self.getOptVars(traj))
 
   def _newOptPointAdd(self, gradient, traj):
     """
@@ -308,7 +299,7 @@ class SPSA(GradientBasedOptimizer):
       for var in self.getOptVars(traj=traj):
         # NOTE: gradient is calculated in normalized space
         dh = pert['inputs'][var] - opt['inputs'][var]
-        # a sample so close cannot be taken without violiting minimum step, so this check should not be necessary
+        # a sample so close cannot be taken without violating minimum step, so this check should not be necessary (left for reference)
         #if abs(dh) < 1e-15:
         #  self.raiseAnError(RuntimeError,'While calculating the gradArray a "dh" of zero was found for var:',var)
         gradArray[var][i] = lossDiff/dh
@@ -497,9 +488,10 @@ class SPSA(GradientBasedOptimizer):
     """
     varKPlus = {}
     # FIXME do we ever use ak[:] instead of the "except"?  This is a slow pattern if ak[:] usually fails
-    try:
+    if hasattr(ak,'__len__'):
       gain = ak[:]
-    except (TypeError,IndexError):
+      assert(len(gain) == self._numberOfSamples()) # this might be a false assertion of len(gain) == number of ACTIVE samples
+    else:
       gain = [ak]*self._numberOfSamples() #technically too many entries, but unneeded ones will be *0 anyway just below here
     gain = np.asarray(gain)
     index = 0
@@ -536,7 +528,7 @@ class SPSA(GradientBasedOptimizer):
           projectedOnBoundary[var][over] = self.optVarsInit['upperBound'][var]
           gradient[var][np.logical_or(under,over)] = 0.0
       varKPlus.update(self.normalizeData(projectedOnBoundary))
-      newNormWithoutComponents = self.calculateMultivectorMagnitude(gradient.values())#LA.norm(gradient.values())
+      newNormWithoutComponents = self.calculateMultivectorMagnitude(gradient.values())
       for var in gradient.keys():
         gradient[var] = gradient[var]/newNormWithoutComponents if newNormWithoutComponents != 0.0 else gradient[var]
 
@@ -564,7 +556,7 @@ class SPSA(GradientBasedOptimizer):
       loopCounter += 1
       # randomly choose the index of a variable to be the dependent? pivot
       depVarPos = randomUtils.randomIntegers(0,len(self.getOptVars(traj=traj))-1,self)
-      # if that variable is multidimensional, pick a dimension
+      # if that variable is multidimensional, pick a dimension -> this is not precisely equal probability of picking, but that should be okay.
       varSize = np.prod(self.variableShapes[var])
       if varSize > 1:
         depVarIdx = randomUtils.randomIntegers(0,varSize-1,self)

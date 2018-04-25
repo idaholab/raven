@@ -477,6 +477,14 @@ class Optimizer(Sampler):
       if set(self.mlSequence) != set(self.mlBatches.keys()):
         self.raiseAWarning('There is a mismatch between the multilevel batches defined and batches used in the sequence!  Some variables may not be optimized correctly ...')
 
+  def _numberOfSamples(self,traj=None):
+    """
+      Calculates the number of independent variables (one for each scalar plus each scalar in each vector).
+      @ In, traj, int, optional, if provided then only count variables in current trajectory
+      @ Out, _numberOfSamples, int, total number of independent values that need sampling
+    """
+    return sum(np.prod(self.variableShapes[var]) for var in self.getOptVars(traj))
+
   def getOptVars(self,traj=None,full=False):
     """
       Returns the variables in the active optimization space
@@ -725,8 +733,6 @@ class Optimizer(Sampler):
       if denormalize:
         originalPoint = self.denormalizeData(originalPoint)
       infoDict = {'SampledVars':dict(originalPoint)}
-      for k,v in infoDict['SampledVars'].items():
-        print('   ',k,v)
       # remove preconditioned space from infoDict sampledVars
       # -> we do this because we copy infoDict[SampledVars] values to overwrite results values
       #    but we want to retain the values given by the preconditioner, not the infoDict value.
@@ -962,17 +968,6 @@ class Optimizer(Sampler):
         self.raiseAWarning('A variable violated boundary constraints! "{}"={}'.format(var,optVars[var]))
         satisfied = False
         violatedConstrains['internal'].append( (var,underMask,overMask) )
-      #for v,value in enumerate(check):
-      #  if value > self.optVarsInit['upperBound'][var]:
-      #    violatedConstrains['internal'].append([var,v,self.optVarsInit['upperBound'][var]])
-      #    varSatisfy = False
-      #  elif value < self.optVarsInit['lowerBound'][var]:
-      #    violatedConstrains['internal'].append([var,v,self.optVarsInit['lowerBound'][var]])
-      #    varSatisfy = False
-      #  if not varSatisfy:
-      #    self.raiseAWarning('A variable violated boundary constraints! "{}[{}]"={}'.format(var,v,optVars[var]))
-      #    satisfied=False
-      #    break
 
     satisfied = self.localCheckConstraint(optVars, satisfied)
     satisfaction = satisfied,violatedConstrains

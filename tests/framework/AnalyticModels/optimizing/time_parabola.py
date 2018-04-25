@@ -7,9 +7,6 @@ Optimizing function.  Has minimum at x=0, (t-y)=0 for each value of t.
 import numpy as np
 
 def evaluate(x,y,t):
-  print 'TIME PARABOLA Y CONTRIB:',(t-y)**2*np.exp(-t)
-  print 'TIME PARABOLA X CONTRIB:',x*x
-  print 'TIME PARABOLA TOTAL    :',x*x + np.sum((t-y)**2*np.exp(-t))
   return x*x + np.sum((t-y)**2*np.exp(-t))
 
 def run(self,Input):
