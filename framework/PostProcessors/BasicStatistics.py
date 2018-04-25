@@ -193,7 +193,7 @@ class BasicStatistics(PostProcessor):
       for sliceData in slices:
         inputDict = {}
         inputDict['metadata'] = metadata
-        inputDict['targets'] = dict((target, sliceData[target].astype("float",copy=False)) for target in self.parameters['targets'])
+        inputDict['targets'] = dict((target, sliceData[target]) for target in self.parameters['targets'])
         inputList.append(inputDict)
 
     self.raiseAMessage("Recasting performed")
@@ -407,10 +407,10 @@ class BasicStatistics(PostProcessor):
     """
     if pbWeight is not None:
       unbiasCorr = self.__computeUnbiasedCorrection(2,pbWeight) if not self.biased else 1.0
-      result = (1.0/self.__computeVp(1,pbWeight))*np.average((arrayIn - np.asarray(expValue))**2,weights= pbWeight)*unbiasCorr
+      result = (1.0/self.__computeVp(1,pbWeight))*np.average((arrayIn - expValue)**2,weights= pbWeight)*unbiasCorr
     else:
       unbiasCorr = self.__computeUnbiasedCorrection(2,len(arrayIn)) if not self.biased else 1.0
-      result = np.average((arrayIn - np.asarray(expValue))**2)*unbiasCorr
+      result = np.average((arrayIn - expValue)**2)*unbiasCorr
     return result
 
   def _computeSigma(self,arrayIn,variance,pbWeight=None):
@@ -820,6 +820,7 @@ class BasicStatistics(PostProcessor):
             outputDict[varName] = np.atleast_1d(self._computeWeightedPercentile(inputDict['targets'][targetP].values,relWeight,percent=float(percent)/100.0))
           else:
             outputDict[varName] = np.percentile(inputDict['targets'][targetP].values, float(percent), interpolation='lower')
+
     #collect only the requested calculations except percentile, since it has been already collected
     #in the outputDict.
     for metric, requestList  in self.toDo.items():
