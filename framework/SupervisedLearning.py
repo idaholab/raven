@@ -2996,7 +2996,6 @@ class PolyExponential(superVisedLearning):
       self.model = make_pipeline(PolynomialFeatures(self.polyExpParams['polyOrder']), linear_model.Ridge())
       self.model.fit(featureVals, expTermCoeff)
       # print the coefficient
-
       if getLocalVerbosity() == 'debug':
         self.raiseADebug("poly coefficients")
         coefficients = self.model.steps[1][1].coef_
@@ -3004,7 +3003,7 @@ class PolyExponential(superVisedLearning):
           coeff_str = "    a_"+str(l+1) if l < self.polyExpParams['expTerms'] else "    b_"+str((l-self.polyExpParams['expTerms'])+1)
           coeff_str+="(" + ",".join(self.features)+"):"
           self.raiseADebug(coeff_str)
-          self.raiseADebug("      "+" ".join([str(elm) for elm in coefficients[l]]))
+          self.raiseADebug("      "+" ".join([str(elm) for elm in coeff]))
     elif self.polyExpParams['coeffRegressor']== 'nearest':
       self.scaler = preprocessing.StandardScaler().fit(featureVals)
       self.model = [None for _ in range(self.polyExpParams['expTerms']*2)]
@@ -3054,6 +3053,7 @@ class PolyExponential(superVisedLearning):
         'pivotVal': float value of dynamic pivotParam value
       @ Out, None
     """
+    ##TODO retrieve coefficients from spline interpolator
     if not self.amITrained:
       self.raiseAnError(RuntimeError,'ROM is not yet trained!')
     # check what
@@ -3068,16 +3068,19 @@ class PolyExponential(superVisedLearning):
     if self.polyExpParams['coeffRegressor'].strip() == 'poly':
       toAdd.append('polyOrder')
     for add in toAdd:
-      outFile.addScalar(target,add,self.polyExpParams[add])
-    outFile.addScalar(target,"features",' '.join(self.features))
-    outFile.addScalar(target,"timeScale",' '.join([str(elm) for elm in self.pivotValues]))
-
-    for smp in range(len(self.aij)):
-      valDict = {'fi': ' '.join([ str(elm) for elm in self.aij[smp,:]]),
-                 'taui':' '.join([ str(elm) for elm in self.bij[smp,:]]),
-                 'predictionRelDiff' :' '.join([ str(elm) for elm in self.predictError[smp,:]])}
-      attributeDict = {self.features[index]:self.featureVals[smp,index] for index in range(len(self.features))}
-      outFile.addVector("coefficients","realization",valDict,root=target, attrs=attributeDict)
+      if (add in what) if what is not None else (True):
+        outFile.addScalar(target,add,self.polyExpParams[add])
+    if ("features" in what) if what is not None else (True):
+      outFile.addScalar(target,"features",' '.join(self.features))
+    if ("timeScale" in what) if what is not None else (True):
+      outFile.addScalar(target,"timeScale",' '.join([str(elm) for elm in self.pivotValues]))
+    if ("coefficients" in what) if what is not None else (True):
+      for smp in range(len(self.aij)):
+        valDict = {'fi': ' '.join([ str(elm) for elm in self.aij[smp,:]]),
+                   'taui':' '.join([ str(elm) for elm in self.bij[smp,:]]),
+                   'predictionRelDiff' :' '.join([ str(elm) for elm in self.predictError[smp,:]])}
+        attributeDict = {self.features[index]:self.featureVals[smp,index] for index in range(len(self.features))}
+        outFile.addVector("coefficients","realization",valDict,root=target, attrs=attributeDict)
 
   def __confidenceLocal__(self,featureVals):
     """
@@ -3093,6 +3096,7 @@ class PolyExponential(superVisedLearning):
       @ In, featureVals, numpy.ndarray, shape= (n_samples, n_dimensions), an array of input data (training data)
       @ Out, None
     """
+    self.amITrained   = False
     self.aij          = None
     self.bij          = None
     self.model        = None
@@ -3200,7 +3204,7 @@ class DynamicModeDecomposition(superVisedLearning):
     """
       Retrieve the reconstructed data
       @ In, None
-      @ Out, timeEvol, numpy.ndarray, the matrix containing the reconstructed data
+      @ Out, data, numpy.ndarray, the matrix (nsamples,n_time_steps) containing the reconstructed data
     """
     data = self._modes.dot(self.__getTimeEvolution())
     return data
@@ -3208,37 +3212,38 @@ class DynamicModeDecomposition(superVisedLearning):
   def __trainLocal__(self,featureVals,targetVals):
     """
       Perform training on input database stored in featureVals.
-      @ In, featureVals, array, shape=[n_timeStep, n_dimensions], an array of input data # Not use for ARMA training
-      @ In, targetVals, array, shape = [n_timeStep, n_dimensions], an array of time series data
+      @ In, featureVals, numpy.ndarray, shape=[n_timeStep, n_dimensions], an array of input data # Not use for ARMA training
+      @ In, targetVals, numpy.ndarray, shape = [n_timeStep, n_dimensions], an array of time series data
     """
+    self.featureVals  = featureVals
     self.KDTreeFinder = spatial.KDTree(featureVals)
-    pivotParamIndex  = self.target.index(self.pivotParameterID)
-    targetParamIndex = self.target.index(self.targetID)
-    self.pivotValues = targetVals[0,:,pivotParamIndex]
-    originalData     = [targetVals[:,ts,targetParamIndex] for ts in range(len(self.pivotValues))]
-    nTimeSteps       = len(self.pivotValues)
-    if self.dmdParams['dmdType'].strip() == 'dmd':
-      snaps = targetVals[:,:,targetParamIndex]
-      # if number of features (i.e. samples) > number of snapshots, we apply the high order DMD or HODMD has been requested
-      imposedHODMD = False
-      if self.dmdParams['dmdType'] == 'hodmd' or snaps.shape[0] > snaps.shape[1]:
-        imposedHODMD = True
-        snaps = np.concatenate([snaps[:, i:snaps.shape[1] - snaps.shape[0] - snaps.shape[1] + i + 1] for i in range(snaps.shape[0] - snaps.shape[1]) ], axis=0)
-      X = snaps[:, :-1]
-      Y = snaps[:, 1:]
-      if self.dmdParams['rankTotalLeastSquare'] is not None:
-        X, Y = mathUtils.computeTruncatedTotalLeastSquare(X, Y, self.dmdParams['rankTotalLeastSquare'])
-      rank = self.dmdParams['energyRankSVD'] if self.dmdParams['energyRankSVD'] is not None else (self.dmdParams['rankSVD'] if self.dmdParams['rankSVD'] is not None else -1)
-      U, s, V = mathUtils.computeTruncatedSingularValueDecomposition(X, rank)
-      # lowrank operator from the SVD of matrices X and Y
-      self.__Atilde = U.T.conj().dot(Y).dot(V) * np.reciprocal(s)
-      self._eigs, self._modes = mathUtils.computeEigenvaluesAndVectorsFromLowRankOperator(self.__Atilde, Y, U, s, V, self.dmdParams['exactModes'])
-      if imposedHODMD:
-        self._modes = self._modes[:targetVals[:,:,targetParamIndex].shape[0], :]
-      self._amplitudes = mathUtils.computeAmplitudeCoefficients(self._modes, snaps,self._eigs, self.dmdParams['optimized'])
-      # Default timesteps (even if the time history is not equally spaced in time, we "trick" the dmd to think it)
-      self.trainingTimeScale = {'t0': 0, 'intervals': nTimeSteps - 1, 'dt': 1}
-      self.dmdTimeScale      = {'t0': 0, 'intervals': nTimeSteps - 1, 'dt': 1}
+    pivotParamIndex   = self.target.index(self.pivotParameterID)
+    targetParamIndex  = self.target.index(self.targetID)
+    self.pivotValues  = targetVals[0,:,pivotParamIndex]
+    originalData      = [targetVals[:,ts,targetParamIndex] for ts in range(len(self.pivotValues))]
+    nTimeSteps        = len(self.pivotValues)
+    snaps = targetVals[:,:,targetParamIndex]/self.dmdParams['initialScaling']
+    # if number of features (i.e. samples) > number of snapshots, we apply the high order DMD or HODMD has been requested
+    imposedHODMD = False
+    if self.dmdParams['dmdType'] == 'hodmd' or snaps.shape[0] < snaps.shape[1]:
+      v = max(snaps.shape[1] - snaps.shape[0],2)
+      imposedHODMD = True
+      snaps = np.concatenate([snaps[:, i:snaps.shape[1] - v  + i + 1] for i in range(v) ], axis=0)
+    X = snaps[:, :-1]
+    Y = snaps[:, 1:]
+    if self.dmdParams['rankTotalLeastSquare'] is not None:
+      X, Y = mathUtils.computeTruncatedTotalLeastSquare(X, Y, self.dmdParams['rankTotalLeastSquare'])
+    rank = self.dmdParams['energyRankSVD'] if self.dmdParams['energyRankSVD'] is not None else (self.dmdParams['rankSVD'] if self.dmdParams['rankSVD'] is not None else -1)
+    U, s, V = mathUtils.computeTruncatedSingularValueDecomposition(X, rank)
+    # lowrank operator from the SVD of matrices X and Y
+    self.__Atilde = U.T.conj().dot(Y).dot(V) * np.reciprocal(s)
+    self._eigs, self._modes = mathUtils.computeEigenvaluesAndVectorsFromLowRankOperator(self.__Atilde, Y, U, s, V, self.dmdParams['exactModes'])
+    if imposedHODMD:
+      self._modes = self._modes[:targetVals[:,:,targetParamIndex].shape[0], :]
+    self._amplitudes = mathUtils.computeAmplitudeCoefficients(self._modes, targetVals[:,:,targetParamIndex]/self.dmdParams['initialScaling'],self._eigs, self.dmdParams['optimized'])
+    # Default timesteps (even if the time history is not equally spaced in time, we "trick" the dmd to think it).
+    self.trainingTimeScale = {'t0': 0, 'intervals': nTimeSteps - 1, 'dt': 1}
+    self.dmdTimeScale      = {'t0': 0, 'intervals': nTimeSteps - 1, 'dt': 1}
 
   def __evaluateLocal__(self,featureVals):
     """
@@ -3247,7 +3252,7 @@ class DynamicModeDecomposition(superVisedLearning):
     """
     reconstructData = self._reconstructData().real
     # find the nearest data and compute weights
-    weights, indexes = self.KDTreeFinder.query(featureVals, k=min(len(self.features),len(reconstructData)))
+    weights, indexes = self.KDTreeFinder.query(featureVals, k=min(2**len(self.features),len(reconstructData)))
     # if 0 (perfect match), assign minimum possible distance
     weights[weights == 0] = sys.float_info.min
     weights =1./weights
@@ -3255,9 +3260,77 @@ class DynamicModeDecomposition(superVisedLearning):
     weights = weights/weights.sum()
     returnEvaluation = {}
     for point in range(len(weights)):
-      returnEvaluation[self.targetID]         =  np.sum ((weights[point,:]*reconstructData[indexes[point,:]].T).real , axis=1)
+      returnEvaluation[self.targetID]         =  np.sum ((weights[point,:]*reconstructData[indexes[point,:]].T).real , axis=1)*self.dmdParams['initialScaling']
       returnEvaluation[self.pivotParameterID] = self.pivotValues.ravel()
     return returnEvaluation
+
+  def _localPrintXML(self,outFile,pivotVal,options={}):
+    """
+      Adds requested entries to XML node.
+      @ In, outFile, Files.File, either StaticXMLOutput or DynamicXMLOutput file
+      @ In, pivotVal, float, value of pivot parameters to use in printing if dynamic
+      @ In, options, dict, optional, dict of string-based options to use, including filename, things to print, etc
+        May include:
+        'what': comma-separated string list, the qualities to print out
+        'pivotVal': float value of dynamic pivotParam value
+      @ Out, None
+    """
+    if not self.amITrained:
+      self.raiseAnError(RuntimeError,'ROM is not yet trained!')
+    # add description
+    description  = ' This XML file contains the main information the DMD ROM named "'+self.name+'".'
+    description += ' If "modes" (dynamic modes), "eigs" (eigenvalues), "amplitudes" (mode amplitudes)'
+    description += ' and "dmdTimeScale" (internal dmd time scale) are dumped, the evaluation function'
+    description += ' to reconstruct the space is as follows: \n'
+    outFile.addScalar('ROM',add,self.dmdParams[add])
+
+
+
+    # check what
+    what = None
+    if 'what' in options:
+      what = options['what'].split(",")
+      if what[0].strip().lower() == 'all':
+        what = None
+    # Target
+    target = options.get('Target',self.target[-1])
+
+    toAdd = ['exactModes','optimized','dmdType','initialScaling']
+    if self.dmdParams['rankTotalLeastSquare'] is not None:
+      toAdd.append('rankTotalLeastSquare')
+    if self.dmdParams['energyRankSVD'] is not None:
+      toAdd.append('energyRankSVD')
+    else:
+      toAdd.append('rankSVD')
+      self.dmdParams['rankSVD'] = self.dmdParams['rankSVD'] if self.dmdParams['rankSVD'] is not None else -1
+
+    for add in toAdd:
+      if (add in what) if what is not None else (True):
+        outFile.addScalar(target,add,self.dmdParams[add])
+    if ("features" in what) if what is not None else (True):
+      outFile.addScalar(target,"features",' '.join(self.features))
+    if ("timeScale" in what) if what is not None else (True):
+      outFile.addScalar(target,"timeScale",' '.join([str(elm) for elm in self.pivotValues.ravel()]))
+    if ("eigs" in what) if what is not None else (True):
+      eigsReal = " ".join([str(self._eigs[indx].real) for indx in
+                       range(len(self._eigs))])
+      outFile.addScalar("eigs","real", eigsReal,root=target)
+      eigsImag = " ".join([str(self._eigs[indx].imag) for indx in
+                               range(len(self._eigs))])
+      outFile.addScalar("eigs","imaginary", eigsImag,root=target)
+    if ("amplitudes" in what) if what is not None else (True):
+      ampsReal = " ".join([str(self._amplitudes[indx].real) for indx in
+                       range(len(self._amplitudes))])
+      outFile.addScalar("amplitudes","real", ampsReal,root=target)
+      ampsImag = " ".join([str(self._amplitudes[indx].imag) for indx in
+                               range(len(self._amplitudes))])
+      outFile.addScalar("amplitudes","imaginary", ampsImag,root=target)
+    if ("modes" in what) if what is not None else (True):
+      for smp in range(len(self._modes)):
+        valDict = {'real': ' '.join([ str(elm) for elm in self._modes[smp,:].real]),
+                   'imaginary':' '.join([ str(elm) for elm in self._modes[smp,:].imag])}
+        attributeDict = {self.features[index]:self.featureVals[smp,index] for index in range(len(self.features))}
+        outFile.addVector("modes","realization",valDict,root=target, attrs=attributeDict)
 
   def __confidenceLocal__(self,featureVals):
     """
@@ -3273,12 +3346,14 @@ class DynamicModeDecomposition(superVisedLearning):
       @ In, featureVals, numpy.ndarray, shape= (n_samples, n_dimensions), an array of input data (training data)
       @ Out, None
     """
+    self.amITrained   = False
     self._amplitudes  = None
     self._eigs        = None
     self._modes       = None
     self.__Atilde     = None
     self.pivotValues  = None
     self.KDTreeFinder = None
+    self.featureVals  = None
 
   def __returnInitialParametersLocal__(self):
     """
