@@ -71,11 +71,11 @@ class ETstructure():
 
     def returnDict(self):
         outputDict = {}
-        outputDict['inputs'] = {}
-        outputDict['outputs'] = {}
+        #outputDict['inputs'] = {}
+        #outputDict['outputs'] = {}
         for index, var in enumerate(self.variables):
-            outputDict['inputs'][var] = self.pointSet[:, index]
-        outputDict['outputs']['sequence'] = self.pointSet[:, -1]
+            outputDict[var] = self.pointSet[:, index]
+        outputDict['sequence'] = self.pointSet[:, -1]
 
         return outputDict, self.variables
 

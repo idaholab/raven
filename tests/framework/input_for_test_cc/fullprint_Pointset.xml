@@ -1,6 +1,11 @@
 <?xml version="1.0" ?>
-<data name="fullprint_Pointset" type="Pointset">
-  <input>useless_input</input>
-  <output>normal1,normal2,uniform1,uniform2p</output>
-  <inputFilename>fullprint_Pointset.csv</inputFilename>
-</data>
+<DataObjectMetadata name="fullprint_Pointset">
+    <DataSet type="Static">
+        <general>
+           <pointwise_meta>prefix</pointwise_meta>
+           <outputs>normal1,normal2,uniform1,uniform2p</outputs>
+           <sampleTag>RAVEN_sample_ID</sampleTag>
+        </general>
+    </DataSet>
+
+</DataObjectMetadata>

@@ -308,3 +308,41 @@ def fixXmlTag(msg):
     print('XML UTILS: Prepending "_" to illegal tag "'+msg+'"')
     msg = '_' + msg
   return msg
+
+def expandExternalXML(root,workingDir):
+  """
+    Expands "ExternalXML" nodes with the associated nodes and returns the full tree.
+    @ In, root, xml.etree.ElementTree.Element, main node whose children might be ExternalXML nodes
+    @ In, workingDir, string, base location from which to find additional xml files
+    @ Out, None
+  """
+  # find instances of ExteranlXML nodes to replace
+  for i,subElement in enumerate(root):
+    if subElement.tag == 'ExternalXML':
+      nodeName = subElement.attrib['node']
+      xmlToLoad = subElement.attrib['xmlToLoad'].strip()
+      root[i] = readExternalXML(xmlToLoad,nodeName,workingDir)
+    # whether expanded or not, search each subnodes for more external xml
+    expandExternalXML(root[i],workingDir)
+
+def readExternalXML(extFile,extNode,cwd):
+  """
+    Loads external XML into nodes.
+    @ In, extFile, string, filename for the external xml file
+    @ In, extNode, string, tag of node to load
+    @ In, cwd, string, current working directory (for relative paths)
+    @ Out, externalElement, xml.etree.ElementTree.Element, object from file
+  """
+  # expand user tilde
+  if '~' in extFile:
+    extFile = os.path.expanduser(extFile)
+  # check if absolute or relative found
+  if not os.path.isabs(extFile):
+    extFile = os.path.join(cwd,extFile)
+  if not os.path.exists(extFile):
+    raise IOError('XML UTILS ERROR: External XML file not found: "{}"'.format(os.path.abspath(extFile)))
+  # find the element to read
+  root = ET.parse(open(extFile,'r')).getroot()
+  if root.tag != extNode.strip():
+    raise IOError('XML UTILS ERROR: Node "{}" is not the root node of "{}"!'.format(extNode,extFile))
+  return root

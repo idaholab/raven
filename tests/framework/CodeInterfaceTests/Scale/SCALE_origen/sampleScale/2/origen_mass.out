@@ -1,0 +1,243 @@
+ *******************************************************************************
+ *                                                                             *
+ *                                  SCALE 6.2                                  *
+ *                                -------------                                *
+ *                                 April 2018                                  *
+ *                                                                             *
+ *           SCALE:  A Comprehensive Modeling and Simulation Suite             *
+ *                   for Nuclear Safety Analysis and Design                    *
+ *                                                                             *
+ *                      Reactor and Nuclear Systems Division                   *
+ *                        Oak Ridge National Laboratory                        *
+ *                                                                             *
+ *                           http://scale.ornl.gov                             *
+ *                            scalehelp@ornl.gov                               *
+ *                                                                             *
+ *******************************************************************************
+ *******************************************************************************
+      
+                  Job Information
+                  ---------------
+      Job started on inl426936 on Sun 08/04/2018 19:11:06
+      Working directory: /private/var/folders/jw/jc42pftx5gdfj6j7m11yhf9wh03vfm/T/scale.alfoa.9972
+      Input file name  : /Users/alfoa/projects/raven_github/raven/tests/framework/CodeInterfaceTests/Scale/SCALE_origen/sampleScale/2/origen_mass.inp
+      Output file name : /Users/alfoa/projects/raven_github/raven/tests/framework/CodeInterfaceTests/Scale/SCALE_origen/sampleScale/2/origen_mass.out
+      SCALE executable : /Applications/SCALE-6.2.app/Contents/Resources/bin/scale
+      
+ *******************************************************************************
+The following data cards precede an = card
+      'CTESTLABEL: {<TestOrigen>}
+      '#TestGrep# "erro[r]" ${OUTPUTFILENAME}
+      '#TestGrep# "ORIGEN finished successfull[y]" ${OUTPUTFILENAME}
+      '#TestGrep# "[N]uclide concentrations " -A12 ${OUTPUTFILENAME}
+      '#TestRuntime# 2.59876
+      '------------------DESCRIPTION------------------------------------------
+      '
+      ' Tests ORIGEN mass handling.
+      '
+      ' CHECKS PERFORMED
+      '   * mass conversion is correct for input moles
+      '   * legacy_mass=yes leads to different masses
+      '
+      '-----------------------------------------------------------------------
+      'actual mass
+
+
+    module origen will be called on Sun Apr  8 19:11:07 2018.
+    sequence specification record:=origen
+Input Data:
+
+      case(actual_mass){
+        lib{ file="end7dec" }
+        mat{ iso=[zr-95=1.1] units="moles" }
+        time=[1.0] %1 day
+      }
+end
+
+1
+
+
+
+
+
+
+        ************************************************************************************************************************
+        ************************************************************************************************************************
+        ************************************************************************************************************************
+        *****                                                                                                              *****
+        *****                                       program verification information                                       *****
+        *****                                                                                                              *****
+        *****                                   code system:  SCALE    version:  6.2                                       *****
+        *****                                                                                                              *****
+        ************************************************************************************************************************
+        ************************************************************************************************************************
+        *****                                                                                                              *****
+        *****                                                                                                              *****
+        *****              program:  origen                                                                                *****
+        *****                                                                                                              *****
+        *****        creation date:  13_apr_2016                                                                           *****
+        *****                                                                                                              *****
+        *****              library:  /Applications/SCALE-6.2.app/Contents/Resources/bin                                    *****
+        *****                                                                                                              *****
+        *****                                                                                                              *****
+        *****      production code:  origen                                                                                *****
+        *****                                                                                                              *****
+        *****              version:  6.2                                                                                   *****
+        *****                                                                                                              *****
+        *****              jobname:  alfoa                                                                                 *****
+        *****                                                                                                              *****
+        *****         machine name:  inl426936                                                                             *****
+        *****                                                                                                              *****
+        *****    date of execution:  08_apr_2018                                                                           *****
+        *****                                                                                                              *****
+        *****    time of execution:  19:11:07.18                                                                           *****
+        *****                                                                                                              *****
+        *****                                                                                                              *****
+        ************************************************************************************************************************
+        ************************************************************************************************************************
+        ************************************************************************************************************************
+
+*************************************************************************************************************************
+********************                                                                                 ********************
+********************                                                                                 ********************
+********************                    USER INPUT SUMMARY                                           ********************
+********************                                                                                 ********************
+********************                                                                                 ********************
+*************************************************************************************************************************
+.
+.
+=========================================================================================================================
+=   Case "actual_mass" (#1/1)                                                                                           =
+-------------------------------------------------------------------------------------------------------------------------
+###   Library settings                                                                                                ###
+.
+                                Library file name:     /Applications/SCALE-6.2.app/Contents/Resources/data/origen.rev04.end7dec
+                             Library set position:              1
+                 Fission product reaction removal:             no
+-------------------------------------------------------------------------------------------------------------------------
+###   Global settings                                                                                                 ###
+.
+                                           Solver:              MATREX
+                                             Mode:        forward
+                             Fixed fission energy:             no
+-------------------------------------------------------------------------------------------------------------------------
+###   Concentrations output options                                                                                   ###
+.
+                            High-precision output:             no
+                                  Relative cutoff:            yes
+                         Step for applying cutoff:       integral
+.
+                      light els.   actinides  fis.prods.       total
+                       nuc    el   nuc    el   nuc    el   nuc    el             cutoff
+gram-atoms                                                                    1.000E-06
+grams                                                      **                 1.000E-06
+curies                                                                        1.000E-06
+watts                                                                         1.000E-06
+gamma watts                                                                   1.000E-06
+m3 air                                                                        1.000E-06
+m3 water                                                                      1.000E-06
+grams ppm                                                                     1.000E-06
+atoms ppm                                                                     1.000E-06
+atoms/barn-cm                                                                 1.000E-06
+becquerels                                                                    1.000E-06
+-------------------------------------------------------------------------------------------------------------------------
+###   Additional output options                                                                                       ###
+.
+                                      Print k-inf:             no
+           Nuclides for absorption fraction print:           none
+                              Print fission rates:             no
+            Step for sorting absorption fractions:              1
+=========================================================================================================================
+###   Blending information                                                                                            ###
+.
+  --- no blending requested in this job ---
+=========================================================================================================================
+.
+.
+=========================================================================================================================
+=   History overview for case 'actual_mass' (#1/1)                                                                      =
+-------------------------------------------------------------------------------------------------------------------------
+   step          t0          t1          dt           t        flux     fluence       power      energy
+    (-)         (d)         (d)         (s)         (s)   (n/cm2-s)     (n/cm2)        (MW)       (MWd)
+      1      0.0000      1.0000  8.6400E+04  8.6400E+04  0.0000E+00  0.0000E+00  0.0000E+00  0.0000E+00
+          
+              step - step index within this case
+                t0 - time at beginning-of-step in input units
+                t1 - time at end-of-step in input units
+                dt - length of step in seconds
+                 t - end-of-step cumulative time in seconds
+              flux - flux in neutrons/cm^2-sec (CALCULATED)
+           fluence - cumulative end-of-step fluence in neutrons/cm^2 (CALCULATED)
+             power - power in mega-watts (INPUT)     
+            energy - cumulative end-of-step energy released in mega-watt-days (INPUT)     
+=========================================================================================================================
+.
+.
+.
+.
+.
+*************************************************************************************************************************
+********************                                                                                 ********************
+********************                                                                                 ********************
+********************                    Library information                                          ********************
+********************                                                                                 ********************
+********************                                                                                 ********************
+*************************************************************************************************************************
+.
+.
+=========================================================================================================================
+=   Library summary for case 'actual_mass' (#1/1)                                                                       =
+-------------------------------------------------------------------------------------------------------------------------
+filename: /Applications/SCALE-6.2.app/Contents/Resources/data/origen.rev04.end7dec cross-section data taken from position number: 1
+library title delimited by {}: 
+{}
+date library was produced: 0/0/0
+total number of nuclides in library: 2237
+number of light-element nuclides: 910
+number of actinide nuclides: 176
+number of fission product nuclides: 1151
+number of nonzero off-diagonal matrix elements: 2636
+=========================================================================================================================
+.
+.
+*************************************************************************************************************************
+********************                                                                                 ********************
+********************                                                                                 ********************
+********************                    Concentration tables                                         ********************
+********************                                                                                 ********************
+********************                                                                                 ********************
+*************************************************************************************************************************
+.
+.
+=========================================================================================================================
+=   Nuclide concentrations in grams for case 'actual_mass' (#1/1)                                                       =
+-------------------------------------------------------------------------------------------------------------------------
+  (relative cutoff; integral of concentrations over time >   1.00E-06 % of integral of all concentrations over time)
+.
+                   0.000d      1.000d   
+  zr-95        1.0440E+02  1.0327E+02
+  nb-95        0.0000E+00  1.1019E+00
+  nb-95m       0.0000E+00  1.1045E-02
+  mo-95        0.0000E+00  1.1028E-02
+------------
+  totals       1.0440E+02  1.0440E+02
+=========================================================================================================================
+.
+.
+.
+.
+.
+=========================================================================================================================
+ORIGEN finished successfully.
+=========================================================================================================================
+    module origen used 0.3 seconds cpu time for the current pass.
+
+    module origen is finished. completion code    0. total cpu time used 0 seconds.
+
+
+    SCALE is finished on Sun Apr  8 19:11:07 2018.
+-------------------------- Summary --------------------------
+origen finished. used 0.3 seconds.
+SCALE driver required a maximum of 35.17 MiB of RAM.
+------------------------ End Summary ------------------------
+

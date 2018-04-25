@@ -1,0 +1,8 @@
+<testMainNode att="attrib1">
+  <firstSubNode>
+    <firstFirstSubNode att="attrib1.1.1">firstFirstSubText</firstFirstSubNode>
+  </firstSubNode>
+  <secondSubNode att="attrib1.2">
+    <secondFirstSubNode>secondFirstSubText</secondFirstSubNode>
+  </secondSubNode>
+</testMainNode>

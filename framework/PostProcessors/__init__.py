@@ -32,7 +32,7 @@ from .ImportanceRank import ImportanceRank
 from .InterfacedPostProcessor import InterfacedPostProcessor
 from .LimitSurface import LimitSurface
 from .LimitSurfaceIntegral import LimitSurfaceIntegral
-from .RavenOutput import RavenOutput
+# from .RavenOutput import RavenOutput # deprecated for now
 from .SafestPoint import SafestPoint
 
 from .TopologicalDecomposition import TopologicalDecomposition
@@ -68,7 +68,6 @@ __all__ = ['PostProcessor',
            'InterfacedPostProcessor',
            'LimitSurface',
            'LimitSurfaceIntegral',
-           'RavenOutput',
            'SafestPoint',
            'TopologicalDecomposition',
            'DataMining',
@@ -77,3 +76,4 @@ __all__ = ['PostProcessor',
            'ETImporter',
            'FTImporter',
            'DataClassifier'] + additionalModules
+#          'RavenOutput', # deprecated for now

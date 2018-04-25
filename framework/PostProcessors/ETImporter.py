@@ -128,7 +128,6 @@ class ETImporter(PostProcessor):
       @ In,  inputs, list, list of file objects
       @ Out, None
     """
-    #eventTreeModel = ETstructure(self.expand, inputs, self.messageHandler)
     eventTreeModel = ETstructure(self.expand, inputs)
     return eventTreeModel.returnDict()
 
@@ -140,20 +139,24 @@ class ETImporter(PostProcessor):
       @ Out, None
     """
     evaluation = finishedJob.getEvaluation()
-    outputDict, variables = evaluation[1]
+    outputDict ={}
+    outputDict['data'], variables = evaluation[1]
     if isinstance(evaluation, Runners.Error):
       self.raiseAnError(RuntimeError, ' No available output to collect (Run probably is not finished yet) via',self.printTag)
-    if not set(output.getParaKeys('inputs')) == set(variables):
+    if not set(output.getVars('input')) == set(variables):
       self.raiseAnError(RuntimeError, ' ETImporter: set of branching variables in the '
                                       'ET ( ' + str(variables)  + ' ) is not identical to the'
                                       ' set of input variables specified in the PointSet (' + str(output.getParaKeys('inputs')) +')')
     # Output to file
+    #if set(outputDict.keys()) != set(output.getVars()):
+    if set(outputDict['data'].keys()) != set(output.getVars(subset='input')+output.getVars(subset='output')):
+      self.raiseAnError(RuntimeError, 'ETImporter failed: set of variables specified in the output '
+                                      'dataObject (' + str(set(outputDict['data'].keys())) + ') is different from the set of '
+                                      'variables specified in the ET (' + str(set(output.getVars(subset='input')+output.getVars(subset='output'))))
     if output.type in ['PointSet']:
-      for key in output.getParaKeys('inputs'):
-        for value in outputDict['inputs'][key]:
-          output.updateInputValue(str(key),value)
-      for key in output.getParaKeys('outputs'):
-        for value in outputDict['outputs'][key]:
-          output.updateOutputValue(str(key),value)
+      outputDict['dims'] = {}
+      for key in outputDict.keys():
+        outputDict['dims'][key] = []
+      output.load(outputDict['data'], style='dict', dims=outputDict['dims'])
     else:
         self.raiseAnError(RuntimeError, 'ETImporter failed: Output type ' + str(output.type) + ' is not supported.')

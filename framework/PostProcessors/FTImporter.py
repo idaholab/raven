@@ -125,15 +125,20 @@ class FTImporter(PostProcessor):
       @ Out, None
     """
     evaluation = finishedJob.getEvaluation()
-    outputDict = evaluation[1]
-    # Output to file
+    outputDict ={}
+    outputDict['data'] = evaluation[1]
+    
+    outputDict['dims'] = {}
+    for key in outputDict['data'].keys():
+      outputDict['dims'][key] = []
     if output.type in ['PointSet']:
-      for key in output.getParaKeys('inputs'):
-        for value in outputDict[key]:
-          output.updateInputValue(str(key),value)
-      for key in output.getParaKeys('outputs'):
-        for value in outputDict[key]:
-          output.updateOutputValue(str(key),value)
+      output.load(outputDict['data'], style='dict', dims=outputDict['dims'])
+      #for key in output.getParaKeys('inputs'):
+      #  for value in outputDict[key]:
+      #    output.updateInputValue(str(key),value)
+      #for key in output.getParaKeys('outputs'):
+      #  for value in outputDict[key]:
+      #    output.updateOutputValue(str(key),value)
     else:
         self.raiseAnError(RuntimeError, 'FTImporter failed: Output type ' + str(output.type) + ' is not supported.')
 

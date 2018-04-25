@@ -93,7 +93,8 @@ class markovModel(ExternalModelPluginBase):
         break
       else:
         actualState = newState
-    container.__dict__[container.finState] = int(actualState)
+
+    container.__dict__[container.finState] = np.asarray(actualState)
 
   def newState(self,dictIn):
     detTrans   = {}

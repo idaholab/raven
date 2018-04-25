@@ -66,6 +66,7 @@
     <Print name="Print_sim_PS">
       <type>csv</type>
       <source>sim_PS</source>
+      <what>input,output</what>
     </Print>
     <Plot  name="hist" overwrite="false" verbosity="debug">
       <plotSettings>

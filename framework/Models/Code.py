@@ -28,6 +28,7 @@ import importlib
 import platform
 import shlex
 import time
+import numpy as np
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -560,15 +561,50 @@ class Code(Model):
         for header,data in zip(headers, csvData.T):
           returnDict[header] = data
       if not ravenCase:
-        self._replaceVariablesNamesWithAliasSystem(returnDict, 'input', True)
-        self._replaceVariablesNamesWithAliasSystem(returnDict, 'output', True)
+        self._replaceVariablesNamesWithAliasSystem(returnDict, 'inout', True)
+        returnDict.update(kwargs)
+        returnValue = (kwargs['SampledVars'],returnDict)
+        exportDict = self.createExportDictionary(returnValue)
       else:
-        # we have the DataObjects
-        for dataObj in finalCodeOutputFile.values():
-          self._replaceVariablesNamesWithAliasSystem(dataObj.getParametersValues('inputs',nodeId='RecontructEnding'), 'input', True)
-          self._replaceVariablesNamesWithAliasSystem(dataObj.getParametersValues('unstructuredinputs',nodeId='RecontructEnding'), 'input', True)
-          self._replaceVariablesNamesWithAliasSystem(dataObj.getParametersValues('outputs',nodeId='RecontructEnding'), 'output', True)
-        returnDict = finalCodeOutputFile
+        # we have the DataObjects -> raven-runs-raven case only so far
+        # we have two tasks to do: collect the input/output/meta/indexes from the INNER raven run, and ALSO the input from the OUTER raven run.
+        #  -> in addition, we have to fix the probability weights.
+        ## get the number of realizations
+        ### we already checked consistency in the CodeInterface, so just get the length of the first data object
+        numRlz = len(finalCodeOutputFile.values()[0])
+        ## set up the return container
+        exportDict = {'RAVEN_isBatch':True,'realizations':[]}
+        ## set up each realization
+        for n in range(numRlz):
+          rlz = {}
+          ## collect the results from INNER, both point set and history set
+          for dataObj in finalCodeOutputFile.values():
+            # TODO FIXME check for overwriting data.  For now just replace data if it's duplicate!
+            new = dict((var,np.atleast_1d(val)) for var,val in dataObj.realization(index=n,unpackXArray=True).items())
+            rlz.update( new )
+          ## add OUTER input space
+          # TODO FIXME check for overwriting data.  For now just replace data if it's duplicate!
+          new = dict((var,np.atleast_1d(val)) for var,val in kwargs['SampledVars'].items())
+          rlz.update( new )
+          ## combine ProbabilityWeights # TODO FIXME these are a rough attempt at getting it right!
+          rlz['ProbabilityWeight'] = np.atleast_1d(rlz.get('ProbabilityWeight',1.0) * kwargs.get('ProbabilityWeight',1.0))
+          rlz['PointProbability'] = np.atleast_1d(rlz.get('PointProbability',1.0) * kwargs.get('PointProbability',1.0))
+          # FIXME: adding "_n" to Optimizer samples scrambles its ability to find evaluations!
+          ## temporary fix: only append if there's multiple realizations, and error out if sampler is an optimizer.
+          if numRlz > 1:
+            if '_' in kwargs['prefix']:
+              self.raiseAnError(RuntimeError,'OUTER RAVEN is using an OPTIMIZER, but INNER RAVEN is returning multiple realizations!')
+            addon = '_{}'.format(n)
+          else:
+            addon = ''
+          rlz['prefix'] = np.atleast_1d(kwargs['prefix']+addon)
+          ## add the rest of the metadata # TODO slow
+          for var,val in kwargs.items():
+            if var not in rlz.keys():
+              rlz[var] = np.atleast_1d(val)
+          self._replaceVariablesNamesWithAliasSystem(rlz,'inout',True)
+          exportDict['realizations'].append(rlz)
+
       ## The last thing before returning should be to delete the temporary log
       ## file and any other file the user requests to be cleared
       if deleteSuccessfulLogFiles:
@@ -579,16 +615,12 @@ class Code(Model):
 
       ## Check if the user specified any file extensions for clean up
       for fileExt in fileExtensionsToDelete:
-        #if not fileExt.startswith("."):
-        #  fileExt = "." + fileExt
-
         fileList = [ os.path.join(metaData['subDirectory'],f) for f in os.listdir(metaData['subDirectory']) if f.endswith(fileExt) ]
-
         for f in fileList:
           os.remove(f)
 
-      returnValue = (kwargs['SampledVars'],returnDict)
-      return returnValue
+      return exportDict
+
     else:
       self.raiseAMessage(" Process Failed "+str(command)+" returnCode "+str(returnCode))
       absOutputFile = os.path.join(sampleDirectory,outputFile)
@@ -600,6 +632,33 @@ class Code(Model):
       ## If you made it here, then the run must have failed
       return None
 
+  def createExportDictionary(self, evaluation):
+    """
+      Method that is aimed to create a dictionary with the sampled and output variables that can be collected by the different
+      output objects.
+      @ In, evaluation, tuple, (dict of sampled variables, dict of code outputs)
+      @ Out, outputEval, dict, dictionary containing the output/input values: {'varName':value}
+    """
+    sampledVars,outputDict = evaluation
+
+    if type(outputDict).__name__ == "tuple":
+      outputEval = outputDict[0]
+    else:
+      outputEval = outputDict
+
+    for key, value in outputEval.items():
+      outputEval[key] = np.atleast_1d(value)
+
+    for key, value in sampledVars.items():
+      # FIXME this is a bad check.  The two should be different enough in value to matter before we print.
+      if key in outputEval.keys():
+        self.raiseAWarning('The model '+self.type+' reported a different value (%f) for %s than raven\'s suggested sample (%f). Using the value reported by the raven (%f).' % (outputEval[key][0], key, value, value))
+      outputEval[key] = np.atleast_1d(value)
+
+    self._replaceVariablesNamesWithAliasSystem(outputEval, 'input',True)
+
+    return outputEval
+
   def collectOutput(self,finishedJob,output,options=None):
     """
       Method that collects the outputs from the previous run
@@ -608,29 +667,25 @@ class Code(Model):
       @ In, options, dict, optional, dictionary of options that can be passed in when the collect of the output is performed by another model (e.g. EnsembleModel)
       @ Out, None
     """
-    ## First, if the output is a data object, let's see what inputs it requests
-    if options is None:
-        options = {}
-    if isinstance(output,Data):
-      inputParams = output.getParaKeys('input')
-      options["inputFile"] = self.currentInputFiles
-    else:
-      inputParams = []
-    # create the export dictionary
-    if 'exportDict' in options:
-      exportDict = options['exportDict']
-    else:
-      exportDict = self.createExportDictionaryFromFinishedJob(finishedJob, True, inputParams)
-    options['alias'] = self.alias
-    metadata = exportDict['metadata']
-    if metadata:
-      options['metadata'] = metadata
-    listDict = self.collectOutputFromDataObject(exportDict,output)
-    for cnt, exportDictionary in enumerate(listDict):
-      identifier = finishedJob.identifier if len(listDict) == 1 else finishedJob.identifier+"_"+str(cnt)
-      exportDictionary['prefix'] = identifier
-      self.addOutputFromExportDictionary(exportDictionary, output, options, identifier)
+    evaluation = finishedJob.getEvaluation()
 
+    self._replaceVariablesNamesWithAliasSystem(evaluation, 'input',True)
+    if isinstance(evaluation, Runners.Error):
+      self.raiseAnError(AttributeError,"No available Output to collect")
+
+
+    # in the event a batch is run, the evaluations will be a dict as {'RAVEN_isBatch':True, 'realizations': [...]}
+    if evaluation.get('RAVEN_isBatch',False):
+      for rlz in evaluation['realizations']:
+        output.addRealization(rlz)
+    # otherwise, we received a single realization
+    else:
+      output.addRealization(evaluation)
+
+    ##TODO How to handle restart?
+    ##TODO How to handle collectOutputFromDataObject
+
+    return
 
   ###################################################################################
   ## THIS METHOD NEEDS TO BE REWORKED WHEN THE NEW DATAOBJECT STRUCURE IS IN PLACE ##
@@ -701,6 +756,8 @@ class Code(Model):
         returnList.append(appendDict)
     return returnList
 
+
+  #TODO: Seems to me, this function can be removed --- wangc Dec. 2017
   def collectOutputFromDict(self,exportDict,output,options=None):
     """
       Collect results from dictionary
@@ -709,33 +766,27 @@ class Code(Model):
       @ In, options, dict, optional, dictionary of options that can be passed in when the collect of the output is performed by another model (e.g. EnsembleModel)
       @ Out, None
     """
-    prefix = exportDict.pop('prefix')
-    #convert to *spaceParams instead of inputs,outputs
-    if 'inputs' in exportDict.keys():
-      inp = exportDict.pop('inputs')
-      exportDict['inputSpaceParams'] = inp
-    if 'outputs' in exportDict.keys():
-      out = exportDict.pop('outputs')
-      exportDict['outputSpaceParams'] = out
-    if output.type == 'HDF5':
-      output.addGroupDataObjects({'group':self.name+str(prefix)},exportDict,False)
+    prefix = exportDict.pop('prefix',None)
+    if 'inputSpaceParams' in exportDict.keys():
+      inKey = 'inputSpaceParams'
+      outKey = 'outputSpaceParams'
     else:
-      #point set
-      for key in output.getParaKeys('inputs'):
-        if key in exportDict['inputSpaceParams']:
-          output.updateInputValue(key,exportDict['inputSpaceParams'][key],options)
-        else:
-          self.raiseAnError(Exception, "the input parameter "+key+" requested in the DataObject "+output.name+
-                                       " has not been found among the Model input paramters ("+",".join(exportDict['inputSpaceParams'].keys())+"). Check your input!")
-      for key in output.getParaKeys('outputs'):
-        if key in exportDict['outputSpaceParams']:
-          output.updateOutputValue(key,exportDict['outputSpaceParams'][key],options)
-        else:
-          self.raiseAnError(Exception, "the output parameter "+key+" requested in the DataObject "+output.name+
-                                       " has not been found among the Model output paramters ("+",".join(exportDict['outputSpaceParams'].keys())+"). Check your input!")
-      for key in exportDict['metadata']:
-        output.updateMetadata(key,exportDict['metadata'][key], options)
-      output.numAdditionalLoadPoints += 1 #prevents consistency problems for entries from restart
+      inKey = 'inputs'
+      outKey = 'outputs'
+
+    # FIXME: this should be fixed with the new database
+    if output.type == 'HDF5':
+      self.raiseAnError(IOError, "Not yet implemented!")
+
+    rlz = {}
+    rlz.update(exportDict[inKey])
+    rlz.update(exportDict[outKey])
+    rlz.update(exportDict['metadata'])
+    for key, value in rlz.items():
+      rlz[key] = np.atleast_1d(value)
+    output.addRealization(rlz)
+
+    return
 
   def submit(self, myInput, samplerType, jobHandler, **kwargs):
     """

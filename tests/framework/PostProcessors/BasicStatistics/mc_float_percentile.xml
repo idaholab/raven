@@ -14,20 +14,18 @@
     <description>
       This test checks basic statistics on Monte Carlo samples, requesting percentiles less than 1 percent
     </description>
+    <revisions>
+      <revision author="wangc" date="2017-12-05">convert test to use the new dataobjects</revision>
+    </revisions>
   </TestInfo>
-
-  <Files>
-    <Input name="output_basicStatistics_PP1mc.csv" type="">output_basicStatistics_PP1mc.csv</Input>
-    <Input name="output_basicStatistics_PP1mc.xml" type="">output_basicStatistics_PP1mc.xml</Input>
-  </Files>
 
   <Models>
     <ExternalModel ModuleToLoad="simpleMirrowModel" name="mirrowModel" subType="">
       <variables>x,y,x1</variables>
     </ExternalModel>
     <PostProcessor name="analyticalTest" subType="BasicStatistics" verbosity="debug">
-      <percentile percent="0.1">x,y</percentile>
-      <percentile percent="0.5">x,y</percentile>
+      <percentile percent="0.1" prefix="percentile">x,y</percentile>
+      <percentile percent="0.5" prefix="percentile">x,y</percentile>
     </PostProcessor>
   </Models>
 
@@ -66,9 +64,8 @@
     <PostProcess name="PP1mc">
       <Input class="DataObjects" type="PointSet">outputDataMC</Input>
       <Model class="Models" type="PostProcessor">analyticalTest</Model>
-      <Output class="Files" type="">output_basicStatistics_PP1mc.csv</Output>
-      <Output class="Files" type="">output_basicStatistics_PP1mc.xml</Output>
-      <Output class="OutStreams" type="Print">outputDataMC_dump</Output>
+      <Output class="DataObjects" type="PointSet">analyticalTest_basicStatPP</Output>
+      <Output class="OutStreams" type="Print">analyticalTest_basicStatPP_dump</Output>
     </PostProcess>
   </Steps>
 
@@ -76,6 +73,10 @@
     <Print name="outputDataMC_dump">
       <type>csv</type>
       <source>outputDataMC</source>
+    </Print>
+    <Print name="analyticalTest_basicStatPP_dump">
+      <type>csv</type>
+      <source>analyticalTest_basicStatPP</source>
     </Print>
   </OutStreams>
 
@@ -88,6 +89,16 @@
       <Input>x,y</Input>
       <Output>x1</Output>
     </PointSet>
+    <PointSet name="analyticalTest_basicStatPP">
+      <Output>analyticalTest_vars</Output>
+    </PointSet>
   </DataObjects>
+
+  <VariableGroups>
+    <Group name="analyticalTest_vars">percentile_0.1_x,
+                 percentile_0.1_y,
+                 percentile_0.5_x,
+                 percentile_0.5_y</Group>
+  </VariableGroups>
 
 </Simulation>

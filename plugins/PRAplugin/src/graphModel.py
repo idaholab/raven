@@ -18,10 +18,13 @@ from PluginsBaseClasses.ExternalModelPluginBase import ExternalModelPluginBase
 
 
 class graphModel(ExternalModelPluginBase):
+  """
+    This class is employed to create a directed graph model 
+  """
 
   def _readMoreXML(self, container, xmlNode):
     """
-      Method to read the portion of the XML that belongs to this plugin
+      Method to read the portion of the XML that belongs to graphModel
       @ In, container, object, self-like object where all the variables can be stored
       @ In, xmlNode, xml.etree.ElementTree.Element, XML node that needs to be read
       @ Out, None
@@ -51,11 +54,11 @@ class graphModel(ExternalModelPluginBase):
         print('xml error')
 
     if container.nodesIN is None:
-      print('nodesIN Error')
+      raise IOError("graphModel: <nodesIN> XML block is not specified")
     if container.nodesOUT is None:
-      print('nodesOUT Error')
+      raise IOError("graphModel: <nodesOUT> XML block is not specified")
     if container.modelFile is None:
-      print('modelFile Error')
+      raise IOError("graphModel: <modelFile> XML block is not specified")
 
     if set(variables) != set(container.mapping.keys()):
       print('variables error')

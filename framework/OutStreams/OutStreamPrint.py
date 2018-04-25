@@ -23,6 +23,9 @@ warnings.simplefilter('default',DeprecationWarning)
 if not 'xrange' in dir(__builtins__):
   xrange = range
 #End compatibility block for Python 3-------------------------------------------
+#External Modules---------------------------------------------------------------
+import os
+#External Modules End-----------------------------------------------------------
 
 #Internal Modules---------------------------------------------------------------
 import DataObjects
@@ -63,6 +66,9 @@ class OutStreamPrint(OutStreamManager):
     self.sourceName = []
     self.sourceData = None
     self.what = None
+    # dictionary of what indices have already been printed, so we don't duplicate writing efforts
+    self.indexPrinted = {} # keys are filenames, which should be reset at the end of every step
+    self.subDirectory = None # subdirectory where to store the outputs
 
   def localGetInitParams(self):
     """
@@ -100,7 +106,7 @@ class OutStreamPrint(OutStreamManager):
     """
     self.type = 'OutStreamPrint'
     for subnode in xmlNode:
-      if subnode.tag not in ['type','source','what','filename','target']:
+      if subnode.tag not in ['type','source','what','filename','target','clusterLabel','directory']:
         self.raiseAnError(IOError, ' Print Outstream object ' + str(self.name) + ' contains the following unknown node: ' + str(subnode.tag))
       if subnode.tag == 'source':
         self.sourceName = subnode.text.split(',')
@@ -114,6 +120,9 @@ class OutStreamPrint(OutStreamManager):
       self.raiseAnError(TypeError, 'Print type ' + self.options['type'] + ' not available yet. ')
     if 'what' in self.options.keys():
       self.what = self.options['what']
+      for elm in self.what.lower().split(","):
+        if not elm.startswith("input") and not elm.startswith("output") and not elm.startswith("metadata") and elm.strip() != "all":
+          self.raiseAnError(IOError, 'Not recognized request in "what" node <'+elm.strip()+'>. The request must begin with one of "input", "output" or "metadata" or it could be "all" for ROMs!')
 
   def addOutput(self):
     """
@@ -123,10 +132,11 @@ class OutStreamPrint(OutStreamManager):
       @ Out, None
     """
     dictOptions = {}
+    dictOptions['filenameroot'] = self.name
     if len(self.filename) > 0:
       dictOptions['filenameroot'] = self.filename
-    else:
-      dictOptions['filenameroot'] = self.name
+    if self.subDirectory is not None:
+      dictOptions['filenameroot'] = os.path.join(self.subDirectory,dictOptions['filenameroot'])
 
     if self.what:
       dictOptions['what'] = self.what
@@ -135,25 +145,39 @@ class OutStreamPrint(OutStreamManager):
       dictOptions['target'] = self.options['target']
 
     for index in range(len(self.sourceName)):
-      if self.options['type'] == 'csv':
-        if type(self.sourceData[index]) == DataObjects.Data:
-          empty = self.sourceData[index].isItEmpty()
-        else:
-          empty = False
-        if not empty:
+      try:
+        empty = len(self.sourceData[index]) == 0
+      except TypeError:
+        empty = False
+      if not empty:
+        if self.options['type'] == 'csv':
+          filename = dictOptions['filenameroot']
+          rlzIndex = self.indexPrinted.get(filename,0)
+          dictOptions['firstIndex'] = rlzIndex
+          # clusterLabel lets the user print a point set as if it were a history, with input decided by clusterLabel
+          if 'clusterLabel' in self.options:
+            if type(self.sourceData[index]).__name__ != 'PointSet':
+              self.raiseAWarning('Label clustering currently only works for PointSet data objects!  Skipping for',self.sourceData[index].name)
+            else:
+              dictOptions['clusterLabel'] = self.options['clusterLabel']
           try:
-            self.sourceData[index].printCSV(dictOptions)
-          except AttributeError as e:
-            self.raiseAnError(IOError, 'no implementation for source type ' + str(type(self.sourceData[index])) + ' and output type "csv"!  Receieved error:',e)
-      elif self.options['type'] == 'xml':
-        if type(self.sourceData[index]) == DataObjects.Data:
-          empty = self.sourceData[index].isItEmpty()
-        else:
-          empty = False
-        if not empty:
-          # TODO FIXME before merging go back to just try case
-          self.sourceData[index].printXML(dictOptions)
+            rlzIndex = self.sourceData[index].write(filename,style='CSV',**dictOptions)
+          except AttributeError:
+            self.raiseAnError(NotImplementedError, 'No implementation for source type', self.sourceData[index].type, 'and output type "'+str(self.options['type'].strip())+'"!')
+          finally:
+            self.indexPrinted[filename] = rlzIndex
+        elif self.options['type'] == 'xml':
           try:
             self.sourceData[index].printXML(dictOptions)
           except AttributeError:
-            self.raiseAnError(IOError, 'no implementation for source type', type(self.sourceData[index]), 'and output type "xml"!')
+            self.raiseAnError(NotImplementedError, 'No implementation for source type', self.sourceData[index].type, 'and output type "'+str(self.options['type'].strip())+'"!')
+
+
+  def finalize(self):
+    """
+      End-of-step operations for cleanup.
+      @ In, None
+      @ Out, None
+    """
+    # clear history of printed realizations; start fresh for next step
+    self.indexPrinted = {}

@@ -111,6 +111,7 @@
             <xsd:attribute name="verbosity"       type="verbosityAttr" default="all"/>
             <xsd:attribute name="printTimeStamps" type="RavenBool" />
             <xsd:attribute name="color"           type="RavenBool" />
+            <xsd:attribute name="profile"         type="xsd:string" />
         </xsd:complexType>
         <xsd:key name="distName">
             <xsd:selector xpath="./Distributions/*"/>
