@@ -3059,10 +3059,11 @@ class PolyExponential(superVisedLearning):
     outFile.addScalar('ROM',"type",'PolyExponential')
     # add description
     description  = ' This XML file contains the main information of the PolyExponential ROM named "'+self.name+'".'
-    description += ' If "modes" (dynamic modes), "eigs" (eigenvalues), "amplitudes" (mode amplitudes)'
-    description += ' and "dmdTimeScale" (internal dmd time scale) are dumped, the method'
-    description += ' is explained in P.J. Schmid, Dynamic mode decomposition'
-    description += ' of numerical and experimental data, Journal of Fluid Mechanics 656.1 (2010), 5–28.'
+    description += ' If "coefficients" are dumped for each realization, the evaluation function (for each realization "j") is as follows:'
+    description += ' $SM_{j}(z) = \sum_{i=1}^{N}f_{i}\times exp^{-tau_{i}\times z}$, with "z" beeing the monotonic variable and "N" the'
+    description += ' number of exponential terms (expTerms). If the Polynomial coefficients "poly_coefficients" are'
+    description += ' dumped, the SM evaluation function is as follows:'
+    description += ' $SM(X,z) = \sum_{i=1}^{N} P_{i}(X)\times exp^{-Q_{i}(X)\times z}$, with "P" and "Q" the polynomial expressions of the exponential terms.'
     outFile.addScalar('ROM',"description",description)
     # check what
     what = None
@@ -3080,6 +3081,7 @@ class PolyExponential(superVisedLearning):
         outFile.addScalar(target,add,self.polyExpParams[add])
     if ("features" in what) if what is not None else (True):
       outFile.addScalar(target,"features",' '.join(self.features))
+    if what is not None and "" in what
     if ("timeScale" in what) if what is not None else (True):
       outFile.addScalar(target,"timeScale",' '.join([str(elm) for elm in self.pivotValues]))
     if ("coefficients" in what) if what is not None else (True):
