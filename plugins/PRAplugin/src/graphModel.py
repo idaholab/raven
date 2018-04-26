@@ -83,7 +83,7 @@ class graphModel(ExternalModelPluginBase):
     """
       Method that actually creates from file the graph structure of the model
       @ In, container, object, self-like object where all the variables can be stored
-      @ In, file, file, file containingn the structure of the model
+      @ In, file, file, file containing the structure of the model
       @ Out, None
     """
     graph = ET.parse(container.runInfo['WorkingDir'] + '/' + file)
@@ -118,7 +118,7 @@ class graphModel(ExternalModelPluginBase):
   
   def checkTypeOfAnalysis(self,container,Inputs):
     """
-      This method check which type of analysis to be performed:
+      This method checks which type of analysis to be performed:
        - True:  dynamic (time dependent)
        - False: static      
       @ In, container, object, self-like object where all the variables can be stored
@@ -203,7 +203,7 @@ class graphModel(ExternalModelPluginBase):
     
   def inputToBePassed(self,container,time,Inputs):
     """
-      This method return the status of the input variables at time t=time
+      This method returns the status of the input variables at time t=time
       @ In, container, object, self-like object where all the variables can be stored
       @ In, Inputs, dict, dictionary of inputs from RAVEN
       @ In, time, float, time at which the input variables need to be evaluated
