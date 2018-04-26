@@ -88,8 +88,6 @@ class CustomSampler(ForwardSampler):
       if child.tag == 'Source'  :
         if child.attrib['class'] not in ['Files','DataObjects']:
           self.raiseAnError(IOError, "Source class attribute must be either 'Files' or 'DataObjects'!!!")
-        #if child.attrib['class'] == 'DataObjects' and child.attrib['type'] != 'PointSet':
-        #  self.raiseAnError(IOError, "Source type attribute must be 'PointSet' if class attribute is 'DataObjects'!!!")
     if len(self.toBeSampled.keys()) == 0:
       self.raiseAnError(IOError,"no variables got inputted!!!!!!")
 
@@ -180,20 +178,6 @@ class CustomSampler(ForwardSampler):
           subVar = subVar.strip()
           if subVar not in dataObj.getVars() + dataObj.getVars('indexes'):
             self.raiseAnError(IOError,"the variable "+ subVar + " not found in "+ dataObj.type + " " + dataObj.name)
-          #self.pointsToSample[subVar] = copy.copy(dataSet[subVar].values)
-          #subVarPb = 'ProbabilityWeight-' + subVar
-          #if subVarPb in dataObj.getVars('meta'):
-          #  self.infoFromCustom[subVarPb] = copy.copy(dataSet[subVarPb].values)
-          #else:
-          #  self.infoFromCustom[subVarPb] = np.ones(lenRlz)
-      #if 'PointProbability' in dataObj.getVars('meta'):
-      #  self.infoFromCustom['PointProbability'] = copy.copy(dataSet['PointProbability'].values)
-      #else:
-      #  self.infoFromCustom['PointProbability'] = np.ones(lenRlz)
-      #if 'ProbabilityWeight' in dataObj.getVars('meta'):
-      #  self.infoFromCustom['ProbabilityWeight'] = copy.copy(dataSet['ProbabilityWeight'].values)
-      #else:
-      #  self.infoFromCustom['ProbabilityWeight'] = np.ones(lenRlz)
       self.limit = len(self.pointsToSample)
     #TODO: add restart capability here!
     if self.restartData:
