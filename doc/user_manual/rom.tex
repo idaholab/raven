@@ -3024,8 +3024,6 @@ below).
   \item \xmlNode{polyOrder}, \xmlDesc{integer, optional field}, the polynomial order to be used for interpolating the exponential 
   coefficients. Only valid in case of  \xmlNode{coeffRegressor} set to ``poly''. 
    \default{2}
- \item \xmlNode{initialScaling}, \xmlDesc{float, optional field}, scaling factor for the target space
-  \default{1.0}
   \item \xmlNode{tol}, \xmlDesc{float, optional field}, relative tolerance of the optimization problem (differential evolution optimizer)
    \default{1e-3}
   \item \xmlNode{maxNumberIter}, \xmlDesc{integer, optional field}, maximum number of iterations (generations) for the 
@@ -3044,7 +3042,6 @@ below).
      <Features>enrichment,bu</Features>
      <pivotParameter>time</pivotParameter>
      <numberExpTerms>5</numberExpTerms>
-     <initialScaling>20.</initialScaling>
      <max_iter>1000000</max_iter>
      <tol>0.000001</tol>
   </ROM>
@@ -3057,9 +3054,8 @@ Once the ROM is trained (\textbf{Step} \xmlNode{RomTrainer}), its coefficients c
 via an \xmlNode{OutStream} of type \xmlAttr{Print}. The following variable/parameters can be exported (i.e. \xmlNode{what} node
 in \xmlNode{OutStream} of type \xmlAttr{Print}):
 \begin{itemize}
-  \item \xmlNode{expTerms}, see XML input specifications above
+  \item \xmlNode{expTerms}, see XML input specifications above, inquired pre-pending the keyword ``output|'' (e.g. output| expTerms)
   \item \xmlNode{coeffRegressor}, see XML input specifications above
-  \item \xmlNode{initialScaling}, see XML input specifications above
   \item \xmlNode{polyOrder}, see XML input specifications above
   \item \xmlNode{features}, see XML input specifications above
   \item \xmlNode{timeScale}, XML node containing the array of the training time steps values
@@ -3114,8 +3110,6 @@ below).
      \item \textit{hodmd}, for high order DMD.
    \end{itemize}
    \default{dmd}
-  \item \xmlNode{initialScaling}, \xmlDesc{float, optional field}, scaling factor for the target space
-  \default{1.0}
   \item \xmlNode{pivotParameter}, \xmlDesc{string, optional field}, defines the pivot variable (e.g., time) that represents the 
   independent monotonic variable
   \default{time}
@@ -3158,7 +3152,6 @@ below).
       <dmdType>dmd</dmdType>
       <pivotParameter>time</pivotParameter>
       <rankSVD>0</rankSVD>
-      <initialScaling>30000000.</initialScaling>
       <rankTLSQ>5</rankTLSQ>
       <exactModes>False</exactModes>
       <optimized>True</optimized>
@@ -3177,7 +3170,6 @@ in \xmlNode{OutStream} of type \xmlAttr{Print}):
   \item \xmlNode{rankTLSQ}, see XML input specifications above
   \item \xmlNode{exactModes}, see XML input specifications above
   \item \xmlNode{optimized}, see XML input specifications above
-  \item \xmlNode{initialScaling}, see XML input specifications above
   \item \xmlNode{features}, see XML input specifications above
   \item \xmlNode{timeScale}, XML node containing the array of the training time steps values
   \item \xmlNode{dmdTimeScale}, XML node containing the array of time scale in the DMD space (can be used as mapping

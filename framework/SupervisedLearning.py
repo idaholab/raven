@@ -34,7 +34,7 @@ else:
 
 #External Modules------------------------------------------------------------------------------------
 import sklearn
-from sklearn.preprocessing import PolynomialFeatures
+from sklearn import preprocessing
 from sklearn.pipeline import make_pipeline
 from sklearn import linear_model
 from sklearn import svm
@@ -297,6 +297,26 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     currParDict = dict({'Trained':self.amITrained}.items() + self.__CurrentSettingDictLocal__().items())
     return currParDict
 
+  def printXMLSetup(self,outFile,options={}):
+    """
+      Allows the SVE to put whatever it wants into an XML file only once (right before calling pringXML)
+      @ In, outFile, Files.File, either StaticXMLOutput or DynamicXMLOutput file
+      @ In, options, dict, optional, dict of string-based options to use, including filename, things to print, etc
+      @ Out, None
+    """
+    outFile.addScalar('ROM',"type",self.printTag)
+    self._localPrintXMLSetup(outFile,options)
+
+  def _localPrintXMLSetup(self,outFile,options={}):
+    """
+      Specific local method for printing anything desired to xml file at the begin of the print.
+      Overwrite in inheriting classes.
+      @ In, outFile, Files.File, either StaticXMLOutput or DynamicXMLOutput file
+      @ In, options, dict, optional, dict of string-based options to use, including filename, things to print, etc
+      @ Out, None
+    """
+    pass
+
   def printXML(self,outFile,pivotVal,options={}):
     """
       Allows the SVE to put whatever it wants into an XML to print to file.
@@ -307,14 +327,15 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     """
     self._localPrintXML(outFile,pivotVal,options)
 
-  def _localPrintXML(self,node,options=None):
+  def _localPrintXML(self,outFile,pivotVal,options={}):
     """
       Specific local method for printing anything desired to xml file.  Overwrite in inheriting classes.
-      @ In, node, the node to which strings should have text added
-      @ In, options, dict of string-based options to use, including filename, things to print, etc
+      @ In, outFile, Files.File, either StaticXMLOutput or DynamicXMLOutput file
+      @ In, pivotVal, float, value of pivot parameters to use in printing if dynamic
+      @ In, options, dict, optional, dict of string-based options to use, including filename, things to print, etc
       @ Out, None
     """
-    node.addText('ROM of type '+str(self.printTag.strip())+' has no special output options.')
+    outFile.addScalar('ROM',"noInfo",'ROM of type '+str(self.printTag.strip())+' has no special output options.')
 
   def isDynamic(self):
     """
@@ -2897,20 +2918,15 @@ class PolyExponential(superVisedLearning):
     self.polyExpParams['expTerms']          = int(kwargs.get('numberExpTerms',3))           # the number of exponential terms
     self.polyExpParams['coeffRegressor']    = kwargs.get('coeffRegressor','spline').lower() # which regressor to use for interpolating the coefficient
     self.polyExpParams['polyOrder']         = int(kwargs.get('polyOrder',3))                # the polynomial order
-    self.polyExpParams['initialScaling']    = float(kwargs.get('initialScaling',1.))        # scaling factor for the target values (1. by default)
     self.polyExpParams['tol']               = float(kwargs.get('tol',0.001))                # optimization tolerance
     self.polyExpParams['maxNumberIter']     = int(kwargs.get('maxNumberIter',5000))         # maximum number of iterations in optimization
-    self.aij                                = None                                          # a_ij coefficients of the exponential terms ndarray(nsamples, self.polyExpParams['expTerms'])
-    self.bij                                = None                                          # b_ij coefficients of the exponent of the exponential terms ndarray(nsamples, self.polyExpParams['expTerms'])
-    self.model                              = None                                          # the surrogate model itself
+    self.aij                                = None                                          # a_ij coefficients of the exponential terms {'target1':ndarray(nsamples, self.polyExpParams['expTerms']),'target2',ndarray,etc}
+    self.bij                                = None                                          # b_ij coefficients of the exponent of the exponential terms {'target1':ndarray(nsamples, self.polyExpParams['expTerms']),'target2',ndarray,etc}
+    self.model                              = None                                          # the surrogate model itself {'target1':model,'target2':model, etc.}
     # check if the pivotParameter is among the targetValues
     if self.pivotParameterID not in self.target:
       self.raiseAnError(IOError,"The pivotParameter "+self.pivotParameterID+" must be part of the Target space!")
-    if len(self.target) > 2:
-      self.raiseAnError(IOError,"Multi-target PolyExponential not available yet!")
-    self.targetID = self.target[self.target.index(self.pivotParameterID) - 1]
-    if self.polyExpParams['coeffRegressor'] not in self.availCoeffRegressors:
-      self.raiseAnError(IOError, ' Only the following "coeffRegressor" are available: ' +",".join(self.availCoeffRegressors))
+
 
   def _localNormalizeData(self,values,names,feat):
     """
@@ -2922,7 +2938,7 @@ class PolyExponential(superVisedLearning):
     """
     self.muAndSigmaFeatures[feat] = (0.0,1.0)
 
-  def __computeExponentialTerms(self, x, y, returnPredictDiff=False):
+  def __computeExpTerms(self, x, y, returnPredictDiff=True):
     """
       Method to compute the coefficients of "n" exponential terms that minimize the
       difference between the training data and the "predicted" data
@@ -2944,17 +2960,17 @@ class PolyExponential(superVisedLearning):
     predictionErr = None
     x, y          = np.array(x), np.array(y)
     bounds        = [[min(x), max(x)]]*self.polyExpParams['expTerms'] + [[min(y), max(y)]]*self.polyExpParams['expTerms']
-    result        = differential_evolution(_objective, bounds, maxiter=self.polyExpParams['maxNumberIter'], tol=self.polyExpParams['tol'],disp=False)
+    result        = differential_evolution(_objective, bounds, maxiter=self.polyExpParams['maxNumberIter'], tol=self.polyExpParams['tol'],disp=False,seed=200286)
     taui, fi      = np.split(result['x'], 2)
     sortIndexes   = np.argsort(fi)
     fi, taui      = fi[sortIndexes], taui[sortIndexes]
 
     if returnPredictDiff:
-      predictionErr = (y-self.__evaluateExponentialTerm(x, fi, 1./taui))/y
+      predictionErr = (y-self.__evaluateExpTerm(x, fi, 1./taui))/y
 
     return fi, 1./taui, predictionErr
 
-  def __evaluateExponentialTerm(self,x, a, b):
+  def __evaluateExpTerm(self,x, a, b):
     """
       Evaluate exponential term given x, a and b
       y(x) = \sum_{i=1}^n a_i \exp ( - b_i x )
@@ -2974,47 +2990,57 @@ class PolyExponential(superVisedLearning):
     # check if the data are time-dependent, otherwise error out
     if (len(targetVals.shape) != 3) :
       self.raiseAnError(Exception, "This ROM is specifically usable for time-series data surrogating (i.e. HistorySet)!")
-
-    #fileObject = open("poly_exp_"+"_error.csv", mode='w')
-    pivotParamIndex  = self.target.index(self.pivotParameterID)
-    targetParamIndex = self.target.index(self.targetID)
-    nsamples = len(targetVals[:,:,pivotParamIndex])
-    self.aij   = np.zeros( (nsamples, self.polyExpParams['expTerms']))
-    self.bij   = np.zeros((nsamples, self.polyExpParams['expTerms']))
-    self.predictError = np.zeros( (nsamples, len(targetVals[0,:,targetParamIndex]) ))
+    targetIndexes     = {}
+    self.aij          = {}
+    self.bij          = {}
+    self.predictError = {}
+    self.model        = {}
+    pivotParamIndex   = self.target.index(self.pivotParameterID)
+    nsamples          = len(targetVals[:,:,pivotParamIndex])
+    for index, target in enumerate(self.target):
+      if target != self.pivotParameterID:
+        targetIndexes[target]     = index
+        self.aij[target]          = np.zeros( (nsamples, self.polyExpParams['expTerms']))
+        self.bij[target]          = np.zeros((nsamples, self.polyExpParams['expTerms']))
+        self.predictError[target] = np.zeros( (nsamples, len(targetVals[0,:,index]) ))
     #TODO: this can be parallelized
     for smp in range(nsamples):
       self.raiseADebug("Computing exponential terms for sample ID "+str(smp+1))
-      self.aij[smp,:],self.bij[smp,:], self.predictError[smp,:] = self.__computeExponentialTerms(np.ravel(targetVals[smp,:,pivotParamIndex]),
-                                                                              np.ravel(targetVals[smp,:,targetParamIndex])/self.polyExpParams['initialScaling'],
-                                                                              True)
+      for target in targetIndexes:
+        resp = self.__computeExpTerms(targetVals[smp,:,pivotParamIndex],targetVals[smp,:,targetIndexes[target]])
+        self.aij[target][smp,:], self.bij[target][smp,:], self.predictError[target][smp,:] = resp
+    # store the pivot values
     self.pivotValues = targetVals[0,:,pivotParamIndex]
-    # the targets are the coefficients
-    expTermCoeff = np.concatenate( (self.aij,self.bij), axis=1)
-    if self.polyExpParams['coeffRegressor']== 'poly':
-      # now that we have the coefficients, we can construct the polynomial expansion whose targets are the just computed coefficients
-      self.model = make_pipeline(PolynomialFeatures(self.polyExpParams['polyOrder']), linear_model.Ridge())
-      self.model.fit(featureVals, expTermCoeff)
-      # print the coefficient
-      if getLocalVerbosity() == 'debug':
-        self.raiseADebug("poly coefficients")
-        coefficients = self.model.steps[1][1].coef_
-        for l, coeff in enumerate(coefficients):
-          coeff_str = "    a_"+str(l+1) if l < self.polyExpParams['expTerms'] else "    b_"+str((l-self.polyExpParams['expTerms'])+1)
-          coeff_str+="(" + ",".join(self.features)+"):"
-          self.raiseADebug(coeff_str)
-          self.raiseADebug("      "+" ".join([str(elm) for elm in coeff]))
-    elif self.polyExpParams['coeffRegressor']== 'nearest':
+    if self.polyExpParams['coeffRegressor']== 'nearest':
       self.scaler = preprocessing.StandardScaler().fit(featureVals)
-      self.model = [None for _ in range(self.polyExpParams['expTerms']*2)]
-      for cnt in range(len(self.model )):
-        self.model[cnt] = neighbors.KNeighborsRegressor(n_neighbors=min(nsamples, 2**len(self.features)), weights='distance')
-        self.model[cnt].fit(self.scaler.transform(featureVals),expTermCoeff[:,cnt])
-    else:
-      # spline
-      targets = ["a_"+str(cnt+1) if cnt < self.polyExpParams['expTerms'] else "b_"+str((cnt-self.polyExpParams['expTerms'])+1) for cnt in range(self.polyExpParams['expTerms']*2)]
-      self.model = NDsplineRom(self.messageHandler,**{'Features':','.join(self.features),'Target':",".join(targets)})
-      self.model.__class__.__trainLocal__(self.model,featureVals,expTermCoeff)
+    # construct poly
+    for target in targetIndexes:
+      # the targets are the coefficients
+      expTermCoeff = np.concatenate( (self.aij[target],self.bij[target]), axis=1)
+      if self.polyExpParams['coeffRegressor']== 'poly':
+        # now that we have the coefficients, we can construct the polynomial expansion whose targets are the just computed coefficients
+        self.model[target] = make_pipeline(preprocessing.PolynomialFeatures(self.polyExpParams['polyOrder']), linear_model.Ridge())
+        self.model[target].fit(featureVals, expTermCoeff)
+        # print the coefficient
+        if self.getLocalVerbosity() == 'debug':
+          self.raiseADebug('poly coefficients for target "'+target+'":')
+          coefficients = self.model[target].steps[1][1].coef_
+          for l, coeff in enumerate(coefficients):
+            coeff_str = "    a_"+str(l+1) if l < self.polyExpParams['expTerms'] else "    b_"+str((l-self.polyExpParams['expTerms'])+1)
+            coeff_str+="(" + ",".join(self.features)+"):"
+            self.raiseADebug(coeff_str)
+            self.raiseADebug("      "+" ".join([str(elm) for elm in coeff]))
+      elif self.polyExpParams['coeffRegressor']== 'nearest':
+        # construct nearest
+        self.model[target] = [None for _ in range(self.polyExpParams['expTerms']*2)]
+        for cnt in range(len(self.model[target] )):
+          self.model[target][cnt] = neighbors.KNeighborsRegressor(n_neighbors=min(nsamples, 2**len(self.features)), weights='distance')
+          self.model[target][cnt].fit(self.scaler.transform(featureVals),expTermCoeff[:,cnt])
+      else:
+        # construct spline
+        targets = ["a_"+str(cnt+1) if cnt < self.polyExpParams['expTerms'] else "b_"+str((cnt-self.polyExpParams['expTerms'])+1) for cnt in range(self.polyExpParams['expTerms']*2)]
+        self.model[target] = NDsplineRom(self.messageHandler,**{'Features':','.join(self.features),'Target':",".join(targets)})
+        self.model[target].__class__.__trainLocal__(self.model[target],featureVals,expTermCoeff)
     self.featureVals = featureVals
 
   def __evaluateLocal__(self,featureVals):
@@ -3022,25 +3048,44 @@ class PolyExponential(superVisedLearning):
       @ In, featureVals, numpy.ndarray, shape= (n_requests, n_dimensions), an array of input data
       @ Out, returnEvaluation , dict, dictionary of values for each target (and pivot parameter)
     """
-    if isinstance(self.model, list):
-      evaluation = np.zeros((len(featureVals),len(self.model)))
-      for cnt,model in enumerate(self.model):
-        evaluation[:,cnt] = model.predict(self.scaler.transform(featureVals) )
-    else:
-      if 'predict' in dir(self.model):
-        evaluation = self.model.predict(featureVals)
+    returnEvaluation = {self.pivotParameterID:self.pivotValues}
+    for target in list(set(self.target) - set([self.pivotParameterID])):
+      if isinstance(self.model[target], list):
+        evaluation = np.zeros((len(featureVals),len(self.model[target])))
+        for cnt,model in enumerate(self.model[target]):
+          evaluation[:,cnt] = model.predict(self.scaler.transform(featureVals) )
       else:
-        evaluation = np.zeros((len(featureVals),len(self.model.target)))
-        evalDict = self.model.__class__.__evaluateLocal__(self.model,featureVals)
-        for cnt,targ in enumerate(self.model.target):
-          evaluation[:,cnt] = evalDict[targ][:]
+        if 'predict' in dir(self.model[target]):
+          evaluation = self.model[target].predict(featureVals)
+        else:
+          evaluation = np.zeros((len(featureVals),len(self.model[target].target)))
+          evalDict = self.model[target].__class__.__evaluateLocal__(self.model[target],featureVals)
+          for cnt,targ in enumerate(self.model[target].target):
+            evaluation[:,cnt] = evalDict[targ][:]
 
-    returnEvaluation = {}
-    for point in range(len(evaluation)):
-      l = int(evaluation[point].size/2)
-      returnEvaluation[self.pivotParameterID] = self.pivotValues.ravel()
-      returnEvaluation[self.targetID] =  self.__evaluateExponentialTerm(self.pivotValues , evaluation[point][:l], evaluation[point][l:])*self.polyExpParams['initialScaling']
+      for point in range(len(evaluation)):
+        l = int(evaluation[point].size/2)
+        returnEvaluation[target] =  self.__evaluateExpTerm(self.pivotValues,
+                                                                evaluation[point][:l],
+                                                                evaluation[point][l:])
     return returnEvaluation
+
+  def _localPrintXMLSetup(self,outFile,options={}):
+    """
+      Specific local method for printing anything desired to xml file at the begin of the print.
+      Overwrite in inheriting classes.
+      @ In, outFile, Files.File, either StaticXMLOutput or DynamicXMLOutput file
+      @ In, options, dict, optional, dict of string-based options to use, including filename, things to print, etc
+      @ Out, None
+    """
+    # add description
+    description  = " This XML file contains the main information of the PolyExponential ROM."
+    description += " If ``coefficients'' are dumped for each realization, the evaluation function (for each realization ``j'') is as follows:"
+    description += " $SM_{j}(z) = \sum_{i=1}^{N}f_{i}*exp^{-tau_{i}*z}$, with ``z'' beeing the monotonic variable and ``N'' the"
+    description += " number of exponential terms (expTerms). If the Polynomial coefficients ``poly\_coefficients'' are"
+    description += " dumped, the SM evaluation function is as follows:"
+    description += " $SM(X,z) = \sum_{i=1}^{N} P_{i}(X)*exp^{-Q_{i}(X)*z}$, with ``P'' and ``Q'' the polynomial expressions of the exponential terms."
+    outFile.addScalar('ROM',"description",description)
 
   def _localPrintXML(self,outFile,pivotVal,options={}):
     """
@@ -3056,39 +3101,35 @@ class PolyExponential(superVisedLearning):
     ##TODO retrieve coefficients from spline interpolator
     if not self.amITrained:
       self.raiseAnError(RuntimeError,'ROM is not yet trained!')
-    outFile.addScalar('ROM',"type",'PolyExponential')
-    # add description
-    description  = ' This XML file contains the main information of the PolyExponential ROM named "'+self.name+'".'
-    description += ' If "coefficients" are dumped for each realization, the evaluation function (for each realization "j") is as follows:'
-    description += ' $SM_{j}(z) = \sum_{i=1}^{N}f_{i}\times exp^{-tau_{i}\times z}$, with "z" beeing the monotonic variable and "N" the'
-    description += ' number of exponential terms (expTerms). If the Polynomial coefficients "poly_coefficients" are'
-    description += ' dumped, the SM evaluation function is as follows:'
-    description += ' $SM(X,z) = \sum_{i=1}^{N} P_{i}(X)\times exp^{-Q_{i}(X)\times z}$, with "P" and "Q" the polynomial expressions of the exponential terms.'
-    outFile.addScalar('ROM',"description",description)
     # check what
-    what = None
+    what = ['expTerms','coeffRegressor','features','timeScale','coefficients']
+    if self.polyExpParams['coeffRegressor'].strip() == 'poly':
+      what.append('polyOrder')
     if 'what' in options:
-      what = options['what'].split(",")
-      if what[0].strip().lower() == 'all':
-        what = None
+      readWhat = options['what'].split(",")
+      if readWhat[0].strip().lower() == 'all':
+        readWhat = what
+      if not set(readWhat) <= set(what):
+        self.raiseAnError(IOError, "The following variables specified in <what> node are not recognized: "+ ",".join(np.setdiff1d(readWhat, what).tolist()) )
+      else:
+        what = readWhat
     # Target
     target = options.get('Target',self.target[-1])
-    toAdd = ['expTerms','coeffRegressor','initialScaling']
+    toAdd = ['expTerms','coeffRegressor']
     if self.polyExpParams['coeffRegressor'].strip() == 'poly':
       toAdd.append('polyOrder')
     for add in toAdd:
-      if (add in what) if what is not None else (True):
+      if add in what:
         outFile.addScalar(target,add,self.polyExpParams[add])
-    if ("features" in what) if what is not None else (True):
+    if "features" in what:
       outFile.addScalar(target,"features",' '.join(self.features))
-    if what is not None and "" in what
-    if ("timeScale" in what) if what is not None else (True):
+    if "timeScale" in what:
       outFile.addScalar(target,"timeScale",' '.join([str(elm) for elm in self.pivotValues]))
-    if ("coefficients" in what) if what is not None else (True):
-      for smp in range(len(self.aij)):
-        valDict = {'fi': ' '.join([ str(elm) for elm in self.aij[smp,:]]),
-                   'taui':' '.join([ str(elm) for elm in self.bij[smp,:]]),
-                   'predictionRelDiff' :' '.join([ str(elm) for elm in self.predictError[smp,:]])}
+    if "coefficients" in what:
+      for smp in range(len(self.aij[target])):
+        valDict = {'fi': ' '.join([ str(elm) for elm in self.aij[target][smp,:]]),
+                   'taui':' '.join([ str(elm) for elm in self.bij[target][smp,:]]),
+                   'predictionRelDiff' :' '.join([ str(elm) for elm in self.predictError[target][smp,:]])}
         attributeDict = {self.features[index]:self.featureVals[smp,index] for index in range(len(self.features))}
         outFile.addVector("coefficients","realization",valDict,root=target, attrs=attributeDict)
 
@@ -3148,7 +3189,7 @@ class DynamicModeDecomposition(superVisedLearning):
     superVisedLearning.__init__(self,messageHandler,**kwargs)
     self.availDmdAlgorithms                = ['dmd','hodmd']                          # available dmd types: basic dmd and high order dmd
     self.dmdParams                         = {}                                       # dmd settings container
-    self.printTag                          = 'DynamicModeDecomposition'               # print tag
+    self.printTag                          = 'DMD'                                    # print tag
     self.pivotParameterID                  = kwargs.get("pivotParameter","time")      # pivot parameter
     self._dynamicHandling                  = True                                     # This ROM is able to manage the time-series on its own. No need for special treatment outside
     self.dmdParams['rankSVD'             ] = kwargs.get('rankSVD',None)               # -1 no truncation, 0 optimal rank is computed, >1 truncation rank
@@ -3156,7 +3197,6 @@ class DynamicModeDecomposition(superVisedLearning):
     self.dmdParams['rankTotalLeastSquare'] = kwargs.get('rankTLSQ',None)              # truncation rank for total least square
     self.dmdParams['exactModes'          ] = kwargs.get('exactModes',True)            # True if the exact modes need to be computed (eigs and eigvs), otherwise the projected ones (using the left-singular matrix)
     self.dmdParams['optimized'           ] = kwargs.get('optimized',False)            # amplitudes computed minimizing the error between the mods and all the timesteps (True) or 1st timestep only (False)
-    self.dmdParams['initialScaling'      ] = kwargs.get('initialScaling',1.)          # scaling factor for the target values (1. by default)
     self.dmdParams['dmdType'             ] = kwargs.get('dmdType','dmd')              # the dmd type to be applied. Currently we support dmd and hdmd (high order dmd)
     # variables filled up in the training stages
     self._amplitudes                       = None                                     # vector of amplitudes
@@ -3232,7 +3272,7 @@ class DynamicModeDecomposition(superVisedLearning):
     self.pivotValues  = targetVals[0,:,pivotParamIndex]
     originalData      = [targetVals[:,ts,targetParamIndex] for ts in range(len(self.pivotValues))]
     nTimeSteps        = len(self.pivotValues)
-    snaps = targetVals[:,:,targetParamIndex]/self.dmdParams['initialScaling']
+    snaps = targetVals[:,:,targetParamIndex]
     # if number of features (i.e. samples) > number of snapshots, we apply the high order DMD or HODMD has been requested
     imposedHODMD = False
     if self.dmdParams['dmdType'] == 'hodmd' or snaps.shape[0] < snaps.shape[1]:
@@ -3250,7 +3290,7 @@ class DynamicModeDecomposition(superVisedLearning):
     self._eigs, self._modes = mathUtils.computeEigenvaluesAndVectorsFromLowRankOperator(self.__Atilde, Y, U, s, V, self.dmdParams['exactModes'])
     if imposedHODMD:
       self._modes = self._modes[:targetVals[:,:,targetParamIndex].shape[0], :]
-    self._amplitudes = mathUtils.computeAmplitudeCoefficients(self._modes, targetVals[:,:,targetParamIndex]/self.dmdParams['initialScaling'],self._eigs, self.dmdParams['optimized'])
+    self._amplitudes = mathUtils.computeAmplitudeCoefficients(self._modes, targetVals[:,:,targetParamIndex],self._eigs, self.dmdParams['optimized'])
     # Default timesteps (even if the time history is not equally spaced in time, we "trick" the dmd to think it).
     self.trainingTimeScale = {'t0': 0, 'intervals': nTimeSteps - 1, 'dt': 1}
     self.dmdTimeScale      = {'t0': 0, 'intervals': nTimeSteps - 1, 'dt': 1}
@@ -3270,9 +3310,24 @@ class DynamicModeDecomposition(superVisedLearning):
     weights = weights/weights.sum()
     returnEvaluation = {}
     for point in range(len(weights)):
-      returnEvaluation[self.targetID]         =  np.sum ((weights[point,:]*reconstructData[indexes[point,:]].T).real , axis=1)*self.dmdParams['initialScaling']
+      returnEvaluation[self.targetID]         =  np.sum ((weights[point,:]*reconstructData[indexes[point,:]].T).real , axis=1)
       returnEvaluation[self.pivotParameterID] = self.pivotValues.ravel()
     return returnEvaluation
+
+  def _localPrintXMLSetup(self,outFile,options={}):
+    """
+      Specific local method for printing anything desired to xml file at the begin of the print.
+      @ In, outFile, Files.File, either StaticXMLOutput or DynamicXMLOutput file
+      @ In, options, dict, optional, dict of string-based options to use, including filename, things to print, etc
+      @ Out, None
+    """
+    # add description
+    description  = ' This XML file contains the main information of the DMD ROM.'
+    description += ' If "modes" (dynamic modes), "eigs" (eigenvalues), "amplitudes" (mode amplitudes)'
+    description += ' and "dmdTimeScale" (internal dmd time scale) are dumped, the method'
+    description += ' is explained in P.J. Schmid, Dynamic mode decomposition'
+    description += ' of numerical and experimental data, Journal of Fluid Mechanics 656.1 (2010), 5-28'
+    outFile.addScalar('ROM',"description",description)
 
   def _localPrintXML(self,outFile,pivotVal,options={}):
     """
@@ -3287,55 +3342,52 @@ class DynamicModeDecomposition(superVisedLearning):
     """
     if not self.amITrained:
       self.raiseAnError(RuntimeError,'ROM is not yet trained!')
-    outFile.addScalar('ROM',"type",'DMD')
-    # add description
-    description  = ' This XML file contains the main information of the DMD ROM named "'+self.name+'".'
-    description += ' If "modes" (dynamic modes), "eigs" (eigenvalues), "amplitudes" (mode amplitudes)'
-    description += ' and "dmdTimeScale" (internal dmd time scale) are dumped, the method'
-    description += ' is explained in P.J. Schmid, Dynamic mode decomposition'
-    description += ' of numerical and experimental data, Journal of Fluid Mechanics 656.1 (2010), 5–28.'
+
     # check what
-    what = None
+    what = ['exactModes','optimized','dmdType','features','timeScale','eigs','amplitudes','modes','dmdTimeScale']
+    if self.dmdParams['rankTotalLeastSquare'] is not None:
+      what.append('rankTotalLeastSquare')
+    what.append('energyRankSVD' if self.dmdParams['energyRankSVD'] is not None else 'rankSVD')
     if 'what' in options:
-      what = options['what'].split(",")
-      if what[0].strip().lower() == 'all':
-        what = None
+      readWhat = options['what'].split(",")
+      if readWhat[0].strip().lower() == 'all':
+        readWhat = what
+      if not set(readWhat) <= set(what):
+        self.raiseAnError(IOError, "The following variables specified in <what> node are not recognized: "+ ",".join(np.setdiff1d(readWhat, what).tolist()) )
+      else:
+        what = readWhat
     # Target
     target = options.get('Target',self.target[-1])
-
-    toAdd = ['exactModes','optimized','dmdType','initialScaling']
+    toAdd = ['exactModes','optimized','dmdType']
     if self.dmdParams['rankTotalLeastSquare'] is not None:
       toAdd.append('rankTotalLeastSquare')
-    if self.dmdParams['energyRankSVD'] is not None:
-      toAdd.append('energyRankSVD')
-    else:
-      toAdd.append('rankSVD')
-      self.dmdParams['rankSVD'] = self.dmdParams['rankSVD'] if self.dmdParams['rankSVD'] is not None else -1
+    toAdd.append('energyRankSVD' if self.dmdParams['energyRankSVD'] is not None else 'rankSVD')
+    self.dmdParams['rankSVD'] = self.dmdParams['rankSVD'] if self.dmdParams['rankSVD'] is not None else -1
 
     for add in toAdd:
-      if (add in what) if what is not None else (True):
+      if add in what :
         outFile.addScalar(target,add,self.dmdParams[add])
-    if ("features" in what) if what is not None else (True):
+    if "features" in what:
       outFile.addScalar(target,"features",' '.join(self.features))
-    if ("timeScale" in what) if what is not None else (True):
+    if "timeScale" in what:
       outFile.addScalar(target,"timeScale",' '.join([str(elm) for elm in self.pivotValues.ravel()]))
-    if ("dmdTimeScale" in what) if what is not None else (True):
+    if "dmdTimeScale" in what:
       outFile.addScalar(target,"dmdTimeScale",' '.join([str(elm) for elm in self.__getTimeScale()]))
-    if ("eigs" in what) if what is not None else (True):
+    if "eigs" in what:
       eigsReal = " ".join([str(self._eigs[indx].real) for indx in
                        range(len(self._eigs))])
       outFile.addScalar("eigs","real", eigsReal,root=target)
       eigsImag = " ".join([str(self._eigs[indx].imag) for indx in
                                range(len(self._eigs))])
       outFile.addScalar("eigs","imaginary", eigsImag,root=target)
-    if ("amplitudes" in what) if what is not None else (True):
+    if "amplitudes" in what:
       ampsReal = " ".join([str(self._amplitudes[indx].real) for indx in
                        range(len(self._amplitudes))])
       outFile.addScalar("amplitudes","real", ampsReal,root=target)
       ampsImag = " ".join([str(self._amplitudes[indx].imag) for indx in
                                range(len(self._amplitudes))])
       outFile.addScalar("amplitudes","imaginary", ampsImag,root=target)
-    if ("modes" in what) if what is not None else (True):
+    if "modes" in what:
       for smp in range(len(self._modes)):
         valDict = {'real': ' '.join([ str(elm) for elm in self._modes[smp,:].real]),
                    'imaginary':' '.join([ str(elm) for elm in self._modes[smp,:].imag])}
@@ -3427,34 +3479,4 @@ def returnClass(ROMclass,caller):
   except KeyError:
     caller.raiseAnError(NameError,'not known '+__base+' type '+ROMclass)
 
-
-def constructAB():
-  default = False
-  if default:
-    aij   = np.zeros( (48, 10))
-    bij   = np.zeros((48, 10))
-    aij[:,0]=[1.3095000E-04,1.1592000E-04,8.0293459E-05,5.9641824E-05,1.8282000E-04,3.0850000E-04,8.4467738E-05,2.1216000E-04,9.0819652E-05,8.6864550E-05,1.4170000E-04,5.8777881E-05,9.5372655E-05,1.0809000E-04,8.5151959E-05,1.4011000E-04,7.6851612E-05,6.8748036E-05,9.1416271E-05,2.0597000E-04,3.2060000E-04,3.0995000E-04,1.8275000E-04,1.3413000E-04,9.1381893E-05,1.5891000E-04,2.7617000E-04,2.3555000E-04,3.4894000E-04,7.6148659E-05,6.2454447E-05,1.5608000E-04,1.3246000E-04,1.1963000E-04,1.8625000E-04,1.5455000E-04,3.3168000E-04,4.5678000E-04,6.6706768E-05,4.8624431E-05,2.6367000E-04,1.0008000E-04,9.7437945E-05,7.0109587E-05,1.1058000E-04,2.2267000E-04,9.0585234E-05,9.0198248E-05]
-    aij[:,1]=[3.2156000E-04,1.3632000E-04,1.6566778E-04,3.1701718E-04,3.7791000E-04,4.3115000E-04,1.7753821E-04,3.2509000E-04,2.9145151E-04,1.7071220E-04,2.1086000E-04,1.8636120E-04,1.0362419E-04,1.2326000E-04,2.0155743E-04,6.0133000E-04,4.0882743E-04,1.8826883E-04,1.3842492E-04,2.3871000E-04,4.4091000E-04,5.9287000E-04,6.2478000E-04,5.1039000E-04,2.5561860E-04,2.1585000E-04,3.4836000E-04,3.0857000E-04,3.9291000E-04,2.9807383E-04,9.4606837E-05,1.6994000E-04,1.7988000E-04,1.8489000E-04,2.5158000E-04,1.7772000E-04,5.5368000E-04,4.7289000E-04,2.3385323E-04,5.0138746E-05,3.3636000E-04,1.0290000E-04,2.8936279E-04,2.0876102E-04,3.9341000E-04,2.3741000E-04,1.4157082E-04,1.8183683E-04]
-    aij[:,2]=[9.3220000E-04,1.9703000E-04,4.4228907E-04,4.4475951E-04,5.2337000E-04,8.6907000E-04,2.5550818E-04,3.9890000E-04,8.0515254E-04,2.4582446E-04,3.3597000E-04,2.8833473E-04,5.1240242E-04,1.9915000E-04,3.7860976E-04,6.1001000E-04,9.9555152E-04,2.2828405E-04,6.1927211E-04,5.2614000E-04,6.2802000E-04,6.0382000E-04,7.3595000E-04,5.2474000E-04,4.7939086E-04,2.1667000E-04,3.9810000E-04,3.9146000E-04,5.2982000E-04,4.5538094E-04,2.4748683E-04,4.3361000E-04,4.5220000E-04,2.1812000E-04,5.9658000E-04,4.1408000E-04,7.2693000E-04,6.6651000E-04,3.1249844E-04,2.7051509E-04,4.1648000E-04,3.6023000E-04,3.0444358E-04,3.7195904E-04,4.1003000E-04,4.6607000E-04,8.0329576E-04,2.6542100E-04]
-    aij[:,3]=[1.2480400E-03,1.0761700E-03,1.2571885E-03,4.5412967E-04,1.3036000E-03,1.4741400E-03,9.1596286E-04,5.5192000E-04,1.2605444E-03,1.0327330E-03,5.8355000E-04,7.2625579E-04,1.2910203E-03,1.1621500E-03,9.2893662E-04,6.6589000E-04,1.0274733E-03,1.0919392E-03,8.7428174E-04,6.6457000E-04,8.7246000E-04,1.2936400E-03,1.2520400E-03,8.2726000E-04,1.2039483E-03,1.2447800E-03,5.0498000E-04,5.2792000E-04,1.0633300E-03,6.8172010E-04,9.8751175E-04,1.0578300E-03,1.3248800E-03,1.1722900E-03,1.0245900E-03,7.4945000E-04,1.6375800E-03,7.0669000E-04,8.7205224E-04,9.2355046E-04,1.0503000E-03,8.9127000E-04,7.7700547E-04,7.0762433E-04,9.7287000E-04,6.1826000E-04,8.2316882E-04,7.3142869E-04]
-    aij[:,4]=[1.2609600E-03,1.8012900E-03,1.3929726E-03,1.2588992E-03,1.5826000E-03,1.5533900E-03,1.4014034E-03,7.6610000E-04,1.3854124E-03,1.7075930E-03,1.3949700E-03,1.2354171E-03,2.0747301E-03,1.7473000E-03,1.3419268E-03,1.2150500E-03,2.0830594E-03,1.7646404E-03,1.1317617E-03,7.3478000E-04,1.5177300E-03,1.4496100E-03,1.2632000E-03,1.2568400E-03,2.0989455E-03,1.7085700E-03,1.3127300E-03,1.0947400E-03,2.0328600E-03,1.5459497E-03,1.5387463E-03,1.4922700E-03,2.1301000E-03,1.6066400E-03,1.5455100E-03,1.4085200E-03,1.8153200E-03,9.3323000E-04,1.5552237E-03,1.3005963E-03,2.0745900E-03,1.6771700E-03,1.4172246E-03,1.2689273E-03,1.9817800E-03,1.6673900E-03,8.4756790E-04,1.2279903E-03]
-    aij[:,5]=[3.7150100E-03,3.1676100E-03,2.2092095E-03,2.3050556E-03,3.7248300E-03,1.9204300E-03,2.6983692E-03,2.3101800E-03,3.8104215E-03,3.1877579E-03,2.6693500E-03,2.4376614E-03,3.2925880E-03,2.7446900E-03,2.3525628E-03,1.4950800E-03,3.0673506E-03,2.8432300E-03,2.3602424E-03,2.0887000E-03,3.0743900E-03,1.6311000E-03,1.2708200E-03,1.5396200E-03,3.1634712E-03,2.5106600E-03,2.2915600E-03,2.0394100E-03,2.7939900E-03,2.6753153E-03,2.3579414E-03,1.6333800E-03,3.1483700E-03,2.7587100E-03,2.0511400E-03,1.9704900E-03,2.2131300E-03,2.4537400E-03,2.1194662E-03,1.9326702E-03,2.9952200E-03,2.5359600E-03,2.1474464E-03,1.9752886E-03,3.1131700E-03,2.7049300E-03,2.2619137E-03,1.9903997E-03]
-    aij[:,6]=[3.8476300E-03,3.4232100E-03,2.7550298E-03,2.5549921E-03,3.9590600E-03,3.2983200E-03,2.9413288E-03,2.5224200E-03,3.8991702E-03,3.4773583E-03,2.7531500E-03,2.6018275E-03,4.2870371E-03,3.7230600E-03,3.1575934E-03,2.6302500E-03,4.1402703E-03,3.6419080E-03,3.1593329E-03,2.7390900E-03,4.0591400E-03,3.6231700E-03,3.0728900E-03,2.5483600E-03,4.4318531E-03,3.7051100E-03,2.9908200E-03,2.7484700E-03,4.1196300E-03,3.6017231E-03,3.2536599E-03,2.3856600E-03,4.1893000E-03,3.7207900E-03,3.0507700E-03,2.6921800E-03,4.0895500E-03,3.7114700E-03,3.2846692E-03,2.8513700E-03,4.4305500E-03,3.7317100E-03,3.3995042E-03,2.6407635E-03,4.3241400E-03,3.8937400E-03,3.2208633E-03,2.8709930E-03]
-    aij[:,7]=[5.8624000E-03,5.2141400E-03,4.2799822E-03,3.9745714E-03,5.9446600E-03,4.9739000E-03,4.1678473E-03,3.5430700E-03,5.8410278E-03,5.2250154E-03,4.0967500E-03,3.9309619E-03,6.4574049E-03,5.6021300E-03,4.5881992E-03,4.1010100E-03,6.1184975E-03,5.3584915E-03,4.6500981E-03,3.9007700E-03,5.9403600E-03,5.0886500E-03,4.5442000E-03,4.0244800E-03,6.3714444E-03,5.3995100E-03,4.3582300E-03,4.0126500E-03,6.6123400E-03,5.2449768E-03,4.7475347E-03,4.0350300E-03,6.2095200E-03,5.4471300E-03,4.4422700E-03,3.8128600E-03,6.3001100E-03,5.6069300E-03,4.9292719E-03,4.1429210E-03,6.5834700E-03,5.3204300E-03,5.0411638E-03,3.8414728E-03,6.2413600E-03,5.5082600E-03,4.6639291E-03,4.1219939E-03]
-    aij[:,8]=[1.3213510E-02,1.0567070E-02,9.3791645E-03,8.1063794E-03,1.2823430E-02,1.0836250E-02,9.3142989E-03,8.4915800E-03,1.3180126E-02,1.0706269E-02,9.8241000E-03,8.1897944E-03,1.2446902E-02,1.0351020E-02,8.9998133E-03,7.9923500E-03,1.2594086E-02,1.0522062E-02,9.1895019E-03,8.1753400E-03,1.3168840E-02,1.0702430E-02,9.1850200E-03,8.2748400E-03,1.2308279E-02,1.0413460E-02,9.3679600E-03,7.9746500E-03,1.2550480E-02,1.0672882E-02,8.9089209E-03,8.2108500E-03,1.2723850E-02,1.0557970E-02,9.0209300E-03,7.9588600E-03,1.2874180E-02,1.0436250E-02,8.8875193E-03,7.8440481E-03,1.2462710E-02,1.0848080E-02,8.9163412E-03,8.1276179E-03,1.2838190E-02,1.0396050E-02,9.2723549E-03,7.9455268E-03]
-    aij[:,9]=[4.9282450E-02,4.1202120E-02,3.5732202E-02,3.1237867E-02,4.9338690E-02,4.1037280E-02,3.5478780E-02,3.1333330E-02,4.9145810E-02,4.0748687E-02,3.5293480E-02,3.0661450E-02,5.1473119E-02,4.2866600E-02,3.7087812E-02,3.2475230E-02,5.1129857E-02,4.2537657E-02,3.6556569E-02,3.2354410E-02,5.1407090E-02,4.2755990E-02,3.6471080E-02,3.1840560E-02,5.2306561E-02,4.3574660E-02,3.7716210E-02,3.2958700E-02,5.1810110E-02,4.3504490E-02,3.7028144E-02,3.2432450E-02,5.1563720E-02,4.2789470E-02,3.6895810E-02,3.2542870E-02,5.3072870E-02,4.4437640E-02,3.7881248E-02,3.3419889E-02,5.2588480E-02,4.3973270E-02,3.7482938E-02,3.3356917E-02,5.2597730E-02,4.3649920E-02,3.7616048E-02,3.3042156E-02]
-    bij[:,0]=[1.7353924E-02,1.2213978E-03,6.9659211E-02,9.8024308E-04,1.0503920E-03,1.3889631E-03,7.7586053E-03,1.4398452E-03,1.0834591E-03,4.5550186E-03,9.6724749E-03,2.5203793E-03,1.1209179E-02,4.5650058E-03,1.2153012E-03,9.2416384E-04,1.0612714E-02,1.2344079E-03,1.1689867E-03,1.3700518E-03,3.1684986E-02,1.4718066E-03,9.9330692E-04,9.4929156E-04,7.3921272E-03,1.9055896E-03,1.5854325E-03,1.5581557E-03,4.0363511E-02,5.3758456E-03,9.8830070E-04,1.2053031E-03,7.2147217E-03,1.1252479E-03,1.0255710E-03,3.8840966E-02,1.3466361E-03,2.1362373E-03,1.2952295E-03,6.2764779E-03,6.6635967E-03,1.1389693E-03,1.7795193E-02,1.8221756E-02,1.4527796E-02,1.1840321E-03,2.0867581E-03,1.5008445E-02]
-    bij[:,1]=[1.1527531E-03,4.3395113E-03,7.0925051E-03,2.5717421E-03,2.6313658E-03,5.9844710E-03,3.6470993E-03,5.2817653E-03,1.4871858E-03,3.0173241E-03,1.1966729E-03,1.2321501E-03,1.0011958E-02,1.9313773E-03,1.7326929E-03,5.4219071E-02,1.5864374E-03,4.8925105E-03,1.3934786E-03,5.3613445E-03,1.6213325E-03,1.3326391E-02,2.0969420E-02,6.1864750E-02,9.3154067E-03,6.8829821E-01,9.1017802E-03,1.0600923E-02,1.6505148E-03,1.4377080E-03,1.2331272E-03,5.6006250E-03,5.5302222E-03,1.6818175E-03,6.8768284E-03,1.2657145E-03,8.2079422E-03,1.1063544E-02,1.8344746E-03,5.1266255E-02,8.6454078E-03,9.4210717E-04,1.6313751E-03,1.4674189E-03,9.6960762E-03,1.3105040E-02,1.0747272E-03,1.3373404E-03]
-    bij[:,2]=[7.3876890E-02,1.6161840E-03,2.2101498E-03,1.7981475E-02,6.6920334E-02,1.3593255E-02,1.4830426E-03,6.7746906E-02,7.3428817E-02,1.3071649E-03,5.0593701E-03,2.4841674E-02,1.8816339E-03,1.3668592E-03,2.9022831E-02,2.3875798E-02,2.8006897E-02,1.4535147E-03,1.1042077E-01,7.5454190E-02,1.7682859E-02,7.3533168E-03,6.7456724E-03,5.2299044E-03,1.8046305E-03,1.6316897E-03,2.3544692E-02,3.2769099E-02,6.6664946E-03,1.2719740E-02,3.3750144E-03,6.3459788E-03,1.7703521E-03,3.3893340E-02,7.4642883E-03,5.6121122E-03,8.6319675E-03,1.2641785E-02,7.4194803E-03,1.7021426E-03,1.7338204E-03,1.4752308E-02,1.7738236E-02,6.1799922E-03,1.5391645E-03,5.6090192E-03,7.5995291E-02,4.8181105E-03]
-    bij[:,3]=[5.2929531E-02,1.0731971E-02,2.0147872E-02,1.0175767E-02,1.1242687E-02,2.4436273E-01,1.3491322E-02,6.2625576E-02,8.3801006E-03,1.1317152E-02,1.1847504E-02,8.4846517E-03,1.2326997E-02,1.1093273E-02,9.5963404E-03,6.4613791E-03,8.5979978E-03,1.1325872E-02,7.9659109E-03,1.1258180E-02,8.4900529E-03,4.9696813E-02,7.1312115E-02,2.1007578E-02,1.3088075E-02,1.1047850E-02,8.9777894E-03,8.6840058E-03,1.3891954E-02,8.7974635E-03,1.1688640E-02,2.8196364E-02,1.4051634E-02,9.3902149E-03,3.3043881E-02,1.6219070E-02,4.1367993E-02,4.9698541E-02,1.3694502E-02,1.1499580E-02,1.4512744E-02,6.8398742E-03,9.3040690E-03,1.5663098E-02,1.0249396E-02,1.1455399E-02,7.8180564E-03,1.3007227E-02]
-    bij[:,4]=[8.0401442E-03,6.6251057E-02,5.3125886E-01,7.3132801E-02,6.7217900E-02,6.5854627E-02,7.1838699E-02,1.5552658E-02,5.0014202E-02,6.4797904E-02,5.9250177E-02,7.0353952E-02,7.0786693E-02,6.6379293E-02,7.6270981E-02,1.5834917E-01,1.0363278E-01,6.6401859E-02,4.0438004E-02,4.7988372E-02,7.0655937E-02,3.5375144E-01,2.5640885E-01,1.6200916E-01,7.1477498E-02,6.6613991E-02,6.9172540E-02,7.6183855E-02,8.6845363E-02,5.4982839E-02,6.9274322E-02,5.6163690E-01,7.7366909E-02,6.6657862E-02,1.3724126E-01,9.9130681E-02,1.6052100E-01,6.8464981E-02,7.5311847E-02,7.0529431E-02,7.2750330E-02,5.3709343E-02,6.9348536E-02,7.7513676E-02,6.1359428E-02,5.9205524E-02,3.1278359E-02,6.7958461E-02]
-    bij[:,5]=[3.3020852E-01,3.5420098E-01,1.6311633E-01,3.4428892E-01,3.4046493E-01,4.3454062E-01,3.3572419E-01,2.7267569E-01,3.2401604E-01,3.2932520E-01,2.9588476E-01,3.4052541E-01,3.5945632E-01,3.4003496E-01,3.4860601E-01,4.5407229E-01,4.3438691E-01,3.4460644E-01,3.1469522E-01,2.8509027E-01,2.7659684E-01,1.9448021E-01,4.0963156E-01,4.3473607E-01,3.6727521E-01,3.2471772E-01,3.2740399E-01,3.4396861E-01,3.7130771E-01,2.8058487E-01,3.5183445E-01,1.5926275E-01,3.7294933E-01,3.2800751E-01,4.8637225E-01,4.2609995E-01,4.7821311E-01,3.0787613E-01,3.7093010E-01,3.5471703E-01,3.5620751E-01,2.8370172E-01,3.2085116E-01,3.6382795E-01,3.1089354E-01,3.1632461E-01,2.8884569E-01,3.1895805E-01]
-    bij[:,6]=[1.9192907E+00,2.1497423E+00,1.9034034E+00,1.9596350E+00,2.0035670E+00,2.1140339E+00,2.0119905E+00,1.5946022E+00,1.9096909E+00,2.0326919E+00,1.6613273E+00,2.0178437E+00,2.1022849E+00,2.0398070E+00,2.0369994E+00,1.9946653E+00,2.2449235E+00,2.0706036E+00,1.9217761E+00,1.7265445E+00,1.5687203E+00,1.7330788E+00,1.9365221E+00,1.9351369E+00,2.1363430E+00,2.0422162E+00,1.8457508E+00,1.9879810E+00,1.8545404E+00,1.6712124E+00,2.0732585E+00,2.0938548E+00,2.0200475E+00,1.9766779E+00,2.3426312E+00,2.1946966E+00,2.0464734E+00,1.7766784E+00,2.0557600E+00,2.0162291E+00,2.0340189E+00,1.7510064E+00,1.9312605E+00,1.9569080E+00,1.8517313E+00,1.9797608E+00,1.7601995E+00,1.8892696E+00]
-    bij[:,7]=[9.6425655E+00,1.1125292E+01,9.7012739E+00,1.0344187E+01,1.0407396E+01,1.0551458E+01,1.0193724E+01,8.3264425E+00,9.8522671E+00,1.1118136E+01,8.4638530E+00,1.0857405E+01,1.0637700E+01,1.1000967E+01,1.0451073E+01,1.0163398E+01,1.0661419E+01,1.0689459E+01,1.0215461E+01,9.2213384E+00,8.2250118E+00,9.4016827E+00,1.0146224E+01,9.8174874E+00,1.0681684E+01,1.0457755E+01,8.8165564E+00,9.9066923E+00,9.7984055E+00,9.0778298E+00,1.0980025E+01,9.7465623E+00,9.9928060E+00,1.0551977E+01,1.0998647E+01,1.0367603E+01,9.3742529E+00,9.5642656E+00,1.0712278E+01,1.0225236E+01,1.0257577E+01,9.1189268E+00,1.0908076E+01,9.0469927E+00,9.2079659E+00,1.0572320E+01,9.3403915E+00,1.0009251E+01]
-    bij[:,8]=[4.3383984E+01,4.5556719E+01,4.2521585E+01,4.4556663E+01,4.3692490E+01,4.4463373E+01,4.2754356E+01,3.9706591E+01,4.3442816E+01,4.6017751E+01,4.1389975E+01,4.5601487E+01,4.4864159E+01,4.5937882E+01,4.3807370E+01,4.4007744E+01,4.4013693E+01,4.5052316E+01,4.4774101E+01,4.1550008E+01,3.9735506E+01,4.1267389E+01,4.3759813E+01,4.4434823E+01,4.3653966E+01,4.3965742E+01,4.0689049E+01,4.2690979E+01,4.3678106E+01,4.0814281E+01,4.5264832E+01,4.3913609E+01,4.3109589E+01,4.4883136E+01,4.4115829E+01,4.2346418E+01,4.2609549E+01,4.2736761E+01,4.5912623E+01,4.3446956E+01,4.4247755E+01,4.2100213E+01,4.6696659E+01,4.0720639E+01,4.1707136E+01,4.4418556E+01,4.2772616E+01,4.3137520E+01]
-    bij[:,9]=[3.9918169E+02,4.0261796E+02,3.9303484E+02,3.9706725E+02,3.9382190E+02,4.0238569E+02,3.9165297E+02,3.8140821E+02,3.9893989E+02,4.0586499E+02,3.9408032E+02,4.0519202E+02,4.0152436E+02,4.0776246E+02,3.9691052E+02,4.0128797E+02,4.0178973E+02,4.0436753E+02,4.0443304E+02,3.9150355E+02,3.8522723E+02,3.8607251E+02,3.9748330E+02,4.0735670E+02,3.9897627E+02,4.0068255E+02,3.9343831E+02,3.9595321E+02,3.9584326E+02,3.8928510E+02,4.0385449E+02,4.0909772E+02,3.9940328E+02,4.0622451E+02,4.0129180E+02,3.9138984E+02,4.0653021E+02,3.9770258E+02,4.1091049E+02,4.0051245E+02,4.0394730E+02,4.0325709E+02,4.1177084E+02,3.9004564E+02,3.9571336E+02,4.0231254E+02,4.0066359E+02,3.9755950E+02]
-  else:
-    full = np.loadtxt("expTermCoeff.csv", delimiter=",", ndmin=2)
-    aij, bij = np.split(full, 2, axis=1)
-  return aij,bij
 

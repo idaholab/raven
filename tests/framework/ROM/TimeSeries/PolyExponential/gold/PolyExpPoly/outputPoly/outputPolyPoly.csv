@@ -1,0 +1,5 @@
+enrichment,burnup,ProbabilityWeight,ProbabilityWeight-enrichment,prefix,PointProbability,ProbabilityWeight-burnup,filename
+3.58463630466,24.5504878593,1.0,1.0,1,0.015538446,1.0,outputPoly/outputPolyPoly_0.csv
+6.41930399577,24.3628349858,1.0,1.0,2,0.015538446,1.0,outputPoly/outputPolyPoly_1.csv
+8.33680153495,25.5361174799,1.0,1.0,3,0.015538446,1.0,outputPoly/outputPolyPoly_2.csv
+8.21620647079,18.4611739696,1.0,1.0,4,0.015538446,1.0,outputPoly/outputPolyPoly_3.csv

@@ -186,7 +186,8 @@ class ROM(Dummy):
     inputSpecification.addSub(InputData.parameterInputFactory("numberExpTerms", InputData.IntegerType))
     inputSpecification.addSub(InputData.parameterInputFactory("maxPolyOrder", InputData.IntegerType))
     inputSpecification.addSub(InputData.parameterInputFactory("polyOrder", InputData.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("initialScaling", InputData.FloatType))
+    coeffRegressorEnumType = InputData.makeEnumType("coeffRegressor","coeffRegressorType",["poly","spline","nearest"])
+    inputSpecification.addSub(InputData.parameterInputFactory("coeffRegressor", contentType=coeffRegressorEnumType))
     # DMD
     inputSpecification.addSub(InputData.parameterInputFactory("rankSVD", InputData.IntegerType))
     inputSpecification.addSub(InputData.parameterInputFactory("energyRankSVD", InputData.FloatType))
@@ -311,6 +312,8 @@ class ROM(Dummy):
     #handle 'all' case
     if 'all' in targets:
       targets = ROMtargets
+    # setup print
+    engines[0].printXMLSetup(outFile,options)
     #this loop is only 1 entry long if not dynamic
     for s,rom in enumerate(engines):
       if dynamic and not handleDynamicData:
