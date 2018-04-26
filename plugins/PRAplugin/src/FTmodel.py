@@ -14,10 +14,13 @@ from PostProcessors.FTstructure import FTstructure
 
 
 class FTmodel(ExternalModelPluginBase):
+  """
+    This class is designed to create a Fault-Tree model 
+  """
 
   def _readMoreXML(self, container, xmlNode):
     """
-      Method to read the portion of the XML that belongs to this plugin
+      Method to read the portion of the XML that belongs to the Fault-Tree model 
       @ In, container, object, self-like object where all the variables can be stored
       @ In, xmlNode, xml.etree.ElementTree.Element, XML node that needs to be read
       @ Out, None
@@ -34,7 +37,7 @@ class FTmodel(ExternalModelPluginBase):
       elif child.tag == 'variables':
         variables = [str(var.strip()) for var in child.text.split(",")]
       else:
-        print('xml error')
+        raise IOError("FTmodel: xml node " + str (child.tag) + " is not allowed")
 
   def initialize(self, container, runInfoDict, inputFiles):
     """
@@ -44,14 +47,27 @@ class FTmodel(ExternalModelPluginBase):
       @ In, inputFiles, list, list of input files (if any)
       @ Out, None
     """
-    #container.faultTreeModel = FTstructure(container['files'], container.topEventID)
+    pass
 
   def createNewInput(self, container, inputs, samplerType, **Kwargs):
+    """
+      This function has been added for this model in order to be able to create a FTstructure from multiple files
+      @ In, myInput, list, the inputs (list) to start from to generate the new one
+      @ In, samplerType, string, is the type of sampler that is calling to generate a new input
+      @ In, **kwargs, dict,  is a dictionary that contains the information coming from the sampler,
+           a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
+      @ Out, ([(inputDict)],copy.deepcopy(kwargs)), tuple, return the new input in a tuple form
+    """
     container.faultTreeModel = FTstructure(inputs, container.topEventID)
     container.faultTreeModel.FTsolver()
     return Kwargs  
   
-  def run(self, container, Inputs):    
+  def run(self, container, Inputs):   
+    """
+      This method determines the status of the TopEvent of the FT provided the status of its Basic Events
+      @ In, container, object, self-like object where all the variables can be stored
+      @ In, Inputs, dict, dictionary of inputs from RAVEN
+    """ 
     if self.checkTypeOfAnalysis(container,Inputs): 
       value = self.runTimeDep(container, Inputs)
     else:
@@ -60,26 +76,34 @@ class FTmodel(ExternalModelPluginBase):
     container.__dict__[container.topEventID]= value[container.topEventID]
       
   def checkTypeOfAnalysis(self,container,Inputs):
-    # True:  dynamic
-    # False: static
+    """
+      This method check which type of analysis to be performed:
+       - True:  dynamic (time dependent)
+       - False: static      
+      @ In, container, object, self-like object where all the variables can be stored
+      @ In, Inputs, dict, dictionary of inputs from RAVEN
+      @ Out, analysisType, bool, type of analysis to be performed
+
+    """
     arrayValues=set()
     for key in Inputs.keys():
       if key in container.mapping.keys():
         arrayValues.add(Inputs[key])
+    analysisType = None
     if arrayValues.difference({0.,1.}):
-      return True
+      analysisType = True
     else:
-      return False
+      analysisType = False
+    return analysisType
 
   def runStatic(self, container, Inputs):
     """
-      This is a simple example of the run method in a plugin.
-      This method takes the variables in input and computes
-      oneOutputOfThisPlugin(t) = var1Coefficient*exp(var1*t)+var2Coefficient*exp(var2*t) ...
+      This method performs a static analysis of the FT model
       @ In, container, object, self-like object where all the variables can be stored
       @ In, Inputs, dict, dictionary of inputs from RAVEN
-
+      @ Out, value, float, value of the Tope Event of the FT
     """
+
     inputForFT = {}
     for key in container.InvMapping.keys():
       inputForFT[key] = Inputs[container.InvMapping[key]]
@@ -88,6 +112,12 @@ class FTmodel(ExternalModelPluginBase):
     #container.__dict__[container.topEventID]= value[container.topEventID]
 
   def runTimeDep(self, container, Inputs):
+    """
+      This method performs a dynamic analysis of the FT model
+      @ In, container, object, self-like object where all the variables can be stored
+      @ In, Inputs, dict, dictionary of inputs from RAVEN
+      @ Out, outcome, dict, time depedendnt value of the Tope Event of the FT
+    """
     times = []
     times.append(0.)
     for key in Inputs.keys():   
@@ -113,6 +143,12 @@ class FTmodel(ExternalModelPluginBase):
     return outcome
     
   def inputToBePassed(self,container,time,Inputs):
+    """
+      This method return the status of the input variables at time t=time
+      @ In, container, object, self-like object where all the variables can be stored
+      @ In, Inputs, dict, dictionary of inputs from RAVEN
+      @ In, time, float, time at which the input variables need to be evaluated
+    """
     inputToBePassed = {}
     for key in Inputs.keys():
       if key in container.mapping.keys():

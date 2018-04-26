@@ -19,7 +19,7 @@ from PluginsBaseClasses.ExternalModelPluginBase import ExternalModelPluginBase
 
 class graphModel(ExternalModelPluginBase):
   """
-    This class is employed to create a directed graph model 
+    This class is designed to create a directed graph model which is employed to model Reliability Block Diagrams
   """
 
   def _readMoreXML(self, container, xmlNode):
@@ -61,13 +61,13 @@ class graphModel(ExternalModelPluginBase):
       raise IOError("graphModel: <modelFile> XML block is not specified")
 
     if set(variables) != set(container.mapping.keys()):
-      print('variables error')
+      raise IOError("graphModel: the set of variables specified in the <variables> " + str(set(variables)) + " XML block does not match with the specified mapping" + str(set(container.mapping.keys())))
     if not set(container.nodesOUT) <= set(container.mapping.values()):
-      print('nodesOUT error')
+      raise IOError("graphModel: the set of out variables specified in the <nodesOUT> " + str(set(variables)) + " XML block does not match with the specified mapping" + str(set(container.mapping.values())))
 
   def initialize(self, container,runInfoDict,inputFiles):
     """
-      Method to initialize this plugin
+      Method to initialize the graphModel
       @ In, container, object, self-like object where all the variables can be stored
       @ In, runInfoDict, dict, dictionary containing all the RunInfo parameters (XML node <RunInfo>)
       @ In, inputFiles, list, list of input files (if any)
@@ -80,6 +80,12 @@ class graphModel(ExternalModelPluginBase):
     self.createGraph(container,container.modelFile)
 
   def createGraph(self,container,file):
+    """
+      Method that actually creates from file the graph structure of the model
+      @ In, container, object, self-like object where all the variables can be stored
+      @ In, file, file, file containingn the structure of the model
+      @ Out, None
+    """
     graph = ET.parse(container.runInfo['WorkingDir'] + '/' + file)
     graph = findAllRecursive(graph,'Graph')
 
@@ -96,7 +102,12 @@ class graphModel(ExternalModelPluginBase):
       container.deg[nodeName]   = deg
 
   def run(self, container, Inputs):
-    print(Inputs)
+    """
+      This method computes all possible path from the input to the output nodes
+      @ In, container, object, self-like object where all the variables can be stored
+      @ In, Inputs, dict, dictionary of inputs from RAVEN
+
+    """
     if self.checkTypeOfAnalysis(container,Inputs): 
       dictOUT = self.runTimeDep(container, Inputs)
     else:
@@ -106,22 +117,32 @@ class graphModel(ExternalModelPluginBase):
       container.__dict__[var] = dictOUT[var]
   
   def checkTypeOfAnalysis(self,container,Inputs):
-    # True:  dynamic
-    # False: static
+    """
+      This method check which type of analysis to be performed:
+       - True:  dynamic (time dependent)
+       - False: static      
+      @ In, container, object, self-like object where all the variables can be stored
+      @ In, Inputs, dict, dictionary of inputs from RAVEN
+      @ Out, analysisType, bool, type of analysis to be performed
+
+    """
     arrayValues=set()
     for key in Inputs.keys():
       if key in container.mapping.keys():
         arrayValues.add(Inputs[key][0])
+    analysisType = None
     if arrayValues.difference({0.,1.}):
-      return True
+      analysisType = True
     else:
-      return False
+      analysisType = False
+    return analysisType
 
   def runStatic(self, container, Inputs):
     """
-      This is a simple example of the run method in a plugin.
+      This method performs a static analysis of the graph model
       @ In, container, object, self-like object where all the variables can be stored
       @ In, Inputs, dict, dictionary of inputs from RAVEN
+      @ Out, dictOut, dict, dictionary containing the status of all output variables
     """
     mapping = copy.deepcopy(container.mapping)
     nodes   = copy.deepcopy(container.nodes)
@@ -136,19 +157,25 @@ class graphModel(ExternalModelPluginBase):
 
     ravenGraph = GS.graphObject(nodes)
 
-    dictOUT = {}
+    dictOut = {}
     for nodeO in container.nodesOUT:
       paths = []
       for nodeI in container.nodesIN:
         paths = paths + ravenGraph.findAllPaths(nodeI,nodeO)
       var = container.InvMapping[nodeO]
       if paths:
-        dictOUT[var] = np.asarray(0.)
+        dictOut[var] = np.asarray(0.)
       else:
-        dictOUT[var] = np.asarray(1.)
-    return dictOUT
+        dictOut[var] = np.asarray(1.)
+    return dictOut
 
   def runTimeDep(self, container, Inputs):
+    """
+      This method performs a dynamic analysis of the graph model
+      @ In, container, object, self-like object where all the variables can be stored
+      @ In, Inputs, dict, dictionary of inputs from RAVEN
+      @ Out, outcome, dict, dictionary containing the temporal status of all output variables
+    """
     times = []
     times.append(0.)
     for key in Inputs.keys():   
@@ -175,6 +202,12 @@ class graphModel(ExternalModelPluginBase):
     return outcome
     
   def inputToBePassed(self,container,time,Inputs):
+    """
+      This method return the status of the input variables at time t=time
+      @ In, container, object, self-like object where all the variables can be stored
+      @ In, Inputs, dict, dictionary of inputs from RAVEN
+      @ In, time, float, time at which the input variables need to be evaluated
+    """
     inputToBePassed = {}
     for key in Inputs.keys():
       if key in container.mapping.keys():

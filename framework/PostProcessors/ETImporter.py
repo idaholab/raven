@@ -53,7 +53,6 @@ class ETImporter(PostProcessor):
     self.printTag  = 'POSTPROCESSOR ET IMPORTER'
     self.ETFormat  = None
     self.expand    = False
-    self.factorial = False
     self.allowedFormats = ['OpenPSA']
 
   @classmethod
@@ -68,7 +67,6 @@ class ETImporter(PostProcessor):
     inputSpecification = super(ETImporter, cls).getInputSpecification()
     inputSpecification.addSub(InputData.parameterInputFactory("fileFormat", contentType=InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("expand"    , contentType=InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("factorial" , contentType=InputData.StringType))
     return inputSpecification
 
   def initialize(self, runInfo, inputs, initDict) :
@@ -112,16 +110,7 @@ class ETImporter(PostProcessor):
       self.expand = False
     else:
       self.raiseAnError(IOError, 'ETImporterPostProcessor Post-Processor ' + self.name + ', expand ' + str(self.expand) + ' : is not recognized')
-      
-    #factorial = paramInput.findFirst('factorial')
-    #self.factorial = factorial.value
-    #if self.factorial in ['True','true']:
-    #  self.factorial = True
-    #elif self.factorial in ['false','False']:
-    #  self.factorial = False
-    #else:
-    #  self.raiseAnError(IOError, 'ETImporterPostProcessor Post-Processor ' + self.name + ', factorial ' + str(self.factorial) + ' : is not recognized')
-
+ 
   def run(self, inputs):
     """
       This method executes the postprocessor action.
@@ -148,7 +137,6 @@ class ETImporter(PostProcessor):
                                       'ET ( ' + str(variables)  + ' ) is not identical to the'
                                       ' set of input variables specified in the PointSet (' + str(output.getParaKeys('inputs')) +')')
     # Output to file
-    #if set(outputDict.keys()) != set(output.getVars()):
     if set(outputDict['data'].keys()) != set(output.getVars(subset='input')+output.getVars(subset='output')):
       self.raiseAnError(RuntimeError, 'ETImporter failed: set of variables specified in the output '
                                       'dataObject (' + str(set(outputDict['data'].keys())) + ') is different from the set of '
