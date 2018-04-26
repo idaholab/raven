@@ -170,10 +170,12 @@ class CustomSampler(ForwardSampler):
       dataObj = self.assemblerDict['Source'][0][3]
       lenRlz = len(dataObj)
       dataSet = dataObj.asDataset()
+      print('DEBUGG dataset:')
+      print(dataSet)
       for var in self.toBeSampled.keys():
         for subVar in var.split(','):
           subVar = subVar.strip()
-          if subVar not in dataObj.getVars('input') + dataObj.getVars('output'):
+          if subVar not in dataObj.getVars() + dataObj.getVars('indexes'):
             self.raiseAnError(IOError,"the variable "+ subVar + " not found in "+ dataObj.type + " " + dataObj.name)
           self.pointsToSample[subVar] = copy.copy(dataSet[subVar].values)
           subVarPb = 'ProbabilityWeight-' + subVar
@@ -181,7 +183,7 @@ class CustomSampler(ForwardSampler):
             self.infoFromCustom[subVarPb] = copy.copy(dataSet[subVarPb].values)
           else:
             self.infoFromCustom[subVarPb] = np.ones(lenRlz)
-      if 'PointProbability'  in dataObj.getVars('meta'):
+      if 'PointProbability' in dataObj.getVars('meta'):
         self.infoFromCustom['PointProbability'] = copy.copy(dataSet['PointProbability'].values)
       else:
         self.infoFromCustom['PointProbability'] = np.ones(lenRlz)
