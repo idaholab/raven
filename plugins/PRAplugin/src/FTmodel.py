@@ -77,7 +77,7 @@ class FTmodel(ExternalModelPluginBase):
       
   def checkTypeOfAnalysis(self,container,Inputs):
     """
-      This method check which type of analysis to be performed:
+      This method checks which type of analysis to be performed:
        - True:  dynamic (time dependent)
        - False: static      
       @ In, container, object, self-like object where all the variables can be stored

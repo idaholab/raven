@@ -100,7 +100,7 @@ class markovModel(ExternalModelPluginBase):
 
   def newState(self,dictIn):
     """
-      Method which calculate the next transtion out of a state
+      Method which calculates the next transtion out of a state
       @ In, dictIn, dict, dictionary containing all possible transtions out of a state
       @ Out, detTransitionTime, float, time of the next transtion
       @ Out, detState, float, arrival state for the next transtion
@@ -126,7 +126,7 @@ class markovModel(ExternalModelPluginBase):
 
   def detNewState(self,detTrans):
     """
-      Method which calculate the next transtion out of a state for a determinisct transtion
+      Method which calculates the next transtion out of a state for a determinisct transtion
       @ In, dictIn, dict, dictionary containing all possible transtions out of a state
       @ Out, detTransitionTime, float, time of the next transtion
       @ Out, detTransitionState, float, arrival state for the next transtion
@@ -151,7 +151,7 @@ class markovModel(ExternalModelPluginBase):
 
   def stochNewState(self,stochTrans):
     """
-      Method which calculate the next transtion out of a state for a stochastic transtion
+      Method which calculates the next transtion out of a state for a stochastic transtion
       @ In, dictIn, dict, dictionary containing all possible transtions out of a state
       @ Out, transitionTime, float, time of the next transtion
       @ Out, state, float, arrival state for the next transtion

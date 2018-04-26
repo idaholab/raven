@@ -23,7 +23,7 @@ class ETstructure():
   """
   def __init__(self, expand, inputs):
     """
-      This method executes the postprocessor action.
+      This method executes the post-processor action.
       @ In,  inputs, list, list of file objects
       @ Out, None
     """
@@ -61,8 +61,8 @@ class ETstructure():
   def solve(self,combination):
     """
       This method provides the sequence of the ET given the status of its branching conditions
-      @ In, container, object, self-like object where all the variables can be stored
-      @ In, Inputs, dict, dictionary of inputs from RAVEN
+      @ In, combination, np.array, values of all ET branching conditions
+      @ In, outcome, float, sequence of the ET corresponding to the provided ET branching conditions
     """
     combinationArray=np.zeros(len(self.variables))
     outcome = -1
@@ -75,6 +75,12 @@ class ETstructure():
     return outcome
 
   def returnDict(self):
+    """
+      This method returns the 
+      @ In, None
+      @ Out, outputDict, dict, dictionary containing the values of all ET branching conditions
+      @ Out, self.variables, list, IDs of the ET branching conditions
+    """
     outputDict = {}
     for index, var in enumerate(self.variables):
       outputDict[var] = self.pointSet[:, index]
