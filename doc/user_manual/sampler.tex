@@ -1654,7 +1654,12 @@ The \textbf{Custom} sampling approach allows the user to specify a predefined se
 \end{itemize}
 \vspace{-5mm}
 
-In the \textbf{CustomSampler} input block, the user needs to specify the variables need to be sampled. As already mentioned, these variables are inputted within consecutive XML blocks called \xmlNode{variable}.  In addition, the \xmlNode{Source} from which the samples need to be retrieved needs to be specified as well:
+In the \textbf{CustomSampler} input block, the user needs to specify the variables need to be sampled. As
+already mentioned, these variables are inputted within consecutive XML blocks called \xmlNode{variable}.  Note
+that if any variables are dependent on other dimensions (e.g. ``time''), the dependent dimensions need to be
+listed as variables as well.
+
+In addition, the \xmlNode{Source} from which the samples need to be retrieved needs to be specified:
 \begin{itemize}
 \item \variableDescription
  \item \xmlNode{Source}, \xmlDesc{XML node,
@@ -1663,8 +1668,8 @@ In the \textbf{CustomSampler} input block, the user needs to specify the variabl
     \item \xmlAttr{class}, \xmlDesc{required string attribute}, class entity of the source where the samples need to be retrieved from.
      It can be either \textbf{Files} or \textbf{DataObjects}.
      \item \xmlAttr{type}, \xmlDesc{required string attribute}, type of the source withing the previously explained ``class''.
-      If \xmlAttr{class} is  \textbf{Files}, this attribute needs to be kept empty; otherwise it must be  \textbf{PointSet} (the only allowed
-      DataObjects usable as source in this sampler).
+      If \xmlAttr{class} is  \textbf{Files}, this attribute needs to be kept empty; otherwise it must be one
+      of the \textbf{DataSet} objects: PointSet, HistorySet, or DataSet.
       \\ \nb If the \xmlNode{Source} \xmlAttr{class} is  \textbf{Files}, the File needs to be a standard CSV file, specified in the
       \xmlNode{Files} XML block in the RAVEN input.
       \\ In addition, it is important to notice that if in the \xmlNode{Source}  the \textbf{PointProbability} and
