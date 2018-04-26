@@ -15,12 +15,12 @@ from PostProcessors.ETstructure import ETstructure
 
 class ETmodel(ExternalModelPluginBase):
   """
-    This class is designed to create an Event-Tree model 
+    This class is designed to create an Event-Tree model
   """
 
   def _readMoreXML(self, container, xmlNode):
     """
-      Method to read the portion of the XML that belongs to the Event-Tree model 
+      Method to read the portion of the XML that belongs to the Event-Tree model
       @ In, container, object, self-like object where all the variables can be stored
       @ In, xmlNode, xml.etree.ElementTree.Element, XML node that needs to be read
       @ Out, None
@@ -61,7 +61,7 @@ class ETmodel(ExternalModelPluginBase):
       @ Out, ([(inputDict)],copy.deepcopy(kwargs)), tuple, return the new input in a tuple form
     """
     container.eventTreeModel = ETstructure(inputs=inputs, expand=True)
-    return Kwargs  
+    return Kwargs
 
   def run(self, container, Inputs):
     """
@@ -74,7 +74,7 @@ class ETmodel(ExternalModelPluginBase):
       if Inputs[container.InvMapping[key]] > 0:
         inputForET[key] = 1.0
       else:
-        inputForET[key] = 0.0  
+        inputForET[key] = 0.0
 
     value = container.eventTreeModel.solve(inputForET)
     container.__dict__[container.sequenceID]= value

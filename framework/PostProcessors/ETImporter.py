@@ -110,7 +110,7 @@ class ETImporter(PostProcessor):
       self.expand = False
     else:
       self.raiseAnError(IOError, 'ETImporterPostProcessor Post-Processor ' + self.name + ', expand ' + str(self.expand) + ' : is not recognized')
- 
+
   def run(self, inputs):
     """
       This method executes the postprocessor action.

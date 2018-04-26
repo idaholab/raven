@@ -19,7 +19,7 @@ from utils.randomUtils import random
 
 class markovModel(ExternalModelPluginBase):
   """
-    This class is designed to create a Markov model 
+    This class is designed to create a Markov model
   """
 
   def _readMoreXML(self, container, xmlNode):

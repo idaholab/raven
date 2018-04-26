@@ -15,12 +15,12 @@ from PostProcessors.FTstructure import FTstructure
 
 class FTmodel(ExternalModelPluginBase):
   """
-    This class is designed to create a Fault-Tree model 
+    This class is designed to create a Fault-Tree model
   """
 
   def _readMoreXML(self, container, xmlNode):
     """
-      Method to read the portion of the XML that belongs to the Fault-Tree model 
+      Method to read the portion of the XML that belongs to the Fault-Tree model
       @ In, container, object, self-like object where all the variables can be stored
       @ In, xmlNode, xml.etree.ElementTree.Element, XML node that needs to be read
       @ Out, None
@@ -60,26 +60,26 @@ class FTmodel(ExternalModelPluginBase):
     """
     container.faultTreeModel = FTstructure(inputs, container.topEventID)
     container.faultTreeModel.FTsolver()
-    return Kwargs  
-  
-  def run(self, container, Inputs):   
+    return Kwargs
+
+  def run(self, container, Inputs):
     """
       This method determines the status of the TopEvent of the FT provided the status of its Basic Events
       @ In, container, object, self-like object where all the variables can be stored
       @ In, Inputs, dict, dictionary of inputs from RAVEN
-    """ 
-    if self.checkTypeOfAnalysis(container,Inputs): 
+    """
+    if self.checkTypeOfAnalysis(container,Inputs):
       value = self.runTimeDep(container, Inputs)
     else:
       value = self.runStatic(container, Inputs)
-    
+
     container.__dict__[container.topEventID]= value[container.topEventID]
-      
+
   def checkTypeOfAnalysis(self,container,Inputs):
     """
       This method checks which type of analysis to be performed:
        - True:  dynamic (time dependent)
-       - False: static      
+       - False: static
       @ In, container, object, self-like object where all the variables can be stored
       @ In, Inputs, dict, dictionary of inputs from RAVEN
       @ Out, analysisType, bool, type of analysis to be performed
@@ -120,14 +120,14 @@ class FTmodel(ExternalModelPluginBase):
     """
     times = []
     times.append(0.)
-    for key in Inputs.keys():   
+    for key in Inputs.keys():
       if key in container.mapping.keys() and Inputs[key]!=1.:
         times.append(Inputs[key])
     times = sorted(times, key=float)
 
     outcome={}
     outcome[container.topEventID] = np.asarray([0.])
-    
+
     for time in times:
       inputToPass=self.inputToBePassed(container,time,Inputs)
       tempOut = self.runStatic(container, inputToPass)
@@ -139,9 +139,9 @@ class FTmodel(ExternalModelPluginBase):
             if outcome[var][0] > 0:
               pass
             else:
-              outcome[var] = np.asarray([time])  
+              outcome[var] = np.asarray([time])
     return outcome
-    
+
   def inputToBePassed(self,container,time,Inputs):
     """
       This method return the status of the input variables at time t=time
@@ -160,6 +160,6 @@ class FTmodel(ExternalModelPluginBase):
           else:
             inputToBePassed[key] = np.asarray([1.])
     return inputToBePassed
-  
-  
-  
+
+
+

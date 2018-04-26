@@ -108,19 +108,19 @@ class graphModel(ExternalModelPluginBase):
       @ In, Inputs, dict, dictionary of inputs from RAVEN
 
     """
-    if self.checkTypeOfAnalysis(container,Inputs): 
+    if self.checkTypeOfAnalysis(container,Inputs):
       dictOUT = self.runTimeDep(container, Inputs)
     else:
       dictOUT = self.runStatic(container, Inputs)
-    
+
     for var in dictOUT.keys():
       container.__dict__[var] = dictOUT[var]
-  
+
   def checkTypeOfAnalysis(self,container,Inputs):
     """
       This method checks which type of analysis to be performed:
        - True:  dynamic (time dependent)
-       - False: static      
+       - False: static
       @ In, container, object, self-like object where all the variables can be stored
       @ In, Inputs, dict, dictionary of inputs from RAVEN
       @ Out, analysisType, bool, type of analysis to be performed
@@ -146,7 +146,7 @@ class graphModel(ExternalModelPluginBase):
     """
     mapping = copy.deepcopy(container.mapping)
     nodes   = copy.deepcopy(container.nodes)
-    
+
     for key in Inputs.keys():
       if key in mapping.keys():
         if mapping[key] in nodes.keys() and Inputs[key][0] == 1.0:
@@ -178,7 +178,7 @@ class graphModel(ExternalModelPluginBase):
     """
     times = []
     times.append(0.)
-    for key in Inputs.keys():   
+    for key in Inputs.keys():
       if key in container.mapping.keys() and Inputs[key][0]!=1.:
         times.append(Inputs[key][0])
     times = sorted(times, key=float)
@@ -186,7 +186,7 @@ class graphModel(ExternalModelPluginBase):
     outcome={}
     for var in container.nodesOUT:
       outcome[container.InvMapping[var]] = np.asarray([0.])
-    
+
     for time in times:
       inputToPass=self.inputToBePassed(container,time,Inputs)
       tempOut = self.runStatic(container, inputToPass)
@@ -198,9 +198,9 @@ class graphModel(ExternalModelPluginBase):
             if outcome[var][0] > 0:
               pass
             else:
-              outcome[var] = np.asarray([time])  
+              outcome[var] = np.asarray([time])
     return outcome
-    
+
   def inputToBePassed(self,container,time,Inputs):
     """
       This method returns the status of the input variables at time t=time

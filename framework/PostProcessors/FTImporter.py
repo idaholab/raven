@@ -127,7 +127,7 @@ class FTImporter(PostProcessor):
     evaluation = finishedJob.getEvaluation()
     outputDict ={}
     outputDict['data'] = evaluation[1]
-    
+
     outputDict['dims'] = {}
     for key in outputDict['data'].keys():
       outputDict['dims'][key] = []

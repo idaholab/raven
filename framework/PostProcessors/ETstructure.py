@@ -76,7 +76,7 @@ class ETstructure():
 
   def returnDict(self):
     """
-      This method returns the 
+      This method returns the
       @ In, None
       @ Out, outputDict, dict, dictionary containing the values of all ET branching conditions
       @ Out, self.variables, list, IDs of the ET branching conditions
