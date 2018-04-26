@@ -70,11 +70,11 @@
         <initial>0</initial>
         <shape>11</shape>
       </variable>
-      <parameter>
-        <a>3</a>
-        <A>50</A>
-      </parameter>
       <objectVar>ans</objectVar>
+      <parameter>
+        <A>50</A>
+        <a>3</a>
+      </parameter>
     </SPSA>
   </Optimizers>
 
@@ -89,15 +89,15 @@
       <Input>x,y</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
+    <PointSet name="opt_export">
+      <Input>trajID</Input>
+      <Output>x,y,ans,varsUpdate</Output>
+    </PointSet>
     <DataSet name="optOut">
       <Input>x,y</Input>
       <Output>ans</Output>
       <Index var='t'>y</Index>
     </DataSet>
-    <PointSet name="opt_export">
-      <Input>trajID</Input>
-      <Output>x,y,ans,varsUpdate</Output>
-    </PointSet>
   </DataObjects>
 
   <OutStreams>
