@@ -1,0 +1,3 @@
+burnup,enrichment,u235dens,u238dens,ProbabilityWeight,ProbabilityWeight-enrichment,prefix,PointProbability,ProbabilityWeight-burnup,filename
+0.0001,14.9,0.0034578877,0.0197494123,0.005000158,1.0,1,0.000980392,1.0,output_time_evolution_0.csv
+0.0001,13.2,0.0030633636,0.0201439364,0.005000158,1.0,2,0.000980392,1.0,output_time_evolution_1.csv

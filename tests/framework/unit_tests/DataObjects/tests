@@ -1,0 +1,18 @@
+[Tests]
+  [./DataSets]
+    type = 'RavenPython'
+    input = 'TestDataSet.py'
+  [../]
+  [./HistorySets]
+    type = 'RavenPython'
+    input = 'TestHistorySet.py'
+  [../]
+  [./PointSets]
+    type = 'RavenPython'
+    input = 'TestPointSet.py'
+  [../]
+  [./HierachicalDataObject]
+    type = 'RavenPython'
+    input = 'TestHierarchal.py'
+  [../]
+[]

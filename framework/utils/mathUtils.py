@@ -572,7 +572,7 @@ def isAFloatOrInt(val,nanOk=True):
     @ In, nanOk, bool, optional, if True then NaN and inf are acceptable
     @ Out, isAFloatOrInt, bool, result
   """
-  if isinstance(val,(float,int,np.number)):
+  if isinstance(val,(float,int,long,np.number)):
     # bools are ints, unfortunately
     if isABoolean(val):
       return False
@@ -608,7 +608,7 @@ def isAnInteger(val,nanOk=False):
     @ In, nanOk, bool, optional, if True then NaN and inf are acceptable
     @ Out, isAnInteger, bool, result
   """
-  if isinstance(val,(int,np.integer)):
+  if isinstance(val,(int,np.integer,long)):
     # exclude booleans
     if isABoolean(val):
       return False

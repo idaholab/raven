@@ -1,0 +1,25 @@
+'CTESTLABEL: {<TestOrigen>}
+'#TestGrep# "erro[r]" ${OUTPUTFILENAME}
+'#TestGrep# "ORIGEN finished successfull[y]" ${OUTPUTFILENAME}
+'#TestGrep# "[N]uclide concentrations " -A12 ${OUTPUTFILENAME}
+'#TestRuntime# 2.59876
+
+'------------------DESCRIPTION------------------------------------------
+'
+' Tests ORIGEN mass handling.
+'
+' CHECKS PERFORMED
+'   * mass conversion is correct for input moles
+'   * legacy_mass=yes leads to different masses
+'
+'-----------------------------------------------------------------------
+
+'actual mass
+=origen
+case(actual_mass){
+  lib{ file="end7dec" }
+  mat{ iso=[zr-95=$RAVEN-zrMoles$] units="moles" }
+  time=[$RAVEN-endTime$] %1 day
+}
+end
+
