@@ -1,0 +1,98 @@
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/DataObjects.load_csv_history</name>
+    <author>maljdan</author>
+    <created>2018-04-26</created>
+    <classesTested>DataObjects.DataSet</classesTested>
+    <description>
+       Test to check the functionalities of DataObjects.DataSet to be constructed by an extern input file (csv)
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>csv</WorkingDir>
+    <Sequence>make,out,read,print</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="make">
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
+      <Model class="Models" type="ExternalModel">time_parabola</Model>
+      <Output class="DataObjects" type="DataSet">samples</Output>
+    </MultiRun>
+    <IOStep name="out">
+      <Input class="DataObjects" type="DataSet">samples</Input>
+      <Output class="OutStreams" type="Print">ds_samples</Output>
+    </IOStep>
+    <IOStep name="read">
+      <Input class="Files" type="">input</Input>
+      <Output class="DataObjects" type="DataSet">data</Output>
+    </IOStep>
+    <IOStep name="print">
+      <Input class="DataObjects" type="DataSet">data</Input>
+      <Output class="OutStreams" type="Print">ds_output</Output>
+    </IOStep>
+  </Steps>
+
+  <DataObjects>
+    <PointSet name="placeholder">
+      <Input>x</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <DataSet name="samples">
+      <Input>x,y</Input>
+      <Output>ans</Output>
+      <Index var="t">y</Index>
+    </DataSet>
+    <DataSet name="data">
+      <Input>x,y</Input>
+      <Output>ans</Output>
+      <Index var="t">y</Index>
+    </DataSet>
+  </DataObjects>
+
+  <Samplers>
+    <MonteCarlo name="mc">
+      <samplerInit>
+        <limit>3</limit>
+        <initialSeed>42</initialSeed>
+      </samplerInit>
+      <variable name="y">
+        <distribution>uni</distribution>
+        <shape>11</shape>
+      </variable>
+      <constant name="x">0.0</constant>
+    </MonteCarlo>
+  </Samplers>
+
+  <Distributions>
+    <Uniform name="uni">
+      <lowerBound>0.0</lowerBound>
+      <upperBound>1.0</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Models>
+    <ExternalModel ModuleToLoad="../../AnalyticModels/optimizing/time_parabola" name="time_parabola" subType="">
+      <variables>x,y,t,ans</variables>
+    </ExternalModel>
+  </Models>
+
+  <Files>
+    <Input name="input">ds_samples.csv</Input>
+  </Files>
+
+  <OutStreams>
+    <Print name="ds_samples">
+      <type>csv</type>
+      <source>samples</source>
+    </Print>
+    <Print name="ds_output">
+      <type>csv</type>
+      <source>data</source>
+    </Print>
+  </OutStreams>
+
+</Simulation>
