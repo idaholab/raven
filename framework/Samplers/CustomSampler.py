@@ -87,8 +87,8 @@ class CustomSampler(ForwardSampler):
       if child.tag == 'Source'  :
         if child.attrib['class'] not in ['Files','DataObjects']:
           self.raiseAnError(IOError, "Source class attribute must be either 'Files' or 'DataObjects'!!!")
-        if child.attrib['class'] == 'DataObjects' and child.attrib['type'] != 'PointSet':
-          self.raiseAnError(IOError, "Source type attribute must be 'PointSet' if class attribute is 'DataObjects'!!!")
+        #if child.attrib['class'] == 'DataObjects' and child.attrib['type'] != 'PointSet':
+        #  self.raiseAnError(IOError, "Source type attribute must be 'PointSet' if class attribute is 'DataObjects'!!!")
     if len(self.toBeSampled.keys()) == 0:
       self.raiseAnError(IOError,"no variables got inputted!!!!!!")
 
