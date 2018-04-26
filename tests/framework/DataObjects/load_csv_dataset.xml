@@ -18,8 +18,8 @@
   <Steps>
     <MultiRun name="make">
       <Input class="DataObjects" type="PointSet">placeholder</Input>
-      <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
       <Model class="Models" type="ExternalModel">time_parabola</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
       <Output class="DataObjects" type="DataSet">samples</Output>
     </MultiRun>
     <IOStep name="out">
