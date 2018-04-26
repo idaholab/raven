@@ -120,9 +120,10 @@ class OutStreamPrint(OutStreamManager):
       self.raiseAnError(TypeError, 'Print type ' + self.options['type'] + ' not available yet. ')
     if 'what' in self.options.keys():
       self.what = self.options['what']
-      for elm in self.what.lower().split(","):
-        if not elm.startswith("input") and not elm.startswith("output") and not elm.startswith("metadata") and elm.strip() != "all":
-          self.raiseAnError(IOError, 'Not recognized request in "what" node <'+elm.strip()+'>. The request must begin with one of "input", "output" or "metadata" or it could be "all" for ROMs!')
+      # don't do this check here, let individual entities determine what they want to be allowable keys.
+      #for elm in self.what.lower().split(","):
+        #if not elm.startswith("input") and not elm.startswith("output") and not elm.startswith("metadata") and elm.strip() != "all":
+        #  self.raiseAnError(IOError, 'Not recognized request in "what" node <'+elm.strip()+'>. The request must begin with one of "input", "output" or "metadata" or it could be "all" for ROMs!')
 
   def addOutput(self):
     """
