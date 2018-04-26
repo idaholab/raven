@@ -404,7 +404,6 @@ class DataSet(DataObject):
       self.raiseAnError(NotImplementedError,'Unrecognized read style: "{}"'.format(style))
     # after loading, set or reset scaling factors
     self._setScalingFactors()
-    print('DEBUGG loaded:',self.asDataset())
 
   def realization(self,index=None,matchDict=None,tol=1e-15, unpackXArray=False):
     """
@@ -1136,15 +1135,11 @@ class DataSet(DataObject):
         data = df[[var,self.sampleTag]+dims[var]]
         data.set_index(self.sampleTag,inplace=True)
         ndat = np.zeros(len(samples),dtype=object)
-        print('DEBUGG data:\n{}'.format(data))
         for s,sample in enumerate(samples):
           # set dtype on first pass
           if s == 0:
             dtype = self._getCompatibleType(sample)
           places = data.index.get_loc(sample)
-          print('DEBUGG data[places]',[i for i in data])
-          print('DEBUGG sample:',sample)
-          print('DEBUGG places:',places)
           vals = data[places].dropna().set_index(dims[var])
           #vals.drop('dim_1')
           # TODO this needs to be improved before ND will work; we need the individual sub-indices (time, space, etc)
@@ -1779,7 +1774,6 @@ class DataSet(DataObject):
   #      header = ','.join(ordered)
   #    else:
   #      header = ''
-  #    #print('DEBUGG data:',data[ordered])
   #    data = data[ordered].to_array()
   #    if not keepSampleTag:
   #      data = data.drop(self.sampleTag)
