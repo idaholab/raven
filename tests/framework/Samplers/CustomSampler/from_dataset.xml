@@ -35,6 +35,10 @@
   </Steps>
 
   <DataObjects>
+    <PointSet name="dummyIN">
+      <Input>x,y,ans</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
     <DataSet name="samples">
       <Input>x,y</Input>
       <Output>ans</Output>
@@ -45,10 +49,6 @@
       <Output>ans</Output>
       <Index var="t">y</Index>
     </DataSet>
-    <PointSet name="dummyIN">
-      <Input>x,y,ans</Input>
-      <Output>OutputPlaceHolder</Output>
-    </PointSet>
   </DataObjects>
 
   <Models>
