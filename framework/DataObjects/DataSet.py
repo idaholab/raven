@@ -635,6 +635,7 @@ class DataSet(DataObject):
     self.defaultDtype = object
     self._scaleFactors = {}     # mean, sigma for data for matching purposes
     self._alignedIndexes = {}   # dict {index:values} of indexes with aligned coordinates (so they are not in the collector, but here instead)
+    self._neededForReload = [self.sampleTag]  # metavariables required to reload this data object.
 
   def _readMoreXML(self,xmlNode):
     """
@@ -1404,8 +1405,9 @@ class DataSet(DataObject):
         else:
           keep.append(entry.split('|')[-1].strip())
     else:
-      # TODO need the sampleTag meta to load histories # BY DEFAULT only keep inputs, outputs; if specifically requested, keep metadata by selection
-      keep = self._inputs + self._outputs + self._metavars
+      # need the sampleTag meta to load histories
+      # BY DEFAULT keep everything needed to reload this entity.  Inheritors can define _neededForReload to specify what that is.
+      keep = self._inputs + self._outputs + self._metavars + self._neededForReload
     return keep
 
   def _getVariableIndex(self,var):

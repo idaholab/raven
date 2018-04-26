@@ -876,22 +876,22 @@ for l,line in enumerate(open(fname+'.csv','r')):
     checkSame('Cluster CSV main [2]',line.strip(),'2,{}_2.csv'.format(fname))
 for l,line in enumerate(open(fname+'_1.csv','r')):
   if l == 0:
-    checkSame('Cluster CSV id1 [0]',line.strip(),'a,b,x,y,varsUpdate')
+    checkSame('Cluster CSV id1 [0]',line.strip(),'RAVEN_sample_ID,a,b,x,y,varsUpdate')
   elif l == 1:
     line = list(float(x) for x in line.split(','))
-    checkArray('Cluster CSV id1 [1]',line,[1.0,5.0,10.0,100.0,0],float)
+    checkArray('Cluster CSV id1 [1]',line,[0,1.0,5.0,10.0,100.0,0],float)
   elif l == 2:
     line = list(float(x) for x in line.split(','))
-    checkArray('Cluster CSV id1 [1]',line,[1.1,5.1,10.1,100.1,1],float)
+    checkArray('Cluster CSV id1 [1]',line,[2,1.1,5.1,10.1,100.1,1],float)
 for l,line in enumerate(open(fname+'_2.csv','r')):
   if l == 0:
-    checkSame('Cluster CSV id1 [0]',line.strip(),'a,b,x,y,varsUpdate')
+    checkSame('Cluster CSV id1 [0]',line.strip(),'RAVEN_sample_ID,a,b,x,y,varsUpdate')
   elif l == 1:
     line = list(float(x) for x in line.split(','))
-    checkArray('Cluster CSV id1 [1]',line,[2.0,6.0,20.0,200.0,0],float)
+    checkArray('Cluster CSV id2 [1]',line,[1,2.0,6.0,20.0,200.0,0],float)
   elif l == 2:
     line = list(float(x) for x in line.split(','))
-    checkArray('Cluster CSV id1 [1]',line,[2.1,6.1,20.1,200.1,1],float)
+    checkArray('Cluster CSV id2 [1]',line,[3,2.1,6.1,20.1,200.1,1],float)
 # load it as a history # TODO first, loading needs to be fixed to use DataObject params instead of XML params
 from HistorySet import HistorySet
 xml = createElement('HistorySet',attrib={'name':'test'})

@@ -25,6 +25,7 @@
           <xsd:element name="upperBound"   type="xsd:float"    minOccurs="0"/>
           <xsd:element name="lowerBound"   type="xsd:float"    minOccurs="0"/>
           <xsd:element name="initial"      type="xsd:string"   minOccurs="0"/>
+          <xsd:element name="shape"        type="xsd:string"   minOccurs="0"/>
         </xsd:all>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
     </xsd:complexType>
