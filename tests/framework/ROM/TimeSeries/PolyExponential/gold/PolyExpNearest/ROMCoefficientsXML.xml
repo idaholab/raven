@@ -6,50 +6,50 @@
   <decay_heat>
     <timeScale>0.0 0.01 0.02 0.05 0.075 0.1 0.2 0.3</timeScale>
     <coefficients>
-      <realization burnup="26.402" enrichment="5.9">
-        <predictionRelDiff>0.000536250434737 -0.0193142174753 0.0983377997658 -0.0437683264068 -0.0934284179283 -0.0996313070947 0.0354566478962 0.226988882844</predictionRelDiff>
-        <fi>601.675381972 1858.20779685</fi>
-        <taui>3.33333333333 213.303419948</taui>
+      <realization burnup="2.640200e+01" enrichment="5.900000e+00">
+        <predictionRelDiff>5.362504e-04 -1.931422e-02 9.833780e-02 -4.376833e-02 -9.342842e-02 -9.963131e-02 3.545665e-02 2.269889e-01</predictionRelDiff>
+        <fi>6.016754e+02 1.858208e+03</fi>
+        <taui>3.333333e+00 2.133034e+02</taui>
       </realization>
-      <realization burnup="18.858" enrichment="5.9">
-        <predictionRelDiff>-3.69051687002e-05 -0.0195275854318 0.0979747829392 -0.0432214953438 -0.0923935306409 -0.0981753439997 0.0374097172439 0.228597891319</predictionRelDiff>
-        <fi>436.60248283 1337.06397221</fi>
-        <taui>3.3334368348 212.828110429</taui>
+      <realization burnup="1.885800e+01" enrichment="5.900000e+00">
+        <predictionRelDiff>-3.690517e-05 -1.952759e-02 9.797478e-02 -4.322150e-02 -9.239353e-02 -9.817534e-02 3.740972e-02 2.285979e-01</predictionRelDiff>
+        <fi>4.366025e+02 1.337064e+03</fi>
+        <taui>3.333437e+00 2.128281e+02</taui>
       </realization>
-      <realization burnup="16.501" enrichment="5.9">
-        <predictionRelDiff>0.000395586517461 -0.0192868647669 0.0975614164649 -0.0435523677383 -0.0924911370045 -0.098111217199 0.0379207345006 0.229150888302</predictionRelDiff>
-        <fi>384.742045776 1172.37373645</fi>
-        <taui>3.33333333333 212.771122441</taui>
+      <realization burnup="1.650100e+01" enrichment="5.900000e+00">
+        <predictionRelDiff>3.955865e-04 -1.928686e-02 9.756142e-02 -4.355237e-02 -9.249114e-02 -9.811122e-02 3.792073e-02 2.291509e-01</predictionRelDiff>
+        <fi>3.847420e+02 1.172374e+03</fi>
+        <taui>3.333333e+00 2.127711e+02</taui>
       </realization>
-      <realization burnup="26.402" enrichment="7.2">
-        <predictionRelDiff>0.000557735524819 -0.0197704603227 0.0994327247993 -0.0419312137351 -0.0919697217117 -0.0989568708631 0.0332266911157 0.223653343512</predictionRelDiff>
-        <fi>602.268893253 1877.62221153</fi>
-        <taui>3.33345006264 213.870143696</taui>
+      <realization burnup="2.640200e+01" enrichment="7.200000e+00">
+        <predictionRelDiff>5.577355e-04 -1.977046e-02 9.943272e-02 -4.193121e-02 -9.196972e-02 -9.895687e-02 3.322669e-02 2.236533e-01</predictionRelDiff>
+        <fi>6.022689e+02 1.877622e+03</fi>
+        <taui>3.333450e+00 2.138701e+02</taui>
       </realization>
-      <realization burnup="18.858" enrichment="7.2">
-        <predictionRelDiff>-6.25038487755e-06 -0.0202458598094 0.0983250527994 -0.0424715770061 -0.0920426280238 -0.0985443558057 0.0346029137627 0.225005935132</predictionRelDiff>
-        <fi>437.118895702 1349.50027129</fi>
-        <taui>3.33340664263 213.49158397</taui>
+      <realization burnup="1.885800e+01" enrichment="7.200000e+00">
+        <predictionRelDiff>-6.250385e-06 -2.024586e-02 9.832505e-02 -4.247158e-02 -9.204263e-02 -9.854436e-02 3.460291e-02 2.250059e-01</predictionRelDiff>
+        <fi>4.371189e+02 1.349500e+03</fi>
+        <taui>3.333407e+00 2.134916e+02</taui>
       </realization>
-      <realization burnup="16.501" enrichment="7.2">
-        <predictionRelDiff>8.62084627088e-05 -0.0192665651295 0.0983048194795 -0.0425356069026 -0.0918730623774 -0.098153996259 0.0354304653558 0.225842088772</predictionRelDiff>
-        <fi>384.922554741 1183.6822066</fi>
-        <taui>3.33333333333 213.687505383</taui>
+      <realization burnup="1.650100e+01" enrichment="7.200000e+00">
+        <predictionRelDiff>8.620846e-05 -1.926657e-02 9.830482e-02 -4.253561e-02 -9.187306e-02 -9.815400e-02 3.543047e-02 2.258421e-01</predictionRelDiff>
+        <fi>3.849226e+02 1.183682e+03</fi>
+        <taui>3.333333e+00 2.136875e+02</taui>
       </realization>
-      <realization burnup="26.402" enrichment="9.9">
-        <predictionRelDiff>0.000154689790662 -0.0208815669082 0.10015845572 -0.0403839272694 -0.0909230170019 -0.098968501894 0.0294857882332 0.218608125558</predictionRelDiff>
-        <fi>603.665097262 1904.40686959</fi>
-        <taui>3.33335258133 214.707470051</taui>
+      <realization burnup="2.640200e+01" enrichment="9.900000e+00">
+        <predictionRelDiff>1.546898e-04 -2.088157e-02 1.001585e-01 -4.038393e-02 -9.092302e-02 -9.896850e-02 2.948579e-02 2.186081e-01</predictionRelDiff>
+        <fi>6.036651e+02 1.904407e+03</fi>
+        <taui>3.333353e+00 2.147075e+02</taui>
       </realization>
-      <realization burnup="18.858" enrichment="9.9">
-        <predictionRelDiff>0.000579032040052 -0.0204966662872 0.0998499627367 -0.0400946852682 -0.0900874710076 -0.0976113408581 0.0319447370538 0.220931696432</predictionRelDiff>
-        <fi>437.028119334 1366.26211289</fi>
-        <taui>3.33337498468 214.332746934</taui>
+      <realization burnup="1.885800e+01" enrichment="9.900000e+00">
+        <predictionRelDiff>5.790320e-04 -2.049667e-02 9.984996e-02 -4.009469e-02 -9.008747e-02 -9.761134e-02 3.194474e-02 2.209317e-01</predictionRelDiff>
+        <fi>4.370281e+02 1.366262e+03</fi>
+        <taui>3.333375e+00 2.143327e+02</taui>
       </realization>
-      <realization burnup="16.501" enrichment="9.9">
-        <predictionRelDiff>0.000558914105396 -0.0195750358876 0.0989355828577 -0.0416080961534 -0.0914553642008 -0.0987606519535 0.0314491889121 0.220719696741</predictionRelDiff>
-        <fi>385.072709445 1197.6232048</fi>
-        <taui>3.33334325835 214.861621611</taui>
+      <realization burnup="1.650100e+01" enrichment="9.900000e+00">
+        <predictionRelDiff>5.589141e-04 -1.957504e-02 9.893558e-02 -4.160810e-02 -9.145536e-02 -9.876065e-02 3.144919e-02 2.207197e-01</predictionRelDiff>
+        <fi>3.850727e+02 1.197623e+03</fi>
+        <taui>3.333343e+00 2.148616e+02</taui>
       </realization>
     </coefficients>
   </decay_heat>
@@ -57,50 +57,50 @@
   <decay_heat_pu>
     <timeScale>0.0 0.01 0.02 0.05 0.075 0.1 0.2 0.3</timeScale>
     <coefficients>
-      <realization burnup="26.402" enrichment="5.9">
-        <predictionRelDiff>0.000536224379401 -0.0181718711854 0.0986639061739 -0.0437637150094 -0.0934239222126 -0.0996252567237 0.0354670706736 0.22700208852</predictionRelDiff>
-        <fi>0.00200558483524 0.00619402597459</fi>
-        <taui>3.33338949449 213.712494972</taui>
+      <realization burnup="2.640200e+01" enrichment="5.900000e+00">
+        <predictionRelDiff>5.362244e-04 -1.817187e-02 9.866391e-02 -4.376372e-02 -9.342392e-02 -9.962526e-02 3.546707e-02 2.270021e-01</predictionRelDiff>
+        <fi>2.005585e-03 6.194026e-03</fi>
+        <taui>3.333389e+00 2.137125e+02</taui>
       </realization>
-      <realization burnup="18.858" enrichment="5.9">
-        <predictionRelDiff>-3.69765470461e-05 -0.0195276963049 0.0979748348103 -0.0432213700913 -0.0923937078336 -0.0981759076324 0.037409561106 0.228598136689</predictionRelDiff>
-        <fi>0.0014553418455 0.00445687975996</fi>
-        <taui>3.3334368348 212.828110429</taui>
+      <realization burnup="1.885800e+01" enrichment="5.900000e+00">
+        <predictionRelDiff>-3.697655e-05 -1.952770e-02 9.797483e-02 -4.322137e-02 -9.239371e-02 -9.817591e-02 3.740956e-02 2.285981e-01</predictionRelDiff>
+        <fi>1.455342e-03 4.456880e-03</fi>
+        <taui>3.333437e+00 2.128281e+02</taui>
       </realization>
-      <realization burnup="16.501" enrichment="5.9">
-        <predictionRelDiff>0.000395515787127 -0.0189377510348 0.0976615621115 -0.0435506585634 -0.0924890882535 -0.0981078646741 0.0379272857209 0.229158701963</predictionRelDiff>
-        <fi>0.00128247376355 0.00390791254445</fi>
-        <taui>3.33336602783 212.896699681</taui>
+      <realization burnup="1.650100e+01" enrichment="5.900000e+00">
+        <predictionRelDiff>3.955158e-04 -1.893775e-02 9.766156e-02 -4.355066e-02 -9.248909e-02 -9.810786e-02 3.792729e-02 2.291587e-01</predictionRelDiff>
+        <fi>1.282474e-03 3.907913e-03</fi>
+        <taui>3.333366e+00 2.128967e+02</taui>
       </realization>
-      <realization burnup="26.402" enrichment="7.2">
-        <predictionRelDiff>0.000557740765418 -0.0197706182605 0.0994327026374 -0.0419314516318 -0.0919694936574 -0.0989566173352 0.0332269702233 0.22365332491</predictionRelDiff>
-        <fi>0.00200756302561 0.00625874094681</fi>
-        <taui>3.33345006264 213.870143696</taui>
+      <realization burnup="2.640200e+01" enrichment="7.200000e+00">
+        <predictionRelDiff>5.577408e-04 -1.977062e-02 9.943270e-02 -4.193145e-02 -9.196949e-02 -9.895662e-02 3.322697e-02 2.236533e-01</predictionRelDiff>
+        <fi>2.007563e-03 6.258741e-03</fi>
+        <taui>3.333450e+00 2.138701e+02</taui>
       </realization>
-      <realization burnup="18.858" enrichment="7.2">
-        <predictionRelDiff>-6.18705878355e-06 -0.0202457092704 0.0983254121665 -0.0424716668956 -0.0920427648378 -0.0985441410361 0.0346026872143 0.225005713137</predictionRelDiff>
-        <fi>0.00145706270081 0.00449833414535</fi>
-        <taui>3.33340664263 213.49158397</taui>
+      <realization burnup="1.885800e+01" enrichment="7.200000e+00">
+        <predictionRelDiff>-6.187059e-06 -2.024571e-02 9.832541e-02 -4.247167e-02 -9.204276e-02 -9.854414e-02 3.460269e-02 2.250057e-01</predictionRelDiff>
+        <fi>1.457063e-03 4.498334e-03</fi>
+        <taui>3.333407e+00 2.134916e+02</taui>
       </realization>
-      <realization burnup="16.501" enrichment="7.2">
-        <predictionRelDiff>8.61184501623e-05 -0.0187733962245 0.0984452987258 -0.0425331093505 -0.0918697056456 -0.0981494319041 0.0354386713987 0.22585246656</predictionRelDiff>
-        <fi>0.00128307543239 0.00394560724278</fi>
-        <taui>3.33337684478 213.864997989</taui>
+      <realization burnup="1.650100e+01" enrichment="7.200000e+00">
+        <predictionRelDiff>8.611845e-05 -1.877340e-02 9.844530e-02 -4.253311e-02 -9.186971e-02 -9.814943e-02 3.543867e-02 2.258525e-01</predictionRelDiff>
+        <fi>1.283075e-03 3.945607e-03</fi>
+        <taui>3.333377e+00 2.138650e+02</taui>
       </realization>
-      <realization burnup="26.402" enrichment="9.9">
-        <predictionRelDiff>0.000326552774128 -0.020454517439 0.10060747594 -0.0398550165712 -0.0903686914032 -0.0984098465568 0.0299790983052 0.219005542842</predictionRelDiff>
-        <fi>0.0020111939944 0.0063476085238</fi>
-        <taui>3.33335210562 214.719136822</taui>
+      <realization burnup="2.640200e+01" enrichment="9.900000e+00">
+        <predictionRelDiff>3.265528e-04 -2.045452e-02 1.006075e-01 -3.985502e-02 -9.036869e-02 -9.840985e-02 2.997910e-02 2.190055e-01</predictionRelDiff>
+        <fi>2.011194e-03 6.347609e-03</fi>
+        <taui>3.333352e+00 2.147191e+02</taui>
       </realization>
-      <realization burnup="18.858" enrichment="9.9">
-        <predictionRelDiff>0.000579032040052 -0.0204966662872 0.0998499627367 -0.0400946852682 -0.0900878201385 -0.0976117255868 0.0319447370538 0.220931696432</predictionRelDiff>
-        <fi>0.00145676039778 0.00455420704297</fi>
-        <taui>3.33337498468 214.332746934</taui>
+      <realization burnup="1.885800e+01" enrichment="9.900000e+00">
+        <predictionRelDiff>5.790320e-04 -2.049667e-02 9.984996e-02 -4.009469e-02 -9.008782e-02 -9.761173e-02 3.194474e-02 2.209317e-01</predictionRelDiff>
+        <fi>1.456760e-03 4.554207e-03</fi>
+        <taui>3.333375e+00 2.143327e+02</taui>
       </realization>
-      <realization burnup="16.501" enrichment="9.9">
-        <predictionRelDiff>0.000300404940199 -0.0197898767876 0.0988812549878 -0.0416138454301 -0.0914544368337 -0.0987545088856 0.0314767800654 0.220758235751</predictionRelDiff>
-        <fi>0.00128359626023 0.00399342102135</fi>
-        <taui>3.33356334233 214.821661817</taui>
+      <realization burnup="1.650100e+01" enrichment="9.900000e+00">
+        <predictionRelDiff>3.004049e-04 -1.978988e-02 9.888125e-02 -4.161385e-02 -9.145444e-02 -9.875451e-02 3.147678e-02 2.207582e-01</predictionRelDiff>
+        <fi>1.283596e-03 3.993421e-03</fi>
+        <taui>3.333563e+00 2.148217e+02</taui>
       </realization>
     </coefficients>
   </decay_heat_pu>

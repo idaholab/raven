@@ -3134,10 +3134,10 @@ class PolyExponential(supervisedLearning):
       outFile.addScalar(target,"timeScale",' '.join([str(elm) for elm in self.pivotValues]))
     if "coefficients" in what:
       for smp in range(len(self.aij[target])):
-        valDict = {'fi': ' '.join([ str(elm) for elm in self.aij[target][smp,:]]),
-                   'taui':' '.join([ str(elm) for elm in self.bij[target][smp,:]]),
-                   'predictionRelDiff' :' '.join([ str(elm) for elm in self.predictError[target][smp,:]])}
-        attributeDict = {self.features[index]:self.featureVals[smp,index] for index in range(len(self.features))}
+        valDict = {'fi': ' '.join([ '%.6e' % elm for elm in self.aij[target][smp,:]]),
+                   'taui':' '.join([ '%.6e' % elm for elm in self.bij[target][smp,:]]),
+                   'predictionRelDiff' :' '.join([ '%.6e' % elm for elm in self.predictError[target][smp,:]])}
+        attributeDict = {self.features[index]:'%.6e' % self.featureVals[smp,index] for index in range(len(self.features))}
         outFile.addVector("coefficients","realization",valDict,root=target, attrs=attributeDict)
 
   def __confidenceLocal__(self,featureVals):
@@ -3383,28 +3383,28 @@ class DynamicModeDecomposition(supervisedLearning):
     if "features" in what:
       outFile.addScalar(target,"features",' '.join(self.features))
     if "timeScale" in what:
-      outFile.addScalar(target,"timeScale",' '.join([str(elm) for elm in self.pivotValues.ravel()]))
+      outFile.addScalar(target,"timeScale",' '.join(['%.6e' % elm for elm in self.pivotValues.ravel()]))
     if "dmdTimeScale" in what:
-      outFile.addScalar(target,"dmdTimeScale",' '.join([str(elm) for elm in self.__getTimeScale()]))
+      outFile.addScalar(target,"dmdTimeScale",' '.join(['%.6e' % elm for elm in self.__getTimeScale()]))
     if "eigs" in what:
-      eigsReal = " ".join([str(self._eigs[target][indx].real) for indx in
+      eigsReal = " ".join(['%.6e' % self._eigs[target][indx].real for indx in
                        range(len(self._eigs[target]))])
       outFile.addScalar("eigs","real", eigsReal,root=target)
-      eigsImag = " ".join([str(self._eigs[target][indx].imag) for indx in
+      eigsImag = " ".join(['%.6e' % self._eigs[target][indx].imag for indx in
                                range(len(self._eigs[target]))])
       outFile.addScalar("eigs","imaginary", eigsImag,root=target)
     if "amplitudes" in what:
-      ampsReal = " ".join([str(self._amplitudes[target][indx].real) for indx in
+      ampsReal = " ".join(['%.6e' % self._amplitudes[target][indx].real for indx in
                        range(len(self._amplitudes[target]))])
       outFile.addScalar("amplitudes","real", ampsReal,root=target)
-      ampsImag = " ".join([str(self._amplitudes[target][indx].imag) for indx in
+      ampsImag = " ".join(['%.6e' % self._amplitudes[target][indx].imag for indx in
                                range(len(self._amplitudes[target]))])
       outFile.addScalar("amplitudes","imaginary", ampsImag,root=target)
     if "modes" in what:
       for smp in range(len(self._modes[target])):
-        valDict = {'real': ' '.join([ str(elm) for elm in self._modes[target][smp,:].real]),
-                   'imaginary':' '.join([ str(elm) for elm in self._modes[target][smp,:].imag])}
-        attributeDict = {self.features[index]:self.featureVals[smp,index] for index in range(len(self.features))}
+        valDict = {'real': ' '.join([ '%.6e' % elm for elm in self._modes[target][smp,:].real]),
+                   'imaginary':' '.join([ '%.6e' % elm for elm in self._modes[target][smp,:].imag])}
+        attributeDict = {self.features[index]:'%.6e' % self.featureVals[smp,index] for index in range(len(self.features))}
         outFile.addVector("modes","realization",valDict,root=target, attrs=attributeDict)
 
   def __confidenceLocal__(self,featureVals):

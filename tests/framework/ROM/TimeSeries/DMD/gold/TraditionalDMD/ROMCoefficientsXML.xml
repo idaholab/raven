@@ -4,103 +4,103 @@
   <description> This XML file contains the main information of the DMD ROM. If "modes" (dynamic modes), "eigs" (eigenvalues), "amplitudes" (mode amplitudes) and "dmdTimeScale" (internal dmd time scale) are dumped, the method is explained in P.J. Schmid, Dynamic mode decomposition of numerical and experimental data, Journal of Fluid Mechanics 656.1 (2010), 5-28</description>
 
   <decay_heat>
-    <timeScale>0.0 0.01 0.02 0.05 0.075 0.1 0.2 0.3</timeScale>
-    <dmdTimeScale>0 1 2 3 4 5 6 7</dmdTimeScale>
+    <timeScale>0.000000e+00 1.000000e-02 2.000000e-02 5.000000e-02 7.500000e-02 1.000000e-01 2.000000e-01 3.000000e-01</timeScale>
+    <dmdTimeScale>0.000000e+00 1.000000e+00 2.000000e+00 3.000000e+00 4.000000e+00 5.000000e+00 6.000000e+00 7.000000e+00</dmdTimeScale>
     <eigs>
-      <real>-0.00896109745591 0.895105361226 0.388544783411</real>
-      <imaginary>0.0 0.0 0.0</imaginary>
+      <real>-8.961097e-03 8.951054e-01 3.885448e-01</real>
+      <imaginary>0.000000e+00 0.000000e+00 0.000000e+00</imaginary>
     </eigs>
     <amplitudes>
-      <real>339020.481768 1800.64987763 3366.71535073</real>
-      <imaginary>0.0 0.0 0.0</imaginary>
+      <real>3.390205e+05 1.800650e+03 3.366715e+03</real>
+      <imaginary>0.000000e+00 0.000000e+00 0.000000e+00</imaginary>
     </amplitudes>
     <modes>
-      <realization burnup="26.402" enrichment="5.9">
-        <real>0.00367969630086 0.370936743636 0.161501323461</real>
-        <imaginary>0.0 0.0 0.0</imaginary>
+      <realization burnup="2.640200e+01" enrichment="5.900000e+00">
+        <real>3.679696e-03 3.709367e-01 1.615013e-01</real>
+        <imaginary>0.000000e+00 0.000000e+00 0.000000e+00</imaginary>
       </realization>
-      <realization burnup="18.858" enrichment="5.9">
-        <real>0.00264719057901 0.269478607629 0.116157253365</real>
-        <imaginary>0.0 0.0 0.0</imaginary>
+      <realization burnup="1.885800e+01" enrichment="5.900000e+00">
+        <real>2.647191e-03 2.694786e-01 1.161573e-01</real>
+        <imaginary>0.000000e+00 0.000000e+00 0.000000e+00</imaginary>
       </realization>
-      <realization burnup="16.501" enrichment="5.9">
-        <real>0.00232591179061 0.237481268426 0.10192530354</real>
-        <imaginary>0.0 0.0 0.0</imaginary>
+      <realization burnup="1.650100e+01" enrichment="5.900000e+00">
+        <real>2.325912e-03 2.374813e-01 1.019253e-01</real>
+        <imaginary>0.000000e+00 0.000000e+00 0.000000e+00</imaginary>
       </realization>
-      <realization burnup="26.402" enrichment="7.2">
-        <real>0.00374027454205 0.37140209243 0.16212497572</real>
-        <imaginary>0.0 0.0 0.0</imaginary>
+      <realization burnup="2.640200e+01" enrichment="7.200000e+00">
+        <real>3.740275e-03 3.714021e-01 1.621250e-01</real>
+        <imaginary>0.000000e+00 0.000000e+00 0.000000e+00</imaginary>
       </realization>
-      <realization burnup="18.858" enrichment="7.2">
-        <real>0.00268610555265 0.26963315806 0.116507996221</real>
-        <imaginary>0.0 0.0 0.0</imaginary>
+      <realization burnup="1.885800e+01" enrichment="7.200000e+00">
+        <real>2.686106e-03 2.696332e-01 1.165080e-01</real>
+        <imaginary>0.000000e+00 0.000000e+00 0.000000e+00</imaginary>
       </realization>
-      <realization burnup="16.501" enrichment="7.2">
-        <real>0.00235085545833 0.237513462769 0.102185717263</real>
-        <imaginary>0.0 0.0 0.0</imaginary>
+      <realization burnup="1.650100e+01" enrichment="7.200000e+00">
+        <real>2.350855e-03 2.375135e-01 1.021857e-01</real>
+        <imaginary>0.000000e+00 0.000000e+00 0.000000e+00</imaginary>
       </realization>
-      <realization burnup="26.402" enrichment="9.9">
-        <real>0.00380782884241 0.372101174935 0.162883445593</real>
-        <imaginary>0.0 0.0 0.0</imaginary>
+      <realization burnup="2.640200e+01" enrichment="9.900000e+00">
+        <real>3.807829e-03 3.721012e-01 1.628834e-01</real>
+        <imaginary>0.000000e+00 0.000000e+00 0.000000e+00</imaginary>
       </realization>
-      <realization burnup="18.858" enrichment="9.9">
-        <real>0.00272389984915 0.2697014101 0.116902419595</real>
-        <imaginary>0.0 0.0 0.0</imaginary>
+      <realization burnup="1.885800e+01" enrichment="9.900000e+00">
+        <real>2.723900e-03 2.697014e-01 1.169024e-01</real>
+        <imaginary>0.000000e+00 0.000000e+00 0.000000e+00</imaginary>
       </realization>
-      <realization burnup="16.501" enrichment="9.9">
-        <real>0.00238605130424 0.237383937809 0.102495717143</real>
-        <imaginary>0.0 0.0 0.0</imaginary>
+      <realization burnup="1.650100e+01" enrichment="9.900000e+00">
+        <real>2.386051e-03 2.373839e-01 1.024957e-01</real>
+        <imaginary>0.000000e+00 0.000000e+00 0.000000e+00</imaginary>
       </realization>
     </modes>
   </decay_heat>
 
   <decay_heat_pu>
-    <timeScale>0.0 0.01 0.02 0.05 0.075 0.1 0.2 0.3</timeScale>
-    <dmdTimeScale>0 1 2 3 4 5 6 7</dmdTimeScale>
+    <timeScale>0.000000e+00 1.000000e-02 2.000000e-02 5.000000e-02 7.500000e-02 1.000000e-01 2.000000e-01 3.000000e-01</timeScale>
+    <dmdTimeScale>0.000000e+00 1.000000e+00 2.000000e+00 3.000000e+00 4.000000e+00 5.000000e+00 6.000000e+00 7.000000e+00</dmdTimeScale>
     <eigs>
-      <real>-0.008954682364 0.895101746103 0.388542440431</real>
-      <imaginary>0.0 0.0 0.0</imaginary>
+      <real>-8.954682e-03 8.951017e-01 3.885424e-01</real>
+      <imaginary>0.000000e+00 0.000000e+00 0.000000e+00</imaginary>
     </eigs>
     <amplitudes>
-      <real>1.13085202758 0.00600252861627 0.011222267508</real>
-      <imaginary>0.0 0.0 0.0</imaginary>
+      <real>1.130852e+00 6.002529e-03 1.122227e-02</real>
+      <imaginary>0.000000e+00 0.000000e+00 0.000000e+00</imaginary>
     </amplitudes>
     <modes>
-      <realization burnup="26.402" enrichment="5.9">
-        <real>0.00367704951643 0.370935241387 0.161500374263</real>
-        <imaginary>0.0 0.0 0.0</imaginary>
+      <realization burnup="2.640200e+01" enrichment="5.900000e+00">
+        <real>3.677050e-03 3.709352e-01 1.615004e-01</real>
+        <imaginary>0.000000e+00 0.000000e+00 0.000000e+00</imaginary>
       </realization>
-      <realization burnup="18.858" enrichment="5.9">
-        <real>0.00264536834113 0.269477527461 0.116156755482</real>
-        <imaginary>0.0 0.0 0.0</imaginary>
+      <realization burnup="1.885800e+01" enrichment="5.900000e+00">
+        <real>2.645368e-03 2.694775e-01 1.161568e-01</real>
+        <imaginary>0.000000e+00 0.000000e+00 0.000000e+00</imaginary>
       </realization>
-      <realization burnup="16.501" enrichment="5.9">
-        <real>0.0023241755643 0.237480287955 0.101924532562</real>
-        <imaginary>0.0 0.0 0.0</imaginary>
+      <realization burnup="1.650100e+01" enrichment="5.900000e+00">
+        <real>2.324176e-03 2.374803e-01 1.019245e-01</real>
+        <imaginary>0.000000e+00 0.000000e+00 0.000000e+00</imaginary>
       </realization>
-      <realization burnup="26.402" enrichment="7.2">
-        <real>0.00373756387436 0.371400659002 0.162123825504</real>
-        <imaginary>0.0 0.0 0.0</imaginary>
+      <realization burnup="2.640200e+01" enrichment="7.200000e+00">
+        <real>3.737564e-03 3.714007e-01 1.621238e-01</real>
+        <imaginary>0.000000e+00 0.000000e+00 0.000000e+00</imaginary>
       </realization>
-      <realization burnup="18.858" enrichment="7.2">
-        <real>0.00268423476992 0.269632010735 0.116507498521</real>
-        <imaginary>0.0 0.0 0.0</imaginary>
+      <realization burnup="1.885800e+01" enrichment="7.200000e+00">
+        <real>2.684235e-03 2.696320e-01 1.165075e-01</real>
+        <imaginary>0.000000e+00 0.000000e+00 0.000000e+00</imaginary>
       </realization>
-      <realization burnup="16.501" enrichment="7.2">
-        <real>0.00234918462361 0.237512498674 0.102185033334</real>
-        <imaginary>0.0 0.0 0.0</imaginary>
+      <realization burnup="1.650100e+01" enrichment="7.200000e+00">
+        <real>2.349185e-03 2.375125e-01 1.021850e-01</real>
+        <imaginary>0.000000e+00 0.000000e+00 0.000000e+00</imaginary>
       </realization>
-      <realization burnup="26.402" enrichment="9.9">
-        <real>0.00380511780335 0.37209968432 0.162882491201</real>
-        <imaginary>0.0 0.0 0.0</imaginary>
+      <realization burnup="2.640200e+01" enrichment="9.900000e+00">
+        <real>3.805118e-03 3.720997e-01 1.628825e-01</real>
+        <imaginary>0.000000e+00 0.000000e+00 0.000000e+00</imaginary>
       </realization>
-      <realization burnup="18.858" enrichment="9.9">
-        <real>0.00272199241076 0.26970028994 0.116901823605</real>
-        <imaginary>0.0 0.0 0.0</imaginary>
+      <realization burnup="1.885800e+01" enrichment="9.900000e+00">
+        <real>2.721992e-03 2.697003e-01 1.169018e-01</real>
+        <imaginary>0.000000e+00 0.000000e+00 0.000000e+00</imaginary>
       </realization>
-      <realization burnup="16.501" enrichment="9.9">
-        <real>0.00238425999138 0.237382980451 0.102494925405</real>
-        <imaginary>0.0 0.0 0.0</imaginary>
+      <realization burnup="1.650100e+01" enrichment="9.900000e+00">
+        <real>2.384260e-03 2.373830e-01 1.024949e-01</real>
+        <imaginary>0.000000e+00 0.000000e+00 0.000000e+00</imaginary>
       </realization>
     </modes>
   </decay_heat_pu>
