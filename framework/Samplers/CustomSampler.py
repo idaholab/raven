@@ -115,8 +115,8 @@ class CustomSampler(ForwardSampler):
     for key, value in self.assemblerObjects.items():
       if key == 'Source':
         self.assemblerDict[key] =  []
-        for interface in value:
-          self.assemblerDict[key].append([interface[0],interface[1],interface[2],initDict[interface[0]][interface[2]]])
+        for entity,etype,name in value:
+          self.assemblerDict[key].append([entity,etype,name,initDict[entity][name]])
     for key,val in self.dependentSample.items():
       if val not in initDict['Functions'].keys():
         self.raiseAnError('Function',val,'was not found among the available functions:',initDict['Functions'].keys())

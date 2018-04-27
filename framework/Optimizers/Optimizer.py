@@ -274,7 +274,8 @@ class Optimizer(Sampler):
     """
     self.assemblerDict['Functions'    ] = []
     self.assemblerDict['Distributions'] = []
-    for mainClass in ['Functions','Distributions']:
+    self.assemblerDict['DataObjects'  ] = []
+    for mainClass in ['Functions','Distributions','DataObjects']:
       for funct in initDict[mainClass]:
         self.assemblerDict[mainClass].append([mainClass,initDict[mainClass][funct].type,funct,initDict[mainClass][funct]])
 
@@ -287,7 +288,8 @@ class Optimizer(Sampler):
     """
     needDict = {}
     needDict['Distributions'] = [(None,'all')] # We get ALL Distributions in case a Sampler is used for the initialization of the initial points
-    needDict['Functions']     = [(None,'all')] # We get ALL Functions in case a Sampler is used for the initialization of the initial points
+    needDict['Functions'    ] = [(None,'all')] # We get ALL Functions in case a Sampler is used for the initialization of the initial points
+    needDict['DataObjects'  ] = [(None,'all')] # We get ALL DataObjects in case a CustomSampler is used for the initialization of the initial points
     return needDict
 
   def _readMoreXML(self,xmlNode):
@@ -568,12 +570,10 @@ class Optimizer(Sampler):
       if not forwardSampler:
         self.raiseAnError(IOError,'Only "ForwardSampler"s (e.g. MonteCarlo, Grid, etc.) can be used for initializing the trajectories in the Optimizer! Got "{}.{}" for "{}".'.format(cls,typ,name))
       self.initializationSampler = sampler
-      availableDist, availableFunc = {}, {} # {'dist name: object}
-      for entry in self.assemblerDict.get('Distributions',[]):
-        availableDist[entry[2]] = entry[3]
-      for entry in self.assemblerDict.get('Functions',[]):
-        availableFunc[entry[2]] = entry[3]
-      self.initializationSampler._generateDistributions(availableDist,availableFunc)
+      initDict = {}
+      for entity in ['Distributions','Functions','DataObjects']:
+        initDict[entity] = dict((entry[2],entry[3]) for entry in self.assemblerDict.get(entity,[]))
+      self.initializationSampler._localGenerateAssembler(initDict)
       for key in self.initializationSampler.getInitParams().keys():
         if key.startswith("sampled variable:"):
           var = key.replace("sampled variable:","").strip()
@@ -601,7 +601,7 @@ class Optimizer(Sampler):
         self.initializationSampler.inputInfo['prefix'] = self.initializationSampler.counter
         sampledVars = self.initializationSampler.inputInfo['SampledVars']
         for varName, value in sampledVars.items():
-          self.optVarsInit['initial'][varName][self.initializationSampler.counter] = value
+          self.optVarsInit['initial'][varName][self.initializationSampler.counter] = np.atleast_1d(value)
         self.initializationSampler.counter +=1
 
     # NOTE: counter['varsUpdate'] needs to be set AFTER self.optTraj length is set by the sampler (if used exclusively)
