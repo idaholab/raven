@@ -3024,14 +3024,13 @@ class PolyExponential(supervisedLearning):
         self.model[target] = make_pipeline(preprocessing.PolynomialFeatures(self.polyExpParams['polyOrder']), linear_model.Ridge())
         self.model[target].fit(featureVals, expTermCoeff)
         # print the coefficient
-        if self.getLocalVerbosity() == 'debug':
-          self.raiseADebug('poly coefficients for target "'+target+'":')
-          coefficients = self.model[target].steps[1][1].coef_
-          for l, coeff in enumerate(coefficients):
-            coeff_str = "    a_"+str(l+1) if l < self.polyExpParams['expTerms'] else "    b_"+str((l-self.polyExpParams['expTerms'])+1)
-            coeff_str+="(" + ",".join(self.features)+"):"
-            self.raiseADebug(coeff_str)
-            self.raiseADebug("      "+" ".join([str(elm) for elm in coeff]))
+        self.raiseADebug('poly coefficients for target "'+target+'":')
+        coefficients = self.model[target].steps[1][1].coef_
+        for l, coeff in enumerate(coefficients):
+          coeff_str = "    a_"+str(l+1) if l < self.polyExpParams['expTerms'] else "    b_"+str((l-self.polyExpParams['expTerms'])+1)
+          coeff_str+="(" + ",".join(self.features)+"):"
+          self.raiseADebug(coeff_str)
+          self.raiseADebug("      "+" ".join([str(elm) for elm in coeff]))
       elif self.polyExpParams['coeffRegressor']== 'nearest':
         # construct nearest
         self.model[target] = [None for _ in range(self.polyExpParams['expTerms']*2)]

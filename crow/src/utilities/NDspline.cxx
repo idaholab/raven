@@ -359,7 +359,9 @@ void NDSpline::from2DTo1DRestructuring(std::vector<std::vector<double> > & two_d
 
 
 double NDSpline::uk(double x, std::vector<double> & discretizations, double k){
-  // defined in Christian Habermann, Fabian Kindermann, "Multidimensional Spline Interpolation: Theory and Applications", Computational Economics, Vol.30-2, pp 153-169 (2007) [http://link.springer.com/article/10.1007%2Fs10614-007-9092-4]
+  // defined in Christian Habermann, Fabian Kindermann, "Multidimensional Spline
+  // Interpolation: Theory and Applications", Computational Economics, Vol.30-2,
+  // pp 153-169 (2007) [http://link.springer.com/article/10.1007%2Fs10614-007-9092-4]
 
   int down=0;
 
