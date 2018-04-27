@@ -3,17 +3,15 @@
    type = 'RavenFramework'
    input = 'test_traditional_dmd.xml'
    output = 'TraditionalDMD/ROMpk TraditionalDMD/outputDMD/outputDMDtraditional.xml'
-   csv = 'TraditionalDMD/outputDMD/outputDMDtraditional_0.csv'
-   xml = 'TraditionalDMD/ROMCoefficientsXML.xml'  
+   csv = 'TraditionalDMD/outputDMD/outputDMDtraditional_0.csv TraditionalDMD/ROMCoefficientsXML.xml'
    rel_err = 0.0001
   [../]
 
  [./HighOrderDMD]
    type = 'RavenFramework'
    input = 'test_high_order_dmd.xml'
-   output = 'HighOrderDMD/ROMpk HighOrderDMD/outputDMD/outputDMDHighOrder.xml'
+   output = 'HighOrderDMD/ROMpk HighOrderDMD/outputDMD/outputDMDHighOrder.xml HighOrderDMD/ROMCoefficientsXML.xml'
    csv = 'HighOrderDMD/outputDMD/outputDMDHighOrder_0.csv'
-   xml = 'HighOrderDMD/ROMCoefficientsXML.xml'  
    rel_err = 0.0001
   [../]
 
