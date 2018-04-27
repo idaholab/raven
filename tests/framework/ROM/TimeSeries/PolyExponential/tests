@@ -2,9 +2,8 @@
  [./PolyExpNearest]
    type = 'RavenFramework'
    input = 'test_poly_exponential_nearest.xml'
-   output = 'PolyExpNearest/ROMpk PolyExpNearest/outputPoly/outputPolyNearest.xml'
+   output = 'PolyExpNearest/ROMpk PolyExpNearest/outputPoly/outputPolyNearest.xml PolyExpNearest/ROMCoefficientsXML.xml'
    csv = 'PolyExpNearest/outputPoly/outputPolyNearest.csv PolyExpNearest/outputPoly/outputPolyNearest_0.csv'
-   xml = 'PolyExpNearest/ROMCoefficientsXML.xml'  
    rel_err = 0.0001
    minimum_library_versions = 'scipy 0.15.0'
   [../]
@@ -12,9 +11,8 @@
  [./PolyExpPoly]
    type = 'RavenFramework'
    input = 'test_poly_exponential_poly.xml'
-   output = 'PolyExpPoly/ROMpk PolyExpPoly/outputPoly/outputPolyPoly.xml'
+   output = 'PolyExpPoly/ROMpk PolyExpPoly/outputPoly/outputPolyPoly.xml PolyExpPoly/ROMCoefficientsXML.xml'
    csv = 'PolyExpPoly/outputPoly/outputPolyPoly.csv PolyExpPoly/outputPoly/outputPolyPoly_0.csv'
-   xml = 'PolyExpPoly/ROMCoefficientsXML.xml'
    rel_err = 0.0001
    minimum_library_versions = 'scipy 0.15.0'
   [../]
@@ -22,9 +20,8 @@
  [./PolyExpSpline]
    type = 'RavenFramework'
    input = 'test_poly_exponential_spline.xml'
-   output = 'PolyExpSpline/ROMpk PolyExpSpline/outputPoly/outputPolySpline.xml'
+   output = 'PolyExpSpline/ROMpk PolyExpSpline/outputPoly/outputPolySpline.xml PolyExpSpline/ROMCoefficientsXML.xml'
    csv = 'PolyExpSpline/outputPoly/outputPolySpline.csv PolyExpSpline/outputPoly/outputPolySpline_0.csv'
-   xml = 'PolyExpSpline/ROMCoefficientsXML.xml'
    rel_err = 0.0001
    minimum_library_versions = 'scipy 0.15.0'
   [../]
