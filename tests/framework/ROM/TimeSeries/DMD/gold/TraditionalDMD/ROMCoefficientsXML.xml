@@ -1,0 +1,107 @@
+<ROM type="Static">
+  <type>DMD</type>
+
+  <description> This XML file contains the main information of the DMD ROM. If "modes" (dynamic modes), "eigs" (eigenvalues), "amplitudes" (mode amplitudes) and "dmdTimeScale" (internal dmd time scale) are dumped, the method is explained in P.J. Schmid, Dynamic mode decomposition of numerical and experimental data, Journal of Fluid Mechanics 656.1 (2010), 5-28</description>
+
+  <decay_heat>
+    <timeScale>0.0 0.01 0.02 0.05 0.075 0.1 0.2 0.3</timeScale>
+    <dmdTimeScale>0 1 2 3 4 5 6 7</dmdTimeScale>
+    <eigs>
+      <real>-0.00896109745591 0.895105361226 0.388544783411</real>
+      <imaginary>0.0 0.0 0.0</imaginary>
+    </eigs>
+    <amplitudes>
+      <real>339020.481768 1800.64987763 3366.71535073</real>
+      <imaginary>0.0 0.0 0.0</imaginary>
+    </amplitudes>
+    <modes>
+      <realization burnup="26.402" enrichment="5.9">
+        <real>0.00367969630086 0.370936743636 0.161501323461</real>
+        <imaginary>0.0 0.0 0.0</imaginary>
+      </realization>
+      <realization burnup="18.858" enrichment="5.9">
+        <real>0.00264719057901 0.269478607629 0.116157253365</real>
+        <imaginary>0.0 0.0 0.0</imaginary>
+      </realization>
+      <realization burnup="16.501" enrichment="5.9">
+        <real>0.00232591179061 0.237481268426 0.10192530354</real>
+        <imaginary>0.0 0.0 0.0</imaginary>
+      </realization>
+      <realization burnup="26.402" enrichment="7.2">
+        <real>0.00374027454205 0.37140209243 0.16212497572</real>
+        <imaginary>0.0 0.0 0.0</imaginary>
+      </realization>
+      <realization burnup="18.858" enrichment="7.2">
+        <real>0.00268610555265 0.26963315806 0.116507996221</real>
+        <imaginary>0.0 0.0 0.0</imaginary>
+      </realization>
+      <realization burnup="16.501" enrichment="7.2">
+        <real>0.00235085545833 0.237513462769 0.102185717263</real>
+        <imaginary>0.0 0.0 0.0</imaginary>
+      </realization>
+      <realization burnup="26.402" enrichment="9.9">
+        <real>0.00380782884241 0.372101174935 0.162883445593</real>
+        <imaginary>0.0 0.0 0.0</imaginary>
+      </realization>
+      <realization burnup="18.858" enrichment="9.9">
+        <real>0.00272389984915 0.2697014101 0.116902419595</real>
+        <imaginary>0.0 0.0 0.0</imaginary>
+      </realization>
+      <realization burnup="16.501" enrichment="9.9">
+        <real>0.00238605130424 0.237383937809 0.102495717143</real>
+        <imaginary>0.0 0.0 0.0</imaginary>
+      </realization>
+    </modes>
+  </decay_heat>
+
+  <decay_heat_pu>
+    <timeScale>0.0 0.01 0.02 0.05 0.075 0.1 0.2 0.3</timeScale>
+    <dmdTimeScale>0 1 2 3 4 5 6 7</dmdTimeScale>
+    <eigs>
+      <real>-0.008954682364 0.895101746103 0.388542440431</real>
+      <imaginary>0.0 0.0 0.0</imaginary>
+    </eigs>
+    <amplitudes>
+      <real>1.13085202758 0.00600252861627 0.011222267508</real>
+      <imaginary>0.0 0.0 0.0</imaginary>
+    </amplitudes>
+    <modes>
+      <realization burnup="26.402" enrichment="5.9">
+        <real>0.00367704951643 0.370935241387 0.161500374263</real>
+        <imaginary>0.0 0.0 0.0</imaginary>
+      </realization>
+      <realization burnup="18.858" enrichment="5.9">
+        <real>0.00264536834113 0.269477527461 0.116156755482</real>
+        <imaginary>0.0 0.0 0.0</imaginary>
+      </realization>
+      <realization burnup="16.501" enrichment="5.9">
+        <real>0.0023241755643 0.237480287955 0.101924532562</real>
+        <imaginary>0.0 0.0 0.0</imaginary>
+      </realization>
+      <realization burnup="26.402" enrichment="7.2">
+        <real>0.00373756387436 0.371400659002 0.162123825504</real>
+        <imaginary>0.0 0.0 0.0</imaginary>
+      </realization>
+      <realization burnup="18.858" enrichment="7.2">
+        <real>0.00268423476992 0.269632010735 0.116507498521</real>
+        <imaginary>0.0 0.0 0.0</imaginary>
+      </realization>
+      <realization burnup="16.501" enrichment="7.2">
+        <real>0.00234918462361 0.237512498674 0.102185033334</real>
+        <imaginary>0.0 0.0 0.0</imaginary>
+      </realization>
+      <realization burnup="26.402" enrichment="9.9">
+        <real>0.00380511780335 0.37209968432 0.162882491201</real>
+        <imaginary>0.0 0.0 0.0</imaginary>
+      </realization>
+      <realization burnup="18.858" enrichment="9.9">
+        <real>0.00272199241076 0.26970028994 0.116901823605</real>
+        <imaginary>0.0 0.0 0.0</imaginary>
+      </realization>
+      <realization burnup="16.501" enrichment="9.9">
+        <real>0.00238425999138 0.237382980451 0.102494925405</real>
+        <imaginary>0.0 0.0 0.0</imaginary>
+      </realization>
+    </modes>
+  </decay_heat_pu>
+</ROM>

@@ -687,7 +687,7 @@ def computeEigenvaluesAndVectorsFromLowRankOperator(lowOperator, Y, U, s, V, exa
   lowrankEigenvals, lowrankEigenvects = np.linalg.eig(lowOperator)
   # Compute the eigvects and eigvals of the high-dimensional operator
   eigvects = ((Y.dot(V) * np.reciprocal(s)).dot(lowrankEigenvects)) if exactModes else U.dot(lowrankEigenvects)
-  eigvals  = lowrankEigenvals
+  eigvals  = lowrankEigenvals.astype(complex)
   return eigvals, eigvects
 
 def computeAmplitudeCoefficients(mods, Y, eigs, optmized):

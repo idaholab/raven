@@ -2956,18 +2956,20 @@ class PolyExponential(superVisedLearning):
       """
       l = int(s.size/2)
       return np.sum((y - np.dot(s[l:], np.exp(-np.outer(1./s[:l], x))))**2.)
-
+    numberTerms   = self.polyExpParams['expTerms']
     predictionErr = None
     x, y          = np.array(x), np.array(y)
-    bounds        = [[min(x), max(x)]]*self.polyExpParams['expTerms'] + [[min(y), max(y)]]*self.polyExpParams['expTerms']
-    result        = differential_evolution(_objective, bounds, maxiter=self.polyExpParams['maxNumberIter'], tol=self.polyExpParams['tol'],disp=False,seed=200286)
+    bounds        = [[min(x), max(x)]]*numberTerms + [[min(y), max(y)]]*numberTerms
+    result        = differential_evolution(_objective, bounds,
+                                           maxiter=self.polyExpParams['maxNumberIter'],
+                                           tol=self.polyExpParams['tol'],
+                                           disp=False,
+                                           seed=200286)
     taui, fi      = np.split(result['x'], 2)
     sortIndexes   = np.argsort(fi)
     fi, taui      = fi[sortIndexes], taui[sortIndexes]
-
     if returnPredictDiff:
       predictionErr = (y-self.__evaluateExpTerm(x, fi, 1./taui))/y
-
     return fi, 1./taui, predictionErr
 
   def __evaluateExpTerm(self,x, a, b):
@@ -3038,8 +3040,11 @@ class PolyExponential(superVisedLearning):
           self.model[target][cnt].fit(self.scaler.transform(featureVals),expTermCoeff[:,cnt])
       else:
         # construct spline
-        targets = ["a_"+str(cnt+1) if cnt < self.polyExpParams['expTerms'] else "b_"+str((cnt-self.polyExpParams['expTerms'])+1) for cnt in range(self.polyExpParams['expTerms']*2)]
-        self.model[target] = NDsplineRom(self.messageHandler,**{'Features':','.join(self.features),'Target':",".join(targets)})
+        numbTerms = self.polyExpParams['expTerms']
+        targets   = ["a_"+str(cnt+1) if cnt < numbTerms else "b_"+str((cnt-numbTerms)+1) for cnt in range(numbTerms*2)]
+        self.model[target] = NDsplineRom(self.messageHandler,
+                                         **{'Features':','.join(self.features),
+                                            'Target':",".join(targets)})
         self.model[target].__class__.__trainLocal__(self.model[target],featureVals,expTermCoeff)
     self.featureVals = featureVals
 
@@ -3062,7 +3067,6 @@ class PolyExponential(superVisedLearning):
           evalDict = self.model[target].__class__.__evaluateLocal__(self.model[target],featureVals)
           for cnt,targ in enumerate(self.model[target].target):
             evaluation[:,cnt] = evalDict[targ][:]
-
       for point in range(len(evaluation)):
         l = int(evaluation[point].size/2)
         returnEvaluation[target] =  self.__evaluateExpTerm(self.pivotValues,
@@ -3110,7 +3114,8 @@ class PolyExponential(superVisedLearning):
       if readWhat[0].strip().lower() == 'all':
         readWhat = what
       if not set(readWhat) <= set(what):
-        self.raiseAnError(IOError, "The following variables specified in <what> node are not recognized: "+ ",".join(np.setdiff1d(readWhat, what).tolist()) )
+        self.raiseAnError(IOError, "The following variables in <what> node are not recognized: "
+                          + ",".join(np.setdiff1d(readWhat, what).tolist()) )
       else:
         what = readWhat
     # Target
@@ -3187,24 +3192,25 @@ class DynamicModeDecomposition(superVisedLearning):
       @ In, kwargs: an arbitrary dictionary of keywords and values
     """
     superVisedLearning.__init__(self,messageHandler,**kwargs)
-    self.availDmdAlgorithms                = ['dmd','hodmd']                          # available dmd types: basic dmd and high order dmd
-    self.dmdParams                         = {}                                       # dmd settings container
-    self.printTag                          = 'DMD'                                    # print tag
-    self.pivotParameterID                  = kwargs.get("pivotParameter","time")      # pivot parameter
-    self._dynamicHandling                  = True                                     # This ROM is able to manage the time-series on its own. No need for special treatment outside
-    self.dmdParams['rankSVD'             ] = kwargs.get('rankSVD',None)               # -1 no truncation, 0 optimal rank is computed, >1 truncation rank
-    self.dmdParams['energyRankSVD'       ] = kwargs.get('energyRankSVD',None)         #  0.0 < float < 1.0, computed rank is the number of the biggest sv needed to reach the energy identified by "energyRankSVD"
-    self.dmdParams['rankTotalLeastSquare'] = kwargs.get('rankTLSQ',None)              # truncation rank for total least square
-    self.dmdParams['exactModes'          ] = kwargs.get('exactModes',True)            # True if the exact modes need to be computed (eigs and eigvs), otherwise the projected ones (using the left-singular matrix)
-    self.dmdParams['optimized'           ] = kwargs.get('optimized',False)            # amplitudes computed minimizing the error between the mods and all the timesteps (True) or 1st timestep only (False)
-    self.dmdParams['dmdType'             ] = kwargs.get('dmdType','dmd')              # the dmd type to be applied. Currently we support dmd and hdmd (high order dmd)
+    self.availDmdAlgorithms          = ['dmd','hodmd']                      # available dmd types: basic dmd and high order dmd
+    self.dmdParams                   = {}                                   # dmd settings container
+    self.printTag                    = 'DMD'                                # print tag
+    self.pivotParameterID            = kwargs.get("pivotParameter","time")  # pivot parameter
+    self._dynamicHandling            = True                                 # This ROM is able to manage the time-series on its own. No need for special treatment outside
+    self.dmdParams['rankSVD'       ] = kwargs.get('rankSVD',None)           # -1 no truncation, 0 optimal rank is computed, >1 truncation rank
+    self.dmdParams['energyRankSVD' ] = kwargs.get('energyRankSVD',None)     #  0.0 < float < 1.0, computed rank is the number of the biggest sv needed to reach the energy identified by "energyRankSVD"
+    self.dmdParams['rankTLSQ'      ] = kwargs.get('rankTLSQ',None)          # truncation rank for total least square
+    self.dmdParams['exactModes'    ] = kwargs.get('exactModes',True)        # True if the exact modes need to be computed (eigs and eigvs), otherwise the projected ones (using the left-singular matrix)
+    self.dmdParams['optimized'     ] = kwargs.get('optimized',False)        # amplitudes computed minimizing the error between the mods and all the timesteps (True) or 1st timestep only (False)
+    self.dmdParams['dmdType'       ] = kwargs.get('dmdType','dmd')          # the dmd type to be applied. Currently we support dmd and hdmd (high order dmd)
     # variables filled up in the training stages
-    self._amplitudes                       = None                                     # vector of amplitudes
-    self._eigs                             = None                                     # vector of eigenvalues
-    self._modes                            = None                                     # matrix of dynamic modes
-    self.__Atilde                          = None                                     # matrix of lowrank operator from the SVD
-    self.pivotValues                       = None                                     # vector of amplitudes
-    self.KDTreeFinder                      = None                                     # kdtree weighting model
+    self._amplitudes                 = {}                                   # {'target1': vector of amplitudes,'target2':vector of amplitudes, etc.}
+    self._eigs                       = {}                                   # {'target1': vector of eigenvalues,'target2':vector of eigenvalues, etc.}
+    self._modes                      = {}                                   # {'target1': matrix of dynamic modes,'target2':matrix of dynamic modes, etc.}
+    self.__Atilde                    = {}                                   # {'target1': matrix of lowrank operator from the SVD,'target2':matrix of lowrank operator from the SVD, etc.}
+    self.pivotValues                 = None                                 # pivot values (e.g. time)
+    self.KDTreeFinder                = None                                 # kdtree weighting model
+    self.timeScales                  = {}                                   # time-scales (training and dmd). {'training' and 'dmd':{t0:float,'dt':float,'intervals':int}}
 
     # some checks
     if self.dmdParams['rankSVD'] is not None and self.dmdParams['energyRankSVD'] is not None:
@@ -3214,11 +3220,8 @@ class DynamicModeDecomposition(superVisedLearning):
     # check if the pivotParameter is among the targetValues
     if self.pivotParameterID not in self.target:
       self.raiseAnError(IOError,"The pivotParameter "+self.pivotParameterID+" must be part of the Target space!")
-    if len(self.target) > 2:
-      self.raiseAnError(IOError,"Multi-target DynamicModeDecomposition not available yet!")
-    self.targetID = self.target[self.target.index(self.pivotParameterID) - 1]
 
-  def _localNormalizeData(self,values,names,feat): # This function is not used in this class and can be removed
+  def _localNormalizeData(self,values,names,feat):
     """
       Overwrites default normalization procedure.
       @ In, values, unused
@@ -3235,28 +3238,28 @@ class DynamicModeDecomposition(superVisedLearning):
       @ In, dmd, bool, optional, True if dmd time scale needs to be returned, othewise training one
       @ Out, timeScale, numpy.array, the dmd or training reconstructed time scale
     """
-    timeScaleInfo = self.dmdTimeScale if dmd else self.trainingTimeScale
+    timeScaleInfo = self.timeScales['dmd'] if dmd else self.timeScales['training']
     timeScale = np.arange(timeScaleInfo['t0'], timeScaleInfo['intervals'] + timeScaleInfo['dt'], timeScaleInfo['dt'])
     return timeScale
 
-  def __getTimeEvolution(self):
+  def __getTimeEvolution(self, target):
     """
       Get the time evolution of each mode
-      @ In, None
+      @ In, target, str, the target for which mode evolution needs to be retrieved for
       @ Out, timeEvol, numpy.ndarray, the matrix that contains all the time evolution (by row)
     """
-    omega = np.log(self._eigs) / self.trainingTimeScale['dt']
+    omega = np.log(self._eigs[target]) / self.timeScales['training']['dt']
     van = np.exp(np.multiply(*np.meshgrid(omega, self.__getTimeScale())))
-    timeEvol = (van * self._amplitudes).T
+    timeEvol = (van * self._amplitudes[target]).T
     return timeEvol
 
-  def _reconstructData(self):
+  def _reconstructData(self, target):
     """
       Retrieve the reconstructed data
-      @ In, None
+      @ In, target, str, the target for which the data needs to be reconstructed
       @ Out, data, numpy.ndarray, the matrix (nsamples,n_time_steps) containing the reconstructed data
     """
-    data = self._modes.dot(self.__getTimeEvolution())
+    data = self._modes[target].dot(self.__getTimeEvolution(target))
     return data
 
   def __trainLocal__(self,featureVals,targetVals):
@@ -3268,50 +3271,55 @@ class DynamicModeDecomposition(superVisedLearning):
     self.featureVals  = featureVals
     self.KDTreeFinder = spatial.KDTree(featureVals)
     pivotParamIndex   = self.target.index(self.pivotParameterID)
-    targetParamIndex  = self.target.index(self.targetID)
     self.pivotValues  = targetVals[0,:,pivotParamIndex]
-    originalData      = [targetVals[:,ts,targetParamIndex] for ts in range(len(self.pivotValues))]
-    nTimeSteps        = len(self.pivotValues)
-    snaps = targetVals[:,:,targetParamIndex]
-    # if number of features (i.e. samples) > number of snapshots, we apply the high order DMD or HODMD has been requested
-    imposedHODMD = False
-    if self.dmdParams['dmdType'] == 'hodmd' or snaps.shape[0] < snaps.shape[1]:
-      v = max(snaps.shape[1] - snaps.shape[0],2)
-      imposedHODMD = True
-      snaps = np.concatenate([snaps[:, i:snaps.shape[1] - v  + i + 1] for i in range(v) ], axis=0)
-    X = snaps[:, :-1]
-    Y = snaps[:, 1:]
-    if self.dmdParams['rankTotalLeastSquare'] is not None:
-      X, Y = mathUtils.computeTruncatedTotalLeastSquare(X, Y, self.dmdParams['rankTotalLeastSquare'])
-    rank = self.dmdParams['energyRankSVD'] if self.dmdParams['energyRankSVD'] is not None else (self.dmdParams['rankSVD'] if self.dmdParams['rankSVD'] is not None else -1)
-    U, s, V = mathUtils.computeTruncatedSingularValueDecomposition(X, rank)
-    # lowrank operator from the SVD of matrices X and Y
-    self.__Atilde = U.T.conj().dot(Y).dot(V) * np.reciprocal(s)
-    self._eigs, self._modes = mathUtils.computeEigenvaluesAndVectorsFromLowRankOperator(self.__Atilde, Y, U, s, V, self.dmdParams['exactModes'])
-    if imposedHODMD:
-      self._modes = self._modes[:targetVals[:,:,targetParamIndex].shape[0], :]
-    self._amplitudes = mathUtils.computeAmplitudeCoefficients(self._modes, targetVals[:,:,targetParamIndex],self._eigs, self.dmdParams['optimized'])
+    ts                = len(self.pivotValues)
+    for target in list(set(self.target) - set([self.pivotParameterID])):
+      targetParamIndex  = self.target.index(target)
+      snaps = targetVals[:,:,targetParamIndex]
+      # if number of features (i.e. samples) > number of snapshots, we apply the high order DMD or HODMD has been requested
+      imposedHODMD = False
+      if self.dmdParams['dmdType'] == 'hodmd' or snaps.shape[0] < snaps.shape[1]:
+        v = max(snaps.shape[1] - snaps.shape[0],2)
+        imposedHODMD = True
+        snaps = np.concatenate([snaps[:, i:snaps.shape[1] - v  + i + 1] for i in range(v) ], axis=0)
+      # overlap snaps
+      X, Y = snaps[:, :-1], snaps[:, 1:]
+      if self.dmdParams['rankTLSQ'] is not None:
+        X, Y = mathUtils.computeTruncatedTotalLeastSquare(X, Y, self.dmdParams['rankTLSQ'])
+      rank = self.dmdParams['energyRankSVD'] if self.dmdParams['energyRankSVD'] is not None else (self.dmdParams['rankSVD'] if self.dmdParams['rankSVD'] is not None else -1)
+      U, s, V = mathUtils.computeTruncatedSingularValueDecomposition(X, rank)
+      # lowrank operator from the SVD of matrices X and Y
+      self.__Atilde[target] = U.T.conj().dot(Y).dot(V) * np.reciprocal(s)
+      self._eigs[target], self._modes[target] = mathUtils.computeEigenvaluesAndVectorsFromLowRankOperator(self.__Atilde[target],
+                                                                                                          Y, U, s, V,
+                                                                                                          self.dmdParams['exactModes'])
+      if imposedHODMD:
+        self._modes[target] = self._modes[target][:targetVals[:,:,targetParamIndex].shape[0],:]
+      self._amplitudes[target] = mathUtils.computeAmplitudeCoefficients(self._modes[target],
+                                                                        targetVals[:,:,targetParamIndex],
+                                                                        self._eigs[target],
+                                                                        self.dmdParams['optimized'])
     # Default timesteps (even if the time history is not equally spaced in time, we "trick" the dmd to think it).
-    self.trainingTimeScale = {'t0': 0, 'intervals': nTimeSteps - 1, 'dt': 1}
-    self.dmdTimeScale      = {'t0': 0, 'intervals': nTimeSteps - 1, 'dt': 1}
+    self.timeScales = dict.fromkeys( ['training','dmd'],{'t0': 0, 'intervals': ts - 1, 'dt': 1})
 
   def __evaluateLocal__(self,featureVals):
     """
       @ In, featureVals, numpy.ndarray, shape= (n_requests, n_dimensions), an array of input data
       @ Out, returnEvaluation , dict, dictionary of values for each target (and pivot parameter)
     """
-    reconstructData = self._reconstructData().real
-    # find the nearest data and compute weights
-    weights, indexes = self.KDTreeFinder.query(featureVals, k=min(2**len(self.features),len(reconstructData)))
-    # if 0 (perfect match), assign minimum possible distance
-    weights[weights == 0] = sys.float_info.min
-    weights =1./weights
-    # normalize to 1
-    weights = weights/weights.sum()
-    returnEvaluation = {}
-    for point in range(len(weights)):
-      returnEvaluation[self.targetID]         =  np.sum ((weights[point,:]*reconstructData[indexes[point,:]].T).real , axis=1)
-      returnEvaluation[self.pivotParameterID] = self.pivotValues.ravel()
+    returnEvaluation = {self.pivotParameterID:self.pivotValues}
+    for target in list(set(self.target) - set([self.pivotParameterID])):
+      reconstructData = self._reconstructData(target).real
+      # find the nearest data and compute weights
+      weights, indexes = self.KDTreeFinder.query(featureVals, k=min(2**len(self.features),len(reconstructData)))
+      # if 0 (perfect match), assign minimum possible distance
+      weights[weights == 0] = sys.float_info.min
+      weights =1./weights
+      # normalize to 1
+      weights = weights/weights.sum()
+      for point in range(len(weights)):
+        returnEvaluation[target] =  np.sum ((weights[point,:]*reconstructData[indexes[point,:]].T) , axis=1)
+
     return returnEvaluation
 
   def _localPrintXMLSetup(self,outFile,options={}):
@@ -3345,8 +3353,8 @@ class DynamicModeDecomposition(superVisedLearning):
 
     # check what
     what = ['exactModes','optimized','dmdType','features','timeScale','eigs','amplitudes','modes','dmdTimeScale']
-    if self.dmdParams['rankTotalLeastSquare'] is not None:
-      what.append('rankTotalLeastSquare')
+    if self.dmdParams['rankTLSQ'] is not None:
+      what.append('rankTLSQ')
     what.append('energyRankSVD' if self.dmdParams['energyRankSVD'] is not None else 'rankSVD')
     if 'what' in options:
       readWhat = options['what'].split(",")
@@ -3359,8 +3367,8 @@ class DynamicModeDecomposition(superVisedLearning):
     # Target
     target = options.get('Target',self.target[-1])
     toAdd = ['exactModes','optimized','dmdType']
-    if self.dmdParams['rankTotalLeastSquare'] is not None:
-      toAdd.append('rankTotalLeastSquare')
+    if self.dmdParams['rankTLSQ'] is not None:
+      toAdd.append('rankTLSQ')
     toAdd.append('energyRankSVD' if self.dmdParams['energyRankSVD'] is not None else 'rankSVD')
     self.dmdParams['rankSVD'] = self.dmdParams['rankSVD'] if self.dmdParams['rankSVD'] is not None else -1
 
@@ -3374,23 +3382,23 @@ class DynamicModeDecomposition(superVisedLearning):
     if "dmdTimeScale" in what:
       outFile.addScalar(target,"dmdTimeScale",' '.join([str(elm) for elm in self.__getTimeScale()]))
     if "eigs" in what:
-      eigsReal = " ".join([str(self._eigs[indx].real) for indx in
-                       range(len(self._eigs))])
+      eigsReal = " ".join([str(self._eigs[target][indx].real) for indx in
+                       range(len(self._eigs[target]))])
       outFile.addScalar("eigs","real", eigsReal,root=target)
-      eigsImag = " ".join([str(self._eigs[indx].imag) for indx in
-                               range(len(self._eigs))])
+      eigsImag = " ".join([str(self._eigs[target][indx].imag) for indx in
+                               range(len(self._eigs[target]))])
       outFile.addScalar("eigs","imaginary", eigsImag,root=target)
     if "amplitudes" in what:
-      ampsReal = " ".join([str(self._amplitudes[indx].real) for indx in
-                       range(len(self._amplitudes))])
+      ampsReal = " ".join([str(self._amplitudes[target][indx].real) for indx in
+                       range(len(self._amplitudes[target]))])
       outFile.addScalar("amplitudes","real", ampsReal,root=target)
-      ampsImag = " ".join([str(self._amplitudes[indx].imag) for indx in
-                               range(len(self._amplitudes))])
+      ampsImag = " ".join([str(self._amplitudes[target][indx].imag) for indx in
+                               range(len(self._amplitudes[target]))])
       outFile.addScalar("amplitudes","imaginary", ampsImag,root=target)
     if "modes" in what:
-      for smp in range(len(self._modes)):
-        valDict = {'real': ' '.join([ str(elm) for elm in self._modes[smp,:].real]),
-                   'imaginary':' '.join([ str(elm) for elm in self._modes[smp,:].imag])}
+      for smp in range(len(self._modes[target])):
+        valDict = {'real': ' '.join([ str(elm) for elm in self._modes[target][smp,:].real]),
+                   'imaginary':' '.join([ str(elm) for elm in self._modes[target][smp,:].imag])}
         attributeDict = {self.features[index]:self.featureVals[smp,index] for index in range(len(self.features))}
         outFile.addVector("modes","realization",valDict,root=target, attrs=attributeDict)
 
@@ -3409,10 +3417,10 @@ class DynamicModeDecomposition(superVisedLearning):
       @ Out, None
     """
     self.amITrained   = False
-    self._amplitudes  = None
-    self._eigs        = None
-    self._modes       = None
-    self.__Atilde     = None
+    self._amplitudes  = {}
+    self._eigs        = {}
+    self._modes       = {}
+    self.__Atilde     = {}
     self.pivotValues  = None
     self.KDTreeFinder = None
     self.featureVals  = None
