@@ -63,7 +63,7 @@ from operator import itemgetter
 from collections import OrderedDict
 from scipy import spatial
 from scipy import optimize
-from scipy.optimize import differential_evolution, fmin_tnc, fmin_slsqp, brute
+from scipy.optimize import fmin_tnc, fmin_slsqp, brute
 from sklearn.neighbors.kde import KernelDensity
 import math
 import copy
@@ -2956,6 +2956,13 @@ class PolyExponential(supervisedLearning):
       """
       l = int(s.size/2)
       return np.sum((y - np.dot(s[l:], np.exp(-np.outer(1./s[:l], x))))**2.)
+    # I import the differential_evolution here since it is available for scipy ver > 0.15 only and
+    # we do not require it yet
+    ##TODO: update library requirement
+    try:
+      from scipy.optimize import differential_evolution
+    except ImportError:
+      self.raiseAnError(ImportError, "Minimum scipy version to use this SM is 0.15")
     numberTerms   = self.polyExpParams['expTerms']
     predictionErr = None
     x, y          = np.array(x), np.array(y)
