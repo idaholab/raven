@@ -2,8 +2,8 @@
  [./TraditionalDMD]
    type = 'RavenFramework'
    input = 'test_traditional_dmd.xml'
-   output = 'TraditionalDMD/ROMpk TraditionalDMD/outputDMD/outputDMDtraditional.xml'
-   csv = 'TraditionalDMD/outputDMD/outputDMDtraditional_0.csv TraditionalDMD/ROMCoefficientsXML.xml'
+   output = 'TraditionalDMD/ROMpk TraditionalDMD/outputDMD/outputDMDtraditional.xml TraditionalDMD/ROMCoefficientsXML.xml'
+   csv = 'TraditionalDMD/outputDMD/outputDMDtraditional_0.csv'
    rel_err = 0.0001
   [../]
 
