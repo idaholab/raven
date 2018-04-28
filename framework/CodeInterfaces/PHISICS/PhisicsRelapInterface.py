@@ -27,6 +27,7 @@ from PhisicsInterface import Phisics
 from Relap5Interface import Relap5
 import xml.etree.ElementTree as ET
 import copy
+from  __builtin__ import any as b_any
 
 class PhisicsRelap5(CodeInterfaceBase):
   """
@@ -147,14 +148,15 @@ class PhisicsRelap5(CodeInterfaceBase):
       @ In, workingDir, string, current working dir
       @ Out, None
     """
+    relapPhisicsCsv = 'relapPhisics'
     # RELAP
     self.Relap5Interface.finalizeCodeOutput(command,self.outFileName,workingDir)
     # PHISICS
-    self.PhisicsInterface.finalizeCodeOutput(command,output,workingDir,phiRel=True)
+    self.PhisicsInterface.finalizeCodeOutput(command,output,workingDir,phiRel=True,relapOut=self.outFileName)
     import combine
     jobTitle = self.PhisicsInterface.jobTitle
-    self.perturbationNumber = workingDir.split('/')[-1]
-    combine.combine(workingDir,os.path.join(workingDir,self.outFileName+'.csv'),os.path.join(workingDir,jobTitle+'-'+self.perturbationNumber+'.csv'),self.depTimeDict,self.inpTimeDict)
+    combine.combine(workingDir,os.path.join(workingDir,self.outFileName+'.csv'),os.path.join(workingDir,jobTitle+'.csv'),self.depTimeDict,self.inpTimeDict,relapPhisicsCsv+'.csv')
+    return relapPhisicsCsv
 
   def checkForOutputFailure(self,output,workingDir):
     """
@@ -167,7 +169,7 @@ class PhisicsRelap5(CodeInterfaceBase):
       @ In, workingDir, string, current working dir
       @ Out, None
     """
-    return self.Relap5Interface.checkForOutputFailure(output,workingDir)
+    return self.Relap5Interface.checkForOutputFailure(self.outFileName,workingDir)
 
   def tailorRelap5InputFiles(self,currentInputFiles):
     """
@@ -204,7 +206,7 @@ class PhisicsRelap5(CodeInterfaceBase):
       else:
         passToDesignatedCode['relap5']['SampledVars'][var] = value
     return passToDesignatedCode
-    
+  
   def createNewInput(self,currentInputFiles,oriInputFiles,samplerType,**Kwargs):
     """
       Generates a new input file depending on which sampler is chosen.

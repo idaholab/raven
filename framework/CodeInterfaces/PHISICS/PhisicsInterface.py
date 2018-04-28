@@ -30,33 +30,6 @@ class Phisics(CodeInterfaceBase):
   """
     Code interface for PHISICS
   """ 
-  def getFilename(self):
-    """
-      Retriever for full filename.
-      @ In, None
-      @ Out, __base, string, filename
-    """
-    if self.__ext is not None:
-      return '.'.join([self.__base,self.__ext])
-    else:
-      return self.__base
-    
-  def getBase(self):
-    """
-      Retriever for file base.
-      @ In, None
-      @ Out, __base, string path
-    """
-    return self.__base 
-    
-  def getPath(self):
-    """
-      Retriever for path.
-      @ In, None
-      @ Out, __path, string, path
-    """
-    return self.__path
-   
   def getNumberOfMpi(self,string):
     """
       Gets the number of MPI requested by the user in the RAVEN input.
@@ -92,9 +65,9 @@ class Phisics(CodeInterfaceBase):
     typeList = ['IsotopeList','mass','decay','budep','FissionYield','FissQValue','CRAM_coeff_PF','N,G','N,Gx','N,2N','N,P','N,ALPHA','AlphaDecay','BetaDecay','BetaxDecay','Beta+Decay','Beta+xDecay','IntTraDecay']
     libPathList = ['iso_list_inp','mass_a_weight_inp','decay_lib','xs_sep_lib','fiss_yields_lib','fiss_q_values_lib','cram_lib','n_gamma','n_gamma_ex','n_2n','n_p','n_alpha','alpha','beta','beta_ex','beta_plus','beta_plus_ex','int_tra']
     
-    for typeNumber in xrange(0,len(typeList)):
+    for typeNumber in range(len(typeList)):
       for libPathText in pathRoot.getiterator(libPathList[typeNumber]):
-        libPathText.text = currentInputFiles[keyWordDict[typeList[typeNumber].lower()]].getAbsFile()
+        libPathText.text = os.path.join(currentInputFiles[keyWordDict[typeList[typeNumber].lower()]].subDirectory , currentInputFiles[keyWordDict[typeList[typeNumber].lower()]].getBase() +'.'+ currentInputFiles[keyWordDict[typeList[typeNumber].lower()]].getExt())
     pathTree.write(pathFile)
     
   def syncPathToLibFile(self,depletionRoot,depletionFile,depletionTree,libPathFile):
@@ -114,25 +87,6 @@ class Phisics(CodeInterfaceBase):
     else:
       depletionTree.find('.//input_files').text = libPathFile
       depletionTree.write(depletionFile)
-
-  def forcePrintLibraries(self,libraryInput):
-    """
-      Checks if the flag 'print libraries' is on. if not, it is automatically added.
-      @ In, libraryInput, string, xml library file 
-      @ Out, None
-    """
-    libraryTree = ET.parse(libraryInput)
-    libraryRoot = libraryTree.getroot()
-    check = False
-    for child in libraryRoot.getiterator("XS-library"):
-      for attrib,value in child.attrib.iteritems():
-        if attrib == 'print_libraries' and value == '1':
-          check = True
-          break
-    if check is False:
-      raise ValueError('The attribute print_libraries=1 is missing in the node '+str(child)+' from the input '+str(libraryInput))
-    if check is True:
-      return
     
   def getTitle(self,depletionRoot):
     """
@@ -301,16 +255,17 @@ class Phisics(CodeInterfaceBase):
       @ In, command, string, the command used to run the just ended job
       @ In, output, string, the Output name root
       @ In, workingDir, string, current working dir
-      @ In, phiRel, dictionary, contains a key 'phiRel', which value is True if PHISICS/RELAP is in coupled mode, empty otherwise
+      @ In, phiRel, dictionary, contains a key 'phiRel', value is True if PHISICS/RELAP is in coupled mode, empty otherwise 
+                                     and a key 'relapOut', value is the RELAP main output name
       @ Out, finalizeCodeOutput, string, optional, present in case the root of the output file gets changed in this method.
     """
     phisicsDataDict = {}
-    if "phiRel" in phiRel:
-      pass
-    else:
+    if "phiRel" not in phiRel:
       phiRel['phiRel'] = False
-    self.pertNumber = workingDir.split(os.path.sep)[-1]
-    
+    if "relapOut" not in phiRel:
+      phiRel['relapOut'] = None
+    phisicsDataDict['relapOut'] = phiRel['relapOut'] # RELAP output name, needed if MPI = 1 
+    phisicsDataDict['output'] = output
     phisicsDataDict['timeControl'] = self.timeControl
     phisicsDataDict['decayHeatFlag'] = self.decayHeatFlag
     phisicsDataDict['instantOutput'] = self.instantOutput
@@ -324,10 +279,10 @@ class Phisics(CodeInterfaceBase):
     phisicsDataDict['printSpatialFlux'] = self.printSpatialFlux
     phisicsDataDict['pertVariablesDict'] = self.distributedPerturbedVars
     phisicsdata.phisicsdata(phisicsDataDict)
-    if self.mrtauStandAlone == False:
-      return self.jobTitle+'-'+str(self.pertNumber).strip()
-    if self.mrtauStandAlone == True:
-      return 'mrtau'+'-'+str(self.pertNumber).strip()
+    if not self.mrtauStandAlone:
+      return self.jobTitle
+    else:
+      return 'mrtau'
 
   def checkForOutputFailure(self,output,workingDir):
     """
@@ -341,10 +296,16 @@ class Phisics(CodeInterfaceBase):
       @ Out, failure, bool, True if the job is failed, False otherwise
     """
     failure = True
-    with open(os.path.join(workingDir,output), 'r') as f:
-      for line in f:
-        if re.search(r'task\s+ended',line,re.IGNORECASE):
-          failure = False
+    if not self.mrtauStandAlone:
+      with open(os.path.join(workingDir,output), 'r') as f:
+        for line in f:
+          if re.search(r'task\s+ended',line,re.IGNORECASE):
+            failure = False
+    else:
+      with open(os.path.join(workingDir,'Errors_CPUt.txt'), 'r') as f:
+        for line in f:
+          if re.search(r'NO\s+ERRORS\s+IN\s+THE\s+CALCULATION',line,re.IGNORECASE):
+            failure = False
     return failure
     
   def mapInputFileType(self,currentInputFiles):
@@ -384,7 +345,28 @@ class Phisics(CodeInterfaceBase):
     for child in depletionRoot.findall(".//decay_heat_type"):
       self.decayHeatFlag = int(child.text)
       break
-    
+  
+  def verifyPhiFlags(self):
+    """
+      Verifies if the flag <blengen> is in the phisics input file. The flags activates the 
+      reaction rate printing (solve report, fission matrices). Also verifies if the flag <echo> is
+      set to 2. echo 2 prints the k-eff in the output. 
+      @ In, None
+      @ Out, None 
+    """
+    blengenFlag = False
+    echoFlag = False
+    inpTree = ET.parse(self.phisicsInp)
+    inpRoot = inpTree.getroot()
+    for child in inpRoot.findall(".//blengen"):
+      if child.text.lower() == 't' or child.text == 'true': 
+        blengenFlag = True
+    for child in inpRoot.findall(".//echo"):
+      if child.text == '2': 
+        echoFlag = True
+    if not blengenFlag or not echoFlag:  
+      raise ValueError ("\n Flag error in " + self.phisicsInp + ". The flag blengen has to be True, and the flag echo has to be set to 2.")
+  
   def createNewInput(self,currentInputFiles,oriInputFiles,samplerType,**Kwargs):
     """
       This generate a new input file depending on which sampler is chosen.
@@ -408,15 +390,14 @@ class Phisics(CodeInterfaceBase):
     self.syncLibPathFileWithRavenInp(currentInputFiles[self.typeDict['path']].getAbsFile(),currentInputFiles,self.typeDict)
     self.outputFileNames(currentInputFiles[self.typeDict['path']].getAbsFile())
     self.instantOutput = self.jobTitle+'.o'
-    self.forcePrintLibraries(currentInputFiles[self.typeDict['xs-library']].getAbsFile())
     self.depInp = currentInputFiles[self.typeDict['depletion_input']].getAbsFile() # for PHISICS/RELAP interface
-    self.phisicsInp = currentInputFiles[self.typeDict['inp']].getAbsFile()
-    booleanTabMap,tabMapFileName = self.isThereTabMappinp(currentInputFiles)  
+    self.phisicsInp = currentInputFiles[self.typeDict['inp']].getAbsFile() # for PHISICS/RELAP interface
+    booleanTabMap,tabMapFileName = self.isThereTabMappinp(currentInputFiles) 
+    self.verifyPhiFlags()
     if Kwargs['precommand'] == '':
       self.numberOfMPI = 1
     else: 
       self.numberOfMPI = self.getNumberOfMpi(Kwargs['precommand'])
-    
     for perturbedParam in self.distributedPerturbedVars.iterkeys():
       if perturbedParam == 'DECAY':
         DecayParser.DecayParser(currentInputFiles[self.typeDict['decay']].getAbsFile(),currentInputFiles[self.typeDict['decay']].getPath(),**self.distributedPerturbedVars[perturbedParam])

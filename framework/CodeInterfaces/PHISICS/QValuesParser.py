@@ -54,9 +54,7 @@ class QValuesParser():
           except KeyError:
             raise KeyError('Error. Check if the unperturbed library has defined values relative to the requested perturbed isotopes')
       if len(line) > 1:
-        line[0] = "{0:<7s}".format(line[0])
-        line[1] = "{0:<7s}".format(line[1])
-        outfile.writelines(' '+line[0]+line[1]+"\n")
+        outfile.writelines(' '+"{0:<7s}".format(line[0])+"{0:<7s}".format(line[1]+"\n"))
 
   def hardcopyPrinter(self,modifiedFile):
     """
@@ -69,10 +67,12 @@ class QValuesParser():
         for line in infile:
           if not line.split(): 
             continue   # if the line is blank, ignore it
-          if re.match(r'(.*?)\s+\w+\s+\d+.\d+',line):
+          if re.match(r'(.*?)\s+\w+(-?)\d+\s+\d+.\d+',line):
+            outfile.writelines(' '+"{0:<7s}".format(line.upper().split()[0])+"{0:<7s}".format(line.upper().split()[1])+"\n") # print the first fission qvalue line of the matrix
             break
           outfile.writelines(line)
-        self.matrixPrinter(infile, outfile)
+        self.matrixPrinter(infile,outfile)
+      outfile.writelines(' END')
     
   def fileReconstruction(self):
     """

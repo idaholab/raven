@@ -26,7 +26,7 @@ class combine():
   """
     Combines the PHISICS and RELAP csv output into one.
   """
-  def __init__(self,workingDir,relapCSV,phisicsCSV,depTimeDict,inpTimeDict):
+  def __init__(self,workingDir,relapCSV,phisicsCSV,depTimeDict,inpTimeDict,relapPhisicsCsv):
     """
       Constructor.
       @ In, workingDir, string, absolute path to working directory
@@ -34,6 +34,7 @@ class combine():
       @ In, phisicsCSV, string, csv file name generated after the execution of phisicsdata.py
       @ In, depTimeDict, dictionary, information from the xml depletion file
       @ In, inpTimeDict, dictionary, information from the xml input file
+      @ In, relapPhisicsCsv, string, filename of the combines PHISICS and RELAP5 files
       @ Out, None
     """
     paramDict = {}
@@ -45,6 +46,7 @@ class combine():
     paramDict['numOfPhisicsLines'] = self.getNumOfLines(phisicsCSV)
     paramDict['depTimeDict'] = depTimeDict
     paramDict['inpTimeDict'] = inpTimeDict
+    paramDict['relapPhisicsCsv'] = relapPhisicsCsv
     self.joinCSV(paramDict,workingDir)
   
   def findTimePosition(self,relapCSV):
@@ -137,7 +139,7 @@ class combine():
           if THbetweenBurn == len(thBurnStep): # if this is the last TH_between_burn
             instantWriter.writerow(self.joinLine(paramDict['phiDict'][paramDict['numOfPhisicsLines'] - 1],paramDict['relDict'][paramDict['numOfRelapLines'] - 1])) # print the last line of phisics and relap. 
     with open(os.path.join(workingDir,'dummy.csv'), 'r') as inFile:
-      with open(os.path.join(workingDir,'relapPhisics.csv'), 'wb') as outFile:
+      with open(os.path.join(workingDir,paramDict['relapPhisicsCsv']), 'wb') as outFile:
         for line in inFile:
           cleanedLine = line.strip(' ')
           if re.match(r'^\s*$', line): 

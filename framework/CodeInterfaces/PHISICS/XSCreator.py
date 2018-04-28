@@ -83,8 +83,8 @@ class XSCreator():
     for XS in self.listedDict.iterkeys():
       for tabulation in self.listedDict.get('XS').iterkeys():
         topChild = SubElement(top, 'set')
-        tabList, valueList = self.tabMapping(tabulation,tabMapFileName)
         if bool:
+          tabList, valueList = self.tabMapping(tabulation,tabMapFileName)
           for tab,value in zip(tabList,valueList):
             tabChild = SubElement(topChild, 'tab', {'name':tab})
             tabChild.text = value
