@@ -31,6 +31,7 @@ import subprocess
 import platform
 import copy
 import numpy
+import six
 from difflib import SequenceMatcher
 
 class Object(object):
@@ -391,10 +392,10 @@ def toBytes(s):
 def isString(s):
   """
     Method to figure out if a variable is a string.
-    @ In, s, object, variable to be tested.
+    @ In, s, object, variable for which we need to assess if it is a string
     @ Out, isString, bool, true if variable is a str or unicode.
   """
-  return type(s).__name__ in ['unicode','str']
+  return isinstance(s, six.string_types)
 
 def toBytesIterative(s):
   """

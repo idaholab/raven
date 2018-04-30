@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework/ROM/TimeSeries.ARMAparallelReseed</name>
+    <name>framework/ROM/TimeSeries/ARMA.ARMAparallelReseed</name>
     <author>talbpaul</author>
     <created>2017-07-12</created>
     <classesTested>SupervisedLearning.ARMA</classesTested>
@@ -12,6 +12,7 @@
     <revisions>
       <revision author="talbpaul" date="2017-07-12">created</revision>
       <revision author="alfoa" date="2017-12-13">adapted for new DataObject structure</revision>
+      <revision author="alfoa" date="2018-04-26">Modified location of the test (ARMA folder)</revision>
     </revisions>
   </TestInfo>
 

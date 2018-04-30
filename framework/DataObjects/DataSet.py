@@ -1166,7 +1166,6 @@ class DataSet(DataObject):
       haveMeta = True
     except IOError:
       haveMeta = False
-
     # if nothing to load, return nothing
     if not haveMeta:
       return metadata
