@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<Simulation verbosity="silent">
+<Simulation verbosity="debug">
   <TestInfo>
     <name>framework/PostProcessors/TemporalDataMiningPostProcessor/Clustering/AffinityPropogation</name>
     <author>chenj</author>
@@ -146,11 +146,17 @@
   <DataObjects>
     <HistorySet name='clusterInfo'>
       <Input>labels</Input>
-      <Output>Time,x1,x2</Output>
+      <Output>x1,x2</Output>
+      <options>
+          <pivotParameter>Time</pivotParameter>
+      </options>
     </HistorySet>
     <HistorySet name="mData">
       <Input>n</Input>
-      <Output>Time,x1,x2</Output>
+      <Output>x1,x2</Output>
+      <options>
+          <pivotParameter>Time</pivotParameter>
+      </options>
     </HistorySet>
   </DataObjects>
 </Simulation>

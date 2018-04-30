@@ -23,14 +23,14 @@
 
   <Steps>
     <MultiRun name="make">
-      <Input class="DataObjects" type="PointSet">solns</Input>
+      <Input class="DataObjects" type="PointSet">restart</Input>
       <Model class="Models" type="ExternalModel">fine</Model>
       <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
       <Output class="DataObjects" type="PointSet">solns</Output>
     </MultiRun>
     <IOStep name="load">
       <Input class="Files" type="">csv</Input>
-      <Output class="DataObjects" type="PointSet">solns</Output>
+      <Output class="DataObjects" type="PointSet">restart</Output>
     </IOStep>
     <IOStep name="print">
       <Input class="DataObjects" type="PointSet">solns</Input>
@@ -71,24 +71,16 @@
     <ExternalModel ModuleToLoad="../fine" name="fine" subType="">
       <variables>x1,x2,ans</variables>
     </ExternalModel>
-    <ROM name="rom1" subType="GaussPolynomialRom">
-      <Target>ans</Target>
-      <Features>x,y</Features>
-      <IndexSet>TotalDegree</IndexSet>
-      <PolynomialOrder>1</PolynomialOrder>
-    </ROM>
-    <ROM name="rom2" subType="GaussPolynomialRom">
-      <Target>ans</Target>
-      <Features>x,y</Features>
-      <IndexSet>TotalDegree</IndexSet>
-      <PolynomialOrder>2</PolynomialOrder>
-    </ROM>
   </Models>
 
   <DataObjects>
     <PointSet name="dummyIN">
       <Input>x1,x2</Input>
       <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="restart">
+      <Input>x1,x2</Input>
+      <Output>ans</Output>
     </PointSet>
     <PointSet name="solns">
       <Input>x1,x2</Input>
@@ -100,6 +92,7 @@
     <Print name="CSVdump">
       <type>csv</type>
       <source>solns</source>
+      <what>input,output</what>
     </Print>
   </OutStreams>
 

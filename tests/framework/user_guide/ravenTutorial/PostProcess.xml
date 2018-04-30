@@ -10,7 +10,7 @@
   </RunInfo>
 
   <TestInfo>
-      <name>framework/user_guide/ravenTutorial/PostProcess</name>
+    <name>framework/user_guide/ravenTutorial/PostProcess</name>
     <author>wangc</author>
     <created>2017-07-27</created>
     <classesTested>PostProcessors.BasicStatistics</classesTested>
@@ -37,23 +37,50 @@
       <clargs arg=" " extension=".csv" type="output"/>
     </Code>
     <PostProcessor name="statisticalAnalysis" subType="BasicStatistics">
-      <all>
+      <pivotParameter>time</pivotParameter>
+      <skewness prefix="skew">A</skewness>
+      <variationCoefficient prefix="vc">A</variationCoefficient>
+      <percentile prefix="percentile">A</percentile>
+      <expectedValue prefix="mean">A</expectedValue>
+      <kurtosis prefix="kurt">A</kurtosis>
+      <median prefix="median">A</median>
+      <maximum prefix="max">A</maximum>
+      <minimum prefix="min">A</minimum>
+      <samples prefix="samp">A</samples>
+      <variance prefix="var">A</variance>
+      <sigma prefix="sigma">A</sigma>
+      <NormalizedSensitivity prefix="nsen">
         <targets>A</targets>
         <features>sigma-A,decay-A</features>
-      </all>
-      <pivotParameter>time</pivotParameter>
+      </NormalizedSensitivity>
+      <sensitivity prefix="sen">
+        <targets>A</targets>
+        <features>sigma-A,decay-A</features>
+      </sensitivity>
+      <pearson prefix="pear">
+        <targets>A</targets>
+        <features>sigma-A,decay-A</features>
+      </pearson>
+      <covariance prefix="cov">
+        <targets>A</targets>
+        <features>sigma-A,decay-A</features>
+      </covariance>
+      <VarianceDependentSensitivity prefix="vsen">
+        <targets>A</targets>
+        <features>sigma-A,decay-A</features>
+      </VarianceDependentSensitivity>
     </PostProcessor>
   </Models>
 
   <Distributions>
-      <Uniform name="sigma">
-          <lowerBound>0</lowerBound>
-          <upperBound>1000</upperBound>
-      </Uniform>
-      <Uniform name="decayConstant">
-          <lowerBound>0.00000001</lowerBound>
-          <upperBound>0.0000001</upperBound>
-      </Uniform>
+    <Uniform name="sigma">
+      <lowerBound>0</lowerBound>
+      <upperBound>1000</upperBound>
+    </Uniform>
+    <Uniform name="decayConstant">
+      <lowerBound>0.00000001</lowerBound>
+      <upperBound>0.0000001</upperBound>
+    </Uniform>
   </Distributions>
 
   <Samplers>
@@ -73,21 +100,23 @@
 
   <Steps>
     <MultiRun name="sampleMC">
-      <Input   class="Files"       type="input">referenceInput.xml</Input>
-      <Model   class="Models"      type="Code">testModel</Model>
-      <Sampler class="Samplers"    type="MonteCarlo">mc</Sampler>
-      <Output  class="DataObjects" type="PointSet">samplesMC</Output>
-      <Output  class="DataObjects" type="HistorySet">histories</Output>
+      <Input class="Files" type="input">referenceInput.xml</Input>
+      <Model class="Models" type="Code">testModel</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
+      <Output class="DataObjects" type="PointSet">samplesMC</Output>
+      <Output class="DataObjects" type="HistorySet">histories</Output>
     </MultiRun>
     <PostProcess name="statAnalysis_1">
-      <Input  class="DataObjects" type="PointSet">samplesMC</Input>
-      <Model  class="Models"      type="PostProcessor">statisticalAnalysis</Model>
-      <Output class="Files"       type="">output_1</Output>
+      <Input class="DataObjects" type="PointSet">samplesMC</Input>
+      <Model class="Models" type="PostProcessor">statisticalAnalysis</Model>
+      <Output class="DataObjects" type="PointSet">statisticalAnalysis_basicStatPP</Output>
+      <Output class="OutStreams" type="Print">statisticalAnalysis_basicStatPP_dump</Output>
     </PostProcess>
     <PostProcess name="statAnalysis_2">
-      <Input  class="DataObjects" type="PointSet">histories</Input>
-      <Model  class="Models"      type="PostProcessor">statisticalAnalysis</Model>
-      <Output class="Files"       type="">output_2</Output>
+      <Input class="DataObjects" type="HistorySet">histories</Input>
+      <Model class="Models" type="PostProcessor">statisticalAnalysis</Model>
+      <Output class="DataObjects" type="HistorySet">statisticalAnalysis_basicStatPP_time</Output>
+      <Output class="OutStreams" type="Print">statisticalAnalysis_basicStatPP_time_dump</Output>
     </PostProcess>
   </Steps>
 
@@ -96,10 +125,55 @@
       <Input>sigma-A,decay-A</Input>
       <Output>A,B,C,D</Output>
     </PointSet>
+    <PointSet name="statisticalAnalysis_basicStatPP">
+      <Output>statisticalAnalysis_vars</Output>
+    </PointSet>
     <HistorySet name="histories">
       <Input>sigma-A,decay-A</Input>
       <Output>A,B,C,D,time</Output>
     </HistorySet>
+    <HistorySet name="statisticalAnalysis_basicStatPP_time">
+      <options>
+        <pivotParameter>time</pivotParameter>
+      </options>
+      <Output>statisticalAnalysis_vars</Output>
+    </HistorySet>
   </DataObjects>
+
+  <VariableGroups>
+    <Group name="statisticalAnalysis_vars">skew_A,
+                 vc_A,
+                 percentile_5_A,
+                 percentile_95_A,
+                 mean_A,
+                 kurt_A,
+                 median_A,
+                 max_A,
+                 min_A,
+                 samp_A,
+                 var_A,
+                 sigma_A,
+                 nsen_A_sigma-A,
+                 nsen_A_decay-A,
+                 sen_A_sigma-A,
+                 sen_A_decay-A,
+                 pear_A_sigma-A,
+                 pear_A_decay-A,
+                 cov_A_sigma-A,
+                 cov_A_decay-A,
+                 vsen_A_sigma-A,
+                 vsen_A_decay-A</Group>
+  </VariableGroups>
+
+  <OutStreams>
+    <Print name="statisticalAnalysis_basicStatPP_dump">
+      <type>csv</type>
+      <source>statisticalAnalysis_basicStatPP</source>
+    </Print>
+    <Print name="statisticalAnalysis_basicStatPP_time_dump">
+      <type>csv</type>
+      <source>statisticalAnalysis_basicStatPP_time</source>
+    </Print>
+  </OutStreams>
 
 </Simulation>

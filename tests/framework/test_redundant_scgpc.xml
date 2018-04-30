@@ -104,8 +104,8 @@
 
   <DataObjects>
     <PointSet name="scset">
-      <Input>a,b,c,d,e</Input>
-      <Output>f,g,h</Output>
+      <Input>a,c,b,e,d</Input>
+      <Output>h,g,f</Output>
     </PointSet>
   </DataObjects>
 
@@ -113,6 +113,7 @@
     <Print name="sc_out">
       <type>csv</type>
       <source>scset</source>
+      <what>input, output</what>
     </Print>
   </OutStreams>
 

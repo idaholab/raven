@@ -1,0 +1,10 @@
+scalar1,scalar2,filename
+0.0,0.0,step_out_0.csv
+0.0,0.5,step_out_1.csv
+0.0,1.0,step_out_2.csv
+0.5,0.0,step_out_3.csv
+0.5,0.5,step_out_4.csv
+0.5,1.0,step_out_5.csv
+1.0,0.0,step_out_6.csv
+1.0,0.5,step_out_7.csv
+1.0,1.0,step_out_8.csv

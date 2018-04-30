@@ -24,7 +24,7 @@ warnings.simplefilter('default',DeprecationWarning)
 import numpy as np
 from collections import deque
 
-from utils.utils import find_distribution1D
+from utils.utils import findCrowModule
 
 # in general, we will use Crow for now, but let's make it easy to switch just in case it is helpfull eventually.
 stochasticEnv = 'crow'
@@ -80,10 +80,8 @@ class BoxMullerGenerator:
 if stochasticEnv == 'numpy':
   npStochEnv = np.random.RandomState()
 else:
-  distribution1D = find_distribution1D()
-  crowStochEnv = distribution1D.DistributionContainer.instance()
+  crowStochEnv = findCrowModule('randomENG').RandomClass()
   boxMullerGen = BoxMullerGenerator()
-
 
 def randomSeed(value):
   """
@@ -95,7 +93,7 @@ def randomSeed(value):
     global npStochEnv
     npStochEnv = np.random.RandomState(value)
   else:
-    crowStochEnv.seedRandom(value) #this has a void return, right?
+    crowStochEnv.seed(value) #this has a void return, right?
   print('randomUtils: Global random number seed has been changed to',value)
 
 def random(dim=1,samples=1,keepMatrix=False):

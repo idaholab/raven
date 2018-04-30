@@ -1,0 +1,4 @@
+v0,y0,ang,ProbabilityWeight,ProbabilityWeight-v0,prefix,PointProbability,filename
+1.0,0,45,0.25,0.25,1,0.25,train_0.csv
+3.0,0,45,0.5,0.5,2,0.25,train_1.csv
+5.0,0,45,0.25,0.25,3,0.25,train_2.csv

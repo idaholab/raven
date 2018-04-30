@@ -101,6 +101,10 @@
             <title>
                 <text> </text>
             </title>
+           <figureProperties>
+                <figsize>(8.,6.)</figsize>
+                <dpi>100</dpi>
+            </figureProperties>
         </actions>
     </Plot>
   </OutStreams>

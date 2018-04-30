@@ -78,6 +78,7 @@
     <Print name="solns">
       <type>csv</type>
       <source>solns</source>
+      <what>input,output</what>
     </Print>
   </OutStreams>
 

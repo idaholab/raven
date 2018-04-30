@@ -1,4 +1,8 @@
 #1
+double TimeFirstModel(3,2) #Comments here
+0	1.0
+1	2.0
+2	3.0
 double G_vect(3,2) #Comments here
 0	0.0
 1	0.0

@@ -117,7 +117,7 @@ rm -Rf InternalParallelPostProcessorLS/*.csv
 
 python ../../../framework/Driver.py test_internal_parallel_PP_LS.xml ../pbspro_mpi.xml ../cluster_runinfo_legacy.xml
 
-wait_lines 'InternalParallelPostProcessorLS/*.csv' 6 parallelPP
+wait_lines 'InternalParallelPostProcessorLS/*.csv' 4 parallelPP
 
 cd ..
 

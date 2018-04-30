@@ -77,7 +77,7 @@
 
   <DataObjects>
     <PointSet name="samples">
-      <Input>sigma-A,sigma-B,decay-A</Input>
+      <Input>decay-A,sigma-A,sigma-B</Input>
       <Output>A,B,C,D</Output>
     </PointSet>
     <HistorySet name="histories">
@@ -85,6 +85,7 @@
       <Output>A,B,C,D,time</Output>
     </HistorySet>
   </DataObjects>
+
 
   <Steps>
     <MultiRun name="sampleMC">
@@ -114,6 +115,7 @@
     <Print name="samplesDump">
         <type>csv</type>
         <source>samples</source>
+        <what>input,output,metadata|klabels</what>
     </Print>
     <Plot name="PlotKMeans1" overwrite="false">
         <plotSettings>

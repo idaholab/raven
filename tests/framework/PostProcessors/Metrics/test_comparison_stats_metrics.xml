@@ -5,6 +5,7 @@
     <Sequence>mcRun, PP1, PP2</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+
   <TestInfo>
     <name>framework/PostProcessors/Metric/test_comparison_stats_metrics</name>
     <author>joshua-cogliati-inl</author>
@@ -13,15 +14,11 @@
     <description>
       This test checks the Comparison Statistics Metric
     </description>
+    <revisions>
+      <revision author="wangc" date="2017-12-06">convert to using new data objects</revision>
+    </revisions>
   </TestInfo>
-
-  <Files>
-    <Input name="output_cdf_diff" type="">output_cdf_diff.xml</Input>
-    <Input name="output_cdf_diff.csv" type="">output_cdf_diff.csv</Input>
-    <Input name="output_pdf_area" type="">output_pdf_area.xml</Input>
-    <Input name="output_pdf_area.csv" type="">output_pdf_area.csv</Input>
-  </Files>
-
+  
   <Models>
     <ExternalModel ModuleToLoad="passthru.py" name="passthru" subType="">
       <variables>x1,x2,ans,ans2</variables>
@@ -39,8 +36,8 @@
   </Models>
 
   <Metrics>
-    <CDFAreaDifference name="cdf_diff" />
-    <PDFCommonArea name="pdf_area" />
+    <CDFAreaDifference name="cdf_diff"/>
+    <PDFCommonArea name="pdf_area"/>
   </Metrics>
 
   <Distributions>
@@ -79,16 +76,15 @@
     <PostProcess name="PP1">
       <Input class="DataObjects" type="PointSet">outputDataMC</Input>
       <Model class="Models" type="PostProcessor">pp1</Model>
-      <Output class="Files" type="">output_cdf_diff</Output>
-      <Output class="Files" type="">output_cdf_diff.csv</Output>
+      <Output class="DataObjects" type="PointSet">pp1_metric</Output>
+      <Output class="OutStreams" type="Print">pp1_metric_dump</Output>
     </PostProcess>
     <PostProcess name="PP2">
       <Input class="DataObjects" type="PointSet">outputDataMC</Input>
       <Model class="Models" type="PostProcessor">pp2</Model>
-      <Output class="Files" type="">output_pdf_area</Output>
-      <Output class="Files" type="">output_pdf_area.csv</Output>
+      <Output class="DataObjects" type="PointSet">pp2_metric</Output>
+      <Output class="OutStreams" type="Print">pp2_metric_dump</Output>
     </PostProcess>
-
   </Steps>
 
   <DataObjects>
@@ -100,13 +96,32 @@
       <Input>x1,x2</Input>
       <Output>ans,ans2</Output>
     </PointSet>
+    <PointSet name="pp1_metric">
+      <Output>pp1_vars</Output>
+    </PointSet>
+    <PointSet name="pp2_metric">
+      <Output>pp2_vars</Output>
+    </PointSet>
   </DataObjects>
- 
+
   <OutStreams>
-      <Print name="dumpMC">
-          <type>csv</type>
-          <source>outputDataMC</source>
-      </Print>
+    <Print name="dumpMC">
+      <type>csv</type>
+      <source>outputDataMC</source>
+    </Print>
+    <Print name="pp1_metric_dump">
+      <type>csv</type>
+      <source>pp1_metric</source>
+    </Print>
+    <Print name="pp2_metric_dump">
+      <type>csv</type>
+      <source>pp2_metric</source>
+    </Print>
   </OutStreams>
+
+  <VariableGroups>
+    <Group name="pp1_vars">cdf_diff_ans2_ans</Group>
+    <Group name="pp2_vars">pdf_area_ans2_ans</Group>
+  </VariableGroups>
 
 </Simulation>

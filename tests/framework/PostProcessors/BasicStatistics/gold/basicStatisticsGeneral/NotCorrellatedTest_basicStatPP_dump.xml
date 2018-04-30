@@ -1,0 +1,9 @@
+<DataObjectMetadata name="NotCorrellatedTest_basicStatPP">
+  <DataSet type="Static">
+    <general>
+      <outputs>skew_y01,skew_y02,vc_y01,vc_y02,percentile_5_y01,percentile_95_y01,percentile_5_y02,percentile_95_y02,mean_y01,mean_y02,kurt_y01,kurt_y02,median_y01,median_y02,max_y01,max_y02,min_y01,min_y02,samp_y01,samp_y02,var_y01,var_y02,sigma_y01,sigma_y02,nsen_y01_y01,nsen_y01_y02,nsen_y02_y01,nsen_y02_y02,sen_y01_y01,sen_y01_y02,sen_y02_y01,sen_y02_y02,pear_y01_y01,pear_y01_y02,pear_y02_y01,pear_y02_y02,cov_y01_y01,cov_y01_y02,cov_y02_y01,cov_y02_y02,vsen_y01_y01,vsen_y01_y02,vsen_y02_y01,vsen_y02_y02</outputs>
+      <sampleTag>RAVEN_sample_ID</sampleTag>
+    </general>
+  </DataSet>
+  
+</DataObjectMetadata>

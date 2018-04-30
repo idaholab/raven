@@ -93,6 +93,7 @@
     <Print name="Adump">
       <type>csv</type>
       <source>Atests</source>
+      <what>input,output</what>
     </Print>
     <Print name="Adumprom">
       <type>xml</type>

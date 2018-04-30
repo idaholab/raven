@@ -5,14 +5,14 @@
      input = 'test_sobol_rom.xml'
      output = 'SobolSmolyak/dump.xml'
      UnorderedXml = 'SobolSmolyak/dumprom.xml'
-     csv = 'SobolSmolyak/dump.csv'
+     UnorderedCsv = 'SobolSmolyak/dump.csv'
    [../]
    [./staticSobolRomTensor]
      type = 'RavenFramework'
      input = 'test_sobol_tensor.xml'
      output = 'SobolTensor/dump.xml'
      UnorderedXml = 'SobolTensor/dumprom.xml'
-     csv = 'SobolTensor/dump.csv'
+     UnorderedCsv = 'SobolTensor/dump.csv'
    [../]
 
   # analytic tests
@@ -23,7 +23,7 @@
     # dumprom is analytic test in mean, variance, and sensitivity indices
     UnorderedXml = 'SobolAnalyticSudret/dumprom.xml' #analytic, "Global Sobol Sensitivity: Sudret"
     # csv is consistency test
-    csv = 'SobolAnalyticSudret/dump.csv'
+    UnorderedCsv = 'SobolAnalyticSudret/dump.csv'
   [../]
   [./sobolIshigamiAnalytic]
     type = 'RavenFramework'
@@ -32,7 +32,7 @@
     # dumprom is analytic, but does not converge well on the true solution until poly order 9
     UnorderedXml = 'SobolIshigami/dumprom.xml' #analytic, "Global Sobol Sensitivity: Ishigami"
     # csv is consistency test
-    csv = 'SobolIshigami/dump.csv'
+    UnorderedCsv = 'SobolIshigami/dump.csv'
   [../]
   [./sobolGFunction]
     type = 'RavenFramework'
@@ -76,8 +76,9 @@
     type  = 'RavenFramework'
     input = 'test_time_dep_sobol.xml'
     output = 'SobolTime/train_data.xml'
-    csv = 'SobolTime/train_data_0.csv SobolTime/train_data_1.csv SobolTime/train_data_2.csv SobolTime/train_data_3.csv SobolTime/train_data_4.csv'
+    UnorderedCsv = 'SobolTime/train_data_0.csv SobolTime/train_data_1.csv SobolTime/train_data_2.csv SobolTime/train_data_3.csv SobolTime/train_data_4.csv'
     UnorderedXml = 'SobolTime/trom_dump.xml'
+    rel_err = 1e-6
   [../]
 
   #verification
@@ -87,7 +88,7 @@
     #   - it is documented in the analytic tests manual
     type  = 'RavenFramework'
     input = 'verify_time_dep_sobol.xml'
-    csv = 'SobolTime/model_samples_0.csv SobolTime/model_samples_4.csv SobolTime/model_samples_8.csv SobolTime/rom_samples_0.csv SobolTime/rom_samples_4.csv'
+    UnorderedCsv = 'SobolTime/model_samples_0.csv SobolTime/model_samples_4.csv SobolTime/model_samples_8.csv SobolTime/rom_samples_0.csv SobolTime/rom_samples_4.csv'
     prereq = TimeDependent
   [../]
 []
