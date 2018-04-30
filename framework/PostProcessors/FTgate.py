@@ -17,7 +17,9 @@ from collections import OrderedDict
 #External Modules End-----------------------------------------------------------
 
 class FTgate():
-
+  """
+    This is the base class for all possible Boolean logic gates to be employed in Fault-Trees
+  """
   def __init__(self, xmlNode):
     """
       Method that initializes the gate
