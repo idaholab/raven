@@ -159,10 +159,11 @@ class DataClassifier(PostProcessor):
       else:
         if not hasattr(inputObject, 'type') and inputObject.type not in ['PointSet', 'HistorySet']:
           self.raiseAnError(IOError, "The input for this postprocesor", self.name, "is not acceptable! Allowed inputs are 'PointSet' and 'HistorySet'.")
-        if inputObject.isItEmpty():
+        if len(inputObject) == 0:
           self.raiseAnError(IOError, "The input", inputObject.name, "is empty!")
-        inputParams = inputObject.getParaKeys('inputs')
-        outputParams = inputObject.getParaKeys('outputs')
+        inputDataset = inputObject.asDataset()
+        inputParams = inputObject.getVars('input')
+        outputParams = inputObject.getVars('output')
         dataType = None
         mappingKeys = self.mapping.keys()
         if len(set(mappingKeys)) != len(mappingKeys):
@@ -184,32 +185,33 @@ class DataClassifier(PostProcessor):
             self.raiseAnError(IOError, "None of the input DataObjects can be used as the reference classifier! Either the label", \
                     self.label, "is not exist in the output of the DataObjects or the inputs of the DataObjects are not the same as", \
                     ','.join(self.mapping.keys()))
+        newInput[dataType]['input'] = dict.fromkeys(inputParams, None)
+        newInput[dataType]['output'] = dict.fromkeys(outputParams, None)
         if inputObject.type == 'PointSet':
-          newInput[dataType]['input'] = copy.deepcopy(inputObject.getInpParametersValues())
-          newInput[dataType]['output'] = copy.deepcopy(inputObject.getOutParametersValues())
+          for elem in inputParams:
+            newInput[dataType]['input'][elem] = copy.deepcopy(inputDataset[elem].values)
+          for elem in outputParams:
+            newInput[dataType]['output'][elem] = copy.deepcopy(inputDataset[elem].values)
           newInput[dataType]['type'] = inputObject.type
           newInput[dataType]['name'] = inputObject.name
         else:
           # only extract the last element in each realization for the HistorySet
-          newInput[dataType]['input'] = dict.fromkeys(inputObject.getParaKeys('inputs'), None)
-          newInput[dataType]['output'] = dict.fromkeys(inputObject.getParaKeys('outputs'), None)
           newInput[dataType]['type'] = inputObject.type
           newInput[dataType]['name'] = inputObject.name
-
-          rlzKeys = inputObject.getOutParametersValues().keys()
-          newInput[dataType]['historySizes'] = dict.fromkeys(rlzKeys, None)
-          for rlzIndex, rlzKey in enumerate(rlzKeys):
-            realization = inputObject.getRealization(rlzIndex)
-            for param in inputObject.getParaKeys('inputs'):
-              if newInput[dataType]['input'][param] is None:
-                newInput[dataType]['input'][param] = np.empty(0)
-              newInput[dataType]['input'][param] = np.append(newInput[dataType]['input'][param], realization['inputs'][param][-1])
-            for param in inputObject.getParaKeys('outputs'):
-              if newInput[dataType]['output'][param] is None:
-                newInput[dataType]['output'][param] = np.empty(0)
-              newInput[dataType]['output'][param] = np.append(newInput[dataType]['output'][param], realization['outputs'][param][-1])
-              if newInput[dataType]['historySizes'][rlzKey] is None:
-                newInput[dataType]['historySizes'][rlzKey] = len(realization['outputs'][param])
+          numRlzs = len(inputObject)
+          newInput[dataType]['historySizes'] = dict.fromkeys(range(numRlzs), None)
+          for i in range(numRlzs):
+            rlz = inputObject.realization(index=i)
+            for elem in inputParams:
+              if newInput[dataType]['input'][elem] is None:
+                newInput[dataType]['input'][elem] = np.empty(0)
+              newInput[dataType]['input'][elem] = np.append(newInput[dataType]['input'][elem], rlz[elem].values[-1])
+            for elem in outputParams:
+              if newInput[dataType]['output'][elem] is None:
+                newInput[dataType]['output'][elem] = np.empty(0)
+              newInput[dataType]['output'][elem] = np.append(newInput[dataType]['output'][elem], rlz[elem].values[-1])
+              if newInput[dataType]['historySizes'][i] is None:
+                newInput[dataType]['historySizes'][i] = len(rlz[elem].values)
 
     return newInput
 
@@ -262,56 +264,43 @@ class DataClassifier(PostProcessor):
     evaluation = finishedJob.getEvaluation()
     if isinstance(evaluation, Runners.Error):
       self.raiseAnError(RuntimeError, "Job ", finishedJob.identifier, " failed!")
-    inputObject, outputDict = evaluation
+    inputObjects, outputDict = evaluation
 
     if isinstance(output, Files.File):
       self.raiseAnError(IOError, "Dump results to files is not yet implemented!")
 
-    for inp in inputObject:
+    for inp in inputObjects:
       if inp.name == outputDict['dataFrom']:
-        inputObject = inputObject[0]
+        inputObject = inp
         break
     if inputObject != output:
       ## Copy any data you need from the input DataObject before adding new data
+      inputDataset = inputObject.asDataset()
+      rlzs = {}
+      for key in output.getVars('input') + output.getVars('output') + output.indexes:
+        if key in inputObject.getVars('input') + inputObject.getVars('output') + inputObject.indexes:
+          rlzs[key] = copy.deepcopy(inputDataset[key].values)
       if output.type == 'PointSet':
-        for key in output.getParaKeys('inputs') + output.getParaKeys('outputs'):
-          col = None
-          if key in inputObject.getParaKeys('inputs'):
-            col = copy.copy(inputObject.getParam('inputs', key))
-          elif key in inputObject.getParaKeys('outputs'):
-            col = copy.copy(inputObject.getParam('outputs', key))
-          if col is not None:
-            for val in col:
-              if key in output.getParaKeys('inputs'):
-                output.updateInputValue(key, value)
-              else:
-                output.updateOutputValue(key,value)
+        output.load(rlzs, style='dict')
       elif output.type == 'HistorySet':
-        for key in output.getParaKeys('inputs') + output.getParaKeys('outputs'):
-          col = None
-          if key in inputObject.getParaKeys('inputs'):
-            col = {}
-            for histIdx in inputObject.getParametersValues('inputs').keys():
-              col[histIdx] = copy.copy(inputObject.getParam('inputs', histIdx)[key])
-          elif key in inputObject.getParaKeys('outputs'):
-            col = {}
-            for histIdx in inputObject.getParametersValues('outputs').keys():
-              col[histIdx] = copy.copy(inputObject.getParam('outputs', histIdx)[key])
-          if col is not None:
-            for histIdx, vals in col.items():
-              if key in output.getParaKeys('inputs'):
-                output.updateInputValue([histIdx, key], vals[-1])
-              else:
-                output.updateOutputValue([histIdx, key], vals)
+        if inputObject.type != 'HistorySet':
+          self.raiseAnError(IOError, "Copying the data from input PointSet", inputObject.name, "to output HistorySet", output.name, "is currently not allowed!")
+        output.load(rlzs, style='dict', dims=inputObject.getDimensions())
 
     if output.type == 'PointSet':
-      for val in outputDict[self.label]:
-        output.updateOutputValue(self.label, val)
+      output.addVariable(self.label, copy.copy(outputDict[self.label]), classify='output')
     elif output.type == 'HistorySet':
-      rlzKeys = output.getOutParametersValues().keys()
-      for ind, key in enumerate(rlzKeys):
-        histSize = outputDict['historySizes'][key]
-        labelValues = np.empty(histSize)
-        labelValues.fill(outputDict[self.label][ind])
-        output.updateOutputValue([key, self.label], labelValues)
+      numRlzs = output.size
+      labelValues = np.zeros(numRlzs, dtype=object)
+      pivotParams = tuple(output.indexes)
+      coordDict = {}
+      for elem in pivotParams:
+        coordDict[elem] = output.asDataset[elem].values
 
+      for i in range(numRlzs):
+        histSize = outputDict['historySizes'][i]
+        values = np.empty(histSize)
+        values.fill(outputDict[self.label][i])
+        xrArray = xr.DataArray(values, dims=pivotParams, coords=coordDict)
+        labelValues[i] = xrArray
+      output.addVariable(self.label, labelValues, classify='output')
