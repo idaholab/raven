@@ -97,7 +97,7 @@
   [./CustomVectorInit]
     type = 'RavenFramework'
     input = 'custom_vector_init.xml'
-    csv = 'CustomVectorInit/opt_export_1.csv'
+    csv = 'CustomVectorInit/opt_export_2.csv'
     rel_err = 1e-5
   [../]
   [./RosenbrockWithSamplerError]
