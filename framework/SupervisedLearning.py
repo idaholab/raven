@@ -78,7 +78,7 @@ from utils import utils,mathUtils,randomUtils
 import sys
 import MessageHandler
 import Distributions
-interpolationND = utils.find_interpolationND()
+interpolationND = utils.findCrowModule("interpolationND")
 #Internal Modules End--------------------------------------------------------------------------------
 
 class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.MessageUser):

@@ -11,7 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import utils
+import crowTestUtils as utils
 
-distribution1D = utils.find_distribution1D()
-interpolationND = utils.find_interpolationND()
+distribution1D = utils.findCrowModule('distribution1D')
+interpolationND = utils.findCrowModule('interpolationND')
+randomENG = utils.findCrowModule('randomENG')

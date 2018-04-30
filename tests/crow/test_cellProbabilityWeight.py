@@ -17,9 +17,9 @@ import warnings
 warnings.simplefilter('default',DeprecationWarning)
 
 import sys
-import utils
+import crowTestUtils as utils
 
-distribution1D = utils.find_distribution1D()
+distribution1D = utils.findCrowModule('distribution1D')
 # input data, random matrix can also be used.
 mu = [1.0,2.0,3.0,4.0,5.0]
 cov = [1.36,   -0.816,  0.521,  1.43,    -0.144,
