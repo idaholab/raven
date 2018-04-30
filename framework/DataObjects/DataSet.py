@@ -1617,7 +1617,9 @@ class DataSet(DataObject):
     ordered = list(var for var in itertools.chain(self._inputs,self._outputs,self._metavars) if (var != clusterLabel and var in keep))
     for ID in clusterIDs:
       data = self._data.where(self._data[clusterLabel] == ID, drop = True).drop(clusterLabel)
-      self._usePandasWriteCSV('{}_{}'.format(fileName,ID), data, ordered, keepSampleTag=self.sampleTag in keep, mode='w') # TODO append mode
+      subName = '{}_{}'.format(fileName,ID)
+      self._usePandasWriteCSV(subName, data, ordered, keepSampleTag=self.sampleTag in keep, mode='w') # TODO append mode
+      self.raiseADebug('Wrote sub-cluster file to "{}.csv"'.format(subName))
 
   def _toCSVXML(self,fileName,**kwargs):
     """
