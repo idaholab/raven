@@ -354,7 +354,7 @@ class ParameterInput(object):
   @classmethod
   def removeSub(cls, sub, quantity=Quantity.zero_to_infinity):
     """
-      Adds a subnode to this class.
+      Removes a subnode from this class.
       @ In, sub, subclass of ParameterInput, the subnode to allow
       @ In, quantity, value in Quantity, the number of this subnode to allow.
       @ Out, None

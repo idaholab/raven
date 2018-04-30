@@ -197,7 +197,6 @@ class SPSA(GradientBasedOptimizer):
           if len(self.submissionQueue[traj]) == 0:
             gradient = self.counter['gradientHistory'][traj][0]
             self._newOptPointAdd(gradient,traj)
-            #### XXX REVIEWING ####
         else:
           self.raiseAnError(RuntimeError,'unexpected reason for submitting new opt points:',reason)
 
@@ -434,7 +433,7 @@ class SPSA(GradientBasedOptimizer):
       convertedValue = currentValue
       if currentValue >= upperBound:
         convertedValue = pertUp*varRange + lowerBound
-      if currentValue <= lowerBound:
+      elif currentValue <= lowerBound:
         convertedValue = pertLow*varRange + lowerBound
     return convertedValue
 
@@ -487,18 +486,13 @@ class SPSA(GradientBasedOptimizer):
       @ Out, modded, bool, if True the point was modified by the constraint
     """
     varKPlus = {}
-    # FIXME do we ever use ak[:] instead of the "except"?  This is a slow pattern if ak[:] usually fails
-    if hasattr(ak,'__len__'):
-      gain = ak[:]
-      assert(len(gain) == self._numberOfSamples()) # this might be a false assertion of len(gain) == number of ACTIVE samples
-    else:
-      gain = [ak]*self._numberOfSamples() #technically too many entries, but unneeded ones will be *0 anyway just below here
+    gain = [ak]*self._numberOfSamples() #technically too many entries, but unneeded ones will be *0 anyway just below here
     gain = np.asarray(gain)
     index = 0
     for var in self.getOptVars(traj=traj):
       numSamples = np.prod(self.variableShapes[var])
       if numSamples == 1:
-        new = varK[var]-gain[index]*gradient.get(var,0.0)*1.0 # FIXME shouldn't need *1.0
+        new = varK[var]-gain[index]*gradient.get(var,0.0)
         index += 1
       else:
         new = np.zeros(numSamples)

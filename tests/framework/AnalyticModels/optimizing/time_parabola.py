@@ -14,13 +14,3 @@ def run(self,Input):
   self.t = np.linspace(-5,5,11)
   self.ans = evaluate(self.x,self.y,self.t)
 
-class A:
-  def __init__(self,x=0,y=0):
-    self.x = 0
-    self.y = np.zeros(11)
-    self.ans = None
-
-if __name__=='__main__':
-  a = A()
-  run(a,None)
-  print 'ans:',a.ans

@@ -104,8 +104,8 @@ class Optimizer(Sampler):
     minmax     = InputData.parameterInputFactory('type', contentType=minmaxEnum)
     thresh     = InputData.parameterInputFactory('thresholdTrajRemoval', contentType=InputData.FloatType)
     write      = InputData.parameterInputFactory('writeSteps',contentType=whenWriteEnum)
-    init.addSub(limit )
-    init.addSub(seed  )
+    init.addSub(limit)
+    init.addSub(seed)
     init.addSub(minmax)
     init.addSub(thresh)
     init.addSub(write)
@@ -121,14 +121,14 @@ class Optimizer(Sampler):
     minstep = InputData.parameterInputFactory('minStepSize'      , contentType=InputData.FloatType  )
     grow    = InputData.parameterInputFactory('gainGrowthFactor' , contentType=InputData.FloatType  )
     shrink  = InputData.parameterInputFactory('gainShrinkFactor' , contentType=InputData.FloatType  )
-    conv.addSub(itLim  )
-    conv.addSub(pers   )
-    conv.addSub(rel    )
-    conv.addSub(abst   )
-    conv.addSub(grad   )
+    conv.addSub(itLim)
+    conv.addSub(pers)
+    conv.addSub(rel)
+    conv.addSub(abst)
+    conv.addSub(grad)
     conv.addSub(minstep)
-    conv.addSub(grow   )
-    conv.addSub(shrink )
+    conv.addSub(grow)
+    conv.addSub(shrink)
     inputSpecification.addSub(conv)
 
     # parameter
@@ -148,7 +148,7 @@ class Optimizer(Sampler):
     multilevel = InputData.parameterInputFactory('multilevel', strictMode=True)
     sequence = InputData.parameterInputFactory('sequence', contentType=InputData.StringType)
     multilevel.addSub(sequence)
-    subspace = InputData.parameterInputFactory('subspace', contentType=InputData.StringType, strictMode=True)
+    subspace = InputData.parameterInputFactory('subspace', contentType=InputData.StringListType, strictMode=True)
     subspace.addParam('name', InputData.StringType, True)
     subspace.addParam('precond', InputData.StringType)
     subspace.addParam('holdOutputSpace', InputData.StringType)
@@ -330,9 +330,9 @@ class Optimizer(Sampler):
         self.optVarsInit['initial'][varName] = {}
         for childChild in child.subparts:
           if childChild.getName() == "upperBound":
-            self.optVarsInit['upperBound'][varName] = float(childChild.value)
+            self.optVarsInit['upperBound'][varName] = childChild.value
           elif childChild.getName() == "lowerBound":
-            self.optVarsInit['lowerBound'][varName] = float(childChild.value)
+            self.optVarsInit['lowerBound'][varName] = childChild.value
           elif childChild.getName() == "initial":
             self.optVarsInit['initial'][varName] = {}
             self.optVarsInitialized[varName] = True
@@ -367,16 +367,16 @@ class Optimizer(Sampler):
         self.initSeed = randomUtils.randomIntegers(0,2**31,self)
         for childChild in child.subparts:
           if childChild.getName() == "limit":
-            self.limit['mdlEval'] = int(childChild.value)
+            self.limit['mdlEval'] = childChild.value
             #the manual once claimed that "A" defaults to iterationLimit/10, but it's actually this number/10.
           elif childChild.getName() == "type":
             self.optType = childChild.value
             if self.optType not in ['min', 'max']:
               self.raiseAnError(IOError, 'Unknown optimization type "{}". Available: "min" or "max"'.format(childChild.value))
           elif childChild.getName() == "initialSeed":
-            self.initSeed = int(childChild.value)
+            self.initSeed = childChild.value
           elif childChild.getName() == 'thresholdTrajRemoval':
-            self.thresholdTrajRemoval = float(childChild.value)
+            self.thresholdTrajRemoval = childChild.value
           elif childChild.getName() == 'writeSteps':
             whenToWrite = childChild.value.strip().lower()
             if whenToWrite == 'every':
@@ -391,18 +391,18 @@ class Optimizer(Sampler):
       elif child.getName() == "convergence":
         for childChild in child.subparts:
           if childChild.getName() == "iterationLimit":
-            self.limit['varsUpdate'] = int(childChild.value)
+            self.limit['varsUpdate'] = childChild.value
           elif childChild.getName() == "absoluteThreshold":
-            self.absConvergenceTol = float(childChild.value)
+            self.absConvergenceTol = childChild.value
           elif childChild.getName() == "relativeThreshold":
-            self.relConvergenceTol = float(childChild.value)
+            self.relConvergenceTol = childChild.value
           elif childChild.getName() == "minStepSize":
-            self.minStepSize = float(childChild.value)
+            self.minStepSize = childChild.value
           elif childChild.getName() == 'persistence':
-            self.convergencePersistence = int(childChild.value)
+            self.convergencePersistence = childChild.value
 
       elif child.getName() == "restartTolerance":
-        self.restartTolerance = float(child.value)
+        self.restartTolerance = child.value
 
       elif child.getName() == 'parameter':
         for childChild in child.subparts:
@@ -423,7 +423,7 @@ class Optimizer(Sampler):
               self.mlHoldBatches[name] =  [var.strip() for var in subnode.parameterValues['holdOutputSpace'].split(",")]
               self.raiseAMessage('For subspace "'+name+'" the following output space is asked to be kept on hold: '+','.join(self.mlHoldBatches[name]))
             #subspace text
-            subspaceVars = list(x.strip() for x in subnode.value.split(','))
+            subspaceVars = subnode.value
             if len(subspaceVars) < 1:
               self.raiseAnError(IOError,'Multilevel subspace "{}" has no variables specified!'.format(name))
             self.mlBatches[name] = subspaceVars
@@ -690,7 +690,7 @@ class Optimizer(Sampler):
           self.raiseAnError(Exception,"It was not possible to find any initial values that could satisfy the constraints for trajectory "+str(trajInd))
 
     # extend multivalue variables (aka vector variables, or variables with "shape")
-    ## TODO someday take array of initial values from a data object
+    ## TODO someday take array of initial values from a DataSet
     for var,shape in self.variableShapes.items():
       if np.prod(shape) > 1:
         for traj in self.optTraj:

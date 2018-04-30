@@ -77,7 +77,7 @@ class PointSet(DataSet):
     self.name = 'PointSet'
     self.type = 'PointSet'
     self.printTag = self.name
-    self._neededForReload = [] # point set doesn't need anything to reload
+    self._neededForReload = [] # PointSet doesn't need anything to reload
 
   def _readMoreXML(self,xmlNode):
     """

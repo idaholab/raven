@@ -626,9 +626,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
     #check if point already exists
     if self.restartData is not None:
-      # FIXME
       index,inExisting = self.restartData.realization(matchDict=self.values,tol=self.restartTolerance,unpackXArray=True)
-      # OLD inExisting = self.restartData.getMatchingRealization(self.values,tol=self.restartTolerance)
     else:
       index = None
       inExisting = None
@@ -801,10 +799,6 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ Out, newInputs, list of list, list of the list of input sets
     """
     newInputs = []
-    #inlastO = None
-    #if lastOutput:
-    #  if not lastOutput.isItEmpty(): inlastO = lastOutput
-    #while self.amIreadyToProvideAnInput(inlastO) and (self.counter < batchSize):
     while self.amIreadyToProvideAnInput() and (self.counter < batchSize):
       if projector==None:
         newInputs.append(self.generateInput(model,myInput))

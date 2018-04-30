@@ -214,8 +214,8 @@ class GradientBasedOptimizer(Optimizer):
       @ Out, gradient, dict, dictionary containing gradient estimation. gradient should have the form {varName: gradEstimation}
     """
     # store old values
-    self.counter['gradientHistory'][traj][1] = copy.deepcopy(self.counter['gradientHistory'][traj][0])
-    self.counter['gradNormHistory'][traj][1] = copy.deepcopy(self.counter['gradNormHistory'][traj][0])
+    self.counter['gradientHistory'][traj][1] = copy.copy(self.counter['gradientHistory'][traj][0])
+    self.counter['gradNormHistory'][traj][1] = copy.copy(self.counter['gradNormHistory'][traj][0])
     gradient = None # for now...most of the stuff in the localEvaluate can be performed here
     gradient = self.localEvaluateGradient(optVarsValues, traj, gradient)
     # we intend for gradient to give direction only, so get the versor

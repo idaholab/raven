@@ -1402,7 +1402,7 @@ class DataSet(DataObject):
     else:
       # need the sampleTag meta to load histories
       # BY DEFAULT keep everything needed to reload this entity.  Inheritors can define _neededForReload to specify what that is.
-      keep = self._inputs + self._outputs + self._metavars + self._neededForReload
+      keep = set(self._inputs + self._outputs + self._metavars + self._neededForReload)
     return keep
 
   def _getVariableIndex(self,var):
