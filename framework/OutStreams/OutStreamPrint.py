@@ -120,6 +120,10 @@ class OutStreamPrint(OutStreamManager):
       self.raiseAnError(TypeError, 'Print type ' + self.options['type'] + ' not available yet. ')
     if 'what' in self.options.keys():
       self.what = self.options['what']
+      if self.options['type'] == 'csv':
+        for elm in self.what.lower().split(","):
+          if not elm.startswith("input") and not elm.startswith("output") and not elm.startswith("metadata"):
+            self.raiseAnError(IOError, 'Not recognized request in "what" node <'+elm.strip()+'>. The request must begin with one of "input", "output" or "metadata" or it could be "all" for ROMs!')
 
   def addOutput(self):
     """
