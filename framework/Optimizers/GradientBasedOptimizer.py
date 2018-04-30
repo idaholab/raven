@@ -746,6 +746,7 @@ class GradientBasedOptimizer(Optimizer):
       bestTraj = None
       for traj in self.counter['recentOptHist'].keys():
         value = self.counter['recentOptHist'][traj][0][self.objVar]
+        self.raiseADebug('For trajectory "{}" the best value was'.format(traj),value)
         if bestTraj is None:
           bestTraj = traj
           bestValue = value
@@ -754,4 +755,5 @@ class GradientBasedOptimizer(Optimizer):
           bestTraj = traj
           bestValue = value
       # now have the best trajectory, so write solution export
+      self.raiseADebug('The best overall trajectory ending was for trajectory "{}".'.format(bestTraj))
       self.writeToSolutionExport(bestTraj)
