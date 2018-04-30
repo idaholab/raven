@@ -47,15 +47,10 @@
     <ExternalModel ModuleToLoad="simple" name="PythonModule" subType="">
       <variables>x,y</variables>
     </ExternalModel>
-    <PostProcessor name="BS" subType="BasicStatistics" verbosity="debug">
-      <expectedValue>x,y</expectedValue>
-    </PostProcessor>
   </Models>
 
   <Distributions>
     <MarkovCategorical name="x_dist">
-        <!--dataFile fileType='csv'>transitionFile</dataFile>
-        <workingDir>test_markov</workingDir-->
         <transition>
             -1.1   0.8   0.7
             0.8    -1.4  0.2
@@ -94,6 +89,7 @@
     <Print name="Grid_dump">
       <type>csv</type>
       <source>PointSet_Grid</source>
+      <what>input,output</what>
     </Print>
     <Plot  name="plotXMC" overwrite="false" verbosity="debug">
       <plotSettings>
