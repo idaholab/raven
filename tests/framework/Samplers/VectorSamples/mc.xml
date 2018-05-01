@@ -51,6 +51,7 @@
       <variable name="vectorIn" shape="10">
         <distribution>u2</distribution>
       </variable>
+      <constant name="vectorConst" shape="10">1,2,3,4,5,6,7,8,9,10</constant>
     </MonteCarlo>
   </Samplers>
 
@@ -67,8 +68,8 @@
     </PointSet>
     <DataSet name="solns">
       <Input>scalarIn,vectorIn</Input>
-      <Output>scalarOut,vectorOut</Output>
-      <Index var="t">vectorIn,vectorOut</Index>
+      <Output>scalarOut,vectorOut,vectorConst</Output>
+      <Index var="t">vectorIn,vectorOut,vectorConst</Index>
     </DataSet>
   </DataObjects>
 
