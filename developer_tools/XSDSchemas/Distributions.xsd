@@ -220,14 +220,6 @@
         </xsd:simpleContent>
     </xsd:complexType>
 
-    <xsd:complexType name="MarkovCategoricalDistribution">
-        <xsd:sequence>
-            <xsd:element name="transition" type="xsd:string"      minOccurs="1" />
-            <xsd:element name="state"      type="stateMarkovType" minOccurs="1" maxOccurs="200"/>          
-        </xsd:sequence>
-        <xsd:attribute name="name" type="xsd:string" use="required"/>
-    </xsd:complexType>
-
     <xsd:complexType name="Custom1DDistribution">
         <xsd:all>
             <xsd:element name="dataFilename" type="xsd:string" minOccurs="1"/>
