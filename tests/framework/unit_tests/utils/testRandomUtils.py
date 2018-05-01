@@ -27,6 +27,7 @@ sys.path.append(frameworkDir)
 from utils import utils
 utils.find_crow(frameworkDir)
 from utils import randomUtils
+randomENG = utils.findCrowModule("randomENG")
 
 print (randomUtils)
 
@@ -220,6 +221,20 @@ checkAnswer('Simultaneous random 5D in hypersphere, 1 axis',samps.shape[1],5)
 for i in range(samps.shape[1]):
   s = samps[i]
   checkTrue('Entry {}, simultaneous random 5D hypersphere'.format(i),np.sum(s*s)<=1.0,True)
+## check if it is possible to instanciate multiple random number generators (isolated)
+## this is more a test for the crow_modules.randomENGpy[2,3]
+firstRNG = randomENG.RandomClass()
+secondRNG = randomENG.RandomClass()
+# seed with different seeds
+firstRNG.seed(200286)
+secondRNG.seed(20021986)
+checkTrue('Check if two instances of RNG (different seed) are different',
+          firstRNG.random() != secondRNG.random(),True)
+# seed with same seeds
+firstRNG.seed(200286)
+secondRNG.seed(200286)
+checkTrue('Check if two instances of RNG (same seed) are identical',
+          firstRNG.random() == secondRNG.random(),True)
 ## visual check; skipped generally but left for debugging
 if False:
   import matplotlib.pyplot as plt
@@ -228,7 +243,6 @@ if False:
   y = samps[:,1]
   plt.plot(x,y,'.')
   plt.show()
-
 
 print(results)
 
