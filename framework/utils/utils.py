@@ -16,7 +16,8 @@
 """
 
 from __future__ import division, print_function, absolute_import
-# WARNING if you import unicode_literals here, we fail tests (e.g. framework.testFactorials).  This may be a future-proofing problem. 2015-04.
+# WARNING if you import unicode_literals here, we fail tests (e.g. framework.testFactorials).
+# This may be a future-proofing problem. 2015-04.
 import warnings
 warnings.simplefilter('default', DeprecationWarning)
 
@@ -73,12 +74,13 @@ __idSeparator = "++"
 
 def identifyIfExternalModelExists(caller, moduleIn, workingDir):
   """
-    Method to check if a external module exists and in case return the module that needs to be loaded with
-    the correct path
+    Method to check if a external module exists and in case return
+    the module that needs to be loaded with the correct path
     @ In, caller,object, the RAVEN caller (i.e. self)
     @ In, moduleIn, string, module read from the XML file
     @ In, workingDir, string, the path of the working directory
-    @ Out, (moduleToLoad, fileName), tuple, a tuple containing the module to load (that should be used in method importFromPath) and the filename (no path)
+    @ Out, (moduleToLoad, fileName), tuple, a tuple containing the module
+          to load (that should be used in method importFromPath) and the filename (no path)
   """
   if moduleIn.endswith('.py'):
     moduleToLoadString = moduleIn[:-3]
@@ -170,7 +172,8 @@ def returnImportModuleString(obj, moduleOnly=False):
     modules on which the 'obj' depends on. It already implements
     the 'import' statement or the 'from x import y'
     @ In, obj, instance, the object that needs to be inquired
-    @ In, moduleOnly, bool, optional, get the modules only (True) or also the function dependencies(False)
+    @ In, moduleOnly, bool, optional, get the modules only (True) or also
+                   the function dependencies(False)
     @ Out, mods, list, list of string containing the modules
   """
   mods = []
@@ -248,7 +251,8 @@ def convertMultipleToBytes(sizeString):
 
 def stringsThatMeanTrue():
   """
-    Return list of strings with the meaning of true in RAVEN (eng,ita,roman,french,german,chinese,latin, turkish, bool)
+    Return list of strings with the meaning of true in RAVEN
+    (eng,ita,roman,french,german,chinese,latin, turkish, bool)
     @ In, None
     @ Out, listOfStrings, list, list of strings that mean True in RAVEN
   """
@@ -261,7 +265,8 @@ def stringsThatMeanTrue():
 
 def stringsThatMeanFalse():
   """
-    Return list of strings with the meaning of true in RAVEN (eng,ita,roman,french,german,chinese,latin, turkish, bool)
+    Return list of strings with the meaning of true in RAVEN
+    (eng,ita,roman,french,german,chinese,latin, turkish, bool)
     @ In, None
     @ Out, listOfStrings, list, list of strings that mean False in RAVEN
   """
@@ -274,7 +279,8 @@ def stringsThatMeanFalse():
 
 def stringsThatMeanSilent():
   """
-    Return list of strings that indicate a verbosity of the lowest level (just errors). You linguists add what you wish
+    Return list of strings that indicate a verbosity of the lowest level
+    (just errors). You linguists add what you wish
     @ In, None
     @ Out, listOfStrings, list, list of strings that mean Silent in RAVEN
   """
@@ -284,7 +290,8 @@ def stringsThatMeanSilent():
 
 def stringsThatMeanPartiallyVerbose():
   """
-    Return list of strings that indicate a verbosity of the medium level (errors and warnings). You linguists add what you wish.
+    Return list of strings that indicate a verbosity of the medium level
+    (errors and warnings). You linguists add what you wish.
     @ In, None
     @ Out, listOfStrings, list, list of strings that mean Quiet in RAVEN
   """
@@ -294,7 +301,8 @@ def stringsThatMeanPartiallyVerbose():
 
 def stringsThatMeanVerbose():
   """
-    Return list of strings that indicate full verbosity (errors warnings, messages). You linguists add what you wish.
+    Return list of strings that indicate full verbosity (errors warnings, messages).
+    You linguists add what you wish.
     @ In, None
     @ Out, listOfStrings, list, list of strings that mean Full Verbosity in RAVEN
   """
@@ -482,9 +490,11 @@ def toListFromNumpyOrC1array(array):
 def toListFromNumpyOrC1arrayIterative(array):
   """
     Method aimed to convert all the string-compatible content of
-    an object (dict, list, or string) in type list from numpy and c1darray types (recursively call toBytes(s))
+    an object (dict, list, or string) in type list from numpy and c1darray types
+    (recursively call toBytes(s))
     @ In, array, object,  object whose content needs to be converted
-    @ Out, response, object, a copy of the object in which the string-compatible has been converted
+    @ Out, response, object, a copy of the object in which the string-compatible
+       has been converted
   """
   if type(array) == list:
     return [toListFromNumpyOrC1array(x) for x in array]
@@ -606,7 +616,8 @@ def find_lt(a, x):
 
 def find_le_index(a, x):
   """
-    Method to Find the index of the rightmost value less than or equal to x in the list a (assumed to be sorted)
+    Method to Find the index of the rightmost value less than or equal to x
+    in the list a (assumed to be sorted)
     @ In, a, list, the list that needs to be inquired
     @ In, x, float, the inquiring value
     @ Out, i, int, the index of the rightmost value less than or equal to x
@@ -619,10 +630,12 @@ def find_le_index(a, x):
 
 def find_le(a, x):
   """
-    Method to Find the rightmost value less than or equal to x in the list a (assumed to be sorted)
+    Method to Find the rightmost value less than or equal to x in the
+    list a (assumed to be sorted)
     @ In, a, list, the list that needs to be inquired
     @ In, x, float, the inquiring value
-    @ Out, i, tuple, tuple[0] -> the rightmost value less than or equal to x, tuple[1] -> index
+    @ Out, i, tuple, tuple[0] -> the rightmost value less than or equal
+         to x, tuple[1] -> index
   """
   i = bisect.bisect_right(a, x)
   if i:
@@ -645,10 +658,10 @@ def find_gt(a, x):
 
 def find_ge(a, x):
   """
-    Method to Find the leftmost item greater than or equal to x in the list a (assumed to be sorted)
+    Method to Find the leftmost item >= to x in the list a (assumed to be sorted)
     @ In, a, list, the list that needs to be inquired
     @ In, x, float, the inquiring value
-    @ Out, i, tuple, tuple[0] ->leftmost item greater than or equal to x, tuple[1] -> index
+    @ Out, i, tuple, tuple[0] ->leftmost item >= to x, tuple[1] -> index
   """
   i = bisect.bisect_left(a, x)
   if i != len(a):
@@ -659,11 +672,13 @@ def find_ge(a, x):
 def getRelativeSortedListEntry(sortedList, value, tol=1e-15):
   """
     !!WARNING!! This method expects "sortedList" to already be a sorted list of float values!
-    There are faster methods if they are not floats, and this will NOT work at all on unsorted lists.
-    - Looks for a (close enough) match to "value" in "sortedList" using binomial search.  If found,
-    returns the index and value of the matching entry.  If not found, adds a new entry to the sortedList
-    and returns the new index with the original value.
-    It is recommended that this method be used to add ALL entries into the sorted list to keep it sorted.
+    There are faster methods if they are not floats, and this will NOT work at all on
+    unsorted lists.
+    - Looks for a (close enough) match to "value" in "sortedList" using binomial search.
+    If found, returns the index and value of the matching entry.  If not found, adds a
+    new entry to the sortedList and returns the new index with the original value.
+    It is recommended that this method be used to add ALL entries into the sorted
+    list to keep it sorted.
     @ In, sortedList, list, list of __sorted__ float values
     @ In, value, float, value to search for match
     @ Out, sortedList, list, possibly modified by still ordered list of floats
@@ -910,7 +925,8 @@ def add_path(absolutepath):
 
 def add_path_recursively(absoluteInitialPath):
   """
-    Method to recursively add all the path and subpaths contained in absoluteInitialPath in the pythonpath
+    Method to recursively add all the path and subpaths contained in
+    absoluteInitialPath in the pythonpath
     @ In, absoluteInitialPath, string, the absolute path to add
     @ Out, None
   """

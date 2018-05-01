@@ -42,14 +42,20 @@ def isComment(node):
 
 def prettify(tree, doc=False, docLevel=0, startingTabs=0, addRavenNewlines=True):
   """
-    Script for turning XML tree into something mostly RAVEN-preferred.  Does not align attributes as some devs like (yet).
-    The output can be written directly to a file, as file('whatever.who','w').writelines(prettify(mytree))
+    Script for turning XML tree into something mostly RAVEN-preferred.  Does not align
+    attributes as some devs like (yet). The output can be written directly to a file, as
+    file('whatever.who','w').writelines(prettify(mytree))
     @ In, tree, xml.etree.ElementTree object, the tree form of an input file
-    @ In, doc, bool, optional, if True treats the XML as being prepared for documentation instead of full printing
-    @ In, docLevel, int, optional, if doc then only this many levels of tabs will use ellipses documentation
-    @ In, startingTabs, int, optional, if provided determines the starting tab level for the prettified xml
-    @ In, addRavenNewlines, bool, optional, if True then adds newline space between each main-level entity
-    @Out, towrite, string, the entire contents of the desired file to write, including newlines
+    @ In, doc, bool, optional, if True treats the XML as being prepared for
+                           documentation instead of full printing
+    @ In, docLevel, int, optional, if doc then only this many levels of tabs
+                           will use ellipses documentation
+    @ In, startingTabs, int, optional, if provided determines the starting tab
+                           level for the prettified xml
+    @ In, addRavenNewlines, bool, optional, if True then adds newline space
+                           between each main-level entity
+    @ Out, towrite, string, the entire contents of the desired file to write,
+                          including newlines
   """
 
   def prettifyNode(node, tabs=0, ravenNewlines=True):
@@ -58,7 +64,8 @@ def prettify(tree, doc=False, docLevel=0, startingTabs=0, addRavenNewlines=True)
       adds whitespace to make node more human-readable
       @ In, node, ET.Element, node to prettify
       @ In, tabs, int, optional, indentation level for this node in the global scheme
-      @ In, addRavenNewlines, bool, optional, if True then adds newline space between each main-level entity
+      @ In, addRavenNewlines, bool, optional, if True then adds newline space between
+                                              each main-level entity
       @ Out, None
     """
     linesep = os.linesep
@@ -104,7 +111,8 @@ def prettify(tree, doc=False, docLevel=0, startingTabs=0, addRavenNewlines=True)
     return ET.tostring(tree)
 
   #### OLD WAY ####
-  #make the first pass at pretty.  This will insert way too many newlines, because of how we maintain XML format.
+  # make the first pass at pretty.  This will insert way too
+  # many newlines, because of how we maintain XML format.
   #pretty = pxml.parseString(ET.tostring(tree.getroot())).toprettyxml(indent='  ')
   #loop over each "line" and toss empty ones, but for ending main nodes, insert a newline after.
   #toWrite=''
@@ -119,7 +127,8 @@ def prettify(tree, doc=False, docLevel=0, startingTabs=0, addRavenNewlines=True)
 
 def newNode(tag, text='', attrib=None):
   """
-    Creates a new node with the desired tag, text, and attributes more simply than can be done natively.
+    Creates a new node with the desired tag, text, and attributes more
+    simply than can be done natively.
     @ In, tag, string, the name of the node
     @ In, text, string, optional, the text of the node
     @ In, attrib, dict{string:string}, attribute:value pairs
@@ -155,7 +164,8 @@ def newTree(name, attrib=None):
 
 def fixTagsInXpath(_path):
   """
-    Fixes tags/attributes/text in an xml.etree.ElementTree compatible xpath string to use allowable characters
+    Fixes tags/attributes/text in an xml.etree.ElementTree compatible
+    xpath string to use allowable characters
     @ In, _path, str, xpath string
     @ Out, out, str, modified string
   """
@@ -223,8 +233,10 @@ def findPath(root, path):
   """
     Navigates path to find a particular element
     @ In, root, xml.etree.ElementTree.Element, the node to start searching along
-    @ In, path, string, xpath syntax (see for example https://docs.python.org/2/library/xml.etree.elementtree.html#example)
-    @ Out, findPath, None or xml.etree.ElementTree.Element, None if not found or first matching element if found
+    @ In, path, string, xpath syntax
+            (see for example https://docs.python.org/2/library/xml.etree.elementtree.html#example)
+    @ Out, findPath, None or xml.etree.ElementTree.Element, None if not found or
+                                                     first matching element if found
   """
   assert ('|' not in path), 'Update XML search to use XPATH syntax!'
   # edit tags for allowable characters
@@ -238,11 +250,13 @@ def findPath(root, path):
 
 def findPathEllipsesParents(root, path, docLevel=0):
   """
-    As with findPath, but the parent nodes are kept and ellipses text are used to replace siblings in the resulting tree.
+    As with findPath, but the parent nodes are kept and ellipses text are
+    used to replace siblings in the resulting tree.
     @ In, root, xml.etree.ElementTree.Element, the node to start searching along
     @ In, path, string, |-seperated xml path (as "Simulation|RunInfo|JobName")
-    @ In, docLevel, int, optional, if doc then only this many levels of tabs will use ellipses documentation
-    @ Out, newRoot, None or xml.etree.ElementTree.Element, None if not found or element if found
+    @ In, docLevel, int, optional, if doc then only this many levels of tabs
+                                   will use ellipses documentation
+    @ Out, newRoot, None or xml.etree.ElementTree.Element, element if found, None otherwise
   """
   foundNode = findPath(root, path)
   if foundNode is None:
