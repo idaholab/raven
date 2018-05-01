@@ -28,8 +28,6 @@
   <Models>
     <ExternalModel name="markov" subType="markovModel">
       <variables>initialState,finalState</variables>
-      <!-- xml portion for this plugin only 
-           https://en.wikipedia.org/wiki/Markov_chain -->
       <initState>initialState</initState>
       <finState>finalState</finState>
       <endTime>1000</endTime>
