@@ -348,7 +348,7 @@ class Optimizer(Sampler):
               self.optTraj = range(len(self.optVarsInit['initial'][varName].keys()))
 
       elif child.getName() == "constant":
-        name,constant = self._readInConstant(child)
+        name,value = self._readInConstant(child)
         self.constants[child.parameterValues['name']] = value
 
       elif child.getName() == "objectVar":

@@ -401,7 +401,8 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         value = value.reshape(shape)
       except ValueError:
         self.raiseAnError(IOError,
-            'Requested shape "{}" ({} entries) for constant "{}" is not consistent with the provided values ({} entries)!'
+            ('Requested shape "{}" ({} entries) for constant "{}"' +\
+            ' is not consistent with the provided values ({} entries)!')
             .format(shape,np.prod(shape),name,len(value)))
     return name, value
 
