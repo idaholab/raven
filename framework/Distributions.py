@@ -41,7 +41,7 @@ import copy
 from BaseClasses import BaseType
 from utils import utils
 from utils.randomUtils import random
-distribution1D = utils.find_distribution1D()
+distribution1D = utils.findCrowModule('distribution1D')
 from utils import InputData
 from utils import mathUtils
 #Internal Modules End--------------------------------------------------------------------------------
@@ -54,8 +54,6 @@ def factorial(x):
   """
   fact = gamma(x+1)
   return fact
-
-stochasticEnv = distribution1D.DistributionContainer.instance()
 
 """
   Mapping between internal framework and Crow distribution name

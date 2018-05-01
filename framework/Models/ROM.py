@@ -181,6 +181,20 @@ class ROM(Dummy):
     inputSpecification.addSub(InputData.parameterInputFactory("validation_fraction", InputData.FloatType))
     inputSpecification.addSub(InputData.parameterInputFactory("beta_1", InputData.FloatType))
     inputSpecification.addSub(InputData.parameterInputFactory("beta_2", InputData.FloatType))
+    # PolyExp
+    inputSpecification.addSub(InputData.parameterInputFactory("maxNumberExpTerms", InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("numberExpTerms", InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("maxPolyOrder", InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("polyOrder", InputData.IntegerType))
+    coeffRegressorEnumType = InputData.makeEnumType("coeffRegressor","coeffRegressorType",["poly","spline","nearest"])
+    inputSpecification.addSub(InputData.parameterInputFactory("coeffRegressor", contentType=coeffRegressorEnumType))
+    # DMD
+    inputSpecification.addSub(InputData.parameterInputFactory("rankSVD", InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("energyRankSVD", InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("rankTLSQ", InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("exactModes", InputData.BoolType))
+    inputSpecification.addSub(InputData.parameterInputFactory("optimized", InputData.BoolType))
+    inputSpecification.addSub(InputData.parameterInputFactory("dmdType", InputData.StringType))
 
     #Estimators can include ROMs, and so because baseNode does a copy, this
     #needs to be after the rest of ROMInput is defined.
@@ -273,7 +287,9 @@ class ROM(Dummy):
       @ Out, None
     """
     #determine dynamic or static
-    dynamic          = self.supervisedEngine.isADynamicModel
+    dynamic = self.supervisedEngine.isADynamicModel
+    # determine if it can handle dynamic data
+    handleDynamicData = self.supervisedEngine.canHandleDynamicData
     # get pivot parameter
     pivotParameterId = self.supervisedEngine.pivotParameterId
     # establish file
@@ -281,7 +297,7 @@ class ROM(Dummy):
       filenameLocal = options['filenameroot']
     else:
       filenameLocal = self.name + '_dump'
-    if dynamic:
+    if dynamic and not handleDynamicData:
       outFile = Files.returnInstance('DynamicXMLOutput',self)
     else:
       outFile = Files.returnInstance('StaticXMLOutput',self)
@@ -296,9 +312,11 @@ class ROM(Dummy):
     #handle 'all' case
     if 'all' in targets:
       targets = ROMtargets
+    # setup print
+    engines[0].printXMLSetup(outFile,options)
     #this loop is only 1 entry long if not dynamic
     for s,rom in enumerate(engines):
-      if dynamic:
+      if dynamic and not handleDynamicData:
         pivotValue = self.supervisedEngine.historySteps[s]
       else:
         pivotValue = 0

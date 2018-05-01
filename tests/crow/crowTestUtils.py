@@ -19,28 +19,14 @@ warnings.simplefilter('default',DeprecationWarning)
 import sys
 import numpy as np
 import os
+import importlib
 
-raven_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-print("raven_dir",raven_dir)
-sys.path.append(os.path.join(raven_dir,"crow","install"))
-
-def find_distribution1D():
-  """ find the crow distribution1D module and return it. """
-  if sys.version_info.major > 2:
-    import crow_modules.distribution1Dpy3
-    return crow_modules.distribution1Dpy3
-  else:
-    import crow_modules.distribution1Dpy2
-    return crow_modules.distribution1Dpy2
-
-def find_interpolationND():
-  """ find the crow interpolationND module and return it. """
-  if sys.version_info.major > 2:
-    import crow_modules.interpolationNDpy3
-    return crow_modules.interpolationNDpy3
-  else:
-    import crow_modules.interpolationNDpy2
-    return crow_modules.interpolationNDpy2
+ravenDir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+print("ravenDir",ravenDir)
+sys.path.append(os.path.join(ravenDir,"crow","install"))
+sys.path.append(os.path.join(ravenDir,"framework"))
+from utils import utils
+findCrowModule = utils.findCrowModule
 
 def checkAnswer(comment,value,expected,results,tol=1e-10):
   """ Will check if a test passes or fails and update the results dictionary.
