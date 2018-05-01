@@ -211,15 +211,6 @@
         <xsd:attribute name="name" type="xsd:string" use="required"/>
     </xsd:complexType>
 
-    <xsd:complexType name="stateMarkovType">
-        <xsd:simpleContent>
-            <xsd:extension base="xsd:positiveInteger">
-                <xsd:attribute name="outcome" type="xsd:positiveInteger" use="required"/>
-                <xsd:attribute name="index"   type="xsd:positiveInteger" use="required"/>
-            </xsd:extension>
-        </xsd:simpleContent>
-    </xsd:complexType>
-
     <xsd:complexType name="Custom1DDistribution">
         <xsd:all>
             <xsd:element name="dataFilename" type="xsd:string" minOccurs="1"/>
