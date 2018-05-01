@@ -137,10 +137,10 @@ class Optimizer(Sampler):
     stoch  = InputData.parameterInputFactory('stochasticDistribution' , contentType=stochEnum            )
     bisect = InputData.parameterInputFactory('innerBisectionThreshold', contentType=InputData.FloatType  )
     loop   = InputData.parameterInputFactory('innerLoopLimit'         , contentType=InputData.IntegerType)
-    param.addSub(num   )
-    param.addSub(stoch )
+    param.addSub(num)
+    param.addSub(stoch)
     param.addSub(bisect)
-    param.addSub(loop  )
+    param.addSub(loop)
     inputSpecification.addSub(param)
 
     # multilevel
@@ -321,11 +321,8 @@ class Optimizer(Sampler):
         if self.fullOptVars is None:
           self.fullOptVars = []
         # store variable name
-        try:
-          varName = child.parameterValues['name']
-          self.optVarsInitialized[varName] = False
-        except KeyError:
-          self.raiseAnError(IOError, '"{}" node does not have the "name" attribute'.format(child.getName()))
+        varName = child.parameterValues['name']
+        self.optVarsInitialized[varName] = False
         # store varible requested shape, if any
         if 'shape' in child.parameterValues:
           self.variableShapes[varName] = child.parameterValues['shape']
@@ -344,18 +341,26 @@ class Optimizer(Sampler):
               try:
                 self.optVarsInit['initial'][varName][trajInd] = float(initVal)
               except ValueError:
-                self.raiseAnError(ValueError, 'Unable to convert to float the intial value for variable "{}" in trajectory "{}": {}'.format(varName,trajInd,initVal))
+                self.raiseAnError(ValueError,
+                    'Unable to convert to float the intial value for variable "{}" in trajectory "{}": {}'
+                    .format(varName,trajInd,initVal))
             if self.optTraj == None:
               self.optTraj = range(len(self.optVarsInit['initial'][varName].keys()))
 
       elif child.getName() == "constant":
-        value = utils.partialEval(child.value)
-        if value is None:
-          self.raiseAnError(IOError,'The body of "constant" XML block should be a number. Got: ' +child.value)
-        try:
-          self.constants[child.parameterValues['name']] = value
-        except KeyError:
-          self.raiseAnError(KeyError,child.getName()+'"constant" nodes must have the attribute "name" (missing in "{}").'.format(self.name))
+        name = child.parameterValues['name']
+        value = child.value
+        shape = child.parameterValues.get('shape',None)
+        # reshape the values if requested
+        if shape is not None:
+          value = np.asarray(value)
+          try:
+            value = value.reshape(shape)
+          except ValueError:
+            self.raiseAnError(IOError,
+                'Requested shape "{}" for constant "{}" is not consistent with the number of entries ({})!'
+                .format(shape,name,len(value)))
+        self.constants[child.parameterValues['name']] = value
 
       elif child.getName() == "objectVar":
         self.objVar = child.value.strip()

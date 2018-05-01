@@ -86,8 +86,9 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
 
     inputSpecification.addSub(variablesTransformationInput)
 
-    constantInput = InputData.parameterInputFactory("constant", contentType=InputData.StringType)
+    constantInput = InputData.parameterInputFactory("constant", contentType=InputData.FloatListType)
     constantInput.addParam("name", InputData.StringType, True)
+    constantInput.addParam("shape", InputData.IntegerListType, required=False)
 
     inputSpecification.addSub(constantInput)
 
@@ -297,13 +298,19 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         self.variablesTransformationDict[child.parameterValues['distribution']] = transformationDict
 
       elif child.getName() == "constant":
-        value = utils.partialEval(child.value)
-        if value is None:
-          self.raiseAnError(IOError,'The body of "constant" XML block should be a number. Got: ' +child.value)
-        try:
-          self.constants[child.parameterValues['name']] = value
-        except KeyError:
-          self.raiseAnError(KeyError,child.getName()+' must have the attribute "name"!!!')
+        value = child.value
+        name = child.parameterValues['name']
+        shape = child.parameterValues.get('shape',None)
+        if shape is not None:
+          value = np.asarray(value)
+          try:
+            value = value.reshape(shape)
+          except ValueError:
+            self.raiseAnError(IOError,
+                'Requested shape "{}" ({} entries) for constant "{}" is not consistent with the provided values ({} entries)!'
+                .format(shape,np.prod(shape),name,len(value)))
+        self.constants[name] = value
+
       elif child.getName() == "restartTolerance":
         self.restartTolerance = child.value
 
