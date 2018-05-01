@@ -17,7 +17,7 @@ Module where the base class and the specialization of different type of Model ar
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
-warnings.simplefilter('default',DeprecationWarning)
+warnings.simplefilter('default', DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -34,9 +34,11 @@ from utils import utils
 from Assembler import Assembler
 from utils import InputData
 import Runners
+
 #Internal Modules End--------------------------------------------------------------------------------
 
-class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
+
+class Model(utils.metaclass_insert(abc.ABCMeta, BaseType), Assembler):
   """
     A model is something that given an input will return an output reproducing some physical model
     it could as complex as a stand alone code, a reduced order model trained somehow or something
@@ -59,73 +61,65 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     ## Begin alias tag
     AliasInput = InputData.parameterInputFactory("alias", contentType=InputData.StringType)
     AliasInput.addParam("variable", InputData.StringType, True)
-    AliasTypeInput = InputData.makeEnumType("aliasType","aliasTypeType",["input","output"])
+    AliasTypeInput = InputData.makeEnumType("aliasType", "aliasTypeType", ["input", "output"])
     AliasInput.addParam("type", AliasTypeInput, True)
     inputSpecification.addSub(AliasInput)
     ## End alias tag
 
     return inputSpecification
 
-  validateDict                  = {}
-  validateDict['Input'  ]       = []
-  validateDict['Output' ]       = []
-  validateDict['Sampler']       = []
-  validateDict['Optimizer']     = []
-  testDict                      = {}
-  testDict                      = {'class':'','type':[''],'multiplicity':0,'required':False}
+  validateDict = {}
+  validateDict['Input'] = []
+  validateDict['Output'] = []
+  validateDict['Sampler'] = []
+  validateDict['Optimizer'] = []
+  testDict = {}
+  testDict = {'class': '', 'type': [''], 'multiplicity': 0, 'required': False}
   #FIXME: a multiplicity value is needed to control role that can have different class
   #the possible inputs
   validateDict['Input'].append(testDict.copy())
-  validateDict['Input'  ][0]['class'       ] = 'DataObjects'
-  validateDict['Input'  ][0]['type'        ] = ['PointSet','HistorySet']
-  validateDict['Input'  ][0]['required'    ] = False
-  validateDict['Input'  ][0]['multiplicity'] = 'n'
+  validateDict['Input'][0]['class'] = 'DataObjects'
+  validateDict['Input'][0]['type'] = ['PointSet', 'HistorySet']
+  validateDict['Input'][0]['required'] = False
+  validateDict['Input'][0]['multiplicity'] = 'n'
   validateDict['Input'].append(testDict.copy())
-  validateDict['Input'  ][1]['class'       ] = 'Files'
+  validateDict['Input'][1]['class'] = 'Files'
   # FIXME there's lots of types that Files can be, so until XSD replaces this, commenting this out
   #validateDict['Input'  ][1]['type'        ] = ['']
-  validateDict['Input'  ][1]['required'    ] = False
-  validateDict['Input'  ][1]['multiplicity'] = 'n'
+  validateDict['Input'][1]['required'] = False
+  validateDict['Input'][1]['multiplicity'] = 'n'
   #the possible outputs
   validateDict['Output'].append(testDict.copy())
-  validateDict['Output' ][0]['class'       ] = 'DataObjects'
-  validateDict['Output' ][0]['type'        ] = ['PointSet','HistorySet','DataSet']
-  validateDict['Output' ][0]['required'    ] = False
-  validateDict['Output' ][0]['multiplicity'] = 'n'
+  validateDict['Output'][0]['class'] = 'DataObjects'
+  validateDict['Output'][0]['type'] = ['PointSet', 'HistorySet', 'DataSet']
+  validateDict['Output'][0]['required'] = False
+  validateDict['Output'][0]['multiplicity'] = 'n'
   validateDict['Output'].append(testDict.copy())
-  validateDict['Output' ][1]['class'       ] = 'Databases'
-  validateDict['Output' ][1]['type'        ] = ['HDF5']
-  validateDict['Output' ][1]['required'    ] = False
-  validateDict['Output' ][1]['multiplicity'] = 'n'
+  validateDict['Output'][1]['class'] = 'Databases'
+  validateDict['Output'][1]['type'] = ['HDF5']
+  validateDict['Output'][1]['required'] = False
+  validateDict['Output'][1]['multiplicity'] = 'n'
   validateDict['Output'].append(testDict.copy())
-  validateDict['Output' ][2]['class'       ] = 'OutStreams'
-  validateDict['Output' ][2]['type'        ] = ['Plot','Print']
-  validateDict['Output' ][2]['required'    ] = False
-  validateDict['Output' ][2]['multiplicity'] = 'n'
+  validateDict['Output'][2]['class'] = 'OutStreams'
+  validateDict['Output'][2]['type'] = ['Plot', 'Print']
+  validateDict['Output'][2]['required'] = False
+  validateDict['Output'][2]['multiplicity'] = 'n'
   #the possible samplers
   validateDict['Sampler'].append(testDict.copy())
-  validateDict['Sampler'][0]['class'       ] ='Samplers'
-  validateDict['Sampler'][0]['required'    ] = False
+  validateDict['Sampler'][0]['class'] = 'Samplers'
+  validateDict['Sampler'][0]['required'] = False
   validateDict['Sampler'][0]['multiplicity'] = 1
-  validateDict['Sampler'][0]['type']         = ['MonteCarlo',
-                                                'DynamicEventTree',
-                                                'Stratified',
-                                                'Grid',
-                                                'LimitSurfaceSearch',
-                                                'AdaptiveDynamicEventTree',
-                                                'FactorialDesign',
-                                                'ResponseSurfaceDesign',
-                                                'SparseGridCollocation',
-                                                'AdaptiveSparseGrid',
-                                                'Sobol',
-                                                'AdaptiveSobol',
-                                                'EnsembleForward',
-                                                'CustomSampler']
+  validateDict['Sampler'][0]['type'] = [
+      'MonteCarlo', 'DynamicEventTree', 'Stratified', 'Grid', 'LimitSurfaceSearch',
+      'AdaptiveDynamicEventTree', 'FactorialDesign', 'ResponseSurfaceDesign',
+      'SparseGridCollocation', 'AdaptiveSparseGrid', 'Sobol', 'AdaptiveSobol', 'EnsembleForward',
+      'CustomSampler'
+  ]
   validateDict['Optimizer'].append(testDict.copy())
-  validateDict['Optimizer'][0]['class'       ] ='Optimizers'
-  validateDict['Optimizer'][0]['required'    ] = False
+  validateDict['Optimizer'][0]['class'] = 'Optimizers'
+  validateDict['Optimizer'][0]['required'] = False
   validateDict['Optimizer'][0]['multiplicity'] = 1
-  validateDict['Optimizer'][0]['type']         = ['SPSA','FiniteDifferenceGradientOptimizer']
+  validateDict['Optimizer'][0]['type'] = ['SPSA', 'FiniteDifferenceGradientOptimizer']
 
   @classmethod
   def generateValidateDict(cls):
@@ -143,10 +137,11 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ In, None
       @ Out, None
     """
-    raise NotImplementedError('The class '+str(cls.__name__)+' has not implemented the method specializeValidateDict')
+    raise NotImplementedError(
+        'The class ' + str(cls.__name__) + ' has not implemented the method specializeValidateDict')
 
   @classmethod
-  def localValidateMethod(cls,who,what):
+  def localValidateMethod(cls, who, what):
     """
       This class method is called to test the compatibility of the class with its possible usage
       @ In, who, string, a string identifying the what is the role of what we are going to test (i.e. input, output etc)
@@ -155,37 +150,43 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
     #counting successful matches
     if who not in cls.validateDict.keys():
-      raise IOError('The role '+str(who)+' does not exist in the class '+str(cls))
+      raise IOError('The role ' + str(who) + ' does not exist in the class ' + str(cls))
     for myItemDict in cls.validateDict[who]:
       myItemDict['tempCounter'] = 0
     for anItem in what:
       anItem['found'] = False
       for tester in cls.validateDict[who]:
         if anItem['class'] == tester['class']:
-          if anItem['class']=='Files':
+          if anItem['class'] == 'Files':
             #FIXME Files can accept any type, including None.
-            tester['tempCounter']+=1
-            anItem['found']=True
+            tester['tempCounter'] += 1
+            anItem['found'] = True
             break
           else:
             if anItem['type'] in tester['type']:
-              tester['tempCounter'] +=1
-              anItem['found']        = True
+              tester['tempCounter'] += 1
+              anItem['found'] = True
               break
     #testing if the multiplicity of the argument is correct
     for tester in cls.validateDict[who]:
-      if tester['required']==True:
-        if tester['multiplicity']=='n' and tester['tempCounter']<1:
-          raise IOError('The number of times class = '+str(tester['class'])+' type= ' +str(tester['type'])+' is used as '+str(who)+' is improper. At least one object must be present!')
-      if tester['multiplicity']!='n' and tester['tempCounter']!=tester['multiplicity']:
-        raise IOError('The number of times class = '+str(tester['class'])+' type= ' +str(tester['type'])+' is used as '+str(who)+' is improper. Number of allowable times is '+str(tester['multiplicity'])+'.Got '+str(tester['tempCounter']))
+      if tester['required'] == True:
+        if tester['multiplicity'] == 'n' and tester['tempCounter'] < 1:
+          raise IOError('The number of times class = ' + str(tester['class']) + ' type= ' +
+                        str(tester['type']) + ' is used as ' + str(who) +
+                        ' is improper. At least one object must be present!')
+      if tester['multiplicity'] != 'n' and tester['tempCounter'] != tester['multiplicity']:
+        raise IOError(
+            'The number of times class = ' + str(tester['class']) + ' type= ' + str(tester['type'])
+            + ' is used as ' + str(who) + ' is improper. Number of allowable times is ' + str(
+                tester['multiplicity']) + '.Got ' + str(tester['tempCounter']))
     #testing if all argument to be tested have been found
     for anItem in what:
-      if anItem['found']==False:
-        raise IOError('It is not possible to use '+anItem['class']+' type = ' +anItem['type']+' as '+who)
+      if anItem['found'] == False:
+        raise IOError('It is not possible to use ' + anItem['class'] + ' type = ' + anItem['type'] +
+                      ' as ' + who)
     return True
 
-  def __init__(self,runInfoDict):
+  def __init__(self, runInfoDict):
     """
       Constructor
       @ In, runInfoDict, dict, the dictionary containing the runInfo (read in the XML input file)
@@ -195,55 +196,75 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     Assembler.__init__(self)
     #if alias are defined in the input it defines a mapping between the variable names in the framework and the one for the generation of the input
     #self.alias[framework variable name] = [input code name]. For Example, for a MooseBasedApp, the alias would be self.alias['internal_variable_name'] = 'Material|Fuel|thermal_conductivity'
-    self.alias    = {'input':{},'output':{}}
-    self.subType  = ''
+    self.alias = {'input': {}, 'output': {}}
+    self.subType = ''
     self.runQueue = []
     self.printTag = 'MODEL'
     self.createWorkingDir = False
 
-  def _readMoreXML(self,xmlNode):
+  def _readMoreXML(self, xmlNode):
     """
       Function to read the portion of the xml input that belongs to this specialized class
       and initialize some stuff based on the inputs got
       @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
       @ Out, None
     """
-    Assembler._readMoreXML(self,xmlNode)
+    Assembler._readMoreXML(self, xmlNode)
     try:
       self.subType = xmlNode.attrib['subType']
     except KeyError:
-      self.raiseADebug("Failed in Node: "+str(xmlNode),verbostiy='silent')
-      self.raiseAnError(IOError,'missed subType for the model '+self.name)
+      self.raiseADebug("Failed in Node: " + str(xmlNode), verbostiy='silent')
+      self.raiseAnError(IOError, 'missed subType for the model ' + self.name)
     for child in xmlNode:
-      if child.tag =='alias':
+      if child.tag == 'alias':
         # the input would be <alias variable='internal_variable_name'>Material|Fuel|thermal_conductivity</alias>
         if 'variable' in child.attrib.keys():
           if 'type' in child.attrib.keys():
-            if child.attrib['type'].lower() not in ['input','output']:
-              self.raiseAnError(IOError,'the type of alias can be either "input" or "output". Got '+child.attrib['type'].lower())
-            aliasType           = child.attrib['type'].lower().strip()
+            if child.attrib['type'].lower() not in ['input', 'output']:
+              self.raiseAnError(IOError,
+                                'the type of alias can be either "input" or "output". Got ' +
+                                child.attrib['type'].lower())
+            aliasType = child.attrib['type'].lower().strip()
             complementAliasType = 'output' if aliasType == 'input' else 'input'
           else:
-            self.raiseAnError(IOError,'not found the attribute "type" in the definition of one of the alias for model '+str(self.name) +' of type '+self.type)
+            self.raiseAnError(
+                IOError,
+                'not found the attribute "type" in the definition of one of the alias for model ' +
+                str(self.name) + ' of type ' + self.type)
           varFramework, varModel = child.attrib['variable'], child.text.strip()
           if varFramework in self.alias[aliasType].keys():
-            self.raiseAnError(IOError,' The alias for variable ' +varFramework+' has been already inputted in model '+str(self.name) +' of type '+self.type)
+            self.raiseAnError(
+                IOError, ' The alias for variable ' + varFramework +
+                ' has been already inputted in model ' + str(self.name) + ' of type ' + self.type)
           if varModel in self.alias[aliasType].values():
-            self.raiseAnError(IOError,' The alias ' +varModel+' has been already used for another variable in model '+str(self.name) +' of type '+self.type)
+            self.raiseAnError(
+                IOError,
+                ' The alias ' + varModel + ' has been already used for another variable in model ' +
+                str(self.name) + ' of type ' + self.type)
           if varFramework in self.alias[complementAliasType].keys():
-            self.raiseAnError(IOError,' The alias for variable ' +varFramework+' has been already inputted ('+complementAliasType+') in model '+str(self.name) +' of type '+self.type)
+            self.raiseAnError(
+                IOError,
+                ' The alias for variable ' + varFramework + ' has been already inputted (' +
+                complementAliasType + ') in model ' + str(self.name) + ' of type ' + self.type)
           if varModel in self.alias[complementAliasType].values():
-            self.raiseAnError(IOError,' The alias ' +varModel+' has been already used ('+complementAliasType+') for another variable in model '+str(self.name) +' of type '+self.type)
+            self.raiseAnError(
+                IOError,
+                ' The alias ' + varModel + ' has been already used (' + complementAliasType +
+                ') for another variable in model ' + str(self.name) + ' of type ' + self.type)
           self.alias[aliasType][varFramework] = child.text.strip()
         else:
-          self.raiseAnError(IOError,'not found the attribute "variable" in the definition of one of the alias for model '+str(self.name) +' of type '+self.type)
+          self.raiseAnError(
+              IOError,
+              'not found the attribute "variable" in the definition of one of the alias for model '
+              + str(self.name) + ' of type ' + self.type)
     # read local information
     self.localInputAndChecks(xmlNode)
     #################
 
-
-
-  def _replaceVariablesNamesWithAliasSystem(self, sampledVars, aliasType='input', fromModelToFramework=False):
+  def _replaceVariablesNamesWithAliasSystem(self,
+                                            sampledVars,
+                                            aliasType='input',
+                                            fromModelToFramework=False):
     """
       Method to convert kwargs Sampled vars with the alias system
       @ In , sampledVars, dict, dictionary that are going to be modified
@@ -257,21 +278,21 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
                                                   (if True, we convert the name in the dictionary from the model names to the RAVEN names, False vice versa)
       @ Out, originalVariables, dict, dictionary of the original sampled variables
     """
-    if aliasType =='inout':
-      listAliasType = ['input','output']
+    if aliasType == 'inout':
+      listAliasType = ['input', 'output']
     else:
       listAliasType = [aliasType]
     originalVariables = copy.deepcopy(sampledVars)
     for aliasTyp in listAliasType:
       if len(self.alias[aliasTyp].keys()) != 0:
-        for varFramework,varModel in self.alias[aliasTyp].items():
-          whichVar =  varModel if fromModelToFramework else varFramework
-          found = sampledVars.pop(whichVar,[sys.maxint])
+        for varFramework, varModel in self.alias[aliasTyp].items():
+          whichVar = varModel if fromModelToFramework else varFramework
+          found = sampledVars.pop(whichVar, [sys.maxint])
           if not np.array_equal(np.asarray(found), [sys.maxint]):
             if fromModelToFramework:
               sampledVars[varFramework] = originalVariables[varModel]
             else:
-              sampledVars[varModel]     = originalVariables[varFramework]
+              sampledVars[varModel] = originalVariables[varFramework]
     return originalVariables
 
   def _handleInput(self, paramInput):
@@ -283,8 +304,8 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     if "subType" in paramInput.parameterValues:
       self.subType = paramInput.parameterValues["subType"]
     else:
-      self.raiseADebug(" Failed in Node: "+str(xmlNode),verbostiy='silent')
-      self.raiseAnError(IOError,'missed subType for the model '+self.name)
+      self.raiseADebug(" Failed in Node: " + str(xmlNode), verbostiy='silent')
+      self.raiseAnError(IOError, 'missed subType for the model ' + self.name)
 
   @abc.abstractmethod
   def evaluateSample(self, myInput, samplerType, kwargs):
@@ -299,7 +320,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
     pass
 
-  def localInputAndChecks(self,xmlNode):
+  def localInputAndChecks(self, xmlNode):
     """
       Function to read the portion of the xml input that belongs to this specialized class
       and initialize some stuff based on the inputs got
@@ -320,9 +341,11 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     paramDict = {}
     paramDict['subType'] = self.subType
     for key, value in self.alias['input'].items():
-      paramDict['The model input variable '+str(value)+' is filled using the framework variable '] = key
+      paramDict['The model input variable ' + str(value) +
+                ' is filled using the framework variable '] = key
     for key, value in self.alias['output'].items():
-      paramDict['The model output variable '+str(value)+' is filled using the framework variable '] = key
+      paramDict['The model output variable ' + str(value) +
+                ' is filled using the framework variable '] = key
     return paramDict
 
   def localGetInitParams(self):
@@ -335,7 +358,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     paramDict = {}
     return paramDict
 
-  def initialize(self,runInfo,inputs,initDict=None):
+  def initialize(self, runInfo, inputs, initDict=None):
     """
       this needs to be over written if a re initialization of the model is need it gets called at every beginning of a step
       after this call the next one will be run
@@ -346,7 +369,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     pass
 
   @abc.abstractmethod
-  def createNewInput(self,myInput,samplerType,**kwargs):
+  def createNewInput(self, myInput, samplerType, **kwargs):
     """
       This function will return a new input to be submitted to the model, it is called by the sampler.
       @ In, myInput, list, the inputs (list) to start from to generate the new one
@@ -382,7 +405,13 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     ## works, we are unable to pass a member function as a job because the
     ## pp library loses track of what self is, so instead we call it from the
     ## class and pass self in as the first parameter
-    jobHandler.addJob((self, myInput, samplerType, kwargs), self.__class__.evaluateSample, prefix, metadata=metadata, modulesToImport=self.mods, uniqueHandler=uniqueHandler)
+    jobHandler.addJob(
+        (self, myInput, samplerType, kwargs),
+        self.__class__.evaluateSample,
+        prefix,
+        metadata=metadata,
+        modulesToImport=self.mods,
+        uniqueHandler=uniqueHandler)
 
   def submitAsClient(self, myInput, samplerType, jobHandler, **kwargs):
     """
@@ -412,9 +441,15 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     ## works, we are unable to pass a member function as a job because the
     ## pp library loses track of what self is, so instead we call it from the
     ## class and pass self in as the first parameter
-    jobHandler.addClientJob((self, myInput, samplerType, kwargs), self.__class__.evaluateSample, prefix, metadata=metadata, modulesToImport=self.mods, uniqueHandler=uniqueHandler)
+    jobHandler.addClientJob(
+        (self, myInput, samplerType, kwargs),
+        self.__class__.evaluateSample,
+        prefix,
+        metadata=metadata,
+        modulesToImport=self.mods,
+        uniqueHandler=uniqueHandler)
 
-  def addOutputFromExportDictionary(self,exportDict,output,options,jobIdentifier):
+  def addOutputFromExportDictionary(self, exportDict, output, options, jobIdentifier):
     """
       Method that collects the outputs from them export dictionary
       @ In, exportDict, dict, dictionary containing the output/input values: {'inputSpaceParams':dict(sampled variables),
@@ -426,14 +461,14 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ Out, None
     """
     if output.type == 'HDF5':
-      optionsIn = {'group':self.name+str(jobIdentifier)}
+      optionsIn = {'group': self.name + str(jobIdentifier)}
       if options is not None:
         optionsIn.update(options)
-      output.addGroupDataObjects(optionsIn,exportDict,False)
+      output.addGroupDataObjects(optionsIn, exportDict, False)
     else:
-      self.collectOutputFromDict(exportDict,output,options)
+      self.collectOutputFromDict(exportDict, output, options)
 
-  def collectOutput(self,collectFrom,storeTo,options=None):
+  def collectOutput(self, collectFrom, storeTo, options=None):
     """
       Method that collects the outputs from the previous run
       @ In, collectFrom, InternalRunner object, instance of the run just finished
@@ -445,9 +480,10 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     if 'addOutput' in dir(storeTo):
       storeTo.addOutput(collectFrom)
     else:
-      self.raiseAnError(IOError,'The place where we want to store the output has no addOutput method!')
+      self.raiseAnError(IOError,
+                        'The place where we want to store the output has no addOutput method!')
 
-  def getAdditionalInputEdits(self,inputInfo):
+  def getAdditionalInputEdits(self, inputInfo):
     """
       Collects additional edits for the sampler to use when creating a new input.  By default does nothing.
       @ In, inputInfo, dict, dictionary in which to add edits

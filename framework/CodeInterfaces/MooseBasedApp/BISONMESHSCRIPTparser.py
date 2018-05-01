@@ -18,7 +18,7 @@ Created on Jul 09, 2015
 """
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
-warnings.simplefilter('default',DeprecationWarning)
+warnings.simplefilter('default', DeprecationWarning)
 if not 'xrange' in dir(__builtins__):
   xrange = range
 
@@ -26,11 +26,13 @@ import os
 import re
 import collections
 
+
 class BISONMESHSCRIPTparser():
   """
     Import Bison Mesh Script input, provide methods to add/change entries and print input back
   """
-  def __init__(self,inputFile):
+
+  def __init__(self, inputFile):
     """
       Open and read file content into an ordered dictionary
       @ In, inputFile, File object, object with information about the template input file
@@ -38,7 +40,7 @@ class BISONMESHSCRIPTparser():
     """
     self.printTag = 'BISONMESHSCRIPT_PARSER'
     if not os.path.exists(inputFile.getAbsFile()):
-      raise IOError('Input file not found: '+inputFile.getAbsFile())
+      raise IOError('Input file not found: ' + inputFile.getAbsFile())
     # Initialize file dictionary, storage order, and internal variables
     self.AllVarDict = collections.OrderedDict()
     self.fileOrderStorage = []
@@ -88,7 +90,8 @@ class BISONMESHSCRIPTparser():
         else:
           # Append string of non-varying parts of input file to file storage and reset the collection string
           if len(between_str) > 0:
-            self.fileOrderStorage.append(between_str); between_str = ''
+            self.fileOrderStorage.append(between_str)
+            between_str = ''
           dictname, varname, varvalue = re.split("\['|'] = |'] =|']= ", line)
           if dictname in self.AllVarDict.keys():
             self.AllVarDict[dictname][varname] = varvalue.strip()
@@ -123,7 +126,8 @@ class BISONMESHSCRIPTparser():
           else:
             # Append string of non-varying parts of input file to file storage and reset the collection string
             if len(between_str) > 0:
-              self.fileOrderStorage.append(between_str); between_str = ''
+              self.fileOrderStorage.append(between_str)
+              between_str = ''
             dictname, varname, varvalue = re.split("\['|'] = |'] =|']= ", line)
             if dictname in self.AllVarDict.keys():
               self.AllVarDict[dictname][varname] = varvalue.strip()
@@ -134,7 +138,7 @@ class BISONMESHSCRIPTparser():
     if len(between_str) > 0:
       self.fileOrderStorage.append(between_str)
 
-  def modifyInternalDictionary(self,**inDictionary):
+  def modifyInternalDictionary(self, **inDictionary):
     """
       Parse the input dictionary and replace matching keywords in internal dictionary.
       @ In, inDictionary, dict, dictionary containing full longform name and raven sampled var value
@@ -144,15 +148,15 @@ class BISONMESHSCRIPTparser():
       keyword1, keyword2 = keyword.split('@')[-1].split('|')
       self.AllVarDict[keyword1][keyword2] = newvalue
 
-  def writeNewInput(self,outfile=None):
+  def writeNewInput(self, outfile=None):
     """
       Using the fileOrderStorage list, reconstruct the template input with modified keywordDictionary
       @ In, outfile, string, optional, output file name
       @ Out, None
     """
-    if outfile==None:
+    if outfile == None:
       outfile = self.inputfile
-    IOfile = open(outfile,'w')
+    IOfile = open(outfile, 'w')
     for e, entry in enumerate(self.fileOrderStorage):
       if type(entry) == unicode:
         IOfile.writelines(entry)

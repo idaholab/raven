@@ -17,10 +17,11 @@ Created on December 1, 2015
 '''
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
-warnings.simplefilter('default',DeprecationWarning)
+warnings.simplefilter('default', DeprecationWarning)
 
 import copy
 from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase
+
 
 class testInterfacedPP_PointSet(PostProcessorInterfaceBase):
   """ This class represents the most basic interfaced post-processor
@@ -38,27 +39,28 @@ class testInterfacedPP_PointSet(PostProcessorInterfaceBase):
 
     """
     PostProcessorInterfaceBase.initialize(self)
-    self.inputFormat  = 'PointSet'
+    self.inputFormat = 'PointSet'
     self.outputFormat = 'PointSet'
 
-  def run(self,inputDic):
+  def run(self, inputDic):
     """
     This method is transparent: it passes the inputDic directly as output
      @ In, inputDic, list, list of dictionaries which contains the data inside the input DataObjects
      @ Out, inputDic, dict, same inputDic dictionary
 
     """
-    if len(inputDic)>1:
-      self.raiseAnError(IOError, 'testInterfacedPP_PointSet Interfaced Post-Processor ' + str(self.name) + ' accepts only one dataObject')
+    if len(inputDic) > 1:
+      self.raiseAnError(IOError, 'testInterfacedPP_PointSet Interfaced Post-Processor ' +
+                        str(self.name) + ' accepts only one dataObject')
     else:
       inputDict = inputDic[0]
-      outputDict = {'data':{}}
+      outputDict = {'data': {}}
       outputDict['dims'] = copy.deepcopy(inputDict['dims'])
       for key in inputDict['data'].keys():
         outputDict['data'][key] = copy.deepcopy(inputDict['data'][key])
       return outputDict
 
-  def readMoreXML(self,xmlNode):
+  def readMoreXML(self, xmlNode):
     """
       Function that reads elements this post-processor will use
       @ In, xmlNode, ElementTree, Xml element node

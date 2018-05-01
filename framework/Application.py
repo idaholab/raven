@@ -19,7 +19,7 @@ Created on January 12, 2016
 #for future compatibility with Python 3-----------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
-warnings.simplefilter('default',DeprecationWarning)
+warnings.simplefilter('default', DeprecationWarning)
 #End compatibility block for Python 3-------------------------------------------
 
 #External Modules---------------------------------------------------------------
@@ -38,6 +38,7 @@ except ImportError as e:
   __QtAvailable = False
 
 if __QtAvailable:
+
   class InteractiveApplication(qtw.QApplication, MessageHandler.MessageUser):
     """
       Application - A subclass of the base QApplication where we can instantiate
@@ -45,6 +46,7 @@ if __QtAvailable:
       communication
     """
     windowClosed = qtc.Signal(str)
+
     def __init__(self, arg1, messageHandler, interactionType=Interaction.Yes):
       """
         A default constructor which will initialize an empty dictionary of user
@@ -77,7 +79,7 @@ if __QtAvailable:
         ## requested from the RAVEN command line.
         params['debug'] = (self.interactionType in [Interaction.Debug, Interaction.Test])
 
-        self.UIs[uiID] = getattr(__import__('UI.'+uiType),uiType)(**params)
+        self.UIs[uiID] = getattr(__import__('UI.' + uiType), uiType)(**params)
         self.UIs[uiID].closed.connect(self.closeEvent)
         self.UIs[uiID].show()
 
@@ -92,8 +94,9 @@ if __QtAvailable:
           self.UIs[uiID].close()
 
       except ImportError as e:
-
-        message = 'The requested interactive UI is unavailable. RAVEN will continue in non-interactive mode for this step. Please file an issue on gitlab with the following debug information:\n\t' + str(e) + '\n'
+        message = 'The requested interactive UI is unavailable. RAVEN will continue in '
+        message += 'non-interactive mode for this step. Please file an issue on gitlab '
+        message += 'with the following debug information:\n\t' + str(e) + '\n'
 
         ## This will ensure that the waiting threads are released.
         self.windowClosed.emit(uiID)
@@ -102,7 +105,7 @@ if __QtAvailable:
         ## if in a non-interactive mode for this step, and potentially recover
         ## and run more UIs in a later step. This is a failure in some sense, so
         ## I am elevating the verbosity to be silent for this warning.
-        self.raiseAWarning(message,verbosity='silent')
+        self.raiseAWarning(message, verbosity='silent')
 
     def closeEvent(self, window):
       """
@@ -110,6 +113,6 @@ if __QtAvailable:
           @ In, window, the window emitting the closed signal.
           @ Out, None
       """
-      for key,value in self.UIs.items():
+      for key, value in self.UIs.items():
         if value == window:
           self.windowClosed.emit(key)

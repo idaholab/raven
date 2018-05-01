@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """
   A base class for all widgets associated to the TopologicalWindow.
 """
@@ -19,18 +18,19 @@
 #For future compatibility with Python 3
 from __future__ import division, print_function, absolute_import
 import warnings
-warnings.simplefilter('default',DeprecationWarning)
+warnings.simplefilter('default', DeprecationWarning)
 #End compatibility block for Python 3
-
 
 from PySide.QtCore import QSize
 from PySide.QtGui import QWidget
+
 
 class BaseTopologicalView(QWidget):
   """
     A base class for all widgets associated to the TopologicalWindow.
   """
-  def __init__(self,parent=None,amsc=None,title=None):
+
+  def __init__(self, parent=None, amsc=None, title=None):
     """ Initialization method that can optionally specify the parent widget,
         an AMSC object to reference, and a title for this widget.
         @ In, parent, an optional QWidget that will be the parent of this widget
@@ -45,7 +45,7 @@ class BaseTopologicalView(QWidget):
     else:
       self.setWindowTitle(title)
     self.scrollable = False
-    self.Reinitialize(parent,amsc,title)
+    self.Reinitialize(parent, amsc, title)
 
   def Reinitialize(self):
     """ Will restore defaults and clear internal data structures on this widget.
@@ -67,7 +67,7 @@ class BaseTopologicalView(QWidget):
   def sizeHint(self):
     """ Specifies the default size hint for this widget
     """
-    return QSize(200,200)
+    return QSize(200, 200)
 
   def dataChanged(self):
     """ Fired when the AMSC loads a new dataset

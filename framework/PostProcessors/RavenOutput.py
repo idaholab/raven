@@ -30,7 +30,9 @@ from utils import xmlUtils
 from utils import InputData
 import Files
 import Runners
+
 #Internal Modules End--------------------------------------------------------------------------------
+
 
 class RavenOutput(PostProcessor):
   """
@@ -42,6 +44,7 @@ class RavenOutput(PostProcessor):
   # object of some kind.  It should no longer be necessary to print to file then read back in again.
   # However, the implementation can still be used to read in XML outputs from CSV printings, so we
   # leave the code in the event it becomes desired again.
+
 
 #  @classmethod
 #  def getInputSpecification(cls):

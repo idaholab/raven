@@ -16,7 +16,7 @@ Created on July 10, 2013
 
 @author: alfoa
 """
-from __future__ import division, print_function , unicode_literals, absolute_import
+from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default', DeprecationWarning)
 
@@ -30,7 +30,9 @@ from .PostProcessor import PostProcessor
 from utils import InputData
 import Files
 import Runners
+
 #Internal Modules End-----------------------------------------------------------
+
 
 class TopologicalDecomposition(PostProcessor):
   """
@@ -63,25 +65,31 @@ class TopologicalDecomposition(PostProcessor):
     TDKNNInput = InputData.parameterInputFactory("knn", contentType=InputData.IntegerType)
     inputSpecification.addSub(TDKNNInput)
 
-    TDWeightedInput = InputData.parameterInputFactory("weighted", contentType=InputData.StringType) #bool
+    TDWeightedInput = InputData.parameterInputFactory(
+        "weighted", contentType=InputData.StringType)  #bool
     inputSpecification.addSub(TDWeightedInput)
 
-    TDInteractiveInput = InputData.parameterInputFactory("interactive", contentType=InputData.StringType) #bool
+    TDInteractiveInput = InputData.parameterInputFactory(
+        "interactive", contentType=InputData.StringType)  #bool
     inputSpecification.addSub(TDInteractiveInput)
 
-    TDPersistenceInput = InputData.parameterInputFactory("persistence", contentType=InputData.StringType)
+    TDPersistenceInput = InputData.parameterInputFactory(
+        "persistence", contentType=InputData.StringType)
     inputSpecification.addSub(TDPersistenceInput)
 
-    TDSimplificationInput = InputData.parameterInputFactory("simplification", contentType=InputData.FloatType)
+    TDSimplificationInput = InputData.parameterInputFactory(
+        "simplification", contentType=InputData.FloatType)
     inputSpecification.addSub(TDSimplificationInput)
 
-    TDParametersInput = InputData.parameterInputFactory("parameters", contentType=InputData.StringType)
+    TDParametersInput = InputData.parameterInputFactory(
+        "parameters", contentType=InputData.StringType)
     inputSpecification.addSub(TDParametersInput)
 
     TDResponseInput = InputData.parameterInputFactory("response", contentType=InputData.StringType)
     inputSpecification.addSub(TDResponseInput)
 
-    TDNormalizationInput = InputData.parameterInputFactory("normalization", contentType=InputData.StringType)
+    TDNormalizationInput = InputData.parameterInputFactory(
+        "normalization", contentType=InputData.StringType)
     inputSpecification.addSub(TDNormalizationInput)
 
     return inputSpecification
@@ -95,7 +103,7 @@ class TopologicalDecomposition(PostProcessor):
     PostProcessor.__init__(self, messageHandler)
     self.acceptedGraphParam = ['approximate knn', 'delaunay', 'beta skeleton', \
                                'relaxed beta skeleton']
-    self.acceptedPersistenceParam = ['difference','probability','count']#,'area']
+    self.acceptedPersistenceParam = ['difference', 'probability', 'count']  #,'area']
     self.acceptedGradientParam = ['steepest', 'maxflow']
     self.acceptedNormalizationParam = ['feature', 'zscore', 'none']
 
@@ -121,7 +129,7 @@ class TopologicalDecomposition(PostProcessor):
     currentInp.asDataset()
     # nowadays, our only input should be DataObject
     ## if no "type", then you're not a PointSet or HistorySet
-    if not hasattr(currentInp,'type') or currentInp.type != 'PointSet':
+    if not hasattr(currentInp, 'type') or currentInp.type != 'PointSet':
       self.raiseAnError(IOError, self.__class__.__name__,
                         ' postprocessor only accepts PointSet DataObjects for input. ',
                         ' Requested: ', type(currentInp))
@@ -130,9 +138,11 @@ class TopologicalDecomposition(PostProcessor):
     ##    and not bother with inputToInternal
     ##    This works particularly well since we only accept point sets.
     data = currentInp.asDataset(outType='dict')['data']
-    inputDict = {'features':dict((var,data[var]) for var in self.parameters['features']),
-                 'targets' :dict((var,data[var]) for var in self.parameters['targets' ]),
-                 'metadata':currentInp.getMeta(general=True)}
+    inputDict = {
+        'features': dict((var, data[var]) for var in self.parameters['features']),
+        'targets': dict((var, data[var]) for var in self.parameters['targets']),
+        'metadata': currentInp.getMeta(general=True)
+    }
     #if 'PointProbability' in currentInp.getVars():
     inputDict['metadata']['PointProbability'] = currentInp.getVarValues('PointProbability').values
     #else:
@@ -150,7 +160,7 @@ class TopologicalDecomposition(PostProcessor):
     paramInput.parseNode(xmlNode)
     self._handleInput(paramInput)
     # register metadata
-    self.addMetaKeys('maxLabel','minLabel')
+    self.addMetaKeys('maxLabel', 'minLabel')
 
   def _handleInput(self, paramInput):
     """
@@ -162,20 +172,18 @@ class TopologicalDecomposition(PostProcessor):
       if child.getName() == "graph":
         self.graph = child.value.encode('ascii').lower()
         if self.graph not in self.acceptedGraphParam:
-          self.raiseAnError(IOError, 'Requested unknown graph type: ',
-                            self.graph, '. Available options: ',
-                            self.acceptedGraphParam)
+          self.raiseAnError(IOError, 'Requested unknown graph type: ', self.graph,
+                            '. Available options: ', self.acceptedGraphParam)
       elif child.getName() == "gradient":
         self.gradient = child.value.encode('ascii').lower()
         if self.gradient not in self.acceptedGradientParam:
-          self.raiseAnError(IOError, 'Requested unknown gradient method: ',
-                            self.gradient, '. Available options: ',
-                            self.acceptedGradientParam)
+          self.raiseAnError(IOError, 'Requested unknown gradient method: ', self.gradient,
+                            '. Available options: ', self.acceptedGradientParam)
       elif child.getName() == "beta":
         self.beta = child.value
         if self.beta <= 0 or self.beta > 2:
-          self.raiseAnError(IOError, 'Requested invalid beta value: ',
-                            self.beta, '. Allowable range: (0,2]')
+          self.raiseAnError(IOError, 'Requested invalid beta value: ', self.beta,
+                            '. Allowable range: (0,2]')
       elif child.getName() == 'knn':
         self.knn = child.value
       elif child.getName() == 'simplification':
@@ -183,9 +191,8 @@ class TopologicalDecomposition(PostProcessor):
       elif child.getName() == 'persistence':
         self.persistence = child.value.encode('ascii').lower()
         if self.persistence not in self.acceptedPersistenceParam:
-          self.raiseAnError(IOError, 'Requested unknown persistence method: ',
-                            self.persistence, '. Available options: ',
-                            self.acceptedPersistenceParam)
+          self.raiseAnError(IOError, 'Requested unknown persistence method: ', self.persistence,
+                            '. Available options: ', self.acceptedPersistenceParam)
       elif child.getName() == 'parameters':
         self.parameters['features'] = child.value.strip().split(',')
         for i, parameter in enumerate(self.parameters['features']):
@@ -197,9 +204,8 @@ class TopologicalDecomposition(PostProcessor):
       elif child.getName() == 'normalization':
         self.normalization = child.value.encode('ascii').lower()
         if self.normalization not in self.acceptedNormalizationParam:
-          self.raiseAnError(IOError, 'Requested unknown normalization type: ',
-                            self.normalization, '. Available options: ',
-                            self.acceptedNormalizationParam)
+          self.raiseAnError(IOError, 'Requested unknown normalization type: ', self.normalization,
+                            '. Available options: ', self.acceptedNormalizationParam)
 
   def collectOutput(self, finishedJob, output):
     """
@@ -210,9 +216,10 @@ class TopologicalDecomposition(PostProcessor):
     """
     evaluation = finishedJob.getEvaluation()
     if isinstance(evaluation, Runners.Error):
-      self.raiseAnError(RuntimeError, "No available output to collect (run possibly not finished yet)")
+      self.raiseAnError(RuntimeError,
+                        "No available output to collect (run possibly not finished yet)")
 
-    inputList,outputDict = evaluation
+    inputList, outputDict = evaluation
 
     if output.type == 'PointSet':
       # TODO this is a slow dict-based implementation.  It should be improved on need.
@@ -220,13 +227,12 @@ class TopologicalDecomposition(PostProcessor):
       if len(inputList) > 1:
         self.raiseAnError(NotImplementedError, 'Need to implement looping over all inputs.')
       fromInput = inputList[0].asDataset('dict')['data']
-      results = dict((var,fromInput[var]) for var in output.getVars() if var in fromInput.keys())
-      for label in ['minLabel','maxLabel']:
+      results = dict((var, fromInput[var]) for var in output.getVars() if var in fromInput.keys())
+      for label in ['minLabel', 'maxLabel']:
         results[label] = outputDict[label]
-      output.load(results,style='dict')
-      output.addMeta(self.type,{'general':{'hierarchy':outputDict['hierarchy']}})
+      output.load(results, style='dict')
+      output.addMeta(self.type, {'general': {'hierarchy': outputDict['hierarchy']}})
       return
-
 
       #### OLD ####
       requestedInput = output.getParaKeys('input')
@@ -246,8 +252,8 @@ class TopologicalDecomposition(PostProcessor):
               dataLength = myLength
             elif dataLength != myLength:
               dataLength = max(dataLength, myLength)
-              self.raiseAWarning('Data size is inconsistent. Currently set to '
-                                 + str(dataLength) + '.')
+              self.raiseAWarning(
+                  'Data size is inconsistent. Currently set to ' + str(dataLength) + '.')
 
             for val in value:
               output.updateInputValue(key, val)
@@ -265,8 +271,8 @@ class TopologicalDecomposition(PostProcessor):
               dataLength = myLength
             elif dataLength != myLength:
               dataLength = max(dataLength, myLength)
-              self.raiseAWarning('Data size is inconsistent. Currently set to '
-                                      + str(dataLength) + '.')
+              self.raiseAWarning(
+                  'Data size is inconsistent. Currently set to ' + str(dataLength) + '.')
 
             for val in value:
               output.updateOutputValue(key, val)
@@ -280,8 +286,8 @@ class TopologicalDecomposition(PostProcessor):
           elif key in ['hierarchy']:
             output.updateMetadata(key, [values])
     else:
-      self.raiseAWarning('Output type ' + type(output).__name__ + ' not'
-                         + ' yet implemented. I am going to skip it.')
+      self.raiseAWarning('Output type ' + type(output).__name__ + ' not' +
+                         ' yet implemented. I am going to skip it.')
 
   def userInteraction(self):
     """
@@ -328,12 +334,18 @@ class TopologicalDecomposition(PostProcessor):
     from AMSC_Object import AMSC_Object
 
     if self.__amsc is None:
-      self.__amsc = AMSC_Object(X=self.inputData, Y=self.outputData,
-                                w=self.weights, names=self.names,
-                                graph=self.graph, gradient=self.gradient,
-                                knn=self.knn, beta=self.beta,
-                                normalization=self.normalization,
-                                persistence=self.persistence, debug=False)
+      self.__amsc = AMSC_Object(
+          X=self.inputData,
+          Y=self.outputData,
+          w=self.weights,
+          names=self.names,
+          graph=self.graph,
+          gradient=self.gradient,
+          knn=self.knn,
+          beta=self.beta,
+          normalization=self.normalization,
+          persistence=self.persistence,
+          debug=False)
 
     self.__amsc.Persistence(self.simplification)
     partitions = self.__amsc.Partitions()
@@ -357,15 +369,18 @@ class TopologicalDecomposition(PostProcessor):
 
     return outputDict
 
+
 try:
   import PySide.QtCore as qtc
-  class QTopologicalDecomposition(TopologicalDecomposition,qtc.QObject):
+
+  class QTopologicalDecomposition(TopologicalDecomposition, qtc.QObject):
     """
       TopologicalDecomposition class - Computes an approximated hierarchical
       Morse-Smale decomposition from an input point cloud consisting of an
       arbitrary number of input parameters and a response value per input point
     """
-    requestUI = qtc.Signal(str,str,dict)
+    requestUI = qtc.Signal(str, str, dict)
+
     def __init__(self, messageHandler):
       """
        Constructor
@@ -377,7 +392,7 @@ try:
       qtc.QObject.__init__(self)
 
       self.interactive = False
-      self.uiDone = True ## If it has not been requested, then we are not waiting for a UI
+      self.uiDone = True  ## If it has not been requested, then we are not waiting for a UI
 
     def _localWhatDoINeed(self):
       """
@@ -386,9 +401,9 @@ try:
         @ In , None, None
         @ Out, needDict, list of objects needed
       """
-      return {'internal':[(None,'app')]}
+      return {'internal': [(None, 'app')]}
 
-    def _localGenerateAssembler(self,initDict):
+    def _localGenerateAssembler(self, initDict):
       """
         Generates the assembler.
         @ In, initDict, dict of init objects
@@ -432,30 +447,46 @@ try:
         uiID = unicode(id(self))
 
         ## Send the request for a UI thread to the main application
-        self.requestUI.emit('TopologyWindow', uiID,
-                            {'X':self.inputData, 'Y':self.outputData,
-                             'w':self.weights, 'names':self.names,
-                             'graph':self.graph, 'gradient': self.gradient,
-                             'knn':self.knn, 'beta':self.beta,
-                             'normalization':self.normalization,
-                             'views': ['TopologyMapView', 'SensitivityView',
-                                       'FitnessView', 'ScatterView2D',
-                                       'ScatterView3D']})
+        self.requestUI.emit(
+            'TopologyWindow', uiID, {
+                'X':
+                self.inputData,
+                'Y':
+                self.outputData,
+                'w':
+                self.weights,
+                'names':
+                self.names,
+                'graph':
+                self.graph,
+                'gradient':
+                self.gradient,
+                'knn':
+                self.knn,
+                'beta':
+                self.beta,
+                'normalization':
+                self.normalization,
+                'views': [
+                    'TopologyMapView', 'SensitivityView', 'FitnessView', 'ScatterView2D',
+                    'ScatterView3D'
+                ]
+            })
 
         ## Spinlock will wait until this instance's window has been closed
-        while(not self.uiDone):
+        while (not self.uiDone):
           time.sleep(1)
 
         ## First check that the requested UI exists, and then if that UI has the
         ## requested information, if not proceed as if it were not an
         ## interactive session.
-        if uiID in self.app.UIs and hasattr(self.app.UIs[uiID],'amsc'):
+        if uiID in self.app.UIs and hasattr(self.app.UIs[uiID], 'amsc'):
           self.__amsc = self.app.UIs[uiID].amsc
           self.simplification = self.app.UIs[uiID].amsc.Persistence()
         else:
           self.__amsc = None
 
-    def signalDone(self,uiID):
+    def signalDone(self, uiID):
       """
         In Qt language, this is a slot that will accept a signal from the UI
         saying that it has completed, thus allowing the computation to begin

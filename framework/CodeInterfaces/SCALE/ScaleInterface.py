@@ -20,7 +20,7 @@ comments: Interface for Scale Simulation (current Origen and Triton)
 """
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
-warnings.simplefilter('default',DeprecationWarning)
+warnings.simplefilter('default', DeprecationWarning)
 
 import os
 import copy
@@ -32,10 +32,12 @@ from GenericCodeInterface import GenericParser
 from CodeInterfaceBaseClass import CodeInterfaceBase
 from tritonAndOrigenData import origenAndTritonData
 
+
 class Scale(CodeInterfaceBase):
   """
     Scale Interface. It currently supports Triton and Origen sequences only.
   """
+
   def __init__(self):
     """
       Constructor
@@ -43,11 +45,12 @@ class Scale(CodeInterfaceBase):
       @ Out, None
     """
     CodeInterfaceBase.__init__(self)
-    self.sequence = []   # this contains the sequence that needs to be run. For example, ['triton'] or ['origen'] or ['triton','origen']
-    self.timeUOM  = 's'  # uom of time (i.e. s, h, m, d, y )
-    self.outputRoot = {} # the root of the output sequences
+    self.sequence = [
+    ]  # this contains the sequence that needs to be run. For example, ['triton'] or ['origen'] or ['triton','origen']
+    self.timeUOM = 's'  # uom of time (i.e. s, h, m, d, y )
+    self.outputRoot = {}  # the root of the output sequences
 
-  def _readMoreXML(self,xmlNode):
+  def _readMoreXML(self, xmlNode):
     """
       Function to read the portion of the xml input that belongs to this specialized class and initialize
       some members based on inputs. This can be overloaded in specialize code interface in order to
@@ -55,7 +58,7 @@ class Scale(CodeInterfaceBase):
       @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
       @ Out, None.
     """
-    CodeInterfaceBase._readMoreXML(self,xmlNode)
+    CodeInterfaceBase._readMoreXML(self, xmlNode)
     sequence = xmlNode.find("sequence")
     if sequence is None:
       self.sequence = ['triton']
@@ -66,39 +69,40 @@ class Scale(CodeInterfaceBase):
     timeUOM = xmlNode.find("timeUOM")
     if timeUOM is not None:
       self.timeUOM = timeUOM.text.strip()
-      if self.timeUOM not in ['s','m','h','d','y']:
-        raise IOError("timeUOM not recognized. Supported are:" +','.join(['s','m','h','d','y']))
+      if self.timeUOM not in ['s', 'm', 'h', 'd', 'y']:
+        raise IOError(
+            "timeUOM not recognized. Supported are:" + ','.join(['s', 'm', 'h', 'd', 'y']))
 
-  def findInps(self,inputFiles):
-      """
+  def findInps(self, inputFiles):
+    """
         Locates the input files required by Scale Interface
         @ In, inputFiles, list, list of Files objects
         @ Out, inputDict, dict, dictionary containing Scale required input files
       """
-      inputDict = {}
-      origen = []
-      triton = []
+    inputDict = {}
+    origen = []
+    triton = []
 
-      for inputFile in inputFiles:
-        if inputFile.getType().strip().lower() == "triton":
-          triton.append(inputFile)
-        elif inputFile.getType().strip().lower() == "origen":
-          origen.append(inputFile)
-      if len(triton) > 1:
-        raise IOError('multiple triton input files have been found. Only one is allowed!')
-      if len(origen) > 1:
-        raise IOError('multiple origen input files have been found. Only one is allowed!')
-      # Check if the input requested by the sequence has been found
-      if self.sequence.count('triton') != len(triton):
-        raise IOError('triton input file has not been found. Files type must be set to "triton"!')
-      if self.sequence.count('origen') != len(origen):
-        raise IOError('origen input file has not been found. Files type must be set to "origen"!')
-      # add inputs
-      if len(origen) > 0:
-        inputDict['origen'] = origen
-      if len(triton) > 0:
-        inputDict['triton'] = triton
-      return inputDict
+    for inputFile in inputFiles:
+      if inputFile.getType().strip().lower() == "triton":
+        triton.append(inputFile)
+      elif inputFile.getType().strip().lower() == "origen":
+        origen.append(inputFile)
+    if len(triton) > 1:
+      raise IOError('multiple triton input files have been found. Only one is allowed!')
+    if len(origen) > 1:
+      raise IOError('multiple origen input files have been found. Only one is allowed!')
+    # Check if the input requested by the sequence has been found
+    if self.sequence.count('triton') != len(triton):
+      raise IOError('triton input file has not been found. Files type must be set to "triton"!')
+    if self.sequence.count('origen') != len(origen):
+      raise IOError('origen input file has not been found. Files type must be set to "origen"!')
+    # add inputs
+    if len(origen) > 0:
+      inputDict['origen'] = origen
+    if len(triton) > 0:
+      inputDict['triton'] = triton
+    return inputDict
 
   def generateCommand(self, inputFiles, executable, clargs=None, fargs=None):
     """
@@ -120,7 +124,8 @@ class Scale(CodeInterfaceBase):
     executeCommand = []
     for seq in self.sequence:
       self.outputRoot[seq.lower()] = inputDict[seq.lower()][0].getBase()
-      executeCommand.append(('parallel',executable+' '+inputDict[seq.lower()][0].getFilename()))
+      executeCommand.append(('parallel',
+                             executable + ' ' + inputDict[seq.lower()][0].getFilename()))
     returnCommand = executeCommand, self.outputRoot.values()[-1]
     return returnCommand
 
@@ -136,14 +141,18 @@ class Scale(CodeInterfaceBase):
     """
     if 'dynamiceventtree' in str(samplerType).lower():
       raise IOError("Dynamic Event Tree-based samplers not supported by Scale interface yet!")
-    currentInputsToPerturb = [item for subList in self.findInps(currentInputFiles).values() for item in subList]
-    originalInputs         = [item for subList in self.findInps(origInputFiles).values() for item in subList]
+    currentInputsToPerturb = [
+        item for subList in self.findInps(currentInputFiles).values() for item in subList
+    ]
+    originalInputs = [
+        item for subList in self.findInps(origInputFiles).values() for item in subList
+    ]
     parser = GenericParser.GenericParser(currentInputsToPerturb)
     parser.modifyInternalDictionary(**Kwargs)
-    parser.writeNewInput(currentInputsToPerturb,originalInputs)
+    parser.writeNewInput(currentInputsToPerturb, originalInputs)
     return currentInputFiles
 
-  def checkForOutputFailure(self,output,workingDir):
+  def checkForOutputFailure(self, output, workingDir):
     """
       This method is called by the RAVEN code at the end of each run  if the return code is == 0.
       This method needs to be implemented by the codes that, if the run fails, return a return code that is 0
@@ -154,9 +163,9 @@ class Scale(CodeInterfaceBase):
       @ Out, failure, bool, True if the job is failed, False otherwise
     """
     failure = False
-    badWords  = ['terminated due to errors']
+    badWords = ['terminated due to errors']
     try:
-      outputToRead = open(os.path.join(workingDir,output+'.out'),"r")
+      outputToRead = open(os.path.join(workingDir, output + '.out'), "r")
     except:
       return True
     readLines = outputToRead.readlines()
@@ -174,14 +183,10 @@ class Scale(CodeInterfaceBase):
       @ In, workingDir, string, current working dir
       @ Out, output, string, output csv file containing the variables of interest specified in the input
     """
-    outputType   = 'combined' if len(self.sequence) > 1 else self.sequence[0]
+    outputType = 'combined' if len(self.sequence) > 1 else self.sequence[0]
     filesIn = {}
     for key in self.outputRoot.keys():
       if self.outputRoot[key] is not None:
-        filesIn[key] = os.path.join(workingDir,self.outputRoot[key]+'.out')
+        filesIn[key] = os.path.join(workingDir, self.outputRoot[key] + '.out')
     outputParser = origenAndTritonData(filesIn, self.timeUOM, outputType)
-    outputParser.writeCSV(os.path.join(workingDir,output+".csv"))
-
-
-
-
+    outputParser.writeCSV(os.path.join(workingDir, output + ".csv"))

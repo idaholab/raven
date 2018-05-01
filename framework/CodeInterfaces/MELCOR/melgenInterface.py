@@ -19,24 +19,26 @@
 """
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
-warnings.simplefilter('default',DeprecationWarning)
+warnings.simplefilter('default', DeprecationWarning)
 
 import os
 from utils import utils
+
 
 class MelgenApp():
   """
     This class is the CodeInterface for MELGEN (a sub-module of Melcor)
   """
+
   def __init__(self):
     """
       Constructor
       @ In, None
       @ Out, None
     """
-    self.inputExtensions = ['i','inp']
+    self.inputExtensions = ['i', 'inp']
 
-  def generateCommand(self,inputFiles,executable,clargs=None,fargs=None):
+  def generateCommand(self, inputFiles, executable, clargs=None, fargs=None):
     """
       Generate a command to run MELGEN (a sub-module of Melcor)
       Collects all the clargs and the executable to produce the command-line call.
@@ -57,14 +59,12 @@ class MelgenApp():
         found = True
         break
     if not found:
-      raise IOError("Unknown input extension. Expected input file extensions are "+ ",".join(self.inputExtensions))
+      raise IOError("Unknown input extension. Expected input file extensions are " +
+                    ",".join(self.inputExtensions))
     if clargs:
       precommand = executable + clargs['text']
-    else     :
+    else:
       precommand = executable
-    executeCommand = [('serial',precommand + ' '+inputFiles[index].getFilename())]
+    executeCommand = [('serial', precommand + ' ' + inputFiles[index].getFilename())]
     returnCommand = executeCommand, outputfile
     return returnCommand
-
-
-

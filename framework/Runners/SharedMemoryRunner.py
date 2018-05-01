@@ -17,7 +17,7 @@ Created on September 12, 2016
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
-warnings.simplefilter('default',DeprecationWarning)
+warnings.simplefilter('default', DeprecationWarning)
 if not 'xrange' in dir(__builtins__):
   xrange = range
 #End compatibility block for Python 3----------------------------------------------------------------
@@ -41,14 +41,24 @@ from utils import utils
 from BaseClasses import BaseType
 import MessageHandler
 from .InternalRunner import InternalRunner
+
 #Internal Modules End--------------------------------------------------------------------------------
+
 
 class SharedMemoryRunner(InternalRunner):
   """
     Class for running internal objects in a threaded fashion using the built-in
     threading library
   """
-  def __init__(self, messageHandler, args, functionToRun, identifier=None, metadata=None, uniqueHandler = "any", profile = False):
+
+  def __init__(self,
+               messageHandler,
+               args,
+               functionToRun,
+               identifier=None,
+               metadata=None,
+               uniqueHandler="any",
+               profile=False):
     """
       Init method
       @ In, messageHandler, MessageHandler object, the global RAVEN message
@@ -70,7 +80,8 @@ class SharedMemoryRunner(InternalRunner):
     """
     ## First, allow the base class handle the commonalities
     # we keep the command here, in order to have the hook for running exec code into internal models
-    super(SharedMemoryRunner, self).__init__(messageHandler, args, functionToRun, identifier, metadata, uniqueHandler, profile)
+    super(SharedMemoryRunner, self).__init__(messageHandler, args, functionToRun, identifier,
+                                             metadata, uniqueHandler, profile)
 
     ## Other parameters manipulated internally
     self.subque = collections.deque()
@@ -132,14 +143,18 @@ class SharedMemoryRunner(InternalRunner):
       @ Out, None
     """
     try:
-      self.thread = threading.Thread(target = lambda q, *arg : q.append(self.functionToRun(*arg)), name = self.identifier, args=(self.subque,)+tuple(self.args))
+      self.thread = threading.Thread(
+          target=lambda q, *arg: q.append(self.functionToRun(*arg)),
+          name=self.identifier,
+          args=(self.subque, ) + tuple(self.args))
 
       self.thread.daemon = True
       self.thread.start()
       self.trackTime('runner_started')
       self.started = True
     except Exception as ae:
-      self.raiseAWarning(self.__class__.__name__ + " job "+self.identifier+" failed with error:"+ str(ae) +" !",'ExceptedError')
+      self.raiseAWarning(self.__class__.__name__ + " job " + self.identifier +
+                         " failed with error:" + str(ae) + " !", 'ExceptedError')
       self.returnCode = -1
 
   def kill(self):
@@ -148,6 +163,6 @@ class SharedMemoryRunner(InternalRunner):
       @ In, None
       @ Out, None
     """
-    self.raiseAWarning("Terminating "+self.thread.pid+ " Identifier " + self.identifier)
+    self.raiseAWarning("Terminating " + self.thread.pid + " Identifier " + self.identifier)
     os.kill(self.thread.pid, signal.SIGTERM)
     self.trackTime('runner_killed')

@@ -16,7 +16,7 @@ Created on July 10, 2013
 
 @author: alfoa
 """
-from __future__ import division, print_function , unicode_literals, absolute_import
+from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default', DeprecationWarning)
 
@@ -30,7 +30,9 @@ from .PostProcessor import PostProcessor
 from utils import InputData
 import Files
 import Runners
+
 #Internal Modules End-----------------------------------------------------------
+
 
 class ExternalPostProcessor(PostProcessor):
   """
@@ -39,6 +41,7 @@ class ExternalPostProcessor(PostProcessor):
     object, thus the function should produce a scalar value per row of data. I
     have no idea what happens if the function produces multiple outputs.
   """
+
   def __init__(self, messageHandler):
     """
       Constructor
@@ -46,13 +49,13 @@ class ExternalPostProcessor(PostProcessor):
       @ Out, None
     """
     PostProcessor.__init__(self, messageHandler)
-    self.methodsToRun = []              # A list of strings specifying what
-                                        # methods the user wants to compute from
-                                        # the external interfaces
+    self.methodsToRun = []  # A list of strings specifying what
+    # methods the user wants to compute from
+    # the external interfaces
 
-    self.externalInterfaces = set()     # A set of Function objects that
-                                        # hopefully contain definitions for all
-                                        # of the methods the user wants
+    self.externalInterfaces = set()  # A set of Function objects that
+    # hopefully contain definitions for all
+    # of the methods the user wants
 
     self.printTag = 'POSTPROCESSOR EXTERNAL FUNCTION'
     self.requiredAssObject = (True, (['Function'], ['n']))
@@ -93,11 +96,13 @@ class ExternalPostProcessor(PostProcessor):
 
     if type(currentInput) == list:
       if len(currentInput) != 1:
-        self.raiseAnError(IOError, "The postprocessor ", self.name, "only allows one input DataObjects,"
-              + " but multiple inputs are provided!")
+        self.raiseAnError(
+            IOError, "The postprocessor ", self.name,
+            "only allows one input DataObjects," + " but multiple inputs are provided!")
       else:
         currentInput = currentInput[-1]
-    assert(hasattr(currentInput, 'type'), "The type is missing for input object! We should always associate a type with it.")
+    assert (hasattr(currentInput, 'type'),
+            "The type is missing for input object! We should always associate a type with it.")
     inType = currentInput.type
     if inType in ['PointSet', 'HistorySet']:
       dataSet = currentInput.asDataset()
@@ -114,11 +119,11 @@ class ExternalPostProcessor(PostProcessor):
       sliceList = currentInput.sliceByIndex('RAVEN_sample_ID')
       indexes = currentInput.indexes
       for param in currentInput.getVars('output'):
-        inputDict[param] =  [sliceData[param].dropna(indexes[-1]).values for sliceData in sliceList]
+        inputDict[param] = [sliceData[param].dropna(indexes[-1]).values for sliceData in sliceList]
       for param in currentInput.getVars('input'):
-        inputDict[param] =  [sliceData[param].values for sliceData in sliceList]
+        inputDict[param] = [sliceData[param].values for sliceData in sliceList]
       for param in indexes:
-        inputDict[param] =  [sliceData[param].dropna(indexes[-1]).values for sliceData in sliceList]
+        inputDict[param] = [sliceData[param].dropna(indexes[-1]).values for sliceData in sliceList]
 
     for interface in self.externalInterfaces:
       for _ in self.methodsToRun:
@@ -126,12 +131,10 @@ class ExternalPostProcessor(PostProcessor):
         # as the xml file
         for param in interface.parameterNames():
           if param not in inputDict.keys():
-            self.raiseAnError(IOError, self, 'variable \"' + param
-                                             + '\" unknown. Please verify your '
-                                             + 'external script ('
-                                             + interface.functionFile
-                                             + ') variables match the data'
-                                             + ' available in your dataset.')
+            self.raiseAnError(IOError, self,
+                              'variable \"' + param + '\" unknown. Please verify your ' +
+                              'external script (' + interface.functionFile +
+                              ') variables match the data' + ' available in your dataset.')
     return inputDict
 
   def initialize(self, runInfo, inputs, initDict):
@@ -181,16 +184,17 @@ class ExternalPostProcessor(PostProcessor):
     """
     evaluation = finishedJob.getEvaluation()
     if isinstance(evaluation, Runners.Error):
-      self.raiseAnError(RuntimeError, "No available output to collect (run possibly not finished yet)")
+      self.raiseAnError(RuntimeError,
+                        "No available output to collect (run possibly not finished yet)")
 
     dataLenghtHistory = {}
-    inputList,outputDict = evaluation
+    inputList, outputDict = evaluation
 
-    if isinstance(output,Files.File):
+    if isinstance(output, Files.File):
       self.raiseAWarning('Output type File not yet implemented. I am going to skip it.')
     elif output.type == 'HDF5':
-      self.raiseAnError(NotImplementedError,'Output type ' + type(output).__name__
-                         + ' not yet implemented!')
+      self.raiseAnError(NotImplementedError,
+                        'Output type ' + type(output).__name__ + ' not yet implemented!')
     elif output.type in ['PointSet', 'HistorySet']:
       output.load(outputDict, style='dict', dims=output.getDimensions())
     else:
@@ -235,22 +239,27 @@ class ExternalPostProcessor(PostProcessor):
       tempInputDict = copy.deepcopy(inputDict)
       outputDict[methodName] = np.atleast_1d(copy.copy(interface.evaluate(method, tempInputDict)))
       if outputDict[methodName] is None:
-        self.raiseAnError(Exception,"the method "+methodName+" has not produced any result. It needs to return a result!")
+        self.raiseAnError(Exception, "the method " + methodName +
+                          " has not produced any result. It needs to return a result!")
       for target in tempInputDict.keys():
         if hasattr(interface, target):
           #if target not in outputDict.keys():
           if target not in methodMap.keys():
             attributeInSelf = getattr(interface, target)
-            if (np.atleast_1d(attributeInSelf)).shape != (np.atleast_1d(inputDict[target])).shape or (np.atleast_1d(attributeInSelf) - np.atleast_1d(inputDict[target])).all():
+            if (np.atleast_1d(attributeInSelf)).shape != (np.atleast_1d(
+                inputDict[target])).shape or (
+                    np.atleast_1d(attributeInSelf) - np.atleast_1d(inputDict[target])).all():
               if target in outputDict.keys():
-                self.raiseAWarning("In Post-Processor "+ self.name +" the modified variable "+target+
-                               " has the same name of a one already modified through another Function method." +
-                               " This method overwrites the input DataObject variable value")
+                self.raiseAWarning(
+                    "In Post-Processor " + self.name + " the modified variable " + target +
+                    " has the same name of a one already modified through another Function method."
+                    + " This method overwrites the input DataObject variable value")
               outputDict[target] = np.atleast_1d(attributeInSelf)
           else:
-            warningMessages.append("In Post-Processor "+ self.name +" the method "+method+
-                               " has the same name of a variable contained in the input DataObject." +
-                               " This method overwrites the input DataObject variable value")
+            warningMessages.append(
+                "In Post-Processor " + self.name + " the method " + method +
+                " has the same name of a variable contained in the input DataObject." +
+                " This method overwrites the input DataObject variable value")
     for msg in list(set(warningMessages)):
       self.raiseAWarning(msg)
 
@@ -260,14 +269,18 @@ class ExternalPostProcessor(PostProcessor):
     numRlz = len(outputDict.values()[0])
     for val in outputDict.values():
       if len(val) != numRlz:
-        self.raiseAnError(IOError, "The return results from the external functions have different number of realizations!"
-                + " This postpocessor ", self.name, " requests all the returned values should have the same number of realizations.")
+        self.raiseAnError(
+            IOError,
+            "The return results from the external functions have different number of realizations!"
+            + " This postpocessor ", self.name,
+            " requests all the returned values should have the same number of realizations.")
     for target in inputDict.keys():
       if target not in outputDict.keys():
         if len(inputDict[target]) != numRlz:
-          self.raiseAWarning("Parameter ", target, " is available in the provided input DataObjects,"
-                  + " but it has different length from the returned values from the external functions."
-                  + " Thus this parameter will not be accessible by the output DataObjects!")
+          self.raiseAWarning(
+              "Parameter ", target, " is available in the provided input DataObjects," +
+              " but it has different length from the returned values from the external functions." +
+              " Thus this parameter will not be accessible by the output DataObjects!")
         else:
           outputDict[target] = np.atleast_1d(inputDict[target])
 

@@ -21,7 +21,7 @@
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
-warnings.simplefilter('default',DeprecationWarning)
+warnings.simplefilter('default', DeprecationWarning)
 #if not 'xrange' in dir(__builtins__): xrange = range
 #End compatibility block for Python 3----------------------------------------------------------------
 
@@ -33,11 +33,12 @@ from functools import reduce
 
 #Internal Modules------------------------------------------------------------------------------------
 from .ForwardSampler import ForwardSampler
-from utils import utils,randomUtils,InputData
+from utils import utils, randomUtils, InputData
 distribution1D = utils.find_distribution1D()
 #Internal Modules End--------------------------------------------------------------------------------
 
 stochasticEnv = distribution1D.DistributionContainer.instance()
+
 
 class MonteCarlo(ForwardSampler):
   """
@@ -58,21 +59,25 @@ class MonteCarlo(ForwardSampler):
     samplerInitInput = InputData.parameterInputFactory("samplerInit")
     limitInput = InputData.parameterInputFactory("limit", contentType=InputData.IntegerType)
     samplerInitInput.addSub(limitInput)
-    initialSeedInput = InputData.parameterInputFactory("initialSeed", contentType=InputData.IntegerType)
+    initialSeedInput = InputData.parameterInputFactory(
+        "initialSeed", contentType=InputData.IntegerType)
     samplerInitInput.addSub(initialSeedInput)
     distInitInput = InputData.parameterInputFactory("distInit", contentType=InputData.StringType)
     distSubInput = InputData.parameterInputFactory("distribution")
     distSubInput.addParam("name", InputData.StringType)
-    distSubInput.addSub(InputData.parameterInputFactory("initialGridDisc", contentType=InputData.IntegerType))
-    distSubInput.addSub(InputData.parameterInputFactory("tolerance", contentType=InputData.FloatType))
+    distSubInput.addSub(
+        InputData.parameterInputFactory("initialGridDisc", contentType=InputData.IntegerType))
+    distSubInput.addSub(
+        InputData.parameterInputFactory("tolerance", contentType=InputData.FloatType))
 
     distInitInput.addSub(distSubInput)
     samplerInitInput.addSub(distInitInput)
-    samplingTypeInput = InputData.parameterInputFactory("samplingType", contentType=InputData.StringType)
+    samplingTypeInput = InputData.parameterInputFactory(
+        "samplingType", contentType=InputData.StringType)
     samplerInitInput.addSub(samplingTypeInput)
-    reseedEachIterationInput = InputData.parameterInputFactory("reseedEachIteration", contentType=InputData.StringType)
+    reseedEachIterationInput = InputData.parameterInputFactory(
+        "reseedEachIteration", contentType=InputData.StringType)
     samplerInitInput.addSub(reseedEachIterationInput)
-
 
     inputSpecification.addSub(samplerInitInput)
 
@@ -90,7 +95,7 @@ class MonteCarlo(ForwardSampler):
     self.samplingType = None
     self.limit = None
 
-  def localInputAndChecks(self,xmlNode, paramInput):
+  def localInputAndChecks(self, xmlNode, paramInput):
     """
       Class specific xml inputs will be read here and checked for validity.
       @ In, xmlNode, xml.etree.ElementTree.Element, The xml element node that will be checked against the available options specific to this Sampler.
@@ -98,20 +103,24 @@ class MonteCarlo(ForwardSampler):
       @ Out, None
     """
     #TODO remove using xmlNode
-    ForwardSampler.readSamplerInit(self,xmlNode)
+    ForwardSampler.readSamplerInit(self, xmlNode)
     if paramInput.findFirst('samplerInit') != None:
       if self.limit is None:
-        self.raiseAnError(IOError,self,'Monte Carlo sampler '+self.name+' needs the limit block (number of samples) in the samplerInit block')
-      if paramInput.findFirst('samplerInit').findFirst('samplingType')!= None:
+        self.raiseAnError(IOError, self, 'Monte Carlo sampler ' + self.name +
+                          ' needs the limit block (number of samples) in the samplerInit block')
+      if paramInput.findFirst('samplerInit').findFirst('samplingType') != None:
         self.samplingType = paramInput.findFirst('samplerInit').findFirst('samplingType').value
         if self.samplingType not in ['uniform']:
-          self.raiseAnError(IOError,self,'Monte Carlo sampler '+self.name+': specified type of samplingType is not recognized. Allowed type is: uniform')
+          self.raiseAnError(
+              IOError, self, 'Monte Carlo sampler ' + self.name +
+              ': specified type of samplingType is not recognized. Allowed type is: uniform')
       else:
         self.samplingType = None
     else:
-      self.raiseAnError(IOError,self,'Monte Carlo sampler '+self.name+' needs the samplerInit block')
+      self.raiseAnError(IOError, self,
+                        'Monte Carlo sampler ' + self.name + ' needs the samplerInit block')
 
-  def localGenerateInput(self,model,myInput):
+  def localGenerateInput(self, model, myInput):
     """
       Function to select the next most informative point for refining the limit
       surface search.
@@ -127,23 +136,26 @@ class MonteCarlo(ForwardSampler):
       # check if the key is a comma separated list of strings
       # in this case, the user wants to sample the comma separated variables with the same sampled value => link the value to all comma separated variables
 
-      dim    = self.variables2distributionsMapping[key]['dim']
+      dim = self.variables2distributionsMapping[key]['dim']
       totDim = self.variables2distributionsMapping[key]['totDim']
-      dist   = self.variables2distributionsMapping[key]['name']
+      dist = self.variables2distributionsMapping[key]['name']
       reducedDim = self.variables2distributionsMapping[key]['reducedDim']
       weight = 1.0
       if totDim == 1:
         for var in self.distributions2variablesMapping[dist]:
-          varID  = utils.first(var.keys())
+          varID = utils.first(var.keys())
           if self.samplingType == 'uniform':
             distData = self.distDict[key].getCrowDistDict()
             if ('xMin' not in distData.keys()) or ('xMax' not in distData.keys()):
-              self.raiseAnError(IOError,"In the Monte-Carlo sampler a uniform sampling type has been chosen; however, one or more distributions have not specified either the lowerBound or the upperBound")
+              self.raiseAnError(
+                  IOError,
+                  "In the Monte-Carlo sampler a uniform sampling type has been chosen; however, one or more distributions have not specified either the lowerBound or the upperBound"
+              )
             lower = distData['xMin']
             upper = distData['xMax']
             rvsnum = lower + (upper - lower) * randomUtils.random()
-            epsilon = (upper-lower)/self.limit
-            midPlusCDF  = self.distDict[key].cdf(rvsnum + epsilon)
+            epsilon = (upper - lower) / self.limit
+            midPlusCDF = self.distDict[key].cdf(rvsnum + epsilon)
             midMinusCDF = self.distDict[key].cdf(rvsnum - epsilon)
             weight *= midPlusCDF - midMinusCDF
           else:
@@ -164,33 +176,36 @@ class MonteCarlo(ForwardSampler):
               upper = self.distDict[key].returnUpperBound(i)
               coordinate[i] = lower + (upper - lower) * randomUtils.random()
           if reducedDim > len(coordinate):
-            self.raiseAnError(IOError,"The dimension defined for variables drew from the multivariate normal distribution is exceeded by the dimension used in Distribution (MultivariateNormal) ")
+            self.raiseAnError(
+                IOError,
+                "The dimension defined for variables drew from the multivariate normal distribution is exceeded by the dimension used in Distribution (MultivariateNormal) "
+            )
           probabilityValue = self.distDict[key].pdf(coordinate)
           self.inputInfo['SampledVarsPb'][key] = probabilityValue
           for var in self.distributions2variablesMapping[dist]:
-            varID  = utils.first(var.keys())
+            varID = utils.first(var.keys())
             varDim = var[varID]
             for kkey in varID.strip().split(','):
-              self.values[kkey] = np.atleast_1d(rvsnum)[varDim-1]
+              self.values[kkey] = np.atleast_1d(rvsnum)[varDim - 1]
           self.inputInfo['ProbabilityWeight-' + dist] = 1.
       else:
-        self.raiseAnError(IOError,"Total dimension for given distribution should be >= 1")
+        self.raiseAnError(IOError, "Total dimension for given distribution should be >= 1")
 
     if len(self.inputInfo['SampledVarsPb'].keys()) > 0:
       self.inputInfo['PointProbability'] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
     else:
       self.inputInfo['PointProbability'] = 1.0
     if self.samplingType == 'uniform':
-      self.inputInfo['ProbabilityWeight'  ] = weight
+      self.inputInfo['ProbabilityWeight'] = weight
     else:
-      self.inputInfo['ProbabilityWeight' ] = 1.0 #MC weight is 1/N => weight is one
+      self.inputInfo['ProbabilityWeight'] = 1.0  #MC weight is 1/N => weight is one
     self.inputInfo['SamplerType'] = 'MonteCarlo'
 
-  def _localHandleFailedRuns(self,failedRuns):
+  def _localHandleFailedRuns(self, failedRuns):
     """
       Specialized method for samplers to handle failed runs.  Defaults to failing runs.
       @ In, failedRuns, list, list of JobHandler.ExternalRunner objects
       @ Out, None
     """
-    if len(failedRuns)>0:
+    if len(failedRuns) > 0:
       self.raiseADebug('  Continuing with reduced-size Monte-Carlo sampling.')

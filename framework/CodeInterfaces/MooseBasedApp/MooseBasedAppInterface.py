@@ -18,7 +18,7 @@ Created on April 14, 2014
 """
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
-warnings.simplefilter('default',DeprecationWarning)
+warnings.simplefilter('default', DeprecationWarning)
 
 import os
 import copy
@@ -26,15 +26,17 @@ from CodeInterfaceBaseClass import CodeInterfaceBase
 import MooseData
 import csvUtilities
 
+
 class MooseBasedApp(CodeInterfaceBase):
   """
     this class is used as part of a code dictionary to specialize Model.Code for RAVEN
   """
+
   def __init__(self):
     CodeInterfaceBase.__init__(self)
     self.outputPrefix = 'out~'
 
-  def generateCommand(self,inputFiles,executable,clargs=None,fargs=None):
+  def generateCommand(self, inputFiles, executable, clargs=None, fargs=None):
     """
       See base class.  Collects all the clargs and the executable to produce the command-line call.
       Returns tuple of commands and base file name for run.
@@ -53,15 +55,16 @@ class MooseBasedApp(CodeInterfaceBase):
         found = True
         break
     if not found:
-      raise IOError('None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
+      raise IOError('None of the input files has one of the following extensions: ' +
+                    ' '.join(self.getInputExtension()))
     if fargs['moosevpp'] != '':
       self.mooseVPPFile = fargs['moosevpp']
-    outputfile = self.outputPrefix+inputFiles[index].getBase()
-    executeCommand = [('parallel',executable+' -i '+inputFiles[index].getFilename())]
+    outputfile = self.outputPrefix + inputFiles[index].getBase()
+    executeCommand = [('parallel', executable + ' -i ' + inputFiles[index].getFilename())]
     returnCommand = executeCommand, outputfile
     return returnCommand
 
-  def createNewInput(self,currentInputFiles,oriInputFiles,samplerType,**Kwargs):
+  def createNewInput(self, currentInputFiles, oriInputFiles, samplerType, **Kwargs):
     """
       this generates a new input file depending on which sampler has been chosen
       @ In, currentInputFiles, list,  list of current input files (input files from last this method call)
@@ -72,7 +75,7 @@ class MooseBasedApp(CodeInterfaceBase):
       @ Out, newInputFiles, list, list of newer input files, list of the new input files (modified and not)
     """
     import MOOSEparser
-    self._samplersDictionary                = {}
+    self._samplersDictionary = {}
     if 'dynamiceventtree' in str(samplerType).lower():
       self._samplersDictionary[samplerType] = self.dynamicEventTreeForMooseBasedApp
     else:
@@ -85,23 +88,24 @@ class MooseBasedApp(CodeInterfaceBase):
         found = True
         break
     if not found:
-      raise IOError('None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
-    outName = self.outputPrefix+currentInputFiles[index].getBase()
+      raise IOError('None of the input files has one of the following extensions: ' +
+                    ' '.join(self.getInputExtension()))
+    outName = self.outputPrefix + currentInputFiles[index].getBase()
     parser = MOOSEparser.MOOSEparser(currentInputFiles[index].getAbsFile())
     modifDict = {}
     if 'None' not in str(samplerType):
       modifDict = self._samplersDictionary[samplerType](**Kwargs)
     #set up output
-    modifDict.append({'csv':'true','name':['Outputs']})
-    modifDict.append({'file_base':outName,'name':['Outputs']})
+    modifDict.append({'csv': 'true', 'name': ['Outputs']})
+    modifDict.append({'file_base': outName, 'name': ['Outputs']})
     #make tree
-    parser.modifyOrAdd(modifDict,False)
+    parser.modifyOrAdd(modifDict, False)
     #make input
     parser.printInput(currentInputFiles[index].getAbsFile())
     self.vectorPPFound, self.vectorPPDict = parser.vectorPostProcessor()
     return currentInputFiles
 
-  def pointSamplerForMooseBasedApp(self,**Kwargs):
+  def pointSamplerForMooseBasedApp(self, **Kwargs):
     """
       This method is used to create a list of dictionaries that can be interpreted by the input Parser
       in order to change the input file based on the information present in the Kwargs dictionary.
@@ -115,7 +119,7 @@ class MooseBasedApp(CodeInterfaceBase):
     listDict = self._expandVarNames(**Kwargs)
     return listDict
 
-  def dynamicEventTreeForMooseBasedApp(self,**Kwargs):
+  def dynamicEventTreeForMooseBasedApp(self, **Kwargs):
     """
       This method is used to create a list of dictionaries that can be interpreted by the input Parser
       in order to change the input file based on the information present in the Kwargs dictionary.
@@ -127,7 +131,7 @@ class MooseBasedApp(CodeInterfaceBase):
     raise IOError('dynamicEventTreeForMooseBasedApp not yet implemented')
     return listDict
 
-  def finalizeCodeOutput(self,command,output,workingDir):
+  def finalizeCodeOutput(self, command, output, workingDir):
     """
       this method is called by the RAVEN code at the end of each run (if the method is present, since it is optional).
       It can be used for those codes, that do not create CSV files to convert the whatever output formats into a csv
@@ -138,24 +142,26 @@ class MooseBasedApp(CodeInterfaceBase):
     """
     returnOut = output
     if self.vectorPPFound:
-      returnOut = self.__mergeTime(output,workingDir)[0]
+      returnOut = self.__mergeTime(output, workingDir)[0]
     return returnOut
 
-  def __mergeTime(self,output,workingDir):
+  def __mergeTime(self, output, workingDir):
     """
       Merges the vector PP output files created with the MooseApp
       @ In, output, string, the Output name root
       @ In, workingDir, string, current working dir
       @ Out, vppFiles, list, the list of files merged from the outputs of the vector PP
     """
-    files2Merge, vppFiles  = [], []
+    files2Merge, vppFiles = [], []
     for time in range(int(self.vectorPPDict['timeStep'][0])):
-      files2Merge.append(os.path.join(workingDir,str(output+self.mooseVPPFile+("%04d" % (time+1))+'.csv')))
-      outputObj = MooseData.mooseData(files2Merge,workingDir,output,self.mooseVPPFile)
-      vppFiles.append(os.path.join(workingDir,str(outputObj.vppFiles)))
+      files2Merge.append(
+          os.path.join(workingDir,
+                       str(output + self.mooseVPPFile + ("%04d" % (time + 1)) + '.csv')))
+      outputObj = MooseData.mooseData(files2Merge, workingDir, output, self.mooseVPPFile)
+      vppFiles.append(os.path.join(workingDir, str(outputObj.vppFiles)))
     return vppFiles
 
-  def _expandVarNames(self,**Kwargs):
+  def _expandVarNames(self, **Kwargs):
     """
       This method will assure the full proper variable names are returned in a dictionary.
       @ In, Kwargs, dict, keyworded dictionary. Arguments include:
@@ -164,8 +170,8 @@ class MooseBasedApp(CodeInterfaceBase):
                ['name'][path,to,name]
                [short varname][var value]
     """
-    listDict=[]
-    modifDict={}
+    listDict = []
+    modifDict = {}
     for var in Kwargs['SampledVars']:
       key = var.split(':')
       modifDict = {}

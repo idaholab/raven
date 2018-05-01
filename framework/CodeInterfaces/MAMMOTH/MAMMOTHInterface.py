@@ -13,20 +13,22 @@
 # limitations under the License.
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
-warnings.simplefilter('default',DeprecationWarning)
+warnings.simplefilter('default', DeprecationWarning)
 
 import os
 import copy
 from subprocess import Popen
 from CodeInterfaceBaseClass import CodeInterfaceBase
 from MooseBasedAppInterface import MooseBasedApp
-from RattlesnakeInterface   import Rattlesnake
-from RELAP7Interface        import RELAP7
+from RattlesnakeInterface import Rattlesnake
+from RELAP7Interface import RELAP7
+
 
 class MAMMOTHInterface(CodeInterfaceBase):
   """
     This class is used to couple raven with MAMMOTH (A moose based application, can call Rattlesnake, Bison and Relap-7)
   """
+
   def __init__(self):
     """
       Constructor
@@ -34,17 +36,17 @@ class MAMMOTHInterface(CodeInterfaceBase):
       @ Out, None
     """
     CodeInterfaceBase.__init__(self)
-    self.MooseInterface = MooseBasedApp()       #used to perturb MAMMOTH input files
+    self.MooseInterface = MooseBasedApp()  #used to perturb MAMMOTH input files
     self.MooseInterface.addDefaultExtension()
-    self.BisonInterface = MooseBasedApp()       #used to perturb Bison input files
+    self.BisonInterface = MooseBasedApp()  #used to perturb Bison input files
     self.BisonInterface.addDefaultExtension()
-    self.RattlesnakeInterface  = Rattlesnake()  #used to perturb Rattlesnake and Yak input files
+    self.RattlesnakeInterface = Rattlesnake()  #used to perturb Rattlesnake and Yak input files
     #FIXME Would like to use RELAP7() as interface, but Distributions block appears to be out of date when running Mammoth
     #self.Relap7Interface = RELAP7()             #used to perturb RELAP7 input files
     self.Relap7Interface = MooseBasedApp()
     self.Relap7Interface.addDefaultExtension()
 
-  def findInps(self,inputFiles):
+  def findInps(self, inputFiles):
     """
       Locates the input files required by MAMMOTH
       @ In, inputFiles, list, list of Files objects
@@ -56,7 +58,7 @@ class MAMMOTHInterface(CodeInterfaceBase):
     inputDict['RattlesnakeInput'] = []
     inputDict['Relap7Input'] = []
     inputDict['AncillaryInput'] = []
-    allowedDriverAppInput = ['bisoninput','rattlesnakeinput','relap7input']
+    allowedDriverAppInput = ['bisoninput', 'rattlesnakeinput', 'relap7input']
     for inputFile in inputFiles:
       fileType = inputFile.getType()
       if fileType.strip().lower().split('|')[0] == "mammothinput":
@@ -81,9 +83,12 @@ class MAMMOTHInterface(CodeInterfaceBase):
       raise IOError(errorMessage)
     # Multiple mammoth files are found
     elif len(inputDict['MammothInput']) > 1:
-      raise IOError('Multiple MAMMOTH input files are provided! Please limit the number of input files to one.')
+      raise IOError(
+          'Multiple MAMMOTH input files are provided! Please limit the number of input files to one.'
+      )
     # Mammoth input found, but driverAppInput is not in the allowedDriverAppInput list
-    elif len(inputDict['MammothInput']) == 1 and inputDict['DriverAppInput'] not in allowedDriverAppInput:
+    elif len(inputDict['MammothInput']
+             ) == 1 and inputDict['DriverAppInput'] not in allowedDriverAppInput:
       errorMessage = 'A MAMMOTH input file was specified, but the driver app is not currently supported by this\n'
       errorMessage += 'interface. The MAMMOTH input file can only be specified as one of the following types:'
       for goodDriverAppInput in allowedDriverAppInput:
@@ -109,7 +114,8 @@ class MAMMOTHInterface(CodeInterfaceBase):
     """
     inputDict = self.findInps(inputFiles)
     mammothInput = inputDict['MammothInput']
-    mooseCommand, mooseOut = self.MooseInterface.generateCommand(mammothInput,executable,clargs,fargs)
+    mooseCommand, mooseOut = self.MooseInterface.generateCommand(mammothInput, executable, clargs,
+                                                                 fargs)
     returnCommand = mooseCommand, mooseOut
     return returnCommand
 
@@ -134,7 +140,7 @@ class MAMMOTHInterface(CodeInterfaceBase):
     relap7Args['SampledVars'] = {}
     perturbRelap7 = False
     foundAlias = False
-    for varName,varValue in Kwargs['SampledVars'].items():
+    for varName, varValue in Kwargs['SampledVars'].items():
       # get the variable's full name
       if len(varName.split('@')) == 2:
         appName = varName.split('@')[0].lower()
@@ -147,7 +153,7 @@ class MAMMOTHInterface(CodeInterfaceBase):
         errorMessage += 'specifiy to which App input they belong by prepending the App\'s name\n'
         errorMessage += 'followed by "@" to the base variable\'s name or alias or have no App\n'
         errorMessage += 'name to signify a passthrough variable. Please check that\n'
-        errorMessage += varName+'\n'
+        errorMessage += varName + '\n'
         errorMessage += 'fits within this syntax specification.'
         raise IOError(errorMessage)
       # Identify which app's input the variable goes into and separate appArgs
@@ -164,9 +170,9 @@ class MAMMOTHInterface(CodeInterfaceBase):
         # It's a dummy variable. Doesn't need to be added to any argument lists, just continue.
         pass
       else:
-        errorMessage = appName+' is not an App supported by the MAMMOTH Code Interface!\n'
+        errorMessage = appName + ' is not an App supported by the MAMMOTH Code Interface!\n'
         errorMessage += 'Please specify a supported App in which to send \n'
-        errorMessage += baseVarName+'\n'
+        errorMessage += baseVarName + '\n'
         errorMessage += 'or add the desired App to the MAMMOTH Code Interface.'
         raise IOError(errorMessage)
     # Check if the user wants to perturb yak xs libraries
@@ -197,7 +203,8 @@ class MAMMOTHInterface(CodeInterfaceBase):
         errorMessage += 'supports one input for each App utilized.'
         raise IOError(errorMessage)
       origBisonInps = origInputFiles[currentInputFiles.index(bisonInps[0])]
-      bisonInps = self.BisonInterface.createNewInput(bisonInps,[origBisonInps],samplerType,**bisonArgs)
+      bisonInps = self.BisonInterface.createNewInput(bisonInps, [origBisonInps], samplerType,
+                                                     **bisonArgs)
 
     # Rattlesnake Interface
     if perturbRattlesnake or foundAlias:
@@ -216,8 +223,8 @@ class MAMMOTHInterface(CodeInterfaceBase):
         errorMessage += 'supports one input for each App utilized.'
         raise IOError(errorMessage)
       origRattlesnakeInps = origInputFiles[currentInputFiles.index(rattlesnakeInps[0])]
-      rattlesnakeInps = self.RattlesnakeInterface.createNewInput(rattlesnakeInps,
-                              [origRattlesnakeInps],samplerType,**rattlesnakeArgs)
+      rattlesnakeInps = self.RattlesnakeInterface.createNewInput(
+          rattlesnakeInps, [origRattlesnakeInps], samplerType, **rattlesnakeArgs)
 
     # Relap7 Interface
     if perturbRelap7:
@@ -236,7 +243,8 @@ class MAMMOTHInterface(CodeInterfaceBase):
         errorMessage += 'supports one input for each App utilized.'
         raise IOError(errorMessage)
       origRelap7Inps = origInputFiles[currentInputFiles.index(relap7Inps[0])]
-      relap7Inps = self.Relap7Interface.createNewInput(relap7Inps,[origRelap7Inps],samplerType,**relap7Args)
+      relap7Inps = self.Relap7Interface.createNewInput(relap7Inps, [origRelap7Inps], samplerType,
+                                                       **relap7Args)
 
     return currentInputFiles
 

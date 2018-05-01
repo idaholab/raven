@@ -19,7 +19,7 @@ Created on Mar 5, 2013
 #for future compatibility with Python 3-----------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
-warnings.simplefilter('default',DeprecationWarning)
+warnings.simplefilter('default', DeprecationWarning)
 if not 'xrange' in dir(__builtins__):
   xrange = range
 #End compatibility block for Python 3-------------------------------------------
@@ -53,27 +53,28 @@ else:
 # end internal parallel module
 #Internal Modules End-----------------------------------------------------------
 
-
 ## FIXME: Finished jobs can bog down the queue waiting for other objects to take
 ## them away. Can we shove them onto a different list and free up the job queue?
+
 
 class JobHandler(MessageHandler.MessageUser):
   """
     JobHandler class. This handles the execution of any job in the RAVEN
     framework
   """
+
   def __init__(self):
     """
       Init method
       @ In, None
       @ Out, None
     """
-    self.printTag         = 'Job Handler'
-    self.runInfoDict      = {}
+    self.printTag = 'Job Handler'
+    self.runInfoDict = {}
 
     self.isParallelPythonInitialized = False
 
-    self.sleepTime  = 0.005
+    self.sleepTime = 0.005
     self.completed = False
 
     ## Determines whether to collect and print job timing summaries at the end of job runs.
@@ -90,13 +91,13 @@ class JobHandler(MessageHandler.MessageUser):
     ## Placeholders for each actively running job. When a job finishes, its
     ## spot in one of these lists will be reset to None and the next Runner will
     ## be placed in a free None spot, and set to start
-    self.__running       = []
+    self.__running = []
     self.__clientRunning = []
 
     ## Queue of jobs to be run, when something on the list above opens up, the
     ## corresponding queue will pop a job (Runner) and put it into that location
     ## and set it to start
-    self.__queue       = collections.deque()
+    self.__queue = collections.deque()
     self.__clientQueue = collections.deque()
 
     ## A counter used for uniquely identifying the next id for an ExternalRunner
@@ -139,12 +140,12 @@ class JobHandler(MessageHandler.MessageUser):
     if self.maxQueueSize < 1:
       self.raiseAWarning('maxQueueSize was set to be less than 1!  Setting to 1...')
       self.maxQueueSize = 1
-    self.raiseADebug('Setting maxQueueSize to',self.maxQueueSize)
+    self.raiseADebug('Setting maxQueueSize to', self.maxQueueSize)
 
     #initialize PBS
     with self.__queueLock:
-      self.__running       = [None]*self.runInfoDict['batchSize']
-      self.__clientRunning = [None]*self.runInfoDict['batchSize']
+      self.__running = [None] * self.runInfoDict['batchSize']
+      self.__clientRunning = [None] * self.runInfoDict['batchSize']
 
   def __checkAndRemoveFinished(self, running):
     """
@@ -158,14 +159,15 @@ class JobHandler(MessageHandler.MessageUser):
         metadataFailedRun = running.getMetadata()
         metadataToKeep = metadataFailedRun
         if metadataFailedRun is not None:
-          metadataKeys      = metadataFailedRun.keys()
+          metadataKeys = metadataFailedRun.keys()
           if 'jobHandler' in metadataKeys:
             metadataKeys.pop(metadataKeys.index("jobHandler"))
-            metadataToKeep = { keepKey: metadataFailedRun[keepKey] for keepKey in metadataKeys }
+            metadataToKeep = {keepKey: metadataFailedRun[keepKey] for keepKey in metadataKeys}
         ## FIXME: The running.command was always internal now, so I removed it.
         ## We should probably find a way to give more pertinent information.
-        self.raiseAMessage(" Process Failed " + str(running) + " internal returnCode " + str(returnCode))
-        self.__failedJobs[running.identifier]=(returnCode,copy.deepcopy(metadataToKeep))
+        self.raiseAMessage(
+            " Process Failed " + str(running) + " internal returnCode " + str(returnCode))
+        self.__failedJobs[running.identifier] = (returnCode, copy.deepcopy(metadataToKeep))
 
   def __initializeParallelPython(self):
     """
@@ -184,11 +186,11 @@ class JobHandler(MessageHandler.MessageUser):
 
         ## Set the initial port randomly among the user accessible ones
         ## Is there any problem if we select the same port as something else?
-        randomPort = random.randint(1024,65535)
+        randomPort = random.randint(1024, 65535)
 
         ## Get localHost and servers
         localHostName, ppservers = self.__runRemoteListeningSockets(randomPort)
-        self.raiseADebug("Local host is "+ localHostName)
+        self.raiseADebug("Local host is " + localHostName)
 
         if len(ppservers) == 0:
           ## We are on a single node
@@ -199,7 +201,7 @@ class JobHandler(MessageHandler.MessageUser):
           self.raiseADebug("Server port in use is " + str(randomPort))
           self.ppserver = pp.Server(ncpus=0, ppservers=tuple(ppservers))
       else:
-         ## We are using the parallel python system
+        ## We are using the parallel python system
         self.ppserver = pp.Server(ncpus=int(self.runInfoDict['totalNumCoresUsed']))
     else:
       ## We are just using threading
@@ -214,7 +216,7 @@ class JobHandler(MessageHandler.MessageUser):
       @ Out, hostNameMapping, dict, dictionary containing the qualified names
         {'local':hostName,'remote':{nodeName1:IP1,nodeName2:IP2,etc}}
     """
-    hostNameMapping = {'local':"",'remote':{}}
+    hostNameMapping = {'local': "", 'remote': {}}
 
     ## Store the local machine name as its fully-qualified domain name (FQDN)
     hostNameMapping['local'] = str(socket.getfqdn()).strip()
@@ -227,7 +229,7 @@ class JobHandler(MessageHandler.MessageUser):
 
     return hostNameMapping
 
-  def __runRemoteListeningSockets(self,newPort):
+  def __runRemoteListeningSockets(self, newPort):
     """
       Method to activate the remote sockets for parallel python
       @ In, newPort, integer, the comunication port to use
@@ -238,21 +240,22 @@ class JobHandler(MessageHandler.MessageUser):
     """
     ## Get the local machine name and the remote nodes one
     hostNameMapping = self.__getLocalAndRemoteMachineNames()
-    qualifiedHostName =  hostNameMapping['local']
+    qualifiedHostName = hostNameMapping['local']
     remoteNodesIP = hostNameMapping['remote']
 
     ## Strip out the nodes' names
     availableNodes = [node.strip() for node in self.runInfoDict['Nodes']]
 
     ## Get unique nodes
-    uniqueNodes    = list(set(availableNodes))
-    ppservers      = []
+    uniqueNodes = list(set(availableNodes))
+    ppservers = []
 
     if len(uniqueNodes) > 1:
       ## There are remote nodes that need to be activated
 
       ## Locate the ppserver script to be executed
-      ppserverScript = os.path.join(self.runInfoDict['FrameworkDir'],"contrib","pp","ppserver.py")
+      ppserverScript = os.path.join(self.runInfoDict['FrameworkDir'], "contrib", "pp",
+                                    "ppserver.py")
 
       ## Modify the python path used by the local environment
       localenv = os.environ.copy()
@@ -261,14 +264,14 @@ class JobHandler(MessageHandler.MessageUser):
 
       for nodeId in uniqueNodes:
         ## Build the filename
-        outFileName = nodeId.strip()+"_port:"+str(newPort)+"_server_out.log"
+        outFileName = nodeId.strip() + "_port:" + str(newPort) + "_server_out.log"
         outFileName = os.path.join(self.runInfoDict['WorkingDir'], outFileName)
 
         outFile = open(outFileName, 'w')
 
         ## Check how many processors are available in the node
         ntasks = availableNodes.count(nodeId)
-        remoteHostName =  remoteNodesIP[nodeId]
+        remoteHostName = remoteNodesIP[nodeId]
 
         ## Activate the remote socketing system
 
@@ -276,12 +279,21 @@ class JobHandler(MessageHandler.MessageUser):
         #subprocess.Popen(['ssh', nodeId, "python2.7", ppserverScript,"-w",str(ntasks),"-i",remoteHostName,"-p",str(newPort),"-t","1000","-g",localenv["PYTHONPATH"],"-d"],shell=False,stdout=outFile,stderr=outFile,env=localenv)
 
         ## Instead, let's build the command and then call the os-agnostic version
-        command=" ".join(["python",ppserverScript,"-w",str(ntasks),"-i",remoteHostName,"-p",str(newPort),"-t","50000","-g",localenv["PYTHONPATH"],"-d"])
-        utils.pickleSafeSubprocessPopen(['ssh',nodeId,"COMMAND='"+command+"'",self.runInfoDict['RemoteRunCommand']],shell=False,stdout=outFile,stderr=outFile,env=localenv)
+        command = " ".join([
+            "python", ppserverScript, "-w",
+            str(ntasks), "-i", remoteHostName, "-p",
+            str(newPort), "-t", "50000", "-g", localenv["PYTHONPATH"], "-d"
+        ])
+        utils.pickleSafeSubprocessPopen(
+            ['ssh', nodeId, "COMMAND='" + command + "'", self.runInfoDict['RemoteRunCommand']],
+            shell=False,
+            stdout=outFile,
+            stderr=outFile,
+            env=localenv)
         ## e.g., ssh nodeId COMMAND='python ppserverScript -w stuff'
 
         ## update list of servers
-        ppservers.append(nodeId+":"+str(newPort))
+        ppservers.append(nodeId + ":" + str(newPort))
 
     return qualifiedHostName, ppservers
 
@@ -299,7 +311,15 @@ class JobHandler(MessageHandler.MessageUser):
       ## probably when we move to Python 3.
       time.sleep(self.sleepTime)
 
-  def addJob(self, args, functionToRun, identifier, metadata=None, modulesToImport = [], forceUseThreads = False, uniqueHandler="any", clientQueue = False):
+  def addJob(self,
+             args,
+             functionToRun,
+             identifier,
+             metadata=None,
+             modulesToImport=[],
+             forceUseThreads=False,
+             uniqueHandler="any",
+             clientQueue=False):
     """
       Method to add an internal run (function execution)
       @ In, args, dict, this is a list of arguments that will be passed as
@@ -328,20 +348,27 @@ class JobHandler(MessageHandler.MessageUser):
       self.__initializeParallelPython()
 
     if self.ppserver is None or forceUseThreads:
-      internalJob = Runners.SharedMemoryRunner(self.messageHandler, args,
-                                               functionToRun,
-                                               identifier, metadata,
-                                               uniqueHandler,
-                                               profile=self.__profileJobs)
+      internalJob = Runners.SharedMemoryRunner(
+          self.messageHandler,
+          args,
+          functionToRun,
+          identifier,
+          metadata,
+          uniqueHandler,
+          profile=self.__profileJobs)
     else:
-      skipFunctions = [utils.metaclass_insert(abc.ABCMeta,BaseType)]
-      internalJob = Runners.DistributedMemoryRunner(self.messageHandler,
-                                                    self.ppserver, args,
-                                                    functionToRun,
-                                                    modulesToImport, identifier,
-                                                    metadata, skipFunctions,
-                                                    uniqueHandler,
-                                                    profile=self.__profileJobs)
+      skipFunctions = [utils.metaclass_insert(abc.ABCMeta, BaseType)]
+      internalJob = Runners.DistributedMemoryRunner(
+          self.messageHandler,
+          self.ppserver,
+          args,
+          functionToRun,
+          modulesToImport,
+          identifier,
+          metadata,
+          skipFunctions,
+          uniqueHandler,
+          profile=self.__profileJobs)
 
     # set the client info
     internalJob.clientRunner = clientQueue
@@ -363,7 +390,13 @@ class JobHandler(MessageHandler.MessageUser):
         runner.trackTime('queue')
       self.__submittedJobs.append(runner.identifier)
 
-  def addClientJob(self, args, functionToRun, identifier, metadata=None, modulesToImport = [], uniqueHandler="any"):
+  def addClientJob(self,
+                   args,
+                   functionToRun,
+                   identifier,
+                   metadata=None,
+                   modulesToImport=[],
+                   uniqueHandler="any"):
     """
       Method to add an internal run (function execution), without consuming
       resources (free spots). This can be used for client handling (see
@@ -382,9 +415,15 @@ class JobHandler(MessageHandler.MessageUser):
         If uniqueHandler == 'any', every "client" can get this runner.
       @ Out, None
     """
-    self.addJob(args, functionToRun, identifier, metadata, modulesToImport,
-                forceUseThreads = True, uniqueHandler = uniqueHandler,
-                clientQueue = True)
+    self.addJob(
+        args,
+        functionToRun,
+        identifier,
+        metadata,
+        modulesToImport,
+        forceUseThreads=True,
+        uniqueHandler=uniqueHandler,
+        clientQueue=True)
 
   def isFinished(self):
     """
@@ -399,7 +438,7 @@ class JobHandler(MessageHandler.MessageUser):
 
       ## Otherwise, let's look at our running lists and see if there is a job
       ## that is not done.
-      for run in self.__running+self.__clientRunning:
+      for run in self.__running + self.__clientRunning:
         if run:
           return False
 
@@ -466,13 +505,13 @@ class JobHandler(MessageHandler.MessageUser):
 
       ## Look through the running jobs and attempt to find a matching identifier
       ## If the job exists here, it is not finished
-      for run in self.__running+self.__clientRunning:
+      for run in self.__running + self.__clientRunning:
         if run is not None and run.identifier == identifier:
           return False
 
     ##  If you made it here and we still have not found anything, we have got
     ## problems.
-    self.raiseAnError(RuntimeError,"Job "+identifier+" is unknown!")
+    self.raiseAnError(RuntimeError, "Job " + identifier + " is unknown!")
 
   def areTheseJobsFinished(self, uniqueHandler="any"):
     """
@@ -510,7 +549,7 @@ class JobHandler(MessageHandler.MessageUser):
     """
     return self.__failedJobs
 
-  def getFinished(self, removeFinished=True, jobIdentifier = '', uniqueHandler = "any"):
+  def getFinished(self, removeFinished=True, jobIdentifier='', uniqueHandler="any"):
     """
       Method to get the list of jobs that ended (list of objects)
       @ In, removeFinished, bool, optional, flag to control if the finished jobs
@@ -534,7 +573,7 @@ class JobHandler(MessageHandler.MessageUser):
 
     with self.__queueLock:
       runsToBeRemoved = []
-      for i,run in enumerate(self.__finished):
+      for i, run in enumerate(self.__finished):
         ## If the jobIdentifier does not match or the uniqueHandler does not
         ## match, then don't bother trying to do anything with it
         if not run.identifier.startswith(jobIdentifier) \
@@ -606,7 +645,7 @@ class JobHandler(MessageHandler.MessageUser):
     ## Only the jobHandler's startLoop thread should have write access to the
     ## self.__running variable, so we should be able to safely query this outside
     ## of the lock given that this function is called only on that thread as well.
-    emptySlots = [i for i,run in enumerate(self.__running) if run is None]
+    emptySlots = [i for i, run in enumerate(self.__running) if run is None]
 
     ## Don't bother acquiring the lock if there are no empty spots or nothing
     ## in the queue (this could be simultaneously added to by the main thread,
@@ -630,9 +669,9 @@ class JobHandler(MessageHandler.MessageUser):
             if len(item.args) > 0 and isinstance(item.args[0], Models.Code):
               kwargs = {}
               kwargs['INDEX'] = str(i)
-              kwargs['INDEX1'] = str(i+i)
+              kwargs['INDEX1'] = str(i + i)
               kwargs['CURRENT_ID'] = str(self.__nextId)
-              kwargs['CURRENT_ID1'] = str(self.__nextId+1)
+              kwargs['CURRENT_ID1'] = str(self.__nextId + 1)
               kwargs['SCRIPT_DIR'] = self.runInfoDict['ScriptDir']
               kwargs['FRAMEWORK_DIR'] = self.runInfoDict['FrameworkDir']
               ## This will not be used since the Code will create a new
@@ -643,7 +682,7 @@ class JobHandler(MessageHandler.MessageUser):
               ## -- DPM 5/4/17
               kwargs['WORKING_DIR'] = item.args[0].workingDir
               kwargs['BASE_WORKING_DIR'] = self.runInfoDict['WorkingDir']
-              kwargs['METHOD'] = os.environ.get("METHOD","opt")
+              kwargs['METHOD'] = os.environ.get("METHOD", "opt")
               kwargs['NUM_CPUS'] = str(self.runInfoDict['NumThreads'])
               item.args[3].update(kwargs)
 
@@ -655,7 +694,7 @@ class JobHandler(MessageHandler.MessageUser):
             break
 
     ## Repeat the same process above, only for the clientQueue
-    emptySlots = [i for i,run in enumerate(self.__clientRunning) if run is None]
+    emptySlots = [i for i, run in enumerate(self.__clientRunning) if run is None]
     if len(emptySlots) > 0 and len(self.__clientQueue) > 0:
       with self.__queueLock:
         for i in emptySlots:
@@ -678,7 +717,7 @@ class JobHandler(MessageHandler.MessageUser):
     ## liberty of condensing these loops into one and removing some of the
     ## redundant checks to make this code a bit simpler.
     for runList in [self.__running, self.__clientRunning]:
-      for i,run in enumerate(runList):
+      for i, run in enumerate(runList):
         if run is not None and run.isDone():
           ## We should only need the lock if we are touching the finished queue
           ## which is cleared by the main thread. Again, the running queues
@@ -689,7 +728,7 @@ class JobHandler(MessageHandler.MessageUser):
             self.__finished[-1].trackTime('jobHandler_finished')
             runList[i] = None
 
-  def setProfileJobs(self,profile=False):
+  def setProfileJobs(self, profile=False):
     """
       Sets whether profiles for jobs are printed or not.
       @ In, profile, bool, optional, if True then print timings for jobs when they are garbage collected

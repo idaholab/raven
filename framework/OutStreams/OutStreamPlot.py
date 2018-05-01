@@ -19,7 +19,7 @@ Created on Nov 14, 2013
 ## for future compatibility with Python 3---------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
-warnings.simplefilter('default',DeprecationWarning)
+warnings.simplefilter('default', DeprecationWarning)
 if not 'xrange' in dir(__builtins__):
   xrange = range
 ## End compatibility block for Python 3-----------------------------------------
@@ -65,6 +65,7 @@ if not displayAvailable:
 
 import matplotlib.pyplot as plt
 
+
 class OutStreamPlot(OutStreamManager):
   """
     OutStream of type Plot
@@ -76,17 +77,22 @@ class OutStreamPlot(OutStreamManager):
   ## "_"-prefixed), so other objects don't accidentally modify them.
 
   ## available 2D and 3D plot types
-  _availableOutStreamTypes = {2:['scatter', 'line', 'histogram', 'stem', 'step',
-                                 'pseudocolor', 'dataMining', 'contour',
-                                 'filledContour'],
-                              3:['scatter', 'line', 'histogram', 'stem',
-                                 'surface', 'wireframe', 'tri-surface',
-                                 'contour', 'filledContour']}
+  _availableOutStreamTypes = {
+      2: [
+          'scatter', 'line', 'histogram', 'stem', 'step', 'pseudocolor', 'dataMining', 'contour',
+          'filledContour'
+      ],
+      3: [
+          'scatter', 'line', 'histogram', 'stem', 'surface', 'wireframe', 'tri-surface', 'contour',
+          'filledContour'
+      ]
+  }
 
   ## interpolate functions available
-  _availableInterpolators = ['nearest', 'linear', 'cubic', 'multiquadric',
-                             'inverse', 'gaussian', 'Rbflinear', 'Rbfcubic',
-                             'quintic', 'thin_plate']
+  _availableInterpolators = [
+      'nearest', 'linear', 'cubic', 'multiquadric', 'inverse', 'gaussian', 'Rbflinear', 'Rbfcubic',
+      'quintic', 'thin_plate'
+  ]
 
   @ClassProperty
   def availableOutStreamTypes(cls):
@@ -105,7 +111,6 @@ class OutStreamPlot(OutStreamManager):
         @ In, cls, the OutStreamPlot class of which this object will be a type
     """
     return cls._availableInterpolators
-
 
   def __init__(self):
     """
@@ -171,7 +176,7 @@ class OutStreamPlot(OutStreamManager):
       @ In, where, tuple, where[0] = plotIndex, where[1] = variable Index
       @ Out, result, list, splitted variable
     """
-    if   what == 'x':
+    if what == 'x':
       var = self.xCoordinates[where[0]][where[1]]
     elif what == 'y':
       var = self.yCoordinates[where[0]][where[1]]
@@ -196,14 +201,18 @@ class OutStreamPlot(OutStreamManager):
 
     if var != None:
       result = [None] * 3
-      if   '|input|'  in var.lower():
+      if '|input|' in var.lower():
         match = re.search(r"(\|input\|)", var.lower())
       elif '|output|' in var.lower():
         match = re.search(r"(\|output\|)", var.lower())
       else:
-        self.raiseAnError(IOError, 'In Plot ' + self.name + ', the input coordinate ' + what + ' has not specified an "Input" or "Output" (case insensitive). e.g., sourceName|Input|aVariable) in ' + var)
+        self.raiseAnError(
+            IOError, 'In Plot ' + self.name + ', the input coordinate ' + what +
+            ' has not specified an "Input" or "Output" (case insensitive). e.g., sourceName|Input|aVariable) in '
+            + var)
       startLoc, endLoc = match.start(), match.end()
-      result[0], result[1], result[2] = var[:startLoc].strip(), var[startLoc + 1:endLoc - 1].strip(), var[endLoc:].strip()
+      result[0], result[1], result[2] = var[:startLoc].strip(), var[
+          startLoc + 1:endLoc - 1].strip(), var[endLoc:].strip()
       if '{' in result[-1] and '}' in result[-1]:
         locLower, locUpper = result[-1].find("{"), result[-1].rfind("}")
         result[-1] = result[-1][locLower + 1:locUpper].strip()
@@ -234,7 +243,8 @@ class OutStreamPlot(OutStreamManager):
               except:
                 self.options[node.tag]['attributes'][subsub.tag] = subsub.text
               if not subnode.text:
-                self.raiseAnError(IOError, 'In Plot ' + self.name + '. Problem in sub-tag ' + subnode.tag + ' in ' + node.tag + ' block. Please check!')
+                self.raiseAnError(IOError, 'In Plot ' + self.name + '. Problem in sub-tag ' +
+                                  subnode.tag + ' in ' + node.tag + ' block. Please check!')
       elif node.text:
         if node.text.strip():
           ## This is not great, we are over complicating this data structure if
@@ -244,7 +254,7 @@ class OutStreamPlot(OutStreamManager):
     ## There is something wrong here, why do we need to add an extra level of
     ## abstraction here? Why not self.options['how'] = 'screen'?
     if 'how' not in self.options.keys():
-      self.options['how'] = {'how':'screen'}
+      self.options['how'] = {'how': 'screen'}
 
   def __fillCoordinatesFromSource(self):
     """
@@ -279,85 +289,140 @@ class OutStreamPlot(OutStreamManager):
         return False
       dataSet = self.sourceData[pltIndex].asDataset()
       if self.sourceData[pltIndex].type.strip() != 'HistorySet':
-        for i in range(len(self.xCoordinates [pltIndex])):
+        for i in range(len(self.xCoordinates[pltIndex])):
           xSplit = self.__splitVariableNames('x', (pltIndex, i))
           if xSplit[2].strip() not in self.sourceData[pltIndex].getVars(xSplit[1].lower()):
-            self.raiseAnError(IOError, 'Not found variable "'+ xSplit[2] + '" in "'+xSplit[1]+ '" of DataObject "'+ self.sourceData[pltIndex].name+'"!')
-          self.xValues[pltIndex][1].append(np.asarray(dataSet[xSplit[2]].values.astype(float, copy=False)))
-        if self.yCoordinates :
-          for i in range(len(self.yCoordinates [pltIndex])):
+            self.raiseAnError(IOError, 'Not found variable "' + xSplit[2] + '" in "' + xSplit[1] +
+                              '" of DataObject "' + self.sourceData[pltIndex].name + '"!')
+          self.xValues[pltIndex][1].append(
+              np.asarray(dataSet[xSplit[2]].values.astype(float, copy=False)))
+        if self.yCoordinates:
+          for i in range(len(self.yCoordinates[pltIndex])):
             ySplit = self.__splitVariableNames('y', (pltIndex, i))
             if ySplit[2].strip() not in self.sourceData[pltIndex].getVars(ySplit[1].lower()):
-              self.raiseAnError(IOError, 'Not found variable "'+ ySplit[2] + '" in "'+ySplit[1]+ '" of DataObject "'+ self.sourceData[pltIndex].name+'"!')
-            self.yValues[pltIndex][1].append(np.asarray(dataSet[ySplit[2].strip()].values.astype(float, copy=False)))
-        if self.zCoordinates  and self.dim > 2:
-          for i in range(len(self.zCoordinates [pltIndex])):
+              self.raiseAnError(IOError, 'Not found variable "' + ySplit[2] + '" in "' + ySplit[1] +
+                                '" of DataObject "' + self.sourceData[pltIndex].name + '"!')
+            self.yValues[pltIndex][1].append(
+                np.asarray(dataSet[ySplit[2].strip()].values.astype(float, copy=False)))
+        if self.zCoordinates and self.dim > 2:
+          for i in range(len(self.zCoordinates[pltIndex])):
             zSplit = self.__splitVariableNames('z', (pltIndex, i))
             if zSplit[2].strip() not in self.sourceData[pltIndex].getVars(zSplit[1].lower()):
-              self.raiseAnError(IOError, 'Not found variable "'+ zSplit[2] + '" in "'+zSplit[1]+ '" of DataObject "'+ self.sourceData[pltIndex].name+'"!')
-            self.zValues[pltIndex][1].append(np.asarray(dataSet[zSplit[2].strip()].values.astype(float, copy=False)))
+              self.raiseAnError(IOError, 'Not found variable "' + zSplit[2] + '" in "' + zSplit[1] +
+                                '" of DataObject "' + self.sourceData[pltIndex].name + '"!')
+            self.zValues[pltIndex][1].append(
+                np.asarray(dataSet[zSplit[2].strip()].values.astype(float, copy=False)))
         if self.clusterLabels:
-          for i in range(len(self.clusterLabels [pltIndex])):
+          for i in range(len(self.clusterLabels[pltIndex])):
             clusterSplit = self.__splitVariableNames('clusterLabels', (pltIndex, i))
-            if clusterSplit[2].strip() not in self.sourceData[pltIndex].getVars(clusterSplit[1].lower()):
-              self.raiseAnError(IOError, 'Not found variable "'+ clusterSplit[2] + '" in "'+clusterSplit[1]+ '" of DataObject "'+ self.sourceData[pltIndex].name+'"!')
-            self.clusterValues[pltIndex][1].append(np.asarray(dataSet[clusterSplit[2].strip()].values.astype(float, copy=False)))
+            if clusterSplit[2].strip() not in self.sourceData[pltIndex].getVars(
+                clusterSplit[1].lower()):
+              self.raiseAnError(
+                  IOError, 'Not found variable "' + clusterSplit[2] + '" in "' + clusterSplit[1] +
+                  '" of DataObject "' + self.sourceData[pltIndex].name + '"!')
+            self.clusterValues[pltIndex][1].append(
+                np.asarray(dataSet[clusterSplit[2].strip()].values.astype(float, copy=False)))
         if self.mixtureLabels:
-          for i in range(len(self.mixtureLabels [pltIndex])):
+          for i in range(len(self.mixtureLabels[pltIndex])):
             mixtureSplit = self.__splitVariableNames('mixtureLabels', (pltIndex, i))
-            if mixtureSplit[2].strip() not in self.sourceData[pltIndex].getVars(mixtureSplit[1].lower()):
-              self.raiseAnError(IOError, 'Not found variable "'+ mixtureSplit[2] + '" in "'+mixtureSplit[1]+ '" of DataObject "'+ self.sourceData[pltIndex].name+'"!')
-            self.mixtureValues[pltIndex][1].append(np.asarray(dataSet[mixtureSplit[2].strip()].values.astype(float, copy=False)))
+            if mixtureSplit[2].strip() not in self.sourceData[pltIndex].getVars(
+                mixtureSplit[1].lower()):
+              self.raiseAnError(
+                  IOError, 'Not found variable "' + mixtureSplit[2] + '" in "' + mixtureSplit[1] +
+                  '" of DataObject "' + self.sourceData[pltIndex].name + '"!')
+            self.mixtureValues[pltIndex][1].append(
+                np.asarray(dataSet[mixtureSplit[2].strip()].values.astype(float, copy=False)))
         if self.colorMapCoordinates[pltIndex] != None:
           for i in range(len(self.colorMapCoordinates[pltIndex])):
             zSplit = self.__splitVariableNames('colorMap', (pltIndex, i))
             if zSplit[2].strip() not in self.sourceData[pltIndex].getVars(zSplit[1].lower()):
-              self.raiseAnError(IOError, 'Not found variable "'+ zSplit[2] + '" in "'+zSplit[1]+ '" of DataObject "'+ self.sourceData[pltIndex].name+'"!')
-            self.colorMapValues[pltIndex][1].append(np.asarray(dataSet[zSplit[2].strip()].values.astype(float, copy=False)))
+              self.raiseAnError(IOError, 'Not found variable "' + zSplit[2] + '" in "' + zSplit[1] +
+                                '" of DataObject "' + self.sourceData[pltIndex].name + '"!')
+            self.colorMapValues[pltIndex][1].append(
+                np.asarray(dataSet[zSplit[2].strip()].values.astype(float, copy=False)))
         # check if the array sizes are consistent
         sizeToMatch = self.xValues[pltIndex][1][-1].size
         if self.yCoordinates and self.yValues[pltIndex][1][-1].size != sizeToMatch:
-          self.raiseAnError(Exception,"the <y> variable has a size ("+str(self.yValues[pltIndex][1][-1].size)+") that is not consistent with respect the one ("+str(sizeToMatch)+") inputted in <x>")
+          self.raiseAnError(
+              Exception, "the <y> variable has a size (" + str(self.yValues[pltIndex][1][-1].size) +
+              ") that is not consistent with respect the one (" + str(sizeToMatch) +
+              ") inputted in <x>")
         if self.zCoordinates and self.dim > 2 and self.zValues[pltIndex][1][-1].size != sizeToMatch:
-          self.raiseAnError(Exception,"the <z> variable has a size ("+str(self.zValues[pltIndex][1][-1].size)+") that is not consistent with respect the one ("+str(sizeToMatch)+") inputted in <x>")
+          self.raiseAnError(
+              Exception, "the <z> variable has a size (" + str(self.zValues[pltIndex][1][-1].size) +
+              ") that is not consistent with respect the one (" + str(sizeToMatch) +
+              ") inputted in <x>")
         if self.colorMapCoordinates[pltIndex] != None and self.colorMapValues[pltIndex][1][-1].size != sizeToMatch:
-          self.raiseAnError(Exception,"the <colorMap> variable has a size ("+str(self.colorMapValues[pltIndex][1][-1].size)+") that is not consistent with respect the one ("+str(sizeToMatch)+") inputted in <x>")
+          self.raiseAnError(Exception, "the <colorMap> variable has a size (" +
+                            str(self.colorMapValues[pltIndex][1][-1].size) +
+                            ") that is not consistent with respect the one (" + str(sizeToMatch) +
+                            ") inputted in <x>")
       else:
         # HistorySet
         for cnt in range(len(self.sourceData[pltIndex])):
           maxSize = 0
-          for i in range(len(self.xCoordinates [pltIndex])):
+          for i in range(len(self.xCoordinates[pltIndex])):
             xSplit = self.__splitVariableNames('x', (pltIndex, i))
-            outputIndexes = self.sourceData[pltIndex].indexes if xSplit[1].lower() == 'output' else []
-            if xSplit[2].strip() not in self.sourceData[pltIndex].getVars(xSplit[1].lower())+outputIndexes:
-              self.raiseAnError(IOError, 'Not found variable "'+ xSplit[2] + '" in "'+xSplit[1]+ '" of DataObject "'+ self.sourceData[pltIndex].name+'"!')
+            outputIndexes = self.sourceData[pltIndex].indexes if xSplit[
+                1].lower() == 'output' else []
+            if xSplit[2].strip() not in self.sourceData[pltIndex].getVars(
+                xSplit[1].lower()) + outputIndexes:
+              self.raiseAnError(IOError, 'Not found variable "' + xSplit[2] + '" in "' + xSplit[1] +
+                                '" of DataObject "' + self.sourceData[pltIndex].name + '"!')
             # for variable from input space, it will return array(float), not 1d array
-            self.xValues[pltIndex][cnt].append(np.atleast_1d(dataSet.isel(False,RAVEN_sample_ID=cnt)[xSplit[2]].values.astype(float, copy=False)))
-            maxSize = self.xValues[pltIndex][cnt][-1].size if self.xValues[pltIndex][cnt][-1].size > maxSize else maxSize
-          if self.yCoordinates :
-            for i in range(len(self.yCoordinates [pltIndex])):
+            self.xValues[pltIndex][cnt].append(
+                np.atleast_1d(
+                    dataSet.isel(False, RAVEN_sample_ID=cnt)[xSplit[2]].values.astype(
+                        float, copy=False)))
+            maxSize = self.xValues[pltIndex][cnt][
+                -1].size if self.xValues[pltIndex][cnt][-1].size > maxSize else maxSize
+          if self.yCoordinates:
+            for i in range(len(self.yCoordinates[pltIndex])):
               ySplit = self.__splitVariableNames('y', (pltIndex, i))
-              outputIndexes = self.sourceData[pltIndex].indexes if ySplit[1].lower() == 'output' else []
-              if ySplit[2].strip() not in self.sourceData[pltIndex].getVars(ySplit[1].lower())+outputIndexes:
-                self.raiseAnError(IOError, 'Not found variable "'+ ySplit[2] + '" in "'+ySplit[1]+ '" of DataObject "'+ self.sourceData[pltIndex].name+'"!')
-              self.yValues[pltIndex][cnt].append(np.atleast_1d(dataSet.isel(False,RAVEN_sample_ID=cnt)[ySplit[2]].values.astype(float, copy=False)))
-              maxSize = self.yValues[pltIndex][cnt][-1].size if self.yValues[pltIndex][cnt][-1].size > maxSize else maxSize
-          if self.zCoordinates  and self.dim > 2:
-            for i in range(len(self.zCoordinates [pltIndex])):
+              outputIndexes = self.sourceData[pltIndex].indexes if ySplit[
+                  1].lower() == 'output' else []
+              if ySplit[2].strip() not in self.sourceData[pltIndex].getVars(
+                  ySplit[1].lower()) + outputIndexes:
+                self.raiseAnError(IOError,
+                                  'Not found variable "' + ySplit[2] + '" in "' + ySplit[1] +
+                                  '" of DataObject "' + self.sourceData[pltIndex].name + '"!')
+              self.yValues[pltIndex][cnt].append(
+                  np.atleast_1d(
+                      dataSet.isel(False, RAVEN_sample_ID=cnt)[ySplit[2]].values.astype(
+                          float, copy=False)))
+              maxSize = self.yValues[pltIndex][cnt][
+                  -1].size if self.yValues[pltIndex][cnt][-1].size > maxSize else maxSize
+          if self.zCoordinates and self.dim > 2:
+            for i in range(len(self.zCoordinates[pltIndex])):
               zSplit = self.__splitVariableNames('z', (pltIndex, i))
-              outputIndexes = self.sourceData[pltIndex].indexes if zSplit[1].lower() == 'output' else []
-              if zSplit[2].strip() not in self.sourceData[pltIndex].getVars(zSplit[1].lower())+outputIndexes:
-                self.raiseAnError(IOError, 'Not found variable "'+ zSplit[2] + '" in "'+zSplit[1]+ '" of DataObject "'+ self.sourceData[pltIndex].name+'"!')
-              self.zValues[pltIndex][cnt].append(np.atleast_1d(dataSet.isel(False,RAVEN_sample_ID=cnt)[zSplit[2]].values.astype(float, copy=False)))
-              maxSize = self.zValues[pltIndex][cnt][-1].size if self.zValues[pltIndex][cnt][-1].size > maxSize else maxSize
+              outputIndexes = self.sourceData[pltIndex].indexes if zSplit[
+                  1].lower() == 'output' else []
+              if zSplit[2].strip() not in self.sourceData[pltIndex].getVars(
+                  zSplit[1].lower()) + outputIndexes:
+                self.raiseAnError(IOError,
+                                  'Not found variable "' + zSplit[2] + '" in "' + zSplit[1] +
+                                  '" of DataObject "' + self.sourceData[pltIndex].name + '"!')
+              self.zValues[pltIndex][cnt].append(
+                  np.atleast_1d(
+                      dataSet.isel(False, RAVEN_sample_ID=cnt)[zSplit[2]].values.astype(
+                          float, copy=False)))
+              maxSize = self.zValues[pltIndex][cnt][
+                  -1].size if self.zValues[pltIndex][cnt][-1].size > maxSize else maxSize
           if self.colorMapCoordinates[pltIndex] != None:
             for i in range(len(self.colorMapCoordinates[pltIndex])):
               colorSplit = self.__splitVariableNames('colorMap', (pltIndex, i))
-              outputIndexes = self.sourceData[pltIndex].indexes if colorSplit[1].lower() == 'output' else []
-              if colorSplit[2].strip() not in self.sourceData[pltIndex].getVars(colorSplit[1].lower())+outputIndexes:
-                self.raiseAnError(IOError, 'Not found variable "'+ colorSplit[2] + '" in "'+colorSplit[1]+ '" of DataObject "'+ self.sourceData[pltIndex].name+'"!')
-              self.colorMapValues[pltIndex][cnt].append(dataSet.isel(False,RAVEN_sample_ID=cnt)[colorSplit[2]].values.astype(float, copy=False))
-              maxSize = self.colorMapValues[pltIndex][cnt][-1].size if self.colorMapValues[pltIndex][cnt][-1].size > maxSize else maxSize
+              outputIndexes = self.sourceData[pltIndex].indexes if colorSplit[
+                  1].lower() == 'output' else []
+              if colorSplit[2].strip() not in self.sourceData[pltIndex].getVars(
+                  colorSplit[1].lower()) + outputIndexes:
+                self.raiseAnError(
+                    IOError, 'Not found variable "' + colorSplit[2] + '" in "' + colorSplit[1] +
+                    '" of DataObject "' + self.sourceData[pltIndex].name + '"!')
+              self.colorMapValues[pltIndex][cnt].append(
+                  dataSet.isel(False, RAVEN_sample_ID=cnt)[colorSplit[2]].values.astype(
+                      float, copy=False))
+              maxSize = self.colorMapValues[pltIndex][cnt][
+                  -1].size if self.colorMapValues[pltIndex][cnt][-1].size > maxSize else maxSize
           # expand the scalars in case they need to be plotted against histories
           if self.xValues[pltIndex][cnt][-1].size == 1 and maxSize > 1:
             self.xValues[pltIndex][cnt][-1] = np.full(maxSize, self.xValues[pltIndex][cnt][-1])
@@ -366,14 +431,27 @@ class OutStreamPlot(OutStreamManager):
           if self.zCoordinates and self.dim > 2 and self.zValues[pltIndex][cnt][-1].size == 1 and maxSize > 1:
             self.zValues[pltIndex][cnt][-1] = np.full(maxSize, self.zValues[pltIndex][cnt][-1])
           if self.colorMapCoordinates[pltIndex] is not None and self.colorMapValues[pltIndex][cnt][-1].size == 1 and maxSize > 1:
-            self.colorMapValues[pltIndex][cnt][-1] = np.full(maxSize, self.colorMapValues[pltIndex][cnt][-1])
+            self.colorMapValues[pltIndex][cnt][-1] = np.full(maxSize,
+                                                             self.colorMapValues[pltIndex][cnt][-1])
           # check if the array sizes are consistent
           if self.yCoordinates and self.yValues[pltIndex][cnt][-1].size != maxSize:
-            self.raiseAnError(Exception,"the <y> variable has a size ("+str(self.yValues[pltIndex][cnt][-1].size)+") that is not consistent with respect the one ("+str(sizeToMatch)+") inputted in <x>")
+            self.raiseAnError(
+                Exception,
+                "the <y> variable has a size (" + str(self.yValues[pltIndex][cnt][-1].size) +
+                ") that is not consistent with respect the one (" + str(sizeToMatch) +
+                ") inputted in <x>")
           if self.zCoordinates and self.dim > 2 and self.zValues[pltIndex][cnt][-1].size != maxSize:
-            self.raiseAnError(Exception,"the <z> variable has a size ("+str(self.zValues[pltIndex][cnt][-1].size)+") that is not consistent with respect the one ("+str(sizeToMatch)+") inputted in <x>")
-          if self.colorMapCoordinates[pltIndex] != None and len(self.colorMapValues[pltIndex][cnt][-1]) != maxSize:
-            self.raiseAnError(Exception,"the <colorMap> variable has a size ("+str(self.colorMapValues[pltIndex][cnt][-1].size)+") that is not consistent with respect the one ("+str(sizeToMatch)+") inputted in <x>")
+            self.raiseAnError(
+                Exception,
+                "the <z> variable has a size (" + str(self.zValues[pltIndex][cnt][-1].size) +
+                ") that is not consistent with respect the one (" + str(sizeToMatch) +
+                ") inputted in <x>")
+          if self.colorMapCoordinates[pltIndex] != None and len(
+              self.colorMapValues[pltIndex][cnt][-1]) != maxSize:
+            self.raiseAnError(Exception, "the <colorMap> variable has a size (" +
+                              str(self.colorMapValues[pltIndex][cnt][-1].size) +
+                              ") that is not consistent with respect the one (" + str(sizeToMatch) +
+                              ") inputted in <x>")
 
       # check if something has been got or not
       if len(self.xValues[pltIndex].keys()) == 0:
@@ -386,7 +464,7 @@ class OutStreamPlot(OutStreamManager):
             for i in range(len(self.xValues[pltIndex][key])):
               if self.xValues[pltIndex][key][i].size == 0:
                 return False
-      if self.yCoordinates :
+      if self.yCoordinates:
         if len(self.yValues[pltIndex].keys()) == 0:
           return False
         else:
@@ -397,7 +475,7 @@ class OutStreamPlot(OutStreamManager):
               for i in range(len(self.yValues[pltIndex][key])):
                 if self.yValues[pltIndex][key][i].size == 0:
                   return False
-      if self.zCoordinates  and self.dim > 2:
+      if self.zCoordinates and self.dim > 2:
         if len(self.zValues[pltIndex].keys()) == 0:
           return False
         else:
@@ -408,7 +486,7 @@ class OutStreamPlot(OutStreamManager):
               for i in range(len(self.zValues[pltIndex][key])):
                 if self.zValues[pltIndex][key][i].size == 0:
                   return False
-      if self.clusterLabels :
+      if self.clusterLabels:
         if len(self.clusterValues[pltIndex].keys()) == 0:
           return False
         else:
@@ -419,7 +497,7 @@ class OutStreamPlot(OutStreamManager):
               for i in range(len(self.clusterValues[pltIndex][key])):
                 if self.clusterValues[pltIndex][key][i].size == 0:
                   return False
-      if self.mixtureLabels :
+      if self.mixtureLabels:
         if len(self.mixtureValues[pltIndex].keys()) == 0:
           return False
         else:
@@ -454,43 +532,61 @@ class OutStreamPlot(OutStreamManager):
       if self.dim == 2:
         plt.gca().yaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter())
         plt.gca().xaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter())
-        plt.ticklabel_format(**{'style':'sci', 'scilimits':(0, 1), 'useOffset':False, 'axis':'both'})
+        plt.ticklabel_format(**{
+            'style': 'sci',
+            'scilimits': (0, 1),
+            'useOffset': False,
+            'axis': 'both'
+        })
       if self.dim == 3:
         #plt.figure().gca(projection = '3d').yaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter())
         #plt.figure().gca(projection = '3d').xaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter())
         #plt.figure().gca(projection = '3d').zaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter())
-        self.plt3D.ticklabel_format(**{'style':'sci', 'scilimits':(0,1), 'useOffset':False, 'axis':'both'})
-    if 'title'        not in self.options.keys():
+        self.plt3D.ticklabel_format(**{
+            'style': 'sci',
+            'scilimits': (0, 1),
+            'useOffset': False,
+            'axis': 'both'
+        })
+    if 'title' not in self.options.keys():
       if self.dim == 2:
-        plt.title(self.name, fontdict = {'verticalalignment':'baseline', 'horizontalalignment':'center'})
+        plt.title(
+            self.name, fontdict={
+                'verticalalignment': 'baseline',
+                'horizontalalignment': 'center'
+            })
       if self.dim == 3:
-        self.plt3D.set_title(self.name, fontdict = {'verticalalignment':'baseline', 'horizontalalignment':'center'})
+        self.plt3D.set_title(
+            self.name, fontdict={
+                'verticalalignment': 'baseline',
+                'horizontalalignment': 'center'
+            })
     for key in self.options.keys():
       if key in ['how', 'plotSettings', 'figureProperties', 'colorbar']:
         pass
       elif key == 'range':
         if self.dim == 2:
           if 'ymin' in self.options[key].keys():
-            plt.ylim(ymin = ast.literal_eval(self.options[key]['ymin']))
+            plt.ylim(ymin=ast.literal_eval(self.options[key]['ymin']))
           if 'ymax' in self.options[key].keys():
-            plt.ylim(ymax = ast.literal_eval(self.options[key]['ymax']))
+            plt.ylim(ymax=ast.literal_eval(self.options[key]['ymax']))
           if 'xmin' in self.options[key].keys():
-            plt.xlim(xmin = ast.literal_eval(self.options[key]['xmin']))
+            plt.xlim(xmin=ast.literal_eval(self.options[key]['xmin']))
           if 'xmax' in self.options[key].keys():
-            plt.xlim(xmax = ast.literal_eval(self.options[key]['xmax']))
+            plt.xlim(xmax=ast.literal_eval(self.options[key]['xmax']))
         elif self.dim == 3:
           if 'xmin' in self.options[key].keys():
-            self.plt3D.set_xlim3d(xmin = ast.literal_eval(self.options[key]['xmin']))
+            self.plt3D.set_xlim3d(xmin=ast.literal_eval(self.options[key]['xmin']))
           if 'xmax' in self.options[key].keys():
-            self.plt3D.set_xlim3d(xmax = ast.literal_eval(self.options[key]['xmax']))
+            self.plt3D.set_xlim3d(xmax=ast.literal_eval(self.options[key]['xmax']))
           if 'ymin' in self.options[key].keys():
-            self.plt3D.set_ylim3d(ymin = ast.literal_eval(self.options[key]['ymin']))
+            self.plt3D.set_ylim3d(ymin=ast.literal_eval(self.options[key]['ymin']))
           if 'ymax' in self.options[key].keys():
-            self.plt3D.set_ylim3d(ymax = ast.literal_eval(self.options[key]['ymax']))
+            self.plt3D.set_ylim3d(ymax=ast.literal_eval(self.options[key]['ymax']))
           if 'zmin' in self.options[key].keys():
-            self.plt3D.set_zlim3d(bottom = ast.literal_eval(self.options[key]['zmin']))
+            self.plt3D.set_zlim3d(bottom=ast.literal_eval(self.options[key]['zmin']))
           if 'zmax' in self.options[key].keys():
-            self.plt3D.set_zlim3d(top = ast.literal_eval(self.options[key]['zmax']))
+            self.plt3D.set_zlim3d(top=ast.literal_eval(self.options[key]['zmax']))
 
       elif key == 'labelFormat':
         if 'style' not in self.options[key].keys():
@@ -502,19 +598,35 @@ class OutStreamPlot(OutStreamManager):
         if 'axis' not in self.options[key].keys():
           self.options[key]['axis'] = 'both'
         if self.dim == 2:
-          plt.ticklabel_format(**{'style':self.options[key]['style'], 'scilimits':ast.literal_eval(self.options[key]['limits']), 'useOffset':ast.literal_eval(self.options[key]['useOffset']), 'axis':self.options[key]['axis']})
+          plt.ticklabel_format(
+              **{
+                  'style': self.options[key]['style'],
+                  'scilimits': ast.literal_eval(self.options[key]['limits']),
+                  'useOffset': ast.literal_eval(self.options[key]['useOffset']),
+                  'axis': self.options[key]['axis']
+              })
         elif self.dim == 3:
-          self.plt3D.ticklabel_format(**{'style':self.options[key]['style'], 'scilimits':ast.literal_eval(self.options[key]['limits']), 'useOffset':ast.literal_eval(self.options[key]['useOffset']), 'axis':self.options[key]['axis']})
+          self.plt3D.ticklabel_format(
+              **{
+                  'style': self.options[key]['style'],
+                  'scilimits': ast.literal_eval(self.options[key]['limits']),
+                  'useOffset': ast.literal_eval(self.options[key]['useOffset']),
+                  'axis': self.options[key]['axis']
+              })
       elif key == 'camera':
         if self.dim == 2:
           self.raiseAWarning('2D plots have not a camera attribute... They are 2D!!!!')
         elif self.dim == 3:
           if 'elevation' in self.options[key].keys() and 'azimuth' in self.options[key].keys():
-            self.plt3D.view_init(elev = float(self.options[key]['elevation']), azim = float(self.options[key]['azimuth']))
-          elif 'elevation' in self.options[key].keys() and 'azimuth' not in self.options[key].keys():
-            self.plt3D.view_init(elev = float(self.options[key]['elevation']), azim = None)
-          elif 'elevation' not in self.options[key].keys() and 'azimuth' in self.options[key].keys():
-            self.plt3D.view_init(elev = None, azim = float(self.options[key]['azimuth']))
+            self.plt3D.view_init(
+                elev=float(self.options[key]['elevation']),
+                azim=float(self.options[key]['azimuth']))
+          elif 'elevation' in self.options[key].keys() and 'azimuth' not in self.options[key].keys(
+          ):
+            self.plt3D.view_init(elev=float(self.options[key]['elevation']), azim=None)
+          elif 'elevation' not in self.options[key].keys() and 'azimuth' in self.options[key].keys(
+          ):
+            self.plt3D.view_init(elev=None, azim=float(self.options[key]['azimuth']))
       elif key == 'title':
         if self.dim == 2:
           plt.title(self.options[key]['text'], **self.options[key].get('attributes', {}))
@@ -523,16 +635,16 @@ class OutStreamPlot(OutStreamManager):
       elif key == 'scale':
         if self.dim == 2:
           if 'xscale' in self.options[key].keys():
-            plt.xscale(self.options[key]['xscale'], nonposy = 'clip')
+            plt.xscale(self.options[key]['xscale'], nonposy='clip')
           if 'yscale' in self.options[key].keys():
-            plt.yscale(self.options[key]['yscale'], nonposy = 'clip')
+            plt.yscale(self.options[key]['yscale'], nonposy='clip')
         elif self.dim == 3:
           if 'xscale' in self.options[key].keys():
-            self.plt3D.set_xscale(self.options[key]['xscale'], nonposy = 'clip')
+            self.plt3D.set_xscale(self.options[key]['xscale'], nonposy='clip')
           if 'yscale' in self.options[key].keys():
-            self.plt3D.set_yscale(self.options[key]['yscale'], nonposy = 'clip')
+            self.plt3D.set_yscale(self.options[key]['yscale'], nonposy='clip')
           if 'zscale' in self.options[key].keys():
-            self.plt3D.set_zscale(self.options[key]['zscale'], nonposy = 'clip')
+            self.plt3D.set_zscale(self.options[key]['zscale'], nonposy='clip')
       elif key == 'addText':
         if 'position' not in self.options[key].keys():
           if self.dim == 2:
@@ -548,11 +660,26 @@ class OutStreamPlot(OutStreamManager):
             tempVar = ast.literal_eval(self.options[key]['fontdict'])
             self.options[key]['fontdict'] = str(tempVar)
           except AttributeError:
-            self.raiseAnError(TypeError, 'In ' + key + ' tag: can not convert the string "' + self.options[key]['fontdict'] + '" to a dictionary! Check syntax for python function ast.literal_eval')
-        if self.dim == 2 :
-          plt.text(float(self.options[key]['position'].split(',')[0]), float(self.options[key]['position'].split(',')[1]), self.options[key]['text'], fontdict = ast.literal_eval(self.options[key]['fontdict']), **self.options[key].get('attributes', {}))
+            self.raiseAnError(
+                TypeError,
+                'In ' + key + ' tag: can not convert the string "' + self.options[key]['fontdict'] +
+                '" to a dictionary! Check syntax for python function ast.literal_eval')
+        if self.dim == 2:
+          plt.text(
+              float(self.options[key]['position'].split(',')[0]),
+              float(self.options[key]['position'].split(',')[1]),
+              self.options[key]['text'],
+              fontdict=ast.literal_eval(self.options[key]['fontdict']),
+              **self.options[key].get('attributes', {}))
         elif self.dim == 3:
-          self.plt3D.text(float(self.options[key]['position'].split(',')[0]), float(self.options[key]['position'].split(',')[1]), float(self.options[key]['position'].split(',')[2]), self.options[key]['text'], fontdict = ast.literal_eval(self.options[key]['fontdict']), withdash = ast.literal_eval(self.options[key]['withdash']), **self.options[key].get('attributes', {}))
+          self.plt3D.text(
+              float(self.options[key]['position'].split(',')[0]),
+              float(self.options[key]['position'].split(',')[1]),
+              float(self.options[key]['position'].split(',')[2]),
+              self.options[key]['text'],
+              fontdict=ast.literal_eval(self.options[key]['fontdict']),
+              withdash=ast.literal_eval(self.options[key]['withdash']),
+              **self.options[key].get('attributes', {}))
       elif key == 'autoscale':
         if 'enable' not in self.options[key].keys():
           self.options[key]['enable'] = 'True'
@@ -566,9 +693,15 @@ class OutStreamPlot(OutStreamManager):
           self.options[key]['tight'] = 'None'
 
         if self.dim == 2:
-          plt.autoscale(enable = ast.literal_eval(self.options[key]['enable']), axis = self.options[key]['axis'], tight = ast.literal_eval(self.options[key]['tight']))
+          plt.autoscale(
+              enable=ast.literal_eval(self.options[key]['enable']),
+              axis=self.options[key]['axis'],
+              tight=ast.literal_eval(self.options[key]['tight']))
         elif self.dim == 3:
-          self.plt3D.autoscale(enable = ast.literal_eval(self.options[key]['enable']), axis = self.options[key]['axis'], tight = ast.literal_eval(self.options[key]['tight']))
+          self.plt3D.autoscale(
+              enable=ast.literal_eval(self.options[key]['enable']),
+              axis=self.options[key]['axis'],
+              tight=ast.literal_eval(self.options[key]['tight']))
       elif key == 'horizontalLine':
         if self.dim == 3:
           self.raiseAWarning('horizontalLine not available in 3-D plots!!')
@@ -581,7 +714,12 @@ class OutStreamPlot(OutStreamManager):
             self.options[key]['xmax'] = '1'
           if 'hold' not in self.options[key].keys():
             self.options[key]['hold'] = 'None'
-          plt.axhline(y = ast.literal_eval(self.options[key]['y']), xmin = ast.literal_eval(self.options[key]['xmin']), xmax = ast.literal_eval(self.options[key]['xmax']), hold = ast.literal_eval(self.options[key]['hold']), **self.options[key].get('attributes', {}))
+          plt.axhline(
+              y=ast.literal_eval(self.options[key]['y']),
+              xmin=ast.literal_eval(self.options[key]['xmin']),
+              xmax=ast.literal_eval(self.options[key]['xmax']),
+              hold=ast.literal_eval(self.options[key]['hold']),
+              **self.options[key].get('attributes', {}))
       elif key == 'verticalLine':
         if self.dim == 3:
           self.raiseAWarning('verticalLine not available in 3-D plots!!')
@@ -594,20 +732,32 @@ class OutStreamPlot(OutStreamManager):
             self.options[key]['ymax'] = '1'
           if 'hold' not in self.options[key].keys():
             self.options[key]['hold'] = 'None'
-          plt.axvline(x = ast.literal_eval(self.options[key]['x']), ymin = ast.literal_eval(self.options[key]['ymin']), ymax = ast.literal_eval(self.options[key]['ymax']), hold = ast.literal_eval(self.options[key]['hold']), **self.options[key].get('attributes', {}))
+          plt.axvline(
+              x=ast.literal_eval(self.options[key]['x']),
+              ymin=ast.literal_eval(self.options[key]['ymin']),
+              ymax=ast.literal_eval(self.options[key]['ymax']),
+              hold=ast.literal_eval(self.options[key]['hold']),
+              **self.options[key].get('attributes', {}))
       elif key == 'horizontalRectangle':
         if self.dim == 3:
           self.raiseAWarning('horizontalRectangle not available in 3-D plots!!')
         elif self.dim == 2:
           if 'ymin' not in self.options[key].keys():
-            self.raiseAnError(IOError, 'ymin parameter is needed for function horizontalRectangle!!')
+            self.raiseAnError(IOError,
+                              'ymin parameter is needed for function horizontalRectangle!!')
           if 'ymax' not in self.options[key].keys():
-            self.raiseAnError(IOError, 'ymax parameter is needed for function horizontalRectangle!!')
+            self.raiseAnError(IOError,
+                              'ymax parameter is needed for function horizontalRectangle!!')
           if 'xmin' not in self.options[key].keys():
             self.options[key]['xmin'] = '0'
           if 'xmax' not in self.options[key].keys():
             self.options[key]['xmax'] = '1'
-          plt.axhspan(ast.literal_eval(self.options[key]['ymin']), ast.literal_eval(self.options[key]['ymax']), xmin = ast.literal_eval(self.options[key]['xmin']), xmax = ast.literal_eval(self.options[key]['xmax']), **self.options[key].get('attributes', {}))
+          plt.axhspan(
+              ast.literal_eval(self.options[key]['ymin']),
+              ast.literal_eval(self.options[key]['ymax']),
+              xmin=ast.literal_eval(self.options[key]['xmin']),
+              xmax=ast.literal_eval(self.options[key]['xmax']),
+              **self.options[key].get('attributes', {}))
       elif key == 'verticalRectangle':
         if self.dim == 3:
           self.raiseAWarning('vertical_rectangle not available in 3-D plots!!')
@@ -620,9 +770,14 @@ class OutStreamPlot(OutStreamManager):
             self.options[key]['ymin'] = '0'
           if 'ymax' not in self.options[key].keys():
             self.options[key]['ymax'] = '1'
-          plt.axvspan(ast.literal_eval(self.options[key]['xmin']), ast.literal_eval(self.options[key]['xmax']), ymin = ast.literal_eval(self.options[key]['ymin']), ymax = ast.literal_eval(self.options[key]['ymax']), **self.options[key].get('attributes', {}))
+          plt.axvspan(
+              ast.literal_eval(self.options[key]['xmin']),
+              ast.literal_eval(self.options[key]['xmax']),
+              ymin=ast.literal_eval(self.options[key]['ymin']),
+              ymax=ast.literal_eval(self.options[key]['ymax']),
+              **self.options[key].get('attributes', {}))
       elif key == 'axesBox':
-        if   self.dim == 3:
+        if self.dim == 3:
           self.raiseAWarning('axesBox not available in 3-D plots!!')
         elif self.dim == 2:
           plt.box(self.options[key][key])
@@ -640,11 +795,17 @@ class OutStreamPlot(OutStreamManager):
         if 'axis' not in self.options[key].keys():
           self.options[key]['axis'] = 'both'
         if self.dim == 2:
-          plt.grid(b = self.options[key]['b'], which = self.options[key]['which'], axis = self.options[key]['axis'], **self.options[key].get('attributes', {}))
+          plt.grid(
+              b=self.options[key]['b'],
+              which=self.options[key]['which'],
+              axis=self.options[key]['axis'],
+              **self.options[key].get('attributes', {}))
         elif self.dim == 3:
-          self.plt3D.grid(b = self.options[key]['b'], **self.options[key].get('attributes', {}))
+          self.plt3D.grid(b=self.options[key]['b'], **self.options[key].get('attributes', {}))
       else:
-        self.raiseAWarning('Try to perform not-predifined action ' + key + '. If it does not work check manual and/or relavite matplotlib method specification.')
+        self.raiseAWarning(
+            'Try to perform not-predifined action ' + key +
+            '. If it does not work check manual and/or relavite matplotlib method specification.')
         kwargs = {}
         for kk in self.options[key]:
           if kk != 'attributes' and kk != key:
@@ -659,7 +820,11 @@ class OutStreamPlot(OutStreamManager):
             customFunctionCall = getattr(self.plt3D, key)
           self.actPlot = customFunctionCall(**kwargs)
         except AttributeError as ae:
-          self.raiseAnError(RuntimeError, '<' + str(ae) + '> -> in execution custom action "' + key + '" in Plot ' + self.name + '.\n ' + self.printTag + ' command has been called in the following way: ' + 'plt.' + key + '(**' + str(kwargs) + ')')
+          self.raiseAnError(
+              RuntimeError,
+              '<' + str(ae) + '> -> in execution custom action "' + key + '" in Plot ' + self.name +
+              '.\n ' + self.printTag + ' command has been called in the following way: ' + 'plt.' +
+              key + '(**' + str(kwargs) + ')')
 
   ####################
   #  PUBLIC METHODS  #
@@ -691,7 +856,7 @@ class OutStreamPlot(OutStreamManager):
       ## execution of raven until this is over, however closing the window can
       ## cause this thing to fail.
       try:
-        self.fig.ginput(n = -1, timeout = -1, show_clicks = False)
+        self.fig.ginput(n=-1, timeout=-1, show_clicks=False)
       except:
         ## I know this is bad, but it is a single line of code outside our
         ## control, if it fails for any reason it should not be a huge deal, we
@@ -717,22 +882,30 @@ class OutStreamPlot(OutStreamManager):
     if 'figureProperties' in self.options.keys():
       key = 'figureProperties'
       if 'figsize' not in self.options[key].keys():
-        self.options[key]['figsize'  ] = None
+        self.options[key]['figsize'] = None
       else:
-        self.options[key]['figsize'  ] = tuple([float(elm) for elm in  ast.literal_eval(self.options[key]['figsize'])])
+        self.options[key]['figsize'] = tuple(
+            [float(elm) for elm in ast.literal_eval(self.options[key]['figsize'])])
       if 'dpi' not in self.options[key].keys():
-        self.options[key]['dpi'      ] = 'None'
+        self.options[key]['dpi'] = 'None'
       if 'facecolor' not in self.options[key].keys():
         self.options[key]['facecolor'] = 'None'
       if 'edgecolor' not in self.options[key].keys():
         self.options[key]['edgecolor'] = 'None'
       if 'frameon' not in self.options[key].keys():
-        self.options[key]['frameon'  ] = 'True'
+        self.options[key]['frameon'] = 'True'
       elif self.options[key]['frameon'].lower() in utils.stringsThatMeanTrue():
         self.options[key]['frameon'] = 'True'
       elif self.options[key]['frameon'].lower() in utils.stringsThatMeanFalse():
         self.options[key]['frameon'] = 'False'
-      self.fig = plt.figure(self.name, figsize = self.options[key]['figsize'], dpi = ast.literal_eval(self.options[key]['dpi']), facecolor = self.options[key]['facecolor'], edgecolor = self.options[key]['edgecolor'], frameon = ast.literal_eval(self.options[key]['frameon']), **self.options[key].get('attributes', {}))
+      self.fig = plt.figure(
+          self.name,
+          figsize=self.options[key]['figsize'],
+          dpi=ast.literal_eval(self.options[key]['dpi']),
+          facecolor=self.options[key]['facecolor'],
+          edgecolor=self.options[key]['edgecolor'],
+          frameon=ast.literal_eval(self.options[key]['frameon']),
+          **self.options[key].get('attributes', {}))
     else:
       self.fig = plt.figure(self.name)
 
@@ -740,7 +913,7 @@ class OutStreamPlot(OutStreamManager):
       self.fig.show()
 
     if self.dim == 3:
-      self.plt3D = self.fig.add_subplot(111, projection = '3d')
+      self.plt3D = self.fig.add_subplot(111, projection='3d')
 
     for pltIndex in range(len(self.options['plotSettings']['plot'])):
       self.colorMapCoordinates[pltIndex] = None
@@ -760,28 +933,46 @@ class OutStreamPlot(OutStreamManager):
       # if 'colorMap' in self.options['plotSettings']['plot'][pltIndex].keys(): self.colorMapCoordinates = {}
     for pltIndex in range(len(self.options['plotSettings']['plot'])):
       self.xCoordinates.append(self.options['plotSettings']['plot'][pltIndex]['x'].split(','))
-      self.sourceName.append(self.xCoordinates [pltIndex][0].split('|')[0].strip())
+      self.sourceName.append(self.xCoordinates[pltIndex][0].split('|')[0].strip())
       if 'y' in self.options['plotSettings']['plot'][pltIndex].keys():
-        self.yCoordinates .append(self.options['plotSettings']['plot'][pltIndex]['y'].split(','))
-        if self.yCoordinates [pltIndex][0].split('|')[0] != self.sourceName[pltIndex]:
-          self.raiseAnError(IOError, 'Every plot can be linked to one Data only. x_cord source is ' + self.sourceName[pltIndex] + '. Got y_cord source is' + self.yCoordinates [pltIndex][0].split('|')[0])
+        self.yCoordinates.append(self.options['plotSettings']['plot'][pltIndex]['y'].split(','))
+        if self.yCoordinates[pltIndex][0].split('|')[0] != self.sourceName[pltIndex]:
+          self.raiseAnError(IOError,
+                            'Every plot can be linked to one Data only. x_cord source is ' +
+                            self.sourceName[pltIndex] + '. Got y_cord source is' +
+                            self.yCoordinates[pltIndex][0].split('|')[0])
       if 'z' in self.options['plotSettings']['plot'][pltIndex].keys():
-        self.zCoordinates .append(self.options['plotSettings']['plot'][pltIndex]['z'].split(','))
-        if self.zCoordinates [pltIndex][0].split('|')[0] != self.sourceName[pltIndex]:
-          self.raiseAnError(IOError, 'Every plot can be linked to one Data only. x_cord source is ' + self.sourceName[pltIndex] + '. Got z_cord source is' + self.zCoordinates [pltIndex][0].split('|')[0])
+        self.zCoordinates.append(self.options['plotSettings']['plot'][pltIndex]['z'].split(','))
+        if self.zCoordinates[pltIndex][0].split('|')[0] != self.sourceName[pltIndex]:
+          self.raiseAnError(IOError,
+                            'Every plot can be linked to one Data only. x_cord source is ' +
+                            self.sourceName[pltIndex] + '. Got z_cord source is' +
+                            self.zCoordinates[pltIndex][0].split('|')[0])
       if 'clusterLabels' in self.options['plotSettings']['plot'][pltIndex].keys():
-        self.clusterLabels .append(self.options['plotSettings']['plot'][pltIndex]['clusterLabels'].split(','))
-        if self.clusterLabels [pltIndex][0].split('|')[0] != self.sourceName[pltIndex]:
-          self.raiseAnError(IOError, 'Every plot can be linked to one Data only. x_cord source is ' + self.sourceName[pltIndex] + '. Got clusterLabels source is' + self.clusterLabels [pltIndex][0].split('|')[0])
+        self.clusterLabels.append(
+            self.options['plotSettings']['plot'][pltIndex]['clusterLabels'].split(','))
+        if self.clusterLabels[pltIndex][0].split('|')[0] != self.sourceName[pltIndex]:
+          self.raiseAnError(IOError,
+                            'Every plot can be linked to one Data only. x_cord source is ' +
+                            self.sourceName[pltIndex] + '. Got clusterLabels source is' +
+                            self.clusterLabels[pltIndex][0].split('|')[0])
       if 'mixtureLabels' in self.options['plotSettings']['plot'][pltIndex].keys():
-        self.mixtureLabels .append(self.options['plotSettings']['plot'][pltIndex]['mixtureLabels'].split(','))
-        if self.mixtureLabels [pltIndex][0].split('|')[0] != self.sourceName[pltIndex]:
-          self.raiseAnError(IOError, 'Every plot can be linked to one Data only. x_cord source is ' + self.sourceName[pltIndex] + '. Got mixtureLabels source is' + self.mixtureLabels [pltIndex][0].split('|')[0])
+        self.mixtureLabels.append(
+            self.options['plotSettings']['plot'][pltIndex]['mixtureLabels'].split(','))
+        if self.mixtureLabels[pltIndex][0].split('|')[0] != self.sourceName[pltIndex]:
+          self.raiseAnError(IOError,
+                            'Every plot can be linked to one Data only. x_cord source is ' +
+                            self.sourceName[pltIndex] + '. Got mixtureLabels source is' +
+                            self.mixtureLabels[pltIndex][0].split('|')[0])
       if 'colorMap' in self.options['plotSettings']['plot'][pltIndex].keys():
-        self.colorMapCoordinates[pltIndex] = self.options['plotSettings']['plot'][pltIndex]['colorMap'].split(',')
+        self.colorMapCoordinates[pltIndex] = self.options['plotSettings']['plot'][pltIndex][
+            'colorMap'].split(',')
         # self.colorMapCoordinates.append(self.options['plotSettings']['plot'][pltIndex]['colorMap'].split(','))
         if self.colorMapCoordinates[pltIndex][0].split('|')[0] != self.sourceName[pltIndex]:
-          self.raiseAnError(IOError, 'Every plot can be linked to one Data only. x_cord source is ' + self.sourceName[pltIndex] + '. Got colorMap_coordinates source is' + self.colorMapCoordinates[pltIndex][0].split('|')[0])
+          self.raiseAnError(IOError,
+                            'Every plot can be linked to one Data only. x_cord source is ' +
+                            self.sourceName[pltIndex] + '. Got colorMap_coordinates source is' +
+                            self.colorMapCoordinates[pltIndex][0].split('|')[0])
       for pltIndex in range(len(self.options['plotSettings']['plot'])):
         if 'interpPointsY' not in self.options['plotSettings']['plot'][pltIndex].keys():
           self.options['plotSettings']['plot'][pltIndex]['interpPointsY'] = '20'
@@ -789,8 +980,11 @@ class OutStreamPlot(OutStreamManager):
           self.options['plotSettings']['plot'][pltIndex]['interpPointsX'] = '20'
         if 'interpolationType' not in self.options['plotSettings']['plot'][pltIndex].keys():
           self.options['plotSettings']['plot'][pltIndex]['interpolationType'] = 'linear'
-        elif self.options['plotSettings']['plot'][pltIndex]['interpolationType'] not in self.availableInterpolators:
-          self.raiseAnError(IOError, 'surface interpolation unknown. Available are :' + str(self.availableInterpolators))
+        elif self.options['plotSettings']['plot'][pltIndex][
+            'interpolationType'] not in self.availableInterpolators:
+          self.raiseAnError(
+              IOError,
+              'surface interpolation unknown. Available are :' + str(self.availableInterpolators))
         if 'epsilon' not in self.options['plotSettings']['plot'][pltIndex].keys():
           self.options['plotSettings']['plot'][pltIndex]['epsilon'] = '2'
         if 'smooth' not in self.options['plotSettings']['plot'][pltIndex].keys():
@@ -798,17 +992,23 @@ class OutStreamPlot(OutStreamManager):
         if 'cmap' not in self.options['plotSettings']['plot'][pltIndex].keys():
           self.options['plotSettings']['plot'][pltIndex]['cmap'] = 'None'
         #    else:             self.options['plotSettings']['plot'][pltIndex]['cmap'] = 'jet'
-        elif self.options['plotSettings']['plot'][pltIndex]['cmap'] is not 'None' and self.options['plotSettings']['plot'][pltIndex]['cmap'] not in matplotlib.cm.datad.keys():
-          raise('ERROR. The colorMap you specified does not exist... Available are ' + str(matplotlib.cm.datad.keys()))
+        elif self.options['plotSettings']['plot'][pltIndex]['cmap'] is not 'None' and self.options['plotSettings']['plot'][pltIndex]['cmap'] not in matplotlib.cm.datad.keys(
+        ):
+          raise ('ERROR. The colorMap you specified does not exist... Available are ' +
+                 str(matplotlib.cm.datad.keys()))
         if 'interpolationTypeBackUp' not in self.options['plotSettings']['plot'][pltIndex].keys():
           self.options['plotSettings']['plot'][pltIndex]['interpolationTypeBackUp'] = 'nearest'
-        elif self.options['plotSettings']['plot'][pltIndex]['interpolationTypeBackUp'] not in self.availableInterpolators:
-          self.raiseAnError(IOError, 'surface interpolation (BackUp) unknown. Available are :' + str(self.availableInterpolators))
+        elif self.options['plotSettings']['plot'][pltIndex][
+            'interpolationTypeBackUp'] not in self.availableInterpolators:
+          self.raiseAnError(IOError, 'surface interpolation (BackUp) unknown. Available are :' +
+                            str(self.availableInterpolators))
       if 'attributes' in self.options['plotSettings']['plot'][pltIndex].keys():
         if 'mixtureMeans' in self.options['plotSettings']['plot'][pltIndex]['attributes'].keys():
-          self.mixtureMeans.append(self.options['plotSettings']['plot'][pltIndex]['attributes']['mixtureMeans'].split(','))
+          self.mixtureMeans.append(self.options['plotSettings']['plot'][pltIndex]['attributes'][
+              'mixtureMeans'].split(','))
         if 'mixtureCovars' in self.options['plotSettings']['plot'][pltIndex]['attributes'].keys():
-          self.mixtureCovars.append(self.options['plotSettings']['plot'][pltIndex]['attributes']['mixtureCovars'].split(','))
+          self.mixtureCovars.append(self.options['plotSettings']['plot'][pltIndex]['attributes'][
+              'mixtureCovars'].split(','))
     self.numberAggregatedOS = len(self.options['plotSettings']['plot'])
     # initialize here the base class
     OutStreamManager.initialize(self, inDict)
@@ -823,7 +1023,9 @@ class OutStreamPlot(OutStreamManager):
       @ Out, None
     """
     if 'dim' in xmlNode.attrib.keys():
-      self.raiseAnError(IOError,"the 'dim' attribute has been deprecated. This warning became an error in January 2017")
+      self.raiseAnError(
+          IOError,
+          "the 'dim' attribute has been deprecated. This warning became an error in January 2017")
     foundPlot = False
     for subnode in xmlNode:
       # if actions, read actions block
@@ -860,15 +1062,16 @@ class OutStreamPlot(OutStreamManager):
           elif subsub.tag == 'legend':
             self.options[subnode.tag][subsub.tag] = {}
             for legendChild in subsub:
-              self.options[subnode.tag][subsub.tag][legendChild.tag] = utils.tryParse(legendChild.text.strip())
+              self.options[subnode.tag][subsub.tag][legendChild.tag] = utils.tryParse(
+                  legendChild.text.strip())
           else:
             self.options[subnode.tag][subsub.tag] = subsub.text.strip()
       if subnode.tag in 'title':
         self.options[subnode.tag] = {}
         for subsub in subnode:
           self.options[subnode.tag][subsub.tag] = subsub.text.strip()
-        if 'text'     not in self.options[subnode.tag].keys():
-          self.options[subnode.tag]['text'    ] = xmlNode.attrib['name']
+        if 'text' not in self.options[subnode.tag].keys():
+          self.options[subnode.tag]['text'] = xmlNode.attrib['name']
         if 'location' not in self.options[subnode.tag].keys():
           self.options[subnode.tag]['location'] = 'center'
       ## is this 'figureProperties' valid?
@@ -879,31 +1082,42 @@ class OutStreamPlot(OutStreamManager):
     self.type = 'OutStreamPlot'
 
     if not 'plotSettings' in self.options.keys():
-      self.raiseAnError(IOError, 'For plot named ' + self.name + ' the plotSettings block is required.')
+      self.raiseAnError(IOError,
+                        'For plot named ' + self.name + ' the plotSettings block is required.')
 
     if not foundPlot:
-      self.raiseAnError(IOError, 'For plot named' + self.name + ', No plot section has been found in the plotSettings block!')
+      self.raiseAnError(IOError, 'For plot named' + self.name +
+                        ', No plot section has been found in the plotSettings block!')
 
     self.outStreamTypes = []
-    xyz, xy             = sorted(['x','y','z']), sorted(['x','y'])
+    xyz, xy = sorted(['x', 'y', 'z']), sorted(['x', 'y'])
     for pltIndex in range(len(self.options['plotSettings']['plot'])):
       if not 'type' in self.options['plotSettings']['plot'][pltIndex].keys():
-        self.raiseAnError(IOError, 'For plot named' + self.name + ', No plot type keyword has been found in the plotSettings/plot block!')
+        self.raiseAnError(IOError, 'For plot named' + self.name +
+                          ', No plot type keyword has been found in the plotSettings/plot block!')
       else:
         # check the dimension and check the consistency
         if set(xyz) < set(self.options['plotSettings']['plot'][pltIndex].keys()):
           dim = 3
         elif set(xy) < set(self.options['plotSettings']['plot'][pltIndex].keys()):
           dim = 2 if self.options['plotSettings']['plot'][pltIndex]['type'] != 'histogram' else 3
-        elif set(['x']) < set(self.options['plotSettings']['plot'][pltIndex].keys()) and self.options['plotSettings']['plot'][pltIndex]['type'] == 'histogram':
+        elif set(['x']) < set(self.options['plotSettings']['plot'][pltIndex].keys(
+        )) and self.options['plotSettings']['plot'][pltIndex]['type'] == 'histogram':
           dim = 2
         else:
-          self.raiseAnError(IOError, 'Wrong dimensionality or axis specification for plot '+self.name+'.')
+          self.raiseAnError(
+              IOError, 'Wrong dimensionality or axis specification for plot ' + self.name + '.')
         if self.dim is not None and self.dim != dim:
-          self.raiseAnError(IOError, 'The OutStream Plot '+self.name+' combines 2D and 3D plots. This is not supported!')
+          self.raiseAnError(IOError, 'The OutStream Plot ' + self.name +
+                            ' combines 2D and 3D plots. This is not supported!')
         self.dim = dim
-        if self.availableOutStreamTypes[self.dim].count(self.options['plotSettings']['plot'][pltIndex]['type']) == 0:
-          self.raiseAMessage('For plot named' + self.name + ', type ' + self.options['plotSettings']['plot'][pltIndex]['type'] + ' is not among pre-defined plots! \n The OutstreamSystem will try to construct a call on the fly!', 'ExceptedError')
+        if self.availableOutStreamTypes[self.dim].count(
+            self.options['plotSettings']['plot'][pltIndex]['type']) == 0:
+          self.raiseAMessage(
+              'For plot named' + self.name + ', type ' +
+              self.options['plotSettings']['plot'][pltIndex]['type'] +
+              ' is not among pre-defined plots! \n The OutstreamSystem will try to construct a call on the fly!',
+              'ExceptedError')
         self.outStreamTypes.append(self.options['plotSettings']['plot'][pltIndex]['type'])
     self.raiseADebug('matplotlib version is ' + str(matplotlib.__version__))
 
@@ -941,96 +1155,109 @@ class OutStreamPlot(OutStreamManager):
       if 'gridLocation' in plotSettings.keys():
         x = None
         y = None
-        if 'x' in  plotSettings['gridLocation'].keys():
+        if 'x' in plotSettings['gridLocation'].keys():
           x = map(int, plotSettings['gridLocation']['x'].strip().split(' '))
         else:
           x = None
-        if 'y' in  plotSettings['gridLocation'].keys():
+        if 'y' in plotSettings['gridLocation'].keys():
           y = map(int, plotSettings['gridLocation']['y'].strip().split(' '))
         else:
           y = None
-        if   (len(x) == 1 and len(y) == 1):
+        if (len(x) == 1 and len(y) == 1):
           if self.dim == 2:
             plt.subplot(self.gridSpace[x[0], y[0]])
           else:
-            self.plt3D = plt.subplot(self.gridSpace[x[0], y[0]], projection = '3d')
+            self.plt3D = plt.subplot(self.gridSpace[x[0], y[0]], projection='3d')
         elif (len(x) == 1 and len(y) != 1):
           if self.dim == 2:
             plt.subplot(self.gridSpace[x[0], y[0]:y[-1]])
           else:
-            self.plt3D = plt.subplot(self.gridSpace[x[0], y[0]:y[-1]], projection = '3d')
+            self.plt3D = plt.subplot(self.gridSpace[x[0], y[0]:y[-1]], projection='3d')
         elif (len(x) != 1 and len(y) == 1):
           if self.dim == 2:
             plt.subplot(self.gridSpace[x[0]:x[-1], y[0]])
           else:
-            self.plt3D = plt.subplot(self.gridSpace[x[0]:x[-1], y[0]], projection = '3d')
+            self.plt3D = plt.subplot(self.gridSpace[x[0]:x[-1], y[0]], projection='3d')
         else:
           if self.dim == 2:
             plt.subplot(self.gridSpace[x[0]:x[-1], y[0]:y[-1]])
           else:
-            self.plt3D = plt.subplot(self.gridSpace[x[0]:x[-1], y[0]:y[-1]], projection = '3d')
+            self.plt3D = plt.subplot(self.gridSpace[x[0]:x[-1], y[0]:y[-1]], projection='3d')
       elif self.dim == 3:
         self.plt3D = plt.subplot(111, projection='3d')
       # If the number of plots to be shown in this figure > 1, hold the old ones (They are going to be shown together... because unity is much better than separation)
       if len(self.outStreamTypes) > 1:
         plt.hold(True)
       if 'gridSpace' in self.options['plotSettings'].keys():
-        plt.locator_params(axis = 'y', nbins = 4)
-        plt.ticklabel_format(**{'style':'sci', 'scilimits':(0, 1), 'useOffset':False, 'axis':'both'})
-        plt.locator_params(axis = 'x', nbins = 2)
-        plt.ticklabel_format(**{'style':'sci', 'scilimits':(0, 1), 'useOffset':False, 'axis':'both'})
+        plt.locator_params(axis='y', nbins=4)
+        plt.ticklabel_format(**{
+            'style': 'sci',
+            'scilimits': (0, 1),
+            'useOffset': False,
+            'axis': 'both'
+        })
+        plt.locator_params(axis='x', nbins=2)
+        plt.ticklabel_format(**{
+            'style': 'sci',
+            'scilimits': (0, 1),
+            'useOffset': False,
+            'axis': 'both'
+        })
         if 'range' in plotSettings.keys():
           axes_range = plotSettings['range']
           if self.dim == 2:
             if 'ymin' in axes_range.keys():
-              plt.ylim(ymin = ast.literal_eval(axes_range['ymin']))
+              plt.ylim(ymin=ast.literal_eval(axes_range['ymin']))
             if 'ymax' in axes_range.keys():
-              plt.ylim(ymax = ast.literal_eval(axes_range['ymax']))
+              plt.ylim(ymax=ast.literal_eval(axes_range['ymax']))
             if 'xmin' in axes_range.keys():
-              plt.xlim(xmin = ast.literal_eval(axes_range['xmin']))
+              plt.xlim(xmin=ast.literal_eval(axes_range['xmin']))
             if 'xmax' in axes_range.keys():
-              plt.xlim(xmax = ast.literal_eval(axes_range['xmax']))
+              plt.xlim(xmax=ast.literal_eval(axes_range['xmax']))
           elif self.dim == 3:
             if 'xmin' in axes_range.keys():
-              self.plt3D.set_xlim3d(xmin = ast.literal_eval(axes_range['xmin']))
+              self.plt3D.set_xlim3d(xmin=ast.literal_eval(axes_range['xmin']))
             if 'xmax' in axes_range.keys():
-              self.plt3D.set_xlim3d(xmax = ast.literal_eval(axes_range['xmax']))
+              self.plt3D.set_xlim3d(xmax=ast.literal_eval(axes_range['xmax']))
             if 'ymin' in axes_range.keys():
-              self.plt3D.set_ylim3d(ymin = ast.literal_eval(axes_range['ymin']))
+              self.plt3D.set_ylim3d(ymin=ast.literal_eval(axes_range['ymin']))
             if 'ymax' in axes_range.keys():
-              self.plt3D.set_ylim3d(ymax = ast.literal_eval(axes_range['ymax']))
+              self.plt3D.set_ylim3d(ymax=ast.literal_eval(axes_range['ymax']))
             if 'zmin' in axes_range.options['plotSettings']['plot'][pltIndex].keys():
               if 'zmax' not in axes_range.options['plotSettings'].keys():
                 self.raiseAWarning('zmin inputted but not zmax. zmin ignored! ')
               else:
-                self.plt3D.set_zlim(ast.literal_eval(axes_range['zmin']), ast.literal_eval(self.options['plotSettings']['zmax']))
+                self.plt3D.set_zlim(
+                    ast.literal_eval(axes_range['zmin']),
+                    ast.literal_eval(self.options['plotSettings']['zmax']))
             if 'zmax' in axes_range.keys():
               if 'zmin' not in axes_range.keys():
                 self.raiseAWarning('zmax inputted but not zmin. zmax ignored! ')
               else:
-                self.plt3D.set_zlim(ast.literal_eval(axes_range['zmin']), ast.literal_eval(axes_range['zmax']))
+                self.plt3D.set_zlim(
+                    ast.literal_eval(axes_range['zmin']), ast.literal_eval(axes_range['zmax']))
         if 'xlabel' not in plotSettings.keys():
-          if   self.dim == 2:
+          if self.dim == 2:
             plt.xlabel('x')
           elif self.dim == 3:
             self.plt3D.set_xlabel('x')
         else:
-          if   self.dim == 2:
+          if self.dim == 2:
             plt.xlabel(plotSettings['xlabel'])
           elif self.dim == 3:
             self.plt3D.set_xlabel(plotSettings['xlabel'])
         if 'ylabel' not in plotSettings.keys():
-          if   self.dim == 2:
+          if self.dim == 2:
             plt.ylabel('y')
           elif self.dim == 3:
             self.plt3D.set_ylabel('y')
         else:
-          if   self.dim == 2:
+          if self.dim == 2:
             plt.ylabel(plotSettings['ylabel'])
           elif self.dim == 3:
             self.plt3D.set_ylabel(plotSettings['ylabel'])
         if 'zlabel' in plotSettings.keys():
-          if   self.dim == 2:
+          if self.dim == 2:
             self.raiseAWarning('zlabel keyword does not make sense in 2-D Plots!')
           elif self.dim == 3 and self.zCoordinates:
             self.plt3D.set_zlabel(plotSettings['zlabel'])
@@ -1038,27 +1265,27 @@ class OutStreamPlot(OutStreamManager):
           self.plt3D.set_zlabel('z')
       else:
         if 'xlabel' not in self.options['plotSettings'].keys():
-          if   self.dim == 2:
+          if self.dim == 2:
             plt.xlabel('x')
           elif self.dim == 3:
             self.plt3D.set_xlabel('x')
         else:
-          if   self.dim == 2:
+          if self.dim == 2:
             plt.xlabel(self.options['plotSettings']['xlabel'])
           elif self.dim == 3:
             self.plt3D.set_xlabel(self.options['plotSettings']['xlabel'])
         if 'ylabel' not in self.options['plotSettings'].keys():
-          if   self.dim == 2:
+          if self.dim == 2:
             plt.ylabel('y')
           elif self.dim == 3:
             self.plt3D.set_ylabel('y')
         else:
-          if   self.dim == 2:
+          if self.dim == 2:
             plt.ylabel(self.options['plotSettings']['ylabel'])
           elif self.dim == 3:
             self.plt3D.set_ylabel(self.options['plotSettings']['ylabel'])
         if 'zlabel' in self.options['plotSettings'].keys():
-          if   self.dim == 2:
+          if self.dim == 2:
             self.raiseAWarning('zlabel keyword does not make sense in 2-D Plots!')
           elif self.dim == 3 and self.zCoordinates:
             self.plt3D.set_zlabel(self.options['plotSettings']['zlabel'])
@@ -1093,16 +1320,18 @@ class OutStreamPlot(OutStreamManager):
           vmin = np.amin(self.colorMapValues[pltIndex][firstKey])
           vmax = np.amax(self.colorMapValues[pltIndex][firstKey])
           for key in self.xValues[pltIndex].keys():
-            vmin = min(vmin,np.amin(self.colorMapValues[pltIndex][key]))
-            vmax = max(vmax,np.amax(self.colorMapValues[pltIndex][key]))
-          plotSettings['norm'] = matplotlib.colors.Normalize(vmin,vmax)
+            vmin = min(vmin, np.amin(self.colorMapValues[pltIndex][key]))
+            vmax = max(vmax, np.amax(self.colorMapValues[pltIndex][key]))
+          plotSettings['norm'] = matplotlib.colors.Normalize(vmin, vmax)
         for key in self.xValues[pltIndex].keys():
           for xIndex in range(len(self.xValues[pltIndex][key])):
             for yIndex in range(len(self.yValues[pltIndex][key])):
-              scatterPlotOptions = {'s':ast.literal_eval(plotSettings['s']),
-                                    'marker':(plotSettings['marker']),
-                                    'alpha':ast.literal_eval(plotSettings['alpha']),
-                                    'linewidths':ast.literal_eval(plotSettings['linewidths'])}
+              scatterPlotOptions = {
+                  's': ast.literal_eval(plotSettings['s']),
+                  'marker': (plotSettings['marker']),
+                  'alpha': ast.literal_eval(plotSettings['alpha']),
+                  'linewidths': ast.literal_eval(plotSettings['linewidths'])
+              }
               if self.colorMapCoordinates[pltIndex] != None:
                 scatterPlotOptions['norm'] = plotSettings['norm']
               scatterPlotOptions.update(plotSettings.get('attributes', {}))
@@ -1116,38 +1345,54 @@ class OutStreamPlot(OutStreamManager):
                     first = True
                   if plotSettings['cmap'] == 'None':
                     #if plotSettings['cmap'] == 'None': plotSettings['cmap'] = 'winter'
-                    self.actPlot = plt.scatter(self.xValues[pltIndex][key][xIndex], self.yValues[pltIndex][key][yIndex], **scatterPlotOptions)
-                    if 'colorbar' not in self.options.keys() or self.options['colorbar']['colorbar'] != 'off':
+                    self.actPlot = plt.scatter(self.xValues[pltIndex][key][xIndex],
+                                               self.yValues[pltIndex][key][yIndex],
+                                               **scatterPlotOptions)
+                    if 'colorbar' not in self.options.keys(
+                    ) or self.options['colorbar']['colorbar'] != 'off':
                       if first:
-                        m = matplotlib.cm.ScalarMappable(cmap = self.actPlot.cmap, norm = self.actPlot.norm)
+                        m = matplotlib.cm.ScalarMappable(
+                            cmap=self.actPlot.cmap, norm=self.actPlot.norm)
                         m.set_array(self.colorMapValues[pltIndex][key])
                         self.actcm = self.fig.colorbar(m)
-                        self.actcm.set_label(self.colorMapCoordinates[pltIndex][0].split('|')[-1].replace(')', ''))
+                        self.actcm.set_label(
+                            self.colorMapCoordinates[pltIndex][0].split('|')[-1].replace(')', ''))
                       else:
                         #self.actcm.set_clim(vmin = min(self.colorMapValues[pltIndex][key][-1]), vmax = max(self.colorMapValues[pltIndex][key][-1]))
                         try:
                           self.actcm.draw_all()
                         except:
-                          m = matplotlib.cm.ScalarMappable(cmap = self.actPlot.cmap, norm = self.actPlot.norm)
+                          m = matplotlib.cm.ScalarMappable(
+                              cmap=self.actPlot.cmap, norm=self.actPlot.norm)
                           m.set_array(self.colorMapValues[pltIndex][key])
                           self.actcm = self.fig.colorbar(m)
-                          self.actcm.set_label(self.colorMapCoordinates[pltIndex][0].split('|')[-1].replace(')', ''))
+                          self.actcm.set_label(
+                              self.colorMapCoordinates[pltIndex][0].split('|')[-1].replace(')', ''))
                   else:
                     scatterPlotOptions['cmap'] = plotSettings['cmap']
-                    self.actPlot = plt.scatter(self.xValues[pltIndex][key][xIndex], self.yValues[pltIndex][key][yIndex], **scatterPlotOptions)
-                    if 'colorbar' not in self.options.keys() or self.options['colorbar']['colorbar'] != 'off':
+                    self.actPlot = plt.scatter(self.xValues[pltIndex][key][xIndex],
+                                               self.yValues[pltIndex][key][yIndex],
+                                               **scatterPlotOptions)
+                    if 'colorbar' not in self.options.keys(
+                    ) or self.options['colorbar']['colorbar'] != 'off':
                       if first:
-                        m = matplotlib.cm.ScalarMappable(cmap = self.actPlot.cmap, norm = self.actPlot.norm)
+                        m = matplotlib.cm.ScalarMappable(
+                            cmap=self.actPlot.cmap, norm=self.actPlot.norm)
                         m.set_array(self.colorMapValues[pltIndex][key])
                         self.actcm = self.fig.colorbar(m)
-                        self.actcm.set_label(self.colorMapCoordinates[pltIndex][0].split('|')[-1].replace(')', ''))
+                        self.actcm.set_label(
+                            self.colorMapCoordinates[pltIndex][0].split('|')[-1].replace(')', ''))
                       else:
-                        self.actcm.set_clim(vmin = min(self.colorMapValues[pltIndex][key][-1]), vmax = max(self.colorMapValues[pltIndex][key][-1]))
+                        self.actcm.set_clim(
+                            vmin=min(self.colorMapValues[pltIndex][key][-1]),
+                            vmax=max(self.colorMapValues[pltIndex][key][-1]))
                         self.actcm.draw_all()
                 else:
                   if 'color' not in scatterPlotOptions:
                     scatterPlotOptions['c'] = plotSettings['c']
-                  self.actPlot = plt.scatter(self.xValues[pltIndex][key][xIndex], self.yValues[pltIndex][key][yIndex], **scatterPlotOptions)
+                  self.actPlot = plt.scatter(self.xValues[pltIndex][key][xIndex],
+                                             self.yValues[pltIndex][key][yIndex],
+                                             **scatterPlotOptions)
               elif self.dim == 3:
                 for zIndex in range(len(self.zValues[pltIndex][key])):
                   if self.colorMapCoordinates[pltIndex] != None:
@@ -1157,32 +1402,46 @@ class OutStreamPlot(OutStreamManager):
                     else:
                       first = True
                     if plotSettings['cmap'] == 'None':
-                      self.actPlot = self.plt3D.scatter(self.xValues[pltIndex][key][xIndex], self.yValues[pltIndex][key][yIndex], self.zValues[pltIndex][key][zIndex], **scatterPlotOptions)
-                      if 'colorbar' not in self.options.keys() or self.options['colorbar']['colorbar'] != 'off':
+                      self.actPlot = self.plt3D.scatter(
+                          self.xValues[pltIndex][key][xIndex], self.yValues[pltIndex][key][yIndex],
+                          self.zValues[pltIndex][key][zIndex], **scatterPlotOptions)
+                      if 'colorbar' not in self.options.keys(
+                      ) or self.options['colorbar']['colorbar'] != 'off':
                         if first:
-                          m = matplotlib.cm.ScalarMappable(cmap = self.actPlot.cmap, norm = self.actPlot.norm)
+                          m = matplotlib.cm.ScalarMappable(
+                              cmap=self.actPlot.cmap, norm=self.actPlot.norm)
                           m.set_array(self.colorMapValues[pltIndex][key])
                           self.actcm = self.fig.colorbar(m)
-                          self.actcm.set_label(self.colorMapCoordinates[pltIndex][0].split('|')[-1].replace(')', ''))
+                          self.actcm.set_label(
+                              self.colorMapCoordinates[pltIndex][0].split('|')[-1].replace(')', ''))
                         else:
                           #self.actcm.set_clim(vmin = min(self.colorMapValues[pltIndex][key][-1]), vmax = max(self.colorMapValues[pltIndex][key][-1]))
                           self.actcm.draw_all()
                     else:
                       scatterPlotOptions['cmap'] = plotSettings['cmap']
-                      self.actPlot = self.plt3D.scatter(self.xValues[pltIndex][key][xIndex], self.yValues[pltIndex][key][yIndex], self.zValues[pltIndex][key][zIndex], **scatterPlotOptions)
-                      if 'colorbar' not in self.options.keys() or self.options['colorbar']['colorbar'] != 'off':
+                      self.actPlot = self.plt3D.scatter(
+                          self.xValues[pltIndex][key][xIndex], self.yValues[pltIndex][key][yIndex],
+                          self.zValues[pltIndex][key][zIndex], **scatterPlotOptions)
+                      if 'colorbar' not in self.options.keys(
+                      ) or self.options['colorbar']['colorbar'] != 'off':
                         if first:
-                          m = matplotlib.cm.ScalarMappable(cmap = self.actPlot.cmap, norm = self.actPlot.norm)
+                          m = matplotlib.cm.ScalarMappable(
+                              cmap=self.actPlot.cmap, norm=self.actPlot.norm)
                           m.set_array(self.colorMapValues[pltIndex][key])
                           self.actcm = self.fig.colorbar(m)
-                          self.actcm.set_label(self.colorMapCoordinates[pltIndex][0].split('|')[-1].replace(')', ''))
+                          self.actcm.set_label(
+                              self.colorMapCoordinates[pltIndex][0].split('|')[-1].replace(')', ''))
                         else:
-                          self.actcm.set_clim(vmin = min(self.colorMapValues[pltIndex][key][-1]), vmax = max(self.colorMapValues[pltIndex][key][-1]))
+                          self.actcm.set_clim(
+                              vmin=min(self.colorMapValues[pltIndex][key][-1]),
+                              vmax=max(self.colorMapValues[pltIndex][key][-1]))
                           self.actcm.draw_all()
                   else:
                     if 'color' not in scatterPlotOptions:
                       scatterPlotOptions['c'] = plotSettings['c']
-                    self.actPlot = self.plt3D.scatter(self.xValues[pltIndex][key][xIndex], self.yValues[pltIndex][key][yIndex], self.zValues[pltIndex][key][zIndex], **scatterPlotOptions)
+                    self.actPlot = self.plt3D.scatter(
+                        self.xValues[pltIndex][key][xIndex], self.yValues[pltIndex][key][yIndex],
+                        self.zValues[pltIndex][key][zIndex], **scatterPlotOptions)
 
       #################
       #   LINE PLOT   #
@@ -1195,25 +1454,36 @@ class OutStreamPlot(OutStreamManager):
           plotSettings['cmap'] = None
         if bool(self.colorMapValues):
           for key in self.xValues[pltIndex].keys():
-            minV = min(minV,self.colorMapValues[pltIndex][key][-1][-1])
-            maxV = max(maxV,self.colorMapValues[pltIndex][key][-1][-1])
-          cmap = matplotlib.cm.ScalarMappable(matplotlib.colors.Normalize(minV,maxV,True), plotSettings['cmap'])
-          cmap.set_array([minV,maxV])
+            minV = min(minV, self.colorMapValues[pltIndex][key][-1][-1])
+            maxV = max(maxV, self.colorMapValues[pltIndex][key][-1][-1])
+          cmap = matplotlib.cm.ScalarMappable(
+              matplotlib.colors.Normalize(minV, maxV, True), plotSettings['cmap'])
+          cmap.set_array([minV, maxV])
         for key in self.xValues[pltIndex].keys():
           for xIndex in range(len(self.xValues[pltIndex][key])):
             if self.colorMapCoordinates[pltIndex] != None:
-              plotSettings['interpPointsX'] = str(max(200, len(self.xValues[pltIndex][key][xIndex])))
+              plotSettings['interpPointsX'] = str(
+                  max(200, len(self.xValues[pltIndex][key][xIndex])))
             for yIndex in range(len(self.yValues[pltIndex][key])):
               if self.dim == 2:
                 if self.yValues[pltIndex][key][yIndex].size < 2:
                   return
-                xi, yi = mathUtils.interpolateFunction(self.xValues[pltIndex][key][xIndex], self.yValues[pltIndex][key][yIndex], plotSettings, returnCoordinate = True)
+                xi, yi = mathUtils.interpolateFunction(
+                    self.xValues[pltIndex][key][xIndex],
+                    self.yValues[pltIndex][key][yIndex],
+                    plotSettings,
+                    returnCoordinate=True)
                 if self.colorMapCoordinates[pltIndex] != None:
-                  plt.plot(xi, yi, c = cmap.cmap(self.colorMapValues[pltIndex][key][-1][-1]/(maxV-minV)))
-                  if 'colorbar' not in self.options.keys() or self.options['colorbar']['colorbar'] != 'off':
+                  plt.plot(
+                      xi,
+                      yi,
+                      c=cmap.cmap(self.colorMapValues[pltIndex][key][-1][-1] / (maxV - minV)))
+                  if 'colorbar' not in self.options.keys(
+                  ) or self.options['colorbar']['colorbar'] != 'off':
                     if self.actcm is None:
                       self.actcm = self.fig.colorbar(cmap)
-                      self.actcm.set_label(self.colorMapCoordinates[pltIndex][0].split('|')[-1].replace(')', ''))
+                      self.actcm.set_label(
+                          self.colorMapCoordinates[pltIndex][0].split('|')[-1].replace(')', ''))
                       # self.actcm.set_clim(vmin = minV, vmax = maxV)
                     else:
                       self.actcm.draw_all()
@@ -1224,17 +1494,25 @@ class OutStreamPlot(OutStreamManager):
                   if self.zValues[pltIndex][key][zIndex].size <= 3:
                     return
                   if self.colorMapCoordinates[pltIndex] != None:
-                    self.plt3D.plot(self.xValues[pltIndex][key][xIndex], self.yValues[pltIndex][key][yIndex],self.zValues[pltIndex][key][zIndex],
-                                    c = cmap.cmap(self.colorMapValues[pltIndex][key][-1][-1]/(maxV-minV)))
-                    if 'colorbar' not in self.options.keys() or self.options['colorbar']['colorbar'] != 'off':
+                    self.plt3D.plot(
+                        self.xValues[pltIndex][key][xIndex],
+                        self.yValues[pltIndex][key][yIndex],
+                        self.zValues[pltIndex][key][zIndex],
+                        c=cmap.cmap(self.colorMapValues[pltIndex][key][-1][-1] / (maxV - minV)))
+                    if 'colorbar' not in self.options.keys(
+                    ) or self.options['colorbar']['colorbar'] != 'off':
                       if self.actcm is None:
                         self.actcm = self.fig.colorbar(cmap)
-                        self.actcm.set_label(self.colorMapCoordinates[pltIndex][0].split('|')[-1].replace(')', ''))
+                        self.actcm.set_label(
+                            self.colorMapCoordinates[pltIndex][0].split('|')[-1].replace(')', ''))
                         # self.actcm.set_clim(vmin = minV, vmax = maxV)
                       else:
                         self.actcm.draw_all()
                   else:
-                    self.actPlot = self.plt3D.plot(self.xValues[pltIndex][key][xIndex], self.yValues[pltIndex][key][yIndex], self.zValues[pltIndex][key][zIndex], **plotSettings.get('attributes', {}))
+                    self.actPlot = self.plt3D.plot(self.xValues[pltIndex][key][xIndex],
+                                                   self.yValues[pltIndex][key][yIndex],
+                                                   self.zValues[pltIndex][key][zIndex],
+                                                   **plotSettings.get('attributes', {}))
       ##################
       # HISTOGRAM PLOT #
       ##################
@@ -1274,24 +1552,24 @@ class OutStreamPlot(OutStreamManager):
             If the histogram is created out of the input variables, then the plot has an identical meaning of the one generated by a pointSet
             However, if the histogram is created out of the output variables, then the plot consider only the last value of the array
           """
-          data={}
-          data['x']=np.empty(0)
-          data['y']=np.empty(0)
+          data = {}
+          data['x'] = np.empty(0)
+          data['y'] = np.empty(0)
           for index in range(len(self.outStreamTypes)):
             for key in self.xValues[index].keys():
-              data['x'] = np.append(data['x'],self.xValues[index][key][0][-1])
+              data['x'] = np.append(data['x'], self.xValues[index][key][0][-1])
               if self.dim == 3:
-                data['y'] = np.append(data['y'],self.yValues[index][key][0][-1])
-            del(self.xValues[index])
-            self.xValues={}
-            self.xValues[index]={}
-            self.xValues[index][0]=[]
+                data['y'] = np.append(data['y'], self.yValues[index][key][0][-1])
+            del (self.xValues[index])
+            self.xValues = {}
+            self.xValues[index] = {}
+            self.xValues[index][0] = []
             self.xValues[index][0].append(copy.deepcopy(data['x']))
             if self.dim == 3:
-              del(self.yValues[index])
-              self.yValues={}
-              self.yValues[index]={}
-              self.yValues[index][0]=[]
+              del (self.yValues[index])
+              self.yValues = {}
+              self.yValues[index] = {}
+              self.yValues[index][0] = []
               self.yValues[index][0].append(copy.deepcopy(data['y']))
 
         for key in self.xValues[pltIndex].keys():
@@ -1301,13 +1579,26 @@ class OutStreamPlot(OutStreamManager):
             except:
               colorss = plotSettings['color']
             if self.dim == 2:
-              plt.hist(self.xValues[pltIndex][key][xIndex], bins = ast.literal_eval(plotSettings['bins']), normed = ast.literal_eval(plotSettings['normed']), weights = ast.literal_eval(plotSettings['weights']),
-                            cumulative = ast.literal_eval(plotSettings['cumulative']), histtype = plotSettings['histtype'], align = plotSettings['align'],
-                            orientation = plotSettings['orientation'], rwidth = ast.literal_eval(plotSettings['rwidth']), log = ast.literal_eval(plotSettings['log']),
-                            color = colorss, stacked = ast.literal_eval(plotSettings['stacked']), **plotSettings.get('attributes', {}))
+              plt.hist(
+                  self.xValues[pltIndex][key][xIndex],
+                  bins=ast.literal_eval(plotSettings['bins']),
+                  normed=ast.literal_eval(plotSettings['normed']),
+                  weights=ast.literal_eval(plotSettings['weights']),
+                  cumulative=ast.literal_eval(plotSettings['cumulative']),
+                  histtype=plotSettings['histtype'],
+                  align=plotSettings['align'],
+                  orientation=plotSettings['orientation'],
+                  rwidth=ast.literal_eval(plotSettings['rwidth']),
+                  log=ast.literal_eval(plotSettings['log']),
+                  color=colorss,
+                  stacked=ast.literal_eval(plotSettings['stacked']),
+                  **plotSettings.get('attributes', {}))
             elif self.dim == 3:
               for yIndex in range(len(self.yValues[pltIndex][key])):
-                hist, xedges, yedges = np.histogram2d(self.xValues[pltIndex][key][xIndex], self.yValues[pltIndex][key][yIndex], bins = ast.literal_eval(plotSettings['bins']))
+                hist, xedges, yedges = np.histogram2d(
+                    self.xValues[pltIndex][key][xIndex],
+                    self.yValues[pltIndex][key][yIndex],
+                    bins=ast.literal_eval(plotSettings['bins']))
                 elements = (len(xedges) - 1) * (len(yedges) - 1)
                 if 'x_offset' in plotSettings.keys():
                   xoffset = float(plotSettings['x_offset'])
@@ -1320,13 +1611,24 @@ class OutStreamPlot(OutStreamManager):
                 if 'dx' in plotSettings.keys():
                   dxs = float(plotSettings['dx'])
                 else:
-                  dxs = (self.xValues[pltIndex][key][xIndex].max() - self.xValues[pltIndex][key][xIndex].min()) / float(plotSettings['bins'])
+                  dxs = (self.xValues[pltIndex][key][xIndex].max() -
+                         self.xValues[pltIndex][key][xIndex].min()) / float(plotSettings['bins'])
                 if 'dy' in plotSettings.keys():
                   dys = float(plotSettings['dy'])
                 else:
-                  dys = (self.yValues[pltIndex][key][yIndex].max() - self.yValues[pltIndex][key][yIndex].min()) / float(plotSettings['bins'])
+                  dys = (self.yValues[pltIndex][key][yIndex].max() -
+                         self.yValues[pltIndex][key][yIndex].min()) / float(plotSettings['bins'])
                 xpos, ypos = np.meshgrid(xedges[:-1] + xoffset, yedges[:-1] + yoffset)
-                self.actPlot = self.plt3D.bar3d(xpos.flatten(), ypos.flatten(), np.zeros(elements), dxs * np.ones_like(elements), dys * np.ones_like(elements), hist.flatten(), color = colorss, zsort = 'average', **plotSettings.get('attributes', {}))
+                self.actPlot = self.plt3D.bar3d(
+                    xpos.flatten(),
+                    ypos.flatten(),
+                    np.zeros(elements),
+                    dxs * np.ones_like(elements),
+                    dys * np.ones_like(elements),
+                    hist.flatten(),
+                    color=colorss,
+                    zsort='average',
+                    **plotSettings.get('attributes', {}))
       ##################
       #    STEM PLOT   #
       ##################
@@ -1341,11 +1643,19 @@ class OutStreamPlot(OutStreamManager):
           for xIndex in range(len(self.xValues[pltIndex][key])):
             for yIndex in range(len(self.yValues[pltIndex][key])):
               if self.dim == 2:
-                self.actPlot = plt.stem(self.xValues[pltIndex][key][xIndex], self.yValues[pltIndex][key][yIndex], linefmt = plotSettings['linefmt'], markerfmt = plotSettings['markerfmt'], basefmt = plotSettings['linefmt'], **plotSettings.get('attributes', {}))
+                self.actPlot = plt.stem(
+                    self.xValues[pltIndex][key][xIndex],
+                    self.yValues[pltIndex][key][yIndex],
+                    linefmt=plotSettings['linefmt'],
+                    markerfmt=plotSettings['markerfmt'],
+                    basefmt=plotSettings['linefmt'],
+                    **plotSettings.get('attributes', {}))
               elif self.dim == 3:
                 # it is a basic stem plot constructed using a standard line plot. For now we do not use the previous defined keywords...
                 for zIndex in range(len(self.zValues[pltIndex][key])):
-                  for xx, yy, zz in zip(self.xValues[pltIndex][key][xIndex], self.yValues[pltIndex][key][yIndex], self.zValues[pltIndex][key][zIndex]):
+                  for xx, yy, zz in zip(self.xValues[pltIndex][key][xIndex],
+                                        self.yValues[pltIndex][key][yIndex],
+                                        self.zValues[pltIndex][key][zIndex]):
                     self.plt3D.plot([xx, xx], [yy, yy], [0, zz], '-')
       ##################
       #    STEP PLOT   #
@@ -1359,12 +1669,17 @@ class OutStreamPlot(OutStreamManager):
               if self.xValues[pltIndex][key][xIndex].size < 2:
                 xi = self.xValues[pltIndex][key][xIndex]
               else:
-                xi = np.linspace(self.xValues[pltIndex][key][xIndex].min(), self.xValues[pltIndex][key][xIndex].max(), ast.literal_eval(plotSettings['interpPointsX']))
+                xi = np.linspace(self.xValues[pltIndex][key][xIndex].min(),
+                                 self.xValues[pltIndex][key][xIndex].max(),
+                                 ast.literal_eval(plotSettings['interpPointsX']))
               for yIndex in range(len(self.yValues[pltIndex][key])):
                 if self.yValues[pltIndex][key][yIndex].size <= 3:
                   return
-                yi = mathUtils.interpolateFunction(self.xValues[pltIndex][key][xIndex], self.yValues[pltIndex][key][yIndex], plotSettings)
-                self.actPlot = plt.step(xi, yi, where = plotSettings['where'], **plotSettings.get('attributes', {}))
+                yi = mathUtils.interpolateFunction(self.xValues[pltIndex][key][xIndex],
+                                                   self.yValues[pltIndex][key][yIndex],
+                                                   plotSettings)
+                self.actPlot = plt.step(
+                    xi, yi, where=plotSettings['where'], **plotSettings.get('attributes', {}))
         elif self.dim == 3:
           self.raiseAWarning('step Plot not available in 3D')
           return
@@ -1384,22 +1699,37 @@ class OutStreamPlot(OutStreamManager):
                 continue
               for yIndex in range(len(self.yValues[pltIndex][key])):
                 if not self.colorMapCoordinates:
-                  self.raiseAMessage('pseudocolor Plot needs coordinates for color map... Returning without plotting')
+                  self.raiseAMessage(
+                      'pseudocolor Plot needs coordinates for color map... Returning without plotting'
+                  )
                   return
                 for zIndex in range(len(self.colorMapValues[pltIndex][key])):
                   if self.colorMapValues[pltIndex][key][zIndex].size <= 3:
                     return
-                  xig, yig, Ci = mathUtils.interpolateFunction(self.xValues[pltIndex][key][xIndex], self.yValues[pltIndex][key][yIndex], plotSettings, z = self.colorMapValues[pltIndex][key][zIndex], returnCoordinate = True)
+                  xig, yig, Ci = mathUtils.interpolateFunction(
+                      self.xValues[pltIndex][key][xIndex],
+                      self.yValues[pltIndex][key][yIndex],
+                      plotSettings,
+                      z=self.colorMapValues[pltIndex][key][zIndex],
+                      returnCoordinate=True)
                   if plotSettings['cmap'] == 'None':
-                    self.actPlot = plt.pcolormesh(xig, yig, ma.masked_where(np.isnan(Ci), Ci), **plotSettings.get('attributes', {}))
-                    m = matplotlib.cm.ScalarMappable(cmap = self.actPlot.cmap, norm = self.actPlot.norm)
+                    self.actPlot = plt.pcolormesh(xig, yig, ma.masked_where(np.isnan(Ci), Ci),
+                                                  **plotSettings.get('attributes', {}))
+                    m = matplotlib.cm.ScalarMappable(cmap=self.actPlot.cmap, norm=self.actPlot.norm)
                   else:
-                    self.actPlot = plt.pcolormesh(xig, yig, ma.masked_where(np.isnan(Ci), Ci), cmap = matplotlib.cm.get_cmap(name = plotSettings['cmap']), **plotSettings.get('attributes', {}))
-                    m = matplotlib.cm.ScalarMappable(cmap = self.actPlot.cmap, norm = self.actPlot.norm)
+                    self.actPlot = plt.pcolormesh(
+                        xig,
+                        yig,
+                        ma.masked_where(np.isnan(Ci), Ci),
+                        cmap=matplotlib.cm.get_cmap(name=plotSettings['cmap']),
+                        **plotSettings.get('attributes', {}))
+                    m = matplotlib.cm.ScalarMappable(cmap=self.actPlot.cmap, norm=self.actPlot.norm)
                   m.set_array(ma.masked_where(np.isnan(Ci), Ci))
-                  if 'colorbar' not in self.options.keys() or self.options['colorbar']['colorbar'] != 'off':
+                  if 'colorbar' not in self.options.keys(
+                  ) or self.options['colorbar']['colorbar'] != 'off':
                     actcm = self.fig.colorbar(m)
-                    actcm.set_label(self.colorMapCoordinates[pltIndex][0].split('|')[-1].replace(')', ''))
+                    actcm.set_label(self.colorMapCoordinates[pltIndex][0].split('|')[-1].replace(
+                        ')', ''))
         elif self.dim == 3:
           self.raiseAWarning('pseudocolor Plot is considered a 2D plot, not a 3D!')
           return
@@ -1433,8 +1763,18 @@ class OutStreamPlot(OutStreamManager):
                   if self.zValues[pltIndex][key][zIndex].size <= 3:
                     return
                   if self.colorMapCoordinates[pltIndex] != None:
-                    xig, yig, Ci = mathUtils.interpolateFunction(self.xValues[pltIndex][key][xIndex], self.yValues[pltIndex][key][yIndex], plotSettings, z = self.colorMapValues[pltIndex][key][zIndex], returnCoordinate = True)
-                  xig, yig, zi = mathUtils.interpolateFunction(self.xValues[pltIndex][key][xIndex], self.yValues[pltIndex][key][yIndex], plotSettings, z = self.zValues[pltIndex][key][zIndex], returnCoordinate = True)
+                    xig, yig, Ci = mathUtils.interpolateFunction(
+                        self.xValues[pltIndex][key][xIndex],
+                        self.yValues[pltIndex][key][yIndex],
+                        plotSettings,
+                        z=self.colorMapValues[pltIndex][key][zIndex],
+                        returnCoordinate=True)
+                  xig, yig, zi = mathUtils.interpolateFunction(
+                      self.xValues[pltIndex][key][xIndex],
+                      self.yValues[pltIndex][key][yIndex],
+                      plotSettings,
+                      z=self.zValues[pltIndex][key][zIndex],
+                      returnCoordinate=True)
                   if self.colorMapCoordinates[pltIndex] != None:
                     if self.actcm:
                       first = False
@@ -1442,27 +1782,60 @@ class OutStreamPlot(OutStreamManager):
                       first = True
                     if plotSettings['cmap'] == 'None':
                       plotSettings['cmap'] = 'jet'
-                    self.actPlot = self.plt3D.plot_surface(xig, yig, ma.masked_where(np.isnan(zi), zi), rstride = ast.literal_eval(plotSettings['rstride']), cstride = ast.literal_eval(plotSettings['cstride']), facecolors = matplotlib.cm.get_cmap(name = plotSettings['cmap'])(ma.masked_where(np.isnan(Ci), Ci)), cmap = matplotlib.cm.get_cmap(name = plotSettings['cmap']), linewidth = ast.literal_eval(plotSettings['linewidth']), antialiased = ast.literal_eval(plotSettings['antialiased']), **plotSettings.get('attributes', {}))
+                    self.actPlot = self.plt3D.plot_surface(
+                        xig,
+                        yig,
+                        ma.masked_where(np.isnan(zi), zi),
+                        rstride=ast.literal_eval(plotSettings['rstride']),
+                        cstride=ast.literal_eval(plotSettings['cstride']),
+                        facecolors=matplotlib.cm.get_cmap(name=plotSettings['cmap'])(
+                            ma.masked_where(np.isnan(Ci), Ci)),
+                        cmap=matplotlib.cm.get_cmap(name=plotSettings['cmap']),
+                        linewidth=ast.literal_eval(plotSettings['linewidth']),
+                        antialiased=ast.literal_eval(plotSettings['antialiased']),
+                        **plotSettings.get('attributes', {}))
                     if first:
-                      self.actPlot.cmap = matplotlib.cm.get_cmap(name = plotSettings['cmap'])
-                    if 'colorbar' not in self.options.keys() or self.options['colorbar']['colorbar'] != 'off':
+                      self.actPlot.cmap = matplotlib.cm.get_cmap(name=plotSettings['cmap'])
+                    if 'colorbar' not in self.options.keys(
+                    ) or self.options['colorbar']['colorbar'] != 'off':
                       if first:
-                        m = matplotlib.cm.ScalarMappable(cmap = self.actPlot.cmap, norm = self.actPlot.norm)
+                        m = matplotlib.cm.ScalarMappable(
+                            cmap=self.actPlot.cmap, norm=self.actPlot.norm)
                         m.set_array(self.colorMapValues[pltIndex][key])
                         self.actcm = self.fig.colorbar(m)
-                        self.actcm.set_label(self.colorMapCoordinates[pltIndex][0].split('|')[-1].replace(')', ''))
+                        self.actcm.set_label(
+                            self.colorMapCoordinates[pltIndex][0].split('|')[-1].replace(')', ''))
                       else:
-                        self.actcm.set_clim(vmin = min(self.colorMapValues[pltIndex][key][-1]), vmax = max(self.colorMapValues[pltIndex][key][-1]))
+                        self.actcm.set_clim(
+                            vmin=min(self.colorMapValues[pltIndex][key][-1]),
+                            vmax=max(self.colorMapValues[pltIndex][key][-1]))
                         self.actcm.draw_all()
                   else:
                     if plotSettings['cmap'] == 'None':
-                      self.actPlot = self.plt3D.plot_surface(xig, yig, ma.masked_where(np.isnan(zi), zi), rstride = ast.literal_eval(plotSettings['rstride']), cstride = ast.literal_eval(plotSettings['cstride']), linewidth = ast.literal_eval(plotSettings['linewidth']), antialiased = ast.literal_eval(plotSettings['antialiased']), **plotSettings.get('attributes', {}))
+                      self.actPlot = self.plt3D.plot_surface(
+                          xig,
+                          yig,
+                          ma.masked_where(np.isnan(zi), zi),
+                          rstride=ast.literal_eval(plotSettings['rstride']),
+                          cstride=ast.literal_eval(plotSettings['cstride']),
+                          linewidth=ast.literal_eval(plotSettings['linewidth']),
+                          antialiased=ast.literal_eval(plotSettings['antialiased']),
+                          **plotSettings.get('attributes', {}))
                       if 'color' in plotSettings.get('attributes', {}).keys():
                         self.actPlot.set_color = plotSettings.get('attributes', {})['color']
                       else:
                         self.actPlot.set_color = 'blue'
                     else:
-                      self.actPlot = self.plt3D.plot_surface(xig, yig, ma.masked_where(np.isnan(zi), zi), rstride = ast.literal_eval(plotSettings['rstride']), cstride = ast.literal_eval(plotSettings['cstride']), cmap = matplotlib.cm.get_cmap(name = plotSettings['cmap']), linewidth = ast.literal_eval(plotSettings['linewidth']), antialiased = ast.literal_eval(plotSettings['antialiased']), **plotSettings.get('attributes', {}))
+                      self.actPlot = self.plt3D.plot_surface(
+                          xig,
+                          yig,
+                          ma.masked_where(np.isnan(zi), zi),
+                          rstride=ast.literal_eval(plotSettings['rstride']),
+                          cstride=ast.literal_eval(plotSettings['cstride']),
+                          cmap=matplotlib.cm.get_cmap(name=plotSettings['cmap']),
+                          linewidth=ast.literal_eval(plotSettings['linewidth']),
+                          antialiased=ast.literal_eval(plotSettings['antialiased']),
+                          **plotSettings.get('attributes', {}))
       ########################
       #   TRI-SURFACE PLOT   #
       ########################
@@ -1486,7 +1859,8 @@ class OutStreamPlot(OutStreamManager):
                 continue
               for yIndex in range(len(self.yValues[pltIndex][key])):
                 for zIndex in range(len(self.zValues[pltIndex][key])):
-                  metric = (self.xValues[pltIndex][key][xIndex] ** 2 + self.yValues[pltIndex][key][yIndex] ** 2) ** 0.5
+                  metric = (self.xValues[pltIndex][key][xIndex]**2 +
+                            self.yValues[pltIndex][key][yIndex]**2)**0.5
                   metricIndeces = np.argsort(metric)
                   xs = np.zeros(self.xValues[pltIndex][key][xIndex].shape)
                   ys = np.zeros(self.yValues[pltIndex][key][yIndex].shape)
@@ -1495,8 +1869,10 @@ class OutStreamPlot(OutStreamManager):
                     xs[sindex] = self.xValues[pltIndex][key][xIndex][metricIndeces[sindex]]
                     ys[sindex] = self.yValues[pltIndex][key][yIndex][metricIndeces[sindex]]
                     zs[sindex] = self.zValues[pltIndex][key][zIndex][metricIndeces[sindex]]
-                  surfacePlotOptions = {'color': plotSettings['color'],
-                                        'shade':ast.literal_eval(plotSettings['shade'])}
+                  surfacePlotOptions = {
+                      'color': plotSettings['color'],
+                      'shade': ast.literal_eval(plotSettings['shade'])
+                  }
                   surfacePlotOptions.update(plotSettings.get('attributes', {}))
                   if self.zValues[pltIndex][key][zIndex].size <= 3:
                     return
@@ -1507,21 +1883,26 @@ class OutStreamPlot(OutStreamManager):
                       first = True
                     if plotSettings['cmap'] == 'None':
                       plotSettings['cmap'] = 'jet'
-                    surfacePlotOptions['cmap'] = matplotlib.cm.get_cmap(name = plotSettings['cmap'])
+                    surfacePlotOptions['cmap'] = matplotlib.cm.get_cmap(name=plotSettings['cmap'])
                     self.actPlot = self.plt3D.plot_trisurf(xs, ys, zs, **surfacePlotOptions)
-                    if 'colorbar' not in self.options.keys() or self.options['colorbar']['colorbar'] != 'off':
+                    if 'colorbar' not in self.options.keys(
+                    ) or self.options['colorbar']['colorbar'] != 'off':
                       if first:
-                        self.actPlot.cmap = matplotlib.cm.get_cmap(name = plotSettings['cmap'])
-                        m = matplotlib.cm.ScalarMappable(cmap = self.actPlot.cmap, norm = self.actPlot.norm)
+                        self.actPlot.cmap = matplotlib.cm.get_cmap(name=plotSettings['cmap'])
+                        m = matplotlib.cm.ScalarMappable(
+                            cmap=self.actPlot.cmap, norm=self.actPlot.norm)
                         m.set_array(self.colorMapValues[pltIndex][key])
                         self.actcm = self.fig.colorbar(m)
-                        self.actcm.set_label(self.colorMapCoordinates[pltIndex][0].split('|')[-1].replace(')', ''))
+                        self.actcm.set_label(
+                            self.colorMapCoordinates[pltIndex][0].split('|')[-1].replace(')', ''))
                       else:
-                        self.actcm.set_clim(vmin = min(self.colorMapValues[pltIndex][key][-1]), vmax = max(self.colorMapValues[pltIndex][key][-1]))
+                        self.actcm.set_clim(
+                            vmin=min(self.colorMapValues[pltIndex][key][-1]),
+                            vmax=max(self.colorMapValues[pltIndex][key][-1]))
                         self.actcm.draw_all()
                   else:
                     if plotSettings['cmap'] != 'None':
-                      surfacePlotOptions["cmap"] = matplotlib.cm.get_cmap(name = plotSettings['cmap'])
+                      surfacePlotOptions["cmap"] = matplotlib.cm.get_cmap(name=plotSettings['cmap'])
                     self.actPlot = self.plt3D.plot_trisurf(xs, ys, zs, **surfacePlotOptions)
       ########################
       #    WIREFRAME  PLOT   #
@@ -1549,36 +1930,81 @@ class OutStreamPlot(OutStreamManager):
                   if self.zValues[pltIndex][key][zIndex].size <= 3:
                     return
                   if self.colorMapCoordinates[pltIndex] != None:
-                    xig, yig, Ci = mathUtils.interpolateFunction(self.xValues[pltIndex][key][xIndex], self.yValues[pltIndex][key][yIndex], plotSettings, z = self.colorMapValues[pltIndex][key][zIndex], returnCoordinate = True)
-                  xig, yig, zi = mathUtils.interpolateFunction(self.xValues[pltIndex][key][xIndex], self.yValues[pltIndex][key][yIndex], plotSettings, z = self.zValues[pltIndex][key][zIndex], returnCoordinate = True)
+                    xig, yig, Ci = mathUtils.interpolateFunction(
+                        self.xValues[pltIndex][key][xIndex],
+                        self.yValues[pltIndex][key][yIndex],
+                        plotSettings,
+                        z=self.colorMapValues[pltIndex][key][zIndex],
+                        returnCoordinate=True)
+                  xig, yig, zi = mathUtils.interpolateFunction(
+                      self.xValues[pltIndex][key][xIndex],
+                      self.yValues[pltIndex][key][yIndex],
+                      plotSettings,
+                      z=self.zValues[pltIndex][key][zIndex],
+                      returnCoordinate=True)
                   if self.colorMapCoordinates[pltIndex] != None:
-                    self.raiseAWarning('Currently, ax.plot_wireframe() in MatPlotLib version: ' + matplotlib.__version__ + ' does not support a colormap! Wireframe plotted on a surface plot...')
+                    self.raiseAWarning(
+                        'Currently, ax.plot_wireframe() in MatPlotLib version: ' +
+                        matplotlib.__version__ +
+                        ' does not support a colormap! Wireframe plotted on a surface plot...')
                     if self.actcm:
                       first = False
                     else:
                       first = True
                     if plotSettings['cmap'] == 'None':
                       plotSettings['cmap'] = 'jet'
-                    self.actPlot = self.plt3D.plot_wireframe(xig, yig, ma.masked_where(np.isnan(zi), zi), rstride = ast.literal_eval(plotSettings['rstride']), cmap = matplotlib.cm.get_cmap(name = plotSettings['cmap']), cstride = ast.literal_eval(plotSettings['cstride']), **plotSettings.get('attributes', {}))
-                    self.actPlot = self.plt3D.plot_surface(xig, yig, ma.masked_where(np.isnan(zi), zi), alpha = 0.4, rstride = ast.literal_eval(plotSettings['rstride']), cmap = matplotlib.cm.get_cmap(name = plotSettings['cmap']), cstride = ast.literal_eval(plotSettings['cstride']), **plotSettings.get('attributes', {}))
-                    if 'colorbar' not in self.options.keys() or self.options['colorbar']['colorbar'] != 'off':
+                    self.actPlot = self.plt3D.plot_wireframe(
+                        xig,
+                        yig,
+                        ma.masked_where(np.isnan(zi), zi),
+                        rstride=ast.literal_eval(plotSettings['rstride']),
+                        cmap=matplotlib.cm.get_cmap(name=plotSettings['cmap']),
+                        cstride=ast.literal_eval(plotSettings['cstride']),
+                        **plotSettings.get('attributes', {}))
+                    self.actPlot = self.plt3D.plot_surface(
+                        xig,
+                        yig,
+                        ma.masked_where(np.isnan(zi), zi),
+                        alpha=0.4,
+                        rstride=ast.literal_eval(plotSettings['rstride']),
+                        cmap=matplotlib.cm.get_cmap(name=plotSettings['cmap']),
+                        cstride=ast.literal_eval(plotSettings['cstride']),
+                        **plotSettings.get('attributes', {}))
+                    if 'colorbar' not in self.options.keys(
+                    ) or self.options['colorbar']['colorbar'] != 'off':
                       if first:
-                        m = matplotlib.cm.ScalarMappable(cmap = self.actPlot.cmap, norm = self.actPlot.norm)
+                        m = matplotlib.cm.ScalarMappable(
+                            cmap=self.actPlot.cmap, norm=self.actPlot.norm)
                         m.set_array(self.colorMapValues[pltIndex][key])
                         self.actcm = self.fig.colorbar(m)
-                        self.actcm.set_label(self.colorMapCoordinates[pltIndex][0].split('|')[-1].replace(')', ''))
+                        self.actcm.set_label(
+                            self.colorMapCoordinates[pltIndex][0].split('|')[-1].replace(')', ''))
                       else:
-                        self.actcm.set_clim(vmin = min(self.colorMapValues[pltIndex][key][-1]), vmax = max(self.colorMapValues[pltIndex][key][-1]))
+                        self.actcm.set_clim(
+                            vmin=min(self.colorMapValues[pltIndex][key][-1]),
+                            vmax=max(self.colorMapValues[pltIndex][key][-1]))
                         self.actcm.draw_all()
                   else:
                     if plotSettings['cmap'] == 'None':
-                      self.actPlot = self.plt3D.plot_wireframe(xig, yig, ma.masked_where(np.isnan(zi), zi), rstride = ast.literal_eval(plotSettings['rstride']), cstride = ast.literal_eval(plotSettings['cstride']), **plotSettings.get('attributes', {}))
+                      self.actPlot = self.plt3D.plot_wireframe(
+                          xig,
+                          yig,
+                          ma.masked_where(np.isnan(zi), zi),
+                          rstride=ast.literal_eval(plotSettings['rstride']),
+                          cstride=ast.literal_eval(plotSettings['cstride']),
+                          **plotSettings.get('attributes', {}))
                       if 'color' in plotSettings.get('attributes', {}).keys():
                         self.actPlot.set_color = plotSettings.get('attributes', {})['color']
                       else:
                         self.actPlot.set_color = 'blue'
                     else:
-                      self.actPlot = self.plt3D.plot_wireframe(xig, yig, ma.masked_where(np.isnan(zi), zi), rstride = ast.literal_eval(plotSettings['rstride']), cstride = ast.literal_eval(plotSettings['cstride']), **plotSettings.get('attributes', {}))
+                      self.actPlot = self.plt3D.plot_wireframe(
+                          xig,
+                          yig,
+                          ma.masked_where(np.isnan(zi), zi),
+                          rstride=ast.literal_eval(plotSettings['rstride']),
+                          cstride=ast.literal_eval(plotSettings['cstride']),
+                          **plotSettings.get('attributes', {}))
 
       ########################
       #     CONTOUR   PLOT   #
@@ -1591,7 +2017,9 @@ class OutStreamPlot(OutStreamManager):
             nbins = 5
           for key in self.xValues[pltIndex].keys():
             if not self.colorMapCoordinates:
-              self.raiseAWarning(self.outStreamTypes[pltIndex] + ' Plot needs coordinates for color map... Returning without plotting')
+              self.raiseAWarning(
+                  self.outStreamTypes[pltIndex] +
+                  ' Plot needs coordinates for color map... Returning without plotting')
               return
             for xIndex in range(len(self.xValues[pltIndex][key])):
               ## Hopefully, x,y, and z are all the same length, so checking this
@@ -1607,35 +2035,56 @@ class OutStreamPlot(OutStreamManager):
                     first = False
                   else:
                     first = True
-                  xig, yig, Ci = mathUtils.interpolateFunction(self.xValues[pltIndex][key][xIndex], self.yValues[pltIndex][key][yIndex], plotSettings, z = self.colorMapValues[pltIndex][key][zIndex], returnCoordinate = True)
+                  xig, yig, Ci = mathUtils.interpolateFunction(
+                      self.xValues[pltIndex][key][xIndex],
+                      self.yValues[pltIndex][key][yIndex],
+                      plotSettings,
+                      z=self.colorMapValues[pltIndex][key][zIndex],
+                      returnCoordinate=True)
                   if self.outStreamTypes[pltIndex] == 'contour':
                     if plotSettings['cmap'] == 'None':
                       if 'color' in plotSettings.get('attributes', {}).keys():
                         color = plotSettings.get('attributes', {})['color']
                       else:
                         color = 'blue'
-                      self.actPlot = plt.contour(xig, yig, ma.masked_where(np.isnan(Ci), Ci), nbins, colors = color, **plotSettings.get('attributes', {}))
+                      self.actPlot = plt.contour(
+                          xig,
+                          yig,
+                          ma.masked_where(np.isnan(Ci), Ci),
+                          nbins,
+                          colors=color,
+                          **plotSettings.get('attributes', {}))
                     else:
-                      self.actPlot = plt.contour(xig, yig, ma.masked_where(np.isnan(Ci), Ci), nbins, **plotSettings.get('attributes', {}))
+                      self.actPlot = plt.contour(xig, yig, ma.masked_where(np.isnan(Ci), Ci), nbins,
+                                                 **plotSettings.get('attributes', {}))
                   else:
                     if plotSettings['cmap'] == 'None':
                       plotSettings['cmap'] = 'jet'
-                    self.actPlot = plt.contourf(xig, yig, ma.masked_where(np.isnan(Ci), Ci), nbins, **plotSettings.get('attributes', {}))
-                  plt.clabel(self.actPlot, inline = 1, fontsize = 10)
-                  if 'colorbar' not in self.options.keys() or self.options['colorbar']['colorbar'] != 'off':
+                    self.actPlot = plt.contourf(xig, yig, ma.masked_where(np.isnan(Ci), Ci), nbins,
+                                                **plotSettings.get('attributes', {}))
+                  plt.clabel(self.actPlot, inline=1, fontsize=10)
+                  if 'colorbar' not in self.options.keys(
+                  ) or self.options['colorbar']['colorbar'] != 'off':
                     if first:
-                      self.actcm = plt.colorbar(self.actPlot, shrink = 0.8, extend = 'both')
-                      self.actcm.set_label(self.colorMapCoordinates[pltIndex][0].split('|')[-1].replace(')', ''))
+                      self.actcm = plt.colorbar(self.actPlot, shrink=0.8, extend='both')
+                      self.actcm.set_label(
+                          self.colorMapCoordinates[pltIndex][0].split('|')[-1].replace(')', ''))
                     else:
-                      self.actcm.set_clim(vmin = min(self.colorMapValues[pltIndex][key][-1]), vmax = max(self.colorMapValues[pltIndex][key][-1]))
+                      self.actcm.set_clim(
+                          vmin=min(self.colorMapValues[pltIndex][key][-1]),
+                          vmax=max(self.colorMapValues[pltIndex][key][-1]))
                       self.actcm.draw_all()
         elif self.dim == 3:
-          self.raiseAWarning('contour/filledContour is a 2-D plot, where x,y are the surface coordinates and colorMap vector is the array to visualize!\n               contour3D/filledContour3D are 3-D! ')
+          self.raiseAWarning(
+              'contour/filledContour is a 2-D plot, where x,y are the surface coordinates and colorMap vector is the array to visualize!\n               contour3D/filledContour3D are 3-D! '
+          )
           return
       ## These should be combined: ^^^ & vvv
       elif self.outStreamTypes[pltIndex] == 'contour3D' or self.outStreamTypes[pltIndex] == 'filledContour3D':
         if self.dim == 2:
-          self.raiseAWarning('contour3D/filledContour3D Plot is NOT available for 2D plots, IT IS A 2D! Check "contour/filledContour"!')
+          self.raiseAWarning(
+              'contour3D/filledContour3D Plot is NOT available for 2D plots, IT IS A 2D! Check "contour/filledContour"!'
+          )
           return
         elif self.dim == 3:
           if 'numberBins' in plotSettings.keys():
@@ -1661,27 +2110,57 @@ class OutStreamPlot(OutStreamManager):
                     first = False
                   else:
                     first = True
-                  xig, yig, Ci = mathUtils.interpolateFunction(self.xValues[pltIndex][key][xIndex], self.yValues[pltIndex][key][yIndex], plotSettings, z = self.colorMapValues[pltIndex][key][zIndex], returnCoordinate = True)
+                  xig, yig, Ci = mathUtils.interpolateFunction(
+                      self.xValues[pltIndex][key][xIndex],
+                      self.yValues[pltIndex][key][yIndex],
+                      plotSettings,
+                      z=self.colorMapValues[pltIndex][key][zIndex],
+                      returnCoordinate=True)
                   if self.outStreamTypes[pltIndex] == 'contour3D':
                     if plotSettings['cmap'] == 'None':
                       if 'color' in plotSettings.get('attributes', {}).keys():
                         color = plotSettings.get('attributes', {})['color']
                       else:
                         color = 'blue'
-                      self.actPlot = self.plt3D.contour3D(xig, yig, ma.masked_where(np.isnan(Ci), Ci), nbins, colors = color, extend3d = ext3D, **plotSettings.get('attributes', {}))
+                      self.actPlot = self.plt3D.contour3D(
+                          xig,
+                          yig,
+                          ma.masked_where(np.isnan(Ci), Ci),
+                          nbins,
+                          colors=color,
+                          extend3d=ext3D,
+                          **plotSettings.get('attributes', {}))
                     else:
-                      self.actPlot = self.plt3D.contour3D(xig, yig, ma.masked_where(np.isnan(Ci), Ci), nbins, extend3d = ext3D, cmap = matplotlib.cm.get_cmap(name = plotSettings['cmap']), **plotSettings.get('attributes', {}))
+                      self.actPlot = self.plt3D.contour3D(
+                          xig,
+                          yig,
+                          ma.masked_where(np.isnan(Ci), Ci),
+                          nbins,
+                          extend3d=ext3D,
+                          cmap=matplotlib.cm.get_cmap(name=plotSettings['cmap']),
+                          **plotSettings.get('attributes', {}))
                   else:
                     if plotSettings['cmap'] == 'None':
                       plotSettings['cmap'] = 'jet'
-                    self.actPlot = self.plt3D.contourf3D(xig, yig, ma.masked_where(np.isnan(Ci), Ci), nbins, extend3d = ext3D, cmap = matplotlib.cm.get_cmap(name = plotSettings['cmap']), **plotSettings.get('attributes', {}))
-                  plt.clabel(self.actPlot, inline = 1, fontsize = 10)
-                  if 'colorbar' not in self.options.keys() or self.options['colorbar']['colorbar'] != 'off':
+                    self.actPlot = self.plt3D.contourf3D(
+                        xig,
+                        yig,
+                        ma.masked_where(np.isnan(Ci), Ci),
+                        nbins,
+                        extend3d=ext3D,
+                        cmap=matplotlib.cm.get_cmap(name=plotSettings['cmap']),
+                        **plotSettings.get('attributes', {}))
+                  plt.clabel(self.actPlot, inline=1, fontsize=10)
+                  if 'colorbar' not in self.options.keys(
+                  ) or self.options['colorbar']['colorbar'] != 'off':
                     if first:
-                      self.actcm = plt.colorbar(self.actPlot, shrink = 0.8, extend = 'both')
-                      self.actcm.set_label(self.colorMapCoordinates[pltIndex][0].split('|')[-1].replace(')', ''))
+                      self.actcm = plt.colorbar(self.actPlot, shrink=0.8, extend='both')
+                      self.actcm.set_label(
+                          self.colorMapCoordinates[pltIndex][0].split('|')[-1].replace(')', ''))
                     else:
-                      self.actcm.set_clim(vmin = min(self.colorMapValues[pltIndex][key][-1]), vmax = max(self.colorMapValues[pltIndex][key][-1]))
+                      self.actcm.set_clim(
+                          vmin=min(self.colorMapValues[pltIndex][key][-1]),
+                          vmax=max(self.colorMapValues[pltIndex][key][-1]))
                       self.actcm.draw_all()
       ########################
       #   DataMining PLOT    #
@@ -1689,7 +2168,10 @@ class OutStreamPlot(OutStreamManager):
       elif self.outStreamTypes[pltIndex] == 'dataMining':
         from itertools import cycle
         from itertools import cycle
-        colors = cycle(['#88CCEE', '#DDCC77', '#AA4499', '#117733', '#332288', '#999933', '#44AA99', '#882255', '#CC6677', '#CD6677', '#DC6877', '#886677', '#AA6677', '#556677', '#CD7865'])
+        colors = cycle([
+            '#88CCEE', '#DDCC77', '#AA4499', '#117733', '#332288', '#999933', '#44AA99', '#882255',
+            '#CC6677', '#CD6677', '#DC6877', '#886677', '#AA6677', '#556677', '#CD7865'
+        ])
         if 's' not in plotSettings.keys():
           plotSettings['s'] = '20'
         if 'c' not in plotSettings.keys():
@@ -1704,32 +2186,45 @@ class OutStreamPlot(OutStreamManager):
         for key in self.xValues[pltIndex].keys():
           for xIndex in range(len(self.xValues[pltIndex][key])):
             for yIndex in range(len(self.yValues[pltIndex][key])):
-              dataMiningPlotOptions = {'s':ast.literal_eval(plotSettings['s']),
-                                       'marker':(plotSettings['marker']),
-                                       'alpha':ast.literal_eval(plotSettings['alpha']),
-                                       'linewidths':ast.literal_eval(plotSettings['linewidths'])}
+              dataMiningPlotOptions = {
+                  's': ast.literal_eval(plotSettings['s']),
+                  'marker': (plotSettings['marker']),
+                  'alpha': ast.literal_eval(plotSettings['alpha']),
+                  'linewidths': ast.literal_eval(plotSettings['linewidths'])
+              }
               if self.colorMapCoordinates[pltIndex] != None:
-                self.raiseAWarning('ColorMap values supplied, however DataMining plots do not use colorMap from input.')
+                self.raiseAWarning(
+                    'ColorMap values supplied, however DataMining plots do not use colorMap from input.'
+                )
               if plotSettings['cmap'] == 'None':
-                self.raiseAWarning('ColorSet supplied, however DataMining plots do not use color set from input.')
+                self.raiseAWarning(
+                    'ColorSet supplied, however DataMining plots do not use color set from input.')
               if 'cluster' == plotSettings['SKLtype']:
                 # TODO: include the cluster Centers to the plot
                 if 'noClusters' in plotSettings.get('attributes', {}).keys():
-                  clusterDict[pltIndex]['noClusters'] = int(plotSettings.get('attributes', {})['noClusters'])
+                  clusterDict[pltIndex]['noClusters'] = int(
+                      plotSettings.get('attributes', {})['noClusters'])
                   plotSettings.get('attributes', {}).pop('noClusters')
                 else:
-                  clusterDict[pltIndex]['noClusters'] = np.amax(self.clusterValues[pltIndex][1][0]) + 1
+                  clusterDict[pltIndex]['noClusters'] = np.amax(
+                      self.clusterValues[pltIndex][1][0]) + 1
                 dataMiningPlotOptions.update(plotSettings.get('attributes', {}))
-                if   self.dim == 2:
-                  clusterDict[pltIndex]['clusterValues'] = np.zeros(shape = (len(self.xValues[pltIndex][key][xIndex]), 2))
+                if self.dim == 2:
+                  clusterDict[pltIndex]['clusterValues'] = np.zeros(
+                      shape=(len(self.xValues[pltIndex][key][xIndex]), 2))
                 elif self.dim == 3:
-                  clusterDict[pltIndex]['clusterValues'] = np.zeros(shape = (len(self.xValues[pltIndex][key][xIndex]), 3))
+                  clusterDict[pltIndex]['clusterValues'] = np.zeros(
+                      shape=(len(self.xValues[pltIndex][key][xIndex]), 3))
                 clusterDict[pltIndex]['clusterValues'][:, 0] = self.xValues[pltIndex][key][xIndex]
                 clusterDict[pltIndex]['clusterValues'][:, 1] = self.yValues[pltIndex][key][yIndex]
                 if self.dim == 2:
                   for k, col in zip(range(int(clusterDict[pltIndex]['noClusters'])), colors):
                     myMembers = self.clusterValues[pltIndex][1][0] == k
-                    self.actPlot = plt.scatter(clusterDict[pltIndex]['clusterValues'][myMembers, 0], clusterDict[pltIndex]['clusterValues'][myMembers, 1] , color = col, **dataMiningPlotOptions)
+                    self.actPlot = plt.scatter(
+                        clusterDict[pltIndex]['clusterValues'][myMembers, 0],
+                        clusterDict[pltIndex]['clusterValues'][myMembers, 1],
+                        color=col,
+                        **dataMiningPlotOptions)
 
                   ## Handle all of the outlying data
                   myMembers = self.clusterValues[pltIndex][1][0] == -1
@@ -1742,7 +2237,11 @@ class OutStreamPlot(OutStreamManager):
                     faceColors = None
                   dataMiningPlotOptions['facecolors'] = 'none'
 
-                  self.actPlot = plt.scatter(clusterDict[pltIndex]['clusterValues'][myMembers, 0], clusterDict[pltIndex]['clusterValues'][myMembers, 1] , color = '#000000', **dataMiningPlotOptions)
+                  self.actPlot = plt.scatter(
+                      clusterDict[pltIndex]['clusterValues'][myMembers, 0],
+                      clusterDict[pltIndex]['clusterValues'][myMembers, 1],
+                      color='#000000',
+                      **dataMiningPlotOptions)
 
                   ## Restore the plot options to their original values
                   dataMiningPlotOptions['s'] *= 2
@@ -1753,10 +2252,16 @@ class OutStreamPlot(OutStreamManager):
 
                 elif self.dim == 3:
                   for zIndex in range(len(self.zValues[pltIndex][key])):
-                    clusterDict[pltIndex]['clusterValues'][:, 2] = self.zValues[pltIndex][key][zIndex]
+                    clusterDict[pltIndex]['clusterValues'][:, 2] = self.zValues[pltIndex][key][
+                        zIndex]
                   for k, col in zip(range(int(clusterDict[pltIndex]['noClusters'])), colors):
                     myMembers = self.clusterValues[pltIndex][1][0] == k
-                    self.actPlot = self.plt3D.scatter(clusterDict[pltIndex]['clusterValues'][myMembers, 0], clusterDict[pltIndex]['clusterValues'][myMembers, 1], clusterDict[pltIndex]['clusterValues'][myMembers, 2], color = col, **dataMiningPlotOptions)
+                    self.actPlot = self.plt3D.scatter(
+                        clusterDict[pltIndex]['clusterValues'][myMembers, 0],
+                        clusterDict[pltIndex]['clusterValues'][myMembers, 1],
+                        clusterDict[pltIndex]['clusterValues'][myMembers, 2],
+                        color=col,
+                        **dataMiningPlotOptions)
 
                   ## Handle all of the outlying data
                   myMembers = self.clusterValues[pltIndex][1][0] == -1
@@ -1769,7 +2274,12 @@ class OutStreamPlot(OutStreamManager):
                     faceColors = None
                   dataMiningPlotOptions['facecolors'] = 'none'
 
-                  self.actPlot = self.plt3D.scatter(clusterDict[pltIndex]['clusterValues'][myMembers, 0], clusterDict[pltIndex]['clusterValues'][myMembers, 1], clusterDict[pltIndex]['clusterValues'][myMembers, 2], color = '#000000', **dataMiningPlotOptions)
+                  self.actPlot = self.plt3D.scatter(
+                      clusterDict[pltIndex]['clusterValues'][myMembers, 0],
+                      clusterDict[pltIndex]['clusterValues'][myMembers, 1],
+                      clusterDict[pltIndex]['clusterValues'][myMembers, 2],
+                      color='#000000',
+                      **dataMiningPlotOptions)
 
                   ## Restore the plot options to their original values
                   dataMiningPlotOptions['s'] *= 2
@@ -1782,25 +2292,31 @@ class OutStreamPlot(OutStreamManager):
                 self.raiseAnError(IOError, 'SKLType Bi-Cluster Plots are not implemented yet!..')
               elif 'mixture' == plotSettings['SKLtype']:
                 if 'noMixtures' in plotSettings.get('attributes', {}).keys():
-                  clusterDict[pltIndex]['noMixtures'] = int(plotSettings.get('attributes', {})['noMixtures'])
+                  clusterDict[pltIndex]['noMixtures'] = int(
+                      plotSettings.get('attributes', {})['noMixtures'])
                   plotSettings.get('attributes', {}).pop('noMixtures')
                 else:
-                  clusterDict[pltIndex]['noMixtures'] = np.amax(self.mixtureValues[pltIndex][1][0]) + 1
+                  clusterDict[pltIndex]['noMixtures'] = np.amax(
+                      self.mixtureValues[pltIndex][1][0]) + 1
                 if self.dim == 3:
-                  self.raiseAnError(IOError, 'SKLType Mixture Plots are only available in 2-Dimensions')
+                  self.raiseAnError(IOError,
+                                    'SKLType Mixture Plots are only available in 2-Dimensions')
                 else:
-                  clusterDict[pltIndex]['mixtureValues'] = np.zeros(shape = (len(self.xValues[pltIndex][key][xIndex]), 2))
+                  clusterDict[pltIndex]['mixtureValues'] = np.zeros(
+                      shape=(len(self.xValues[pltIndex][key][xIndex]), 2))
                 clusterDict[pltIndex]['mixtureValues'][:, 0] = self.xValues[pltIndex][key][xIndex]
                 clusterDict[pltIndex]['mixtureValues'][:, 1] = self.yValues[pltIndex][key][yIndex]
                 if 'mixtureCovars' in plotSettings.get('attributes', {}).keys():
                   split = self.__splitVariableNames('mixtureCovars', (pltIndex, 0))
-                  mixtureCovars = self.sourceData[pltIndex].getParam(split[1], split[2], nodeId = 'ending')
+                  mixtureCovars = self.sourceData[pltIndex].getParam(
+                      split[1], split[2], nodeId='ending')
                   plotSettings.get('attributes', {}).pop('mixtureCovars')
                 else:
                   mixtureCovars = None
                 if 'mixtureMeans' in plotSettings.get('attributes', {}).keys():
                   split = self.__splitVariableNames('mixtureMeans', (pltIndex, 0))
-                  mixtureMeans = self.sourceData[pltIndex].getParam(split[1], split[2], nodeId = 'ending')
+                  mixtureMeans = self.sourceData[pltIndex].getParam(
+                      split[1], split[2], nodeId='ending')
                   plotSettings.get('attributes', {}).pop('mixtureMeans')
                 else:
                   mixtureMeans = None
@@ -1812,77 +2328,115 @@ class OutStreamPlot(OutStreamManager):
                     continue
                   myMembers = self.mixtureValues[pltIndex][1][0] == i
                   # self.make_ellipses(mixtureCovars, mixtureMeans, i, col)
-                  self.actPlot = plt.scatter(clusterDict[pltIndex]['mixtureValues'][myMembers, 0], clusterDict[pltIndex]['mixtureValues'][myMembers, 1], color = col, **dataMiningPlotOptions)
+                  self.actPlot = plt.scatter(
+                      clusterDict[pltIndex]['mixtureValues'][myMembers, 0],
+                      clusterDict[pltIndex]['mixtureValues'][myMembers, 1],
+                      color=col,
+                      **dataMiningPlotOptions)
               elif 'manifold' == plotSettings['SKLtype']:
-                if   self.dim == 2:
-                  manifoldValues = np.zeros(shape = (len(self.xValues[pltIndex][key][xIndex]), 2))
+                if self.dim == 2:
+                  manifoldValues = np.zeros(shape=(len(self.xValues[pltIndex][key][xIndex]), 2))
                 elif self.dim == 3:
-                  manifoldValues = np.zeros(shape = (len(self.xValues[pltIndex][key][xIndex]), 3))
+                  manifoldValues = np.zeros(shape=(len(self.xValues[pltIndex][key][xIndex]), 3))
                 manifoldValues[:, 0] = self.xValues[pltIndex][key][xIndex]
                 manifoldValues[:, 1] = self.yValues[pltIndex][key][yIndex]
                 if 'clusterLabels' in plotSettings.get('attributes', {}).keys():
                   split = self.__splitVariableNames('clusterLabels', (pltIndex, 0))
-                  clusterDict[pltIndex]['clusterLabels'] = self.sourceData[pltIndex].getParam(split[1], split[2], nodeId = 'ending')
+                  clusterDict[pltIndex]['clusterLabels'] = self.sourceData[pltIndex].getParam(
+                      split[1], split[2], nodeId='ending')
                   plotSettings.get('attributes', {}).pop('clusterLabels')
                 else:
                   clusterDict[pltIndex]['clusterLabels'] = None
                 if 'noClusters' in plotSettings.get('attributes', {}).keys():
-                  clusterDict[pltIndex]['noClusters'] = int(plotSettings.get('attributes', {})['noClusters'])
+                  clusterDict[pltIndex]['noClusters'] = int(
+                      plotSettings.get('attributes', {})['noClusters'])
                   plotSettings.get('attributes', {}).pop('noClusters')
                 else:
-                  clusterDict[pltIndex]['noClusters'] = np.amax(self.clusterValues[pltIndex][1][0]) + 1
+                  clusterDict[pltIndex]['noClusters'] = np.amax(
+                      self.clusterValues[pltIndex][1][0]) + 1
                 if self.clusterValues[pltIndex][1][0] is not None:
-                  if   self.dim == 2:
+                  if self.dim == 2:
                     for k, col in zip(range(clusterDict[pltIndex]['noClusters']), colors):
                       myMembers = self.clusterValues[pltIndex][1][0] == k
-                      self.actPlot = plt.scatter(manifoldValues[myMembers, 0], manifoldValues[myMembers, 1], color = col, **dataMiningPlotOptions)
+                      self.actPlot = plt.scatter(
+                          manifoldValues[myMembers, 0],
+                          manifoldValues[myMembers, 1],
+                          color=col,
+                          **dataMiningPlotOptions)
                   elif self.dim == 3:
                     for zIndex in range(len(self.zValues[pltIndex][key])):
                       manifoldValues[:, 2] = self.zValues[pltIndex][key][zIndex]
                     for k, col in zip(range(clusterDict[pltIndex]['noClusters']), colors):
                       myMembers = self.clusterValues[pltIndex][1][0] == k
-                      self.actPlot = self.plt3D.scatter(manifoldValues[myMembers, 0], manifoldValues[myMembers, 1], manifoldValues[myMembers, 2], color = col, **dataMiningPlotOptions)
+                      self.actPlot = self.plt3D.scatter(
+                          manifoldValues[myMembers, 0],
+                          manifoldValues[myMembers, 1],
+                          manifoldValues[myMembers, 2],
+                          color=col,
+                          **dataMiningPlotOptions)
                 else:
-                  if   self.dim == 2:
-                    self.actPlot = plt.scatter(manifoldValues[:, 0], manifoldValues[:, 1], **dataMiningPlotOptions)
+                  if self.dim == 2:
+                    self.actPlot = plt.scatter(manifoldValues[:, 0], manifoldValues[:, 1],
+                                               **dataMiningPlotOptions)
                   elif self.dim == 3:
                     for zIndex in range(len(self.zValues[pltIndex][key])):
                       manifoldValues[:, 2] = self.zValues[pltIndex][key][zIndex]
-                      self.actPlot = self.plt3D.scatter(manifoldValues[:, 0], manifoldValues[:, 1], manifoldValues[:, 2], **dataMiningPlotOptions)
+                      self.actPlot = self.plt3D.scatter(manifoldValues[:, 0], manifoldValues[:, 1],
+                                                        manifoldValues[:, 2],
+                                                        **dataMiningPlotOptions)
               elif 'decomposition' == plotSettings['SKLtype']:
-                if   self.dim == 2:
-                  decompositionValues = np.zeros(shape = (len(self.xValues[pltIndex][key][xIndex]), 2))
+                if self.dim == 2:
+                  decompositionValues = np.zeros(
+                      shape=(len(self.xValues[pltIndex][key][xIndex]), 2))
                 elif self.dim == 3:
-                  decompositionValues = np.zeros(shape = (len(self.xValues[pltIndex][key][xIndex]), 3))
+                  decompositionValues = np.zeros(
+                      shape=(len(self.xValues[pltIndex][key][xIndex]), 3))
                 decompositionValues[:, 0] = self.xValues[pltIndex][key][xIndex]
                 decompositionValues[:, 1] = self.yValues[pltIndex][key][yIndex]
                 if 'noClusters' in plotSettings.get('attributes', {}).keys():
-                  clusterDict[pltIndex]['noClusters'] = int(plotSettings.get('attributes', {})['noClusters'])
+                  clusterDict[pltIndex]['noClusters'] = int(
+                      plotSettings.get('attributes', {})['noClusters'])
                   plotSettings.get('attributes', {}).pop('noClusters')
                 else:
-                  clusterDict[pltIndex]['noClusters'] = np.amax(self.clusterValues[pltIndex][1][0]) + 1
+                  clusterDict[pltIndex]['noClusters'] = np.amax(
+                      self.clusterValues[pltIndex][1][0]) + 1
                 if self.clusterValues[pltIndex][1][0] is not None:
                   if self.dim == 2:
                     for k, col in zip(range(clusterDict[pltIndex]['noClusters']), colors):
                       myMembers = self.clusterValues[pltIndex][1][0] == k
-                      self.actPlot = plt.scatter(decompositionValues[myMembers, 0], decompositionValues[myMembers, 1], color = col, **dataMiningPlotOptions)
+                      self.actPlot = plt.scatter(
+                          decompositionValues[myMembers, 0],
+                          decompositionValues[myMembers, 1],
+                          color=col,
+                          **dataMiningPlotOptions)
                   elif self.dim == 3:
                     for zIndex in range(len(self.zValues[pltIndex][key])):
                       decompositionValues[:, 2] = self.zValues[pltIndex][key][zIndex]
                     for k, col in zip(range(clusterDict[pltIndex]['noClusters']), colors):
                       myMembers = self.clusterValues[pltIndex][1][0] == k
-                      self.actPlot = self.plt3D.scatter(decompositionValues[myMembers, 0], decompositionValues[myMembers, 1], decompositionValues[myMembers, 2], color = col, **dataMiningPlotOptions)
+                      self.actPlot = self.plt3D.scatter(
+                          decompositionValues[myMembers, 0],
+                          decompositionValues[myMembers, 1],
+                          decompositionValues[myMembers, 2],
+                          color=col,
+                          **dataMiningPlotOptions)
                 else:
                   # no ClusterLabels
                   if self.dim == 2:
-                    self.actPlot = plt.scatter(decompositionValues[:, 0], decompositionValues[:, 1], **dataMiningPlotOptions)
+                    self.actPlot = plt.scatter(decompositionValues[:, 0], decompositionValues[:, 1],
+                                               **dataMiningPlotOptions)
                   elif self.dim == 3:
                     for zIndex in range(len(self.zValues[pltIndex][key])):
                       decompositionValues[:, 2] = self.zValues[pltIndex][key][zIndex]
-                      self.actPlot = self.plt3D.scatter(decompositionValues[:, 0], decompositionValues[:, 1], decompositionValues[:, 2], **dataMiningPlotOptions)
+                      self.actPlot = self.plt3D.scatter(
+                          decompositionValues[:, 0], decompositionValues[:, 1],
+                          decompositionValues[:, 2], **dataMiningPlotOptions)
       else:
         # Let's try to "write" the code for the plot on the fly
-        self.raiseAWarning('Trying to create a non-predefined plot of type ' + self.outStreamTypes[pltIndex] + '. If this fails, please refer to the and/or the related matplotlib method specification.')
+        self.raiseAWarning(
+            'Trying to create a non-predefined plot of type ' + self.outStreamTypes[pltIndex] +
+            '. If this fails, please refer to the and/or the related matplotlib method specification.'
+        )
         kwargs = {}
         for kk in plotSettings:
           if kk != 'attributes' and kk != self.outStreamTypes[pltIndex]:
@@ -1897,7 +2451,11 @@ class OutStreamPlot(OutStreamManager):
             customFunctionCall = getattr(self.plt3D, self.outStreamTypes[pltIndex])
           self.actPlot = customFunctionCall(**kwargs)
         except AttributeError as ae:
-          self.raiseAnError(RuntimeError, '<' + str(ae) + '> -> in execution custom plot "' + self.outStreamTypes[pltIndex] + '" in Plot ' + self.name + '.\nSTREAM MANAGER: ERROR -> command has been called in the following way: ' + 'plt.' + self.outStreamTypes[pltIndex] + '(' + commandArgs + ')')
+          self.raiseAnError(
+              RuntimeError, '<' + str(ae) + '> -> in execution custom plot "' +
+              self.outStreamTypes[pltIndex] + '" in Plot ' + self.name +
+              '.\nSTREAM MANAGER: ERROR -> command has been called in the following way: ' +
+              'plt.' + self.outStreamTypes[pltIndex] + '(' + commandArgs + ')')
 
     if 'legend' in self.options['plotSettings']:
       plt.legend(**self.options['plotSettings']['legend'])
@@ -1908,7 +2466,7 @@ class OutStreamPlot(OutStreamManager):
     # self.plt3D.draw(self.fig.canvas.renderer)
 
     if 'screen' in self.destinations and displayAvailable:
-      if platform.system() in ['Linux','Windows']:
+      if platform.system() in ['Linux', 'Windows']:
         # XXX For some reason, this is required on Linux, but causes
         # OSX to fail.  Which is correct for windows has not been determined.
         def handle_close(event):
@@ -1919,6 +2477,7 @@ class OutStreamPlot(OutStreamManager):
           """
           self.fig.canvas.stop_event_loop()
           self.raiseAMessage('Closed Figure')
+
         self.fig.canvas.mpl_connect('close_event', handle_close)
       # self.plt.pause(1e-6)
       ## The following code is extracted from pyplot.pause without actually
@@ -1948,11 +2507,12 @@ class OutStreamPlot(OutStreamManager):
       if len(self.filename) > 0:
         name = self.filename
       else:
-        name = prefix + self.name + '_' + str(self.outStreamTypes).replace("'", "").replace("[", "").replace("]", "").replace(",", "-").replace(" ", "")
+        name = prefix + self.name + '_' + str(self.outStreamTypes).replace("'", "").replace(
+            "[", "").replace("]", "").replace(",", "-").replace(" ", "")
 
       if self.subDirectory is not None:
-        name = os.path.join(self.subDirectory,name)
+        name = os.path.join(self.subDirectory, name)
 
-      plt.savefig(name + '.' + fileType, format = fileType)
+      plt.savefig(name + '.' + fileType, format=fileType)
     if 'screen' not in self.destinations:
       plt.close()

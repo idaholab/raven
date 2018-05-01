@@ -18,8 +18,7 @@
 from __future__ import division, print_function, absolute_import
 # WARNING if you import unicode_literals here, we fail tests (e.g. framework.testFactorials).  This may be a future-proofing problem. 2015-04.
 import warnings
-warnings.simplefilter('default',DeprecationWarning)
-
+warnings.simplefilter('default', DeprecationWarning)
 
 #Do not import numpy or scipy or other libraries that are not
 # built into python.  Otherwise the import can fail, and since utils
@@ -34,11 +33,13 @@ import numpy
 import six
 from difflib import SequenceMatcher
 
+
 class Object(object):
   """
     Simple custom inheritance object.
   """
   pass
+
 
 #custom errors
 class NoMoreSamplesNeeded(GeneratorExit):
@@ -47,10 +48,12 @@ class NoMoreSamplesNeeded(GeneratorExit):
   """
   pass
 
+
 class byPass(object):
   """
     This is dummy class that is needed to emulate the "dataObject" resetData method
   """
+
   def __init__(self):
     self.name = ""
 
@@ -62,9 +65,11 @@ class byPass(object):
     """
     pass
 
+
 # ID separator that should be used cross the code when combined ids need to be assembled.
 # For example, when the "EnsembleModel" creates new  ``prefix`` ids for sub-models
 __idSeparator = "++"
+
 
 def identifyIfExternalModelExists(caller, moduleIn, workingDir):
   """
@@ -79,8 +84,8 @@ def identifyIfExternalModelExists(caller, moduleIn, workingDir):
     moduleToLoadString = moduleIn[:-3]
   else:
     moduleToLoadString = moduleIn
-  workingDirModule = os.path.abspath(os.path.join(workingDir,moduleToLoadString))
-  if os.path.exists(workingDirModule+".py"):
+  workingDirModule = os.path.abspath(os.path.join(workingDir, moduleToLoadString))
+  if os.path.exists(workingDirModule + ".py"):
     moduleToLoadString = workingDirModule
     path, filename = os.path.split(workingDirModule)
     os.sys.path.append(os.path.abspath(path))
@@ -91,13 +96,18 @@ def identifyIfExternalModelExists(caller, moduleIn, workingDir):
       if '~' in abspath:
         abspath = os.path.expanduser(abspath)
       if os.path.exists(abspath):
-        caller.raiseAWarning('file '+moduleToLoadString+' should be relative to working directory. Working directory: '+workingDir+' Module expected at '+abspath)
+        caller.raiseAWarning('file ' + moduleToLoadString +
+                             ' should be relative to working directory. Working directory: ' +
+                             workingDir + ' Module expected at ' + abspath)
         os.sys.path.append(abspath)
       else:
-        caller.raiseAnError(IOError,'The path provided for the' + caller.type + ' named '+ caller.name +' does not exist!!! Got: ' + abspath + ' and ' + workingDirModule)
+        caller.raiseAnError(IOError,
+                            'The path provided for the' + caller.type + ' named ' + caller.name +
+                            ' does not exist!!! Got: ' + abspath + ' and ' + workingDirModule)
   return moduleToLoadString, filename
 
-def checkIfUnknowElementsinList(referenceList,listToTest):
+
+def checkIfUnknowElementsinList(referenceList, listToTest):
   """
     Method to check if a list contains elements not contained in another
     @ In, referenceList, list, reference list
@@ -110,7 +120,8 @@ def checkIfUnknowElementsinList(referenceList,listToTest):
       unknownElements.append(elem)
   return unknownElements
 
-def checkIfPathAreAccessedByAnotherProgram(pathname, timelapse = 10.0):
+
+def checkIfPathAreAccessedByAnotherProgram(pathname, timelapse=10.0):
   """
     Method to check if a path (file or directory) is currently
     used by another program. It is based on accessing time...
@@ -123,21 +134,25 @@ def checkIfPathAreAccessedByAnotherProgram(pathname, timelapse = 10.0):
   import time
   mode = os.stat(pathname).st_mode
   if not (stat.S_ISREG(mode) or stat.S_ISDIR(mode)):
-    raise Exception(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag('ERROR') + '->  path '+pathname+ ' is neither a file nor a dir!')
+    raise Exception(
+        UreturnPrintTag('UTILITIES') + ': ' + UreturnPrintPostTag('ERROR') + '->  path ' +
+        pathname + ' is neither a file nor a dir!')
   boolReturn = abs(os.stat(pathname).st_mtime - time.time()) < timelapse
   return boolReturn
 
-def checkIfLockedRavenFileIsPresent(pathName,fileName="ravenLockedKey.raven"):
+
+def checkIfLockedRavenFileIsPresent(pathName, fileName="ravenLockedKey.raven"):
   """
     Method to check if a path (directory) contains an hidden raven file
     @ In, pathName, string, string containing the path
     @ In, fileName, string, optional, string containing the file name
     @ Out, filePresent, bool, True if it is present, False otherwise
   """
-  filePresent = os.path.isfile(os.path.join(pathName,fileName))
+  filePresent = os.path.isfile(os.path.join(pathName, fileName))
   if not filePresent:
-    open(os.path.join(pathName,fileName), 'w')
+    open(os.path.join(pathName, fileName), 'w')
   return filePresent
+
 
 def removeFile(pathAndFileName):
   """
@@ -148,7 +163,8 @@ def removeFile(pathAndFileName):
   if os.path.isfile(pathAndFileName):
     os.remove(pathAndFileName)
 
-def returnImportModuleString(obj,moduleOnly=False):
+
+def returnImportModuleString(obj, moduleOnly=False):
   """
     Method to return a list of strings that represent the
     modules on which the 'obj' depends on. It already implements
@@ -167,12 +183,13 @@ def returnImportModuleString(obj,moduleOnly=False):
         continue
     if key != value.__name__:
       if value.__name__.split(".")[-1] != key:
-        mods.append(str('import ' + value.__name__ + ' as '+ key))
+        mods.append(str('import ' + value.__name__ + ' as ' + key))
       else:
-        mods.append(str('from ' + '.'.join(value.__name__.split(".")[:-1]) + ' import '+ key))
+        mods.append(str('from ' + '.'.join(value.__name__.split(".")[:-1]) + ' import ' + key))
     else:
       mods.append(str(key))
   return mods
+
 
 def getPrintTagLenght():
   """
@@ -182,6 +199,7 @@ def getPrintTagLenght():
   """
   tagLenght = 25
   return tagLenght
+
 
 def UreturnPrintTag(intag):
   """
@@ -193,6 +211,7 @@ def UreturnPrintTag(intag):
   returnString = intag.ljust(getPrintTagLenght())[0:getPrintTagLenght()]
   return returnString
 
+
 def UreturnPrintPostTag(intag):
   """
     Method to return the a string formatted with respect to the length
@@ -200,8 +219,9 @@ def UreturnPrintPostTag(intag):
     @ In, intag, string, string that needs to be formatted
     @ Out, returnString, string, the formatted string
   """
-  returnString = intag.ljust(getPrintTagLenght()-15)[0:(getPrintTagLenght()-15)]
+  returnString = intag.ljust(getPrintTagLenght() - 15)[0:(getPrintTagLenght() - 15)]
   return returnString
+
 
 def convertMultipleToBytes(sizeString):
   """
@@ -210,17 +230,21 @@ def convertMultipleToBytes(sizeString):
     @ In, sizeString, string, string that needs to be converted in bytes
     @ Out, convertMultipleToBytes, integer, the number of bytes
   """
-  if   'mb' in sizeString:
-    return int(sizeString.replace("mb",""))*10**6
+  if 'mb' in sizeString:
+    return int(sizeString.replace("mb", "")) * 10**6
   elif 'kb' in sizeString:
-    return int(sizeString.replace("kb",""))*10**3
+    return int(sizeString.replace("kb", "")) * 10**3
   elif 'gb' in sizeString:
-    return int(sizeString.replace("gb",""))*10**9
+    return int(sizeString.replace("gb", "")) * 10**9
   else:
     try:
       return int(sizeString)
     except:
-      raise IOError(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag('ERROR') + '->  can not understand how to convert expression '+str(sizeString)+' to number of bytes. Accepted Mb,Gb,Kb (no case sentive)!')
+      raise IOError(
+          UreturnPrintTag('UTILITIES') + ': ' + UreturnPrintPostTag('ERROR') +
+          '->  can not understand how to convert expression ' + str(sizeString) +
+          ' to number of bytes. Accepted Mb,Gb,Kb (no case sentive)!')
+
 
 def stringsThatMeanTrue():
   """
@@ -228,8 +252,12 @@ def stringsThatMeanTrue():
     @ In, None
     @ Out, listOfStrings, list, list of strings that mean True in RAVEN
   """
-  listOfStrings = list(['yes','y','true','t','si','vero','dajie','oui','ja','yao','verum', 'evet', 'dogru', '1', 'on'])
+  listOfStrings = list([
+      'yes', 'y', 'true', 't', 'si', 'vero', 'dajie', 'oui', 'ja', 'yao', 'verum', 'evet', 'dogru',
+      '1', 'on'
+  ])
   return listOfStrings
+
 
 def stringsThatMeanFalse():
   """
@@ -237,8 +265,12 @@ def stringsThatMeanFalse():
     @ In, None
     @ Out, listOfStrings, list, list of strings that mean False in RAVEN
   """
-  listOfStrings = list(['no','n','false','f','nono','falso','nahh','non','nicht','bu','falsus', 'hayir', 'yanlis', '0', 'off'])
+  listOfStrings = list([
+      'no', 'n', 'false', 'f', 'nono', 'falso', 'nahh', 'non', 'nicht', 'bu', 'falsus', 'hayir',
+      'yanlis', '0', 'off'
+  ])
   return listOfStrings
+
 
 def stringsThatMeanSilent():
   """
@@ -246,8 +278,9 @@ def stringsThatMeanSilent():
     @ In, None
     @ Out, listOfStrings, list, list of strings that mean Silent in RAVEN
   """
-  listOfStrings = list(['0','silent','false','f','n','no','none'])
+  listOfStrings = list(['0', 'silent', 'false', 'f', 'n', 'no', 'none'])
   return listOfStrings
+
 
 def stringsThatMeanPartiallyVerbose():
   """
@@ -255,8 +288,9 @@ def stringsThatMeanPartiallyVerbose():
     @ In, None
     @ Out, listOfStrings, list, list of strings that mean Quiet in RAVEN
   """
-  listOfStrings = list(['1','quiet','some'])
+  listOfStrings = list(['1', 'quiet', 'some'])
   return listOfStrings
+
 
 def stringsThatMeanVerbose():
   """
@@ -264,8 +298,9 @@ def stringsThatMeanVerbose():
     @ In, None
     @ Out, listOfStrings, list, list of strings that mean Full Verbosity in RAVEN
   """
-  listOfStrings = list(['2','loud','true','t','y','yes','all'])
+  listOfStrings = list(['2', 'loud', 'true', 't', 'y', 'yes', 'all'])
   return listOfStrings
+
 
 def interpretBoolean(inArg):
   """
@@ -281,15 +316,20 @@ def interpretBoolean(inArg):
       return False
     else:
       return True
-  elif type(inArg).__name__ in ['str','bytes','unicode']:
+  elif type(inArg).__name__ in ['str', 'bytes', 'unicode']:
     if inArg.lower().strip() in stringsThatMeanTrue():
       return True
     elif inArg.lower().strip() in stringsThatMeanFalse():
       return False
     else:
-      raise Exception(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag("ERROR") + '-> can not convert string to boolean in method interpretBoolean!!!!')
+      raise Exception(
+          UreturnPrintTag('UTILITIES') + ': ' + UreturnPrintPostTag("ERROR") +
+          '-> can not convert string to boolean in method interpretBoolean!!!!')
   else:
-    raise Exception(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag("ERROR") + '-> type unknown in method interpretBoolean. Got' + type(inArg).__name__)
+    raise Exception(
+        UreturnPrintTag('UTILITIES') + ': ' + UreturnPrintPostTag("ERROR") +
+        '-> type unknown in method interpretBoolean. Got' + type(inArg).__name__)
+
 
 def isClose(f1, f2, relTolerance=1e-14, absTolerance=0.0):
   """
@@ -300,9 +340,10 @@ def isClose(f1, f2, relTolerance=1e-14, absTolerance=0.0):
     @ In, absTolerance, float, optional, absolute tolerance
     @ Out, isClose, bool, is it close enough?
   """
-  return abs(f1-f2) <= max(relTolerance * max(abs(f1), abs(f2)), absTolerance)
+  return abs(f1 - f2) <= max(relTolerance * max(abs(f1), abs(f2)), absTolerance)
 
-def compare(s1,s2,relTolerance = 1e-14):
+
+def compare(s1, s2, relTolerance=1e-14):
   """
     Method aimed to compare two strings. This method tries to convert the 2
     strings in float and uses an integer representation to compare them.
@@ -314,18 +355,19 @@ def compare(s1,s2,relTolerance = 1e-14):
     @ Out, response, bool, the boolean response (True if s1==s2, False otherwise)
   """
   w1, w2 = floatConversion(s1), floatConversion(s2)
-  if   type(w1) == type(w2) and type(w1) != float:
+  if type(w1) == type(w2) and type(w1) != float:
     return s1 == s2
   elif type(w1) == type(w2) and type(w1) == float:
     from utils import mathUtils
-    return mathUtils.compareFloats(w1,w2,relTolerance)
-  elif type(w1) != type(w2) and type(w1) in [float,int] and type(w2) in [float,int]:
+    return mathUtils.compareFloats(w1, w2, relTolerance)
+  elif type(w1) != type(w2) and type(w1) in [float, int] and type(w2) in [float, int]:
     w1, w2 = float(w1), float(w2)
-    return compare(w1,w2)
+    return compare(w1, w2)
   else:
     return (w1 == w2)
 
-def intConversion (s):
+
+def intConversion(s):
   """
     Method aimed to cast a string as integer. If the conversion is not possible,
     it returns None
@@ -334,10 +376,11 @@ def intConversion (s):
   """
   try:
     return int(s)
-  except (ValueError,TypeError) as e:
+  except (ValueError, TypeError) as e:
     return None
 
-def floatConversion (s):
+
+def floatConversion(s):
   """
     Method aimed to cast a string as float. If the conversion is not possible,
     it returns None
@@ -346,8 +389,9 @@ def floatConversion (s):
   """
   try:
     return float(s)
-  except (ValueError,TypeError) as e:
+  except (ValueError, TypeError) as e:
     return None
+
 
 def partialEval(s):
   """
@@ -365,6 +409,7 @@ def partialEval(s):
   else:
     return evalS
 
+
 def toString(s):
   """
     Method aimed to convert a string in type str
@@ -376,6 +421,7 @@ def toString(s):
   else:
     return s.decode()
 
+
 def toBytes(s):
   """
     Method aimed to convert a string in type bytes
@@ -384,10 +430,11 @@ def toBytes(s):
   """
   if type(s) == type(""):
     return s.encode()
-  elif type(s).__name__ in ['unicode','str','bytes']:
+  elif type(s).__name__ in ['unicode', 'str', 'bytes']:
     return bytes(s)
   else:
     return s
+
 
 def isString(s):
   """
@@ -396,6 +443,7 @@ def isString(s):
     @ Out, isString, bool, true if variable is a str or unicode.
   """
   return isinstance(s, six.string_types)
+
 
 def toBytesIterative(s):
   """
@@ -410,11 +458,12 @@ def toBytesIterative(s):
     if len(s.keys()) == 0:
       return None
     tempdict = {}
-    for key,value in s.items():
+    for key, value in s.items():
       tempdict[toBytes(key)] = toBytesIterative(value)
     return tempdict
   else:
     return toBytes(s)
+
 
 def toListFromNumpyOrC1array(array):
   """
@@ -429,6 +478,7 @@ def toListFromNumpyOrC1array(array):
     response = numpy.asarray(array).tolist()
   return response
 
+
 def toListFromNumpyOrC1arrayIterative(array):
   """
     Method aimed to convert all the string-compatible content of
@@ -442,11 +492,12 @@ def toListFromNumpyOrC1arrayIterative(array):
     if len(array.keys()) == 0:
       return None
     tempdict = {}
-    for key,value in array.items():
+    for key, value in array.items():
       tempdict[toBytes(key)] = toListFromNumpyOrC1arrayIterative(value)
     return tempdict
   else:
     return toBytes(array)
+
 
 def toStrish(s):
   """
@@ -461,7 +512,8 @@ def toStrish(s):
   else:
     return str(s)
 
-def keyIn(dictionary,key):
+
+def keyIn(dictionary, key):
   """
     Method that return the key or toBytes key if in, else returns None.
     Use like
@@ -482,6 +534,7 @@ def keyIn(dictionary,key):
     else:
       return None
 
+
 def first(c):
   """
     Method to return the first element of collections,
@@ -492,6 +545,7 @@ def first(c):
   """
   return next(iter(c))
 
+
 def iter_len(c):
   """
     Method to count the number of elements in an iterable.
@@ -500,7 +554,8 @@ def iter_len(c):
   """
   return sum(1 for _ in c)
 
-def importFromPath(filename, printImporting = True):
+
+def importFromPath(filename, printImporting=True):
   """
     Method to import a module from a given path
     @ In, filename, str, the full path of the module to import
@@ -508,7 +563,8 @@ def importFromPath(filename, printImporting = True):
     @ Out, importedModule, module, the imported module
   """
   if printImporting:
-    print('(            ) '+UreturnPrintTag('UTILS') + ': '+UreturnPrintPostTag('Message')+ '      -> importing module '+ filename)
+    print('(            ) ' + UreturnPrintTag('UTILS') + ': ' + UreturnPrintPostTag('Message') +
+          '      -> importing module ' + filename)
   import imp, os.path
   try:
     (path, name) = os.path.split(filename)
@@ -516,8 +572,11 @@ def importFromPath(filename, printImporting = True):
     (file, filename, data) = imp.find_module(name, [path])
     importedModule = imp.load_module(name, file, filename, data)
   except Exception as ae:
-    raise Exception('(            ) '+ UreturnPrintTag('UTILS') + ': '+UreturnPrintPostTag('ERROR')+ '-> importing module '+ filename + ' at '+path+os.sep+name+' failed with error '+str(ae))
+    raise Exception('(            ) ' + UreturnPrintTag('UTILS') + ': ' +
+                    UreturnPrintPostTag('ERROR') + '-> importing module ' + filename + ' at ' +
+                    path + os.sep + name + ' failed with error ' + str(ae))
   return importedModule
+
 
 def index(a, x):
   """
@@ -531,6 +590,7 @@ def index(a, x):
     return i
   return None
 
+
 def find_lt(a, x):
   """
     Method to Find rightmost value less than x in the list a (assumed to be sorted)
@@ -540,10 +600,11 @@ def find_lt(a, x):
   """
   i = bisect.bisect_left(a, x)
   if i:
-    return a[i-1],i-1
-  return None,None
+    return a[i - 1], i - 1
+  return None, None
 
-def find_le_index(a,x):
+
+def find_le_index(a, x):
   """
     Method to Find the index of the rightmost value less than or equal to x in the list a (assumed to be sorted)
     @ In, a, list, the list that needs to be inquired
@@ -555,6 +616,7 @@ def find_le_index(a,x):
     return i
   return None
 
+
 def find_le(a, x):
   """
     Method to Find the rightmost value less than or equal to x in the list a (assumed to be sorted)
@@ -564,8 +626,9 @@ def find_le(a, x):
   """
   i = bisect.bisect_right(a, x)
   if i:
-    return a[i-1],i-1
-  return None,None
+    return a[i - 1], i - 1
+  return None, None
+
 
 def find_gt(a, x):
   """
@@ -576,8 +639,9 @@ def find_gt(a, x):
   """
   i = bisect.bisect_right(a, x)
   if i != len(a):
-    return a[i],i
-  return None,None
+    return a[i], i
+  return None, None
+
 
 def find_ge(a, x):
   """
@@ -588,10 +652,11 @@ def find_ge(a, x):
   """
   i = bisect.bisect_left(a, x)
   if i != len(a):
-    return a[i],i
-  return None,None
+    return a[i], i
+  return None, None
 
-def getRelativeSortedListEntry(sortedList,value,tol=1e-15):
+
+def getRelativeSortedListEntry(sortedList, value, tol=1e-15):
   """
     !!WARNING!! This method expects "sortedList" to already be a sorted list of float values!
     There are faster methods if they are not floats, and this will NOT work at all on unsorted lists.
@@ -605,36 +670,37 @@ def getRelativeSortedListEntry(sortedList,value,tol=1e-15):
     @ Out, match_index, int, index of match in sortedList
     @ Out, match, float, matching float
   """
-  from utils.mathUtils import compareFloats #necessary to prevent errors at module load
-  index = bisect.bisect_left(sortedList,value)
+  from utils.mathUtils import compareFloats  #necessary to prevent errors at module load
+  index = bisect.bisect_left(sortedList, value)
   match_index = None
   match = None
   #if "value" is smallest value in list...
   if index == 0:
-    if len(sortedList)>0:
-    #check if current first matches
+    if len(sortedList) > 0:
+      #check if current first matches
       if compareFloats(sortedList[0], value, tol=tol):
         match = sortedList[0]
         match_index = index
   #if "value" is largest value in list...
-  elif index > len(sortedList)-1:
+  elif index > len(sortedList) - 1:
     #check if current last matches
     if compareFloats(sortedList[-1], value, tol=tol):
       match = sortedList[-1]
-      match_index = len(sortedList)-1
+      match_index = len(sortedList) - 1
   #if "value" is in the middle...
   else:
     #check both neighbors (left and right) for a match
-    for idx in [index-1, index]:
+    for idx in [index - 1, index]:
       if compareFloats(sortedList[idx], value, tol=tol):
         match = sortedList[idx]
         match_index = idx
   #if no match found, add it
   if match is None:
-    sortedList.insert(index,value)
+    sortedList.insert(index, value)
     match = value
     match_index = index
-  return sortedList,match_index,match
+  return sortedList, match_index, match
+
 
 # def metaclass_insert__getstate__(self):
 #   """
@@ -654,7 +720,8 @@ def getRelativeSortedListEntry(sortedList,value,tol=1e-15):
 #   self.__dict__.update(newstate)
 #   self.exist    = True
 
-def metaclass_insert(metaclass,*baseClasses):
+
+def metaclass_insert(metaclass, *baseClasses):
   """
     This allows a metaclass to be inserted as a base class.
     Metaclasses substitute in as a type(name,bases,namespace) function,
@@ -667,10 +734,11 @@ def metaclass_insert(metaclass,*baseClasses):
     @ In, baseClasses, args*, base classes
     @ Out, metaclass, class, the new metaclass
   """
-  namespace={}
-  return metaclass("NewMiddleClass",baseClasses,namespace)
+  namespace = {}
+  return metaclass("NewMiddleClass", baseClasses, namespace)
 
-def interpolateFunction(x,y,option,z=None,returnCoordinate=False):
+
+def interpolateFunction(x, y, option, z=None, returnCoordinate=False):
   """
     Method to interpolate 2D/3D points
     @ In, x, ndarray or cached_ndarray, the array of x coordinates
@@ -683,57 +751,79 @@ def interpolateFunction(x,y,option,z=None,returnCoordinate=False):
   if x.size <= 2:
     xi = x
   else:
-    xi = np.linspace(x.min(),x.max(),int(options['interpPointsX']))
+    xi = np.linspace(x.min(), x.max(), int(options['interpPointsX']))
   if z != None:
     if y.size <= 2:
       yi = y
     else:
-      yi = np.linspace(y.min(),y.max(),int(options['interpPointsY']))
+      yi = np.linspace(y.min(), y.max(), int(options['interpPointsY']))
     xig, yig = np.meshgrid(xi, yi)
     try:
-      if ['nearest','linear','cubic'].count(options['interpolationType']) > 0 or z.size <= 3:
+      if ['nearest', 'linear', 'cubic'].count(options['interpolationType']) > 0 or z.size <= 3:
         if options['interpolationType'] != 'nearest' and z.size > 3:
-          zi = griddata((x,y), z, (xi[None,:], yi[:,None]), method=options['interpolationType'])
+          zi = griddata((x, y), z, (xi[None, :], yi[:, None]), method=options['interpolationType'])
         else:
-          zi = griddata((x,y), z, (xi[None,:], yi[:,None]), method='nearest')
+          zi = griddata((x, y), z, (xi[None, :], yi[:, None]), method='nearest')
       else:
-        rbf = Rbf(x,y,z,function=str(str(options['interpolationType']).replace('Rbf', '')), epsilon=int(options.pop('epsilon',2)), smooth=float(options.pop('smooth',0.0)))
-        zi  = rbf(xig, yig)
+        rbf = Rbf(
+            x,
+            y,
+            z,
+            function=str(str(options['interpolationType']).replace('Rbf', '')),
+            epsilon=int(options.pop('epsilon', 2)),
+            smooth=float(options.pop('smooth', 0.0)))
+        zi = rbf(xig, yig)
     except Exception as ae:
       if 'interpolationTypeBackUp' in options.keys():
-        print(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag('Warning') + '->   The interpolation process failed with error : ' + str(ae) + '.The STREAM MANAGER will try to use the BackUp interpolation type '+ options['interpolationTypeBackUp'])
+        print(UreturnPrintTag('UTILITIES') + ': ' + UreturnPrintPostTag('Warning') +
+              '->   The interpolation process failed with error : ' + str(ae) +
+              '.The STREAM MANAGER will try to use the BackUp interpolation type ' +
+              options['interpolationTypeBackUp'])
         options['interpolationTypeBackUp'] = options.pop('interpolationTypeBackUp')
-        zi = interpolateFunction(x,y,z,options)
+        zi = interpolateFunction(x, y, z, options)
       else:
-        raise Exception(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag('ERROR') + '-> Interpolation failed with error: ' +  str(ae))
+        raise Exception(
+            UreturnPrintTag('UTILITIES') + ': ' + UreturnPrintPostTag('ERROR') +
+            '-> Interpolation failed with error: ' + str(ae))
     if returnCoordinate:
-      return xig,yig,zi
+      return xig, yig, zi
     else:
       return zi
   else:
     try:
-      if ['nearest','linear','cubic'].count(options['interpolationType']) > 0 or y.size <= 3:
+      if ['nearest', 'linear', 'cubic'].count(options['interpolationType']) > 0 or y.size <= 3:
         if options['interpolationType'] != 'nearest' and y.size > 3:
           yi = griddata((x), y, (xi[:]), method=options['interpolationType'])
         else:
           yi = griddata((x), y, (xi[:]), method='nearest')
       else:
         xig, yig = np.meshgrid(xi, yi)
-        rbf = Rbf(x, y,function=str(str(options['interpolationType']).replace('Rbf', '')),epsilon=int(options.pop('epsilon',2)), smooth=float(options.pop('smooth',0.0)))
-        yi  = rbf(xi)
+        rbf = Rbf(
+            x,
+            y,
+            function=str(str(options['interpolationType']).replace('Rbf', '')),
+            epsilon=int(options.pop('epsilon', 2)),
+            smooth=float(options.pop('smooth', 0.0)))
+        yi = rbf(xi)
     except Exception as ae:
       if 'interpolationTypeBackUp' in options.keys():
-        print(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag('Warning') + '->   The interpolation process failed with error : ' + str(ae) + '.The STREAM MANAGER will try to use the BackUp interpolation type '+ options['interpolationTypeBackUp'])
+        print(UreturnPrintTag('UTILITIES') + ': ' + UreturnPrintPostTag('Warning') +
+              '->   The interpolation process failed with error : ' + str(ae) +
+              '.The STREAM MANAGER will try to use the BackUp interpolation type ' +
+              options['interpolationTypeBackUp'])
         options['interpolationTypeBackUp'] = options.pop('interpolationTypeBackUp')
-        yi = interpolateFunction(x,y,options)
+        yi = interpolateFunction(x, y, options)
       else:
-        raise Exception(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag('ERROR') + '-> Interpolation failed with error: ' +  str(ae))
+        raise Exception(
+            UreturnPrintTag('UTILITIES') + ': ' + UreturnPrintPostTag('ERROR') +
+            '-> Interpolation failed with error: ' + str(ae))
     if returnCoordinate:
-      return xi,yi
+      return xi, yi
     else:
       return yi
 
-def line3DInterpolation(x,y,z,nPoints):
+
+def line3DInterpolation(x, y, z, nPoints):
   """
     Method to interpolate 3D points on a line
     @ In, x, ndarray or cached_ndarray, the array of x coordinates
@@ -743,10 +833,11 @@ def line3DInterpolation(x,y,z,nPoints):
     @ Out, i, ndarray or cached_ndarray or tuple, the interpolated values
   """
   options = copy.copy(option)
-  data = np.vstack((x,y,z))
-  tck , u= interpolate.splprep(data, s=1e-6, k=3)
-  new = interpolate.splev(np.linspace(0,1,nPoints), tck)
+  data = np.vstack((x, y, z))
+  tck, u = interpolate.splprep(data, s=1e-6, k=3)
+  new = interpolate.splev(np.linspace(0, 1, nPoints), tck)
   return new[0], new[1], new[2]
+
 
 class abstractstatic(staticmethod):
   """
@@ -761,6 +852,7 @@ class abstractstatic(staticmethod):
       def test():
         return 5
   """
+
   def __init__(self, function):
     """
       Constructor
@@ -769,7 +861,9 @@ class abstractstatic(staticmethod):
     """
     super(abstractstatic, self).__init__(function)
     function.__isabstractmethod__ = True
+
   __isabstractmethod__ = True
+
 
 def find_crow(framework_dir):
   """
@@ -783,19 +877,23 @@ def find_crow(framework_dir):
   except:
     ravenDir = os.path.dirname(framework_dir)
     #Add the module directory to the search path.
-    crowDirs = [os.path.join(ravenDir,"crow"),
-                os.path.join(os.path.dirname(ravenDir),"crow")]
+    crowDirs = [os.path.join(ravenDir, "crow"), os.path.join(os.path.dirname(ravenDir), "crow")]
     if "CROW_DIR" in os.environ:
-      crowDirs.insert(0,os.path.join(os.environ["CROW_DIR"]))
+      crowDirs.insert(0, os.path.join(os.environ["CROW_DIR"]))
     for crowDir in crowDirs:
-      pmoduleDir = os.path.join(crowDir,"install")
+      pmoduleDir = os.path.join(crowDir, "install")
       if os.path.exists(pmoduleDir):
         sys.path.append(pmoduleDir)
         return
     for crowDir in crowDirs:
-      if os.path.exists(os.path.join(crowDir,"tests")):
-        raise IOError(UreturnPrintTag('UTILS') + ': '+UreturnPrintPostTag('ERROR')+ ' -> Crow was found in '+crowDir+' but does not seem to be compiled')
-    raise IOError(UreturnPrintTag('UTILS') + ': '+UreturnPrintPostTag('ERROR')+ ' -> Crow has not been found. It location is supposed to be one of '+str(crowDirs))
+      if os.path.exists(os.path.join(crowDir, "tests")):
+        raise IOError(
+            UreturnPrintTag('UTILS') + ': ' + UreturnPrintPostTag('ERROR') +
+            ' -> Crow was found in ' + crowDir + ' but does not seem to be compiled')
+    raise IOError(
+        UreturnPrintTag('UTILS') + ': ' + UreturnPrintPostTag('ERROR') +
+        ' -> Crow has not been found. It location is supposed to be one of ' + str(crowDirs))
+
 
 def add_path(absolutepath):
   """
@@ -804,8 +902,11 @@ def add_path(absolutepath):
     @ Out, None
   """
   if not os.path.exists(absolutepath):
-    raise IOError(UreturnPrintTag('UTILS') + ': '+UreturnPrintPostTag('ERROR')+ ' -> "'+absolutepath+ '" directory has not been found!')
+    raise IOError(
+        UreturnPrintTag('UTILS') + ': ' + UreturnPrintPostTag('ERROR') + ' -> "' + absolutepath +
+        '" directory has not been found!')
   sys.path.append(absolutepath)
+
 
 def add_path_recursively(absoluteInitialPath):
   """
@@ -813,8 +914,9 @@ def add_path_recursively(absoluteInitialPath):
     @ In, absoluteInitialPath, string, the absolute path to add
     @ Out, None
   """
-  for dirr,_,_ in os.walk(absoluteInitialPath):
+  for dirr, _, _ in os.walk(absoluteInitialPath):
     add_path(dirr)
+
 
 def find_distribution1D():
   """
@@ -841,6 +943,7 @@ def find_distribution1D():
       import distribution1Dpy2
       return distribution1Dpy2
 
+
 def find_interpolationND():
   """
     Method to find the crow interpolationND module and return it.
@@ -866,16 +969,18 @@ def find_interpolationND():
       import interpolationNDpy2
       return interpolationNDpy2
 
-def printCsv(csv,*args):
+
+def printCsv(csv, *args):
   """
     Writes the values contained in args to a csv file specified by csv
     @ In, csv, File instance, an open file object to which we will be writing
     @ In, args, dict, an arbitrary collection of values to write to the file
     @ Out, None
   """
-  print(*args,file=csv,sep=',')
+  print(*args, file=csv, sep=',')
 
-def printCsvPart(csv,*args):
+
+def printCsvPart(csv, *args):
   """
     Writes the values contained in args to a csv file specified by csv appending a comma
     to the end to allow more data to be written to the line.
@@ -883,7 +988,8 @@ def printCsvPart(csv,*args):
     @ In, args, dict, an arbitrary collection of values to write to the file
     @ Out, None
   """
-  print(*args,file=csv,sep=',',end=',')
+  print(*args, file=csv, sep=',', end=',')
+
 
 def tryParse(text):
   """
@@ -913,6 +1019,7 @@ def tryParse(text):
     return True
   return value
 
+
 def makeDir(dirName):
   """
     Function that will attempt to create a directory. If the directory already
@@ -933,6 +1040,7 @@ def makeDir(dirName):
       ## error is still
       raise
 
+
 class pickleSafeSubprocessPopen(subprocess.Popen):
   """
     Subclass of subprocess.Popen used internally to prevent _handle member from being pickled.  On
@@ -941,6 +1049,7 @@ class pickleSafeSubprocessPopen(subprocess.Popen):
   # Only define these methods on Windows to override deep copy/pickle (member may not exist on other
   #   platforms.
   if platform.system() == 'Windows':
+
     def __getstate__(self):
       """
         Returns a dictionary of the object state for pickling/deep copying.  Omits member '_handle',
@@ -961,6 +1070,7 @@ class pickleSafeSubprocessPopen(subprocess.Popen):
       """
       self.__dict__ = d
       self._handle = None
+
 
 def removeDuplicates(objectList):
   """
@@ -986,7 +1096,8 @@ def removeDuplicates(objectList):
   uniqueObjectList = [x for x in objectList if not (x in seen or seen_add(x))]
   return uniqueObjectList
 
-def typeMatch(var,varTypeStr):
+
+def typeMatch(var, varTypeStr):
   """
     This method is aimed to check if a variable changed datatype
     @ In, var, python datatype, the first variable to compare
@@ -994,7 +1105,7 @@ def typeMatch(var,varTypeStr):
     @ Out, match, bool, is the datatype changed?
   """
   typeVar = type(var)
-  match = typeVar.__name__ == varTypeStr or typeVar.__module__+"."+typeVar.__name__ == varTypeStr
+  match = typeVar.__name__ == varTypeStr or typeVar.__module__ + "." + typeVar.__name__ == varTypeStr
   if not match:
     # check if the types start with the same root
     if len(typeVar.__name__) <= len(varTypeStr):
@@ -1005,7 +1116,8 @@ def typeMatch(var,varTypeStr):
         match = True
   return match
 
-def sizeMatch(var,sizeToCheck):
+
+def sizeMatch(var, sizeToCheck):
   """
     This method is aimed to check if a variable has an expected size
     @ In, var, python datatype, the first variable to compare
@@ -1018,7 +1130,7 @@ def sizeMatch(var,sizeToCheck):
   return sizeMatched
 
 
-def isASubset(setToTest,pileList):
+def isASubset(setToTest, pileList):
   """
     Check if setToTest is ordered subset of pileList in O(n)
     @ In, setToTest, list, set that needs to be tested
@@ -1038,6 +1150,7 @@ def isASubset(setToTest,pileList):
   else:
     return True
 
+
 def filterAllSubSets(listOfLists):
   """
     Given list of listOfLists, return new list of listOfLists without subsets
@@ -1045,9 +1158,10 @@ def filterAllSubSets(listOfLists):
     @ Out, setToTest, iterator, iterator over the list without subsets
   """
   for setToTest in listOfLists:
-    if not any(isASubset(setToTest, pileList) for pileList in listOfLists
-      if setToTest is not pileList):
+    if not any(
+        isASubset(setToTest, pileList) for pileList in listOfLists if setToTest is not pileList):
       yield setToTest
+
 
 def mergeDictionaries(*dictArgs):
   """
@@ -1061,11 +1175,15 @@ def mergeDictionaries(*dictArgs):
   for dictionary in dictArgs:
     overlap = set(dictionary.keys()).intersection(mergedDict.keys())
     if len(overlap):
-      raise IOError(UreturnPrintTag('UTILS') + ': '+UreturnPrintPostTag('ERROR')+ ' -> mergeDictionaries: the dictionaries being merged have the following overlapping keys: ' + ', '.join(overlap))
+      raise IOError(
+          UreturnPrintTag('UTILS') + ': ' + UreturnPrintPostTag('ERROR') +
+          ' -> mergeDictionaries: the dictionaries being merged have the following overlapping keys: '
+          + ', '.join(overlap))
     mergedDict.update(dictionary)
   return mergedDict
 
-def mergeSequences(seq1,seq2):
+
+def mergeSequences(seq1, seq2):
   """
     This method has been taken from "http://stackoverflow.com"
     It is aimed to merge two sequences (lists) into one preserving the order in the two lists
@@ -1077,10 +1195,10 @@ def mergeSequences(seq1,seq2):
     @ In, seq2, list, the second sequence to be merged
     @ Out, merged, list, the merged list of elements
   """
-  sm=SequenceMatcher(a=seq1,b=seq2)
+  sm = SequenceMatcher(a=seq1, b=seq2)
   merged = []
   for (op, start1, end1, start2, end2) in sm.get_opcodes():
-    if op == 'equal' or op=='delete':
+    if op == 'equal' or op == 'delete':
       #This range appears in both sequences, or only in the first one.
       merged += seq1[start1:end1]
     elif op == 'insert':
@@ -1091,6 +1209,7 @@ def mergeSequences(seq1,seq2):
       merged += seq1[start1:end1]
       merged += seq2[start2:end2]
   return merged
+
 
 def checkTypeRecursively(inObject):
   """
@@ -1109,6 +1228,7 @@ def checkTypeRecursively(inObject):
     pass
   return returnType
 
+
 def returnIdSeparator():
   """
     This method is aimed to return the ID separator that should be used cross the code when
@@ -1118,6 +1238,7 @@ def returnIdSeparator():
     @ Out, __idSeparator, string, the id separator
   """
   return __idSeparator
+
 
 def getAllSubclasses(cls):
   """

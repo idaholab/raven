@@ -20,7 +20,7 @@ Created on December 1, 2015
 from __future__ import division, print_function, unicode_literals, absolute_import
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
-warnings.simplefilter('default',DeprecationWarning)
+warnings.simplefilter('default', DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -34,28 +34,28 @@ from utils import utils
 #Internal Modules End--------------------------------------------------------------------------------
 
 __moduleInterfaceList = []
-startDir = os.path.join(os.path.dirname(__file__),'PostProcessorFunctions')
-for dirr,_,_ in os.walk(startDir):
-  __moduleInterfaceList.extend(glob(os.path.join(dirr,"*.py")))
+startDir = os.path.join(os.path.dirname(__file__), 'PostProcessorFunctions')
+for dirr, _, _ in os.walk(startDir):
+  __moduleInterfaceList.extend(glob(os.path.join(dirr, "*.py")))
   utils.add_path(dirr)
 __moduleImportedList = []
-
 '''
  Interfaced Post Processor
  Here all the Interfaced Post-Processors located in the raven/framework/PostProcessorFunctions folder are parsed and their instance is returned
 '''
 
-__base          = 'PostProcessor'
+__base = 'PostProcessor'
 __interFaceDict = {}
 for moduleIndex in range(len(__moduleInterfaceList)):
   if 'class' in open(__moduleInterfaceList[moduleIndex]).read():
-    __moduleImportedList.append(utils.importFromPath(__moduleInterfaceList[moduleIndex],False))
-    for key,modClass in inspect.getmembers(__moduleImportedList[-1], inspect.isclass):
+    __moduleImportedList.append(utils.importFromPath(__moduleInterfaceList[moduleIndex], False))
+    for key, modClass in inspect.getmembers(__moduleImportedList[-1], inspect.isclass):
       # in this way we can get all the class methods
       classMethods = [method for method in dir(modClass) if callable(getattr(modClass, method))]
       if 'run' in classMethods:
         __interFaceDict[key] = modClass
 __knownTypes = list(__interFaceDict.keys())
+
 
 def knownTypes():
   """
@@ -65,7 +65,8 @@ def knownTypes():
   """
   return __knownTypes
 
-def returnPostProcessorInterface(Type,caller):
+
+def returnPostProcessorInterface(Type, caller):
   """
     This function returns interfaced post-processors interface
     @ In, Type, string, type of Interfaced PostProcessor to run
@@ -73,5 +74,5 @@ def returnPostProcessorInterface(Type,caller):
     @ Out, __interFaceDict[Type](), dict, interfaced PostProcessor dictionary
   """
   if Type not in knownTypes():
-    caller.raiseAnError(NameError,'"%s" type unrecognized:' %__base,Type)
+    caller.raiseAnError(NameError, '"%s" type unrecognized:' % __base, Type)
   return __interFaceDict[Type](caller.messageHandler)

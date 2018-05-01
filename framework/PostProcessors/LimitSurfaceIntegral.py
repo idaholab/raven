@@ -16,7 +16,7 @@ Created on July 10, 2013
 
 @author: alfoa
 """
-from __future__ import division, print_function , unicode_literals, absolute_import
+from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default', DeprecationWarning)
 
@@ -34,6 +34,7 @@ from utils import InputData
 import LearningGate
 import Files
 import Runners
+
 #Internal Modules End--------------------------------------------------------------------------------
 
 
@@ -56,18 +57,23 @@ class LimitSurfaceIntegral(PostProcessor):
 
     LSIVariableInput = InputData.parameterInputFactory("variable")
     LSIVariableInput.addParam("name", InputData.StringType)
-    LSIDistributionInput = InputData.parameterInputFactory("distribution", contentType=InputData.StringType)
+    LSIDistributionInput = InputData.parameterInputFactory(
+        "distribution", contentType=InputData.StringType)
     LSIVariableInput.addSub(LSIDistributionInput)
-    LSILowerBoundInput = InputData.parameterInputFactory("lowerBound", contentType=InputData.FloatType)
+    LSILowerBoundInput = InputData.parameterInputFactory(
+        "lowerBound", contentType=InputData.FloatType)
     LSIVariableInput.addSub(LSILowerBoundInput)
-    LSIUpperBoundInput = InputData.parameterInputFactory("upperBound", contentType=InputData.FloatType)
+    LSIUpperBoundInput = InputData.parameterInputFactory(
+        "upperBound", contentType=InputData.FloatType)
     LSIVariableInput.addSub(LSIUpperBoundInput)
     inputSpecification.addSub(LSIVariableInput)
 
-    LSIToleranceInput = InputData.parameterInputFactory("tolerance", contentType=InputData.FloatType)
+    LSIToleranceInput = InputData.parameterInputFactory(
+        "tolerance", contentType=InputData.FloatType)
     inputSpecification.addSub(LSIToleranceInput)
 
-    LSIIntegralTypeInput = InputData.parameterInputFactory("integralType", contentType=InputData.StringType)
+    LSIIntegralTypeInput = InputData.parameterInputFactory(
+        "integralType", contentType=InputData.StringType)
     inputSpecification.addSub(LSIIntegralTypeInput)
 
     LSISeedInput = InputData.parameterInputFactory("seed", contentType=InputData.IntegerType)
@@ -76,7 +82,8 @@ class LimitSurfaceIntegral(PostProcessor):
     LSITargetInput = InputData.parameterInputFactory("target", contentType=InputData.StringType)
     inputSpecification.addSub(LSITargetInput)
 
-    LSIOutputNameInput = InputData.parameterInputFactory("outputName", contentType=InputData.StringType)
+    LSIOutputNameInput = InputData.parameterInputFactory(
+        "outputName", contentType=InputData.StringType)
     inputSpecification.addSub(LSIOutputNameInput)
 
     return inputSpecification
@@ -88,7 +95,8 @@ class LimitSurfaceIntegral(PostProcessor):
       @ Out, None
     """
     PostProcessor.__init__(self, messageHandler)
-    self.variableDist = {}  # dictionary created upon the .xml input file reading. It stores the distributions for each variable.
+    self.variableDist = {
+    }  # dictionary created upon the .xml input file reading. It stores the distributions for each variable.
     self.target = None  # target that defines the f(x1,x2,...,xn)
     self.tolerance = 0.0001  # integration tolerance
     self.integralType = 'montecarlo'  # integral type (which alg needs to be used). Either montecarlo or quadrature(quadrature not yet)
@@ -97,9 +105,11 @@ class LimitSurfaceIntegral(PostProcessor):
     self.lowerUpperDict = {}
     self.functionS = None
     self.computationPrefix = None
-    self.stat = BasicStatistics(self.messageHandler)  # instantiation of the 'BasicStatistics' processor, which is used to compute the pb given montecarlo evaluations
+    self.stat = BasicStatistics(
+        self.messageHandler
+    )  # instantiation of the 'BasicStatistics' processor, which is used to compute the pb given montecarlo evaluations
     self.stat.what = ['expectedValue']
-    self.addAssemblerObject('Distribution','n', newXmlFlg = False)
+    self.addAssemblerObject('Distribution', 'n', newXmlFlg=False)
     self.printTag = 'POSTPROCESSOR INTEGRAL'
 
   def _localWhatDoINeed(self):
@@ -109,7 +119,7 @@ class LimitSurfaceIntegral(PostProcessor):
       @ In, None
       @ Out, needDict, dict, list of objects needed
     """
-    needDict = {'Distributions':[]}
+    needDict = {'Distributions': []}
     for distName in self.variableDist.values():
       if distName != None:
         needDict['Distributions'].append((None, distName))
@@ -158,14 +168,23 @@ class LimitSurfaceIntegral(PostProcessor):
             self.variableDist[varName] = childChild.value
           elif childChild.getName() == 'lowerBound':
             if self.variableDist[varName] != None:
-              self.raiseAnError(NameError, 'you can not specify both distribution and lower/upper bounds nodes for variable ' + varName + ' !')
+              self.raiseAnError(
+                  NameError,
+                  'you can not specify both distribution and lower/upper bounds nodes for variable '
+                  + varName + ' !')
             self.lowerUpperDict[varName]['lowerBound'] = childChild.value
           elif childChild.getName() == 'upperBound':
             if self.variableDist[varName] != None:
-              self.raiseAnError(NameError, 'you can not specify both distribution and lower/upper bounds nodes for variable ' + varName + ' !')
+              self.raiseAnError(
+                  NameError,
+                  'you can not specify both distribution and lower/upper bounds nodes for variable '
+                  + varName + ' !')
             self.lowerUpperDict[varName]['upperBound'] = childChild.value
           else:
-            self.raiseAnError(NameError, 'invalid labels after the variable call. Only "distribution", "lowerBound" abd "upperBound" is accepted. tag: ' + child.getName())
+            self.raiseAnError(
+                NameError,
+                'invalid labels after the variable call. Only "distribution", "lowerBound" abd "upperBound" is accepted. tag: '
+                + child.getName())
       elif child.getName() == 'tolerance':
         try:
           self.tolerance = child.value
@@ -181,7 +200,8 @@ class LimitSurfaceIntegral(PostProcessor):
         except ValueError:
           self.raiseAnError(ValueError, 'seed can not be converted into a int value!')
         if self.integralType != 'montecarlo':
-          self.raiseAWarning('integral type is ' + self.integralType + ' but a seed has been inputted!!!')
+          self.raiseAWarning(
+              'integral type is ' + self.integralType + ' but a seed has been inputted!!!')
         else:
           np.random.seed(self.seed)
       elif child.getName() == 'target':
@@ -189,16 +209,25 @@ class LimitSurfaceIntegral(PostProcessor):
       elif child.getName() == 'outputName':
         self.computationPrefix = child.value
       else:
-        self.raiseAnError(NameError, 'invalid or missing labels after the variables call. Only "variable" is accepted.tag: ' + child.getName())
+        self.raiseAnError(
+            NameError,
+            'invalid or missing labels after the variables call. Only "variable" is accepted.tag: '
+            + child.getName())
       # if no distribution, we look for the integration domain in the input
       if varName != None:
         if self.variableDist[varName] == None:
-          if 'lowerBound' not in self.lowerUpperDict[varName].keys() or 'upperBound' not in self.lowerUpperDict[varName].keys():
-            self.raiseAnError(NameError, 'either a distribution name or lowerBound and upperBound need to be specified for variable ' + varName)
+          if 'lowerBound' not in self.lowerUpperDict[varName].keys(
+          ) or 'upperBound' not in self.lowerUpperDict[varName].keys():
+            self.raiseAnError(
+                NameError,
+                'either a distribution name or lowerBound and upperBound need to be specified for variable '
+                + varName)
     if self.computationPrefix == None:
-      self.raiseAnError(IOError,'The required XML node <outputName> has not been inputted!!!')
+      self.raiseAnError(IOError, 'The required XML node <outputName> has not been inputted!!!')
     if self.target == None:
-      self.raiseAWarning('integral target has not been provided. The postprocessor is going to take the last output it finds in the provided limitsurface!!!')
+      self.raiseAWarning(
+          'integral target has not been provided. The postprocessor is going to take the last output it finds in the provided limitsurface!!!'
+      )
 
   def initialize(self, runInfo, inputs, initDict):
     """
@@ -210,9 +239,19 @@ class LimitSurfaceIntegral(PostProcessor):
     """
     self.inputToInternal(inputs)
     if self.integralType in ['montecarlo']:
-      self.stat.toDo = {'expectedValue':[{'targets':set([self.target]), 'prefix':self.computationPrefix}]}
+      self.stat.toDo = {
+          'expectedValue': [{
+              'targets': set([self.target]),
+              'prefix': self.computationPrefix
+          }]
+      }
       self.stat.initialize(runInfo, inputs, initDict)
-    self.functionS = LearningGate.returnInstance('SupervisedGate','SciKitLearn', self, **{'SKLtype':'neighbors|KNeighborsClassifier', 'Features':','.join(list(self.variableDist.keys())), 'Target':self.target})
+    self.functionS = LearningGate.returnInstance(
+        'SupervisedGate', 'SciKitLearn', self, **{
+            'SKLtype': 'neighbors|KNeighborsClassifier',
+            'Features': ','.join(list(self.variableDist.keys())),
+            'Target': self.target
+        })
     self.functionS.train(self.matrixDict)
     self.raiseADebug('DATA SET MATRIX:')
     self.raiseADebug(self.matrixDict)
@@ -226,22 +265,29 @@ class LimitSurfaceIntegral(PostProcessor):
      @ Out, None
     """
     if len(currentInput) > 1:
-      self.raiseAnError(IOError,"This PostProcessor can accept only a single input! Got: "+ str(len(currentInput))+"!")
+      self.raiseAnError(
+          IOError,
+          "This PostProcessor can accept only a single input! Got: " + str(len(currentInput)) + "!")
     item = currentInput[0]
     if item.type == 'PointSet':
       if not set(item.getVars('input')) == set(self.variableDist.keys()):
-        self.raiseAnError(IOError, 'The variables inputted and the features in the input PointSet ' + item.name + 'do not match!!!')
+        self.raiseAnError(IOError,
+                          'The variables inputted and the features in the input PointSet ' +
+                          item.name + 'do not match!!!')
       outputKeys = item.getVars('output')
       if self.target is None:
         self.target = utils.first(outputKeys)
       elif self.target not in outputKeys:
-        self.raiseAnError(IOError, 'The target ' + self.target + 'is not present among the outputs of the PointSet ' + item.name)
+        self.raiseAnError(IOError, 'The target ' + self.target +
+                          'is not present among the outputs of the PointSet ' + item.name)
       # construct matrix
       dataSet = item.asDataset()
       self.matrixDict = {varName: dataSet[varName].values for varName in self.variableDist}
       responseArray = dataSet[self.target].values
       if len(np.unique(responseArray)) != 2:
-        self.raiseAnError(IOError, 'The target ' + self.target + ' needs to be a classifier output (-1 +1 or 0 +1)!')
+        self.raiseAnError(
+            IOError,
+            'The target ' + self.target + ' needs to be a classifier output (-1 +1 or 0 +1)!')
       responseArray[responseArray == -1] = 0.0
       self.matrixDict[self.target] = responseArray
     else:
@@ -256,15 +302,22 @@ class LimitSurfaceIntegral(PostProcessor):
     pb = None
     if self.integralType == 'montecarlo':
       tempDict = {}
-      randomMatrix = np.random.rand(int(math.ceil(1.0 / self.tolerance**2)), len(self.variableDist.keys()))
+      randomMatrix = np.random.rand(
+          int(math.ceil(1.0 / self.tolerance**2)), len(self.variableDist.keys()))
       for index, varName in enumerate(self.variableDist.keys()):
         if self.variableDist[varName] == None:
-          randomMatrix[:, index] = randomMatrix[:, index] * (self.lowerUpperDict[varName]['upperBound'] - self.lowerUpperDict[varName]['lowerBound']) + self.lowerUpperDict[varName]['lowerBound']
+          randomMatrix[:, index] = randomMatrix[:, index] * (
+              self.lowerUpperDict[varName]['upperBound'] - self.lowerUpperDict[varName]
+              ['lowerBound']) + self.lowerUpperDict[varName]['lowerBound']
         else:
           f = np.vectorize(self.variableDist[varName].ppf, otypes=[np.float])
           randomMatrix[:, index] = f(randomMatrix[:, index])
         tempDict[varName] = randomMatrix[:, index]
-      pb = self.stat.run({'targets':{self.target:xarray.DataArray(self.functionS.evaluate(tempDict)[self.target])}})[self.computationPrefix +"_"+self.target]
+      pb = self.stat.run({
+          'targets': {
+              self.target: xarray.DataArray(self.functionS.evaluate(tempDict)[self.target])
+          }
+      })[self.computationPrefix + "_" + self.target]
     else:
       self.raiseAnError(NotImplemented, "quadrature not yet implemented")
     return pb
@@ -278,7 +331,8 @@ class LimitSurfaceIntegral(PostProcessor):
     """
     evaluation = finishedJob.getEvaluation()
     if isinstance(evaluation, Runners.Error):
-      self.raiseAnError(RuntimeError, "No available output to collect (run possibly not finished yet)")
+      self.raiseAnError(RuntimeError,
+                        "No available output to collect (run possibly not finished yet)")
     pb = evaluation[1]
     lms = evaluation[0][0]
     if output.type == 'PointSet':
@@ -286,7 +340,7 @@ class LimitSurfaceIntegral(PostProcessor):
       dataSet = lms.asDataset()
       loadDict = {key: dataSet[key].values for key in lms.getVars()}
       loadDict[self.computationPrefix] = np.full(len(lms), pb)
-      output.load(loadDict,'dict')
+      output.load(loadDict, 'dict')
     # NB I keep this commented part in case we want to keep the possibility to have outputfiles for PP
     #elif isinstance(output,Files.File):
     #  headers = lms.getParaKeys('inputs') + lms.getParaKeys('outputs')

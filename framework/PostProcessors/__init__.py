@@ -58,19 +58,11 @@ from .Factory import returnInstance
 from .Factory import returnClass
 
 # We should not really need this as we do not use wildcard imports
-__all__ = ['PostProcessor',
-           'BasicStatistics',
-           'ComparisonStatistics',
-           'ExternalPostProcessor',
-           'ImportanceRank',
-           'InterfacedPostProcessor',
-           'LimitSurface',
-           'LimitSurfaceIntegral',
-           'SafestPoint',
-           'TopologicalDecomposition',
-           'DataMining',
-           'Metric',
-           'CrossValidation',
-           'ETImporter'] + additionalModules
+__all__ = [
+    'PostProcessor', 'BasicStatistics', 'ComparisonStatistics', 'ExternalPostProcessor',
+    'ImportanceRank', 'InterfacedPostProcessor', 'LimitSurface', 'LimitSurfaceIntegral',
+    'SafestPoint', 'TopologicalDecomposition', 'DataMining', 'Metric', 'CrossValidation',
+    'ETImporter'
+] + additionalModules
 
 #           'RavenOutput', # deprecated for now

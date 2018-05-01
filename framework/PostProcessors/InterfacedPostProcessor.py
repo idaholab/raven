@@ -16,7 +16,7 @@ Created on July 10, 2013
 
 @author: alfoa
 """
-from __future__ import division, print_function , unicode_literals, absolute_import
+from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default', DeprecationWarning)
 
@@ -51,7 +51,9 @@ import Models
 import unSupervisedLearning
 from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase
 import Runners
+
 #Internal Modules End--------------------------------------------------------------------------------
+
 
 class InterfacedPostProcessor(PostProcessor):
   """
@@ -113,17 +115,21 @@ class InterfacedPostProcessor(PostProcessor):
     for child in xmlNode:
       if child.tag == 'method':
         self.methodToRun = child.text
-    self.postProcessor = InterfacedPostProcessor.PostProcessorInterfaces.returnPostProcessorInterface(self.methodToRun,self)
-    if not isinstance(self.postProcessor,PostProcessorInterfaceBase):
-      self.raiseAnError(IOError, 'InterfacedPostProcessor Post-Processor '+ self.name +' : not correctly coded; it must inherit the PostProcessorInterfaceBase class')
+    self.postProcessor = InterfacedPostProcessor.PostProcessorInterfaces.returnPostProcessorInterface(
+        self.methodToRun, self)
+    if not isinstance(self.postProcessor, PostProcessorInterfaceBase):
+      self.raiseAnError(
+          IOError, 'InterfacedPostProcessor Post-Processor ' + self.name +
+          ' : not correctly coded; it must inherit the PostProcessorInterfaceBase class')
 
     self.postProcessor.initialize()
     self.postProcessor.readMoreXML(xmlNode)
-    if self.postProcessor.inputFormat not in set(['HistorySet','PointSet']):
-      self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : self.inputFormat not correctly initialized')
-    if self.postProcessor.outputFormat not in set(['HistorySet','PointSet']):
-      self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : self.outputFormat not correctly initialized')
-
+    if self.postProcessor.inputFormat not in set(['HistorySet', 'PointSet']):
+      self.raiseAnError(IOError, 'InterfacedPostProcessor Post-Processor ' + self.name +
+                        ' : self.inputFormat not correctly initialized')
+    if self.postProcessor.outputFormat not in set(['HistorySet', 'PointSet']):
+      self.raiseAnError(IOError, 'InterfacedPostProcessor Post-Processor ' + self.name +
+                        ' : self.outputFormat not correctly initialized')
 
   def run(self, inputIn):
     """
@@ -131,11 +137,13 @@ class InterfacedPostProcessor(PostProcessor):
       @ In, inputIn, dict, dictionary of data to process
       @ Out, outputDic, dict, dict containing the post-processed results
     """
-    if self.postProcessor.inputFormat not in set(['HistorySet','PointSet']):
-      self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : self.inputFormat not correctly initialized')
-    if self.postProcessor.outputFormat not in set(['HistorySet','PointSet']):
-      self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : self.outputFormat not correctly initialized')
-    inputDic= self.inputToInternal(inputIn)
+    if self.postProcessor.inputFormat not in set(['HistorySet', 'PointSet']):
+      self.raiseAnError(IOError, 'InterfacedPostProcessor Post-Processor ' + self.name +
+                        ' : self.inputFormat not correctly initialized')
+    if self.postProcessor.outputFormat not in set(['HistorySet', 'PointSet']):
+      self.raiseAnError(IOError, 'InterfacedPostProcessor Post-Processor ' + self.name +
+                        ' : self.outputFormat not correctly initialized')
+    inputDic = self.inputToInternal(inputIn)
     outputDic = self.postProcessor.run(inputDic)
     return outputDic
 
@@ -143,7 +151,7 @@ class InterfacedPostProcessor(PostProcessor):
     outputDic = self.postProcessor._inverse(inputIn)
     return outputDic
 
-  def inputToInternal(self,inputs):
+  def inputToInternal(self, inputs):
     """
       Function to convert the received input into a format this object can
       understand
@@ -156,23 +164,24 @@ class InterfacedPostProcessor(PostProcessor):
         return [inp]
       else:
         inputDictTemp = {}
-        inputDictTemp['inpVars']   = inp.getVars('input')
-        inputDictTemp['outVars']   = inp.getVars('output')
-        inputDictTemp['data']      = inp.asDataset(outType='dict')['data']
-        inputDictTemp['dims']      = inp.getDimensions('output')
-        inputDictTemp['type']      = inp.type
+        inputDictTemp['inpVars'] = inp.getVars('input')
+        inputDictTemp['outVars'] = inp.getVars('output')
+        inputDictTemp['data'] = inp.asDataset(outType='dict')['data']
+        inputDictTemp['dims'] = inp.getDimensions('output')
+        inputDictTemp['type'] = inp.type
         inputDictTemp['numberRealizations'] = len(inp)
         self.metaKeys = inp.getVars('meta')
         for key in self.metaKeys:
           try:
-            inputDictTemp['data'][key]  = inp.getMeta(pointwise=True,general=True)[key].values
+            inputDictTemp['data'][key] = inp.getMeta(pointwise=True, general=True)[key].values
           except:
-            self.raiseADebug('The following key: ' + str(key) + ' has not passed to the Interfaced PP')
-        inputDictTemp['name']     = inp.name
+            self.raiseADebug(
+                'The following key: ' + str(key) + ' has not passed to the Interfaced PP')
+        inputDictTemp['name'] = inp.name
         inputDict.append(inputDictTemp)
     return inputDict
 
-  def returnFormat(self,location):
+  def returnFormat(self, location):
     """
       Function that returns the format of either input or output
       @ In, location, str, list of dataObjects handed to the post-processor
@@ -193,6 +202,7 @@ class InterfacedPostProcessor(PostProcessor):
     """
     evaluations = finishedJob.getEvaluation()
     if isinstance(evaluations, Runners.Error):
-      self.raiseAnError(RuntimeError, "No available output to collect (run possibly not finished yet)")
+      self.raiseAnError(RuntimeError,
+                        "No available output to collect (run possibly not finished yet)")
     evaluation = evaluations[1]
     output.load(evaluation['data'], style='dict', dims=evaluation['dims'])

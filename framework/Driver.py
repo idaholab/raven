@@ -23,7 +23,7 @@ This is the Driver of RAVEN
 #For future compatibility with Python 3
 from __future__ import division, print_function, absolute_import
 import warnings
-warnings.simplefilter('default',DeprecationWarning)
+warnings.simplefilter('default', DeprecationWarning)
 #End compatibility block for Python 3
 
 #External Modules--------------------begin
@@ -36,20 +36,22 @@ import traceback
 #External Modules--------------------end
 
 #warning: this needs to be before importing h5py
-os.environ["MV2_ENABLE_AFFINITY"]="0"
+os.environ["MV2_ENABLE_AFFINITY"] = "0"
 
 frameworkDir = os.path.dirname(os.path.abspath(__file__))
 from utils import utils
 import utils.TreeStructure as TS
 utils.find_crow(frameworkDir)
-utils.add_path_recursively(os.path.join(frameworkDir,'contrib','pp'))
-utils.add_path(os.path.join(frameworkDir,'contrib','AMSC'))
-utils.add_path(os.path.join(frameworkDir,'contrib'))
+utils.add_path_recursively(os.path.join(frameworkDir, 'contrib', 'pp'))
+utils.add_path(os.path.join(frameworkDir, 'contrib', 'AMSC'))
+utils.add_path(os.path.join(frameworkDir, 'contrib'))
 #Internal Modules
 from Simulation import Simulation
 from Application import __QtAvailable
 from Interaction import Interaction
+
 #Internal Modules
+
 
 #------------------------------------------------------------- Driver
 def printStatement():
@@ -74,6 +76,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
   """)
 
+
 def printLogo():
   """
     Method to print a RAVEN logo
@@ -95,6 +98,7 @@ def printLogo():
              ''``
     """)
 
+
 def checkVersions():
   """
     Method to check if versions of modules are new enough. Will call sys.exit
@@ -102,10 +106,10 @@ def checkVersions():
     @ In, None
     @ Out, None
   """
-  sys.path.append(os.path.join(os.path.dirname(frameworkDir),"scripts","TestHarness","testers"))
+  sys.path.append(os.path.join(os.path.dirname(frameworkDir), "scripts", "TestHarness", "testers"))
   import RavenUtils
-  sys.path.pop() #remove testers path
-  missing,outOfRange,notQA = RavenUtils.checkForMissingModules(False)
+  sys.path.pop()  #remove testers path
+  missing, outOfRange, notQA = RavenUtils.checkForMissingModules(False)
   if len(missing) + len(outOfRange) > 0 and RavenUtils.checkVersions():
     print("ERROR: too old, too new, or missing raven libraries, not running:")
     for error in missing + outOfRange + notQA:
@@ -117,6 +121,7 @@ def checkVersions():
       for warning in notQA + missing + outOfRange:
         print(warning)
 
+
 if __name__ == '__main__':
   """This is the main driver for the RAVEN framework"""
   # Retrieve the framework directory path and working dir
@@ -126,7 +131,7 @@ if __name__ == '__main__':
 
   checkVersions()
 
-  verbosity      = 'all'
+  verbosity = 'all'
   interfaceCheck = False
   interactive = Interaction.No
   workingDir = os.getcwd()
@@ -138,7 +143,7 @@ if __name__ == '__main__':
   itemsToRemove = []
   for item in sys.argv:
     # I don't think these do anything.  - talbpaul, 2017-10
-    if item.lower() in ['silent','quiet','all']:
+    if item.lower() in ['silent', 'quiet', 'all']:
       verbosity = item.lower()
       itemsToRemove.append(item)
     elif item.lower() == 'interfacecheck':
@@ -170,16 +175,16 @@ if __name__ == '__main__':
   simulation = Simulation(frameworkDir, verbosity=verbosity, interactive=interactive)
 
   #If a configuration file exists, read it in
-  configFile = os.path.join(os.path.expanduser("~"),".raven","default_runinfo.xml")
+  configFile = os.path.join(os.path.expanduser("~"), ".raven", "default_runinfo.xml")
   if os.path.exists(configFile):
     tree = ET.parse(configFile)
     root = tree.getroot()
 
     if root.tag == 'Simulation' and [x.tag for x in root] == ["RunInfo"]:
-      simulation.XMLread(root,runInfoSkip=set(["totNumCoresUsed"]),xmlFilename=configFile)
+      simulation.XMLread(root, runInfoSkip=set(["totNumCoresUsed"]), xmlFilename=configFile)
     else:
-      e=IOError('DRIVER',str(configFile)+' should only have Simulation and inside it RunInfo')
-      print('\nERROR! In Driver,',e,'\n')
+      e = IOError('DRIVER', str(configFile) + ' should only have Simulation and inside it RunInfo')
+      print('\nERROR! In Driver,', e, '\n')
       sys.exit(1)
 
   # Find the XML input file
@@ -193,7 +198,7 @@ if __name__ == '__main__':
 
   for i in range(len(inputFiles)):
     if not os.path.isabs(inputFiles[i]):
-      inputFiles[i] = os.path.join(workingDir,inputFiles[i])
+      inputFiles[i] = os.path.join(workingDir, inputFiles[i])
 
   simulation.setInputFiles(inputFiles)
   #Parse the input
@@ -202,27 +207,27 @@ if __name__ == '__main__':
   #  the developer or user might be obfuscated.
   for inputFile in inputFiles:
     try:
-      tree = TS.parse(open(inputFile,'r'))
+      tree = TS.parse(open(inputFile, 'r'))
     except TS.InputParsingError as e:
-      print('\nInput Parsing error!',e,'\n')
+      print('\nInput Parsing error!', e, '\n')
       sys.exit(1)
 
     #except?  riseanIOError('not possible to parse (xml based) the input file '+inputFile)
-    if verbosity=='debug':
-      print('DRIVER','opened file '+inputFile)
+    if verbosity == 'debug':
+      print('DRIVER', 'opened file ' + inputFile)
 
     root = tree.getroot()
     if root.tag != 'Simulation':
-      e=IOError('The outermost block of the input file '+inputFile+' it is not Simulation')
-      print('\nInput XML Error!',e,'\n')
+      e = IOError('The outermost block of the input file ' + inputFile + ' it is not Simulation')
+      print('\nInput XML Error!', e, '\n')
       sys.exit(1)
 
     # call the function to load the external xml files into the input tree
     cwd = os.path.dirname(os.path.abspath(inputFile))
-    simulation.XMLpreprocess(root,cwd)
+    simulation.XMLpreprocess(root, cwd)
     #generate all the components of the simulation
     #Call the function to read and construct each single module of the simulation
-    simulation.XMLread(root,runInfoSkip=set(["DefaultInputFile"]),xmlFilename=inputFile)
+    simulation.XMLread(root, runInfoSkip=set(["DefaultInputFile"]), xmlFilename=inputFile)
 
   def raven():
     """
@@ -259,7 +264,7 @@ if __name__ == '__main__':
       ## complete, thus ignoring any kill signals until after it has completed
       # ravenThread.join()
 
-      waitTime = 0.1 ## in seconds
+      waitTime = 0.1  ## in seconds
 
       ## So, in order to live wait for ravenThread, we need a spinlock that will
       ## allow us to accept keyboard input.
@@ -272,10 +277,10 @@ if __name__ == '__main__':
     except KeyboardInterrupt:
       if ravenThread.isAlive():
         traceback.print_stack(sys._current_frames()[ravenThread.ident])
-      print ('\n\n! Received keyboard interrupt, exiting RAVEN.\n\n')
+      print('\n\n! Received keyboard interrupt, exiting RAVEN.\n\n')
     except SystemExit:
       if ravenThread.isAlive():
         traceback.print_stack(sys._current_frames()[ravenThread.ident])
-      print ('\n\n! Exit called, exiting RAVEN.\n\n')
+      print('\n\n! Exit called, exiting RAVEN.\n\n')
   else:
     raven()

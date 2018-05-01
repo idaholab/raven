@@ -18,7 +18,7 @@ Created on Jan 28, 2015
 """
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
-warnings.simplefilter('default',DeprecationWarning)
+warnings.simplefilter('default', DeprecationWarning)
 #External Modules------------------------------------------------------------------------------------
 import abc
 import os
@@ -26,9 +26,11 @@ import os
 
 #Internal Modules------------------------------------------------------------------------------------
 from utils import utils
+
 #Internal Modules End--------------------------------------------------------------------------------
 
-class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
+
+class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta, object)):
   """
   Code Interface base class. This class should be the base class for all the code interfaces.
   In this way some methods are forced to be implemented and some automatic checking features
@@ -37,6 +39,7 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
         of a newer code interface can decide to avoid to inherit from this class if he does not want
         to exploit the automatic checking of the code interface's functionalities
   """
+
   def __init__(self):
     """
       Constructor
@@ -45,7 +48,7 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
     """
     self.inputExtensions = []
 
-  def genCommand(self,inputFiles,executable,flags=None, fileArgs=None, preExec=None):
+  def genCommand(self, inputFiles, executable, flags=None, fileArgs=None, preExec=None):
     """
       This method is used to retrieve the command (in tuple format) needed to launch the Code.
       This method checks a boolean environment variable called 'RAVENinterfaceCheck':
@@ -59,16 +62,18 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
       @ Out, returnCommand, tuple, tuple containing the generated command. returnCommand[0] is the command to run the code (string), returnCommand[1] is the name of the output root
     """
     if preExec is None:
-      subcodeCommand,outputfileroot = self.generateCommand(inputFiles,executable,clargs=flags,fargs=fileArgs)
+      subcodeCommand, outputfileroot = self.generateCommand(
+          inputFiles, executable, clargs=flags, fargs=fileArgs)
     else:
-      subcodeCommand,outputfileroot = self.generateCommand(inputFiles,executable,clargs=flags,fargs=fileArgs,preExec=preExec)
+      subcodeCommand, outputfileroot = self.generateCommand(
+          inputFiles, executable, clargs=flags, fargs=fileArgs, preExec=preExec)
 
-    if os.environ.get('RAVENinterfaceCheck','False').lower() in utils.stringsThatMeanTrue():
-      return [('parallel','')],outputfileroot
-    returnCommand = subcodeCommand,outputfileroot
+    if os.environ.get('RAVENinterfaceCheck', 'False').lower() in utils.stringsThatMeanTrue():
+      return [('parallel', '')], outputfileroot
+    returnCommand = subcodeCommand, outputfileroot
     return returnCommand
 
-  def readMoreXML(self,xmlNode):
+  def readMoreXML(self, xmlNode):
     """
       Function to read the portion of the xml input that belongs to this class and
       initialize some members based on inputs.
@@ -77,7 +82,7 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
     """
     self._readMoreXML(xmlNode)
 
-  def _readMoreXML(self,xmlNode):
+  def _readMoreXML(self, xmlNode):
     """
       Function to read the portion of the xml input that belongs to this specialized class and
       initialize some members based on inputs. This can be overloaded in specialized code interface in order
@@ -88,7 +93,7 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
     pass
 
   @abc.abstractmethod
-  def generateCommand(self,inputFiles,executable,clargs=None,fargs=None, preExec=None):
+  def generateCommand(self, inputFiles, executable, clargs=None, fargs=None, preExec=None):
     """
       This method is used to retrieve the command (in tuple format) needed to launch the Code.
       @ In, inputFiles, list, List of input files (length of the list depends on the number of inputs have been added in the Step is running this code)
@@ -101,7 +106,7 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
     return
 
   @abc.abstractmethod
-  def createNewInput(self,currentInputFiles,oriInputFiles,samplerType,**Kwargs):
+  def createNewInput(self, currentInputFiles, oriInputFiles, samplerType, **Kwargs):
     """
       This method is used to generate an input based on the information passed in.
       @ In, currentInputFiles, list,  list of current input files (input files from last this method call)
@@ -113,9 +118,10 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
     """
     pass
 
-        ####################
+    ####################
+
   ####### OPTIONAL METHODS #######
-        ####################
+  ####################
 
   def getInputExtension(self):
     """
@@ -125,7 +131,7 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
     """
     return tuple(self.inputExtensions)
 
-  def setInputExtension(self,exts):
+  def setInputExtension(self, exts):
     """
       This method sets a list of extension the code interface accepts for the input files
       @ In, exts, list, list or other array containing accepted input extension (e.g.[".i",".inp"])
@@ -133,7 +139,7 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
     """
     self.inputExtensions = exts[:]
 
-  def addInputExtension(self,exts):
+  def addInputExtension(self, exts):
     """
       This method adds a list of extension the code interface accepts for the input files
       @ In, exts, list, list or other array containing accepted input extension (e.g.[".i",".inp"])
@@ -149,9 +155,9 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
       @ In, None
       @ Out, None
     """
-    self.addInputExtension(['i','inp','in'])
+    self.addInputExtension(['i', 'inp', 'in'])
 
-  def finalizeCodeOutput(self,command,output,workingDir):
+  def finalizeCodeOutput(self, command, output, workingDir):
     """
       this method is called by the RAVEN code at the end of each run (if the method is present).
       It can be used for those codes, that do not create CSV files to convert the whatever output format into a csv
@@ -162,7 +168,7 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
     """
     return output
 
-  def checkForOutputFailure(self,output,workingDir):
+  def checkForOutputFailure(self, output, workingDir):
     """
       This method is called by RAVEN at the end of each run if the return code is == 0.
       This method needs to be implemented by the codes that, if the run fails, return a return code that is 0

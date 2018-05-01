@@ -16,7 +16,7 @@ Created on July 10, 2013
 
 @author: alfoa
 """
-from __future__ import division, print_function , unicode_literals, absolute_import
+from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default', DeprecationWarning)
 
@@ -34,12 +34,15 @@ from utils import InputData
 from utils.RAVENiterators import ravenArrayIterator
 import DataObjects
 import Runners
+
 #Internal Modules End--------------------------------------------------------------------------------
+
 
 class SafestPoint(PostProcessor):
   """
     It searches for the probability-weighted safest point inside the space of the system controllable variables
   """
+
   @classmethod
   def getInputSpecification(cls):
     """
@@ -52,25 +55,30 @@ class SafestPoint(PostProcessor):
     ## This will replace the lines above
     inputSpecification = super(SafestPoint, cls).getInputSpecification()
 
-    OuterDistributionInput = InputData.parameterInputFactory("Distribution", contentType=InputData.StringType)
+    OuterDistributionInput = InputData.parameterInputFactory(
+        "Distribution", contentType=InputData.StringType)
     OuterDistributionInput.addParam("class", InputData.StringType)
     OuterDistributionInput.addParam("type", InputData.StringType)
     inputSpecification.addSub(OuterDistributionInput)
 
     VariableInput = InputData.parameterInputFactory("variable")
     VariableInput.addParam("name", InputData.StringType)
-    InnerDistributionInput = InputData.parameterInputFactory("distribution", contentType=InputData.StringType)
+    InnerDistributionInput = InputData.parameterInputFactory(
+        "distribution", contentType=InputData.StringType)
     VariableInput.addSub(InnerDistributionInput)
     InnerGridInput = InputData.parameterInputFactory("grid", contentType=InputData.FloatType)
     InnerGridInput.addParam("type", InputData.StringType)
     InnerGridInput.addParam("steps", InputData.IntegerType)
     VariableInput.addSub(InnerGridInput)
-    ControllableInput = InputData.parameterInputFactory("controllable", contentType=InputData.StringType)
+    ControllableInput = InputData.parameterInputFactory(
+        "controllable", contentType=InputData.StringType)
     ControllableInput.addSub(VariableInput)
     inputSpecification.addSub(ControllableInput)
-    inputSpecification.addSub(InputData.parameterInputFactory("outputName", contentType=InputData.StringType))
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("outputName", contentType=InputData.StringType))
 
-    NoncontrollableInput = InputData.parameterInputFactory("non-controllable", contentType=InputData.StringType)
+    NoncontrollableInput = InputData.parameterInputFactory(
+        "non-controllable", contentType=InputData.StringType)
     NoncontrollableInput.addSub(VariableInput)
     inputSpecification.addSub(NoncontrollableInput)
 
@@ -83,17 +91,26 @@ class SafestPoint(PostProcessor):
       @ Out, None
     """
     PostProcessor.__init__(self, messageHandler)
-    self.controllableDist = {}  # dictionary created upon the .xml input file reading. It stores the distributions for each controllable variable.
-    self.nonControllableDist = {}  # dictionary created upon the .xml input file reading. It stores the distributions for each non-controllable variable.
-    self.controllableGrid = {}  # dictionary created upon the .xml input file reading. It stores the grid type ('value' or 'CDF'), the number of steps and the step length for each controllale variable.
-    self.nonControllableGrid = {}  # dictionary created upon the .xml input file reading. It stores the grid type ('value' or 'CDF'), the number of steps and the step length for each non-controllale variable.
-    self.gridInfo = {}  # dictionary containing the grid type ('value' or 'CDF'), the grid construction type ('equal', set by default) and the list of sampled points for each variable.
-    self.controllableOrd = []  # list containing the controllable variables' names in the same order as they appear inside the controllable space (self.controllableSpace)
-    self.nonControllableOrd = []  # list containing the controllable variables' names in the same order as they appear inside the non-controllable space (self.nonControllableSpace)
+    self.controllableDist = {
+    }  # dictionary created upon the .xml input file reading. It stores the distributions for each controllable variable.
+    self.nonControllableDist = {
+    }  # dictionary created upon the .xml input file reading. It stores the distributions for each non-controllable variable.
+    self.controllableGrid = {
+    }  # dictionary created upon the .xml input file reading. It stores the grid type ('value' or 'CDF'), the number of steps and the step length for each controllale variable.
+    self.nonControllableGrid = {
+    }  # dictionary created upon the .xml input file reading. It stores the grid type ('value' or 'CDF'), the number of steps and the step length for each non-controllale variable.
+    self.gridInfo = {
+    }  # dictionary containing the grid type ('value' or 'CDF'), the grid construction type ('equal', set by default) and the list of sampled points for each variable.
+    self.controllableOrd = [
+    ]  # list containing the controllable variables' names in the same order as they appear inside the controllable space (self.controllableSpace)
+    self.nonControllableOrd = [
+    ]  # list containing the controllable variables' names in the same order as they appear inside the non-controllable space (self.nonControllableSpace)
     self.surfPointsMatrix = None  # 2D-matrix containing the coordinates of the points belonging to the failure boundary (coordinates are derived from both the controllable and non-controllable space)
-    self.stat = BasicStatistics(self.messageHandler)  # instantiation of the 'BasicStatistics' processor, which is used to compute the expected value of the safest point through the coordinates and probability values collected in the 'run' function
+    self.stat = BasicStatistics(
+        self.messageHandler
+    )  # instantiation of the 'BasicStatistics' processor, which is used to compute the expected value of the safest point through the coordinates and probability values collected in the 'run' function
     self.outputName = "Probability"
-    self.addAssemblerObject('Distribution','n', True)
+    self.addAssemblerObject('Distribution', 'n', True)
     self.addMetaKeys(*["ProbabilityWeight"])
     self.printTag = 'POSTPROCESSOR SAFESTPOINT'
 
@@ -134,7 +151,7 @@ class SafestPoint(PostProcessor):
     for child in paramInput.subparts:
       if child.getName() == 'outputName':
         self.outputName = child.value
-      if child.getName() == 'controllable' or  child.getName() == 'non-controllable':
+      if child.getName() == 'controllable' or child.getName() == 'non-controllable':
         for childChild in child.subparts:
           if childChild.getName() == 'variable':
             varName = childChild.parameterValues['name']
@@ -147,7 +164,9 @@ class SafestPoint(PostProcessor):
               elif childChildChild.getName() == 'grid':
                 if 'type' in childChildChild.parameterValues:
                   if 'steps' in childChildChild.parameterValues:
-                    childChildInfo = (childChildChild.parameterValues['type'], childChildChild.parameterValues['steps'], childChildChild.value)
+                    childChildInfo = (childChildChild.parameterValues['type'],
+                                      childChildChild.parameterValues['steps'],
+                                      childChildChild.value)
                     if child.getName() == 'controllable':
                       self.controllableGrid[varName] = childChildInfo
                     elif child.getName() == 'non-controllable':
@@ -157,9 +176,13 @@ class SafestPoint(PostProcessor):
                 else:
                   self.raiseAnError(NameError, 'grid type missing after the grid call.')
               else:
-                self.raiseAnError(NameError, 'invalid labels after the variable call. Only "distribution" and "grid" are accepted.')
+                self.raiseAnError(
+                    NameError,
+                    'invalid labels after the variable call. Only "distribution" and "grid" are accepted.'
+                )
           else:
-            self.raiseAnError(NameError, 'invalid or missing labels after the '+child.getName()+' variables call. Only "variable" is accepted.')
+            self.raiseAnError(NameError, 'invalid or missing labels after the ' + child.getName() +
+                              ' variables call. Only "variable" is accepted.')
     self.raiseADebug('CONTROLLABLE DISTRIBUTIONS:')
     self.raiseADebug(self.controllableDist)
     self.raiseADebug('CONTROLLABLE GRID:')
@@ -183,7 +206,12 @@ class SafestPoint(PostProcessor):
     self.inputToInternal(inputs)
     #FIXME this is quite invasive use of the basic statistics; a more standardized construction would be nice
     #we set the toDo here, since at this point we know the targets for the basic statistics
-    self.stat.toDo = {'expectedValue':[{'targets':set(self.controllableOrd), 'prefix':"controllable"}]} #don't set directly, just set up the toDo for basicStats
+    self.stat.toDo = {
+        'expectedValue': [{
+            'targets': set(self.controllableOrd),
+            'prefix': "controllable"
+        }]
+    }  #don't set directly, just set up the toDo for basicStats
     self.stat.initialize(runInfo, inputs, initDict)
     self.raiseADebug('GRID INFO:')
     self.raiseADebug(self.gridInfo)
@@ -198,7 +226,7 @@ class SafestPoint(PostProcessor):
     self.raiseADebug('SURFACE POINTS MATRIX:')
     self.raiseADebug(self.surfPointsMatrix)
 
-  def __gridSetting__(self, constrType = 'equal'):
+  def __gridSetting__(self, constrType='equal'):
     """
       Set up the grid
       @ In, constrType, string, optional, the type of grid to construct (equal,custom)
@@ -206,22 +234,45 @@ class SafestPoint(PostProcessor):
     """
     for varName in self.controllableGrid.keys():
       if self.controllableGrid[varName][0] == 'value':
-        self.__stepError__(float(self.controllableDist[varName].lowerBound), float(self.controllableDist[varName].upperBound), self.controllableGrid[varName][1], self.controllableGrid[varName][2], varName)
-        self.gridInfo[varName] = (self.controllableGrid[varName][0], constrType, [float(self.controllableDist[varName].lowerBound) + self.controllableGrid[varName][2] * i for i in range(self.controllableGrid[varName][1] + 1)])
+        self.__stepError__(
+            float(self.controllableDist[varName].lowerBound),
+            float(self.controllableDist[varName].upperBound), self.controllableGrid[varName][1],
+            self.controllableGrid[varName][2], varName)
+        self.gridInfo[varName] = (self.controllableGrid[varName][0], constrType, [
+            float(self.controllableDist[varName].lowerBound) + self.controllableGrid[varName][2] * i
+            for i in range(self.controllableGrid[varName][1] + 1)
+        ])
       elif self.controllableGrid[varName][0] == 'CDF':
-        self.__stepError__(0, 1, self.controllableGrid[varName][1], self.controllableGrid[varName][2], varName)
-        self.gridInfo[varName] = (self.controllableGrid[varName][0], constrType, [self.controllableGrid[varName][2] * i for i in range(self.controllableGrid[varName][1] + 1)])
+        self.__stepError__(0, 1, self.controllableGrid[varName][1],
+                           self.controllableGrid[varName][2], varName)
+        self.gridInfo[varName] = (self.controllableGrid[varName][0], constrType, [
+            self.controllableGrid[varName][2] * i
+            for i in range(self.controllableGrid[varName][1] + 1)
+        ])
       else:
-        self.raiseAnError(NameError, 'inserted invalid grid type. Only "value" and "CDF" are accepted.')
+        self.raiseAnError(NameError,
+                          'inserted invalid grid type. Only "value" and "CDF" are accepted.')
     for varName in self.nonControllableGrid.keys():
       if self.nonControllableGrid[varName][0] == 'value':
-        self.__stepError__(float(self.nonControllableDist[varName].lowerBound), float(self.nonControllableDist[varName].upperBound), self.nonControllableGrid[varName][1], self.nonControllableGrid[varName][2], varName)
-        self.gridInfo[varName] = (self.nonControllableGrid[varName][0], constrType, [float(self.nonControllableDist[varName].lowerBound) + self.nonControllableGrid[varName][2] * i for i in range(self.nonControllableGrid[varName][1] + 1)])
+        self.__stepError__(
+            float(self.nonControllableDist[varName].lowerBound),
+            float(self.nonControllableDist[varName].upperBound),
+            self.nonControllableGrid[varName][1], self.nonControllableGrid[varName][2], varName)
+        self.gridInfo[varName] = (self.nonControllableGrid[varName][0], constrType, [
+            float(self.nonControllableDist[varName].lowerBound) +
+            self.nonControllableGrid[varName][2] * i
+            for i in range(self.nonControllableGrid[varName][1] + 1)
+        ])
       elif self.nonControllableGrid[varName][0] == 'CDF':
-        self.__stepError__(0, 1, self.nonControllableGrid[varName][1], self.nonControllableGrid[varName][2], varName)
-        self.gridInfo[varName] = (self.nonControllableGrid[varName][0], constrType, [self.nonControllableGrid[varName][2] * i for i in range(self.nonControllableGrid[varName][1] + 1)])
+        self.__stepError__(0, 1, self.nonControllableGrid[varName][1],
+                           self.nonControllableGrid[varName][2], varName)
+        self.gridInfo[varName] = (self.nonControllableGrid[varName][0], constrType, [
+            self.nonControllableGrid[varName][2] * i
+            for i in range(self.nonControllableGrid[varName][1] + 1)
+        ])
       else:
-        self.raiseAnError(NameError, 'inserted invalid grid type. Only "value" and "CDF" are accepted.')
+        self.raiseAnError(NameError,
+                          'inserted invalid grid type. Only "value" and "CDF" are accepted.')
 
   def __stepError__(self, lowerBound, upperBound, steps, tol, varName):
     """
@@ -234,7 +285,9 @@ class SafestPoint(PostProcessor):
       @ Out, None
     """
     if upperBound - lowerBound < steps * tol:
-      self.raiseAnError(IOError, 'requested number of steps or tolerance for variable ' + varName + ' exceeds its limit.')
+      self.raiseAnError(
+          IOError,
+          'requested number of steps or tolerance for variable ' + varName + ' exceeds its limit.')
 
   def __gridGeneration__(self):
     """
@@ -291,15 +344,17 @@ class SafestPoint(PostProcessor):
       @ Out, None, the resulting converted object is stored as an attribute of this class
     """
     if len(currentInput) > 1:
-      self.raiseAnError(IOError,"This PostProcessor can accept only a single input! Got: "+ str(len(currentInput))+"!")
+      self.raiseAnError(
+          IOError,
+          "This PostProcessor can accept only a single input! Got: " + str(len(currentInput)) + "!")
     item = currentInput[0]
     if item.type != 'PointSet':
-      self.raiseAnError(IOError, self.type +" accepts PointSet only as input! Got: "+item.type)
+      self.raiseAnError(IOError, self.type + " accepts PointSet only as input! Got: " + item.type)
     self.surfPointsMatrix = np.zeros((len(item), len(self.gridInfo.keys()) + 1))
     dataSet = item.asDataset()
-    for k, varName in enumerate(self.controllableOrd+self.nonControllableOrd):
+    for k, varName in enumerate(self.controllableOrd + self.nonControllableOrd):
       self.surfPointsMatrix[:, k] = dataSet[varName].values
-    self.surfPointsMatrix[:, k+1] = dataSet[item.getVars("output")[-1]].values
+    self.surfPointsMatrix[:, k + 1] = dataSet[item.getVars("output")[-1]].values
 
   def run(self, input):
     """
@@ -309,19 +364,30 @@ class SafestPoint(PostProcessor):
     """
     ##TODO: This PP can be LARGELY optimized.
     nearestPointsInd = []
-    surfTree = spatial.KDTree(copy.copy(self.surfPointsMatrix[:, 0:self.surfPointsMatrix.shape[-1] - 1]))
-    self.controllableSpace.shape = (np.prod(self.controllableSpace.shape[0:len(self.controllableSpace.shape) - 1]), self.controllableSpace.shape[-1])
-    self.nonControllableSpace.shape = (np.prod(self.nonControllableSpace.shape[0:len(self.nonControllableSpace.shape) - 1]), self.nonControllableSpace.shape[-1])
+    surfTree = spatial.KDTree(
+        copy.copy(self.surfPointsMatrix[:, 0:self.surfPointsMatrix.shape[-1] - 1]))
+    self.controllableSpace.shape = (np.prod(
+        self.controllableSpace.shape[0:len(self.controllableSpace.shape) - 1]),
+                                    self.controllableSpace.shape[-1])
+    self.nonControllableSpace.shape = (np.prod(
+        self.nonControllableSpace.shape[0:len(self.nonControllableSpace.shape) - 1]),
+                                       self.nonControllableSpace.shape[-1])
     self.raiseADebug('RESHAPED CONTROLLABLE SPACE:')
     self.raiseADebug(self.controllableSpace)
     self.raiseADebug('RESHAPED NON-CONTROLLABLE SPACE:')
     self.raiseADebug(self.nonControllableSpace)
     # create space for realization
-    rlz = {key : np.zeros(self.nonControllableSpace.shape[0])  for key in self.controllableOrd+self.nonControllableOrd}
+    rlz = {
+        key: np.zeros(self.nonControllableSpace.shape[0])
+        for key in self.controllableOrd + self.nonControllableOrd
+    }
     rlz[self.outputName] = np.zeros(self.nonControllableSpace.shape[0])
     rlz['ProbabilityWeight'] = np.zeros(self.nonControllableSpace.shape[0])
     for ncLine in range(self.nonControllableSpace.shape[0]):
-      queryPointsMatrix = np.append(self.controllableSpace, np.tile(self.nonControllableSpace[ncLine, :], (self.controllableSpace.shape[0], 1)), axis = 1)
+      queryPointsMatrix = np.append(
+          self.controllableSpace,
+          np.tile(self.nonControllableSpace[ncLine, :], (self.controllableSpace.shape[0], 1)),
+          axis=1)
       self.raiseADebug('QUERIED POINTS MATRIX:')
       self.raiseADebug(queryPointsMatrix)
       nearestPointsInd = surfTree.query(queryPointsMatrix)[-1]
@@ -329,40 +395,71 @@ class SafestPoint(PostProcessor):
       indexList = []
       probList = []
       for index in range(len(nearestPointsInd)):
-        if self.surfPointsMatrix[np.where(np.prod(surfTree.data[nearestPointsInd[index], 0:
-          self.surfPointsMatrix.shape[-1] - 1] == self.surfPointsMatrix[:, 0:self.surfPointsMatrix.shape[-1] - 1], axis = 1))[0][0], -1] == 1:
-          distList.append(np.sqrt(np.sum(np.power(queryPointsMatrix[index, 0:self.controllableSpace.shape[-1]] - surfTree.data[nearestPointsInd[index], 0:self.controllableSpace.shape[-1]], 2))))
+        if self.surfPointsMatrix[np.where(
+            np.prod(
+                surfTree.data[nearestPointsInd[index], 0:self.surfPointsMatrix.shape[-1] - 1] ==
+                self.surfPointsMatrix[:, 0:self.surfPointsMatrix.shape[-1] - 1],
+                axis=1))[0][0], -1] == 1:
+          distList.append(
+              np.sqrt(
+                  np.sum(
+                      np.power(
+                          queryPointsMatrix[index, 0:self.controllableSpace.shape[-1]] - surfTree.
+                          data[nearestPointsInd[index], 0:self.controllableSpace.shape[-1]], 2))))
           indexList.append(index)
       if distList == []:
-        self.raiseAnError(ValueError, 'no safest point found for the current set of non-controllable variables: ' + str(self.nonControllableSpace[ncLine, :]) + '.')
+        self.raiseAnError(
+            ValueError,
+            'no safest point found for the current set of non-controllable variables: ' + str(
+                self.nonControllableSpace[ncLine, :]) + '.')
       else:
         for cVarIndex in range(len(self.controllableOrd)):
-          rlz[self.controllableOrd[cVarIndex]][ncLine] = copy.copy(queryPointsMatrix[indexList[distList.index(max(distList))], cVarIndex])
+          rlz[self.controllableOrd[cVarIndex]][ncLine] = copy.copy(
+              queryPointsMatrix[indexList[distList.index(max(distList))], cVarIndex])
         for ncVarIndex in range(len(self.nonControllableOrd)):
-          rlz[self.nonControllableOrd[ncVarIndex]][ncLine] = queryPointsMatrix[indexList[distList.index(max(distList))], len(self.controllableOrd) + ncVarIndex]
-          if queryPointsMatrix[indexList[distList.index(max(distList))], len(self.controllableOrd) + ncVarIndex] == self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].lowerBound:
+          rlz[self.nonControllableOrd[ncVarIndex]][ncLine] = queryPointsMatrix[
+              indexList[distList.index(max(distList))],
+              len(self.controllableOrd) + ncVarIndex]
+          if queryPointsMatrix[indexList[distList.index(max(distList))],
+                               len(self.controllableOrd) + ncVarIndex] == self.nonControllableDist[
+                                   self.nonControllableOrd[ncVarIndex]].lowerBound:
             if self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][0] == 'CDF':
               prob = self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][2] / 2.
             else:
-              prob = self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].cdf(self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].lowerBound + self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][2] / 2.)
-          elif queryPointsMatrix[indexList[distList.index(max(distList))], len(self.controllableOrd) + ncVarIndex] == self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].upperBound:
+              prob = self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].cdf(
+                  self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].lowerBound +
+                  self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][2] / 2.)
+          elif queryPointsMatrix[
+              indexList[distList.index(max(distList))],
+              len(self.controllableOrd) + ncVarIndex] == self.nonControllableDist[
+                  self.nonControllableOrd[ncVarIndex]].upperBound:
             if self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][0] == 'CDF':
               prob = self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][2] / 2.
             else:
-              prob = 1 - self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].cdf(self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].upperBound - self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][2] / 2.)
+              prob = 1 - self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].cdf(
+                  self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].upperBound -
+                  self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][2] / 2.)
           else:
             if self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][0] == 'CDF':
               prob = self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][2]
             else:
-              prob = self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].cdf(queryPointsMatrix[indexList[distList.index(max(distList))],
-                      len(self.controllableOrd) + ncVarIndex] + self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][2] / 2.) - self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].cdf(queryPointsMatrix[indexList[distList.index(max(distList))],
-                      len(self.controllableOrd) + ncVarIndex] - self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][2] / 2.)
+              prob = self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].cdf(
+                  queryPointsMatrix[indexList[distList.index(max(distList))],
+                                    len(self.controllableOrd) + ncVarIndex] +
+                  self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][2] / 2.
+              ) - self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].cdf(
+                  queryPointsMatrix[indexList[distList.index(max(distList))],
+                                    len(self.controllableOrd) + ncVarIndex] -
+                  self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][2] / 2.)
           probList.append(prob)
       rlz[self.outputName][ncLine] = np.prod(probList)
       rlz['ProbabilityWeight'][ncLine] = np.prod(probList)
-    metadata = {'ProbabilityWeight':xarray.DataArray(rlz['ProbabilityWeight'])}
-    targets = {tar:xarray.DataArray( rlz[tar])  for tar in self.controllableOrd}
-    rlz['ExpectedSafestPointCoordinates'] = self.stat.run({'metadata':metadata, 'targets':targets})
+    metadata = {'ProbabilityWeight': xarray.DataArray(rlz['ProbabilityWeight'])}
+    targets = {tar: xarray.DataArray(rlz[tar]) for tar in self.controllableOrd}
+    rlz['ExpectedSafestPointCoordinates'] = self.stat.run({
+        'metadata': metadata,
+        'targets': targets
+    })
     self.raiseADebug(rlz['ExpectedSafestPointCoordinates'])
     return rlz
 
@@ -375,7 +472,8 @@ class SafestPoint(PostProcessor):
     """
     evaluation = finishedJob.getEvaluation()
     if isinstance(evaluation, Runners.Error):
-      self.raiseAnError(RuntimeError, "No available output to collect (run possibly not finished yet)")
+      self.raiseAnError(RuntimeError,
+                        "No available output to collect (run possibly not finished yet)")
     dataCollector = evaluation[1]
 
     if output.type != 'PointSet':
@@ -385,10 +483,11 @@ class SafestPoint(PostProcessor):
       self.raiseAnError(ValueError, 'output item must be empty.')
 
     if self.outputName not in output.getVars():
-      self.raiseAnError(IOError, 'The output name "'+self.outputName+'" is not present in the output '+output.name )
+      self.raiseAnError(
+          IOError,
+          'The output name "' + self.outputName + '" is not present in the output ' + output.name)
     safestPoint = dataCollector.pop("ExpectedSafestPointCoordinates")
     # add the data
-    output.load(dataCollector,'dict')
+    output.load(dataCollector, 'dict')
     # add general metadata
-    output.addMeta(self.type,{'safest_point':{'coordinate':safestPoint}})
-
+    output.addMeta(self.type, {'safest_point': {'coordinate': safestPoint}})

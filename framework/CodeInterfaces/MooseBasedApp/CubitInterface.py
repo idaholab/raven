@@ -25,11 +25,13 @@ import copy
 from subprocess import Popen
 from CodeInterfaceBaseClass import CodeInterfaceBase
 
+
 class Cubit(CodeInterfaceBase):
   """
     This class is used to couple raven to Cubit journal files for input to generate
     meshes (usually to run in another simulation)
   """
+
   def generateCommand(self, inputFiles, executable, clargs=None, fargs=None):
     """
       Generate a command to run cubit using an input with sampled variables to output
@@ -49,8 +51,10 @@ class Cubit(CodeInterfaceBase):
         found = True
         break
     if not found:
-      raise IOError('None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
-    returnCommand = [('serial',executable+ ' -batch ' + inputFiles[index].getFilename())], self.outputFile
+      raise IOError('None of the input files has one of the following extensions: ' +
+                    ' '.join(self.getInputExtension()))
+    returnCommand = [('serial',
+                      executable + ' -batch ' + inputFiles[index].getFilename())], self.outputFile
     return returnCommand
 
   def createNewInput(self, currentInputFiles, oriInputFiles, samplerType, **Kwargs):
@@ -68,8 +72,8 @@ class Cubit(CodeInterfaceBase):
       if inputFile.getExt() == self.getInputExtension():
         break
     parser = CUBITparser.CUBITparser(oriInputFiles[index])
-    self.outputFile = 'mesh~'+currentInputFiles[index].getBase()
-    Kwargs['SampledVars']['Cubit@out_name'] = "\"'"+self.outputFile+".e'\""
+    self.outputFile = 'mesh~' + currentInputFiles[index].getBase()
+    Kwargs['SampledVars']['Cubit@out_name'] = "\"'" + self.outputFile + ".e'\""
     parser.modifyInternalDictionary(**copy.deepcopy(Kwargs['SampledVars']))
     # Write new input files
     parser.writeNewInput(currentInputFiles[index].getAbsFile())
@@ -81,7 +85,7 @@ class Cubit(CodeInterfaceBase):
       @ In, None
       @ Out, tuple, tuple of strings containing accepted input extension (e.g.(".i",".inp"]) )
     """
-    return("jou")
+    return ("jou")
 
   def finalizeCodeOutput(self, command, output, workingDir):
     """
@@ -92,9 +96,9 @@ class Cubit(CodeInterfaceBase):
       @ Out, output, string, optional, present in case the root of the output file gets changed in this method. (not in case)
     """
     # Append wildcard strings to workingDir for files wanted to be removed
-    cubitjour_files = os.path.join(workingDir,'cubit*')
+    cubitjour_files = os.path.join(workingDir, 'cubit*')
     # Inform user which files will be removed
-    print('Interface attempting to remove files: \n'+cubitjour_files)
+    print('Interface attempting to remove files: \n' + cubitjour_files)
     # Remove Cubit generated journal files
     self.rmUnwantedFiles(cubitjour_files)
 
@@ -105,6 +109,7 @@ class Cubit(CodeInterfaceBase):
       @ Out, None
     """
     try:
-      p = Popen('rm '+pathToFiles)
+      p = Popen('rm ' + pathToFiles)
     except OSError as e:
-      print('  ...',"There was an error removing ",pathToFiles,'<',e,'>','but continuing onward...')
+      print('  ...', "There was an error removing ", pathToFiles, '<', e, '>',
+            'but continuing onward...')

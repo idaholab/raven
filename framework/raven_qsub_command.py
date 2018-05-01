@@ -12,7 +12,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """
 Created on November 13, 2013
 
@@ -20,20 +19,19 @@ Created on November 13, 2013
 
 This module is used to employ QSUB commands when the PBS protocol is available
 """
-from __future__ import division, print_function , unicode_literals, absolute_import
+from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default', DeprecationWarning)
 
 #External Modules------------------------------------------------------------------------------------
-import os,subprocess,sys
+import os, subprocess, sys
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
 #Internal Modules End--------------------------------------------------------------------------------
 
-
 moduleCommand = False
-for possibleModuleCommand in ["/apps/local/modules/bin/modulecmd","/usr/bin/modulecmd"]:
+for possibleModuleCommand in ["/apps/local/modules/bin/modulecmd", "/usr/bin/modulecmd"]:
   if os.path.exists(possibleModuleCommand):
     moduleCommand = possibleModuleCommand
     break
@@ -42,14 +40,20 @@ if not moduleCommand:
   sys.stderr.write("Could not find a modulecmd")
   sys.exit(-1)
 
-availModules = subprocess.Popen([moduleCommand,"python","avail"],stdout=subprocess.PIPE,stderr=subprocess.PIPE).communicate()[1]
+availModules = subprocess.Popen(
+    [moduleCommand, "python", "avail"], stdout=subprocess.PIPE,
+    stderr=subprocess.PIPE).communicate()[1]
 
 if "raven-devel-gcc" in availModules:
-  ravenAndPbsEval = subprocess.Popen([moduleCommand,"python","load","pbs","raven-devel-gcc"],stdout=subprocess.PIPE).communicate()[0]
-  exec(ravenAndPbsEval)
+  ravenAndPbsEval = subprocess.Popen(
+      [moduleCommand, "python", "load", "pbs", "raven-devel-gcc"],
+      stdout=subprocess.PIPE).communicate()[0]
+  exec (ravenAndPbsEval)
 else:
-  pythonAndPbsEval = subprocess.Popen([moduleCommand,"python","load","pbs","python/2.7"],stdout=subprocess.PIPE).communicate()[0]
-  exec(pythonAndPbsEval)
+  pythonAndPbsEval = subprocess.Popen(
+      [moduleCommand, "python", "load", "pbs", "python/2.7"],
+      stdout=subprocess.PIPE).communicate()[0]
+  exec (pythonAndPbsEval)
 
   #sys.stdout.write(str(subprocess.Popen(["env"],stdout=subprocess.PIPE).communicate()[0]))
 
@@ -57,17 +61,20 @@ else:
   if "MODULEPATH" in os.environ:
     oldModulepath = os.environ["MODULEPATH"]
     if newModuleFiles not in oldModulepath:
-      os.environ["MODULEPATH"] = oldModulepath +":"+newModuleFiles
+      os.environ["MODULEPATH"] = oldModulepath + ":" + newModuleFiles
   else:
     os.environ["MODULEPATH"] = newModuleFiles
 
-  mooseDevAndPython3Eval = subprocess.Popen([moduleCommand,"python","load","use.moose","moose-dev-gcc","python/3.2"],stdout=subprocess.PIPE).communicate()[0]
-  exec(mooseDevAndPython3Eval)
-  os.environ["PYTHONPATH"]=os.environ.get("PYTHONPATH","")+":"+os.path.join(os.path.expanduser("~"),"raven_libs","pylibs","lib","python2.7","site-packages")
+  mooseDevAndPython3Eval = subprocess.Popen(
+      [moduleCommand, "python", "load", "use.moose", "moose-dev-gcc", "python/3.2"],
+      stdout=subprocess.PIPE).communicate()[0]
+  exec (mooseDevAndPython3Eval)
+  os.environ["PYTHONPATH"] = os.environ.get("PYTHONPATH", "") + ":" + os.path.join(
+      os.path.expanduser("~"), "raven_libs", "pylibs", "lib", "python2.7", "site-packages")
 
 if "PBS_O_WORKDIR" in os.environ:
   os.chdir(os.environ["PBS_O_WORKDIR"])
 
 if "COMMAND" in os.environ:
   sys.stdout.write(os.environ["COMMAND"])
-  subprocess.call(os.environ["COMMAND"],shell=True)
+  subprocess.call(os.environ["COMMAND"], shell=True)

@@ -23,7 +23,7 @@ comment: The ModelPlugIn Module is an Handler.
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
-warnings.simplefilter('default',DeprecationWarning)
+warnings.simplefilter('default', DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -38,30 +38,31 @@ from utils import utils
 #Internal Modules End--------------------------------------------------------------------------------
 
 __moduleInterfaceList = []
-startDir = os.path.join(os.path.dirname(__file__),'../../plugins')
-for dirr,_,_ in os.walk(startDir):
-  __moduleInterfaceList.extend(glob(os.path.join(dirr,"*.py")))
+startDir = os.path.join(os.path.dirname(__file__), '../../plugins')
+for dirr, _, _ in os.walk(startDir):
+  __moduleInterfaceList.extend(glob(os.path.join(dirr, "*.py")))
   utils.add_path(dirr)
 __moduleImportedList = []
-__basePluginClasses  = {'ExternalModel':'ExternalModelPluginBase'}
-
+__basePluginClasses = {'ExternalModel': 'ExternalModelPluginBase'}
 """
  Interface Dictionary (factory) (private)
 """
-__base                          = 'ModelPlugins'
-__interFaceDict                 = defaultdict(dict)
+__base = 'ModelPlugins'
+__interFaceDict = defaultdict(dict)
 for moduleIndex in range(len(__moduleInterfaceList)):
   if 'class' in open(__moduleInterfaceList[moduleIndex]).read():
-    __moduleImportedList.append(utils.importFromPath(__moduleInterfaceList[moduleIndex],False))
-    for key,modClass in inspect.getmembers(__moduleImportedList[-1], inspect.isclass):
+    __moduleImportedList.append(utils.importFromPath(__moduleInterfaceList[moduleIndex], False))
+    for key, modClass in inspect.getmembers(__moduleImportedList[-1], inspect.isclass):
       for base in modClass.__bases__:
         for ravenEntityName, baseClassName in __basePluginClasses.items():
           if base.__name__ == baseClassName:
             __interFaceDict[ravenEntityName][key] = modClass
             # check the validity of the plugin
             if not modClass.isAvalidPlugin():
-              raise IOError("The plugin based on the class "+ravenEntityName.strip()+" is not valid. Please check with the Plugin developer!")
+              raise IOError("The plugin based on the class " + ravenEntityName.strip() +
+                            " is not valid. Please check with the Plugin developer!")
 __knownTypes = [item for sublist in __interFaceDict.values() for item in sublist]
+
 
 def knownTypes():
   """
@@ -71,7 +72,8 @@ def knownTypes():
   """
   return __knownTypes
 
-def returnPlugin(Type,subType,caller):
+
+def returnPlugin(Type, subType, caller):
   """
     this allows the code(model) class to interact with a specific
      code for which the interface is present in the CodeInterfaces module
@@ -80,5 +82,5 @@ def returnPlugin(Type,subType,caller):
     @ In, caller, instance, instance of the caller
   """
   if subType not in knownTypes():
-    caller.raiseAnError(NameError,'not known '+__base+' type '+Type+' subType '+Type)
+    caller.raiseAnError(NameError, 'not known ' + __base + ' type ' + Type + ' subType ' + Type)
   return __interFaceDict[Type][subType]()

@@ -43,6 +43,7 @@ from .TopologyWindow import TopologyWindow
 # from .Factory import returnClass
 
 # We should not really need this as we do not use wildcard imports
-__all__ = ['colors', 'HierarchylWindow', 'DendrogramView',
-           'TopologyWindow', 'FitnessView', 'ScatterView2D',
-           'ScatterView3D', 'SensitivityView', 'TopologyMapView']
+__all__ = [
+    'colors', 'HierarchylWindow', 'DendrogramView', 'TopologyWindow', 'FitnessView',
+    'ScatterView2D', 'ScatterView3D', 'SensitivityView', 'TopologyMapView'
+]

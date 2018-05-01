@@ -16,7 +16,7 @@ Created on November 6, 2017
 
 @author: alfoa
 """
-from __future__ import division, print_function , unicode_literals, absolute_import
+from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default', DeprecationWarning)
 
@@ -25,6 +25,7 @@ warnings.simplefilter('default', DeprecationWarning)
 
 #Internal Modules---------------------------------------------------------------
 #Internal Modules End-----------------------------------------------------------
+
 
 class PluginBase(object):
   """
@@ -52,4 +53,3 @@ class PluginBase(object):
     classMethods = [method for method in dir(cls) if callable(getattr(cls, method))]
     validPlugIn = set(cls._methodsToCheck) <= set(classMethods)
     return validPlugIn
-

@@ -18,7 +18,7 @@ Created on October 28, 2015
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
-warnings.simplefilter('default',DeprecationWarning)
+warnings.simplefilter('default', DeprecationWarning)
 if not 'xrange' in dir(__builtins__):
   xrange = range
 #End compatibility block for Python 3----------------------------------------------------------------
@@ -50,16 +50,15 @@ class HistorySetSync(PostProcessorInterfaceBase):
       @ Out, None,
     '''
     PostProcessorInterfaceBase.initialize(self)
-    self.inputFormat  = 'HistorySet'
+    self.inputFormat = 'HistorySet'
     self.outputFormat = 'HistorySet'
 
     self.numberOfSamples = numberOfSamples
-    self.pivotParameter  = pivotParameter
-    self.extension       = extension
-    self.syncMethod      = syncMethod
+    self.pivotParameter = pivotParameter
+    self.extension = extension
+    self.syncMethod = syncMethod
 
-
-  def readMoreXML(self,xmlNode):
+  def readMoreXML(self, xmlNode):
     '''
       Function that reads elements this post-processor will use
       @ In, xmlNode, ElementTree, Xml element node
@@ -74,31 +73,39 @@ class HistorySetSync(PostProcessorInterfaceBase):
         self.pivotParameter = child.text
       elif child.tag == 'extension':
         self.extension = child.text
-      elif child.tag !='method':
-        self.raiseAnError(IOError, 'HistorySetSync Interfaced Post-Processor ' + str(self.name) + ' : XML node ' + str(child) + ' is not recognized')
+      elif child.tag != 'method':
+        self.raiseAnError(IOError, 'HistorySetSync Interfaced Post-Processor ' + str(self.name) +
+                          ' : XML node ' + str(child) + ' is not recognized')
 
-    validSyncMethods = ['all','grid','max','min']
+    validSyncMethods = ['all', 'grid', 'max', 'min']
     if self.syncMethod not in validSyncMethods:
-      self.raiseAnError(NotImplementedError,'Method for synchronizing was not recognized: \'',self.syncMethod,'\'. Options are:',validSyncMethods)
+      self.raiseAnError(NotImplementedError, 'Method for synchronizing was not recognized: \'',
+                        self.syncMethod, '\'. Options are:', validSyncMethods)
     if self.syncMethod == 'grid' and not isinstance(self.numberOfSamples, int):
-      self.raiseAnError(IOError, 'HistorySetSync Interfaced Post-Processor ' + str(self.name) + ' : number of samples is not correctly specified (either not specified or not integer)')
+      self.raiseAnError(
+          IOError, 'HistorySetSync Interfaced Post-Processor ' + str(self.name) +
+          ' : number of samples is not correctly specified (either not specified or not integer)')
     if self.pivotParameter is None:
-      self.raiseAnError(IOError, 'HistorySetSync Interfaced Post-Processor ' + str(self.name) + ' : pivotParameter is not specified')
+      self.raiseAnError(IOError, 'HistorySetSync Interfaced Post-Processor ' + str(self.name) +
+                        ' : pivotParameter is not specified')
     if self.extension is None or not (self.extension == 'zeroed' or self.extension == 'extended'):
-      self.raiseAnError(IOError, 'HistorySetSync Interfaced Post-Processor ' + str(self.name) + ' : extension type is not correctly specified (either not specified or not one of its possible allowed values: zeroed or extended)')
+      self.raiseAnError(
+          IOError, 'HistorySetSync Interfaced Post-Processor ' + str(self.name) +
+          ' : extension type is not correctly specified (either not specified or not one of its possible allowed values: zeroed or extended)'
+      )
 
-
-  def run(self,inputDic):
+  def run(self, inputDic):
     '''
       Method to post-process the dataObjects
       @ In, inputDic, list, list of dictionaries which contains the data inside the input DataObjects
       @ Out, outputPSDic, dict, output dictionary
     '''
-    if len(inputDic)>1:
-      self.raiseAnError(IOError, 'HistorySetSync Interfaced Post-Processor ' + str(self.name) + ' accepts only one dataObject')
+    if len(inputDic) > 1:
+      self.raiseAnError(IOError, 'HistorySetSync Interfaced Post-Processor ' + str(self.name) +
+                        ' accepts only one dataObject')
     else:
       inputDic = inputDic[0]
-      outputDic={}
+      outputDic = {}
 
       newTime = []
       if self.syncMethod == 'grid':
@@ -109,29 +116,32 @@ class HistorySetSync(PostProcessorInterfaceBase):
           minInitTime.append(hist[0])
         maxTime = max(maxEndTime)
         minTime = min(minInitTime)
-        newTime = np.linspace(minTime,maxTime,self.numberOfSamples)
+        newTime = np.linspace(minTime, maxTime, self.numberOfSamples)
       elif self.syncMethod == 'all':
         times = []
         for hist in inputDic['data'][self.pivotParameter]:
-            times.extend(hist)
+          times.extend(hist)
         times = list(set(times))
         times.sort()
         newTime = np.array(times)
-      elif self.syncMethod in ['min','max']:
-        notableHist   = None   #set on first iteration
-        notableLength = None   #set on first iteration
+      elif self.syncMethod in ['min', 'max']:
+        notableHist = None  #set on first iteration
+        notableLength = None  #set on first iteration
 
-        for h,elem in np.ndenumerate(inputDic['data'][self.pivotParameter]):
-          l=len(elem)
-          if (h[0] == 0) or (self.syncMethod == 'max' and l > notableLength) or (self.syncMethod == 'min' and l < notableLength):
+        for h, elem in np.ndenumerate(inputDic['data'][self.pivotParameter]):
+          l = len(elem)
+          if (h[0] == 0) or (self.syncMethod == 'max'
+                             and l > notableLength) or (self.syncMethod == 'min'
+                                                        and l < notableLength):
             notableHist = inputDic['data'][self.pivotParameter][h[0]]
             notableLength = l
         newTime = np.array(notableHist)
 
-      outputDic['data']={}
+      outputDic['data'] = {}
       for var in inputDic['outVars']:
         outputDic['data'][var] = np.zeros(inputDic['numberRealizations'], dtype=object)
-      outputDic['data'][self.pivotParameter] = np.zeros(inputDic['numberRealizations'], dtype=object)
+      outputDic['data'][self.pivotParameter] = np.zeros(
+          inputDic['numberRealizations'], dtype=object)
 
       for var in inputDic['inpVars']:
         outputDic['data'][var] = copy.deepcopy(inputDic['data'][var])
@@ -140,7 +150,8 @@ class HistorySetSync(PostProcessorInterfaceBase):
         outputDic['data'][self.pivotParameter][rlz] = newTime
         for var in inputDic['outVars']:
           oldTime = inputDic['data'][self.pivotParameter][rlz]
-          outputDic['data'][var][rlz] = self.resampleHist(inputDic['data'][var][rlz], oldTime, newTime)
+          outputDic['data'][var][rlz] = self.resampleHist(inputDic['data'][var][rlz], oldTime,
+                                                          newTime)
 
       outputDic['data']['ProbabilityWeight'] = inputDic['data']['ProbabilityWeight']
       outputDic['data']['prefix'] = inputDic['data']['prefix']
@@ -156,21 +167,22 @@ class HistorySetSync(PostProcessorInterfaceBase):
       @ In, newTime,  np.array, array containing the sampled values of the new temporal variable
       @ Out, variable, np.array, array containing the sampled values of the dependent variable re-sampled on oldTime
     '''
-    newVar=np.zeros(newTime.size)
-    pos=0
+    newVar = np.zeros(newTime.size)
+    pos = 0
     for newT in newTime:
-      if newT<oldTime[0]:
+      if newT < oldTime[0]:
         if self.extension == 'extended':
           newVar[pos] = variable[0]
         elif self.extension == 'zeroed':
           newVar[pos] = 0.0
-      elif newT>oldTime[-1]:
+      elif newT > oldTime[-1]:
         if self.extension == 'extended':
           newVar[pos] = variable[-1]
         elif self.extension == 'zeroed':
           newVar[pos] = 0.0
       else:
-        index = np.searchsorted(oldTime,newT)
-        newVar[pos] = variable[index-1] + (variable[index]-variable[index-1])/(oldTime[index]-oldTime[index-1])*(newT-oldTime[index-1])
-      pos=pos+1
+        index = np.searchsorted(oldTime, newT)
+        newVar[pos] = variable[index - 1] + (variable[index] - variable[index - 1]) / (
+            oldTime[index] - oldTime[index - 1]) * (newT - oldTime[index - 1])
+      pos = pos + 1
     return newVar

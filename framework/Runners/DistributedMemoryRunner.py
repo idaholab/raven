@@ -19,7 +19,7 @@ Created on Mar 5, 2013
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
-warnings.simplefilter('default',DeprecationWarning)
+warnings.simplefilter('default', DeprecationWarning)
 if not 'xrange' in dir(__builtins__):
   xrange = range
 #End compatibility block for Python 3----------------------------------------------------------------
@@ -37,17 +37,27 @@ from utils import utils
 from BaseClasses import BaseType
 import MessageHandler
 from .InternalRunner import InternalRunner
+
 #Internal Modules End--------------------------------------------------------------------------------
+
 
 class DistributedMemoryRunner(InternalRunner):
   """
     Class for running internal objects in distributed memory fashion using
     ppserver
   """
-  def __init__(self, messageHandler, ppserver, args, functionToRun,
-                     frameworkModules = [], identifier=None, metadata=None,
-                     functionToSkip = None, uniqueHandler = "any",
-                     profile = False):
+
+  def __init__(self,
+               messageHandler,
+               ppserver,
+               args,
+               functionToRun,
+               frameworkModules=[],
+               identifier=None,
+               metadata=None,
+               functionToSkip=None,
+               uniqueHandler="any",
+               profile=False):
     """
       Init method
       @ In, messageHandler, MessageHandler object, the global RAVEN message
@@ -79,11 +89,12 @@ class DistributedMemoryRunner(InternalRunner):
     ## First, allow the base class to handle the commonalities
     ##   We keep the command here, in order to have the hook for running exec
     ##   code into internal models
-    super(DistributedMemoryRunner, self).__init__(messageHandler, args, functionToRun, identifier, metadata, uniqueHandler,profile)
+    super(DistributedMemoryRunner, self).__init__(messageHandler, args, functionToRun, identifier,
+                                                  metadata, uniqueHandler, profile)
 
     ## Just in case, remove duplicates before storing to save on computation
     ## later
-    self.frameworkMods  = utils.removeDuplicates(frameworkModules)
+    self.frameworkMods = utils.removeDuplicates(frameworkModules)
     self.functionToSkip = utils.removeDuplicates(functionToSkip)
     self.args = args
 
@@ -126,11 +137,17 @@ class DistributedMemoryRunner(InternalRunner):
       @ Out, None
     """
     try:
-      self.thread = self.__ppserver.submit(self.functionToRun, args=self.args, depfuncs=(), modules = tuple(list(set(self.frameworkMods))),functionToSkip=self.functionToSkip)
+      self.thread = self.__ppserver.submit(
+          self.functionToRun,
+          args=self.args,
+          depfuncs=(),
+          modules=tuple(list(set(self.frameworkMods))),
+          functionToSkip=self.functionToSkip)
       self.trackTime('runner_started')
       self.started = True
     except Exception as ae:
-      self.raiseAWarning(self.__class__.__name__ + " job "+self.identifier+" failed with error:"+ str(ae) +" !",'ExceptedError')
+      self.raiseAWarning(self.__class__.__name__ + " job " + self.identifier +
+                         " failed with error:" + str(ae) + " !", 'ExceptedError')
       self.returnCode = -1
 
   def kill(self):
