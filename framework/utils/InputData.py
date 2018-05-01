@@ -20,7 +20,7 @@ This a library for defining the data used and for reading it in.
 """
 from __future__ import division, print_function, unicode_literals, absolute_import
 import xml.etree.ElementTree as ET
-from utils import utils
+from utils import utils,mathUtils
 
 class InputType(object):
   """
@@ -132,6 +132,37 @@ class FloatType(InputType):
     return float(value)
 
 FloatType.createClass("float","xsd:double")
+
+#
+#
+#
+#
+class InterpretedListType(InputType):
+  """
+    A type for lists with unknown (but consistent) type; could be string, float, etc
+  """
+
+  @classmethod
+  def convert(cls, value):
+    """
+      Converts value from string to a listi with string, integer, or float type.
+      @ In, value, string, the value to convert
+      @ Out, convert, list, the converted value
+    """
+    values = value.split(",")
+    base = utils.partialEval(values[0].strip())
+    # three possibilities: string, integer, or float
+    if mathUtils.isAString(base):
+      conv = str
+    elif mathUtils.isAnInteger(base):
+      conv = int
+    else: #float
+      conv = float
+    return [conv(x.strip()) for x in values]
+
+#Note, XSD's list type is split by spaces, not commas, so using xsd:string
+InterpretedListType.createClass("stringtype","xsd:string")
+
 
 #
 #

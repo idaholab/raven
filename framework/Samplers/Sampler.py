@@ -86,7 +86,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
 
     inputSpecification.addSub(variablesTransformationInput)
 
-    constantInput = InputData.parameterInputFactory("constant", contentType=InputData.FloatListType)
+    constantInput = InputData.parameterInputFactory("constant", contentType=InputData.InterpretedListType)
     constantInput.addParam("name", InputData.StringType, True)
     constantInput.addParam("shape", InputData.IntegerListType, required=False)
 
@@ -390,9 +390,9 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     value = inp.value
     name = inp.parameterValues['name']
     shape = inp.parameterValues.get('shape',None)
-    # if single entry, cast as float; if multiple entries, cast them as numpy array
+    # if single entry, remove array structure; if multiple entries, cast them as numpy array
     if len(value) == 1:
-      value = float(value)
+      value = value[0]
     else:
       value = np.asarray(value)
     # if specific shape requested, then reshape it

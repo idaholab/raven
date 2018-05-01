@@ -39,6 +39,8 @@
         <initial>-0.75</initial>
       </variable>
       <constant name="center">1</constant>
+      <constant name="vectorConst">1</constant>
+      <constant name="vectorIndex">1</constant>
       <objectVar>reg</objectVar>
     </SPSA>
   </Optimizers>

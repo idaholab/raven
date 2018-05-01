@@ -52,7 +52,7 @@
         <distribution>u2</distribution>
       </variable>
       <constant name="vectorConst1">1,2,3,4,5,6,7,8,9,10</constant>
-      <constant name="vectorConst2" shape="10">2,4,6,8,10,12,14,16,18,20</constant>
+      <constant name="vectorConst2" shape="10">a,b,c,d,e,f,g,h,i,j</constant>
     </MonteCarlo>
   </Samplers>
 
