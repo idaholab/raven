@@ -348,18 +348,7 @@ class Optimizer(Sampler):
               self.optTraj = range(len(self.optVarsInit['initial'][varName].keys()))
 
       elif child.getName() == "constant":
-        name = child.parameterValues['name']
-        value = child.value
-        shape = child.parameterValues.get('shape',None)
-        # reshape the values if requested
-        if shape is not None:
-          value = np.asarray(value)
-          try:
-            value = value.reshape(shape)
-          except ValueError:
-            self.raiseAnError(IOError,
-                'Requested shape "{}" for constant "{}" is not consistent with the number of entries ({})!'
-                .format(shape,name,len(value)))
+        name,constant = self._readInConstant(child)
         self.constants[child.parameterValues['name']] = value
 
       elif child.getName() == "objectVar":

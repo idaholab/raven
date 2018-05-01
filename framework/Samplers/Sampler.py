@@ -298,17 +298,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         self.variablesTransformationDict[child.parameterValues['distribution']] = transformationDict
 
       elif child.getName() == "constant":
-        value = child.value
-        name = child.parameterValues['name']
-        shape = child.parameterValues.get('shape',None)
-        if shape is not None:
-          value = np.asarray(value)
-          try:
-            value = value.reshape(shape)
-          except ValueError:
-            self.raiseAnError(IOError,
-                'Requested shape "{}" ({} entries) for constant "{}" is not consistent with the provided values ({} entries)!'
-                .format(shape,np.prod(shape),name,len(value)))
+        name,value = self._readInConstant(child)
         self.constants[name] = value
 
       elif child.getName() == "restartTolerance":
@@ -389,6 +379,31 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         # update the index for latentVariables according to the 'dim' assigned for given var defined in Sampler
         self.variablesTransformationDict[dist]['latentVariablesIndex'] = listIndex
     return paramInput
+
+  def _readInConstant(self,inp):
+    """
+      Reads in a "constant" input parameter node.
+      @ In, inp, utils.InputParameter.ParameterInput, input parameter node to read from
+      @ Out, name, string, name of constant
+      @ Out, value, float or np.array,
+    """
+    value = inp.value
+    name = inp.parameterValues['name']
+    shape = inp.parameterValues.get('shape',None)
+    # if single entry, cast as float; if multiple entries, cast them as numpy array
+    if len(value) == 1:
+      value = float(value)
+    else:
+      value = np.asarray(value)
+    # if specific shape requested, then reshape it
+    if shape is not None:
+      try:
+        value = value.reshape(shape)
+      except ValueError:
+        self.raiseAnError(IOError,
+            'Requested shape "{}" ({} entries) for constant "{}" is not consistent with the provided values ({} entries)!'
+            .format(shape,np.prod(shape),name,len(value)))
+    return name, value
 
   def getInitParams(self):
     """
