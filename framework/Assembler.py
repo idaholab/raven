@@ -80,8 +80,8 @@ class Assembler(MessageHandler.MessageUser):
       self._localGenerateAssembler(initDict)
     for key, value in self.assemblerObjects.items():
       self.assemblerDict[key] =  []
-      for interface in value:
-        self.assemblerDict[key].append([interface[0],interface[1],interface[2],initDict[interface[0]][interface[2]]])
+      for entity,etype,name in value:
+        self.assemblerDict[key].append([entity,etype,name,initDict[entity][name]])
 
   def _readAssemblerObjects(self, subXmlNode, found, testObjects):
     """

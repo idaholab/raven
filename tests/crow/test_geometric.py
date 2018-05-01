@@ -4,9 +4,9 @@ import warnings
 warnings.simplefilter('default',DeprecationWarning)
 
 import sys
-import utils
+import crowTestUtils as utils
 
-distribution1D = utils.find_distribution1D()
+distribution1D = utils.findCrowModule('distribution1D')
 
 geometric_distribution = distribution1D.BasicGeometricDistribution(0.25)
 

@@ -25,6 +25,10 @@ crow_modules/interpolationNDpy2.py
 crow_modules/interpolationNDpy2_wrap.cxx
 crow_modules/interpolationNDpy3.py
 crow_modules/interpolationNDpy3_wrap.cxx
+crow_modules/randomENGpy2.py
+crow_modules/randomENGpy2_wrap.cxx
+crow_modules/randomENGpy3.py
+crow_modules/randomENGpy3_wrap.cxx
 crow_modules/libdistribution1Dpy2.so*
 crow_modules/libdistribution1Dpy2.so*
 crow_modules/libdistribution1Dpy3.so*
@@ -35,7 +39,9 @@ crow_modules/libinterpolationNDpy3.so*
 crow_modules/libinterpolationNDpy3.so*
 crow_modules/distribution1Dpy2_wrap.cpp
 crow_modules/interpolationNDpy2_wrap.cpp
+crow_modules/randomENGpy2_wrap.cpp
 crow_modules/distribution1Dpy3_wrap.cpp
 crow_modules/interpolationNDpy3_wrap.cpp
+crow_modules/randomENGpy3_wrap.cpp
 build/
 install/

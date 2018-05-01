@@ -34,6 +34,8 @@ else:
 
 #External Modules------------------------------------------------------------------------------------
 import sklearn
+from sklearn import preprocessing
+from sklearn.pipeline import make_pipeline
 from sklearn import linear_model
 from sklearn import svm
 from sklearn import multiclass
@@ -61,12 +63,14 @@ from operator import itemgetter
 from collections import OrderedDict
 from scipy import spatial
 from scipy import optimize
+from scipy.optimize import fmin_tnc, fmin_slsqp, brute
 from sklearn.neighbors.kde import KernelDensity
 import math
 import copy
 import itertools
 from scipy import spatial
 from collections import OrderedDict
+from itertools import product
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -74,12 +78,12 @@ from utils import utils,mathUtils,randomUtils
 import sys
 import MessageHandler
 import Distributions
-interpolationND = utils.find_interpolationND()
+interpolationND = utils.findCrowModule("interpolationND")
 #Internal Modules End--------------------------------------------------------------------------------
 
-class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.MessageUser):
+class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.MessageUser):
   """
-    This is the general interface to any superVisedLearning learning method.
+    This is the general interface to any supervisedLearning learning method.
     Essentially it contains a train method and an evaluate method
   """
   returnType       = ''    # this describe the type of information generated the possibility are 'boolean', 'integer', 'float'
@@ -102,7 +106,7 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     if type(arrayIn).__name__ == 'list':
       if isDynamic:
         for cnt, elementArray in enumerate(arrayIn):
-          resp = superVisedLearning.checkArrayConsistency(elementArray)
+          resp = supervisedLearning.checkArrayConsistency(elementArray)
           if not resp[0]:
             return (False,' The element number '+str(cnt)+' is not a consistent array. Error: '+resp[1])
       else:
@@ -157,8 +161,8 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
 
   def train(self,tdict):
     """
-      Method to perform the training of the superVisedLearning algorithm
-      NB.the superVisedLearning object is committed to convert the dictionary that is passed (in), into the local format
+      Method to perform the training of the supervisedLearning algorithm
+      NB.the supervisedLearning object is committed to convert the dictionary that is passed (in), into the local format
       the interface with the kernels requires. So far the base class will do the translation into numpy
       @ In, tdict, dict, training dictionary
       @ Out, None
@@ -242,8 +246,8 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
 
   def evaluate(self,edict):
     """
-      Method to perform the evaluation of a point or a set of points through the previous trained superVisedLearning algorithm
-      NB.the superVisedLearning object is committed to convert the dictionary that is passed (in), into the local format
+      Method to perform the evaluation of a point or a set of points through the previous trained supervisedLearning algorithm
+      NB.the supervisedLearning object is committed to convert the dictionary that is passed (in), into the local format
       the interface with the kernels requires.
       @ In, edict, dict, evaluation dictionary
       @ Out, evaluate, numpy.array, evaluated points
@@ -293,6 +297,26 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     currParDict = dict({'Trained':self.amITrained}.items() + self.__CurrentSettingDictLocal__().items())
     return currParDict
 
+  def printXMLSetup(self,outFile,options={}):
+    """
+      Allows the SVE to put whatever it wants into an XML file only once (right before calling pringXML)
+      @ In, outFile, Files.File, either StaticXMLOutput or DynamicXMLOutput file
+      @ In, options, dict, optional, dict of string-based options to use, including filename, things to print, etc
+      @ Out, None
+    """
+    outFile.addScalar('ROM',"type",self.printTag)
+    self._localPrintXMLSetup(outFile,options)
+
+  def _localPrintXMLSetup(self,outFile,options={}):
+    """
+      Specific local method for printing anything desired to xml file at the begin of the print.
+      Overwrite in inheriting classes.
+      @ In, outFile, Files.File, either StaticXMLOutput or DynamicXMLOutput file
+      @ In, options, dict, optional, dict of string-based options to use, including filename, things to print, etc
+      @ Out, None
+    """
+    pass
+
   def printXML(self,outFile,pivotVal,options={}):
     """
       Allows the SVE to put whatever it wants into an XML to print to file.
@@ -303,14 +327,15 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     """
     self._localPrintXML(outFile,pivotVal,options)
 
-  def _localPrintXML(self,node,options=None):
+  def _localPrintXML(self,outFile,pivotVal,options={}):
     """
       Specific local method for printing anything desired to xml file.  Overwrite in inheriting classes.
-      @ In, node, the node to which strings should have text added
-      @ In, options, dict of string-based options to use, including filename, things to print, etc
+      @ In, outFile, Files.File, either StaticXMLOutput or DynamicXMLOutput file
+      @ In, pivotVal, float, value of pivot parameters to use in printing if dynamic
+      @ In, options, dict, optional, dict of string-based options to use, including filename, things to print, etc
       @ Out, None
     """
-    node.addText('ROM of type '+str(self.printTag.strip())+' has no special output options.')
+    outFile.addScalar('ROM',"noInfo",'ROM of type '+str(self.printTag.strip())+' has no special output options.')
 
   def isDynamic(self):
     """
@@ -381,7 +406,7 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     """#
 #
 #
-class NDinterpolatorRom(superVisedLearning):
+class NDinterpolatorRom(supervisedLearning):
   """
   A Reduced Order Model for interpolating N-dimensional data
   """
@@ -392,7 +417,7 @@ class NDinterpolatorRom(superVisedLearning):
       @ In, kwargs, dict, an arbitrary dictionary of keywords and values
       @ Out, None
     """
-    superVisedLearning.__init__(self,messageHandler,**kwargs)
+    supervisedLearning.__init__(self,messageHandler,**kwargs)
     self.interpolator = []    # pointer to the C++ (crow) interpolator (list of targets)
     self.featv        = None  # list of feature variables
     self.targv        = None  # list of target variables
@@ -485,7 +510,7 @@ class NDinterpolatorRom(superVisedLearning):
 #
 #
 #
-class GaussPolynomialRom(superVisedLearning):
+class GaussPolynomialRom(supervisedLearning):
   """
     Gauss Polynomial Rom Class
   """
@@ -528,7 +553,7 @@ class GaussPolynomialRom(superVisedLearning):
       @ In, kwargs, dict, an arbitrary list of kwargs
       @ Out, None
     """
-    superVisedLearning.__init__(self,messageHandler,**kwargs)
+    supervisedLearning.__init__(self,messageHandler,**kwargs)
     self.initialized   = False #only True once self.initialize has been called
     self.interpolator  = None #FIXME what's this?
     self.printTag      = 'GAUSSgpcROM('+'-'.join(self.target)+')'
@@ -1328,7 +1353,7 @@ class HDMRRom(GaussPolynomialRom):
 #
 #
 #
-class pickledROM(superVisedLearning):
+class pickledROM(supervisedLearning):
   """
     Placeholder for ROMs that will be generated by unpickling from file.
   """
@@ -1412,7 +1437,7 @@ class MSR(NDinterpolatorRom):
       @ Out, None
     """
     self.printTag = 'MSR ROM'
-    superVisedLearning.__init__(self,messageHandler,**kwargs)
+    supervisedLearning.__init__(self,messageHandler,**kwargs)
     self.acceptedGraphParam = ['approximate knn', 'delaunay', 'beta skeleton', \
                                'relaxed beta skeleton']
     self.acceptedPersistenceParam = ['difference','probability','count','area']
@@ -1961,7 +1986,49 @@ class NDsplineRom(NDinterpolatorRom):
     NDinterpolatorRom.__init__(self,messageHandler,**kwargs)
     self.printTag = 'ND-SPLINE ROM'
     for _ in range(len(self.target)):
-      self.interpolator.append(interpolationND.NDspline())
+      self.interpolator.append(interpolationND.NDSpline())
+
+  def __trainLocal__(self,featureVals,targetVals):
+    """
+      Perform training on samples. This is a specialization of the
+      Spline Interpolator (since it will create a Cartesian Grid in case
+      the samples are not a tensor)
+      @ In, featureVals, {array-like, sparse matrix}, shape=[n_samples, n_features],
+        an array of input feature values
+      @ Out, targetVals, array, shape = [n_samples], an array of output target
+        associated with the corresponding points in featureVals
+    """
+    numDiscrPerDimension = int(math.ceil(len(targetVals)**(1./len(self.features))))
+    newNumberSamples     = numDiscrPerDimension**len(self.features)
+    # get discretizations
+    discretizations = [ list(set(featureVals[:,d].tolist())) for d in range(len(self.features))]
+    # check if it is a tensor grid or not
+    tensorGrid = False if np.prod( [len(d) for d in discretizations] ) != len(targetVals) else True
+    if not tensorGrid:
+      self.raiseAWarning("Training set for NDSpline is not a cartesian grid. The training Tensor Grid is going to be create by interpolation!")
+      # isolate training data
+      featureVals = copy.deepcopy(featureVals)
+      targetVals  = copy.deepcopy(targetVals)
+      # new discretization
+      newDiscretizations = [np.linspace(min(discretizations[d]), max(discretizations[d]), num=numDiscrPerDimension, dtype=float).tolist() for d in range(len(self.features))]
+      # new feature values
+      newFeatureVals = np.atleast_2d(np.asarray(list(product(*newDiscretizations))))
+      # new valuesContainer
+      newTargetVals = np.zeros( (newNumberSamples,len(self.target)) )
+      for index in range(len(self.target)):
+        # not a tensor grid => interpolate
+        nr = neighbors.KNeighborsRegressor(n_neighbors= min(2**len(self.features),len(targetVals)), weights='distance')
+        nr.fit(featureVals, targetVals[:,index])
+        # new target values
+        newTargetVals[:,index] = nr.predict(newFeatureVals)
+      targetVals  = newTargetVals
+      featureVals = newFeatureVals
+    # fit the model
+    self.featv, self.targv = featureVals,targetVals
+    featv = interpolationND.vectd2d(featureVals[:][:])
+    for index, target in enumerate(self.target):
+      targv = interpolationND.vectd(targetVals[:,index])
+      self.interpolator[index].fit(featv,targv)
 
   def __resetLocal__(self):
     """
@@ -2013,7 +2080,7 @@ class NDinvDistWeight(NDinterpolatorRom):
 #
 #
 #
-class SciKitLearn(superVisedLearning):
+class SciKitLearn(supervisedLearning):
   """
     An Interface to the ROMs provided by skLearn
   """
@@ -2141,7 +2208,7 @@ class SciKitLearn(superVisedLearning):
       @ In, kwargs, dict, an arbitrary list of kwargs
       @ Out, None
     """
-    superVisedLearning.__init__(self,messageHandler,**kwargs)
+    supervisedLearning.__init__(self,messageHandler,**kwargs)
     name  = self.initOptionDict.pop('name','')
     self.printTag = 'SCIKITLEARN'
     if 'SKLtype' not in self.initOptionDict.keys():
@@ -2304,7 +2371,7 @@ class SciKitLearn(superVisedLearning):
 #
 #
 
-class ARMA(superVisedLearning):
+class ARMA(supervisedLearning):
   """
     Autoregressive Moving Average model for time series analysis. First train then evaluate.
     Specify a Fourier node in input file if detrending by Fourier series is needed.
@@ -2319,7 +2386,7 @@ class ARMA(superVisedLearning):
                            and printing messages
       @ In, kwargs: an arbitrary dictionary of keywords and values
     """
-    superVisedLearning.__init__(self,messageHandler,**kwargs)
+    supervisedLearning.__init__(self,messageHandler,**kwargs)
     self.printTag          = 'ARMA'
     self._dynamicHandling  = True                                    # This ROM is able to manage the time-series on its own. No need for special treatment outside
     self.armaPara          = {}
@@ -2823,6 +2890,570 @@ class ARMA(superVisedLearning):
     """
     randomUtils.randomSeed(seed)
 
+class PolyExponential(supervisedLearning):
+  """
+    This surrogate is aimed to construct a "time-dep" surrogate based on a polynomial sum of exponentials
+    The surrogate will have the form:
+    SM(X,z) = \sum_{i=1}^N P_i(X) \exp ( - Q_i(X) z )
+    where:
+      z is the independent  monotonic variable (e.g. time)
+      X is the vector of the other independent (parametric) variables
+      P_i(X) is a polynomial of rank M function of the parametric space X
+      Q_i(X) is a polynomial of rank M function of the parametric space X
+  """
+  def __init__(self,messageHandler,**kwargs):
+    """
+      PolyExponential constructor
+      @ In, messageHandler, MessageHandler.MessageUser, a MessageHandler object in charge of raising errors,
+                           and printing messages
+      @ In, kwargs, dict, an arbitrary dictionary of keywords and values
+    """
+
+    supervisedLearning.__init__(self,messageHandler,**kwargs)
+    self.availCoeffRegressors               = ['nearest','poly','spline']                   # avail coeff regressors
+    self.printTag                           = 'PolyExponential'                             # Print tag
+    self.pivotParameterID                   = kwargs.get("pivotParameter","time")           # Pivot parameter ID
+    self._dynamicHandling                   = True                                          # This ROM is able to manage the time-series on its own
+    self.polyExpParams                      = {}                                            # poly exponential options' container
+    self.polyExpParams['expTerms']          = int(kwargs.get('numberExpTerms',3))           # the number of exponential terms
+    self.polyExpParams['coeffRegressor']    = kwargs.get('coeffRegressor','spline').lower() # which regressor to use for interpolating the coefficient
+    self.polyExpParams['polyOrder']         = int(kwargs.get('polyOrder',3))                # the polynomial order
+    self.polyExpParams['tol']               = float(kwargs.get('tol',0.001))                # optimization tolerance
+    self.polyExpParams['maxNumberIter']     = int(kwargs.get('maxNumberIter',5000))         # maximum number of iterations in optimization
+    self.aij                                = None                                          # a_ij coefficients of the exponential terms {'target1':ndarray(nsamples, self.polyExpParams['expTerms']),'target2',ndarray,etc}
+    self.bij                                = None                                          # b_ij coefficients of the exponent of the exponential terms {'target1':ndarray(nsamples, self.polyExpParams['expTerms']),'target2',ndarray,etc}
+    self.model                              = None                                          # the surrogate model itself {'target1':model,'target2':model, etc.}
+    # check if the pivotParameter is among the targetValues
+    if self.pivotParameterID not in self.target:
+      self.raiseAnError(IOError,"The pivotParameter "+self.pivotParameterID+" must be part of the Target space!")
+
+
+  def _localNormalizeData(self,values,names,feat):
+    """
+      Overwrites default normalization procedure.
+      @ In, values, unused
+      @ In, names, unused
+      @ In, feat, feature to normalize
+      @ Out, None
+    """
+    self.muAndSigmaFeatures[feat] = (0.0,1.0)
+
+  def __computeExpTerms(self, x, y, returnPredictDiff=True):
+    """
+      Method to compute the coefficients of "n" exponential terms that minimize the
+      difference between the training data and the "predicted" data
+      y(x) = \sum_{i=1}^n a_i \exp ( - b_i x )
+      @ In, x, numpy.ndarray, the x values
+      @ In, y, numpy.ndarray, the target values
+      @ In, storePredictDiff, bool, optional, True if the prediction differences need to be returned (default False)
+      @ Out, (fi, 1/taui, predictionErr (optional) ), tuple(numpy.ndarray, numpy.ndarray, numpy.ndarray (optional)), a_i and b_i and predictionErr (if returnPredictDiff=True)
+    """
+    def _objective(s):
+      """
+        Objective function for the optimization
+        @ In, s, numpy.ndarray, the array of coefficient
+        @ Out, objective, float, the cumulative difference between the predicted and the real data
+      """
+      l = int(s.size/2)
+      return np.sum((y - np.dot(s[l:], np.exp(-np.outer(1./s[:l], x))))**2.)
+    # I import the differential_evolution here since it is available for scipy ver > 0.15 only and
+    # we do not require it yet
+    ##TODO: update library requirement
+    try:
+      from scipy.optimize import differential_evolution
+    except ImportError:
+      self.raiseAnError(ImportError, "Minimum scipy version to use this SM is 0.15")
+    numberTerms   = self.polyExpParams['expTerms']
+    predictionErr = None
+    x, y          = np.array(x), np.array(y)
+    bounds        = [[min(x), max(x)]]*numberTerms + [[min(y), max(y)]]*numberTerms
+    result        = differential_evolution(_objective, bounds,
+                                           maxiter=self.polyExpParams['maxNumberIter'],
+                                           tol=self.polyExpParams['tol'],
+                                           disp=False,
+                                           seed=200286)
+    taui, fi      = np.split(result['x'], 2)
+    sortIndexes   = np.argsort(fi)
+    fi, taui      = fi[sortIndexes], taui[sortIndexes]
+    if returnPredictDiff:
+      predictionErr = (y-self.__evaluateExpTerm(x, fi, 1./taui))/y
+    return fi, 1./taui, predictionErr
+
+  def __evaluateExpTerm(self,x, a, b):
+    """
+      Evaluate exponential term given x, a and b
+      y(x) = \sum_{i=1}^n a_i \exp ( - b_i x )
+      @ In, x, numpy.ndarray, the x values
+      @ In, a, numpy.ndarray, the a values
+      @ In, b, numpy.ndarray, the b values
+      @ Out, y, numpy.ndarray, the outcome y(x)
+    """
+    return np.dot(a, np.exp(-np.outer(b, x)))
+
+  def __trainLocal__(self,featureVals,targetVals):
+    """
+      Perform training on input database stored in featureVals.
+      @ In, featureVals, numpy.ndarray, shape= (n_samples, n_dimensions), an array of input data
+      @ In, targetVals, numpy.ndarray, shape = (n_samples, n_timeStep), an array of time series data
+    """
+    # check if the data are time-dependent, otherwise error out
+    if (len(targetVals.shape) != 3) :
+      self.raiseAnError(Exception, "This ROM is specifically usable for time-series data surrogating (i.e. HistorySet)!")
+    targetIndexes     = {}
+    self.aij          = {}
+    self.bij          = {}
+    self.predictError = {}
+    self.model        = {}
+    pivotParamIndex   = self.target.index(self.pivotParameterID)
+    nsamples          = len(targetVals[:,:,pivotParamIndex])
+    for index, target in enumerate(self.target):
+      if target != self.pivotParameterID:
+        targetIndexes[target]     = index
+        self.aij[target]          = np.zeros( (nsamples, self.polyExpParams['expTerms']))
+        self.bij[target]          = np.zeros((nsamples, self.polyExpParams['expTerms']))
+        self.predictError[target] = np.zeros( (nsamples, len(targetVals[0,:,index]) ))
+    #TODO: this can be parallelized
+    for smp in range(nsamples):
+      self.raiseADebug("Computing exponential terms for sample ID "+str(smp+1))
+      for target in targetIndexes:
+        resp = self.__computeExpTerms(targetVals[smp,:,pivotParamIndex],targetVals[smp,:,targetIndexes[target]])
+        self.aij[target][smp,:], self.bij[target][smp,:], self.predictError[target][smp,:] = resp
+    # store the pivot values
+    self.pivotValues = targetVals[0,:,pivotParamIndex]
+    if self.polyExpParams['coeffRegressor']== 'nearest':
+      self.scaler = preprocessing.StandardScaler().fit(featureVals)
+    # construct poly
+    for target in targetIndexes:
+      # the targets are the coefficients
+      expTermCoeff = np.concatenate( (self.aij[target],self.bij[target]), axis=1)
+      if self.polyExpParams['coeffRegressor']== 'poly':
+        # now that we have the coefficients, we can construct the polynomial expansion whose targets are the just computed coefficients
+        self.model[target] = make_pipeline(preprocessing.PolynomialFeatures(self.polyExpParams['polyOrder']), linear_model.Ridge())
+        self.model[target].fit(featureVals, expTermCoeff)
+        # print the coefficient
+        self.raiseADebug('poly coefficients for target "'+target+'":')
+        coefficients = self.model[target].steps[1][1].coef_
+        for l, coeff in enumerate(coefficients):
+          coeff_str = "    a_"+str(l+1) if l < self.polyExpParams['expTerms'] else "    b_"+str((l-self.polyExpParams['expTerms'])+1)
+          coeff_str+="(" + ",".join(self.features)+"):"
+          self.raiseADebug(coeff_str)
+          self.raiseADebug("      "+" ".join([str(elm) for elm in coeff]))
+      elif self.polyExpParams['coeffRegressor']== 'nearest':
+        # construct nearest
+        self.model[target] = [None for _ in range(self.polyExpParams['expTerms']*2)]
+        for cnt in range(len(self.model[target] )):
+          self.model[target][cnt] = neighbors.KNeighborsRegressor(n_neighbors=min(nsamples, 2**len(self.features)), weights='distance')
+          self.model[target][cnt].fit(self.scaler.transform(featureVals),expTermCoeff[:,cnt])
+      else:
+        # construct spline
+        numbTerms = self.polyExpParams['expTerms']
+        targets   = ["a_"+str(cnt+1) if cnt < numbTerms else "b_"+str((cnt-numbTerms)+1) for cnt in range(numbTerms*2)]
+        self.model[target] = NDsplineRom(self.messageHandler,
+                                         **{'Features':','.join(self.features),
+                                            'Target':",".join(targets)})
+        self.model[target].__class__.__trainLocal__(self.model[target],featureVals,expTermCoeff)
+    self.featureVals = featureVals
+
+  def __evaluateLocal__(self,featureVals):
+    """
+      This method is used to inquire the PolyExponential to evaluate (after normalization that in
+      this case is not performed)  a set of points contained in featureVals.
+      @ In, featureVals, numpy.ndarray, shape= (n_requests, n_dimensions), an array of input data
+      @ Out, returnEvaluation , dict, dictionary of values for each target (and pivot parameter)
+    """
+    returnEvaluation = {self.pivotParameterID:self.pivotValues}
+    for target in list(set(self.target) - set([self.pivotParameterID])):
+      if isinstance(self.model[target], list):
+        evaluation = np.zeros((len(featureVals),len(self.model[target])))
+        for cnt,model in enumerate(self.model[target]):
+          evaluation[:,cnt] = model.predict(self.scaler.transform(featureVals) )
+      else:
+        if 'predict' in dir(self.model[target]):
+          evaluation = self.model[target].predict(featureVals)
+        else:
+          evaluation = np.zeros((len(featureVals),len(self.model[target].target)))
+          evalDict = self.model[target].__class__.__evaluateLocal__(self.model[target],featureVals)
+          for cnt,targ in enumerate(self.model[target].target):
+            evaluation[:,cnt] = evalDict[targ][:]
+      for point in range(len(evaluation)):
+        l = int(evaluation[point].size/2)
+        returnEvaluation[target] =  self.__evaluateExpTerm(self.pivotValues,
+                                                                evaluation[point][:l],
+                                                                evaluation[point][l:])
+    return returnEvaluation
+
+  def _localPrintXMLSetup(self,outFile,options={}):
+    """
+      Specific local method for printing anything desired to xml file at the begin of the print.
+      Overwrite in inheriting classes.
+      @ In, outFile, Files.File, either StaticXMLOutput or DynamicXMLOutput file
+      @ In, options, dict, optional, dict of string-based options to use, including filename, things to print, etc
+      @ Out, None
+    """
+    # add description
+    description  = " This XML file contains the main information of the PolyExponential ROM."
+    description += " If ``coefficients'' are dumped for each realization, the evaluation function (for each realization ``j'') is as follows:"
+    description += " $SM_{j}(z) = \sum_{i=1}^{N}f_{i}*exp^{-tau_{i}*z}$, with ``z'' beeing the monotonic variable and ``N'' the"
+    description += " number of exponential terms (expTerms). If the Polynomial coefficients ``poly\_coefficients'' are"
+    description += " dumped, the SM evaluation function is as follows:"
+    description += " $SM(X,z) = \sum_{i=1}^{N} P_{i}(X)*exp^{-Q_{i}(X)*z}$, with ``P'' and ``Q'' the polynomial expressions of the exponential terms."
+    outFile.addScalar('ROM',"description",description)
+
+  def _localPrintXML(self,outFile,pivotVal,options={}):
+    """
+      Adds requested entries to XML node.
+      @ In, outFile, Files.File, either StaticXMLOutput or DynamicXMLOutput file
+      @ In, pivotVal, float, value of pivot parameters to use in printing if dynamic
+      @ In, options, dict, optional, dict of string-based options to use, including filename, things to print, etc
+        May include:
+        'what': comma-separated string list, the qualities to print out
+        'pivotVal': float value of dynamic pivotParam value
+      @ Out, None
+    """
+    ##TODO retrieve coefficients from spline interpolator
+    if not self.amITrained:
+      self.raiseAnError(RuntimeError,'ROM is not yet trained!')
+    # check what
+    what = ['expTerms','coeffRegressor','features','timeScale','coefficients']
+    if self.polyExpParams['coeffRegressor'].strip() == 'poly':
+      what.append('polyOrder')
+    if 'what' in options:
+      readWhat = options['what'].split(",")
+      if readWhat[0].strip().lower() == 'all':
+        readWhat = what
+      if not set(readWhat) <= set(what):
+        self.raiseAnError(IOError, "The following variables in <what> node are not recognized: "
+                          + ",".join(np.setdiff1d(readWhat, what).tolist()) )
+      else:
+        what = readWhat
+    # Target
+    target = options.get('Target',self.target[-1])
+    toAdd = ['expTerms','coeffRegressor']
+    if self.polyExpParams['coeffRegressor'].strip() == 'poly':
+      toAdd.append('polyOrder')
+    for add in toAdd:
+      if add in what:
+        outFile.addScalar(target,add,self.polyExpParams[add])
+    if "features" in what:
+      outFile.addScalar(target,"features",' '.join(self.features))
+    if "timeScale" in what:
+      outFile.addScalar(target,"timeScale",' '.join([str(elm) for elm in self.pivotValues]))
+    if "coefficients" in what:
+      for smp in range(len(self.aij[target])):
+        valDict = {'fi': ' '.join([ '%.6e' % elm for elm in self.aij[target][smp,:]]),
+                   'taui':' '.join([ '%.6e' % elm for elm in self.bij[target][smp,:]]),
+                   'predictionRelDiff' :' '.join([ '%.6e' % elm for elm in self.predictError[target][smp,:]])}
+        attributeDict = {self.features[index]:'%.6e' % self.featureVals[smp,index] for index in range(len(self.features))}
+        outFile.addVector("coefficients","realization",valDict,root=target, attrs=attributeDict)
+
+  def __confidenceLocal__(self,featureVals):
+    """
+      The confidence associate with a set of requested evaluations
+      @ In, featureVals, numpy.ndarray, shape= (n_requests, n_dimensions), an array of input data
+      @ Out, None
+    """
+    pass
+
+  def __resetLocal__(self,featureVals):
+    """
+      After this method the ROM should be described only by the initial parameter settings
+      @ In, featureVals, numpy.ndarray, shape= (n_samples, n_dimensions), an array of input data (training data)
+      @ Out, None
+    """
+    self.amITrained   = False
+    self.aij          = None
+    self.bij          = None
+    self.model        = None
+    self.pivotValues  = None
+    self.predictError = None
+    self.featureVals  = None
+
+  def __returnInitialParametersLocal__(self):
+    """
+      This method returns the initial parameters of the SM
+      @ In, None
+      @ Out, self.polyExpParams, dict, the dict of the SM settings
+    """
+    return self.polyExpParams
+
+  def __returnCurrentSettingLocal__(self):
+    """
+      This method is used to pass the set of parameters of the ROM that can change during simulation
+      @ In, None
+      @ Out, self.polyExpParams, dict, the dict of the SM settings
+    """
+    return self.polyExpParams
+
+class DynamicModeDecomposition(supervisedLearning):
+  """
+    This surrogate is aimed to construct a "time-dep" surrogate based on
+    Dynamic Mode Decomposition method.
+    Ref. Kutz, Brunton, Brunton, Proctor. Dynamic Mode Decomposition:
+        Data-Driven Modeling of Complex Systems. SIAM Other Titles in
+        Applied Mathematics, 2016
+  """
+  def __init__(self,messageHandler,**kwargs):
+    """
+      DMD constructor
+      @ In, messageHandler, MessageHandler.MessageUser, a MessageHandler object in charge of raising errors,
+                           and printing messages
+      @ In, kwargs, dict, an arbitrary dictionary of keywords and values
+    """
+    supervisedLearning.__init__(self,messageHandler,**kwargs)
+    self.availDmdAlgorithms          = ['dmd','hodmd']                      # available dmd types: basic dmd and high order dmd
+    self.dmdParams                   = {}                                   # dmd settings container
+    self.printTag                    = 'DMD'                                # print tag
+    self.pivotParameterID            = kwargs.get("pivotParameter","time")  # pivot parameter
+    self._dynamicHandling            = True                                 # This ROM is able to manage the time-series on its own. No need for special treatment outside
+    self.dmdParams['rankSVD'       ] = kwargs.get('rankSVD',None)           # -1 no truncation, 0 optimal rank is computed, >1 truncation rank
+    self.dmdParams['energyRankSVD' ] = kwargs.get('energyRankSVD',None)     #  0.0 < float < 1.0, computed rank is the number of the biggest sv needed to reach the energy identified by "energyRankSVD"
+    self.dmdParams['rankTLSQ'      ] = kwargs.get('rankTLSQ',None)          # truncation rank for total least square
+    self.dmdParams['exactModes'    ] = kwargs.get('exactModes',True)        # True if the exact modes need to be computed (eigs and eigvs), otherwise the projected ones (using the left-singular matrix)
+    self.dmdParams['optimized'     ] = kwargs.get('optimized',False)        # amplitudes computed minimizing the error between the mods and all the timesteps (True) or 1st timestep only (False)
+    self.dmdParams['dmdType'       ] = kwargs.get('dmdType','dmd')          # the dmd type to be applied. Currently we support dmd and hdmd (high order dmd)
+    # variables filled up in the training stages
+    self._amplitudes                 = {}                                   # {'target1': vector of amplitudes,'target2':vector of amplitudes, etc.}
+    self._eigs                       = {}                                   # {'target1': vector of eigenvalues,'target2':vector of eigenvalues, etc.}
+    self._modes                      = {}                                   # {'target1': matrix of dynamic modes,'target2':matrix of dynamic modes, etc.}
+    self.__Atilde                    = {}                                   # {'target1': matrix of lowrank operator from the SVD,'target2':matrix of lowrank operator from the SVD, etc.}
+    self.pivotValues                 = None                                 # pivot values (e.g. time)
+    self.KDTreeFinder                = None                                 # kdtree weighting model
+    self.timeScales                  = {}                                   # time-scales (training and dmd). {'training' and 'dmd':{t0:float,'dt':float,'intervals':int}}
+
+    # some checks
+    if self.dmdParams['rankSVD'] is not None and self.dmdParams['energyRankSVD'] is not None:
+      self.raiseAWarning('Both "rankSVD" and "energyRankSVD" have been inputted. "energyRankSVD" is predominant and will be used!')
+    if self.dmdParams['dmdType'] not in self.availDmdAlgorithms:
+      self.raiseAnError(IOError,'dmdType(s) available are "'+', '.join(self.availDmdAlgorithms)+'"!')
+    # check if the pivotParameter is among the targetValues
+    if self.pivotParameterID not in self.target:
+      self.raiseAnError(IOError,"The pivotParameter "+self.pivotParameterID+" must be part of the Target space!")
+
+  def _localNormalizeData(self,values,names,feat):
+    """
+      Overwrites default normalization procedure.
+      @ In, values, unused
+      @ In, names, unused
+      @ In, feat, feature to normalize
+      @ Out, None
+    """
+    self.muAndSigmaFeatures[feat] = (0.0,1.0)
+
+  #######
+  def __getTimeScale(self,dmd=True):
+    """
+      Get the ts of the dmd (if dmd = True) or training (if dmd = False) reconstructed time scale.
+      @ In, dmd, bool, optional, True if dmd time scale needs to be returned, othewise training one
+      @ Out, timeScale, numpy.array, the dmd or training reconstructed time scale
+    """
+    timeScaleInfo = self.timeScales['dmd'] if dmd else self.timeScales['training']
+    timeScale = np.arange(timeScaleInfo['t0'], timeScaleInfo['intervals'] + timeScaleInfo['dt'], timeScaleInfo['dt'])
+    return timeScale
+
+  def __getTimeEvolution(self, target):
+    """
+      Get the time evolution of each mode
+      @ In, target, str, the target for which mode evolution needs to be retrieved for
+      @ Out, timeEvol, numpy.ndarray, the matrix that contains all the time evolution (by row)
+    """
+    omega = np.log(self._eigs[target]) / self.timeScales['training']['dt']
+    van = np.exp(np.multiply(*np.meshgrid(omega, self.__getTimeScale())))
+    timeEvol = (van * self._amplitudes[target]).T
+    return timeEvol
+
+  def _reconstructData(self, target):
+    """
+      Retrieve the reconstructed data
+      @ In, target, str, the target for which the data needs to be reconstructed
+      @ Out, data, numpy.ndarray, the matrix (nsamples,n_time_steps) containing the reconstructed data
+    """
+    data = self._modes[target].dot(self.__getTimeEvolution(target))
+    return data
+
+  def __trainLocal__(self,featureVals,targetVals):
+    """
+      Perform training on input database stored in featureVals.
+      @ In, featureVals, numpy.ndarray, shape=[n_timeStep, n_dimensions], an array of input data # Not use for ARMA training
+      @ In, targetVals, numpy.ndarray, shape = [n_timeStep, n_dimensions], an array of time series data
+    """
+    self.featureVals  = featureVals
+    self.KDTreeFinder = spatial.KDTree(featureVals)
+    pivotParamIndex   = self.target.index(self.pivotParameterID)
+    self.pivotValues  = targetVals[0,:,pivotParamIndex]
+    ts                = len(self.pivotValues)
+    for target in list(set(self.target) - set([self.pivotParameterID])):
+      targetParamIndex  = self.target.index(target)
+      snaps = targetVals[:,:,targetParamIndex]
+      # if number of features (i.e. samples) > number of snapshots, we apply the high order DMD or HODMD has been requested
+      imposedHODMD = False
+      if self.dmdParams['dmdType'] == 'hodmd' or snaps.shape[0] < snaps.shape[1]:
+        v = max(snaps.shape[1] - snaps.shape[0],2)
+        imposedHODMD = True
+        snaps = np.concatenate([snaps[:, i:snaps.shape[1] - v  + i + 1] for i in range(v) ], axis=0)
+      # overlap snaps
+      X, Y = snaps[:, :-1], snaps[:, 1:]
+      if self.dmdParams['rankTLSQ'] is not None:
+        X, Y = mathUtils.computeTruncatedTotalLeastSquare(X, Y, self.dmdParams['rankTLSQ'])
+      rank = self.dmdParams['energyRankSVD'] if self.dmdParams['energyRankSVD'] is not None else (self.dmdParams['rankSVD'] if self.dmdParams['rankSVD'] is not None else -1)
+      U, s, V = mathUtils.computeTruncatedSingularValueDecomposition(X, rank)
+      # lowrank operator from the SVD of matrices X and Y
+      self.__Atilde[target] = U.T.conj().dot(Y).dot(V) * np.reciprocal(s)
+      self._eigs[target], self._modes[target] = mathUtils.computeEigenvaluesAndVectorsFromLowRankOperator(self.__Atilde[target],
+                                                                                                          Y, U, s, V,
+                                                                                                          self.dmdParams['exactModes'])
+      if imposedHODMD:
+        self._modes[target] = self._modes[target][:targetVals[:,:,targetParamIndex].shape[0],:]
+      self._amplitudes[target] = mathUtils.computeAmplitudeCoefficients(self._modes[target],
+                                                                        targetVals[:,:,targetParamIndex],
+                                                                        self._eigs[target],
+                                                                        self.dmdParams['optimized'])
+    # Default timesteps (even if the time history is not equally spaced in time, we "trick" the dmd to think it).
+    self.timeScales = dict.fromkeys( ['training','dmd'],{'t0': 0, 'intervals': ts - 1, 'dt': 1})
+
+  def __evaluateLocal__(self,featureVals):
+    """
+      This method is used to inquire the DMD to evaluate (after normalization that in
+      this case is not performed)  a set of points contained in featureVals.
+      a KDTree algorithm is used to construct a weighting function for the reconstructed space
+      @ In, featureVals, numpy.ndarray, shape= (n_requests, n_dimensions), an array of input data
+      @ Out, returnEvaluation , dict, dictionary of values for each target (and pivot parameter)
+    """
+    returnEvaluation = {self.pivotParameterID:self.pivotValues}
+    for target in list(set(self.target) - set([self.pivotParameterID])):
+      reconstructData = self._reconstructData(target).real
+      # find the nearest data and compute weights
+      weights, indexes = self.KDTreeFinder.query(featureVals, k=min(2**len(self.features),len(reconstructData)))
+      # if 0 (perfect match), assign minimum possible distance
+      weights[weights == 0] = sys.float_info.min
+      weights =1./weights
+      # normalize to 1
+      weights = weights/weights.sum()
+      for point in range(len(weights)):
+        returnEvaluation[target] =  np.sum ((weights[point,:]*reconstructData[indexes[point,:]].T) , axis=1)
+
+    return returnEvaluation
+
+  def _localPrintXMLSetup(self,outFile,options={}):
+    """
+      Specific local method for printing anything desired to xml file at the begin of the print.
+      @ In, outFile, Files.File, either StaticXMLOutput or DynamicXMLOutput file
+      @ In, options, dict, optional, dict of string-based options to use, including filename, things to print, etc
+      @ Out, None
+    """
+    # add description
+    description  = ' This XML file contains the main information of the DMD ROM.'
+    description += ' If "modes" (dynamic modes), "eigs" (eigenvalues), "amplitudes" (mode amplitudes)'
+    description += ' and "dmdTimeScale" (internal dmd time scale) are dumped, the method'
+    description += ' is explained in P.J. Schmid, Dynamic mode decomposition'
+    description += ' of numerical and experimental data, Journal of Fluid Mechanics 656.1 (2010), 5-28'
+    outFile.addScalar('ROM',"description",description)
+
+  def _localPrintXML(self,outFile,pivotVal,options={}):
+    """
+      Adds requested entries to XML node.
+      @ In, outFile, Files.File, either StaticXMLOutput or DynamicXMLOutput file
+      @ In, pivotVal, float, value of pivot parameters to use in printing if dynamic
+      @ In, options, dict, optional, dict of string-based options to use, including filename, things to print, etc
+        May include:
+        'what': comma-separated string list, the qualities to print out
+        'pivotVal': float value of dynamic pivotParam value
+      @ Out, None
+    """
+    if not self.amITrained:
+      self.raiseAnError(RuntimeError,'ROM is not yet trained!')
+
+    # check what
+    what = ['exactModes','optimized','dmdType','features','timeScale','eigs','amplitudes','modes','dmdTimeScale']
+    if self.dmdParams['rankTLSQ'] is not None:
+      what.append('rankTLSQ')
+    what.append('energyRankSVD' if self.dmdParams['energyRankSVD'] is not None else 'rankSVD')
+    if 'what' in options:
+      readWhat = options['what'].split(",")
+      if readWhat[0].strip().lower() == 'all':
+        readWhat = what
+      if not set(readWhat) <= set(what):
+        self.raiseAnError(IOError, "The following variables specified in <what> node are not recognized: "+ ",".join(np.setdiff1d(readWhat, what).tolist()) )
+      else:
+        what = readWhat
+    # Target
+    target = options.get('Target',self.target[-1])
+    toAdd = ['exactModes','optimized','dmdType']
+    if self.dmdParams['rankTLSQ'] is not None:
+      toAdd.append('rankTLSQ')
+    toAdd.append('energyRankSVD' if self.dmdParams['energyRankSVD'] is not None else 'rankSVD')
+    self.dmdParams['rankSVD'] = self.dmdParams['rankSVD'] if self.dmdParams['rankSVD'] is not None else -1
+
+    for add in toAdd:
+      if add in what :
+        outFile.addScalar(target,add,self.dmdParams[add])
+    if "features" in what:
+      outFile.addScalar(target,"features",' '.join(self.features))
+    if "timeScale" in what:
+      outFile.addScalar(target,"timeScale",' '.join(['%.6e' % elm for elm in self.pivotValues.ravel()]))
+    if "dmdTimeScale" in what:
+      outFile.addScalar(target,"dmdTimeScale",' '.join(['%.6e' % elm for elm in self.__getTimeScale()]))
+    if "eigs" in what:
+      eigsReal = " ".join(['%.6e' % self._eigs[target][indx].real for indx in
+                       range(len(self._eigs[target]))])
+      outFile.addScalar("eigs","real", eigsReal,root=target)
+      eigsImag = " ".join(['%.6e' % self._eigs[target][indx].imag for indx in
+                               range(len(self._eigs[target]))])
+      outFile.addScalar("eigs","imaginary", eigsImag,root=target)
+    if "amplitudes" in what:
+      ampsReal = " ".join(['%.6e' % self._amplitudes[target][indx].real for indx in
+                       range(len(self._amplitudes[target]))])
+      outFile.addScalar("amplitudes","real", ampsReal,root=target)
+      ampsImag = " ".join(['%.6e' % self._amplitudes[target][indx].imag for indx in
+                               range(len(self._amplitudes[target]))])
+      outFile.addScalar("amplitudes","imaginary", ampsImag,root=target)
+    if "modes" in what:
+      for smp in range(len(self._modes[target])):
+        valDict = {'real': ' '.join([ '%.6e' % elm for elm in self._modes[target][smp,:].real]),
+                   'imaginary':' '.join([ '%.6e' % elm for elm in self._modes[target][smp,:].imag])}
+        attributeDict = {self.features[index]:'%.6e' % self.featureVals[smp,index] for index in range(len(self.features))}
+        outFile.addVector("modes","realization",valDict,root=target, attrs=attributeDict)
+
+  def __confidenceLocal__(self,featureVals):
+    """
+      The confidence associate with a set of requested evaluations
+      @ In, featureVals, numpy.ndarray, shape= (n_requests, n_dimensions), an array of input data
+      @ Out, None
+    """
+    pass
+
+  def __resetLocal__(self,featureVals):
+    """
+      After this method the ROM should be described only by the initial parameter settings
+      @ In, featureVals, numpy.ndarray, shape= (n_samples, n_dimensions), an array of input data (training data)
+      @ Out, None
+    """
+    self.amITrained   = False
+    self._amplitudes  = {}
+    self._eigs        = {}
+    self._modes       = {}
+    self.__Atilde     = {}
+    self.pivotValues  = None
+    self.KDTreeFinder = None
+    self.featureVals  = None
+
+  def __returnInitialParametersLocal__(self):
+    """
+      This method returns the initial parameters of the SM
+      @ In, None
+      @ Out, self.dmdParams, dict, the dict of the SM settings
+    """
+    return self.dmdParams
+
+  def __returnCurrentSettingLocal__(self):
+    """
+      This method is used to pass the set of parameters of the ROM that can change during simulation
+      @ In, None
+      @ Out, self.dmdParams, dict, the dict of the SM settings
+    """
+    return self.dmdParams
+
+
+
 __interfaceDict                         = {}
 __interfaceDict['NDspline'            ] = NDsplineRom
 __interfaceDict['NDinvDistWeight'     ] = NDinvDistWeight
@@ -2831,8 +3462,10 @@ __interfaceDict['GaussPolynomialRom'  ] = GaussPolynomialRom
 __interfaceDict['HDMRRom'             ] = HDMRRom
 __interfaceDict['MSR'                 ] = MSR
 __interfaceDict['ARMA'                ] = ARMA
+__interfaceDict['PolyExponential'     ] = PolyExponential
+__interfaceDict['DMD'                 ] = DynamicModeDecomposition
 __interfaceDict['pickledROM'          ] = pickledROM
-__base                                  = 'superVisedLearning'
+__base                                  = 'supervisedLearning'
 
 def returnStaticCharacteristics(infoType,ROMclass,caller,**kwargs):
   """
@@ -2864,3 +3497,5 @@ def returnClass(ROMclass,caller):
     return __interfaceDict[ROMclass]
   except KeyError:
     caller.raiseAnError(NameError,'not known '+__base+' type '+ROMclass)
+
+

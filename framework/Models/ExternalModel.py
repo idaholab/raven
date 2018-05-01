@@ -209,7 +209,9 @@ class ExternalModel(Dummy):
     for key in Input.keys():
       if key in self.modelVariableType.keys():
         InputDict[key] = Input[key]
+
     self.sim.run(externalSelf, InputDict)
+
     for key in self.modelVariableType.keys():
       CustomCommandExecuter.execCommand('object["'+key+'"]  = copy.copy(self.'+key+')',self=externalSelf,object=modelVariableValues) #exec('modelVariableValues[key]  = copy.copy(externalSelf.'+key+')') #self.__pointSolution()
     for key in self.initExtSelf.__dict__.keys():

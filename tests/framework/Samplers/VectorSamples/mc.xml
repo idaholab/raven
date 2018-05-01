@@ -1,0 +1,84 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/Samplers/VectorSamples/MC</name>
+    <author>talbpaul</author>
+    <created>2018-03-21</created>
+    <classesTested>Samplers.MonteCarlo</classesTested>
+    <description>
+      Tests sampling a vector variable.
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>MC</WorkingDir>
+    <Sequence>sample,print</Sequence>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="sample">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ExternalModel">model</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
+      <Output class="DataObjects" type="DataSet">solns</Output>
+    </MultiRun>
+    <IOStep name="print">
+      <Input class="DataObjects" type="DataSet">solns</Input>
+      <Output class="OutStreams" type="Print">solns</Output>
+    </IOStep>
+  </Steps>
+
+  <Distributions>
+    <Uniform name="u1">
+      <lowerBound>1</lowerBound>
+      <upperBound>2</upperBound>
+    </Uniform>
+    <Uniform name="u2">
+      <lowerBound>2</lowerBound>
+      <upperBound>3</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="mc">
+      <samplerInit>
+        <limit>3</limit>
+        <initialSeed>42</initialSeed>
+      </samplerInit>
+      <variable name="scalarIn">
+        <distribution>u1</distribution>
+      </variable>
+      <variable name="vectorIn">
+        <distribution>u2</distribution>
+        <shape>10</shape>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <Models>
+    <ExternalModel ModuleToLoad="../vectorInputModel" name="model" subType="">
+      <variables>scalarIn,vectorIn,scalarOut,vectorOut,t</variables>
+    </ExternalModel>
+  </Models>
+
+  <DataObjects>
+    <PointSet name="dummyIN">
+      <Input>scalarIn</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <DataSet name="solns">
+      <Input>scalarIn,vectorIn</Input>
+      <Output>scalarOut,vectorOut</Output>
+      <Index var="t">vectorIn,vectorOut</Index>
+    </DataSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="solns">
+      <type>csv</type>
+      <source>solns</source>
+      <what>input,output</what>
+    </Print>
+  </OutStreams>
+
+</Simulation>
