@@ -33,6 +33,7 @@ import copy
 import numpy
 import six
 from difflib import SequenceMatcher
+import importlib
 
 class Object(object):
   """
@@ -816,55 +817,24 @@ def add_path_recursively(absoluteInitialPath):
   for dirr,_,_ in os.walk(absoluteInitialPath):
     add_path(dirr)
 
-def find_distribution1D():
+def findCrowModule(name):
   """
-    Method to find the crow distribution1D module and return it.
-    @ In, None
-    @ Out, module, instance, the module of distribution1D
+    Method to find one of the crow module (e.g. distribution1D, interpolationNDpy, randomENG, etc.) and return it.
+    @ In, name, str, the name of the module
+    @ Out, module, instance, the instance of module of "name"
   """
-  if sys.version_info.major > 2:
-    try:
-      import crow_modules.distribution1Dpy3
-      return crow_modules.distribution1Dpy3
-    except ImportError as ie:
-      if not str(ie).startswith("No module named"):
-        raise ie
-      import distribution1Dpy3
-      return distribution1Dpy3
-  else:
-    try:
-      import crow_modules.distribution1Dpy2
-      return crow_modules.distribution1Dpy2
-    except ImportError as ie:
-      if not str(ie).startswith("No module named"):
-        raise ie
-      import distribution1Dpy2
-      return distribution1Dpy2
-
-def find_interpolationND():
-  """
-    Method to find the crow interpolationND module and return it.
-    @ In, None
-    @ Out, module, instance, the module of interpolationND
-  """
-  if sys.version_info.major > 2:
-    try:
-      import crow_modules.interpolationNDpy3
-      return crow_modules.interpolationNDpy3
-    except ImportError as ie:
-      if not str(ie).startswith("No module named"):
-        raise ie
-      import interpolationNDpy3
-      return interpolationNDpy3
-  else:
-    try:
-      import crow_modules.interpolationNDpy2
-      return crow_modules.interpolationNDpy2
-    except ImportError as ie:
-      if not str(ie).startswith("No module named"):
-        raise ie
-      import interpolationNDpy2
-      return interpolationNDpy2
+  availableCrowModules = ['distribution1D','interpolationND','randomENG']
+  # assert
+  assert(name in availableCrowModules)
+  # find the module
+  ext = 'py3' if sys.version_info.major > 2 else 'py2'
+  try:
+    module = importlib.import_module("crow_modules.{}{}".format(name,ext))
+  except ImportError as ie:
+    if not str(ie).startswith("No module named"):
+      raise ie
+    module = importlib.import_module("{}{}".format(name,ext))
+  return module
 
 def printCsv(csv,*args):
   """
