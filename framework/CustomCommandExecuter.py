@@ -16,14 +16,14 @@ Created on April 10, 2014
 
 @author: alfoa
 """
-#for future compatibility with Python 3--------------------------------------------------------------
+#for future compatibility with Python 3------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default', DeprecationWarning)
-#End compatibility block for Python 3----------------------------------------------------------------
-
+#End compatibility block for Python 3--------------------------------------------------------------
+#External Modules----------------------------------------------------------------------------------
 import copy
-
+#External Modules End------------------------------------------------------------------------------
 
 def execCommandReturn(commandString, self=None, object=None):
   """

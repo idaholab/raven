@@ -17,25 +17,24 @@ Created on Feb 7, 2013
 This python module performs the loading of
 data from csv files
 """
-#for future compatibility with Python 3--------------------------------------------------------------
+#for future compatibility with Python 3------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default', DeprecationWarning)
 if not 'xrange' in dir(__builtins__):
   xrange = range
-#End compatibility block for Python 3----------------------------------------------------------------
+#End compatibility block for Python 3--------------------------------------------------------------
 
-#External Modules------------------------------------------------------------------------------------
+#External Modules----------------------------------------------------------------------------------
 import numpy as np
 from scipy.interpolate import interp1d
 import copy
-#External Modules End--------------------------------------------------------------------------------
+#External Modules End------------------------------------------------------------------------------
 
-#Internal Modules------------------------------------------------------------------------------------
+#Internal Modules----------------------------------------------------------------------------------
 from utils import utils
 import MessageHandler
-
-#Internal Modules End--------------------------------------------------------------------------------
+#Internal Modules End------------------------------------------------------------------------------
 
 
 class CsvLoader(MessageHandler.MessageUser):
@@ -99,7 +98,7 @@ class CsvLoader(MessageHandler.MessageUser):
 
   def csvLoadData(self, fileIn, options):
     """
-      General interface function to call the private methods for loading the different dataObjects!
+      General interface function to call the private methods for loading the different dataObjects
       @ In, fileIn, string, csv file name
       @ In, options, dict, dictionary of options
       @ Out, csvLoadData, tuple, tuple of (listhistIn,listhistOut)

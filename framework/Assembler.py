@@ -188,7 +188,7 @@ class Assembler(MessageHandler.MessageUser):
       Method to add required assembler objects to the requiredAssObject dictionary.
       @ In, name, string, the node name to search for (e.g. Function, Model)
       @ In, flag, string, the number of nodes to look for (- means optional, n means any number).
-                                          For example, "2" means 2 nodes of type "name" are required!
+                                          E.g, "2" means 2 nodes of type "name" are required!
       @ In, newXmlFlg, boolean, optional, if passed in, the first entry of the
                                           tuple self.requiredAssObject is going to updated
                                           with the new value. For example, if newXmlFlg == True,

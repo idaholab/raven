@@ -16,14 +16,14 @@ Created on Mar 7, 2013
 
 @author: crisr
 """
-#for future compatibility with Python 3--------------------------------------------------------------
+#for future compatibility with Python 3------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 #from __builtin__ import None
 warnings.simplefilter('default', DeprecationWarning)
-#End compatibility block for Python 3----------------------------------------------------------------
+#End compatibility block for Python 3--------------------------------------------------------------
 
-#External Modules------------------------------------------------------------------------------------
+#External Modules----------------------------------------------------------------------------------
 import sys
 import numpy as np
 import scipy
@@ -33,17 +33,16 @@ import operator
 from collections import OrderedDict
 import csv
 from scipy.interpolate import UnivariateSpline
-#External Modules End--------------------------------------------------------------------------------
+#External Modules End------------------------------------------------------------------------------
 
-#Internal Modules------------------------------------------------------------------------------------
+#Internal Modules----------------------------------------------------------------------------------
 from BaseClasses import BaseType
 from utils import utils
 from utils.randomUtils import random
 distribution1D = utils.find_distribution1D()
 from utils import InputData
 from utils import mathUtils
-
-#Internal Modules End--------------------------------------------------------------------------------
+#Internal Modules End------------------------------------------------------------------------------
 
 
 def factorial(x):
@@ -121,24 +120,40 @@ class Distribution(BaseType):
       @ Out, None
     """
     BaseType.__init__(self)
-    self.upperBoundUsed = False  # True if the distribution is right truncated
-    self.lowerBoundUsed = False  # True if the distribution is left truncated
-    self.hasInfiniteBound = False  # True if the untruncated distribution has bounds of +- system max
-    self.upperBound = 0.0  # Right bound
-    self.lowerBound = 0.0  # Left bound
-    self.__adjustmentType = ''  # this describe how the re-normalization to preserve the probability should be done for truncated distributions
-    self.dimensionality = None  # Dimensionality of the distribution (1D or ND)
-    self.disttype = None  # distribution type (continuous or discrete)
+    # True if the distribution is right truncated
+    self.upperBoundUsed = False
+    # True if the distribution is left truncated
+    self.lowerBoundUsed = False
+    # True if the untruncated distribution has bounds of +- system max
+    self.hasInfiniteBound = False
+    # Right bound
+    self.upperBound = 0.0
+    # Left bound
+    self.lowerBound = 0.0
+    # this describe how the re-normalization to preserve the probability
+    # should be done for truncated distributions
+    self.__adjustmentType = ''
+      # Dimensionality of the distribution (1D or ND)
+    self.dimensionality = None
+    # distribution type (continuous or discrete)
+    self.disttype = None
+    # print tag
     self.printTag = 'DISTRIBUTIONS'
-    self.preferredPolynomials = None  # best polynomial for probability-weighted norm of error
-    self.preferredQuadrature = None  # best quadrature for probability-weighted norm of error
-    self.compatibleQuadrature = []  #list of compatible quadratures
-    self.convertToDistrDict = {
-    }  #dict of methods keyed on quadrature types to convert points from quadrature measure and domain to distribution measure and domain
-    self.convertToQuadDict = {
-    }  #dict of methods keyed on quadrature types to convert points from distribution measure and domain to quadrature measure and domain
-    self.measureNormDict = {
-    }  #dict of methods keyed on quadrature types to provide scalar adjustment for measure transformation (from quad to distr)
+    # best polynomial for probability-weighted norm of error
+    self.preferredPolynomials = None
+    # best quadrature for probability-weighted norm of error
+    self.preferredQuadrature = None
+    # list of compatible quadratures
+    self.compatibleQuadrature = []
+    # dict of methods keyed on quadrature types to convert points from quadrature measure
+    # and domain to distribution measure and domain
+    self.convertToDistrDict = {}
+    # dict of methods keyed on quadrature types to convert points from distribution measure
+    # and domain to quadrature measure and domain
+    self.convertToQuadDict = {}
+    # dict of methods keyed on quadrature types to provide scalar adjustment for measure
+    # transformation (from quad to distr)
+    self.measureNormDict = { }
     self.convertToDistrDict['CDFLegendre'] = self.CDFconvertToDistr
     self.convertToQuadDict['CDFLegendre'] = self.CDFconvertToQuad
     self.measureNormDict['CDFLegendre'] = self.CDFMeasureNorm
@@ -267,7 +282,8 @@ class Distribution(BaseType):
 
   def measureNorm(self, qtype):
     """
-      Provides the integral/jacobian conversion factor between the distribution domain and the quadrature domain.
+      Provides the integral/jacobian conversion factor between the distribution
+      domain and the quadrature domain.
       @ In,  qtype, string, type of quadrature to convert to
       @ Out, measureNormDict, float, conversion factor
     """
@@ -526,7 +542,8 @@ class Uniform(BoostDistribution):
     if not self.upperBoundUsed or not self.lowerBoundUsed:
       self.raiseAnError(
           IOError,
-          'the Uniform distribution needs both upperBound and lowerBound attributes. Got upperBound? '
+          'the Uniform distribution needs both upperBound and'+
+          ' lowerBound attributes. Got upperBound? '
           + str(self.upperBoundUsed) + '. Got lowerBound? ' + str(self.lowerBoundUsed))
     self.range = self.upperBound - self.lowerBound
     self.initializeDistribution()
@@ -715,7 +732,8 @@ class Normal(BoostDistribution):
     sv = str(scipy.__version__).split('.')
     if int(sv[0]) == 0 and int(sv[1]) == 15:
       self.raiseAWarning(
-          'SciPy 0.15 detected!  In this version, the normalization factor for normal distributions was modified.'
+          'SciPy 0.15 detected!  In this version, the normalization factor'+
+          ' for normal distributions was modified.'
       )
       self.raiseAWarning('Using modified value...')
       return 1.0 / np.sqrt(np.pi / 2.)
@@ -827,8 +845,7 @@ class Gamma(BoostDistribution):
     if not self.lowerBoundUsed:
       self.lowerBoundUsed = True
       self.lowerBound = self.low
-    self.initializeDistribution(
-    )  #TODO this exists in a couple classes; does it really need to be here and not in Simulation? - No. - Andrea
+    self.initializeDistribution( )
 
   def getInitParams(self):
     """
@@ -1609,7 +1626,8 @@ DistributionsCollection.addSub(Geometric.getInputSpecification())
 class Categorical(Distribution):
   """
     Class for the categorical distribution also called " generalized Bernoulli distribution"
-    Note: this distribution can have only numerical (float) outcome; in the future we might want to include also the possibility to give symbolic outcome
+    Note: this distribution can have only numerical (float) outcome; in the future we might want
+    to include also the possibility to give symbolic outcome
   """
 
   @classmethod
@@ -1681,7 +1699,8 @@ class Categorical(Distribution):
 
   def initializeDistribution(self):
     """
-      Function that initializes the distribution and checks that the sum of all state probabilities is equal to 1
+      Function that initializes the distribution and checks that the sum of
+      all state probabilities is equal to 1
       @ In, None
       @ Out, None
     """
@@ -2444,7 +2463,8 @@ class Custom1D(Distribution):
     if not self.functionType in ['cdf', 'pdf']:
       self.raiseAnError(
           IOError,
-          ' wrong functionType parameter specified for custom1Ddistribution distribution (pdf or cdf)'
+          ' wrong functionType parameter specified for '+
+          'custom1Ddistribution distribution (pdf or cdf)'
       )
 
     dataFilename = paramInput.findFirst('dataFilename')
@@ -2452,17 +2472,20 @@ class Custom1D(Distribution):
       self.dataFilename = os.path.join(self.workingDir, dataFilename.value)
     else:
       self.raiseAnError(IOError,
-                        '<dataFilename> parameter needed for custom1Ddistribution distribution')
+                        '<dataFilename> parameter needed for '+
+                        'custom1Ddistribution distribution')
 
     self.functionID = paramInput.findFirst('functionID').value
     if self.functionID == None:
       self.raiseAnError(IOError,
-                        ' functionID parameter is needed for custom1Ddistribution distribution')
+                        ' functionID parameter is needed for '+
+                        'custom1Ddistribution distribution')
 
     self.variableID = paramInput.findFirst('variableID').value
     if self.variableID == None:
       self.raiseAnError(IOError,
-                        ' variableID parameter is needed for custom1Ddistribution distribution')
+                        ' variableID parameter is needed for '+
+                        'custom1Ddistribution distribution')
 
     self.initializeDistribution()
 
@@ -2789,7 +2812,8 @@ class NDInverseWeight(NDimensionalDistributions):
   def inverseMarginalDistribution(self, x, variable):
     """
       Compute the inverse of the Margina distribution
-      @ In, x, float, the coordinate for at which the inverse marginal distribution needs to be computed
+      @ In, x, float, the coordinate for at which the inverse marginal
+                      distribution needs to be computed
       @ In, variable, string, the variable id
       @ Out, inverseMarginal, float, the marginal cdf value at coordinate x
     """
@@ -2985,7 +3009,8 @@ class NDCartesianSpline(NDimensionalDistributions):
   def inverseMarginalDistribution(self, x, variable):
     """
       Compute the inverse of the Margina distribution
-      @ In, x, float, the coordinate for at which the inverse marginal distribution needs to be computed
+      @ In, x, float, the coordinate for at which the inverse marginal
+                      distribution needs to be computed
       @ In, variable, string, the variable id
       @ Out, inverseMarginal, float, the marginal cdf value at coordinate x
     """
@@ -3095,13 +3120,19 @@ class MultivariateNormal(NDimensionalDistributions):
     self.type = 'MultivariateNormal'
     self.mu = None
     self.covariance = None
-    self.covarianceType = 'abs'  # abs: absolute covariance, rel: relative covariance matrix
-    self.method = 'pca'  # pca: using pca method to compute the pdf, and inverseCdf, another option is 'spline', i.e. using
-    # cartesian spline method to compute the pdf, cdf, inverseCdf, ...
-    self.transformMatrix = None  # np.array stores the transform matrix
-    self.dimension = None  # the dimension of given problem
-    self.rank = None  # the effective rank for the PCA analysis
-    self.transformation = False  # flag for input reduction analysis
+    # abs: absolute covariance, rel: relative covariance matrix
+    self.covarianceType = 'abs'
+    # pca: using pca method to compute the pdf, and inverseCdf, another option is 'spline',
+    #      i.e. usingcartesian spline method to compute the pdf, cdf, inverseCdf, etc.
+    self.method = 'pca'
+    # np.array stores the transform matrix
+    self.transformMatrix = None
+    # the dimension of given problem
+    self.dimension = None
+    # the effective rank for the PCA analysis
+    self.rank = None
+    # flag for input reduction analysis
+    self.transformation = False
 
   def _handleInput(self, paramInput):
     """
@@ -3116,7 +3147,8 @@ class MultivariateNormal(NDimensionalDistributions):
     else:
       self.raiseAnError(
           IOError,
-          'The method attribute for the MultivariateNormal Distribution is not correct, choose "pca" or "spline"'
+          'The method attribute for the MultivariateNormal Distribution is not '+
+          'correct, choose "pca" or "spline"'
       )
     for child in paramInput.subparts:
       if child.getName() == 'mu':
@@ -3204,7 +3236,8 @@ class MultivariateNormal(NDimensionalDistributions):
     """
       Return the transformation matrix from Crow
       @ In, None
-      @ In, index, list, optional, input coordinate index, list values for the index of the latent variables
+      @ In, index, list, optional, input coordinate index, list values for
+                        the index of the latent variables
       @ Out, L, np.array, the transformation matrix
     """
     if self.method == 'pca':
@@ -3231,7 +3264,8 @@ class MultivariateNormal(NDimensionalDistributions):
     """
       Return the inverse transformation matrix from Crow
       @ In, None
-      @ In, index, list, optional, input coordinate index, list values for the index of the original variables
+      @ In, index, list, optional, input coordinate index, list values for the
+                       index of the original variables
       @ Out, L, np.array, the inverse transformation matrix
     """
     if self.method == 'pca':
@@ -3258,7 +3292,8 @@ class MultivariateNormal(NDimensionalDistributions):
     """
       Return the singular values from Crow
       @ In, None
-      @ In, index, list, optional, input coordinate index, list values for the index of the input variables
+      @ In, index, list, optional, input coordinate index, list values for the
+                      index of the input variables
       @ Out, singularValues, np.array, the singular values vector
     """
     if self.method == 'pca':
@@ -3279,14 +3314,16 @@ class MultivariateNormal(NDimensionalDistributions):
     """
       Transform latent parameters back to models' parameters
       @ In, x, list, input coordinate, list values for the latent variables
-      @ In, index, list, optional, input coordinate index, list values for the index of the latent variables
+      @ In, index, list, optional, input coordinate index, list values for the
+                index of the latent variables
       @ Out, values, list, return the values of manifest variables with type of list
     """
     if self.method == 'pca':
       if len(x) > self.rank:
         self.raiseAnError(
             IOError,
-            'The dimension of the latent variables defined in <Samples> is large than the rank defined in <Distributions>'
+            'The dimension of the latent variables defined in <Samples> is '+
+            'large than the rank defined in <Distributions>'
         )
       coordinate = distribution1D.vectord_cxx(len(x))
       for i in range(len(x)):
@@ -3403,7 +3440,8 @@ class MultivariateNormal(NDimensionalDistributions):
   def inverseMarginalDistribution(self, x, variable):
     """
       Compute the inverse of the Margina distribution
-      @ In, x, float, the coordinate for at which the inverse marginal distribution needs to be computed
+      @ In, x, float, the coordinate for at which the inverse marginal
+                   distribution needs to be computed
       @ In, variable, string, the variable id
       @ Out, inverseMarginal, float, the marginal cdf value at coordinate x
     """
@@ -3518,7 +3556,7 @@ def knownTypes():
 
 def returnInstance(Type, caller):
   """
-    Function interface for creating an instance to a database specialized class (for example, HDF5)
+    Function interface for creating an instance to a distribution specialized class
     @ In, Type, string, class type
     @ In, caller, instance, the caller instance
     @ Out, returnInstance, instance, instance of the class

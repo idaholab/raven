@@ -16,13 +16,13 @@ Created on April 9, 2013
 
 @author: alfoa
 """
-#for future compatibility with Python 3--------------------------------------------------------------
+#for future compatibility with Python 3------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default', DeprecationWarning)
-#End compatibility block for Python 3----------------------------------------------------------------
+#End compatibility block for Python 3--------------------------------------------------------------
 
-#External Modules------------------------------------------------------------------------------------
+#External Modules----------------------------------------------------------------------------------
 import numpy as np
 import copy
 import os
@@ -30,15 +30,15 @@ import abc
 import gc
 from scipy.interpolate import interp1d
 import collections
-#External Modules End--------------------------------------------------------------------------------
+#External Modules End------------------------------------------------------------------------------
 
-#Internal Modules------------------------------------------------------------------------------------
+#Internal Modules----------------------------------------------------------------------------------
 from BaseClasses import BaseType
 from h5py_interface_creator import hdf5Database as h5Data
 from utils import utils
 from utils import InputData
 
-#Internal Modules End--------------------------------------------------------------------------------
+#Internal Modules End------------------------------------------------------------------------------
 
 
 class DatabasesCollection(InputData.ParameterInput):
@@ -290,10 +290,11 @@ class HDF5(DateBase):
     """
       Function to retrieve a history from the HDF5 database
       @ In, options, dict, options (metadata muste be appended to the root group)
-      @ Out, tupleVar, tuple, tuple in which the first position is a numpy aray and the second is a dictionary of the metadata
-      Note:
-      # DET => a Branch from the tail (group name in attributes) to the head (dependent on the filter)
-      # MC  => The History named ['group'] (one run)
+      @ Out, tupleVar, tuple, tuple in which the first position is a numpy aray and the second is
+             a dictionary of the metadata
+             Note:
+             # DET => a Branch from the tail (group name in attributes) to the head
+             # MC  => The History named ['group'] (one run)
     """
     tupleVar = self.database.retrieveHistory(options['history'], options)
     return tupleVar
@@ -313,12 +314,15 @@ class HDF5(DateBase):
 
   def realization(self, index=None, matchDict=None, tol=1e-15):
     """
-      Method to obtain a realization from the data, either by index (e.g. realization number) or matching value.
-      Either "index" or "matchDict" must be supplied. (NOTE: now just "index" can be supplied)
-      @ In, index, int or str, optional, number of row to retrieve (by index, not be "sample") or group name
+      Method to obtain a realization from the data, either by index (e.g. realization
+      number) or matching value. Either "index" or "matchDict" must be supplied.
+      (NOTE: now just "index" can be supplied)
+      @ In, index, int or str, optional, number of row to retrieve (by index,
+                                                           not be "sample") or group name
       @ In, matchDict, dict, optional, {key:val} to search for matches
       @ In, tol, float, optional, tolerance to which match should be made
-      @ Out, index, int, optional, index where found (or len(self) if not found), only returned if matchDict
+      @ Out, index, int, optional, index where found (or len(self) if not found), only
+                              returned if matchDict
       @ Out, rlz, dict, realization requested (None if not found)
     """
     # matchDict not implemented for Databases
