@@ -78,9 +78,9 @@ class FTstructure():
 
   def returnDict(self):
     """
-      This method returns 
+      This method returns
       @ In,  None
-      @ Out, outcome, dict, dictionary containing 
+      @ Out, outcome, dict, dictionary containing
     """
     self.FTsolver()
     outcome = self.constructData()
