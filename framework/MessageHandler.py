@@ -133,7 +133,8 @@ class MessageUser(object):
     color = kwargs.get('color', None)
     forcePrint = kwargs.get('forcePrint', False)
     msg = ' '.join(str(a) for a in args)
-    self.messageHandler.message(self, msg, str(tag), verbosity, color, forcePrint=forcePrint)
+    self.messageHandler.message(
+        self, msg, str(tag), verbosity, color, forcePrint=forcePrint)
 
   def raiseADebug(self, *args, **kwargs):
     """
@@ -197,7 +198,8 @@ class MessageHandler(object):
         'magenta': '\033[35m',
         'cyan': '\033[36m'
     }
-    self.warnings = []  #collection of warnings that were raised during this run
+    self.warnings = [
+    ]  #collection of warnings that were raised during this run
     self.warningCount = []  #count of the collections of warning above
 
   def initialize(self, initDict):
@@ -221,7 +223,8 @@ class MessageHandler(object):
     if len(self.warnings) > 0:
       if self.verbCode[self.verbosity] > 0:
         print('-' * 50)
-        print('There were %i warnings during the simulation run:' % sum(self.warningCount))
+        print('There were %i warnings during the simulation run:' % sum(
+            self.warningCount))
         for w, warning in enumerate(self.warnings):
           count = self.warningCount[w]
           time = 'time'
@@ -230,7 +233,8 @@ class MessageHandler(object):
           print('(%i %s) %s' % (self.warningCount[w], time, warning))
         print('-' * 50)
       else:
-        print('There were %i warnings during the simulation run.' % sum(self.warningCount))
+        print('There were %i warnings during the simulation run.' % sum(
+            self.warningCount))
 
   def paint(self, str, color):
     """
@@ -240,8 +244,9 @@ class MessageHandler(object):
       @ Out, paint, string, formatted string
     """
     if color.lower() not in self.colors.keys():
-      self.messaage(self, 'Requested color %s not recognized!  Skipping...' % color, 'Warning',
-                    'quiet')
+      self.messaage(self,
+                    'Requested color %s not recognized!  Skipping...' % color,
+                    'Warning', 'quiet')
       return str
     return self.colors[color.lower()] + str + self.colors['neutral']
 
@@ -302,12 +307,19 @@ class MessageHandler(object):
       @ Out, currentVerb, int, integer equivalent to verbosity level
     """
     if str(verb).strip().lower() not in self.verbCode.keys():
-      raise IOError('Verbosity key ' + str(verb) + ' not recognized!  Options are ' +
-                    str(self.verbCode.keys() + [None]), 'ERROR', 'silent')
+      raise IOError(
+          'Verbosity key ' + str(verb) + ' not recognized!  Options are ' +
+          str(self.verbCode.keys() + [None]), 'ERROR', 'silent')
     currentVerb = self.verbCode[str(verb).strip().lower()]
     return currentVerb
 
-  def error(self, caller, etype, message, tag='ERROR', verbosity='silent', color=None):
+  def error(self,
+            caller,
+            etype,
+            message,
+            tag='ERROR',
+            verbosity='silent',
+            color=None):
     """
       Raise an error message, unless errors are suppressed.
       @ In, caller, object, the entity desiring to print a message
@@ -318,7 +330,8 @@ class MessageHandler(object):
       @ In, color, string, optional, color to apply to message
       @ Out, None
     """
-    verbval = max(self.getDesiredVerbosity(caller), self.checkVerbosity(self.verbosity))
+    verbval = max(
+        self.getDesiredVerbosity(caller), self.checkVerbosity(self.verbosity))
     self.message(caller, message, tag, verbosity, color=color)
     if not self.suppressErrs:
       self.printWarnings()
@@ -347,7 +360,8 @@ class MessageHandler(object):
       @ Out, None
     """
     verbval = self.checkVerbosity(verbosity)
-    okay, msg = self._printMessage(caller, message, tag, verbval, color, forcePrint)
+    okay, msg = self._printMessage(caller, message, tag, verbval, color,
+                                   forcePrint)
     if tag.lower().strip() == 'warning':
       self.addWarning(message)
     if okay:
@@ -361,13 +375,20 @@ class MessageHandler(object):
       @ Out, None
     """
     index = bisect.bisect_left(self.warnings, msg)
-    if len(self.warnings) == 0 or index == len(self.warnings) or self.warnings[index] != msg:
+    if len(self.warnings) == 0 or index == len(
+        self.warnings) or self.warnings[index] != msg:
       self.warnings.insert(index, msg)
       self.warningCount.insert(index, 1)
     else:
       self.warningCount[index] += 1
 
-  def _printMessage(self, caller, message, tag, verbval, color=None, forcePrint=False):
+  def _printMessage(self,
+                    caller,
+                    message,
+                    tag,
+                    verbval,
+                    color=None,
+                    forcePrint=False):
     """
       Checks verbosity to determine whether something should be printed, and formats message
       @ In, caller , object, the entity desiring to print a message
@@ -405,8 +426,9 @@ class MessageHandler(object):
       msg += '(' + '{:8.2f}'.format(curtime) + ' sec) '
       if self.inColor:
         msg = self.paint(msg, 'cyan')
-    msgend = pre.ljust(self.callerLength)[0:self.callerLength] + ': ' + tag.ljust(
-        self.tagLength)[0:self.tagLength] + ' -> ' + post
+    msgend = pre.ljust(
+        self.callerLength)[0:self.callerLength] + ': ' + tag.ljust(
+            self.tagLength)[0:self.tagLength] + ' -> ' + post
     if self.inColor:
       if color is not None:
         #overrides other options

@@ -89,13 +89,16 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta, BaseType)):
 
     optionsInput = InputData.parameterInputFactory("options")
     for option in ['operator', 'pivotParameter']:
-      optionSubInput = InputData.parameterInputFactory(option, contentType=InputData.StringType)
+      optionSubInput = InputData.parameterInputFactory(
+          option, contentType=InputData.StringType)
       optionsInput.addSub(optionSubInput)
     for option in ['inputRow', 'outputRow']:
-      optionSubInput = InputData.parameterInputFactory(option, contentType=InputData.IntegerType)
+      optionSubInput = InputData.parameterInputFactory(
+          option, contentType=InputData.IntegerType)
       optionsInput.addSub(optionSubInput)
     for option in ['outputPivotValue', 'inputPivotValue']:
-      optionSubInput = InputData.parameterInputFactory(option, contentType=InputData.FloatType)
+      optionSubInput = InputData.parameterInputFactory(
+          option, contentType=InputData.FloatType)
       optionsInput.addSub(optionSubInput)
     inputSpecification.addSub(optionsInput)
 
@@ -115,7 +118,8 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta, BaseType)):
     self.name = 'DataObject'
     self.printTag = self.name
     self.sampleTag = 'RAVEN_sample_ID'  # column name to track samples
-    self.protectedTags = ['RAVEN_parentID', 'RAVEN_isEnding']  # list(str) protected RAVEN tags
+    self.protectedTags = ['RAVEN_parentID',
+                          'RAVEN_isEnding']  # list(str) protected RAVEN tags
     self._inputs = []  # list(str) if input variables
     self._outputs = []  # list(str) of output variables
     self._metavars = []  # list(str) of POINTWISE metadata variables
@@ -157,9 +161,11 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta, BaseType)):
     for child in inp.subparts:
       # TODO check for repeats, "notAllowdInputs", names in both input and output space
       if child.getName() == 'Input':
-        self._inputs.extend(list(x.strip() for x in child.value.split(',') if x.strip() != ''))
+        self._inputs.extend(
+            list(x.strip() for x in child.value.split(',') if x.strip() != ''))
       elif child.getName() == 'Output':
-        self._outputs.extend(list(x.strip() for x in child.value.split(',') if x.strip() != ''))
+        self._outputs.extend(
+            list(x.strip() for x in child.value.split(',') if x.strip() != ''))
       elif child.getName() == 'Index':
         depends = list(d.strip() for d in child.value.split(','))
         var = child.parameterValues['var']
@@ -180,7 +186,9 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta, BaseType)):
               duplicateInp = True
             self.setSelectiveInput(cchild.getName(), cchild.value)
           # output pickers
-          elif cchild.getName() in ['outputRow', 'outputPivotValue', 'operator']:
+          elif cchild.getName() in [
+              'outputRow', 'outputPivotValue', 'operator'
+          ]:
             if self._selectOutput is not None:
               duplicateOut = True
             self._selectOutput = (cchild.getName(), cchild.value)
@@ -216,8 +224,9 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta, BaseType)):
     # check if protected vars have been violated
     if set(self.protectedTags).issubset(set(self._orderedVars)):
       self.raiseAnError(
-          IOError, 'Input, Output and Index variables can not be part of RAVEN protected tags: ' +
-          ','.join(self.protectedTags))
+          IOError,
+          'Input, Output and Index variables can not be part of RAVEN protected tags: '
+          + ','.join(self.protectedTags))
 
     # create dict var to index
     # FIXME: this dict will not work in case of variables depending on multiple indexes. When this need comes, we will change this check(alfoa)
@@ -245,7 +254,8 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta, BaseType)):
     # TODO typechecking, assertions
     coords = set().union(*params.values())
     for coord in coords:
-      self._pivotParams[coord] = list(var for var in params.keys() if coord in params[var])
+      self._pivotParams[coord] = list(
+          var for var in params.keys() if coord in params[var])
 
   def setSelectiveInput(self, option, value):
     """

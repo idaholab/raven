@@ -340,19 +340,22 @@ class ScatterView3D(BaseTopologicalView):
               B = row
               A = col
             lineIdxs.append((A, B))
-            lines.append([(allValues['X'][row], allValues['Y'][row], allValues['Z'][row]),
-                          (allValues['X'][col], allValues['Y'][col], allValues['Z'][col])])
+            lines.append([(allValues['X'][row], allValues['Y'][row],
+                           allValues['Z'][row]),
+                          (allValues['X'][col], allValues['Y'][col],
+                           allValues['Z'][col])])
             if self.cmbVars['Color'].currentText() not in specialColorKeywords:
               lineColors.append(
                   myColormap(
-                      ((allValues['Color'][row] + allValues['Color'][col]) / 2. - mins['Color']) /
-                      (maxs['Color'] - mins['Color'])))
+                      ((allValues['Color'][row] + allValues['Color'][col]) / 2.
+                       - mins['Color']) / (maxs['Color'] - mins['Color'])))
             elif allValues['Color'][row] == allValues['Color'][col]:
               lineColors.append(allValues['Color'][row])
             else:
               lineColors.append('#CCCCCC')
 
-      lc = mpl_toolkits.mplot3d.art3d.Line3DCollection(lines, colors=lineColors, linewidths=1)
+      lc = mpl_toolkits.mplot3d.art3d.Line3DCollection(
+          lines, colors=lineColors, linewidths=1)
       self.mplCanvas.axes.add_collection(lc)
       self.mplCanvas.axes.hold(True)
 
@@ -375,7 +378,8 @@ class ScatterView3D(BaseTopologicalView):
         self.colorbar.update_bruteforce(myPlot)
         ## Here is its replacement, but this guy will not rescale the colorbar
         #self.colorbar.update_normal(myPlot)
-      self.colorbar.set_label(self.cmbVars['Color'].currentText(), size=fontSize, labelpad=10)
+      self.colorbar.set_label(
+          self.cmbVars['Color'].currentText(), size=fontSize, labelpad=10)
       self.colorbar.set_ticks(np.linspace(mins['Color'], maxs['Color'], 5))
       self.colorbar.ax.tick_params(labelsize=smallFontSize)
       self.mplCanvas.axes.hold(True)
@@ -408,7 +412,11 @@ class ScatterView3D(BaseTopologicalView):
           edgecolors=minDrawParams['edgecolors'])
     else:
       myPlot = self.mplCanvas.axes.scatter(
-          values['X'], values['Y'], values['Z'], c=values['Color'], edgecolors='none')
+          values['X'],
+          values['Y'],
+          values['Z'],
+          c=values['Color'],
+          edgecolors='none')
 
       self.mplCanvas.axes.hold(True)
       if self.chkExts.checkState() == qtc.Qt.PartiallyChecked:
@@ -434,9 +442,12 @@ class ScatterView3D(BaseTopologicalView):
           edgecolors=minDrawParams['edgecolors'])
 
     if self.axesLabelAction.isChecked():
-      self.mplCanvas.axes.set_xlabel(self.cmbVars['X'].currentText(), size=fontSize, labelpad=20)
-      self.mplCanvas.axes.set_ylabel(self.cmbVars['Y'].currentText(), size=fontSize, labelpad=20)
-      self.mplCanvas.axes.set_zlabel(self.cmbVars['Z'].currentText(), size=fontSize, labelpad=20)
+      self.mplCanvas.axes.set_xlabel(
+          self.cmbVars['X'].currentText(), size=fontSize, labelpad=20)
+      self.mplCanvas.axes.set_ylabel(
+          self.cmbVars['Y'].currentText(), size=fontSize, labelpad=20)
+      self.mplCanvas.axes.set_zlabel(
+          self.cmbVars['Z'].currentText(), size=fontSize, labelpad=20)
 
     #Doesn't do anything
     self.mplCanvas.axes.set_axisbelow(True)
@@ -452,11 +463,15 @@ class ScatterView3D(BaseTopologicalView):
     self.mplCanvas.axes.set_zticks(ticks)
     self.mplCanvas.axes.set_zlim([ticks[0], ticks[-1]])
 
-    self.mplCanvas.axes.xaxis.set_major_formatter(matplotlib.ticker.FormatStrFormatter('%.2g'))
-    self.mplCanvas.axes.yaxis.set_major_formatter(matplotlib.ticker.FormatStrFormatter('%.2g'))
-    self.mplCanvas.axes.zaxis.set_major_formatter(matplotlib.ticker.FormatStrFormatter('%.2g'))
+    self.mplCanvas.axes.xaxis.set_major_formatter(
+        matplotlib.ticker.FormatStrFormatter('%.2g'))
+    self.mplCanvas.axes.yaxis.set_major_formatter(
+        matplotlib.ticker.FormatStrFormatter('%.2g'))
+    self.mplCanvas.axes.zaxis.set_major_formatter(
+        matplotlib.ticker.FormatStrFormatter('%.2g'))
 
-    for label in (self.mplCanvas.axes.get_xticklabels() + self.mplCanvas.axes.get_yticklabels() +
+    for label in (self.mplCanvas.axes.get_xticklabels() +
+                  self.mplCanvas.axes.get_yticklabels() +
                   self.mplCanvas.axes.get_zticklabels()):
       label.set_fontsize(smallFontSize)
 

@@ -53,7 +53,8 @@ class LimitSurfaceIntegral(PostProcessor):
         specifying input of cls.
     """
     ## This will replace the lines above
-    inputSpecification = super(LimitSurfaceIntegral, cls).getInputSpecification()
+    inputSpecification = super(LimitSurfaceIntegral,
+                               cls).getInputSpecification()
 
     LSIVariableInput = InputData.parameterInputFactory("variable")
     LSIVariableInput.addParam("name", InputData.StringType)
@@ -76,10 +77,12 @@ class LimitSurfaceIntegral(PostProcessor):
         "integralType", contentType=InputData.StringType)
     inputSpecification.addSub(LSIIntegralTypeInput)
 
-    LSISeedInput = InputData.parameterInputFactory("seed", contentType=InputData.IntegerType)
+    LSISeedInput = InputData.parameterInputFactory(
+        "seed", contentType=InputData.IntegerType)
     inputSpecification.addSub(LSISeedInput)
 
-    LSITargetInput = InputData.parameterInputFactory("target", contentType=InputData.StringType)
+    LSITargetInput = InputData.parameterInputFactory(
+        "target", contentType=InputData.StringType)
     inputSpecification.addSub(LSITargetInput)
 
     LSIOutputNameInput = InputData.parameterInputFactory(
@@ -135,10 +138,13 @@ class LimitSurfaceIntegral(PostProcessor):
     for varName, distName in self.variableDist.items():
       if distName != None:
         if distName not in initDict['Distributions'].keys():
-          self.raiseAnError(IOError, 'distribution ' + distName + ' not found.')
+          self.raiseAnError(IOError,
+                            'distribution ' + distName + ' not found.')
         self.variableDist[varName] = initDict['Distributions'][distName]
-        self.lowerUpperDict[varName]['lowerBound'] = self.variableDist[varName].lowerBound
-        self.lowerUpperDict[varName]['upperBound'] = self.variableDist[varName].upperBound
+        self.lowerUpperDict[varName]['lowerBound'] = self.variableDist[
+            varName].lowerBound
+        self.lowerUpperDict[varName]['upperBound'] = self.variableDist[
+            varName].upperBound
 
   def _localReadMoreXML(self, xmlNode):
     """
@@ -189,19 +195,22 @@ class LimitSurfaceIntegral(PostProcessor):
         try:
           self.tolerance = child.value
         except ValueError:
-          self.raiseAnError(ValueError, "tolerance can not be converted into a float value!")
+          self.raiseAnError(
+              ValueError, "tolerance can not be converted into a float value!")
       elif child.getName() == 'integralType':
         self.integralType = child.value.strip().lower()
         if self.integralType not in ['montecarlo']:
-          self.raiseAnError(IOError, 'only one integral types are available: MonteCarlo!')
+          self.raiseAnError(
+              IOError, 'only one integral types are available: MonteCarlo!')
       elif child.getName() == 'seed':
         try:
           self.seed = child.value
         except ValueError:
-          self.raiseAnError(ValueError, 'seed can not be converted into a int value!')
+          self.raiseAnError(ValueError,
+                            'seed can not be converted into a int value!')
         if self.integralType != 'montecarlo':
-          self.raiseAWarning(
-              'integral type is ' + self.integralType + ' but a seed has been inputted!!!')
+          self.raiseAWarning('integral type is ' + self.integralType +
+                             ' but a seed has been inputted!!!')
         else:
           np.random.seed(self.seed)
       elif child.getName() == 'target':
@@ -223,7 +232,9 @@ class LimitSurfaceIntegral(PostProcessor):
                 'either a distribution name or lowerBound and upperBound need to be specified for variable '
                 + varName)
     if self.computationPrefix == None:
-      self.raiseAnError(IOError, 'The required XML node <outputName> has not been inputted!!!')
+      self.raiseAnError(
+          IOError,
+          'The required XML node <outputName> has not been inputted!!!')
     if self.target == None:
       self.raiseAWarning(
           'integral target has not been provided. The postprocessor is going to take the last output it finds in the provided limitsurface!!!'
@@ -265,28 +276,33 @@ class LimitSurfaceIntegral(PostProcessor):
      @ Out, None
     """
     if len(currentInput) > 1:
-      self.raiseAnError(IOError, "This PostProcessor can accept only a single input! Got: " +
-                        str(len(currentInput)) + "!")
+      self.raiseAnError(
+          IOError, "This PostProcessor can accept only a single input! Got: " +
+          str(len(currentInput)) + "!")
     item = currentInput[0]
     if item.type == 'PointSet':
       if not set(item.getVars('input')) == set(self.variableDist.keys()):
-        self.raiseAnError(IOError,
-                          'The variables inputted and the features in the input PointSet ' +
-                          item.name + 'do not match!!!')
+        self.raiseAnError(
+            IOError,
+            'The variables inputted and the features in the input PointSet ' +
+            item.name + 'do not match!!!')
       outputKeys = item.getVars('output')
       if self.target is None:
         self.target = utils.first(outputKeys)
       elif self.target not in outputKeys:
-        self.raiseAnError(IOError, 'The target ' + self.target +
-                          'is not present among the outputs of the PointSet ' + item.name)
+        self.raiseAnError(
+            IOError, 'The target ' + self.target +
+            'is not present among the outputs of the PointSet ' + item.name)
       # construct matrix
       dataSet = item.asDataset()
-      self.matrixDict = {varName: dataSet[varName].values for varName in self.variableDist}
+      self.matrixDict = {
+          varName: dataSet[varName].values
+          for varName in self.variableDist
+      }
       responseArray = dataSet[self.target].values
       if len(np.unique(responseArray)) != 2:
-        self.raiseAnError(
-            IOError,
-            'The target ' + self.target + ' needs to be a classifier output (-1 +1 or 0 +1)!')
+        self.raiseAnError(IOError, 'The target ' + self.target +
+                          ' needs to be a classifier output (-1 +1 or 0 +1)!')
       responseArray[responseArray == -1] = 0.0
       self.matrixDict[self.target] = responseArray
     else:
@@ -302,19 +318,22 @@ class LimitSurfaceIntegral(PostProcessor):
     if self.integralType == 'montecarlo':
       tempDict = {}
       randomMatrix = np.random.rand(
-          int(math.ceil(1.0 / self.tolerance**2)), len(self.variableDist.keys()))
+          int(math.ceil(1.0 / self.tolerance**2)),
+          len(self.variableDist.keys()))
       for index, varName in enumerate(self.variableDist.keys()):
         if self.variableDist[varName] == None:
           randomMatrix[:, index] = randomMatrix[:, index] * (
-              self.lowerUpperDict[varName]['upperBound'] - self.lowerUpperDict[varName]
-              ['lowerBound']) + self.lowerUpperDict[varName]['lowerBound']
+              self.lowerUpperDict[varName]['upperBound'] -
+              self.lowerUpperDict[varName]['lowerBound']
+          ) + self.lowerUpperDict[varName]['lowerBound']
         else:
           f = np.vectorize(self.variableDist[varName].ppf, otypes=[np.float])
           randomMatrix[:, index] = f(randomMatrix[:, index])
         tempDict[varName] = randomMatrix[:, index]
       pb = self.stat.run({
           'targets': {
-              self.target: xarray.DataArray(self.functionS.evaluate(tempDict)[self.target])
+              self.target:
+              xarray.DataArray(self.functionS.evaluate(tempDict)[self.target])
           }
       })[self.computationPrefix + "_" + self.target]
     else:
@@ -330,8 +349,9 @@ class LimitSurfaceIntegral(PostProcessor):
     """
     evaluation = finishedJob.getEvaluation()
     if isinstance(evaluation, Runners.Error):
-      self.raiseAnError(RuntimeError,
-                        "No available output to collect (run possibly not finished yet)")
+      self.raiseAnError(
+          RuntimeError,
+          "No available output to collect (run possibly not finished yet)")
     pb = evaluation[1]
     lms = evaluation[0][0]
     if output.type == 'PointSet':

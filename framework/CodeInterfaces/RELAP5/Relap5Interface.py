@@ -49,7 +49,9 @@ class Relap5(CodeInterfaceBase):
         try:
           self.outputDeck = int(child.text)
         except ValueError:
-          raise ValueError("can not convert outputDeckNumber to integer!!!! Got " + child.text)
+          raise ValueError(
+              "can not convert outputDeckNumber to integer!!!! Got " +
+              child.text)
 
   def generateCommand(self, inputFiles, executable, clargs=None, fargs=None):
     """
@@ -69,8 +71,9 @@ class Relap5(CodeInterfaceBase):
         found = True
         break
     if not found:
-      raise IOError('None of the input files has one of the following extensions: ' +
-                    ' '.join(self.getInputExtension()))
+      raise IOError(
+          'None of the input files has one of the following extensions: ' +
+          ' '.join(self.getInputExtension()))
     outputfile = 'out~' + inputFiles[index].getBase()
     if clargs:
       addflags = clargs['text']
@@ -98,8 +101,9 @@ class Relap5(CodeInterfaceBase):
     if outputobj.hasAtLeastMinorData():
       outputobj.writeCSV(os.path.join(workingDir, output + '.csv'))
     else:
-      raise IOError('Relap5 output file ' + command.split('-o')[0].split('-i')[-1].strip() + '.o' +
-                    ' does not contain any minor edits. It might be crashed!')
+      raise IOError(
+          'Relap5 output file ' + command.split('-o')[0].split('-i')[-1].strip(
+          ) + '.o' + ' does not contain any minor edits. It might be crashed!')
 
   def checkForOutputFailure(self, output, workingDir):
     """
@@ -113,7 +117,10 @@ class Relap5(CodeInterfaceBase):
       @ Out, failure, bool, True if the job is failed, False otherwise
     """
     failure = True
-    goodWord = ["Transient terminated by end of time step cards", "Transient terminated by trip"]
+    goodWord = [
+        "Transient terminated by end of time step cards",
+        "Transient terminated by trip"
+    ]
     try:
       outputToRead = open(os.path.join(workingDir, output + '.o'), "r")
     except:
@@ -125,7 +132,8 @@ class Relap5(CodeInterfaceBase):
         failure = False
     return failure
 
-  def createNewInput(self, currentInputFiles, oriInputFiles, samplerType, **Kwargs):
+  def createNewInput(self, currentInputFiles, oriInputFiles, samplerType,
+                     **Kwargs):
     """
       this generate a new input file depending on which sampler is chosen
       @ In, currentInputFiles, list,  list of current input files (input files from last this method call)
@@ -148,32 +156,36 @@ class Relap5(CodeInterfaceBase):
         found = True
         break
     if not found:
-      raise IOError('None of the input files has one of the following extensions: ' +
-                    ' '.join(self.getInputExtension()))
+      raise IOError(
+          'None of the input files has one of the following extensions: ' +
+          ' '.join(self.getInputExtension()))
     parser = RELAPparser.RELAPparser(currentInputFiles[index].getAbsFile())
     metadataToTransfer = Kwargs.get("metadataToTransfer", None)
     if metadataToTransfer is not None:
       sourceID = metadataToTransfer.get("sourceID", None)
       if sourceID is not None:
         # search for restrt file
-        sourcePath = os.path.join(currentInputFiles[index].getPath(), "../", sourceID)
+        sourcePath = os.path.join(currentInputFiles[index].getPath(), "../",
+                                  sourceID)
         rstrtFile = None
         for fileToCheck in os.listdir(sourcePath):
-          if fileToCheck.strip() == 'restrt' or fileToCheck.strip().endswith(".r"):
+          if fileToCheck.strip() == 'restrt' or fileToCheck.strip().endswith(
+              ".r"):
             rstrtFile = fileToCheck
         if rstrtFile is None:
           raise IOError(
-              "metadataToTransfer|sourceID has been provided but no restart file has been found!")
+              "metadataToTransfer|sourceID has been provided but no restart file has been found!"
+          )
         sourceFile = os.path.join(sourcePath, rstrtFile)
         try:
           shutil.copy(sourceFile, currentInputFiles[index].getPath())
         except:
-          raise IOError('not able to copy restart file from "' + sourceFile + '" to "' +
-                        currentInputFiles[index].getPath() + '"')
+          raise IOError('not able to copy restart file from "' + sourceFile +
+                        '" to "' + currentInputFiles[index].getPath() + '"')
       else:
         raise IOError(
-            'the only metadtaToTransfer that is available in RELAP5 is "sourceID". Got instad: ' +
-            ', '.join(metadataToTransfer.keys()))
+            'the only metadtaToTransfer that is available in RELAP5 is "sourceID". Got instad: '
+            + ', '.join(metadataToTransfer.keys()))
     if 'None' not in str(samplerType):
       modifDict = self._samplersDictionary[samplerType](**Kwargs)
       parser.modifyOrAdd(modifDict, True)
@@ -213,7 +225,10 @@ class Relap5(CodeInterfaceBase):
         deck = 1
       if len(key) > 1:
         if card not in deckList[deck].keys():
-          deckList[deck][card] = [{'position': int(key[1]), 'value': Kwargs['SampledVars'][keys]}]
+          deckList[deck][card] = [{
+              'position': int(key[1]),
+              'value': Kwargs['SampledVars'][keys]
+          }]
         else:
           deckList[deck][card].append({
               'position': int(key[1]),
@@ -221,9 +236,15 @@ class Relap5(CodeInterfaceBase):
           })
       else:
         if card not in deckList[deck].keys():
-          deckList[deck][card] = [{'position': 0, 'value': Kwargs['SampledVars'][keys]}]
+          deckList[deck][card] = [{
+              'position': 0,
+              'value': Kwargs['SampledVars'][keys]
+          }]
         else:
-          deckList[deck][card].append({'position': 0, 'value': Kwargs['SampledVars'][keys]})
+          deckList[deck][card].append({
+              'position': 0,
+              'value': Kwargs['SampledVars'][keys]
+          })
       if deck is None:
         # check if other variables have been defined with a deck ID, in case...error out
         if deckActivated:
@@ -243,13 +264,17 @@ class Relap5(CodeInterfaceBase):
       @ Out, listDict, list, list of dictionaries used by the parser to change the input file
     """
     listDict = []
-    deckList = {1: {}}  #  List of decks with the cards to be modified in RELAP5 Input File
+    deckList = {
+        1: {}
+    }  #  List of decks with the cards to be modified in RELAP5 Input File
     deckActivated = False
     # Check the initiator distributions and add the next threshold
     if 'initiator_distribution' in Kwargs.keys():
       for i in range(len(Kwargs['initiator_distribution'])):
         modifDict = {}
-        modifDict['name'] = ['Distributions', Kwargs['initiator_distribution'][i]]
+        modifDict['name'] = [
+            'Distributions', Kwargs['initiator_distribution'][i]
+        ]
         modifDict['ProbabilityThreshold'] = Kwargs['PbThreshold'][i]
         listDict.append(modifDict)
         del modifDict
@@ -304,7 +329,9 @@ class Relap5(CodeInterfaceBase):
       if Kwargs['branch_changed_param'][0] not in ('None', b'None'):
         for i in range(len(Kwargs['branch_changed_param'])):
           modifDict = {}
-          modifDict['name'] = ['RestartInitialize', Kwargs['branch_changed_param'][i]]
+          modifDict['name'] = [
+              'RestartInitialize', Kwargs['branch_changed_param'][i]
+          ]
           modifDict['value'] = Kwargs['branch_changed_param_value'][i]
           listDict.append(modifDict)
           del modifDict
@@ -338,8 +365,10 @@ class Relap5(CodeInterfaceBase):
             }]
           else:
             deckList[deck][card].append({
-                'position': int(key[1]),
-                'value': float(Kwargs['SampledVars'][keys])
+                'position':
+                int(key[1]),
+                'value':
+                float(Kwargs['SampledVars'][keys])
             })
         else:
           if card not in deckList[deck].keys():
@@ -355,19 +384,29 @@ class Relap5(CodeInterfaceBase):
       else:
         if Kwargs['startTime'] != 'Initial':
           if card not in deckList[deck].keys():
-            deckList[deck][card] = [{'position': 0, 'value': float(Kwargs['SampledVars'][keys])}]
-          else:
-            deckList[deck][card].append({
+            deckList[deck][card] = [{
                 'position': 0,
                 'value': float(Kwargs['SampledVars'][keys])
+            }]
+          else:
+            deckList[deck][card].append({
+                'position':
+                0,
+                'value':
+                float(Kwargs['SampledVars'][keys])
             })
         else:
           if card not in deckList[deck].keys():
-            deckList[deck][card] = [{'position': 0, 'value': float(Kwargs['SampledVars'][keys])}]
-          else:
-            deckList[deck][card].append({
+            deckList[deck][card] = [{
                 'position': 0,
                 'value': float(Kwargs['SampledVars'][keys])
+            }]
+          else:
+            deckList[deck][card].append({
+                'position':
+                0,
+                'value':
+                float(Kwargs['SampledVars'][keys])
             })
       if deck is None:
         # check if other variables have been defined with a deck ID, in case...error out
@@ -397,7 +436,10 @@ class Relap5(CodeInterfaceBase):
           card = key[0]
         if len(key) > 1:
           if card not in deckList[deck].keys():
-            deckList[deck][card] = [{'position': int(key[1]), 'value': Kwargs['aux_vars'][keys]}]
+            deckList[deck][card] = [{
+                'position': int(key[1]),
+                'value': Kwargs['aux_vars'][keys]
+            }]
           else:
             deckList[deck][card].append({
                 'position': int(key[1]),
@@ -405,9 +447,15 @@ class Relap5(CodeInterfaceBase):
             })
         else:
           if card not in deckList[deck].keys():
-            deckList[deck][card] = [{'position': 0, 'value': Kwargs['aux_vars'][keys]}]
+            deckList[deck][card] = [{
+                'position': 0,
+                'value': Kwargs['aux_vars'][keys]
+            }]
           else:
-            deckList[deck][card].append({'position': 0, 'value': Kwargs['aux_vars'][keys]})
+            deckList[deck][card].append({
+                'position': 0,
+                'value': Kwargs['aux_vars'][keys]
+            })
         if deck is None:
           # check if other variables have been defined with a deck ID, in case...error out
           if deckActivated:

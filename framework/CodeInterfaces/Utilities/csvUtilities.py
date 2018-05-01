@@ -77,7 +77,8 @@ class csvUtilityClass(object):
             glob(
                 os.path.join(
                     os.path.split(fileToExpand)[0],
-                    os.path.split(fileToExpand)[1].replace("$*$", "*") + ".csv")))
+                    os.path.split(fileToExpand)[1].replace("$*$", "*") +
+                    ".csv")))
 
     for filename in self.listOfFiles:
       # open file
@@ -90,12 +91,15 @@ class csvUtilityClass(object):
       for index in range(len(all_field_names)):
         all_field_names[index] = all_field_names[index].strip()
       if all_field_names[-1] == "":
-        all_field_names.pop(-1)  # it means there is a trailing "'" at the end of the file
+        all_field_names.pop(
+            -1)  # it means there is a trailing "'" at the end of the file
       isAlreadyIn = False
 
       # load the table data (from the csv file) into a numpy nd array
       data = np.loadtxt(
-          myFile, delimiter=delimeter, usecols=tuple([i for i in range(len(all_field_names))]))
+          myFile,
+          delimiter=delimeter,
+          usecols=tuple([i for i in range(len(all_field_names))]))
       # close file
       myFile.close()
       self.allHeaders.extend(all_field_names)
@@ -114,10 +118,15 @@ class csvUtilityClass(object):
       @ Out, None
     """
     if len(outputFileName.strip()) == 0:
-      raise IOError("MergeCSV class ERROR: the outputFileName string is empty!")
+      raise IOError(
+          "MergeCSV class ERROR: the outputFileName string is empty!")
     options['returnAsDict'] = False
     self.allHeaders, dataFinal = self.mergeCsvAndReturnOutput(options)
-    np.savetxt(outputFileName, dataFinal, delimiter=",", header=",".join(self.allHeaders))
+    np.savetxt(
+        outputFileName,
+        dataFinal,
+        delimiter=",",
+        header=",".join(self.allHeaders))
 
   def mergeCsvAndReturnOutput(self, options={}):
     """
@@ -153,11 +162,13 @@ class csvUtilityClass(object):
     for filename, data in self.dataContainer.items():
       for varToExpandFrom in variablesToExpandFrom:
         if varToExpandFrom in data["headers"]:
-          variablesToExpandFromValues[filename] = data["data"][:, data["headers"].index(
-              varToExpandFrom)]
-          variablesToExpandFromValuesSet.extend(variablesToExpandFromValues[filename].tolist())
+          variablesToExpandFromValues[filename] = data["data"][:, data[
+              "headers"].index(varToExpandFrom)]
+          variablesToExpandFromValuesSet.extend(
+              variablesToExpandFromValues[filename].tolist())
         else:
-          print("in file " + filename + "the variable " + varToExpandFrom + " has not been found")
+          print("in file " + filename + "the variable " + varToExpandFrom +
+                " has not been found")
       for cnt, head in enumerate(data["headers"]):
         if headerCounts[head] > 1 and head not in variablesToExpandFrom:
           if not self.mergeSameVariables:
@@ -172,13 +183,17 @@ class csvUtilityClass(object):
       self.allHeaders.extend(data["headers"])
     # at this point all the headers are unique
     variablesToExpandFromValuesSet = list(set(variablesToExpandFromValuesSet))
-    variablesToExpandFromValuesSet = sorted(variablesToExpandFromValuesSet, key=float)
+    variablesToExpandFromValuesSet = sorted(
+        variablesToExpandFromValuesSet, key=float)
     variablesToExpandFromValuesSet = np.array(variablesToExpandFromValuesSet)
-    variablesToExpandFromValuesSet.shape = (len(variablesToExpandFromValuesSet), 1)
-    if len(variablesToExpandFromValues.keys()) != len(self.dataContainer.keys()):
-      raise Exception(
-          "the variables " + str(variablesToExpandFrom) + " have not been found in all files!!!!")
-    dataFinal = np.zeros((len(variablesToExpandFromValuesSet), len(self.allHeaders)))
+    variablesToExpandFromValuesSet.shape = (
+        len(variablesToExpandFromValuesSet), 1)
+    if len(variablesToExpandFromValues.keys()) != len(
+        self.dataContainer.keys()):
+      raise Exception("the variables " + str(variablesToExpandFrom) +
+                      " have not been found in all files!!!!")
+    dataFinal = np.zeros((len(variablesToExpandFromValuesSet),
+                          len(self.allHeaders)))
     # we use a neighbors.KNeighborsRegressor to merge the csvs
     nearest = neighbors.KNeighborsRegressor(n_neighbors=1)
     for filename, data in self.dataContainer.items():
@@ -189,8 +204,9 @@ class csvUtilityClass(object):
           break
       for headIndex, head in enumerate(data["headers"]):
         if head not in variablesToExpandFrom:
-          nearest.fit(np.atleast_2d(data["data"][:, index]).T,
-                      data["data"][:, headIndex])  #[nsamples,nfeatures]
+          nearest.fit(
+              np.atleast_2d(data["data"][:, index]).T,
+              data["data"][:, headIndex])  #[nsamples,nfeatures]
           dataFinal[:, self.allHeaders.index(head)] = nearest.predict(
               variablesToExpandFromValuesSet)[:]
     if returnAsDict:
@@ -198,10 +214,14 @@ class csvUtilityClass(object):
       for variableToAdd in self.allHeaders:
         if self.mergeSameVariables:
           if variableToAdd not in mergedReturn.keys():
-            mergedReturn[variableToAdd] = dataFinal[:, self.allHeaders.index(variableToAdd)]
+            mergedReturn[variableToAdd] = dataFinal[:,
+                                                    self.allHeaders.index(
+                                                        variableToAdd)]
         else:
-          mergedReturn[variableToAdd] = dataFinal[:, self.allHeaders.index(
-              variableToAdd)]  # dataFinal[:,cnt]
+          mergedReturn[variableToAdd] = dataFinal[:,
+                                                  self.allHeaders.index(
+                                                      variableToAdd
+                                                  )]  # dataFinal[:,cnt]
     else:
       mergedReturn = (self.allHeaders, dataFinal)
     return mergedReturn

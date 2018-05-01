@@ -67,9 +67,11 @@ class supervisedLearningGate(
       if not 'Target' in self.initializationOptions.keys():
         self.raiseAnError(IOError, 'No Targets specified!!!')
     # check if pivotParameter is specified and in case store it
-    self.pivotParameterId = self.initializationOptions.pop("pivotParameter", 'time')
+    self.pivotParameterId = self.initializationOptions.pop(
+        "pivotParameter", 'time')
     # return instance of the ROMclass
-    modelInstance = SupervisedLearning.returnInstance(ROMclass, self, **self.initializationOptions)
+    modelInstance = SupervisedLearning.returnInstance(
+        ROMclass, self, **self.initializationOptions)
     # check if the model can autonomously handle the time-dependency (if not and time-dep data are passed in, a list of ROMs are constructed)
     self.canHandleDynamicData = modelInstance.isDynamic()
     # is this ROM  time-dependent ?
@@ -101,8 +103,8 @@ class supervisedLearningGate(
     """
     self.__dict__.update(newstate)
     if not self.amITrained:
-      modelInstance = SupervisedLearning.returnInstance(self.ROMclass, self,
-                                                        **self.initializationOptions)
+      modelInstance = SupervisedLearning.returnInstance(
+          self.ROMclass, self, **self.initializationOptions)
       self.supervisedContainer = [modelInstance]
 
   def reset(self):
@@ -144,11 +146,13 @@ class supervisedLearningGate(
       if self.pivotParameterId not in trainingSet.keys():
         self.raiseAnError(
             IOError, "the pivot parameter " + self.pivotParameterId +
-            " is not present in the training set. A time-dependent-like ROM cannot be created!")
+            " is not present in the training set. A time-dependent-like ROM cannot be created!"
+        )
       if type(trainingSet[self.pivotParameterId]).__name__ != 'list':
         self.raiseAnError(
             IOError, "the pivot parameter " + self.pivotParameterId +
-            " is not a list. Are you sure it is part of the output space of the training set?")
+            " is not a list. Are you sure it is part of the output space of the training set?"
+        )
       self.historySteps = trainingSet.get(self.pivotParameterId)[-1]
       if len(self.historySteps) == 0:
         self.raiseAnError(IOError, "the training set is empty!")
@@ -159,7 +163,8 @@ class supervisedLearningGate(
         # we need to construct a chain of ROMs
         # the check on the number of time steps (consistency) is performed inside the historySnapShoots method
         # get the time slices
-        newTrainingSet = mathUtils.historySnapShoots(trainingSet, len(self.historySteps))
+        newTrainingSet = mathUtils.historySnapShoots(trainingSet,
+                                                     len(self.historySteps))
         assert (type(newTrainingSet).__name__ == 'list')
         # copy the original ROM
         originalROM = self.supervisedContainer[0]
@@ -184,8 +189,10 @@ class supervisedLearningGate(
       @ Out, confidenceDict, dict, the dictionary where the confidence is stored for each target
     """
     if not self.amITrained:
-      self.raiseAnError(RuntimeError, "ROM " + self.initializationOptions['name'] +
-                        " has not been trained yet and, consequentially, can not be evaluated!")
+      self.raiseAnError(
+          RuntimeError, "ROM " + self.initializationOptions['name'] +
+          " has not been trained yet and, consequentially, can not be evaluated!"
+      )
     confidenceDict = {}
     for rom in self.supervisedContainer:
       sliceEvaluation = rom.confidence(request)
@@ -193,7 +200,8 @@ class supervisedLearningGate(
         confidenceDict.update(sliceEvaluation)
       else:
         for key in confidenceDict.keys():
-          confidenceDict[key] = np.append(confidenceDict[key], sliceEvaluation[key])
+          confidenceDict[key] = np.append(confidenceDict[key],
+                                          sliceEvaluation[key])
     return confidenceDict
 
   def evaluate(self, request):
@@ -203,11 +211,14 @@ class supervisedLearningGate(
       @ Out, resultsDict, dict, dictionary of results ({target1:np.array,'target2':np.array}).
     """
     if self.pickled:
-      self.raiseAnError(RuntimeError, 'ROM "' + self.initializationOptions['name'] +
-                        '" has not been loaded yet!  Use an IOStep to load it.')
+      self.raiseAnError(
+          RuntimeError, 'ROM "' + self.initializationOptions['name'] +
+          '" has not been loaded yet!  Use an IOStep to load it.')
     if not self.amITrained:
-      self.raiseAnError(RuntimeError, "ROM " + self.initializationOptions['name'] +
-                        " has not been trained yet and, consequentially, can not be evaluated!")
+      self.raiseAnError(
+          RuntimeError, "ROM " + self.initializationOptions['name'] +
+          " has not been trained yet and, consequentially, can not be evaluated!"
+      )
     resultsDict = {}
     for rom in self.supervisedContainer:
       sliceEvaluation = rom.evaluate(request)
@@ -244,7 +255,8 @@ def returnInstance(gateType, ROMclass, caller, **kwargs):
   try:
     return __interfaceDict[gateType](ROMclass, caller.messageHandler, **kwargs)
   except KeyError as ae:
-    caller.raiseAnError(NameError, 'not known ' + __base + ' type ' + str(gateType))
+    caller.raiseAnError(NameError,
+                        'not known ' + __base + ' type ' + str(gateType))
 
 
 def returnClass(ROMclass, caller):

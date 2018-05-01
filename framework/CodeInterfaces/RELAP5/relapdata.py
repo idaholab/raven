@@ -36,7 +36,8 @@ class relapdata:
     self.lines = open(filen, "r").readlines()
     self.deckEndTimeInfo = self.getTimeDeck(self.lines, deckNumber)
     self.deckNumberToTake = deckNumber if deckNumber != -1 else self.totNumberOfDecks
-    startLine, endLine = self.deckEndTimeInfo[self.deckNumberToTake]['sliceCoordinates'][0:2]
+    startLine, endLine = self.deckEndTimeInfo[self.deckNumberToTake][
+        'sliceCoordinates'][0:2]
     self.trips = self.returnTrip(self.lines[startLine:endLine])
     self.minordata = self.getMinor(self.lines[startLine:endLine])
     self.readRaven()
@@ -68,7 +69,8 @@ class relapdata:
     times = {}
     deckNum, startLineNumber, endLineNumber = 0, 0, 0
     for cnt, line in enumerate(lines):
-      if re.match('^\s*Final time=', line) or re.match('^\s*0Final time=', line):
+      if re.match('^\s*Final time=', line) or re.match('^\s*0Final time=',
+                                                       line):
         deckNum += 1
         startLineNumber = endLineNumber
         endLineNumber = cnt + 1
@@ -78,8 +80,8 @@ class relapdata:
         }
     if deckNum < deckNumber:
       raise IOError(
-          "the deck number requested is greater than the number found in the outputfiles! Found " +
-          str(deckNum) + " decks and requested are " + str(deckNumber))
+          "the deck number requested is greater than the number found in the outputfiles! Found "
+          + str(deckNum) + " decks and requested are " + str(deckNumber))
     self.totNumberOfDecks = deckNum
     return times
 
@@ -120,7 +122,10 @@ class relapdata:
         tempkeys = []
         temp1 = re.split('\s{2,}|\n', lines[i])
         #temp2 = re.split('\s{2,}|\n',lines[i+1])
-        temp2 = [lines[i + 1][j:j + 13].strip() for j in range(0, len(lines[i + 1]), 13)]
+        temp2 = [
+            lines[i + 1][j:j + 13].strip()
+            for j in range(0, len(lines[i + 1]), 13)
+        ]
         temp1.pop()
         temp2.pop()
         temp2 = ['_'.join(key.split()) for key in temp2]
@@ -132,7 +137,8 @@ class relapdata:
           tempArray.append([])
           #   allocates array for data block
         i = i + 4
-        while not re.match('^\s*1 time|^1RELAP5|^\s*\n|^\s*1RELAP5|^\s*MINOR EDIT', lines[i]):
+        while not re.match(
+            '^\s*1 time|^1RELAP5|^\s*\n|^\s*1RELAP5|^\s*MINOR EDIT', lines[i]):
           tempData = lines[i].split()
           #takeIt = False if re.match("^\d+?\.\d+?$", tempData[0]) is None else True
           #if takeIt:
@@ -142,8 +148,10 @@ class relapdata:
             for k in range(len(tempArray)):
               tempArray[k].append(tempData[k])
           i = i + 1
-          if re.match('^\s*1 time|^\s*1\s*R5|^\s*\n|^1RELAP5', lines[i]) or re.match(
-              '^\s*0Final time', lines[i]) or re.match('^\s*Final time', lines[i]):
+          if re.match(
+              '^\s*1 time|^\s*1\s*R5|^\s*\n|^1RELAP5', lines[i]) or re.match(
+                  '^\s*0Final time', lines[i]) or re.match(
+                      '^\s*Final time', lines[i]):
             break
         for l in range(len(tempkeys)):
           minorDict.update({tempkeys[l]: tempArray[l]})
@@ -231,8 +239,8 @@ class relapdata:
             if 'deckNum:' in splitted: deckNum = splitted[-1].strip()
             elif 'card:' in splitted:
               sampleVar = splitted[splitted.index('card:') + 1].strip() + (
-                  ":" + splitted[splitted.index('word:') + 1].strip()
-                  if splitted[splitted.index('word:') + 1].strip() != '0' else '')
+                  ":" + splitted[splitted.index('word:') + 1].strip() if
+                  splitted[splitted.index('word:') + 1].strip() != '0' else '')
               value = splitted[splitted.index('value:') + 1].strip()
               if deckNum is not None:
                 sampleVar = str(deckNum) + '|' + sampleVar
@@ -251,8 +259,9 @@ class relapdata:
     #TODO this should be further reworked and optimized probably, but it is patched to work for now.
     IOcsvfile = open(filen, 'w')
     if self.minordata != None:
-      IOcsvfile.write(','.join(s.strip().replace("1 time_(sec)", "time").replace(' ', '_')
-                               for s in self.minordata.keys()))
+      IOcsvfile.write(','.join(
+          s.strip().replace("1 time_(sec)", "time").replace(' ', '_')
+          for s in self.minordata.keys()))
     if len(self.ravenData) > 0:
       IOcsvfile.write(',')
     for j in range(len(self.ravenData.keys())):
@@ -265,7 +274,7 @@ class relapdata:
           for j in range(len(self.minordata.keys()))))
       if len(self.ravenData) > 0:
         IOcsvfile.write(',')
-      IOcsvfile.write(','.join(
-          self.ravenData[self.ravenData.keys()[k]] for k in range(len(self.ravenData.keys()))))
+      IOcsvfile.write(','.join(self.ravenData[self.ravenData.keys()[k]]
+                               for k in range(len(self.ravenData.keys()))))
       IOcsvfile.write('\n')
     IOcsvfile.close()

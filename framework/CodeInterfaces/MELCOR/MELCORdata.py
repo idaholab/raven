@@ -52,9 +52,11 @@ class MELCORdata:
     timeBlock = {}
     for lineNumber, line in enumerate(self.lines):
       if line.strip().startswith("1*"):
-        lineNum.append([lineNumber, self.lines[lineNumber + 1].split("=")[1].split()[0]])
+        lineNum.append(
+            [lineNumber, self.lines[lineNumber + 1].split("=")[1].split()[0]])
     for cnt, info in enumerate(lineNum):
-      endLineCnt = lineNum[cnt + 1][0] - 1 if cnt < len(lineNum) - 1 else len(self.lines) - 1
+      endLineCnt = lineNum[cnt + 1][0] - 1 if cnt < len(lineNum) - 1 else len(
+          self.lines) - 1
       timeBlock[info[1]] = self.lines[info[0] + 1:endLineCnt]
     return timeBlock
 

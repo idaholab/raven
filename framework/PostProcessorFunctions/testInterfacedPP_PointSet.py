@@ -50,8 +50,9 @@ class testInterfacedPP_PointSet(PostProcessorInterfaceBase):
 
     """
     if len(inputDic) > 1:
-      self.raiseAnError(IOError, 'testInterfacedPP_PointSet Interfaced Post-Processor ' +
-                        str(self.name) + ' accepts only one dataObject')
+      self.raiseAnError(
+          IOError, 'testInterfacedPP_PointSet Interfaced Post-Processor ' +
+          str(self.name) + ' accepts only one dataObject')
     else:
       inputDict = inputDic[0]
       outputDict = {'data': {}}

@@ -101,7 +101,8 @@ class mooseData:
     tempString = []
     while (j < locationNo):
       key = location.keys()[j]
-      tempString = ('ID%s,x%s,y%s,z%s,value%s,' % (j + 1, j + 1, j + 1, j + 1, j + 1))
+      tempString = ('ID%s,x%s,y%s,z%s,value%s,' % (j + 1, j + 1, j + 1, j + 1,
+                                                   j + 1))
       j = j + 1
       IOcsvfile.write('%s' % (tempString))
     IOcsvfile.write('\n')
@@ -111,11 +112,13 @@ class mooseData:
       while (j < locationNo):
         key = location.keys()[j]
         if j == (locationNo - 1):
-          tempString = ('%s,%s,%s,%s,%s' % (key, location[key]['x'], location[key]['y'],
-                                            location[key]['z'], timeStep[key][time]))
+          tempString = ('%s,%s,%s,%s,%s' %
+                        (key, location[key]['x'], location[key]['y'],
+                         location[key]['z'], timeStep[key][time]))
         else:
-          tempString = ('%s,%s,%s,%s,%s,' % (key, location[key]['x'], location[key]['y'],
-                                             location[key]['z'], timeStep[key][time]))
+          tempString = ('%s,%s,%s,%s,%s,' %
+                        (key, location[key]['x'], location[key]['y'],
+                         location[key]['z'], timeStep[key][time]))
         j = j + 1
         IOcsvfile.write('%s' % (tempString))
       IOcsvfile.write('\n')

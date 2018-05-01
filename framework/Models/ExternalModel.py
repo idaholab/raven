@@ -51,10 +51,12 @@ class ExternalModel(Dummy):
         specifying input of cls.
     """
     inputSpecification = super(ExternalModel, cls).getInputSpecification()
-    inputSpecification.setStrictMode(False)  #External models can allow new elements
+    inputSpecification.setStrictMode(
+        False)  #External models can allow new elements
     inputSpecification.addParam("ModuleToLoad", InputData.StringType, False)
     inputSpecification.addSub(
-        InputData.parameterInputFactory("variables", contentType=InputData.StringType))
+        InputData.parameterInputFactory(
+            "variables", contentType=InputData.StringType))
 
     return inputSpecification
 
@@ -79,11 +81,13 @@ class ExternalModel(Dummy):
     self.sim = None
     self.modelVariableValues = {
     }  # dictionary of variable values for the external module imported at runtime
-    self.modelVariableType = {}  # dictionary of variable types, used for consistency checks
-    self.listOfRavenAwareVars = []  # list of variables RAVEN needs to be aware of
+    self.modelVariableType = {
+    }  # dictionary of variable types, used for consistency checks
+    self.listOfRavenAwareVars = [
+    ]  # list of variables RAVEN needs to be aware of
     self._availableVariableTypes = [
-        'float', 'bool', 'int', 'ndarray', 'c1darray', 'float16', 'float32', 'float64', 'float128',
-        'int16', 'int32', 'int64', 'bool8'
+        'float', 'bool', 'int', 'ndarray', 'c1darray', 'float16', 'float32',
+        'float64', 'float128', 'int16', 'int32', 'int64', 'bool8'
     ]  # available data types
     self._availableVariableTypes = self._availableVariableTypes + [
         'numpy.' + item for item in self._availableVariableTypes
@@ -105,7 +109,8 @@ class ExternalModel(Dummy):
     if 'initialize' in dir(self.sim):
       self.sim.initialize(self.initExtSelf, runInfo, inputs)
     Dummy.initialize(self, runInfo, inputs)
-    self.mods.extend(utils.returnImportModuleString(inspect.getmodule(self.sim)))
+    self.mods.extend(
+        utils.returnImportModuleString(inspect.getmodule(self.sim)))
 
   def createNewInput(self, myInput, samplerType, **kwargs):
     """
@@ -119,17 +124,21 @@ class ExternalModel(Dummy):
     modelVariableValues = {}
     if 'createNewInput' in dir(self.sim):
       if 'SampledVars' in kwargs.keys():
-        sampledVars = self._replaceVariablesNamesWithAliasSystem(kwargs['SampledVars'], 'input',
-                                                                 False)
-      extCreateNewInput = self.sim.createNewInput(self.initExtSelf, myInput, samplerType, **kwargs)
+        sampledVars = self._replaceVariablesNamesWithAliasSystem(
+            kwargs['SampledVars'], 'input', False)
+      extCreateNewInput = self.sim.createNewInput(self.initExtSelf, myInput,
+                                                  samplerType, **kwargs)
       if extCreateNewInput == None:
-        self.raiseAnError(AttributeError, 'in external Model ' + self.ModuleToLoad +
-                          ' the method createNewInput must return something. Got: None')
+        self.raiseAnError(
+            AttributeError, 'in external Model ' + self.ModuleToLoad +
+            ' the method createNewInput must return something. Got: None')
       if type(extCreateNewInput).__name__ != "dict":
-        self.raiseAnError(AttributeError, 'in external Model ' + self.ModuleToLoad +
-                          ' the method createNewInput must return a dictionary. Got type: ' +
-                          type(extCreateNewInput).__name__)
-      if 'SampledVars' in kwargs.keys() and len(self.alias['input'].keys()) != 0:
+        self.raiseAnError(
+            AttributeError, 'in external Model ' + self.ModuleToLoad +
+            ' the method createNewInput must return a dictionary. Got type: ' +
+            type(extCreateNewInput).__name__)
+      if 'SampledVars' in kwargs.keys() and len(
+          self.alias['input'].keys()) != 0:
         kwargs['SampledVars'] = sampledVars
       # add sampled vars
       if 'SampledVars' in kwargs:
@@ -160,22 +169,26 @@ class ExternalModel(Dummy):
       moduleToLoadString, self.ModuleToLoad = utils.identifyIfExternalModelExists(
           self, self.ModuleToLoad, self.workingDir)
       # load the external module and point it to self.sim
-      self.sim = utils.importFromPath(moduleToLoadString,
-                                      self.messageHandler.getDesiredVerbosity(self) > 1)
+      self.sim = utils.importFromPath(
+          moduleToLoadString,
+          self.messageHandler.getDesiredVerbosity(self) > 1)
     elif len(paramInput.parameterValues['subType'].strip()) > 0:
       # it is a plugin. Look for the type in the plugins class list
-      if paramInput.parameterValues['subType'] not in ExternalModel.plugins.knownTypes():
-        self.raiseAnError(IOError,
-                          'The "subType" named "' + paramInput.parameterValues['subType'] +
-                          '" does not belong to any ExternalModel plugin available. ' +
-                          'Available plugins are "' + ','.join(ExternalModel.plugins.knownTypes()))
-      self.sim = ExternalModel.plugins.returnPlugin("ExternalModel",
-                                                    paramInput.parameterValues['subType'], self)
+      if paramInput.parameterValues[
+          'subType'] not in ExternalModel.plugins.knownTypes():
+        self.raiseAnError(
+            IOError,
+            'The "subType" named "' + paramInput.parameterValues['subType'] +
+            '" does not belong to any ExternalModel plugin available. ' +
+            'Available plugins are "' + ','.join(
+                ExternalModel.plugins.knownTypes()))
+      self.sim = ExternalModel.plugins.returnPlugin(
+          "ExternalModel", paramInput.parameterValues['subType'], self)
     else:
       self.raiseAnError(
           IOError,
-          '"ModuleToLoad" attribute or "subType" not provided for Model "ExternalModel" named "' +
-          self.name + '"!')
+          '"ModuleToLoad" attribute or "subType" not provided for Model "ExternalModel" named "'
+          + self.name + '"!')
 
     # check if there are variables and, in case, load them
     for child in paramInput.subparts:
@@ -186,8 +199,9 @@ class ExternalModel(Dummy):
         )
       elif child.getName() == 'variables':
         if len(child.parameterValues) > 0:
-          self.raiseAnError(IOError, 'the block ' + child.getName() + ' named ' + child.value +
-                            ' should not have attributes!!!!!')
+          self.raiseAnError(IOError,
+                            'the block ' + child.getName() + ' named ' +
+                            child.value + ' should not have attributes!!!!!')
         for var in child.value.split(','):
           var = var.strip()
           self.modelVariableType[var] = None
@@ -211,7 +225,8 @@ class ExternalModel(Dummy):
       modelVariableValues[key] = None
     for key, value in self.initExtSelf.__dict__.items():
       CustomCommandExecuter.execCommand(
-          'self.' + key + ' = copy.copy(object)', self=externalSelf,
+          'self.' + key + ' = copy.copy(object)',
+          self=externalSelf,
           object=value)  # exec('externalSelf.'+ key +' = copy.copy(value)')
       modelVariableValues[key] = copy.copy(value)
     for key in Input.keys():
@@ -260,21 +275,26 @@ class ExternalModel(Dummy):
           if not errorFound:
             self.raiseADebug(
                 'Unsupported type found. Available ones are: ' +
-                str(self._availableVariableTypes).replace('[', '').replace(']', ''),
+                str(self._availableVariableTypes).replace('[', '').replace(
+                    ']', ''),
                 verbosity='silent')
           errorFound = True
           self.raiseADebug(
-              'variable ' + key + ' has an unsupported type -> ' + self.modelVariableType[key],
+              'variable ' + key + ' has an unsupported type -> ' +
+              self.modelVariableType[key],
               verbosity='silent')
       if errorFound:
         self.raiseAnError(RuntimeError, 'Errors detected. See above!!')
-    outcomes = dict((k, modelVariableValues[k]) for k in self.listOfRavenAwareVars)
+    outcomes = dict(
+        (k, modelVariableValues[k]) for k in self.listOfRavenAwareVars)
     # check type consistency... This is needed in order to keep under control the external model... In order to avoid problems in collecting the outputs in our internal structures
     for key in self.modelVariableType.keys():
       if not (utils.typeMatch(outcomes[key], self.modelVariableType[key])):
-        self.raiseAnError(RuntimeError, 'type of variable ' + key + ' is ' + str(
-            type(outcomes[key])) + ' and mismatches with respect to the input ones (' +
-                          self.modelVariableType[key] + ')!!!')
+        self.raiseAnError(
+            RuntimeError,
+            'type of variable ' + key + ' is ' + str(type(outcomes[key])) +
+            ' and mismatches with respect to the input ones (' +
+            self.modelVariableType[key] + ')!!!')
     self._replaceVariablesNamesWithAliasSystem(outcomes, 'inout', True)
     # TODO slow conversion, but provides type consistency
     outcomes = dict((k, np.atleast_1d(val)) for k, val in outcomes.items())
@@ -309,7 +329,9 @@ class ExternalModel(Dummy):
     ## then get the metadata from kwargs
     rlz.update(dict((var, np.atleast_1d(val)) for var, val in kwargs.items()))
     ## then get the inputs from SampledVars (overwriting any other entries)
-    rlz.update(dict((var, np.atleast_1d(val)) for var, val in kwargs['SampledVars'].items()))
+    rlz.update(
+        dict((var, np.atleast_1d(val))
+             for var, val in kwargs['SampledVars'].items()))
     return rlz
 
   def collectOutput(self, finishedJob, output, options=None):
@@ -339,7 +361,7 @@ class ExternalModel(Dummy):
           self.raiseAnError(
               Exception,
               "the time series size needs to be the same for the output space in a HistorySet! Variable:"
-              + key + ". Size in the HistorySet=" + str(outputSize) + ".Size outputed=" + str(
-                  len(np.atleast_1d(outcomes[key]))))
+              + key + ". Size in the HistorySet=" + str(outputSize) +
+              ".Size outputed=" + str(len(np.atleast_1d(outcomes[key]))))
 
     Dummy.collectOutput(self, finishedJob, output, options)

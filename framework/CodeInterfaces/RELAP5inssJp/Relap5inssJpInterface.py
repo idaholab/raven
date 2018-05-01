@@ -36,7 +36,8 @@ class Relap5inssJp(Relap5):
     this class is used a part of a code dictionary to specialize Model.Code for RELAP5-3D Version 4.0.3
   """
 
-  def createNewInput(self, currentInputFiles, oriInputFiles, samplerType, **Kwargs):
+  def createNewInput(self, currentInputFiles, oriInputFiles, samplerType,
+                     **Kwargs):
     """
       this generate a new input file depending on which sampler is chosen
       @ In, currentInputFiles, list,  list of current input files (input files from last this method call)
@@ -63,11 +64,14 @@ class Relap5inssJp(Relap5):
     if not foundModelPar:
       raise IOError('Additional input file modelpar.inp not provided!!!!!!! ')
     if not found:
-      raise IOError('None of the input files has one of the following extensions: ' +
-                    ' '.join(self.getInputExtension()))
-    parser = RELAPparser.RELAPparser(currentInputFiles[indexInputDeck].getAbsFile())
-    modifDict = self.pointSamplerForRELAP5(**Kwargs) if not samplerType.endswith(
-        'EventTree') else self.DynamicEventTreeForRELAP5(**Kwargs)
+      raise IOError(
+          'None of the input files has one of the following extensions: ' +
+          ' '.join(self.getInputExtension()))
+    parser = RELAPparser.RELAPparser(
+        currentInputFiles[indexInputDeck].getAbsFile())
+    modifDict = self.pointSamplerForRELAP5(
+        **Kwargs) if not samplerType.endswith(
+            'EventTree') else self.DynamicEventTreeForRELAP5(**Kwargs)
     parser.modifyOrAdd(modifDict, True)
     parser.printInput(currentInputFiles[indexInputDeck])
     # check and modify modelpar.inp file

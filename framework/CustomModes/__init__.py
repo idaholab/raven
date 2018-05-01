@@ -44,7 +44,8 @@ def __getModeHandlers():
       module = __import__(filename[:-3])  #[:-3] to remove .py
       if "modeName" in module.__dict__ and "modeClassName" in module.__dict__:
         modeClassName = module.__dict__["modeClassName"]
-        modeHandlers[module.__dict__["modeName"]] = module.__dict__[modeClassName]
+        modeHandlers[module.__dict__["modeName"]] = module.__dict__[
+            modeClassName]
   return modeHandlers
 
 

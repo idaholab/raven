@@ -90,7 +90,8 @@ class FiniteDifferenceGradientOptimizer(SPSA):
         direction[0] = factor
       else:
         index = self.currentDirection.index(
-            1.0) if self.currentDirection.count(1.0) > 0 else self.currentDirection.index(-1.0)
+            1.0) if self.currentDirection.count(
+                1.0) > 0 else self.currentDirection.index(-1.0)
         direction = self.currentDirection
         newIndex = 0 if index + 1 == len(direction) else index + 1
         direction[newIndex], direction[index] = direction[index], 0.0
@@ -120,7 +121,8 @@ class FiniteDifferenceGradientOptimizer(SPSA):
       opt = optVarsValues[i]  #the latest opt point
       for j in range(self.paramDict['pertSingleGrad']):
         # loop over the perturbation to construct the full gradient
-        pert = optVarsValues[self.gradDict['numIterForAve'] + i + j]  #the perturbed point
+        pert = optVarsValues[self.gradDict['numIterForAve'] + i +
+                             j]  #the perturbed point
         #calculate grad(F) wrt each input variable
         lossDiff = mathUtils.diffWithInfinites(pert['output'], opt['output'])
         #cover "max" problems
@@ -134,7 +136,8 @@ class FiniteDifferenceGradientOptimizer(SPSA):
         if abs(dh) < 1e-15:
           self.raiseAnError(
               RuntimeError,
-              'While calculating the gradArray a "dh" very close to zero was found for var:', var)
+              'While calculating the gradArray a "dh" very close to zero was found for var:',
+              var)
         gradArray[var][i] = lossDiff / dh
     gradient = {}
     for var in optVars:

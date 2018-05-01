@@ -233,7 +233,8 @@ class BoolType(EnumBaseType):
 
 
 boolTypeList = utils.stringsThatMeanTrue() + utils.stringsThatMeanFalse()
-BoolType.createClass("bool", "boolType", boolTypeList + [elm.capitalize() for elm in boolTypeList])
+BoolType.createClass("bool", "boolType",
+                     boolTypeList + [elm.capitalize() for elm in boolTypeList])
 
 
 #
@@ -276,7 +277,12 @@ class ParameterInput(object):
     self.value = ""
 
   @classmethod
-  def createClass(cls, name, ordered=False, contentType=None, baseNode=None, strictMode=True):
+  def createClass(cls,
+                  name,
+                  ordered=False,
+                  contentType=None,
+                  baseNode=None,
+                  strictMode=True):
     """
       Initializes a new class.
       @ In, name, string, The name of the node.
@@ -362,8 +368,8 @@ class ParameterInput(object):
     if cls.subOrder is not None:
       cls.subOrder.append((sub, quantity))
     elif quantity != Quantity.zero_to_infinity:
-      print("ERROR only zero to infinity is supported if Order==False ", sub.getName(), " in ",
-            cls.getName())
+      print("ERROR only zero to infinity is supported if Order==False ",
+            sub.getName(), " in ", cls.getName())
 
   @classmethod
   def removeSub(cls, sub, quantity=Quantity.zero_to_infinity):
@@ -440,8 +446,9 @@ class ParameterInput(object):
     if node.tag != self.name:
       #should this be an error or a warning? Or even that?
       #handleError('XML node "{}" != param spec name "{}"'.format(node.tag,self.name))
-      print('Note: XML node "{}" != param spec name "{}".  This should not usually be an issue.'.
-            format(node.tag, self.name))
+      print(
+          'Note: XML node "{}" != param spec name "{}".  This should not usually be an issue.'.
+          format(node.tag, self.name))
     if self.contentType:
       self.value = self.contentType.convert(node.text)
     else:
@@ -449,13 +456,15 @@ class ParameterInput(object):
     for parameter in self.parameters:
       if parameter in node.attrib:
         param_type = self.parameters[parameter]["type"]
-        self.parameterValues[parameter] = param_type.convert(node.attrib[parameter])
+        self.parameterValues[parameter] = param_type.convert(
+            node.attrib[parameter])
       elif self.parameters[parameter]["required"]:
         handleError("Required parameter " + parameter + " not in " + node.tag)
     if self.strictMode:
       for parameter in node.attrib:
         if not parameter in self.parameters:
-          handleError(parameter + " not in attributes and strict mode on in " + node.tag)
+          handleError(parameter + " not in attributes and strict mode on in " +
+                      node.tag)
     if self.subOrder is not None:
       subs = [sub[0] for sub in self.subOrder]
     else:
@@ -471,7 +480,8 @@ class ParameterInput(object):
     if self.strictMode:
       for child in node:
         if child.tag not in subNames:
-          handleError('Child "{}" not allowed as sub-element of "{}"'.format(child.tag, node.tag))
+          handleError('Child "{}" not allowed as sub-element of "{}"'.format(
+              child.tag, node.tag))
 
   def findFirst(self, name):
     """

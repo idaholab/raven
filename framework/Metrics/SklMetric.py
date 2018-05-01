@@ -73,12 +73,14 @@ class SKL(Metric):
         self.metricType = child.text
       else:
         self.distParams[str(child.tag)] = utils.tryParse(child.text)
-    availableMetrics = pairwise.kernel_metrics().keys() + pairwise.distance_metrics().keys(
-    ) + scores.keys()
+    availableMetrics = pairwise.kernel_metrics().keys(
+    ) + pairwise.distance_metrics().keys() + scores.keys()
     if self.metricType not in availableMetrics:
-      metricList = ', '.join(availableMetrics[:-1]) + ', or ' + availableMetrics[-1]
-      self.raiseAnError(IOError, 'Metric SKL error: metricType ' + str(self.metricType) +
-                        ' is not available. Available metrics are: ' + metricList + '.')
+      metricList = ', '.join(
+          availableMetrics[:-1]) + ', or ' + availableMetrics[-1]
+      self.raiseAnError(
+          IOError, 'Metric SKL error: metricType ' + str(self.metricType) +
+          ' is not available. Available metrics are: ' + metricList + '.')
 
     for key, value in self.distParams.items():
       try:
@@ -107,9 +109,11 @@ class SKL(Metric):
         dictTemp = utils.mergeDictionaries(kwargs, self.distParams)
         try:
           if self.metricType in pairwise.kernel_metrics().keys():
-            value = pairwise.pairwise_kernels(X=x, Y=y, metric=self.metricType, **dictTemp)
+            value = pairwise.pairwise_kernels(
+                X=x, Y=y, metric=self.metricType, **dictTemp)
           elif self.metricType in pairwise.distance_metrics():
-            value = pairwise.pairwise_distances(X=x, Y=y, metric=self.metricType, **dictTemp)
+            value = pairwise.pairwise_distances(
+                X=x, Y=y, metric=self.metricType, **dictTemp)
           elif self.metricType in scores.keys():
             value = np.zeros((1, 1))
             value[:, :] = scores[self.metricType](x, y, **dictTemp)
@@ -117,14 +121,17 @@ class SKL(Metric):
           self.raiseAWarning(
               'There are some unexpected keyword arguments found in Metric with type "',
               self.metricType, '"!')
-          self.raiseAnError(TypeError, 'Input parameters error:\n', str(e), '\n')
+          self.raiseAnError(TypeError, 'Input parameters error:\n', str(e),
+                            '\n')
         if value.shape == (1, 1):
           return value[0]
         else:
           return value
       else:
         self.raiseAnError(
-            IOError, 'Metric SKL error: SKL metrics support only PointSets and not HistorySets')
+            IOError,
+            'Metric SKL error: SKL metrics support only PointSets and not HistorySets'
+        )
     else:
       if self.metricType == 'mahalanobis':
         covMAtrix = np.cov(x.T)
@@ -132,9 +139,11 @@ class SKL(Metric):
       dictTemp = utils.mergeDictionaries(kwargs, self.distParams)
       try:
         if self.metricType in pairwise.kernel_metrics().keys():
-          value = pairwise.pairwise_kernels(X=x, metric=self.metricType, **dictTemp)
+          value = pairwise.pairwise_kernels(
+              X=x, metric=self.metricType, **dictTemp)
         elif self.metricType in pairwise.distance_metrics().keys():
-          value = pairwise.pairwise_distances(X=x, metric=self.metricType, **dictTemp)
+          value = pairwise.pairwise_distances(
+              X=x, metric=self.metricType, **dictTemp)
       except TypeError as e:
         self.raiseAWarning(
             'There are some unexpected keyword arguments found in Metric with type "',

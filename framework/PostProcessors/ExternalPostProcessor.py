@@ -70,12 +70,14 @@ class ExternalPostProcessor(PostProcessor):
         specifying input of cls.
     """
     ## This will replace the lines above
-    inputSpecification = super(ExternalPostProcessor, cls).getInputSpecification()
+    inputSpecification = super(ExternalPostProcessor,
+                               cls).getInputSpecification()
 
     EMethodInput = InputData.parameterInputFactory("method")
     inputSpecification.addSub(EMethodInput)
 
-    EFunctionInput = InputData.parameterInputFactory("Function", contentType=InputData.StringType)
+    EFunctionInput = InputData.parameterInputFactory(
+        "Function", contentType=InputData.StringType)
     EFunctionInput.addParam("class", InputData.StringType)
     EFunctionInput.addParam("type", InputData.StringType)
     inputSpecification.addSub(EFunctionInput)
@@ -96,21 +98,25 @@ class ExternalPostProcessor(PostProcessor):
 
     if type(currentInput) == list:
       if len(currentInput) != 1:
-        self.raiseAnError(
-            IOError, "The postprocessor ", self.name,
-            "only allows one input DataObjects," + " but multiple inputs are provided!")
+        self.raiseAnError(IOError, "The postprocessor ", self.name,
+                          "only allows one input DataObjects," +
+                          " but multiple inputs are provided!")
       else:
         currentInput = currentInput[-1]
-    assert (hasattr(currentInput, 'type'),
-            "The type is missing for input object! We should always associate a type with it.")
+    assert (hasattr(
+        currentInput, 'type'
+    ), "The type is missing for input object! We should always associate a type with it."
+            )
     inType = currentInput.type
     if inType in ['PointSet', 'HistorySet']:
       dataSet = currentInput.asDataset()
     else:
-      self.raiseAnError(IOError, "Input type ", inType, ' is not yet implemented!')
+      self.raiseAnError(IOError, "Input type ", inType,
+                        ' is not yet implemented!')
 
     if len(currentInput) == 0:
-      self.raiseAnError(IOError, 'The Input object ', currentInput.name, ' is empty!')
+      self.raiseAnError(IOError, 'The Input object ', currentInput.name,
+                        ' is empty!')
     inputDict = {}
     if inType == 'PointSet':
       for param in currentInput.getVars():
@@ -119,11 +125,17 @@ class ExternalPostProcessor(PostProcessor):
       sliceList = currentInput.sliceByIndex('RAVEN_sample_ID')
       indexes = currentInput.indexes
       for param in currentInput.getVars('output'):
-        inputDict[param] = [sliceData[param].dropna(indexes[-1]).values for sliceData in sliceList]
+        inputDict[param] = [
+            sliceData[param].dropna(indexes[-1]).values
+            for sliceData in sliceList
+        ]
       for param in currentInput.getVars('input'):
         inputDict[param] = [sliceData[param].values for sliceData in sliceList]
       for param in indexes:
-        inputDict[param] = [sliceData[param].dropna(indexes[-1]).values for sliceData in sliceList]
+        inputDict[param] = [
+            sliceData[param].dropna(indexes[-1]).values
+            for sliceData in sliceList
+        ]
 
     for interface in self.externalInterfaces:
       for _ in self.methodsToRun:
@@ -131,10 +143,11 @@ class ExternalPostProcessor(PostProcessor):
         # as the xml file
         for param in interface.parameterNames():
           if param not in inputDict.keys():
-            self.raiseAnError(IOError, self,
-                              'variable \"' + param + '\" unknown. Please verify your ' +
-                              'external script (' + interface.functionFile +
-                              ') variables match the data' + ' available in your dataset.')
+            self.raiseAnError(
+                IOError, self,
+                'variable \"' + param + '\" unknown. Please verify your ' +
+                'external script (' + interface.functionFile +
+                ') variables match the data' + ' available in your dataset.')
     return inputDict
 
   def initialize(self, runInfo, inputs, initDict):
@@ -184,17 +197,20 @@ class ExternalPostProcessor(PostProcessor):
     """
     evaluation = finishedJob.getEvaluation()
     if isinstance(evaluation, Runners.Error):
-      self.raiseAnError(RuntimeError,
-                        "No available output to collect (run possibly not finished yet)")
+      self.raiseAnError(
+          RuntimeError,
+          "No available output to collect (run possibly not finished yet)")
 
     dataLenghtHistory = {}
     inputList, outputDict = evaluation
 
     if isinstance(output, Files.File):
-      self.raiseAWarning('Output type File not yet implemented. I am going to skip it.')
+      self.raiseAWarning(
+          'Output type File not yet implemented. I am going to skip it.')
     elif output.type == 'HDF5':
-      self.raiseAnError(NotImplementedError,
-                        'Output type ' + type(output).__name__ + ' not yet implemented!')
+      self.raiseAnError(
+          NotImplementedError,
+          'Output type ' + type(output).__name__ + ' not yet implemented!')
     elif output.type in ['PointSet', 'HistorySet']:
       output.load(outputDict, style='dict', dims=output.getDimensions())
     else:
@@ -237,10 +253,12 @@ class ExternalPostProcessor(PostProcessor):
     for methodName, (interface, method) in methodMap.iteritems():
       # The deep copy is needed since the interface postprocesor will change the values of inputDict
       tempInputDict = copy.deepcopy(inputDict)
-      outputDict[methodName] = np.atleast_1d(copy.copy(interface.evaluate(method, tempInputDict)))
+      outputDict[methodName] = np.atleast_1d(
+          copy.copy(interface.evaluate(method, tempInputDict)))
       if outputDict[methodName] is None:
-        self.raiseAnError(Exception, "the method " + methodName +
-                          " has not produced any result. It needs to return a result!")
+        self.raiseAnError(
+            Exception, "the method " + methodName +
+            " has not produced any result. It needs to return a result!")
       for target in tempInputDict.keys():
         if hasattr(interface, target):
           #if target not in outputDict.keys():
@@ -248,18 +266,23 @@ class ExternalPostProcessor(PostProcessor):
             attributeInSelf = getattr(interface, target)
             if (np.atleast_1d(attributeInSelf)).shape != (np.atleast_1d(
                 inputDict[target])).shape or (
-                    np.atleast_1d(attributeInSelf) - np.atleast_1d(inputDict[target])).all():
+                    np.atleast_1d(attributeInSelf) -
+                    np.atleast_1d(inputDict[target])).all():
               if target in outputDict.keys():
                 self.raiseAWarning(
-                    "In Post-Processor " + self.name + " the modified variable " + target +
+                    "In Post-Processor " + self.name +
+                    " the modified variable " + target +
                     " has the same name of a one already modified through another Function method."
-                    + " This method overwrites the input DataObject variable value")
+                    +
+                    " This method overwrites the input DataObject variable value"
+                )
               outputDict[target] = np.atleast_1d(attributeInSelf)
           else:
             warningMessages.append(
                 "In Post-Processor " + self.name + " the method " + method +
-                " has the same name of a variable contained in the input DataObject." +
-                " This method overwrites the input DataObject variable value")
+                " has the same name of a variable contained in the input DataObject."
+                + " This method overwrites the input DataObject variable value"
+            )
     for msg in list(set(warningMessages)):
       self.raiseAWarning(msg)
 
@@ -273,14 +296,18 @@ class ExternalPostProcessor(PostProcessor):
             IOError,
             "The return results from the external functions have different number of realizations!"
             + " This postpocessor ", self.name,
-            " requests all the returned values should have the same number of realizations.")
+            " requests all the returned values should have the same number of realizations."
+        )
     for target in inputDict.keys():
       if target not in outputDict.keys():
         if len(inputDict[target]) != numRlz:
           self.raiseAWarning(
-              "Parameter ", target, " is available in the provided input DataObjects," +
+              "Parameter ", target,
+              " is available in the provided input DataObjects," +
               " but it has different length from the returned values from the external functions."
-              + " Thus this parameter will not be accessible by the output DataObjects!")
+              +
+              " Thus this parameter will not be accessible by the output DataObjects!"
+          )
         else:
           outputDict[target] = np.atleast_1d(inputDict[target])
 

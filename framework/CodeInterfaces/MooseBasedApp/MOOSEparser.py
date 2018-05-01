@@ -58,12 +58,14 @@ class MOOSEparser():
           current = parents.pop(len(parents) - 1)
         else:
           #name = line.strip(b'[').strip(b']').strip(b'../')
-          name = line[line.index(b'[') + 1:line.index(b']')].strip(b'../').strip(b'./')
+          name = line[line.index(b'[') + 1:line.index(b']')].strip(
+              b'../').strip(b'./')
           parents.append(current)
           current = ET.SubElement(current, name)
           current.tail = []
           if b'#' in line[line.index(b']'):]:
-            current.tail.append(line[line.index(b']') + 1:].strip(b'\n').lstrip())
+            current.tail.append(
+                line[line.index(b']') + 1:].strip(b'\n').lstrip())
       elif len(line) != 0:
         if not line.startswith(b'#'):
           ind = line.find(b'=')
@@ -93,7 +95,8 @@ class MOOSEparser():
 
     # 4 sub levels maximum
     def printSubLevels(xmlnode, IOfile, indentMultiplier):
-      IOfile.write(b'  ' * indentMultiplier + b'[./' + toBytes(xmlnode.tag) + b']\n')
+      IOfile.write(
+          b'  ' * indentMultiplier + b'[./' + toBytes(xmlnode.tag) + b']\n')
       for string in xmlnode.tail if xmlnode.tail else []:
         IOfile.write(b'    ' * indentMultiplier + string + b'\n')
       for key in xmlnode.attrib.keys():
@@ -109,7 +112,8 @@ class MOOSEparser():
         for string in child.tail:
           IOfile.write(b'  ' + string + b'\n')
       for key in child.attrib.keys():
-        IOfile.write(b'  ' + toBytes(key) + b' = ' + toBytes(toStrish(child.attrib[key])) + b'\n')
+        IOfile.write(b'  ' + toBytes(key) + b' = ' +
+                     toBytes(toStrish(child.attrib[key])) + b'\n')
       for childChild in child:
         printSubLevels(childChild, IOfile, 1)
         for childChildChild in childChild:
@@ -210,7 +214,8 @@ class MOOSEparser():
       @ Out, None
     """
     assert (len(name) > 0)
-    specials = modiDictionary['special'] if 'special' in modiDictionary.keys() else set()
+    specials = modiDictionary[
+        'special'] if 'special' in modiDictionary.keys() else set()
     #If erase_block is true, then erase the entire block
     has_erase_block = 'erase_block' in specials
     #If assert_match is true, then fail if any of the elements do not exist
@@ -231,7 +236,8 @@ class MOOSEparser():
         returnElement.remove(returnElement.find(true_name))
       elif has_assert_match:
         self.__matchDict(returnElement.find(true_name).attrib, modiDictionary)
-        assert (self.__matchDict(returnElement.find(true_name).attrib, modiDictionary))
+        assert (self.__matchDict(
+            returnElement.find(true_name).attrib, modiDictionary))
       elif found:
         self.__updateDict(returnElement.find(true_name).attrib, modiDictionary)
       else:
@@ -255,7 +261,8 @@ class MOOSEparser():
       @ Out, returnElement, xml.etree.ElementTree.Element, the tree that got modified
     """
     if save:
-      returnElement = copy.deepcopy(self.root)  #make a copy if save is requested
+      returnElement = copy.deepcopy(
+          self.root)  #make a copy if save is requested
     else:
       returnElement = self.root  #otherwise return the original modified
     for i in xrange(len(modiDictionaryList)):
@@ -285,6 +292,9 @@ class MOOSEparser():
         #  vectorPPDict['integrals'] = child.attrib['integrals'].strip("'").strip().split(' ')
       if 'Executioner' in child.tag:
         if 'num_steps' in child.keys():
-          vectorPPDict['timeStep'] = child.attrib['num_steps'].strip("'").strip().split(
-              ' ')  #TODO: define default num_steps in case it is not in moose input
+          vectorPPDict['timeStep'] = child.attrib['num_steps'].strip(
+              "'"
+          ).strip().split(
+              ' '
+          )  #TODO: define default num_steps in case it is not in moose input
     return found, vectorPPDict

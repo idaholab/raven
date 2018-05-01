@@ -59,7 +59,8 @@ class Rattlesnake(CodeInterfaceBase):
       if inputFile.getType().strip().lower() == "yakxsinput":
         inputDict['FoundYakXSInput'] = True
         yakInput.append(inputFile)
-      elif inputFile.getType().strip().lower().split("|")[-1] == "rattlesnakeinput":
+      elif inputFile.getType().strip().lower().split("|")[
+          -1] == "rattlesnakeinput":
         inputDict['FoundRattlesnakeInput'] = True
         rattlesnakeInput.append(inputFile)
       elif inputFile.getType().strip().lower() == "yakxsaliasinput":
@@ -106,14 +107,16 @@ class Rattlesnake(CodeInterfaceBase):
     inputDict = self.findInps(inputFiles)
     rattlesnakeInput = inputDict['RattlesnakeInput']
     if len(rattlesnakeInput) != 1:
-      raise IOError('The user should only provide one rattlesnake input file, but found ' +
-                    str(len(rattlesnakeInput)) + '!')
-    mooseCommand, mooseOut = self.MooseInterface.generateCommand(rattlesnakeInput, executable,
-                                                                 clargs, fargs)
+      raise IOError(
+          'The user should only provide one rattlesnake input file, but found '
+          + str(len(rattlesnakeInput)) + '!')
+    mooseCommand, mooseOut = self.MooseInterface.generateCommand(
+        rattlesnakeInput, executable, clargs, fargs)
     returnCommand = mooseCommand, mooseOut
     return returnCommand
 
-  def createNewInput(self, currentInputFiles, origInputFiles, samplerType, **Kwargs):
+  def createNewInput(self, currentInputFiles, origInputFiles, samplerType,
+                     **Kwargs):
     """
       Generates new perturbed input files for both Rattlesnake input file and Yak multigroup group cross section input files.
       @ In, currentInputFiles, list,  list of current input files
@@ -162,8 +165,8 @@ class Rattlesnake(CodeInterfaceBase):
       parser.writeNewInput(instantInputs, **Kwargs)
     #Moose based app interface
     origRattlesnakeInputs = copy.deepcopy(rattlesnakeInputs)
-    newMooseInputs = self.MooseInterface.createNewInput(rattlesnakeInputs, origRattlesnakeInputs,
-                                                        samplerType, **Kwargs)
+    newMooseInputs = self.MooseInterface.createNewInput(
+        rattlesnakeInputs, origRattlesnakeInputs, samplerType, **Kwargs)
     return currentInputFiles
 
   def finalizeCodeOutput(self, command, output, workingDir):

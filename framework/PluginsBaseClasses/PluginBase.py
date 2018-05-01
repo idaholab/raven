@@ -50,6 +50,8 @@ class PluginBase(object):
       @ In, None
       @ Out, validPlugIn, bool, is this plugin a valid one?
     """
-    classMethods = [method for method in dir(cls) if callable(getattr(cls, method))]
+    classMethods = [
+        method for method in dir(cls) if callable(getattr(cls, method))
+    ]
     validPlugIn = set(cls._methodsToCheck) <= set(classMethods)
     return validPlugIn

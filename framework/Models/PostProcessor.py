@@ -190,12 +190,14 @@ class PostProcessor(Model):
       @ In, inputs, list, it is a list containing whatever is passed with an input role in the step
       @ In, initDict, dict, optional, dictionary of all objects available in the step is using this model
     """
-    self.workingDir = os.path.join(runInfo['WorkingDir'],
-                                   runInfo['stepName'])  #generate current working dir
+    self.workingDir = os.path.join(
+        runInfo['WorkingDir'],
+        runInfo['stepName'])  #generate current working dir
     self.interface.initialize(runInfo, inputs, initDict)
     self.mods = self.mods + list(
-        set(utils.returnImportModuleString(inspect.getmodule(PostProcessors), True)) -
-        set(self.mods))
+        set(
+            utils.returnImportModuleString(
+                inspect.getmodule(PostProcessors), True)) - set(self.mods))
 
   def submit(self, myInput, samplerType, jobHandler, **kwargs):
     """

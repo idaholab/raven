@@ -80,8 +80,9 @@ class SharedMemoryRunner(InternalRunner):
     """
     ## First, allow the base class handle the commonalities
     # we keep the command here, in order to have the hook for running exec code into internal models
-    super(SharedMemoryRunner, self).__init__(messageHandler, args, functionToRun, identifier,
-                                             metadata, uniqueHandler, profile)
+    super(SharedMemoryRunner,
+          self).__init__(messageHandler, args, functionToRun, identifier,
+                         metadata, uniqueHandler, profile)
 
     ## Other parameters manipulated internally
     self.subque = collections.deque()
@@ -154,7 +155,8 @@ class SharedMemoryRunner(InternalRunner):
       self.started = True
     except Exception as ae:
       self.raiseAWarning(self.__class__.__name__ + " job " + self.identifier +
-                         " failed with error:" + str(ae) + " !", 'ExceptedError')
+                         " failed with error:" + str(ae) + " !",
+                         'ExceptedError')
       self.returnCode = -1
 
   def kill(self):
@@ -163,6 +165,7 @@ class SharedMemoryRunner(InternalRunner):
       @ In, None
       @ Out, None
     """
-    self.raiseAWarning("Terminating " + self.thread.pid + " Identifier " + self.identifier)
+    self.raiseAWarning(
+        "Terminating " + self.thread.pid + " Identifier " + self.identifier)
     os.kill(self.thread.pid, signal.SIGTERM)
     self.trackTime('runner_killed')

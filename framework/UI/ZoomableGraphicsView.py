@@ -64,7 +64,8 @@ class OverlayButton(qtw.QPushButton):
       @ Out, None
     """
     self.setStyleSheet(
-        "background-color: rgba( 51, 73, 96, 25%); color: rgba(236,240,241, 75%);  opacity: 0.25;")
+        "background-color: rgba( 51, 73, 96, 25%); color: rgba(236,240,241, 75%);  opacity: 0.25;"
+    )
 
   def enterEvent(self, event):
     """
@@ -99,10 +100,12 @@ class OverlayButton(qtw.QPushButton):
 # mouseIcon = qta.icon('fa.mouse-pointer', color=defaultIconColor)
 # screenshotIcon = qta.icon('fa.camera', color=defaultIconColor)
 
-resourceLocation = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'resources')
+resourceLocation = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), 'resources')
 resetIcon = qtg.QIcon(os.path.join(resourceLocation, 'fa-rotate-left_32.png'))
 handIcon = qtg.QIcon(os.path.join(resourceLocation, 'fa-hand-paper-o_32.png'))
-mouseIcon = qtg.QIcon(os.path.join(resourceLocation, 'fa-mouse-pointer_32.png'))
+mouseIcon = qtg.QIcon(
+    os.path.join(resourceLocation, 'fa-mouse-pointer_32.png'))
 screenshotIcon = qtg.QIcon(os.path.join(resourceLocation, 'fa-camera_32.png'))
 
 ################################################################################
@@ -132,7 +135,8 @@ class ZoomableGraphicsView(qtw.QGraphicsView):
     self.setFrameShape(qtw.QFrame.NoFrame)
     self.setDragMode(qtw.QGraphicsView.ScrollHandDrag)
 
-    self.setRenderHints(qtg.QPainter.Antialiasing | qtg.QPainter.SmoothPixmapTransform)
+    self.setRenderHints(qtg.QPainter.Antialiasing
+                        | qtg.QPainter.SmoothPixmapTransform)
 
     scene = qtw.QGraphicsScene(self)
     scene.setSceneRect(0, 0, ZoomableGraphicsView.defaultSceneDimension,
@@ -211,7 +215,8 @@ class ZoomableGraphicsView(qtw.QGraphicsView):
       svgGen.setDescription("Generated from RAVEN.")
       painter = qtg.QPainter(svgGen)
     else:
-      image = qtg.QImage(self.sceneRect().size().toSize(), qtg.QImage.Format_ARGB32)
+      image = qtg.QImage(self.sceneRect().size().toSize(),
+                         qtg.QImage.Format_ARGB32)
       image.fill(qtc.Qt.transparent)
       painter = qtg.QPainter(image)
 

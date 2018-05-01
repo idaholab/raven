@@ -94,7 +94,8 @@ class Assembler(MessageHandler.MessageUser):
     for key, value in self.assemblerObjects.items():
       self.assemblerDict[key] = []
       for entity, etype, name in value:
-        self.assemblerDict[key].append([entity, etype, name, initDict[entity][name]])
+        self.assemblerDict[key].append(
+            [entity, etype, name, initDict[entity][name]])
 
   def _readAssemblerObjects(self, subXmlNode, found, testObjects):
     """
@@ -111,13 +112,16 @@ class Assembler(MessageHandler.MessageUser):
         if subNode.tag == token:
           found[token] = True
           if 'class' not in subNode.attrib.keys():
-            self.raiseAnError(IOError, 'In ' + self.type + ' Object ' + self.name + ', block ' +
-                              subNode.tag + ' does not have the attribute class!!')
+            self.raiseAnError(
+                IOError,
+                'In ' + self.type + ' Object ' + self.name + ', block ' +
+                subNode.tag + ' does not have the attribute class!!')
           if subNode.tag not in self.assemblerObjects.keys():
             self.assemblerObjects[subNode.tag.strip()] = []
-          self.assemblerObjects[subNode.tag.strip()].append(
-              [subNode.attrib['class'], subNode.attrib['type'],
-               subNode.text.strip()])
+          self.assemblerObjects[subNode.tag.strip()].append([
+              subNode.attrib['class'], subNode.attrib['type'],
+              subNode.text.strip()
+          ])
           testObjects[token] += 1
     returnObject = found, testObjects
     return returnObject
@@ -142,17 +146,20 @@ class Assembler(MessageHandler.MessageUser):
       for token in self.requiredAssObject[1][0]:
         testObjects[token] = 0
       found = dict.fromkeys(testObjects.keys(), False)
-      found, testObjects = self._readAssemblerObjects(xmlNode, found, testObjects)
+      found, testObjects = self._readAssemblerObjects(xmlNode, found,
+                                                      testObjects)
       for subNode in xmlNode:
-        found, testObjects = self._readAssemblerObjects(subNode, found, testObjects)
+        found, testObjects = self._readAssemblerObjects(
+            subNode, found, testObjects)
       for token in self.requiredAssObject[1][0]:
         if not found[token] and not str(
             self.requiredAssObject[1][1][self.requiredAssObject[1][0].index(
                 token)]).strip().startswith('-'):
-          self.raiseAnError(
-              IOError, 'the required object ' + token + ' is missed in the definition of the ' +
-              self.type + ' Object! Required objects number are :' + str(
-                  self.requiredAssObject[1][1][self.requiredAssObject[1][0].index(token)]))
+          self.raiseAnError(IOError, 'the required object ' + token +
+                            ' is missed in the definition of the ' + self.type
+                            + ' Object! Required objects number are :' + str(
+                                self.requiredAssObject[1][1]
+                                [self.requiredAssObject[1][0].index(token)]))
       # test the objects found
       else:
         for cnt, toObjectName in enumerate(self.requiredAssObject[1][0]):
@@ -161,25 +168,27 @@ class Assembler(MessageHandler.MessageUser):
             # optional
             if toObjectName in testObjects.keys():
               if testObjects[toObjectName] is not 0:
-                numerosity = numerosity.replace('-', '').replace('n', str(
-                    testObjects[toObjectName]))
+                numerosity = numerosity.replace('-', '').replace(
+                    'n', str(testObjects[toObjectName]))
                 if testObjects[toObjectName] != int(numerosity):
-                  self.raiseAnError(IOError, 'Only ' + numerosity + ' ' + toObjectName +
-                                    ' object/s is/are optionally required. Block ' + self.name +
-                                    ' got ' + str(testObjects[toObjectName]) + '!')
+                  self.raiseAnError(
+                      IOError, 'Only ' + numerosity + ' ' + toObjectName +
+                      ' object/s is/are optionally required. Block ' +
+                      self.name + ' got ' + str(testObjects[toObjectName]) +
+                      '!')
           else:
             # required
             if toObjectName not in testObjects.keys():
-              self.raiseAnError(
-                  IOError,
-                  'Required object/s "' + toObjectName + '" not found. Block ' + self.name + '!')
+              self.raiseAnError(IOError, 'Required object/s "' + toObjectName +
+                                '" not found. Block ' + self.name + '!')
             else:
-              numerosity = numerosity.replace('n', str(testObjects[toObjectName]))
+              numerosity = numerosity.replace('n',
+                                              str(testObjects[toObjectName]))
               if testObjects[toObjectName] != int(numerosity):
                 self.raiseAnError(
-                    IOError,
-                    'Only ' + numerosity + ' ' + toObjectName + ' object/s is/are required. Block '
-                    + self.name + ' got ' + str(testObjects[toObjectName]) + '!')
+                    IOError, 'Only ' + numerosity + ' ' + toObjectName +
+                    ' object/s is/are required. Block ' + self.name + ' got ' +
+                    str(testObjects[toObjectName]) + '!')
     if '_localReadMoreXML' in dir(self):
       self._localReadMoreXML(xmlNode)
 
@@ -200,7 +209,10 @@ class Assembler(MessageHandler.MessageUser):
     self.requiredAssObject[1][0].append(name)
     self.requiredAssObject[1][1].append(flag)
 
-  def retrieveObjectFromAssemblerDict(self, objectMainClass, objectName, pop=False):
+  def retrieveObjectFromAssemblerDict(self,
+                                      objectMainClass,
+                                      objectName,
+                                      pop=False):
     """
       Method to retrieve an object from the assembler
       @ In, objectName, str, the object name that needs to be retrieved

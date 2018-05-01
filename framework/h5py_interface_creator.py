@@ -55,7 +55,13 @@ class hdf5Database(MessageHandler.MessageUser):
     class to create a h5py (hdf5) database
   """
 
-  def __init__(self, name, databaseDir, messageHandler, filename, exist, variables=None):
+  def __init__(self,
+               name,
+               databaseDir,
+               messageHandler,
+               filename,
+               exist,
+               variables=None):
     """
       Constructor
       @ In, name, string, name of this database
@@ -102,7 +108,8 @@ class hdf5Database(MessageHandler.MessageUser):
       # check if it exists
       if not os.path.exists(self.filenameAndPath):
         self.raiseAnError(
-            IOError, 'database file has not been found, searched Path is: ' + self.filenameAndPath)
+            IOError, 'database file has not been found, searched Path is: ' +
+            self.filenameAndPath)
       # Open file
       self.h5FileW = self.openDatabaseW(self.filenameAndPath, 'r+')
       # Call the private method __createObjFromFile, that constructs the list of the paths "self.allGroupPaths"
@@ -140,7 +147,8 @@ class hdf5Database(MessageHandler.MessageUser):
       self.allGroupEnds = cPickle.loads(self.h5FileW.attrs['allGroupEnds'])
     else:
       self.h5FileW.visititems(self.__isGroup)
-    self.raiseAMessage('TOTAL NUMBER OF GROUPS = ' + str(len(self.allGroupPaths)))
+    self.raiseAMessage(
+        'TOTAL NUMBER OF GROUPS = ' + str(len(self.allGroupPaths)))
 
   def __isGroup(self, name, obj):
     """
@@ -158,7 +166,8 @@ class hdf5Database(MessageHandler.MessageUser):
         self.allGroupEnds[name] = True
       if "rootname" in obj.attrs:
         self.parentGroupName = name
-        self.raiseAWarning('not found attribute endGroup in group ' + name + '.Set True.')
+        self.raiseAWarning(
+            'not found attribute endGroup in group ' + name + '.Set True.')
     return
 
   def addExpectedMeta(self, keys):
@@ -191,8 +200,8 @@ class hdf5Database(MessageHandler.MessageUser):
     """
     parentID = rlz.get("RAVEN_parentID", [None])[0]
     groupName = str(
-        rlz.get("prefix")[0]
-        if not isinstance(rlz.get("prefix"), basestring) else rlz.get("prefix"))
+        rlz.get("prefix")[0] if not isinstance(rlz.get("prefix"), basestring)
+        else rlz.get("prefix"))
     if parentID:
       #If Hierarchical structure, firstly add the root group
       if not self.firstRootGroup or parentID == "None":
@@ -269,8 +278,9 @@ class hdf5Database(MessageHandler.MessageUser):
           value) not in [float, int]
     else:
       check = type(
-          value) == np.ndarray and value.dtype in np.sctypes['float'] + np.sctypes['int'] or type(
-              value) in [float, int]
+          value
+      ) == np.ndarray and value.dtype in np.sctypes['float'] + np.sctypes['int'] or type(
+          value) in [float, int]
     return check
 
   def __populateGroup(self, group, name, rlz):
@@ -289,17 +299,23 @@ class hdf5Database(MessageHandler.MessageUser):
       if not set(self.variables).issubset(rlz.keys()):
         self.raiseAnError(
             IOError,
-            "Not all the requested variables have been passed in the realization. Missing are: " +
-            ",".join(list(set(self.variables).symmetric_difference(set(rlz.keys())))))
+            "Not all the requested variables have been passed in the realization. Missing are: "
+            + ",".join(
+                list(
+                    set(self.variables).symmetric_difference(set(
+                        rlz.keys())))))
     # get the data floats or arrays
     if self.variables is None:
-      dataIntFloat = dict((key, np.atleast_1d(value)) for (key, value) in rlz.items()
+      dataIntFloat = dict((key, np.atleast_1d(value))
+                          for (key, value) in rlz.items()
                           if self.__checkTypeHDF5(value, False))
     else:
-      dataIntFloat = dict((key, np.atleast_1d(value)) for (key, value) in rlz.items()
-                          if self.__checkTypeHDF5(value, False) and key in self.variables)
+      dataIntFloat = dict(
+          (key, np.atleast_1d(value)) for (key, value) in rlz.items()
+          if self.__checkTypeHDF5(value, False) and key in self.variables)
     # get other dtype data (strings and objects)
-    dataOther = dict((key, np.atleast_1d(value)) for (key, value) in rlz.items()
+    dataOther = dict((key, np.atleast_1d(value))
+                     for (key, value) in rlz.items()
                      if self.__checkTypeHDF5(value, True))
     # get size of each data variable (float)
     varKeysIntfloat = dataIntFloat.keys()
@@ -312,7 +328,8 @@ class hdf5Database(MessageHandler.MessageUser):
       # get data shapes
       end = np.cumsum(varShapeIntfloat)
       begin = np.concatenate(([0], end[0:-1]))
-      group.attrs[b'data_begin_endIntfloat'] = cPickle.dumps((begin.tolist(), end.tolist()))
+      group.attrs[b'data_begin_endIntfloat'] = cPickle.dumps((begin.tolist(),
+                                                              end.tolist()))
       # get data names
       group.create_dataset(
           name + "_dataIntFloat",
@@ -330,7 +347,8 @@ class hdf5Database(MessageHandler.MessageUser):
       # get data shapes
       end = np.cumsum(varShapeOther)
       begin = np.concatenate(([0], end[0:-1]))
-      group.attrs[b'data_begin_endOther'] = cPickle.dumps((begin.tolist(), end.tolist()))
+      group.attrs[b'data_begin_endOther'] = cPickle.dumps((begin.tolist(),
+                                                           end.tolist()))
       # get data names
       group.attrs[name + b'_dataOther'] = cPickle.dumps(
           np.concatenate(dataOther.values()).ravel().tolist())
@@ -394,7 +412,8 @@ class hdf5Database(MessageHandler.MessageUser):
       parentGroupObj = self.h5FileW.require_group(parentGroupName)
     else:
       # try to guess the parentID from the file name
-      closestGroup = difflib.get_close_matches(parentName, self.allGroupPaths, n=1, cutoff=0.01)
+      closestGroup = difflib.get_close_matches(
+          parentName, self.allGroupPaths, n=1, cutoff=0.01)
       errorOut = False
       if len(closestGroup) > 0:
         parentGroupName = closestGroup[0]
@@ -406,14 +425,16 @@ class hdf5Database(MessageHandler.MessageUser):
         errorOut = True
       if errorOut:
         errorString = ' NOT FOUND parent group named "' + str(parentName)
-        errorString += '\n All group paths are:\n -' + '\n -'.join(self.allGroupPaths)
+        errorString += '\n All group paths are:\n -' + '\n -'.join(
+            self.allGroupPaths)
         errorString += '\n Closest parent group found is "' + str(
             closestGroup[0] if len(closestGroup) > 0 else 'None') + '"!'
         self.raiseAnError(ValueError, errorString)
 
     parentGroupObj.attrs[b'endGroup'] = False
     # create the sub group
-    self.raiseAMessage('Adding group named "' + groupName + '" in Database "' + self.name + '"')
+    self.raiseAMessage('Adding group named "' + groupName + '" in Database "' +
+                       self.name + '"')
     # create and populate the group
     grp = parentGroupObj.create_group(groupName)
     self.__populateGroup(grp, groupName, rlz)
@@ -451,13 +472,17 @@ class hdf5Database(MessageHandler.MessageUser):
       if not rootName:
         allHistoryPaths = self.allGroupPaths
       else:
-        allHistoryPaths = [k for k in self.allGroupPaths.keys() if k.endswith(rname)]
+        allHistoryPaths = [
+            k for k in self.allGroupPaths.keys() if k.endswith(rname)
+        ]
     else:
       # Tree structure => construct the HistorySet' paths
       if not rootName:
         allHistoryPaths = [k for k, v in self.allGroupPaths.items() if v]
       else:
-        allHistoryPaths = [k for k, v in self.allGroupPaths.items() if v and k.endswith(rname)]
+        allHistoryPaths = [
+            k for k, v in self.allGroupPaths.items() if v and k.endswith(rname)
+        ]
     return allHistoryPaths
 
   def retrieveAllHistoryNames(self, rootName=None):
@@ -469,12 +494,16 @@ class hdf5Database(MessageHandler.MessageUser):
     if rootName:
       rname = rootName
     if not self.fileOpen:
-      self.__createObjFromFile()  # Create the "self.allGroupPaths" list from the existing database
+      self.__createObjFromFile(
+      )  # Create the "self.allGroupPaths" list from the existing database
     if not rootName:
-      workingList = [k.split('/')[-1] for k, v in self.allGroupEnds.items() if v]
+      workingList = [
+          k.split('/')[-1] for k, v in self.allGroupEnds.items() if v
+      ]
     else:
       workingList = [
-          k.split('/')[-1] for k, v in self.allGroupEnds.items() if v and k.endswith(rname)
+          k.split('/')[-1] for k, v in self.allGroupEnds.items()
+          if v and k.endswith(rname)
       ]
 
     return workingList
@@ -511,7 +540,8 @@ class hdf5Database(MessageHandler.MessageUser):
       begin, end = cPickle.loads(group.attrs[b'data_begin_endIntfloat'])
       # Reconstruct the dataset
       newData = {
-          key: np.reshape(dataSetIntFloat[begin[cnt]:end[cnt]], varShapeIntfloat[cnt])
+          key: np.reshape(dataSetIntFloat[begin[cnt]:end[cnt]],
+                          varShapeIntfloat[cnt])
           for cnt, key in enumerate(varKeysIntfloat)
       }
     if hasOther:
@@ -524,7 +554,8 @@ class hdf5Database(MessageHandler.MessageUser):
       begin, end = cPickle.loads(group.attrs[b'data_begin_endOther'])
       # Reconstruct the dataset
       newData.update({
-          key: np.reshape(datasetOther[begin[cnt]:end[cnt]], varShapeOther[cnt])
+          key: np.reshape(datasetOther[begin[cnt]:end[cnt]],
+                          varShapeOther[cnt])
           for cnt, key in enumerate(varKeysOther)
       })
     return newData
@@ -568,11 +599,15 @@ class hdf5Database(MessageHandler.MessageUser):
             if len(data.keys()) != len(newData.keys()):
               self.raiseAnError(
                   IOError, 'Group named "' + grp.attrs[b'groupName'] +
-                  '" has an inconsistent number of variables in database "' + self.name + '"!')
-            newData = {key: np.concatenate((newData[key], data[key])) for key in newData.keys()}
+                  '" has an inconsistent number of variables in database "' +
+                  self.name + '"!')
+            newData = {
+                key: np.concatenate((newData[key], data[key]))
+                for key in newData.keys()
+            }
     else:
-      self.raiseAnError(IOError,
-                        'Group named ' + name + ' not found in database "' + self.name + '"!')
+      self.raiseAnError(IOError, 'Group named ' + name +
+                        ' not found in database "' + self.name + '"!')
 
     return (newData, attrs)
 

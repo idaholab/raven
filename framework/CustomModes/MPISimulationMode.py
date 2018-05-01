@@ -79,8 +79,9 @@ class MPISimulationMode(Simulation.SimulationMode):
       maxBatchsize = max(int(math.floor(len(lines) / numMPI)), 1)
       if maxBatchsize < oldBatchsize:
         newRunInfo['batchSize'] = maxBatchsize
-        self.raiseAWarning("changing batchsize from " + str(oldBatchsize) + " to " +
-                           str(maxBatchsize) + " to fit on " + str(len(lines)) + " processors")
+        self.raiseAWarning("changing batchsize from " + str(oldBatchsize) +
+                           " to " + str(maxBatchsize) + " to fit on " +
+                           str(len(lines)) + " processors")
       newBatchsize = newRunInfo['batchSize']
       if newBatchsize > 1:
         #need to split node lines so that numMPI nodes are available per run
@@ -110,13 +111,16 @@ class MPISimulationMode(Simulation.SimulationMode):
 
     # Create the mpiexec pre command
     # Note, with defaults the precommand is "mpiexec -f nodeFile -n numMPI"
-    newRunInfo['precommand'] = runInfoDict["MPIExec"] + " " + nodeCommand + " -n " + str(
-        numMPI) + " " + runInfoDict['precommand']
+    newRunInfo[
+        'precommand'] = runInfoDict["MPIExec"] + " " + nodeCommand + " -n " + str(
+            numMPI) + " " + runInfoDict['precommand']
     if (runInfoDict['NumThreads'] > 1):
       #add number of threads to the post command.
-      newRunInfo['postcommand'] = " --n-threads=%NUM_CPUS% " + runInfoDict['postcommand']
-    self.raiseAMessage("precommand: " + newRunInfo['precommand'] + ", postcommand: " +
-                       newRunInfo.get('postcommand', runInfoDict['postcommand']))
+      newRunInfo[
+          'postcommand'] = " --n-threads=%NUM_CPUS% " + runInfoDict['postcommand']
+    self.raiseAMessage(
+        "precommand: " + newRunInfo['precommand'] + ", postcommand: " +
+        newRunInfo.get('postcommand', runInfoDict['postcommand']))
     return newRunInfo
 
   def __createAndRunQSUB(self, runInfoDict):
@@ -138,12 +142,15 @@ class MPISimulationMode(Simulation.SimulationMode):
     #batchSize = runInfoDict['batchSize']
     frameworkDir = runInfoDict["FrameworkDir"]
     ncpus = runInfoDict['NumThreads']
-    jobName = runInfoDict['JobName'] if 'JobName' in runInfoDict.keys() else 'raven_qsub'
+    jobName = runInfoDict[
+        'JobName'] if 'JobName' in runInfoDict.keys() else 'raven_qsub'
     #check invalid characters
-    validChars = set(string.ascii_letters).union(set(string.digits)).union(set('-_'))
+    validChars = set(string.ascii_letters).union(set(string.digits)).union(
+        set('-_'))
     if any(char not in validChars for char in jobName):
       raise IOError(
-          'JobName can only contain alphanumeric and "_", "-" characters! Received' + jobName)
+          'JobName can only contain alphanumeric and "_", "-" characters! Received'
+          + jobName)
     #check jobName for length
     if len(jobName) > 15:
       jobName = jobName[:10] + '-' + jobName[-4:]

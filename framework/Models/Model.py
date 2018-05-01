@@ -59,9 +59,11 @@ class Model(utils.metaclass_insert(abc.ABCMeta, BaseType), Assembler):
     inputSpecification.addParam("subType", InputData.StringType, True)
 
     ## Begin alias tag
-    AliasInput = InputData.parameterInputFactory("alias", contentType=InputData.StringType)
+    AliasInput = InputData.parameterInputFactory(
+        "alias", contentType=InputData.StringType)
     AliasInput.addParam("variable", InputData.StringType, True)
-    AliasTypeInput = InputData.makeEnumType("aliasType", "aliasTypeType", ["input", "output"])
+    AliasTypeInput = InputData.makeEnumType("aliasType", "aliasTypeType",
+                                            ["input", "output"])
     AliasInput.addParam("type", AliasTypeInput, True)
     inputSpecification.addSub(AliasInput)
     ## End alias tag
@@ -110,16 +112,18 @@ class Model(utils.metaclass_insert(abc.ABCMeta, BaseType), Assembler):
   validateDict['Sampler'][0]['required'] = False
   validateDict['Sampler'][0]['multiplicity'] = 1
   validateDict['Sampler'][0]['type'] = [
-      'MonteCarlo', 'DynamicEventTree', 'Stratified', 'Grid', 'LimitSurfaceSearch',
-      'AdaptiveDynamicEventTree', 'FactorialDesign', 'ResponseSurfaceDesign',
-      'SparseGridCollocation', 'AdaptiveSparseGrid', 'Sobol', 'AdaptiveSobol', 'EnsembleForward',
-      'CustomSampler'
+      'MonteCarlo', 'DynamicEventTree', 'Stratified', 'Grid',
+      'LimitSurfaceSearch', 'AdaptiveDynamicEventTree', 'FactorialDesign',
+      'ResponseSurfaceDesign', 'SparseGridCollocation', 'AdaptiveSparseGrid',
+      'Sobol', 'AdaptiveSobol', 'EnsembleForward', 'CustomSampler'
   ]
   validateDict['Optimizer'].append(testDict.copy())
   validateDict['Optimizer'][0]['class'] = 'Optimizers'
   validateDict['Optimizer'][0]['required'] = False
   validateDict['Optimizer'][0]['multiplicity'] = 1
-  validateDict['Optimizer'][0]['type'] = ['SPSA', 'FiniteDifferenceGradientOptimizer']
+  validateDict['Optimizer'][0]['type'] = [
+      'SPSA', 'FiniteDifferenceGradientOptimizer'
+  ]
 
   @classmethod
   def generateValidateDict(cls):
@@ -137,8 +141,9 @@ class Model(utils.metaclass_insert(abc.ABCMeta, BaseType), Assembler):
       @ In, None
       @ Out, None
     """
-    raise NotImplementedError('The class ' + str(cls.__name__) +
-                              ' has not implemented the method specializeValidateDict')
+    raise NotImplementedError(
+        'The class ' + str(cls.__name__) +
+        ' has not implemented the method specializeValidateDict')
 
   @classmethod
   def localValidateMethod(cls, who, what):
@@ -150,7 +155,8 @@ class Model(utils.metaclass_insert(abc.ABCMeta, BaseType), Assembler):
     """
     #counting successful matches
     if who not in cls.validateDict.keys():
-      raise IOError('The role ' + str(who) + ' does not exist in the class ' + str(cls))
+      raise IOError(
+          'The role ' + str(who) + ' does not exist in the class ' + str(cls))
     for myItemDict in cls.validateDict[who]:
       myItemDict['tempCounter'] = 0
     for anItem in what:
@@ -171,19 +177,21 @@ class Model(utils.metaclass_insert(abc.ABCMeta, BaseType), Assembler):
     for tester in cls.validateDict[who]:
       if tester['required'] == True:
         if tester['multiplicity'] == 'n' and tester['tempCounter'] < 1:
-          raise IOError('The number of times class = ' + str(tester['class']) + ' type= ' +
-                        str(tester['type']) + ' is used as ' + str(who) +
-                        ' is improper. At least one object must be present!')
+          raise IOError(
+              'The number of times class = ' + str(tester['class']) +
+              ' type= ' + str(tester['type']) + ' is used as ' + str(who) +
+              ' is improper. At least one object must be present!')
       if tester['multiplicity'] != 'n' and tester['tempCounter'] != tester['multiplicity']:
-        raise IOError('The number of times class = ' + str(tester['class']) + ' type= ' +
-                      str(tester['type']) + ' is used as ' + str(who) +
-                      ' is improper. Number of allowable times is ' + str(tester['multiplicity']) +
-                      '.Got ' + str(tester['tempCounter']))
+        raise IOError(
+            'The number of times class = ' + str(tester['class']) + ' type= ' +
+            str(tester['type']) + ' is used as ' + str(who) +
+            ' is improper. Number of allowable times is ' + str(
+                tester['multiplicity']) + '.Got ' + str(tester['tempCounter']))
     #testing if all argument to be tested have been found
     for anItem in what:
       if anItem['found'] == False:
-        raise IOError('It is not possible to use ' + anItem['class'] + ' type = ' +
-                      anItem['type'] + ' as ' + who)
+        raise IOError('It is not possible to use ' + anItem['class'] +
+                      ' type = ' + anItem['type'] + ' as ' + who)
     return True
 
   def __init__(self, runInfoDict):
@@ -221,36 +229,39 @@ class Model(utils.metaclass_insert(abc.ABCMeta, BaseType), Assembler):
         if 'variable' in child.attrib.keys():
           if 'type' in child.attrib.keys():
             if child.attrib['type'].lower() not in ['input', 'output']:
-              self.raiseAnError(IOError,
-                                'the type of alias can be either "input" or "output". Got ' +
-                                child.attrib['type'].lower())
+              self.raiseAnError(
+                  IOError,
+                  'the type of alias can be either "input" or "output". Got ' +
+                  child.attrib['type'].lower())
             aliasType = child.attrib['type'].lower().strip()
             complementAliasType = 'output' if aliasType == 'input' else 'input'
           else:
             self.raiseAnError(
                 IOError,
-                'not found the attribute "type" in the definition of one of the alias for model ' +
-                str(self.name) + ' of type ' + self.type)
+                'not found the attribute "type" in the definition of one of the alias for model '
+                + str(self.name) + ' of type ' + self.type)
           varFramework, varModel = child.attrib['variable'], child.text.strip()
           if varFramework in self.alias[aliasType].keys():
-            self.raiseAnError(
-                IOError, ' The alias for variable ' + varFramework +
-                ' has been already inputted in model ' + str(self.name) + ' of type ' + self.type)
+            self.raiseAnError(IOError,
+                              ' The alias for variable ' + varFramework +
+                              ' has been already inputted in model ' + str(
+                                  self.name) + ' of type ' + self.type)
           if varModel in self.alias[aliasType].values():
             self.raiseAnError(
-                IOError,
-                ' The alias ' + varModel + ' has been already used for another variable in model '
-                + str(self.name) + ' of type ' + self.type)
+                IOError, ' The alias ' + varModel +
+                ' has been already used for another variable in model ' + str(
+                    self.name) + ' of type ' + self.type)
           if varFramework in self.alias[complementAliasType].keys():
             self.raiseAnError(
-                IOError,
-                ' The alias for variable ' + varFramework + ' has been already inputted (' +
-                complementAliasType + ') in model ' + str(self.name) + ' of type ' + self.type)
+                IOError, ' The alias for variable ' + varFramework +
+                ' has been already inputted (' + complementAliasType +
+                ') in model ' + str(self.name) + ' of type ' + self.type)
           if varModel in self.alias[complementAliasType].values():
             self.raiseAnError(
                 IOError,
-                ' The alias ' + varModel + ' has been already used (' + complementAliasType +
-                ') for another variable in model ' + str(self.name) + ' of type ' + self.type)
+                ' The alias ' + varModel + ' has been already used (' +
+                complementAliasType + ') for another variable in model ' + str(
+                    self.name) + ' of type ' + self.type)
           self.alias[aliasType][varFramework] = child.text.strip()
         else:
           self.raiseAnError(
@@ -393,7 +404,8 @@ class Model(utils.metaclass_insert(abc.ABCMeta, BaseType), Assembler):
         @ Out, None
     """
     prefix = kwargs['prefix'] if 'prefix' in kwargs else None
-    uniqueHandler = kwargs['uniqueHandler'] if 'uniqueHandler' in kwargs.keys() else 'any'
+    uniqueHandler = kwargs[
+        'uniqueHandler'] if 'uniqueHandler' in kwargs.keys() else 'any'
 
     ## These kwargs are updated by createNewInput, so the job either should not
     ## have access to the metadata, or it needs to be updated from within the
@@ -429,7 +441,8 @@ class Model(utils.metaclass_insert(abc.ABCMeta, BaseType), Assembler):
         @ Out, None
     """
     prefix = kwargs['prefix'] if 'prefix' in kwargs else None
-    uniqueHandler = kwargs['uniqueHandler'] if 'uniqueHandler' in kwargs.keys() else 'any'
+    uniqueHandler = kwargs[
+        'uniqueHandler'] if 'uniqueHandler' in kwargs.keys() else 'any'
 
     ## These kwargs are updated by createNewInput, so the job either should not
     ## have access to the metadata, or it needs to be updated from within the
@@ -449,7 +462,8 @@ class Model(utils.metaclass_insert(abc.ABCMeta, BaseType), Assembler):
         modulesToImport=self.mods,
         uniqueHandler=uniqueHandler)
 
-  def addOutputFromExportDictionary(self, exportDict, output, options, jobIdentifier):
+  def addOutputFromExportDictionary(self, exportDict, output, options,
+                                    jobIdentifier):
     """
       Method that collects the outputs from them export dictionary
       @ In, exportDict, dict, dictionary containing the output/input values: {'inputSpaceParams':dict(sampled variables),
@@ -480,8 +494,10 @@ class Model(utils.metaclass_insert(abc.ABCMeta, BaseType), Assembler):
     if 'addOutput' in dir(storeTo):
       storeTo.addOutput(collectFrom)
     else:
-      self.raiseAnError(IOError,
-                        'The place where we want to store the output has no addOutput method!')
+      self.raiseAnError(
+          IOError,
+          'The place where we want to store the output has no addOutput method!'
+      )
 
   def getAdditionalInputEdits(self, inputInfo):
     """

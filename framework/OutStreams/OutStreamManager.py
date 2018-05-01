@@ -126,8 +126,9 @@ class OutStreamManager(BaseType):
       @ In, None
       @ Out, None
     """
-    self.raiseAnError(NotImplementedError,
-                      'method addOutput must be implemented by derived classes!!!!')
+    self.raiseAnError(
+        NotImplementedError,
+        'method addOutput must be implemented by derived classes!!!!')
 
   def initialize(self, inDict):
     """
@@ -146,14 +147,16 @@ class OutStreamManager(BaseType):
       foundData = False
       for output in inDict['Output']:
         if output.name.strip(
-        ) == self.sourceName[agrosindex] and output.type in DataObjects.knownTypes():
+        ) == self.sourceName[agrosindex] and output.type in DataObjects.knownTypes(
+        ):
           self.sourceData.append(output)
           foundData = True
       if not foundData:
         for inp in inDict['Input']:
           if not type(inp) == type(""):
             if inp.name.strip(
-            ) == self.sourceName[agrosindex] and inp.type in DataObjects.knownTypes():
+            ) == self.sourceName[agrosindex] and inp.type in DataObjects.knownTypes(
+            ):
               self.sourceData.append(inp)
               foundData = True
             elif type(inp) == Models.ROM:
@@ -172,5 +175,6 @@ class OutStreamManager(BaseType):
           self.sourceData.append(inDict['SolutionExport'])
           foundData = True
       if not foundData:
-        self.raiseAnError(
-            IOError, 'the Data named ' + self.sourceName[agrosindex] + ' has not been found!!!!')
+        self.raiseAnError(IOError,
+                          'the Data named ' + self.sourceName[agrosindex] +
+                          ' has not been found!!!!')

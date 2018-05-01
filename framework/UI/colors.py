@@ -39,8 +39,8 @@ inactiveMaxPenColor = maxBrushColor.lighter()
 inactiveMaxBrushColor = maxBrushColor.lighter()
 
 TolColors = [
-    '#88CCEE', '#DDCC77', '#AA4499', '#117733', '#332288', '#999933', '#44AA99', '#882255',
-    '#CC6677'
+    '#88CCEE', '#DDCC77', '#AA4499', '#117733', '#332288', '#999933',
+    '#44AA99', '#882255', '#CC6677'
 ]
 
 colorCycle = itertools.cycle(TolColors)

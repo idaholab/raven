@@ -124,26 +124,29 @@ class PostProcessorInterfaceBase(
           if isinstance(outputDic[key], dict):
             outcome = outcome and True
           else:
-            self.raiseAWarning('Bad PP output type for key:', key, ':', type(outputDic[key]),
-                               '; should be dict!')
+            self.raiseAWarning('Bad PP output type for key:', key, ':',
+                               type(outputDic[key]), '; should be dict!')
             outcome = False
           for keys in outputDic[key]:
             if isinstance(outputDic[key][keys], (np.ndarray, c1darray)):
               outcome = outcome and True
             else:
               self.raiseAWarning('Bad PP output type for key:', key, keys, ':',
-                                 type(outputDic[key][keys]), '; should be np.ndarray or c1darray!')
+                                 type(outputDic[key][keys]),
+                                 '; should be np.ndarray or c1darray!')
               outcome = False
       else:  # self.outputFormat == 'PointSet':
         for key in outputDic:
           if isinstance(outputDic[key], (np.ndarray, c1darray)):
             outcome = outcome and True
           else:
-            self.raiseAWarning('Bad PP output type for key:', key, ':', type(outputDic[key]),
+            self.raiseAWarning('Bad PP output type for key:', key, ':',
+                               type(outputDic[key]),
                                '; should be np.ndarray or c1darray!')
             outcome = False
     else:
-      self.raiseAWarning('Bad PP output dict:', type(outputDic), 'is not a dict!')
+      self.raiseAWarning('Bad PP output dict:', type(outputDic),
+                         'is not a dict!')
       outcome = False
     return outcome
 
@@ -159,11 +162,13 @@ class PostProcessorInterfaceBase(
         if isinstance(outputDic[key], (np.ndarray, c1darray)):
           outcome = outcome and True
         else:
-          self.raiseAWarning('Bad PP output type for key:', key, ':', type(outputDic[key]),
+          self.raiseAWarning('Bad PP output type for key:', key, ':',
+                             type(outputDic[key]),
                              '; should be np.ndarray or c1darray!')
           outcome = False
     else:
-      self.raiseAWarning('Bad PP output dict:', type(outputDic), 'is not a dict!')
+      self.raiseAWarning('Bad PP output dict:', type(outputDic),
+                         'is not a dict!')
       outcome = False
     return outcome
 

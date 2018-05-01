@@ -83,7 +83,8 @@ interpolationND = utils.find_interpolationND()
 #Internal Modules End--------------------------------------------------------------------------------
 
 
-class supervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.MessageUser):
+class supervisedLearning(
+    utils.metaclass_insert(abc.ABCMeta), MessageHandler.MessageUser):
   """
     This is the general interface to any supervisedLearning learning method.
     Essentially it contains a train method and an evaluate method
@@ -117,9 +118,11 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.Mes
         return (False, ' The list type is allowed for dynamic ROMs only')
     else:
       if type(arrayIn).__name__ not in ['ndarray', 'c1darray']:
-        return (False, ' The object is not a numpy array. Got type: ' + type(arrayIn).__name__)
+        return (False, ' The object is not a numpy array. Got type: ' +
+                type(arrayIn).__name__)
       if len(np.asarray(arrayIn).shape) > 1:
-        return (False, ' The array must be 1-d. Got shape: ' + str(np.asarray(arrayIn).shape))
+        return (False, ' The array must be 1-d. Got shape: ' +
+                str(np.asarray(arrayIn).shape))
     return (True, '')
 
   def __init__(self, messageHandler, **kwargs):
@@ -149,7 +152,9 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.Mes
         'verbosity'] if 'verbosity' in self.initOptionDict else None
     for target in self.target:
       if self.features.count(target) > 0:
-        self.raiseAnError(IOError, 'The target "' + target + '" is also in the feature space!')
+        self.raiseAnError(
+            IOError,
+            'The target "' + target + '" is also in the feature space!')
     #average value and sigma are used for normalization of the feature data
     #a dictionary where for each feature a tuple (average value, sigma)
     self.muAndSigmaFeatures = {}
@@ -186,7 +191,8 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.Mes
       if target in names:
         targetValues.append(values[names.index(target)])
       else:
-        self.raiseAnError(IOError, 'The target ' + target + ' is not in the training set')
+        self.raiseAnError(
+            IOError, 'The target ' + target + ' is not in the training set')
 
     #FIXME: when we do not support anymore numpy <1.10, remove this IF STATEMENT
     if int(np.__version__.split('.')[1]) >= 10:
@@ -194,31 +200,37 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.Mes
     else:
       sl = (slice(None), ) * np.asarray(targetValues[0]).ndim + (np.newaxis, )
       targetValues = np.concatenate(
-          [np.asarray(arr)[sl] for arr in targetValues], axis=np.asarray(targetValues[0]).ndim)
+          [np.asarray(arr)[sl] for arr in targetValues],
+          axis=np.asarray(targetValues[0]).ndim)
 
     # construct the evaluation matrixes
     featureValues = np.zeros(shape=(len(targetValues), len(self.features)))
     for cnt, feat in enumerate(self.features):
       if feat not in names:
-        self.raiseAnError(IOError, 'The feature sought ' + feat + ' is not in the training set')
+        self.raiseAnError(
+            IOError,
+            'The feature sought ' + feat + ' is not in the training set')
       else:
         valueToUse = values[names.index(feat)]
         resp = self.checkArrayConsistency(valueToUse, self.isDynamic())
         if not resp[0]:
-          self.raiseAnError(IOError, 'In training set for feature ' + feat + ':' + resp[1])
+          self.raiseAnError(
+              IOError, 'In training set for feature ' + feat + ':' + resp[1])
         valueToUse = np.asarray(valueToUse)
         if len(valueToUse) != featureValues[:, 0].size:
-          self.raiseAWarning('feature values:', featureValues[:, 0].size, tag='ERROR')
+          self.raiseAWarning(
+              'feature values:', featureValues[:, 0].size, tag='ERROR')
           self.raiseAWarning('target values:', len(valueToUse), tag='ERROR')
-          self.raiseAnError(IOError,
-                            'In training set, the number of values provided for feature ' + feat +
-                            ' are != number of target outcomes!')
+          self.raiseAnError(
+              IOError,
+              'In training set, the number of values provided for feature ' +
+              feat + ' are != number of target outcomes!')
         self._localNormalizeData(values, names, feat)
         # valueToUse can be either a matrix (for who can handle time-dep data) or a vector (for who can not)
         featureValues[:, cnt] = (
             (valueToUse[:, 0]
-             if len(valueToUse.shape) > 1 else valueToUse[:]) - self.muAndSigmaFeatures[feat][0]
-        ) / self.muAndSigmaFeatures[feat][1]
+             if len(valueToUse.shape) > 1 else valueToUse[:]) - self.
+            muAndSigmaFeatures[feat][0]) / self.muAndSigmaFeatures[feat][1]
     self.__trainLocal__(featureValues, targetValues)
     self.amITrained = True
 
@@ -231,7 +243,8 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.Mes
       @ In, feat, list, list of features (from ROM)
       @ Out, None
     """
-    self.muAndSigmaFeatures[feat] = mathUtils.normalizationFactors(values[names.index(feat)])
+    self.muAndSigmaFeatures[feat] = mathUtils.normalizationFactors(
+        values[names.index(feat)])
 
   def confidence(self, edict):
     """
@@ -249,16 +262,21 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.Mes
     for index in range(len(values)):
       resp = self.checkArrayConsistency(values[index], self.isDynamic())
       if not resp[0]:
-        self.raiseAnError(IOError,
-                          'In evaluate request for feature ' + names[index] + ':' + resp[1])
+        self.raiseAnError(
+            IOError,
+            'In evaluate request for feature ' + names[index] + ':' + resp[1])
     featureValues = np.zeros(shape=(values[0].size, len(self.features)))
     for cnt, feat in enumerate(self.features):
       if feat not in names:
-        self.raiseAnError(IOError, 'The feature sought ' + feat + ' is not in the evaluate set')
+        self.raiseAnError(
+            IOError,
+            'The feature sought ' + feat + ' is not in the evaluate set')
       else:
-        resp = self.checkArrayConsistency(values[names.index(feat)], self.isDynamic())
+        resp = self.checkArrayConsistency(values[names.index(feat)],
+                                          self.isDynamic())
         if not resp[0]:
-          self.raiseAnError(IOError, 'In training set for feature ' + feat + ':' + resp[1])
+          self.raiseAnError(
+              IOError, 'In training set for feature ' + feat + ':' + resp[1])
         featureValues[:, cnt] = values[names.index(feat)]
     return self.__confidenceLocal__(featureValues)
 
@@ -279,18 +297,24 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.Mes
     for index in range(len(values)):
       resp = self.checkArrayConsistency(values[index], self.isDynamic())
       if not resp[0]:
-        self.raiseAnError(IOError,
-                          'In evaluate request for feature ' + names[index] + ':' + resp[1])
+        self.raiseAnError(
+            IOError,
+            'In evaluate request for feature ' + names[index] + ':' + resp[1])
     # construct the evaluation matrix
     featureValues = np.zeros(shape=(values[0].size, len(self.features)))
     for cnt, feat in enumerate(self.features):
       if feat not in names:
-        self.raiseAnError(IOError, 'The feature sought ' + feat + ' is not in the evaluate set')
+        self.raiseAnError(
+            IOError,
+            'The feature sought ' + feat + ' is not in the evaluate set')
       else:
-        resp = self.checkArrayConsistency(values[names.index(feat)], self.isDynamic())
+        resp = self.checkArrayConsistency(values[names.index(feat)],
+                                          self.isDynamic())
         if not resp[0]:
-          self.raiseAnError(IOError, 'In training set for feature ' + feat + ':' + resp[1])
-        featureValues[:, cnt] = ((values[names.index(feat)] - self.muAndSigmaFeatures[feat][0])
+          self.raiseAnError(
+              IOError, 'In training set for feature ' + feat + ':' + resp[1])
+        featureValues[:, cnt] = ((
+            values[names.index(feat)] - self.muAndSigmaFeatures[feat][0])
                                  ) / self.muAndSigmaFeatures[feat][1]
     return self.__evaluateLocal__(featureValues)
 
@@ -308,7 +332,8 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.Mes
       @ Out, iniParDict, dict, initial parameter dictionary
     """
     iniParDict = dict(
-        list(self.initOptionDict.items()) + list({
+        list(self.initOptionDict.items()) +
+        list({
             'returnType': self.__class__.returnType,
             'qualityEstType': self.__class__.qualityEstType,
             'Features': self.features,
@@ -366,9 +391,8 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.Mes
       @ In, options, dict, optional, dict of string-based options to use, including filename, things to print, etc
       @ Out, None
     """
-    outFile.addScalar(
-        'ROM', "noInfo",
-        'ROM of type ' + str(self.printTag.strip()) + ' has no special output options.')
+    outFile.addScalar('ROM', "noInfo", 'ROM of type ' + str(
+        self.printTag.strip()) + ' has no special output options.')
 
   def isDynamic(self):
     """
@@ -454,7 +478,8 @@ class NDinterpolatorRom(supervisedLearning):
       @ Out, None
     """
     supervisedLearning.__init__(self, messageHandler, **kwargs)
-    self.interpolator = []  # pointer to the C++ (crow) interpolator (list of targets)
+    self.interpolator = [
+    ]  # pointer to the C++ (crow) interpolator (list of targets)
     self.featv = None  # list of feature variables
     self.targv = None  # list of target variables
     self.printTag = 'ND Interpolation ROM'
@@ -508,8 +533,9 @@ class NDinterpolatorRom(supervisedLearning):
       @ In, featureVals, 2-D numpy array, [n_samples,n_features]
       @ Out, confidence, float, the confidence
     """
-    self.raiseAnError(NotImplementedError,
-                      'NDinterpRom   : __confidenceLocal__ method must be implemented!')
+    self.raiseAnError(
+        NotImplementedError,
+        'NDinterpRom   : __confidenceLocal__ method must be implemented!')
 
   def __evaluateLocal__(self, featureVals):
     """
@@ -523,9 +549,12 @@ class NDinterpolatorRom(supervisedLearning):
       prediction[target] = np.zeros((featureVals.shape[0]))
       for n_sample in range(featureVals.shape[0]):
         featv = interpolationND.vectd(featureVals[n_sample][:])
-        prediction[target][n_sample] = self.interpolator[index].interpolateAt(featv)
-      self.raiseAMessage('NDinterpRom   : Prediction by ' + self.__class__.ROMtype + ' for target '
-                         + target + '. Predicted value is ' + str(prediction[target][n_sample]))
+        prediction[target][n_sample] = self.interpolator[index].interpolateAt(
+            featv)
+      self.raiseAMessage(
+          'NDinterpRom   : Prediction by ' + self.__class__.ROMtype +
+          ' for target ' + target + '. Predicted value is ' + str(
+              prediction[target][n_sample]))
     return prediction
 
   def __returnInitialParametersLocal__(self):
@@ -543,8 +572,10 @@ class NDinterpolatorRom(supervisedLearning):
       @ In, None
       @ Out, params, dict, dictionary of parameter names and current values
     """
-    self.raiseAnError(NotImplementedError,
-                      'NDinterpRom   : __returnCurrentSettingLocal__ method must be implemented!')
+    self.raiseAnError(
+        NotImplementedError,
+        'NDinterpRom   : __returnCurrentSettingLocal__ method must be implemented!'
+    )
 
 
 #
@@ -620,8 +651,9 @@ class GaussPolynomialRom(supervisedLearning):
     self.sdx = None
     self.partialVariances = None
     self.sparseGridType = 'smolyak'  #type of sparse quadrature to use,default smolyak
-    self.sparseQuadOptions = ['smolyak',
-                              'tensor']  # choice of sparse quadrature construction methods
+    self.sparseQuadOptions = [
+        'smolyak', 'tensor'
+    ]  # choice of sparse quadrature construction methods
 
     for key, val in kwargs.items():
       if key == 'IndexSet':
@@ -629,7 +661,8 @@ class GaussPolynomialRom(supervisedLearning):
       elif key == 'IndexPoints':
         self.indexSetVals = []
         strIndexPoints = val.strip()
-        strIndexPoints = strIndexPoints.replace(' ', '').replace('\n', '').strip('()')
+        strIndexPoints = strIndexPoints.replace(' ', '').replace(
+            '\n', '').strip('()')
         strIndexPoints = strIndexPoints.split('),(')
         self.raiseADebug(strIndexPoints)
         for s in strIndexPoints:
@@ -639,7 +672,11 @@ class GaussPolynomialRom(supervisedLearning):
         self.maxPolyOrder = val
       elif key == 'Interpolation':
         for var, val in val.items():
-          self.itpDict[var] = {'poly': 'DEFAULT', 'quad': 'DEFAULT', 'weight': '1'}
+          self.itpDict[var] = {
+              'poly': 'DEFAULT',
+              'quad': 'DEFAULT',
+              'weight': '1'
+          }
           for atrName, atrVal in val.items():
             if atrName in ['poly', 'quad', 'weight']:
               self.itpDict[var][atrName] = atrVal
@@ -647,17 +684,19 @@ class GaussPolynomialRom(supervisedLearning):
               self.raiseAnError(IOError, 'Unrecognized option: ' + atrName)
       elif key == 'SparseGrid':
         if val.lower() not in self.sparseQuadOptions:
-          self.raiseAnError(IOError,
-                            'No such sparse quadrature implemented: %s.  Options are %s.' %
-                            (val, str(self.sparseQuadOptions)))
+          self.raiseAnError(
+              IOError,
+              'No such sparse quadrature implemented: %s.  Options are %s.' %
+              (val, str(self.sparseQuadOptions)))
         self.sparseGridType = val
 
     if not self.indexSetType:
       self.raiseAnError(IOError, 'No IndexSet specified!')
     if self.indexSetType == 'Custom':
       if len(self.indexSetVals) < 1:
-        self.raiseAnError(IOError,
-                          'If using CustomSet, must specify points in <IndexPoints> node!')
+        self.raiseAnError(
+            IOError,
+            'If using CustomSet, must specify points in <IndexPoints> node!')
       else:
         for i in self.indexSetVals:
           if len(i) < len(self.features):
@@ -665,7 +704,8 @@ class GaussPolynomialRom(supervisedLearning):
     if not self.maxPolyOrder:
       self.raiseAnError(IOError, 'No maxPolyOrder specified!')
     if self.maxPolyOrder < 1:
-      self.raiseAnError(IOError, 'Polynomial order cannot be less than 1 currently.')
+      self.raiseAnError(IOError,
+                        'Polynomial order cannot be less than 1 currently.')
 
   def _localPrintXML(self, outFile, pivotVal, options={}):
     """
@@ -688,7 +728,9 @@ class GaussPolynomialRom(supervisedLearning):
     variance = None
     #establish what we can handle, and how
     scalars = ['mean', 'expectedValue', 'variance', 'samples']
-    vectors = ['polyCoeffs', 'partialVariance', 'sobolIndices', 'sobolTotalIndices']
+    vectors = [
+        'polyCoeffs', 'partialVariance', 'sobolIndices', 'sobolTotalIndices'
+    ]
     canDo = scalars + vectors
     #lowercase for convenience
     scalars = list(s.lower() for s in scalars)
@@ -729,8 +771,11 @@ class GaussPolynomialRom(supervisedLearning):
           keys = self.polyCoeffDict[target].keys()
           keys.sort()
           for key in keys:
-            valueDict['_' + '_'.join(str(k) for k in key) + '_'] = self.polyCoeffDict[target][key]
-        elif request.lower() in ['partialvariance', 'sobolindices', 'soboltotalindices']:
+            valueDict['_' + '_'.join(str(k) for k in key) +
+                      '_'] = self.polyCoeffDict[target][key]
+        elif request.lower() in [
+            'partialvariance', 'sobolindices', 'soboltotalindices'
+        ]:
           if sobolIndices is None or partialVars is None:
             sobolIndices, partialVars = self.getSensitivities(target)
           if sobolTotals is None:
@@ -757,7 +802,8 @@ class GaussPolynomialRom(supervisedLearning):
               valueDict[name] = sobolTotals[key]
         outFile.addVector(target, request, valueDict, pivotVal=pivotVal)
       else:
-        self.raiseAWarning('ROM does not know how to return "' + request + '".  Skipping...')
+        self.raiseAWarning(
+            'ROM does not know how to return "' + request + '".  Skipping...')
 
   def _localNormalizeData(self, values, names, feat):
     """
@@ -792,15 +838,20 @@ class GaussPolynomialRom(supervisedLearning):
     self.numRuns = idict.get('numRuns', None)
     #make sure requireds are not None
     if self.sparseGrid is None:
-      self.raiseAnError(RuntimeError, 'Tried to initialize without key object "SG"   ')
+      self.raiseAnError(RuntimeError,
+                        'Tried to initialize without key object "SG"   ')
     if self.distDict is None:
-      self.raiseAnError(RuntimeError, 'Tried to initialize without key object "dists"')
+      self.raiseAnError(RuntimeError,
+                        'Tried to initialize without key object "dists"')
     if self.quads is None:
-      self.raiseAnError(RuntimeError, 'Tried to initialize without key object "quads"')
+      self.raiseAnError(RuntimeError,
+                        'Tried to initialize without key object "quads"')
     if self.polys is None:
-      self.raiseAnError(RuntimeError, 'Tried to initialize without key object "polys"')
+      self.raiseAnError(RuntimeError,
+                        'Tried to initialize without key object "polys"')
     if self.indexSet is None:
-      self.raiseAnError(RuntimeError, 'Tried to initialize without key object "iSet" ')
+      self.raiseAnError(RuntimeError,
+                        'Tried to initialize without key object "iSet" ')
     self.initialized = True
 
   def _multiDPolyBasisEval(self, orders, pts):
@@ -826,7 +877,8 @@ class GaussPolynomialRom(supervisedLearning):
     if not self.initialized:
       self.raiseAnError(
           RuntimeError,
-          'ROM has not yet been initialized!  Has the Sampler associated with this ROM been used?')
+          'ROM has not yet been initialized!  Has the Sampler associated with this ROM been used?'
+      )
     self.raiseADebug('training', self.features, '->', self.target)
     self.featv, self.targv = featureVals, targetVals
     self.polyCoeffDict = {key: dict({}) for key in self.target}
@@ -841,7 +893,8 @@ class GaussPolynomialRom(supervisedLearning):
     for pt in sgs:
       #KDtree way
       distances, idx = kdTree.query(
-          pt, k=1, distance_upper_bound=1e-9)  #FIXME how to set the tolerance generically?
+          pt, k=1, distance_upper_bound=1e-9
+      )  #FIXME how to set the tolerance generically?
       #KDTree repots a "not found" as at infinite distance with index len(data)
       if idx >= len(featureVals):
         found = False
@@ -874,12 +927,14 @@ class GaussPolynomialRom(supervisedLearning):
       stdPt = []
       for i, p in enumerate(pt):
         varName = self.sparseGrid.varNames[i]
-        stdPt.append(self.distDict[varName].convertToQuad(self.quads[varName].type, p))
+        stdPt.append(self.distDict[varName].convertToQuad(
+            self.quads[varName].type, p))
       standardPoints[tuple(pt)] = stdPt[:]
     #make polynomials
     self.raiseADebug('...constructing polynomials...')
     self.norm = np.prod(
-        list(self.distDict[v].measureNorm(self.quads[v].type) for v in self.distDict.keys()))
+        list(self.distDict[v].measureNorm(self.quads[v].type)
+             for v in self.distDict.keys()))
     for i, idx in enumerate(self.indexSet):
       idx = tuple(idx)
       for target in self.target:
@@ -889,7 +944,8 @@ class GaussPolynomialRom(supervisedLearning):
           tupPt = tuple(pt)
           stdPt = standardPoints[tupPt]
           wt = self.sparseGrid.weights(translate[tupPt])
-          self.polyCoeffDict[target][idx] += soln * self._multiDPolyBasisEval(idx, stdPt) * wt
+          self.polyCoeffDict[target][idx] += soln * self._multiDPolyBasisEval(
+              idx, stdPt) * wt
         self.polyCoeffDict[target][idx] *= self.norm
     self.amITrained = True
     self.raiseADebug('...training complete!')
@@ -906,7 +962,8 @@ class GaussPolynomialRom(supervisedLearning):
         if abs(val) > 1e-12 or printZeros:
           data.append([idx, val])
       data.sort()
-      self.raiseADebug('polyDict for [' + target + '] with inputs ' + str(self.features) + ':')
+      self.raiseADebug('polyDict for [' + target + '] with inputs ' +
+                       str(self.features) + ':')
       for idx, val in data:
         self.raiseADebug('    ' + str(idx) + ' ' + str(val))
 
@@ -972,7 +1029,8 @@ class GaussPolynomialRom(supervisedLearning):
     stdPt = np.zeros(len(featureVals))
     for p, pt in enumerate(featureVals):
       varName = self.sparseGrid.varNames[p]
-      stdPt[p] = self.distDict[varName].convertToQuad(self.quads[varName].type, pt)
+      stdPt[p] = self.distDict[varName].convertToQuad(self.quads[varName].type,
+                                                      pt)
     for target in self.target:
       tot = 0
       for idx, coeff in self.polyCoeffDict[target].items():
@@ -1107,7 +1165,8 @@ class HDMRRom(GaussPolynomialRom):
     self.initialized = False  #true only when self.initialize has been called
     self.printTag = 'HDMR_ROM(' + '-'.join(self.target) + ')'
     self.sobolOrder = None  #depth of HDMR/Sobol expansion
-    self.ROMs = {}  #dict of GaussPolyROM objects keyed by combination of vars that make them up
+    self.ROMs = {
+    }  #dict of GaussPolyROM objects keyed by combination of vars that make them up
     self.sdx = None  #dict of sobol sensitivity coeffs, keyed on order and tuple(varnames)
     self.mean = None  #mean, store to avoid recalculation
     self.variance = None  #variance, store to avoid recalculation
@@ -1134,8 +1193,8 @@ class HDMRRom(GaussPolynomialRom):
       self.raiseAnError(RuntimeError, 'ROM is not yet trained!')
     self.mean = None
     canDo = [
-        'mean', 'expectedValue', 'variance', 'samples', 'partialVariance', 'sobolIndices',
-        'sobolTotalIndices'
+        'mean', 'expectedValue', 'variance', 'samples', 'partialVariance',
+        'sobolIndices', 'sobolTotalIndices'
     ]
     if 'what' in options.keys():
       requests = list(o.strip() for o in options['what'].split(','))
@@ -1143,11 +1202,14 @@ class HDMRRom(GaussPolynomialRom):
         requests = canDo
       #protect against things SCgPC can do that HDMR can't
       if 'polyCoeffs' in requests:
-        self.raiseAWarning('HDMRRom cannot currently print polynomial coefficients.  Skipping...')
+        self.raiseAWarning(
+            'HDMRRom cannot currently print polynomial coefficients.  Skipping...'
+        )
         requests.remove('polyCoeffs')
       options['what'] = ','.join(requests)
     else:
-      self.raiseAWarning('No "what" options for XML printing are recognized!  Skipping...')
+      self.raiseAWarning(
+          'No "what" options for XML printing are recognized!  Skipping...')
     GaussPolynomialRom._localPrintXML(self, outFile, pivotVal, options)
 
   def initialize(self, idict):
@@ -1181,7 +1243,8 @@ class HDMRRom(GaussPolynomialRom):
     if not self.initialized:
       self.raiseAnError(
           RuntimeError,
-          'ROM has not yet been initialized!  Has the Sampler associated with this ROM been used?')
+          'ROM has not yet been initialized!  Has the Sampler associated with this ROM been used?'
+      )
     ft = {}
     self.refSoln = {key: dict({}) for key in self.target}
     for i in range(len(featureVals)):
@@ -1201,7 +1264,8 @@ class HDMRRom(GaussPolynomialRom):
       for i in range(len(SG)):
         getpt = tuple(self.__fillPointWithRef(combo, SG[i][0]))
         #the 1e-10 is to be consistent with RAVEN's CSV print precision
-        tvals[i, :] = ft[tuple(mathUtils.NDInArray(np.array(ft.keys()), getpt, tol=1e-10)[2])]
+        tvals[i, :] = ft[tuple(
+            mathUtils.NDInArray(np.array(ft.keys()), getpt, tol=1e-10)[2])]
         for fp, fpt in enumerate(SG[i][0]):
           fvals[i][fp] = fpt
       for i, c in enumerate(combo):
@@ -1285,7 +1349,9 @@ class HDMRRom(GaussPolynomialRom):
         if term == ():
           tot += self.refSoln[target] * mult
         else:
-          cutVals = [list(featureVals[0][self.features.index(j)] for j in term)]
+          cutVals = [
+              list(featureVals[0][self.features.index(j)] for j in term)
+          ]
           tot += self.ROMs[term].__evaluateLocal__(cutVals)[target] * mult
       returnDict[target] = tot
     return returnDict
@@ -1297,7 +1363,8 @@ class HDMRRom(GaussPolynomialRom):
       @ Out, __mean__, float, the mean
     """
     if not self.amITrained:
-      self.raiseAnError(IOError, 'Cannot evaluate mean, as ROM is not trained!')
+      self.raiseAnError(IOError,
+                        'Cannot evaluate mean, as ROM is not trained!')
     return self._calcMean(self.reducedTerms, targ)
 
   def __variance__(self, targ=None):
@@ -1307,7 +1374,8 @@ class HDMRRom(GaussPolynomialRom):
       @ Out, __variance__, float, the variance
     """
     if not self.amITrained:
-      self.raiseAnError(IOError, 'Cannot evaluate variance, as ROM is not trained!')
+      self.raiseAnError(IOError,
+                        'Cannot evaluate variance, as ROM is not trained!')
     target = self.target[0] if targ is None else targ
     self.getSensitivities(target)
     return sum(val for val in self.partialVariances[target].values())
@@ -1374,7 +1442,8 @@ class HDMRRom(GaussPolynomialRom):
       @ Out, getSensitivities, tuple(dict), Sobol indices and partial variances keyed by subset
     """
     target = self.target[0] if targ is None else targ
-    if self.sdx is not None and self.partialVariances is not None and target in self.sdx.keys():
+    if self.sdx is not None and self.partialVariances is not None and target in self.sdx.keys(
+    ):
       self.raiseADebug('Using previously-constructed ANOVA terms...')
       return self.sdx[target], self.partialVariances[target]
     self.raiseADebug('Constructing ANOVA terms...')
@@ -1400,7 +1469,8 @@ class HDMRRom(GaussPolynomialRom):
     self.partialVariances = {target: dict({})}
     self.sdx = {target: dict({})}
     for subset in terms.keys():
-      self.partialVariances[target][subset] = sum(v * v for v in terms[subset].values())
+      self.partialVariances[target][subset] = sum(
+          v * v for v in terms[subset].values())
     #calculate indices
     totVar = sum(self.partialVariances[target].values())
     for subset, value in self.partialVariances[target].items():
@@ -1509,13 +1579,16 @@ class MSR(NDinterpolatorRom):
     supervisedLearning.__init__(self, messageHandler, **kwargs)
     self.acceptedGraphParam = ['approximate knn', 'delaunay', 'beta skeleton', \
                                'relaxed beta skeleton']
-    self.acceptedPersistenceParam = ['difference', 'probability', 'count', 'area']
+    self.acceptedPersistenceParam = [
+        'difference', 'probability', 'count', 'area'
+    ]
     self.acceptedGradientParam = ['steepest', 'maxflow']
     self.acceptedNormalizationParam = ['feature', 'zscore', 'none']
     self.acceptedPredictorParam = ['kde', 'svm']
     self.acceptedKernelParam = [
-        'uniform', 'triangular', 'epanechnikov', 'biweight', 'quartic', 'triweight', 'tricube',
-        'gaussian', 'cosine', 'logistic', 'silverman', 'exponential'
+        'uniform', 'triangular', 'epanechnikov', 'biweight', 'quartic',
+        'triweight', 'tricube', 'gaussian', 'cosine', 'logistic', 'silverman',
+        'exponential'
     ]
     self.__amsc = []  # AMSC object
     # Some sensible default arguments
@@ -1578,7 +1651,8 @@ class MSR(NDinterpolatorRom):
           else:
             self.raiseAWarning('Requested invalid beta value:', self.beta,
                                '(Allowable range: (0,2]), however beta is',
-                               'ignored when using the', graph, 'graph structure.')
+                               'ignored when using the', graph,
+                               'graph structure.')
       elif key.lower() == 'knn':
         try:
           self.knn = int(val)
@@ -1590,8 +1664,8 @@ class MSR(NDinterpolatorRom):
         try:
           self.simplification = float(val)
         except ValueError:
-          self.raiseAnError(IOError, 'Requested invalid simplification level:', val,
-                            '(should be a floating point value)')
+          self.raiseAnError(IOError, 'Requested invalid simplification level:',
+                            val, '(should be a floating point value)')
       elif key.lower() == 'bandwidth':
         if val == 'variable' or val == 'auto':
           self.bandwidth = val
@@ -1602,16 +1676,19 @@ class MSR(NDinterpolatorRom):
             # If the user has specified a strategy, use it, otherwise be sure to
             #  use the default when checking whether this is a warning or an error
             if 'partitionPredictor' in kwargs:
-              partPredictor = kwargs['partitionPredictor'].strip().encode('ascii').lower()
+              partPredictor = kwargs['partitionPredictor'].strip().encode(
+                  'ascii').lower()
             else:
               partPredictor = self.partitionPredictor
             if partPredictor == 'kde':
-              self.raiseAnError(IOError, 'Requested invalid bandwidth value:', val,
+              self.raiseAnError(IOError, 'Requested invalid bandwidth value:',
+                                val,
                                 '(should be a positive floating point value)')
             else:
-              self.raiseAWarning('Requested invalid bandwidth value:', val,
-                                 '(bandwidth > 0 or \"variable\"). However, it is ignored when',
-                                 'using the', partPredictor, 'partition', 'predictor')
+              self.raiseAWarning(
+                  'Requested invalid bandwidth value:', val,
+                  '(bandwidth > 0 or \"variable\"). However, it is ignored when',
+                  'using the', partPredictor, 'partition', 'predictor')
       elif key.lower() == 'persistence':
         self.persistence = val.strip().encode('ascii').lower()
       elif key.lower() == 'partitionpredictor':
@@ -1625,43 +1702,50 @@ class MSR(NDinterpolatorRom):
 
     # Morse-Smale specific error handling
     if self.graph not in self.acceptedGraphParam:
-      self.raiseAnError(IOError, 'Requested unknown graph type:', '\"' + self.graph + '\"',
-                        '(Available options:', self.acceptedGraphParam, ')')
+      self.raiseAnError(IOError, 'Requested unknown graph type:',
+                        '\"' + self.graph + '\"', '(Available options:',
+                        self.acceptedGraphParam, ')')
     if self.gradient not in self.acceptedGradientParam:
-      self.raiseAnError(IOError, 'Requested unknown gradient method:', '\"' + self.gradient + '\"',
-                        '(Available options:', self.acceptedGradientParam, ')')
+      self.raiseAnError(IOError, 'Requested unknown gradient method:',
+                        '\"' + self.gradient + '\"', '(Available options:',
+                        self.acceptedGradientParam, ')')
     if self.beta <= 0 or self.beta > 2:
       if self.graph.endswith('beta skeleton'):
         self.raiseAnError(IOError, 'Requested invalid beta value:', self.beta,
                           '(Allowable range: (0,2])')
       else:
         self.raiseAWarning('Requested invalid beta value:', self.beta,
-                           '(Allowable range: (0,2]), however beta is', 'ignored when using the',
-                           self.graph, 'graph structure.')
+                           '(Allowable range: (0,2]), however beta is',
+                           'ignored when using the', self.graph,
+                           'graph structure.')
     if self.persistence not in self.acceptedPersistenceParam:
       self.raiseAnError(IOError, 'Requested unknown persistence method:',
                         '\"' + self.persistence + '\"', '(Available options:',
                         self.acceptedPersistenceParam, ')')
     if self.partitionPredictor not in self.acceptedPredictorParam:
       self.raiseAnError(IOError, 'Requested unknown partition predictor:'
-                        '\"' + self.partitionPredictor + '\"', '(Available options:',
-                        self.acceptedPredictorParam, ')')
+                        '\"' + self.partitionPredictor + '\"',
+                        '(Available options:', self.acceptedPredictorParam,
+                        ')')
     if self.bandwidth <= 0:
       if self.partitionPredictor == 'kde':
-        self.raiseAnError(IOError, 'Requested invalid bandwidth value:', self.bandwidth,
-                          '(bandwidth > 0)')
+        self.raiseAnError(IOError, 'Requested invalid bandwidth value:',
+                          self.bandwidth, '(bandwidth > 0)')
       else:
-        self.raiseAWarning(IOError, 'Requested invalid bandwidth value:', self.bandwidth,
-                           '(bandwidth > 0). However, it is', 'ignored when using the',
-                           self.partitionPredictor, 'partition predictor')
+        self.raiseAWarning(IOError, 'Requested invalid bandwidth value:',
+                           self.bandwidth, '(bandwidth > 0). However, it is',
+                           'ignored when using the', self.partitionPredictor,
+                           'partition predictor')
 
     if self.kernel not in self.acceptedKernelParam:
       if self.partitionPredictor == 'kde':
-        self.raiseAnError(IOError, 'Requested unknown kernel:', '\"' + self.kernel + '\"',
-                          '(Available options:', self.acceptedKernelParam, ')')
+        self.raiseAnError(IOError, 'Requested unknown kernel:',
+                          '\"' + self.kernel + '\"', '(Available options:',
+                          self.acceptedKernelParam, ')')
       else:
-        self.raiseAWarning('Requested unknown kernel:', '\"' + self.kernel + '\"',
-                           '(Available options:', self.acceptedKernelParam,
+        self.raiseAWarning('Requested unknown kernel:',
+                           '\"' + self.kernel + '\"', '(Available options:',
+                           self.acceptedKernelParam,
                            '), however the kernel is ignored when using the',
                            self.partitionPredictor, 'partition predictor.')
     self.__resetLocal__()
@@ -1708,7 +1792,8 @@ class MSR(NDinterpolatorRom):
     self.Y = targetVals
 
     if self.weighted:
-      self.raiseAnError(NotImplementedError, ' cannot use weighted data right now.')
+      self.raiseAnError(NotImplementedError,
+                        ' cannot use weighted data right now.')
     else:
       weights = None
 
@@ -1767,8 +1852,8 @@ class MSR(NDinterpolatorRom):
     if self.kernel == 'uniform':
       if self.bandwidth == 'auto':
         self.bandwidth = max(distances)
-        self.raiseAWarning(
-            'automatic bandwidth not yet implemented for the' + self.kernel + ' kernel.')
+        self.raiseAWarning('automatic bandwidth not yet implemented for the' +
+                           self.kernel + ' kernel.')
 
       def kernel(u):
         """
@@ -1780,8 +1865,8 @@ class MSR(NDinterpolatorRom):
     elif self.kernel == 'triangular':
       if self.bandwidth == 'auto':
         self.bandwidth = max(distances)
-        self.raiseAWarning(
-            'automatic bandwidth not yet implemented for the' + self.kernel + ' kernel.')
+        self.raiseAWarning('automatic bandwidth not yet implemented for the' +
+                           self.kernel + ' kernel.')
 
       def kernel(u):
         """
@@ -1793,8 +1878,8 @@ class MSR(NDinterpolatorRom):
     elif self.kernel == 'epanechnikov':
       if self.bandwidth == 'auto':
         self.bandwidth = max(distances)
-        self.raiseAWarning(
-            'automatic bandwidth not yet implemented for the' + self.kernel + ' kernel.')
+        self.raiseAWarning('automatic bandwidth not yet implemented for the' +
+                           self.kernel + ' kernel.')
 
       def kernel(u):
         """
@@ -1806,8 +1891,8 @@ class MSR(NDinterpolatorRom):
     elif self.kernel == 'biweight' or self.kernel == 'quartic':
       if self.bandwidth == 'auto':
         self.bandwidth = max(distances)
-        self.raiseAWarning(
-            'automatic bandwidth not yet implemented for the' + self.kernel + ' kernel.')
+        self.raiseAWarning('automatic bandwidth not yet implemented for the' +
+                           self.kernel + ' kernel.')
 
       def kernel(u):
         """
@@ -1819,8 +1904,8 @@ class MSR(NDinterpolatorRom):
     elif self.kernel == 'triweight':
       if self.bandwidth == 'auto':
         self.bandwidth = max(distances)
-        self.raiseAWarning(
-            'automatic bandwidth not yet implemented for the' + self.kernel + ' kernel.')
+        self.raiseAWarning('automatic bandwidth not yet implemented for the' +
+                           self.kernel + ' kernel.')
 
       def kernel(u):
         """
@@ -1832,8 +1917,8 @@ class MSR(NDinterpolatorRom):
     elif self.kernel == 'tricube':
       if self.bandwidth == 'auto':
         self.bandwidth = max(distances)
-        self.raiseAWarning(
-            'automatic bandwidth not yet implemented for the' + self.kernel + ' kernel.')
+        self.raiseAWarning('automatic bandwidth not yet implemented for the' +
+                           self.kernel + ' kernel.')
 
       def kernel(u):
         """
@@ -1845,8 +1930,8 @@ class MSR(NDinterpolatorRom):
     elif self.kernel == 'gaussian':
       if self.bandwidth == 'auto':
         self.bandwidth = 1.06 * distances.std() * len(distances)**(-1. / 5.)
-        self.raiseAWarning(
-            'automatic bandwidth not yet implemented for the' + self.kernel + ' kernel.')
+        self.raiseAWarning('automatic bandwidth not yet implemented for the' +
+                           self.kernel + ' kernel.')
 
       def kernel(u):
         """
@@ -1858,8 +1943,8 @@ class MSR(NDinterpolatorRom):
     elif self.kernel == 'cosine':
       if self.bandwidth == 'auto':
         self.bandwidth = max(distances)
-        self.raiseAWarning(
-            'automatic bandwidth not yet implemented for the' + self.kernel + ' kernel.')
+        self.raiseAWarning('automatic bandwidth not yet implemented for the' +
+                           self.kernel + ' kernel.')
 
       def kernel(u):
         """
@@ -1871,8 +1956,8 @@ class MSR(NDinterpolatorRom):
     elif self.kernel == 'logistic':
       if self.bandwidth == 'auto':
         self.bandwidth = max(distances)
-        self.raiseAWarning(
-            'automatic bandwidth not yet implemented for the' + self.kernel + ' kernel.')
+        self.raiseAWarning('automatic bandwidth not yet implemented for the' +
+                           self.kernel + ' kernel.')
 
       def kernel(u):
         """
@@ -1884,8 +1969,8 @@ class MSR(NDinterpolatorRom):
     elif self.kernel == 'silverman':
       if self.bandwidth == 'auto':
         self.bandwidth = max(distances)
-        self.raiseAWarning(
-            'automatic bandwidth not yet implemented for the' + self.kernel + ' kernel.')
+        self.raiseAWarning('automatic bandwidth not yet implemented for the' +
+                           self.kernel + ' kernel.')
 
       def kernel(u):
         """
@@ -1894,12 +1979,13 @@ class MSR(NDinterpolatorRom):
           @ Out, kernel, float, the kernel
         """
         sqrt2 = math.sqrt(2)
-        return 0.5 * np.exp(-abs(u) / sqrt2) * np.sin(abs(u) / sqrt2 + math.pi / 4.)
+        return 0.5 * np.exp(
+            -abs(u) / sqrt2) * np.sin(abs(u) / sqrt2 + math.pi / 4.)
     elif self.kernel == 'exponential':
       if self.bandwidth == 'auto':
         self.bandwidth = max(distances)
-        self.raiseAWarning(
-            'automatic bandwidth not yet implemented for the' + self.kernel + ' kernel.')
+        self.raiseAWarning('automatic bandwidth not yet implemented for the' +
+                           self.kernel + ' kernel.')
 
       def kernel(u):
         """
@@ -1919,7 +2005,8 @@ class MSR(NDinterpolatorRom):
       @ In, featureVals, 2-D numpy array [n_samples,n_features]
       @ Out, confidence, float, the confidence
     """
-    self.raiseAnError(NotImplementedError, '__confidenceLocal__ method must be implemented!')
+    self.raiseAnError(NotImplementedError,
+                      '__confidenceLocal__ method must be implemented!')
 
   def __evaluateLocal__(self, featureVals):
     """
@@ -1971,7 +2058,8 @@ class MSR(NDinterpolatorRom):
             wx = weights[key]
             sumW += wx
             weightedPredictions += fx * wx
-          returnDict[target] = weightedPredictions if sumW == 0 else weightedPredictions / sumW
+          returnDict[
+              target] = weightedPredictions if sumW == 0 else weightedPredictions / sumW
         else:
           predictions = np.zeros(featureVals.shape[0])
           maxWeights = np.zeros(featureVals.shape[0])
@@ -1989,7 +2077,8 @@ class MSR(NDinterpolatorRom):
         # In order to make this deterministic for testing purposes, let's fix
         # the random state of the SVM object. Maybe, this could be exposed to the
         # user, but it shouldn't matter too much what the seed is for this.
-        svc = svm.SVC(probability=True, random_state=np.random.RandomState(8), tol=1e-15)
+        svc = svm.SVC(
+            probability=True, random_state=np.random.RandomState(8), tol=1e-15)
         svc.fit(self.X, labels)
         probabilities = svc.predict_proba(featureVals)
 
@@ -2013,7 +2102,8 @@ class MSR(NDinterpolatorRom):
             if self.blending:
               weightedPredictions = weightedPredictions + fx * wx
               sumW += wx
-          returnDict[target] = weightedPredictions if sumW == 0 else weightedPredictions / sumW
+          returnDict[
+              target] = weightedPredictions if sumW == 0 else weightedPredictions / sumW
         else:
           predictions = np.zeros(featureVals.shape[0])
           maxWeights = np.zeros(featureVals.shape[0])
@@ -2078,12 +2168,17 @@ class NDsplineRom(NDinterpolatorRom):
       @ Out, targetVals, array, shape = [n_samples], an array of output target
         associated with the corresponding points in featureVals
     """
-    numDiscrPerDimension = int(math.ceil(len(targetVals)**(1. / len(self.features))))
+    numDiscrPerDimension = int(
+        math.ceil(len(targetVals)**(1. / len(self.features))))
     newNumberSamples = numDiscrPerDimension**len(self.features)
     # get discretizations
-    discretizations = [list(set(featureVals[:, d].tolist())) for d in range(len(self.features))]
+    discretizations = [
+        list(set(featureVals[:, d].tolist()))
+        for d in range(len(self.features))
+    ]
     # check if it is a tensor grid or not
-    tensorGrid = False if np.prod([len(d) for d in discretizations]) != len(targetVals) else True
+    tensorGrid = False if np.prod([len(d) for d in discretizations
+                                   ]) != len(targetVals) else True
     if not tensorGrid:
       self.raiseAWarning(
           "Training set for NDSpline is not a cartesian grid. The training Tensor Grid is going to be create by interpolation!"
@@ -2100,13 +2195,15 @@ class NDsplineRom(NDinterpolatorRom):
               dtype=float).tolist() for d in range(len(self.features))
       ]
       # new feature values
-      newFeatureVals = np.atleast_2d(np.asarray(list(product(*newDiscretizations))))
+      newFeatureVals = np.atleast_2d(
+          np.asarray(list(product(*newDiscretizations))))
       # new valuesContainer
       newTargetVals = np.zeros((newNumberSamples, len(self.target)))
       for index in range(len(self.target)):
         # not a tensor grid => interpolate
         nr = neighbors.KNeighborsRegressor(
-            n_neighbors=min(2**len(self.features), len(targetVals)), weights='distance')
+            n_neighbors=min(2**len(self.features), len(targetVals)),
+            weights='distance')
         nr.fit(featureVals, targetVals[:, index])
         # new target values
         newTargetVals[:, index] = nr.predict(newFeatureVals)
@@ -2150,7 +2247,9 @@ class NDinvDistWeight(NDinterpolatorRom):
     self.printTag = 'ND-INVERSEWEIGHT ROM'
     if not 'p' in self.initOptionDict.keys():
       self.raiseAnError(
-          IOError, 'the <p> parameter must be provided in order to use NDinvDistWeigth as ROM!!!!')
+          IOError,
+          'the <p> parameter must be provided in order to use NDinvDistWeigth as ROM!!!!'
+      )
     self.__initLocal__()
 
   def __initLocal__(self):
@@ -2162,7 +2261,8 @@ class NDinvDistWeight(NDinterpolatorRom):
     self.interpolator = []
     for _ in range(len(self.target)):
       self.interpolator.append(
-          interpolationND.InverseDistanceWeighting(float(self.initOptionDict['p'])))
+          interpolationND.InverseDistanceWeighting(
+              float(self.initOptionDict['p'])))
 
   def __resetLocal__(self):
     """
@@ -2215,48 +2315,54 @@ class SciKitLearn(supervisedLearning):
     availImpl['qda']['QDA'] = (da.QuadraticDiscriminantAnalysis, 'int',
                                False)  #Quadratic Discriminant Analysis (QDA)
   else:
-    availImpl['lda']['LDA'] = (lda.LDA, 'int', False)  #Linear Discriminant Analysis (LDA)
-    availImpl['qda']['QDA'] = (qda.QDA, 'int', False)  #Quadratic Discriminant Analysis (QDA)
+    availImpl['lda']['LDA'] = (lda.LDA, 'int',
+                               False)  #Linear Discriminant Analysis (LDA)
+    availImpl['qda']['QDA'] = (qda.QDA, 'int',
+                               False)  #Quadratic Discriminant Analysis (QDA)
 
   availImpl['linear_model'] = {}  #Generalized Linear Models
-  availImpl['linear_model']['ARDRegression'] = (linear_model.ARDRegression, 'float',
-                                                False)  #Bayesian ARD regression.
-  availImpl['linear_model']['BayesianRidge'] = (linear_model.BayesianRidge, 'float',
-                                                False)  #Bayesian ridge regression
+  availImpl['linear_model']['ARDRegression'] = (
+      linear_model.ARDRegression, 'float', False)  #Bayesian ARD regression.
+  availImpl['linear_model']['BayesianRidge'] = (
+      linear_model.BayesianRidge, 'float', False)  #Bayesian ridge regression
   availImpl['linear_model']['ElasticNet'] = (
       linear_model.ElasticNet, 'float',
       False)  #Linear Model trained with L1 and L2 prior as regularizer
   availImpl['linear_model']['ElasticNetCV'] = (
-      linear_model.ElasticNetCV, 'float',
-      False)  #Elastic Net model with iterative fitting along a regularization path
-  availImpl['linear_model']['Lars'] = (linear_model.Lars, 'float',
-                                       False)  #Least Angle Regression model a.k.a.
-  availImpl['linear_model']['LarsCV'] = (linear_model.LarsCV, 'float',
-                                         False)  #Cross-validated Least Angle Regression model
+      linear_model.ElasticNetCV, 'float', False
+  )  #Elastic Net model with iterative fitting along a regularization path
+  availImpl['linear_model']['Lars'] = (
+      linear_model.Lars, 'float', False)  #Least Angle Regression model a.k.a.
+  availImpl['linear_model']['LarsCV'] = (
+      linear_model.LarsCV, 'float',
+      False)  #Cross-validated Least Angle Regression model
   availImpl['linear_model']['Lasso'] = (
-      linear_model.Lasso, 'float',
-      False)  #Linear Model trained with L1 prior as regularizer (aka the Lasso)
+      linear_model.Lasso, 'float', False
+  )  #Linear Model trained with L1 prior as regularizer (aka the Lasso)
   availImpl['linear_model']['LassoCV'] = (
-      linear_model.LassoCV, 'float',
-      False)  #Lasso linear model with iterative fitting along a regularization path
+      linear_model.LassoCV, 'float', False
+  )  #Lasso linear model with iterative fitting along a regularization path
   availImpl['linear_model']['LassoLars'] = (
-      linear_model.LassoLars, 'float', False)  #Lasso model fit with Least Angle Regression a.k.a.
+      linear_model.LassoLars, 'float',
+      False)  #Lasso model fit with Least Angle Regression a.k.a.
   availImpl['linear_model']['LassoLarsCV'] = (
-      linear_model.LassoLarsCV, 'float', False)  #Cross-validated Lasso, using the LARS algorithm
+      linear_model.LassoLarsCV, 'float',
+      False)  #Cross-validated Lasso, using the LARS algorithm
   availImpl['linear_model']['LassoLarsIC'] = (
       linear_model.LassoLarsIC, 'float',
       False)  #Lasso model fit with Lars using BIC or AIC for model selection
   availImpl['linear_model']['LinearRegression'] = (
-      linear_model.LinearRegression, 'float', False)  #Ordinary least squares Linear Regression.
+      linear_model.LinearRegression, 'float',
+      False)  #Ordinary least squares Linear Regression.
   availImpl['linear_model']['LogisticRegression'] = (
       linear_model.LogisticRegression, 'float',
       True)  #Logistic Regression (aka logit, MaxEnt) classifier.
   availImpl['linear_model']['MultiTaskLasso'] = (
-      linear_model.MultiTaskLasso, 'float',
-      False)  #Multi-task Lasso model trained with L1/L2 mixed-norm as regularizer
+      linear_model.MultiTaskLasso, 'float', False
+  )  #Multi-task Lasso model trained with L1/L2 mixed-norm as regularizer
   availImpl['linear_model']['MultiTaskElasticNet'] = (
-      linear_model.MultiTaskElasticNet, 'float',
-      False)  #Multi-task ElasticNet model trained with L1/L2 mixed-norm as regularizer
+      linear_model.MultiTaskElasticNet, 'float', False
+  )  #Multi-task ElasticNet model trained with L1/L2 mixed-norm as regularizer
   availImpl['linear_model']['OrthogonalMatchingPursuit'] = (
       linear_model.OrthogonalMatchingPursuit, 'float',
       False)  #Orthogonal Mathching Pursuit model (OMP)
@@ -2264,87 +2370,106 @@ class SciKitLearn(supervisedLearning):
       linear_model.OrthogonalMatchingPursuitCV, 'float',
       False)  #Cross-validated Orthogonal Mathching Pursuit model (OMP)
   availImpl['linear_model']['PassiveAggressiveClassifier'] = (
-      linear_model.PassiveAggressiveClassifier, 'int', True)  #Passive Aggressive Classifier
+      linear_model.PassiveAggressiveClassifier, 'int',
+      True)  #Passive Aggressive Classifier
   availImpl['linear_model']['PassiveAggressiveRegressor'] = (
-      linear_model.PassiveAggressiveRegressor, 'float', True)  #Passive Aggressive Regressor
-  availImpl['linear_model']['Perceptron'] = (linear_model.Perceptron, 'float', True)  #Perceptron
-  availImpl['linear_model']['Ridge'] = (linear_model.Ridge, 'float',
-                                        False)  #Linear least squares with l2 regularization.
-  availImpl['linear_model']['RidgeClassifier'] = (linear_model.RidgeClassifier, 'float',
-                                                  False)  #Classifier using Ridge regression.
+      linear_model.PassiveAggressiveRegressor, 'float',
+      True)  #Passive Aggressive Regressor
+  availImpl['linear_model']['Perceptron'] = (linear_model.Perceptron, 'float',
+                                             True)  #Perceptron
+  availImpl['linear_model']['Ridge'] = (
+      linear_model.Ridge, 'float',
+      False)  #Linear least squares with l2 regularization.
+  availImpl['linear_model']['RidgeClassifier'] = (
+      linear_model.RidgeClassifier, 'float',
+      False)  #Classifier using Ridge regression.
   availImpl['linear_model']['RidgeClassifierCV'] = (
       linear_model.RidgeClassifierCV, 'int',
       False)  #Ridge classifier with built-in cross-validation.
-  availImpl['linear_model']['RidgeCV'] = (linear_model.RidgeCV, 'float',
-                                          False)  #Ridge regression with built-in cross-validation.
+  availImpl['linear_model']['RidgeCV'] = (
+      linear_model.RidgeCV, 'float',
+      False)  #Ridge regression with built-in cross-validation.
   availImpl['linear_model']['SGDClassifier'] = (
-      linear_model.SGDClassifier, 'int',
-      True)  #Linear classifiers (SVM, logistic regression, a.o.) with SGD training.
+      linear_model.SGDClassifier, 'int', True
+  )  #Linear classifiers (SVM, logistic regression, a.o.) with SGD training.
   availImpl['linear_model']['SGDRegressor'] = (
-      linear_model.SGDRegressor, 'float',
-      True)  #Linear model fitted by minimizing a regularized empirical loss with SGD
+      linear_model.SGDRegressor, 'float', True
+  )  #Linear model fitted by minimizing a regularized empirical loss with SGD
 
   availImpl['svm'] = {}  #support Vector Machines
-  availImpl['svm']['LinearSVC'] = (svm.LinearSVC, 'bool', True)  #Linear Support vector classifier
+  availImpl['svm']['LinearSVC'] = (svm.LinearSVC, 'bool',
+                                   True)  #Linear Support vector classifier
   availImpl['svm']['SVC'] = (svm.SVC, 'bool', True)  #Support vector classifier
-  availImpl['svm']['NuSVC'] = (svm.NuSVC, 'bool', True)  #Nu Support vector classifier
+  availImpl['svm']['NuSVC'] = (svm.NuSVC, 'bool',
+                               True)  #Nu Support vector classifier
   availImpl['svm']['SVR'] = (svm.SVR, 'float', True)  #Support vector regressor
 
   availImpl['multiClass'] = {}  #Multiclass and multilabel classification
   availImpl['multiClass']['OneVsRestClassifier'] = (
       multiclass.OneVsRestClassifier, 'int',
       False)  # One-vs-the-rest (OvR) multiclass/multilabel strategy
-  availImpl['multiClass']['OneVsOneClassifier'] = (multiclass.OneVsOneClassifier, 'int',
-                                                   False)  # One-vs-one multiclass strategy
+  availImpl['multiClass']['OneVsOneClassifier'] = (
+      multiclass.OneVsOneClassifier, 'int',
+      False)  # One-vs-one multiclass strategy
   availImpl['multiClass']['OutputCodeClassifier'] = (
       multiclass.OutputCodeClassifier, 'int',
       False)  # (Error-Correcting) Output-Code multiclass strategy
 
   availImpl['naiveBayes'] = {}
-  availImpl['naiveBayes']['GaussianNB'] = (naive_bayes.GaussianNB, 'float', True)
-  availImpl['naiveBayes']['MultinomialNB'] = (naive_bayes.MultinomialNB, 'float', False)
-  availImpl['naiveBayes']['BernoulliNB'] = (naive_bayes.BernoulliNB, 'float', True)
+  availImpl['naiveBayes']['GaussianNB'] = (naive_bayes.GaussianNB, 'float',
+                                           True)
+  availImpl['naiveBayes']['MultinomialNB'] = (naive_bayes.MultinomialNB,
+                                              'float', False)
+  availImpl['naiveBayes']['BernoulliNB'] = (naive_bayes.BernoulliNB, 'float',
+                                            True)
 
   availImpl['neighbors'] = {}
   availImpl['neighbors']['KNeighborsClassifier'] = (
       neighbors.KNeighborsClassifier, 'int',
       True)  # Classifier implementing the k-nearest neighbors vote.
   availImpl['neighbors']['RadiusNeighbors'] = (
-      neighbors.RadiusNeighborsClassifier, 'int',
-      True)  # Classifier implementing a vote among neighbors within a given radius
+      neighbors.RadiusNeighborsClassifier, 'int', True
+  )  # Classifier implementing a vote among neighbors within a given radius
   availImpl['neighbors']['KNeighborsRegressor'] = (
-      neighbors.KNeighborsRegressor, 'float', True)  # Regression based on k-nearest neighbors.
+      neighbors.KNeighborsRegressor, 'float',
+      True)  # Regression based on k-nearest neighbors.
   availImpl['neighbors']['RadiusNeighborsRegressor'] = (
       neighbors.RadiusNeighborsRegressor, 'float',
       True)  # Regression based on neighbors within a fixed radius.
-  availImpl['neighbors']['NearestCentroid'] = (neighbors.NearestCentroid, 'int',
-                                               True)  # Nearest centroid classifier.
-  availImpl['neighbors']['BallTree'] = (neighbors.BallTree, 'float',
-                                        True)  # BallTree for fast generalized N-point problems
-  availImpl['neighbors']['KDTree'] = (neighbors.KDTree, 'float',
-                                      True)  # KDTree for fast generalized N-point problems
+  availImpl['neighbors']['NearestCentroid'] = (
+      neighbors.NearestCentroid, 'int', True)  # Nearest centroid classifier.
+  availImpl['neighbors']['BallTree'] = (
+      neighbors.BallTree, 'float',
+      True)  # BallTree for fast generalized N-point problems
+  availImpl['neighbors']['KDTree'] = (
+      neighbors.KDTree, 'float',
+      True)  # KDTree for fast generalized N-point problems
 
   availImpl['tree'] = {}
-  availImpl['tree']['DecisionTreeClassifier'] = (tree.DecisionTreeClassifier, 'int',
-                                                 True)  # A decision tree classifier.
-  availImpl['tree']['DecisionTreeRegressor'] = (tree.DecisionTreeRegressor, 'float',
-                                                True)  # A tree regressor.
-  availImpl['tree']['ExtraTreeClassifier'] = (tree.ExtraTreeClassifier, 'int',
-                                              True)  # An extremely randomized tree classifier.
-  availImpl['tree']['ExtraTreeRegressor'] = (tree.ExtraTreeRegressor, 'float',
-                                             True)  # An extremely randomized tree regressor.
+  availImpl['tree']['DecisionTreeClassifier'] = (
+      tree.DecisionTreeClassifier, 'int', True)  # A decision tree classifier.
+  availImpl['tree']['DecisionTreeRegressor'] = (
+      tree.DecisionTreeRegressor, 'float', True)  # A tree regressor.
+  availImpl['tree']['ExtraTreeClassifier'] = (
+      tree.ExtraTreeClassifier, 'int',
+      True)  # An extremely randomized tree classifier.
+  availImpl['tree']['ExtraTreeRegressor'] = (
+      tree.ExtraTreeRegressor, 'float',
+      True)  # An extremely randomized tree regressor.
 
   availImpl['GaussianProcess'] = {}
-  availImpl['GaussianProcess']['GaussianProcess'] = (gaussian_process.GaussianProcess, 'float',
-                                                     False)
+  availImpl['GaussianProcess']['GaussianProcess'] = (
+      gaussian_process.GaussianProcess, 'float', False)
   # Neural network models (supervised)
   # To be removed when the supported minimum version of sklearn is moved to 0.18
   if int(sklearn.__version__.split(".")[1]) > 17:
     availImpl['neural_network'] = {}
-    availImpl['neural_network']['MLPClassifier'] = (neural_network.MLPClassifier, 'int',
-                                                    True)  # Multi-layer perceptron classifier.
-    availImpl['neural_network']['MLPRegressor'] = (neural_network.MLPRegressor, 'float',
-                                                   True)  # Multi-layer perceptron regressor.
+    availImpl['neural_network']['MLPClassifier'] = (
+        neural_network.MLPClassifier, 'int',
+        True)  # Multi-layer perceptron classifier.
+    availImpl['neural_network']['MLPRegressor'] = (
+        neural_network.MLPRegressor, 'float',
+        True)  # Multi-layer perceptron regressor.
 
   #test if a method to estimate the probability of the prediction is available
   qualityEstTypeDict = {}
@@ -2372,28 +2497,37 @@ class SciKitLearn(supervisedLearning):
     if 'SKLtype' not in self.initOptionDict.keys():
       self.raiseAnError(
           IOError,
-          'to define a scikit learn ROM the SKLtype keyword is needed (from ROM "' + name + '")')
+          'to define a scikit learn ROM the SKLtype keyword is needed (from ROM "'
+          + name + '")')
     SKLtype, SKLsubType = self.initOptionDict['SKLtype'].split('|')
     self.subType = SKLsubType
     self.intrinsicMultiTarget = 'MultiTask' in self.initOptionDict['SKLtype']
     self.initOptionDict.pop('SKLtype')
     if not SKLtype in self.__class__.availImpl.keys():
-      self.raiseAnError(IOError, 'not known SKLtype "' + SKLtype + '" (from ROM "' + name + '")')
+      self.raiseAnError(
+          IOError,
+          'not known SKLtype "' + SKLtype + '" (from ROM "' + name + '")')
     if not SKLsubType in self.__class__.availImpl[SKLtype].keys():
-      self.raiseAnError(IOError,
-                        'not known SKLsubType "' + SKLsubType + '" (from ROM "' + name + '")')
+      self.raiseAnError(IOError, 'not known SKLsubType "' + SKLsubType +
+                        '" (from ROM "' + name + '")')
 
-    self.__class__.returnType = self.__class__.availImpl[SKLtype][SKLsubType][1]
+    self.__class__.returnType = self.__class__.availImpl[SKLtype][SKLsubType][
+        1]
     self.externalNorm = self.__class__.availImpl[SKLtype][SKLsubType][2]
-    self.__class__.qualityEstType = self.__class__.qualityEstTypeDict[SKLtype][SKLsubType]
+    self.__class__.qualityEstType = self.__class__.qualityEstTypeDict[SKLtype][
+        SKLsubType]
 
     if 'estimator' in self.initOptionDict.keys():
       estimatorDict = self.initOptionDict['estimator']
       self.initOptionDict.pop('estimator')
-      estimatorSKLtype, estimatorSKLsubType = estimatorDict['SKLtype'].split('|')
-      estimator = self.__class__.availImpl[estimatorSKLtype][estimatorSKLsubType][0]()
+      estimatorSKLtype, estimatorSKLsubType = estimatorDict['SKLtype'].split(
+          '|')
+      estimator = self.__class__.availImpl[estimatorSKLtype][
+          estimatorSKLsubType][0]()
       if self.intrinsicMultiTarget:
-        self.ROM = [self.__class__.availImpl[SKLtype][SKLsubType][0](estimator)]
+        self.ROM = [
+            self.__class__.availImpl[SKLtype][SKLsubType][0](estimator)
+        ]
       else:
         self.ROM = [
             self.__class__.availImpl[SKLtype][SKLsubType][0](estimator)
@@ -2404,7 +2538,8 @@ class SciKitLearn(supervisedLearning):
         self.ROM = [self.__class__.availImpl[SKLtype][SKLsubType][0]()]
       else:
         self.ROM = [
-            self.__class__.availImpl[SKLtype][SKLsubType][0]() for _ in range(len(self.target))
+            self.__class__.availImpl[SKLtype][SKLsubType][0]()
+            for _ in range(len(self.target))
         ]
 
     for key, value in self.initOptionDict.items():
@@ -2455,8 +2590,14 @@ class SciKitLearn(supervisedLearning):
       self.ROM[0].fit(featureVals, targetVals)
     else:
       # if all targets only have a single unique value, just store that value, no need to fit/train
-      if all([len(np.unique(targetVals[:, index])) == 1 for index in range(len(self.ROM))]):
-        self.myNumber = [np.unique(targetVals[:, index])[0] for index in range(len(self.ROM))]
+      if all([
+          len(np.unique(targetVals[:, index])) == 1
+          for index in range(len(self.ROM))
+      ]):
+        self.myNumber = [
+            np.unique(targetVals[:, index])[0]
+            for index in range(len(self.ROM))
+        ]
         self.evaluate = self._readdressEvaluateConstResponse
       else:
         for index in range(len(self.ROM)):
@@ -2474,8 +2615,9 @@ class SciKitLearn(supervisedLearning):
       for index, target in enumerate(self.ROM):
         confidenceDict[target] = self.ROM[index].predict_proba(featureVals)
     else:
-      self.raiseAnError(IOError, 'the ROM ' + str(self.initOptionDict['name']) +
-                        'has not the an method to evaluate the confidence of the prediction')
+      self.raiseAnError(
+          IOError, 'the ROM ' + str(self.initOptionDict['name']) +
+          'has not the an method to evaluate the confidence of the prediction')
     return confidenceDict
 
   def __evaluateLocal__(self, featureVals):
@@ -2574,9 +2716,9 @@ class ARMA(supervisedLearning):
     self.pivotParameterValues = None  # In here we store the values of the pivot parameter (e.g. Time)
     # check if the pivotParameter is among the targetValues
     if self.pivotParameterID not in self.target:
-      self.raiseAnError(
-          IOError,
-          "The pivotParameter " + self.pivotParameterID + " must be part of the Target space!")
+      self.raiseAnError(IOError,
+                        "The pivotParameter " + self.pivotParameterID +
+                        " must be part of the Target space!")
     if len(self.target) > 2:
       self.raiseAnError(IOError, "Multi-target ARMA not available yet!")
     # Initialize parameters for Fourier detrending
@@ -2596,10 +2738,10 @@ class ARMA(supervisedLearning):
         temps = self.initOptionDict['FourierOrder'].split(',')
         for index, basePeriod in enumerate(self.fourierPara['basePeriod']):
           self.fourierPara['FourierOrder'][basePeriod] = int(temps[index])
-      if len(self.fourierPara['basePeriod']) != len(self.fourierPara['FourierOrder']):
-        self.raiseAnError(
-            ValueError,
-            'Length of FourierOrder should be ' + str(len(self.fourierPara['basePeriod'])))
+      if len(self.fourierPara['basePeriod']) != len(
+          self.fourierPara['FourierOrder']):
+        self.raiseAnError(ValueError, 'Length of FourierOrder should be ' +
+                          str(len(self.fourierPara['basePeriod'])))
 
   def __getstate__(self):
     """
@@ -2625,8 +2767,9 @@ class ARMA(supervisedLearning):
       self.reseed(seed)
     self.__dict__ = d
 
-  def _localNormalizeData(self, values, names,
-                          feat):  # This function is not used in this class and can be removed
+  def _localNormalizeData(
+      self, values, names,
+      feat):  # This function is not used in this class and can be removed
     """
       Overwrites default normalization procedure.
       @ In, values, unused
@@ -2643,11 +2786,13 @@ class ARMA(supervisedLearning):
       @ In, featureVals, array, shape=[n_timeStep, n_dimensions], an array of input data # Not use for ARMA training
       @ In, targetVals, array, shape = [n_timeStep, n_dimensions], an array of time series data
     """
-    self.pivotParameterValues = targetVals[:, :, self.target.index(self.pivotParameterID)]
+    self.pivotParameterValues = targetVals[:, :,
+                                           self.target.index(
+                                               self.pivotParameterID)]
     if len(self.pivotParameterValues) > 1:
       self.raiseAnError(
-          Exception,
-          self.printTag + " does not handle multiple histories data yet! # histories: " + str(
+          Exception, self.printTag +
+          " does not handle multiple histories data yet! # histories: " + str(
               len(self.pivotParameterValues)))
     self.pivotParameterValues.shape = (self.pivotParameterValues.size, )
     self.timeSeriesDatabase = copy.deepcopy(
@@ -2657,7 +2802,8 @@ class ARMA(supervisedLearning):
     # Fit fourier seires
     if self.hasFourierSeries:
       self.__trainFourier__()
-      self.armaPara['rSeries'] = self.timeSeriesDatabase - self.fourierResult['predict']
+      self.armaPara[
+          'rSeries'] = self.timeSeriesDatabase - self.fourierResult['predict']
     else:
       self.armaPara['rSeries'] = self.timeSeriesDatabase
 
@@ -2679,15 +2825,16 @@ class ARMA(supervisedLearning):
       @ In, none,
       @ Out, none,
     """
-    fourierSeriesAll = self.__generateFourierSignal__(self.pivotParameterValues,
-                                                      self.fourierPara['basePeriod'],
-                                                      self.fourierPara['FourierOrder'])
+    fourierSeriesAll = self.__generateFourierSignal__(
+        self.pivotParameterValues, self.fourierPara['basePeriod'],
+        self.fourierPara['FourierOrder'])
     fourierEngine = linear_model.LinearRegression()
     temp = {}
     for bp in self.fourierPara['FourierOrder'].keys():
       temp[bp] = range(1, self.fourierPara['FourierOrder'][bp] + 1)
     fourOrders = list(
-        itertools.product(*temp.values()))  # generate the set of combinations of the Fourier order
+        itertools.product(*temp.values())
+    )  # generate the set of combinations of the Fourier order
 
     criterionBest = np.inf
     fSeriesBest = []
@@ -2696,7 +2843,8 @@ class ARMA(supervisedLearning):
     self.fourierResult['fOrder'] = []
 
     for fOrder in fourOrders:
-      fSeries = np.zeros(shape=(self.pivotParameterValues.size, 2 * sum(fOrder)))
+      fSeries = np.zeros(
+          shape=(self.pivotParameterValues.size, 2 * sum(fOrder)))
       indexTemp = 0
       for index, bp in enumerate(self.fourierPara['FourierOrder'].keys()):
         fSeries[:, indexTemp:indexTemp + fOrder[index] * 2] = fourierSeriesAll[
@@ -2715,7 +2863,8 @@ class ARMA(supervisedLearning):
         criterionBest = copy.deepcopy(criterionCurrent)
 
     fourierEngine.fit(fSeriesBest, self.timeSeriesDatabase)
-    self.fourierResult['predict'] = np.asarray(fourierEngine.predict(fSeriesBest))
+    self.fourierResult['predict'] = np.asarray(
+        fourierEngine.predict(fSeriesBest))
 
   def __trainARMA__(self):
     """
@@ -2741,11 +2890,17 @@ class ARMA(supervisedLearning):
           init.append(init_S[n1, n1])
 
         rOpt = {}
-        rOpt = optimize.fmin(self.__computeARMALikelihood__, init, args=(p, q), full_output=True)
-        tmp = (p + q) * self.armaPara['dimension']**2 / self.pivotParameterValues.size
+        rOpt = optimize.fmin(
+            self.__computeARMALikelihood__,
+            init,
+            args=(p, q),
+            full_output=True)
+        tmp = (p + q) * self.armaPara[
+            'dimension']**2 / self.pivotParameterValues.size
         criterionCurrent = self.__computeAICorBIC(
             self.armaResult['sigHat'], noPara=tmp, cType='BIC', obj='min')
-        if criterionCurrent < criterionBest or 'P' not in self.armaResult.keys():
+        if criterionCurrent < criterionBest or 'P' not in self.armaResult.keys(
+        ):
           # to save the first iteration results
           self.armaResult['P'] = p
           self.armaResult['Q'] = q
@@ -2753,8 +2908,9 @@ class ARMA(supervisedLearning):
           criterionBest = criterionCurrent
 
     # saving training results
-    Phi, Theta, Cov = self.__armaParamAssemb__(self.armaResult['param'], self.armaResult['P'],
-                                               self.armaResult['Q'], self.armaPara['dimension'])
+    Phi, Theta, Cov = self.__armaParamAssemb__(
+        self.armaResult['param'], self.armaResult['P'], self.armaResult['Q'],
+        self.armaPara['dimension'])
     self.armaResult['Phi'] = Phi
     self.armaResult['Theta'] = Theta
     self.armaResult['sig'] = np.zeros(shape=(1, self.armaPara['dimension']))
@@ -2777,14 +2933,15 @@ class ARMA(supervisedLearning):
 
     for d in range(data.shape[1]):
       num_bins[d] = self.__computeNumberBins__(data[:, d])
-      counts, binEdges = np.histogram(data[:, d], bins=num_bins[d], normed=True)
+      counts, binEdges = np.histogram(
+          data[:, d], bins=num_bins[d], normed=True)
       Delta = np.zeros(shape=(num_bins[d], 1))
       for n in range(num_bins[d]):
         Delta[n, 0] = binEdges[n + 1] - binEdges[n]
       temp = np.cumsum(counts) * average(Delta)
       cdf = np.insert(
-          temp, 0,
-          temp[0])  # minimum of CDF is set to temp[0] instead of 0 to avoid numerical issues
+          temp, 0, temp[0]
+      )  # minimum of CDF is set to temp[0] instead of 0 to avoid numerical issues
       self.armaNormPara['resCDF'][d] = {}
       self.armaNormPara['resCDF'][d]['bins'] = copy.deepcopy(binEdges)
       self.armaNormPara['resCDF'][d]['binsMax'] = max(binEdges)
@@ -2792,10 +2949,12 @@ class ARMA(supervisedLearning):
       self.armaNormPara['resCDF'][d]['CDF'] = copy.deepcopy(cdf)
       self.armaNormPara['resCDF'][d]['CDFMax'] = max(cdf)
       self.armaNormPara['resCDF'][d]['CDFMin'] = min(cdf)
-      self.armaNormPara['resCDF'][d]['binSearchEng'] = neighbors.NearestNeighbors(
-          n_neighbors=2).fit([[b] for b in binEdges])
-      self.armaNormPara['resCDF'][d]['cdfSearchEng'] = neighbors.NearestNeighbors(
-          n_neighbors=2).fit([[c] for c in cdf])
+      self.armaNormPara['resCDF'][d][
+          'binSearchEng'] = neighbors.NearestNeighbors(n_neighbors=2).fit(
+              [[b] for b in binEdges])
+      self.armaNormPara['resCDF'][d][
+          'cdfSearchEng'] = neighbors.NearestNeighbors(n_neighbors=2).fit(
+              [[c] for c in cdf])
 
   def __computeNumberBins__(self, data):
     """
@@ -2806,9 +2965,10 @@ class ARMA(supervisedLearning):
     """
     IQR = np.percentile(data, 75) - np.percentile(data, 25)
     if IQR <= 0.0:
-      self.raiseAnError(RuntimeError,
-                        "IQR is <= zero. Percentile 75% and Percentile 25% are the same: " +
-                        str(np.percentile(data, 25)))
+      self.raiseAnError(
+          RuntimeError,
+          "IQR is <= zero. Percentile 75% and Percentile 25% are the same: " +
+          str(np.percentile(data, 25)))
     binSize = 2.0 * IQR * (data.size**(-1.0 / 3.0))
     numBin = int((max(data) - min(data)) / binSize)
     return numBin
@@ -2825,9 +2985,10 @@ class ARMA(supervisedLearning):
     elif x >= self.armaNormPara['resCDF'][d]['binsMax']:
       y = self.armaNormPara['resCDF'][d]['CDF'][-1]
     else:
-      ind = self.armaNormPara['resCDF'][d]['binSearchEng'].kneighbors(x, return_distance=False)
-      X, Y = self.armaNormPara['resCDF'][d]['bins'][ind], self.armaNormPara['resCDF'][d]['CDF'][
-          ind]
+      ind = self.armaNormPara['resCDF'][d]['binSearchEng'].kneighbors(
+          x, return_distance=False)
+      X, Y = self.armaNormPara['resCDF'][d]['bins'][ind], self.armaNormPara[
+          'resCDF'][d]['CDF'][ind]
       if X[0, 0] <= X[0, 1]:
         x1, x2, y1, y2 = X[0, 0], X[0, 1], Y[0, 0], Y[0, 1]
       else:
@@ -2846,15 +3007,17 @@ class ARMA(supervisedLearning):
       @ Out, y, float, variable value
     """
     if x < 0 or x > 1:
-      self.raiseAnError(ValueError, 'Input to __getRInvCDF__ is not in unit interval')
+      self.raiseAnError(ValueError,
+                        'Input to __getRInvCDF__ is not in unit interval')
     elif x <= self.armaNormPara['resCDF'][d]['CDFMin']:
       y = self.armaNormPara['resCDF'][d]['bins'][0]
     elif x >= self.armaNormPara['resCDF'][d]['CDFMax']:
       y = self.armaNormPara['resCDF'][d]['bins'][-1]
     else:
-      ind = self.armaNormPara['resCDF'][d]['cdfSearchEng'].kneighbors(x, return_distance=False)
-      X, Y = self.armaNormPara['resCDF'][d]['CDF'][ind], self.armaNormPara['resCDF'][d]['bins'][
-          ind]
+      ind = self.armaNormPara['resCDF'][d]['cdfSearchEng'].kneighbors(
+          x, return_distance=False)
+      X, Y = self.armaNormPara['resCDF'][d]['CDF'][ind], self.armaNormPara[
+          'resCDF'][d]['bins'][ind]
       if X[0, 0] <= X[0, 1]:
         x1, x2, y1, y2 = X[0, 0], X[0, 1], Y[0, 0], Y[0, 1]
       else:
@@ -2898,7 +3061,9 @@ class ARMA(supervisedLearning):
           temp = normTransEngine.cdf(data[n1, n2])
           transformedData[n1, n2] = self.__getInvCDF__(n2, temp)
         else:
-          self.raiseAnError(ValueError, 'Input obj to __dataConversion__ is not properly set')
+          self.raiseAnError(
+              ValueError,
+              'Input obj to __dataConversion__ is not properly set')
     return transformedData
 
   def __generateFourierSignal__(self, Time, basePeriod, fourierOrder):
@@ -2912,8 +3077,10 @@ class ARMA(supervisedLearning):
     for bp in basePeriod:
       fourierSeriesAll[bp] = np.zeros(shape=(Time.size, 2 * fourierOrder[bp]))
       for orderBp in range(fourierOrder[bp]):
-        fourierSeriesAll[bp][:, 2 * orderBp] = np.sin(2 * np.pi * (orderBp + 1) / bp * Time)
-        fourierSeriesAll[bp][:, 2 * orderBp + 1] = np.cos(2 * np.pi * (orderBp + 1) / bp * Time)
+        fourierSeriesAll[bp][:, 2 * orderBp] = np.sin(
+            2 * np.pi * (orderBp + 1) / bp * Time)
+        fourierSeriesAll[bp][:, 2 * orderBp + 1] = np.cos(
+            2 * np.pi * (orderBp + 1) / bp * Time)
     return fourierSeriesAll
 
   def __armaParamAssemb__(self, x, p, q, N):
@@ -2935,7 +3102,8 @@ class ARMA(supervisedLearning):
     for j in range(1, q + 1):
       Theta[j] = np.zeros(shape=(N, N))
       for n in range(N):
-        Theta[j][n, :] = x[N**2 * (p + j - 1) + n * N:N**2 * (p + j - 1) + (n + 1) * N]
+        Theta[j][n, :] = x[N**2 * (p + j - 1) + n * N:N**2 * (p + j - 1) +
+                           (n + 1) * N]
     for n in range(N):
       Cov[n, n] = x[N**2 * (p + q) + n]
     return Phi, Theta, Cov
@@ -2948,12 +3116,14 @@ class ARMA(supervisedLearning):
       @ Out, lkHood, float, output likelihood
     """
     if len(args) != 2:
-      self.raiseAnError(ValueError,
-                        'args to __computeARMALikelihood__ should have exactly 2 elements')
+      self.raiseAnError(
+          ValueError,
+          'args to __computeARMALikelihood__ should have exactly 2 elements')
 
     p, q, N = args[0], args[1], self.armaPara['dimension']
     if len(x) != N**2 * (p + q) + N:
-      self.raiseAnError(ValueError, 'input to __computeARMALikelihood__ has wrong dimension')
+      self.raiseAnError(
+          ValueError, 'input to __computeARMALikelihood__ has wrong dimension')
     Phi, Theta, Cov = self.__armaParamAssemb__(x, p, q, N)
     for n1 in range(N):
       for n2 in range(N):
@@ -2965,7 +3135,8 @@ class ARMA(supervisedLearning):
     d = self.armaPara['rSeriesNorm']
     numTimeStep = d.shape[0]
     alpha = np.zeros(shape=d.shape)
-    L = -N * numTimeStep / 2.0 * np.log(2 * np.pi) - numTimeStep / 2.0 * np.log(np.linalg.det(Cov))
+    L = -N * numTimeStep / 2.0 * np.log(
+        2 * np.pi) - numTimeStep / 2.0 * np.log(np.linalg.det(Cov))
     for t in range(numTimeStep):
       alpha[t, :] = d[t, :]
       for i in range(1, min(p, t) + 1):
@@ -2997,7 +3168,8 @@ class ARMA(supervisedLearning):
     else:
       flag = 1
     if cType == 'BIC':
-      criterionValue = -1 * flag * np.log(maxL) + noPara * np.log(self.pivotParameterValues.size)
+      criterionValue = -1 * flag * np.log(maxL) + noPara * np.log(
+          self.pivotParameterValues.size)
     elif cType == 'AIC':
       criterionValue = -1 * flag * np.log(maxL) + noPara * 2
     else:
@@ -3012,7 +3184,8 @@ class ARMA(supervisedLearning):
     if featureVals.size > 1:
       self.raiseAnError(
           ValueError,
-          'The input feature for ARMA for evaluation cannot have size greater than 1. ')
+          'The input feature for ARMA for evaluation cannot have size greater than 1. '
+      )
 
     # Instantiate a normal distribution for time series synthesis (noise part)
     normEvaluateEngine = Distributions.returnInstance('Normal', self)
@@ -3025,15 +3198,19 @@ class ARMA(supervisedLearning):
     # TODO This could probably be vectorized for speed gains
     for t in range(numTimeStep):
       for n in range(self.armaPara['dimension']):
-        tSeriesNoise[t, n] = normEvaluateEngine.rvs() * self.armaResult['sig'][0, n]
+        tSeriesNoise[t, n] = normEvaluateEngine.rvs() * self.armaResult['sig'][
+            0, n]
 
-    tSeriesNorm = np.zeros(shape=(numTimeStep, self.armaPara['rSeriesNorm'].shape[1]))
+    tSeriesNorm = np.zeros(
+        shape=(numTimeStep, self.armaPara['rSeriesNorm'].shape[1]))
     tSeriesNorm[0, :] = self.armaPara['rSeriesNorm'][0, :]
     for t in range(numTimeStep):
       for i in range(1, min(self.armaResult['P'], t) + 1):
-        tSeriesNorm[t, :] += np.dot(tSeriesNorm[t - i, :], self.armaResult['Phi'][i])
+        tSeriesNorm[t, :] += np.dot(tSeriesNorm[t - i, :],
+                                    self.armaResult['Phi'][i])
       for j in range(1, min(self.armaResult['Q'], t) + 1):
-        tSeriesNorm[t, :] += np.dot(tSeriesNoise[t - j, :], self.armaResult['Theta'][j])
+        tSeriesNorm[t, :] += np.dot(tSeriesNoise[t - j, :],
+                                    self.armaResult['Theta'][j])
       tSeriesNorm[t, :] += tSeriesNoise[t, :]
 
     # Convert data back to empirically distributed
@@ -3043,7 +3220,8 @@ class ARMA(supervisedLearning):
     if self.hasFourierSeries:
       if len(self.fourierResult['predict'].shape) == 1:
         tempFour = np.reshape(
-            self.fourierResult['predict'], newshape=(self.fourierResult['predict'].shape[0], 1))
+            self.fourierResult['predict'],
+            newshape=(self.fourierResult['predict'].shape[0], 1))
       else:
         tempFour = self.fourierResult['predict'][0:numTimeStep, :]
       tSeries += tempFour
@@ -3054,7 +3232,8 @@ class ARMA(supervisedLearning):
       elif self.outTruncation == 'negative':
         tSeries = -np.absolute(tSeries)
     returnEvaluation = {}
-    returnEvaluation[self.pivotParameterID] = self.pivotParameterValues[0:numTimeStep]
+    returnEvaluation[self.pivotParameterID] = self.pivotParameterValues[
+        0:numTimeStep]
     evaluation = tSeries * featureVals
     for index, target in enumerate(self.target):
       returnEvaluation[target] = evaluation[:, index]
@@ -3117,28 +3296,33 @@ class PolyExponential(supervisedLearning):
     """
 
     supervisedLearning.__init__(self, messageHandler, **kwargs)
-    self.availCoeffRegressors = ['nearest', 'poly', 'spline']  # avail coeff regressors
+    self.availCoeffRegressors = ['nearest', 'poly',
+                                 'spline']  # avail coeff regressors
     self.printTag = 'PolyExponential'  # Print tag
-    self.pivotParameterID = kwargs.get("pivotParameter", "time")  # Pivot parameter ID
+    self.pivotParameterID = kwargs.get("pivotParameter",
+                                       "time")  # Pivot parameter ID
     self._dynamicHandling = True  # This ROM is able to manage the time-series on its own
     self.polyExpParams = {}  # poly exponential options' container
-    self.polyExpParams['expTerms'] = int(kwargs.get('numberExpTerms',
-                                                    3))  # the number of exponential terms
+    self.polyExpParams['expTerms'] = int(kwargs.get(
+        'numberExpTerms', 3))  # the number of exponential terms
     self.polyExpParams['coeffRegressor'] = kwargs.get(
-        'coeffRegressor',
-        'spline').lower()  # which regressor to use for interpolating the coefficient
-    self.polyExpParams['polyOrder'] = int(kwargs.get('polyOrder', 3))  # the polynomial order
-    self.polyExpParams['tol'] = float(kwargs.get('tol', 0.001))  # optimization tolerance
-    self.polyExpParams['maxNumberIter'] = int(kwargs.get(
-        'maxNumberIter', 5000))  # maximum number of iterations in optimization
+        'coeffRegressor', 'spline').lower(
+        )  # which regressor to use for interpolating the coefficient
+    self.polyExpParams['polyOrder'] = int(kwargs.get(
+        'polyOrder', 3))  # the polynomial order
+    self.polyExpParams['tol'] = float(kwargs.get(
+        'tol', 0.001))  # optimization tolerance
+    self.polyExpParams['maxNumberIter'] = int(
+        kwargs.get('maxNumberIter',
+                   5000))  # maximum number of iterations in optimization
     self.aij = None  # a_ij coefficients of the exponential terms {'target1':ndarray(nsamples, self.polyExpParams['expTerms']),'target2',ndarray,etc}
     self.bij = None  # b_ij coefficients of the exponent of the exponential terms {'target1':ndarray(nsamples, self.polyExpParams['expTerms']),'target2',ndarray,etc}
     self.model = None  # the surrogate model itself {'target1':model,'target2':model, etc.}
     # check if the pivotParameter is among the targetValues
     if self.pivotParameterID not in self.target:
-      self.raiseAnError(
-          IOError,
-          "The pivotParameter " + self.pivotParameterID + " must be part of the Target space!")
+      self.raiseAnError(IOError,
+                        "The pivotParameter " + self.pivotParameterID +
+                        " must be part of the Target space!")
 
   def _localNormalizeData(self, values, names, feat):
     """
@@ -3176,11 +3360,13 @@ class PolyExponential(supervisedLearning):
     try:
       from scipy.optimize import differential_evolution
     except ImportError:
-      self.raiseAnError(ImportError, "Minimum scipy version to use this SM is 0.15")
+      self.raiseAnError(ImportError,
+                        "Minimum scipy version to use this SM is 0.15")
     numberTerms = self.polyExpParams['expTerms']
     predictionErr = None
     x, y = np.array(x), np.array(y)
-    bounds = [[min(x), max(x)]] * numberTerms + [[min(y), max(y)]] * numberTerms
+    bounds = [[min(x), max(x)]] * numberTerms + [[min(y), max(y)]
+                                                 ] * numberTerms
     result = differential_evolution(
         _objective,
         bounds,
@@ -3216,7 +3402,8 @@ class PolyExponential(supervisedLearning):
     if (len(targetVals.shape) != 3):
       self.raiseAnError(
           Exception,
-          "This ROM is specifically usable for time-series data surrogating (i.e. HistorySet)!")
+          "This ROM is specifically usable for time-series data surrogating (i.e. HistorySet)!"
+      )
     targetIndexes = {}
     self.aij = {}
     self.bij = {}
@@ -3229,15 +3416,18 @@ class PolyExponential(supervisedLearning):
         targetIndexes[target] = index
         self.aij[target] = np.zeros((nsamples, self.polyExpParams['expTerms']))
         self.bij[target] = np.zeros((nsamples, self.polyExpParams['expTerms']))
-        self.predictError[target] = np.zeros((nsamples, len(targetVals[0, :, index])))
+        self.predictError[target] = np.zeros((nsamples,
+                                              len(targetVals[0, :, index])))
     #TODO: this can be parallelized
     for smp in range(nsamples):
-      self.raiseADebug("Computing exponential terms for sample ID " + str(smp + 1))
+      self.raiseADebug(
+          "Computing exponential terms for sample ID " + str(smp + 1))
       for target in targetIndexes:
-        resp = self.__computeExpTerms(targetVals[smp, :, pivotParamIndex],
-                                      targetVals[smp, :, targetIndexes[target]])
-        self.aij[target][smp, :], self.bij[target][smp, :], self.predictError[target][
-            smp, :] = resp
+        resp = self.__computeExpTerms(
+            targetVals[smp, :, pivotParamIndex],
+            targetVals[smp, :, targetIndexes[target]])
+        self.aij[target][smp, :], self.bij[target][smp, :], self.predictError[
+            target][smp, :] = resp
     # store the pivot values
     self.pivotValues = targetVals[0, :, pivotParamIndex]
     if self.polyExpParams['coeffRegressor'] == 'nearest':
@@ -3245,7 +3435,8 @@ class PolyExponential(supervisedLearning):
     # construct poly
     for target in targetIndexes:
       # the targets are the coefficients
-      expTermCoeff = np.concatenate((self.aij[target], self.bij[target]), axis=1)
+      expTermCoeff = np.concatenate(
+          (self.aij[target], self.bij[target]), axis=1)
       if self.polyExpParams['coeffRegressor'] == 'poly':
         # now that we have the coefficients, we can construct the polynomial expansion whose targets are the just computed coefficients
         self.model[target] = make_pipeline(
@@ -3264,23 +3455,29 @@ class PolyExponential(supervisedLearning):
           self.raiseADebug("      " + " ".join([str(elm) for elm in coeff]))
       elif self.polyExpParams['coeffRegressor'] == 'nearest':
         # construct nearest
-        self.model[target] = [None for _ in range(self.polyExpParams['expTerms'] * 2)]
+        self.model[target] = [
+            None for _ in range(self.polyExpParams['expTerms'] * 2)
+        ]
         for cnt in range(len(self.model[target])):
           self.model[target][cnt] = neighbors.KNeighborsRegressor(
-              n_neighbors=min(nsamples, 2**len(self.features)), weights='distance')
-          self.model[target][cnt].fit(self.scaler.transform(featureVals), expTermCoeff[:, cnt])
+              n_neighbors=min(nsamples, 2**len(self.features)),
+              weights='distance')
+          self.model[target][cnt].fit(
+              self.scaler.transform(featureVals), expTermCoeff[:, cnt])
       else:
         # construct spline
         numbTerms = self.polyExpParams['expTerms']
         targets = [
-            "a_" + str(cnt + 1) if cnt < numbTerms else "b_" + str((cnt - numbTerms) + 1)
+            "a_" + str(cnt + 1)
+            if cnt < numbTerms else "b_" + str((cnt - numbTerms) + 1)
             for cnt in range(numbTerms * 2)
         ]
         self.model[target] = NDsplineRom(self.messageHandler, **{
             'Features': ','.join(self.features),
             'Target': ",".join(targets)
         })
-        self.model[target].__class__.__trainLocal__(self.model[target], featureVals, expTermCoeff)
+        self.model[target].__class__.__trainLocal__(self.model[target],
+                                                    featureVals, expTermCoeff)
     self.featureVals = featureVals
 
   def __evaluateLocal__(self, featureVals):
@@ -3295,20 +3492,22 @@ class PolyExponential(supervisedLearning):
       if isinstance(self.model[target], list):
         evaluation = np.zeros((len(featureVals), len(self.model[target])))
         for cnt, model in enumerate(self.model[target]):
-          evaluation[:, cnt] = model.predict(self.scaler.transform(featureVals))
+          evaluation[:, cnt] = model.predict(
+              self.scaler.transform(featureVals))
       else:
         if 'predict' in dir(self.model[target]):
           evaluation = self.model[target].predict(featureVals)
         else:
-          evaluation = np.zeros((len(featureVals), len(self.model[target].target)))
-          evalDict = self.model[target].__class__.__evaluateLocal__(self.model[target],
-                                                                    featureVals)
+          evaluation = np.zeros((len(featureVals),
+                                 len(self.model[target].target)))
+          evalDict = self.model[target].__class__.__evaluateLocal__(
+              self.model[target], featureVals)
           for cnt, targ in enumerate(self.model[target].target):
             evaluation[:, cnt] = evalDict[targ][:]
       for point in range(len(evaluation)):
         l = int(evaluation[point].size / 2)
-        returnEvaluation[target] = self.__evaluateExpTerm(self.pivotValues, evaluation[point][:l],
-                                                          evaluation[point][l:])
+        returnEvaluation[target] = self.__evaluateExpTerm(
+            self.pivotValues, evaluation[point][:l], evaluation[point][l:])
     return returnEvaluation
 
   def _localPrintXMLSetup(self, outFile, options={}):
@@ -3343,7 +3542,9 @@ class PolyExponential(supervisedLearning):
     if not self.amITrained:
       self.raiseAnError(RuntimeError, 'ROM is not yet trained!')
     # check what
-    what = ['expTerms', 'coeffRegressor', 'features', 'timeScale', 'coefficients']
+    what = [
+        'expTerms', 'coeffRegressor', 'features', 'timeScale', 'coefficients'
+    ]
     if self.polyExpParams['coeffRegressor'].strip() == 'poly':
       what.append('polyOrder')
     if 'what' in options:
@@ -3351,8 +3552,10 @@ class PolyExponential(supervisedLearning):
       if readWhat[0].strip().lower() == 'all':
         readWhat = what
       if not set(readWhat) <= set(what):
-        self.raiseAnError(IOError, "The following variables in <what> node are not recognized: " +
-                          ",".join(np.setdiff1d(readWhat, what).tolist()))
+        self.raiseAnError(
+            IOError,
+            "The following variables in <what> node are not recognized: " +
+            ",".join(np.setdiff1d(readWhat, what).tolist()))
       else:
         what = readWhat
     # Target
@@ -3366,20 +3569,29 @@ class PolyExponential(supervisedLearning):
     if "features" in what:
       outFile.addScalar(target, "features", ' '.join(self.features))
     if "timeScale" in what:
-      outFile.addScalar(target, "timeScale", ' '.join([str(elm) for elm in self.pivotValues]))
+      outFile.addScalar(target, "timeScale",
+                        ' '.join([str(elm) for elm in self.pivotValues]))
     if "coefficients" in what:
       for smp in range(len(self.aij[target])):
         valDict = {
-            'fi': ' '.join(['%.6e' % elm for elm in self.aij[target][smp, :]]),
-            'taui': ' '.join(['%.6e' % elm for elm in self.bij[target][smp, :]]),
+            'fi':
+            ' '.join(['%.6e' % elm for elm in self.aij[target][smp, :]]),
+            'taui':
+            ' '.join(['%.6e' % elm for elm in self.bij[target][smp, :]]),
             'predictionRelDiff':
-            ' '.join(['%.6e' % elm for elm in self.predictError[target][smp, :]])
+            ' '.join(
+                ['%.6e' % elm for elm in self.predictError[target][smp, :]])
         }
         attributeDict = {
             self.features[index]: '%.6e' % self.featureVals[smp, index]
             for index in range(len(self.features))
         }
-        outFile.addVector("coefficients", "realization", valDict, root=target, attrs=attributeDict)
+        outFile.addVector(
+            "coefficients",
+            "realization",
+            valDict,
+            root=target,
+            attrs=attributeDict)
 
   def __confidenceLocal__(self, featureVals):
     """
@@ -3437,18 +3649,22 @@ class DynamicModeDecomposition(supervisedLearning):
       @ In, kwargs, dict, an arbitrary dictionary of keywords and values
     """
     supervisedLearning.__init__(self, messageHandler, **kwargs)
-    self.availDmdAlgorithms = ['dmd', 'hodmd']  # available dmd types: basic dmd and high order dmd
+    self.availDmdAlgorithms = [
+        'dmd', 'hodmd'
+    ]  # available dmd types: basic dmd and high order dmd
     self.dmdParams = {}  # dmd settings container
     self.printTag = 'DMD'  # print tag
-    self.pivotParameterID = kwargs.get("pivotParameter", "time")  # pivot parameter
+    self.pivotParameterID = kwargs.get("pivotParameter",
+                                       "time")  # pivot parameter
     self._dynamicHandling = True  # This ROM is able to manage the time-series on its own. No need for special treatment outside
     self.dmdParams['rankSVD'] = kwargs.get(
-        'rankSVD', None)  # -1 no truncation, 0 optimal rank is computed, >1 truncation rank
+        'rankSVD', None
+    )  # -1 no truncation, 0 optimal rank is computed, >1 truncation rank
     self.dmdParams['energyRankSVD'] = kwargs.get(
         'energyRankSVD', None
     )  #  0.0 < float < 1.0, computed rank is the number of the biggest sv needed to reach the energy identified by "energyRankSVD"
-    self.dmdParams['rankTLSQ'] = kwargs.get('rankTLSQ',
-                                            None)  # truncation rank for total least square
+    self.dmdParams['rankTLSQ'] = kwargs.get(
+        'rankTLSQ', None)  # truncation rank for total least square
     self.dmdParams['exactModes'] = kwargs.get(
         'exactModes', True
     )  # True if the exact modes need to be computed (eigs and eigvs), otherwise the projected ones (using the left-singular matrix)
@@ -3456,11 +3672,13 @@ class DynamicModeDecomposition(supervisedLearning):
         'optimized', False
     )  # amplitudes computed minimizing the error between the mods and all the timesteps (True) or 1st timestep only (False)
     self.dmdParams['dmdType'] = kwargs.get(
-        'dmdType',
-        'dmd')  # the dmd type to be applied. Currently we support dmd and hdmd (high order dmd)
+        'dmdType', 'dmd'
+    )  # the dmd type to be applied. Currently we support dmd and hdmd (high order dmd)
     # variables filled up in the training stages
-    self._amplitudes = {}  # {'target1': vector of amplitudes,'target2':vector of amplitudes, etc.}
-    self._eigs = {}  # {'target1': vector of eigenvalues,'target2':vector of eigenvalues, etc.}
+    self._amplitudes = {
+    }  # {'target1': vector of amplitudes,'target2':vector of amplitudes, etc.}
+    self._eigs = {
+    }  # {'target1': vector of eigenvalues,'target2':vector of eigenvalues, etc.}
     self._modes = {
     }  # {'target1': matrix of dynamic modes,'target2':matrix of dynamic modes, etc.}
     self.__Atilde = {
@@ -3476,13 +3694,13 @@ class DynamicModeDecomposition(supervisedLearning):
           'Both "rankSVD" and "energyRankSVD" have been inputted. "energyRankSVD" is predominant and will be used!'
       )
     if self.dmdParams['dmdType'] not in self.availDmdAlgorithms:
-      self.raiseAnError(IOError,
-                        'dmdType(s) available are "' + ', '.join(self.availDmdAlgorithms) + '"!')
+      self.raiseAnError(IOError, 'dmdType(s) available are "' +
+                        ', '.join(self.availDmdAlgorithms) + '"!')
     # check if the pivotParameter is among the targetValues
     if self.pivotParameterID not in self.target:
-      self.raiseAnError(
-          IOError,
-          "The pivotParameter " + self.pivotParameterID + " must be part of the Target space!")
+      self.raiseAnError(IOError,
+                        "The pivotParameter " + self.pivotParameterID +
+                        " must be part of the Target space!")
 
   def _localNormalizeData(self, values, names, feat):
     """
@@ -3501,8 +3719,10 @@ class DynamicModeDecomposition(supervisedLearning):
       @ In, dmd, bool, optional, True if dmd time scale needs to be returned, othewise training one
       @ Out, timeScale, numpy.array, the dmd or training reconstructed time scale
     """
-    timeScaleInfo = self.timeScales['dmd'] if dmd else self.timeScales['training']
-    timeScale = np.arange(timeScaleInfo['t0'], timeScaleInfo['intervals'] + timeScaleInfo['dt'],
+    timeScaleInfo = self.timeScales['dmd'] if dmd else self.timeScales[
+        'training']
+    timeScale = np.arange(timeScaleInfo['t0'],
+                          timeScaleInfo['intervals'] + timeScaleInfo['dt'],
                           timeScaleInfo['dt'])
     return timeScale
 
@@ -3545,13 +3765,17 @@ class DynamicModeDecomposition(supervisedLearning):
       if self.dmdParams['dmdType'] == 'hodmd' or snaps.shape[0] < snaps.shape[1]:
         v = max(snaps.shape[1] - snaps.shape[0], 2)
         imposedHODMD = True
-        snaps = np.concatenate([snaps[:, i:snaps.shape[1] - v + i + 1] for i in range(v)], axis=0)
+        snaps = np.concatenate(
+            [snaps[:, i:snaps.shape[1] - v + i + 1] for i in range(v)], axis=0)
       # overlap snaps
       X, Y = snaps[:, :-1], snaps[:, 1:]
       if self.dmdParams['rankTLSQ'] is not None:
-        X, Y = mathUtils.computeTruncatedTotalLeastSquare(X, Y, self.dmdParams['rankTLSQ'])
-      rank = self.dmdParams['energyRankSVD'] if self.dmdParams['energyRankSVD'] is not None else (
-          self.dmdParams['rankSVD'] if self.dmdParams['rankSVD'] is not None else -1)
+        X, Y = mathUtils.computeTruncatedTotalLeastSquare(
+            X, Y, self.dmdParams['rankTLSQ'])
+      rank = self.dmdParams[
+          'energyRankSVD'] if self.dmdParams['energyRankSVD'] is not None else (
+              self.dmdParams['rankSVD']
+              if self.dmdParams['rankSVD'] is not None else -1)
       U, s, V = mathUtils.computeTruncatedSingularValueDecomposition(X, rank)
       # lowrank operator from the SVD of matrices X and Y
       self.__Atilde[target] = U.T.conj().dot(Y).dot(V) * np.reciprocal(s)
@@ -3559,12 +3783,17 @@ class DynamicModeDecomposition(supervisedLearning):
           target] = mathUtils.computeEigenvaluesAndVectorsFromLowRankOperator(
               self.__Atilde[target], Y, U, s, V, self.dmdParams['exactModes'])
       if imposedHODMD:
-        self._modes[target] = self._modes[target][:targetVals[:, :, targetParamIndex].shape[0], :]
+        self._modes[target] = self._modes[
+            target][:targetVals[:, :, targetParamIndex].shape[0], :]
       self._amplitudes[target] = mathUtils.computeAmplitudeCoefficients(
-          self._modes[target], targetVals[:, :, targetParamIndex], self._eigs[target],
-          self.dmdParams['optimized'])
+          self._modes[target], targetVals[:, :, targetParamIndex],
+          self._eigs[target], self.dmdParams['optimized'])
     # Default timesteps (even if the time history is not equally spaced in time, we "trick" the dmd to think it).
-    self.timeScales = dict.fromkeys(['training', 'dmd'], {'t0': 0, 'intervals': ts - 1, 'dt': 1})
+    self.timeScales = dict.fromkeys(['training', 'dmd'], {
+        't0': 0,
+        'intervals': ts - 1,
+        'dt': 1
+    })
 
   def __evaluateLocal__(self, featureVals):
     """
@@ -3622,20 +3851,22 @@ class DynamicModeDecomposition(supervisedLearning):
 
     # check what
     what = [
-        'exactModes', 'optimized', 'dmdType', 'features', 'timeScale', 'eigs', 'amplitudes',
-        'modes', 'dmdTimeScale'
+        'exactModes', 'optimized', 'dmdType', 'features', 'timeScale', 'eigs',
+        'amplitudes', 'modes', 'dmdTimeScale'
     ]
     if self.dmdParams['rankTLSQ'] is not None:
       what.append('rankTLSQ')
-    what.append('energyRankSVD' if self.dmdParams['energyRankSVD'] is not None else 'rankSVD')
+    what.append('energyRankSVD'
+                if self.dmdParams['energyRankSVD'] is not None else 'rankSVD')
     if 'what' in options:
       readWhat = options['what'].split(",")
       if readWhat[0].strip().lower() == 'all':
         readWhat = what
       if not set(readWhat) <= set(what):
-        self.raiseAnError(IOError,
-                          "The following variables specified in <what> node are not recognized: " +
-                          ",".join(np.setdiff1d(readWhat, what).tolist()))
+        self.raiseAnError(
+            IOError,
+            "The following variables specified in <what> node are not recognized: "
+            + ",".join(np.setdiff1d(readWhat, what).tolist()))
       else:
         what = readWhat
     # Target
@@ -3643,7 +3874,8 @@ class DynamicModeDecomposition(supervisedLearning):
     toAdd = ['exactModes', 'optimized', 'dmdType']
     if self.dmdParams['rankTLSQ'] is not None:
       toAdd.append('rankTLSQ')
-    toAdd.append('energyRankSVD' if self.dmdParams['energyRankSVD'] is not None else 'rankSVD')
+    toAdd.append('energyRankSVD'
+                 if self.dmdParams['energyRankSVD'] is not None else 'rankSVD')
     self.dmdParams['rankSVD'] = self.dmdParams[
         'rankSVD'] if self.dmdParams['rankSVD'] is not None else -1
 
@@ -3653,17 +3885,21 @@ class DynamicModeDecomposition(supervisedLearning):
     if "features" in what:
       outFile.addScalar(target, "features", ' '.join(self.features))
     if "timeScale" in what:
-      outFile.addScalar(target, "timeScale",
-                        ' '.join(['%.6e' % elm for elm in self.pivotValues.ravel()]))
+      outFile.addScalar(target, "timeScale", ' '.join(
+          ['%.6e' % elm for elm in self.pivotValues.ravel()]))
     if "dmdTimeScale" in what:
-      outFile.addScalar(target, "dmdTimeScale",
-                        ' '.join(['%.6e' % elm for elm in self.__getTimeScale()]))
+      outFile.addScalar(target, "dmdTimeScale", ' '.join(
+          ['%.6e' % elm for elm in self.__getTimeScale()]))
     if "eigs" in what:
-      eigsReal = " ".join(
-          ['%.6e' % self._eigs[target][indx].real for indx in range(len(self._eigs[target]))])
+      eigsReal = " ".join([
+          '%.6e' % self._eigs[target][indx].real
+          for indx in range(len(self._eigs[target]))
+      ])
       outFile.addScalar("eigs", "real", eigsReal, root=target)
-      eigsImag = " ".join(
-          ['%.6e' % self._eigs[target][indx].imag for indx in range(len(self._eigs[target]))])
+      eigsImag = " ".join([
+          '%.6e' % self._eigs[target][indx].imag
+          for indx in range(len(self._eigs[target]))
+      ])
       outFile.addScalar("eigs", "imaginary", eigsImag, root=target)
     if "amplitudes" in what:
       ampsReal = " ".join([
@@ -3679,14 +3915,19 @@ class DynamicModeDecomposition(supervisedLearning):
     if "modes" in what:
       for smp in range(len(self._modes[target])):
         valDict = {
-            'real': ' '.join(['%.6e' % elm for elm in self._modes[target][smp, :].real]),
-            'imaginary': ' '.join(['%.6e' % elm for elm in self._modes[target][smp, :].imag])
+            'real':
+            ' '.join(
+                ['%.6e' % elm for elm in self._modes[target][smp, :].real]),
+            'imaginary':
+            ' '.join(
+                ['%.6e' % elm for elm in self._modes[target][smp, :].imag])
         }
         attributeDict = {
             self.features[index]: '%.6e' % self.featureVals[smp, index]
             for index in range(len(self.features))
         }
-        outFile.addVector("modes", "realization", valDict, root=target, attrs=attributeDict)
+        outFile.addVector(
+            "modes", "realization", valDict, root=target, attrs=attributeDict)
 
   def __confidenceLocal__(self, featureVals):
     """
@@ -3759,7 +4000,8 @@ def returnInstance(ROMclass, caller, **kwargs):
   try:
     return __interfaceDict[ROMclass](caller.messageHandler, **kwargs)
   except KeyError as ae:
-    caller.raiseAnError(NameError, 'not known ' + __base + ' type ' + str(ROMclass))
+    caller.raiseAnError(NameError,
+                        'not known ' + __base + ' type ' + str(ROMclass))
 
 
 def returnClass(ROMclass, caller):

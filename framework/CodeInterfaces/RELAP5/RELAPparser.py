@@ -44,7 +44,8 @@ class RELAPparser():
     for lineNum, line in enumerate(lines):
       if line.strip().startswith("."):
         self.maxNumberOfDecks += 1
-        self.deckLines[self.maxNumberOfDecks] = lines[prevDeckLineNum:lineNum + 1]
+        self.deckLines[self.maxNumberOfDecks] = lines[prevDeckLineNum:
+                                                      lineNum + 1]
         prevDeckLineNum = lineNum + 1
     if self.maxNumberOfDecks < 1:
       raise IOError(self.printTag + "ERROR: the file " + inputFile +
@@ -83,9 +84,11 @@ class RELAPparser():
     for deckNum in decks.keys():
       a = self.deckLines.keys()
       if deckNum not in self.deckLines.keys():
-        raise IOError("RELAP5 Interface: The number of deck found in the original input file is " +
-                      str(self.maxNumberOfDecks) +
-                      " while the user requested to modify the deck number " + str(deckNum))
+        raise IOError(
+            "RELAP5 Interface: The number of deck found in the original input file is "
+            + str(self.maxNumberOfDecks) +
+            " while the user requested to modify the deck number " +
+            str(deckNum))
       temp = []
       modiDictionaryList = decks[deckNum]
       temp.append('*RAVEN INPUT VALUES\n')
@@ -93,8 +96,8 @@ class RELAPparser():
         temp.append('*' + ' deckNum: ' + str(deckNum) + '\n')
       for j in modiDictionaryList:
         for var in modiDictionaryList[j]:
-          temp.append('* card: ' + j + ' word: ' + str(var['position']) + ' value: ' +
-                      str(var['value']) + '\n')
+          temp.append('* card: ' + j + ' word: ' + str(var['position']) +
+                      ' value: ' + str(var['value']) + '\n')
       temp.append('*RAVEN INPUT VALUES\n')
 
       temp += self.deckLines[deckNum]
@@ -117,8 +120,9 @@ class RELAPparser():
             while moveToNextLine:
               if temp[lineNum + cnt].strip().startswith("+"):
                 cardLines[card]['numberOfLevels'] += 1
-                cardLines[card]['numberOfAvailableWords'] += self.countNumberOfWords(
-                    temp[lineNum + cnt])
+                cardLines[card][
+                    'numberOfAvailableWords'] += self.countNumberOfWords(
+                        temp[lineNum + cnt])
                 cnt += 1
               else:
                 moveToNextLine = False
@@ -128,17 +132,19 @@ class RELAPparser():
           if cardLines[card]['numberOfAvailableWords'] >= var['position']:
             totalNumberOfWords = 0
             for i in range(cardLines[card]['numberOfLevels']):
-              numberOfWords = self.countNumberOfWords(temp[cardLines[card]['lineNumber'] + i])
+              numberOfWords = self.countNumberOfWords(
+                  temp[cardLines[card]['lineNumber'] + i])
               if totalNumberOfWords + numberOfWords >= var['position']:
                 temp[cardLines[card]['lineNumber'] + i] = self.replaceword(
-                    temp[cardLines[card]['lineNumber'] + i], var['position'] - totalNumberOfWords,
-                    var['value'])
+                    temp[cardLines[card]['lineNumber'] + i],
+                    var['position'] - totalNumberOfWords, var['value'])
                 break
               totalNumberOfWords += numberOfWords
           else:
-            raise IOError("RELAP5 Interface: The word that needs to be sampled is in a position ("
-                          + str(var['position']) + ") > then the actual number of words (" +
-                          str(cardLines[card]['numberOfAvailableWords']) + ")!!")
+            raise IOError(
+                "RELAP5 Interface: The word that needs to be sampled is in a position ("
+                + str(var['position']) + ") > then the actual number of words ("
+                + str(cardLines[card]['numberOfAvailableWords']) + ")!!")
       if save:
         self.deckLines[deckNum] = temp
       lines = lines + temp

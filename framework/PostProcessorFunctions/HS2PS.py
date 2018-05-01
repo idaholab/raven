@@ -67,12 +67,12 @@ class HS2PS(PostProcessorInterfaceBase):
       elif child.tag == 'features':
         self.features = child.text.split(',')
       elif child.tag != 'method':
-        self.raiseAnError(IOError, 'HS2PS Interfaced Post-Processor ' + str(self.name) +
-                          ' : XML node ' + str(child) + ' is not recognized')
+        self.raiseAnError(IOError, 'HS2PS Interfaced Post-Processor ' + str(
+            self.name) + ' : XML node ' + str(child) + ' is not recognized')
 
     if self.pivotParameter == None:
-      self.raiseAnError(IOError, 'HS2PS Interfaced Post-Processor ' + str(self.name) +
-                        ' : pivotParameter is not specified')
+      self.raiseAnError(IOError, 'HS2PS Interfaced Post-Processor ' +
+                        str(self.name) + ' : pivotParameter is not specified')
 
   def run(self, inputDic):
     """
@@ -81,9 +81,8 @@ class HS2PS(PostProcessorInterfaceBase):
       @ Out, outputDic, dict, output dictionary
     """
     if len(inputDic) > 1:
-      self.raiseAnError(
-          IOError,
-          'HS2PS Interfaced Post-Processor ' + str(self.name) + ' accepts only one dataObject')
+      self.raiseAnError(IOError, 'HS2PS Interfaced Post-Processor ' +
+                        str(self.name) + ' accepts only one dataObject')
     else:
       inputDict = inputDic[0]
       outputDic = {'data': {}}
@@ -102,8 +101,10 @@ class HS2PS(PostProcessorInterfaceBase):
       numVariables = historyLength * len(self.features)
       for history in inputDict['data'][self.features[0]]:
         if len(history) != historyLength:
-          self.raiseAnError(IOError, 'HS2PS Interfaced Post-Processor ' + str(self.name) +
-                            ' : one or more histories in the historySet have different time scale')
+          self.raiseAnError(
+              IOError, 'HS2PS Interfaced Post-Processor ' + str(self.name) +
+              ' : one or more histories in the historySet have different time scale'
+          )
 
       tempDict = {}
       matrix = np.zeros((numSamples, numVariables))
@@ -118,12 +119,14 @@ class HS2PS(PostProcessorInterfaceBase):
         outputDic['data'][str(key)] = matrix[:, key]
         outputDic['dims'][str(key)] = []
 
-      outputDic['data']['ProbabilityWeight'] = inputDict['data']['ProbabilityWeight']
+      outputDic['data']['ProbabilityWeight'] = inputDict['data'][
+          'ProbabilityWeight']
       outputDic['data']['prefix'] = inputDict['data']['prefix']
 
       self.transformationSettings['vars'] = copy.deepcopy(self.features)
       self.transformationSettings['timeLength'] = historyLength
-      self.transformationSettings['timeAxis'] = inputDict['data'][self.pivotParameter][0]
+      self.transformationSettings['timeAxis'] = inputDict['data'][
+          self.pivotParameter][0]
       self.transformationSettings['dimID'] = outputDic['data'].keys()
 
       return outputDic
@@ -133,8 +136,9 @@ class HS2PS(PostProcessorInterfaceBase):
     data = {}
     for hist in inputDic.keys():
       data[hist] = {}
-      tempData = inputDic[hist].reshape((len(self.transformationSettings['vars']),
-                                         self.transformationSettings['timeLength']))
+      tempData = inputDic[hist].reshape(
+          (len(self.transformationSettings['vars']),
+           self.transformationSettings['timeLength']))
       for index, var in enumerate(self.transformationSettings['vars']):
         data[hist][var] = tempData[index, :]
       data[hist][self.pivotParameter] = self.transformationSettings['timeAxis']

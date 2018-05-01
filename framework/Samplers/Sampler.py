@@ -62,7 +62,8 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseType), Assembler):
     outerDistributionInput = InputData.parameterInputFactory("Distribution")
     outerDistributionInput.addParam("name", InputData.StringType)
     outerDistributionInput.addSub(
-        InputData.parameterInputFactory("distribution", contentType=InputData.StringType))
+        InputData.parameterInputFactory(
+            "distribution", contentType=InputData.StringType))
     inputSpecification.addSub(outerDistributionInput)
 
     variableInput = InputData.parameterInputFactory("variable")
@@ -70,33 +71,40 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseType), Assembler):
     distributionInput = InputData.parameterInputFactory(
         "distribution", contentType=InputData.StringType)
     distributionInput.addParam("dim", InputData.IntegerType)
-    shapeInput = InputData.parameterInputFactory("shape", contentType=InputData.StringType)
+    shapeInput = InputData.parameterInputFactory(
+        "shape", contentType=InputData.StringType)
 
     variableInput.addSub(distributionInput)
     variableInput.addSub(shapeInput)
 
-    functionInput = InputData.parameterInputFactory("function", contentType=InputData.StringType)
+    functionInput = InputData.parameterInputFactory(
+        "function", contentType=InputData.StringType)
 
     variableInput.addSub(functionInput)
 
     inputSpecification.addSub(variableInput)
 
-    variablesTransformationInput = InputData.parameterInputFactory("variablesTransformation")
+    variablesTransformationInput = InputData.parameterInputFactory(
+        "variablesTransformation")
     variablesTransformationInput.addParam('distribution', InputData.StringType)
 
     variablesTransformationInput.addSub(
-        InputData.parameterInputFactory("latentVariables", contentType=InputData.StringListType))
+        InputData.parameterInputFactory(
+            "latentVariables", contentType=InputData.StringListType))
     variablesTransformationInput.addSub(
-        InputData.parameterInputFactory("manifestVariables", contentType=InputData.StringListType))
+        InputData.parameterInputFactory(
+            "manifestVariables", contentType=InputData.StringListType))
     variablesTransformationInput.addSub(
         InputData.parameterInputFactory(
             "manifestVariablesIndex", contentType=InputData.StringListType))
     variablesTransformationInput.addSub(
-        InputData.parameterInputFactory("method", contentType=InputData.StringType))
+        InputData.parameterInputFactory(
+            "method", contentType=InputData.StringType))
 
     inputSpecification.addSub(variablesTransformationInput)
 
-    constantInput = InputData.parameterInputFactory("constant", contentType=InputData.StringType)
+    constantInput = InputData.parameterInputFactory(
+        "constant", contentType=InputData.StringType)
     constantInput.addParam("name", InputData.StringType, True)
 
     inputSpecification.addSub(constantInput)
@@ -105,7 +113,8 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseType), Assembler):
         "restartTolerance", contentType=InputData.FloatType)
     inputSpecification.addSub(restartToleranceInput)
 
-    restartInput = InputData.parameterInputFactory("Restart", contentType=InputData.StringType)
+    restartInput = InputData.parameterInputFactory(
+        "Restart", contentType=InputData.StringType)
     restartInput.addParam("type", InputData.StringType)
     restartInput.addParam("class", InputData.StringType)
     inputSpecification.addSub(restartInput)
@@ -185,13 +194,16 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseType), Assembler):
       randomUtils.randomSeed(self.initSeed)
     for key in self.toBeSampled.keys():
       if self.toBeSampled[key] not in availableDist.keys():
-        self.raiseAnError(IOError, 'Distribution ' + self.toBeSampled[key] +
-                          ' not found among available distributions (check input)!')
+        self.raiseAnError(
+            IOError, 'Distribution ' + self.toBeSampled[key] +
+            ' not found among available distributions (check input)!')
       self.distDict[key] = availableDist[self.toBeSampled[key]]
-      self.inputInfo['crowDist'][key] = json.dumps(self.distDict[key].getCrowDistDict())
+      self.inputInfo['crowDist'][key] = json.dumps(
+          self.distDict[key].getCrowDistDict())
     for key, val in self.dependentSample.items():
       if val not in availableFunc.keys():
-        self.raiseAnError('Function', val, 'was not found among the available functions:',
+        self.raiseAnError('Function', val,
+                          'was not found among the available functions:',
                           availableFunc.keys())
       self.funcDict[key] = availableFunc[val]
       # check if the correct method is present
@@ -220,8 +232,10 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseType), Assembler):
       @ Out, needDict, dict, list of objects needed
     """
     needDict = {}
-    needDict['Distributions'] = []  # Every sampler requires Distributions OR a Function
-    needDict['Functions'] = []  # Every sampler requires Distributions OR a Function
+    needDict['Distributions'] = [
+    ]  # Every sampler requires Distributions OR a Function
+    needDict['Functions'] = [
+    ]  # Every sampler requires Distributions OR a Function
     for dist in self.toBeSampled.values():
       needDict['Distributions'].append((None, dist))
     for func in self.dependentSample.values():
@@ -299,14 +313,17 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseType), Assembler):
               foundDistOrFunc = True
             else:
               self.raiseAnError(
-                  IOError, 'A sampled variable cannot have both a distribution and a function!')
+                  IOError,
+                  'A sampled variable cannot have both a distribution and a function!'
+              )
             # function name
             toBeSampled = childChild.value
             # track variable as a functional sample
             self.dependentSample[prefix + varName] = toBeSampled
           elif childChild.getName() == 'shape':
             try:
-              variableShape = tuple(int(i) for i in childChild.value.split(','))
+              variableShape = tuple(
+                  int(i) for i in childChild.value.split(','))
             except ValueError as e:
               self.raiseAnError(
                   IOError,
@@ -316,8 +333,9 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseType), Assembler):
             # TODO error check variable shape: all positive integers unless just 0?
 
         if not foundDistOrFunc:
-          self.raiseAnError(IOError, 'Sampled variable', varName,
-                            'has neither a <distribution> nor <function> node specified!')
+          self.raiseAnError(
+              IOError, 'Sampled variable', varName,
+              'has neither a <distribution> nor <function> node specified!')
 
       elif child.getName() == "variablesTransformation":
         transformationDict = {}
@@ -331,10 +349,12 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseType), Assembler):
             # the index provided by the input file starts from 1, but the index used by the code starts from 0.
             listIndex = list(int(inp) - 1 for inp in childChild.value)
           elif childChild.getName() == "method":
-            self.transformationMethod[child.parameterValues['distribution']] = childChild.value
+            self.transformationMethod[child.parameterValues[
+                'distribution']] = childChild.value
         if listIndex == None:
           self.raiseAWarning(
-              'Index is not provided for manifestVariables, default index will be used instead!')
+              'Index is not provided for manifestVariables, default index will be used instead!'
+          )
           listIndex = range(len(transformationDict["manifestVariables"]))
         transformationDict["manifestVariablesIndex"] = listIndex
         self.variablesTransformationDict[child.parameterValues[
@@ -344,11 +364,15 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseType), Assembler):
         value = utils.partialEval(child.value)
         if value is None:
           self.raiseAnError(
-              IOError, 'The body of "constant" XML block should be a number. Got: ' + child.value)
+              IOError,
+              'The body of "constant" XML block should be a number. Got: ' +
+              child.value)
         try:
           self.constants[child.parameterValues['name']] = value
         except KeyError:
-          self.raiseAnError(KeyError, child.getName() + ' must have the attribute "name"!!!')
+          self.raiseAnError(
+              KeyError,
+              child.getName() + ' must have the attribute "name"!!!')
       elif child.getName() == "restartTolerance":
         self.restartTolerance = child.value
 
@@ -356,8 +380,12 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseType), Assembler):
       # check if constant variables are also part of the sampled space. In case, error out
       if not set(self.toBeSampled.keys()).isdisjoint(self.constants.keys()):
         self.raiseAnError(
-            IOError, "Some constant variables are also in the sampling space:" +
-            ' '.join([i if i in self.toBeSampled.keys() else "" for i in self.constants.keys()]))
+            IOError,
+            "Some constant variables are also in the sampling space:" +
+            ' '.join([
+                i if i in self.toBeSampled.keys() else ""
+                for i in self.constants.keys()
+            ]))
 
     if self.initSeed == None:
       self.initSeed = randomUtils.randomIntegers(0, 2**31, self)
@@ -379,13 +407,15 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseType), Assembler):
       for var in self.distributions2variablesMapping[distName]:
         position = utils.first(var.values())
         positionList.append(position)
-      if sum(set(positionList)) > 1 and len(positionList) != len(set(positionList)):
-        dups = set(str(var) for var in positionList if positionList.count(var) > 1)
+      if sum(set(positionList)) > 1 and len(positionList) != len(
+          set(positionList)):
+        dups = set(
+            str(var) for var in positionList if positionList.count(var) > 1)
         self.raiseAnError(
             IOError,
             'Each of the following dimensions are assigned to multiple variables in Samplers: "{}"'.
-            format(', '.join(dups)), ' associated to ND distribution ', distName,
-            '. This is currently not allowed!')
+            format(', '.join(dups)), ' associated to ND distribution ',
+            distName, '. This is currently not allowed!')
       positionList = list(set(positionList))
       positionList.sort()
       self.distributions2variablesIndexList[distName] = positionList
@@ -393,7 +423,8 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseType), Assembler):
     for key in self.variables2distributionsMapping.keys():
       distName = self.variables2distributionsMapping[key]['name']
       dim = self.variables2distributionsMapping[key]['dim']
-      reducedDim = self.distributions2variablesIndexList[distName].index(dim) + 1
+      reducedDim = self.distributions2variablesIndexList[distName].index(
+          dim) + 1
       self.variables2distributionsMapping[key][
           'reducedDim'] = reducedDim  # the dimension of variable in the transformed space
       self.variables2distributionsMapping[key]['totDim'] = max(
@@ -413,17 +444,23 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseType), Assembler):
         maxDim = len(varsDict['manifestVariables'])
         listLatentElement = varsDict['latentVariables']
         if len(set(listLatentElement)) != len(listLatentElement):
-          dups = set(var for var in listLatentElement if listLatentElement.count(var) > 1)
+          dups = set(
+              var for var in listLatentElement
+              if listLatentElement.count(var) > 1)
           self.raiseAnError(
               IOError,
-              'The following are duplicated variables listed in the latentVariables: ' + str(dups))
-        if len(set(varsDict['manifestVariables'])) != len(varsDict['manifestVariables']):
+              'The following are duplicated variables listed in the latentVariables: '
+              + str(dups))
+        if len(set(varsDict['manifestVariables'])) != len(
+            varsDict['manifestVariables']):
           dups = set(var for var in varsDict['manifestVariables']
                      if varsDict['manifestVariables'].count(var) > 1)
           self.raiseAnError(
-              IOError, 'The following are duplicated variables listed in the manifestVariables: ' +
-              str(dups))
-        if len(set(varsDict['manifestVariablesIndex'])) != len(varsDict['manifestVariablesIndex']):
+              IOError,
+              'The following are duplicated variables listed in the manifestVariables: '
+              + str(dups))
+        if len(set(varsDict['manifestVariablesIndex'])) != len(
+            varsDict['manifestVariablesIndex']):
           dups = set(var + 1 for var in varsDict['manifestVariablesIndex']
                      if varsDict['manifestVariablesIndex'].count(var) > 1)
           self.raiseAnError(
@@ -432,23 +469,26 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseType), Assembler):
               + str(dups))
         listElement = self.distributions2variablesMapping[dist]
         for var in listElement:
-          self.variables2distributionsMapping[utils.first(var.keys())][
-              'totDim'] = maxDim  #reset the totDim to reflect the totDim of original input space
+          self.variables2distributionsMapping[utils.first(
+              var.keys()
+          )]['totDim'] = maxDim  #reset the totDim to reflect the totDim of original input space
         tempListElement = {
             k.strip(): v
-            for x in listElement for ks, v in x.items() for k in list(ks.strip().split(','))
+            for x in listElement for ks, v in x.items()
+            for k in list(ks.strip().split(','))
         }
         listIndex = []
         for var in listLatentElement:
           if var not in set(tempListElement.keys()):
-            self.raiseAnError(IOError, 'The variable listed in latentVariables ' + var +
-                              ' is not listed in the given distribution: ' + dist)
+            self.raiseAnError(
+                IOError, 'The variable listed in latentVariables ' + var +
+                ' is not listed in the given distribution: ' + dist)
           listIndex.append(tempListElement[var] - 1)
         if max(listIndex) > maxDim:
           self.raiseAnError(
               IOError, 'The maximum dim = ' + str(max(listIndex)) +
-              ' defined for latent variables is exceeded the dimension of the problem ' +
-              str(maxDim))
+              ' defined for latent variables is exceeded the dimension of the problem '
+              + str(maxDim))
         if len(set(listIndex)) != len(listIndex):
           dups = set(var + 1 for var in listIndex if listIndex.count(var) > 1)
           self.raiseAnError(
@@ -456,7 +496,8 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseType), Assembler):
               'Each of the following dimensions are assigned to multiple latent variables in Samplers: '
               + str(dups))
         # update the index for latentVariables according to the 'dim' assigned for given var defined in Sampler
-        self.variablesTransformationDict[dist]['latentVariablesIndex'] = listIndex
+        self.variablesTransformationDict[dist][
+            'latentVariablesIndex'] = listIndex
     return paramInput
 
   def getInitParams(self):
@@ -470,8 +511,9 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseType), Assembler):
     """
     paramDict = {}
     for variable in self.toBeSampled.items():
-      paramDict["sampled variable: "
-                + variable[0]] = 'is sampled using the distribution ' + variable[1]
+      paramDict[
+          "sampled variable: "
+          + variable[0]] = 'is sampled using the distribution ' + variable[1]
     paramDict['limit'] = self.limit
     paramDict['initial seed'] = self.initSeed
     paramDict.update(self.localGetInitParams())
@@ -488,7 +530,8 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseType), Assembler):
       self.initSeed = randomUtils.randomIntegers(0, 2**31, self)
     self.counter = 0
     if not externalSeeding:
-      randomUtils.randomSeed(self.initSeed)  #use the sampler initialization seed
+      randomUtils.randomSeed(
+          self.initSeed)  #use the sampler initialization seed
       self.auxcnt = self.initSeed
     elif externalSeeding == 'continue':
       pass  #in this case the random sequence needs to be preserved
@@ -536,13 +579,14 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseType), Assembler):
     for distrib in self.NDSamplingParams:
       if distrib in self.distributions2variablesMapping:
         params = self.NDSamplingParams[distrib]
-        temp = utils.first(self.distributions2variablesMapping[distrib][0].keys())
+        temp = utils.first(
+            self.distributions2variablesMapping[distrib][0].keys())
         self.distDict[temp].updateRNGParam(params)
       else:
         self.raiseAnError(
             IOError,
-            'Distribution "%s" specified in distInit block of sampler "%s" does not exist!' %
-            (distrib, self.name))
+            'Distribution "%s" specified in distInit block of sampler "%s" does not exist!'
+            % (distrib, self.name))
 
     # Store the transformation matrix in the metadata
     if self.variablesTransformationDict:
@@ -612,7 +656,8 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseType), Assembler):
               self.limit = int(childChild.value)
             except ValueError:
               self.raiseAnError(
-                  IOError, 'reading the attribute for the sampler ' + self.name +
+                  IOError,
+                  'reading the attribute for the sampler ' + self.name +
                   ' it was not possible to perform the conversion to integer for the attribute limit with value '
                   + str(childChild.value))
           if childChild.getName() == "initialSeed":
@@ -620,7 +665,8 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseType), Assembler):
               self.initSeed = int(childChild.value)
             except ValueError:
               self.raiseAnError(
-                  IOError, 'reading the attribute for the sampler ' + self.name +
+                  IOError,
+                  'reading the attribute for the sampler ' + self.name +
                   ' it was not possible to perform the conversion to integer for the attribute initialSeed with value '
                   + str(childChild.value))
           elif childChild.getName() == "reseedEachIteration":
@@ -631,13 +677,18 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseType), Assembler):
               NDdistData = {}
               for childChildChildChild in childChildChild.subparts:
                 if childChildChildChild.getName() == 'initialGridDisc':
-                  NDdistData[childChildChildChild.getName()] = int(childChildChildChild.value)
+                  NDdistData[childChildChildChild.getName()] = int(
+                      childChildChildChild.value)
                 elif childChildChildChild.getName() == 'tolerance':
-                  NDdistData[childChildChildChild.getName()] = float(childChildChildChild.value)
+                  NDdistData[childChildChildChild.getName()] = float(
+                      childChildChildChild.value)
                 else:
-                  self.raiseAnError(IOError, 'Unknown tag ' + childChildChildChild.getName() +
-                                    ' .Available are: initialGridDisc and tolerance!')
-              self.NDSamplingParams[childChildChild.parameterValues['name']] = NDdistData
+                  self.raiseAnError(
+                      IOError,
+                      'Unknown tag ' + childChildChildChild.getName() +
+                      ' .Available are: initialGridDisc and tolerance!')
+              self.NDSamplingParams[childChildChild.parameterValues[
+                  'name']] = NDdistData
 
   #### GETTERS AND SETTERS ####
   def endJobRunnable(self):
@@ -728,11 +779,14 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseType), Assembler):
       # we inject the constant variables into the SampledVars
       self.inputInfo['SampledVars'].update(self.constants)
       # we consider that CDF of the constant variables is equal to 1 (same as its Pb Weight)
-      self.inputInfo['SampledVarsPb'].update(dict.fromkeys(self.constants.keys(), 1.0))
+      self.inputInfo['SampledVarsPb'].update(
+          dict.fromkeys(self.constants.keys(), 1.0))
       pbKey = ['ProbabilityWeight-' + key for key in self.constants.keys()]
       self.addMetaKeys(*pbKey)
       self.inputInfo.update(
-          dict.fromkeys(['ProbabilityWeight-' + key for key in self.constants.keys()], 1.0))
+          dict.fromkeys(
+              ['ProbabilityWeight-' + key for key in self.constants.keys()],
+              1.0))
 
   def _expandVectorVariables(self):
     """
@@ -768,7 +822,8 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseType), Assembler):
     self.auxcnt += 1
     #exit if over the limit
     if self.counter > self.limit:
-      self.raiseADebug('Exceeded number of points requested in sampling!  Moving on...')
+      self.raiseADebug(
+          'Exceeded number of points requested in sampling!  Moving on...')
     #FIXME, the following condition check is make sure that the require info is only printed once when dump metadata to xml, this should be removed in the future when we have a better way to dump the metadata
     if self.counter > 1:
       for key in self.entitiesToRemove:
@@ -790,8 +845,8 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseType), Assembler):
           self.pcaTransform(var, dist)
         else:
           self.raiseAnError(NotImplementedError,
-                            'transformation method is not yet implemented for ' +
-                            self.transformationMethod[dist] + ' method')
+                            'transformation method is not yet implemented for '
+                            + self.transformationMethod[dist] + ' method')
 
   def _reassignSampledVarsPbToFullyCorrVars(self):
     """
@@ -818,12 +873,13 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseType), Assembler):
       # Handle ND Case
       if varInfo['totDim'] > 1:
         distName = self.variables2distributionsMapping[varName]['name']
-        self.inputInfo['ProbabilityWeight-' + varName] = self.inputInfo['ProbabilityWeight-'
-                                                                        + distName]
+        self.inputInfo['ProbabilityWeight-' + varName] = self.inputInfo[
+            'ProbabilityWeight-' + distName]
       if "," in varName:
         for subVarName in varName.split(","):
           self.inputInfo['ProbabilityWeight-'
-                         + subVarName.strip()] = self.inputInfo['ProbabilityWeight-' + varName]
+                         + subVarName.strip()] = self.inputInfo[
+                             'ProbabilityWeight-' + varName]
 
   def generateInput(self, model, oldInput):
     """
@@ -877,13 +933,14 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseType), Assembler):
       rlz = {}
       # we've fixed it so the input and output space don't really matter, so use restartData's own definition
       # DO format the data as atleast_1d so it's consistent in the ExternalModel for users (right?)
-      rlz['inputs'] = dict(
-          (var, np.atleast_1d(inExisting[var])) for var in self.restartData.getVars('input'))
-      rlz['outputs'] = dict(
-          (var, np.atleast_1d(inExisting[var]))
-          for var in self.restartData.getVars('output') + self.restartData.getVars('indexes'))
+      rlz['inputs'] = dict((var, np.atleast_1d(inExisting[var]))
+                           for var in self.restartData.getVars('input'))
+      rlz['outputs'] = dict((var, np.atleast_1d(inExisting[var]))
+                            for var in self.restartData.getVars('output') +
+                            self.restartData.getVars('indexes'))
       rlz['metadata'] = copy.deepcopy(
-          self.inputInfo)  # TODO need deepcopy only because inputInfo is on self
+          self.inputInfo
+      )  # TODO need deepcopy only because inputInfo is on self
       return 1, rlz
 
   def generateInputBatch(self, myInput, model, batchSize, projector=None):
@@ -931,11 +988,14 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseType), Assembler):
         if lvar == var:
           latentVariablesValues.append(value)
           listIndex.append(varsDict['latentVariablesIndex'][index])
-    varName = utils.first(utils.first(self.distributions2variablesMapping[dist]).keys())
-    varsValues = self.distDict[varName].pcaInverseTransform(latentVariablesValues, listIndex)
+    varName = utils.first(
+        utils.first(self.distributions2variablesMapping[dist]).keys())
+    varsValues = self.distDict[varName].pcaInverseTransform(
+        latentVariablesValues, listIndex)
     for index1, index2 in enumerate(varsDict['manifestVariablesIndex']):
       manifestVariablesValues[index2] = varsValues[index1]
-    manifestVariablesDict = dict(zip(varsDict['manifestVariables'], manifestVariablesValues))
+    manifestVariablesDict = dict(
+        zip(varsDict['manifestVariables'], manifestVariablesValues))
     self.values.update(manifestVariablesDict)
 
   ### FINALIZING METHODS ####
@@ -987,8 +1047,8 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseType), Assembler):
     self.raiseADebug('===============')
     if len(failedRuns) > 0:
       self.raiseAWarning(
-          'There were %i failed runs!  Run with verbosity = debug for more details.' %
-          (len(failedRuns)))
+          'There were %i failed runs!  Run with verbosity = debug for more details.'
+          % (len(failedRuns)))
       for run in failedRuns:
         ## FIXME: run.command no longer exists, so I am removing the printing
         ## of it and the metadata for the time being, please let me know if this

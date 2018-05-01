@@ -34,7 +34,8 @@ from utils import utils
 #Internal Modules End--------------------------------------------------------------------------------
 
 
-class CrossValidation(utils.metaclass_insert(abc.ABCMeta), MessageHandler.MessageUser):
+class CrossValidation(
+    utils.metaclass_insert(abc.ABCMeta), MessageHandler.MessageUser):
   """
     Cross validation methods used to validate models
   """

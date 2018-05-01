@@ -89,8 +89,9 @@ class DistributedMemoryRunner(InternalRunner):
     ## First, allow the base class to handle the commonalities
     ##   We keep the command here, in order to have the hook for running exec
     ##   code into internal models
-    super(DistributedMemoryRunner, self).__init__(messageHandler, args, functionToRun, identifier,
-                                                  metadata, uniqueHandler, profile)
+    super(DistributedMemoryRunner,
+          self).__init__(messageHandler, args, functionToRun, identifier,
+                         metadata, uniqueHandler, profile)
 
     ## Just in case, remove duplicates before storing to save on computation
     ## later
@@ -147,7 +148,8 @@ class DistributedMemoryRunner(InternalRunner):
       self.started = True
     except Exception as ae:
       self.raiseAWarning(self.__class__.__name__ + " job " + self.identifier +
-                         " failed with error:" + str(ae) + " !", 'ExceptedError')
+                         " failed with error:" + str(ae) + " !",
+                         'ExceptedError')
       self.returnCode = -1
 
   def kill(self):
@@ -156,6 +158,7 @@ class DistributedMemoryRunner(InternalRunner):
       @ In, None
       @ Out, None
     """
-    self.raiseAWarning("Terminating " + self.thread.tid + " Identifier " + self.identifier)
+    self.raiseAWarning(
+        "Terminating " + self.thread.tid + " Identifier " + self.identifier)
     os.kill(self.thread.tid, signal.SIGTERM)
     self.trackTime('runner_killed')

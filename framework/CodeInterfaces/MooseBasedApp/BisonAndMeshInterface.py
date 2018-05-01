@@ -26,7 +26,8 @@ from MooseBasedAppInterface import MooseBasedApp
 from BisonMeshScriptInterface import BisonMeshScript
 
 
-class BisonAndMesh(CodeInterfaceBase):  #MooseBasedAppInterface,BisonMeshScriptInterface):
+class BisonAndMesh(
+    CodeInterfaceBase):  #MooseBasedAppInterface,BisonMeshScriptInterface):
   """
     This class provides the means to generate a stochastic-input-based mesh using the MOOSE
     standard Cubit python script in addition to uncertain inputs for the MOOSE app.
@@ -69,7 +70,12 @@ class BisonAndMesh(CodeInterfaceBase):  #MooseBasedAppInterface,BisonMeshScriptI
       )
     return mooseInp, cubitInp
 
-  def generateCommand(self, inputFiles, executable, clargs=None, fargs=None, preExec=None):
+  def generateCommand(self,
+                      inputFiles,
+                      executable,
+                      clargs=None,
+                      fargs=None,
+                      preExec=None):
     """
       Generate a multi-line command that runs both the Cubit mesh generator and then the desired MOOSE run.
       See base class.  Collects all the clargs and the executable to produce the command-line call.
@@ -88,11 +94,11 @@ class BisonAndMesh(CodeInterfaceBase):  #MooseBasedAppInterface,BisonMeshScriptI
       )
     mooseInp, cubitInp = self.findInps(inputFiles)
     #get the cubit part
-    cubitCommand, cubitOut = self.BisonMeshInterface.generateCommand([cubitInp], preExec, clargs,
-                                                                     fargs)
+    cubitCommand, cubitOut = self.BisonMeshInterface.generateCommand(
+        [cubitInp], preExec, clargs, fargs)
     #get the moose part
-    mooseCommand, mooseOut = self.MooseInterface.generateCommand([mooseInp], executable, clargs,
-                                                                 fargs)
+    mooseCommand, mooseOut = self.MooseInterface.generateCommand(
+        [mooseInp], executable, clargs, fargs)
     #combine them
     returnCommand = cubitCommand + mooseCommand, mooseOut  #can only send one...#(cubitOut,mooseOut)
     print('Execution commands from JobHandler:')
@@ -100,7 +106,8 @@ class BisonAndMesh(CodeInterfaceBase):  #MooseBasedAppInterface,BisonMeshScriptI
       print('  in', r + ':', c)
     return returnCommand
 
-  def createNewInput(self, currentInputFiles, origInputFiles, samplerType, **Kwargs):
+  def createNewInput(self, currentInputFiles, origInputFiles, samplerType,
+                     **Kwargs):
     """
       Generates new perturbed input files.
       This method is used to generate an input based on the information passed in.
@@ -125,11 +132,12 @@ class BisonAndMesh(CodeInterfaceBase):  #MooseBasedAppInterface,BisonMeshScriptI
       else:
         del cargs['SampledVars'][vname]
     # Generate new cubit input files and extract exodus file name to add to SampledVars going to moose
-    newCubitInputs = self.BisonMeshInterface.createNewInput([cubitInp], [origCubitInp],
-                                                            samplerType, **cargs)
-    margs['SampledVars']['Mesh|file'] = 'mesh~' + newCubitInputs[0].getBase() + '.e'
-    newMooseInputs = self.MooseInterface.createNewInput([mooseInp], [origMooseInp], samplerType,
-                                                        **margs)
+    newCubitInputs = self.BisonMeshInterface.createNewInput(
+        [cubitInp], [origCubitInp], samplerType, **cargs)
+    margs['SampledVars'][
+        'Mesh|file'] = 'mesh~' + newCubitInputs[0].getBase() + '.e'
+    newMooseInputs = self.MooseInterface.createNewInput(
+        [mooseInp], [origMooseInp], samplerType, **margs)
     #make carbon copy of original input files
     for f in currentInputFiles:
       if f.isOpen():

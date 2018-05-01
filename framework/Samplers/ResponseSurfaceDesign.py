@@ -52,20 +52,26 @@ class ResponseSurfaceDesign(Grid):
       @ Out, inputSpecification, InputData.ParameterInput, class to use for
         specifying input of cls.
     """
-    inputSpecification = super(ResponseSurfaceDesign, cls).getInputSpecification()
+    inputSpecification = super(ResponseSurfaceDesign,
+                               cls).getInputSpecification()
     responseSurfaceDesignSettingsInput = InputData.parameterInputFactory(
         "ResponseSurfaceDesignSettings")
 
     responseSurfaceDesignSettingsInput.addSub(
-        InputData.parameterInputFactory("algorithmType", contentType=InputData.StringType))
+        InputData.parameterInputFactory(
+            "algorithmType", contentType=InputData.StringType))
     responseSurfaceDesignSettingsInput.addSub(
-        InputData.parameterInputFactory("ncenters", contentType=InputData.IntegerType))
+        InputData.parameterInputFactory(
+            "ncenters", contentType=InputData.IntegerType))
     responseSurfaceDesignSettingsInput.addSub(
-        InputData.parameterInputFactory("centers", contentType=InputData.StringListType))
+        InputData.parameterInputFactory(
+            "centers", contentType=InputData.StringListType))
     responseSurfaceDesignSettingsInput.addSub(
-        InputData.parameterInputFactory("alpha", contentType=InputData.StringType))
+        InputData.parameterInputFactory(
+            "alpha", contentType=InputData.StringType))
     responseSurfaceDesignSettingsInput.addSub(
-        InputData.parameterInputFactory("face", contentType=InputData.StringType))
+        InputData.parameterInputFactory(
+            "face", contentType=InputData.StringType))
 
     inputSpecification.addSub(responseSurfaceDesignSettingsInput)
 
@@ -84,8 +90,12 @@ class ResponseSurfaceDesign(Grid):
     self.respOpt = {}  # response surface design options (type,etc)
     self.designMatrix = None  # matrix container
     self.bounds = {}  # dictionary of lower and upper
-    self.mapping = {}  # mapping between designMatrix coordinates and position in grid
-    self.minNumbVars = {'boxbehnken': 3, 'centralcomposite': 2}  # minimum number of variables
+    self.mapping = {
+    }  # mapping between designMatrix coordinates and position in grid
+    self.minNumbVars = {
+        'boxbehnken': 3,
+        'centralcomposite': 2
+    }  # minimum number of variables
     # dictionary of accepted types and options (required True, optional False)
     self.acceptedOptions = {
         'boxbehnken': ['ncenters'],
@@ -103,28 +113,37 @@ class ResponseSurfaceDesign(Grid):
     Grid.localInputAndChecks(self, xmlNode, paramInput)
     factsettings = xmlNode.find("ResponseSurfaceDesignSettings")
     if factsettings == None:
-      self.raiseAnError(IOError, 'ResponseSurfaceDesignSettings xml node not found!')
+      self.raiseAnError(IOError,
+                        'ResponseSurfaceDesignSettings xml node not found!')
     facttype = factsettings.find("algorithmType")
     if facttype == None:
       self.raiseAnError(
-          IOError, 'node "algorithmType" not found in ResponseSurfaceDesignSettings xml node!!!')
+          IOError,
+          'node "algorithmType" not found in ResponseSurfaceDesignSettings xml node!!!'
+      )
     elif not facttype.text.lower() in self.acceptedOptions.keys():
-      self.raiseAnError(IOError, '"type" ' + facttype.text + ' unknown! Available are ' +
-                        ' '.join(self.acceptedOptions.keys()))
+      self.raiseAnError(
+          IOError, '"type" ' + facttype.text + ' unknown! Available are ' +
+          ' '.join(self.acceptedOptions.keys()))
     self.respOpt['algorithmType'] = facttype.text.lower()
     # set defaults
     if self.respOpt['algorithmType'] == 'boxbehnken':
       self.respOpt['options'] = {'ncenters': None}
     else:
-      self.respOpt['options'] = {'centers': (4, 4), 'alpha': 'orthogonal', 'face': 'circumscribed'}
+      self.respOpt['options'] = {
+          'centers': (4, 4),
+          'alpha': 'orthogonal',
+          'face': 'circumscribed'
+      }
     for child in factsettings:
       if child.tag not in 'algorithmType':
         self.respOpt['options'][child.tag] = child.text.lower()
     # start checking
     for key, value in self.respOpt['options'].items():
       if key not in self.acceptedOptions[facttype.text.lower()]:
-        self.raiseAnError(IOError, 'node ' + key + ' unknown. Available are "' +
-                          ' '.join(self.acceptedOptions[facttype.text.lower()]) + '"!!')
+        self.raiseAnError(
+            IOError, 'node ' + key + ' unknown. Available are "' +
+            ' '.join(self.acceptedOptions[facttype.text.lower()]) + '"!!')
       if self.respOpt['algorithmType'] == 'boxbehnken':
         if key == 'ncenters':
           if self.respOpt['options'][key] != None:
@@ -135,36 +154,47 @@ class ResponseSurfaceDesign(Grid):
       else:
         if key == 'centers':
           if len(value.split(',')) != 2:
-            self.raiseAnError(IOError,
-                              '"' + key + '" must be a comma separated string of 2 values only!')
+            self.raiseAnError(
+                IOError, '"' + key +
+                '" must be a comma separated string of 2 values only!')
           try:
-            self.respOpt['options'][key] = (int(value.split(',')[0]), int(value.split(',')[1]))
+            self.respOpt['options'][key] = (int(value.split(',')[0]),
+                                            int(value.split(',')[1]))
           except:
-            self.raiseAnError(IOError, '"' + key + '" values must be integers!!')
+            self.raiseAnError(IOError,
+                              '"' + key + '" values must be integers!!')
         if key == 'alpha':
           if value not in ['orthogonal', 'rotatable']:
-            self.raiseAnError(IOError, 'Not recognized options for node ' + '"' + key +
+            self.raiseAnError(IOError,
+                              'Not recognized options for node ' + '"' + key +
                               '". Available are "orthogonal","rotatable"!')
         if key == 'face':
           if value not in ['circumscribed', 'faced', 'inscribed']:
-            self.raiseAnError(IOError, 'Not recognized options for node ' + '"' + key +
-                              '". Available are "circumscribed","faced","inscribed"!')
+            self.raiseAnError(
+                IOError, 'Not recognized options for node ' + '"' + key +
+                '". Available are "circumscribed","faced","inscribed"!')
     gridInfo = self.gridEntity.returnParameter('gridInfo')
     if len(self.toBeSampled.keys()) != len(gridInfo.keys()):
-      self.raiseAnError(IOError,
-                        'inconsistency between number of variables and grid specification')
+      self.raiseAnError(
+          IOError,
+          'inconsistency between number of variables and grid specification')
     for varName, values in gridInfo.items():
       if values[1] != "custom":
-        self.raiseAnError(IOError, "The grid construct needs to be custom for variable " + varName)
+        self.raiseAnError(
+            IOError,
+            "The grid construct needs to be custom for variable " + varName)
       if len(values[2]) != 2:
         self.raiseAnError(
             IOError,
             "The number of values can be accepted are only 2 (lower and upper bound) for variable "
             + varName)
     self.gridCoordinate = [None] * len(self.axisName)
-    if len(self.gridCoordinate) < self.minNumbVars[self.respOpt['algorithmType']]:
-      self.raiseAnError(IOError, 'minimum number of variables for type "' + self.respOpt['type'] +
-                        '" is ' + str(self.minNumbVars[self.respOpt['type']]) + '!!')
+    if len(
+        self.gridCoordinate) < self.minNumbVars[self.respOpt['algorithmType']]:
+      self.raiseAnError(
+          IOError,
+          'minimum number of variables for type "' + self.respOpt['type'] +
+          '" is ' + str(self.minNumbVars[self.respOpt['type']]) + '!!')
     self.externalgGridCoord = True
 
   def localGetInitParams(self):
@@ -195,7 +225,8 @@ class ResponseSurfaceDesign(Grid):
     """
     if self.respOpt['algorithmType'] == 'boxbehnken':
       self.designMatrix = doe.bbdesign(
-          len(self.gridInfo.keys()), center=self.respOpt['options']['ncenters'])
+          len(self.gridInfo.keys()),
+          center=self.respOpt['options']['ncenters'])
     elif self.respOpt['algorithmType'] == 'centralcomposite':
       self.designMatrix = doe.ccdesign(
           len(self.gridInfo.keys()),
@@ -208,10 +239,14 @@ class ResponseSurfaceDesign(Grid):
       self.mapping[varName] = np.unique(self.designMatrix[:, cnt]).tolist()
       gridInfo[varName] = (gridInfo[varName][0], gridInfo[varName][1],
                            InterpolatedUnivariateSpline(
-                               np.array([min(self.mapping[varName]),
-                                         max(self.mapping[varName])]),
-                               np.array([min(gridInfo[varName][2]),
-                                         max(gridInfo[varName][2])]),
+                               np.array([
+                                   min(self.mapping[varName]),
+                                   max(self.mapping[varName])
+                               ]),
+                               np.array([
+                                   min(gridInfo[varName][2]),
+                                   max(gridInfo[varName][2])
+                               ]),
                                k=1)(self.mapping[varName]).tolist())
       stepLength[varName] = [
           round(gridInfo[varName][-1][k + 1] - gridInfo[varName][-1][k], 14)
@@ -234,5 +269,6 @@ class ResponseSurfaceDesign(Grid):
     """
     gridcoordinate = self.designMatrix[self.counter - 1][:].tolist()
     for cnt, varName in enumerate(self.axisName):
-      self.gridCoordinate[cnt] = self.mapping[varName].index(gridcoordinate[cnt])
+      self.gridCoordinate[cnt] = self.mapping[varName].index(
+          gridcoordinate[cnt])
     Grid.localGenerateInput(self, model, myInput)

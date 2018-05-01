@@ -54,7 +54,11 @@ class HStoPSOperator(PostProcessorInterfaceBase):
     #pivotParameter identify the ID of the temporal variable in the data set based on which
     # the operations are performed. Optional (defaul=time)
     self.pivotParameter = 'time'
-    self.settings = {'operationType': None, 'operationValue': None, 'pivotStrategy': 'nearest'}
+    self.settings = {
+        'operationType': None,
+        'operationValue': None,
+        'pivotStrategy': 'nearest'
+    }
 
   def readMoreXML(self, xmlNode):
     """
@@ -74,18 +78,22 @@ class HStoPSOperator(PostProcessorInterfaceBase):
         self.settings[child.tag] = child.text.strip()
         if child.text not in ['nearest', 'floor', 'ceiling', 'interpolate']:
           self.raiseAnError(
-              IOError, '"pivotStrategy" can be only "nearest","floor","ceiling" or "interpolate"!')
+              IOError,
+              '"pivotStrategy" can be only "nearest","floor","ceiling" or "interpolate"!'
+          )
       elif child.tag != 'method':
-        self.raiseAnError(IOError, 'XML node ' + str(child.tag) + ' is not recognized')
+        self.raiseAnError(IOError,
+                          'XML node ' + str(child.tag) + ' is not recognized')
     if not foundPivot:
-      self.raiseAWarning(
-          '"pivotParameter" is not inputted! Default is "' + self.pivotParameter + '"!')
+      self.raiseAWarning('"pivotParameter" is not inputted! Default is "' +
+                         self.pivotParameter + '"!')
     if self.settings['operationType'] is None:
       self.raiseAnError(IOError, 'No operation has been inputted!')
     if self.settings['operationType'] == 'operator' and self.settings['operationValue'] not in [
         'max', 'min', 'average'
     ]:
-      self.raiseAnError(IOError, '"operator" can be either "max", "min" or "average"!')
+      self.raiseAnError(IOError,
+                        '"operator" can be either "max", "min" or "average"!')
 
   def run(self, inputDic):
     """
@@ -111,22 +119,25 @@ class HStoPSOperator(PostProcessorInterfaceBase):
       # check if pivot value is present
       if self.settings['operationType'] == 'pivotValue':
         if self.pivotParameter not in inputDict['data']:
-          self.raiseAnError(
-              RuntimeError,
-              'Pivot Variable "' + str(self.pivotParameter) + '" not found in data !')
+          self.raiseAnError(RuntimeError, 'Pivot Variable "' +
+                            str(self.pivotParameter) + '" not found in data !')
 
       for hist in range(numSamples):
         for outputVar in inputDict['outVars']:
           if self.settings['operationType'] == 'row':
-            if int(self.settings['operationValue']) >= len(inputDict['data'][outputVar][hist]):
-              self.raiseAnError(RuntimeError,
-                                'row value > of size of history "' + str(hist) + '" !')
-            outputDic['data'][outputVar] = np.append(outputDic['data'][outputVar],
-                                                     copy.deepcopy(
-                                                         inputDict['data'][outputVar][hist][int(
-                                                             self.settings['operationValue'])]))
+            if int(self.settings['operationValue']) >= len(
+                inputDict['data'][outputVar][hist]):
+              self.raiseAnError(
+                  RuntimeError,
+                  'row value > of size of history "' + str(hist) + '" !')
+            outputDic['data'][outputVar] = np.append(
+                outputDic['data'][outputVar],
+                copy.deepcopy(inputDict['data'][outputVar][hist][int(
+                    self.settings['operationValue'])]))
           elif self.settings['operationType'] == 'pivotValue':
-            if self.settings['pivotStrategy'] in ['nearest', 'floor', 'ceiling']:
+            if self.settings['pivotStrategy'] in [
+                'nearest', 'floor', 'ceiling'
+            ]:
               idx = (np.abs(
                   np.asarray(outputDic['data'][self.pivotParameter][hist]) -
                   float(self.settings['operationValue']))).argmin()
@@ -148,10 +159,12 @@ class HStoPSOperator(PostProcessorInterfaceBase):
                   copy.deepcopy(inputDict['data'][outputVar][hist][idx]))
             else:
               # interpolate
-              interpValue = np.interp(self.settings['operationValue'],
-                                      np.asarray(inputDict['data'][self.pivotParameter][hist]),
-                                      np.asarray(inputDict['data'][outputVar][hist]))
-              outputDic['data'][outputVar] = np.append(outputDic['data'][outputVar], interpValue)
+              interpValue = np.interp(
+                  self.settings['operationValue'],
+                  np.asarray(inputDict['data'][self.pivotParameter][hist]),
+                  np.asarray(inputDict['data'][outputVar][hist]))
+              outputDic['data'][outputVar] = np.append(
+                  outputDic['data'][outputVar], interpValue)
           else:
             # operator
             if self.settings['operationValue'] == 'max':

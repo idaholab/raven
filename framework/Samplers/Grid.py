@@ -58,7 +58,8 @@ class Grid(ForwardSampler):
     """
     inputSpecification = super(Grid, cls).getInputSpecification()
     # grid input
-    gridInput = InputData.parameterInputFactory("grid", contentType=InputData.StringType)
+    gridInput = InputData.parameterInputFactory(
+        "grid", contentType=InputData.StringType)
     gridInput.addParam("type", InputData.StringType)
     gridInput.addParam("construction", InputData.StringType)
     gridInput.addParam("steps", InputData.IntegerType)
@@ -68,7 +69,8 @@ class Grid(ForwardSampler):
         "Distribution", baseNode=oldSubOutDist)
     # old variable input
     oldSub = inputSpecification.popSub("variable")
-    newVariableInput = InputData.parameterInputFactory("variable", baseNode=oldSub)
+    newVariableInput = InputData.parameterInputFactory(
+        "variable", baseNode=oldSub)
     # update variable input with new grid input
     newVariableInput.addSub(gridInput)
     inputSpecification.addSub(newVariableInput)
@@ -113,8 +115,9 @@ class Grid(ForwardSampler):
     for axis, value in grdInfo.items():
       self.gridInfo[axis] = value[0]
     if len(self.toBeSampled.keys()) != len(grdInfo.keys()):
-      self.raiseAnError(IOError,
-                        'inconsistency between number of variables and grid specification')
+      self.raiseAnError(
+          IOError,
+          'inconsistency between number of variables and grid specification')
     self.axisName = list(grdInfo.keys())
     self.axisName.sort()
 
@@ -168,7 +171,8 @@ class Grid(ForwardSampler):
     """
     self.inputInfo['distributionName'] = {
     }  #Used to determine which distribution to change if needed.
-    self.inputInfo['distributionType'] = {}  #Used to determine which distribution type is used
+    self.inputInfo['distributionType'] = {
+    }  #Used to determine which distribution type is used
     weight = 1.0
     recastDict = {}
     for i in range(len(self.axisName)):
@@ -182,22 +186,25 @@ class Grid(ForwardSampler):
               [self.variables2distributionsMapping[varName]['dim'] - 1]
           ]
       elif self.gridInfo[varName] != 'value':
-        self.raiseAnError(IOError, self.gridInfo[varName] +
-                          ' is not know as value keyword for type. Sampler: ' + self.name)
+        self.raiseAnError(
+            IOError, self.gridInfo[varName] +
+            ' is not know as value keyword for type. Sampler: ' + self.name)
     if self.externalgGridCoord:
-      currentIndexes = self.gridEntity.returnIteratorIndexesFromIndex(self.gridCoordinate)
-      coordinates = self.gridEntity.returnCoordinateFromIndex(self.gridCoordinate, True,
-                                                              recastDict)
+      currentIndexes = self.gridEntity.returnIteratorIndexesFromIndex(
+          self.gridCoordinate)
+      coordinates = self.gridEntity.returnCoordinateFromIndex(
+          self.gridCoordinate, True, recastDict)
     else:
       currentIndexes = self.gridEntity.returnIteratorIndexes()
-      coordinates = self.gridEntity.returnPointAndAdvanceIterator(True, recastDict)
+      coordinates = self.gridEntity.returnPointAndAdvanceIterator(
+          True, recastDict)
     if coordinates == None:
       self.raiseADebug('Grid finished with restart points!  Moving on...')
       raise utils.NoMoreSamplesNeeded
-    coordinatesPlusOne = self.gridEntity.returnShiftedCoordinate(currentIndexes,
-                                                                 dict.fromkeys(self.axisName, 1))
-    coordinatesMinusOne = self.gridEntity.returnShiftedCoordinate(currentIndexes,
-                                                                  dict.fromkeys(self.axisName, -1))
+    coordinatesPlusOne = self.gridEntity.returnShiftedCoordinate(
+        currentIndexes, dict.fromkeys(self.axisName, 1))
+    coordinatesMinusOne = self.gridEntity.returnShiftedCoordinate(
+        currentIndexes, dict.fromkeys(self.axisName, -1))
     for i in range(len(self.axisName)):
       varName = self.axisName[i]
       # compute the SampledVarsPb for 1-D distribution
@@ -207,24 +214,30 @@ class Grid(ForwardSampler):
           self.inputInfo['distributionName'][key] = self.toBeSampled[varName]
           self.inputInfo['distributionType'][key] = self.distDict[varName].type
           self.values[key] = coordinates[varName]
-          self.inputInfo['SampledVarsPb'][key] = self.distDict[varName].pdf(self.values[key])
+          self.inputInfo['SampledVarsPb'][key] = self.distDict[varName].pdf(
+              self.values[key])
       # compute the SampledVarsPb for N-D distribution
       else:
         if self.variables2distributionsMapping[varName]['reducedDim'] == 1:
           # to avoid double count;
           distName = self.variables2distributionsMapping[varName]['name']
-          ndCoordinate = [0] * len(self.distributions2variablesMapping[distName])
+          ndCoordinate = [0] * len(
+              self.distributions2variablesMapping[distName])
           positionList = self.distributions2variablesIndexList[distName]
           for var in self.distributions2variablesMapping[distName]:
             variable = utils.first(var.keys())
             position = utils.first(var.values())
-            ndCoordinate[positionList.index(position)] = float(coordinates[variable.strip()])
+            ndCoordinate[positionList.index(position)] = float(
+                coordinates[variable.strip()])
             for key in variable.strip().split(','):
-              self.inputInfo['distributionName'][key] = self.toBeSampled[variable]
-              self.inputInfo['distributionType'][key] = self.distDict[variable].type
+              self.inputInfo['distributionName'][key] = self.toBeSampled[
+                  variable]
+              self.inputInfo['distributionType'][key] = self.distDict[
+                  variable].type
               self.values[key] = coordinates[variable]
           # Based on the discussion with Diego, we will use the following to compute SampledVarsPb.
-          self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(ndCoordinate)
+          self.inputInfo['SampledVarsPb'][varName] = self.distDict[
+              varName].pdf(ndCoordinate)
       # Compute the ProbabilityWeight
       if ("<distribution>" in varName) or (
           self.variables2distributionsMapping[varName]['totDim'] == 1):
@@ -233,33 +246,37 @@ class Grid(ForwardSampler):
         else:
           if self.gridInfo[varName] == 'CDF':
             if coordinatesPlusOne[varName] != sys.maxsize and coordinatesMinusOne[varName] != -sys.maxsize:
-              midPlusCDF = (
-                  coordinatesPlusOne[varName] + self.distDict[varName].cdf(self.values[key])) / 2.0
+              midPlusCDF = (coordinatesPlusOne[varName] +
+                            self.distDict[varName].cdf(self.values[key])) / 2.0
               midMinusCDF = (
-                  coordinatesMinusOne[varName] + self.distDict[varName].cdf(self.values[key])
-              ) / 2.0
+                  coordinatesMinusOne[varName] +
+                  self.distDict[varName].cdf(self.values[key])) / 2.0
             if coordinatesMinusOne[varName] == -sys.maxsize:
-              midPlusCDF = (
-                  coordinatesPlusOne[varName] + self.distDict[varName].cdf(self.values[key])) / 2.0
+              midPlusCDF = (coordinatesPlusOne[varName] +
+                            self.distDict[varName].cdf(self.values[key])) / 2.0
               midMinusCDF = 0.0
             if coordinatesPlusOne[varName] == sys.maxsize:
               midPlusCDF = 1.0
               midMinusCDF = (
-                  coordinatesMinusOne[varName] + self.distDict[varName].cdf(self.values[key])
-              ) / 2.0
+                  coordinatesMinusOne[varName] +
+                  self.distDict[varName].cdf(self.values[key])) / 2.0
             gridWeight = midPlusCDF - midMinusCDF
           else:
             # Value
             if coordinatesPlusOne[varName] != sys.maxsize and coordinatesMinusOne[varName] != -sys.maxsize:
-              midPlusValue = (self.values[key] + coordinatesPlusOne[varName]) / 2.0
-              midMinusValue = (self.values[key] + coordinatesMinusOne[varName]) / 2.0
-              gridWeight = self.distDict[varName].cdf(midPlusValue) - self.distDict[varName].cdf(
-                  midMinusValue)
+              midPlusValue = (
+                  self.values[key] + coordinatesPlusOne[varName]) / 2.0
+              midMinusValue = (
+                  self.values[key] + coordinatesMinusOne[varName]) / 2.0
+              gridWeight = self.distDict[varName].cdf(
+                  midPlusValue) - self.distDict[varName].cdf(midMinusValue)
             if coordinatesMinusOne[varName] == -sys.maxsize:
-              midPlusValue = (self.values[key] + coordinatesPlusOne[varName]) / 2.0
+              midPlusValue = (
+                  self.values[key] + coordinatesPlusOne[varName]) / 2.0
               gridWeight = self.distDict[varName].cdf(midPlusValue) - 0.0
             if coordinatesPlusOne[varName] == sys.maxsize:
-              midMinusValue = (self.values[key] + coordinatesMinusOne[varName]) / 2.0
+              midMinusValue = (
+                  self.values[key] + coordinatesMinusOne[varName]) / 2.0
               gridWeight = 1.0 - self.distDict[varName].cdf(midMinusValue)
         self.inputInfo['ProbabilityWeight-' + varName] = gridWeight
         weight *= gridWeight
@@ -268,7 +285,8 @@ class Grid(ForwardSampler):
         if self.variables2distributionsMapping[varName]['reducedDim'] == 1:
           # to avoid double count of weight for ND distribution; I need to count only one variable instaed of N
           distName = self.variables2distributionsMapping[varName]['name']
-          ndCoordinate = np.zeros(len(self.distributions2variablesMapping[distName]))
+          ndCoordinate = np.zeros(
+              len(self.distributions2variablesMapping[distName]))
           dxs = np.zeros(len(self.distributions2variablesMapping[distName]))
           positionList = self.distributions2variablesIndexList[distName]
           for var in self.distributions2variablesMapping[distName]:
@@ -283,51 +301,69 @@ class Grid(ForwardSampler):
                     coordinatesMinusOne[variable],
                     self.variables2distributionsMapping[variable]['dim'] - 1)
                 dxs[positionList.index(position)] = (up - down) / 2.0
-                ndCoordinate[positionList.index(position)] = coordinates[variable] - (
-                    coordinates[variable] - down) / 2.0 + dxs[positionList.index(position)] / 2.0
+                ndCoordinate[positionList.index(
+                    position)] = coordinates[variable] - (
+                        coordinates[variable] - down
+                    ) / 2.0 + dxs[positionList.index(position)] / 2.0
               if coordinatesMinusOne[variable] == -sys.maxsize:
                 up = self.distDict[variable].inverseMarginalDistribution(
                     coordinatesPlusOne[variable],
                     self.variables2distributionsMapping[variable]['dim'] - 1)
                 dxs[positionList.index(position)] = (
                     coordinates[variable.strip()] + up
-                ) / 2.0 - self.distDict[varName].returnLowerBound(positionList.index(position))
+                ) / 2.0 - self.distDict[varName].returnLowerBound(
+                    positionList.index(position))
                 ndCoordinate[positionList.index(position)] = (
                     (coordinates[variable.strip()] + up) / 2.0 +
-                    self.distDict[varName].returnLowerBound(positionList.index(position))) / 2.0
+                    self.distDict[varName].returnLowerBound(
+                        positionList.index(position))) / 2.0
               if coordinatesPlusOne[variable] == sys.maxsize:
                 down = self.distDict[variable].inverseMarginalDistribution(
                     coordinatesMinusOne[variable],
                     self.variables2distributionsMapping[variable]['dim'] - 1)
-                dxs[positionList.index(position)] = self.distDict[varName].returnUpperBound(
-                    positionList.index(position)) - (coordinates[variable.strip()] + down) / 2.0
+                dxs[positionList.index(
+                    position)] = self.distDict[varName].returnUpperBound(
+                        positionList.index(position)) - (
+                            coordinates[variable.strip()] + down) / 2.0
                 ndCoordinate[positionList.index(position)] = (
-                    self.distDict[varName].returnUpperBound(positionList.index(position)) +
+                    self.distDict[varName].returnUpperBound(
+                        positionList.index(position)) +
                     (coordinates[variable.strip()] + down) / 2.0) / 2.0
             else:
               if coordinatesPlusOne[variable] != sys.maxsize and coordinatesMinusOne[variable] != -sys.maxsize:
                 dxs[positionList.index(position)] = (
-                    coordinatesPlusOne[variable] - coordinatesMinusOne[variable]) / 2.0
-                ndCoordinate[positionList.index(position)] = coordinates[variable.strip()] - (
-                    coordinates[variable.strip()] - coordinatesMinusOne[variable]
-                ) / 2.0 + dxs[positionList.index(position)] / 2.0
+                    coordinatesPlusOne[variable] -
+                    coordinatesMinusOne[variable]) / 2.0
+                ndCoordinate[positionList.index(
+                    position)] = coordinates[variable.strip()] - (
+                        coordinates[variable.strip()] -
+                        coordinatesMinusOne[variable]
+                    ) / 2.0 + dxs[positionList.index(position)] / 2.0
               if coordinatesMinusOne[variable] == -sys.maxsize:
                 dxs[positionList.index(position)] = (
                     coordinates[variable.strip()] + coordinatesPlusOne[variable]
-                ) / 2.0 - self.distDict[varName].returnLowerBound(positionList.index(position))
-                ndCoordinate[positionList.index(position)] = (
-                    (coordinates[variable.strip()] + coordinatesPlusOne[variable]) / 2.0 +
-                    self.distDict[varName].returnLowerBound(positionList.index(position))) / 2.0
+                ) / 2.0 - self.distDict[varName].returnLowerBound(
+                    positionList.index(position))
+                ndCoordinate[positionList.index(position)] = ((
+                    coordinates[variable.strip()] + coordinatesPlusOne[variable]
+                ) / 2.0 + self.distDict[varName].returnLowerBound(
+                    positionList.index(position))) / 2.0
               if coordinatesPlusOne[variable] == sys.maxsize:
-                dxs[positionList.index(position)] = self.distDict[varName].returnUpperBound(
-                    positionList.index(position)) - (
-                        coordinates[variable.strip()] + coordinatesMinusOne[variable]) / 2.0
+                dxs[positionList.index(
+                    position)] = self.distDict[varName].returnUpperBound(
+                        positionList.index(position)) - (
+                            coordinates[variable.strip()] +
+                            coordinatesMinusOne[variable]) / 2.0
                 ndCoordinate[positionList.index(position)] = (
-                    self.distDict[varName].returnUpperBound(positionList.index(position)) +
-                    (coordinates[variable.strip()] + coordinatesMinusOne[variable]) / 2.0) / 2.0
-          self.inputInfo['ProbabilityWeight-' + distName] = self.distDict[varName].cellIntegral(
-              ndCoordinate, dxs)
+                    self.distDict[varName].returnUpperBound(
+                        positionList.index(position)) +
+                    (coordinates[variable.strip(
+                    )] + coordinatesMinusOne[variable]) / 2.0) / 2.0
+          self.inputInfo['ProbabilityWeight-'
+                         + distName] = self.distDict[varName].cellIntegral(
+                             ndCoordinate, dxs)
           weight *= self.distDict[varName].cellIntegral(ndCoordinate, dxs)
-    self.inputInfo['PointProbability'] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
+    self.inputInfo['PointProbability'] = reduce(
+        mul, self.inputInfo['SampledVarsPb'].values())
     self.inputInfo['ProbabilityWeight'] = copy.deepcopy(weight)
     self.inputInfo['SamplerType'] = 'Grid'

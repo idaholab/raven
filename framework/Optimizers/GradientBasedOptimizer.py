@@ -63,8 +63,10 @@ class GradientBasedOptimizer(Optimizer):
     self.constraintHandlingPara = {
     }  # Dict containing parameters for parameters related to constraints handling
     self.gradientNormTolerance = 1.e-3  # tolerance on the L2 norm of the gradient
-    self.gradDict = {}  # Dict containing information for gradient related operations
-    self.gradDict['numIterForAve'] = 1  # Number of iterations for gradient estimation averaging
+    self.gradDict = {
+    }  # Dict containing information for gradient related operations
+    self.gradDict[
+        'numIterForAve'] = 1  # Number of iterations for gradient estimation averaging
     self.gradDict[
         'pertNeeded'] = 1  # Number of perturbation needed to evaluate gradient (globally, considering denoising)
     self.paramDict[
@@ -73,19 +75,23 @@ class GradientBasedOptimizer(Optimizer):
     }  # Dict containing normalized inputs sent to model for gradient evaluation
     self.readyVarsUpdate = {
     }  # Bool variable indicating the finish of gradient evaluation and the ready to update decision variables
-    self.counter['perturbation'] = {}  # Counter for the perturbation performed.
+    self.counter['perturbation'] = {
+    }  # Counter for the perturbation performed.
     self.counter['gradientHistory'] = {
     }  # In this dict we store the gradient value (versor) for current and previous iterations {'trajectoryID':[{},{}]}
     self.counter['gradNormHistory'] = {
     }  # In this dict we store the gradient norm for current and previous iterations {'trajectoryID':[float,float]}
     self.counter['varsUpdate'] = {}
     self.counter['solutionUpdate'] = {}
-    self.counter['lastStepSize'] = {}  # counter to track the last step size taken, by trajectory
+    self.counter['lastStepSize'] = {
+    }  # counter to track the last step size taken, by trajectory
     self.convergeTraj = {}
-    self.convergenceProgress = {}  #tracks the convergence progress, by trajectory
+    self.convergenceProgress = {
+    }  #tracks the convergence progress, by trajectory
     self.trajectoriesKilled = {
     }  # by traj, store traj killed, so that there's no mutual destruction
-    self.recommendToGain = {}  # recommended action to take in next step, by trajectory
+    self.recommendToGain = {
+    }  # recommended action to take in next step, by trajectory
     self.gainGrowthFactor = 2.  # max step growth factor
     self.gainShrinkFactor = 2.  # max step shrinking factor
     self.perturbationIndices = [
@@ -110,24 +116,29 @@ class GradientBasedOptimizer(Optimizer):
             gradientThreshold.text
         ) if gradientThreshold is not None else self.gradientNormTolerance
       except ValueError:
-        self.raiseAnError(ValueError, 'Not able to convert <gradientThreshold> into a float.')
+        self.raiseAnError(
+            ValueError,
+            'Not able to convert <gradientThreshold> into a float.')
       #grain growth factor, the multiplier for going in the same direction
       gainGrowthFactor = convergence.find('gainGrowthFactor')
       try:
         self.gainGrowthFactor = float(
             gainGrowthFactor.text) if gainGrowthFactor is not None else 2.0
       except ValueError:
-        self.raiseAnError(ValueError, 'Not able to convert <gainGrowthFactor> into a float.')
+        self.raiseAnError(
+            ValueError, 'Not able to convert <gainGrowthFactor> into a float.')
       #grain shrink factor, the multiplier for going in the opposite direction
       gainShrinkFactor = convergence.find('gainShrinkFactor')
       try:
         self.gainShrinkFactor = float(
             gainShrinkFactor.text) if gainShrinkFactor is not None else 2.0
       except ValueError:
-        self.raiseAnError(ValueError, 'Not able to convert <gainShrinkFactor> into a float.')
+        self.raiseAnError(
+            ValueError, 'Not able to convert <gainShrinkFactor> into a float.')
       self.raiseADebug('Gain growth factor is set at', self.gainGrowthFactor)
       self.raiseADebug('Gain shrink factor is set at', self.gainShrinkFactor)
-    self.gradDict['numIterForAve'] = int(self.paramDict.get('numGradAvgIterations', 1))
+    self.gradDict['numIterForAve'] = int(
+        self.paramDict.get('numGradAvgIterations', 1))
 
   def localInitialize(self, solutionExport):
     """
@@ -146,15 +157,18 @@ class GradientBasedOptimizer(Optimizer):
       self.optVarsHist[traj] = {}
       self.readyVarsUpdate[traj] = False
       self.convergeTraj[traj] = False
-      self.status[traj] = {'process': 'submitting new opt points', 'reason': 'just started'}
+      self.status[traj] = {
+          'process': 'submitting new opt points',
+          'reason': 'just started'
+      }
       self.counter['recentOptHist'][traj] = [{}, {}]
       self.trajectoriesKilled[traj] = []
     # end job runnable equal to number of trajectory
     self._endJobRunnable = len(self.optTraj)
     # compute perturbation indeces
     self.perturbationIndices = list(
-        range(self.gradDict['numIterForAve'],
-              self.gradDict['numIterForAve'] * (self.paramDict['pertSingleGrad'] + 1)))
+        range(self.gradDict['numIterForAve'], self.gradDict['numIterForAve'] *
+              (self.paramDict['pertSingleGrad'] + 1)))
     #specializing the self.localLocalInitialize()
     self.localLocalInitialize(solutionExport=solutionExport)
 
@@ -217,7 +231,8 @@ class GradientBasedOptimizer(Optimizer):
     ## NOTE this assumes gradient vectors are 0 or 1 dimensional, not 2 or more! (vectors or scalars, not matrices)
     # TODO this could be sped up if we could avoid calling np.atleast_1d twice, but net slower if we loop first
     preMag = [
-        np.linalg.norm(val) if len(np.atleast_1d(val)) > 1 else np.atleast_1d(val)[0]
+        np.linalg.norm(val)
+        if len(np.atleast_1d(val)) > 1 else np.atleast_1d(val)[0]
         for val in values
     ]
     ## then get the magnitude of the result, and return it
@@ -235,8 +250,10 @@ class GradientBasedOptimizer(Optimizer):
       @ Out, gradient, dict, dictionary containing gradient estimation. gradient should have the form {varName: gradEstimation}
     """
     # store old values
-    self.counter['gradientHistory'][traj][1] = copy.copy(self.counter['gradientHistory'][traj][0])
-    self.counter['gradNormHistory'][traj][1] = copy.copy(self.counter['gradNormHistory'][traj][0])
+    self.counter['gradientHistory'][traj][1] = copy.copy(
+        self.counter['gradientHistory'][traj][0])
+    self.counter['gradNormHistory'][traj][1] = copy.copy(
+        self.counter['gradNormHistory'][traj][0])
     gradient = None  # for now...most of the stuff in the localEvaluate can be performed here
     gradient = self.localEvaluateGradient(optVarsValues, traj, gradient)
     # we intend for gradient to give direction only, so get the versor
@@ -326,7 +343,8 @@ class GradientBasedOptimizer(Optimizer):
     # first, check if we're at varsUpdate 0 (first entry); if so, we are at our first point
     if varsUpdate == 0:
       # we don't have enough points to decide to accept or reject the new point, so accept it as the initial point
-      self.raiseADebug('Accepting first point, since we have no rejection criteria.')
+      self.raiseADebug(
+          'Accepting first point, since we have no rejection criteria.')
       self.status[traj]['reason'] = 'found new opt point'
       return
 
@@ -340,7 +358,8 @@ class GradientBasedOptimizer(Optimizer):
     # see if new point is better than old point
     newerIsBetter = self.checkIfBetter(currentLossVal, oldLossVal)
     # if this was a recommended preconditioning point, we should not be converged.
-    pointFromRecommendation = self.status[traj]['reason'] == 'received recommended point'
+    pointFromRecommendation = self.status[traj][
+        'reason'] == 'received recommended point'
     # if improved, keep it and move forward; otherwise, reject it and recommend cutting step size
     if newerIsBetter:
       self.status[traj]['reason'] = 'found new opt point'
@@ -354,20 +373,22 @@ class GradientBasedOptimizer(Optimizer):
     else:
       self.status[traj]['reason'] = 'rejecting bad opt point'
       self.raiseADebug(
-          'Rejecting potential opt point for worse loss value. old: "{}", new: "{}"'.format(
-              oldLossVal, currentLossVal))
+          'Rejecting potential opt point for worse loss value. old: "{}", new: "{}"'.
+          format(oldLossVal, currentLossVal))
       # cut the next step size to hopefully stay in the valley instead of climb up the other side
       self.recommendToGain[traj] = 'cut'
 
     ## determine convergence
     if pointFromRecommendation:
       self.raiseAMessage(
-          'Setting convergence for Trajectory "{}" to "False" because of preconditioning.'.format(
-              traj))
+          'Setting convergence for Trajectory "{}" to "False" because of preconditioning.'.
+          format(traj))
       converged = False
     else:
-      self.raiseAMessage('Checking convergence for Trajectory "{}":'.format(traj))
-      self.convergenceProgress[traj] = {}  # tracks progress for grad norm, abs, rel tolerances
+      self.raiseAMessage(
+          'Checking convergence for Trajectory "{}":'.format(traj))
+      self.convergenceProgress[traj] = {
+      }  # tracks progress for grad norm, abs, rel tolerances
       converged = False  # updated for each individual criterion using "or" (pass one, pass all)
       #printing utility
       printString = '    {:<21}: {:<5}'
@@ -382,7 +403,9 @@ class GradientBasedOptimizer(Optimizer):
           @ In, gold, float, convergence threshold value
           @ Out, None
         """
-        self.raiseAMessage(printVals.format(name, str(boolCheck), test, gold, abs(test - gold)))
+        self.raiseAMessage(
+            printVals.format(name, str(boolCheck), test, gold,
+                             abs(test - gold)))
 
       # "min step size" and "gradient norm" are both always valid checks, whether rejecting or accepting new point
 
@@ -394,7 +417,8 @@ class GradientBasedOptimizer(Optimizer):
         #we reset the step size, so we don't have a value anymore
         lastStep = np.nan
         minStepSizeCheck = False
-      printProgress('Min step size', minStepSizeCheck, lastStep, self.minStepSize)
+      printProgress('Min step size', minStepSizeCheck, lastStep,
+                    self.minStepSize)
       converged = converged or minStepSizeCheck
 
       # gradient norm
@@ -405,23 +429,27 @@ class GradientBasedOptimizer(Optimizer):
       else:
         gradNorm = np.nan
         gradientNormCheck = False
-      printProgress('Gradient magnitude', gradientNormCheck, gradNorm, self.gradientNormTolerance)
+      printProgress('Gradient magnitude', gradientNormCheck, gradNorm,
+                    self.gradientNormTolerance)
       converged = converged or gradientNormCheck
 
       # if accepting new point, then "same coordinate" and "abs" and "rel" checks are also valid reasons to converge
       if newerIsBetter:
         #absolute tolerance
-        absLossDiff = abs(mathUtils.diffWithInfinites(currentLossVal, oldLossVal))
+        absLossDiff = abs(
+            mathUtils.diffWithInfinites(currentLossVal, oldLossVal))
         self.convergenceProgress[traj]['abs'] = absLossDiff
         absTolCheck = absLossDiff <= self.absConvergenceTol
-        printProgress('Absolute Loss Diff', absTolCheck, absLossDiff, self.absConvergenceTol)
+        printProgress('Absolute Loss Diff', absTolCheck, absLossDiff,
+                      self.absConvergenceTol)
         converged = converged or absTolCheck
 
         #relative tolerance
         relLossDiff = mathUtils.relativeDiff(currentLossVal, oldLossVal)
         self.convergenceProgress[traj]['rel'] = relLossDiff
         relTolCheck = relLossDiff <= self.relConvergenceTol
-        printProgress('Relative Loss Diff', relTolCheck, relLossDiff, self.relConvergenceTol)
+        printProgress('Relative Loss Diff', relTolCheck, relLossDiff,
+                      self.relConvergenceTol)
         converged = converged or relTolCheck
 
         #same coordinate check
@@ -435,7 +463,9 @@ class GradientBasedOptimizer(Optimizer):
             if values != self.counter['recentOptHist'][traj][0][var]:
               sameCoordinateCheck = False
               break
-        self.raiseAMessage(printString.format('Same coordinate check', str(sameCoordinateCheck)))
+        self.raiseAMessage(
+            printString.format('Same coordinate check',
+                               str(sameCoordinateCheck)))
         converged = converged or sameCoordinateCheck
 
     if converged:
@@ -443,13 +473,16 @@ class GradientBasedOptimizer(Optimizer):
       self.counter['persistence'][traj] += 1
       # check if we've met persistence requirement; if not, keep going
       if self.counter['persistence'][traj] >= self.convergencePersistence:
-        self.raiseAMessage(' ... Trajectory "{}" converged {} times consecutively!'.format(
-            traj, self.counter['persistence'][traj]))
+        self.raiseAMessage(
+            ' ... Trajectory "{}" converged {} times consecutively!'.format(
+                traj, self.counter['persistence'][traj]))
         self.convergeTraj[traj] = True
         self.removeConvergedTrajectory(traj)
       else:
-        self.raiseAMessage(' ... converged Traj "{}" {} times, required persistence is {}.'.format(
-            traj, self.counter['persistence'][traj], self.convergencePersistence))
+        self.raiseAMessage(
+            ' ... converged Traj "{}" {} times, required persistence is {}.'.
+            format(traj, self.counter['persistence'][traj],
+                   self.convergencePersistence))
     else:
       self.counter['persistence'][traj] = 0
       self.raiseAMessage(' ... continuing trajectory "{}".'.format(traj))
@@ -488,16 +521,19 @@ class GradientBasedOptimizer(Optimizer):
       if traj not in notEligibleToRemove:  #[trajToRemove] + self.trajectoriesKilled[trajToRemove]:
         #FIXME this can be quite an expensive operation, looping through each other trajectory
         for updateKey in self.optVarsHist[traj].keys():
-          inp = copy.deepcopy(self.optVarsHist[traj][updateKey])  #FIXME deepcopy needed?
+          inp = copy.deepcopy(
+              self.optVarsHist[traj][updateKey])  #FIXME deepcopy needed?
           if len(inp) < 1:  #empty
             continue
           removeLocalFlag = True
-          dist = self.calculateMultivectorMagnitude(
-              [inp[var] - currentInput[var] for var in self.getOptVars(traj=trajToRemove)])
+          dist = self.calculateMultivectorMagnitude([
+              inp[var] - currentInput[var]
+              for var in self.getOptVars(traj=trajToRemove)
+          ])
           if dist < self.thresholdTrajRemoval:
             self.raiseADebug(
-                'Halting trajectory "{}" because it is following trajectory "{}"'.format(
-                    trajToRemove, traj))
+                'Halting trajectory "{}" because it is following trajectory "{}"'.
+                format(trajToRemove, traj))
             self.trajectoriesKilled[traj].append(trajToRemove)
             #TODO the trajectory to remove should be chosen more carefully someday, for example, the one that has the smallest steps or lower loss value currently
             removeFlag = True
@@ -579,7 +615,8 @@ class GradientBasedOptimizer(Optimizer):
               # get output values corresponding to evaluations of the opt point
               # also add opt points to the grad perturbation list
               self.gradDict['pertPoints'][traj] = np.zeros(
-                  (1 + self.paramDict['pertSingleGrad']) * self.gradDict['numIterForAve'],
+                  (1 + self.paramDict['pertSingleGrad']) *
+                  self.gradDict['numIterForAve'],
                   dtype=dict)
               for i, index in enumerate(indices):
                 # get the realization from the targetEvaluation
@@ -591,7 +628,9 @@ class GradientBasedOptimizer(Optimizer):
                     self.gradDict['pertPoints'][traj][i] = {
                         'inputs':
                         self.normalizeData(
-                            dict((var, vals[var]) for var in self.mdlEvalHist.getVars('input'))),
+                            dict(
+                                (var, vals[var])
+                                for var in self.mdlEvalHist.getVars('input'))),
                         'output':
                         float(vals[var])
                     }
@@ -601,11 +640,12 @@ class GradientBasedOptimizer(Optimizer):
               currentObjectiveValue = outputs[self.objVar]  #.mean()
               # check convergence
               # TODO REWORK move this to localStillReady, along with the gradient evaluation
-              self._updateConvergenceVector(traj, self.counter['solutionUpdate'][traj],
-                                            currentObjectiveValue)
+              self._updateConvergenceVector(
+                  traj, self.counter['solutionUpdate'][traj],
+                  currentObjectiveValue)
             else:
-              self.raiseAMessage('Rejecting opt point for trajectory "' + str(failedTrajectory) +
-                                 '" since the model failed!')
+              self.raiseAMessage('Rejecting opt point for trajectory "' + str(
+                  failedTrajectory) + '" since the model failed!')
               self.convergeTraj[traj] = False
               self.status[traj]['reason'] = 'failed run'
               self.recommendToGain[traj] = 'cut'
@@ -618,7 +658,9 @@ class GradientBasedOptimizer(Optimizer):
               else:
                 self.status[traj]['process'] = 'submitting grad eval points'
             # if rejecting bad point, keep the old point as the new point; otherwise, add the new one
-            if self.status[traj]['reason'] not in ['rejecting bad opt point', 'failed run']:
+            if self.status[traj]['reason'] not in [
+                'rejecting bad opt point', 'failed run'
+            ]:
               try:
                 self.counter['recentOptHist'][traj][1] = copy.deepcopy(
                     self.counter['recentOptHist'][traj][0])
@@ -627,7 +669,8 @@ class GradientBasedOptimizer(Optimizer):
                 pass
               # store realization of most recent developments
               rlz = {}
-              rlz.update(self.optVarsHist[traj][self.counter['varsUpdate'][traj]])
+              rlz.update(
+                  self.optVarsHist[traj][self.counter['varsUpdate'][traj]])
               rlz.update(outputs)
               self.counter['recentOptHist'][traj][0] = rlz
               if traj not in self.counter['prefixHistory']:
@@ -718,8 +761,10 @@ class GradientBasedOptimizer(Optimizer):
       elif recommend == 'grow':
         frac = self.gainGrowthFactor
       else:
-        self.raiseAnError(RuntimeError, 'unrecognized gain recommendation:', recommend)
-      self.raiseADebug('Based on recommendation, step size multiplier is:', frac)
+        self.raiseAnError(RuntimeError, 'unrecognized gain recommendation:',
+                          recommend)
+      self.raiseADebug('Based on recommendation, step size multiplier is:',
+                       frac)
       return frac
     # otherwise, no recommendation for this trajectory, so move on
     #if we don't have two evaluated gradients, just return 1.0
@@ -736,7 +781,8 @@ class GradientBasedOptimizer(Optimizer):
       frac = self.gainGrowthFactor**prod
     else:
       frac = self.gainShrinkFactor**prod
-    self.raiseADebug('Based on gradient history, step size multiplier is:', frac)
+    self.raiseADebug('Based on gradient history, step size multiplier is:',
+                     frac)
     return frac
 
   def queueUpOptPointRuns(self, traj, point):
@@ -754,7 +800,9 @@ class GradientBasedOptimizer(Optimizer):
           format(traj, self.submissionQueue[traj]))
     for i in range(self.gradDict['numIterForAve']):
       #entries into the queue are as {'inputs':{var:val}, 'prefix':runid} where runid is <traj>_<varUpdate>_<evalNumber> as 0_0_2
-      nPoint = {'inputs': copy.deepcopy(point)}  #deepcopy to prevent simultaneous alteration
+      nPoint = {
+          'inputs': copy.deepcopy(point)
+      }  #deepcopy to prevent simultaneous alteration
       nPoint['prefix'] = self._createEvaluationIdentifier(
           traj, self.counter['varsUpdate'][traj],
           i)  # from 0 to self.gradDict['numIterForAve'] are opt point evals
@@ -773,8 +821,8 @@ class GradientBasedOptimizer(Optimizer):
     except IndexError:
       self.raiseAnError(
           RuntimeError,
-          'Tried to get a point from submission queue of trajectory "{}" but it is empty!'.format(
-              traj))
+          'Tried to get a point from submission queue of trajectory "{}" but it is empty!'.
+          format(traj))
     prefix = entry['prefix']
     point = entry['inputs']
     if denorm:
@@ -807,7 +855,8 @@ class GradientBasedOptimizer(Optimizer):
       bestTraj = None
       for traj in self.counter['recentOptHist'].keys():
         value = self.counter['recentOptHist'][traj][0][self.objVar]
-        self.raiseADebug('For trajectory "{}" the best value was'.format(traj), value)
+        self.raiseADebug('For trajectory "{}" the best value was'.format(traj),
+                         value)
         if bestTraj is None:
           bestTraj = traj
           bestValue = value
@@ -817,5 +866,6 @@ class GradientBasedOptimizer(Optimizer):
           bestValue = value
       # now have the best trajectory, so write solution export
       self.raiseADebug(
-          'The best overall trajectory ending was for trajectory "{}".'.format(bestTraj))
+          'The best overall trajectory ending was for trajectory "{}".'.format(
+              bestTraj))
       self.writeToSolutionExport(bestTraj)

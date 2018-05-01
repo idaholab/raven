@@ -68,11 +68,13 @@ class DateBase(BaseType):
     inputSpecification = super(DateBase, cls).getInputSpecification()
     inputSpecification.addParam("directory", InputData.StringType)
     inputSpecification.addParam("filename", InputData.StringType)
-    inputSpecification.addParam("readMode",
-                                InputData.makeEnumType("readMode", "readModeType",
-                                                       ["overwrite", "read"]), True)
+    inputSpecification.addParam(
+        "readMode",
+        InputData.makeEnumType("readMode", "readModeType",
+                               ["overwrite", "read"]), True)
     inputSpecification.addSub(
-        InputData.parameterInputFactory("variables", contentType=InputData.StringListType))
+        InputData.parameterInputFactory(
+            "variables", contentType=InputData.StringListType))
     return inputSpecification
 
   def _handleInput(self, paramInput):
@@ -85,7 +87,8 @@ class DateBase(BaseType):
       self.databaseDir = copy.copy(paramInput.parameterValues['directory'])
       # if not absolute path, join with working directory
       if not os.path.isabs(self.databaseDir):
-        self.databaseDir = os.path.abspath(os.path.join(self.workingDir, self.databaseDir))
+        self.databaseDir = os.path.abspath(
+            os.path.join(self.workingDir, self.databaseDir))
     else:
       self.databaseDir = os.path.join(self.workingDir, 'DatabaseStorage')
     if 'filename' in paramInput.parameterValues:
@@ -110,17 +113,20 @@ class DateBase(BaseType):
         self.exist = True
       elif self.readMode == 'overwrite':
         self.exist = False
-      self.database = h5Data(self.name, self.databaseDir, self.messageHandler, self.filename,
-                             self.exist, self.variables)
+      self.database = h5Data(self.name, self.databaseDir, self.messageHandler,
+                             self.filename, self.exist, self.variables)
     else:
       #file does not exist in path
       if self.readMode == 'read':
         self.raiseAnError(
-            IOError, 'Requested to read from database, but it does not exist at:', fullpath,
-            '; The path to the database must be either absolute or relative to <workingDir>!')
+            IOError,
+            'Requested to read from database, but it does not exist at:',
+            fullpath,
+            '; The path to the database must be either absolute or relative to <workingDir>!'
+        )
       self.exist = False
-      self.database = h5Data(self.name, self.databaseDir, self.messageHandler, self.filename,
-                             self.exist, self.variables)
+      self.database = h5Data(self.name, self.databaseDir, self.messageHandler,
+                             self.filename, self.exist, self.variables)
     self.raiseAMessage('Database is located at:', fullpath)
 
   def __init__(self, runInfoDict):
@@ -209,8 +215,8 @@ class HDF5(DateBase):
     """
     self.__dict__.update(newstate)
     self.exist = True
-    self.database = h5Data(self.name, self.databaseDir, self.messageHandler, self.filename,
-                           self.exist)
+    self.database = h5Data(self.name, self.databaseDir, self.messageHandler,
+                           self.filename, self.exist)
 
   def getInitParams(self):
     """
@@ -328,16 +334,17 @@ class HDF5(DateBase):
     # matchDict not implemented for Databases
     assert (matchDict is None)
     if (not self.exist) and (not self.built):
-      self.raiseAnError(Exception, 'Can not retrieve a realization from Database' + self.name +
-                        '.It has not been built yet!')
+      self.raiseAnError(Exception,
+                        'Can not retrieve a realization from Database' +
+                        self.name + '.It has not been built yet!')
     if type(index).__name__ == 'int':
       allRealizations = self.database.retrieveAllHistoryNames()
     if type(index).__name__ == 'int' and index > len(allRealizations):
       rlz = None
     else:
-      rlz, _ = self.database._getRealizationByName(allRealizations[index]
-                                                   if type(index).__name__ == 'int' else index,
-                                                   {'reconstruct': True})
+      rlz, _ = self.database._getRealizationByName(
+          allRealizations[index]
+          if type(index).__name__ == 'int' else index, {'reconstruct': True})
     return rlz
 
 

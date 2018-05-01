@@ -179,16 +179,16 @@ class OpenModelica(CodeInterfaceBase):
         break
     if not found:
       raise Exception(
-          'OpenModelica INTERFACE ERROR -> An XML file was not found in the input files!')
+          'OpenModelica INTERFACE ERROR -> An XML file was not found in the input files!'
+      )
     # Build an output file name of the form: rawout~<Base Name>, where base name is generated from the
     #   input file passed in: /path/to/file/<Base Name>.ext.  'rawout' indicates that this is the direct
     #   output from running the OpenModelica executable.
     outputfile = 'rawout~' + inputFiles[index].getBase(
     )  #os.path.splitext(os.path.basename(inputFiles[index]))[0]
-    returnCommand = [
-        ('parallel',
-         executable + ' -f ' + inputFiles[index].getFilename() + ' -r ' + outputfile + '.csv')
-    ], outputfile
+    returnCommand = [('parallel',
+                      executable + ' -f ' + inputFiles[index].getFilename() +
+                      ' -r ' + outputfile + '.csv')], outputfile
     return returnCommand
 
   def _isValidInput(self, inputFile):
@@ -211,7 +211,8 @@ class OpenModelica(CodeInterfaceBase):
     validExtensions = ('xml', 'XML', 'Xml')
     return validExtensions
 
-  def createNewInput(self, currentInputFiles, oriInputFiles, samplerType, **Kwargs):
+  def createNewInput(self, currentInputFiles, oriInputFiles, samplerType,
+                     **Kwargs):
     """
       Generate a new OpenModelica input file (XML format) from the original, changing parameters
       as specified in Kwargs['SampledVars']
@@ -232,7 +233,8 @@ class OpenModelica(CodeInterfaceBase):
         break
     if not found:
       raise Exception(
-          'OpenModelica INTERFACE ERROR -> An XML file was not found in the input files!')
+          'OpenModelica INTERFACE ERROR -> An XML file was not found in the input files!'
+      )
 
     # Figure out the new file name and put it into the proper place in the return list
     #newInputFiles = copy.deepcopy(currentInputFiles)
@@ -272,18 +274,20 @@ class OpenModelica(CodeInterfaceBase):
     """
     # Make a new temporary file in the working directory and read the lines from the original CSV
     #   to it, stripping trailing commas in the process.
-    tempOutputFD, tempOutputFileName = tempfile.mkstemp(dir=workingDir, text=True)
-    sourceFileName = os.path.join(workingDir,
-                                  output)  # The source file comes in without .csv on it
+    tempOutputFD, tempOutputFileName = tempfile.mkstemp(
+        dir=workingDir, text=True)
+    sourceFileName = os.path.join(
+        workingDir, output)  # The source file comes in without .csv on it
     print('sourcefilename:', sourceFileName)
-    destFileName = sourceFileName.replace('rawout~',
-                                          'out~')  # When fix the CSV, change rawout~ to out~
+    destFileName = sourceFileName.replace(
+        'rawout~', 'out~')  # When fix the CSV, change rawout~ to out~
     sourceFileName += '.csv'
     inputFile = open(sourceFileName)
     for line in inputFile:
       # Line ends with a comma followed by a newline
       #XXX toBytes seems to be needed here in python3, despite the text = True
-      os.write(tempOutputFD, utils.toBytes(line.replace('"', '').strip().strip(',') + '\n'))
+      os.write(tempOutputFD,
+               utils.toBytes(line.replace('"', '').strip().strip(',') + '\n'))
     inputFile.close()
     os.close(tempOutputFD)
     shutil.move(tempOutputFileName, destFileName + '.csv')

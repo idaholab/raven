@@ -91,8 +91,10 @@ class Optimizer(Sampler):
         'upperBound', contentType=InputData.FloatType, strictMode=True)
     lowerBound = InputData.parameterInputFactory(
         'lowerBound', contentType=InputData.FloatType, strictMode=True)
-    initial = InputData.parameterInputFactory('initial', contentType=InputData.StringListType)
-    shape = InputData.parameterInputFactory('shape', contentType=InputData.StringListType)
+    initial = InputData.parameterInputFactory(
+        'initial', contentType=InputData.StringListType)
+    shape = InputData.parameterInputFactory(
+        'shape', contentType=InputData.StringListType)
     variable.addSub(upperBound)
     variable.addSub(lowerBound)
     variable.addSub(initial)
@@ -107,14 +109,19 @@ class Optimizer(Sampler):
 
     # initialization
     init = InputData.parameterInputFactory('initialization', strictMode=True)
-    whenWriteEnum = InputData.makeEnumType('whenWriteEnum', 'whenWriteType', ['final', 'every'])
-    limit = InputData.parameterInputFactory('limit', contentType=InputData.IntegerType)
-    seed = InputData.parameterInputFactory('initialSeed', contentType=InputData.IntegerType)
-    minmaxEnum = InputData.makeEnumType('MinMax', 'OptimizerTypeType', ['min', 'max'])
+    whenWriteEnum = InputData.makeEnumType('whenWriteEnum', 'whenWriteType',
+                                           ['final', 'every'])
+    limit = InputData.parameterInputFactory(
+        'limit', contentType=InputData.IntegerType)
+    seed = InputData.parameterInputFactory(
+        'initialSeed', contentType=InputData.IntegerType)
+    minmaxEnum = InputData.makeEnumType('MinMax', 'OptimizerTypeType',
+                                        ['min', 'max'])
     minmax = InputData.parameterInputFactory('type', contentType=minmaxEnum)
     thresh = InputData.parameterInputFactory(
         'thresholdTrajRemoval', contentType=InputData.FloatType)
-    write = InputData.parameterInputFactory('writeSteps', contentType=whenWriteEnum)
+    write = InputData.parameterInputFactory(
+        'writeSteps', contentType=whenWriteEnum)
     init.addSub(limit)
     init.addSub(seed)
     init.addSub(minmax)
@@ -124,14 +131,22 @@ class Optimizer(Sampler):
 
     # convergence
     conv = InputData.parameterInputFactory('convergence', strictMode=True)
-    itLim = InputData.parameterInputFactory('iterationLimit', contentType=InputData.IntegerType)
-    pers = InputData.parameterInputFactory('persistence', contentType=InputData.IntegerType)
-    rel = InputData.parameterInputFactory('relativeThreshold', contentType=InputData.FloatType)
-    abst = InputData.parameterInputFactory('absoluteThreshold', contentType=InputData.FloatType)
-    grad = InputData.parameterInputFactory('gradientThreshold', contentType=InputData.FloatType)
-    minstep = InputData.parameterInputFactory('minStepSize', contentType=InputData.FloatType)
-    grow = InputData.parameterInputFactory('gainGrowthFactor', contentType=InputData.FloatType)
-    shrink = InputData.parameterInputFactory('gainShrinkFactor', contentType=InputData.FloatType)
+    itLim = InputData.parameterInputFactory(
+        'iterationLimit', contentType=InputData.IntegerType)
+    pers = InputData.parameterInputFactory(
+        'persistence', contentType=InputData.IntegerType)
+    rel = InputData.parameterInputFactory(
+        'relativeThreshold', contentType=InputData.FloatType)
+    abst = InputData.parameterInputFactory(
+        'absoluteThreshold', contentType=InputData.FloatType)
+    grad = InputData.parameterInputFactory(
+        'gradientThreshold', contentType=InputData.FloatType)
+    minstep = InputData.parameterInputFactory(
+        'minStepSize', contentType=InputData.FloatType)
+    grow = InputData.parameterInputFactory(
+        'gainGrowthFactor', contentType=InputData.FloatType)
+    shrink = InputData.parameterInputFactory(
+        'gainShrinkFactor', contentType=InputData.FloatType)
     conv.addSub(itLim)
     conv.addSub(pers)
     conv.addSub(rel)
@@ -148,10 +163,12 @@ class Optimizer(Sampler):
                                        ['Hypersphere', 'Bernoulli'])
     num = InputData.parameterInputFactory(
         'numGradAvgIterations', contentType=InputData.IntegerType)
-    stoch = InputData.parameterInputFactory('stochasticDistribution', contentType=stochEnum)
+    stoch = InputData.parameterInputFactory(
+        'stochasticDistribution', contentType=stochEnum)
     bisect = InputData.parameterInputFactory(
         'innerBisectionThreshold', contentType=InputData.FloatType)
-    loop = InputData.parameterInputFactory('innerLoopLimit', contentType=InputData.IntegerType)
+    loop = InputData.parameterInputFactory(
+        'innerLoopLimit', contentType=InputData.IntegerType)
     param.addSub(num)
     param.addSub(stoch)
     param.addSub(bisect)
@@ -160,7 +177,8 @@ class Optimizer(Sampler):
 
     # multilevel
     multilevel = InputData.parameterInputFactory('multilevel', strictMode=True)
-    sequence = InputData.parameterInputFactory('sequence', contentType=InputData.StringType)
+    sequence = InputData.parameterInputFactory(
+        'sequence', contentType=InputData.StringType)
     multilevel.addSub(sequence)
     subspace = InputData.parameterInputFactory(
         'subspace', contentType=InputData.StringListType, strictMode=True)
@@ -182,7 +200,8 @@ class Optimizer(Sampler):
     Sampler.__init__(self)
     #counters
     ## while "counter" is scalar in Sampler, it's more complicated in Optimizer
-    self.counter = {}  # Dict containing counters used for based and derived class
+    self.counter = {
+    }  # Dict containing counters used for based and derived class
     self.counter[
         'mdlEval'] = 0  # Counter of the model evaluation performed (better the input generated!!!). It is reset by calling the function self.initialize
     self.counter['varsUpdate'] = 0  # Counter of the optimization iteration.
@@ -190,31 +209,42 @@ class Optimizer(Sampler):
     }  # as {traj: [pt0, pt1]} where each pt is {'inputs':{var:val}, 'output':val}, the two most recently-accepted points by value
     self.counter['prefixHistory'] = {
     }  # as {traj: [prefix1, prefix2]} where each prefix is the job identifier for each trajectory
-    self.counter['persistence'] = {}  # as {traj: n} where n is the number of consecutive converges
+    self.counter['persistence'] = {
+    }  # as {traj: n} where n is the number of consecutive converges
     #limits
     ## while "limit" is scalar in Sampler, it's more complicated in Optimizer
     self.limit = {}  # Dict containing limits for each counter
-    self.limit['mdlEval'] = 2000  # Maximum number of the loss function evaluation
-    self.limit['varsUpdate'] = 650  # Maximum number of the optimization iteration.
+    self.limit[
+        'mdlEval'] = 2000  # Maximum number of the loss function evaluation
+    self.limit[
+        'varsUpdate'] = 650  # Maximum number of the optimization iteration.
     #variable lists
     self.objVar = None  # Objective variable to be optimized
-    self.optVars = {}  # By trajectory, current decision variables for optimization
+    self.optVars = {
+    }  # By trajectory, current decision variables for optimization
     self.fullOptVars = None  # Decision variables for optimization, full space
     self.optTraj = None  # Identifiers of parallel optimization trajectories
     #initialization parameters
     self.optVarsInit = {
     }  # Dict containing upper/lower bounds and initial of each decision variables
-    self.optVarsInit['upperBound'] = {}  # Dict containing upper bounds of each decision variables
-    self.optVarsInit['lowerBound'] = {}  # Dict containing lower bounds of each decision variables
-    self.optVarsInit['initial'] = {}  # Dict containing initial values of each decision variables
-    self.optVarsInit['ranges'] = {}  # Dict of the ranges (min and max) of each variable's domain
+    self.optVarsInit['upperBound'] = {
+    }  # Dict containing upper bounds of each decision variables
+    self.optVarsInit['lowerBound'] = {
+    }  # Dict containing lower bounds of each decision variables
+    self.optVarsInit['initial'] = {
+    }  # Dict containing initial values of each decision variables
+    self.optVarsInit['ranges'] = {
+    }  # Dict of the ranges (min and max) of each variable's domain
     self.optType = None  # Either max or min
     self.writeSolnExportOn = None  # Determines when we write to solution export (every step or final solution)
-    self.paramDict = {}  # Dict containing additional parameters for derived class
+    self.paramDict = {
+    }  # Dict containing additional parameters for derived class
     self.initializationSampler = None  # Sampler that can be used to initialize the optimizer trajectories
-    self.optVarsInitialized = {}  # Dict {var1:<initial> present?,var2:<initial> present?}
+    self.optVarsInitialized = {
+    }  # Dict {var1:<initial> present?,var2:<initial> present?}
     #convergence tools
-    self.optVarsHist = {}  # History of normalized decision variables for each iteration
+    self.optVarsHist = {
+    }  # History of normalized decision variables for each iteration
     self.thresholdTrajRemoval = None  # Threshold used to determine the convergence of parallel optimization trajectories
     self.absConvergenceTol = 0.0  # Convergence threshold (absolute value)
     self.relConvergenceTol = 1.e-3  # Convergence threshold (relative value)
@@ -226,13 +256,15 @@ class Optimizer(Sampler):
     }  # by traj, a place (deque) to store points that should be submitted some time after they are discovered
     #functions and dataojbects
     self.constraintFunction = None  # External constraint function, could be not present
-    self.preconditioners = {}  # by name, Models that might be used as preconditioners
+    self.preconditioners = {
+    }  # by name, Models that might be used as preconditioners
     self.solutionExport = None  # This is the data used to export the solution
     self.mdlEvalHist = None  # Containing information of all model evaluation
     self.objSearchingROM = None  # ROM used internally for fast loss function evaluation
     #multilevel
     self.multilevel = False  # indicates if operating in multilevel mode
-    self.mlBatches = {}  # dict of {batchName:[list,of,vars]} that defines input subspaces
+    self.mlBatches = {
+    }  # dict of {batchName:[list,of,vars]} that defines input subspaces
     self.mlHoldBatches = {
     }  # dict of {batchName:[list,of,vars]} that defines the optional output subspaces that need to be kept constant till convergence of this space
     self.mlSequence = [
@@ -253,9 +285,10 @@ class Optimizer(Sampler):
     self.recommendedOptPoint = {
     }  # by traj, the next recommended point (as a dict) in the input space to move to
     self.nextActionNeeded = (
-        None,
-        None)  # tool for localStillReady to inform localGenerateInput on the next action needed
-    self.status = {}  # by trajectory, ("string-based status", arbitrary, other, entries)
+        None, None
+    )  # tool for localStillReady to inform localGenerateInput on the next action needed
+    self.status = {
+    }  # by trajectory, ("string-based status", arbitrary, other, entries)
     ### EXPLANATION OF STATUS SYSTEM
     #
     # Due to the complicated nature of adaptive sampling in a forward-sampling approach, we keep track
@@ -310,8 +343,10 @@ class Optimizer(Sampler):
     self.assemblerDict['DataObjects'] = []
     for mainClass in ['Functions', 'Distributions', 'DataObjects']:
       for funct in initDict[mainClass]:
-        self.assemblerDict[mainClass].append(
-            [mainClass, initDict[mainClass][funct].type, funct, initDict[mainClass][funct]])
+        self.assemblerDict[mainClass].append([
+            mainClass, initDict[mainClass][funct].type, funct,
+            initDict[mainClass][funct]
+        ])
 
   def _localWhatDoINeed(self):
     """
@@ -365,8 +400,9 @@ class Optimizer(Sampler):
           varName = child.parameterValues['name']
           self.optVarsInitialized[varName] = False
         except KeyError:
-          self.raiseAnError(IOError, '"{}" node does not have the "name" attribute'.format(
-              child.getName()))
+          self.raiseAnError(
+              IOError, '"{}" node does not have the "name" attribute'.format(
+                  child.getName()))
         self.fullOptVars.append(varName)
         self.optVarsInit['initial'][varName] = {}
         for childChild in child.subparts:
@@ -387,7 +423,8 @@ class Optimizer(Sampler):
                     'Unable to convert to float the intial value for variable "{}" in trajectory "{}": {}'.
                     format(varName, trajInd, initVal))
             if self.optTraj == None:
-              self.optTraj = range(len(self.optVarsInit['initial'][varName].keys()))
+              self.optTraj = range(
+                  len(self.optVarsInit['initial'][varName].keys()))
           elif childChild.getName() == 'shape':
             try:
               variableShape = tuple(int(i) for i in childChild.value)
@@ -402,15 +439,17 @@ class Optimizer(Sampler):
         value = utils.partialEval(child.value)
         if value is None:
           self.raiseAnError(
-              IOError, 'The body of "constant" XML block should be a number. Got: ' + child.value)
+              IOError,
+              'The body of "constant" XML block should be a number. Got: ' +
+              child.value)
         try:
           self.constants[child.parameterValues['name']] = value
         except KeyError:
           self.raiseAnError(
               KeyError,
               child.getName() +
-              '"constant" nodes must have the attribute "name" (missing in "{}").'.format(
-                  self.name))
+              '"constant" nodes must have the attribute "name" (missing in "{}").'.
+              format(self.name))
 
       elif child.getName() == "objectVar":
         self.objVar = child.value.strip()
@@ -424,9 +463,10 @@ class Optimizer(Sampler):
           elif childChild.getName() == "type":
             self.optType = childChild.value
             if self.optType not in ['min', 'max']:
-              self.raiseAnError(IOError,
-                                'Unknown optimization type "{}". Available: "min" or "max"'.format(
-                                    childChild.value))
+              self.raiseAnError(
+                  IOError,
+                  'Unknown optimization type "{}". Available: "min" or "max"'.
+                  format(childChild.value))
           elif childChild.getName() == "initialSeed":
             self.initSeed = childChild.value
           elif childChild.getName() == 'thresholdTrajRemoval':
@@ -473,22 +513,30 @@ class Optimizer(Sampler):
             try:
               name = subnode.parameterValues['name']
             except KeyError:
-              self.raiseAnError(IOError, 'A multilevel subspace is missing the "name" attribute!')
+              self.raiseAnError(
+                  IOError,
+                  'A multilevel subspace is missing the "name" attribute!')
             if name in self.mlBatches.keys():
-              self.raiseAnError(IOError,
-                                'Multilevel subspace "{}" has a duplicate name!'.format(name))
+              self.raiseAnError(
+                  IOError,
+                  'Multilevel subspace "{}" has a duplicate name!'.format(
+                      name))
             if "holdOutputSpace" in subnode.parameterValues:
               self.mlHoldBatches[name] = [
-                  var.strip() for var in subnode.parameterValues['holdOutputSpace'].split(",")
+                  var.strip() for var in subnode.parameterValues[
+                      'holdOutputSpace'].split(",")
               ]
-              self.raiseAMessage('For subspace "' + name +
-                                 '" the following output space is asked to be kept on hold: ' +
-                                 ','.join(self.mlHoldBatches[name]))
+              self.raiseAMessage(
+                  'For subspace "' + name +
+                  '" the following output space is asked to be kept on hold: '
+                  + ','.join(self.mlHoldBatches[name]))
             #subspace text
             subspaceVars = subnode.value
             if len(subspaceVars) < 1:
               self.raiseAnError(
-                  IOError, 'Multilevel subspace "{}" has no variables specified!'.format(name))
+                  IOError,
+                  'Multilevel subspace "{}" has no variables specified!'.
+                  format(name))
             self.mlBatches[name] = subspaceVars
             #subspace preconditioner
             precond = subnode.parameterValues.get('precond')
@@ -501,8 +549,9 @@ class Optimizer(Sampler):
     # set defaults
     if self.writeSolnExportOn is None:
       self.writeSolnExportOn = 'every'
-    self.raiseAMessage('Writing to solution export on "{}" optimizer iteration.'.format(
-        self.writeSolnExportOn))
+    self.raiseAMessage(
+        'Writing to solution export on "{}" optimizer iteration.'.format(
+            self.writeSolnExportOn))
     if self.optType is None:
       self.optType = 'min'
     if self.thresholdTrajRemoval is None:
@@ -515,9 +564,11 @@ class Optimizer(Sampler):
 
     # check required settings TODO this can probably be removed thanks to the input checking!
     if self.objVar is None:
-      self.raiseAnError(IOError, 'Object variable is not specified for optimizer!')
+      self.raiseAnError(IOError,
+                        'Object variable is not specified for optimizer!')
     if self.fullOptVars is None:
-      self.raiseAnError(IOError, 'Decision variable(s) not specified for optimizer!')
+      self.raiseAnError(IOError,
+                        'Decision variable(s) not specified for optimizer!')
 
     for var in self.getOptVars():
       if var not in self.variableShapes:
@@ -531,9 +582,11 @@ class Optimizer(Sampler):
 
     for varName in self.fullOptVars:
       if varName not in self.optVarsInit['upperBound'].keys():
-        self.raiseAnError(IOError, 'Upper bound for ' + varName + ' is not provided')
+        self.raiseAnError(IOError,
+                          'Upper bound for ' + varName + ' is not provided')
       if varName not in self.optVarsInit['lowerBound'].keys():
-        self.raiseAnError(IOError, 'Lower bound for ' + varName + ' is not provided')
+        self.raiseAnError(IOError,
+                          'Lower bound for ' + varName + ' is not provided')
       #store ranges of variables
       self.optVarsInit['ranges'][
           varName] = self.optVarsInit['upperBound'][varName] - self.optVarsInit['lowerBound'][varName]
@@ -543,7 +596,9 @@ class Optimizer(Sampler):
 
     if self.multilevel:
       if len(self.mlSequence) < 1:
-        self.raiseAnError(IOError, 'No "sequence" was specified for multilevel optimization!')
+        self.raiseAnError(
+            IOError,
+            'No "sequence" was specified for multilevel optimization!')
       if set(self.mlSequence) != set(self.mlBatches.keys()):
         self.raiseAWarning(
             'There is a mismatch between the multilevel batches defined and batches used in the sequence!  Some variables may not be optimized correctly ...'
@@ -555,7 +610,8 @@ class Optimizer(Sampler):
       @ In, traj, int, optional, if provided then only count variables in current trajectory
       @ Out, _numberOfSamples, int, total number of independent values that need sampling
     """
-    return sum(np.prod(self.variableShapes[var]) for var in self.getOptVars(traj))
+    return sum(
+        np.prod(self.variableShapes[var]) for var in self.getOptVars(traj))
 
   def getOptVars(self, traj=None, full=False):
     """
@@ -649,20 +705,23 @@ class Optimizer(Sampler):
       initDict = {}
       for entity in ['Distributions', 'Functions', 'DataObjects']:
         initDict[entity] = dict(
-            (entry[2], entry[3]) for entry in self.assemblerDict.get(entity, []))
+            (entry[2], entry[3])
+            for entry in self.assemblerDict.get(entity, []))
       self.initializationSampler._localGenerateAssembler(initDict)
       for key in self.initializationSampler.getInitParams().keys():
         if key.startswith("sampled variable:"):
           var = key.replace("sampled variable:", "").strip()
           # check if the sampled variables are among the optimization parameters
           if var not in self.getOptVars():
-            self.raiseAnError(
-                IOError, 'The variable "' + var + '" sampled by the initialization Sampler "' +
-                self.initializationSampler.name + '" is not among the optimization parameters!')
+            self.raiseAnError(IOError, 'The variable "' + var +
+                              '" sampled by the initialization Sampler "' +
+                              self.initializationSampler.name +
+                              '" is not among the optimization parameters!')
           # check if the sampled variables have been already initialized in the optimizer (i.e. <initial>)
           if self.optVarsInitialized[var]:
             self.raiseAnError(
-                IOError, 'The variable "' + var + '" sampled by the initialization Sampler "' +
+                IOError, 'The variable "' + var +
+                '" sampled by the initialization Sampler "' +
                 self.initializationSampler.name +
                 '" has been already initialized in the Optimizer block. Remove <initial> XML node in Optimizer or the <variable> XML node in the Sampler!'
             )
@@ -674,7 +733,8 @@ class Optimizer(Sampler):
         if currentNumberTrajectories != self.initializationSampler.limit:
           self.raiseAnError(
               IOError,
-              "The number of samples generated by the initialization Sampler are different " +
+              "The number of samples generated by the initialization Sampler are different "
+              +
               "than the one inputted in the Optimizer (from the variables where the <initial> XML block has been inputted)"
           )
       else:
@@ -684,11 +744,12 @@ class Optimizer(Sampler):
               self.optTraj, self.optVarsInit['initial'][varName][0])
       while self.initializationSampler.amIreadyToProvideAnInput():
         self.initializationSampler.localGenerateInput(None, None)
-        self.initializationSampler.inputInfo['prefix'] = self.initializationSampler.counter
+        self.initializationSampler.inputInfo[
+            'prefix'] = self.initializationSampler.counter
         sampledVars = self.initializationSampler.inputInfo['SampledVars']
         for varName, value in sampledVars.items():
-          self.optVarsInit['initial'][varName][self.initializationSampler.counter] = np.atleast_1d(
-              value)
+          self.optVarsInit['initial'][varName][
+              self.initializationSampler.counter] = np.atleast_1d(value)
         self.initializationSampler.counter += 1
 
     # NOTE: counter['varsUpdate'] needs to be set AFTER self.optTraj length is set by the sampler (if used exclusively)
@@ -702,13 +763,15 @@ class Optimizer(Sampler):
     outs = self.mdlEvalHist.getVars("output")
     for varName in self.fullOptVars:
       if varName not in ins:
-        self.raiseAnError(
-            RuntimeError, "the optimization variable " + varName +
-            " is not contained in the TargetEvaluation object " + self.mdlEvalHist.name)
+        self.raiseAnError(RuntimeError,
+                          "the optimization variable " + varName +
+                          " is not contained in the TargetEvaluation object " +
+                          self.mdlEvalHist.name)
     if self.objVar not in outs:
-      self.raiseAnError(
-          RuntimeError, "the optimization objective variable " + self.objVar +
-          " is not contained in the TargetEvaluation object " + self.mdlEvalHist.name)
+      self.raiseAnError(RuntimeError,
+                        "the optimization objective variable " + self.objVar +
+                        " is not contained in the TargetEvaluation object " +
+                        self.mdlEvalHist.name)
     self.objSearchingROM = SupervisedLearning.returnInstance(
         'SciKitLearn', self, **{
             'SKLtype': 'neighbors|KNeighborsRegressor',
@@ -725,9 +788,9 @@ class Optimizer(Sampler):
       )
 
     if type(solutionExport).__name__ != "PointSet":
-      self.raiseAnError(
-          IOError,
-          'solutionExport type must be a PointSet. Got ' + type(solutionExport).__name__ + '!')
+      self.raiseAnError(IOError,
+                        'solutionExport type must be a PointSet. Got ' +
+                        type(solutionExport).__name__ + '!')
 
     if 'Function' in self.assemblerDict.keys():
       self.constraintFunction = self.assemblerDict['Function'][0][3]
@@ -754,7 +817,8 @@ class Optimizer(Sampler):
       except IndexError:
         self.raiseAnError(
             IOError,
-            'Could not find preconditioner "{}" in <Preconditioner> nodes!'.format(precondName))
+            'Could not find preconditioner "{}" in <Preconditioner> nodes!'.
+            format(precondName))
 
     # apply multilevel preconditioners, in order
     for traj in self.optTraj:
@@ -764,7 +828,8 @@ class Optimizer(Sampler):
       # run all preconditioners on that point
       for depth in range(len(self.mlSequence)):
         batch = self.mlSequence[depth]
-        initPoint = self.applyPreconditioner(batch, initPoint, denormalize=False)
+        initPoint = self.applyPreconditioner(
+            batch, initPoint, denormalize=False)
       #check initial point consistency
       okay, missing = self.checkInputs(initPoint)
       if not okay:
@@ -794,13 +859,15 @@ class Optimizer(Sampler):
       satisfied, _ = self.checkConstraint(varK)
       if not satisfied:
         # get a random value between the the lower and upper bounds
-        self.raiseAWarning("the initial values specified for trajectory " + str(trajInd) +
-                           " do not satify the contraints. Picking random ones!")
+        self.raiseAWarning(
+            "the initial values specified for trajectory " + str(trajInd) +
+            " do not satify the contraints. Picking random ones!")
         randomGuessesCnt = 0
         while not satisfied and randomGuessesCnt < self.constraintHandlingPara['innerLoopLimit']:
           for varName in self.getOptVars():
-            varK[varName] = self.optVarsInit['lowerBound'][varName] + randomUtils.random(
-            ) * self.optVarsInit['ranges'][varName]
+            varK[
+                varName] = self.optVarsInit['lowerBound'][varName] + randomUtils.random(
+                ) * self.optVarsInit['ranges'][varName]
             self.optVarsInit['initial'][varName][trajInd] = varK[varName]
           satisfied, _ = self.checkConstraint(varK)
         if not satisfied:
@@ -862,7 +929,8 @@ class Optimizer(Sampler):
       for key, value in self.constants.items():
         infoDict['SampledVars'][key] = value
       # run the preconditioner
-      preResults = precond.evaluateSample([infoDict['SampledVars']], 'Optimizer', infoDict)
+      preResults = precond.evaluateSample([infoDict['SampledVars']],
+                                          'Optimizer', infoDict)
       # flatten results #TODO breaks for multi-entry arrays
       for key, val in preResults.items():
         preResults[key] = val.item(0)
@@ -911,12 +979,14 @@ class Optimizer(Sampler):
         if self.status[traj]['reason'] == 'converged':
           checkMLTrajs.append(traj)
     for traj in checkMLTrajs:
-      if self.multilevel and self.status[traj]['reason'] in ['found new opt point', 'converged']:
+      if self.multilevel and self.status[traj]['reason'] in [
+          'found new opt point', 'converged'
+      ]:
         # do we have any opt points yet?
         if len(self.counter['recentOptHist'][traj][0]) > 0:
           # get the latset optimization point (normalized)
-          latestPoint = dict(
-              (var, self.counter['recentOptHist'][traj][0][var]) for var in self.getOptVars())
+          latestPoint = dict((var, self.counter['recentOptHist'][traj][0][var])
+                             for var in self.getOptVars())
           #some flags for clarity of checking
           justStarted = self.mlDepth[traj] is None
           inInnermost = self.mlDepth[traj] is not None and self.mlDepth[traj] == len(
@@ -925,8 +995,10 @@ class Optimizer(Sampler):
           trajConverged = self.status[traj]['reason'] == 'converged'
           # if we only have evaluated the initial point, set the depth to innermost and start grad sampling
           if justStarted:
-            self.raiseADebug('Multilevel: initializing for trajectory "{}"'.format(traj))
-            self.updateMultilevelDepth(traj, len(self.mlSequence) - 1, latestPoint, setAll=True)
+            self.raiseADebug(
+                'Multilevel: initializing for trajectory "{}"'.format(traj))
+            self.updateMultilevelDepth(
+                traj, len(self.mlSequence) - 1, latestPoint, setAll=True)
             mlIntervene = True
           # if we haven't taken (and accepted) a new opt step, don't change anything
           # otherwise, if we're in the outermost subspace AND we're converged, we're done!
@@ -934,12 +1006,14 @@ class Optimizer(Sampler):
           elif trajConverged:  #inOutermost and trajConverged:
             if inOutermost:
               self.raiseADebug(
-                  'Multilevel: outermost subspace converged for trajectory "{}"!'.format(traj))
+                  'Multilevel: outermost subspace converged for trajectory "{}"!'.
+                  format(traj))
             else:
               self.raiseADebug(
                   'Multilevel: moving from converged subspace to higher subspace for trajectory "{}"'.
                   format(traj))
-              self.updateMultilevelDepth(traj, self.mlDepth[traj] - 1, latestPoint)
+              self.updateMultilevelDepth(traj, self.mlDepth[traj] - 1,
+                                         latestPoint)
               mlIntervene = True
           # otherwise, if we're not in innermost and not converged, move to innermost subspace
           else:  #aka not converged
@@ -947,7 +1021,8 @@ class Optimizer(Sampler):
               self.raiseADebug(
                   'Multilevel: moving from perturbed higher subspace back to innermost subspace for trajectory "{}"'.
                   format(traj))
-              self.updateMultilevelDepth(traj, len(self.mlSequence) - 1, latestPoint, setAll=True)
+              self.updateMultilevelDepth(
+                  traj, len(self.mlSequence) - 1, latestPoint, setAll=True)
               mlIntervene = True
           #otherwise, we don't interfere with existing readiness
     #if multilevel intervened, recheck readiness (should always result in ready=True???)
@@ -991,8 +1066,8 @@ class Optimizer(Sampler):
     self.mlDepth[traj] = depth
     newBatch = self.mlSequence[self.mlDepth[traj]]
     self.raiseADebug(
-        'Transitioning multilevel subspace from "{}" to "{}" for trajectory "{}"...'.format(
-            oldBatch, newBatch, traj))
+        'Transitioning multilevel subspace from "{}" to "{}" for trajectory "{}"...'.
+        format(oldBatch, newBatch, traj))
     # reset the number of iterations in each subspace
     self.mlActiveSpaceSteps[traj] = 0
     # set the active space to include only the desired batch
@@ -1005,9 +1080,10 @@ class Optimizer(Sampler):
     if traj in self.mlOutputStaticVariables:
       self.mlOutputStaticVariables.pop(traj)
     if newBatch in self.mlHoldBatches:
-      self.raiseAMessage('For subspace "' + newBatch +
-                         '" the following output space is going to be kept on hold: ' +
-                         ','.join(self.mlHoldBatches[newBatch]))
+      self.raiseAMessage(
+          'For subspace "' + newBatch +
+          '" the following output space is going to be kept on hold: ' +
+          ','.join(self.mlHoldBatches[newBatch]))
       self.mlOutputStaticVariables[traj] = self.mlHoldBatches[newBatch]
 
     for var in toMakeStatic:
@@ -1025,7 +1101,8 @@ class Optimizer(Sampler):
     # apply preconditioner IFF we're going towards INNER loops
     newInput = copy.deepcopy(optPoint)
     if depth > oldDepth:
-      self.raiseADebug('Preconditioning subsets below', oldDepth, range(oldDepth + 1, depth + 1))
+      self.raiseADebug('Preconditioning subsets below', oldDepth,
+                       range(oldDepth + 1, depth + 1))
       #apply changes all the way down
       for d in range(oldDepth + 1, depth + 1):
         precondBatch = self.mlSequence[d]
@@ -1088,7 +1165,8 @@ class Optimizer(Sampler):
     if self.constraintFunction == None:
       satisfied = True
     else:
-      satisfied = True if self.constraintFunction.evaluate("constrain", optVars) == 1 else False
+      satisfied = True if self.constraintFunction.evaluate(
+          "constrain", optVars) == 1 else False
       if not satisfied:
         violatedConstrains['external'].append(self.constraintFunction.name)
     for var in optVars:
@@ -1098,8 +1176,9 @@ class Optimizer(Sampler):
       overMask = check > self.optVarsInit['upperBound'][var]
       underMask = check < self.optVarsInit['lowerBound'][var]
       if np.sum(overMask) + np.sum(underMask) > 0:
-        self.raiseAWarning('A variable violated boundary constraints! "{}"={}'.format(
-            var, optVars[var]))
+        self.raiseAWarning(
+            'A variable violated boundary constraints! "{}"={}'.format(
+                var, optVars[var]))
         satisfied = False
         violatedConstrains['internal'].append((var, underMask, overMask))
 
@@ -1134,8 +1213,9 @@ class Optimizer(Sampler):
     optVarsNorm = {}
     for var in optVars.keys():
       try:
-        optVarsNorm[var] = (optVars[var] - self.optVarsInit['lowerBound'][var]) / (
-            self.optVarsInit['upperBound'][var] - self.optVarsInit['lowerBound'][var])
+        optVarsNorm[var] = (optVars[var] - self.optVarsInit['lowerBound'][var]
+                            ) / (self.optVarsInit['upperBound'][var] -
+                                 self.optVarsInit['lowerBound'][var])
       except KeyError:
         optVarsNorm[var] = optVars[var]
     return optVarsNorm
@@ -1149,9 +1229,10 @@ class Optimizer(Sampler):
     optVarsDenorm = {}
     for var in optVars.keys():
       try:
-        optVarsDenorm[var] = optVars[var] * (
-            self.optVarsInit['upperBound'][var] - self.optVarsInit['lowerBound'][var]
-        ) + self.optVarsInit['lowerBound'][var]
+        optVarsDenorm[
+            var] = optVars[var] * (self.optVarsInit['upperBound'][var] -
+                                   self.optVarsInit['lowerBound'][var]
+                                   ) + self.optVarsInit['lowerBound'][var]
       except KeyError:
         optVarsDenorm[var] = optVars[var]
     return optVarsDenorm
@@ -1185,9 +1266,11 @@ class Optimizer(Sampler):
     """
     # collect static vars, values
     allData = {}
-    allData.update(self.normalizeData(data))  # data point not normalized a priori
+    allData.update(
+        self.normalizeData(data))  # data point not normalized a priori
     allData.update(self.mlStaticValues[traj])  # these are normalized
-    self.optVarsHist[traj][self.counter['varsUpdate'][traj]] = copy.deepcopy(allData)
+    self.optVarsHist[traj][self.counter['varsUpdate'][traj]] = copy.deepcopy(
+        allData)
 
   def removeConvergedTrajectory(self, convergedTraj):
     """

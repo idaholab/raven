@@ -54,9 +54,10 @@ class ROM(Dummy):
     inputSpecification = super(ROM, cls).getInputSpecification()
 
     IndexSetInputType = InputData.makeEnumType(
-        "indexSet", "indexSetType", ["TensorProduct", "TotalDegree", "HyperbolicCross", "Custom"])
-    CriterionInputType = InputData.makeEnumType("criterion", "criterionType",
-                                                ["bic", "aic", "gini", "entropy", "mse"])
+        "indexSet", "indexSetType",
+        ["TensorProduct", "TotalDegree", "HyperbolicCross", "Custom"])
+    CriterionInputType = InputData.makeEnumType(
+        "criterion", "criterionType", ["bic", "aic", "gini", "entropy", "mse"])
 
     InterpolationInput = InputData.parameterInputFactory(
         'Interpolation', contentType=InputData.StringType)
@@ -65,157 +66,251 @@ class ROM(Dummy):
     InterpolationInput.addParam("weight", InputData.FloatType, False)
 
     inputSpecification.addSub(
-        InputData.parameterInputFactory('Features', contentType=InputData.StringType))
+        InputData.parameterInputFactory(
+            'Features', contentType=InputData.StringType))
     inputSpecification.addSub(
-        InputData.parameterInputFactory('Target', contentType=InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("IndexPoints", InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("IndexSet", IndexSetInputType))
+        InputData.parameterInputFactory(
+            'Target', contentType=InputData.StringType))
     inputSpecification.addSub(
-        InputData.parameterInputFactory('pivotParameter', contentType=InputData.StringType))
+        InputData.parameterInputFactory("IndexPoints", InputData.StringType))
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("IndexSet", IndexSetInputType))
+    inputSpecification.addSub(
+        InputData.parameterInputFactory(
+            'pivotParameter', contentType=InputData.StringType))
     inputSpecification.addSub(InterpolationInput)
     inputSpecification.addSub(
-        InputData.parameterInputFactory("PolynomialOrder", InputData.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("SobolOrder", InputData.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("SparseGrid", InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("persistence", InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("gradient", InputData.StringType))
+        InputData.parameterInputFactory("PolynomialOrder",
+                                        InputData.IntegerType))
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("SobolOrder", InputData.IntegerType))
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("SparseGrid", InputData.StringType))
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("persistence", InputData.StringType))
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("gradient", InputData.StringType))
     inputSpecification.addSub(
         InputData.parameterInputFactory("simplification", InputData.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("graph", InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("beta", InputData.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("knn", InputData.IntegerType))
     inputSpecification.addSub(
-        InputData.parameterInputFactory("partitionPredictor", InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("smooth", InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("kernel", InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("bandwidth", InputData.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("p", InputData.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("SKLtype", InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("n_iter", InputData.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("tol", InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("alpha_1", InputData.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("alpha_2", InputData.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("lambda_1", InputData.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("lambda_2", InputData.FloatType))
+        InputData.parameterInputFactory("graph", InputData.StringType))
     inputSpecification.addSub(
-        InputData.parameterInputFactory("compute_score", InputData.StringType))  #bool
+        InputData.parameterInputFactory("beta", InputData.FloatType))
     inputSpecification.addSub(
-        InputData.parameterInputFactory("threshold_lambda", InputData.FloatType))
+        InputData.parameterInputFactory("knn", InputData.IntegerType))
     inputSpecification.addSub(
-        InputData.parameterInputFactory("fit_intercept", InputData.StringType))  #bool
-    inputSpecification.addSub(InputData.parameterInputFactory("normalize",
-                                                              InputData.StringType))  #bool
-    inputSpecification.addSub(InputData.parameterInputFactory("verbose",
-                                                              InputData.StringType))  #bool
-    inputSpecification.addSub(InputData.parameterInputFactory("alpha", InputData.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("l1_ratio", InputData.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("max_iter", InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("warm_start",
-                                                              InputData.StringType))  #bool
-    inputSpecification.addSub(InputData.parameterInputFactory("positive",
-                                                              InputData.StringType))  #bool?
-    inputSpecification.addSub(InputData.parameterInputFactory("eps", InputData.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("n_alphas", InputData.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("precompute", InputData.StringType))
+        InputData.parameterInputFactory("partitionPredictor",
+                                        InputData.StringType))
     inputSpecification.addSub(
-        InputData.parameterInputFactory("n_nonzero_coefs", InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("fit_path",
-                                                              InputData.StringType))  #bool
+        InputData.parameterInputFactory("smooth", InputData.StringType))
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("kernel", InputData.StringType))
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("bandwidth", InputData.FloatType))
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("p", InputData.IntegerType))
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("SKLtype", InputData.StringType))
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("n_iter", InputData.IntegerType))
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("tol", InputData.StringType))
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("alpha_1", InputData.FloatType))
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("alpha_2", InputData.FloatType))
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("lambda_1", InputData.FloatType))
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("lambda_2", InputData.FloatType))
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("compute_score",
+                                        InputData.StringType))  #bool
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("threshold_lambda",
+                                        InputData.FloatType))
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("fit_intercept",
+                                        InputData.StringType))  #bool
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("normalize",
+                                        InputData.StringType))  #bool
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("verbose",
+                                        InputData.StringType))  #bool
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("alpha", InputData.FloatType))
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("l1_ratio", InputData.FloatType))
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("max_iter", InputData.StringType))
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("warm_start",
+                                        InputData.StringType))  #bool
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("positive",
+                                        InputData.StringType))  #bool?
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("eps", InputData.FloatType))
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("n_alphas", InputData.IntegerType))
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("precompute", InputData.StringType))
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("n_nonzero_coefs",
+                                        InputData.StringType))
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("fit_path",
+                                        InputData.StringType))  #bool
     inputSpecification.addSub(
         InputData.parameterInputFactory("max_n_alphas", InputData.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("criterion", CriterionInputType))
-    inputSpecification.addSub(InputData.parameterInputFactory("penalty",
-                                                              InputData.StringType))  #enum
-    inputSpecification.addSub(InputData.parameterInputFactory("dual", InputData.StringType))  #bool
-    inputSpecification.addSub(InputData.parameterInputFactory("C", InputData.FloatType))
     inputSpecification.addSub(
-        InputData.parameterInputFactory("intercept_scaling", InputData.FloatType))
+        InputData.parameterInputFactory("criterion", CriterionInputType))
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("penalty",
+                                        InputData.StringType))  #enum
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("dual", InputData.StringType))  #bool
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("C", InputData.FloatType))
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("intercept_scaling",
+                                        InputData.FloatType))
     inputSpecification.addSub(
         InputData.parameterInputFactory("class_weight", InputData.StringType))
     inputSpecification.addSub(
         InputData.parameterInputFactory("random_state", InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("cv", InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("shuffle",
-                                                              InputData.StringType))  #bool
-    inputSpecification.addSub(InputData.parameterInputFactory("loss", InputData.StringType))  #enum
-    inputSpecification.addSub(InputData.parameterInputFactory("epsilon", InputData.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("eta0", InputData.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("solver",
-                                                              InputData.StringType))  #enum
-    inputSpecification.addSub(InputData.parameterInputFactory("alphas", InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("scoring", InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("gcv_mode",
-                                                              InputData.StringType))  #enum
     inputSpecification.addSub(
-        InputData.parameterInputFactory("store_cv_values", InputData.StringType))  #bool
+        InputData.parameterInputFactory("cv", InputData.StringType))
     inputSpecification.addSub(
-        InputData.parameterInputFactory("learning_rate", InputData.StringType))  #enum
-    inputSpecification.addSub(InputData.parameterInputFactory("power_t", InputData.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("multi_class", InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("kernel",
-                                                              InputData.StringType))  #enum
-    inputSpecification.addSub(InputData.parameterInputFactory("degree", InputData.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("gamma", InputData.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("coef0", InputData.FloatType))
+        InputData.parameterInputFactory("shuffle",
+                                        InputData.StringType))  #bool
     inputSpecification.addSub(
-        InputData.parameterInputFactory("probability", InputData.StringType))  #bool
-    inputSpecification.addSub(InputData.parameterInputFactory("shrinking",
-                                                              InputData.StringType))  #bool
-    inputSpecification.addSub(InputData.parameterInputFactory("cache_size", InputData.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("nu", InputData.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("code_size", InputData.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("fit_prior",
-                                                              InputData.StringType))  #bool
-    inputSpecification.addSub(InputData.parameterInputFactory("class_prior", InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("binarize", InputData.FloatType))
+        InputData.parameterInputFactory("loss", InputData.StringType))  #enum
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("epsilon", InputData.FloatType))
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("eta0", InputData.FloatType))
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("solver", InputData.StringType))  #enum
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("alphas", InputData.StringType))
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("scoring", InputData.StringType))
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("gcv_mode",
+                                        InputData.StringType))  #enum
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("store_cv_values",
+                                        InputData.StringType))  #bool
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("learning_rate",
+                                        InputData.StringType))  #enum
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("power_t", InputData.FloatType))
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("multi_class", InputData.StringType))
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("kernel", InputData.StringType))  #enum
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("degree", InputData.IntegerType))
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("gamma", InputData.FloatType))
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("coef0", InputData.FloatType))
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("probability",
+                                        InputData.StringType))  #bool
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("shrinking",
+                                        InputData.StringType))  #bool
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("cache_size", InputData.FloatType))
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("nu", InputData.FloatType))
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("code_size", InputData.FloatType))
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("fit_prior",
+                                        InputData.StringType))  #bool
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("class_prior", InputData.StringType))
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("binarize", InputData.FloatType))
     inputSpecification.addSub(
         InputData.parameterInputFactory("n_neighbors", InputData.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("weights",
-                                                              InputData.StringType))  #enum
-    inputSpecification.addSub(InputData.parameterInputFactory("algorithm",
-                                                              InputData.StringType))  #enum
-    inputSpecification.addSub(InputData.parameterInputFactory("leaf_size", InputData.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("metric",
-                                                              InputData.StringType))  #enum?
-    inputSpecification.addSub(InputData.parameterInputFactory("radius", InputData.FloatType))
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("weights",
+                                        InputData.StringType))  #enum
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("algorithm",
+                                        InputData.StringType))  #enum
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("leaf_size", InputData.IntegerType))
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("metric",
+                                        InputData.StringType))  #enum?
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("radius", InputData.FloatType))
     inputSpecification.addSub(
         InputData.parameterInputFactory("outlier_label", InputData.StringType))
     inputSpecification.addSub(
-        InputData.parameterInputFactory("shrink_threshold", InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("priors", InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("reg_param", InputData.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("splitter",
-                                                              InputData.StringType))  #enum
+        InputData.parameterInputFactory("shrink_threshold",
+                                        InputData.StringType))
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("priors", InputData.StringType))
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("reg_param", InputData.FloatType))
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("splitter",
+                                        InputData.StringType))  #enum
     inputSpecification.addSub(
         InputData.parameterInputFactory("max_features", InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("max_depth", InputData.StringType))
     inputSpecification.addSub(
-        InputData.parameterInputFactory("min_samples_split", InputData.IntegerType))
+        InputData.parameterInputFactory("max_depth", InputData.StringType))
     inputSpecification.addSub(
-        InputData.parameterInputFactory("min_samples_leaf", InputData.IntegerType))
+        InputData.parameterInputFactory("min_samples_split",
+                                        InputData.IntegerType))
     inputSpecification.addSub(
-        InputData.parameterInputFactory("max_leaf_nodes", InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("regr", InputData.StringType))  #enum
-    inputSpecification.addSub(InputData.parameterInputFactory("corr",
-                                                              InputData.StringType))  #enum?
-    inputSpecification.addSub(InputData.parameterInputFactory("beta0", InputData.StringType))
+        InputData.parameterInputFactory("min_samples_leaf",
+                                        InputData.IntegerType))
     inputSpecification.addSub(
-        InputData.parameterInputFactory("storage_mode", InputData.StringType))  #enum
-    inputSpecification.addSub(InputData.parameterInputFactory("theta0", InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("thetaL", InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("thetaU", InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("nugget", InputData.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("optimizer",
-                                                              InputData.StringType))  #enum
+        InputData.parameterInputFactory("max_leaf_nodes",
+                                        InputData.StringType))
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("regr", InputData.StringType))  #enum
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("corr", InputData.StringType))  #enum?
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("beta0", InputData.StringType))
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("storage_mode",
+                                        InputData.StringType))  #enum
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("theta0", InputData.StringType))
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("thetaL", InputData.StringType))
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("thetaU", InputData.StringType))
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("nugget", InputData.FloatType))
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("optimizer",
+                                        InputData.StringType))  #enum
     inputSpecification.addSub(
         InputData.parameterInputFactory("random_start", InputData.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("Pmax", InputData.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("Pmin", InputData.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("Qmax", InputData.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("Qmin", InputData.IntegerType))
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("Pmax", InputData.IntegerType))
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("Pmin", InputData.IntegerType))
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("Qmax", InputData.IntegerType))
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("Qmin", InputData.IntegerType))
     inputSpecification.addSub(
         InputData.parameterInputFactory("outTruncation", InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("Fourier", InputData.StringType))
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("Fourier", InputData.StringType))
     inputSpecification.addSub(
         InputData.parameterInputFactory("FourierOrder", InputData.StringType))
     inputSpecification.addSub(
@@ -224,45 +319,66 @@ class ROM(Dummy):
         InputData.parameterInputFactory("reseedValue", InputData.IntegerType))
     # inputs for neural_network
     inputSpecification.addSub(
-        InputData.parameterInputFactory("hidden_layer_sizes", InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("activation", InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("batch_size", InputData.StringType))
+        InputData.parameterInputFactory("hidden_layer_sizes",
+                                        InputData.StringType))
     inputSpecification.addSub(
-        InputData.parameterInputFactory("learning_rate_init", InputData.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("momentum", InputData.FloatType))
+        InputData.parameterInputFactory("activation", InputData.StringType))
     inputSpecification.addSub(
-        InputData.parameterInputFactory("nesterovs_momentum", InputData.StringType))  # bool
+        InputData.parameterInputFactory("batch_size", InputData.StringType))
     inputSpecification.addSub(
-        InputData.parameterInputFactory("early_stopping", InputData.StringType))  # bool
+        InputData.parameterInputFactory("learning_rate_init",
+                                        InputData.FloatType))
     inputSpecification.addSub(
-        InputData.parameterInputFactory("validation_fraction", InputData.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("beta_1", InputData.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("beta_2", InputData.FloatType))
+        InputData.parameterInputFactory("momentum", InputData.FloatType))
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("nesterovs_momentum",
+                                        InputData.StringType))  # bool
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("early_stopping",
+                                        InputData.StringType))  # bool
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("validation_fraction",
+                                        InputData.FloatType))
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("beta_1", InputData.FloatType))
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("beta_2", InputData.FloatType))
     # PolyExp
     inputSpecification.addSub(
-        InputData.parameterInputFactory("maxNumberExpTerms", InputData.IntegerType))
+        InputData.parameterInputFactory("maxNumberExpTerms",
+                                        InputData.IntegerType))
     inputSpecification.addSub(
-        InputData.parameterInputFactory("numberExpTerms", InputData.IntegerType))
+        InputData.parameterInputFactory("numberExpTerms",
+                                        InputData.IntegerType))
     inputSpecification.addSub(
         InputData.parameterInputFactory("maxPolyOrder", InputData.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("polyOrder", InputData.IntegerType))
-    coeffRegressorEnumType = InputData.makeEnumType("coeffRegressor", "coeffRegressorType",
-                                                    ["poly", "spline", "nearest"])
     inputSpecification.addSub(
-        InputData.parameterInputFactory("coeffRegressor", contentType=coeffRegressorEnumType))
+        InputData.parameterInputFactory("polyOrder", InputData.IntegerType))
+    coeffRegressorEnumType = InputData.makeEnumType(
+        "coeffRegressor", "coeffRegressorType", ["poly", "spline", "nearest"])
+    inputSpecification.addSub(
+        InputData.parameterInputFactory(
+            "coeffRegressor", contentType=coeffRegressorEnumType))
     # DMD
-    inputSpecification.addSub(InputData.parameterInputFactory("rankSVD", InputData.IntegerType))
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("rankSVD", InputData.IntegerType))
     inputSpecification.addSub(
         InputData.parameterInputFactory("energyRankSVD", InputData.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("rankTLSQ", InputData.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("exactModes", InputData.BoolType))
-    inputSpecification.addSub(InputData.parameterInputFactory("optimized", InputData.BoolType))
-    inputSpecification.addSub(InputData.parameterInputFactory("dmdType", InputData.StringType))
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("rankTLSQ", InputData.IntegerType))
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("exactModes", InputData.BoolType))
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("optimized", InputData.BoolType))
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("dmdType", InputData.StringType))
 
     #Estimators can include ROMs, and so because baseNode does a copy, this
     #needs to be after the rest of ROMInput is defined.
     EstimatorInput = InputData.parameterInputFactory(
-        'estimator', contentType=InputData.StringType, baseNode=inputSpecification)
+        'estimator',
+        contentType=InputData.StringType,
+        baseNode=inputSpecification)
     EstimatorInput.addParam("estimatorType", InputData.StringType, False)
     #The next lines are to make subType and name not required.
     EstimatorInput.addParam("subType", InputData.StringType, False)
@@ -321,26 +437,30 @@ class ROM(Dummy):
           continue
         if child.getName() not in self.initializationOptionDict.keys():
           self.initializationOptionDict[child.getName()] = {}
-        self.initializationOptionDict[child.getName()][child.value] = child.parameterValues
+        self.initializationOptionDict[child.getName()][
+            child.value] = child.parameterValues
       else:
         if child.getName() == 'estimator':
           self.initializationOptionDict[child.getName()] = {}
           for node in child.subparts:
-            self.initializationOptionDict[child.getName()][node.getName()] = tryStrParse(
-                node.value)
+            self.initializationOptionDict[child.getName()][
+                node.getName()] = tryStrParse(node.value)
         else:
-          self.initializationOptionDict[child.getName()] = tryStrParse(child.value)
+          self.initializationOptionDict[child.getName()] = tryStrParse(
+              child.value)
     # if working with a pickled ROM, send along that information
     if self.subType == 'pickledROM':
       self.initializationOptionDict['pickled'] = True
     self._initializeSupervisedGate(**self.initializationOptionDict)
     #the ROM is instanced and initialized
     self.mods = self.mods + list(
-        set(utils.returnImportModuleString(inspect.getmodule(SupervisedLearning), True)) -
-        set(self.mods))
+        set(
+            utils.returnImportModuleString(
+                inspect.getmodule(SupervisedLearning), True)) - set(self.mods))
     self.mods = self.mods + list(
-        set(utils.returnImportModuleString(inspect.getmodule(LearningGate), True)) -
-        set(self.mods))
+        set(
+            utils.returnImportModuleString(
+                inspect.getmodule(LearningGate), True)) - set(self.mods))
 
   def _initializeSupervisedGate(self, **initializationOptions):
     """
@@ -348,8 +468,8 @@ class ROM(Dummy):
       @ In, initializationOptions, dict, the initialization options
       @ Out, None
     """
-    self.supervisedEngine = LearningGate.returnInstance('SupervisedGate', self.subType, self,
-                                                        **initializationOptions)
+    self.supervisedEngine = LearningGate.returnInstance(
+        'SupervisedGate', self.subType, self, **initializationOptions)
 
   def printXML(self, options={}):
     """
@@ -375,9 +495,11 @@ class ROM(Dummy):
     outFile.initialize(filenameLocal + '.xml', self.messageHandler)
     outFile.newTree('ROM', pivotParam=pivotParameterId)
     #get all the targets the ROMs have
-    ROMtargets = self.supervisedEngine.initializationOptions['Target'].split(",")
+    ROMtargets = self.supervisedEngine.initializationOptions['Target'].split(
+        ",")
     #establish targets
-    targets = options['target'].split(',') if 'target' in options.keys() else ROMtargets
+    targets = options['target'].split(
+        ',') if 'target' in options.keys() else ROMtargets
     #establish sets of engines to work from
     engines = self.supervisedEngine.supervisedContainer
     #handle 'all' case
@@ -399,7 +521,8 @@ class ROM(Dummy):
         #otherwise, if this is one of the requested keys, call engine's print method
         if target in ROMtargets:
           options['Target'] = target
-          self.raiseAMessage('Printing time-like', pivotValue, 'target', target, 'ROM XML')
+          self.raiseAMessage('Printing time-like', pivotValue, 'target',
+                             target, 'ROM XML')
           rom.printXML(outFile, pivotValue, options)
     self.raiseADebug('Writing to XML file...')
     outFile.writeFile()
@@ -433,13 +556,15 @@ class ROM(Dummy):
       @ Out, None
     """
     if type(trainingSet).__name__ == 'ROM':
-      self.initializationOptionDict = copy.deepcopy(trainingSet.initializationOptionDict)
+      self.initializationOptionDict = copy.deepcopy(
+          trainingSet.initializationOptionDict)
       self.trainingSet = copy.copy(trainingSet.trainingSet)
       self.amITrained = copy.deepcopy(trainingSet.amITrained)
       self.supervisedEngine = copy.deepcopy(trainingSet.supervisedEngine)
     else:
       self.trainingSet = copy.copy(self._inputToInternal(trainingSet))
-      self._replaceVariablesNamesWithAliasSystem(self.trainingSet, 'inout', False)
+      self._replaceVariablesNamesWithAliasSystem(self.trainingSet, 'inout',
+                                                 False)
       self.supervisedEngine.train(self.trainingSet)
       self.amITrained = self.supervisedEngine.amITrained
 
@@ -498,11 +623,14 @@ class ROM(Dummy):
     result = self._externalRun(inRun)
     # build realization
     # assure rlz has all metadata
-    self._replaceVariablesNamesWithAliasSystem(kwargs['SampledVars'], 'input', True)
+    self._replaceVariablesNamesWithAliasSystem(kwargs['SampledVars'], 'input',
+                                               True)
     rlz = dict((var, np.atleast_1d(kwargs[var])) for var in kwargs.keys())
     # update rlz with input space from inRun and output space from result
     rlz.update(
-        dict((var, np.atleast_1d(inRun[var] if var in kwargs['SampledVars'] else result[var]))
+        dict((var,
+              np.atleast_1d(inRun[var]
+                            if var in kwargs['SampledVars'] else result[var]))
              for var in set(result.keys() + inRun.keys())))
     return rlz
 

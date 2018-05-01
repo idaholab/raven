@@ -60,24 +60,30 @@ class ImportanceRank(PostProcessor):
     ## This will replace the lines above
     inputSpecification = super(ImportanceRank, cls).getInputSpecification()
 
-    WhatInput = InputData.parameterInputFactory("what", contentType=InputData.StringType)
+    WhatInput = InputData.parameterInputFactory(
+        "what", contentType=InputData.StringType)
     inputSpecification.addSub(WhatInput)
 
-    VariablesInput = InputData.parameterInputFactory("variables", contentType=InputData.StringType)
+    VariablesInput = InputData.parameterInputFactory(
+        "variables", contentType=InputData.StringType)
     DimensionsInput = InputData.parameterInputFactory(
         "dimensions", contentType=InputData.StringType)
-    ManifestInput = InputData.parameterInputFactory("manifest", contentType=InputData.StringType)
+    ManifestInput = InputData.parameterInputFactory(
+        "manifest", contentType=InputData.StringType)
     ManifestInput.addSub(VariablesInput)
     ManifestInput.addSub(DimensionsInput)
-    LatentInput = InputData.parameterInputFactory("latent", contentType=InputData.StringType)
+    LatentInput = InputData.parameterInputFactory(
+        "latent", contentType=InputData.StringType)
     LatentInput.addSub(VariablesInput)
     LatentInput.addSub(DimensionsInput)
-    FeaturesInput = InputData.parameterInputFactory("features", contentType=InputData.StringType)
+    FeaturesInput = InputData.parameterInputFactory(
+        "features", contentType=InputData.StringType)
     FeaturesInput.addSub(ManifestInput)
     FeaturesInput.addSub(LatentInput)
     inputSpecification.addSub(FeaturesInput)
 
-    TargetsInput = InputData.parameterInputFactory("targets", contentType=InputData.StringType)
+    TargetsInput = InputData.parameterInputFactory(
+        "targets", contentType=InputData.StringType)
     inputSpecification.addSub(TargetsInput)
 
     #DimensionsInput = InputData.parameterInputFactory("dimensions", contentType=InputData.StringType)
@@ -113,7 +119,9 @@ class ImportanceRank(PostProcessor):
         'inversetransformation', 'manifestsensitivity'
     ]
     self.all = ['sensitivityindex', 'importanceindex', 'pcaindex']
-    self.statAcceptedMetric = ['pcaindex', 'transformation', 'inversetransformation']
+    self.statAcceptedMetric = [
+        'pcaindex', 'transformation', 'inversetransformation'
+    ]
     self.what = self.acceptedMetric  # what needs to be computed, default is all
     self.printTag = 'POSTPROCESSOR IMPORTANTANCE RANK'
     self.requiredAssObject = (True, (['Distributions'], [-1]))
@@ -176,58 +184,71 @@ class ImportanceRank(PostProcessor):
                 toCalculate.append(metric.lower())
               else:
                 self.raiseAWarning('Duplicate calculations', metric,
-                                   'are removed from XML node <what> in', self.printTag)
+                                   'are removed from XML node <what> in',
+                                   self.printTag)
             else:
-              self.raiseAnError(IOError, self.printTag, 'asked unknown operation', metric,
+              self.raiseAnError(IOError, self.printTag,
+                                'asked unknown operation', metric,
                                 '. Available', str(self.acceptedMetric))
           self.what = toCalculate
       elif child.getName() == 'targets':
-        self.targets = list(inp.strip() for inp in child.value.strip().split(','))
+        self.targets = list(
+            inp.strip() for inp in child.value.strip().split(','))
       elif child.getName() == 'features':
         for subNode in child.subparts:
           if subNode.getName() == 'manifest':
             for subSubNode in subNode.subparts:
               if subSubNode.getName() == 'variables':
-                self.manifest = list(inp.strip() for inp in subSubNode.value.strip().split(','))
+                self.manifest = list(
+                    inp.strip() for inp in subSubNode.value.strip().split(','))
                 self.features.extend(self.manifest)
               elif subSubNode.getName() == 'dimensions':
                 self.manifestDim = list(
-                    int(inp.strip()) for inp in subSubNode.value.strip().split(','))
+                    int(inp.strip())
+                    for inp in subSubNode.value.strip().split(','))
               else:
-                self.raiseAnError(IOError, 'Unrecognized xml node name:', subSubNode.getName(),
-                                  'in', self.printTag)
+                self.raiseAnError(IOError, 'Unrecognized xml node name:',
+                                  subSubNode.getName(), 'in', self.printTag)
           if subNode.getName() == 'latent':
             self.latentSen = True
             for subSubNode in subNode.subparts:
               if subSubNode.getName() == 'variables':
-                self.latent = list(inp.strip() for inp in subSubNode.value.strip().split(','))
+                self.latent = list(
+                    inp.strip() for inp in subSubNode.value.strip().split(','))
                 self.features.extend(self.latent)
               elif subSubNode.getName() == 'dimensions':
                 self.latentDim = list(
-                    int(inp.strip()) for inp in subSubNode.value.strip().split(','))
+                    int(inp.strip())
+                    for inp in subSubNode.value.strip().split(','))
               else:
-                self.raiseAnError(IOError, 'Unrecognized xml node name:', subSubNode.getName(),
-                                  'in', self.printTag)
+                self.raiseAnError(IOError, 'Unrecognized xml node name:',
+                                  subSubNode.getName(), 'in', self.printTag)
       elif child.getName() == 'mvnDistribution':
         self.mvnDistribution = child.value.strip()
       elif child.getName() == "pivotParameter":
         self.pivotParameter = child.value
       else:
-        self.raiseAnError(IOError, 'Unrecognized xml node name: ' + child.getName() + '!')
+        self.raiseAnError(
+            IOError, 'Unrecognized xml node name: ' + child.getName() + '!')
     if not self.latentDim and len(self.latent) != 0:
       self.latentDim = range(1, len(self.latent) + 1)
-      self.raiseAWarning('The dimensions for given latent variables: ' + str(self.latent) +
-                         ' is not provided! Default dimensions will be used: ' +
-                         str(self.latentDim) + ' in ' + self.printTag)
+      self.raiseAWarning('The dimensions for given latent variables: ' + str(
+          self.latent) + ' is not provided! Default dimensions will be used: '
+                         + str(self.latentDim) + ' in ' + self.printTag)
     if not self.manifestDim and len(self.manifest) != 0:
       self.manifestDim = range(1, len(self.manifest) + 1)
-      self.raiseAWarning('The dimensions for given latent variables: ' + str(self.manifest) +
-                         ' is not provided! Default dimensions will be used: ' +
-                         str(self.manifestDim) + ' in ' + self.printTag)
+      self.raiseAWarning(
+          'The dimensions for given latent variables: ' + str(self.manifest) +
+          ' is not provided! Default dimensions will be used: ' + str(
+              self.manifestDim) + ' in ' + self.printTag)
     if not self.features:
-      self.raiseAnError(IOError, 'No variables provided for XML node: features in', self.printTag)
+      self.raiseAnError(IOError,
+                        'No variables provided for XML node: features in',
+                        self.printTag)
     if not self.targets:
-      self.raiseAnError(IOError, 'No variables provided for XML node: targets in', self.printTag)
+      self.raiseAnError(IOError,
+                        'No variables provided for XML node: targets in',
+                        self.printTag)
     if len(self.latent) != 0 and len(self.manifest) != 0:
       self.reconstructSen = True
       self.transformation = True
@@ -241,18 +262,21 @@ class ImportanceRank(PostProcessor):
     """
     evaluation = finishedJob.getEvaluation()
     if isinstance(evaluation, Runners.Error):
-      self.raiseAnError(RuntimeError,
-                        ' No available output to collect (Run probably is not finished yet) via',
-                        self.printTag)
+      self.raiseAnError(
+          RuntimeError,
+          ' No available output to collect (Run probably is not finished yet) via',
+          self.printTag)
     outputDict = evaluation[1]
     # Output to DataObjects
     if output.type in ['PointSet', 'HistorySet']:
       self.raiseADebug('Dumping output in data object named ' + output.name)
       output.addRealization(outputDict)
     elif output.type == 'HDF5':
-      self.raiseAWarning('Output type ' + str(output.type) + ' not yet implemented. Skip it !!!!!')
+      self.raiseAWarning('Output type ' + str(output.type) +
+                         ' not yet implemented. Skip it !!!!!')
     else:
-      self.raiseAnError(IOError, 'Output type ' + str(output.type) + ' unknown.')
+      self.raiseAnError(IOError,
+                        'Output type ' + str(output.type) + ' unknown.')
 
   def initialize(self, runInfo, inputs, initDict):
     """
@@ -274,8 +298,10 @@ class ImportanceRank(PostProcessor):
     else:
       currentInput = currentInp
     if type(currentInput) == dict:
-      if 'targets' not in currentInput.keys() and 'timeDepData' not in currentInput.keys():
-        self.raiseAnError(IOError, 'Did not find targets or timeDepData in input dictionary')
+      if 'targets' not in currentInput.keys(
+      ) and 'timeDepData' not in currentInput.keys():
+        self.raiseAnError(
+            IOError, 'Did not find targets or timeDepData in input dictionary')
       return currentInput
 
     if hasattr(currentInput, 'type'):
@@ -330,18 +356,22 @@ class ImportanceRank(PostProcessor):
         )
       self.dynamic = True
       self.pivotValue = dataSet[self.pivotParameter].values
-      if not currentInput.checkIndexAlignment(indexesToCheck=self.pivotParameter):
+      if not currentInput.checkIndexAlignment(
+          indexesToCheck=self.pivotParameter):
         self.raiseAnError(
             IOError, "In data object ", currentInput.name,
-            ", the realization' pivot parameters have unsynchronized pivot values!" +
-            "Please use the internal postprocessor 'HistorySetSync' to synchronize the data.")
+            ", the realization' pivot parameters have unsynchronized pivot values!"
+            +
+            "Please use the internal postprocessor 'HistorySetSync' to synchronize the data."
+        )
       slices = currentInput.sliceByIndex(self.pivotParameter)
       metadata = currentInput.getMeta(pointwise=True)
       inputList = []
       for sliceData in slices:
         inputDict = {}
         inputDict['metadata'] = metadata
-        inputDict['targets'] = dict((target, sliceData[target].values) for target in self.targets)
+        inputDict['targets'] = dict(
+            (target, sliceData[target].values) for target in self.targets)
         inputDict['features'] = dict(
             (feature, sliceData[feature].values) for feature in self.features)
         inputList.append(inputDict)
@@ -397,7 +427,8 @@ class ImportanceRank(PostProcessor):
       self.dimensions = self.manifestDim
     sampledFeatMatrix = np.atleast_2d(np.asarray(featValues)).T
     for target in self.targets:
-      featCoeffs = LinearRegression().fit(sampledFeatMatrix, inputDict['targets'][target]).coef_
+      featCoeffs = LinearRegression().fit(sampledFeatMatrix,
+                                          inputDict['targets'][target]).coef_
       featWeights = abs(featCoeffs) / np.sum(abs(featCoeffs))
       senWeightDict[target] = featWeights
       senCoeffDict[target] = featCoeffs
@@ -416,13 +447,16 @@ class ImportanceRank(PostProcessor):
           if not self.latentSen:
             for index, feat in enumerate(feats):
               totDim = self.mvnDistribution.dimension
-              covIndex = totDim * (self.dimensions[index] - 1) + self.dimensions[index] - 1
+              covIndex = totDim * (
+                  self.dimensions[index] - 1) + self.dimensions[index] - 1
               if self.mvnDistribution.covarianceType == 'abs':
-                covTarget = featCoeffs[index] * self.mvnDistribution.covariance[
-                    covIndex] * featCoeffs[index]
+                covTarget = featCoeffs[
+                    index] * self.mvnDistribution.covariance[
+                        covIndex] * featCoeffs[index]
               else:
-                covFeature = self.mvnDistribution.covariance[covIndex] * self.mvnDistribution.mu[
-                    self.dimensions[index] - 1]**2
+                covFeature = self.mvnDistribution.covariance[
+                    covIndex] * self.mvnDistribution.mu[self.dimensions[index]
+                                                        - 1]**2
                 covTarget = featCoeffs[index] * covFeature * featCoeffs[index]
               featWeights.append(covTarget)
             featWeights = featWeights / np.sum(featWeights)
@@ -448,10 +482,12 @@ class ImportanceRank(PostProcessor):
           for target in self.targets:
             latentSen = np.asarray(senCoeffDict[target])
             if self.mvnDistribution.covarianceType == 'abs':
-              manifestSen = list(np.dot(latentSen, inverseTransformationMatrix))
+              manifestSen = list(
+                  np.dot(latentSen, inverseTransformationMatrix))
             else:
               manifestSen = list(
-                  np.dot(latentSen, inverseTransformationMatrix) / inputDict['targets'][target])
+                  np.dot(latentSen, inverseTransformationMatrix) /
+                  inputDict['targets'][target])
             for i, feat in enumerate(self.manifest):
               varName = '_'.join([what, target, feat])
               outputDict[varName] = np.atleast_1d(manifestSen[i])
@@ -468,7 +504,8 @@ class ImportanceRank(PostProcessor):
       if what.lower() == 'pcaindex':
         if not self.latentSen:
           self.raiseAWarning(
-              'pcaIndex can be not requested because no latent variable is provided!')
+              'pcaIndex can be not requested because no latent variable is provided!'
+          )
         else:
           what = 'pcaIndex'
           index = [dim - 1 for dim in self.dimensions]
@@ -486,7 +523,8 @@ class ImportanceRank(PostProcessor):
           for ind, var in enumerate(self.manifest):
             for i, feat in enumerate(feats):
               varName = '_'.join([what, var, feat])
-              outputDict[varName] = np.atleast_1d(transformMatrix[manifestIndex[ind]][i])
+              outputDict[varName] = np.atleast_1d(
+                  transformMatrix[manifestIndex[ind]][i])
         else:
           self.raiseAnError(
               IOError,
@@ -503,7 +541,8 @@ class ImportanceRank(PostProcessor):
             for i, mVar in enumerate(self.manifest):
               varName = what + '_' + var + '_' + mVar
               varName = '_'.join([what, var, mVar])
-              outputDict[varName] = np.atleast_1d(inverseTransformationMatrix[index[ind]][i])
+              outputDict[varName] = np.atleast_1d(
+                  inverseTransformationMatrix[index[ind]][i])
         else:
           self.raiseAnError(
               IOError,

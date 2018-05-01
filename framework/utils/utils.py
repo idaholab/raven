@@ -86,7 +86,8 @@ def identifyIfExternalModelExists(caller, moduleIn, workingDir):
     moduleToLoadString = moduleIn[:-3]
   else:
     moduleToLoadString = moduleIn
-  workingDirModule = os.path.abspath(os.path.join(workingDir, moduleToLoadString))
+  workingDirModule = os.path.abspath(
+      os.path.join(workingDir, moduleToLoadString))
   if os.path.exists(workingDirModule + ".py"):
     moduleToLoadString = workingDirModule
     path, filename = os.path.split(workingDirModule)
@@ -98,14 +99,16 @@ def identifyIfExternalModelExists(caller, moduleIn, workingDir):
       if '~' in abspath:
         abspath = os.path.expanduser(abspath)
       if os.path.exists(abspath):
-        caller.raiseAWarning('file ' + moduleToLoadString +
-                             ' should be relative to working directory. Working directory: ' +
-                             workingDir + ' Module expected at ' + abspath)
+        caller.raiseAWarning(
+            'file ' + moduleToLoadString +
+            ' should be relative to working directory. Working directory: ' +
+            workingDir + ' Module expected at ' + abspath)
         os.sys.path.append(abspath)
       else:
-        caller.raiseAnError(IOError,
-                            'The path provided for the' + caller.type + ' named ' + caller.name +
-                            ' does not exist!!! Got: ' + abspath + ' and ' + workingDirModule)
+        caller.raiseAnError(
+            IOError, 'The path provided for the' + caller.type + ' named ' +
+            caller.name + ' does not exist!!! Got: ' + abspath + ' and ' +
+            workingDirModule)
   return moduleToLoadString, filename
 
 
@@ -137,8 +140,8 @@ def checkIfPathAreAccessedByAnotherProgram(pathname, timelapse=10.0):
   mode = os.stat(pathname).st_mode
   if not (stat.S_ISREG(mode) or stat.S_ISDIR(mode)):
     raise Exception(
-        UreturnPrintTag('UTILITIES') + ': ' + UreturnPrintPostTag('ERROR') + '->  path ' +
-        pathname + ' is neither a file nor a dir!')
+        UreturnPrintTag('UTILITIES') + ': ' + UreturnPrintPostTag('ERROR') +
+        '->  path ' + pathname + ' is neither a file nor a dir!')
   boolReturn = abs(os.stat(pathname).st_mtime - time.time()) < timelapse
   return boolReturn
 
@@ -188,7 +191,9 @@ def returnImportModuleString(obj, moduleOnly=False):
       if value.__name__.split(".")[-1] != key:
         mods.append(str('import ' + value.__name__ + ' as ' + key))
       else:
-        mods.append(str('from ' + '.'.join(value.__name__.split(".")[:-1]) + ' import ' + key))
+        mods.append(
+            str('from ' + '.'.join(value.__name__.split(".")[:-1]) +
+                ' import ' + key))
     else:
       mods.append(str(key))
   return mods
@@ -222,7 +227,8 @@ def UreturnPrintPostTag(intag):
     @ In, intag, string, string that needs to be formatted
     @ Out, returnString, string, the formatted string
   """
-  returnString = intag.ljust(getPrintTagLenght() - 15)[0:(getPrintTagLenght() - 15)]
+  returnString = intag.ljust(getPrintTagLenght() - 15)[0:(
+      getPrintTagLenght() - 15)]
   return returnString
 
 
@@ -245,8 +251,8 @@ def convertMultipleToBytes(sizeString):
     except:
       raise IOError(
           UreturnPrintTag('UTILITIES') + ': ' + UreturnPrintPostTag('ERROR') +
-          '->  can not understand how to convert expression ' + str(sizeString) +
-          ' to number of bytes. Accepted Mb,Gb,Kb (no case sentive)!')
+          '->  can not understand how to convert expression ' + str(sizeString)
+          + ' to number of bytes. Accepted Mb,Gb,Kb (no case sentive)!')
 
 
 def stringsThatMeanTrue():
@@ -257,8 +263,8 @@ def stringsThatMeanTrue():
     @ Out, listOfStrings, list, list of strings that mean True in RAVEN
   """
   listOfStrings = list([
-      'yes', 'y', 'true', 't', 'si', 'vero', 'dajie', 'oui', 'ja', 'yao', 'verum', 'evet', 'dogru',
-      '1', 'on'
+      'yes', 'y', 'true', 't', 'si', 'vero', 'dajie', 'oui', 'ja', 'yao',
+      'verum', 'evet', 'dogru', '1', 'on'
   ])
   return listOfStrings
 
@@ -271,8 +277,8 @@ def stringsThatMeanFalse():
     @ Out, listOfStrings, list, list of strings that mean False in RAVEN
   """
   listOfStrings = list([
-      'no', 'n', 'false', 'f', 'nono', 'falso', 'nahh', 'non', 'nicht', 'bu', 'falsus', 'hayir',
-      'yanlis', '0', 'off'
+      'no', 'n', 'false', 'f', 'nono', 'falso', 'nahh', 'non', 'nicht', 'bu',
+      'falsus', 'hayir', 'yanlis', '0', 'off'
   ])
   return listOfStrings
 
@@ -332,11 +338,13 @@ def interpretBoolean(inArg):
     else:
       raise Exception(
           UreturnPrintTag('UTILITIES') + ': ' + UreturnPrintPostTag("ERROR") +
-          '-> can not convert string to boolean in method interpretBoolean!!!!')
+          '-> can not convert string to boolean in method interpretBoolean!!!!'
+      )
   else:
     raise Exception(
         UreturnPrintTag('UTILITIES') + ': ' + UreturnPrintPostTag("ERROR") +
-        '-> type unknown in method interpretBoolean. Got' + type(inArg).__name__)
+        '-> type unknown in method interpretBoolean. Got' +
+        type(inArg).__name__)
 
 
 def isClose(f1, f2, relTolerance=1e-14, absTolerance=0.0):
@@ -348,7 +356,8 @@ def isClose(f1, f2, relTolerance=1e-14, absTolerance=0.0):
     @ In, absTolerance, float, optional, absolute tolerance
     @ Out, isClose, bool, is it close enough?
   """
-  return abs(f1 - f2) <= max(relTolerance * max(abs(f1), abs(f2)), absTolerance)
+  return abs(f1 - f2) <= max(relTolerance * max(abs(f1), abs(f2)),
+                             absTolerance)
 
 
 def compare(s1, s2, relTolerance=1e-14):
@@ -368,7 +377,8 @@ def compare(s1, s2, relTolerance=1e-14):
   elif type(w1) == type(w2) and type(w1) == float:
     from utils import mathUtils
     return mathUtils.compareFloats(w1, w2, relTolerance)
-  elif type(w1) != type(w2) and type(w1) in [float, int] and type(w2) in [float, int]:
+  elif type(w1) != type(w2) and type(w1) in [float, int
+                                             ] and type(w2) in [float, int]:
     w1, w2 = float(w1), float(w2)
     return compare(w1, w2)
   else:
@@ -573,8 +583,9 @@ def importFromPath(filename, printImporting=True):
     @ Out, importedModule, module, the imported module
   """
   if printImporting:
-    print('(            ) ' + UreturnPrintTag('UTILS') + ': ' + UreturnPrintPostTag('Message') +
-          '      -> importing module ' + filename)
+    print('(            ) ' + UreturnPrintTag('UTILS') + ': ' +
+          UreturnPrintPostTag('Message') + '      -> importing module ' +
+          filename)
   import imp, os.path
   try:
     (path, name) = os.path.split(filename)
@@ -582,9 +593,10 @@ def importFromPath(filename, printImporting=True):
     (file, filename, data) = imp.find_module(name, [path])
     importedModule = imp.load_module(name, file, filename, data)
   except Exception as ae:
-    raise Exception('(            ) ' + UreturnPrintTag('UTILS') + ': ' +
-                    UreturnPrintPostTag('ERROR') + '-> importing module ' + filename + ' at ' +
-                    path + os.sep + name + ' failed with error ' + str(ae))
+    raise Exception(
+        '(            ) ' + UreturnPrintTag('UTILS') + ': ' +
+        UreturnPrintPostTag('ERROR') + '-> importing module ' + filename +
+        ' at ' + path + os.sep + name + ' failed with error ' + str(ae))
   return importedModule
 
 
@@ -774,11 +786,16 @@ def interpolateFunction(x, y, option, z=None, returnCoordinate=False):
       yi = np.linspace(y.min(), y.max(), int(options['interpPointsY']))
     xig, yig = np.meshgrid(xi, yi)
     try:
-      if ['nearest', 'linear', 'cubic'].count(options['interpolationType']) > 0 or z.size <= 3:
+      if ['nearest', 'linear', 'cubic'].count(
+          options['interpolationType']) > 0 or z.size <= 3:
         if options['interpolationType'] != 'nearest' and z.size > 3:
-          zi = griddata((x, y), z, (xi[None, :], yi[:, None]), method=options['interpolationType'])
+          zi = griddata(
+              (x, y),
+              z, (xi[None, :], yi[:, None]),
+              method=options['interpolationType'])
         else:
-          zi = griddata((x, y), z, (xi[None, :], yi[:, None]), method='nearest')
+          zi = griddata(
+              (x, y), z, (xi[None, :], yi[:, None]), method='nearest')
       else:
         rbf = Rbf(
             x,
@@ -790,23 +807,26 @@ def interpolateFunction(x, y, option, z=None, returnCoordinate=False):
         zi = rbf(xig, yig)
     except Exception as ae:
       if 'interpolationTypeBackUp' in options.keys():
-        print(UreturnPrintTag('UTILITIES') + ': ' + UreturnPrintPostTag('Warning') +
-              '->   The interpolation process failed with error : ' + str(ae) +
-              '.The STREAM MANAGER will try to use the BackUp interpolation type ' +
-              options['interpolationTypeBackUp'])
-        options['interpolationTypeBackUp'] = options.pop('interpolationTypeBackUp')
+        print(
+            UreturnPrintTag('UTILITIES') + ': ' + UreturnPrintPostTag('Warning')
+            + '->   The interpolation process failed with error : ' + str(ae) +
+            '.The STREAM MANAGER will try to use the BackUp interpolation type '
+            + options['interpolationTypeBackUp'])
+        options['interpolationTypeBackUp'] = options.pop(
+            'interpolationTypeBackUp')
         zi = interpolateFunction(x, y, z, options)
       else:
         raise Exception(
-            UreturnPrintTag('UTILITIES') + ': ' + UreturnPrintPostTag('ERROR') +
-            '-> Interpolation failed with error: ' + str(ae))
+            UreturnPrintTag('UTILITIES') + ': ' + UreturnPrintPostTag('ERROR')
+            + '-> Interpolation failed with error: ' + str(ae))
     if returnCoordinate:
       return xig, yig, zi
     else:
       return zi
   else:
     try:
-      if ['nearest', 'linear', 'cubic'].count(options['interpolationType']) > 0 or y.size <= 3:
+      if ['nearest', 'linear', 'cubic'].count(
+          options['interpolationType']) > 0 or y.size <= 3:
         if options['interpolationType'] != 'nearest' and y.size > 3:
           yi = griddata((x), y, (xi[:]), method=options['interpolationType'])
         else:
@@ -822,16 +842,18 @@ def interpolateFunction(x, y, option, z=None, returnCoordinate=False):
         yi = rbf(xi)
     except Exception as ae:
       if 'interpolationTypeBackUp' in options.keys():
-        print(UreturnPrintTag('UTILITIES') + ': ' + UreturnPrintPostTag('Warning') +
-              '->   The interpolation process failed with error : ' + str(ae) +
-              '.The STREAM MANAGER will try to use the BackUp interpolation type ' +
-              options['interpolationTypeBackUp'])
-        options['interpolationTypeBackUp'] = options.pop('interpolationTypeBackUp')
+        print(
+            UreturnPrintTag('UTILITIES') + ': ' + UreturnPrintPostTag('Warning')
+            + '->   The interpolation process failed with error : ' + str(ae) +
+            '.The STREAM MANAGER will try to use the BackUp interpolation type '
+            + options['interpolationTypeBackUp'])
+        options['interpolationTypeBackUp'] = options.pop(
+            'interpolationTypeBackUp')
         yi = interpolateFunction(x, y, options)
       else:
         raise Exception(
-            UreturnPrintTag('UTILITIES') + ': ' + UreturnPrintPostTag('ERROR') +
-            '-> Interpolation failed with error: ' + str(ae))
+            UreturnPrintTag('UTILITIES') + ': ' + UreturnPrintPostTag('ERROR')
+            + '-> Interpolation failed with error: ' + str(ae))
     if returnCoordinate:
       return xi, yi
     else:
@@ -892,7 +914,10 @@ def find_crow(framework_dir):
   except:
     ravenDir = os.path.dirname(framework_dir)
     #Add the module directory to the search path.
-    crowDirs = [os.path.join(ravenDir, "crow"), os.path.join(os.path.dirname(ravenDir), "crow")]
+    crowDirs = [
+        os.path.join(ravenDir, "crow"),
+        os.path.join(os.path.dirname(ravenDir), "crow")
+    ]
     if "CROW_DIR" in os.environ:
       crowDirs.insert(0, os.path.join(os.environ["CROW_DIR"]))
     for crowDir in crowDirs:
@@ -904,10 +929,12 @@ def find_crow(framework_dir):
       if os.path.exists(os.path.join(crowDir, "tests")):
         raise IOError(
             UreturnPrintTag('UTILS') + ': ' + UreturnPrintPostTag('ERROR') +
-            ' -> Crow was found in ' + crowDir + ' but does not seem to be compiled')
+            ' -> Crow was found in ' + crowDir +
+            ' but does not seem to be compiled')
     raise IOError(
         UreturnPrintTag('UTILS') + ': ' + UreturnPrintPostTag('ERROR') +
-        ' -> Crow has not been found. It location is supposed to be one of ' + str(crowDirs))
+        ' -> Crow has not been found. It location is supposed to be one of ' +
+        str(crowDirs))
 
 
 def add_path(absolutepath):
@@ -918,8 +945,8 @@ def add_path(absolutepath):
   """
   if not os.path.exists(absolutepath):
     raise IOError(
-        UreturnPrintTag('UTILS') + ': ' + UreturnPrintPostTag('ERROR') + ' -> "' + absolutepath +
-        '" directory has not been found!')
+        UreturnPrintTag('UTILS') + ': ' + UreturnPrintPostTag('ERROR') +
+        ' -> "' + absolutepath + '" directory has not been found!')
   sys.path.append(absolutepath)
 
 
@@ -1178,7 +1205,8 @@ def filterAllSubSets(listOfLists):
   """
   for setToTest in listOfLists:
     if not any(
-        isASubset(setToTest, pileList) for pileList in listOfLists if setToTest is not pileList):
+        isASubset(setToTest, pileList) for pileList in listOfLists
+        if setToTest is not pileList):
       yield setToTest
 
 
@@ -1267,4 +1295,6 @@ def getAllSubclasses(cls):
     @ In, cls, the class to retrieve sub-classes.
     @ Out, getAllSubclasses, list of class objects for each subclass of cls.
   """
-  return cls.__subclasses__() + [g for s in cls.__subclasses__() for g in getAllSubclasses(s)]
+  return cls.__subclasses__() + [
+      g for s in cls.__subclasses__() for g in getAllSubclasses(s)
+  ]

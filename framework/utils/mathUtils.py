@@ -61,7 +61,8 @@ def skewNormal(x, alphafactor, xi, omega):
     @ In, omega, float, omega factor (scale)
     @ Out, returnSkew, float, skew
   """
-  returnSkew = (2.0 / omega) * normal((x - xi) / omega) * normalCdf(alphafactor * (x - xi) / omega)
+  returnSkew = (2.0 / omega) * normal(
+      (x - xi) / omega) * normalCdf(alphafactor * (x - xi) / omega)
   return returnSkew
 
 
@@ -89,7 +90,9 @@ def createInterp(x, y, lowFill, highFill, kind='linear'):
       @ Out, interpolatedValue, float, interpolated value corresponding to value
     """
     try:
-      return interp(value) + 0.0  ## why plus 0.0? Could this be done by casting as a float?
+      return interp(
+          value
+      ) + 0.0  ## why plus 0.0? Could this be done by casting as a float?
       ## maljdp: I believe this is catching edge cases
       ## in order to throw them into the except clause
       ## below, but I am not sure it is the best
@@ -202,14 +205,16 @@ def historySnapShoots(valueDict, numberOfTimeStep):
       # check the time-step size
       outPortion[variable] = np.asarray(value)
       if numberSteps == -1:
-        numberSteps = reduce(lambda x, y: x * y, list(
-            outPortion.values()[-1].shape)) / numberOfRealizations
+        numberSteps = reduce(
+            lambda x, y: x * y, list(
+                outPortion.values()[-1].shape)) / numberOfRealizations
       if len(list(outPortion[variable].shape)) != 2:
         return "historySnapShoots method: number of time steps are not consistent among the different histories for variable " + variable
-      if reduce(lambda x, y: x * y, list(
-          outPortion.values()[-1].shape)) / numberOfRealizations != numberSteps:
+      if reduce(lambda x, y: x * y, list(outPortion.values()[-1].shape)
+                ) / numberOfRealizations != numberSteps:
         return "historySnapShoots method: number of time steps are not consistent among the different histories for variable " + variable + ". Expected " + str(
-            numberSteps) + " /= " + sum(list(outPortion[variable].shape)) / numberOfRealizations
+            numberSteps) + " /= " + sum(list(
+                outPortion[variable].shape)) / numberOfRealizations
     else:
       inPortion[variable] = np.asarray(value)
   for ts in range(numberOfTimeStep):
@@ -388,12 +393,16 @@ def interpolateFunction(x, y, option, z=None, returnCoordinate=False):
       yi = np.linspace(y.min(), y.max(), int(options['interpPointsY']))
     xig, yig = np.meshgrid(xi, yi)
     try:
-      if ['nearest', 'linear', 'cubic'].count(options['interpolationType']) > 0 or z.size <= 3:
+      if ['nearest', 'linear', 'cubic'].count(
+          options['interpolationType']) > 0 or z.size <= 3:
         if options['interpolationType'] != 'nearest' and z.size > 3:
           zi = interpolate.griddata(
-              (x, y), z, (xi[None, :], yi[:, None]), method=options['interpolationType'])
+              (x, y),
+              z, (xi[None, :], yi[:, None]),
+              method=options['interpolationType'])
         else:
-          zi = interpolate.griddata((x, y), z, (xi[None, :], yi[:, None]), method='nearest')
+          zi = interpolate.griddata(
+              (x, y), z, (xi[None, :], yi[:, None]), method='nearest')
       else:
         rbf = interpolate.Rbf(
             x,
@@ -405,25 +414,29 @@ def interpolateFunction(x, y, option, z=None, returnCoordinate=False):
         zi = rbf(xig, yig)
     except Exception as ae:
       if 'interpolationTypeBackUp' in options.keys():
-        print(UreturnPrintTag('UTILITIES') + ': ' + UreturnPrintPostTag('Warning') +
-              '->   The interpolation process failed with error : ' + str(ae) +
-              '.The STREAM MANAGER will try to use the BackUp interpolation type ' +
-              options['interpolationTypeBackUp'])
-        options['interpolationTypeBackUp'] = options.pop('interpolationTypeBackUp')
+        print(
+            UreturnPrintTag('UTILITIES') + ': ' + UreturnPrintPostTag('Warning')
+            + '->   The interpolation process failed with error : ' + str(ae) +
+            '.The STREAM MANAGER will try to use the BackUp interpolation type '
+            + options['interpolationTypeBackUp'])
+        options['interpolationTypeBackUp'] = options.pop(
+            'interpolationTypeBackUp')
         zi = interpolateFunction(x, y, z, options)
       else:
         raise Exception(
-            UreturnPrintTag('UTILITIES') + ': ' + UreturnPrintPostTag('ERROR') +
-            '-> Interpolation failed with error: ' + str(ae))
+            UreturnPrintTag('UTILITIES') + ': ' + UreturnPrintPostTag('ERROR')
+            + '-> Interpolation failed with error: ' + str(ae))
     if returnCoordinate:
       return xig, yig, zi
     else:
       return zi
   else:
     try:
-      if ['nearest', 'linear', 'cubic'].count(options['interpolationType']) > 0 or y.size <= 3:
+      if ['nearest', 'linear', 'cubic'].count(
+          options['interpolationType']) > 0 or y.size <= 3:
         if options['interpolationType'] != 'nearest' and y.size > 3:
-          yi = interpolate.griddata((x), y, (xi[:]), method=options['interpolationType'])
+          yi = interpolate.griddata(
+              (x), y, (xi[:]), method=options['interpolationType'])
         else:
           yi = interpolate.griddata((x), y, (xi[:]), method='nearest')
       else:
@@ -437,16 +450,18 @@ def interpolateFunction(x, y, option, z=None, returnCoordinate=False):
         yi = rbf(xi)
     except Exception as ae:
       if 'interpolationTypeBackUp' in options.keys():
-        print(UreturnPrintTag('UTILITIES') + ': ' + UreturnPrintPostTag('Warning') +
-              '->   The interpolation process failed with error : ' + str(ae) +
-              '.The STREAM MANAGER will try to use the BackUp interpolation type ' +
-              options['interpolationTypeBackUp'])
-        options['interpolationTypeBackUp'] = options.pop('interpolationTypeBackUp')
+        print(
+            UreturnPrintTag('UTILITIES') + ': ' + UreturnPrintPostTag('Warning')
+            + '->   The interpolation process failed with error : ' + str(ae) +
+            '.The STREAM MANAGER will try to use the BackUp interpolation type '
+            + options['interpolationTypeBackUp'])
+        options['interpolationTypeBackUp'] = options.pop(
+            'interpolationTypeBackUp')
         yi = interpolateFunction(x, y, options)
       else:
         raise Exception(
-            UreturnPrintTag('UTILITIES') + ': ' + UreturnPrintPostTag('ERROR') +
-            '-> Interpolation failed with error: ' + str(ae))
+            UreturnPrintTag('UTILITIES') + ': ' + UreturnPrintPostTag('ERROR')
+            + '-> Interpolation failed with error: ' + str(ae))
     if returnCoordinate:
       return xi, yi
     else:
@@ -607,7 +622,8 @@ def isSingleValued(val, nanOk=True):
     @ Out, isAScalar, bool, result
   """
   # TODO most efficient order for checking?
-  return isAFloatOrInt(val, nanOk=nanOk) or isABoolean(val) or isAString(val) or (val is None)
+  return isAFloatOrInt(
+      val, nanOk=nanOk) or isABoolean(val) or isAString(val) or (val is None)
 
 
 def isAString(val):
@@ -732,7 +748,12 @@ def computeTruncatedSingularValueDecomposition(X, truncationRank):
   return U, s, V
 
 
-def computeEigenvaluesAndVectorsFromLowRankOperator(lowOperator, Y, U, s, V, exactModes=True):
+def computeEigenvaluesAndVectorsFromLowRankOperator(lowOperator,
+                                                    Y,
+                                                    U,
+                                                    s,
+                                                    V,
+                                                    exactModes=True):
   """
     Compute the eigenvalues and eigenvectors of the high-dim operator
     from the low-dim operator and the matrix Y.
@@ -764,7 +785,8 @@ def computeAmplitudeCoefficients(mods, Y, eigs, optmized):
     @ Out, amplitudes, numpy.ndarray, 1D array containing the amplitude coefficients
   """
   if optmized:
-    L = np.concatenate([mods.dot(np.diag(eigs**i)) for i in range(Y.shape[1])], axis=0)
+    L = np.concatenate(
+        [mods.dot(np.diag(eigs**i)) for i in range(Y.shape[1])], axis=0)
     amplitudes = np.linalg.lstsq(L, np.reshape(Y, (-1, ), order='F'))[0]
   else:
     amplitudes = np.linalg.lstsq(mods, Y.T[0])[0]

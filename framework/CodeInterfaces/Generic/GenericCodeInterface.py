@@ -42,9 +42,11 @@ class GenericCode(CodeInterfaceBase):
       @ Out, None
     """
     CodeInterfaceBase.__init__(
-        self)  # The base class doesn't actually implement this, but futureproofing.
+        self
+    )  # The base class doesn't actually implement this, but futureproofing.
     self.inputExtensions = []  # list of extensions for RAVEN to edit as inputs
-    self.outputExtensions = []  # list of extensions for RAVEN to gather data from?
+    self.outputExtensions = [
+    ]  # list of extensions for RAVEN to gather data from?
     self.execPrefix = ''  # executioner command prefix (e.g., 'python ')
     self.execPostfix = ''  # executioner command postfix (e.g. -zcvf)
     self.caseName = None  # base label for outgoing files, should default to inputFileName
@@ -60,8 +62,10 @@ class GenericCode(CodeInterfaceBase):
     outFileName = xmlNode.find("outputFile")
     self.fixedOutFileName = outFileName.text if outFileName is not None else None
     if self.fixedOutFileName is not None:
-      if '.' in self.fixedOutFileName and self.fixedOutFileName.split(".")[-1] != 'csv':
-        raise IOError('user defined output extension "' + userExt + '" is not a "csv"!')
+      if '.' in self.fixedOutFileName and self.fixedOutFileName.split(
+          ".")[-1] != 'csv':
+        raise IOError(
+            'user defined output extension "' + userExt + '" is not a "csv"!')
       else:
         self.fixedOutFileName = '.'.join(self.fixedOutFileName.split(".")[:-1])
 
@@ -92,8 +96,8 @@ class GenericCode(CodeInterfaceBase):
     #check for duplicate extension use
     usedExt = []
     for ext in list(clargs['input'][flag]
-                    for flag in clargs['input'].keys()) + list(fargs['input'][var]
-                                                               for var in fargs['input'].keys()):
+                    for flag in clargs['input'].keys()) + list(
+                        fargs['input'][var] for var in fargs['input'].keys()):
       if ext not in usedExt:
         usedExt.append(ext)
       else:
@@ -104,8 +108,8 @@ class GenericCode(CodeInterfaceBase):
     #check all required input files are there
     inFiles = inputFiles[:]
     for exts in list(clargs['input'][flag]
-                     for flag in clargs['input'].keys()) + list(fargs['input'][var]
-                                                                for var in fargs['input'].keys()):
+                     for flag in clargs['input'].keys()) + list(
+                         fargs['input'][var] for var in fargs['input'].keys()):
       for ext in exts:
         found = False
         for inf in inputFiles:
@@ -114,7 +118,8 @@ class GenericCode(CodeInterfaceBase):
             inFiles.remove(inf)
             break
         if not found:
-          raise IOError('input extension "' + ext + '" listed in input but not in inputFiles!')
+          raise IOError('input extension "' + ext +
+                        '" listed in input but not in inputFiles!')
     #TODO if any remaining, check them against valid inputs
 
     #PROBLEM this is limited, since we can't figure out which .xml goes to -i and which to -d, for example.
@@ -168,7 +173,8 @@ class GenericCode(CodeInterfaceBase):
     print('Execution Command: ' + str(returnCommand[0]))
     return returnCommand
 
-  def createNewInput(self, currentInputFiles, origInputFiles, samplerType, **Kwargs):
+  def createNewInput(self, currentInputFiles, origInputFiles, samplerType,
+                     **Kwargs):
     """
       This method is used to generate an input based on the information passed in.
       @ In, currentInputFiles, list,  list of current input files (input files from last this method call)

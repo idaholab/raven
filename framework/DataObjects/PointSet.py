@@ -202,9 +202,14 @@ class PointSet(DataSet):
       ordered += list(m for m in self._metavars if m in keep)
       for data in full:
         data = data.drop(toDrop)
-        data = data.where(data[self.sampleTag] == data[self.sampleTag].values[-1], drop=True)
+        data = data.where(
+            data[self.sampleTag] == data[self.sampleTag].values[-1], drop=True)
         self._usePandasWriteCSV(
-            fileName, data, ordered, keepSampleTag=self.sampleTag in keep, mode=mode)
+            fileName,
+            data,
+            ordered,
+            keepSampleTag=self.sampleTag in keep,
+            mode=mode)
         mode = 'a'
     else:
       DataSet._toCSV(self, fileName, start, **kwargs)

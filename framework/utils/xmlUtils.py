@@ -40,7 +40,11 @@ def isComment(node):
   return False
 
 
-def prettify(tree, doc=False, docLevel=0, startingTabs=0, addRavenNewlines=True):
+def prettify(tree,
+             doc=False,
+             docLevel=0,
+             startingTabs=0,
+             addRavenNewlines=True):
   """
     Script for turning XML tree into something mostly RAVEN-preferred.  Does not align
     attributes as some devs like (yet). The output can be written directly to a file, as
@@ -104,7 +108,8 @@ def prettify(tree, doc=False, docLevel=0, startingTabs=0, addRavenNewlines=True)
 
   #end prettifyNode
   if isinstance(tree, ET.ElementTree):
-    prettifyNode(tree.getroot(), tabs=startingTabs, ravenNewlines=addRavenNewlines)
+    prettifyNode(
+        tree.getroot(), tabs=startingTabs, ravenNewlines=addRavenNewlines)
     return ET.tostring(tree.getroot())
   else:
     prettifyNode(tree, tabs=startingTabs, ravenNewlines=addRavenNewlines)
@@ -328,7 +333,8 @@ def fixXmlTag(msg):
     msg = re.sub(notTagChars, '.', msg)
     print('XML UTILS: Replacing illegal tag characters in "' + pre + '":', msg)
   #  2. Start with a letter or underscore
-  if not bool(re.match(letters + u'|([_])', msg[0])) or bool(re.match(u'([xX][mM][lL])', msg[:3])):
+  if not bool(re.match(letters + u'|([_])', msg[0])) or bool(
+      re.match(u'([xX][mM][lL])', msg[:3])):
     print('XML UTILS: Prepending "_" to illegal tag "' + msg + '"')
     msg = '_' + msg
   return msg
@@ -371,6 +377,7 @@ def readExternalXML(extFile, extNode, cwd):
   # find the element to read
   root = ET.parse(open(extFile, 'r')).getroot()
   if root.tag != extNode.strip():
-    raise IOError('XML UTILS ERROR: Node "{}" is not the root node of "{}"!'.format(
-        extNode, extFile))
+    raise IOError(
+        'XML UTILS ERROR: Node "{}" is not the root node of "{}"!'.format(
+            extNode, extFile))
   return root

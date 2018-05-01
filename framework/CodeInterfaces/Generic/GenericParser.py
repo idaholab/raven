@@ -31,7 +31,12 @@ class GenericParser():
     import the user-edited input file, build list of strings with replacable parts
   """
 
-  def __init__(self, inputFiles, prefix='$RAVEN-', postfix='$', defaultDelim=':', formatDelim='|'):
+  def __init__(self,
+               inputFiles,
+               prefix='$RAVEN-',
+               postfix='$',
+               defaultDelim=':',
+               formatDelim='|'):
     """
       Accept the input file and parse it by the prefix-postfix breaks. Someday might be able to change prefix,postfix,defaultDelim from input file, but not yet.
       @ In, inputFiles, list, string list of input filenames that might need parsing.
@@ -75,7 +80,8 @@ class GenericParser():
           var = line[start + len(self.prefixKey):end]
           if defaultDelim in var or formatDelim in var:
             optionalPos = [None] * 2
-            optionalPos[0], optionalPos[1] = var.find(defaultDelim), var.find(formatDelim)
+            optionalPos[0], optionalPos[1] = var.find(defaultDelim), var.find(
+                formatDelim)
             if optionalPos[0] == -1:
               optionalPos[0] = sys.maxsize
             if optionalPos[1] == -1:
@@ -84,15 +90,16 @@ class GenericParser():
                 var))] if optionalPos[0] < optionalPos[1] else var[min(
                     optionalPos[0] + 1, len(var)):len(var)]
             varformat = var[min(optionalPos[1] + 1, len(var)):len(
-                var)] if optionalPos[0] < optionalPos[1] else var[optionalPos[1] + 1:min(
-                    optionalPos[0], len(var))]
+                var)] if optionalPos[0] < optionalPos[1] else var[
+                    optionalPos[1] + 1:min(optionalPos[0], len(var))]
             var = var[0:min(optionalPos)]
             if var in self.defaults.keys() and optionalPos[0] != sys.maxsize:
               print('multiple default values given for variable', var)
             if var in self.formats.keys() and optionalPos[1] != sys.maxsize:
               print('multiple format values given for variable', var)
             #TODO allow the user to specify take-last or take-first?
-            if var not in self.defaults.keys() and optionalPos[0] != sys.maxsize:
+            if var not in self.defaults.keys(
+            ) and optionalPos[0] != sys.maxsize:
               self.defaults[var] = {}
             if var not in self.formats.keys() and optionalPos[1] != sys.maxsize:
               self.formats[var] = {}
@@ -100,28 +107,36 @@ class GenericParser():
               self.defaults[var][infileName] = defval
             if optionalPos[1] != sys.maxsize:
               # check if the format is valid
-              if not any(formVal in varformat for formVal in self.acceptFormats.keys()):
+              if not any(formVal in varformat
+                         for formVal in self.acceptFormats.keys()):
                 try:
                   int(varformat)
                 except ValueError:
                   raise ValueError(
-                      "the format specified for wildcard " + line[start + len(self.prefixKey):end]
-                      + " is unknown. Available are either a plain integer or the following " +
-                      " ".join(self.acceptFormats.keys()))
+                      "the format specified for wildcard " +
+                      line[start + len(self.prefixKey):end] +
+                      " is unknown. Available are either a plain integer or the following "
+                      + " ".join(self.acceptFormats.keys()))
                 self.formats[var][infileName] = varformat, int
               else:
                 for formVal in self.acceptFormats.keys():
                   if formVal in varformat:
-                    self.formats[var][infileName] = varformat, self.acceptFormats[formVal]
+                    self.formats[var][
+                        infileName] = varformat, self.acceptFormats[formVal]
                     break
           self.segments[infileName].append(line[:start])
           self.segments[infileName].append(var)
           if var not in self.varPlaces.keys():
-            self.varPlaces[var] = {infileName: [len(self.segments[infileName]) - 1]}
+            self.varPlaces[var] = {
+                infileName: [len(self.segments[infileName]) - 1]
+            }
           elif infileName not in self.varPlaces[var].keys():
-            self.varPlaces[var][infileName] = [len(self.segments[infileName]) - 1]
+            self.varPlaces[var][infileName] = [
+                len(self.segments[infileName]) - 1
+            ]
           else:
-            self.varPlaces[var][infileName].append(len(self.segments[infileName]) - 1)
+            self.varPlaces[var][infileName].append(
+                len(self.segments[infileName]) - 1)
           #self.segments.append(line[end+1:])
           line = line[end + 1:]
           seg = ''
@@ -149,19 +164,22 @@ class GenericParser():
         ioVars.append(value)
     for var in self.varPlaces.keys():
       for inputFile in self.segments.keys():
-        for place in self.varPlaces[var][inputFile] if inputFile in self.varPlaces[
-            var].keys() else []:
+        for place in self.varPlaces[var][
+            inputFile] if inputFile in self.varPlaces[var].keys() else []:
           if var in modDict.keys():
             if var in self.formats.keys():
               if inputFile in self.formats[var].keys():
                 if any(formVal in self.formats[var][inputFile][0]
                        for formVal in self.acceptFormats.keys()):
-                  formatstringc = "{:" + self.formats[var][inputFile][0].strip() + "}"
+                  formatstringc = "{:" + self.formats[var][inputFile][0].strip(
+                  ) + "}"
                   self.segments[inputFile][place] = formatstringc.format(
                       self.formats[var][inputFile][1](modDict[var]))
                 else:
-                  self.segments[inputFile][place] = str(modDict[var]).strip().rjust(
-                      self.formats[var][inputFile][1](self.formats[var][inputFile][0]))
+                  self.segments[inputFile][place] = str(
+                      modDict[var]).strip().rjust(
+                          self.formats[var][inputFile][1](
+                              self.formats[var][inputFile][0]))
             else:
               self.segments[inputFile][place] = str(modDict[var])
           elif var in self.defaults.keys():
@@ -169,20 +187,23 @@ class GenericParser():
               if inputFile in self.formats[var].keys():
                 if any(formVal in self.formats[var][inputFile][0]
                        for formVal in self.acceptFormats.keys()):
-                  formatstringc = "{:" + self.formats[var][inputFile][0].strip() + "}"
+                  formatstringc = "{:" + self.formats[var][inputFile][0].strip(
+                  ) + "}"
                   self.segments[inputFile][place] = formatstringc.format(
-                      self.formats[var][inputFile][1](self.defaults[var][inputFile]))
+                      self.formats[var][inputFile][1](
+                          self.defaults[var][inputFile]))
                 else:
                   self.segments[inputFile][place] = str(
-                      self.defaults[var][inputFile]).strip().rjust(self.formats[var][inputFile][1](
-                          self.formats[var][inputFile][0]))
+                      self.defaults[var][inputFile]).strip().rjust(
+                          self.formats[var][inputFile][1](
+                              self.formats[var][inputFile][0]))
             else:
               self.segments[inputFile][place] = self.defaults[var][inputFile]
           elif var in ioVars:
             continue  #this gets handled in writeNewInput
           else:
-            raise IOError(
-                'Generic Parser: Variable ' + var + ' was not sampled and no default given!')
+            raise IOError('Generic Parser: Variable ' + var +
+                          ' was not sampled and no default given!')
 
   def writeNewInput(self, inFiles, origFiles):
     """
@@ -214,8 +235,8 @@ class GenericParser():
 
     for var in self.varPlaces.keys():
       for inputFile in self.segments.keys():
-        for place in self.varPlaces[var][inputFile] if inputFile in self.varPlaces[
-            var].keys() else []:
+        for place in self.varPlaces[var][
+            inputFile] if inputFile in self.varPlaces[var].keys() else []:
           for iotype, adlvar in self.adlDict.items():
             if iotype == 'output':
               if var == self.adlDict[iotype]:
@@ -224,7 +245,8 @@ class GenericParser():
             elif iotype == 'input':
               if var in self.adlDict[iotype].keys():
                 self.segments[inputFile][place] = getFileWithExtension(
-                    inFiles, self.adlDict[iotype][var][0].strip('.'))[1].getAbsFile()
+                    inFiles,
+                    self.adlDict[iotype][var][0].strip('.'))[1].getAbsFile()
                 break
     #now just write the files.
     for f, inFile in enumerate(origFiles):

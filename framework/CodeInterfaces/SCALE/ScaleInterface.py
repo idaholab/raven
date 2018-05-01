@@ -65,13 +65,14 @@ class Scale(CodeInterfaceBase):
     else:
       self.sequence = [elm.strip() for elm in sequence.text.split(",")]
     if self.sequence.count('triton') > 1 or self.sequence.count('origen') > 1:
-      raise IOError("Multiple triton or origen sequences are not supported yet!")
+      raise IOError(
+          "Multiple triton or origen sequences are not supported yet!")
     timeUOM = xmlNode.find("timeUOM")
     if timeUOM is not None:
       self.timeUOM = timeUOM.text.strip()
       if self.timeUOM not in ['s', 'm', 'h', 'd', 'y']:
-        raise IOError(
-            "timeUOM not recognized. Supported are:" + ','.join(['s', 'm', 'h', 'd', 'y']))
+        raise IOError("timeUOM not recognized. Supported are:" +
+                      ','.join(['s', 'm', 'h', 'd', 'y']))
 
   def findInps(self, inputFiles):
     """
@@ -89,14 +90,20 @@ class Scale(CodeInterfaceBase):
       elif inputFile.getType().strip().lower() == "origen":
         origen.append(inputFile)
     if len(triton) > 1:
-      raise IOError('multiple triton input files have been found. Only one is allowed!')
+      raise IOError(
+          'multiple triton input files have been found. Only one is allowed!')
     if len(origen) > 1:
-      raise IOError('multiple origen input files have been found. Only one is allowed!')
+      raise IOError(
+          'multiple origen input files have been found. Only one is allowed!')
     # Check if the input requested by the sequence has been found
     if self.sequence.count('triton') != len(triton):
-      raise IOError('triton input file has not been found. Files type must be set to "triton"!')
+      raise IOError(
+          'triton input file has not been found. Files type must be set to "triton"!'
+      )
     if self.sequence.count('origen') != len(origen):
-      raise IOError('origen input file has not been found. Files type must be set to "origen"!')
+      raise IOError(
+          'origen input file has not been found. Files type must be set to "origen"!'
+      )
     # add inputs
     if len(origen) > 0:
       inputDict['origen'] = origen
@@ -124,12 +131,14 @@ class Scale(CodeInterfaceBase):
     executeCommand = []
     for seq in self.sequence:
       self.outputRoot[seq.lower()] = inputDict[seq.lower()][0].getBase()
-      executeCommand.append(('parallel',
-                             executable + ' ' + inputDict[seq.lower()][0].getFilename()))
+      executeCommand.append(
+          ('parallel',
+           executable + ' ' + inputDict[seq.lower()][0].getFilename()))
     returnCommand = executeCommand, self.outputRoot.values()[-1]
     return returnCommand
 
-  def createNewInput(self, currentInputFiles, origInputFiles, samplerType, **Kwargs):
+  def createNewInput(self, currentInputFiles, origInputFiles, samplerType,
+                     **Kwargs):
     """
       Generates new perturbed input files for Scale sequences
       @ In, currentInputFiles, list,  list of current input files
@@ -140,12 +149,16 @@ class Scale(CodeInterfaceBase):
       @ Out, newInputFiles, list, list of new input files (modified or not)
     """
     if 'dynamiceventtree' in str(samplerType).lower():
-      raise IOError("Dynamic Event Tree-based samplers not supported by Scale interface yet!")
+      raise IOError(
+          "Dynamic Event Tree-based samplers not supported by Scale interface yet!"
+      )
     currentInputsToPerturb = [
-        item for subList in self.findInps(currentInputFiles).values() for item in subList
+        item for subList in self.findInps(currentInputFiles).values()
+        for item in subList
     ]
     originalInputs = [
-        item for subList in self.findInps(origInputFiles).values() for item in subList
+        item for subList in self.findInps(origInputFiles).values()
+        for item in subList
     ]
     parser = GenericParser.GenericParser(currentInputsToPerturb)
     parser.modifyInternalDictionary(**Kwargs)

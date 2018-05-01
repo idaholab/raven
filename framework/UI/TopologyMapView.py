@@ -107,12 +107,14 @@ class CustomPathItem(qtw.QGraphicsPathItem):
     partition = data['amsc'].Partitions()[data['key']]
 
     padding = 1
-    self.tipSize = qtc.QSize(30, fontHeight * (len(dataNames) + 1) + 2 * padding)
+    self.tipSize = qtc.QSize(30,
+                             fontHeight * (len(dataNames) + 1) + 2 * padding)
     xPos = padding
     yPos = padding + 2
 
     cBox = qtg.QPainterPath()  # context pop-up box
-    cBox.addRoundedRect(0, 0, self.tipSize.width(), self.tipSize.height(), 1, 1)
+    cBox.addRoundedRect(0, 0, self.tipSize.width(), self.tipSize.height(), 1,
+                        1)
     gBox = self.scene().addPath(cBox)
     gBox.setVisible(False)
     self.graphics.append((cBox, gBox))
@@ -125,7 +127,9 @@ class CustomPathItem(qtw.QGraphicsPathItem):
       text = str(data['key']) + ' Count: ' + str(len(partition))
       fontWidth = fm.width(text)
       ## Center the text on the tooltip
-      cKey.addText(qtc.QPointF((self.tipSize.width() - fontWidth) / 2., yPos), font, text)
+      cKey.addText(
+          qtc.QPointF((self.tipSize.width() - fontWidth) / 2., yPos), font,
+          text)
     gText = self.scene().addPath(cKey)
     gText.setPen(qtg.QPen(qtg.QColor('#333333')))
     gText.setBrush(qtg.QBrush(qtg.QColor('#333333')))
@@ -197,12 +201,14 @@ class CustomPathItem(qtw.QGraphicsPathItem):
         maxCount = max(hist)
         for j, bin in enumerate(hist):
           x = (boxW) / (maxVal - minVal) * (binEdges[j] - minVal) + boxX
-          w = (boxW) / (maxVal - minVal) * (binEdges[j + 1] - minVal) + boxX - x
+          w = (boxW) / (maxVal - minVal) * (
+              binEdges[j + 1] - minVal) + boxX - x
           h = float(bin) / float(maxCount) * boxH
           y = boxY + boxH - h
           cDimHist.addRect(x, y, w, h)
         gDimHist = self.scene().addPath(cDimHist)
-        gDimHist.setPen(qtg.QPen(qtc.Qt.NoPen))  #qtg.QPen(qtg.QColor('#CCCCCC')))
+        gDimHist.setPen(qtg.QPen(
+            qtc.Qt.NoPen))  #qtg.QPen(qtg.QColor('#CCCCCC')))
         gDimHist.setBrush(qtg.QBrush(qtg.QColor('#333333')))
         gDimHist.setVisible(False)
         self.graphics.append((cDimHist, gDimHist))
@@ -222,7 +228,8 @@ class CustomPathItem(qtw.QGraphicsPathItem):
           h = .2
           cDimScatter.addRect(x, y, w, h)
         gDimScatter = self.scene().addPath(cDimScatter)
-        gDimScatter.setPen(qtg.QPen(qtc.Qt.NoPen))  #qtg.QPen(qtg.QColor('#CCCCCC')))
+        gDimScatter.setPen(qtg.QPen(
+            qtc.Qt.NoPen))  #qtg.QPen(qtg.QColor('#CCCCCC')))
         gDimScatter.setBrush(qtg.QBrush(qtg.QColor('#333333')))
         gDimScatter.setVisible(False)
         self.graphics.append((cDimScatter, gDimScatter))
@@ -404,14 +411,16 @@ class TopologyMapView(BaseTopologicalView):
     self.scene.setSceneRect(0, 0, 100, 100)
     self.gView = CustomGraphicsView(self.scene)
     self.gView.setParent(self)
-    self.gView.setRenderHints(qtg.QPainter.Antialiasing | qtg.QPainter.SmoothPixmapTransform)
+    self.gView.setRenderHints(qtg.QPainter.Antialiasing
+                              | qtg.QPainter.SmoothPixmapTransform)
     self.gView.setHorizontalScrollBarPolicy(qtc.Qt.ScrollBarAlwaysOff)
     self.gView.setVerticalScrollBarPolicy(qtc.Qt.ScrollBarAlwaysOff)
     self.gView.setDragMode(qtw.QGraphicsView.RubberBandDrag)
     self.scene.selectionChanged.connect(self.select)
 
     mergeSequence = self.amsc.GetMergeSequence()
-    pCount = len(set([p for idx, (parent, p) in mergeSequence.iteritems()])) - 1
+    pCount = len(set([p
+                      for idx, (parent, p) in mergeSequence.iteritems()])) - 1
 
     self.rightClickMenu = qtw.QMenu()
     persAction = self.rightClickMenu.addAction('Set Persistence Here')
@@ -486,7 +495,8 @@ class TopologyMapView(BaseTopologicalView):
       svgGen.setDescription("Generated from RAVEN.")
       painter = qtg.QPainter(svgGen)
     else:
-      image = qtg.QImage(self.scene.sceneRect().size().toSize(), qtg.QImage.Format_ARGB32)
+      image = qtg.QImage(self.scene.sceneRect().size().toSize(),
+                         qtg.QImage.Format_ARGB32)
       image.fill(qtc.Qt.transparent)
       painter = qtg.QPainter(image)
 
@@ -706,8 +716,9 @@ class TopologyMapView(BaseTopologicalView):
     self.scene.clear()
 
     if self.fillAction.isChecked():
-      self.scene.setSceneRect(0, 0, 100 * float(self.gView.width()) / float(self.gView.height()),
-                              100)
+      self.scene.setSceneRect(
+          0, 0, 100 * float(self.gView.width()) / float(self.gView.height()),
+          100)
     else:
       self.scene.setSceneRect(0, 0, 100, 100)
 
@@ -813,16 +824,20 @@ class TopologyMapView(BaseTopologicalView):
 
       path = qtg.QPainterPath()
       path.moveTo(xMin, yMin)
-      path.cubicTo((xMax + xMin) / 2., yMin, (xMax + xMin) / 2., yMax, xMax, yMax)
+      path.cubicTo((xMax + xMin) / 2., yMin, (xMax + xMin) / 2., yMax, xMax,
+                   yMax)
 
       partitionData = {'key': (minLabel, maxLabel), 'amsc': self.amsc}
 
-      self.polygonMap[(minLabel, maxLabel)] = CustomPathItem(path, None, self.scene, partitionData)
+      self.polygonMap[(minLabel, maxLabel)] = CustomPathItem(
+          path, None, self.scene, partitionData)
       pen = qtg.QPen(brush, self.minDiameter)
       self.polygonMap[(minLabel, maxLabel)].setPen(pen)
-      self.polygonMap[(minLabel, maxLabel)].setFlag(qtw.QGraphicsItem.ItemIsSelectable)
+      self.polygonMap[(minLabel,
+                       maxLabel)].setFlag(qtw.QGraphicsItem.ItemIsSelectable)
       self.polygonMap[(minLabel, maxLabel)].setAcceptHoverEvents(True)
-      self.polygonMap[(minLabel, maxLabel)].setFlag(qtw.QGraphicsItem.ItemClipsToShape)
+      self.polygonMap[(minLabel,
+                       maxLabel)].setFlag(qtw.QGraphicsItem.ItemClipsToShape)
 
     for key, (parentIdx, persistence) in mergeSequence.iteritems():
       if key in self.extLocations:
@@ -886,7 +901,9 @@ class TopologyMapView(BaseTopologicalView):
         for i in xrange(3):
           theta = startTheta + i * 120
           theta = theta * math.pi / 180.
-          triangle.append(qtc.QPointF(x + radius * math.cos(theta), y - radius * math.sin(theta)))
+          triangle.append(
+              qtc.QPointF(x + radius * math.cos(theta),
+                          y - radius * math.sin(theta)))
 
         self.polygonMap[key] = self.scene.addPolygon(triangle, pen, brush)
       elif self.glyphGroup.checkedAction().text() == 'Circle':

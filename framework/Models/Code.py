@@ -58,17 +58,21 @@ class Code(Model):
         specifying input of cls.
     """
     inputSpecification = super(Code, cls).getInputSpecification()
-    inputSpecification.setStrictMode(False)  #Code interfaces can allow new elements.
+    inputSpecification.setStrictMode(
+        False)  #Code interfaces can allow new elements.
     inputSpecification.addSub(
-        InputData.parameterInputFactory("executable", contentType=InputData.StringType))
+        InputData.parameterInputFactory(
+            "executable", contentType=InputData.StringType))
     inputSpecification.addSub(
-        InputData.parameterInputFactory("preexec", contentType=InputData.StringType))
+        InputData.parameterInputFactory(
+            "preexec", contentType=InputData.StringType))
 
     ## Begin command line arguments tag
     ClargsInput = InputData.parameterInputFactory("clargs")
 
-    ClargsTypeInput = InputData.makeEnumType("clargsType", "clargsTypeType",
-                                             ["text", "input", "output", "prepend", "postpend"])
+    ClargsTypeInput = InputData.makeEnumType(
+        "clargsType", "clargsTypeType",
+        ["text", "input", "output", "prepend", "postpend"])
     ClargsInput.addParam("type", ClargsTypeInput, True)
 
     ClargsInput.addParam("arg", InputData.StringType, False)
@@ -79,8 +83,8 @@ class Code(Model):
     ## Begin file arguments tag
     FileargsInput = InputData.parameterInputFactory("fileargs")
 
-    FileargsTypeInput = InputData.makeEnumType("fileargsType", "fileargsTypeType",
-                                               ["input", "output", "moosevpp"])
+    FileargsTypeInput = InputData.makeEnumType(
+        "fileargsType", "fileargsTypeType", ["input", "output", "moosevpp"])
     FileargsInput.addParam("type", FileargsTypeInput, True)
 
     FileargsInput.addParam("arg", InputData.StringType, False)
@@ -117,7 +121,8 @@ class Code(Model):
     self.oriInputFiles = []  #list of the original input files (abs path)
     self.workingDir = ''  #location where the code is currently running
     self.outFileRoot = ''  #root to be used to generate the sequence of output files
-    self.currentInputFiles = []  #list of the modified (possibly) input files (abs path)
+    self.currentInputFiles = [
+    ]  #list of the modified (possibly) input files (abs path)
     self.codeFlags = None  #flags that need to be passed into code interfaces(if present)
     self.printTag = 'CODE MODEL'
     self.createWorkingDir = True
@@ -132,7 +137,14 @@ class Code(Model):
     Model._readMoreXML(self, xmlNode)
     paramInput = Code.getInputSpecification()()
     paramInput.parseNode(xmlNode)
-    self.clargs = {'text': '', 'input': {'noarg': []}, 'pre': '', 'post': ''}  #output:''
+    self.clargs = {
+        'text': '',
+        'input': {
+            'noarg': []
+        },
+        'pre': '',
+        'post': ''
+    }  #output:''
     self.fargs = {'input': {}, 'output': '', 'moosevpp': ''}
     for child in paramInput.subparts:
       if child.getName() == 'executable':
@@ -140,23 +152,28 @@ class Code(Model):
       if child.getName() == 'preexec':
         self.preExec = child.value
       elif child.getName() == 'clargs':
-        argtype = child.parameterValues['type'] if 'type' in child.parameterValues else None
-        arg = child.parameterValues['arg'] if 'arg' in child.parameterValues else None
-        ext = child.parameterValues['extension'] if 'extension' in child.parameterValues else None
+        argtype = child.parameterValues[
+            'type'] if 'type' in child.parameterValues else None
+        arg = child.parameterValues[
+            'arg'] if 'arg' in child.parameterValues else None
+        ext = child.parameterValues[
+            'extension'] if 'extension' in child.parameterValues else None
         if argtype == None:
           self.raiseAnError(IOError, '"type" for clarg not specified!')
         elif argtype == 'text':
           if ext != None:
             self.raiseAWarning(
-                '"text" nodes only accept "type" and "arg" attributes! Ignoring "extension"...')
+                '"text" nodes only accept "type" and "arg" attributes! Ignoring "extension"...'
+            )
           if arg == None:
-            self.raiseAnError(
-                IOError, '"arg" for clarg ' + argtype + ' not specified! Enter text to be used.')
+            self.raiseAnError(IOError, '"arg" for clarg ' + argtype +
+                              ' not specified! Enter text to be used.')
           self.clargs['text'] = arg
         elif argtype == 'input':
           if ext == None:
-            self.raiseAnError(IOError, '"extension" for clarg ' + argtype +
-                              ' not specified! Enter filetype to be listed for this flag.')
+            self.raiseAnError(
+                IOError, '"extension" for clarg ' + argtype +
+                ' not specified! Enter filetype to be listed for this flag.')
           if arg == None:
             self.clargs['input']['noarg'].append(ext)
           else:
@@ -165,16 +182,18 @@ class Code(Model):
             self.clargs['input'][arg].append(ext)
         elif argtype == 'output':
           if arg == None:
-            self.raiseAnError(IOError, '"arg" for clarg ' + argtype +
-                              ' not specified! Enter flag for output file specification.')
+            self.raiseAnError(
+                IOError, '"arg" for clarg ' + argtype +
+                ' not specified! Enter flag for output file specification.')
           self.clargs['output'] = arg
         elif argtype == 'prepend':
           if ext != None:
             self.raiseAWarning(
-                '"prepend" nodes only accept "type" and "arg" attributes! Ignoring "extension"...')
+                '"prepend" nodes only accept "type" and "arg" attributes! Ignoring "extension"...'
+            )
           if arg == None:
-            self.raiseAnError(
-                IOError, '"arg" for clarg ' + argtype + ' not specified! Enter text to be used.')
+            self.raiseAnError(IOError, '"arg" for clarg ' + argtype +
+                              ' not specified! Enter text to be used.')
           self.clargs['pre'] = arg
         elif argtype == 'postpend':
           if ext != None:
@@ -182,15 +201,19 @@ class Code(Model):
                 '"postpend" nodes only accept "type" and "arg" attributes! Ignoring "extension"...'
             )
           if arg == None:
-            self.raiseAnError(
-                IOError, '"arg" for clarg ' + argtype + ' not specified! Enter text to be used.')
+            self.raiseAnError(IOError, '"arg" for clarg ' + argtype +
+                              ' not specified! Enter text to be used.')
           self.clargs['post'] = arg
         else:
-          self.raiseAnError(IOError, 'clarg type ' + argtype + ' not recognized!')
+          self.raiseAnError(IOError,
+                            'clarg type ' + argtype + ' not recognized!')
       elif child.getName() == 'fileargs':
-        argtype = child.parameterValues['type'] if 'type' in child.parameterValues else None
-        arg = child.parameterValues['arg'] if 'arg' in child.parameterValues else None
-        ext = child.parameterValues['extension'] if 'extension' in child.parameterValues else None
+        argtype = child.parameterValues[
+            'type'] if 'type' in child.parameterValues else None
+        arg = child.parameterValues[
+            'arg'] if 'arg' in child.parameterValues else None
+        ext = child.parameterValues[
+            'extension'] if 'extension' in child.parameterValues else None
         if argtype == None:
           self.raiseAnError(IOError, '"type" for filearg not specified!')
         elif argtype == 'input':
@@ -230,10 +253,12 @@ class Code(Model):
             )
           self.fargs['moosevpp'] = arg
         else:
-          self.raiseAnError(IOError, 'filearg type ' + argtype + ' not recognized!')
+          self.raiseAnError(IOError,
+                            'filearg type ' + argtype + ' not recognized!')
     if self.executable == '':
-      self.raiseAWarning('The node "<executable>" was not found in the body of the code model ' +
-                         str(self.name) + ' so no code will be run...')
+      self.raiseAWarning(
+          'The node "<executable>" was not found in the body of the code model '
+          + str(self.name) + ' so no code will be run...')
     else:
       if '~' in self.executable:
         self.executable = os.path.expanduser(self.executable)
@@ -241,7 +266,8 @@ class Code(Model):
       if os.path.exists(abspath):
         self.executable = abspath
       else:
-        self.raiseAMessage('not found executable ' + self.executable, 'ExceptedError')
+        self.raiseAMessage('not found executable ' + self.executable,
+                           'ExceptedError')
     if self.preExec is not None:
       if '~' in self.preExec:
         self.preExec = os.path.expanduser(self.preExec)
@@ -249,13 +275,19 @@ class Code(Model):
       if os.path.exists(abspath):
         self.preExec = abspath
       else:
-        self.raiseAMessage('not found preexec ' + self.preExec, 'ExceptedError')
+        self.raiseAMessage('not found preexec ' + self.preExec,
+                           'ExceptedError')
     self.code = Code.CodeInterfaces.returnCodeInterface(self.subType, self)
-    self.code.readMoreXML(xmlNode)  #TODO figure out how to handle this with InputData
+    self.code.readMoreXML(
+        xmlNode)  #TODO figure out how to handle this with InputData
     self.code.setInputExtension(
-        list(a.strip('.') for b in (c for c in self.clargs['input'].values()) for a in b))
+        list(
+            a.strip('.') for b in (c for c in self.clargs['input'].values())
+            for a in b))
     self.code.addInputExtension(
-        list(a.strip('.') for b in (c for c in self.fargs['input'].values()) for a in b))
+        list(
+            a.strip('.') for b in (c for c in self.fargs['input'].values())
+            for a in b))
     self.code.addDefaultExtension()
 
   def getInitParams(self):
@@ -305,8 +337,9 @@ class Code(Model):
       @ In, inputs, list, it is a list containing whatever is passed with an input role in the step
       @ In, initDict, dict, optional, dictionary of all objects available in the step is using this model
     """
-    self.workingDir = os.path.join(runInfoDict['WorkingDir'],
-                                   runInfoDict['stepName'])  #generate current working dir
+    self.workingDir = os.path.join(
+        runInfoDict['WorkingDir'],
+        runInfoDict['stepName'])  #generate current working dir
     runInfoDict['TempWorkingDir'] = self.workingDir
     self.oriInputFiles = []
     for inputFile in inputFiles:
@@ -315,7 +348,8 @@ class Code(Model):
       ## It appears that the folders already exist by the time we get here,
       ## this could change, so we will leave this code here.
       ## -- DPM 8/2/17
-      if inputFile.subDirectory.strip() != "" and not os.path.exists(subSubDirectory):
+      if inputFile.subDirectory.strip() != "" and not os.path.exists(
+          subSubDirectory):
         os.mkdir(subSubDirectory)
       ##########################################################################
       shutil.copy(inputFile.getAbsFile(), subSubDirectory)
@@ -347,21 +381,24 @@ class Code(Model):
         found = True
         break
     if not found:
-      self.raiseAnError(IOError,
-                        'None of the input files has one of the extensions requested by code ' +
-                        self.subType + ': ' + ' '.join(self.code.getInputExtension()))
+      self.raiseAnError(
+          IOError,
+          'None of the input files has one of the extensions requested by code '
+          + self.subType + ': ' + ' '.join(self.code.getInputExtension()))
     subDirectory = os.path.join(self.workingDir, kwargs['prefix']
                                 if 'prefix' in kwargs.keys() else '1')
 
     if not os.path.exists(subDirectory):
       os.mkdir(subDirectory)
     for index in range(len(newInputSet)):
-      subSubDirectory = os.path.join(subDirectory, newInputSet[index].subDirectory)
+      subSubDirectory = os.path.join(subDirectory,
+                                     newInputSet[index].subDirectory)
       ## Currently, there are no tests that verify the lines below can be hit
       ## It appears that the folders already exist by the time we get here,
       ## this could change, so we will leave this code here.
       ## -- DPM 8/2/17
-      if newInputSet[index].subDirectory.strip() != "" and not os.path.exists(subSubDirectory):
+      if newInputSet[index].subDirectory.strip() != "" and not os.path.exists(
+          subSubDirectory):
         os.mkdir(subSubDirectory)
       ##########################################################################
       newInputSet[index].setPath(subSubDirectory)
@@ -370,11 +407,11 @@ class Code(Model):
     kwargs['subDirectory'] = subDirectory
 
     if 'SampledVars' in kwargs.keys():
-      sampledVars = self._replaceVariablesNamesWithAliasSystem(kwargs['SampledVars'], 'input',
-                                                               False)
+      sampledVars = self._replaceVariablesNamesWithAliasSystem(
+          kwargs['SampledVars'], 'input', False)
 
-    newInput = self.code.createNewInput(newInputSet, self.oriInputFiles, samplerType,
-                                        **copy.deepcopy(kwargs))
+    newInput = self.code.createNewInput(newInputSet, self.oriInputFiles,
+                                        samplerType, **copy.deepcopy(kwargs))
 
     if 'SampledVars' in kwargs.keys() and len(self.alias['input'].keys()) != 0:
       kwargs['SampledVars'] = sampledVars
@@ -400,7 +437,8 @@ class Code(Model):
 
       if firstTwoChars == "#!":
         realExecutable = shlex.split(executableFile.readline())
-        self.raiseAMessage("reading #! to find executable:" + repr(realExecutable))
+        self.raiseAMessage(
+            "reading #! to find executable:" + repr(realExecutable))
 
         # The below code should work, and would be better than findMsys,
         # but it doesn't work.
@@ -432,8 +470,10 @@ class Code(Model):
           if not os.path.exists(winExecutable) and not os.path.exists(
               winExecutable + ".exe") and winExecutable.endswith("bash"):
             #msys64 stores bash in /usr/bin/bash instead of /bin/bash, so try that
-            maybeWinExecutable = winExecutable.replace("bin/bash", "usr/bin/bash")
-            if os.path.exists(maybeWinExecutable) or os.path.exists(maybeWinExecutable + ".exe"):
+            maybeWinExecutable = winExecutable.replace("bin/bash",
+                                                       "usr/bin/bash")
+            if os.path.exists(maybeWinExecutable) or os.path.exists(
+                maybeWinExecutable + ".exe"):
               winExecutable = maybeWinExecutable
           realExecutable[0] = winExecutable
         else:
@@ -456,9 +496,10 @@ class Code(Model):
           inputs
     """
     inputFiles = self.createNewInput(myInput, samplerType, **kwargs)
-    self.currentInputFiles, metaData = (copy.deepcopy(
-        inputFiles[0]), inputFiles[1]) if type(inputFiles).__name__ == 'tuple' else (inputFiles,
-                                                                                     None)
+    self.currentInputFiles, metaData = (
+        copy.deepcopy(inputFiles[0]),
+        inputFiles[1]) if type(inputFiles).__name__ == 'tuple' else (
+            inputFiles, None)
     returnedCommand = self.code.genCommand(
         self.currentInputFiles,
         self.executable,
@@ -490,7 +531,8 @@ class Code(Model):
     sampleDirectory = os.path.join(os.getcwd(), metaData['subDirectory'])
     localenv = dict(os.environ)
     localenv['PWD'] = str(sampleDirectory)
-    outFileObject = open(os.path.join(sampleDirectory, codeLogFile), 'w', bufferSize)
+    outFileObject = open(
+        os.path.join(sampleDirectory, codeLogFile), 'w', bufferSize)
 
     found = False
     for index, inputFile in enumerate(self.currentInputFiles):
@@ -498,9 +540,10 @@ class Code(Model):
         found = True
         break
     if not found:
-      self.raiseAnError(IOError,
-                        'None of the input files has one of the extensions requested by code ' +
-                        self.subType + ': ' + ' '.join(self.getInputExtension()))
+      self.raiseAnError(
+          IOError,
+          'None of the input files has one of the extensions requested by code '
+          + self.subType + ': ' + ' '.join(self.getInputExtension()))
     commands = []
     for runtype, cmd in executeCommand:
       newCommand = ''
@@ -514,8 +557,8 @@ class Code(Model):
       else:
         self.raiseAnError(
             IOError, 'For execution command <' + cmd +
-            '> the run type was neither "serial" nor "parallel"!  Instead received: ', runtype,
-            '\nPlease check the code interface.')
+            '> the run type was neither "serial" nor "parallel"!  Instead received: ',
+            runtype, '\nPlease check the code interface.')
 
     command = ' && '.join(commands) + ' '
 
@@ -559,7 +602,8 @@ class Code(Model):
     ## only set the returnCode to -1 in here if we did not already catch the
     ## failure.
     if returnCode == 0 and 'checkForOutputFailure' in dir(self.code):
-      codeFailed = self.code.checkForOutputFailure(codeLogFile, metaData['subDirectory'])
+      codeFailed = self.code.checkForOutputFailure(codeLogFile,
+                                                   metaData['subDirectory'])
       if codeFailed:
         returnCode = -1
     # close the log file
@@ -574,8 +618,8 @@ class Code(Model):
     ## not have an extension. - (DPM 4/6/2017)
     outputFile = codeLogFile
     if 'finalizeCodeOutput' in dir(self.code) and returnCode == 0:
-      finalCodeOutputFile = self.code.finalizeCodeOutput(command, codeLogFile,
-                                                         metaData['subDirectory'])
+      finalCodeOutputFile = self.code.finalizeCodeOutput(
+          command, codeLogFile, metaData['subDirectory'])
       ## Special case for RAVEN interface --ALFOA 09/17/17
       ravenCase = False
       if type(finalCodeOutputFile).__name__ == 'dict':
@@ -596,7 +640,10 @@ class Code(Model):
       if outputFile is not None and not ravenCase:
         outFile = Files.CSV()
         ## Should we be adding the file extension here?
-        outFile.initialize(outputFile + '.csv', self.messageHandler, path=metaData['subDirectory'])
+        outFile.initialize(
+            outputFile + '.csv',
+            self.messageHandler,
+            path=metaData['subDirectory'])
 
         csvLoader = CsvLoader.CsvLoader(self.messageHandler)
         csvData = csvLoader.loadCsvFile(outFile)
@@ -628,17 +675,21 @@ class Code(Model):
           for dataObj in finalCodeOutputFile.values():
             # TODO FIXME check for overwriting data.  For now just replace data if it's duplicate!
             new = dict((var, np.atleast_1d(val))
-                       for var, val in dataObj.realization(index=n, unpackXArray=True).items())
+                       for var, val in dataObj.realization(
+                           index=n, unpackXArray=True).items())
             rlz.update(new)
           ## add OUTER input space
           # TODO FIXME check for overwriting data.  For now just replace data if it's duplicate!
-          new = dict((var, np.atleast_1d(val)) for var, val in kwargs['SampledVars'].items())
+          new = dict((var, np.atleast_1d(val))
+                     for var, val in kwargs['SampledVars'].items())
           rlz.update(new)
           ## combine ProbabilityWeights # TODO FIXME these are a rough attempt at getting it right!
           rlz['ProbabilityWeight'] = np.atleast_1d(
-              rlz.get('ProbabilityWeight', 1.0) * kwargs.get('ProbabilityWeight', 1.0))
+              rlz.get('ProbabilityWeight', 1.0) * kwargs.get(
+                  'ProbabilityWeight', 1.0))
           rlz['PointProbability'] = np.atleast_1d(
-              rlz.get('PointProbability', 1.0) * kwargs.get('PointProbability', 1.0))
+              rlz.get('PointProbability', 1.0) * kwargs.get(
+                  'PointProbability', 1.0))
           # FIXME: adding "_n" to Optimizer samples scrambles its ability to find evaluations!
           ## temporary fix: only append if there's multiple realizations, and error out if sampler is an optimizer.
           if numRlz > 1:
@@ -661,8 +712,10 @@ class Code(Model):
       ## The last thing before returning should be to delete the temporary log
       ## file and any other file the user requests to be cleared
       if deleteSuccessfulLogFiles:
-        self.raiseAMessage(' Run "' + kwargs['prefix'] + '" ended smoothly, removing log file!')
-        codeLofFileFullPath = os.path.join(metaData['subDirectory'], codeLogFile)
+        self.raiseAMessage(' Run "' + kwargs['prefix'] +
+                           '" ended smoothly, removing log file!')
+        codeLofFileFullPath = os.path.join(metaData['subDirectory'],
+                                           codeLogFile)
         if os.path.exists(codeLofFileFullPath):
           os.remove(codeLofFileFullPath)
 
@@ -672,7 +725,8 @@ class Code(Model):
           fileExt = "." + fileExt
         fileList = [
             os.path.join(metaData['subDirectory'], f)
-            for f in os.listdir(metaData['subDirectory']) if f.endswith(fileExt)
+            for f in os.listdir(metaData['subDirectory'])
+            if f.endswith(fileExt)
         ]
         for f in fileList:
           os.remove(f)
@@ -680,10 +734,12 @@ class Code(Model):
       return exportDict
 
     else:
-      self.raiseAMessage(" Process Failed " + str(command) + " returnCode " + str(returnCode))
+      self.raiseAMessage(
+          " Process Failed " + str(command) + " returnCode " + str(returnCode))
       absOutputFile = os.path.join(sampleDirectory, outputFile)
       if os.path.exists(absOutputFile):
-        self.raiseAMessage(repr(open(absOutputFile, "r").read()).replace("\\n", "\n"))
+        self.raiseAMessage(
+            repr(open(absOutputFile, "r").read()).replace("\\n", "\n"))
       else:
         self.raiseAMessage(" No output " + absOutputFile)
 
@@ -760,7 +816,8 @@ class Code(Model):
       @ Out, returnList, list, list of export dictionaries
     """
     returnList = []
-    if exportDict['outputSpaceParams'].values()[0].__class__.__base__.__name__ != 'Data':
+    if exportDict['outputSpaceParams'].values(
+    )[0].__class__.__base__.__name__ != 'Data':
       returnList.append(exportDict)
     else:
       # get the DataObject that is compatible with this output
@@ -776,16 +833,23 @@ class Code(Model):
         # if none found (e.g. => we are filling an HistorySet with a PointSet), we take the first one
         compatibleDataObject = exportDict['outputSpaceParams'].values()[0]
       # get the values
-      inputs = compatibleDataObject.getParametersValues('inputs', nodeId='RecontructEnding')
+      inputs = compatibleDataObject.getParametersValues(
+          'inputs', nodeId='RecontructEnding')
       unstructuredInputs = compatibleDataObject.getParametersValues(
           'unstructuredinputs', nodeId='RecontructEnding')
-      outputs = compatibleDataObject.getParametersValues('outputs', nodeId='RecontructEnding')
+      outputs = compatibleDataObject.getParametersValues(
+          'outputs', nodeId='RecontructEnding')
       metadata = compatibleDataObject.getAllMetadata(nodeId='RecontructEnding')
-      inputKeys = inputs.keys() if compatibleDataObject.type == 'PointSet' else inputs.values()[
+      inputKeys = inputs.keys(
+      ) if compatibleDataObject.type == 'PointSet' else inputs.values()[
           0].keys()
       # expand inputspace of current RAVEN
       for i in range(len(compatibleDataObject)):
-        appendDict = {'inputSpaceParams': {}, 'outputSpaceParams': {}, 'metadata': {}}
+        appendDict = {
+            'inputSpaceParams': {},
+            'outputSpaceParams': {},
+            'metadata': {}
+        }
         appendDict['inputSpaceParams'].update(exportDict['inputSpaceParams'])
         appendDict['metadata'].update(exportDict['metadata'])
         if compatibleDataObject.type == 'PointSet':
@@ -806,15 +870,21 @@ class Code(Model):
         # add metadata for both dataobject types
         for metadataToExport in ['SampledVars', 'SampledVarsPb']:
           if metadataToExport in metadata:
-            appendDict['metadata'][metadataToExport].update(metadata[metadataToExport][i])
-        weightForVars = ['ProbabilityWeight-' + var.strip() for var in inputKeys]
-        for metadataToMerge in ['ProbabilityWeight', 'PointProbability'] + weightForVars:
+            appendDict['metadata'][metadataToExport].update(
+                metadata[metadataToExport][i])
+        weightForVars = [
+            'ProbabilityWeight-' + var.strip() for var in inputKeys
+        ]
+        for metadataToMerge in ['ProbabilityWeight', 'PointProbability'
+                                ] + weightForVars:
           if metadataToMerge in appendDict['metadata']:
             if metadataToMerge in metadata:
-              appendDict['metadata'][metadataToMerge] *= metadata[metadataToMerge][i]
+              appendDict['metadata'][metadataToMerge] *= metadata[
+                  metadataToMerge][i]
           else:
             if metadataToMerge in metadata:
-              appendDict['metadata'][metadataToMerge] = metadata[metadataToMerge][i]
+              appendDict['metadata'][metadataToMerge] = metadata[
+                  metadataToMerge][i]
         returnList.append(appendDict)
     return returnList
 
@@ -862,7 +932,8 @@ class Code(Model):
         @ Out, None
     """
     prefix = kwargs['prefix'] if 'prefix' in kwargs else None
-    uniqueHandler = kwargs['uniqueHandler'] if 'uniqueHandler' in kwargs.keys() else 'any'
+    uniqueHandler = kwargs[
+        'uniqueHandler'] if 'uniqueHandler' in kwargs.keys() else 'any'
 
     ## These two are part of the current metadata, so they will be added before
     ## the job is started, so that they will be captured in the metadata and match
@@ -878,9 +949,10 @@ class Code(Model):
         kwargs['outfile'] = 'out~' + myInput[index].getBase()
         break
     if kwargs['outfile'] is None:
-      self.raiseAnError(IOError,
-                        'None of the input files has one of the extensions requested by code ' +
-                        self.subType + ': ' + ' '.join(self.code.getInputExtension()))
+      self.raiseAnError(
+          IOError,
+          'None of the input files has one of the extensions requested by code '
+          + self.subType + ': ' + ' '.join(self.code.getInputExtension()))
 
     ## These kwargs are updated by createNewInput, so the job either should not
     ## have access to the metadata, or it needs to be updated from within the

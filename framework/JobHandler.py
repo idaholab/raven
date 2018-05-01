@@ -138,7 +138,8 @@ class JobHandler(MessageHandler.MessageUser):
       self.maxQueueSize = runInfoDict['batchSize']
     # if requsted max size less than 1, we can't do that, so take 1 instead
     if self.maxQueueSize < 1:
-      self.raiseAWarning('maxQueueSize was set to be less than 1!  Setting to 1...')
+      self.raiseAWarning(
+          'maxQueueSize was set to be less than 1!  Setting to 1...')
       self.maxQueueSize = 1
     self.raiseADebug('Setting maxQueueSize to', self.maxQueueSize)
 
@@ -162,12 +163,16 @@ class JobHandler(MessageHandler.MessageUser):
           metadataKeys = metadataFailedRun.keys()
           if 'jobHandler' in metadataKeys:
             metadataKeys.pop(metadataKeys.index("jobHandler"))
-            metadataToKeep = {keepKey: metadataFailedRun[keepKey] for keepKey in metadataKeys}
+            metadataToKeep = {
+                keepKey: metadataFailedRun[keepKey]
+                for keepKey in metadataKeys
+            }
         ## FIXME: The running.command was always internal now, so I removed it.
         ## We should probably find a way to give more pertinent information.
-        self.raiseAMessage(
-            " Process Failed " + str(running) + " internal returnCode " + str(returnCode))
-        self.__failedJobs[running.identifier] = (returnCode, copy.deepcopy(metadataToKeep))
+        self.raiseAMessage(" Process Failed " + str(running) +
+                           " internal returnCode " + str(returnCode))
+        self.__failedJobs[running.identifier] = (returnCode,
+                                                 copy.deepcopy(metadataToKeep))
 
   def __initializeParallelPython(self):
     """
@@ -182,7 +187,9 @@ class JobHandler(MessageHandler.MessageUser):
     ## socket
     if self.runInfoDict['internalParallel']:
       if len(self.runInfoDict['Nodes']) > 0:
-        availableNodes = [nodeId.strip() for nodeId in self.runInfoDict['Nodes']]
+        availableNodes = [
+            nodeId.strip() for nodeId in self.runInfoDict['Nodes']
+        ]
 
         ## Set the initial port randomly among the user accessible ones
         ## Is there any problem if we select the same port as something else?
@@ -202,7 +209,8 @@ class JobHandler(MessageHandler.MessageUser):
           self.ppserver = pp.Server(ncpus=0, ppservers=tuple(ppservers))
       else:
         ## We are using the parallel python system
-        self.ppserver = pp.Server(ncpus=int(self.runInfoDict['totalNumCoresUsed']))
+        self.ppserver = pp.Server(
+            ncpus=int(self.runInfoDict['totalNumCoresUsed']))
     else:
       ## We are just using threading
       self.ppserver = None
@@ -224,8 +232,10 @@ class JobHandler(MessageHandler.MessageUser):
 
     ## collect the qualified hostnames for each remote node
     for nodeId in list(set(self.runInfoDict['Nodes'])):
-      hostNameMapping['remote'][nodeId.strip()] = socket.gethostbyname(nodeId.strip())
-      self.raiseADebug("Remote Host identified " + hostNameMapping['remote'][nodeId.strip()])
+      hostNameMapping['remote'][nodeId.strip()] = socket.gethostbyname(
+          nodeId.strip())
+      self.raiseADebug("Remote Host identified " +
+                       hostNameMapping['remote'][nodeId.strip()])
 
     return hostNameMapping
 
@@ -254,8 +264,8 @@ class JobHandler(MessageHandler.MessageUser):
       ## There are remote nodes that need to be activated
 
       ## Locate the ppserver script to be executed
-      ppserverScript = os.path.join(self.runInfoDict['FrameworkDir'], "contrib", "pp",
-                                    "ppserver.py")
+      ppserverScript = os.path.join(self.runInfoDict['FrameworkDir'],
+                                    "contrib", "pp", "ppserver.py")
 
       ## Modify the python path used by the local environment
       localenv = os.environ.copy()
@@ -264,7 +274,8 @@ class JobHandler(MessageHandler.MessageUser):
 
       for nodeId in uniqueNodes:
         ## Build the filename
-        outFileName = nodeId.strip() + "_port:" + str(newPort) + "_server_out.log"
+        outFileName = nodeId.strip() + "_port:" + str(
+            newPort) + "_server_out.log"
         outFileName = os.path.join(self.runInfoDict['WorkingDir'], outFileName)
 
         outFile = open(outFileName, 'w')
@@ -285,7 +296,10 @@ class JobHandler(MessageHandler.MessageUser):
             str(newPort), "-t", "50000", "-g", localenv["PYTHONPATH"], "-d"
         ])
         utils.pickleSafeSubprocessPopen(
-            ['ssh', nodeId, "COMMAND='" + command + "'", self.runInfoDict['RemoteRunCommand']],
+            [
+                'ssh', nodeId, "COMMAND='" + command + "'",
+                self.runInfoDict['RemoteRunCommand']
+            ],
             shell=False,
             stdout=outFile,
             stderr=outFile,
@@ -537,7 +551,8 @@ class JobHandler(MessageHandler.MessageUser):
         if run is not None and run.uniqueHandler == uniqueHandler:
           return False
 
-    self.raiseADebug("The jobs with uniqueHandler ", uniqueHandler, "are finished")
+    self.raiseADebug("The jobs with uniqueHandler ", uniqueHandler,
+                     "are finished")
 
     return True
 
@@ -549,7 +564,10 @@ class JobHandler(MessageHandler.MessageUser):
     """
     return self.__failedJobs
 
-  def getFinished(self, removeFinished=True, jobIdentifier='', uniqueHandler="any"):
+  def getFinished(self,
+                  removeFinished=True,
+                  jobIdentifier='',
+                  uniqueHandler="any"):
     """
       Method to get the list of jobs that ended (list of objects)
       @ In, removeFinished, bool, optional, flag to control if the finished jobs
@@ -694,7 +712,9 @@ class JobHandler(MessageHandler.MessageUser):
             break
 
     ## Repeat the same process above, only for the clientQueue
-    emptySlots = [i for i, run in enumerate(self.__clientRunning) if run is None]
+    emptySlots = [
+        i for i, run in enumerate(self.__clientRunning) if run is None
+    ]
     if len(emptySlots) > 0 and len(self.__clientQueue) > 0:
       with self.__queueLock:
         for i in emptySlots:

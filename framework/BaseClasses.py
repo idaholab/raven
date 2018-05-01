@@ -77,10 +77,16 @@ class BaseType(MessageHandler.MessageUser):
     #list of modules this class depends on (needed for automatic parallel python)
     self.mods = utils.returnImportModuleString(inspect.getmodule(BaseType))
     for baseClass in self.__class__.__mro__:
-      self.mods.extend(utils.returnImportModuleString(inspect.getmodule(baseClass), True))
-    self.mods.extend(utils.returnImportModuleString(inspect.getmodule(self), True))
+      self.mods.extend(
+          utils.returnImportModuleString(inspect.getmodule(baseClass), True))
+    self.mods.extend(
+        utils.returnImportModuleString(inspect.getmodule(self), True))
 
-  def readXML(self, xmlNode, messageHandler, variableGroups={}, globalAttributes=None):
+  def readXML(self,
+              xmlNode,
+              messageHandler,
+              variableGroups={},
+              globalAttributes=None):
     """
       Provide a basic reading capability from the xml input file for what is common
       to all types in the simulation than calls _readMoreXML that needs to be overloaded
@@ -97,13 +103,15 @@ class BaseType(MessageHandler.MessageUser):
     if 'name' in xmlNode.attrib.keys():
       self.name = xmlNode.attrib['name']
     else:
-      self.raiseAnError(IOError, 'not found name for a ' + self.__class__.__name__)
+      self.raiseAnError(IOError,
+                        'not found name for a ' + self.__class__.__name__)
     self.type = xmlNode.tag
     if self.globalAttributes != None:
       self.globalAttributes = globalAttributes
     if 'verbosity' in xmlNode.attrib.keys():
       self.verbosity = xmlNode.attrib['verbosity'].lower()
-      self.raiseADebug('Set verbosity for ' + str(self) + ' to ' + str(self.verbosity))
+      self.raiseADebug(
+          'Set verbosity for ' + str(self) + ' to ' + str(self.verbosity))
     #search and replace variableGroups where found in texts
     def replaceVariableGroups(node):
       """
@@ -116,7 +124,8 @@ class BaseType(MessageHandler.MessageUser):
         for t, text in enumerate(textEntries):
           if text in variableGroups.keys():
             textEntries[t] = variableGroups[text].getVarsString()
-            self.raiseADebug('Replaced text in <%s> with variable group "%s"' % (node.tag, text))
+            self.raiseADebug('Replaced text in <%s> with variable group "%s"' %
+                             (node.tag, text))
         #note: if we don't explicitly convert to string, scikitlearn chokes on unicode type
         node.text = str(','.join(textEntries))
       for child in node:
@@ -127,7 +136,11 @@ class BaseType(MessageHandler.MessageUser):
     self.raiseADebug('------Reading Completed for:')
     self.printMe()
 
-  def handleInput(self, paramInput, messageHandler, variableGroups={}, globalAttributes=None):
+  def handleInput(self,
+                  paramInput,
+                  messageHandler,
+                  variableGroups={},
+                  globalAttributes=None):
     """
       Provide a basic reading capability from the xml input file for what is common
       to all types in the simulation than calls _handleInput that needs to be overloaded
@@ -144,13 +157,15 @@ class BaseType(MessageHandler.MessageUser):
     if 'name' in paramInput.parameterValues:
       self.name = paramInput.parameterValues['name']
     else:
-      self.raiseAnError(IOError, 'not found name for a ' + self.__class__.__name__)
+      self.raiseAnError(IOError,
+                        'not found name for a ' + self.__class__.__name__)
     self.type = paramInput.getName()
     if self.globalAttributes != None:
       self.globalAttributes = globalAttributes
     if 'verbosity' in paramInput.parameterValues:
       self.verbosity = paramInput.parameterValues['verbosity'].lower()
-      self.raiseADebug('Set verbosity for ' + str(self) + ' to ' + str(self.verbosity))
+      self.raiseADebug(
+          'Set verbosity for ' + str(self) + ' to ' + str(self.verbosity))
     #TODO fix replacing Variable Groups.
     #search and replace variableGroups where found in texts
     # def replaceVariableGroups(node):
@@ -200,7 +215,8 @@ class BaseType(MessageHandler.MessageUser):
       @ Out, None
     """
     if not isinstance(handler, MessageHandler.MessageHandler):
-      e = IOError('Attempted to set the message handler for ' + str(self) + ' to ' + str(handler))
+      e = IOError('Attempted to set the message handler for ' + str(self) +
+                  ' to ' + str(handler))
       print('\nERROR! Setting MessageHandler in BaseClass,', e, '\n')
       sys.exit(1)
     self.messageHandler = handler
@@ -213,8 +229,9 @@ class BaseType(MessageHandler.MessageUser):
       @ Out, tempDict, dict, dict containing the Type, Class and Name of this instanciated object
     """
     tempDict = {}
-    tempDict['Class'] = '{0:15}'.format(self.__class__.__name__) + ' from ' + ' '.join(
-        [str(base) for base in self.__class__.__bases__])
+    tempDict['Class'] = '{0:15}'.format(
+        self.__class__.__name__) + ' from ' + ' '.join(
+            [str(base) for base in self.__class__.__bases__])
     tempDict['Type'] = self.type
     tempDict['Name'] = self.name
     return tempDict

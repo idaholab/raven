@@ -44,6 +44,7 @@ from .TopologyWindow import TopologyWindow
 
 # We should not really need this as we do not use wildcard imports
 __all__ = [
-    'colors', 'HierarchylWindow', 'DendrogramView', 'TopologyWindow', 'FitnessView',
-    'ScatterView2D', 'ScatterView3D', 'SensitivityView', 'TopologyMapView'
+    'colors', 'HierarchylWindow', 'DendrogramView', 'TopologyWindow',
+    'FitnessView', 'ScatterView2D', 'ScatterView3D', 'SensitivityView',
+    'TopologyMapView'
 ]

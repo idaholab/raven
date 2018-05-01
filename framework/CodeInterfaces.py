@@ -49,10 +49,15 @@ __base = 'Code'
 __interFaceDict = {}
 for moduleIndex in range(len(__moduleInterfaceList)):
   if 'class' in open(__moduleInterfaceList[moduleIndex]).read():
-    __moduleImportedList.append(utils.importFromPath(__moduleInterfaceList[moduleIndex], False))
-    for key, modClass in inspect.getmembers(__moduleImportedList[-1], inspect.isclass):
+    __moduleImportedList.append(
+        utils.importFromPath(__moduleInterfaceList[moduleIndex], False))
+    for key, modClass in inspect.getmembers(__moduleImportedList[-1],
+                                            inspect.isclass):
       # in this way we can get all the class methods
-      classMethods = [method for method in dir(modClass) if callable(getattr(modClass, method))]
+      classMethods = [
+          method for method in dir(modClass)
+          if callable(getattr(modClass, method))
+      ]
       if 'createNewInput' in classMethods:
         __interFaceDict[key.replace("Interface", "")] = modClass
 __knownTypes = list(__interFaceDict.keys())

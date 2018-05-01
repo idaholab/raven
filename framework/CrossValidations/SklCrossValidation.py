@@ -52,9 +52,11 @@ class SciKitLearn(CrossValidation):
   availImpl['LeaveOneOut'] = (cross_validation.LeaveOneOut, 'float')
   availImpl['LeavePOut'] = (cross_validation.LeavePOut, 'float')
   availImpl['ShuffleSplit'] = (cross_validation.ShuffleSplit, 'float')
-  availImpl['StratifiedShuffleSplit'] = (cross_validation.StratifiedShuffleSplit, 'float')
+  availImpl['StratifiedShuffleSplit'] = (
+      cross_validation.StratifiedShuffleSplit, 'float')
   availImpl['LabelKFold'] = (cross_validation.LabelKFold, 'float')
-  availImpl['LabelShuffleSplit'] = (cross_validation.LabelShuffleSplit, 'float')
+  availImpl['LabelShuffleSplit'] = (cross_validation.LabelShuffleSplit,
+                                    'float')
   availImpl['LeaveOneLabelOut'] = (cross_validation.LeaveOneLabelOut, 'float')
   availImpl['LeavePLabelOut'] = (cross_validation.LeavePLabelOut, 'float')
 
@@ -71,13 +73,14 @@ class SciKitLearn(CrossValidation):
     if 'SKLtype' not in self.initOptionDict.keys():
       self.raiseAnError(
           IOError,
-          'Missing XML node: Cross validation from SciKitLearn requires keyword "SKLtype"')
+          'Missing XML node: Cross validation from SciKitLearn requires keyword "SKLtype"'
+      )
     self.SKLType = self.initOptionDict['SKLtype']
     self.initOptionDict.pop('SKLtype')
 
     if self.SKLType not in self.__class__.availImpl.keys():
-      self.raiseAnError(IOError, 'Unknow SKLtype ', self.SKLType, ' from cross validation ',
-                        self.name)
+      self.raiseAnError(IOError, 'Unknow SKLtype ', self.SKLType,
+                        ' from cross validation ', self.name)
 
     self.__class__.returnType = self.__class__.availImpl[self.SKLType][1]
 
@@ -99,7 +102,8 @@ class SciKitLearn(CrossValidation):
     if 'n_splits' in self.initOptionDict.keys():
       self.initOptionDict.pop('n_splits')
 
-    self.__CVInstance = self.__class__.availImpl[self.SKLType][0](**self.initOptionDict)
+    self.__CVInstance = self.__class__.availImpl[self.SKLType][0](
+        **self.initOptionDict)
     self.outputDict = {}
 
   def reset(self):

@@ -41,6 +41,6 @@ from .Factory import validate
 
 # We should not really need this as we do not use wildcard imports
 __all__ = [
-    'Model', 'Dummy', 'ROM', 'ExternalModel', 'Code', 'EnsembleModel', 'PostProcessor',
-    'HybridModel'
+    'Model', 'Dummy', 'ROM', 'ExternalModel', 'Code', 'EnsembleModel',
+    'PostProcessor', 'HybridModel'
 ]

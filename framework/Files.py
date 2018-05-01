@@ -192,7 +192,8 @@ class File(BaseType):
     """
     if self.isOpen():
       self.raiseAnError(
-          'Tried to change the path of an open file: %s! Close it first.' % self.getAbsFile())
+          'Tried to change the path of an open file: %s! Close it first.' %
+          self.getAbsFile())
     if '~' in path:
       path = os.path.expanduser(path)
     self.__path = path
@@ -205,7 +206,8 @@ class File(BaseType):
     """
     if self.isOpen():
       self.raiseAnError(
-          'Tried to change the path of an open file: %s! Close it first.' % self.getAbsFile())
+          'Tried to change the path of an open file: %s! Close it first.' %
+          self.getAbsFile())
     if '~' in addpath:
       addpath = os.path.expanduser(addpath)
     self.__path = os.path.join(addpath, self.getPath())
@@ -218,7 +220,8 @@ class File(BaseType):
     """
     if self.isOpen():
       self.raiseAnError(
-          'Tried to change the base name of an open file: %s! Close it first.' % self.getAbsFile())
+          'Tried to change the base name of an open file: %s! Close it first.'
+          % self.getAbsFile())
     self.__base = base
 
   def setExt(self, ext):
@@ -229,7 +232,8 @@ class File(BaseType):
     """
     if self.isOpen():
       self.raiseAnError(
-          'Tried to change the extension of an open file: %s! Close it first.' % self.getAbsFile())
+          'Tried to change the extension of an open file: %s! Close it first.'
+          % self.getAbsFile())
     self.__ext = ext
 
   ## the base elements for the file are path, base, and extension ##
@@ -251,7 +255,8 @@ class File(BaseType):
       @ In, None
       @ Out, absPathFile, string, path/file
     """
-    absPathFile = os.path.normpath(os.path.join(self.getPath(), self.getFilename()))
+    absPathFile = os.path.normpath(
+        os.path.join(self.getPath(), self.getFilename()))
     return absPathFile
 
   def getType(self):
@@ -281,7 +286,8 @@ class File(BaseType):
     """
     if self.isOpen():
       self.raiseAnError(
-          'Tried to change the name of an open file: %s! Close it first.' % self.getAbsFile())
+          'Tried to change the name of an open file: %s! Close it first.' %
+          self.getAbsFile())
     filename = filename.strip()
 
     # This will split the file name at the rightmost '.'
@@ -304,7 +310,8 @@ class File(BaseType):
     """
     if self.isOpen():
       self.raiseAnError(
-          'Tried to change the path/name of an open file: %s! Close it first.' % self.getAbsFile())
+          'Tried to change the path/name of an open file: %s! Close it first.'
+          % self.getAbsFile())
     path, filename = os.path.split(pathandfile)
     self.setFilename(filename)
     self.setPath(path)
@@ -341,7 +348,8 @@ class File(BaseType):
       del self.__file
       self.__file = None
     else:
-      self.raiseAWarning('Tried to close', self.getFilename(), 'but file not open!')
+      self.raiseAWarning('Tried to close', self.getFilename(),
+                         'but file not open!')
 
   def flush(self):
     """
@@ -396,7 +404,8 @@ class File(BaseType):
     """
     if not self.isOpen():
       self.open(mode)
-    lineRead = self.__file.readline() if size is None else self.__file.readline(size)
+    lineRead = self.__file.readline(
+    ) if size is None else self.__file.readline(size)
     return lineRead
 
   def readlines(self, sizehint=None, mode='r'):
@@ -408,7 +417,8 @@ class File(BaseType):
     """
     if not self.isOpen():
       self.open(mode)
-    lines = self.__file.readlines() if sizehint is None else self.__file.readlines(sizehint)
+    lines = self.__file.readlines(
+    ) if sizehint is None else self.__file.readlines(sizehint)
     return lines
 
   def seek(self, offset, whence=None):
@@ -476,7 +486,8 @@ class File(BaseType):
     if not self.isOpen():
       self.__file = open(self.getAbsFile(), mode)
     else:
-      self.raiseAWarning('Tried to open', self.getFilename(), 'but file already open!')
+      self.raiseAWarning('Tried to open', self.getFilename(),
+                         'but file already open!')
 
   def __iter__(self):  #MIGHT NEED TO REMOVE
     """
@@ -569,7 +580,13 @@ class StaticXMLOutput(RAVENGenerated):
     """
     self.tree = xmlUtils.newTree(root, attrib={'type': 'Static'})
 
-  def addScalar(self, target, name, value, root=None, pivotVal=None, attrs=None):
+  def addScalar(self,
+                target,
+                name,
+                value,
+                root=None,
+                pivotVal=None,
+                attrs=None):
     """
       Adds a node entry named "name" with value "value" to "target" node, such as
       <root>
@@ -631,7 +648,9 @@ class StaticXMLOutput(RAVENGenerated):
     targ = self._findTarg(root, target) if root.tag != target.strip() else root
     nameNode = xmlUtils.newNode(name, attrib=attrs)
     for key, value in valueDict.items():
-      nameNode.append(xmlUtils.newNode(key, text=value, attrib=valAttribsDict.get(key, None)))
+      nameNode.append(
+          xmlUtils.newNode(
+              key, text=value, attrib=valAttribsDict.get(key, None)))
     targ.append(nameNode)
 
   def _findTarg(self, root, target):
@@ -688,7 +707,8 @@ class DynamicXMLOutput(StaticXMLOutput):
   def __init__(self):
     StaticXMLOutput.__init__(self)
     # while maintaining two parallel lists is not very pythonic, it's much faster for searching for large lists.
-    self.pivotNodes = []  #list of pivot nodes, maintained in the order of pivotVals below
+    self.pivotNodes = [
+    ]  #list of pivot nodes, maintained in the order of pivotVals below
     self.pivotVals = []  #RBTree (self maintained) of unique pivot values
 
   def newTree(self, root, pivotParam=None):
@@ -700,8 +720,9 @@ class DynamicXMLOutput(StaticXMLOutput):
     """
     self.tree = xmlUtils.newTree(root, attrib={'type': 'Dynamic'})
     if pivotParam is None:
-      self.raiseAnError(RuntimeError,
-                        'newTree argument pivotParam is None but output is in dynamic mode!')
+      self.raiseAnError(
+          RuntimeError,
+          'newTree argument pivotParam is None but output is in dynamic mode!')
     self.pivotParam = pivotParam
     self.pivotNodes = []
 
@@ -724,9 +745,16 @@ class DynamicXMLOutput(StaticXMLOutput):
     if pivotVal is not None:
       pivotNode = self.findPivotNode(pivotVal)
     #use addScalar methods to add parameters
-    StaticXMLOutput.addScalar(self, target, name, value, root=pivotNode, attrs=attrs)
+    StaticXMLOutput.addScalar(
+        self, target, name, value, root=pivotNode, attrs=attrs)
 
-  def addVector(self, target, name, valueDict, pivotVal=None, attrs=None, valueAttrsDict=None):
+  def addVector(self,
+                target,
+                name,
+                valueDict,
+                pivotVal=None,
+                attrs=None,
+                valueAttrsDict=None):
     """
       Adds a node entry named "name" with value "value" to "target" node, such as
       <root>
@@ -746,10 +774,18 @@ class DynamicXMLOutput(StaticXMLOutput):
       @ Out, None
     """
     if pivotVal is None:
-      self.raiseAnError(RuntimeError, 'In addScalar no pivotVal specificied, but in dynamic mode!')
+      self.raiseAnError(
+          RuntimeError,
+          'In addScalar no pivotVal specificied, but in dynamic mode!')
     pivotNode = self.findPivotNode(pivotVal)
     StaticXMLOutput.addVector(
-        self, target, name, valueDict, root=pivotNode, attrs=attrs, valueAttrsDict=valueAttrsDict)
+        self,
+        target,
+        name,
+        valueDict,
+        root=pivotNode,
+        attrs=attrs,
+        valueAttrsDict=valueAttrsDict)
 
   def findPivotNode(self, pivotVal):
     """
@@ -809,7 +845,8 @@ class UserGenerated(File):
       @ In, xmlNode, XML node
       @ Out, None
     """
-    self.type = node.attrib.get('type', 'UserGenerated')  #XSD should confirm valid types
+    self.type = node.attrib.get(
+        'type', 'UserGenerated')  #XSD should confirm valid types
     #used to be node.tag, but this caused issues, since many things in raven
     #access "type" directly instead of through an accessor like getType
     self.printTag = self.type + ' File'
@@ -879,4 +916,6 @@ def returnInstance(Type, caller):
   try:
     return __interFaceDict[Type]()
   except KeyError:
-    caller.raiseAnError(NameError, 'Files module does not recognize ' + __base + ' type ' + Type)
+    caller.raiseAnError(
+        NameError,
+        'Files module does not recognize ' + __base + ' type ' + Type)

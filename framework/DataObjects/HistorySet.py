@@ -104,7 +104,8 @@ class HistorySet(DataSet):
     """
     # If not set, use "time" as default.
     if self._tempPivotParam is None:
-      self.raiseAWarning('No pivot parameter provided; defaulting to \"time\".')
+      self.raiseAWarning(
+          'No pivot parameter provided; defaulting to \"time\".')
       self._tempPivotParam = 'time'
     # propagate provided pivot parameter to all variables.
     # don't use setter, set directly, since there's only one var
@@ -149,10 +150,12 @@ class HistorySet(DataSet):
       # read in file
       subDat = self._readPandasCSV(subFile)
       # first time create structures
-      if len(set(subDat.keys()).intersection(self.indexes)) != len(self.indexes):
+      if len(set(subDat.keys()).intersection(self.indexes)) != len(
+          self.indexes):
         self.raiseAnError(
             IOError, 'Importing HistorySet from .csv: the pivot parameters "' +
-            ', '.join(self.indexes) + '" have not been found in the .csv file. Check that the '
+            ', '.join(self.indexes) +
+            '" have not been found in the .csv file. Check that the '
             'correct <pivotParameter> has been specified in the dataObject or make sure the <pivotParameter> is included in the .csv files'
         )
       for out in self._outputs + self.indexes:
@@ -250,7 +253,8 @@ class HistorySet(DataSet):
       fullData = self._constructHierPaths()[start - 1:]
       data = self._data.where(self._data['RAVEN_isEnding'] == True, drop=True)
       if start > 0:
-        data = self._data.isel(**{self.sampleTag: data[self.sampleTag].values[start - 1:]})
+        data = self._data.isel(
+            **{self.sampleTag: data[self.sampleTag].values[start - 1:]})
     else:
       data = self._data
       if start > 0:
@@ -261,23 +265,31 @@ class HistorySet(DataSet):
     # specific implementation
     ## write input space CSV with pointers to history CSVs
     ### get list of input variables to keep
-    ordered = list(i for i in itertools.chain(self._inputs, self._metavars) if i in keep)
+    ordered = list(
+        i for i in itertools.chain(self._inputs, self._metavars) if i in keep)
     ### select input part of dataset
     inpData = data[ordered]
     ### add column for realization information, pointing to the appropriate CSV
     subFiles = np.array(
-        list('{}_{}.csv'.format(fileName, rid) for rid in data[self.sampleTag].values),
+        list('{}_{}.csv'.format(fileName, rid)
+             for rid in data[self.sampleTag].values),
         dtype=object)
     #### don't print directories in the file names, since the files are in that directory
-    subFilesNames = np.array(list(os.path.split(s)[1] for s in subFiles), dtype=object)
+    subFilesNames = np.array(
+        list(os.path.split(s)[1] for s in subFiles), dtype=object)
     ### add column to dataset
-    column = self._collapseNDtoDataArray(subFilesNames, 'filename', labels=data[self.sampleTag])
+    column = self._collapseNDtoDataArray(
+        subFilesNames, 'filename', labels=data[self.sampleTag])
     inpData = inpData.assign(filename=column)
     ### also add column name to "ordered"
     ordered += ['filename']
     ### write CSV
     self._usePandasWriteCSV(
-        fileName, inpData, ordered, keepSampleTag=self.sampleTag in keep, mode=mode)
+        fileName,
+        inpData,
+        ordered,
+        keepSampleTag=self.sampleTag in keep,
+        mode=mode)
     ## obtain slices to write subset CSVs
     ordered = list(o for o in self.getVars('output') if o in keep)
 
@@ -299,14 +311,17 @@ class HistorySet(DataSet):
             rlz = fullData[i].isel(**{
                 self.sampleTag: subSampleTag
             }).dropna(self.indexes[0])[ordered]
-            self._usePandasWriteCSV(filename, rlz, ordered, keepIndex=True, mode=mode)
+            self._usePandasWriteCSV(
+                filename, rlz, ordered, keepIndex=True, mode=mode)
             mode = 'a'
       else:
         #  if self.hierarchical is True or the DataObject is not hierarchical we write
         # all the histories (full histories if not hierarchical or branch-histories otherwise) independently
         for i in range(len(data[self.sampleTag].values)):
           filename = subFiles[i][:-4]
-          rlz = data.isel(**{self.sampleTag: i}).dropna(self.indexes[0])[ordered]
+          rlz = data.isel(**{
+              self.sampleTag: i
+          }).dropna(self.indexes[0])[ordered]
           self._usePandasWriteCSV(filename, rlz, ordered, keepIndex=True)
     else:
       self.raiseAWarning(

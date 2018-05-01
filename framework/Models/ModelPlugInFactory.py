@@ -51,17 +51,22 @@ __base = 'ModelPlugins'
 __interFaceDict = defaultdict(dict)
 for moduleIndex in range(len(__moduleInterfaceList)):
   if 'class' in open(__moduleInterfaceList[moduleIndex]).read():
-    __moduleImportedList.append(utils.importFromPath(__moduleInterfaceList[moduleIndex], False))
-    for key, modClass in inspect.getmembers(__moduleImportedList[-1], inspect.isclass):
+    __moduleImportedList.append(
+        utils.importFromPath(__moduleInterfaceList[moduleIndex], False))
+    for key, modClass in inspect.getmembers(__moduleImportedList[-1],
+                                            inspect.isclass):
       for base in modClass.__bases__:
         for ravenEntityName, baseClassName in __basePluginClasses.items():
           if base.__name__ == baseClassName:
             __interFaceDict[ravenEntityName][key] = modClass
             # check the validity of the plugin
             if not modClass.isAvalidPlugin():
-              raise IOError("The plugin based on the class " + ravenEntityName.strip() +
-                            " is not valid. Please check with the Plugin developer!")
-__knownTypes = [item for sublist in __interFaceDict.values() for item in sublist]
+              raise IOError(
+                  "The plugin based on the class " + ravenEntityName.strip() +
+                  " is not valid. Please check with the Plugin developer!")
+__knownTypes = [
+    item for sublist in __interFaceDict.values() for item in sublist
+]
 
 
 def knownTypes():
@@ -82,5 +87,7 @@ def returnPlugin(Type, subType, caller):
     @ In, caller, instance, instance of the caller
   """
   if subType not in knownTypes():
-    caller.raiseAnError(NameError, 'not known ' + __base + ' type ' + Type + ' subType ' + Type)
+    caller.raiseAnError(
+        NameError,
+        'not known ' + __base + ' type ' + Type + ' subType ' + Type)
   return __interFaceDict[Type][subType]()

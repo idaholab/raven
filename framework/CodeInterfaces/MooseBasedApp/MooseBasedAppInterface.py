@@ -55,16 +55,19 @@ class MooseBasedApp(CodeInterfaceBase):
         found = True
         break
     if not found:
-      raise IOError('None of the input files has one of the following extensions: ' +
-                    ' '.join(self.getInputExtension()))
+      raise IOError(
+          'None of the input files has one of the following extensions: ' +
+          ' '.join(self.getInputExtension()))
     if fargs['moosevpp'] != '':
       self.mooseVPPFile = fargs['moosevpp']
     outputfile = self.outputPrefix + inputFiles[index].getBase()
-    executeCommand = [('parallel', executable + ' -i ' + inputFiles[index].getFilename())]
+    executeCommand = [('parallel',
+                       executable + ' -i ' + inputFiles[index].getFilename())]
     returnCommand = executeCommand, outputfile
     return returnCommand
 
-  def createNewInput(self, currentInputFiles, oriInputFiles, samplerType, **Kwargs):
+  def createNewInput(self, currentInputFiles, oriInputFiles, samplerType,
+                     **Kwargs):
     """
       this generates a new input file depending on which sampler has been chosen
       @ In, currentInputFiles, list,  list of current input files (input files from last this method call)
@@ -77,7 +80,8 @@ class MooseBasedApp(CodeInterfaceBase):
     import MOOSEparser
     self._samplersDictionary = {}
     if 'dynamiceventtree' in str(samplerType).lower():
-      self._samplersDictionary[samplerType] = self.dynamicEventTreeForMooseBasedApp
+      self._samplersDictionary[
+          samplerType] = self.dynamicEventTreeForMooseBasedApp
     else:
       self._samplersDictionary[samplerType] = self.pointSamplerForMooseBasedApp
 
@@ -88,8 +92,9 @@ class MooseBasedApp(CodeInterfaceBase):
         found = True
         break
     if not found:
-      raise IOError('None of the input files has one of the following extensions: ' +
-                    ' '.join(self.getInputExtension()))
+      raise IOError(
+          'None of the input files has one of the following extensions: ' +
+          ' '.join(self.getInputExtension()))
     outName = self.outputPrefix + currentInputFiles[index].getBase()
     parser = MOOSEparser.MOOSEparser(currentInputFiles[index].getAbsFile())
     modifDict = {}
@@ -156,8 +161,10 @@ class MooseBasedApp(CodeInterfaceBase):
     for time in range(int(self.vectorPPDict['timeStep'][0])):
       files2Merge.append(
           os.path.join(workingDir,
-                       str(output + self.mooseVPPFile + ("%04d" % (time + 1)) + '.csv')))
-      outputObj = MooseData.mooseData(files2Merge, workingDir, output, self.mooseVPPFile)
+                       str(output + self.mooseVPPFile +
+                           ("%04d" % (time + 1)) + '.csv')))
+      outputObj = MooseData.mooseData(files2Merge, workingDir, output,
+                                      self.mooseVPPFile)
       vppFiles.append(os.path.join(workingDir, str(outputObj.vppFiles)))
     return vppFiles
 

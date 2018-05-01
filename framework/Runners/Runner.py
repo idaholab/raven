@@ -90,15 +90,16 @@ class Runner(MessageHandler.MessageUser):
       prof += 'TIMINGS for job "{}":'.format(self.identifier)
       for e, (event, time) in enumerate(pairs):
         if e == 0:
-          _, msg = self.messageHandler._printMessage(self, 'TIMINGS ... {:^20s} at {} ({})'.format(
-              event, time,
-              datetime.datetime.fromtimestamp(time).strftime('%Y-%m-%d %H:%M:%S')), 'DEBUG', 3,
-                                                     None)
+          _, msg = self.messageHandler._printMessage(
+              self, 'TIMINGS ... {:^20s} at {} ({})'.format(
+                  event, time,
+                  datetime.datetime.fromtimestamp(time).strftime(
+                      '%Y-%m-%d %H:%M:%S')), 'DEBUG', 3, None)
           last = time
         else:
           _, msg = self.messageHandler._printMessage(
-              self, 'TIMINGS ... {:^20s} elapsed {:10.6f} s'.format(event,
-                                                                    time - last), 'DEBUG', 3, None)
+              self, 'TIMINGS ... {:^20s} elapsed {:10.6f} s'.format(
+                  event, time - last), 'DEBUG', 3, None)
           last = time
         prof += "\n" + msg
       self.raiseADebug(prof)

@@ -15,13 +15,18 @@ if __name__ == '__main__':
   def get_outages_for_unit(date, unitname, unit_dict):
     # get unit
     for event in unit_dict[unitname]:
-      teor = float(event['Tech cap'].replace("MW", "")) - float(event['Avail cap'].replace(
-          "MW", ""))
+      teor = float(event['Tech cap'].replace("MW", "")) - float(
+          event['Avail cap'].replace("MW", ""))
       a = date.year, date.month, date.day
       if a == (event['Start'].year, event['Start'].month, event['Start'].day):
         tomorrow = datetime.now() + timedelta(1)
         midnight = datetime(
-            year=tomorrow.year, month=tomorrow.month, day=tomorrow.day, hour=0, minute=0, second=0)
+            year=tomorrow.year,
+            month=tomorrow.month,
+            day=tomorrow.day,
+            hour=0,
+            minute=0,
+            second=0)
         weight = 24.0 * 3600 / (midnight - event['Start']).seconds
         return weight * teor
       elif a == (event['End'].year, event['End'].month, event['End'].day):

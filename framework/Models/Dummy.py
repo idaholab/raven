@@ -72,9 +72,9 @@ class Dummy(Model):
       @ Out, inRun, dict, the manipulated input
     """
     if len(dataIn) > 1:
-      self.raiseAnError(
-          IOError,
-          'Only one input is accepted by the model type ' + self.type + ' with name ' + self.name)
+      self.raiseAnError(IOError,
+                        'Only one input is accepted by the model type ' +
+                        self.type + ' with name ' + self.name)
     if type(dataIn[0]) != tuple:
       inRun = self._inputToInternal(
           dataIn[0]
@@ -92,13 +92,15 @@ class Dummy(Model):
     #self.raiseADebug('wondering if a dictionary compatibility should be kept','FIXME')
     if type(dataIN).__name__ != 'dict':
       if dataIN.type not in self.admittedData:
-        self.raiseAnError(IOError, self,
-                          'type "' + dataIN.type + '" is not compatible with the model "' +
-                          self.type + '" named "' + self.name + '"!')
+        self.raiseAnError(
+            IOError, self,
+            'type "' + dataIN.type + '" is not compatible with the model "' +
+            self.type + '" named "' + self.name + '"!')
     if type(dataIN) != dict:
       #localInput = dict.fromkeys(dataIN.getParaKeys('inputs' )+dataIN.getParaKeys('outputs' ),None)
       localInput = dict.fromkeys(
-          dataIN.getVars('input') + dataIN.getVars('output') + dataIN.indexes, None)
+          dataIN.getVars('input') + dataIN.getVars('output') + dataIN.indexes,
+          None)
       if not len(dataIN) == 0:
         dataSet = dataIN.asDataset()
         if dataIN.type == 'PointSet':
@@ -110,17 +112,20 @@ class Dummy(Model):
             for indexes in dataIN.indexes + dataIN.getVars('output'):
               if localInput[indexes] is None:
                 localInput[indexes] = []
-              localInput[indexes].append(dataSet.isel(RAVEN_sample_ID=hist)[indexes].values)
+              localInput[indexes].append(
+                  dataSet.isel(RAVEN_sample_ID=hist)[indexes].values)
               sizeIndex = len(localInput[indexes][-1])
             for entries in dataIN.getVars('input'):
               if localInput[entries] is None:
                 localInput[entries] = []
               value = dataSet.isel(**{dataIN.sampleTag: hist})[entries].values
-              localInput[entries].append(np.full((sizeIndex, ), value, dtype=value.dtype))
+              localInput[entries].append(
+                  np.full((sizeIndex, ), value, dtype=value.dtype))
       #Now if an OutputPlaceHolder is used it is removed, this happens when the input data is not representing is internally manufactured
       if 'OutputPlaceHolder' in dataIN.getVars('output'):
-        localInput.pop('OutputPlaceHolder'
-                       )  # this remove the counter from the inputs to be placed among the outputs
+        localInput.pop(
+            'OutputPlaceHolder'
+        )  # this remove the counter from the inputs to be placed among the outputs
     else:
       localInput = dataIN  #here we do not make a copy since we assume that the dictionary is for just for the model usage and any changes are not impacting outside
     return localInput
@@ -138,16 +143,16 @@ class Dummy(Model):
       @ Out, ([(inputDict)],copy.deepcopy(kwargs)), tuple, return the new input in a tuple form
     """
     if len(myInput) > 1:
-      self.raiseAnError(
-          IOError,
-          'Only one input is accepted by the model type ' + self.type + ' with name' + self.name)
+      self.raiseAnError(IOError,
+                        'Only one input is accepted by the model type ' +
+                        self.type + ' with name' + self.name)
 
     inputDict = self._inputToInternal(myInput[0])
     self._replaceVariablesNamesWithAliasSystem(inputDict, 'input', False)
 
     if 'SampledVars' in kwargs.keys():
-      sampledVars = self._replaceVariablesNamesWithAliasSystem(kwargs['SampledVars'], 'input',
-                                                               False)
+      sampledVars = self._replaceVariablesNamesWithAliasSystem(
+          kwargs['SampledVars'], 'input', False)
       for key in kwargs['SampledVars'].keys():
         inputDict[key] = np.atleast_1d(kwargs['SampledVars'][key])
 
@@ -187,9 +192,12 @@ class Dummy(Model):
     inRun = self._manipulateInput(Input[0])
     # alias system
     self._replaceVariablesNamesWithAliasSystem(inRun, 'input', True)
-    self._replaceVariablesNamesWithAliasSystem(kwargs['SampledVars'], 'input', True)
+    self._replaceVariablesNamesWithAliasSystem(kwargs['SampledVars'], 'input',
+                                               True)
     # build realization using input space from inRun and metadata from kwargs
-    rlz = dict((var, np.atleast_1d(inRun[var] if var in kwargs['SampledVars'] else kwargs[var]))
+    rlz = dict((var,
+                np.atleast_1d(inRun[var] if var in kwargs['SampledVars'] else
+                              kwargs[var]))
                for var in set(kwargs.keys() + inRun.keys()))
     # add dummy output space
     rlz['OutputPlaceHolder'] = np.atleast_1d(float(Input[1]['prefix']))

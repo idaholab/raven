@@ -63,8 +63,8 @@ class DTW(Metric):
         if child.text in ['0', '1']:
           self.order = float(child.text)
         else:
-          self.raiseAnError(IOError, 'DTW metrics - specified order ' + str(child.text) +
-                            ' is not recognized (allowed values are 0 or 1)')
+          self.raiseAnError(IOError, 'DTW metrics - specified order ' + str(
+              child.text) + ' is not recognized (allowed values are 0 or 1)')
         self.requiredKeywords.remove('order')
       if child.tag == 'pivotParameter':
         self.pivotParameter = child.text
@@ -77,12 +77,13 @@ class DTW(Metric):
 
     if self.requiredKeywords:
       self.raiseAnError(
-          IOError,
-          'The DTW metrics is missing the following parameters: ' + str(self.requiredKeywords))
+          IOError, 'The DTW metrics is missing the following parameters: ' +
+          str(self.requiredKeywords))
     if not self.wrongKeywords:
-      self.raiseAnError(IOError,
-                        'The DTW metrics block contains parameters that are not recognized: ' +
-                        str(self.wrongKeywords))
+      self.raiseAnError(
+          IOError,
+          'The DTW metrics block contains parameters that are not recognized: '
+          + str(self.wrongKeywords))
 
   def distance(self, x, y):
     """
@@ -94,7 +95,8 @@ class DTW(Metric):
     tempX = copy.deepcopy(x)
     tempY = copy.deepcopy(y)
     if isinstance(tempX, np.ndarray) and isinstance(tempY, np.ndarray):
-      self.raiseAnError(IOError, 'The DTW metrics is being used only for historySet')
+      self.raiseAnError(IOError,
+                        'The DTW metrics is being used only for historySet')
     elif isinstance(tempX, dict) and isinstance(tempY, dict):
       if tempX.keys() == tempY.keys():
         timeLengthX = tempX[self.pivotParameter].size
@@ -112,9 +114,13 @@ class DTW(Metric):
         value = self.dtwDistance(X, Y)
         return value
       else:
-        self.raiseAnError('Metric DTW error: the two data sets do not contain the same variables')
+        self.raiseAnError(
+            'Metric DTW error: the two data sets do not contain the same variables'
+        )
     else:
-      self.raiseAnError('Metric DTW error: the structures of the two data sets are different')
+      self.raiseAnError(
+          'Metric DTW error: the structures of the two data sets are different'
+      )
 
   def dtwDistance(self, x, y):
     """

@@ -72,7 +72,8 @@ class Sobol(SparseGridCollocation):
     self.ROM = None  #pointer to sobol ROM
     self.jobHandler = None  #pointer to job handler for parallel runs
     self.doInParallel = True  #compute sparse grid in parallel flag, recommended True
-    self.distinctPoints = set()  #tracks distinct points used in creating this ROM
+    self.distinctPoints = set(
+    )  #tracks distinct points used in creating this ROM
     self.sparseGridType = 'smolyak'
     self.addAssemblerObject('ROM', '1', True)
 
@@ -114,7 +115,8 @@ class Sobol(SparseGridCollocation):
     self._generateQuadsAndPolys(SVL)
     self.features = SVL.features
     needCombos = itertools.chain.from_iterable(
-        itertools.combinations(self.features, r) for r in range(self.sobolOrder + 1))
+        itertools.combinations(self.features, r)
+        for r in range(self.sobolOrder + 1))
     self.SQs = {}
     self.ROMs = {}  #keys are [combo]
     for combo in needCombos:
@@ -133,8 +135,8 @@ class Sobol(SparseGridCollocation):
       iset = IndexSets.returnInstance(SVL.indexSetType, self)
       iset.initialize(combo, imptDict, SVL.maxPolyOrder)
       self.SQs[combo] = Quadratures.returnInstance(self.sparseGridType, self)
-      self.SQs[combo].initialize(combo, iset, distDict, quadDict, self.jobHandler,
-                                 self.messageHandler)
+      self.SQs[combo].initialize(combo, iset, distDict, quadDict,
+                                 self.jobHandler, self.messageHandler)
       initDict = {
           'IndexSet': iset.type,  # type of index set
           'PolynomialOrder': SVL.maxPolyOrder,  # largest polynomial
@@ -150,7 +152,8 @@ class Sobol(SparseGridCollocation):
           'polys': polyDict,  # polynomials
           'iSet': iset
       }  # index set
-      self.ROMs[combo] = SupervisedLearning.returnInstance('GaussPolynomialRom', self, **initDict)
+      self.ROMs[combo] = SupervisedLearning.returnInstance(
+          'GaussPolynomialRom', self, **initDict)
       self.ROMs[combo].initialize(initializeDict)
       self.ROMs[combo].messageHandler = self.messageHandler
     #make combined sparse grids
@@ -212,12 +215,15 @@ class Sobol(SparseGridCollocation):
       if self.variables2distributionsMapping[varName]['totDim'] == 1:
         for key in varName.strip().split(','):
           self.values[key] = pt[v]
-        self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(pt[v])
-        self.inputInfo['ProbabilityWeight-' + varName] = self.inputInfo['SampledVarsPb'][varName]
+        self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(
+            pt[v])
+        self.inputInfo['ProbabilityWeight-'
+                       + varName] = self.inputInfo['SampledVarsPb'][varName]
       # compute the SampledVarsPb for N-D distribution
       elif self.variables2distributionsMapping[varName]['totDim'] > 1 and self.variables2distributionsMapping[varName]['reducedDim'] == 1:
         dist = self.variables2distributionsMapping[varName]['name']
-        ndCoordinates = np.zeros(len(self.distributions2variablesMapping[dist]))
+        ndCoordinates = np.zeros(
+            len(self.distributions2variablesMapping[dist]))
         positionList = self.distributions2variablesIndexList[dist]
         for varDict in self.distributions2variablesMapping[dist]:
           var = utils.first(varDict.keys())
@@ -231,12 +237,16 @@ class Sobol(SparseGridCollocation):
             ndCoordinates[positionList.index(position)] = pt[location]
           else:
             self.raiseAnError(
-                IOError,
-                'The variables ' + var + ' listed in sobol sampler, but not used in the ROM!')
+                IOError, 'The variables ' + var +
+                ' listed in sobol sampler, but not used in the ROM!')
           for key in var.strip().split(','):
             self.values[key] = pt[location]
-        self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(ndCoordinates)
-        self.inputInfo['ProbabilityWeight-' + dist] = self.inputInfo['SampledVarsPb'][varName]
-    self.inputInfo['PointProbability'] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
-    self.inputInfo['ProbabilityWeight'] = np.atleast_1d(1.0)  # weight has no meaning for sobol
+        self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(
+            ndCoordinates)
+        self.inputInfo['ProbabilityWeight-'
+                       + dist] = self.inputInfo['SampledVarsPb'][varName]
+    self.inputInfo['PointProbability'] = reduce(
+        mul, self.inputInfo['SampledVarsPb'].values())
+    self.inputInfo['ProbabilityWeight'] = np.atleast_1d(
+        1.0)  # weight has no meaning for sobol
     self.inputInfo['SamplerType'] = 'Sparse Grids for Sobol'

@@ -51,13 +51,16 @@ class Cubit(CodeInterfaceBase):
         found = True
         break
     if not found:
-      raise IOError('None of the input files has one of the following extensions: ' +
-                    ' '.join(self.getInputExtension()))
-    returnCommand = [('serial',
-                      executable + ' -batch ' + inputFiles[index].getFilename())], self.outputFile
+      raise IOError(
+          'None of the input files has one of the following extensions: ' +
+          ' '.join(self.getInputExtension()))
+    returnCommand = [
+        ('serial', executable + ' -batch ' + inputFiles[index].getFilename())
+    ], self.outputFile
     return returnCommand
 
-  def createNewInput(self, currentInputFiles, oriInputFiles, samplerType, **Kwargs):
+  def createNewInput(self, currentInputFiles, oriInputFiles, samplerType,
+                     **Kwargs):
     """
       This method is used to generate an input based on the information passed in.
       @ In, currentInputFiles, list,  list of current input files (input files from last this method call)

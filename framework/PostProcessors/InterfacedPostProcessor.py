@@ -120,15 +120,18 @@ class InterfacedPostProcessor(PostProcessor):
     if not isinstance(self.postProcessor, PostProcessorInterfaceBase):
       self.raiseAnError(
           IOError, 'InterfacedPostProcessor Post-Processor ' + self.name +
-          ' : not correctly coded; it must inherit the PostProcessorInterfaceBase class')
+          ' : not correctly coded; it must inherit the PostProcessorInterfaceBase class'
+      )
 
     self.postProcessor.initialize()
     self.postProcessor.readMoreXML(xmlNode)
     if self.postProcessor.inputFormat not in set(['HistorySet', 'PointSet']):
-      self.raiseAnError(IOError, 'InterfacedPostProcessor Post-Processor ' + self.name +
+      self.raiseAnError(IOError,
+                        'InterfacedPostProcessor Post-Processor ' + self.name +
                         ' : self.inputFormat not correctly initialized')
     if self.postProcessor.outputFormat not in set(['HistorySet', 'PointSet']):
-      self.raiseAnError(IOError, 'InterfacedPostProcessor Post-Processor ' + self.name +
+      self.raiseAnError(IOError,
+                        'InterfacedPostProcessor Post-Processor ' + self.name +
                         ' : self.outputFormat not correctly initialized')
 
   def run(self, inputIn):
@@ -138,10 +141,12 @@ class InterfacedPostProcessor(PostProcessor):
       @ Out, outputDic, dict, dict containing the post-processed results
     """
     if self.postProcessor.inputFormat not in set(['HistorySet', 'PointSet']):
-      self.raiseAnError(IOError, 'InterfacedPostProcessor Post-Processor ' + self.name +
+      self.raiseAnError(IOError,
+                        'InterfacedPostProcessor Post-Processor ' + self.name +
                         ' : self.inputFormat not correctly initialized')
     if self.postProcessor.outputFormat not in set(['HistorySet', 'PointSet']):
-      self.raiseAnError(IOError, 'InterfacedPostProcessor Post-Processor ' + self.name +
+      self.raiseAnError(IOError,
+                        'InterfacedPostProcessor Post-Processor ' + self.name +
                         ' : self.outputFormat not correctly initialized')
     inputDic = self.inputToInternal(inputIn)
     outputDic = self.postProcessor.run(inputDic)
@@ -173,10 +178,11 @@ class InterfacedPostProcessor(PostProcessor):
         self.metaKeys = inp.getVars('meta')
         for key in self.metaKeys:
           try:
-            inputDictTemp['data'][key] = inp.getMeta(pointwise=True, general=True)[key].values
+            inputDictTemp['data'][key] = inp.getMeta(
+                pointwise=True, general=True)[key].values
           except:
-            self.raiseADebug(
-                'The following key: ' + str(key) + ' has not passed to the Interfaced PP')
+            self.raiseADebug('The following key: ' + str(key) +
+                             ' has not passed to the Interfaced PP')
         inputDictTemp['name'] = inp.name
         inputDict.append(inputDictTemp)
     return inputDict
@@ -202,7 +208,8 @@ class InterfacedPostProcessor(PostProcessor):
     """
     evaluations = finishedJob.getEvaluation()
     if isinstance(evaluations, Runners.Error):
-      self.raiseAnError(RuntimeError,
-                        "No available output to collect (run possibly not finished yet)")
+      self.raiseAnError(
+          RuntimeError,
+          "No available output to collect (run possibly not finished yet)")
     evaluation = evaluations[1]
     output.load(evaluation['data'], style='dict', dims=evaluation['dims'])

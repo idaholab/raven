@@ -61,7 +61,8 @@ class c1darray(object):
       if shape != (100, ) and values.shape != shape:
         raise IOError("different shape")
       if type(values).__name__ != 'ndarray':
-        raise IOError("Only ndarray is accepted as type.Got " + type(values).__name__)
+        raise IOError(
+            "Only ndarray is accepted as type.Got " + type(values).__name__)
       self.values = values
       self.size = values.size
     else:
@@ -119,7 +120,8 @@ class c1darray(object):
       else:
         if (self.capacity - self.size) < x.size:
           # to be safer
-          self.capacity += max(self.capacity * 4, x.size)  #self.capacity + x.size*4
+          self.capacity += max(self.capacity * 4,
+                               x.size)  #self.capacity + x.size*4
           newdata = np.zeros((self.capacity, ), dtype=self.values.dtype)
           newdata[:self.size] = self.values[:self.size]
           self.values = newdata
@@ -153,9 +155,8 @@ class c1darray(object):
     index = -1
     dist = sys.float_info.max
     for i in range(1, self.size):
-      if (self.values[i] >= value
-          and self.values[i - 1] <= value) or (self.values[i] <= value
-                                               and self.values[i - 1] >= value):
+      if (self.values[i] >= value and self.values[i - 1] <= value) or (
+          self.values[i] <= value and self.values[i - 1] >= value):
         index = i
         break
     return index
@@ -197,7 +198,8 @@ class c1darray(object):
       @ Out, newArray, c1drray, sum of the two arrays
     """
     newArray = c1darray(
-        shape=self.size + np.array(x).shape[0], values=self.values[:self.size] + np.array(x))
+        shape=self.size + np.array(x).shape[0],
+        values=self.values[:self.size] + np.array(x))
     return newArray
 
   def __radd__(self, x):
@@ -208,7 +210,8 @@ class c1darray(object):
       @ Out, newArray, c1drray, sum of the two arrays
     """
     newArray = c1darray(
-        shape=np.array(x).shape[0] + self.size, values=np.array(x) + self.values[:self.size])
+        shape=np.array(x).shape[0] + self.size,
+        values=np.array(x) + self.values[:self.size])
     return newArray
 
   def __array__(self, dtype=None):
@@ -218,7 +221,13 @@ class c1darray(object):
       @ Out, __array__, numpy.ndarray, the requested array
     """
     if dtype != None:
-      return ndarray((self.size, ), dtype, buffer=None, offset=0, strides=None, order=None)
+      return ndarray(
+          (self.size, ),
+          dtype,
+          buffer=None,
+          offset=0,
+          strides=None,
+          order=None)
     else:
       return self.values[:self.size]
 
@@ -277,8 +286,9 @@ class cNDarray(object):
     # priorities: initialize with values; if not, use width and length
     if values is not None:
       if type(values) != np.ndarray:
-        raise IOError('Only np.ndarray can be used to set "values" in "cNDarray".  Got ' +
-                      type(values).__name__)
+        raise IOError(
+            'Only np.ndarray can be used to set "values" in "cNDarray".  Got '
+            + type(values).__name__)
       self.values = values  # underlying data structure
       self.size = values.shape[0]
       try:
@@ -290,11 +300,13 @@ class cNDarray(object):
       self.capacity = self.size
     else:
       if width is None:
-        raise IOError('Creating cNDarray: neither "values" nor "width" was specified!')
+        raise IOError(
+            'Creating cNDarray: neither "values" nor "width" was specified!')
       self.capacity = length if length is not None else 100
       self.width = width
       self.size = 0
-      self.values = ndarray((self.capacity, self.width), dtype, buff, offset, strides, order)
+      self.values = ndarray((self.capacity, self.width), dtype, buff, offset,
+                            strides, order)
 
   ### PROPERTIES ###
   @property
@@ -315,7 +327,12 @@ class cNDarray(object):
     """
     if dtype != None:
       return ndarray(
-          (self.size, self.width), dtype, buffer=None, offset=0, strides=None, order=None)
+          (self.size, self.width),
+          dtype,
+          buffer=None,
+          offset=0,
+          strides=None,
+          order=None)
     else:
       return self.getData()
 
@@ -363,17 +380,20 @@ class cNDarray(object):
     # entry.shape[0] is the number of new entries, entry.shape[1] is the number of variables being entered
     # entry must match width and be at least 1 entry long
     if type(entry) not in [np.ndarray]:
-      raise IOError('Tried to add new data to cNDarray.  Can only accept np.ndarray, but got ' +
-                    type(entry).__name__)
+      raise IOError(
+          'Tried to add new data to cNDarray.  Can only accept np.ndarray, but got '
+          + type(entry).__name__)
     # for now require full correct shape, later handle the single entry case
     if len(entry.shape) != 1:
       # TODO single entry case
-      raise IOError('Tried to add new data to cNDarray.  Need shape ({},) but got "{}"!'.format(
-          self.width, entry.shape))
+      raise IOError(
+          'Tried to add new data to cNDarray.  Need shape ({},) but got "{}"!'.
+          format(self.width, entry.shape))
     # must have matching width (fix for single entry case)
     if entry.shape[0] != self.width:
-      raise IOError('Tried to add new data to cNDarray.  Need {} entries in array, but got '.
-                    format(self.width) + str(entry.shape[0]))
+      raise IOError(
+          'Tried to add new data to cNDarray.  Need {} entries in array, but got '.
+          format(self.width) + str(entry.shape[0]))
     # check if there's enough space in cache to append the new entries
     if self.size + 1 > self.capacity:
       # since there's not enough space, quadruple available space # TODO change growth parameter to be variable?

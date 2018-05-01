@@ -54,7 +54,8 @@ class BoxMullerGenerator:
     if len(self.queue) == 0:
       #calculate new values
       self.queue.extend(self.createSamples())
-    return self.queue.pop()  #no need to pop left, as they're independent and all get used
+    return self.queue.pop(
+    )  #no need to pop left, as they're independent and all get used
 
   def createSamples(self):
     """
@@ -224,7 +225,8 @@ def randPointsInHypersphere(dim, samples=1, r=1, keepMatrix=False):
     @ Out, pt, np.array(float), a random point on the surface of the hypersphere
   """
   #sample on surface of n+2-sphere and discard the last two dimensions
-  pts = randPointsOnHypersphere(dim + 2, samples=samples, r=r, keepMatrix=True)[:, :-2]
+  pts = randPointsOnHypersphere(
+      dim + 2, samples=samples, r=r, keepMatrix=True)[:, :-2]
   if keepMatrix:
     return pts
   else:

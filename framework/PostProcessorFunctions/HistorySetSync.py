@@ -40,7 +40,11 @@ class HistorySetSync(PostProcessorInterfaceBase):
     It can be used to allow the histories to be sampled at the same time instant.
   '''
 
-  def initialize(self, numberOfSamples=None, pivotParameter=None, extension=None, syncMethod=None):
+  def initialize(self,
+                 numberOfSamples=None,
+                 pivotParameter=None,
+                 extension=None,
+                 syncMethod=None):
     '''
       Method to initialize the Interfaced Post-processor
       @ In, numberOfSamples, int, (default None)
@@ -74,23 +78,30 @@ class HistorySetSync(PostProcessorInterfaceBase):
       elif child.tag == 'extension':
         self.extension = child.text
       elif child.tag != 'method':
-        self.raiseAnError(IOError, 'HistorySetSync Interfaced Post-Processor ' + str(self.name) +
-                          ' : XML node ' + str(child) + ' is not recognized')
+        self.raiseAnError(
+            IOError,
+            'HistorySetSync Interfaced Post-Processor ' + str(self.name) +
+            ' : XML node ' + str(child) + ' is not recognized')
 
     validSyncMethods = ['all', 'grid', 'max', 'min']
     if self.syncMethod not in validSyncMethods:
-      self.raiseAnError(NotImplementedError, 'Method for synchronizing was not recognized: \'',
+      self.raiseAnError(NotImplementedError,
+                        'Method for synchronizing was not recognized: \'',
                         self.syncMethod, '\'. Options are:', validSyncMethods)
     if self.syncMethod == 'grid' and not isinstance(self.numberOfSamples, int):
       self.raiseAnError(
-          IOError, 'HistorySetSync Interfaced Post-Processor ' + str(self.name) +
-          ' : number of samples is not correctly specified (either not specified or not integer)')
+          IOError,
+          'HistorySetSync Interfaced Post-Processor ' + str(self.name) +
+          ' : number of samples is not correctly specified (either not specified or not integer)'
+      )
     if self.pivotParameter is None:
-      self.raiseAnError(IOError, 'HistorySetSync Interfaced Post-Processor ' + str(self.name) +
-                        ' : pivotParameter is not specified')
-    if self.extension is None or not (self.extension == 'zeroed' or self.extension == 'extended'):
+      self.raiseAnError(IOError, 'HistorySetSync Interfaced Post-Processor ' +
+                        str(self.name) + ' : pivotParameter is not specified')
+    if self.extension is None or not (self.extension == 'zeroed'
+                                      or self.extension == 'extended'):
       self.raiseAnError(
-          IOError, 'HistorySetSync Interfaced Post-Processor ' + str(self.name) +
+          IOError,
+          'HistorySetSync Interfaced Post-Processor ' + str(self.name) +
           ' : extension type is not correctly specified (either not specified or not one of its possible allowed values: zeroed or extended)'
       )
 
@@ -101,8 +112,8 @@ class HistorySetSync(PostProcessorInterfaceBase):
       @ Out, outputPSDic, dict, output dictionary
     '''
     if len(inputDic) > 1:
-      self.raiseAnError(IOError, 'HistorySetSync Interfaced Post-Processor ' + str(self.name) +
-                        ' accepts only one dataObject')
+      self.raiseAnError(IOError, 'HistorySetSync Interfaced Post-Processor ' +
+                        str(self.name) + ' accepts only one dataObject')
     else:
       inputDic = inputDic[0]
       outputDic = {}
@@ -130,16 +141,17 @@ class HistorySetSync(PostProcessorInterfaceBase):
 
         for h, elem in np.ndenumerate(inputDic['data'][self.pivotParameter]):
           l = len(elem)
-          if (h[0] == 0) or (self.syncMethod == 'max'
-                             and l > notableLength) or (self.syncMethod == 'min'
-                                                        and l < notableLength):
+          if (h[0] == 0) or (self.syncMethod == 'max' and
+                             l > notableLength) or (self.syncMethod == 'min'
+                                                    and l < notableLength):
             notableHist = inputDic['data'][self.pivotParameter][h[0]]
             notableLength = l
         newTime = np.array(notableHist)
 
       outputDic['data'] = {}
       for var in inputDic['outVars']:
-        outputDic['data'][var] = np.zeros(inputDic['numberRealizations'], dtype=object)
+        outputDic['data'][var] = np.zeros(
+            inputDic['numberRealizations'], dtype=object)
       outputDic['data'][self.pivotParameter] = np.zeros(
           inputDic['numberRealizations'], dtype=object)
 
@@ -150,10 +162,11 @@ class HistorySetSync(PostProcessorInterfaceBase):
         outputDic['data'][self.pivotParameter][rlz] = newTime
         for var in inputDic['outVars']:
           oldTime = inputDic['data'][self.pivotParameter][rlz]
-          outputDic['data'][var][rlz] = self.resampleHist(inputDic['data'][var][rlz], oldTime,
-                                                          newTime)
+          outputDic['data'][var][rlz] = self.resampleHist(
+              inputDic['data'][var][rlz], oldTime, newTime)
 
-      outputDic['data']['ProbabilityWeight'] = inputDic['data']['ProbabilityWeight']
+      outputDic['data']['ProbabilityWeight'] = inputDic['data'][
+          'ProbabilityWeight']
       outputDic['data']['prefix'] = inputDic['data']['prefix']
       outputDic['dims'] = copy.deepcopy(inputDic['dims'])
 
@@ -182,7 +195,8 @@ class HistorySetSync(PostProcessorInterfaceBase):
           newVar[pos] = 0.0
       else:
         index = np.searchsorted(oldTime, newT)
-        newVar[pos] = variable[index - 1] + (variable[index] - variable[index - 1]) / (
-            oldTime[index] - oldTime[index - 1]) * (newT - oldTime[index - 1])
+        newVar[pos] = variable[index - 1] + (
+            variable[index] - variable[index - 1]
+        ) / (oldTime[index] - oldTime[index - 1]) * (newT - oldTime[index - 1])
       pos = pos + 1
     return newVar

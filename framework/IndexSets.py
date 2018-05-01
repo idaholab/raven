@@ -57,7 +57,8 @@ class IndexSet(MessageHandler.MessageUser):
     self.maxPolyOrder = None  #integer, maximum order polynomial to use in any one dimension -> misleading! Relative order for anisotropic case
     self.polyOrderList = [
     ]  #array of lists containing all the polynomial orders needed for each dimension
-    self.impWeights = []  #array of scalars for assigning importance weights to each dimension
+    self.impWeights = [
+    ]  #array of scalars for assigning importance weights to each dimension
     self.messageHandler = messageHandler
 
   def __len__(self):
@@ -212,7 +213,8 @@ class IndexSet(MessageHandler.MessageUser):
     if len(I) != N:
       i = 0
       while rule(
-          I + [i]):  #rule is defined by subclasses, limits number of index points by criteria
+          I + [i]
+      ):  #rule is defined by subclasses, limits number of index points by criteria
         MI = self.generateMultiIndex(N, rule, I + [i], MI)
         i += 1
     else:
@@ -304,7 +306,8 @@ class HyperbolicCross(IndexSet):
     self.printTag = 'HyperbolicCrossIndexSet'
     #TODO if user has set max poly orders (levels), make it so you never use more
     #  - right now is only limited by the maximum overall level (and importance weight)
-    target = (self.maxOrder + 1)**(sum(self.impWeights) / max(1, float(len(self.impWeights))))
+    target = (self.maxOrder + 1)**(
+        sum(self.impWeights) / max(1, float(len(self.impWeights))))
 
     def rule(i):
       """
@@ -387,7 +390,8 @@ class AdaptiveSet(IndexSet):
     self.points = []  #retained points in the index set
     #need 0, first-order polynomial in each dimension to start predictions
     firstPoint = [0] * self.N  #mean point polynomial
-    self.active = [tuple(firstPoint)]  #stores the polynomial indices being actively trained
+    self.active = [tuple(firstPoint)
+                   ]  #stores the polynomial indices being actively trained
     if full:
       for pt in list(itertools.product([0, 1], repeat=self.N)):
         self.active.append(pt)
@@ -398,7 +402,8 @@ class AdaptiveSet(IndexSet):
         pt = firstPoint[:]
         pt[i] += 1
         self.active.append(tuple(pt))
-    self.history = []  #list of tuples, index set point and its impact parameter
+    self.history = [
+    ]  #list of tuples, index set point and its impact parameter
 
   def accept(self, pt):
     """
@@ -407,7 +412,8 @@ class AdaptiveSet(IndexSet):
       @ Out, None
     """
     if pt not in self.active:
-      self.raiseAnError(KeyError, 'Adaptive index set instructed to accept point', pt,
+      self.raiseAnError(KeyError,
+                        'Adaptive index set instructed to accept point', pt,
                         'but point is not in active set!')
     self.active.remove(pt)
     self.points.append(pt)
@@ -420,7 +426,8 @@ class AdaptiveSet(IndexSet):
       @ Out, None
     """
     if pt not in self.active.keys():
-      self.raiseAnError(KeyError, 'Adaptive index set instructed to reject point', pt,
+      self.raiseAnError(KeyError,
+                        'Adaptive index set instructed to reject point', pt,
                         'but point is not in active set!')
     self.active.remove(pt)
 

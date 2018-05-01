@@ -77,7 +77,9 @@ if __QtAvailable:
       try:
         ## We are going to add the debug parameter based on what the user
         ## requested from the RAVEN command line.
-        params['debug'] = (self.interactionType in [Interaction.Debug, Interaction.Test])
+        params['debug'] = (self.interactionType in [
+            Interaction.Debug, Interaction.Test
+        ])
 
         self.UIs[uiID] = getattr(__import__('UI.' + uiType), uiType)(**params)
         self.UIs[uiID].closed.connect(self.closeEvent)

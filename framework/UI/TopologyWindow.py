@@ -127,7 +127,8 @@ class TopologyWindow(qtw.QMainWindow):
 
     for subclass in BaseTopologicalView.__subclasses__():
       action = newMenu.addAction(subclass.__name__)
-      action.triggered.connect(functools.partial(self.addNewView, action.text()))
+      action.triggered.connect(
+          functools.partial(self.addNewView, action.text()))
 
     buildModels = self.optionsMenu.addAction('Build Local Models')
     buildModels.triggered.connect(self.buildModels)
@@ -144,8 +145,9 @@ class TopologyWindow(qtw.QMainWindow):
       self.addNewView(viewClass.__name__)
 
     ## Rebuild the AMSC after all of the views have been added
-    self.BuildAMSC(self.amsc.X, self.amsc.Y, self.amsc.w, self.amsc.names, self.amsc.graph,
-                   self.amsc.gradient, self.amsc.knn, self.amsc.beta, self.amsc.normalization)
+    self.BuildAMSC(self.amsc.X, self.amsc.Y, self.amsc.w, self.amsc.names,
+                   self.amsc.graph, self.amsc.gradient, self.amsc.knn,
+                   self.amsc.beta, self.amsc.normalization)
 
     self.buildModels()
 

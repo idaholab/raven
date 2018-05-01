@@ -209,8 +209,9 @@ class DendrogramView(ZoomableGraphicsView, BaseHierarchicalView):
     layout.addWidget(minLevelSlider)
 
     ## Add the buttons for accepting/rejecting the proposed values
-    buttons = qtw.QDialogButtonBox(qtw.QDialogButtonBox.Ok | qtw.QDialogButtonBox.Cancel,
-                                   qtc.Qt.Horizontal, dialog)
+    buttons = qtw.QDialogButtonBox(
+        qtw.QDialogButtonBox.Ok | qtw.QDialogButtonBox.Cancel,
+        qtc.Qt.Horizontal, dialog)
 
     def localAccept():
       """
@@ -265,8 +266,9 @@ class DendrogramView(ZoomableGraphicsView, BaseHierarchicalView):
 
     layout.addLayout(sublayout)
 
-    buttons = qtw.QDialogButtonBox(qtw.QDialogButtonBox.Ok | qtw.QDialogButtonBox.Cancel,
-                                   qtc.Qt.Horizontal, dialog)
+    buttons = qtw.QDialogButtonBox(
+        qtw.QDialogButtonBox.Ok | qtw.QDialogButtonBox.Cancel,
+        qtc.Qt.Horizontal, dialog)
 
     def localAccept():
       """
@@ -538,8 +540,8 @@ class DendrogramView(ZoomableGraphicsView, BaseHierarchicalView):
       ## If the node's parent is less than the current level, or if this node
       ## is above the current level
       if node.parent != self.tree and node.parent.level <= currentLevel or (
-          node.level > currentLevel
-          and node.getLeafCount(self.truncationSize, self.truncationLevel) > 1):
+          node.level > currentLevel and
+          node.getLeafCount(self.truncationSize, self.truncationLevel) > 1):
         color.setAlpha(64)
         diameter = self.minDiameter
         glyph.setFlag(qtw.QGraphicsItem.ItemIsSelectable, False)
@@ -547,7 +549,8 @@ class DendrogramView(ZoomableGraphicsView, BaseHierarchicalView):
       else:
         color.setAlpha(255)
         glyph.setFlag(qtw.QGraphicsItem.ItemIsSelectable, True)
-        glyph.setToolTip('   id: %d\nlevel: %f\ncount: %d' % (idx, node.level, int(count)))
+        glyph.setToolTip('   id: %d\nlevel: %f\ncount: %d' % (idx, node.level,
+                                                              int(count)))
       brush = qtg.QBrush(color)
 
       if self.nodes[idx].isSelected():
@@ -607,7 +610,8 @@ class DendrogramView(ZoomableGraphicsView, BaseHierarchicalView):
       if self.edgeAction.isChecked():
         ## idx1 should always be the parent
         parent = pathGraphic.source
-        maxChild = parent.maximumChild(self.truncationSize, self.truncationLevel)
+        maxChild = parent.maximumChild(self.truncationSize,
+                                       self.truncationLevel)
         if maxChild is None:
           maxChildLevel = y2
           intermediateY = height - self.usableHeight * maxChildLevel / maxLevel - self.padding
@@ -618,8 +622,8 @@ class DendrogramView(ZoomableGraphicsView, BaseHierarchicalView):
           ## or
           intermediateY = maxChildRect.y() + maxChildRect.height() / 2.
 
-        path.cubicTo(x1, y1 + (intermediateY - y1) * 0.33, x2,
-                     intermediateY - (intermediateY - y1) * 0.33, x2, intermediateY)
+        path.cubicTo(x1, y1 + (intermediateY - y1) * 0.33, x2, intermediateY -
+                     (intermediateY - y1) * 0.33, x2, intermediateY)
         path.lineTo(x2, y2)
       else:
         path.lineTo(x2, y1)
@@ -629,7 +633,10 @@ class DendrogramView(ZoomableGraphicsView, BaseHierarchicalView):
       child = pathGraphic.sink
       if parent.level > currentLevel and child.level <= currentLevel:
         pathGraphic.setPen(
-            qtg.QPen(self.getColor(idx2), min(2, rect2.width()), cap=qtc.Qt.RoundCap))
+            qtg.QPen(
+                self.getColor(idx2),
+                min(2, rect2.width()),
+                cap=qtc.Qt.RoundCap))
       else:
         pathGraphic.setPen(qtg.QPen(gray, 0))
       pathGraphic.setPath(path)
@@ -699,7 +706,8 @@ class DendrogramView(ZoomableGraphicsView, BaseHierarchicalView):
       count = node.getLeafCount()
       rootWidth = float(count) / self.totalCount
 
-      (myIds, myPoints, myEdges) = node.Layout(xOffset, rootWidth, tSize, tLevel)
+      (myIds, myPoints, myEdges) = node.Layout(xOffset, rootWidth, tSize,
+                                               tLevel)
 
       ids.extend(myIds)
       points.extend(myPoints)

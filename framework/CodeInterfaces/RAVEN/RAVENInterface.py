@@ -75,7 +75,9 @@ class RAVEN(CodeInterfaceBase):
     """
     if os.path.basename(xmlNode.find("executable").text) != 'raven_framework':
       raise IOError(
-          self.printTag + ' ERROR: executable must be "raven_framework" (in whatever location)!')
+          self.printTag +
+          ' ERROR: executable must be "raven_framework" (in whatever location)!'
+      )
 
     linkedDataObjects = xmlNode.find("outputExportOutStreams")
     if linkedDataObjects is None:
@@ -92,25 +94,32 @@ class RAVEN(CodeInterfaceBase):
 
     child = xmlNode.find("conversionModule")
     if child is not None:
-      self.extModForVarsManipulationPath = os.path.expanduser(child.text.strip())
+      self.extModForVarsManipulationPath = os.path.expanduser(
+          child.text.strip())
       if not os.path.isabs(self.extModForVarsManipulationPath):
-        self.extModForVarsManipulationPath = os.path.abspath(self.extModForVarsManipulationPath)
+        self.extModForVarsManipulationPath = os.path.abspath(
+            self.extModForVarsManipulationPath)
       # check if it exist
       if not os.path.exists(self.extModForVarsManipulationPath):
-        raise IOError(self.printTag + ' ERROR: the conversionModule "' +
-                      self.extModForVarsManipulationPath + '" has not been found!')
-      extModForVarsManipulation = utils.importFromPath(self.extModForVarsManipulationPath)
+        raise IOError(self.printTag + ' ERROR: the conversionModule "' + self.
+                      extModForVarsManipulationPath + '" has not been found!')
+      extModForVarsManipulation = utils.importFromPath(
+          self.extModForVarsManipulationPath)
       if extModForVarsManipulation is None:
-        raise IOError(self.printTag + ' ERROR: the conversionModule "' +
-                      self.extModForVarsManipulationPath + '" failed to be imported!')
+        raise IOError(
+            self.printTag + ' ERROR: the conversionModule "' +
+            self.extModForVarsManipulationPath + '" failed to be imported!')
       # check if the methods are there
-      if 'convertNotScalarSampledVariables' in extModForVarsManipulation.__dict__.keys():
+      if 'convertNotScalarSampledVariables' in extModForVarsManipulation.__dict__.keys(
+      ):
         self.hasMethods['noscalar'] = True
-      if 'manipulateScalarSampledVariables' in extModForVarsManipulation.__dict__.keys():
+      if 'manipulateScalarSampledVariables' in extModForVarsManipulation.__dict__.keys(
+      ):
         self.hasMethods['scalar'] = True
       if not self.hasMethods['scalar'] and not self.hasMethods['noscalar']:
         raise IOError(
-            self.printTag + ' ERROR: the conversionModule "' + self.extModForVarsManipulationPath +
+            self.printTag + ' ERROR: the conversionModule "' +
+            self.extModForVarsManipulationPath +
             '" does not contain any of the usable methods! Expected at least ' +
             'one of: "manipulateScalarSampledVariables" and/or "manipulateScalarSampledVariables"!'
         )
@@ -153,11 +162,13 @@ class RAVEN(CodeInterfaceBase):
     index = self.__findInputFile(inputFiles)
     outputfile = self.outputPrefix + inputFiles[index].getBase()
     # we set the command type to serial since the SLAVE RAVEN handles the parallel on its own
-    executeCommand = [('serial', executable + ' ' + inputFiles[index].getFilename())]
+    executeCommand = [('serial',
+                       executable + ' ' + inputFiles[index].getFilename())]
     returnCommand = executeCommand, outputfile
     return returnCommand
 
-  def createNewInput(self, currentInputFiles, oriInputFiles, samplerType, **Kwargs):
+  def createNewInput(self, currentInputFiles, oriInputFiles, samplerType,
+                     **Kwargs):
     """
       this generates a new input file depending on which sampler has been chosen
       @ In, currentInputFiles, list,  list of current input files (input files from last this method call)
@@ -169,7 +180,8 @@ class RAVEN(CodeInterfaceBase):
     """
     import RAVENparser
     if 'dynamiceventtree' in str(samplerType).strip().lower():
-      raise IOError(self.printTag + ' ERROR: DynamicEventTree-based sampling not supported!')
+      raise IOError(self.printTag +
+                    ' ERROR: DynamicEventTree-based sampling not supported!')
     index = self.__findInputFile(currentInputFiles)
     parser = RAVENparser.RAVENparser(currentInputFiles[index].getAbsFile())
     # get the OutStreams names
@@ -191,8 +203,9 @@ class RAVEN(CodeInterfaceBase):
       raise IOError(
           self.printTag +
           ' ERROR: No one of the OutStreams linked to this interface have been found in the SLAVE RAVEN!'
-          + ' Expected: "' + ' '.join(self.linkedDataObjectOutStreamsNames) + '" but found "' +
-          ' '.join(self.outStreamsNamesAndType.keys()) + '"!')
+          + ' Expected: "' + ' '.join(self.linkedDataObjectOutStreamsNames) +
+          '" but found "' + ' '.join(self.outStreamsNamesAndType.keys()) + '"!'
+      )
     # get variable groups
     varGroupNames = parser.returnVarGroups()
     if len(varGroupNames) > 0:
@@ -200,13 +213,18 @@ class RAVEN(CodeInterfaceBase):
       for outstream in self.linkedDataObjectOutStreamsNames:
         inputNode = self.outStreamsNamesAndType[outstream][2].find("Input")
         outputNode = self.outStreamsNamesAndType[outstream][2].find("Output")
-        inputVariables = inputNode.text.split(",") if inputNode is not None else []
-        outputVariables = outputNode.text.split(",") if outputNode is not None else []
-        if any(varGroupName in inputVariables + outputVariables for varGroupName in varGroupNames):
+        inputVariables = inputNode.text.split(
+            ",") if inputNode is not None else []
+        outputVariables = outputNode.text.split(
+            ",") if outputNode is not None else []
+        if any(varGroupName in inputVariables + outputVariables
+               for varGroupName in varGroupNames):
           raise IOError(
-              self.printTag + ' ERROR: The VariableGroup system is not supported in the current ' +
-              'implementation of the interface for the DataObjects specified in the ' +
-              '<outputExportOutStreams> XML node!')
+              self.printTag +
+              ' ERROR: The VariableGroup system is not supported in the current '
+              +
+              'implementation of the interface for the DataObjects specified in the '
+              + '<outputExportOutStreams> XML node!')
     # get inner working dir
     self.innerWorkingDir = parser.workingDir
     # get sampled variables
@@ -219,19 +237,25 @@ class RAVEN(CodeInterfaceBase):
         vectorVars[var] = np.asarray(value)
         totSizeExpected += vectorVars[var].size
     if len(vectorVars) > 0 and not self.hasMethods['noscalar']:
-      raise IOError(self.printTag + ' ERROR: No scalar variables (' + ','.join(vectorVars.keys(
-      )) + ') have been detected but no convertNotScalarSampledVariables has been inputted!')
+      raise IOError(self.printTag + ' ERROR: No scalar variables (' + ','.join(
+          vectorVars.keys()
+      ) + ') have been detected but no convertNotScalarSampledVariables has been inputted!'
+                    )
     # check if ext module has been inputted
     if self.hasMethods['noscalar'] or self.hasMethods['scalar']:
-      extModForVarsManipulation = utils.importFromPath(self.extModForVarsManipulationPath)
+      extModForVarsManipulation = utils.importFromPath(
+          self.extModForVarsManipulationPath)
     if self.hasMethods['noscalar']:
       if len(vectorVars) > 0:
         toPopOut = vectorVars.keys()
         try:
-          newVars = extModForVarsManipulation.convertNotScalarSampledVariables(vectorVars)
+          newVars = extModForVarsManipulation.convertNotScalarSampledVariables(
+              vectorVars)
           if type(newVars).__name__ != 'dict':
-            raise IOError(self.printTag +
-                          ' ERROR: convertNotScalarSampledVariables must return a dictionary!')
+            raise IOError(
+                self.printTag +
+                ' ERROR: convertNotScalarSampledVariables must return a dictionary!'
+            )
           # DEBUGG this is failing b/c Index and Variable both being counted!
           #if len(newVars) != totSizeExpected:
           #  raise IOError(self.printTag+' ERROR: The total number of variables expected from method convertNotScalarSampledVariables is "'+str(totSizeExpected)+'". Got:"'+str(len(newVars))+'"!')
@@ -263,13 +287,14 @@ class RAVEN(CodeInterfaceBase):
     internalParallel = Kwargs.get('internalParallel', False)
     if int(Kwargs['numberNodes']) > 0:
       # we are in a distributed memory machine => we allocate a node file
-      nodeFileToUse = os.path.join(Kwargs['BASE_WORKING_DIR'], "node_" + str(Kwargs['INDEX']))
+      nodeFileToUse = os.path.join(Kwargs['BASE_WORKING_DIR'],
+                                   "node_" + str(Kwargs['INDEX']))
       if os.path.exists(nodeFileToUse):
         modifDict['RunInfo|mode'] = 'mpi'
         modifDict['RunInfo|mode|nodefile'] = nodeFileToUse
       else:
-        raise IOError(
-            self.printTag + ' ERROR: The nodefile "' + str(nodeFileToUse) + '" does not exist!')
+        raise IOError(self.printTag + ' ERROR: The nodefile "' +
+                      str(nodeFileToUse) + '" does not exist!')
     if internalParallel or newBatchSize > 1:
       # either we have an internal parallel or NumMPI > 1
       modifDict['RunInfo|batchSize'] = newBatchSize
@@ -307,12 +332,13 @@ class RAVEN(CodeInterfaceBase):
       del readLines
     if not failure:
       for filename in self.linkedDataObjectOutStreamsNames:
-        outStreamFile = os.path.join(workingDir, self.innerWorkingDir, filename + ".csv")
+        outStreamFile = os.path.join(workingDir, self.innerWorkingDir,
+                                     filename + ".csv")
         try:
           fileObj = open(outStreamFile, "r")
         except IOError:
-          print(self.printTag + ' ERROR: The RAVEN SLAVE output file "' + str(outStreamFile) +
-                '" does not exist!')
+          print(self.printTag + ' ERROR: The RAVEN SLAVE output file "' +
+                str(outStreamFile) + '" does not exist!')
           failure = True
         if not failure:
           readLines = fileObj.readlines()
@@ -356,7 +382,9 @@ class RAVEN(CodeInterfaceBase):
       data._readMoreXML(dataObjectInfo[2])
       # set the name, then load the data
       data.name = filename
-      data.load(os.path.join(workingDir, self.innerWorkingDir, filename), style='csv')
+      data.load(
+          os.path.join(workingDir, self.innerWorkingDir, filename),
+          style='csv')
       # check consistency of data object number of realizations
       if numRlz is None:
         # set the standard if you're the first data object

@@ -106,7 +106,9 @@ def checkVersions():
     @ In, None
     @ Out, None
   """
-  sys.path.append(os.path.join(os.path.dirname(frameworkDir), "scripts", "TestHarness", "testers"))
+  sys.path.append(
+      os.path.join(
+          os.path.dirname(frameworkDir), "scripts", "TestHarness", "testers"))
   import RavenUtils
   sys.path.pop()  #remove testers path
   missing, outOfRange, notQA = RavenUtils.checkForMissingModules(False)
@@ -172,18 +174,23 @@ if __name__ == '__main__':
   else:
     os.environ['RAVENinterfaceCheck'] = 'False'
 
-  simulation = Simulation(frameworkDir, verbosity=verbosity, interactive=interactive)
+  simulation = Simulation(
+      frameworkDir, verbosity=verbosity, interactive=interactive)
 
   #If a configuration file exists, read it in
-  configFile = os.path.join(os.path.expanduser("~"), ".raven", "default_runinfo.xml")
+  configFile = os.path.join(
+      os.path.expanduser("~"), ".raven", "default_runinfo.xml")
   if os.path.exists(configFile):
     tree = ET.parse(configFile)
     root = tree.getroot()
 
     if root.tag == 'Simulation' and [x.tag for x in root] == ["RunInfo"]:
-      simulation.XMLread(root, runInfoSkip=set(["totNumCoresUsed"]), xmlFilename=configFile)
+      simulation.XMLread(
+          root, runInfoSkip=set(["totNumCoresUsed"]), xmlFilename=configFile)
     else:
-      e = IOError('DRIVER', str(configFile) + ' should only have Simulation and inside it RunInfo')
+      e = IOError('DRIVER',
+                  str(configFile) +
+                  ' should only have Simulation and inside it RunInfo')
       print('\nERROR! In Driver,', e, '\n')
       sys.exit(1)
 
@@ -218,7 +225,8 @@ if __name__ == '__main__':
 
     root = tree.getroot()
     if root.tag != 'Simulation':
-      e = IOError('The outermost block of the input file ' + inputFile + ' it is not Simulation')
+      e = IOError('The outermost block of the input file ' + inputFile +
+                  ' it is not Simulation')
       print('\nInput XML Error!', e, '\n')
       sys.exit(1)
 
@@ -227,7 +235,8 @@ if __name__ == '__main__':
     simulation.XMLpreprocess(root, cwd)
     #generate all the components of the simulation
     #Call the function to read and construct each single module of the simulation
-    simulation.XMLread(root, runInfoSkip=set(["DefaultInputFile"]), xmlFilename=inputFile)
+    simulation.XMLread(
+        root, runInfoSkip=set(["DefaultInputFile"]), xmlFilename=inputFile)
 
   def raven():
     """

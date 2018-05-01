@@ -73,26 +73,34 @@ class AdaptiveSobol(Sobol, AdaptiveSparseGrid):
     convergenceInput = InputData.parameterInputFactory("Convergence")
 
     convergenceInput.addSub(
-        InputData.parameterInputFactory("relTolerance", contentType=InputData.FloatType))
+        InputData.parameterInputFactory(
+            "relTolerance", contentType=InputData.FloatType))
     convergenceInput.addSub(
-        InputData.parameterInputFactory("maxRuns", contentType=InputData.IntegerType))
+        InputData.parameterInputFactory(
+            "maxRuns", contentType=InputData.IntegerType))
     convergenceInput.addSub(
-        InputData.parameterInputFactory("maxSobolOrder", contentType=InputData.IntegerType))
+        InputData.parameterInputFactory(
+            "maxSobolOrder", contentType=InputData.IntegerType))
     convergenceInput.addSub(
-        InputData.parameterInputFactory("progressParam", contentType=InputData.FloatType))
+        InputData.parameterInputFactory(
+            "progressParam", contentType=InputData.FloatType))
     convergenceInput.addSub(
-        InputData.parameterInputFactory("logFile", contentType=InputData.StringType))
+        InputData.parameterInputFactory(
+            "logFile", contentType=InputData.StringType))
     convergenceInput.addSub(
-        InputData.parameterInputFactory("subsetVerbosity", contentType=InputData.StringType))
+        InputData.parameterInputFactory(
+            "subsetVerbosity", contentType=InputData.StringType))
 
     inputSpecification.addSub(convergenceInput)
 
     convergenceStudyInput = InputData.parameterInputFactory("convergenceStudy")
 
     convergenceStudyInput.addSub(
-        InputData.parameterInputFactory("runStatePoints", contentType=InputData.StringType))
+        InputData.parameterInputFactory(
+            "runStatePoints", contentType=InputData.StringType))
     convergenceStudyInput.addSub(
-        InputData.parameterInputFactory("baseFilename", contentType=InputData.StringType))
+        InputData.parameterInputFactory(
+            "baseFilename", contentType=InputData.StringType))
     convergenceStudyInput.addSub(InputData.parameterInputFactory("pickle"))
     print(convergenceStudyInput.subs)
 
@@ -127,24 +135,28 @@ class AdaptiveSobol(Sobol, AdaptiveSparseGrid):
     self.ROM = None  #HDMR rom that will be constructed with the samples found here
 
     #storage dictionaries
-    self.ROMs = {}  #subset reduced-order models by subset: self.ROMs[target][subset]
+    self.ROMs = {
+    }  #subset reduced-order models by subset: self.ROMs[target][subset]
     self.SQs = {}  #stores sparse grid quadrature objects
     self.samplers = {}  #stores adaptive sparse grid sampling objects
     self.romShell = {}  #stores Model.ROM objects for each subset
     self.iSets = {}  #adaptive index set objects by target,subset
-    self.pointsNeeded = {}  #by subset, the points needed for next step in adaptive SG sampler
+    self.pointsNeeded = {
+    }  #by subset, the points needed for next step in adaptive SG sampler
     self.pointsCollected = {
     }  #by subset, the points collected for next stip in adaptive SG sampler
     self.subsets = {
     }  #subset gPC ROMs to be used in full HDMR ROM that have at least started training
     self.references = {}  #mean-value cut reference points by variable
-    self.useSet = {}  #accepted subsets and the associated ROMs, as useSet[subset][target]
+    self.useSet = {
+    }  #accepted subsets and the associated ROMs, as useSet[subset][target]
 
     #convergence parameters
     self.subsetImpact = {}  #actual impact on variance by subset combo
     self.subsetExpImpact = {}  #estimated impact on variance by subset combo
     self.done = False  #boolean to track if we've converged, or gone over limit
-    self.distinctPoints = set()  #list of points needed to make this ROM, for counting purposes
+    self.distinctPoints = set(
+    )  #list of points needed to make this ROM, for counting purposes
     self.numConverged = 0  #tracking for persistance
     self.persistence = 2  #set in input, the number of successive converges to require
 
@@ -160,8 +172,10 @@ class AdaptiveSobol(Sobol, AdaptiveSparseGrid):
 
     #point lists
     self.sorted = []  #points that have been sorted into appropriate objects
-    self.submittedNotCollected = []  #list of points that have been generated but not collected
-    self.inTraining = []  #usually just one tuple, unless multiple items in simultaneous training
+    self.submittedNotCollected = [
+    ]  #list of points that have been generated but not collected
+    self.inTraining = [
+    ]  #usually just one tuple, unless multiple items in simultaneous training
 
     self.addAssemblerObject('TargetEvaluation', '1')
 
@@ -199,8 +213,8 @@ class AdaptiveSobol(Sobol, AdaptiveSparseGrid):
           'progressParam must be between 0 (only add polynomials) and 2 (only add subsets) (default 1).  Input value was',
           self.tweakParam, '!')
     if self.subVerbosity not in ['debug', 'all', 'quiet', 'silent']:
-      self.raiseAWarning('subsetVerbosity parameter not recognized:', self.subVerbosity,
-                         ' -> continuing with "quiet"')
+      self.raiseAWarning('subsetVerbosity parameter not recognized:',
+                         self.subVerbosity, ' -> continuing with "quiet"')
       self.subVerbosity = 'quiet'
     if studyNode is not None:
       self.doingStudy = True
@@ -208,19 +222,23 @@ class AdaptiveSobol(Sobol, AdaptiveSparseGrid):
       filebaseNode = studyNode.find('baseFilename')
       self.studyPickle = studyNode.find('pickle') is not None
       if filebaseNode is None:
-        self.raiseAWarning('No baseFilename specified in convergenceStudy node!  Using "%s"...' %
-                           self.studyFileBase)
+        self.raiseAWarning(
+            'No baseFilename specified in convergenceStudy node!  Using "%s"...'
+            % self.studyFileBase)
       else:
         self.studyFileBase = studyNode.find('baseFilename').text
       if self.studyPoints is None:
         self.raiseAnError(
             IOError,
-            'convergenceStudy node was included, but did not specify the runStatePoints node!')
+            'convergenceStudy node was included, but did not specify the runStatePoints node!'
+        )
       else:
         try:
           self.studyPoints = list(int(i) for i in self.studyPoints.split(','))
         except ValueError as e:
-          self.raiseAnError(IOError, 'Convergence state point not recognizable as an integer!', e)
+          self.raiseAnError(
+              IOError,
+              'Convergence state point not recognizable as an integer!', e)
         self.studyPoints.sort()
 
   def localInitialize(self):
@@ -234,8 +252,10 @@ class AdaptiveSobol(Sobol, AdaptiveSparseGrid):
     """
     #we don't use restarts in adaptive sampling
     if self.restartData is not None:
-      self.raiseAnError(IOError,
-                        'AdaptiveSobol does not take Restart node!  Use TargetEvaluation instead.')
+      self.raiseAnError(
+          IOError,
+          'AdaptiveSobol does not take Restart node!  Use TargetEvaluation instead.'
+      )
     #set up assembly-based objects
     self.solns = self.assemblerDict['TargetEvaluation'][0][3]
     SVL = self.readFromROM()
@@ -248,14 +268,16 @@ class AdaptiveSobol(Sobol, AdaptiveSparseGrid):
       self.references[var] = dist.untruncatedMean()
     #set up first subsets, the mono-dimensionals
     self.firstCombos = list(
-        itertools.chain.from_iterable(itertools.combinations(self.features, r) for r in [0, 1]))
+        itertools.chain.from_iterable(
+            itertools.combinations(self.features, r) for r in [0, 1]))
     for c in self.firstCombos[:]:
       #already did reference case, so remove it
       if len(c) < 1:
         self.firstCombos.remove(c)
         continue
       self._makeSubsetRom(c)
-      self.inTraining.append(('poly', c, self.samplers[c]._findHighestImpactIndex()))
+      self.inTraining.append(('poly', c,
+                              self.samplers[c]._findHighestImpactIndex()))
       #get the points needed to push this subset forward
       self._retrieveNeededPoints(c)
     #set up the nominal point for a run
@@ -305,18 +327,23 @@ class AdaptiveSobol(Sobol, AdaptiveSparseGrid):
         self.inTraining.remove(item)
       #are we at maxRuns?  If so, we need to be done.
       if self.maxRuns is not None and len(self.distinctPoints) > self.maxRuns:
-        self.raiseAMessage('Maximum runs reached!  No new polynomials or subsets will be added...')
+        self.raiseAMessage(
+            'Maximum runs reached!  No new polynomials or subsets will be added...'
+        )
         self._earlyExit()
         return False
       #get next-most influential poly/subset to add, update global error estimate
       which, toDoSub, poly = self._getLargestImpact()
-      self.raiseAMessage('Next: %6s %8s%12s' % (which, ','.join(toDoSub), str(poly)),
-                         '| error: %1.4e' % self.error, '| runs: %i' % len(self.distinctPoints))
+      self.raiseAMessage('Next: %6s %8s%12s' % (which, ','.join(toDoSub),
+                                                str(poly)),
+                         '| error: %1.4e' % self.error,
+                         '| runs: %i' % len(self.distinctPoints))
       if self.statesFile is not None:
         self._printState(which, toDoSub, poly)
       #if doing a study and past a statepoint, record the statepoint
       if self.doingStudy:
-        while len(self.studyPoints) > 0 and len(self.distinctPoints) > self.studyPoints[0]:
+        while len(self.studyPoints) > 0 and len(
+            self.distinctPoints) > self.studyPoints[0]:
           self._writeConvergencePoint(self.studyPoints[0])
           if self.studyPickle:
             self._writePickle(self.studyPoints[0])
@@ -327,13 +354,17 @@ class AdaptiveSobol(Sobol, AdaptiveSparseGrid):
             self.studyPoints = []
       #are we converged?
       if self.error < self.convValue:
-        self.raiseAMessage('Convergence achieved!  No new polynomials or subsets will be added...')
+        self.raiseAMessage(
+            'Convergence achieved!  No new polynomials or subsets will be added...'
+        )
         self._earlyExit()
         return False
       #otherwise, we're not done...
       #  -> use the information from _getLargestImpact to add either a poly or a subset
       if which == 'poly':
-        self.inTraining.append(('poly', toDoSub, self.samplers[toDoSub]._findHighestImpactIndex()))
+        self.inTraining.append(
+            ('poly', toDoSub,
+             self.samplers[toDoSub]._findHighestImpactIndex()))
         samp = self.samplers[toDoSub]
         #add the poly to the subset sampler's training queue
         samp.inTraining.add(self.inTraining[-1][2])
@@ -343,7 +374,8 @@ class AdaptiveSobol(Sobol, AdaptiveSparseGrid):
         self._retrieveNeededPoints(toDoSub)
       elif which == 'subset':
         self._makeSubsetRom(toDoSub)
-        self.ROMs[toDoSub] = self.romShell[toDoSub].supervisedEngine.supervisedContainer[0]
+        self.ROMs[toDoSub] = self.romShell[
+            toDoSub].supervisedEngine.supervisedContainer[0]
         self.inTraining.append(('subset', toDoSub, self.romShell[toDoSub]))
         #get initial needed points and store them locally
         self._retrieveNeededPoints(toDoSub)
@@ -388,8 +420,9 @@ class AdaptiveSobol(Sobol, AdaptiveSparseGrid):
           break
       if not found:
         #this should not occur, but is a good sign something went wrong in developing.
-        self.raiseAnError(RuntimeError,
-                          'No point was found to generate!  This should not be possible...')
+        self.raiseAnError(
+            RuntimeError,
+            'No point was found to generate!  This should not be possible...')
     #add the number of necessary distinct points to a set (so no duplicates).
     self.distinctPoints.add(pt)
     for v, varName in enumerate(self.features):
@@ -397,12 +430,15 @@ class AdaptiveSobol(Sobol, AdaptiveSparseGrid):
       if self.variables2distributionsMapping[varName]['totDim'] == 1:
         for key in varName.strip().split(','):
           self.values[key] = pt[v]
-        self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(pt[v])
-        self.inputInfo['ProbabilityWeight-' + varName] = self.inputInfo['SampledVarsPb'][varName]
+        self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(
+            pt[v])
+        self.inputInfo['ProbabilityWeight-'
+                       + varName] = self.inputInfo['SampledVarsPb'][varName]
       # compute the SampledVarsPb for N-D distribution
       elif self.variables2distributionsMapping[varName]['totDim'] > 1 and self.variables2distributionsMapping[varName]['reducedDim'] == 1:
         dist = self.variables2distributionsMapping[varName]['name']
-        ndCoordinates = np.zeros(len(self.distributions2variablesMapping[dist]))
+        ndCoordinates = np.zeros(
+            len(self.distributions2variablesMapping[dist]))
         positionList = self.distributions2variablesIndexList[dist]
         for varDict in self.distributions2variablesMapping[dist]:
           var = utils.first(varDict.keys())
@@ -415,14 +451,19 @@ class AdaptiveSobol(Sobol, AdaptiveSparseGrid):
           if location > -1:
             ndCoordinates[positionList.index(position)] = pt[location]
           else:
-            self.raiseAnError(IOError, 'The variables ' + var +
-                              ' listed in adaptive sobol sampler, but not used in the ROM!')
+            self.raiseAnError(
+                IOError, 'The variables ' + var +
+                ' listed in adaptive sobol sampler, but not used in the ROM!')
           for key in var.strip().split(','):
             self.values[key] = pt[location]
-        self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(ndCoordinates)
-        self.inputInfo['ProbabilityWeight-' + dist] = self.inputInfo['SampledVarsPb'][varName]
-        self.inputInfo['ProbabilityWeight'] *= self.inputInfo['ProbabilityWeight-' + dist]
-    self.inputInfo['PointProbability'] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
+        self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(
+            ndCoordinates)
+        self.inputInfo['ProbabilityWeight-'
+                       + dist] = self.inputInfo['SampledVarsPb'][varName]
+        self.inputInfo['ProbabilityWeight'] *= self.inputInfo[
+            'ProbabilityWeight-' + dist]
+    self.inputInfo['PointProbability'] = reduce(
+        mul, self.inputInfo['SampledVarsPb'].values())
     self.inputInfo['SamplerType'] = 'Adaptive Sparse Grids for Sobol'
 
   def _addPointToDataObject(self, subset, point):
@@ -437,7 +478,8 @@ class AdaptiveSobol(Sobol, AdaptiveSparseGrid):
     _, inExisting = self.solns.realization(
         matchDict=self._tupleToDict(self._expandCutPoint(subset, point)))
     #add the point to the data set.
-    rlz = dict((var, np.atleast_1d(inExisting[var])) for var in pointSet.getVars())
+    rlz = dict(
+        (var, np.atleast_1d(inExisting[var])) for var in pointSet.getVars())
     pointSet.addRealization(rlz)
 
   def _calcActualImpact(self, subset, target):
@@ -609,7 +651,8 @@ class AdaptiveSobol(Sobol, AdaptiveSparseGrid):
     #train the ROM
     self.romShell[subset].train(sampler.solns)
     #store rom in dedicated use set
-    self.useSet[subset] = self.romShell[subset].supervisedEngine.supervisedContainer[0]
+    self.useSet[subset] = self.romShell[
+        subset].supervisedEngine.supervisedContainer[0]
 
   def _generateSubsets(self, subset):
     """
@@ -638,7 +681,8 @@ class AdaptiveSobol(Sobol, AdaptiveSparseGrid):
     #now, look for ones that have all necessary subsets in the use set.
     for p in use:
       if len(p) > self.maxSobolOrder:
-        self.raiseADebug('        Discarded', p, 'for too large subset cardinality.')
+        self.raiseADebug('        Discarded', p,
+                         'for too large subset cardinality.')
         continue
       #to be included, p needs all of its precedents of lower cardinality to be in the useSet already.
       neededPrecedents = list(itertools.combinations(p, len(p) - 1))
@@ -646,7 +690,8 @@ class AdaptiveSobol(Sobol, AdaptiveSparseGrid):
         self.raiseADebug('  Adding subset:', p)
         self._makeSubsetRom(p)
         #get expected impact - the max impact among from the targets
-        self.subsetExpImpact[p] = max(abs(self._calcExpImpact(p, t)) for t in self.targets)
+        self.subsetExpImpact[p] = max(
+            abs(self._calcExpImpact(p, t)) for t in self.targets)
     #now order the expected impacts so that lowest is first (-1 is highest)
     toSort = zip(self.subsetExpImpact.keys(), self.subsetExpImpact.values())
     toSort.sort(key=itemgetter(1))
@@ -702,7 +747,8 @@ class AdaptiveSobol(Sobol, AdaptiveSparseGrid):
         maxSubset = subset
     #which champion (poly or subset) is more significant? Slightly favour polynomials as a tiebreaker
     if maxPolySubset is None and maxSubset is None:
-      self.raiseAnError(RuntimeError, 'No polynomials or subsets found to consider!')
+      self.raiseAnError(RuntimeError,
+                        'No polynomials or subsets found to consider!')
     if maxPolyImpact >= maxSubsetImpact:
       self.raiseADebug('Most impactful is resolving subset', maxPolySubset)
       return 'poly', maxPolySubset, poly
@@ -741,7 +787,10 @@ class AdaptiveSobol(Sobol, AdaptiveSparseGrid):
     dataObject.type = 'PointSet'
     #write xml to set up data object
     #  -> name it the amalgamation of the subset parts
-    node = ET.Element('PointSet', {'name': '-'.join(subset), 'verbosity': self.subVerbosity})
+    node = ET.Element('PointSet', {
+        'name': '-'.join(subset),
+        'verbosity': self.subVerbosity
+    })
     inp = ET.Element('Input')
     inp.text = ','.join(s for s in subset)
     node.append(inp)
@@ -760,7 +809,8 @@ class AdaptiveSobol(Sobol, AdaptiveSparseGrid):
     """
     from .Factory import returnInstance
     verbosity = self.subVerbosity  #sets verbosity of created RAVEN objects
-    SVL = self.ROM.supervisedEngine.supervisedContainer[0]  #an example SVL for most parameters
+    SVL = self.ROM.supervisedEngine.supervisedContainer[
+        0]  #an example SVL for most parameters
     #replicate "normal" construction of the ROM
     distDict = {}
     quadDict = {}
@@ -781,8 +831,8 @@ class AdaptiveSobol(Sobol, AdaptiveSparseGrid):
     iSet.verbosity = verbosity
     #instantiate a sparse grid quadrature
     self.SQs[subset] = Quadratures.returnInstance(self.sparseGridType, self)
-    self.SQs[subset].initialize(subset, iSet, distDict, quadDict, self.jobHandler,
-                                self.messageHandler)
+    self.SQs[subset].initialize(subset, iSet, distDict, quadDict,
+                                self.jobHandler, self.messageHandler)
     #instantiate the SVLs.  Note that we need to call both __init__ and initialize with dictionaries.
     #for target in self.targets:
     initDict = {
@@ -792,7 +842,8 @@ class AdaptiveSobol(Sobol, AdaptiveSparseGrid):
         'Features': ','.join(subset),
         'Target': ','.join(self.targets)
     }
-    self.ROMs[subset] = SupervisedLearning.returnInstance('GaussPolynomialRom', self, **initDict)
+    self.ROMs[subset] = SupervisedLearning.returnInstance(
+        'GaussPolynomialRom', self, **initDict)
     initializeDict = {
         'SG': self.SQs[subset],
         'dists': distDict,
@@ -809,14 +860,18 @@ class AdaptiveSobol(Sobol, AdaptiveSparseGrid):
     self.romShell[subset].subType = 'GaussPolynomialRom'
     self.romShell[subset].messageHandler = self.messageHandler
     self.romShell[subset].verbosity = verbosity
-    self.romShell[subset].initializationOptionDict['Target'] = ','.join(self.targets)
-    self.romShell[subset].initializationOptionDict['Features'] = ','.join(subset)
+    self.romShell[subset].initializationOptionDict['Target'] = ','.join(
+        self.targets)
+    self.romShell[subset].initializationOptionDict['Features'] = ','.join(
+        subset)
     self.romShell[subset].initializationOptionDict['IndexSet'] = 'TotalDegree'
     self.romShell[subset].initializationOptionDict['PolynomialOrder'] = '1'
     self.romShell[subset]._initializeSupervisedGate(
         **self.romShell[subset].initializationOptionDict)
     #coordinate SVLs
-    self.romShell[subset].supervisedEngine.supervisedContainer = [self.ROMs[subset]]
+    self.romShell[subset].supervisedEngine.supervisedContainer = [
+        self.ROMs[subset]
+    ]
     #instantiate the adaptive sparse grid sampler for this rom
     samp = returnInstance('AdaptiveSparseGrid', self)
     samp.messageHandler = self.messageHandler
@@ -845,7 +900,8 @@ class AdaptiveSobol(Sobol, AdaptiveSparseGrid):
     for inp in self.sorted:
       if self._checkCutPoint(subset, inp):
         #get the solution
-        _, inExisting = self.solns.realization(matchDict=self._tupleToDict(inp))
+        _, inExisting = self.solns.realization(
+            matchDict=self._tupleToDict(inp))
         soln = self._dictToTuple(inExisting, output=True)
         #get the cut point
         cinp = self._extractCutPoint(subset, inp)
@@ -868,16 +924,20 @@ class AdaptiveSobol(Sobol, AdaptiveSparseGrid):
     #print status, including error; next step to make; and existing, training, and expected values
     self.stateCounter += 1
     self.statesFile.writelines(
-        '==================== STEP %s ====================\n' % self.stateCounter)
+        '==================== STEP %s ====================\n' %
+        self.stateCounter)
     #write error, next adaptive move to make in this step
     self.statesFile.writelines('\n\nError: %1.9e\n' % self.error)
-    self.statesFile.writelines('Next: %6s %8s %12s\n' % (which, ','.join(toDoSub), str(poly)))
+    self.statesFile.writelines('Next: %6s %8s %12s\n' % (which,
+                                                         ','.join(toDoSub),
+                                                         str(poly)))
     #write a summary of the state of each subset sampler: existing points, training points, yet-to-try points, and their impacts on each target
     for sub in self.useSet.keys():
       self.statesFile.writelines('-' * 50)
       self.statesFile.writelines('\nsubset %8s with impacts' % ','.join(sub))
       for t in self.targets:
-        self.statesFile.writelines(' [ %4s:%1.6e ] ' % (t, self.subsetImpact[t][sub]))
+        self.statesFile.writelines(' [ %4s:%1.6e ] ' %
+                                   (t, self.subsetImpact[t][sub]))
       self.statesFile.writelines('\n')
       #existing polynomials
       self.statesFile.writelines('ESTABLISHED:\n')
@@ -887,11 +947,12 @@ class AdaptiveSobol(Sobol, AdaptiveSparseGrid):
       self.statesFile.writelines('\n')
       for coeff in self.romShell[sub].supervisedEngine.supervisedContainer[
           0].polyCoeffDict.values()[0].keys():
-        self.statesFile.writelines('    %12s' % ','.join(str(c) for c in coeff))
+        self.statesFile.writelines('    %12s' % ','.join(
+            str(c) for c in coeff))
         for t in self.targets:
           self.statesFile.writelines(
-              '  %1.6e' %
-              self.romShell[sub].supervisedEngine.supervisedContainer[0].polyCoeffDict[t][coeff])
+              '  %1.6e' % self.romShell[sub]
+              .supervisedEngine.supervisedContainer[0].polyCoeffDict[t][coeff])
         self.statesFile.writelines('\n')
       #polynomials in training
       if any(sub == item[1] for item in self.inTraining):
@@ -903,14 +964,16 @@ class AdaptiveSobol(Sobol, AdaptiveSparseGrid):
       self.statesFile.writelines('EXPECTED:\n')
       for poly in self.samplers[sub].expImpact.values()[0].keys():
         self.statesFile.writelines('    %12s' % ','.join(str(c) for c in poly))
-        self.statesFile.writelines('  %1.6e' % self.samplers[sub].expImpact[t][poly])
+        self.statesFile.writelines(
+            '  %1.6e' % self.samplers[sub].expImpact[t][poly])
         self.statesFile.writelines('\n')
     self.statesFile.writelines('-' * 50 + '\n')
     #other subsets that haven't been started yet
     self.statesFile.writelines('EXPECTED SUBSETS\n')
     for sub, val in self.subsetExpImpact.items():
       self.statesFile.writelines('    %8s: %1.6e\n' % (','.join(sub), val))
-    self.statesFile.writelines('\n==================== END STEP ====================\n')
+    self.statesFile.writelines(
+        '\n==================== END STEP ====================\n')
 
   def _retrieveNeededPoints(self, subset):
     """
@@ -924,7 +987,8 @@ class AdaptiveSobol(Sobol, AdaptiveSparseGrid):
       cutpt = sampler.neededPoints.pop()
       fullPoint = self._expandCutPoint(subset, cutpt)
       #if this point already in local existing, put it straight into collected and sampler existing
-      _, inExisting = self.solns.realization(matchDict=self._tupleToDict(fullPoint))
+      _, inExisting = self.solns.realization(
+          matchDict=self._tupleToDict(fullPoint))
       if inExisting is not None:
         self.pointsCollected[subset].append(cutpt)
         self._addPointToDataObject(subset, cutpt)

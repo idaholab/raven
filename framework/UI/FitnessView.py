@@ -71,7 +71,8 @@ class FitnessView(BaseTopologicalView):
     self.scene = qtw.QGraphicsScene()
     self.scene.setSceneRect(0, 0, 100, 100)
     self.gView = qtw.QGraphicsView(self.scene)
-    self.gView.setRenderHints(qtg.QPainter.Antialiasing | qtg.QPainter.SmoothPixmapTransform)
+    self.gView.setRenderHints(qtg.QPainter.Antialiasing
+                              | qtg.QPainter.SmoothPixmapTransform)
     self.gView.setHorizontalScrollBarPolicy(qtc.Qt.ScrollBarAlwaysOff)
     self.gView.setVerticalScrollBarPolicy(qtc.Qt.ScrollBarAlwaysOff)
     self.font = qtg.QFont('sans-serif', 12)
@@ -83,7 +84,8 @@ class FitnessView(BaseTopologicalView):
     self.fillAction.setChecked(True)
     self.fillAction.triggered.connect(self.updateScene)
 
-    self.showNumberAction = self.rightClickMenu.addAction('Show Numeric Values')
+    self.showNumberAction = self.rightClickMenu.addAction(
+        'Show Numeric Values')
     self.showNumberAction.setCheckable(True)
     self.showNumberAction.setChecked(True)
     self.showNumberAction.triggered.connect(self.updateScene)
@@ -127,7 +129,8 @@ class FitnessView(BaseTopologicalView):
       svgGen.setDescription("Generated from RAVEN.")
       painter = qtg.QPainter(svgGen)
     else:
-      image = qtg.QImage(self.scene.sceneRect().size().toSize(), qtg.QImage.Format_ARGB32)
+      image = qtg.QImage(self.scene.sceneRect().size().toSize(),
+                         qtg.QImage.Format_ARGB32)
       image.fill(qtc.Qt.transparent)
       painter = qtg.QPainter(image)
     self.scene.render(painter)
@@ -175,8 +178,9 @@ class FitnessView(BaseTopologicalView):
     self.scene.clear()
 
     if self.fillAction.isChecked():
-      self.scene.setSceneRect(0, 0, 100 * float(self.gView.width()) / float(self.gView.height()),
-                              100)
+      self.scene.setSceneRect(
+          0, 0, 100 * float(self.gView.width()) / float(self.gView.height()),
+          100)
     else:
       self.scene.setSceneRect(0, 0, 100, 100)
 
@@ -260,7 +264,8 @@ class FitnessView(BaseTopologicalView):
           fontHeight = fm.height()
           fontWidth = fm.width(numTxtItem.text())
 
-          numTxtItem.setPos(x + (w - fontHeight) / 2., y - plotHeight + fontWidth)
+          numTxtItem.setPos(x + (w - fontHeight) / 2.,
+                            y - plotHeight + fontWidth)
           numTxtItem.rotate(285)
           numTxtItem.setFlag(qtw.QGraphicsItem.ItemIsMovable)
           numTxtItem.setFlag(qtw.QGraphicsItem.ItemIsSelectable)

@@ -189,7 +189,8 @@ class ScatterView(BaseHierarchicalView):
       if cmb.currentText() == 'Cluster':
         labels = self.mainWindow.getLabels()
         allValues[key] = np.array(
-            [self.mainWindow.getColor(label).name() for label in labels], dtype='|S7')
+            [self.mainWindow.getColor(label).name() for label in labels],
+            dtype='|S7')
         values[key] = allValues[key][rows]
         self.lblColorMaps.setEnabled(False)
         self.cmbColorMaps.setEnabled(False)
@@ -228,30 +229,37 @@ class ScatterView(BaseHierarchicalView):
     self.mplCanvas.axes.hold(True)
 
     if self.axesLabelAction.isChecked():
-      self.mplCanvas.axes.set_xlabel(self.cmbVars['X'].currentText(), size=fontSize, labelpad=10)
-      self.mplCanvas.axes.set_ylabel(self.cmbVars['Y'].currentText(), size=fontSize, labelpad=10)
+      self.mplCanvas.axes.set_xlabel(
+          self.cmbVars['X'].currentText(), size=fontSize, labelpad=10)
+      self.mplCanvas.axes.set_ylabel(
+          self.cmbVars['Y'].currentText(), size=fontSize, labelpad=10)
       if dimensionality == 3:
-        self.mplCanvas.axes.set_zlabel(self.cmbVars['Z'].currentText(), size=fontSize, labelpad=10)
+        self.mplCanvas.axes.set_zlabel(
+            self.cmbVars['Z'].currentText(), size=fontSize, labelpad=10)
 
     ticks = np.linspace(mins['X'], maxs['X'], 5)
     self.mplCanvas.axes.set_xticks(ticks)
     self.mplCanvas.axes.set_xlim([ticks[0], ticks[-1]])
     self.mplCanvas.axes.xaxis.set_ticklabels([])
     self.mplCanvas.axes.yaxis.set_ticklabels([])
-    self.mplCanvas.axes.xaxis.set_major_formatter(matplotlib.ticker.FormatStrFormatter('%.2g'))
+    self.mplCanvas.axes.xaxis.set_major_formatter(
+        matplotlib.ticker.FormatStrFormatter('%.2g'))
 
     ticks = np.linspace(mins['Y'], maxs['Y'], 5)
     self.mplCanvas.axes.set_yticks(ticks)
     self.mplCanvas.axes.set_ylim([ticks[0], ticks[-1]])
-    self.mplCanvas.axes.yaxis.set_major_formatter(matplotlib.ticker.FormatStrFormatter('%.2g'))
+    self.mplCanvas.axes.yaxis.set_major_formatter(
+        matplotlib.ticker.FormatStrFormatter('%.2g'))
 
     if dimensionality == 3:
       ticks = np.linspace(mins['Z'], maxs['Z'], 3)
       self.mplCanvas.axes.set_zticks(ticks)
       self.mplCanvas.axes.set_zlim([ticks[0], ticks[-1]])
-      self.mplCanvas.axes.zaxis.set_major_formatter(matplotlib.ticker.FormatStrFormatter('%.2g'))
+      self.mplCanvas.axes.zaxis.set_major_formatter(
+          matplotlib.ticker.FormatStrFormatter('%.2g'))
 
-    for label in (self.mplCanvas.axes.get_xticklabels() + self.mplCanvas.axes.get_yticklabels()):
+    for label in (self.mplCanvas.axes.get_xticklabels() +
+                  self.mplCanvas.axes.get_yticklabels()):
       label.set_fontsize(smallFontSize)
 
     self.mplCanvas.axes.hold(False)

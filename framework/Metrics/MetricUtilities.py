@@ -59,7 +59,8 @@ def _countWeightInBins(sortedData, binBoundaries):
   return ret
 
 
-def _getPDFandCDFfromWeightedData(data, weights, numBins, uniformBins, interpolation):
+def _getPDFandCDFfromWeightedData(data, weights, numBins, uniformBins,
+                                  interpolation):
   """
     This method is used to convert weighted data into a PDF and CDF function.
     Basically, this does kernel density estimation of weighted data.
@@ -139,9 +140,15 @@ def _getPDFandCDFfromWeightedData(data, weights, numBins, uniformBins, interpola
     else:
       fPrime = (-1.5 * f0 + 2.0 * f1 + -0.5 * f2) / h
     fPrimeData[i] = fPrime
-  pdfFunc = mathUtils.createInterp(midpoints, fPrimeData, 0.0, 0.0, interpolation)
+  pdfFunc = mathUtils.createInterp(midpoints, fPrimeData, 0.0, 0.0,
+                                   interpolation)
   mean = np.average(data, weights=weights)
-  dataStats = {"mean": mean, "minBinSize": minBinSize, "low": low, "high": high}
+  dataStats = {
+      "mean": mean,
+      "minBinSize": minBinSize,
+      "low": low,
+      "high": high
+  }
   return dataStats, cdfFunc, pdfFunc
 
 
@@ -168,7 +175,8 @@ def _convertToCommonFormat(data):
     raise IOError("Unknown type in _convertToCommonFormat")
   #Sturges method for determining number of bins
   numBins = int(math.ceil(mathUtils.log2(len(points)) + 1))
-  return _getPDFandCDFfromWeightedData(points, weights, numBins, False, 'linear')
+  return _getPDFandCDFfromWeightedData(points, weights, numBins, False,
+                                       'linear')
 
 
 def _getBounds(stats1, stats2):
@@ -218,7 +226,8 @@ def _getCDFAreaDifference(data1, data2):
   low, high = _getBounds(stats1, stats2)
   #for some earlier tests, simpson was more reliable, but much slower
   #return mathUtils.simpson(lambda x:abs(cdf1(x)-cdf2(x)),low,high,100000)
-  return scipy.integrate.quad(lambda x: abs(cdf1(x) - cdf2(x)), low, high, limit=1000)[0]
+  return scipy.integrate.quad(
+      lambda x: abs(cdf1(x) - cdf2(x)), low, high, limit=1000)[0]
 
 
 def _getPDFCommonArea(data1, data2):
@@ -234,4 +243,5 @@ def _getPDFCommonArea(data1, data2):
   low, high = _getBounds(stats1, stats2)
   #for some earlier tests, simpson was more reliable, but much slower
   #return mathUtils.simpson(lambda x:min(pdf1(x),pdf2(x)),low,high,100000)
-  return scipy.integrate.quad(lambda x: min(pdf1(x), pdf2(x)), low, high, limit=1000)[0]
+  return scipy.integrate.quad(
+      lambda x: min(pdf1(x), pdf2(x)), low, high, limit=1000)[0]

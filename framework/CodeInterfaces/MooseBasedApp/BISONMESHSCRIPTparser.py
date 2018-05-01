@@ -164,5 +164,6 @@ class BISONMESHSCRIPTparser():
         DictBlockName = self.fileOrderStorage[e][0]
         DictBlock = self.AllVarDict[DictBlockName]
         for key, value in DictBlock.items():
-          IOfile.writelines(DictBlockName + "['" + key + "'] = " + str(value) + '\n')
+          IOfile.writelines(
+              DictBlockName + "['" + key + "'] = " + str(value) + '\n')
     IOfile.close()

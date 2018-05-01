@@ -328,13 +328,13 @@ class ScatterView2D(BaseTopologicalView):
         cols = self.amsc.GetNeighbors(row)
         for col in cols:
           if col in rows + minIdxs + maxIdxs:
-            lines.append([(allValues['X'][row], allValues['Y'][row]), (allValues['X'][col],
-                                                                       allValues['Y'][col])])
+            lines.append([(allValues['X'][row], allValues['Y'][row]),
+                          (allValues['X'][col], allValues['Y'][col])])
             if self.cmbVars['Color'].currentText() not in specialColorKeywords:
               lineColors.append(
                   myColormap(
-                      ((allValues['Color'][row] + allValues['Color'][col]) / 2. - mins['Color']) /
-                      (maxs['Color'] - mins['Color'])))
+                      ((allValues['Color'][row] + allValues['Color'][col]) / 2.
+                       - mins['Color']) / (maxs['Color'] - mins['Color'])))
             elif allValues['Color'][row] == allValues['Color'][col]:
               lineColors.append(allValues['Color'][row])
             else:
@@ -406,8 +406,10 @@ class ScatterView2D(BaseTopologicalView):
           edgecolors=minDrawParams['edgecolors'])
 
     if self.axesLabelAction.isChecked():
-      self.mplCanvas.axes.set_xlabel(self.cmbVars['X'].currentText(), size=fontSize, labelpad=10)
-      self.mplCanvas.axes.set_ylabel(self.cmbVars['Y'].currentText(), size=fontSize, labelpad=10)
+      self.mplCanvas.axes.set_xlabel(
+          self.cmbVars['X'].currentText(), size=fontSize, labelpad=10)
+      self.mplCanvas.axes.set_ylabel(
+          self.cmbVars['Y'].currentText(), size=fontSize, labelpad=10)
 
     ticks = np.linspace(mins['X'], maxs['X'], 5)
     self.mplCanvas.axes.set_xticks(ticks)
@@ -418,7 +420,8 @@ class ScatterView2D(BaseTopologicalView):
     self.mplCanvas.axes.set_yticks(ticks)
     self.mplCanvas.axes.set_ylim([ticks[0], ticks[-1]])
 
-    for label in (self.mplCanvas.axes.get_xticklabels() + self.mplCanvas.axes.get_yticklabels()):
+    for label in (self.mplCanvas.axes.get_xticklabels() +
+                  self.mplCanvas.axes.get_yticklabels()):
       label.set_fontsize(smallFontSize)
 
     self.mplCanvas.axes.hold(False)

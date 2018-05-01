@@ -71,7 +71,9 @@ def parse(inFile, dType=None):
   if dType.lower() == 'xml':
     #try:
     parser = ET.XMLParser(target=CommentedTreeBuilder())
-    xmltree = ET.parse(inFile, parser=parser)  #parser is defined below, under XMLCommentParser
+    xmltree = ET.parse(
+        inFile,
+        parser=parser)  #parser is defined below, under XMLCommentParser
     tree = xmlToInputTree(xmltree)
     #except Exception as e:
     #  print('ERROR: Input parsing error!')
@@ -218,8 +220,8 @@ def getpotToInputTree(getpot):
       attribute, value = list(i.strip() for i in line.split('='))
       value = value.strip("'")
       if attribute in currentNode.attrib.keys():
-        raise IOError(
-            'Multiple attributes defined with same name! "' + attribute + '" = "' + value + '"')
+        raise IOError('Multiple attributes defined with same name! "' +
+                      attribute + '" = "' + value + '"')
       #special keywords: "name" and "value"
       elif attribute == 'value':
         currentNode.text = value
@@ -262,7 +264,8 @@ def inputTreeToXml(ts, fromNode=False):
           xNode.append(ET.Comment(comment))
       if child.text is None:
         child.text = ''
-      childNode = xmlUtils.newNode(child.tag, text=child.text, attrib=child.attrib)
+      childNode = xmlUtils.newNode(
+          child.tag, text=child.text, attrib=child.attrib)
       xNode.append(childNode)
       addChildren(childNode, child)
 
@@ -396,7 +399,8 @@ class InputNode:
     self.tag = tag  #node name, in XML known as "tag"
     self.text = text  #node text, same in XML
     self.children = []  #branches off of this node
-    self.comments = [comment] if comment is not None else []  #allow for multiple comments
+    self.comments = [comment] if comment is not None else [
+    ]  #allow for multiple comments
 
   def __eq__(self, other):
     """
@@ -429,7 +433,8 @@ class InputNode:
       @ In, None
       @ Out, hash, tuple, name and values and text
     """
-    return hash(tuple((self.tag, tuple(sorted(self.attrib.items())), self.text)))
+    return hash(
+        tuple((self.tag, tuple(sorted(self.attrib.items())), self.text)))
 
   def __iter__(self):
     """
@@ -474,9 +479,8 @@ class InputNode:
       @ In, None
       @ Out, __repr__, string, representation of the object
     """
-    return "<Node %s attrib=%s at 0x%x containing %s branches>" % (repr(self.tag),
-                                                                   str(self.attrib), id(self),
-                                                                   repr(len(self)))
+    return "<Node %s attrib=%s at 0x%x containing %s branches>" % (
+        repr(self.tag), str(self.attrib), id(self), repr(len(self)))
 
   #methods
   def add(self, key, value):
@@ -572,8 +576,8 @@ class InputNode:
         node = xmlToInputTree(tree).getroot()
       else:
         raise TypeError(
-            'TREE-STRUCTURE ERROR: When trying to use node "{}", unrecognized type "{}"!'.format(
-                node, type(node)))
+            'TREE-STRUCTURE ERROR: When trying to use node "{}", unrecognized type "{}"!'.
+            format(node, type(node)))
     return node
 
   def printXML(self):
@@ -676,7 +680,8 @@ class HierarchicalNode(MessageHandler.MessageUser):
       @ In, None
       @ Out, hash, tuple, name and values and text
     """
-    return hash(tuple(self.name, tuple(sorted(self.values.items())), self.text))
+    return hash(
+        tuple(self.name, tuple(sorted(self.values.items())), self.text))
 
   def __iter__(self):
     """
@@ -696,9 +701,8 @@ class HierarchicalNode(MessageHandler.MessageUser):
       @ In, None
       @ Out, __repr__, string, the representation of this object
     """
-    return "<Node %s values=%s at 0x%x containing %s branches>" % (repr(self.name),
-                                                                   str(self.values), id(self),
-                                                                   repr(len(self._branches)))
+    return "<Node %s values=%s at 0x%x containing %s branches>" % (
+        repr(self.name), str(self.values), id(self), repr(len(self._branches)))
 
   def copyNode(self):
     """
@@ -937,14 +941,14 @@ class HierarchicalNode(MessageHandler.MessageUser):
       @ In, dumpFileObj, file instance, file instance(opened file)
       @ Out, None
     """
-    dumpFileObj.write(
-        ' ' + '  ' * self.depth + '<branch name="' + self.name + '" parent_name="' +
-        self.parentname + '"' + ' n_branches="' + str(self.numberBranches()) + '" >\n')
+    dumpFileObj.write(' ' + '  ' * self.depth + '<branch name="' + self.name +
+                      '" parent_name="' + self.parentname + '"' +
+                      ' n_branches="' + str(self.numberBranches()) + '" >\n')
     if len(self.values.keys()) > 0:
       dumpFileObj.write(' ' + '  ' * self.depth + '  <attributes>\n')
     for key, value in self.values.items():
-      dumpFileObj.write(
-          ' ' + '  ' * self.depth + '    <' + key + '>' + str(value) + '</' + key + '>\n')
+      dumpFileObj.write(' ' + '  ' * self.depth + '    <' + key + '>' +
+                        str(value) + '</' + key + '>\n')
     if len(self.values.keys()) > 0:
       dumpFileObj.write(' ' + '  ' * self.depth + '  </attributes>\n')
     for e in self._branches:
@@ -965,7 +969,8 @@ class HierarchicalNode(MessageHandler.MessageUser):
     if len(self.values.keys()) > 0:
       msg += '' + '  ' * self.depth + '  <attributes>\n'
     for key, value in self.values.items():
-      msg += ' ' + '  ' * self.depth + '    <' + key + '>' + str(value) + '</' + key + '>\n'
+      msg += ' ' + '  ' * self.depth + '    <' + key + '>' + str(
+          value) + '</' + key + '>\n'
     if len(self.values.keys()) > 0:
       msg += '' + '  ' * self.depth + '  </attributes>\n'
     for e in self._branches:
@@ -1043,8 +1048,10 @@ class HierarchicalTree(MessageHandler.MessageUser):
       self.type = 'NodeTree'
     self.printTag = self.type + '<' + str(node) + '>'
     if type(messageHandler) != MessageHandler.MessageHandler:
-      raise (IOError, 'Tried to initialize NodeTree without a message handler!  Was given: ' +
-             str(messageHandler))
+      raise (
+          IOError,
+          'Tried to initialize NodeTree without a message handler!  Was given: '
+          + str(messageHandler))
     self.messageHandler = messageHandler
     self._rootnode = node
     if node:
@@ -1189,7 +1196,8 @@ class MetadataTree(HierarchicalTree):
   #TODO change to inherit from InputTree or base Tree
   def __init__(self, messageHandler, rootName):
     self.pivotParam = None
-    node = HierarchicalNode(messageHandler, rootName, valuesIn={'dynamic': str(self.dynamic)})
+    node = HierarchicalNode(
+        messageHandler, rootName, valuesIn={'dynamic': str(self.dynamic)})
     HierarchicalTree.__init__(self, messageHandler, node)
 
   def __repr__(self):
@@ -1296,9 +1304,11 @@ class DynamicMetadataTree(MetadataTree):
         continue
       # careful with inequality signs to check for match
       if pivotVal > 0:
-        foundCondition = abs(float(child.get('value')) - pivotVal) <= 1e-10 * pivotVal
+        foundCondition = abs(
+            float(child.get('value')) - pivotVal) <= 1e-10 * pivotVal
       else:
-        foundCondition = abs(float(child.get('value')) - pivotVal) >= 1e-10 * pivotVal
+        foundCondition = abs(
+            float(child.get('value')) - pivotVal) >= 1e-10 * pivotVal
       if foundCondition:
         pivotNode = child
         found = True

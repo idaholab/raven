@@ -63,7 +63,8 @@ class Function(BaseType):
         'residuum': False,
         'gradient': False
     }
-    self.__inputVariables = []  # list of variables' names' given in input (xml)
+    self.__inputVariables = [
+    ]  # list of variables' names' given in input (xml)
     self.__inputFromWhat = {}  # dictionary of input data type
     self.__inputFromWhat['dict'] = self.__inputFromDict
     #self.__inputFromWhat['Data']         = self.__inputFromData
@@ -83,25 +84,32 @@ class Function(BaseType):
       moduleToLoadString, self.functionFile = utils.identifyIfExternalModelExists(
           self, self.functionFile, self.workingDir)
       # import the external function
-      importedModule = utils.importFromPath(moduleToLoadString,
-                                            self.messageHandler.getDesiredVerbosity(self) > 1)
+      importedModule = utils.importFromPath(
+          moduleToLoadString,
+          self.messageHandler.getDesiredVerbosity(self) > 1)
       if not importedModule:
-        self.raiseAnError(IOError, 'Failed to import the module ' + moduleToLoadString +
+        self.raiseAnError(IOError,
+                          'Failed to import the module ' + moduleToLoadString +
                           ' supposed to contain the function: ' + self.name)
       #here the methods in the imported file are brought inside the class
       for method in importedModule.__dict__.keys():
         if method in [
-            '__residuumSign__', '__residuumSign', 'residuumSign', '__supportBoundingTest__',
-            '__supportBoundingTest', 'supportBoundingTest', '__residuum__', '__residuum',
-            'residuum', '__gradient__', '__gradient', 'gradient'
+            '__residuumSign__', '__residuumSign', 'residuumSign',
+            '__supportBoundingTest__', '__supportBoundingTest',
+            'supportBoundingTest', '__residuum__', '__residuum', 'residuum',
+            '__gradient__', '__gradient', 'gradient'
         ]:
           if method in ['__residuumSign__', '__residuumSign', 'residuumSign']:
             self.__residuumSign = importedModule.__dict__[method]
             self.__actionDictionary['residuumSign'] = self.__residuumSign
             self.__actionImplemented['residuumSign'] = True
-          if method in ['__supportBoundingTest__', '__supportBoundingTest', 'supportBoundingTest']:
+          if method in [
+              '__supportBoundingTest__', '__supportBoundingTest',
+              'supportBoundingTest'
+          ]:
             self.__supportBoundingTest = importedModule.__dict__[method]
-            self.__actionDictionary['supportBoundingTest'] = self.__supportBoundingTest
+            self.__actionDictionary[
+                'supportBoundingTest'] = self.__supportBoundingTest
             self.__actionImplemented['supportBoundingTest'] = True
           if method in ['__residuum__', '__residuum', 'residuum']:
             self.__residuum = importedModule.__dict__[method]
@@ -118,8 +126,8 @@ class Function(BaseType):
     else:
       self.raiseAnError(
           IOError,
-          'No file name for the external function has been provided for external function ' +
-          self.name + ' of type ' + self.type)
+          'No file name for the external function has been provided for external function '
+          + self.name + ' of type ' + self.type)
     cnt = 0
     for child in xmlNode:
       if child.tag == 'variable':
@@ -127,11 +135,13 @@ class Function(BaseType):
         self.__inputVariables.append(child.text)
         cnt += 1
         if len(child.attrib.keys()) > 0:
-          self.raiseAnError(IOError, 'variable block in the definition of the function ' +
-                            self.name + ' should not have any attribute!')
+          self.raiseAnError(
+              IOError, 'variable block in the definition of the function ' +
+              self.name + ' should not have any attribute!')
     if cnt == 0:
-      self.raiseAnError(IOError,
-                        'not variable found in the definition of the function ' + self.name)
+      self.raiseAnError(
+          IOError,
+          'not variable found in the definition of the function ' + self.name)
 
   def getInitParams(self):
     """
@@ -144,12 +154,19 @@ class Function(BaseType):
     """
     paramDict = {}
     paramDict['Module file name'] = self.functionFile
-    paramDict['The residuum is provided'] = self.__actionImplemented['residuum']
-    paramDict['The sign of the residuum is provided'] = self.__actionImplemented['residuumSign']
-    paramDict['The gradient is provided'] = self.__actionImplemented['gradient']
-    paramDict['The support bonding is provided'] = self.__actionImplemented['supportBoundingTest']
+    paramDict['The residuum is provided'] = self.__actionImplemented[
+        'residuum']
+    paramDict[
+        'The sign of the residuum is provided'] = self.__actionImplemented[
+            'residuumSign']
+    paramDict['The gradient is provided'] = self.__actionImplemented[
+        'gradient']
+    paramDict['The support bonding is provided'] = self.__actionImplemented[
+        'supportBoundingTest']
     for key, value in enumerate(self.__actionImplemented):
-      if key not in ['residualSign', 'supportBoundingTest', 'residual', 'gradient']:
+      if key not in [
+          'residualSign', 'supportBoundingTest', 'residual', 'gradient'
+      ]:
         paramDict['Custom Function'] = value
     return paramDict
 
@@ -166,7 +183,9 @@ class Function(BaseType):
     paramDict = {}
     for key in self.__inputVariables:
       execCommand(
-          "object['variable " + str(key) + " has value']=self." + key, self=self, object=paramDict)
+          "object['variable " + str(key) + " has value']=self." + key,
+          self=self,
+          object=paramDict)
     return paramDict
 
   def __importValues(self, myInput):
@@ -178,8 +197,9 @@ class Function(BaseType):
     if type(myInput) == dict:
       self.__inputFromWhat['dict'](myInput)
     else:
-      self.raiseAnError(IOError,
-                        'Unknown type of input provided to the function ' + str(self.name))
+      self.raiseAnError(
+          IOError,
+          'Unknown type of input provided to the function ' + str(self.name))
 
   def __inputFromDict(self, myInputDict):
     """
@@ -195,11 +215,13 @@ class Function(BaseType):
       inDict = myInputDict
     for name in self.__inputVariables:
       if name in inDict.keys():
-        execCommand('self.' + name + '=object["' + name + '"]', self=self, object=inDict)
+        execCommand(
+            'self.' + name + '=object["' + name + '"]',
+            self=self,
+            object=inDict)
       else:
-        self.raiseAnError(
-            IOError,
-            'The input variable ' + name + ' in external function seems not to be passed in')
+        self.raiseAnError(IOError, 'The input variable ' + name +
+                          ' in external function seems not to be passed in')
 
   def evaluate(self, what, myInput):
     """
@@ -210,7 +232,8 @@ class Function(BaseType):
     """
     self.__importValues(myInput)
     if what not in self.__actionDictionary:
-      self.raiseAnError(IOError, 'Method ' + what + ' not defined in ' + self.name)
+      self.raiseAnError(IOError,
+                        'Method ' + what + ' not defined in ' + self.name)
     response = self.__actionDictionary[what](self)
     return response
 
@@ -262,4 +285,5 @@ def returnInstance(Type, runInfoDict, caller):
   if Type in knownTypes():
     return __interFaceDict[Type](runInfoDict)
   else:
-    caller.raiseAnError(NameError, 'FUNCTIONS', 'not known ' + __base + ' type ' + Type)
+    caller.raiseAnError(NameError, 'FUNCTIONS',
+                        'not known ' + __base + ' type ' + Type)

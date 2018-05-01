@@ -73,34 +73,44 @@ class HistorySetSampling(PostProcessorInterfaceBase):
       elif child.tag == 'interpolation':
         self.interpolation = child.text
       elif child.tag != 'method':
-        self.raiseAnError(IOError, 'HistorySetSampling Interfaced Post-Processor ' +
-                          str(self.name) + ' : XML node ' + str(child) + ' is not recognized')
+        self.raiseAnError(
+            IOError,
+            'HistorySetSampling Interfaced Post-Processor ' + str(self.name) +
+            ' : XML node ' + str(child) + ' is not recognized')
 
     if self.samplingType not in set([
-        'uniform', 'firstDerivative', 'secondDerivative', 'filteredFirstDerivative',
-        'filteredSecondDerivative'
+        'uniform', 'firstDerivative', 'secondDerivative',
+        'filteredFirstDerivative', 'filteredSecondDerivative'
     ]):
-      self.raiseAnError(IOError, 'HistorySetSampling Interfaced Post-Processor ' + str(self.name) +
-                        ' : sampling type is not correctly specified')
+      self.raiseAnError(
+          IOError, 'HistorySetSampling Interfaced Post-Processor ' +
+          str(self.name) + ' : sampling type is not correctly specified')
     if self.pivotParameter is None:
-      self.raiseAnError(IOError, 'HistorySetSampling Interfaced Post-Processor ' + str(self.name) +
-                        ' : time ID is not specified')
+      self.raiseAnError(IOError,
+                        'HistorySetSampling Interfaced Post-Processor ' +
+                        str(self.name) + ' : time ID is not specified')
 
     if self.samplingType == 'uniform' or self.samplingType == 'firstDerivative' or self.samplingType == 'secondDerivative':
       if self.numberOfSamples is None or self.numberOfSamples < 0:
-        self.raiseAnError(IOError, 'HistorySetSampling Interfaced Post-Processor ' +
-                          str(self.name) + ' : number of samples is not specified or less than 0')
-      if self.interpolation not in set(
-          ['linear', 'nearest', 'zero', 'slinear', 'quadratic', 'cubic', 'intervalAverage']):
         self.raiseAnError(
-            IOError, 'HistorySetSampling Interfaced Post-Processor ' + str(self.name) +
+            IOError,
+            'HistorySetSampling Interfaced Post-Processor ' + str(self.name) +
+            ' : number of samples is not specified or less than 0')
+      if self.interpolation not in set([
+          'linear', 'nearest', 'zero', 'slinear', 'quadratic', 'cubic',
+          'intervalAverage'
+      ]):
+        self.raiseAnError(
+            IOError,
+            'HistorySetSampling Interfaced Post-Processor ' + str(self.name) +
             ' : interpolation is not correctly specified; possible values: linear, nearest, zero, slinear, quadratic, cubic'
         )
 
     if self.samplingType == 'filteredFirstDerivative' or self.samplingType == 'filteredSecondDerivative':
       if self.tolerance is None or self.tolerance < 0.0:
-        self.raiseAnError(IOError, 'HistorySetSampling Interfaced Post-Processor ' +
-                          str(self.name) + ' : tolerance is not specified or less than 0')
+        self.raiseAnError(
+            IOError, 'HistorySetSampling Interfaced Post-Processor ' +
+            str(self.name) + ' : tolerance is not specified or less than 0')
 
   def run(self, inputDic):
     """
@@ -110,8 +120,9 @@ class HistorySetSampling(PostProcessorInterfaceBase):
     """
     # check that we only have one data object
     if len(inputDic) > 1:
-      self.raiseAnError(IOError, 'HistorySetSampling Interfaced Post-Processor ' + str(self.name) +
-                        ' accepts only one dataObject')
+      self.raiseAnError(IOError,
+                        'HistorySetSampling Interfaced Post-Processor ' +
+                        str(self.name) + ' accepts only one dataObject')
 
     # grab the first (and only) data object
     inputDic = inputDic[0]
@@ -129,20 +140,28 @@ class HistorySetSampling(PostProcessorInterfaceBase):
       rlz[self.pivotParameter] = inputDic['data'][self.pivotParameter][hist]
 
       # do the sampling based on what the user requested
-      if self.samplingType in ['uniform', 'firstDerivative', 'secondDerivative']:
+      if self.samplingType in [
+          'uniform', 'firstDerivative', 'secondDerivative'
+      ]:
         outData = self.varsTimeInterp(rlz)
-      elif self.samplingType in ['filteredFirstDerivative', 'filteredSecondDerivative']:
-        outData = timeSeriesFilter(self.pivotParameter, rlz, self.samplingType, self.tolerance)
+      elif self.samplingType in [
+          'filteredFirstDerivative', 'filteredSecondDerivative'
+      ]:
+        outData = timeSeriesFilter(self.pivotParameter, rlz, self.samplingType,
+                                   self.tolerance)
       else:
-        self.raiseAnError(IOError, 'HistorySetSampling Interfaced Post-Processor ' +
+        self.raiseAnError(IOError,
+                          'HistorySetSampling Interfaced Post-Processor ' +
                           str(self.name) + ' : not recognized samplingType')
 
       for var in outData.keys():
-        outputDic['data'][var] = np.zeros(inputDic['numberRealizations'], dtype=object)
+        outputDic['data'][var] = np.zeros(
+            inputDic['numberRealizations'], dtype=object)
         outputDic['data'][var][hist] = outData[var]
 
     if 'ProbabilityWeight' in inputDic['data'].keys():
-      outputDic['data']['ProbabilityWeight'] = inputDic['data']['ProbabilityWeight']
+      outputDic['data']['ProbabilityWeight'] = inputDic['data'][
+          'ProbabilityWeight']
     if 'prefix' in inputDic['data'].keys():
       outputDic['data']['prefix'] = inputDic['data']['prefix']
     outputDic['dims'] = copy.deepcopy(inputDic['dims'])
@@ -170,8 +189,9 @@ class HistorySetSampling(PostProcessorInterfaceBase):
     elif self.samplingType == 'firstDerivative' or self.samplingType == 'secondDerivative':
       newTime = self.derivativeTimeValues(vars)
     else:
-      self.raiseAnError(RuntimeError, 'type ' + self.samplingType +
-                        ' is not a valid type. Function: varsTimeInterp (mathUtils)')
+      self.raiseAnError(
+          RuntimeError, 'type ' + self.samplingType +
+          ' is not a valid type. Function: varsTimeInterp (mathUtils)')
 
     for key in vars.keys():
       if key == self.pivotParameter:
@@ -182,12 +202,15 @@ class HistorySetSampling(PostProcessorInterfaceBase):
           deltaT = newTime[1] - newTime[0] if len(newTime) > 1 else tMax
           for tIdx in range(len(newTime)):
             t = newTime[tIdx]
-            extractCondition = (localPivotParameter >= t) * (localPivotParameter <= t + deltaT)
+            extractCondition = (localPivotParameter >= t) * (
+                localPivotParameter <= t + deltaT)
             extractVar = np.extract(extractCondition, vars[key])
             extractTime = np.extract(extractCondition, localPivotParameter)
-            newVars[key][tIdx] = integrate.trapz(extractVar, extractTime) / deltaT
+            newVars[key][tIdx] = integrate.trapz(extractVar,
+                                                 extractTime) / deltaT
         else:
-          interp = interpolate.interp1d(vars[self.pivotParameter], vars[key], self.interpolation)
+          interp = interpolate.interp1d(vars[self.pivotParameter], vars[key],
+                                        self.interpolation)
           newVars[key] = interp(newTime)
     return newVars
 
@@ -219,27 +242,30 @@ class HistorySetSampling(PostProcessorInterfaceBase):
       for t in range(1, normalizedVar[self.pivotParameter].shape[0]):
         t_contrib = 0.0
         for keys in normalizedVar.keys():
-          t_contrib += abs(normalizedVar[keys][t] - normalizedVar[keys][t - 1]) / (
-              normalizedVar[self.pivotParameter][t] - normalizedVar[self.pivotParameter][t - 1])
+          t_contrib += abs(normalizedVar[keys][t] - normalizedVar[keys][t - 1]
+                           ) / (normalizedVar[self.pivotParameter][t] -
+                                normalizedVar[self.pivotParameter][t - 1])
         cumDerivative[t] = cumDerivative[t - 1] + t_contrib
 
     elif self.samplingType == 'secondDerivative':
       for t in range(1, normalizedVar[self.pivotParameter].shape[0] - 1):
         t_contrib = 0.0
         for keys in normalizedVar.keys():
-          t_contrib += abs(normalizedVar[keys][t + 1] - 2.0 * normalizedVar[keys][t] +
-                           normalizedVar[keys][t - 1]) / (
-                               normalizedVar[self.pivotParameter][t] -
-                               normalizedVar[self.pivotParameter][t - 1])**2
+          t_contrib += abs(
+              normalizedVar[keys][t + 1] - 2.0 * normalizedVar[keys][t] +
+              normalizedVar[keys][t - 1]) / (
+                  normalizedVar[self.pivotParameter][t] -
+                  normalizedVar[self.pivotParameter][t - 1])**2
         cumDerivative[t] = cumDerivative[t - 1] + t_contrib
-      cumDerivative[-1] = cumDerivative[normalizedVar[self.pivotParameter].shape[0] - 2]
+      cumDerivative[-1] = cumDerivative[
+          normalizedVar[self.pivotParameter].shape[0] - 2]
 
     else:
-      self.raiseAnError(
-          RuntimeError,
-          'type ' + self.samplingType + ' is not a valid type. Function: derivativeTimeValues')
+      self.raiseAnError(RuntimeError, 'type ' + self.samplingType +
+                        ' is not a valid type. Function: derivativeTimeValues')
 
-    cumDamageInstant = np.linspace(cumDerivative[0], cumDerivative[-1], self.numberOfSamples)
+    cumDamageInstant = np.linspace(cumDerivative[0], cumDerivative[-1],
+                                   self.numberOfSamples)
 
     for i in range(self.numberOfSamples - 1):
       index = (np.abs(cumDerivative - cumDamageInstant[i])).argmin()
@@ -263,15 +289,17 @@ def timeSeriesFilter(pivotParameter, vars, filterType, filterValue):
       t_contrib = 0.0
       for keys in vars.keys():
         if keys != pivotParameter:
-          t_contrib += abs((vars[keys][t] - vars[keys][t - 1]) /
-                           (vars[pivotParameter][t] - vars[pivotParameter][t - 1]))
+          t_contrib += abs(
+              (vars[keys][t] - vars[keys][t - 1]) /
+              (vars[pivotParameter][t] - vars[pivotParameter][t - 1]))
       derivative[t] = t_contrib
   elif filterType == 'filteredSecondDerivative':
     for t in range(1, vars[pivotParameter].size - 1):
       t_contrib = 0.0
       for keys in vars.keys():
-        t_contrib += abs((vars[keys][t + 1] - 2.0 * vars[keys][t] + vars[keys][t - 1]) /
-                         (vars[pivotParameter][t] - vars[pivotParameter][t - 1])**2)
+        t_contrib += abs(
+            (vars[keys][t + 1] - 2.0 * vars[keys][t] + vars[keys][t - 1]) /
+            (vars[pivotParameter][t] - vars[pivotParameter][t - 1])**2)
       derivative[t] = t_contrib
     derivative[-1] = derivative[len(vars[pivotParameter]) - 2]
 

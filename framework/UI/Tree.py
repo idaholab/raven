@@ -184,8 +184,8 @@ class Node(object):
 
           count = child.getLeafCount(truncationSize, truncationLevel)
           myWidth = float(count) / totalCount * width
-          (childIds, childPoints, childEdges) = child.Layout(myOffset, myWidth, truncationSize,
-                                                             truncationLevel)
+          (childIds, childPoints, childEdges) = child.Layout(
+              myOffset, myWidth, truncationSize, truncationLevel)
           ids.extend(childIds)
           points.extend(childPoints)
           edges.extend(childEdges)

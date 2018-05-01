@@ -86,9 +86,13 @@ class Minkowski(Metric):
             value = math.pow(value, 1.0 / self.p)
             return value
           else:
-            print('Metric Minkowski error: the length of the variable array ' + str(key) +
-                  ' is not consistent among the two data sets')
+            print('Metric Minkowski error: the length of the variable array ' +
+                  str(key) + ' is not consistent among the two data sets')
       else:
-        print('Metric Minkowski error: the two data sets do not contain the same variables')
+        print(
+            'Metric Minkowski error: the two data sets do not contain the same variables'
+        )
     else:
-      print('Metric Minkowski error: the structures of the two data sets are different')
+      print(
+          'Metric Minkowski error: the structures of the two data sets are different'
+      )

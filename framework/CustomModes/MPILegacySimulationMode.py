@@ -42,12 +42,15 @@ def createAndRunQSUB(runInfoDict):
   #batchSize = runInfoDict['batchSize']
   frameworkDir = runInfoDict["FrameworkDir"]
   ncpus = runInfoDict['NumThreads']
-  jobName = runInfoDict['JobName'] if 'JobName' in runInfoDict.keys() else 'raven_qsub'
+  jobName = runInfoDict[
+      'JobName'] if 'JobName' in runInfoDict.keys() else 'raven_qsub'
   #check invalid characters
-  validChars = set(string.ascii_letters).union(set(string.digits)).union(set('-_'))
+  validChars = set(string.ascii_letters).union(set(string.digits)).union(
+      set('-_'))
   if any(char not in validChars for char in jobName):
     raise IOError(
-        'JobName can only contain alphanumeric and "_", "-" characters! Received' + jobName)
+        'JobName can only contain alphanumeric and "_", "-" characters! Received'
+        + jobName)
   #check jobName for length
   if len(jobName) > 15:
     jobName = jobName[:10] + '-' + jobName[-4:]
@@ -122,8 +125,9 @@ class MPILegacySimulationMode(Simulation.SimulationMode):
       maxBatchsize = max(int(math.floor(len(lines) / numMPI)), 1)
       if maxBatchsize < oldBatchsize:
         newRunInfo['batchSize'] = maxBatchsize
-        self.raiseAWarning("changing batchsize from " + str(oldBatchsize) + " to " +
-                           str(maxBatchsize) + " to fit on " + str(len(lines)) + " processors")
+        self.raiseAWarning("changing batchsize from " + str(oldBatchsize) +
+                           " to " + str(maxBatchsize) + " to fit on " +
+                           str(len(lines)) + " processors")
       newBatchsize = newRunInfo['batchSize']
       if newBatchsize > 1:
         #need to split node lines so that numMPI nodes are available per run
@@ -171,23 +175,29 @@ class MPILegacySimulationMode(Simulation.SimulationMode):
           fullGroupCount = 0
           for group in groups:
             if len(group) < numMPI:
-              self.raiseAWarning("not using part of node because of partial group: " + str(group))
+              self.raiseAWarning(
+                  "not using part of node because of partial group: " +
+                  str(group))
             else:
-              nodeFile = open(os.path.join(workingDir, "node_" + str(fullGroupCount)), "w")
+              nodeFile = open(
+                  os.path.join(workingDir, "node_" + str(fullGroupCount)), "w")
               for node in group:
                 print(node, file=nodeFile)
               nodeFile.close()
               fullGroupCount += 1
           if fullGroupCount == 0:
             self.raiseAnError(
-                IOError, "Cannot run with given parameters because no nodes have numMPI " +
-                str(numMPI) + " available and NoSplitNode is " + str(self.__noSplitNode) +
-                " and LimitNode is " + str(self.__limitNode))
+                IOError,
+                "Cannot run with given parameters because no nodes have numMPI "
+                + str(numMPI) + " available and NoSplitNode is " + str(
+                    self.__noSplitNode) + " and LimitNode is " + str(
+                        self.__limitNode))
           if fullGroupCount != newRunInfo['batchSize']:
             self.raiseAWarning(
-                "changing batchsize to " + str(fullGroupCount) + " because NoSplitNode is " +
-                str(self.__noSplitNode) + " and LimitNode is " + str(self.__limitNode) +
-                " and some nodes could not be used.")
+                "changing batchsize to " + str(fullGroupCount) +
+                " because NoSplitNode is " +
+                str(self.__noSplitNode) + " and LimitNode is " + str(
+                    self.__limitNode) + " and some nodes could not be used.")
             newRunInfo['batchSize'] = fullGroupCount
 
         #then give each index a separate file.
@@ -209,13 +219,16 @@ class MPILegacySimulationMode(Simulation.SimulationMode):
 
     # Create the mpiexec pre command
     # Note, with defaults the precommand is "mpiexec -f nodeFile -n numMPI"
-    newRunInfo['precommand'] = runInfoDict["MPIExec"] + " " + nodeCommand + " -n " + str(
-        numMPI) + " " + runInfoDict['precommand']
+    newRunInfo[
+        'precommand'] = runInfoDict["MPIExec"] + " " + nodeCommand + " -n " + str(
+            numMPI) + " " + runInfoDict['precommand']
     if (runInfoDict['NumThreads'] > 1):
       #add number of threads to the post command.
-      newRunInfo['postcommand'] = " --n-threads=%NUM_CPUS% " + runInfoDict['postcommand']
-    self.raiseAMessage("precommand: " + newRunInfo['precommand'] + ", postcommand: " +
-                       newRunInfo.get('postcommand', runInfoDict['postcommand']))
+      newRunInfo[
+          'postcommand'] = " --n-threads=%NUM_CPUS% " + runInfoDict['postcommand']
+    self.raiseAMessage(
+        "precommand: " + newRunInfo['precommand'] + ", postcommand: " +
+        newRunInfo.get('postcommand', runInfoDict['postcommand']))
     return newRunInfo
 
   def remoteRunCommand(self, runInfoDict):
@@ -258,7 +271,8 @@ class MPILegacySimulationMode(Simulation.SimulationMode):
         if self.__maxOnNode is not None:
           self.__maxOnNode = int(self.__maxOnNode)
         else:
-          self.raiseAnError(IOError, "maxOnNode must be specified with LimitNode")
+          self.raiseAnError(IOError,
+                            "maxOnNode must be specified with LimitNode")
         if "noOverlap" in child.attrib and child.attrib["noOverlap"].lower(
         ) in utils.stringsThatMeanTrue():
           self.__noOverlap = True

@@ -59,12 +59,14 @@ class MelgenApp():
         found = True
         break
     if not found:
-      raise IOError("Unknown input extension. Expected input file extensions are " +
-                    ",".join(self.inputExtensions))
+      raise IOError(
+          "Unknown input extension. Expected input file extensions are " +
+          ",".join(self.inputExtensions))
     if clargs:
       precommand = executable + clargs['text']
     else:
       precommand = executable
-    executeCommand = [('serial', precommand + ' ' + inputFiles[index].getFilename())]
+    executeCommand = [('serial',
+                       precommand + ' ' + inputFiles[index].getFilename())]
     returnCommand = executeCommand, outputfile
     return returnCommand

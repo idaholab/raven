@@ -53,7 +53,8 @@ class MAAP5(GenericCode):
     }  #{'folder_name':[['variable branch_1','variable value_1'],['variable branch_2','variable value_2']]} for each DET sampled variables
     self.printInterval = ''  #value of the print interval
     self.boolOutputVariables = []  #list of MAAP5 boolean variables of interest
-    self.contOutputVariables = []  #list of MAAP5 continuous variables of interest
+    self.contOutputVariables = [
+    ]  #list of MAAP5 continuous variables of interest
     ###########
     self.multiBranchOccurred = []
     ###########
@@ -71,12 +72,14 @@ class MAAP5(GenericCode):
           self.contOutputVariables = child.text.split(',')
       if child.tag == 'stopSimulation':
         self.stop = child.text  #this node defines if the MAAP5 simulation stop condition is: 'mission_time' or the occurrence of a given event e.g. 'IEVNT(691)'
-    if (len(self.boolOutputVariables) == 0) and (len(self.contOutputVariables) == 0):
+    if (len(self.boolOutputVariables) == 0) and (len(
+        self.contOutputVariables) == 0):
       raise IOError(
           'At least one of two nodes <boolMaapOutputVariables> or <contMaapOutputVariables> has to be specified'
       )
 
-  def createNewInput(self, currentInputFiles, oriInputFiles, samplerType, **Kwargs):
+  def createNewInput(self, currentInputFiles, oriInputFiles, samplerType,
+                     **Kwargs):
     """
       This method is used to generate an input based on the information passed in.
       @ In, currentInputFiles, list,  list of current input files (input files from last this method call)
@@ -89,7 +92,8 @@ class MAAP5(GenericCode):
     self.samplerType = samplerType
     if 'dynamiceventtree' in str(samplerType).lower():
       if Kwargs['RAVEN_parentID'] == 'None':
-        self.oriInput(oriInputFiles)  #original input files are checked only the first time
+        self.oriInput(oriInputFiles
+                      )  #original input files are checked only the first time
       self.stopSimulation(currentInputFiles, Kwargs)
       ###########
       if Kwargs['RAVEN_parentID'] != 'None':
@@ -101,8 +105,8 @@ class MAAP5(GenericCode):
 ###########
         if str(Kwargs['prefix'].split('-')[-1]) != '1':
           self.modifyBranch(currentInputFiles, Kwargs)
-    return GenericCode.createNewInput(self, currentInputFiles, oriInputFiles, samplerType,
-                                      **Kwargs)
+    return GenericCode.createNewInput(self, currentInputFiles, oriInputFiles,
+                                      samplerType, **Kwargs)
 
   def oriInput(self, oriInputFiles):
     """
@@ -118,12 +122,14 @@ class MAAP5(GenericCode):
       @ In, oriInputFiles, list, list of all the original input files
       @ Out, None
     """
-    self.lineTimerComplete = []  #list of all the timer (one for each DET sampled variables)
+    self.lineTimerComplete = [
+    ]  #list of all the timer (one for each DET sampled variables)
     self.DETsampledVars = []  #list of RAVEN DET sampled variables
     self.HYBRIDsampledVars = []  #list of RAVEN HYBRID sampled variables
     self.DETDefaultValue = {
     }  #record default value for DET sampled variables: e.g. {'TIMELOCA':-1, 'AFWOFF':-1}
-    self.HYBRIDdefaultValue = {}  #record default value for HYBRID sampled variables
+    self.HYBRIDdefaultValue = {
+    }  #record default value for HYBRID sampled variables
 
     HYBRIDVar = False  #is True, when for loop is in the block defining the variables which are HYBRID sampling
     DETVar = False  #is True, when for loop is in the block defining the variables which are DET sampling
@@ -160,7 +166,8 @@ class MAAP5(GenericCode):
           self.DETDefaultValue[str(var.strip())] = str(line)
         else:
           self.DETDefaultValue[str(var.strip())] = ''
-        self.DETsampledVars.append(var.strip())  #var.strip() deletes whitespace
+        self.DETsampledVars.append(
+            var.strip())  #var.strip() deletes whitespace
       if 'C End DET Sampled Variables' in line:
         DETVar = False
       if 'C HYBRID Sampled Variables' in line and not DETVar:
@@ -174,7 +181,8 @@ class MAAP5(GenericCode):
           self.HYBRIDsampledVars.append(var.strip())
         else:
           self.HYBRIDdefaultValue[str(var.strip())] = ''
-          self.HYBRIDsampledVars.append(var.strip())  #var.strip() deletes whitespace
+          self.HYBRIDsampledVars.append(
+              var.strip())  #var.strip() deletes whitespace
       if 'C End HYBRID Sampled Variables' in line:
         HYBRIDVar = False
       if 'C Branching ' in line:
@@ -187,7 +195,9 @@ class MAAP5(GenericCode):
 
     for var in self.DETsampledVars:
       if not var in branching:
-        raise IOError('Please define a branch/add a branching marker for the variable: ', var)
+        raise IOError(
+            'Please define a branch/add a branching marker for the variable: ',
+            var)
 
     if foundDET:
       print('There is at least one branching condition for DET analysis')
@@ -195,7 +205,8 @@ class MAAP5(GenericCode):
       raise IOError('No branching defined in the input file')
 
     if self.printInterval == '':
-      raise IOError('Define a PRINT INTERVAL for the writing of the restart file')
+      raise IOError(
+          'Define a PRINT INTERVAL for the writing of the restart file')
     else:
       print('Print interval =', self.printInterval)
 
@@ -204,8 +215,9 @@ class MAAP5(GenericCode):
     print('self.stop', self.stop)
     self.timer = {
     }  #this dictionary contains for each DETSampledVar the number of the corrisponding TIMER set
-    fileobject = open(self.include,
-                      "r")  #open include file, this file contains all the user-defined TIMER
+    fileobject = open(
+        self.include,
+        "r")  #open include file, this file contains all the user-defined TIMER
     lines = fileobject.readlines()
     fileobject.close()
     lineNumber = 0
@@ -281,7 +293,8 @@ class MAAP5(GenericCode):
     for line in lines:
       lineNumber = lineNumber + 1
       if 'START TIME' in line:
-        restartTimeNew = max(0, math.floor(float(tilast) - float(self.printInterval)))
+        restartTimeNew = max(
+            0, math.floor(float(tilast) - float(self.printInterval)))
         correctRestart = 'RESTART TIME IS ' + str(restartTimeNew) + '\n'
         if line == correctRestart:
           restartTime = True
@@ -348,7 +361,8 @@ class MAAP5(GenericCode):
     fileobject.close()
     for line in lines:
       lineNumber = lineNumber + 1
-      if 'C Branching ' + str((self.branch[Kwargs['RAVEN_parentID']])[0]) in line:
+      if 'C Branching ' + str(
+          (self.branch[Kwargs['RAVEN_parentID']])[0]) in line:
         block = True
       if n == len(Kwargs['branchChangedParam']):
         block = False
@@ -356,7 +370,8 @@ class MAAP5(GenericCode):
       if block:
         for cont, var in enumerate(Kwargs['branchChangedParam']):
           if (var in line) and ('=' in line):
-            newLine = ' ' + str(var) + '=' + str(Kwargs['branchChangedParamValue'][cont]) + '\n'
+            newLine = ' ' + str(var) + '=' + str(
+                Kwargs['branchChangedParamValue'][cont]) + '\n'
             print('Line correctly modified. New line is: ', newLine)
             lines[lineNumber - 1] = newLine
             fileobject = open(inp, "w")
@@ -383,28 +398,33 @@ class MAAP5(GenericCode):
     """
     csvSimulationFiles = []
     realOutput = output.split("out~")[1]  #rootname of the simulation files
-    inp = os.path.join(workingDir,
-                       realOutput + ".inp")  #input file of the simulation with the full path
+    inp = os.path.join(
+        workingDir,
+        realOutput + ".inp")  #input file of the simulation with the full path
     filePrefixWithPath = os.path.join(
-        workingDir, realOutput)  #rootname of the simulation files with the full path
+        workingDir,
+        realOutput)  #rootname of the simulation files with the full path
     csvSimulationFiles = glob.glob(
-        filePrefixWithPath + ".d" +
-        "*.csv")  #list of MAAP output files with the evolution of continuous variables
+        filePrefixWithPath + ".d" + "*.csv"
+    )  #list of MAAP output files with the evolution of continuous variables
     mergeCSV = csvU.csvUtilityClass(csvSimulationFiles, 1, ";", True)
     dataDict = {}
     dataDict = mergeCSV.mergeCsvAndReturnOutput({
         'variablesToExpandFrom': ['TIME'],
-        'returnAsDict': True
+        'returnAsDict':
+        True
     })
     timeFloat = dataDict['TIME']
     #Here we'll read evolution of continous variables """
-    contVariableEvolution = []  #here we'll store the time evolution of MAAP continous variables
+    contVariableEvolution = [
+    ]  #here we'll store the time evolution of MAAP continous variables
     if len(self.contOutputVariables) > 0:
       for variableName in self.contOutputVariables:
         try:
           (dataDict[variableName])
         except:
-          raise IOError('define the variable within MAAP5 plotfil: ', variableName)
+          raise IOError('define the variable within MAAP5 plotfil: ',
+                        variableName)
         contVariableEvolution.append(dataDict[variableName])
 
     #here we'll read boolean variables and transform them into continous"""
@@ -416,7 +436,8 @@ class MAAP5(GenericCode):
         try:
           (dataDict[variableName])
         except:
-          raise IOError('define the variable within MAAP5 plotfil: ', variableName)
+          raise IOError('define the variable within MAAP5 plotfil: ',
+                        variableName)
         boolVariableEvolution.append(dataDict[variableName])
 
     allVariableTags = []
@@ -496,9 +517,12 @@ class MAAP5(GenericCode):
       tilast = str(timeFloat[-1])
       self.tilastDict[currentFolder] = tilast
       if self.stop.strip() == 'mission_time':
-        condition = (math.floor(float(tilast)) >= math.floor(float(self.endTime)))
+        condition = (math.floor(float(tilast)) >= math.floor(
+            float(self.endTime)))
       else:
-        condition = (event or (math.floor(float(tilast)) >= math.floor(float(self.endTime))))
+        condition = (
+            event
+            or (math.floor(float(tilast)) >= math.floor(float(self.endTime))))
       if not condition:
         DictBranchCurrent = 'Dict' + str(self.branch[currentFolder][0])
         DictChanged = self.DictAllVars[DictBranchCurrent]
@@ -526,7 +550,8 @@ class MAAP5(GenericCode):
         method = str(method)
         if method in self.DETsampledVars:
           self.multiBranch.append(method)
-      print('MultiBranch found for the following variables: ', (','.join(self.multiBranch)))
+      print('MultiBranch found for the following variables: ',
+            (','.join(self.multiBranch)))
     except:
       print('No multi-branch found')
     base = os.path.basename(inputFile).split('.')[0]
@@ -558,8 +583,9 @@ class MAAP5(GenericCode):
               'new_value': newValue.strip('\n')
           }
           listDict.append(branch)
-        detU.writeXmlForDET(filename, variableBranch, listDict,
-                            stopInfo)  #this function writes the xml file for DET
+        detU.writeXmlForDET(
+            filename, variableBranch, listDict,
+            stopInfo)  #this function writes the xml file for DET
     else:
       ###########
       self.multiBranchOccurred.append(variableBranch)
@@ -677,8 +703,9 @@ class MAAP5(GenericCode):
             found[cont] = True
       if all(i for i in found) == False:
         ####################
-        raise IOError('All TIMER must be considered for the first simulation'
-                      )  #in the original input file all the timer must be mentioned
+        raise IOError(
+            'All TIMER must be considered for the first simulation'
+        )  #in the original input file all the timer must be mentioned
     else:
       #Kwargs['RAVEN_parentID'] != 'None'
       parent = currentFolder[:-2]
@@ -696,7 +723,8 @@ class MAAP5(GenericCode):
           if key == varTimerParent and value != valueVarTimerParent:
             continue
           elif key == varTimerParent:
-            timerToBeRemoved = str('TIMER ' + self.timer[self.branch[parent][0]])
+            timerToBeRemoved = str(
+                'TIMER ' + self.timer[self.branch[parent][0]])
             if timerToBeRemoved in lineTimer:
               lineTimer.remove(timerToBeRemoved)
 
@@ -742,7 +770,8 @@ class MAAP5(GenericCode):
     linesCurrent = fileobject.readlines()
     fileobject.close()
 
-    parentInput = str(inp).replace(str(Kwargs['prefix']), str(Kwargs['RAVEN_parentID']))
+    parentInput = str(inp).replace(
+        str(Kwargs['prefix']), str(Kwargs['RAVEN_parentID']))
     fileobject = open(parentInput, "r")
     linesParent = fileobject.readlines()
     fileobject.close()
@@ -754,7 +783,8 @@ class MAAP5(GenericCode):
     indexStartCurrent = linesCurrent.index('C End HYBRID Sampled Variables\n')
     indexEndCurrent = indexStartCurrent + diff
 
-    linesCurrent[indexStartCurrent:indexEndCurrent] = linesParent[indexStartParent:indexEndParent]
+    linesCurrent[indexStartCurrent:indexEndCurrent] = linesParent[
+        indexStartParent:indexEndParent]
 
     fileobject = open(inp, "w")
     linesNewInput = "".join(linesCurrent)

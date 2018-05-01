@@ -76,9 +76,11 @@ class AdaptiveSparseGrid(SparseGridCollocation, AdaptiveSampler):
 
     convergenceStudyInput = InputData.parameterInputFactory("convergenceStudy")
     convergenceStudyInput.addSub(
-        InputData.parameterInputFactory("runStatePoints", contentType=InputData.StringType))
+        InputData.parameterInputFactory(
+            "runStatePoints", contentType=InputData.StringType))
     convergenceStudyInput.addSub(
-        InputData.parameterInputFactory("baseFilename", contentType=InputData.StringType))
+        InputData.parameterInputFactory(
+            "baseFilename", contentType=InputData.StringType))
     convergenceStudyInput.addSub(InputData.parameterInputFactory("pickle"))
 
     inputSpecification.addSub(convergenceStudyInput)
@@ -130,13 +132,16 @@ class AdaptiveSparseGrid(SparseGridCollocation, AdaptiveSampler):
     self.studyPickle = False  #if true, dumps ROM to pickle at each step
     #solution storage
     self.neededPoints = []  #queue of points to submit
-    self.submittedNotCollected = []  #list of points submitted but not yet collected and used
-    self.pointsNeededToMakeROM = set()  #list of distinct points needed in this process
+    self.submittedNotCollected = [
+    ]  #list of points submitted but not yet collected and used
+    self.pointsNeededToMakeROM = set(
+    )  #list of distinct points needed in this process
     self.unfinished = 0  #number of runs still running when convergence complete
     self.batchDone = True  #flag for whether jobHandler has complete batch or not
     self.done = False  #flipped when converged
     self.newSolutionSizeShouldBe = None  #used to track and debug intended size of solutions
-    self.inTraining = set()  #list of index set points for whom points are being run
+    self.inTraining = set(
+    )  #list of index set points for whom points are being run
 
     self.addAssemblerObject('TargetEvaluation', '1')
 
@@ -169,19 +174,23 @@ class AdaptiveSparseGrid(SparseGridCollocation, AdaptiveSampler):
       filebaseNode = studyNode.find('baseFilename')
       self.studyPickle = studyNode.find('pickle') is not None
       if filebaseNode is None:
-        self.raiseAWarning('No baseFilename specified in convergenceStudy node!  Using "%s"...' %
-                           self.studyFileBase)
+        self.raiseAWarning(
+            'No baseFilename specified in convergenceStudy node!  Using "%s"...'
+            % self.studyFileBase)
       else:
         self.studyFileBase = studyNode.find('baseFilename').text
       if self.studyPoints is None:
         self.raiseAnError(
             IOError,
-            'convergenceStudy node was included, but did not specify the runStatePoints node!')
+            'convergenceStudy node was included, but did not specify the runStatePoints node!'
+        )
       else:
         try:
           self.studyPoints = list(int(i) for i in self.studyPoints.split(','))
         except ValueError as e:
-          self.raiseAnError(IOError, 'Convergence state point not recognizable as an integer!', e)
+          self.raiseAnError(
+              IOError,
+              'Convergence state point not recognizable as an integer!', e)
         self.studyPoints.sort()
 
   def localInitialize(self):
@@ -196,7 +205,9 @@ class AdaptiveSparseGrid(SparseGridCollocation, AdaptiveSampler):
     #this model doesn't use restarts, it uses the TargetEvaluation
     if self.restartData is not None:
       self.raiseAnError(
-          IOError, 'AdaptiveSparseGrid does not use Restart nodes!  Try TargetEvaluation instead.')
+          IOError,
+          'AdaptiveSparseGrid does not use Restart nodes!  Try TargetEvaluation instead.'
+      )
     #obtain the DataObject that contains evaluations of the model
     self.solns = self.assemblerDict['TargetEvaluation'][0][3]
     #set a pointer to the GaussPolynomialROM object
@@ -214,18 +225,21 @@ class AdaptiveSparseGrid(SparseGridCollocation, AdaptiveSampler):
     self.raiseADebug(' INTERPOLATION INFO:')
     self.raiseADebug('    Variable | Distribution | Quadrature | Polynomials')
     for v in self.quadDict.keys():
-      self.raiseADebug('   ' + ' | '.join(
-          [v, self.distDict[v].type, self.quadDict[v].type, self.polyDict[v].type]))
+      self.raiseADebug('   ' + ' | '.join([
+          v, self.distDict[v].type, self.quadDict[v].type, self.polyDict[v].type
+      ]))
     self.raiseADebug('    Polynomial Set Type  : adaptive')
 
     #create the index set
     self.raiseADebug('Starting index set generation...')
     self.indexSet = IndexSets.returnInstance('AdaptiveSet', self)
-    self.indexSet.initialize(self.features, self.importanceDict, self.maxPolyOrder)
+    self.indexSet.initialize(self.features, self.importanceDict,
+                             self.maxPolyOrder)
     for pt in self.indexSet.active:
       self.inTraining.add(pt)
       for t in self.targets:
-        self.expImpact[t][pt] = 1.0  #dummy, just to help algorithm be consistent
+        self.expImpact[t][
+            pt] = 1.0  #dummy, just to help algorithm be consistent
 
     #make the first sparse grid
     self.sparseGrid = self._makeSparseQuad(self.indexSet.active)
@@ -253,7 +267,8 @@ class AdaptiveSparseGrid(SparseGridCollocation, AdaptiveSampler):
     if len(self.neededPoints) > 0:
       return True
     #if points all submitted but not all done, not ready for now.
-    if (not self.batchDone) or (not skipJobHandlerCheck and not self.jobHandler.isFinished()):
+    if (not self.batchDone) or (not skipJobHandlerCheck
+                                and not self.jobHandler.isFinished()):
       return False
     if len(self.solns) < self.newSolutionSizeShouldBe:
       return False
@@ -276,7 +291,8 @@ class AdaptiveSparseGrid(SparseGridCollocation, AdaptiveSampler):
         self._printToLog()
       #if doing a study and past a statepoint, record the statepoint
       if self.doingStudy:
-        while len(self.studyPoints) > 0 and len(self.pointsNeededToMakeROM) > self.studyPoints[0]:
+        while len(self.studyPoints) > 0 and len(
+            self.pointsNeededToMakeROM) > self.studyPoints[0]:
           self._writeConvergencePoint(self.studyPoints[0])
           if self.studyPickle:
             self._writePickle(self.studyPoints[0])
@@ -291,8 +307,10 @@ class AdaptiveSparseGrid(SparseGridCollocation, AdaptiveSampler):
         self.converged = True
         break
       #if maxRuns reached, no more samples!
-      if self.maxRuns is not None and len(self.pointsNeededToMakeROM) >= self.maxRuns:
-        self.raiseAMessage('Maximum runs reached!  No further polynomial will be added.')
+      if self.maxRuns is not None and len(
+          self.pointsNeededToMakeROM) >= self.maxRuns:
+        self.raiseAMessage(
+            'Maximum runs reached!  No further polynomial will be added.')
         self.done = True
         self.converged = True
         self.neededPoints = []
@@ -313,7 +331,8 @@ class AdaptiveSparseGrid(SparseGridCollocation, AdaptiveSampler):
       self.converged = True
       self.raiseADebug('Index points in use, and their impacts:')
       for p in self.indexSet.points:
-        self.raiseADebug('   ', p, list(self.actImpact[t][p] for t in self.targets))
+        self.raiseADebug('   ', p,
+                         list(self.actImpact[t][p] for t in self.targets))
       self._finalizeROM()
       self.unfinished = self.jobHandler.numRunning()
       self.jobHandler.terminateAll()
@@ -326,8 +345,8 @@ class AdaptiveSparseGrid(SparseGridCollocation, AdaptiveSampler):
       return False
     #if we got here, we still have points to run!
     #print a status update...
-    self.raiseAMessage('  Next: %s | error: %1.4e | runs: %i' % (str(idx), self.error,
-                                                                 len(self.pointsNeededToMakeROM)))
+    self.raiseAMessage('  Next: %s | error: %1.4e | runs: %i' %
+                       (str(idx), self.error, len(self.pointsNeededToMakeROM)))
     return True
 
   def localGenerateInput(self, model, myInput):
@@ -347,12 +366,15 @@ class AdaptiveSparseGrid(SparseGridCollocation, AdaptiveSampler):
       if self.variables2distributionsMapping[varName]['totDim'] == 1:
         for key in varName.strip().split(','):
           self.values[key] = pt[v]
-        self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(pt[v])
-        self.inputInfo['ProbabilityWeight-' + varName] = self.inputInfo['SampledVarsPb'][varName]
+        self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(
+            pt[v])
+        self.inputInfo['ProbabilityWeight-'
+                       + varName] = self.inputInfo['SampledVarsPb'][varName]
         # compute the SampledVarsPb for N-D distribution
       elif self.variables2distributionsMapping[varName]['totDim'] > 1 and self.variables2distributionsMapping[varName]['reducedDim'] == 1:
         dist = self.variables2distributionsMapping[varName]['name']
-        ndCoordinates = np.zeros(len(self.distributions2variablesMapping[dist]))
+        ndCoordinates = np.zeros(
+            len(self.distributions2variablesMapping[dist]))
         positionList = self.distributions2variablesIndexList[dist]
         for varDict in self.distributions2variablesMapping[dist]:
           var = utils.first(varDict.keys())
@@ -367,13 +389,18 @@ class AdaptiveSparseGrid(SparseGridCollocation, AdaptiveSampler):
           else:
             self.raiseAnError(
                 IOError, 'The variables ' + var +
-                ' listed in sparse grid collocation sampler, but not used in the ROM!')
+                ' listed in sparse grid collocation sampler, but not used in the ROM!'
+            )
           for key in var.strip().split(','):
             self.values[key] = pt[location]
-        self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(ndCoordinates)
-        self.inputInfo['ProbabilityWeight-' + dist] = self.inputInfo['SampledVarsPb'][varName]
-        self.inputInfo['ProbabilityWeight'] *= self.inputInfo['ProbabilityWeight-' + dist]
-    self.inputInfo['PointProbability'] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
+        self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(
+            ndCoordinates)
+        self.inputInfo['ProbabilityWeight-'
+                       + dist] = self.inputInfo['SampledVarsPb'][varName]
+        self.inputInfo['ProbabilityWeight'] *= self.inputInfo[
+            'ProbabilityWeight-' + dist]
+    self.inputInfo['PointProbability'] = reduce(
+        mul, self.inputInfo['SampledVarsPb'].values())
     self.inputInfo['SamplerType'] = self.type
 
   def localFinalizeActualSampling(self, jobObject, model, myInput):
@@ -419,7 +446,8 @@ class AdaptiveSparseGrid(SparseGridCollocation, AdaptiveSampler):
     """
     if self.convType.lower() == 'variance':
       impact = rom.polyCoeffDict[target][poly]**2 / sum(
-          rom.polyCoeffDict[target][p]**2 for p in rom.polyCoeffDict[target].keys())
+          rom.polyCoeffDict[target][p]**2
+          for p in rom.polyCoeffDict[target].keys())
     #FIXME 'coeffs' has to be updated to fit in the new rework before it can be used.
     # elif self.convType.lower()=='coeffs':
     #   #new = self._makeARom(rom.sparseGrid,rom.indexSet).supervisedContainer[target]
@@ -437,7 +465,8 @@ class AdaptiveSparseGrid(SparseGridCollocation, AdaptiveSampler):
     #       tot+= new.polyCoeffDict[coeff]**2
     #   impact = np.sqrt(tot)
     else:
-      self.raiseAnError(KeyError, 'Unexpected convergence criteria:', self.convType)
+      self.raiseAnError(KeyError, 'Unexpected convergence criteria:',
+                        self.convType)
     return impact
 
   def _estimateImpact(self, idx):
@@ -481,12 +510,18 @@ class AdaptiveSparseGrid(SparseGridCollocation, AdaptiveSampler):
     #initialize final rom with final sparse grid and index set
     for SVL in rom.supervisedEngine.supervisedContainer:
       SVL.initialize({
-          'SG': self.sparseGrid,
-          'dists': self.dists,
-          'quads': self.quadDict,
-          'polys': self.polyDict,
-          'iSet': self.indexSet,
-          'numRuns': len(self.pointsNeededToMakeROM) - self.unfinished
+          'SG':
+          self.sparseGrid,
+          'dists':
+          self.dists,
+          'quads':
+          self.quadDict,
+          'polys':
+          self.polyDict,
+          'iSet':
+          self.indexSet,
+          'numRuns':
+          len(self.pointsNeededToMakeROM) - self.unfinished
       })
 
   def _findHighestImpactIndex(self, returnValue=False):
@@ -499,11 +534,13 @@ class AdaptiveSparseGrid(SparseGridCollocation, AdaptiveSampler):
     point = None
     avg = 0
     for pt in self.expImpact.values()[0].keys():
-      new = sum(self.expImpact[t][pt] for t in self.targets) / len(self.targets)
+      new = sum(
+          self.expImpact[t][pt] for t in self.targets) / len(self.targets)
       if avg < new:
         avg = new
         point = pt
-    self.raiseADebug('Highest impact point is', point, 'with expected average impact', avg)
+    self.raiseADebug('Highest impact point is', point,
+                     'with expected average impact', avg)
     if returnValue:
       return point, avg
     else:
@@ -536,7 +573,8 @@ class AdaptiveSparseGrid(SparseGridCollocation, AdaptiveSampler):
       @ Out, rom, GaussPolynomialROM object, the constructed rom
     """
     #deepcopy prevents overwriting
-    rom = copy.deepcopy(self.ROM)  #preserves interpolation requests via deepcopy
+    rom = copy.deepcopy(
+        self.ROM)  #preserves interpolation requests via deepcopy
     sg = copy.deepcopy(grid)
     iset = copy.deepcopy(inset)
     sg.messageHandler = self.messageHandler
@@ -566,8 +604,8 @@ class AdaptiveSparseGrid(SparseGridCollocation, AdaptiveSampler):
     iset.initialize(self.features, self.importanceDict, self.maxPolyOrder)
     iset.setPoints(self.indexSet.points)
     iset.addPoints(points)
-    sparseGrid.initialize(self.features, iset, self.dists, self.quadDict, self.jobHandler,
-                          self.messageHandler)
+    sparseGrid.initialize(self.features, iset, self.dists, self.quadDict,
+                          self.jobHandler, self.messageHandler)
     return sparseGrid
 
   def _printToLog(self):
@@ -579,7 +617,8 @@ class AdaptiveSparseGrid(SparseGridCollocation, AdaptiveSampler):
     self.logCounter += 1
     pl = 4 * len(self.features) + 1
     f = open(self.logFile, 'a')
-    f.writelines('===================== STEP %i =====================\n' % self.logCounter)
+    f.writelines('===================== STEP %i =====================\n' %
+                 self.logCounter)
     f.writelines('\nNumber of Runs: %i\n' % len(self.pointsNeededToMakeROM))
     f.writelines('Error: %1.9e\n' % self.error)
     f.writelines('Features: %s\n' % ','.join(self.features))
@@ -646,7 +685,8 @@ class AdaptiveSparseGrid(SparseGridCollocation, AdaptiveSampler):
     rom = self._makeARom(self.sparseGrid, self.indexSet)
     for poly in self.indexSet.points:
       for t in self.targets:
-        impact = self._convergence(poly, rom.supervisedEngine.supervisedContainer[0], t)
+        impact = self._convergence(
+            poly, rom.supervisedEngine.supervisedContainer[0], t)
         self.actImpact[t][poly] = impact
 
   def _writeConvergencePoint(self, runPoint):
@@ -656,7 +696,8 @@ class AdaptiveSparseGrid(SparseGridCollocation, AdaptiveSampler):
       @ Out, None
     """
     fname = self.studyFileBase + str(runPoint)
-    self.raiseAMessage('Preparing to write state %i to %s.xml...' % (runPoint, fname))
+    self.raiseAMessage('Preparing to write state %i to %s.xml...' % (runPoint,
+                                                                     fname))
     rom = copy.deepcopy(self.ROM)
     self._finalizeROM(rom)
     rom.train(self.solns)
@@ -670,7 +711,8 @@ class AdaptiveSparseGrid(SparseGridCollocation, AdaptiveSampler):
       @ Out, None
     """
     fname = self.studyFileBase + str(runPoint)
-    self.raiseAMessage('Writing ROM at state %i to %s.pk...' % (runPoint, fname))
+    self.raiseAMessage('Writing ROM at state %i to %s.pk...' % (runPoint,
+                                                                fname))
     rom = copy.deepcopy(self.ROM)
     self._finalizeROM(rom)
     rom.train(self.solns)

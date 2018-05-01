@@ -65,10 +65,12 @@ class SparseGrid(MessageHandler.MessageUser):
     self.N = None  # dimensionality of input space
     self.SG = None  # dict{ (point,point,point): weight}
     self.messageHandler = None  # message handler
-    self.mods = utils.returnImportModuleString(inspect.getmodule(
-        self))  # list of modules this class depends on (needed for automatic parallel python)
+    self.mods = utils.returnImportModuleString(
+        inspect.getmodule(self)
+    )  # list of modules this class depends on (needed for automatic parallel python)
 
-  def initialize(self, varNames, indexSet, distDict, quadDict, handler, msgHandler):
+  def initialize(self, varNames, indexSet, distDict, quadDict, handler,
+                 msgHandler):
     """
       Initializes sparse quad to be functional. At the end of this method, all points and weights should be set.
       @ In, varNames, list, the ordered list of grid dimension names
@@ -222,15 +224,18 @@ class SparseGrid(MessageHandler.MessageUser):
     """
     #TODO optimize me!~~
     oldNames = self.varNames[:]
-    self.raiseADebug('REMAPPING SPARSE GRID from ' + str(oldNames) + ' to ' + str(newNames))
+    self.raiseADebug(
+        'REMAPPING SPARSE GRID from ' + str(oldNames) + ' to ' + str(newNames))
     #check consistency
     self.raiseADebug('old: ' + str(oldNames) + ' | new: ' + str(newNames))
     if len(oldNames) != len(newNames):
-      self.raiseAnError(KeyError, 'Remap mismatch! Dimensions are not the same!')
+      self.raiseAnError(KeyError,
+                        'Remap mismatch! Dimensions are not the same!')
     for name in oldNames:
       if name not in newNames:
-        self.raiseAnError(KeyError,
-                          'Remap mismatch! ' + name + ' not found in original variables!')
+        self.raiseAnError(
+            KeyError,
+            'Remap mismatch! ' + name + ' not found in original variables!')
     wts = list(self.weights())
     #split by columns (dim) instead of rows (points)
     oldlists = list(self._xy())
@@ -383,7 +388,8 @@ class TensorGrid(SparseGrid):
     self.type = 'TensorGrid'
     self.printTag = 'TensorGrid'
 
-  def initialize(self, varNames, indexSet, distDict, quadDict, handler, msgHandler):
+  def initialize(self, varNames, indexSet, distDict, quadDict, handler,
+                 msgHandler):
     """
       Initializes sparse quad to be functional.
       @ In, varNames, list, the ordered list of grid dimension names
@@ -394,7 +400,8 @@ class TensorGrid(SparseGrid):
       @ In, msgHandler, MessageHandler, message handler global instance
       @ Out, None
     """
-    SparseGrid.initialize(self, varNames, indexSet, distDict, quadDict, handler, msgHandler)
+    SparseGrid.initialize(self, varNames, indexSet, distDict, quadDict,
+                          handler, msgHandler)
     self.type = 'BaseSparseQuad'
     self.printTag = 'BaseSparseQuad'
     #find largest polynomial in each dimension
@@ -403,7 +410,8 @@ class TensorGrid(SparseGrid):
       for i in range(len(idx)):
         largest[i] = max(idx[i], largest[i])
     #construct tensor grid using largest in each dimension
-    quadSizes = self.quadRule(largest) + 1  #TODO give user access to this +1 rule
+    quadSizes = self.quadRule(
+        largest) + 1  #TODO give user access to this +1 rule
     points, weights = self.tensorGrid(quadSizes)
     for i, pt in enumerate(points):
       self.SG[pt] = weights[i]
@@ -428,7 +436,8 @@ class SmolyakSparseGrid(SparseGrid):
     self.type = 'SmolyakSparseGrid'
     self.printTag = 'SmolyakSparseGrid'
 
-  def initialize(self, varNames, indexSet, distDict, quadDict, handler, msgHandler):
+  def initialize(self, varNames, indexSet, distDict, quadDict, handler,
+                 msgHandler):
     """
       Initializes sparse quad to be functional.
       @ In, varNames, list, the ordered list of grid dimension names
@@ -439,7 +448,8 @@ class SmolyakSparseGrid(SparseGrid):
       @ In, msgHandler, MessageHandler, message handler global instance
       @ Out, None
     """
-    SparseGrid.initialize(self, varNames, indexSet, distDict, quadDict, handler, msgHandler)
+    SparseGrid.initialize(self, varNames, indexSet, distDict, quadDict,
+                          handler, msgHandler)
     #we know how this ends if it's tensor product index set
     if indexSet.type == 'Tensor Product':
       self.c = [1]
@@ -478,7 +488,8 @@ class SmolyakSparseGrid(SparseGrid):
     prefix = 'sparseTensor_'
     while True:
       finishedJobs = handler.getFinished(
-          jobIdentifier=prefix)  #FIXME this is by far the most expensive line in this method
+          jobIdentifier=prefix
+      )  #FIXME this is by far the most expensive line in this method
       #finishedJobs = handler.getFinished(prefix=prefix) #FIXME this is by far the most expensive line in this method
       for job in finishedJobs:
         if job.getReturnCode() == 0:
@@ -491,14 +502,19 @@ class SmolyakSparseGrid(SparseGrid):
             else:
               self.SG[newpt] = newwt
         else:
-          self.raiseAMessage('Sparse quad generation (tensor) ' + job.identifier + ' failed...')
+          self.raiseAMessage('Sparse quad generation (tensor) ' +
+                             job.identifier + ' failed...')
       if j < numRunsNeeded - 1:
         for _ in range(min(numRunsNeeded - 1 - j, handler.availability())):
           j += 1
           cof = self.c[j]
           idx = self.indexSet[j]
           m = self.quadRule(idx) + 1
-          handler.addJob((m, ), self.tensorGrid, prefix + str(cof), modulesToImport=self.mods)
+          handler.addJob(
+              (m, ),
+              self.tensorGrid,
+              prefix + str(cof),
+              modulesToImport=self.mods)
       else:
         if handler.isFinished() and len(handler.getFinishedNoPop()) == 0:
           break  #FIXME this is significantly the second-most expensive line in this method
@@ -545,9 +561,11 @@ class SmolyakSparseGrid(SparseGrid):
       finishedJobs = handler.getFinished(jobIdentifier=prefix)
       for job in finishedJobs:
         if job.getReturnCode() == 0:
-          self.c[int(str(job.identifier).replace(prefix, ""))] = job.getEvaluation()
+          self.c[int(str(job.identifier).replace(prefix,
+                                                 ""))] = job.getEvaluation()
         else:
-          self.raiseAMessage('Sparse grid index ' + job.identifier + ' failed...')
+          self.raiseAMessage(
+              'Sparse grid index ' + job.identifier + ' failed...')
       if i < N - 1:
         #load new inputs, up to 100 at a time
         for k in range(min(handler.availability(), N - 1 - i)):
@@ -616,7 +634,8 @@ class QuadratureSet(MessageHandler.MessageUser):
     """
     pts, wts = self.rule(order, *self.params)
     pts = np.around(
-        pts, decimals=15)  #TODO helps with checking equivalence, might not be desirable
+        pts, decimals=15
+    )  #TODO helps with checking equivalence, might not be desirable
     return pts, wts
 
   def __eq__(self, other):
@@ -707,8 +726,9 @@ class Laguerre(QuadratureSet):
     if distr.type == 'Gamma':
       self.params = [distr.alpha - 1]
     else:
-      self.raiseAnError(
-          IOError, 'No implementation for Laguerre quadrature on ' + distr.type + ' distribution!')
+      self.raiseAnError(IOError,
+                        'No implementation for Laguerre quadrature on ' +
+                        distr.type + ' distribution!')
 
 
 class Jacobi(QuadratureSet):
@@ -733,8 +753,9 @@ class Jacobi(QuadratureSet):
     #for Beta distribution, it's  x^(alpha-1) * (1-x)^(beta-1)
     #for Jacobi measure, it's (1+x)^alpha * (1-x)^beta
     else:
-      self.raiseAnError(
-          IOError, 'No implementation for Jacobi quadrature on ' + distr.type + ' distribution!')
+      self.raiseAnError(IOError,
+                        'No implementation for Jacobi quadrature on ' +
+                        distr.type + ' distribution!')
 
 
 class ClenshawCurtis(QuadratureSet):

@@ -78,8 +78,8 @@ class InternalRunner(Runner):
     ## First, allow the base class to handle the commonalities
     ##   We keep the command here, in order to have the hook for running exec
     ##   code into internal models
-    super(InternalRunner, self).__init__(messageHandler, identifier, metadata, uniqueHandler,
-                                         profile)
+    super(InternalRunner, self).__init__(messageHandler, identifier, metadata,
+                                         uniqueHandler, profile)
 
     ## Other parameters passed at initialization
     self.args = copy.copy(args)

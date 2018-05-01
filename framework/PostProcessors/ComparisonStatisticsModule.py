@@ -82,8 +82,8 @@ def _getGraphs(functions, fZStats=False):
   if len(means) < 2:
     return
 
-  cdfAreaDifference = mathUtils.simpson(lambda x: abs(cdfs[1](x) - cdfs[0](x)), lowLow, highHigh,
-                                        100000)
+  cdfAreaDifference = mathUtils.simpson(lambda x: abs(cdfs[1](x) - cdfs[0](x)),
+                                        lowLow, highHigh, 100000)
 
   def firstMomentSimpson(f, a, b, n):
     """
@@ -97,8 +97,8 @@ def _getGraphs(functions, fZStats=False):
     return mathUtils.simpson(lambda x: x * f(x), a, b, n)
 
   #print a bunch of comparison statistics
-  pdfCommonArea = mathUtils.simpson(lambda x: min(pdfs[0](x), pdfs[1](x)), lowLow, highHigh,
-                                    100000)
+  pdfCommonArea = mathUtils.simpson(lambda x: min(pdfs[0](x), pdfs[1](x)),
+                                    lowLow, highHigh, 100000)
   for i in range(len(pdfs)):
     pdfArea = mathUtils.simpson(pdfs[i], lowLow, highHigh, 100000)
     retDict['pdf_area_' + names[i]] = pdfArea
@@ -115,7 +115,8 @@ def _getGraphs(functions, fZStats=False):
         @ In, z, float, the coordinate
         @ Out, fZ, the f(z)
       """
-      return mathUtils.simpson(lambda x: pdfs[0](x) * pdfs[1](x - z), lowLow, highHigh, 1000)
+      return mathUtils.simpson(lambda x: pdfs[0](x) * pdfs[1](x - z), lowLow,
+                               highHigh, 1000)
 
     midZ = means[0] - means[1]
     lowZ = midZ - 3.0 * max(stdDevs[0], stdDevs[1])
@@ -131,8 +132,9 @@ def _getGraphs(functions, fZStats=False):
     retDict["f_z_table"] = fZTable
     sumFunctionDiff = mathUtils.simpson(fZ, lowZ, highZ, 1000)
     firstMomentFunctionDiff = firstMomentSimpson(fZ, lowZ, highZ, 1000)
-    varianceFunctionDiff = mathUtils.simpson(lambda x: ((x - firstMomentFunctionDiff)**2) * fZ(x),
-                                             lowZ, highZ, 1000)
+    varianceFunctionDiff = mathUtils.simpson(
+        lambda x: ((x - firstMomentFunctionDiff)**2) * fZ(x), lowZ, highZ,
+        1000)
     retDict['sum_function_diff'] = sumFunctionDiff
     retDict['first_moment_function_diff'] = firstMomentFunctionDiff
     retDict['variance_function_diff'] = varianceFunctionDiff
@@ -176,7 +178,10 @@ def __processData(data, methodInfo):
     ret['minBinSize'] = dataRange / numBins
   elif kind == "equalProbability":
     stride = len(sortedData) // numBins
-    bins = [sortedData[x] for x in range(stride - 1, len(sortedData) - stride + 1, stride)]
+    bins = [
+        sortedData[x] for x in range(stride - 1,
+                                     len(sortedData) - stride + 1, stride)
+    ]
     if len(bins) > 1:
       ret['minBinSize'] = min(map(lambda x, y: x - y, bins[1:], bins[:-1]))
     else:
@@ -205,7 +210,8 @@ def __processData(data, methodInfo):
   return ret
 
 
-def _getPDFandCDFfromData(dataName, data, csv, methodInfo, interpolation, generateCSV):
+def _getPDFandCDFfromData(dataName, data, csv, methodInfo, interpolation,
+                          generateCSV):
   """
     This method is used to convert some data into a PDF and CDF function.
     Note, it might be better done by scipy.stats.gaussian_kde
@@ -227,8 +233,8 @@ def _getPDFandCDFfromData(dataName, data, csv, methodInfo, interpolation, genera
   if generateCSV:
     utils.printCsv(csv, '"' + dataName + '"')
     utils.printCsv(csv, '"numBins"', dataStats['numBins'])
-    utils.printCsv(csv, '"binBoundary"', '"binMidpoint"', '"binCount"', '"normalizedBinCount"',
-                   '"f_prime"', '"cdf"')
+    utils.printCsv(csv, '"binBoundary"', '"binMidpoint"', '"binCount"',
+                   '"normalizedBinCount"', '"f_prime"', '"cdf"')
   cdf = [0.0] * len(counts)
   midpoints = [0.0] * len(counts)
   cdfSum = 0.0
@@ -257,8 +263,10 @@ def _getPDFandCDFfromData(dataName, data, csv, methodInfo, interpolation, genera
       fPrime = (-1.5 * f0 + 2.0 * f1 + -0.5 * f2) / h
     fPrimeData[i] = fPrime
     if generateCSV:
-      utils.printCsv(csv, binBoundaries[i + 1], midpoints[i], counts[i], nCount, fPrime, cdf[i])
-  pdfFunc = mathUtils.createInterp(midpoints, fPrimeData, 0.0, 0.0, interpolation)
+      utils.printCsv(csv, binBoundaries[i + 1], midpoints[i], counts[i],
+                     nCount, fPrime, cdf[i])
+  pdfFunc = mathUtils.createInterp(midpoints, fPrimeData, 0.0, 0.0,
+                                   interpolation)
   dataKeys -= set({'numBins', 'counts', 'bins'})
   if generateCSV:
     for key in dataKeys:
@@ -281,10 +289,12 @@ class ComparisonStatistics(PostProcessor):
       @ Out, inputSpecification, InputData.ParameterInput, class to use for
         specifying input of cls.
     """
-    inputSpecification = super(ComparisonStatistics, cls).getInputSpecification()
-    KindInputEnumType = InputData.makeEnumType("kind", "kindType",
-                                               ["uniformBins", "equalProbability"])
-    KindInput = InputData.parameterInputFactory("kind", contentType=KindInputEnumType)
+    inputSpecification = super(ComparisonStatistics,
+                               cls).getInputSpecification()
+    KindInputEnumType = InputData.makeEnumType(
+        "kind", "kindType", ["uniformBins", "equalProbability"])
+    KindInput = InputData.parameterInputFactory(
+        "kind", contentType=KindInputEnumType)
     KindInput.addParam("numBins", InputData.IntegerType, False)
     KindInput.addParam("binMethod", InputData.StringType, False)
     inputSpecification.addSub(KindInput)
@@ -296,18 +306,20 @@ class ComparisonStatistics(PostProcessor):
       """
 
     CSCompareInput.createClass("compare", False)
-    CSDataInput = InputData.parameterInputFactory("data", contentType=InputData.StringType)
+    CSDataInput = InputData.parameterInputFactory(
+        "data", contentType=InputData.StringType)
     CSCompareInput.addSub(CSDataInput)
     CSReferenceInput = InputData.parameterInputFactory("reference")
     CSReferenceInput.addParam("name", InputData.StringType, True)
     CSCompareInput.addSub(CSReferenceInput)
     inputSpecification.addSub(CSCompareInput)
 
-    FZInput = InputData.parameterInputFactory("fz", contentType=InputData.StringType)  #bool
+    FZInput = InputData.parameterInputFactory(
+        "fz", contentType=InputData.StringType)  #bool
     inputSpecification.addSub(FZInput)
 
-    CSInterpolationEnumType = InputData.makeEnumType("csinterpolation", "csinterpolationType",
-                                                     ["linear", "quadratic"])
+    CSInterpolationEnumType = InputData.makeEnumType(
+        "csinterpolation", "csinterpolationType", ["linear", "quadratic"])
     CSInterpolationInput = InputData.parameterInputFactory(
         "interpolation", contentType=CSInterpolationEnumType)
     inputSpecification.addSub(CSInterpolationInput)
@@ -401,7 +413,8 @@ class ComparisonStatistics(PostProcessor):
             # This has name=distribution
             compareGroup.referenceData = dict(child.parameterValues)
             if "name" not in compareGroup.referenceData:
-              self.raiseAnError(IOError, 'Did not find name in reference block')
+              self.raiseAnError(IOError,
+                                'Did not find name in reference block')
 
         self.compareGroups.append(compareGroup)
       if outer.getName() == 'kind':
@@ -409,7 +422,8 @@ class ComparisonStatistics(PostProcessor):
         if 'numBins' in outer.parameterValues:
           self.methodInfo['numBins'] = outer.parameterValues['numBins']
         if 'binMethod' in outer.parameterValues:
-          self.methodInfo['binMethod'] = outer.parameterValues['binMethod'].lower()
+          self.methodInfo['binMethod'] = outer.parameterValues[
+              'binMethod'].lower()
       if outer.getName() == 'fz':
         self.fZStats = (outer.value.lower() in utils.stringsThatMeanTrue())
       if outer.getName() == 'interpolation':
@@ -449,11 +463,13 @@ class ComparisonStatistics(PostProcessor):
       @ In, output, dataObjects, The object where we want to place our computed results
       @ Out, None
     """
-    self.raiseADebug("finishedJob: " + str(finishedJob) + ", output " + str(output))
+    self.raiseADebug(
+        "finishedJob: " + str(finishedJob) + ", output " + str(output))
     evaluation = finishedJob.getEvaluation()
     if isinstance(evaluation, Runners.Error):
-      self.raiseAnError(RuntimeError,
-                        "No available output to collect (run possibly not finished yet)")
+      self.raiseAnError(
+          RuntimeError,
+          "No available output to collect (run possibly not finished yet)")
 
     outputDictionary = evaluation[1]
     self.dataDict.update(outputDictionary)
@@ -475,9 +491,8 @@ class ComparisonStatistics(PostProcessor):
       if "name" in reference:
         distributionName = reference["name"]
         if not distributionName in self.distributions:
-          self.raiseAnError(
-              IOError,
-              'Did not find ' + distributionName + ' in ' + str(self.distributions.keys()))
+          self.raiseAnError(IOError, 'Did not find ' + distributionName +
+                            ' in ' + str(self.distributions.keys()))
         else:
           distribution = self.distributions[distributionName]
         refDataStats = {
@@ -487,10 +502,12 @@ class ComparisonStatistics(PostProcessor):
         refDataStats["minBinSize"] = refDataStats["stdev"] / 2.0
         refPdf = lambda x: distribution.pdf(x)
         refCdf = lambda x: distribution.cdf(x)
-        graphData.append((refDataStats, refCdf, refPdf, "ref_" + distributionName))
+        graphData.append((refDataStats, refCdf, refPdf,
+                          "ref_" + distributionName))
       for dataPull, data in zip(dataPulls, datas):
         dataStats, cdfFunc, pdfFunc = _getPDFandCDFfromData(
-            str(dataPull), data, output, self.methodInfo, self.interpolation, True)
+            str(dataPull), data, output, self.methodInfo, self.interpolation,
+            True)
         self.raiseADebug("dataStats: " + str(dataStats))
         graphData.append((dataStats, cdfFunc, pdfFunc, str(dataPull)))
       graphDataDict = _getGraphs(graphData, self.fZStats)
@@ -516,7 +533,8 @@ class ComparisonStatistics(PostProcessor):
           else:
             return str(l)
 
-        newFileName = output.getBase() + "_" + delist(dataPulls) + "_" + str(i) + ".csv"
+        newFileName = output.getBase() + "_" + delist(dataPulls) + "_" + str(
+            i) + ".csv"
         if type(dataStat).__name__ != 'dict':
           assert (False)
           continue

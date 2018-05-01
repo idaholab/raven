@@ -54,7 +54,8 @@ class OrthogonalPolynomial(MessageHandler.MessageUser):
     self.name = self.__class__.__name__
     self._poly = None  #tool for generating orthopoly1d objects
     self._evPoly = None  #tool for evaluating 1d polynomials at (order,point)
-    self.params = []  #additional parameters needed for polynomial (alpha, beta, etc)
+    self.params = [
+    ]  #additional parameters needed for polynomial (alpha, beta, etc)
     self.messageHandler = None
 
   def initialize(self, quad, messageHandler):
@@ -165,8 +166,9 @@ class OrthogonalPolynomial(MessageHandler.MessageUser):
       self.pointMod = self.cdfPoint
       self.quad = quad
     else:
-      self.raiseAnError(IOError, 'No implementation for ' + quad.type + ' quadrature and',
-                        self.type, 'polynomials.')
+      self.raiseAnError(
+          IOError, 'No implementation for ' + quad.type + ' quadrature and',
+          self.type, 'polynomials.')
 
   def _getDistr(self):
     """

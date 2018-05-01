@@ -51,18 +51,23 @@ class TopologicalDecomposition(PostProcessor):
         specifying input of cls.
     """
     ## This will replace the lines above
-    inputSpecification = super(TopologicalDecomposition, cls).getInputSpecification()
+    inputSpecification = super(TopologicalDecomposition,
+                               cls).getInputSpecification()
 
-    TDGraphInput = InputData.parameterInputFactory("graph", contentType=InputData.StringType)
+    TDGraphInput = InputData.parameterInputFactory(
+        "graph", contentType=InputData.StringType)
     inputSpecification.addSub(TDGraphInput)
 
-    TDGradientInput = InputData.parameterInputFactory("gradient", contentType=InputData.StringType)
+    TDGradientInput = InputData.parameterInputFactory(
+        "gradient", contentType=InputData.StringType)
     inputSpecification.addSub(TDGradientInput)
 
-    TDBetaInput = InputData.parameterInputFactory("beta", contentType=InputData.FloatType)
+    TDBetaInput = InputData.parameterInputFactory(
+        "beta", contentType=InputData.FloatType)
     inputSpecification.addSub(TDBetaInput)
 
-    TDKNNInput = InputData.parameterInputFactory("knn", contentType=InputData.IntegerType)
+    TDKNNInput = InputData.parameterInputFactory(
+        "knn", contentType=InputData.IntegerType)
     inputSpecification.addSub(TDKNNInput)
 
     TDWeightedInput = InputData.parameterInputFactory(
@@ -85,7 +90,8 @@ class TopologicalDecomposition(PostProcessor):
         "parameters", contentType=InputData.StringType)
     inputSpecification.addSub(TDParametersInput)
 
-    TDResponseInput = InputData.parameterInputFactory("response", contentType=InputData.StringType)
+    TDResponseInput = InputData.parameterInputFactory(
+        "response", contentType=InputData.StringType)
     inputSpecification.addSub(TDResponseInput)
 
     TDNormalizationInput = InputData.parameterInputFactory(
@@ -103,7 +109,8 @@ class TopologicalDecomposition(PostProcessor):
     PostProcessor.__init__(self, messageHandler)
     self.acceptedGraphParam = ['approximate knn', 'delaunay', 'beta skeleton', \
                                'relaxed beta skeleton']
-    self.acceptedPersistenceParam = ['difference', 'probability', 'count']  #,'area']
+    self.acceptedPersistenceParam = ['difference', 'probability',
+                                     'count']  #,'area']
     self.acceptedGradientParam = ['steepest', 'maxflow']
     self.acceptedNormalizationParam = ['feature', 'zscore', 'none']
 
@@ -130,21 +137,25 @@ class TopologicalDecomposition(PostProcessor):
     # nowadays, our only input should be DataObject
     ## if no "type", then you're not a PointSet or HistorySet
     if not hasattr(currentInp, 'type') or currentInp.type != 'PointSet':
-      self.raiseAnError(IOError, self.__class__.__name__,
-                        ' postprocessor only accepts PointSet DataObjects for input. ',
-                        ' Requested: ', type(currentInp))
+      self.raiseAnError(
+          IOError, self.__class__.__name__,
+          ' postprocessor only accepts PointSet DataObjects for input. ',
+          ' Requested: ', type(currentInp))
     # now we know we have a PointSet
     ## TODO FIXME maintaining old structure for now, in the future convert to use DataObject directly
     ##    and not bother with inputToInternal
     ##    This works particularly well since we only accept point sets.
     data = currentInp.asDataset(outType='dict')['data']
     inputDict = {
-        'features': dict((var, data[var]) for var in self.parameters['features']),
-        'targets': dict((var, data[var]) for var in self.parameters['targets']),
+        'features': dict(
+            (var, data[var]) for var in self.parameters['features']),
+        'targets': dict(
+            (var, data[var]) for var in self.parameters['targets']),
         'metadata': currentInp.getMeta(general=True)
     }
     #if 'PointProbability' in currentInp.getVars():
-    inputDict['metadata']['PointProbability'] = currentInp.getVarValues('PointProbability').values
+    inputDict['metadata']['PointProbability'] = currentInp.getVarValues(
+        'PointProbability').values
     #else:
     #  raise NotImplementedError # TODO
     return inputDict
@@ -172,18 +183,20 @@ class TopologicalDecomposition(PostProcessor):
       if child.getName() == "graph":
         self.graph = child.value.encode('ascii').lower()
         if self.graph not in self.acceptedGraphParam:
-          self.raiseAnError(IOError, 'Requested unknown graph type: ', self.graph,
-                            '. Available options: ', self.acceptedGraphParam)
+          self.raiseAnError(IOError, 'Requested unknown graph type: ',
+                            self.graph, '. Available options: ',
+                            self.acceptedGraphParam)
       elif child.getName() == "gradient":
         self.gradient = child.value.encode('ascii').lower()
         if self.gradient not in self.acceptedGradientParam:
-          self.raiseAnError(IOError, 'Requested unknown gradient method: ', self.gradient,
-                            '. Available options: ', self.acceptedGradientParam)
+          self.raiseAnError(IOError, 'Requested unknown gradient method: ',
+                            self.gradient, '. Available options: ',
+                            self.acceptedGradientParam)
       elif child.getName() == "beta":
         self.beta = child.value
         if self.beta <= 0 or self.beta > 2:
-          self.raiseAnError(IOError, 'Requested invalid beta value: ', self.beta,
-                            '. Allowable range: (0,2]')
+          self.raiseAnError(IOError, 'Requested invalid beta value: ',
+                            self.beta, '. Allowable range: (0,2]')
       elif child.getName() == 'knn':
         self.knn = child.value
       elif child.getName() == 'simplification':
@@ -191,12 +204,14 @@ class TopologicalDecomposition(PostProcessor):
       elif child.getName() == 'persistence':
         self.persistence = child.value.encode('ascii').lower()
         if self.persistence not in self.acceptedPersistenceParam:
-          self.raiseAnError(IOError, 'Requested unknown persistence method: ', self.persistence,
-                            '. Available options: ', self.acceptedPersistenceParam)
+          self.raiseAnError(IOError, 'Requested unknown persistence method: ',
+                            self.persistence, '. Available options: ',
+                            self.acceptedPersistenceParam)
       elif child.getName() == 'parameters':
         self.parameters['features'] = child.value.strip().split(',')
         for i, parameter in enumerate(self.parameters['features']):
-          self.parameters['features'][i] = self.parameters['features'][i].encode('ascii')
+          self.parameters['features'][i] = self.parameters['features'][
+              i].encode('ascii')
       elif child.getName() == 'weighted':
         self.weighted = child.value in ['True', 'true']
       elif child.getName() == 'response':
@@ -204,8 +219,9 @@ class TopologicalDecomposition(PostProcessor):
       elif child.getName() == 'normalization':
         self.normalization = child.value.encode('ascii').lower()
         if self.normalization not in self.acceptedNormalizationParam:
-          self.raiseAnError(IOError, 'Requested unknown normalization type: ', self.normalization,
-                            '. Available options: ', self.acceptedNormalizationParam)
+          self.raiseAnError(IOError, 'Requested unknown normalization type: ',
+                            self.normalization, '. Available options: ',
+                            self.acceptedNormalizationParam)
 
   def collectOutput(self, finishedJob, output):
     """
@@ -216,8 +232,9 @@ class TopologicalDecomposition(PostProcessor):
     """
     evaluation = finishedJob.getEvaluation()
     if isinstance(evaluation, Runners.Error):
-      self.raiseAnError(RuntimeError,
-                        "No available output to collect (run possibly not finished yet)")
+      self.raiseAnError(
+          RuntimeError,
+          "No available output to collect (run possibly not finished yet)")
 
     inputList, outputDict = evaluation
 
@@ -225,13 +242,18 @@ class TopologicalDecomposition(PostProcessor):
       # TODO this is a slow dict-based implementation.  It should be improved on need.
       # TODO can inputList ever be multiple dataobjects?
       if len(inputList) > 1:
-        self.raiseAnError(NotImplementedError, 'Need to implement looping over all inputs.')
+        self.raiseAnError(NotImplementedError,
+                          'Need to implement looping over all inputs.')
       fromInput = inputList[0].asDataset('dict')['data']
-      results = dict((var, fromInput[var]) for var in output.getVars() if var in fromInput.keys())
+      results = dict((var, fromInput[var]) for var in output.getVars()
+                     if var in fromInput.keys())
       for label in ['minLabel', 'maxLabel']:
         results[label] = outputDict[label]
       output.load(results, style='dict')
-      output.addMeta(self.type, {'general': {'hierarchy': outputDict['hierarchy']}})
+      output.addMeta(self.type,
+                     {'general': {
+                         'hierarchy': outputDict['hierarchy']
+                     }})
       return
 
       #### OLD ####
@@ -252,8 +274,8 @@ class TopologicalDecomposition(PostProcessor):
               dataLength = myLength
             elif dataLength != myLength:
               dataLength = max(dataLength, myLength)
-              self.raiseAWarning(
-                  'Data size is inconsistent. Currently set to ' + str(dataLength) + '.')
+              self.raiseAWarning('Data size is inconsistent. Currently set to '
+                                 + str(dataLength) + '.')
 
             for val in value:
               output.updateInputValue(key, val)
@@ -271,8 +293,8 @@ class TopologicalDecomposition(PostProcessor):
               dataLength = myLength
             elif dataLength != myLength:
               dataLength = max(dataLength, myLength)
-              self.raiseAWarning(
-                  'Data size is inconsistent. Currently set to ' + str(dataLength) + '.')
+              self.raiseAWarning('Data size is inconsistent. Currently set to '
+                                 + str(dataLength) + '.')
 
             for val in value:
               output.updateOutputValue(key, val)
@@ -468,8 +490,8 @@ try:
                 'normalization':
                 self.normalization,
                 'views': [
-                    'TopologyMapView', 'SensitivityView', 'FitnessView', 'ScatterView2D',
-                    'ScatterView3D'
+                    'TopologyMapView', 'SensitivityView', 'FitnessView',
+                    'ScatterView2D', 'ScatterView3D'
                 ]
             })
 

@@ -50,14 +50,18 @@ class BisonMeshScript(CodeInterfaceBase):
         found = True
         break
     if not found:
-      raise IOError('None of the input files has one of the following extensions: ' +
-                    ' '.join(self.getInputExtension()))
+      raise IOError(
+          'None of the input files has one of the following extensions: ' +
+          ' '.join(self.getInputExtension()))
     outputfile = 'mesh~' + inputFiles[index].getBase()
-    returnCommand = [('serial', 'python ' + executable + ' -i ' + inputFiles[index].getFilename() +
-                      ' -o ' + outputfile + '.e')], outputfile
+    returnCommand = [
+        ('serial', 'python ' + executable + ' -i ' +
+         inputFiles[index].getFilename() + ' -o ' + outputfile + '.e')
+    ], outputfile
     return returnCommand
 
-  def createNewInput(self, currentInputFiles, oriInputFiles, samplerType, **Kwargs):
+  def createNewInput(self, currentInputFiles, oriInputFiles, samplerType,
+                     **Kwargs):
     """
       Generates new perturbed input files.
       @ In, currentInputFiles, list,  list of current input files (input files from last this method call)
@@ -71,7 +75,8 @@ class BisonMeshScript(CodeInterfaceBase):
     for index, inputFile in enumerate(oriInputFiles):
       if inputFile.getExt() == self.getInputExtension():
         break
-    parser = BISONMESHSCRIPTparser.BISONMESHSCRIPTparser(currentInputFiles[index])
+    parser = BISONMESHSCRIPTparser.BISONMESHSCRIPTparser(
+        currentInputFiles[index])
     parser.modifyInternalDictionary(**copy.deepcopy(Kwargs['SampledVars']))
     parser.writeNewInput(currentInputFiles[index].getAbsFile())
     return currentInputFiles
@@ -98,8 +103,8 @@ class BisonMeshScript(CodeInterfaceBase):
     cubitjour_files = os.path.join(workingDir, 'cubit*')
     pyc_files = os.path.join(workingDir, '*.pyc')
     # Inform user which files will be removed
-    print('Interface attempting to remove files the following:\n    ' + cubitjour_files +
-          '\n    ' + pyc_files)
+    print('Interface attempting to remove files the following:\n    ' +
+          cubitjour_files + '\n    ' + pyc_files)
     # Remove Cubit generated journal files
     self.rmUnwantedFiles(cubitjour_files)
     # Remove .pyc files created when running BMS python inputs

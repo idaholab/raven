@@ -48,7 +48,12 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta, object)):
     """
     self.inputExtensions = []
 
-  def genCommand(self, inputFiles, executable, flags=None, fileArgs=None, preExec=None):
+  def genCommand(self,
+                 inputFiles,
+                 executable,
+                 flags=None,
+                 fileArgs=None,
+                 preExec=None):
     """
       This method is used to retrieve the command (in tuple format) needed to launch the Code.
       This method checks a boolean environment variable called 'RAVENinterfaceCheck':
@@ -77,9 +82,14 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta, object)):
           inputFiles, executable, clargs=flags, fargs=fileArgs)
     else:
       subcodeCommand, outputfileroot = self.generateCommand(
-          inputFiles, executable, clargs=flags, fargs=fileArgs, preExec=preExec)
+          inputFiles,
+          executable,
+          clargs=flags,
+          fargs=fileArgs,
+          preExec=preExec)
 
-    if os.environ.get('RAVENinterfaceCheck', 'False').lower() in utils.stringsThatMeanTrue():
+    if os.environ.get('RAVENinterfaceCheck',
+                      'False').lower() in utils.stringsThatMeanTrue():
       return [('parallel', '')], outputfileroot
     returnCommand = subcodeCommand, outputfileroot
     return returnCommand
@@ -104,7 +114,12 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta, object)):
     pass
 
   @abc.abstractmethod
-  def generateCommand(self, inputFiles, executable, clargs=None, fargs=None, preExec=None):
+  def generateCommand(self,
+                      inputFiles,
+                      executable,
+                      clargs=None,
+                      fargs=None,
+                      preExec=None):
     """
       This method is used to retrieve the command (in tuple format) needed to launch the Code.
       @ In, inputFiles, list, List of input files (length of the list depends on the number of
@@ -129,7 +144,8 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta, object)):
     return
 
   @abc.abstractmethod
-  def createNewInput(self, currentInputFiles, oriInputFiles, samplerType, **Kwargs):
+  def createNewInput(self, currentInputFiles, oriInputFiles, samplerType,
+                     **Kwargs):
     """
       This method is used to generate an input based on the information passed in.
       @ In, currentInputFiles, list,  list of current input files (ready to be used)

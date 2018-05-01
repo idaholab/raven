@@ -57,12 +57,14 @@ class MelcorApp(CodeInterfaceBase):
       @ In, fargs, dict, optional, a dictionary containing the axuiliary input file variables the user can specify in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 aux0extension =0 .aux0/ >< /Code >)
       @ Out, returnCommand, tuple, tuple containing the generated command. returnCommand[0] is the command to run the code (string), returnCommand[1] is the name of the output root
     """
-    subReturnCommand = self.melgenApp.generateCommand(inputFiles, executable, clargs, fargs)
+    subReturnCommand = self.melgenApp.generateCommand(inputFiles, executable,
+                                                      clargs, fargs)
     outputfile = 'GEN_OUTPUT'
     returnCommand = subReturnCommand[0], outputfile
     return returnCommand
 
-  def createNewInput(self, currentInputFiles, origInputFiles, samplerType, **Kwargs):
+  def createNewInput(self, currentInputFiles, origInputFiles, samplerType,
+                     **Kwargs):
     """
       This generates a new input file depending on which sampler has been chosen
       @ In, currentInputFiles, list,  list of current input files (input files from last this method call)
@@ -73,7 +75,8 @@ class MelcorApp(CodeInterfaceBase):
       @ Out, newInputFiles, list, list of newer input files, list of the new input files (modified and not)
     """
     if "dynamicevent" in samplerType.lower():
-      raise IOError("Dynamic Event Tree-based samplers not implemented for MELCOR yet!")
+      raise IOError(
+          "Dynamic Event Tree-based samplers not implemented for MELCOR yet!")
     indexes = []
     inFiles = []
     origFiles = []

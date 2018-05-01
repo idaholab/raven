@@ -82,8 +82,9 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
       @ Out, outputDic, dict, dictionary which contains the data to be collected by output DataObject
     """
     if len(inputDic) > 1:
-      self.raiseAnError(IOError, self.__class__.__name__ + ' Interfaced Post-Processor ' +
-                        str(self.name) + ' accepts only one dataObject')
+      self.raiseAnError(
+          IOError, self.__class__.__name__ + ' Interfaced Post-Processor ' +
+          str(self.name) + ' accepts only one dataObject')
 
     #get actual data
     inputDict = inputDic[0]['data']
@@ -95,8 +96,8 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
 
     #if output length (size of desired output history) not set, set it now
     if self.outputLen is None:
-      self.outputLen = np.asarray(
-          inputDict['output'][inputDict['output'].keys()[0]][self.pivotParameter])[-1]
+      self.outputLen = np.asarray(inputDict['output'][inputDict[
+          'output'].keys()[0]][self.pivotParameter])[-1]
 
     ## Check if data is synchronized
     referenceHistory = 0
@@ -118,7 +119,8 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
       #   -> (i.e. I have a year and I want output of a year)
       if self.outputLen >= pivotValues[-1]:
         #don't change the shape of this history; it's fine as is
-        reshapedData[newHistoryCounter] = self.retrieveHistory(inputDict, historyNumber)
+        reshapedData[newHistoryCounter] = self.retrieveHistory(
+            inputDict, historyNumber)
         newHistoryCounter += 1
       #if the provided history is longer than the requested output period
       #   -> (i.e., I have a year of data and I only want output of 1 year)
@@ -131,7 +133,8 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
           #create a storage place for each new usable history
           reshapedData[newHistoryCounter] = {}
           # acceptable is if the pivot value is greater than start and less than end
-          extractCondition = np.logical_and(pivotValues >= startPivot, pivotValues <= endPivot)
+          extractCondition = np.logical_and(pivotValues >= startPivot,
+                                            pivotValues <= endPivot)
           # extract out the acceptable parts from the pivotValues, and reset the base pivot point to 0
           reshapedData[newHistoryCounter][self.pivotParameter] = np.extract(
               extractCondition, pivotValues) - startPivot
@@ -148,15 +151,17 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
 
     inputDict['output'] = reshapedData
     self.numHistory = len(
-        inputDict['output'].keys())  #should be same as newHistoryCounter - 1, if that's faster
+        inputDict['output']
+        .keys())  #should be same as newHistoryCounter - 1, if that's faster
     #update the set of pivot parameter values to match the first of the reshaped histories
-    self.pivotValues = np.asarray(
-        inputDict['output'][inputDict['output'].keys()[0]][self.pivotParameter])
+    self.pivotValues = np.asarray(inputDict['output'][inputDict[
+        'output'].keys()[0]][self.pivotParameter])
 
     # task: split the history into multiple subsequences so that the typical history can be constructed
     #  -> i.e., split the year history into multiple months, so we get a typical January, February, ..., hence a typical year
     # start by identifying the subsequences within the histories
-    self.subsequence = []  #list of start/stop pivot values for the subsequences
+    self.subsequence = [
+    ]  #list of start/stop pivot values for the subsequences
     startLocation = 0  #tracks the point in the history being evaluated
     n = 0  #counts the number of the subsequence
     # in this loop we collect the similar (in time) subsequences in each history
@@ -164,7 +169,8 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
       subsequenceLength = self.subseqLen[n % len(self.subseqLen)]
       # if the history is longer than the subsequence we need, take the whole subsequence
       if startLocation + subsequenceLength < self.pivotValues[-1]:
-        self.subsequence.append([startLocation, startLocation + subsequenceLength])
+        self.subsequence.append(
+            [startLocation, startLocation + subsequenceLength])
       # otherwise, take only as much as the history has, and exit
       else:
         self.subsequence.append([startLocation, self.pivotValues[-1]])
@@ -186,28 +192,34 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
     # stack the similar histories in numpy arrays for full period (for example, by year)
     for feature in self.features:
       subseqData['all'][feature] = np.concatenate(
-          list(inputDict['output'][h][feature] for h in inputDict['output'].keys()))
+          list(inputDict['output'][h][feature]
+               for h in inputDict['output'].keys()))
 
     # gather feature data by subsequence (for example, by month)
     for index in range(numParallelSubsequences):
-      extractCondition = np.logical_and(self.pivotValues >= self.subsequence[index][0],
-                                        self.pivotValues < self.subsequence[index][1])
-      subseqData[index][self.pivotParameter] = np.extract(extractCondition, self.pivotValues)
+      extractCondition = np.logical_and(
+          self.pivotValues >= self.subsequence[index][0],
+          self.pivotValues < self.subsequence[index][1])
+      subseqData[index][self.pivotParameter] = np.extract(
+          extractCondition, self.pivotValues)
       #get the pivot parameter entries as well, but only do it once, at the end
       if self.pivotValues[-1] == self.subsequence[index][1]:
         subseqData[index][self.pivotParameter] = np.concatenate(
-            (subseqData[index][self.pivotParameter], np.asarray([self.pivotValues[-1]])))
+            (subseqData[index][self.pivotParameter],
+             np.asarray([self.pivotValues[-1]])))
       #get the subsequence data for each feature, for each history
       for feature in self.features:
         subseqData[index][feature] = np.zeros(
-            shape=(self.numHistory, len(subseqData[index][self.pivotParameter])))
+            shape=(self.numHistory,
+                   len(subseqData[index][self.pivotParameter])))
         for h, historyNumber in enumerate(inputDict['output'].keys()):
           if self.pivotValues[-1] == self.subsequence[index][1]:
             #TODO this is doing the right action, but it's strange that we need to add one extra element.
             #  Maybe this should be fixed where we set the self.subsequence[index][1] for the last index, instead of patched here
             subseqData[index][feature][h, 0:-1] = np.extract(
                 extractCondition, inputDict['output'][historyNumber][feature])
-            subseqData[index][feature][h, -1] = inputDict['output'][historyNumber][feature][-1]
+            subseqData[index][feature][h, -1] = inputDict['output'][
+                historyNumber][feature][-1]
           else:
             subseqData[index][feature][h, :] = np.extract(
                 extractCondition, inputDict['output'][historyNumber][feature])
@@ -225,13 +237,14 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
       #construct reasonable bins for feature
       numBins, binEdges = mathUtils.numBinsDraconis(subseqData['all'][feature])
       #get the empirical CDF by bin for entire history (e.g., full year or even multiple years)
-      cdfData['all'][feature] = self.__computeECDF(subseqData['all'][feature], binEdges)
+      cdfData['all'][feature] = self.__computeECDF(subseqData['all'][feature],
+                                                   binEdges)
       #get the empirical CDF by bin for subsequence (e.g., for a month)
       for index in range(numParallelSubsequences):
         cdfData[index][feature] = np.zeros(shape=(self.numHistory, numBins))
         for h in range(self.numHistory):
-          cdfData[index][feature][h, :] = self.__computeECDF(subseqData[index][feature][h, :],
-                                                             binEdges)
+          cdfData[index][feature][h, :] = self.__computeECDF(
+              subseqData[index][feature][h, :], binEdges)
 
     # now determine which subsequences are the most typical, using the CDF
     # find the smallestDeltaCDF and its index so the typical data can be set
@@ -239,19 +252,22 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
     typicalDataHistories = {}
     for index in range(numParallelSubsequences):
       typicalDataHistories[index] = {}
-      typicalDataHistories[index][self.pivotParameter] = subseqData[index][self.pivotParameter]
+      typicalDataHistories[index][self.pivotParameter] = subseqData[index][
+          self.pivotParameter]
       smallestDeltaCDF = np.inf
       smallestDeltaIndex = numParallelSubsequences + 1  #initialized as bogus index to preserve errors
       for h in range(
-          self.numHistory):  # for h, historyNumber in enumerate(inputDict['output'].keys()):
+          self.numHistory
+      ):  # for h, historyNumber in enumerate(inputDict['output'].keys()):
         delta = sum(
-            self.__computeDist(cdfData['all'][feature], cdfData[index][feature][h, :])
-            for feature in self.features)
+            self.__computeDist(cdfData['all'][feature], cdfData[index][feature]
+                               [h, :]) for feature in self.features)
         if delta < smallestDeltaCDF:
           smallestDeltaCDF = delta
           smallestDeltaIndex = h
       for feature in self.features:
-        typicalDataHistories[index][feature] = subseqData[index][feature][smallestDeltaIndex, :]
+        typicalDataHistories[index][feature] = subseqData[index][feature][
+            smallestDeltaIndex, :]
     # now collapse the data into the typical history
     typicalData = {}
     typicalData[self.pivotParameter] = np.concatenate(
@@ -259,7 +275,8 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
              for index in range(numParallelSubsequences)))
     for feature in self.features:
       typicalData[feature] = np.concatenate(
-          list(typicalDataHistories[index][feature] for index in range(numParallelSubsequences)))
+          list(typicalDataHistories[index][feature]
+               for index in range(numParallelSubsequences)))
     # sanity check, should probably be skipped for efficiency, as it looks like a debugging tool
     # preserved for now in case it was important for an undiscovered reason
     #   for t in range(1,len(typicalData[self.pivotParameter])):

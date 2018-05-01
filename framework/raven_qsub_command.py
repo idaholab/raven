@@ -31,7 +31,9 @@ import os, subprocess, sys
 #Internal Modules End--------------------------------------------------------------------------------
 
 moduleCommand = False
-for possibleModuleCommand in ["/apps/local/modules/bin/modulecmd", "/usr/bin/modulecmd"]:
+for possibleModuleCommand in [
+    "/apps/local/modules/bin/modulecmd", "/usr/bin/modulecmd"
+]:
   if os.path.exists(possibleModuleCommand):
     moduleCommand = possibleModuleCommand
     break
@@ -41,7 +43,8 @@ if not moduleCommand:
   sys.exit(-1)
 
 availModules = subprocess.Popen(
-    [moduleCommand, "python", "avail"], stdout=subprocess.PIPE,
+    [moduleCommand, "python", "avail"],
+    stdout=subprocess.PIPE,
     stderr=subprocess.PIPE).communicate()[1]
 
 if "raven-devel-gcc" in availModules:
@@ -66,11 +69,16 @@ else:
     os.environ["MODULEPATH"] = newModuleFiles
 
   mooseDevAndPython3Eval = subprocess.Popen(
-      [moduleCommand, "python", "load", "use.moose", "moose-dev-gcc", "python/3.2"],
+      [
+          moduleCommand, "python", "load", "use.moose", "moose-dev-gcc",
+          "python/3.2"
+      ],
       stdout=subprocess.PIPE).communicate()[0]
   exec (mooseDevAndPython3Eval)
-  os.environ["PYTHONPATH"] = os.environ.get("PYTHONPATH", "") + ":" + os.path.join(
-      os.path.expanduser("~"), "raven_libs", "pylibs", "lib", "python2.7", "site-packages")
+  os.environ["PYTHONPATH"] = os.environ.get(
+      "PYTHONPATH", "") + ":" + os.path.join(
+          os.path.expanduser("~"), "raven_libs", "pylibs", "lib", "python2.7",
+          "site-packages")
 
 if "PBS_O_WORKDIR" in os.environ:
   os.chdir(os.environ["PBS_O_WORKDIR"])

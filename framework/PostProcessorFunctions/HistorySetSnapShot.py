@@ -111,18 +111,21 @@ class HistorySetSnapShot(PostProcessorInterfaceBase):
           for entry in entries:
             self.classifiers[tag].append((entry, depVar, float(depVal)))
         else:
-          self.raiseAnError(IOError, 'Unrecognized node for HistorySetSnapShot in "mixed" mode:',
-                            tag)
+          self.raiseAnError(
+              IOError,
+              'Unrecognized node for HistorySetSnapShot in "mixed" mode:', tag)
       elif tag != 'method':
-        self.raiseAnError(IOError, 'HistorySetSnapShot Interfaced Post-Processor ' +
-                          str(self.name) + ' : XML node ' + str(child.tag) + ' is not recognized')
+        self.raiseAnError(
+            IOError,
+            'HistorySetSnapShot Interfaced Post-Processor ' + str(self.name) +
+            ' : XML node ' + str(child.tag) + ' is not recognized')
 
     needspivotParameter = ['average', 'timeSlice']
-    if self.type in needspivotParameter or any(mode in self.classifiers.keys()
-                                               for mode in needspivotParameter):
+    if self.type in needspivotParameter or any(
+        mode in self.classifiers.keys() for mode in needspivotParameter):
       if self.pivotParameter is None:
-        self.raiseAnError(IOError, '"pivotParameter" is required for', needspivotParameter,
-                          'but not provided!')
+        self.raiseAnError(IOError, '"pivotParameter" is required for',
+                          needspivotParameter, 'but not provided!')
 
     #sync if needed
     if self.type == 'timeSlice':
@@ -130,22 +133,32 @@ class HistorySetSnapShot(PostProcessorInterfaceBase):
       if self.numberOfSamples is None:
         self.raiseIOError(
             IOError,
-            'When using "timeSlice" a "numberOfSamples" must be specified for synchronizing!')
+            'When using "timeSlice" a "numberOfSamples" must be specified for synchronizing!'
+        )
       if self.extension is None:
         self.raiseAnError(
             IOError,
-            'When using "timeSlice" an "extension" method must be specified for synchronizing!')
+            'When using "timeSlice" an "extension" method must be specified for synchronizing!'
+        )
       if self.extension not in ['zeroed', 'extended']:
-        self.raiseAnError(IOError, 'Unrecognized "extension" method:', self.extension)
+        self.raiseAnError(IOError, 'Unrecognized "extension" method:',
+                          self.extension)
       #perform sync
-      PostProcessorInterfaces = importlib.import_module("PostProcessorInterfaces")
-      self.HSsyncPP = PostProcessorInterfaces.returnPostProcessorInterface('HistorySetSync', self)
+      PostProcessorInterfaces = importlib.import_module(
+          "PostProcessorInterfaces")
+      self.HSsyncPP = PostProcessorInterfaces.returnPostProcessorInterface(
+          'HistorySetSync', self)
       self.HSsyncPP.initialize(
-          self.numberOfSamples, self.pivotParameter, self.extension, syncMethod='grid')
+          self.numberOfSamples,
+          self.pivotParameter,
+          self.extension,
+          syncMethod='grid')
 
-    if self.type not in set(['min', 'max', 'average', 'value', 'timeSlice', 'mixed']):
-      self.raiseAnError(IOError, 'HistorySetSnapShot Interfaced Post-Processor "' +
-                        str(self.name) + '" : type "%s" is not recognized' % self.type)
+    if self.type not in set(
+        ['min', 'max', 'average', 'value', 'timeSlice', 'mixed']):
+      self.raiseAnError(
+          IOError, 'HistorySetSnapShot Interfaced Post-Processor "' +
+          str(self.name) + '" : type "%s" is not recognized' % self.type)
 
   def run(self, inputDic, pivotVal=None):
     """
@@ -155,20 +168,22 @@ class HistorySetSnapShot(PostProcessorInterfaceBase):
       @ Out, outputPSDic, dict, output dictionary
     """
     if len(inputDic) > 1:
-      self.raiseAnError(IOError, 'HistorySetSnapShot Interfaced Post-Processor ' + str(self.name) +
-                        ' accepts only one dataObject')
+      self.raiseAnError(IOError,
+                        'HistorySetSnapShot Interfaced Post-Processor ' +
+                        str(self.name) + ' accepts only one dataObject')
     else:
       inputDic = inputDic[0]
       #for timeSlice we call historySetWindow
       if self.type == 'timeSlice':
         outputHSDic = self.HSsyncPP.run([inputDic])
-        return historySetWindow(outputHSDic, self.timeInstant, inputDic['inpVars'],
-                                inputDic['outVars'], inputDic['numberRealizations'],
+        return historySetWindow(outputHSDic, self.timeInstant,
+                                inputDic['inpVars'], inputDic['outVars'],
+                                inputDic['numberRealizations'],
                                 self.pivotParameter)
       #for other non-mixed methods we call historySnapShot
       elif self.type != 'mixed':
-        outputPSDic = historySnapShot(inputDic, self.pivotVar, self.type, self.pivotVal,
-                                      self.pivotParameter)
+        outputPSDic = historySnapShot(inputDic, self.pivotVar, self.type,
+                                      self.pivotVal, self.pivotParameter)
         return outputPSDic
       #   mixed is more complicated: we pull out values by method instead of a single slice type
       #   We use the same methods to get slices, then pick out only the requested variables
@@ -179,7 +194,8 @@ class HistorySetSnapShot(PostProcessorInterfaceBase):
         for var in inputDic['inpVars']:
           outDict['data'][var] = inputDic['data'][var]
           #replicate metadata
-          outDict['data']['ProbabilityWeight'] = inputDic['data']['ProbabilityWeight']
+          outDict['data']['ProbabilityWeight'] = inputDic['data'][
+              'ProbabilityWeight']
           outDict['data']['prefix'] = inputDic['data']['prefix']
           outDict['dims'] = {key: [] for key in inputDic['dims'].keys()}
         #loop over the methods requested to fill output space
@@ -193,7 +209,11 @@ class HistorySetSnapShot(PostProcessorInterfaceBase):
           elif method == 'average':
             for var in entries:
               getDict = historySnapShot(
-                  inputDic, var, method, tempID=self.pivotParameter, pivotVal=self.pivotParameter)
+                  inputDic,
+                  var,
+                  method,
+                  tempID=self.pivotParameter,
+                  pivotVal=self.pivotParameter)
               outDict['data'][var] = getDict['data'][var]
           #timeSlice requires the time value
           #functionality removed for now until we recall why it's desirable
@@ -203,12 +223,17 @@ class HistorySetSnapShot(PostProcessorInterfaceBase):
           #value requires the dependent variable and value
           elif method == 'value':
             for var, depVar, depVal in entries:
-              getDict = historySnapShot(inputDic, depVar, method, pivotVal=depVal)
+              getDict = historySnapShot(
+                  inputDic, depVar, method, pivotVal=depVal)
               outDict['data'][var] = getDict['data'][var]
         return outDict
 
 
-def historySnapShot(inputDic, pivotVar, snapShotType, pivotVal=None, tempID=None):
+def historySnapShot(inputDic,
+                    pivotVar,
+                    snapShotType,
+                    pivotVal=None,
+                    tempID=None):
   """
     Method do to compute a conversion from HistorySet to PointSet using the methods: min,max,average,value
     @ In, inputDic, dict, it is an historySet
@@ -224,7 +249,8 @@ def historySnapShot(inputDic, pivotVar, snapShotType, pivotVal=None, tempID=None
   # TODO collecting by name is problemsome; for instance, Optimizers don't produce "probability weight" information
   ## ProbabilityWeight
   try:
-    outputDic['data']['ProbabilityWeight'] = inputDic['data']['ProbabilityWeight']
+    outputDic['data']['ProbabilityWeight'] = inputDic['data'][
+        'ProbabilityWeight']
   except KeyError:
     pass
   ## prefix
@@ -247,7 +273,8 @@ def historySnapShot(inputDic, pivotVar, snapShotType, pivotVal=None, tempID=None
   vars = [var for var in outVars if var not in inputDic['inpVars']]
 
   for var in vars:
-    outputDic['data'][var] = np.zeros(inputDic['numberRealizations'], dtype=object)
+    outputDic['data'][var] = np.zeros(
+        inputDic['numberRealizations'], dtype=object)
     for history in range(inputDic['numberRealizations']):
       if snapShotType == 'min':
         idx = np.argmin(inputDic['data'][pivotVar][history])
@@ -256,33 +283,41 @@ def historySnapShot(inputDic, pivotVar, snapShotType, pivotVal=None, tempID=None
         idx = np.argmax(inputDic['data'][pivotVar][history])
         outputDic['data'][var][history] = inputDic['data'][var][history][idx]
       elif snapShotType == 'value':
-        idx = returnIndexFirstPassage(inputDic['data'][pivotVar][history], pivotVal)
+        idx = returnIndexFirstPassage(inputDic['data'][pivotVar][history],
+                                      pivotVal)
         if inputDic['data'][pivotVar][history][idx] > pivotVal:
-          intervalFraction = (pivotVal - inputDic['data'][pivotVar][history][idx - 1]) / (
-              inputDic['data'][pivotVar][history][idx] - inputDic['data'][pivotVar][history][idx
-                                                                                             - 1])
-          outputDic['data'][var][history] = inputDic['data'][var][history][idx - 1] + (
-              inputDic['data'][var][history][idx] - inputDic['data'][var][history][idx - 1]
-          ) * intervalFraction
+          intervalFraction = (
+              pivotVal - inputDic['data'][pivotVar][history][idx - 1]) / (
+                  inputDic['data'][pivotVar][history][idx] -
+                  inputDic['data'][pivotVar][history][idx - 1])
+          outputDic['data'][var][
+              history] = inputDic['data'][var][history][idx - 1] + (
+                  inputDic['data'][var][history][idx] -
+                  inputDic['data'][var][history][idx - 1]) * intervalFraction
         else:
-          intervalFraction = (pivotVal - inputDic['data'][pivotVar][history][idx]) / (
-              inputDic['data'][pivotVar][history][idx
-                                                  + 1] - inputDic['data'][pivotVar][history][idx])
-          outputDic['data'][var][history] = inputDic['data'][var][history][idx] + (
-              inputDic['data'][var][history][idx + 1] - inputDic['data'][var][history][idx]
-          ) * intervalFraction
+          intervalFraction = (
+              pivotVal - inputDic['data'][pivotVar][history][idx]) / (
+                  inputDic['data'][pivotVar][history][idx + 1] -
+                  inputDic['data'][pivotVar][history][idx])
+          outputDic['data'][var][
+              history] = inputDic['data'][var][history][idx] + (
+                  inputDic['data'][var][history][idx + 1] -
+                  inputDic['data'][var][history][idx]) * intervalFraction
       elif snapShotType == 'average':
         cumulative = 0.0
         for t in range(1, len(inputDic['data'][tempID][history])):
-          cumulative += (
-              inputDic['data'][var][history][t] + inputDic['data'][var][history][t - 1]) / 2.0 * (
-                  inputDic['data'][tempID][history][t] - inputDic['data'][tempID][history][t - 1])
+          cumulative += (inputDic['data'][var][history][t] +
+                         inputDic['data'][var][history][t - 1]) / 2.0 * (
+                             inputDic['data'][tempID][history][t] -
+                             inputDic['data'][tempID][history][t - 1])
         outputDic['data'][var][history] = cumulative / (
-            inputDic['data'][tempID][history][-1] - inputDic['data'][tempID][history][0])
+            inputDic['data'][tempID][history][-1] -
+            inputDic['data'][tempID][history][0])
   return outputDic
 
 
-def historySetWindow(inputDic, timeStepID, inpVars, outVars, N, pivotParameter):
+def historySetWindow(inputDic, timeStepID, inpVars, outVars, N,
+                     pivotParameter):
   """
     Method do to compute a conversion from HistorySet to PointSet using the temporal slice of the historySet
     @ In, inputDic, dict, it is an historySet
@@ -294,7 +329,8 @@ def historySetWindow(inputDic, timeStepID, inpVars, outVars, N, pivotParameter):
     @ Out, outDic, dict, it contains the temporal slice of all histories
   """
   outputDic = {'data': {}}
-  outputDic['data']['ProbabilityWeight'] = inputDic['data']['ProbabilityWeight']
+  outputDic['data']['ProbabilityWeight'] = inputDic['data'][
+      'ProbabilityWeight']
   outputDic['data']['prefix'] = inputDic['data']['prefix']
   outputDic['dims'] = {key: [] for key in inputDic['dims'].keys()}
   #outputDic['dims'][pivotParameter]=[]
@@ -318,8 +354,9 @@ def returnIndexFirstPassage(array, value):
   """
   index = -1
   for i in range(1, array.size):
-    if (array[i] >= value and array[i - 1] <= value) or (array[i] <= value
-                                                         and array[i - 1] >= value):
+    if (array[i] >= value
+        and array[i - 1] <= value) or (array[i] <= value
+                                       and array[i - 1] >= value):
       index = i
       break
   return index

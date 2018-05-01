@@ -97,7 +97,8 @@ def returnInstance(Type, caller):
     return __interFaceDict[Type]()
   except KeyError:
     print(knownTypes())
-    caller.raiseAnError(NameError, __name__ + ': unknown ' + __base + ' type ' + Type)
+    caller.raiseAnError(NameError,
+                        __name__ + ': unknown ' + __base + ' type ' + Type)
 
 
 def returnClass(Type, caller):
@@ -111,4 +112,5 @@ def returnClass(Type, caller):
   try:
     return __interFaceDict[Type]
   except KeyError:
-    caller.raiseAnError(NameError, __name__ + ': unknown ' + __base + ' type ' + Type)
+    caller.raiseAnError(NameError,
+                        __name__ + ': unknown ' + __base + ' type ' + Type)

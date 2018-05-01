@@ -84,7 +84,8 @@ class HierarchyWindow(qtw.QMainWindow):
 
     for subclass in BaseHierarchicalView.__subclasses__():
       action = newMenu.addAction(subclass.__name__)
-      action.triggered.connect(functools.partial(self.addNewView, action.text()))
+      action.triggered.connect(
+          functools.partial(self.addNewView, action.text()))
 
   def test(self):
     """
@@ -273,7 +274,8 @@ class HierarchyWindow(qtw.QMainWindow):
       @ In, None
       @ Out, data, nparray, the data being used by this window.
     """
-    data = np.zeros((len(self.engine.features.values()[0]), len(self.engine.features.keys())))
+    data = np.zeros((len(self.engine.features.values()[0]),
+                     len(self.engine.features.keys())))
     for col, value in enumerate(self.engine.features.values()):
       data[:, col] = value
     return data

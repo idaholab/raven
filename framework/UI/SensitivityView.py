@@ -74,7 +74,8 @@ class SensitivityView(BaseTopologicalView):
     self.scene = qtw.QGraphicsScene()
     self.scene.setSceneRect(0, 0, 100, 100)
     self.gView = qtw.QGraphicsView(self.scene)
-    self.gView.setRenderHints(qtg.QPainter.Antialiasing | qtg.QPainter.SmoothPixmapTransform)
+    self.gView.setRenderHints(qtg.QPainter.Antialiasing
+                              | qtg.QPainter.SmoothPixmapTransform)
     self.gView.setHorizontalScrollBarPolicy(qtc.Qt.ScrollBarAlwaysOff)
     self.gView.setVerticalScrollBarPolicy(qtc.Qt.ScrollBarAlwaysOff)
     self.font = qtg.QFont('sans-serif', 12)
@@ -112,7 +113,8 @@ class SensitivityView(BaseTopologicalView):
     self.showLabelsAction.setChecked(True)
     self.showLabelsAction.triggered.connect(self.updateScene)
 
-    self.showNumberAction = self.rightClickMenu.addAction('Show Numeric Values')
+    self.showNumberAction = self.rightClickMenu.addAction(
+        'Show Numeric Values')
     self.showNumberAction.setCheckable(True)
     self.showNumberAction.setChecked(True)
     self.showNumberAction.triggered.connect(self.updateScene)
@@ -171,7 +173,8 @@ class SensitivityView(BaseTopologicalView):
       svgGen.setDescription("Generated from RAVEN.")
       painter = qtg.QPainter(svgGen)
     else:
-      image = qtg.QImage(self.scene.sceneRect().size().toSize(), qtg.QImage.Format_ARGB32)
+      image = qtg.QImage(self.scene.sceneRect().size().toSize(),
+                         qtg.QImage.Format_ARGB32)
       image.fill(qtc.Qt.transparent)
       painter = qtg.QPainter(image)
     self.scene.render(painter)
@@ -219,7 +222,8 @@ class SensitivityView(BaseTopologicalView):
     self.scene.clear()
     width = self.scene.width()
     height = self.scene.height()
-    minDim = min([width, height]) - 24.  # 12 point font * 2 for top and bottom,
+    minDim = min([width, height
+                  ]) - 24.  # 12 point font * 2 for top and bottom,
     ## width is a bit harder...
 
     centerX = width / 2.
@@ -392,19 +396,22 @@ class SensitivityView(BaseTopologicalView):
           fm = qtg.QFontMetrics(txtItem.font())
           fontHeight = fm.height()
           fontWidth = fm.width(txtItem.text())
-          txtItem.setPos(self.padding - fontWidth, y + h + (axisHeight - fontHeight) / 2.)
+          txtItem.setPos(self.padding - fontWidth,
+                         y + h + (axisHeight - fontHeight) / 2.)
           txtItem.setFlag(qtw.QGraphicsItem.ItemIsMovable)
           txtItem.setFlag(qtw.QGraphicsItem.ItemIsSelectable)
           txtItem.setZValue(2)
         myRect = self.scene.addRect(x, y, w, h, axisPen)
-        myRect.setZValue(2)  # Any value greater than 1 should work to draw on top
+        myRect.setZValue(
+            2)  # Any value greater than 1 should work to draw on top
     else:
       if len(selection) > 0:
         axisHeight = plotHeight / float(len(selection))
         axisWidth = plotWidth / float(len(selection))
       dimCount = len(names)
 
-      self.font.setPointSizeF(np.clip(axisHeight / float(dimCount) - 2 * self.padding, 2, 18))
+      self.font.setPointSizeF(
+          np.clip(axisHeight / float(dimCount) - 2 * self.padding, 2, 18))
       for j, extPair in enumerate(selection):
         myColor = colorMap[extPair]
         myPen = qtg.QPen(qtg.QColor('#000000'))
@@ -448,7 +455,8 @@ class SensitivityView(BaseTopologicalView):
             fm = qtg.QFontMetrics(numTxtItem.font())
             fontWidth = fm.boundingRect(numTxtItem.text()).width()
             fontHeight = fm.boundingRect(numTxtItem.text()).height()
-            numTxtItem.setPos(self.padding + maxExtent - fontWidth, y + 0.5 * (h - fontHeight))
+            numTxtItem.setPos(self.padding + maxExtent - fontWidth,
+                              y + 0.5 * (h - fontHeight))
             numTxtItem.setFlag(qtw.QGraphicsItem.ItemIsMovable)
             numTxtItem.setFlag(qtw.QGraphicsItem.ItemIsSelectable)
             numTxtItem.setZValue(2)
@@ -461,7 +469,8 @@ class SensitivityView(BaseTopologicalView):
         w = maxExtent
         h = -axisHeight
         myRect = self.scene.addRect(x, y, w, h, axisPen)
-        myRect.setZValue(2)  # Any value greater than 1 should work to draw on top
+        myRect.setZValue(
+            2)  # Any value greater than 1 should work to draw on top
 
     if self.signedAction.isChecked():
       axisPen = qtg.QPen(qtc.Qt.black)
@@ -482,8 +491,9 @@ class SensitivityView(BaseTopologicalView):
       txtItem.setFlag(qtw.QGraphicsItem.ItemIgnoresTransformations)
     else:
       if self.fillAction.isChecked():
-        self.scene.setSceneRect(0, 0, 100 * float(self.gView.width()) / float(self.gView.height()),
-                                100)
+        self.scene.setSceneRect(
+            0, 0, 100 * float(self.gView.width()) / float(self.gView.height()),
+            100)
       else:
         self.scene.setSceneRect(0, 0, 100, 100)
 

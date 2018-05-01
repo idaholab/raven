@@ -55,11 +55,13 @@ class HybridModel(Dummy):
       @ Out, inputSpecification, InputData.ParameterInput, class to use for specifying input of cls.
     """
     inputSpecification = super(HybridModel, cls).getInputSpecification()
-    modelInput = InputData.parameterInputFactory("Model", contentType=InputData.StringType)
+    modelInput = InputData.parameterInputFactory(
+        "Model", contentType=InputData.StringType)
     modelInput.addParam("class", InputData.StringType)
     modelInput.addParam("type", InputData.StringType)
     inputSpecification.addSub(modelInput)
-    romInput = InputData.parameterInputFactory("ROM", contentType=InputData.StringType)
+    romInput = InputData.parameterInputFactory(
+        "ROM", contentType=InputData.StringType)
     romInput.addParam("class", InputData.StringType)
     romInput.addParam("type", InputData.StringType)
     inputSpecification.addSub(romInput)
@@ -68,23 +70,27 @@ class HybridModel(Dummy):
     targetEvaluationInput.addParam("class", InputData.StringType)
     targetEvaluationInput.addParam("type", InputData.StringType)
     inputSpecification.addSub(targetEvaluationInput)
-    cvInput = InputData.parameterInputFactory("CV", contentType=InputData.StringType)
+    cvInput = InputData.parameterInputFactory(
+        "CV", contentType=InputData.StringType)
     cvInput.addParam("class", InputData.StringType)
     cvInput.addParam("type", InputData.StringType)
     inputSpecification.addSub(cvInput)
     # add settings block
-    tolInput = InputData.parameterInputFactory("tolerance", contentType=InputData.FloatType)
+    tolInput = InputData.parameterInputFactory(
+        "tolerance", contentType=InputData.FloatType)
     maxTrainStepInput = InputData.parameterInputFactory(
         "maxTrainSize", contentType=InputData.IntegerType)
     initialTrainStepInput = InputData.parameterInputFactory(
         "minInitialTrainSize", contentType=InputData.IntegerType)
-    settingsInput = InputData.parameterInputFactory("settings", contentType=InputData.StringType)
+    settingsInput = InputData.parameterInputFactory(
+        "settings", contentType=InputData.StringType)
     settingsInput.addSub(tolInput)
     settingsInput.addSub(maxTrainStepInput)
     settingsInput.addSub(initialTrainStepInput)
     inputSpecification.addSub(settingsInput)
     # add validationMethod block
-    threshold = InputData.parameterInputFactory("threshold", contentType=InputData.FloatType)
+    threshold = InputData.parameterInputFactory(
+        "threshold", contentType=InputData.FloatType)
     validationMethodInput = InputData.parameterInputFactory(
         "validationMethod", contentType=InputData.StringType)
     validationMethodInput.addParam("name", InputData.StringType)
@@ -123,17 +129,20 @@ class HybridModel(Dummy):
     self.romConverged = False  # True if all roms are converged
     self.romValid = False  # True if all roms are valid for given input data
     self.romConvergence = 0.01  # The criterion used to check ROM convergence
-    self.validationMethod = {}  # dict used to store the validation methods and their settings
+    self.validationMethod = {
+    }  # dict used to store the validation methods and their settings
     self.existTrainSize = 0  # The size of existing training set in the provided data object via 'TargetEvaluation'
     self.printTag = 'HYBRIDMODEL MODEL'  # print tag
     self.createWorkingDir = False  # If the type of model is 'Code', this will set to true
-    self.tempOutputs = {}  # Indicators used to collect model inputs/outputs for rom training
+    self.tempOutputs = {
+    }  # Indicators used to collect model inputs/outputs for rom training
     self.oldTrainingSize = 0  # The size of training set that is previous used to train the rom
     self.modelIndicator = {
     }  # a dict i.e. {jobPrefix: 1 or 0} used to indicate the runs: model or rom. '1' indicates ROM run, and '0' indicates Code run
     self.metricCategories = {
         'find_min': ['explained_variance_score', 'r2_score'],
-        'find_max': ['median_absolute_error', 'mean_squared_error', 'mean_absolute_error']
+        'find_max':
+        ['median_absolute_error', 'mean_squared_error', 'mean_absolute_error']
     }
     self.crowdingDistance = None
     # assembler objects to be requested
@@ -163,7 +172,11 @@ class HybridModel(Dummy):
         self.targetEvaluationInstance = child.value.strip()
       if child.getName() == 'ROM':
         romName = child.value.strip()
-        self.romsDictionary[romName] = {'Instance': None, 'Converged': False, 'Valid': False}
+        self.romsDictionary[romName] = {
+            'Instance': None,
+            'Converged': False,
+            'Valid': False
+        }
       if child.getName() == 'settings':
         for childChild in child.subparts:
           if childChild.getName() == 'maxTrainSize':
@@ -177,9 +190,11 @@ class HybridModel(Dummy):
         self.validationMethod[name] = {}
         for childChild in child.subparts:
           if childChild.getName() == 'threshold':
-            self.validationMethod[name]['threshold'] = utils.floatConversion(childChild.value)
+            self.validationMethod[name]['threshold'] = utils.floatConversion(
+                childChild.value)
         if name != 'CrowdingDistance':
-          self.raiseAnError(IOError, "Validation method ", name, " is not implemented yet!")
+          self.raiseAnError(IOError, "Validation method ", name,
+                            " is not implemented yet!")
 
   def initialize(self, runInfo, inputs, initDict=None):
     """
@@ -192,15 +207,18 @@ class HybridModel(Dummy):
     if isinstance(self.modelInstance, Models.Model):
       self.raiseAnError(
           IOError,
-          "HybridModel has already been initialized, and it can not be initialized again!")
-    self.modelInstance = self.retrieveObjectFromAssemblerDict('Model', self.modelInstance)
+          "HybridModel has already been initialized, and it can not be initialized again!"
+      )
+    self.modelInstance = self.retrieveObjectFromAssemblerDict(
+        'Model', self.modelInstance)
     if self.modelInstance.type == 'Code':
       codeInput = []
       for elem in inputs:
         if isinstance(elem, Files.File):
           codeInput.append(elem)
       self.modelInstance.initialize(runInfo, codeInput, initDict)
-    self.cvInstance = self.retrieveObjectFromAssemblerDict('CV', self.cvInstance)
+    self.cvInstance = self.retrieveObjectFromAssemblerDict(
+        'CV', self.cvInstance)
     self.cvInstance.initialize(runInfo, inputs, initDict)
     self.targetEvaluationInstance = self.retrieveObjectFromAssemblerDict(
         'TargetEvaluation', self.targetEvaluationInstance)
@@ -215,9 +233,11 @@ class HybridModel(Dummy):
     if self.cvInstance is None:
       self.raiseAnError(IOError, 'CV XML block needs to be inputted!')
     if self.targetEvaluationInstance is None:
-      self.raiseAnError(IOError, 'TargetEvaluation XML block needs to be inputted!')
+      self.raiseAnError(IOError,
+                        'TargetEvaluation XML block needs to be inputted!')
     for romName, romInfo in self.romsDictionary.items():
-      romInfo['Instance'] = self.retrieveObjectFromAssemblerDict('ROM', romName)
+      romInfo['Instance'] = self.retrieveObjectFromAssemblerDict(
+          'ROM', romName)
       if romInfo['Instance'] is None:
         self.raiseAnError(IOError, 'ROM XML block needs to be inputted!')
     modelInputs = self.targetEvaluationInstance.getVars("input")
@@ -235,20 +255,24 @@ class HybridModel(Dummy):
       totalRomOutputs.extend(romOutputs)
       unknownList = utils.checkIfUnknowElementsinList(modelInputs, romInputs)
       if unknownList:
-        self.raiseAnError(IOError, 'Input Parameters: "', ','.join(str(e) for e in unknownList),
-                          '" used in ROM ', romIn.name, ' can not found in Model ', modelName)
+        self.raiseAnError(IOError, 'Input Parameters: "', ','.join(
+            str(e) for e in unknownList), '" used in ROM ', romIn.name,
+                          ' can not found in Model ', modelName)
       unknownList = utils.checkIfUnknowElementsinList(romInputs, modelInputs)
       if unknownList:
-        self.raiseAnError(IOError, 'Input Parameters: "', ','.join(str(e) for e in unknownList),
-                          '" used in Model ', modelName, ', but not used in ROM ', romIn.name)
+        self.raiseAnError(IOError, 'Input Parameters: "', ','.join(
+            str(e) for e in unknownList), '" used in Model ', modelName,
+                          ', but not used in ROM ', romIn.name)
       unknownList = utils.checkIfUnknowElementsinList(modelOutputs, romOutputs)
       if unknownList:
-        self.raiseAnError(IOError, 'Output Parameters: "', ','.join(str(e) for e in unknownList),
-                          '" used in ROM ', romIn.name, ' can not found in Model ', modelName)
+        self.raiseAnError(IOError, 'Output Parameters: "', ','.join(
+            str(e) for e in unknownList), '" used in ROM ', romIn.name,
+                          ' can not found in Model ', modelName)
       if romIn.amITrained:
         # Only untrained roms are allowed
-        self.raiseAnError(IOError, 'HybridModel only accepts untrained ROM, but rom "', romIn.name,
-                          '" is already trained')
+        self.raiseAnError(IOError,
+                          'HybridModel only accepts untrained ROM, but rom "',
+                          romIn.name, '" is already trained')
     # check: we require that the union of ROMs outputs is the same as the paired model in order to use the ROM
     # to replace the paired model.
     if len(set(totalRomOutputs)) != len(totalRomOutputs):
@@ -257,12 +281,14 @@ class HybridModel(Dummy):
         if totalRomOutputs.count(elem) > 1:
           dup.append(elem)
       # we assume there is no duplicate outputs among the roms
-      self.raiseAnError(IOError, 'The following outputs ', ','.join(str(e) for e in dup),
-                        "are found in the outputs of multiple roms!")
-    unknownList = utils.checkIfUnknowElementsinList(totalRomOutputs, modelOutputs)
+      self.raiseAnError(IOError, 'The following outputs ', ','.join(
+          str(e) for e in dup), "are found in the outputs of multiple roms!")
+    unknownList = utils.checkIfUnknowElementsinList(totalRomOutputs,
+                                                    modelOutputs)
     if unknownList:
-      self.raiseAnError(IOError, "The following outputs: ", ','.join(str(e) for e in unknownList),
-                        " used in Model: ", modelName, "but not used in the paired ROMs.")
+      self.raiseAnError(IOError, "The following outputs: ", ','.join(
+          str(e) for e in unknownList), " used in Model: ", modelName,
+                        "but not used in the paired ROMs.")
     self.tempOutputs['uncollectedJobIds'] = []
 
   def getInitParams(self):
@@ -293,10 +319,17 @@ class HybridModel(Dummy):
     """
     selectedKwargs = copy.copy(kwargs)
     selectedKwargs['SampledVars'], selectedKwargs['SampledVarsPb'] = {}, {}
-    featsList = self.romsDictionary[romName]['Instance'].getInitParams()['Features']
-    selectedKwargs['SampledVars'] = {key: kwargs['SampledVars'][key] for key in featsList}
+    featsList = self.romsDictionary[romName]['Instance'].getInitParams()[
+        'Features']
+    selectedKwargs['SampledVars'] = {
+        key: kwargs['SampledVars'][key]
+        for key in featsList
+    }
     if 'SampledVarsPb' in kwargs.keys():
-      selectedKwargs['SampledVarsPb'] = {key: kwargs['SampledVarsPb'][key] for key in featsList}
+      selectedKwargs['SampledVarsPb'] = {
+          key: kwargs['SampledVarsPb'][key]
+          for key in featsList
+      }
     else:
       selectedKwargs['SampledVarsPb'] = {key: 1.0 for key in featsList}
     return selectedKwargs
@@ -317,7 +350,8 @@ class HybridModel(Dummy):
       newKwargs = {'prefix': identifier, 'useROM': useROM}
       for romName in self.romsDictionary.keys():
         newKwargs[romName] = self.__selectInputSubset(romName, kwargs)
-        newKwargs[romName]['prefix'] = romName + utils.returnIdSeparator() + identifier
+        newKwargs[romName][
+            'prefix'] = romName + utils.returnIdSeparator() + identifier
         newKwargs[romName]['uniqueHandler'] = self.name + identifier
     else:
       newKwargs = copy.deepcopy(kwargs)
@@ -330,7 +364,8 @@ class HybridModel(Dummy):
         elif elem.type in ['PointSet', 'HistorySet']:
           romInput.append(elem)
         else:
-          self.raiseAnError(IOError, "The type of input ", elem.name, " can not be accepted!")
+          self.raiseAnError(IOError, "The type of input ", elem.name,
+                            " can not be accepted!")
       if useROM:
         return (romInput, samplerType, newKwargs)
       else:
@@ -357,7 +392,8 @@ class HybridModel(Dummy):
       if useCV:
         # always train the rom even if the rom is converged, we assume the cross validation and rom train are relative cheap
         outputMetrics = self.cvInstance.evaluateSample(
-            [romInfo['Instance'], self.tempTargetEvaluation], samplerType, kwargs)[1]
+            [romInfo['Instance'], self.tempTargetEvaluation], samplerType,
+            kwargs)[1]
         converged = self.isRomConverged(outputMetrics)
         romInfo['Converged'] = converged
         if converged:
@@ -377,8 +413,10 @@ class HybridModel(Dummy):
     """
     useCV = True
     initDict = self.cvInstance.interface.initializationOptionDict
-    if 'SciKitLearn' in initDict.keys() and 'n_splits' in initDict['SciKitLearn'].keys():
-      if trainingSize < utils.intConversion(initDict['SciKitLearn']['n_splits']):
+    if 'SciKitLearn' in initDict.keys(
+    ) and 'n_splits' in initDict['SciKitLearn'].keys():
+      if trainingSize < utils.intConversion(
+          initDict['SciKitLearn']['n_splits']):
         useCV = False
 
     return useCV
@@ -396,11 +434,14 @@ class HybridModel(Dummy):
     for cvKey, metricValues in outputDict.items():
       #for targetName, metricInfo in outputDict.items():
       # very temporary solution
-      info = self.cvInstance.interface._returnCharacteristicsOfCvGivenOutputName(cvKey)
+      info = self.cvInstance.interface._returnCharacteristicsOfCvGivenOutputName(
+          cvKey)
       if info['targetName'] in exploredTargets:
         self.raiseAnError(
-            IOError, "Multiple metrics are used in cross validation '", self.cvInstance.name,
-            "'. Currently, this can not be processed by the HybridModel '", self.name, "'!")
+            IOError, "Multiple metrics are used in cross validation '",
+            self.cvInstance.name,
+            "'. Currently, this can not be processed by the HybridModel '",
+            self.name, "'!")
       exploredTargets.append(info['targetName'])
       name = self.cvInstance.interface.metricsDict.keys()[0]
       converged = self.checkErrors(info['metricType'], metricValues)
@@ -418,9 +459,10 @@ class HybridModel(Dummy):
     elif type(metricResults) == dict:
       errorList = np.atleast_1d(metricResults.values())
     else:
-      self.raiseAnError(IOError, "The outputs generated by the cross validation '",
-                        self.cvInstance.name, "' can not be processed by HybridModel '", self.name,
-                        "'!")
+      self.raiseAnError(
+          IOError, "The outputs generated by the cross validation '",
+          self.cvInstance.name, "' can not be processed by HybridModel '",
+          self.name, "'!")
     converged = False
     error = None
     # we only allow to define one metric in the cross validation PP
@@ -435,13 +477,16 @@ class HybridModel(Dummy):
         break
     if error is None:
       self.raiseAnError(
-          IOError, "Metric %s used for cross validation can not be handled by the HybridModel." %
-          metricName)
+          IOError,
+          "Metric %s used for cross validation can not be handled by the HybridModel."
+          % metricName)
     if not converged:
-      self.raiseADebug("The current error: ", str(error), " is not met with the given tolerance ",
+      self.raiseADebug("The current error: ", str(error),
+                       " is not met with the given tolerance ",
                        str(self.romConvergence))
     else:
-      self.raiseADebug("The current error: ", str(error), " is met with the given tolerance ",
+      self.raiseADebug("The current error: ", str(error),
+                       " is met with the given tolerance ",
                        str(self.romConvergence))
     return converged
 
@@ -471,10 +516,11 @@ class HybridModel(Dummy):
       if selectionMethod == 'CrowdingDistance':
         allValid = self.crowdingDistanceMethod(params, kwargs['SampledVars'])
       else:
-        self.raiseAnError(IOError, "Unknown model selection method ", selectionMethod,
-                          " is given!")
+        self.raiseAnError(IOError, "Unknown model selection method ",
+                          selectionMethod, " is given!")
     if allValid:
-      self.raiseADebug("ROMs  are all valid for given model ", self.modelInstance.name)
+      self.raiseADebug("ROMs  are all valid for given model ",
+                       self.modelInstance.name)
     return allValid
 
   def crowdingDistanceMethod(self, settingDict, varDict):
@@ -490,14 +536,16 @@ class HybridModel(Dummy):
       valid = False
       # generate the data for input parameters
       paramsList = romInfo['Instance'].getInitParams()['Features']
-      trainInput = self._extractInputs(romInfo['Instance'].trainingSet, paramsList)
+      trainInput = self._extractInputs(romInfo['Instance'].trainingSet,
+                                       paramsList)
       currentInput = self._extractInputs(varDict, paramsList)
       if self.crowdingDistance is None:
         self.crowdingDistance = self.computeCrowdingDistance(trainInput)
       sizeCD = len(self.crowdingDistance)
       if sizeCD != trainInput.shape[1]:
         self.crowdingDistance = self.updateCrowdingDistance(
-            trainInput[:, 0:sizeCD], trainInput[:, sizeCD:], self.crowdingDistance)
+            trainInput[:, 0:sizeCD], trainInput[:, sizeCD:],
+            self.crowdingDistance)
       crowdingDistance = self.updateCrowdingDistance(trainInput, currentInput,
                                                      self.crowdingDistance)
       maxDist = np.amax(crowdingDistance)
@@ -531,7 +579,8 @@ class HybridModel(Dummy):
         else:
           self.raiseAnError(IOError, "Parameter ", elem, " is not found!")
     else:
-      self.raiseAnError(IOError, "The input type '", inputType, "' can not be accepted!")
+      self.raiseAnError(IOError, "The input type '", inputType,
+                        "' can not be accepted!")
     return np.asarray(localInput)
 
   def computeCrowdingDistance(self, trainSet):
@@ -561,7 +610,8 @@ class HybridModel(Dummy):
     newSize = newSet.shape[1]
     totSize = oldSize + newSize
     if oldSize != crowdingDistance.size:
-      self.raiseAnError(IOError, "The old crowding distances is not match the old data set!")
+      self.raiseAnError(
+          IOError, "The old crowding distances is not match the old data set!")
     newCrowdingDistance = np.zeros(totSize)
     distMatAppend = np.zeros((oldSize, newSize))
     for i in range(oldSize):
@@ -569,9 +619,11 @@ class HybridModel(Dummy):
         distMatAppend[i, j] = linalg.norm(oldSet[:, i] - newSet[:, j])
     distMatNew = self.computeCrowdingDistance(newSet)
     for i in range(oldSize):
-      newCrowdingDistance[i] = crowdingDistance[i] + np.sum(distMatAppend[i, :])
+      newCrowdingDistance[i] = crowdingDistance[i] + np.sum(
+          distMatAppend[i, :])
     for i in range(newSize):
-      newCrowdingDistance[i + oldSize] = distMatNew[i] + np.sum(distMatAppend[:, i])
+      newCrowdingDistance[i + oldSize] = distMatNew[i] + np.sum(
+          distMatAppend[:, i])
     return newCrowdingDistance
 
   def amIReadyToTrainROM(self):
@@ -582,9 +634,12 @@ class HybridModel(Dummy):
       @ Out, ready, bool, is this HybridModel ready to retrain the ROM?
     """
     ready = False
-    newGeneratedTrainingSize = len(self.tempTargetEvaluation) - self.existTrainSize
+    newGeneratedTrainingSize = len(
+        self.tempTargetEvaluation) - self.existTrainSize
     if newGeneratedTrainingSize > self.romTrainMaxSize:
-      self.raiseAMessage("Maximum training size is reached, ROMs will not be trained anymore!")
+      self.raiseAMessage(
+          "Maximum training size is reached, ROMs will not be trained anymore!"
+      )
       return ready
     trainingStepSize = len(self.tempTargetEvaluation) - self.oldTrainingSize
     if newGeneratedTrainingSize >= self.romTrainStartSize and trainingStepSize > 0:
@@ -627,15 +682,16 @@ class HybridModel(Dummy):
     ## catch all kwargs where evaluateSample can pick it up, not great, but
     ## will suffice until we can better redesign this whole process.
     kwargs['jobHandler'] = jobHandler
-    self.raiseADebug("Submit job with job identifier: {},  Runing ROM: {} ".format(
-        kwargs['prefix'], self.romValid))
+    self.raiseADebug(
+        "Submit job with job identifier: {},  Runing ROM: {} ".format(
+            kwargs['prefix'], self.romValid))
     kwargs['useROM'] = self.romValid
     ## This may look a little weird, but due to how the parallel python library
     ## works, we are unable to pass a member function as a job because the
     ## pp library loses track of what self is, so instead we call it from the
     ## class and pass self in as the first parameter
-    jobHandler.addClientJob((self, myInput, samplerType, kwargs), self.__class__.evaluateSample,
-                            prefix, kwargs)
+    jobHandler.addClientJob((self, myInput, samplerType, kwargs),
+                            self.__class__.evaluateSample, prefix, kwargs)
 
   def evaluateSample(self, myInput, samplerType, kwargs):
     """
@@ -656,13 +712,14 @@ class HybridModel(Dummy):
     ## Unpack the specifics for this class, namely just the jobHandler
     result = self._externalRun(newInput, jobHandler)
     # assure rlz has all metadata
-    rlz = dict((var, np.atleast_1d(kwargsToKeep[var])) for var in kwargsToKeep.keys())
+    rlz = dict(
+        (var, np.atleast_1d(kwargsToKeep[var])) for var in kwargsToKeep.keys())
     # update rlz with input space from inRun and output space from result
     rlz.update(
         dict((var,
-              np.atleast_1d(kwargsToKeep['SampledVars'][var]
-                            if var in kwargs['SampledVars'] else result[var]))
-             for var in set(result.keys() + kwargsToKeep['SampledVars'].keys())))
+              np.atleast_1d(kwargsToKeep['SampledVars'][var] if var in kwargs[
+                  'SampledVars'] else result[var])) for var in set(
+                      result.keys() + kwargsToKeep['SampledVars'].keys())))
 
     return rlz
 
@@ -687,13 +744,15 @@ class HybridModel(Dummy):
       self.raiseADebug("Switch to ROMs")
       # submit all the roms
       for romName, romInfo in self.romsDictionary.items():
-        inputKwargs[romName]['prefix'] = romName + utils.returnIdSeparator() + identifier
+        inputKwargs[romName][
+            'prefix'] = romName + utils.returnIdSeparator() + identifier
         nextRom = False
         while not nextRom:
           if jobHandler.availability() > 0:
             romInfo['Instance'].submit(originalInput, samplerType, jobHandler,
                                        **inputKwargs[romName])
-            self.raiseADebug("Job ", romName, " with identifier ", identifier, " is submitted")
+            self.raiseADebug("Job ", romName, " with identifier ", identifier,
+                             " is submitted")
             nextRom = True
           else:
             time.sleep(self.sleepTime)
@@ -704,24 +763,29 @@ class HybridModel(Dummy):
           self.raiseADebug("collect job with identifier ", identifier)
           evaluation = finishedRun.getEvaluation()
           if isinstance(evaluation, Runners.Error):
-            self.raiseAnError(RuntimeError,
-                              "The job identified by " + finishedRun.identifier + " failed!")
+            self.raiseAnError(
+                RuntimeError,
+                "The job identified by " + finishedRun.identifier + " failed!")
           # collect output in temporary data object
           tempExportDict = evaluation
           exportDict = self.__mergeDict(exportDict, tempExportDict)
         if jobHandler.areTheseJobsFinished(uniqueHandler=uniqueHandler):
-          self.raiseADebug("Jobs with uniqueHandler ", uniqueHandler, "are collected!")
+          self.raiseADebug("Jobs with uniqueHandler ", uniqueHandler,
+                           "are collected!")
           break
         time.sleep(self.sleepTime)
       exportDict['prefix'] = identifier
     else:
       # run model
-      inputKwargs['prefix'] = self.modelInstance.name + utils.returnIdSeparator() + identifier
+      inputKwargs[
+          'prefix'] = self.modelInstance.name + utils.returnIdSeparator(
+          ) + identifier
       inputKwargs['uniqueHandler'] = self.name + identifier
       moveOn = False
       while not moveOn:
         if jobHandler.availability() > 0:
-          self.modelInstance.submit(originalInput, samplerType, jobHandler, **inputKwargs)
+          self.modelInstance.submit(originalInput, samplerType, jobHandler,
+                                    **inputKwargs)
           self.raiseADebug("Job submitted for model ", self.modelInstance.name,
                            " with identifier ", identifier)
           moveOn = True
@@ -730,13 +794,15 @@ class HybridModel(Dummy):
       while not jobHandler.isThisJobFinished(
           self.modelInstance.name + utils.returnIdSeparator() + identifier):
         time.sleep(self.sleepTime)
-      self.raiseADebug("Job finished ", self.modelInstance.name, " with identifier ", identifier)
+      self.raiseADebug("Job finished ", self.modelInstance.name,
+                       " with identifier ", identifier)
       finishedRun = jobHandler.getFinished(
           jobIdentifier=inputKwargs['prefix'], uniqueHandler=uniqueHandler)
       evaluation = finishedRun[0].getEvaluation()
       if isinstance(evaluation, Runners.Error):
-        self.raiseAnError(RuntimeError, "The model " + self.modelInstance.name +
-                          " identified by " + finishedRun[0].identifier + " failed!")
+        self.raiseAnError(
+            RuntimeError, "The model " + self.modelInstance.name +
+            " identified by " + finishedRun[0].identifier + " failed!")
       # collect output in temporary data object
       exportDict = evaluation
       self.raiseADebug("Create exportDict")
@@ -753,17 +819,20 @@ class HybridModel(Dummy):
     """
     evaluation = finishedJob.getEvaluation()
     if isinstance(evaluation, Runners.Error):
-      self.raiseAnError(RuntimeError, "Job " + finishedJob.identifier + " failed!")
+      self.raiseAnError(RuntimeError,
+                        "Job " + finishedJob.identifier + " failed!")
     useROM = evaluation['useROM']
     try:
-      jobIndex = self.tempOutputs['uncollectedJobIds'].index(finishedJob.identifier)
+      jobIndex = self.tempOutputs['uncollectedJobIds'].index(
+          finishedJob.identifier)
       self.tempOutputs['uncollectedJobIds'].pop(jobIndex)
     except ValueError:
       jobIndex = None
     if jobIndex is not None and not useROM:
       self.tempTargetEvaluation.addRealization(evaluation)
-      self.raiseADebug("ROM is invalid, collect ouptuts of Model with job identifier: {}".format(
-          finishedJob.identifier))
+      self.raiseADebug(
+          "ROM is invalid, collect ouptuts of Model with job identifier: {}".
+          format(finishedJob.identifier))
     Dummy.collectOutput(self, finishedJob, output)
 
   def __mergeDict(self, exportDict, tempExportDict):

@@ -48,7 +48,8 @@ class VariableGroup(BaseClasses.BaseType):
     """
     BaseClasses.BaseType.__init__(self)
     self.printTag = 'VariableGroup'
-    self._dependents = []  #name of groups this group's construction is dependent on
+    self._dependents = [
+    ]  #name of groups this group's construction is dependent on
     self._base = None  #if dependent, the name of base group to start from
     self._list = []  #text from node
     self.variables = []  #list of variable names
@@ -68,8 +69,10 @@ class VariableGroup(BaseClasses.BaseType):
     deps = node.attrib.get('dependencies', None)
     if deps is not None and len(deps) > 0:
       if 'base' not in node.attrib.keys():
-        self.raiseAnError(IOError,
-                          'VariableGroups with dependencies require a "base" group to start from!')
+        self.raiseAnError(
+            IOError,
+            'VariableGroups with dependencies require a "base" group to start from!'
+        )
       self._base = node.attrib.get('base')
       self._dependents = list(g.strip() for g in deps.split(','))
     self._list = node.text.split(',')
@@ -92,7 +95,8 @@ class VariableGroup(BaseClasses.BaseType):
           base = group
           break
       if base is None:
-        self.raiseAnError(IOError, 'Base %s not found among variable groups!' % self._base)
+        self.raiseAnError(
+            IOError, 'Base %s not found among variable groups!' % self._base)
       #get dependencies
       deps = OrderedDict()
       for depName in self._dependents:
@@ -102,13 +106,16 @@ class VariableGroup(BaseClasses.BaseType):
             dep = group
             break
         if dep is None:
-          self.raiseAnError(IOError, 'Dependent %s not found among variable groups!' % depName)
+          self.raiseAnError(
+              IOError,
+              'Dependent %s not found among variable groups!' % depName)
         deps[depName] = dep
       #get base set
       baseVars = set(base.getVars())
       #do modifiers to base
       modifiers = list(m.strip() for m in self._list)
-      orderOps = []  #order of operations that occurred, just var names and dep lists
+      orderOps = [
+      ]  #order of operations that occurred, just var names and dep lists
       for mod in modifiers:
         #remove internal whitespace
         mod = mod.replace(' ', '')
@@ -116,7 +123,9 @@ class VariableGroup(BaseClasses.BaseType):
         op = mod[0]
         varName = mod[1:]
         if op not in ['+', '-', '^', '%']:
-          self.raiseAnError(IOError, 'Unrecognized or missing dependency operator:', op, varName)
+          self.raiseAnError(IOError,
+                            'Unrecognized or missing dependency operator:', op,
+                            varName)
         #if varName is a single variable, make it a set so it behaves like the rest
         if varName not in deps.keys():
           modSet = [varName]

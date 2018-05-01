@@ -165,14 +165,15 @@ class Dymola(CodeInterfaceBase):
         indexInit = index
     if not foundInit:
       raise Exception(
-          'Dymola INTERFACE ERROR -> None of the input files has the type "DymolaInitialisation"!')
+          'Dymola INTERFACE ERROR -> None of the input files has the type "DymolaInitialisation"!'
+      )
     # Build an output file name of the form: rawout~<Base Name>, where base name is generated from the
     #   input file passed in: /path/to/file/<Base Name>.ext. 'rawout' indicates that this is the direct
     #   output from running the Dymola executable.
     outputfile = 'rawout~' + inputFiles[indexInit].getBase()
     executeCommand = [
-        ('parallel',
-         executable + ' -s ' + inputFiles[indexInit].getFilename() + ' ' + outputfile + '.mat')
+        ('parallel', executable + ' -s ' +
+         inputFiles[indexInit].getFilename() + ' ' + outputfile + '.mat')
     ]
     returnCommand = executeCommand, outputfile
     return returnCommand
@@ -186,7 +187,8 @@ class Dymola(CodeInterfaceBase):
     validExtensions = ('txt', 'TXT')
     return validExtensions
 
-  def createNewInput(self, currentInputFiles, oriInputFiles, samplerType, **Kwargs):
+  def createNewInput(self, currentInputFiles, oriInputFiles, samplerType,
+                     **Kwargs):
     """
       Generate a new Dymola input file (txt format) from the original, changing parameters
       as specified in Kwargs['SampledVars']. In addition, it creaes an additional input file including the vector data to be
@@ -211,9 +213,12 @@ class Dymola(CodeInterfaceBase):
         indexVect = index
     if not foundInit:
       raise Exception(
-          'Dymola INTERFACE ERROR -> None of the input files has the type "DymolaInitialisation"!')
+          'Dymola INTERFACE ERROR -> None of the input files has the type "DymolaInitialisation"!'
+      )
     if not foundVect:
-      print('Dymola INTERFACE WARNING -> None of the input files has the type "DymolaVectors"! ')
+      print(
+          'Dymola INTERFACE WARNING -> None of the input files has the type "DymolaVectors"! '
+      )
     # Figure out the new file name and put it into the proper place in the return list
     #newInputFiles = copy.deepcopy(currentInputFiles)
     originalPath = oriInputFiles[indexInit].getAbsFile()
@@ -234,8 +239,9 @@ class Dymola(CodeInterfaceBase):
         varDict[key] = 1 if value else 0
       if isinstance(value, numpy.ndarray):
         # print warning here (no access to RAVEN Message Handler)
-        print("Dymola INTERFACE WARNING -> Dymola interface found vector data to be passed. If %s"
-              % key)
+        print(
+            "Dymola INTERFACE WARNING -> Dymola interface found vector data to be passed. If %s"
+            % key)
         print(
             "                            is supposed to go into the simulation initialisation file of type"
         )
@@ -247,7 +253,8 @@ class Dymola(CodeInterfaceBase):
         )
         if not foundVect:
           raise Exception(
-              'Dymola INTERFACE ERROR -> None of the input files has the type "DymolaVectors"! ')
+              'Dymola INTERFACE ERROR -> None of the input files has the type "DymolaVectors"! '
+          )
         # extract dict entry
         vectorsToPass[key] = varDict.pop(key)
       assert not type(value).__name__ in ['str', 'bytes', 'unicode'], (
@@ -274,7 +281,8 @@ class Dymola(CodeInterfaceBase):
     # Possible regular expressions for a parameter specification (with '%s' for
     #   the parameter name)
     patterns = [  # Dymola 1- or 2-line parameter specification
-        (r'(^\s*%s\s+)%s(\s+%s\s+%s\s+%s\s+%s\s*#\s*%s\s*$)' % (i, f, f, f, u, u, '%s')),
+        (r'(^\s*%s\s+)%s(\s+%s\s+%s\s+%s\s+%s\s*#\s*%s\s*$)' % (i, f, f, f, u,
+                                                                u, '%s')),
         (r'(^\s*)' + i + '(\s*#\s*%s)'),
         (r'(^\s*)' + f + '(\s*#\s*%s)'),
         # From Dymola:
@@ -319,12 +327,14 @@ class Dymola(CodeInterfaceBase):
     for name, value in varDict.items():
       namere = re.escape(name)  # Escape the dots, square brackets, etc.
       for pattern in patterns:
-        text, n = re.subn(pattern % namere, r'\g<1>%s\2' % value, text, 1, re.MULTILINE)
+        text, n = re.subn(pattern % namere, r'\g<1>%s\2' % value, text, 1,
+                          re.MULTILINE)
         if n == 1:
           break
       else:
-        raise AssertionError("Parameter %s does not exist or is not formatted as expected "
-                             "in %s." % (name, originalPath))
+        raise AssertionError(
+            "Parameter %s does not exist or is not formatted as expected "
+            "in %s." % (name, originalPath))
 
     # Re-write the file.
     with open(currentInputFiles[indexInit].getAbsFile(), 'w') as src:
@@ -453,11 +463,13 @@ class Dymola(CodeInterfaceBase):
 
       # Create an array of trajectories, which are to be written to CSV file.
       varTrajectories = numpy.matrix.transpose(
-          numpy.concatenate((timeStepsArray, Data1Array, timeSeriesData2), axis=0))
+          numpy.concatenate(
+              (timeStepsArray, Data1Array, timeSeriesData2), axis=0))
 
       # Define the name of the CSV file.
-      sourceFileName = os.path.join(workingDir,
-                                    output)  # The source file comes in without extension on it
+      sourceFileName = os.path.join(
+          workingDir,
+          output)  # The source file comes in without extension on it
       print('sourcefilename:', sourceFileName)
       destFileName = sourceFileName.replace(
           'rawout~', 'out~')  # When write the CSV file, change rawout~ to out~
@@ -466,7 +478,10 @@ class Dymola(CodeInterfaceBase):
       # Write the CSV file.
       with open(destFileName, "wb") as csvFile:
         resultsWriter = csv.writer(
-            csvFile, lineterminator=str(u'\n'), delimiter=str(u','), quotechar=str(u'"'))
+            csvFile,
+            lineterminator=str(u'\n'),
+            delimiter=str(u','),
+            quotechar=str(u'"'))
         resultsWriter.writerows(varNames)
         resultsWriter.writerows(varTrajectories)
     else:
@@ -482,5 +497,6 @@ class Dymola(CodeInterfaceBase):
     del Data1Array
     del timeSeriesData1
     del timeSeriesData2
-    return os.path.splitext(destFileName)[
-        0]  # Return the name without the .csv on it as RAVEN will add it later.
+    return os.path.splitext(
+        destFileName
+    )[0]  # Return the name without the .csv on it as RAVEN will add it later.

@@ -46,7 +46,8 @@ class RAVENparser():
     """
     self.printTag = 'RAVEN_PARSER'  # print tag
     self.inputFile = inputFile  # input file name
-    self.outStreamsNames = {}  # {'outStreamName':[DataObjectName,DataObjectType]}
+    self.outStreamsNames = {
+    }  # {'outStreamName':[DataObjectName,DataObjectType]}
     self.varGroups = [
     ]  # variable groups' name (for now it is just used to check that in the linked objects there are none)
     if not os.path.exists(inputFile):
@@ -54,7 +55,8 @@ class RAVENparser():
     try:
       tree = ET.parse(file(inputFile, 'r'))
     except IOError as e:
-      raise IOError(self.printTag + ' ERROR: Input Parsing error!\n' + str(e) + '\n')
+      raise IOError(
+          self.printTag + ' ERROR: Input Parsing error!\n' + str(e) + '\n')
     self.tree = tree.getroot()
 
     # expand the ExteranlXML nodes
@@ -68,11 +70,16 @@ class RAVENparser():
         self.varGroups.append(child.attrib['name'])
 
     # do some sanity checks
-    sequence = [step.strip() for step in self.tree.find('.//RunInfo/Sequence').text.split(",")]
+    sequence = [
+        step.strip()
+        for step in self.tree.find('.//RunInfo/Sequence').text.split(",")
+    ]
     # firstly no multiple sublevels of RAVEN can be handled now
     for code in self.tree.findall('.//Models/Code'):
       if 'subType' not in code.attrib:
-        raise IOError(self.printTag + ' ERROR: Not found subType attribute in <Code> XML blocks!')
+        raise IOError(
+            self.printTag +
+            ' ERROR: Not found subType attribute in <Code> XML blocks!')
       if code.attrib['subType'].strip() == 'RAVEN':
         raise IOError(
             self.printTag +
@@ -84,22 +91,28 @@ class RAVENparser():
       if step.attrib['name'] in sequence:
         for role in step:
           if role.tag.strip() == 'Output':
-            mainClass, subType = role.attrib['class'].strip(), role.attrib['type'].strip()
+            mainClass, subType = role.attrib['class'].strip(), role.attrib[
+                'type'].strip()
             if mainClass == 'OutStreams' and subType == 'Print':
-              outStream = self.tree.find(
-                  './/OutStreams/Print[@name="' + role.text.strip() + '"]' + '/source')
+              outStream = self.tree.find('.//OutStreams/Print[@name="' +
+                                         role.text.strip() + '"]' + '/source')
               if outStream is None:
-                raise IOError(self.printTag + ' ERROR: The OutStream of type "Print" named "' +
+                raise IOError(self.printTag +
+                              ' ERROR: The OutStream of type "Print" named "' +
                               role.text.strip() + '" has not been found!')
               dataObjectType = None
               linkedDataObjectPointSet = self.tree.find(
-                  './/DataObjects/PointSet[@name="' + outStream.text.strip() + '"]')
+                  './/DataObjects/PointSet[@name="' + outStream.text.strip() +
+                  '"]')
               if linkedDataObjectPointSet is None:
                 linkedDataObjectHistorySet = self.tree.find(
-                    './/DataObjects/HistorySet[@name="' + outStream.text.strip() + '"]')
+                    './/DataObjects/HistorySet[@name="' +
+                    outStream.text.strip() + '"]')
                 if linkedDataObjectHistorySet is None:
-                  raise IOError(self.printTag + ' ERROR: The OutStream of type "Print" named "' +
-                                role.text.strip() + '" is linked to not existing DataObject!')
+                  raise IOError(
+                      self.printTag +
+                      ' ERROR: The OutStream of type "Print" named "' + role.
+                      text.strip() + '" is linked to not existing DataObject!')
                 dataObjectType, xmlNode = "HistorySet", linkedDataObjectHistorySet
               else:
                 dataObjectType, xmlNode = "PointSet", linkedDataObjectPointSet
@@ -119,10 +132,12 @@ class RAVENparser():
     filesNode = self.tree.find('.//Files')
     if filesNode is not None:
       for child in self.tree.find('.//Files'):
-        subDirectory = child.attrib['subDirectory'] if 'subDirectory' in child.attrib else None
+        subDirectory = child.attrib[
+            'subDirectory'] if 'subDirectory' in child.attrib else None
         if subDirectory:
           self.slaveInputFiles.append(
-              os.path.expanduser(os.path.join(subDirectory, child.text.strip())))
+              os.path.expanduser(
+                  os.path.join(subDirectory, child.text.strip())))
         else:
           self.slaveInputFiles.append(os.path.expanduser(child.text.strip()))
 
@@ -135,13 +150,16 @@ class RAVENparser():
             moduleToLoad += ".py"
           if self.workingDir not in moduleToLoad:
             self.slaveInputFiles.append(
-                os.path.expanduser(os.path.join(self.workingDir, moduleToLoad)))
+                os.path.expanduser(
+                    os.path.join(self.workingDir, moduleToLoad)))
           else:
             self.slaveInputFiles.append(os.path.expanduser(moduleToLoad))
         else:
-          if 'subType' not in extModel.attrib or len(extModel.attrib['subType']) == 0:
+          if 'subType' not in extModel.attrib or len(
+              extModel.attrib['subType']) == 0:
             raise IOError(
-                self.printTag + ' ERROR: ExternalModel "' + extModel.attrib['name'] +
+                self.printTag + ' ERROR: ExternalModel "' +
+                extModel.attrib['name'] +
                 '" does not have any attribute named "ModuleToLoad" or "subType" with an available plugin name!'
             )
 
@@ -154,12 +172,14 @@ class RAVENparser():
             moduleToLoad += ".py"
           if self.workingDir not in moduleToLoad:
             self.slaveInputFiles.append(
-                os.path.expanduser(os.path.join(self.workingDir, moduleToLoad)))
+                os.path.expanduser(
+                    os.path.join(self.workingDir, moduleToLoad)))
           else:
             self.slaveInputFiles.append(os.path.expanduser(moduleToLoad))
         else:
-          raise IOError(self.printTag + ' ERROR: Functions/External ' + extFunct.attrib['name'] +
-                        ' does not have any attribute named "file"!!')
+          raise IOError(
+              self.printTag + ' ERROR: Functions/External ' + extFunct.
+              attrib['name'] + ' does not have any attribute named "file"!!')
 
   def returnOutstreamsNamesAnType(self):
     """
@@ -184,7 +204,8 @@ class RAVENparser():
       @ Out, None
     """
     # the dirName is actually in workingDir/StepName/prefix => we need to go back 2 dirs
-    dirName = os.path.join(currentDirName, ".." + os.path.sep + ".." + os.path.sep)
+    dirName = os.path.join(currentDirName,
+                           ".." + os.path.sep + ".." + os.path.sep)
     # copy SLAVE raven files in case they are needed
     for slaveInput in self.slaveInputFiles:
       # full path
@@ -192,13 +213,14 @@ class RAVENparser():
       # check if exists
       if os.path.exists(slaveInputFullPath):
         slaveInputBaseDir = os.path.dirname(slaveInput)
-        slaveDir = os.path.join(currentDirName, slaveInputBaseDir.replace(currentDirName, ""))
+        slaveDir = os.path.join(currentDirName,
+                                slaveInputBaseDir.replace(currentDirName, ""))
         if not os.path.exists(slaveDir):
           os.makedirs(slaveDir)
         shutil.copy(slaveInputFullPath, slaveDir)
       else:
-        raise IOError(
-            self.printTag + ' ERROR: File "' + slaveInputFullPath + '" has not been found!!!')
+        raise IOError(self.printTag + ' ERROR: File "' + slaveInputFullPath +
+                      '" has not been found!!!')
 
   def printInput(self, rootToPrint, outfile=None):
     """
@@ -209,7 +231,8 @@ class RAVENparser():
     """
     xmlObj = xml.dom.minidom.parseString(ET.tostring(rootToPrint))
     inputAsString = xmlObj.toprettyxml()
-    inputAsString = "".join([s for s in inputAsString.strip().splitlines(True) if s.strip()])
+    inputAsString = "".join(
+        [s for s in inputAsString.strip().splitlines(True) if s.strip()])
     if outfile == None:
       outfile = self.inputfile
     IOfile = open(outfile, 'w+')
@@ -230,7 +253,8 @@ class RAVENparser():
       @ Out, returnElement, xml.etree.ElementTree.Element, the tree that got modified
     """
     if save:
-      returnElement = copy.deepcopy(self.tree)  #make a copy if save is requested
+      returnElement = copy.deepcopy(
+          self.tree)  #make a copy if save is requested
     else:
       returnElement = self.tree  #otherwise return the original modified
 
@@ -238,8 +262,8 @@ class RAVENparser():
       val = np.atleast_1d(value)[0]
 
       if "|" not in node:
-        raise IOError(self.printTag + ' ERROR: the variable ' + node.strip() +
-                      ' does not contain "|" separator and can not be handled!!')
+        raise IOError(self.printTag + ' ERROR: the variable ' + node.strip(
+        ) + ' does not contain "|" separator and can not be handled!!')
       changeTheNode = True
       allowAddNodes, allowAddNodesPath = [], OrderedDict()
       if "@" in node:
@@ -270,8 +294,10 @@ class RAVENparser():
                 if cnt + 1 != len(splittedComponents):
                   raise IOError(
                       self.printTag + ' ERROR: the variable ' + node.strip() +
-                      ' follows the syntax "Node|SubNode|SubSubNode@attribute"' +
-                      ' but the attribute is not the last component. Please check your input!')
+                      ' follows the syntax "Node|SubNode|SubSubNode@attribute"'
+                      +
+                      ' but the attribute is not the last component. Please check your input!'
+                  )
                 attribName = attribComp.strip()
                 attribPath += '[@' + attribName + ']'
               if allowAdd:
@@ -303,12 +329,16 @@ class RAVENparser():
       foundNodes = returnElement.findall(pathNode)
       if len(foundNodes) > 1:
         raise IOError(
-            self.printTag + ' ERROR: multiple nodes have been found corresponding to path -> ' +
-            node.strip() +
-            '. Please use the attribute identifier "@" to nail down to a specific node !!')
+            self.printTag +
+            ' ERROR: multiple nodes have been found corresponding to path -> '
+            + node.strip() +
+            '. Please use the attribute identifier "@" to nail down to a specific node !!'
+        )
       if len(foundNodes) == 0 and not allowAdd:
-        raise IOError(self.printTag + ' ERROR: no node has been found corresponding to path -> ' +
-                      node.strip() + '. Please check the input!!')
+        raise IOError(
+            self.printTag +
+            ' ERROR: no node has been found corresponding to path -> ' +
+            node.strip() + '. Please check the input!!')
       if len(foundNodes) == 0:
         # this means that the allowAdd is true (=> no error message has been raised)
         indexFirstUnknownNode = allowAddNodes.index(None)
@@ -317,14 +347,16 @@ class RAVENparser():
               self.printTag +
               ' ERROR: at least the main XML node should be present in the RAVEN template input -> '
               + node.strip() + '. Please check the input!!')
-        getFirstElement = returnElement.findall(allowAddNodes[indexFirstUnknownNode - 1])[0]
+        getFirstElement = returnElement.findall(
+            allowAddNodes[indexFirstUnknownNode - 1])[0]
         for i in range(indexFirstUnknownNode, len(allowAddNodes)):
           nodeWithAttributeName = allowAddNodesPath.keys()[i]
           if not allowAddNodesPath[nodeWithAttributeName]:
             subElement = ET.Element(nodeWithAttributeName)
           else:
             subElement = ET.Element(
-                nodeWithAttributeName, attrib=allowAddNodesPath[nodeWithAttributeName])
+                nodeWithAttributeName,
+                attrib=allowAddNodesPath[nodeWithAttributeName])
           getFirstElement.append(subElement)
           getFirstElement = subElement
         if changeTheNode:
