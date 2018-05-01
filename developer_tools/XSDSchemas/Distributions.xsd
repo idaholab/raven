@@ -20,7 +20,6 @@
             <xsd:element name="Categorical"   type="CategoricalDistribution"   minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="MarkovCategorical"   type="MarkovCategoricalDistribution"   minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="Custom1D"      type="Custom1DDistribution"      minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element name="MarkovCategorical"  type="MarkovCategoricalDistribution"      minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="NDInverseWeight"    type="NDInverseWeightDistribution"        minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="NDCartesianSpline"  type="NDCartesianSplineDistribution"      minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="MultivariateNormal" type="MultivariateNormalDistribution"     minOccurs="0" maxOccurs="unbounded"/>
