@@ -16,13 +16,13 @@ Created on April 9, 2013
 
 @author: alfoa
 """
-#for future compatibility with Python 3--------------------------------------------------------------
+#for future compatibility with Python 3------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
-warnings.simplefilter('default',DeprecationWarning)
-#End compatibility block for Python 3----------------------------------------------------------------
+warnings.simplefilter('default', DeprecationWarning)
+#End compatibility block for Python 3--------------------------------------------------------------
 
-#External Modules------------------------------------------------------------------------------------
+#External Modules----------------------------------------------------------------------------------
 import numpy as np
 import copy
 import os
@@ -30,21 +30,25 @@ import abc
 import gc
 from scipy.interpolate import interp1d
 import collections
-#External Modules End--------------------------------------------------------------------------------
+#External Modules End------------------------------------------------------------------------------
 
-#Internal Modules------------------------------------------------------------------------------------
+#Internal Modules----------------------------------------------------------------------------------
 from BaseClasses import BaseType
 from h5py_interface_creator import hdf5Database as h5Data
 from utils import utils
 from utils import InputData
-#Internal Modules End--------------------------------------------------------------------------------
+
+#Internal Modules End------------------------------------------------------------------------------
+
 
 class DatabasesCollection(InputData.ParameterInput):
   """
     Class for reading in a collection of databases
   """
 
+
 DatabasesCollection.createClass("Databases")
+
 
 class DateBase(BaseType):
   """
@@ -64,8 +68,13 @@ class DateBase(BaseType):
     inputSpecification = super(DateBase, cls).getInputSpecification()
     inputSpecification.addParam("directory", InputData.StringType)
     inputSpecification.addParam("filename", InputData.StringType)
-    inputSpecification.addParam("readMode", InputData.makeEnumType("readMode","readModeType",["overwrite","read"]), True)
-    inputSpecification.addSub(InputData.parameterInputFactory("variables", contentType=InputData.StringListType))
+    inputSpecification.addParam(
+        "readMode",
+        InputData.makeEnumType("readMode", "readModeType",
+                               ["overwrite", "read"]), True)
+    inputSpecification.addSub(
+        InputData.parameterInputFactory(
+            "variables", contentType=InputData.StringListType))
     return inputSpecification
 
   def _handleInput(self, paramInput):
@@ -78,59 +87,66 @@ class DateBase(BaseType):
       self.databaseDir = copy.copy(paramInput.parameterValues['directory'])
       # if not absolute path, join with working directory
       if not os.path.isabs(self.databaseDir):
-        self.databaseDir = os.path.abspath(os.path.join(self.workingDir,self.databaseDir))
+        self.databaseDir = os.path.abspath(
+            os.path.join(self.workingDir, self.databaseDir))
     else:
-      self.databaseDir = os.path.join(self.workingDir,'DatabaseStorage')
+      self.databaseDir = os.path.join(self.workingDir, 'DatabaseStorage')
     if 'filename' in paramInput.parameterValues:
       self.filename = copy.copy(paramInput.parameterValues['filename'])
     else:
-      self.filename = self.name+'.h5'
+      self.filename = self.name + '.h5'
     # read the variables
     varNode = paramInput.findFirst("variables")
     if varNode is not None:
-      self.variables =  varNode.value
+      self.variables = varNode.value
     # read mode
     self.readMode = paramInput.parameterValues['readMode'].strip().lower()
-    self.raiseADebug('HDF5 Read Mode is "'+self.readMode+'".')
+    self.raiseADebug('HDF5 Read Mode is "' + self.readMode + '".')
     if self.readMode == 'overwrite':
       # check if self.databaseDir exists or create in case not
       if not os.path.exists(self.databaseDir):
         os.mkdir(self.databaseDir)
     # get full path
-    fullpath = os.path.join(self.databaseDir,self.filename)
+    fullpath = os.path.join(self.databaseDir, self.filename)
     if os.path.isfile(fullpath):
       if self.readMode == 'read':
         self.exist = True
       elif self.readMode == 'overwrite':
         self.exist = False
-      self.database = h5Data(self.name,self.databaseDir,self.messageHandler,self.filename,self.exist,self.variables)
+      self.database = h5Data(self.name, self.databaseDir, self.messageHandler,
+                             self.filename, self.exist, self.variables)
     else:
       #file does not exist in path
       if self.readMode == 'read':
-        self.raiseAnError(IOError, 'Requested to read from database, but it does not exist at:',fullpath,'; The path to the database must be either absolute or relative to <workingDir>!')
+        self.raiseAnError(
+            IOError,
+            'Requested to read from database, but it does not exist at:',
+            fullpath,
+            '; The path to the database must be either absolute or relative to <workingDir>!'
+        )
       self.exist = False
-      self.database  = h5Data(self.name,self.databaseDir,self.messageHandler,self.filename,self.exist,self.variables)
-    self.raiseAMessage('Database is located at:',fullpath)
+      self.database = h5Data(self.name, self.databaseDir, self.messageHandler,
+                             self.filename, self.exist, self.variables)
+    self.raiseAMessage('Database is located at:', fullpath)
 
-
-  def __init__(self,runInfoDict):
+  def __init__(self, runInfoDict):
     """
       Constructor
       @ In, None
       @ Out, None
     """
     BaseType.__init__(self)
-    self.database = None                # Database object
-    self.exist        = False           # does it exist?
-    self.built       = False            # is it built?
-    self.filename    = ""               # filename
-    self.workingDir  = runInfoDict['WorkingDir']
+    self.database = None  # Database object
+    self.exist = False  # does it exist?
+    self.built = False  # is it built?
+    self.filename = ""  # filename
+    self.workingDir = runInfoDict['WorkingDir']
     self.databaseDir = self.workingDir  # Database directory. Default = working directory.
-    self.printTag = 'DATABASE'          # For printing verbosity labels
-    self.variables = None               # if not None, list of specific variables requested to be stored by user
+    self.printTag = 'DATABASE'  # For printing verbosity labels
+    self.variables = None  # if not None, list of specific variables requested to be stored by user
 
   @abc.abstractmethod
-  def addGroup(self,attributes,loadFrom):
+  def addGroup(self, attributes, loadFrom):
     """
       Function used to add a group to the database
       @ In, attributes, dict, options
@@ -140,13 +156,14 @@ class DateBase(BaseType):
     pass
 
   @abc.abstractmethod
-  def retrieveData(self,attributes):
+  def retrieveData(self, attributes):
     """
       Function used to retrieve data from the database
       @ In, attributes, dict, options
       @ Out, data, object, the requested data
     """
     pass
+
 
 #
 #  *************************s
@@ -159,19 +176,18 @@ class HDF5(DateBase):
     Used to add and retrieve attributes and values from said database
   """
 
-  def __init__(self,runInfoDict):
+  def __init__(self, runInfoDict):
     """
       Constructor
       @ In, runInfoDict, dict, the dictionary containing the runInfo (read in the XML input file)
       @ Out, None
     """
-    DateBase.__init__(self,runInfoDict)
-    self.subtype   = None
-    self.type      = 'HDF5'
+    DateBase.__init__(self, runInfoDict)
+    self.subtype = None
+    self.type = 'HDF5'
     self._metavars = []
-    self._allvars  = []
+    self._allvars = []
     self.printTag = 'DATABASE HDF5'
-
 
   def __getstate__(self):
     """
@@ -198,8 +214,9 @@ class HDF5(DateBase):
       @ Out, None
     """
     self.__dict__.update(newstate)
-    self.exist    = True
-    self.database = h5Data(self.name,self.databaseDir,self.messageHandler,self.filename,self.exist)
+    self.exist = True
+    self.database = h5Data(self.name, self.databaseDir, self.messageHandler,
+                           self.filename, self.exist)
 
   def getInitParams(self):
     """
@@ -230,7 +247,7 @@ class HDF5(DateBase):
     endingGroups = self.database.retrieveAllHistoryNames()
     return endingGroups
 
-  def addRealization(self,rlz):
+  def addRealization(self, rlz):
     """
       Adds a "row" (or "sample") to this database.
       This is the method to add data to this database.
@@ -242,13 +259,13 @@ class HDF5(DateBase):
       @ Out, None
     """
     # realization must be a dictionary
-    assert(type(rlz).__name__ == "dict")
+    assert (type(rlz).__name__ == "dict")
     # prefix must be present
-    assert('prefix' in rlz)
+    assert ('prefix' in rlz)
     self.database.addGroup(rlz)
     self.built = True
 
-  def addExpectedMeta(self,keys):
+  def addExpectedMeta(self, keys):
     """
       Registers meta to look for in realizations.
       @ In, keys, set(str), keys to register
@@ -265,7 +282,7 @@ class HDF5(DateBase):
     """
     return self.database.provideExpectedMetaKeys()
 
-  def initialize(self,gname,options=None):
+  def initialize(self, gname, options=None):
     """
       Function to add an initial root group into the data base...
       This group will not contain a dataset but, eventually, only metadata
@@ -273,18 +290,19 @@ class HDF5(DateBase):
       @ In, options, dict, options (metadata muste be appended to the root group), Default =None
       @ Out, None
     """
-    self.database.addGroupInit(gname,options)
+    self.database.addGroupInit(gname, options)
 
-  def returnHistory(self,options):
+  def returnHistory(self, options):
     """
       Function to retrieve a history from the HDF5 database
       @ In, options, dict, options (metadata muste be appended to the root group)
-      @ Out, tupleVar, tuple, tuple in which the first position is a numpy aray and the second is a dictionary of the metadata
-      Note:
-      # DET => a Branch from the tail (group name in attributes) to the head (dependent on the filter)
-      # MC  => The History named ['group'] (one run)
+      @ Out, tupleVar, tuple, tuple in which the first position is a numpy aray and the second is
+             a dictionary of the metadata
+             Note:
+             # DET => a Branch from the tail (group name in attributes) to the head
+             # MC  => The History named ['group'] (one run)
     """
-    tupleVar = self.database.retrieveHistory(options['history'],options)
+    tupleVar = self.database.retrieveHistory(options['history'], options)
     return tupleVar
 
   def allRealizations(self):
@@ -300,35 +318,44 @@ class HDF5(DateBase):
     allData = [self.realization(name) for name in allRealizationNames]
     return allData
 
-  def realization(self,index=None,matchDict=None,tol=1e-15):
+  def realization(self, index=None, matchDict=None, tol=1e-15):
     """
-      Method to obtain a realization from the data, either by index (e.g. realization number) or matching value.
-      Either "index" or "matchDict" must be supplied. (NOTE: now just "index" can be supplied)
-      @ In, index, int or str, optional, number of row to retrieve (by index, not be "sample") or group name
+      Method to obtain a realization from the data, either by index (e.g. realization
+      number) or matching value. Either "index" or "matchDict" must be supplied.
+      (NOTE: now just "index" can be supplied)
+      @ In, index, int or str, optional, number of row to retrieve (by index,
+                                                           not be "sample") or group name
       @ In, matchDict, dict, optional, {key:val} to search for matches
       @ In, tol, float, optional, tolerance to which match should be made
-      @ Out, index, int, optional, index where found (or len(self) if not found), only returned if matchDict
+      @ Out, index, int, optional, index where found (or len(self) if not found), only
+                              returned if matchDict
       @ Out, rlz, dict, realization requested (None if not found)
     """
     # matchDict not implemented for Databases
     assert (matchDict is None)
     if (not self.exist) and (not self.built):
-      self.raiseAnError(Exception,'Can not retrieve a realization from Database' + self.name + '.It has not been built yet!')
+      self.raiseAnError(Exception,
+                        'Can not retrieve a realization from Database' +
+                        self.name + '.It has not been built yet!')
     if type(index).__name__ == 'int':
       allRealizations = self.database.retrieveAllHistoryNames()
     if type(index).__name__ == 'int' and index > len(allRealizations):
       rlz = None
     else:
-      rlz,_ = self.database._getRealizationByName(allRealizations[index] if type(index).__name__ == 'int' else index ,{'reconstruct':True})
+      rlz, _ = self.database._getRealizationByName(
+          allRealizations[index]
+          if type(index).__name__ == 'int' else index, {'reconstruct': True})
     return rlz
 
-__base                  = 'Database'
-__interFaceDict         = {}
+
+__base = 'Database'
+__interFaceDict = {}
 __interFaceDict['HDF5'] = HDF5
-__knownTypes            = __interFaceDict.keys()
+__knownTypes = __interFaceDict.keys()
 
 # add input specifications in DatabasesCollection
 DatabasesCollection.addSub(HDF5.getInputSpecification())
+
 
 def knownTypes():
   """
@@ -338,9 +365,11 @@ def knownTypes():
   """
   return __knownTypes
 
+
 needsRunInfo = True
 
-def returnInstance(Type,runInfoDict,caller):
+
+def returnInstance(Type, runInfoDict, caller):
   """
   Function interface for creating an instance to a database specialized class (for example, HDF5)
   @ In, Type, string, class type
@@ -351,7 +380,8 @@ def returnInstance(Type,runInfoDict,caller):
   try:
     return __interFaceDict[Type](runInfoDict)
   except KeyError:
-    caller.raiseAnError(NameError,'not known '+__base+' type '+Type)
+    caller.raiseAnError(NameError, 'not known ' + __base + ' type ' + Type)
+
 
 def returnInputParameter():
   """
@@ -360,4 +390,3 @@ def returnInputParameter():
     @ Out, returnInputParameter, DatabasesCollection, class for parsing.
   """
   return DatabasesCollection()
-

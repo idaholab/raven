@@ -21,7 +21,7 @@
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
-warnings.simplefilter('default',DeprecationWarning)
+warnings.simplefilter('default', DeprecationWarning)
 #if not 'xrange' in dir(__builtins__): xrange = range
 #End compatibility block for Python 3----------------------------------------------------------------
 
@@ -34,15 +34,17 @@ from functools import reduce
 
 #Internal Modules------------------------------------------------------------------------------------
 from utils import InputData
-from .ForwardSampler        import ForwardSampler
-from .MonteCarlo            import MonteCarlo
-from .Grid                  import Grid
-from .Stratified            import Stratified
-from .FactorialDesign       import FactorialDesign
+from .ForwardSampler import ForwardSampler
+from .MonteCarlo import MonteCarlo
+from .Grid import Grid
+from .Stratified import Stratified
+from .FactorialDesign import FactorialDesign
 from .ResponseSurfaceDesign import ResponseSurfaceDesign
-from .CustomSampler         import CustomSampler
+from .CustomSampler import CustomSampler
 import GridEntities
+
 #Internal Modules End--------------------------------------------------------------------------------
+
 
 class EnsembleForward(ForwardSampler):
   """
@@ -71,7 +73,9 @@ class EnsembleForward(ForwardSampler):
 
     samplerInitInput = InputData.parameterInputFactory("samplerInit")
 
-    samplerInitInput.addSub(InputData.parameterInputFactory("initialSeed", contentType=InputData.IntegerType))
+    samplerInitInput.addSub(
+        InputData.parameterInputFactory(
+            "initialSeed", contentType=InputData.IntegerType))
 
     inputSpecification.addSub(samplerInitInput)
     return inputSpecification
@@ -84,13 +88,16 @@ class EnsembleForward(ForwardSampler):
       @ Out, None
     """
     ForwardSampler.__init__(self)
-    self.acceptableSamplers   = ['MonteCarlo','Stratified','Grid','FactorialDesign','ResponseSurfaceDesign','CustomSampler']
-    self.printTag             = 'SAMPLER EnsembleForward'
+    self.acceptableSamplers = [
+        'MonteCarlo', 'Stratified', 'Grid', 'FactorialDesign',
+        'ResponseSurfaceDesign', 'CustomSampler'
+    ]
+    self.printTag = 'SAMPLER EnsembleForward'
     self.instanciatedSamplers = {}
     self.samplersCombinations = {}
-    self.dependentSample      = {}
+    self.dependentSample = {}
 
-  def localInputAndChecks(self,xmlNode, paramInput):
+  def localInputAndChecks(self, xmlNode, paramInput):
     """
       Class specific xml inputs will be read here and checked for validity.
       @ In, xmlNode, xml.etree.ElementTree.Element, The xml element node that will be checked against the available options specific to this Sampler.
@@ -99,33 +106,46 @@ class EnsembleForward(ForwardSampler):
     """
     #TODO remove using xmlNode
     # this import happens here because a recursive call is made if we attempt it in the header
-    from .Factory import returnInstance,knownTypes
+    from .Factory import returnInstance, knownTypes
     for child in xmlNode:
       #sampler initialization
       if child.tag == 'samplerInit':
-        ForwardSampler.readSamplerInit(self,xmlNode)
+        ForwardSampler.readSamplerInit(self, xmlNode)
       # read in samplers
       elif child.tag in self.acceptableSamplers:
         child.attrib['name'] = child.tag
-        self.instanciatedSamplers[child.tag] = returnInstance(child.tag,self)
+        self.instanciatedSamplers[child.tag] = returnInstance(child.tag, self)
         #FIXME the variableGroups needs to be fixed
-        self.instanciatedSamplers[child.tag].readXML(child,self.messageHandler,variableGroups={},globalAttributes=self.globalAttributes)
+        self.instanciatedSamplers[child.tag].readXML(
+            child,
+            self.messageHandler,
+            variableGroups={},
+            globalAttributes=self.globalAttributes)
       # function variables are defined outside the individual samplers
-      elif child.tag=='variable':
+      elif child.tag == 'variable':
         for childChild in child:
           if childChild.tag == 'function':
             self.dependentSample[child.attrib['name']] = childChild.text
           else:
-            self.raiseAnError(IOError,"Variable " + str(child.attrib['name']) + " must be defined by a function since it is located outside the samplers block")
+            self.raiseAnError(
+                IOError, "Variable " + str(child.attrib['name']) +
+                " must be defined by a function since it is located outside the samplers block"
+            )
       # constants are handled in the base class
       elif child.tag == 'constant':
         pass
       # some samplers aren't eligible for ensembling
       elif child.tag in knownTypes():
-        self.raiseAnError(IOError,'Sampling strategy "{}" is not usable in "{}".  Available options include: {}.'.format(child.tag,self.type,", ".join(self.acceptableSamplers)))
+        self.raiseAnError(
+            IOError,
+            'Sampling strategy "{}" is not usable in "{}".  Available options include: {}.'.
+            format(child.tag, self.type, ", ".join(self.acceptableSamplers)))
       # catch-all for bad inputs
       else:
-        self.raiseAnError(IOError,'Unrecognized sampling strategy: "{}". Available options include: {}.'.format(child.tag,", ".join(self.acceptableSamplers)))
+        self.raiseAnError(
+            IOError,
+            'Unrecognized sampling strategy: "{}". Available options include: {}.'.
+            format(child.tag, ", ".join(self.acceptableSamplers)))
 
   def _localWhatDoINeed(self):
     """
@@ -137,13 +157,13 @@ class EnsembleForward(ForwardSampler):
     needDict = ForwardSampler._localWhatDoINeed(self)
     for combSampler in self.instanciatedSamplers.values():
       preNeedDict = combSampler.whatDoINeed()
-      for key,value in preNeedDict.items():
+      for key, value in preNeedDict.items():
         if key not in needDict.keys():
           needDict[key] = []
         needDict[key] = needDict[key] + value
     return needDict
 
-  def _localGenerateAssembler(self,initDict):
+  def _localGenerateAssembler(self, initDict):
     """
       It is used for sending to the instanciated class, which is implementing the method, the objects that have been requested through "whatDoINeed" method
       It is an abstract method -> It must be implemented in the derived class!
@@ -154,18 +174,22 @@ class EnsembleForward(ForwardSampler):
     availableFunc = initDict['Functions']
     for combSampler in self.instanciatedSamplers.values():
       if combSampler.type != 'CustomSampler':
-        combSampler._generateDistributions(availableDist,availableFunc)
+        combSampler._generateDistributions(availableDist, availableFunc)
       combSampler._localGenerateAssembler(initDict)
     self.raiseADebug("Distributions initialized!")
 
-    for key,val in self.dependentSample.items():
+    for key, val in self.dependentSample.items():
       if val not in availableFunc.keys():
-        self.raiseAnError(IOError, 'Function ',val,' was not found among the available functions:',availableFunc.keys())
+        self.raiseAnError(IOError, 'Function ', val,
+                          ' was not found among the available functions:',
+                          availableFunc.keys())
       self.funcDict[key] = availableFunc[val]
       # check if the correct method is present
       if "evaluate" not in self.funcDict[key].availableMethods():
-        self.raiseAnError(IOError,'Function '+self.funcDict[key].name+' does not contain a method named "evaluate". It must be present if this needs to be used in a Sampler!')
-
+        self.raiseAnError(
+            IOError, 'Function ' + self.funcDict[key].name +
+            ' does not contain a method named "evaluate". It must be present if this needs to be used in a Sampler!'
+        )
 
   def localInitialize(self):
     """
@@ -177,30 +201,43 @@ class EnsembleForward(ForwardSampler):
     cnt = 0
     lowerBounds, upperBounds = {}, {}
     for samplingStrategy in self.instanciatedSamplers.keys():
-      self.instanciatedSamplers[samplingStrategy].initialize(externalSeeding=self.initSeed,solutionExport=None)
+      self.instanciatedSamplers[samplingStrategy].initialize(
+          externalSeeding=self.initSeed, solutionExport=None)
       self.samplersCombinations[samplingStrategy] = []
       self.limit *= self.instanciatedSamplers[samplingStrategy].limit
-      lowerBounds[samplingStrategy],upperBounds[samplingStrategy] = 0, self.instanciatedSamplers[samplingStrategy].limit
-      while self.instanciatedSamplers[samplingStrategy].amIreadyToProvideAnInput():
-        self.instanciatedSamplers[samplingStrategy].counter +=1
-        self.instanciatedSamplers[samplingStrategy].localGenerateInput(None,None)
-        self.instanciatedSamplers[samplingStrategy].inputInfo['prefix'] = self.instanciatedSamplers[samplingStrategy].counter
-        self.samplersCombinations[samplingStrategy].append(copy.deepcopy(self.instanciatedSamplers[samplingStrategy].inputInfo))
-      cnt+=1
-    self.raiseAMessage('Number of Combined Samples are ' + str(self.limit) + '!')
+      lowerBounds[samplingStrategy], upperBounds[
+          samplingStrategy] = 0, self.instanciatedSamplers[
+              samplingStrategy].limit
+      while self.instanciatedSamplers[
+          samplingStrategy].amIreadyToProvideAnInput():
+        self.instanciatedSamplers[samplingStrategy].counter += 1
+        self.instanciatedSamplers[samplingStrategy].localGenerateInput(
+            None, None)
+        self.instanciatedSamplers[samplingStrategy].inputInfo[
+            'prefix'] = self.instanciatedSamplers[samplingStrategy].counter
+        self.samplersCombinations[samplingStrategy].append(
+            copy.deepcopy(
+                self.instanciatedSamplers[samplingStrategy].inputInfo))
+      cnt += 1
+    self.raiseAMessage(
+        'Number of Combined Samples are ' + str(self.limit) + '!')
     # create a grid of combinations (no tensor)
     self.gridEnsemble = GridEntities.GridEntity(self.messageHandler)
-    initDict = {'dimensionNames':self.instanciatedSamplers.keys(),
-                'stepLength':dict.fromkeys(self.instanciatedSamplers.keys(),[1]),
-                'lowerBounds':lowerBounds,
-                'upperBounds':upperBounds,
-                'computeCells':False,
-                'constructTensor':False,
-                'excludeBounds':{'lowerBounds':False,'upperBounds':True}}
+    initDict = {
+        'dimensionNames': self.instanciatedSamplers.keys(),
+        'stepLength': dict.fromkeys(self.instanciatedSamplers.keys(), [1]),
+        'lowerBounds': lowerBounds,
+        'upperBounds': upperBounds,
+        'computeCells': False,
+        'constructTensor': False,
+        'excludeBounds': {
+            'lowerBounds': False,
+            'upperBounds': True
+        }
+    }
     self.gridEnsemble.initialize(initDict)
 
-
-  def localGenerateInput(self,model,myInput):
+  def localGenerateInput(self, model, myInput):
     """
       Function to select the next most informative point for refining the limit
       surface search.
@@ -210,10 +247,11 @@ class EnsembleForward(ForwardSampler):
       @ In, myInput, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
       @ Out, None
     """
-    index = self.gridEnsemble.returnPointAndAdvanceIterator(returnDict = True)
+    index = self.gridEnsemble.returnPointAndAdvanceIterator(returnDict=True)
     coordinate = []
     for samplingStrategy in self.instanciatedSamplers.keys():
-      coordinate.append(self.samplersCombinations[samplingStrategy][int(index[samplingStrategy])])
+      coordinate.append(self.samplersCombinations[samplingStrategy][int(
+          index[samplingStrategy])])
     for combination in coordinate:
       for key in combination.keys():
         if key not in self.inputInfo.keys():
@@ -222,17 +260,18 @@ class EnsembleForward(ForwardSampler):
         else:
           if type(self.inputInfo[key]).__name__ == 'dict':
             self.inputInfo[key].update(combination[key])
-    self.inputInfo['PointProbability'] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
-    self.inputInfo['ProbabilityWeight' ] = 1.0
+    self.inputInfo['PointProbability'] = reduce(
+        mul, self.inputInfo['SampledVarsPb'].values())
+    self.inputInfo['ProbabilityWeight'] = 1.0
     for key in self.inputInfo.keys():
       if key.startswith('ProbabilityWeight-'):
-        self.inputInfo['ProbabilityWeight' ] *= self.inputInfo[key]
+        self.inputInfo['ProbabilityWeight'] *= self.inputInfo[key]
     self.inputInfo['SamplerType'] = 'EnsembleForward'
 
     # Update dependent variables
     for var in self.dependentSample.keys():
-      test=self.funcDict[var].evaluate("evaluate",self.inputInfo['SampledVars'])
+      test = self.funcDict[var].evaluate("evaluate",
+                                         self.inputInfo['SampledVars'])
       for corrVar in var.split(","):
         self.values[corrVar.strip()] = test
         self.inputInfo['SampledVars'][corrVar.strip()] = test
-

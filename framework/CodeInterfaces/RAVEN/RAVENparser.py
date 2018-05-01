@@ -18,7 +18,7 @@ Created on Sept 10, 2017
 """
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
-warnings.simplefilter('default',DeprecationWarning)
+warnings.simplefilter('default', DeprecationWarning)
 if not 'xrange' in dir(__builtins__):
   xrange = range
 
@@ -32,31 +32,36 @@ from collections import OrderedDict
 
 from utils import xmlUtils
 
+
 class RAVENparser():
   """
     Import the RAVEN input as xml tree, provide methods to add/change entries and print it back
   """
+
   def __init__(self, inputFile):
     """
       Constructor
       @ In, inputFile, string, input file name
       @ Out, None
     """
-    self.printTag  = 'RAVEN_PARSER' # print tag
-    self.inputFile = inputFile      # input file name
-    self.outStreamsNames = {}       # {'outStreamName':[DataObjectName,DataObjectType]}
-    self.varGroups = []             # variable groups' name (for now it is just used to check that in the linked objects there are none)
+    self.printTag = 'RAVEN_PARSER'  # print tag
+    self.inputFile = inputFile  # input file name
+    self.outStreamsNames = {
+    }  # {'outStreamName':[DataObjectName,DataObjectType]}
+    self.varGroups = [
+    ]  # variable groups' name (for now it is just used to check that in the linked objects there are none)
     if not os.path.exists(inputFile):
-      raise IOError(self.printTag+' ERROR: Not found RAVEN input file')
+      raise IOError(self.printTag + ' ERROR: Not found RAVEN input file')
     try:
-      tree = ET.parse(file(inputFile,'r'))
+      tree = ET.parse(file(inputFile, 'r'))
     except IOError as e:
-      raise IOError(self.printTag+' ERROR: Input Parsing error!\n' +str(e)+'\n')
+      raise IOError(
+          self.printTag + ' ERROR: Input Parsing error!\n' + str(e) + '\n')
     self.tree = tree.getroot()
 
     # expand the ExteranlXML nodes
     cwd = os.path.dirname(inputFile)
-    xmlUtils.expandExternalXML(self.tree,cwd)
+    xmlUtils.expandExternalXML(self.tree, cwd)
 
     # get the variable groups
     variableGroup = self.tree.find('VariableGroups')
@@ -65,37 +70,61 @@ class RAVENparser():
         self.varGroups.append(child.attrib['name'])
 
     # do some sanity checks
-    sequence = [step.strip() for step in self.tree.find('.//RunInfo/Sequence').text.split(",")]
+    sequence = [
+        step.strip()
+        for step in self.tree.find('.//RunInfo/Sequence').text.split(",")
+    ]
     # firstly no multiple sublevels of RAVEN can be handled now
     for code in self.tree.findall('.//Models/Code'):
       if 'subType' not in code.attrib:
-        raise IOError(self.printTag+' ERROR: Not found subType attribute in <Code> XML blocks!')
+        raise IOError(
+            self.printTag +
+            ' ERROR: Not found subType attribute in <Code> XML blocks!')
       if code.attrib['subType'].strip() == 'RAVEN':
-        raise IOError(self.printTag+' ERROR: Only one level of RAVEN runs are allowed (Not a chain of RAVEN runs). Found a <Code> of subType RAVEN!')
+        raise IOError(
+            self.printTag +
+            ' ERROR: Only one level of RAVEN runs are allowed (Not a chain of RAVEN runs). Found a <Code> of subType RAVEN!'
+        )
     # find steps and check if there are active outstreams (Print)
     foundOutStreams = False
     for step in self.tree.find('.//Steps'):
       if step.attrib['name'] in sequence:
         for role in step:
           if role.tag.strip() == 'Output':
-            mainClass, subType = role.attrib['class'].strip(), role.attrib['type'].strip()
+            mainClass, subType = role.attrib['class'].strip(), role.attrib[
+                'type'].strip()
             if mainClass == 'OutStreams' and subType == 'Print':
-              outStream = self.tree.find('.//OutStreams/Print[@name="'+role.text.strip()+ '"]'+'/source')
+              outStream = self.tree.find('.//OutStreams/Print[@name="' +
+                                         role.text.strip() + '"]' + '/source')
               if outStream is None:
-                raise IOError(self.printTag+' ERROR: The OutStream of type "Print" named "'+role.text.strip()+'" has not been found!')
+                raise IOError(self.printTag +
+                              ' ERROR: The OutStream of type "Print" named "' +
+                              role.text.strip() + '" has not been found!')
               dataObjectType = None
-              linkedDataObjectPointSet = self.tree.find('.//DataObjects/PointSet[@name="'+outStream.text.strip()+ '"]')
+              linkedDataObjectPointSet = self.tree.find(
+                  './/DataObjects/PointSet[@name="' + outStream.text.strip() +
+                  '"]')
               if linkedDataObjectPointSet is None:
-                linkedDataObjectHistorySet = self.tree.find('.//DataObjects/HistorySet[@name="'+outStream.text.strip()+ '"]')
+                linkedDataObjectHistorySet = self.tree.find(
+                    './/DataObjects/HistorySet[@name="' +
+                    outStream.text.strip() + '"]')
                 if linkedDataObjectHistorySet is None:
-                  raise IOError(self.printTag+' ERROR: The OutStream of type "Print" named "'+role.text.strip()+'" is linked to not existing DataObject!')
+                  raise IOError(
+                      self.printTag +
+                      ' ERROR: The OutStream of type "Print" named "' + role.
+                      text.strip() + '" is linked to not existing DataObject!')
                 dataObjectType, xmlNode = "HistorySet", linkedDataObjectHistorySet
               else:
                 dataObjectType, xmlNode = "PointSet", linkedDataObjectPointSet
-              self.outStreamsNames[role.text.strip()] = [outStream.text.strip(),dataObjectType,xmlNode]
+              self.outStreamsNames[role.text.strip()] = [
+                  outStream.text.strip(), dataObjectType, xmlNode
+              ]
               foundOutStreams = True
     if not foundOutStreams:
-      raise IOError(self.printTag+' ERROR: at least one <OutStreams> of type "Print" needs to be inputted in the active Steps!!')
+      raise IOError(
+          self.printTag +
+          ' ERROR: at least one <OutStreams> of type "Print" needs to be inputted in the active Steps!!'
+      )
     # Now we grep the paths of all the inputs the SLAVE RAVEN contains in the workind directory.
     self.workingDir = self.tree.find('.//RunInfo/WorkingDir').text.strip()
     # Find the Files
@@ -103,9 +132,12 @@ class RAVENparser():
     filesNode = self.tree.find('.//Files')
     if filesNode is not None:
       for child in self.tree.find('.//Files'):
-        subDirectory = child.attrib['subDirectory'] if 'subDirectory' in child.attrib else None
+        subDirectory = child.attrib[
+            'subDirectory'] if 'subDirectory' in child.attrib else None
         if subDirectory:
-          self.slaveInputFiles.append(os.path.expanduser(os.path.join(subDirectory,child.text.strip())))
+          self.slaveInputFiles.append(
+              os.path.expanduser(
+                  os.path.join(subDirectory, child.text.strip())))
         else:
           self.slaveInputFiles.append(os.path.expanduser(child.text.strip()))
 
@@ -117,12 +149,19 @@ class RAVENparser():
           if not moduleToLoad.endswith("py"):
             moduleToLoad += ".py"
           if self.workingDir not in moduleToLoad:
-            self.slaveInputFiles.append(os.path.expanduser(os.path.join(self.workingDir,moduleToLoad)))
+            self.slaveInputFiles.append(
+                os.path.expanduser(
+                    os.path.join(self.workingDir, moduleToLoad)))
           else:
             self.slaveInputFiles.append(os.path.expanduser(moduleToLoad))
         else:
-          if 'subType' not in extModel.attrib or len(extModel.attrib['subType']) == 0:
-            raise IOError(self.printTag+' ERROR: ExternalModel "'+extModel.attrib['name']+'" does not have any attribute named "ModuleToLoad" or "subType" with an available plugin name!')
+          if 'subType' not in extModel.attrib or len(
+              extModel.attrib['subType']) == 0:
+            raise IOError(
+                self.printTag + ' ERROR: ExternalModel "' +
+                extModel.attrib['name'] +
+                '" does not have any attribute named "ModuleToLoad" or "subType" with an available plugin name!'
+            )
 
     externalFunctions = self.tree.findall('.//Functions/External')
     if len(externalFunctions) > 0:
@@ -132,11 +171,15 @@ class RAVENparser():
           if not moduleToLoad.endswith("py"):
             moduleToLoad += ".py"
           if self.workingDir not in moduleToLoad:
-            self.slaveInputFiles.append(os.path.expanduser(os.path.join(self.workingDir,moduleToLoad)))
+            self.slaveInputFiles.append(
+                os.path.expanduser(
+                    os.path.join(self.workingDir, moduleToLoad)))
           else:
             self.slaveInputFiles.append(os.path.expanduser(moduleToLoad))
         else:
-          raise IOError(self.printTag+' ERROR: Functions/External ' +extFunct.attrib['name']+ ' does not have any attribute named "file"!!')
+          raise IOError(
+              self.printTag + ' ERROR: Functions/External ' + extFunct.
+              attrib['name'] + ' does not have any attribute named "file"!!')
 
   def returnOutstreamsNamesAnType(self):
     """
@@ -154,30 +197,32 @@ class RAVENparser():
     """
     return self.varGroups
 
-  def copySlaveFiles(self,currentDirName):
+  def copySlaveFiles(self, currentDirName):
     """
       Method to copy the slave input files
       @ In, currentDirName, str, the current directory (destination of the copy procedure)
       @ Out, None
     """
     # the dirName is actually in workingDir/StepName/prefix => we need to go back 2 dirs
-    dirName = os.path.join(currentDirName, ".."+os.path.sep+".."+os.path.sep)
+    dirName = os.path.join(currentDirName,
+                           ".." + os.path.sep + ".." + os.path.sep)
     # copy SLAVE raven files in case they are needed
     for slaveInput in self.slaveInputFiles:
       # full path
-      slaveInputFullPath = os.path.abspath(os.path.join(dirName,slaveInput))
+      slaveInputFullPath = os.path.abspath(os.path.join(dirName, slaveInput))
       # check if exists
       if os.path.exists(slaveInputFullPath):
         slaveInputBaseDir = os.path.dirname(slaveInput)
-        slaveDir = os.path.join(currentDirName,slaveInputBaseDir.replace(currentDirName,""))
+        slaveDir = os.path.join(currentDirName,
+                                slaveInputBaseDir.replace(currentDirName, ""))
         if not os.path.exists(slaveDir):
           os.makedirs(slaveDir)
-        shutil.copy(slaveInputFullPath,slaveDir)
+        shutil.copy(slaveInputFullPath, slaveDir)
       else:
-        raise IOError(self.printTag+' ERROR: File "' +slaveInputFullPath+'" has not been found!!!')
+        raise IOError(self.printTag + ' ERROR: File "' + slaveInputFullPath +
+                      '" has not been found!!!')
 
-
-  def printInput(self,rootToPrint,outfile=None):
+  def printInput(self, rootToPrint, outfile=None):
     """
       Method to print out the new input
       @ In, rootToPrint, xml.etree.ElementTree.Element, the Element containing the input that needs to be printed out
@@ -186,14 +231,15 @@ class RAVENparser():
     """
     xmlObj = xml.dom.minidom.parseString(ET.tostring(rootToPrint))
     inputAsString = xmlObj.toprettyxml()
-    inputAsString = "".join([s for s in inputAsString.strip().splitlines(True) if s.strip()])
-    if outfile==None:
-      outfile =self.inputfile
-    IOfile = open(outfile,'w+')
+    inputAsString = "".join(
+        [s for s in inputAsString.strip().splitlines(True) if s.strip()])
+    if outfile == None:
+      outfile = self.inputfile
+    IOfile = open(outfile, 'w+')
     IOfile.write(inputAsString)
     IOfile.close()
 
-  def modifyOrAdd(self,modiDictionary={},save=True, allowAdd = False):
+  def modifyOrAdd(self, modiDictionary={}, save=True, allowAdd=False):
     """
       modiDictionary a dict of dictionaries of the required addition or modification
       {"variableToChange":value }
@@ -207,15 +253,17 @@ class RAVENparser():
       @ Out, returnElement, xml.etree.ElementTree.Element, the tree that got modified
     """
     if save:
-      returnElement = copy.deepcopy(self.tree)            #make a copy if save is requested
+      returnElement = copy.deepcopy(
+          self.tree)  #make a copy if save is requested
     else:
-      returnElement = self.tree                           #otherwise return the original modified
+      returnElement = self.tree  #otherwise return the original modified
 
     for node, value in modiDictionary.items():
       val = np.atleast_1d(value)[0]
 
       if "|" not in node:
-        raise IOError(self.printTag+' ERROR: the variable '+node.strip()+' does not contain "|" separator and can not be handled!!')
+        raise IOError(self.printTag + ' ERROR: the variable ' + node.strip(
+        ) + ' does not contain "|" separator and can not be handled!!')
       changeTheNode = True
       allowAddNodes, allowAddNodesPath = [], OrderedDict()
       if "@" in node:
@@ -235,22 +283,26 @@ class RAVENparser():
               attribValue = None
               if ":" in attribComp.strip():
                 # it is a locator
-                attribName  = attribComp.split(":")[0].strip()
+                attribName = attribComp.split(":")[0].strip()
                 attribValue = attribComp.split(":")[1].strip()
 
-                attribPath +='[@'+attribName+('="'+attribValue+'"]')
+                attribPath += '[@' + attribName + ('="' + attribValue + '"]')
 
               else:
                 # it is actually the attribute that needs to be changed
                 # check if it is the last component
-                if cnt+1 != len(splittedComponents):
-                  raise IOError(self.printTag+' ERROR: the variable '+node.strip()+' follows the syntax "Node|SubNode|SubSubNode@attribute"'+
-                                              ' but the attribute is not the last component. Please check your input!')
+                if cnt + 1 != len(splittedComponents):
+                  raise IOError(
+                      self.printTag + ' ERROR: the variable ' + node.strip() +
+                      ' follows the syntax "Node|SubNode|SubSubNode@attribute"'
+                      +
+                      ' but the attribute is not the last component. Please check your input!'
+                  )
                 attribName = attribComp.strip()
-                attribPath +='[@'+attribName+']'
+                attribPath += '[@' + attribName + ']'
               if allowAdd:
-                attribConstruct[attribName]  = attribValue
-          pathNode += "/" + component.strip()+attribPath
+                attribConstruct[attribName] = attribValue
+          pathNode += "/" + component.strip() + attribPath
           if allowAdd:
             if len(returnElement.findall(pathNode)) > 0:
               allowAddNodes.append(pathNode)
@@ -263,11 +315,11 @@ class RAVENparser():
           changeTheNode = True
       else:
         # there are no attributes that are needed to track down the node to change
-        pathNode = './/' + node.replace("|","/").strip()
+        pathNode = './/' + node.replace("|", "/").strip()
         if allowAdd:
           pathNodeTemp = './'
-          for component in node.replace("|","/").split("/"):
-            pathNodeTemp += '/'+component
+          for component in node.replace("|", "/").split("/"):
+            pathNodeTemp += '/' + component
             if len(returnElement.findall(pathNodeTemp)) > 0:
               allowAddNodes.append(pathNodeTemp)
             else:
@@ -276,21 +328,35 @@ class RAVENparser():
       # look for the node with XPath directives
       foundNodes = returnElement.findall(pathNode)
       if len(foundNodes) > 1:
-        raise IOError(self.printTag+' ERROR: multiple nodes have been found corresponding to path -> '+node.strip()+'. Please use the attribute identifier "@" to nail down to a specific node !!')
+        raise IOError(
+            self.printTag +
+            ' ERROR: multiple nodes have been found corresponding to path -> '
+            + node.strip() +
+            '. Please use the attribute identifier "@" to nail down to a specific node !!'
+        )
       if len(foundNodes) == 0 and not allowAdd:
-        raise IOError(self.printTag+' ERROR: no node has been found corresponding to path -> '+node.strip()+'. Please check the input!!')
+        raise IOError(
+            self.printTag +
+            ' ERROR: no node has been found corresponding to path -> ' +
+            node.strip() + '. Please check the input!!')
       if len(foundNodes) == 0:
         # this means that the allowAdd is true (=> no error message has been raised)
         indexFirstUnknownNode = allowAddNodes.index(None)
         if indexFirstUnknownNode == 0:
-          raise IOError(self.printTag+' ERROR: at least the main XML node should be present in the RAVEN template input -> '+node.strip()+'. Please check the input!!')
-        getFirstElement = returnElement.findall(allowAddNodes[indexFirstUnknownNode-1])[0]
-        for i in range(indexFirstUnknownNode,len(allowAddNodes)):
+          raise IOError(
+              self.printTag +
+              ' ERROR: at least the main XML node should be present in the RAVEN template input -> '
+              + node.strip() + '. Please check the input!!')
+        getFirstElement = returnElement.findall(
+            allowAddNodes[indexFirstUnknownNode - 1])[0]
+        for i in range(indexFirstUnknownNode, len(allowAddNodes)):
           nodeWithAttributeName = allowAddNodesPath.keys()[i]
           if not allowAddNodesPath[nodeWithAttributeName]:
-            subElement =  ET.Element(nodeWithAttributeName)
+            subElement = ET.Element(nodeWithAttributeName)
           else:
-            subElement =  ET.Element(nodeWithAttributeName, attrib=allowAddNodesPath[nodeWithAttributeName])
+            subElement = ET.Element(
+                nodeWithAttributeName,
+                attrib=allowAddNodesPath[nodeWithAttributeName])
           getFirstElement.append(subElement)
           getFirstElement = subElement
         if changeTheNode:
@@ -300,7 +366,7 @@ class RAVENparser():
 
       else:
         nodeToChange = foundNodes[0]
-        pathNode     = './/'
+        pathNode = './/'
         if changeTheNode:
           nodeToChange.text = str(val).strip()
         else:

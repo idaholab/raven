@@ -18,9 +18,9 @@
 #For future compatibility with Python 3
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
-warnings.simplefilter('default',DeprecationWarning)
+warnings.simplefilter('default', DeprecationWarning)
 
-import sys,os
+import sys, os
 import __builtin__
 import functools
 import copy
@@ -37,7 +37,7 @@ from Files import StaticXMLOutput
 from utils import utils, cached_ndarray, InputData, xmlUtils, mathUtils
 try:
   from .DataSet import DataSet
-except ValueError: #attempted relative import in non-package
+except ValueError:  #attempted relative import in non-package
   from DataSet import DataSet
 
 # for profiling with kernprof
@@ -53,6 +53,7 @@ except AttributeError:
     """
     return func
 
+
 #
 #
 #
@@ -63,6 +64,7 @@ class PointSet(DataSet):
     thousands of variables and millions of samples.  Wraps np.ndarray for collecting and uses xarray.Dataset
     for final form.  This form is a shortcut for ASSUMED only-float input, output spaces
   """
+
   # only a few changes from the base class; the external API is identical.
 
   ### INITIALIZATION ###
@@ -77,24 +79,24 @@ class PointSet(DataSet):
     self.name = 'PointSet'
     self.type = 'PointSet'
     self.printTag = self.name
-    self._neededForReload = [] # PointSet doesn't need anything to reload
+    self._neededForReload = []  # PointSet doesn't need anything to reload
 
-  def _readMoreXML(self,xmlNode):
+  def _readMoreXML(self, xmlNode):
     """
       Initializes data object based on XML input.
       @ In, xmlNode, xml.etree.ElementTree.Element or InputData.ParameterInput, input specification
       @ Out, None
     """
-    DataSet._readMoreXML(self,xmlNode)
+    DataSet._readMoreXML(self, xmlNode)
     # default to taking last point if no other spec was used
     # TODO throw a warning here, once we figure out how to give message handler in all cases
     if self._selectInput is None:
-      self._selectInput = ('inputRow',-1)
+      self._selectInput = ('inputRow', -1)
     if self._selectOutput is None:
-      self._selectOutput = ('outputRow',-1)
+      self._selectOutput = ('outputRow', -1)
 
   ### INTERNAL USE FUNCTIONS ###
-  def _convertFinalizedDataRealizationToDict(self,rlz, unpackXArray=False):
+  def _convertFinalizedDataRealizationToDict(self, rlz, unpackXArray=False):
     """
       After collapsing into xr.Dataset, all entries are stored as xr.DataArrays.
       This converts them into a dictionary like the realization sent in.
@@ -103,12 +105,12 @@ class PointSet(DataSet):
       @ Out, new, dict(varname:value), where "value" could be singular (float,str) or xr.DataArray
     """
     new = {}
-    for k,v in rlz.items():
+    for k, v in rlz.items():
       # only singular, so eliminate dataarray container
       new[k] = v.item(0)
     return new
 
-  def _selectiveRealization(self,rlz):
+  def _selectiveRealization(self, rlz):
     """
       Uses "options" parameters from input to select part of the collected data
       @ In, rlz, dict, {var:val} format (see addRealization)
@@ -120,7 +122,7 @@ class PointSet(DataSet):
     # data was previously formatted by _formatRealization
     # then select the point we want
     toRemove = []
-    for var,val in rlz.items():
+    for var, val in rlz.items():
       if var in self.protectedTags:
         continue
       # only modify it if it is not already scalar
@@ -128,15 +130,15 @@ class PointSet(DataSet):
         # treat inputs, outputs differently TODO this should extend to per-variable someday
         ## inputs
         if var in self._inputs:
-          method,indic = self._selectInput
+          method, indic = self._selectInput
         elif var in self._outputs or var in self._metavars:
           # TODO where does metadata get picked from?  Seems like output fits best?
-          method,indic = self._selectOutput
+          method, indic = self._selectOutput
         # pivot variables are included here in "else"; remove them after they're used in operators
         else:
           toRemove.append(var)
           continue
-        if method in ['inputRow','outputRow']:
+        if method in ['inputRow', 'outputRow']:
           # zero-d xarrays give false behavior sometimes
           # TODO formatting should not be necessary once standardized history,float realizations are established
           if type(val) == list:
@@ -148,9 +150,9 @@ class PointSet(DataSet):
             rlz[var] = float(val)
           else:
             rlz[var] = float(val[indic])
-        elif method in ['inputPivotValue','outputPivotValue']:
+        elif method in ['inputPivotValue', 'outputPivotValue']:
           pivotParam = self.getDimensions(var)
-          assert(len(pivotParam) == 1) # TODO only handle History for now
+          assert (len(pivotParam) == 1)  # TODO only handle History for now
           pivotParam = pivotParam[var][0]
           idx = (np.abs(rlz[pivotParam] - indic)).argmin()
           rlz[var] = rlz[var][idx]
@@ -163,14 +165,14 @@ class PointSet(DataSet):
             rlz[var] = float(val.max())
           elif indic == 'min':
             rlz[var] = float(val.min())
-          elif indic in ['mean','expectedValue','average']:
+          elif indic in ['mean', 'expectedValue', 'average']:
             rlz[var] = float(val.mean())
       # otherwise, leave it alone
     for var in toRemove:
       del rlz[var]
     return rlz
 
-  def _toCSV(self,fileName,start=0,**kwargs):
+  def _toCSV(self, fileName, start=0, **kwargs):
     """
       Writes this data object to CSV file (except the general metadata, see _toCSVXML)
       @ In, fileName, str, path/name to write file
@@ -192,7 +194,7 @@ class PointSet(DataSet):
       # set up data to write
       mode = 'a' if start > 0 else 'w'
 
-      self.raiseADebug('Printing data to CSV: "{}"'.format(fileName+'.csv'))
+      self.raiseADebug('Printing data to CSV: "{}"'.format(fileName + '.csv'))
       # get the list of elements the user requested to write
       # order data according to user specs # TODO might be time-inefficient, allow user to skip?
       ordered = list(i for i in self._inputs if i in keep)
@@ -200,8 +202,14 @@ class PointSet(DataSet):
       ordered += list(m for m in self._metavars if m in keep)
       for data in full:
         data = data.drop(toDrop)
-        data = data.where(data[self.sampleTag]==data[self.sampleTag].values[-1],drop=True)
-        self._usePandasWriteCSV(fileName,data,ordered,keepSampleTag = self.sampleTag in keep,mode=mode)
+        data = data.where(
+            data[self.sampleTag] == data[self.sampleTag].values[-1], drop=True)
+        self._usePandasWriteCSV(
+            fileName,
+            data,
+            ordered,
+            keepSampleTag=self.sampleTag in keep,
+            mode=mode)
         mode = 'a'
     else:
       DataSet._toCSV(self, fileName, start, **kwargs)

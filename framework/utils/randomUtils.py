@@ -19,7 +19,7 @@
 
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
-warnings.simplefilter('default',DeprecationWarning)
+warnings.simplefilter('default', DeprecationWarning)
 
 import numpy as np
 from collections import deque
@@ -28,12 +28,15 @@ from utils.utils import findCrowModule
 
 # in general, we will use Crow for now, but let's make it easy to switch just in case it is helpfull eventually.
 stochasticEnv = 'crow'
+
 #stochasticEnv = 'numpy'
+
 
 class BoxMullerGenerator:
   """
     Iterator class for the Box-Muller transform
   """
+
   def __init__(self):
     """
       Constructor.
@@ -51,7 +54,8 @@ class BoxMullerGenerator:
     if len(self.queue) == 0:
       #calculate new values
       self.queue.extend(self.createSamples())
-    return self.queue.pop() #no need to pop left, as they're independent and all get used
+    return self.queue.pop(
+    )  #no need to pop left, as they're independent and all get used
 
   def createSamples(self):
     """
@@ -59,10 +63,10 @@ class BoxMullerGenerator:
       @ In, None
       @ Out, (z1,z2), tuple, two independent random values
     """
-    u1,u2 = random(2)
-    z1 = np.sqrt(-2.*np.log(u1))*np.cos(2.*np.pi*u2)
-    z2 = np.sqrt(-2.*np.log(u1))*np.sin(2.*np.pi*u2)
-    return z1,z2
+    u1, u2 = random(2)
+    z1 = np.sqrt(-2. * np.log(u1)) * np.cos(2. * np.pi * u2)
+    z2 = np.sqrt(-2. * np.log(u1)) * np.sin(2. * np.pi * u2)
+    return z1, z2
 
   def testSampling(self, n=1e5):
     """
@@ -75,7 +79,8 @@ class BoxMullerGenerator:
     samples = np.array([self.generate() for _ in range(n)])
     mean = np.average(samples)
     stdev = np.std(samples)
-    return mean,stdev
+    return mean, stdev
+
 
 if stochasticEnv == 'numpy':
   npStochEnv = np.random.RandomState()
@@ -96,12 +101,14 @@ def randomSeed(value):
     npStochEnv = np.random.RandomState(value)
   else:
     crowStochEnv.seed(value)
-    # we must do the following now since there is no separation between the distribution (stoch eviroment) and the one here
+    # we must do the following now since there is no separation between 
+    # the distribution (stoch eviroment) and the one here
     ## TODO: split it in the sampler. Design needed.
     distStochEnv.seedRandom(value)
   print('randomUtils: Global random number seed has been changed to',value)
 
-def random(dim=1,samples=1,keepMatrix=False):
+
+def random(dim=1, samples=1, keepMatrix=False):
   """
     Function to get a single random value, an array of random values, or a matrix of random values, on [0,1]
     @ In, dim, int, optional, dimensionality of samples
@@ -112,9 +119,9 @@ def random(dim=1,samples=1,keepMatrix=False):
   dim = int(dim)
   samples = int(samples)
   if stochasticEnv == 'numpy':
-    vals = npStochEnv.rand(samples,dim)
-  else: #crow
-    vals = np.zeros([samples,dim])
+    vals = npStochEnv.rand(samples, dim)
+  else:  #crow
+    vals = np.zeros([samples, dim])
     for i in range(len(vals)):
       for j in range(len(vals[0])):
         vals[i][j] = crowStochEnv.random()
@@ -122,9 +129,10 @@ def random(dim=1,samples=1,keepMatrix=False):
   if keepMatrix:
     return vals
   else:
-    return _reduceRedundantListing(vals,dim,samples)
+    return _reduceRedundantListing(vals, dim, samples)
 
-def randomNormal(dim=1,samples=1,keepMatrix=False):
+
+def randomNormal(dim=1, samples=1, keepMatrix=False):
   """
     Function to get a single random value, an array of random values, or a matrix of random values, normally distributed
     @ In, dim, int, optional, dimensionality of samples
@@ -135,18 +143,19 @@ def randomNormal(dim=1,samples=1,keepMatrix=False):
   dim = int(dim)
   samples = int(samples)
   if stochasticEnv == 'numpy':
-    vals = npStochEnv.randn(samples,dim)
+    vals = npStochEnv.randn(samples, dim)
   else:
-    vals = np.zeros([samples,dim])
+    vals = np.zeros([samples, dim])
     for i in range(len(vals)):
       for j in range(len(vals[0])):
-        vals[i,j] = boxMullerGen.generate()
+        vals[i, j] = boxMullerGen.generate()
   if keepMatrix:
     return vals
   else:
-    return _reduceRedundantListing(vals,dim,samples)
+    return _reduceRedundantListing(vals, dim, samples)
 
-def randomIntegers(low,high,caller):
+
+def randomIntegers(low, high, caller):
   """
     Function to get a random integer
     @ In, low, int, low boundary
@@ -155,17 +164,18 @@ def randomIntegers(low,high,caller):
     @ Out, rawInt, int, random int
   """
   if stochasticEnv == 'numpy':
-    return npStochEnv.randint(low,high=high+1)
+    return npStochEnv.randint(low, high=high + 1)
   else:
-    intRange = high-low
-    rawNum = low + random()*intRange
+    intRange = high - low
+    rawNum = low + random() * intRange
     rawInt = int(round(rawNum))
     if rawInt < low or rawInt > high:
       caller.raiseAMessage("Random int out of range")
-      rawInt = max(low,min(rawInt,high))
+      rawInt = max(low, min(rawInt, high))
     return rawInt
 
-def randomPermutation(l,caller):
+
+def randomPermutation(l, caller):
   """
     Function to get a random permutation
     @ In, l, list, list to be permuted
@@ -178,10 +188,11 @@ def randomPermutation(l,caller):
     newList = []
     oldList = l[:]
     while len(oldList) > 0:
-      newList.append(oldList.pop(randomIntegers(0,len(oldList)-1,caller)))
+      newList.append(oldList.pop(randomIntegers(0, len(oldList) - 1, caller)))
     return newList
 
-def randPointsOnHypersphere(dim,samples=1,r=1,keepMatrix=False):
+
+def randPointsOnHypersphere(dim, samples=1, r=1, keepMatrix=False):
   """
     obtains random points on the surface of a hypersphere of dimension "n" with radius "r".
     see http://www.sciencedirect.com/science/article/pii/S0047259X10001211
@@ -193,20 +204,21 @@ def randPointsOnHypersphere(dim,samples=1,r=1,keepMatrix=False):
     @ Out, pts, np.array(np.array(float)), random points on the surface of the hypersphere [sample#][pt]
   """
   ## first fill random samples
-  pts = randomNormal(dim,samples=samples,keepMatrix=True)
+  pts = randomNormal(dim, samples=samples, keepMatrix=True)
   ## extend radius, place inside sphere through normalization
-  rnorm = float(r)/np.linalg.norm(pts,axis=1)
-  pts *= rnorm[:,np.newaxis]
+  rnorm = float(r) / np.linalg.norm(pts, axis=1)
+  pts *= rnorm[:, np.newaxis]
   #TODO if all values in any given sample are 0,
   #       this produces an unphysical result, so we should resample;
   #       however, this probability is miniscule and the speed benefits of skipping checking loop seems worth it.
   if keepMatrix:
     return pts
   else:
-    return _reduceRedundantListing(pts,dim,samples)
+    return _reduceRedundantListing(pts, dim, samples)
   return pts
 
-def randPointsInHypersphere(dim,samples=1,r=1,keepMatrix=False):
+
+def randPointsInHypersphere(dim, samples=1, r=1, keepMatrix=False):
   """
     obtains a random point internal to a hypersphere of dimension "n" with radius "r"
     see http://www.sciencedirect.com/science/article/pii/S0047259X10001211
@@ -217,16 +229,19 @@ def randPointsInHypersphere(dim,samples=1,r=1,keepMatrix=False):
     @ Out, pt, np.array(float), a random point on the surface of the hypersphere
   """
   #sample on surface of n+2-sphere and discard the last two dimensions
-  pts = randPointsOnHypersphere(dim+2,samples=samples,r=r,keepMatrix=True)[:,:-2]
+  pts = randPointsOnHypersphere(
+      dim + 2, samples=samples, r=r, keepMatrix=True)[:, :-2]
   if keepMatrix:
     return pts
   else:
-    return _reduceRedundantListing(pts,dim,samples)
+    return _reduceRedundantListing(pts, dim, samples)
   return pts
+
 
 ### internal utilities ###
 
-def _reduceRedundantListing(data,dim,samples):
+
+def _reduceRedundantListing(data, dim, samples):
   """
     Adjusts data to be intuitive for developers.
      - if dim = samples = 1: returns a float
@@ -237,12 +252,11 @@ def _reduceRedundantListing(data,dim,samples):
     @ In, samples, int, number of samples taken
     @ Out, data, np.array, shape and size described above in method description.
   """
-  if dim==1 and samples==1: #user expects single float
+  if dim == 1 and samples == 1:  #user expects single float
     return data[0][0]
-  elif samples==1: #user expects array of floats
+  elif samples == 1:  #user expects array of floats
     return data[0]
   #elif dim==1: #potentially user expects array of floats, but probably wants array of single-entry arrays
   #  return data[:,0]
   else:
     return data
-

@@ -19,7 +19,7 @@ Created on Nov 14, 2013
 #for future compatibility with Python 3-----------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
-warnings.simplefilter('default',DeprecationWarning)
+warnings.simplefilter('default', DeprecationWarning)
 if not 'xrange' in dir(__builtins__):
   xrange = range
 #End compatibility block for Python 3-------------------------------------------
@@ -31,7 +31,9 @@ import os
 import DataObjects
 from .OutStreamManager import OutStreamManager
 from ClassProperty import ClassProperty
+
 #Internal Modules End-----------------------------------------------------------
+
 
 class OutStreamPrint(OutStreamManager):
   """
@@ -67,8 +69,9 @@ class OutStreamPrint(OutStreamManager):
     self.sourceData = None
     self.what = None
     # dictionary of what indices have already been printed, so we don't duplicate writing efforts
-    self.indexPrinted = {} # keys are filenames, which should be reset at the end of every step
-    self.subDirectory = None # subdirectory where to store the outputs
+    self.indexPrinted = {
+    }  # keys are filenames, which should be reset at the end of every step
+    self.subDirectory = None  # subdirectory where to store the outputs
 
   def localGetInitParams(self):
     """
@@ -106,8 +109,13 @@ class OutStreamPrint(OutStreamManager):
     """
     self.type = 'OutStreamPrint'
     for subnode in xmlNode:
-      if subnode.tag not in ['type','source','what','filename','target','clusterLabel','directory']:
-        self.raiseAnError(IOError, ' Print Outstream object ' + str(self.name) + ' contains the following unknown node: ' + str(subnode.tag))
+      if subnode.tag not in [
+          'type', 'source', 'what', 'filename', 'target', 'clusterLabel',
+          'directory'
+      ]:
+        self.raiseAnError(
+            IOError, ' Print Outstream object ' + str(self.name) +
+            ' contains the following unknown node: ' + str(subnode.tag))
       if subnode.tag == 'source':
         self.sourceName = subnode.text.split(',')
       elif subnode.tag == 'filename':
@@ -115,15 +123,23 @@ class OutStreamPrint(OutStreamManager):
       else:
         self.options[subnode.tag] = subnode.text
     if 'type' not in self.options.keys():
-      self.raiseAnError(IOError, 'type tag not present in Print block called ' + self.name)
+      self.raiseAnError(
+          IOError, 'type tag not present in Print block called ' + self.name)
     if self.options['type'] not in self.availableOutStreamTypes:
-      self.raiseAnError(TypeError, 'Print type ' + self.options['type'] + ' not available yet. ')
+      self.raiseAnError(
+          TypeError,
+          'Print type ' + self.options['type'] + ' not available yet. ')
     if 'what' in self.options.keys():
       self.what = self.options['what']
       if self.options['type'] == 'csv':
         for elm in self.what.lower().split(","):
-          if not elm.startswith("input") and not elm.startswith("output") and not elm.startswith("metadata"):
-            self.raiseAnError(IOError, 'Not recognized request in "what" node <'+elm.strip()+'>. The request must begin with one of "input", "output" or "metadata" or it could be "all" for ROMs!')
+          if not elm.startswith("input") and not elm.startswith(
+              "output") and not elm.startswith("metadata"):
+            self.raiseAnError(
+                IOError,
+                'Not recognized request in "what" node <' + elm.strip() +
+                '>. The request must begin with one of "input", "output" or "metadata" or it could be "all" for ROMs!'
+            )
 
   def addOutput(self):
     """
@@ -137,7 +153,8 @@ class OutStreamPrint(OutStreamManager):
     if len(self.filename) > 0:
       dictOptions['filenameroot'] = self.filename
     if self.subDirectory is not None:
-      dictOptions['filenameroot'] = os.path.join(self.subDirectory,dictOptions['filenameroot'])
+      dictOptions['filenameroot'] = os.path.join(self.subDirectory,
+                                                 dictOptions['filenameroot'])
 
     if self.what:
       dictOptions['what'] = self.what
@@ -153,26 +170,34 @@ class OutStreamPrint(OutStreamManager):
       if not empty:
         if self.options['type'] == 'csv':
           filename = dictOptions['filenameroot']
-          rlzIndex = self.indexPrinted.get(filename,0)
+          rlzIndex = self.indexPrinted.get(filename, 0)
           dictOptions['firstIndex'] = rlzIndex
           # clusterLabel lets the user print a point set as if it were a history, with input decided by clusterLabel
           if 'clusterLabel' in self.options:
             if type(self.sourceData[index]).__name__ != 'PointSet':
-              self.raiseAWarning('Label clustering currently only works for PointSet data objects!  Skipping for',self.sourceData[index].name)
+              self.raiseAWarning(
+                  'Label clustering currently only works for PointSet data objects!  Skipping for',
+                  self.sourceData[index].name)
             else:
               dictOptions['clusterLabel'] = self.options['clusterLabel']
           try:
-            rlzIndex = self.sourceData[index].write(filename,style='CSV',**dictOptions)
+            rlzIndex = self.sourceData[index].write(
+                filename, style='CSV', **dictOptions)
           except AttributeError:
-            self.raiseAnError(NotImplementedError, 'No implementation for source type', self.sourceData[index].type, 'and output type "'+str(self.options['type'].strip())+'"!')
+            self.raiseAnError(
+                NotImplementedError, 'No implementation for source type',
+                self.sourceData[index].type,
+                'and output type "' + str(self.options['type'].strip()) + '"!')
           finally:
             self.indexPrinted[filename] = rlzIndex
         elif self.options['type'] == 'xml':
           try:
             self.sourceData[index].printXML(dictOptions)
           except AttributeError:
-            self.raiseAnError(NotImplementedError, 'No implementation for source type', self.sourceData[index].type, 'and output type "'+str(self.options['type'].strip())+'"!')
-
+            self.raiseAnError(
+                NotImplementedError, 'No implementation for source type',
+                self.sourceData[index].type,
+                'and output type "' + str(self.options['type'].strip()) + '"!')
 
   def finalize(self):
     """

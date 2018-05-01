@@ -17,7 +17,7 @@ Module where the base class and the specialization of different type of Model ar
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
-warnings.simplefilter('default',DeprecationWarning)
+warnings.simplefilter('default', DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -34,11 +34,13 @@ import numpy as np
 from .Model import Model
 from utils import utils
 from utils import InputData
-import CsvLoader #note: "from CsvLoader import CsvLoader" currently breaks internalParallel with Files and genericCodeInterface - talbpaul 2017-08-24
+import CsvLoader  #note: "from CsvLoader import CsvLoader" currently breaks internalParallel with Files and genericCodeInterface - talbpaul 2017-08-24
 import Files
 from DataObjects import Data
 import Runners
+
 #Internal Modules End--------------------------------------------------------------------------------
+
 
 class Code(Model):
   """
@@ -56,14 +58,21 @@ class Code(Model):
         specifying input of cls.
     """
     inputSpecification = super(Code, cls).getInputSpecification()
-    inputSpecification.setStrictMode(False) #Code interfaces can allow new elements.
-    inputSpecification.addSub(InputData.parameterInputFactory("executable", contentType=InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("preexec", contentType=InputData.StringType))
+    inputSpecification.setStrictMode(
+        False)  #Code interfaces can allow new elements.
+    inputSpecification.addSub(
+        InputData.parameterInputFactory(
+            "executable", contentType=InputData.StringType))
+    inputSpecification.addSub(
+        InputData.parameterInputFactory(
+            "preexec", contentType=InputData.StringType))
 
     ## Begin command line arguments tag
     ClargsInput = InputData.parameterInputFactory("clargs")
 
-    ClargsTypeInput = InputData.makeEnumType("clargsType","clargsTypeType",["text","input","output","prepend","postpend"])
+    ClargsTypeInput = InputData.makeEnumType(
+        "clargsType", "clargsTypeType",
+        ["text", "input", "output", "prepend", "postpend"])
     ClargsInput.addParam("type", ClargsTypeInput, True)
 
     ClargsInput.addParam("arg", InputData.StringType, False)
@@ -74,7 +83,8 @@ class Code(Model):
     ## Begin file arguments tag
     FileargsInput = InputData.parameterInputFactory("fileargs")
 
-    FileargsTypeInput = InputData.makeEnumType("fileargsType", "fileargsTypeType",["input","output","moosevpp"])
+    FileargsTypeInput = InputData.makeEnumType(
+        "fileargsType", "fileargsTypeType", ["input", "output", "moosevpp"])
     FileargsInput.addParam("type", FileargsTypeInput, True)
 
     FileargsInput.addParam("arg", InputData.StringType, False)
@@ -93,30 +103,31 @@ class Code(Model):
     """
     #FIXME think about how to import the roles to allowed class for the codes. For the moment they are not specialized by executable
     cls.validateDict['Input'] = [cls.testDict.copy()]
-    cls.validateDict['Input'  ][0]['class'       ] = 'Files'
+    cls.validateDict['Input'][0]['class'] = 'Files'
     # FIXME there's lots of types that Files can be, so until XSD replaces this, commenting this out
     #validateDict['Input'  ][1]['type'        ] = ['']
-    cls.validateDict['Input'  ][0]['required'    ] = False
-    cls.validateDict['Input'  ][0]['multiplicity'] = 'n'
+    cls.validateDict['Input'][0]['required'] = False
+    cls.validateDict['Input'][0]['multiplicity'] = 'n'
 
-  def __init__(self,runInfoDict):
+  def __init__(self, runInfoDict):
     """
       Constructor
       @ In, runInfoDict, dict, the dictionary containing the runInfo (read in the XML input file)
       @ Out, None
     """
-    Model.__init__(self,runInfoDict)
-    self.executable         = ''   #name of the executable (abs path)
-    self.preExec            = None   #name of the pre-executable, if any
-    self.oriInputFiles      = []   #list of the original input files (abs path)
-    self.workingDir         = ''   #location where the code is currently running
-    self.outFileRoot        = ''   #root to be used to generate the sequence of output files
-    self.currentInputFiles  = []   #list of the modified (possibly) input files (abs path)
-    self.codeFlags          = None #flags that need to be passed into code interfaces(if present)
-    self.printTag           = 'CODE MODEL'
-    self.createWorkingDir   = True
+    Model.__init__(self, runInfoDict)
+    self.executable = ''  #name of the executable (abs path)
+    self.preExec = None  #name of the pre-executable, if any
+    self.oriInputFiles = []  #list of the original input files (abs path)
+    self.workingDir = ''  #location where the code is currently running
+    self.outFileRoot = ''  #root to be used to generate the sequence of output files
+    self.currentInputFiles = [
+    ]  #list of the modified (possibly) input files (abs path)
+    self.codeFlags = None  #flags that need to be passed into code interfaces(if present)
+    self.printTag = 'CODE MODEL'
+    self.createWorkingDir = True
 
-  def _readMoreXML(self,xmlNode):
+  def _readMoreXML(self, xmlNode):
     """
       Function to read the portion of the xml input that belongs to this specialized class
       and initialize some stuff based on the inputs got
@@ -126,80 +137,128 @@ class Code(Model):
     Model._readMoreXML(self, xmlNode)
     paramInput = Code.getInputSpecification()()
     paramInput.parseNode(xmlNode)
-    self.clargs={'text':'', 'input':{'noarg':[]}, 'pre':'', 'post':''} #output:''
-    self.fargs={'input':{}, 'output':'', 'moosevpp':''}
+    self.clargs = {
+        'text': '',
+        'input': {
+            'noarg': []
+        },
+        'pre': '',
+        'post': ''
+    }  #output:''
+    self.fargs = {'input': {}, 'output': '', 'moosevpp': ''}
     for child in paramInput.subparts:
-      if child.getName() =='executable':
+      if child.getName() == 'executable':
         self.executable = str(child.value)
-      if child.getName() =='preexec':
+      if child.getName() == 'preexec':
         self.preExec = child.value
       elif child.getName() == 'clargs':
-        argtype = child.parameterValues['type']      if 'type'      in child.parameterValues else None
-        arg     = child.parameterValues['arg']       if 'arg'       in child.parameterValues else None
-        ext     = child.parameterValues['extension'] if 'extension' in child.parameterValues else None
+        argtype = child.parameterValues[
+            'type'] if 'type' in child.parameterValues else None
+        arg = child.parameterValues[
+            'arg'] if 'arg' in child.parameterValues else None
+        ext = child.parameterValues[
+            'extension'] if 'extension' in child.parameterValues else None
         if argtype == None:
-          self.raiseAnError(IOError,'"type" for clarg not specified!')
+          self.raiseAnError(IOError, '"type" for clarg not specified!')
         elif argtype == 'text':
           if ext != None:
-            self.raiseAWarning('"text" nodes only accept "type" and "arg" attributes! Ignoring "extension"...')
+            self.raiseAWarning(
+                '"text" nodes only accept "type" and "arg" attributes! Ignoring "extension"...'
+            )
           if arg == None:
-            self.raiseAnError(IOError,'"arg" for clarg '+argtype+' not specified! Enter text to be used.')
-          self.clargs['text']=arg
+            self.raiseAnError(IOError, '"arg" for clarg ' + argtype +
+                              ' not specified! Enter text to be used.')
+          self.clargs['text'] = arg
         elif argtype == 'input':
           if ext == None:
-            self.raiseAnError(IOError,'"extension" for clarg '+argtype+' not specified! Enter filetype to be listed for this flag.')
+            self.raiseAnError(
+                IOError, '"extension" for clarg ' + argtype +
+                ' not specified! Enter filetype to be listed for this flag.')
           if arg == None:
             self.clargs['input']['noarg'].append(ext)
           else:
             if arg not in self.clargs['input'].keys():
-              self.clargs['input'][arg]=[]
+              self.clargs['input'][arg] = []
             self.clargs['input'][arg].append(ext)
         elif argtype == 'output':
           if arg == None:
-            self.raiseAnError(IOError,'"arg" for clarg '+argtype+' not specified! Enter flag for output file specification.')
+            self.raiseAnError(
+                IOError, '"arg" for clarg ' + argtype +
+                ' not specified! Enter flag for output file specification.')
           self.clargs['output'] = arg
         elif argtype == 'prepend':
           if ext != None:
-            self.raiseAWarning('"prepend" nodes only accept "type" and "arg" attributes! Ignoring "extension"...')
+            self.raiseAWarning(
+                '"prepend" nodes only accept "type" and "arg" attributes! Ignoring "extension"...'
+            )
           if arg == None:
-            self.raiseAnError(IOError,'"arg" for clarg '+argtype+' not specified! Enter text to be used.')
+            self.raiseAnError(IOError, '"arg" for clarg ' + argtype +
+                              ' not specified! Enter text to be used.')
           self.clargs['pre'] = arg
         elif argtype == 'postpend':
           if ext != None:
-            self.raiseAWarning('"postpend" nodes only accept "type" and "arg" attributes! Ignoring "extension"...')
+            self.raiseAWarning(
+                '"postpend" nodes only accept "type" and "arg" attributes! Ignoring "extension"...'
+            )
           if arg == None:
-            self.raiseAnError(IOError,'"arg" for clarg '+argtype+' not specified! Enter text to be used.')
+            self.raiseAnError(IOError, '"arg" for clarg ' + argtype +
+                              ' not specified! Enter text to be used.')
           self.clargs['post'] = arg
         else:
-          self.raiseAnError(IOError,'clarg type '+argtype+' not recognized!')
+          self.raiseAnError(IOError,
+                            'clarg type ' + argtype + ' not recognized!')
       elif child.getName() == 'fileargs':
-        argtype = child.parameterValues['type']      if 'type'      in child.parameterValues else None
-        arg     = child.parameterValues['arg']       if 'arg'       in child.parameterValues else None
-        ext     = child.parameterValues['extension'] if 'extension' in child.parameterValues else None
+        argtype = child.parameterValues[
+            'type'] if 'type' in child.parameterValues else None
+        arg = child.parameterValues[
+            'arg'] if 'arg' in child.parameterValues else None
+        ext = child.parameterValues[
+            'extension'] if 'extension' in child.parameterValues else None
         if argtype == None:
-          self.raiseAnError(IOError,'"type" for filearg not specified!')
+          self.raiseAnError(IOError, '"type" for filearg not specified!')
         elif argtype == 'input':
           if arg == None:
-            self.raiseAnError(IOError,'filearg type "input" requires the template variable be specified in "arg" attribute!')
+            self.raiseAnError(
+                IOError,
+                'filearg type "input" requires the template variable be specified in "arg" attribute!'
+            )
           if ext == None:
-            self.raiseAnError(IOError,'filearg type "input" requires the auxiliary file extension be specified in "ext" attribute!')
-          self.fargs['input'][arg]=[ext]
+            self.raiseAnError(
+                IOError,
+                'filearg type "input" requires the auxiliary file extension be specified in "ext" attribute!'
+            )
+          self.fargs['input'][arg] = [ext]
         elif argtype == 'output':
-          if self.fargs['output']!='':
-            self.raiseAnError(IOError,'output fileargs already specified!  You can only specify one output fileargs node.')
+          if self.fargs['output'] != '':
+            self.raiseAnError(
+                IOError,
+                'output fileargs already specified!  You can only specify one output fileargs node.'
+            )
           if arg == None:
-            self.raiseAnError(IOError,'filearg type "output" requires the template variable be specified in "arg" attribute!')
-          self.fargs['output']=arg
+            self.raiseAnError(
+                IOError,
+                'filearg type "output" requires the template variable be specified in "arg" attribute!'
+            )
+          self.fargs['output'] = arg
         elif argtype.lower() == 'moosevpp':
           if self.fargs['moosevpp'] != '':
-            self.raiseAnError(IOError,'moosevpp fileargs already specified!  You can only specify one moosevpp fileargs node.')
+            self.raiseAnError(
+                IOError,
+                'moosevpp fileargs already specified!  You can only specify one moosevpp fileargs node.'
+            )
           if arg == None:
-            self.raiseAnError(IOError,'filearg type "moosevpp" requires the template variable be specified in "arg" attribute!')
-          self.fargs['moosevpp']=arg
+            self.raiseAnError(
+                IOError,
+                'filearg type "moosevpp" requires the template variable be specified in "arg" attribute!'
+            )
+          self.fargs['moosevpp'] = arg
         else:
-          self.raiseAnError(IOError,'filearg type '+argtype+' not recognized!')
+          self.raiseAnError(IOError,
+                            'filearg type ' + argtype + ' not recognized!')
     if self.executable == '':
-      self.raiseAWarning('The node "<executable>" was not found in the body of the code model '+str(self.name)+' so no code will be run...')
+      self.raiseAWarning(
+          'The node "<executable>" was not found in the body of the code model '
+          + str(self.name) + ' so no code will be run...')
     else:
       if '~' in self.executable:
         self.executable = os.path.expanduser(self.executable)
@@ -207,7 +266,8 @@ class Code(Model):
       if os.path.exists(abspath):
         self.executable = abspath
       else:
-        self.raiseAMessage('not found executable '+self.executable,'ExceptedError')
+        self.raiseAMessage('not found executable ' + self.executable,
+                           'ExceptedError')
     if self.preExec is not None:
       if '~' in self.preExec:
         self.preExec = os.path.expanduser(self.preExec)
@@ -215,11 +275,19 @@ class Code(Model):
       if os.path.exists(abspath):
         self.preExec = abspath
       else:
-        self.raiseAMessage('not found preexec '+self.preExec,'ExceptedError')
-    self.code = Code.CodeInterfaces.returnCodeInterface(self.subType,self)
-    self.code.readMoreXML(xmlNode) #TODO figure out how to handle this with InputData
-    self.code.setInputExtension(list(a.strip('.') for b in (c for c in self.clargs['input'].values()) for a in b))
-    self.code.addInputExtension(list(a.strip('.') for b in (c for c in self.fargs ['input'].values()) for a in b))
+        self.raiseAMessage('not found preexec ' + self.preExec,
+                           'ExceptedError')
+    self.code = Code.CodeInterfaces.returnCodeInterface(self.subType, self)
+    self.code.readMoreXML(
+        xmlNode)  #TODO figure out how to handle this with InputData
+    self.code.setInputExtension(
+        list(
+            a.strip('.') for b in (c for c in self.clargs['input'].values())
+            for a in b))
+    self.code.addInputExtension(
+        list(
+            a.strip('.') for b in (c for c in self.fargs['input'].values())
+            for a in b))
     self.code.addDefaultExtension()
 
   def getInitParams(self):
@@ -232,7 +300,7 @@ class Code(Model):
         and each parameter's initial value as the dictionary values
     """
     paramDict = Model.getInitParams(self)
-    paramDict['executable']=self.executable
+    paramDict['executable'] = self.executable
     return paramDict
 
   def getCurrentSetting(self):
@@ -248,20 +316,20 @@ class Code(Model):
     """
     paramDict = {}
     paramDict['current working directory'] = self.workingDir
-    paramDict['current output file root' ] = self.outFileRoot
-    paramDict['current input file'       ] = self.currentInputFiles
-    paramDict['original input file'      ] = self.oriInputFiles
+    paramDict['current output file root'] = self.outFileRoot
+    paramDict['current input file'] = self.currentInputFiles
+    paramDict['original input file'] = self.oriInputFiles
     return paramDict
 
-  def getAdditionalInputEdits(self,inputInfo):
+  def getAdditionalInputEdits(self, inputInfo):
     """
       Collects additional edits for the sampler to use when creating a new input.  By default does nothing.
       @ In, inputInfo, dict, dictionary in which to add edits
       @ Out, None.
     """
-    inputInfo['additionalEdits']=self.fargs
+    inputInfo['additionalEdits'] = self.fargs
 
-  def initialize(self,runInfoDict,inputFiles,initDict=None):
+  def initialize(self, runInfoDict, inputFiles, initDict=None):
     """
       this needs to be over written if a re initialization of the model is need it gets called at every beginning of a step
       after this call the next one will be run
@@ -269,25 +337,28 @@ class Code(Model):
       @ In, inputs, list, it is a list containing whatever is passed with an input role in the step
       @ In, initDict, dict, optional, dictionary of all objects available in the step is using this model
     """
-    self.workingDir               = os.path.join(runInfoDict['WorkingDir'],runInfoDict['stepName']) #generate current working dir
+    self.workingDir = os.path.join(
+        runInfoDict['WorkingDir'],
+        runInfoDict['stepName'])  #generate current working dir
     runInfoDict['TempWorkingDir'] = self.workingDir
     self.oriInputFiles = []
     for inputFile in inputFiles:
-      subSubDirectory = os.path.join(self.workingDir,inputFile.subDirectory)
+      subSubDirectory = os.path.join(self.workingDir, inputFile.subDirectory)
       ## Currently, there are no tests that verify the lines below can be hit
       ## It appears that the folders already exist by the time we get here,
       ## this could change, so we will leave this code here.
       ## -- DPM 8/2/17
-      if inputFile.subDirectory.strip() != "" and not os.path.exists(subSubDirectory):
+      if inputFile.subDirectory.strip() != "" and not os.path.exists(
+          subSubDirectory):
         os.mkdir(subSubDirectory)
       ##########################################################################
-      shutil.copy(inputFile.getAbsFile(),subSubDirectory)
+      shutil.copy(inputFile.getAbsFile(), subSubDirectory)
       self.oriInputFiles.append(copy.deepcopy(inputFile))
       self.oriInputFiles[-1].setPath(subSubDirectory)
-    self.currentInputFiles        = None
-    self.outFileRoot              = None
+    self.currentInputFiles = None
+    self.outFileRoot = None
 
-  def createNewInput(self,currentInput,samplerType,**kwargs):
+  def createNewInput(self, currentInput, samplerType, **kwargs):
     """
       This function will return a new input to be submitted to the model, it is called by the sampler.
       here only a PointSet is accepted a local copy of the values is performed.
@@ -310,35 +381,42 @@ class Code(Model):
         found = True
         break
     if not found:
-      self.raiseAnError(IOError,'None of the input files has one of the extensions requested by code '
-                                  + self.subType +': ' + ' '.join(self.code.getInputExtension()))
-    subDirectory = os.path.join(self.workingDir, kwargs['prefix'] if 'prefix' in kwargs.keys() else '1')
+      self.raiseAnError(
+          IOError,
+          'None of the input files has one of the extensions requested by code '
+          + self.subType + ': ' + ' '.join(self.code.getInputExtension()))
+    subDirectory = os.path.join(self.workingDir, kwargs['prefix']
+                                if 'prefix' in kwargs.keys() else '1')
 
     if not os.path.exists(subDirectory):
       os.mkdir(subDirectory)
     for index in range(len(newInputSet)):
-      subSubDirectory = os.path.join(subDirectory,newInputSet[index].subDirectory)
+      subSubDirectory = os.path.join(subDirectory,
+                                     newInputSet[index].subDirectory)
       ## Currently, there are no tests that verify the lines below can be hit
       ## It appears that the folders already exist by the time we get here,
       ## this could change, so we will leave this code here.
       ## -- DPM 8/2/17
-      if newInputSet[index].subDirectory.strip() != "" and not os.path.exists(subSubDirectory):
+      if newInputSet[index].subDirectory.strip() != "" and not os.path.exists(
+          subSubDirectory):
         os.mkdir(subSubDirectory)
       ##########################################################################
       newInputSet[index].setPath(subSubDirectory)
-      shutil.copy(self.oriInputFiles[index].getAbsFile(),subSubDirectory)
+      shutil.copy(self.oriInputFiles[index].getAbsFile(), subSubDirectory)
 
     kwargs['subDirectory'] = subDirectory
 
     if 'SampledVars' in kwargs.keys():
-      sampledVars = self._replaceVariablesNamesWithAliasSystem(kwargs['SampledVars'],'input',False)
+      sampledVars = self._replaceVariablesNamesWithAliasSystem(
+          kwargs['SampledVars'], 'input', False)
 
-    newInput    = self.code.createNewInput(newInputSet,self.oriInputFiles,samplerType,**copy.deepcopy(kwargs))
+    newInput = self.code.createNewInput(newInputSet, self.oriInputFiles,
+                                        samplerType, **copy.deepcopy(kwargs))
 
     if 'SampledVars' in kwargs.keys() and len(self.alias['input'].keys()) != 0:
       kwargs['SampledVars'] = sampledVars
 
-    return (newInput,kwargs)
+    return (newInput, kwargs)
 
   def _expandForWindows(self, origCommand):
     """
@@ -349,7 +427,7 @@ class Code(Model):
     if origCommand.strip() == '':
       return origCommand
     # In Windows Python, you can get some backslashes in your paths
-    commandSplit = shlex.split(origCommand.replace("\\","/"))
+    commandSplit = shlex.split(origCommand.replace("\\", "/"))
     executable = commandSplit[0]
 
     if os.path.exists(executable):
@@ -359,7 +437,9 @@ class Code(Model):
 
       if firstTwoChars == "#!":
         realExecutable = shlex.split(executableFile.readline())
-        self.raiseAMessage("reading #! to find executable:" + repr(realExecutable))
+        self.raiseAMessage(
+            "reading #! to find executable:" + repr(realExecutable))
+
         # The below code should work, and would be better than findMsys,
         # but it doesn't work.
         # winExecutable = subprocess.check_output(['cygpath','-w',realExecutable[0]],shell=True).rstrip()
@@ -379,6 +459,7 @@ class Code(Model):
             dir = head
             head, tail = os.path.split(dir)
           return None
+
         msysDir = findMsys()
         if msysDir is not None:
           beginExecutable = realExecutable[0]
@@ -386,14 +467,17 @@ class Code(Model):
             beginExecutable = beginExecutable.lstrip("/")
           winExecutable = os.path.join(msysDir, beginExecutable)
           self.raiseAMessage("winExecutable " + winExecutable)
-          if not os.path.exists(winExecutable) and not os.path.exists(winExecutable + ".exe") and winExecutable.endswith("bash"):
+          if not os.path.exists(winExecutable) and not os.path.exists(
+              winExecutable + ".exe") and winExecutable.endswith("bash"):
             #msys64 stores bash in /usr/bin/bash instead of /bin/bash, so try that
-            maybeWinExecutable = winExecutable.replace("bin/bash","usr/bin/bash")
-            if os.path.exists(maybeWinExecutable) or os.path.exists(maybeWinExecutable + ".exe"):
+            maybeWinExecutable = winExecutable.replace("bin/bash",
+                                                       "usr/bin/bash")
+            if os.path.exists(maybeWinExecutable) or os.path.exists(
+                maybeWinExecutable + ".exe"):
               winExecutable = maybeWinExecutable
           realExecutable[0] = winExecutable
         else:
-          self.raiseAWarning("Could not find msys in "+os.getcwd())
+          self.raiseAWarning("Could not find msys in " + os.getcwd())
         commandSplit = realExecutable + [executable] + commandSplit[1:]
         return commandSplit
     return origCommand
@@ -412,8 +496,16 @@ class Code(Model):
           inputs
     """
     inputFiles = self.createNewInput(myInput, samplerType, **kwargs)
-    self.currentInputFiles, metaData = (copy.deepcopy(inputFiles[0]),inputFiles[1]) if type(inputFiles).__name__ == 'tuple' else (inputFiles, None)
-    returnedCommand = self.code.genCommand(self.currentInputFiles,self.executable, flags=self.clargs, fileArgs=self.fargs, preExec=self.preExec)
+    self.currentInputFiles, metaData = (
+        copy.deepcopy(inputFiles[0]),
+        inputFiles[1]) if type(inputFiles).__name__ == 'tuple' else (
+            inputFiles, None)
+    returnedCommand = self.code.genCommand(
+        self.currentInputFiles,
+        self.executable,
+        flags=self.clargs,
+        fileArgs=self.fargs,
+        preExec=self.preExec)
 
     ## Given that createNewInput can only return a tuple, I don't think these
     ## checks are necessary (keeping commented out until someone else can verify):
@@ -431,15 +523,16 @@ class Code(Model):
 
     codeLogFile = self.outFileRoot
     if codeLogFile is None:
-      codeLogFile = os.path.join(metaData['subDirectory'],'generalOut')
+      codeLogFile = os.path.join(metaData['subDirectory'], 'generalOut')
 
     ## Before we were temporarily changing directories in order to copy the
     ## correct directory to the subprocess. Instead, we can just set the
     ## directory after we copy it over. -- DPM 5/5/2017
-    sampleDirectory = os.path.join(os.getcwd(),metaData['subDirectory'])
+    sampleDirectory = os.path.join(os.getcwd(), metaData['subDirectory'])
     localenv = dict(os.environ)
     localenv['PWD'] = str(sampleDirectory)
-    outFileObject = open(os.path.join(sampleDirectory,codeLogFile), 'w', bufferSize)
+    outFileObject = open(
+        os.path.join(sampleDirectory, codeLogFile), 'w', bufferSize)
 
     found = False
     for index, inputFile in enumerate(self.currentInputFiles):
@@ -447,47 +540,58 @@ class Code(Model):
         found = True
         break
     if not found:
-      self.raiseAnError(IOError,'None of the input files has one of the extensions requested by code '
-                                  + self.subType +': ' + ' '.join(self.getInputExtension()))
-    commands=[]
-    for runtype,cmd in executeCommand:
-      newCommand=''
+      self.raiseAnError(
+          IOError,
+          'None of the input files has one of the extensions requested by code '
+          + self.subType + ': ' + ' '.join(self.getInputExtension()))
+    commands = []
+    for runtype, cmd in executeCommand:
+      newCommand = ''
       if runtype.lower() == 'parallel':
         newCommand += precommand
-        newCommand += cmd+' '
+        newCommand += cmd + ' '
         newCommand += postcommand
         commands.append(newCommand)
       elif runtype.lower() == 'serial':
         commands.append(cmd)
       else:
-        self.raiseAnError(IOError,'For execution command <'+cmd+'> the run type was neither "serial" nor "parallel"!  Instead received: ',runtype,'\nPlease check the code interface.')
+        self.raiseAnError(
+            IOError, 'For execution command <' + cmd +
+            '> the run type was neither "serial" nor "parallel"!  Instead received: ',
+            runtype, '\nPlease check the code interface.')
 
-    command = ' && '.join(commands)+' '
+    command = ' && '.join(commands) + ' '
 
-    command = command.replace("%INDEX%",kwargs['INDEX'])
-    command = command.replace("%INDEX1%",kwargs['INDEX1'])
-    command = command.replace("%CURRENT_ID%",kwargs['CURRENT_ID'])
-    command = command.replace("%CURRENT_ID1%",kwargs['CURRENT_ID1'])
-    command = command.replace("%SCRIPT_DIR%",kwargs['SCRIPT_DIR'])
-    command = command.replace("%FRAMEWORK_DIR%",kwargs['FRAMEWORK_DIR'])
+    command = command.replace("%INDEX%", kwargs['INDEX'])
+    command = command.replace("%INDEX1%", kwargs['INDEX1'])
+    command = command.replace("%CURRENT_ID%", kwargs['CURRENT_ID'])
+    command = command.replace("%CURRENT_ID1%", kwargs['CURRENT_ID1'])
+    command = command.replace("%SCRIPT_DIR%", kwargs['SCRIPT_DIR'])
+    command = command.replace("%FRAMEWORK_DIR%", kwargs['FRAMEWORK_DIR'])
     ## Note this is the working directory that the subprocess will use, it is
     ## not the directory I am currently working. This bit me as I moved the code
     ## from the old ExternalRunner because in that case this was filled in after
     ## the process was submitted by the process itself. -- DPM 5/4/17
-    command = command.replace("%WORKING_DIR%",sampleDirectory)
-    command = command.replace("%BASE_WORKING_DIR%",kwargs['BASE_WORKING_DIR'])
-    command = command.replace("%METHOD%",kwargs['METHOD'])
-    command = command.replace("%NUM_CPUS%",kwargs['NUM_CPUS'])
+    command = command.replace("%WORKING_DIR%", sampleDirectory)
+    command = command.replace("%BASE_WORKING_DIR%", kwargs['BASE_WORKING_DIR'])
+    command = command.replace("%METHOD%", kwargs['METHOD'])
+    command = command.replace("%NUM_CPUS%", kwargs['NUM_CPUS'])
 
-    self.raiseAMessage('Execution command submitted:',command)
+    self.raiseAMessage('Execution command submitted:', command)
     if platform.system() == 'Windows':
       command = self._expandForWindows(command)
       self.raiseAMessage("modified command to" + repr(command))
       for key, value in localenv.items():
-        localenv[key]=str(value)
+        localenv[key] = str(value)
     ## This code should be evaluated by the job handler, so it is fine to wait
     ## until the execution of the external subprocess completes.
-    process = utils.pickleSafeSubprocessPopen(command, shell=True, stdout=outFileObject, stderr=outFileObject, cwd=localenv['PWD'], env=localenv)
+    process = utils.pickleSafeSubprocessPopen(
+        command,
+        shell=True,
+        stdout=outFileObject,
+        stderr=outFileObject,
+        cwd=localenv['PWD'],
+        env=localenv)
     process.wait()
 
     returnCode = process.returncode
@@ -498,7 +602,8 @@ class Code(Model):
     ## only set the returnCode to -1 in here if we did not already catch the
     ## failure.
     if returnCode == 0 and 'checkForOutputFailure' in dir(self.code):
-      codeFailed = self.code.checkForOutputFailure(codeLogFile, metaData['subDirectory'])
+      codeFailed = self.code.checkForOutputFailure(codeLogFile,
+                                                   metaData['subDirectory'])
       if codeFailed:
         returnCode = -1
     # close the log file
@@ -513,13 +618,17 @@ class Code(Model):
     ## not have an extension. - (DPM 4/6/2017)
     outputFile = codeLogFile
     if 'finalizeCodeOutput' in dir(self.code) and returnCode == 0:
-      finalCodeOutputFile = self.code.finalizeCodeOutput(command, codeLogFile, metaData['subDirectory'])
+      finalCodeOutputFile = self.code.finalizeCodeOutput(
+          command, codeLogFile, metaData['subDirectory'])
       ## Special case for RAVEN interface --ALFOA 09/17/17
       ravenCase = False
       if type(finalCodeOutputFile).__name__ == 'dict':
         ravenCase = True
       if ravenCase and self.code.__class__.__name__ != 'RAVEN':
-        self.raiseAnError(RuntimeError, 'The return argument from "finalizeCodeOutput" must be a str containing the new output file root!')
+        self.raiseAnError(
+            RuntimeError,
+            'The return argument from "finalizeCodeOutput" must be a str containing the new output file root!'
+        )
       if finalCodeOutputFile and not ravenCase:
         outputFile = finalCodeOutputFile
 
@@ -531,7 +640,10 @@ class Code(Model):
       if outputFile is not None and not ravenCase:
         outFile = Files.CSV()
         ## Should we be adding the file extension here?
-        outFile.initialize(outputFile+'.csv',self.messageHandler,path=metaData['subDirectory'])
+        outFile.initialize(
+            outputFile + '.csv',
+            self.messageHandler,
+            path=metaData['subDirectory'])
 
         csvLoader = CsvLoader.CsvLoader(self.messageHandler)
         csvData = csvLoader.loadCsvFile(outFile)
@@ -540,12 +652,12 @@ class Code(Model):
         ## Numpy by default iterates over rows, thus we transpose the data and
         ## zip it with the headers in order to do store it very cleanly into a
         ## dictionary.
-        for header,data in zip(headers, csvData.T):
+        for header, data in zip(headers, csvData.T):
           returnDict[header] = data
       if not ravenCase:
         self._replaceVariablesNamesWithAliasSystem(returnDict, 'inout', True)
         returnDict.update(kwargs)
-        returnValue = (kwargs['SampledVars'],returnDict)
+        returnValue = (kwargs['SampledVars'], returnDict)
         exportDict = self.createExportDictionary(returnValue)
       else:
         # we have the DataObjects -> raven-runs-raven case only so far
@@ -555,43 +667,55 @@ class Code(Model):
         ### we already checked consistency in the CodeInterface, so just get the length of the first data object
         numRlz = len(finalCodeOutputFile.values()[0])
         ## set up the return container
-        exportDict = {'RAVEN_isBatch':True,'realizations':[]}
+        exportDict = {'RAVEN_isBatch': True, 'realizations': []}
         ## set up each realization
         for n in range(numRlz):
           rlz = {}
           ## collect the results from INNER, both point set and history set
           for dataObj in finalCodeOutputFile.values():
             # TODO FIXME check for overwriting data.  For now just replace data if it's duplicate!
-            new = dict((var,np.atleast_1d(val)) for var,val in dataObj.realization(index=n,unpackXArray=True).items())
-            rlz.update( new )
+            new = dict((var, np.atleast_1d(val))
+                       for var, val in dataObj.realization(
+                           index=n, unpackXArray=True).items())
+            rlz.update(new)
           ## add OUTER input space
           # TODO FIXME check for overwriting data.  For now just replace data if it's duplicate!
-          new = dict((var,np.atleast_1d(val)) for var,val in kwargs['SampledVars'].items())
-          rlz.update( new )
+          new = dict((var, np.atleast_1d(val))
+                     for var, val in kwargs['SampledVars'].items())
+          rlz.update(new)
           ## combine ProbabilityWeights # TODO FIXME these are a rough attempt at getting it right!
-          rlz['ProbabilityWeight'] = np.atleast_1d(rlz.get('ProbabilityWeight',1.0) * kwargs.get('ProbabilityWeight',1.0))
-          rlz['PointProbability'] = np.atleast_1d(rlz.get('PointProbability',1.0) * kwargs.get('PointProbability',1.0))
+          rlz['ProbabilityWeight'] = np.atleast_1d(
+              rlz.get('ProbabilityWeight', 1.0) * kwargs.get(
+                  'ProbabilityWeight', 1.0))
+          rlz['PointProbability'] = np.atleast_1d(
+              rlz.get('PointProbability', 1.0) * kwargs.get(
+                  'PointProbability', 1.0))
           # FIXME: adding "_n" to Optimizer samples scrambles its ability to find evaluations!
           ## temporary fix: only append if there's multiple realizations, and error out if sampler is an optimizer.
           if numRlz > 1:
             if '_' in kwargs['prefix']:
-              self.raiseAnError(RuntimeError,'OUTER RAVEN is using an OPTIMIZER, but INNER RAVEN is returning multiple realizations!')
+              self.raiseAnError(
+                  RuntimeError,
+                  'OUTER RAVEN is using an OPTIMIZER, but INNER RAVEN is returning multiple realizations!'
+              )
             addon = '_{}'.format(n)
           else:
             addon = ''
-          rlz['prefix'] = np.atleast_1d(kwargs['prefix']+addon)
+          rlz['prefix'] = np.atleast_1d(kwargs['prefix'] + addon)
           ## add the rest of the metadata # TODO slow
-          for var,val in kwargs.items():
+          for var, val in kwargs.items():
             if var not in rlz.keys():
               rlz[var] = np.atleast_1d(val)
-          self._replaceVariablesNamesWithAliasSystem(rlz,'inout',True)
+          self._replaceVariablesNamesWithAliasSystem(rlz, 'inout', True)
           exportDict['realizations'].append(rlz)
 
       ## The last thing before returning should be to delete the temporary log
       ## file and any other file the user requests to be cleared
       if deleteSuccessfulLogFiles:
-        self.raiseAMessage(' Run "' +kwargs['prefix']+'" ended smoothly, removing log file!')
-        codeLofFileFullPath = os.path.join(metaData['subDirectory'],codeLogFile)
+        self.raiseAMessage(' Run "' + kwargs['prefix'] +
+                           '" ended smoothly, removing log file!')
+        codeLofFileFullPath = os.path.join(metaData['subDirectory'],
+                                           codeLogFile)
         if os.path.exists(codeLofFileFullPath):
           os.remove(codeLofFileFullPath)
 
@@ -599,17 +723,23 @@ class Code(Model):
       for fileExt in fileExtensionsToDelete:
         if not fileExt.startswith("."):
           fileExt = "." + fileExt
-        fileList = [ os.path.join(metaData['subDirectory'],f) for f in os.listdir(metaData['subDirectory']) if f.endswith(fileExt) ]
+        fileList = [
+            os.path.join(metaData['subDirectory'], f)
+            for f in os.listdir(metaData['subDirectory'])
+            if f.endswith(fileExt)
+        ]
         for f in fileList:
           os.remove(f)
 
       return exportDict
 
     else:
-      self.raiseAMessage(" Process Failed "+str(command)+" returnCode "+str(returnCode))
-      absOutputFile = os.path.join(sampleDirectory,outputFile)
+      self.raiseAMessage(
+          " Process Failed " + str(command) + " returnCode " + str(returnCode))
+      absOutputFile = os.path.join(sampleDirectory, outputFile)
       if os.path.exists(absOutputFile):
-        self.raiseAMessage(repr(open(absOutputFile,"r").read()).replace("\\n","\n"))
+        self.raiseAMessage(
+            repr(open(absOutputFile, "r").read()).replace("\\n", "\n"))
       else:
         self.raiseAMessage(" No output " + absOutputFile)
 
@@ -623,7 +753,7 @@ class Code(Model):
       @ In, evaluation, tuple, (dict of sampled variables, dict of code outputs)
       @ Out, outputEval, dict, dictionary containing the output/input values: {'varName':value}
     """
-    sampledVars,outputDict = evaluation
+    sampledVars, outputDict = evaluation
 
     if type(outputDict).__name__ == "tuple":
       outputEval = outputDict[0]
@@ -636,14 +766,17 @@ class Code(Model):
     for key, value in sampledVars.items():
       # FIXME this is a bad check.  The two should be different enough in value to matter before we print.
       if key in outputEval.keys():
-        self.raiseAWarning('The model '+self.type+' reported a different value (%f) for %s than raven\'s suggested sample (%f). Using the value reported by the raven (%f).' % (outputEval[key][0], key, value, value))
+        self.raiseAWarning(
+            'The model ' + self.type +
+            ' reported a different value (%f) for %s than raven\'s suggested sample (%f). Using the value reported by the raven (%f).'
+            % (outputEval[key][0], key, value, value))
       outputEval[key] = np.atleast_1d(value)
 
-    self._replaceVariablesNamesWithAliasSystem(outputEval, 'input',True)
+    self._replaceVariablesNamesWithAliasSystem(outputEval, 'input', True)
 
     return outputEval
 
-  def collectOutput(self,finishedJob,output,options=None):
+  def collectOutput(self, finishedJob, output, options=None):
     """
       Method that collects the outputs from the previous run
       @ In, finishedJob, InternalRunner object, instance of the run just finished
@@ -653,13 +786,12 @@ class Code(Model):
     """
     evaluation = finishedJob.getEvaluation()
 
-    self._replaceVariablesNamesWithAliasSystem(evaluation, 'input',True)
+    self._replaceVariablesNamesWithAliasSystem(evaluation, 'input', True)
     if isinstance(evaluation, Runners.Error):
-      self.raiseAnError(AttributeError,"No available Output to collect")
-
+      self.raiseAnError(AttributeError, "No available Output to collect")
 
     # in the event a batch is run, the evaluations will be a dict as {'RAVEN_isBatch':True, 'realizations': [...]}
-    if evaluation.get('RAVEN_isBatch',False):
+    if evaluation.get('RAVEN_isBatch', False):
       for rlz in evaluation['realizations']:
         output.addRealization(rlz)
     # otherwise, we received a single realization
@@ -674,7 +806,7 @@ class Code(Model):
   ###################################################################################
   ## THIS METHOD NEEDS TO BE REWORKED WHEN THE NEW DATAOBJECT STRUCURE IS IN PLACE ##
   ###################################################################################
-  def collectOutputFromDataObject(self,exportDict,output):
+  def collectOutputFromDataObject(self, exportDict, output):
     """
       Method to collect the output from a DataObject (if it is not a dataObject, it just returns a list with one single exportDict)
       @ In, exportDict, dict, the export dictionary
@@ -684,7 +816,8 @@ class Code(Model):
       @ Out, returnList, list, list of export dictionaries
     """
     returnList = []
-    if exportDict['outputSpaceParams'].values()[0].__class__.__base__.__name__ != 'Data':
+    if exportDict['outputSpaceParams'].values(
+    )[0].__class__.__base__.__name__ != 'Data':
       returnList.append(exportDict)
     else:
       # get the DataObject that is compatible with this output
@@ -700,14 +833,23 @@ class Code(Model):
         # if none found (e.g. => we are filling an HistorySet with a PointSet), we take the first one
         compatibleDataObject = exportDict['outputSpaceParams'].values()[0]
       # get the values
-      inputs = compatibleDataObject.getParametersValues('inputs',nodeId = 'RecontructEnding')
-      unstructuredInputs = compatibleDataObject.getParametersValues('unstructuredinputs',nodeId = 'RecontructEnding')
-      outputs = compatibleDataObject.getParametersValues('outputs',nodeId = 'RecontructEnding')
-      metadata = compatibleDataObject.getAllMetadata(nodeId = 'RecontructEnding')
-      inputKeys = inputs.keys() if compatibleDataObject.type == 'PointSet' else inputs.values()[0].keys()
+      inputs = compatibleDataObject.getParametersValues(
+          'inputs', nodeId='RecontructEnding')
+      unstructuredInputs = compatibleDataObject.getParametersValues(
+          'unstructuredinputs', nodeId='RecontructEnding')
+      outputs = compatibleDataObject.getParametersValues(
+          'outputs', nodeId='RecontructEnding')
+      metadata = compatibleDataObject.getAllMetadata(nodeId='RecontructEnding')
+      inputKeys = inputs.keys(
+      ) if compatibleDataObject.type == 'PointSet' else inputs.values()[
+          0].keys()
       # expand inputspace of current RAVEN
       for i in range(len(compatibleDataObject)):
-        appendDict = {'inputSpaceParams':{},'outputSpaceParams':{},'metadata':{}}
+        appendDict = {
+            'inputSpaceParams': {},
+            'outputSpaceParams': {},
+            'metadata': {}
+        }
         appendDict['inputSpaceParams'].update(exportDict['inputSpaceParams'])
         appendDict['metadata'].update(exportDict['metadata'])
         if compatibleDataObject.type == 'PointSet':
@@ -726,23 +868,28 @@ class Code(Model):
           for outKey, value in outputs.values()[i].items():
             appendDict['outputSpaceParams'][outKey] = value
         # add metadata for both dataobject types
-        for metadataToExport in ['SampledVars','SampledVarsPb']:
+        for metadataToExport in ['SampledVars', 'SampledVarsPb']:
           if metadataToExport in metadata:
-            appendDict['metadata'][metadataToExport].update(metadata[metadataToExport][i])
-        weightForVars = ['ProbabilityWeight-'+var.strip()  for var in inputKeys]
-        for metadataToMerge in ['ProbabilityWeight', 'PointProbability']+weightForVars:
+            appendDict['metadata'][metadataToExport].update(
+                metadata[metadataToExport][i])
+        weightForVars = [
+            'ProbabilityWeight-' + var.strip() for var in inputKeys
+        ]
+        for metadataToMerge in ['ProbabilityWeight', 'PointProbability'
+                                ] + weightForVars:
           if metadataToMerge in appendDict['metadata']:
             if metadataToMerge in metadata:
-              appendDict['metadata'][metadataToMerge]*= metadata[metadataToMerge][i]
+              appendDict['metadata'][metadataToMerge] *= metadata[
+                  metadataToMerge][i]
           else:
             if metadataToMerge in metadata:
-              appendDict['metadata'][metadataToMerge] = metadata[metadataToMerge][i]
+              appendDict['metadata'][metadataToMerge] = metadata[
+                  metadataToMerge][i]
         returnList.append(appendDict)
     return returnList
 
-
   #TODO: Seems to me, this function can be removed --- wangc Dec. 2017
-  def collectOutputFromDict(self,exportDict,output,options=None):
+  def collectOutputFromDict(self, exportDict, output, options=None):
     """
       Collect results from dictionary
       @ In, exportDict, dict, contains 'inputs','outputs','metadata'
@@ -750,7 +897,7 @@ class Code(Model):
       @ In, options, dict, optional, dictionary of options that can be passed in when the collect of the output is performed by another model (e.g. EnsembleModel)
       @ Out, None
     """
-    prefix = exportDict.pop('prefix',None)
+    prefix = exportDict.pop('prefix', None)
     if 'inputSpaceParams' in exportDict.keys():
       inKey = 'inputSpaceParams'
       outKey = 'outputSpaceParams'
@@ -785,7 +932,8 @@ class Code(Model):
         @ Out, None
     """
     prefix = kwargs['prefix'] if 'prefix' in kwargs else None
-    uniqueHandler = kwargs['uniqueHandler'] if 'uniqueHandler' in kwargs.keys() else 'any'
+    uniqueHandler = kwargs[
+        'uniqueHandler'] if 'uniqueHandler' in kwargs.keys() else 'any'
 
     ## These two are part of the current metadata, so they will be added before
     ## the job is started, so that they will be captured in the metadata and match
@@ -798,11 +946,13 @@ class Code(Model):
     #  objects.  However, this might require some updating of many CodeInterfaces``````           1  Interfaces as well.
     for index, inputFile in enumerate(myInput):
       if inputFile.getExt() in self.code.getInputExtension():
-        kwargs['outfile'] = 'out~'+myInput[index].getBase()
+        kwargs['outfile'] = 'out~' + myInput[index].getBase()
         break
     if kwargs['outfile'] is None:
-      self.raiseAnError(IOError,'None of the input files has one of the extensions requested by code '
-                                + self.subType +': ' + ' '.join(self.code.getInputExtension()))
+      self.raiseAnError(
+          IOError,
+          'None of the input files has one of the extensions requested by code '
+          + self.subType + ': ' + ' '.join(self.code.getInputExtension()))
 
     ## These kwargs are updated by createNewInput, so the job either should not
     ## have access to the metadata, or it needs to be updated from within the
@@ -813,17 +963,23 @@ class Code(Model):
     ## These variables should not be part of the metadata, so add them after
     ## we copy this dictionary (Caught this when running an ensemble model)
     ## -- DPM 4/11/17
-    nodesList                    = jobHandler.runInfoDict.get('Nodes',[])
-    kwargs['bufferSize'        ] = jobHandler.runInfoDict['logfileBuffer']
-    kwargs['precommand'        ] = jobHandler.runInfoDict['precommand']
-    kwargs['postcommand'       ] = jobHandler.runInfoDict['postcommand']
-    kwargs['delSucLogFiles'    ] = jobHandler.runInfoDict['delSucLogFiles']
+    nodesList = jobHandler.runInfoDict.get('Nodes', [])
+    kwargs['bufferSize'] = jobHandler.runInfoDict['logfileBuffer']
+    kwargs['precommand'] = jobHandler.runInfoDict['precommand']
+    kwargs['postcommand'] = jobHandler.runInfoDict['postcommand']
+    kwargs['delSucLogFiles'] = jobHandler.runInfoDict['delSucLogFiles']
     kwargs['deleteOutExtension'] = jobHandler.runInfoDict['deleteOutExtension']
-    kwargs['NumMPI'            ] = jobHandler.runInfoDict.get('NumMPI',1)
-    kwargs['numberNodes'       ] = len(nodesList)
+    kwargs['NumMPI'] = jobHandler.runInfoDict.get('NumMPI', 1)
+    kwargs['numberNodes'] = len(nodesList)
     ## This may look a little weird, but due to how the parallel python library
     ## works, we are unable to pass a member function as a job because the
     ## pp library loses track of what self is, so instead we call it from the
     ## class and pass self in as the first parameter
-    jobHandler.addJob((self, myInput, samplerType, kwargs), self.__class__.evaluateSample, prefix, metadata=metadata, modulesToImport=self.mods, uniqueHandler=uniqueHandler)
+    jobHandler.addJob(
+        (self, myInput, samplerType, kwargs),
+        self.__class__.evaluateSample,
+        prefix,
+        metadata=metadata,
+        modulesToImport=self.mods,
+        uniqueHandler=uniqueHandler)
     self.raiseAMessage('job "' + str(prefix) + '" submitted!')

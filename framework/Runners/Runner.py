@@ -17,7 +17,7 @@ Created on September 12, 2016
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
-warnings.simplefilter('default',DeprecationWarning)
+warnings.simplefilter('default', DeprecationWarning)
 if not 'xrange' in dir(__builtins__):
   xrange = range
 #End compatibility block for Python 3----------------------------------------------------------------
@@ -35,14 +35,22 @@ from utils import utils
 from BaseClasses import BaseType
 import MessageHandler
 from .Error import Error
+
 #Internal Modules End--------------------------------------------------------------------------------
+
 
 class Runner(MessageHandler.MessageUser):
   """
     Generic base class for running codes and models in parallel environments
     both internally (shared data) and externally.
   """
-  def __init__(self, messageHandler, identifier = None, metadata = None, uniqueHandler = "any", profile = False):
+
+  def __init__(self,
+               messageHandler,
+               identifier=None,
+               metadata=None,
+               uniqueHandler="any",
+               profile=False):
     """
       Initialize command variable
       @ In, messageHandler, MessageHandler instance, the global RAVEN message handler instance
@@ -57,14 +65,14 @@ class Runner(MessageHandler.MessageUser):
     self.timings['created'] = time.time()
     self.__printTimings = profile
     self.messageHandler = messageHandler
-    self.identifier     = 'generalOut'  ## Default identifier name
-    self.metadata       = copy.copy(metadata)
-    self.uniqueHandler  = uniqueHandler
-    self.started        = False
+    self.identifier = 'generalOut'  ## Default identifier name
+    self.metadata = copy.copy(metadata)
+    self.uniqueHandler = uniqueHandler
+    self.started = False
 
     ## First attempt to use a user-specified identifier name
     if identifier is not None:
-      self.identifier =  str(identifier).split("~",1)[-1]
+      self.identifier = str(identifier).split("~", 1)[-1]
 
     self.identifier = self.identifier.strip()
 
@@ -77,17 +85,23 @@ class Runner(MessageHandler.MessageUser):
     if self.__printTimings:
       # print timing history
       pairs = self.timings.items()
-      pairs.sort(key=lambda x:x[1])
+      pairs.sort(key=lambda x: x[1])
       prof = ""
       prof += 'TIMINGS for job "{}":'.format(self.identifier)
-      for e,(event,time) in enumerate(pairs):
+      for e, (event, time) in enumerate(pairs):
         if e == 0:
-          _, msg = self.messageHandler._printMessage(self,'TIMINGS ... {:^20s} at {} ({})'.format(event,time,datetime.datetime.fromtimestamp(time).strftime('%Y-%m-%d %H:%M:%S')) ,'DEBUG',3,None)
+          _, msg = self.messageHandler._printMessage(
+              self, 'TIMINGS ... {:^20s} at {} ({})'.format(
+                  event, time,
+                  datetime.datetime.fromtimestamp(time).strftime(
+                      '%Y-%m-%d %H:%M:%S')), 'DEBUG', 3, None)
           last = time
         else:
-          _, msg = self.messageHandler._printMessage(self,'TIMINGS ... {:^20s} elapsed {:10.6f} s'.format(event,time-last),'DEBUG',3,None)
+          _, msg = self.messageHandler._printMessage(
+              self, 'TIMINGS ... {:^20s} elapsed {:10.6f} s'.format(
+                  event, time - last), 'DEBUG', 3, None)
           last = time
-        prof +=  "\n"+msg
+        prof += "\n" + msg
       self.raiseADebug(prof)
 
   def isDone(self):
@@ -128,7 +142,7 @@ class Runner(MessageHandler.MessageUser):
     """
     return self.metadata
 
-  def trackTime(self,event):
+  def trackTime(self, event):
     """
       Records the time under 'event'.
       @ In, event, string, the label under which to store the timing

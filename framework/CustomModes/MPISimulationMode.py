@@ -17,7 +17,7 @@ Module that contains a SimulationMode for PBSPro and mpiexec
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
-warnings.simplefilter('default',DeprecationWarning)
+warnings.simplefilter('default', DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
 import os
@@ -29,26 +29,28 @@ import Simulation
 modeName = "mpi"
 modeClassName = "MPISimulationMode"
 
+
 class MPISimulationMode(Simulation.SimulationMode):
   """
     MPISimulationMode is a specialized class of SimulationMode.
     It is aimed to distribute the runs using the MPI protocol
   """
-  def __init__(self,messageHandler):
+
+  def __init__(self, messageHandler):
     """
       Constructor
       @ In, messageHandler, instance, instance of the messageHandler class
       @ Out, None
     """
-    Simulation.SimulationMode.__init__(self,messageHandler)
+    Simulation.SimulationMode.__init__(self, messageHandler)
     self.messageHandler = messageHandler
     #Figure out if we are in PBS
     self.__inPbs = "PBS_NODEFILE" in os.environ
     self.__nodefile = False
     self.__runQsub = False
-    self.__coresNeeded = None #If not none, use this instead of calculating it
-    self.__memNeeded = None #If not none, use this for mem=
-    self.__place = "free" #use this for place=
+    self.__coresNeeded = None  #If not none, use this instead of calculating it
+    self.__memNeeded = None  #If not none, use this for mem=
+    self.__place = "free"  #use this for place=
     self.printTag = 'MPI SIMULATION MODE'
 
   def modifyInfo(self, runInfoDict):
@@ -66,7 +68,7 @@ class MPISimulationMode(Simulation.SimulationMode):
         nodefile = os.environ["PBS_NODEFILE"]
       else:
         nodefile = self.__nodefile
-      lines = open(nodefile,"r").readlines()
+      lines = open(nodefile, "r").readlines()
       #XXX This is an undocumented way to pass information back
       newRunInfo['Nodes'] = list(lines)
       numMPI = runInfoDict['NumMPI']
@@ -74,25 +76,27 @@ class MPISimulationMode(Simulation.SimulationMode):
       #the batchsize is just the number of nodes of which there is one
       # per line in the nodefile divided by the numMPI (which is per run)
       # and the floor and int and max make sure that the numbers are reasonable
-      maxBatchsize = max(int(math.floor(len(lines)/numMPI)),1)
+      maxBatchsize = max(int(math.floor(len(lines) / numMPI)), 1)
       if maxBatchsize < oldBatchsize:
         newRunInfo['batchSize'] = maxBatchsize
-        self.raiseAWarning("changing batchsize from "+str(oldBatchsize)+" to "+str(maxBatchsize)+" to fit on "+str(len(lines))+" processors")
+        self.raiseAWarning("changing batchsize from " + str(oldBatchsize) +
+                           " to " + str(maxBatchsize) + " to fit on " +
+                           str(len(lines)) + " processors")
       newBatchsize = newRunInfo['batchSize']
       if newBatchsize > 1:
         #need to split node lines so that numMPI nodes are available per run
         workingDir = runInfoDict['WorkingDir']
         for i in range(newBatchsize):
-          nodeFile = open(os.path.join(workingDir,"node_"+str(i)),"w")
-          for line in lines[i*numMPI:(i+1)*numMPI]:
+          nodeFile = open(os.path.join(workingDir, "node_" + str(i)), "w")
+          for line in lines[i * numMPI:(i + 1) * numMPI]:
             nodeFile.write(line)
           nodeFile.close()
 
         #then give each index a separate file.
-        nodeCommand = runInfoDict["NodeParameter"]+" %BASE_WORKING_DIR%/node_%INDEX% "
+        nodeCommand = runInfoDict["NodeParameter"] + " %BASE_WORKING_DIR%/node_%INDEX% "
       else:
         #If only one batch just use original node file
-        nodeCommand = runInfoDict["NodeParameter"]+" "+nodefile
+        nodeCommand = runInfoDict["NodeParameter"] + " " + nodefile
     else:
       #Not in PBS, so can't look at PBS_NODEFILE and none supplied in input
       newBatchsize = newRunInfo['batchSize']
@@ -107,11 +111,16 @@ class MPISimulationMode(Simulation.SimulationMode):
 
     # Create the mpiexec pre command
     # Note, with defaults the precommand is "mpiexec -f nodeFile -n numMPI"
-    newRunInfo['precommand'] = runInfoDict["MPIExec"]+" "+nodeCommand+" -n "+str(numMPI)+" "+runInfoDict['precommand']
-    if(runInfoDict['NumThreads'] > 1):
+    newRunInfo[
+        'precommand'] = runInfoDict["MPIExec"] + " " + nodeCommand + " -n " + str(
+            numMPI) + " " + runInfoDict['precommand']
+    if (runInfoDict['NumThreads'] > 1):
       #add number of threads to the post command.
-      newRunInfo['postcommand'] = " --n-threads=%NUM_CPUS% "+runInfoDict['postcommand']
-    self.raiseAMessage("precommand: "+newRunInfo['precommand']+", postcommand: "+newRunInfo.get('postcommand',runInfoDict['postcommand']))
+      newRunInfo[
+          'postcommand'] = " --n-threads=%NUM_CPUS% " + runInfoDict['postcommand']
+    self.raiseAMessage(
+        "precommand: " + newRunInfo['precommand'] + ", postcommand: " +
+        newRunInfo.get('postcommand', runInfoDict['postcommand']))
     return newRunInfo
 
   def __createAndRunQSUB(self, runInfoDict):
@@ -125,23 +134,27 @@ class MPISimulationMode(Simulation.SimulationMode):
     if self.__coresNeeded is not None:
       coresNeeded = self.__coresNeeded
     else:
-      coresNeeded = runInfoDict['batchSize']*runInfoDict['NumMPI']
+      coresNeeded = runInfoDict['batchSize'] * runInfoDict['NumMPI']
     if self.__memNeeded is not None:
-      memString = ":mem="+self.__memNeeded
+      memString = ":mem=" + self.__memNeeded
     else:
       memString = ""
     #batchSize = runInfoDict['batchSize']
     frameworkDir = runInfoDict["FrameworkDir"]
     ncpus = runInfoDict['NumThreads']
-    jobName = runInfoDict['JobName'] if 'JobName' in runInfoDict.keys() else 'raven_qsub'
+    jobName = runInfoDict[
+        'JobName'] if 'JobName' in runInfoDict.keys() else 'raven_qsub'
     #check invalid characters
-    validChars = set(string.ascii_letters).union(set(string.digits)).union(set('-_'))
+    validChars = set(string.ascii_letters).union(set(string.digits)).union(
+        set('-_'))
     if any(char not in validChars for char in jobName):
-      raise IOError('JobName can only contain alphanumeric and "_", "-" characters! Received'+jobName)
+      raise IOError(
+          'JobName can only contain alphanumeric and "_", "-" characters! Received'
+          + jobName)
     #check jobName for length
     if len(jobName) > 15:
-      jobName = jobName[:10]+'-'+jobName[-4:]
-      print('JobName is limited to 15 characters; truncating to '+jobName)
+      jobName = jobName[:10] + '-' + jobName[-4:]
+      print('JobName is limited to 15 characters; truncating to ' + jobName)
     #Generate the qsub command needed to run input
     command = ["qsub","-N",jobName]+\
               runInfoDict["clusterParameters"]+\
@@ -156,7 +169,7 @@ class MPISimulationMode(Simulation.SimulationMode):
     remoteRunCommand = {}
     remoteRunCommand["cwd"] = frameworkDir
     remoteRunCommand["args"] = command
-    print("remoteRunCommand",remoteRunCommand)
+    print("remoteRunCommand", remoteRunCommand)
     return remoteRunCommand
 
   def remoteRunCommand(self, runInfoDict):
@@ -192,4 +205,4 @@ class MPISimulationMode(Simulation.SimulationMode):
       elif child.tag.lower() == "runqsub":
         self.__runQsub = True
       else:
-        self.raiseADebug("We should do something with child "+str(child))
+        self.raiseADebug("We should do something with child " + str(child))

@@ -43,17 +43,20 @@ from utils import utils
 from utils import mathUtils
 import MessageHandler
 import DataObjects
+
 #Internal Modules End-----------------------------------------------------------
 
-class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.MessageUser):
+
+class unSupervisedLearning(
+    utils.metaclass_insert(abc.ABCMeta), MessageHandler.MessageUser):
   """
     This is the general interface to any unSuperisedLearning learning method.
     Essentially it contains a train, and evaluate methods
   """
-  returnType = ''         ## this describe the type of information generated the
-                          ## possibility are 'boolean', 'integer', 'float'
+  returnType = ''  ## this describe the type of information generated the
+  ## possibility are 'boolean', 'integer', 'float'
 
-  modelType = ''          ## the broad class of the interpolator
+  modelType = ''  ## the broad class of the interpolator
 
   @staticmethod
   def checkArrayConsistency(arrayIn):
@@ -80,7 +83,7 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
     ## arrays of size [n_samples], (either n_features of or n_samples of them)
 
     if len(arrayIn.shape) != 1:
-      return(False, ' The array must be 1-d')
+      return (False, ' The array must be 1-d')
 
     return (True, '')
 
@@ -129,7 +132,7 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
     ## The normalized training data
     self.normValues = None
 
-  def train(self, tdict, metric = None):
+  def train(self, tdict, metric=None):
     """
       Method to perform the training of the unSuperVisedLearning algorithm
       NB. The unSuperVisedLearning object is committed to convert the dictionary
@@ -141,10 +144,13 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
 
     self.metric = metric
     if type(tdict) != dict:
-      self.raiseAnError(IOError, ' method "train". The training set needs to be provided through a dictionary. Type of the in-object is ' + str(type(tdict)))
+      self.raiseAnError(
+          IOError,
+          ' method "train". The training set needs to be provided through a dictionary. Type of the in-object is '
+          + str(type(tdict)))
 
     featureCount = len(self.features)
-    if not isinstance(tdict[tdict.keys()[0]],dict):
+    if not isinstance(tdict[tdict.keys()[0]], dict):
       realizationCount = tdict.values()[0].size
 
     ############################################################################
@@ -158,23 +164,29 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
     if len(unidentifiedFeatures) > 0:
       ## Me write English good!
       if len(unidentifiedFeatures) == 1:
-        msg = 'The requested feature: %s does not exist in the training set.' % list(unidentifiedFeatures)[0]
+        msg = 'The requested feature: %s does not exist in the training set.' % list(
+            unidentifiedFeatures)[0]
       else:
-        msg = 'The requested features: %s do not exist in the training set.' % str(list(unidentifiedFeatures))
+        msg = 'The requested features: %s do not exist in the training set.' % str(
+            list(unidentifiedFeatures))
       self.raiseAnError(IOError, msg)
 
     ## Check that all of the values have the same length
-    if not isinstance(tdict.values()[0],dict):
-      for name,val in tdict.iteritems():
+    if not isinstance(tdict.values()[0], dict):
+      for name, val in tdict.iteritems():
         if name in self.features and realizationCount != val.size:
-          self.raiseAnError(IOError, ' In training set, the number of realizations are inconsistent among the requested features.')
+          self.raiseAnError(
+              IOError,
+              ' In training set, the number of realizations are inconsistent among the requested features.'
+          )
 
     ## Check if a label feature is provided by the user and in the training data
     if self.labelFeature in tdict:
       self.labelValues = tidct[self.labelFeature]
       resp = self.checkArrayConsistency(self.labelValues)
       if not resp[0]:
-        self.raiseAnError(IOError, 'In training set for ground truth labels ' + self.labelFeature + ':' + resp[1])
+        self.raiseAnError(IOError, 'In training set for ground truth labels ' +
+                          self.labelFeature + ':' + resp[1])
     else:
       self.raiseAWarning(' The ground truth labels are not known a priori')
       self.labelValues = None
@@ -191,45 +203,46 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
     ############################################################################
 
     if metric is None:
-      self.normValues = np.zeros(shape = (realizationCount, featureCount))
+      self.normValues = np.zeros(shape=(realizationCount, featureCount))
       for cnt, feat in enumerate(self.features):
         featureValues = tdict[feat]
-        (mu,sigma) = mathUtils.normalizationFactors(featureValues)
+        (mu, sigma) = mathUtils.normalizationFactors(featureValues)
         ## Store the normalized training data, and the normalization factors for
         ## later use
         self.normValues[:, cnt] = (featureValues - mu) / sigma
-        self.muAndSigmaFeatures[feat] = (mu,sigma)
+        self.muAndSigmaFeatures[feat] = (mu, sigma)
     else:
       # metric != None
       ## The dictionary represents a HistorySet
-      if isinstance(tdict.values()[0],dict):
+      if isinstance(tdict.values()[0], dict):
         ## normalize data
 
         ## But why this way? This should be one of the options, this looks like
         ## a form of shape matching, however what if I don't want similar
         ## shapes, I want similar valued curves in space? sigma and mu should
         ## not be forced to be computed within a curve.
-        tdictNorm={}
+        tdictNorm = {}
         for key in tdict:
-          tdictNorm[key]={}
+          tdictNorm[key] = {}
           for var in tdict[key]:
-            (mu,sigma) = mathUtils.normalizationFactors(tdict[key][var])
-            tdictNorm[key][var] = (tdict[key][var]-mu)/sigma
+            (mu, sigma) = mathUtils.normalizationFactors(tdict[key][var])
+            tdictNorm[key][var] = (tdict[key][var] - mu) / sigma
 
         cardinality = len(tdictNorm.keys())
-        self.normValues = np.zeros((cardinality,cardinality))
+        self.normValues = np.zeros((cardinality, cardinality))
         keys = tdictNorm.keys()
         for i in range(cardinality):
-          for j in range(i+1,cardinality):
-            self.normValues[i][j] = metric.distance(tdictNorm[keys[i]],tdictNorm[keys[j]])
+          for j in range(i + 1, cardinality):
+            self.normValues[i][j] = metric.distance(tdictNorm[keys[i]],
+                                                    tdictNorm[keys[j]])
             self.normValues[j][i] = self.normValues[i][j]
       else:
         ## PointSet
-        normValues = np.zeros(shape = (realizationCount, featureCount))
-        self.normValues = np.zeros(shape = (realizationCount, realizationCount))
+        normValues = np.zeros(shape=(realizationCount, featureCount))
+        self.normValues = np.zeros(shape=(realizationCount, realizationCount))
         for cnt, feat in enumerate(self.features):
           featureValues = tdict[feat]
-          (mu,sigma) = mathUtils.normalizationFactors(featureValues)
+          (mu, sigma) = mathUtils.normalizationFactors(featureValues)
           normValues[:, cnt] = (featureValues - mu) / sigma
         self.normValues = metric.distance(normValues)
 
@@ -249,7 +262,10 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
       @ Out, evaluation, numpy.array, array of evaluated points
     """
     if type(edict) != dict:
-      self.raiseAnError(IOError, ' Method "evaluate". The evaluate request/s need/s to be provided through a dictionary. Type of the in-object is ' + str(type(edict)))
+      self.raiseAnError(
+          IOError,
+          ' Method "evaluate". The evaluate request/s need/s to be provided through a dictionary. Type of the in-object is '
+          + str(type(edict)))
 
     names = edict.keys()
 
@@ -267,15 +283,19 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
     if len(unidentifiedFeatures) > 0:
       ## Me write English good!
       if len(unidentifiedFeatures) == 1:
-        msg = 'The requested feature: %s does not exist in the evaluate set.' % list(unidentifiedFeatures)[0]
+        msg = 'The requested feature: %s does not exist in the evaluate set.' % list(
+            unidentifiedFeatures)[0]
       else:
-        msg = 'The requested features: %s do not exist in the evaluate set.' % str(list(unidentifiedFeatures))
+        msg = 'The requested features: %s do not exist in the evaluate set.' % str(
+            list(unidentifiedFeatures))
       self.raiseAnError(IOError, msg)
 
-    for name,values in edict.iteritems():
+    for name, values in edict.iteritems():
       resp = self.checkArrayConsistency(values)
       if not resp[0]:
-        self.raiseAnError(IOError, ' In evaluate request for feature ' + name + ':' + resp[1])
+        self.raiseAnError(
+            IOError,
+            ' In evaluate request for feature ' + name + ':' + resp[1])
 
     ## End Error-handling
     ############################################################################
@@ -285,10 +305,10 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
     #   self.labelValues = edict[self.labelFeature]
 
     # construct the evaluation matrix
-    normedValues = np.zeros(shape = (realizationCount, featureCount))
+    normedValues = np.zeros(shape=(realizationCount, featureCount))
     for cnt, feature in enumerate(self.features):
       featureValues = edict[feature]
-      (mu,sigma) = self.muAndSigmaFeatures[feature]
+      (mu, sigma) = self.muAndSigmaFeatures[feature]
       normedValues[:, cnt] = (featureValues - mu) / sigma
     evaluation = self.__evaluateLocal__(normedValues)
 
@@ -305,7 +325,8 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
     if self.amITrained:
       return self.__confidenceLocal__()
     else:
-      self.raiseAnError(IOError, ' The confidence check is performed before training.')
+      self.raiseAnError(IOError,
+                        ' The confidence check is performed before training.')
 
   def getDataMiningType(self):
     """
@@ -314,7 +335,6 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
       @ Out, none
     """
     pass
-
 
   @abc.abstractmethod
   def __trainLocal__(self):
@@ -338,8 +358,11 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
       @ In, none
       @ Out, none
      """
+
+
 #
 #
+
 
 class SciKitLearn(unSupervisedLearning):
   """
@@ -348,13 +371,24 @@ class SciKitLearn(unSupervisedLearning):
   modelType = 'SciKitLearn'
   availImpl = {}
   availImpl['cluster'] = {}  # Generalized Cluster
-  availImpl['cluster']['AffinityPropogation'    ] = (cluster.AffinityPropagation    , 'float')  # Perform Affinity Propagation Clustering of data.
-  availImpl['cluster']['DBSCAN'                 ] = (cluster.DBSCAN                 , 'float')  # Perform DBSCAN clustering from vector array or distance matrix.
-  availImpl['cluster']['KMeans'                 ] = (cluster.KMeans                 , 'float')  # K-Means Clustering
-  availImpl['cluster']['MiniBatchKMeans'        ] = (cluster.MiniBatchKMeans        , 'float')  # Mini-Batch K-Means Clustering
-  availImpl['cluster']['MeanShift'              ] = (cluster.MeanShift              , 'float')  # Mean Shift Clustering
-  availImpl['cluster']['SpectralClustering'     ] = (cluster.SpectralClustering     , 'float')  # Apply clustering to a projection to the normalized laplacian.
-  availImpl['cluster']['Agglomerative'          ] = (cluster.AgglomerativeClustering, 'float')  # Agglomerative Clustering - Feature of SciKit-Learn version 0.15
+  availImpl['cluster']['AffinityPropogation'] = (
+      cluster.AffinityPropagation,
+      'float')  # Perform Affinity Propagation Clustering of data.
+  availImpl['cluster']['DBSCAN'] = (
+      cluster.DBSCAN, 'float'
+  )  # Perform DBSCAN clustering from vector array or distance matrix.
+  availImpl['cluster']['KMeans'] = (cluster.KMeans,
+                                    'float')  # K-Means Clustering
+  availImpl['cluster']['MiniBatchKMeans'] = (
+      cluster.MiniBatchKMeans, 'float')  # Mini-Batch K-Means Clustering
+  availImpl['cluster']['MeanShift'] = (cluster.MeanShift,
+                                       'float')  # Mean Shift Clustering
+  availImpl['cluster']['SpectralClustering'] = (
+      cluster.SpectralClustering,
+      'float')  # Apply clustering to a projection to the normalized laplacian.
+  availImpl['cluster']['Agglomerative'] = (
+      cluster.AgglomerativeClustering, 'float'
+  )  # Agglomerative Clustering - Feature of SciKit-Learn version 0.15
   #  availImpl['cluster']['FeatureAgglomeration'   ] = (cluster.FeatureAgglomeration   , 'float')  # - Feature of SciKit-Learn version 0.15
   #  availImpl['cluster']['Ward'                   ] = (cluster.Ward                   , 'float')  # Ward hierarchical clustering: constructs a tree and cuts it.
 
@@ -362,31 +396,53 @@ class SciKitLearn(unSupervisedLearning):
   #  availImpl['bicluster']['SpectralBiclustering'] = (cluster.bicluster.SpectralBiclustering, 'float')  # Spectral biclustering (Kluger, 2003).
   #  availImpl['bicluster']['SpectralCoclustering'] = (cluster.bicluster.SpectralCoclustering, 'float')  # Spectral Co-Clustering algorithm (Dhillon, 2001).
 
-  availImpl['mixture'] = {}  # Generalized Gaussion Mixture Models (Classification)
-  availImpl['mixture']['GMM'  ] = (mixture.GMM  , 'float')  # Gaussian Mixture Model
+  availImpl['mixture'] = {
+  }  # Generalized Gaussion Mixture Models (Classification)
+  availImpl['mixture']['GMM'] = (mixture.GMM,
+                                 'float')  # Gaussian Mixture Model
   ## Comment is not even right on it, but the DPGMM is being deprecated by SKL who
   ## admits that it is not working correctly which also explains why it is buried in
   ## their documentation.
   # availImpl['mixture']['DPGMM'] = (mixture.DPGMM, 'float')  # Variational Inference for the Infinite Gaussian Mixture Model.
-  availImpl['mixture']['VBGMM'] = (mixture.VBGMM, 'float')  # Variational Inference for the Gaussian Mixture Model
+  availImpl['mixture']['VBGMM'] = (
+      mixture.VBGMM,
+      'float')  # Variational Inference for the Gaussian Mixture Model
 
   availImpl['manifold'] = {}  # Manifold Learning (Embedding techniques)
-  availImpl['manifold']['LocallyLinearEmbedding'  ] = (manifold.LocallyLinearEmbedding  , 'float')  # Locally Linear Embedding
-  availImpl['manifold']['Isomap'                  ] = (manifold.Isomap                  , 'float')  # Isomap
-  availImpl['manifold']['MDS'                     ] = (manifold.MDS                     , 'float')  # MultiDimensional Scaling
-  availImpl['manifold']['SpectralEmbedding'       ] = (manifold.SpectralEmbedding       , 'float')  # Spectral Embedding for Non-linear Dimensionality Reduction
+  availImpl['manifold']['LocallyLinearEmbedding'] = (
+      manifold.LocallyLinearEmbedding, 'float')  # Locally Linear Embedding
+  availImpl['manifold']['Isomap'] = (manifold.Isomap, 'float')  # Isomap
+  availImpl['manifold']['MDS'] = (manifold.MDS,
+                                  'float')  # MultiDimensional Scaling
+  availImpl['manifold']['SpectralEmbedding'] = (
+      manifold.SpectralEmbedding,
+      'float')  # Spectral Embedding for Non-linear Dimensionality Reduction
   #  availImpl['manifold']['locally_linear_embedding'] = (manifold.locally_linear_embedding, 'float')  # Perform a Locally Linear Embedding analysis on the data.
   #  availImpl['manifold']['spectral_embedding'      ] = (manifold.spectral_embedding      , 'float')  # Project the sample on the first eigen vectors of the graph Laplacian.
 
   availImpl['decomposition'] = {}  # Matrix Decomposition
-  availImpl['decomposition']['PCA'                 ] = (decomposition.PCA                 , 'float')  # Principal component analysis (PCA)
- # availImpl['decomposition']['ProbabilisticPCA'    ] = (decomposition.ProbabilisticPCA    , 'float')  # Additional layer on top of PCA that adds a probabilistic evaluationPrincipal component analysis (PCA)
-  availImpl['decomposition']['RandomizedPCA'       ] = (decomposition.RandomizedPCA       , 'float')  # Principal component analysis (PCA) using randomized SVD
-  availImpl['decomposition']['KernelPCA'           ] = (decomposition.KernelPCA           , 'float')  # Kernel Principal component analysis (KPCA)
-  availImpl['decomposition']['FastICA'             ] = (decomposition.FastICA             , 'float')  # FastICA: a fast algorithm for Independent Component Analysis.
-  availImpl['decomposition']['TruncatedSVD'        ] = (decomposition.TruncatedSVD        , 'float')  # Dimensionality reduction using truncated SVD (aka LSA).
-  availImpl['decomposition']['SparsePCA'           ] = (decomposition.SparsePCA           , 'float')  # Sparse Principal Components Analysis (SparsePCA)
-  availImpl['decomposition']['MiniBatchSparsePCA'  ] = (decomposition.MiniBatchSparsePCA  , 'float')  # Mini-batch Sparse Principal Components Analysis
+  availImpl['decomposition']['PCA'] = (
+      decomposition.PCA, 'float')  # Principal component analysis (PCA)
+  # availImpl['decomposition']['ProbabilisticPCA'    ] = (decomposition.ProbabilisticPCA    , 'float')  # Additional layer on top of PCA that adds a probabilistic evaluationPrincipal component analysis (PCA)
+  availImpl['decomposition']['RandomizedPCA'] = (
+      decomposition.RandomizedPCA,
+      'float')  # Principal component analysis (PCA) using randomized SVD
+  availImpl['decomposition']['KernelPCA'] = (
+      decomposition.KernelPCA,
+      'float')  # Kernel Principal component analysis (KPCA)
+  availImpl['decomposition']['FastICA'] = (
+      decomposition.FastICA,
+      'float')  # FastICA: a fast algorithm for Independent Component Analysis.
+  availImpl['decomposition']['TruncatedSVD'] = (
+      decomposition.TruncatedSVD,
+      'float')  # Dimensionality reduction using truncated SVD (aka LSA).
+  availImpl['decomposition']['SparsePCA'] = (
+      decomposition.SparsePCA,
+      'float')  # Sparse Principal Components Analysis (SparsePCA)
+  availImpl['decomposition']['MiniBatchSparsePCA'] = (
+      decomposition.MiniBatchSparsePCA,
+      'float')  # Mini-batch Sparse Principal Components Analysis
+
   #  availImpl['decomposition']['ProjectedGradientNMF'] = (decomposition.ProjectedGradientNMF, 'float')  # Non-Negative matrix factorization by Projected Gradient (NMF)
   #  availImpl['decomposition']['FactorAnalysis'      ] = (decomposition.FactorAnalysis      , 'float')  # Factor Analysis (FA)
   #  availImpl['decomposition']['NMF'                 ] = (decomposition.NMF                 , 'float')  # Non-Negative matrix factorization by Projected Gradient (NMF)
@@ -420,21 +476,29 @@ class SciKitLearn(unSupervisedLearning):
     self.printTag = 'SCIKITLEARN'
 
     if 'SKLtype' not in self.initOptionDict.keys():
-      self.raiseAnError(IOError, ' to define a scikit learn unSupervisedLearning Method the SKLtype keyword is needed (from KDD ' + self.name + ')')
+      self.raiseAnError(
+          IOError,
+          ' to define a scikit learn unSupervisedLearning Method the SKLtype keyword is needed (from KDD '
+          + self.name + ')')
 
     SKLtype, SKLsubType = self.initOptionDict['SKLtype'].split('|')
     self.initOptionDict.pop('SKLtype')
 
     if not SKLtype in self.__class__.availImpl.keys():
-      self.raiseAnError(IOError, ' Unknown SKLtype ' + SKLtype + '(from KDD ' + self.name + ')')
+      self.raiseAnError(
+          IOError,
+          ' Unknown SKLtype ' + SKLtype + '(from KDD ' + self.name + ')')
 
     if not SKLsubType in self.__class__.availImpl[SKLtype].keys():
-      self.raiseAnError(IOError, ' Unknown SKLsubType ' + SKLsubType + '(from KDD ' + self.name + ')')
+      self.raiseAnError(
+          IOError,
+          ' Unknown SKLsubType ' + SKLsubType + '(from KDD ' + self.name + ')')
 
     self.SKLtype = SKLtype
     self.SKLsubType = SKLsubType
 
-    self.__class__.returnType = self.__class__.availImpl[SKLtype][SKLsubType][1]
+    self.__class__.returnType = self.__class__.availImpl[SKLtype][SKLsubType][
+        1]
     self.Method = self.__class__.availImpl[SKLtype][SKLsubType][0]()
 
     paramsDict = self.Method.get_params()
@@ -450,7 +514,9 @@ class SciKitLearn(unSupervisedLearning):
         except:
           tempDict[key] = value
       else:
-        self.raiseAWarning('Ignoring unknown parameter %s to the method of type %s' % (key, SKLsubType))
+        self.raiseAWarning(
+            'Ignoring unknown parameter %s to the method of type %s' %
+            (key, SKLsubType))
     self.initOptionDict = tempDict
 
     self.Method.set_params(**self.initOptionDict)
@@ -467,20 +533,23 @@ class SciKitLearn(unSupervisedLearning):
     ## set bandwidth for MeanShift clustering
     if hasattr(self.Method, 'bandwidth'):
       if 'bandwidth' not in self.initOptionDict.keys():
-        self.initOptionDict['bandwidth'] = cluster.estimate_bandwidth(self.normValues,quantile=0.3)
+        self.initOptionDict['bandwidth'] = cluster.estimate_bandwidth(
+            self.normValues, quantile=0.3)
       self.Method.set_params(**self.initOptionDict)
 
     ## We need this connectivity if we want to use structured ward
     if hasattr(self.Method, 'connectivity'):
       ## we should find a smart way to define the number of neighbors instead of
       ## default constant integer value(10)
-      connectivity = kneighbors_graph(self.normValues, n_neighbors = min(10,len(self.normValues[:,0])-1))
+      connectivity = kneighbors_graph(
+          self.normValues, n_neighbors=min(10,
+                                           len(self.normValues[:, 0]) - 1))
       connectivity = 0.5 * (connectivity + connectivity.T)
       self.initOptionDict['connectivity'] = connectivity
       self.Method.set_params(**self.initOptionDict)
 
     self.outputDict['outputs'] = {}
-    self.outputDict['inputs' ] = self.normValues
+    self.outputDict['inputs'] = self.normValues
 
     ## This is the stuff that will go into the solution export or just float
     ## around and maybe never be used
@@ -508,9 +577,11 @@ class SciKitLearn(unSupervisedLearning):
     ## I don't care what algorithm you ran, these are the only things I care
     ## about, if I find one of them, then I am going to save it in our defined
     ## variable names
-    variableMap = {'labels_': 'labels',
-                   'embedding_': 'embeddingVectors',
-                   'embedding_vectors_': 'embeddingVectors'}
+    variableMap = {
+        'labels_': 'labels',
+        'embedding_': 'embeddingVectors',
+        'embedding_vectors_': 'embeddingVectors'
+    }
 
     ## This will store stuff that should go into the solution export, but
     ## these each need some massaging so we will not handle this automatically.
@@ -528,7 +599,7 @@ class SciKitLearn(unSupervisedLearning):
     #             'explained_variance_': 'explainedVariance',
     #             'explained_variance_ratio_': 'explainedVarianceRatio'}
 
-    for key,val in self.Method.__dict__.items():
+    for key, val in self.Method.__dict__.items():
       if key in variableMap:
         ## Translate the skl name to our naming convention
         self.outputDict['outputs'][variableMap[key]] = copy.deepcopy(val)
@@ -540,28 +611,28 @@ class SciKitLearn(unSupervisedLearning):
     ## Below generates the output Dictionary from the trained algorithm, can be
     ## defined in a new method....
     if 'cluster' == self.SKLtype:
-      if hasattr(self.Method, 'cluster_centers_') :
+      if hasattr(self.Method, 'cluster_centers_'):
         centers = self.Method.cluster_centers_
       elif self.metric is None:
         ## This methods is used by any other clustering algorithm that does
         ## not generatecluster_centers_ to generate the cluster centers as the
         ## average location of all points in the cluster.
-        if hasattr(self.Method,'n_clusters'):
+        if hasattr(self.Method, 'n_clusters'):
           numClusters = self.Method.n_clusters
         else:
           numClusters = len(set(self.Method.labels_))
 
-        centers = np.zeros([numClusters,len(self.features)])
+        centers = np.zeros([numClusters, len(self.features)])
         counter = np.zeros(numClusters)
-        for val,index in enumerate(self.Method.labels_):
+        for val, index in enumerate(self.Method.labels_):
           centers[index] += self.normValues[val]
           counter[index] += 1
 
-        for index,val in enumerate(centers):
+        for index, val in enumerate(centers):
           if counter[index] == 0.:
-            self.raiseAnError(RuntimeError, 'The data-mining clustering method '
-                                            + str(self.Method)
-                                            + ' has generated a 0-size cluster')
+            self.raiseAnError(
+                RuntimeError, 'The data-mining clustering method ' +
+                str(self.Method) + ' has generated a 0-size cluster')
           centers[index] = centers[index] / float(counter[index])
       else:
         centers = None
@@ -572,7 +643,7 @@ class SciKitLearn(unSupervisedLearning):
         ## representation of our data, I believe it is fair to say that we
         ## hand the data to SKL in the same order that we have it stored.
         for cnt, feature in enumerate(self.features):
-          (mu,sigma) = self.muAndSigmaFeatures[feature]
+          (mu, sigma) = self.muAndSigmaFeatures[feature]
           for center in centers:
             center[cnt] = center[cnt] * sigma + mu
 
@@ -587,9 +658,9 @@ class SciKitLearn(unSupervisedLearning):
 
       if hasattr(self.Method, 'converged_'):
         if not self.Method.converged_:
-          self.raiseAnError(RuntimeError, self.SKLtype + '|' + self.SKLsubType
-                                          + ' did not converged. (from KDD->'
-                                          + self.SKLsubType + ')')
+          self.raiseAnError(
+              RuntimeError, self.SKLtype + '|' + self.SKLsubType +
+              ' did not converged. (from KDD->' + self.SKLsubType + ')')
 
       ## For both means and covars below:
       ##   We are mixing our internal storage of muAndSigma with SKLs
@@ -599,19 +670,19 @@ class SciKitLearn(unSupervisedLearning):
         means = copy.deepcopy(self.Method.means_)
 
         for cnt, feature in enumerate(self.features):
-          (mu,sigma) = self.muAndSigmaFeatures[feature]
+          (mu, sigma) = self.muAndSigmaFeatures[feature]
           for center in means:
             center[cnt] = center[cnt] * sigma + mu
         self.metaDict['means'] = means
 
-      if hasattr(self.Method, 'covars_') :
+      if hasattr(self.Method, 'covars_'):
         covariance = copy.deepcopy(self.Method.covars_)
 
         for row, rowFeature in enumerate(self.features):
           rowSigma = self.muAndSigmaFeatures[rowFeature][1]
           for col, colFeature in enumerate(self.features):
             colSigma = self.muAndSigmaFeatures[colFeature][1]
-            covariance[row,col] = covariance[row,col] * rowSigma * colSigma
+            covariance[row, col] = covariance[row, col] * rowSigma * colSigma
         self.metaDict['covars'] = covariance
     elif 'decomposition' == self.SKLtype:
 
@@ -632,11 +703,13 @@ class SciKitLearn(unSupervisedLearning):
         self.metaDict['means'] = self.Method.means_
 
       if hasattr(self.Method, 'explained_variance_'):
-        self.explainedVariance_ = copy.deepcopy(self.Method.explained_variance_)
+        self.explainedVariance_ = copy.deepcopy(
+            self.Method.explained_variance_)
         self.metaDict['explainedVariance'] = self.explainedVariance_
 
       if hasattr(self.Method, 'explained_variance_ratio_'):
-        self.metaDict['explainedVarianceRatio'] = self.Method.explained_variance_ratio_
+        self.metaDict[
+            'explainedVarianceRatio'] = self.Method.explained_variance_ratio_
 
   def __evaluateLocal__(self, featureVals):
     """
@@ -648,7 +721,6 @@ class SciKitLearn(unSupervisedLearning):
       labels = self.Method.predict(featureVals)
     else:
       labels = self.Method.fit_predict(featureVals)
-
 
     return labels
 
@@ -668,7 +740,9 @@ class SciKitLearn(unSupervisedLearning):
       labels = self.outputDict['outputs']['labels']
 
       if np.unique(labels).size > 1:
-        self.outputDict['confidence']['silhouetteCoefficient'] = metrics.silhouette_score(self.normValues , labels)
+        self.outputDict['confidence'][
+            'silhouetteCoefficient'] = metrics.silhouette_score(
+                self.normValues, labels)
 
       if hasattr(self.Method, 'inertia_'):
         self.outputDict['confidence']['inertia'] = self.Method.inertia_
@@ -676,15 +750,27 @@ class SciKitLearn(unSupervisedLearning):
       ## If we have ground truth labels, then compute some additional confidence
       ## metrics
       if self.labelValues is not None:
-        self.outputDict['confidence']['homogeneity'              ] =          metrics.homogeneity_score(self.labelValues, labels)
-        self.outputDict['confidence']['completenes'              ] =         metrics.completeness_score(self.labelValues, labels)
-        self.outputDict['confidence']['vMeasure'                 ] =            metrics.v_measure_score(self.labelValues, labels)
-        self.outputDict['confidence']['adjustedRandIndex'        ] =        metrics.adjusted_rand_score(self.labelValues, labels)
-        self.outputDict['confidence']['adjustedMutualInformation'] = metrics.adjusted_mutual_info_score(self.labelValues, labels)
+        self.outputDict[
+            'confidence']['homogeneity'] = metrics.homogeneity_score(
+                self.labelValues, labels)
+        self.outputDict['confidence'][
+            'completenes'] = metrics.completeness_score(
+                self.labelValues, labels)
+        self.outputDict['confidence']['vMeasure'] = metrics.v_measure_score(
+            self.labelValues, labels)
+        self.outputDict['confidence'][
+            'adjustedRandIndex'] = metrics.adjusted_rand_score(
+                self.labelValues, labels)
+        self.outputDict['confidence'][
+            'adjustedMutualInformation'] = metrics.adjusted_mutual_info_score(
+                self.labelValues, labels)
     elif 'mixture' == self.SKLtype:
-      self.outputDict['confidence']['aic'  ] = self.Method.aic(self.normValues)   ## Akaike Information Criterion
-      self.outputDict['confidence']['bic'  ] = self.Method.bic(self.normValues)   ## Bayesian Information Criterion
-      self.outputDict['confidence']['score'] = self.Method.score(self.normValues) ## log probabilities of each data point
+      self.outputDict['confidence']['aic'] = self.Method.aic(
+          self.normValues)  ## Akaike Information Criterion
+      self.outputDict['confidence']['bic'] = self.Method.bic(
+          self.normValues)  ## Bayesian Information Criterion
+      self.outputDict['confidence']['score'] = self.Method.score(
+          self.normValues)  ## log probabilities of each data point
 
     return self.outputDict['confidence']
 
@@ -696,8 +782,10 @@ class SciKitLearn(unSupervisedLearning):
     """
     return self.SKLtype
 
+
 #
 #
+
 
 class temporalSciKitLearn(unSupervisedLearning):
   """
@@ -715,7 +803,10 @@ class temporalSciKitLearn(unSupervisedLearning):
     self.printTag = 'TEMPORALSCIKITLEARN'
 
     if 'SKLtype' not in self.initOptionDict.keys():
-      self.raiseAnError(IOError, ' to define a scikit learn unSupervisedLearning Method the SKLtype keyword is needed (from KDD ' + self.name + ')')
+      self.raiseAnError(
+          IOError,
+          ' to define a scikit learn unSupervisedLearning Method the SKLtype keyword is needed (from KDD '
+          + self.name + ')')
 
     self.SKLtype, self.SKLsubType = self.initOptionDict['SKLtype'].split('|')
     self.pivotParameter = self.initOptionDict.get('pivotParameter', 'Time')
@@ -724,7 +815,7 @@ class temporalSciKitLearn(unSupervisedLearning):
     self.reOrderStep = int(self.initOptionDict.pop('reOrderStep', 5))
 
     # return a SciKitLearn instance as engine for SKL data mining
-    self.SKLEngine = returnInstance('SciKitLearn',self, **self.initOptionDict)
+    self.SKLEngine = returnInstance('SciKitLearn', self, **self.initOptionDict)
 
     self.normValues = None
     self.outputDict = {}
@@ -754,7 +845,7 @@ class temporalSciKitLearn(unSupervisedLearning):
     # if len(arrayin.shape) != 1: return(False, ' The array must be 1-d')
     return (True, '')
 
-  def __deNormalizeData__(self,feat,t,data):
+  def __deNormalizeData__(self, feat, t, data):
     """
       Method to denormalize data based on the mean and standard deviation stored
       in self.
@@ -765,9 +856,10 @@ class temporalSciKitLearn(unSupervisedLearning):
     """
     N = data.shape[0]
     deNormData = np.zeros(shape=data.shape)
-    mu, sig = self.muAndSigmaFeatures[feat][0,t], self.muAndSigmaFeatures[feat][1,t]
+    mu, sig = self.muAndSigmaFeatures[feat][0, t], self.muAndSigmaFeatures[
+        feat][1, t]
     for n in range(N):
-      deNormData[n] = data[n]*sig+mu
+      deNormData[n] = data[n] * sig + mu
     return deNormData
 
   def train(self, tdict):
@@ -779,7 +871,10 @@ class temporalSciKitLearn(unSupervisedLearning):
     ## need to overwrite train method because time dependent data mining
     ## requires different treatment of input
     if type(tdict) != dict:
-      self.raiseAnError(IOError, ' method "train". The training set needs to be provided through a dictionary. Type of the in-object is ' + str(type(tdict)))
+      self.raiseAnError(
+          IOError,
+          ' method "train". The training set needs to be provided through a dictionary. Type of the in-object is '
+          + str(type(tdict)))
 
     names = list(tdict.keys())
     values = list(tdict.values())
@@ -798,9 +893,11 @@ class temporalSciKitLearn(unSupervisedLearning):
     if len(unidentifiedFeatures) > 0:
       ## Me write English good!
       if len(unidentifiedFeatures) == 1:
-        msg = 'The requested feature: %s does not exist in the training set.' % list(unidentifiedFeatures)[0]
+        msg = 'The requested feature: %s does not exist in the training set.' % list(
+            unidentifiedFeatures)[0]
       else:
-        msg = 'The requested features: %s do not exist in the training set.' % str(list(unidentifiedFeatures))
+        msg = 'The requested features: %s do not exist in the training set.' % str(
+            list(unidentifiedFeatures))
       self.raiseAnError(IOError, msg)
 
     ## Check that all of the values have the same length
@@ -808,9 +905,11 @@ class temporalSciKitLearn(unSupervisedLearning):
     ## Check if a label feature is provided by the user and in the training data
     if self.labelFeature in names:
       self.labelValues = tidct[self.labelFeature]
-      resp = self.checkArrayConsistency(self.labelValues,[self.numberOfSample, self.numberOfHistoryStep])
+      resp = self.checkArrayConsistency(
+          self.labelValues, [self.numberOfSample, self.numberOfHistoryStep])
       if not resp[0]:
-        self.raiseAnError(IOError, 'In training set for ground truth labels ' + self.labelFeature + ':' + resp[1])
+        self.raiseAnError(IOError, 'In training set for ground truth labels ' +
+                          self.labelFeature + ':' + resp[1])
     else:
       self.raiseAWarning(' The ground truth labels are not known a priori')
       self.labelValues = None
@@ -820,24 +919,27 @@ class temporalSciKitLearn(unSupervisedLearning):
 
     self.normValues = {}
 
-    for cnt,feature in enumerate(self.features):
-      resp = self.checkArrayConsistency(tdict[feature], [self.numberOfSample, self.numberOfHistoryStep])
+    for cnt, feature in enumerate(self.features):
+      resp = self.checkArrayConsistency(
+          tdict[feature], [self.numberOfSample, self.numberOfHistoryStep])
       if not resp[0]:
-        self.raiseAnError(IOError, ' In training set for feature ' + feature + ':' + resp[1])
+        self.raiseAnError(
+            IOError, ' In training set for feature ' + feature + ':' + resp[1])
 
-      self.normValues[feature] = np.zeros(shape = tdict[feature].shape)
-      self.muAndSigmaFeatures[feature] = np.zeros(shape=(2,self.numberOfHistoryStep))
+      self.normValues[feature] = np.zeros(shape=tdict[feature].shape)
+      self.muAndSigmaFeatures[feature] = np.zeros(
+          shape=(2, self.numberOfHistoryStep))
 
       for t in range(self.numberOfHistoryStep):
-        featureValues = tdict[feature][:,t]
-        (mu,sigma) = mathUtils.normalizationFactors(featureValues)
+        featureValues = tdict[feature][:, t]
+        (mu, sigma) = mathUtils.normalizationFactors(featureValues)
 
         ## Store the normalized training data, and the normalization factors for
         ## later use
-        self.normValues[feature][:,t] = (featureValues - mu) / sigma
+        self.normValues[feature][:, t] = (featureValues - mu) / sigma
 
-        self.muAndSigmaFeatures[feature][0,t] = mu
-        self.muAndSigmaFeatures[feature][1,t] = sigma
+        self.muAndSigmaFeatures[feature][0, t] = mu
+        self.muAndSigmaFeatures[feature][1, t] = sigma
 
     self.inputDict = tdict
     self.__trainLocal__()
@@ -849,7 +951,7 @@ class temporalSciKitLearn(unSupervisedLearning):
     """
 
     self.outputDict['outputs'] = {}
-    self.outputDict['inputs' ] = self.normValues
+    self.outputDict['inputs'] = self.normValues
 
     ## This is the stuff that will go into the solution export or just float
     ## around and maybe never be used
@@ -858,7 +960,7 @@ class temporalSciKitLearn(unSupervisedLearning):
     for t in range(self.numberOfHistoryStep):
       sklInput = {}
       for feat in self.features.keys():
-        sklInput[feat] = self.inputDict[feat][:,t]
+        sklInput[feat] = self.inputDict[feat][:, t]
 
       self.SKLEngine.features = sklInput
       self.SKLEngine.train(sklInput)
@@ -866,14 +968,15 @@ class temporalSciKitLearn(unSupervisedLearning):
 
       ## Store everything from the specific timestep's SKLEngine into a running
       ## list
-      for key,val in self.SKLEngine.outputDict['outputs'].items():
+      for key, val in self.SKLEngine.outputDict['outputs'].items():
         if key not in self.outputDict['outputs']:
-          self.outputDict['outputs'][key] = {} # [None]*self.numberOfHistoryStep
+          self.outputDict['outputs'][key] = {
+          }  # [None]*self.numberOfHistoryStep
         self.outputDict['outputs'][key][t] = val
 
-      for key,val in self.SKLEngine.metaDict.items():
+      for key, val in self.SKLEngine.metaDict.items():
         if key not in self.metaDict:
-          self.metaDict[key] = {} # [None]*self.numberOfHistoryStep
+          self.metaDict[key] = {}  # [None]*self.numberOfHistoryStep
         self.metaDict[key][t] = val
 
       if self.SKLtype in ['cluster']:
@@ -890,11 +993,14 @@ class temporalSciKitLearn(unSupervisedLearning):
 
         # # collect cluster centers
         if hasattr(self.SKLEngine.Method, 'cluster_centers_'):
-          self.metaDict['clusterCenters'][t] = np.zeros(shape=self.SKLEngine.metaDict['clusterCenters'].shape)
+          self.metaDict['clusterCenters'][t] = np.zeros(
+              shape=self.SKLEngine.metaDict['clusterCenters'].shape)
           for cnt, feat in enumerate(self.features):
-            self.metaDict['clusterCenters'][t][:,cnt] = self.SKLEngine.metaDict['clusterCenters'][:,cnt]
+            self.metaDict['clusterCenters'][
+                t][:, cnt] = self.SKLEngine.metaDict['clusterCenters'][:, cnt]
         else:
-          self.metaDict['clusterCenters'][t] = self.__computeCenter__(sklInput, self.outputDict['outputs']['labels'][t])
+          self.metaDict['clusterCenters'][t] = self.__computeCenter__(
+              sklInput, self.outputDict['outputs']['labels'][t])
 
         # collect number of clusters
         if hasattr(self.SKLEngine.Method, 'n_clusters'):
@@ -917,12 +1023,15 @@ class temporalSciKitLearn(unSupervisedLearning):
 
         # re-order clusters
         if t > 0:
-          remap = self.__reMapCluster__(t, self.metaDict['clusterCenters'], self.metaDict['clusterCentersIndices'])
+          remap = self.__reMapCluster__(t, self.metaDict['clusterCenters'],
+                                        self.metaDict['clusterCentersIndices'])
           for n in range(len(self.metaDict['clusterCentersIndices'][t])):
-            self.metaDict['clusterCentersIndices'][t][n] = remap[self.metaDict['clusterCentersIndices'][t][n]]
+            self.metaDict['clusterCentersIndices'][t][n] = remap[self.metaDict[
+                'clusterCentersIndices'][t][n]]
           for n in range(len(self.outputDict['outputs']['labels'][t])):
-            if self.outputDict['outputs']['labels'][t][n] >=0:
-              self.outputDict['outputs']['labels'][t][n] = remap[self.SKLEngine.Method.labels_[n]]
+            if self.outputDict['outputs']['labels'][t][n] >= 0:
+              self.outputDict['outputs']['labels'][t][n] = remap[
+                  self.SKLEngine.Method.labels_[n]]
           ## TODO: Remap the cluster centers now...
       elif self.SKLtype in ['mixture']:
         if 'means' not in self.metaDict.keys():
@@ -933,15 +1042,19 @@ class temporalSciKitLearn(unSupervisedLearning):
         # # collect component membership
         if 'labels' not in self.outputDict['outputs']:
           self.outputDict['outputs']['labels'] = {}
-        self.outputDict['outputs']['labels'][t] = self.SKLEngine.evaluate(sklInput)
+        self.outputDict['outputs']['labels'][t] = self.SKLEngine.evaluate(
+            sklInput)
 
         # # collect component means
         if hasattr(self.SKLEngine.Method, 'means_'):
-          self.metaDict['means'][t] = np.zeros(shape=self.SKLEngine.Method.means_.shape)
+          self.metaDict['means'][t] = np.zeros(
+              shape=self.SKLEngine.Method.means_.shape)
           for cnt, feat in enumerate(self.features):
-            self.metaDict['means'][t][:,cnt] = self.__deNormalizeData__(feat,t,self.SKLEngine.Method.means_[:,cnt])
+            self.metaDict['means'][t][:, cnt] = self.__deNormalizeData__(
+                feat, t, self.SKLEngine.Method.means_[:, cnt])
         else:
-          self.metaDict['means'][t] = self.__computeCenter__(Input['Features'], self.outputDict['labels'][t])
+          self.metaDict['means'][t] = self.__computeCenter__(
+              Input['Features'], self.outputDict['labels'][t])
 
         # # collect number of components
         if hasattr(self.SKLEngine.Method, 'n_components'):
@@ -975,13 +1088,16 @@ class temporalSciKitLearn(unSupervisedLearning):
 
         # re-order components
         if t > 0:
-          remap = self.__reMapCluster__(t, self.metaDict['means'], self.metaDict['componentMeanIndices'])
+          remap = self.__reMapCluster__(t, self.metaDict['means'],
+                                        self.metaDict['componentMeanIndices'])
           for n in range(len(self.metaDict['componentMeanIndices'][t])):
-            self.metaDict['componentMeanIndices'][t][n] = remap[self.metaDict['componentMeanIndices'][t][n]]
+            self.metaDict['componentMeanIndices'][t][n] = remap[self.metaDict[
+                'componentMeanIndices'][t][n]]
 
           for n in range(len(self.outputDict['outputs']['labels'][t])):
-            if self.outputDict['outputs']['labels'][t][n] >=0:
-              self.outputDict['outputs']['labels'][t][n] = remap[self.outputDict['outputs']['labels'][t][n]]
+            if self.outputDict['outputs']['labels'][t][n] >= 0:
+              self.outputDict['outputs']['labels'][t][n] = remap[
+                  self.outputDict['outputs']['labels'][t][n]]
       elif 'manifold' == self.SKLtype:
         # if 'noComponents' not in self.outputDict.keys():
         #   self.outputDict['noComponents'] = {}
@@ -990,20 +1106,26 @@ class temporalSciKitLearn(unSupervisedLearning):
           self.outputDict['outputs']['embeddingVectors'] = {}
 
         if hasattr(self.SKLEngine.Method, 'embedding_'):
-          self.outputDict['outputs']['embeddingVectors'][t] = self.SKLEngine.Method.embedding_
+          self.outputDict['outputs']['embeddingVectors'][
+              t] = self.SKLEngine.Method.embedding_
 
         if 'transform' in dir(self.SKLEngine.Method):
-          self.outputDict['outputs']['embeddingVectors'][t] = self.SKLEngine.Method.transform(self.SKLEngine.normValues)
+          self.outputDict['outputs']['embeddingVectors'][
+              t] = self.SKLEngine.Method.transform(self.SKLEngine.normValues)
         elif 'fit_transform' in dir(self.SKLEngine.Method):
-          self.outputDict['outputs']['embeddingVectors'][t] = self.SKLEngine.Method.fit_transform(self.SKLEngine.normValues)
+          self.outputDict['outputs'][
+              'embeddingVectors'][t] = self.SKLEngine.Method.fit_transform(
+                  self.SKLEngine.normValues)
 
         # if hasattr(self.SKLEngine.Method, 'reconstruction_error_'):
         #   if 'reconstructionError_' not in self.outputDict.keys():
         #     self.outputDict['reconstructionError_'] = {}
         #   self.outputDict['reconstructionError_'][t] = self.SKLEngine.Method.reconstruction_error_
       elif 'decomposition' == self.SKLtype:
-        for var in ['explainedVarianceRatio','means','explainedVariance',
-                    'components']:
+        for var in [
+            'explainedVarianceRatio', 'means', 'explainedVariance',
+            'components'
+        ]:
           if var not in self.metaDict:
             self.metaDict[var] = {}
 
@@ -1018,17 +1140,21 @@ class temporalSciKitLearn(unSupervisedLearning):
         ## gain access to the skl techniques.
         if 'embeddingVectors' not in self.outputDict['outputs']:
           if 'transform' in dir(self.SKLEngine.Method):
-            embeddingVectors = self.SKLEngine.Method.transform(self.SKLEngine.normValues)
+            embeddingVectors = self.SKLEngine.Method.transform(
+                self.SKLEngine.normValues)
           elif 'fit_transform' in dir(self.SKLEngine.Method):
-            embeddingVectors = self.SKLEngine.Method.fit_transform(self.SKLEngine.normValues)
+            embeddingVectors = self.SKLEngine.Method.fit_transform(
+                self.SKLEngine.normValues)
           self.outputDict['outputs']['embeddingVectors'][t] = embeddingVectors
 
         if hasattr(self.SKLEngine.Method, 'means_'):
           self.metaDict['means'][t] = self.SKLEngine.Method.means_
         if hasattr(self.SKLEngine.Method, 'explained_variance_'):
-          self.metaDict['explainedVariance'][t] = self.SKLEngine.Method.explained_variance_
+          self.metaDict['explainedVariance'][
+              t] = self.SKLEngine.Method.explained_variance_
         if hasattr(self.SKLEngine.Method, 'explained_variance_ratio_'):
-          self.metaDict['explainedVarianceRatio'][t] = self.SKLEngine.Method.explained_variance_ratio_
+          self.metaDict['explainedVarianceRatio'][
+              t] = self.SKLEngine.Method.explained_variance_ratio_
 
       else:
         self.raiseAnError(IOError, 'Unknown type: ' + str(self.SKLtype))
@@ -1052,15 +1178,15 @@ class temporalSciKitLearn(unSupervisedLearning):
     if noCluster == 0:
       self.raiseAnError(ValueError, 'number of cluster is 0!!!')
 
-    clusterCenter = np.zeros(shape=(noCluster,len(self.features)))
+    clusterCenter = np.zeros(shape=(noCluster, len(self.features)))
 
     for cnt, feat in enumerate(self.features):
       for ind, l in enumerate(point.keys()):
-        clusterCenter[ind,cnt] = np.average(data[feat][point[l]])
+        clusterCenter[ind, cnt] = np.average(data[feat][point[l]])
 
     return clusterCenter
 
-  def __computeDist__(self,t,n1,n2,dataCenter,opt):
+  def __computeDist__(self, t, n1, n2, dataCenter, opt):
     """
       Computes the distance between two cluster centers.
       Four different distance metrics are implemented, which can be specified by input opt
@@ -1071,15 +1197,15 @@ class temporalSciKitLearn(unSupervisedLearning):
       @In, opt, string, specifies which distance metric to use
       @Out, dist, float, distance between center n1 and center n2
     """
-    x1 = dataCenter[t-1][n1,:]
-    x2 = dataCenter[t][n2,:]
+    x1 = dataCenter[t - 1][n1, :]
+    x2 = dataCenter[t][n2, :]
 
     if opt in ['Distance']:
-      dist = np.sqrt(np.dot(x1-x2,x1-x2))
+      dist = np.sqrt(np.dot(x1 - x2, x1 - x2))
       return dist
 
     if opt in ['Overlap']:
-      l1 = self.outputDict['outputs']['labels'][t-1]
+      l1 = self.outputDict['outputs']['labels'][t - 1]
       l2 = self.SKLEngine.Method.labels_
 
       point1 = []
@@ -1091,49 +1217,50 @@ class temporalSciKitLearn(unSupervisedLearning):
       for n in range(len(l2)):
         if l2[n] == n2:
           point2.append(n)
-      dist = - len(set(point1).intersection(point2))
+      dist = -len(set(point1).intersection(point2))
 
       return dist
 
     if opt in ['DistVariance']:
-      l1 = self.outputDict['outputs']['labels'][t-1]
+      l1 = self.outputDict['outputs']['labels'][t - 1]
       l2 = self.SKLEngine.Method.labels_
 
-      dist = np.sqrt(np.dot(x1-x2,x1-x2))
+      dist = np.sqrt(np.dot(x1 - x2, x1 - x2))
       v1 = v2 = N1 = N2 = 0
       noFeat = len(self.features)
       for n in range(len(l1)):
         # compute variance of points with label l1
         if l1[n] == n1:
-          x = np.zeros(shape=(noFeat,))
+          x = np.zeros(shape=(noFeat, ))
           for cnt, feat in enumerate(self.features):
-            x[cnt] = self.inputDict[feat][n,t-1]
-          v1 += np.sqrt(np.dot(x-x1,x-x1))**2
+            x[cnt] = self.inputDict[feat][n, t - 1]
+          v1 += np.sqrt(np.dot(x - x1, x - x1))**2
           N1 += 1
       for n in range(len(l2)):
         # compute variance of points with label l2
         if l2[n] == n2:
-          x = np.zeros(shape=(noFeat,))
+          x = np.zeros(shape=(noFeat, ))
           for cnt, feat in enumerate(self.features):
-            x[cnt] = self.inputDict[feat][n,t]
-          v2 += np.sqrt(np.dot(x-x2,x-x2))**2
+            x[cnt] = self.inputDict[feat][n, t]
+          v2 += np.sqrt(np.dot(x - x2, x - x2))**2
           N2 += 1
-      dist += np.abs(np.sqrt(v1/(N1-1)*1.0) - np.sqrt(v2/(N2-1)*1.0))
+      dist += np.abs(
+          np.sqrt(v1 / (N1 - 1) * 1.0) - np.sqrt(v2 / (N2 - 1) * 1.0))
       return dist
 
     if opt in ['DistanceWithDecay']:
       K = self.reOrderStep
       decR = 1
       dist = 0
-      for k in range(1,K+1):
-        if t-k >= 0:
-          if n1 < dataCenter[t-k].shape[0]:
-            x1 = dataCenter[t-k][n1,:]
-            dist += np.sqrt(np.dot(x1-x2,x1-x2))*np.exp(-(k-1)*decR)
+      for k in range(1, K + 1):
+        if t - k >= 0:
+          if n1 < dataCenter[t - k].shape[0]:
+            x1 = dataCenter[t - k][n1, :]
+            dist += np.sqrt(np.dot(x1 - x2, x1 - x2)) * np.exp(-(k - 1) * decR)
 
       return dist
 
-  def __reMapCluster__(self,t,dataCenter,dataCenterIndex):
+  def __reMapCluster__(self, t, dataCenter, dataCenterIndex):
     """
       Computes the remapping relationship between the current time step cluster and the previous time step
       @In, t, float, current time
@@ -1141,20 +1268,21 @@ class temporalSciKitLearn(unSupervisedLearning):
       @In, dataCenterIndex, dict, each value contains the center index at each time step
       @Out, remap, list, remapping relation between the current time step cluster and the previous time step
     """
-    indices1 = dataCenterIndex[t-1]
+    indices1 = dataCenterIndex[t - 1]
     indices2 = dataCenterIndex[t]
 
-    N1 = dataCenter[t-1].shape[0]
+    N1 = dataCenter[t - 1].shape[0]
     N2 = dataCenter[t].shape[0]
 
-    dMatrix = np.zeros(shape=(N1,N2))
+    dMatrix = np.zeros(shape=(N1, N2))
     for n1 in range(N1):
       for n2 in range(N2):
-        dMatrix[n1,n2] = self.__computeDist__(t,n1,n2,dataCenter,'DistanceWithDecay')
+        dMatrix[n1, n2] = self.__computeDist__(t, n1, n2, dataCenter,
+                                               'DistanceWithDecay')
     _, mapping = self.__localReMap__(dMatrix, (range(N1), range(N2)))
 
     remap = {}
-    f1, f2 = [False]*N1, [False]*N2
+    f1, f2 = [False] * N1, [False] * N2
     for mp in mapping:
       i1, i2 = mp[0], mp[1]
       if f1[i1] or f2[i2]:
@@ -1168,12 +1296,12 @@ class temporalSciKitLearn(unSupervisedLearning):
       tmp = 1
       for n2 in range(N2):
         if indices2[n2] not in remap.keys():
-          remap[indices2[n2]] = max(indices1)+tmp
+          remap[indices2[n2]] = max(indices1) + tmp
           # remap[indices2[n2]] = self.maxNoClusters + 1 # every discontinuity would introduce a new cluster index.
 
     return remap
 
-  def __localReMap__(self, dMatrix,loc):
+  def __localReMap__(self, dMatrix, loc):
     """
       Method to return the mapping based on distance stored in dMatrix, the returned mapping shall minimize the global sum of distance
       This function is recursively called to find the global minimum, so is computationally expensive --- FIXME
@@ -1186,18 +1314,18 @@ class temporalSciKitLearn(unSupervisedLearning):
       sumDist, localReMap = np.inf, -1
       n1 = loc[0][0]
       for n2 in loc[1]:
-        if dMatrix[n1,n2] < sumDist:
-          sumDist = dMatrix[n1,n2]
+        if dMatrix[n1, n2] < sumDist:
+          sumDist = dMatrix[n1, n2]
           localReMap = n2
-      return sumDist, [(n1,localReMap)]
+      return sumDist, [(n1, localReMap)]
     elif len(loc[1]) == 1:
       sumDist, localReMap = np.inf, -1
       n2 = loc[1][0]
       for n1 in loc[0]:
-        if dMatrix[n1,n2] < sumDist:
-          sumDist = dMatrix[n1,n2]
+        if dMatrix[n1, n2] < sumDist:
+          sumDist = dMatrix[n1, n2]
           localReMap = n1
-      return sumDist, [(localReMap,n2)]
+      return sumDist, [(localReMap, n2)]
     else:
       sumDist, i1, i2, localReMap = np.inf, -1, -1, []
       n1 = loc[0][0]
@@ -1206,11 +1334,11 @@ class temporalSciKitLearn(unSupervisedLearning):
       for n2 in loc[1]:
         temp2 = copy.deepcopy(loc[1])
         temp2.remove(n2)
-        d_temp, l = self.__localReMap__(dMatrix, (temp1,temp2))
-        if dMatrix[n1,n2] + d_temp < sumDist:
-          sumDist = dMatrix[n1,n2] + d_temp
+        d_temp, l = self.__localReMap__(dMatrix, (temp1, temp2))
+        if dMatrix[n1, n2] + d_temp < sumDist:
+          sumDist = dMatrix[n1, n2] + d_temp
           i1, i2, localReMap = n1, n2, l
-      localReMap.append((i1,i2))
+      localReMap.append((i1, i2))
       return sumDist, localReMap
 
   def __evaluateLocal__(self, featureVals):
@@ -1241,7 +1369,8 @@ class Scipy(unSupervisedLearning):
   modelType = 'Scipy'
   availImpl = {}
   availImpl['cluster'] = {}
-  availImpl['cluster']['Hierarchical'] = (hier.hierarchy, 'float')  # Perform Hierarchical Clustering of data.
+  availImpl['cluster']['Hierarchical'] = (
+      hier.hierarchy, 'float')  # Perform Hierarchical Clustering of data.
 
   def __init__(self, messageHandler, **kwargs):
     """
@@ -1253,7 +1382,10 @@ class Scipy(unSupervisedLearning):
     unSupervisedLearning.__init__(self, messageHandler, **kwargs)
     self.printTag = 'SCIPY'
     if 'SCIPYtype' not in self.initOptionDict.keys():
-      self.raiseAnError(IOError, ' to define a Scipy unSupervisedLearning Method the SCIPYtype keyword is needed (from KDD ' + self.name + ')')
+      self.raiseAnError(
+          IOError,
+          ' to define a Scipy unSupervisedLearning Method the SCIPYtype keyword is needed (from KDD '
+          + self.name + ')')
 
     SCIPYtype, SCIPYsubType = self.initOptionDict['SCIPYtype'].split('|')
     self.initOptionDict.pop('SCIPYtype')
@@ -1263,7 +1395,8 @@ class Scipy(unSupervisedLearning):
     if not SCIPYsubType in self.__class__.availImpl[SCIPYtype].keys():
       self.raiseAnError(IOError, ' Unknown SCIPYsubType ' + SCIPYsubType)
 
-    self.__class__.returnType = self.__class__.availImpl[SCIPYtype][SCIPYsubType][1]
+    self.__class__.returnType = self.__class__.availImpl[SCIPYtype][
+        SCIPYsubType][1]
     self.Method = self.__class__.availImpl[SCIPYtype][SCIPYsubType][0]
     self.SCIPYtype = SCIPYtype
     self.SCIPYsubType = SCIPYsubType
@@ -1277,27 +1410,32 @@ class Scipy(unSupervisedLearning):
       @ Out, None
     """
     self.outputDict['outputs'] = {}
-    self.outputDict['inputs' ] = self.normValues
+    self.outputDict['inputs'] = self.normValues
     if hasattr(self.Method, 'linkage'):
-      self.linkage = self.Method.linkage(self.normValues,self.initOptionDict['method'],self.initOptionDict['metric'])
+      self.linkage = self.Method.linkage(self.normValues,
+                                         self.initOptionDict['method'],
+                                         self.initOptionDict['metric'])
 
       if 'dendrogram' in self.initOptionDict and self.initOptionDict['dendrogram'] == 'true':
-        self.ddata = self.advDendrogram(self.linkage,
-                                        p                = float(self.initOptionDict['p']),
-                                        leaf_rotation    = 90.,
-                                        leaf_font_size   = 12.,
-                                        truncate_mode    = self.initOptionDict['truncationMode'],
-                                        show_leaf_counts = self.initOptionDict['leafCounts'],
-                                        show_contracted  = self.initOptionDict['showContracted'],
-                                        annotate_above   = self.initOptionDict['annotatedAbove'],
-                                        #orientation      = self.initOptionDict['orientation'],
-                                        max_d            = self.initOptionDict['level'])
+        self.ddata = self.advDendrogram(
+            self.linkage,
+            p=float(self.initOptionDict['p']),
+            leaf_rotation=90.,
+            leaf_font_size=12.,
+            truncate_mode=self.initOptionDict['truncationMode'],
+            show_leaf_counts=self.initOptionDict['leafCounts'],
+            show_contracted=self.initOptionDict['showContracted'],
+            annotate_above=self.initOptionDict['annotatedAbove'],
+            #orientation      = self.initOptionDict['orientation'],
+            max_d=self.initOptionDict['level'])
 
-      self.labels_ = hier.hierarchy.fcluster(self.linkage, self.initOptionDict['level'],self.initOptionDict['criterion'])
+      self.labels_ = hier.hierarchy.fcluster(self.linkage,
+                                             self.initOptionDict['level'],
+                                             self.initOptionDict['criterion'])
       self.outputDict['outputs']['labels'] = self.labels_
     return self.labels_
 
-  def advDendrogram(self,*args, **kwargs):
+  def advDendrogram(self, *args, **kwargs):
     """
       This methods actually creates the dendrogram
       @ In, None
@@ -1315,14 +1453,18 @@ class Scipy(unSupervisedLearning):
       plt.title('Hierarchical Clustering Dendrogram')
       plt.xlabel('sample index')
       plt.ylabel('distance')
-      for i, d, c in zip(ddata['icoord'], ddata['dcoord'], ddata['color_list']):
+      for i, d, c in zip(ddata['icoord'], ddata['dcoord'],
+                         ddata['color_list']):
         x = 0.5 * sum(i[1:3])
         y = d[1]
         if y > annotate_above:
           plt.plot(x, y, 'o', c=c)
-          plt.annotate("%.3g" % y, (x, y), xytext=(15, 11),
-                       textcoords='offset points',
-                       va='top', ha='center')
+          plt.annotate(
+              "%.3g" % y, (x, y),
+              xytext=(15, 11),
+              textcoords='offset points',
+              va='top',
+              ha='center')
       if max_d:
         plt.axhline(y=max_d, c='0.1')
     if 'dendFileID' in self.initOptionDict:
@@ -1333,7 +1475,7 @@ class Scipy(unSupervisedLearning):
     plt.close()
     return ddata
 
-  def __evaluateLocal__(self,*args, **kwargs):
+  def __evaluateLocal__(self, *args, **kwargs):
     """
       Method to return output of an already trained scipy algorithm.
       @ In, featureVals, numpy.array, feature values
@@ -1352,12 +1494,14 @@ class Scipy(unSupervisedLearning):
     """
     return self.SCIPYtype
 
+
 __interfaceDict = {}
 __interfaceDict['SciKitLearn'] = SciKitLearn
 __interfaceDict['temporalSciKitLearn'] = temporalSciKitLearn
 __interfaceDict['Scipy'] = Scipy
 
 __base = 'unSuperVisedLearning'
+
 
 def returnInstance(modelClass, caller, **kwargs):
   """
@@ -1371,7 +1515,10 @@ def returnInstance(modelClass, caller, **kwargs):
     return __interfaceDict[modelClass](caller.messageHandler, **kwargs)
   except KeyError as ae:
     # except Exception as(ae):
-    caller.raiseAnError(NameError, 'unSupervisedLearning', 'Unknown ' + __base + ' type ' + str(modelClass)+'.Error: '+ str(ae))
+    caller.raiseAnError(NameError, 'unSupervisedLearning',
+                        'Unknown ' + __base + ' type ' + str(modelClass) +
+                        '.Error: ' + str(ae))
+
 
 def returnClass(modelClass, caller):
   """
@@ -1383,4 +1530,5 @@ def returnClass(modelClass, caller):
   try:
     return __interfaceDict[modelClass]
   except KeyError:
-    caller.raiseanError(NameError, 'unSupervisedLearning', 'not known ' + __base + ' type ' + modelClass)
+    caller.raiseanError(NameError, 'unSupervisedLearning',
+                        'not known ' + __base + ' type ' + modelClass)

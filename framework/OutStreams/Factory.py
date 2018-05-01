@@ -19,7 +19,7 @@
 #for future compatibility with Python 3-----------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
-warnings.simplefilter('default',DeprecationWarning)
+warnings.simplefilter('default', DeprecationWarning)
 if not 'xrange' in dir(__builtins__):
   xrange = range
 #End compatibility block for Python 3-------------------------------------------
@@ -34,7 +34,6 @@ from .OutStreamPrint import OutStreamPrint
 ## Alternatively, to fully automate this file:
 # from OutStreamManagers import *
 ################################################################################
-
 """
   Interface Dictionary (factory) (private)
 """
@@ -47,8 +46,9 @@ for classObj in utils.getAllSubclasses(eval(__base)):
   ## As long as these subclasses follow the pattern of starting with OutStream
   ## this will appropriately key them to a more user-friendly name without the
   ## need for them to redudantly prepend "X" as "OutStreamX"
-  key = classObj.__name__.replace('OutStream','')
+  key = classObj.__name__.replace('OutStream', '')
   __interFaceDict[key] = classObj
+
 
 def knownTypes():
   """
@@ -59,7 +59,8 @@ def knownTypes():
   """
   return __interFaceDict.keys()
 
-def returnInstance(Type,caller):
+
+def returnInstance(Type, caller):
   """
     Attempts to create and return an instance of a particular type of object
     available to this factory.
@@ -72,9 +73,11 @@ def returnInstance(Type,caller):
   except KeyError:
     # print(eval(__base).__subclasses__())
     # print(__interfaceDict.keys())
-    caller.raiseAnError(NameError,__name__+': unknown '+__base+' type '+Type)
+    caller.raiseAnError(NameError,
+                        __name__ + ': unknown ' + __base + ' type ' + Type)
 
-def returnClass(Type,caller):
+
+def returnClass(Type, caller):
   """
     Attempts to return a particular class type available to this factory.
     @ In, Type, string, string should be one of the knownTypes.
@@ -84,4 +87,5 @@ def returnClass(Type,caller):
   try:
     return __interFaceDict[Type]
   except KeyError:
-    caller.raiseAnError(NameError,__name__+': unknown '+__base+' type '+Type)
+    caller.raiseAnError(NameError,
+                        __name__ + ': unknown ' + __base + ' type ' + Type)

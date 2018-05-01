@@ -19,25 +19,27 @@
 """
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
-warnings.simplefilter('default',DeprecationWarning)
+warnings.simplefilter('default', DeprecationWarning)
 import re
 import copy
+
 
 class MELCORdata:
   """
     class that parses output of MELCOR 2.1 output file and reads in trip, minor block and write a csv file
     For now, Only the data associated to control volumes are parsed and output
   """
-  def __init__(self,filen):
+
+  def __init__(self, filen):
     """
       Constructor
       @ In, filen, FileObject, the file to parse
       @ Out, None
     """
-    self.lines      = open(filen,"r").readlines()
-    timeBlocks      = self.getTimeBlocks()
+    self.lines = open(filen, "r").readlines()
+    timeBlocks = self.getTimeBlocks()
     self.timeParams = {}
-    volForEachTime  = self.returnVolumeHybro(timeBlocks)
+    volForEachTime = self.returnVolumeHybro(timeBlocks)
     self.timeParams.update(volForEachTime)
 
   def getTimeBlocks(self):
@@ -50,33 +52,35 @@ class MELCORdata:
     timeBlock = {}
     for lineNumber, line in enumerate(self.lines):
       if line.strip().startswith("1*"):
-        lineNum.append([lineNumber,self.lines[lineNumber+1].split("=")[1].split( )[0]])
-    for cnt,info in enumerate(lineNum):
-      endLineCnt = lineNum[cnt+1][0]-1 if cnt < len(lineNum)-1 else len(self.lines)-1
-      timeBlock[info[1]] = self.lines[info[0]+1:endLineCnt]
+        lineNum.append(
+            [lineNumber, self.lines[lineNumber + 1].split("=")[1].split()[0]])
+    for cnt, info in enumerate(lineNum):
+      endLineCnt = lineNum[cnt + 1][0] - 1 if cnt < len(lineNum) - 1 else len(
+          self.lines) - 1
+      timeBlock[info[1]] = self.lines[info[0] + 1:endLineCnt]
     return timeBlock
 
-  def returnVolumeHybro(self,timeBlock):
+  def returnVolumeHybro(self, timeBlock):
     """
       CONTROL VOLUME HYDRODYNAMICS EDIT
       @ In, timeBlock, dict, {"time":[lines Of Output for that time]}
     """
     volForEachTime = {}
-    for time,listOfLines in timeBlock.items():
+    for time, listOfLines in timeBlock.items():
       results = {}
       for cnt, line in enumerate(listOfLines):
         if line.strip().startswith("VOLUME"):
-          headers  = line.strip().split()[1:len(line.strip().split())-1]
+          headers = line.strip().split()[1:len(line.strip().split()) - 1]
           for lineLine in listOfLines[cnt + 2:]:
             if len(lineLine.strip()) < 1:
               break
-            valueSplit   = lineLine.strip().split()
+            valueSplit = lineLine.strip().split()
             volumeNumber = lineLine.strip().split()[0]
             if not volumeNumber.isdigit():
               break
             valueSplit = valueSplit[1:len(valueSplit)]
-            for paramCnt,header in enumerate(headers):
-              parameter = "volume_"+str(volumeNumber)+"_"+header.strip()
+            for paramCnt, header in enumerate(headers):
+              parameter = "volume_" + str(volumeNumber) + "_" + header.strip()
               try:
                 testFloat = float(valueSplit[paramCnt])
                 results[parameter] = valueSplit[paramCnt]
@@ -86,21 +90,21 @@ class MELCORdata:
       volForEachTime[time] = copy.deepcopy(results)
     return volForEachTime
 
-  def writeCsv(self,filen):
+  def writeCsv(self, filen):
     """
       Output the parsed results into a CSV file
       @ In, filen, str, the file name of the CSV file
       @ Out, None
     """
-    IOcsvfile=open(filen,'w+')
+    IOcsvfile = open(filen, 'w+')
     getHeaders = self.timeParams.values()[0].keys()
     header = ','.join(getHeaders)
-    header = "time,"+header+"\n"
+    header = "time," + header + "\n"
     IOcsvfile.write(header)
     for time in self.timeParams.keys():
       stringToWrite = str(time)
       for value in self.timeParams[time].values():
-        stringToWrite+=","+str(value)
-      stringToWrite+="\n"
+        stringToWrite += "," + str(value)
+      stringToWrite += "\n"
       IOcsvfile.write(stringToWrite)
     IOcsvfile.close()

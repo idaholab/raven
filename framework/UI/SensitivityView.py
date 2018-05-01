@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """
    A view widget for visualizing the sensitivity coefficients of each locally
    constructed model of the data.
@@ -20,7 +19,7 @@
 #For future compatibility with Python 3
 from __future__ import division, print_function, absolute_import
 import warnings
-warnings.simplefilter('default',DeprecationWarning)
+warnings.simplefilter('default', DeprecationWarning)
 #End compatibility block for Python 3
 
 from PySide import QtCore as qtc
@@ -33,6 +32,7 @@ from .BaseTopologicalView import BaseTopologicalView
 import math
 import numpy as np
 
+
 ## TODO: Fix the fonts
 ## TODO: Make scale make sense
 ## TODO: Place labels better
@@ -41,6 +41,7 @@ class SensitivityView(BaseTopologicalView):
      A view widget for visualizing the sensitivity coefficients of each locally
      constructed model of the data.
   """
+
   def __init__(self, parent=None, amsc=None, title=None):
     """ Initialization method that can optionally specify the parent widget,
         an AMSC object to reference, and a title for this widget.
@@ -49,7 +50,7 @@ class SensitivityView(BaseTopologicalView):
           object for this widget to use.
         @ In, title, an optional string specifying the title of this widget.
     """
-    super(SensitivityView, self).__init__(parent,amsc,title)
+    super(SensitivityView, self).__init__(parent, amsc, title)
 
   def Reinitialize(self, parent=None, amsc=None, title=None):
     """ Reinitialization method that resets this widget and can optionally
@@ -71,10 +72,10 @@ class SensitivityView(BaseTopologicalView):
 
     ## General Graphics View/Scene setup
     self.scene = qtw.QGraphicsScene()
-    self.scene.setSceneRect(0,0,100,100)
+    self.scene.setSceneRect(0, 0, 100, 100)
     self.gView = qtw.QGraphicsView(self.scene)
-    self.gView.setRenderHints(qtg.QPainter.Antialiasing |
-                              qtg.QPainter.SmoothPixmapTransform)
+    self.gView.setRenderHints(qtg.QPainter.Antialiasing
+                              | qtg.QPainter.SmoothPixmapTransform)
     self.gView.setHorizontalScrollBarPolicy(qtc.Qt.ScrollBarAlwaysOff)
     self.gView.setVerticalScrollBarPolicy(qtc.Qt.ScrollBarAlwaysOff)
     self.font = qtg.QFont('sans-serif', 12)
@@ -112,7 +113,8 @@ class SensitivityView(BaseTopologicalView):
     self.showLabelsAction.setChecked(True)
     self.showLabelsAction.triggered.connect(self.updateScene)
 
-    self.showNumberAction = self.rightClickMenu.addAction('Show Numeric Values')
+    self.showNumberAction = self.rightClickMenu.addAction(
+        'Show Numeric Values')
     self.showNumberAction.setCheckable(True)
     self.showNumberAction.setChecked(True)
     self.showNumberAction.triggered.connect(self.updateScene)
@@ -135,8 +137,8 @@ class SensitivityView(BaseTopologicalView):
     captureAction = self.rightClickMenu.addAction('Capture')
     captureAction.triggered.connect(self.saveImage)
 
-    self.gView.scale(self.gView.width()/self.scene.width(),
-                     self.gView.height()/self.scene.height())
+    self.gView.scale(self.gView.width() / self.scene.width(),
+                     self.gView.height() / self.scene.height())
 
     layout.addWidget(self.gView)
     self.updateScene()
@@ -169,30 +171,31 @@ class SensitivityView(BaseTopologicalView):
       svgGen.setViewBox(self.scene.sceneRect())
       svgGen.setTitle("Screen capture of " + self.__class__.__name__)
       svgGen.setDescription("Generated from RAVEN.")
-      painter = qtg.QPainter (svgGen)
+      painter = qtg.QPainter(svgGen)
     else:
-      image = qtg.QImage(self.scene.sceneRect().size().toSize(), qtg.QImage.Format_ARGB32)
+      image = qtg.QImage(self.scene.sceneRect().size().toSize(),
+                         qtg.QImage.Format_ARGB32)
       image.fill(qtc.Qt.transparent)
       painter = qtg.QPainter(image)
     self.scene.render(painter)
     if not filename.endswith('.svg'):
-      image.save(filename,quality=100)
+      image.save(filename, quality=100)
     del painter
 
-  def contextMenuEvent(self,event):
+  def contextMenuEvent(self, event):
     """ An event handler triggered when the user right-clicks on this view that
         will force the context menu to appear.
         @ In, event, a QContextMenuEvent specifying the context of this event.
     """
     self.rightClickMenu.popup(event.globalPos())
 
-  def resizeEvent(self,event):
+  def resizeEvent(self, event):
     """ An event handler triggered when the user resizes this view.
         @ In, event, a QResizeEvent specifying the context of this event.
     """
     super(SensitivityView, self).resizeEvent(event)
-    self.gView.scale(self.gView.width()/self.scene.width(),
-                     self.gView.height()/self.scene.height())
+    self.gView.scale(self.gView.width() / self.scene.width(),
+                     self.gView.height() / self.scene.height())
     self.updateScene()
 
   def selectionChanged(self):
@@ -219,12 +222,13 @@ class SensitivityView(BaseTopologicalView):
     self.scene.clear()
     width = self.scene.width()
     height = self.scene.height()
-    minDim = min([width,height])-24. # 12 point font * 2 for top and bottom,
-                                     ## width is a bit harder...
+    minDim = min([width, height
+                  ]) - 24.  # 12 point font * 2 for top and bottom,
+    ## width is a bit harder...
 
-    centerX = width/2.
-    centerY = height/2.
-    radius = minDim/2.
+    centerX = width / 2.
+    centerY = height / 2.
+    radius = minDim / 2.
 
     axisPen = qtg.QPen(qtc.Qt.black)
 
@@ -232,17 +236,17 @@ class SensitivityView(BaseTopologicalView):
                           minDim, axisPen)
     names = self.amsc.GetNames()[:-1]
 
-    for i,name in enumerate(names):
+    for i, name in enumerate(names):
       if len(names) <= 2:
-        theta = 3*math.pi*float(i)/2.
+        theta = 3 * math.pi * float(i) / 2.
       else:
-        theta = 2*math.pi*float(i)/float(len(names))
-      endX = radius*math.cos(theta)+centerX
-      endY = radius*math.sin(theta)+centerY
-      self.scene.addLine(centerX,centerY,endX,endY,axisPen)
+        theta = 2 * math.pi * float(i) / float(len(names))
+      endX = radius * math.cos(theta) + centerX
+      endY = radius * math.sin(theta) + centerY
+      self.scene.addLine(centerX, centerY, endX, endY, axisPen)
       if self.showLabelsAction.isChecked():
-        txtItem = self.scene.addSimpleText(name,self.font)
-        txtItem.setPos(endX,endY)
+        txtItem = self.scene.addSimpleText(name, self.font)
+        txtItem.setPos(endX, endY)
         txtItem.setFlag(qtw.QGraphicsItem.ItemIsMovable)
         txtItem.setFlag(qtw.QGraphicsItem.ItemIsSelectable)
         txtItem.setFlag(qtw.QGraphicsItem.ItemIgnoresTransformations)
@@ -273,8 +277,8 @@ class SensitivityView(BaseTopologicalView):
     if self.valueGroup.checkedAction().text() == 'Linear coefficients':
       maxValue = 0
       for extPair in selection:
-        if maxValue < max(map(abs,fits[extPair])):
-          maxValue = max(map(abs,fits[extPair]))
+        if maxValue < max(map(abs, fits[extPair])):
+          maxValue = max(map(abs, fits[extPair]))
     else:
       maxValue = 1
 
@@ -285,17 +289,17 @@ class SensitivityView(BaseTopologicalView):
       brushColor.setAlpha(127)
       myBrush = qtg.QBrush(brushColor)
       myPoly = qtg.QPolygonF()
-      for i,val in enumerate(map(abs,fits[extPair])):
+      for i, val in enumerate(map(abs, fits[extPair])):
         if len(names) <= 2:
-          theta = 3*math.pi*float(i)/2.
+          theta = 3 * math.pi * float(i) / 2.
         else:
-          theta = 2*math.pi*float(i)/float(len(names))
-        dimX = (val/maxValue)*radius*math.cos(theta)+centerX
-        dimY = (val/maxValue)*radius*math.sin(theta)+centerY
-        myPoly.append(qtc.QPointF(dimX,dimY))
+          theta = 2 * math.pi * float(i) / float(len(names))
+        dimX = (val / maxValue) * radius * math.cos(theta) + centerX
+        dimY = (val / maxValue) * radius * math.sin(theta) + centerY
+        myPoly.append(qtc.QPointF(dimX, dimY))
       if len(names) <= 2:
-        myPoly.append(qtc.QPointF(centerX,centerY))
-      self.scene.addPolygon(myPoly,myPen,myBrush)
+        myPoly.append(qtc.QPointF(centerX, centerY))
+      self.scene.addPolygon(myPoly, myPen, myBrush)
 
   def layoutBarScene(self):
     """ A convenience method for drawing the sensitivity scene in bar fashion.
@@ -305,8 +309,8 @@ class SensitivityView(BaseTopologicalView):
     width = self.scene.width()
     height = self.scene.height()
 
-    plotWidth = width - 2*self.padding
-    plotHeight = height - 2*self.padding
+    plotWidth = width - 2 * self.padding
+    plotHeight = height - 2 * self.padding
 
     maxExtent = plotWidth
 
@@ -339,30 +343,30 @@ class SensitivityView(BaseTopologicalView):
     if self.valueGroup.checkedAction().text() == 'Linear coefficients':
       maxValue = 0
       for extPair in selection:
-        if maxValue < max(map(abs,fits[extPair])):
-          maxValue = max(map(abs,fits[extPair]))
+        if maxValue < max(map(abs, fits[extPair])):
+          maxValue = max(map(abs, fits[extPair]))
     else:
       maxValue = 1
 
     if self.bundledAction.isChecked():
-      axisHeight = plotHeight/float(len(names))
-      axisWidth = plotWidth/float(len(names))
+      axisHeight = plotHeight / float(len(names))
+      axisWidth = plotWidth / float(len(names))
 
-      for j,extPair in enumerate(selection):
+      for j, extPair in enumerate(selection):
         myColor = colorMap[extPair]
         myPen = qtg.QPen(qtg.QColor('#000000'))
         brushColor = qtg.QColor(myColor)
         brushColor.setAlpha(127)
         myBrush = qtg.QBrush(brushColor)
-        for i,val in enumerate(fits[extPair]):
+        for i, val in enumerate(fits[extPair]):
           absVal = abs(val)
-          barExtent = (absVal/maxValue)*maxExtent
+          barExtent = (absVal / maxValue) * maxExtent
           if self.signedAction.isChecked():
-            x = self.padding + maxExtent/2.
+            x = self.padding + maxExtent / 2.
             if val > 0:
-              w = barExtent/2.
+              w = barExtent / 2.
             else:
-              w = -barExtent/2.
+              w = -barExtent / 2.
           else:
             x = self.padding
             w = barExtent
@@ -374,53 +378,56 @@ class SensitivityView(BaseTopologicalView):
             numTxtItem.setFlag(qtw.QGraphicsItem.ItemIgnoresTransformations)
             fm = qtg.QFontMetrics(numTxtItem.font())
             fontWidth = fm.width(numTxtItem.text())
-            numTxtItem.setPos(self.padding+maxExtent-fontWidth,y+h)
+            numTxtItem.setPos(self.padding + maxExtent - fontWidth, y + h)
             numTxtItem.setFlag(qtw.QGraphicsItem.ItemIsMovable)
             numTxtItem.setFlag(qtw.QGraphicsItem.ItemIsSelectable)
             numTxtItem.setZValue(2)
-          myRect = self.scene.addRect(x,y,w,h,myPen,myBrush)
+          myRect = self.scene.addRect(x, y, w, h, myPen, myBrush)
           myRect.setToolTip(str(val))
           myRect.setAcceptHoverEvents(True)
-      for i,name in enumerate(names):
+      for i, name in enumerate(names):
         x = self.padding
-        y = height - self.padding - i/float(len(names))*plotHeight
+        y = height - self.padding - i / float(len(names)) * plotHeight
         w = plotWidth
         h = -axisHeight
         if self.showLabelsAction.isChecked():
-          txtItem = self.scene.addSimpleText(name,self.font)
+          txtItem = self.scene.addSimpleText(name, self.font)
           txtItem.setFlag(qtw.QGraphicsItem.ItemIgnoresTransformations)
           fm = qtg.QFontMetrics(txtItem.font())
           fontHeight = fm.height()
           fontWidth = fm.width(txtItem.text())
-          txtItem.setPos(self.padding-fontWidth,y+h + (axisHeight-fontHeight)/2.)
+          txtItem.setPos(self.padding - fontWidth,
+                         y + h + (axisHeight - fontHeight) / 2.)
           txtItem.setFlag(qtw.QGraphicsItem.ItemIsMovable)
           txtItem.setFlag(qtw.QGraphicsItem.ItemIsSelectable)
           txtItem.setZValue(2)
-        myRect = self.scene.addRect(x,y,w,h,axisPen)
-        myRect.setZValue(2) # Any value greater than 1 should work to draw on top
+        myRect = self.scene.addRect(x, y, w, h, axisPen)
+        myRect.setZValue(
+            2)  # Any value greater than 1 should work to draw on top
     else:
       if len(selection) > 0:
-        axisHeight = plotHeight/float(len(selection))
-        axisWidth = plotWidth/float(len(selection))
+        axisHeight = plotHeight / float(len(selection))
+        axisWidth = plotWidth / float(len(selection))
       dimCount = len(names)
 
-      self.font.setPointSizeF(np.clip(axisHeight/float(dimCount)-2*self.padding,2,18))
-      for j,extPair in enumerate(selection):
+      self.font.setPointSizeF(
+          np.clip(axisHeight / float(dimCount) - 2 * self.padding, 2, 18))
+      for j, extPair in enumerate(selection):
         myColor = colorMap[extPair]
         myPen = qtg.QPen(qtg.QColor('#000000'))
         brushColor = qtg.QColor(myColor)
         brushColor.setAlpha(127)
         myBrush = qtg.QBrush(brushColor)
-        for i,val in enumerate(fits[extPair]):
+        for i, val in enumerate(fits[extPair]):
           absVal = abs(val)
           name = names[i]
-          barExtent = (absVal/maxValue)*maxExtent
+          barExtent = (absVal / maxValue) * maxExtent
           if self.signedAction.isChecked():
-            x = self.padding + maxExtent/2.
+            x = self.padding + maxExtent / 2.
             if val > 0:
-              w = barExtent/2.
+              w = barExtent / 2.
             else:
-              w = -barExtent/2.
+              w = -barExtent / 2.
           else:
             x = self.padding
             w = barExtent
@@ -429,14 +436,14 @@ class SensitivityView(BaseTopologicalView):
           h = -axisHeight / float(dimCount)
 
           if self.showLabelsAction.isChecked():
-            txtItem = self.scene.addSimpleText(name,self.font)
+            txtItem = self.scene.addSimpleText(name, self.font)
             ## this line can be useful for text sizing, although we cannot
             ## rotate the text if we ignore the transformations.
             # txtItem.setFlag(qtw.QGraphicsItem.ItemIgnoresTransformations)
             fm = qtg.QFontMetrics(txtItem.font())
             fontHeight = fm.boundingRect(txtItem.text()).height()
             fontWidth = fm.boundingRect(txtItem.text()).width()
-            txtItem.setPos(self.padding,y+0.5*(h-fontHeight))
+            txtItem.setPos(self.padding, y + 0.5 * (h - fontHeight))
             txtItem.setFlag(qtw.QGraphicsItem.ItemIsMovable)
             txtItem.setFlag(qtw.QGraphicsItem.ItemIsSelectable)
             txtItem.setZValue(2)
@@ -448,43 +455,47 @@ class SensitivityView(BaseTopologicalView):
             fm = qtg.QFontMetrics(numTxtItem.font())
             fontWidth = fm.boundingRect(numTxtItem.text()).width()
             fontHeight = fm.boundingRect(numTxtItem.text()).height()
-            numTxtItem.setPos(self.padding+maxExtent-fontWidth,y+0.5*(h-fontHeight))
+            numTxtItem.setPos(self.padding + maxExtent - fontWidth,
+                              y + 0.5 * (h - fontHeight))
             numTxtItem.setFlag(qtw.QGraphicsItem.ItemIsMovable)
             numTxtItem.setFlag(qtw.QGraphicsItem.ItemIsSelectable)
             numTxtItem.setZValue(2)
-          myRect = self.scene.addRect(x,y,w,h,myPen,myBrush)
+          myRect = self.scene.addRect(x, y, w, h, myPen, myBrush)
           myRect.setToolTip(str(val))
           myRect.setAcceptHoverEvents(True)
 
         x = self.padding
-        y = (height-self.padding) - j*axisHeight
+        y = (height - self.padding) - j * axisHeight
         w = maxExtent
         h = -axisHeight
-        myRect = self.scene.addRect(x,y,w,h,axisPen)
-        myRect.setZValue(2) # Any value greater than 1 should work to draw on top
+        myRect = self.scene.addRect(x, y, w, h, axisPen)
+        myRect.setZValue(
+            2)  # Any value greater than 1 should work to draw on top
 
     if self.signedAction.isChecked():
       axisPen = qtg.QPen(qtc.Qt.black)
       axisPen.setWidthF(.5)
-      x = self.padding + maxExtent/2.
+      x = self.padding + maxExtent / 2.
       y = self.padding
       h = plotHeight
-      self.scene.addLine(x,y,x,y+h,axisPen)
+      self.scene.addLine(x, y, x, y + h, axisPen)
 
   def updateScene(self):
     """ A method for drawing the scene of this view.
     """
     if not self.amsc.FitsSynced():
-      self.scene.setSceneRect(0,0,self.gView.width(),self.gView.height())
+      self.scene.setSceneRect(0, 0, self.gView.width(), self.gView.height())
       self.scene.clear()
-      txtItem = self.scene.addSimpleText('Rebuild Local Models',self.font)
-      txtItem.setPos(self.padding,self.padding)
+      txtItem = self.scene.addSimpleText('Rebuild Local Models', self.font)
+      txtItem.setPos(self.padding, self.padding)
       txtItem.setFlag(qtw.QGraphicsItem.ItemIgnoresTransformations)
     else:
       if self.fillAction.isChecked():
-        self.scene.setSceneRect(0,0,100*float(self.gView.width())/float(self.gView.height()),100)
+        self.scene.setSceneRect(
+            0, 0, 100 * float(self.gView.width()) / float(self.gView.height()),
+            100)
       else:
-        self.scene.setSceneRect(0,0,100,100)
+        self.scene.setSceneRect(0, 0, 100, 100)
 
       if self.shapeGroup.checkedAction().text() == 'Radial':
         self.bundledAction.setEnabled(False)
@@ -498,9 +509,8 @@ class SensitivityView(BaseTopologicalView):
         self.showNumberAction.setEnabled(True)
         self.fillAction.setEnabled(True)
         self.layoutBarScene()
-    self.gView.fitInView(self.scene.sceneRect(),qtc.Qt.KeepAspectRatio)
+    self.gView.fitInView(self.scene.sceneRect(), qtc.Qt.KeepAspectRatio)
     self.scene.changed.connect(self.scene.invalidate)
-
 
   def test(self):
     """
@@ -535,11 +545,11 @@ class SensitivityView(BaseTopologicalView):
         self.fillAction.setChecked(False)
         self.updateScene()
         pair = self.amsc.GetCurrentLabels()[0]
-        self.amsc.SetSelection([pair,pair[0],pair[1]])
+        self.amsc.SetSelection([pair, pair[0], pair[1]])
         self.updateScene()
 
-    self.saveImage(self.windowTitle()+'.svg')
-    self.saveImage(self.windowTitle()+'.png')
-    self.resizeEvent(qtg.QResizeEvent(qtc.QSize(1,1),qtc.QSize(100,100)))
+    self.saveImage(self.windowTitle() + '.svg')
+    self.saveImage(self.windowTitle() + '.png')
+    self.resizeEvent(qtg.QResizeEvent(qtc.QSize(1, 1), qtc.QSize(100, 100)))
 
     super(SensitivityView, self).test()

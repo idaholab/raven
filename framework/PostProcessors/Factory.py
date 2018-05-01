@@ -20,7 +20,7 @@ Created on July 10, 2013
 #for future compatibility with Python 3-----------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
-warnings.simplefilter('default',DeprecationWarning)
+warnings.simplefilter('default', DeprecationWarning)
 if not 'xrange' in dir(__builtins__):
   xrange = range
 #End compatibility block for Python 3-------------------------------------------
@@ -57,8 +57,6 @@ from .ETImporter import ETImporter
 ## Alternatively, to fully automate this file:
 # from PostProcessors import *
 ################################################################################
-
-
 """
  Interface Dictionary (factory) (private)
 """
@@ -75,11 +73,12 @@ for classObj in utils.getAllSubclasses(eval(__base)):
 ## Adding aliases for certain classes that are exposed to the user.
 __interFaceDict['External'] = ExternalPostProcessor
 try:
-  __interFaceDict['TopologicalDecomposition' ] = QTopologicalDecomposition
-  __interFaceDict['DataMining'               ] = QDataMining
+  __interFaceDict['TopologicalDecomposition'] = QTopologicalDecomposition
+  __interFaceDict['DataMining'] = QDataMining
 except NameError:
   ## The correct names should already be used for these classes otherwise
   pass
+
 
 def knownTypes():
   """
@@ -90,7 +89,8 @@ def knownTypes():
   """
   return __interFaceDict.keys()
 
-def returnInstance(Type,caller):
+
+def returnInstance(Type, caller):
   """
     Attempts to create and return an instance of a particular type of object
     available to this factory.
@@ -103,9 +103,11 @@ def returnInstance(Type,caller):
   except KeyError:
     # print(eval(__base).__subclasses__())
     # print(__interfaceDict.keys())
-    caller.raiseAnError(NameError,__name__+': unknown '+__base+' type '+Type)
+    caller.raiseAnError(NameError,
+                        __name__ + ': unknown ' + __base + ' type ' + Type)
 
-def returnClass(Type,caller):
+
+def returnClass(Type, caller):
   """
     Attempts to return a particular class type available to this factory.
     @ In, Type, string, string should be one of the knownTypes.
@@ -115,4 +117,5 @@ def returnClass(Type,caller):
   try:
     return __interFaceDict[Type]
   except KeyError:
-    caller.raiseAnError(NameError,__name__+': unknown '+__base+' type '+Type)
+    caller.raiseAnError(NameError,
+                        __name__ + ': unknown ' + __base + ' type ' + Type)

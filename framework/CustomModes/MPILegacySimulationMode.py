@@ -17,7 +17,7 @@ Module that contains a SimulationMode for PBSPro and mpiexec
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
-warnings.simplefilter('default',DeprecationWarning)
+warnings.simplefilter('default', DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
 import os
@@ -38,19 +38,23 @@ def createAndRunQSUB(runInfoDict):
   """
   # Check if the simulation has been run in PBS mode and, in case, construct the proper command
   #while true, this is not the number that we want to select
-  coresNeeded = runInfoDict['batchSize']*runInfoDict['NumMPI']
+  coresNeeded = runInfoDict['batchSize'] * runInfoDict['NumMPI']
   #batchSize = runInfoDict['batchSize']
   frameworkDir = runInfoDict["FrameworkDir"]
   ncpus = runInfoDict['NumThreads']
-  jobName = runInfoDict['JobName'] if 'JobName' in runInfoDict.keys() else 'raven_qsub'
+  jobName = runInfoDict[
+      'JobName'] if 'JobName' in runInfoDict.keys() else 'raven_qsub'
   #check invalid characters
-  validChars = set(string.ascii_letters).union(set(string.digits)).union(set('-_'))
+  validChars = set(string.ascii_letters).union(set(string.digits)).union(
+      set('-_'))
   if any(char not in validChars for char in jobName):
-    raise IOError('JobName can only contain alphanumeric and "_", "-" characters! Received'+jobName)
+    raise IOError(
+        'JobName can only contain alphanumeric and "_", "-" characters! Received'
+        + jobName)
   #check jobName for length
   if len(jobName) > 15:
-    jobName = jobName[:10]+'-'+jobName[-4:]
-    print('JobName is limited to 15 characters; truncating to '+jobName)
+    jobName = jobName[:10] + '-' + jobName[-4:]
+    print('JobName is limited to 15 characters; truncating to ' + jobName)
   #Generate the qsub command needed to run input
   command = ["qsub","-N",jobName]+\
             runInfoDict["clusterParameters"]+\
@@ -65,30 +69,32 @@ def createAndRunQSUB(runInfoDict):
   remoteRunCommand = {}
   remoteRunCommand["cwd"] = frameworkDir
   remoteRunCommand["args"] = command
-  print("remoteRunCommand",remoteRunCommand)
+  print("remoteRunCommand", remoteRunCommand)
   return remoteRunCommand
+
 
 class MPILegacySimulationMode(Simulation.SimulationMode):
   """
     MPILegacySimulationMode is a specialized class of SimulationMode.
     It is aimed to distribute the runs using the MPI protocol
   """
-  def __init__(self,messageHandler):
+
+  def __init__(self, messageHandler):
     """
       Constructor
       @ In, messageHandler, instance, instance of the messageHandler class
       @ Out, None
     """
-    Simulation.SimulationMode.__init__(self,messageHandler)
+    Simulation.SimulationMode.__init__(self, messageHandler)
     self.messageHandler = messageHandler
     #Figure out if we are in PBS
     self.__inPbs = "PBS_NODEFILE" in os.environ
     self.__nodefile = False
     self.__runQsub = False
-    self.__noSplitNode = False #If true, don't split mpi processes across nodes
-    self.__limitNode = False #If true, fiddle with max on Node
-    self.__maxOnNode = None #Used with __noSplitNode and __limitNode to limit number on a node
-    self.__noOverlap = False #Used with __limitNode to prevent multiple batches from being on one node
+    self.__noSplitNode = False  #If true, don't split mpi processes across nodes
+    self.__limitNode = False  #If true, fiddle with max on Node
+    self.__maxOnNode = None  #Used with __noSplitNode and __limitNode to limit number on a node
+    self.__noOverlap = False  #Used with __limitNode to prevent multiple batches from being on one node
     # If (__noSplitNode or __limitNode) and  __maxOnNode is not None,
     # don't put more than that on on single shared memory node
     self.printTag = 'MPI SIMULATION MODE'
@@ -108,7 +114,7 @@ class MPILegacySimulationMode(Simulation.SimulationMode):
         nodefile = os.environ["PBS_NODEFILE"]
       else:
         nodefile = self.__nodefile
-      lines = open(nodefile,"r").readlines()
+      lines = open(nodefile, "r").readlines()
       #XXX This is an undocumented way to pass information back
       newRunInfo['Nodes'] = list(lines)
       numMPI = runInfoDict['NumMPI']
@@ -116,18 +122,20 @@ class MPILegacySimulationMode(Simulation.SimulationMode):
       #the batchsize is just the number of nodes of which there is one
       # per line in the nodefile divided by the numMPI (which is per run)
       # and the floor and int and max make sure that the numbers are reasonable
-      maxBatchsize = max(int(math.floor(len(lines)/numMPI)),1)
+      maxBatchsize = max(int(math.floor(len(lines) / numMPI)), 1)
       if maxBatchsize < oldBatchsize:
         newRunInfo['batchSize'] = maxBatchsize
-        self.raiseAWarning("changing batchsize from "+str(oldBatchsize)+" to "+str(maxBatchsize)+" to fit on "+str(len(lines))+" processors")
+        self.raiseAWarning("changing batchsize from " + str(oldBatchsize) +
+                           " to " + str(maxBatchsize) + " to fit on " +
+                           str(len(lines)) + " processors")
       newBatchsize = newRunInfo['batchSize']
       if newBatchsize > 1:
         #need to split node lines so that numMPI nodes are available per run
         workingDir = runInfoDict['WorkingDir']
         if not (self.__noSplitNode or self.__limitNode):
           for i in range(newBatchsize):
-            nodeFile = open(os.path.join(workingDir,"node_"+str(i)),"w")
-            for line in lines[i*numMPI:(i+1)*numMPI]:
+            nodeFile = open(os.path.join(workingDir, "node_" + str(i)), "w")
+            for line in lines[i * numMPI:(i + 1) * numMPI]:
               nodeFile.write(line)
             nodeFile.close()
         else:
@@ -167,24 +175,36 @@ class MPILegacySimulationMode(Simulation.SimulationMode):
           fullGroupCount = 0
           for group in groups:
             if len(group) < numMPI:
-              self.raiseAWarning("not using part of node because of partial group: "+str(group))
+              self.raiseAWarning(
+                  "not using part of node because of partial group: " +
+                  str(group))
             else:
-              nodeFile = open(os.path.join(workingDir,"node_"+str(fullGroupCount)),"w")
+              nodeFile = open(
+                  os.path.join(workingDir, "node_" + str(fullGroupCount)), "w")
               for node in group:
-                print(node,file=nodeFile)
+                print(node, file=nodeFile)
               nodeFile.close()
               fullGroupCount += 1
           if fullGroupCount == 0:
-            self.raiseAnError(IOError, "Cannot run with given parameters because no nodes have numMPI "+str(numMPI)+" available and NoSplitNode is "+str(self.__noSplitNode)+" and LimitNode is "+str(self.__limitNode))
+            self.raiseAnError(
+                IOError,
+                "Cannot run with given parameters because no nodes have numMPI "
+                + str(numMPI) + " available and NoSplitNode is " + str(
+                    self.__noSplitNode) + " and LimitNode is " + str(
+                        self.__limitNode))
           if fullGroupCount != newRunInfo['batchSize']:
-            self.raiseAWarning("changing batchsize to "+str(fullGroupCount)+" because NoSplitNode is "+str(self.__noSplitNode)+" and LimitNode is "+str(self.__limitNode)+" and some nodes could not be used.")
+            self.raiseAWarning(
+                "changing batchsize to " + str(fullGroupCount) +
+                " because NoSplitNode is " +
+                str(self.__noSplitNode) + " and LimitNode is " + str(
+                    self.__limitNode) + " and some nodes could not be used.")
             newRunInfo['batchSize'] = fullGroupCount
 
         #then give each index a separate file.
-        nodeCommand = runInfoDict["NodeParameter"]+" %BASE_WORKING_DIR%/node_%INDEX% "
+        nodeCommand = runInfoDict["NodeParameter"] + " %BASE_WORKING_DIR%/node_%INDEX% "
       else:
         #If only one batch just use original node file
-        nodeCommand = runInfoDict["NodeParameter"]+" "+nodefile
+        nodeCommand = runInfoDict["NodeParameter"] + " " + nodefile
     else:
       #Not in PBS, so can't look at PBS_NODEFILE and none supplied in input
       newBatchsize = newRunInfo['batchSize']
@@ -199,11 +219,16 @@ class MPILegacySimulationMode(Simulation.SimulationMode):
 
     # Create the mpiexec pre command
     # Note, with defaults the precommand is "mpiexec -f nodeFile -n numMPI"
-    newRunInfo['precommand'] = runInfoDict["MPIExec"]+" "+nodeCommand+" -n "+str(numMPI)+" "+runInfoDict['precommand']
-    if(runInfoDict['NumThreads'] > 1):
+    newRunInfo[
+        'precommand'] = runInfoDict["MPIExec"] + " " + nodeCommand + " -n " + str(
+            numMPI) + " " + runInfoDict['precommand']
+    if (runInfoDict['NumThreads'] > 1):
       #add number of threads to the post command.
-      newRunInfo['postcommand'] = " --n-threads=%NUM_CPUS% "+runInfoDict['postcommand']
-    self.raiseAMessage("precommand: "+newRunInfo['precommand']+", postcommand: "+newRunInfo.get('postcommand',runInfoDict['postcommand']))
+      newRunInfo[
+          'postcommand'] = " --n-threads=%NUM_CPUS% " + runInfoDict['postcommand']
+    self.raiseAMessage(
+        "precommand: " + newRunInfo['precommand'] + ", postcommand: " +
+        newRunInfo.get('postcommand', runInfoDict['postcommand']))
     return newRunInfo
 
   def remoteRunCommand(self, runInfoDict):
@@ -235,19 +260,21 @@ class MPILegacySimulationMode(Simulation.SimulationMode):
         self.__runQsub = True
       elif child_tag == "nosplitnode":
         self.__noSplitNode = True
-        self.__maxOnNode = child.attrib.get("maxOnNode",None)
+        self.__maxOnNode = child.attrib.get("maxOnNode", None)
         if self.__maxOnNode is not None:
           self.__maxOnNode = int(self.__maxOnNode)
         if "noOverlap" in child.attrib:
           self.__noOverlap = True
       elif child_tag == "limitnode":
         self.__limitNode = True
-        self.__maxOnNode = child.attrib.get("maxOnNode",None)
+        self.__maxOnNode = child.attrib.get("maxOnNode", None)
         if self.__maxOnNode is not None:
           self.__maxOnNode = int(self.__maxOnNode)
         else:
-          self.raiseAnError(IOError, "maxOnNode must be specified with LimitNode")
-        if "noOverlap" in child.attrib and child.attrib["noOverlap"].lower() in utils.stringsThatMeanTrue():
+          self.raiseAnError(IOError,
+                            "maxOnNode must be specified with LimitNode")
+        if "noOverlap" in child.attrib and child.attrib["noOverlap"].lower(
+        ) in utils.stringsThatMeanTrue():
           self.__noOverlap = True
       else:
-        self.raiseADebug("We should do something with child "+str(child))
+        self.raiseADebug("We should do something with child " + str(child))

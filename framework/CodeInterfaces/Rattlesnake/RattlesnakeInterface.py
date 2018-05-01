@@ -13,7 +13,7 @@
 # limitations under the License.
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
-warnings.simplefilter('default',DeprecationWarning)
+warnings.simplefilter('default', DeprecationWarning)
 
 import os
 import copy
@@ -27,6 +27,7 @@ class Rattlesnake(CodeInterfaceBase):
     This class is used to couple raven with rattlesnake input and yak cross section xml input files to generate new
     cross section xml input files.
   """
+
   def __init__(self):
     """
       Constructor
@@ -37,7 +38,7 @@ class Rattlesnake(CodeInterfaceBase):
     self.MooseInterface = MooseBasedApp()
     self.MooseInterface.addDefaultExtension()
 
-  def findInps(self,inputFiles):
+  def findInps(self, inputFiles):
     """
       Locates the input files for Rattlesnake and Yak
       @ In, inputFiles, list, list of Files objects
@@ -58,7 +59,8 @@ class Rattlesnake(CodeInterfaceBase):
       if inputFile.getType().strip().lower() == "yakxsinput":
         inputDict['FoundYakXSInput'] = True
         yakInput.append(inputFile)
-      elif inputFile.getType().strip().lower().split("|")[-1] == "rattlesnakeinput":
+      elif inputFile.getType().strip().lower().split("|")[
+          -1] == "rattlesnakeinput":
         inputDict['FoundRattlesnakeInput'] = True
         rattlesnakeInput.append(inputFile)
       elif inputFile.getType().strip().lower() == "yakxsaliasinput":
@@ -77,11 +79,13 @@ class Rattlesnake(CodeInterfaceBase):
     if inputDict['FoundRattlesnakeInput']:
       inputDict['RattlesnakeInput'] = rattlesnakeInput
     if inputDict['FoundYakXSAliasInput']:
-      inputDict['YakAliasInput'] =  aliasInput
+      inputDict['YakAliasInput'] = aliasInput
     if inputDict['FoundInstantXSAliasInput']:
-      inputDict['InstantAliasInput'] =  instantAlias
+      inputDict['InstantAliasInput'] = instantAlias
     if not inputDict['FoundRattlesnakeInput']:
-      raise IOError('None of the input files has the type "RattlesnakeInput"! This is required by Rattlesnake interface.')
+      raise IOError(
+          'None of the input files has the type "RattlesnakeInput"! This is required by Rattlesnake interface.'
+      )
     return inputDict
 
   def generateCommand(self, inputFiles, executable, clargs=None, fargs=None):
@@ -103,12 +107,16 @@ class Rattlesnake(CodeInterfaceBase):
     inputDict = self.findInps(inputFiles)
     rattlesnakeInput = inputDict['RattlesnakeInput']
     if len(rattlesnakeInput) != 1:
-      raise IOError('The user should only provide one rattlesnake input file, but found ' + str(len(rattlesnakeInput)) + '!')
-    mooseCommand, mooseOut = self.MooseInterface.generateCommand(rattlesnakeInput,executable,clargs,fargs)
+      raise IOError(
+          'The user should only provide one rattlesnake input file, but found '
+          + str(len(rattlesnakeInput)) + '!')
+    mooseCommand, mooseOut = self.MooseInterface.generateCommand(
+        rattlesnakeInput, executable, clargs, fargs)
     returnCommand = mooseCommand, mooseOut
     return returnCommand
 
-  def createNewInput(self, currentInputFiles, origInputFiles, samplerType, **Kwargs):
+  def createNewInput(self, currentInputFiles, origInputFiles, samplerType,
+                     **Kwargs):
     """
       Generates new perturbed input files for both Rattlesnake input file and Yak multigroup group cross section input files.
       @ In, currentInputFiles, list,  list of current input files
@@ -137,7 +145,7 @@ class Rattlesnake(CodeInterfaceBase):
       #perturb the xs files
       parser.perturb(**Kwargs)
       #write the perturbed files
-      parser.writeNewInput(yakInputs,**Kwargs)
+      parser.writeNewInput(yakInputs, **Kwargs)
     import YakInstantLibraryParser
     foundInstantXS = False
     foundInstantAlias = False
@@ -154,10 +162,11 @@ class Rattlesnake(CodeInterfaceBase):
       #perturb the xs files
       parser.perturb(**Kwargs)
       #write the perturbed files
-      parser.writeNewInput(instantInputs,**Kwargs)
+      parser.writeNewInput(instantInputs, **Kwargs)
     #Moose based app interface
     origRattlesnakeInputs = copy.deepcopy(rattlesnakeInputs)
-    newMooseInputs = self.MooseInterface.createNewInput(rattlesnakeInputs,origRattlesnakeInputs,samplerType,**Kwargs)
+    newMooseInputs = self.MooseInterface.createNewInput(
+        rattlesnakeInputs, origRattlesnakeInputs, samplerType, **Kwargs)
     return currentInputFiles
 
   def finalizeCodeOutput(self, command, output, workingDir):

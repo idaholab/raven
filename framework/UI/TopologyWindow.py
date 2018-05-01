@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """
   A Main Window container for holding various subwindows related to the
   visualization and analysis of a dataset according to the approximate
@@ -21,7 +20,7 @@
 #For future compatibility with Python 3
 from __future__ import division, print_function, absolute_import
 import warnings
-warnings.simplefilter('default',DeprecationWarning)
+warnings.simplefilter('default', DeprecationWarning)
 #End compatibility block for Python 3
 
 from PySide import QtCore as qtc
@@ -44,6 +43,7 @@ import re
 import random
 import numpy as np
 
+
 class TopologyWindow(qtw.QMainWindow):
   """
       A Main Window container for holding various subwindows related to the
@@ -52,9 +52,19 @@ class TopologyWindow(qtw.QMainWindow):
   """
   views = []
   closed = qtc.Signal(qtc.QObject)
-  def __init__(self, X=None, Y=None, w=None, names=None, graph='beta skeleton',
-               gradient='steepest', knn=-1, beta=1.0, normalization=None,
-               debug=False, views=None):
+
+  def __init__(self,
+               X=None,
+               Y=None,
+               w=None,
+               names=None,
+               graph='beta skeleton',
+               gradient='steepest',
+               knn=-1,
+               beta=1.0,
+               normalization=None,
+               debug=False,
+               views=None):
     """ Initialization method that can optionally specify all of the parameters
         needed for building an underlying AMSC_Object to be used internally by
         this window and its child views.
@@ -94,8 +104,8 @@ class TopologyWindow(qtw.QMainWindow):
           window.  Valid values include a string representation of any of the
           subclasses of the BaseTopologicalView.
     """
-    super(TopologyWindow,self).__init__()
-    self.resize(800,600)
+    super(TopologyWindow, self).__init__()
+    self.resize(800, 600)
     self.setCentralWidget(None)
     self.setDockOptions(qtw.QMainWindow.AllowNestedDocks)
     self.debug = debug
@@ -117,7 +127,8 @@ class TopologyWindow(qtw.QMainWindow):
 
     for subclass in BaseTopologicalView.__subclasses__():
       action = newMenu.addAction(subclass.__name__)
-      action.triggered.connect(functools.partial(self.addNewView,action.text()))
+      action.triggered.connect(
+          functools.partial(self.addNewView, action.text()))
 
     buildModels = self.optionsMenu.addAction('Build Local Models')
     buildModels.triggered.connect(self.buildModels)
@@ -157,8 +168,16 @@ class TopologyWindow(qtw.QMainWindow):
     ## value on the object.
     self.amsc.Persistence(1.0)
 
-  def BuildAMSC(self, X=None, Y=None, w=None, names=None, graph='beta skeleton',
-                gradient='steepest', knn=-1, beta=1.0, normalization=None):
+  def BuildAMSC(self,
+                X=None,
+                Y=None,
+                w=None,
+                names=None,
+                graph='beta skeleton',
+                gradient='steepest',
+                knn=-1,
+                beta=1.0,
+                normalization=None):
     """ Initialization method that can optionally specify all of the parameters
         needed for building an underlying AMSC_Object to be used internally by
         this window and its child views.
@@ -201,13 +220,29 @@ class TopologyWindow(qtw.QMainWindow):
       # sys.stderr.write('Building AMSC...\r')
       # sys.stderr.flush()
     if self.amsc is None:
-      self.amsc = QAMSC_Object(X=X, Y=Y, w=w, names=names, graph=graph,
-                              gradient=gradient, knn=knn, beta=beta,
-                              normalization=normalization, debug=self.debug)
+      self.amsc = QAMSC_Object(
+          X=X,
+          Y=Y,
+          w=w,
+          names=names,
+          graph=graph,
+          gradient=gradient,
+          knn=knn,
+          beta=beta,
+          normalization=normalization,
+          debug=self.debug)
     else:
-      self.amsc.Reinitialize(X=X, Y=Y, w=w, names=names, graph=graph,
-                             gradient=gradient, knn=knn, beta=beta,
-                             normalization=normalization, debug=self.debug)
+      self.amsc.Reinitialize(
+          X=X,
+          Y=Y,
+          w=w,
+          names=names,
+          graph=graph,
+          gradient=gradient,
+          knn=knn,
+          beta=beta,
+          normalization=normalization,
+          debug=self.debug)
     if self.debug:
       end = time.clock()
       # sys.stderr.write('Construction Time: %f s\n' % (end-start))
@@ -218,7 +253,7 @@ class TopologyWindow(qtw.QMainWindow):
     """
     self.amsc.BuildModels()
 
-  def createDockWidget(self,view):
+  def createDockWidget(self, view):
     """ Method to create a new child dock widget of a specified type.
         @ In, view, an object belonging to a subclass of BaseTopologicalView
           that will be added to this window.
@@ -235,11 +270,11 @@ class TopologyWindow(qtw.QMainWindow):
       dockWidget.setWidget(view)
 
     #Placement was arbitrarily selected
-    self.addDockWidget(qtc.Qt.TopDockWidgetArea,dockWidget)
+    self.addDockWidget(qtc.Qt.TopDockWidgetArea, dockWidget)
 
     self.viewMenu.addAction(dockWidget.toggleViewAction())
 
-  def addNewView(self,viewType):
+  def addNewView(self, viewType):
     """ Method to create a new child view which will be added as a dock widget
         and thus will call createDockWidget()
         @ In, viewType, a string specifying a subclass of BaseTopologicalView
@@ -250,14 +285,14 @@ class TopologyWindow(qtw.QMainWindow):
       if subclass.__name__ == viewType:
         idx = 0
         for view in self.views:
-          if isinstance(view,subclass):
+          if isinstance(view, subclass):
             idx += 1
 
-        defaultWidgetName = subclass.__name__.replace('View','')
+        defaultWidgetName = subclass.__name__.replace('View', '')
         if idx > 0:
           defaultWidgetName += ' ' + str(idx)
 
-        self.views.append(subclass(self,self.amsc,defaultWidgetName))
+        self.views.append(subclass(self, self.amsc, defaultWidgetName))
         view = self.views[-1]
 
         self.createDockWidget(view)
@@ -268,9 +303,9 @@ class TopologyWindow(qtw.QMainWindow):
         self.amsc.sigModelsChanged.connect(view.modelsChanged)
         self.amsc.sigWeightsChanged.connect(view.weightsChanged)
 
-  def closeEvent(self,event):
+  def closeEvent(self, event):
     """ Event handler triggered when this window is closed.
         @ In, event, a QCloseEvent specifying the context of this event.
     """
     self.closed.emit(self)
-    return super(TopologyWindow,self).closeEvent(event)
+    return super(TopologyWindow, self).closeEvent(event)

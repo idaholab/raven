@@ -16,7 +16,7 @@ Created on August 23, 2017
 
 @author: wangc
 """
-from __future__ import division, print_function , unicode_literals, absolute_import
+from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default', DeprecationWarning)
 
@@ -36,7 +36,9 @@ import Files
 import Metrics
 import Runners
 import Distributions
+
 #Internal Modules End--------------------------------------------------------------------------------
+
 
 class Metric(PostProcessor):
   """
@@ -53,13 +55,16 @@ class Metric(PostProcessor):
         specifying input of cls.
     """
     inputSpecification = super(Metric, cls).getInputSpecification()
-    FeaturesInput = InputData.parameterInputFactory("Features", contentType=InputData.StringType)
+    FeaturesInput = InputData.parameterInputFactory(
+        "Features", contentType=InputData.StringType)
     FeaturesInput.addParam("type", InputData.StringType)
     inputSpecification.addSub(FeaturesInput)
-    TargetsInput = InputData.parameterInputFactory("Targets", contentType=InputData.StringType)
+    TargetsInput = InputData.parameterInputFactory(
+        "Targets", contentType=InputData.StringType)
     TargetsInput.addParam("type", InputData.StringType)
     inputSpecification.addSub(TargetsInput)
-    MetricInput = InputData.parameterInputFactory("Metric", contentType=InputData.StringType)
+    MetricInput = InputData.parameterInputFactory(
+        "Metric", contentType=InputData.StringType)
     MetricInput.addParam("class", InputData.StringType, True)
     MetricInput.addParam("type", InputData.StringType, True)
     inputSpecification.addSub(MetricInput)
@@ -74,10 +79,11 @@ class Metric(PostProcessor):
     """
     PostProcessor.__init__(self, messageHandler)
     self.printTag = 'POSTPROCESSOR Metrics'
-    self.dynamic        = False # is it time-dependent?
-    self.features       = None  # list of feature variables
-    self.targets        = None  # list of target variables
-    self.metricsDict    = {}    # dictionary of metrics that are going to be assembled
+    self.dynamic = False  # is it time-dependent?
+    self.features = None  # list of feature variables
+    self.targets = None  # list of target variables
+    self.metricsDict = {
+    }  # dictionary of metrics that are going to be assembled
     self.pivotParameter = None
     # assembler objects to be requested
     self.addAssemblerObject('Metric', 'n', True)
@@ -97,12 +103,11 @@ class Metric(PostProcessor):
       inputOrOutput = [inputOrOutput.lower()]
     else:
       dataName = None
-      inputOrOutput = ['input','output']
+      inputOrOutput = ['input', 'output']
     for currentInput in currentInputs:
       inputType = None
       if hasattr(currentInput, 'type'):
         inputType = currentInput.type
-
 
       if inputType == 'PointSet':
         if dataName is not None and dataName != currentInput.name:
@@ -113,17 +118,24 @@ class Metric(PostProcessor):
         for ioType in inputOrOutput:
           if metricDataName in currentInput.getVars(ioType):
             if metricData is not None:
-              self.raiseAnError(IOError, "Same feature or target variable " + metricDataName + "is found in multiple input objects")
+              self.raiseAnError(
+                  IOError, "Same feature or target variable " +
+                  metricDataName + "is found in multiple input objects")
             #Found the data, now put it in the return value.
-            metricData = (copy.copy(dataSet[metricDataName].values), metadata['ProbabilityWeight'].values)
+            metricData = (copy.copy(dataSet[metricDataName].values),
+                          metadata['ProbabilityWeight'].values)
       elif isinstance(currentInput, Distributions.Distribution):
         if currentInput.name == metricDataName and dataName is None:
           if metricData is not None:
-            self.raiseAnError(IOError, "Same feature or target variable " + metricDataName + "is found in multiple input objects")
+            self.raiseAnError(
+                IOError, "Same feature or target variable " + metricDataName +
+                "is found in multiple input objects")
           #Found the distribution, now put it in the return value
           metricData = currentInput
     if metricData is None:
-      self.raiseAnError(IOError, "Feature or target variable " + origMetricDataName + "is not found")
+      self.raiseAnError(
+          IOError,
+          "Feature or target variable " + origMetricDataName + "is not found")
     return metricData
 
   def inputToInternal(self, currentInputs):
@@ -146,18 +158,24 @@ class Metric(PostProcessor):
         inputType = currentInput.type
 
       if isinstance(currentInput, Files.File):
-        self.raiseAnError(IOError, "Input type '", inputType, "' can not be accepted")
+        self.raiseAnError(IOError, "Input type '", inputType,
+                          "' can not be accepted")
       elif isinstance(currentInput, Distributions.Distribution):
-        pass #Allowed type
+        pass  #Allowed type
       elif inputType == 'HDF5':
-        self.raiseAnError(IOError, "Input type '", inputType, "' can not be accepted")
+        self.raiseAnError(IOError, "Input type '", inputType,
+                          "' can not be accepted")
       elif inputType == 'PointSet':
-        pass #Allowed type
+        pass  #Allowed type
       elif inputType == 'HistorySet':
         self.dynamic = True
-        self.raiseAnError(IOError, "Metric can not process HistorySet, because this capability is not implemented yet")
+        self.raiseAnError(
+            IOError,
+            "Metric can not process HistorySet, because this capability is not implemented yet"
+        )
       else:
-        self.raiseAnError(IOError, "Metric cannot process "+inputType+ " of type "+str(type(currentInput)))
+        self.raiseAnError(IOError, "Metric cannot process " + inputType +
+                          " of type " + str(type(currentInput)))
 
     measureList = []
 
@@ -165,7 +183,7 @@ class Metric(PostProcessor):
       for cnt in range(len(self.features)):
         feature = self.features[cnt]
         target = self.targets[cnt]
-        featureData =  self.__getMetricSide(feature, currentInputs)
+        featureData = self.__getMetricSide(feature, currentInputs)
         targetData = self.__getMetricSide(target, currentInputs)
         measureList.append((featureData, targetData))
     else:
@@ -173,7 +191,7 @@ class Metric(PostProcessor):
 
     return measureList
 
-  def initialize(self, runInfo, inputs, initDict) :
+  def initialize(self, runInfo, inputs, initDict):
     """
       Method to initialize the pp.
       @ In, runInfo, dict, dictionary of run info (e.g. working dir, etc)
@@ -203,8 +221,10 @@ class Metric(PostProcessor):
     """
     for child in paramInput.subparts:
       if child.getName() == 'Metric':
-        if 'type' not in child.parameterValues.keys() or 'class' not in child.parameterValues.keys():
-          self.raiseAnError(IOError, 'Tag Metric must have attributes "class" and "type"')
+        if 'type' not in child.parameterValues.keys(
+        ) or 'class' not in child.parameterValues.keys():
+          self.raiseAnError(
+              IOError, 'Tag Metric must have attributes "class" and "type"')
       elif child.getName() == 'Features':
         self.features = list(var.strip() for var in child.value.split(','))
         self.featuresType = child.parameterValues['type']
@@ -212,14 +232,19 @@ class Metric(PostProcessor):
         self.targets = list(var.strip() for var in child.value.split(','))
         self.TargetsType = child.parameterValues['type']
       else:
-        self.raiseAnError(IOError, "Unknown xml node ", child.getName(), " is provided for metric system")
+        self.raiseAnError(IOError, "Unknown xml node ", child.getName(),
+                          " is provided for metric system")
 
     if not self.features:
-      self.raiseAnError(IOError, "XML node 'Features' is required but not provided")
+      self.raiseAnError(IOError,
+                        "XML node 'Features' is required but not provided")
     elif len(self.features) != len(self.targets):
-      self.raiseAnError(IOError, 'The number of variables found in XML node "Features" is not equal the number of variables found in XML node "Targets"')
+      self.raiseAnError(
+          IOError,
+          'The number of variables found in XML node "Features" is not equal the number of variables found in XML node "Targets"'
+      )
 
-  def collectOutput(self,finishedJob, output):
+  def collectOutput(self, finishedJob, output):
     """
       Function to place all of the computed data into the output object, (Files or DataObjects)
       @ In, finishedJob, object, JobHandler object that is in charge of running this postprocessor
@@ -228,7 +253,8 @@ class Metric(PostProcessor):
     """
     evaluation = finishedJob.getEvaluation()
     if isinstance(evaluation, Runners.Error):
-      self.raiseAnError(RuntimeError, "Job ", finishedJob.identifier, "failed!")
+      self.raiseAnError(RuntimeError, "Job ", finishedJob.identifier,
+                        "failed!")
     outputDict = evaluation[1]
     output.addRealization(outputDict)
 
@@ -244,18 +270,23 @@ class Metric(PostProcessor):
     if not self.dynamic:
       assert len(self.features) == len(measureList)
       for cnt in range(len(self.targets)):
-        nodeName = (str(self.targets[cnt]) + '_' + str(self.features[cnt])).replace("|","-")
+        nodeName = (
+            str(self.targets[cnt]) + '_' + str(self.features[cnt])).replace(
+                "|", "-")
         for metricInstance in self.metricsDict.values():
           inData = list(measureList[cnt])
           metricCanHandleData = True
           varName = metricInstance.name + '_' + nodeName
           for i in range(len(inData)):
-            if not metricInstance.acceptsProbability and type(inData[i]) == tuple:
+            if not metricInstance.acceptsProbability and type(
+                inData[i]) == tuple:
               #Strip off the probability data if it can't be used
               inData[i] = inData[i][0]
-            elif not metricInstance.acceptsDistribution and isinstance(inData[i], Distributions.Distribution):
+            elif not metricInstance.acceptsDistribution and isinstance(
+                inData[i], Distributions.Distribution):
               metricCanHandleData = False
-              self.raiseAWarning('Cannot handle '+ varName +' because it contains a distribution')
+              self.raiseAWarning('Cannot handle ' + varName +
+                                 ' because it contains a distribution')
           if metricCanHandleData:
             output = metricInstance.distance(inData[0], inData[1])
             outputDict[varName] = np.atleast_1d(output)

@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """
   A view widget for visualizing the R^2 fitness of the local stepwise
   regression results.
@@ -20,7 +19,7 @@
 #For future compatibility with Python 3
 from __future__ import division, print_function, absolute_import
 import warnings
-warnings.simplefilter('default',DeprecationWarning)
+warnings.simplefilter('default', DeprecationWarning)
 #End compatibility block for Python 3
 
 from PySide import QtCore as qtc
@@ -33,11 +32,13 @@ from .BaseTopologicalView import BaseTopologicalView
 import math
 import numpy as np
 
+
 class FitnessView(BaseTopologicalView):
   """
      A view widget for visualizing the R^2 fitness of the local stepwise
      regression results.
   """
+
   def __init__(self, parent=None, amsc=None, title=None):
     """ Initialization method that can optionally specify the parent widget,
         an AMSC object to reference, and a title for this widget.
@@ -46,7 +47,7 @@ class FitnessView(BaseTopologicalView):
           object for this widget to use.
         @ In, title, an optional string specifying the title of this widget.
     """
-    super(FitnessView, self).__init__(parent,amsc,title)
+    super(FitnessView, self).__init__(parent, amsc, title)
 
   def Reinitialize(self, parent=None, amsc=None, title=None):
     """ Reinitialization method that resets this widget and can optionally
@@ -68,10 +69,10 @@ class FitnessView(BaseTopologicalView):
 
     ## General Graphics View/Scene setup
     self.scene = qtw.QGraphicsScene()
-    self.scene.setSceneRect(0,0,100,100)
+    self.scene.setSceneRect(0, 0, 100, 100)
     self.gView = qtw.QGraphicsView(self.scene)
-    self.gView.setRenderHints(qtg.QPainter.Antialiasing |
-                              qtg.QPainter.SmoothPixmapTransform)
+    self.gView.setRenderHints(qtg.QPainter.Antialiasing
+                              | qtg.QPainter.SmoothPixmapTransform)
     self.gView.setHorizontalScrollBarPolicy(qtc.Qt.ScrollBarAlwaysOff)
     self.gView.setVerticalScrollBarPolicy(qtc.Qt.ScrollBarAlwaysOff)
     self.font = qtg.QFont('sans-serif', 12)
@@ -83,7 +84,8 @@ class FitnessView(BaseTopologicalView):
     self.fillAction.setChecked(True)
     self.fillAction.triggered.connect(self.updateScene)
 
-    self.showNumberAction = self.rightClickMenu.addAction('Show Numeric Values')
+    self.showNumberAction = self.rightClickMenu.addAction(
+        'Show Numeric Values')
     self.showNumberAction.setCheckable(True)
     self.showNumberAction.setChecked(True)
     self.showNumberAction.triggered.connect(self.updateScene)
@@ -91,8 +93,8 @@ class FitnessView(BaseTopologicalView):
     captureAction = self.rightClickMenu.addAction('Capture')
     captureAction.triggered.connect(self.saveImage)
 
-    self.gView.scale(self.gView.width()/self.scene.width(),
-                     self.gView.height()/self.scene.height())
+    self.gView.scale(self.gView.width() / self.scene.width(),
+                     self.gView.height() / self.scene.height())
 
     layout.addWidget(self.gView)
     self.updateScene()
@@ -127,28 +129,29 @@ class FitnessView(BaseTopologicalView):
       svgGen.setDescription("Generated from RAVEN.")
       painter = qtg.QPainter(svgGen)
     else:
-      image = qtg.QImage(self.scene.sceneRect().size().toSize(), qtg.QImage.Format_ARGB32)
+      image = qtg.QImage(self.scene.sceneRect().size().toSize(),
+                         qtg.QImage.Format_ARGB32)
       image.fill(qtc.Qt.transparent)
       painter = qtg.QPainter(image)
     self.scene.render(painter)
     if not filename.endswith('.svg'):
-      image.save(filename,quality=100)
+      image.save(filename, quality=100)
     del painter
 
-  def contextMenuEvent(self,event):
+  def contextMenuEvent(self, event):
     """ An event handler triggered when the user right-clicks on this view that
         will force the context menu to appear.
         @ In, event, a QContextMenuEvent specifying the context of this event.
     """
     self.rightClickMenu.popup(event.globalPos())
 
-  def resizeEvent(self,event):
+  def resizeEvent(self, event):
     """ An event handler triggered when the user resizes this view.
         @ In, event, a QResizeEvent specifying the context of this event.
     """
     super(FitnessView, self).resizeEvent(event)
-    self.gView.scale(self.gView.width()/self.scene.width(),
-                     self.gView.height()/self.scene.height())
+    self.gView.scale(self.gView.width() / self.scene.width(),
+                     self.gView.height() / self.scene.height())
     self.updateScene()
 
   def selectionChanged(self):
@@ -175,26 +178,28 @@ class FitnessView(BaseTopologicalView):
     self.scene.clear()
 
     if self.fillAction.isChecked():
-      self.scene.setSceneRect(0,0,100*float(self.gView.width())/float(self.gView.height()),100)
+      self.scene.setSceneRect(
+          0, 0, 100 * float(self.gView.width()) / float(self.gView.height()),
+          100)
     else:
-      self.scene.setSceneRect(0,0,100,100)
+      self.scene.setSceneRect(0, 0, 100, 100)
 
     width = self.scene.width()
     height = self.scene.height()
-    plotWidth = width - 2*self.padding
-    plotHeight = height - 2*self.padding
+    plotWidth = width - 2 * self.padding
+    plotHeight = height - 2 * self.padding
 
     axisPen = qtg.QPen(qtc.Qt.black)
     names = self.amsc.GetNames()[:-1]
 
     if not self.amsc.FitsSynced():
-      txtItem = self.scene.addSimpleText('Rebuild Local Models',self.font)
+      txtItem = self.scene.addSimpleText('Rebuild Local Models', self.font)
       txtItem.setFlag(qtw.QGraphicsItem.ItemIgnoresTransformations)
-      txtItem.setPos(0,0)
+      txtItem.setPos(0, 0)
       txtItem.setFlag(qtw.QGraphicsItem.ItemIsMovable)
       txtItem.setFlag(qtw.QGraphicsItem.ItemIsSelectable)
       self.scene.changed.connect(self.scene.invalidate)
-      self.gView.fitInView(self.scene.sceneRect(),qtc.Qt.KeepAspectRatio)
+      self.gView.fitInView(self.scene.sceneRect(), qtc.Qt.KeepAspectRatio)
       return
 
     selection = self.amsc.GetSelectedSegments()
@@ -217,13 +222,13 @@ class FitnessView(BaseTopologicalView):
     selectionCount = len(selection)
 
     if selectionCount > 0:
-      axisHeight = plotHeight/float(selectionCount)
-      axisWidth = plotWidth/float(selectionCount)
+      axisHeight = plotHeight / float(selectionCount)
+      axisWidth = plotWidth / float(selectionCount)
     dimCount = len(names)
 
     fitErrorData = {}
 
-    for j,extPair in enumerate(selection):
+    for j, extPair in enumerate(selection):
       fitErrorData[extPair] = self.amsc.ComputePerDimensionFitErrors(extPair)
 
     maxValue = 1
@@ -232,7 +237,7 @@ class FitnessView(BaseTopologicalView):
     for extPair in selection:
       retValue = fitErrorData[extPair]
       if retValue is not None:
-        indexOrder,rSquared,fStatistic = retValue
+        indexOrder, rSquared, fStatistic = retValue
 
       myColor = colorMap[extPair]
       myPen = qtg.QPen(qtg.QColor('#000000'))
@@ -243,15 +248,15 @@ class FitnessView(BaseTopologicalView):
       vals = rSquared
 
       w = axisWidth / dimCount
-      self.font.setPointSizeF(np.clip(w-2*self.padding,2,18))
-      for i,val in enumerate(vals):
+      self.font.setPointSizeF(np.clip(w - 2 * self.padding, 2, 18))
+      for i, val in enumerate(vals):
         name = names[indexOrder[i]]
         if val > 0:
-          barExtent = (val/maxValue)*plotHeight
+          barExtent = (val / maxValue) * plotHeight
         else:
           barExtent = 0
-        x = j*axisWidth + i*axisWidth/float(dimCount)+self.padding
-        y = height-self.padding
+        x = j * axisWidth + i * axisWidth / float(dimCount) + self.padding
+        y = height - self.padding
         h = -barExtent
         if self.showNumberAction.isChecked():
           numTxtItem = self.scene.addSimpleText('%.3g' % val, self.font)
@@ -259,35 +264,36 @@ class FitnessView(BaseTopologicalView):
           fontHeight = fm.height()
           fontWidth = fm.width(numTxtItem.text())
 
-          numTxtItem.setPos(x+(w-fontHeight)/2.,y-plotHeight+fontWidth)
+          numTxtItem.setPos(x + (w - fontHeight) / 2.,
+                            y - plotHeight + fontWidth)
           numTxtItem.rotate(285)
           numTxtItem.setFlag(qtw.QGraphicsItem.ItemIsMovable)
           numTxtItem.setFlag(qtw.QGraphicsItem.ItemIsSelectable)
           numTxtItem.setZValue(2)
 
-        myRect = self.scene.addRect(x,y,w,h,myPen,myBrush)
+        myRect = self.scene.addRect(x, y, w, h, myPen, myBrush)
         myRect.setToolTip(str(val))
         myRect.setAcceptHoverEvents(True)
 
-        txtItem = self.scene.addSimpleText(' ' + name,self.font)
+        txtItem = self.scene.addSimpleText(' ' + name, self.font)
         fm = qtg.QFontMetrics(txtItem.font())
         fontHeight = fm.height()
         fontWidth = fm.width(name)
-        txtItem.setPos(x+(w-fontHeight)/2.,y)
+        txtItem.setPos(x + (w - fontHeight) / 2., y)
         txtItem.rotate(270)
         txtItem.setFlag(qtw.QGraphicsItem.ItemIsMovable)
         txtItem.setFlag(qtw.QGraphicsItem.ItemIsSelectable)
         txtItem.setZValue(2)
 
-      x = j*axisWidth+self.padding
-      y = height-self.padding
+      x = j * axisWidth + self.padding
+      y = height - self.padding
       w = axisWidth
       h = -plotHeight
-      self.scene.addRect(x,y,w,h,axisPen)
+      self.scene.addRect(x, y, w, h, axisPen)
       j += 1
 
       self.scene.changed.connect(self.scene.invalidate)
-      self.gView.fitInView(self.scene.sceneRect(),qtc.Qt.KeepAspectRatio)
+      self.gView.fitInView(self.scene.sceneRect(), qtc.Qt.KeepAspectRatio)
 
   def test(self):
     """
@@ -302,7 +308,7 @@ class FitnessView(BaseTopologicalView):
     """
     self.amsc.BuildModels()
     self.amsc.ClearSelection()
-    self.saveImage(self.windowTitle()+'.svg')
-    self.saveImage(self.windowTitle()+'.png')
-    self.resizeEvent(qtg.QResizeEvent(qtc.QSize(1,1),qtc.QSize(100,100)))
+    self.saveImage(self.windowTitle() + '.svg')
+    self.saveImage(self.windowTitle() + '.png')
+    self.resizeEvent(qtg.QResizeEvent(qtc.QSize(1, 1), qtc.QSize(100, 100)))
     super(FitnessView, self).test()

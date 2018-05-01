@@ -19,7 +19,7 @@ Created on Mar 5, 2013
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
-warnings.simplefilter('default',DeprecationWarning)
+warnings.simplefilter('default', DeprecationWarning)
 if not 'xrange' in dir(__builtins__):
   xrange = range
 #End compatibility block for Python 3----------------------------------------------------------------
@@ -38,13 +38,23 @@ from BaseClasses import BaseType
 import MessageHandler
 from .Runner import Runner
 from .Error import Error
+
 #Internal Modules End--------------------------------------------------------------------------------
+
 
 class InternalRunner(Runner):
   """
     Generic base Class for running internal objects
   """
-  def __init__(self, messageHandler, args, functionToRun, identifier=None, metadata=None, uniqueHandler = "any", profile = False):
+
+  def __init__(self,
+               messageHandler,
+               args,
+               functionToRun,
+               identifier=None,
+               metadata=None,
+               uniqueHandler="any",
+               profile=False):
     """
       Init method
       @ In, messageHandler, MessageHandler object, the global RAVEN message
@@ -68,22 +78,23 @@ class InternalRunner(Runner):
     ## First, allow the base class to handle the commonalities
     ##   We keep the command here, in order to have the hook for running exec
     ##   code into internal models
-    super(InternalRunner, self).__init__(messageHandler, identifier, metadata, uniqueHandler, profile)
+    super(InternalRunner, self).__init__(messageHandler, identifier, metadata,
+                                         uniqueHandler, profile)
 
     ## Other parameters passed at initialization
-    self.args          = copy.copy(args)
-    self.functionToRun  = functionToRun
+    self.args = copy.copy(args)
+    self.functionToRun = functionToRun
 
     ## Other parameters manipulated internally
-    self.thread         = None
-    self.runReturn      = None
-    self.hasBeenAdded   = False
-    self.returnCode     = 0
+    self.thread = None
+    self.runReturn = None
+    self.hasBeenAdded = False
+    self.returnCode = 0
 
     ## These things cannot be deep copied
-    self.skipOnCopy = ['functionToRun','thread','__queueLock']
+    self.skipOnCopy = ['functionToRun', 'thread', '__queueLock']
 
-  def __deepcopy__(self,memo):
+  def __deepcopy__(self, memo):
     """
       This is the method called with copy.deepcopy.  Overwritten to remove some keys.
       @ In, memo, dict, dictionary required by deepcopy method
@@ -92,9 +103,9 @@ class InternalRunner(Runner):
     cls = self.__class__
     newobj = cls.__new__(cls)
     memo[id(self)] = newobj
-    for k,v in self.__dict__.items():
+    for k, v in self.__dict__.items():
       if k not in self.skipOnCopy:
-        setattr(newobj,k,copy.deepcopy(v,memo))
+        setattr(newobj, k, copy.deepcopy(v, memo))
     return newobj
 
   def _collectRunnerResponse(self):

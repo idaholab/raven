@@ -15,7 +15,7 @@
 Created on July 10, 2013
 @author: alfoa
 """
-from __future__ import division, print_function , unicode_literals, absolute_import
+from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default', DeprecationWarning)
 
@@ -33,7 +33,9 @@ from utils import InputData
 import Files
 import unSupervisedLearning
 import Runners
+
 #Internal Modules End-----------------------------------------------------------
+
 
 class DataMining(PostProcessor):
   """
@@ -54,21 +56,25 @@ class DataMining(PostProcessor):
     ## This will replace the lines above
     inputSpecification = super(DataMining, cls).getInputSpecification()
 
-    preProcessorInput = InputData.parameterInputFactory("PreProcessor", contentType=InputData.StringType)
+    preProcessorInput = InputData.parameterInputFactory(
+        "PreProcessor", contentType=InputData.StringType)
     preProcessorInput.addParam("class", InputData.StringType)
     preProcessorInput.addParam("type", InputData.StringType)
 
-    pivotParameterInput = InputData.parameterInputFactory("pivotParameter", contentType=InputData.StringType)
+    pivotParameterInput = InputData.parameterInputFactory(
+        "pivotParameter", contentType=InputData.StringType)
 
     inputSpecification.addSub(pivotParameterInput)
 
-    dataObjectInput = InputData.parameterInputFactory("DataObject", contentType=InputData.StringType)
+    dataObjectInput = InputData.parameterInputFactory(
+        "DataObject", contentType=InputData.StringType)
     dataObjectInput.addParam("class", InputData.StringType)
     dataObjectInput.addParam("type", InputData.StringType)
 
     inputSpecification.addSub(dataObjectInput)
 
-    metricInput = InputData.parameterInputFactory("Metric", contentType=InputData.StringType)
+    metricInput = InputData.parameterInputFactory(
+        "Metric", contentType=InputData.StringType)
     metricInput.addParam("class", InputData.StringType)
     metricInput.addParam("type", InputData.StringType)
 
@@ -78,87 +84,104 @@ class DataMining(PostProcessor):
     kddInput.addParam("lib", InputData.StringType)
     kddInput.addParam("labelFeature", InputData.StringType)
 
-
-    sklTypeInput = InputData.parameterInputFactory("SKLtype", contentType=InputData.StringType)
+    sklTypeInput = InputData.parameterInputFactory(
+        "SKLtype", contentType=InputData.StringType)
     kddInput.addSub(sklTypeInput)
-    sciPyTypeInput = InputData.parameterInputFactory("SCIPYtype", contentType=InputData.StringType)
+    sciPyTypeInput = InputData.parameterInputFactory(
+        "SCIPYtype", contentType=InputData.StringType)
     kddInput.addSub(sciPyTypeInput)
 
-    for name, inputType in [("Features",InputData.StringType),
-                            ("n_components",InputData.StringType),
-                            ("covariance_type",InputData.StringType),
-                            ("random_state",InputData.StringType),
-                            ("min_covar",InputData.FloatType),
-                            ("thresh",InputData.FloatType),
-                            ("n_iter",InputData.IntegerType),
-                            ("n_init",InputData.IntegerType),
-                            ("params",InputData.StringType),
-                            ("init_params",InputData.StringType),
-                            ("alpha",InputData.FloatType),
-                            ("n_clusters",InputData.IntegerType),
-                            ("max_iter",InputData.IntegerType),
-                            ("init",InputData.StringType),
-                            ("precompute_distances",InputData.StringType),
-                            ("tol",InputData.FloatType),
-                            ("n_jobs",InputData.IntegerType),
-                            ("max_no_improvement",InputData.IntegerType),
-                            ("batch_size",InputData.IntegerType),
-                            ("compute_labels",InputData.StringType),
-                            ("reassignment_ratio",InputData.FloatType),
-                            ("damping",InputData.StringType),
-                            ("convergence_iter",InputData.IntegerType),
-                            ("copy",InputData.StringType),
-                            ("preference",InputData.StringType),
-                            ("affinity",InputData.StringType),
-                            ("verbose",InputData.StringType),
-                            ("bandwidth",InputData.FloatType),
-                            ("seeds",InputData.StringType),
-                            ("bin_seeding",InputData.StringType),
-                            ("min_bin_freq",InputData.IntegerType),
-                            ("cluster_all",InputData.StringType),
-                            ("gamma",InputData.FloatType),
-                            ("degree",InputData.StringType),
-                            ("coef0",InputData.FloatType),
-                            ("n_neighbors",InputData.IntegerType),
-                            ("eigen_solver",InputData.StringType),
-                            ("eigen_tol",InputData.FloatType),
-                            ("assign_labels",InputData.StringType),
-                            ("kernel_params",InputData.StringType),
-                            ("eps",InputData.StringType),
-                            ("min_samples",InputData.IntegerType),
-                            ("metric", InputData.StringType),
-                            ("connectivity",InputData.StringType),
-                            ("linkage",InputData.StringType),
-                            ("whiten",InputData.StringType),
-                            ("iterated_power",InputData.StringType),
-                            ("kernel",InputData.StringType),
-                            ("fit_inverse_transform",InputData.StringType),
-                            ("remove_zero_eig",InputData.StringType),
-                            ("ridge_alpha",InputData.FloatType),
-                            ("method",InputData.StringType),
-                            ("U_init",InputData.StringType),
-                            ("V_init",InputData.StringType),
-                            ("callback",InputData.StringType),
-                            ("shuffle",InputData.StringType),
-                            ("algorithm",InputData.StringType),
-                            ("fun",InputData.StringType),
-                            ("fun_args",InputData.StringType),
-                            ("w_init",InputData.StringType),
-                            ("path_method",InputData.StringType),
-                            ("neighbors_algorithm",InputData.StringType),
-                            ("reg",InputData.FloatType),
-                            ("hessian_tol",InputData.FloatType),
-                            ("modified_tol",InputData.FloatType),
-                            ("dissimilarity",InputData.StringType),
-                            ("level",InputData.StringType),
-                            ("criterion",InputData.StringType),
-                            ("dendrogram",InputData.StringType),
-                            ("truncationMode",InputData.StringType),
-                            ("p",InputData.IntegerType),
-                            ("leafCounts",InputData.StringType),
-                            ("showContracted",InputData.StringType),
-                            ("annotatedAbove",InputData.FloatType),
-                            ("dendFileID",InputData.StringType)]:
+    for name, inputType in [
+        ("Features",
+         InputData.StringType), ("n_components",
+                                 InputData.StringType), ("covariance_type",
+                                                         InputData.StringType),
+        ("random_state",
+         InputData.StringType), ("min_covar",
+                                 InputData.FloatType), ("thresh",
+                                                        InputData.FloatType),
+        ("n_iter", InputData.IntegerType), ("n_init", InputData.IntegerType),
+        ("params",
+         InputData.StringType), ("init_params",
+                                 InputData.StringType), ("alpha",
+                                                         InputData.FloatType),
+        ("n_clusters", InputData.IntegerType), ("max_iter",
+                                                InputData.IntegerType),
+        ("init",
+         InputData.StringType), ("precompute_distances",
+                                 InputData.StringType), ("tol",
+                                                         InputData.FloatType),
+        ("n_jobs", InputData.IntegerType), ("max_no_improvement",
+                                            InputData.IntegerType),
+        ("batch_size", InputData.IntegerType), ("compute_labels",
+                                                InputData.StringType),
+        ("reassignment_ratio",
+         InputData.FloatType), ("damping",
+                                InputData.StringType), ("convergence_iter",
+                                                        InputData.IntegerType),
+        ("copy",
+         InputData.StringType), ("preference",
+                                 InputData.StringType), ("affinity",
+                                                         InputData.StringType),
+        ("verbose",
+         InputData.StringType), ("bandwidth",
+                                 InputData.FloatType), ("seeds",
+                                                        InputData.StringType),
+        ("bin_seeding", InputData.StringType), ("min_bin_freq",
+                                                InputData.IntegerType),
+        ("cluster_all",
+         InputData.StringType), ("gamma",
+                                 InputData.FloatType), ("degree",
+                                                        InputData.StringType),
+        ("coef0",
+         InputData.FloatType), ("n_neighbors",
+                                InputData.IntegerType), ("eigen_solver",
+                                                         InputData.StringType),
+        ("eigen_tol",
+         InputData.FloatType), ("assign_labels",
+                                InputData.StringType), ("kernel_params",
+                                                        InputData.StringType),
+        ("eps", InputData.StringType), ("min_samples", InputData.IntegerType),
+        ("metric",
+         InputData.StringType), ("connectivity",
+                                 InputData.StringType), ("linkage",
+                                                         InputData.StringType),
+        ("whiten",
+         InputData.StringType), ("iterated_power",
+                                 InputData.StringType), ("kernel",
+                                                         InputData.StringType),
+        ("fit_inverse_transform",
+         InputData.StringType), ("remove_zero_eig",
+                                 InputData.StringType), ("ridge_alpha",
+                                                         InputData.FloatType),
+        ("method", InputData.StringType), ("U_init", InputData.StringType),
+        ("V_init", InputData.StringType), ("callback", InputData.StringType),
+        ("shuffle",
+         InputData.StringType), ("algorithm",
+                                 InputData.StringType), ("fun",
+                                                         InputData.StringType),
+        ("fun_args",
+         InputData.StringType), ("w_init",
+                                 InputData.StringType), ("path_method",
+                                                         InputData.StringType),
+        ("neighbors_algorithm",
+         InputData.StringType), ("reg",
+                                 InputData.FloatType), ("hessian_tol",
+                                                        InputData.FloatType),
+        ("modified_tol",
+         InputData.FloatType), ("dissimilarity",
+                                InputData.StringType), ("level",
+                                                        InputData.StringType),
+        ("criterion",
+         InputData.StringType), ("dendrogram",
+                                 InputData.StringType), ("truncationMode",
+                                                         InputData.StringType),
+        ("p", InputData.IntegerType), ("leafCounts", InputData.StringType),
+        ("showContracted",
+         InputData.StringType), ("annotatedAbove",
+                                 InputData.FloatType), ("dendFileID",
+                                                        InputData.StringType)
+    ]:
       dataType = InputData.parameterInputFactory(name, contentType=inputType)
       kddInput.addSub(dataType)
 
@@ -177,23 +200,23 @@ class DataMining(PostProcessor):
     PostProcessor.__init__(self, messageHandler)
     self.printTag = 'POSTPROCESSOR DATAMINING'
 
-    self.requiredAssObject = (True, (['PreProcessor','Metric'], ['-1','-1']))
+    self.requiredAssObject = (True, (['PreProcessor', 'Metric'], ['-1', '-1']))
 
-    self.solutionExport = None                            ## A data object to
-                                                          ## hold derived info
-                                                          ## about the algorithm
-                                                          ## being performed,
-                                                          ## e.g., cluster
-                                                          ## centers or a
-                                                          ## projection matrix
-                                                          ## for dimensionality
-                                                          ## reduction methods
+    self.solutionExport = None  ## A data object to
+    ## hold derived info
+    ## about the algorithm
+    ## being performed,
+    ## e.g., cluster
+    ## centers or a
+    ## projection matrix
+    ## for dimensionality
+    ## reduction methods
 
-    self.labelFeature = None                              ## User customizable
-                                                          ## column name for the
-                                                          ## labels associated
-                                                          ## to a clustering or
-                                                          ## a DR algorithm
+    self.labelFeature = None  ## User customizable
+    ## column name for the
+    ## labels associated
+    ## to a clustering or
+    ## a DR algorithm
 
     self.PreProcessor = None
     self.metric = None
@@ -205,16 +228,16 @@ class DataMining(PostProcessor):
       @ In , None, None
       @ Out, dict, dictionary of objects needed
     """
-    return {'internal':[(None,'jobHandler')]}
+    return {'internal': [(None, 'jobHandler')]}
 
-  def _localGenerateAssembler(self,initDict):
+  def _localGenerateAssembler(self, initDict):
     """Generates the assembler.
       @ In, initDict, dict, init objects
       @ Out, None
     """
     self.jobHandler = initDict['internal']['jobHandler']
 
-  def inputToInternalForHistorySet(self,currentInput):
+  def inputToInternalForHistorySet(self, currentInput):
     """
       Function to convert the input history set into a format that this
       post-processor can understand
@@ -222,39 +245,71 @@ class DataMining(PostProcessor):
       @ Out, inputDict, dict, an input dictionary that this post-processor can process
     """
     dataSet = currentInput.asDataset()
-    inputDict = {'Features': {}, 'parameters': {}, 'Labels': {}, 'metadata': {}}
+    inputDict = {
+        'Features': {},
+        'parameters': {},
+        'Labels': {},
+        'metadata': {}
+    }
     if self.pivotParameter is None and self.metric is not None:
       if not hasattr(self.metric, 'pivotParameter'):
-        self.raiseAnError(IOError, 'HistorySet is provided as input, but this post-processor ', self.name, ' can not handle it!')
+        self.raiseAnError(
+            IOError,
+            'HistorySet is provided as input, but this post-processor ',
+            self.name, ' can not handle it!')
       self.pivotParameter = self.metric.pivotParameter
     if self.PreProcessor is None and self.metric is None:
-      if not currentInput.checkIndexAlignment(indexesToCheck=self.pivotParameter):
-        self.raiseAnError(IOError, "The data provided by the DataObject ", currentInput.name, " is not synchronized!")
+      if not currentInput.checkIndexAlignment(
+          indexesToCheck=self.pivotParameter):
+        self.raiseAnError(IOError, "The data provided by the DataObject ",
+                          currentInput.name, " is not synchronized!")
       # for testing time dependent data mining - time dependent clustering
-      self.pivotVariable = np.asarray([dataSet.isel(**{currentInput.sampleTag:i}).dropna(self.pivotParameter)[self.pivotParameter].values for i in range(len(currentInput))])
-      historyKey          = dataSet[self.pivotParameter].values
-      numberOfSample      = len(dataSet['RAVEN_sample_ID'].values)
+      self.pivotVariable = np.asarray([
+          dataSet.isel(**{
+              currentInput.sampleTag: i
+          }).dropna(self.pivotParameter)[self.pivotParameter].values
+          for i in range(len(currentInput))
+      ])
+      historyKey = dataSet[self.pivotParameter].values
+      numberOfSample = len(dataSet['RAVEN_sample_ID'].values)
       numberOfHistoryStep = len(dataSet[self.pivotParameter].values)
 
       if self.initializationOptionDict['KDD']['Features'] == 'input':
-        self.raiseAnError(ValueError, 'To perform data mining over input please use SciKitLearn library')
-      elif self.initializationOptionDict['KDD']['Features'] in ['output', 'all']:
+        self.raiseAnError(
+            ValueError,
+            'To perform data mining over input please use SciKitLearn library')
+      elif self.initializationOptionDict['KDD']['Features'] in [
+          'output', 'all'
+      ]:
         features = currentInput.getVars('output')
       else:
-        features = [elem.strip() for elem in self.initializationOptionDict['KDD']['Features'].split(',')]
+        features = [
+            elem.strip() for elem in self.initializationOptionDict['KDD'][
+                'Features'].split(',')
+        ]
 
       for param in features:
-        inputDict['Features'][param] = np.zeros(shape=(numberOfSample,numberOfHistoryStep))
+        inputDict['Features'][param] = np.zeros(
+            shape=(numberOfSample, numberOfHistoryStep))
         # FIXME: Slow loop in case of many samples, improve performance
         for cnt in range(numberOfSample):
-          inputDict['Features'][param][cnt,:] = currentInput.realization(index=cnt)[param]
+          inputDict['Features'][param][cnt, :] = currentInput.realization(
+              index=cnt)[param]
 
     elif self.metric is not None:
       if self.initializationOptionDict['KDD']['Features'] == 'input':
-        self.raiseAnError(ValueError, 'KDD Post-processor for time dependent data with metric provided allows only output variables (time-dependent)')
+        self.raiseAnError(
+            ValueError,
+            'KDD Post-processor for time dependent data with metric provided allows only output variables (time-dependent)'
+        )
       elif self.initializationOptionDict['KDD']['Features'] == 'output':
         numberOfSample = currentInput.size
-        self.pivotVariable = np.asarray([dataSet.isel(**{currentInput.sampleTag:i}).dropna(self.pivotParameter)[self.pivotParameter].values for i in range(len(currentInput))])
+        self.pivotVariable = np.asarray([
+            dataSet.isel(**{
+                currentInput.sampleTag: i
+            }).dropna(self.pivotParameter)[self.pivotParameter].values
+            for i in range(len(currentInput))
+        ])
         for i in range(numberOfSample):
           rlz = currentInput.realization(index=i)
           inputDict['Features'][i] = {}
@@ -264,13 +319,17 @@ class DataMining(PostProcessor):
 
     elif self.PreProcessor is not None:
       self.pivotParameter = currentInput.indexes[-1]
-      self.pivotVariable = np.asarray([dataSet.isel(RAVEN_sample_ID=i).dropna(self.pivotParameter)[self.pivotParameter].values for i in range(len(currentInput))])
+      self.pivotVariable = np.asarray([
+          dataSet.isel(RAVEN_sample_ID=i).dropna(
+              self.pivotParameter)[self.pivotParameter].values
+          for i in range(len(currentInput))
+      ])
       return self.inputToInternalForPreProcessor(currentInput)
 
-    inputDict['metadata'] = currentInput.getMeta(pointwise=True,general=True)
+    inputDict['metadata'] = currentInput.getMeta(pointwise=True, general=True)
     return inputDict
 
-  def inputToInternalForPointSet(self,currentInput):
+  def inputToInternalForPointSet(self, currentInput):
     """
       Function to convert the input point set into a format that this
       post-processor can understand
@@ -287,7 +346,12 @@ class DataMining(PostProcessor):
     allOutputFeatures = currentInput.getVars('output')
 
     if self.PreProcessor is None:
-      inputDict = {'Features': {}, 'parameters': {}, 'Labels': {}, 'metadata': {}}
+      inputDict = {
+          'Features': {},
+          'parameters': {},
+          'Labels': {},
+          'metadata': {}
+      }
       if self.initializationOptionDict['KDD']['Features'] == 'input':
         for param in allInputFeatures:
           inputDict['Features'][param] = data[param].values
@@ -301,16 +365,19 @@ class DataMining(PostProcessor):
           inputDict['Features'][param] = data[param].values
       else:
         ## Get what the user asks requests
-        features = set(self.initializationOptionDict['KDD']['Features'].split(','))
+        features = set(
+            self.initializationOptionDict['KDD']['Features'].split(','))
         allFeatures = set(allInputFeatures + allOutputFeatures)
         if not features.issubset(allFeatures):
-          self.raiseAnError(ValueError, 'Data Mining PP: features specified in the '
-                                        'PP (' + str(features) + ') do not match the one available '
-                                        'in the dataObject ('+ str(allInputFeatures+allOutputFeatures) +') ')
+          self.raiseAnError(
+              ValueError, 'Data Mining PP: features specified in the '
+              'PP (' + str(features) + ') do not match the one available '
+              'in the dataObject (' +
+              str(allInputFeatures + allOutputFeatures) + ') ')
         ## Now intersect what the user wants and what is available.
         ## NB: this will not error, if the user asks for something that does not
         ##     exist in the data, it will silently ignore it.
-        inParams  = list(features.intersection(allInputFeatures))
+        inParams = list(features.intersection(allInputFeatures))
         outParams = list(features.intersection(allOutputFeatures))
 
         for param in inParams:
@@ -318,22 +385,31 @@ class DataMining(PostProcessor):
         for param in outParams:
           inputDict['Features'][param] = data[param].values
 
-      inputDict['metadata'] = currentInput.getMeta(pointwise=True,general=True)
+      inputDict['metadata'] = currentInput.getMeta(
+          pointwise=True, general=True)
       return inputDict
 
     elif self.PreProcessor is not None:
       return self.inputToInternalForPreProcessor(currentInput)
 
-  def inputToInternalForPreProcessor(self,currentInput):
+  def inputToInternalForPreProcessor(self, currentInput):
     """
       Function to convert the received input into a format that this
       post-processor can understand
       @ In, currentInput, object, DataObject of currentInput
       @ Out, inputDict, dict, an input dictionary that this post-processor can process
     """
-    inputDict = {'Features': {}, 'parameters': {}, 'Labels': {}, 'metadata': {}}
+    inputDict = {
+        'Features': {},
+        'parameters': {},
+        'Labels': {},
+        'metadata': {}
+    }
     if self.PreProcessor.interface.returnFormat('output') not in ['PointSet']:
-      self.raiseAnError(IOError, 'DataMining PP: this PP is employing a pre-processor PP which does not generates a PointSet.')
+      self.raiseAnError(
+          IOError,
+          'DataMining PP: this PP is employing a pre-processor PP which does not generates a PointSet.'
+      )
 
     tempData = self.PreProcessor.interface.inputToInternal([currentInput])
     preProcessedData = self.PreProcessor.interface.run(tempData)
@@ -343,14 +419,18 @@ class DataMining(PostProcessor):
     elif self.initializationOptionDict['KDD']['Features'] == 'output':
       dataList = preProcessedData['data'].keys()
       # FIXME: this fix is due to the changes in the data structure of interface pp
-      toRemove = ['prefix', 'ProbabilityWeight'] + currentInput.getVars('input')
+      toRemove = ['prefix', 'ProbabilityWeight'
+                  ] + currentInput.getVars('input')
       featureList = [elem for elem in dataList if elem not in toRemove]
     else:
-      featureList = [feature.strip() for feature in self.initializationOptionDict['KDD']['Features'].split(',')]
+      featureList = [
+          feature.strip() for feature in self.initializationOptionDict['KDD'][
+              'Features'].split(',')
+      ]
     for key in featureList:
       inputDict['Features'][key] = copy.deepcopy(preProcessedData['data'][key])
 
-    inputDict['metadata'] = currentInput.getMeta(pointwise=True,general=True)
+    inputDict['metadata'] = currentInput.getMeta(pointwise=True, general=True)
     return inputDict
 
   def inputToInternal(self, currentInp):
@@ -364,7 +444,9 @@ class DataMining(PostProcessor):
 
     if type(currentInp) == list:
       if len(currentInp) > 1:
-        self.raiseAnError(IOError, "Only one input is allowed for this post-processor: ", self.name)
+        self.raiseAnError(
+            IOError, "Only one input is allowed for this post-processor: ",
+            self.name)
       currentInput = currentInp[-1]
     else:
       currentInput = currentInp
@@ -380,10 +462,13 @@ class DataMining(PostProcessor):
         return
 
     elif isinstance(currentInp, Files.File):
-      self.raiseAnError(IOError, 'DataMining PP: this PP does not support files as input.')
+      self.raiseAnError(
+          IOError, 'DataMining PP: this PP does not support files as input.')
 
     elif currentInput.type == 'HDF5':
-      self.raiseAnError(IOError, 'DataMining PP: this PP does not support HDF5 Objects as input.')
+      self.raiseAnError(
+          IOError,
+          'DataMining PP: this PP does not support HDF5 Objects as input.')
 
   def initialize(self, runInfo, inputs, initDict):
     """
@@ -399,7 +484,10 @@ class DataMining(PostProcessor):
     if "PreProcessor" in self.assemblerDict:
       self.PreProcessor = self.assemblerDict['PreProcessor'][0][3]
       if not '_inverse' in dir(self.PreProcessor.interface):
-        self.raiseAnError(IOError, 'PostProcessor ' + self.name + ' is using a pre-processor where the method inverse has not implemented')
+        self.raiseAnError(
+            IOError, 'PostProcessor ' + self.name +
+            ' is using a pre-processor where the method inverse has not implemented'
+        )
     if 'Metric' in self.assemblerDict:
       self.metric = self.assemblerDict['Metric'][0][3]
 
@@ -432,7 +520,7 @@ class DataMining(PostProcessor):
           ## put all of the information and then to remove the ones we process.
           ## - dpm 6/8/16
           self.initializationOptionDict[child.getName()] = {}
-          for key,value in child.parameterValues.iteritems():
+          for key, value in child.parameterValues.iteritems():
             if key == 'lib':
               self.type = value
             elif key == 'labelFeature':
@@ -440,12 +528,16 @@ class DataMining(PostProcessor):
             else:
               self.initializationOptionDict[child.getName()][key] = value
         else:
-          self.initializationOptionDict[child.getName()] = utils.tryParse(child.value)
+          self.initializationOptionDict[child.getName()] = utils.tryParse(
+              child.value)
         for childChild in child.subparts:
-          if len(childChild.parameterValues) > 0 and not childChild.getName() == 'PreProcessor':
-            self.initializationOptionDict[child.getName()][childChild.getName()] = dict(childChild.parameterValues)
+          if len(childChild.parameterValues) > 0 and not childChild.getName(
+          ) == 'PreProcessor':
+            self.initializationOptionDict[child.getName()][
+                childChild.getName()] = dict(childChild.parameterValues)
           else:
-            self.initializationOptionDict[child.getName()][childChild.getName()] = utils.tryParse(childChild.value)
+            self.initializationOptionDict[child.getName()][
+                childChild.getName()] = utils.tryParse(childChild.value)
       elif child.getName() == 'pivotParameter':
         self.pivotParameter = child.value
     if not hasattr(self, 'pivotParameter'):
@@ -456,9 +548,12 @@ class DataMining(PostProcessor):
       #TODO unSurpervisedEngine needs to be able to handle both methods
       # without this if statement.
       if self.pivotParameter is not None:
-        self.unSupervisedEngine = unSupervisedLearning.returnInstance("temporalSciKitLearn", self, **self.initializationOptionDict['KDD'])
+        self.unSupervisedEngine = unSupervisedLearning.returnInstance(
+            "temporalSciKitLearn", self,
+            **self.initializationOptionDict['KDD'])
       else:
-        self.unSupervisedEngine = unSupervisedLearning.returnInstance(self.type, self, **self.initializationOptionDict['KDD'])
+        self.unSupervisedEngine = unSupervisedLearning.returnInstance(
+            self.type, self, **self.initializationOptionDict['KDD'])
     else:
       self.raiseAnError(IOError, 'No Data Mining Algorithm is supplied!')
     ## If the user has not defined a label feature, then we will force it to be
@@ -467,10 +562,12 @@ class DataMining(PostProcessor):
     ## the word 'Dimension' + a numeric id for dimensionality reduction
     ## algorithms
     if self.labelFeature is None:
-      if self.unSupervisedEngine.getDataMiningType() in ['cluster','mixture']:
-        self.labelFeature = self.name+'Labels'
-      elif self.unSupervisedEngine.getDataMiningType() in ['decomposition','manifold']:
-        self.labelFeature = self.name+'Dimension'
+      if self.unSupervisedEngine.getDataMiningType() in ['cluster', 'mixture']:
+        self.labelFeature = self.name + 'Labels'
+      elif self.unSupervisedEngine.getDataMiningType() in [
+          'decomposition', 'manifold'
+      ]:
+        self.labelFeature = self.name + 'Dimension'
 
   def collectOutput(self, finishedJob, outputObject):
     """
@@ -483,7 +580,9 @@ class DataMining(PostProcessor):
     ## When does this actually happen?
     evaluation = finishedJob.getEvaluation()
     if isinstance(evaluation, Runners.Error):
-      self.raiseAnError(RuntimeError, "No available output to collect (run possibly not finished yet)")
+      self.raiseAnError(
+          RuntimeError,
+          "No available output to collect (run possibly not finished yet)")
     inputObject, dataMineDict = evaluation
     ## This should not have to be a list
     ## TODO: figure out if there is a case where it can be in this processor
@@ -497,12 +596,15 @@ class DataMining(PostProcessor):
     ## input object
     if inputObject != outputObject:
       if inputObject.type != outputObject.type:
-        self.raiseAnError(IOError, 'The type of output data object ', outputObject.name, ' is not consistent with the type of input data object ', self.inputObject, '! Please check your input file')
+        self.raiseAnError(
+            IOError, 'The type of output data object ', outputObject.name,
+            ' is not consistent with the type of input data object ',
+            self.inputObject, '! Please check your input file')
       rlzs = {}
       inputData = inputObject.asDataset()
       ## First copy any data you need from the input object
       ## before adding new data
-      for key in outputObject.getVars('Input')+outputObject.getVars('Output'):
+      for key in outputObject.getVars('Input') + outputObject.getVars('Output'):
         if key in inputObject.getVars('Input') + inputObject.getVars('Output'):
           rlzs[key] = copy.deepcopy(inputObject.getVarValues(key).values)
         else:
@@ -513,7 +615,9 @@ class DataMining(PostProcessor):
         rlzs[self.pivotParameter] = np.atleast_1d(self.pivotVariable)
         outputObject.load(rlzs, style='dict', dims=inputObject.getDimensions())
       else:
-        self.raiseAnError(IOError, 'Unrecognized type for output data object ', outputObject.name, '! Available type are HistorySet or PointSet!')
+        self.raiseAnError(IOError, 'Unrecognized type for output data object ',
+                          outputObject.name,
+                          '! Available type are HistorySet or PointSet!')
     ## End data copy
     ############################################################################
 
@@ -527,27 +631,30 @@ class DataMining(PostProcessor):
         if key == param:
           outputObject.remove(variable=key)
       if outputObject.type == 'PointSet':
-        outputObject.addVariable(key, copy.copy(dataMineDict['outputs'][key]),classify='output')
+        outputObject.addVariable(
+            key, copy.copy(dataMineDict['outputs'][key]), classify='output')
       elif outputObject.type == 'HistorySet':
         expValues = np.zeros(len(outputObject), dtype=object)
         values = dataMineDict['outputs'][key]
         for index, value in enumerate(values):
           timeLength = len(self.pivotVariable[index])
           arrayBase = value * np.ones(timeLength)
-          xrArray = xr.DataArray(arrayBase,dims=(self.pivotParameter), coords=[self.pivotVariable[index]])
+          xrArray = xr.DataArray(
+              arrayBase,
+              dims=(self.pivotParameter),
+              coords=[self.pivotVariable[index]])
           expValues[index] = xrArray
-        outputObject.addVariable(key, expValues,classify='output')
+        outputObject.addVariable(key, expValues, classify='output')
     ## End data augmentation
     ############################################################################
 
     if len(missingKeys) > 0:
       missingKeys = ','.join(missingKeys)
-      self.raiseAWarning("The {} \"{}\" used as an output specifies the "
-                           "following inputs/outputs that could not be resolved "
-                           "by the \"{}\" {}: {}".format(outputObject.type,
-                                                         outputObject.name,
-                                                         self.name, "Model",
-                                                         missingKeys))
+      self.raiseAWarning(
+          "The {} \"{}\" used as an output specifies the "
+          "following inputs/outputs that could not be resolved "
+          "by the \"{}\" {}: {}".format(outputObject.type, outputObject.name,
+                                        self.name, "Model", missingKeys))
 
   def run(self, inputIn):
     """
@@ -589,16 +696,18 @@ class DataMining(PostProcessor):
     self.userInteraction()
     outputDict = self.unSupervisedEngine.outputDict
     if 'bicluster' == self.unSupervisedEngine.getDataMiningType():
-      self.raiseAnError(RuntimeError, 'Bicluster has not yet been implemented.')
+      self.raiseAnError(RuntimeError,
+                        'Bicluster has not yet been implemented.')
     ## Rename the algorithm output to point to the user-defined label feature
     if 'labels' in outputDict['outputs']:
-      outputDict['outputs'][self.labelFeature] = outputDict['outputs'].pop('labels')
+      outputDict['outputs'][self.labelFeature] = outputDict['outputs'].pop(
+          'labels')
     elif 'embeddingVectors' in outputDict['outputs']:
       transformedData = outputDict['outputs'].pop('embeddingVectors')
       reducedDimensionality = transformedData.shape[1]
       for i in range(reducedDimensionality):
         newColumnName = self.labelFeature + str(i + 1)
-        outputDict['outputs'][newColumnName] =  transformedData[:, i]
+        outputDict['outputs'][newColumnName] = transformedData[:, i]
     if self.solutionExport is not None:
       if 'cluster' == self.unSupervisedEngine.getDataMiningType():
         solutionExportDict = self.unSupervisedEngine.metaDict
@@ -615,7 +724,7 @@ class DataMining(PostProcessor):
             for i, key in enumerate(self.unSupervisedEngine.features.keys()):
               ## FIXME: Can I be sure of the order of dimensions in the features dict, is
               ## the same order as the data held in the UnSupervisedLearning object?
-              rlzs[key] = np.atleast_1d(centers[:,i])
+              rlzs[key] = np.atleast_1d(centers[:, i])
             self.solutionExport.load(rlzs, style='dict')
           else:
             # if a pre-processor is used it is here assumed that the pre-processor has internally a
@@ -624,7 +733,7 @@ class DataMining(PostProcessor):
             tempDict = {}
             rlzs = {}
             rlzDims = {}
-            for index,center in zip(indices,centers):
+            for index, center in zip(indices, centers):
               tempDict[index] = center
             centers = self.PreProcessor.interface._inverse(tempDict)
             rlzs[self.labelFeature] = np.atleast_1d(indices)
@@ -640,7 +749,8 @@ class DataMining(PostProcessor):
                     rlzs[key] = copy.copy(centers[hist][key])
                     rlzDims[key] = [self.pivotParameter]
                   else:
-                    rlzs[key] = np.vstack((rlzs[key], copy.copy(centers[hist][key])))
+                    rlzs[key] = np.vstack((rlzs[key],
+                                           copy.copy(centers[hist][key])))
               self.solutionExport.load(rlzs, style='dict', dims=rlzDims)
       elif 'mixture' == self.unSupervisedEngine.getDataMiningType():
         solutionExportDict = self.unSupervisedEngine.metaDict
@@ -661,16 +771,17 @@ class DataMining(PostProcessor):
           ## Can I be sure of the order of dimensions in the features dict, is
           ## the same order as the data held in the UnSupervisedLearning
           ## object?
-          rlzs[key] = np.atleast_1d(mixtureMeans[:,i])
+          rlzs[key] = np.atleast_1d(mixtureMeans[:, i])
           ##FIXME: You may also want to output the covariances of each pair of
           ## dimensions as well, this is currently only accessible from the solution export metadata
           ## We should list the variables name the solution export in order to access this data
-          for joffset,col in enumerate(self.unSupervisedEngine.features.keys()[i:]):
-            j = i+joffset
-            covValues = mixtureCovars[:,i,j]
-            covName = 'cov_'+str(key)+'_'+str(col)
+          for joffset, col in enumerate(
+              self.unSupervisedEngine.features.keys()[i:]):
+            j = i + joffset
+            covValues = mixtureCovars[:, i, j]
+            covName = 'cov_' + str(key) + '_' + str(col)
             additionalOutput[covName] = np.atleast_1d(covValues)
-        self.solutionExport.load(rlzs, style = 'dict')
+        self.solutionExport.load(rlzs, style='dict')
         if additionalOutput:
           for key, value in additionalOutput.items():
             self.solutionExport.addVariable(key, value)
@@ -683,15 +794,18 @@ class DataMining(PostProcessor):
         rlzs = {}
         if 'components' in solutionExportDict:
           components = solutionExportDict['components']
-          indices = list(range(1, len(components)+1))
+          indices = list(range(1, len(components) + 1))
           rlzs[self.labelFeature] = np.atleast_1d(indices)
-          for keyIndex, key in enumerate(self.unSupervisedEngine.features.keys()):
-            rlzs[key] = np.atleast_1d(components[:,keyIndex])
+          for keyIndex, key in enumerate(
+              self.unSupervisedEngine.features.keys()):
+            rlzs[key] = np.atleast_1d(components[:, keyIndex])
         self.solutionExport.load(rlzs, style='dict')
         # FIXME: I think the user need to specify the following word in the solution export data object
         # in order to access this data, currently, we just added to the metadata of solution export
         if 'explainedVarianceRatio' in solutionExportDict:
-          self.solutionExport.addVariable('explainedVarianceRatio', np.atleast_1d(solutionExportDict['explainedVarianceRatio']))
+          self.solutionExport.addVariable(
+              'explainedVarianceRatio',
+              np.atleast_1d(solutionExportDict['explainedVarianceRatio']))
 
     return outputDict
 
@@ -717,7 +831,8 @@ class DataMining(PostProcessor):
     numberOfSample = self.unSupervisedEngine.numberOfSample
 
     if 'bicluster' == self.unSupervisedEngine.getDataMiningType():
-      self.raiseAnError(RuntimeError, 'Bicluster has not yet been implemented.')
+      self.raiseAnError(RuntimeError,
+                        'Bicluster has not yet been implemented.')
 
     ## Rename the algorithm output to point to the user-defined label feature
     # if 'labels' in outputDict:
@@ -731,27 +846,29 @@ class DataMining(PostProcessor):
     #     outputDict['outputs'][newColumnName] =  transformedData[:, i]
 
     if 'labels' in self.unSupervisedEngine.outputDict['outputs'].keys():
-      labels = np.zeros(shape=(numberOfSample,numberOfHistoryStep))
+      labels = np.zeros(shape=(numberOfSample, numberOfHistoryStep))
       for t in range(numberOfHistoryStep):
-        labels[:,t] = self.unSupervisedEngine.outputDict['outputs']['labels'][t]
+        labels[:, t] = self.unSupervisedEngine.outputDict['outputs']['labels'][
+            t]
       outputDict['outputs'][self.labelFeature] = labels
     elif 'embeddingVectors' in outputDict['outputs']:
       transformedData = outputDict['outputs'].pop('embeddingVectors')
       reducedDimensionality = transformedData.values()[0].shape[1]
 
       for i in range(reducedDimensionality):
-        dimensionI = np.zeros(shape=(numberOfSample,numberOfHistoryStep))
+        dimensionI = np.zeros(shape=(numberOfSample, numberOfHistoryStep))
         newColumnName = self.labelFeature + str(i + 1)
 
         for t in range(numberOfHistoryStep):
-          dimensionI[:, t] =  transformedData[t][:, i]
+          dimensionI[:, t] = transformedData[t][:, i]
         outputDict['outputs'][newColumnName] = dimensionI
 
     if 'cluster' == self.unSupervisedEngine.getDataMiningType():
       ## SKL will always enumerate cluster centers starting from zero, if this
       ## is violated, then the indexing below will break.
       if 'clusterCentersIndices' in self.unSupervisedEngine.metaDict.keys():
-        clusterCentersIndices = self.unSupervisedEngine.metaDict['clusterCentersIndices']
+        clusterCentersIndices = self.unSupervisedEngine.metaDict[
+            'clusterCentersIndices']
 
       if 'clusterCenters' in self.unSupervisedEngine.metaDict.keys():
         clusterCenters = self.unSupervisedEngine.metaDict['clusterCenters']
@@ -766,7 +883,8 @@ class DataMining(PostProcessor):
           for rlzIndex in clusterLabels:
             ## Now we will process each feature available
             ## TODO: Ensure user requests each of these
-            for featureIdx, feat in enumerate(self.unSupervisedEngine.features):
+            for featureIdx, feat in enumerate(
+                self.unSupervisedEngine.features):
               ## We will go through the time series and find every instance
               ## where this cluster exists, if it does not, then we put a NaN
               ## to signal that the information is missing for this timestep
@@ -777,7 +895,8 @@ class DataMining(PostProcessor):
                 ## indexes with no need to add another layer of obfuscation
                 if rlzIndex in clusterCentersIndices[timeIdx]:
                   loc = clusterCentersIndices[timeIdx].index(rlzIndex)
-                  timeSeries[timeIdx] = self.unSupervisedEngine.metaDict['clusterCenters'][timeIdx][loc,featureIdx]
+                  timeSeries[timeIdx] = self.unSupervisedEngine.metaDict[
+                      'clusterCenters'][timeIdx][loc, featureIdx]
                 else:
                   timeSeries[timeIdx] = np.atleast_1d(np.nan)
 
@@ -789,12 +908,13 @@ class DataMining(PostProcessor):
               ## call updateInputValue again, it will move the pointer? This
               ## needs verified
               if feat not in rlzs.keys():
-                rlzs[feat] = np.zeros((len(clusterLabels), numberOfHistoryStep))
+                rlzs[feat] = np.zeros((len(clusterLabels),
+                                       numberOfHistoryStep))
                 rlzs[feat][rlzIndex] = copy.copy(timeSeries)
                 rlzDims[feat] = [self.pivotParameter]
               else:
                 rlzs[feat][rlzIndex] = copy.copy(timeSeries)
-          self.solutionExport.load(rlzs, style='dict',dims=rlzDims)
+          self.solutionExport.load(rlzs, style='dict', dims=rlzDims)
 
       if 'inertia' in self.unSupervisedEngine.outputDict.keys():
         inertia = self.unSupervisedEngine.outputDict['inertia']
@@ -811,7 +931,8 @@ class DataMining(PostProcessor):
         mixturePrecs = None
 
       if 'componentMeanIndices' in self.unSupervisedEngine.metaDict.keys():
-        componentMeanIndices = self.unSupervisedEngine.metaDict['componentMeanIndices']
+        componentMeanIndices = self.unSupervisedEngine.metaDict[
+            'componentMeanIndices']
       else:
         componentMeanIndices = None
 
@@ -826,21 +947,22 @@ class DataMining(PostProcessor):
         rlzDims = {}
         rlzs = {}
         ## First store the label as the input for this cluster
-        mixLabels = range(int(np.max(componentMeanIndices.values()))+1)
+        mixLabels = range(int(np.max(componentMeanIndices.values())) + 1)
         rlzs[self.labelFeature] = np.atleast_1d(mixLabels)
         rlzs[self.pivotParameter] = self.pivotVariable
         for rlzIndex in mixLabels:
           ## Now we will process each feature available
           ## TODO: Ensure user requests each of these
           if mixtureMeans is not None:
-            for featureIdx, feat in enumerate(self.unSupervisedEngine.features):
+            for featureIdx, feat in enumerate(
+                self.unSupervisedEngine.features):
               ## We will go through the time series and find every instance
               ## where this cluster exists, if it does not, then we put a NaN
               ## to signal that the information is missing for this timestep
               timeSeries = np.zeros(numberOfHistoryStep)
               for timeIdx in range(numberOfHistoryStep):
                 loc = componentMeanIndices[timeIdx].index(rlzIndex)
-                timeSeries[timeIdx] = mixtureMeans[timeIdx][loc,featureIdx]
+                timeSeries[timeIdx] = mixtureMeans[timeIdx][loc, featureIdx]
               ## In summary, for each feature, we fill a temporary array and
               ## stuff it into the solutionExport, one question is how do we
               ## tell it which item we are exporting? I am assuming that if
@@ -856,20 +978,22 @@ class DataMining(PostProcessor):
           ## You may also want to output the covariances of each pair of
           ## dimensions as well
           if mixtureCovars is not None:
-            for i,row in enumerate(self.unSupervisedEngine.features.keys()):
-              for joffset,col in enumerate(self.unSupervisedEngine.features.keys()[i:]):
-                j = i+joffset
+            for i, row in enumerate(self.unSupervisedEngine.features.keys()):
+              for joffset, col in enumerate(
+                  self.unSupervisedEngine.features.keys()[i:]):
+                j = i + joffset
                 timeSeries = np.zeros(numberOfHistoryStep)
                 for timeIdx in range(numberOfHistoryStep):
                   loc = componentMeanIndices[timeIdx].index(rlzIndex)
-                  timeSeries[timeIdx] = mixtureCovars[timeIdx][loc][i,j]
+                  timeSeries[timeIdx] = mixtureCovars[timeIdx][loc][i, j]
                 covPairName = 'cov_' + str(row) + '_' + str(col)
                 if covPairName not in rlzs.keys():
                   rlzs[covPairName] = timeSeries
                   rlzDims[covPairName] = [self.pivotParameter]
                 else:
-                  rlzs[covPairName] = np.vstack((rlzs[covPairName], timeSeries))
-        self.solutionExport.load(rlzs, style='dict',dims=rlzDims)
+                  rlzs[covPairName] = np.vstack((rlzs[covPairName],
+                                                 timeSeries))
+        self.solutionExport.load(rlzs, style='dict', dims=rlzDims)
     elif 'decomposition' == self.unSupervisedEngine.getDataMiningType():
       if self.solutionExport is not None:
         solutionExportDict = self.unSupervisedEngine.metaDict
@@ -882,41 +1006,46 @@ class DataMining(PostProcessor):
 
           ## Note, this implies some data exists (Really this information should
           ## be stored in a dictionary to begin with)
-          numComponents,numDimensions = components[0].shape
+          numComponents, numDimensions = components[0].shape
 
-          componentsArray = np.zeros((numComponents, numberOfHistoryStep, numDimensions))
+          componentsArray = np.zeros((numComponents, numberOfHistoryStep,
+                                      numDimensions))
           evrArray = np.zeros((numComponents, numberOfHistoryStep))
 
           for timeIdx in range(numberOfHistoryStep):
-            for componentIdx,values in enumerate(components[timeIdx]):
-              componentsArray[componentIdx,timeIdx,:] = values
-              evrArray[componentIdx, timeIdx] = solutionExportDict['explainedVarianceRatio'][timeIdx][componentIdx]
+            for componentIdx, values in enumerate(components[timeIdx]):
+              componentsArray[componentIdx, timeIdx, :] = values
+              evrArray[componentIdx, timeIdx] = solutionExportDict[
+                  'explainedVarianceRatio'][timeIdx][componentIdx]
 
           rlzs = {}
           rlzDims = {}
           ## First store the dimension name as the input for this component
-          rlzs[self.labelFeature] =  np.atleast_1d(range(1,numComponents+1))
+          rlzs[self.labelFeature] = np.atleast_1d(range(1, numComponents + 1))
           rlzs[self.pivotParameter] = self.pivotVariable
-          for dimIdx,dimName in enumerate(self.unSupervisedEngine.features.keys()):
-            values = componentsArray[:,:,dimIdx]
+          for dimIdx, dimName in enumerate(
+              self.unSupervisedEngine.features.keys()):
+            values = componentsArray[:, :, dimIdx]
             rlzs[dimName] = values
             rlzDims[dimName] = [self.pivotParameter]
             if 'explainedVarianceRatio' in solutionExportDict:
               rlzs['ExplainedVarianceRatio'] = evrArray
               rlzDims['ExplainedVarianceRatio'] = [self.pivotParameter]
-        self.solutionExport.load(rlzs, style='dict',dims=rlzDims)
+        self.solutionExport.load(rlzs, style='dict', dims=rlzDims)
 
     return outputDict
+
 
 try:
   import PySide.QtCore as qtc
 
-  class QDataMining(DataMining,qtc.QObject):
+  class QDataMining(DataMining, qtc.QObject):
     """
       DataMining class - Computes a hierarchical clustering from an input point
       cloud consisting of an arbitrary number of input parameters
     """
-    requestUI = qtc.Signal(str,str,dict)
+    requestUI = qtc.Signal(str, str, dict)
+
     def __init__(self, messageHandler):
       """
        Constructor
@@ -948,10 +1077,10 @@ try:
         @ Out, needDict, list of objects needed
       """
       needDict = DataMining._localWhatDoINeed(self)
-      needDict['internal'].append((None,'app'))
+      needDict['internal'].append((None, 'app'))
       return needDict
 
-    def _localGenerateAssembler(self,initDict):
+    def _localGenerateAssembler(self, initDict):
       """
         Generates the assembler.
         @ In, initDict, dict of init objects
@@ -989,21 +1118,26 @@ try:
         uiID = unicode(id(self))
 
         ## Send the request for a UI thread to the main application
-        self.requestUI.emit('HierarchyWindow', uiID,
-                            {'views': ['DendrogramView','ScatterView'],
-                             'engine': self.unSupervisedEngine})
+        self.requestUI.emit(
+            'HierarchyWindow', uiID, {
+                'views': ['DendrogramView', 'ScatterView'],
+                'engine': self.unSupervisedEngine
+            })
 
         ## Spinlock will wait until this instance's window has been closed
-        while(not self.uiDone):
+        while (not self.uiDone):
           time.sleep(1)
 
         ## First check that the requested UI exists, and then if that UI has the
         ## requested information, if not proceed as if it were not an
         ## interactive session.
-        if uiID in self.app.UIs and hasattr(self.app.UIs[uiID],'level') and self.app.UIs[uiID].level is not None:
-          self.initializationOptionDict['KDD']['level'] = self.app.UIs[uiID].level
+        if uiID in self.app.UIs and hasattr(
+            self.app.UIs[uiID],
+            'level') and self.app.UIs[uiID].level is not None:
+          self.initializationOptionDict['KDD']['level'] = self.app.UIs[
+              uiID].level
 
-    def signalDone(self,uiID):
+    def signalDone(self, uiID):
       """
         In Qt language, this is a slot that will accept a signal from the UI
         saying that it has completed, thus allowing the computation to begin

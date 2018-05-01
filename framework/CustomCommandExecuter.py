@@ -16,15 +16,18 @@ Created on April 10, 2014
 
 @author: alfoa
 """
-#for future compatibility with Python 3--------------------------------------------------------------
+#for future compatibility with Python 3------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
-warnings.simplefilter('default',DeprecationWarning)
-#End compatibility block for Python 3----------------------------------------------------------------
-
+warnings.simplefilter('default', DeprecationWarning)
+#End compatibility block for Python 3--------------------------------------------------------------
+#External Modules----------------------------------------------------------------------------------
 import copy
 
-def execCommandReturn(commandString,self=None,object=None):
+#External Modules End------------------------------------------------------------------------------
+
+
+def execCommandReturn(commandString, self=None, object=None):
   """
     Method to execute a command, compiled at run time, returning the response
     @ In, commandString, string, the command to execute
@@ -32,10 +35,11 @@ def execCommandReturn(commandString,self=None,object=None):
     @ In, object, instance, optional, object instance
     @ Out, returnedCommand, object, whatever the command needs to return
   """
-  exec('returnedCommand = ' + commandString)
+  exec ('returnedCommand = ' + commandString)
   return returnedCommand
 
-def execCommand(commandString,self=None,object=None):
+
+def execCommand(commandString, self=None, object=None):
   """
     Method to execute a command, compiled at run time, without returning the response
     @ In, commandString, string, the command to execute
@@ -43,4 +47,4 @@ def execCommand(commandString,self=None,object=None):
     @ In, object, instance, optional, object instance
     @ Out, None
   """
-  exec(commandString)
+  exec (commandString)

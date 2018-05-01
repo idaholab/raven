@@ -18,14 +18,15 @@ Created July 14, 2015
 """
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
-warnings.simplefilter('default',DeprecationWarning)
+warnings.simplefilter('default', DeprecationWarning)
 
 import copy
 from CodeInterfaceBaseClass import CodeInterfaceBase
 from MooseBasedAppInterface import MooseBasedApp
-from CubitInterface         import Cubit
+from CubitInterface import Cubit
 
-class CubitMoose(CodeInterfaceBase): #MooseBasedAppInterface,CubitInterface):
+
+class CubitMoose(CodeInterfaceBase):  #MooseBasedAppInterface,CubitInterface):
   """
     This class provides the means to generate a stochastic-input-based mesh using the MOOSE
     standard Cubit python script in addition to uncertain inputs for the MOOSE app.
@@ -45,7 +46,7 @@ class CubitMoose(CodeInterfaceBase): #MooseBasedAppInterface,CubitInterface):
     self.MooseInterface.addDefaultExtension()
     self.CubitInterface.addDefaultExtension()
 
-  def findInps(self,inputFiles):
+  def findInps(self, inputFiles):
     """
       Locates the input files for Moose, Cubit
       @ In, inputFiles, list of Files objects
@@ -61,12 +62,21 @@ class CubitMoose(CodeInterfaceBase): #MooseBasedAppInterface,CubitInterface):
         foundCubitInp = True
         cubitInp = inFile
     if not foundMooseInp:
-      raise IOError('None of the input Files has the type "MooseInput"! CubitMoose interface requires one.')
+      raise IOError(
+          'None of the input Files has the type "MooseInput"! CubitMoose interface requires one.'
+      )
     if not foundCubitInp:
-      raise IOError('None of the input Files has the type "CubitInput"! CubitMoose interface requires one.')
-    return mooseInp,cubitInp
+      raise IOError(
+          'None of the input Files has the type "CubitInput"! CubitMoose interface requires one.'
+      )
+    return mooseInp, cubitInp
 
-  def generateCommand(self,inputFiles,executable,clargs=None,fargs=None, preExec = None):
+  def generateCommand(self,
+                      inputFiles,
+                      executable,
+                      clargs=None,
+                      fargs=None,
+                      preExec=None):
     """
       Generate a multi-line command that runs both the Cubit mesh generator and then the desired MOOSE run.
       See base class.  Collects all the clargs and the executable to produce the command-line call.
@@ -80,18 +90,23 @@ class CubitMoose(CodeInterfaceBase): #MooseBasedAppInterface,CubitInterface):
       @ Out, returnCommand, tuple, tuple containing the generated command. returnCommand[0] is the command to run the code (string), returnCommand[1] is the name of the output root
     """
     if preExec is None:
-      raise IOError('No preExec listed in input!  Use MooseBasedAppInterface if mesh is not perturbed.  Exiting...')
-    mooseInp,cubitInp = self.findInps(inputFiles)
+      raise IOError(
+          'No preExec listed in input!  Use MooseBasedAppInterface if mesh is not perturbed.  Exiting...'
+      )
+    mooseInp, cubitInp = self.findInps(inputFiles)
     #get the cubit part
-    cubitCommand,_ = self.CubitInterface.generateCommand([cubitInp],preExec,clargs,fargs)
+    cubitCommand, _ = self.CubitInterface.generateCommand([cubitInp], preExec,
+                                                          clargs, fargs)
     #get the moose part
-    mooseCommand,mooseOut = self.MooseInterface.generateCommand([mooseInp],executable,clargs,fargs)
+    mooseCommand, mooseOut = self.MooseInterface.generateCommand(
+        [mooseInp], executable, clargs, fargs)
     #combine them
-    returnCommand = cubitCommand + mooseCommand, mooseOut #can only send one...#(cubitOut,mooseOut)
-    print('ExecutionCommand:',returnCommand[0],'\n')
+    returnCommand = cubitCommand + mooseCommand, mooseOut  #can only send one...#(cubitOut,mooseOut)
+    print('ExecutionCommand:', returnCommand[0], '\n')
     return returnCommand
 
-  def createNewInput(self,currentInputFiles,origInputFiles,samplerType,**Kwargs):
+  def createNewInput(self, currentInputFiles, origInputFiles, samplerType,
+                     **Kwargs):
     """
       Generates new perturbed input files.
       @ In, currentInputFiles, list,  list of current input files (input files from last this method call)
@@ -101,25 +116,28 @@ class CubitMoose(CodeInterfaceBase): #MooseBasedAppInterface,CubitInterface):
              where RAVEN stores the variables that got sampled (e.g. Kwargs['SampledVars'] => {'var1':10,'var2':40})
       @ Out, newInputFiles, list, list of newer input files, list of the new input files (modified and not)
     """
-    mooseInp,cubitInp = self.findInps(currentInputFiles)
+    mooseInp, cubitInp = self.findInps(currentInputFiles)
     origMooseInp = origInputFiles[currentInputFiles.index(mooseInp)]
     origCubitInp = origInputFiles[currentInputFiles.index(cubitInp)]
     #split up sampledvars in kwargs between moose and Cubit script
     #  NOTE This works by checking the '@' split for the keyword Cubit at first!
     margs = copy.deepcopy(Kwargs)
     cargs = copy.deepcopy(Kwargs)
-    for vname,var in Kwargs['SampledVars'].items():
+    for vname, var in Kwargs['SampledVars'].items():
       fullName = vname
-      if fullName.split('@')[0]=='Cubit':
+      if fullName.split('@')[0] == 'Cubit':
         del margs['SampledVars'][vname]
       else:
         del cargs['SampledVars'][vname]
     # Generate new cubit input files and extract exodus file name to add to SampledVars going to moose
-    newCubitInputs = self.CubitInterface.createNewInput([cubitInp],[origCubitInp],samplerType,**cargs)
-    margs['SampledVars']['Mesh|file'] = 'mesh~'+newCubitInputs[0].getBase()+'.e'#"".join(os.path.split(newCubitInputs[0])[1].split('.')[:-1])+'.e'
-    newMooseInputs = self.MooseInterface.createNewInput([mooseInp],[origMooseInp],samplerType,**margs)
+    newCubitInputs = self.CubitInterface.createNewInput(
+        [cubitInp], [origCubitInp], samplerType, **cargs)
+    margs['SampledVars']['Mesh|file'] = 'mesh~' + newCubitInputs[0].getBase(
+    ) + '.e'  #"".join(os.path.split(newCubitInputs[0])[1].split('.')[:-1])+'.e'
+    newMooseInputs = self.MooseInterface.createNewInput(
+        [mooseInp], [origMooseInp], samplerType, **margs)
     #  if order doesn't matter, can loop through and check for type else copy directly
-    newMooseInp,newCubitInp = self.findInps(currentInputFiles)
+    newMooseInp, newCubitInp = self.findInps(currentInputFiles)
     newMooseInp.setAbsFile(newMooseInputs[0].getAbsFile())
     newCubitInp.setAbsFile(newCubitInputs[0].getAbsFile())
     return currentInputFiles

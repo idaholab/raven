@@ -124,7 +124,7 @@ form of this is: (Where the output file will be of the type originally configure
 
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
-warnings.simplefilter('default',DeprecationWarning)
+warnings.simplefilter('default', DeprecationWarning)
 
 import os
 import copy
@@ -136,10 +136,12 @@ import xml.etree.ElementTree as ET
 
 from CodeInterfaceBaseClass import CodeInterfaceBase
 
+
 class OpenModelica(CodeInterfaceBase):
   """
     Provides code to interface RAVEN to OpenModelica
   """
+
   def __init__(self):
     """
       Initializes the GenericCode Interface.
@@ -158,7 +160,7 @@ class OpenModelica(CodeInterfaceBase):
     #     <outputfile>     The simulation output.  We will use the model generation process to set the format
     #                          of this to CSV, though there are other formats available.
 
-  def generateCommand(self, inputFiles, executable, clargs=None,fargs=None):
+  def generateCommand(self, inputFiles, executable, clargs=None, fargs=None):
     """
       See base class.  Collects all the clargs and the executable to produce the command-line call.
       Returns tuple of commands and base file name for run.
@@ -176,12 +178,17 @@ class OpenModelica(CodeInterfaceBase):
         found = True
         break
     if not found:
-      raise Exception('OpenModelica INTERFACE ERROR -> An XML file was not found in the input files!')
+      raise Exception(
+          'OpenModelica INTERFACE ERROR -> An XML file was not found in the input files!'
+      )
     # Build an output file name of the form: rawout~<Base Name>, where base name is generated from the
     #   input file passed in: /path/to/file/<Base Name>.ext.  'rawout' indicates that this is the direct
     #   output from running the OpenModelica executable.
-    outputfile = 'rawout~' + inputFiles[index].getBase() #os.path.splitext(os.path.basename(inputFiles[index]))[0]
-    returnCommand = [('parallel',executable+' -f '+inputFiles[index].getFilename() + ' -r '+ outputfile + '.csv')], outputfile
+    outputfile = 'rawout~' + inputFiles[index].getBase(
+    )  #os.path.splitext(os.path.basename(inputFiles[index]))[0]
+    returnCommand = [('parallel',
+                      executable + ' -f ' + inputFiles[index].getFilename() +
+                      ' -r ' + outputfile + '.csv')], outputfile
     return returnCommand
 
   def _isValidInput(self, inputFile):
@@ -204,7 +211,8 @@ class OpenModelica(CodeInterfaceBase):
     validExtensions = ('xml', 'XML', 'Xml')
     return validExtensions
 
-  def createNewInput(self, currentInputFiles, oriInputFiles, samplerType, **Kwargs):
+  def createNewInput(self, currentInputFiles, oriInputFiles, samplerType,
+                     **Kwargs):
     """
       Generate a new OpenModelica input file (XML format) from the original, changing parameters
       as specified in Kwargs['SampledVars']
@@ -224,7 +232,9 @@ class OpenModelica(CodeInterfaceBase):
         found = True
         break
     if not found:
-      raise Exception('OpenModelica INTERFACE ERROR -> An XML file was not found in the input files!')
+      raise Exception(
+          'OpenModelica INTERFACE ERROR -> An XML file was not found in the input files!'
+      )
 
     # Figure out the new file name and put it into the proper place in the return list
     #newInputFiles = copy.deepcopy(currentInputFiles)
@@ -251,7 +261,6 @@ class OpenModelica(CodeInterfaceBase):
     tree.write(currentInputFiles[index].getAbsFile())
     return currentInputFiles
 
-
   def finalizeCodeOutput(self, command, output, workingDir):
     """
       Called by RAVEN to modify output files (if needed) so that they are in a proper form.
@@ -265,17 +274,21 @@ class OpenModelica(CodeInterfaceBase):
     """
     # Make a new temporary file in the working directory and read the lines from the original CSV
     #   to it, stripping trailing commas in the process.
-    tempOutputFD, tempOutputFileName = tempfile.mkstemp(dir = workingDir, text = True)
-    sourceFileName = os.path.join(workingDir, output)         # The source file comes in without .csv on it
-    print('sourcefilename:',sourceFileName)
-    destFileName = sourceFileName.replace('rawout~', 'out~')  # When fix the CSV, change rawout~ to out~
+    tempOutputFD, tempOutputFileName = tempfile.mkstemp(
+        dir=workingDir, text=True)
+    sourceFileName = os.path.join(
+        workingDir, output)  # The source file comes in without .csv on it
+    print('sourcefilename:', sourceFileName)
+    destFileName = sourceFileName.replace(
+        'rawout~', 'out~')  # When fix the CSV, change rawout~ to out~
     sourceFileName += '.csv'
     inputFile = open(sourceFileName)
     for line in inputFile:
       # Line ends with a comma followed by a newline
       #XXX toBytes seems to be needed here in python3, despite the text = True
-      os.write(tempOutputFD, utils.toBytes(line.replace('"','').strip().strip(',') + '\n'))
+      os.write(tempOutputFD,
+               utils.toBytes(line.replace('"', '').strip().strip(',') + '\n'))
     inputFile.close()
     os.close(tempOutputFD)
     shutil.move(tempOutputFileName, destFileName + '.csv')
-    return destFileName   # Return the name without the .csv on it...RAVEN will add it
+    return destFileName  # Return the name without the .csv on it...RAVEN will add it

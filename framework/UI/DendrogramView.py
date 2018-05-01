@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """
     This file contains the Dendrogram view that visualizes trees and hierarchies
 """
@@ -19,7 +18,7 @@
 #For future compatibility with Python 3
 from __future__ import division, print_function, absolute_import
 import warnings
-warnings.simplefilter('default',DeprecationWarning)
+warnings.simplefilter('default', DeprecationWarning)
 #End compatibility block for Python 3
 
 import numpy as np
@@ -41,6 +40,7 @@ black = qtg.QColor('#000000')
 transparentGray = gray.lighter()
 transparentGray.setAlpha(127)
 
+
 def linakgeToTree(*linkages):
   """
     Convert a linkage matrix into a tree that knows how to perform its own
@@ -61,19 +61,19 @@ def linakgeToTree(*linkages):
   maxLevel = 0
 
   for linkage in linkages:
-    maxLevel = max(maxLevel, linkage[-1,2])
+    maxLevel = max(maxLevel, linkage[-1, 2])
 
   ## This empty root allows us to create a fake node that connects the forest
-  root = Node('None', None, maxLevel,0)
+  root = Node('None', None, maxLevel, 0)
 
   for linkage in linkages:
     ## Iterate through the linkage matrix in reverse order since the last merge
     ## will be the root node of this tree
-    n = linkage.shape[0]+1
+    n = linkage.shape[0] + 1
 
-    for i in range(linkage.shape[0]-1,-1,-1):
-      newIdx = n+i
-      leftChildIdx,rightChildIdx,level,size = linkage[i,:]
+    for i in range(linkage.shape[0] - 1, -1, -1):
+      newIdx = n + i
+      leftChildIdx, rightChildIdx, level, size = linkage[i, :]
       leftChildIdx = int(leftChildIdx)
       rightChildIdx = int(rightChildIdx)
       size = int(size)
@@ -100,10 +100,12 @@ def linakgeToTree(*linkages):
 
   return root
 
-class DendrogramView(ZoomableGraphicsView,BaseHierarchicalView):
+
+class DendrogramView(ZoomableGraphicsView, BaseHierarchicalView):
   """
     A view that shows a hierarchical data object.
   """
+
   # minDiameterMultiplier = 0.001
   def __init__(self, mainWindow=None):
     """
@@ -118,7 +120,6 @@ class DendrogramView(ZoomableGraphicsView,BaseHierarchicalView):
     self.setWindowTitle(self.__class__.__name__)
     self.scrollable = False
     self.mainWindow = mainWindow
-
 
     self.tree = linakgeToTree(self.mainWindow.engine.linkage)
 
@@ -190,17 +191,17 @@ class DendrogramView(ZoomableGraphicsView,BaseHierarchicalView):
 
     sublayout.addWidget(qtw.QLabel('Minimum Level:'))
     levels = self.getLevels()
-    for i,lvl in enumerate(reversed(levels)):
+    for i, lvl in enumerate(reversed(levels)):
       if lvl < self.truncationLevel:
         break
-    idx = len(levels)-1-i
+    idx = len(levels) - 1 - i
     minLevel = qtw.QLabel('%f' % lvl)
     sublayout.addWidget(minLevel)
 
     ## Next, create the slider to go underneath them
     minLevelSlider = qtw.QSlider(qtc.Qt.Horizontal)
     minLevelSlider.setMinimum(0)
-    minLevelSlider.setMaximum(len(levels)-1)
+    minLevelSlider.setMaximum(len(levels) - 1)
     minLevelSlider.setSliderPosition(idx)
     ## Use a lambda function to keep the label in sync with the slider
     updateLevelSlider = lambda: minLevel.setText('%f' % levels[minLevelSlider.value()])
@@ -208,9 +209,9 @@ class DendrogramView(ZoomableGraphicsView,BaseHierarchicalView):
     layout.addWidget(minLevelSlider)
 
     ## Add the buttons for accepting/rejecting the proposed values
-    buttons = qtw.QDialogButtonBox(qtw.QDialogButtonBox.Ok |
-                                   qtw.QDialogButtonBox.Cancel,
-                                   qtc.Qt.Horizontal, dialog)
+    buttons = qtw.QDialogButtonBox(
+        qtw.QDialogButtonBox.Ok | qtw.QDialogButtonBox.Cancel,
+        qtc.Qt.Horizontal, dialog)
 
     def localAccept():
       """
@@ -265,9 +266,9 @@ class DendrogramView(ZoomableGraphicsView,BaseHierarchicalView):
 
     layout.addLayout(sublayout)
 
-    buttons = qtw.QDialogButtonBox(qtw.QDialogButtonBox.Ok |
-                                   qtw.QDialogButtonBox.Cancel,
-                                   qtc.Qt.Horizontal, dialog)
+    buttons = qtw.QDialogButtonBox(
+        qtw.QDialogButtonBox.Ok | qtw.QDialogButtonBox.Cancel,
+        qtc.Qt.Horizontal, dialog)
 
     def localAccept():
       """
@@ -308,7 +309,7 @@ class DendrogramView(ZoomableGraphicsView,BaseHierarchicalView):
     """
     self.mainWindow.decreaseLevel()
 
-  def contextMenuEvent(self,event):
+  def contextMenuEvent(self, event):
     """
       Overload the contextMenuEvent to register the y location of the click, in
       case the user selects to set the level. We will need it then.
@@ -322,7 +323,7 @@ class DendrogramView(ZoomableGraphicsView,BaseHierarchicalView):
     mousePt = self.mapToScene(event.pos())
 
     onSomething = False
-    for idx,graphic in self.nodes.items():
+    for idx, graphic in self.nodes.items():
       if graphic.contains(mousePt):
         menu = qtw.QMenu()
         colorAction = menu.addAction('Change Color')
@@ -346,7 +347,7 @@ class DendrogramView(ZoomableGraphicsView,BaseHierarchicalView):
         return
 
     if not onSomething:
-      super(DendrogramView,self).contextMenuEvent(event)
+      super(DendrogramView, self).contextMenuEvent(event)
 
   def setLevel(self):
     """
@@ -358,15 +359,15 @@ class DendrogramView(ZoomableGraphicsView,BaseHierarchicalView):
     """
     # position = self.mapFromGlobal(self.rightClickMenu.pos())
     # mousePt = self.mapToScene(position.x(),position.y()).y()
-    mousePt = self.mapToScene(0,self.currentY).y()
+    mousePt = self.mapToScene(0, self.currentY).y()
 
     minLevel = 0
     maxLevel = self.maxLevel()
-    effectiveHeight = self.scene().height()-2*self.padding
-    ty = (self.padding + effectiveHeight - mousePt)/effectiveHeight
-    wy = ty*float(maxLevel)
+    effectiveHeight = self.scene().height() - 2 * self.padding
+    ty = (self.padding + effectiveHeight - mousePt) / effectiveHeight
+    wy = ty * float(maxLevel)
 
-    self.mainWindow.setLevel(np.clip(wy,minLevel,maxLevel))
+    self.mainWindow.setLevel(np.clip(wy, minLevel, maxLevel))
     self.levelChanged()
 
   def select(self):
@@ -376,7 +377,7 @@ class DendrogramView(ZoomableGraphicsView,BaseHierarchicalView):
       @ Out, None
     """
     selectedKeys = []
-    for key,graphic in self.nodes.iteritems():
+    for key, graphic in self.nodes.iteritems():
       if graphic in self.scene().selectedItems():
         selectedKeys.append(key)
     # self.tree.SetSelection(selectedKeys)
@@ -463,22 +464,22 @@ class DendrogramView(ZoomableGraphicsView,BaseHierarchicalView):
     scene = self.scene()
     width = scene.width()
     height = scene.height()
-    minDim = min([width,height])
+    minDim = min([width, height])
 
     ## At most, the minimum diameter will be 1% of the smallest scene dimension,
     ## otherwise, it will be small enough to fit the entire count of ellipses
     ## end to end. This worst case scenario will be witnessed in an untruncated
     ## hierarchical clustering where at the bottom level each data point is a
     ## singleton cluster.
-    self.minDiameter = min(minDim / float(self.totalCount),0.01 * minDim)
-    self.maxDiameter = self.maxDiameterMultiplier*minDim
+    self.minDiameter = min(minDim / float(self.totalCount), 0.01 * minDim)
+    self.maxDiameter = self.maxDiameterMultiplier * minDim
 
     self.padding = self.maxDiameter / 2.
 
     self.usableWidth = width - 2 * self.padding
     self.usableHeight = height - 2 * self.padding
 
-  def setColor(self,idx, color):
+  def setColor(self, idx, color):
     """
       This will set the color of a given index.
       @ In, idx, int, the unique id to update
@@ -487,7 +488,7 @@ class DendrogramView(ZoomableGraphicsView,BaseHierarchicalView):
     """
     self.mainWindow.setColor(idx, color)
 
-  def getColor(self,idx):
+  def getColor(self, idx):
     """
       Returns the color of the specified index.
       @ In, idx, int, the unique id of this color.
@@ -506,7 +507,7 @@ class DendrogramView(ZoomableGraphicsView,BaseHierarchicalView):
     currentLevel = self.getCurrentLevel()
 
     if newNodes is not None:
-      for idx,(x,y) in newNodes:
+      for idx, (x, y) in newNodes:
         color = self.getColor(idx)
         brush = qtg.QBrush(color)
         pen = qtg.QPen(qtc.Qt.NoPen)
@@ -514,7 +515,7 @@ class DendrogramView(ZoomableGraphicsView,BaseHierarchicalView):
         ## Don't worry about placing or sizing the ellipse, we will do that
         ## below according to current settings of the view, right now we want
         ## to establish the non-transient properties.
-        self.nodes[idx] = self.scene().addEllipse(0,0,0,0,pen,brush)
+        self.nodes[idx] = self.scene().addEllipse(0, 0, 0, 0, pen, brush)
         self.nodes[idx].setFlag(qtw.QGraphicsItem.ItemIsSelectable)
         ## Dynamically adding some members to the class to make this easier to
         ## recompute in case the usable screen area changes as in the case when
@@ -526,26 +527,30 @@ class DendrogramView(ZoomableGraphicsView,BaseHierarchicalView):
     ## Needed in order to invert the y-axis
     height = self.scene().height()
 
-    for idx,glyph in self.nodes.items():
+    for idx, glyph in self.nodes.items():
       node = glyph.treeNode
       count = node.size
 
-      diameter = float(count)/self.totalCount*(self.maxDiameter-self.minDiameter)+self.minDiameter
+      diameter = float(count) / self.totalCount * (
+          self.maxDiameter - self.minDiameter) + self.minDiameter
 
       oldRect = glyph.rect()
 
       color = self.getColor(idx)
       ## If the node's parent is less than the current level, or if this node
       ## is above the current level
-      if node.parent != self.tree and node.parent.level <= currentLevel or (node.level > currentLevel and node.getLeafCount(self.truncationSize, self.truncationLevel) > 1):
+      if node.parent != self.tree and node.parent.level <= currentLevel or (
+          node.level > currentLevel and
+          node.getLeafCount(self.truncationSize, self.truncationLevel) > 1):
         color.setAlpha(64)
         diameter = self.minDiameter
         glyph.setFlag(qtw.QGraphicsItem.ItemIsSelectable, False)
-        glyph.setToolTip('   id: %d\nlevel: %f\nInactive' %(idx, node.level))
+        glyph.setToolTip('   id: %d\nlevel: %f\nInactive' % (idx, node.level))
       else:
         color.setAlpha(255)
         glyph.setFlag(qtw.QGraphicsItem.ItemIsSelectable, True)
-        glyph.setToolTip('   id: %d\nlevel: %f\ncount: %d' %(idx, node.level, int(count)))
+        glyph.setToolTip('   id: %d\nlevel: %f\ncount: %d' % (idx, node.level,
+                                                              int(count)))
       brush = qtg.QBrush(color)
 
       if self.nodes[idx].isSelected():
@@ -553,21 +558,20 @@ class DendrogramView(ZoomableGraphicsView,BaseHierarchicalView):
       else:
         pen = qtg.QPen(qtc.Qt.NoPen)
 
-      newX = glyph.rawX*self.usableWidth + self.padding - diameter/2.
-      newY = height - self.usableHeight * glyph.rawY - self.padding - diameter/2.
+      newX = glyph.rawX * self.usableWidth + self.padding - diameter / 2.
+      newY = height - self.usableHeight * glyph.rawY - self.padding - diameter / 2.
 
       glyph.setRect(newX, newY, diameter, diameter)
       glyph.setPen(pen)
       glyph.setBrush(brush)
 
-
       ## Ensure smaller nodes are drawn on top
       if diameter == 0:
         glyph.setZValue(sys.float_info.max)
       else:
-        glyph.setZValue(1./diameter)
+        glyph.setZValue(1. / diameter)
 
-  def updateArcs(self, newEdges = None):
+  def updateArcs(self, newEdges=None):
     """
       Update the drawing of the arcs.
       @ In, newEdges, list((int,int))), a list of potentially new edges that
@@ -578,7 +582,7 @@ class DendrogramView(ZoomableGraphicsView,BaseHierarchicalView):
     if newEdges is not None:
       for edge in newEdges:
         path = qtg.QPainterPath()
-        self.arcs[edge] = self.scene().addPath(path,qtg.QPen(gray))
+        self.arcs[edge] = self.scene().addPath(path, qtg.QPen(gray))
         self.arcs[edge].setZValue(0)
         ## The recursive tree traversal can be cumbersome, so we will attach
         ## pointers to the correct nodes to each path graphic.
@@ -591,44 +595,50 @@ class DendrogramView(ZoomableGraphicsView,BaseHierarchicalView):
     ## Needed in order to invert the y-axis
     height = self.scene().height()
 
-    for (idx1,idx2),pathGraphic in self.arcs.items():
+    for (idx1, idx2), pathGraphic in self.arcs.items():
       rect1 = self.nodes[idx1].rect()
       rect2 = self.nodes[idx2].rect()
 
-      x1 = rect1.x()+rect1.width()/2.
-      y1 = rect1.y()+rect1.height()/2.
+      x1 = rect1.x() + rect1.width() / 2.
+      y1 = rect1.y() + rect1.height() / 2.
 
-      x2 = rect2.x()+rect2.width()/2.
-      y2 = rect2.y()+rect2.height()/2.
+      x2 = rect2.x() + rect2.width() / 2.
+      y2 = rect2.y() + rect2.height() / 2.
 
       path = qtg.QPainterPath()
-      path.moveTo(x1,y1)
+      path.moveTo(x1, y1)
       if self.edgeAction.isChecked():
         ## idx1 should always be the parent
         parent = pathGraphic.source
-        maxChild = parent.maximumChild(self.truncationSize, self.truncationLevel)
+        maxChild = parent.maximumChild(self.truncationSize,
+                                       self.truncationLevel)
         if maxChild is None:
           maxChildLevel = y2
-          intermediateY = height - self.usableHeight*maxChildLevel/maxLevel-self.padding
+          intermediateY = height - self.usableHeight * maxChildLevel / maxLevel - self.padding
         else:
           maxChildRect = self.nodes[maxChild.id].rect()
 
           # maxChildLevel = maxChild.level
           ## or
-          intermediateY = maxChildRect.y()+maxChildRect.height()/2.
+          intermediateY = maxChildRect.y() + maxChildRect.height() / 2.
 
-        path.cubicTo(x1,y1+(intermediateY-y1)*0.33, x2,intermediateY-(intermediateY-y1)*0.33,x2,intermediateY)
-        path.lineTo(x2,y2)
+        path.cubicTo(x1, y1 + (intermediateY - y1) * 0.33, x2, intermediateY -
+                     (intermediateY - y1) * 0.33, x2, intermediateY)
+        path.lineTo(x2, y2)
       else:
-        path.lineTo(x2,y1)
-        path.lineTo(x2,y2)
+        path.lineTo(x2, y1)
+        path.lineTo(x2, y2)
 
       parent = pathGraphic.source
       child = pathGraphic.sink
       if parent.level > currentLevel and child.level <= currentLevel:
-        pathGraphic.setPen(qtg.QPen(self.getColor(idx2),min(2,rect2.width()),cap=qtc.Qt.RoundCap))
+        pathGraphic.setPen(
+            qtg.QPen(
+                self.getColor(idx2),
+                min(2, rect2.width()),
+                cap=qtc.Qt.RoundCap))
       else:
-        pathGraphic.setPen(qtg.QPen(gray,0))
+        pathGraphic.setPen(qtg.QPen(gray, 0))
       pathGraphic.setPath(path)
 
   def updateActiveLine(self):
@@ -646,14 +656,14 @@ class DendrogramView(ZoomableGraphicsView,BaseHierarchicalView):
       self.activeLine = self.scene().addLine(0, 0, width, 0, pen)
 
     height = self.scene().height()
-    minDim = min(width,height)
+    minDim = min(width, height)
 
-    maxDiameter = self.maxDiameterMultiplier*minDim
-    levelRatio = self.getCurrentLevel()/self.maxLevel()
+    maxDiameter = self.maxDiameterMultiplier * minDim
+    levelRatio = self.getCurrentLevel() / self.maxLevel()
 
-    level = height - self.usableHeight*levelRatio-self.padding
+    level = height - self.usableHeight * levelRatio - self.padding
 
-    self.activeLine.setLine(0,level,width,level)
+    self.activeLine.setLine(0, level, width, level)
 
   def createScene(self):
     """
@@ -694,21 +704,21 @@ class DendrogramView(ZoomableGraphicsView,BaseHierarchicalView):
 
     for node in self.tree.children:
       count = node.getLeafCount()
-      rootWidth = float(count)/self.totalCount
+      rootWidth = float(count) / self.totalCount
 
-      (myIds,myPoints,myEdges) = node.Layout(xOffset, rootWidth, tSize, tLevel)
+      (myIds, myPoints, myEdges) = node.Layout(xOffset, rootWidth, tSize,
+                                               tLevel)
 
       ids.extend(myIds)
       points.extend(myPoints)
       edges.extend(myEdges)
       xOffset += rootWidth
 
-    self.updateNodes(zip(ids,points))
+    self.updateNodes(zip(ids, points))
     self.updateArcs(edges)
     self.updateActiveLine()
 
-    self.fitInView(scene.sceneRect(),qtc.Qt.KeepAspectRatio)
-
+    self.fitInView(scene.sceneRect(), qtc.Qt.KeepAspectRatio)
 
   def test(self):
     """
@@ -726,7 +736,7 @@ class DendrogramView(ZoomableGraphicsView,BaseHierarchicalView):
         @ In, None
         @ Out, None
     """
-    self.setColor(0,qtg.QColor(255,0,0))
+    self.setColor(0, qtg.QColor(255, 0, 0))
     self.increaseLevel()
     self.decreaseLevel()
 
@@ -740,7 +750,8 @@ class DendrogramView(ZoomableGraphicsView,BaseHierarchicalView):
     self.setTruncation()
     self.setDiameterMultiplier()
 
-    genericMouseEvent = qtg.QMouseEvent(qtc.QEvent.MouseMove, qtc.QPoint(0,0), qtc.Qt.MiddleButton, qtc.Qt.MiddleButton, qtc.Qt.NoModifier)
+    genericMouseEvent = qtg.QMouseEvent(qtc.QEvent.MouseMove, qtc.QPoint(
+        0, 0), qtc.Qt.MiddleButton, qtc.Qt.MiddleButton, qtc.Qt.NoModifier)
     self.contextMenuEvent(genericMouseEvent)
     self.setLevel()
     self.select()

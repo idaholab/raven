@@ -20,7 +20,7 @@
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
-warnings.simplefilter('default',DeprecationWarning)
+warnings.simplefilter('default', DeprecationWarning)
 #if not 'xrange' in dir(__builtins__): xrange = range
 #End compatibility block for Python 3----------------------------------------------------------------
 
@@ -35,8 +35,10 @@ import scipy
 
 #Internal Modules------------------------------------------------------------------------------------
 from .SPSA import SPSA
-from utils import mathUtils,randomUtils
+from utils import mathUtils, randomUtils
+
 #Internal Modules End--------------------------------------------------------------------------------
+
 
 class FiniteDifferenceGradientOptimizer(SPSA):
   """
@@ -45,6 +47,7 @@ class FiniteDifferenceGradientOptimizer(SPSA):
     TODO: Move the SPSA machinery here (and GradientBasedOptimizer) and make the SPSA just take care of the
     random perturbation approach
   """
+
   def __init__(self):
     """
       Default Constructor
@@ -59,9 +62,10 @@ class FiniteDifferenceGradientOptimizer(SPSA):
     """
     SPSA.localInputAndChecks(self, xmlNode)
     self.paramDict['pertSingleGrad'] = len(self.fullOptVars)
-    self.gradDict['pertNeeded']      = self.gradDict['numIterForAve'] * (self.paramDict['pertSingleGrad']+1)
+    self.gradDict['pertNeeded'] = self.gradDict['numIterForAve'] * (
+        self.paramDict['pertSingleGrad'] + 1)
 
-  def _getPerturbationDirection(self,perturbationIndex, traj):
+  def _getPerturbationDirection(self, perturbationIndex, traj):
     """
       This method is aimed to get the perturbation direction (i.e. in this case the random perturbation versor)
       @ In, perturbationIndex, int, the perturbation index (stored in self.perturbationIndices)
@@ -71,7 +75,7 @@ class FiniteDifferenceGradientOptimizer(SPSA):
     optVars = self.getOptVars(traj)
     if len(optVars) == 1:
       if self.currentDirection:
-        factor = np.sum(self.currentDirection)*-1.0
+        factor = np.sum(self.currentDirection) * -1.0
       else:
         factor = 1.0
       direction = [factor]
@@ -80,19 +84,21 @@ class FiniteDifferenceGradientOptimizer(SPSA):
         direction = np.zeros(len(self.getOptVars(traj))).tolist()
         factor = 1.0
         if self.currentDirection:
-          factor = np.sum(self.currentDirection)*-1.0
+          factor = np.sum(self.currentDirection) * -1.0
         else:
           factor = 1.0
         direction[0] = factor
       else:
-        index = self.currentDirection.index(1.0) if self.currentDirection.count(1.0) > 0 else self.currentDirection.index(-1.0)
+        index = self.currentDirection.index(
+            1.0) if self.currentDirection.count(
+                1.0) > 0 else self.currentDirection.index(-1.0)
         direction = self.currentDirection
-        newIndex = 0 if index+1 == len(direction) else index+1
-        direction[newIndex],direction[index] = direction[index], 0.0
+        newIndex = 0 if index + 1 == len(direction) else index + 1
+        direction[newIndex], direction[index] = direction[index], 0.0
     self.currentDirection = direction
     return direction
 
-  def localEvaluateGradient(self, optVarsValues, traj, gradient = None):
+  def localEvaluateGradient(self, optVarsValues, traj, gradient=None):
     """
       Local method to evaluate gradient.
       @ In, optVarsValues, dict, dictionary containing perturbed points.
@@ -112,12 +118,13 @@ class FiniteDifferenceGradientOptimizer(SPSA):
 
     # Evaluate gradient at each point
     for i in range(self.gradDict['numIterForAve']):
-      opt  = optVarsValues[i]                                  #the latest opt point
+      opt = optVarsValues[i]  #the latest opt point
       for j in range(self.paramDict['pertSingleGrad']):
         # loop over the perturbation to construct the full gradient
-        pert = optVarsValues[self.gradDict['numIterForAve']+i+j] #the perturbed point
+        pert = optVarsValues[self.gradDict['numIterForAve'] + i +
+                             j]  #the perturbed point
         #calculate grad(F) wrt each input variable
-        lossDiff = mathUtils.diffWithInfinites(pert['output'],opt['output'])
+        lossDiff = mathUtils.diffWithInfinites(pert['output'], opt['output'])
         #cover "max" problems
         # TODO it would be good to cover this in the base class somehow, but in the previous implementation this
         #   sign flipping was only called when evaluating the gradient.
@@ -127,8 +134,11 @@ class FiniteDifferenceGradientOptimizer(SPSA):
         # gradient is calculated in normalized space
         dh = pert['inputs'][var] - opt['inputs'][var]
         if abs(dh) < 1e-15:
-          self.raiseAnError(RuntimeError,'While calculating the gradArray a "dh" very close to zero was found for var:',var)
-        gradArray[var][i] = lossDiff/dh
+          self.raiseAnError(
+              RuntimeError,
+              'While calculating the gradArray a "dh" very close to zero was found for var:',
+              var)
+        gradArray[var][i] = lossDiff / dh
     gradient = {}
     for var in optVars:
       gradient[var] = np.atleast_1d(gradArray[var].mean())

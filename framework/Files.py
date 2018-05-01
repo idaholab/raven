@@ -19,7 +19,7 @@ Created on Apr 30, 2015
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
-warnings.simplefilter('default',DeprecationWarning)
+warnings.simplefilter('default', DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -32,13 +32,16 @@ import bisect
 #Internal Modules------------------------------------------------------------------------------------
 from BaseClasses import BaseType
 from utils import utils, mathUtils
+
 #Internal Modules End--------------------------------------------------------------------------------
+
 
 class File(BaseType):
   """
     This class is the base implementation of the file object entity in RAVEN.
     This is needed in order to standardize the object manipulation in the RAVEN code
   """
+
   def __init__(self):
     """
       Constructor
@@ -46,13 +49,13 @@ class File(BaseType):
       @ Out, None
     """
     BaseType.__init__(self)
-    self.__file             = None  # when open, refers to open file, else None
-    self.__path             = ''    # file path
-    self.__base             = ''    # file base
-    self.__ext              = None  # file extension
-    self.__linkedModel      = None  # hard link to a certain Code subtype (e.g. RELAP-7, MooseBasedApp, etc,)
-    self.type               = None  # type ("type" in the input) to label a file to any particular subcode in the code interface
-    self.perturbable        = False # is this file perturbable by a sampling strategy?
+    self.__file = None  # when open, refers to open file, else None
+    self.__path = ''  # file path
+    self.__base = ''  # file base
+    self.__ext = None  # file extension
+    self.__linkedModel = None  # hard link to a certain Code subtype (e.g. RELAP-7, MooseBasedApp, etc,)
+    self.type = None  # type ("type" in the input) to label a file to any particular subcode in the code interface
+    self.perturbable = False  # is this file perturbable by a sampling strategy?
 
   def __del__(self):
     """
@@ -64,7 +67,7 @@ class File(BaseType):
       if self.isOpen():
         self.close()
     except AttributeError as e:
-      print('Had a problem with closing file',self.getFilename(),'|',e)
+      print('Had a problem with closing file', self.getFilename(), '|', e)
 
   def __copy__(self):
     """
@@ -77,7 +80,7 @@ class File(BaseType):
     new.__dict__.update(self.__dict__)
     return new
 
-  def __deepcopy__(self,memo):
+  def __deepcopy__(self, memo):
     """
       Overwite of deep copy method, to ensure no pass-by-reference.
       @ In, memo, dict, dictionary to fill (see copy module documentation)
@@ -86,8 +89,8 @@ class File(BaseType):
     cls = self.__class__
     new = cls.__new__(cls)
     memo[id(self)] = new
-    for k,v in self.__dict__.items():
-      setattr(new,k,deepcopy(v,memo))
+    for k, v in self.__dict__.items():
+      setattr(new, k, deepcopy(v, memo))
     return new
 
   def __getstate__(self):
@@ -96,25 +99,27 @@ class File(BaseType):
       @ In, None
       @ Out, stateDict, dict, dict of objets needed to restore instance
     """
-    stateDict={'path':self.__path,
-               'base':self.__base,
-               'ext' :self.__ext,
-               'type':self.type,
-               'linkedModel':self.__linkedModel}
+    stateDict = {
+        'path': self.__path,
+        'base': self.__base,
+        'ext': self.__ext,
+        'type': self.type,
+        'linkedModel': self.__linkedModel
+    }
     return stateDict
 
-  def __setstate__(self,stateDict):
+  def __setstate__(self, stateDict):
     """
       Pickle load method hook.
       @ In, stateDict, dict, of objets needed to restore instance
       @ Out, None
     """
-    self.__file  = None
-    self.__path  = stateDict['path']
-    self.__base  = stateDict['base']
-    self.__ext   = stateDict['ext' ]
-    self.type    = stateDict['type' ]
-    self.__linkedModel = stateDict['linkedModel' ]
+    self.__file = None
+    self.__path = stateDict['path']
+    self.__base = stateDict['base']
+    self.__ext = stateDict['ext']
+    self.type = stateDict['type']
+    self.__linkedModel = stateDict['linkedModel']
 
   def __repr__(self):
     """
@@ -122,7 +127,7 @@ class File(BaseType):
       @ In, None
       @ Out, newRepr, string, full file path and name in string
     """
-    newRepr = "(FILE) "+self.getAbsFile()+" (END FILE)"
+    newRepr = "(FILE) " + self.getAbsFile() + " (END FILE)"
     return newRepr
 
   def __enter__(self):
@@ -135,7 +140,7 @@ class File(BaseType):
       self.open()
     return self.__file
 
-  def __exit__(self,*args):
+  def __exit__(self, *args):
     """
       Needed to simulate Python file object.
       @ In, args, dict, for future usage
@@ -179,48 +184,56 @@ class File(BaseType):
     return self.__linkedModel
 
   # setting tools #
-  def setPath(self,path):
+  def setPath(self, path):
     """
       Sets the path to the file object.
       @ In, path, string (optional), path to set
       @ Out, None
     """
     if self.isOpen():
-      self.raiseAnError('Tried to change the path of an open file: %s! Close it first.' %self.getAbsFile())
+      self.raiseAnError(
+          'Tried to change the path of an open file: %s! Close it first.' %
+          self.getAbsFile())
     if '~' in path:
       path = os.path.expanduser(path)
     self.__path = path
 
-  def prependPath(self,addpath):
+  def prependPath(self, addpath):
     """
       Prepends path to existing path.
       @ In, addpath, string, new path to prepend
       @ Out, None
     """
     if self.isOpen():
-      self.raiseAnError('Tried to change the path of an open file: %s! Close it first.' %self.getAbsFile())
+      self.raiseAnError(
+          'Tried to change the path of an open file: %s! Close it first.' %
+          self.getAbsFile())
     if '~' in addpath:
       addpath = os.path.expanduser(addpath)
-    self.__path = os.path.join(addpath,self.getPath())
+    self.__path = os.path.join(addpath, self.getPath())
 
-  def setBase(self,base):
+  def setBase(self, base):
     """
       Sets the base name of the file.
       @ In, base, string, base to change file to
       @ Out, None
     """
     if self.isOpen():
-      self.raiseAnError('Tried to change the base name of an open file: %s! Close it first.' %self.getAbsFile())
+      self.raiseAnError(
+          'Tried to change the base name of an open file: %s! Close it first.'
+          % self.getAbsFile())
     self.__base = base
 
-  def setExt(self,ext):
+  def setExt(self, ext):
     """
       Sets the extension of the file.
       @ In, ext, string, extension to change file to
       @ Out, None
     """
     if self.isOpen():
-      self.raiseAnError('Tried to change the extension of an open file: %s! Close it first.' %self.getAbsFile())
+      self.raiseAnError(
+          'Tried to change the extension of an open file: %s! Close it first.'
+          % self.getAbsFile())
     self.__ext = ext
 
   ## the base elements for the file are path, base, and extension ##
@@ -232,7 +245,7 @@ class File(BaseType):
       @ Out, __base, string, filename
     """
     if self.__ext is not None:
-      return '.'.join([self.__base,self.__ext])
+      return '.'.join([self.__base, self.__ext])
     else:
       return self.__base
 
@@ -242,7 +255,8 @@ class File(BaseType):
       @ In, None
       @ Out, absPathFile, string, path/file
     """
-    absPathFile = os.path.normpath(os.path.join(self.getPath(),self.getFilename()))
+    absPathFile = os.path.normpath(
+        os.path.join(self.getPath(), self.getFilename()))
     return absPathFile
 
   def getType(self):
@@ -264,14 +278,16 @@ class File(BaseType):
     return self.perturbable
 
   # setters #
-  def setFilename(self,filename):
+  def setFilename(self, filename):
     """
       Sets base, extension from filename = 'name.ext'
       @ In, filename, string, full filename (without path)
       @ Out, None
     """
     if self.isOpen():
-      self.raiseAnError('Tried to change the name of an open file: %s! Close it first.' %self.getAbsFile())
+      self.raiseAnError(
+          'Tried to change the name of an open file: %s! Close it first.' %
+          self.getAbsFile())
     filename = filename.strip()
 
     # This will split the file name at the rightmost '.'
@@ -286,15 +302,17 @@ class File(BaseType):
     else:
       self.setExt(ext.lstrip('.'))
 
-  def setAbsFile(self,pathandfile):
+  def setAbsFile(self, pathandfile):
     """
       Sets the path AND the filename.
       @ In, pathandfile, string, path to file and the filename itself in a single string
       @ Out, None
     """
     if self.isOpen():
-      self.raiseAnError('Tried to change the path/name of an open file: %s! Close it first.' %self.getAbsFile())
-    path,filename = os.path.split(pathandfile)
+      self.raiseAnError(
+          'Tried to change the path/name of an open file: %s! Close it first.'
+          % self.getAbsFile())
+    path, filename = os.path.split(pathandfile)
     self.setFilename(filename)
     self.setPath(path)
 
@@ -314,9 +332,9 @@ class File(BaseType):
       @ In,  None
       @ Out, None
     """
-    path = os.path.normpath(os.path.join(self.path,self.getFilename()))
+    path = os.path.normpath(os.path.join(self.path, self.getFilename()))
     if not os.path.exists(path):
-      self.raiseAnError(IOError,'File not found:',path)
+      self.raiseAnError(IOError, 'File not found:', path)
 
   ### FILE-LIKE FUNCTIONS ###
   def close(self):
@@ -330,7 +348,8 @@ class File(BaseType):
       del self.__file
       self.__file = None
     else:
-      self.raiseAWarning('Tried to close',self.getFilename(),'but file not open!')
+      self.raiseAWarning('Tried to close', self.getFilename(),
+                         'but file not open!')
 
   def flush(self):
     """
@@ -364,7 +383,7 @@ class File(BaseType):
     """
     return self.__file.next()
 
-  def read(self,mode='r',size=None):
+  def read(self, mode='r', size=None):
     """
       Mimics the "read" function of a python file object.
       @ In, mode, string, the mode (r,a,w) with which to interact with the file
@@ -376,7 +395,7 @@ class File(BaseType):
     bytesRead = self.__file.read() if size is None else self.__file.read(size)
     return bytesRead
 
-  def readline(self,mode='r',size=None):
+  def readline(self, mode='r', size=None):
     """
       Mimics the "readline" function of a python file object.
       @ In, mode, string, the mode (r,a,w) with which to interact with the file
@@ -385,10 +404,11 @@ class File(BaseType):
     """
     if not self.isOpen():
       self.open(mode)
-    lineRead = self.__file.readline() if size is None else self.__file.readline(size)
+    lineRead = self.__file.readline(
+    ) if size is None else self.__file.readline(size)
     return lineRead
 
-  def readlines(self,sizehint=None,mode='r'):
+  def readlines(self, sizehint=None, mode='r'):
     """
       Provides access to the python file method of the same name.
       @ In, sizehint, int, bytes to read up to
@@ -397,10 +417,11 @@ class File(BaseType):
     """
     if not self.isOpen():
       self.open(mode)
-    lines = self.__file.readlines() if sizehint is None else self.__file.readlines(sizehint)
+    lines = self.__file.readlines(
+    ) if sizehint is None else self.__file.readlines(sizehint)
     return lines
 
-  def seek(self,offset,whence=None):
+  def seek(self, offset, whence=None):
     """
       Provides access to the python file method of the same name.
       @ In, offset, int, location in file to seek
@@ -410,7 +431,7 @@ class File(BaseType):
     if whence is None:
       return self.__file.seek(offset)
     else:
-      return self.__file.seek(offset,whence)
+      return self.__file.seek(offset, whence)
 
   def tell(self):
     """
@@ -421,7 +442,7 @@ class File(BaseType):
     posit = self.__file.tell()
     return posit
 
-  def truncate(self,size=None):
+  def truncate(self, size=None):
     """
       Provides access to the python file method of the same name.
       @ In, size, int, optional, maximum file size after truncation
@@ -432,7 +453,7 @@ class File(BaseType):
     else:
       return self.__file.truncate(size)
 
-  def write(self,string,overwrite=False):
+  def write(self, string, overwrite=False):
     """
       Mimics the "write" function of a python file object.
       @ In, string, string, the string to write to file
@@ -443,7 +464,7 @@ class File(BaseType):
       self.open('a' if not overwrite else 'w')
     self.__file.write(string)
 
-  def writelines(self,string,overwrite=False):
+  def writelines(self, string, overwrite=False):
     """
       Writes to the file whose name is being stored
       @ In, string or list of string, the string to write to the file
@@ -456,18 +477,19 @@ class File(BaseType):
 
   ### FILE-EXPECTED FUNCTIONS ###
   # N.B. these don't show up in the python file docs, but are needed to act like files
-  def open(self,mode='rw'):
+  def open(self, mode='rw'):
     """
       Opens the file if not open, else throws a warning
       @ In,  mode, string, optional, the read-write mode according to python "file" method ('r','a','w','rw',etc) (default 'rw')
       @ Out, None
     """
     if not self.isOpen():
-      self.__file = open(self.getAbsFile(),mode)
+      self.__file = open(self.getAbsFile(), mode)
     else:
-      self.raiseAWarning('Tried to open',self.getFilename(),'but file already open!')
+      self.raiseAWarning('Tried to open', self.getFilename(),
+                         'but file already open!')
 
-  def __iter__(self): #MIGHT NEED TO REMOVE
+  def __iter__(self):  #MIGHT NEED TO REMOVE
     """
       Acts like iterating over file
       @ In, None
@@ -477,6 +499,8 @@ class File(BaseType):
       self.open('r')
     self.__file.seek(0)
     return self.__file.__iter__()
+
+
 #
 #
 #
@@ -486,7 +510,8 @@ class RAVENGenerated(File):
     This class is for file objects that are created and used internally by RAVEN.
     Initialization is through calling self.initialize
   """
-  def initialize(self,filename,messageHandler,path='.',type='internal'):
+
+  def initialize(self, filename, messageHandler, path='.', type='internal'):
     """
       Since this is internally generated, set up all the basic information.
       @ In, filename, string, name of the file
@@ -501,7 +526,8 @@ class RAVENGenerated(File):
     self.setPath(path)
     self.setFilename(filename)
     self.perturbed = False
-    self.name      = filename
+    self.name = filename
+
 
 #
 #
@@ -531,11 +557,11 @@ class StaticXMLOutput(RAVENGenerated):
       @ Out, stateDict, dict, dict of objects needed to restore instance
     """
     stateDict = RAVENGenerated.__getstate__(self)
-    if hasattr(self,'tree'):
+    if hasattr(self, 'tree'):
       stateDict['tree'] = self.tree
     return stateDict
 
-  def __setstate__(self,stateDict):
+  def __setstate__(self, stateDict):
     """
       Pickle load method hook.
       @ In, stateDict, dict, of objects needed to restore instance
@@ -543,18 +569,24 @@ class StaticXMLOutput(RAVENGenerated):
     """
     if 'tree' in stateDict.keys():
       self.tree = stateDict.pop('tree')
-    RAVENGenerated.__setstate__(self,stateDict)
+    RAVENGenerated.__setstate__(self, stateDict)
 
-  def newTree(self,root,pivotParam=None):
+  def newTree(self, root, pivotParam=None):
     """
       Sets up a new internal tree.
       @ In, root, string, name of root node
       @ In, pivotParam, string, unused (for consistency with dynamic method)
       @ Out, None
     """
-    self.tree = xmlUtils.newTree(root,attrib={'type':'Static'})
+    self.tree = xmlUtils.newTree(root, attrib={'type': 'Static'})
 
-  def addScalar(self,target,name,value,root=None,pivotVal=None,attrs=None):
+  def addScalar(self,
+                target,
+                name,
+                value,
+                root=None,
+                pivotVal=None,
+                attrs=None):
     """
       Adds a node entry named "name" with value "value" to "target" node, such as
       <root>
@@ -572,12 +604,19 @@ class StaticXMLOutput(RAVENGenerated):
       root = self.tree.getroot()
     else:
       if utils.isString(root):
-        root = self._findTarg(self.tree.getroot(),root)
+        root = self._findTarg(self.tree.getroot(), root)
     #note: illegal unicode characters are checked for in xmlUtils methods
-    targ = self._findTarg(root,target) if root.tag != target.strip() else root
-    targ.append(xmlUtils.newNode(name,text=value,attrib=attrs))
+    targ = self._findTarg(root, target) if root.tag != target.strip() else root
+    targ.append(xmlUtils.newNode(name, text=value, attrib=attrs))
 
-  def addVector(self,target,name,valueDict,root=None,pivotVal=None,attrs=None,valueAttrsDict=None):
+  def addVector(self,
+                target,
+                name,
+                valueDict,
+                root=None,
+                pivotVal=None,
+                attrs=None,
+                valueAttrsDict=None):
     """
       Adds a node entry named "name" with value "value" to "target" node, such as
       <root>
@@ -605,14 +644,16 @@ class StaticXMLOutput(RAVENGenerated):
       root = self.tree.getroot()
     else:
       if utils.isString(root):
-        root = self._findTarg(self.tree.getroot(),root)
-    targ = self._findTarg(root,target) if root.tag != target.strip() else root
-    nameNode = xmlUtils.newNode(name,attrib=attrs)
-    for key,value in valueDict.items():
-      nameNode.append(xmlUtils.newNode(key,text=value,attrib=valAttribsDict.get(key,None)))
+        root = self._findTarg(self.tree.getroot(), root)
+    targ = self._findTarg(root, target) if root.tag != target.strip() else root
+    nameNode = xmlUtils.newNode(name, attrib=attrs)
+    for key, value in valueDict.items():
+      nameNode.append(
+          xmlUtils.newNode(
+              key, text=value, attrib=valAttribsDict.get(key, None)))
     targ.append(nameNode)
 
-  def _findTarg(self,root,target):
+  def _findTarg(self, root, target):
     """
       Searches "root" for "target" node and makes it if not found
       @ In, root, xml.etree.ElementTree.Element, node to search under
@@ -620,14 +661,14 @@ class StaticXMLOutput(RAVENGenerated):
       @ Out, targ, xml.etree.ElementTree.Element, desired target node
     """
     #find target node
-    targ = xmlUtils.findPath(root,target)
+    targ = xmlUtils.findPath(root, target)
     #if it doesn't exist, make it and add it
     if targ is None:
       targ = xmlUtils.newNode(target)
       root.append(targ)
     return targ
 
-  def writeFile(self,asString=False,**kwargs):
+  def writeFile(self, asString=False, **kwargs):
     """
       Writes the input file to disk.
       @ In, asString, bool, optional, if indicated then return string instead of writing
@@ -635,14 +676,15 @@ class StaticXMLOutput(RAVENGenerated):
       @ Out, pretty, str, optional, only returned if asString is True
     """
     #prettify tree
-    pretty = xmlUtils.prettify(self.tree,**kwargs)
+    pretty = xmlUtils.prettify(self.tree, **kwargs)
     if asString:
       return pretty
     #make sure file is written cleanly and anew
     if self.isOpen():
       self.close()
-    self.writelines(pretty,overwrite=True)
+    self.writelines(pretty, overwrite=True)
     self.close()
+
 
 #    Form for DynamicXMLOutput
 #    <root type='Static'>
@@ -659,28 +701,32 @@ class DynamicXMLOutput(StaticXMLOutput):
   """
     Specialized class for consistent RAVEN XML outputs.  See forms in comments above.
   """
+
   # TODO may be marginalized as a result of new data object rework.  Check if anyone still uses this file type
   # after all IO is done through DataObjects.
   def __init__(self):
     StaticXMLOutput.__init__(self)
     # while maintaining two parallel lists is not very pythonic, it's much faster for searching for large lists.
-    self.pivotNodes = [] #list of pivot nodes, maintained in the order of pivotVals below
-    self.pivotVals = [] #RBTree (self maintained) of unique pivot values
+    self.pivotNodes = [
+    ]  #list of pivot nodes, maintained in the order of pivotVals below
+    self.pivotVals = []  #RBTree (self maintained) of unique pivot values
 
-  def newTree(self,root,pivotParam=None):
+  def newTree(self, root, pivotParam=None):
     """
       Sets up a new internal tree.
       @ In, root, string, name of root node
       @ In, pivotParam, string, name of time-like parameter
       @ Out, None
     """
-    self.tree = xmlUtils.newTree(root,attrib={'type':'Dynamic'})
+    self.tree = xmlUtils.newTree(root, attrib={'type': 'Dynamic'})
     if pivotParam is None:
-      self.raiseAnError(RuntimeError,'newTree argument pivotParam is None but output is in dynamic mode!')
+      self.raiseAnError(
+          RuntimeError,
+          'newTree argument pivotParam is None but output is in dynamic mode!')
     self.pivotParam = pivotParam
     self.pivotNodes = []
 
-  def addScalar(self,target,name,value,pivotVal=None,attrs=None):
+  def addScalar(self, target, name, value, pivotVal=None, attrs=None):
     """
       Adds a node entry named "name" with value "value" to "target" node, such as
       <root>
@@ -699,9 +745,16 @@ class DynamicXMLOutput(StaticXMLOutput):
     if pivotVal is not None:
       pivotNode = self.findPivotNode(pivotVal)
     #use addScalar methods to add parameters
-    StaticXMLOutput.addScalar(self,target,name,value,root=pivotNode,attrs=attrs)
+    StaticXMLOutput.addScalar(
+        self, target, name, value, root=pivotNode, attrs=attrs)
 
-  def addVector(self,target,name,valueDict,pivotVal=None,attrs=None,valueAttrsDict=None):
+  def addVector(self,
+                target,
+                name,
+                valueDict,
+                pivotVal=None,
+                attrs=None,
+                valueAttrsDict=None):
     """
       Adds a node entry named "name" with value "value" to "target" node, such as
       <root>
@@ -721,27 +774,39 @@ class DynamicXMLOutput(StaticXMLOutput):
       @ Out, None
     """
     if pivotVal is None:
-      self.raiseAnError(RuntimeError,'In addScalar no pivotVal specificied, but in dynamic mode!')
+      self.raiseAnError(
+          RuntimeError,
+          'In addScalar no pivotVal specificied, but in dynamic mode!')
     pivotNode = self.findPivotNode(pivotVal)
-    StaticXMLOutput.addVector(self,target,name,valueDict,root=pivotNode,attrs=attrs,valueAttrsDict=valueAttrsDict)
+    StaticXMLOutput.addVector(
+        self,
+        target,
+        name,
+        valueDict,
+        root=pivotNode,
+        attrs=attrs,
+        valueAttrsDict=valueAttrsDict)
 
-  def findPivotNode(self,pivotVal):
+  def findPivotNode(self, pivotVal):
     """
       Searches pivot nodes for node with value pivotVal, or adds it if it doesn't exist
       @ In, pivotVal, float, value of pivot to find
       @ Out, pivotNode, xml.etree.ElementTree.Element, node desired
     """
     #find the right dynamic node
-    self.pivotVals,pivotIndex,pivotVal = utils.getRelativeSortedListEntry(self.pivotVals,pivotVal,tol=1e-10)
+    self.pivotVals, pivotIndex, pivotVal = utils.getRelativeSortedListEntry(
+        self.pivotVals, pivotVal, tol=1e-10)
     #check if an insertion was performed
     if len(self.pivotVals) > len(self.pivotNodes):
       #create new node
-      pivotNode = xmlUtils.newNode(self.pivotParam, attrib={'value':pivotVal})
-      self.pivotNodes.insert(pivotIndex,pivotNode)
+      pivotNode = xmlUtils.newNode(self.pivotParam, attrib={'value': pivotVal})
+      self.pivotNodes.insert(pivotIndex, pivotNode)
       self.tree.getroot().append(pivotNode)
     else:
       pivotNode = self.pivotNodes[pivotIndex]
     return pivotNode
+
+
 #
 #
 #
@@ -750,7 +815,8 @@ class CSV(RAVENGenerated):
   """
     Specialized class specific to CSVs.  Was useful, may not be now, might be again.
   """
-  def initialize(self,filename,messageHandler,path='.',type='csv'):
+
+  def initialize(self, filename, messageHandler, path='.', type='csv'):
     """
       Since this is internally generated, set up all the basic information.
       @ In, filename, string, name of the file
@@ -759,8 +825,10 @@ class CSV(RAVENGenerated):
       @ In, type, string, optional, type for labeling
       @ Out, None
     """
-    RAVENGenerated.initialize(self,filename,messageHandler,path,type)
+    RAVENGenerated.initialize(self, filename, messageHandler, path, type)
     self.printTag = 'Internal CSV'
+
+
 #
 #
 #
@@ -770,21 +838,23 @@ class UserGenerated(File):
     This class is for file objects that are created and used internally by RAVEN.
     Initialization is through self._readMoreXML
   """
-  def _readMoreXML(self,node):
+
+  def _readMoreXML(self, node):
     """
       reads the xmlNode and sets parameters
       @ In, xmlNode, XML node
       @ Out, None
     """
-    self.type = node.attrib.get('type','UserGenerated') #XSD should confirm valid types
+    self.type = node.attrib.get(
+        'type', 'UserGenerated')  #XSD should confirm valid types
     #used to be node.tag, but this caused issues, since many things in raven
     #access "type" directly instead of through an accessor like getType
-    self.printTag = self.type+' File'
-    self.__linkedModel = node.attrib.get('linkedCode' ,None)
-    self.perturbed     = node.attrib.get('perturbable',True)
-    self.subDirectory  = node.attrib.get('subDirectory',"")
-    self.setAbsFile(os.path.join(self.subDirectory,node.text.strip()))
-    self.alias         = node.attrib.get('name'       ,self.getFilename())
+    self.printTag = self.type + ' File'
+    self.__linkedModel = node.attrib.get('linkedCode', None)
+    self.perturbed = node.attrib.get('perturbable', True)
+    self.subDirectory = node.attrib.get('subDirectory', "")
+    self.setAbsFile(os.path.join(self.subDirectory, node.text.strip()))
+    self.alias = node.attrib.get('name', self.getFilename())
 
   def __getstate__(self):
     """
@@ -793,21 +863,21 @@ class UserGenerated(File):
       @ Out, stateDict, dict, dict of objets needed to restore instance
     """
     stateDict = File.__getstate__(self)
-    stateDict['perturbed'   ] = self.perturbed
+    stateDict['perturbed'] = self.perturbed
     stateDict['subDirectory'] = self.subDirectory
-    stateDict['alias'       ] = self.alias
+    stateDict['alias'] = self.alias
     return stateDict
 
-  def __setstate__(self,stateDict):
+  def __setstate__(self, stateDict):
     """
       Pickle load method hook.
       @ In, stateDict, dict, of objets needed to restore instance
       @ Out, None
     """
-    File.__setstate__(self,stateDict)
-    self.perturbed     = stateDict['perturbed'   ]
-    self.subDirectory  = stateDict['subDirectory']
-    self.alias         = stateDict['alias'       ]
+    File.__setstate__(self, stateDict)
+    self.perturbed = stateDict['perturbed']
+    self.subDirectory = stateDict['subDirectory']
+    self.alias = stateDict['alias']
 
 
 #
@@ -817,14 +887,15 @@ class UserGenerated(File):
 """
   Interface Dictionary (factory)(private)
 """
-__base                        = 'Data'
-__interFaceDict               = {}
-__interFaceDict['RAVEN']      = RAVENGenerated
-__interFaceDict['CSV']        = CSV
-__interFaceDict['Input']      = UserGenerated
-__interFaceDict['StaticXMLOutput']  = StaticXMLOutput
+__base = 'Data'
+__interFaceDict = {}
+__interFaceDict['RAVEN'] = RAVENGenerated
+__interFaceDict['CSV'] = CSV
+__interFaceDict['Input'] = UserGenerated
+__interFaceDict['StaticXMLOutput'] = StaticXMLOutput
 __interFaceDict['DynamicXMLOutput'] = DynamicXMLOutput
-__knownTypes                  = __interFaceDict.keys()
+__knownTypes = __interFaceDict.keys()
+
 
 def knownTypes():
   """
@@ -834,7 +905,8 @@ def knownTypes():
   """
   return __knownTypes
 
-def returnInstance(Type,caller):
+
+def returnInstance(Type, caller):
   """
     Returns an object construction pointer from this module.
     @ In, Type, string, requested object
@@ -844,4 +916,6 @@ def returnInstance(Type,caller):
   try:
     return __interFaceDict[Type]()
   except KeyError:
-    caller.raiseAnError(NameError,'Files module does not recognize '+__base+' type '+Type)
+    caller.raiseAnError(
+        NameError,
+        'Files module does not recognize ' + __base + ' type ' + Type)

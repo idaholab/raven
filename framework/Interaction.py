@@ -17,8 +17,9 @@ Created on May 9, 2017
 @author: maljdp
 """
 
+
 class Interaction:
-    """
+  """
         An enumeration type for specifying the types of interactivity available
         in RAVEN.
         Options: No    - RAVEN will not generate interactive plots
@@ -28,4 +29,4 @@ class Interaction:
                          programmatically in order to test all of the components
                          in an automated fashion
     """
-    No, Yes, Debug, Test = range(4)
+  No, Yes, Debug, Test = range(4)

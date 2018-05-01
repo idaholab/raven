@@ -35,4 +35,7 @@ from .Error import Error
 # from .Factory import returnClass
 
 # We should not really need this as we do not use wildcard imports
-__all__ = ['Runner', 'InternalRunner', 'SharedMemoryRunner', 'DistributedMemoryRunner', 'Error']
+__all__ = [
+    'Runner', 'InternalRunner', 'SharedMemoryRunner',
+    'DistributedMemoryRunner', 'Error'
+]

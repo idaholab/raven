@@ -19,19 +19,22 @@ Created on 2017 September 12
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
-warnings.simplefilter('default',DeprecationWarning)
+warnings.simplefilter('default', DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
 from .Metric import Metric
 import Metrics.MetricUtilities
+
 #Internal Modules End--------------------------------------------------------------------------------
+
 
 class CDFAreaDifference(Metric):
   """
     Metric to compare two datasets using the CDF Area Difference.
   """
-  def _localReadMoreXML(self,xmlNode):
+
+  def _localReadMoreXML(self, xmlNode):
     """
       Method that reads the portion of the xml input that belongs to this specialized class
       and initializes internal parameters
@@ -41,7 +44,7 @@ class CDFAreaDifference(Metric):
     self.acceptsProbability = True
     self.acceptsDistribution = True
 
-  def distance(self,x,y,**kwargs):
+  def distance(self, x, y, **kwargs):
     """
       Calculates the CDF Area Difference between two datasets.
       @ In, x, something that can be converted into a CDF
@@ -49,5 +52,5 @@ class CDFAreaDifference(Metric):
       @ In, kwargs, ignored.
       @ Out, value, float, CDF Area Difference
     """
-    value = Metrics.MetricUtilities._getCDFAreaDifference(x,y)
+    value = Metrics.MetricUtilities._getCDFAreaDifference(x, y)
     return float(value)

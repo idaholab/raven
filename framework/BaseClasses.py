@@ -17,17 +17,19 @@ Created on Mar 16, 2013
 """
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
-warnings.simplefilter('default',DeprecationWarning)
-#External Modules------------------------------------------------------------------------------------
+warnings.simplefilter('default', DeprecationWarning)
+#External Modules----------------------------------------------------------------------------------
 import inspect
 import sys
-#External Modules End--------------------------------------------------------------------------------
+#External Modules End------------------------------------------------------------------------------
 
-#Internal Modules------------------------------------------------------------------------------------
+#Internal Modules----------------------------------------------------------------------------------
 from utils import utils
 import MessageHandler
 from utils import InputData
-#Internal Modules End--------------------------------------------------------------------------------
+
+#Internal Modules End------------------------------------------------------------------------------
+
 
 class BaseType(MessageHandler.MessageUser):
   """
@@ -43,32 +45,53 @@ class BaseType(MessageHandler.MessageUser):
       @ Out, inputSpecification, InputData.ParameterInput, class to use for
         specifying input of cls.
     """
-    inputSpecification = InputData.parameterInputFactory(cls.__name__, ordered=False, baseNode=InputData.RavenBase)
+    inputSpecification = InputData.parameterInputFactory(
+        cls.__name__, ordered=False, baseNode=InputData.RavenBase)
     inputSpecification.addParam("name", InputData.StringType, True)
 
     return inputSpecification
 
   def __init__(self):
-    self.name             = ''                                                          # name of this istance (alias)
-    self.type             = type(self).__name__                                         # specific type within this class
-    self.verbosity        = None                                                        # verbosity level (see message handler)
-    self.globalAttributes = {}                                                          # this is a dictionary that contains parameters that are set at the level of the base classes defining the types
-    self._knownAttribute  = []                                                          # this is a list of strings representing the allowed attribute in the xml input for the class
-    self._knownAttribute += ['name','verbosity']                                        # attributes that are known
-    self.printTag         = 'BaseType'                                                  # the tag that refers to this class in all the specific printing
-    self.messageHandler   = None                                                        # message handling object
-    self.variableGroups   = {}                                                          # the variables this class needs to be aware of
-    self.metadataKeys     = set()                                                       # list of registered metadata keys to expect from this entity
-    self.mods             = utils.returnImportModuleString(inspect.getmodule(BaseType)) #list of modules this class depends on (needed for automatic parallel python)
+    # name of this istance (alias)
+    self.name = ''
+    # specific type within this class
+    self.type = type(self).__name__
+    # verbosity level (see message handler)
+    self.verbosity = None
+    # this is a dictionary that contains parameters that are set at the level
+    # of the base classes defining the types
+    self.globalAttributes = {}
+    # this is a list of strings representing the allowed attribute in the xml
+    # input for the class
+    self._knownAttribute = []
+    # attributes that are known
+    self._knownAttribute += ['name', 'verbosity']
+    # the tag that refers to this class in all the specific printing
+    self.printTag = 'BaseType'
+    # message handling object
+    self.messageHandler = None
+    # the variables this class needs to be aware of
+    self.variableGroups = {}
+    # list of registered metadata keys to expect from this entity
+    self.metadataKeys = set()
+    #list of modules this class depends on (needed for automatic parallel python)
+    self.mods = utils.returnImportModuleString(inspect.getmodule(BaseType))
     for baseClass in self.__class__.__mro__:
-      self.mods.extend(utils.returnImportModuleString(inspect.getmodule(baseClass),True))
-    self.mods.extend(utils.returnImportModuleString(inspect.getmodule(self),True))
+      self.mods.extend(
+          utils.returnImportModuleString(inspect.getmodule(baseClass), True))
+    self.mods.extend(
+        utils.returnImportModuleString(inspect.getmodule(self), True))
 
-  def readXML(self,xmlNode,messageHandler,variableGroups={},globalAttributes=None):
+  def readXML(self,
+              xmlNode,
+              messageHandler,
+              variableGroups={},
+              globalAttributes=None):
     """
-      provide a basic reading capability from the xml input file for what is common to all types in the simulation than calls _readMoreXML
-      that needs to be overloaded and used as API. Each type supported by the simulation should have: name (xml attribute), type (xml tag),
-      verbosity (xml attribute)
+      Provide a basic reading capability from the xml input file for what is common
+      to all types in the simulation than calls _readMoreXML that needs to be overloaded
+      and used as API. Each type supported by the simulation should have: name (xml attribute),
+      type (xml tag), verbosity (xml attribute)
       @ In, xmlNode, ET.Element, input xml
       @ In, messageHandler, MessageHandler object, message handler
       @ In, variableGroups, dict{str:VariableGroup}, optional, variable groups container
@@ -80,13 +103,15 @@ class BaseType(MessageHandler.MessageUser):
     if 'name' in xmlNode.attrib.keys():
       self.name = xmlNode.attrib['name']
     else:
-      self.raiseAnError(IOError,'not found name for a '+self.__class__.__name__)
-    self.type     = xmlNode.tag
-    if self.globalAttributes!= None:
+      self.raiseAnError(IOError,
+                        'not found name for a ' + self.__class__.__name__)
+    self.type = xmlNode.tag
+    if self.globalAttributes != None:
       self.globalAttributes = globalAttributes
     if 'verbosity' in xmlNode.attrib.keys():
       self.verbosity = xmlNode.attrib['verbosity'].lower()
-      self.raiseADebug('Set verbosity for '+str(self)+' to '+str(self.verbosity))
+      self.raiseADebug(
+          'Set verbosity for ' + str(self) + ' to ' + str(self.verbosity))
     #search and replace variableGroups where found in texts
     def replaceVariableGroups(node):
       """
@@ -96,24 +121,31 @@ class BaseType(MessageHandler.MessageUser):
       """
       if node.text is not None and node.text.strip() != '':
         textEntries = list(t.strip() for t in node.text.split(','))
-        for t,text in enumerate(textEntries):
+        for t, text in enumerate(textEntries):
           if text in variableGroups.keys():
             textEntries[t] = variableGroups[text].getVarsString()
-            self.raiseADebug('Replaced text in <%s> with variable group "%s"' %(node.tag,text))
+            self.raiseADebug('Replaced text in <%s> with variable group "%s"' %
+                             (node.tag, text))
         #note: if we don't explicitly convert to string, scikitlearn chokes on unicode type
         node.text = str(','.join(textEntries))
       for child in node:
         replaceVariableGroups(child)
+
     replaceVariableGroups(xmlNode)
     self._readMoreXML(xmlNode)
     self.raiseADebug('------Reading Completed for:')
     self.printMe()
 
-  def handleInput(self,paramInput,messageHandler,variableGroups={},globalAttributes=None):
+  def handleInput(self,
+                  paramInput,
+                  messageHandler,
+                  variableGroups={},
+                  globalAttributes=None):
     """
-      provide a basic reading capability from the xml input file for what is common to all types in the simulation than calls _handleInput
-      that needs to be overloaded and used as API. Each type supported by the simulation should have: name (xml attribute), type (xml tag),
-      verbosity (xml attribute)
+      Provide a basic reading capability from the xml input file for what is common
+      to all types in the simulation than calls _handleInput that needs to be overloaded
+      and used as API. Each type supported by the simulation should have: name (xml attribute),
+      type (xml tag), verbosity (xml attribute)
       @ In, paramInput, InputParameter, input data from xml
       @ In, messageHandler, MessageHandler object, message handler
       @ In, variableGroups, dict{str:VariableGroup}, optional, variable groups container
@@ -125,13 +157,15 @@ class BaseType(MessageHandler.MessageUser):
     if 'name' in paramInput.parameterValues:
       self.name = paramInput.parameterValues['name']
     else:
-      self.raiseAnError(IOError,'not found name for a '+self.__class__.__name__)
-    self.type     = paramInput.getName()
-    if self.globalAttributes!= None:
+      self.raiseAnError(IOError,
+                        'not found name for a ' + self.__class__.__name__)
+    self.type = paramInput.getName()
+    if self.globalAttributes != None:
       self.globalAttributes = globalAttributes
     if 'verbosity' in paramInput.parameterValues:
       self.verbosity = paramInput.parameterValues['verbosity'].lower()
-      self.raiseADebug('Set verbosity for '+str(self)+' to '+str(self.verbosity))
+      self.raiseADebug(
+          'Set verbosity for ' + str(self) + ' to ' + str(self.verbosity))
     #TODO fix replacing Variable Groups.
     #search and replace variableGroups where found in texts
     # def replaceVariableGroups(node):
@@ -155,11 +189,12 @@ class BaseType(MessageHandler.MessageUser):
     self.raiseADebug('------Reading Completed for:')
     self.printMe()
 
-  def _readMoreXML(self,xmlNode):
+  def _readMoreXML(self, xmlNode):
     """
       Function to read the portion of the xml input that belongs to this specialized class
       and initialize some variables based on the inputs got.
-      @ In, xmlNode, xml.etree.ElementTree.Element, XML element node that represents the portion of the input that belongs to this class
+      @ In, xmlNode, xml.etree.ElementTree.Element, XML element node that represents the
+                     portion of the input that belongs to this class
       @ Out, None
     """
     pass
@@ -173,53 +208,63 @@ class BaseType(MessageHandler.MessageUser):
     """
     pass
 
-  def setMessageHandler(self,handler):
+  def setMessageHandler(self, handler):
     """
       Function to set up the link to the the common Message Handler
       @ In, handler, MessageHandler object, message handler
       @ Out, None
     """
-    if not isinstance(handler,MessageHandler.MessageHandler):
-      e=IOError('Attempted to set the message handler for '+str(self)+' to '+str(handler))
-      print('\nERROR! Setting MessageHandler in BaseClass,',e,'\n')
+    if not isinstance(handler, MessageHandler.MessageHandler):
+      e = IOError('Attempted to set the message handler for ' + str(self) +
+                  ' to ' + str(handler))
+      print('\nERROR! Setting MessageHandler in BaseClass,', e, '\n')
       sys.exit(1)
     self.messageHandler = handler
 
   def whoAreYou(self):
     """
-      This is a generic interface that will return the type and name of any class that inherits this base class plus all the inherited classes
+      This is a generic interface that will return the type and name of any class
+      that inherits this base class plus all the inherited classes
       @ In, None
-      @ Out, tempDict, dict, dictionary containing the Type, Class and Name of this instanciated object
+      @ Out, tempDict, dict, dict containing the Type, Class and Name of this instanciated object
     """
-    tempDict          = {}
-    tempDict['Class'] = '{0:15}'.format(self.__class__.__name__) +' from '+' '.join([str(base) for base in self.__class__.__bases__])
-    tempDict['Type' ] = self.type
-    tempDict['Name' ] = self.name
+    tempDict = {}
+    tempDict['Class'] = '{0:15}'.format(
+        self.__class__.__name__) + ' from ' + ' '.join(
+            [str(base) for base in self.__class__.__bases__])
+    tempDict['Type'] = self.type
+    tempDict['Name'] = self.name
     return tempDict
 
   def getInitParams(self):
     """
-      Function to be overloaded to get a dictionary of the name and values of the initial parameters associated with any class
+      Function to be overloaded to get a dictionary of the name and values of the initial
+      parameters associated with any class
       @ In, None
-      @ Out, paramDict, dict, dictionary containing the parameter names as keys and each parameter's initial value as the dictionary values
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys and each
+                        parameter's initial value as the dictionary values
     """
     return {}
 
   def myCurrentSetting(self):
     """
-      This is a generic interface that will return the name and value of the parameters that change during the simulation of any class that inherits this base class.
-      In reality it is just empty and will fill the dictionary calling getCurrentSetting that is the function to be overloaded used as API
+      This is a generic interface that will return the name and value of the parameters
+      that change during the simulation of any class that inherits this base class.
+      In reality it is just empty and will fill the dictionary calling getCurrentSetting
+      that is the function to be overloaded used as API
       @ In, None
-      @ Out, paramDict, dict, dictionary containing the current parameters of this instantiated object
+      @ Out, paramDict, dict, dict containing the current parameters of this instantiated object
     """
     paramDict = self.getCurrentSetting()
     return paramDict
 
   def getCurrentSetting(self):
     """
-      Function to be overloaded to inject the name and values of the parameters that might change during the simulation
+      Function to be overloaded to inject the name and values of the parameters that
+      might change during the simulation
       @ In, None
-      @ Out, paramDict, dict, dictionary containing the parameter names as keys and each parameter's initial value as the dictionary values
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys and
+                        each parameter's initial value as the dictionary values
     """
     return {}
 
@@ -232,15 +277,15 @@ class BaseType(MessageHandler.MessageUser):
     """
     tempDict = self.whoAreYou()
     for key in tempDict.keys():
-      self.raiseADebug('       {0:15}: {1}'.format(key,str(tempDict[key])))
+      self.raiseADebug('       {0:15}: {1}'.format(key, str(tempDict[key])))
     tempDict = self.getInitParams()
     self.raiseADebug('       Initialization Parameters:')
     for key in tempDict.keys():
-      self.raiseADebug('       {0:15}: {1}'.format(key,str(tempDict[key])))
+      self.raiseADebug('       {0:15}: {1}'.format(key, str(tempDict[key])))
     tempDict = self.myCurrentSetting()
     self.raiseADebug('       Current Setting:')
     for key in tempDict.keys():
-      self.raiseADebug('       {0:15}: {1}'.format(key,str(tempDict[key])))
+      self.raiseADebug('       {0:15}: {1}'.format(key, str(tempDict[key])))
 
   def provideExpectedMetaKeys(self):
     """
@@ -250,12 +295,12 @@ class BaseType(MessageHandler.MessageUser):
     """
     return self.metadataKeys
 
-  def addMetaKeys(self,*args):
+  def addMetaKeys(self, *args):
     """
       Adds keywords to a list of expected metadata keys.
       @ In, args, list(str), keywords to register
       @ Out, None
     """
-    if any(not isinstance(a,basestring) for a in args):
-      self.raiseAnError('Arguments to addMetaKeys were not all strings:',args)
+    if any(not isinstance(a, basestring) for a in args):
+      self.raiseAnError('Arguments to addMetaKeys were not all strings:', args)
     self.metadataKeys = self.metadataKeys.union(set(args))

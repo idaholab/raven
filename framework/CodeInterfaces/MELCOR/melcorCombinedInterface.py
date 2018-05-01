@@ -19,11 +19,12 @@
 """
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
-warnings.simplefilter('default',DeprecationWarning)
+warnings.simplefilter('default', DeprecationWarning)
 
 from CodeInterfaceBaseClass import CodeInterfaceBase
-from melcorInterface   import MelcorApp
+from melcorInterface import MelcorApp
 from melgenInterface import MelgenApp
+
 
 class Melcor(CodeInterfaceBase):
   """
@@ -40,7 +41,7 @@ class Melcor(CodeInterfaceBase):
     self.melcorInterface = MelcorApp()
     self.melgenInterface = MelgenApp()
 
-  def findInps(self,inputFiles):
+  def findInps(self, inputFiles):
     """
       Locates the input files for Melgen, Melcor
       @ In, inputFiles, list, list of Files objects
@@ -53,10 +54,18 @@ class Melcor(CodeInterfaceBase):
         melgIn = inputFiles[index]
         melcIn = inputFiles[index]
     if not foundMelcorInp:
-      raise IOError("Unknown input extensions. Expected input file extensions are "+ ",".join(self.getInputExtension())+" No input file has been found!")
-    return melgIn,melcIn
+      raise IOError(
+          "Unknown input extensions. Expected input file extensions are " +
+          ",".join(self.getInputExtension()) + " No input file has been found!"
+      )
+    return melgIn, melcIn
 
-  def generateCommand(self, inputFiles, executable, clargs=None, fargs=None, preExec=None):
+  def generateCommand(self,
+                      inputFiles,
+                      executable,
+                      clargs=None,
+                      fargs=None,
+                      preExec=None):
     """
       Generate a command to run MELCOR (combined MELGEN AND MELCOR)
       Collects all the clargs and the executable to produce the command-line call.
@@ -71,16 +80,19 @@ class Melcor(CodeInterfaceBase):
     """
     if preExec is None:
       raise IOError('No preExec listed in input! Exiting...')
-    melcin,melgin = self.findInps(inputFiles)
+    melcin, melgin = self.findInps(inputFiles)
     #get the melgen part
-    melgCommand,melgOut = self.melcorInterface.generateCommand([melgin],preExec,clargs,fargs)
+    melgCommand, melgOut = self.melcorInterface.generateCommand(
+        [melgin], preExec, clargs, fargs)
     #get the melcor part
-    melcCommand,melcOut = self.melgenInterface.generateCommand([melcin],executable,clargs,fargs)
+    melcCommand, melcOut = self.melgenInterface.generateCommand(
+        [melcin], executable, clargs, fargs)
     #combine them
     returnCommand = melgCommand + melcCommand, melcOut
     return returnCommand
 
-  def createNewInput(self,currentInputFiles,origInputFiles,samplerType,**Kwargs):
+  def createNewInput(self, currentInputFiles, origInputFiles, samplerType,
+                     **Kwargs):
     """
       This generates a new input file depending on which sampler has been chosen
       @ In, currentInputFiles, list,  list of current input files (input files from last this method call)
@@ -90,7 +102,8 @@ class Melcor(CodeInterfaceBase):
              where RAVEN stores the variables that got sampled (e.g. Kwargs['SampledVars'] => {'var1':10,'var2':40})
       @ Out, newInputFiles, list, list of newer input files, list of the new input files (modified and not)
     """
-    return self.melcorInterface.createNewInput(currentInputFiles,origInputFiles,samplerType,**Kwargs)
+    return self.melcorInterface.createNewInput(
+        currentInputFiles, origInputFiles, samplerType, **Kwargs)
 
   def finalizeCodeOutput(self, command, output, workingDir):
     """
@@ -101,10 +114,11 @@ class Melcor(CodeInterfaceBase):
       @ In, workingDir, string, current working dir
       @ Out, output, string, optional, present in case the root of the output file gets changed in this method.
     """
-    output = self.melcorInterface.finalizeCodeOutput(command,output, workingDir)
+    output = self.melcorInterface.finalizeCodeOutput(command, output,
+                                                     workingDir)
     return output
 
-  def checkForOutputFailure(self,output,workingDir):
+  def checkForOutputFailure(self, output, workingDir):
     """
       This method is called by the RAVEN code at the end of each run  if the return code is == 0.
       This method needs to be implemented by the codes that, if the run fails, return a return code that is 0
@@ -117,5 +131,3 @@ class Melcor(CodeInterfaceBase):
     """
     failure = self.melcorInterface.checkForOutputFailure(output, workingDir)
     return failure
-
-

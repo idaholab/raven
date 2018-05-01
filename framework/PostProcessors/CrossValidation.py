@@ -16,7 +16,7 @@ Created on August 30, 2017
 
 @author: wangc
 """
-from __future__ import division, print_function , unicode_literals, absolute_import
+from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default', DeprecationWarning)
 
@@ -36,7 +36,9 @@ import Files
 import Models
 import Runners
 import CrossValidations
+
 #Internal Modules End--------------------------------------------------------------------------------
+
 
 class CrossValidation(PostProcessor):
   """
@@ -54,28 +56,29 @@ class CrossValidation(PostProcessor):
     """
     inputSpecification = super(CrossValidation, cls).getInputSpecification()
 
-    metricInput = InputData.parameterInputFactory("Metric", contentType=InputData.StringType)
+    metricInput = InputData.parameterInputFactory(
+        "Metric", contentType=InputData.StringType)
     metricInput.addParam("class", InputData.StringType, True)
     metricInput.addParam("type", InputData.StringType, True)
     inputSpecification.addSub(metricInput)
 
     sciKitLearnInput = InputData.parameterInputFactory("SciKitLearn")
 
-    sklTypeInput = InputData.parameterInputFactory("SKLtype", contentType=InputData.StringType)
+    sklTypeInput = InputData.parameterInputFactory(
+        "SKLtype", contentType=InputData.StringType)
 
     sciKitLearnInput.addSub(sklTypeInput)
 
-    for name, inputType in [("n",InputData.IntegerType),
-                            ("p",InputData.IntegerType),
-                            ("n_splits",InputData.IntegerType),
-                            ("shuffle",InputData.StringType),
-                            ("random_state",InputData.StringType),
-                            ("y",InputData.StringType),
-                            ("labels",InputData.StringType),
-                            ("n_iter",InputData.IntegerType),
-                            ("test_size",InputData.StringType),
-                            ("train_size",InputData.StringType),
-                            ("scores",InputData.StringType)]:
+    for name, inputType in [
+        ("n", InputData.IntegerType), ("p", InputData.IntegerType),
+        ("n_splits", InputData.IntegerType), ("shuffle", InputData.StringType),
+        ("random_state", InputData.StringType), ("y", InputData.StringType),
+        ("labels", InputData.StringType), ("n_iter", InputData.IntegerType),
+        ("test_size",
+         InputData.StringType), ("train_size",
+                                 InputData.StringType), ("scores",
+                                                         InputData.StringType)
+    ]:
       dataType = InputData.parameterInputFactory(name, contentType=inputType)
       sciKitLearnInput.addSub(dataType)
 
@@ -91,10 +94,11 @@ class CrossValidation(PostProcessor):
     """
     PostProcessor.__init__(self, messageHandler)
     self.printTag = 'POSTPROCESSOR CROSS VALIDATION'
-    self.dynamic        = False # is it time-dependent?
-    self.metricsDict    = {}    # dictionary of metrics that are going to be assembled
+    self.dynamic = False  # is it time-dependent?
+    self.metricsDict = {
+    }  # dictionary of metrics that are going to be assembled
     self.pivotParameter = None
-    self.cvScore        = None
+    self.cvScore = None
     # assembler objects to be requested
     self.addAssemblerObject('Metric', 'n', True)
     # The list of cross validation engine that require the parameter 'n'
@@ -105,11 +109,14 @@ class CrossValidation(PostProcessor):
     # 'median_absolute_error' is removed, the reasons for that are:
     # 1. this metric can not accept multiple ouptuts
     # 2. we seldom use this metric.
-    self.validMetrics = ['mean_absolute_error', 'explained_variance_score', 'r2_score', 'mean_squared_error']
+    self.validMetrics = [
+        'mean_absolute_error', 'explained_variance_score', 'r2_score',
+        'mean_squared_error'
+    ]
     self.invalidRom = ['GaussPolynomialRom', 'HDMRRom']
     self.cvID = 'RAVEN_CV_ID'
 
-  def initialize(self, runInfo, inputs, initDict=None) :
+  def initialize(self, runInfo, inputs, initDict=None):
     """
       Method to initialize the pp.
       @ In, runInfo, dict, dictionary of run info (e.g. working dir, etc)
@@ -123,7 +130,8 @@ class CrossValidation(PostProcessor):
         self.metricsDict[metricIn[2]] = metricIn[3]
 
     if self.metricsDict.values().count(None) != 0:
-      metricName = self.metricsDict.keys()[list(self.metricsDict.values()).index(None)]
+      metricName = self.metricsDict.keys()[list(
+          self.metricsDict.values()).index(None)]
       self.raiseAnError(IOError, "Missing definition for Metric: ", metricName)
 
   def _localReadMoreXML(self, xmlNode):
@@ -153,20 +161,25 @@ class CrossValidation(PostProcessor):
         if score in scoreList:
           self.cvScore = score
         else:
-          self.raiseAnError(IOError, "Unexpected input '", score, "' for XML node 'scores'! Valid inputs include: ", ",".join(scoreList))
+          self.raiseAnError(IOError, "Unexpected input '", score,
+                            "' for XML node 'scores'! Valid inputs include: ",
+                            ",".join(scoreList))
         break
     for child in paramInput.subparts:
       if child.getName() == 'SciKitLearn':
-        self.initializationOptionDict[child.getName()] = self._localInputAndCheckParam(child)
-        self.initializationOptionDict[child.getName()].pop("scores",'False')
+        self.initializationOptionDict[
+            child.getName()] = self._localInputAndCheckParam(child)
+        self.initializationOptionDict[child.getName()].pop("scores", 'False')
       elif child.getName() == 'Metric':
         if 'type' not in child.parameterValues or 'class' not in child.parameterValues:
-          self.raiseAnError(IOError, 'Tag Metric must have attributes "class" and "type"')
+          self.raiseAnError(
+              IOError, 'Tag Metric must have attributes "class" and "type"')
         else:
           metricName = child.value.strip()
           self.metricsDict[metricName] = None
       else:
-        self.raiseAnError(IOError, "Unknown xml node ", child.getName(), " is provided for metric system")
+        self.raiseAnError(IOError, "Unknown xml node ", child.getName(),
+                          " is provided for metric system")
 
   def _localInputAndCheckParam(self, inputParam):
     """
@@ -182,7 +195,7 @@ class CrossValidation(PostProcessor):
         initDict[child.getName()] = utils.tryParse(child.value)
     return initDict
 
-  def inputToInternal(self, currentInp, full = False):
+  def inputToInternal(self, currentInp, full=False):
     """
       Method to convert an input object into the internal format that is
       understandable by this pp.
@@ -192,7 +205,9 @@ class CrossValidation(PostProcessor):
       @ Out, newInputs, tuple, (dictionary of input and output data, instance of estimator)
     """
     if type(currentInp) != list:
-      self.raiseAnError(IOError, "Only one input is provided for postprocessor", self.name, "while two inputs are required")
+      self.raiseAnError(IOError,
+                        "Only one input is provided for postprocessor",
+                        self.name, "while two inputs are required")
     else:
       currentInputs = copy.deepcopy(currentInp)
 
@@ -206,7 +221,10 @@ class CrossValidation(PostProcessor):
         if not cvEstimator:
           cvEstimator = currentInput
         else:
-          self.raiseAnError(IOError, "This postprocessor '%s' only accepts one input of Models.ROM!" %self.name)
+          self.raiseAnError(
+              IOError,
+              "This postprocessor '%s' only accepts one input of Models.ROM!" %
+              self.name)
 
     currentInputs.remove(cvEstimator)
 
@@ -218,15 +236,19 @@ class CrossValidation(PostProcessor):
     if isinstance(currentInput, Files.File):
       self.raiseAnError(IOError, "File object can not be accepted as an input")
     if inputType == 'HDF5':
-      self.raiseAnError(IOError, "Input type '", inputType, "' can not be accepted")
+      self.raiseAnError(IOError, "Input type '", inputType,
+                        "' can not be accepted")
 
     if type(currentInput) != dict:
-      dictKeys = list(cvEstimator.initializationOptionDict['Features'].split(',')) + list(cvEstimator.initializationOptionDict['Target'].split(','))
+      dictKeys = list(
+          cvEstimator.initializationOptionDict['Features'].split(',')) + list(
+              cvEstimator.initializationOptionDict['Target'].split(','))
       newInput = dict.fromkeys(dictKeys, None)
       if not len(currentInput) == 0:
         dataSet = currentInput.asDataset()
         if inputType == 'PointSet':
-          for elem in currentInput.getVars('input') + currentInput.getVars('output'):
+          for elem in currentInput.getVars('input') + currentInput.getVars(
+              'output'):
             if elem in newInput.keys():
               newInput[elem] = copy.copy(dataSet[elem].values)
         elif inputType == 'HistorySet':
@@ -236,36 +258,43 @@ class CrossValidation(PostProcessor):
               if elem in newInput.keys():
                 if newInput[elem] is None:
                   newInput[elem] = []
-                newInput[elem].append(dataSet.isel(RAVEN_sample_ID=hist)[elem].values)
+                newInput[elem].append(
+                    dataSet.isel(RAVEN_sample_ID=hist)[elem].values)
                 sizeIndex = len(newInput[elem][-1])
             for elem in currentInput.getVars('input'):
               if elem in newInput.keys():
                 if newInput[elem] is None:
                   newInput[elem] = []
-                newInput[elem].append(np.full((sizeIndex,), dataSet.isel(RAVEN_sample_ID=hist)[elem].values))
+                newInput[elem].append(
+                    np.full(
+                        (sizeIndex, ),
+                        dataSet.isel(RAVEN_sample_ID=hist)[elem].values))
         else:
-          self.raiseAnError(IOError, "The input type '", inputType, "' can not be accepted")
+          self.raiseAnError(IOError, "The input type '", inputType,
+                            "' can not be accepted")
     else:
       #here we do not make a copy since we assume that the dictionary is for just for the model usage and any changes are not impacting outside
       newInput = currentInput
 
     if any(x is None for x in newInput.values()):
       varName = newInput.keys()[list(newInput.values()).index(None)]
-      self.raiseAnError(IOError, "The variable: ", varName, " is not exist in the input: ", currentInput.name, " which is required for model: ", cvEstimator.name)
+      self.raiseAnError(IOError, "The variable: ", varName,
+                        " is not exist in the input: ", currentInput.name,
+                        " which is required for model: ", cvEstimator.name)
 
     newInputs = newInput, cvEstimator
     return newInputs
 
   #FIXME: Temporary method. Need to be rethought when the new Hybrid Model is developed
-  def _returnCharacteristicsOfCvGivenOutputName(self,outputName):
+  def _returnCharacteristicsOfCvGivenOutputName(self, outputName):
     """
       Method to return the metric name, type and target name given the output name
       @ In, outputName, str, the output name
       @ Out, info, dict, the dictionary containing the info
     """
-    assert(len(outputName.split("_")) == 3)
+    assert (len(outputName.split("_")) == 3)
     info = {}
-    _, info['metricName'], info['targetName']  = outputName.split("_")
+    _, info['metricName'], info['targetName'] = outputName.split("_")
     info['metricType'] = self.metricsDict[info['metricName']].metricType
     return info
 
@@ -281,7 +310,11 @@ class CrossValidation(PostProcessor):
     testInput = dict.fromkeys(inputDict.keys(), None)
     for key, value in inputDict.items():
       if np.asarray(value).size != trainIndex.size + testIndex.size:
-        self.raiseAnError(IOError, "The number of samples provided in the input is not equal the number of samples used in the cross-validation: "+str(np.asarray(value).size) +"!="+str(trainIndex.size + testIndex.size))
+        self.raiseAnError(
+            IOError,
+            "The number of samples provided in the input is not equal the number of samples used in the cross-validation: "
+            + str(np.asarray(value).size) + "!=" +
+            str(trainIndex.size + testIndex.size))
       trainInput[key] = np.asarray(value)[trainIndex]
       testInput[key] = np.asarray(value)[testIndex]
     trainTest = trainInput, testInput
@@ -293,9 +326,12 @@ class CrossValidation(PostProcessor):
       @ In, inputIn, list, list of objects, i.e. the object contained the data to process, the instance of model.
       @ Out, outputDict, dict, Dictionary containing the results
     """
-    inputDict, cvEstimator = self.inputToInternal(inputIn, full = True)
+    inputDict, cvEstimator = self.inputToInternal(inputIn, full=True)
     if cvEstimator.subType in self.invalidRom:
-      self.raiseAnError(IOError, cvEstimator.subType, " can not be retrained, thus can not be used in Cross Validation post-processor ", self.name)
+      self.raiseAnError(
+          IOError, cvEstimator.subType,
+          " can not be retrained, thus can not be used in Cross Validation post-processor ",
+          self.name)
     if self.dynamic:
       self.raiseAnError(IOError, "Not implemented yet")
     initDict = copy.deepcopy(self.initializationOptionDict)
@@ -311,7 +347,8 @@ class CrossValidation(PostProcessor):
       self.raiseAnError(IOError, "No cross validation engine is provided!")
     outputDict = {}
     for trainIndex, testIndex in cvEngine.generateTrainTestIndices():
-      trainDict, testDict = self.__generateTrainTestInputs(inputDict, trainIndex, testIndex)
+      trainDict, testDict = self.__generateTrainTestInputs(
+          inputDict, trainIndex, testIndex)
       ## Train the rom
       cvEstimator.train(trainDict)
       ## evaluate the rom
@@ -319,12 +356,19 @@ class CrossValidation(PostProcessor):
       ## Compute the distance between ROM and given data using Metric system
       for targetName, targetValue in outputEvaluation.items():
         for metricInstance in self.metricsDict.values():
-          metricValue = metricInstance.distance(targetValue, testDict[targetName])
+          metricValue = metricInstance.distance(targetValue,
+                                                testDict[targetName])
           if hasattr(metricInstance, 'metricType'):
             if metricInstance.metricType not in self.validMetrics:
-              self.raiseAnError(IOError, "The metric type: ", metricInstance.metricType, " can not be used, the accepted metric types are: ", str(self.validMetrics))
+              self.raiseAnError(
+                  IOError, "The metric type: ", metricInstance.metricType,
+                  " can not be used, the accepted metric types are: ",
+                  str(self.validMetrics))
           else:
-            self.raiseAnError(IOError, "The metric: ", metricInstance.name, " can not be used, the accepted metric types are: ", str(self.validMetrics))
+            self.raiseAnError(
+                IOError, "The metric: ", metricInstance.name,
+                " can not be used, the accepted metric types are: ",
+                str(self.validMetrics))
           varName = 'cv' + '_' + metricInstance.name + '_' + targetName
           if varName not in outputDict.keys():
             outputDict[varName] = np.array([])
@@ -335,14 +379,17 @@ class CrossValidation(PostProcessor):
     else:
       for varName, metricValues in outputDict.items():
         if self.cvScore.lower() == 'maximum':
-          scoreDict[varName] = np.atleast_1d(np.amax(np.atleast_1d(metricValues)))
+          scoreDict[varName] = np.atleast_1d(
+              np.amax(np.atleast_1d(metricValues)))
         elif self.cvScore.lower() == 'median':
-          scoreDict[varName] = np.atleast_1d(np.median(np.atleast_1d(metricValues)))
+          scoreDict[varName] = np.atleast_1d(
+              np.median(np.atleast_1d(metricValues)))
         elif self.cvScore.lower() == 'average':
-          scoreDict[varName] = np.atleast_1d(np.mean(np.atleast_1d(metricValues)))
+          scoreDict[varName] = np.atleast_1d(
+              np.mean(np.atleast_1d(metricValues)))
       return scoreDict
 
-  def collectOutput(self,finishedJob, output):
+  def collectOutput(self, finishedJob, output):
     """
       Function to place all of the computed data into the output object, i.e. Files
       @ In, finishedJob, object, JobHandler object that is in charge of running this postprocessor

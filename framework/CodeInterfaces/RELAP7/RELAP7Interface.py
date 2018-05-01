@@ -18,7 +18,7 @@ Created on April 14, 2014
 """
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
-warnings.simplefilter('default',DeprecationWarning)
+warnings.simplefilter('default', DeprecationWarning)
 
 import os
 import sys
@@ -28,11 +28,13 @@ import json
 uppath = lambda _path, n: os.sep.join(_path.split(os.sep)[:-n])
 from CodeInterfaceBaseClass import CodeInterfaceBase
 
+
 class RELAP7(CodeInterfaceBase):
   """
     This class is used as part of a code dictionary to specialize Model.Code for RELAP7
   """
-  def generateCommand(self,inputFiles,executable,clargs=None,fargs=None):
+
+  def generateCommand(self, inputFiles, executable, clargs=None, fargs=None):
     """
       See base class.  Collects all the clargs and the executable to produce the command-line call.
       Returns tuple of commands and base file name for run.
@@ -49,19 +51,26 @@ class RELAP7(CodeInterfaceBase):
         found = True
         break
     if not found:
-      raise IOError('None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
-    outputfile = 'out~'+inputFiles[index].getBase()
+      raise IOError(
+          'None of the input files has one of the following extensions: ' +
+          ' '.join(self.getInputExtension()))
+    outputfile = 'out~' + inputFiles[index].getBase()
     if clargs:
       precommand = executable + clargs['text']
     else:
       precommand = executable
-    executeCommand = [('parallel',precommand + ' -i '+inputFiles[index].getFilename() + ' Outputs/file_base='+ outputfile +
-                      ' Outputs/csv=false' + ' Outputs/checkpoint=true'+ ' Outputs/tail/type=ControlLogicBranchingInfo'+
-                      ' Outputs/ravenCSV/type=CSVRaven')]
-    returnCommand = executeCommand,outputfile
+    executeCommand = [
+        ('parallel', precommand + ' -i ' + inputFiles[index].getFilename() +
+         ' Outputs/file_base=' + outputfile + ' Outputs/csv=false' +
+         ' Outputs/checkpoint=true' +
+         ' Outputs/tail/type=ControlLogicBranchingInfo' +
+         ' Outputs/ravenCSV/type=CSVRaven')
+    ]
+    returnCommand = executeCommand, outputfile
     return returnCommand
 
-  def createNewInput(self,currentInputFiles,oriInputFiles,samplerType,**Kwargs):
+  def createNewInput(self, currentInputFiles, oriInputFiles, samplerType,
+                     **Kwargs):
     """
       This method is used to generate an input based on the information passed in.
       @ In, currentInputFiles, list,  list of current input files (input files from last this method call)
@@ -71,19 +80,26 @@ class RELAP7(CodeInterfaceBase):
              where RELAP7 stores the variables that got sampled (e.g. Kwargs['SampledVars'] => {'var1':10,'var2':40})
       @ Out, newInputFiles, list, list of newer input files, list of the new input files (modified and not)
     """
-    MOOSEparser = utils.importFromPath(os.path.join(os.path.join(uppath(os.path.dirname(__file__),1),'MooseBasedApp'),'MOOSEparser.py'),False)
-    self._samplersDictionary                             = {}
-    self._samplersDictionary[samplerType]                = self.gridForRELAP7
-    self._samplersDictionary['MonteCarlo'              ] = self.monteCarloForRELAP7
-    self._samplersDictionary['Grid'                    ] = self.gridForRELAP7
-    self._samplersDictionary['LimitSurfaceSearch'      ] = self.gridForRELAP7 # same Grid Fashion. It forces a dist to give a particular value
-    self._samplersDictionary['Stratified'              ] = self.latinHyperCubeForRELAP7
-    self._samplersDictionary['DynamicEventTree'        ] = self.dynamicEventTreeForRELAP7
-    self._samplersDictionary['FactorialDesign'         ] = self.gridForRELAP7
-    self._samplersDictionary['ResponseSurfaceDesign'   ] = self.gridForRELAP7
-    self._samplersDictionary['AdaptiveDynamicEventTree'] = self.dynamicEventTreeForRELAP7
-    self._samplersDictionary['StochasticCollocation'   ] = self.gridForRELAP7
-    self._samplersDictionary['CustomSampler'           ] = self.gridForRELAP7
+    MOOSEparser = utils.importFromPath(
+        os.path.join(
+            os.path.join(
+                uppath(os.path.dirname(__file__), 1), 'MooseBasedApp'),
+            'MOOSEparser.py'), False)
+    self._samplersDictionary = {}
+    self._samplersDictionary[samplerType] = self.gridForRELAP7
+    self._samplersDictionary['MonteCarlo'] = self.monteCarloForRELAP7
+    self._samplersDictionary['Grid'] = self.gridForRELAP7
+    self._samplersDictionary[
+        'LimitSurfaceSearch'] = self.gridForRELAP7  # same Grid Fashion. It forces a dist to give a particular value
+    self._samplersDictionary['Stratified'] = self.latinHyperCubeForRELAP7
+    self._samplersDictionary[
+        'DynamicEventTree'] = self.dynamicEventTreeForRELAP7
+    self._samplersDictionary['FactorialDesign'] = self.gridForRELAP7
+    self._samplersDictionary['ResponseSurfaceDesign'] = self.gridForRELAP7
+    self._samplersDictionary[
+        'AdaptiveDynamicEventTree'] = self.dynamicEventTreeForRELAP7
+    self._samplersDictionary['StochasticCollocation'] = self.gridForRELAP7
+    self._samplersDictionary['CustomSampler'] = self.gridForRELAP7
 
     found = False
     for index, inputFile in enumerate(currentInputFiles):
@@ -91,12 +107,14 @@ class RELAP7(CodeInterfaceBase):
         found = True
         break
     if not found:
-      raise IOError('None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
+      raise IOError(
+          'None of the input files has one of the following extensions: ' +
+          ' '.join(self.getInputExtension()))
     parser = MOOSEparser.MOOSEparser(currentInputFiles[index].getAbsFile())
     Kwargs["distributionNode"] = parser.findNodeInXML("Distributions")
     if 'None' not in str(samplerType):
       modifDict = self._samplersDictionary[samplerType](**Kwargs)
-      parser.modifyOrAdd(modifDict,False)
+      parser.modifyOrAdd(modifDict, False)
     #newInputFiles = copy.deepcopy(currentInputFiles)
     #if type(Kwargs['prefix']) in [str,type("")]:#Specifing string type for python 2 and 3
     #  newInputFiles[index].setBase(Kwargs['prefix']+"~"+newInputFiles[index].getBase())
@@ -105,7 +123,7 @@ class RELAP7(CodeInterfaceBase):
     parser.printInput(currentInputFiles[index].getAbsFile())
     return currentInputFiles
 
-  def monteCarloForRELAP7(self,**Kwargs):
+  def monteCarloForRELAP7(self, **Kwargs):
     """
       This method is used to create a list of dictionaries that can be interpreted by the input Parser
       in order to change the input file based on the information present in the Kwargs dictionary.
@@ -116,12 +134,13 @@ class RELAP7(CodeInterfaceBase):
     if 'prefix' in Kwargs:
       counter = Kwargs['prefix']
     else:
-      raise IOError('a counter is needed for the Monte Carlo sampler for RELAP7')
+      raise IOError(
+          'a counter is needed for the Monte Carlo sampler for RELAP7')
     if 'initialSeed' in Kwargs:
       initSeed = Kwargs['initialSeed']
     else:
       initSeed = 1
-    _,listDict = self.__genBasePointSampler(**Kwargs)
+    _, listDict = self.__genBasePointSampler(**Kwargs)
     #listDict = []
     modifDict = {}
     modifDict['name'] = ['Distributions']
@@ -130,7 +149,7 @@ class RELAP7(CodeInterfaceBase):
     listDict.append(modifDict)
     return listDict
 
-  def dynamicEventTreeForRELAP7(self,**Kwargs):
+  def dynamicEventTreeForRELAP7(self, **Kwargs):
     """
       This method is used to create a list of dictionaries that can be interpreted by the input Parser
       in order to change the input file based on the information present in the Kwargs dictionary.
@@ -153,7 +172,9 @@ class RELAP7(CodeInterfaceBase):
     if 'initiatorDistribution' in Kwargs.keys():
       for i in range(len(Kwargs['initiatorDistribution'])):
         modifDict = {}
-        modifDict['name'] = ['Distributions',Kwargs['initiatorDistribution'][i]]
+        modifDict['name'] = [
+            'Distributions', Kwargs['initiatorDistribution'][i]
+        ]
         modifDict['ProbabilityThreshold'] = Kwargs['PbThreshold'][i]
         listDict.append(modifDict)
         del modifDict
@@ -171,16 +192,18 @@ class RELAP7(CodeInterfaceBase):
     if 'endTimeStep' in Kwargs.keys():
       #if Kwargs['endTimeStep'] != 0 or Kwargs['endTimeStep'] == 0:
 
-      if Kwargs['startTime'] !=  -sys.float_info.max:
+      if Kwargs['startTime'] != -sys.float_info.max:
         modifDict = {}
         endTimeStepString = str(Kwargs['endTimeStep'])
-        if(Kwargs['endTimeStep'] <= 9999):
+        if (Kwargs['endTimeStep'] <= 9999):
           numZeros = 4 - len(endTimeStepString)
           for i in range(numZeros):
             endTimeStepString = "0" + endTimeStepString
         splitted = Kwargs['outfile'].split('~')
-        output_parent = splitted[0] + '~'  + splitted[1]
-        restartFileBase = os.path.join("..",utils.toString(Kwargs['RAVEN_parentID']),output_parent + "_cp",endTimeStepString)
+        output_parent = splitted[0] + '~' + splitted[1]
+        restartFileBase = os.path.join(
+            "..", utils.toString(Kwargs['RAVEN_parentID']),
+            output_parent + "_cp", endTimeStepString)
         modifDict['name'] = ['Executioner']
         modifDict['restart_file_base'] = restartFileBase
         #print(' Restart file name base is "' + restart_file_base + '"')
@@ -205,16 +228,18 @@ class RELAP7(CodeInterfaceBase):
     # check and add the variables that have been changed by a distribution trigger
     # add them into the RestartInitialize block
     if 'branchChangedParam' in Kwargs.keys():
-      if Kwargs['branchChangedParam'][0] not in ('None',b'None',None):
+      if Kwargs['branchChangedParam'][0] not in ('None', b'None', None):
         for i in range(len(Kwargs['branchChangedParam'])):
           modifDict = {}
-          modifDict['name'] = ['RestartInitialize',Kwargs['branchChangedParam'][i]]
+          modifDict['name'] = [
+              'RestartInitialize', Kwargs['branchChangedParam'][i]
+          ]
           modifDict['value'] = Kwargs['branchChangedParamValue'][i]
           listDict.append(modifDict)
           del modifDict
     return listDict
 
-  def __genBasePointSampler(self,**Kwargs):
+  def __genBasePointSampler(self, **Kwargs):
     """
       Figure out which distributions need to be handled by
       the grid or Stratified samplers by modifying distributions in the .i file.
@@ -232,19 +257,30 @@ class RELAP7(CodeInterfaceBase):
       @ In, **Kwargs, dict, kwared dictionary containing the values of the parameters to be changed
       @ Out, returnTuple, tuple, returnTuple[0] distributions dictionaries returnTuple[0] modified dictionary
     """
-    distributionKeys = [key for key in Kwargs["SampledVars"] if key.startswith("<distribution>")]
+    distributionKeys = [
+        key for key in Kwargs["SampledVars"]
+        if key.startswith("<distribution>")
+    ]
     distributions = {}
     for key in distributionKeys:
       distributionName = Kwargs['distributionName'][key]
       distributionType = Kwargs['distributionType'][key]
       crowDistribution = json.loads(Kwargs['crowDist'][key])
-      distributions[key] = [Kwargs["SampledVars"].pop(key),distributionName, distributionType,crowDistribution]
-    mooseInterface = utils.importFromPath(os.path.join(os.path.join(uppath(os.path.dirname(__file__),1),'MooseBasedApp'),'MooseBasedAppInterface.py'),False)
+      distributions[key] = [
+          Kwargs["SampledVars"].pop(key), distributionName, distributionType,
+          crowDistribution
+      ]
+    mooseInterface = utils.importFromPath(
+        os.path.join(
+            os.path.join(
+                uppath(os.path.dirname(__file__), 1), 'MooseBasedApp'),
+            'MooseBasedAppInterface.py'), False)
     mooseApp = mooseInterface.MooseBasedApp()
-    returnTuple = distributions, mooseApp.pointSamplerForMooseBasedApp(**Kwargs)
+    returnTuple = distributions, mooseApp.pointSamplerForMooseBasedApp(
+        **Kwargs)
     return returnTuple
 
-  def gridForRELAP7(self,**Kwargs):
+  def gridForRELAP7(self, **Kwargs):
     """
       This method is used to create a list of dictionaries that can be interpreted by the input Parser
       in order to change the input file based on the information present in the Kwargs dictionary.
@@ -255,10 +291,10 @@ class RELAP7(CodeInterfaceBase):
       @ In, **Kwargs, dict, kwared dictionary containing the values of the parameters to be changed
       @ Out, listDict, list, list of dictionaries used by the parser to change the input file
     """
-    distributions,listDict = self.__genBasePointSampler(**Kwargs)
+    distributions, listDict = self.__genBasePointSampler(**Kwargs)
     for key in distributions.keys():
       distName, distType, crowDist = distributions[key][1:4]
-      crowDist['name'] = ['Distributions',distName]
+      crowDist['name'] = ['Distributions', distName]
       #The following code would check more, but requires floating compare
       # that currently doesn't work properly
       #assertDict = crowDist.copy()
@@ -266,18 +302,30 @@ class RELAP7(CodeInterfaceBase):
       #listDict.append(assertDict)
       for crowDistKey in crowDist.keys():
         if crowDistKey not in ['type']:
-          listDict.append({'name':['Distributions',distName], 'special':set(['assert_match']), crowDistKey:crowDist[crowDistKey]})
+          listDict.append({
+              'name': ['Distributions', distName],
+              'special': set(['assert_match']),
+              crowDistKey: crowDist[crowDistKey]
+          })
 
-      listDict.append({'name':['Distributions',distName],
-                       'special':set(['assert_match']),
-                       'type':crowDist['type']})
-      listDict.append({'name':['Distributions',distName],'special':set(['erase_block'])})
-      listDict.append({'name':['Distributions',distName],'force_value':distributions[key][0]})
+      listDict.append({
+          'name': ['Distributions', distName],
+          'special': set(['assert_match']),
+          'type': crowDist['type']
+      })
+      listDict.append({
+          'name': ['Distributions', distName],
+          'special': set(['erase_block'])
+      })
+      listDict.append({
+          'name': ['Distributions', distName],
+          'force_value': distributions[key][0]
+      })
       listDict.append(crowDist)
     #print("listDict",listDict,"distributions",distributions,"Kwargs",Kwargs)
     return listDict
 
-  def latinHyperCubeForRELAP7(self,**Kwargs):
+  def latinHyperCubeForRELAP7(self, **Kwargs):
     """
       This method is used to create a list of dictionaries that can be interpreted by the input Parser
       in order to change the input file based on the information present in the Kwargs dictionary.
@@ -288,24 +336,32 @@ class RELAP7(CodeInterfaceBase):
       @ In, **Kwargs, dict, kwared dictionary containing the values of the parameters to be changed
       @ Out, listDict, list, list of dictionaries used by the parser to change the input file
     """
-    distributions,listDict = self.__genBasePointSampler(**Kwargs)
+    distributions, listDict = self.__genBasePointSampler(**Kwargs)
     for key in distributions.keys():
       distName, distType, crowDist = distributions[key][1:4]
-      crowDist['name'] = ['Distributions',distName]
+      crowDist['name'] = ['Distributions', distName]
       #The following code would check more, but requires floating compare
       # that currently doesn't work properly
       #assertDict = crowDist.copy()
       #assertDict['special'] = set(['assert_match'])
       #listDict.append(assertDict)
-      listDict.append({'name':['Distributions',distName],
-                       'special':set(['assert_match']),
-                       'type':crowDist['type']})
-      listDict.append({'name':['Distributions',distName],
-                       'special':set(['erase_block'])})
-      listDict.append({'name':['Distributions',distName],
-                       'V_window_Up':Kwargs['upper'][key]})
-      listDict.append({'name':['Distributions',distName],
-                       'V_window_Low':Kwargs['lower'][key]})
+      listDict.append({
+          'name': ['Distributions', distName],
+          'special': set(['assert_match']),
+          'type': crowDist['type']
+      })
+      listDict.append({
+          'name': ['Distributions', distName],
+          'special': set(['erase_block'])
+      })
+      listDict.append({
+          'name': ['Distributions', distName],
+          'V_window_Up': Kwargs['upper'][key]
+      })
+      listDict.append({
+          'name': ['Distributions', distName],
+          'V_window_Low': Kwargs['lower'][key]
+      })
       listDict.append(crowDist)
     #print("listDict",listDict,"distributions",distributions)
     return listDict

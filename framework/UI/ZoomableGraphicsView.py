@@ -21,7 +21,7 @@
 #For future compatibility with Python 3
 from __future__ import division, print_function, absolute_import
 import warnings
-warnings.simplefilter('default',DeprecationWarning)
+warnings.simplefilter('default', DeprecationWarning)
 #End compatibility block for Python 3
 
 from PySide import QtCore as qtc
@@ -42,11 +42,13 @@ import os
 ## large enough button to select with relative ease.
 ################################################################################
 
+
 class OverlayButton(qtw.QPushButton):
   """
     A UI element that can be overlayed on top of other UI elements and will
     render transparently until a user's mouse hovers over it.
   """
+
   def __init__(self, *args, **kwargs):
     """
       Initializer for the Overlay Button that will apply a default style,
@@ -61,7 +63,9 @@ class OverlayButton(qtw.QPushButton):
       @ In, None
       @ Out, None
     """
-    self.setStyleSheet("background-color: rgba( 51, 73, 96, 25%); color: rgba(236,240,241, 75%);  opacity: 0.25;")
+    self.setStyleSheet(
+        "background-color: rgba( 51, 73, 96, 25%); color: rgba(236,240,241, 75%);  opacity: 0.25;"
+    )
 
   def enterEvent(self, event):
     """
@@ -72,7 +76,9 @@ class OverlayButton(qtw.QPushButton):
       @ Out, None
     """
     super(OverlayButton, self).enterEvent(event)
-    self.setStyleSheet("background-color: rgba( 51, 73, 96, 75%); color: rgba(236,240,241, 100%);  opacity: 0.75;")
+    self.setStyleSheet(
+        "background-color: rgba( 51, 73, 96, 75%); color: rgba(236,240,241, 100%);  opacity: 0.75;"
+    )
 
   def leaveEvent(self, event):
     """
@@ -85,6 +91,7 @@ class OverlayButton(qtw.QPushButton):
     super(OverlayButton, self).leaveEvent(event)
     self.setDefaults()
 
+
 ################################################################################
 ## Defining the qtawesome icons is no simpler than loading the images from files
 # defaultIconColor = 'white'
@@ -93,12 +100,16 @@ class OverlayButton(qtw.QPushButton):
 # mouseIcon = qta.icon('fa.mouse-pointer', color=defaultIconColor)
 # screenshotIcon = qta.icon('fa.camera', color=defaultIconColor)
 
-resourceLocation = os.path.join(os.path.dirname(os.path.abspath(__file__)),'resources')
-resetIcon      = qtg.QIcon(os.path.join(resourceLocation,'fa-rotate-left_32.png'))
-handIcon       = qtg.QIcon(os.path.join(resourceLocation,'fa-hand-paper-o_32.png'))
-mouseIcon      = qtg.QIcon(os.path.join(resourceLocation,'fa-mouse-pointer_32.png'))
-screenshotIcon = qtg.QIcon(os.path.join(resourceLocation,'fa-camera_32.png'))
+resourceLocation = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), 'resources')
+resetIcon = qtg.QIcon(os.path.join(resourceLocation, 'fa-rotate-left_32.png'))
+handIcon = qtg.QIcon(os.path.join(resourceLocation, 'fa-hand-paper-o_32.png'))
+mouseIcon = qtg.QIcon(
+    os.path.join(resourceLocation, 'fa-mouse-pointer_32.png'))
+screenshotIcon = qtg.QIcon(os.path.join(resourceLocation, 'fa-camera_32.png'))
+
 ################################################################################
+
 
 class ZoomableGraphicsView(qtw.QGraphicsView):
   """
@@ -124,11 +135,12 @@ class ZoomableGraphicsView(qtw.QGraphicsView):
     self.setFrameShape(qtw.QFrame.NoFrame)
     self.setDragMode(qtw.QGraphicsView.ScrollHandDrag)
 
-    self.setRenderHints(qtg.QPainter.Antialiasing |
-                        qtg.QPainter.SmoothPixmapTransform)
+    self.setRenderHints(qtg.QPainter.Antialiasing
+                        | qtg.QPainter.SmoothPixmapTransform)
 
     scene = qtw.QGraphicsScene(self)
-    scene.setSceneRect(0,0,ZoomableGraphicsView.defaultSceneDimension,ZoomableGraphicsView.defaultSceneDimension)
+    scene.setSceneRect(0, 0, ZoomableGraphicsView.defaultSceneDimension,
+                       ZoomableGraphicsView.defaultSceneDimension)
     self.setScene(scene)
 
     self.rightClickMenu = qtw.QMenu()
@@ -203,7 +215,8 @@ class ZoomableGraphicsView(qtw.QGraphicsView):
       svgGen.setDescription("Generated from RAVEN.")
       painter = qtg.QPainter(svgGen)
     else:
-      image = qtg.QImage(self.sceneRect().size().toSize(), qtg.QImage.Format_ARGB32)
+      image = qtg.QImage(self.sceneRect().size().toSize(),
+                         qtg.QImage.Format_ARGB32)
       image.fill(qtc.Qt.transparent)
       painter = qtg.QPainter(image)
 
@@ -236,7 +249,7 @@ class ZoomableGraphicsView(qtw.QGraphicsView):
     """
     super(ZoomableGraphicsView, self).resizeEvent(event)
     self._zoom = 0
-    self.fitInView(self.sceneRect(),qtc.Qt.KeepAspectRatio)
+    self.fitInView(self.sceneRect(), qtc.Qt.KeepAspectRatio)
     # if self._zoom == 0:
     #   self.fitInView(self.sceneRect(),qtc.Qt.KeepAspectRatio)
     self.placeButtons()
@@ -258,7 +271,7 @@ class ZoomableGraphicsView(qtw.QGraphicsView):
       @ Out, None
     """
     self._zoom = 0
-    self.fitInView(self.sceneRect(),qtc.Qt.KeepAspectRatio)
+    self.fitInView(self.sceneRect(), qtc.Qt.KeepAspectRatio)
     self.placeButtons()
 
   def toggleMouseMode(self):
@@ -287,7 +300,7 @@ class ZoomableGraphicsView(qtw.QGraphicsView):
       @ Out, None
     """
     if self.dragMode() != qtw.QGraphicsView.ScrollHandDrag:
-      return ## Ignore if we are not in pan and zoom mode
+      return  ## Ignore if we are not in pan and zoom mode
     if event.delta() > 0:
       factor = 1.1
       self._zoom += 1
@@ -298,19 +311,18 @@ class ZoomableGraphicsView(qtw.QGraphicsView):
     if self._zoom > 0:
       self.scale(factor, factor)
     elif self._zoom == 0:
-      self.fitInView(self.sceneRect(),qtc.Qt.KeepAspectRatio)
+      self.fitInView(self.sceneRect(), qtc.Qt.KeepAspectRatio)
     else:
       self._zoom = 0
-      self.fitInView(self.sceneRect(),qtc.Qt.KeepAspectRatio)
+      self.fitInView(self.sceneRect(), qtc.Qt.KeepAspectRatio)
 
-  def contextMenuEvent(self,event):
+  def contextMenuEvent(self, event):
     """
       Callback for initiating the context menu traditionally this is through a
       right mouse button click.
       @ In, event, PySide.QtGui.QContextMenuEvent, the triggering event
     """
     self.rightClickMenu.popup(event.globalPos())
-
 
   def test(self):
     """
@@ -328,16 +340,20 @@ class ZoomableGraphicsView(qtw.QGraphicsView):
     ZoomableGraphicsView.resetView(self)
     ZoomableGraphicsView.toggleMouseMode(self)
     ZoomableGraphicsView.toggleMouseMode(self)
-    ZoomableGraphicsView.saveImage(self, self.windowTitle()+'.svg')
-    ZoomableGraphicsView.saveImage(self, self.windowTitle()+'.png')
+    ZoomableGraphicsView.saveImage(self, self.windowTitle() + '.svg')
+    ZoomableGraphicsView.saveImage(self, self.windowTitle() + '.png')
 
-    genericMouseEvent = qtg.QMouseEvent(qtc.QEvent.MouseMove, qtc.QPoint(0,0), qtc.Qt.MiddleButton, qtc.Qt.MiddleButton, qtc.Qt.NoModifier)
+    genericMouseEvent = qtg.QMouseEvent(qtc.QEvent.MouseMove, qtc.QPoint(
+        0, 0), qtc.Qt.MiddleButton, qtc.Qt.MiddleButton, qtc.Qt.NoModifier)
     ZoomableGraphicsView.contextMenuEvent(self, genericMouseEvent)
-    genericMouseEvent = qtg.QWheelEvent(qtc.QPoint(0,0), 1, qtc.Qt.MiddleButton, qtc.Qt.NoModifier)
+    genericMouseEvent = qtg.QWheelEvent(
+        qtc.QPoint(0, 0), 1, qtc.Qt.MiddleButton, qtc.Qt.NoModifier)
     ZoomableGraphicsView.wheelEvent(self, genericMouseEvent)
-    genericMouseEvent = qtg.QWheelEvent(qtc.QPoint(0,0), -1, qtc.Qt.MiddleButton, qtc.Qt.NoModifier)
+    genericMouseEvent = qtg.QWheelEvent(
+        qtc.QPoint(0, 0), -1, qtc.Qt.MiddleButton, qtc.Qt.NoModifier)
     ZoomableGraphicsView.wheelEvent(self, genericMouseEvent)
-    genericMouseEvent = qtg.QWheelEvent(qtc.QPoint(0,0), -1, qtc.Qt.MiddleButton, qtc.Qt.NoModifier)
+    genericMouseEvent = qtg.QWheelEvent(
+        qtc.QPoint(0, 0), -1, qtc.Qt.MiddleButton, qtc.Qt.NoModifier)
     ZoomableGraphicsView.wheelEvent(self, genericMouseEvent)
     ZoomableGraphicsView.toggleMouseMode(self)
     ZoomableGraphicsView.wheelEvent(self, genericMouseEvent)

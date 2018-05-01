@@ -18,7 +18,7 @@ Created on Nov 1, 2017
 
 """
 
-from __future__ import division, print_function , unicode_literals, absolute_import
+from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default', DeprecationWarning)
 
@@ -35,6 +35,7 @@ from utils import xmlUtils as xmlU
 from utils import utils
 import Files
 import Runners
+
 #Internal Modules End-----------------------------------------------------------
 
 
@@ -42,6 +43,7 @@ class ETImporter(PostProcessor):
   """
     This is the base class of the postprocessor that imports Event-Trees (ETs) into RAVEN as a PointSet
   """
+
   def __init__(self, messageHandler):
     """
       Constructor
@@ -63,10 +65,12 @@ class ETImporter(PostProcessor):
         specifying input of cls.
     """
     inputSpecification = super(ETImporter, cls).getInputSpecification()
-    inputSpecification.addSub(InputData.parameterInputFactory("fileFormat", contentType=InputData.StringType))
+    inputSpecification.addSub(
+        InputData.parameterInputFactory(
+            "fileFormat", contentType=InputData.StringType))
     return inputSpecification
 
-  def initialize(self, runInfo, inputs, initDict) :
+  def initialize(self, runInfo, inputs, initDict):
     """
       Method to initialize the pp.
       @ In, runInfo, dict, dictionary of run info (e.g. working dir, etc)
@@ -97,8 +101,9 @@ class ETImporter(PostProcessor):
     fileFormat = paramInput.findFirst('fileFormat')
     self.fileFormat = fileFormat.value
     if self.fileFormat not in self.allowedFormats:
-      self.raiseAnError(IOError,
-                          'ETImporterPostProcessor Post-Processor ' + self.name + ', format ' + str(self.fileFormat) + ' : is not supported')
+      self.raiseAnError(
+          IOError, 'ETImporterPostProcessor Post-Processor ' + self.name +
+          ', format ' + str(self.fileFormat) + ' : is not supported')
 
   def run(self, inputs):
     """
@@ -116,10 +121,10 @@ class ETImporter(PostProcessor):
     """
     ### Check for link to other ET
     links = []
-    sizes=(len(inputs),len(inputs))
+    sizes = (len(inputs), len(inputs))
     connectivityMatrix = np.zeros(sizes)
-    listETs=[]
-    listRoots=[]
+    listETs = []
+    listRoots = []
 
     for file in inputs:
       eventTree = ET.parse(file.getPath() + file.getFilename())
@@ -127,24 +132,29 @@ class ETImporter(PostProcessor):
       listRoots.append(eventTree.getroot())
     links = self.createLinkList(listRoots)
 
-    if len(inputs)>0:
-      rootETID = self.checkETstructure(links,listETs,connectivityMatrix)
+    if len(inputs) > 0:
+      rootETID = self.checkETstructure(links, listETs, connectivityMatrix)
 
-    if len(links)>=1 and len(inputs)>1:
-      finalAssembledTree = self.analyzeMultipleET(inputs,links,listRoots,listETs,rootETID)
+    if len(links) >= 1 and len(inputs) > 1:
+      finalAssembledTree = self.analyzeMultipleET(inputs, links, listRoots,
+                                                  listETs, rootETID)
       return self.analyzeSingleET(finalAssembledTree)
 
-    if len(links)==0 and len(inputs)>1:
-      self.raiseAnError(IOError, 'Multiple ET files have provided but they are not linked')
+    if len(links) == 0 and len(inputs) > 1:
+      self.raiseAnError(
+          IOError, 'Multiple ET files have provided but they are not linked')
 
-    if len(links)>1 and len(inputs)==1:
-      self.raiseAnError(IOError, 'A single ET files has provided but it contains a link to an additional ET')
+    if len(links) > 1 and len(inputs) == 1:
+      self.raiseAnError(
+          IOError,
+          'A single ET files has provided but it contains a link to an additional ET'
+      )
 
-    if len(links)==0 and len(inputs)==1:
+    if len(links) == 0 and len(inputs) == 1:
       eventTree = ET.parse(inputs[0].getPath() + inputs[0].getFilename())
       return self.analyzeSingleET(eventTree.getroot())
 
-  def createLinkList(self,listRoots):
+  def createLinkList(self, listRoots):
     """
       This method identifies the links among ETs. It saves such links in the variable links.
       Note that this method overwrites such variable when it is called. This is because the identification
@@ -179,7 +189,7 @@ class ETImporter(PostProcessor):
           linkList.append(dep)
     return linkList
 
-  def checkETstructure(self,links,listETs,connectivityMatrix):
+  def checkETstructure(self, links, listETs, connectivityMatrix):
     """
       This method checks that the structure of the ET is consistent. In particular, it checks that only one root ET
       and at least one leaf ET is provided. As an example consider the following ET structure:
@@ -197,18 +207,18 @@ class ETImporter(PostProcessor):
     for link in links:
       row = listETs.index(link['ET_master_ID'])
       col = listETs.index(link['ET_slave_ID'])
-      connectivityMatrix[row,col]=1.0
+      connectivityMatrix[row, col] = 1.0
 
     # the root ETs are charaterized by a column full of zeros
     # the leaf ETs are charaterized by a row full of zeros
-    zeroRows    = np.where(~connectivityMatrix.any(axis=1))[0]
+    zeroRows = np.where(~connectivityMatrix.any(axis=1))[0]
     zeroColumns = np.where(~connectivityMatrix.any(axis=0))[0]
 
-    if len(zeroColumns)>1:
+    if len(zeroColumns) > 1:
       self.raiseAnError(IOError, 'Multiple root ET')
-    if len(zeroColumns)==0:
+    if len(zeroColumns) == 0:
       self.raiseAnError(IOError, 'No root ET')
-    if len(zeroColumns)==1:
+    if len(zeroColumns) == 1:
       rootETID = listETs[zeroColumns[0]]
       self.raiseADebug("ETImporter Root ET: " + str(rootETID))
 
@@ -219,7 +229,7 @@ class ETImporter(PostProcessor):
 
     return rootETID
 
-  def analyzeMultipleET(self,inputs,links,listRoots,listETs,rootETID):
+  def analyzeMultipleET(self, inputs, links, listRoots, listETs, rootETID):
     """
       This method executes the analysis of the ET if multiple ETs are provided. It merge all ETs onto the root ET
       @ In, input, list, list of file objects
@@ -237,11 +247,12 @@ class ETImporter(PostProcessor):
       ETset.append(root)
 
     # 2. loop on the dependencies until it is empty
-    while len(links)>0:
+    while len(links) > 0:
       for link in links:
         indexMaster = listETs.index(link['ET_master_ID'])
-        indexSlave  = listETs.index(link['ET_slave_ID'])
-        mergedTree  = self.mergeLinkedTrees(listRoots[indexMaster],listRoots[indexSlave],link['link_seqID'])
+        indexSlave = listETs.index(link['ET_slave_ID'])
+        mergedTree = self.mergeLinkedTrees(
+            listRoots[indexMaster], listRoots[indexSlave], link['link_seqID'])
 
         listETs.pop(indexMaster)
         listRoots.pop(indexMaster)
@@ -254,7 +265,7 @@ class ETImporter(PostProcessor):
     indexRootET = listETs.index(rootETID)
     return listRoots[indexRootET]
 
-  def analyzeSingleET(self,masterRoot):
+  def analyzeSingleET(self, masterRoot):
     """
       This method executes the analysis of the ET if a single ET is provided.
       @ In,  masterRoot, xml.etree.Element, root of the ET
@@ -291,14 +302,16 @@ class ETImporter(PostProcessor):
         outcomes.append(outcome)
     etMap = self.returnMap(outcomes, root.get('name'))
 
-    self.raiseADebug("ETImporter variables identified: " + str(format(variables)))
+    self.raiseADebug(
+        "ETImporter variables identified: " + str(format(variables)))
 
     d = len(variables)
     n = len(self.findAllRecursive(root.find('initial-state'), 'sequence'))
     pointSet = -1 * np.ones((n, d + 1))
     rowCounter = 0
     for node in root.find('initial-state'):
-      newRows = self.constructPointDFS(node, variables, values, etMap, pointSet, rowCounter)
+      newRows = self.constructPointDFS(node, variables, values, etMap,
+                                       pointSet, rowCounter)
       rowCounter += newRows
     outputDict = {}
     #outputDict['inputs'] = {}
@@ -324,16 +337,16 @@ class ETImporter(PostProcessor):
       @ Out, seqID, list, ID of the link in the root ET (e.g., Link-to-LP)
     """
     dependencies = []
-    seqID        = []
+    seqID = []
 
     for node in root.findall('define-sequence'):
       for child in node.getiterator():
-          if 'event-tree' in child.tag:
-            dependencies.append(child.get('name'))
-            seqID.append(node.get('name'))
+        if 'event-tree' in child.tag:
+          dependencies.append(child.get('name'))
+          seqID.append(node.get('name'))
     return dependencies, seqID
 
-  def mergeLinkedTrees(self,rootMaster,rootSlave,location):
+  def mergeLinkedTrees(self, rootMaster, rootSlave, location):
     """
       This method merged two ET; it merges a slave ET onto the master ET. Note that slave ET can be copied
       in multiple branches of the master ET.
@@ -362,7 +375,7 @@ class ETImporter(PostProcessor):
             node.remove(subNode)
     return copy.deepcopy(rootMaster)
 
-  def checkSubBranches(self,root):
+  def checkSubBranches(self, root):
     """
       This method checks if the provided ET contains sub-branches (i.e., by-pass).
       This occurs if the node <define-branch> is provided.
@@ -380,12 +393,14 @@ class ETImporter(PostProcessor):
     eventTree = root.findall('initial-state')
 
     if len(eventTree) > 1:
-      self.raiseAnError(IOError, 'ETImporter: more than one initial-state identified')
+      self.raiseAnError(IOError,
+                        'ETImporter: more than one initial-state identified')
     ### Check for sub-branches
     subBranches = {}
     for node in root.findall('define-branch'):
       subBranches[node.get('name')] = node.find('fork')
-      self.raiseADebug("ETImporter branch identified: " + str(node.get('name')))
+      self.raiseADebug(
+          "ETImporter branch identified: " + str(node.get('name')))
     if len(subBranches) > 0:
       for node in root.findall('.//'):
         if node.tag == 'path':
@@ -394,17 +409,18 @@ class ETImporter(PostProcessor):
             if linkName in subBranches.keys():
               node.append(subBranches[linkName])
             else:
-              self.raiseAnError(RuntimeError, ' ETImporter: branch ' + str(
-                  linkName) + ' linked in the ET is not defined; available branches are: ' + str(
-                  subBranches.keys()))
+              self.raiseAnError(
+                  RuntimeError, ' ETImporter: branch ' + str(linkName) +
+                  ' linked in the ET is not defined; available branches are: '
+                  + str(subBranches.keys()))
 
     for child in root:
-        if child.tag == 'branch':
-            root.remove(child)
+      if child.tag == 'branch':
+        root.remove(child)
 
     return root
 
-  def returnMap(self,outcomes,name):
+  def returnMap(self, outcomes, name):
     """
       This method returns a map if the ET contains symbolic sequences.
       This is needed since since RAVEN requires numeric values for sequences.
@@ -428,7 +444,8 @@ class ETImporter(PostProcessor):
       root.set('Tree', name)
       for seq in outcomes:
         etMap[seq] = outcomes.index(seq)
-        ET.SubElement(root, "sequence", ID=str(outcomes.index(seq))).text = str(seq)
+        ET.SubElement(
+            root, "sequence", ID=str(outcomes.index(seq))).text = str(seq)
       fileID = name + '_mapping.xml'
       updatedTreeMap = ET.ElementTree(root)
       xmlU.prettify(updatedTreeMap)
@@ -448,20 +465,30 @@ class ETImporter(PostProcessor):
     evaluation = finishedJob.getEvaluation()
     outputDict, variables = evaluation[1]
     if isinstance(evaluation, Runners.Error):
-      self.raiseAnError(RuntimeError, ' No available output to collect (Run probably is not finished yet) via',self.printTag)
+      self.raiseAnError(
+          RuntimeError,
+          ' No available output to collect (Run probably is not finished yet) via',
+          self.printTag)
     if not set(output.getVars('input')) == set(variables):
-      self.raiseAnError(RuntimeError, ' ETImporter: set of branching variables in the '
-                                      'ET ( ' + str(output.getParaKeys('inputs')) + ' ) is not identical to the'
-                                      ' set of input variables specified in the PointSet (' + str(variables) +')')
+      self.raiseAnError(RuntimeError,
+                        ' ETImporter: set of branching variables in the '
+                        'ET ( ' + str(output.getParaKeys('inputs')) +
+                        ' ) is not identical to the'
+                        ' set of input variables specified in the PointSet (' +
+                        str(variables) + ')')
     # Output to file
     if set(outputDict.keys()) != set(output.getVars()):
-      self.raiseAnError(RuntimeError, 'ETImporter failed: set of variables specified in the output '
-                                      'dataObject (' + str(set(output.getVars())) + ') is different form the set of '
-                                      'variables specified in the ET (' + str(set(outputDict.keys())))
+      self.raiseAnError(
+          RuntimeError,
+          'ETImporter failed: set of variables specified in the output '
+          'dataObject (' + str(set(output.getVars())) +
+          ') is different form the set of '
+          'variables specified in the ET (' + str(set(outputDict.keys())))
     if output.type in ['PointSet']:
-      output.load(outputDict,style='dict')
+      output.load(outputDict, style='dict')
     else:
-        self.raiseAnError(RuntimeError, 'ETImporter failed: Output type ' + str(output.type) + ' is not supported.')
+      self.raiseAnError(RuntimeError, 'ETImporter failed: Output type ' +
+                        str(output.type) + ' is not supported.')
 
   def findAllRecursive(self, node, element):
     """
@@ -473,12 +500,13 @@ class ETImporter(PostProcessor):
       @ In, element, str, the string name of the tags to locate
       @ InOut, result, list, a list of the currently recovered results
     """
-    result=[]
+    result = []
     for elem in node.iter(tag=element):
       result.append(elem)
     return result
 
-  def constructPointDFS(self, node, inputMap, stateMap, outputMap, X, rowCounter):
+  def constructPointDFS(self, node, inputMap, stateMap, outputMap, X,
+                        rowCounter):
     """
       Construct a "sequence" using a depth-first search on a node, each call
       will be on a fork except in the base case which will be called on a
@@ -501,7 +529,7 @@ class ETImporter(PostProcessor):
 
     # Construct point
     if node.tag == 'sequence':
-      col = X.shape[1]-1
+      col = X.shape[1] - 1
       outcome = node.get('name')
       val = outputMap[outcome]
       X[rowCounter, col] = val
@@ -512,9 +540,9 @@ class ETImporter(PostProcessor):
 
       for path in node.findall('path'):
         state = path.get('state')
-        if   state == 'failure':
+        if state == 'failure':
           val = '+1'
-        elif state =='success':
+        elif state == 'success':
           val = '0'
         else:
           val = stateMap[event].index(state)
@@ -523,9 +551,10 @@ class ETImporter(PostProcessor):
         ## correct lower rows if a path does change
         X[rowCounter, col] = val
         for fork in path.getchildren():
-          newCounter = self.constructPointDFS(fork, inputMap, stateMap, outputMap, X, rowCounter)
-          for i in range(newCounter-rowCounter):
-              X[rowCounter+i, col] = val
+          newCounter = self.constructPointDFS(fork, inputMap, stateMap,
+                                              outputMap, X, rowCounter)
+          for i in range(newCounter - rowCounter):
+            X[rowCounter + i, col] = val
           rowCounter = newCounter
 
     return rowCounter

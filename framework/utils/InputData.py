@@ -22,6 +22,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import xml.etree.ElementTree as ET
 from utils import utils
 
+
 class InputType(object):
   """
     InputType is a class used to define input types, such as string or integer.
@@ -31,7 +32,7 @@ class InputType(object):
   needGenerating = False
 
   @classmethod
-  def createClass(cls, name, xmlType, needGenerating = False):
+  def createClass(cls, name, xmlType, needGenerating=False):
     """
       Creates a new class for use as an input type.
       @ In, name, string, is the name of the input type.
@@ -41,7 +42,7 @@ class InputType(object):
     """
 
     ## Rename the class to something understandable by a developer
-    cls.__name__ = str(name+'Spec')
+    cls.__name__ = str(name + 'Spec')
 
     cls.name = name
     cls.xmlType = xmlType
@@ -81,6 +82,7 @@ class InputType(object):
     """
     return value
 
+
 #
 #
 #
@@ -91,7 +93,9 @@ class StringType(InputType):
   """
   pass
 
-StringType.createClass("string","xsd:string")
+
+StringType.createClass("string", "xsd:string")
+
 
 #
 #
@@ -111,7 +115,9 @@ class IntegerType(InputType):
     """
     return int(value)
 
-IntegerType.createClass("integer","xsd:integer")
+
+IntegerType.createClass("integer", "xsd:integer")
+
 
 #
 #
@@ -131,7 +137,9 @@ class FloatType(InputType):
     """
     return float(value)
 
-FloatType.createClass("float","xsd:double")
+
+FloatType.createClass("float", "xsd:double")
+
 
 #
 #
@@ -151,8 +159,9 @@ class StringListType(InputType):
     """
     return [x.strip() for x in value.split(",")]
 
+
 #Note, XSD's list type is split by spaces, not commas, so using xsd:string
-StringListType.createClass("stringtype","xsd:string")
+StringListType.createClass("stringtype", "xsd:string")
 
 
 #
@@ -176,7 +185,7 @@ class EnumBaseType(InputType):
     """
 
     ## Rename the class to something understandable by a developer
-    cls.__name__ = str(name+'Spec')
+    cls.__name__ = str(name + 'Spec')
 
     cls.name = name
     cls.xmlType = xmlType
@@ -193,15 +202,17 @@ class EnumBaseType(InputType):
     simpleType = ET.SubElement(xsdNode, 'xsd:simpleType')
     simpleType.set('name', cls.getXMLType())
     restriction = ET.SubElement(simpleType, 'xsd:restriction')
-    restriction.set('base','xsd:string')
+    restriction.set('base', 'xsd:string')
     for enum in cls.enumList:
       enumNode = ET.SubElement(restriction, 'xsd:enumeration')
-      enumNode.set('value',enum)
+      enumNode.set('value', enum)
+
 
 #
 #
 #
 #
+
 
 class BoolType(EnumBaseType):
   """
@@ -220,8 +231,11 @@ class BoolType(EnumBaseType):
     else:
       return False
 
+
 boolTypeList = utils.stringsThatMeanTrue() + utils.stringsThatMeanFalse()
-BoolType.createClass("bool","boolType", boolTypeList + [elm.capitalize() for elm in boolTypeList])
+BoolType.createClass("bool", "boolType",
+                     boolTypeList + [elm.capitalize() for elm in boolTypeList])
+
 
 #
 #
@@ -232,10 +246,11 @@ class Quantity:
     A class that allows the quantity of a node to be specified.
     If python3.4+ is required, this should be switched to a Python 3.4 Enum.
   """
-  zero_to_one = (0,1)
-  zero_to_infinity = (0,2)
-  one = (1,1)
-  one_to_infinity = (1,2)
+  zero_to_one = (0, 1)
+  zero_to_infinity = (0, 2)
+  one = (1, 1)
+  one_to_infinity = (1, 2)
+
 
 #
 #
@@ -250,7 +265,7 @@ class ParameterInput(object):
   subOrder = None
   parameters = {}
   contentType = None
-  strictMode = True #If true, only allow parameters and subnodes that are listed
+  strictMode = True  #If true, only allow parameters and subnodes that are listed
 
   def __init__(self):
     """
@@ -262,7 +277,12 @@ class ParameterInput(object):
     self.value = ""
 
   @classmethod
-  def createClass(cls, name, ordered=False, contentType=None, baseNode=None, strictMode=True):
+  def createClass(cls,
+                  name,
+                  ordered=False,
+                  contentType=None,
+                  baseNode=None,
+                  strictMode=True):
     """
       Initializes a new class.
       @ In, name, string, The name of the node.
@@ -274,7 +294,7 @@ class ParameterInput(object):
     """
 
     ## Rename the class to something understandable by a developer
-    cls.__name__ = str(name+'Spec')
+    cls.__name__ = str(name + 'Spec')
 
     cls.name = name
     cls.strictMode = strictMode
@@ -323,7 +343,7 @@ class ParameterInput(object):
       @ In, required, bool, optional, if True, this parameter is required.
       @ Out, None
     """
-    cls.parameters[name] = {"type":param_type, "required":required}
+    cls.parameters[name] = {"type": param_type, "required": required}
 
   @classmethod
   def removeParam(cls, name, param_type=StringType, required=False):
@@ -346,10 +366,10 @@ class ParameterInput(object):
     """
     cls.subs.add(sub)
     if cls.subOrder is not None:
-      cls.subOrder.append((sub,quantity))
+      cls.subOrder.append((sub, quantity))
     elif quantity != Quantity.zero_to_infinity:
       print("ERROR only zero to infinity is supported if Order==False ",
-            sub.getName()," in ",cls.getName())
+            sub.getName(), " in ", cls.getName())
 
   @classmethod
   def removeSub(cls, sub, quantity=Quantity.zero_to_infinity):
@@ -388,9 +408,9 @@ class ParameterInput(object):
       return None
     if cls.subOrder is not None:
       toRemoveList = []
-      for (sub,quantity) in cls.subOrder:
+      for (sub, quantity) in cls.subOrder:
         if poppedSub == sub:
-          toRemoveList.append((sub,quantity))
+          toRemoveList.append((sub, quantity))
       for toRemove in toRemoveList:
         cls.subOrder.remove(toRemove)
     return poppedSub
@@ -404,7 +424,7 @@ class ParameterInput(object):
     """
     cls.contentType = contentType
 
-  def parseNode(self,node, errorList = None):
+  def parseNode(self, node, errorList=None):
     """
       Parses the xml node and puts the results in self.parameterValues and
       self.subparts and self.value
@@ -412,6 +432,7 @@ class ParameterInput(object):
       @ In, errorList, list, if not None, put errors in errorList instead of throwing IOError.
       @ Out, None
     """
+
     def handleError(s):
       """
         Handles the error, either by throwing IOError or adding to the errorlist
@@ -425,7 +446,9 @@ class ParameterInput(object):
     if node.tag != self.name:
       #should this be an error or a warning? Or even that?
       #handleError('XML node "{}" != param spec name "{}"'.format(node.tag,self.name))
-      print('Note: XML node "{}" != param spec name "{}".  This should not usually be an issue.'.format(node.tag,self.name))
+      print(
+          'Note: XML node "{}" != param spec name "{}".  This should not usually be an issue.'.
+          format(node.tag, self.name))
     if self.contentType:
       self.value = self.contentType.convert(node.text)
     else:
@@ -433,13 +456,15 @@ class ParameterInput(object):
     for parameter in self.parameters:
       if parameter in node.attrib:
         param_type = self.parameters[parameter]["type"]
-        self.parameterValues[parameter] = param_type.convert(node.attrib[parameter])
+        self.parameterValues[parameter] = param_type.convert(
+            node.attrib[parameter])
       elif self.parameters[parameter]["required"]:
         handleError("Required parameter " + parameter + " not in " + node.tag)
     if self.strictMode:
       for parameter in node.attrib:
         if not parameter in self.parameters:
-          handleError(parameter + " not in attributes and strict mode on in "+node.tag)
+          handleError(parameter + " not in attributes and strict mode on in " +
+                      node.tag)
     if self.subOrder is not None:
       subs = [sub[0] for sub in self.subOrder]
     else:
@@ -455,7 +480,8 @@ class ParameterInput(object):
     if self.strictMode:
       for child in node:
         if child.tag not in subNames:
-          handleError('Child "{}" not allowed as sub-element of "{}"'.format(child.tag,node.tag))
+          handleError('Child "{}" not allowed as sub-element of "{}"'.format(
+              child.tag, node.tag))
 
   def findFirst(self, name):
     """
@@ -480,7 +506,7 @@ class ParameterInput(object):
     """
     #generate complexType
     complexType = ET.SubElement(xsdNode, 'xsd:complexType')
-    complexType.set('name', cls.getName()+'_type')
+    complexType.set('name', cls.getName() + '_type')
     if len(cls.subs) > 0:
       #generate choice node
       if cls.subOrder is not None:
@@ -489,24 +515,24 @@ class ParameterInput(object):
       else:
         listNode = ET.SubElement(complexType, 'xsd:choice')
         listNode.set('maxOccurs', 'unbounded')
-        subList = [(sub,Quantity.zero_to_infinity) for sub in cls.subs]
+        subList = [(sub, Quantity.zero_to_infinity) for sub in cls.subs]
       #generate subnodes
       #print(subList)
-      for sub,quantity in subList:
+      for sub, quantity in subList:
         subNode = ET.SubElement(listNode, 'xsd:element')
         subNode.set('name', sub.getName())
-        subNode.set('type', sub.getName()+'_type')
+        subNode.set('type', sub.getName() + '_type')
         if cls.subOrder is not None:
           if quantity == Quantity.zero_to_one:
-            occurs = ('0','1')
+            occurs = ('0', '1')
           elif quantity == Quantity.zero_to_infinity:
-            occurs = ('0','unbounded')
+            occurs = ('0', 'unbounded')
           elif quantity == Quantity.one:
-            occurs = ('1','1')
+            occurs = ('1', '1')
           elif quantity == Quantity.one_to_infinity:
-            occurs = ('1','unbounded')
+            occurs = ('1', 'unbounded')
           else:
-            print("ERROR unexpected quantity ",quantity)
+            print("ERROR unexpected quantity ", quantity)
           subNode.set('minOccurs', occurs[0])
           subNode.set('maxOccurs', occurs[1])
         else:
@@ -515,7 +541,7 @@ class ParameterInput(object):
           definedDict[sub.getName()] = sub
           sub.generateXSD(xsdNode, definedDict)
         elif definedDict[sub.getName()] != sub:
-          print("ERROR: multiple definitions ",sub.getName())
+          print("ERROR: multiple definitions ", sub.getName())
     else:
       if cls.contentType is not None:
         contentNode = ET.SubElement(complexType, 'xsd:simpleContent')
@@ -534,12 +560,14 @@ class ParameterInput(object):
         dataType.generateXML(xsdNode)
       attributeNode.set('type', dataType.getXMLType())
       if parameterData["required"]:
-        attributeNode.set('use','required')
+        attributeNode.set('use', 'required')
+
 
 ## TODO: We should normalize the names of the following two functions, since they
 ## do the same thing just on different input types.
 ## e.g., parameterInputFactory and EnumFactory
 ## makeClassSpecification and makeEnumSpecification
+
 
 def parameterInputFactory(*paramList, **paramDict):
   """
@@ -547,12 +575,15 @@ def parameterInputFactory(*paramList, **paramDict):
     @ In, same parameters as ParameterInput.createClass
     @ Out, newClass, ParameterInput, the newly created class.
   """
+
   class newClass(ParameterInput):
     """
       The new class to be created by the factory
     """
+
   newClass.createClass(*paramList, **paramDict)
   return newClass
+
 
 def makeEnumType(name, xmlName, enumList):
   """
@@ -562,6 +593,7 @@ def makeEnumType(name, xmlName, enumList):
     @ In, enumList, list of strings, the possible values of the enumeration.
     @ Out, newEnum, InputData.EnumBaseType, the new enumeration type.
   """
+
   class newEnum(EnumBaseType):
     """
       the new enum to be created by the factory
@@ -569,6 +601,7 @@ def makeEnumType(name, xmlName, enumList):
 
   newEnum.createClass(name, xmlName, enumList)
   return newEnum
+
 
 def createXSD(outerElement):
   """
@@ -578,8 +611,10 @@ def createXSD(outerElement):
   """
   outside = ET.Element('xsd:schema')
   outside.set('xmlns:xsd', 'http://www.w3.org/2001/XMLSchema')
-  ET.SubElement(outside, 'xsd:element', {'name':outerElement.getName(),
-                                         'type':outerElement.getName()+'_type'})
+  ET.SubElement(outside, 'xsd:element', {
+      'name': outerElement.getName(),
+      'type': outerElement.getName() + '_type'
+  })
   outerElement.generateXSD(outside, {})
   return outside
 
@@ -588,5 +623,7 @@ class RavenBase(ParameterInput):
   """
     This can be used as a base class for things that inherit from BaseType
   """
+
+
 RavenBase.createClass("RavenBase", baseNode=None)
-RavenBase.addParam("verbosity") #XXX should be enumeration
+RavenBase.addParam("verbosity")  #XXX should be enumeration

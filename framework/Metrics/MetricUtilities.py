@@ -17,8 +17,7 @@ Created on September 18, 2017
 @author: Joshua J. Cogliati
 """
 
-
-from __future__ import division, print_function , unicode_literals, absolute_import
+from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default', DeprecationWarning)
 
@@ -32,7 +31,9 @@ import scipy
 from utils import mathUtils
 import Files
 import Distributions
+
 #Internal Modules End--------------------------------------------------------------------------------
+
 
 def _countWeightInBins(sortedData, binBoundaries):
   """
@@ -44,11 +45,11 @@ def _countWeightInBins(sortedData, binBoundaries):
     @ In, binBoundaries, list or np.array, the bin boundaries
     @ Out, ret, list, the list containing the number of bins
   """
-  value = 0 #Read only
-  weight = 1 #Read only
+  value = 0  #Read only
+  weight = 1  #Read only
   binIndex = 0
   sortedIndex = 0
-  ret = [0]*(len(binBoundaries)+1)
+  ret = [0] * (len(binBoundaries) + 1)
   while sortedIndex < len(sortedData):
     while not binIndex >= len(binBoundaries) and \
           sortedData[sortedIndex][value] > binBoundaries[binIndex]:
@@ -58,7 +59,8 @@ def _countWeightInBins(sortedData, binBoundaries):
   return ret
 
 
-def _getPDFandCDFfromWeightedData(data, weights, numBins, uniformBins, interpolation):
+def _getPDFandCDFfromWeightedData(data, weights, numBins, uniformBins,
+                                  interpolation):
   """
     This method is used to convert weighted data into a PDF and CDF function.
     Basically, this does kernel density estimation of weighted data.
@@ -71,26 +73,26 @@ def _getPDFandCDFfromWeightedData(data, weights, numBins, uniformBins, interpola
   """
   # Sort the data
   sortedData = zip(data, weights)
-  sortedData.sort() #Sort the data.
+  sortedData.sort()  #Sort the data.
   weightSum = sum(weights)
-  value = 0 #Read only
-  weight = 1 #Read only
+  value = 0  #Read only
+  weight = 1  #Read only
   # Find data range
   low = sortedData[0][value]
   high = sortedData[-1][value]
   dataRange = high - low
   #Find the values to use between the histogram bins
   if uniformBins:
-    minBinSize = dataRange/numBins
+    minBinSize = dataRange / numBins
     bins = [low + x * minBinSize for x in range(1, numBins)]
   else:
     #Equal probability bins
-    probPerBin = weightSum/numBins
+    probPerBin = weightSum / numBins
     probSum = 0.0
-    bins = [None]*(numBins-1)
+    bins = [None] * (numBins - 1)
     searchIndex = 0
     #Look thru the array, and find the next place where probSum > nextProb
-    for i in range(numBins-1):
+    for i in range(numBins - 1):
       nextProb = (i + 1) * probPerBin
       while probSum + sortedData[searchIndex][weight] < nextProb:
         probSum += sortedData[searchIndex][weight]
@@ -98,7 +100,7 @@ def _getPDFandCDFfromWeightedData(data, weights, numBins, uniformBins, interpola
       bins[i] = sortedData[searchIndex][value]
     #Remove duplicates
     for i in reversed(range(len(bins))):
-      if i > 1 and bins[i-1] == bins[i]:
+      if i > 1 and bins[i - 1] == bins[i]:
         bins.pop(i)
     if len(bins) > 1:
       minBinSize = min(map(lambda x, y: x - y, bins[1:], bins[:-1]))
@@ -138,9 +140,15 @@ def _getPDFandCDFfromWeightedData(data, weights, numBins, uniformBins, interpola
     else:
       fPrime = (-1.5 * f0 + 2.0 * f1 + -0.5 * f2) / h
     fPrimeData[i] = fPrime
-  pdfFunc = mathUtils.createInterp(midpoints, fPrimeData, 0.0, 0.0, interpolation)
-  mean = np.average(data, weights = weights)
-  dataStats = {"mean":mean,"minBinSize":minBinSize,"low":low,"high":high}
+  pdfFunc = mathUtils.createInterp(midpoints, fPrimeData, 0.0, 0.0,
+                                   interpolation)
+  mean = np.average(data, weights=weights)
+  dataStats = {
+      "mean": mean,
+      "minBinSize": minBinSize,
+      "low": low,
+      "high": high
+  }
   return dataStats, cdfFunc, pdfFunc
 
 
@@ -150,9 +158,9 @@ def _convertToCommonFormat(data):
   """
   if isinstance(data, Distributions.Distribution):
     # data is a subclass of BoostDistribution, generate needed stats, and pass in cdf and pdf.
-    stats = {"mean":data.untruncatedMean(),"stdev":data.untruncatedStdDev()}
-    cdf = lambda x:data.cdf(x)
-    pdf = lambda x:data.pdf(x)
+    stats = {"mean": data.untruncatedMean(), "stdev": data.untruncatedStdDev()}
+    cdf = lambda x: data.cdf(x)
+    pdf = lambda x: data.pdf(x)
     return stats, cdf, pdf
   if type(data).__name__ == "tuple":
     # data is (list,list), then it is a list of weights
@@ -162,12 +170,13 @@ def _convertToCommonFormat(data):
   elif '__len__' in dir(data):
     # data is list, then it is a list of data, generate uniform weights and begin
     points = data
-    weights = [1.0/len(points)]*len(points)
+    weights = [1.0 / len(points)] * len(points)
   else:
     raise IOError("Unknown type in _convertToCommonFormat")
   #Sturges method for determining number of bins
   numBins = int(math.ceil(mathUtils.log2(len(points)) + 1))
-  return _getPDFandCDFfromWeightedData(points, weights, numBins, False, 'linear')
+  return _getPDFandCDFfromWeightedData(points, weights, numBins, False,
+                                       'linear')
 
 
 def _getBounds(stats1, stats2):
@@ -178,6 +187,7 @@ def _getBounds(stats1, stats2):
     @ In, stats2, dict, dictionary with either "low" and "high" or "mean" and "stdev"
     @ Out, (low, high), (float, float) Returns low and high bounds.
   """
+
   def getLowBound(stat):
     """
       Finds the lower bound from the statistics in stat.
@@ -186,7 +196,7 @@ def _getBounds(stats1, stats2):
     """
     if "low" in stat:
       return stat["low"]
-    return stat["mean"] - 5*stat["stdev"]
+    return stat["mean"] - 5 * stat["stdev"]
 
   def getHighBound(stat):
     """
@@ -196,11 +206,12 @@ def _getBounds(stats1, stats2):
     """
     if "high" in stat:
       return stat["high"]
-    return stat["mean"] + 5*stat["stdev"]
+    return stat["mean"] + 5 * stat["stdev"]
 
   low = min(getLowBound(stats1), getLowBound(stats2))
   high = max(getHighBound(stats1), getHighBound(stats2))
-  return (low,high)
+  return (low, high)
+
 
 def _getCDFAreaDifference(data1, data2):
   """
@@ -210,12 +221,14 @@ def _getCDFAreaDifference(data1, data2):
     @ In, data2, varies, The second data to use, see _convertToCommonFormat
     @ Out, cdfAreaDifference, float, the area difference between the CDFs.
   """
-  stats1, cdf1, pdf1 =_convertToCommonFormat(data1)
-  stats2, cdf2, pdf2 =_convertToCommonFormat(data2)
+  stats1, cdf1, pdf1 = _convertToCommonFormat(data1)
+  stats2, cdf2, pdf2 = _convertToCommonFormat(data2)
   low, high = _getBounds(stats1, stats2)
   #for some earlier tests, simpson was more reliable, but much slower
   #return mathUtils.simpson(lambda x:abs(cdf1(x)-cdf2(x)),low,high,100000)
-  return scipy.integrate.quad(lambda x:abs(cdf1(x)-cdf2(x)),low,high,limit=1000)[0]
+  return scipy.integrate.quad(
+      lambda x: abs(cdf1(x) - cdf2(x)), low, high, limit=1000)[0]
+
 
 def _getPDFCommonArea(data1, data2):
   """
@@ -225,10 +238,10 @@ def _getPDFCommonArea(data1, data2):
     @ In, data2, varies, The second data to use, see _convertToCommonFormat
     @ Out, pdfCommonArea, float, the common area between the PDFs.
   """
-  stats1, cdf1, pdf1 =_convertToCommonFormat(data1)
-  stats2, cdf2, pdf2 =_convertToCommonFormat(data2)
+  stats1, cdf1, pdf1 = _convertToCommonFormat(data1)
+  stats2, cdf2, pdf2 = _convertToCommonFormat(data2)
   low, high = _getBounds(stats1, stats2)
   #for some earlier tests, simpson was more reliable, but much slower
   #return mathUtils.simpson(lambda x:min(pdf1(x),pdf2(x)),low,high,100000)
-  return scipy.integrate.quad(lambda x:min(pdf1(x),pdf2(x)),low,high,limit=1000)[0]
-
+  return scipy.integrate.quad(
+      lambda x: min(pdf1(x), pdf2(x)), low, high, limit=1000)[0]
