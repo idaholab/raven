@@ -48,9 +48,8 @@
       <variable name="scalarIn">
         <distribution>u1</distribution>
       </variable>
-      <variable name="vectorIn">
+      <variable name="vectorIn" shape="10">
         <distribution>u2</distribution>
-        <shape>10</shape>
       </variable>
     </MonteCarlo>
   </Samplers>

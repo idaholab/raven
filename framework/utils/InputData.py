@@ -159,6 +159,50 @@ StringListType.createClass("stringtype","xsd:string")
 #
 #
 #
+class FloatListType(InputType):
+  """
+    A type for float lists "1.1, 2.0, 3.4" -> [1.1, 2.0, 3.4]
+  """
+
+  @classmethod
+  def convert(cls, value):
+    """
+      Converts value from string to a float list.
+      @ In, value, string, the value to convert
+      @ Out, convert, list, the converted value
+    """
+    return [float(x.strip()) for x in value.split(",")]
+
+#Note, XSD's list type is split by spaces, not commas, so using xsd:string
+FloatListType.createClass("stringtype","xsd:string")
+
+
+#
+#
+#
+#
+class IntegerListType(InputType):
+  """
+    A type for integer lists "1, 2, 3" -> [1,2,3]
+  """
+
+  @classmethod
+  def convert(cls, value):
+    """
+      Converts value from string to an integer list.
+      @ In, value, string, the value to convert
+      @ Out, convert, list, the converted value
+    """
+    return [int(x.strip()) for x in value.split(",")]
+
+#Note, XSD's list type is split by spaces, not commas, so using xsd:string
+IntegerListType.createClass("stringtype","xsd:string")
+
+
+#
+#
+#
+#
 class EnumBaseType(InputType):
   """
     A type that allows a set list of strings
@@ -425,7 +469,7 @@ class ParameterInput(object):
     if node.tag != self.name:
       #should this be an error or a warning? Or even that?
       #handleError('XML node "{}" != param spec name "{}"'.format(node.tag,self.name))
-      print('Note: XML node "{}" != param spec name "{}".  This should not usually be an issue.'.format(node.tag,self.name))
+      print('Using param spec "{}" to read XML node "{}.'.format(self.name,node.tag))
     if self.contentType:
       self.value = self.contentType.convert(node.text)
     else:

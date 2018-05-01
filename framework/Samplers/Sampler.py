@@ -55,7 +55,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         specifying input of cls.
     """
     inputSpecification = super(Sampler, cls).getInputSpecification()
-    inputSpecification.addParam("name", InputData.StringType)
+    inputSpecification.addParam("name", InputData.StringType, required=True)
 
     outerDistributionInput = InputData.parameterInputFactory("Distribution")
     outerDistributionInput.addParam("name", InputData.StringType)
@@ -64,12 +64,11 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
 
     variableInput = InputData.parameterInputFactory("variable")
     variableInput.addParam("name", InputData.StringType)
+    variableInput.addParam("shape", InputData.IntegerListType, required=False)
     distributionInput = InputData.parameterInputFactory("distribution", contentType=InputData.StringType)
     distributionInput.addParam("dim", InputData.IntegerType)
-    shapeInput = InputData.parameterInputFactory("shape", contentType=InputData.StringType)
 
     variableInput.addSub(distributionInput)
-    variableInput.addSub(shapeInput)
 
     functionInput = InputData.parameterInputFactory("function", contentType=InputData.StringType)
 
@@ -239,6 +238,10 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         foundDistOrFunc = False
         # store variable name for re-use
         varName = child.parameterValues['name']
+        # set shape if present
+        if 'shape' in child.parameterValues:
+          self.variableShapes[varName] = child.parameterValues['shape']
+        # read subnodes
         for childChild in child.subparts:
           if childChild.getName() =='distribution':
             # can only have a distribution if doesn't already have a distribution or function
@@ -270,13 +273,6 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
             toBeSampled = childChild.value
             # track variable as a functional sample
             self.dependentSample[prefix+varName] = toBeSampled
-          elif childChild.getName() == 'shape':
-            try:
-              variableShape = tuple(int(i) for i in childChild.value.split(','))
-            except ValueError as e:
-              self.raiseAnError(IOError,'Failed to interpret "shape" for variable "{}"! Should be comma-separated list of integers.'.format(varName))
-            self.variableShapes[varName] = variableShape
-            # TODO error check variable shape: all positive integers unless just 0?
 
         if not foundDistOrFunc:
           self.raiseAnError(IOError,'Sampled variable',varName,'has neither a <distribution> nor <function> node specified!')

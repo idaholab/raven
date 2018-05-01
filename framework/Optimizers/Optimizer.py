@@ -80,14 +80,13 @@ class Optimizer(Sampler):
     inputSpecification.removeSub('variable')
     variable = InputData.parameterInputFactory('variable', strictMode=True)
     variable.addParam("name", InputData.StringType, True)
+    variable.addParam("shape", InputData.IntegerListType, required=False)
     upperBound = InputData.parameterInputFactory('upperBound', contentType=InputData.FloatType, strictMode=True)
     lowerBound = InputData.parameterInputFactory('lowerBound', contentType=InputData.FloatType, strictMode=True)
     initial = InputData.parameterInputFactory('initial',contentType=InputData.StringListType)
-    shape = InputData.parameterInputFactory('shape',contentType=InputData.StringListType)
     variable.addSub(upperBound)
     variable.addSub(lowerBound)
     variable.addSub(initial)
-    variable.addSub(shape)
     inputSpecification.addSub(variable)
     # constant -> use the Sampler's specs.
 
@@ -321,11 +320,15 @@ class Optimizer(Sampler):
       if child.getName() == "variable":
         if self.fullOptVars is None:
           self.fullOptVars = []
+        # store variable name
         try:
           varName = child.parameterValues['name']
           self.optVarsInitialized[varName] = False
         except KeyError:
           self.raiseAnError(IOError, '"{}" node does not have the "name" attribute'.format(child.getName()))
+        # store varible requested shape, if any
+        if 'shape' in child.parameterValues:
+          self.variableShapes[varName] = child.parameterValues['shape']
         self.fullOptVars.append(varName)
         self.optVarsInit['initial'][varName] = {}
         for childChild in child.subparts:
@@ -344,12 +347,6 @@ class Optimizer(Sampler):
                 self.raiseAnError(ValueError, 'Unable to convert to float the intial value for variable "{}" in trajectory "{}": {}'.format(varName,trajInd,initVal))
             if self.optTraj == None:
               self.optTraj = range(len(self.optVarsInit['initial'][varName].keys()))
-          elif childChild.getName() == 'shape':
-            try:
-              variableShape = tuple(int(i) for i in childChild.value)
-            except ValueError as e:
-              self.raiseAnError(IOError,'Failed to interpret "shape" for variable "{}"! Should be comma-separated list of integers.'.format(varName))
-            self.variableShapes[varName] = variableShape
 
       elif child.getName() == "constant":
         value = utils.partialEval(child.value)
