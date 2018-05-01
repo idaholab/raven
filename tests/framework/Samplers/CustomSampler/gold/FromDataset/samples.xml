@@ -1,0 +1,14 @@
+<DataObjectMetadata name="samples">
+  <DataSet type="Static">
+    <dims>
+      <y>t</y>
+    </dims>
+    <general>
+      <inputs>x,y</inputs>
+      <pointwise_meta>ProbabilityWeight-y,ProbabilityWeight-x,prefix,PointProbability,ProbabilityWeight,ProbabilityWeight-ans,ProbabilityWeight-t</pointwise_meta>
+      <outputs>ans</outputs>
+      <sampleTag>RAVEN_sample_ID</sampleTag>
+    </general>
+  </DataSet>
+  
+</DataObjectMetadata>

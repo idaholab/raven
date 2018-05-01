@@ -634,6 +634,7 @@ class DataSet(DataObject):
     self.defaultDtype = object
     self._scaleFactors = {}     # mean, sigma for data for matching purposes
     self._alignedIndexes = {}   # dict {index:values} of indexes with aligned coordinates (so they are not in the collector, but here instead)
+    self._neededForReload = [self.sampleTag]  # metavariables required to reload this data object.
 
   def _readMoreXML(self,xmlNode):
     """
@@ -1398,8 +1399,9 @@ class DataSet(DataObject):
         else:
           keep.append(entry.split('|')[-1].strip())
     else:
-      # TODO need the sampleTag meta to load histories # BY DEFAULT only keep inputs, outputs; if specifically requested, keep metadata by selection
-      keep = self._inputs + self._outputs + self._metavars
+      # need the sampleTag meta to load histories
+      # BY DEFAULT keep everything needed to reload this entity.  Inheritors can define _neededForReload to specify what that is.
+      keep = set(self._inputs + self._outputs + self._metavars + self._neededForReload)
     return keep
 
   def _getVariableIndex(self,var):
@@ -1615,7 +1617,9 @@ class DataSet(DataObject):
     ordered = list(var for var in itertools.chain(self._inputs,self._outputs,self._metavars) if (var != clusterLabel and var in keep))
     for ID in clusterIDs:
       data = self._data.where(self._data[clusterLabel] == ID, drop = True).drop(clusterLabel)
-      self._usePandasWriteCSV('{}_{}'.format(fileName,ID), data, ordered, keepSampleTag=self.sampleTag in keep, mode='w') # TODO append mode
+      subName = '{}_{}'.format(fileName,ID)
+      self._usePandasWriteCSV(subName, data, ordered, keepSampleTag=self.sampleTag in keep, mode='w') # TODO append mode
+      self.raiseADebug('Wrote sub-cluster file to "{}.csv"'.format(subName))
 
   def _toCSVXML(self,fileName,**kwargs):
     """
@@ -1771,7 +1775,6 @@ class DataSet(DataObject):
   #      header = ','.join(ordered)
   #    else:
   #      header = ''
-  #    #print('DEBUGG data:',data[ordered])
   #    data = data[ordered].to_array()
   #    if not keepSampleTag:
   #      data = data.drop(self.sampleTag)

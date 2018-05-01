@@ -58,11 +58,9 @@ outerInput.parseNode(parser.getroot(), errors)
 
 print(errors)
 
-[u'Required parameter required_string not in inner', u'no_such_element not in attributes and strict mode on in inner', u'Child no_such_sub not in allowed sub elements in ordered']
-
 checkAnswer('Required parameter required_string not in inner', errors[0])
 checkAnswer('no_such_element not in attributes and strict mode on in inner', errors[1])
-checkAnswer('Child no_such_sub not in allowed sub elements in ordered', errors[2])
+checkAnswer('Child \"no_such_sub\" not allowed as sub-element of \"ordered\"', errors[2])
 
 print("passes",passFails[0],"fails",passFails[1])
 sys.exit(passFails[1])

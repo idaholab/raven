@@ -56,10 +56,10 @@ class Dummy(Model):
       @ Out, None
     """
     cls.validateDict['Input' ]                    = [cls.validateDict['Input' ][0]]
-    cls.validateDict['Input' ][0]['type'        ] = ['PointSet']
+    cls.validateDict['Input' ][0]['type'        ] = ['PointSet','DataSet']
     cls.validateDict['Input' ][0]['required'    ] = True
     cls.validateDict['Input' ][0]['multiplicity'] = 1
-    cls.validateDict['Output'][0]['type'        ] = ['PointSet']
+    cls.validateDict['Output'][0]['type'        ] = ['PointSet','DataSet']
 
   def _manipulateInput(self,dataIn):
     """

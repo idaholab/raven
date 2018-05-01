@@ -68,6 +68,7 @@ class CustomSampler(ForwardSampler):
     self.infoFromCustom = {}
     self.addAssemblerObject('Source','1',True)
     self.printTag = 'SAMPLER CUSTOM'
+    self.readingFrom = None # either File or DataObject, determines sample generation
 
   def _readMoreXMLbase(self,xmlNode):
     """
@@ -87,8 +88,6 @@ class CustomSampler(ForwardSampler):
       if child.tag == 'Source'  :
         if child.attrib['class'] not in ['Files','DataObjects']:
           self.raiseAnError(IOError, "Source class attribute must be either 'Files' or 'DataObjects'!!!")
-        if child.attrib['class'] == 'DataObjects' and child.attrib['type'] != 'PointSet':
-          self.raiseAnError(IOError, "Source type attribute must be 'PointSet' if class attribute is 'DataObjects'!!!")
     if len(self.toBeSampled.keys()) == 0:
       self.raiseAnError(IOError,"no variables got inputted!!!!!!")
 
@@ -116,8 +115,8 @@ class CustomSampler(ForwardSampler):
     for key, value in self.assemblerObjects.items():
       if key == 'Source':
         self.assemblerDict[key] =  []
-        for interface in value:
-          self.assemblerDict[key].append([interface[0],interface[1],interface[2],initDict[interface[0]][interface[2]]])
+        for entity,etype,name in value:
+          self.assemblerDict[key].append([entity,etype,name,initDict[entity][name]])
     for key,val in self.dependentSample.items():
       if val not in initDict['Functions'].keys():
         self.raiseAnError('Function',val,'was not found among the available functions:',initDict['Functions'].keys())
@@ -140,6 +139,7 @@ class CustomSampler(ForwardSampler):
     """
     # check the source
     if self.assemblerDict['Source'][0][0] == 'Files':
+      self.readingFrom = 'File'
       csvFile = self.assemblerDict['Source'][0][3]
       csvFile.open(mode='r')
       headers = [x.replace("\n","").strip() for x in csvFile.readline().split(",")]
@@ -166,36 +166,22 @@ class CustomSampler(ForwardSampler):
         self.infoFromCustom['ProbabilityWeight'] = data[:,headers.index('ProbabilityWeight')]
       else:
         self.infoFromCustom['ProbabilityWeight'] = np.ones(lenRlz)
+      self.limit = len(self.pointsToSample.values()[0])
     else:
+      self.readingFrom = 'DataObject'
       dataObj = self.assemblerDict['Source'][0][3]
       lenRlz = len(dataObj)
       dataSet = dataObj.asDataset()
+      self.pointsToSample = dataObj.sliceByIndex(dataObj.sampleTag)
       for var in self.toBeSampled.keys():
         for subVar in var.split(','):
           subVar = subVar.strip()
-          if subVar not in dataObj.getVars('input') + dataObj.getVars('output'):
+          if subVar not in dataObj.getVars() + dataObj.getVars('indexes'):
             self.raiseAnError(IOError,"the variable "+ subVar + " not found in "+ dataObj.type + " " + dataObj.name)
-          self.pointsToSample[subVar] = copy.copy(dataSet[subVar].values)
-          subVarPb = 'ProbabilityWeight-' + subVar
-          if subVarPb in dataObj.getVars('meta'):
-            self.infoFromCustom[subVarPb] = copy.copy(dataSet[subVarPb].values)
-          else:
-            self.infoFromCustom[subVarPb] = np.ones(lenRlz)
-      if 'PointProbability'  in dataObj.getVars('meta'):
-        self.infoFromCustom['PointProbability'] = copy.copy(dataSet['PointProbability'].values)
-      else:
-        self.infoFromCustom['PointProbability'] = np.ones(lenRlz)
-      if 'ProbabilityWeight' in dataObj.getVars('meta'):
-        self.infoFromCustom['ProbabilityWeight'] = copy.copy(dataSet['ProbabilityWeight'].values)
-      else:
-        self.infoFromCustom['ProbabilityWeight'] = np.ones(lenRlz)
-    self.limit = len(self.pointsToSample.values()[0])
+      self.limit = len(self.pointsToSample)
     #TODO: add restart capability here!
     if self.restartData:
       self.raiseAnError(IOError,"restart capability not implemented for CustomSampler yet!")
-#       self.counter+=len(self.restartData)
-#       self.raiseAMessage('Number of points from restart: %i' %self.counter)
-#       self.raiseAMessage('Number of points needed:       %i' %(self.limit-self.counter))
 
   def localGenerateInput(self,model,myInput):
     """
@@ -207,15 +193,31 @@ class CustomSampler(ForwardSampler):
       @ In, myInput, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
       @ Out, None
     """
-    # create values dictionary
-    for var in self.toBeSampled.keys():
-      for subVar in var.split(','):
-        subVar = subVar.strip()
-        # assign the custom sampled variables values to the sampled variables
-        self.values[subVar] = self.pointsToSample[subVar][self.counter-1]
-        # This is the custom sampler, assign the ProbabilityWeights based on the provided values
-        self.inputInfo['ProbabilityWeight-' + subVar] = self.infoFromCustom['ProbabilityWeight-' + subVar][self.counter-1]
-    # Construct probabilities based on the user provided information
-    self.inputInfo['PointProbability'] = self.infoFromCustom['PointProbability'][self.counter-1]
-    self.inputInfo['ProbabilityWeight'] = self.infoFromCustom['ProbabilityWeight'][self.counter-1]
+    if self.readingFrom == 'DataObject':
+      # data is stored as slices of a data object, so take from that
+      rlz = self.pointsToSample[self.counter-1]
+      for var in self.toBeSampled.keys():
+        for subVar in var.split(','):
+          subVar = subVar.strip()
+          # get the value(s) for the variable for this realization
+          self.values[subVar] = rlz[subVar].values
+          # set the probability weight due to this variable (default to 1)
+          pbWtName = 'ProbabilityWeight-'+subVar
+          self.inputInfo[pbWtName] = rlz.get(pbWtName,1.0)
+      # get realization-level required meta information, or default to 1
+      for meta in ['PointProbability','ProbabilityWeight']:
+        self.inputInfo[meta] = rlz.get(meta,1.0)
+    elif self.readingFrom == 'File':
+      # data is stored in file, so we already parsed the values
+      # create values dictionary
+      for var in self.toBeSampled.keys():
+        for subVar in var.split(','):
+          subVar = subVar.strip()
+          # assign the custom sampled variables values to the sampled variables
+          self.values[subVar] = self.pointsToSample[subVar][self.counter-1]
+          # This is the custom sampler, assign the ProbabilityWeights based on the provided values
+          self.inputInfo['ProbabilityWeight-' + subVar] = self.infoFromCustom['ProbabilityWeight-' + subVar][self.counter-1]
+      # Construct probabilities based on the user provided information
+      self.inputInfo['PointProbability'] = self.infoFromCustom['PointProbability'][self.counter-1]
+      self.inputInfo['ProbabilityWeight'] = self.infoFromCustom['ProbabilityWeight'][self.counter-1]
     self.inputInfo['SamplerType'] = 'Custom'
