@@ -34,10 +34,7 @@ from functools import reduce
 #Internal Modules------------------------------------------------------------------------------------
 from .ForwardSampler import ForwardSampler
 from utils import utils,randomUtils,InputData
-distribution1D = utils.findCrowModule('distribution1D')
 #Internal Modules End--------------------------------------------------------------------------------
-
-stochasticEnv = distribution1D.DistributionContainer.instance()
 
 class MonteCarlo(ForwardSampler):
   """

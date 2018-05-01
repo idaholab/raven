@@ -81,6 +81,8 @@ if stochasticEnv == 'numpy':
   npStochEnv = np.random.RandomState()
 else:
   crowStochEnv = findCrowModule('randomENG').RandomClass()
+  # this is needed for now since we need to split the stoch enviroments
+  distStochEnv = findCrowModule('distribution1D').DistributionContainer.instance()
   boxMullerGen = BoxMullerGenerator()
 
 def randomSeed(value):
@@ -93,7 +95,10 @@ def randomSeed(value):
     global npStochEnv
     npStochEnv = np.random.RandomState(value)
   else:
-    crowStochEnv.seed(value) #this has a void return, right?
+    crowStochEnv.seed(value)
+    # we must do the following now since there is no separation between the distribution (stoch eviroment) and the one here
+    ## TODO: split it in the sampler. Design needed.
+    distStochEnv.seedRandom(value)
   print('randomUtils: Global random number seed has been changed to',value)
 
 def random(dim=1,samples=1,keepMatrix=False):
