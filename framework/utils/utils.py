@@ -1060,7 +1060,8 @@ def makeDir(dirName):
 class pickleSafeSubprocessPopen(subprocess.Popen):
   """
     Subclass of subprocess.Popen used internally to prevent _handle member from being pickled.  On
-    Windows, _handle contains an operating system reference that throws an exception when deep copied.
+    Windows, _handle contains an operating system reference that throws an exception when deep
+
   """
   # Only define these methods on Windows to override deep copy/pickle (member may not exist on other
   #   platforms.
@@ -1068,7 +1069,8 @@ class pickleSafeSubprocessPopen(subprocess.Popen):
 
     def __getstate__(self):
       """
-        Returns a dictionary of the object state for pickling/deep copying.  Omits member '_handle',
+        Returns a dictionary of the object state for pickling/deep copying. Omits member
+
         which cannot be deep copied when non-None.
         @ In, None
         @ Out, result, dict, the get state dict
@@ -1093,7 +1095,8 @@ def removeDuplicates(objectList):
     Method to efficiently remove duplicates from a list and maintain their
     order based on first appearance. See the url below for a description of why
     this is optimal:
-    http://stackoverflow.com/questions/480214/how-do-you-remove-duplicates-from-a-list-in-python-whilst-preserving-order
+    http://stackoverflow.com/questions/480214/how-do-you-remove-duplicates-from-a
+    (...cont) -list-in-python-whilst-preserving-order
     @ In, objectList, list, list from which to remove duplicates
     @ Out, uniqueObjectList, list, list with unique values ordered by their
       first appearance in objectList
@@ -1183,7 +1186,9 @@ def mergeDictionaries(*dictArgs):
   """
     Given any number of dicts, shallow copy and merge into a new dict,
     precedence goes to key value pairs in latter dicts.
-    Adapted from: http://stackoverflow.com/questions/38987/how-to-merge-two-python-dictionaries-in-a-single-expression
+    Adapted from:
+    http://stackoverflow.com/questions/38987/how-to-merge-two-python-
+    (...cont) dictionaries-in-a-single-expression
     @ In, dictArgs, dict, a list of dictionaries to merge
     @ Out, mergedDict, dict, merged dictionary including keys from everything in dictArgs.
   """
@@ -1193,8 +1198,8 @@ def mergeDictionaries(*dictArgs):
     if len(overlap):
       raise IOError(
           UreturnPrintTag('UTILS') + ': ' + UreturnPrintPostTag('ERROR') +
-          ' -> mergeDictionaries: the dictionaries being merged have the following overlapping keys: '
-          + ', '.join(overlap))
+          ' -> mergeDictionaries: the dictionaries being merged have the ' +
+          'following overlapping keys: ' + ', '.join(overlap))
     mergedDict.update(dictionary)
   return mergedDict
 

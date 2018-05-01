@@ -73,5 +73,6 @@ class Relap5inssJp(Relap5):
     # check and modify modelpar.inp file
     modelparParser = GenericParser([currentInputFiles[modelParIndex]])
     modelparParser.modifyInternalDictionary(**Kwargs)
-    modelparParser.writeNewInput([currentInputFiles[modelParIndex]], [oriInputFiles[modelParIndex]])
+    modelparParser.writeNewInput([currentInputFiles[modelParIndex]],
+                                 [oriInputFiles[modelParIndex]])
     return currentInputFiles

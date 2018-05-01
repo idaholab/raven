@@ -111,9 +111,8 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.Mes
         for cnt, elementArray in enumerate(arrayIn):
           resp = supervisedLearning.checkArrayConsistency(elementArray)
           if not resp[0]:
-            return (
-                False,
-                ' The element number ' + str(cnt) + ' is not a consistent array. Error: ' + resp[1])
+            return (False, ' The element number ' + str(cnt) +
+                    ' is not a consistent array. Error: ' + resp[1])
       else:
         return (False, ' The list type is allowed for dynamic ROMs only')
     else:
@@ -211,8 +210,9 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.Mes
         if len(valueToUse) != featureValues[:, 0].size:
           self.raiseAWarning('feature values:', featureValues[:, 0].size, tag='ERROR')
           self.raiseAWarning('target values:', len(valueToUse), tag='ERROR')
-          self.raiseAnError(IOError, 'In training set, the number of values provided for feature ' +
-                            feat + ' are != number of target outcomes!')
+          self.raiseAnError(IOError,
+                            'In training set, the number of values provided for feature ' + feat +
+                            ' are != number of target outcomes!')
         self._localNormalizeData(values, names, feat)
         # valueToUse can be either a matrix (for who can handle time-dep data) or a vector (for who can not)
         featureValues[:, cnt] = (
@@ -647,7 +647,8 @@ class GaussPolynomialRom(supervisedLearning):
               self.raiseAnError(IOError, 'Unrecognized option: ' + atrName)
       elif key == 'SparseGrid':
         if val.lower() not in self.sparseQuadOptions:
-          self.raiseAnError(IOError, 'No such sparse quadrature implemented: %s.  Options are %s.' %
+          self.raiseAnError(IOError,
+                            'No such sparse quadrature implemented: %s.  Options are %s.' %
                             (val, str(self.sparseQuadOptions)))
         self.sparseGridType = val
 
@@ -655,7 +656,8 @@ class GaussPolynomialRom(supervisedLearning):
       self.raiseAnError(IOError, 'No IndexSet specified!')
     if self.indexSetType == 'Custom':
       if len(self.indexSetVals) < 1:
-        self.raiseAnError(IOError, 'If using CustomSet, must specify points in <IndexPoints> node!')
+        self.raiseAnError(IOError,
+                          'If using CustomSet, must specify points in <IndexPoints> node!')
       else:
         for i in self.indexSetVals:
           if len(i) < len(self.features):
@@ -2310,8 +2312,8 @@ class SciKitLearn(supervisedLearning):
   availImpl['neighbors']['RadiusNeighbors'] = (
       neighbors.RadiusNeighborsClassifier, 'int',
       True)  # Classifier implementing a vote among neighbors within a given radius
-  availImpl['neighbors']['KNeighborsRegressor'] = (neighbors.KNeighborsRegressor, 'float',
-                                                   True)  # Regression based on k-nearest neighbors.
+  availImpl['neighbors']['KNeighborsRegressor'] = (
+      neighbors.KNeighborsRegressor, 'float', True)  # Regression based on k-nearest neighbors.
   availImpl['neighbors']['RadiusNeighborsRegressor'] = (
       neighbors.RadiusNeighborsRegressor, 'float',
       True)  # Regression based on neighbors within a fixed radius.
@@ -2644,8 +2646,9 @@ class ARMA(supervisedLearning):
     self.pivotParameterValues = targetVals[:, :, self.target.index(self.pivotParameterID)]
     if len(self.pivotParameterValues) > 1:
       self.raiseAnError(
-          Exception, self.printTag + " does not handle multiple histories data yet! # histories: " +
-          str(len(self.pivotParameterValues)))
+          Exception,
+          self.printTag + " does not handle multiple histories data yet! # histories: " + str(
+              len(self.pivotParameterValues)))
     self.pivotParameterValues.shape = (self.pivotParameterValues.size, )
     self.timeSeriesDatabase = copy.deepcopy(
         np.delete(targetVals, self.target.index(self.pivotParameterID), 2))
@@ -2676,8 +2679,9 @@ class ARMA(supervisedLearning):
       @ In, none,
       @ Out, none,
     """
-    fourierSeriesAll = self.__generateFourierSignal__(
-        self.pivotParameterValues, self.fourierPara['basePeriod'], self.fourierPara['FourierOrder'])
+    fourierSeriesAll = self.__generateFourierSignal__(self.pivotParameterValues,
+                                                      self.fourierPara['basePeriod'],
+                                                      self.fourierPara['FourierOrder'])
     fourierEngine = linear_model.LinearRegression()
     temp = {}
     for bp in self.fourierPara['FourierOrder'].keys():
@@ -2822,7 +2826,8 @@ class ARMA(supervisedLearning):
       y = self.armaNormPara['resCDF'][d]['CDF'][-1]
     else:
       ind = self.armaNormPara['resCDF'][d]['binSearchEng'].kneighbors(x, return_distance=False)
-      X, Y = self.armaNormPara['resCDF'][d]['bins'][ind], self.armaNormPara['resCDF'][d]['CDF'][ind]
+      X, Y = self.armaNormPara['resCDF'][d]['bins'][ind], self.armaNormPara['resCDF'][d]['CDF'][
+          ind]
       if X[0, 0] <= X[0, 1]:
         x1, x2, y1, y2 = X[0, 0], X[0, 1], Y[0, 0], Y[0, 1]
       else:
@@ -2848,7 +2853,8 @@ class ARMA(supervisedLearning):
       y = self.armaNormPara['resCDF'][d]['bins'][-1]
     else:
       ind = self.armaNormPara['resCDF'][d]['cdfSearchEng'].kneighbors(x, return_distance=False)
-      X, Y = self.armaNormPara['resCDF'][d]['CDF'][ind], self.armaNormPara['resCDF'][d]['bins'][ind]
+      X, Y = self.armaNormPara['resCDF'][d]['CDF'][ind], self.armaNormPara['resCDF'][d]['bins'][
+          ind]
       if X[0, 0] <= X[0, 1]:
         x1, x2, y1, y2 = X[0, 0], X[0, 1], Y[0, 0], Y[0, 1]
       else:
@@ -3005,7 +3011,8 @@ class ARMA(supervisedLearning):
     """
     if featureVals.size > 1:
       self.raiseAnError(
-          ValueError, 'The input feature for ARMA for evaluation cannot have size greater than 1. ')
+          ValueError,
+          'The input feature for ARMA for evaluation cannot have size greater than 1. ')
 
     # Instantiate a normal distribution for time series synthesis (noise part)
     normEvaluateEngine = Distributions.returnInstance('Normal', self)
@@ -3229,7 +3236,8 @@ class PolyExponential(supervisedLearning):
       for target in targetIndexes:
         resp = self.__computeExpTerms(targetVals[smp, :, pivotParamIndex],
                                       targetVals[smp, :, targetIndexes[target]])
-        self.aij[target][smp, :], self.bij[target][smp, :], self.predictError[target][smp, :] = resp
+        self.aij[target][smp, :], self.bij[target][smp, :], self.predictError[target][
+            smp, :] = resp
     # store the pivot values
     self.pivotValues = targetVals[0, :, pivotParamIndex]
     if self.polyExpParams['coeffRegressor'] == 'nearest':
@@ -3241,7 +3249,8 @@ class PolyExponential(supervisedLearning):
       if self.polyExpParams['coeffRegressor'] == 'poly':
         # now that we have the coefficients, we can construct the polynomial expansion whose targets are the just computed coefficients
         self.model[target] = make_pipeline(
-            preprocessing.PolynomialFeatures(self.polyExpParams['polyOrder']), linear_model.Ridge())
+            preprocessing.PolynomialFeatures(self.polyExpParams['polyOrder']),
+            linear_model.Ridge())
         self.model[target].fit(featureVals, expTermCoeff)
         # print the coefficient
         self.raiseADebug('poly coefficients for target "' + target + '":')
@@ -3292,7 +3301,8 @@ class PolyExponential(supervisedLearning):
           evaluation = self.model[target].predict(featureVals)
         else:
           evaluation = np.zeros((len(featureVals), len(self.model[target].target)))
-          evalDict = self.model[target].__class__.__evaluateLocal__(self.model[target], featureVals)
+          evalDict = self.model[target].__class__.__evaluateLocal__(self.model[target],
+                                                                    featureVals)
           for cnt, targ in enumerate(self.model[target].target):
             evaluation[:, cnt] = evalDict[targ][:]
       for point in range(len(evaluation)):
@@ -3451,7 +3461,8 @@ class DynamicModeDecomposition(supervisedLearning):
     # variables filled up in the training stages
     self._amplitudes = {}  # {'target1': vector of amplitudes,'target2':vector of amplitudes, etc.}
     self._eigs = {}  # {'target1': vector of eigenvalues,'target2':vector of eigenvalues, etc.}
-    self._modes = {}  # {'target1': matrix of dynamic modes,'target2':matrix of dynamic modes, etc.}
+    self._modes = {
+    }  # {'target1': matrix of dynamic modes,'target2':matrix of dynamic modes, etc.}
     self.__Atilde = {
     }  # {'target1': matrix of lowrank operator from the SVD,'target2':matrix of lowrank operator from the SVD, etc.}
     self.pivotValues = None  # pivot values (e.g. time)

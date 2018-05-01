@@ -87,7 +87,8 @@ class LimitSurface(PostProcessor):
     self.parameters = {
     }  #parameters dictionary (they are basically stored into a dictionary identified by tag "targets"
     self.surfPoint = None  #coordinate of the points considered on the limit surface
-    self.testMatrix = OrderedDict()  #This is the n-dimensional matrix representing the testing grid
+    self.testMatrix = OrderedDict(
+    )  #This is the n-dimensional matrix representing the testing grid
     self.gridCoord = {}  #Grid coordinates
     self.functionValue = {
     }  #This a dictionary that contains np vectors with the value for each variable and for the goal function
@@ -173,7 +174,8 @@ class LimitSurface(PostProcessor):
             dataSet[key].values), max(dataSet[key].values)
         #self.bounds["lowerBounds"][key], self.bounds["upperBounds"][key] = min(self.inputs[self.indexes].getParam(self.paramType[key],key,nodeId = 'RecontructEnding')), max(self.inputs[self.indexes].getParam(self.paramType[key],key,nodeId = 'RecontructEnding'))
         if utils.compare(
-            round(self.bounds["lowerBounds"][key], 14), round(self.bounds["upperBounds"][key], 14)):
+            round(self.bounds["lowerBounds"][key], 14), round(self.bounds["upperBounds"][key],
+                                                              14)):
           self.bounds["upperBounds"][key] += abs(self.bounds["upperBounds"][key] / 1.e7)
     self.gridEntity.initialize(
         initDictionary={
@@ -405,7 +407,8 @@ class LimitSurface(PostProcessor):
     })
     for nodeName in self.gridEntity.getAllNodesNames(self.name):
       if nodeName != self.name:
-        self.testMatrix[nodeName] = np.zeros(self.gridEntity.returnParameter("gridShape", nodeName))
+        self.testMatrix[nodeName] = np.zeros(
+            self.gridEntity.returnParameter("gridShape", nodeName))
 
   def run(self, inputIn=None, returnListSurfCoord=False, exceptionGrid=None, merge=True):
     """
@@ -433,8 +436,9 @@ class LimitSurface(PostProcessor):
       tempDict = {}
       for varId, varName in enumerate(self.axisName):
         tempDict[varName] = self.gridCoord[nodeName][:, varId]
-      self.testMatrix[nodeName].shape = (self.gridCoord[nodeName].shape[0]
-                                         )  #rearrange the grid matrix such as is an array of values
+      self.testMatrix[nodeName].shape = (
+          self.gridCoord[nodeName].shape[0]
+      )  #rearrange the grid matrix such as is an array of values
       self.testMatrix[nodeName][:] = self.ROM.evaluate(tempDict)[
           self.externalFunction.name]  #get the prediction on the testing grid
       self.testMatrix[nodeName].shape = self.gridEntity.returnParameter(

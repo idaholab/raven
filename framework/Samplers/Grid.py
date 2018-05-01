@@ -113,7 +113,8 @@ class Grid(ForwardSampler):
     for axis, value in grdInfo.items():
       self.gridInfo[axis] = value[0]
     if len(self.toBeSampled.keys()) != len(grdInfo.keys()):
-      self.raiseAnError(IOError, 'inconsistency between number of variables and grid specification')
+      self.raiseAnError(IOError,
+                        'inconsistency between number of variables and grid specification')
     self.axisName = list(grdInfo.keys())
     self.axisName.sort()
 
@@ -185,7 +186,8 @@ class Grid(ForwardSampler):
                           ' is not know as value keyword for type. Sampler: ' + self.name)
     if self.externalgGridCoord:
       currentIndexes = self.gridEntity.returnIteratorIndexesFromIndex(self.gridCoordinate)
-      coordinates = self.gridEntity.returnCoordinateFromIndex(self.gridCoordinate, True, recastDict)
+      coordinates = self.gridEntity.returnCoordinateFromIndex(self.gridCoordinate, True,
+                                                              recastDict)
     else:
       currentIndexes = self.gridEntity.returnIteratorIndexes()
       coordinates = self.gridEntity.returnPointAndAdvanceIterator(True, recastDict)
@@ -234,7 +236,8 @@ class Grid(ForwardSampler):
               midPlusCDF = (
                   coordinatesPlusOne[varName] + self.distDict[varName].cdf(self.values[key])) / 2.0
               midMinusCDF = (
-                  coordinatesMinusOne[varName] + self.distDict[varName].cdf(self.values[key])) / 2.0
+                  coordinatesMinusOne[varName] + self.distDict[varName].cdf(self.values[key])
+              ) / 2.0
             if coordinatesMinusOne[varName] == -sys.maxsize:
               midPlusCDF = (
                   coordinatesPlusOne[varName] + self.distDict[varName].cdf(self.values[key])) / 2.0
@@ -242,7 +245,8 @@ class Grid(ForwardSampler):
             if coordinatesPlusOne[varName] == sys.maxsize:
               midPlusCDF = 1.0
               midMinusCDF = (
-                  coordinatesMinusOne[varName] + self.distDict[varName].cdf(self.values[key])) / 2.0
+                  coordinatesMinusOne[varName] + self.distDict[varName].cdf(self.values[key])
+              ) / 2.0
             gridWeight = midPlusCDF - midMinusCDF
           else:
             # Value

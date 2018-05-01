@@ -75,8 +75,8 @@ class YakInstantLibraryParser():
     #read in cross-section files, unperturbed files
     for xmlFile in inputFiles:
       if not os.path.exists(xmlFile.getPath()):
-        raise IOError(
-            'The following Yak multigroup cross section library file: ' + xmlFile + ' is not found')
+        raise IOError('The following Yak multigroup cross section library file: ' + xmlFile +
+                      ' is not found')
       tree = ET.parse(xmlFile.getAbsFile())
       root = tree.getroot()
       if root.tag == self.level0Element:
@@ -406,7 +406,8 @@ class YakInstantLibraryParser():
       factors[mtID] = groupValues
       if not lib['perturbDiffusionCoefficient'] and mtID == 'DiffusionCoefficient':
         raise IOError(
-            'Diffusion Coefficient can not be perturbed since it does not exist in the XS library!')
+            'Diffusion Coefficient can not be perturbed since it does not exist in the XS library!'
+        )
       if aliasType == 'rel':
         lib[mtID] *= groupValues
       elif aliasType == 'abs':

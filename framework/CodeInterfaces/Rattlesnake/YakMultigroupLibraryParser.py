@@ -55,9 +55,9 @@ class YakMultigroupLibraryParser():
     self.aliases = {}  #alias to XML node dict
     self.validReactions = [
         'Total', 'Fission', 'Removal', 'Transport', 'Scattering', 'nuFission', 'kappaFission',
-        'FissionSpectrum', 'DNFraction', 'DNSpectrum', 'NeutronVelocity', 'DNPlambda', 'Absorption',
-        'Capture', 'Nalpha', 'NGamma', 'Flux', 'N2Alpha', 'N2N', 'N3N', 'N4N', 'NNProton',
-        'NProton', 'NDeuteron', 'NTriton'
+        'FissionSpectrum', 'DNFraction', 'DNSpectrum', 'NeutronVelocity', 'DNPlambda',
+        'Absorption', 'Capture', 'Nalpha', 'NGamma', 'Flux', 'N2Alpha', 'N2N', 'N3N', 'N4N',
+        'NNProton', 'NProton', 'NDeuteron', 'NTriton'
     ]  #These are all valid reactions for Yak XS format
     self.perturbableReactions = [
         'Fission', 'Capture', 'TotalScattering', 'Nu', 'Kappa', 'Transport'
@@ -74,8 +74,8 @@ class YakMultigroupLibraryParser():
     #read in cross-section files, unperturbed files
     for xmlFile in inputFiles:
       if not os.path.exists(xmlFile.getPath()):
-        raise IOError(
-            'The following Yak multigroup cross section library file: ' + xmlFile + ' is not found')
+        raise IOError('The following Yak multigroup cross section library file: ' + xmlFile +
+                      ' is not found')
       tree = ET.parse(xmlFile.getAbsFile())
       root = tree.getroot()
       if root.tag == self.level0Element:
@@ -357,7 +357,8 @@ class YakMultigroupLibraryParser():
             ip += 1
     else:
       scatteringValue = self._stringSpacesToNumpyArray(child.text)  #store in 1-D array
-      pDict[child.tag] = scatteringValue.reshape((self.nGroup * (orderScattering + 1), self.nGroup))
+      pDict[child.tag] = scatteringValue.reshape((self.nGroup * (orderScattering + 1),
+                                                  self.nGroup))
     #calculate Total Scattering
     totScattering = np.zeros(self.nGroup)
     for g in range(self.nGroup):

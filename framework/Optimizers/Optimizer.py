@@ -146,7 +146,8 @@ class Optimizer(Sampler):
     param = InputData.parameterInputFactory('parameter', strictMode=True)
     stochEnum = InputData.makeEnumType('StochDistEnum', 'StochDistType',
                                        ['Hypersphere', 'Bernoulli'])
-    num = InputData.parameterInputFactory('numGradAvgIterations', contentType=InputData.IntegerType)
+    num = InputData.parameterInputFactory(
+        'numGradAvgIterations', contentType=InputData.IntegerType)
     stoch = InputData.parameterInputFactory('stochasticDistribution', contentType=stochEnum)
     bisect = InputData.parameterInputFactory(
         'innerBisectionThreshold', contentType=InputData.FloatType)
@@ -486,8 +487,8 @@ class Optimizer(Sampler):
             #subspace text
             subspaceVars = subnode.value
             if len(subspaceVars) < 1:
-              self.raiseAnError(IOError,
-                                'Multilevel subspace "{}" has no variables specified!'.format(name))
+              self.raiseAnError(
+                  IOError, 'Multilevel subspace "{}" has no variables specified!'.format(name))
             self.mlBatches[name] = subspaceVars
             #subspace preconditioner
             precond = subnode.parameterValues.get('precond')
@@ -705,8 +706,9 @@ class Optimizer(Sampler):
             RuntimeError, "the optimization variable " + varName +
             " is not contained in the TargetEvaluation object " + self.mdlEvalHist.name)
     if self.objVar not in outs:
-      self.raiseAnError(RuntimeError, "the optimization objective variable " + self.objVar +
-                        " is not contained in the TargetEvaluation object " + self.mdlEvalHist.name)
+      self.raiseAnError(
+          RuntimeError, "the optimization objective variable " + self.objVar +
+          " is not contained in the TargetEvaluation object " + self.mdlEvalHist.name)
     self.objSearchingROM = SupervisedLearning.returnInstance(
         'SciKitLearn', self, **{
             'SKLtype': 'neighbors|KNeighborsRegressor',
@@ -1003,9 +1005,9 @@ class Optimizer(Sampler):
     if traj in self.mlOutputStaticVariables:
       self.mlOutputStaticVariables.pop(traj)
     if newBatch in self.mlHoldBatches:
-      self.raiseAMessage(
-          'For subspace "' + newBatch + '" the following output space is going to be kept on hold: '
-          + ','.join(self.mlHoldBatches[newBatch]))
+      self.raiseAMessage('For subspace "' + newBatch +
+                         '" the following output space is going to be kept on hold: ' +
+                         ','.join(self.mlHoldBatches[newBatch]))
       self.mlOutputStaticVariables[traj] = self.mlHoldBatches[newBatch]
 
     for var in toMakeStatic:

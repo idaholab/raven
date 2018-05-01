@@ -242,8 +242,9 @@ class SparseGridCollocation(Grid):
           IOError, 'variable ' + v +
           ' used in sampler but not ROM features! Collocation requires all vars in both.')
     if len(romVars) > 0:
-      self.raiseAnError(IOError, 'variables ' + str(romVars) +
-                        ' specified in ROM but not sampler! Collocation requires all vars in both.')
+      self.raiseAnError(
+          IOError, 'variables ' + str(romVars) +
+          ' specified in ROM but not sampler! Collocation requires all vars in both.')
     for v in ROMdata.keys():
       if v not in self.axisName:
         self.raiseAnError(
@@ -270,9 +271,9 @@ class SparseGridCollocation(Grid):
           quadType = 'CDF'
           subType = dat['quad']
           if subType not in ['Legendre', 'ClenshawCurtis']:
-            self.raiseAnError(IOError,
-                              'Quadrature ' + subType + ' not compatible with Legendre polys for ' +
-                              distr.type + ' for variable ' + varName + '!')
+            self.raiseAnError(
+                IOError, 'Quadrature ' + subType + ' not compatible with Legendre polys for ' +
+                distr.type + ' for variable ' + varName + '!')
       else:
         quadType = dat['quad']
       if quadType not in distr.compatibleQuadrature:

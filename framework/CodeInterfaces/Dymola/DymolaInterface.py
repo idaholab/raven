@@ -234,8 +234,8 @@ class Dymola(CodeInterfaceBase):
         varDict[key] = 1 if value else 0
       if isinstance(value, numpy.ndarray):
         # print warning here (no access to RAVEN Message Handler)
-        print("Dymola INTERFACE WARNING -> Dymola interface found vector data to be passed. If %s" %
-              key)
+        print("Dymola INTERFACE WARNING -> Dymola interface found vector data to be passed. If %s"
+              % key)
         print(
             "                            is supposed to go into the simulation initialisation file of type"
         )

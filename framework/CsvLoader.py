@@ -34,6 +34,7 @@ import copy
 #Internal Modules----------------------------------------------------------------------------------
 from utils import utils
 import MessageHandler
+
 #Internal Modules End------------------------------------------------------------------------------
 
 
@@ -190,9 +191,8 @@ class CsvLoader(MessageHandler.MessageUser):
       pivotIndex = self.allFieldNames.index(
           pivotParameter) if pivotParameter in self.allFieldNames else None
       if pivotIndex == None:
-        self.raiseAnError(
-            IOError,
-            'pivotParameter ' + pivotParameter + ' has not been found in file ' + str(fileIn) + '!')
+        self.raiseAnError(IOError, 'pivotParameter ' + pivotParameter +
+                          ' has not been found in file ' + str(fileIn) + '!')
     else:
       pivotIndex = self.allFieldNames.index("time") if "time" in self.allFieldNames else None
       # if None...default is 0
@@ -214,8 +214,8 @@ class CsvLoader(MessageHandler.MessageUser):
         if inputPivotVal != None:
           if float(inputPivotVal) > np.max(data[:, pivotIndex]) or float(inputPivotVal) < np.min(
               data[:, pivotIndex]):
-            self.raiseAnError(IOError, 'inputPivotVal is out of the min and max for input  ' + key +
-                              ' in file ' + str(fileIn) + '!')
+            self.raiseAnError(IOError, 'inputPivotVal is out of the min and max for input  ' +
+                              key + ' in file ' + str(fileIn) + '!')
           inDict[key] = np.atleast_1d(
               np.array(
                   interp1d(data[:, pivotIndex], data[:, ix], kind='linear')(float(inputPivotVal))))
@@ -242,7 +242,8 @@ class CsvLoader(MessageHandler.MessageUser):
     elif outputRow != None:
       if outputRow > data[:, 0].size - 1 and outputRow != -1:
         self.raiseAnError(
-            IOError, 'outputRow is greater than number of actual rows in file ' + str(fileIn) + '!')
+            IOError,
+            'outputRow is greater than number of actual rows in file ' + str(fileIn) + '!')
       if self.allOutParam:
         for key in self.allFieldNames:
           outDict[key] = np.atleast_1d(np.array(data[outputRow, self.allFieldNames.index(key)]))
@@ -268,9 +269,11 @@ class CsvLoader(MessageHandler.MessageUser):
         for key in outParam:
           if key in self.allFieldNames:
             if operator == 'max':
-              outDict[key] = np.atleast_1d(np.array(np.max(data[:, self.allFieldNames.index(key)])))
+              outDict[key] = np.atleast_1d(
+                  np.array(np.max(data[:, self.allFieldNames.index(key)])))
             if operator == 'min':
-              outDict[key] = np.atleast_1d(np.array(np.min(data[:, self.allFieldNames.index(key)])))
+              outDict[key] = np.atleast_1d(
+                  np.array(np.min(data[:, self.allFieldNames.index(key)])))
             if operator == 'average':
               outDict[key] = np.atleast_1d(
                   np.array(np.average(data[:, self.allFieldNames.index(key)])))
@@ -548,9 +551,8 @@ class CsvLoader(MessageHandler.MessageUser):
       pivotIndex = self.allFieldNames.index(
           pivotParameter) if pivotParameter in self.allFieldNames else None
       if pivotIndex == None:
-        self.raiseAnError(
-            IOError,
-            'pivotParameter ' + pivotParameter + ' has not been found in file ' + str(fileIn) + '!')
+        self.raiseAnError(IOError, 'pivotParameter ' + pivotParameter +
+                          ' has not been found in file ' + str(fileIn) + '!')
     else:
       pivotIndex = self.allFieldNames.index("time") if "time" in self.allFieldNames else None
       # if None...default is 0
@@ -581,8 +583,8 @@ class CsvLoader(MessageHandler.MessageUser):
         if inputPivotVal != None:
           if float(inputPivotVal) > np.max(data[:, pivotIndex]) or float(inputPivotVal) < np.min(
               data[:, pivotIndex]):
-            self.raiseAnError(IOError, 'inputPivotVal is out of the min and max for input  ' + key +
-                              ' in file ' + str(fileIn) + '!')
+            self.raiseAnError(IOError, 'inputPivotVal is out of the min and max for input  ' +
+                              key + ' in file ' + str(fileIn) + '!')
           inDict[key] = np.atleast_1d(
               np.array(
                   interp1d(data[:, pivotIndex], data[:, ix], kind='linear')(float(inputPivotVal))))

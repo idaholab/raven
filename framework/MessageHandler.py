@@ -182,7 +182,12 @@ class MessageHandler(object):
     self.printTime = True
     self.inColor = False
     self.verbCode = {'silent': 0, 'quiet': 1, 'all': 2, 'debug': 3}
-    self.colorDict = {'debug': 'yellow', 'message': 'neutral', 'warning': 'magenta', 'error': 'red'}
+    self.colorDict = {
+        'debug': 'yellow',
+        'message': 'neutral',
+        'warning': 'magenta',
+        'error': 'red'
+    }
     self.colors = {
         'neutral': '\033[0m',
         'red': '\033[31m',

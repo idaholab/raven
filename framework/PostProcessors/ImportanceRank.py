@@ -286,8 +286,8 @@ class ImportanceRank(PostProcessor):
       else:
         self.raiseAnError(
             IOError, self,
-            'ImportanceRank postprocessor accepts Files, HDF5, PointSet, DataObject(s) only! Got ' +
-            str(type(currentInput)))
+            'ImportanceRank postprocessor accepts Files, HDF5, PointSet, DataObject(s) only! Got '
+            + str(type(currentInput)))
     if inType not in ['HDF5', 'PointSet', 'HistorySet', 'list'
                       ] and not isinstance(inType, Files.File):
       self.raiseAnError(

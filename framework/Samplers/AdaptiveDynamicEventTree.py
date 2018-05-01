@@ -297,7 +297,8 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
     if endInfo:
       for key in endInfo['branchChangedParams'].keys():
         branchParams.append(key)
-        branchChangedParamPb.append(endInfo['branchChangedParams'][key]['associatedProbability'][0])
+        branchChangedParamPb.append(
+            endInfo['branchChangedParams'][key]['associatedProbability'][0])
         branchChangedParamValue.append(endInfo['branchChangedParams'][key]['oldValue'][0])
       subGroup.add('branchChangedParam', branchParams)
       subGroup.add('branchChangedParamValue', branchChangedParamValue)
@@ -557,9 +558,9 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
       elif xmlNode.attrib['noTransitionStrategy'].lower() == 'grid':
         self.noTransitionStrategy = 2
       else:
-        self.raiseAnError(IOError,
-                          'unknown noTransitionStrategy ' + xmlNode.attrib['noTransitionStrategy'] +
-                          '. Available are "mc" and "grid"!')
+        self.raiseAnError(
+            IOError, 'unknown noTransitionStrategy ' + xmlNode.attrib['noTransitionStrategy'] +
+            '. Available are "mc" and "grid"!')
     if 'updateGrid' in xmlNode.attrib.keys():
       if xmlNode.attrib['updateGrid'].lower() in utils.stringsThatMeanTrue():
         self.insertAdaptBPb = True
@@ -595,7 +596,8 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
       if self.hybridDETstrategy == 1:
         gridVector = self.limitSurfacePP.gridEntity.returnParameter("gridVectors")
         # construct an hybrid DET through an XML node
-        distDict, xmlNode = {}, ET.fromstring('<InitNode> <HybridSampler type="Grid"/> </InitNode>')
+        distDict, xmlNode = {}, ET.fromstring(
+            '<InitNode> <HybridSampler type="Grid"/> </InitNode>')
         for varName, dist in self.distDict.items():
           if varName.replace('<distribution>', '') in self.epistemicVariables.keys():
             # found an epistemic

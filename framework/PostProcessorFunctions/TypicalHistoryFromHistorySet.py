@@ -138,8 +138,8 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
           # for each feature...
           for feature in self.features:
             # extract applicable information from the feature set
-            reshapedData[newHistoryCounter][feature] = np.extract(extractCondition,
-                                                                  inputDict[feature][historyNumber])
+            reshapedData[newHistoryCounter][feature] = np.extract(
+                extractCondition, inputDict[feature][historyNumber])
           #increment history counter
           newHistoryCounter += 1
           #update new start/end points for grabbing the next history

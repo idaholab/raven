@@ -191,7 +191,8 @@ class HybridModel(Dummy):
     """
     if isinstance(self.modelInstance, Models.Model):
       self.raiseAnError(
-          IOError, "HybridModel has already been initialized, and it can not be initialized again!")
+          IOError,
+          "HybridModel has already been initialized, and it can not be initialized again!")
     self.modelInstance = self.retrieveObjectFromAssemblerDict('Model', self.modelInstance)
     if self.modelInstance.type == 'Code':
       codeInput = []
@@ -434,8 +435,8 @@ class HybridModel(Dummy):
         break
     if error is None:
       self.raiseAnError(
-          IOError,
-          "Metric %s used for cross validation can not be handled by the HybridModel." % metricName)
+          IOError, "Metric %s used for cross validation can not be handled by the HybridModel." %
+          metricName)
     if not converged:
       self.raiseADebug("The current error: ", str(error), " is not met with the given tolerance ",
                        str(self.romConvergence))
@@ -470,7 +471,8 @@ class HybridModel(Dummy):
       if selectionMethod == 'CrowdingDistance':
         allValid = self.crowdingDistanceMethod(params, kwargs['SampledVars'])
       else:
-        self.raiseAnError(IOError, "Unknown model selection method ", selectionMethod, " is given!")
+        self.raiseAnError(IOError, "Unknown model selection method ", selectionMethod,
+                          " is given!")
     if allValid:
       self.raiseADebug("ROMs  are all valid for given model ", self.modelInstance.name)
     return allValid
@@ -720,8 +722,8 @@ class HybridModel(Dummy):
       while not moveOn:
         if jobHandler.availability() > 0:
           self.modelInstance.submit(originalInput, samplerType, jobHandler, **inputKwargs)
-          self.raiseADebug("Job submitted for model ", self.modelInstance.name, " with identifier ",
-                           identifier)
+          self.raiseADebug("Job submitted for model ", self.modelInstance.name,
+                           " with identifier ", identifier)
           moveOn = True
         else:
           time.sleep(self.sleepTime)
@@ -733,8 +735,8 @@ class HybridModel(Dummy):
           jobIdentifier=inputKwargs['prefix'], uniqueHandler=uniqueHandler)
       evaluation = finishedRun[0].getEvaluation()
       if isinstance(evaluation, Runners.Error):
-        self.raiseAnError(RuntimeError, "The model " + self.modelInstance.name + " identified by " +
-                          finishedRun[0].identifier + " failed!")
+        self.raiseAnError(RuntimeError, "The model " + self.modelInstance.name +
+                          " identified by " + finishedRun[0].identifier + " failed!")
       # collect output in temporary data object
       exportDict = evaluation
       self.raiseADebug("Create exportDict")

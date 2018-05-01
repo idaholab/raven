@@ -89,62 +89,66 @@ class DataMining(PostProcessor):
     kddInput.addSub(sciPyTypeInput)
 
     for name, inputType in [
-        ("Features", InputData.StringType), ("n_components", InputData.StringType),
-        ("covariance_type", InputData.StringType), ("random_state",
-                                                    InputData.StringType), ("min_covar",
+        ("Features", InputData.StringType), ("n_components",
+                                             InputData.StringType), ("covariance_type",
+                                                                     InputData.StringType),
+        ("random_state", InputData.StringType), ("min_covar",
+                                                 InputData.FloatType), ("thresh",
+                                                                        InputData.FloatType),
+        ("n_iter", InputData.IntegerType), ("n_init",
+                                            InputData.IntegerType), ("params",
+                                                                     InputData.StringType),
+        ("init_params", InputData.StringType), ("alpha",
+                                                InputData.FloatType), ("n_clusters",
+                                                                       InputData.IntegerType),
+        ("max_iter", InputData.IntegerType), ("init",
+                                              InputData.StringType), ("precompute_distances",
+                                                                      InputData.StringType),
+        ("tol", InputData.FloatType), ("n_jobs", InputData.IntegerType), ("max_no_improvement",
+                                                                          InputData.IntegerType),
+        ("batch_size", InputData.IntegerType), ("compute_labels",
+                                                InputData.StringType), ("reassignment_ratio",
+                                                                        InputData.FloatType),
+        ("damping", InputData.StringType), ("convergence_iter",
+                                            InputData.IntegerType), ("copy", InputData.StringType),
+        ("preference", InputData.StringType), ("affinity",
+                                               InputData.StringType), ("verbose",
+                                                                       InputData.StringType),
+        ("bandwidth", InputData.FloatType), ("seeds",
+                                             InputData.StringType), ("bin_seeding",
+                                                                     InputData.StringType),
+        ("min_bin_freq", InputData.IntegerType), ("cluster_all",
+                                                  InputData.StringType), ("gamma",
+                                                                          InputData.FloatType),
+        ("degree", InputData.StringType), ("coef0", InputData.FloatType), ("n_neighbors",
+                                                                           InputData.IntegerType),
+        ("eigen_solver", InputData.StringType), ("eigen_tol",
+                                                 InputData.FloatType), ("assign_labels",
+                                                                        InputData.StringType),
+        ("kernel_params", InputData.StringType), ("eps",
+                                                  InputData.StringType), ("min_samples",
+                                                                          InputData.IntegerType),
+        ("metric", InputData.StringType), ("connectivity",
+                                           InputData.StringType), ("linkage",
+                                                                   InputData.StringType),
+        ("whiten", InputData.StringType), ("iterated_power",
+                                           InputData.StringType), ("kernel", InputData.StringType),
+        ("fit_inverse_transform",
+         InputData.StringType), ("remove_zero_eig", InputData.StringType), ("ridge_alpha",
                                                                             InputData.FloatType),
-        ("thresh", InputData.FloatType), ("n_iter", InputData.IntegerType), ("n_init",
-                                                                             InputData.IntegerType),
-        ("params", InputData.StringType), ("init_params",
-                                           InputData.StringType), ("alpha", InputData.FloatType),
-        ("n_clusters", InputData.IntegerType), ("max_iter",
-                                                InputData.IntegerType), ("init",
-                                                                         InputData.StringType),
-        ("precompute_distances",
-         InputData.StringType), ("tol", InputData.FloatType), ("n_jobs", InputData.IntegerType),
-        ("max_no_improvement",
-         InputData.IntegerType), ("batch_size", InputData.IntegerType), ("compute_labels",
-                                                                         InputData.StringType),
-        ("reassignment_ratio",
-         InputData.FloatType), ("damping", InputData.StringType), ("convergence_iter",
-                                                                   InputData.IntegerType),
-        ("copy", InputData.StringType), ("preference",
-                                         InputData.StringType), ("affinity", InputData.StringType),
-        ("verbose", InputData.StringType), ("bandwidth",
-                                            InputData.FloatType), ("seeds", InputData.StringType),
-        ("bin_seeding", InputData.StringType), ("min_bin_freq",
-                                                InputData.IntegerType), ("cluster_all",
-                                                                         InputData.StringType),
-        ("gamma", InputData.FloatType), ("degree", InputData.StringType), ("coef0",
-                                                                           InputData.FloatType),
-        ("n_neighbors", InputData.IntegerType), ("eigen_solver",
-                                                 InputData.StringType), ("eigen_tol",
-                                                                         InputData.FloatType),
-        ("assign_labels", InputData.StringType), ("kernel_params",
-                                                  InputData.StringType), ("eps",
-                                                                          InputData.StringType),
-        ("min_samples", InputData.IntegerType), ("metric",
-                                                 InputData.StringType), ("connectivity",
-                                                                         InputData.StringType),
-        ("linkage", InputData.StringType), ("whiten", InputData.StringType), ("iterated_power",
-                                                                              InputData.StringType),
-        ("kernel", InputData.StringType), ("fit_inverse_transform",
-                                           InputData.StringType), ("remove_zero_eig",
-                                                                   InputData.StringType),
-        ("ridge_alpha",
-         InputData.FloatType), ("method", InputData.StringType), ("U_init", InputData.StringType),
-        ("V_init", InputData.StringType), ("callback",
-                                           InputData.StringType), ("shuffle", InputData.StringType),
-        ("algorithm", InputData.StringType), ("fun", InputData.StringType), ("fun_args",
+        ("method", InputData.StringType), ("U_init", InputData.StringType), ("V_init",
                                                                              InputData.StringType),
-        ("w_init", InputData.StringType), ("path_method",
-                                           InputData.StringType), ("neighbors_algorithm",
-                                                                   InputData.StringType),
-        ("reg",
-         InputData.FloatType), ("hessian_tol",
-                                InputData.FloatType), ("modified_tol",
-                                                       InputData.FloatType), ("dissimilarity",
-                                                                              InputData.StringType),
+        ("callback", InputData.StringType), ("shuffle",
+                                             InputData.StringType), ("algorithm",
+                                                                     InputData.StringType),
+        ("fun", InputData.StringType), ("fun_args", InputData.StringType), ("w_init",
+                                                                            InputData.StringType),
+        ("path_method", InputData.StringType), ("neighbors_algorithm",
+                                                InputData.StringType), ("reg",
+                                                                        InputData.FloatType),
+        ("hessian_tol", InputData.FloatType), ("modified_tol",
+                                               InputData.FloatType), ("dissimilarity",
+                                                                      InputData.StringType),
         ("level", InputData.StringType), ("criterion",
                                           InputData.StringType), ("dendrogram",
                                                                   InputData.StringType),
@@ -367,7 +371,8 @@ class DataMining(PostProcessor):
       featureList = [elem for elem in dataList if elem not in toRemove]
     else:
       featureList = [
-          feature.strip() for feature in self.initializationOptionDict['KDD']['Features'].split(',')
+          feature.strip()
+          for feature in self.initializationOptionDict['KDD']['Features'].split(',')
       ]
     for key in featureList:
       inputDict['Features'][key] = copy.deepcopy(preProcessedData['data'][key])
@@ -386,7 +391,8 @@ class DataMining(PostProcessor):
 
     if type(currentInp) == list:
       if len(currentInp) > 1:
-        self.raiseAnError(IOError, "Only one input is allowed for this post-processor: ", self.name)
+        self.raiseAnError(IOError, "Only one input is allowed for this post-processor: ",
+                          self.name)
       currentInput = currentInp[-1]
     else:
       currentInput = currentInp
@@ -809,8 +815,8 @@ class DataMining(PostProcessor):
                 ## indexes with no need to add another layer of obfuscation
                 if rlzIndex in clusterCentersIndices[timeIdx]:
                   loc = clusterCentersIndices[timeIdx].index(rlzIndex)
-                  timeSeries[timeIdx] = self.unSupervisedEngine.metaDict['clusterCenters'][timeIdx][
-                      loc, featureIdx]
+                  timeSeries[timeIdx] = self.unSupervisedEngine.metaDict['clusterCenters'][
+                      timeIdx][loc, featureIdx]
                 else:
                   timeSeries[timeIdx] = np.atleast_1d(np.nan)
 

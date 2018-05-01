@@ -141,8 +141,8 @@ class ETImporter(PostProcessor):
       self.raiseAnError(IOError, 'Multiple ET files have provided but they are not linked')
 
     if len(links) > 1 and len(inputs) == 1:
-      self.raiseAnError(IOError,
-                        'A single ET files has provided but it contains a link to an additional ET')
+      self.raiseAnError(
+          IOError, 'A single ET files has provided but it contains a link to an additional ET')
 
     if len(links) == 0 and len(inputs) == 1:
       eventTree = ET.parse(inputs[0].getPath() + inputs[0].getFilename())
@@ -470,8 +470,9 @@ class ETImporter(PostProcessor):
     if output.type in ['PointSet']:
       output.load(outputDict, style='dict')
     else:
-      self.raiseAnError(RuntimeError,
-                        'ETImporter failed: Output type ' + str(output.type) + ' is not supported.')
+      self.raiseAnError(
+          RuntimeError,
+          'ETImporter failed: Output type ' + str(output.type) + ' is not supported.')
 
   def findAllRecursive(self, node, element):
     """

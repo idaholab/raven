@@ -136,8 +136,8 @@ class RELAPparser():
                 break
               totalNumberOfWords += numberOfWords
           else:
-            raise IOError("RELAP5 Interface: The word that needs to be sampled is in a position (" +
-                          str(var['position']) + ") > then the actual number of words (" +
+            raise IOError("RELAP5 Interface: The word that needs to be sampled is in a position ("
+                          + str(var['position']) + ") > then the actual number of words (" +
                           str(cardLines[card]['numberOfAvailableWords']) + ")!!")
       if save:
         self.deckLines[deckNum] = temp

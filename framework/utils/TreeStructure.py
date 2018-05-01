@@ -474,8 +474,9 @@ class InputNode:
       @ In, None
       @ Out, __repr__, string, representation of the object
     """
-    return "<Node %s attrib=%s at 0x%x containing %s branches>" % (repr(self.tag), str(self.attrib),
-                                                                   id(self), repr(len(self)))
+    return "<Node %s attrib=%s at 0x%x containing %s branches>" % (repr(self.tag),
+                                                                   str(self.attrib), id(self),
+                                                                   repr(len(self)))
 
   #methods
   def add(self, key, value):

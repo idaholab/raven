@@ -253,7 +253,8 @@ class Simulation(MessageHandler.MessageUser):
         'internalParallel'] = False  # activate internal parallel (parallel python). If True parallel python is used, otherwise multi-threading is used
     self.runInfoDict[
         'ParallelCommand'] = ''  # the command that should be used to submit jobs in parallel (mpi)
-    self.runInfoDict['ThreadingCommand'] = ''  # the command should be used to submit multi-threaded
+    self.runInfoDict[
+        'ThreadingCommand'] = ''  # the command should be used to submit multi-threaded
     self.runInfoDict['totalNumCoresUsed'] = 1  # total number of cores used by driver
     self.runInfoDict['queueingSoftware'] = ''  # queueing software name
     self.runInfoDict['stepName'] = ''  # the name of the step currently running
@@ -267,7 +268,8 @@ class Simulation(MessageHandler.MessageUser):
         'mode'] = ''  # Running mode.  Curently the only mode supported is mpi but others can be added with custom modes.
     self.runInfoDict['Nodes'] = [
     ]  # List of  node IDs. Filled only in case RAVEN is run in a DMP machine
-    self.runInfoDict['expectedTime'] = '10:00:00'  # How long the complete input is expected to run.
+    self.runInfoDict[
+        'expectedTime'] = '10:00:00'  # How long the complete input is expected to run.
     self.runInfoDict['logfileBuffer'] = int(
         io.DEFAULT_BUFFER_SIZE) * 50  # logfile buffer size in bytes
     self.runInfoDict['clusterParameters'] = []  # Extra parameters to use with the qsub command.
@@ -730,7 +732,8 @@ class Simulation(MessageHandler.MessageUser):
         self.runInfoDict['mode'] = element.text.strip().lower()
         #parallel environment
         if self.runInfoDict['mode'] in self.__modeHandlerDict:
-          self.__modeHandler = self.__modeHandlerDict[self.runInfoDict['mode']](self.messageHandler)
+          self.__modeHandler = self.__modeHandlerDict[self.runInfoDict['mode']](
+              self.messageHandler)
           self.__modeHandler.XMLread(element)
         else:
           self.raiseAnError(IOError, "Unknown mode " + self.runInfoDict['mode'])

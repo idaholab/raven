@@ -155,7 +155,8 @@ class SPSA(GradientBasedOptimizer):
     ak = self._computeGainSequenceAk(self.paramDict, self.counter['varsUpdate'][traj],
                                      traj)  # Compute the new ak
     self.optVarsHist[traj][self.counter['varsUpdate'][traj]] = {}
-    varK = dict((var, self.counter['recentOptHist'][traj][0][var]) for var in self.getOptVars(traj))
+    varK = dict(
+        (var, self.counter['recentOptHist'][traj][0][var]) for var in self.getOptVars(traj))
     varKPlus, modded = self._generateVarsUpdateConstrained(traj, ak, gradient, varK)
     #check for redundant paths
     if len(self.optTrajLive) > 1 and self.counter['solutionUpdate'][traj] > 0:
@@ -590,8 +591,8 @@ class SPSA(GradientBasedOptimizer):
       for varID, var in enumerate(self.getOptVars(traj=traj)):
         varSize = np.prod(self.variableShapes[var])
         if varSize == 1:
-          pendVector[
-              var] = self.stochasticEngineForConstraintHandling.rvs() if varID != depVarPos else 0.0
+          pendVector[var] = self.stochasticEngineForConstraintHandling.rvs(
+          ) if varID != depVarPos else 0.0
           npDot += pendVector[var] * gradient[var]
         else:
           for i in range(varSize):
@@ -628,7 +629,8 @@ class SPSA(GradientBasedOptimizer):
 
       foundPendVector, activeConstraints = self.checkConstraint(self.denormalizeData(varKPlus))
       if not foundPendVector:
-        foundPendVector, varKPlus = self._bisectionForConstrainedInput(traj, varK, gain, pendVector)
+        foundPendVector, varKPlus = self._bisectionForConstrainedInput(
+            traj, varK, gain, pendVector)
       gain = gain / 2.
 
     if foundPendVector:

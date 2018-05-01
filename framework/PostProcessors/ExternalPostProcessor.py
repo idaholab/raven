@@ -279,8 +279,8 @@ class ExternalPostProcessor(PostProcessor):
         if len(inputDict[target]) != numRlz:
           self.raiseAWarning(
               "Parameter ", target, " is available in the provided input DataObjects," +
-              " but it has different length from the returned values from the external functions." +
-              " Thus this parameter will not be accessible by the output DataObjects!")
+              " but it has different length from the returned values from the external functions."
+              + " Thus this parameter will not be accessible by the output DataObjects!")
         else:
           outputDict[target] = np.atleast_1d(inputDict[target])
 

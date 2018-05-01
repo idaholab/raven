@@ -101,7 +101,8 @@ class MAAP5(GenericCode):
 ###########
         if str(Kwargs['prefix'].split('-')[-1]) != '1':
           self.modifyBranch(currentInputFiles, Kwargs)
-    return GenericCode.createNewInput(self, currentInputFiles, oriInputFiles, samplerType, **Kwargs)
+    return GenericCode.createNewInput(self, currentInputFiles, oriInputFiles, samplerType,
+                                      **Kwargs)
 
   def oriInput(self, oriInputFiles):
     """

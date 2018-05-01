@@ -132,8 +132,8 @@ class FactorialDesign(Grid):
         if len(self.gridEntity.returnParameter("gridInfo")[varname][2]) != 2:
           self.raiseAnError(IOError,
                             'The number of levels for type ' + self.factOpt['algorithmType'] +
-                            ' must be 2! In variable ' + varname + ' got number of levels = ' + str(
-                                len(self.gridEntity.returnParameter("gridInfo")[varname][2])))
+                            ' must be 2! In variable ' + varname + ' got number of levels = ' +
+                            str(len(self.gridEntity.returnParameter("gridInfo")[varname][2])))
     else:
       self.externalgGridCoord = False
 

@@ -132,8 +132,8 @@ class Stratified(Grid):
           self.gridEntity.returnParameter("dimensionNames"))  #for all variables
       self.sampledCoordinate = [[None] * len(self.axisName)] * (self.pointByVar - 1)
       for i in range(len(tempFillingCheck)):
-        tempFillingCheck[i] = randomUtils.randomPermutation(list(range(self.pointByVar - 1)),
-                                                            self)  #pick a random interval sequence
+        tempFillingCheck[i] = randomUtils.randomPermutation(
+            list(range(self.pointByVar - 1)), self)  #pick a random interval sequence
       mappingIdVarName = {}
       for cnt, varName in enumerate(self.axisName):
         mappingIdVarName[varName] = cnt
@@ -150,8 +150,8 @@ class Stratified(Grid):
           len(self.gridEntity.returnParameter("dimensionNames")) + diff)  #for all variables
       self.sampledCoordinate = [[None] * len(self.axisName)] * (self.pointByVar - 1)
       for i in range(len(tempFillingCheck)):
-        tempFillingCheck[i] = randomUtils.randomPermutation(list(range(self.pointByVar - 1)),
-                                                            self)  #pick a random interval sequence
+        tempFillingCheck[i] = randomUtils.randomPermutation(
+            list(range(self.pointByVar - 1)), self)  #pick a random interval sequence
       cnt = 0
       mappingIdVarName = {}
       for varName in self.axisName:

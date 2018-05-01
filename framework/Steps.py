@@ -664,8 +664,9 @@ class MultiRun(SingleRun):
     for inputIndex in range(inDictionary['jobHandler'].runInfoDict['batchSize']):
       if inDictionary[self.samplerType].amIreadyToProvideAnInput():
         try:
-          newInput = self._findANewInputToRun(inDictionary[self.samplerType], inDictionary['Model'],
-                                              inDictionary['Input'], inDictionary['Output'])
+          newInput = self._findANewInputToRun(inDictionary[self.samplerType],
+                                              inDictionary['Model'], inDictionary['Input'],
+                                              inDictionary['Output'])
           inDictionary["Model"].submit(newInput, inDictionary[self.samplerType].type,
                                        inDictionary['jobHandler'],
                                        **copy.deepcopy(inDictionary[self.samplerType].inputInfo))
@@ -968,9 +969,10 @@ class IOStep(Step):
               '. This step accepts A ROM as Output only, when the Input is a Files. Got ' +
               inDictionary['Output'][i].type)
       else:
-        self.raiseAnError(IOError, 'In Step named ' + self.name +
-                          '. This step accepts DataObjects, HDF5, ROM and Files as Input only. Got '
-                          + inDictionary['Input'][i].type)
+        self.raiseAnError(
+            IOError, 'In Step named ' + self.name +
+            '. This step accepts DataObjects, HDF5, ROM and Files as Input only. Got ' +
+            inDictionary['Input'][i].type)
     if self.fromDirectory and len(self.actionType) == 0:
       self.raiseAnError(
           IOError, 'In Step named ' + self.name +

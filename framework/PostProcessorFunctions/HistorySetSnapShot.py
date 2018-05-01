@@ -144,8 +144,8 @@ class HistorySetSnapShot(PostProcessorInterfaceBase):
           self.numberOfSamples, self.pivotParameter, self.extension, syncMethod='grid')
 
     if self.type not in set(['min', 'max', 'average', 'value', 'timeSlice', 'mixed']):
-      self.raiseAnError(IOError, 'HistorySetSnapShot Interfaced Post-Processor "' + str(self.name) +
-                        '" : type "%s" is not recognized' % self.type)
+      self.raiseAnError(IOError, 'HistorySetSnapShot Interfaced Post-Processor "' +
+                        str(self.name) + '" : type "%s" is not recognized' % self.type)
 
   def run(self, inputDic, pivotVal=None):
     """

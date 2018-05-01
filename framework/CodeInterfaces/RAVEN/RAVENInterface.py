@@ -112,7 +112,8 @@ class RAVEN(CodeInterfaceBase):
         raise IOError(
             self.printTag + ' ERROR: the conversionModule "' + self.extModForVarsManipulationPath +
             '" does not contain any of the usable methods! Expected at least ' +
-            'one of: "manipulateScalarSampledVariables" and/or "manipulateScalarSampledVariables"!')
+            'one of: "manipulateScalarSampledVariables" and/or "manipulateScalarSampledVariables"!'
+        )
 
   def __findInputFile(self, inputFiles):
     """
@@ -317,8 +318,8 @@ class RAVEN(CodeInterfaceBase):
           readLines = fileObj.readlines()
           if any("nan" in x.lower() for x in readLines):
             failure = True
-            print(self.printTag + ' ERROR: Found nan in RAVEN SLAVE output "' + str(outStreamFile) +
-                  '!')
+            print(self.printTag + ' ERROR: Found nan in RAVEN SLAVE output "' +
+                  str(outStreamFile) + '!')
             break
           del readLines
     return failure

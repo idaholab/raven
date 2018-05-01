@@ -239,7 +239,8 @@ class SafestPoint(PostProcessor):
             float(self.controllableDist[varName].upperBound), self.controllableGrid[varName][1],
             self.controllableGrid[varName][2], varName)
         self.gridInfo[varName] = (self.controllableGrid[varName][0], constrType, [
-            float(self.controllableDist[varName].lowerBound) + self.controllableGrid[varName][2] * i
+            float(self.controllableDist[varName].lowerBound) +
+            self.controllableGrid[varName][2] * i
             for i in range(self.controllableGrid[varName][1] + 1)
         ])
       elif self.controllableGrid[varName][0] == 'CDF':
@@ -344,9 +345,8 @@ class SafestPoint(PostProcessor):
       @ Out, None, the resulting converted object is stored as an attribute of this class
     """
     if len(currentInput) > 1:
-      self.raiseAnError(
-          IOError,
-          "This PostProcessor can accept only a single input! Got: " + str(len(currentInput)) + "!")
+      self.raiseAnError(IOError, "This PostProcessor can accept only a single input! Got: " +
+                        str(len(currentInput)) + "!")
     item = currentInput[0]
     if item.type != 'PointSet':
       self.raiseAnError(IOError, self.type + " accepts PointSet only as input! Got: " + item.type)

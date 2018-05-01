@@ -300,7 +300,8 @@ class OutStreamPlot(OutStreamManager):
           for i in range(len(self.yCoordinates[pltIndex])):
             ySplit = self.__splitVariableNames('y', (pltIndex, i))
             if ySplit[2].strip() not in self.sourceData[pltIndex].getVars(ySplit[1].lower()):
-              self.raiseAnError(IOError, 'Not found variable "' + ySplit[2] + '" in "' + ySplit[1] +
+              self.raiseAnError(IOError,
+                                'Not found variable "' + ySplit[2] + '" in "' + ySplit[1] +
                                 '" of DataObject "' + self.sourceData[pltIndex].name + '"!')
             self.yValues[pltIndex][1].append(
                 np.asarray(dataSet[ySplit[2].strip()].values.astype(float, copy=False)))
@@ -308,7 +309,8 @@ class OutStreamPlot(OutStreamManager):
           for i in range(len(self.zCoordinates[pltIndex])):
             zSplit = self.__splitVariableNames('z', (pltIndex, i))
             if zSplit[2].strip() not in self.sourceData[pltIndex].getVars(zSplit[1].lower()):
-              self.raiseAnError(IOError, 'Not found variable "' + zSplit[2] + '" in "' + zSplit[1] +
+              self.raiseAnError(IOError,
+                                'Not found variable "' + zSplit[2] + '" in "' + zSplit[1] +
                                 '" of DataObject "' + self.sourceData[pltIndex].name + '"!')
             self.zValues[pltIndex][1].append(
                 np.asarray(dataSet[zSplit[2].strip()].values.astype(float, copy=False)))
@@ -336,7 +338,8 @@ class OutStreamPlot(OutStreamManager):
           for i in range(len(self.colorMapCoordinates[pltIndex])):
             zSplit = self.__splitVariableNames('colorMap', (pltIndex, i))
             if zSplit[2].strip() not in self.sourceData[pltIndex].getVars(zSplit[1].lower()):
-              self.raiseAnError(IOError, 'Not found variable "' + zSplit[2] + '" in "' + zSplit[1] +
+              self.raiseAnError(IOError,
+                                'Not found variable "' + zSplit[2] + '" in "' + zSplit[1] +
                                 '" of DataObject "' + self.sourceData[pltIndex].name + '"!')
             self.colorMapValues[pltIndex][1].append(
                 np.asarray(dataSet[zSplit[2].strip()].values.astype(float, copy=False)))
@@ -344,13 +347,13 @@ class OutStreamPlot(OutStreamManager):
         sizeToMatch = self.xValues[pltIndex][1][-1].size
         if self.yCoordinates and self.yValues[pltIndex][1][-1].size != sizeToMatch:
           self.raiseAnError(
-              Exception, "the <y> variable has a size (" + str(self.yValues[pltIndex][1][-1].size) +
-              ") that is not consistent with respect the one (" + str(sizeToMatch) +
+              Exception, "the <y> variable has a size (" + str(self.yValues[pltIndex][1][-1].size)
+              + ") that is not consistent with respect the one (" + str(sizeToMatch) +
               ") inputted in <x>")
         if self.zCoordinates and self.dim > 2 and self.zValues[pltIndex][1][-1].size != sizeToMatch:
           self.raiseAnError(
-              Exception, "the <z> variable has a size (" + str(self.zValues[pltIndex][1][-1].size) +
-              ") that is not consistent with respect the one (" + str(sizeToMatch) +
+              Exception, "the <z> variable has a size (" + str(self.zValues[pltIndex][1][-1].size)
+              + ") that is not consistent with respect the one (" + str(sizeToMatch) +
               ") inputted in <x>")
         if self.colorMapCoordinates[pltIndex] != None and self.colorMapValues[pltIndex][1][-1].size != sizeToMatch:
           self.raiseAnError(Exception, "the <colorMap> variable has a size (" +
@@ -367,7 +370,8 @@ class OutStreamPlot(OutStreamManager):
                 1].lower() == 'output' else []
             if xSplit[2].strip() not in self.sourceData[pltIndex].getVars(
                 xSplit[1].lower()) + outputIndexes:
-              self.raiseAnError(IOError, 'Not found variable "' + xSplit[2] + '" in "' + xSplit[1] +
+              self.raiseAnError(IOError,
+                                'Not found variable "' + xSplit[2] + '" in "' + xSplit[1] +
                                 '" of DataObject "' + self.sourceData[pltIndex].name + '"!')
             # for variable from input space, it will return array(float), not 1d array
             self.xValues[pltIndex][cnt].append(
@@ -431,8 +435,8 @@ class OutStreamPlot(OutStreamManager):
           if self.zCoordinates and self.dim > 2 and self.zValues[pltIndex][cnt][-1].size == 1 and maxSize > 1:
             self.zValues[pltIndex][cnt][-1] = np.full(maxSize, self.zValues[pltIndex][cnt][-1])
           if self.colorMapCoordinates[pltIndex] is not None and self.colorMapValues[pltIndex][cnt][-1].size == 1 and maxSize > 1:
-            self.colorMapValues[pltIndex][cnt][-1] = np.full(maxSize,
-                                                             self.colorMapValues[pltIndex][cnt][-1])
+            self.colorMapValues[pltIndex][cnt][-1] = np.full(
+                maxSize, self.colorMapValues[pltIndex][cnt][-1])
           # check if the array sizes are consistent
           if self.yCoordinates and self.yValues[pltIndex][cnt][-1].size != maxSize:
             self.raiseAnError(
@@ -450,8 +454,8 @@ class OutStreamPlot(OutStreamManager):
               self.colorMapValues[pltIndex][cnt][-1]) != maxSize:
             self.raiseAnError(Exception, "the <colorMap> variable has a size (" +
                               str(self.colorMapValues[pltIndex][cnt][-1].size) +
-                              ") that is not consistent with respect the one (" + str(sizeToMatch) +
-                              ") inputted in <x>")
+                              ") that is not consistent with respect the one (" +
+                              str(sizeToMatch) + ") inputted in <x>")
 
       # check if something has been got or not
       if len(self.xValues[pltIndex].keys()) == 0:
@@ -631,7 +635,8 @@ class OutStreamPlot(OutStreamManager):
         if self.dim == 2:
           plt.title(self.options[key]['text'], **self.options[key].get('attributes', {}))
         elif self.dim == 3:
-          self.plt3D.set_title(self.options[key]['text'], **self.options[key].get('attributes', {}))
+          self.plt3D.set_title(self.options[key]['text'], **self.options[key].get(
+              'attributes', {}))
       elif key == 'scale':
         if self.dim == 2:
           if 'xscale' in self.options[key].keys():
@@ -662,8 +667,8 @@ class OutStreamPlot(OutStreamManager):
           except AttributeError:
             self.raiseAnError(
                 TypeError,
-                'In ' + key + ' tag: can not convert the string "' + self.options[key]['fontdict'] +
-                '" to a dictionary! Check syntax for python function ast.literal_eval')
+                'In ' + key + ' tag: can not convert the string "' + self.options[key]['fontdict']
+                + '" to a dictionary! Check syntax for python function ast.literal_eval')
         if self.dim == 2:
           plt.text(
               float(self.options[key]['position'].split(',')[0]),
@@ -822,9 +827,9 @@ class OutStreamPlot(OutStreamManager):
         except AttributeError as ae:
           self.raiseAnError(
               RuntimeError,
-              '<' + str(ae) + '> -> in execution custom action "' + key + '" in Plot ' + self.name +
-              '.\n ' + self.printTag + ' command has been called in the following way: ' + 'plt.' +
-              key + '(**' + str(kwargs) + ')')
+              '<' + str(ae) + '> -> in execution custom action "' + key + '" in Plot ' + self.name
+              + '.\n ' + self.printTag + ' command has been called in the following way: ' +
+              'plt.' + key + '(**' + str(kwargs) + ')')
 
   ####################
   #  PUBLIC METHODS  #
@@ -1367,7 +1372,8 @@ class OutStreamPlot(OutStreamManager):
                           m.set_array(self.colorMapValues[pltIndex][key])
                           self.actcm = self.fig.colorbar(m)
                           self.actcm.set_label(
-                              self.colorMapCoordinates[pltIndex][0].split('|')[-1].replace(')', ''))
+                              self.colorMapCoordinates[pltIndex][0].split('|')[-1].replace(
+                                  ')', ''))
                   else:
                     scatterPlotOptions['cmap'] = plotSettings['cmap']
                     self.actPlot = plt.scatter(self.xValues[pltIndex][key][xIndex],
@@ -1413,7 +1419,8 @@ class OutStreamPlot(OutStreamManager):
                           m.set_array(self.colorMapValues[pltIndex][key])
                           self.actcm = self.fig.colorbar(m)
                           self.actcm.set_label(
-                              self.colorMapCoordinates[pltIndex][0].split('|')[-1].replace(')', ''))
+                              self.colorMapCoordinates[pltIndex][0].split('|')[-1].replace(
+                                  ')', ''))
                         else:
                           #self.actcm.set_clim(vmin = min(self.colorMapValues[pltIndex][key][-1]), vmax = max(self.colorMapValues[pltIndex][key][-1]))
                           self.actcm.draw_all()
@@ -1430,7 +1437,8 @@ class OutStreamPlot(OutStreamManager):
                           m.set_array(self.colorMapValues[pltIndex][key])
                           self.actcm = self.fig.colorbar(m)
                           self.actcm.set_label(
-                              self.colorMapCoordinates[pltIndex][0].split('|')[-1].replace(')', ''))
+                              self.colorMapCoordinates[pltIndex][0].split('|')[-1].replace(
+                                  ')', ''))
                         else:
                           self.actcm.set_clim(
                               vmin=min(self.colorMapValues[pltIndex][key][-1]),
@@ -1715,7 +1723,8 @@ class OutStreamPlot(OutStreamManager):
                   if plotSettings['cmap'] == 'None':
                     self.actPlot = plt.pcolormesh(xig, yig, ma.masked_where(np.isnan(Ci), Ci),
                                                   **plotSettings.get('attributes', {}))
-                    m = matplotlib.cm.ScalarMappable(cmap=self.actPlot.cmap, norm=self.actPlot.norm)
+                    m = matplotlib.cm.ScalarMappable(
+                        cmap=self.actPlot.cmap, norm=self.actPlot.norm)
                   else:
                     self.actPlot = plt.pcolormesh(
                         xig,
@@ -1723,7 +1732,8 @@ class OutStreamPlot(OutStreamManager):
                         ma.masked_where(np.isnan(Ci), Ci),
                         cmap=matplotlib.cm.get_cmap(name=plotSettings['cmap']),
                         **plotSettings.get('attributes', {}))
-                    m = matplotlib.cm.ScalarMappable(cmap=self.actPlot.cmap, norm=self.actPlot.norm)
+                    m = matplotlib.cm.ScalarMappable(
+                        cmap=self.actPlot.cmap, norm=self.actPlot.norm)
                   m.set_array(ma.masked_where(np.isnan(Ci), Ci))
                   if 'colorbar' not in self.options.keys(
                   ) or self.options['colorbar']['colorbar'] != 'off':
@@ -1902,7 +1912,8 @@ class OutStreamPlot(OutStreamManager):
                         self.actcm.draw_all()
                   else:
                     if plotSettings['cmap'] != 'None':
-                      surfacePlotOptions["cmap"] = matplotlib.cm.get_cmap(name=plotSettings['cmap'])
+                      surfacePlotOptions["cmap"] = matplotlib.cm.get_cmap(
+                          name=plotSettings['cmap'])
                     self.actPlot = self.plt3D.plot_trisurf(xs, ys, zs, **surfacePlotOptions)
       ########################
       #    WIREFRAME  PLOT   #
@@ -2055,8 +2066,8 @@ class OutStreamPlot(OutStreamManager):
                           colors=color,
                           **plotSettings.get('attributes', {}))
                     else:
-                      self.actPlot = plt.contour(xig, yig, ma.masked_where(np.isnan(Ci), Ci), nbins,
-                                                 **plotSettings.get('attributes', {}))
+                      self.actPlot = plt.contour(xig, yig, ma.masked_where(np.isnan(Ci), Ci),
+                                                 nbins, **plotSettings.get('attributes', {}))
                   else:
                     if plotSettings['cmap'] == 'None':
                       plotSettings['cmap'] = 'jet'
@@ -2423,8 +2434,8 @@ class OutStreamPlot(OutStreamManager):
                 else:
                   # no ClusterLabels
                   if self.dim == 2:
-                    self.actPlot = plt.scatter(decompositionValues[:, 0], decompositionValues[:, 1],
-                                               **dataMiningPlotOptions)
+                    self.actPlot = plt.scatter(decompositionValues[:, 0],
+                                               decompositionValues[:, 1], **dataMiningPlotOptions)
                   elif self.dim == 3:
                     for zIndex in range(len(self.zValues[pltIndex][key])):
                       decompositionValues[:, 2] = self.zValues[pltIndex][key][zIndex]

@@ -107,7 +107,8 @@ class GradientBasedOptimizer(Optimizer):
       gradientThreshold = convergence.find("gradientThreshold")
       try:
         self.gradientNormTolerance = float(
-            gradientThreshold.text) if gradientThreshold is not None else self.gradientNormTolerance
+            gradientThreshold.text
+        ) if gradientThreshold is not None else self.gradientNormTolerance
       except ValueError:
         self.raiseAnError(ValueError, 'Not able to convert <gradientThreshold> into a float.')
       #grain growth factor, the multiplier for going in the same direction

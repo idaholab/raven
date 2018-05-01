@@ -942,8 +942,8 @@ class TopologyMapView(BaseTopologicalView):
     pair = self.amsc.GetCurrentLabels()[0]
     self.amsc.SetSelection([pair, pair[0], pair[1]])
 
-    genericMouseEvent = qtg.QMouseEvent(qtc.QEvent.MouseMove, qtc.QPoint(0, 0), qtc.Qt.MiddleButton,
-                                        qtc.Qt.MiddleButton, qtc.Qt.NoModifier)
+    genericMouseEvent = qtg.QMouseEvent(qtc.QEvent.MouseMove, qtc.QPoint(
+        0, 0), qtc.Qt.MiddleButton, qtc.Qt.MiddleButton, qtc.Qt.NoModifier)
     self.setPersistence()
     self.mouseReleaseEvent(genericMouseEvent, True)
     self.mouseReleaseEvent(genericMouseEvent, False)

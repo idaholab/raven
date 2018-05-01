@@ -742,8 +742,8 @@ class DendrogramView(ZoomableGraphicsView, BaseHierarchicalView):
     self.setTruncation()
     self.setDiameterMultiplier()
 
-    genericMouseEvent = qtg.QMouseEvent(qtc.QEvent.MouseMove, qtc.QPoint(0, 0), qtc.Qt.MiddleButton,
-                                        qtc.Qt.MiddleButton, qtc.Qt.NoModifier)
+    genericMouseEvent = qtg.QMouseEvent(qtc.QEvent.MouseMove, qtc.QPoint(
+        0, 0), qtc.Qt.MiddleButton, qtc.Qt.MiddleButton, qtc.Qt.NoModifier)
     self.contextMenuEvent(genericMouseEvent)
     self.setLevel()
     self.select()

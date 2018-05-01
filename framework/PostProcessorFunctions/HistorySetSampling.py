@@ -227,9 +227,10 @@ class HistorySetSampling(PostProcessorInterfaceBase):
       for t in range(1, normalizedVar[self.pivotParameter].shape[0] - 1):
         t_contrib = 0.0
         for keys in normalizedVar.keys():
-          t_contrib += abs(
-              normalizedVar[keys][t + 1] - 2.0 * normalizedVar[keys][t] + normalizedVar[keys][t - 1]
-          ) / (normalizedVar[self.pivotParameter][t] - normalizedVar[self.pivotParameter][t - 1])**2
+          t_contrib += abs(normalizedVar[keys][t + 1] - 2.0 * normalizedVar[keys][t] +
+                           normalizedVar[keys][t - 1]) / (
+                               normalizedVar[self.pivotParameter][t] -
+                               normalizedVar[self.pivotParameter][t - 1])**2
         cumDerivative[t] = cumDerivative[t - 1] + t_contrib
       cumDerivative[-1] = cumDerivative[normalizedVar[self.pivotParameter].shape[0] - 2]
 

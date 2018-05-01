@@ -69,12 +69,13 @@ class CrossValidation(PostProcessor):
 
     for name, inputType in [("n", InputData.IntegerType), ("p", InputData.IntegerType),
                             ("n_splits", InputData.IntegerType), ("shuffle", InputData.StringType),
-                            ("random_state", InputData.StringType), ("y", InputData.StringType),
-                            ("labels", InputData.StringType), ("n_iter", InputData.IntegerType),
-                            ("test_size",
-                             InputData.StringType), ("train_size",
-                                                     InputData.StringType), ("scores",
-                                                                             InputData.StringType)]:
+                            ("random_state",
+                             InputData.StringType), ("y",
+                                                     InputData.StringType), ("labels",
+                                                                             InputData.StringType),
+                            ("n_iter", InputData.IntegerType), ("test_size", InputData.StringType),
+                            ("train_size", InputData.StringType), ("scores",
+                                                                   InputData.StringType)]:
       dataType = InputData.parameterInputFactory(name, contentType=inputType)
       sciKitLearnInput.addSub(dataType)
 

@@ -61,7 +61,8 @@ class BisonAndMesh(CodeInterfaceBase):  #MooseBasedAppInterface,BisonMeshScriptI
         cubitInp = inFile
     if not foundMooseInp:
       raise IOError(
-          'None of the input Files has the type "MooseInput"! BisonAndMesh interface requires one.')
+          'None of the input Files has the type "MooseInput"! BisonAndMesh interface requires one.'
+      )
     if not foundCubitInp:
       raise IOError(
           'None of the input Files has the type "BisonMeshInput"! BisonAndMesh interface requires one.'
@@ -124,8 +125,8 @@ class BisonAndMesh(CodeInterfaceBase):  #MooseBasedAppInterface,BisonMeshScriptI
       else:
         del cargs['SampledVars'][vname]
     # Generate new cubit input files and extract exodus file name to add to SampledVars going to moose
-    newCubitInputs = self.BisonMeshInterface.createNewInput([cubitInp], [origCubitInp], samplerType,
-                                                            **cargs)
+    newCubitInputs = self.BisonMeshInterface.createNewInput([cubitInp], [origCubitInp],
+                                                            samplerType, **cargs)
     margs['SampledVars']['Mesh|file'] = 'mesh~' + newCubitInputs[0].getBase() + '.e'
     newMooseInputs = self.MooseInterface.createNewInput([mooseInp], [origMooseInp], samplerType,
                                                         **margs)

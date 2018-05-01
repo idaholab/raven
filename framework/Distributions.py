@@ -42,6 +42,7 @@ from utils.randomUtils import random
 distribution1D = utils.find_distribution1D()
 from utils import InputData
 from utils import mathUtils
+
 #Internal Modules End------------------------------------------------------------------------------
 
 
@@ -133,7 +134,7 @@ class Distribution(BaseType):
     # this describe how the re-normalization to preserve the probability
     # should be done for truncated distributions
     self.__adjustmentType = ''
-      # Dimensionality of the distribution (1D or ND)
+    # Dimensionality of the distribution (1D or ND)
     self.dimensionality = None
     # distribution type (continuous or discrete)
     self.disttype = None
@@ -153,7 +154,7 @@ class Distribution(BaseType):
     self.convertToQuadDict = {}
     # dict of methods keyed on quadrature types to provide scalar adjustment for measure
     # transformation (from quad to distr)
-    self.measureNormDict = { }
+    self.measureNormDict = {}
     self.convertToDistrDict['CDFLegendre'] = self.CDFconvertToDistr
     self.convertToQuadDict['CDFLegendre'] = self.CDFconvertToQuad
     self.measureNormDict['CDFLegendre'] = self.CDFMeasureNorm
@@ -540,11 +541,9 @@ class Uniform(BoostDistribution):
     """
     BoostDistribution._handleInput(self, paramInput)
     if not self.upperBoundUsed or not self.lowerBoundUsed:
-      self.raiseAnError(
-          IOError,
-          'the Uniform distribution needs both upperBound and'+
-          ' lowerBound attributes. Got upperBound? '
-          + str(self.upperBoundUsed) + '. Got lowerBound? ' + str(self.lowerBoundUsed))
+      self.raiseAnError(IOError, 'the Uniform distribution needs both upperBound and' +
+                        ' lowerBound attributes. Got upperBound? ' + str(self.upperBoundUsed) +
+                        '. Got lowerBound? ' + str(self.lowerBoundUsed))
     self.range = self.upperBound - self.lowerBound
     self.initializeDistribution()
 
@@ -731,10 +730,8 @@ class Normal(BoostDistribution):
     """
     sv = str(scipy.__version__).split('.')
     if int(sv[0]) == 0 and int(sv[1]) == 15:
-      self.raiseAWarning(
-          'SciPy 0.15 detected!  In this version, the normalization factor'+
-          ' for normal distributions was modified.'
-      )
+      self.raiseAWarning('SciPy 0.15 detected!  In this version, the normalization factor' +
+                         ' for normal distributions was modified.')
       self.raiseAWarning('Using modified value...')
       return 1.0 / np.sqrt(np.pi / 2.)
     else:
@@ -845,7 +842,7 @@ class Gamma(BoostDistribution):
     if not self.lowerBoundUsed:
       self.lowerBoundUsed = True
       self.lowerBound = self.low
-    self.initializeDistribution( )
+    self.initializeDistribution()
 
   def getInitParams(self):
     """
@@ -1098,7 +1095,8 @@ class Beta(BoostDistribution):
       @ In, None
       @ Out, norm, float, norm
     """
-    B = factorial(self.alpha - 1) * factorial(self.beta - 1) / factorial(self.alpha + self.beta - 1)
+    B = factorial(self.alpha - 1) * factorial(self.beta - 1) / factorial(
+        self.alpha + self.beta - 1)
     norm = 1.0 / (2**(self.alpha + self.beta - 1) * B)
     return norm
 
@@ -1223,7 +1221,8 @@ class Triangular(BoostDistribution):
     if (self.lowerBoundUsed == False
         and self.upperBoundUsed == False) or (self.min == self.lowerBound
                                               and self.max == self.upperBound):
-      self._distribution = distribution1D.BasicTriangularDistribution(self.apex, self.min, self.max)
+      self._distribution = distribution1D.BasicTriangularDistribution(
+          self.apex, self.min, self.max)
     else:
       self.raiseAnError(IOError, 'Truncated triangular not yet implemented')
 
@@ -1345,7 +1344,8 @@ class Binomial(BoostDistribution):
     inputSpecification = super(Binomial, cls).getInputSpecification()
     inputSpecification.addSub(
         InputData.parameterInputFactory("n", contentType=InputData.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("p", contentType=InputData.FloatType))
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("p", contentType=InputData.FloatType))
 
     return inputSpecification
 
@@ -1448,7 +1448,8 @@ class Bernoulli(BoostDistribution):
         specifying input of cls.
     """
     inputSpecification = super(Bernoulli, cls).getInputSpecification()
-    inputSpecification.addSub(InputData.parameterInputFactory("p", contentType=InputData.FloatType))
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("p", contentType=InputData.FloatType))
 
     return inputSpecification
 
@@ -1543,7 +1544,8 @@ class Geometric(BoostDistribution):
         specifying input of cls.
     """
     inputSpecification = super(Geometric, cls).getInputSpecification()
-    inputSpecification.addSub(InputData.parameterInputFactory("p", contentType=InputData.FloatType))
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("p", contentType=InputData.FloatType))
 
     return inputSpecification
 
@@ -1708,9 +1710,9 @@ class Categorical(Distribution):
     for element in self.mapping:
       totPsum += self.mapping[element]
     if not mathUtils.compareFloats(totPsum, 1.0):
-      self.raiseAnError(IOError,
-                        'Categorical distribution cannot be initialized: sum of probabilities is ' +
-                        repr(totPsum) + ', not 1.0')
+      self.raiseAnError(
+          IOError, 'Categorical distribution cannot be initialized: sum of probabilities is ' +
+          repr(totPsum) + ', not 1.0')
 
   def pdf(self, x):
     """
@@ -1874,7 +1876,8 @@ class Logistic(BoostDistribution):
         b = sys.float_info.max
       else:
         b = self.upperBound
-      self._distribution = distribution1D.BasicLogisticDistribution(self.location, self.scale, a, b)
+      self._distribution = distribution1D.BasicLogisticDistribution(self.location, self.scale, a,
+                                                                    b)
 
 
 DistributionsCollection.addSub(Logistic.getInputSpecification())
@@ -2287,7 +2290,8 @@ class Weibull(BoostDistribution):
     inputSpecification = super(Weibull, cls).getInputSpecification()
     inputSpecification.addSub(
         InputData.parameterInputFactory("low", contentType=InputData.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("k", contentType=InputData.FloatType))
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("k", contentType=InputData.FloatType))
     inputSpecification.addSub(
         InputData.parameterInputFactory("lambda", contentType=InputData.FloatType))
 
@@ -2383,7 +2387,8 @@ class Weibull(BoostDistribution):
     """
     if (self.lowerBoundUsed == False and self.upperBoundUsed == False):
       # or self.lowerBound == 0.0:
-      self._distribution = distribution1D.BasicWeibullDistribution(self.k, self.lambdaVar, self.low)
+      self._distribution = distribution1D.BasicWeibullDistribution(self.k, self.lambdaVar,
+                                                                   self.low)
     else:
       if self.lowerBoundUsed == False:
         a = self.low
@@ -2461,31 +2466,25 @@ class Custom1D(Distribution):
       self.raiseAnError(IOError,
                         ' functionType parameter is needed for custom1Ddistribution distribution')
     if not self.functionType in ['cdf', 'pdf']:
-      self.raiseAnError(
-          IOError,
-          ' wrong functionType parameter specified for '+
-          'custom1Ddistribution distribution (pdf or cdf)'
-      )
+      self.raiseAnError(IOError, ' wrong functionType parameter specified for ' +
+                        'custom1Ddistribution distribution (pdf or cdf)')
 
     dataFilename = paramInput.findFirst('dataFilename')
     if dataFilename != None:
       self.dataFilename = os.path.join(self.workingDir, dataFilename.value)
     else:
-      self.raiseAnError(IOError,
-                        '<dataFilename> parameter needed for '+
-                        'custom1Ddistribution distribution')
+      self.raiseAnError(
+          IOError, '<dataFilename> parameter needed for ' + 'custom1Ddistribution distribution')
 
     self.functionID = paramInput.findFirst('functionID').value
     if self.functionID == None:
-      self.raiseAnError(IOError,
-                        ' functionID parameter is needed for '+
-                        'custom1Ddistribution distribution')
+      self.raiseAnError(
+          IOError, ' functionID parameter is needed for ' + 'custom1Ddistribution distribution')
 
     self.variableID = paramInput.findFirst('variableID').value
     if self.variableID == None:
-      self.raiseAnError(IOError,
-                        ' variableID parameter is needed for '+
-                        'custom1Ddistribution distribution')
+      self.raiseAnError(
+          IOError, ' variableID parameter is needed for ' + 'custom1Ddistribution distribution')
 
     self.initializeDistribution()
 
@@ -2503,7 +2502,10 @@ class Custom1D(Distribution):
     indexVariableID = headers.index(self.variableID)
     f.close()
     rawData = np.genfromtxt(
-        self.dataFilename, delimiter=",", skip_header=1, usecols=(indexVariableID, indexFunctionID))
+        self.dataFilename,
+        delimiter=",",
+        skip_header=1,
+        usecols=(indexVariableID, indexFunctionID))
 
     self.data = rawData[rawData[:, 0].argsort()]
 
@@ -2692,7 +2694,8 @@ class NDInverseWeight(NDimensionalDistributions):
     DataFilenameParameterInput.addParam("type", InputData.StringType, True)
     inputSpecification.addSub(DataFilenameParameterInput)
 
-    inputSpecification.addSub(InputData.parameterInputFactory("p", contentType=InputData.FloatType))
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("p", contentType=InputData.FloatType))
 
     return inputSpecification
 
@@ -2839,7 +2842,8 @@ class NDInverseWeight(NDimensionalDistributions):
       @ In, x, float, value to get the untruncated  Hazard   at
       @ Out, float, requested untruncated  Hazard
     """
-    self.raiseAnError(NotImplementedError, 'untruncatedHazard not yet implemented for ' + self.type)
+    self.raiseAnError(NotImplementedError,
+                      'untruncatedHazard not yet implemented for ' + self.type)
 
   def untruncatedMean(self):
     """
@@ -2855,7 +2859,8 @@ class NDInverseWeight(NDimensionalDistributions):
       @ In, None
       @ Out, float, requested Median
     """
-    self.raiseAnError(NotImplementedError, 'untruncatedMedian not yet implemented for ' + self.type)
+    self.raiseAnError(NotImplementedError,
+                      'untruncatedMedian not yet implemented for ' + self.type)
 
   def untruncatedMode(self):
     """
@@ -3036,7 +3041,8 @@ class NDCartesianSpline(NDimensionalDistributions):
       @ In, x, float, value to get the untruncated  Hazard   at
       @ Out, float, requested untruncated  Hazard
     """
-    self.raiseAnError(NotImplementedError, 'untruncatedHazard not yet implemented for ' + self.type)
+    self.raiseAnError(NotImplementedError,
+                      'untruncatedHazard not yet implemented for ' + self.type)
 
   def untruncatedMean(self):
     """
@@ -3052,7 +3058,8 @@ class NDCartesianSpline(NDimensionalDistributions):
       @ In, None
       @ Out, float, requested Median
     """
-    self.raiseAnError(NotImplementedError, 'untruncatedMedian not yet implemented for ' + self.type)
+    self.raiseAnError(NotImplementedError,
+                      'untruncatedMedian not yet implemented for ' + self.type)
 
   def untruncatedMode(self):
     """
@@ -3145,11 +3152,9 @@ class MultivariateNormal(NDimensionalDistributions):
     elif paramInput.parameterValues['method'] == 'spline':
       self.method = 'spline'
     else:
-      self.raiseAnError(
-          IOError,
-          'The method attribute for the MultivariateNormal Distribution is not '+
-          'correct, choose "pca" or "spline"'
-      )
+      self.raiseAnError(IOError,
+                        'The method attribute for the MultivariateNormal Distribution is not ' +
+                        'correct, choose "pca" or "spline"')
     for child in paramInput.subparts:
       if child.getName() == 'mu':
         mu = [float(value) for value in child.value.split()]
@@ -3274,7 +3279,8 @@ class MultivariateNormal(NDimensionalDistributions):
         for i in range(len(index)):
           coordinateIndex[i] = index[i]
           matrixDim = self._distribution.getInverseTransformationMatrixDimensions(coordinateIndex)
-          inverseTransformation = self._distribution.getInverseTransformationMatrix(coordinateIndex)
+          inverseTransformation = self._distribution.getInverseTransformationMatrix(
+              coordinateIndex)
       else:
         matrixDim = self._distribution.getInverseTransformationMatrixDimensions()
         inverseTransformation = self._distribution.getInverseTransformationMatrix()
@@ -3320,11 +3326,9 @@ class MultivariateNormal(NDimensionalDistributions):
     """
     if self.method == 'pca':
       if len(x) > self.rank:
-        self.raiseAnError(
-            IOError,
-            'The dimension of the latent variables defined in <Samples> is '+
-            'large than the rank defined in <Distributions>'
-        )
+        self.raiseAnError(IOError,
+                          'The dimension of the latent variables defined in <Samples> is ' +
+                          'large than the rank defined in <Distributions>')
       coordinate = distribution1D.vectord_cxx(len(x))
       for i in range(len(x)):
         coordinate[i] = x[i]
@@ -3451,9 +3455,8 @@ class MultivariateNormal(NDimensionalDistributions):
       elif self.method == 'spline':
         inverseMarginal = self._distribution.inverseMarginal(x, variable)
     else:
-      self.raiseAnError(
-          ValueError,
-          'NDInverseWeight: inverseMarginalDistribution(x) with x ' + str(x) + ' outside [0.0,1.0]')
+      self.raiseAnError(ValueError, 'NDInverseWeight: inverseMarginalDistribution(x) with x ' +
+                        str(x) + ' outside [0.0,1.0]')
     return inverseMarginal
 
   def untruncatedCdfComplement(self, x):
@@ -3471,7 +3474,8 @@ class MultivariateNormal(NDimensionalDistributions):
       @ In, x, float, value to get the untruncated  Hazard   at
       @ Out, float, requested untruncated  Hazard
     """
-    self.raiseAnError(NotImplementedError, 'untruncatedHazard not yet implemented for ' + self.type)
+    self.raiseAnError(NotImplementedError,
+                      'untruncatedHazard not yet implemented for ' + self.type)
 
   def untruncatedMean(self, x):
     """
@@ -3487,7 +3491,8 @@ class MultivariateNormal(NDimensionalDistributions):
       @ In, x, float, the value
       @ Out, float, requested Median
     """
-    self.raiseAnError(NotImplementedError, 'untruncatedMedian not yet implemented for ' + self.type)
+    self.raiseAnError(NotImplementedError,
+                      'untruncatedMedian not yet implemented for ' + self.type)
 
   def untruncatedMode(self, x):
     """

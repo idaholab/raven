@@ -290,7 +290,8 @@ class EnsembleModel(Dummy):
           'TargetEvaluation', self.modelsDictionary[modelName]['TargetEvaluation'], True)
       # assert acceptable TargetEvaluation types are used
       if targetEvaluation.type not in ['PointSet', 'HistorySet', 'DataSet']:
-        self.raiseAnError(IOError, "Only DataObjects are allowed as TargetEvaluation object. Got " +
+        self.raiseAnError(IOError,
+                          "Only DataObjects are allowed as TargetEvaluation object. Got " +
                           str(targetEvaluation.type) + "!")
       # localTargetEvaluations are for passing data and then resetting, not keeping data between samples
       self.localTargetEvaluations[modelName] = copy.deepcopy(targetEvaluation)
@@ -395,10 +396,10 @@ class EnsembleModel(Dummy):
         indexModelIn = self.orderList.index(modelIn)
         for metadataToGet, source, _ in self.modelsDictionary[modelIn]['metadataToTransfer']:
           if self.orderList.index(source) >= indexModelIn:
-            self.raiseAnError(
-                IOError,
-                'In model "' + modelIn + '" the "metadataToTransfer" named "' + metadataToGet +
-                '" is linked to the source"' + source + '" that will be executed after this model.')
+            self.raiseAnError(IOError,
+                              'In model "' + modelIn + '" the "metadataToTransfer" named "' +
+                              metadataToGet + '" is linked to the source"' + source +
+                              '" that will be executed after this model.')
     self.needToCheckInputs = True
     # write debug statements
     self.raiseADebug("Specs of Graph Network represented by EnsembleModel:")
@@ -678,7 +679,8 @@ class EnsembleModel(Dummy):
               self.modelsDictionary[modelIn]['Input']) - set(dependentOutput.keys() + sampledVars)
           for initialConditionToSet in conditionsToCheck:
             if initialConditionToSet in self.initialConditions.keys():
-              dependentOutput[initialConditionToSet] = self.initialConditions[initialConditionToSet]
+              dependentOutput[initialConditionToSet] = self.initialConditions[
+                  initialConditionToSet]
             else:
               self.raiseAnError(
                   IOError, "No initial conditions provided for variable " + initialConditionToSet)
@@ -706,8 +708,8 @@ class EnsembleModel(Dummy):
               # run the model
               #if modelIn not in modelsOnHold:
               self.raiseADebug('Submitting model', modelIn)
-              self.modelsDictionary[modelIn]['Instance'].submit(originalInput[modelIn], samplerType,
-                                                                jobHandler, **inputKwargs[modelIn])
+              self.modelsDictionary[modelIn]['Instance'].submit(
+                  originalInput[modelIn], samplerType, jobHandler, **inputKwargs[modelIn])
               # wait until the model finishes, in order to get ready to run the subsequential one
               while not jobHandler.isThisJobFinished(
                   modelIn + utils.returnIdSeparator() + identifier):
@@ -767,7 +769,8 @@ class EnsembleModel(Dummy):
             residueContainer[modelIn]['iterValues'][1] = copy.copy(
                 residueContainer[modelIn]['iterValues'][0])
             for out in inRunTargetEvaluations[modelIn].getVars("output"):
-              residueContainer[modelIn]['iterValues'][0][out] = copy.copy(gotOutputs[modelCnt][out])
+              residueContainer[modelIn]['iterValues'][0][out] = copy.copy(
+                  gotOutputs[modelCnt][out])
               if iterationCount == 1:
                 residueContainer[modelIn]['iterValues'][1][out] = np.zeros(
                     len(residueContainer[modelIn]['iterValues'][0][out]))

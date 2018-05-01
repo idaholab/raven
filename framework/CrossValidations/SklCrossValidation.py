@@ -70,7 +70,8 @@ class SciKitLearn(CrossValidation):
 
     if 'SKLtype' not in self.initOptionDict.keys():
       self.raiseAnError(
-          IOError, 'Missing XML node: Cross validation from SciKitLearn requires keyword "SKLtype"')
+          IOError,
+          'Missing XML node: Cross validation from SciKitLearn requires keyword "SKLtype"')
     self.SKLType = self.initOptionDict['SKLtype']
     self.initOptionDict.pop('SKLtype')
 

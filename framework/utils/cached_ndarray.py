@@ -372,8 +372,8 @@ class cNDarray(object):
           self.width, entry.shape))
     # must have matching width (fix for single entry case)
     if entry.shape[0] != self.width:
-      raise IOError('Tried to add new data to cNDarray.  Need {} entries in array, but got '.format(
-          self.width) + str(entry.shape[0]))
+      raise IOError('Tried to add new data to cNDarray.  Need {} entries in array, but got '.
+                    format(self.width) + str(entry.shape[0]))
     # check if there's enough space in cache to append the new entries
     if self.size + 1 > self.capacity:
       # since there's not enough space, quadruple available space # TODO change growth parameter to be variable?

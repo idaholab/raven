@@ -97,7 +97,8 @@ def _getGraphs(functions, fZStats=False):
     return mathUtils.simpson(lambda x: x * f(x), a, b, n)
 
   #print a bunch of comparison statistics
-  pdfCommonArea = mathUtils.simpson(lambda x: min(pdfs[0](x), pdfs[1](x)), lowLow, highHigh, 100000)
+  pdfCommonArea = mathUtils.simpson(lambda x: min(pdfs[0](x), pdfs[1](x)), lowLow, highHigh,
+                                    100000)
   for i in range(len(pdfs)):
     pdfArea = mathUtils.simpson(pdfs[i], lowLow, highHigh, 100000)
     retDict['pdf_area_' + names[i]] = pdfArea
@@ -475,7 +476,8 @@ class ComparisonStatistics(PostProcessor):
         distributionName = reference["name"]
         if not distributionName in self.distributions:
           self.raiseAnError(
-              IOError, 'Did not find ' + distributionName + ' in ' + str(self.distributions.keys()))
+              IOError,
+              'Did not find ' + distributionName + ' in ' + str(self.distributions.keys()))
         else:
           distribution = self.distributions[distributionName]
         refDataStats = {

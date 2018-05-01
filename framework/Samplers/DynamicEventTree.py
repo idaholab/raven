@@ -298,7 +298,8 @@ class DynamicEventTree(Grid):
             self.branchProbabilities[endInfo['branchDist']]) - 1:
           pb = 1.0
         else:
-          pb = self.branchProbabilities[endInfo['branchDist']][branchedLevel[endInfo['branchDist']]]
+          pb = self.branchProbabilities[endInfo['branchDist']][branchedLevel[endInfo[
+              'branchDist']]]
         endInfo['branchChangedParams'][key]['unchangedPb'] = 1.0 - pb
         endInfo['branchChangedParams'][key]['associatedProbability'] = [pb]
 
@@ -884,9 +885,8 @@ class DynamicEventTree(Grid):
         errorMsgs += "Distribution-mode sampling activated in " + self.name + ". In this case every <distribution> needs to be assocaited with one single <Distribution> block!\n"
         errorFound = True
     if errorFound:
-      self.raiseAnError(
-          IOError,
-          "In sampler named " + self.name + ' the following errors have been found: \n' + errorMsgs)
+      self.raiseAnError(IOError, "In sampler named " + self.name +
+                        ' the following errors have been found: \n' + errorMsgs)
     # Append the branchedLevel dictionary in the proper list
     self.branchedLevel.append(branchedLevel)
 

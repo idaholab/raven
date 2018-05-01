@@ -179,7 +179,8 @@ class Code(Model):
         elif argtype == 'postpend':
           if ext != None:
             self.raiseAWarning(
-                '"postpend" nodes only accept "type" and "arg" attributes! Ignoring "extension"...')
+                '"postpend" nodes only accept "type" and "arg" attributes! Ignoring "extension"...'
+            )
           if arg == None:
             self.raiseAnError(
                 IOError, '"arg" for clarg ' + argtype + ' not specified! Enter text to be used.')
@@ -511,9 +512,10 @@ class Code(Model):
       elif runtype.lower() == 'serial':
         commands.append(cmd)
       else:
-        self.raiseAnError(IOError, 'For execution command <' + cmd +
-                          '> the run type was neither "serial" nor "parallel"!  Instead received: ',
-                          runtype, '\nPlease check the code interface.')
+        self.raiseAnError(
+            IOError, 'For execution command <' + cmd +
+            '> the run type was neither "serial" nor "parallel"!  Instead received: ', runtype,
+            '\nPlease check the code interface.')
 
     command = ' && '.join(commands) + ' '
 
@@ -669,8 +671,8 @@ class Code(Model):
         if not fileExt.startswith("."):
           fileExt = "." + fileExt
         fileList = [
-            os.path.join(metaData['subDirectory'], f) for f in os.listdir(metaData['subDirectory'])
-            if f.endswith(fileExt)
+            os.path.join(metaData['subDirectory'], f)
+            for f in os.listdir(metaData['subDirectory']) if f.endswith(fileExt)
         ]
         for f in fileList:
           os.remove(f)

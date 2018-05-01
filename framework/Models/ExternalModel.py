@@ -165,7 +165,8 @@ class ExternalModel(Dummy):
     elif len(paramInput.parameterValues['subType'].strip()) > 0:
       # it is a plugin. Look for the type in the plugins class list
       if paramInput.parameterValues['subType'] not in ExternalModel.plugins.knownTypes():
-        self.raiseAnError(IOError, 'The "subType" named "' + paramInput.parameterValues['subType'] +
+        self.raiseAnError(IOError,
+                          'The "subType" named "' + paramInput.parameterValues['subType'] +
                           '" does not belong to any ExternalModel plugin available. ' +
                           'Available plugins are "' + ','.join(ExternalModel.plugins.knownTypes()))
       self.sim = ExternalModel.plugins.returnPlugin("ExternalModel",
@@ -249,7 +250,8 @@ class ExternalModel(Dummy):
       CustomCommandExecuter.execCommand(
           'self.' + key + ' = copy.copy(object.' + key + ')',
           self=self.initExtSelf,
-          object=externalSelf)  #exec('self.initExtSelf.' +key+' = copy.copy(externalSelf.'+key+')')
+          object=externalSelf
+      )  #exec('self.initExtSelf.' +key+' = copy.copy(externalSelf.'+key+')')
     if None in self.modelVariableType.values():
       errorFound = False
       for key in self.modelVariableType.keys():

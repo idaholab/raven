@@ -78,8 +78,9 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
 
         if not self.measures.issubset(self.availableMeasures()):
           unrecognizedMeasures = self.measures.difference(self.availableMeasures())
-          self.raiseAnError(IOError, 'RiskMeasuresDiscrete Interfaced Post-Processor ' + str(
-              self.name) + ' : measures ' + str(list(unrecognizedMeasures)) + ' are not recognized')
+          self.raiseAnError(
+              IOError, 'RiskMeasuresDiscrete Interfaced Post-Processor ' + str(self.name) +
+              ' : measures ' + str(list(unrecognizedMeasures)) + ' are not recognized')
 
       elif child.tag == 'variable':
         variableID = child.text
@@ -180,11 +181,12 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
         if var != self.temporalID:
           ## Are there any values in timeDepData['data']['output'][1][var] that are not 0 or 1?
           if len(np.setdiff1d(timeDepData['data'][var][0], [0, 1])):
-            self.raiseAnError(IOError, 'RiskMeasuresDiscrete Interfaced Post-Processor ' +
-                              str(self.name) + ' : the provided HistorySet contains the variable ' +
-                              str(var) + ' which has elements different than 0 or 1')
+            self.raiseAnError(IOError, 'RiskMeasuresDiscrete Interfaced Post-Processor ' + str(
+                self.name) + ' : the provided HistorySet contains the variable ' + str(var) +
+                              ' which has elements different than 0 or 1')
       outputDic['data'][self.temporalID] = np.zeros(1, dtype=object)
-      outputDic['data'][self.temporalID][0] = copy.deepcopy(timeDepData['data'][self.temporalID][0])
+      outputDic['data'][self.temporalID][0] = copy.deepcopy(
+          timeDepData['data'][self.temporalID][0])
 
       for var in timeDepData['inpVars']:
         outputDic['data'][var] = copy.deepcopy(timeDepData['data'][var])
@@ -205,9 +207,8 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
      @ Out, outputDic, dict, dictionary which contains the risk measures
     """
     if self.temporalID is not None and componentConfig is None:
-      self.raiseAnError(IOError,
-                        'RiskMeasuresDiscrete Interfaced Post-Processor ' + str(self.name) +
-                        ' : a temporalID variable is specified but an HistorySet is not provided')
+      self.raiseAnError(IOError, 'RiskMeasuresDiscrete Interfaced Post-Processor ' + str(
+          self.name) + ' : a temporalID variable is specified but an HistorySet is not provided')
 
     riskImportanceMeasures = {}
     for variable in self.variables:
@@ -259,7 +260,8 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
           else:
             inputName = inp['name']
             inputDataIn = {key: inp['data'][key] for key in inp['inpVars']}  #inp['data']['input']
-            inputDataOut = {key: inp['data'][key] for key in inp['outVars']}  #inp['data']['output']
+            inputDataOut = {key: inp['data'][key]
+                            for key in inp['outVars']}  #inp['data']['output']
             targetVar = np.asarray(inputDataOut[self.target['targetID']])
             inputMetadata = {}
             inputMetadata['ProbabilityWeight'] = inp['data']['ProbabilityWeight']

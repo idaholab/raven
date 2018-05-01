@@ -273,7 +273,8 @@ class OpenModelica(CodeInterfaceBase):
     # Make a new temporary file in the working directory and read the lines from the original CSV
     #   to it, stripping trailing commas in the process.
     tempOutputFD, tempOutputFileName = tempfile.mkstemp(dir=workingDir, text=True)
-    sourceFileName = os.path.join(workingDir, output)  # The source file comes in without .csv on it
+    sourceFileName = os.path.join(workingDir,
+                                  output)  # The source file comes in without .csv on it
     print('sourcefilename:', sourceFileName)
     destFileName = sourceFileName.replace('rawout~',
                                           'out~')  # When fix the CSV, change rawout~ to out~

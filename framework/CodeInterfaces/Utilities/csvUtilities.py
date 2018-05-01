@@ -40,7 +40,10 @@ class csvUtilityClass(object):
     This utility class is aimed to provide utilities for CSV handling.
   """
 
-  def __init__(self, listOfFiles, linesToSkipAfterHeader=0, delimeter=",",
+  def __init__(self,
+               listOfFiles,
+               linesToSkipAfterHeader=0,
+               delimeter=",",
                mergeSameVariables=False):
     """
       Constructor

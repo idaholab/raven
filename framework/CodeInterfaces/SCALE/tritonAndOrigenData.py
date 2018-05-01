@@ -413,7 +413,8 @@ class origenAndTritonData:
             fileout.strip(), mode='w+')
     headers = ['time']
     timeGrid = None
-    nParams = np.sum([len(data['info_ids']) for data in self.data.values() if data is not None]) + 1
+    nParams = np.sum([len(data['info_ids']) for data in self.data.values()
+                      if data is not None]) + 1
 
     for dataId, data in self.data.items():
       if data is not None:

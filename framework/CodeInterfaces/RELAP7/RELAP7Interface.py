@@ -59,8 +59,8 @@ class RELAP7(CodeInterfaceBase):
     else:
       precommand = executable
     executeCommand = [
-        ('parallel', precommand + ' -i ' + inputFiles[index].getFilename() + ' Outputs/file_base=' +
-         outputfile + ' Outputs/csv=false' + ' Outputs/checkpoint=true' +
+        ('parallel', precommand + ' -i ' + inputFiles[index].getFilename() +
+         ' Outputs/file_base=' + outputfile + ' Outputs/csv=false' + ' Outputs/checkpoint=true' +
          ' Outputs/tail/type=ControlLogicBranchingInfo' + ' Outputs/ravenCSV/type=CSVRaven')
     ]
     returnCommand = executeCommand, outputfile

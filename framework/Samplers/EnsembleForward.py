@@ -203,8 +203,8 @@ class EnsembleForward(ForwardSampler):
       while self.instanciatedSamplers[samplingStrategy].amIreadyToProvideAnInput():
         self.instanciatedSamplers[samplingStrategy].counter += 1
         self.instanciatedSamplers[samplingStrategy].localGenerateInput(None, None)
-        self.instanciatedSamplers[samplingStrategy].inputInfo['prefix'] = self.instanciatedSamplers[
-            samplingStrategy].counter
+        self.instanciatedSamplers[samplingStrategy].inputInfo[
+            'prefix'] = self.instanciatedSamplers[samplingStrategy].counter
         self.samplersCombinations[samplingStrategy].append(
             copy.deepcopy(self.instanciatedSamplers[samplingStrategy].inputInfo))
       cnt += 1

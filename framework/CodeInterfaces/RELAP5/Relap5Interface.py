@@ -343,7 +343,10 @@ class Relap5(CodeInterfaceBase):
             })
         else:
           if card not in deckList[deck].keys():
-            deckList[deck][card] = [{'position': int(key[1]), 'value': Kwargs['SampledVars'][keys]}]
+            deckList[deck][card] = [{
+                'position': int(key[1]),
+                'value': Kwargs['SampledVars'][keys]
+            }]
           else:
             deckList[deck][card].append({
                 'position': int(key[1]),

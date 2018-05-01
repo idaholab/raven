@@ -160,7 +160,8 @@ class DataSet(DataObject):
     if not self._checkRealizationFormat(rlz):
       self.raiseAnError(
           SyntaxError,
-          'Realization was not formatted correctly for "{}"! See warnings above.'.format(self.name))
+          'Realization was not formatted correctly for "{}"! See warnings above.'.format(
+              self.name))
     # format the data
     rlz = self._formatRealization(rlz)
     ## establish types if not done yet
@@ -804,7 +805,8 @@ class DataSet(DataObject):
     for key, value in rlz.items():
       #if not isinstance(value,(float,int,unicode,str,np.ndarray)): TODO someday be more flexible with entries?
       if not isinstance(value, np.ndarray):
-        self.raiseAWarning('Variable "{}" is not an acceptable type: "{}"'.format(key, type(value)))
+        self.raiseAWarning('Variable "{}" is not an acceptable type: "{}"'.format(
+            key, type(value)))
         return False
       # check if index-dependent variables have matching shapes
       # FIXME: this check will not work in case of variables depending on multiple indexes. When this need comes, we will change this check(alfoa)
@@ -1613,7 +1615,8 @@ class DataSet(DataObject):
         self._scaleFactors[var] = (mean, scale)
       except Exception:
         self.raiseADebug(
-            'Had an issue with setting scaling factors for variable "{}". No big deal.'.format(var))
+            'Had an issue with setting scaling factors for variable "{}". No big deal.'.format(
+                var))
         pass
 
   def _toCSV(self, fileName, start=0, **kwargs):

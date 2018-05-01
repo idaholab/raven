@@ -130,8 +130,10 @@ class ROM(Dummy):
     inputSpecification.addSub(InputData.parameterInputFactory("C", InputData.FloatType))
     inputSpecification.addSub(
         InputData.parameterInputFactory("intercept_scaling", InputData.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("class_weight", InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("random_state", InputData.StringType))
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("class_weight", InputData.StringType))
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("random_state", InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("cv", InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("shuffle",
                                                               InputData.StringType))  #bool
@@ -155,8 +157,8 @@ class ROM(Dummy):
     inputSpecification.addSub(InputData.parameterInputFactory("degree", InputData.IntegerType))
     inputSpecification.addSub(InputData.parameterInputFactory("gamma", InputData.FloatType))
     inputSpecification.addSub(InputData.parameterInputFactory("coef0", InputData.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("probability",
-                                                              InputData.StringType))  #bool
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("probability", InputData.StringType))  #bool
     inputSpecification.addSub(InputData.parameterInputFactory("shrinking",
                                                               InputData.StringType))  #bool
     inputSpecification.addSub(InputData.parameterInputFactory("cache_size", InputData.FloatType))
@@ -166,7 +168,8 @@ class ROM(Dummy):
                                                               InputData.StringType))  #bool
     inputSpecification.addSub(InputData.parameterInputFactory("class_prior", InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("binarize", InputData.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("n_neighbors", InputData.IntegerType))
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("n_neighbors", InputData.IntegerType))
     inputSpecification.addSub(InputData.parameterInputFactory("weights",
                                                               InputData.StringType))  #enum
     inputSpecification.addSub(InputData.parameterInputFactory("algorithm",
@@ -183,7 +186,8 @@ class ROM(Dummy):
     inputSpecification.addSub(InputData.parameterInputFactory("reg_param", InputData.FloatType))
     inputSpecification.addSub(InputData.parameterInputFactory("splitter",
                                                               InputData.StringType))  #enum
-    inputSpecification.addSub(InputData.parameterInputFactory("max_features", InputData.StringType))
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("max_features", InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("max_depth", InputData.StringType))
     inputSpecification.addSub(
         InputData.parameterInputFactory("min_samples_split", InputData.IntegerType))
@@ -192,7 +196,8 @@ class ROM(Dummy):
     inputSpecification.addSub(
         InputData.parameterInputFactory("max_leaf_nodes", InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("regr", InputData.StringType))  #enum
-    inputSpecification.addSub(InputData.parameterInputFactory("corr", InputData.StringType))  #enum?
+    inputSpecification.addSub(InputData.parameterInputFactory("corr",
+                                                              InputData.StringType))  #enum?
     inputSpecification.addSub(InputData.parameterInputFactory("beta0", InputData.StringType))
     inputSpecification.addSub(
         InputData.parameterInputFactory("storage_mode", InputData.StringType))  #enum
@@ -211,9 +216,12 @@ class ROM(Dummy):
     inputSpecification.addSub(
         InputData.parameterInputFactory("outTruncation", InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("Fourier", InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("FourierOrder", InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("reseedCopies", InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("reseedValue", InputData.IntegerType))
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("FourierOrder", InputData.StringType))
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("reseedCopies", InputData.StringType))
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("reseedValue", InputData.IntegerType))
     # inputs for neural_network
     inputSpecification.addSub(
         InputData.parameterInputFactory("hidden_layer_sizes", InputData.StringType))
@@ -244,7 +252,8 @@ class ROM(Dummy):
         InputData.parameterInputFactory("coeffRegressor", contentType=coeffRegressorEnumType))
     # DMD
     inputSpecification.addSub(InputData.parameterInputFactory("rankSVD", InputData.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("energyRankSVD", InputData.FloatType))
+    inputSpecification.addSub(
+        InputData.parameterInputFactory("energyRankSVD", InputData.FloatType))
     inputSpecification.addSub(InputData.parameterInputFactory("rankTLSQ", InputData.IntegerType))
     inputSpecification.addSub(InputData.parameterInputFactory("exactModes", InputData.BoolType))
     inputSpecification.addSub(InputData.parameterInputFactory("optimized", InputData.BoolType))
@@ -317,7 +326,8 @@ class ROM(Dummy):
         if child.getName() == 'estimator':
           self.initializationOptionDict[child.getName()] = {}
           for node in child.subparts:
-            self.initializationOptionDict[child.getName()][node.getName()] = tryStrParse(node.value)
+            self.initializationOptionDict[child.getName()][node.getName()] = tryStrParse(
+                node.value)
         else:
           self.initializationOptionDict[child.getName()] = tryStrParse(child.value)
     # if working with a pickled ROM, send along that information
@@ -329,7 +339,8 @@ class ROM(Dummy):
         set(utils.returnImportModuleString(inspect.getmodule(SupervisedLearning), True)) -
         set(self.mods))
     self.mods = self.mods + list(
-        set(utils.returnImportModuleString(inspect.getmodule(LearningGate), True)) - set(self.mods))
+        set(utils.returnImportModuleString(inspect.getmodule(LearningGate), True)) -
+        set(self.mods))
 
   def _initializeSupervisedGate(self, **initializationOptions):
     """

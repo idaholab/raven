@@ -77,7 +77,8 @@ class Melcor(CodeInterfaceBase):
     #get the melgen part
     melgCommand, melgOut = self.melcorInterface.generateCommand([melgin], preExec, clargs, fargs)
     #get the melcor part
-    melcCommand, melcOut = self.melgenInterface.generateCommand([melcin], executable, clargs, fargs)
+    melcCommand, melcOut = self.melgenInterface.generateCommand([melcin], executable, clargs,
+                                                                fargs)
     #combine them
     returnCommand = melgCommand + melcCommand, melcOut
     return returnCommand

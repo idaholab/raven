@@ -111,7 +111,8 @@ class BasicStatistics(PostProcessor):
         "methodsToRun", contentType=InputData.StringType)
     inputSpecification.addSub(methodsToRunInput)
 
-    biasedInput = InputData.parameterInputFactory("biased", contentType=InputData.StringType)  #bool
+    biasedInput = InputData.parameterInputFactory(
+        "biased", contentType=InputData.StringType)  #bool
     inputSpecification.addSub(biasedInput)
 
     ## TODO: Fill this in with the appropriate tags
@@ -170,8 +171,8 @@ class BasicStatistics(PostProcessor):
       return [currentInput]
     if currentInput.type not in ['PointSet', 'HistorySet']:
       self.raiseAnError(IOError, self,
-                        'BasicStatistics postprocessor accepts PointSet and HistorySet only! Got ' +
-                        currentInput.type)
+                        'BasicStatistics postprocessor accepts PointSet and HistorySet only! Got '
+                        + currentInput.type)
 
     metadata = currentInput.getMeta(pointwise=True)
     inputList = []
@@ -792,7 +793,8 @@ class BasicStatistics(PostProcessor):
         #use regressor coefficients as sensitivity
         regressDict = dict(zip(useFeatures, LinearRegression().fit(inpSamples, targetVals).coef_))
         for f, feature in enumerate(features):
-          calculations[metric][target][feature] = 1.0 if feature == target else regressDict[feature]
+          calculations[metric][target][feature] = 1.0 if feature == target else regressDict[
+              feature]
     #
     # covariance matrix
     #
@@ -912,12 +914,13 @@ class BasicStatistics(PostProcessor):
         for targetP in targetDict['targets']:
           varName = '_'.join([prefix, targetDict['percent'].strip(), targetP])
           if pbPresent:
-            relWeight = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight'][
-                'SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight'][
-                    'SampledVarsPbWeight'][targetP]
+            relWeight = pbWeights['realization'] if targetP not in pbWeights[
+                'SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights[
+                    'SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
             outputDict[varName] = np.atleast_1d(
                 self._computeWeightedPercentile(
-                    inputDict['targets'][targetP].values, relWeight,
+                    inputDict['targets'][targetP].values,
+                    relWeight,
                     percent=float(percent) / 100.0))
           else:
             outputDict[varName] = np.percentile(
@@ -1033,7 +1036,8 @@ class BasicStatistics(PostProcessor):
       self.raiseAWarning("Degrees of freedom <= 0")
       return np.zeros((featuresNumber, featuresNumber), dtype=np.result_type(feature, np.float64))
     diff = X - np.atleast_2d(np.average(X, axis=1 - axis, weights=w)).T
-    covMatrix = np.ones((featuresNumber, featuresNumber), dtype=np.result_type(feature, np.float64))
+    covMatrix = np.ones(
+        (featuresNumber, featuresNumber), dtype=np.result_type(feature, np.float64))
     for myIndex in range(featuresNumber):
       for myIndexTwo in range(featuresNumber):
         # The weights that are used here should represent the joint probability (P(x,y)).

@@ -23,7 +23,9 @@ warnings.simplefilter('default', DeprecationWarning)
 #End compatibility block for Python 3--------------------------------------------------------------
 #External Modules----------------------------------------------------------------------------------
 import copy
+
 #External Modules End------------------------------------------------------------------------------
+
 
 def execCommandReturn(commandString, self=None, object=None):
   """

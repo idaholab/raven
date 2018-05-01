@@ -82,8 +82,8 @@ class VariableGroup(BaseClasses.BaseType):
     """
     if len(self._dependents) == 0:
       self.variables = list(
-          l.strip() for l in
-          self._list)  #set(l.strip() for l in self._list) #don't use sets, since they destroy order
+          l.strip() for l in self._list
+      )  #set(l.strip() for l in self._list) #don't use sets, since they destroy order
     else:
       #get base
       base = None

@@ -151,7 +151,8 @@ class ResponseSurfaceDesign(Grid):
                               '". Available are "circumscribed","faced","inscribed"!')
     gridInfo = self.gridEntity.returnParameter('gridInfo')
     if len(self.toBeSampled.keys()) != len(gridInfo.keys()):
-      self.raiseAnError(IOError, 'inconsistency between number of variables and grid specification')
+      self.raiseAnError(IOError,
+                        'inconsistency between number of variables and grid specification')
     for varName, values in gridInfo.items():
       if values[1] != "custom":
         self.raiseAnError(IOError, "The grid construct needs to be custom for variable " + varName)

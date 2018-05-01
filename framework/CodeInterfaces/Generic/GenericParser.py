@@ -105,8 +105,8 @@ class GenericParser():
                   int(varformat)
                 except ValueError:
                   raise ValueError(
-                      "the format specified for wildcard " + line[start + len(self.prefixKey):end] +
-                      " is unknown. Available are either a plain integer or the following " +
+                      "the format specified for wildcard " + line[start + len(self.prefixKey):end]
+                      + " is unknown. Available are either a plain integer or the following " +
                       " ".join(self.acceptFormats.keys()))
                 self.formats[var][infileName] = varformat, int
               else:

@@ -63,8 +63,8 @@ class dataObjectLabelFilter(PostProcessorInterfaceBase):
         else:
           self.raiseAnError(
               IOError,
-              'dataObjectLabelFilter Interfaced Post-Processor ' + str(self.name) + ' : dataType ' +
-              str(dataType) + ' is not recognized (available are HistorySet, PointSet)')
+              'dataObjectLabelFilter Interfaced Post-Processor ' + str(self.name) + ' : dataType '
+              + str(dataType) + ' is not recognized (available are HistorySet, PointSet)')
       elif child.tag == 'label':
         self.label = child.text
       elif child.tag == 'clusterIDs':

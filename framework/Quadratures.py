@@ -229,7 +229,8 @@ class SparseGrid(MessageHandler.MessageUser):
       self.raiseAnError(KeyError, 'Remap mismatch! Dimensions are not the same!')
     for name in oldNames:
       if name not in newNames:
-        self.raiseAnError(KeyError, 'Remap mismatch! ' + name + ' not found in original variables!')
+        self.raiseAnError(KeyError,
+                          'Remap mismatch! ' + name + ' not found in original variables!')
     wts = list(self.weights())
     #split by columns (dim) instead of rows (points)
     oldlists = list(self._xy())
@@ -614,7 +615,8 @@ class QuadratureSet(MessageHandler.MessageUser):
       @ Out, tuple(tuple(float),float) points and weight
     """
     pts, wts = self.rule(order, *self.params)
-    pts = np.around(pts, decimals=15)  #TODO helps with checking equivalence, might not be desirable
+    pts = np.around(
+        pts, decimals=15)  #TODO helps with checking equivalence, might not be desirable
     return pts, wts
 
   def __eq__(self, other):

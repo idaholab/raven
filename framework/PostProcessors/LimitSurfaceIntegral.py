@@ -265,9 +265,8 @@ class LimitSurfaceIntegral(PostProcessor):
      @ Out, None
     """
     if len(currentInput) > 1:
-      self.raiseAnError(
-          IOError,
-          "This PostProcessor can accept only a single input! Got: " + str(len(currentInput)) + "!")
+      self.raiseAnError(IOError, "This PostProcessor can accept only a single input! Got: " +
+                        str(len(currentInput)) + "!")
     item = currentInput[0]
     if item.type == 'PointSet':
       if not set(item.getVars('input')) == set(self.variableDist.keys()):

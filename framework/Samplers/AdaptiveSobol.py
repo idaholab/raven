@@ -133,7 +133,8 @@ class AdaptiveSobol(Sobol, AdaptiveSparseGrid):
     self.romShell = {}  #stores Model.ROM objects for each subset
     self.iSets = {}  #adaptive index set objects by target,subset
     self.pointsNeeded = {}  #by subset, the points needed for next step in adaptive SG sampler
-    self.pointsCollected = {}  #by subset, the points collected for next stip in adaptive SG sampler
+    self.pointsCollected = {
+    }  #by subset, the points collected for next stip in adaptive SG sampler
     self.subsets = {
     }  #subset gPC ROMs to be used in full HDMR ROM that have at least started training
     self.references = {}  #mean-value cut reference points by variable

@@ -85,7 +85,8 @@ class LimitSurfaceSearch(AdaptiveSampler):
         "simplification", contentType=InputData.FloatType)
     inputSpecification.addSub(simplificationInput)
 
-    thicknessInput = InputData.parameterInputFactory("thickness", contentType=InputData.IntegerType)
+    thicknessInput = InputData.parameterInputFactory(
+        "thickness", contentType=InputData.IntegerType)
     inputSpecification.addSub(thicknessInput)
 
     thresholdInput = InputData.parameterInputFactory("threshold", contentType=InputData.FloatType)
@@ -324,9 +325,8 @@ class LimitSurfaceSearch(AdaptiveSampler):
         try:
           self.thickness = int(child.text)
         except:
-          self.raiseAnError(
-              IOError,
-              'Failed to convert the thickness value: ' + child.text + ' into a meaningful integer')
+          self.raiseAnError(IOError, 'Failed to convert the thickness value: ' + child.text +
+                            ' into a meaningful integer')
         if self.thickness < 0:
           self.raiseAWarning('Requested an invalid thickness size: ', self.thickness,
                              '. Defaulting to 0.')
@@ -636,9 +636,8 @@ class LimitSurfaceSearch(AdaptiveSampler):
     matrixShape = self.limitSurfacePP.getTestMatrix().shape
     self.scores = OrderedDict()
     if self.scoringMethod.startswith('distance'):
-      sampledMatrix = np.zeros((
-          len(self.limitSurfacePP.getFunctionValue()[axisNames[0]]) + len(self.hangingPoints[:, 0]),
-          len(self.axisName)))
+      sampledMatrix = np.zeros((len(self.limitSurfacePP.getFunctionValue()[axisNames[0]]) +
+                                len(self.hangingPoints[:, 0]), len(self.axisName)))
       for varIndex, name in enumerate(axisNames):
         sampledMatrix[:, varIndex] = np.append(self.limitSurfacePP.getFunctionValue()[name],
                                                self.hangingPoints[:, varIndex])

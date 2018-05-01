@@ -337,7 +337,8 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseType), Assembler):
               'Index is not provided for manifestVariables, default index will be used instead!')
           listIndex = range(len(transformationDict["manifestVariables"]))
         transformationDict["manifestVariablesIndex"] = listIndex
-        self.variablesTransformationDict[child.parameterValues['distribution']] = transformationDict
+        self.variablesTransformationDict[child.parameterValues[
+            'distribution']] = transformationDict
 
       elif child.getName() == "constant":
         value = utils.partialEval(child.value)

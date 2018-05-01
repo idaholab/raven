@@ -1099,7 +1099,8 @@ class MultiGridEntity(GridBase):
     elif type(coords) == dict:
       level, coordinates = self.multiGridIterator[0], coords
     else:
-      self.raiseAnError(Exception, "returnShiftedCoordinate method accepts a coords or tuple only!")
+      self.raiseAnError(Exception,
+                        "returnShiftedCoordinate method accepts a coords or tuple only!")
     node = self.grid.find(self.mappingLevelName[level])
     outputCoordinates = node.get('grid').returnShiftedCoordinate(coordinates, shiftingSteps)
     return outputCoordinates
@@ -1121,8 +1122,8 @@ class MultiGridEntity(GridBase):
     for node in startingNode.iter():
       subGrid = node.get('grid')
       if not subGrid.gridIterator.finished:
-        coordinates = subGrid.returnCoordinateFromIndex(subGrid.gridIterator.multiIndex, returnDict,
-                                                        recastMethods)
+        coordinates = subGrid.returnCoordinateFromIndex(subGrid.gridIterator.multiIndex,
+                                                        returnDict, recastMethods)
         for _ in range(self.nVar):
           subGrid.gridIterator.iternext()
         break

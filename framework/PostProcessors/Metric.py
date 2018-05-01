@@ -269,7 +269,8 @@ class Metric(PostProcessor):
             elif not metricInstance.acceptsDistribution and isinstance(
                 inData[i], Distributions.Distribution):
               metricCanHandleData = False
-              self.raiseAWarning('Cannot handle ' + varName + ' because it contains a distribution')
+              self.raiseAWarning(
+                  'Cannot handle ' + varName + ' because it contains a distribution')
           if metricCanHandleData:
             output = metricInstance.distance(inData[0], inData[1])
             outputDict[varName] = np.atleast_1d(output)

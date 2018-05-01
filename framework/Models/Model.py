@@ -137,8 +137,8 @@ class Model(utils.metaclass_insert(abc.ABCMeta, BaseType), Assembler):
       @ In, None
       @ Out, None
     """
-    raise NotImplementedError(
-        'The class ' + str(cls.__name__) + ' has not implemented the method specializeValidateDict')
+    raise NotImplementedError('The class ' + str(cls.__name__) +
+                              ' has not implemented the method specializeValidateDict')
 
   @classmethod
   def localValidateMethod(cls, who, what):
@@ -175,15 +175,15 @@ class Model(utils.metaclass_insert(abc.ABCMeta, BaseType), Assembler):
                         str(tester['type']) + ' is used as ' + str(who) +
                         ' is improper. At least one object must be present!')
       if tester['multiplicity'] != 'n' and tester['tempCounter'] != tester['multiplicity']:
-        raise IOError(
-            'The number of times class = ' + str(tester['class']) + ' type= ' + str(tester['type'])
-            + ' is used as ' + str(who) + ' is improper. Number of allowable times is ' + str(
-                tester['multiplicity']) + '.Got ' + str(tester['tempCounter']))
+        raise IOError('The number of times class = ' + str(tester['class']) + ' type= ' +
+                      str(tester['type']) + ' is used as ' + str(who) +
+                      ' is improper. Number of allowable times is ' + str(tester['multiplicity']) +
+                      '.Got ' + str(tester['tempCounter']))
     #testing if all argument to be tested have been found
     for anItem in what:
       if anItem['found'] == False:
-        raise IOError('It is not possible to use ' + anItem['class'] + ' type = ' + anItem['type'] +
-                      ' as ' + who)
+        raise IOError('It is not possible to use ' + anItem['class'] + ' type = ' +
+                      anItem['type'] + ' as ' + who)
     return True
 
   def __init__(self, runInfoDict):
@@ -239,8 +239,8 @@ class Model(utils.metaclass_insert(abc.ABCMeta, BaseType), Assembler):
           if varModel in self.alias[aliasType].values():
             self.raiseAnError(
                 IOError,
-                ' The alias ' + varModel + ' has been already used for another variable in model ' +
-                str(self.name) + ' of type ' + self.type)
+                ' The alias ' + varModel + ' has been already used for another variable in model '
+                + str(self.name) + ' of type ' + self.type)
           if varFramework in self.alias[complementAliasType].keys():
             self.raiseAnError(
                 IOError,

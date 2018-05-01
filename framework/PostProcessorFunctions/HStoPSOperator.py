@@ -111,8 +111,9 @@ class HStoPSOperator(PostProcessorInterfaceBase):
       # check if pivot value is present
       if self.settings['operationType'] == 'pivotValue':
         if self.pivotParameter not in inputDict['data']:
-          self.raiseAnError(RuntimeError,
-                            'Pivot Variable "' + str(self.pivotParameter) + '" not found in data !')
+          self.raiseAnError(
+              RuntimeError,
+              'Pivot Variable "' + str(self.pivotParameter) + '" not found in data !')
 
       for hist in range(numSamples):
         for outputVar in inputDict['outVars']:
@@ -142,9 +143,9 @@ class HStoPSOperator(PostProcessorInterfaceBase):
                 idx = len(inputDict['data'][outputVar][hist]) - 1
               elif idx < 0:
                 idx = 0
-              outputDic['data'][outputVar] = np.append(outputDic['data'][outputVar],
-                                                       copy.deepcopy(
-                                                           inputDict['data'][outputVar][hist][idx]))
+              outputDic['data'][outputVar] = np.append(
+                  outputDic['data'][outputVar],
+                  copy.deepcopy(inputDict['data'][outputVar][hist][idx]))
             else:
               # interpolate
               interpValue = np.interp(self.settings['operationValue'],

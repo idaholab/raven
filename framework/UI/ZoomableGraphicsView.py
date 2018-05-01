@@ -76,7 +76,8 @@ class OverlayButton(qtw.QPushButton):
     """
     super(OverlayButton, self).enterEvent(event)
     self.setStyleSheet(
-        "background-color: rgba( 51, 73, 96, 75%); color: rgba(236,240,241, 100%);  opacity: 0.75;")
+        "background-color: rgba( 51, 73, 96, 75%); color: rgba(236,240,241, 100%);  opacity: 0.75;"
+    )
 
   def leaveEvent(self, event):
     """
@@ -337,10 +338,11 @@ class ZoomableGraphicsView(qtw.QGraphicsView):
     ZoomableGraphicsView.saveImage(self, self.windowTitle() + '.svg')
     ZoomableGraphicsView.saveImage(self, self.windowTitle() + '.png')
 
-    genericMouseEvent = qtg.QMouseEvent(qtc.QEvent.MouseMove, qtc.QPoint(0, 0), qtc.Qt.MiddleButton,
-                                        qtc.Qt.MiddleButton, qtc.Qt.NoModifier)
+    genericMouseEvent = qtg.QMouseEvent(qtc.QEvent.MouseMove, qtc.QPoint(
+        0, 0), qtc.Qt.MiddleButton, qtc.Qt.MiddleButton, qtc.Qt.NoModifier)
     ZoomableGraphicsView.contextMenuEvent(self, genericMouseEvent)
-    genericMouseEvent = qtg.QWheelEvent(qtc.QPoint(0, 0), 1, qtc.Qt.MiddleButton, qtc.Qt.NoModifier)
+    genericMouseEvent = qtg.QWheelEvent(
+        qtc.QPoint(0, 0), 1, qtc.Qt.MiddleButton, qtc.Qt.NoModifier)
     ZoomableGraphicsView.wheelEvent(self, genericMouseEvent)
     genericMouseEvent = qtg.QWheelEvent(
         qtc.QPoint(0, 0), -1, qtc.Qt.MiddleButton, qtc.Qt.NoModifier)

@@ -98,8 +98,8 @@ class BisonMeshScript(CodeInterfaceBase):
     cubitjour_files = os.path.join(workingDir, 'cubit*')
     pyc_files = os.path.join(workingDir, '*.pyc')
     # Inform user which files will be removed
-    print('Interface attempting to remove files the following:\n    ' + cubitjour_files + '\n    ' +
-          pyc_files)
+    print('Interface attempting to remove files the following:\n    ' + cubitjour_files +
+          '\n    ' + pyc_files)
     # Remove Cubit generated journal files
     self.rmUnwantedFiles(cubitjour_files)
     # Remove .pyc files created when running BMS python inputs

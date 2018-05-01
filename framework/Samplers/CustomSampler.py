@@ -229,7 +229,8 @@ class CustomSampler(ForwardSampler):
           self.inputInfo['ProbabilityWeight-' + subVar] = self.infoFromCustom[
               'ProbabilityWeight-' + subVar][self.counter - 1]
       # Construct probabilities based on the user provided information
-      self.inputInfo['PointProbability'] = self.infoFromCustom['PointProbability'][self.counter - 1]
+      self.inputInfo['PointProbability'] = self.infoFromCustom['PointProbability'][self.counter
+                                                                                   - 1]
       self.inputInfo['ProbabilityWeight'] = self.infoFromCustom['ProbabilityWeight'][self.counter
                                                                                      - 1]
     self.inputInfo['SamplerType'] = 'Custom'

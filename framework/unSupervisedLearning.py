@@ -185,7 +185,8 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
       resp = self.checkArrayConsistency(self.labelValues)
       if not resp[0]:
         self.raiseAnError(
-            IOError, 'In training set for ground truth labels ' + self.labelFeature + ':' + resp[1])
+            IOError,
+            'In training set for ground truth labels ' + self.labelFeature + ':' + resp[1])
     else:
       self.raiseAWarning(' The ground truth labels are not known a priori')
       self.labelValues = None
@@ -512,7 +513,8 @@ class SciKitLearn(unSupervisedLearning):
     ## set bandwidth for MeanShift clustering
     if hasattr(self.Method, 'bandwidth'):
       if 'bandwidth' not in self.initOptionDict.keys():
-        self.initOptionDict['bandwidth'] = cluster.estimate_bandwidth(self.normValues, quantile=0.3)
+        self.initOptionDict['bandwidth'] = cluster.estimate_bandwidth(
+            self.normValues, quantile=0.3)
       self.Method.set_params(**self.initOptionDict)
 
     ## We need this connectivity if we want to use structured ward
@@ -878,7 +880,8 @@ class temporalSciKitLearn(unSupervisedLearning):
                                         [self.numberOfSample, self.numberOfHistoryStep])
       if not resp[0]:
         self.raiseAnError(
-            IOError, 'In training set for ground truth labels ' + self.labelFeature + ':' + resp[1])
+            IOError,
+            'In training set for ground truth labels ' + self.labelFeature + ':' + resp[1])
     else:
       self.raiseAWarning(' The ground truth labels are not known a priori')
       self.labelValues = None

@@ -178,7 +178,8 @@ class Function(BaseType):
     if type(myInput) == dict:
       self.__inputFromWhat['dict'](myInput)
     else:
-      self.raiseAnError(IOError, 'Unknown type of input provided to the function ' + str(self.name))
+      self.raiseAnError(IOError,
+                        'Unknown type of input provided to the function ' + str(self.name))
 
   def __inputFromDict(self, myInputDict):
     """
