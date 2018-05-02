@@ -1209,7 +1209,7 @@ defined within a \xmlNode{ResponseSurfaceDesign} block.
     \item \distributionDescription
     \item \functionDescription
      \item \gridDescriptionOnlyCustom
-     \nb{Only the construction ``custom'' is available. In the \xmlNode{grid} body only the lower and upper bounds can be inputted (2 numbers only).}
+     \nb{Only the construction `custom'' is available. In the \xmlNode{grid} body only the lower and upper bounds can be inputted (2 numbers only).}
  \end{itemize}
  \item \constantVariablesDescription
 \item \xmlNode{ResponseSurfaceDesignSettings}, \xmlDesc{required},
@@ -1673,7 +1673,14 @@ listed as variables as well.
 
 In addition, the \xmlNode{Source} from which the samples need to be retrieved needs to be specified:
 \begin{itemize}
-\item \variableDescription
+  \item \xmlNode{variable}, \xmlDesc{XML node,
+    required parameter} can specify the following attribute:
+    \begin{itemize}
+      \item \xmlAttr{name}, \xmlDesc{required string attribute}, user-defined name of this variable.
+      \item \xmlAttr{nameInSource}, \xmlDesc{optional string attribute}, name of the variable to read from in
+        \xmlNode{Source}.  \default Same as \xmlAttr{name}.
+      \item \shapeVariableDescription
+    \end{itemize}
  \item \xmlNode{Source}, \xmlDesc{XML node,
   required parameter} will specify the following attributes:
   \begin{itemize}
