@@ -88,7 +88,10 @@ class RAVENparser():
               if linkedDataObjectPointSet is None:
                 linkedDataObjectHistorySet = self.tree.find('.//DataObjects/HistorySet[@name="'+outStream.text.strip()+ '"]')
                 if linkedDataObjectHistorySet is None:
-                  raise IOError(self.printTag+' ERROR: The OutStream of type "Print" named "'+role.text.strip()+'" is linked to not existing DataObject!')
+                  # try dataset
+                  linkedDataObjectHistorySet = self.tree.find('.//DataObjects/DataSet[@name="'+outStream.text.strip()+ '"]')
+                  if linkedDataObjectHistorySet is None:
+                    raise IOError(self.printTag+' ERROR: The OutStream of type "Print" named "'+role.text.strip()+'" is linked to not existing DataObject!')
                 dataObjectType, xmlNode = "HistorySet", linkedDataObjectHistorySet
               else:
                 dataObjectType, xmlNode = "PointSet", linkedDataObjectPointSet
@@ -211,9 +214,8 @@ class RAVENparser():
     else:
       returnElement = self.tree                           #otherwise return the original modified
 
-    for node, value in modiDictionary.items():
-      val = np.atleast_1d(value)[0]
-
+    for node, val in modiDictionary.items():
+      # make sure node is XML-tree-parsable
       if "|" not in node:
         raise IOError(self.printTag+' ERROR: the variable '+node.strip()+' does not contain "|" separator and can not be handled!!')
       changeTheNode = True
