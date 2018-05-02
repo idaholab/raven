@@ -205,7 +205,8 @@ class DataClassifier(PostProcessor):
             for elem in inputParams:
               if newInput[dataType]['input'][elem] is None:
                 newInput[dataType]['input'][elem] = np.empty(0)
-              newInput[dataType]['input'][elem] = np.append(newInput[dataType]['input'][elem], rlz[elem].values[-1])
+              #newInput[dataType]['input'][elem] = np.append(newInput[dataType]['input'][elem], rlz[elem].values[-1])
+              newInput[dataType]['input'][elem] = np.append(newInput[dataType]['input'][elem], rlz[elem])
             for elem in outputParams:
               if newInput[dataType]['output'][elem] is None:
                 newInput[dataType]['output'][elem] = np.empty(0)
