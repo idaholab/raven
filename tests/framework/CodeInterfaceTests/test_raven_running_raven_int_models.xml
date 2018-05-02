@@ -46,7 +46,11 @@
     <Code name="raven_running_rom" subType="RAVEN">
         <executable>%FRAMEWORK_DIR%/../raven_framework</executable>
         <outputExportOutStreams>outputMontecarloRom_dump,outputMontecarloRomHS_dump</outputExportOutStreams>
-        <conversionModule>raven_running_raven_internal_models/testConversionModule.py</conversionModule>
+        <conversion>
+          <module source="raven_running_raven_internal_models/testConversionModule.py">
+            <variables>Models|ROM@subType:SciKitLearn@name:ROM1|C</variables>
+          </module>
+        </conversion>
         <alias variable="loss_factor" type="input">Models|ROM@subType:SciKitLearn@name:ROM1|C</alias>
         <alias variable="tollerance"  type="input">Models|ROM@subType:SciKitLearn@name:ROM1|tol</alias>
         <alias variable="DG1recoveryTime"  type="input">Samplers|Grid@name:gridRom|constant@name:DG1recoveryTime</alias>

@@ -20,7 +20,7 @@ This a library for defining the data used and for reading it in.
 """
 from __future__ import division, print_function, unicode_literals, absolute_import
 import xml.etree.ElementTree as ET
-from utils import utils
+from utils import utils,mathUtils
 
 class InputType(object):
   """
@@ -137,6 +137,37 @@ FloatType.createClass("float","xsd:double")
 #
 #
 #
+class InterpretedListType(InputType):
+  """
+    A type for lists with unknown (but consistent) type; could be string, float, etc
+  """
+
+  @classmethod
+  def convert(cls, value):
+    """
+      Converts value from string to a listi with string, integer, or float type.
+      @ In, value, string, the value to convert
+      @ Out, convert, list, the converted value
+    """
+    values = value.split(",")
+    base = utils.partialEval(values[0].strip())
+    # three possibilities: string, integer, or float
+    if mathUtils.isAString(base):
+      conv = str
+    elif mathUtils.isAnInteger(base):
+      conv = int
+    else: #float
+      conv = float
+    return [conv(x.strip()) for x in values]
+
+#Note, XSD's list type is split by spaces, not commas, so using xsd:string
+InterpretedListType.createClass("stringtype","xsd:string")
+
+
+#
+#
+#
+#
 class StringListType(InputType):
   """
     A type for string lists "1, abc, 3" -> ["1","abc","3"]
@@ -153,6 +184,50 @@ class StringListType(InputType):
 
 #Note, XSD's list type is split by spaces, not commas, so using xsd:string
 StringListType.createClass("stringtype","xsd:string")
+
+
+#
+#
+#
+#
+class FloatListType(InputType):
+  """
+    A type for float lists "1.1, 2.0, 3.4" -> [1.1, 2.0, 3.4]
+  """
+
+  @classmethod
+  def convert(cls, value):
+    """
+      Converts value from string to a float list.
+      @ In, value, string, the value to convert
+      @ Out, convert, list, the converted value
+    """
+    return [float(x.strip()) for x in value.split(",")]
+
+#Note, XSD's list type is split by spaces, not commas, so using xsd:string
+FloatListType.createClass("stringtype","xsd:string")
+
+
+#
+#
+#
+#
+class IntegerListType(InputType):
+  """
+    A type for integer lists "1, 2, 3" -> [1,2,3]
+  """
+
+  @classmethod
+  def convert(cls, value):
+    """
+      Converts value from string to an integer list.
+      @ In, value, string, the value to convert
+      @ Out, convert, list, the converted value
+    """
+    return [int(x.strip()) for x in value.split(",")]
+
+#Note, XSD's list type is split by spaces, not commas, so using xsd:string
+IntegerListType.createClass("stringtype","xsd:string")
 
 
 #
@@ -425,7 +500,7 @@ class ParameterInput(object):
     if node.tag != self.name:
       #should this be an error or a warning? Or even that?
       #handleError('XML node "{}" != param spec name "{}"'.format(node.tag,self.name))
-      print('Note: XML node "{}" != param spec name "{}".  This should not usually be an issue.'.format(node.tag,self.name))
+      print('Using param spec "{}" to read XML node "{}.'.format(self.name,node.tag))
     if self.contentType:
       self.value = self.contentType.convert(node.text)
     else:

@@ -80,14 +80,13 @@ class Optimizer(Sampler):
     inputSpecification.removeSub('variable')
     variable = InputData.parameterInputFactory('variable', strictMode=True)
     variable.addParam("name", InputData.StringType, True)
+    variable.addParam("shape", InputData.IntegerListType, required=False)
     upperBound = InputData.parameterInputFactory('upperBound', contentType=InputData.FloatType, strictMode=True)
     lowerBound = InputData.parameterInputFactory('lowerBound', contentType=InputData.FloatType, strictMode=True)
     initial = InputData.parameterInputFactory('initial',contentType=InputData.StringListType)
-    shape = InputData.parameterInputFactory('shape',contentType=InputData.StringListType)
     variable.addSub(upperBound)
     variable.addSub(lowerBound)
     variable.addSub(initial)
-    variable.addSub(shape)
     inputSpecification.addSub(variable)
     # constant -> use the Sampler's specs.
 
@@ -138,10 +137,10 @@ class Optimizer(Sampler):
     stoch  = InputData.parameterInputFactory('stochasticDistribution' , contentType=stochEnum            )
     bisect = InputData.parameterInputFactory('innerBisectionThreshold', contentType=InputData.FloatType  )
     loop   = InputData.parameterInputFactory('innerLoopLimit'         , contentType=InputData.IntegerType)
-    param.addSub(num   )
-    param.addSub(stoch )
+    param.addSub(num)
+    param.addSub(stoch)
     param.addSub(bisect)
-    param.addSub(loop  )
+    param.addSub(loop)
     inputSpecification.addSub(param)
 
     # multilevel
@@ -321,11 +320,12 @@ class Optimizer(Sampler):
       if child.getName() == "variable":
         if self.fullOptVars is None:
           self.fullOptVars = []
-        try:
-          varName = child.parameterValues['name']
-          self.optVarsInitialized[varName] = False
-        except KeyError:
-          self.raiseAnError(IOError, '"{}" node does not have the "name" attribute'.format(child.getName()))
+        # store variable name
+        varName = child.parameterValues['name']
+        self.optVarsInitialized[varName] = False
+        # store varible requested shape, if any
+        if 'shape' in child.parameterValues:
+          self.variableShapes[varName] = child.parameterValues['shape']
         self.fullOptVars.append(varName)
         self.optVarsInit['initial'][varName] = {}
         for childChild in child.subparts:
@@ -341,24 +341,15 @@ class Optimizer(Sampler):
               try:
                 self.optVarsInit['initial'][varName][trajInd] = float(initVal)
               except ValueError:
-                self.raiseAnError(ValueError, 'Unable to convert to float the intial value for variable "{}" in trajectory "{}": {}'.format(varName,trajInd,initVal))
+                self.raiseAnError(ValueError,
+                    'Unable to convert to float the intial value for variable "{}" in trajectory "{}": {}'
+                    .format(varName,trajInd,initVal))
             if self.optTraj == None:
               self.optTraj = range(len(self.optVarsInit['initial'][varName].keys()))
-          elif childChild.getName() == 'shape':
-            try:
-              variableShape = tuple(int(i) for i in childChild.value)
-            except ValueError as e:
-              self.raiseAnError(IOError,'Failed to interpret "shape" for variable "{}"! Should be comma-separated list of integers.'.format(varName))
-            self.variableShapes[varName] = variableShape
 
       elif child.getName() == "constant":
-        value = utils.partialEval(child.value)
-        if value is None:
-          self.raiseAnError(IOError,'The body of "constant" XML block should be a number. Got: ' +child.value)
-        try:
-          self.constants[child.parameterValues['name']] = value
-        except KeyError:
-          self.raiseAnError(KeyError,child.getName()+'"constant" nodes must have the attribute "name" (missing in "{}").'.format(self.name))
+        name,value = self._readInConstant(child)
+        self.constants[child.parameterValues['name']] = value
 
       elif child.getName() == "objectVar":
         self.objVar = child.value.strip()

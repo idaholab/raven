@@ -28,6 +28,7 @@
           <xsd:element name="shape"        type="xsd:string"   minOccurs="0"/>
         </xsd:all>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
+        <xsd:attribute name="shape" type="xsd:string"/>
     </xsd:complexType>
 
     <xsd:complexType name="optSubspaceType">
@@ -65,6 +66,7 @@
             <xsd:element name="constant"         minOccurs="0" maxOccurs='unbounded'>
                 <xsd:complexType mixed="true">
                     <xsd:attribute name="name" type="xsd:string" use="required"/>
+                    <xsd:attribute name="shape" type="xsd:string"/>
                 </xsd:complexType>
             </xsd:element>
             <xsd:element name="objectVar"        type="xsd:string"           minOccurs="1" maxOccurs="1"/>
