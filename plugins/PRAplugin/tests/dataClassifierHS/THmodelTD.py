@@ -38,7 +38,7 @@ def run(self,Input):
       self.out        = np.array([0.,0.,0.,0.,0.,1.])
       self.ACC_status = np.array([0.,0.,0.,0.,0.,0.])
       self.LPI_status = np.array([0.,0.,0.,0.,0.,1.])
-      self.LPR_status = np.array([0.,0.,0.,0.,0.,0.]) 
+      self.LPR_status = np.array([0.,0.,0.,0.,0.,0.])
     else:
       self.LPR_act = self.LPI_act + self.time_LPR
       if self.LPR_act > timeToCD_LPR:

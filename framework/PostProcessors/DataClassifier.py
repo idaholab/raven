@@ -22,6 +22,7 @@ warnings.simplefilter('default', DeprecationWarning)
 
 #External Modules---------------------------------------------------------------
 import copy
+import xarray as xr
 import numpy as np
 #External Modules End-----------------------------------------------------------
 
@@ -294,14 +295,18 @@ class DataClassifier(PostProcessor):
       numRlzs = output.size
       labelValues = np.zeros(numRlzs, dtype=object)
       pivotParams = tuple(output.indexes)
-      coordDict = {}
-      for elem in pivotParams:
-        coordDict[elem] = output.asDataset[elem].values
+      slices = output.sliceByIndex('RAVEN_sample_ID')
+      coordList = []
+      for i in range(numRlzs):
+        coordDict = {}
+        for elem in pivotParams:
+          coordDict[elem] = slices[i].dropna(elem)[elem]
+        coordList.append(coordDict)
 
       for i in range(numRlzs):
         histSize = outputDict['historySizes'][i]
         values = np.empty(histSize)
         values.fill(outputDict[self.label][i])
-        xrArray = xr.DataArray(values, dims=pivotParams, coords=coordDict)
+        xrArray = xr.DataArray(values, dims=pivotParams, coords=coordList[i])
         labelValues[i] = xrArray
       output.addVariable(self.label, labelValues, classify='output')
