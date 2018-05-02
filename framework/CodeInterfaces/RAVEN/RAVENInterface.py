@@ -106,8 +106,8 @@ class RAVEN(CodeInterfaceBase):
         scalar = 'manipulateScalarSampledVariables' in checkImport.__dict__
         if not (noScalar or scalar):
           raise IOError(self.printTag +' ERROR: the conversionModule "'+source
-                                      +'" does not contain any of the usable methods! Expected at least '
-                                      +'one of: "manipulateScalarSampledVariables" and/or "manipulateScalarSampledVariables"!')
+                        +'" does not contain any of the usable methods! Expected at least '
+                        +'one of: "manipulateScalarSampledVariables" and/or "manipulateScalarSampledVariables"!')
         # acquire the variables to be modified
         varNode = moduleNode.find('variables')
         if varNode is None:

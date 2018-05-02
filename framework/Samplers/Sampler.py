@@ -55,7 +55,8 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         specifying input of cls.
     """
     inputSpecification = super(Sampler, cls).getInputSpecification()
-    # FIXME the DET HybridSampler doesn't use the "name" param for the samples it creates, so we can't require the name yet
+    # FIXME the DET HybridSampler doesn't use the "name" param for the samples it creates,
+    #      so we can't require the name yet
     inputSpecification.addParam("name", InputData.StringType)
 
     outerDistributionInput = InputData.parameterInputFactory("Distribution")
