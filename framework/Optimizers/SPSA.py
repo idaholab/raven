@@ -431,9 +431,9 @@ class SPSA(GradientBasedOptimizer):
       convertedValue = np.asarray([self._checkBoundariesAndModify(upperBound,lowerBound,varRange,value,pertUp,pertLow) for value in currentValue])
     else:
       convertedValue = currentValue
-      if currentValue >= upperBound:
+      if currentValue > upperBound:
         convertedValue = pertUp*varRange + lowerBound
-      elif currentValue <= lowerBound:
+      elif currentValue < lowerBound:
         convertedValue = pertLow*varRange + lowerBound
     return convertedValue
 
