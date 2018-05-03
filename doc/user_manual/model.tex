@@ -937,7 +937,7 @@ described.
 %<alias variable='internal_variable_name'>Material|Fuel|thermal_conductivity</alias>
 \subsection{Code}
 \label{subsec:models_code}
-As already mentioned, the \textbf{Code} model represents an external system
+The \textbf{Code} model represents an external system
 software employing a high fidelity physical model.
 %
 The link between RAVEN and the driven code is performed at run-time, through
@@ -971,6 +971,10 @@ to couple a new code.
 \begin{itemize}
   \item \xmlNode{executable} \xmlDesc{string, required field} specifies the path
   of the executable to be used.
+
+  \item \xmlNode{walltime}  \xmlDesc{string, required field} specifies the maximum 
+  allowed run time of the code; if the code running time is greater than the specified 
+  walltime then the code run is stopped. The stopped run is then considered as if it chrashed.
   %
   \nb Either an absolute or relative path can be used.
   \item \aliasSystemDescription{Code}
