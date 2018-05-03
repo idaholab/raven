@@ -1,0 +1,21 @@
+=shell
+ cp ${INPDIR}/htr_triton.f33 decay_block.f33
+ cp ${INPDIR}/htr_triton.f71 decay_block.f71
+end
+
+=origen
+case(decay){
+    lib { file="decay_block.f33" }  
+    % load material from first position on ft71 (last step above)
+    mat {
+          load{ file="decay_block.f71" pos=30 }
+    }
+    time {t=[0.000001 1 2 3 4 5 10 20 40 80 160 320 640 2560 10240 40960 259200 518400 777600
+            1036800 1296000 1555200 1814400 2073600 2332800 2592000 3024000 3456000 3888000 % 120 days
+             4320000 4752000 5184000 6048000 6912000 7776000 8640000 9504000 10368000] units="seconds"}
+    print {rel_cutoff=1 cutoffs=[all=0.0001]
+           nuc{sublibs=["fp"] units=["watts"] total=no}
+           nuc{sublibs=["ac"] units=["watts"] total=no}}
+    save{ file="out_decay_origen.f71" steps=all}
+}
+end

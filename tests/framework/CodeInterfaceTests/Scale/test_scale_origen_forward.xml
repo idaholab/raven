@@ -1,0 +1,74 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/CodeInterfaceTests/Scale.ScaleOrigen</name>
+    <author>alfoa</author>
+    <created>2018-04-04</created>
+    <classesTested>Models.Code.Scale</classesTested>
+    <description>
+       An example of using the the Model Code of type Scale, with Forward Sampling and driving the ORIGEN
+       sequence
+    </description>
+    <revisions>
+      <revision author="alfoa" date="2018-04-04">Test created</revision>
+    </revisions>
+  </TestInfo>
+  <RunInfo>
+    <WorkingDir>SCALE_origen</WorkingDir>
+    <Sequence>sampleScale</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name="origen_input" type="origen">origen_mass.inp</Input>
+  </Files>
+
+  <Models>
+    <Code name="MyScale" subType="Scale">
+      <executable>/Applications/SCALE-6.2.app/Contents/Resources/bin/scalerte</executable>
+      <sequence>origen</sequence>
+    </Code>
+  </Models>
+
+  <Distributions>
+    <Uniform name="moles_dist">
+      <upperBound>1.1</upperBound>
+      <lowerBound>0.9</lowerBound>
+    </Uniform>
+  </Distributions>
+
+  <Samplers>
+    <Grid name="myGrid">
+      <variable name="zrMoles">
+        <distribution>moles_dist</distribution>
+        <grid construction="equal" steps="1" type="value">0.9 1.1</grid>
+      </variable>
+      <constant name="endTime">1.0</constant>
+    </Grid>
+  </Samplers>
+ 
+  <Steps>
+    <MultiRun name="sampleScale" >
+      <Input class="Files" type="origen">origen_input</Input>
+      <Model class="Models" type="Code">MyScale</Model>
+      <Sampler class="Samplers" type="Grid">myGrid</Sampler>
+      <Output class="DataObjects" type="HistorySet">time_evolution</Output>
+      <Output class="OutStreams" type="Print">output_time_evolution</Output>
+    </MultiRun>
+  </Steps>
+
+  <DataObjects>
+    <HistorySet name="time_evolution">
+      <Input>zrMoles,endTime</Input>
+      <Output>totals_grams,zr-95_grams,nb-95_grams,nb-95m_grams,mo-95_grams</Output>
+    </HistorySet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="output_time_evolution">
+      <type>csv</type>
+      <source>time_evolution</source>
+    </Print>
+  </OutStreams>
+
+</Simulation>

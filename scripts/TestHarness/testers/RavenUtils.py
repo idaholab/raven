@@ -53,7 +53,6 @@ modules_to_try = [("h5py"      ,'h5py.__version__'      ,'2.4.0' ,'2.6.0' ,None 
 #                  ("netCDF4"   ,'netCDF4.__version__'   ,"1.2.3" ,"1.3.1" ,None   ),
 #                  ("matplotlib",'matplotlib.__version__',"1.3.1" ,"2.1.0" ,None   )]
 
-
 def __lookUpPreferredVersion(name):
   """
     Look up the preferred version in the modules.

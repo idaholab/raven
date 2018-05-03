@@ -26,16 +26,10 @@ if not 'xrange' in dir(__builtins__):
 
 ################################################################################
 from utils import utils
-# OLD data objects
-#from DataObjects.Data import Data
-#from DataObjects.PointSet import PointSet
+from DataObjects.DataObject import DataObject as Data
+from DataObjects.DataSet import DataSet
+from DataObjects.PointSet import PointSet
 from DataObjects.HistorySet import HistorySet
-# NEW data objects
-from DataObjects.XDataObject import DataObject as Data
-from DataObjects.XDataSet import DataSet
-from DataObjects.XPointSet import PointSet
-from DataObjects.XHistorySet import HistorySet
-#from DataObjects.XHistorySet import XHistorySet as HistorySet
 ## [ Add new class here ]
 ################################################################################
 ## Alternatively, to fully automate this file:
@@ -45,17 +39,11 @@ from DataObjects.XHistorySet import HistorySet
 """
  Interface Dictionary (factory) (private)
 """
-# This machinery will automatically populate the "knownTypes" given the
-# imports defined above.
-__base = 'Data'
 __interFaceDict = {}
-
-for classObj in utils.getAllSubclasses(eval(__base)):
-  __interFaceDict[classObj.__name__] = classObj
-# mask old objects as new ones
 __interFaceDict['DataSet'   ] = DataSet
 __interFaceDict['PointSet'  ] = PointSet
-#__interFaceDict['HistorySet'] = HistorySet
+__interFaceDict['HistorySet'] = HistorySet
+
 
 def knownTypes():
   """
@@ -75,10 +63,7 @@ def returnInstance(Type,caller):
                   (used for error/debug messaging).
     @ Out, returnInstance, instance, subclass object constructed with no arguments
   """
-  try:
-    return __interFaceDict[Type]()
-  except KeyError:
-    caller.raiseAnError(NameError,__name__+': unknown '+__base+' type '+Type)
+  return returnClass(Type,caller)()
 
 def returnClass(Type,caller):
   """
