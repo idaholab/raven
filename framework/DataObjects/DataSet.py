@@ -1842,7 +1842,7 @@ class DataSet(DataObject):
     # get from the collector first
     if self._collector is not None and len(self._collector) > 0:
       # first get rows from collector
-      fromColl = self._collector[:][np.where(self._collector[:,self._orderedVars.index('RAVEN_isEnding')])]
+      fromColl = self._collector[np.where(self._collector[:,self._orderedVars.index('RAVEN_isEnding')])]
       # then turn them into realization-like
       fromColl = list( dict(zip(self._orderedVars,c)) for c in fromColl )
     else:
