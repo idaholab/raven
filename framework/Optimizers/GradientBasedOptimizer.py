@@ -608,6 +608,16 @@ class GradientBasedOptimizer(Optimizer):
     badValue = -1 #value to use if we don't have a value # TODO make this accessible to user?
     recent = self.counter['recentOptHist'][traj][0]
     for var in self.solutionExport.getVars():
+      # if this variable has indices, add them to the realization
+      indexes = self.solutionExport.getDimensions(var)[var]
+      if len(indexes):
+        # use the prefix to find the right realization
+        ## NOTE there will be a problem with unsynchronized histories!
+        prefix = '{}_{}_{}'.format(traj,self.counter['solutionUpdate'][traj]-1,0)
+        _,match = self.mdlEvalHist.realization(matchDict = {'prefix':prefix})
+        for index in indexes:
+          rlz[index] = match[index]
+      # CASE: what variable is asked for:
       # inputs, objVar, other outputs
       if var in recent.keys():
         new = self.denormalizeData(recent)[var]

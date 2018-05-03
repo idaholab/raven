@@ -515,6 +515,9 @@ class DataSet(DataObject):
           # if in self._data, clear the index
           if not noData and pivot in self._data.dims:
             del self._data[pivot] # = self._data.drop(pivot,dim
+          # if aligned, remove it
+          if pivot in self._alignedIndexes:
+            del self._alignedIndexes[pivot]
       # TODO remove references from general metadata?
     if self._scaleFactors is not None:
       self._scaleFactors.pop(variable,None)
@@ -1296,6 +1299,9 @@ class DataSet(DataObject):
     assert(self._collector is not None)
     assert(index < len(self._collector))
     rlz = dict(zip(self._orderedVars,self._collector[index]))
+    # don't forget the aligned indices!
+    for var,vals in self._alignedIndexes.items():
+      rlz[var] = vals
     return rlz
 
   def _getRealizationFromCollectorByValue(self,match,tol=1e-15):
