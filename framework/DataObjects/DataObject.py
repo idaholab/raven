@@ -19,10 +19,11 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
 
-import sys,os
 import __builtin__
-import functools
+import os
+import sys
 import copy
+import functools
 import cPickle as pk
 import xml.etree.ElementTree as ET
 
@@ -35,10 +36,6 @@ from BaseClasses import BaseType
 from Files import StaticXMLOutput
 from utils import utils, cached_ndarray, InputData, xmlUtils, mathUtils
 
-#
-#
-#
-#
 class DataObjectsCollection(InputData.ParameterInput):
   """
     Class for reading in a collection of data objects.
@@ -55,7 +52,7 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     which contains inputs, outputs, and pointwise metadata.  In addition, the data object has global
     metadata.  The pointwise inputs and outputs could be floats, time-dependent, or ND-dependent variables.
 
-    This base class is used to force the consistent API between all data containers (in memory as
+    This base class is used to force the consistent API between all data containers
   """
   ### INPUT SPECIFICATION ###
   @classmethod
@@ -104,20 +101,22 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       @ Out, None
     """
     BaseType.__init__(self)
-    self.name      = 'DataObject'
-    self.printTag  = self.name
-    self.sampleTag = 'RAVEN_sample_ID' # column name to track samples
-    self.protectedTags = ['RAVEN_parentID','RAVEN_isEnding'] # list(str) protected RAVEN tags
-    self._inputs   = []                                      # list(str) if input variables
-    self._outputs  = []                                      # list(str) of output variables
-    self._metavars = []                                      # list(str) of POINTWISE metadata variables
-    self._orderedVars = []                                   # list(str) of vars IN ORDER of their index
+    self.name             = 'DataObject'
+    self.printTag         = self.name
+    self._sampleTag       = 'RAVEN_sample_ID' # column name to track samples
+    self.protectedTags    = ['RAVEN_parentID','RAVEN_isEnding'] # list(str) protected RAVEN variable names,
+                                                                #   should not be avail to user as var names
+    self._inputs          = []     # list(str) if input variables
+    self._outputs         = []     # list(str) of output variables
+    self._metavars        = []     # list(str) of POINTWISE metadata variables
+    self._orderedVars     = []     # list(str) of vars IN ORDER of their index
 
     self._meta            = {}     # dictionary to collect meta until data is collapsed
     self._selectInput     = None   # if not None, describes how to collect input data from history
     self._selectOutput    = None   # if not None, describes how to collect output data from history
     self._pivotParams     = {}     # independent dimensions as keys, values are the vars that depend on them
-    self._fromVarToIndex  = {}     # mapping between variables and indexes ({var:index}). "index" here refers to dimensional variables (e.g. time, x, y, z etc)
+    self._fromVarToIndex  = {}     # mapping between variables and indexes ({var:index}).
+                                   #   "index" here refers to dimensional variables (e.g. time, x, y, z etc)
     self._aliases         = {}     # variable aliases
 
     self._data            = None   # underlying data structure
@@ -125,8 +124,19 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta,BaseType)):
 
     self._inputKDTree     = None   # for finding outputs given inputs (pointset only?)
     self._scaleFactors    = None   # scaling factors inputs as {var:(mean,scale)}
-    self.hierarchical     = False  # this flag controls the printing/plotting of the dataobject in case it is an hierarchical one.
-                                   # If True, all the branches are going to be printed/plotted independenttly, otherwise the are going to be reconstructed
+    self.hierarchical     = False  # this flag controls the printing/plotting of the dataobject
+                                   #   in case it is an hierarchical one.
+                                   #   If True, all the branches are going to be printed/plotted independenttly,
+                                   #   otherwise the are going to be reconstructed
+
+  @property
+  def sampleTag(self):
+    """
+      Getter property for _sampleTag, the tag that identifies the realization label for RAVEN
+      @ In, None
+      @ Out, sampleTag, string, variable name
+    """
+    return self._sampleTag
 
   def _readMoreXML(self,xmlNode):
     """
@@ -280,28 +290,28 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     """
       Adds general (not pointwise) metadata to this data object.  Can add several values at once, collected
       as a dict keyed by target variables.
+      Data ends up being written as follows (see docstrings above for dict structure)
+       - A good default for 'target' is 'general' if there's not a specific target
+      <tag>
+        <target>
+          <scalarMetric>value</scalarMetric>
+          <scalarMetric>value</scalarMetric>
+          <vectorMetric>
+            <wrt>value</wrt>
+            <wrt>value</wrt>
+          </vectorMetric>
+        </target>
+        <target>
+          <scalarMetric>value</scalarMetric>
+          <vectorMetric>
+            <wrt>value</wrt>
+          </vectorMetric>
+        </target>
+      </tag>
       @ In, tag, str, section to add metadata to, usually the data submitter (BasicStatistics, DataObject, etc)
       @ In, xmlDict, dict, data to change, of the form {target:{scalarMetric:value,scalarMetric:value,vectorMetric:{wrt:value,wrt:value}}}
       @ Out, None
     """
-    # Data ends up being written as follows (see docstrings above for dict structure)
-    #  - A good default for 'target' is 'general' if there's not a specific target
-    # <tag>
-    #   <target>
-    #     <scalarMetric>value</scalarMetric>
-    #     <scalarMetric>value</scalarMetric>
-    #     <vectorMetric>
-    #       <wrt>value</wrt>
-    #       <wrt>value</wrt>
-    #     </vectorMetric>
-    #   </target>
-    #   <target>
-    #     <scalarMetric>value</scalarMetric>
-    #     <vectorMetric>
-    #       <wrt>value</wrt>
-    #     </vectorMetric>
-    #   </target>
-    # </tag>
     pass
 
   @abc.abstractmethod
