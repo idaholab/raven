@@ -18,4 +18,10 @@
    csv    = 'test_geometric/MC_dump.csv'
  [../]
 
+ [./logUniform]
+   type   = 'RavenFramework'
+   input  = 'test_distributionsLogUniform.xml'
+   csv    = 'test_logUniform/MC_dump.csv'
+ [../]
+
 []

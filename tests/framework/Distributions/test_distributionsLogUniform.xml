@@ -1,0 +1,107 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework.Distributions.logUniform</name>
+    <author>cogljj</author>
+    <created>2017-04-26</created>
+    <classesTested>Distributions.LogUniform</classesTested>
+    <description>
+       This test is aimed to test the capability of RAVEN to use 1D LogUniform distributions.
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>test_logUniform/</WorkingDir>
+    <Sequence>MCrun,OutStreams</Sequence>
+    <batchSize>10</batchSize>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun  name="MCrun">
+      <Input   class="DataObjects" type="PointSet"      >inputPlaceHolder</Input>
+      <Model   class="Models"      type="ExternalModel" >PythonModule</Model>
+      <Sampler class="Samplers"    type="MonteCarlo"    >MC</Sampler>
+      <Output  class="DataObjects" type="PointSet"      >PointSet_MC</Output>
+    </MultiRun>
+    <IOStep name="OutStreams" pauseAtEnd="false">
+      <Input  class="DataObjects"  type="PointSet"      >PointSet_MC</Input>
+      <Output class="OutStreams"   type="Print"         >MC_dump</Output>
+      <Output class="OutStreams"   type="Plot"          >histogramX</Output>
+      <Output class="OutStreams"   type="Plot"          >histogramY</Output>
+    </IOStep>
+  </Steps>
+
+  <Models>
+    <ExternalModel ModuleToLoad="simpleExp" name="PythonModule" subType="">
+      <variables>x,y</variables>
+    </ExternalModel>
+  </Models>
+
+  <Distributions>
+    <LogUniform name="x_dist">
+      <upperBound>1.0</upperBound>
+      <lowerBound>2.0</lowerBound>
+    </LogUniform>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="MC">
+      <samplerInit>
+        <limit>10</limit>
+        <initialSeed>1234</initialSeed>
+      </samplerInit>
+      <variable name="x">
+        <distribution>x_dist</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <OutStreams>
+    <Print name="MC_dump">
+      <type>csv</type>
+      <source>PointSet_MC</source>
+    </Print>
+   <Plot name='histogramX' overwrite='false' verbosity='debug'>
+      <plotSettings>
+        <plot>
+          <type>histogram</type>
+          <x>PointSet_MC|Input|x</x>
+          <normed>True</normed>
+          <bins>20</bins>
+        </plot>
+        <xlabel>X</xlabel>
+        <ylabel>pdf</ylabel>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+      </actions>
+    </Plot>
+   <Plot name='histogramY' overwrite='false' verbosity='debug'>
+      <plotSettings>
+        <plot>
+          <type>histogram</type>
+          <x>PointSet_MC|Output|y</x>
+          <normed>True</normed>
+          <bins>20</bins>
+        </plot>
+        <xlabel>Y</xlabel>
+        <ylabel>pdf</ylabel>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+      </actions>
+    </Plot>
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="inputPlaceHolder">
+      <Input>x</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="PointSet_MC">
+      <Input>x</Input>
+      <Output>y</Output>
+    </PointSet>
+  </DataObjects>
+
+</Simulation>

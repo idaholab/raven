@@ -33,6 +33,7 @@ import operator
 from collections import OrderedDict
 import csv
 from scipy.interpolate import UnivariateSpline
+import math as math
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -77,6 +78,7 @@ _FrameworkToCrowDistNames = { 'Uniform':'UniformDistribution',
                               'MultivariateNormal' : 'MultivariateNormalDistribution',
                               'Laplace' : 'LaplaceDistribution',
                               'Geometric' : 'GeometricDistribution',
+                              'LogUniform' : 'LogUniformDistribution',
 }
 
 class DistributionsCollection(InputData.ParameterInput):
@@ -553,15 +555,15 @@ class Uniform(BoostDistribution):
 
   def convertUniformToLegendre(self,y):
     """Converts from distribution domain to standard Legendre [-1,1].
-    @ In, y, float/array of floats, points to convert
-    @ Out float/array of floats, converted points
+      @ In, y, float/array of floats, points to convert
+      @ Out float/array of floats, converted points
     """
     return (y-self.untruncatedMean())/(self.range/2.)
 
   def convertLegendreToUniform(self,x):
     """Converts from standard Legendre [-1,1] to distribution domain.
-    @ In, y, float/array of floats, points to convert
-    @ Out float/array of floats, converted points
+      @ In, y, float/array of floats, points to convert
+      @ Out float/array of floats, converted points
     """
     return self.range/2.*x+self.untruncatedMean()
 
@@ -2441,6 +2443,98 @@ class Custom1D(Distribution):
 
 DistributionsCollection.addSub(Custom1D.getInputSpecification())
 
+class LogUniform(Distribution):
+  """
+    Log Uniform univariate distribution
+    If x~LogUnif(a,b) then log(x)~Unif(log(a),log(b))
+  """
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    inputSpecification = super(LogUniform, cls).getInputSpecification()
+    inputSpecification.addSub(InputData.parameterInputFactory("mean", contentType=InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("sigma", contentType=InputData.FloatType))
+
+    return inputSpecification
+
+  def __init__(self):
+    """
+      Constructor
+      @ In, None
+      @ Out, None
+    """
+    Distribution.__init__(self)
+    self.upperBound = 1.
+    self.lowerBound = 10.
+
+  def _handleInput(self, paramInput):
+    """
+      Function to handle the common parts of the distribution parameter input.
+      @ In, paramInput, ParameterInput, the already parsed input.
+      @ Out, None
+    """
+    self.lowerBound = paramInput.findFirst('lowerBound').value
+    if self.lowerBound == None:
+      self.raiseAnError(IOError,' lowerBound parameter is needed for LogUniform distribution')
+
+    self.upperBound = paramInput.findFirst('upperBound').value
+    if self.upperBound == None:
+      self.raiseAnError(IOError,' upperBound parameter is needed for LogUniform distribution')
+
+    if self.lowerBound <=0. :
+      self.raiseAnError(IOError,' lowerBound parameter for LogUniform distribution needs to be greater (and not equal) than 0.0')
+
+    if self.upperBound <=0. :
+      self.raiseAnError(IOError,' upperBound parameter for LogUniform distribution needs to be greater (and not equal) than 0.0')
+
+    self.minVal = min(math.exp(self.upperBound),math.exp(self.lowerBound))
+    self.maxVal = max(math.exp(self.upperBound),math.exp(self.lowerBound))
+
+  def pdf(self,x):
+    """
+      Function that calculates the pdf value of x
+      @ In, x, scalar , coordinates to get the pdf at
+      @ Out, pdfValue, scalar, requested pdf
+    """
+    pdfValue = 1./(self.maxVal-self.minVal) * 1./x
+    return pdfValue
+
+  def cdf(self,x):
+    """
+      Function that calculates the cdf value of x
+      @ In, x, scalar , coordinates to get the cdf at
+      @ Out, pdfValue, scalar, requested pdf
+    """
+    cdfValue = (math.log(x)-self.lowerBound)/(self.upperBound-self.lowerBound)
+    return cdfValue
+
+  def ppf(self,x):
+    """
+      Return the ppf of given coordinate
+      @ In, x, float, the x coordinates
+      @ Out, ppfValue, float, ppf values
+    """
+    ppfValue = (self.upperBound-self.lowerBound)*x + self.lowerBound
+    ppfValue = math.exp(ppfValue)
+    return ppfValue
+
+  def rvs(self):
+    """
+      Return a random value
+      @ In, None
+      @ Out, rvsValue, float, the random value
+    """
+    rvsValue = self.ppf(random())
+    return rvsValue
+
+DistributionsCollection.addSub(LogUniform.getInputSpecification())
+
 class NDimensionalDistributions(Distribution):
   """
     General base class for NDimensional distributions
@@ -3348,6 +3442,7 @@ __interFaceDict['NDCartesianSpline' ] = NDCartesianSpline
 __interFaceDict['MultivariateNormal'] = MultivariateNormal
 __interFaceDict['Laplace'           ] = Laplace
 __interFaceDict['Geometric'         ] = Geometric
+__interFaceDict['LogUniform'        ] = LogUniform
 __knownTypes                          = __interFaceDict.keys()
 
 def knownTypes():
