@@ -220,7 +220,7 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
         self.normValues = np.zeros((cardinality,cardinality))
         keys = tdictNorm.keys()
         for i in range(cardinality):
-          for j in range(i+1,cardinality):
+          for j in range(i,cardinality):
             # process the input data for the metric, numpy.array is required
             assert(tdictNorm[keys[i]].keys() == tdictNorm[keys[j]].keys())
             numParamsI = len(tdictNorm[keys[i]].keys())
@@ -236,7 +236,8 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
               inputJ[ind] = valueJ
             pairedData = ((inputI, None), (inputJ, None))
             self.normValues[i][j] = metric.evaluate(pairedData)
-            self.normValues[j][i] = self.normValues[i][j]
+            if i != j:
+              self.normValues[j][i] = self.normValues[i][j]
       else:
         ## PointSet
         normValues = np.zeros(shape = (realizationCount, featureCount))
@@ -245,7 +246,14 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
           featureValues = tdict[feat]
           (mu,sigma) = mathUtils.normalizationFactors(featureValues)
           normValues[:, cnt] = (featureValues - mu) / sigma
-        self.normValues = metric.distance(normValues)
+        for i in range(realizationCount):
+          for j in range(i,realizationCount):
+            inputI = normValues[i,:].reshape(-1,1)
+            inputJ = normValues[j,:].reshape(-1,1)
+            pairedData = ((inputI, None),(inputJ, None))
+            self.normValues[i][j] = metric.evaluate(pairedData)
+            if i != j:
+              self.normValues[j][i] = self.normValues[i][j]
 
     self.__trainLocal__()
     self.amITrained = True
