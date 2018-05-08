@@ -24,6 +24,7 @@ warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
+import sys
 import numpy as np
 from scipy import optimize
 import copy
@@ -32,9 +33,9 @@ import itertools
 
 #Internal Modules------------------------------------------------------------------------------------
 from utils import randomUtils
-import sys
 import Distributions
-from SupervisedLearning import superVisedLearning
+from .SupervisedLearning import superVisedLearning
+from sklearn import linear_model, neighbors
 #Internal Modules End--------------------------------------------------------------------------------
 
 class ARMA(superVisedLearning):

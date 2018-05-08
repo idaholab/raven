@@ -43,7 +43,7 @@ import ast
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from SupervisedLearning import superVisedLearning
+from .SupervisedLearning import superVisedLearning
 #Internal Modules End--------------------------------------------------------------------------------
 
 class SciKitLearn(superVisedLearning):

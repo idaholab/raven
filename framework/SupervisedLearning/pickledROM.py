@@ -28,6 +28,7 @@ warnings.simplefilter('default',DeprecationWarning)
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
+from .SupervisedLearning import superVisedLearning
 #Internal Modules End--------------------------------------------------------------------------------
 
 

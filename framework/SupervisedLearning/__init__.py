@@ -23,16 +23,17 @@ from __future__ import absolute_import
 
 # These lines ensure that we do not have to do something like:
 # 'from Samplers.Sampler import Sampler' outside of this submodule
-from .SupervisedLearning import SupervisedLearning
+from .SupervisedLearning import superVisedLearning
 # Forward Samplers
 from .ARMA               import ARMA
 from .GaussPolynomialRom import GaussPolynomialRom
 from .HDMRRom            import HDMRRom
 from .MSR                import MSR
-from .NDinterpoloatorRom import NDinterpoloatorRom
+from .NDinterpolatorRom  import NDinterpolatorRom
 from .NDinvDistWeight    import NDinvDistWeight
 from .NDsplineRom        import NDsplineRom
 from .SciKitLearn        import SciKitLearn
+from .pickledROM         import pickledROM
 
 # Factory methods
 from .Factory import knownTypes

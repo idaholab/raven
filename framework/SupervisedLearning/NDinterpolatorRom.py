@@ -30,7 +30,7 @@ import numpy as np
 #Internal Modules------------------------------------------------------------------------------------
 from utils import utils
 interpolationND = utils.find_interpolationND()
-from SupervisedLearning import superVisedLearning
+from .SupervisedLearning import superVisedLearning
 #Internal Modules End--------------------------------------------------------------------------------
 
 

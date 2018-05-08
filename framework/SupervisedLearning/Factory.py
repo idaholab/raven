@@ -26,18 +26,17 @@ if not 'xrange' in dir(__builtins__):
 
 ################################################################################
 
-# These lines ensure that we do not have to do something like:
-# 'from Samplers.Sampler import Sampler' outside of this submodule
-from SupervisedLearning.SupervisedLearning import SupervisedLearning
+from SupervisedLearning.SupervisedLearning import superVisedLearning
 # Forward Samplers
 from SupervisedLearning.ARMA               import ARMA
 from SupervisedLearning.GaussPolynomialRom import GaussPolynomialRom
 from SupervisedLearning.HDMRRom            import HDMRRom
 from SupervisedLearning.MSR                import MSR
-from SupervisedLearning.NDinterpoloatorRom import NDinterpoloatorRom
+from SupervisedLearning.NDinterpolatorRom  import NDinterpolatorRom
 from SupervisedLearning.NDinvDistWeight    import NDinvDistWeight
 from SupervisedLearning.NDsplineRom        import NDsplineRom
 from SupervisedLearning.SciKitLearn        import SciKitLearn
+from SupervisedLearning.pickledROM         import pickledROM
 
 ## [ Add new class here ]
 ################################################################################
@@ -68,17 +67,18 @@ def knownTypes():
   """
   return __interFaceDict.keys()
 
-def returnInstance(Type,caller):
+def returnInstance(Type,caller,**kwargs):
   """
     Attempts to create and return an instance of a particular type of object
     available to this factory.
     @ In, Type, string, string should be one of the knownTypes.
     @ In, caller, instance, the object requesting the instance
                   (used for error/debug messaging).
+    @ In, kwargs, dict, a dicitonary specifying hte keywords and values needed to create the instance
     @ Out, returnInstance, instance, subclass object constructed with no arguments
   """
   try:
-    return __interFaceDict[Type]()
+    return __interfaceDict[Type](caller.messageHandler,**kwargs)
   except KeyError:
     print(knownTypes())
     caller.raiseAnError(NameError,__name__+': unknown '+__base+' type '+Type)
@@ -92,6 +92,6 @@ def returnClass(Type,caller):
     @ Out, returnClass, class, reference to the subclass
   """
   try:
-    return __interFaceDict[Type]
+    return __interfaceDict[Type]
   except KeyError:
     caller.raiseAnError(NameError,__name__+': unknown '+__base+' type '+Type)

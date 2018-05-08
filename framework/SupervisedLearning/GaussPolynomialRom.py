@@ -33,7 +33,7 @@ from scipy import spatial
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from SupervisedLearning import superVisedLearning
+from .SupervisedLearning import superVisedLearning
 #Internal Modules End--------------------------------------------------------------------------------
 
 

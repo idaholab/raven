@@ -29,7 +29,9 @@ import math
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from NDinterpolatorRom import NDinterpolatorRom
+from .NDinterpolatorRom import NDinterpolatorRom
+from .SupervisedLearning import superVisedLearning
+from sklearn import neighbors, svm
 #Internal Modules End--------------------------------------------------------------------------------
 
 class MSR(NDinterpolatorRom):

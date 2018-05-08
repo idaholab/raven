@@ -29,7 +29,7 @@ import numpy as np
 
 #Internal Modules------------------------------------------------------------------------------------
 from utils import mathUtils
-from GaussPolynomialRom import GaussPolynomialRom
+from .GaussPolynomialRom import GaussPolynomialRom
 #Internal Modules End--------------------------------------------------------------------------------
 
 class HDMRRom(GaussPolynomialRom):

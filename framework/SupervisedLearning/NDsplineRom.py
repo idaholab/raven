@@ -29,7 +29,7 @@ warnings.simplefilter('default',DeprecationWarning)
 #Internal Modules------------------------------------------------------------------------------------
 from utils import utils
 interpolationND = utils.find_interpolationND()
-from NDinterpolatorRom import NDinterpolatorRom
+from .NDinterpolatorRom import NDinterpolatorRom
 #Internal Modules End--------------------------------------------------------------------------------
 
 class NDsplineRom(NDinterpolatorRom):
