@@ -2458,8 +2458,9 @@ class LogUniform(Distribution):
         specifying input of cls.
     """
     inputSpecification = super(LogUniform, cls).getInputSpecification()
-    inputSpecification.addSub(InputData.parameterInputFactory("mean", contentType=InputData.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("sigma", contentType=InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("lowerBound", contentType=InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("upperBound", contentType=InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("base", contentType=InputData.StringType))
 
     return inputSpecification
 
@@ -2472,6 +2473,7 @@ class LogUniform(Distribution):
     Distribution.__init__(self)
     self.upperBound = 1.
     self.lowerBound = 10.
+    self.base = None
 
   def _handleInput(self, paramInput):
     """
@@ -2480,18 +2482,25 @@ class LogUniform(Distribution):
       @ Out, None
     """
     self.lowerBound = paramInput.findFirst('lowerBound').value
-    if self.lowerBound == None:
+    if self.lowerBound is None:
       self.raiseAnError(IOError,' lowerBound parameter is needed for LogUniform distribution')
 
     self.upperBound = paramInput.findFirst('upperBound').value
-    if self.upperBound == None:
+    if self.upperBound is None:
       self.raiseAnError(IOError,' upperBound parameter is needed for LogUniform distribution')
+
+    self.base = paramInput.findFirst('base').value
+    if self.upperBound == None:
+      self.raiseAnError(IOError,' base parameter is needed for LogUniform distribution')
 
     if self.lowerBound <=0. :
       self.raiseAnError(IOError,' lowerBound parameter for LogUniform distribution needs to be greater (and not equal) than 0.0')
 
     if self.upperBound <=0. :
       self.raiseAnError(IOError,' upperBound parameter for LogUniform distribution needs to be greater (and not equal) than 0.0')
+
+    if self.base not in ['decimal','natural']:
+      self.raiseAnError(IOError,' base parameter for LogUniform distribution needs to be either decimal or natural')
 
     self.minVal = min(math.exp(self.upperBound),math.exp(self.lowerBound))
     self.maxVal = max(math.exp(self.upperBound),math.exp(self.lowerBound))
@@ -2502,7 +2511,10 @@ class LogUniform(Distribution):
       @ In, x, scalar , coordinates to get the pdf at
       @ Out, pdfValue, scalar, requested pdf
     """
-    pdfValue = 1./(self.maxVal-self.minVal) * 1./x
+    if self.base == 'natural':
+      pdfValue = 1./(self.maxVal-self.minVal) * 1./x
+    else:
+      pdfValue = 1./(self.maxVal-self.minVal) * 1./x * 1./math.log(10.) 
     return pdfValue
 
   def cdf(self,x):
@@ -2511,7 +2523,10 @@ class LogUniform(Distribution):
       @ In, x, scalar , coordinates to get the cdf at
       @ Out, pdfValue, scalar, requested pdf
     """
-    cdfValue = (math.log(x)-self.lowerBound)/(self.upperBound-self.lowerBound)
+    if self.base == 'natural':
+      cdfValue = (math.log(x)-self.lowerBound)/(self.upperBound-self.lowerBound)
+    else:
+      cdfValue = (math.log10(x)-self.lowerBound)/(self.upperBound-self.lowerBound)
     return cdfValue
 
   def ppf(self,x):
@@ -2520,8 +2535,10 @@ class LogUniform(Distribution):
       @ In, x, float, the x coordinates
       @ Out, ppfValue, float, ppf values
     """
-    ppfValue = (self.upperBound-self.lowerBound)*x + self.lowerBound
-    ppfValue = math.exp(ppfValue)
+    if self.base == 'natural':
+      ppfValue = math.exp((self.upperBound-self.lowerBound)*x + self.lowerBound)
+    else:
+      ppfValue = math.pow(10,(self.upperBound-self.lowerBound)*x + self.lowerBound)
     return ppfValue
 
   def rvs(self):

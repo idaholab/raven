@@ -2,19 +2,23 @@
 <Simulation verbosity="debug">
   <TestInfo>
     <name>framework.Distributions.logUniform</name>
-    <author>cogljj</author>
-    <created>2017-04-26</created>
+    <author>mandd</author>
+    <created>2018-05-07</created>
     <classesTested>Distributions.LogUniform</classesTested>
     <description>
-       This test is aimed to test the capability of RAVEN to use 1D LogUniform distributions.
+       This test checks the capability of RAVEN to use 1D LogUniform distributions (natural).
     </description>
   </TestInfo>
 
   <RunInfo>
     <WorkingDir>test_logUniform/</WorkingDir>
-    <Sequence>MCrun,OutStreams</Sequence>
-    <batchSize>10</batchSize>
+    <Sequence>MCrun,importAnal,OutStreams</Sequence>
+    <batchSize>1000</batchSize>
   </RunInfo>
+
+  <Files>
+    <Input name='anal' type=''>anal.csv</Input>
+  </Files>
 
   <Steps>
     <MultiRun  name="MCrun">
@@ -23,11 +27,17 @@
       <Sampler class="Samplers"    type="MonteCarlo"    >MC</Sampler>
       <Output  class="DataObjects" type="PointSet"      >PointSet_MC</Output>
     </MultiRun>
-    <IOStep name="OutStreams" pauseAtEnd="false">
+    <IOStep name="importAnal">
+      <Input   class='Files'       type=''              >anal</Input>
+      <Output  class="DataObjects" type="PointSet"      >PointSet_Anal</Output>
+    </IOStep>
+    <IOStep name="OutStreams">
       <Input  class="DataObjects"  type="PointSet"      >PointSet_MC</Input>
+      <Input  class="DataObjects"  type="PointSet"      >PointSet_Anal</Input>
       <Output class="OutStreams"   type="Print"         >MC_dump</Output>
       <Output class="OutStreams"   type="Plot"          >histogramX</Output>
       <Output class="OutStreams"   type="Plot"          >histogramY</Output>
+      <Output class="OutStreams"   type="Plot"          >lineAnal</Output>
     </IOStep>
   </Steps>
 
@@ -41,13 +51,14 @@
     <LogUniform name="x_dist">
       <upperBound>1.0</upperBound>
       <lowerBound>2.0</lowerBound>
+      <base>natural</base>
     </LogUniform>
   </Distributions>
 
   <Samplers>
     <MonteCarlo name="MC">
       <samplerInit>
-        <limit>10</limit>
+        <limit>5000</limit>
         <initialSeed>1234</initialSeed>
       </samplerInit>
       <variable name="x">
@@ -91,6 +102,26 @@
         <how>png</how>
       </actions>
     </Plot>
+   <Plot name='lineAnal' overwrite='false' verbosity='debug'>
+      <plotSettings>
+        <plot>
+          <type>line</type>
+          <x>PointSet_Anal|Output|ex</x>
+          <y>PointSet_Anal|Output|pdf</y>
+        </plot>
+        <xlabel>Y</xlabel>
+        <ylabel>pdf</ylabel>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+        <range>
+          <xmin>2</xmin>
+          <ymin>0</ymin>
+          <xmax>8</xmax>
+          <ymax>0.35</ymax>
+        </range>
+      </actions>
+    </Plot>
   </OutStreams>
 
   <DataObjects>
@@ -101,6 +132,10 @@
     <PointSet name="PointSet_MC">
       <Input>x</Input>
       <Output>y</Output>
+    </PointSet>
+    <PointSet name="PointSet_Anal">
+      <Input>x</Input>
+      <Output>ex,pdf</Output>
     </PointSet>
   </DataObjects>
 
