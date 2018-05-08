@@ -507,6 +507,7 @@ class SPSA(GradientBasedOptimizer):
     # check if the active constraints are the boundary ones. In this case, try to project the gradient at an angle
     modded = False
     if len(activeViolations['internal']) > 0:
+      self.raiseADebug('Attempting to fix constraint violation with gradient projection ...')
       modded = True
       projectedOnBoundary= {}
       for var,under,over in activeViolations['internal']:
@@ -529,6 +530,7 @@ class SPSA(GradientBasedOptimizer):
     if len(activeViolations['external']) == 0:
       return varKPlus, modded
 
+    self.raiseADebug('Attempting to fix constraint violation by shortening gradient vector ...')
     # Try to find varKPlus by shorten the gradient vector
     self.raiseADebug('Trajectory "{}" hit constraints ...'.format(traj))
     self.raiseADebug('  Attempting to shorten step length ...')
@@ -537,6 +539,7 @@ class SPSA(GradientBasedOptimizer):
       self.raiseADebug('   ... successfully found new point by shortening length.')
       return varKPlus, True
 
+    self.raiseADebug('Attempting to fix constraint violation by rotating towards orthogonal ...')
     # Try to find varKPlus by rotate the gradient towards its orthogonal, since we consider the gradient as perpendicular
     # with respect to the constraints hyper-surface
     self.raiseADebug('  Attempting instead to rotate trajectory ...')
