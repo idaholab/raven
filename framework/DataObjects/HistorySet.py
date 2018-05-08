@@ -19,12 +19,13 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
 
-import sys,os
-import __builtin__
-import functools
+import os
+import sys
 import copy
-import cPickle as pk
+import functools
 import itertools
+import __builtin__
+import cPickle as pk
 import xml.etree.ElementTree as ET
 
 import abc
@@ -42,7 +43,7 @@ except ValueError: #attempted relative import in non-package
 
 # for profiling with kernprof
 try:
-  __builtin__.profile
+  profile = __builtin__.profile
 except AttributeError:
   # profiler not preset, so pass through
   def profile(func):
