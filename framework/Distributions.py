@@ -2523,7 +2523,6 @@ class LogUniform(Distribution):
     if self.base == 'natural':
       ppfValue = math.exp((self.upperBound-self.lowerBound)*x + self.lowerBound)
     else:
-      #ppfValue = math.pow(10,(self.upperBound-self.lowerBound)*x + self.lowerBound)
       ppfValue = 10.**((self.upperBound-self.lowerBound)*x + self.lowerBound)
     return ppfValue
 
