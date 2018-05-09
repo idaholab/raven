@@ -3,8 +3,8 @@
    type = 'RavenFramework'
    input = 'test_ARMA.xml'
    output = 'ARMA/writeSynDataOut.csv ARMA/writeSynDataOut.xml'
-   #csv = 'ARMA/writeSynDataOut_0.csv'
-   #rel_err = 0.1
+   csv = 'ARMA/writeSynDataOut_0.csv'
+   rel_err = 1e-6
   [../]
   [./ARMAparallel]
    type = 'RavenFramework'
