@@ -141,12 +141,13 @@ class ARMA(superVisedLearning):
     if len(self.pivotParameterValues) > 1:
       self.raiseAnError(Exception,self.printTag +" does not handle multiple histories data yet! # histories: "+str(len(self.pivotParameterValues)))
     self.pivotParameterValues.shape = (self.pivotParameterValues.size,)
-    targetVals = np.delete(targetVals,self.target.index(self.pivotParameterID),2)
+    targetVals = np.delete(targetVals,self.target.index(self.pivotParameterID),2)[0]
+    # targetVals now has shape (1, # time samples, # targets)
     self.target.pop(self.target.index(self.pivotParameterID))
     # XXX WORKING
     for t,target in enumerate(self.target):
       self.raiseADebug('... training target "{}" ...'.format(target))
-      timeSeriesData = copy.deepcopy(targetVals[t])
+      timeSeriesData = copy.deepcopy(targetVals[:,t])
       # set up the Arma parameters dict for this target, including the noisy data
       #self.armaPara[target] = {'rSeries': timeSeriesData}
       # if we're removing Fourier signal, do that now.
@@ -168,7 +169,6 @@ class ARMA(superVisedLearning):
       self._trainARMA(target)
       self.raiseADebug('... ... finished training target "{}"'.format(target))
 
-
   def _trainFourier(self, pivotValues, basePeriod, order, values):
     """
       Perform fitting of Fourier series on self.timeSeriesDatabase
@@ -179,9 +179,11 @@ class ARMA(superVisedLearning):
       @ Out, fourierResult, dict, results of this training in keys 'residues', 'fOrder', 'predict'
     """
     fourierSeriesAll = self._generateFourierSignal(pivotValues,
-                                                      basePeriod,
-                                                      order)
+                                                   basePeriod,
+                                                   order)
     fourierEngine = linear_model.LinearRegression()
+
+    # get the combinations of fourier signal orders to consider
     temp = {}
     for bp in self.fourierPara['FourierOrder'].keys():
       temp[bp] = range(1,order[bp]+1)
@@ -572,7 +574,7 @@ class ARMA(superVisedLearning):
 
       # store results
       ## XXX assure that tIdx is the right way to find the correct featureVal scalar
-      evaluation = (tSeries*featureVals[tIdx]).reshape(returnEvaluation[self.pivotParameterID].shape)
+      evaluation = (tSeries*featureVals).reshape(returnEvaluation[self.pivotParameterID].shape)
       assert(evaluation.size == returnEvaluation[self.pivotParameterID].size)
       returnEvaluation[target] = evaluation
     # END for target in targets
