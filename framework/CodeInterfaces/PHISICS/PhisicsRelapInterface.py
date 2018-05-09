@@ -32,7 +32,7 @@ from  __builtin__ import any as b_any
 class PhisicsRelap5(CodeInterfaceBase):
   """
     Class that links the PHISICS and RELAP interfaces.
-  """ 
+  """
   def __init__(self):
     """
       Constructor.
@@ -73,13 +73,13 @@ class PhisicsRelap5(CodeInterfaceBase):
       @ Out, None
     """
     self.addInputExtension(['xml','dat','path','bin','i','inp','x','in'])
-  
+
   def depTime(self,inputXML,searchDict,dictKeys):
     """
       Synchronizes the PHISICS time and RELAP time based on the input.
       The input read are the xml depletion file (PHISICS) and xml input file (PHISICS).
       The resulting ditionary is use in the "combine" class to print the PHISICS and RELAP csv output in the proper time lines.
-      @ In, inputXML, depletion input name 
+      @ In, inputXML, depletion input name
       @ In, searchDict, dictionary, dictionary containing dummy keys, and the searched keywords as values
       @ In, dictKeys, dictionary, dictionary containing dummy keys, the values are the keys of the output dict timeDict
       @ Out, timeDict, dictionary
@@ -206,7 +206,7 @@ class PhisicsRelap5(CodeInterfaceBase):
       else:
         passToDesignatedCode['relap5']['SampledVars'][var] = value
     return passToDesignatedCode
-  
+
   def createNewInput(self,currentInputFiles,oriInputFiles,samplerType,**Kwargs):
     """
       Generates a new input file depending on which sampler is chosen.
@@ -216,11 +216,11 @@ class PhisicsRelap5(CodeInterfaceBase):
       @ In, Kwargs, dictionary, kwarded dictionary of parameters. In this dictionary there is another dictionary called "SampledVars"
              where RAVEN stores the variables that got sampled (e.g. Kwargs['SampledVars'] => {'var1':10,'var2':40})
       @ Out, currentInputFiles, list, list of newer input files, list of the new input files (modified and not)
-    """    
+    """
     if self.PhisicsInterface.mrtauStandAlone:  # errors out if MRTAU standalone and PHISICS/RELAP5 are activated simultanously
-      raise ValueError('MRTAU cannot be used in standalone mode in PHISICS/RELAP5 calculations.')        
+      raise ValueError('MRTAU cannot be used in standalone mode in PHISICS/RELAP5 calculations.')
     self.definePhisicsVariables()
-    self.outputDeck = self.Relap5Interface.outputDeck 
+    self.outputDeck = self.Relap5Interface.outputDeck
     perturbedVars = Kwargs['SampledVars']
     localKwargs = copy.deepcopy(Kwargs)
     perturbedVars = localKwargs.pop('SampledVars')
@@ -231,7 +231,7 @@ class PhisicsRelap5(CodeInterfaceBase):
     # PHISICS
     self.PhisicsInterface.createNewInput(phisicsCurrentInputFiles,oriInputFiles,samplerType,**passToDesignatedCode['phisics'])
     # RELAP
-    self.Relap5Interface.createNewInput(relap5CurrentInputFiles,oriInputFiles,samplerType,**passToDesignatedCode['relap5']) 
+    self.Relap5Interface.createNewInput(relap5CurrentInputFiles,oriInputFiles,samplerType,**passToDesignatedCode['relap5'])
     self.depTimeDict = self.depTime(self.PhisicsInterface.depInp,{'search1':'n_tab_interval','search2':'tab_time_step'},{'search1':'nBUsteps','search2':'timeSteps'})
     self.inpTimeDict = self.depTime(self.PhisicsInterface.phisicsInp,{'search1':'TH_between_BURN'},{'search1':'TH_between_BURN'})
     return currentInputFiles

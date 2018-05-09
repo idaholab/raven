@@ -15,7 +15,7 @@ class PathParser():
     and replaces the nominal values by the perturbed values.
   """
   def __init__(self,inputFiles,workingDir,**pertDict):
-    """  
+    """
       Constructor.
       @ In, inputFiles, string, decay Qvalue library file
       @ In, workingDir, string, absolute path to working directory
@@ -27,7 +27,7 @@ class PathParser():
     self.listedQValuesDict = {}
     self.inputFiles = inputFiles
     self.pertQValuesDict = self.scientificNotation(pertDict) # Perturbed variables
-    self.fileReconstruction()   # Puts the perturbed variables in a dictionary 
+    self.fileReconstruction()   # Puts the perturbed variables in a dictionary
     self.printInput(workingDir) # Replaces the the nominal values by the perturbed one and print in a file
 
   def scientificNotation(self,pertDict):
@@ -37,9 +37,9 @@ class PathParser():
       @ Out, pertDict, dictionary, perturbed variables in scientific format
     """
     for key, value in pertDict.iteritems():
-      pertDict[key] = '%.3E' % Decimal(str(value)) 
+      pertDict[key] = '%.3E' % Decimal(str(value))
     return pertDict
-    
+
   def matrixPrinter(self,line,outfile):
     """
       Prints the perturbed decay matrix in the outfile.
@@ -62,7 +62,7 @@ class PathParser():
     if re.search(r'(.*?)END', line[0]):
       self.endStringCounter = self.endStringCounter + 1
       self.harcodingSection = 0
-    
+
   def fileReconstruction(self):
     """
       Converts the formatted dictionary -> {'XXXDECAY|U235':1.30, XXXDECAY|FUEL2|U238':4.69}.
@@ -70,7 +70,7 @@ class PathParser():
       @ In, None
       @ Out, reconstructedDict, nested dictionary
     """
-    
+
     perturbedIsotopes = []
     for key in self.pertQValuesDict.iterkeys():
       perturbedIsotopes.append(key.split('|')[1])
@@ -80,15 +80,15 @@ class PathParser():
       isotopeName = isotopeKeyName.split('|')
       self.listedQValuesDict[isotopeName[1]] = QValue
     self.setOfPerturbedIsotopes = set(self.listedQValuesDict.iterkeys())
-    
+
   def printInput(self,workingDir):
     """
-      Prints out the pertubed decay qvalue file into a .dat file. The workflow is: 
-      open a new file with a dummy name; parse the unperturbed library; print the line in the dummy and  
-      replace with perturbed variables if necessary, Change the name of the dummy file. 
+      Prints out the pertubed decay qvalue file into a .dat file. The workflow is:
+      open a new file with a dummy name; parse the unperturbed library; print the line in the dummy and
+      replace with perturbed variables if necessary, Change the name of the dummy file.
       @ In, workingDir, string, path to working directory
       @ Out, None
-    """  
+    """
     sectionCounter = 0
     modifiedFile = os.path.join(workingDir,'test.dat')
     open(modifiedFile, 'w')
@@ -97,7 +97,7 @@ class PathParser():
         for line in infile:
           if re.search(r'(.*?)(\s?)[a-zA-Z](\s+Qvalue)',line.strip()):
             sectionCounter = sectionCounter + 1
-          if not line.split(): 
+          if not line.split():
             continue  # if the line is blank, ignore it
           if sectionCounter == 1 and self.endStringCounter == 0: #actinide section
             self.harcodingSection = 1

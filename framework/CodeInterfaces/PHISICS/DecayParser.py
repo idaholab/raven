@@ -20,19 +20,19 @@ class DecayParser():
       @ In, workingDir, string, absolute path to the working directory
       @ In, pertDict, dictionary, dictionary of perturbed variables
       @ Out, None
-    """  
+    """
     self.allDecayList = []        # All possible types of decay for actinides and FP
     self.isotopeClassifier = {}   # String, FP or Actinide
     self.decayModeNumbering = {}  # Gives the column number of each decay type
     self.isotopeParsed = ['Actinide','FP']
-    self.listedDict = {}          # Nested dictionary of perturbed variables 
-    
+    self.listedDict = {}          # Nested dictionary of perturbed variables
+
     self.inputFiles = inputFiles
     self.pertDict = self.scientificNotation(pertDict)
     self.characterizeLibrary()
     self.fileReconstruction()
     self.printInput(workingDir)
-    
+
   def matrixPrinter(self,infile,outfile,atomicNumber):
     """
       The xml files is split into two categories: hardcopied lines (banner, column labels etc.) that cannot
@@ -56,7 +56,7 @@ class DecayParser():
                 line[self.decayModeNumbering.get(atomicNumber).get(typeOfDecayPerturbed[i])] = str(self.listedDict.get(isotopeID).get(typeOfDecayPerturbed[i]))
               elif self.isotopeClassifier.get(isotopeID) == self.isotopeParsed[1]:  # it means the isotope is a FP
                 line[self.decayModeNumbering.get(atomicNumber).get(typeOfDecayPerturbed[i])] = str(self.listedDict.get(isotopeID).get(typeOfDecayPerturbed[i]))
-            except KeyError: 
+            except KeyError:
               raise KeyError('you used the decay mode'+str(typeOfDecayPerturbed)+'Check if the decay mode '+str(typeOfDecayPerturbed)+'exist in the decay library. You can also check if you perturbed dictionary is under the format |DECAY|DECAYMODE|ISOTOPEID.')
       if any('ACTINIDES' in s for s in line):
         flag = self.isotopeParsed[0]
@@ -92,7 +92,7 @@ class DecayParser():
             flag = 2
           if flag == 2:
             # three conditions: 1- match a serie of space+alphanumeric+space+alphanumeric 2- the line has the word BETA 3 - the flag 'actinide' is on
-            if re.match(r'(.*?)\s+\w+(\W)\s+\w+(\W)',line) and any(s in 'BETA' for s in line.split()) and atomicNumber == self.isotopeParsed[0]:  
+            if re.match(r'(.*?)\s+\w+(\W)\s+\w+(\W)',line) and any(s in 'BETA' for s in line.split()) and atomicNumber == self.isotopeParsed[0]:
               outfile.writelines(line)
               break
             outfile.writelines(line)
@@ -104,7 +104,7 @@ class DecayParser():
               break
             outfile.writelines(line)
         self.matrixPrinter(infile, outfile, atomicNumber)
-  
+
   def characterizeLibrary(self):
     """
       Characterizes the structure of the library. Teaches the type of decay available for the actinide family and FP family.
@@ -115,13 +115,13 @@ class DecayParser():
     openInputFile = open (self.inputFiles, "r")
     lines = openInputFile.readlines()
     openInputFile.close()
-    
+
     for line in lines:
       if re.match(r'(.*?)Actinides', line):
         typeOfIsotopeParsed = self.isotopeParsed[0]
       elif re.match(r'(.*?)FProducts', line):
         typeOfIsotopeParsed = self.isotopeParsed[1]
-      if (re.match(r'(.*?)\w+(\W?)\s+\w+(\W?)\s+\w',line) and any(s in "BETA" for s in line)) : # create dynamic column detector, the search for 'BETA' ensures this is the label line. 
+      if (re.match(r'(.*?)\w+(\W?)\s+\w+(\W?)\s+\w',line) and any(s in "BETA" for s in line)) : # create dynamic column detector, the search for 'BETA' ensures this is the label line.
         count = 0                            # reset the counter and the dictionary numbering if new colum sequence is detected
         numbering = {}
         decayList = []
@@ -150,7 +150,7 @@ class DecayParser():
           self.isotopeClassifier[splitString[0]] = self.isotopeParsed[0]
         elif typeOfIsotopeParsed == self.isotopeParsed[1]:
           self.isotopeClassifier[splitString[0]] = self.isotopeParsed[1]
-  
+
   def scientificNotation(self,pertDict):
     """
       Converts the numerical values into a scientific notation.
@@ -158,7 +158,7 @@ class DecayParser():
       @ Out, pertDict, dictionary, perturbed variables in scientific format
     """
     for key, value in pertDict.iteritems():
-      pertDict[key] = '%.3E' % Decimal(str(value)) 
+      pertDict[key] = '%.3E' % Decimal(str(value))
     return pertDict
 
   def fileReconstruction(self):
@@ -178,12 +178,12 @@ class DecayParser():
       decayKeyWords = decayTypeKey.split('|')
       for i in range (len(self.allDecayList)):
         self.listedDict[decayKeyWords[2]][decayKeyWords[1]] = decayValue
-   
+
   def printInput(self,workingDir):
     """
-      Prints out the pertubed decay library into a file. The workflow is: 
-      Open a new file with a dummy name; parse the unperturbed library; print the line in the dummy, 
-      replace with perturbed variables if necessary. Change the name of the dummy file. 
+      Prints out the pertubed decay library into a file. The workflow is:
+      Open a new file with a dummy name; parse the unperturbed library; print the line in the dummy,
+      replace with perturbed variables if necessary. Change the name of the dummy file.
       @ In, workingDir, string, path to working directory
       @ Out, None
     """

@@ -23,8 +23,8 @@ class MaterialParser():
     """
     self.pertDict = self.scientificNotation(pertDict) # Perturbed variables
     self.inputFiles = inputFiles
-    self.tree = ET.parse(self.inputFiles)             # xml tree  
-    self.root = self.tree.getroot()                   # xml root 
+    self.tree = ET.parse(self.inputFiles)             # xml tree
+    self.root = self.tree.getroot()                   # xml root
     self.listedDict = self.fileReconstruction(self.pertDict)
     self.printInput(workingDir)
 
@@ -35,9 +35,9 @@ class MaterialParser():
       @ Out, pertDict, dictionary, perturbed variables in scientific format
     """
     for key, value in pertDict.iteritems():
-      pertDict[key] = '%.3E' % Decimal(str(value)) 
+      pertDict[key] = '%.3E' % Decimal(str(value))
     return pertDict
-    
+
   def replaceValues(self,genericXMLdict):
     """
       Replaces the values from the pertured dict and puts them in the deconstructed original dictionary
@@ -88,7 +88,7 @@ class MaterialParser():
       for isotopeXML in matXML.findall('isotope'):
         XMLdict['density'][matXML.attrib.get('id')][isotopeXML.attrib.get('id')] = isotopeXML.attrib.get('density')
     return XMLdict
-  
+
   def unifyElements(self,listWithRepetitions):
     """
       removes any repetitions of elements in a list.
@@ -124,22 +124,22 @@ class MaterialParser():
       keyWords = typeKey.split('|')
       reconstructedDict[keyWords[0]][keyWords[1]][keyWords[2]] = value
     return reconstructedDict
-    
+
   def printInput(self,workingDir):
     """
-      Prints out the pertubed xml material file into a xml file. The workflow is: 
-      open a new file with a dummy name; parse the unperturbed library; print the line in the dummy and  
-      replace with perturbed variables if necessary, Change the name of the dummy file. 
+      Prints out the pertubed xml material file into a xml file. The workflow is:
+      open a new file with a dummy name; parse the unperturbed library; print the line in the dummy and
+      replace with perturbed variables if necessary, Change the name of the dummy file.
       @ In, workingDir, string, path to working directory
       @ Out, None
-    """  
+    """
     modifiedFile = os.path.join(workingDir,'test.dat')
     open(modifiedFile, 'w')
     XMLdict = self.dictFormatingFromXmlToPerturbed()
     genericXMLdict = self.dictFormatingFromPerturbedToGeneric(XMLdict)
     newXMLDict = self.replaceValues(genericXMLdict)
     templatedNewXMLdict = self.fileReconstruction(newXMLDict)
-    
+
     for matXML in self.root.getiterator('mat'):
       for isotopeXML in matXML.findall('isotope'):
         isotopeXML.attrib['density'] = templatedNewXMLdict.get(isotopeXML.attrib.keys()[1].upper()).get(matXML.attrib.get('id').upper()).get(isotopeXML.attrib.get('id').upper())

@@ -37,9 +37,9 @@ class XSCreator():
       @ Out, pertDict, dictionary, perturbed variables in scientific format
     """
     for key, value in pertDict.iteritems():
-      pertDict[key] = '%.3E' % Decimal(str(value)) 
+      pertDict[key] = '%.3E' % Decimal(str(value))
     return pertDict
-    
+
   def tabMapping(self,tab,tabMapFileName):
     """
       Links the tabulation number to the actual tabulation points
@@ -58,7 +58,7 @@ class XSCreator():
           tabList.append(tabXML.attrib.get('name'))
           valueList.append(tabXML.text)
     return tabList, valueList
-    
+
   def prettify(self,elem):
     """
       Returns a pretty-printed xml string for the Element.
@@ -68,7 +68,7 @@ class XSCreator():
     roughString = ET.tostring(elem, 'utf-8')
     reparsed = minidom.parseString(roughString)
     return reparsed.toprettyxml(indent="  ")
-    
+
   def generateXML(self,workingDir,bool,inputFiles,tabMapFileName):
     """
       Creates an xml file from the interface.
@@ -79,7 +79,7 @@ class XSCreator():
       @ Out, modifiedFile, string, name of the xml file created (under a dummy name)
     """
     top = Element('scaling_library')
-    
+
     for XS in self.listedDict.iterkeys():
       for tabulation in self.listedDict.get('XS').iterkeys():
         topChild = SubElement(top, 'set')
@@ -108,7 +108,7 @@ class XSCreator():
     fileObj = open(inputFiles, 'w')
     fileObj.write(self.prettify(top))
     fileObj.close()
-  
+
   def cleanEmpty(self,reconstructedDict):
     """
       Removes all the empty string in the nested dictionary reconstructedDict.
@@ -126,7 +126,7 @@ class XSCreator():
       Converts the formatted dictionary -> {'XS|FUEL1|U235|FISSION|1':1.30, 'XS|FUEL2|U238|ABS|2':4.69}
       into a dictionary of dictionaries that has the format -> {'XS':{'FUEL1':{'U235':{'FISSION':{'1':1.30}}}}, 'FUEL2':{'U238':{'ABS':{'2':4.69}}}}
       @ In, deconstructedDict, dictionary, dictionary of perturbed variables
-      @ Out, leanReconstructedDict, dictionary, nested dictionary of perturbed variables 
+      @ Out, leanReconstructedDict, dictionary, nested dictionary of perturbed variables
     """
     reconstructedDict = {}
     perturbedPhysicalParameters = []
@@ -136,7 +136,7 @@ class XSCreator():
     perturbedTypes = []
     perturbedReactions = []
     perturbedGroups = []
-      
+
     pertDictSet = set(self.pertDict)
     deconstructedDictSet = set(deconstructedDict)
     for key in pertDictSet.intersection(deconstructedDictSet):
@@ -149,7 +149,7 @@ class XSCreator():
       perturbedTypes.append(key.split('|')[4])
       perturbedReactions.append(key.split('|')[5])
       perturbedGroups.append(key.split('|')[6])
-    
+
     for pertPhysicalParam in perturbedPhysicalParameters:
       reconstructedDict[pertPhysicalParam] = {}
       for pertTabulationPoint in perturbedTabulationPoint:

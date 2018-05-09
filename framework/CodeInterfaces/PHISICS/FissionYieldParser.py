@@ -26,16 +26,16 @@ class FissionYieldParser():
     self.spectrum = ['Thermal','Fast']  # Possible spectrum found in the library. Each of them have an independent library
     self.typeOfSpectrum = None          # Flag. Takes the value of one of the possible spectrum, depending what line of the file is parsed
     self.isotopeList = []               # Fission products having a fission yield defined
-    self.spectrumNumbering = {}         # Keys: type of spectrum (fast or theraml), values: numbering dictionary 
+    self.spectrumNumbering = {}         # Keys: type of spectrum (fast or theraml), values: numbering dictionary
     self.listedYieldDict = {}           # Nested dictionary of perturbed variables
-    
+
     self.pertYieldDict = self.scientificNotation(pertDict) # Perturbed variables
     self.characterizeLibrary()
     self.isotopeList = list(set(self.isotopeList)) # Removes all the repetion in the isotope list
     self.numberOfIsotopes = len(self.isotopeList)
     self.fileReconstruction()   # Puts the perturbed variables in a dictionary
     self.printInput(workingDir) # Replaces the the nominal values by the perturbed one and print in a file
-  
+
   def scientificNotation(self,pertDict):
     """
       Converts the numerical values into a scientific notation.
@@ -43,9 +43,9 @@ class FissionYieldParser():
       @ Out, pertDict, dictionary, perturbed variables in scientific format
     """
     for key, value in pertDict.iteritems():
-      pertDict[key] = '%.3E' % Decimal(str(value)) 
+      pertDict[key] = '%.3E' % Decimal(str(value))
     return pertDict
-  
+
   def characterizeLibrary(self):
     """
       Characterizes the structure of the library. Teaches the type of decay available for the fast spectrum family and thermal family.
@@ -84,7 +84,7 @@ class FissionYieldParser():
       if re.match(r'(.*?)\s+\D+(-?)\d+(M?)\s+\d+.\d', line) or re.match(r'(.*?)ALPHA\s+\d+.\d', line):
         isotopeLines = line.split()
         self.isotopeList.append(isotopeLines[0])
-        
+
   def matrixPrinter(self,infile,outfile,spectra):
     """
       Prints the perturbed decay matrix in the outfile.
@@ -134,14 +134,14 @@ class FissionYieldParser():
             lineStripped = lineInput.strip()
       except KeyError:
         raise Exception ('Make sure the fission yields you are perturbing have existing values in the unperturbed fission yield library')
-     
+
   def hardcopyPrinter(self,spectra,modifiedFile):
     """
       Prints the hardcopied information at the begining of the xml file.
       @ In, spectra, integer, indicates if the yields are related to a thermal spectrum (0) or a fast spectrum (1)
       @ In, modifiedFile, string, output temperary file name
       @ Out, None
-    """   
+    """
     flag = 0
     with open(modifiedFile, 'a') as outfile:
       with open(self.inputFiles) as infile:
@@ -163,7 +163,7 @@ class FissionYieldParser():
             outfile.writelines(line)
         self.matrixPrinter(infile, outfile, spectra)
       outfile.close()
-      
+
   def fileReconstruction(self):
     """
       Converts the formatted dictionary pertdict -> {'FY|THERMAL|U235|XE135':1.30}.
@@ -187,12 +187,12 @@ class FissionYieldParser():
           self.listedYieldDict[spectrumType[i]][resultingFP[j]][fissioningActinide[k]] = {}
     for yieldTypeKey, yieldValue in self.pertYieldDict.iteritems():
       self.listedYieldDict[yieldTypeKey.split('|')[1]][yieldTypeKey.split('|')[3]][yieldTypeKey.split('|')[2]] = yieldValue
-   
+
   def printInput(self,workingDir):
     """
-      Prints out the pertubed fission yield library into a .dat file. The workflow is: 
-      open a new file with a dummy name; parse the unperturbed library; print the line in the dummy and  
-      replace with perturbed variables if necessary, Change the name of the dummy file. 
+      Prints out the pertubed fission yield library into a .dat file. The workflow is:
+      open a new file with a dummy name; parse the unperturbed library; print the line in the dummy and
+      replace with perturbed variables if necessary, Change the name of the dummy file.
       @ In, workingDir, string, path to working directory
       @ Out, None
     """

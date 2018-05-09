@@ -6,7 +6,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
 import os
-import re 
+import re
 from decimal import Decimal
 
 class QValuesParser():
@@ -26,7 +26,7 @@ class QValuesParser():
     self.pertQValuesDict = self.scientificNotation(pertDict)
     self.fileReconstruction()
     self.printInput(workingDir)
-    
+
   def scientificNotation(self,pertDict):
     """
       Converts the numerical values into a scientific notation.
@@ -34,9 +34,9 @@ class QValuesParser():
       @ Out, pertDict, dictionary, perturbed variables in scientific format
     """
     for key, value in pertDict.iteritems():
-      pertDict[key] = '%.3E' % Decimal(str(value)) 
-    return pertDict 
-    
+      pertDict[key] = '%.3E' % Decimal(str(value))
+    return pertDict
+
   def matrixPrinter(self,infile,outfile):
     """
       Prints the perturbed Qvalues matrix in the outfile.
@@ -65,7 +65,7 @@ class QValuesParser():
     with open(modifiedFile, 'a') as outfile:
       with open(self.inputFiles) as infile:
         for line in infile:
-          if not line.split(): 
+          if not line.split():
             continue   # if the line is blank, ignore it
           if re.match(r'(.*?)\s+\w+(-?)\d+\s+\d+.\d+',line):
             outfile.writelines(' '+"{0:<7s}".format(line.upper().split()[0])+"{0:<7s}".format(line.upper().split()[1])+"\n") # print the first fission qvalue line of the matrix
@@ -73,7 +73,7 @@ class QValuesParser():
           outfile.writelines(line)
         self.matrixPrinter(infile,outfile)
       outfile.writelines(' END')
-    
+
   def fileReconstruction(self):
     """
       Converts the formatted dictionary -> {'QVALUES|U235':1.30}
@@ -89,15 +89,15 @@ class QValuesParser():
     for isotopeKeyName, QValue in self.pertQValuesDict.iteritems():
       isotopeName = isotopeKeyName.split('|')
       self.listedQValuesDict[isotopeName[1]] = QValue
-  
+
   def printInput(self,workingDir):
     """
-      Prints out the pertubed fission qvalue file into a .dat file. The workflow is: 
-      open a new file with a dummy name; parse the unperturbed library; print the line in the dummy and  
-      replace with perturbed variables if necessary, Change the name of the dummy file. 
+      Prints out the pertubed fission qvalue file into a .dat file. The workflow is:
+      open a new file with a dummy name; parse the unperturbed library; print the line in the dummy and
+      replace with perturbed variables if necessary, Change the name of the dummy file.
       @ In, workingDir, string, path to working directory
       @ Out, None
-    """ 
+    """
     modifiedFile = os.path.join(workingDir,'test.dat')
     open(modifiedFile, 'w')
     self.hardcopyPrinter(modifiedFile)
