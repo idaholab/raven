@@ -64,6 +64,9 @@ The metrics, that are available in RAVEN, can be categorized into several main c
     \xmlString{r2\_score}, \xmlString{explained\_variance\_score} and \xmlString{mean\_absolute\_error}.
   \item \textbf{Boolean Metric}, distance metrics between two boolean variables $u$ and $v$, such as
     \xmlString{dice}, \xmlString{hamming}, \xmlString{yule} and so on.
+  \item \textbf{Pairwise Metric}, compute the distance or kernel between each pair of the two collections of input
+    or observations in n-dimensional space.
+    \nb These metrics can be only used in the clustering post-processor of data mining. 
   \item \textbf{Other metric}, such as \xmlString{DTW}.
 \end{itemize}
 
@@ -481,3 +484,113 @@ An example is provided below:
   ...
 </Simulation>
 \end{lstlisting}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Pairwise metric
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Pairwise Metric}
+\label{subsection:pairwiseMetric}
+This calculates the pairwise distance or kernel between each row of the two collections of inputs. This
+metric can be only used in the \textbf{DataMining} post-processor.
+
+\subsubsection{Polynomial}
+Compute the polynomial kernel between $X$ and $Y$:
+\begin{equation}
+  K(X, Y) = (gamma <X, Y> + coef0)^{degree}
+\end{equation}
+\metrictypeI{Scikit-Learn}{PairwiseMetric}{kernel|Polynomial}
+In addition to this XML subnode, the users can also specify the following subnodes:
+\begin{itemize}
+  \item \xmlNode{degree}, \xmlDesc{integer, optional parameter}, default `3'
+  \item \xmlNode{gamma}, \xmlDesc{float, optional parameter}, default $1.0/numberColumnsInX$
+  \item \xmlNode{coef0}, \xmlDesc{integer, optional parameter}, default `1'
+\end{itemize}
+
+\subsubsection{additive\_chi2}
+Computes the additive chi-squared kernel between observations in $X$ and $Y$
+The chi-squared kernel is computed between each pair of rows in $X$ and $Y$. $X$ and $Y$ have to be non-negative.
+This kernel is most commonly applied to histograms.
+The chi-squared kernel is given by:
+\begin{equation}
+  K(x, y) = - Sum [(x - y)^2 / (x + y)]
+\end{equation}
+
+\metrictypeI{Scikit-Learn}{PairwiseMetric}{kernel|additive\_chi2}
+
+\subsubsection{chi2}
+Computes the exponential chi-squared kernel between observations in $X$ and $Y$
+The chi-squared kernel is computed between each pair of rows in $X$ and $Y$. $X$ and $Y$ have to be non-negative.
+This kernel is most commonly applied to histograms.
+The chi-squared kernel is given by:
+\begin{equation}
+  K(x, y) = exp(- gamma * Sum [(x - y)^2 / (x + y)])
+\end{equation}
+
+\metrictypeI{Scikit-Learn}{PairwiseMetric}{kernel|chi2}
+In addition to this XML subnode, the users can also specify the following subnodes:
+\begin{itemize}
+  \item \xmlNode{gamma}, \xmlDesc{float, optional parameter}, default `1' 
+\end{itemize}
+
+\subsubsection{cosine\_similarity}
+Compute the cosine similarity between $X$ and $Y$:
+\begin{equation}
+  K(X, Y) = <X, Y> / (||X||*||Y||)
+\end{equation}
+
+\metrictypeI{Scikit-Learn}{PairwiseMetric}{kernel|cosine\_similarity}
+
+\subsubsection{laplacian}
+Computes the laplacian kernel between observations in $X$ and $Y$
+The laplacian kernel is given by:
+\begin{equation}
+  K(x, y) = exp(- gamma * ||x - y||_1)
+\end{equation}
+for each pair of rows $x$ in $X$ and $y$ in $Y$.
+\metrictypeI{Scikit-Learn}{PairwiseMetric}{kernel|laplacian}
+In addition to this XML subnode, the users can also specify the following subnodes:
+\begin{itemize}
+  \item \xmlNode{gamma}, \xmlDesc{float, optional parameter}, default $1.0/numberColumnsInX$
+\end{itemize}
+
+\subsubsection{linear}
+computes the linear kernel between $X$ and $Y$
+\begin{equation}
+  K(X, Y) = X^T * Y
+\end{equation}
+\metrictypeI{Scikit-Learn}{PairwiseMetric}{kernel|linear}
+
+\subsubsection{rbf}
+Computes the laplacian kernel between observations in $X$ and $Y$
+The laplacian kernel is given by:
+\begin{equation}
+  K(x, y) = exp(- gamma * ||x - y||^2)
+\end{equation}
+for each pair of rows $x$ in $X$ and $y$ in $Y$.
+\metrictypeI{Scikit-Learn}{PairwiseMetric}{kernel|rbf}
+\begin{itemize}
+  \item \xmlNode{gamma}, \xmlDesc{float, optional parameter}, default $1.0/numberColumnsInX$
+\end{itemize}
+
+\subsubsection{sigmoid}
+Compute the sigmoid kernel between $X$ and $Y$:
+\begin{equation}
+  K(X, Y) = tanh(gamma <X, Y> + coef0)
+\end{equation}
+\metrictypeI{Scikit-Learn}{PairwiseMetric}{kernel|sigmoid}
+\begin{itemize}
+  \item \xmlNode{gamma}, \xmlDesc{float, optional parameter}, default $1.0/numberColumnsInX$
+  \item \xmlNode{coef0}, \xmlDesc{integer, optional parameter}, default `1'
+\end{itemize}
+
+\subsubsection{Distance Based Metric}
+
+\metrictypeI{Scipy or Scikit-Learn}{PairwiseMetric}{pairwise|`metric'}
+
+\nb \textbf{`metric'}, the distance metric to use, this can be `braycurtis', `canberra', `chebyshev', `correlation',
+`cosine', `dice', `euclidean', `hamming', `jaccard', `kulsinski', `matching', `minkowski', `rogerstanimoto',
+`russellrao', `sokalmichener', `sokalsneath', `yule', `manhatten'. The definition for each metric can be found
+in previous sections.
+
+In addition to this XML subnode, the users can also specify the corresponding parameters for each `metric' according to
+previous sections. 
