@@ -29,7 +29,7 @@ from utils import utils
 from .Metric import Metric
 from .DTW import DTW
 from .SklMetric import SKL
-from .SklPairwise import SKLPairwise
+from .PairwiseMetric import PairwiseMetric
 from .CDFAreaDifference import CDFAreaDifference
 from .PDFCommonArea import PDFCommonArea
 from .ScipyMetric import ScipyMetric

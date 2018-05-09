@@ -24,6 +24,7 @@ warnings.simplefilter('default',DeprecationWarning)
 
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
+import scipy
 import ast
 from utils import utils
 import sklearn
@@ -31,6 +32,7 @@ import sklearn.metrics.pairwise as pairwise
 from sklearn.metrics import explained_variance_score
 from sklearn.metrics import mean_absolute_error
 from sklearn.metrics import mean_squared_error
+import scipy.spatial.distance as spatialDistance
 # FIXME: median_absolute_error only accepts 1-D numpy array, and if we want to use this metric, it should
 # be handled differently.
 #from sklearn.metrics import median_absolute_error
@@ -42,7 +44,7 @@ from .Metric import Metric
 #Internal Modules End--------------------------------------------------------------------------------
 
 
-class SKLPairwise(Metric):
+class PairwiseMetric(Metric):
   """
     Scikit-learn pairwise metrics
   """
@@ -61,6 +63,23 @@ class SKLPairwise(Metric):
   availMetrics['pairwise'] = {}
   availMetrics['pairwise']['euclidean']         = pairwise.euclidean_distances
   availMetrics['pairwise']['manhattan']         = pairwise.manhattan_distances
+  # pairwised metrics from scipy
+  availMetrics['pairwise']['minkowski']         = None
+  availMetrics['pairwise']['mahalanobis']       = None
+  availMetrics['pairwise']['braycurtis']        = None
+  availMetrics['pairwise']['canberra']          = None
+  availMetrics['pairwise']['chebyshev']         = None
+  availMetrics['pairwise']['correlation']       = None
+  availMetrics['pairwise']['dice']              = None
+  availMetrics['pairwise']['hamming']           = None
+  availMetrics['pairwise']['jaccard']           = None
+  availMetrics['pairwise']['kulsinki']          = None
+  availMetrics['pairwise']['matching']          = None
+  availMetrics['pairwise']['rogerstanimoto']    = None
+  availMetrics['pairwise']['russellrao']        = None
+  availMetrics['pairwise']['sokalmichener']     = None
+  availMetrics['pairwise']['sokalsneath']       = None
+  availMetrics['pairwise']['yule']              = None
 
   def __init__(self):
     """
@@ -130,10 +149,27 @@ class SKLPairwise(Metric):
         y = y.T
       assert(x.shape[1] == y.shape[1], "The number of columns in x should be the same as the number of columns in y")
     dictTemp = utils.mergeDictionaries(kwargs,self.distParams)
-    try:
-      value = self.__class__.availMetrics[self.metricType[0]][self.metricType[1]](x, Y=y, **dictTemp)
-    except TypeError as e:
-      self.raiseAWarning('There are some unexpected keyword arguments found in Metric with type "', self.metricType[1], '"!')
-      self.raiseAnError(TypeError,'Input parameters error:\n', str(e), '\n')
+    # set up the metric engine if it is None
+    if self.__class__.availMetrics[self.metricType[0]][self.metricType[1]] == None:
+      if y == None:
+        self.__class__.availMetrics[self.metricType[0]][self.metricType[1]] = spatialDistance.pdist
+        try:
+          value = self.__class__.availMetrics[self.metricType[0]][self.metricType[1]](x,metric=self.metricType[1], **dictTemp)
+        except TypeError as e:
+          self.raiseAWarning('There are some unexpected keyword arguments found in Metric with type "', self.metricType[1], '"!')
+          self.raiseAnError(TypeError,'Input parameters error:\n', str(e), '\n')
+      else:
+        self.__class__.availMetrics[self.metricType[0]][self.metricType[1]] = spatialDistance.cdist
+        try:
+          value = self.__class__.availMetrics[self.metricType[0]][self.metricType[1]](x,y,metric=self.metricType[1], **dictTemp)
+        except TypeError as e:
+          self.raiseAWarning('There are some unexpected keyword arguments found in Metric with type "', self.metricType[1], '"!')
+          self.raiseAnError(TypeError,'Input parameters error:\n', str(e), '\n')
+    else:
+      try:
+        value = self.__class__.availMetrics[self.metricType[0]][self.metricType[1]](x, Y=y, **dictTemp)
+      except TypeError as e:
+        self.raiseAWarning('There are some unexpected keyword arguments found in Metric with type "', self.metricType[1], '"!')
+        self.raiseAnError(TypeError,'Input parameters error:\n', str(e), '\n')
 
     return value

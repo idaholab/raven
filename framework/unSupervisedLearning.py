@@ -234,7 +234,7 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
               valueJ = tdictNorm[keys[j]][params]
               inputI[ind] = valueI
               inputJ[ind] = valueJ
-            pairedData = ((inputI, None), (inputJ, None))
+            pairedData = ((inputI,None), (inputJ,None))
             # TODO: Using loops can be very slow for large number of realizations
             self.normValues[i][j] = metric.evaluate(pairedData)
             if i != j:

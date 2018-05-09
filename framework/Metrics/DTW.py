@@ -48,6 +48,7 @@ class DTW(Metric):
     self.order            = None
     self.localDistance    = None
     self._dynamicHandling = True
+    self._pairwiseHandling = True
 
   def _localReadMoreXML(self, xmlNode):
     """
