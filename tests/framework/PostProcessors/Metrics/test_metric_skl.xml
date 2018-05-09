@@ -31,9 +31,6 @@
     <PostProcessor name="pp1" subType="Metric">
       <Features type="variable">ans</Features>
       <Targets type="variable">ans2</Targets>
-      <Metric class="Metrics" type="SKL">euclidean</Metric>
-      <Metric class="Metrics" type="SKL">cosine</Metric>
-      <Metric class="Metrics" type="SKL">manhattan</Metric>
       <Metric class="Metrics" type="SKL">explained_variance_score</Metric>
       <Metric class="Metrics" type="SKL">mean_absolute_error</Metric>
       <Metric class="Metrics" type="SKL">mean_squared_error</Metric>
@@ -42,15 +39,6 @@
   </Models>
 
   <Metrics>
-    <SKL name="euclidean">
-      <metricType>paired_distance|euclidean</metricType>
-    </SKL>
-    <SKL name="cosine">
-        <metricType>paired_distance|cosine</metricType>
-    </SKL>
-    <SKL name="manhattan">
-        <metricType>paired_distance|manhattan</metricType>
-    </SKL>
     <SKL name="explained_variance_score">
         <metricType>regression|explained_variance_score</metricType>
         <sample_weight>[0.1,0.1,0.1,0.05,0.05,0.2,0.1,0.1,0.1,0.1]</sample_weight>

@@ -28,10 +28,18 @@
       <Targets type="variable">ans2</Targets>
       <Metric class="Metrics" type="SKL">euclidean</Metric>
       <Metric class="Metrics" type="SKL">euclidean2</Metric>
+      <Metric class="Metrics" type="SKL">cosine</Metric>
+      <Metric class="Metrics" type="SKL">manhattan</Metric>
     </PostProcessor>
   </Models>
   
   <Metrics>
+    <SKL name="cosine">
+        <metricType>paired_distance|cosine</metricType>
+    </SKL>
+    <SKL name="manhattan">
+        <metricType>paired_distance|manhattan</metricType>
+    </SKL>
     <SKL name="euclidean">
       <metricType>paired_distance|euclidean</metricType>
     </SKL>

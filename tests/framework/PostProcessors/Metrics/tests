@@ -5,6 +5,7 @@
     UnorderedCsv = 'mcMetricRun/dumpMC.csv mcMetricRun/pp1_metric_dump.csv'
     rel_err = 0.00001
     zero_threshold = 1e-9
+    skip = 'require scikitlearn version > 17'
   [../]
   [./multipleInputs]
     type = 'RavenFramework'

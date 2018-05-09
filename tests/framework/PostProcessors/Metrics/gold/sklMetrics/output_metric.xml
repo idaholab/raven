@@ -1,11 +1,8 @@
 <MetricPostProcessor type="Static">
   <ans-ans2>
-    <r2_score_regression_r2_score>-0.697606406772</r2_score_regression_r2_score>
-    <manhattan_paired_distance_manhattan>18.6723477175</manhattan_paired_distance_manhattan>
-    <cosine_paired_distance_cosine>1.29565233369</cosine_paired_distance_cosine>
     <mean_absolute_error_regression_mean_absolute_error>2.01729705995</mean_absolute_error_regression_mean_absolute_error>
-    <mean_squared_error_regression_mean_squared_error>7.06621390422</mean_squared_error_regression_mean_squared_error>
     <explained_variance_score_regression_explained_variance_score>-0.490588326927</explained_variance_score_regression_explained_variance_score>
-    <euclidean_paired_distance_euclidean>8.15320610438</euclidean_paired_distance_euclidean>
+    <r2_score_regression_r2_score>-0.697606406772</r2_score_regression_r2_score>
+    <mean_squared_error_regression_mean_squared_error>7.06621390422</mean_squared_error_regression_mean_squared_error>
   </ans-ans2>
 </MetricPostProcessor>
