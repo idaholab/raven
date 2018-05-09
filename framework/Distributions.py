@@ -2492,7 +2492,7 @@ class LogUniform(Distribution):
     if self.upperBound is None:
       self.raiseAnError(IOError,' upperBound parameter is needed for LogUniform distribution')
 
-    self.base = paramInput.findFirst('base')
+    self.base = paramInput.findFirst('base').value
     if self.base not in ['natural','decimal']:
       self.raiseAnError(IOError,' base parameter is needed for LogUniform distribution (either natural or decimal)')
 
