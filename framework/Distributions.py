@@ -2514,7 +2514,7 @@ class LogUniform(Distribution):
     if self.base == 'natural':
       pdfValue = 1./(self.maxVal-self.minVal) * 1./x
     else:
-      pdfValue = 1./(self.maxVal-self.minVal) * 1./x * 1./math.log(10.) 
+      pdfValue = 1./(self.maxVal-self.minVal) * 1./x * 1./math.log(10.)
     return pdfValue
 
   def cdf(self,x):
