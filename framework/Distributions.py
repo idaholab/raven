@@ -2460,7 +2460,7 @@ class LogUniform(Distribution):
     inputSpecification = super(LogUniform, cls).getInputSpecification()
     inputSpecification.addSub(InputData.parameterInputFactory("lowerBound", contentType=InputData.FloatType))
     inputSpecification.addSub(InputData.parameterInputFactory("upperBound", contentType=InputData.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("base", contentType=InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("base"      , contentType=InputData.StringType))
 
     return inputSpecification
 
@@ -2471,9 +2471,9 @@ class LogUniform(Distribution):
       @ Out, None
     """
     Distribution.__init__(self)
-    self.upperBound = 1.
-    self.lowerBound = 10.
-    self.base = None
+    self.upperBound = None
+    self.lowerBound = None
+    self.base       = None
 
   def _handleInput(self, paramInput):
     """
@@ -2538,7 +2538,8 @@ class LogUniform(Distribution):
     if self.base == 'natural':
       ppfValue = math.exp((self.upperBound-self.lowerBound)*x + self.lowerBound)
     else:
-      ppfValue = math.pow(10,(self.upperBound-self.lowerBound)*x + self.lowerBound)
+      #ppfValue = math.pow(10,(self.upperBound-self.lowerBound)*x + self.lowerBound)
+      ppfValue = 10.**((self.upperBound-self.lowerBound)*x + self.lowerBound)
     return ppfValue
 
   def rvs(self):

@@ -13,7 +13,7 @@
   <RunInfo>
     <WorkingDir>test_logUniform/</WorkingDir>
     <Sequence>MCrun,importAnal,OutStreams</Sequence>
-    <batchSize>1000</batchSize>
+    <batchSize>1</batchSize>
   </RunInfo>
 
   <Files>
@@ -50,7 +50,7 @@
   <Distributions>
     <LogUniform name="x_dist">
       <upperBound>1.0</upperBound>
-      <lowerBound>2.0</lowerBound>
+      <lowerBound>3.0</lowerBound>
       <base>natural</base>
     </LogUniform>
   </Distributions>
@@ -58,7 +58,7 @@
   <Samplers>
     <MonteCarlo name="MC">
       <samplerInit>
-        <limit>5000</limit>
+        <limit>20</limit>
         <initialSeed>1234</initialSeed>
       </samplerInit>
       <variable name="x">
@@ -115,10 +115,10 @@
       <actions>
         <how>png</how>
         <range>
-          <xmin>2</xmin>
+          <xmin>0.0</xmin>
+          <xmax>25</xmax>
           <ymin>0</ymin>
-          <xmax>8</xmax>
-          <ymax>0.35</ymax>
+          <ymax>0.18</ymax>
         </range>
       </actions>
     </Plot>
