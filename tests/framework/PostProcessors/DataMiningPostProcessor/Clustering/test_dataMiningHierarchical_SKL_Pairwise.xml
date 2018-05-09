@@ -31,8 +31,8 @@
     <PairwiseMetric name="polynomial">
       <metricType>kernel|polynomial</metricType>
       <gamma>1.0</gamma>
-      <degree>2.0</degree>
-      <coef0>1.0</coef0>
+      <degree>2</degree>
+      <coef0>1</coef0>
     </PairwiseMetric>
   </Metrics>
 
