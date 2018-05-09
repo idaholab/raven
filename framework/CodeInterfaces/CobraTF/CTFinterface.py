@@ -35,9 +35,9 @@ class CobraTF(CodeInterfaceBase):
 
   def createNewInput(self, currentInputFiles, oriInputFiles, samplerType ,**Kwargs):
     """
-      this generates a new CTF input file based on the sampled values from RAVEN 
+      this generates a new CTF input file based on the sampled values from RAVEN
       # @ In, Kwargs
-      # @ Out, current input files 
+      # @ Out, current input files
     """
     from CTFparser import CTFparser
     if 'dynamicevent' in samplerType.lower():
@@ -49,11 +49,11 @@ class CobraTF(CodeInterfaceBase):
         break
     if not found:
       raise IOError('Input file missing: Check if the input file (.inp) is located in the working directory!' )
-    ctfParser = CTFparser(inputFile.getAbsFile())  
+    ctfParser = CTFparser(inputFile.getAbsFile())
     modifDict = Kwargs["SampledVars"]
-    ctfParser.changeVariable(modifDict)  
+    ctfParser.changeVariable(modifDict)
     modifiedDictionary = ctfParser.modifiedDictionary
-    ctfParser.printInput(inputFile.getAbsFile())  
+    ctfParser.printInput(inputFile.getAbsFile())
     return currentInputFiles
 
   def generateCommand(self,inputFiles,executable,clargs=None,fargs=None):
@@ -61,10 +61,10 @@ class CobraTF(CodeInterfaceBase):
       This method is used to retrieve the command (in tuple format) needed to launch the Code.
       Collects the executable to produce the command-line call.
       Returns tuple of commands and base file name for run.
-      Command is for code execution and is currently available only for serial simulation. 
+      Command is for code execution and is currently available only for serial simulation.
       @ In, inputFiles, list, List of input files (length of the list depends on the number of inputs have been added in the Step is running this code)
       @ In, executable, string, executable name with absolute path (e.g. /home/path_to_executable/code.exe)
-      @ In, clargs, dict, optional, dictionary containing the command-line flags the user can specify in the input (Not needed) 
+      @ In, clargs, dict, optional, dictionary containing the command-line flags the user can specify in the input (Not needed)
       @ In, fargs, dict, optional, a dictionary containing the auxiliary input file variables the user can specify in the input (Not needed)
       @ Out, returnCommand, tuple, tuple containing the generated command. returnCommand[0] defines the run type "serial" or "parallel" . returnCommand[1] is the command to run the code (string)
       @ Out, output, string, output is the name of the output root
@@ -75,7 +75,7 @@ class CobraTF(CodeInterfaceBase):
         found = True
         break
     if not found:
-      raise IOError('Input file missing: Check if the input file (.inp) is located in the working directory!' )    
+      raise IOError('Input file missing: Check if the input file (.inp) is located in the working directory!' )
     commandToRun = executable + ' ' + inputFile.getFilename()
     commandToRun = commandToRun.replace("\n"," ")
     returnCommand = [('parallel', commandToRun)]
