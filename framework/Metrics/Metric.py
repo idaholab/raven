@@ -45,9 +45,10 @@ class Metric(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     BaseType.__init__(self)
     self.type = self.__class__.__name__
     self.name = self.__class__.__name__
-    self.acceptsProbability  = False #If True the metric needs to be able to handle (value,probability) where value and probability are lists
-    self.acceptsDistribution = False #If True the metric needs to be able to handle a passed in Distribution
-    self._dynamicHandling    = False #If True the metric needs to be able to handle dynamic data
+    self.acceptsProbability  = False # If True the metric needs to be able to handle (value,probability) where value and probability are lists
+    self.acceptsDistribution = False # If True the metric needs to be able to handle a passed in Distribution
+    self._dynamicHandling    = False # If True the metric needs to be able to handle dynamic data
+    self._pairwiseHandling   = False # If True the metric needs to be able to handle pairwise data
 
   def initialize(self, inputDict):
     """
@@ -93,6 +94,15 @@ class Metric(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       @ Out, isDynamic, bool, True if the metric is able to treat dynamic data, False otherwise
     """
     return self._dynamicHandling
+
+  def isPairwise(self):
+    """
+      This method is utility function that tells if the metric is able to
+      treat pairwise data on its own or not
+      @ In, None
+      @ Out, isPairwise, bool, True if the metric is able to handle pairwise data, False otherwise
+    """
+    return self._pairwiseHandling
 
   @abc.abstractmethod
   def __evaluateLocal__(self, x, y, weights = None, axis = 0, **kwargs):

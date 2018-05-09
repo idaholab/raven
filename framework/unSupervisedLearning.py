@@ -235,6 +235,7 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
               inputI[ind] = valueI
               inputJ[ind] = valueJ
             pairedData = ((inputI, None), (inputJ, None))
+            # TODO: Using loops can be very slow for large number of realizations
             self.normValues[i][j] = metric.evaluate(pairedData)
             if i != j:
               self.normValues[j][i] = self.normValues[i][j]
@@ -246,14 +247,8 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
           featureValues = tdict[feat]
           (mu,sigma) = mathUtils.normalizationFactors(featureValues)
           normValues[:, cnt] = (featureValues - mu) / sigma
-        for i in range(realizationCount):
-          for j in range(i,realizationCount):
-            inputI = normValues[i,:].reshape(-1,1)
-            inputJ = normValues[j,:].reshape(-1,1)
-            pairedData = ((inputI, None),(inputJ, None))
-            self.normValues[i][j] = metric.evaluate(pairedData)
-            if i != j:
-              self.normValues[j][i] = self.normValues[i][j]
+        # compute the pairwised distance for given matrix
+        self.normValues = metric.evaluatePairwise((normValues,None))
 
     self.__trainLocal__()
     self.amITrained = True

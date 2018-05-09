@@ -21,24 +21,24 @@
   </Files>
 
   <Metrics>
-    <SKL name="euclidean">
-      <metricType>paired_distance|euclidean</metricType>
-    </SKL>
-    <SKL name="rbf">
-      <metricType>rbf</metricType>
+    <SKLPairwise name="euclidean">
+      <metricType>pairwise|euclidean</metricType>
+    </SKLPairwise>
+    <SKLPairwise name="rbf">
+      <metricType>kernel|rbf</metricType>
       <gamma>0.5</gamma>
-    </SKL>
-    <SKL name="polynomial">
-      <metricType>poly</metricType>
+    </SKLPairwise>
+    <SKLPairwise name="polynomial">
+      <metricType>kernel|polynomial</metricType>
       <gamma>1.0</gamma>
       <degree>2.0</degree>
       <coef0>1.0</coef0>
-    </SKL>
+    </SKLPairwise>
   </Metrics>
 
   <Models>
     <PostProcessor name="hierarchical_1" subType="DataMining" verbosity="quiet">
-      <Metric class="Metrics" type="SKL">euclidean</Metric>
+      <Metric class="Metrics" type="SKLPairwise">euclidean</Metric>
       <KDD lib="Scipy" labelFeature='labels'>
         <Features>x1,x2</Features>
         <SCIPYtype>cluster|Hierarchical</SCIPYtype>
@@ -55,7 +55,7 @@
       </KDD>
     </PostProcessor>
     <PostProcessor name="hierarchical_2" subType="DataMining" verbosity="quiet">
-      <Metric class="Metrics" type="SKL">rbf</Metric>
+      <Metric class="Metrics" type="SKLPairwise">rbf</Metric>
       <KDD lib="Scipy" labelFeature='labels'>
         <Features>x1,x2</Features>
         <SCIPYtype>cluster|Hierarchical</SCIPYtype>
@@ -72,7 +72,7 @@
       </KDD>
     </PostProcessor>
     <PostProcessor name="hierarchical_3" subType="DataMining" verbosity="quiet">
-      <Metric class="Metrics" type="SKL">polynomial</Metric>
+      <Metric class="Metrics" type="SKLPairwise">polynomial</Metric>
       <KDD lib="Scipy" labelFeature='labels'>
         <Features>x1,x2</Features>
         <SCIPYtype>cluster|Hierarchical</SCIPYtype>

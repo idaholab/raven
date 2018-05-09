@@ -54,6 +54,7 @@ class MetricDistributor(utils.metaclass_insert(abc.ABCMeta,BaseType),MessageHand
     self.messageHandler          = messageHandler
     self.estimator                = estimator
     self.canHandleDynamicData = self.estimator.isDynamic()
+    self.canHandlePairwiseData = self.estimator.isPairwise()
 
   def __getstate__(self):
     """
@@ -84,6 +85,21 @@ class MetricDistributor(utils.metaclass_insert(abc.ABCMeta,BaseType),MessageHand
     """
     paramDict = {}
     return paramDict
+
+  def evaluatePairwise(self, pairedData):
+    """
+      Method to compute the the metric between each pair of rows of matrices in pairedData
+      @ In, pairedData, tuple, (featureValues, targetValues), both featureValues and targetValues
+        are 2D numpy array with the same number of columns. For example, featureValues with shape
+        (numRealizations1,numParameters), targetValues with shape (numRealizations2, numParameters)
+      @ Out, output, numpy.array, 2D array, with shape (numRealizations1,numRealization2)
+    """
+    assert(type(pairedData).__name__ == 'tuple', "The paired data is not a tuple!")
+    if not self.canHandlePairwiseData:
+      self.raiseAnError(IOError, "The metric", self.estimator.name, "can not handle pairwise data")
+    feat, targ = pairedData[0], pairedData[1]
+    output = self.estimator.evaluate(feat,targ)
+    return output
 
   def evaluate(self,pairedData, weights = None, multiOutput='mean'):
     """

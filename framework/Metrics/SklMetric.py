@@ -63,20 +63,6 @@ class SKL(Metric):
   # TODO: add more metrics here
   # metric from scipy.spatial.distance, for example mahalanobis, minkowski
 
-  # TODO:The pairwise metrics will be utilized as paired_distance, and this may be changed in the future
-  # The reasons are: currently we do have the infrastruture to handle the time-dependent pairwise metrics
-  # and the pairwise metrics can not handled in the Metrics postprocessor, we assume the outputs from the
-  # metrics system can be reduced to 1. In this implementation, these kernel metrics only accept 1D numpy.array.
-  availMetrics['kernel'] = {}
-  availMetrics['kernel']['additive_chi2']       = pairwise.additive_chi2_kernel
-  availMetrics['kernel']['chi2']                = pairwise.chi2_kernel
-  availMetrics['kernel']['cosine_similarity']   = pairwise.cosine_similarity
-  availMetrics['kernel']['laplacian']           = pairwise.laplacian_kernel
-  availMetrics['kernel']['linear']              = pairwise.linear_kernel
-  availMetrics['kernel']['polynomial']          = pairwise.polynomial_kernel
-  availMetrics['kernel']['rbf']                 = pairwise.rbf_kernel
-  availMetrics['kernel']['sigmoid']             = pairwise.sigmoid_kernel
-
   def __init__(self):
     """
       Constructor
@@ -158,9 +144,6 @@ class SKL(Metric):
           # Transpose is needed, since paired_distance is operated on the 'row'
           x = x.T
           y = y.T
-      if self.metricType[0] == 'kernel':
-        if len(x.shape) != 1 or len(y.shape) != 1:
-          self.raiseAnError(IOError, "Only 1D numpy.array can be passed to kernel metric with type",self.metricType[1])
       if axis == 1:
         x = x.T
         y = y.T

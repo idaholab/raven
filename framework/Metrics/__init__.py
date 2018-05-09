@@ -24,6 +24,7 @@ from __future__ import absolute_import
 from .Metric import Metric
 from .DTW import DTW
 from .SklMetric import SKL
+from .SklPairwise import SKLPairwise
 from .CDFAreaDifference import CDFAreaDifference
 from .PDFCommonArea import PDFCommonArea
 from .ScipyMetric import ScipyMetric
@@ -31,4 +32,4 @@ from .Factory import knownTypes
 from .Factory import returnInstance
 from .Factory import returnClass
 
-__all__ = ['DTW','SKL','CDFAreaDifference','PDFCommonArea','ScipyMetric']
+__all__ = ['DTW','SKL','SKLPairwise','CDFAreaDifference','PDFCommonArea','ScipyMetric']
