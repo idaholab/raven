@@ -15,4 +15,9 @@ import math
 import numpy
 
 def run(self, Input):
+  """
+    This method is used to check that the log10 of the sampled parameter is uniformly distributed
+    @ In,  x, float, sampled value
+    @ Out, y, float, log10 of the sample value
+  """
   self.y = math.log10(self.x)

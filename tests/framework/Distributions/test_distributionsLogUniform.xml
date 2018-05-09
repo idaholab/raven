@@ -12,12 +12,12 @@
 
   <RunInfo>
     <WorkingDir>test_logUniform/</WorkingDir>
-    <Sequence>MCrun,importAnal,OutStreams</Sequence>
+    <Sequence>MCrun,importAnalytical,OutStreams</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
 
   <Files>
-    <Input name='anal' type=''>anal.csv</Input>
+    <Input name='analytical' type=''>analytical.csv</Input>
   </Files>
 
   <Steps>
@@ -27,17 +27,17 @@
       <Sampler class="Samplers"    type="MonteCarlo"    >MC</Sampler>
       <Output  class="DataObjects" type="PointSet"      >PointSet_MC</Output>
     </MultiRun>
-    <IOStep name="importAnal">
-      <Input   class='Files'       type=''              >anal</Input>
-      <Output  class="DataObjects" type="PointSet"      >PointSet_Anal</Output>
+    <IOStep name="importAnalytical">
+      <Input   class='Files'       type=''              >analytical</Input>
+      <Output  class="DataObjects" type="PointSet"      >PointSet_Analytical</Output>
     </IOStep>
     <IOStep name="OutStreams">
       <Input  class="DataObjects"  type="PointSet"      >PointSet_MC</Input>
-      <Input  class="DataObjects"  type="PointSet"      >PointSet_Anal</Input>
+      <Input  class="DataObjects"  type="PointSet"      >PointSet_Analytical</Input>
       <Output class="OutStreams"   type="Print"         >MC_dump</Output>
       <Output class="OutStreams"   type="Plot"          >histogramX</Output>
       <Output class="OutStreams"   type="Plot"          >histogramY</Output>
-      <Output class="OutStreams"   type="Plot"          >lineAnal</Output>
+      <Output class="OutStreams"   type="Plot"          >lineAnalytical</Output>
     </IOStep>
   </Steps>
 
@@ -102,12 +102,12 @@
         <how>png</how>
       </actions>
     </Plot>
-   <Plot name='lineAnal' overwrite='false' verbosity='debug'>
+   <Plot name='lineAnalytical' overwrite='false' verbosity='debug'>
       <plotSettings>
         <plot>
           <type>line</type>
-          <x>PointSet_Anal|Output|ex</x>
-          <y>PointSet_Anal|Output|pdf</y>
+          <x>PointSet_Analytical|Output|ex</x>
+          <y>PointSet_Analytical|Output|pdf</y>
         </plot>
         <xlabel>Y</xlabel>
         <ylabel>pdf</ylabel>
@@ -133,7 +133,7 @@
       <Input>x</Input>
       <Output>y</Output>
     </PointSet>
-    <PointSet name="PointSet_Anal">
+    <PointSet name="PointSet_Analytical">
       <Input>x</Input>
       <Output>ex,pdf</Output>
     </PointSet>

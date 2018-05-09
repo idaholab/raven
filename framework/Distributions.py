@@ -2458,9 +2458,12 @@ class LogUniform(Distribution):
         specifying input of cls.
     """
     inputSpecification = super(LogUniform, cls).getInputSpecification()
+
+    BaseInputType = InputData.makeEnumType("base", "baseType", ["natural","decimal"])
+
     inputSpecification.addSub(InputData.parameterInputFactory("lowerBound", contentType=InputData.FloatType))
     inputSpecification.addSub(InputData.parameterInputFactory("upperBound", contentType=InputData.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("base"      , contentType=InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("base"      , BaseInputType))
 
     return inputSpecification
 
@@ -2482,25 +2485,7 @@ class LogUniform(Distribution):
       @ Out, None
     """
     self.lowerBound = paramInput.findFirst('lowerBound').value
-    if self.lowerBound is None:
-      self.raiseAnError(IOError,' lowerBound parameter is needed for LogUniform distribution')
-
     self.upperBound = paramInput.findFirst('upperBound').value
-    if self.upperBound is None:
-      self.raiseAnError(IOError,' upperBound parameter is needed for LogUniform distribution')
-
-    self.base = paramInput.findFirst('base').value
-    if self.upperBound == None:
-      self.raiseAnError(IOError,' base parameter is needed for LogUniform distribution')
-
-    if self.lowerBound <=0. :
-      self.raiseAnError(IOError,' lowerBound parameter for LogUniform distribution needs to be greater (and not equal) than 0.0')
-
-    if self.upperBound <=0. :
-      self.raiseAnError(IOError,' upperBound parameter for LogUniform distribution needs to be greater (and not equal) than 0.0')
-
-    if self.base not in ['decimal','natural']:
-      self.raiseAnError(IOError,' base parameter for LogUniform distribution needs to be either decimal or natural')
 
     self.minVal = min(math.exp(self.upperBound),math.exp(self.lowerBound))
     self.maxVal = max(math.exp(self.upperBound),math.exp(self.lowerBound))
@@ -2508,8 +2493,8 @@ class LogUniform(Distribution):
   def pdf(self,x):
     """
       Function that calculates the pdf value of x
-      @ In, x, scalar , coordinates to get the pdf at
-      @ Out, pdfValue, scalar, requested pdf
+      @ In, x, float , coordinates to get the pdf at
+      @ Out, pdfValue, float, requested pdf
     """
     if self.base == 'natural':
       pdfValue = 1./(self.maxVal-self.minVal) * 1./x
@@ -2520,8 +2505,8 @@ class LogUniform(Distribution):
   def cdf(self,x):
     """
       Function that calculates the cdf value of x
-      @ In, x, scalar , coordinates to get the cdf at
-      @ Out, pdfValue, scalar, requested pdf
+      @ In, x, float , coordinates to get the cdf at
+      @ Out, pdfValue, float, requested pdf
     """
     if self.base == 'natural':
       cdfValue = (math.log(x)-self.lowerBound)/(self.upperBound-self.lowerBound)
