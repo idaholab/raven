@@ -2485,7 +2485,12 @@ class LogUniform(Distribution):
       @ Out, None
     """
     self.lowerBound = paramInput.findFirst('lowerBound').value
+    if self.lowerBound is None:
+      self.raiseAnError(IOError,' lowerBound parameter is needed for LogUniform distribution')
+
     self.upperBound = paramInput.findFirst('upperBound').value
+    if self.upperBound is None:
+      self.raiseAnError(IOError,' upperBound parameter is needed for LogUniform distribution')
 
     self.minVal = min(math.exp(self.upperBound),math.exp(self.lowerBound))
     self.maxVal = max(math.exp(self.upperBound),math.exp(self.lowerBound))
