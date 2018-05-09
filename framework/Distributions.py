@@ -2478,6 +2478,15 @@ class LogUniform(Distribution):
     self.lowerBound = None
     self.base       = None
 
+  def initializeDistribution(self):
+    """
+      Method to initialize the distribution
+      @ In, None
+      @ Out, None
+    """
+    self.minVal = min(math.exp(self.upperBound),math.exp(self.lowerBound))
+    self.maxVal = max(math.exp(self.upperBound),math.exp(self.lowerBound))
+
   def _handleInput(self, paramInput):
     """
       Function to handle the common parts of the distribution parameter input.
@@ -2496,9 +2505,6 @@ class LogUniform(Distribution):
     if self.base not in ['natural','decimal']:
       self.raiseAnError(IOError,' base parameter is needed for LogUniform distribution (either natural or decimal)')
 
-    self.minVal = min(math.exp(self.upperBound),math.exp(self.lowerBound))
-    self.maxVal = max(math.exp(self.upperBound),math.exp(self.lowerBound))
-
   def pdf(self,x):
     """
       Function that calculates the pdf value of x
@@ -2506,9 +2512,10 @@ class LogUniform(Distribution):
       @ Out, pdfValue, float, requested pdf
     """
     if self.base == 'natural':
-      pdfValue = 1./(self.maxVal-self.minVal) * 1./x
+      pdfValue = 1./(self.upperBound-self.lowerBound) * 1./x
     else:
-      pdfValue = 1./(self.maxVal-self.minVal) * 1./x * 1./math.log(10.)
+      pdfValue = 1./(self.upperBound-self.lowerBound) * 1./x * 1./math.log(10.)
+      print(x,pdfValue)
     return pdfValue
 
   def cdf(self,x):
