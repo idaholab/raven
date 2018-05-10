@@ -95,12 +95,14 @@ class DTW(Metric):
       @ In, kwargs, dictionary of parameters characteristic of each metric
       @ Out, value, float, metric result
     """
+    assert isinstance(x, np.ndarray), "The input data x should be numpy.ndarray"
+    assert isinstance(x, np.ndarray), "The input data y should be numpy.ndarray"
     tempX = copy.copy(x)
     tempY = copy.copy(y)
     if axis == 0:
-      assert(len(x) == len(y), "The first dimension of first input is not the same as the first dimension of second input")
+      assert len(x) == len(y), "The first dimension of first input is not the same as the first dimension of second input"
     elif axis == 1:
-      assert(x.shape[1] == y.shape[1], "The second dimension of first input is not the same as the second dimension of second input")
+      assert x.shape[1] == y.shape[1], "The second dimension of first input is not the same as the second dimension of second input"
       tempX = tempX.T
       tempY = tempY.T
     else:
@@ -110,15 +112,17 @@ class DTW(Metric):
       tempX = tempX.reshape(1,-1)
     if len(tempY.shape) == 1:
       tempY = tempY.reshape(1,-1)
-
-    if isinstance(tempX, np.ndarray) and isinstance(tempY, np.ndarray):
+    X = np.empty(tempX.shape)
+    Y = np.empty(tempY.shape)
+    for index in range(len(tempX)):
       if self.order == 1:
-        tempX = np.gradient(tempX, axis=1)
-        tempY = np.gradient(tempY, axis=1)
-      value = self.dtwDistance(tempX, tempY)
-      return value
-    else:
-      self.raiseAnError(IOError,'Unrecognized types of inputs, the DTW metrics only accepts numpy array!')
+        X[index] = np.gradient(tempX[index])
+        Y[index] = np.gradient(tempY[index])
+      else:
+        X[index] = tempX[index]
+        Y[index] = tempY[index]
+    value = self.dtwDistance(X, Y)
+    return value
 
   def dtwDistance(self, x, y):
     """
