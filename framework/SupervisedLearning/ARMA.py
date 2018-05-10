@@ -27,7 +27,8 @@ warnings.simplefilter('default',DeprecationWarning)
 import sys
 import copy
 import itertools
-import statsmodels
+import statsmodels.api as sm # VARMAX is in sm.tsa
+from statsmodels.tsa.arima_model import ARMA as smARMA
 import numpy as np
 from scipy import optimize
 #External Modules End--------------------------------------------------------------------------------
@@ -58,6 +59,7 @@ class ARMA(superVisedLearning):
     self.printTag          = 'ARMA'
     self._dynamicHandling  = True # This ROM is able to manage the time-series on its own.
     self.armaPara          = {}
+    self.cdfData           = {} # dictionary of fitted CDF parameters, by target
     self.fourierResults    = {} # dictionary of Fourier results, by target
     self.armaNormPara      = {} # dictionary of the Gaussian-normal ARMA characterstics, by target
     self.armaResult        = {} # dictionary of assorted useful arma information, by target
@@ -70,11 +72,15 @@ class ARMA(superVisedLearning):
     self.outTruncation         = kwargs.get('outTruncation', None)     # Additional parameters to allow user to specify the time series to be all positive or all negative
     self.pivotParameterID      = kwargs.get('pivotParameter', 'Time')
     self.pivotParameterValues  = None                                  # In here we store the values of the pivot parameter (e.g. Time)
+
     # check if the pivotParameter is among the targetValues
     if self.pivotParameterID not in self.target:
       self.raiseAnError(IOError,"The pivotParameter "+self.pivotParameterID+" must be part of the Target space!")
-    ##if len(self.target) > 2:
-    ##  self.raiseAnError(IOError,"Multi-target ARMA not available yet!")
+
+    # can only handle one scaling input currently
+    if len(self.features) != 1:
+      self.raiseAnError(IOError,"The ARMA can only currently handle a single feature, which scales the outputs!")
+
     # Initialize parameters for Fourier detrending
     if 'Fourier' not in self.initOptionDict.keys():
       self.hasFourierSeries = False
@@ -144,7 +150,6 @@ class ARMA(superVisedLearning):
     targetVals = np.delete(targetVals,self.target.index(self.pivotParameterID),2)[0]
     # targetVals now has shape (1, # time samples, # targets)
     self.target.pop(self.target.index(self.pivotParameterID))
-    # XXX WORKING
     for t,target in enumerate(self.target):
       self.raiseADebug('... training target "{}" ...'.format(target))
       timeSeriesData = copy.deepcopy(targetVals[:,t])
@@ -166,7 +171,7 @@ class ARMA(superVisedLearning):
       self.armaNormPara[target] = self._generateCDF(timeSeriesData)
       self.armaPara[target] = {'rSeries': timeSeriesData,
                                'rSeriesNorm': self._dataConversion(timeSeriesData, target, 'normalize')}
-      self._trainARMA(target)
+      self.armaResult[target] = self._trainARMA(target)
       self.raiseADebug('... ... finished training target "{}"'.format(target))
 
   def _trainFourier(self, pivotValues, basePeriod, order, values):
@@ -222,54 +227,23 @@ class ARMA(superVisedLearning):
       Fit ARMA model: x_t = \sum_{i=1}^P \phi_i*x_{t-i} + \alpha_t + \sum_{j=1}^Q \theta_j*\alpha_{t-j}
       Data series to this function has been normalized so that it is standard gaussian
       @ In, target, string, name of target to train ARMA for
-      @ Out, None, but sets values in self.armaResult[target]
+      @ Out, results, statsmodels.tsa.arima_model.ARMAResults, trained ARMA
     """
-    self.armaResult[target] = {}
+    # XXX WORKING
+    # input parameters
     Pmax = self.armaPara['Pmax']
     Pmin = self.armaPara['Pmin']
     Qmax = self.armaPara['Qmax']
     Qmin = self.armaPara['Qmin']
-    dim = self.armaPara['dimension']
 
-    criterionBest = np.inf
-    self.raiseADebug('... ... searching optimal ARMA parameters ...')
-    for p in range(Pmin,Pmax+1):
-      for q in range(Qmin,Qmax+1):
-        if p is 0 and q is 0:
-          continue          # dump case so we pass
-        init = [0.0]*(p+q)*dim**2
-        init_S = np.identity(dim)
-        for n1 in range(dim):
-          init.append(init_S[n1,n1])
+    # scrub ARMA to make it gaussian aka normalized aka white
+    ## first, charaacterize the CDF of the data
+    self.cdfData[target] = self._generateCDF(self.armaPara[target]['rSeries'])
 
-        rOpt = {}
-        rOpt = optimize.fmin(self._computeARMALikelihood,
-                             init,
-                             args=(target, p, q, self.armaPara[target]['rSeriesNorm']),
-                             full_output = True)
-        numParam = (p+q)*dim**2/self.pivotParameterValues.size
-        criterionCurrent = self._computeAICorBIC(self.armaResult[target]['sigHat'],
-                                                 numParam,
-                                                 'BIC',
-                                                 self.pivotParameterValues.size,
-                                                 obj='min')
-        if criterionCurrent < criterionBest or 'P' not in self.armaResult[target].keys():
-          # to save the first iteration results
-          self.armaResult[target]['P'] = p
-          self.armaResult[target]['Q'] = q
-          self.armaResult[target]['param'] = rOpt[0]
-          criterionBest = criterionCurrent
-
-    # saving training results
-    Phi, Theta, Cov = self._armaParamAssemb(self.armaResult[target]['param'],
-                                            self.armaResult[target]['P'],
-                                            self.armaResult[target]['Q'],dim )
-    self.armaResult[target]['Phi'] = Phi
-    self.armaResult[target]['Theta'] = Theta
-    # TODO this for loop shouldn't be necessary to set a vector, does it need a transpose?
-    self.armaResult[target]['sig'] = np.zeros(shape=(1, dim ))
-    for n in range(dim ):
-      self.armaResult[target]['sig'][0,n] = np.sqrt(Cov[n,n])
+    # train white model
+    model = smARMA(self.armaPara[target]['rSeries'], order=(Pmax,Qmax))
+    results = model.fit(disp=False)
+    return results
 
   def _generateCDF(self, data):
     """
@@ -277,31 +251,33 @@ class ARMA(superVisedLearning):
       @ In, data, array, shape = [n_timeSteps, n_dimension], data over which the CDF will be generated
       @ Out, armaNormPara, dict, description of normal parameters by pivot value
     """
-    armaNormPara = {}
-    armaNormPara['resCDF'] = {}
+    #armaNormPara = {}
+    #armaNormPara['resCDF'] = {}
 
     if len(data.shape) == 1:
       data = np.reshape(data, newshape = (data.shape[0],1))
-    num_bins = [0]*data.shape[1] # initialize num_bins, which will be calculated later by Freedman Diacoins rule
+    numPivots, numSamples = data.shape
 
-    for d in range(data.shape[1]):
-      num_bins[d] = self._computeNumberBins(data[:,d])
-      counts, binEdges = np.histogram(data[:,d], bins = num_bins[d], normed = True)
-      Delta = np.zeros(shape=(num_bins[d],1))
-      for n in range(num_bins[d]):
+    cdfParams = [{}]*numSamples
+
+    for d in range(numSamples):
+      num_bins = self._computeNumberBins(data[:,d])
+      counts, binEdges = np.histogram(data[:,d], bins = num_bins, normed = True)
+      Delta = np.zeros(shape=(num_bins,1))
+      for n in range(num_bins):
         Delta[n,0] = binEdges[n+1]-binEdges[n]
       temp = np.cumsum(counts)*np.average(Delta)
       cdf = np.insert(temp, 0, temp[0]) # minimum of CDF is set to temp[0] instead of 0 to avoid numerical issues
-      armaNormPara['resCDF'][d] = {}
-      armaNormPara['resCDF'][d]['bins'] = copy.deepcopy(binEdges)
-      armaNormPara['resCDF'][d]['binsMax'] = max(binEdges)
-      armaNormPara['resCDF'][d]['binsMin'] = min(binEdges)
-      armaNormPara['resCDF'][d]['CDF'] = copy.deepcopy(cdf)
-      armaNormPara['resCDF'][d]['CDFMax'] = max(cdf)
-      armaNormPara['resCDF'][d]['CDFMin'] = min(cdf)
-      armaNormPara['resCDF'][d]['binSearchEng'] = neighbors.NearestNeighbors(n_neighbors=2).fit([[b] for b in binEdges])
-      armaNormPara['resCDF'][d]['cdfSearchEng'] = neighbors.NearestNeighbors(n_neighbors=2).fit([[c] for c in cdf])
-    return armaNormPara
+      #cdfParams[d] = {}
+      cdfParams[d]['bins'] = copy.deepcopy(binEdges)
+      cdfParams[d]['binsMax'] = max(binEdges)
+      cdfParams[d]['binsMin'] = min(binEdges)
+      cdfParams[d]['CDF'] = copy.deepcopy(cdf)
+      cdfParams[d]['CDFMax'] = max(cdf)
+      cdfParams[d]['CDFMin'] = min(cdf)
+      cdfParams[d]['binSearchEng'] = neighbors.NearestNeighbors(n_neighbors=2).fit([[b] for b in binEdges])
+      cdfParams[d]['cdfSearchEng'] = neighbors.NearestNeighbors(n_neighbors=2).fit([[c] for c in cdf])
+    return cdfParams
 
   def _computeNumberBins(self, data):
     """
@@ -451,70 +427,6 @@ class ARMA(superVisedLearning):
       Cov[n,n] = x[N**2*(p+q)+n]
     return Phi, Theta, Cov
 
-  def _computeARMALikelihood(self, x, target, p, q, whiteData):
-    """
-      Compute the likelihood given an ARMA model
-      @ In, x, list, ARMA parameter stored as vector
-      @ In, target, str, variable name for target of ARMA
-      @ In, p, int, "p" parameter for ARMA, or the number of lags in the autoregressor
-      @ In, q, int, "q" parameter for ARMA, or the number of lags in the moving average
-      @ In, whiteData, np.array(float), target signal data (normalized to Gaussian)
-      @ Out, lkHood, float, output likelihood
-    """
-    N = self.armaPara['dimension']
-    assert(len(x) == N**2*(p+q)+N)
-    Phi, Theta, Cov = self._armaParamAssemb(x,p,q,N)
-    for n1 in range(N):
-      for n2 in range(N):
-        if Cov[n1,n2] < 0:
-          lkHood = sys.float_info.max
-          return lkHood
-
-    CovInv = np.linalg.inv(Cov)
-    d = whiteData
-    numTimeStep = d.shape[0]
-    alpha = np.zeros(shape=d.shape)
-    L = -N*numTimeStep/2.0*np.log(2*np.pi) - numTimeStep/2.0*np.log(np.linalg.det(Cov))
-    # TODO can this be vectorized further?
-    for t in range(numTimeStep):
-      alpha[t,:] = d[t,:]
-      for i in range(1,min(p,t)+1):
-        alpha[t,:] -= np.dot(Phi[i],d[t-i,:])
-      for j in range(1,min(q,t)+1):
-        alpha[t,:] -= np.dot(Theta[j],alpha[t-j,:])
-      L -= 1/2.0*np.dot(np.dot(alpha[t,:].T,CovInv),alpha[t,:])
-
-    sigHat = np.dot(alpha.T,alpha)
-    while sigHat.size > 1:
-      sigHat = sum(sigHat)
-      sigHat = sum(sigHat.T)
-    sigHat = sigHat / numTimeStep
-    self.armaResult[target]['sigHat'] = sigHat[0,0]
-    lkHood = -L
-    return lkHood
-
-  def _computeAICorBIC(self,maxL,numParam,cType,histSize,obj='max'):
-    """
-      Compute the AIC or BIC criteria for model selection.
-      @ In, maxL, float, likelihood of given parameters
-      @ In, numParam, int, number of parameters
-      @ In, cType, string, specify whether AIC or BIC should be returned
-      @ In, obj, string, specify the optimization is for maximum or minimum.
-      @ In, histSize, int, length of pivot parameters vector
-      @ Out, criterionValue, float, value of AIC/BIC
-    """
-    if obj == 'min':
-      flag = -1
-    else:
-      flag = 1
-    if cType == 'BIC':
-      criterionValue = -1*flag*np.log(maxL)+numParam*np.log(histSize)
-    elif cType == 'AIC':
-      criterionValue = -1*flag*np.log(maxL)+numParam*2
-    else:
-      criterionValue = maxL
-    return criterionValue
-
   def __evaluateLocal__(self,featureVals):
     """
       @ In, featureVals, float, a scalar feature value is passed as scaling factor
@@ -533,50 +445,49 @@ class ARMA(superVisedLearning):
     # make sure pivot value is in return object
     returnEvaluation = {self.pivotParameterID:self.pivotParameterValues[0:numTimeStep]}
 
+    # XXX DEBUGG
+    debugFile = file('signal_bases.csv','w')
+    debugFile.writelines('Time,'+','.join([str(x) for x in self.pivotParameterValues])+'\n')
     for tIdx,target in enumerate(self.target):
-      # generate normalized noise for data
-      ## initialize normalized noise
-      tSeriesNoise = np.zeros(shape=self.armaPara[target]['rSeriesNorm'].shape)
-      ### TODO This could probably be vectorized for speed gains
-      for t in range(numTimeStep):
-        for n in range(self.armaPara['dimension']):
-          tSeriesNoise[t,n] = normEvaluateEngine.rvs()*self.armaResult[target]['sig'][0,n]
-      ## add ARMA data to noise
-      ### TODO This too
-      tSeriesNorm = np.zeros(shape=(numTimeStep,self.armaPara[target]['rSeriesNorm'].shape[1]))
-      tSeriesNorm[0,:] = self.armaPara[target]['rSeriesNorm'][0,:]
-      for t in range(numTimeStep):
-        for i in range(1,min(self.armaResult[target]['P'], t)+1):
-          tSeriesNorm[t,:] += np.dot(tSeriesNorm[t-i,:], self.armaResult[target]['Phi'][i])
-        for j in range(1,min(self.armaResult[target]['Q'], t)+1):
-          tSeriesNorm[t,:] += np.dot(tSeriesNoise[t-j,:], self.armaResult[target]['Theta'][j])
-        tSeriesNorm[t,:] += tSeriesNoise[t,:]
+      result = self.armaResult[target] # ARMAResults object
+      covariance = result.cov_params()    # "sigma" in the Chen-Rabiti paper
+
+      # initialize normalized noise
+      armaNoise = np.array(normEvaluateEngine.rvs(len(self.armaPara[target]['rSeries'])))*covariance[0,0]
+      signal = armaNoise
+      debugFile.writelines('signal_noise,'+','.join([str(x) for x in signal])+'\n')
+
+      # generate baseline ARMA
+      signal += result.predict()
+      debugFile.writelines('signal_arma,'+','.join([str(x) for x in signal])+'\n')
 
       # Convert data back to empirically distributed (not normalized)
-      tSeries = self._dataConversion(tSeriesNorm, target, 'denormalize')
+      #signal = armaSignalNorm # FIXME Remove if this works #self._dataConversion(armaSignalNorm, target, 'denormalize')
 
       # Add fourier trends
       if self.hasFourierSeries:
-        predict = self.fourierResults[target]['predict']
-        self.raiseADebug('Fourier prediciton, series shapes:',predict.shape, tSeries.shape)
-        if len(predict.shape) == 1:
-          fourierSignal = np.reshape(predict, newshape=(predict.shape[0],1))
-        else:
-          fourierSignal = predict[0:numTimeStep,:]
-        tSeries += fourierSignal
+        fourierSignal = self.fourierResults[target]['predict']
+        #if len(fourierSignal.shape) == 1:
+        #  fourierSignal = fourierSignal.reshape((fourierSignal.shape[0],1))
+        #else:
+        # TODO why is this necessary?
+        #fourierSignal = fourierSignal[0:numTimeStep,:]
+        signal += fourierSignal
+        debugFile.writelines('signal_fourier,'+','.join([str(x) for x in signal])+'\n')
 
       # Ensure positivity --- FIXME -> what needs to be fixed?
       if self.outTruncation is not None:
         if self.outTruncation == 'positive':
-          tSeries = np.absolute(tSeries)
+          signal = np.absolute(signal)
         elif self.outTruncation == 'negative':
-          tSeries = -np.absolute(tSeries)
+          signal = -np.absolute(signal)
 
       # store results
-      ## XXX assure that tIdx is the right way to find the correct featureVal scalar
-      evaluation = (tSeries*featureVals).reshape(returnEvaluation[self.pivotParameterID].shape)
-      assert(evaluation.size == returnEvaluation[self.pivotParameterID].size)
-      returnEvaluation[target] = evaluation
+      ## FIXME this is ASSUMING the input to ARMA is only ever a single scaling factor.
+      signal *= featureVals[0]
+      assert(signal.size == returnEvaluation[self.pivotParameterID].size)
+      returnEvaluation[target] = signal
+      debugFile.writelines('final,'+','.join([str(x) for x in signal])+'\n')
     # END for target in targets
 
     return returnEvaluation
