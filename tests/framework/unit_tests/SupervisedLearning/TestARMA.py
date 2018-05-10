@@ -45,6 +45,9 @@ print('Module undergoing testing:')
 print(ARMA)
 print('')
 
+# seed the randomness
+np.random.seed(42)
+
 def createElement(tag,attrib=None,text=None):
   """
     Method to create a dummy xml element readable by the distribution classes
@@ -248,7 +251,6 @@ def checkFails(comment,errstr,function,update=True,args=None,kwargs=None):
   print('')
   return res
 
-
 def createSignal(start,stop,periods,magnitudes=None):
   """
     Creates a deterministic signal with Fourier trends.
@@ -299,7 +301,7 @@ kwargs = {'Target'  :'y,Time',
 arma = ARMA(mh,**kwargs)
 # lag properties
 for var in ['Pmax','Pmin','Qmax','Qmin']:
-  checkSame('Set {}'.format(var),arma.armaPara[var],kwargs[var])
+  checkSame('Set {}'.format(var),getattr(arma,var),kwargs[var])
 
 ######################################
 #                CDF                 #
@@ -307,24 +309,36 @@ for var in ['Pmax','Pmin','Qmax','Qmin']:
 # test fitting of CDF to distributions
 
 # start with single history
-hist1 = createHistory(0,100,[10,20],2)
-hist2 = createHistory(0,100,[10,20],2)
-hists = np.array(zip(hist1,hist2))
-print(hists.shape)
-cdf = arma._generateCDF(hists)
-for sample in cdf:
-  for k2,v2 in sample.items():
-    print('  ',k2,v2)
-    for k3,v3 in v2.items():
-      print('    ',k3,v3)
-for i in range(2):
-  bins = cdf['resCDF'][i]['bins']
-  ys = cdf['resCDF'][i]['CDF']
-  plt.plot(bins,ys,label=i)
-  plt.legend(loc=0)
+hist = createHistory(0,100,[10,20],2)
+hist = np.array(zip(hist))
+# check parameters
+cdfParams = arma._generateCDF(hist)
+checkFloat('CDF param min',cdfParams['CDFMin'],0.029702970297)
+checkFloat('CDF param binsMax',cdfParams['binsMax'],2.78146536815)
+checkFloat('CDF param binsMin',cdfParams['binsMin'],-0.877012421555)
+correct = [0.02970297, 0.02970297, 0.11881188, 0.32673267, 0.55445545, 0.75247525, 0.92079208, 0.98019802, 1.]
+checkArray('CDF param values',cdfParams['CDF'],correct,float,tol=1e-8)
+correct = [-0.87701242, -0.4197027, 0.03760703, 0.49491675, 0.95222647, 1.4095362,1.86684592, 2.32415564, 2.78146537]
+checkArray('CDF param bins',cdfParams['bins'],correct,float,tol=1e-8)
 
-plt.show()
+# check sampling, inverting
+samples = 10
+cdf = np.zeros(samples)
+inv = np.zeros(samples)
+xs = np.linspace(-1,3,samples)
+vs = np.linspace(0,1,samples)
+for i in range(samples):
+  cdf[i] = arma._getCDF(cdfParams,xs[i])
+  inv[i] = arma._getInvCDF(cdfParams,vs[i])
+correct = [0.02970297, 0.02970297, 0.08983347, 0.25326703, 0.46758666,
+           0.67136637, 0.84711436, 0.95252288, 0.99021787, 1.]
+checkArray('CDF samples',cdf,correct,float,tol=1e-8)
+correct = [-0.87701242, -0.04143416, 0.26505207, 0.50943452, 0.7313039,
+            0.95476708,  1.21136865, 1.4782821,  1.62125366, 2.78146537]
+checkArray('CDF inv samples',inv,correct,float,tol=1e-8)
 
+
+# TODO add more unit tests to cover methods
 
 print(results)
 
