@@ -4,16 +4,18 @@ Created on July 11th, 2017
 """
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
-warnings.simplefilter('default',DeprecationWarning)
+warnings.simplefilter('default', DeprecationWarning)
 import os
 from decimal import Decimal
 import xml.etree.ElementTree as ET
+
 
 class MaterialParser():
   """
     Parses the PHISICS xml material file and replaces the nominal values by the perturbed values.
   """
-  def __init__(self,inputFiles,workingDir,**pertDict):
+
+  def __init__(self, inputFiles, workingDir, **pertDict):
     """
       Constructor.
       @ In, inputFiles, string, Qvalues library file
@@ -21,14 +23,14 @@ class MaterialParser():
       @ In, pertDict, dictionary, dictionary of perturbed variables
       @ Out, None
     """
-    self.pertDict = self.scientificNotation(pertDict) # Perturbed variables
+    self.pertDict = self.scientificNotation(pertDict)  # Perturbed variables
     self.inputFiles = inputFiles
-    self.tree = ET.parse(self.inputFiles)             # xml tree
-    self.root = self.tree.getroot()                   # xml root
+    self.tree = ET.parse(self.inputFiles)  # xml tree
+    self.root = self.tree.getroot()  # xml root
     self.listedDict = self.fileReconstruction(self.pertDict)
     self.printInput(workingDir)
 
-  def scientificNotation(self,pertDict):
+  def scientificNotation(self, pertDict):
     """
       Converts the numerical values into a scientific notation.
       @ In, pertDict, dictionary, perturbed variables
@@ -38,7 +40,7 @@ class MaterialParser():
       pertDict[key] = '%.3E' % Decimal(str(value))
     return pertDict
 
-  def replaceValues(self,genericXMLdict):
+  def replaceValues(self, genericXMLdict):
     """
       Replaces the values from the pertured dict and puts them in the deconstructed original dictionary
       @ In, genericXMLdict, dictionary, dictionary templated  {X|Y|Z:nominalValue}
@@ -50,7 +52,7 @@ class MaterialParser():
       genericXMLdict[key] = self.pertDict.get(key, {})
     return genericXMLdict
 
-  def dictFormatingFromPerturbedToGeneric(self,XMLdict):
+  def dictFormatingFromPerturbedToGeneric(self, XMLdict):
     """
       Transforms the dictionary coming from the xml file into the templated dictionary.
       The templated format is {DENSITY|FUEL|ISOTOPE}
@@ -61,7 +63,8 @@ class MaterialParser():
     for paramXML in XMLdict.iterkeys():
       for matXML in XMLdict.get(paramXML).iterkeys():
         for isotopeXML, densityValue in XMLdict.get(paramXML).get(matXML).iteritems():
-          genericXMLdict[paramXML.upper()+'|'+matXML.upper()+'|'+isotopeXML.upper()] = densityValue
+          genericXMLdict[paramXML.upper() + '|' + matXML.upper() + '|' +
+                         isotopeXML.upper()] = densityValue
     return genericXMLdict
 
   def dictFormatingFromXmlToPerturbed(self):
@@ -86,20 +89,23 @@ class MaterialParser():
         XMLdict['density'][mat][isotope] = {}
     for matXML in self.root.getiterator('mat'):
       for isotopeXML in matXML.findall('isotope'):
-        XMLdict['density'][matXML.attrib.get('id')][isotopeXML.attrib.get('id')] = isotopeXML.attrib.get('density')
+        XMLdict['density'][matXML.attrib.get('id')][isotopeXML.attrib.get(
+            'id')] = isotopeXML.attrib.get('density')
     return XMLdict
 
-  def unifyElements(self,listWithRepetitions):
+  def unifyElements(self, listWithRepetitions):
     """
       removes any repetitions of elements in a list.
       @ In, listWithRepetitions, list, list made of non-unique elements
       @ Out, listWithUniqueElements, list, list made of unique elements
     """
     valueSeen = set()
-    listWithUniqueElements = [x for x in listWithRepetitions if x not in valueSeen and not valueSeen.add(x)]
+    listWithUniqueElements = [
+        x for x in listWithRepetitions if x not in valueSeen and not valueSeen.add(x)
+    ]
     return listWithUniqueElements
 
-  def fileReconstruction(self,deconstructedDict):
+  def fileReconstruction(self, deconstructedDict):
     """
       Converts the formatted dictionary -> {'DENSITY|FUEL1|U235':1.30, DENSITY|FUEL2|U238':4.69}.
       into a dictionary of dictionaries that has the format -> {'DENSITY':{'FUEL1':{'U235':1.30}, 'FUEL2':{'U238':4.69}}}
@@ -114,18 +120,19 @@ class MaterialParser():
       perturbedIsotopes.append(key.split('|')[2])
       perturbedMaterials.append(key.split('|')[1])
       perturbedPhysicalParameters.append(key.split('|')[0])
-    for i in range (len(perturbedPhysicalParameters)):
+    for i in range(len(perturbedPhysicalParameters)):
       reconstructedDict[perturbedPhysicalParameters[i]] = {}
-      for j in range (len(perturbedMaterials)):
+      for j in range(len(perturbedMaterials)):
         reconstructedDict[perturbedPhysicalParameters[i]][perturbedMaterials[j]] = {}
-        for k in range (len(perturbedIsotopes)):
-          reconstructedDict[perturbedPhysicalParameters[i]][perturbedMaterials[j]][perturbedIsotopes[k]] = {}
+        for k in range(len(perturbedIsotopes)):
+          reconstructedDict[perturbedPhysicalParameters[i]][perturbedMaterials[j]][
+              perturbedIsotopes[k]] = {}
     for typeKey, value in deconstructedDict.iteritems():
       keyWords = typeKey.split('|')
       reconstructedDict[keyWords[0]][keyWords[1]][keyWords[2]] = value
     return reconstructedDict
 
-  def printInput(self,workingDir):
+  def printInput(self, workingDir):
     """
       Prints out the pertubed xml material file into a xml file. The workflow is:
       open a new file with a dummy name; parse the unperturbed library; print the line in the dummy and
@@ -133,7 +140,7 @@ class MaterialParser():
       @ In, workingDir, string, path to working directory
       @ Out, None
     """
-    modifiedFile = os.path.join(workingDir,'test.dat')
+    modifiedFile = os.path.join(workingDir, 'test.dat')
     open(modifiedFile, 'w')
     XMLdict = self.dictFormatingFromXmlToPerturbed()
     genericXMLdict = self.dictFormatingFromPerturbedToGeneric(XMLdict)
@@ -142,6 +149,8 @@ class MaterialParser():
 
     for matXML in self.root.getiterator('mat'):
       for isotopeXML in matXML.findall('isotope'):
-        isotopeXML.attrib['density'] = templatedNewXMLdict.get(isotopeXML.attrib.keys()[1].upper()).get(matXML.attrib.get('id').upper()).get(isotopeXML.attrib.get('id').upper())
+        isotopeXML.attrib['density'] = templatedNewXMLdict.get(
+            isotopeXML.attrib.keys()[1].upper()).get(matXML.attrib.get('id').upper()).get(
+                isotopeXML.attrib.get('id').upper())
         self.tree.write(modifiedFile)
-    os.rename(modifiedFile,self.inputFiles)
+    os.rename(modifiedFile, self.inputFiles)

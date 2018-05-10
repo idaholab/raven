@@ -17,7 +17,7 @@ Created on July 5th, 2017
 """
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
-warnings.simplefilter('default',DeprecationWarning)
+warnings.simplefilter('default', DeprecationWarning)
 import os
 import re
 from CodeInterfaceBaseClass import CodeInterfaceBase
@@ -26,11 +26,13 @@ import xml.etree.ElementTree as ET
 import fileinput
 import sys
 
+
 class Phisics(CodeInterfaceBase):
   """
     Code interface for PHISICS
   """
-  def getNumberOfMpi(self,string):
+
+  def getNumberOfMpi(self, string):
     """
       Gets the number of MPI requested by the user in the RAVEN input.
       @ In, string, string, string from the Kwargs containing the number of MPI
@@ -38,7 +40,7 @@ class Phisics(CodeInterfaceBase):
     """
     return int(string.split(" ")[-2])
 
-  def outputFileNames(self,pathFile):
+  def outputFileNames(self, pathFile):
     """
       Collects the output file names from xml path file.
       @ In, pathFile, string, lib_path_input file
@@ -47,12 +49,14 @@ class Phisics(CodeInterfaceBase):
     pathTree = ET.parse(pathFile)
     pathRoot = pathTree.getroot()
     self.outputFileNameDict = {}
-    xmlNodes = ['reactions','atoms_plot','atoms_csv','decay_heat','bu_power','flux','repository']
-    for xmlNodeNumber in xrange (0,len(xmlNodes)):
+    xmlNodes = [
+        'reactions', 'atoms_plot', 'atoms_csv', 'decay_heat', 'bu_power', 'flux', 'repository'
+    ]
+    for xmlNodeNumber in xrange(0, len(xmlNodes)):
       for xmlNode in pathRoot.getiterator(xmlNodes[xmlNodeNumber]):
         self.outputFileNameDict[xmlNodes[xmlNodeNumber]] = xmlNode.text
 
-  def syncLibPathFileWithRavenInp(self,pathFile,currentInputFiles,keyWordDict):
+  def syncLibPathFileWithRavenInp(self, pathFile, currentInputFiles, keyWordDict):
     """
       Parses the xml path file and writes the correct library path in the xml path file, based in the raven input.
       @ In, pathFile, string, xml path file
@@ -62,15 +66,26 @@ class Phisics(CodeInterfaceBase):
     """
     pathTree = ET.parse(pathFile)
     pathRoot = pathTree.getroot()
-    typeList = ['IsotopeList','mass','decay','budep','FissionYield','FissQValue','CRAM_coeff_PF','N,G','N,Gx','N,2N','N,P','N,ALPHA','AlphaDecay','BetaDecay','BetaxDecay','Beta+Decay','Beta+xDecay','IntTraDecay']
-    libPathList = ['iso_list_inp','mass_a_weight_inp','decay_lib','xs_sep_lib','fiss_yields_lib','fiss_q_values_lib','cram_lib','n_gamma','n_gamma_ex','n_2n','n_p','n_alpha','alpha','beta','beta_ex','beta_plus','beta_plus_ex','int_tra']
+    typeList = [
+        'IsotopeList', 'mass', 'decay', 'budep', 'FissionYield', 'FissQValue', 'CRAM_coeff_PF',
+        'N,G', 'N,Gx', 'N,2N', 'N,P', 'N,ALPHA', 'AlphaDecay', 'BetaDecay', 'BetaxDecay',
+        'Beta+Decay', 'Beta+xDecay', 'IntTraDecay'
+    ]
+    libPathList = [
+        'iso_list_inp', 'mass_a_weight_inp', 'decay_lib', 'xs_sep_lib', 'fiss_yields_lib',
+        'fiss_q_values_lib', 'cram_lib', 'n_gamma', 'n_gamma_ex', 'n_2n', 'n_p', 'n_alpha',
+        'alpha', 'beta', 'beta_ex', 'beta_plus', 'beta_plus_ex', 'int_tra'
+    ]
 
     for typeNumber in range(len(typeList)):
       for libPathText in pathRoot.getiterator(libPathList[typeNumber]):
-        libPathText.text = os.path.join(currentInputFiles[keyWordDict[typeList[typeNumber].lower()]].subDirectory , currentInputFiles[keyWordDict[typeList[typeNumber].lower()]].getBase() +'.'+ currentInputFiles[keyWordDict[typeList[typeNumber].lower()]].getExt())
+        libPathText.text = os.path.join(
+            currentInputFiles[keyWordDict[typeList[typeNumber].lower()]].subDirectory,
+            currentInputFiles[keyWordDict[typeList[typeNumber].lower()]].getBase() + '.' +
+            currentInputFiles[keyWordDict[typeList[typeNumber].lower()]].getExt())
     pathTree.write(pathFile)
 
-  def syncPathToLibFile(self,depletionRoot,depletionFile,depletionTree,libPathFile):
+  def syncPathToLibFile(self, depletionRoot, depletionFile, depletionTree, libPathFile):
     """
       Prints the name of the files that contains the path to the libraries in the xml depletion input.
       @ In, depletionRoot, xml.etree.ElementTree.Element, depletion input xml node
@@ -80,28 +95,30 @@ class Phisics(CodeInterfaceBase):
       @ Out, None
     """
     if depletionTree.find('.//input_files') is None:
-      for line in fileinput.FileInput(depletionFile, inplace = 1):
+      for line in fileinput.FileInput(depletionFile, inplace=1):
         if '<DEPLETION_INPUT>' in line:
-          line = line.replace('<DEPLETION_INPUT>','<DEPLETION_INPUT>'+'\n\t'+'<input_files>'+libPathFile+'</input_files>')
+          line = line.replace(
+              '<DEPLETION_INPUT>',
+              '<DEPLETION_INPUT>' + '\n\t' + '<input_files>' + libPathFile + '</input_files>')
         sys.stdout.write(line)
     else:
       depletionTree.find('.//input_files').text = libPathFile
       depletionTree.write(depletionFile)
 
-  def getTitle(self,depletionRoot):
+  def getTitle(self, depletionRoot):
     """
       Gets the job title. It will become later the INSTANT output file name. If the title flag is not in the
       INSTANT input, the job title is defaulted to 'defaultInstant'.
       @ In, depletionRoot, xml.etree.ElementTree.Element, depletion input xml node
       @ Out, None
     """
-    self.jobTitle =  'defaultInstant'
+    self.jobTitle = 'defaultInstant'
     for child in depletionRoot.findall(".//title"):
       self.jobTitle = child.text
       break
     return
 
-  def verifyMrtauFlagsAgree(self,depletionRoot):
+  def verifyMrtauFlagsAgree(self, depletionRoot):
     """
       Verifies that the node "standalone"'s text is in the xml depletion file. if the standalone flag
       in the xml depletion file disagrees with the MRTAU standalone flag in the raven input, the codes errors out.
@@ -116,13 +133,14 @@ class Phisics(CodeInterfaceBase):
       The flags controlling the Mrtau standalone mode are incorrect. \n \
       The node <standalone> in depletion_input file disagrees with the node <mrtauStandAlone> in the raven input. \n \
       the matching solutions are: \n \
-      <mrtauStandAlone>True</mrtauStandAlone> and <"+tag+">yes<"+tag+">\n <mrtauStandAlone>False</mrtauStandAlone> and <"+tag+">no<"+tag+">"
+      <mrtauStandAlone>True</mrtauStandAlone> and <" + tag + ">yes<" + tag + ">\n \
+      <mrtauStandAlone>False</mrtauStandAlone> and <" + tag + ">no<" + tag + ">"
     if self.mrtauStandAlone == False and isMrtauStandAlone == 'yes':
-      raise  ValueError(valueErrorMessage)
+      raise ValueError(valueErrorMessage)
     if self.mrtauStandAlone == True and isMrtauStandAlone == 'no':
-      raise  ValueError(valueErrorMessage)
+      raise ValueError(valueErrorMessage)
 
-  def timeUnit(self,depletionRoot):
+  def timeUnit(self, depletionRoot):
     """
       Parses the xml depletion file to find the time unit. Default: seconds (string).
       @ In, depletionRoot, xml.etree.ElementTree.Element, depletion input xml node
@@ -133,7 +151,7 @@ class Phisics(CodeInterfaceBase):
       self.timeControl = child.attrib.get("type")
       break
 
-  def parseControlOptions(self,depletionFile,libPathFile):
+  def parseControlOptions(self, depletionFile, libPathFile):
     """
       Parses the xml depletion file and library path name file to obtain the control options.
       Verifies if the mrtau flag agree between the RAVEN input and depletion file, Gets the decay heat options.
@@ -148,9 +166,9 @@ class Phisics(CodeInterfaceBase):
     self.findDecayHeatFlag(depletionRoot)
     self.timeUnit(depletionRoot)
     self.getTitle(depletionRoot)
-    self.syncPathToLibFile(depletionRoot,depletionFile,depletionTree,libPathFile)
+    self.syncPathToLibFile(depletionRoot, depletionFile, depletionTree, libPathFile)
 
-  def distributeVariablesToParsers(self,perturbedVars):
+  def distributeVariablesToParsers(self, perturbedVars):
     """
       Transforms a dictionary into dictionary of dictionaries. This dictionary renders easy the distribution
       of the variables to their corresponding parser. For example, if the two variables are the following:
@@ -161,14 +179,15 @@ class Phisics(CodeInterfaceBase):
     """
     distributedPerturbedVars = {}
     pertType = []
-    for i in perturbedVars.iterkeys():        # teach what are the type of perturbation (decay FY etc...)
+    for i in perturbedVars.iterkeys():  # teach what are the type of perturbation (decay FY etc...)
       splittedKeywords = i.split('|')
       pertType.append(splittedKeywords[0])
-    for i in xrange (0,len(pertType)):        # declare all the dictionaries according the different type of pert
+    for i in xrange(
+        0, len(pertType)):  # declare all the dictionaries according the different type of pert
       distributedPerturbedVars[pertType[i]] = {}
     for key, value in perturbedVars.items():  # populate the dictionaries
       splittedKeywords = key.split('|')
-      for j in xrange (0,len(pertType)):
+      for j in xrange(0, len(pertType)):
         if splittedKeywords[0] == pertType[j]:
           distributedPerturbedVars[pertType[j]][key] = value
     return distributedPerturbedVars
@@ -179,9 +198,9 @@ class Phisics(CodeInterfaceBase):
       @ In, None
       @ Out, None
     """
-    self.addInputExtension(['xml','dat','path'])
+    self.addInputExtension(['xml', 'dat', 'path'])
 
-  def _readMoreXML(self,xmlNode):
+  def _readMoreXML(self, xmlNode):
     """
       Function to read the portion of the xml input that belongs to this specialized class and initialize some
       members based on inputs. This can be overloaded in specialize code interface in order to read specific flags.
@@ -190,10 +209,10 @@ class Phisics(CodeInterfaceBase):
       @ Out, None.
     """
     #default values if the flag is not in the raven input
-    self.mrtauStandAlone  = False
-    self.mrtauExecutable  = None
-    self.phisicsRelap     = False
-    self.printSpatialRR   = False
+    self.mrtauStandAlone = False
+    self.mrtauExecutable = None
+    self.phisicsRelap = False
+    self.printSpatialRR = False
     self.printSpatialFlux = False
     for child in xmlNode:
       if child.tag == 'mrtauStandAlone':
@@ -203,7 +222,10 @@ class Phisics(CodeInterfaceBase):
         elif (child.text.lower() == 'f' or child.text.lower() == 'false'):
           self.mrtauStandAlone = False
         else:
-          raise ValueError("\n\n The flag activating MRTAU standalone mode -- <"+child.tag+"> -- only supports the following text (case insensitive): \n True \n T \n False \n F. \n Default Value is False")
+          raise ValueError(
+              "\n\n The flag activating MRTAU standalone mode -- <" + child.tag +
+              "> -- only supports the following text (case insensitive): \n True \n T \n False \n F. \n Default Value is False"
+          )
       if child.tag == 'mrtauStandAloneExecutable' and self.mrtauStandAlone is True:
         self.mrtauExecutable = child.text
 
@@ -213,7 +235,7 @@ class Phisics(CodeInterfaceBase):
         elif (child.text.lower() == 'f' or child.text.lower() == 'false'):
           self.printSpatialRR = False
         else:
-          raise ValueError("\n the node "+child.tag+"has to be a boolean entry")
+          raise ValueError("\n the node " + child.tag + "has to be a boolean entry")
 
       if child.tag == 'printSpatialFlux':
         if (child.text.lower() == 't' or child.text.lower() == 'true'):
@@ -221,33 +243,43 @@ class Phisics(CodeInterfaceBase):
         elif (child.text.lower() == 'f' or child.text.lower() == 'false'):
           self.printSpatialFlux = False
         else:
-          raise ValueError("\n the node "+child.tag+"has to be a boolean entry")
+          raise ValueError("\n the node " + child.tag + "has to be a boolean entry")
 
-  def generateCommand(self,inputFiles,executable,clargs=None,fargs=None):
+  def generateCommand(self, inputFiles, executable, clargs=None, fargs=None):
     """
       This method is used to retrieve the command (in tuple format) needed to launch the Code.
       See base class.  Collects all the clargs and the executable to produce the command-line call.
       Returns tuple of commands and base file name for run.
       Commands are a list of tuples, indicating parallel/serial and the execution command to use.
-      @ In, inputFiles, list, List of input files (length of the list depends on the number of inputs have been added in the Step is running this code)
+      @ In, inputFiles, list, List of input files (length of the list depends on the number of inputs have
+                              been added in the Step is running this code)
       @ In, executable, string, executable name with absolute path (e.g. /home/path_to_executable/code.exe)
-      @ In, clargs, dict, optional, dictionary containing the command-line flags the user can specify in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 i0extension =0 .inp0/ >< /Code >)
-      @ In, fargs, dict, optional, a dictionary containing the axuiliary input file variables the user can specify in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 aux0extension =0 .aux0/ >< /Code >)
-      @ Out, returnCommand, tuple, tuple containing the generated command. returnCommand[0] is the command to run the code (string), returnCommand[1] is the name of the output root
+      @ In, clargs, dict, optional, dictionary containing the command-line flags the user can specify in
+                                    the input (e.g. under the node < Code >< clargstype =0 input0arg =0
+                                    i0extension =0 .inp0/ >< /Code >)
+      @ In, fargs, dict, optional, a dictionary containing the axuiliary input file variables the user can
+                                   specify in the input (e.g. under the node < Code >< clargstype =0 input0arg
+                                   =0 aux0extension =0 .aux0/ >< /Code >)
+      @ Out, returnCommand, tuple, tuple containing the generated command. returnCommand[0] is the command to
+                                   run the code (string), returnCommand[1] is the name of the output root
     """
     mapDict = self.mapInputFileType(inputFiles)
     if self.mrtauStandAlone == True:
       executable = self.mrtauExecutable
       commandToRun = executable
-    outputfile = 'out~'+inputFiles[mapDict['inp'.lower()]].getBase()
+    outputfile = 'out~' + inputFiles[mapDict['inp'.lower()]].getBase()
     if self.mrtauStandAlone == False:
-      commandToRun = executable + ' ' +inputFiles[mapDict['inp'.lower()]].getFilename() + ' ' + inputFiles[mapDict['Xs-library'.lower()]].getFilename() + ' ' + inputFiles[mapDict['Material'.lower()]].getFilename() + ' ' + inputFiles[mapDict['Depletion_input'.lower()]].getFilename() + ' ' + self.instantOutput
-      commandToRun = commandToRun.replace("\n"," ")
-      commandToRun  = re.sub("\s\s+" , " ", commandToRun)
-    returnCommand = [('parallel',commandToRun)], outputfile
+      commandToRun = executable + ' ' + inputFiles[mapDict['inp'.lower()]].getFilename(
+      ) + ' ' + inputFiles[mapDict['Xs-library'.lower()]].getFilename(
+      ) + ' ' + inputFiles[mapDict['Material'.lower()]].getFilename(
+      ) + ' ' + inputFiles[mapDict['Depletion_input'.lower()]].getFilename(
+      ) + ' ' + self.instantOutput
+      commandToRun = commandToRun.replace("\n", " ")
+      commandToRun = re.sub("\s\s+", " ", commandToRun)
+    returnCommand = [('parallel', commandToRun)], outputfile
     return returnCommand
 
-  def finalizeCodeOutput(self,command,output,workingDir,**phiRel):
+  def finalizeCodeOutput(self, command, output, workingDir, **phiRel):
     """
       This method is called by the RAVEN code at the end of each run (if the method is present, since it is optional).
       It can be used for those codes, that do not create CSV files to convert the whatever output format into a csv.
@@ -264,7 +296,7 @@ class Phisics(CodeInterfaceBase):
       phiRel['phiRel'] = False
     if "relapOut" not in phiRel:
       phiRel['relapOut'] = None
-    phisicsDataDict['relapOut'] = phiRel['relapOut'] # RELAP output name, needed if MPI = 1
+    phisicsDataDict['relapOut'] = phiRel['relapOut']  # RELAP output name, needed if MPI = 1
     phisicsDataDict['output'] = output
     phisicsDataDict['timeControl'] = self.timeControl
     phisicsDataDict['decayHeatFlag'] = self.decayHeatFlag
@@ -284,12 +316,15 @@ class Phisics(CodeInterfaceBase):
     else:
       return 'mrtau'
 
-  def checkForOutputFailure(self,output,workingDir):
+  def checkForOutputFailure(self, output, workingDir):
     """
       This method is called by the RAVEN code at the end of each run  if the return code is == 0.
-      This method needs to be implemented by the codes that, if the run fails, return a return code that is 0.
-      This can happen in those codes that record the failure of the job (e.g. not converged, etc.) as normal termination (returncode == 0).
-      This method can be used, for example, to parse the outputfile looking for a special keyword that testifies that a particular job got failed.
+      This method needs to be implemented by the codes that, if the run fails, return a
+      return code that is 0.
+      This can happen in those codes that record the failure of the job (e.g.
+      not converged, etc.) as normal termination (returncode == 0).
+      This method can be used, for example, to parse the outputfile looking for a
+      special keyword that testifies that a particular job got failed.
       The line Task ended is searched in the PHISICS output as successful job message.
       @ In, output, string, the Output name root
       @ In, workingDir, string, current working dir
@@ -297,22 +332,24 @@ class Phisics(CodeInterfaceBase):
     """
     failure = True
     if not self.mrtauStandAlone:
-      with open(os.path.join(workingDir,output), 'r') as f:
+      with open(os.path.join(workingDir, output), 'r') as f:
         for line in f:
-          if re.search(r'task\s+ended',line,re.IGNORECASE):
+          if re.search(r'task\s+ended', line, re.IGNORECASE):
             failure = False
     else:
-      with open(os.path.join(workingDir,'Errors_CPUt.txt'), 'r') as f:
+      with open(os.path.join(workingDir, 'Errors_CPUt.txt'), 'r') as f:
         for line in f:
-          if re.search(r'NO\s+ERRORS\s+IN\s+THE\s+CALCULATION',line,re.IGNORECASE):
+          if re.search(r'NO\s+ERRORS\s+IN\s+THE\s+CALCULATION', line, re.IGNORECASE):
             failure = False
     return failure
 
-  def mapInputFileType(self,currentInputFiles):
+  def mapInputFileType(self, currentInputFiles):
     """
       Assigns a unique integer to the input file Types.
-      @ In, currentInputFiles,  list,  list of current input files (input files from last this method call)
-      @ Out, keyWordDict, dictionary, dictionary have input file types as keys, and its related order of appearance (interger) as values
+      @ In, currentInputFiles,  list,  list of current input files (input files
+                                       from last this method call)
+      @ Out, keyWordDict, dict, dictionary have input file types as keys,
+                                and its related order of appearance (interger) as values
     """
     keyWordDict = {}
     count = 0
@@ -321,7 +358,7 @@ class Phisics(CodeInterfaceBase):
       count = count + 1
     return keyWordDict
 
-  def isThereTabMappinp(self,currentInputFiles):
+  def isThereTabMappinp(self, currentInputFiles):
     """
       If the file with has type attribute 'tabMapping', is tabulation mapping is considered to be True.
       No tabulation mapping otherwise.
@@ -330,11 +367,11 @@ class Phisics(CodeInterfaceBase):
       @ Out, isThereTabMappinp, string, path to tabulation mapping file name
     """
     try:
-      return True,currentInputFiles[self.typeDict['tabmap']].getAbsFile()
-    except KeyError: # no tabMap type attribute, hence, no tab Mapping desired
-      return False,None
+      return True, currentInputFiles[self.typeDict['tabmap']].getAbsFile()
+    except KeyError:  # no tabMap type attribute, hence, no tab Mapping desired
+      return False, None
 
-  def findDecayHeatFlag(self,depletionRoot):
+  def findDecayHeatFlag(self, depletionRoot):
     """
       Parses the xml depletion input, and return the decay heat flag in the input.
       1 (default) no decay heat printed, 2 means decay heat in KW, 3 means decay heat in MeV/s
@@ -365,9 +402,10 @@ class Phisics(CodeInterfaceBase):
       if child.text == '2':
         echoFlag = True
     if not blengenFlag or not echoFlag:
-      raise ValueError ("\n Flag error in " + self.phisicsInp + ". The flag blengen has to be True, and the flag echo has to be set to 2.")
+      raise ValueError("\n Flag error in " + self.phisicsInp +
+                       ". The flag blengen has to be True, and the flag echo has to be set to 2.")
 
-  def createNewInput(self,currentInputFiles,oriInputFiles,samplerType,**Kwargs):
+  def createNewInput(self, currentInputFiles, oriInputFiles, samplerType, **Kwargs):
     """
       This generate a new input file depending on which sampler is chosen.
       @ In, currentInputFiles, list,  list of current input files (input files from last this method call)
@@ -385,14 +423,22 @@ class Phisics(CodeInterfaceBase):
     import XSCreator
     self.typeDict = {}
     self.typeDict = self.mapInputFileType(currentInputFiles)
+    if 'depletion_input' not in self.typeDict:
+      raise IOError("Depletion Input has not been provided")
+    if 'path' not in self.typeDict:
+      raise IOError("Path input file specified in depletion input in node <input_files> not provided!")
     self.distributedPerturbedVars = self.distributeVariablesToParsers(Kwargs['SampledVars'])
-    self.parseControlOptions(currentInputFiles[self.typeDict['depletion_input']].getAbsFile(), currentInputFiles[self.typeDict['path']].getAbsFile())
-    self.syncLibPathFileWithRavenInp(currentInputFiles[self.typeDict['path']].getAbsFile(),currentInputFiles,self.typeDict)
+    self.parseControlOptions(currentInputFiles[self.typeDict['depletion_input']].getAbsFile(),
+                             currentInputFiles[self.typeDict['path']].getAbsFile())
+    self.syncLibPathFileWithRavenInp(currentInputFiles[self.typeDict['path']].getAbsFile(),
+                                     currentInputFiles, self.typeDict)
     self.outputFileNames(currentInputFiles[self.typeDict['path']].getAbsFile())
-    self.instantOutput = self.jobTitle+'.o'
-    self.depInp = currentInputFiles[self.typeDict['depletion_input']].getAbsFile() # for PHISICS/RELAP interface
-    self.phisicsInp = currentInputFiles[self.typeDict['inp']].getAbsFile() # for PHISICS/RELAP interface
-    booleanTabMap,tabMapFileName = self.isThereTabMappinp(currentInputFiles)
+    self.instantOutput = self.jobTitle + '.o'
+    self.depInp = currentInputFiles[self.typeDict[
+        'depletion_input']].getAbsFile()  # for PHISICS/RELAP interface
+    self.phisicsInp = currentInputFiles[self.typeDict[
+        'inp']].getAbsFile()  # for PHISICS/RELAP interface
+    booleanTabMap, tabMapFileName = self.isThereTabMappinp(currentInputFiles)
     self.verifyPhiFlags()
     if Kwargs['precommand'] == '':
       self.numberOfMPI = 1
@@ -400,25 +446,48 @@ class Phisics(CodeInterfaceBase):
       self.numberOfMPI = self.getNumberOfMpi(Kwargs['precommand'])
     for perturbedParam in self.distributedPerturbedVars.iterkeys():
       if perturbedParam == 'DECAY':
-        DecayParser.DecayParser(currentInputFiles[self.typeDict['decay']].getAbsFile(),currentInputFiles[self.typeDict['decay']].getPath(),**self.distributedPerturbedVars[perturbedParam])
+        DecayParser.DecayParser(currentInputFiles[self.typeDict['decay']].getAbsFile(),
+                                currentInputFiles[self.typeDict['decay']].getPath(),
+                                **self.distributedPerturbedVars[perturbedParam])
       if perturbedParam == 'DENSITY':
-        MaterialParser.MaterialParser(currentInputFiles[self.typeDict['material']].getAbsFile(),currentInputFiles[self.typeDict['material']].getPath(),**self.distributedPerturbedVars[perturbedParam])
+        MaterialParser.MaterialParser(currentInputFiles[self.typeDict['material']].getAbsFile(),
+                                      currentInputFiles[self.typeDict['material']].getPath(),
+                                      **self.distributedPerturbedVars[perturbedParam])
       if perturbedParam == 'FY':
-        FissionYieldParser.FissionYieldParser(currentInputFiles[self.typeDict['fissionyield']].getAbsFile(),currentInputFiles[self.typeDict['fissionyield']].getPath(),**self.distributedPerturbedVars[perturbedParam])
+        FissionYieldParser.FissionYieldParser(
+            currentInputFiles[self.typeDict['fissionyield']].getAbsFile(),
+            currentInputFiles[self.typeDict['fissionyield']].getPath(),
+            **self.distributedPerturbedVars[perturbedParam])
       if perturbedParam == 'QVALUES':
-        QValuesParser.QValuesParser(currentInputFiles[self.typeDict['fissqvalue']].getAbsFile(),currentInputFiles[self.typeDict['fissqvalue']].getPath(),**self.distributedPerturbedVars[perturbedParam])
+        QValuesParser.QValuesParser(currentInputFiles[self.typeDict['fissqvalue']].getAbsFile(),
+                                    currentInputFiles[self.typeDict['fissqvalue']].getPath(),
+                                    **self.distributedPerturbedVars[perturbedParam])
       if perturbedParam == 'ALPHADECAY':
-        PathParser.PathParser(currentInputFiles[self.typeDict['alphadecay']].getAbsFile(),currentInputFiles[self.typeDict['alphadecay']].getPath(),**self.distributedPerturbedVars[perturbedParam])
+        PathParser.PathParser(currentInputFiles[self.typeDict['alphadecay']].getAbsFile(),
+                              currentInputFiles[self.typeDict['alphadecay']].getPath(),
+                              **self.distributedPerturbedVars[perturbedParam])
       if perturbedParam == 'BETA+DECAY':
-        PathParser.PathParser(currentInputFiles[self.typeDict['beta+decay']].getAbsFile(),currentInputFiles[self.typeDict['beta+decay']].getPath(),**self.distributedPerturbedVars[perturbedParam])
+        PathParser.PathParser(currentInputFiles[self.typeDict['beta+decay']].getAbsFile(),
+                              currentInputFiles[self.typeDict['beta+decay']].getPath(),
+                              **self.distributedPerturbedVars[perturbedParam])
       if perturbedParam == 'BETA+XDECAY':
-        PathParser.PathParser(currentInputFiles[self.typeDict['beta+xdecay']].getAbsFile(),currentInputFiles[self.typeDict['beta+xdecay']].getPath(),**self.distributedPerturbedVars[perturbedParam])
+        PathParser.PathParser(currentInputFiles[self.typeDict['beta+xdecay']].getAbsFile(),
+                              currentInputFiles[self.typeDict['beta+xdecay']].getPath(),
+                              **self.distributedPerturbedVars[perturbedParam])
       if perturbedParam == 'BETADECAY':
-        PathParser.PathParser(currentInputFiles[self.typeDict['betadecay']].getAbsFile(),currentInputFiles[self.typeDict['betadecay']].getPath(),**self.distributedPerturbedVars[perturbedParam])
+        PathParser.PathParser(currentInputFiles[self.typeDict['betadecay']].getAbsFile(),
+                              currentInputFiles[self.typeDict['betadecay']].getPath(),
+                              **self.distributedPerturbedVars[perturbedParam])
       if perturbedParam == 'BETAXDECAY':
-        PathParser.PathParser(currentInputFiles[self.typeDict['betaxdecay']].getAbsFile(),currentInputFiles[self.typeDict['betaxdecay']].getPath(),**self.distributedPerturbedVars[perturbedParam])
+        PathParser.PathParser(currentInputFiles[self.typeDict['betaxdecay']].getAbsFile(),
+                              currentInputFiles[self.typeDict['betaxdecay']].getPath(),
+                              **self.distributedPerturbedVars[perturbedParam])
       if perturbedParam == 'INTTRADECAY':
-        PathParser.PathParser(currentInputFiles[self.typeDict['inttradecay']].getAbsFile(),currentInputFiles[self.typeDict['inttradecay']].getPath(),**self.distributedPerturbedVars[perturbedParam])
+        PathParser.PathParser(currentInputFiles[self.typeDict['inttradecay']].getAbsFile(),
+                              currentInputFiles[self.typeDict['inttradecay']].getPath(),
+                              **self.distributedPerturbedVars[perturbedParam])
       if perturbedParam == 'XS':
-        XSCreator.XSCreator(currentInputFiles[self.typeDict['xs']].getAbsFile(),booleanTabMap,currentInputFiles[self.typeDict['xs']].getPath(),tabMapFileName,**self.distributedPerturbedVars[perturbedParam])
+        XSCreator.XSCreator(currentInputFiles[self.typeDict['xs']].getAbsFile(), booleanTabMap,
+                            currentInputFiles[self.typeDict['xs']].getPath(), tabMapFileName,
+                            **self.distributedPerturbedVars[perturbedParam])
     return currentInputFiles
