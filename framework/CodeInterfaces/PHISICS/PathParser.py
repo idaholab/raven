@@ -28,10 +28,12 @@ class PathParser():
     self.harcodingSection = 0  # 0 if portions of files that will not be perturbed, one if variables can be perturbed
     self.listedQValuesDict = {}
     self.inputFiles = inputFiles
-    self.pertQValuesDict = self.scientificNotation(pertDict)  # Perturbed variables
+    self.pertQValuesDict = self.scientificNotation(
+        pertDict)  # Perturbed variables
     self.fileReconstruction()  # Puts the perturbed variables in a dictionary
     self.printInput(
-        workingDir)  # Replaces the the nominal values by the perturbed one and print in a file
+        workingDir
+    )  # Replaces the the nominal values by the perturbed one and print in a file
 
   def scientificNotation(self, pertDict):
     """
@@ -80,7 +82,8 @@ class PathParser():
     for key in self.pertQValuesDict.iterkeys():
       perturbedIsotopes.append(key.split('|')[1])
     for perturbedIsotope in perturbedIsotopes:
-      self.listedQValuesDict[perturbedIsotope] = {}  # declare all the dictionaries
+      self.listedQValuesDict[perturbedIsotope] = {
+      }  # declare all the dictionaries
     for isotopeKeyName, QValue in self.pertQValuesDict.iteritems():
       isotopeName = isotopeKeyName.split('|')
       self.listedQValuesDict[isotopeName[1]] = QValue

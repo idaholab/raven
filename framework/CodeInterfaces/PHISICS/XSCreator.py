@@ -17,7 +17,8 @@ class XSCreator():
     Creates a perturbed cross section xml file based.
   """
 
-  def __init__(self, inputFiles, booleanTab, workingDir, tabMapFileName, **pertDict):
+  def __init__(self, inputFiles, booleanTab, workingDir, tabMapFileName,
+               **pertDict):
     """
       Parses the PHISICS scaled_xs data file.
       @ In, inputFiles, string, file name the perturbed cross sections are printed into
@@ -91,30 +92,33 @@ class XSCreator():
             tabChild = SubElement(topChild, 'tab', {'name': tab})
             tabChild.text = value
         for material in self.listedDict.get('XS').get(tabulation).iterkeys():
-          tabulationChild = SubElement(topChild, 'library', {'lib_name': material.lower()})
-          for isotope in self.listedDict.get('XS').get(tabulation).get(material).iterkeys():
-            for typeOfXs in self.listedDict.get('XS').get(tabulation).get(material).get(
-                isotope).iterkeys():
+          tabulationChild = SubElement(topChild, 'library',
+                                       {'lib_name': material.lower()})
+          for isotope in self.listedDict.get('XS').get(tabulation).get(
+              material).iterkeys():
+            for typeOfXs in self.listedDict.get('XS').get(tabulation).get(
+                material).get(isotope).iterkeys():
               libraryChild = SubElement(tabulationChild, 'isotope', {
                   'id': isotope.lower(),
                   'type': typeOfXs.lower()
               })
-              for reaction in self.listedDict.get('XS').get(tabulation).get(material).get(
-                  isotope).get(typeOfXs).iterkeys():
+              for reaction in self.listedDict.get('XS').get(tabulation).get(
+                  material).get(isotope).get(typeOfXs).iterkeys():
                 groupList = []
                 valueList = []
                 for count, (group, value) in enumerate(
-                    self.listedDict.get('XS').get(tabulation).get(material).get(isotope).get(
-                        typeOfXs).get(reaction).iteritems()):
+                    self.listedDict.get('XS').get(tabulation).get(material)
+                    .get(isotope).get(typeOfXs).get(reaction).iteritems()):
                   numberOfGroupsPerturbed = len(
-                      self.listedDict.get('XS').get(tabulation).get(material).get(isotope).get(
-                          typeOfXs).get(reaction).keys()) - 1
+                      self.listedDict.get('XS').get(tabulation).get(material)
+                      .get(isotope).get(typeOfXs).get(reaction).keys()) - 1
                   groupList.append(group)
                   valueList.append(value)
                   if count == numberOfGroupsPerturbed:
                     groups = ','.join(str(e) for e in groupList)
                     values = ','.join(str(f) for f in valueList)
-                    reactionChild = SubElement(libraryChild, reaction.lower(), {'g': groups})
+                    reactionChild = SubElement(libraryChild, reaction.lower(),
+                                               {'g': groups})
                     reactionChild.text = values
     fileObj = open(inputFiles, 'w')
     fileObj.write(self.prettify(top))
@@ -130,7 +134,11 @@ class XSCreator():
       return reconstructedDict
     if isinstance(reconstructedDict, list):
       return [v for v in (self.cleanEmpty(v) for v in reconstructedDict) if v]
-    return {k: v for k, v in ((k, self.cleanEmpty(v)) for k, v in reconstructedDict.items()) if v}
+    return {
+        k: v
+        for k, v in ((k, self.cleanEmpty(v))
+                     for k, v in reconstructedDict.items()) if v
+    }
 
   def fileReconstruction(self, deconstructedDict):
     """
@@ -152,7 +160,8 @@ class XSCreator():
     deconstructedDictSet = set(deconstructedDict)
     for key in pertDictSet.intersection(deconstructedDictSet):
       if len(key.split('|')) != 7:
-        raise IOError("The cross section variable " + key + " is not properly formatted")
+        raise IOError(
+            "The cross section variable " + key + " is not properly formatted")
       perturbedPhysicalParameters.append(key.split('|')[0])
       perturbedTabulationPoint.append(key.split('|')[1])
       perturbedMaterials.append(key.split('|')[2])
@@ -168,20 +177,21 @@ class XSCreator():
         for mat in perturbedMaterials:
           reconstructedDict[pertPhysicalParam][pertTabulationPoint][mat] = {}
           for isotope in perturbedIsotopes:
-            reconstructedDict[pertPhysicalParam][pertTabulationPoint][mat][isotope] = {}
+            reconstructedDict[pertPhysicalParam][pertTabulationPoint][mat][
+                isotope] = {}
             for reactType in perturbedTypes:
-              reconstructedDict[pertPhysicalParam][pertTabulationPoint][mat][isotope][
-                  reactType] = {}
+              reconstructedDict[pertPhysicalParam][pertTabulationPoint][mat][
+                  isotope][reactType] = {}
               for react in perturbedReactions:
-                reconstructedDict[pertPhysicalParam][pertTabulationPoint][mat][isotope][reactType][
-                    react] = {}
+                reconstructedDict[pertPhysicalParam][pertTabulationPoint][mat][
+                    isotope][reactType][react] = {}
                 for group in perturbedGroups:
-                  reconstructedDict[pertPhysicalParam][pertTabulationPoint][mat][isotope][
-                      reactType][react][group] = {}
+                  reconstructedDict[pertPhysicalParam][pertTabulationPoint][
+                      mat][isotope][reactType][react][group] = {}
     for typeKey, value in deconstructedDict.iteritems():
       if typeKey in pertDictSet:
         keyWords = typeKey.split('|')
-        reconstructedDict[keyWords[0]][keyWords[1]][keyWords[2]][keyWords[3]][keyWords[4]][
-            keyWords[5]][keyWords[6]] = value
+        reconstructedDict[keyWords[0]][keyWords[1]][keyWords[2]][keyWords[3]][
+            keyWords[4]][keyWords[5]][keyWords[6]] = value
     leanReconstructedDict = self.cleanEmpty(reconstructedDict)
     return leanReconstructedDict

@@ -62,7 +62,8 @@ class MaterialParser():
     genericXMLdict = {}
     for paramXML in XMLdict.iterkeys():
       for matXML in XMLdict.get(paramXML).iterkeys():
-        for isotopeXML, densityValue in XMLdict.get(paramXML).get(matXML).iteritems():
+        for isotopeXML, densityValue in XMLdict.get(paramXML).get(
+            matXML).iteritems():
           genericXMLdict[paramXML.upper() + '|' + matXML.upper() + '|' +
                          isotopeXML.upper()] = densityValue
     return genericXMLdict
@@ -101,7 +102,8 @@ class MaterialParser():
     """
     valueSeen = set()
     listWithUniqueElements = [
-        x for x in listWithRepetitions if x not in valueSeen and not valueSeen.add(x)
+        x for x in listWithRepetitions
+        if x not in valueSeen and not valueSeen.add(x)
     ]
     return listWithUniqueElements
 
@@ -123,10 +125,11 @@ class MaterialParser():
     for i in range(len(perturbedPhysicalParameters)):
       reconstructedDict[perturbedPhysicalParameters[i]] = {}
       for j in range(len(perturbedMaterials)):
-        reconstructedDict[perturbedPhysicalParameters[i]][perturbedMaterials[j]] = {}
+        reconstructedDict[perturbedPhysicalParameters[i]][perturbedMaterials[
+            j]] = {}
         for k in range(len(perturbedIsotopes)):
-          reconstructedDict[perturbedPhysicalParameters[i]][perturbedMaterials[j]][
-              perturbedIsotopes[k]] = {}
+          reconstructedDict[perturbedPhysicalParameters[i]][perturbedMaterials[
+              j]][perturbedIsotopes[k]] = {}
     for typeKey, value in deconstructedDict.iteritems():
       keyWords = typeKey.split('|')
       reconstructedDict[keyWords[0]][keyWords[1]][keyWords[2]] = value
@@ -150,7 +153,8 @@ class MaterialParser():
     for matXML in self.root.getiterator('mat'):
       for isotopeXML in matXML.findall('isotope'):
         isotopeXML.attrib['density'] = templatedNewXMLdict.get(
-            isotopeXML.attrib.keys()[1].upper()).get(matXML.attrib.get('id').upper()).get(
-                isotopeXML.attrib.get('id').upper())
+            isotopeXML.attrib.keys()[1].upper()).get(
+                matXML.attrib.get('id').upper()).get(
+                    isotopeXML.attrib.get('id').upper())
         self.tree.write(modifiedFile)
     os.rename(modifiedFile, self.inputFiles)

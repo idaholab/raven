@@ -54,8 +54,8 @@ class PhisicsRelap5(CodeInterfaceBase):
       @ Out, phisicsVariables, list
     """
     self.phisicsVariables = [
-        'DENSITY', 'XS', 'DECAY', 'FY', 'QVALUES', 'ALPHADECAY', 'BETA+DECAY', 'BETA+XDECAY',
-        'BETADECAY', 'BETAXDECAY', 'INTTRADECAY'
+        'DENSITY', 'XS', 'DECAY', 'FY', 'QVALUES', 'ALPHADECAY', 'BETA+DECAY',
+        'BETA+XDECAY', 'BETADECAY', 'BETAXDECAY', 'INTTRADECAY'
     ]
 
   def defineRelapInput(self, currentInputFiles):
@@ -77,7 +77,8 @@ class PhisicsRelap5(CodeInterfaceBase):
       @ In, None
       @ Out, None
     """
-    self.addInputExtension(['xml', 'dat', 'path', 'bin', 'i', 'inp', 'x', 'in'])
+    self.addInputExtension(
+        ['xml', 'dat', 'path', 'bin', 'i', 'inp', 'x', 'in'])
 
   def depTime(self, inputXML, searchDict, dictKeys):
     """
@@ -125,8 +126,8 @@ class PhisicsRelap5(CodeInterfaceBase):
     outputfile = 'out~' + inputFiles[mapDict['relapInp'.lower()]].getBase()
     self.outFileName = inputFiles[mapDict[
         'relapInp'.lower()]].getBase()  # used in finalizeCodeOutput
-    commandToRun = executable + ' -i ' + inputFiles[mapDict['relapInp'.lower()]].getFilename(
-    ) + ' -o  ' + self.outFileName + '.o'
+    commandToRun = executable + ' -i ' + inputFiles[mapDict['relapInp'.lower(
+    )]].getFilename() + ' -o  ' + self.outFileName + '.o'
     commandToRun = commandToRun.replace("\n", " ")
     commandToRun = re.sub("\s\s+", " ", commandToRun)
     returnCommand = [('parallel', commandToRun)], outputfile
@@ -157,14 +158,17 @@ class PhisicsRelap5(CodeInterfaceBase):
     """
     relapPhisicsCsv = 'relapPhisics'
     # RELAP
-    self.Relap5Interface.finalizeCodeOutput(command, self.outFileName, workingDir)
+    self.Relap5Interface.finalizeCodeOutput(command, self.outFileName,
+                                            workingDir)
     # PHISICS
     self.PhisicsInterface.finalizeCodeOutput(
         command, output, workingDir, phiRel=True, relapOut=self.outFileName)
     import combine
     jobTitle = self.PhisicsInterface.jobTitle
-    combine.combine(workingDir, os.path.join(workingDir, self.outFileName + '.csv'),
-                    os.path.join(workingDir, jobTitle + '.csv'), self.depTimeDict,
+    combine.combine(workingDir,
+                    os.path.join(workingDir, self.outFileName + '.csv'),
+                    os.path.join(workingDir,
+                                 jobTitle + '.csv'), self.depTimeDict,
                     self.inpTimeDict, relapPhisicsCsv + '.csv')
     return relapPhisicsCsv
 
@@ -179,7 +183,8 @@ class PhisicsRelap5(CodeInterfaceBase):
       @ In, workingDir, string, current working dir
       @ Out, None
     """
-    return self.Relap5Interface.checkForOutputFailure(self.outFileName, workingDir)
+    return self.Relap5Interface.checkForOutputFailure(self.outFileName,
+                                                      workingDir)
 
   def tailorRelap5InputFiles(self, currentInputFiles):
     """
@@ -217,7 +222,8 @@ class PhisicsRelap5(CodeInterfaceBase):
         passToDesignatedCode['relap5']['SampledVars'][var] = value
     return passToDesignatedCode
 
-  def createNewInput(self, currentInputFiles, oriInputFiles, samplerType, **Kwargs):
+  def createNewInput(self, currentInputFiles, oriInputFiles, samplerType,
+                     **Kwargs):
     """
       Generates a new input file depending on which sampler is chosen.
       @ In, currentInputFiles, list,  list of current input files (input files from last this method call)
@@ -228,7 +234,9 @@ class PhisicsRelap5(CodeInterfaceBase):
       @ Out, currentInputFiles, list, list of newer input files, list of the new input files (modified and not)
     """
     if self.PhisicsInterface.mrtauStandAlone:  # errors out if MRTAU standalone and PHISICS/RELAP5 are activated simultanously
-      raise ValueError('MRTAU cannot be used in standalone mode in PHISICS/RELAP5 calculations.')
+      raise ValueError(
+          'MRTAU cannot be used in standalone mode in PHISICS/RELAP5 calculations.'
+      )
     self.definePhisicsVariables()
     self.outputDeck = self.Relap5Interface.outputDeck
     perturbedVars = Kwargs['SampledVars']
@@ -240,10 +248,12 @@ class PhisicsRelap5(CodeInterfaceBase):
     relap5CurrentInputFiles, phisicsCurrentInputFiles = self.tailorRelap5InputFiles(
         currentInputFiles)
     # PHISICS
-    self.PhisicsInterface.createNewInput(phisicsCurrentInputFiles, oriInputFiles, samplerType,
+    self.PhisicsInterface.createNewInput(phisicsCurrentInputFiles,
+                                         oriInputFiles, samplerType,
                                          **passToDesignatedCode['phisics'])
     # RELAP
-    self.Relap5Interface.createNewInput(relap5CurrentInputFiles, oriInputFiles, samplerType,
+    self.Relap5Interface.createNewInput(relap5CurrentInputFiles, oriInputFiles,
+                                        samplerType,
                                         **passToDesignatedCode['relap5'])
     self.depTimeDict = self.depTime(self.PhisicsInterface.depInp, {
         'search1': 'n_tab_interval',
@@ -253,5 +263,6 @@ class PhisicsRelap5(CodeInterfaceBase):
         'search2': 'timeSteps'
     })
     self.inpTimeDict = self.depTime(self.PhisicsInterface.phisicsInp,
-                                    {'search1': 'TH_between_BURN'}, {'search1': 'TH_between_BURN'})
+                                    {'search1': 'TH_between_BURN'},
+                                    {'search1': 'TH_between_BURN'})
     return currentInputFiles

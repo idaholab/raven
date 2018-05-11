@@ -58,7 +58,8 @@ class QValuesParser():
                 'Error. Check if the unperturbed library has defined values relative to the requested perturbed isotopes'
             )
       if len(line) > 1:
-        outfile.writelines(' ' + "{0:<7s}".format(line[0]) + "{0:<7s}".format(line[1] + "\n"))
+        outfile.writelines(
+            ' ' + "{0:<7s}".format(line[0]) + "{0:<7s}".format(line[1] + "\n"))
 
   def hardcopyPrinter(self, modifiedFile):
     """
@@ -72,9 +73,10 @@ class QValuesParser():
           if not line.split():
             continue  # if the line is blank, ignore it
           if re.match(r'(.*?)\s+\w+(-?)\d+\s+\d+.\d+', line):
-            outfile.writelines(' ' + "{0:<7s}".format(line.upper().split()[0]) +
-                               "{0:<7s}".format(line.upper().split()[1]) +
-                               "\n")  # print the first fission qvalue line of the matrix
+            outfile.writelines(
+                ' ' + "{0:<7s}".format(line.upper().split()[0]) +
+                "{0:<7s}".format(line.upper().split()[1]) +
+                "\n")  # print the first fission qvalue line of the matrix
             break
           outfile.writelines(line)
         self.matrixPrinter(infile, outfile)
@@ -91,7 +93,8 @@ class QValuesParser():
     for key in self.pertQValuesDict.iterkeys():
       perturbedIsotopes.append(key.split('|')[1])
     for perturbedIsotope in perturbedIsotopes:
-      self.listedQValuesDict[perturbedIsotope] = {}  # declare all the dictionaries
+      self.listedQValuesDict[perturbedIsotope] = {
+      }  # declare all the dictionaries
     for isotopeKeyName, QValue in self.pertQValuesDict.iteritems():
       isotopeName = isotopeKeyName.split('|')
       self.listedQValuesDict[isotopeName[1]] = QValue

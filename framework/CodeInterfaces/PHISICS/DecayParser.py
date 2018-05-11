@@ -47,7 +47,8 @@ class DecayParser():
     """
     for line in infile:
       line = line.upper().split()
-      line[0] = re.sub(r'(.*?)(\w+)(-)(\d+M?)', r'\1\2\4', line[0])  # remove isotope dashes
+      line[0] = re.sub(r'(.*?)(\w+)(-)(\d+M?)', r'\1\2\4',
+                       line[0])  # remove isotope dashes
       for isotopeID in self.listedDict.iterkeys():
         if line[0] == isotopeID:
           typeOfDecayPerturbed = []
@@ -56,12 +57,16 @@ class DecayParser():
             try:
               if self.isotopeClassifier.get(isotopeID) == self.isotopeParsed[
                   0]:  # it means the isotope is an actinide
-                line[self.decayModeNumbering.get(atomicNumber).get(typeOfDecayPerturbed[i])] = str(
-                    self.listedDict.get(isotopeID).get(typeOfDecayPerturbed[i]))
+                line[self.decayModeNumbering.get(atomicNumber).get(
+                    typeOfDecayPerturbed[i])] = str(
+                        self.listedDict.get(isotopeID).get(
+                            typeOfDecayPerturbed[i]))
               elif self.isotopeClassifier.get(isotopeID) == self.isotopeParsed[
                   1]:  # it means the isotope is a FP
-                line[self.decayModeNumbering.get(atomicNumber).get(typeOfDecayPerturbed[i])] = str(
-                    self.listedDict.get(isotopeID).get(typeOfDecayPerturbed[i]))
+                line[self.decayModeNumbering.get(atomicNumber).get(
+                    typeOfDecayPerturbed[i])] = str(
+                        self.listedDict.get(isotopeID).get(
+                            typeOfDecayPerturbed[i]))
             except KeyError:
               raise KeyError(
                   'you used the decay mode' + str(typeOfDecayPerturbed) +
@@ -79,8 +84,8 @@ class DecayParser():
           while i <= len(self.decayModeNumbering[atomicNumber]):
             line[i] = "{0:<11s}".format(line[i])
             i = i + 1
-          outfile.writelines(
-              ' ' + ''.join(line[0:len(self.decayModeNumbering[atomicNumber]) + 1]) + "\n")
+          outfile.writelines(' ' + ''.join(
+              line[0:len(self.decayModeNumbering[atomicNumber]) + 1]) + "\n")
       except KeyError:  # happens for all the unperturbed isotopes
         pass
 
@@ -105,7 +110,8 @@ class DecayParser():
           if flag == 2:
             # three conditions: 1- match a serie of space+alphanumeric+space+alphanumeric 2- the line has the word BETA 3 - the flag 'actinide' is on
             if re.match(r'(.*?)\s+\w+(\W)\s+\w+(\W)', line) and any(
-                s in 'BETA' for s in line.split()) and atomicNumber == self.isotopeParsed[0]:
+                s in 'BETA' for s in
+                line.split()) and atomicNumber == self.isotopeParsed[0]:
               outfile.writelines(line)
               break
             outfile.writelines(line)
@@ -113,7 +119,8 @@ class DecayParser():
             flag = 1
           if flag == 1:
             if re.match(r'(.*?)\s+\w+(\W)\s+\w+(\W)', line) and any(
-                s in 'BETA' for s in line.split()) and atomicNumber == self.isotopeParsed[1]:
+                s in 'BETA' for s in
+                line.split()) and atomicNumber == self.isotopeParsed[1]:
               outfile.writelines(line)
               break
             outfile.writelines(line)
@@ -136,20 +143,26 @@ class DecayParser():
       elif re.match(r'(.*?)FProducts', line):
         typeOfIsotopeParsed = self.isotopeParsed[1]
       if (
-          re.match(r'(.*?)\w+(\W?)\s+\w+(\W?)\s+\w', line) and any(s in "BETA" for s in line)
+          re.match(r'(.*?)\w+(\W?)\s+\w+(\W?)\s+\w', line)
+          and any(s in "BETA" for s in line)
       ):  # create dynamic column detector, the search for 'BETA' ensures this is the label line.
         count = 0  # reset the counter and the dictionary numbering if new colum sequence is detected
         numbering = {}
         decayList = []
-        line = re.sub(r'(Yy?)ield', r'', line)  # Remove the word 'yield' in the decay type lines
-        splitStringDecayType = line.upper().split()  # Split the words into individual strings
+        line = re.sub(r'(Yy?)ield', r'',
+                      line)  # Remove the word 'yield' in the decay type lines
+        splitStringDecayType = line.upper().split(
+        )  # Split the words into individual strings
         for decayType in splitStringDecayType:  # replace + and * by strings
-          decayList.append(decayType.replace('*', 'S').replace('+', 'PLUS').replace('_', ''))
+          decayList.append(
+              decayType.replace('*', 'S').replace('+', 'PLUS').replace(
+                  '_', ''))
         concatenateDecayList = concatenateDecayList + decayList  # concatenate all the possible decay type (including repetition among actinides and FP)
         self.allDecayList = list(set(concatenateDecayList))
         for i in range(len(decayList)):
           count = count + 1
-          numbering[decayList[i]] = count  # assign the column position of the given decay types
+          numbering[decayList[
+              i]] = count  # assign the column position of the given decay types
         if typeOfIsotopeParsed == self.isotopeParsed[0]:
           self.decayModeNumbering[self.isotopeParsed[0]] = numbering
         if typeOfIsotopeParsed == self.isotopeParsed[1]:
@@ -162,8 +175,8 @@ class DecayParser():
           except ValueError:
             pass  # the element is a string (isotope tag). It can be ignored
         splitString[0] = re.sub(
-            r'(.*?)(\w+)(-)(\d+M?)', r'\1\2\4',
-            splitString[0])  # remove the dash if it the key (isotope ID) contains it
+            r'(.*?)(\w+)(-)(\d+M?)', r'\1\2\4', splitString[
+                0])  # remove the dash if it the key (isotope ID) contains it
         if typeOfIsotopeParsed == self.isotopeParsed[0]:
           self.isotopeClassifier[splitString[0]] = self.isotopeParsed[0]
         elif typeOfIsotopeParsed == self.isotopeParsed[1]:

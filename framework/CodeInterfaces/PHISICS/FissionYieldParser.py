@@ -23,7 +23,8 @@ class FissionYieldParser():
       @ In, pertDict, dictionary, dictionary of perturbed variables
       @ Out, None
     """
-    self.allYieldList = []  # Contains all the fission yield families in fast and thermal spectrum
+    self.allYieldList = [
+    ]  # Contains all the fission yield families in fast and thermal spectrum
     self.inputFiles = inputFiles
     self.spectrum = [
         'Thermal', 'Fast'
@@ -34,13 +35,16 @@ class FissionYieldParser():
     }  # Keys: type of spectrum (fast or theraml), values: numbering dictionary
     self.listedYieldDict = {}  # Nested dictionary of perturbed variables
 
-    self.pertYieldDict = self.scientificNotation(pertDict)  # Perturbed variables
+    self.pertYieldDict = self.scientificNotation(
+        pertDict)  # Perturbed variables
     self.characterizeLibrary()
-    self.isotopeList = list(set(self.isotopeList))  # Removes all the repetion in the isotope list
+    self.isotopeList = list(set(
+        self.isotopeList))  # Removes all the repetion in the isotope list
     self.numberOfIsotopes = len(self.isotopeList)
     self.fileReconstruction()  # Puts the perturbed variables in a dictionary
     self.printInput(
-        workingDir)  # Replaces the the nominal values by the perturbed one and print in a file
+        workingDir
+    )  # Replaces the the nominal values by the perturbed one and print in a file
 
   def scientificNotation(self, pertDict):
     """
@@ -83,9 +87,11 @@ class FissionYieldParser():
         self.allYieldList = list(set(concatenateYieldList))
 
         for i in range(
-            len(splitStringYieldType)):  # assign the column position of the given yield types
+            len(splitStringYieldType
+                )):  # assign the column position of the given yield types
           count = count + 1
-          numbering[FYgroup[i]] = count  # assign the column position of the given Yield types
+          numbering[FYgroup[
+              i]] = count  # assign the column position of the given Yield types
           splitStringYieldType[i] = re.sub(r'(.*?)(\w+)(-)(\d+M?)', r'\1\2\4',
                                            splitStringYieldType[i])
           if self.typeOfSpectrum == self.spectrum[0]:
@@ -119,19 +125,21 @@ class FissionYieldParser():
       spectraUpper = spectra.upper()
       try:
         for fissionProductID in self.listedYieldDict[spectraUpper].iterkeys():
-          for actinideID in self.listedYieldDict[spectraUpper][fissionProductID].iterkeys():
+          for actinideID in self.listedYieldDict[spectraUpper][
+              fissionProductID].iterkeys():
             if line[0] == fissionProductID:
               typeOfYieldPerturbed = []
               self.spectrumUpperCase = [x.upper() for x in self.spectrum]
-              typeOfYieldPerturbed = self.listedYieldDict.get(spectraUpper).get(
-                  fissionProductID).keys()
+              typeOfYieldPerturbed = self.listedYieldDict.get(
+                  spectraUpper).get(fissionProductID).keys()
               for i in range(len(typeOfYieldPerturbed)):
                 try:
-                  if self.listedYieldDict.get(spectraUpper).get(fissionProductID).get(
-                      typeOfYieldPerturbed[i]) != {}:
-                    line[self.spectrumNumbering.get(spectra).get(typeOfYieldPerturbed[i])] = str(
-                        self.listedYieldDict.get(spectraUpper).get(fissionProductID).get(
-                            typeOfYieldPerturbed[i]))
+                  if self.listedYieldDict.get(spectraUpper).get(
+                      fissionProductID).get(typeOfYieldPerturbed[i]) != {}:
+                    line[self.spectrumNumbering.get(spectra).get(
+                        typeOfYieldPerturbed[i])] = str(
+                            self.listedYieldDict.get(spectraUpper).get(
+                                fissionProductID).get(typeOfYieldPerturbed[i]))
                 except TypeError:
                   raise Exception(
                       'Make sure the fission yields you are perturbing have existing values in the unperturbed fission yield library'
@@ -150,8 +158,8 @@ class FissionYieldParser():
             i = i + 1
           except IndexError:
             i = i + 1
-        outfile.writelines(
-            ' ' + ''.join(line[0:len(self.spectrumNumbering.get(spectra)) + 1]) + "\n")
+        outfile.writelines(' ' + ''.join(
+            line[0:len(self.spectrumNumbering.get(spectra)) + 1]) + "\n")
         if isotopeCounter == self.numberOfIsotopes:
           for lineInput in infile:
             lineStripped = lineInput.strip()
@@ -171,8 +179,9 @@ class FissionYieldParser():
     with open(modifiedFile, 'a') as outfile:
       with open(self.inputFiles) as infile:
         for line in infile:
-          if re.match(r'(.*?)END\s+\w+', line.strip(
-          )) and spectra == self.spectrum[1]:  # find the line- END Fast Fission Yield (2)
+          if re.match(
+              r'(.*?)END\s+\w+', line.strip()
+          ) and spectra == self.spectrum[1]:  # find the line- END Fast Fission Yield (2)
             flag = 2
           if flag == 2:
             if re.match(r'(.*?)\w+(-?)\d+\s+\w+\s+\w(-?)\d+\s+\w',
@@ -181,7 +190,8 @@ class FissionYieldParser():
               break
             outfile.writelines(line)
           if (re.match(r'(.*?)' + spectra, line.strip())
-              and spectra == self.spectrum[0]):  # find the line- Thermal Fission Yield (1)
+              and spectra == self.spectrum[0]
+              ):  # find the line- Thermal Fission Yield (1)
             flag = 1
           if flag == 1:
             if re.match(
@@ -212,12 +222,14 @@ class FissionYieldParser():
     for i in range(len(spectrumType)):
       self.listedYieldDict[spectrumType[i]] = {}
       for j in range(len(resultingFP)):
-        self.listedYieldDict[spectrumType[i]][resultingFP[j]] = {}  # declare all the dictionaries
+        self.listedYieldDict[spectrumType[i]][resultingFP[j]] = {
+        }  # declare all the dictionaries
         for k in range(len(fissioningActinide)):
-          self.listedYieldDict[spectrumType[i]][resultingFP[j]][fissioningActinide[k]] = {}
+          self.listedYieldDict[spectrumType[i]][resultingFP[j]][
+              fissioningActinide[k]] = {}
     for yieldTypeKey, yieldValue in self.pertYieldDict.iteritems():
-      self.listedYieldDict[yieldTypeKey.split('|')[1]][yieldTypeKey.split('|')[3]][
-          yieldTypeKey.split('|')[2]] = yieldValue
+      self.listedYieldDict[yieldTypeKey.split('|')[1]][yieldTypeKey.split('|')[
+          3]][yieldTypeKey.split('|')[2]] = yieldValue
 
   def printInput(self, workingDir):
     """
