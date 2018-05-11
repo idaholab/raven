@@ -264,11 +264,11 @@ class Phisics(CodeInterfaceBase):
                                    run the code (string), returnCommand[1] is the name of the output root
     """
     mapDict = self.mapInputFileType(inputFiles)
-    if self.mrtauStandAlone == True:
+    if self.mrtauStandAlone:
       executable = self.mrtauExecutable
       commandToRun = executable
-    outputfile = 'out~' + inputFiles[mapDict['inp'.lower()]].getBase()
-    if self.mrtauStandAlone == False:
+      outputfile = 'out~'
+    else:
       commandToRun = executable + ' ' + inputFiles[mapDict['inp'.lower()]].getFilename(
       ) + ' ' + inputFiles[mapDict['Xs-library'.lower()]].getFilename(
       ) + ' ' + inputFiles[mapDict['Material'.lower()]].getFilename(
@@ -276,6 +276,7 @@ class Phisics(CodeInterfaceBase):
       ) + ' ' + self.instantOutput
       commandToRun = commandToRun.replace("\n", " ")
       commandToRun = re.sub("\s\s+", " ", commandToRun)
+      outputfile = 'out~' + inputFiles[mapDict['inp'.lower()]].getBase()
     returnCommand = [('parallel', commandToRun)], outputfile
     return returnCommand
 
@@ -357,10 +358,25 @@ class Phisics(CodeInterfaceBase):
       keyWordDict[inFile.getType().lower()] = count
       count = count + 1
     return keyWordDict
-
+  
+  def checkInput(self):
+    """
+      Check that the input files required by the interface are given by the user in the Input block.
+      @ In, currentInputFiles, list,  list of current input files (input files from last this method call)
+      @ Out, None
+    """
+    mandatoryType = ["depletion_input","path"]
+    if not self.mrtauStandAlone:
+      mandatoryType.extend("inp","material","xs-library")
+    else:
+      mandatoryType.append("mass")
+    for key in mandatoryType:
+      if key not in self.typeDict.keys():
+        raise IOError("Error in Input block. The input file with the type attribute "+key+" is missing \n")
+     
   def isThereTabMappinp(self, currentInputFiles):
     """
-      If the file with has type attribute 'tabMapping', is tabulation mapping is considered to be True.
+      If an Input file has a type attribute 'tabMapping', tabulation mapping is considered to be True.
       No tabulation mapping otherwise.
       @ In, currentInputFiles, list,  list of current input files (input files from last this method call)
       @ Out, isThereTabMappinp, boolean, True if a tabulation mapping file exist, flase otherwise
@@ -421,12 +437,10 @@ class Phisics(CodeInterfaceBase):
     import MaterialParser
     import PathParser
     import XSCreator
+    import MassParser # for MRTAU standalone 
     self.typeDict = {}
     self.typeDict = self.mapInputFileType(currentInputFiles)
-    if 'depletion_input' not in self.typeDict:
-      raise IOError("Depletion Input has not been provided")
-    if 'path' not in self.typeDict:
-      raise IOError("Path input file specified in depletion input in node <input_files> not provided!")
+    self.checkInput()
     self.distributedPerturbedVars = self.distributeVariablesToParsers(Kwargs['SampledVars'])
     self.parseControlOptions(currentInputFiles[self.typeDict['depletion_input']].getAbsFile(),
                              currentInputFiles[self.typeDict['path']].getAbsFile())
@@ -436,10 +450,11 @@ class Phisics(CodeInterfaceBase):
     self.instantOutput = self.jobTitle + '.o'
     self.depInp = currentInputFiles[self.typeDict[
         'depletion_input']].getAbsFile()  # for PHISICS/RELAP interface
-    self.phisicsInp = currentInputFiles[self.typeDict[
-        'inp']].getAbsFile()  # for PHISICS/RELAP interface
+    if not self.mrtauStandAlone:
+      self.phisicsInp = currentInputFiles[self.typeDict[
+          'inp']].getAbsFile()  # for PHISICS/RELAP interface
+      self.verifyPhiFlags()
     booleanTabMap, tabMapFileName = self.isThereTabMappinp(currentInputFiles)
-    self.verifyPhiFlags()
     if Kwargs['precommand'] == '':
       self.numberOfMPI = 1
     else:
@@ -489,5 +504,9 @@ class Phisics(CodeInterfaceBase):
       if perturbedParam == 'XS':
         XSCreator.XSCreator(currentInputFiles[self.typeDict['xs']].getAbsFile(), booleanTabMap,
                             currentInputFiles[self.typeDict['xs']].getPath(), tabMapFileName,
+                            **self.distributedPerturbedVars[perturbedParam])
+      if perturbedParam == 'MASS':
+        MassParser.MassParser(currentInputFiles[self.typeDict['mass']].getAbsFile(),
+                            currentInputFiles[self.typeDict['mass']].getPath(),
                             **self.distributedPerturbedVars[perturbedParam])
     return currentInputFiles

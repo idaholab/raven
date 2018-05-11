@@ -4,7 +4,7 @@ Created on July 25th, 2017
 """
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
-warnings.simplefilter('default', DeprecationWarning)
+warnings.simplefilter('default',DeprecationWarning)
 import os
 import re
 import csv
@@ -12,88 +12,74 @@ import xml.etree.ElementTree as ET
 from decimal import Decimal
 from collections import defaultdict
 
-
 class phisicsdata():
   """
     This class parses the PHISICS output of interest. The output of interest are printed in the a csv file.
   """
-
   def __init__(self, phisicsDataDict):
     """
       Reads the PHISICS output.
       @ In, phisicsDataDict, dictionary, dictionary of variables passed by the interface
       @ Out, None
     """
-    self.phisicsRelap = phisicsDataDict[
-        'phiRel']  # boolean: True means PHISICS RELAP coupled, False means PHISICS standalone
-    self.printSpatialRR = phisicsDataDict[
-        'printSpatialRR']  # boolean: True means spatial RR are printed, False means spatial RR are not printed
-    self.printSpatialFlux = phisicsDataDict[
-        'printSpatialFlux']  # boolean: True means spatial fluxes are printed, False means spatial fluxes are not printed
-    self.workingDir = phisicsDataDict['workingDir']  # string: working directory
+    self.phisicsRelap = phisicsDataDict['phiRel']               # boolean: True means PHISICS RELAP coupled, False means PHISICS standalone
+    self.printSpatialRR = phisicsDataDict['printSpatialRR']     # boolean: True means spatial RR are printed, False means spatial RR are not printed
+    self.printSpatialFlux = phisicsDataDict['printSpatialFlux'] # boolean: True means spatial fluxes are printed, False means spatial fluxes are not printed
+    self.workingDir = phisicsDataDict['workingDir']             # string: working directory
     self.mrtauOutputFileMPI = []  # string: mrtau output file name appended with the MPI number
-    phisicsDict = {}  # dict: dictionary containing all the variables relative to PHISICS output
-    mrtauDict = {
-    }  # dict: dictionary containing all the variables relative to mrtau output, if MRTAU is ran in standalone mode
-    markerList = ['Fission matrices of', 'Scattering matrices of',
-                  'Multigroup solver ended!']  # list: markers delimiters used for parsing
+    phisicsDict = {}              # dict: dictionary containing all the variables relative to PHISICS output
+    mrtauDict = {}                # dict: dictionary containing all the variables relative to mrtau output, if MRTAU is ran in standalone mode
+    markerList = ['Fission matrices of','Scattering matrices of','Multigroup solver ended!'] # list: markers delimiters used for parsing 
     #self.perturbationNumber = self.workingDir.split(os.path.sep)[-1] # perturbation number under consideration
 
     if not self.phisicsRelap:
-      self.instantOutputFileMPI, self.mrtauOutputFileMPI = self.fileOutName(phisicsDataDict)
+      self.instantOutputFileMPI,self.mrtauOutputFileMPI = self.fileOutName(phisicsDataDict) 
     elif self.phisicsRelap and phisicsDataDict['numberOfMPI'] > 1:
-      self.instantOutputFileMPI, self.mrtauOutputFileMPI = self.fileOutName(phisicsDataDict)
+      self.instantOutputFileMPI,self.mrtauOutputFileMPI = self.fileOutName(phisicsDataDict)
     else:
-      self.instantOutputFileMPI, self.mrtauOutputFileMPI = self.fileOutName(
-          phisicsDataDict)  # instantOutputFile is populated but needs to be renamed
-      self.instantOutputFileMPI = [phisicsDataDict['relapOut'] + '.o']
-
+      self.instantOutputFileMPI,self.mrtauOutputFileMPI = self.fileOutName(phisicsDataDict) # instantOutputFile is populated but needs to be renamed
+      self.instantOutputFileMPI = [phisicsDataDict['relapOut']+'.o']
+    print 
     if not phisicsDataDict['mrtauStandAlone']:
       cpuTime = self.getCPUtime(phisicsDataDict['numberOfMPI'])
-      self.materialsDict = self.locateMaterialInFile(phisicsDataDict['numberOfMPI'])
+      self.materialsDict = self.locateMaterialInFile(phisicsDataDict['numberOfMPI']) 
       self.getNumberOfGroups()
       self.getNumberOfRegions()
     else:
+      
       cpuTime = self.getCPUtimeMrtau(phisicsDataDict['output'])
+      
     if not self.phisicsRelap:
-      instantOutput = [
-          'Dpl_INSTANT_' + phisicsDataDict['jobTitle'] + '_flux_mat.csv', 'scaled_xs.xml'
-      ]
-    else:
-      instantOutput = [
-          'PHISICS_RELAP5_' + phisicsDataDict['jobTitle'] + '_flux_sub.csv',
-          'PHISICS_RELAP5_' + phisicsDataDict['jobTitle'] + '_power_dens_sub.csv', 'scaled_xs.xml'
-      ]
-
-    self.cleanUp(phisicsDataDict['jobTitle'], phisicsDataDict['mrtauStandAlone'])
-    if not phisicsDataDict['mrtauStandAlone']:  # MRTAU/INSTANT are coupled
+      instantOutput = ['Dpl_INSTANT_'+phisicsDataDict['jobTitle']+'_flux_mat.csv', 'scaled_xs.xml']
+    else: 
+      instantOutput = ['PHISICS_RELAP5_'+phisicsDataDict['jobTitle']+'_flux_sub.csv','PHISICS_RELAP5_'+phisicsDataDict['jobTitle']+'_power_dens_sub.csv','scaled_xs.xml']
+    
+    self.cleanUp(phisicsDataDict['jobTitle'],phisicsDataDict['mrtauStandAlone'])
+    if not phisicsDataDict['mrtauStandAlone']:   # MRTAU/INSTANT are coupled
       mrtauTimeSteps = self.getMrtauInstantTimeSteps()
       instantTimeSteps = self.getInstantTimeSteps(instantOutput[0])
-      if 'XS' in phisicsDataDict[
-          'pertVariablesDict']:  # only run the following method if XS are perturbed
+      if 'XS' in phisicsDataDict['pertVariablesDict']: # only run the following method if XS are perturbed
         xsLabelList, xsList = self.getAbsoluteXS(instantOutput[1])
-      else:
+      else: 
         xsLabelList = ['NoXS']
         xsList = [0.0000]
-    else:  # MRTAU is standalone mode
+    else:    # MRTAU is standalone mode
       mrtauTimeSteps = self.getMrtauTimeSteps(phisicsDataDict['mrtauFileNameDict']['atoms_csv'])
       self.getMrtauIsotopeList(phisicsDataDict['mrtauFileNameDict']['atoms_csv'])
-
+      
     for timeStepIndex in range(len(mrtauTimeSteps)):
       if not phisicsDataDict['mrtauStandAlone']:
         keff, errorKeff = self.getKeff()
         reactionRateInfoMPI = self.getReactionRates(phisicsDataDict['numberOfMPI'])
         reactionRateInfo = self.summedDictValues(reactionRateInfoMPI)
         if self.printSpatialRR:
-          fissionMatrixInfoMPI = self.getMatrix(markerList[0], markerList[1],
-                                                phisicsDataDict['numberOfMPI'])
+          fissionMatrixInfoMPI = self.getMatrix(markerList[0],markerList[1],phisicsDataDict['numberOfMPI'])
           fissionMatrixInfo = self.summedDictValues(fissionMatrixInfoMPI)
         else:
           fissionMatrixInfo = {}
         if self.printSpatialFlux:
           if not self.phisicsRelap:
-            fluxLabelList, fluxList, matFluxLabelList, matFluxList = self.getFluxInfo(
-                instantOutput[0])
+            fluxLabelList, fluxList, matFluxLabelList, matFluxList = self.getFluxInfo(instantOutput[0])
           else:
             fluxLabelList, fluxList = self.getFluxInfoPhiRel(instantOutput[0])
             powerDensLabelList, powerDensList = self.getFluxInfoPhiRel(instantOutput[1])
@@ -104,11 +90,9 @@ class phisicsdata():
           matFluxList = [0.]
           powerDensLabelList = ['powerDensLabelList']
           powerDensList = [0.]
-        depLabelList, depList, timeStepList, matList = self.getDepInfo(
-            timeStepIndex, mrtauTimeSteps, phisicsDataDict['numberOfMPI'])
-        decayLabelList, decayList = self.getDecayHeat(timeStepIndex, mrtauTimeSteps,
-                                                      phisicsDataDict['decayHeatFlag'])
-        buLabelList, buList = self.getBurnUp(timeStepIndex, mrtauTimeSteps)
+        depLabelList,depList,timeStepList,matList = self.getDepInfo(timeStepIndex, mrtauTimeSteps, phisicsDataDict['numberOfMPI'])
+        decayLabelList,decayList = self.getDecayHeat(timeStepIndex,mrtauTimeSteps,phisicsDataDict['decayHeatFlag'])
+        buLabelList,buList = self.getBurnUp(timeStepIndex,mrtauTimeSteps)
         phisicsDict['keff'] = keff
         phisicsDict['errorKeff'] = errorKeff
         phisicsDict['reactionRateInfo'] = reactionRateInfo
@@ -128,28 +112,26 @@ class phisicsdata():
         phisicsDict['cpuTime'] = cpuTime
         phisicsDict['buLabelList'] = buLabelList
         phisicsDict['buList'] = buList
-
+        
         if self.phisicsRelap:
           phisicsDict['powerDensList'] = powerDensList
           phisicsDict['powerDensLabelList'] = powerDensLabelList
         else:
           phisicsDict['matFluxLabelList'] = matFluxLabelList
           phisicsDict['matFluxList'] = matFluxList
-        self.writeCSV(phisicsDict, timeStepIndex, mrtauTimeSteps, phisicsDataDict['jobTitle'])
+        self.writeCSV(phisicsDict,timeStepIndex,mrtauTimeSteps,phisicsDataDict['jobTitle'])
 
       if phisicsDataDict['mrtauStandAlone']:
-        decayHeatMrtau = self.getDecayHeatMrtau(timeStepIndex, mrtauTimeSteps,
-                                                phisicsDataDict['mrtauFileNameDict']['decay_heat'])
-        depList = self.getDepInfoMrtau(timeStepIndex, mrtauTimeSteps,
-                                       phisicsDataDict['mrtauFileNameDict']['atoms_csv'])
+        decayHeatMrtau = self.getDecayHeatMrtau(timeStepIndex,mrtauTimeSteps,phisicsDataDict['mrtauFileNameDict']['decay_heat'])
+        depList = self.getDepInfoMrtau(timeStepIndex,mrtauTimeSteps,phisicsDataDict['mrtauFileNameDict']['atoms_csv'])
         mrtauDict['workingDir'] = self.workingDir
         mrtauDict['decayHeatMrtau'] = decayHeatMrtau
         mrtauDict['depList'] = depList
         mrtauDict['timeStepIndex'] = timeStepIndex
         mrtauDict['mrtauTimeSteps'] = mrtauTimeSteps
         self.writeMrtauCSV(mrtauDict)
-
-  def summedDictValues(self, nestedDict):
+  
+  def summedDictValues(self,nestedDict):
     """
       Sums the values from the deepest nest of a dictionary.
       @ In, nestedDict, dictionary, nested dictionaries of intergers or floats
@@ -158,18 +140,18 @@ class phisicsdata():
     summedDict = lambda: defaultdict(summedDict)
     mySummedDict = summedDict()
     if not self.printSpatialRR:
-      for parameter, mpi in nestedDict.iteritems():
-        sumString = '%.15E' % Decimal(sum([float(elm) for elm in mpi.values()]))
+      for parameter,mpi in nestedDict.iteritems():
+        sumString =  '%.15E' % Decimal(  sum([float(elm) for elm in mpi.values()]) )
         mySummedDict[parameter] = sumString
     else:
-      for group, region in nestedDict.iteritems():
-        for region, parameter in region.iteritems():
-          for parameter, mpi in parameter.iteritems():
-            sumString = '%.15E' % Decimal(sum([float(elm) for elm in mpi.values()]))
+      for group,region in nestedDict.iteritems():
+        for region,parameter in region.iteritems():
+          for parameter,mpi in parameter.iteritems():
+            sumString =  '%.15E' % Decimal(  sum([float(elm) for elm in mpi.values()]) )
             mySummedDict[group][region][parameter] = sumString
     return mySummedDict
-
-  def fileOutName(self, phisicsDataDict):
+      
+  def fileOutName(self,phisicsDataDict):
     """
       Puts in a list the INSTANT output file names based on the number of MPI.
       The format is title.o-MPI
@@ -179,19 +161,16 @@ class phisicsdata():
     """
     instantMPI = []
     mrtauMPI = []
-    for mpi in range(phisicsDataDict['numberOfMPI']):
-      mrtauMPI.append(
-          os.path.join(self.workingDir,
-                       phisicsDataDict['mrtauFileNameDict']['atoms_csv'].split('.')[0] + '-' +
-                       str(mpi) + '.csv'))  # MRTAU files (numbers.csv)
-      if not self.phisicsRelap:  # INSTANT files, no coupling with RELAP
-        instantMPI.append(phisicsDataDict['instantOutput'] + '-' + str(mpi))
-      else:  # INSTANT files, coupling with RELAP
+    for mpi in range (phisicsDataDict['numberOfMPI']):
+      mrtauMPI.append(os.path.join(self.workingDir,phisicsDataDict['mrtauFileNameDict']['atoms_csv'].split('.')[0]+'-'+str(mpi)+'.csv')) # MRTAU files (numbers.csv)
+      if not self.phisicsRelap:    # INSTANT files, no coupling with RELAP
+        instantMPI.append(phisicsDataDict['instantOutput']+'-'+str(mpi))
+      else:                        # INSTANT files, coupling with RELAP
         if mpi > 0:
-          instantMPI.append('INSTout-' + str(mpi))
+          instantMPI.append('INSTout-'+str(mpi))
     return instantMPI, mrtauMPI
-
-  def cleanUp(self, jobTitle, bool):
+   
+  def cleanUp(self,jobTitle,bool):
     """
       Removes the file that RAVEN reads for postprocessing.
       @ In, jobTitle, string, job title name
@@ -199,21 +178,21 @@ class phisicsdata():
       @ Out, None
     """
     if not bool:
-      csvOutput = os.path.join(self.workingDir, jobTitle + '.csv')
+      csvOutput = os.path.join(self.workingDir, jobTitle+'.csv')
       #csvOutput = os.path.join(self.workingDir, jobTitle+'-'+self.perturbationNumber+'.csv')
       if os.path.isfile(csvOutput):
         os.remove(csvOutput)
-      with open(csvOutput, 'wb'):
+      with open (csvOutput,'wb'):
         pass
     else:
       mrtauOutput = os.path.join(self.workingDir, 'mrtau.csv')
       #mrtauOutput = os.path.join(self.workingDir, 'mrtau-'+self.perturbationNumber+'.csv') # if mrtau standalone
       if os.path.isfile(mrtauOutput):
-        os.remove(mrtauOutput)  # if mrtau standalone
-      with open(mrtauOutput, 'wb'):
+        os.remove(mrtauOutput) # if mrtau standalone
+      with open (mrtauOutput,'wb'):
         pass
-
-  def getAbsoluteXS(self, xsOutput):
+    
+  def getAbsoluteXS(self,xsOutput):
     """
       Parses the absolute cross section output generated by PHISICS.
       @ In, xsOutput, string, filename of the XML file containing the absolute perturbed XS
@@ -222,7 +201,7 @@ class phisicsdata():
     """
     labelList = []
     valueList = []
-    tree = ET.parse(os.path.join(self.workingDir, xsOutput))
+    tree = ET.parse(os.path.join(self.workingDir,xsOutput))
     root = tree.getroot()
     for materialXML in root.getiterator('library'):
       for isotopeXML in materialXML.getiterator('isotope'):
@@ -231,28 +210,25 @@ class phisicsdata():
           for groupXML in isotopeXML.getiterator(react):
             individualGroup = [x.strip() for x in groupXML.attrib.get('g').split(',')]
             individualGroupValues = [y.strip() for y in groupXML.text.split(',')]
-            for position in range(len(individualGroup)):
-              labelList.append(
-                  materialXML.attrib.get('lib_name') + '|' + isotopeXML.attrib.get('id') + '|' +
-                  react + '|' + individualGroup[position])
+            for position in range (len(individualGroup)):
+              labelList.append(materialXML.attrib.get('lib_name')+'|'+isotopeXML.attrib.get('id')+'|'+react+'|'+individualGroup[position])
               valueList.append(individualGroupValues[position])
     return labelList, valueList
-
+    
   def getNumberOfGroups(self):
     """
       Gives the number of energy groups used in the PHISICS simulations.
-      @ In, None
-      @ Out, None
+      @ In, None 
+      @ Out, None 
     """
     self.Ngroups = 0
-    with open(os.path.join(self.workingDir, self.instantOutputFileMPI[0]), 'r') as outfile:
+    with open(os.path.join(self.workingDir,self.instantOutputFileMPI[0]), 'r') as outfile:
       for line in outfile:
         if re.search(r'Number of elements of group', line):
-          self.Ngroups = int(line.split()[
-              -3])  # pick the last occurence (last group), which is also the number of groups
+          self.Ngroups = int(line.split()[-3])  # pick the last occurence (last group), which is also the number of groups
         if re.search(r'Number of element  types', line):
           break
-
+  
   def getNumberOfRegions(self):
     """
       Gives the number of spatial regions used in the PHISICS simulations.
@@ -262,9 +238,9 @@ class phisicsdata():
     flagStart = 0
     count = 0
     subdomainList = []
-    with open(os.path.join(self.workingDir, self.instantOutputFileMPI[0]), 'r') as outfile:
+    with open(os.path.join(self.workingDir,self.instantOutputFileMPI[0]), 'r') as outfile:
       for line in outfile:
-        if re.search(r'Subdomain volumes', line):
+        if re.search(r'Subdomain volumes',line):
           flagStart = 1
         if re.search(r'Balance report for the primal solution', line):
           flagStart = 2
@@ -277,7 +253,7 @@ class phisicsdata():
           break
     self.Nregions = count
     return
-
+    
   def getMrtauInstantTimeSteps(self):
     """
       Gets the time steps in the coupled MRTAU/INSTANT output.
@@ -286,9 +262,9 @@ class phisicsdata():
     """
     count = 0
     timeSteps = []
-    with open(os.path.join(self.workingDir, self.mrtauOutputFileMPI[0]), 'r') as outfile:
+    with open(os.path.join(self.workingDir,self.mrtauOutputFileMPI[0]), 'r') as outfile:
       for line in outfile:
-        if re.search(r'Material', line):
+        if re.search(r'Material',line):
           count = count + 1
         if count == 1:
           stringIsFloatNumber = self.isFloatNumber(line.split(','))
@@ -296,42 +272,40 @@ class phisicsdata():
             timeSteps.append(line.split(',')[0])
         if count > 1:
           break
-    timeSteps.pop(
-        0
-    )  # Removes the first time step, t=0, to make the number of time steps match with the number of time steps in INSTANT.
+    timeSteps.pop(0)   # Removes the first time step, t=0, to make the number of time steps match with the number of time steps in INSTANT.
     return timeSteps
-
-  def getMrtauTimeSteps(self, atomsInp):
+    
+  def getMrtauTimeSteps(self,atomsInp):
     """
       Gets the time steps in the MRTAU standalone output.
       @ In, atomsInp, string, path to file pointed by the node <atoms_csv> in the lib path file
       @ Out, timeSteps, list, list of time steps
     """
     timeSteps = []
-    with open(os.path.join(self.workingDir, atomsInp), 'r') as outfile:
+    with open(os.path.join(self.workingDir,atomsInp), 'r') as outfile:
       for line in outfile:
         stringIsFloatNumber = self.isFloatNumber(line.split(','))
         if stringIsFloatNumber:
           timeSteps.append(line.split(',')[0])
     return timeSteps
-
-  def getMrtauIsotopeList(self, atomsInp):
+    
+  def getMrtauIsotopeList(self,atomsInp):
     """
       Gets the isotope in the MRTAU standalone output.
       @ In, atomsInp, string, path to file pointed by the node <atoms_csv> in the lib path file
       @ Out, None
     """
     self.isotopeListMrtau = []
-    with open(os.path.join(self.workingDir, atomsInp), 'r') as outfile:
+    with open(os.path.join(self.workingDir,atomsInp), 'r') as outfile:
       for line in outfile:
-        if re.search(r'TIME', line):
-          line = re.sub(r'TIME\s+\(days\)', r'', line)
-          line = re.sub(r' ', r'', line)
-          line = re.sub(r'\n', r'', line)
-          self.isotopeListMrtau = filter(None, line.split(','))
+        if re.search(r'TIME',line):
+          line = re.sub(r'TIME\s+\(days\)',r'',line)
+          line = re.sub(r' ',r'',line)
+          line = re.sub(r'\n',r'',line)
+          self.isotopeListMrtau = filter(None,line.split(','))
           break
-
-  def getInstantTimeSteps(self, input):
+    
+  def getInstantTimeSteps(self,input):
     """
       Gets the time steps in the INSTANT output.
       @ In, input, string, input file name
@@ -339,24 +313,24 @@ class phisicsdata():
     """
     count = 0
     timeSteps = []
-    with open(os.path.join(self.workingDir, input), 'r') as outfile:
-      for line in outfile:
-        if re.search(r'PHISICS', line):
+    with open(os.path.join(self.workingDir,input), 'r') as outfile:
+      for line in outfile :
+        if re.search(r'PHISICS',line):
           timeSteps.append(line.split(',')[line.split(',').index('Time') + 1])
     return timeSteps
 
-  def reduceDigits(self, mrtauTimeSteps):
+  def reduceDigits(self,mrtauTimeSteps):
     """
       Reduces the number of digits in the MRTAU time steps.
       @ In, mrtauTimeSteps, list
       @ Out, timeSteps, list, list of time steps
     """
     timeSteps = []
-    for i in range(len(mrtauTimeSteps)):
+    for i in range (len(mrtauTimeSteps)):
       timeSteps.append('%.6E' % (float(mrtauTimeSteps[i])))
     return timeSteps
-
-  def getKeff(self):
+  
+  def getKeff (self):
     """
       Gets the multiplication factor.
       @ In, None
@@ -365,15 +339,15 @@ class phisicsdata():
     """
     self.units = None
     keff = []
-    with open(os.path.join(self.workingDir, self.instantOutputFileMPI[0]), 'r') as outfile:
+    with open(os.path.join(self.workingDir,self.instantOutputFileMPI[0]), 'r') as outfile:
       for line in outfile:
-        if re.search(r'k-effective at the last', line):
+        if re.search(r'k-effective at the last', line) :
           keff = [line.split()[-1]]
-        if re.search(r'error for the eigenvalue', line):
-          errorKeff = [line.split()[-1]]
+        if re.search(r'error for the eigenvalue', line) :
+            errorKeff = [line.split()[-1]]
     return keff, errorKeff
 
-  def isNumber(self, line):
+  def isNumber(self,line):
     """
       Checks if a string is an integer.
       @ In, line, list, list of strings
@@ -384,10 +358,10 @@ class phisicsdata():
         numFloat = float(line[0])
         numInt = int(numFloat)
         return numInt == numFloat
-      except ValueError:  # the instance is a string, for example
+      except ValueError: # the instance is a string, for example
         return False
-
-  def isFloatNumber(self, line):
+        
+  def isFloatNumber(self,line):
     """
       Checks if a string is a float number.
       @ In, line, list, list of strings
@@ -399,59 +373,56 @@ class phisicsdata():
         return True
       except ValueError:
         return False
-
-  def getReactionRates(self, numberOfMPI):
+        
+  def getReactionRates(self,numberOfMPI):
     """
       Gets the reactions rates, power for each group in PHISICS
-      @ In, numberOfMPI, interger, number of MPI user-defined
+      @ In, numberOfMPI, interger, number of MPI user-defined 
       @ Out, myReactDict, dictionary, dictionary containing the reaction rate info
     """
     flagStart = 0
     count = 0
     reactDict = lambda: defaultdict(reactDict)
     myReactDict = reactDict()
-    for mpi in range(numberOfMPI):  # parse all the segmented files
-      if not (
-          mpi >= numberOfMPI - 1 and self.phisicsRelap and numberOfMPI > 1
-      ):  # the case numberOfMpi > 1 is meant to enter the if loop if PHISICS/RELAP5 is ran in series
-        with open(os.path.join(self.workingDir, self.instantOutputFileMPI[mpi]), 'r') as outfile:
+    for mpi in range (numberOfMPI): # parse all the segmented files
+      if not (mpi >= numberOfMPI -1 and self.phisicsRelap and numberOfMPI > 1): # the case numberOfMpi > 1 is meant to enter the if loop if PHISICS/RELAP5 is ran in series
+        with open(os.path.join(self.workingDir,self.instantOutputFileMPI[mpi]), 'r') as outfile:
           for line in outfile:
-            if re.search(r'averaged flux\s+power', line):  # beginning of the reaction rate matrix
+            if re.search(r'averaged flux\s+power', line): # beginning of the reaction rate matrix 
               if mpi == 0:  # no need to repeat the mapping and parameter listing for each mpi segmented files
-                numberingRR = self.mapColumns(line, count)
+                numberingRR = self.mapColumns(line,count)
                 self.paramList = []
                 self.paramList = numberingRR.keys()
               flagStart = 1
-            if re.search(r'Fission matrices of all', line):  # end of the reaction rate matrix
+            if re.search(r'Fission matrices of all',line): # end of the reaction rate matrix 
               flagStart = 2
-            if flagStart == 1:  # the parsing starts here. It ends as soon as flagStart = 2
+            if flagStart == 1: # the parsing starts here. It ends as soon as flagStart = 2  
               if self.printSpatialRR:  # if the spatial reaction rates are printed
-                if re.search(r'\w+\s+\w+', line):
-                  line = re.sub(r'[\|]', ' ', line)
+                if re.search(r'\w+\s+\w+',line):
+                  line = re.sub(r'[\|]',' ',line)
                   line = line.split()
                   stringIsNumber = self.isNumber(line)
-                  if stringIsNumber:
+                  if stringIsNumber :
                     for reactRate in numberingRR:
-                      groupNum = line[0]
+                      groupNum  = line[0]
                       regionNum = line[1]
                       if reactRate != 'Group' and reactRate != 'Region':
-                        myReactDict[groupNum][regionNum][reactRate][mpi] = line[numberingRR.get(
-                            reactRate)]
+                        myReactDict[groupNum][regionNum][reactRate][mpi] = line[numberingRR.get(reactRate)]
               else:  # The spatial reaction rates are not printed
-                if re.search(r'Total', line):
+                if re.search(r'Total',line):
                   for reactRate in numberingRR:
-                    if reactRate != 'Group' and reactRate != 'Region':
+                    if reactRate != 'Group' and reactRate != 'Region':      
                       myReactDict[reactRate][mpi] = line.split()[numberingRR.get(reactRate)]
     if myReactDict != {}:
       return myReactDict
-
-  def getMatrix(self, startStringFlag, endStringFlag, numberOfMPI):
+    
+  def getMatrix(self,startStringFlag,endStringFlag,numberOfMPI):
     """
       Gets the fission matrix or scattering matrix in the PHISICS output.
       @ In, startStringFlag, string, string marker.
       @ In, endStringFlag, string, string marker.
       @ In, numberOfMPI, interger, number of MPI user-defined
-      @ Out, myMatrixDict, dictionary, nested dictionary that contains the fission matrix information.
+      @ Out, myMatrixDict, dictionary, nested dictionary that contains the fission matrix information. 
                                     Template: {group number(from):{region number:{group(to):{mpi:Vslue}}}}
     """
     flagStart = 0
@@ -459,25 +430,24 @@ class phisicsdata():
     test = {}
     matrixDict = lambda: defaultdict(matrixDict)
     myMatrixDict = matrixDict()
-    for mpi in range(numberOfMPI):  # parse all the segmented files
-      with open(os.path.join(self.workingDir, self.instantOutputFileMPI[mpi]), 'r') as outfile:
+    for mpi in range (numberOfMPI): # parse all the segmented files
+      with open(os.path.join(self.workingDir,self.instantOutputFileMPI[mpi]), 'r') as outfile:
         for line in outfile:
-          if re.search(startStringFlag,
-                       line):  # begining of the matrix portion (scattering or fission)
+          if re.search(startStringFlag, line): # begining of the matrix portion (scattering or fission)
             flagStart = 1
-          if re.search(endStringFlag, line):  # end of the matrix portion
+          if re.search(endStringFlag,line): # end of the matrix portion
             flagStart = 2
-          if flagStart == 1:  # starts parsing the matrix. Stops as soon as flagStart = 2
-            if re.search(r'Region\:\s+\d', line):
+          if flagStart == 1: # starts parsing the matrix. Stops as soon as flagStart = 2
+            if re.search(r'Region\:\s+\d',line):
               regionNumber = line.split()[-1]
-            if re.search(r'\d+.\d+E', line):
-              line = re.sub(r'[\|]', ' ', line)
+            if re.search(r'\d+.\d+E',line):
+              line = re.sub(r'[\|]',' ',line)
               line = line.split()
-              for group in range(1, self.Ngroups + 1):
-                myMatrixDict[line[0]][str(regionNumber)][str(group)][str(mpi)] = line[group]
+              for group in range (1,self.Ngroups + 1):
+                myMatrixDict[line[0]][str(regionNumber)][str(group)][str(mpi)] = line[group]  
     return myMatrixDict
-
-  def mapColumns(self, line, count):
+  
+  def mapColumns(self,line,count):
     """
       Allocates a column number relative to the reaction rates.
       @ In, line, string
@@ -485,18 +455,18 @@ class phisicsdata():
       @ Out, numbering, dictionary, key: reaction rate name, value: column number
     """
     numbering = {}
-    line = re.sub(r'averaged', r'', line)
-    line = re.sub(r'fis. ', r'', line)
-    line = re.sub(r'[\|]', ' ', line)
+    line = re.sub(r'averaged',r'',line)
+    line = re.sub(r'fis. ',r'',line)
+    line = re.sub(r'[\|]',' ',line)
     parameterNames = line.split()
     for param in parameterNames:
       numbering[param] = count
-      count += 1
+      count +=  1
     return numbering
 
-  def locateXYandGroups(self, IDlist):
+  def locateXYandGroups(self,IDlist):
     """
-      Locates what the position number of the x, y, z coordinates and the first energy group are in the INSTANT csv output file.
+      Locates what the position number of the x, y, z coordinates and the first energy group are in the INSTANT csv output file. 
       @ In, IDlist, list, list of all the parameter in the csv output
       @ Out, xPositionInList, interger, position of the parameter x in the list
       @ Out, yPositionInList, interger, position of the parameter y in the list
@@ -507,7 +477,7 @@ class phisicsdata():
     yPositionInList = None
     zPositionInList = None
     firstGroupPositionInList = None
-    for i in range(len(IDlist)):
+    for i in range (len(IDlist)):
       if IDlist[i] == 'X':
         xPositionInList = i
       if IDlist[i] == 'Y':
@@ -518,8 +488,8 @@ class phisicsdata():
         group1PositionInList = i
         break
     return xPositionInList, yPositionInList, zPositionInList, group1PositionInList
-
-  def getFluxInfo(self, input):
+    
+  def getFluxInfo(self,input):
     """
       Reads the INSTANT csv file to get the flux info relative to each region and each group.
       The flux info are also provided for each material.
@@ -536,49 +506,44 @@ class phisicsdata():
     matFluxList = []
     flagFlux = 0
     countTimeStep = 0
-    with open(os.path.join(self.workingDir, input), 'r') as outfile:
+    with open(os.path.join(self.workingDir,input), 'r') as outfile:
       for line in outfile:
-        if re.search(r'PHISICS', line):  # first line of the csv file, the time info is here
+        if re.search(r'PHISICS',line): # first line of the csv file, the time info is here
           flagFlux = 0
           countTimeStep = countTimeStep + 1
-        elif re.search(r'FLUX BY CELLS', line):  # beginning of the cell flux info in the csv file
+        elif re.search(r'FLUX BY CELLS',line):  # beginning of the cell flux info in the csv file
           flagFlux = 1
-        elif re.search(r'FLUX BY MATERIAL',
-                       line):  # end of the cell flux info, beginning of the material flux info
+        elif re.search(r'FLUX BY MATERIAL',line): # end of the cell flux info, beginning of the material flux info 
           flagFlux = 2
-        elif re.search(r'FLUX BY SUBDOMAIN', line):  # end of the material flux info.
+        elif re.search(r'FLUX BY SUBDOMAIN',line): # end of the material flux info.
           flagFlux = 3
-
+          
         if flagFlux == 1:
-          if re.search(r'ID\s+,\s+ID', line):
-            line = re.sub(r' ', r'', line)
+          if re.search(r'ID\s+,\s+ID',line):
+            line = re.sub(r' ',r'',line)
             IDlist = line.split(',')
             xPosition, yPosition, zPosition, group1Position = self.locateXYandGroups(IDlist)
             IDlist.remove('\n')
           stringIsNumber = self.isNumber(line.split(','))
           if stringIsNumber:
-            line = re.sub(r' ', r'',
-                          line)  # removes the spaces, in order to have only comma-separated values
-            line = line.rstrip(
-            )  # removes the newline, in order to have only comma-separated values
-            for g in xrange(1, self.Ngroups + 1):
-              if countTimeStep == 1:  # the labels are the same for each time step
-                fluxLabelList.append(
-                    'flux' + '|' + 'cell' + line.split(',')[0] + '|' + 'gr' + str(g))
-              fluxList.append(line.split(',')[group1Position + g - 1])
+            line = re.sub(r' ',r'',line) # removes the spaces, in order to have only comma-separated values
+            line = line.rstrip() # removes the newline, in order to have only comma-separated values
+            for g in xrange (1,self.Ngroups + 1):
+              if countTimeStep == 1: # the labels are the same for each time step
+                fluxLabelList.append('flux'+'|'+'cell'+line.split(',')[0]+'|'+'gr'+str(g))
+              fluxList.append(line.split(',')[group1Position + g - 1])              
         if flagFlux == 2:
           stringIsNumber = self.isNumber(line.split(','))
           if stringIsNumber:
-            line = re.sub(r' ', r'', line)
-            line = re.sub(r'\n', r'', line)
-            for g in xrange(1, self.Ngroups + 1):
+            line = re.sub(r' ',r'',line)
+            line = re.sub(r'\n',r'',line)
+            for g in xrange (1,self.Ngroups + 1):
               if countTimeStep == 1:
-                matFluxLabelList.append(
-                    'flux' + '|' + 'mat' + line.split(',')[0] + '|' + 'gr' + str(g))
+                matFluxLabelList.append('flux'+'|'+'mat'+line.split(',')[0]+'|'+'gr'+str(g))
               matFluxList.append(line.split(',')[g])
     return fluxLabelList, fluxList, matFluxLabelList, matFluxList
-
-  def getFluxInfoPhiRel(self, input):
+ 
+  def getFluxInfoPhiRel(self,input):
     """
       Gets the flux info by cell and material if the PHISICS/RELAP coupled version is used.
       @ In, input, string, csv output
@@ -590,50 +555,45 @@ class phisicsdata():
     varList = []
     flagFlux = 0
     countTimeStep = 0
-    with open(os.path.join(self.workingDir, input), 'r') as outfile:
+    with open(os.path.join(self.workingDir,input), 'r') as outfile:
       for line in outfile:
-        if re.search(r'PHISICS', line):  # first line of the csv file, the time info is here
+        if re.search(r'PHISICS',line): # first line of the csv file, the time info is here
           flagFlux = 0
           countTimeStep = countTimeStep + 1
-        elif re.search(r'FLUX BY CELLS', line):  # beginning of the cell flux info in the csv file
+        elif re.search(r'FLUX BY CELLS',line): # beginning of the cell flux info in the csv file
           flagFlux = 1
-        elif re.search(r'POWER DENSITY BY CELLS',
-                       line):  # end of the power density info, beginning of the material flux info
+        elif re.search(r'POWER DENSITY BY CELLS',line): # end of the power density info, beginning of the material flux info
           flagFlux = 2
-        elif re.search(r'FLUX BY SUBDOMAIN', line):  # end of the material flux info.
+        elif re.search(r'FLUX BY SUBDOMAIN',line): # end of the material flux info.
           flagFlux = 3
-
+        
         if flagFlux == 1:
-          if re.search(r'ID\s+,\s+ID', line):
-            line = re.sub(r' ', r'', line)
+          if re.search(r'ID\s+,\s+ID',line):
+            line = re.sub(r' ',r'',line)
             IDlist = line.split(',')
             xPosition, yPosition, zPosition, group1Position = self.locateXYandGroups(IDlist)
             IDlist.remove('\n')
           stringIsNumber = self.isNumber(line.split(','))
           if stringIsNumber:
-            line = re.sub(r' ', r'',
-                          line)  # removes the spaces, in order to have only comma-separated values
-            line = line.rstrip(
-            )  # removes the newline, in order to have only comma-separated values
-            for g in xrange(1, self.Ngroups + 1):
-              if countTimeStep == 1:  # the labels are the same for each time step
-                labelList.append('flux' + '|' + 'cell' + line.split(',')[0] + '|' + 'gr' + str(g))
+            line = re.sub(r' ',r'',line) # removes the spaces, in order to have only comma-separated values
+            line = line.rstrip()  # removes the newline, in order to have only comma-separated values
+            for g in xrange (1,self.Ngroups + 1):
+              if countTimeStep == 1: # the labels are the same for each time step
+                labelList.append('flux'+'|'+'cell'+line.split(',')[0]+'|'+'gr'+str(g))
               varList.append(line.split(',')[group1Position + g - 1])
-
+              
         if flagFlux == 2:
           stringIsNumber = self.isNumber(line.split(','))
           if stringIsNumber:
-            line = re.sub(r' ', r'',
-                          line)  # removes the spaces, in order to have only comma-separated values
-            line = line.rstrip(
-            )  # removes the newline, in order to have only comma-separated values
-            for g in xrange(1, self.Ngroups + 1):
+            line = re.sub(r' ',r'',line) # removes the spaces, in order to have only comma-separated values
+            line = line.rstrip() # removes the newline, in order to have only comma-separated values
+            for g in xrange (1,self.Ngroups + 1):
               if countTimeStep == 1:
-                labelList.append('flux' + '|' + 'mat' + line.split(',')[0] + '|' + 'gr' + str(g))
+                labelList.append('flux'+'|'+'mat'+line.split(',')[0]+'|'+'gr'+str(g))
               varList.append(line.split(',')[g])
     return labelList, varList
-
-  def getDepInfo(self, timeStepIndex, matchedTimeSteps, numberOfMPI):
+ 
+  def getDepInfo(self,timeStepIndex,matchedTimeSteps,numberOfMPI):
     """
       Reads the INSTANT csv file to get the material density info relative to depletion.
       @ In, timeStepIndex, integer, timestep number
@@ -648,28 +608,26 @@ class phisicsdata():
     timeStepList = []
     matList = []
     for mpi in range(numberOfMPI):
-      with open(os.path.join(self.workingDir, self.mrtauOutputFileMPI[mpi]), 'r') as outfile:
+      with open(os.path.join(self.workingDir,self.mrtauOutputFileMPI[mpi]), 'r') as outfile:
         for line in outfile:
-          line = re.sub(
-              r' ', r'',
-              line)  # remove all spaces in a line. comma sperarated lines are parsed below
-          if re.search(r'TIME', line):
+          line = re.sub(r' ',r'',line)  # remove all spaces in a line. comma sperarated lines are parsed below
+          if re.search(r'TIME',line):
             line = line.rstrip()
             self.isotopeList = line.split(',')
-          if re.search(r'Material', line):
+          if re.search(r'Material',line):
             materialList = line.split(',')
             matList.append(line.split(',')[1])
           stringIsFloatNumber = self.isFloatNumber(line.split(','))
           if stringIsFloatNumber:
-            line = re.sub(r'\n', r'', line)
+            line = re.sub(r'\n',r'',line)
             if float(line.split(',')[0]) == matchedTimeSteps[timeStepIndex]:
-              for i in range(1, len(self.isotopeList)):
+              for i in range (1,len(self.isotopeList)):
                 timeStepList.append(line.split(',')[0])
-                depLabelList.append('dep' + '|' + materialList[1] + '|' + self.isotopeList[i])
+                depLabelList.append('dep'+'|'+materialList[1]+'|'+self.isotopeList[i])
                 depList.append(line.split(',')[i])
     return depLabelList, depList, timeStepList, matList
-
-  def getDepInfoMrtau(self, timeStepIndex, matchedTimeSteps, atomsInp):
+  
+  def getDepInfoMrtau(self,timeStepIndex,matchedTimeSteps,atomsInp):
     """
       Reads the MRTAU csv file to get the material density info relative to depletion.
       @ In, timeStepIndex, integer, timestep number
@@ -678,18 +636,17 @@ class phisicsdata():
       @ Out, depLabelList, depList
     """
     depList = []
-    with open(os.path.join(self.workingDir, atomsInp), 'r') as outfile:
+    with open(os.path.join(self.workingDir,atomsInp), 'r') as outfile:
       for line in outfile:
-        line = re.sub(r' ', r'', line)
+        line = re.sub(r' ',r'',line)
         stringIsFloatNumber = self.isFloatNumber(line.split(','))
-        if stringIsFloatNumber and float(line.split(',')[0]) == float(
-            matchedTimeSteps[timeStepIndex]):
-          line = re.sub(r'\n', r'', line)
-          for i in range(1, len(self.isotopeListMrtau) + 1):
+        if stringIsFloatNumber and float(line.split(',')[0]) == float(matchedTimeSteps[timeStepIndex]):
+          line = re.sub(r'\n',r'',line)
+          for i in range (1,len(self.isotopeListMrtau)+1):
             depList.append(line.split(',')[i])
     return depList
-
-  def numberOfMediaUsed(self, mpi, numberOfMPI):
+  
+  def numberOfMediaUsed(self,mpi,numberOfMPI):
     """
       Finds the number of media used in a given INSTANT output.
       @ In, mpi, integer, MPI number considered
@@ -700,40 +657,40 @@ class phisicsdata():
     count = None
     if not (self.phisicsRelap and mpi == numberOfMPI - 1):
       outfile = open(os.path.join(self.workingDir, self.instantOutputFileMPI[mpi]))
-      count = sum([1 for line in outfile.readlines() if re.search(r'Medium\s+\d+\s+used', line)])
+      count = sum([ 1 for line in outfile.readlines() if re.search(r'Medium\s+\d+\s+used',line)])
     return count
 
-  def getCPUtime(self, numberOfMPI):
+  def getCPUtime(self,numberOfMPI):
     """
       Gets the PHISICS CPU time.
       @ In, numberOfMPI, interger, number of MPI user-selected
       @ Out, cpuTime, list, cpu time (string) in a list
     """
     cpuTimes = []
-    for mpi in range(numberOfMPI):
-      with open(os.path.join(self.workingDir, self.instantOutputFileMPI[mpi])) as outfile:
+    for mpi in range (numberOfMPI):
+      with open(os.path.join(self.workingDir,self.instantOutputFileMPI[mpi])) as outfile:
         for line in outfile:
-          if re.search(r'CPU\s+time\s+\(min\)', line) and self.phisicsRelap is False:
+          if re.search(r'CPU\s+time\s+\(min\)',line) and self.phisicsRelap is False:
             cpuTimes.append(line.strip().split(' ')[-1])
           if self.phisicsRelap:
             return 0.
     cpuTime = sum([float(elm) for elm in cpuTimes])
     return [cpuTime]
-
-  def getCPUtimeMrtau(self, mrtauFile):
+  
+  def getCPUtimeMrtau(self,mrtauFile):
     """
       Gets the MRTAU CPU time.
       @ In, mrtauFile, string, MRTAU file parsed
       @ Out, getCPUtimeMrtau, list, contains one element, cpu time (string)
     """
-    with open(os.path.join(self.workingDir, mrtauFile)) as outfile:
+    with open(os.path.join(self.workingDir,mrtauFile)) as outfile:
       for line in outfile:
-        if re.search(r'Cpu\s+Time\s+min', line) and self.phisicsRelap is False:
+        if re.search(r'Cpu\s+Time\s+min',line) and self.phisicsRelap is False:
           return [line.strip().split(' ')[-1]]
         if self.phisicsRelap:
           return 0.
-
-  def locateMaterialInFile(self, numberOfMPI):
+          
+  def locateMaterialInFile(self,numberOfMPI):
     """
       Finds the material names in a given INSTANT output file.
       @ In, numberOfMPI, integer, number of MPI user-selected
@@ -743,20 +700,20 @@ class phisicsdata():
     materialsDict = {}
     for mpi in range(numberOfMPI):
       count = 0
-      materialsDict['MPI-' + str(mpi)] = {}
-      mediaUsed = self.numberOfMediaUsed(mpi, numberOfMPI)
-      if not (self.phisicsRelap and mpi == numberOfMPI - 1 and numberOfMPI > 1):
+      materialsDict['MPI-'+str(mpi)] = {}
+      mediaUsed = self.numberOfMediaUsed(mpi,numberOfMPI)
+      if not (self.phisicsRelap and mpi == numberOfMPI - 1 and numberOfMPI > 1) : 
         with open(os.path.join(self.workingDir, self.instantOutputFileMPI[mpi])) as outfile:
           for line in outfile:
-            if re.search(r'Density spatial moment', line):
+            if re.search(r'Density spatial moment',line):
               count = count + 1
               matLine = filter(None, line.split(' '))
-              materialsDict['MPI-' + str(mpi)][count] = matLine[matLine.index('Material') + 1]
+              materialsDict['MPI-'+str(mpi)][count] = matLine[matLine.index('Material') + 1]
               if count == mediaUsed:
                 break
     return materialsDict
-
-  def getDecayHeat(self, timeStepIndex, matchedTimeSteps, decayHeatFlag):
+   
+  def getDecayHeat(self,timeStepIndex,matchedTimeSteps,decayHeatFlag):
     """
       Reads the main output file to get the decay heat.
       @ In, timeStepIndex, integer, number of the timestep considered
@@ -769,25 +726,25 @@ class phisicsdata():
     decayLabelList = []
     decayList = []
     timeStepList = []
-
+    
     if decayHeatFlag == 1:
       decayLabelList = ['decayHeat']
       decayList = 0.
-      return decayLabelList, decayList
+      return decayLabelList,decayList
     else:
       for mpi in range(len(self.instantOutputFileMPI)):
-        decayFlag = 0
-        breakFlag = 0
-        matLineFlag = 0
+        decayFlag = 0 
+        breakFlag = 0 
+        matLineFlag = 0 
         materialCounter = 0
         with open(os.path.join(self.workingDir, self.instantOutputFileMPI[mpi])) as outfile:
           for line in outfile:
-            if re.search(r'INDIVIDUAL DECAY HEAT BLOCK', line):
+            if re.search(r'INDIVIDUAL DECAY HEAT BLOCK',line):
               decayFlag = 1
               materialCounter = materialCounter + 1
-            if re.search(r'CUMULATIVE DECAY HEAT BLOCK', line):
+            if re.search(r'CUMULATIVE DECAY HEAT BLOCK',line):
               decayFlag = 0
-            if re.search(r'BURNUP OUTPUT', line):
+            if re.search(r'BURNUP OUTPUT',line):
               breakFlag = 1
             if decayFlag == 1 and breakFlag == 0:
               line = line.rstrip()
@@ -796,17 +753,14 @@ class phisicsdata():
                 stringIsFloatNumber = self.isFloatNumber(decayLine)
               if stringIsFloatNumber and decayLine != []:
                 if abs(float(decayLine[0]) - float(matchedTimeSteps[timeStepIndex])) < 1.0e-10:
-                  for i in range(1, len(self.isotopeList)):
-                    decayLabelList.append(
-                        'decay' + '|' + self.materialsDict['MPI-' + str(mpi)][materialCounter] +
-                        '|' + self.isotopeList[i]
-                    )  #index should be staggered with index in next lin (to test)
+                  for i in range (1,len(self.isotopeList)): 
+                    decayLabelList.append('decay'+'|'+self.materialsDict['MPI-'+str(mpi)][materialCounter]+'|'+self.isotopeList[i]) #index should be staggered with index in next lin (to test)
                     decayList.append(decayLine[i])
             if breakFlag == 1:
               break
       return decayLabelList, decayList
-
-  def getDecayHeatMrtau(self, timeStepIndex, matchedTimeSteps, decayHeatOutput):
+      
+  def getDecayHeatMrtau(self,timeStepIndex,matchedTimeSteps,decayHeatOutput):
     """
       Gets the decay heat from the standalone MRTAU output.
       @ In, timeStepIndex, integer, timestep number
@@ -819,11 +773,11 @@ class phisicsdata():
     self.decayLabelListMrtau = []
     self.numDensityLabelListMrtau = []
     decayListMrtau = []
-    with open(os.path.join(self.workingDir, decayHeatOutput), 'r') as outfile:
+    with open(os.path.join(self.workingDir,decayHeatOutput), 'r') as outfile:
       for line in outfile:
-        if re.search(r'INDIVIDUAL DECAY HEAT BLOCK', line):
+        if re.search(r'INDIVIDUAL DECAY HEAT BLOCK',line):
           decayFlag = 1
-        if re.search(r'CUMULATIVE DECAY HEAT BLOCK', line):
+        if re.search(r'CUMULATIVE DECAY HEAT BLOCK',line):
           breakFlag = 1
         if decayFlag == 1 and breakFlag == 0:
           line = line.rstrip()
@@ -832,15 +786,15 @@ class phisicsdata():
             stringIsFloatNumber = self.isFloatNumber(decayLine)
           if stringIsFloatNumber and decayLine != []:
             if float(decayLine[0]) == float(matchedTimeSteps[timeStepIndex]):
-              for i in xrange(0, len(self.isotopeListMrtau)):
-                self.numDensityLabelListMrtau.append('numDensity' + '|' + self.isotopeListMrtau[i])
-                self.decayLabelListMrtau.append('decay' + '|' + self.isotopeListMrtau[i])
-                decayListMrtau.append(decayLine[i + 1])
+              for i in xrange (0,len(self.isotopeListMrtau)):
+                self.numDensityLabelListMrtau.append('numDensity'+'|'+self.isotopeListMrtau[i])
+                self.decayLabelListMrtau.append('decay'+'|'+self.isotopeListMrtau[i])
+                decayListMrtau.append(decayLine[i+1])
           if breakFlag == 1:
             break
     return decayListMrtau
-
-  def getBurnUp(self, timeStepIndex, matchedTimeSteps):
+  
+  def getBurnUp(self,timeStepIndex,matchedTimeSteps):
     """
       Reads the main output file to get the burn up.
       @ In, timeStepIndex, integer, number of the timestep considered
@@ -853,16 +807,16 @@ class phisicsdata():
     buList = []
     timeStepList = []
     for mpi in range(len(self.instantOutputFileMPI)):
-      buFlag = 0
-      breakFlag = 0
-      matLineFlag = 0
+      buFlag = 0 
+      breakFlag = 0 
+      matLineFlag = 0 
       materialCounter = 0
       with open(os.path.join(self.workingDir, self.instantOutputFileMPI[mpi])) as outfile:
         for line in outfile:
-          if re.search(r'Burn Up \(GWd/MTHM\)', line):
+          if re.search(r'Burn Up \(GWd/MTHM\)',line):
             buFlag = 1
             materialCounter = materialCounter + 1
-          if re.search(r'Mass \(kg\)', line):
+          if re.search(r'Mass \(kg\)',line):
             breakFlag = 1
           if buFlag == 1 and breakFlag == 0:
             line = line.rstrip()
@@ -871,14 +825,13 @@ class phisicsdata():
               stringIsFloatNumber = self.isFloatNumber(buLine)
             if stringIsFloatNumber and buLine != []:
               if abs(float(buLine[0]) - float(matchedTimeSteps[timeStepIndex])) < 1.0e-10:
-                buLabelList.append(
-                    'bu' + '|' + self.materialsDict['MPI-' + str(mpi)][materialCounter])
-                buList.append(buLine[1])  # the burn up is on the second colum
+                buLabelList.append('bu'+'|'+self.materialsDict['MPI-'+str(mpi)][materialCounter])
+                buList.append(buLine[1]) # the burn up is on the second colum
           if breakFlag == 1:
-            break
+            break 
     return buLabelList, buList
-
-  def getRRlist(self, instantDict):
+  
+  def getRRlist(self,instantDict):
     """
       Puts the reaction rate labels and the reaction rate values in a list.
       @ In, instantDict, dictionary
@@ -889,22 +842,21 @@ class phisicsdata():
     rrValues = []
     if self.printSpatialRR:
       for param in self.paramList:
-        for j in range(1, self.Ngroups + 1):
+        for j in range(1,self.Ngroups + 1):
           for k in range(1, self.Nregions + 1):
-            if param not in ['Group', 'Region']:
-              rrNames.append(param + '|gr' + str(j) + '|reg' + str(k))
-              rrValues.append(
-                  instantDict.get('reactionRateInfo').get(str(j)).get(str(k)).get(param))
+            if param not in ['Group','Region']:
+              rrNames.append(param+'|gr'+str(j)+'|reg'+str(k))
+              rrValues.append(instantDict.get('reactionRateInfo').get(str(j)).get(str(k)).get(param))
     else:
       for param in self.paramList:
-        if param not in ['Group', 'Region']:
-          rrNames.append(param + '|Total')
+        if param not in ['Group','Region']:
+          rrNames.append(param+'|Total')
           rrValues.append(instantDict.get('reactionRateInfo').get(param))
     if 'Group' in rrNames:
       rrNames.remove('Group')
     return rrNames, rrValues
-
-  def writeCSV(self, instantDict, timeStepIndex, matchedTimeSteps, jobTitle):
+    
+  def writeCSV(self,instantDict,timeStepIndex,matchedTimeSteps,jobTitle):
     """
       Prints the INSTANT/MRTAU data in csv files.
       @ In, InstantDict, dictionary, contains all the values collected from INSTANT output
@@ -915,61 +867,30 @@ class phisicsdata():
     """
     if self.paramList != []:
       rrNames, rrValues = self.getRRlist(instantDict)
-      #csvOutput = os.path.join(instantDict.get('workingDir'),jobTitle+'-'+self.perturbationNumber+'.csv')
-      csvOutput = os.path.join(instantDict.get('workingDir'), jobTitle + '.csv')
+      csvOutput = os.path.join(instantDict.get('workingDir'),jobTitle+'.csv')
       if not self.phisicsRelap:
         with open(csvOutput, 'a+') as f:
-          instantWriter = csv.writer(
-              f,
-              delimiter=str(u',').encode('utf-8'),
-              quotechar=str(u',').encode('utf-8'),
-              quoting=csv.QUOTE_MINIMAL)
+          instantWriter = csv.writer(f, delimiter=str(u',').encode('utf-8'),quotechar=str(u',').encode('utf-8'), quoting=csv.QUOTE_MINIMAL)
           if timeStepIndex == 0:
-            instantWriter.writerow(
-                ['timeMrTau'] + ['keff'] + ['errorKeff'] + rrNames +
-                instantDict.get('fluxLabelList') + instantDict.get('matFluxLabelList') +
-                instantDict.get('depLabelList') + instantDict.get('decayLabelList') +
-                instantDict.get('xsLabelList') + ['cpuTime'] + instantDict.get('buLabelList'))
-          instantWriter.writerow(
-              [str(matchedTimeSteps[timeStepIndex])] + instantDict.get('keff') + instantDict.get(
-                  'errorKeff') + rrValues + instantDict.get('fluxList') + instantDict.get(
-                      'matFluxList') + instantDict.get('depList') + instantDict.get('decayList') +
-              instantDict.get('xsList') + instantDict.get('cpuTime') + instantDict.get('buList'))
+            instantWriter.writerow(['timeMrTau'] + ['keff'] + ['errorKeff'] + rrNames + instantDict.get('fluxLabelList') + instantDict.get('matFluxLabelList') + instantDict.get('depLabelList') + instantDict.get('decayLabelList') + instantDict.get('xsLabelList') + ['cpuTime'] + instantDict.get('buLabelList'))
+          instantWriter.writerow([str(matchedTimeSteps[timeStepIndex])] + instantDict.get('keff') + instantDict.get('errorKeff') + rrValues + instantDict.get('fluxList') + instantDict.get('matFluxList') + instantDict.get('depList') + instantDict.get('decayList') + instantDict.get('xsList') + instantDict.get('cpuTime') + instantDict.get('buList'))
       if self.phisicsRelap:
         with open(csvOutput, 'a+') as f:
-          instantWriter = csv.writer(
-              f,
-              delimiter=str(u',').encode('utf-8'),
-              quotechar=str(u',').encode('utf-8'),
-              quoting=csv.QUOTE_MINIMAL)
+          instantWriter = csv.writer(f, delimiter=str(u',').encode('utf-8'),quotechar=str(u',').encode('utf-8'), quoting=csv.QUOTE_MINIMAL)
           if timeStepIndex == 0:
-            instantWriter.writerow(
-                ['timeMrTau'] + ['keff'] + ['errorKeff'] + rrNames +
-                instantDict.get('fluxLabelList') + instantDict.get('powerDensLabelList') +
-                instantDict.get('depLabelList') + instantDict.get('decayLabelList') +
-                instantDict.get('xsLabelList') + ['cpuTime'] + instantDict.get('buLabelList'))
-          instantWriter.writerow(
-              [str(matchedTimeSteps[timeStepIndex])] + instantDict.get('keff') +
-              instantDict.get('errorKeff') + rrValues + instantDict.get('fluxList') + instantDict.
-              get('powerDensList') + instantDict.get('depList') + instantDict.get('decayList') +
-              instantDict.get('xsList') + [instantDict.get('cpuTime')] + instantDict.get('buList'))
-
-  def writeMrtauCSV(self, mrtauDict):
+            instantWriter.writerow(['timeMrTau'] + ['keff'] + ['errorKeff'] + rrNames + instantDict.get('fluxLabelList') + instantDict.get('powerDensLabelList') + instantDict.get('depLabelList') + instantDict.get('decayLabelList') + instantDict.get('xsLabelList') + ['cpuTime'] + instantDict.get('buLabelList'))
+          instantWriter.writerow([str(matchedTimeSteps[timeStepIndex])] + instantDict.get('keff') + instantDict.get('errorKeff') + rrValues + instantDict.get('fluxList') + instantDict.get('powerDensList') + instantDict.get('depList') + instantDict.get('decayList') + instantDict.get('xsList') + [instantDict.get('cpuTime')] + instantDict.get('buList'))
+     
+  def writeMrtauCSV(self,mrtauDict):
     """
-      Prints the MRTAU standalone data in a csv file.
+      Prints the MRTAU standalone data in a csv file. 
       @ In, mrtauDict, dictionary, contains all the values collected from MRTAU output
       @ Out, None
-    """
-    #csvOutput = os.path.join(mrtauDict.get('workingDir'),'mrtau'+'-'+self.perturbationNumber+'.csv')
-    csvOutput = os.path.join(mrtauDict.get('workingDir'), 'mrtau' + '.csv')
+    """ 
+    csvOutput = os.path.join(mrtauDict.get('workingDir'),'mrtau'+'.csv')
     with open(csvOutput, 'a+') as f:
-      mrtauWriter = csv.writer(
-          f,
-          delimiter=str(u',').encode('utf-8'),
-          quotechar=str(u',').encode('utf-8'),
-          quoting=csv.QUOTE_MINIMAL)
+      mrtauWriter = csv.writer(f, delimiter=str(u',').encode('utf-8'),quotechar=str(u',').encode('utf-8'), quoting=csv.QUOTE_MINIMAL)
       if mrtauDict.get('timeStepIndex') == 0:
-        mrtauWriter.writerow(
-            ['timeMrTau'] + self.numDensityLabelListMrtau + self.decayLabelListMrtau)
-      mrtauWriter.writerow([str(mrtauDict.get('mrtauTimeSteps')[mrtauDict.get('timeStepIndex')])] +
-                           mrtauDict.get('depList') + mrtauDict.get('decayHeatMrtau'))
+        mrtauWriter.writerow(['timeMrTau'] + self.numDensityLabelListMrtau + self.decayLabelListMrtau)
+      mrtauWriter.writerow( [str(mrtauDict.get('mrtauTimeSteps')[mrtauDict.get('timeStepIndex')])] + mrtauDict.get('depList') + mrtauDict.get('decayHeatMrtau'))
+    
