@@ -48,6 +48,7 @@ class ARMA(superVisedLearning):
     Time series Y: Y = X + \sum_{i}\sum_k [\delta_ki1*sin(2pi*k/basePeriod_i)+\delta_ki2*cos(2pi*k/basePeriod_i)]
     ARMA series X: x_t = \sum_{i=1}^P \phi_i*x_{t-i} + \alpha_t + \sum_{j=1}^Q \theta_j*\alpha_{t-j}
   """
+  ### INHERITED METHODS ###
   def __init__(self,messageHandler,**kwargs):
     """
       A constructor that will appropriately intialize a supervised learning object
@@ -121,16 +122,6 @@ class ARMA(superVisedLearning):
       self.reseed(seed)
     self.__dict__ = d
 
-  def _localNormalizeData(self,values,names,feat): # This function is not used in this class and can be removed
-    """
-      Overwrites default normalization procedure.
-      @ In, values, unused
-      @ In, names, unused
-      @ In, feat, feature to normalize
-      @ Out, None
-    """
-    self.muAndSigmaFeatures[feat] = (0.0,1.0)
-
   def __trainLocal__(self,featureVals,targetVals):
     """
       Perform training on input database stored in featureVals.
@@ -154,7 +145,6 @@ class ARMA(superVisedLearning):
       #   the mean and variance in time, but the mean, variance, skewness, and kurtosis over time and realizations.
       #   In this way, outliers in the training data could be captured with significantly more representation.
       timeSeriesData = targetVals[:,t]
-      print('DEBUGG timeseries shape:',timeSeriesData.shape)
       if len(timeSeriesData.shape) != 1:
         self.raiseAnError(IOError,'The ARMA only can be trained on a single history realization!  Was given shape {}.'
                                   .format(len(timeSeriesData.shape)))
@@ -172,14 +162,81 @@ class ARMA(superVisedLearning):
       # J.M.Morales, R.Minguez, A.J.Conejo "A methodology to generate statistically dependent wind speed scenarios,"
       # Applied Energy, 87(2010) 843-855
       self.raiseADebug('... ... analyzing ARMA properties ...')
-      ## generate the CDF for normalization parameters
-      self.cdfData[target] = self._generateCDF(timeSeriesData)
-      ## store training, normed training data
-      self.trainingData[target] = {'raw': timeSeriesData,
-                                   'norm': self._dataConversion(timeSeriesData, target, 'normalize')}
+      ## store de-Fourier training data
+      #self.trainingData[target] = {'raw': timeSeriesData} #,
+      #                             #'norm': self._dataConversion(timeSeriesData, target, 'normalize')}
       # finish training the ARMA
-      self.armaResult[target] = self._trainARMA(target)
+      self.armaResult[target] = self._trainARMA(timeSeriesData)
       self.raiseADebug('... ... finished training target "{}"'.format(target))
+
+  def __evaluateLocal__(self,featureVals):
+    """
+      @ In, featureVals, float, a scalar feature value is passed as scaling factor
+      @ Out, returnEvaluation , dict, dictionary of values for each target (and pivot parameter)
+    """
+    if featureVals.size > 1:
+      self.raiseAnError(ValueError, 'The input feature for ARMA for evaluation cannot have size greater than 1. ')
+
+    # Instantiate a normal distribution for time series synthesis (noise part)
+    # TODO USE THIS, but first retrofix rvs on norm to take "size=") for number of results
+    normEvaluateEngine = None
+    #normEvaluateEngine = Distributions.returnInstance('Normal',self)
+    #normEvaluateEngine.mean, normEvaluateEngine.sigma = 0, 1
+    #normEvaluateEngine.upperBoundUsed, normEvaluateEngine.lowerBoundUsed = False, False
+    #normEvaluateEngine.initializeDistribution()
+
+    numTimeStep = len(self.pivotParameterValues)
+    # make sure pivot value is in return object
+    returnEvaluation = {self.pivotParameterID:self.pivotParameterValues[0:numTimeStep]}
+
+    # TODO when we have output printing for ROMs, the distinct signals here could be outputs!
+    for tIdx,target in enumerate(self.target):
+      result = self.armaResult[target] # ARMAResults object
+
+      # generate baseline ARMA + noise
+      signal = self._generateARMASignal(result, numSamples=numTimeStep, randEngine=normEvaluateEngine)
+
+      # Add fourier trends
+      if self.hasFourierSeries:
+        signal += self.fourierResults[target]['predict']
+
+      # Ensure positivity
+      if self.outTruncation is not None:
+        if self.outTruncation == 'positive':
+          signal = np.absolute(signal)
+        elif self.outTruncation == 'negative':
+          signal = -np.absolute(signal)
+
+      # store results
+      ## FIXME this is ASSUMING the input to ARMA is only ever a single scaling factor.
+      signal *= featureVals[0]
+      # sanity check on the signal
+      assert(signal.size == returnEvaluation[self.pivotParameterID].size)
+      returnEvaluation[target] = signal
+    # END for target in targets
+    return returnEvaluation
+
+  def reseed(self,seed):
+    """
+      Used to set the underlying random seed.
+      @ In, seed, int, new seed to use
+      @ Out, None
+    """
+    randomUtils.randomSeed(seed)
+
+  ### UTILITY METHODS ###
+  def _trainARMA(self,data):
+    """
+      Fit ARMA model: x_t = \sum_{i=1}^P \phi_i*x_{t-i} + \alpha_t + \sum_{j=1}^Q \theta_j*\alpha_{t-j}
+      @ In, data, np.array(float), data on which to train
+      @ Out, results, statsmodels.tsa.arima_model.ARMAResults, fitted ARMA
+    """
+    # input parameters
+    # XXX change input parameters to just p,q
+    # TODO option to optimize for best p,q?
+    Pmax = self.Pmax
+    Qmax = self.Qmax
+    return smARMA(data, order=(Pmax,Qmax)).fit(disp=False)
 
   def _trainFourier(self, pivotValues, basePeriod, order, values):
     """
@@ -228,157 +285,26 @@ class ARMA(superVisedLearning):
     fourierResult['predict'] = np.asarray(fourierEngine.predict(fSeriesBest))
     return fourierResult
 
-  def _trainARMA(self,target):
+  def _generateARMASignal(self, model, numSamples=None, randEngine=None):
     """
-      Fit ARMA model: x_t = \sum_{i=1}^P \phi_i*x_{t-i} + \alpha_t + \sum_{j=1}^Q \theta_j*\alpha_{t-j}
-      Data series to this function has been normalized so that it is standard gaussian
-      @ In, target, string, name of target to train ARMA for
-      @ Out, results, statsmodels.tsa.arima_model.ARMAResults, trained ARMA
+      Generates a synthetic history from fitted parameters.
+      @ In, model, statsmodels.tsa.arima_model.ARMAResults, fitted ARMA such as otained from _trainARMA
+      @ In, numSamples, int, optional, number of samples to take (default to pivotParameters length)
+      @ Out, hist, np.array(float), synthetic ARMA signal
     """
-    # XXX WORKING
-    # input parameters
-    Pmax = self.Pmax
-    Pmin = self.Pmin
-    Qmax = self.Qmax
-    Qmin = self.Qmin
-
-    # train on the normalized data
-    model = smARMA(self.trainingData[target]['norm'], order=(Pmax,Qmax))
-    results = model.fit(disp=False)
-    return results
-
-  def _generateCDF(self, data):
-    """
-      Generate empirical CDF function of the input data, and save the results in self
-      @ In, data, array, shape = [n_timeSteps, n_dimension], data over which the CDF will be generated
-      @ Out, cdfParams, dict, description of normalizing parameters
-    """
-    if len(data.shape) == 1:
-      data = np.reshape(data, newshape = (data.shape[0],1))
-    numPivots, numSamples = data.shape
-
-    # pre-size cdf parameters list
-    #cdfParams = [0]*numSamples
-
-    # for each sample considered, gather CDF of data as a function of time, for that sample
-    #for d in range(numSamples):
-    num_bins = self._computeNumberBins(data)
-    counts, binEdges = np.histogram(data, bins = num_bins, normed = True)
-    Delta = np.zeros(shape=(num_bins,1))
-    for n in range(num_bins):
-      Delta[n,0] = binEdges[n+1]-binEdges[n]
-    temp = np.cumsum(counts)*np.average(Delta)
-    cdf = np.insert(temp, 0, temp[0]) # minimum of CDF is set to temp[0] instead of 0 to avoid numerical issues
-    cdfParams = {}
-    cdfParams['bins'] = copy.deepcopy(binEdges)
-    cdfParams['binsMax'] = max(binEdges)
-    cdfParams['binsMin'] = min(binEdges)
-    cdfParams['CDF'] = copy.deepcopy(cdf)
-    cdfParams['CDFMax'] = max(cdf)
-    cdfParams['CDFMin'] = min(cdf)
-    cdfParams['binSearchEng'] = neighbors.NearestNeighbors(n_neighbors=2).fit([[b] for b in binEdges])
-    cdfParams['cdfSearchEng'] = neighbors.NearestNeighbors(n_neighbors=2).fit([[c] for c in cdf])
-    return cdfParams
-
-  def _computeNumberBins(self, data):
-    """
-      Compute number of bins determined by Freedman Diaconis rule
-      https://en.wikipedia.org/wiki/Freedman%E2%80%93Diaconis_rule
-      @ In, data, array, shape = [n_sample], data over which the number of bins is decided
-      @ Out, numBin, int, number of bins determined by Freedman Diaconis rule
-    """
-    IQR = np.percentile(data, 75) - np.percentile(data, 25)
-    if IQR <= 0.0:
-      self.raiseAnError(RuntimeError,"IQR is <= zero. Percentile 75% and Percentile 25% are the same: "+str(np.percentile(data, 25)))
-    binSize = 2.0*IQR*(data.size**(-1.0/3.0))
-    numBin = int((max(data)-min(data))/binSize)
-    return numBin
-
-  def _getCDF(self,params, x):
-    """
-      Get residue CDF value at point x
-      @ In, params, dict, CDF parameters (as obtained from _generateCDF)
-      @ In, x, float, variable value for which the CDF is computed
-      @ Out, y, float, CDF value
-    """
-    if x <= params['binsMin']:
-      y = params['CDF'][0]
-    elif x >= params['binsMax']:
-      y = params['CDF'][-1]
-    else:
-      ind = params['binSearchEng'].kneighbors(x, return_distance=False)
-      X, Y = params['bins'][ind], params['CDF'][ind]
-      if X[0,0] <= X[0,1]:
-        x1, x2, y1, y2 = X[0,0], X[0,1], Y[0,0], Y[0,1]
-      else:
-        x1, x2, y1, y2 = X[0,1], X[0,0], Y[0,1], Y[0,0]
-      if x1 == x2:
-        y = (y1+y2)/2.0
-      else:
-        y = y1 + 1.0*(y2-y1)/(x2-x1)*(x-x1)
-    return y
-
-  def _getInvCDF(self,params,x):
-    """
-      Get inverse residue CDF at point x
-      @ In, params, dict, fitted CDF parameters (as obtained with _generateCDF)
-      @ In, x, float, the CDF value for which the inverse value is computed
-      @ Out, y, float, variable value
-    """
-    # XXX needs "target"
-    if x < 0 or x > 1:
-      self.raiseAnError(ValueError, 'Input to __getRInvCDF__ is not in unit interval' )
-    elif x <= params['CDFMin']:
-      y = params['bins'][0]
-    elif x >= params['CDFMax']:
-      y = params['bins'][-1]
-    else:
-      ind = params['cdfSearchEng'].kneighbors(x, return_distance=False)
-      X = params['CDF'][ind]
-      Y = params['bins'][ind]
-      if X[0,0] <= X[0,1]:
-        x1, x2, y1, y2 = X[0,0], X[0,1], Y[0,0], Y[0,1]
-      else:
-        x1, x2, y1, y2 = X[0,1], X[0,0], Y[0,1], Y[0,0]
-      if x1 == x2:
-        y = (y1+y2)/2.0
-      else:
-        y = y1 + 1.0*(y2-y1)/(x2-x1)*(x-x1)
-    return y
-
-  def _dataConversion(self, data, target, obj):
-    """
-      Transform input data to a Normal/empirical distribution data set.
-      @ In, data, array, shape=[n_timeStep, n_dimension], input data to be transformed
-      @ In, target, str, name of variable that data represents
-      @ In, obj, string, specify whether to normalize or denormalize the data
-      @ Out, transformedData, array, shape = [n_timeStep, n_dimension], output transformed data that has normal/empirical distribution
-    """
-    # Instantiate a normal distribution for data conversion
-    normTransEngine = Distributions.returnInstance('Normal',self)
-    normTransEngine.mean, normTransEngine.sigma = 0, 1
-    normTransEngine.upperBoundUsed, normTransEngine.lowerBoundUsed = False, False
-    normTransEngine.initializeDistribution()
-
-    # Transform data
-    transformedData = np.zeros(len(data))
-    for n in range(len(data)):
-      if obj in ['normalize']:
-        temp = self._getCDF(self.cdfData[target], data[n])
-        # for numerical issues, value less than 1 returned by _getCDF can be greater than 1 when stored in temp
-        # This might be a numerical issue of dependent library.
-        # It seems gone now. Need further investigation.
-        if temp >= 1:
-          temp = 1 - np.finfo(float).eps
-        elif temp <= 0:
-          temp = np.finfo(float).eps
-        transformedData[n] = normTransEngine.ppf(temp)
-      elif obj in ['denormalize']:
-        temp = normTransEngine.cdf(data[n])
-        transformedData[n] = self._getInvCDF(self.cdfData[target],temp)
-      else:
-        self.raiseAnError(ValueError, 'Input obj to _dataConversion is not properly set')
-    return transformedData
+    if numSamples is None:
+      numSamples =  len(self.pivotParameterValues)
+    if randEngine is not None:
+      # if in debug mode, check to make sure the provided RVS engine can take the correct arguments
+      ## this is a weak check, but better than failing in the statsmodels.tsa.arima_process code
+      assert(randEngine.rvs(2))
+      assert(randEngine.rvs(size=2))
+    hist = sm.tsa.arma_generate_sample(ar = np.append(1., -model.arparams),
+                                       ma = np.append(1., model.maparams),
+                                       nsample = numSamples,
+                                       #distrvs = randEngine,
+                                       sigma = np.sqrt(model.sigma2))
+    return hist
 
   def _generateFourierSignal(self, pivots, basePeriod, fourierOrder):
     """
@@ -396,71 +322,16 @@ class ARMA(superVisedLearning):
         fourier[base][:, 2*orderBp+1] = np.cos(2*np.pi*(orderBp+1)/base*pivots)
     return fourier
 
-  def __evaluateLocal__(self,featureVals):
+  ### ESSENTIALLY UNUSED ###
+  def _localNormalizeData(self,values,names,feat):
     """
-      @ In, featureVals, float, a scalar feature value is passed as scaling factor
-      @ Out, returnEvaluation , dict, dictionary of values for each target (and pivot parameter)
+      Overwrites default normalization procedure, since we do not desire normalization in this implementation.
+      @ In, values, unused
+      @ In, names, unused
+      @ In, feat, feature to normalize
+      @ Out, None
     """
-    if featureVals.size > 1:
-      self.raiseAnError(ValueError, 'The input feature for ARMA for evaluation cannot have size greater than 1. ')
-
-    # Instantiate a normal distribution for time series synthesis (noise part)
-    normEvaluateEngine = Distributions.returnInstance('Normal',self)
-    normEvaluateEngine.mean, normEvaluateEngine.sigma = 0, 1
-    normEvaluateEngine.upperBoundUsed, normEvaluateEngine.lowerBoundUsed = False, False
-    normEvaluateEngine.initializeDistribution()
-
-    numTimeStep = len(self.pivotParameterValues)
-    # make sure pivot value is in return object
-    returnEvaluation = {self.pivotParameterID:self.pivotParameterValues[0:numTimeStep]}
-
-    # XXX DEBUGG
-    debugFile = file('signal_bases.csv','w')
-    debugFile.writelines('Time,'+','.join([str(x) for x in self.pivotParameterValues])+'\n')
-    for tIdx,target in enumerate(self.target):
-      result = self.armaResult[target] # ARMAResults object
-      # TODO is this the right treatment of covariance?? Only a single realization...
-      covariance = np.var(self.trainingData[target]['raw']) # covariance of "alpha" in Chen Rabiti paper
-
-      # initialize normalized noise
-      armaNoise = np.array(normEvaluateEngine.rvs(len(self.pivotParameterValues)))*covariance
-      signal = armaNoise
-      debugFile.writelines('signal_noise,'+','.join([str(x) for x in signal])+'\n')
-
-      # generate baseline ARMA
-      signal += result.predict()
-      debugFile.writelines('signal_arma,'+','.join([str(x) for x in signal])+'\n')
-
-      # Convert data back to empirically distributed (not normalized)
-      signal = self._dataConversion(signal, target, 'denormalize')
-
-      # Add fourier trends
-      if self.hasFourierSeries:
-        fourierSignal = self.fourierResults[target]['predict']
-        #if len(fourierSignal.shape) == 1:
-        #  fourierSignal = fourierSignal.reshape((fourierSignal.shape[0],1))
-        #else:
-        # TODO why is this necessary?
-        #fourierSignal = fourierSignal[0:numTimeStep,:]
-        signal += fourierSignal
-        debugFile.writelines('signal_fourier,'+','.join([str(x) for x in signal])+'\n')
-
-      # Ensure positivity --- FIXME -> what needs to be fixed?
-      if self.outTruncation is not None:
-        if self.outTruncation == 'positive':
-          signal = np.absolute(signal)
-        elif self.outTruncation == 'negative':
-          signal = -np.absolute(signal)
-
-      # store results
-      ## FIXME this is ASSUMING the input to ARMA is only ever a single scaling factor.
-      signal *= featureVals[0]
-      assert(signal.size == returnEvaluation[self.pivotParameterID].size)
-      returnEvaluation[target] = signal
-      debugFile.writelines('final,'+','.join([str(x) for x in signal])+'\n')
-    # END for target in targets
-
-    return returnEvaluation
+    self.muAndSigmaFeatures[feat] = (0.0,1.0)
 
   def __confidenceLocal__(self,featureVals):
     """
@@ -488,12 +359,4 @@ class ARMA(superVisedLearning):
       Currently not implemented for ARMA
     """
     pass
-
-  def reseed(self,seed):
-    """
-      Used to set the underlying random seed.
-      @ In, seed, int, new seed to use
-      @ Out, None
-    """
-    randomUtils.randomSeed(seed)
 
