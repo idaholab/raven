@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<Simulation verbosity="silent">
+<Simulation verbosity="debug">
   <TestInfo>
     <name>framework/PostProcessors/TemporalDataMiningPostProcessor/DimensionalityReduction/MultiDimensionalScaling</name>
     <author>chenj</author>
@@ -58,7 +58,7 @@
     <Grid name="gridSampler">
       <variable name="n">
         <distribution>uniDist</distribution>
-                <grid type='value' construction='equal' steps='149'>0.0 149.0</grid>
+                <grid type='value' construction='equal' steps='74'>0.0 149.0</grid>
       </variable>
         </Grid>
   </Samplers>
@@ -74,7 +74,7 @@
         <plot>
           <type>line</type>
           <x>mData|Output|Time</x>
-          <y>mData|Output|PCAEmbeddingVector1</y>
+          <y>mData|Output|PCADimension1</y>
           <interpPointsX>300</interpPointsX>
           <gridLocation>
             <x>0</x>
@@ -84,7 +84,7 @@
         <plot>
           <type>line</type>
           <x>mData|Output|Time</x>
-          <y>mData|Output|PCAEmbeddingVector2</y>
+          <y>mData|Output|PCADimension2</y>
           <interpPointsX>300</interpPointsX>
           <gridLocation>
             <x>1</x>
