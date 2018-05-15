@@ -60,7 +60,7 @@ class ARMA(superVisedLearning):
     self.printTag          = 'ARMA'
     self._dynamicHandling  = True # This ROM is able to manage the time-series on its own.
     self.trainingData      = {} # holds normalized ('norm') and original ('raw') training data, by target
-    self.cdfData           = {} # dictionary of fitted CDF parameters, by target
+    self.cdfParams         = {} # dictionary of fitted CDF parameters, by target
     self.fourierResults    = {} # dictionary of Fourier results, by target
     self.armaResult        = {} # dictionary of assorted useful arma information, by target
     self.Pmax              = kwargs.get('Pmax', 3) # bounds for autoregressive lag
@@ -71,6 +71,13 @@ class ARMA(superVisedLearning):
     self.outTruncation     = kwargs.get('outTruncation', None) # Additional parameters to allow user to specify the time series to be all positive or all negative
     self.pivotParameterID  = kwargs.get('pivotParameter', 'Time')
     self.pivotParameterValues = None  # In here we store the values of the pivot parameter (e.g. Time)
+
+    self.normEngine = Distributions.returnInstance('Normal',self)
+    self.normEngine.mean = 0.0
+    self.normEngine.sigma = 1.0
+    self.normEngine.upperBoundUsed = False
+    self.normEngine.lowerBoundUsed = False
+    self.normEngine.initializeDistribution()
 
     # check if the pivotParameter is among the targetValues
     if self.pivotParameterID not in self.target:
@@ -149,7 +156,6 @@ class ARMA(superVisedLearning):
         self.raiseAnError(IOError,'The ARMA only can be trained on a single history realization!  Was given shape {}.'
                                   .format(len(timeSeriesData.shape)))
       self.raiseADebug('... training target "{}" ...'.format(target))
-      #timeSeriesData.reshape(len(self.pivotParameterValues))
       # if we're removing Fourier signal, do that now.
       if self.hasFourierSeries:
         self.raiseADebug('... ... analyzing Fourier signal ...')
@@ -162,11 +168,12 @@ class ARMA(superVisedLearning):
       # J.M.Morales, R.Minguez, A.J.Conejo "A methodology to generate statistically dependent wind speed scenarios,"
       # Applied Energy, 87(2010) 843-855
       self.raiseADebug('... ... analyzing ARMA properties ...')
-      ## store de-Fourier training data
-      #self.trainingData[target] = {'raw': timeSeriesData} #,
-      #                             #'norm': self._dataConversion(timeSeriesData, target, 'normalize')}
-      # finish training the ARMA
-      self.armaResult[target] = self._trainARMA(timeSeriesData)
+      self.cdfParams[target] = self._trainCDF(timeSeriesData)
+      # normalize data
+      normed = self._normalizeThroughCDF(timeSeriesData, self.cdfParams[target])
+      # train the ARMA
+      self.raiseADebug('... ... training ...')
+      self.armaResult[target] = self._trainARMA(normed)
       self.raiseADebug('... ... finished training target "{}"'.format(target))
 
   def __evaluateLocal__(self,featureVals):
@@ -179,26 +186,29 @@ class ARMA(superVisedLearning):
 
     # Instantiate a normal distribution for time series synthesis (noise part)
     # TODO USE THIS, but first retrofix rvs on norm to take "size=") for number of results
-    normEvaluateEngine = None
-    #normEvaluateEngine = Distributions.returnInstance('Normal',self)
-    #normEvaluateEngine.mean, normEvaluateEngine.sigma = 0, 1
-    #normEvaluateEngine.upperBoundUsed, normEvaluateEngine.lowerBoundUsed = False, False
-    #normEvaluateEngine.initializeDistribution()
 
-    numTimeStep = len(self.pivotParameterValues)
     # make sure pivot value is in return object
-    returnEvaluation = {self.pivotParameterID:self.pivotParameterValues[0:numTimeStep]}
+    returnEvaluation = {self.pivotParameterID:self.pivotParameterValues}
 
     # TODO when we have output printing for ROMs, the distinct signals here could be outputs!
+    debuggFile = open('signal_bases.csv','w')
+    debuggFile.writelines('Time,'+','.join(str(x) for x in self.pivotParameterValues)+'\n')
     for tIdx,target in enumerate(self.target):
       result = self.armaResult[target] # ARMAResults object
 
       # generate baseline ARMA + noise
-      signal = self._generateARMASignal(result, numSamples=numTimeStep, randEngine=normEvaluateEngine)
+      signal = self._generateARMASignal(result,
+                                        numSamples = len(self.pivotParameterValues),
+                                        randEngine = self.normEngine.rvs)
+
+      # denoise
+      signal = self._denormalizeThroughCDF(signal,self.cdfParams[target])
+      debuggFile.writelines('signal_arma,'+','.join(str(x) for x in signal)+'\n')
 
       # Add fourier trends
       if self.hasFourierSeries:
         signal += self.fourierResults[target]['predict']
+        debuggFile.writelines('signal_fourier,'+','.join(str(x) for x in self.fourierResults[target]['predict'])+'\n')
 
       # Ensure positivity
       if self.outTruncation is not None:
@@ -212,6 +222,7 @@ class ARMA(superVisedLearning):
       signal *= featureVals[0]
       # sanity check on the signal
       assert(signal.size == returnEvaluation[self.pivotParameterID].size)
+      debuggFile.writelines('final,'+','.join(str(x) for x in signal)+'\n')
       returnEvaluation[target] = signal
     # END for target in targets
     return returnEvaluation
@@ -225,6 +236,103 @@ class ARMA(superVisedLearning):
     randomUtils.randomSeed(seed)
 
   ### UTILITY METHODS ###
+  def _computeNumberOfBins(self,data):
+    """
+      Uses the Freedman-Diaconis rule for histogram binning
+      @ In, data, np.array, data to bin
+      @ Out, n, integer, number of bins
+    """
+    iqr = np.percentile(data,75) - np.percentile(data,25)
+    if iqr <= 0.0:
+      self.raiseAnError(ValueError,'While computing CDF, 25 and 75 percentile are the same number!')
+    size = 2.0 * iqr / np.cbrt(data.size)
+    # tend towards too many bins, not too few
+    return int(np.ceil((max(data) - min(data))/size))
+
+  def _denormalizeThroughCDF(self, data, params):
+    """
+      Normalizes "data" using a Gaussian normal plus CDF of data
+      @ In, data, np.array, data to normalize with
+      @ In, params, dict, CDF parameters (as obtained by "generateCDF")
+      @ Out, normed, np.array, normalized data
+    """
+    denormed = self.normEngine.cdf(data)
+    denormed = self._sampleICDF(denormed, params)
+    return denormed
+
+  def _generateARMASignal(self, model, numSamples=None, randEngine=None):
+    """
+      Generates a synthetic history from fitted parameters.
+      @ In, model, statsmodels.tsa.arima_model.ARMAResults, fitted ARMA such as otained from _trainARMA
+      @ In, numSamples, int, optional, number of samples to take (default to pivotParameters length)
+      @ In, randEngine, instance, optional, method to call to get random samples (for example "randEngine(size=6)")
+      @ Out, hist, np.array(float), synthetic ARMA signal
+    """
+    if numSamples is None:
+      numSamples =  len(self.pivotParameterValues)
+    hist = sm.tsa.arma_generate_sample(ar = np.append(1., -model.arparams),
+                                       ma = np.append(1., model.maparams),
+                                       nsample = numSamples,
+                                       distrvs = randEngine,
+                                       sigma = np.sqrt(model.sigma2))
+    return hist
+
+  def _generateFourierSignal(self, pivots, basePeriod, fourierOrder):
+    """
+      Generate fourier signal as specified by the input file
+      @ In, pivots, np.array, pivot values (e.g. time)
+      @ In, basePeriod, list, list of base periods
+      @ In, fourierOrder, dict, order for each base period
+      @ Out, fourier, array, shape = [n_timeStep, n_basePeriod]
+    """
+    fourier = {}
+    for base in basePeriod:
+      fourier[base] = np.zeros((pivots.size, 2*fourierOrder[base]))
+      for orderBp in range(fourierOrder[base]):
+        fourier[base][:, 2*orderBp] = np.sin(2*np.pi*(orderBp+1)/base*pivots)
+        fourier[base][:, 2*orderBp+1] = np.cos(2*np.pi*(orderBp+1)/base*pivots)
+    return fourier
+
+  def _interpolateDist(self,x,y,Xlow,Xhigh,Ylow,Yhigh,inMask):
+    """
+      Interplotes values for samples "x" to get dependent values "y" given bins
+      @ In, x, np.array, sampled points (independent var)
+      @ In, y, np.array, sampled points (dependent var)
+      @ In, Xlow, np.array, left-nearest neighbor in empirical distribution for each x
+      @ In, Xhigh, np.array, right-nearest neighbor in empirical distribution for each x
+      @ In, Ylow, np.array, value at left-nearest neighbor in empirical distribution for each x
+      @ In, Yhigh, np.array, value at right-nearest neighbor in empirical distribution for each x
+      @ In, inMask, np.array, boolean mask in "y" where the distribution values apply
+      @ Out, y, np.array, same "y" but with values inserted
+    """
+    # treat potential divide-by-zeroes specially
+    ## mask
+    divZero = Xlow == Xhigh
+    ## careful when using double masks
+    y[[a[divZero] for a in np.where(inMask)]] =  0.5*(Yhigh[divZero] + Ylow[divZero])
+    # interpolate all other points as y = low + slope*frac
+    ## mask
+    okay = np.logical_not(divZero)
+    ## empirical CDF change in y, x
+    dy = Yhigh[okay] - Ylow[okay]
+    dx = Xhigh[okay] - Xlow[okay]
+    ## distance from x to low is fraction through dx
+    frac = x[inMask][okay] - Xlow[okay]
+    ## careful when using double masks
+    y[[a[okay] for a in np.where(inMask)]] = Ylow[okay] + dy/dx * frac
+    return y
+
+  def _normalizeThroughCDF(self, data, params):
+    """
+      Normalizes "data" using a Gaussian normal plus CDF of data
+      @ In, data, np.array, data to normalize with
+      @ In, params, dict, CDF parameters (as obtained by "generateCDF")
+      @ Out, normed, np.array, normalized data
+    """
+    normed = self._sampleCDF(data, params)
+    normed = self.normEngine.ppf(normed)
+    return normed
+
   def _trainARMA(self,data):
     """
       Fit ARMA model: x_t = \sum_{i=1}^P \phi_i*x_{t-i} + \alpha_t + \sum_{j=1}^Q \theta_j*\alpha_{t-j}
@@ -237,6 +345,90 @@ class ARMA(superVisedLearning):
     Pmax = self.Pmax
     Qmax = self.Qmax
     return smARMA(data, order=(Pmax,Qmax)).fit(disp=False)
+
+  def _sampleCDF(self,x,params):
+    """
+      Samples the CDF defined in 'params' to get values
+      @ In, x, float, value at which to sample inverse CDF
+      @ In, params, dict, CDF parameters (as constructed by "_trainCDF")
+      @ Out, y, float, value of inverse CDF at x
+    """
+    # TODO could this be covered by an empirical distribution from Distributions?
+    # set up I/O
+    x = np.atleast_1d(x)
+    y = np.zeros(x.shape)
+    # create masks for data outside range (above, below), inside range of empirical CDF
+    belowMask = x <= params['bins'][0]
+    aboveMask = x >= params['bins'][-1]
+    inMask = np.logical_and(np.logical_not(belowMask), np.logical_not(aboveMask))
+    # outside CDF set to min, max CDF values
+    y[belowMask] = params['cdf'][0]
+    y[aboveMask] = params['cdf'][-1]
+    # for points in the CDF linearly interpolate between empirical entries
+    ## get indices where points should be inserted (gives higher value)
+    indices = np.searchsorted(params['bins'],x[inMask])
+    Xlow = params['bins'][indices-1]
+    Ylow = params['cdf'][indices-1]
+    Xhigh = params['bins'][indices]
+    Yhigh = params['cdf'][indices]
+    y = self._interpolateDist(x,y,Xlow,Xhigh,Ylow,Yhigh,inMask)
+    # numerical errors can happen due to not-sharp 0 and 1 in empirical cdf
+    ## also, when Crow dist is asked for ppf(1) it returns sys.max (similar for ppf(0))
+    y[y >= 1.0] = 1.0 - np.finfo(float).eps
+    y[y <= 0.0] = np.finfo(float).eps
+    return y
+
+  def _sampleICDF(self,x,params):
+    """
+      Samples the inverse CDF defined in 'params' to get values
+      @ In, x, float, value at which to sample inverse CDF
+      @ In, params, dict, CDF parameters (as constructed by "_trainCDF")
+      @ Out, y, float, value of inverse CDF at x
+   """
+    # TODO could this be covered by an empirical distribution from Distributions?
+    # set up I/O
+    x = np.atleast_1d(x)
+    y = np.zeros(x.shape)
+    # create masks for data outside range (above, below), inside range of empirical CDF
+    belowMask = x <= params['cdf'][0]
+    aboveMask = x >= params['cdf'][-1]
+    inMask = np.logical_and(np.logical_not(belowMask), np.logical_not(aboveMask))
+    # outside CDF set to min, max CDF values
+    y[belowMask] = params['bins'][0]
+    y[aboveMask] = params['bins'][-1]
+    # for points in the CDF linearly interpolate between empirical entries
+    ## get indices where points should be inserted (gives higher value)
+    indices = np.searchsorted(params['cdf'],x[inMask])
+    Xlow = params['cdf'][indices-1]
+    Ylow = params['bins'][indices-1]
+    Xhigh = params['cdf'][indices]
+    Yhigh = params['bins'][indices]
+    y = self._interpolateDist(x,y,Xlow,Xhigh,Ylow,Yhigh,inMask)
+    return y
+
+  def _trainCDF(self,data):
+    """
+      Constructs a CDF from the given data
+      @ In, data, np.array(float), values to fit to
+      @ Out, params, dict, essential parameters for CDF
+    """
+    # caluclate number of bins
+    nBins = self._computeNumberOfBins(data)
+    # construct histogram
+    counts, edges = np.histogram(data, bins = nBins, normed = True)
+    # bin widths
+    widths = edges[1:] - edges[:-1]
+    # numerical CDF
+    integrated = np.cumsum(counts)*np.average(widths)
+    # set lowest value as first entry,
+    ## from Jun implementation, min of CDF set to starting point for numerical issues
+    cdf = np.insert(integrated, 0, integrated[0])
+    # store parameters
+    params = {'bins':edges,
+              'cdf':cdf}
+              #'binSearch':neighbors.NearestNeighbors(n_neighbors=2).fit([[b] for b in edges]),
+              #'cdfSearch':neighbors.NearestNeighbors(n_neighbors=2).fit([[c] for c in cdf])}
+    return params
 
   def _trainFourier(self, pivotValues, basePeriod, order, values):
     """
@@ -284,43 +476,6 @@ class ARMA(superVisedLearning):
     fourierEngine.fit(fSeriesBest,values)
     fourierResult['predict'] = np.asarray(fourierEngine.predict(fSeriesBest))
     return fourierResult
-
-  def _generateARMASignal(self, model, numSamples=None, randEngine=None):
-    """
-      Generates a synthetic history from fitted parameters.
-      @ In, model, statsmodels.tsa.arima_model.ARMAResults, fitted ARMA such as otained from _trainARMA
-      @ In, numSamples, int, optional, number of samples to take (default to pivotParameters length)
-      @ Out, hist, np.array(float), synthetic ARMA signal
-    """
-    if numSamples is None:
-      numSamples =  len(self.pivotParameterValues)
-    if randEngine is not None:
-      # if in debug mode, check to make sure the provided RVS engine can take the correct arguments
-      ## this is a weak check, but better than failing in the statsmodels.tsa.arima_process code
-      assert(randEngine.rvs(2))
-      assert(randEngine.rvs(size=2))
-    hist = sm.tsa.arma_generate_sample(ar = np.append(1., -model.arparams),
-                                       ma = np.append(1., model.maparams),
-                                       nsample = numSamples,
-                                       #distrvs = randEngine,
-                                       sigma = np.sqrt(model.sigma2))
-    return hist
-
-  def _generateFourierSignal(self, pivots, basePeriod, fourierOrder):
-    """
-      Generate fourier signal as specified by the input file
-      @ In, pivots, np.array, pivot values (e.g. time)
-      @ In, basePeriod, list, list of base periods
-      @ In, fourierOrder, dict, order for each base period
-      @ Out, fourier, array, shape = [n_timeStep, n_basePeriod]
-    """
-    fourier = {}
-    for base in basePeriod:
-      fourier[base] = np.zeros((pivots.size, 2*fourierOrder[base]))
-      for orderBp in range(fourierOrder[base]):
-        fourier[base][:, 2*orderBp] = np.sin(2*np.pi*(orderBp+1)/base*pivots)
-        fourier[base][:, 2*orderBp+1] = np.cos(2*np.pi*(orderBp+1)/base*pivots)
-    return fourier
 
   ### ESSENTIALLY UNUSED ###
   def _localNormalizeData(self,values,names,feat):
