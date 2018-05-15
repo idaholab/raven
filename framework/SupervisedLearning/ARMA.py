@@ -36,11 +36,11 @@ from scipy import optimize
 #Internal Modules------------------------------------------------------------------------------------
 from utils import randomUtils
 import Distributions
-from .SupervisedLearning import superVisedLearning
+from .SupervisedLearning import supervisedLearning
 from sklearn import linear_model, neighbors
 #Internal Modules End--------------------------------------------------------------------------------
 
-class ARMA(superVisedLearning):
+class ARMA(supervisedLearning):
   """
     Autoregressive Moving Average model for time series analysis. First train then evaluate.
     Specify a Fourier node in input file if detrending by Fourier series is needed.
@@ -56,7 +56,7 @@ class ARMA(superVisedLearning):
                            and printing messages
       @ In, kwargs: an arbitrary dictionary of keywords and values
     """
-    superVisedLearning.__init__(self,messageHandler,**kwargs)
+    supervisedLearning.__init__(self,messageHandler,**kwargs)
     self.printTag          = 'ARMA'
     self._dynamicHandling  = True # This ROM is able to manage the time-series on its own.
     self.trainingData      = {} # holds normalized ('norm') and original ('raw') training data, by target

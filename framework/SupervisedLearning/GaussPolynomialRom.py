@@ -33,12 +33,12 @@ from scipy import spatial
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from .SupervisedLearning import superVisedLearning
+from .SupervisedLearning import supervisedLearning
 #Internal Modules End--------------------------------------------------------------------------------
 
 
 
-class GaussPolynomialRom(superVisedLearning):
+class GaussPolynomialRom(supervisedLearning):
   """
     Gauss Polynomial Rom Class
   """
@@ -81,7 +81,7 @@ class GaussPolynomialRom(superVisedLearning):
       @ In, kwargs, dict, an arbitrary list of kwargs
       @ Out, None
     """
-    superVisedLearning.__init__(self,messageHandler,**kwargs)
+    supervisedLearning.__init__(self,messageHandler,**kwargs)
     self.initialized   = False #only True once self.initialize has been called
     self.interpolator  = None #FIXME what's this?
     self.printTag      = 'GAUSSgpcROM('+'-'.join(self.target)+')'

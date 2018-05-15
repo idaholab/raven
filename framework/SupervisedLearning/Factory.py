@@ -26,7 +26,7 @@ if not 'xrange' in dir(__builtins__):
 
 ################################################################################
 
-from SupervisedLearning.SupervisedLearning import superVisedLearning
+from SupervisedLearning.SupervisedLearning import supervisedLearning
 # Forward Samplers
 from SupervisedLearning.ARMA               import ARMA
 from SupervisedLearning.GaussPolynomialRom import GaussPolynomialRom
@@ -37,6 +37,8 @@ from SupervisedLearning.NDinvDistWeight    import NDinvDistWeight
 from SupervisedLearning.NDsplineRom        import NDsplineRom
 from SupervisedLearning.SciKitLearn        import SciKitLearn
 from SupervisedLearning.pickledROM         import pickledROM
+from SupervisedLearning.PolyExponential    import PolyExponential
+from SupervisedLearning.DynamicModeDecomposition import DynamicModeDecompostion
 
 ## [ Add new class here ]
 ################################################################################
@@ -47,7 +49,7 @@ from SupervisedLearning.pickledROM         import pickledROM
 """
 # This machinery will automatically populate the "knownTypes" given the
 # imports defined above.
-__base = 'superVisedLearning'
+__base = 'supervisedLearning'
 __interfaceDict                         = {}
 __interfaceDict['NDspline'            ] = NDsplineRom
 __interfaceDict['NDinvDistWeight'     ] = NDinvDistWeight
@@ -57,6 +59,8 @@ __interfaceDict['HDMRRom'             ] = HDMRRom
 __interfaceDict['MSR'                 ] = MSR
 __interfaceDict['ARMA'                ] = ARMA
 __interfaceDict['pickledROM'          ] = pickledROM
+__interfaceDict['PolyExponential'     ] = PolyExponential
+__interfaceDict['DynamicModeDecomposition'] = DynamicModeDecomposition
 
 def knownTypes():
   """

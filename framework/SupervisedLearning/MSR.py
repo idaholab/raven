@@ -30,7 +30,7 @@ import math
 
 #Internal Modules------------------------------------------------------------------------------------
 from .NDinterpolatorRom import NDinterpolatorRom
-from .SupervisedLearning import superVisedLearning
+from .SupervisedLearning import supervisedLearning
 from sklearn import neighbors, svm
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -48,7 +48,7 @@ class MSR(NDinterpolatorRom):
       @ Out, None
     """
     self.printTag = 'MSR ROM'
-    superVisedLearning.__init__(self,messageHandler,**kwargs)
+    supervisedLearning.__init__(self,messageHandler,**kwargs)
     self.acceptedGraphParam = ['approximate knn', 'delaunay', 'beta skeleton', \
                                'relaxed beta skeleton']
     self.acceptedPersistenceParam = ['difference','probability','count','area']

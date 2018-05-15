@@ -29,13 +29,13 @@ import numpy as np
 
 #Internal Modules------------------------------------------------------------------------------------
 from utils import utils
-interpolationND = utils.find_interpolationND()
-from .SupervisedLearning import superVisedLearning
+interpolationND = utils.findCrowModule("interpolationND")
+from .SupervisedLearning import supervisedLearning
 #Internal Modules End--------------------------------------------------------------------------------
 
 
 
-class NDinterpolatorRom(superVisedLearning):
+class NDinterpolatorRom(supervisedLearning):
   """
   A Reduced Order Model for interpolating N-dimensional data
   """
@@ -46,7 +46,7 @@ class NDinterpolatorRom(superVisedLearning):
       @ In, kwargs, dict, an arbitrary dictionary of keywords and values
       @ Out, None
     """
-    superVisedLearning.__init__(self,messageHandler,**kwargs)
+    supervisedLearning.__init__(self,messageHandler,**kwargs)
     self.interpolator = []    # pointer to the C++ (crow) interpolator (list of targets)
     self.featv        = None  # list of feature variables
     self.targv        = None  # list of target variables

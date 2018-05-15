@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework/ROM/TimeSeries.ARMAparallel</name>
+    <name>framework/ROM/TimeSeries/ARMA.ARMAparallel</name>
     <author>alfoa</author>
     <created>2017-02-02</created>
     <classesTested>SupervisedLearning.ARMA</classesTested>
@@ -17,6 +17,7 @@
       <revision author="alfoa" date="2017-02-03">Adding this test description.</revision>
       <revision author="talbpaul" date="2017-07-12">Inserted "reseedCopies" option as False, batchSize to 2</revision>
       <revision author="alfoa" date="2017-12-13">adapted for new DataObject structure</revision>
+      <revision author="alfoa" date="2018-04-26">Modified location of the test (ARMA folder)</revision>
     </revisions>
   </TestInfo>
 

@@ -131,5 +131,5 @@ class FiniteDifferenceGradientOptimizer(SPSA):
         gradArray[var][i] = lossDiff/dh
     gradient = {}
     for var in optVars:
-      gradient[var] = gradArray[var].mean()
+      gradient[var] = np.atleast_1d(gradArray[var].mean())
     return gradient

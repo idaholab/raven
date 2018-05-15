@@ -1,4 +1,6 @@
 <ROM type="Static">
+  <type>GAUSSgpcROM(ans)</type>
+
   <ans>
     <mean>1.0296</mean>
     <expectedValue>1.0296</expectedValue>

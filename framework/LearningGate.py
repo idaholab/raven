@@ -63,6 +63,8 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
       # check how many targets
       if not 'Target' in self.initializationOptions.keys():
         self.raiseAnError(IOError,'No Targets specified!!!')
+    # check if pivotParameter is specified and in case store it
+    self.pivotParameterId     = self.initializationOptions.pop("pivotParameter",'time')
     # return instance of the ROMclass
     modelInstance = SupervisedLearning.returnInstance(ROMclass,self,**self.initializationOptions)
     # check if the model can autonomously handle the time-dependency (if not and time-dep data are passed in, a list of ROMs are constructed)
@@ -71,8 +73,7 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
     self.isADynamicModel      = False
     # if it is dynamic and time series are passed in, self.supervisedContainer is not going to be expanded, else it is going to
     self.supervisedContainer     = [modelInstance]
-    # check if pivotParameter is specified and in case store it
-    self.pivotParameterId     = self.initializationOptions.pop("pivotParameter",'time')
+
     #
     self.historySteps         = []
 

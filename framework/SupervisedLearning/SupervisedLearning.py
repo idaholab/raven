@@ -48,9 +48,9 @@ import MessageHandler
 interpolationND = utils.find_interpolationND()
 #Internal Modules End--------------------------------------------------------------------------------
 
-class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.MessageUser):
+class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.MessageUser):
   """
-    This is the general interface to any superVisedLearning learning method.
+    This is the general interface to any supervisedLearning learning method.
     Essentially it contains a train method and an evaluate method
   """
   returnType       = ''    # this describe the type of information generated the possibility are 'boolean', 'integer', 'float'
@@ -73,7 +73,7 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     if type(arrayIn).__name__ == 'list':
       if isDynamic:
         for cnt, elementArray in enumerate(arrayIn):
-          resp = superVisedLearning.checkArrayConsistency(elementArray)
+          resp = supervisedLearning.checkArrayConsistency(elementArray)
           if not resp[0]:
             return (False,' The element number '+str(cnt)+' is not a consistent array. Error: '+resp[1])
       else:
@@ -128,8 +128,8 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
 
   def train(self,tdict):
     """
-      Method to perform the training of the superVisedLearning algorithm
-      NB.the superVisedLearning object is committed to convert the dictionary that is passed (in), into the local format
+      Method to perform the training of the supervisedLearning algorithm
+      NB.the supervisedLearning object is committed to convert the dictionary that is passed (in), into the local format
       the interface with the kernels requires. So far the base class will do the translation into numpy
       @ In, tdict, dict, training dictionary
       @ Out, None
@@ -213,8 +213,8 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
 
   def evaluate(self,edict):
     """
-      Method to perform the evaluation of a point or a set of points through the previous trained superVisedLearning algorithm
-      NB.the superVisedLearning object is committed to convert the dictionary that is passed (in), into the local format
+      Method to perform the evaluation of a point or a set of points through the previous trained supervisedLearning algorithm
+      NB.the supervisedLearning object is committed to convert the dictionary that is passed (in), into the local format
       the interface with the kernels requires.
       @ In, edict, dict, evaluation dictionary
       @ Out, evaluate, numpy.array, evaluated points
@@ -264,6 +264,26 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     currParDict = dict({'Trained':self.amITrained}.items() + self.__CurrentSettingDictLocal__().items())
     return currParDict
 
+  def printXMLSetup(self,outFile,options={}):
+    """
+      Allows the SVE to put whatever it wants into an XML file only once (right before calling pringXML)
+      @ In, outFile, Files.File, either StaticXMLOutput or DynamicXMLOutput file
+      @ In, options, dict, optional, dict of string-based options to use, including filename, things to print, etc
+      @ Out, None
+    """
+    outFile.addScalar('ROM',"type",self.printTag)
+    self._localPrintXMLSetup(outFile,options)
+
+  def _localPrintXMLSetup(self,outFile,pivotVal,options={}):
+    """
+      Specific local method for printing anything desired to xml file at the begin of the print.
+      Overwrite in inheriting classes.
+      @ In, outFile, Files.File, either StaticXMLOutput or DynamicXMLOutput file
+      @ In, options, dict, optional, dict of string-based options to use, including filename, things to print, etc
+      @ Out, None
+    """
+    pass
+
   def printXML(self,outFile,pivotVal,options={}):
     """
       Allows the SVE to put whatever it wants into an XML to print to file.
@@ -274,14 +294,14 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     """
     self._localPrintXML(outFile,pivotVal,options)
 
-  def _localPrintXML(self,node,options=None):
+  def _localPrintXML(self,node,options={}):
     """
       Specific local method for printing anything desired to xml file.  Overwrite in inheriting classes.
-      @ In, node, the node to which strings should have text added
-      @ In, options, dict of string-based options to use, including filename, things to print, etc
+      @ In, outFile, Files.File, either StaticXMLOutput or DynamicXMLOutput file
+      @ In, options, dict, optional, dict of string-based options to use, including filename, things to print, etc
       @ Out, None
     """
-    node.addText('ROM of type '+str(self.printTag.strip())+' has no special output options.')
+    outFile.addScalar('ROM',"noInfo",'ROM of type '+str(self.printTag.strip())+' has no special output options.')
 
   def isDynamic(self):
     """

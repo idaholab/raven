@@ -79,6 +79,7 @@ class HistorySet(DataSet):
     self.type      = 'HistorySet'
     self.printTag  = self.name
     self._tempPivotParam = None
+    self._neededForReload = [] # HistorySet doesn't need anything special to load, since it's written in cluster-by-sample CSV format
 
   def _readMoreXML(self,xmlNode):
     """

@@ -28,7 +28,7 @@ warnings.simplefilter('default',DeprecationWarning)
 
 #Internal Modules------------------------------------------------------------------------------------
 from utils import utils
-interpolationND = utils.find_interpolationND()
+interpolationND = utils.findCrowModule("interpolationND")
 from .NDinterpolatorRom import NDinterpolatorRom
 #Internal Modules End--------------------------------------------------------------------------------
 

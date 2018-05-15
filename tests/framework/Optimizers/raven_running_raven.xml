@@ -53,6 +53,8 @@
         <upperBound>1</upperBound>
         <initial>0</initial>
       </variable>
+      <constant name="vectorConst">2,4,6,8,10</constant>
+      <constant name="vectorIndex">1,2,3,4,5</constant>
       <objectVar>reg</objectVar>
     </SPSA>
   </Optimizers>
@@ -62,6 +64,8 @@
       <executable>../../../raven_framework</executable>
       <outputExportOutStreams>opt_export</outputExportOutStreams>
       <alias variable="center" type="input">Optimizers|SPSA|constant@name:center</alias>
+      <alias variable="vectorConst" type="input">Optimizers|SPSA|constant@name:vectorConst</alias>
+      <alias variable="vectorIndex" type="input">Optimizers|SPSA|constant@name:vectorIndex</alias>
     </Code>
   </Models>
 

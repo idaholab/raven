@@ -43,10 +43,10 @@ import ast
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from .SupervisedLearning import superVisedLearning
+from .SupervisedLearning import supervisedLearning
 #Internal Modules End--------------------------------------------------------------------------------
 
-class SciKitLearn(superVisedLearning):
+class SciKitLearn(supervisedLearning):
   """
     An Interface to the ROMs provided by skLearn
   """
@@ -174,7 +174,7 @@ class SciKitLearn(superVisedLearning):
       @ In, kwargs, dict, an arbitrary list of kwargs
       @ Out, None
     """
-    superVisedLearning.__init__(self,messageHandler,**kwargs)
+    supervisedLearning.__init__(self,messageHandler,**kwargs)
     name  = self.initOptionDict.pop('name','')
     self.printTag = 'SCIKITLEARN'
     if 'SKLtype' not in self.initOptionDict.keys():
