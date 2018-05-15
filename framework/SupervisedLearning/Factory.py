@@ -38,7 +38,7 @@ from SupervisedLearning.NDsplineRom        import NDsplineRom
 from SupervisedLearning.SciKitLearn        import SciKitLearn
 from SupervisedLearning.pickledROM         import pickledROM
 from SupervisedLearning.PolyExponential    import PolyExponential
-from SupervisedLearning.DynamicModeDecomposition import DynamicModeDecompostion
+from SupervisedLearning.DynamicModeDecomposition import DynamicModeDecomposition
 
 ## [ Add new class here ]
 ################################################################################

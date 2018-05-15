@@ -26,13 +26,14 @@ warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
+import sys
 import numpy as np
 from scipy import spatial
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
 from utils import mathUtils
-import sys
+from SupervisedLearning import supervisedLearning
 #Internal Modules End--------------------------------------------------------------------------------
 
 
