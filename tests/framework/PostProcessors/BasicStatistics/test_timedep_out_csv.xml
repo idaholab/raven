@@ -125,10 +125,10 @@
       <Input class="DataObjects" type="HistorySet">OutTime</Input>
       <Input class="DataObjects" type="PointSet">stats</Input>
       <Output class="OutStreams" type="Print">fileOut</Output>
-      <Output class="OutStreams" type="Plot">myPlot</Output>
+      <!-- <Output class="OutStreams" type="Plot">myPlot</Output>
       <Output class="OutStreams" type="Plot">myPlotTime1</Output>
       <Output class="OutStreams" type="Plot">myPlotTime2</Output>
-      <Output class="OutStreams" type="Plot">PlotStatsT1</Output>
+      <Output class="OutStreams" type="Plot">PlotStatsT1</Output> -->
       <Output class="OutStreams" type="Plot">PlotStatsT2</Output>
     </IOStep>
     <PostProcess name="PP">
@@ -149,7 +149,7 @@
       <type>csv</type>
       <source>Out</source>
     </Print>
-    <Plot name="PlotStatsT1" overwrite="false" verbosity="debug">
+    <!-- <Plot name="PlotStatsT1" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>scatter</type>
@@ -174,16 +174,9 @@
       </plotSettings>
       <actions>
         <how>png</how>
-        <!--
-          <range>
-            <xmin>0.0</xmin>
-            <xmax>1.0</xmax>
-            <ymin>-15.0</ymin>
-            <ymax>20.0</ymax>
-          </range>
-        -->
+ 
       </actions>
-    </Plot>
+    </Plot> -->
     <Plot name="PlotStatsT2" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
@@ -219,6 +212,7 @@
         -->
       </actions>
     </Plot>
+    <!--
     <Plot name="myPlot">
       <plotSettings>
         <plot>
@@ -272,7 +266,7 @@
           <text>My Plot Time</text>
         </title>
       </actions>
-    </Plot>
+    </Plot> -->
   </OutStreams>
 
 </Simulation>

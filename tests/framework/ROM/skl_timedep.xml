@@ -1,0 +1,127 @@
+<Simulation verbosity='debug'>
+  <TestInfo>
+    <name>framework.ROM.SKL_time</name>
+    <author>talbpaul</author>
+    <created>2018-01-25</created>
+    <classesTested>SupervisedLearning.SciKitLearn</classesTested>
+    <description>
+      Tests the construction and sampling of time-dependent ScitKitLearn ROMs.  In particular,
+      tests that if one target (time) has all the same values, but not others, right action is still
+      taken.  NOTE that when this conflicts with the dataobject-rework branch, accept ALL the dataobject-rework
+      versions.
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>TimeDepSKL</WorkingDir>
+    <Sequence>sample,train,resample,print</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="sample">
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Model class="Models" type="ExternalModel">projectile</Model>
+      <Sampler class="Samplers" type="Grid">grid</Sampler>
+      <Output class="DataObjects" type="HistorySet">train</Output>
+    </MultiRun>
+    <MultiRun name="resample">
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Model class="Models" type="ExternalModel">knn</Model>
+      <Sampler class="Samplers" type="Grid">grid</Sampler>
+      <Output class="DataObjects" type="PointSet">innerPS</Output>
+      <Output class="DataObjects" type="HistorySet">innerHS</Output>
+    </MultiRun>
+    <IOStep name="print">
+      <Input class="DataObjects" type="PointSet">innerPS</Input>
+      <Input class="DataObjects" type="HistorySet">innerHS</Input>
+      <Input class="DataObjects" type="HistorySet">train</Input>
+      <Output class="OutStreams" type="Print">innerPS</Output>
+      <Output class="OutStreams" type="Print">innerHS</Output>
+      <Output class="OutStreams" type="Print">train</Output>
+    </IOStep>
+    <RomTrainer name="train">
+      <Input class="DataObjects" type="PointSet">train</Input>
+      <Output class="Models" type="ROM">knn</Output>
+    </RomTrainer>
+  </Steps>
+
+  <DataObjects>
+    <PointSet name="placeholder">
+      <Input>v0,y0,ang</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="innerPS">
+      <Input>v0,y0,ang</Input>
+      <Output>y,x</Output>
+    </PointSet>
+    <HistorySet name="train">
+      <Input>v0,y0,ang</Input>
+      <Output>y,x,time</Output>
+      <options>
+        <pivotParameter>time</pivotParameter>
+      </options>
+    </HistorySet>
+    <HistorySet name="innerHS">
+      <Input>v0,y0,ang</Input>
+      <Output>y,x,time</Output>
+      <options>
+        <pivotParameter>time</pivotParameter>
+      </options>
+    </HistorySet>
+  </DataObjects>
+
+  <Models>
+    <ExternalModel name="projectile" ModuleToLoad="projectile" subType="">
+      <variables>v0,y0,ang,x,y,time</variables>
+    </ExternalModel>
+    <ROM name="knn" subType="SciKitLearn">
+      <Features>v0,y0,ang</Features>
+      <Target>x,y,time</Target>
+      <SKLtype>neighbors|KNeighborsRegressor</SKLtype>
+      <n_neighbors>1</n_neighbors>
+    </ROM>
+    <ROM name="rom" subType="SciKitLearn">
+      <Features>v0,y0,ang</Features>
+      <Target>x,y,time</Target>
+      <SKLtype>svm|SVR</SKLtype>
+      <kernel>linear</kernel>
+      <C>10.0</C>
+      <tol>0.0001</tol>
+      <coef0>0.0</coef0>
+    </ROM>
+  </Models>
+
+  <Samplers>
+    <Grid name="grid">
+      <variable name="v0">
+        <distribution>v0_dist</distribution>
+        <grid construction='equal' type='CDF' steps='2'>0 1</grid>
+      </variable>
+      <constant name="y0">0</constant>
+      <constant name="ang">45</constant>
+    </Grid>
+  </Samplers>
+
+  <Distributions>
+    <Uniform name="v0_dist">
+      <lowerBound>1</lowerBound>
+      <upperBound>5</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <OutStreams>
+    <Print name="innerPS">
+      <source>innerPS</source>
+      <type>csv</type>
+    </Print>
+    <Print name="innerHS">
+      <source>innerHS</source>
+      <type>csv</type>
+    </Print>
+    <Print name="train">
+      <source>train</source>
+      <type>csv</type>
+    </Print>
+  </OutStreams>
+</Simulation>
