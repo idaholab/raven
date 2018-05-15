@@ -25,7 +25,7 @@ class CTFparser():
       @ Out, None
     """
     if outFile is None:
-        outFile = self.currentInputFile
+      outFile = self.currentInputFile
     newInput = open(outFile, 'w')
     newInput.writelines(self.lines)
     newInput.close()
@@ -37,38 +37,42 @@ class CTFparser():
       @ Out, None
     """
     self.modifiedDictionary.update(modifDictList)
-    return
 
   def changeVariable(self, modifDict):
     """
       Method to modify the CTF input variables
       CTF input is modified based on the request from RAVEN with a form (lineNumber|position)
-      @ In, modifDict, dictionary
+      @ In, modifDict, dictionary, contains the original request from a RAVEN input in a form of (lineNumner|position)
       @ Out, None
     """
     for count in range(len(modifDict)):
-      # print(lineNumberPosition, value)
-      lineNumber, position = list(modifDict.keys())[count].split("|")
+      splitted = list(modifDict.keys())[count].split("|")
+      if len(splitted) != 2:
+        raise IOError("Error: the variable naming to perturb the CTF input, lineNumber|position, is incorrect")
+      lineNumber, position = splitted         
       value = list(modifDict.values())[count]
-      # type conversion from str to int
-      lineNumber = int(lineNumber)
-      position = int(position)
+      # conversion from str to int
+      try:
+        lineNumber = int(lineNumber)
+        position = int(position)
+      except:
+        raise ValueError("Error: for the user input, lineNumber|position, only integer type is allowed" )
       # error for the commented line
       if self.lines[lineNumber - 1].startswith("*"):
-          raise IOError("Error: the line number requested by the user (line " +
-                          str(lineNumber) + ") is the commented line")
+        raise IOError("Error: the line number requested by the user (line " +
+          str(lineNumber) + ") is the commented line")
       # error for the blank line
       if len(self.lines[lineNumber - 1].split()) == 0:
-          raise IOError("Error: the line number requested by the user (line " +
-                        str(lineNumber) + ") is the blank line")
+        raise IOError("Error: the line number requested by the user (line " +
+          str(lineNumber) + ") is the blank line")
       if lineNumber > len(self.lines):
-          raise IOError("Error: the line number requested by the user (line " + str(lineNumber) +
-                        ") is larger than the total number of lines of the original input file (=" + str(len(self.lines)) + ")")
+        raise IOError("Error: the line number requested by the user (line " + str(lineNumber) +
+              ") is larger than the total number of lines of the original input file (=" + str(len(self.lines)) + ")")
       lineToModify = self.lines[lineNumber - 1]
       splittedLine = lineToModify.split()
       if position > len(splittedLine):
-          raise IOError("Error: position number requested by the user (" + str(position) + ") is larger than the number of positions allowed in the line " +
-                        str(lineNumber) + " (" + str(len(self.lines[lineNumber - 1].split())) + ")")
+        raise IOError("Error: the position number (" + str(position) + ") is larger than that allowed in the line " 
+           + str(lineNumber) + " (" + str(len(self.lines[lineNumber - 1].split())) + ")")
       # assign the new value
       splittedLine[position - 1] = str(value)
       # replace the line with the new value

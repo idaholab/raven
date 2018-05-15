@@ -26,15 +26,14 @@ class ctfdata:
     """
     # check file existence (1)
     if "ctf.out" not in filen:
-        raise ValueError(
+      raise IOError(
             "Check if the supported output file (*.ctf.out) is included.")
     # check file existence (2)
     try:
-        self.lines = open(filen, "r").readlines()
-    except IOError:
-        raise ValueError('input file missing')
+      self.lines = open(filen, "r").readlines()
+    except:
+      raise IOError('input file missing')
     self.deckEndTimeInfo = self.getTimeDeck(self.lines)
-    startLine, endLine = self.deckEndTimeInfo['sliceCoordinates'][0:2]
     self.majorData, self.headerName = self.getMajor(self.lines)
 
   def writeCSV(self, filen):
@@ -81,14 +80,15 @@ class ctfdata:
     outType2 = False
     outType3 = False
     outType4 = False
+    # descriptions in the output file to discriminate different types of information
     # to check total number of channels & node
     checkChannelNum = False
     checkNodeNum = False
     # count time step
     timestepCount = 0
-    # number of averaged variables (total variables in major edit)
+    # number of averaged variables (total variables that are supposed to be printed in the major edit output file)
     averageVariablesCount = 15
-    # number of variables (total variables in major edit)
+    # number of variables (total variables that are supposed to be printed in the major edit output file)
     variablesCount = 38
     # number of channels
     channelCount = 0
@@ -100,9 +100,6 @@ class ctfdata:
     count2 = 0
     # 1. count the total number of time steps, channels, axial nodes, and fuel rods.
     for line in lines:
-      outTagAvg = 'aver. properties for channels'
-      outTag1 = 'fluid properties for channel'
-      outTag4 = 'nuclear fuel rod no.'
       # to check total number of channel
       if 'subchannel data' in line:
         checkChannelNum = True
@@ -111,15 +108,14 @@ class ctfdata:
         checkNodeNum = True
       if '------- *******************' in line:
         checkNodeNum = False
-      if outTagAvg in line:
-        # outTime1 : output reading start (stay 'True' once it is activated)
-        # outTime2: check simTime evolution
-        outTime1, outTime2 = True, True
+      if all(x in line for x in ['aver.', 'properties' , 'channels']):
+        outTime1 = True # for output reading start (stay 'True' once it is activated)
+        outTime2 = True # to check simTime evolution
         timestepCount += 1
-      if outTag1 in line:
+      if all(x in line for x in ['fluid', 'properties' , 'channel']):
         outType1 = True
         channelNumber = line.split()[9]
-      if outTag4 in line:
+      if all(x in line for x in ['nuclear', 'fuel' , 'rod', 'no.']):
         outType4 = True
       # read total channel number
       if (checkChannelNum == True) and (line != '\n') and (line.split()[0].isdigit()):
@@ -158,7 +154,6 @@ class ctfdata:
     outTime1 = False
     outTime2 = False
     outTypeAvg = False
-    #
     outType1 = False
     outType2 = False
     outType3 = False
@@ -170,13 +165,7 @@ class ctfdata:
     # create new array (for header names)
     header = []
     for line in lines:
-      outTagAvg = 'aver. properties for channels'
-      outTag1 = 'fluid properties for channel'
-      outTag2 = 'enthalpy                                                  density             net'
-      outTag3 = '-------------------------------- gas volumetric analysis --------------------------------'
-      outTag4 = 'nuclear fuel rod no.'
-
-      if outTagAvg in line:
+      if all(x in line for x in ['aver.', 'properties' , 'channels']):
         # output type (average values)
         outTypeAvg = True
         # outTime1: output reading start (stay 'True' once it is activated)
@@ -198,17 +187,17 @@ class ctfdata:
         # to check time evolution
         outTime2 = False
       # output type 1
-      if outTag1 in line:
+      if all(x in line for x in ['fluid', 'properties' , 'channel']):
         outType1 = True
         channelNumber = line.split()[9]
       # output type 2
-      if outTag2 in line:
+      if all(x in line for x in ['enthalpy', 'density', 'net']):
         outType2 = True
       # output type 3
-      if outTag3 in line:
+      if all(x in line for x in ['----', 'gas' , 'volumetric', 'analysis']):
         outType3 = True
       # output type 4 (fuel ord)
-      if outTag4 in line:
+      if all(x in line for x in ['nuclear', 'fuel' , 'rod', 'no.']):
         outType4 = True
       # skip any blank line and lines that don't start with number
       if (outTime1 == True) and (line != '\n') and (line.split()[0].isdigit()):

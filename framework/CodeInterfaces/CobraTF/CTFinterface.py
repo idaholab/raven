@@ -66,8 +66,7 @@ class CobraTF(CodeInterfaceBase):
       @ In, executable, string, executable name with absolute path (e.g. /home/path_to_executable/code.exe)
       @ In, clargs, dict, optional, dictionary containing the command-line flags the user can specify in the input (Not needed) 
       @ In, fargs, dict, optional, a dictionary containing the auxiliary input file variables the user can specify in the input (Not needed)
-      @ Out, returnCommand, tuple, tuple containing the generated command. returnCommand[0] defines the run type "serial" or "parallel" . returnCommand[1] is the command to run the code (string)
-      @ Out, output, string, output is the name of the output root
+      @ Out, returnCommand, tuple, tuple containing the generated command. returnCommand[0] is the command to run the code (string), returnCommand[1] is the name of the output root
     """
     found = False
     for inputFile in inputFiles:
@@ -78,7 +77,7 @@ class CobraTF(CodeInterfaceBase):
       raise IOError('Input file missing: Check if the input file (.inp) is located in the working directory!' )    
     commandToRun = executable + ' ' + inputFile.getFilename()
     commandToRun = commandToRun.replace("\n"," ")
-    returnCommand = [('parallel', commandToRun)]
     output = inputFile.getBase() + '.ctf'
-    return returnCommand,output
+    returnCommand = [('parallel', commandToRun)], output
+    return returnCommand
 
