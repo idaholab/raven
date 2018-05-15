@@ -24,6 +24,11 @@ warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
+import math
+import copy
+import numpy as np
+from itertools import product
+from sklearn import neighbors
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -47,7 +52,7 @@ class NDsplineRom(NDinterpolatorRom):
     NDinterpolatorRom.__init__(self,messageHandler,**kwargs)
     self.printTag = 'ND-SPLINE ROM'
     for _ in range(len(self.target)):
-      self.interpolator.append(interpolationND.NDspline())
+      self.interpolator.append(interpolationND.NDSpline())
 
   def __trainLocal__(self,featureVals,targetVals):
     """

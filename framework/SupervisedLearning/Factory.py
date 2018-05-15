@@ -53,6 +53,7 @@ __base = 'supervisedLearning'
 __interfaceDict                         = {}
 __interfaceDict['NDspline'            ] = NDsplineRom
 __interfaceDict['NDinvDistWeight'     ] = NDinvDistWeight
+__interfaceDict['NDsplineRom'         ] = NDsplineRom
 __interfaceDict['SciKitLearn'         ] = SciKitLearn
 __interfaceDict['GaussPolynomialRom'  ] = GaussPolynomialRom
 __interfaceDict['HDMRRom'             ] = HDMRRom
@@ -60,7 +61,7 @@ __interfaceDict['MSR'                 ] = MSR
 __interfaceDict['ARMA'                ] = ARMA
 __interfaceDict['pickledROM'          ] = pickledROM
 __interfaceDict['PolyExponential'     ] = PolyExponential
-__interfaceDict['DynamicModeDecomposition'] = DynamicModeDecomposition
+__interfaceDict['DMD'                 ] = DynamicModeDecomposition
 
 def knownTypes():
   """
@@ -69,7 +70,7 @@ def knownTypes():
     @ In, None
     @ Out, knownTypes, list, the known types
   """
-  return __interFaceDict.keys()
+  return __interfaceDict.keys()
 
 def returnInstance(Type,caller,**kwargs):
   """

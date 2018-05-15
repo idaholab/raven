@@ -31,6 +31,6 @@
    type = 'RavenFramework'
    input = 'multiple_arma.xml'
    csv = 'MultipleArma/samples.csv MultipleArma/samples_0.csv MultipleArma/samples_1.csv'
-   rel_err = 1e-6
+   rel_err = 1e-4
   [../]
 []
