@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework/ROM/TimeSeries.MultipleArma</name>
+    <name>framework/ROM/TimeSeries/ARMA.MultipleArma</name>
     <author>talbpaul</author>
     <created>2018-05-09</created>
     <classesTested>SupervisedLearning.ARMA</classesTested>
