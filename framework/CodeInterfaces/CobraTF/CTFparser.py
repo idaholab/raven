@@ -49,7 +49,7 @@ class CTFparser():
       splitted = list(modifDict.keys())[count].split("|")
       if len(splitted) != 2:
         raise IOError("Error: the variable naming to perturb the CTF input, lineNumber|position, is incorrect")
-      lineNumber, position = splitted         
+      lineNumber, position = splitted
       value = list(modifDict.values())[count]
       # conversion from str to int
       try:
@@ -71,7 +71,7 @@ class CTFparser():
       lineToModify = self.lines[lineNumber - 1]
       splittedLine = lineToModify.split()
       if position > len(splittedLine):
-        raise IOError("Error: the position number (" + str(position) + ") is larger than that allowed in the line " 
+        raise IOError("Error: the position number (" + str(position) + ") is larger than that allowed in the line "
            + str(lineNumber) + " (" + str(len(self.lines[lineNumber - 1].split())) + ")")
       # assign the new value
       splittedLine[position - 1] = str(value)
@@ -84,4 +84,3 @@ class CTFparser():
       modifDictList[lineNumPosition].append(value)
       # create the modifDictionaryList (self.modifiedDictionary)
       self.modifDictionaryList(modifDictList)
-

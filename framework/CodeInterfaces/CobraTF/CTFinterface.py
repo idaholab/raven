@@ -80,4 +80,3 @@ class CobraTF(CodeInterfaceBase):
     output = inputFile.getBase() + '.ctf'
     returnCommand = [('parallel', commandToRun)], output
     return returnCommand
-
