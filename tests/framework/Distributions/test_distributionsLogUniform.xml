@@ -49,8 +49,8 @@
 
   <Distributions>
     <LogUniform name="x_dist">
-      <upperBound>1.0</upperBound>
-      <lowerBound>3.0</lowerBound>
+      <upperBound>3.0</upperBound>
+      <lowerBound>1.0</lowerBound>
       <base>natural</base>
     </LogUniform>
   </Distributions>
