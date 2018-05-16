@@ -1,0 +1,142 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework.Distributions.log10Uniform</name>
+    <author>mandd</author>
+    <created>2018-05-07</created>
+    <classesTested>Distributions.LogUniform</classesTested>
+    <description>
+       This test checks the capability of RAVEN to use 1D LogUniform distributions (decimal base).
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>test_log10Uniform/</WorkingDir>
+    <Sequence>MCrun,importAnalytical,OutStreams</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name='analytical' type=''>analytical.csv</Input>
+  </Files>
+
+  <Steps>
+    <MultiRun  name="MCrun">
+      <Input   class="DataObjects" type="PointSet"      >inputPlaceHolder</Input>
+      <Model   class="Models"      type="ExternalModel" >PythonModule</Model>
+      <Sampler class="Samplers"    type="MonteCarlo"    >MC</Sampler>
+      <Output  class="DataObjects" type="PointSet"      >PointSet_MC</Output>
+    </MultiRun>
+    <IOStep name="importAnalytical">
+      <Input   class='Files'       type=''              >analytical</Input>
+      <Output  class="DataObjects" type="PointSet"      >PointSet_Analytical</Output>
+    </IOStep>
+    <IOStep name="OutStreams">
+      <Input  class="DataObjects"  type="PointSet"      >PointSet_MC</Input>
+      <Input  class="DataObjects"  type="PointSet"      >PointSet_Analytical</Input>
+      <Output class="OutStreams"   type="Print"         >MC_dump</Output>
+      <Output class="OutStreams"   type="Plot"          >histogramX</Output>
+      <Output class="OutStreams"   type="Plot"          >histogramY</Output>
+      <Output class="OutStreams"   type="Plot"          >lineAnalytical</Output>
+    </IOStep>
+  </Steps>
+
+  <Models>
+    <ExternalModel ModuleToLoad="simpleExp10" name="PythonModule" subType="">
+      <variables>x,y</variables>
+    </ExternalModel>
+  </Models>
+
+  <Distributions>
+    <LogUniform name="x_dist">
+      <upperBound>3.0</upperBound>
+      <lowerBound>5.0</lowerBound>
+      <base>decimal</base>
+    </LogUniform>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="MC">
+      <samplerInit>
+        <limit>20</limit>
+        <initialSeed>1234</initialSeed>
+      </samplerInit>
+      <variable name="x">
+        <distribution>x_dist</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <OutStreams>
+    <Print name="MC_dump">
+      <type>csv</type>
+      <source>PointSet_MC</source>
+    </Print>
+   <Plot name='histogramX' overwrite='false' verbosity='debug'>
+      <plotSettings>
+        <plot>
+          <type>histogram</type>
+          <x>PointSet_MC|Input|x</x>
+          <normed>True</normed>
+          <bins>20</bins>
+        </plot>
+        <xlabel>X</xlabel>
+        <ylabel>pdf</ylabel>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+      </actions>
+    </Plot>
+   <Plot name='histogramY' overwrite='false' verbosity='debug'>
+      <plotSettings>
+        <plot>
+          <type>histogram</type>
+          <x>PointSet_MC|Output|y</x>
+          <normed>True</normed>
+          <bins>20</bins>
+        </plot>
+        <xlabel>Y</xlabel>
+        <ylabel>pdf</ylabel>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+      </actions>
+    </Plot>
+   <Plot name='lineAnalytical' overwrite='false' verbosity='debug'>
+      <plotSettings>
+        <plot>
+          <type>line</type>
+          <x>PointSet_Analytical|Output|ex</x>
+          <y>PointSet_Analytical|Output|pdf</y>
+        </plot>
+        <xlabel>Y</xlabel>
+        <ylabel>pdf</ylabel>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+        <range>
+          <xmin>0</xmin>
+          <ymin>0</ymin>
+          <xmax>1E5</xmax>
+          <ymax>8.E-5</ymax>
+        </range>
+      </actions>
+    </Plot>
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="inputPlaceHolder">
+      <Input>x</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="PointSet_MC">
+      <Input>x</Input>
+      <Output>y</Output>
+    </PointSet>
+    <PointSet name="PointSet_Analytical">
+      <Input>x</Input>
+      <Output>ex,pdf</Output>
+    </PointSet>
+  </DataObjects>
+
+</Simulation>
