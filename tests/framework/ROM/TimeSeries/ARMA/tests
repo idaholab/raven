@@ -33,4 +33,13 @@
    csv = 'MultipleArma/samples.csv MultipleArma/samples_0.csv MultipleArma/samples_1.csv'
    rel_err = 1e-4
   [../]
+
+  [./VARMA]
+   type = 'RavenFramework'
+   input = 'varma.xml'
+   output = 'VARMA/plot_VARMA.png VARMA/plot_input.png'
+   csv = 'VARMA/samples.csv VARMA/samples_0.csv'
+   rel_err = 1e-4
+  [../]
+
 []
