@@ -97,7 +97,7 @@ class ARMA(supervisedLearning):
       ## but instead uses numpy directly.  As a result, for now, we have to seed numpy.
       ## Because we use our RNG to set the seed, though, it should follow the global seed still.
       self.raiseADebug('Setting Numpy seed to',self.seed)
-      self.np.random.seed(self.seed)
+      np.random.seed(self.seed)
       # store correlated targets
       corVars = [x.strip() for x in correlated.split(',')]
       for var in corVars:
@@ -163,7 +163,7 @@ class ARMA(supervisedLearning):
     self.__dict__ = d
     # set VARMA numpy seed
     self.raiseADebug('Setting Numpy seed to',self.seed)
-    self.np.random.seed(self.seed)
+    np.random.seed(self.seed)
 
   def __trainLocal__(self,featureVals,targetVals):
     """
