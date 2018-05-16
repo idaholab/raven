@@ -25,8 +25,7 @@ if not 'xrange' in dir(__builtins__):
 #End compatibility block for Python 3-------------------------------------------
 
 ################################################################################
-from utils import utils
-from DataObjects.DataObject import DataObject as Data
+from DataObjects.DataObject import DataObject
 from DataObjects.DataSet import DataSet
 from DataObjects.PointSet import PointSet
 from DataObjects.HistorySet import HistorySet

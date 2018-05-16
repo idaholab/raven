@@ -24,7 +24,7 @@
    csv = 'ARMAparallel/results_0.csv'
    expected_fail = true
    prereq = ARMAreseedPrecursor
-   skip = 'Seed not independently controlled (#597)'
+   skip = 'needs the new RNG entity'
   [../]
 
   [./MultipleArma]
