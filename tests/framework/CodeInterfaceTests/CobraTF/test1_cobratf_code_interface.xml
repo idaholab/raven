@@ -25,8 +25,8 @@
   <Models>
     <Code name="MyCobraTF" subType="CobraTF">
       <executable>
-        <!--  /path/to/relap/executable/relap5.x
-         here we should put the executable. Since we want to test the interface only, it is going to be empty -->
+        <!--/path/to/cobratf/executable -->
+        <!-- here we should put the executable. But since we want to test the interface only, it is going to be empty -->
       </executable>
     </Code>
   </Models>
@@ -46,7 +46,7 @@
     </Normal>
   </Distributions>
 
-  <Samplers verbosity='debug' >
+  <Samplers >
     <MonteCarlo name="MC_samp">
       <samplerInit>
         <limit>2</limit>
