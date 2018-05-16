@@ -19,7 +19,7 @@ class ctfdata:
   """
 
   def __init__(self, filen):
-    """    
+    """
       Constructor
       @ In, filen, string, file name to be parsed
       @ Out, None
@@ -37,22 +37,22 @@ class ctfdata:
     self.majorData, self.headerName = self.getMajor(self.lines)
 
   def writeCSV(self, filen):
-    """    
+    """
       Method that writes the csv file from major edit data
       @ In, filen, string (input file name)
       @ Out, None
-    """    
+    """
     # create string for header names
     headerString = ",".join(self.headerName)
     # write & save array as csv file
     np.savetxt(filen, self.majorData, delimiter=',', header=headerString, comments='')
 
   def getTimeDeck(self, lines):
-    """    
+    """
       Method to check ended time of the simulation (multi-deck compatible)
       @ In, lines, list of lines of the output file
       @ Out, times, dict containing the information {'time':float,'sliceCoordinates':tuple(startLine,EndLine)}.
-    """    
+    """
     times = {}
     startLineNumber, endLineNumber = 0, 1
     for cnt, line in enumerate(lines):
@@ -65,7 +65,7 @@ class ctfdata:
         times = {'time': endTime, 'sliceCoordinates': (
             startLineNumber, endLineNumber)}
     return times
-     
+
   def getMajor(self, lines):
     """
       Method that looks for key word MAJOR EDIT for reading major edit block
@@ -377,7 +377,7 @@ class ctfdata:
               # read output type 3
           if outType3:
             # define axial location
-            ax = int(line.split()[0]) 
+            ax = int(line.split()[0])
             # save header name of each variable
             keyName = 'ch' + channelNumber + '_ax' + str(ax)
             for j in range(2, len(line.split())):

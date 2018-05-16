@@ -15,7 +15,7 @@ class CTFparser():
     """
     IOfile = open(inputFile, 'r')
     self.currentInputFile = inputFile
-    self.modifiedDictionary = {}    
+    self.modifiedDictionary = {}
     self.lines = IOfile.readlines()
 
   def printInput(self, outFile=None):
@@ -84,4 +84,4 @@ class CTFparser():
       modifDictList[lineNumPosition].append(value)
       # create the modifDictionaryList (self.modifiedDictionary)
       self.modifDictionaryList(modifDictList)
-      
+
