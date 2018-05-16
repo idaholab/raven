@@ -23,14 +23,11 @@ supercedes DataObjects.py from alfoa (2/16/2013)
 from __future__ import absolute_import
 
 # These lines ensure that we do not have to do something like:
-# 'from DataObjects.Data import Data' outside of this submodule
-#from .Data import Data, NotConsistentData, ConstructError
-#from .PointSet import PointSet
-#from .HistorySet import HistorySet
-from .XDataSet import DataObject as Data
-from .XDataSet import DataSet
-from .XPointSet import PointSet
-from .XHistorySet import HistorySet
+# 'from DataObjects.DataSet import DataSet' outside of this submodule
+from .DataSet import DataObject as Data
+from .DataSet import DataSet
+from .PointSet import PointSet
+from .HistorySet import HistorySet
 
 from .Factory import knownTypes
 from .Factory import returnInstance

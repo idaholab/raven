@@ -1,0 +1,7 @@
+[Tests]
+ [./MC]
+  type = 'RavenFramework'
+  input = 'mc.xml'
+  UnorderedCsv = 'MC/solns.csv'
+ [../]
+[]

@@ -47,7 +47,7 @@ from utils import utils
 from utils import InputData
 import Models
 from OutStreams import OutStreamManager
-from DataObjects import XDataObject
+from DataObjects import DataObject
 #Internal Modules End--------------------------------------------------------------------------------
 
 
@@ -837,11 +837,11 @@ class IOStep(Step):
     # also determine if this is an invalid combination
     for i in range(len(outputs)):
       if inDictionary['Input'][i].type == 'HDF5':
-        if isinstance(outputs[i],XDataObject.DataObject):
+        if isinstance(outputs[i],DataObject.DataObject):
           self.actionType.append('HDF5-dataObjects')
         else:
           self.raiseAnError(IOError,'In Step named ' + self.name + '. This step accepts A DataObjects as Output only, when the Input is an HDF5. Got ' + inDictionary['Output'][i].type)
-      elif  isinstance(inDictionary['Input'][i],XDataObject.DataObject):
+      elif  isinstance(inDictionary['Input'][i],DataObject.DataObject):
         if outputs[i].type == 'HDF5':
           self.actionType.append('dataObjects-HDF5')
         else:
@@ -854,7 +854,7 @@ class IOStep(Step):
       elif isinstance(inDictionary['Input'][i],Files.File):
         if   isinstance(outputs[i],Models.ROM):
           self.actionType.append('FILES-ROM')
-        elif isinstance(outputs[i],XDataObject.DataObject):
+        elif isinstance(outputs[i],DataObject.DataObject):
           self.actionType.append('FILES-dataObjects')
         else:
           self.raiseAnError(IOError,'In Step named ' + self.name + '. This step accepts A ROM as Output only, when the Input is a Files. Got ' + inDictionary['Output'][i].type)

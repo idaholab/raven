@@ -13,4 +13,11 @@
    prereq = customSamplerFromFile
    rel_err = 0.0001
  [../]
+
+ [./FromDataset]
+   type = 'RavenFramework'
+   input = 'from_dataset.xml'
+   csv = 'FromDataset/samples.csv'
+   xml = 'FromDataset/samples.xml'
+ [../]
 []
