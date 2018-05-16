@@ -169,6 +169,27 @@ initParams = uniform.getInitParams()
 ## Should these be checked?
 initParams = puniform.getInitParams()
 
+#Test LogUniform
+
+logUniformElement = ET.Element("LogUniform",{"name":"test"})
+logUniformElement.append(createElement("lowerBound",text="1.0"))
+logUniformElement.append(createElement("upperBound",text="3.0"))
+logUniformElement.append(createElement("base",text="decimal"))
+
+log10Uniform = getDistribution(logUniformElement)
+
+checkAnswer("log10Uniform pdf(10.0)"  ,log10Uniform.pdf(10.0)  ,0.0217147241)
+checkAnswer("log10Uniform pdf(100.0)" ,log10Uniform.pdf(100.0) ,0.0021714724)
+checkAnswer("log10Uniform pdf(1000.0)",log10Uniform.pdf(1000.0),0.0002171472)
+
+checkAnswer("log10Uniform cdf(10.0)"  ,log10Uniform.cdf(10.0)  ,0)
+checkAnswer("log10Uniform cdf(100.0)" ,log10Uniform.cdf(100.0) ,0.5)
+checkAnswer("log10Uniform cdf(1000.0)",log10Uniform.cdf(1000.0),1.0)
+
+checkAnswer("log10Uniform ppf(0.0)",log10Uniform.ppf(0.0),10)
+checkAnswer("log10Uniform ppf(0.5)",log10Uniform.ppf(0.5),100)
+checkAnswer("log10Uniform ppf(1.0)",log10Uniform.ppf(1.0),1000)
+
 #Test Normal
 mean=1.0
 sigma=2.0
@@ -1088,6 +1109,7 @@ sys.exit(results["fail"])
       <revision author="maljdan" date="2016-04-12">Improving readability of our own code and removing extraneous functions.</revision>
       <revision author="cogljj" date="2016-04-12">Converting Distributions to use the new input system. All distributions have been converted.</revision>
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+      <revision author="alfoa" date="2018-05-10">Added Log Uniform distribution unit test</revision>
     </revisions>
     <requirements>R-RE-1</requirements>
   </TestInfo>
