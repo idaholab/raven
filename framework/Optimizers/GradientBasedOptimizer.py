@@ -398,6 +398,10 @@ class GradientBasedOptimizer(Optimizer):
         #same coordinate check
         sameCoordinateCheck = True
         for var,values in self.optVarsHist[traj][varsUpdate].items():
+          # don't check constants, of course they're the same
+          if var in self.constants:
+            continue
+          # differentiate vectors and scalars for checking
           if hasattr(values,'__len__'):
             if any(values != self.counter['recentOptHist'][traj][0][var]):
               sameCoordinateCheck = False

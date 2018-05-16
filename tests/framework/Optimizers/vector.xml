@@ -63,12 +63,11 @@
         <!--<initial>-2, -2, 2, 2</initial>-->
         <initial>-2</initial>
       </variable>
-      <variable name="y">
+      <variable name="y" shape="11">
         <upperBound>6</upperBound>
         <lowerBound>-6</lowerBound>
         <!--<initial>-2, 2, -2, 2</initial>-->
         <initial>0</initial>
-        <shape>11</shape>
       </variable>
       <objectVar>ans</objectVar>
       <parameter>

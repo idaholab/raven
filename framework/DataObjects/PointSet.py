@@ -12,8 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-  Specialized implementation of DataObject for objects with only single-valued inputs and outputs
-  for each realization.
+  Specialized implementation of DataSet for all-scalar dataobjects
 """
 #For future compatibility with Python 3
 from __future__ import division, print_function, unicode_literals, absolute_import
@@ -59,9 +58,8 @@ except AttributeError:
 #
 class PointSet(DataSet):
   """
-    DataObject developed Oct 2017 to obtain linear performance from data objects when appending, over
-    thousands of variables and millions of samples.  Wraps np.ndarray for collecting and uses xarray.Dataset
-    for final form.  This form is a shortcut for ASSUMED only-float input, output spaces
+    Specialized implementation of DataSet for dataobjects with only single-valued inputs and outputs
+    for each realization.
   """
   # only a few changes from the base class; the external API is identical.
 

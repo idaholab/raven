@@ -22,4 +22,16 @@
    input  = 'test_distributionsMarkov.xml'
    csv    = 'test_markov/Grid_dump.csv test_markov/MC_dump.csv'
  [../]
+
+ [./logUniform]
+   type   = 'RavenFramework'
+   input  = 'test_distributionsLogUniform.xml'
+   csv    = 'test_logUniform/MC_dump.csv'
+ [../]
+
+ [./log10Uniform]
+   type   = 'RavenFramework'
+   input  = 'test_distributionsLog10Uniform.xml'
+   csv    = 'test_log10Uniform/MC_dump.csv'
+ [../]
 []

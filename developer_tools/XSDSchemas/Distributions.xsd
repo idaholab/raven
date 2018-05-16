@@ -10,6 +10,7 @@
             <xsd:element name="Laplace"       type="LaplaceDistribution"       minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="Logistic"      type="LogisticDistribution"      minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="LogNormal"     type="LogNormalDistribution"     minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="LogUniform"    type="LogUniformDistribution"    minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="Normal"        type="NormalDistribution"        minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="Triangular"    type="TriangularDistribution"    minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="Uniform"       type="UniformDistribution"       minOccurs="0" maxOccurs="unbounded"/>
@@ -124,6 +125,15 @@
         <xsd:all>
             <xsd:element name="lowerBound" type="xsd:float" minOccurs="1"/>
             <xsd:element name="upperBound" type="xsd:float" minOccurs="1"/>
+        </xsd:all>
+        <xsd:attribute name="name" type="xsd:string" use="required"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="LogUniformDistribution">
+        <xsd:all>
+            <xsd:element name="lowerBound" type="xsd:float"  minOccurs="1"/>
+            <xsd:element name="upperBound" type="xsd:float"  minOccurs="1"/>
+            <xsd:element name="base"       type="xsd:string" minOccurs="1"/>
         </xsd:all>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
     </xsd:complexType>

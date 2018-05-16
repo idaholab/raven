@@ -59,9 +59,8 @@
         <limit>3</limit>
         <initialSeed>42</initialSeed>
       </samplerInit>
-      <variable name="y">
+      <variable name="y" shape="11">
         <distribution>uni</distribution>
-        <shape>11</shape>
       </variable>
       <constant name="x">0.0</constant>
     </MonteCarlo>

@@ -65,7 +65,7 @@
   [./MultiDimensionalScaling]
     type   = 'RavenFramework'
     input  = 'test_tdmSKLearnMultiDimensionalScaling.xml'
-    csv    = 'MultiDimensionalScaling/dummy_0.csv MultiDimensionalScaling/dummy_149.csv'
+    csv    = 'MultiDimensionalScaling/dummy_0.csv MultiDimensionalScaling/dummy_74.csv'
     output = 'MultiDimensionalScaling/dummy.csv'
   [../]
 []
