@@ -82,7 +82,7 @@ class BaseType(MessageHandler.MessageUser):
     else:
       self.raiseAnError(IOError,'not found name for a '+self.__class__.__name__)
     self.type     = xmlNode.tag
-    if self.globalAttributes!= None:
+    if globalAttributes is not None:
       self.globalAttributes = globalAttributes
     if 'verbosity' in xmlNode.attrib.keys() or 'verbosity' in self.globalAttributes:
       verbGlobal = None if self.globalAttributes is None else self.globalAttributes.get('verbosity')
