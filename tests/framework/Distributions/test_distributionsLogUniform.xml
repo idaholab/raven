@@ -49,8 +49,8 @@
 
   <Distributions>
     <LogUniform name="x_dist">
-      <upperBound>1.0</upperBound>
-      <lowerBound>3.0</lowerBound>
+      <upperBound>3.0</upperBound>
+      <lowerBound>1.0</lowerBound>
       <base>natural</base>
     </LogUniform>
   </Distributions>
@@ -71,6 +71,7 @@
     <Print name="MC_dump">
       <type>csv</type>
       <source>PointSet_MC</source>
+      <what>input,output</what>
     </Print>
    <Plot name='histogramX' overwrite='false' verbosity='debug'>
       <plotSettings>

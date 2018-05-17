@@ -29,3 +29,19 @@ utils.checkAnswer("normal mode()",laplace_distribution.untrMode(),0.0,results)
 print(results)
 
 sys.exit(results["fail"])
+
+"""
+ <TestInfo>
+    <name>crow.test_laplace</name>
+    <author>cogljj</author>
+    <created>2017-03-24</created>
+    <classesTested>crow</classesTested>
+    <description>
+      This test is a Unit Test for the crow swig classes. It tests that the laplace
+      distribution is accessable by Python
+    </description>
+    <revisions>
+      <revision author="alfoa" date="2018-05-15">Adding this test description.</revision>
+    </revisions>
+ </TestInfo>
+"""

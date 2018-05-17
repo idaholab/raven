@@ -84,8 +84,10 @@ class BaseType(MessageHandler.MessageUser):
     self.type     = xmlNode.tag
     if self.globalAttributes!= None:
       self.globalAttributes = globalAttributes
-    if 'verbosity' in xmlNode.attrib.keys():
-      self.verbosity = xmlNode.attrib['verbosity'].lower()
+    if 'verbosity' in xmlNode.attrib.keys() or 'verbosity' in self.globalAttributes:
+      verbGlobal = None if self.globalAttributes is None else self.globalAttributes.get('verbosity')
+      verbLocal = xmlNode.attrib.get('verbosity')
+      self.verbosity = verbLocal if verbLocal is not None else verbGlobal
       self.raiseADebug('Set verbosity for '+str(self)+' to '+str(self.verbosity))
     #search and replace variableGroups where found in texts
     def replaceVariableGroups(node):

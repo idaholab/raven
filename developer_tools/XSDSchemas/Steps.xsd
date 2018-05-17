@@ -42,6 +42,7 @@
       </xsd:element>
     </xsd:sequence>
     <xsd:attribute name="name"       type="xsd:string" use="required" />
+    <xsd:attribute name="verbosity" type="verbosityAttr" default="all"/>
     <xsd:attribute name="pauseAtEnd" type="RavenBool" />
   </xsd:complexType>
 
@@ -183,5 +184,6 @@
     </xsd:sequence>
     <xsd:attribute name="name"       type="xsd:string" use="required"/>
     <xsd:attribute name="pauseAtEnd" type="RavenBool" />
+    <xsd:attribute name="verbosity" type="verbosityAttr" default="all"/>
   </xsd:complexType>
 </xsd:schema>

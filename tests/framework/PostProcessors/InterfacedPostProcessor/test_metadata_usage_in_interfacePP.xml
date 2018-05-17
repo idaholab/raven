@@ -1,5 +1,18 @@
 <?xml version="1.0" ?>
 <Simulation>
+  <TestInfo>
+    <name>framework/PostProcessors/InterfacedPostProcessor.metadataUsageInInterfacePP</name>
+    <author>mandd</author>
+    <created>2019-01-16</created>
+    <classesTested>Models.PostProcessors.InterfacedPostProcessor</classesTested>
+    <description>
+      Test of the interfaced post-processor interface internally using metadata coming from RAVEN.
+    </description>
+    <revisions>
+        <revision author="alfoa" date="2018-05-15">Adding this test description.</revision>
+    </revisions>
+  </TestInfo>
+  
   <RunInfo>
     <WorkingDir>metadataUsageInInterfacePP</WorkingDir>
     <Sequence>testDummyStep,io_test,syncronizeHistorySetStep,post_proc</Sequence>
