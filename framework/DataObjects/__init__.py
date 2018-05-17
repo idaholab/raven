@@ -23,8 +23,9 @@ supercedes DataObjects.py from alfoa (2/16/2013)
 from __future__ import absolute_import
 
 # These lines ensure that we do not have to do something like:
-# 'from DataObjects.Data import Data' outside of this submodule
-from .Data import Data, NotConsistentData, ConstructError
+# 'from DataObjects.DataSet import DataSet' outside of this submodule
+from .DataSet import DataObject as Data
+from .DataSet import DataSet
 from .PointSet import PointSet
 from .HistorySet import HistorySet
 
@@ -33,4 +34,4 @@ from .Factory import returnInstance
 from .Factory import returnClass
 
 # We should not really need this as we do not use wildcard imports
-__all__ = ['Data','PointSet','HistorySet']
+__all__ = ['Data','DataSet','PointSet','HistorySet']

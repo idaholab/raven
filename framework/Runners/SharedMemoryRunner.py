@@ -48,7 +48,7 @@ class SharedMemoryRunner(InternalRunner):
     Class for running internal objects in a threaded fashion using the built-in
     threading library
   """
-  def __init__(self, messageHandler, args, functionToRun, identifier=None, metadata=None, uniqueHandler = "any"):
+  def __init__(self, messageHandler, args, functionToRun, identifier=None, metadata=None, uniqueHandler = "any", profile = False):
     """
       Init method
       @ In, messageHandler, MessageHandler object, the global RAVEN message
@@ -65,11 +65,12 @@ class SharedMemoryRunner(InternalRunner):
         method jobHandler.getFinished, the uniqueHandler needs to be provided.
         If uniqueHandler == 'any', every "client" can get this runner
       @ In, clientRunner, bool, optional,  Is this runner needed to be executed in client mode? Default = False
+      @ In, profile, bool, optional, if True then at deconstruction timing statements will be printed
       @ Out, None
     """
     ## First, allow the base class handle the commonalities
     # we keep the command here, in order to have the hook for running exec code into internal models
-    super(SharedMemoryRunner, self).__init__(messageHandler, args, functionToRun, identifier, metadata, uniqueHandler)
+    super(SharedMemoryRunner, self).__init__(messageHandler, args, functionToRun, identifier, metadata, uniqueHandler, profile)
 
     ## Other parameters manipulated internally
     self.subque = collections.deque()
@@ -135,6 +136,7 @@ class SharedMemoryRunner(InternalRunner):
 
       self.thread.daemon = True
       self.thread.start()
+      self.trackTime('runner_started')
       self.started = True
     except Exception as ae:
       self.raiseAWarning(self.__class__.__name__ + " job "+self.identifier+" failed with error:"+ str(ae) +" !",'ExceptedError')
@@ -148,3 +150,4 @@ class SharedMemoryRunner(InternalRunner):
     """
     self.raiseAWarning("Terminating "+self.thread.pid+ " Identifier " + self.identifier)
     os.kill(self.thread.pid, signal.SIGTERM)
+    self.trackTime('runner_killed')

@@ -35,6 +35,7 @@
   type = 'RavenFramework'
   input = 'test_LHS.xml'
   csv = 'LHS/testPrintPointSet_dump.csv'
+  xml = 'LHS/testPrintPointSet_dump.xml'
  [../]
 
  [./LHScorrelated]

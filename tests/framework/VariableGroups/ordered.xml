@@ -101,14 +101,17 @@
     <Print name="dump_uni">
       <type>csv</type>
       <source>uni</source>
+      <what>input, output</what>
     </Print>
     <Print name="dump_odd">
       <type>csv</type>
       <source>odd</source>
+      <what>input, output</what>
     </Print>
     <Print name="dump_even">
       <type>csv</type>
       <source>even</source>
+      <what>input, output</what>
     </Print>
   </OutStreams>
 

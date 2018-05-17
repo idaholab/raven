@@ -21,12 +21,12 @@ warnings.simplefilter('default',DeprecationWarning)
 #!/usr/bin/env python
 
 import sys
-import utils
+import crowTestUtils as utils
 import numpy as np
 from math import sqrt
 from numpy import linalg as LA
 
-distribution1D = utils.find_distribution1D()
+distribution1D = utils.findCrowModule('distribution1D')
 # input data, random matrix can also be used.
 mu = [1.0,2.0,3.0,4.0,5.0]
 cov = [1.36,   -0.16,  0.21,  0.43,    -0.144,
@@ -89,3 +89,20 @@ utils.checkAnswer("MVN col dimensions of right singular vectors",dimVectorRight[
 print(results)
 
 sys.exit(results["fail"])
+
+"""
+ <TestInfo>
+    <name>crow.test_svd</name>
+    <author>cogljj</author>
+    <created>2017-03-24</created>
+    <classesTested>crow</classesTested>
+    <description>
+      This test is a Unit Test for the crow swig classes. It tests that the MultiVariate Normal
+      distribution is accessable by Python and that the SVD on the covariance is performable
+      in Python
+    </description>
+    <revisions>
+      <revision author="alfoa" date="2018-05-15">Adding this test description.</revision>
+    </revisions>
+ </TestInfo>
+"""

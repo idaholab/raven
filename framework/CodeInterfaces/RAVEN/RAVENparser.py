@@ -30,7 +30,7 @@ import copy
 import numpy as np
 from collections import OrderedDict
 
-from utils import xmlUtils
+from utils import xmlUtils, mathUtils
 
 class RAVENparser():
   """
@@ -293,16 +293,30 @@ class RAVENparser():
             subElement =  ET.Element(nodeWithAttributeName, attrib=allowAddNodesPath[nodeWithAttributeName])
           getFirstElement.append(subElement)
           getFirstElement = subElement
-        if changeTheNode:
-          subElement.text = str(val).strip()
+        # in the event of vector entries, handle those here
+        if mathUtils.isSingleValued(val):
+          val = str(val).strip()
         else:
-          subElement.attrib[attribConstruct.keys()[-1]] = str(val).strip()
+          if len(val.shape) > 1:
+            raise IOError(self.printTag+'ERROR: RAVEN interface is not prepared to handle matrix value passing yet!')
+          val = ','.join(str(i) for i in val)
+        if changeTheNode:
+          subElement.text = val
+        else:
+          subElement.attrib[attribConstruct.keys()[-1]] = val
 
       else:
         nodeToChange = foundNodes[0]
         pathNode     = './/'
-        if changeTheNode:
-          nodeToChange.text = str(val).strip()
+        # in the event of vector entries, handle those here
+        if mathUtils.isSingleValued(val):
+          val = str(val).strip()
         else:
-          nodeToChange.attrib[attribName] = str(val).strip()
+          if len(val.shape) > 1:
+            raise IOError(self.printTag+'ERROR: RAVEN interface is not prepared to handle matrix value passing yet!')
+          val = ','.join(str(i) for i in val)
+        if changeTheNode:
+          nodeToChange.text = val
+        else:
+          nodeToChange.attrib[attribName] = val
     return returnElement

@@ -61,6 +61,7 @@
       <type>csv</type>
       <source>outData</source>
       <filename>outLinearMultiTaskElasticNet</filename>
+      <what>input,output</what>
     </Print>
   </OutStreams>
 

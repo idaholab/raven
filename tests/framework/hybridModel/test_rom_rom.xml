@@ -10,6 +10,9 @@
        This test is intended to check the functionality of Hybrid Model.
        Use ROM to train ROM
     </description>
+    <revisions>
+        <revision author="alfoa" date="2017-12-20">replaced median absolute error with average absolute error score </revision>
+    </revisions>
   </TestInfo>
   <RunInfo>
     <WorkingDir>romTrainRom</WorkingDir>
@@ -31,7 +34,7 @@
 
   <Metrics>
       <SKL name="m1">
-          <metricType>median_absolute_error</metricType>
+          <metricType>mean_absolute_error</metricType>
       </SKL>
   </Metrics>
 
@@ -139,6 +142,7 @@
     <Print name="metaModelOutputTestDump">
       <type>csv</type>
       <source>metaModelOutputTest</source>
+      <what>input, output</what>
     </Print>
   </OutStreams>
 

@@ -100,4 +100,21 @@ pdfCommonArea = Metrics.MetricUtilities._getPDFCommonArea(dist1, dist2)
 print("pdfCommonArea different",pdfCommonArea)
 assert 0.60 < pdfCommonArea < 0.62
 
+"""
+  <TestInfo>
+    <name>framework.test_distributions</name>
+    <author>cogljj</author>
+    <created>2017-09-08</created>
+    <classesTested> </classesTested>
+    <description>
+       This test is a Unit Test for the comparison statistics metric. It checks all the functions that are available to RAVEN
+       internally.
+    </description>
+    <revisions>
+      <revision author="alfoa" date="2018-05-10">Added Log Uniform distribution unit test</revision>
+    </revisions>
+  </TestInfo>
+"""
+
+
 

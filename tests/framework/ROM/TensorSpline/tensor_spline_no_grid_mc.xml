@@ -1,0 +1,117 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/ROM/TensorSpline.NoGridSpline</name>
+    <author>alfoa</author>
+    <created>2018-04-12</created>
+    <classesTested>SupervisedLearning.NDSpline</classesTested>
+    <description>
+       This case is aimed to test the functionalities of the Tensor Spline Surrogate Model. It trains
+       the Tensor Spline on a MC generated sampling the ``projectile'' model and inquires it on a
+       Grid. This tests the capability to accept not cartesian grids as training sets.
+       It is important to notice that this tests demonstrates that the mechanics work but does not
+       suggest to train the NDSpline ROM on not a cartesian grid.
+    </description>
+    <revisions>
+      <revision author="alfoa" date="2018-04-12">Created test and added description</revision>
+    </revisions>
+  </TestInfo>
+  
+  <RunInfo>
+    <WorkingDir>noGridSpline</WorkingDir>
+    <Sequence>
+      sampleModel,
+      trainSpline,
+      sampleROM
+    </Sequence>
+  </RunInfo>
+
+  <Models>
+    <ExternalModel ModuleToLoad="../../AnalyticModels/projectile.py" name="projectile" subType="">
+      <variables>x0,y0,y</variables>
+    </ExternalModel>
+    <ROM name="modelUnderTest" subType="NDspline">
+      <Features>x0,y0</Features>
+      <Target>y</Target>
+    </ROM>
+  </Models>
+
+  <Distributions>
+    <Uniform name="x0_d">
+      <lowerBound>0</lowerBound>
+      <upperBound>20</upperBound>
+    </Uniform>
+    <Uniform name="y0_d">
+      <lowerBound>0</lowerBound>
+      <upperBound>10</upperBound>
+    </Uniform>
+  </Distributions>
+  
+  <Samplers>
+      <MonteCarlo name="MCTest">
+          <samplerInit>
+              <limit>200</limit>
+          </samplerInit>
+          <variable name="x0">
+              <distribution>x0_d</distribution>
+          </variable>
+          <variable name="y0">
+              <distribution>y0_d</distribution>
+          </variable>
+      </MonteCarlo>
+      <Grid name="GridTestRefined">
+          <variable name="x0">
+              <distribution>x0_d</distribution>
+              <grid construction="equal" steps="8" type="CDF">0.1 0.9</grid>
+          </variable>
+          <variable name="y0">
+              <distribution>y0_d</distribution>
+              <grid construction="equal" steps="8" type="CDF">0.1 0.9</grid>
+          </variable>
+      </Grid>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="sampleModel" verbosity="debug">
+      <Input   class="DataObjects" type="PointSet"     >inputHolder</Input>
+      <Model   class="Models"      type="ExternalModel">projectile</Model>
+      <Sampler class="Samplers"    type="MonteCarlo"   >MCTest</Sampler>
+      <Output  class="DataObjects" type="PointSet"     >outputSampleModel</Output>
+    </MultiRun>
+    <RomTrainer name="trainSpline">
+      <Input   class="DataObjects" type="PointSet"     >outputSampleModel</Input>
+      <Output  class="Models"      type="ROM"          >modelUnderTest</Output>
+    </RomTrainer>
+    <MultiRun name="sampleROM">
+      <Input   class="DataObjects" type="PointSet"     >inputHolder</Input>
+      <Model   class="Models"      type="ROM"          >modelUnderTest</Model>
+      <Sampler class="Samplers"    type="Grid"         >GridTestRefined</Sampler>
+      <Output  class="DataObjects" type="PointSet"     >outputSpline</Output>
+      <Output  class="OutStreams"  type="Print"        >outputSpline_dump</Output>
+    </MultiRun>
+  </Steps>
+  
+  <OutStreams>
+    <!-- A csv file containing the output of the example -->
+    <Print name="outputSpline_dump">
+      <type>csv</type>
+      <source>outputSpline</source>
+      <what>input,output,metadata</what>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="inputHolder">
+      <Input>x0,y0</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="outputSampleModel">
+      <Input>x0,y0</Input>
+      <Output>y</Output>
+    </PointSet>
+    <PointSet name="outputSpline">
+      <Input>x0,y0</Input>
+      <Output>y</Output>
+    </PointSet>
+  </DataObjects>
+</Simulation>
