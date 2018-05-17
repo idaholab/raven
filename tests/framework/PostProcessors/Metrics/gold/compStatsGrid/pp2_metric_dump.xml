@@ -1,0 +1,9 @@
+<DataObjectMetadata name="pp2_metric">
+  <DataSet type="Static">
+    <general>
+      <outputs>pdf_area_ans2_ans</outputs>
+      <sampleTag>RAVEN_sample_ID</sampleTag>
+    </general>
+  </DataSet>
+  
+</DataObjectMetadata>

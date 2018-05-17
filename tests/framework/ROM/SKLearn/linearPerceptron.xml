@@ -62,6 +62,7 @@
       <type>csv</type>
       <source>outData</source>
       <filename>outLinearPerceptron</filename>
+      <what>input,output</what>
     </Print>
   </OutStreams>
 

@@ -7,6 +7,7 @@
     <xsd:sequence>
       <xsd:element name="Input" type="InputFileType" minOccurs="0" maxOccurs="unbounded"/>
     </xsd:sequence>
+    <xsd:attribute name="verbosity" type="verbosityAttr" default="all"/>
   </xsd:complexType>
 
   <xsd:simpleType name="BaseInput">
@@ -21,6 +22,7 @@
             <xsd:attribute name="type"         type="xsd:string"/>
             <xsd:attribute name="perturbable"  type="RavenBool" />
             <xsd:attribute name="subDirectory" type="xsd:string"/>
+            <xsd:attribute name="verbosity" type="verbosityAttr" default="all"/>
           </xsd:extension>
         </xsd:simpleContent>
   </xsd:complexType>

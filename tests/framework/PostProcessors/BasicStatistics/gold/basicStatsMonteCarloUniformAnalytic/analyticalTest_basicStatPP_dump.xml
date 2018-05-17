@@ -1,0 +1,9 @@
+<DataObjectMetadata name="analyticalTest_basicStatPP">
+  <DataSet type="Static">
+    <general>
+      <outputs>mean_out</outputs>
+      <sampleTag>RAVEN_sample_ID</sampleTag>
+    </general>
+  </DataSet>
+  
+</DataObjectMetadata>

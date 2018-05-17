@@ -118,6 +118,7 @@
     <Print name="hybridModelOutput">
       <type>csv</type>
       <source>thermalConductivityComputationContainer</source>
+      <what>input, output</what>
     </Print>
   </OutStreams>
 

@@ -6,16 +6,18 @@
     <created>2015-04-15</created>
     <classesTested>Distributions.MultivariateNormal, Samplers.MonteCarlo</classesTested>
     <description>
-       This test is aimed to check the capability of RAVEN to handle MultivariateNormal probability density functions (distributions), when 
-       a MonteCarlo sampling strategy is performed.     
+       This test is aimed to check the capability of RAVEN to handle MultivariateNormal probability density functions (distributions), when
+       a MonteCarlo sampling strategy is performed.
     </description>
     <revisions>
       <revision author="alfoa" date="2015-06-18">Changed Name of all DataObjects</revision>
       <revision author="wangc" date="2015-07-02">nd multivariate distribution improvement</revision>
       <revision author="maljdan" date="2016-04-06">Updating test cases to reflect the changes to the user input.</revision>
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+      <revision author="wangc" date="2017-12-20">convert test to use the new DataObjects with the new structure of basic statistic</revision>
     </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>ND_test_MC_MVN</WorkingDir>
     <Sequence>FirstMRun</Sequence>
@@ -25,7 +27,6 @@
   <Files>
     <Input name="lorentzAttractor_noK.py" type="">lorentzAttractor_noK.py</Input>
     <Input name="covMatrix.txt" type="">covMatrix.txt</Input>
-    <Input name="CorrelationTest_print.csv" type="">CorrelationTest_print.csv</Input>
   </Files>
 
   <Models>
@@ -33,10 +34,37 @@
       <variables>sigma,rho,beta,x,y,z,time,x0,y0,z0</variables>
     </ExternalModel>
     <PostProcessor name="CorrelationTest" subType="BasicStatistics">
-      <all>
+      <skewness prefix="skew">x0,y0</skewness>
+      <variationCoefficient prefix="vc">x0,y0</variationCoefficient>
+      <percentile prefix="percentile">x0,y0</percentile>
+      <expectedValue prefix="mean">x0,y0</expectedValue>
+      <kurtosis prefix="kurt">x0,y0</kurtosis>
+      <median prefix="median">x0,y0</median>
+      <maximum prefix="max">x0,y0</maximum>
+      <minimum prefix="min">x0,y0</minimum>
+      <samples prefix="samp">x0,y0</samples>
+      <variance prefix="var">x0,y0</variance>
+      <sigma prefix="sigma">x0,y0</sigma>
+      <NormalizedSensitivity prefix="nsen">
         <targets>x0,y0</targets>
         <features>x0,y0</features>
-      </all>
+      </NormalizedSensitivity>
+      <sensitivity prefix="sen">
+        <targets>x0,y0</targets>
+        <features>x0,y0</features>
+      </sensitivity>
+      <pearson prefix="pear">
+        <targets>x0,y0</targets>
+        <features>x0,y0</features>
+      </pearson>
+      <covariance prefix="cov">
+        <targets>x0,y0</targets>
+        <features>x0,y0</features>
+      </covariance>
+      <VarianceDependentSensitivity prefix="vsen">
+        <targets>x0,y0</targets>
+        <features>x0,y0</features>
+      </VarianceDependentSensitivity>
     </PostProcessor>
   </Models>
 
@@ -76,7 +104,8 @@
     <PostProcess name="PP">
       <Input class="DataObjects" type="PointSet">testPrintPointSet</Input>
       <Model class="Models" type="PostProcessor">CorrelationTest</Model>
-      <Output class="Files" type="">CorrelationTest_print.csv</Output>
+      <Output class="DataObjects" type="PointSet">CorrelationTest_basicStatPP</Output>
+      <Output class="OutStreams" type="Print">CorrelationTest_basicStatPP_dump</Output>
     </PostProcess>
   </Steps>
 
@@ -84,18 +113,73 @@
     <Print name="testPrintPointSet_dump">
       <type>csv</type>
       <source>testPrintPointSet</source>
+      <what>input,output</what>
+    </Print>
+    <Print name="CorrelationTest_basicStatPP_dump">
+      <type>csv</type>
+      <source>CorrelationTest_basicStatPP</source>
     </Print>
   </OutStreams>
 
   <DataObjects>
     <PointSet name="testPrintPointSet">
-      <Input>x0,y0,z0</Input>
-      <Output>x,y,z</Output>
+      <Input>y0,x0,z0</Input>
+      <Output>y,x,z</Output>
     </PointSet>
     <PointSet name="inputPlaceHolder">
       <Input>x0,y0,z0</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
+    <PointSet name="CorrelationTest_basicStatPP">
+      <Output>CorrelationTest_vars</Output>
+    </PointSet>
   </DataObjects>
+
+  <VariableGroups>
+    <Group name="CorrelationTest_vars">skew_x0,
+                 skew_y0,
+                 vc_x0,
+                 vc_y0,
+                 percentile_5_x0,
+                 percentile_95_x0,
+                 percentile_5_y0,
+                 percentile_95_y0,
+                 mean_x0,
+                 mean_y0,
+                 kurt_x0,
+                 kurt_y0,
+                 median_x0,
+                 median_y0,
+                 max_x0,
+                 max_y0,
+                 min_x0,
+                 min_y0,
+                 samp_x0,
+                 samp_y0,
+                 var_x0,
+                 var_y0,
+                 sigma_x0,
+                 sigma_y0,
+                 nsen_x0_x0,
+                 nsen_x0_y0,
+                 nsen_y0_x0,
+                 nsen_y0_y0,
+                 sen_x0_x0,
+                 sen_x0_y0,
+                 sen_y0_x0,
+                 sen_y0_y0,
+                 pear_x0_x0,
+                 pear_x0_y0,
+                 pear_y0_x0,
+                 pear_y0_y0,
+                 cov_x0_x0,
+                 cov_x0_y0,
+                 cov_y0_x0,
+                 cov_y0_y0,
+                 vsen_x0_x0,
+                 vsen_x0_y0,
+                 vsen_y0_x0,
+                 vsen_y0_y0</Group>
+  </VariableGroups>
 
 </Simulation>

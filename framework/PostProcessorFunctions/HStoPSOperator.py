@@ -91,61 +91,54 @@ class HStoPSOperator(PostProcessorInterfaceBase):
     if len(inputDic)>1:
       self.raiseAnError(IOError, 'Only one DataObject is accepted!')
     else:
-      inputDic = inputDic[0]
-      outputDic={}
-      outputDic['metadata'] = copy.deepcopy(inputDic['metadata'])
-      outputDic['data'] = {}
-      outputDic['data']['output'] = {}
-      outputDic['data']['input']  = {}
+      inputDict = inputDic[0]
+      outputDic = {'data': {}}
+      outputDic['dims'] = {}
+      numSamples = inputDict['numberRealizations']
 
-      #generate the input part of the output dictionary
-      inputVars = inputDic['data']['input'][inputDic['data']['input'].keys()[0]].keys()
-      for inputVar in inputVars:
-        outputDic['data']['input'][inputVar] = np.empty(0)
+      # generate the input part and metadata of the output dictionary
+      outputDic['data'].update(inputDict['data'])
 
-      for hist in inputDic['data']['input']:
-        for inputVar in inputVars:
-          outputDic['data']['input'][inputVar] = np.append(outputDic['data']['input'][inputVar], copy.deepcopy(inputDic['data']['input'][hist][inputVar]))
-
-      outputVars = inputDic['data']['output'][inputDic['data']['output'].keys()[0]].keys()
-      for outputVar in outputVars:
-        outputDic['data']['output'][outputVar] = np.empty(0)
+      # generate the output part of the output dictionary
+      for outputVar in inputDict['outVars']:
+        outputDic['data'][outputVar] = np.empty(0)
 
       # check if pivot value is present
       if self.settings['operationType'] == 'pivotValue':
-        if self.pivotParameter not in outputVars:
+        if self.pivotParameter not in inputDict['data']:
             self.raiseAnError(RuntimeError,'Pivot Variable "'+str(self.pivotParameter)+'" not found in data !')
 
-      for hist in inputDic['data']['output']:
-        for outputVar in outputVars:
+      for hist in range(numSamples):
+        for outputVar in inputDict['outVars']:
           if self.settings['operationType'] == 'row':
-            if int(self.settings['operationValue']) >= len(inputDic['data']['output'][hist][outputVar]):
+            if int(self.settings['operationValue']) >= len(inputDict['data'][outputVar][hist]):
               self.raiseAnError(RuntimeError,'row value > of size of history "'+str(hist)+'" !')
-            outputDic['data']['output'][outputVar] = np.append(outputDic['data']['output'][outputVar], copy.deepcopy(inputDic['data']['output'][hist][outputVar][int(self.settings['operationValue'])]))
+            outputDic['data'][outputVar] = np.append(outputDic['data'][outputVar], copy.deepcopy(inputDict['data'][outputVar][hist][int(self.settings['operationValue'])]))
           elif self.settings['operationType'] == 'pivotValue':
             if self.settings['pivotStrategy'] in ['nearest','floor','ceiling']:
-              idx = (np.abs(np.asarray(inputDic['data']['output'][hist][self.pivotParameter])-float(self.settings['operationValue']))).argmin()
+              idx = (np.abs(np.asarray(outputDic['data'][self.pivotParameter][hist])-float(self.settings['operationValue']))).argmin()
               if self.settings['pivotStrategy'] == 'floor':
-                if np.asarray(inputDic['data']['output'][hist][self.pivotParameter])[idx] > self.settings['operationValue']:
+                if np.asarray(outputDic['data'][self.pivotParameter][hist])[idx] > self.settings['operationValue']:
                   idx-=1
               if self.settings['pivotStrategy'] == 'ceiling':
-                if np.asarray(inputDic['data']['output'][hist][self.pivotParameter])[idx] < self.settings['operationValue']:
+                if np.asarray(outputDic['data'][self.pivotParameter][hist])[idx] < self.settings['operationValue']:
                   idx+=1
-              if idx > len(inputDic['data']['output'][hist][outputVar]):
-                idx = len(inputDic['data']['output'][hist][outputVar])-1
+                  outputDic['data'][self.pivotParameter][hist]
+              if idx > len(inputDict['data'][outputVar][hist]):
+                idx = len(inputDict['data'][outputVar][hist])-1
               elif idx < 0:
                 idx = 0
-              outputDic['data']['output'][outputVar] = np.append(outputDic['data']['output'][outputVar], copy.deepcopy(inputDic['data']['output'][hist][outputVar][idx]))
+              outputDic['data'][outputVar] = np.append(outputDic['data'][outputVar], copy.deepcopy(inputDict['data'][outputVar][hist][idx]))
             else:
               # interpolate
-              interpValue = np.interp(self.settings['operationValue'], np.asarray(inputDic['data']['output'][hist][self.pivotParameter]), np.asarray(inputDic['data']['output'][hist][outputVar]))
-              outputDic['data']['output'][outputVar] = np.append(outputDic['data']['output'][outputVar], interpValue)
+              interpValue = np.interp(self.settings['operationValue'], np.asarray(inputDict['data'][self.pivotParameter][hist]), np.asarray(inputDict['data'][outputVar][hist]))
+              outputDic['data'][outputVar] = np.append(outputDic['data'][outputVar], interpValue)
           else:
             # operator
             if self.settings['operationValue'] == 'max':
-              outputDic['data']['output'][outputVar] = np.append(outputDic['data']['output'][outputVar], copy.deepcopy(np.max(inputDic['data']['output'][hist][outputVar])))
+              outputDic['data'][outputVar] = np.append(outputDic['data'][outputVar], copy.deepcopy(np.max(inputDict['data'][outputVar][hist])))
             elif self.settings['operationValue'] == 'min':
-              outputDic['data']['output'][outputVar] = np.append(outputDic['data']['output'][outputVar], copy.deepcopy(np.min(inputDic['data']['output'][hist][outputVar])))
+              outputDic['data'][outputVar] = np.append(outputDic['data'][outputVar], copy.deepcopy(np.min(inputDict['data'][outputVar][hist])))
             elif self.settings['operationValue'] == 'average':
-              outputDic['data']['output'][outputVar] = np.append(outputDic['data']['output'][outputVar], copy.deepcopy(np.mean(inputDic['data']['output'][hist][outputVar])))
+              outputDic['data'][outputVar] = np.append(outputDic['data'][outputVar], copy.deepcopy(np.mean(inputDict['data'][outputVar][hist])))
       return outputDic

@@ -62,6 +62,8 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
       # check how many targets
       if not 'Target' in self.initializationOptions.keys():
         self.raiseAnError(IOError,'No Targets specified!!!')
+    # check if pivotParameter is specified and in case store it
+    self.pivotParameterId     = self.initializationOptions.pop("pivotParameter",'time')
     # return instance of the ROMclass
     modelInstance = SupervisedLearning.returnInstance(ROMclass,self,**self.initializationOptions)
     # check if the model can autonomously handle the time-dependency (if not and time-dep data are passed in, a list of ROMs are constructed)
@@ -70,8 +72,7 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
     self.isADynamicModel      = False
     # if it is dynamic and time series are passed in, self.supervisedContainer is not going to be expanded, else it is going to
     self.supervisedContainer     = [modelInstance]
-    # check if pivotParameter is specified and in case store it
-    self.pivotParameterId     = self.initializationOptions.pop("pivotParameter",'time')
+
     #
     self.historySteps         = []
 
@@ -150,10 +151,9 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
         # the check on the number of time steps (consistency) is performed inside the historySnapShoots method
         # get the time slices
         newTrainingSet = mathUtils.historySnapShoots(trainingSet, len(self.historySteps))
-        if type(newTrainingSet).__name__ != 'list':
-          self.raiseAnError(IOError,newTrainingSet)
+        assert(type(newTrainingSet).__name__ == 'list')
         # copy the original ROM
-        originalROM = copy.deepcopy(self.supervisedContainer[0])
+        originalROM = self.supervisedContainer[0]
         # start creating and training the time-dep ROMs
         self.supervisedContainer = [] # [copy.deepcopy(originalROM) for _ in range(len(self.historySteps))]
         # train

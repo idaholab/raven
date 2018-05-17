@@ -30,9 +30,7 @@ for plugin in plugins:
   plugin_dir = os.path.join(plugins_directory,plugin)
   tests_dir = os.path.join(plugin_dir,"tests")
   # check if plugin exists
-  if not os.path.exists(tests_dir):
-    warnings.warn('The plugin "'+plugin_dir+'" does not contain a "tests" directory!')
-  else:
+  if os.path.exists(tests_dir):
     if not os.path.isdir(tests_dir):
       raise IOError('In the plugin folder "'+plugin_dir+'" the "tests" target is not a directory!')
   if os.path.exists(tests_dir):
