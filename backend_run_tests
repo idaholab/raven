@@ -102,17 +102,17 @@ elif library_report:
     distribution1D = utils.findCrowModule('distribution1D')
     print("distribution1D","\n",distribution1D)
     print()
-  except:
+  except ImportError:
     print("distribution1D not found\n")
   try:
     interpolationND = utils.findCrowModule('interpolationND')
     print("interpolationND","\n",interpolationND)
-  except:
+  except ImportError:
     print("interpolationND not found\n")
   try:
     interpolationND = utils.findCrowModule('randomENG')
     print("randomENG","\n",randomENG)
-  except:
+  except ImportError:
     print("randomENG not found\n")
 else:
   from TestHarness import TestHarness
