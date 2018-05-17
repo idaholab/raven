@@ -64,3 +64,19 @@ checkAnswer('Child \"no_such_sub\" not allowed as sub-element of \"ordered\"', e
 
 print("passes",passFails[0],"fails",passFails[1])
 sys.exit(passFails[1])
+
+"""
+ <TestInfo>
+    <name>crow.test_normal</name>
+    <author>cogljj</author>
+    <created>2017-08-30</created>
+    <classesTested> </classesTested>
+    <description>
+      This test is a Unit Test for the RAVEN input checker. This test is aimed to check that
+      the input checker (Strict mode) is able to detect input errors.
+    </description>
+    <revisions>
+      <revision author="alfoa" date="2018-05-15">Adding this test description.</revision>
+    </revisions>
+ </TestInfo>
+"""
