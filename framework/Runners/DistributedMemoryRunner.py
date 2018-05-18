@@ -44,7 +44,10 @@ class DistributedMemoryRunner(InternalRunner):
     Class for running internal objects in distributed memory fashion using
     ppserver
   """
-  def __init__(self, messageHandler, ppserver, args, functionToRun, frameworkModules = [], identifier=None, metadata=None, functionToSkip = None, uniqueHandler = "any"):
+  def __init__(self, messageHandler, ppserver, args, functionToRun,
+                     frameworkModules = [], identifier=None, metadata=None,
+                     functionToSkip = None, uniqueHandler = "any",
+                     profile = False):
     """
       Init method
       @ In, messageHandler, MessageHandler object, the global RAVEN message
@@ -68,13 +71,15 @@ class DistributedMemoryRunner(InternalRunner):
         this runner. For example, if present, to retrieve this runner using the
         method jobHandler.getFinished, the uniqueHandler needs to be provided.
         If uniqueHandler == 'any', every "client" can get this runner
+      @ In, profile, bool, optional, if True then timing statements are printed
+        during deconstruction.
       @ Out, None
     """
 
     ## First, allow the base class to handle the commonalities
     ##   We keep the command here, in order to have the hook for running exec
     ##   code into internal models
-    super(DistributedMemoryRunner, self).__init__(messageHandler, args, functionToRun, identifier, metadata, uniqueHandler)
+    super(DistributedMemoryRunner, self).__init__(messageHandler, args, functionToRun, identifier, metadata, uniqueHandler,profile)
 
     ## Just in case, remove duplicates before storing to save on computation
     ## later
@@ -122,6 +127,7 @@ class DistributedMemoryRunner(InternalRunner):
     """
     try:
       self.thread = self.__ppserver.submit(self.functionToRun, args=self.args, depfuncs=(), modules = tuple(list(set(self.frameworkMods))),functionToSkip=self.functionToSkip)
+      self.trackTime('runner_started')
       self.started = True
     except Exception as ae:
       self.raiseAWarning(self.__class__.__name__ + " job "+self.identifier+" failed with error:"+ str(ae) +" !",'ExceptedError')
@@ -135,3 +141,4 @@ class DistributedMemoryRunner(InternalRunner):
     """
     self.raiseAWarning("Terminating " + self.thread.tid + " Identifier " + self.identifier)
     os.kill(self.thread.tid, signal.SIGTERM)
+    self.trackTime('runner_killed')

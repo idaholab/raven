@@ -10,6 +10,7 @@
             <xsd:element name="Laplace"       type="LaplaceDistribution"       minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="Logistic"      type="LogisticDistribution"      minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="LogNormal"     type="LogNormalDistribution"     minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="LogUniform"    type="LogUniformDistribution"    minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="Normal"        type="NormalDistribution"        minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="Triangular"    type="TriangularDistribution"    minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="Uniform"       type="UniformDistribution"       minOccurs="0" maxOccurs="unbounded"/>
@@ -45,6 +46,7 @@
             <xsd:element name="upperBound" type="xsd:float" minOccurs="0" />
         </xsd:sequence>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
+        <xsd:attribute name="verbosity" type="verbosityAttr" default="all"/>
     </xsd:complexType>
 
     <xsd:complexType name="ExponentialDistribution">
@@ -55,6 +57,7 @@
             <xsd:element name="low"        type="unsignedFloat" minOccurs="0"/>
         </xsd:all>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
+        <xsd:attribute name="verbosity" type="verbosityAttr" default="all"/>
     </xsd:complexType>
 
     <xsd:complexType name="GammaDistribution">
@@ -68,6 +71,7 @@
             <!-- low cannot be less than lowerBound -->
         </xsd:all>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
+        <xsd:attribute name="verbosity" type="verbosityAttr" default="all"/>
     </xsd:complexType>
 
     <xsd:complexType name="LaplaceDistribution">
@@ -78,6 +82,7 @@
             <xsd:element name="scale"      type="xsd:decimal" minOccurs="1"/>
         </xsd:all>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
+        <xsd:attribute name="verbosity" type="verbosityAttr" default="all"/>
     </xsd:complexType>
 
     <xsd:complexType name="LogisticDistribution">
@@ -88,6 +93,7 @@
             <xsd:element name="scale"      type="xsd:decimal" minOccurs="1"/>
         </xsd:all>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
+        <xsd:attribute name="verbosity" type="verbosityAttr" default="all"/>
     </xsd:complexType>
 
     <xsd:complexType name="LogNormalDistribution">
@@ -98,6 +104,7 @@
             <xsd:element name="sigma"      type="xsd:decimal" minOccurs="1"/>
         </xsd:all>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
+        <xsd:attribute name="verbosity" type="verbosityAttr" default="all"/>
     </xsd:complexType>
 
     <xsd:complexType name="NormalDistribution">
@@ -108,6 +115,7 @@
             <xsd:element name="sigma"      type="xsd:float" minOccurs="1"/>
         </xsd:all>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
+        <xsd:attribute name="verbosity" type="verbosityAttr" default="all"/>
     </xsd:complexType>
 
     <xsd:complexType name="TriangularDistribution">
@@ -117,6 +125,7 @@
             <xsd:element name="apex" type="xsd:decimal" minOccurs="1"/>
         </xsd:all>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
+        <xsd:attribute name="verbosity" type="verbosityAttr" default="all"/>
     </xsd:complexType>
 
     <xsd:complexType name="UniformDistribution">
@@ -125,6 +134,17 @@
             <xsd:element name="upperBound" type="xsd:float" minOccurs="1"/>
         </xsd:all>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
+        <xsd:attribute name="verbosity" type="verbosityAttr" default="all"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="LogUniformDistribution">
+        <xsd:all>
+            <xsd:element name="lowerBound" type="xsd:float"  minOccurs="1"/>
+            <xsd:element name="upperBound" type="xsd:float"  minOccurs="1"/>
+            <xsd:element name="base"       type="xsd:string" minOccurs="1"/>
+        </xsd:all>
+        <xsd:attribute name="name" type="xsd:string" use="required"/>
+        <xsd:attribute name="verbosity" type="verbosityAttr" default="all"/>
     </xsd:complexType>
 
     <xsd:complexType name="WeibullDistribution">
@@ -135,6 +155,7 @@
             <xsd:element name="lambda"     type="xsd:decimal" minOccurs="1"/>
         </xsd:all>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
+        <xsd:attribute name="verbosity" type="verbosityAttr" default="all"/>
     </xsd:complexType>
 
     <xsd:complexType name="BernoulliDistribution">
@@ -142,6 +163,7 @@
             <xsd:element name="p" type="percentFloat" minOccurs="1"/>
         </xsd:all>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
+        <xsd:attribute name="verbosity" type="verbosityAttr" default="all"/>
     </xsd:complexType>
 
     <xsd:complexType name="BinomialDistribution">
@@ -150,6 +172,7 @@
             <xsd:element name="n" type="xsd:positiveInteger" minOccurs="1" />
         </xsd:all>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
+        <xsd:attribute name="verbosity" type="verbosityAttr" default="all"/>
     </xsd:complexType>
 
     <xsd:complexType name="GeometricDistribution">
@@ -157,6 +180,7 @@
             <xsd:element name="p" type="percentFloat" minOccurs="1"/>
         </xsd:all>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
+        <xsd:attribute name="verbosity" type="verbosityAttr" default="all"/>
     </xsd:complexType>
 
     <xsd:complexType name="PoissonDistribution">
@@ -164,6 +188,7 @@
             <xsd:element name="mu" type="xsd:decimal" minOccurs="1"/>
         </xsd:all>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
+        <xsd:attribute name="verbosity" type="verbosityAttr" default="all"/>
     </xsd:complexType>
 
     <xsd:complexType name="stateType">
@@ -178,6 +203,7 @@
             <xsd:element name="state" type="stateType" minOccurs="1" maxOccurs="200"/>
         </xsd:sequence>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
+        <xsd:attribute name="verbosity" type="verbosityAttr" default="all"/>
     </xsd:complexType>
 
     <xsd:complexType name="Custom1DDistribution">
@@ -189,6 +215,7 @@
             <xsd:element name="workingDir"   type="xsd:string" minOccurs="1"/>
         </xsd:all>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
+        <xsd:attribute name="verbosity" type="verbosityAttr" default="all"/>
     </xsd:complexType>
 
     <xsd:simpleType name="typeAttr">
@@ -213,6 +240,7 @@
             <xsd:element name="dataFilename" type="dataFilenameType" minOccurs="1"/>
         </xsd:all>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
+        <xsd:attribute name="verbosity" type="verbosityAttr" default="all"/>
     </xsd:complexType>
     <xsd:complexType name="NDCartesianSplineDistribution">
         <xsd:all>
@@ -220,6 +248,7 @@
             <xsd:element name="workingDir"   type="xsd:string"        minOccurs="1"/>
         </xsd:all>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
+        <xsd:attribute name="verbosity" type="verbosityAttr" default="all"/>
     </xsd:complexType>
     <xsd:complexType name="MultivariateNormalDistribution">
         <xsd:all>
@@ -229,6 +258,7 @@
         </xsd:all>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
         <xsd:attribute name="method"  type="xsd:string"  use="required"/>
+        <xsd:attribute name="verbosity" type="verbosityAttr" default="all"/>
     </xsd:complexType>
 
     <xsd:complexType name="covarianceType">

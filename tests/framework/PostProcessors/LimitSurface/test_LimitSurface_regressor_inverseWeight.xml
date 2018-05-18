@@ -1,0 +1,171 @@
+<?xml version="1.0" ?>
+<Simulation>
+  <TestInfo>
+    <name>framework/PostProcessors/LimitSurface.testLimitSurfacePostProcessorWithRegressor</name>
+    <author>alfoa</author>
+    <created>2014-07-10</created>
+    <classesTested>Models.PostProcessors.LimitSurface, Functions.External, Models.ROM</classesTested>
+    <description>
+       This test is aimed to check the capability of RAVEN to generate Limit Surfaces, using a regressor surrogate model instead of a classifier,
+       from a pre-generated data set (in this case, generated with
+       a MonteCarlo sampling), outputting the generated Limit Surface in DataObject.PointSet(s) reporting both transition boundaries (-1 1) or just
+       one of them.
+    </description>
+    <revisions>
+      <revision author="alfoa" date="2017-06-02">Adding this test description.</revision>
+      <revision author="alfoa" date="2017-12-14">
+          Moved LimitSurface Postprocessor tests in a specific directory (tests/framework/PostProcessors/LimitSurface) and updated for new DataObject structure
+      </revision>
+    </revisions>
+  </TestInfo>
+  <RunInfo>
+    <WorkingDir>limitSurfaceWithRegressor</WorkingDir>
+    <Sequence>FirstMRun,ComputeLimitSurfacePositive,ComputeLimitSurfaceNegative,ComputeLimitSurfacePositiveNegative</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name="limitSurfaceTestExternalModel.py" type="">limitSurfaceTestExternalModel.py</Input>
+    <Input name="goalFunctionTest.py" type="">goalFunctionTest.py</Input>
+  </Files>
+
+  <Models>
+    <ExternalModel ModuleToLoad="../limitSurface/limitSurfaceTestExternalModel" name="PythonModule" subType="">
+      <variables>z,x0,y0</variables>
+    </ExternalModel>
+    <PostProcessor name="computeLimitSurfacePositive" subType="LimitSurface">
+      <parameters>x0,y0</parameters>
+      <side>positive</side>
+      <ROM class="Models" type="ROM">Acc</ROM>
+      <!--You can add here a ROM defined in Models block.If not Present, a nearest algorithm is going to be used-->
+      <Function class="Functions" type="External">goalFunctionForLimitSurface</Function>
+    </PostProcessor>
+    
+
+    <PostProcessor name="computeLimitSurfaceNegative" subType="LimitSurface">
+      <parameters>x0,y0</parameters>
+      <side>negative</side>
+      <ROM class="Models" type="ROM">Acc</ROM>
+      <!--You can add here a ROM defined in Models block.If not Present, a nearest algorithm is going to be used-->
+      <Function class="Functions" type="External">goalFunctionForLimitSurface</Function>
+    </PostProcessor>
+    <PostProcessor name="computeLimitSurfacePositiveNegative" subType="LimitSurface">
+      <parameters>x0,y0</parameters>
+      <side>both</side>
+      <ROM class="Models" type="ROM">Acc</ROM>
+      <!--You can add here a ROM defined in Models block.If not Present, a nearest algorithm is going to be used-->
+      <Function class="Functions" type="External">goalFunctionForLimitSurface</Function>
+    </PostProcessor>
+    <ROM name="Acc" subType="NDinvDistWeight">
+        <Features>x0,y0</Features>
+        <Target>goalFunctionForLimitSurface</Target>
+        <p>3</p>
+    </ROM>
+  </Models>
+
+  <Functions>
+    <External file="../limitSurface/goalFunctionTest" name="goalFunctionForLimitSurface">
+      <variable>z</variable>
+    </External>
+  </Functions>
+
+  <Distributions>
+    <Normal name="x0_distrib">
+      <mean>4</mean>
+      <sigma>2</sigma>
+      <lowerBound>0.0</lowerBound>
+      <upperBound>8.0</upperBound>
+    </Normal>
+    <Normal name="y0_distrib">
+      <mean>5</mean>
+      <sigma>2</sigma>
+      <lowerBound>0.0</lowerBound>
+      <upperBound>10.0</upperBound>
+    </Normal>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="MC_external">
+      <samplerInit>
+        <limit>150</limit>
+      </samplerInit>
+      <variable name="x0">
+        <distribution>x0_distrib</distribution>
+      </variable>
+      <variable name="y0">
+        <distribution>y0_distrib</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="FirstMRun" re-seeding="200286">
+      <Input class="DataObjects" type="PointSet">Dummy</Input>
+      <Model class="Models" type="ExternalModel">PythonModule</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
+      <Output class="DataObjects" type="PointSet">PointSetPostProcTest</Output>
+      <Output class="OutStreams" type="Print">PointSetPostProcTest_dump</Output>
+    </MultiRun>
+    <PostProcess name="ComputeLimitSurfacePositive">
+      <Input class="DataObjects" type="PointSet">PointSetPostProcTest</Input>
+      <Model class="Models" type="PostProcessor">computeLimitSurfacePositive</Model>
+      <Output class="DataObjects" type="PointSet">LimitSurfacePositive</Output>
+      <Output class="OutStreams" type="Print">LimitSurfacePositive_dump</Output>
+    </PostProcess>
+    <PostProcess name="ComputeLimitSurfaceNegative">
+      <Input class="DataObjects" type="PointSet">PointSetPostProcTest</Input>
+      <Model class="Models" type="PostProcessor">computeLimitSurfaceNegative</Model>
+      <Output class="DataObjects" type="PointSet">LimitSurfaceNegative</Output>
+      <Output class="OutStreams" type="Print">LimitSurfaceNegative_dump</Output>
+    </PostProcess>
+    <PostProcess name="ComputeLimitSurfacePositiveNegative">
+      <Input class="DataObjects" type="PointSet">PointSetPostProcTest</Input>
+      <Model class="Models" type="PostProcessor">computeLimitSurfacePositiveNegative</Model>
+      <Output class="DataObjects" type="PointSet">LimitSurfacePositiveNegative</Output>
+      <Output class="OutStreams" type="Print">LimitSurfacePositiveNegative_dump</Output>
+    </PostProcess>
+  </Steps>
+
+  <OutStreams>
+    <Print name="PointSetPostProcTest_dump">
+      <type>csv</type>
+      <source>PointSetPostProcTest</source>
+    </Print>
+    <Print name="LimitSurfacePositive_dump">
+      <type>csv</type>
+      <source>LimitSurfacePositive</source>
+    </Print>
+    <Print name="LimitSurfaceNegative_dump">
+      <type>csv</type>
+      <source>LimitSurfaceNegative</source>
+    </Print>
+    <Print name="LimitSurfacePositiveNegative_dump">
+      <type>csv</type>
+      <source>LimitSurfacePositiveNegative</source>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="PointSetPostProcTest">
+      <Input>x0,y0</Input>
+      <Output>z</Output>
+    </PointSet>
+    <PointSet name="LimitSurfacePositive">
+      <Input>y0,x0</Input>
+      <Output>goalFunctionForLimitSurface</Output>
+    </PointSet>
+    <PointSet name="LimitSurfaceNegative">
+      <Input>y0,x0</Input>
+      <Output>goalFunctionForLimitSurface</Output>
+    </PointSet>
+    <PointSet name="LimitSurfacePositiveNegative">
+      <Input>y0,x0</Input>
+      <Output>goalFunctionForLimitSurface</Output>
+    </PointSet>
+    <PointSet name="Dummy">
+      <Input>x0,y0</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+  </DataObjects>
+
+</Simulation>

@@ -13,152 +13,241 @@
 # limitations under the License.
 from __future__ import division, print_function, unicode_literals, absolute_import
 import sys,os
+import numpy as np
+import pandas as pd
 
-def isANumber(x):
-  '''Checks if x can be converted to a float.
-  @ In, x, a variable or value
-  @ Out, bool, True if x can be converted to a float.
-  '''
-  try:
-    float(x)
-    return True
-  except ValueError:
-    return False
+# get access to math tools from RAVEN
+try:
+  from utils import mathUtils
+except ImportError:
+  new = os.path.realpath(os.path.join(os.path.realpath(__file__),'..','..','..','..','framework'))
+  sys.path.append(new)
+  from utils import mathUtils
+
+whoAmI = False # enable to show test dir and out files
+debug = False # enable to increase printing
 
 class UnorderedCSVDiffer:
-  """ Used for comparing a bunch of xml files.
   """
-  def __init__(self, test_dir, out_files,relative_error=1e-10,absolute_check=False):
-    """ Create an UnorderedCSVDiffer class
-    test_dir:
-    out_files:
-    and test_dir + gold + out_files
-    @ In, test_dir, the directory where the test takes place
-    @ In, out_files, the files to be compared.  They will be in test_dir + out_files
-    @ In, *args, unused.
-    @ Out, None.
+    Used for comparing two CSV files without regard for column, row orders
+  """
+  def __init__(self, test_dir, out_files,relative_error=1e-10,absolute_check=False,zeroThreshold=None):
+    """
+      Create an UnorderedCSVDiffer class
+      Note naming conventions are out of our control due to MOOSE test harness standards.
+      @ In, test_dir, the directory where the test takes place
+      @ In, out_files, the files to be compared.  They will be in test_dir + out_files
+      @ In, relative_error, float, optional, relative error
+      @ In, absolute_check, bool, optional, if True then check absolute values instead of values
+      @ Out, None.
     """
     self.__out_files = out_files
-    self.__messages = ""
+    self.__message = ""
     self.__same = True
     self.__test_dir = test_dir
     self.__check_absolute_values = absolute_check
-    #self.__options = args
     self.__rel_err = relative_error
+    self.__zero_threshold = float(zeroThreshold) if zeroThreshold is not None else 0.0
+    if debug or whoAmI:
+      print('test dir :',self.__test_dir)
+      print('out files:',self.__out_files)
+    if debug:
+      print('err      :',self.__rel_err)
+      print('abs check:',self.__check_absolute_values)
+      print('zero thr :',self.__zero_threshold)
+
+  def finalizeMessage(self,same,msg,filename):
+    """
+      Compiles useful messages to print, prepending with file paths.
+      @ In, same, bool, True if files are the same
+      @ In, msg, list(str), messages that explain differences
+      @ In, filename, str, test filename/path
+      @ Out, None
+    """
+    if not same:
+      self.__same = False
+      self.__message += '\nDIFF in {}: \n  {}'.format(filename,'\n  '.join(msg))
+
+  def findRow(self,row,csv):
+    """
+      Searches for "row" in "csv"
+      @ In, row, pd.Series, row of data
+      @ In, csv, pd.Dataframe, dataframe to look in
+      @ Out, match, pd.Dataframe or list, matching row of data (or empty list if none found)
+    """
+    if debug:
+      print('')
+      print('Looking for:\n',row)
+      print('Looking in:\n',csv)
+    match = csv.copy()
+    # TODO can I do this as a single search, using binomial on floats +- rel_err?
+    for idx, val in row.iteritems():
+      if debug:
+        print('  checking index',idx,'value',val)
+      # Due to relative matches in floats, we may not be sorted with respect to this index.
+      ## In an ideal world with perfect matches, we would be.  Unfortunately, we have to sort again.
+      match = match.sort_values(idx)
+      # check type consistency
+      ## get a sample from the matching CSV column
+      ### TODO could check indices ONCE and re-use instead of checking each time
+      matchVal = match[idx].values.item(0) if match[idx].values.shape[0] != 0 else None
+      ## find out if match[idx] and/or "val" are numbers
+      matchIsNumber = mathUtils.isAFloatOrInt(matchVal)
+      valIsNumber = mathUtils.isAFloatOrInt(val)
+      ## if one is a number and the other is not, consider it a non-match.
+      if matchIsNumber != valIsNumber:
+        if debug:
+          print('  Not same type (number)! lfor: "{}" lin: "{}"'.format(valIsNumber,matchIsNumber))
+        return []
+      # find index of lowest and highest possible matches
+      ## if values are floats, then matches could be as low as val(1-rel_err) and as high as val(1+rel_err)
+      if matchIsNumber:
+        # adjust for negative values
+        sign = np.sign(val)
+        lowest = np.searchsorted(match[idx].values,val*(1.0-sign*self.__rel_err))
+        highest = np.searchsorted(match[idx].values,val*(1.0+sign*self.__rel_err),side='right')-1
+      ## if not floats, then check exact matches
+      else:
+        lowest = np.searchsorted(match[idx].values,val)
+        highest = np.searchsorted(match[idx].values,val,side='right')-1
+      if debug:
+        print('  low/hi match index:',lowest,highest)
+      ## if lowest is past end of array, no match found
+      if lowest == len(match[idx]):
+        if debug:
+          print('  Match is past end of sort list!')
+        return []
+      ## if entry at lowest index doesn't match entry, then it's not to be found
+      if not self.matches(match[idx].values[lowest],val,matchIsNumber,self.__rel_err):
+        if debug:
+          print('  Match is not equal to insert point!')
+        return []
+      ## otherwise, we have some range of matches
+      match = match[slice(lowest,highest+1)]
+      if debug:
+        print('  After searching for {}={}, remaining matches:\n'.format(idx,val),match)
+    return match
+
+  def matches(self,a,b,isNumber,tol):
+    """
+      Determines if two objects match within tolerance.
+      @ In, a, object, first object ("measured")
+      @ In, b, object, second object ("actual")
+      @ In, isNumber, bool, if True then treat as float with tolerance (else check equivalence)
+      @ In, tol, float, tolerance at which to hold match (if float)
+      @ Out, matches, bool, True if matching
+    """
+    if not isNumber:
+      return a == b
+    if self.__check_absolute_values:
+      return abs(a-b) < tol
+    # otherwise, relative error
+    scale = abs(b) if b != 0 else 1.0
+    return abs(a-b) < scale*tol
 
   def diff(self):
-    """ Run the comparison.
-    returns (same,messages) where same is true if all the
-    csv files are the same, and messages is a string with all the
-    differences.
-    @ In, None
-    @ Out, (bool,string), (same) and (messages)
+    """
+      Run the comparison.
+      @ In, None
+      @ Out, same, bool, if True then files are the same
+      @ Out, messages, str, messages to print on fail
     """
     # read in files
-    for out_file in self.__out_files:
-      test_filename = os.path.join(self.__test_dir,out_file)
-      gold_filename = os.path.join(self.__test_dir, 'gold', out_file)
-      files_read = False
-      if not os.path.exists(test_filename):
-        self.__same = False
-        self.__messages += '\nTest file does not exist: '+test_filename
-      elif not os.path.exists(gold_filename):
-        self.__same = False
-        self.__messages += '\nGold file does not exist: '+gold_filename
-      else:
-        files_read = True
-      if files_read:
-        testHead, testData = self.loadCSV(test_filename)
-        goldHead, goldData = self.loadCSV(gold_filename)
-        #match headers
-        #this if can check the data in whatever column order
-        #if testHead != goldHead:
-        #  goldHeadList = goldHead.split(',')
-        #  testHeadList = testHead.split(',')
-        #  newTestData = np.zeros(np.array(testData).shape)
-        #  oldTestData = np.array(testData)
-        #  for cnt,goldVar in enumerate(goldHeadList):newTestData[:,cnt] = oldTestData[:,testHeadList.index(goldVar)]
-        #  testData = newTestData.tolist()
-        #  testHead = goldHead
-        if testHead != goldHead:
-          self.__same = False
-          self.__messages+='\nHeaders are not the same!...\n...Test: %s\n...Gold: %s' %(testHead,goldHead)
-        #in case we want to allow flexible header order, you'd have to change the data order as well before checking!
-        #  ...but here is the header search part.
-        #while len(testHead)>0:
-        #  toFind = testHead.pop()
-        #  if toFind in goldHead: goldHead.remove(toFind)
-        #  else:
-        #    self.__messages += '\nHeader in Test but not in Gold: '+toFind
-        #    self.__same = False
-        #    break
-        #if len(goldHead)>0:
-        #  self.__messages += '\nHeader in Gold but not in Test: '+toFind
-        #  self.__same = False
-        #match body
-        if not self.__same: self.__messages+='\nSince headers of csv are not the same, values will not be compared.'
-        else:
-          if len(testData) != len(goldData):
-            self.__same = False
-            self.__messages+='\nTest has %i rows, but Gold has %i rows.' %(len(testData),len(goldData))
-            return (self.__same,self.__messages.strip())
-          while len(testData)>0:
-            #take out the first row
-            datarow = testData.pop()
-            #search for match in gold
-            found = False
-            for g,goldrow in enumerate(goldData):
-              #establish a baseline magnitude
-              denom = sum(g if type(g)==float else 0 for g in goldrow)
-              if denom == 0: denom = 1.0 #protection from div by zero
-              allfound = True
-              for d,g in zip(datarow,goldrow):
-                if type(d) != type(g): allfound = False
-                if type(d) == float:
-                  if not self.__check_absolute_values:
-                    check = abs(d-g)
-                  else:
-                    check = abs(abs(d)-abs(g))
-                  #div by 0 error handling
-                  if abs(g)>1e-15: check/=abs(g)
-                  if check > self.__rel_err:
-                    allfound = False
-                elif type(d) == str:
-                  allFound = d == g
-              # if sum(abs(d-g)/g for d,g in zip(datarow,goldrow)) < self.__rel_err: #match found -> old method, div by 0 error
-              if allfound:
-                goldData.remove(goldrow)
-                found = True
-                break
-            if not found:
-              self.__same = False
-              self.__messages+='\nRow in Test not found in Gold: %s' %str(datarow).strip('[]')
-          if len(goldData)>0:
-            self.__same = False
-            for row in goldData:
-              self.__messages+='\nRow in Gold not found in Test: %s' %str(row).strip('[]')
-    return (self.__same,self.__messages)
+    for outFile in self.__out_files:
+      # local "same" and message list
+      same = True
+      msg = []
+      # load test file
+      testFilename = os.path.join(self.__test_dir,outFile)
+      try:
+        testCSV = pd.read_csv(testFilename,sep=',')
+      # if file is empty, we can check that's consistent, too
+      except pd.errors.EmptyDataError:
+        testCSV = None
+      # if file doesn't exist, that's another problem
+      except IOError:
+        msg.append('Test file does not exist!')
+        same = False
+      # load gold file
+      goldFilename = os.path.join(self.__test_dir, 'gold', outFile)
+      try:
+        goldCSV = pd.read_csv(goldFilename,sep=',')
+      # if file is empty, we can check that's consistent, too
+      except pd.errors.EmptyDataError:
+        goldCSV = None
+      # if file doesn't exist, that's another problem
+      except IOError:
+        msg.append('Gold file does not exist!')
+        same = False
+      # if either file did not exist, clean up and go to next outfile
+      if not same:
+        self.finalizeMessage(same,msg,testFilename)
+        continue
+      # at this point, we've loaded both files (even if they're empty), so compare them.
+      ## first, cover the case when both files are empty.
+      if testCSV is None or goldCSV is None:
+        if not (testCSV is None and goldCSV is None):
+          same = False
+          if testCSV is None:
+            msg.append('Test file is empty, but Gold is not!')
+          else:
+            msg.append('Gold file is empty, but Test is not!')
+        # either way, move on to the next file, as no more comparison is needed
+        self.finalizeMessage(same,msg,testFilename)
+        continue
+      ## at this point, both files have data loaded
+      ## check columns using symmetric difference
+      diffColumns = set(goldCSV.columns)^set(testCSV.columns)
+      if len(diffColumns) > 0:
+        same = False
+        msg.append('Columns are not the same! Different: {}'.format(', '.join(diffColumns)))
+        self.finalizeMessage(same,msg,testFilename)
+        continue
+      ## check index length
+      if len(goldCSV.index) != len(testCSV.index):
+        same = False
+        msg.append('Different number of entires in Gold ({}) versus Test ({})!'.format(len(goldCSV.index),len(testCSV.index)))
+        self.finalizeMessage(same,msg,testFilename)
+        continue
+      ## at this point both CSVs have the same shape, with the same header contents.
+      ## align columns
+      testCSV = testCSV[goldCSV.columns.tolist()]
+      ## set marginal values to zero, fix infinites
+      testCSV = self.prepDataframe(testCSV,self.__zero_threshold)
+      goldCSV = self.prepDataframe(goldCSV,self.__zero_threshold)
+      ## check for matching rows
+      for idx in goldCSV.index:
+        find = goldCSV.iloc[idx].rename(None)
+        match = self.findRow(find,testCSV)
+        if len(match) == 0:
+          same = False
+          msg.append('Could not find match for row "{}" in Gold:\n{}'.format(idx+1,find)) #+1 because of header row
+          # stop looking once a mismatch is found
+          break
+      self.finalizeMessage(same,msg,testFilename)
+    return self.__same, self.__message
 
-  def loadCSV(self,filename):
-    """Method to load CSVs in lieu of using Numpy's method.
-    @ In, filename, string file name to load
-    @ Out, (list of string,list of lists of floats), (header row) and the body data
+  def prepDataframe(self,csv,tol):
     """
-    f = file(filename,'r')
-    header = f.readline()
-    data=[]
-    for l,line in enumerate(f):
-      if line.strip()=='': continue #sometimes a newline at and of file)
-      #if all values are floats, this works great
-      try: data.append(list(float(e) for e in line.strip().split(',')))
-      #otherwise, we need to take it one entry at a time
-      except ValueError:
-        toAppend = []
-        for e in line.strip().split(','):
-          #if it's float, make it so
-          try: e = float(e)
-          #otherwise, leave it string
-          except ValueError: pass
-          toAppend.append(e)
-        data.append(toAppend)
-    return header.strip(),data
+      Does several prep actions:
+        - For any columns that contain numbers, drop near-zero numbers to zero
+        - replace infs and nans with symbolic values
+      @ In, csv, pd.DataFrame, contents to reduce
+      @ In, tol, float, tolerance sufficently near zero
+      @ Out, csv, converted dataframe
+    """
+    # use absolute or relative?
+    key = {'atol':tol} if self.__check_absolute_values else {'rtol':tol}
+    # take care of infinites
+    csv = csv.replace(np.inf,-sys.maxint)
+    csv = csv.replace(np.nan,sys.maxint)
+    for col in csv.columns:
+      example = csv[col].values.item(0) if csv[col].values.shape[0] != 0 else None
+      # skip columns that aren't numbers TODO might skip float columns with "None" early on
+      if not mathUtils.isAFloatOrInt(example):
+        continue
+      # flatten near-zeros
+      csv[col].values[np.isclose(csv[col].values,0,**key)] = 0
+    # TODO would like to sort here, but due to relative errors it doesn't do enough good.  Instead, sort in findRow.
+    return csv
+

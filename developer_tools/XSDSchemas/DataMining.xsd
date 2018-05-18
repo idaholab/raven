@@ -15,6 +15,7 @@
         </xsd:complexType>
       </xsd:element>
     </xsd:all>
+    <xsd:attribute name="verbosity"       type="verbosityAttr" default="all"/>
   </xsd:complexType>
   <xsd:complexType name="SKLtypeData">
     <xsd:sequence>

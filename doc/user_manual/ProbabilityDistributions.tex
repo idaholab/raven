@@ -392,6 +392,49 @@ Example:
 </Distributions>
 \end{lstlisting}
 
+%%%%%% LogUniform
+\paragraph{LogUniform Distribution}
+\label{LogNormal}
+The \distname{LogNormal} distribution is a distribution associated to
+a variable $y=h(x)=e^{x}$ where variable x is uniform distributed.
+This distribution supports not only the case  $y=h(x)=e^{x}$ (natural case) but also
+the case where $y=h(x)=10^{x}$ (decimal case).
+%
+
+Its default support is $x \in [h(lowerBound),h(upperBound)]$.
+
+\specBlock{a}{LogUniform}
+%
+\attrIntro
+\vspace{-5mm}
+\begin{itemize}
+  \itemsep0em
+  \item \nameDescription
+\end{itemize}
+\vspace{-5mm}
+\subnodesIntro
+\begin{itemize}
+  \item \xmlNode{lowerBound}, \xmlDesc{float, required parameter}, domain lower boundary.
+  %
+  \item \xmlNode{upperBound}, \xmlDesc{float, required parameter}, domain upper boundary.
+  %
+  \item \xmlNode{base}, \xmlDesc{string, required parameter}, case type (decimal or natural).
+  %
+\end{itemize}
+
+Example:
+\begin{lstlisting}[style=XML]
+<Distributions>
+  ...
+  <LogUniform name="x_dist">
+    <upperBound>1.0</upperBound>
+    <lowerBound>3.0</lowerBound>
+    <base>natural</base>
+  </LogUniform>
+  ...
+</Distributions>
+\end{lstlisting}
+
 %%%%%% Normal
 \paragraph{Normal Distribution}
 \label{Normal}

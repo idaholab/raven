@@ -80,7 +80,7 @@
 
   <DataObjects>
     <PointSet name="samples">
-      <Input>x,y</Input>
+      <Input>y,x</Input>
       <Output>poly</Output>
     </PointSet>
   </DataObjects>
@@ -89,6 +89,7 @@
     <Print name="samples">
       <type>csv</type>
       <source>samples</source>
+      <what>input,output</what>
     </Print>
   </OutStreams>
 

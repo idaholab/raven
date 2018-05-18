@@ -1,0 +1,14 @@
+<DataObjectMetadata name="optOut">
+  <DataSet type="Static">
+    <dims>
+      <y>t</y>
+    </dims>
+    <general>
+      <inputs>x,y</inputs>
+      <pointwise_meta>trajID,prefix,varsUpdate</pointwise_meta>
+      <outputs>ans</outputs>
+      <sampleTag>RAVEN_sample_ID</sampleTag>
+    </general>
+  </DataSet>
+  
+</DataObjectMetadata>

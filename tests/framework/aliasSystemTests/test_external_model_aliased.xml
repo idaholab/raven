@@ -99,21 +99,24 @@
     <Print name="testPrintHistorySet_dump">
       <type>csv</type>
       <source>testPrintHistorySet</source>
+      <what>input,output</what>
     </Print>
     <Print name="testPointSet_dump">
       <type>csv</type>
       <source>testPointSet</source>
+      <what>input,output</what>
     </Print>
     <Print name="testPrintHistorySetFromHDF5_dump">
         <type>csv</type>
         <source>testPrintHistorySetFromHDF5</source>
+        <what>input,output</what>
     </Print>
     <Print name="testPointSetFromHDF5_dump">
         <type>csv</type>
         <source>testPointSetFromHDF5</source>
+        <what>input,output</what>
     </Print>
   </OutStreams>
-
   <!-- DATA OBJECTS -->
   <DataObjects>
     <PointSet name="inputPlaceHolder">
@@ -121,20 +124,20 @@
       <Output>OutputPlaceHolder</Output>
     </PointSet>
     <PointSet name="testPointSet">
-      <Input>x0,y0,z0</Input>
-      <Output>time,x,y,z</Output>
+      <Input>y0,x0,z0</Input>
+      <Output>y,x,z,time</Output>
     </PointSet>
     <PointSet name="testPointSetFromHDF5">
-        <Input>x0,y0,z0</Input>
-        <Output>time,x,y,z</Output>
+        <Input>y0,x0,z0</Input>
+        <Output>y,x,z,time</Output>
     </PointSet>
     <HistorySet name="testPrintHistorySet">
-      <Input>x0,y0,z0</Input>
-      <Output>time,x,y,z</Output>
+        <Input>y0,x0,z0</Input>
+        <Output>y,x,z,time</Output>
     </HistorySet>
     <HistorySet name="testPrintHistorySetFromHDF5">
-        <Input>x0,y0,z0</Input>
-        <Output>time,x,y,z</Output>
+        <Input>y0,x0,z0</Input>
+        <Output>y,x,z,time</Output>
     </HistorySet>
   </DataObjects>
 

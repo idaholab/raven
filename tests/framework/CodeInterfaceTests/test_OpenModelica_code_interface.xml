@@ -56,6 +56,7 @@
       <Model class="Models" type="Code">BouncingBall</Model>
       <Sampler class="Samplers" type="MonteCarlo">MC</Sampler>
       <Output class="Databases" type="HDF5">DB_BouncingBall</Output>
+      <Output class="DataObjects" type="HistorySet">BBHistorySet</Output>
     </MultiRun>
   </Steps>
 

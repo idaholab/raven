@@ -72,6 +72,7 @@
     <Print name="dumpMelcorPointSet">
       <type>csv</type>
       <source>MelcorPointSet</source>
+      <what>input,output</what>
     </Print>
   </OutStreams>
 

@@ -26,6 +26,8 @@ if not 'xrange' in dir(__builtins__):
 import sys
 import abc
 import copy
+import time
+import datetime
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -40,7 +42,7 @@ class Runner(MessageHandler.MessageUser):
     Generic base class for running codes and models in parallel environments
     both internally (shared data) and externally.
   """
-  def __init__(self, messageHandler, identifier = None, metadata = None, uniqueHandler = "any"):
+  def __init__(self, messageHandler, identifier = None, metadata = None, uniqueHandler = "any", profile = False):
     """
       Initialize command variable
       @ In, messageHandler, MessageHandler instance, the global RAVEN message handler instance
@@ -48,8 +50,12 @@ class Runner(MessageHandler.MessageUser):
       @ In, metadata, dict, optional, dictionary of metadata associated with this Runner
       @ In, uniqueHandler, string, optional, it is a special keyword attached to this runner. For example, if present, to retrieve this runner using the method jobHandler.getFinished, the uniqueHandler needs to be provided.
                                              if uniqueHandler == 'any', every "client" can get this runner
+      @ In, profile, bool, optional, if True then timing statements will be printed during garbage collection
       @ Out, None
     """
+    self.timings = {}
+    self.timings['created'] = time.time()
+    self.__printTimings = profile
     self.messageHandler = messageHandler
     self.identifier     = 'generalOut'  ## Default identifier name
     self.metadata       = copy.copy(metadata)
@@ -61,6 +67,28 @@ class Runner(MessageHandler.MessageUser):
       self.identifier =  str(identifier).split("~",1)[-1]
 
     self.identifier = self.identifier.strip()
+
+  def __del__(self):
+    """
+      Deconstructor.
+      @ In, None
+      @ Out, None
+    """
+    if self.__printTimings:
+      # print timing history
+      pairs = self.timings.items()
+      pairs.sort(key=lambda x:x[1])
+      prof = ""
+      prof += 'TIMINGS for job "{}":'.format(self.identifier)
+      for e,(event,time) in enumerate(pairs):
+        if e == 0:
+          _, msg = self.messageHandler._printMessage(self,'TIMINGS ... {:^20s} at {} ({})'.format(event,time,datetime.datetime.fromtimestamp(time).strftime('%Y-%m-%d %H:%M:%S')) ,'DEBUG',3,None)
+          last = time
+        else:
+          _, msg = self.messageHandler._printMessage(self,'TIMINGS ... {:^20s} elapsed {:10.6f} s'.format(event,time-last),'DEBUG',3,None)
+          last = time
+        prof +=  "\n"+msg
+      self.raiseADebug(prof)
 
   def isDone(self):
     """
@@ -99,6 +127,13 @@ class Runner(MessageHandler.MessageUser):
       @ Out, metadata, dict, return the dictionary of metadata associated with this ExternalRunner
     """
     return self.metadata
+
+  def trackTime(self,event):
+    """
+      Records the time under 'event'.
+      @ In, event, string, the label under which to store the timing
+    """
+    self.timings[event] = time.time()
 
   def start(self):
     """

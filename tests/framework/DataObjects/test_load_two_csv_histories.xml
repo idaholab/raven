@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<Simulation verbosity="silent">
+<Simulation verbosity="debug">
   <TestInfo>
     <name>framework/DataObjects.load_two_csv_histories</name>
     <author>maljdan</author>
@@ -47,8 +47,11 @@
 
   <DataObjects>
     <HistorySet name="data">
-      <Input>b,c</Input>
-      <Output>1,Time</Output>
+      <Input>c,b</Input>
+      <Output>1</Output>
+      <options>
+        <pivotParameter>Time</pivotParameter>
+      </options>
     </HistorySet>
   </DataObjects>
 

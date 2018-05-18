@@ -34,10 +34,7 @@ from functools import reduce
 #Internal Modules------------------------------------------------------------------------------------
 from .ForwardSampler import ForwardSampler
 from utils import utils,randomUtils,InputData
-distribution1D = utils.find_distribution1D()
 #Internal Modules End--------------------------------------------------------------------------------
-
-stochasticEnv = distribution1D.DistributionContainer.instance()
 
 class MonteCarlo(ForwardSampler):
   """
@@ -77,7 +74,6 @@ class MonteCarlo(ForwardSampler):
     inputSpecification.addSub(samplerInitInput)
 
     return inputSpecification
-
 
   def __init__(self):
     """
@@ -123,6 +119,7 @@ class MonteCarlo(ForwardSampler):
       @ Out, None
     """
     # create values dictionary
+    weight = 1.0
     for key in self.distDict:
       # check if the key is a comma separated list of strings
       # in this case, the user wants to sample the comma separated variables with the same sampled value => link the value to all comma separated variables
@@ -151,6 +148,7 @@ class MonteCarlo(ForwardSampler):
           self.inputInfo['SampledVarsPb'][key] = self.distDict[key].pdf(rvsnum)
           for kkey in varID.strip().split(','):
             self.values[kkey] = np.atleast_1d(rvsnum)[0]
+          self.inputInfo['ProbabilityWeight-' + varID] = 1.
       elif totDim > 1:
         if reducedDim == 1:
           if self.samplingType is None:
@@ -171,15 +169,18 @@ class MonteCarlo(ForwardSampler):
             varDim = var[varID]
             for kkey in varID.strip().split(','):
               self.values[kkey] = np.atleast_1d(rvsnum)[varDim-1]
+          self.inputInfo['ProbabilityWeight-' + dist] = 1.
       else:
         self.raiseAnError(IOError,"Total dimension for given distribution should be >= 1")
 
     if len(self.inputInfo['SampledVarsPb'].keys()) > 0:
-      self.inputInfo['PointProbability'  ]  = reduce(mul, self.inputInfo['SampledVarsPb'].values())
-      if self.samplingType == 'uniform':
-        self.inputInfo['ProbabilityWeight'  ] = weight
-      else:
-        self.inputInfo['ProbabilityWeight' ] = 1.0 #MC weight is 1/N => weight is one
+      self.inputInfo['PointProbability'] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
+    else:
+      self.inputInfo['PointProbability'] = 1.0
+    if self.samplingType == 'uniform':
+      self.inputInfo['ProbabilityWeight'  ] = weight
+    else:
+      self.inputInfo['ProbabilityWeight' ] = 1.0 #MC weight is 1/N => weight is one
     self.inputInfo['SamplerType'] = 'MonteCarlo'
 
   def _localHandleFailedRuns(self,failedRuns):

@@ -82,13 +82,13 @@ class MAAP5(GenericCode):
     """
     self.samplerType=samplerType
     if 'dynamiceventtree' in str(samplerType).lower():
-      if Kwargs['parentID'] == 'root':
+      if Kwargs['RAVEN_parentID'] == 'None':
         self.oriInput(oriInputFiles) #original input files are checked only the first time
       self.stopSimulation(currentInputFiles, Kwargs)
 ###########
-      if Kwargs['parentID'] != 'root':
+      if Kwargs['RAVEN_parentID'] != 'None':
         print('Kwargs',Kwargs)
-        self.restart(currentInputFiles, Kwargs['parentID'])
+        self.restart(currentInputFiles, Kwargs['RAVEN_parentID'])
 ###########
         if len(self.multiBranchOccurred)>0:
           self.multiBranchMethod(currentInputFiles, Kwargs)
@@ -335,7 +335,7 @@ class MAAP5(GenericCode):
     fileobject.close()
     for line in lines:
       lineNumber=lineNumber+1
-      if 'C Branching '+str((self.branch[Kwargs['parentID']])[0]) in line:
+      if 'C Branching '+str((self.branch[Kwargs['RAVEN_parentID']])[0]) in line:
         block=True
       if n==len(Kwargs['branchChangedParam']):
         block=False
@@ -630,7 +630,7 @@ class MAAP5(GenericCode):
     lineStopList=[lineStop]
     while lines[lineStopList[-1]+1].split(' ')[0]=='OR': lineStopList.append(lineStopList[-1]+1)
 ########################
-    if Kwargs['parentID']== 'root':
+    if Kwargs['RAVEN_parentID']== 'None':
       if self.stop!='mission_time':
         self.lineTimerComplete.append('TIMER '+str(self.stopTimer))
 ####################
@@ -643,7 +643,7 @@ class MAAP5(GenericCode):
 ####################
         raise IOError('All TIMER must be considered for the first simulation') #in the original input file all the timer must be mentioned
     else:
-      #Kwargs['parentID'] != 'root'
+      #Kwargs['RAVEN_parentID'] != 'None'
       parent=currentFolder[:-2]
       parents.append(parent)
       while len(parent.split('_')[-1])>2: #collect the name of all the parents, their corresponding timer need to be deleted from the stop condition (when the parents has already occurred)
@@ -701,7 +701,7 @@ class MAAP5(GenericCode):
     linesCurrent=fileobject.readlines()
     fileobject.close()
 
-    parentInput=str(inp).replace(str(Kwargs['prefix']),str(Kwargs['parentID']))
+    parentInput=str(inp).replace(str(Kwargs['prefix']),str(Kwargs['RAVEN_parentID']))
     fileobject = open(parentInput, "r")
     linesParent=fileobject.readlines()
     fileobject.close()

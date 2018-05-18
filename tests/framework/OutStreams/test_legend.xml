@@ -1,5 +1,21 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="silent">
+
+  <TestInfo>
+    <name>framework/OutStreams.legend</name>
+    <author>maljdan</author>
+    <created>2016-04-27</created>
+    <classesTested>OutStreams.Plot</classesTested>
+    <description>
+        Test to check the functionalities of OutStreams system in RAVEN of type Plot, when a legend is added.
+    </description>
+    <revisions>
+        <revision author="maljdan" date="2016-05-04">Fixing the test for the compare executable to test the gold image against itself, if this returns a non-zero code, then the version of imageMagick cannot be used to get a valid difference. Also, I am removing the difference image and instead doing null: to remove the output file when using compare.</revision>
+        <revision author="chenj" date="2016-07-07">edit docstring</revision>
+        <revision author="alfoa" date="2018-05-15">Adding this test description.</revision>
+    </revisions>
+  </TestInfo>
+
   <RunInfo>
     <WorkingDir>plot</WorkingDir>
     <Sequence>sample,plot</Sequence>
