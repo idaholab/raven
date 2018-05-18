@@ -12,20 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-  Specialized implementation of DataObject for data with single-valued inputs and outputs that share
-  a single common pivot parameter in the outputs, for each realization.
+  Specialized implementation of DataSet to accomodate outputs that share a pivot parameter (e.g. time)
 """
 #For future compatibility with Python 3
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
 
-import sys,os
-import __builtin__
-import functools
+import os
+import sys
 import copy
-import cPickle as pk
+import functools
 import itertools
+import __builtin__
+import cPickle as pk
 import xml.etree.ElementTree as ET
 
 import abc
@@ -43,7 +43,7 @@ except ValueError: #attempted relative import in non-package
 
 # for profiling with kernprof
 try:
-  __builtin__.profile
+  profile = __builtin__.profile
 except AttributeError:
   # profiler not preset, so pass through
   def profile(func):
@@ -60,9 +60,8 @@ except AttributeError:
 #
 class HistorySet(DataSet):
   """
-    DataObject developed Oct 2017 to obtain linear performance from data objects when appending, over
-    thousands of variables and millions of samples.  Wraps np.ndarray for collecting and uses xarray.Dataset
-    for final form.  This form is a shortcut for ASSUMED only-float inputs and shared-single-pivot outputs
+    Specialized implementation of DataSet for data with single-valued inputs and outputs that share
+    a single common pivot parameter in the outputs, for each realization.
   """
   # only a few changes from the base class; the external API is identical.
 

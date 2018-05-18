@@ -8,6 +8,7 @@
       <xsd:element name="Print" type="PrintData" minOccurs="0" maxOccurs="unbounded"/>
       <xsd:element name="Plot"  type="PlotData"  minOccurs="0" maxOccurs="unbounded"/>
     </xsd:sequence>
+    <xsd:attribute name="verbosity" type="verbosityAttr" default="all"/>
   </xsd:complexType>
 
   <xsd:complexType name="PrintData">
