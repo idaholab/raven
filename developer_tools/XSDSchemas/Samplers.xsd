@@ -21,6 +21,7 @@
             <xsd:element name="AdaptiveSobol"            type="AdaptiveSobolSampler"   minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="EnsembleForward"          type="EnsembleForwardSampler" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
+        <xsd:attribute name="verbosity" type="verbosityAttr" default="all"/>
     </xsd:complexType>
 
     <xsd:complexType name="samplerInitType">
@@ -109,6 +110,7 @@
         </xsd:choice>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
         <xsd:attribute name="nameInSource" type="xsd:string"/>
+        <xsd:attribute name="verbosity" type="verbosityAttr" default="all"/>
     </xsd:complexType>
 
     <xsd:complexType name="MonteCarloSampler">
@@ -126,6 +128,7 @@
             <xsd:element name="variablesTransformation" type="variablesTransformationType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
+        <xsd:attribute name="verbosity" type="verbosityAttr" default="all"/>
     </xsd:complexType>
 
     <xsd:complexType name="CustomSampler">
@@ -148,6 +151,7 @@
 
         </xsd:sequence>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
+        <xsd:attribute name="verbosity" type="verbosityAttr" default="all"/>
     </xsd:complexType>
 
 
@@ -182,6 +186,7 @@
             <xsd:element name="variablesTransformation" type="variablesTransformationType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
+        <xsd:attribute name="verbosity" type="verbosityAttr" default="all"/>
     </xsd:complexType>
 
     <xsd:complexType name="SparseGridSampler">
@@ -202,6 +207,7 @@
         <xsd:attribute name="name"     type="xsd:string" use="required"/>
         <xsd:attribute name="parallel" type="xsd:string"/>
         <xsd:attribute name="outfile"  type="xsd:string"/>
+        <xsd:attribute name="verbosity" type="verbosityAttr" default="all"/>
     </xsd:complexType>
 
     <xsd:complexType name="ResponseSurfaceSampler">
@@ -243,6 +249,7 @@
             <xsd:element name="variablesTransformation" type="variablesTransformationType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
+        <xsd:attribute name="verbosity" type="verbosityAttr" default="all"/>
     </xsd:complexType>
 
     <xsd:complexType name="FactorialSampler">
@@ -266,6 +273,7 @@
             </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
+        <xsd:attribute name="verbosity" type="verbosityAttr" default="all"/>
     </xsd:complexType>
 
     <xsd:complexType name="EnsembleForwardSampler">
@@ -286,6 +294,7 @@
             <xsd:element name="CustomSampler" type="CustomSampler" minOccurs="0" maxOccurs="1"/>
         </xsd:sequence>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
+        <xsd:attribute name="verbosity" type="verbosityAttr" default="all"/>
     </xsd:complexType>
 
 

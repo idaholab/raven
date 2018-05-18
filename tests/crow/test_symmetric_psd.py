@@ -84,3 +84,20 @@ utils.checkArrayAllClose("Left singular vectors",np.absolute(uCpp),np.absolute(u
 print(results)
 
 sys.exit(results["fail"])
+
+"""
+ <TestInfo>
+    <name>crow.test_inverse_transformationMatrix</name>
+    <author>cogljj</author>
+    <created>2017-03-24</created>
+    <classesTested>crow</classesTested>
+    <description>
+      This test is a Unit Test for the crow swig classes. It tests that the MultiVariate Normal
+      distribution is accessable by Python and that the lef singular vectors are correctly
+      reported
+    </description>
+    <revisions>
+      <revision author="alfoa" date="2018-05-15">Adding this test description.</revision>
+    </revisions>
+ </TestInfo>
+"""
