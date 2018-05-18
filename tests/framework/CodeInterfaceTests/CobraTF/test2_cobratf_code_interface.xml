@@ -85,6 +85,7 @@
     <Print name="cobra_out">
       <type>csv</type>
       <source>grid_ps</source>
+      <what>input,output</what>
     </Print>
   </OutStreams>
 
