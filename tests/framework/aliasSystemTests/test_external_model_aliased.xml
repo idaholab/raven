@@ -13,6 +13,7 @@
       <revision author="alfoa" date="2016-11-22">Closes #754</revision>
       <revision author="alfoa" date="2016-11-28">Added XSD schema and Closes #756</revision>
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+      <revision author="talbpaul" date="2018-04-04">added awful.variable+name for hard-testing input alias</revision>
     </revisions>
   </TestInfo>
   <!-- RUNINFO -->
@@ -47,9 +48,9 @@
   <!-- MODELS -->
   <Models>
     <ExternalModel ModuleToLoad="lorentzAttractor" name="PythonModule" subType="">
-      <variables>sigma,rho,beta,firstOut,secondOut,z,time,firstVar,secondVar,z0</variables>
-      <alias variable="x0" type="input">firstVar</alias>
-      <alias variable="y0" type="input">secondVar</alias>
+      <variables>sigma,rho,beta,x,y,z,time,x0,y0,z0</variables>
+      <alias variable="x0" type="input">awful.variable+name</alias>
+      <alias variable="y0" type="input">@another|awful name</alias>
       <alias variable="x"  type="output">firstOut</alias>
       <alias variable="y"  type="output">secondOut</alias>
     </ExternalModel>
