@@ -10,6 +10,7 @@
              <xsd:element name="ExternalModel" type="ExternalModel" minOccurs="0" maxOccurs="unbounded"/-->
             <xsd:any processContents="skip" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
+        <xsd:attribute name="verbosity" type="verbosityAttr" default="all"/>
     </xsd:complexType>
 
     <xsd:simpleType  name="clArgType">
@@ -93,6 +94,7 @@
         </xsd:sequence>
         <xsd:attribute name="name"     type="xsd:string"  use="required"/>
         <xsd:attribute name="subType"  type="CodeModelType"  use="required" />
+        <xsd:attribute name="verbosity" type="verbosityAttr" default="all"/>
     </xsd:complexType>
 
     <xsd:complexType name="DummyModel">
@@ -102,6 +104,7 @@
         <xsd:attribute name="name"     type="xsd:string"  use="required"/>
         <xsd:attribute name="subType"  type="xsd:string"  use="required" fixed=""/>
         <xsd:attribute name="print"    type="xsd:string"/>
+        <xsd:attribute name="verbosity" type="verbosityAttr" default="all"/>
     </xsd:complexType>
 
     <xsd:complexType name="ExternalModel">
@@ -112,6 +115,7 @@
         <xsd:attribute name="name"         type="xsd:string"  use="required"/>
         <xsd:attribute name="subType"      type="xsd:string"  use="required" fixed=""/>
         <xsd:attribute name="ModuleToLoad" type="xsd:string"  use="required"/>
+        <xsd:attribute name="verbosity" type="verbosityAttr" default="all"/>
     </xsd:complexType>
 
     <xsd:complexType name="ROM">
@@ -122,6 +126,7 @@
         </xsd:sequence>
         <xsd:attribute name="name"         type="xsd:string"  use="required" />
         <xsd:attribute name="subType"      type="xsd:string"  use="required" />
+        <xsd:attribute name="verbosity" type="verbosityAttr" default="all"/>
     </xsd:complexType>
 
     <!-- NDSpline does not have any additional features and does not require its own definition-->

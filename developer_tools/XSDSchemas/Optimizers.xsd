@@ -8,6 +8,7 @@
             <xsd:element name="SPSA"                              type="SPSAOptimizer"            minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="FiniteDifferenceGradientOptimizer" type="SPSAOptimizer"            minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
+        <xsd:attribute name="verbosity" type="verbosityAttr" default="all"/>
     </xsd:complexType>
 
     <xsd:complexType name="optInitType">
@@ -29,6 +30,7 @@
         </xsd:all>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
         <xsd:attribute name="shape" type="xsd:string"/>
+        <xsd:attribute name="verbosity" type="verbosityAttr" default="all"/>
     </xsd:complexType>
 
     <xsd:complexType name="optSubspaceType">

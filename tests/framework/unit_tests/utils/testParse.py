@@ -122,12 +122,22 @@ else:
   print('  ... failures in GetPot to Getpot:')
   print('     ',msg[0])
 
-
-
-
-
-
-
-
 print('Results:', list('%s: %i' %(k,v) for k,v in results.items()))
 sys.exit(results['failed'])
+
+
+"""
+  <TestInfo>
+    <name>framework.inputParsing</name>
+    <author>talbpaul</author>
+    <created>2017-11-01</created>
+    <classesTested>utils.utils.TreeStructure</classesTested>
+    <description>
+       This test performs Unit Tests for the utils class (TreeStructure)
+       It cannot be considered part of the active code but of the regression test system
+    </description>
+    <revisions>
+      <revision author="alfoa" date="2018-05-15">Adding this test description.</revision>
+    </revisions>
+  </TestInfo>
+"""
