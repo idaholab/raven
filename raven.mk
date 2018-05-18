@@ -8,7 +8,6 @@ SHELL := /bin/bash
 ## Build system for Approximate Morse-Smale Complex (AMSC)
 include $(RAVEN_DIR)/amsc.mk
 ###############################################################################
-
 hit $(MOOSE_DIR)/python/hit.so:: $(FRAMEWORK_DIR)/contrib/hit/hit.cpp $(FRAMEWORK_DIR)/contrib/hit/lex.cc $(FRAMEWORK_DIR)/contrib/hit/parse.cc
 	bash -c 'cd scripts/TestHarness/hit-windows && ./build_hit.sh'
 

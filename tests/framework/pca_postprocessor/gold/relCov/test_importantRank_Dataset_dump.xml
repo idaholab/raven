@@ -1,0 +1,9 @@
+<DataObjectMetadata name="test_importantRank_Dataset">
+  <DataSet type="Static">
+    <general>
+      <outputs>importanceIndex_ans_x1,importanceIndex_ans_x2,importanceIndex_ans_x3,importanceIndex_ans_x4,importanceIndex_ans_x5,sensitivityIndex_ans_x1,sensitivityIndex_ans_x2,sensitivityIndex_ans_x3,sensitivityIndex_ans_x4,sensitivityIndex_ans_x5</outputs>
+      <sampleTag>RAVEN_sample_ID</sampleTag>
+    </general>
+  </DataSet>
+  
+</DataObjectMetadata>

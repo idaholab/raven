@@ -12,6 +12,7 @@
        single point is used. See #832
     </description>
     <revisions>
+      <revision author="talbpaul" date="2018-01-02">Added input data object to prevent same-input-as-output error</revision>
     </revisions>
   </TestInfo>
 
@@ -121,7 +122,7 @@
 
   <Steps>
     <MultiRun name="sampleOnce">
-      <Input class="DataObjects" type="PointSet">data</Input>
+      <Input class="DataObjects" type="PointSet">input</Input>
       <Model class="Models" type="Dummy">passThrough</Model>
       <Sampler class="Samplers" type="MonteCarlo">mcSampler</Sampler>
       <Output class="DataObjects" type="PointSet">data</Output>
@@ -134,6 +135,10 @@
   </Steps>
 
   <DataObjects>
+    <PointSet name="input">
+      <Input>x,y</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
     <PointSet name="data">
       <Input>x,y</Input>
       <Output>OutputPlaceHolder</Output>

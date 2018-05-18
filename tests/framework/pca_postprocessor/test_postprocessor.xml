@@ -5,6 +5,7 @@
     <Sequence>modelRun,computeRank</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+
   <TestInfo>
     <name>framework/pca_grid/importanceRankAbsCov</name>
     <author>wangc</author>
@@ -13,13 +14,10 @@
     <description>
       Tests the ImportanceRank postprocessor based on MVN distribution with absolute covariance matrix.
     </description>
+    <revisions>
+      <revision author="wangc" date="2017-12-13">convert test to use the new dataobjects</revision>
+    </revisions>
   </TestInfo>
-
-  <Files>
-    <Input name="output.xml" type="">output.xml</Input>
-    <Input name="output.csv" type="">output.csv</Input>
-    <Input name="output_basicStatistics.csv" type="">output_basicStatistics.csv</Input>
-  </Files>
 
   <Models>
     <ExternalModel ModuleToLoad="poly.py" name="poly" subType="">
@@ -86,10 +84,8 @@
     <PostProcess name="computeRank">
       <Input class="DataObjects" type="PointSet">collset</Input>
       <Model class="Models" type="PostProcessor">test_importantRank</Model>
-      <Output class="Files" type="">output.xml</Output>
-      <Output class="Files" type="">output.csv</Output>
-      <Output class="DataObjects" type="PointSet">collset</Output>
-      <Output class="OutStreams" type="Print">postProcessorDump</Output>
+      <Output class="DataObjects" type="PointSet">test_importantRank_Dataset</Output>
+      <Output class="OutStreams" type="Print">test_importantRank_Dataset_dump</Output>
     </PostProcess>
   </Steps>
 
@@ -97,6 +93,10 @@
     <Print name="postProcessorDump">
       <type>csv</type>
       <source>collset</source>
+    </Print>
+    <Print name="test_importantRank_Dataset_dump">
+      <type>csv</type>
+      <source>test_importantRank_Dataset</source>
     </Print>
   </OutStreams>
 
@@ -109,6 +109,22 @@
       <Input>x1,x2,x3,x4,x5</Input>
       <Output>ans</Output>
     </PointSet>
+    <PointSet name="test_importantRank_Dataset">
+      <Output>test_importantRank_vars</Output>
+    </PointSet>
   </DataObjects>
+
+  <VariableGroups>
+    <Group name="test_importantRank_vars">sensitivityIndex_ans_x1,
+                 sensitivityIndex_ans_x2,
+                 sensitivityIndex_ans_x3,
+                 sensitivityIndex_ans_x4,
+                 sensitivityIndex_ans_x5,
+                 importanceIndex_ans_x1,
+                 importanceIndex_ans_x2,
+                 importanceIndex_ans_x3,
+                 importanceIndex_ans_x4,
+                 importanceIndex_ans_x5</Group>
+  </VariableGroups>
 
 </Simulation>

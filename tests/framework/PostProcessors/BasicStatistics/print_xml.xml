@@ -5,6 +5,7 @@
     <Sequence>FirstMRun,PP</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+
   <TestInfo>
     <name>framework/PostProcessors/BasicStatistics/printXml</name>
     <author>talbpaul</author>
@@ -13,11 +14,13 @@
     <description>
       This test checks the ability of the basic statistics PP to print RAVEN XML outputs.
     </description>
+    <revisions>
+      <revision author="wangc" date="2017-12-05">convert test to use the new dataobjects</revision>
+    </revisions>
   </TestInfo>
 
   <Files>
     <Input name="basicStatisticsExternalModelTest.py" type="">basicStatisticsExternalModelTest.py</Input>
-    <Input name="xmldump" type="">output_basicStatistics.xml</Input>
   </Files>
 
   <Models>
@@ -25,10 +28,37 @@
       <variables>x,y,z,time,x0,x01,x02,y0,y02,y01,z0,z02,z01</variables>
     </ExternalModel>
     <PostProcessor name="InputOutput" subType="BasicStatistics" verbosity="debug">
-      <all>
+      <skewness prefix="skew">x0,x01,y0,y02</skewness>
+      <variationCoefficient prefix="vc">x0,x01,y0,y02</variationCoefficient>
+      <percentile prefix="percentile">x0,x01,y0,y02</percentile>
+      <expectedValue prefix="mean">x0,x01,y0,y02</expectedValue>
+      <kurtosis prefix="kurt">x0,x01,y0,y02</kurtosis>
+      <median prefix="median">x0,x01,y0,y02</median>
+      <maximum prefix="max">x0,x01,y0,y02</maximum>
+      <minimum prefix="min">x0,x01,y0,y02</minimum>
+      <samples prefix="samp">x0,x01,y0,y02</samples>
+      <variance prefix="var">x0,x01,y0,y02</variance>
+      <sigma prefix="sigma">x0,x01,y0,y02</sigma>
+      <NormalizedSensitivity prefix="nsen">
         <targets>x0,x01,y0,y02</targets>
         <features>x0,x01,y0,y02</features>
-      </all>
+      </NormalizedSensitivity>
+      <sensitivity prefix="sen">
+        <targets>x0,x01,y0,y02</targets>
+        <features>x0,x01,y0,y02</features>
+      </sensitivity>
+      <pearson prefix="pear">
+        <targets>x0,x01,y0,y02</targets>
+        <features>x0,x01,y0,y02</features>
+      </pearson>
+      <covariance prefix="cov">
+        <targets>x0,x01,y0,y02</targets>
+        <features>x0,x01,y0,y02</features>
+      </covariance>
+      <VarianceDependentSensitivity prefix="vsen">
+        <targets>x0,x01,y0,y02</targets>
+        <features>x0,x01,y0,y02</features>
+      </VarianceDependentSensitivity>
     </PostProcessor>
   </Models>
 
@@ -74,8 +104,8 @@
     <PostProcess name="PP">
       <Input class="DataObjects" type="PointSet">PointSetPostProcTest</Input>
       <Model class="Models" type="PostProcessor">InputOutput</Model>
-      <Output class="Files" type="">xmldump</Output>
-      <Output class="OutStreams" type="Print">PointSetPostProcTest_dump</Output>
+      <Output class="DataObjects" type="PointSet">InputOutput_basicStatPP</Output>
+      <Output class="OutStreams" type="Print">InputOutput_basicStatPP_dump</Output>
     </PostProcess>
   </Steps>
 
@@ -84,6 +114,10 @@
       <type>csv</type>
       <source>PointSetPostProcTest</source>
     </Print>
+    <Print name="InputOutput_basicStatPP_dump">
+      <type>csv</type>
+      <source>InputOutput_basicStatPP</source>
+    </Print>
   </OutStreams>
 
   <DataObjects>
@@ -91,6 +125,140 @@
       <Input>x0,y0,z0</Input>
       <Output>time,x02,y02,z02,x01,y01,z01,x,y,z</Output>
     </PointSet>
+    <PointSet name="InputOutput_basicStatPP">
+      <Output>InputOutput_vars</Output>
+    </PointSet>
   </DataObjects>
+
+  <VariableGroups>
+    <Group name="InputOutput_vars">skew_x0,
+                 skew_x01,
+                 skew_y0,
+                 skew_y02,
+                 vc_x0,
+                 vc_x01,
+                 vc_y0,
+                 vc_y02,
+                 percentile_5_x0,
+                 percentile_95_x0,
+                 percentile_5_x01,
+                 percentile_95_x01,
+                 percentile_5_y0,
+                 percentile_95_y0,
+                 percentile_5_y02,
+                 percentile_95_y02,
+                 mean_x0,
+                 mean_x01,
+                 mean_y0,
+                 mean_y02,
+                 kurt_x0,
+                 kurt_x01,
+                 kurt_y0,
+                 kurt_y02,
+                 median_x0,
+                 median_x01,
+                 median_y0,
+                 median_y02,
+                 max_x0,
+                 max_x01,
+                 max_y0,
+                 max_y02,
+                 min_x0,
+                 min_x01,
+                 min_y0,
+                 min_y02,
+                 samp_x0,
+                 samp_x01,
+                 samp_y0,
+                 samp_y02,
+                 var_x0,
+                 var_x01,
+                 var_y0,
+                 var_y02,
+                 sigma_x0,
+                 sigma_x01,
+                 sigma_y0,
+                 sigma_y02,
+                 nsen_x0_x0,
+                 nsen_x0_x01,
+                 nsen_x0_y0,
+                 nsen_x0_y02,
+                 nsen_x01_x0,
+                 nsen_x01_x01,
+                 nsen_x01_y0,
+                 nsen_x01_y02,
+                 nsen_y0_x0,
+                 nsen_y0_x01,
+                 nsen_y0_y0,
+                 nsen_y0_y02,
+                 nsen_y02_x0,
+                 nsen_y02_x01,
+                 nsen_y02_y0,
+                 nsen_y02_y02,
+                 sen_x0_x0,
+                 sen_x0_x01,
+                 sen_x0_y0,
+                 sen_x0_y02,
+                 sen_x01_x0,
+                 sen_x01_x01,
+                 sen_x01_y0,
+                 sen_x01_y02,
+                 sen_y0_x0,
+                 sen_y0_x01,
+                 sen_y0_y0,
+                 sen_y0_y02,
+                 sen_y02_x0,
+                 sen_y02_x01,
+                 sen_y02_y0,
+                 sen_y02_y02,
+                 pear_x0_x0,
+                 pear_x0_x01,
+                 pear_x0_y0,
+                 pear_x0_y02,
+                 pear_x01_x0,
+                 pear_x01_x01,
+                 pear_x01_y0,
+                 pear_x01_y02,
+                 pear_y0_x0,
+                 pear_y0_x01,
+                 pear_y0_y0,
+                 pear_y0_y02,
+                 pear_y02_x0,
+                 pear_y02_x01,
+                 pear_y02_y0,
+                 pear_y02_y02,
+                 cov_x0_x0,
+                 cov_x0_x01,
+                 cov_x0_y0,
+                 cov_x0_y02,
+                 cov_x01_x0,
+                 cov_x01_x01,
+                 cov_x01_y0,
+                 cov_x01_y02,
+                 cov_y0_x0,
+                 cov_y0_x01,
+                 cov_y0_y0,
+                 cov_y0_y02,
+                 cov_y02_x0,
+                 cov_y02_x01,
+                 cov_y02_y0,
+                 cov_y02_y02,
+                 vsen_x0_x0,
+                 vsen_x0_x01,
+                 vsen_x0_y0,
+                 vsen_x0_y02,
+                 vsen_x01_x0,
+                 vsen_x01_x01,
+                 vsen_x01_y0,
+                 vsen_x01_y02,
+                 vsen_y0_x0,
+                 vsen_y0_x01,
+                 vsen_y0_y0,
+                 vsen_y0_y02,
+                 vsen_y02_x0,
+                 vsen_y02_x01,
+                 vsen_y02_y0,
+                 vsen_y02_y02</Group>
+  </VariableGroups>
 
 </Simulation>

@@ -7,8 +7,7 @@
     <description>
       Tests the construction and sampling of time-dependent ScitKitLearn ROMs.  In particular,
       tests that if one target (time) has all the same values, but not others, right action is still
-      taken.  NOTE that when this conflicts with the dataobject-rework branch, accept ALL the dataobject-rework
-      versions.
+      taken.
     </description>
   </TestInfo>
 
@@ -57,14 +56,14 @@
     </PointSet>
     <HistorySet name="train">
       <Input>v0,y0,ang</Input>
-      <Output>y,x,time</Output>
+      <Output>y,x</Output>
       <options>
         <pivotParameter>time</pivotParameter>
       </options>
     </HistorySet>
     <HistorySet name="innerHS">
       <Input>v0,y0,ang</Input>
-      <Output>y,x,time</Output>
+      <Output>y,x</Output>
       <options>
         <pivotParameter>time</pivotParameter>
       </options>

@@ -321,11 +321,9 @@ def expandExternalXML(root,workingDir):
     if subElement.tag == 'ExternalXML':
       nodeName = subElement.attrib['node']
       xmlToLoad = subElement.attrib['xmlToLoad'].strip()
-      newElement = readExternalXML(xmlToLoad,nodeName,workingDir)
-      root[i] = newElement
-      subElement = newElement
+      root[i] = readExternalXML(xmlToLoad,nodeName,workingDir)
     # whether expanded or not, search each subnodes for more external xml
-    expandExternalXML(subElement,workingDir)
+    expandExternalXML(root[i],workingDir)
 
 def readExternalXML(extFile,extNode,cwd):
   """

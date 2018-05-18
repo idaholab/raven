@@ -114,6 +114,7 @@
     <Print name="original">
       <type>csv</type>
       <source>solns</source>
+      <what>input,output</what>
     </Print>
     <Print name="synced">
       <type>csv</type>

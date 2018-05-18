@@ -1,0 +1,9 @@
+[Tests]
+ [./all_methods]
+  type = 'RavenFramework'
+  input = 'all_methods.xml'
+  csv = 'AllMethods/samples_out.csv'
+ [../]
+[]
+
+

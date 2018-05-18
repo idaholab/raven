@@ -104,8 +104,8 @@
         <plot>
           <type>dataMining</type>
           <SKLtype>cluster</SKLtype>
-          <x>bisonData|Output|PCA1PCAComponent1</x>
-          <y>bisonData|Output|PCA1PCAComponent2</y>
+          <x>bisonData|Output|PCA1Dimension1</x>
+          <y>bisonData|Output|PCA1Dimension2</y>
           <noClusters>3</noClusters>
           <clusterLabels>bisonData|Output|labels</clusterLabels>
           <kwargs></kwargs>

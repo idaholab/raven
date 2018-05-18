@@ -1,5 +1,6 @@
-<?xml version="1.0" ?>
 <ROM type="Static">
+  <type>GAUSSgpcROM(ans-ans2)</type>
+
   <ans>
     <mean>1.434</mean>
     <expectedValue>1.434</expectedValue>
@@ -65,5 +66,4 @@
       <y1.y2>0.190464621925</y1.y2>
     </sobolTotalIndices>
   </ans2>
-
 </ROM>

@@ -58,6 +58,7 @@
     <Print name="outCustomSampler_dump">
       <type>csv</type>
       <source>outCustomSampler</source>
+      <what>input,output</what>
     </Print>
   </OutStreams>
 

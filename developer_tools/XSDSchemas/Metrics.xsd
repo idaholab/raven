@@ -9,10 +9,12 @@
             <xsd:element name="CDFAreaDifference" type="EmptyMetricType" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="PDFCommonArea" type="EmptyMetricType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:choice>
+        <xsd:attribute name="verbosity" type="verbosityAttr" default="all"/>
     </xsd:complexType>
 
     <xsd:complexType name="EmptyMetricType">
         <xsd:attribute name="name" type="xsd:string" use="required"/>
+        <xsd:attribute name="verbosity" type="verbosityAttr" default="all"/>
     </xsd:complexType>
 
     <xsd:complexType name="MinkowskiMetrics">
@@ -21,6 +23,7 @@
             <xsd:element name="pivotParameter"   type="xsd:string"    minOccurs="0"/>
         </xsd:all>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
+        <xsd:attribute name="verbosity" type="verbosityAttr" default="all"/>
     </xsd:complexType>
     
     <xsd:complexType name="DtwMetrics">
@@ -30,6 +33,7 @@
             <xsd:element name="localDistance"    type="xsd:string"    minOccurs="1"/>
         </xsd:all>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
+        <xsd:attribute name="verbosity" type="verbosityAttr" default="all"/>
     </xsd:complexType>
     
     <xsd:complexType name="SKLMetrics">
@@ -44,6 +48,7 @@
             <xsd:element name="sample_weight"     type="xsd:string"    minOccurs="0"/>
         </xsd:all>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
+        <xsd:attribute name="verbosity" type="verbosityAttr" default="all"/>
     </xsd:complexType>
     
 </xsd:schema>

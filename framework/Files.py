@@ -554,7 +554,7 @@ class StaticXMLOutput(RAVENGenerated):
     """
     self.tree = xmlUtils.newTree(root,attrib={'type':'Static'})
 
-  def addScalar(self,target,name,value,root=None,pivotVal=None):
+  def addScalar(self,target,name,value,root=None,pivotVal=None,attrs=None):
     """
       Adds a node entry named "name" with value "value" to "target" node, such as
       <root>
@@ -565,15 +565,19 @@ class StaticXMLOutput(RAVENGenerated):
       @ In, value, string/float/etc, value of characteristic
       @ In, root, xml.etree.ElementTree.Element, optional, root to add to
       @ In, pivotVal, float, optional, unused (for consistency with dynamic mode)
+      @ In, attrs, dict, optional, dictionary of attributes to be stored in the node
       @ Out, None
     """
     if root is None:
       root = self.tree.getroot()
+    else:
+      if utils.isString(root):
+        root = self._findTarg(self.tree.getroot(),root)
     #note: illegal unicode characters are checked for in xmlUtils methods
-    targ = self._findTarg(root,target)
-    targ.append(xmlUtils.newNode(name,text=value))
+    targ = self._findTarg(root,target) if root.tag != target.strip() else root
+    targ.append(xmlUtils.newNode(name,text=value,attrib=attrs))
 
-  def addVector(self,target,name,valueDict,root=None,pivotVal=None):
+  def addVector(self,target,name,valueDict,root=None,pivotVal=None,attrs=None,valueAttrsDict=None):
     """
       Adds a node entry named "name" with value "value" to "target" node, such as
       <root>
@@ -590,14 +594,22 @@ class StaticXMLOutput(RAVENGenerated):
       @ In, valueDict, dict, name:value
       @ In, root, xml.etree.ElementTree.Element, optional, root to add to
       @ In, pivotVal, float, optional, unused (for consistency with dynamic mode)
+      @ In, attrs, dict, optional, dictionary of attributes to be stored in the node (name)
+      @ In, valueAttrsDict, dict, optional, dictionary of attributes to be stored along the subnodes identified by the valueDict dictionary
       @ Out, None
     """
+    valAttribsDict = {}
+    if valueAttrsDict is not None:
+      valAttribsDict = valueAttrsDict
     if root is None:
       root = self.tree.getroot()
-    targ = self._findTarg(root,target)
-    nameNode = xmlUtils.newNode(name)
+    else:
+      if utils.isString(root):
+        root = self._findTarg(self.tree.getroot(),root)
+    targ = self._findTarg(root,target) if root.tag != target.strip() else root
+    nameNode = xmlUtils.newNode(name,attrib=attrs)
     for key,value in valueDict.items():
-      nameNode.append(xmlUtils.newNode(key,text=value))
+      nameNode.append(xmlUtils.newNode(key,text=value,attrib=valAttribsDict.get(key,None)))
     targ.append(nameNode)
 
   def _findTarg(self,root,target):
@@ -615,14 +627,17 @@ class StaticXMLOutput(RAVENGenerated):
       root.append(targ)
     return targ
 
-  def writeFile(self):
+  def writeFile(self,asString=False,**kwargs):
     """
       Writes the input file to disk.
-      @ In, None
-      @ Out, None
+      @ In, asString, bool, optional, if indicated then return string instead of writing
+      @ In, kwargs, dict, optional, additional arguments to pass to prettify
+      @ Out, pretty, str, optional, only returned if asString is True
     """
     #prettify tree
-    pretty = xmlUtils.prettify(self.tree)
+    pretty = xmlUtils.prettify(self.tree,**kwargs)
+    if asString:
+      return pretty
     #make sure file is written cleanly and anew
     if self.isOpen():
       self.close()
@@ -644,13 +659,13 @@ class DynamicXMLOutput(StaticXMLOutput):
   """
     Specialized class for consistent RAVEN XML outputs.  See forms in comments above.
   """
+  # TODO may be marginalized as a result of new data object rework.  Check if anyone still uses this file type
+  # after all IO is done through DataObjects.
   def __init__(self):
     StaticXMLOutput.__init__(self)
     # while maintaining two parallel lists is not very pythonic, it's much faster for searching for large lists.
     self.pivotNodes = [] #list of pivot nodes, maintained in the order of pivotVals below
     self.pivotVals = [] #RBTree (self maintained) of unique pivot values
-    #we don't save the root name, so make a variable for saving it
-    self.rootName = 'DynamicTree'
 
   def newTree(self,root,pivotParam=None):
     """
@@ -659,13 +674,13 @@ class DynamicXMLOutput(StaticXMLOutput):
       @ In, pivotParam, string, name of time-like parameter
       @ Out, None
     """
+    self.tree = xmlUtils.newTree(root,attrib={'type':'Dynamic'})
     if pivotParam is None:
       self.raiseAnError(RuntimeError,'newTree argument pivotParam is None but output is in dynamic mode!')
     self.pivotParam = pivotParam
     self.pivotNodes = []
-    self.rootName = root
 
-  def addScalar(self,target,name,value,pivotVal=None):
+  def addScalar(self,target,name,value,pivotVal=None,attrs=None):
     """
       Adds a node entry named "name" with value "value" to "target" node, such as
       <root>
@@ -676,15 +691,17 @@ class DynamicXMLOutput(StaticXMLOutput):
       @ In, target, string, target parameter to add node value to
       @ In, name, string, name of characteristic of target to add
       @ In, value, string/float/etc, value of characteristic
+      @ In, attrs, dict, optional, dictionary containing the attributes to be stored in the node
+
       @ Out, None
     """
-    if pivotVal is None:
-      self.raiseAnError(RuntimeError,'In addScalar no pivotVal specificied, but in dynamic mode!')
-    pivotNode = self.findPivotNode(pivotVal)
+    pivotNode = None
+    if pivotVal is not None:
+      pivotNode = self.findPivotNode(pivotVal)
     #use addScalar methods to add parameters
-    StaticXMLOutput.addScalar(self,target,name,value,root=pivotNode)
+    StaticXMLOutput.addScalar(self,target,name,value,root=pivotNode,attrs=attrs)
 
-  def addVector(self,target,name,valueDict,pivotVal=None):
+  def addVector(self,target,name,valueDict,pivotVal=None,attrs=None,valueAttrsDict=None):
     """
       Adds a node entry named "name" with value "value" to "target" node, such as
       <root>
@@ -699,13 +716,14 @@ class DynamicXMLOutput(StaticXMLOutput):
       @ In, target, string, target parameter to add node value to
       @ In, name, string, name of characteristic of target to add
       @ In, valueDict, dict, name:value
+      @ In, attrs, dict, optional, dictionary containing the attributes to be stored in the node (name)
+      @ In, valueAttrsDict, dict of dict, optional, dictionary of attributes (dict) to be stored along the subnodes identified by the valueDict dictionary
       @ Out, None
     """
     if pivotVal is None:
       self.raiseAnError(RuntimeError,'In addScalar no pivotVal specificied, but in dynamic mode!')
-
     pivotNode = self.findPivotNode(pivotVal)
-    StaticXMLOutput.addVector(self,target,name,valueDict,root=pivotNode)
+    StaticXMLOutput.addVector(self,target,name,valueDict,root=pivotNode,attrs=attrs,valueAttrsDict=valueAttrsDict)
 
   def findPivotNode(self,pivotVal):
     """
@@ -720,27 +738,10 @@ class DynamicXMLOutput(StaticXMLOutput):
       #create new node
       pivotNode = xmlUtils.newNode(self.pivotParam, attrib={'value':pivotVal})
       self.pivotNodes.insert(pivotIndex,pivotNode)
+      self.tree.getroot().append(pivotNode)
     else:
       pivotNode = self.pivotNodes[pivotIndex]
     return pivotNode
-
-  def writeFile(self):
-    """
-      Writes the input file to disk.  Because we store a list of dynamic nodes
-      instead of a full tree, requires some special treatment
-      @ In, None
-      @ Out, None
-    """
-    if self.isOpen():
-      self.close()
-    #write the root node manually
-    self.writelines('<'+self.rootName+' type="Dynamic">\n',overwrite=True)
-    #write out each time step node
-    for node in self.pivotNodes:
-      pretty = xmlUtils.prettify(node,startingTabs=1,addRavenNewlines=False)
-      self.writelines(pretty)
-    self.writelines('</'+self.rootName+'>\n')
-    self.close()
 #
 #
 #

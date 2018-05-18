@@ -715,7 +715,7 @@
     <HDF5 name="testOutputDatabase" readMode="overwrite"/>
   </Databases>
 
-  <DataObjects>
+  <DataObjects verbosity="silent">
     <PointSet name="inputHolder">
       <Input>var1, var2</Input>
       <Output>OutputPlaceHolder</Output>

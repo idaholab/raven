@@ -58,6 +58,7 @@ class BaseType(MessageHandler.MessageUser):
     self.printTag         = 'BaseType'                                                  # the tag that refers to this class in all the specific printing
     self.messageHandler   = None                                                        # message handling object
     self.variableGroups   = {}                                                          # the variables this class needs to be aware of
+    self.metadataKeys     = set()                                                       # list of registered metadata keys to expect from this entity
     self.mods             = utils.returnImportModuleString(inspect.getmodule(BaseType)) #list of modules this class depends on (needed for automatic parallel python)
     for baseClass in self.__class__.__mro__:
       self.mods.extend(utils.returnImportModuleString(inspect.getmodule(baseClass),True))
@@ -81,10 +82,12 @@ class BaseType(MessageHandler.MessageUser):
     else:
       self.raiseAnError(IOError,'not found name for a '+self.__class__.__name__)
     self.type     = xmlNode.tag
-    if self.globalAttributes!= None:
+    if globalAttributes is not None:
       self.globalAttributes = globalAttributes
-    if 'verbosity' in xmlNode.attrib.keys():
-      self.verbosity = xmlNode.attrib['verbosity'].lower()
+    if 'verbosity' in xmlNode.attrib.keys() or 'verbosity' in self.globalAttributes:
+      verbGlobal = None if self.globalAttributes is None else self.globalAttributes.get('verbosity')
+      verbLocal = xmlNode.attrib.get('verbosity')
+      self.verbosity = verbLocal if verbLocal is not None else verbGlobal
       self.raiseADebug('Set verbosity for '+str(self)+' to '+str(self.verbosity))
     #search and replace variableGroups where found in texts
     def replaceVariableGroups(node):
@@ -240,3 +243,21 @@ class BaseType(MessageHandler.MessageUser):
     self.raiseADebug('       Current Setting:')
     for key in tempDict.keys():
       self.raiseADebug('       {0:15}: {1}'.format(key,str(tempDict[key])))
+
+  def provideExpectedMetaKeys(self):
+    """
+      Provides the registered list of metadata keys for this entity.
+      @ In, None
+      @ Out, meta, set(str), expected keys (empty if none)
+    """
+    return self.metadataKeys
+
+  def addMetaKeys(self,*args):
+    """
+      Adds keywords to a list of expected metadata keys.
+      @ In, args, list(str), keywords to register
+      @ Out, None
+    """
+    if any(not isinstance(a,basestring) for a in args):
+      self.raiseAnError('Arguments to addMetaKeys were not all strings:',args)
+    self.metadataKeys = self.metadataKeys.union(set(args))

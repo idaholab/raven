@@ -52,6 +52,6 @@
   [./PostProcess]
     type = 'RavenFramework'
     input = 'PostProcess.xml'
-    xml = 'stat/static.xml stat/time.xml'
+    UnorderedCsv = 'stat/statisticalAnalysis_basicStatPP_dump.csv stat/statisticalAnalysis_basicStatPP_time_dump_0.csv'
   [../]
 []

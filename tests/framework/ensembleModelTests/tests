@@ -19,7 +19,6 @@
    input = 'test_ensemble_model_linear_threading_with_time_series.xml'
    output = 'metaModelLinearThreadWithTimeSeries/1-metaModelOutputTestPointSetSolution_scatter.png metaModelLinearThreadWithTimeSeries/1-metaModelOutputTestPointSetK_scatter.png metaModelLinearThreadWithTimeSeries/1-metaModelOutputTestHistorySetk_scatter.png metaModelLinearThreadWithTimeSeries/heatTransferContainerDump.xml metaModelLinearThreadWithTimeSeries/metaModelOutputTestPointSetDump.xml metaModelLinearThreadWithTimeSeries/thermalConductivityComputationContainerDump.xml'
    UnorderedCsv = 'metaModelLinearThreadWithTimeSeries/heatTransferContainerDump.csv metaModelLinearThreadWithTimeSeries/metaModelOutputTestPointSetDump.csv metaModelLinearThreadWithTimeSeries/thermalConductivityComputationContainerDump.csv'
-   xml = 'metaModelLinearThreadWithTimeSeries/heatTransferContainerDump_unstructured_inputs.xml'
    rel_err=1.e-4
  [../]
 
@@ -48,7 +47,7 @@
    type = 'RavenFramework'
    input = 'test_ensemble_model_linear_internal_parallel_with_optimizer.xml'
    output = 'metaModelLinearParallelWithOptimizer/1-metaModelOutputTestK_scatter.png metaModelLinearParallelWithOptimizer/1-metaModelOutputTestSolution_scatter.png metaModelLinearParallelWithOptimizer/heatTransferContainerDump.csv metaModelLinearParallelWithOptimizer/heatTransferContainerDump.xml metaModelLinearParallelWithOptimizer/metaModelOutputTestDump.csv metaModelLinearParallelWithOptimizer/metaModelOutputTestDump.xml metaModelLinearParallelWithOptimizer/thermalConductivityComputationContainerDump.csv metaModelLinearParallelWithOptimizer/thermalConductivityComputationContainerDump.xml metaModelLinearParallelWithOptimizer/optimizationHistoryDump.csv'
-   csv = 'metaModelLinearParallelWithOptimizer/mdlDataDump.csv metaModelLinearParallelWithOptimizer/optimizationHistoryDump_0.csv'
+   csv = 'metaModelLinearParallelWithOptimizer/mdlDataDump.csv metaModelLinearParallelWithOptimizer/optimizationHistoryDump_1.csv'
    rel_err=1.e-4
  [../]
 
@@ -79,7 +78,6 @@
    expect_err = 'IOError: There were failed runs; aborting RAVEN.'
  [../]
 
-
  [./testEnsembleModelFullyCorrVars]
    type = 'RavenFramework'
    input = 'test_ensemble_model_fully_correlated_vars.xml'
@@ -87,6 +85,11 @@
    rel_err=1.e-4
  [../]
 
+ [./IndexInputOutput]
+   type = 'RavenFramework'
+   input = 'index_input_output.xml'
+   UnorderedCsv = 'IndexInputOutput/step_out.csv IndexInputOutput/step_out_2.csv IndexInputOutput/step_out_4.csv IndexInputOutput/step_out_6.csv IndexInputOutput/step_out_8.csv'
+ [../]
 
 
 []
