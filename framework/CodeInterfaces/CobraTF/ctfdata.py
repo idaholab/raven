@@ -70,9 +70,9 @@ class ctfdata:
     """
       Method that looks for key word MAJOR EDIT for reading major edit block
       @ In, lines, list of lines of the output file (.ctf.out)
-      @ Out, (dictArray, header), tuple, tuple containing: 
+      @ Out, (dictArray, header), tuple, tuple containing:
                                        -[0] -> dictionary containing the edit info
-                                       -[1] -> header 
+                                       -[1] -> header
     """
     # Booleans
     # start output reading (skip 'input file listing' in the output)
