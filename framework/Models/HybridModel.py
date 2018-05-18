@@ -190,7 +190,7 @@ class HybridModel(Dummy):
     self.cvInstance = self.retrieveObjectFromAssemblerDict('CV', self.cvInstance)
     self.cvInstance.initialize(runInfo, inputs, initDict)
     self.targetEvaluationInstance = self.retrieveObjectFromAssemblerDict('TargetEvaluation', self.targetEvaluationInstance)
-    if not self.targetEvaluationInstance.isItEmpty():
+    if len(self.targetEvaluationInstance):
       self.raiseAWarning("The provided TargetEvaluation data object is not empty, the existing data will also be used to train the ROMs!")
       self.existTrainSize = len(self.targetEvaluationInstance)
     self.tempTargetEvaluation = copy.deepcopy(self.targetEvaluationInstance)
@@ -204,8 +204,8 @@ class HybridModel(Dummy):
       romInfo['Instance'] = self.retrieveObjectFromAssemblerDict('ROM', romName)
       if romInfo['Instance']  is None:
         self.raiseAnError(IOError, 'ROM XML block needs to be inputted!')
-    modelInputs = self.targetEvaluationInstance.getParaKeys("inputs")
-    modelOutputs = self.targetEvaluationInstance.getParaKeys("outputs")
+    modelInputs = self.targetEvaluationInstance.getVars("input")
+    modelOutputs = self.targetEvaluationInstance.getVars("output")
     modelName = self.modelInstance.name
     totalRomOutputs = []
     for romInfo in self.romsDictionary.values():
@@ -365,13 +365,17 @@ class HybridModel(Dummy):
       @ Out, converged, bool, True if the rom is converged
     """
     converged = True
-    for targetName, metricInfo in outputDict.items():
-      if len(metricInfo.keys()) > 1:
+    # very temporary solution
+    exploredTargets = []
+    for cvKey, metricValues in outputDict.items():
+      #for targetName, metricInfo in outputDict.items():
+      # very temporary solution
+      info = self.cvInstance.interface._returnCharacteristicsOfCvGivenOutputName(cvKey)
+      if info['targetName'] in exploredTargets:
         self.raiseAnError(IOError, "Multiple metrics are used in cross validation '", self.cvInstance.name, "'. Currently, this can not be processed by the HybridModel '", self.name, "'!")
-      for metricName, metricValues in metricInfo.items():
-        name = self.cvInstance.interface.metricsDict.keys()[0]
-        metricType = metricName[len(name)+1:]
-        converged = self.checkErrors(metricType, metricValues)
+      exploredTargets.append(info['targetName'])
+      name = self.cvInstance.interface.metricsDict.keys()[0]
+      converged = self.checkErrors(info['metricType'], metricValues)
     return converged
 
   def checkErrors(self, metricType, metricResults):
@@ -381,7 +385,7 @@ class HybridModel(Dummy):
       @ In, metricResults, list or dict
       @ Out, converged, bool, True if the metric outputs are less than the tolerance
     """
-    if type(metricResults) == list:
+    if type(metricResults) == list or isinstance(metricResults,np.ndarray):
       errorList = np.atleast_1d(metricResults)
     elif type(metricResults) == dict:
       errorList = np.atleast_1d(metricResults.values())
@@ -602,7 +606,7 @@ class HybridModel(Dummy):
       @ In, samplerType, string, is the type of sampler that is calling to generate a new input
       @ In, kwargs, dict,  is a dictionary that contains the information coming from the sampler,
         a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
-      @ Out, returnValue, dict, This holds the output information of the evaluated sample.
+      @ Out, rlz, dict, This holds the output information of the evaluated sample.
     """
     self.raiseADebug("Evaluate Sample")
     kwargsKeys = kwargs.keys()
@@ -611,8 +615,13 @@ class HybridModel(Dummy):
     jobHandler = kwargs['jobHandler']
     newInput = self.createNewInput(myInput, samplerType, **kwargsToKeep)
     ## Unpack the specifics for this class, namely just the jobHandler
-    returnValue = (newInput,self._externalRun(newInput,jobHandler))
-    return returnValue
+    result = self._externalRun(newInput,jobHandler)
+    # assure rlz has all metadata
+    rlz = dict((var,np.atleast_1d(kwargsToKeep[var])) for var in kwargsToKeep.keys())
+    # update rlz with input space from inRun and output space from result
+    rlz.update(dict((var,np.atleast_1d(kwargsToKeep['SampledVars'][var] if var in kwargs['SampledVars'] else result[var])) for var in set(result.keys()+kwargsToKeep['SampledVars'].keys())))
+
+    return rlz
 
   def _externalRun(self,inRun, jobHandler):
     """
@@ -653,7 +662,7 @@ class HybridModel(Dummy):
           if isinstance(evaluation, Runners.Error):
             self.raiseAnError(RuntimeError, "The job identified by "+finishedRun.identifier+" failed!")
           # collect output in temporary data object
-          tempExportDict = self.createExportDictionaryFromFinishedJob(finishedRun, False)
+          tempExportDict = evaluation
           exportDict = self.__mergeDict(exportDict, tempExportDict)
         if jobHandler.areTheseJobsFinished(uniqueHandler=uniqueHandler):
           self.raiseADebug("Jobs with uniqueHandler ", uniqueHandler, "are collected!")
@@ -680,7 +689,7 @@ class HybridModel(Dummy):
       if isinstance(evaluation, Runners.Error):
         self.raiseAnError(RuntimeError, "The model "+self.modelInstance.name+" identified by "+finishedRun[0].identifier+" failed!")
       # collect output in temporary data object
-      exportDict = self.modelInstance.createExportDictionaryFromFinishedJob(finishedRun[0], True)
+      exportDict = evaluation
       self.raiseADebug("Create exportDict")
     # used in the collectOutput
     exportDict['useROM'] = useROM
@@ -696,17 +705,16 @@ class HybridModel(Dummy):
     evaluation = finishedJob.getEvaluation()
     if isinstance(evaluation, Runners.Error):
       self.raiseAnError(RuntimeError,"Job " + finishedJob.identifier +" failed!")
-    exportDict = evaluation[1]
-    useROM = exportDict['useROM']
+    useROM = evaluation['useROM']
     try:
       jobIndex = self.tempOutputs['uncollectedJobIds'].index(finishedJob.identifier)
       self.tempOutputs['uncollectedJobIds'].pop(jobIndex)
     except ValueError:
       jobIndex = None
     if jobIndex is not None and not useROM:
-      self.collectOutputFromDict(exportDict, self.tempTargetEvaluation)
+      self.tempTargetEvaluation.addRealization(evaluation)
       self.raiseADebug("ROM is invalid, collect ouptuts of Model with job identifier: {}".format(finishedJob.identifier))
-    Dummy.collectOutput(self, finishedJob, output, options = {'exportDict':exportDict})
+    Dummy.collectOutput(self, finishedJob, output )
 
   def __mergeDict(self,exportDict, tempExportDict):
     """

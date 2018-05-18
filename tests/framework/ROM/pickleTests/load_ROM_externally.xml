@@ -1,0 +1,11 @@
+<?xml version="1.0" ?>
+<external_rom>
+  <RAVENdir>../../../../framework</RAVENdir>
+  <ROMfile>externalPickleROM/ROMpk</ROMfile>
+  <evaluate>
+    <x1>0. 1. 0.5</x1>
+    <x2>0. 0.4 2.1</x2>
+  </evaluate>
+  <inspect>true</inspect>
+  <outputFile>output_load_ROM_externally.xml</outputFile>
+</external_rom>

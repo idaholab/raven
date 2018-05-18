@@ -94,10 +94,12 @@
     <Print name="large">
       <type>csv</type>
       <source>solns</source>
+      <what>input,output</what>
     </Print>
     <Print name="large_restart">
       <type>csv</type>
       <source>restart</source>
+      <what>input,output</what>
     </Print>
   </OutStreams>
 

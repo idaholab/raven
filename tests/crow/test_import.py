@@ -24,3 +24,19 @@ else:
   import crow_modules.interpolationNDpy2
 
 sys.exit(0)
+
+"""
+ <TestInfo>
+    <name>crow.test_import</name>
+    <author>cogljj</author>
+    <created>2017-03-24</created>
+    <classesTested>crow</classesTested>
+    <description>
+    This test is a Unit Test for the crow swig classes. It tests the import of the crow
+    library
+    </description>
+    <revisions>
+      <revision author="alfoa" date="2018-05-15">Adding this test description.</revision>
+    </revisions>
+ </TestInfo>
+"""

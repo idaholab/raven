@@ -1,15 +1,10 @@
-<data name="outLHS_dump" type="Pointset"><input>y2,y1,x2,x3,y3,x1</input><output>OutputPlaceHolder</output><inputFilename>outLHS_dump.csv</inputFilename><metadata><upper>array([ {u'y2': 0.92000000000000004, u'y1': 0.92000000000000004, u'x2': 0.59999999999999998, u'x3': 0.59999999999999998, u'y3': 0.92000000000000004, u'x1': 0.59999999999999998},
-       {u'y2': 0.32000000000000001, u'y1': 0.32000000000000001, u'x2': 0.80000000000000004, u'x3': 0.80000000000000004, u'y3': 0.32000000000000001, u'x1': 0.80000000000000004},
-       {u'y2': 0.62, u'y1': 0.62, u'x2': 0.5, u'x3': 0.5, u'y3': 0.62, u'x1': 0.5}], dtype=object)</upper><lower>array([ {u'y2': 0.62, u'y1': 0.62, u'x2': 0.5, u'x3': 0.5, u'y3': 0.62, u'x1': 0.5},
-       {u'y2': 0.02, u'y1': 0.02, u'x2': 0.59999999999999998, u'x3': 0.59999999999999998, u'y3': 0.02, u'x1': 0.59999999999999998},
-       {u'y2': 0.32000000000000001, u'y1': 0.32000000000000001, u'x2': 0.02, u'x3': 0.02, u'y3': 0.32000000000000001, u'x1': 0.02}], dtype=object)</lower><SamplerType>array([u'Stratified', u'Stratified', u'Stratified'], dtype=object)</SamplerType><crowDist>array([ {u'x1,x2,x3': '{"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 3.0, "xMax": 3.0, "xMin": -0.1, "xPeak": 1.0}', u'y1,y2,y3': '{"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0}'},
-       {u'x1,x2,x3': '{"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 3.0, "xMax": 3.0, "xMin": -0.1, "xPeak": 1.0}', u'y1,y2,y3': '{"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0}'},
-       {u'x1,x2,x3': '{"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 3.0, "xMax": 3.0, "xMin": -0.1, "xPeak": 1.0}', u'y1,y2,y3': '{"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0}'}], dtype=object)</crowDist><SampledVars>array([ {u'y2': 0.0, u'y1': 0.0, u'x2': 0.5319044499104211, u'x3': 0.5319044499104211, u'y3': 0.0, u'x1': 0.5319044499104211},
-       {u'y2': 0.0, u'y1': 0.0, u'x2': 0.6327768320758493, u'x3': 0.6327768320758493, u'y3': 0.0, u'x1': 0.6327768320758493},
-       {u'y2': 0.0, u'y1': 0.0, u'x2': 0.11520273842547424, u'x3': 0.11520273842547424, u'y3': 0.0, u'x1': 0.11520273842547424}], dtype=object)</SampledVars><ProbabilityWeight-x1-x2-x3>array([ 0.03812317,  0.09384164,  0.10134897])</ProbabilityWeight-x1-x2-x3><ProbabilityWeight>array([ 0.,  0.,  0.])</ProbabilityWeight><prefix>array(['1', '2', '3'], dtype=object)</prefix><PointProbability>array([ 0.,  0.,  0.])</PointProbability><distributionType>array([ {u'y2': 'Normal', u'y1': 'Normal', u'x2': 'Triangular', u'x3': 'Triangular', u'y3': 'Normal', u'x1': 'Triangular'},
-       {u'y2': 'Normal', u'y1': 'Normal', u'x2': 'Triangular', u'x3': 'Triangular', u'y3': 'Normal', u'x1': 'Triangular'},
-       {u'y2': 'Normal', u'y1': 'Normal', u'x2': 'Triangular', u'x3': 'Triangular', u'y3': 'Normal', u'x1': 'Triangular'}], dtype=object)</distributionType><distributionName>array([ {u'y2': 'Gauss1', u'y1': 'Gauss1', u'x2': 'DistTri1', u'x3': 'DistTri1', u'y3': 'Gauss1', u'x1': 'DistTri1'},
-       {u'y2': 'Gauss1', u'y1': 'Gauss1', u'x2': 'DistTri1', u'x3': 'DistTri1', u'y3': 'Gauss1', u'x1': 'DistTri1'},
-       {u'y2': 'Gauss1', u'y1': 'Gauss1', u'x2': 'DistTri1', u'x3': 'DistTri1', u'y3': 'Gauss1', u'x1': 'DistTri1'}], dtype=object)</distributionName><SampledVarsPb>array([ {u'y2': 0.0, u'y1': 0.0, u'x2': 0.37061844569526153, u'x3': 0.37061844569526153, u'y3': 0.0, u'x1': 0.37061844569526153},
-       {u'y2': 0.0, u'y1': 0.0, u'x2': 0.42978113318231626, u'x3': 0.42978113318231626, u'y3': 0.0, u'x1': 0.42978113318231626},
-       {u'y2': 0.0, u'y1': 0.0, u'x2': 0.12621861491230157, u'x3': 0.12621861491230157, u'y3': 0.0, u'x1': 0.12621861491230157}], dtype=object)</SampledVarsPb><ProbabilityWeight-y1-y2-y3>array([ 0.,  0.,  0.])</ProbabilityWeight-y1-y2-y3></metadata></data>
+<DataObjectMetadata name="outLHS">
+  <DataSet type="Static">
+    <general>
+      <inputs>x1,x2,x3,y1,y2,y3</inputs>
+      <outputs>OutputPlaceHolder</outputs>
+      <sampleTag>RAVEN_sample_ID</sampleTag>
+    </general>
+  </DataSet>
+  
+</DataObjectMetadata>

@@ -17,9 +17,9 @@ import warnings
 warnings.simplefilter('default',DeprecationWarning)
 
 import sys
-import utils
+import crowTestUtils as utils
 
-distribution1D = utils.find_distribution1D()
+distribution1D = utils.findCrowModule('distribution1D')
 
 normal_distribution = distribution1D.BasicNormalDistribution(1.0,2.0,-sys.float_info.max, sys.float_info.max)
 
@@ -42,3 +42,19 @@ utils.checkAnswer("normal mode()",normal_distribution.untrMode(),1.0,results)
 print(results)
 
 sys.exit(results["fail"])
+
+"""
+ <TestInfo>
+    <name>crow.test_normal</name>
+    <author>cogljj</author>
+    <created>2017-03-24</created>
+    <classesTested>crow</classesTested>
+    <description>
+      This test is a Unit Test for the crow swig classes. It tests that the normal
+      distribution is accessable by Python
+    </description>
+    <revisions>
+      <revision author="alfoa" date="2018-05-15">Adding this test description.</revision>
+    </revisions>
+ </TestInfo>
+"""

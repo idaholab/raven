@@ -1,0 +1,129 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/Optimizers.CustomVectorInit</name>
+    <author>talbpaul</author>
+    <created>2018-04-26</created>
+    <classesTested>Optimizer</classesTested>
+    <description>
+      Takes values from the CustomSampler to use as initial guess points, including inputs that are vectors.  This particular
+      case uses two initial seed points, to test that multiple initial vector points work okay.
+
+      Note that the CustomSampler ONLY samples the variables that the Optimizer needs initial values for.  The File
+      from which the initial samples are taken is a trimmed version of the output of framework/Optmizers.Vector test
+      output, taking initial seed points from the 100th and 400th iteration of that test.
+    </description>
+    <analytic>
+      This test uses the "time parabola" $f(x,y,t) = x^2 + (t-y)^2 e^(-t)$, which has a minimum at x=0 and y=t for each value of t,
+      with greater impact coming from early values of y (y[0], y[1], etc).
+    </analytic>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>CustomVectorInit</WorkingDir>
+    <Sequence>load,optimize,print</Sequence>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="optimize">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ExternalModel">parabola</Model>
+      <Optimizer class="Optimizers" type="SPSA">opter</Optimizer>
+      <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
+      <Output class="DataObjects" type="DataSet">optOut</Output>
+    </MultiRun>
+    <IOStep name="load">
+      <Input class="Files" type="">init</Input>
+      <Output class="DataObjects" type="DataSet">initial_points</Output>
+    </IOStep>
+    <IOStep name="print">
+      <Input class="DataObjects" type="PointSet">opt_export</Input>
+      <Input class="DataObjects" type="DataSet">optOut</Input>
+      <Output class="OutStreams" type="Print">opt_export</Output>
+      <Output class="OutStreams" type="Print">opt_out</Output>
+    </IOStep>
+  </Steps>
+
+  <Files>
+    <Input name="init">initial.csv</Input>
+  </Files>
+
+  <Optimizers>
+    <SPSA name="opter">
+      <initialization>
+        <limit>2000</limit>
+        <initialSeed>42</initialSeed>
+        <thresholdTrajRemoval>1e-5</thresholdTrajRemoval>
+        <writeSteps>final</writeSteps>
+      </initialization>
+      <TargetEvaluation class="DataObjects" type="DataSet">optOut</TargetEvaluation>
+      <Sampler class="Samplers" type="CustomSampler">init</Sampler>
+      <convergence>
+        <gradientThreshold>1e-3</gradientThreshold>
+        <relativeThreshold>1e-3</relativeThreshold>
+        <gainGrowthFactor>1.5</gainGrowthFactor>
+        <gainShrinkFactor>1.25</gainShrinkFactor>
+      </convergence>
+      <variable name="x">
+        <upperBound>6</upperBound>
+        <lowerBound>-6</lowerBound>
+      </variable>
+      <variable name="y" shape="11">
+        <upperBound>6</upperBound>
+        <lowerBound>-6</lowerBound>
+      </variable>
+      <objectVar>ans</objectVar>
+      <!--<parameter>
+        <a>1</a>
+      </parameter>-->
+    </SPSA>
+  </Optimizers>
+
+  <Samplers>
+    <CustomSampler name="init">
+      <Source class="DataObjects" type="DataSet">initial_points</Source>
+      <variable name='x'/>
+      <variable name='y'/>
+    </CustomSampler>
+  </Samplers>
+
+  <Models>
+    <ExternalModel ModuleToLoad="../../../framework/AnalyticModels/optimizing/time_parabola" name="parabola" subType="">
+      <variables>x,y,t,ans</variables>
+    </ExternalModel>
+  </Models>
+
+  <DataObjects>
+    <PointSet name="dummyIN">
+      <Input>x,y</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="opt_export">
+      <Input>trajID</Input>
+      <Output>x,y,ans,varsUpdate</Output>
+    </PointSet>
+    <DataSet name="initial_points">
+      <Input>x,y</Input>
+      <Output>ans</Output>
+      <Index var='t'>y</Index>
+    </DataSet>
+    <DataSet name="optOut">
+      <Input>x,y</Input>
+      <Output>ans</Output>
+      <Index var='t'>y</Index>
+    </DataSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="opt_export">
+      <type>csv</type>
+      <source>opt_export</source>
+      <clusterLabel>trajID</clusterLabel>
+    </Print>
+    <Print name="opt_out">
+      <type>csv</type>
+      <source>optOut</source>
+    </Print>
+  </OutStreams>
+
+</Simulation>

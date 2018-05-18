@@ -1,0 +1,3 @@
+m = $RAVEN-m$
+r = $RAVEN-r$
+E = $RAVEN-E$

@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<Simulation verbosity="debug">
+<Simulation verbosity="debug" profile="jobs">
   <RunInfo>
     <WorkingDir>mc</WorkingDir>
     <Sequence>makeCoarse,makeRestart,makeFine,print</Sequence>
@@ -134,14 +134,17 @@
     <Print name="coarse">
       <type>csv</type>
       <source>solns</source>
+      <what>input,output</what>
     </Print>
     <Print name="fine">
       <type>csv</type>
       <source>solnsFine</source>
+      <what>input,output</what>
     </Print>
     <Print name="restart">
       <type>csv</type>
       <source>solnsRestart</source>
+      <what>input,output</what>
     </Print>
   </OutStreams>
 

@@ -201,7 +201,7 @@
   [./parallel]
     type = 'RavenFramework'
     input = 'test_local_parallel.xml'
-    UnorderedCsv = 'data/outDataParallel.csv'
+    csv = 'data/outDataParallel.csv'
     output = 'data/outDataParallel.xml'
     required_libraries = 'AMSC'
   [../]

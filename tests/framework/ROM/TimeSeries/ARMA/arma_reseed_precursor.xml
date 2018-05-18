@@ -1,0 +1,70 @@
+<?xml version="1.0"?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/ROM/TimeSeries/ARMA.ARMAparallelReseed</name>
+    <author>talbpaul</author>
+    <created>2017-07-12</created>
+    <classesTested>SupervisedLearning.ARMA</classesTested>
+    <description>
+      Builds a reseeding copy of the ARMA to test multiple evaluations return different values;
+      this run only creates the arma and pickles it.
+    </description>
+    <revisions>
+      <revision author="talbpaul" date="2017-07-12">created</revision>
+      <revision author="alfoa" date="2017-12-13">adapted for new DataObject structure</revision>
+      <revision author="alfoa" date="2018-04-26">Modified location of the test (ARMA folder)</revision>
+    </revisions>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>ARMAparallel</WorkingDir>
+    <Sequence>readIn,ARMATrain,writeOut</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name="rawDataFile">../ARMA/dataSet.csv</Input>
+    <Input name="pk">arma.pk</Input>
+  </Files>
+
+  <Models>
+    <ROM name="ARMA" subType="ARMA">
+      <Target>Speed,Time</Target>
+      <Features>scaling</Features>
+      <pivotParameter>Time</pivotParameter>
+      <Pmax>2</Pmax>
+      <Pmin>2</Pmin>
+      <Qmax>1</Qmax>
+      <Qmin>1</Qmin>
+      <outTruncation>positive</outTruncation>
+      <Fourier>604800,86400</Fourier>
+      <FourierOrder>2,2</FourierOrder>
+    </ROM>
+  </Models>
+
+  <Steps>
+    <IOStep name="readIn" pauseAtEnd="True">
+      <Input class="Files" type="">rawDataFile</Input>
+      <Output class="DataObjects" type="HistorySet">rawData</Output>
+    </IOStep>
+    <RomTrainer name="ARMATrain">
+      <Input class="DataObjects" type="HistorySet">rawData</Input>
+      <Output class="Models" type="ROM">ARMA</Output>
+    </RomTrainer>
+    <IOStep name="writeOut" pauseAtEnd="True">
+      <Input class="Models" type="ROM">ARMA</Input>
+      <Output class="Files" type="">pk</Output>
+    </IOStep>
+  </Steps>
+
+  <DataObjects>
+    <HistorySet name="rawData">
+      <Input>scaling</Input>
+      <Output>Speed,Time</Output>
+      <options>
+         <pivotParameter>Time</pivotParameter>
+      </options>
+    </HistorySet>
+  </DataObjects>
+
+</Simulation>

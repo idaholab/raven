@@ -6,13 +6,14 @@
     <created>2013-10-24</created>
     <classesTested>Models.ExternalModel</classesTested>
     <description>
-       This test is aimed to check the functionality of RAVEN to use ExternalModel entities.     
+       This test is aimed to check the functionality of RAVEN to use ExternalModel entities.
     </description>
     <revisions>
       <revision author="mandd" date="2015-04-17">conversion to Database and DataObjects</revision>
       <revision author="alfoa" date="2015-04-21">Closes #122</revision>
       <revision author="cogljj" date="2015-09-29">Modifing external modules to use relative to working directory.</revision>
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+      <revision author="talbpaul" date="2018-02-26">Adding maxQueueSize of 1 for consistency with previous behavior</revision>
     </revisions>
     <requirements>R-IS-4</requirements>
   </TestInfo>
@@ -21,6 +22,7 @@
     <WorkingDir>externalModel</WorkingDir>
     <Sequence>FirstMRun,FirstMRun2</Sequence>
     <batchSize>2</batchSize>
+    <maxQueueSize>1</maxQueueSize>
   </RunInfo>
 
   <!-- STEPS -->
@@ -30,7 +32,7 @@
       <Model class="Models" type="ExternalModel">PythonModule</Model>
       <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
       <Output class="DataObjects" type="HistorySet">testPrintHistorySet</Output>
-      <Output class="Databases" type="HDF5">test_external_db</Output>
+      <!-- FIXME <Output class="Databases" type="HDF5">test_external_db</Output>-->
       <Output class="OutStreams" type="Print">testPrintHistorySet_dump</Output>
       <Output class="DataObjects" type="PointSet">testPointSet</Output>
       <Output class="OutStreams" type="Print">testPointSet_dump</Output>
@@ -113,10 +115,12 @@
     <Print name="testPrintHistorySet_dump">
       <type>csv</type>
       <source>testPrintHistorySet</source>
+      <what>input, output, metadata|ProbabilityWeight</what>
     </Print>
     <Print name="testPointSet_dump">
       <type>csv</type>
       <source>testPointSet</source>
+      <what>input, output, metadata|ProbabilityWeight</what>
     </Print>
   </OutStreams>
 
