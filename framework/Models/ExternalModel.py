@@ -169,6 +169,8 @@ class ExternalModel(Dummy):
         for var in child.value.split(','):
           var = var.strip()
           self.modelVariableType[var] = None
+    # adjust model-aware variables based on aliases
+    self._replaceVariablesNamesWithAliasSystem(self.modelVariableType,'inout')
     self.listOfRavenAwareVars.extend(self.modelVariableType.keys())
     # check if there are other information that the external module wants to load
     #TODO this needs to be converted to work with paramInput
@@ -202,7 +204,12 @@ class ExternalModel(Dummy):
       if key in modelVariables.keys():
         modelVariableValues[key] = copy.copy(Input[key])
     for key in self.modelVariableType.keys():
-      CustomCommandExecuter.execCommand('self.'+ key +' = copy.copy(object["'+key+'"])',self=externalSelf,object=modelVariableValues) #exec('externalSelf.'+ key +' = copy.copy(modelVariableValues[key])')  #self.__uploadSolution()
+      # add the variable as a member of "self"
+      try:
+        CustomCommandExecuter.execCommand('self.'+ key +' = copy.copy(object["'+key+'"])',self=externalSelf,object=modelVariableValues) #exec('externalSelf.'+ key +' = copy.copy(modelVariableValues[key])')  #self.__uploadSolution()
+      # if variable name is too strange to be a member of "self", then skip it
+      except SyntaxError:
+        self.raiseAWarning('Variable "{}" could not be added to "self" due to complex name.  Find it in "Inputs" dictionary instead.'.format(key))
     #else:
     #  InputDict = Input
     # only pass the variables and their values according to the model itself.
@@ -213,7 +220,10 @@ class ExternalModel(Dummy):
     self.sim.run(externalSelf, InputDict)
 
     for key in self.modelVariableType.keys():
-      CustomCommandExecuter.execCommand('object["'+key+'"]  = copy.copy(self.'+key+')',self=externalSelf,object=modelVariableValues) #exec('modelVariableValues[key]  = copy.copy(externalSelf.'+key+')') #self.__pointSolution()
+      try:
+        CustomCommandExecuter.execCommand('object["'+key+'"]  = copy.copy(self.'+key+')',self=externalSelf,object=modelVariableValues) #exec('modelVariableValues[key]  = copy.copy(externalSelf.'+key+')') #self.__pointSolution()
+      except (SyntaxError,AttributeError):
+        self.raiseAWarning('Variable "{}" cannot be read from "self" due to complex name.  Retaining original value.'.format(key))
     for key in self.initExtSelf.__dict__.keys():
       CustomCommandExecuter.execCommand('self.' +key+' = copy.copy(object.'+key+')',self=self.initExtSelf,object=externalSelf) #exec('self.initExtSelf.' +key+' = copy.copy(externalSelf.'+key+')')
     if None in self.modelVariableType.values():

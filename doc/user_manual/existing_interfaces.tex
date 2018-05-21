@@ -20,7 +20,7 @@ If a code contains cross-dependent data, the generic interface is not able to
 edit the correct values.  For example, if a geometry-building script specifies
 inner\_radius, outer\_radius, and thickness, the generic interface cannot
 calculate the thickness given the outer and inner radius, or vice versa.
-In this case, the \textit{function} method explained in the Samplers (see \ref{sec:Samplers}) 
+In this case, the \textit{function} method explained in the Samplers (see \ref{sec:Samplers})
 and Optimizers (see \ref{sec:Optimizers}) sections can be used.
 
  An example of the code interface is shown here.  The input parameters are read
@@ -2625,7 +2625,7 @@ So the user needs to input the following block as well, where the Input and Outp
 As mentioned before, this will create $4$ DataObjects.
 %
 %%%%%%%%%%%%%%%%%%%%%%%
-%%%%%% SCALE  INTERFACE %%%%%% 
+%%%%%% SCALE  INTERFACE %%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%
 \subsection{SCALE Interface}
 This section presents the main aspects of the interface between RAVEN and SCALE system,
@@ -2633,7 +2633,7 @@ the consequent RAVEN input adjustments and the modifications of the SCALE
 files required to run the two coupled codes.
 \\ \textcolor{red}{
 \textbf{\textit{\nb Considering the large amount of SCALE sequences, this interface is
-currently limited in driving the following SCALE calculation codes:}}	
+currently limited in driving the following SCALE calculation codes:}}
 \begin{itemize}
   \item \textbf{\textit{ORIGEN}}
   \item \textbf{\textit{TRITON (using NEWT as transport solver)}}
@@ -2645,9 +2645,9 @@ In the following sections a short explanation on how to use RAVEN coupled with S
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \subsubsection{Models}
-As for any other Code, in order to activate the SCALE interface, a  \xmlNode{Code} XML node needs to be inputted, within the 
-main XML node \xmlNode{Models}. 
-\\The  \xmlNode{Code} XML node contains the 
+As for any other Code, in order to activate the SCALE interface, a  \xmlNode{Code} XML node needs to be inputted, within the
+main XML node \xmlNode{Models}.
+\\The  \xmlNode{Code} XML node contains the
 information needed to execute the specific External Code.
 
 \attrsIntro
@@ -2681,7 +2681,7 @@ In addition (and specifc for the SCALE interface), the  \xmlNode{Code} can conta
 \begin{itemize}
   \item \xmlNode{sequence}, optional, comma separated list. In this node the user can specify a list of sequences that need to be
   executed in sequence. For example, if a TRITON calculation needs to be followed by an ORIGEN decay heat calculation the user
-  would input here the sequence ``\textit{triton,origen}''. \default{triton}. 
+  would input here the sequence ``\textit{triton,origen}''. \default{triton}.
   \\\nb Currently only the following entries are supported:
     \begin{itemize}
      \item  ``\textit{triton}''
@@ -2689,7 +2689,7 @@ In addition (and specifc for the SCALE interface), the  \xmlNode{Code} can conta
      \item  ``\textit{triton,origen}''
     \end{itemize}
   \item \xmlNode{timeUOM}, optional, string. In this node the user can specify  the \textit{units} for the independent variable ``time''.
-   If the outputs are exported by SCALE in a different unit (e.g days, years, etc.), the SCALE interface will convert all the different 
+   If the outputs are exported by SCALE in a different unit (e.g days, years, etc.), the SCALE interface will convert all the different
    time scales into the unit here specified (in order to have a consistent  (and unique) time scale). Available are:
     \begin{itemize}
      \item ``\textit{s}'', seconds
@@ -2715,7 +2715,7 @@ An example  is shown  below:
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Files}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-The \xmlNode{Files} XML node has to contain all the files required by the particular 
+The \xmlNode{Files} XML node has to contain all the files required by the particular
 sequence (s) of the external code  (SCALE) to be run.
 This involves not only the input file(s) (.inp) but also the auxiliary files that might be needed (e.g. binary initial compositions, etc.).
 As mentioned, the current SCALE interface only supports TRITON and ORIGEN sequences. For this reason, depending on the
@@ -2737,7 +2737,7 @@ by the \xmlNode{workingDir} node in the \xmlNode{RunInfo} XML node.
 \paragraph{Output Files conversion}
 Since RAVEN expects to receive a CSV file containing the outputs of the simulation, the results in the SCALE output
 files need to be converted by the code interface.
-\\As mentioned, the current interface \textcolor{red}{ is able to collect data from TRITON and ORIGEN sequences only}.  
+\\As mentioned, the current interface \textcolor{red}{ is able to collect data from TRITON and ORIGEN sequences only}.
 %% TRITON
 \\The following information is collected from TRITON output:
 \begin{itemize}
@@ -2748,7 +2748,7 @@ files need to be converted by the code interface.
  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      1    1.00000   0.000E+00 6.480E+09 (    4,252)   1.000E+00 (  614,  0) 14:16:42   89.9 s    89.9 s  92.7%    F
      2    0.35701   1.801E+00 4.149E+01 (  319,  4)   2.673E+00 ( 7035,  0) 14:18:16  182.8 s    92.9 s  98.8%    F
- k-eff =       0.94724509     Time=      0.00d Nominal conditions                                             
+ k-eff =       0.94724509     Time=      0.00d Nominal conditions
 
    Four-Factor Estimate of k-infinity.  Fast/Thermal boundary:   0.6250 eV
       Fiss. neutrons/thermal abs. (eta):          1.279827
@@ -2768,10 +2768,10 @@ files need to be converted by the code interface.
     \tiny
     \begin{tabular}{|c|c|c|c|c|c|c|c|c|c|}
      time & keff       & iter\_number & keff\_delta & max\_flux\_delta & kinf     & kinf\_epsilon & kinf\_p  & kinf\_f  & kinf\_eta \\
-     0.00 & 0.94724509 & 2            & 1.801E+00   & 4.149e+01        & 0.948143 & 1.091716      & 0.706209 & 0.960903 & 1.279827 
+     0.00 & 0.94724509 & 2            & 1.801E+00   & 4.149e+01        & 0.948143 & 1.091716      & 0.706209 & 0.960903 & 1.279827
     \end{tabular}
    \end{table}
-   
+
   \item \textit{\textbf{material powers}}
   \begin{lstlisting}[basicstyle=\tiny]
   --- Material powers for depletion pass no.   1 (MW/MITHM) ---
@@ -2780,8 +2780,8 @@ files need to be converted by the code interface.
                     Total    Fractional  Mixture     Mixture       Mixture
          Mixture    Power      Power      Power    Thermal Flux  Total Flux
           Number (MW/MTIHM)    (---)   (MW/MTIHM)  n/(cm^2*sec)  n/(cm^2*sec)
-            13      32.985    0.99054     32.985    5.3666e+13    1.2574e+14    
-             6       0.252    0.00757     N/A       2.7587e+13    9.1781e+13   
+            13      32.985    0.99054     32.985    5.3666e+13    1.2574e+14
+             6       0.252    0.00757     N/A       2.7587e+13    9.1781e+13
          Total      33.300    1.00000
 \end{lstlisting}
    that will be converted in the following way (CSV):
@@ -2796,19 +2796,19 @@ files need to be converted by the code interface.
      time    & bu  & tot\_power\_mix\_13 & fract\_power\_mix\_13 & th\_flux\_mix\_13 & tot\_flux\_mix\_13 & tot\_power\_mix\_6 & fract\_power\_mix\_6 & th\_flux\_mix\_6 & tot\_flux\_mix\_6 &  \\ \cline{1-10}
      1.0E-06 & 0.0 & 32.985              & 0.99054               & 5.3666e+13        & 1.2574e+14         & 0.252              & 0.00757              & 2.7587e+13       & 9.1781e+13        &  \\ \cline{1-10}
      \end{tabular}
-   \end{table}   
-   
- 
+   \end{table}
+
+
  \item \textit{\textbf{nuclide/element tables}}
   \begin{lstlisting}[basicstyle=\tiny]
             | nuclide concentrations
             | time: days
-      grams |    0.00e+00d 
+      grams |    0.00e+00d
 ------------+--------------------
-       u235 |   2.9619e+04  
-       u238 |   9.6993e+05  
-   subtotal |   1.0010e+06  
-      total |   1.1858e+06  
+       u235 |   2.9619e+04
+       u238 |   9.6993e+05
+   subtotal |   1.0010e+06
+      total |   1.1858e+06
 \end{lstlisting}
    that will be converted in the following way (CSV):
    \begin{table}[h]
@@ -2819,7 +2819,7 @@ files need to be converted by the code interface.
     \tiny
     \begin{tabular}{|c|c|c|}
      time & u235\_conc       & u238\_conc   \\
-     0.00 & 2.9619e+04  & 9.6993e+05        
+     0.00 & 2.9619e+04  & 9.6993e+05
     \end{tabular}
    \end{table}
 \end{itemize}
@@ -2844,23 +2844,23 @@ The following information is collected from ORIGEN output:
     \tiny
     \begin{tabular}{|c|c|c|c|c|c|c|c|}
     \hline
-     time    & t0  & t1      & dt      & flux & fluence & power & energy \\  
-     1.0E-06 & 0.0 & 1.0E-06 & 1.0E-06 & 0.0  & 0.0     & 0.0   & 0.0      
+     time    & t0  & t1      & dt      & flux & fluence & power & energy \\
+     1.0E-06 & 0.0 & 1.0E-06 & 1.0E-06 & 0.0  & 0.0     & 0.0   & 0.0
     \end{tabular}
    \end{table}
-   
-   \item \textit{\textbf{concentration tables}} 
+
+   \item \textit{\textbf{concentration tables}}
   \begin{lstlisting}[basicstyle=\tiny]
 =========================================================================================================================
 =   Nuclide concentrations in watts, actinides for case 'decay' (#1/1)                                                  =
 -------------------------------------------------------------------------------------------------------------------------
   (relative cutoff; integral of concentrations over time >   1.00E-04 % of integral of all concentrations over time)
 .
-                0.0E+00sec  1.0E-06sec  
-  th231       8.6167E-08  8.6167E-08  
-  th234       7.7763E-09  7.7763E-09 
+                0.0E+00sec  1.0E-06sec
+  th231       8.6167E-08  8.6167E-08
+  th234       7.7763E-09  7.7763E-09
 ------------
-  totals       4.6831E+03  4.6831E+03  
+  totals       4.6831E+03  4.6831E+03
 =========================================================================================================================
 .
 .
@@ -2869,11 +2869,11 @@ The following information is collected from ORIGEN output:
 -------------------------------------------------------------------------------------------------------------------------
   (relative cutoff; integral of concentrations over time >   1.00E-04 % of integral of all concentrations over time)
 .
-                0.0E+00sec  1.0E-06sec  
-  ga74        2.4264E-01  2.4264E-01  
-  ga75        1.8106E+00  1.8106E+00  
+                0.0E+00sec  1.0E-06sec
+  ga74        2.4264E-01  2.4264E-01
+  ga75        1.8106E+00  1.8106E+00
 ------------
-  totals       1.2266E+06  1.2266E+06 
+  totals       1.2266E+06  1.2266E+06
   \end{lstlisting}
   that will be converted in the following way (CSV):
    \begin{table}[h]
@@ -2885,13 +2885,13 @@ The following information is collected from ORIGEN output:
     \begin{tabular}{|c|c|c|c|c|c|c|c|}
     \hline
      time    & ga74\_watts  & ga75\_watts      & subtotals\_fission\_products      & th231\_watts & th234\_watts & subtotals\_actinides & totals\_watts \\ \hline
-     0.0E+00 & 2.4264E-01 & 1.8106E+00 & 1.2266E+06 & 8.6167E-08  & 7.7763E-09     & 4.6831E+03   & 1.2313E+06    \\ 
-     1.0E-06 & 2.4264E-01 & 1.8106E+00 & 1.2266E+06 & 8.6167E-08  & 7.7763E-09     & 4.6831E+03  & 1.2313E+06      
+     0.0E+00 & 2.4264E-01 & 1.8106E+00 & 1.2266E+06 & 8.6167E-08  & 7.7763E-09     & 4.6831E+03   & 1.2313E+06    \\
+     1.0E-06 & 2.4264E-01 & 1.8106E+00 & 1.2266E+06 & 8.6167E-08  & 7.7763E-09     & 4.6831E+03  & 1.2313E+06
     \end{tabular}
    \end{table}
 \end{itemize}
 
-\textbf{Remember also that a SCALE simulation run is considered successful (i.e., the simulation did not crash) if it does not contain, in 
+\textbf{Remember also that a SCALE simulation run is considered successful (i.e., the simulation did not crash) if it does not contain, in
 the last 20 lines, the following message:}
 
 \textcolor{red}{terminated due to errors}
@@ -2903,7 +2903,7 @@ the last 20 lines, the following message:}
 In the \xmlNode{Samplers} or  \xmlNode{Optimizers} block we want to define the variables that are going
 to be sampled or optimized.
 %
-\\The perturbation or optimization of the input of any SCALE sequence is performed using the approach detailed in the \textit{Generic Interface} section (see \ref{subsec:genericInterface}). Briefly, this approach uses 
+\\The perturbation or optimization of the input of any SCALE sequence is performed using the approach detailed in the \textit{Generic Interface} section (see \ref{subsec:genericInterface}). Briefly, this approach uses
  ``wild-cards'' (placed in the original input files) for injecting the perturbed values.
  For example, if the original input file (that needs to be perturbed) is the following:
 \begin{lstlisting}[language=python]
@@ -2949,14 +2949,14 @@ Finally, the variable \textbf{\textit{zrMoles}} needs to be specified in the spe
 \end{lstlisting}
 %
 %%%%%%%%%%%%%%%%%%%%%%%
-%%%%%% COBRA-TF  INTERFACE %%%%%% 
+%%%%%% COBRA-TF  INTERFACE %%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%
 \subsection{COBRA-TF Interface}
 This section presents the main aspects of the interface between RAVEN and Cobra-TF system,
 the consequent RAVEN input adjustments and the modifications of the Cobra-TF
 files required to run the two coupled codes.
 \\ \textcolor{red}{
-\textbf{\textit{\nb This interface is currently working only with the specific type of Cobra-TF output file (.ctf.out) }}	
+\textbf{\textit{\nb This interface is currently working only with the specific type of Cobra-TF output file (.ctf.out) }}
 }
 
 In the following sections a short explanation on how to use RAVEN coupled with Cobra-TF is reported.
@@ -2996,9 +2996,9 @@ of COBRA-TF are going to be executed when a sampling strategy is employed.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Models}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-As any other Code, in order to activate the Cobra-TF interface, a \xmlNode{Code} XML node needs to be inputted, within the 
-main XML node \xmlNode{Models}. 
-\\The  \xmlNode{Code} XML node contains the 
+As any other Code, in order to activate the Cobra-TF interface, a \xmlNode{Code} XML node needs to be inputted, within the
+main XML node \xmlNode{Models}.
+\\The  \xmlNode{Code} XML node contains the
 information needed to execute the specific External Code.
 
 \attrsIntro
@@ -3039,7 +3039,7 @@ An example  is shown  below:
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Files}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-The \xmlNode{Files} XML node has to contain all the files required to run the external code  (Cobra-TF). 
+The \xmlNode{Files} XML node has to contain all the files required to run the external code  (Cobra-TF).
 For RAVEN coupled with Cobra-TF, only input file(s) (.inp) are needed.
 
 Example:
@@ -3084,7 +3084,7 @@ major edit data (.ctf.out) only. Only those variables printed in the "major edit
     \tiny
     \begin{tabular}{|c|c|c|c|c|c|c|c|c|c|c|}
      time & AVG\_ch\_ax50\_quality  & AVG\_ch\_ax50\_voidFractionLiquid & AVG\_ch\_ax50\_voidFractionVapor & AVG\_ch\_ax50\_volumeEntrainFraction & ...\\
-     1.03030 & -.119 & 1.000  & 0.000   & 0.000  & ... 
+     1.03030 & -.119 & 1.000  & 0.000   & 0.000  & ...
     \end{tabular}
    \end{table}
 
@@ -3108,10 +3108,10 @@ major edit data (.ctf.out) only. Only those variables printed in the "major edit
     \tiny
     \begin{tabular}{|c|c|c|c|c|c|c|c|c|c|c|}
      time & ch19\_ax155\_pressure  & ch19\_ax155\_velocityLiquid & ch19\_ax155\_velocityVapor & ch19\_ax155\_velocityEntrain & ch19\_ax155\_voidFractionLiquid & ...\\
-     0.00 & 1251.687 & 2.66           & 2.66   & 0.01        & 1.00 & ... 
+     0.00 & 1251.687 & 2.66           & 2.66   & 0.01        & 1.00 & ...
     \end{tabular}
    \end{table}
-   
+
   \item \textit{\textbf{nuclear fuel rod}}
   \begin{lstlisting}[basicstyle=\tiny]
           nuclear fuel rod no.  1                         simulation time =    0.00 seconds
@@ -3136,13 +3136,13 @@ major edit data (.ctf.out) only. Only those variables printed in the "major edit
      \tabcolsep=0.11cm
      \tiny
      \begin{tabular}{|c|c|c|c|c|c|c|c|c|c|}
-     time    & fuel\_rod10\_fluidTemperatureLiquid  & fuel\_rod10\_fluidTemperatureVapor & fuel\_rod10\_surfaceHeatflux & fuel\_rod10\_heatTransferMode & fuel\_rod10\_caldOutTemperature & ...  \\ 
-     0.00 & 464.1 & 467.1  & 0.5929E+04               & 0        & 466.08         & ...                      
+     time    & fuel\_rod10\_fluidTemperatureLiquid  & fuel\_rod10\_fluidTemperatureVapor & fuel\_rod10\_surfaceHeatflux & fuel\_rod10\_heatTransferMode & fuel\_rod10\_caldOutTemperature & ...  \\
+     0.00 & 464.1 & 467.1  & 0.5929E+04               & 0        & 466.08         & ...
      \end{tabular}
-   \end{table}   
-   
+   \end{table}
+
  \item \textit{\textbf{Cobra-TF's Output Variables and Corresponding Names in CSV file}}
-   
+
    In CSV file, the output results obtained from the Cobra-TF output file (.ctf.out) will be saved with the names as described in Table 12.
    \begin{table}[h]
     \centering
@@ -3172,18 +3172,18 @@ major edit data (.ctf.out) only. Only those variables printed in the "major edit
 
      channel pressure & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_pressure \\
      channel liquid velocity  & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_velocityLiquid \\
-     channel vapor velocity  & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_velocityVapor \\ 
-     channel entrainment rate (velocity) & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_velocityEntrain \\  
-     channel void fraction (liquid) & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_voidFractionLiquid \\ 
+     channel vapor velocity  & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_velocityVapor \\
+     channel entrainment rate (velocity) & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_velocityEntrain \\
+     channel void fraction (liquid) & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_voidFractionLiquid \\
      channel void fraction (vapor)  & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_voidFractionVapor \\
-     channel volume fraction of entrainment liquid  & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_volumeEntrainFraction \\  
-     channel mass flow rate (liquid) & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_massFlowRateLiquid \\ 
-     channel mass flow rate (vapor)  & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_massFlowRateVapor \\ 
-     channel entrainment rate (mass flow rate) & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_massFlowRateEntrain \\  
-     channel flow regime ID & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_flowRegimeID \\  
-     channel heat added to liquid & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_heatAddedToLiquid \\ 
-     channel heat added to vapor  & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_heatAddedToVapor \\ 
-     channel evaporation rate  & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_evaporationRate \\ 
+     channel volume fraction of entrainment liquid  & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_volumeEntrainFraction \\
+     channel mass flow rate (liquid) & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_massFlowRateLiquid \\
+     channel mass flow rate (vapor)  & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_massFlowRateVapor \\
+     channel entrainment rate (mass flow rate) & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_massFlowRateEntrain \\
+     channel flow regime ID & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_flowRegimeID \\
+     channel heat added to liquid & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_heatAddedToLiquid \\
+     channel heat added to vapor  & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_heatAddedToVapor \\
+     channel evaporation rate  & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_evaporationRate \\
 
      channel enthalpy of vapor  & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_enthalpyVapor \\
      channel enthalpy of saturated vapor & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_enthalpySaturatedVapor \\
@@ -3196,16 +3196,16 @@ major edit data (.ctf.out) only. Only those variables printed in the "major edit
      channel density of vapor  & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_densityVapor \\
      channel density of mixture & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_densityMixture \\
      channel net entrainment rate (difference between entrainment rate and de-entrainment rate)  & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_netEntrainRate \\
-     % gas volumetric analysis 
-     channel enthalpy of the mixture of non-condensable gases & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_enthalpyNonCondensableMixture \\ 
+     % gas volumetric analysis
+     channel enthalpy of the mixture of non-condensable gases & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_enthalpyNonCondensableMixture \\
      channel density of the mixture of non-condensable gases & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_densityNonCondensableMixture \\
      channel steam volume fraction [0-100] & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_volumeFractionSteam \\
      channel air volume fraction [0-100] & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_volumeFractionAir \\
-     channel total equivalent diameter of the liquid droplets (all droplets as a single big one) (diam-ld) & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_equiDiameterLiquidDroplet \\ 
-     channel averaged diameter of liquid droplets field (diam-sd) & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_avgDiameterLiquidDroplet \\ 
-     channel averaged flow rate of liquid droplets field (flow-sd) & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_avgFlowRateLiquidDroplet \\ 
-     channel averaged velocity of liquid droplets field (veloc-sd) & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_avgVelocityLiquidDroplet \\ 
-     channel evaporation rate of liquid droplets field (gamsd) & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_evaporationRateLiquidDroplet \\ 
+     channel total equivalent diameter of the liquid droplets (all droplets as a single big one) (diam-ld) & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_equiDiameterLiquidDroplet \\
+     channel averaged diameter of liquid droplets field (diam-sd) & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_avgDiameterLiquidDroplet \\
+     channel averaged flow rate of liquid droplets field (flow-sd) & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_avgFlowRateLiquidDroplet \\
+     channel averaged velocity of liquid droplets field (veloc-sd) & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_avgVelocityLiquidDroplet \\
+     channel evaporation rate of liquid droplets field (gamsd) & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_evaporationRateLiquidDroplet \\
      % fuel rod
      fuel rod fluid temperatures (liquid) & fuel\_rod\textcolor{red}{NN}\_fluidTemperatureLiquid \\
      fuel rod fluid temperatures (vapor)  & fuel\_rod\textcolor{red}{NN}\_fluidTemperatureVapor \\
@@ -3216,7 +3216,7 @@ major edit data (.ctf.out) only. Only those variables printed in the "major edit
      gap conductance  & fuel\_rod\textcolor{red}{NN}\_gapConductance \\
      fuel outer suface temperature  & fuel\_rod\textcolor{red}{NN}\_fuelTemperatureSurface \\
      fuel center temperature  & fuel\_rod\textcolor{red}{NN}\_fuelTemperatureCenter \\
-        
+
     \end{tabular}
 
    \end{table}
@@ -3252,7 +3252,7 @@ same kind of distributions but different input parameters.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 In the \xmlNode{Samplers} block we want to define the variables that are going to be sampled.
 %
-\\The perturbation is performed by assigning the 'line number' and 'position (word number)' of the values that need to be changed in the original Cobra-TF input to the RAVEN input. 
+\\The perturbation is performed by assigning the 'line number' and 'position (word number)' of the values that need to be changed in the original Cobra-TF input to the RAVEN input.
 Specifically, the variable name in the form of \textbf{\textit{Line Number|Position}} needs to be defined in the specific Sampler.
 
 \textbf{Example}:
