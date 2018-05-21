@@ -242,9 +242,7 @@ class RAVENparser():
                   # it is a locator
                   attribName  = attribComp.split(":")[0].strip()
                   attribValue = attribComp.split(":")[1].strip()
-
                   attribPath +='[@'+attribName+('="'+attribValue+'"]')
-
                 else:
                   # it is actually the attribute that needs to be changed
                   # check if it is the last component

@@ -29,7 +29,11 @@
       <Input class="DataObjects" type="PointSet">dummyIN</Input>
       <Model class="Models" type="ExternalModel">parabola</Model>
       <Optimizer class="Optimizers" type="SPSA">opter</Optimizer>
+<<<<<<< HEAD
       <SolutionExport class="DataObjects" type="DataSet">opt_export</SolutionExport>
+=======
+      <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
+>>>>>>> devel
       <Output class="DataObjects" type="DataSet">optOut</Output>
     </MultiRun>
     <IOStep name="load">
@@ -98,11 +102,18 @@
       <Input>x,y</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
+<<<<<<< HEAD
     <DataSet name="opt_export">
       <Input>trajID</Input>
       <Output>x,y,ans,varsUpdate</Output>
       <Index var="t">y</Index>
     </DataSet>
+=======
+    <PointSet name="opt_export">
+      <Input>trajID</Input>
+      <Output>x,y,ans,varsUpdate</Output>
+    </PointSet>
+>>>>>>> devel
     <DataSet name="initial_points">
       <Input>x,y</Input>
       <Output>ans</Output>

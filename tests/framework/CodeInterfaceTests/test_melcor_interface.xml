@@ -1,6 +1,6 @@
 <Simulation verbosity='debug'>
   <!-- test info block -->
-  
+
   <TestInfo>
       <name>framework/CodeInterfaceTests.melcorInterfaceForwardSamplingNoExe</name>
       <author>alfoa</author>
@@ -13,7 +13,7 @@
           <revision author="alfoa" date="2017-04-27">Adding this test description.</revision>
       </revisions>
   </TestInfo>
-  
+
   <!-- test info block end -->
 
   <RunInfo>
@@ -52,15 +52,15 @@
       </variable>
     </MonteCarlo>
   </Samplers>
-  
+
   <DataObjects>
     <PointSet name="MelcorPointSet">
       <Input>%PRE%</Input>
-      <Output>volume_2_DENSITY,volume_2_VOLVAP,volume_2_TLIQ,volume_1_VOLVAP,volume_2_CVVELO(1)</Output>
+      <Output>time,volume_2_CVVELO(1),volume_2_DENSITY,volume_2_VOLVAP,volume_2_TLIQ,volume_1_VOLVAP, ZERO, Test CF</Output>
     </PointSet>
     <HistorySet name="MelcorHistorySet">
       <Input>%PRE%</Input>
-      <Output>volume_2_DENSITY,volume_2_VOLVAP,volume_2_TLIQ,volume_1_VOLVAP,volume_2_CVVELO(1)</Output>
+      <Output>time,volume_2_CVVELO(1),volume_2_DENSITY,volume_2_VOLVAP,volume_2_TLIQ,volume_1_VOLVAP, ZERO, Test CF</Output>
     </HistorySet>
   </DataObjects>
 

@@ -518,7 +518,6 @@ class DataSet(DataObject):
       return
     noData = self._data is None or len(self._data) == 0
     noColl = self._collector is None or len(self._collector) == 0
-
     # remove from self._data
     if not noData:
       self._data = self._data.drop(variable)
