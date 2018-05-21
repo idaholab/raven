@@ -263,15 +263,14 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       listAliasType = [aliasType]
     originalVariables = copy.deepcopy(sampledVars)
     for aliasTyp in listAliasType:
-      if len(self.alias[aliasTyp].keys()) != 0:
-        for varFramework,varModel in self.alias[aliasTyp].items():
-          whichVar =  varModel if fromModelToFramework else varFramework
-          found = sampledVars.pop(whichVar,[sys.maxint])
-          if not np.array_equal(np.asarray(found), [sys.maxint]):
-            if fromModelToFramework:
-              sampledVars[varFramework] = originalVariables[varModel]
-            else:
-              sampledVars[varModel]     = originalVariables[varFramework]
+      for varFramework,varModel in self.alias[aliasTyp].items():
+        whichVar =  varModel if fromModelToFramework else varFramework
+        found = sampledVars.pop(whichVar,[sys.maxint])
+        if not np.array_equal(np.asarray(found), [sys.maxint]):
+          if fromModelToFramework:
+            sampledVars[varFramework] = originalVariables[varModel]
+          else:
+            sampledVars[varModel]     = originalVariables[varFramework]
     return originalVariables
 
   def _handleInput(self, paramInput):
