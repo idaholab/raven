@@ -32,5 +32,6 @@
     <xsd:attribute name="directory"   type="xsd:string" />
     <xsd:attribute name="filename"    type="xsd:string" />
     <xsd:attribute name="compression" type="CompressionType" />
+    <xsd:attribute name="verbosity"   type="verbosityAttr" default="all"/>
   </xsd:complexType>
 </xsd:schema>

@@ -105,3 +105,19 @@ checkArray('Maintaining sorted list',sortedList,desired)
 print(results)
 
 sys.exit(results["fail"])
+
+"""
+  <TestInfo>
+    <name>framework.utils</name>
+    <author>talbpaul</author>
+    <created>2017-11-01</created>
+    <classesTested>utils.utils</classesTested>
+    <description>
+       This test performs Unit Tests for the utils class.
+       It cannot be considered part of the active code but of the regression test system
+    </description>
+    <revisions>
+      <revision author="alfoa" date="2018-05-15">Adding this test description.</revision>
+    </revisions>
+  </TestInfo>
+"""

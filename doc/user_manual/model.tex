@@ -1459,7 +1459,7 @@ As already mentioned, the \textbf{EnsembleModel} is able to combine \textbf{Code
 \textbf{ExternalModel}(see ~\ref{subsec:models_externalModel}) and \textbf{ROM}(see ~\ref{subsec:models_externalModel}) Models.
 \\It is aimed to create a chain of Models (whose execution order is determined by the Input/Output relationships among them).
   If the relationships among the models evolve in a non-linear system, a Picard's Iteration scheme is employed.
-\\Currently this model is able to share information (i.e. data) using both \textbf{PointSet} and \textbf{HistorySet}.
+\\Currently this model is able to share information (i.e. data) using \textbf{PointSet},  \textbf{HistorySet} and \textbf{DataSet}
 
 The specifications of a EnsembleModel must be defined within the XML block
 \xmlNode{EnsembleModel}.
@@ -1510,8 +1510,8 @@ here specified need to be inputted in the\xmlNode{Models} main XML block) :
         a data object defined in the \xmlNode{DataObjects} block (see
         Section~\ref{sec:DataObjects}).
         %
-        Currently, the  \xmlNode{EnsembleModel} accept all ``DataObjects''  types:
-        ``PointSet'',  ``HistorySet'' and ``DataSet''.
+        Currently, the  \xmlNode{EnsembleModel} accept all \textbf{\textit{DataObjects'}}  types:
+        \textbf{PointSet},  \textbf{HistorySet} and \textbf{DataSet}
         \nb The  \xmlNode{TargetEvaluation} is primary used for input-output identification. If the linked
         DataObject is not placed as additional output of the Step where the EnsembleModel is used, it will
         not be filled with the data coming from the calculation and it will be kept empty.
@@ -1522,15 +1522,20 @@ here specified need to be inputted in the\xmlNode{Models} main XML block) :
         \nb All the inputs here specified need to be listed in the Steps where the EnsembleModel
         is used.
      \item \xmlNode{Output}, \xmlDesc{string, optional field},
-        represents the output entities that need to be linked to this sub-model.  \nb The \xmlNode{Output}s here specified are not part 
+        represents the output entities that need to be linked to this sub-model.  \nb The \xmlNode{Output}s here 
+        specified are not part 
         of the determination of the EnsembleModel execution but represent an additional storage of results from the
-        sub-models. For example, if the \xmlNode{TargetEvaluation} is of type PointSet (since just scalar data needs to be transferred to other 
+        sub-models. For example, if the \xmlNode{TargetEvaluation} is of type PointSet (since just scalar data needs to 
+        be transferred to other 
         models) and the sub-model is able to also output history-type data, this Output can be of type HistorySet.
-        Note that the structure of each Output dataObject must include only variables (either input or output) that are defined among the model.
-        As an example, the Output dataObjects cannot contained variables that are defined at the Ensemble model level.
+        Note that the structure of each Output dataObject must include only variables (either input or output) that are 
+        defined among the model.
+        As an example, the Output dataObjects cannot contained variables that are defined at the Ensemble model 
+        level.
         %
-        The user can specify as many \xmlNode{Output} (s) as needed. The optional \xmlNode{Output}s  can be of both classes ``DataObjects'' and ``Databases'' 
-        (e.g. PointSet, HistorySet, DataSet, HDF5).
+        The user can specify as many \xmlNode{Output} (s) as needed. The optional \xmlNode{Output}s  can be of 
+        both classes ``DataObjects'' and ``Databases'' 
+        (e.g. \textit{PointSet}, \textit{HistorySet}, \textit{DataSet}, \textit{HDF5}).
         \nb \textbf{The \xmlNode{Output} (s) here specified MUST be listed in the Step in which the EnsembleModel is used.}
     \end{itemize}
   %
@@ -1556,7 +1561,8 @@ It is important to notice that when the EnsembleModel detects a chain of models 
         \xmlNode{varName} contains the value of the initial conditions (scalar or arrays, depending of the 
         type of variable). If an array needs to be inputted, the user can specify the attribute  \xmlAttr{repeat} 
         and the code is going to repeat for  \xmlAttr{repeat}-times the value inputted in the body.
-     \item \xmlNode{initialStartModels}, \xmlDesc{XML node, only required parameter when Picard's iteration is activated},
+     \item \xmlNode{initialStartModels}, \xmlDesc{XML node, only required parameter when Picard's iteration is 
+     activated},
         specifies the list of models that will be initially executed. \nb Do not input this node for non-Picard calculations,
         otherwise an error will be raised.
   \end{itemize}

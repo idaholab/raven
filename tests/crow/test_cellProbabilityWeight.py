@@ -90,3 +90,20 @@ utils.checkAnswer("multivariate norm cellProbabilityWeight (center,dx_center)",m
 
 print(results)
 sys.exit(results["fail"])
+
+"""
+ <TestInfo>
+    <name>crow.test_cellProbabilityWeight</name>
+    <author>cogljj</author>
+    <created>2017-03-24</created>
+    <classesTested>crow</classesTested>
+    <description>
+      This test is a Unit Test for the crow swig classes. It tests that the MultiVariate Normal
+      distribution is accessable by Python and that the probability weights (cell probability)
+      is correctly computed.
+    </description>
+    <revisions>
+      <revision author="alfoa" date="2018-05-15">Adding this test description.</revision>
+    </revisions>
+ </TestInfo>
+"""

@@ -81,3 +81,22 @@ utils.checkArrayAllClose("MVN return coordinate in original space",Xcoordinate,c
 print(results)
 
 sys.exit(results["fail"])
+
+
+"""
+ <TestInfo>
+    <name>crow.test_mvn_pca</name>
+    <author>cogljj</author>
+    <created>2017-03-24</created>
+    <classesTested>crow</classesTested>
+    <description>
+      This test is a Unit Test for the crow swig classes. It tests that the MultiVariate Normal
+      distribution is accessable by Python and that PCA is correctly performed and that the
+      back transformation is correctly implemented
+    </description>
+    <revisions>
+      <revision author="alfoa" date="2018-05-15">Adding this test description.</revision>
+    </revisions>
+ </TestInfo>
+"""
+

@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <xsd:schema version="1.0" xmlns:xsd="http://www.w3.org/2001/XMLSchema"  elementFormDefault="qualified">
-
+    
     <xsd:include schemaLocation="Distributions.xsd"/>
     <xsd:include schemaLocation="Samplers.xsd"/>
     <xsd:include schemaLocation="Optimizers.xsd"/>
@@ -14,81 +14,7 @@
     <xsd:include schemaLocation="DataObjects.xsd"/>
     <xsd:include schemaLocation="TestInfo.xsd"/>
     <xsd:include schemaLocation="Metrics.xsd"/>
-
-    <!-- Common simple types -->
-    <xsd:simpleType name="floatList">
-      <xsd:list itemType="xsd:float"/>
-    </xsd:simpleType>
-
-    <xsd:simpleType name="intList">
-      <xsd:list itemType="xsd:integer"/>
-    </xsd:simpleType>
-
-    <xsd:simpleType name="positiveFloat">
-      <xsd:restriction base="xsd:float">
-        <xsd:minExclusive value="0"/>
-      </xsd:restriction>
-    </xsd:simpleType>
-
-    <xsd:simpleType name="unsignedFloat">
-      <xsd:restriction base="xsd:float">
-        <xsd:minInclusive value="0"/>
-      </xsd:restriction>
-    </xsd:simpleType>
-
-    <xsd:simpleType name="percentFloat">
-      <xsd:restriction base="xsd:float">
-        <xsd:minInclusive value="0"/>
-        <xsd:maxInclusive value="1"/>
-      </xsd:restriction>
-    </xsd:simpleType>
-
-    <xsd:simpleType  name="verbosityAttr">
-      <xsd:restriction   base="xsd:string">
-        <xsd:enumeration value="silent"/>
-        <xsd:enumeration value="quiet" />
-        <xsd:enumeration value="all"   />
-        <xsd:enumeration value="debug" />
-      </xsd:restriction>
-    </xsd:simpleType>
-
-    <xsd:simpleType name="RavenBool">
-        <xsd:restriction base="xsd:string">
-            <xsd:enumeration value="yes"/>
-            <xsd:enumeration value="y"/>
-            <xsd:enumeration value="true"/>
-            <xsd:enumeration value="True"/>
-            <xsd:enumeration value="t"/>
-            <xsd:enumeration value="si"/>
-            <xsd:enumeration value="vero"/>
-            <xsd:enumeration value="dajie"/>
-            <xsd:enumeration value="oui"/>
-            <xsd:enumeration value="ja"/>
-            <xsd:enumeration value="yao"/>
-            <xsd:enumeration value="verum"/>
-            <xsd:enumeration value="evet"/>
-            <xsd:enumeration value="dogru"/>
-            <xsd:enumeration value="1"/>
-            <xsd:enumeration value="on"/>
-            <xsd:enumeration value="no"/>
-            <xsd:enumeration value="n"/>
-            <xsd:enumeration value="false"/>
-            <xsd:enumeration value="False"/>
-            <xsd:enumeration value="f"/>
-            <xsd:enumeration value="nono"/>
-            <xsd:enumeration value="falso"/>
-            <xsd:enumeration value="nahh"/>
-            <xsd:enumeration value="non"/>
-            <xsd:enumeration value="nicht"/>
-            <xsd:enumeration value="bu"/>
-            <xsd:enumeration value="falsus"/>
-            <xsd:enumeration value="hayir"/>
-            <xsd:enumeration value="yanlis"/>
-            <xsd:enumeration value="0"/>
-            <xsd:enumeration value="off"/>
-        </xsd:restriction>
-    </xsd:simpleType>
-    <!-- End Common simple types -->
+    <xsd:include schemaLocation="globalAttributes.xsd" />
 
     <xsd:element name="Simulation">
         <xsd:complexType>
