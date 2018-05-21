@@ -55,15 +55,14 @@ def __lookUpPreferredVersion(name):
       return qa
   return ""
 
-__condaList = [("h5py"        ,__lookUpPreferredVersion("h5py"       )),
-               #("numpy"       ,__lookUpPreferredVersion("numpy"      )),
-               ("scipy"       ,__lookUpPreferredVersion("scipy"      )),
-               ("scikit-learn",__lookUpPreferredVersion("sklearn"    )),
-               ("pandas"      ,__lookUpPreferredVersion("pandas"     )),
-               ("xarray"      ,__lookUpPreferredVersion("xarray"     )),
-               ("netcdf4"     ,__lookUpPreferredVersion("netCDF4"    )),
-               ("statsmodels" ,__lookUpPreferredVersion("statsmodels")),
-               ("matplotlib"  ,__lookUpPreferredVersion("matplotlib" )),
+__condaList = [("h5py"        ,__lookUpPreferredVersion("h5py"      )),
+               #("numpy"       ,__lookUpPreferredVersion("numpy"     )),
+               ("scipy"       ,__lookUpPreferredVersion("scipy"     )),
+               ("scikit-learn",__lookUpPreferredVersion("sklearn"   )),
+               ("pandas"      ,__lookUpPreferredVersion("pandas"    )),
+               ("xarray"      ,__lookUpPreferredVersion("xarray"    )),
+               ("netcdf4"     ,__lookUpPreferredVersion("netCDF4"   )),
+               ("matplotlib"  ,__lookUpPreferredVersion("matplotlib")),
                ("python"      ,"2.7"),
                ("pyside"      ,""),
                ("swig"        ,""),
@@ -81,6 +80,7 @@ __pipList = [#("numpy",__lookUpPreferredVersion("numpy")),
              ("matplotlib",__lookUpPreferredVersion("matplotlib")),
              ("xarray",__lookUpPreferredVersion("xarray")),
              ("netCDF4",__lookUpPreferredVersion("netcdf4")),
+             ("statsmodels",__lookUpPreferredVersion("netcdf4")),
              ("pandas",__lookUpPreferredVersion("pandas")) ]
 
 def moduleReport(module,version=''):
