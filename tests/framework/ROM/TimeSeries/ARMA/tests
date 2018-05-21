@@ -4,7 +4,7 @@
    input = 'test_ARMA.xml'
    output = 'ARMA/writeSynDataOut.csv ARMA/writeSynDataOut.xml'
    csv = 'ARMA/writeSynDataOut_0.csv'
-   rel_err = 2e-6
+   rel_err = 1e-3
   [../]
   [./ARMAparallel]
    type = 'RavenFramework'
