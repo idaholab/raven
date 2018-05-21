@@ -4,7 +4,7 @@
    input = 'test_ARMA.xml'
    output = 'ARMA/writeSynDataOut.csv ARMA/writeSynDataOut.xml'
    csv = 'ARMA/writeSynDataOut_0.csv'
-   rel_err = 1e-6
+   rel_err = 2e-6
   [../]
   [./ARMAparallel]
    type = 'RavenFramework'
@@ -31,7 +31,7 @@
    type = 'RavenFramework'
    input = 'multiple_arma.xml'
    csv = 'MultipleArma/samples.csv MultipleArma/samples_0.csv MultipleArma/samples_1.csv'
-   rel_err = 1e-4
+   rel_err = 2e-4
   [../]
 
   [./VARMA]
@@ -39,7 +39,7 @@
    input = 'varma.xml'
    output = 'VARMA/plot_VARMA.png VARMA/plot_input.png'
    csv = 'VARMA/samples.csv VARMA/samples_0.csv'
-   rel_err = 1e-4
+   rel_err = 2e-4
   [../]
 
 []

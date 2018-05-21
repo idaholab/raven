@@ -1,2 +1,13 @@
-<data name="writeSynDataOut" type="HistorySet"><input>scaling</input><output>Speed,Time</output><inputFilename>writeSynDataOut.csv</inputFilename><metadata><ProbabilityWeight-scaling>array([ 1.,  0.])</ProbabilityWeight-scaling><SamplerType>array([u'Grid', u'Grid'], dtype=object)</SamplerType><crowDist>array([{u'scaling': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}'},
-       {u'scaling': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}'}], dtype=object)</crowDist><SampledVars>array([{u'scaling': 1.0}, {u'scaling': 2.0}], dtype=object)</SampledVars><ProbabilityWeight>array([ 1.,  0.])</ProbabilityWeight><prefix>array(['1', '2'], dtype=object)</prefix><distributionName>array([{u'scaling': 'uniDist'}, {u'scaling': 'uniDist'}], dtype=object)</distributionName><distributionType>array([{u'scaling': 'Uniform'}, {u'scaling': 'Uniform'}], dtype=object)</distributionType><SampledVarsPb>array([{u'scaling': 1.0}, {u'scaling': 0.0}], dtype=object)</SampledVarsPb><PointProbability>array([ 1.,  0.])</PointProbability></metadata></data>
+<DataObjectMetadata name="synData">
+  <DataSet type="Static">
+    <dims>
+      <Speed>Time</Speed>
+    </dims>
+    <general>
+      <inputs>scaling</inputs>
+      <outputs>Speed</outputs>
+      <sampleTag>RAVEN_sample_ID</sampleTag>
+    </general>
+  </DataSet>
+  
+</DataObjectMetadata>
