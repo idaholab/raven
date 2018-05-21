@@ -97,11 +97,7 @@
   [./CustomVectorInit]
     type = 'RavenFramework'
     input = 'custom_vector_init.xml'
-<<<<<<< HEAD
     csv = 'CustomVectorInit/opt_export.csv'
-=======
-    csv = 'CustomVectorInit/opt_export_2.csv'
->>>>>>> devel
     rel_err = 1e-5
   [../]
   [./RosenbrockWithSamplerError]
