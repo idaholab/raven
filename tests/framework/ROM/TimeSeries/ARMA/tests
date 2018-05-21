@@ -27,6 +27,13 @@
    skip = 'needs the new RNG entity'
   [../]
 
+ [./SingleFourier]
+   type = 'RavenFramework'
+   input = 'single_fourier.xml'
+   csv = 'SingleFourier/synthetic_0.csv'
+   rel_err = 2e-6
+  [../]
+
   [./MultipleArma]
    type = 'RavenFramework'
    input = 'multiple_arma.xml'

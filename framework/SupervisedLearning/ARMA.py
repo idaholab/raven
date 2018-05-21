@@ -126,17 +126,28 @@ class ARMA(supervisedLearning):
     else:
       self.hasFourierSeries = True
       self.fourierPara = {}
-      self.fourierPara['basePeriod'] = [float(temp) for temp in self.initOptionDict['Fourier'].split(',')]
+      basePeriods = self.initOptionDict['Fourier']
+      if isinstance(basePeriods,basestring):
+        basePeriods = [float(s) for s in basePeriods.split(',')]
+      else:
+        basePeriods = [float(basePeriods)]
+      self.fourierPara['basePeriod'] = basePeriods
+      if len(set(self.fourierPara['basePeriod'])) != len(self.fourierPara['basePeriod']):
+        self.raiseAnError(IOError,'The same Fourier value was listed multiple times!')
       self.fourierPara['FourierOrder'] = {}
       if 'FourierOrder' not in self.initOptionDict.keys():
-        for basePeriod in self.fourierPara['basePeriod']:
-          self.fourierPara['FourierOrder'][basePeriod] = 4
+        self.fourierPara['basePeriod'] = dict((basePeriod, 4) for basePeriod in self.fourierPara['basePeriod'])
       else:
-        temps = self.initOptionDict['FourierOrder'].split(',')
-        for index, basePeriod in enumerate(self.fourierPara['basePeriod']):
-          self.fourierPara['FourierOrder'][basePeriod] = int(temps[index])
-      if len(self.fourierPara['basePeriod']) != len(self.fourierPara['FourierOrder']):
-        self.raiseAnError(ValueError, 'Length of FourierOrder should be ' + str(len(self.fourierPara['basePeriod'])))
+        orders = self.initOptionDict['FourierOrder']
+        if isinstance(orders,str):
+          orders = [int(x) for x in orders.split(',')]
+        else:
+          orders = [orders]
+        if len(self.fourierPara['basePeriod']) != len(orders):
+          self.raiseAnError(ValueError, 'Number of FourierOrder entries should be "{}"'
+                                         .format(len(self.fourierPara['basePeriod'])))
+        self.fourierPara['FourierOrder'] = dict((basePeriod, orders[i])
+                                               for i,basePeriod in enumerate(self.fourierPara['basePeriod']))
 
   def __getstate__(self):
     """
