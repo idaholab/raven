@@ -696,7 +696,8 @@ class GridEntity(GridBase):
         coordinates[vvkey] = sys.maxsize
       else:
         if key in recastMethods.keys():
-          coordinates[vvkey] = recastMethods[key][0](self.gridContainer['gridVectors'][key][multiDimIndex[cnt]],*recastMethods[key][1] if len(recastMethods[key]) > 1 else [])
+          args = recastMethods[key][1] if len(recastMethods[key]) > 1 else []
+          coordinates[vvkey] = recastMethods[key][0](self.gridContainer['gridVectors'][key][multiDimIndex[cnt]],*args)
         else:
           coordinates[vvkey] = self.gridContainer['gridVectors'][key][multiDimIndex[cnt]]
     if not returnDict:
