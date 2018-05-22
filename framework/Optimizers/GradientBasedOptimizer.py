@@ -537,7 +537,9 @@ class GradientBasedOptimizer(Optimizer):
             if not failedTraj:
               #TODO this might be faster for non-stochastic if we do an "if" here on gradDict['numIterForAve']
               #make a place to store distinct evaluation values
-              outputs = dict((var,np.zeros(self.gradDict['numIterForAve'])) for var in self.solutionExport.getVars('output') if var in self.mdlEvalHist.getVars('output'))
+              outputs = dict((var,np.zeros(self.gradDict['numIterForAve'],dtype=object))
+                  for var in self.solutionExport.getVars('output')
+                  if var in self.mdlEvalHist.getVars('output'))
               # get output values corresponding to evaluations of the opt point
               # also add opt points to the grad perturbation list
               self.gradDict['pertPoints'][traj] = np.zeros((1+self.paramDict['pertSingleGrad'])*self.gradDict['numIterForAve'],dtype=dict)
@@ -546,10 +548,13 @@ class GradientBasedOptimizer(Optimizer):
                 vals = self.mdlEvalHist.realization(index=index)
                 # place values TODO this could be vectorized significantly!
                 for var in outputs.keys():
-                  outputs[var][i] = float(vals[var])
+                  if hasattr(vals[var],'__len__') and len(vals[var]) == 1:
+                    outputs[var][i] = float(vals[var])
+                  else:
+                    outputs[var][i] = vals[var]
                   if var == self.objVar:
                     self.gradDict['pertPoints'][traj][i] = {'inputs':self.normalizeData(dict((var,vals[var]) for var in self.mdlEvalHist.getVars('input'))),
-                                                            'output':float(vals[var])}
+                                                            'output':outputs[var][i]}
               # assumed output value is the mean of sampled values
               for var,vals in outputs.items():
                 outputs[var] = vals.mean()
@@ -608,6 +613,19 @@ class GradientBasedOptimizer(Optimizer):
     badValue = -1 #value to use if we don't have a value # TODO make this accessible to user?
     recent = self.counter['recentOptHist'][traj][0]
     for var in self.solutionExport.getVars():
+      # if this variable has indices, add them to the realization
+      indexes = self.solutionExport.getDimensions(var)[var]
+      if len(indexes):
+        # use the prefix to find the right realization
+        ## NOTE there will be a problem with unsynchronized histories!
+        varUpdate = self.counter['solutionUpdate'][traj]
+        # negative values wouldn't make sense
+        varUpdate = max(0,varUpdate-1)
+        prefix = '{}_{}_{}'.format(traj,varUpdate,0)
+        _,match = self.mdlEvalHist.realization(matchDict = {'prefix':prefix})
+        for index in indexes:
+          rlz[index] = match[index]
+      # CASE: what variable is asked for:
       # inputs, objVar, other outputs
       if var in recent.keys():
         new = self.denormalizeData(recent)[var]

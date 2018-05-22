@@ -42,11 +42,11 @@ fi
 case $MODE in
   'opt' )
     echo 'Running RAVEN in "opt" mode.'
-    python -O $SCRIPT_DIR/framework/Driver.py "$ARGS"
+    python -O $SCRIPT_DIR/framework/Driver.py "${ARGS[@]}"
     ;;
   'dev' )
     echo 'Running RAVEN in "dev" mode.'
-    python $SCRIPT_DIR/framework/Driver.py "$ARGS"
+    python $SCRIPT_DIR/framework/Driver.py "${ARGS[@]}"
     ;;
   'help' )
     echo ''

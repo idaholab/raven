@@ -54,6 +54,11 @@ class CustomSampler(ForwardSampler):
     sourceInput.addParam("class", InputData.StringType)
     inputSpecification.addSub(sourceInput)
 
+    # add "nameInSource" attribute to <variable>
+    var = inputSpecification.popSub('variable')
+    var.addParam("nameInSource", InputData.StringType, required=False)
+    inputSpecification.addSub(var)
+
     return inputSpecification
 
   def __init__(self):
@@ -66,6 +71,7 @@ class CustomSampler(ForwardSampler):
     ForwardSampler.__init__(self)
     self.pointsToSample = {}
     self.infoFromCustom = {}
+    self.nameInSource = {} # dictionary to map the variable's sampled name to the name it has in Source
     self.addAssemblerObject('Source','1',True)
     self.printTag = 'SAMPLER CUSTOM'
     self.readingFrom = None # either File or DataObject, determines sample generation
@@ -78,13 +84,20 @@ class CustomSampler(ForwardSampler):
     """
     #TODO remove using xmlNode
     self.readSamplerInit(xmlNode)
+    self.nameInSource = {}
     for child in xmlNode:
       if child.tag == 'variable':
+        # acquire name
+        name = child.attrib['name']
+        # check for an "alias" source name
+        self.nameInSource[name] = child.attrib.get('nameInSource',name)
+        # determine if a sampling function is used
         funct = child.find("function")
         if funct is None:
-          self.toBeSampled[child.attrib['name']] = 'custom'
+          # custom samples use a "custom" distribution
+          self.toBeSampled[name] = 'custom'
         else:
-          self.dependentSample[child.attrib['name']] = funct.text.strip()
+          self.dependentSample[name] = funct.text.strip()
       if child.tag == 'Source'  :
         if child.attrib['class'] not in ['Files','DataObjects']:
           self.raiseAnError(IOError, "Source class attribute must be either 'Files' or 'DataObjects'!!!")
@@ -149,15 +162,16 @@ class CustomSampler(ForwardSampler):
       for var in self.toBeSampled.keys():
         for subVar in var.split(','):
           subVar = subVar.strip()
-          if subVar not in headers:
-            self.raiseAnError(IOError, "variable "+ subVar + " not found in the file "
+          sourceName = self.nameInSource[subVar]
+          if sourceName not in headers:
+            self.raiseAnError(IOError, "variable "+ sourceName + " not found in the file "
                     + csvFile.getFilename())
-          self.pointsToSample[subVar] = data[:,headers.index(subVar)]
-          subVarPb = 'ProbabilityWeight-' + subVar
+          self.pointsToSample[subVar] = data[:,headers.index(sourceName)]
+          subVarPb = 'ProbabilityWeight-'
           if subVarPb in headers:
-            self.infoFromCustom[subVarPb] = data[:, headers.index(subVarPb)]
+            self.infoFromCustom[subVarPb+subVar] = data[:, headers.index(subVarPb+sourceName)]
           else:
-            self.infoFromCustom[subVarPb] = np.ones(lenRlz)
+            self.infoFromCustom[subVarPb+subVar] = np.ones(lenRlz)
       if 'PointProbability' in headers:
         self.infoFromCustom['PointProbability'] = data[:,headers.index('PointProbability')]
       else:
@@ -176,8 +190,9 @@ class CustomSampler(ForwardSampler):
       for var in self.toBeSampled.keys():
         for subVar in var.split(','):
           subVar = subVar.strip()
-          if subVar not in dataObj.getVars() + dataObj.getVars('indexes'):
-            self.raiseAnError(IOError,"the variable "+ subVar + " not found in "+ dataObj.type + " " + dataObj.name)
+          sourceName = self.nameInSource[subVar]
+          if sourceName not in dataObj.getVars() + dataObj.getVars('indexes'):
+            self.raiseAnError(IOError,"the variable "+ sourceName + " not found in "+ dataObj.type + " " + dataObj.name)
       self.limit = len(self.pointsToSample)
     #TODO: add restart capability here!
     if self.restartData:
@@ -199,11 +214,12 @@ class CustomSampler(ForwardSampler):
       for var in self.toBeSampled.keys():
         for subVar in var.split(','):
           subVar = subVar.strip()
+          sourceName = self.nameInSource[subVar]
           # get the value(s) for the variable for this realization
-          self.values[subVar] = rlz[subVar].values
+          self.values[subVar] = rlz[sourceName].values
           # set the probability weight due to this variable (default to 1)
-          pbWtName = 'ProbabilityWeight-'+subVar
-          self.inputInfo[pbWtName] = rlz.get(pbWtName,1.0)
+          pbWtName = 'ProbabilityWeight-'
+          self.inputInfo[pbWtName+subVar] = rlz.get(pbWtName+sourceName,1.0)
       # get realization-level required meta information, or default to 1
       for meta in ['PointProbability','ProbabilityWeight']:
         self.inputInfo[meta] = rlz.get(meta,1.0)

@@ -24,7 +24,7 @@
       <variables>y1,y2,ans</variables>
     </ExternalModel>
     <PostProcessor name="stats" subType="BasicStatistics">
-      <expectedValue prefix="mean">y1,y2,ans</expectedValue>
+      <expectedValue prefix="mean">y1,y2,ans,testSecondAlias</expectedValue>
     </PostProcessor>
   </Models>
 
@@ -47,6 +47,7 @@
       <variable name="y2">
         <distribution>dist</distribution>
       </variable>
+      <constant name="testSecondAlias">0</constant>
     </MonteCarlo>
   </Samplers>
 
@@ -63,11 +64,11 @@
     </PointSet>
     <PointSet name="inner_samples">
       <Input>y1,y2</Input>
-      <Output>ans</Output>
+      <Output>ans,testSecondAlias</Output>
     </PointSet>
     <PointSet name="stats">
       <Input>mean_y1,mean_y2</Input>
-      <Output>mean_ans</Output>
+      <Output>mean_ans,mean_testSecondAlias</Output>
     </PointSet>
   </DataObjects>
 
