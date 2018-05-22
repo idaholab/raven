@@ -15,7 +15,7 @@
 """
   Created on May 22, 2018
   @author: alfoa
-  This a utility tool to fix the docstrings in RAVEN
+  This is a utility tool to fix the docstrings in RAVEN
 """
 
 #For future compatibility with Python 3
