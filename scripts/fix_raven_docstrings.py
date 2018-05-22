@@ -197,8 +197,10 @@ if __name__ == '__main__':
       begin = outLines[lineNumber].strip()[0:10]
     if len(outLines[lineNumber].strip()) > 0:
       end = outLines[lineNumber].strip()[-1]
-    poundInPrinting = not outLines[lineNumber].strip().startswith("#") and outLines[lineNumber].strip().count("#") > 0 \
-                      and (begin in ["self.raise","Fvect.writ"] or end in [")","]",",",":"] or outLines[lineNumber].strip().endswith("comment"))
+    poundInPrinting = not outLines[lineNumber].strip(
+    ).startswith("#") and outLines[lineNumber].strip().count("#") > 0 and (
+        begin in ["self.raise", "Fvect.writ"] or end in [")", "]", ",", ":"]
+        or outLines[lineNumber].strip().endswith("comment"))
     if (maxTrue or not innerPound or not skip) and not poundInPrinting:
       endLineNumber = lineNumber
       trailingSpaces = len(outLines[lineNumber]) - len(
