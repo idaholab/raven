@@ -18,8 +18,8 @@ Created on Nov 24, 2015
 
 comments: Interface for Dymola Simulation
 
-Modelica is an object-oriented, equation-based language to conveniently model complex physical systems 
-containing, e.g., mechanical, electrical, electronic, hydraulic, thermal, control, electric power or 
+Modelica is an object-oriented, equation-based language to conveniently model complex physical systems
+containing, e.g., mechanical, electrical, electronic, hydraulic, thermal, control, electric power or
 process-oriented subcomponents.
 Modelica models (with a file extension of .mo) are built, translated (compiled), and simulated in Dymola
 (http://www.modelon.com/products/dymola/),
@@ -62,10 +62,10 @@ equation
 end BouncingBall;
 --- END MODEL FILE ---
 
-When a modelica model, e.g., BouncingBall model, is implemented in Dymola, the platform dependent C-code from a 
-Modelica model and the corresponding executable code (i.e., by default dymosim.exe on the Windows operating system) 
-are generated for simulation. A separate TEXT file (by default dsin.txt) containing model parameters and initial 
-conditions are also generated as part of the build process. After the executable is generated, it may be run multiple 
+When a modelica model, e.g., BouncingBall model, is implemented in Dymola, the platform dependent C-code from a
+Modelica model and the corresponding executable code (i.e., by default dymosim.exe on the Windows operating system)
+are generated for simulation. A separate TEXT file (by default dsin.txt) containing model parameters and initial
+conditions are also generated as part of the build process. After the executable is generated, it may be run multiple
 times (with Dymola license). There are several ways to vary input parameters:
 
   1) Modify the model file and re-build the simulation executable.
@@ -76,11 +76,11 @@ times (with Dymola license). There are several ways to vary input parameters:
 For RAVEN purposes, this interface code will use option (2). Variation of parameters may be done by editing the input
 file (dsin.txt) and then re-running the model executable (by default dymosim.exe).
 
-An executable (dymosim.exe) and a simulation initialization file (dsin.txt) can be generated after either translating 
-or simulating the Modelica model (BouncingBall.mo) using the Dymola Graphical User Interface (GUI) or Dymola 
-Application Programming Interface (API)-routines. The output of the model is a binary file 'BouncingBall.mat' 
+An executable (dymosim.exe) and a simulation initialization file (dsin.txt) can be generated after either translating
+or simulating the Modelica model (BouncingBall.mo) using the Dymola Graphical User Interface (GUI) or Dymola
+Application Programming Interface (API)-routines. The output of the model is a binary file 'BouncingBall.mat'
 if the simulation is run in Dymola GUI or by using Dymola API-routines.
-If the generated executable code is trigged directly from a command prompt, the output file is always 
+If the generated executable code is trigged directly from a command prompt, the output file is always
 named as 'dsres.mat'.
 
 To change the initial height of the bouncing ball to 5.0 in the above model, we need to read and modify its value
@@ -123,14 +123,14 @@ class Dymola(CodeInterfaceBase):
       @ Out, None
     """
     # the variables that should be loaded from the mat file (by default, all of them)
-    self.variablesToLoad = [] 
+    self.variablesToLoad = []
 
   def _readMoreXML(self,xmlNode):
     """
       Function to read the portion of the xml input that belongs to this specialized class and initialize
       some members based on inputs. This can be overloaded in specialize code interface in order to
       read specific flags.
-      Only one option is possible. You can choose here, if multi-deck mode is activated, from 
+      Only one option is possible. You can choose here, if multi-deck mode is activated, from
       which deck you want to load the results
       @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
       @ Out, None.
@@ -155,16 +155,16 @@ class Dymola(CodeInterfaceBase):
       See base class.  Collects all the clargs and the executable to produce the command-line call.
       Returns tuple of commands and base file name for run.
       Commands are a list of tuples, indicating parallel/serial and the execution command to use.
-      @ In, inputFiles, list, List of input files (lenght of the list depends on the number of 
+      @ In, inputFiles, list, List of input files (lenght of the list depends on the number of
                               inputs have been added in the Step is running this code)
       @ In, executable, string, executable name with absolute path (e.g. /home/path_to_executable/code.exe)
-      @ In, clargs, dict, optional, dictionary containing the command-line flags the user can specify in the 
-                                    input (e.g. under the node < Code >< clargstype =0 input0arg =0 
+      @ In, clargs, dict, optional, dictionary containing the command-line flags the user can specify in the
+                                    input (e.g. under the node < Code >< clargstype =0 input0arg =0
                                                 i0extension =0 .inp0/ >< /Code >)
-      @ In, fargs, dict, optional, a dictionary containing the axuiliary input file variables the user can 
-                                   specify in the input (e.g. under the node < Code >< clargstype =0 
+      @ In, fargs, dict, optional, a dictionary containing the axuiliary input file variables the user can
+                                   specify in the input (e.g. under the node < Code >< clargstype =0
                                    input0arg =0 aux0extension =0 .aux0/ >< /Code >)
-      @ Out, returnCommand, tuple, tuple containing the generated command. returnCommand[0] is the command 
+      @ Out, returnCommand, tuple, tuple containing the generated command. returnCommand[0] is the command
                                    to run the code (string), returnCommand[1] is the name of the output root
     """
 
@@ -201,8 +201,8 @@ class Dymola(CodeInterfaceBase):
       @ In, currentInputFiles, list,  list of current input files (input files from last this method call)
       @ In, oriInputFiles, list, list of the original input files
       @ In, samplerType, string, Sampler type (e.g. MonteCarlo, Adaptive, etc. see manual Samplers section)
-      @ In, Kwargs, dictionary, kwarded dictionary of parameters. In this dictionary there is another 
-            dictionary called "SampledVars" where RAVEN stores the variables that got sampled (e.g. 
+      @ In, Kwargs, dictionary, kwarded dictionary of parameters. In this dictionary there is another
+            dictionary called "SampledVars" where RAVEN stores the variables that got sampled (e.g.
             Kwargs['SampledVars'] => {'var1':10,'var2':40})
       @ Out, newInputFiles, list, list of newer input files, list of the new input files (modified and not)
     """
@@ -457,10 +457,10 @@ class Dymola(CodeInterfaceBase):
 
       # Define the name of the CSV file.
       # The source file comes in without extension on it
-      sourceFileName = os.path.join(workingDir, output)         
+      sourceFileName = os.path.join(workingDir, output)
       print('sourcefilename:',sourceFileName)
       # When write the CSV file, change rawout~ to out~
-      destFileName = sourceFileName.replace('rawout~', 'out~')  
+      destFileName = sourceFileName.replace('rawout~', 'out~')
       destFileName += '.csv' # Add the file extension .csv
 
       # Write the CSV file.
@@ -482,4 +482,4 @@ class Dymola(CodeInterfaceBase):
     del timeSeriesData1
     del timeSeriesData2
     # Return the name without the .csv on it as RAVEN will add it later.
-    return os.path.splitext(destFileName)[0]   
+    return os.path.splitext(destFileName)[0]
