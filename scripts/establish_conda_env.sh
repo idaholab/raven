@@ -30,7 +30,7 @@ try_using_raven_environment ()
     fi
 }
 
-# if conda version 4.4+, they use function definitions instead of path inclusion.
+# if conda version 4.5+, they use function definitions instead of path inclusion.
 ## however, they also define the CONDA_EXE variable, which is available.
 ## once loaded, command -v conda works for both versions of conda.
 if [ "${#CONDA_EXE}" -gt 0 ];
@@ -43,6 +43,8 @@ if command -v conda 2> /dev/null;
 then
   echo conda located, checking version ...
   echo `conda -V`
+  echo updating conda ...
+  conda update -n base conda -y
   echo ... checking environments ...
   conda_install_or_create
 else
