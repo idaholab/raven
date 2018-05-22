@@ -21,13 +21,15 @@
 #For future compatibility with Python 3
 from __future__ import division, print_function, absolute_import
 import warnings
-warnings.simplefilter('default',DeprecationWarning)
+warnings.simplefilter('default', DeprecationWarning)
 #End compatibility block for Python 3
 
 #External Modules--------------------
 import sys
 import os
+
 #External Modules--------------------
+
 
 def trimQuoteDocstring(docstring, quoteIndent, maxColumns=120):
   """
@@ -39,7 +41,7 @@ def trimQuoteDocstring(docstring, quoteIndent, maxColumns=120):
     @ Out, outputLines, list, the list of new lines that need to be inserted
   """
   lines = [elm.expandtabs() for elm in docstring]
-  outputLines = [" "*quoteIndent+'"""'+"\n"]
+  outputLines = [" " * quoteIndent + '"""' + "\n"]
   # find if "@" are present
   inIndex = []
   outIndex = []
@@ -50,34 +52,36 @@ def trimQuoteDocstring(docstring, quoteIndent, maxColumns=120):
       elif "@ out" in line.lower() or '@out' in line.lower():
         outIndex.append(cnt)
   for cnt, line in enumerate(lines):
-    indentedLine = " "*(quoteIndent+2) + line.lstrip()
-    if cnt in inIndex+outIndex:
-      indentedLine = indentedLine.replace("@Out","@ Out").replace("@In","@ In")
+    indentedLine = " " * (quoteIndent + 2) + line.lstrip()
+    if cnt in inIndex + outIndex:
+      indentedLine = indentedLine.replace("@Out", "@ Out").replace(
+          "@In", "@ In")
       breakIndex = [i for i, ltr in enumerate(indentedLine) if ltr == ',']
-      breakIndex = quoteIndent+8
+      breakIndex = quoteIndent + 8
     else:
-      breakIndex = quoteIndent+1
+      breakIndex = quoteIndent + 1
 
     if len(indentedLine) > maxColumns:
       # we need to split it
       newLines = []
       words = indentedLine.strip().split()
-      words.insert(0," "*(quoteIndent))
+      words.insert(0, " " * (quoteIndent))
       lineToAdd = ""
       for i, word in enumerate(words):
-        if len(lineToAdd+word)+3  < maxColumns:
-          lineToAdd = lineToAdd +" "+word
+        if len(lineToAdd + word) + 3 < maxColumns:
+          lineToAdd = lineToAdd + " " + word
         else:
-          newLines.append(lineToAdd+"\n")
-          lineToAdd = " "*breakIndex+" "+word
-        if i == len(words)-1:
-          newLines.append(lineToAdd+"\n")
-      outputLines+=newLines
+          newLines.append(lineToAdd + "\n")
+          lineToAdd = " " * breakIndex + " " + word
+        if i == len(words) - 1:
+          newLines.append(lineToAdd + "\n")
+      outputLines += newLines
     else:
       outputLines.append(line)
-  outputLines.append(" "*quoteIndent+'"""'+"\n")
+  outputLines.append(" " * quoteIndent + '"""' + "\n")
   # Return a single string:
   return outputLines
+
 
 def trimPoundDocstring(docstring, quoteIndent, maxColumns=120):
   """
@@ -90,7 +94,7 @@ def trimPoundDocstring(docstring, quoteIndent, maxColumns=120):
   """
   # Convert tabs to spaces (following the normal Python rules)
   # and split into a list of lines:
-  if docstring.count("#")>1:
+  if docstring.count("#") > 1:
     lines = [elm.expandtabs() for elm in docstring.split("#")]
     if len(lines[0].strip()) == 0:
       lines.pop(0)
@@ -102,9 +106,9 @@ def trimPoundDocstring(docstring, quoteIndent, maxColumns=120):
   outIndex = []
 
   for cnt, line in enumerate(lines):
-    indentedLine = " "*(quoteIndent) + line.lstrip()
+    indentedLine = " " * (quoteIndent) + line.lstrip()
     if indentedLine.strip().endswith("---------"):
-      while len(indentedLine.strip()) > maxColumns-3:
+      while len(indentedLine.strip()) > maxColumns - 3:
         if indentedLine.strip()[-1] == '-':
           indentedLine = indentedLine.strip()
           indentedLine = indentedLine[:-1]
@@ -114,25 +118,26 @@ def trimPoundDocstring(docstring, quoteIndent, maxColumns=120):
     if len(indentedLine) > maxColumns:
       # we need to split it
       newLines = []
-      words = indentedLine.strip().replace("#","").split()
-      words.insert(0," "*(breakIndex-1) + "#")
+      words = indentedLine.strip().replace("#", "").split()
+      words.insert(0, " " * (breakIndex - 1) + "#")
       lineToAdd = ""
       for i, word in enumerate(words):
-        if len(lineToAdd+word)+3  < maxColumns:
-          lineToAdd = lineToAdd +" "+word
+        if len(lineToAdd + word) + 3 < maxColumns:
+          lineToAdd = lineToAdd + " " + word
         else:
-          newLines.append(lineToAdd+"\n")
-          lineToAdd = " "*breakIndex + "# "+ word
-        if i == len(words)-1:
-          newLines.append(lineToAdd+"\n")
-      outputLines+=newLines
+          newLines.append(lineToAdd + "\n")
+          lineToAdd = " " * breakIndex + "# " + word
+        if i == len(words) - 1:
+          newLines.append(lineToAdd + "\n")
+      outputLines += newLines
     else:
       if len(line.strip()) > 0:
         add = '\n' if '\n' not in indentedLine.lstrip() else ''
         if '#' not in indentedLine.strip():
-          outputLines.append(" "*(breakIndex) + "# "+indentedLine.lstrip()+add)
+          outputLines.append(" " *
+                             (breakIndex) + "# " + indentedLine.lstrip() + add)
         else:
-          outputLines.append(indentedLine+add)
+          outputLines.append(indentedLine + add)
   # Return a single string:
   return outputLines
 
@@ -152,63 +157,71 @@ if __name__ == '__main__':
   if '-i' in sys.argv:
     outFileName = fileName
   else:
-    outFileName = fileName.split(".")[0]+"_converted."+fileName.split(".")[1]
+    outFileName = fileName.split(".")[0] + "_converted." + fileName.split(
+        ".")[1]
 
   if '-c_max' in sys.argv:
-    maxColumns = int(sys.argv[sys.argv.index("-c_max")+1])
+    maxColumns = int(sys.argv[sys.argv.index("-c_max") + 1])
   with open(fileName, mode='r') as fobj:
     lines = fobj.readlines()
   lineNumber = 0
   endLineNumber = 0
   outLines = []
   while lineNumber != len(lines):
-    if lines[lineNumber].strip().startswith('"""') and lines[lineNumber].strip().count('"') == 3:
-      endLineNumber = lineNumber+1
+    if lines[lineNumber].strip().startswith(
+        '"""') and lines[lineNumber].strip().count('"') == 3:
+      endLineNumber = lineNumber + 1
       while not lines[endLineNumber].strip().startswith('"""'):
-        endLineNumber+=1
-      docstringList =  lines[lineNumber+1:endLineNumber]
-      trailingSpaces = len( lines[lineNumber]) - len( lines[lineNumber].lstrip())
-      newDocString = trimQuoteDocstring(docstringList,trailingSpaces,maxColumns)
+        endLineNumber += 1
+      docstringList = lines[lineNumber + 1:endLineNumber]
+      trailingSpaces = len(lines[lineNumber]) - len(lines[lineNumber].lstrip())
+      newDocString = trimQuoteDocstring(docstringList, trailingSpaces,
+                                        maxColumns)
       outLines += newDocString
       lineNumber = endLineNumber
     else:
       outLines.append(lines[lineNumber])
-    lineNumber+=1
+    lineNumber += 1
   lineNumber = 0
   endLineNumber = 0
   newOutLines = []
   while lineNumber != len(outLines):
     skip = '("#1\n")' not in outLines[lineNumber]
-    maxTrue = "#" in outLines[lineNumber].strip() and len(outLines[lineNumber]) > maxColumns
-    innerPound = outLines[lineNumber].strip().startswith("#") and  "#" in outLines[lineNumber].strip()[1:]
+    maxTrue = "#" in outLines[lineNumber].strip() and len(
+        outLines[lineNumber]) > maxColumns
+    innerPound = outLines[lineNumber].strip().startswith(
+        "#") and "#" in outLines[lineNumber].strip()[1:]
     begin = " "
     end = " "
     if len(outLines[lineNumber].strip()) > 10:
       begin = outLines[lineNumber].strip()[0:10]
     if len(outLines[lineNumber].strip()) > 0:
-      end =  outLines[lineNumber].strip()[-1]
+      end = outLines[lineNumber].strip()[-1]
     poundInPrinting = not outLines[lineNumber].strip().startswith("#") and outLines[lineNumber].strip().count("#") > 0 \
                       and (begin in ["self.raise","Fvect.writ"] or end in [")","]",",",":"] or outLines[lineNumber].strip().endswith("comment"))
     if (maxTrue or not innerPound or not skip) and not poundInPrinting:
       endLineNumber = lineNumber
-      trailingSpaces = len( outLines[lineNumber]) - len( outLines[lineNumber].lstrip())
+      trailingSpaces = len(outLines[lineNumber]) - len(
+          outLines[lineNumber].lstrip())
       if outLines[lineNumber].strip().startswith("#"):
-        newDocString = trimPoundDocstring(outLines[lineNumber],trailingSpaces,maxColumns)
+        newDocString = trimPoundDocstring(outLines[lineNumber], trailingSpaces,
+                                          maxColumns)
         newOutLines += newDocString
-      elif not outLines[lineNumber].strip().startswith("#") and "#" in outLines[lineNumber].strip()[1:]:
+      elif not outLines[lineNumber].strip().startswith(
+          "#") and "#" in outLines[lineNumber].strip()[1:]:
         splitted = outLines[lineNumber].split("#")
-        newDocString = trimPoundDocstring(splitted[-1],trailingSpaces,maxColumns)
+        newDocString = trimPoundDocstring(splitted[-1], trailingSpaces,
+                                          maxColumns)
         newOutLines += newDocString
         add = '\n' if '\n' not in splitted[0].lstrip() else ''
-        newOutLines.append(splitted[0]+add)
+        newOutLines.append(splitted[0] + add)
       else:
         newOutLines.append(outLines[lineNumber])
       lineNumber = endLineNumber
     else:
       newOutLines.append(outLines[lineNumber])
-    lineNumber+=1
+    lineNumber += 1
   outLines = newOutLines
 
-  with open(outFileName,"w") as outObj:
+  with open(outFileName, "w") as outObj:
     outObj.writelines(outLines)
-
