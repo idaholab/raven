@@ -13,11 +13,14 @@
 # limitations under the License.
 import os
 import csv
+
+
 class mooseData:
   """
     class that parses output of Moose Vector PP output files and reads in trip, minor block and write a csv file
   """
-  def __init__(self,filen,workingDir,outputFile,integralName):
+
+  def __init__(self, filen, workingDir, outputFile, integralName):
     """
       Constructor
       @ In, filen, list, list of files that needs to be merged for Moose Vector PP
@@ -28,16 +31,16 @@ class mooseData:
     """
     self.vppFiles = []
     csvfiles = []
-    csvreaders=[]
-    self.integralName = integralName.replace("_","")
+    csvreaders = []
+    self.integralName = integralName.replace("_", "")
     for i in range(len(filen)):
-      csvfiles.append(open(filen[i],"r"))
+      csvfiles.append(open(filen[i], "r"))
       csvreaders.append(csv.DictReader(csvfiles[-1]))
     tempDict = self.__read(csvreaders)
     writeDict = self.__sortDict(tempDict)
-    self.__write_csv(writeDict,workingDir,outputFile)
+    self.__write_csv(writeDict, workingDir, outputFile)
 
-  def __read(self,csvreaders):
+  def __read(self, csvreaders):
     """
       This method reads the VectorPostProcessor outputs sent in as a list of csv.DictReader objects
       @ In, csvreaders, list, list of csv.DictReader objects
@@ -56,7 +59,7 @@ class mooseData:
       @ In, tempDict, dict, temporary dictionary of the data in the outputs (not sorted)
       @ Out, sortedDict, dict, sorted Dictionary
     """
-    sortedDict ={}
+    sortedDict = {}
     time = tempDict.keys()
     for location in tempDict[time[0]].keys():
       sortedDict[location] = {}
@@ -72,7 +75,7 @@ class mooseData:
       sortedDict[location]['z'] = tempDict[time[0]][location]['z']
     return sortedDict
 
-  def __write_csv(self,writeDict,workingDir,baseName):
+  def __write_csv(self, writeDict, workingDir, baseName):
     """
       Writes the csv file using the input Dictionary
       @ In, writeDict, dict, dictionary containing data to write
@@ -80,8 +83,8 @@ class mooseData:
       @ In, baseName, string, base name (root)
       @ Out, None
     """
-    self.vppFiles = os.path.join(workingDir,str(baseName+'_VPP'))
-    IOcsvfile=open(os.path.join(workingDir,str(baseName+'_VPP.csv')),'w')
+    self.vppFiles = os.path.join(workingDir, str(baseName + '_VPP'))
+    IOcsvfile = open(os.path.join(workingDir, str(baseName + '_VPP.csv')), 'w')
     location = {}
     timeStep = {}
     for key in writeDict.keys():
@@ -96,21 +99,26 @@ class mooseData:
     j = 0
     IOcsvfile.write('timeStep,')
     tempString = []
-    while(j < locationNo):
+    while (j < locationNo):
       key = location.keys()[j]
-      tempString = ('ID%s,x%s,y%s,z%s,value%s,' %(j+1,j+1,j+1,j+1,j+1))
+      tempString = ('ID%s,x%s,y%s,z%s,value%s,' % (j + 1, j + 1, j + 1, j + 1,
+                                                   j + 1))
       j = j + 1
-      IOcsvfile.write('%s' %(tempString))
+      IOcsvfile.write('%s' % (tempString))
     IOcsvfile.write('\n')
     for time in timeStep[timeStep.keys()[0]].keys():
       j = 0
-      IOcsvfile.write('%s,' %(time))
-      while(j < locationNo):
+      IOcsvfile.write('%s,' % (time))
+      while (j < locationNo):
         key = location.keys()[j]
-        if j == (locationNo-1):
-          tempString = ('%s,%s,%s,%s,%s'  %(key,location[key]['x'],location[key]['y'],location[key]['z'],timeStep[key][time]))
+        if j == (locationNo - 1):
+          tempString = ('%s,%s,%s,%s,%s' %
+                        (key, location[key]['x'], location[key]['y'],
+                         location[key]['z'], timeStep[key][time]))
         else:
-          tempString = ('%s,%s,%s,%s,%s,' %(key,location[key]['x'],location[key]['y'],location[key]['z'],timeStep[key][time]))
+          tempString = ('%s,%s,%s,%s,%s,' %
+                        (key, location[key]['x'], location[key]['y'],
+                         location[key]['z'], timeStep[key][time]))
         j = j + 1
-        IOcsvfile.write('%s' %(tempString))
+        IOcsvfile.write('%s' % (tempString))
       IOcsvfile.write('\n')

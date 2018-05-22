@@ -19,7 +19,7 @@ Created on September 2017
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
-warnings.simplefilter('default',DeprecationWarning)
+warnings.simplefilter('default', DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -35,7 +35,9 @@ from sklearn import cross_validation
 
 #Internal Modules------------------------------------------------------------------------------------
 from .CrossValidation import CrossValidation
+
 #Internal Modules End--------------------------------------------------------------------------------
+
 
 class SciKitLearn(CrossValidation):
   """
@@ -45,16 +47,18 @@ class SciKitLearn(CrossValidation):
   # FIXME: Swith to sklearn.model_selection instead.
   # dictionary of available cross validation methods {mainClass:(classPointer, output Type (float))}
   availImpl = {}
-  availImpl['KFold'                  ] = (cross_validation.KFold,                  'float')
-  availImpl['StratifiedKFold'        ] = (cross_validation.StratifiedKFold,        'float')
-  availImpl['LeaveOneOut'            ] = (cross_validation.LeaveOneOut,            'float')
-  availImpl['LeavePOut'              ] = (cross_validation.LeavePOut,              'float')
-  availImpl['ShuffleSplit'           ] = (cross_validation.ShuffleSplit,           'float')
-  availImpl['StratifiedShuffleSplit' ] = (cross_validation.StratifiedShuffleSplit, 'float')
-  availImpl['LabelKFold'             ] = (cross_validation.LabelKFold,             'float')
-  availImpl['LabelShuffleSplit'      ] = (cross_validation.LabelShuffleSplit,      'float')
-  availImpl['LeaveOneLabelOut'       ] = (cross_validation.LeaveOneLabelOut,       'float')
-  availImpl['LeavePLabelOut'         ] = (cross_validation.LeavePLabelOut,         'float')
+  availImpl['KFold'] = (cross_validation.KFold, 'float')
+  availImpl['StratifiedKFold'] = (cross_validation.StratifiedKFold, 'float')
+  availImpl['LeaveOneOut'] = (cross_validation.LeaveOneOut, 'float')
+  availImpl['LeavePOut'] = (cross_validation.LeavePOut, 'float')
+  availImpl['ShuffleSplit'] = (cross_validation.ShuffleSplit, 'float')
+  availImpl['StratifiedShuffleSplit'] = (
+      cross_validation.StratifiedShuffleSplit, 'float')
+  availImpl['LabelKFold'] = (cross_validation.LabelKFold, 'float')
+  availImpl['LabelShuffleSplit'] = (cross_validation.LabelShuffleSplit,
+                                    'float')
+  availImpl['LeaveOneLabelOut'] = (cross_validation.LeaveOneLabelOut, 'float')
+  availImpl['LeavePLabelOut'] = (cross_validation.LeavePLabelOut, 'float')
 
   def __init__(self, messageHandler, **kwargs):
     """
@@ -67,12 +71,16 @@ class SciKitLearn(CrossValidation):
     self.printTag = 'SKLearn Cross Validation'
 
     if 'SKLtype' not in self.initOptionDict.keys():
-      self.raiseAnError(IOError, 'Missing XML node: Cross validation from SciKitLearn requires keyword "SKLtype"')
+      self.raiseAnError(
+          IOError,
+          'Missing XML node: Cross validation from SciKitLearn requires keyword "SKLtype"'
+      )
     self.SKLType = self.initOptionDict['SKLtype']
     self.initOptionDict.pop('SKLtype')
 
     if self.SKLType not in self.__class__.availImpl.keys():
-      self.raiseAnError(IOError, 'Unknow SKLtype ', self.SKLType, ' from cross validation ', self.name)
+      self.raiseAnError(IOError, 'Unknow SKLtype ', self.SKLType,
+                        ' from cross validation ', self.name)
 
     self.__class__.returnType = self.__class__.availImpl[self.SKLType][1]
 
@@ -94,7 +102,8 @@ class SciKitLearn(CrossValidation):
     if 'n_splits' in self.initOptionDict.keys():
       self.initOptionDict.pop('n_splits')
 
-    self.__CVInstance = self.__class__.availImpl[self.SKLType][0](**self.initOptionDict)
+    self.__CVInstance = self.__class__.availImpl[self.SKLType][0](
+        **self.initOptionDict)
     self.outputDict = {}
 
   def reset(self):
@@ -120,4 +129,3 @@ class SciKitLearn(CrossValidation):
       @ Out, Object, instance of cross validation
     """
     return self.__CVInstance
-

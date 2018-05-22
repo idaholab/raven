@@ -20,7 +20,7 @@
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
-warnings.simplefilter('default',DeprecationWarning)
+warnings.simplefilter('default', DeprecationWarning)
 #if not 'xrange' in dir(__builtins__): xrange = range
 #End compatibility block for Python 3----------------------------------------------------------------
 
@@ -32,7 +32,9 @@ import copy
 #Internal Modules------------------------------------------------------------------------------------
 from .ForwardSampler import ForwardSampler
 from utils import InputData
+
 #Internal Modules End--------------------------------------------------------------------------------
+
 
 class CustomSampler(ForwardSampler):
   """
@@ -49,7 +51,8 @@ class CustomSampler(ForwardSampler):
         specifying input of cls.
     """
     inputSpecification = super(CustomSampler, cls).getInputSpecification()
-    sourceInput = InputData.parameterInputFactory("Source", contentType=InputData.StringType)
+    sourceInput = InputData.parameterInputFactory(
+        "Source", contentType=InputData.StringType)
     sourceInput.addParam("type", InputData.StringType)
     sourceInput.addParam("class", InputData.StringType)
     inputSpecification.addSub(sourceInput)
@@ -66,14 +69,16 @@ class CustomSampler(ForwardSampler):
     ForwardSampler.__init__(self)
     self.pointsToSample = {}
     self.infoFromCustom = {}
-    self.addAssemblerObject('Source','1',True)
+    self.addAssemblerObject('Source', '1', True)
     self.printTag = 'SAMPLER CUSTOM'
-    self.readingFrom = None # either File or DataObject, determines sample generation
+    # either File or DataObject, determines sample generation
+    self.readingFrom = None
 
-  def _readMoreXMLbase(self,xmlNode):
+  def _readMoreXMLbase(self, xmlNode):
     """
       Class specific xml inputs will be read here and checked for validity.
-      @ In, xmlNode, xml.etree.ElementTree.Element, The xml element node that will be checked against the available options specific to this Sampler.
+      @ In, xmlNode, xml.etree.ElementTree.Element, The xml element node that will be checked against the available
+             options specific to this Sampler.
       @ Out, None
     """
     #TODO remove using xmlNode
@@ -85,48 +90,61 @@ class CustomSampler(ForwardSampler):
           self.toBeSampled[child.attrib['name']] = 'custom'
         else:
           self.dependentSample[child.attrib['name']] = funct.text.strip()
-      if child.tag == 'Source'  :
-        if child.attrib['class'] not in ['Files','DataObjects']:
-          self.raiseAnError(IOError, "Source class attribute must be either 'Files' or 'DataObjects'!!!")
+      if child.tag == 'Source':
+        if child.attrib['class'] not in ['Files', 'DataObjects']:
+          self.raiseAnError(
+              IOError,
+              "Source class attribute must be either 'Files' or 'DataObjects'!!!"
+          )
     if len(self.toBeSampled.keys()) == 0:
-      self.raiseAnError(IOError,"no variables got inputted!!!!!!")
+      self.raiseAnError(IOError, "no variables got inputted!!!!!!")
 
   def _localWhatDoINeed(self):
     """
       This method is a local mirror of the general whatDoINeed method.
       It is implemented by the samplers that need to request special objects
       @ In, None
-      @ Out, needDict, dict, list of objects needed (in this case it is empty, since no distrubtions are needed and the Source is loaded automatically)
+      @ Out, needDict, dict, list of objects needed (in this case it is empty, since no distrubtions are needed and
+             the Source is loaded automatically)
     """
     needDict = {}
-    needDict['Functions']     = [] # In case functions have been inputted
+    # In case functions have been inputted
+    needDict['Functions'] = []
     for func in self.dependentSample.values():
-      needDict['Functions'].append((None,func))
+      needDict['Functions'].append((None, func))
     return needDict
 
-  def _localGenerateAssembler(self,initDict):
+  def _localGenerateAssembler(self, initDict):
     """
-      It is used for sending to the instanciated class, which is implementing the method, the objects that have been requested through "whatDoINeed" method
+      It is used for sending to the instanciated class, which is implementing the method, the objects that have been
+      requested through "whatDoINeed" method
       It is an abstract method -> It must be implemented in the derived class!
-      @ In, initDict, dict, dictionary ({'mainClassName(e.g., Databases):{specializedObjectName(e.g.,DatabaseForSystemCodeNamedWolf):ObjectInstance}'})
+      @ In, initDict, dict, dictionary ({'mainClassName(e.g.,
+             Databases):{specializedObjectName(e.g.,DatabaseForSystemCodeNamedWolf):ObjectInstance}'})
       @ Out, None
     """
     #it is called for the ensemble sampler
     for key, value in self.assemblerObjects.items():
       if key == 'Source':
-        self.assemblerDict[key] =  []
-        for entity,etype,name in value:
-          self.assemblerDict[key].append([entity,etype,name,initDict[entity][name]])
-    for key,val in self.dependentSample.items():
+        self.assemblerDict[key] = []
+        for entity, etype, name in value:
+          self.assemblerDict[key].append(
+              [entity, etype, name, initDict[entity][name]])
+    for key, val in self.dependentSample.items():
       if val not in initDict['Functions'].keys():
-        self.raiseAnError('Function',val,'was not found among the available functions:',initDict['Functions'].keys())
+        self.raiseAnError('Function', val,
+                          'was not found among the available functions:',
+                          initDict['Functions'].keys())
       self.funcDict[key] = initDict['Functions'][val]
       # check if the correct method is present
       if "evaluate" not in self.funcDict[key].availableMethods():
-        self.raiseAnError(IOError,'Function '+self.funcDict[key].name+' does not contain a method named "evaluate". It must be present if this needs to be used in a Sampler!')
+        self.raiseAnError(
+            IOError, 'Function ' + self.funcDict[key].name +
+            ' does not contain a method named "evaluate". It must be present if this needs to be used in a Sampler!'
+        )
 
     if 'Source' not in self.assemblerDict:
-      self.raiseAnError(IOError,"No Source object has been found!")
+      self.raiseAnError(IOError, "No Source object has been found!")
 
   def localInitialize(self):
     """
@@ -142,28 +160,39 @@ class CustomSampler(ForwardSampler):
       self.readingFrom = 'File'
       csvFile = self.assemblerDict['Source'][0][3]
       csvFile.open(mode='r')
-      headers = [x.replace("\n","").strip() for x in csvFile.readline().split(",")]
-      data = np.loadtxt(self.assemblerDict['Source'][0][3], dtype=np.float, delimiter=',', skiprows=1, ndmin=2)
+      headers = [
+          x.replace("\n", "").strip() for x in csvFile.readline().split(",")
+      ]
+      data = np.loadtxt(
+          self.assemblerDict['Source'][0][3],
+          dtype=np.float,
+          delimiter=',',
+          skiprows=1,
+          ndmin=2)
       lenRlz = len(data)
       csvFile.close()
       for var in self.toBeSampled.keys():
         for subVar in var.split(','):
           subVar = subVar.strip()
           if subVar not in headers:
-            self.raiseAnError(IOError, "variable "+ subVar + " not found in the file "
-                    + csvFile.getFilename())
-          self.pointsToSample[subVar] = data[:,headers.index(subVar)]
+            self.raiseAnError(
+                IOError, "variable " + subVar + " not found in the file " +
+                csvFile.getFilename())
+          self.pointsToSample[subVar] = data[:, headers.index(subVar)]
           subVarPb = 'ProbabilityWeight-' + subVar
           if subVarPb in headers:
             self.infoFromCustom[subVarPb] = data[:, headers.index(subVarPb)]
           else:
             self.infoFromCustom[subVarPb] = np.ones(lenRlz)
       if 'PointProbability' in headers:
-        self.infoFromCustom['PointProbability'] = data[:,headers.index('PointProbability')]
+        self.infoFromCustom[
+            'PointProbability'] = data[:, headers.index('PointProbability')]
       else:
         self.infoFromCustom['PointProbability'] = np.ones(lenRlz)
       if 'ProbabilityWeight' in headers:
-        self.infoFromCustom['ProbabilityWeight'] = data[:,headers.index('ProbabilityWeight')]
+        self.infoFromCustom[
+            'ProbabilityWeight'] = data[:,
+                                        headers.index('ProbabilityWeight')]
       else:
         self.infoFromCustom['ProbabilityWeight'] = np.ones(lenRlz)
       self.limit = len(self.pointsToSample.values()[0])
@@ -177,13 +206,16 @@ class CustomSampler(ForwardSampler):
         for subVar in var.split(','):
           subVar = subVar.strip()
           if subVar not in dataObj.getVars() + dataObj.getVars('indexes'):
-            self.raiseAnError(IOError,"the variable "+ subVar + " not found in "+ dataObj.type + " " + dataObj.name)
+            self.raiseAnError(IOError,
+                              "the variable " + subVar + " not found in " +
+                              dataObj.type + " " + dataObj.name)
       self.limit = len(self.pointsToSample)
     #TODO: add restart capability here!
     if self.restartData:
-      self.raiseAnError(IOError,"restart capability not implemented for CustomSampler yet!")
+      self.raiseAnError(
+          IOError, "restart capability not implemented for CustomSampler yet!")
 
-  def localGenerateInput(self,model,myInput):
+  def localGenerateInput(self, model, myInput):
     """
       Function to select the next most informative point for refining the limit
       surface search.
@@ -195,18 +227,18 @@ class CustomSampler(ForwardSampler):
     """
     if self.readingFrom == 'DataObject':
       # data is stored as slices of a data object, so take from that
-      rlz = self.pointsToSample[self.counter-1]
+      rlz = self.pointsToSample[self.counter - 1]
       for var in self.toBeSampled.keys():
         for subVar in var.split(','):
           subVar = subVar.strip()
           # get the value(s) for the variable for this realization
           self.values[subVar] = rlz[subVar].values
           # set the probability weight due to this variable (default to 1)
-          pbWtName = 'ProbabilityWeight-'+subVar
-          self.inputInfo[pbWtName] = rlz.get(pbWtName,1.0)
+          pbWtName = 'ProbabilityWeight-' + subVar
+          self.inputInfo[pbWtName] = rlz.get(pbWtName, 1.0)
       # get realization-level required meta information, or default to 1
-      for meta in ['PointProbability','ProbabilityWeight']:
-        self.inputInfo[meta] = rlz.get(meta,1.0)
+      for meta in ['PointProbability', 'ProbabilityWeight']:
+        self.inputInfo[meta] = rlz.get(meta, 1.0)
     elif self.readingFrom == 'File':
       # data is stored in file, so we already parsed the values
       # create values dictionary
@@ -214,10 +246,13 @@ class CustomSampler(ForwardSampler):
         for subVar in var.split(','):
           subVar = subVar.strip()
           # assign the custom sampled variables values to the sampled variables
-          self.values[subVar] = self.pointsToSample[subVar][self.counter-1]
+          self.values[subVar] = self.pointsToSample[subVar][self.counter - 1]
           # This is the custom sampler, assign the ProbabilityWeights based on the provided values
-          self.inputInfo['ProbabilityWeight-' + subVar] = self.infoFromCustom['ProbabilityWeight-' + subVar][self.counter-1]
+          self.inputInfo['ProbabilityWeight-' + subVar] = self.infoFromCustom[
+              'ProbabilityWeight-' + subVar][self.counter - 1]
       # Construct probabilities based on the user provided information
-      self.inputInfo['PointProbability'] = self.infoFromCustom['PointProbability'][self.counter-1]
-      self.inputInfo['ProbabilityWeight'] = self.infoFromCustom['ProbabilityWeight'][self.counter-1]
+      self.inputInfo['PointProbability'] = self.infoFromCustom[
+          'PointProbability'][self.counter - 1]
+      self.inputInfo['ProbabilityWeight'] = self.infoFromCustom[
+          'ProbabilityWeight'][self.counter - 1]
     self.inputInfo['SamplerType'] = 'Custom'

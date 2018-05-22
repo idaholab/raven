@@ -19,7 +19,7 @@ Created on Nov 24, 2014
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
-warnings.simplefilter('default',DeprecationWarning)
+warnings.simplefilter('default', DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -35,26 +35,31 @@ from BaseClasses import BaseType
 import Distributions
 import Quadratures
 import MessageHandler
+
 #Internal Modules End--------------------------------------------------------------------------------
+
 
 class OrthogonalPolynomial(MessageHandler.MessageUser):
   """
     Provides polynomial generators and evaluators for stochastic collocation.
   """
+
   def __init__(self):
     """
       Constructor.
       @ In, None
       @ Out, None
     """
-    self.type    = self.__class__.__name__
-    self.name    = self.__class__.__name__
-    self._poly   = None #tool for generating orthopoly1d objects
-    self._evPoly = None #tool for evaluating 1d polynomials at (order,point)
-    self.params  = [] #additional parameters needed for polynomial (alpha, beta, etc)
+    self.type = self.__class__.__name__
+    self.name = self.__class__.__name__
+    # tool for generating orthopoly1d objects
+    self._poly = None
+    self._evPoly = None  #tool for evaluating 1d polynomials at (order,point)
+    self.params = [
+    ]  #additional parameters needed for polynomial (alpha, beta, etc)
     self.messageHandler = None
 
-  def initialize(self,quad,messageHandler):
+  def initialize(self, quad, messageHandler):
     """
       Initializes object with items not set in __init__
       @ In, quad, string, quadrature object name
@@ -63,7 +68,7 @@ class OrthogonalPolynomial(MessageHandler.MessageUser):
     """
     self.messageHandler = messageHandler
 
-  def __getitem__(self,order,var=None):
+  def __getitem__(self, order, var=None):
     """
       Returns the polynomial with order 'order';
       for example poly[2] returns the orthonormal 2nd-order polynomial object.
@@ -71,12 +76,12 @@ class OrthogonalPolynomial(MessageHandler.MessageUser):
       @ In, var, str, optional, name of variable to be used in return (default 'x')
       @ Out, __getitem__, orthopoly1d object, requested polynomial
     """
-    if var==None:
-      return self._poly(order,*self.params) * self.norm(order)
+    if var == None:
+      return self._poly(order, *self.params) * self.norm(order)
     else:
-      return self._poly(order,*self.params,variable=var) * self.norm(order)
+      return self._poly(order, *self.params, variable=var) * self.norm(order)
 
-  def __call__(self,order,pt):
+  def __call__(self, order, pt):
     """
       Returns the polynomial of order 'order' evaluated at 'pt'.
       Has to be overwritten if parameters are required.
@@ -84,8 +89,8 @@ class OrthogonalPolynomial(MessageHandler.MessageUser):
       @ In, pt, float, value at which polynomial should be evaluated
       @ Out, __call__, float, evaluation of polynomial
     """
-    inps=self.params+[self.pointMod(pt)]
-    return self._evPoly(order,*inps) * self.norm(order)
+    inps = self.params + [self.pointMod(pt)]
+    return self._evPoly(order, *inps) * self.norm(order)
 
   def __getstate__(self):
     """
@@ -93,27 +98,27 @@ class OrthogonalPolynomial(MessageHandler.MessageUser):
       @ In, None
       @ Out, state, tuple, (Quadrature instance, message handler) - defining quad for polynomial
     """
-    state = self.quad,self.messageHandler
+    state = self.quad, self.messageHandler
     return state
 
-  def __setstate__(self,items):
+  def __setstate__(self, items):
     """
       Pickle load method.
       @ In, items, dict, objects required to restore
       @ Out, None
     """
     self.__init__()
-    self.initialize(*items)#quad,messageHandler)
+    self.initialize(*items)  #quad,messageHandler)
 
-  def __eq__(self,other):
+  def __eq__(self, other):
     """
       Equality method.
       @ In, other, object, object to compare equivalence
       @ Out, __eq__, bool, truth of matching equality
     """
-    return self._poly==other._poly and self._evPoly==other._evPoly and self.params==other.params
+    return self._poly == other._poly and self._evPoly == other._evPoly and self.params == other.params
 
-  def __ne__(self,other):
+  def __ne__(self, other):
     """
       Inequality method.
       @ In, other, object, object to compare equivalence
@@ -121,7 +126,7 @@ class OrthogonalPolynomial(MessageHandler.MessageUser):
     """
     return not self.__eq__(other)
 
-  def norm(self,order):
+  def norm(self, order):
     """
       Normalization constant for polynomials so that integrating two of them
       w.r.t. the weight factor produces the kroenecker delta. Default is 1.
@@ -130,7 +135,7 @@ class OrthogonalPolynomial(MessageHandler.MessageUser):
     """
     return 1
 
-  def pointMod(self,pt):
+  def pointMod(self, pt):
     """
       Some polys are orthonormal w.r.t. slightly different weights.
       This change of variable function fixes orthonormality to what we want.
@@ -139,7 +144,7 @@ class OrthogonalPolynomial(MessageHandler.MessageUser):
     """
     return pt
 
-  def stdPointMod(self,x):
+  def stdPointMod(self, x):
     """
       Provides a default for inheriting classes.  This is the pointMod that
       should be used with the 'default' choices.
@@ -148,7 +153,7 @@ class OrthogonalPolynomial(MessageHandler.MessageUser):
     """
     return x
 
-  def setMeasures(self,quad):
+  def setMeasures(self, quad):
     """
       If you got here, it means the inheriting orthopoly object doesn't have a
       specific implementation for the quadSet given.  Here we catch the universal
@@ -158,11 +163,13 @@ class OrthogonalPolynomial(MessageHandler.MessageUser):
     """
     if quad.type.startswith('CDF'):
       #covers CDFLegendre and CDFClenshawCurtis
-      self.__distr=self.makeDistribution()
+      self.__distr = self.makeDistribution()
       self.pointMod = self.cdfPoint
       self.quad = quad
     else:
-      self.raiseAnError(IOError,'No implementation for '+quad.type+' quadrature and',self.type,'polynomials.')
+      self.raiseAnError(
+          IOError, 'No implementation for ' + quad.type + ' quadrature and',
+          self.type, 'polynomials.')
 
   def _getDistr(self):
     """
@@ -172,14 +179,14 @@ class OrthogonalPolynomial(MessageHandler.MessageUser):
     """
     return self.__distr
 
-  def cdfPoint(self,x):
+  def cdfPoint(self, x):
     """
       ppf() converts to from [0,1] to distribution range,
       0.5(x+1) converts from [-1,1] to [0,1].
       @ In, x, float, point
       @ Out, cdfPoint, float, converted point
     """
-    return self.__distr.ppf(0.5*(x+1.))
+    return self.__distr.ppf(0.5 * (x + 1.))
 
   def scipyNorm(self):
     """
@@ -202,30 +209,31 @@ class Legendre(OrthogonalPolynomial):
   """
     Provides polynomial Legendre generators and evaluators for stochastic collocation.
   """
-  def initialize(self,quad,messageHandler):
+
+  def initialize(self, quad, messageHandler):
     """
       Initializes object with items not set in __init__
       @ In, quad, string, quadrature object name
       @ In, messageHandler, MessageHandler instance, message handling instance
       @ Out, None
     """
-    OrthogonalPolynomial.initialize(self,quad,messageHandler)
+    OrthogonalPolynomial.initialize(self, quad, messageHandler)
     self.printTag = 'LEGENDRE-ORTHOPOLY'
-    self._poly    = polys.legendre
-    self._evPoly  = polys.eval_legendre
+    self._poly = polys.legendre
+    self._evPoly = polys.eval_legendre
     self.setMeasures(quad)
 
-  def setMeasures(self,quad):
+  def setMeasures(self, quad):
     """
       Implements specific measures for given quadSet.
       @ In, quad, Quadrature object, quadrature that will make coeffs for these polys
       @ Out, None
     """
-    if quad.type in ['Legendre','ClenshawCurtis']:
+    if quad.type in ['Legendre', 'ClenshawCurtis']:
       self.pointMod = self.stdPointMod
       self.quad = quad
     else:
-      OrthogonalPolynomial.setMeasures(self,quad)
+      OrthogonalPolynomial.setMeasures(self, quad)
 
   def makeDistribution(self):
     """
@@ -237,7 +245,7 @@ class Legendre(OrthogonalPolynomial):
     uniform.initializeDistribution()
     return uniform
 
-  def stdPointMod(self,x):
+  def stdPointMod(self, x):
     """
       Provides a default for inheriting classes.  This is the pointMod that
       should be used with the 'default' choices.
@@ -254,44 +262,45 @@ class Legendre(OrthogonalPolynomial):
     """
     return np.sqrt(2)
 
-  def norm(self,n):
+  def norm(self, n):
     """
       Normalization constant for polynomials so that integrating two of them
       w.r.t. the weight factor produces the kroenecker delta. Default is 1.
       @ In, n, int, polynomial order to get norm of
       @ Out, norm, float, value of poly norm
     """
-    return np.sqrt((2.*n+1.))
+    return np.sqrt((2. * n + 1.))
 
 
 class Hermite(OrthogonalPolynomial):
   """
     Provides polynomial Hermite generators and evaluators for stochastic collocation.
   """
-  def initialize(self,quad,messageHandler):
+
+  def initialize(self, quad, messageHandler):
     """
       Initializes object with items not set in __init__
       @ In, quad, string, quadrature object name
       @ In, messageHandler, MessageHandler instance, message handling instance
       @ Out, None
     """
-    OrthogonalPolynomial.initialize(self,quad,messageHandler)
+    OrthogonalPolynomial.initialize(self, quad, messageHandler)
     self.printTag = 'HERMITE-ORTHOPOLY'
-    self._poly    = polys.hermitenorm
-    self._evPoly  = polys.eval_hermitenorm
+    self._poly = polys.hermitenorm
+    self._evPoly = polys.eval_hermitenorm
     self.setMeasures(quad)
 
-  def setMeasures(self,quad):
+  def setMeasures(self, quad):
     """
       Implements specific measures for given quadSet.
       @ In, quad, Quadrature object, quadrature that will make coeffs for these polys
       @ Out, None
     """
-    if quad.type=='Hermite':
+    if quad.type == 'Hermite':
       self.pointMod = self.stdPointMod
       self.quad = quad
     else:
-      OrthogonalPolynomial.setMeasures(self,quad.type)
+      OrthogonalPolynomial.setMeasures(self, quad.type)
 
   def makeDistribution(self):
     """
@@ -300,10 +309,10 @@ class Hermite(OrthogonalPolynomial):
       @ Out, normal, Distribution, the normal distribution
     """
     normalElement = ET.Element("Normal")
-    element = ET.Element("mean",{})
+    element = ET.Element("mean", {})
     element.text = "0"
     normalElement.append(element)
-    element = ET.Element("sigma",{})
+    element = ET.Element("sigma", {})
     element.text = "1"
     normalElement.append(element)
     normal = Distributions.Normal()
@@ -311,46 +320,46 @@ class Hermite(OrthogonalPolynomial):
     normal.initializeDistribution()
     return normal
 
-  def norm(self,n):
+  def norm(self, n):
     """
       Normalization constant for polynomials so that integrating two of them
       w.r.t. the weight factor produces the kroenecker delta. Default is 1.
       @ In, n, int, polynomial order to get norm of
       @ Out, norm, float, value of poly norm
     """
-    return 1.0/np.sqrt(gamma(1.0+n))
-
+    return 1.0 / np.sqrt(gamma(1.0 + n))
 
 
 class Laguerre(OrthogonalPolynomial):
   """
     Provides polynomial Laguerre generators and evaluators for stochastic collocation.
   """
-  def initialize(self,quad,messageHandler):
+
+  def initialize(self, quad, messageHandler):
     """
       Initializes object with items not set in __init__
       @ In, quad, string, quadrature object name
       @ In, messageHandler, MessageHandler instance, message handling instance
       @ Out, None
     """
-    OrthogonalPolynomial.initialize(self,quad,messageHandler)
+    OrthogonalPolynomial.initialize(self, quad, messageHandler)
     self.printTag = 'LAGUERRE-ORTHOPOLY'
-    self._poly    = polys.genlaguerre
-    self._evPoly  = polys.eval_genlaguerre
-    self.params   = quad.params
+    self._poly = polys.genlaguerre
+    self._evPoly = polys.eval_genlaguerre
+    self.params = quad.params
     self.setMeasures(quad)
 
-  def setMeasures(self,quad):
+  def setMeasures(self, quad):
     """
       Implements specific measures for given quadSet.
       @ In, quad, Quadrature object, quadrature that will make coeffs for these polys
       @ Out, None
     """
-    if quad.type=='Laguerre':
+    if quad.type == 'Laguerre':
       self.pointMod = self.stdPointMod
       self.quad = quad
     else:
-      OrthogonalPolynomial.setMeasures(self,quad)
+      OrthogonalPolynomial.setMeasures(self, quad)
 
   def makeDistribution(self):
     """
@@ -359,57 +368,57 @@ class Laguerre(OrthogonalPolynomial):
       @ Out, gamma, Distribution, the gamma distribution
     """
     gammaElement = ET.Element("Gamma")
-    element = ET.Element("low",{})
+    element = ET.Element("low", {})
     element.text = "0"
     gammaElement.append(element)
-    element = ET.Element("alpha",{})
-    element.text = "%s" %(self.params[0]+1)
+    element = ET.Element("alpha", {})
+    element.text = "%s" % (self.params[0] + 1)
     gammaElement.append(element)
     gamma = Distributions.Gamma()
     gamma._readMoreXML(gammaElement)
     gamma.initializeDistribution()
     return gamma
 
-  def norm(self,order):
+  def norm(self, order):
     """
       Normalization constant for polynomials so that integrating two of them
       w.r.t. the weight factor produces the kroenecker delta. Default is 1.
       @ In, order, int, polynomial order to get norm of
       @ Out, norm, float, value of poly norm
     """
-    return np.sqrt(gamma(1.0+order)/gamma(1.0+order+self.params[0]))
-
+    return np.sqrt(gamma(1.0 + order) / gamma(1.0 + order + self.params[0]))
 
 
 class Jacobi(OrthogonalPolynomial):
   """
     Provides polynomial Jacobi generators and evaluators for stochastic collocation.
   """
-  def initialize(self,quad,messageHandler):
+
+  def initialize(self, quad, messageHandler):
     """
       Initializes object with items not set in __init__
       @ In, quad, string, quadrature object name
       @ In, messageHandler, MessageHandler instance, message handling instance
       @ Out, None
     """
-    OrthogonalPolynomial.initialize(self,quad,messageHandler)
+    OrthogonalPolynomial.initialize(self, quad, messageHandler)
     self.printTag = 'JACOBI-ORTHOPOLY'
-    self._poly    = polys.jacobi
-    self._evPoly  = polys.eval_jacobi
-    self.params   = quad.params
+    self._poly = polys.jacobi
+    self._evPoly = polys.eval_jacobi
+    self.params = quad.params
     self.setMeasures(quad)
 
-  def setMeasures(self,quad):
+  def setMeasures(self, quad):
     """
       Implements specific measures for given quadSet.
       @ In, quad, Quadrature object, quadrature that will make coeffs for these polys
       @ Out, None
     """
-    if quad.type=='Jacobi':
+    if quad.type == 'Jacobi':
       self.pointMod = self.stdPointMod
       self.quad = quad
     else:
-      OrthogonalPolynomial.setMeasures(self,quad)
+      OrthogonalPolynomial.setMeasures(self, quad)
 
   def makeDistribution(self):
     """
@@ -418,28 +427,27 @@ class Jacobi(OrthogonalPolynomial):
       @ Out, jacobiElement, Distribution, jacobi distribution
     """
     jacobiElement = ET.Element("jacobi")
-    element = ET.Element("alpha",{})
-    element.text = "%s" %self.params[1]+1
+    element = ET.Element("alpha", {})
+    element.text = "%s" % self.params[1] + 1
     jacobiElement.append(element)
-    element = ET.Element("beta",{})
-    element.text = "%s" %self.params[0]+1
+    element = ET.Element("beta", {})
+    element.text = "%s" % self.params[0] + 1
     jacobiElement.append(element)
 
-  def norm(self,n):
+  def norm(self, n):
     """
       Normalization constant for polynomials so that integrating two of them
       w.r.t. the weight factor produces the kroenecker delta. Default is 1.
       @ In, n, int, polynomial order to get norm of
       @ Out, norm, float, value of poly norm
     """
-    a=self.params[0]
-    b=self.params[1]
+    a = self.params[0]
+    b = self.params[1]
     ###speedup attempt 2###
     coeff=(2.0*n+a+b+1.0)*\
           gamma(n+1)*gamma(n+a+b+1)/(gamma(n+a+1)*gamma(n+b+1))*\
           gamma(a+1)*gamma(b+1)/gamma(a+b+2.0)
     return np.sqrt(coeff)
-
 
 
 """
@@ -454,6 +462,7 @@ __interFaceDict['Jacobi'] = Jacobi
 #__interFaceDict['Lagrange'] = Lagrange TODO
 __knownTypes = __interFaceDict.keys()
 
+
 def knownTypes():
   """
     Returns the object types known here.
@@ -462,7 +471,8 @@ def knownTypes():
   """
   return __knownTypes
 
-def returnInstance(Type,caller):
+
+def returnInstance(Type, caller):
   """
     function used to generate a OrthoPoly class
     @ In, Typer, string, OrthoPoly type
@@ -471,4 +481,4 @@ def returnInstance(Type,caller):
   if Type in knownTypes():
     return __interFaceDict[Type]()
   else:
-    caller.raiseAnError(NameError,'not known '+__base+' type '+Type)
+    caller.raiseAnError(NameError, 'not known ' + __base + ' type ' + Type)

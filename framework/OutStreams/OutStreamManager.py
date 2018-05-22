@@ -19,7 +19,7 @@ Created on Nov 14, 2013
 #for future compatibility with Python 3-----------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
-warnings.simplefilter('default',DeprecationWarning)
+warnings.simplefilter('default', DeprecationWarning)
 if not 'xrange' in dir(__builtins__):
   xrange = range
 #End compatibility block for Python 3-------------------------------------------
@@ -33,7 +33,9 @@ from BaseClasses import BaseType
 import DataObjects
 import Models
 from utils import utils
+
 #Internal Modules End-----------------------------------------------------------
+
 
 class OutStreamManager(BaseType):
   """
@@ -41,6 +43,7 @@ class OutStreamManager(BaseType):
     This class is a general base class for outstream action classes
     For example, a matplotlib interface class or Print class, etc.
   """
+
   def __init__(self):
     """
       Init of Base class
@@ -86,12 +89,11 @@ class OutStreamManager(BaseType):
       else:
         self.overwrite = False
     if 'dir' in xmlNode.attrib:
-      self.subDirectory =  xmlNode.attrib['dir']
+      self.subDirectory = xmlNode.attrib['dir']
       if '~' in self.subDirectory:
-        self.subDirectory= os.path.expanduser(self.subDirectory)
+        self.subDirectory = os.path.expanduser(self.subDirectory)
 
     self.localReadXML(xmlNode)
-
 
   def getInitParams(self):
     """
@@ -112,7 +114,8 @@ class OutStreamManager(BaseType):
     else:
       paramDict['Overwrite output everytime called '] = 'False'
     for index in range(len((self.availableOutStreamType))):
-      paramDict['OutStream Available #' + str(index + 1) + '   :'] = self.availableOutStreamType[index]
+      paramDict['OutStream Available #' + str(index + 1) +
+                '   :'] = self.availableOutStreamType[index]
     paramDict.update(self.localGetInitParams())
     return paramDict
 
@@ -123,7 +126,9 @@ class OutStreamManager(BaseType):
       @ In, None
       @ Out, None
     """
-    self.raiseAnError(NotImplementedError, 'method addOutput must be implemented by derived classes!!!!')
+    self.raiseAnError(
+        NotImplementedError,
+        'method addOutput must be implemented by derived classes!!!!')
 
   def initialize(self, inDict):
     """
@@ -141,25 +146,36 @@ class OutStreamManager(BaseType):
     for agrosindex in range(self.numberAggregatedOS):
       foundData = False
       for output in inDict['Output']:
-        if output.name.strip() == self.sourceName[agrosindex] and output.type in DataObjects.knownTypes():
+        if output.name.strip(
+        ) == self.sourceName[agrosindex] and output.type in DataObjects.knownTypes(
+        ):
           self.sourceData.append(output)
           foundData = True
       if not foundData:
         for inp in inDict['Input']:
           if not type(inp) == type(""):
-            if inp.name.strip() == self.sourceName[agrosindex] and inp.type in DataObjects.knownTypes():
+            if inp.name.strip(
+            ) == self.sourceName[agrosindex] and inp.type in DataObjects.knownTypes(
+            ):
               self.sourceData.append(inp)
               foundData = True
             elif type(inp) == Models.ROM:
               self.sourceData.append(inp)
-              foundData = True  # good enough
+              # good enough
+              foundData = True
       if not foundData and 'TargetEvaluation' in inDict.keys():
-        if inDict['TargetEvaluation'].name.strip() == self.sourceName[agrosindex] and inDict['TargetEvaluation'].type in DataObjects.knownTypes():
+        if inDict['TargetEvaluation'].name.strip(
+        ) == self.sourceName[agrosindex] and inDict['TargetEvaluation'].type in DataObjects.knownTypes(
+        ):
           self.sourceData.append(inDict['TargetEvaluation'])
           foundData = True
       if not foundData and 'SolutionExport' in inDict.keys():
-        if inDict['SolutionExport'].name.strip() == self.sourceName[agrosindex] and inDict['SolutionExport'].type in DataObjects.knownTypes():
+        if inDict['SolutionExport'].name.strip(
+        ) == self.sourceName[agrosindex] and inDict['SolutionExport'].type in DataObjects.knownTypes(
+        ):
           self.sourceData.append(inDict['SolutionExport'])
           foundData = True
       if not foundData:
-        self.raiseAnError(IOError, 'the Data named ' + self.sourceName[agrosindex] + ' has not been found!!!!')
+        self.raiseAnError(IOError,
+                          'the Data named ' + self.sourceName[agrosindex] +
+                          ' has not been found!!!!')

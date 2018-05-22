@@ -17,7 +17,7 @@ Created on December 1, 2015
 '''
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
-warnings.simplefilter('default',DeprecationWarning)
+warnings.simplefilter('default', DeprecationWarning)
 
 import copy
 import itertools
@@ -25,9 +25,11 @@ import numpy as np
 
 from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase
 
+
 class testInterfacedPP(PostProcessorInterfaceBase):
-  """ This class represents the most basic interfaced post-processor
-      This class inherits form the base class PostProcessorInterfaceBase and it contains the three methods that need to be implemented:
+  """
+    This class inherits form the base class PostProcessorInterfaceBase and it contains the three methods that need
+    to be implemented:
       - initialize
       - run
       - readMoreXML
@@ -40,26 +42,28 @@ class testInterfacedPP(PostProcessorInterfaceBase):
      @ Out, None,
     """
     PostProcessorInterfaceBase.initialize(self)
-    self.inputFormat  = 'HistorySet'
+    self.inputFormat = 'HistorySet'
     self.outputFormat = 'HistorySet'
 
-  def run(self,inputDic):
+  def run(self, inputDic):
     """
      This method is transparent: it passes the inputDic directly as output
      @ In, inputDic, dict, dictionary which contains the data inside the input DataObject
      @ Out, inputDic, dict, same inputDic dictionary
     """
-    if len(inputDic)>1:
-      self.raiseAnError(IOError, 'testInterfacedPP_PointSet Interfaced Post-Processor ' + str(self.name) + ' accepts only one dataObject')
+    if len(inputDic) > 1:
+      self.raiseAnError(
+          IOError, 'testInterfacedPP_PointSet Interfaced Post-Processor ' +
+          str(self.name) + ' accepts only one dataObject')
     else:
       inputDict = inputDic[0]
-      outputDict = {'data':{}}
+      outputDict = {'data': {}}
       outputDict['dims'] = copy.deepcopy(inputDict['dims'])
       for key in inputDict['data'].keys():
         outputDict['data'][key] = copy.deepcopy(inputDict['data'][key])
       return outputDict
 
-  def readMoreXML(self,xmlNode):
+  def readMoreXML(self, xmlNode):
     """
       Function that reads elements this post-processor will use
       @ In, xmlNode, ElementTree, Xml element node

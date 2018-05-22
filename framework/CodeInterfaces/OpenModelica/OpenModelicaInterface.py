@@ -51,9 +51,11 @@ equation
 end BouncingBall;
 --- END MODEL FILE ---
 
-When OpenModelica simulates this file it is read, and from it C code is generated and then built into a platform-specific
+  When OpenModelica simulates this file it is read, and from it C code is generated and then built into a
+  platform-specific
 executable that does the calculations.  The parameters from the model are written into an XML file (by default
-BouncingBall_init.xml).  After the executable is generated it may be run multiple times.  There are several way to vary
+  BouncingBall_init.xml). After the executable is generated it may be run multiple times. There are several way to
+  vary
 input parameters:
 
   1) Modify the model file and re-build the simulation executable.
@@ -65,8 +67,10 @@ input parameters:
   6) Paramters in the model file may also be overriden when the simulation executable is built using an OpenModelica
      shell command of the form: simulate(<model>, simflags="-override <var>=<value>)
 
-For RAVEN purposes, this interface code will use option (2).  Variation of parameters may be done by editing the init
-file and then re-running the model.  The OpenModelica shell provides a method that may be used to change a parameter:
+  For RAVEN purposes, this interface code will use option (2). Variation of parameters may be done by editing the
+  init
+  file and then re-running the model. The OpenModelica shell provides a method that may be used to change a
+  parameter:
 
   setInitXmlStartValue(<input file>, <parameter>, <new value>, <output file>)
 
@@ -75,8 +79,10 @@ file BouncingBall_new_init.xml.  It is also possible to write the output over th
 
   setInitXmlStartValue("BouncingBall_init.xml", "h", "5.0", "BouncingBall_new_init.xml")
 
-The output of the model may be configured to a number of output formats.  The default is a binary file <Model Name>_res.mat
-(BouncingBall_res.mat for this example).  CSV is also an option, which we will use because that is what RAVEN likes best.
+  The output of the model may be configured to a number of output formats. The default is a binary file <Model
+  Name>_res.mat
+  (BouncingBall_res.mat for this example). CSV is also an option, which we will use because that is what RAVEN likes
+  best.
 The output type may be set when generating the model executable.
 
 To generate the executable, use the OM Shell:
@@ -94,25 +100,41 @@ To generate the executable, use the OM Shell:
 
 Alternatively, the python OM Shell interface may be used:
 
-  >>> from OMPython import OMCSession                # Get the library with OMCSession
-  >>> omc = OMCSession()                             # Creates a new shell session
-  >>> omc.execute(<OpenModelica Shell Command>)      # General form
-  >>> omc.execute("loadModel(Modelica)")             # Load base Modelica library
-  >>> omc.execute("loadFile(\"BouncingBall.mo\")")   # Load BouncingBall.mo model
-        >>> omc.execute("buildModel(BouncingBall, outputFormat=\"csv\")")  # Build the model (but not run it), setting for csv file output
-  >>> omc.execute("setInitXmlStartValue(\"BouncingBall_init.xml\",         # Make a new input file with h = 5.0
+  # Get the library with OMCSession
+  >>> from OMPython import OMCSession
+  # Creates a new shell session
+  >>> omc = OMCSession()
+  # General form
+  >>> omc.execute(<OpenModelica Shell Command>)
+  # Load base Modelica library
+  >>> omc.execute("loadModel(Modelica)")
+  # Load BouncingBall.mo model
+  >>> omc.execute("loadFile(\"BouncingBall.mo\")")
+  # Build the model (but not run it), setting for
+  >>> omc.execute("buildModel(BouncingBall, outputFormat=\"csv\")")
+  csv file output
+  # Make a new input file with h = 5.0
+  >>> omc.execute("setInitXmlStartValue(\"BouncingBall_init.xml\",
     \"h\", \ "5.0\", \"BouncingBall_new_init.xml\")")
-  >>> omc.execute("system(\"BouncingBall.exe\")")    # Run the model executable
-  >>> omc.execute("simulate(BouncingBall, stopTime=10.0)")                 # Run simulation, changing stop time to 10.0
+  # Run the model executable
+  >>> omc.execute("system(\"BouncingBall.exe\")")
+  # Run simulation, changing stop time to 10.0
+  >>> omc.execute("simulate(BouncingBall, stopTime=10.0)")
 
-An alternative would be to take the default .mat output type and use the open source package based on SciPy called DyMat
-(https://pypi.python.org/pypi/DyMat) may be used to convert these output files to human-readable forms (including CSV).  For example:
+  An alternative would be to take the default .mat output type and use the open source package based on SciPy called
+  DyMat
+  (https://pypi.python.org/pypi/DyMat) may be used to convert these output files to human-readable forms (including
+  CSV). For example:
 
   <Python Code>
-  import DyMat, DyMat.Export                      # Import necessary modules
-  d = DyMat.DyMatFile("BouncingBall_res.mat")     # Load the result file
-  d.names()                                       # Prints out the names in the result file
-  DyMat.Export.export("CSV", d, ["h", "flying"])  # Export variables h and flying to a CSV file
+  # Import necessary modules
+  import DyMat, DyMat.Export
+  # Load the result file
+  d = DyMat.DyMatFile("BouncingBall_res.mat")
+  # Prints out the names in the result file
+  d.names()
+  # Export variables h and flying to a CSV file
+  DyMat.Export.export("CSV", d, ["h", "flying"])
 
 Example of multiple parameter override (option 3 above): BouncingBall.exe -override "h=7,g=7,v=2"
 
@@ -124,7 +146,7 @@ form of this is: (Where the output file will be of the type originally configure
 
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
-warnings.simplefilter('default',DeprecationWarning)
+warnings.simplefilter('default', DeprecationWarning)
 
 import os
 import copy
@@ -136,10 +158,12 @@ import xml.etree.ElementTree as ET
 
 from CodeInterfaceBaseClass import CodeInterfaceBase
 
+
 class OpenModelica(CodeInterfaceBase):
   """
     Provides code to interface RAVEN to OpenModelica
   """
+
   def __init__(self):
     """
       Initializes the GenericCode Interface.
@@ -158,16 +182,21 @@ class OpenModelica(CodeInterfaceBase):
     #     <outputfile>     The simulation output.  We will use the model generation process to set the format
     #                          of this to CSV, though there are other formats available.
 
-  def generateCommand(self, inputFiles, executable, clargs=None,fargs=None):
+  def generateCommand(self, inputFiles, executable, clargs=None, fargs=None):
     """
       See base class.  Collects all the clargs and the executable to produce the command-line call.
       Returns tuple of commands and base file name for run.
       Commands are a list of tuples, indicating parallel/serial and the execution command to use.
-      @ In, inputFiles, list, List of input files (length of the list depends on the number of inputs have been added in the Step is running this code)
+      @ In, inputFiles, list, List of input files (length of the list depends on the number of inputs have been
+             added in the Step is running this code)
       @ In, executable, string, executable name with absolute path (e.g. /home/path_to_executable/code.exe)
-      @ In, clargs, dict, optional, dictionary containing the command-line flags the user can specify in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 i0extension =0 .inp0/ >< /Code >)
-      @ In, fargs, dict, optional, a dictionary containing the axuiliary input file variables the user can specify in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 aux0extension =0 .aux0/ >< /Code >)
-      @ Out, returnCommand, tuple, tuple containing the generated command. returnCommand[0] is the command to run the code (string), returnCommand[1] is the name of the output root
+      @ In, clargs, dict, optional, dictionary containing the command-line flags the user can specify in the input
+             (e.g. under the node < Code >< clargstype =0 input0arg =0 i0extension =0 .inp0/ >< /Code >)
+      @ In, fargs, dict, optional, a dictionary containing the axuiliary input file variables the user can specify
+             in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 aux0extension =0 .aux0/ >< /Code
+             >)
+      @ Out, returnCommand, tuple, tuple containing the generated command. returnCommand[0] is the command to run
+             the code (string), returnCommand[1] is the name of the output root
     """
     found = False
     # Find the first file in the inputFiles that is an XML, which is what we need to work with.
@@ -176,12 +205,17 @@ class OpenModelica(CodeInterfaceBase):
         found = True
         break
     if not found:
-      raise Exception('OpenModelica INTERFACE ERROR -> An XML file was not found in the input files!')
+      raise Exception(
+          'OpenModelica INTERFACE ERROR -> An XML file was not found in the input files!'
+      )
     # Build an output file name of the form: rawout~<Base Name>, where base name is generated from the
     #   input file passed in: /path/to/file/<Base Name>.ext.  'rawout' indicates that this is the direct
     #   output from running the OpenModelica executable.
-    outputfile = 'rawout~' + inputFiles[index].getBase() #os.path.splitext(os.path.basename(inputFiles[index]))[0]
-    returnCommand = [('parallel',executable+' -f '+inputFiles[index].getFilename() + ' -r '+ outputfile + '.csv')], outputfile
+    outputfile = 'rawout~' + inputFiles[index].getBase(
+    )  #os.path.splitext(os.path.basename(inputFiles[index]))[0]
+    returnCommand = [('parallel',
+                      executable + ' -f ' + inputFiles[index].getFilename() +
+                      ' -r ' + outputfile + '.csv')], outputfile
     return returnCommand
 
   def _isValidInput(self, inputFile):
@@ -204,14 +238,16 @@ class OpenModelica(CodeInterfaceBase):
     validExtensions = ('xml', 'XML', 'Xml')
     return validExtensions
 
-  def createNewInput(self, currentInputFiles, oriInputFiles, samplerType, **Kwargs):
+  def createNewInput(self, currentInputFiles, oriInputFiles, samplerType,
+                     **Kwargs):
     """
       Generate a new OpenModelica input file (XML format) from the original, changing parameters
       as specified in Kwargs['SampledVars']
       @ In , currentInputFiles, list,  list of current input files (input files from last this method call)
       @ In , oriInputFiles, list, list of the original input files
       @ In , samplerType, string, Sampler type (e.g. MonteCarlo, Adaptive, etc. see manual Samplers section)
-      @ In , Kwargs, dictionary, kwarded dictionary of parameters. In this dictionary there is another dictionary called "SampledVars"
+      @ In , Kwargs, dictionary, kwarded dictionary of parameters. In this dictionary there is another dictionary
+             called "SampledVars"
             where RAVEN stores the variables that got sampled (e.g. Kwargs['SampledVars'] => {'var1':10,'var2':40})
       @ Out, newInputFiles, list, list of newer input files, list of the new input files (modified and not)
     """
@@ -224,7 +260,9 @@ class OpenModelica(CodeInterfaceBase):
         found = True
         break
     if not found:
-      raise Exception('OpenModelica INTERFACE ERROR -> An XML file was not found in the input files!')
+      raise Exception(
+          'OpenModelica INTERFACE ERROR -> An XML file was not found in the input files!'
+      )
 
     # Figure out the new file name and put it into the proper place in the return list
     #newInputFiles = copy.deepcopy(currentInputFiles)
@@ -251,7 +289,6 @@ class OpenModelica(CodeInterfaceBase):
     tree.write(currentInputFiles[index].getAbsFile())
     return currentInputFiles
 
-
   def finalizeCodeOutput(self, command, output, workingDir):
     """
       Called by RAVEN to modify output files (if needed) so that they are in a proper form.
@@ -265,17 +302,22 @@ class OpenModelica(CodeInterfaceBase):
     """
     # Make a new temporary file in the working directory and read the lines from the original CSV
     #   to it, stripping trailing commas in the process.
-    tempOutputFD, tempOutputFileName = tempfile.mkstemp(dir = workingDir, text = True)
-    sourceFileName = os.path.join(workingDir, output)         # The source file comes in without .csv on it
-    print('sourcefilename:',sourceFileName)
-    destFileName = sourceFileName.replace('rawout~', 'out~')  # When fix the CSV, change rawout~ to out~
+    tempOutputFD, tempOutputFileName = tempfile.mkstemp(
+        dir=workingDir, text=True)
+    # The source file comes in without .csv on it
+    sourceFileName = os.path.join(workingDir, output)
+    print('sourcefilename:', sourceFileName)
+    # When fix the CSV, change rawout~ to out~
+    destFileName = sourceFileName.replace('rawout~', 'out~')
     sourceFileName += '.csv'
     inputFile = open(sourceFileName)
     for line in inputFile:
       # Line ends with a comma followed by a newline
       #XXX toBytes seems to be needed here in python3, despite the text = True
-      os.write(tempOutputFD, utils.toBytes(line.replace('"','').strip().strip(',') + '\n'))
+      os.write(tempOutputFD,
+               utils.toBytes(line.replace('"', '').strip().strip(',') + '\n'))
     inputFile.close()
     os.close(tempOutputFD)
     shutil.move(tempOutputFileName, destFileName + '.csv')
-    return destFileName   # Return the name without the .csv on it...RAVEN will add it
+    # Return the name without the .csv on it...RAVEN will add it
+    return destFileName

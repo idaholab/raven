@@ -18,9 +18,11 @@ Created on Nov 24, 2015
 
 comments: Interface for Dymola Simulation
 
-Modelica is an object-oriented, equation-based language to conveniently model complex physical systems containing,
-e.g., mechanical, electrical, electronic, hydraulic, thermal, control, electric power or process-oriented subcomponents.
-Modelica models (with a file extension of .mo) are built, translated (compiled), and simulated in Dymola (http://www.modelon.com/products/dymola/),
+Modelica is an object-oriented, equation-based language to conveniently model complex physical systems 
+containing, e.g., mechanical, electrical, electronic, hydraulic, thermal, control, electric power or 
+process-oriented subcomponents.
+Modelica models (with a file extension of .mo) are built, translated (compiled), and simulated in Dymola
+(http://www.modelon.com/products/dymola/),
 which is a commercial modeling and simulation environment based on the Modelica modeling language.
 This module provides an interface that allows RAVEN to utilize Modelica models built using Dymola.
 
@@ -60,10 +62,11 @@ equation
 end BouncingBall;
 --- END MODEL FILE ---
 
-When a modelica model, e.g., BouncingBall model, is implemented in Dymola, the platform dependent C-code from a Modelica model
-and the corresponding executable code (i.e., by default dymosim.exe on the Windows operating system) are generated for simulation.
-A separate TEXT file (by default dsin.txt) containing model parameters and initial conditions are also generated as part of the build process.
-After the executable is generated, it may be run multiple times (with Dymola license). There are several ways to vary input parameters:
+When a modelica model, e.g., BouncingBall model, is implemented in Dymola, the platform dependent C-code from a 
+Modelica model and the corresponding executable code (i.e., by default dymosim.exe on the Windows operating system) 
+are generated for simulation. A separate TEXT file (by default dsin.txt) containing model parameters and initial 
+conditions are also generated as part of the build process. After the executable is generated, it may be run multiple 
+times (with Dymola license). There are several ways to vary input parameters:
 
   1) Modify the model file and re-build the simulation executable.
   2) Change the value(s) in the 'text' input file generated as part of the model build process.
@@ -73,10 +76,12 @@ After the executable is generated, it may be run multiple times (with Dymola lic
 For RAVEN purposes, this interface code will use option (2). Variation of parameters may be done by editing the input
 file (dsin.txt) and then re-running the model executable (by default dymosim.exe).
 
-An executable (dymosim.exe) and a simulation initialization file (dsin.txt) can be generated after either translating or simulating the Modelica
-model (BouncingBall.mo) using the Dymola Graphical User Interface (GUI) or Dymola Application Programming Interface (API)-routines.
-The output of the model is a binary file 'BouncingBall.mat' if the simulation is run in Dymola GUI or by using Dymola API-routines.
-If the generated executable code is trigged directly from a command prompt, the output file is always named as 'dsres.mat'.
+An executable (dymosim.exe) and a simulation initialization file (dsin.txt) can be generated after either translating 
+or simulating the Modelica model (BouncingBall.mo) using the Dymola Graphical User Interface (GUI) or Dymola 
+Application Programming Interface (API)-routines. The output of the model is a binary file 'BouncingBall.mat' 
+if the simulation is run in Dymola GUI or by using Dymola API-routines.
+If the generated executable code is trigged directly from a command prompt, the output file is always 
+named as 'dsres.mat'.
 
 To change the initial height of the bouncing ball to 5.0 in the above model, we need to read and modify its value
 from the 'dsin.txt,' and write it back to a different input file, e.g., DMdsin.txt. This .txt file can then be used
@@ -94,7 +99,7 @@ of this is:
 
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
-warnings.simplefilter('default',DeprecationWarning)
+warnings.simplefilter('default', DeprecationWarning)
 
 import os
 import math
@@ -105,6 +110,7 @@ import copy
 import numpy
 
 from CodeInterfaceBaseClass import CodeInterfaceBase
+
 
 class Dymola(CodeInterfaceBase):
   """
@@ -117,14 +123,16 @@ class Dymola(CodeInterfaceBase):
       @ In, None
       @ Out, None
     """
-    self.variablesToLoad = [] # the variables that should be loaded from the mat file (by default, all of them)
+    # the variables that should be loaded from the mat file (by default, all of them)
+    self.variablesToLoad = []
 
-  def _readMoreXML(self,xmlNode):
+  def _readMoreXML(self, xmlNode):
     """
       Function to read the portion of the xml input that belongs to this specialized class and initialize
       some members based on inputs. This can be overloaded in specialize code interface in order to
       read specific flags.
-      Only one option is possible. You can choose here, if multi-deck mode is activated, from which deck you want to load the results
+      Only one option is possible. You can choose here, if multi-deck mode is activated, from 
+      which deck you want to load the results
       @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
       @ Out, None.
     """
@@ -148,11 +156,17 @@ class Dymola(CodeInterfaceBase):
       See base class.  Collects all the clargs and the executable to produce the command-line call.
       Returns tuple of commands and base file name for run.
       Commands are a list of tuples, indicating parallel/serial and the execution command to use.
-      @ In, inputFiles, list, List of input files (lenght of the list depends on the number of inputs have been added in the Step is running this code)
+      @ In, inputFiles, list, List of input files (lenght of the list depends on the number of 
+                              inputs have been added in the Step is running this code)
       @ In, executable, string, executable name with absolute path (e.g. /home/path_to_executable/code.exe)
-      @ In, clargs, dict, optional, dictionary containing the command-line flags the user can specify in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 i0extension =0 .inp0/ >< /Code >)
-      @ In, fargs, dict, optional, a dictionary containing the axuiliary input file variables the user can specify in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 aux0extension =0 .aux0/ >< /Code >)
-      @ Out, returnCommand, tuple, tuple containing the generated command. returnCommand[0] is the command to run the code (string), returnCommand[1] is the name of the output root
+      @ In, clargs, dict, optional, dictionary containing the command-line flags the user can specify in the 
+                                    input (e.g. under the node < Code >< clargstype =0 input0arg =0 
+                                                i0extension =0 .inp0/ >< /Code >)
+      @ In, fargs, dict, optional, a dictionary containing the axuiliary input file variables the user can 
+                                   specify in the input (e.g. under the node < Code >< clargstype =0 
+                                   input0arg =0 aux0extension =0 .aux0/ >< /Code >)
+      @ Out, returnCommand, tuple, tuple containing the generated command. returnCommand[0] is the command 
+                                   to run the code (string), returnCommand[1] is the name of the output root
     """
 
     # Find the file in the inputFiles that has the type "DymolaInitialisation", which is what we need to work with.
@@ -162,12 +176,17 @@ class Dymola(CodeInterfaceBase):
         foundInit = True
         indexInit = index
     if not foundInit:
-      raise Exception('Dymola INTERFACE ERROR -> None of the input files has the type "DymolaInitialisation"!')
+      raise Exception(
+          'Dymola INTERFACE ERROR -> None of the input files has the type "DymolaInitialisation"!'
+      )
     # Build an output file name of the form: rawout~<Base Name>, where base name is generated from the
     #   input file passed in: /path/to/file/<Base Name>.ext. 'rawout' indicates that this is the direct
     #   output from running the Dymola executable.
     outputfile = 'rawout~' + inputFiles[indexInit].getBase()
-    executeCommand = [('parallel', executable +' -s '+ inputFiles[indexInit].getFilename() +' '+ outputfile+ '.mat')]
+    executeCommand = [
+        ('parallel', executable + ' -s ' +
+         inputFiles[indexInit].getFilename() + ' ' + outputfile + '.mat')
+    ]
     returnCommand = executeCommand, outputfile
     return returnCommand
 
@@ -180,16 +199,18 @@ class Dymola(CodeInterfaceBase):
     validExtensions = ('txt', 'TXT')
     return validExtensions
 
-  def createNewInput(self, currentInputFiles, oriInputFiles, samplerType, **Kwargs):
+  def createNewInput(self, currentInputFiles, oriInputFiles, samplerType,
+                     **Kwargs):
     """
       Generate a new Dymola input file (txt format) from the original, changing parameters
-      as specified in Kwargs['SampledVars']. In addition, it creaes an additional input file including the vector data to be
-      passed to Dymola.
+      as specified in Kwargs['SampledVars']. In addition, it creaes an additional input file including
+      the vector data to be passed to Dymola.
       @ In, currentInputFiles, list,  list of current input files (input files from last this method call)
       @ In, oriInputFiles, list, list of the original input files
       @ In, samplerType, string, Sampler type (e.g. MonteCarlo, Adaptive, etc. see manual Samplers section)
-      @ In, Kwargs, dictionary, kwarded dictionary of parameters. In this dictionary there is another dictionary called "SampledVars"
-            where RAVEN stores the variables that got sampled (e.g. Kwargs['SampledVars'] => {'var1':10,'var2':40})
+      @ In, Kwargs, dictionary, kwarded dictionary of parameters. In this dictionary there is another 
+            dictionary called "SampledVars" where RAVEN stores the variables that got sampled (e.g. 
+            Kwargs['SampledVars'] => {'var1':10,'var2':40})
       @ Out, newInputFiles, list, list of newer input files, list of the new input files (modified and not)
     """
     # Start with the original input file, which we have to find first.
@@ -204,9 +225,13 @@ class Dymola(CodeInterfaceBase):
         foundVect = True
         indexVect = index
     if not foundInit:
-      raise Exception('Dymola INTERFACE ERROR -> None of the input files has the type "DymolaInitialisation"!')
+      raise Exception(
+          'Dymola INTERFACE ERROR -> None of the input files has the type "DymolaInitialisation"!'
+      )
     if not foundVect:
-      print('Dymola INTERFACE WARNING -> None of the input files has the type "DymolaVectors"! ')
+      print(
+          'Dymola INTERFACE WARNING -> None of the input files has the type "DymolaVectors"! '
+      )
     # Figure out the new file name and put it into the proper place in the return list
     #newInputFiles = copy.deepcopy(currentInputFiles)
     originalPath = oriInputFiles[indexInit].getAbsFile()
@@ -221,77 +246,88 @@ class Dymola(CodeInterfaceBase):
     #   equivalent. Strings, functions, redeclarations, etc. are not supported.
     varDict = Kwargs['SampledVars']
 
-    vectorsToPass= {}
+    vectorsToPass = {}
     for key, value in varDict.items():
       if isinstance(value, bool):
         varDict[key] = 1 if value else 0
       if isinstance(value, numpy.ndarray):
         # print warning here (no access to RAVEN Message Handler)
-        print("Dymola INTERFACE WARNING -> Dymola interface found vector data to be passed. If %s" %key)
-        print("                            is supposed to go into the simulation initialisation file of type")
-        print("                            'DymolaInitialisation' the array must be split into scalars.")
-        print("                            => It is assumed that the array goes into the input file with type 'DymolaVectors'")
+        print(
+            "Dymola INTERFACE WARNING -> Dymola interface found vector data to be passed. If %s"
+            % key)
+        print(
+            "                            is supposed to go into the simulation initialisation file of type"
+        )
+        print(
+            "                            'DymolaInitialisation' the array must be split into scalars."
+        )
+        print(
+            "                            => It is assumed that the array goes into the input file with type 'DymolaVectors'"
+        )
         if not foundVect:
-          raise Exception('Dymola INTERFACE ERROR -> None of the input files has the type "DymolaVectors"! ')
+          raise Exception(
+              'Dymola INTERFACE ERROR -> None of the input files has the type "DymolaVectors"! '
+          )
         # extract dict entry
         vectorsToPass[key] = varDict.pop(key)
-      assert not type(value).__name__ in ['str','bytes','unicode'], ("Strings cannot be "
-        "used as values in the simulation initialization file.")
+      assert not type(value).__name__ in ['str', 'bytes', 'unicode'], (
+          "Strings cannot be "
+          "used as values in the simulation initialization file.")
 
     # create aditional input file for vectors if needed
     if bool(vectorsToPass):
       with open(currentInputFiles[indexVect].getAbsFile(), 'w') as Fvect:
         Fvect.write("#1\n")
-        for key, value in vectorsToPass.items() :
+        for key, value in vectorsToPass.items():
           inc = 0
-          Fvect.write("double %s(%s,2) #Comments here\n" %(key, len(value)))
+          Fvect.write("double %s(%s,2) #Comments here\n" % (key, len(value)))
           for val in value:
-            Fvect.write("%s\t%s\n" %(inc,val))
+            Fvect.write("%s\t%s\n" % (inc, val))
             inc += 1
 
     # Do the search and replace in input file "DymolaInitialisation"
     # Aliases for some regular sub-expressions.
-    u = '\d+' # Unsigned integer
-    i = '[+-]?' + u # Integer
-    f = i + '(?:\.' + u + ')?(?:[Ee][+-]' + u + ')?' # Floating point number
+    u = '\d+'  # Unsigned integer
+    i = '[+-]?' + u  # Integer
+    f = i + '(?:\.' + u + ')?(?:[Ee][+-]' + u + ')?'  # Floating point number
 
     # Possible regular expressions for a parameter specification (with '%s' for
     #   the parameter name)
-    patterns = [# Dymola 1- or 2-line parameter specification
-                (r'(^\s*%s\s+)%s(\s+%s\s+%s\s+%s\s+%s\s*#\s*%s\s*$)'
-                 % (i, f, f, f, u, u, '%s')),
-                (r'(^\s*)' + i + '(\s*#\s*%s)'),
-                (r'(^\s*)' + f + '(\s*#\s*%s)'),
-                # From Dymola:
-                # column 1: Type of initial value
-                #           = -2: special case: for continuing simulation
-                #                               (column 2 = value)
-                #           = -1: fixed value   (column 2 = fixed value)
-                #           =  0: free value, i.e., no restriction
-                #                               (column 2 = initial value)
-                #           >  0: desired value (column 1 = weight for
-                #                                           optimization
-                #                                column 2 = desired value)
-                #                 use weight=1, since automatic scaling usually
-                #                 leads to equally weighted terms
-                # column 2: fixed, free or desired value according to column 1.
-                # column 3: Minimum value (ignored, if Minimum >= Maximum).
-                # column 4: Maximum value (ignored, if Minimum >= Maximum).
-                #           Minimum and maximum restrict the search range in
-                #           initial value calculation. They might also be used
-                #           for scaling.
-                # column 5: Category of variable.
-                #           = 1: parameter.
-                #           = 2: state.
-                #           = 3: state derivative.
-                #           = 4: output.
-                #           = 5: input.
-                #           = 6: auxiliary variable.
-                # column 6: Data type of variable.
-                #           = 0: real.
-                #           = 1: boolean.
-                #           = 2: integer.
-               ]
+    patterns = [  # Dymola 1- or 2-line parameter specification
+        (r'(^\s*%s\s+)%s(\s+%s\s+%s\s+%s\s+%s\s*#\s*%s\s*$)' % (i, f, f, f, u,
+                                                                u, '%s')),
+        (r'(^\s*)' + i + '(\s*#\s*%s)'),
+        (r'(^\s*)' + f + '(\s*#\s*%s)'),
+        # From Dymola:
+        # column 1: Type of initial value
+        #           = -2: special case: for continuing simulation
+        #                               (column 2 = value)
+        #           = -1: fixed value   (column 2 = fixed value)
+        #           =  0: free value, i.e., no restriction
+        #                               (column 2 = initial value)
+        #           >  0: desired value (column 1 = weight for
+        #                                           optimization
+        #                                column 2 = desired value)
+        #                 use weight=1, since automatic scaling usually
+        #                 leads to equally weighted terms
+        # column 2: fixed, free or desired value according to column 1.
+        # column 3: Minimum value (ignored, if Minimum >= Maximum).
+        # column 4: Maximum value (ignored, if Minimum >= Maximum).
+        #           Minimum and maximum restrict the search range in
+        #           initial value calculation. They might also be used
+        #           for scaling.
+        # column 5: Category of variable.
+        #           = 1: parameter.
+        #           = 2: state.
+        #           = 3: state derivative.
+        #           = 4: output.
+        #           = 5: input.
+        #           = 6: auxiliary variable.
+        # column 6: Data type of variable.
+        #           = 0: real.
+        #           = 1: boolean.
+        #           = 2: integer.
+    ]
     # These are tried in order until there is a match. The first group or pair
     #   of parentheses contains the text before the parameter value and the second
     #   contains the text after it (minus one space on both sides for clarity).
@@ -302,7 +338,7 @@ class Dymola(CodeInterfaceBase):
 
     # Set the parameters.
     for name, value in varDict.items():
-      namere = re.escape(name) # Escape the dots, square brackets, etc.
+      namere = re.escape(name)  # Escape the dots, square brackets, etc.
       for pattern in patterns:
         text, n = re.subn(pattern % namere, r'\g<1>%s\2' % value, text, 1,
                           re.MULTILINE)
@@ -310,8 +346,8 @@ class Dymola(CodeInterfaceBase):
           break
       else:
         raise AssertionError(
-          "Parameter %s does not exist or is not formatted as expected "
-          "in %s." % (name, originalPath))
+            "Parameter %s does not exist or is not formatted as expected "
+            "in %s." % (name, originalPath))
 
     # Re-write the file.
     with open(currentInputFiles[indexInit].getAbsFile(), 'w') as src:
@@ -354,7 +390,7 @@ class Dymola(CodeInterfaceBase):
     # These functions join the strings together, resulting in one string in each row, and remove
     #   trailing whitespace.
     strMatNormal = lambda a: [''.join(s).rstrip() for s in a]
-    strMatTrans  = lambda a: [''.join(s).rstrip() for s in zip(*a)]
+    strMatTrans = lambda a: [''.join(s).rstrip() for s in zip(*a)]
 
     # Define the function that returns '1.0' with the sign of 'x'
     sign = lambda x: math.copysign(1.0, x)
@@ -367,13 +403,13 @@ class Dymola(CodeInterfaceBase):
 
     # Check the version of the output file (version 1.1).
     if fileInfo[1] == '1.1' and fileInfo[3] == 'binTrans':
-      names = strMatTrans(mat['name']) # names
-      descr = strMatTrans(mat['description']) # descriptions
+      names = strMatTrans(mat['name'])  # names
+      descr = strMatTrans(mat['description'])  # descriptions
       for i in range(len(names)):
-        d = mat['dataInfo'][0][i] # data block
-        x = mat['dataInfo'][1][i] # column (original)
-        c = abs(x)-1  # column (reduced)
-        s = sign(x)   # sign
+        d = mat['dataInfo'][0][i]  # data block
+        x = mat['dataInfo'][1][i]  # column (original)
+        c = abs(x) - 1  # column (reduced)
+        s = sign(x)  # sign
         if c:
           _vars[names[i]] = (descr[i], d, c, float(s))
           if not d in _blocks:
@@ -395,7 +431,7 @@ class Dymola(CodeInterfaceBase):
       #  - _namesData2: Names of the variables that are not parameters
       #  - _timeSeriesData1: Trajectories (time series data) of '_namesData1'
       #  - _timeSeriesData2: Trajectories (time series data) of '_namesData2'
-      for (k,v) in _vars.items():
+      for (k, v) in _vars.items():
         readIt = True
         if len(self.variablesToLoad) > 0 and k not in self.variablesToLoad:
           readIt = False
@@ -422,7 +458,7 @@ class Dymola(CodeInterfaceBase):
       for mylist in [_namesData1, _namesData2]:
         for i in range(len(mylist)):
           if ',' in mylist[i]:
-            mylist[i]  = mylist[i].replace(',', '@')
+            mylist[i] = mylist[i].replace(',', '@')
 
       # Recombine the names of the variables and insert the variable 'Time'.
       # Order of the variable names should be 'Time', _namesData1, _namesData2.
@@ -434,22 +470,30 @@ class Dymola(CodeInterfaceBase):
 
       # Create a 2-d array whose size is 'the number of parameters' by 'number of ouput points of the trajectories'.
       # Fill each row in a 2-d array with the parameter value.
-      Data1Array =  numpy.full((sizeParams,numOutputPts),1.)
+      Data1Array = numpy.full((sizeParams, numOutputPts), 1.)
       for n in range(sizeParams):
-        Data1Array[n,:] = timeSeriesData1[n,0]
+        Data1Array[n, :] = timeSeriesData1[n, 0]
 
       # Create an array of trajectories, which are to be written to CSV file.
-      varTrajectories = numpy.matrix.transpose(numpy.concatenate((timeStepsArray,Data1Array,timeSeriesData2), axis=0))
+      varTrajectories = numpy.matrix.transpose(
+          numpy.concatenate(
+              (timeStepsArray, Data1Array, timeSeriesData2), axis=0))
 
       # Define the name of the CSV file.
-      sourceFileName = os.path.join(workingDir, output)         # The source file comes in without extension on it
-      print('sourcefilename:',sourceFileName)
-      destFileName = sourceFileName.replace('rawout~', 'out~')  # When write the CSV file, change rawout~ to out~
-      destFileName += '.csv' # Add the file extension .csv
+      # The source file comes in without extension on it
+      sourceFileName = os.path.join(workingDir, output)
+      print('sourcefilename:', sourceFileName)
+      # When write the CSV file, change rawout~ to out~
+      destFileName = sourceFileName.replace('rawout~', 'out~')
+      destFileName += '.csv'  # Add the file extension .csv
 
       # Write the CSV file.
-      with open(destFileName,"wb") as csvFile:
-        resultsWriter = csv.writer(csvFile, lineterminator=str(u'\n'), delimiter=str(u','), quotechar=str(u'"'))
+      with open(destFileName, "wb") as csvFile:
+        resultsWriter = csv.writer(
+            csvFile,
+            lineterminator=str(u'\n'),
+            delimiter=str(u','),
+            quotechar=str(u'"'))
         resultsWriter.writerows(varNames)
         resultsWriter.writerows(varTrajectories)
     else:
@@ -465,4 +509,5 @@ class Dymola(CodeInterfaceBase):
     del Data1Array
     del timeSeriesData1
     del timeSeriesData2
-    return os.path.splitext(destFileName)[0]   # Return the name without the .csv on it as RAVEN will add it later.
+    # Return the name without the .csv on it as RAVEN will add it later.
+    return os.path.splitext(destFileName)[0]

@@ -21,7 +21,7 @@
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
-warnings.simplefilter('default',DeprecationWarning)
+warnings.simplefilter('default', DeprecationWarning)
 #if not 'xrange' in dir(__builtins__): xrange = range
 #End compatibility block for Python 3----------------------------------------------------------------
 
@@ -29,8 +29,10 @@ warnings.simplefilter('default',DeprecationWarning)
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from  .Sampler import Sampler
+from .Sampler import Sampler
+
 #Internal Modules End--------------------------------------------------------------------------------
+
 
 class ForwardSampler(Sampler):
   """
