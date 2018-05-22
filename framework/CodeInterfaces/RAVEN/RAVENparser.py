@@ -88,7 +88,10 @@ class RAVENparser():
               if linkedDataObjectPointSet is None:
                 linkedDataObjectHistorySet = self.tree.find('.//DataObjects/HistorySet[@name="'+outStream.text.strip()+ '"]')
                 if linkedDataObjectHistorySet is None:
-                  raise IOError(self.printTag+' ERROR: The OutStream of type "Print" named "'+role.text.strip()+'" is linked to not existing DataObject!')
+                  # try dataset
+                  linkedDataObjectHistorySet = self.tree.find('.//DataObjects/DataSet[@name="'+outStream.text.strip()+ '"]')
+                  if linkedDataObjectHistorySet is None:
+                    raise IOError(self.printTag+' ERROR: The OutStream of type "Print" named "'+role.text.strip()+'" is linked to not existing DataObject!')
                 dataObjectType, xmlNode = "HistorySet", linkedDataObjectHistorySet
               else:
                 dataObjectType, xmlNode = "PointSet", linkedDataObjectPointSet
@@ -211,112 +214,112 @@ class RAVENparser():
     else:
       returnElement = self.tree                           #otherwise return the original modified
 
-    for node, value in modiDictionary.items():
-      val = np.atleast_1d(value)[0]
-
-      if "|" not in node:
-        raise IOError(self.printTag+' ERROR: the variable '+node.strip()+' does not contain "|" separator and can not be handled!!')
-      changeTheNode = True
-      allowAddNodes, allowAddNodesPath = [], OrderedDict()
-      if "@" in node:
-        # there are attributes that are needed to locate the node
-        splittedComponents = node.split("|")
-        # check the first
-        pathNode = './'
-        attribName = ''
-        for cnt, subNode in enumerate(splittedComponents):
-          splittedComp = subNode.split("@")
-          component = splittedComp[0]
-          attribPath = ""
-          attribConstruct = OrderedDict()
-          if "@" in subNode:
-            # more than an attribute locator
-            for attribComp in splittedComp[1:]:
-              attribValue = None
-              if ":" in attribComp.strip():
-                # it is a locator
-                attribName  = attribComp.split(":")[0].strip()
-                attribValue = attribComp.split(":")[1].strip()
-
-                attribPath +='[@'+attribName+('="'+attribValue+'"]')
-
+    for fullNode, val in modiDictionary.items():
+      # might be comma-separated ("fully correlated") variables
+      nodes = [x.strip() for x in fullNode.split(',')]
+      for node in nodes:
+        # make sure node is XML-tree-parsable
+        if "|" not in node:
+          raise IOError(self.printTag+' ERROR: the variable '+node.strip()+' does not contain "|" separator and can not be handled!!')
+        changeTheNode = True
+        allowAddNodes, allowAddNodesPath = [], OrderedDict()
+        if "@" in node:
+          # there are attributes that are needed to locate the node
+          splittedComponents = node.split("|")
+          # check the first
+          pathNode = './'
+          attribName = ''
+          for cnt, subNode in enumerate(splittedComponents):
+            splittedComp = subNode.split("@")
+            component = splittedComp[0]
+            attribPath = ""
+            attribConstruct = OrderedDict()
+            if "@" in subNode:
+              # more than an attribute locator
+              for attribComp in splittedComp[1:]:
+                attribValue = None
+                if ":" in attribComp.strip():
+                  # it is a locator
+                  attribName  = attribComp.split(":")[0].strip()
+                  attribValue = attribComp.split(":")[1].strip()
+                  attribPath +='[@'+attribName+('="'+attribValue+'"]')
+                else:
+                  # it is actually the attribute that needs to be changed
+                  # check if it is the last component
+                  if cnt+1 != len(splittedComponents):
+                    raise IOError(self.printTag+' ERROR: the variable '+node.strip()+' follows the syntax "Node|SubNode|SubSubNode@attribute"'+
+                                                ' but the attribute is not the last component. Please check your input!')
+                  attribName = attribComp.strip()
+                  attribPath +='[@'+attribName+']'
+                if allowAdd:
+                  attribConstruct[attribName]  = attribValue
+            pathNode += "/" + component.strip()+attribPath
+            if allowAdd:
+              if len(returnElement.findall(pathNode)) > 0:
+                allowAddNodes.append(pathNode)
               else:
-                # it is actually the attribute that needs to be changed
-                # check if it is the last component
-                if cnt+1 != len(splittedComponents):
-                  raise IOError(self.printTag+' ERROR: the variable '+node.strip()+' follows the syntax "Node|SubNode|SubSubNode@attribute"'+
-                                              ' but the attribute is not the last component. Please check your input!')
-                attribName = attribComp.strip()
-                attribPath +='[@'+attribName+']'
-              if allowAdd:
-                attribConstruct[attribName]  = attribValue
-          pathNode += "/" + component.strip()+attribPath
-          if allowAdd:
-            if len(returnElement.findall(pathNode)) > 0:
-              allowAddNodes.append(pathNode)
-            else:
-              allowAddNodes.append(None)
-            allowAddNodesPath[component.strip()] = attribConstruct
-        if pathNode.endswith("]") and attribConstruct.values()[-1] is None:
-          changeTheNode = False
-        else:
-          changeTheNode = True
-      else:
-        # there are no attributes that are needed to track down the node to change
-        pathNode = './/' + node.replace("|","/").strip()
-        if allowAdd:
-          pathNodeTemp = './'
-          for component in node.replace("|","/").split("/"):
-            pathNodeTemp += '/'+component
-            if len(returnElement.findall(pathNodeTemp)) > 0:
-              allowAddNodes.append(pathNodeTemp)
-            else:
-              allowAddNodes.append(None)
-            allowAddNodesPath[component.strip()] = None
-      # look for the node with XPath directives
-      foundNodes = returnElement.findall(pathNode)
-      if len(foundNodes) > 1:
-        raise IOError(self.printTag+' ERROR: multiple nodes have been found corresponding to path -> '+node.strip()+'. Please use the attribute identifier "@" to nail down to a specific node !!')
-      if len(foundNodes) == 0 and not allowAdd:
-        raise IOError(self.printTag+' ERROR: no node has been found corresponding to path -> '+node.strip()+'. Please check the input!!')
-      if len(foundNodes) == 0:
-        # this means that the allowAdd is true (=> no error message has been raised)
-        indexFirstUnknownNode = allowAddNodes.index(None)
-        if indexFirstUnknownNode == 0:
-          raise IOError(self.printTag+' ERROR: at least the main XML node should be present in the RAVEN template input -> '+node.strip()+'. Please check the input!!')
-        getFirstElement = returnElement.findall(allowAddNodes[indexFirstUnknownNode-1])[0]
-        for i in range(indexFirstUnknownNode,len(allowAddNodes)):
-          nodeWithAttributeName = allowAddNodesPath.keys()[i]
-          if not allowAddNodesPath[nodeWithAttributeName]:
-            subElement =  ET.Element(nodeWithAttributeName)
+                allowAddNodes.append(None)
+              allowAddNodesPath[component.strip()] = attribConstruct
+          if pathNode.endswith("]") and attribConstruct.values()[-1] is None:
+            changeTheNode = False
           else:
-            subElement =  ET.Element(nodeWithAttributeName, attrib=allowAddNodesPath[nodeWithAttributeName])
-          getFirstElement.append(subElement)
-          getFirstElement = subElement
-        # in the event of vector entries, handle those here
-        if mathUtils.isSingleValued(val):
-          val = str(val).strip()
+            changeTheNode = True
         else:
-          if len(val.shape) > 1:
-            raise IOError(self.printTag+'ERROR: RAVEN interface is not prepared to handle matrix value passing yet!')
-          val = ','.join(str(i) for i in val)
-        if changeTheNode:
-          subElement.text = val
-        else:
-          subElement.attrib[attribConstruct.keys()[-1]] = val
+          # there are no attributes that are needed to track down the node to change
+          pathNode = './/' + node.replace("|","/").strip()
+          if allowAdd:
+            pathNodeTemp = './'
+            for component in node.replace("|","/").split("/"):
+              pathNodeTemp += '/'+component
+              if len(returnElement.findall(pathNodeTemp)) > 0:
+                allowAddNodes.append(pathNodeTemp)
+              else:
+                allowAddNodes.append(None)
+              allowAddNodesPath[component.strip()] = None
+        # look for the node with XPath directives
+        foundNodes = returnElement.findall(pathNode)
+        if len(foundNodes) > 1:
+          raise IOError(self.printTag+' ERROR: multiple nodes have been found corresponding to path -> '+node.strip()+'. Please use the attribute identifier "@" to nail down to a specific node !!')
+        if len(foundNodes) == 0 and not allowAdd:
+          raise IOError(self.printTag+' ERROR: no node has been found corresponding to path -> '+node.strip()+'. Please check the input!!')
+        if len(foundNodes) == 0:
+          # this means that the allowAdd is true (=> no error message has been raised)
+          indexFirstUnknownNode = allowAddNodes.index(None)
+          if indexFirstUnknownNode == 0:
+            raise IOError(self.printTag+' ERROR: at least the main XML node should be present in the RAVEN template input -> '+node.strip()+'. Please check the input!!')
+          getFirstElement = returnElement.findall(allowAddNodes[indexFirstUnknownNode-1])[0]
+          for i in range(indexFirstUnknownNode,len(allowAddNodes)):
+            nodeWithAttributeName = allowAddNodesPath.keys()[i]
+            if not allowAddNodesPath[nodeWithAttributeName]:
+              subElement =  ET.Element(nodeWithAttributeName)
+            else:
+              subElement =  ET.Element(nodeWithAttributeName, attrib=allowAddNodesPath[nodeWithAttributeName])
+            getFirstElement.append(subElement)
+            getFirstElement = subElement
+          # in the event of vector entries, handle those here
+          if mathUtils.isSingleValued(val):
+            val = str(val).strip()
+          else:
+            if len(val.shape) > 1:
+              raise IOError(self.printTag+'ERROR: RAVEN interface is not prepared to handle matrix value passing yet!')
+            val = ','.join(str(i) for i in val)
+          if changeTheNode:
+            subElement.text = val
+          else:
+            subElement.attrib[attribConstruct.keys()[-1]] = val
 
-      else:
-        nodeToChange = foundNodes[0]
-        pathNode     = './/'
-        # in the event of vector entries, handle those here
-        if mathUtils.isSingleValued(val):
-          val = str(val).strip()
         else:
-          if len(val.shape) > 1:
-            raise IOError(self.printTag+'ERROR: RAVEN interface is not prepared to handle matrix value passing yet!')
-          val = ','.join(str(i) for i in val)
-        if changeTheNode:
-          nodeToChange.text = val
-        else:
-          nodeToChange.attrib[attribName] = val
+          nodeToChange = foundNodes[0]
+          pathNode     = './/'
+          # in the event of vector entries, handle those here
+          if mathUtils.isSingleValued(val):
+            val = str(val).strip()
+          else:
+            if len(val.shape) > 1:
+              raise IOError(self.printTag+'ERROR: RAVEN interface is not prepared to handle matrix value passing yet!')
+            val = ','.join(str(i) for i in val)
+          if changeTheNode:
+            nodeToChange.text = val
+          else:
+            nodeToChange.attrib[attribName] = val
     return returnElement

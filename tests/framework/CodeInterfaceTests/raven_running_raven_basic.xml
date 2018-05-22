@@ -13,6 +13,9 @@
       Each sample in this test converges towards the analytic solutions discussed in the "changing lower, upper bounds" section of
       the "attenuate" analytic model documentation.
     </analytic>
+    <revisions>
+      <revision author="talbpaul" date="2018-05-02">added "fully-correlated" variable for innerUpperBound as a test of the mechanic</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
@@ -42,7 +45,10 @@
         <executable>%FRAMEWORK_DIR%/../raven_framework</executable>
         <outputExportOutStreams>inner_out</outputExportOutStreams>
         <alias variable="innerLowerBound" type="input">Distributions|Uniform@name:dist|lowerBound</alias>
-        <alias variable="innerUpperBound" type="input">Distributions|Uniform@name:dist|upperBound</alias>
+        <alias variable="innerUpperBound" type="input">
+          Distributions|Uniform@name:dist|upperBound,
+          Samplers|MonteCarlo|constant@name:testSecondAlias
+        </alias>
     </Code>
   </Models>
 
@@ -80,7 +86,7 @@
   <DataObjects>
     <PointSet name="outer_samples">
       <Input>innerLowerBound,innerUpperBound</Input>
-      <Output>mean_y1,mean_y2,mean_ans</Output>
+      <Output>mean_y1,mean_y2,mean_ans,mean_testSecondAlias</Output>
     </PointSet>
   </DataObjects>
 
