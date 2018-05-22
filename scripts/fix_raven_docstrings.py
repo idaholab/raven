@@ -110,9 +110,7 @@ def trimPoundDocstring(docstring, quoteIndent, maxColumns=120):
           indentedLine = indentedLine[:-1]
         else:
           break
-
     breakIndex = quoteIndent
-
     if len(indentedLine) > maxColumns:
       # we need to split it
       newLines = []
@@ -135,7 +133,6 @@ def trimPoundDocstring(docstring, quoteIndent, maxColumns=120):
           outputLines.append(" "*(breakIndex) + "# "+indentedLine.lstrip()+add)
         else:
           outputLines.append(indentedLine+add)
-
   # Return a single string:
   return outputLines
 
@@ -177,7 +174,6 @@ if __name__ == '__main__':
     else:
       outLines.append(lines[lineNumber])
     lineNumber+=1
-
   lineNumber = 0
   endLineNumber = 0
   newOutLines = []
@@ -215,10 +211,4 @@ if __name__ == '__main__':
 
   with open(outFileName,"w") as outObj:
     outObj.writelines(outLines)
-
-
-
-
-
-
 

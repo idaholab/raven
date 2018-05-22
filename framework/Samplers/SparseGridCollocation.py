@@ -21,7 +21,7 @@
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
-warnings.simplefilter('default',DeprecationWarning)
+warnings.simplefilter('default', DeprecationWarning)
 #if not 'xrange' in dir(__builtins__): xrange = range
 #End compatibility block for Python 3----------------------------------------------------------------
 
@@ -39,7 +39,9 @@ import Distributions
 import Quadratures
 import OrthoPolynomials
 import IndexSets
+
 #Internal Modules End--------------------------------------------------------------------------------
+
 
 class SparseGridCollocation(Grid):
   """
@@ -55,11 +57,13 @@ class SparseGridCollocation(Grid):
       @ Out, inputSpecification, InputData.ParameterInput, class to use for
         specifying input of cls.
     """
-    inputSpecification = super(SparseGridCollocation, cls).getInputSpecification()
+    inputSpecification = super(SparseGridCollocation,
+                               cls).getInputSpecification()
     inputSpecification.addParam("parallel", InputData.StringType)
     inputSpecification.addParam("outfile", InputData.StringType)
 
-    romInput = InputData.parameterInputFactory("ROM", contentType=InputData.StringType)
+    romInput = InputData.parameterInputFactory(
+        "ROM", contentType=InputData.StringType)
     romInput.addParam("type", InputData.StringType)
     romInput.addParam("class", InputData.StringType)
     inputSpecification.addSub(romInput)
@@ -74,21 +78,33 @@ class SparseGridCollocation(Grid):
       @ Out, None
     """
     Grid.__init__(self)
-    self.type           = 'SparseGridCollocationSampler'
-    self.printTag       = 'SAMPLER '+self.type.upper()
-    self.assemblerObjects={}    #dict of external objects required for assembly
-    self.maxPolyOrder   = None  #L, the relative maximum polynomial order to use in any dimension
-    self.indexSetType   = None  #TP, TD, or HC; the type of index set to use
-    self.polyDict       = {}    #varName-indexed dict of polynomial types
-    self.quadDict       = {}    #varName-indexed dict of quadrature types
-    self.importanceDict = {}    #varName-indexed dict of importance weights
-    self.maxPolyOrder   = None  #integer, relative maximum polynomial order to be used in any one dimension
-    self.lastOutput     = None  #pointer to output dataObjects object
-    self.ROM            = None  #pointer to ROM
-    self.jobHandler     = None  #pointer to job handler for parallel runs
-    self.doInParallel   = True  #compute sparse grid in parallel flag, recommended True
-    self.dists          = {}    #Contains the instance of the distribution to be used. keys are the variable names
-    self.addAssemblerObject('ROM','1',True)
+    self.type = 'SparseGridCollocationSampler'
+    self.printTag = 'SAMPLER ' + self.type.upper()
+    # dict of external objects required for assembly
+    self.assemblerObjects = {}
+    # L, the relative maximum polynomial order to use in any dimension
+    self.maxPolyOrder = None
+    # TP, TD, or HC; the type of index set to use
+    self.indexSetType = None
+    # varName-indexed dict of polynomial types
+    self.polyDict = {}
+    # varName-indexed dict of quadrature types
+    self.quadDict = {}
+    # varName-indexed dict of importance weights
+    self.importanceDict = {}
+    # integer, relative maximum polynomial order to be used in any one dimension
+    self.maxPolyOrder = None
+    # pointer to output dataObjects object
+    self.lastOutput = None
+    # pointer to ROM
+    self.ROM = None
+    # pointer to job handler for parallel runs
+    self.jobHandler = None
+    # compute sparse grid in parallel flag, recommended True
+    self.doInParallel = True
+    # Contains the instance of the distribution to be used. keys are the variable names
+    self.dists = {}
+    self.addAssemblerObject('ROM', '1', True)
 
   def _localWhatDoINeed(self):
     """
@@ -98,10 +114,10 @@ class SparseGridCollocation(Grid):
       @ Out, gridDict, dict, dictionary of objects needed
     """
     gridDict = Grid._localWhatDoINeed(self)
-    gridDict['internal'] = [(None,'jobHandler')]
+    gridDict['internal'] = [(None, 'jobHandler')]
     return gridDict
 
-  def _localGenerateAssembler(self,initDict):
+  def _localGenerateAssembler(self, initDict):
     """
       Generates the assembler.
       @ In, initDict, dict, init objects
@@ -113,22 +129,29 @@ class SparseGridCollocation(Grid):
     #Do a distributions check for ND
     #This sampler only accept ND distributions with variable transformation defined in this sampler
     for dist in self.dists.values():
-      if isinstance(dist,Distributions.NDimensionalDistributions):
-        self.raiseAnError(IOError,'ND Dists contain the variables in the original input space are  not supported for this sampler!')
+      if isinstance(dist, Distributions.NDimensionalDistributions):
+        self.raiseAnError(
+            IOError,
+            'ND Dists contain the variables in the original input space are  not supported for this sampler!'
+        )
 
-  def localInputAndChecks(self,xmlNode, paramInput):
+  def localInputAndChecks(self, xmlNode, paramInput):
     """
       Class specific xml inputs will be read here and checked for validity.
-      @ In, xmlNode, xml.etree.ElementTree.Element, The xml element node that will be checked against the available options specific to this Sampler.
+      @ In, xmlNode, xml.etree.ElementTree.Element, The xml element node that will be checked against the available
+             options specific to this Sampler.
       @ In, paramInput, InputData.ParameterInput, the parsed parameters
       @ Out, None
     """
     #TODO remove using xmlNode
-    self.doInParallel = xmlNode.attrib['parallel'].lower() in ['1','t','true','y','yes'] if 'parallel' in xmlNode.attrib.keys() else True
-    self.writeOut = xmlNode.attrib['outfile'] if 'outfile' in xmlNode.attrib.keys() else None
+    self.doInParallel = xmlNode.attrib['parallel'].lower() in [
+        '1', 't', 'true', 'y', 'yes'
+    ] if 'parallel' in xmlNode.attrib.keys() else True
+    self.writeOut = xmlNode.attrib[
+        'outfile'] if 'outfile' in xmlNode.attrib.keys() else None
     for child in xmlNode:
       if child.tag == 'Distribution':
-        varName = '<distribution>'+child.attrib['name']
+        varName = '<distribution>' + child.attrib['name']
       elif child.tag == 'variable':
         varName = child.attrib['name']
         if varName not in self.dependentSample.keys():
@@ -137,13 +160,16 @@ class SparseGridCollocation(Grid):
   def transformDistDict(self):
     """
       Performs distribution transformation
-      If the method 'pca' is used in the variables transformation (i.e. latentVariables to manifestVariables), the corrrelated variables
-      will be tranformed into uncorrelated variables with standard normal distributions. Thus, the dictionary of distributions will
+      If the method 'pca' is used in the variables transformation (i.e. latentVariables to manifestVariables), the
+      corrrelated variables
+      will be tranformed into uncorrelated variables with standard normal distributions. Thus, the dictionary of
+      distributions will
       be also transformed.
       @ In, None
       @ Out, distDicts, dict, distribution dictionary {varName:DistributionObject}
     """
-    # Generate a standard normal distribution, this is used to generate the sparse grid points and weights for multivariate normal
+    # Generate a standard normal distribution, this is used to generate the sparse grid points and weights for
+    # multivariate normal
     # distribution if PCA is used.
     standardNormal = Distributions.Normal()
     standardNormal.messageHandler = self.messageHandler
@@ -154,7 +180,7 @@ class SparseGridCollocation(Grid):
     for varName in self.variables2distributionsMapping.keys():
       distDicts[varName] = self.distDict[varName]
     if self.variablesTransformationDict:
-      for key,varsDict in self.variablesTransformationDict.items():
+      for key, varsDict in self.variablesTransformationDict.items():
         if self.transformationMethod[key] == 'pca':
           listVars = varsDict['latentVariables']
           for var in listVars:
@@ -173,43 +199,52 @@ class SparseGridCollocation(Grid):
     SVL = self.readFromROM()
     self._generateQuadsAndPolys(SVL)
     #print out the setup for each variable.
-    msg=self.printTag+' INTERPOLATION INFO:\n'
-    msg+='    Variable | Distribution | Quadrature | Polynomials\n'
+    msg = self.printTag + ' INTERPOLATION INFO:\n'
+    msg += '    Variable | Distribution | Quadrature | Polynomials\n'
     for v in self.quadDict.keys():
-      msg+='   '+' | '.join([v,self.distDict[v].type,self.quadDict[v].type,self.polyDict[v].type])+'\n'
-    msg+='    Polynomial Set Degree: '+str(self.maxPolyOrder)+'\n'
-    msg+='    Polynomial Set Type  : '+str(SVL.indexSetType)+'\n'
+      msg += '   ' + ' | '.join([
+          v, self.distDict[v].type, self.quadDict[v].type,
+          self.polyDict[v].type
+      ]) + '\n'
+    msg += '    Polynomial Set Degree: ' + str(self.maxPolyOrder) + '\n'
+    msg += '    Polynomial Set Type  : ' + str(SVL.indexSetType) + '\n'
     self.raiseADebug(msg)
 
     self.raiseADebug('Starting index set generation...')
-    self.indexSet = IndexSets.returnInstance(SVL.indexSetType,self)
-    self.indexSet.initialize(self.features,self.importanceDict,self.maxPolyOrder)
-    if self.indexSet.type=='Custom':
+    self.indexSet = IndexSets.returnInstance(SVL.indexSetType, self)
+    self.indexSet.initialize(self.features, self.importanceDict,
+                             self.maxPolyOrder)
+    if self.indexSet.type == 'Custom':
       self.indexSet.setPoints(SVL.indexSetVals)
 
-    self.sparseGrid = Quadratures.returnInstance(self.sparseGridType,self)
-    self.raiseADebug('Starting %s sparse grid generation...' %self.sparseGridType)
-    self.sparseGrid.initialize(self.features,self.indexSet,self.dists,self.quadDict,self.jobHandler,self.messageHandler)
+    self.sparseGrid = Quadratures.returnInstance(self.sparseGridType, self)
+    self.raiseADebug(
+        'Starting %s sparse grid generation...' % self.sparseGridType)
+    self.sparseGrid.initialize(self.features, self.indexSet, self.dists,
+                               self.quadDict, self.jobHandler,
+                               self.messageHandler)
 
     if self.writeOut != None:
-      msg=self.sparseGrid.__csv__()
-      outFile=open(self.writeOut,'w')
+      msg = self.sparseGrid.__csv__()
+      outFile = open(self.writeOut, 'w')
       outFile.writelines(msg)
       outFile.close()
 
-    self.limit=len(self.sparseGrid)
-    self.raiseADebug('Size of Sparse Grid  :'+str(self.limit))
+    self.limit = len(self.sparseGrid)
+    self.raiseADebug('Size of Sparse Grid  :' + str(self.limit))
     self.raiseADebug('Finished sampler generation.')
 
-    self.raiseADebug('indexset:',self.indexSet)
+    self.raiseADebug('indexset:', self.indexSet)
     for SVL in self.ROM.supervisedEngine.supervisedContainer:
-      SVL.initialize({'SG':self.sparseGrid,
-                      'dists':self.dists,
-                      'quads':self.quadDict,
-                      'polys':self.polyDict,
-                      'iSet':self.indexSet})
+      SVL.initialize({
+          'SG': self.sparseGrid,
+          'dists': self.dists,
+          'quads': self.quadDict,
+          'polys': self.polyDict,
+          'iSet': self.indexSet
+      })
 
-  def _generateQuadsAndPolys(self,SVL):
+  def _generateQuadsAndPolys(self, SVL):
     """
       Builds the quadrature objects, polynomial objects, and importance weights for all
       the distributed variables.  Also sets maxPolyOrder.
@@ -219,58 +254,75 @@ class SparseGridCollocation(Grid):
     ROMdata = SVL.interpolationInfo()
     self.maxPolyOrder = SVL.maxPolyOrder
     #check input space consistency
-    samVars=self.axisName[:]
-    romVars=SVL.features[:]
+    samVars = self.axisName[:]
+    romVars = SVL.features[:]
     try:
       for v in self.axisName:
         samVars.remove(v)
         romVars.remove(v)
     except ValueError:
-      self.raiseAnError(IOError,'variable '+v+' used in sampler but not ROM features! Collocation requires all vars in both.')
-    if len(romVars)>0:
-      self.raiseAnError(IOError,'variables '+str(romVars)+' specified in ROM but not sampler! Collocation requires all vars in both.')
+      self.raiseAnError(
+          IOError, 'variable ' + v +
+          ' used in sampler but not ROM features! Collocation requires all vars in both.'
+      )
+    if len(romVars) > 0:
+      self.raiseAnError(
+          IOError, 'variables ' + str(romVars) +
+          ' specified in ROM but not sampler! Collocation requires all vars in both.'
+      )
     for v in ROMdata.keys():
       if v not in self.axisName:
-        self.raiseAnError(IOError,'variable '+v+' given interpolation rules but '+v+' not in sampler!')
+        self.raiseAnError(IOError,
+                          'variable ' + v + ' given interpolation rules but ' +
+                          v + ' not in sampler!')
       else:
-        self.gridInfo[v] = ROMdata[v] #quad, poly, weight
+        # quad, poly, weight
+        self.gridInfo[v] = ROMdata[v]
     #set defaults, then replace them if they're asked for
     for v in self.axisName:
       if v not in self.gridInfo.keys():
-        self.gridInfo[v]={'poly':'DEFAULT','quad':'DEFAULT','weight':'1'}
+        self.gridInfo[v] = {
+            'poly': 'DEFAULT',
+            'quad': 'DEFAULT',
+            'weight': '1'
+        }
     #establish all the right names for the desired types
-    for varName,dat in self.gridInfo.items():
+    for varName, dat in self.gridInfo.items():
       if dat['poly'] == 'DEFAULT':
         dat['poly'] = self.dists[varName].preferredPolynomials
       if dat['quad'] == 'DEFAULT':
         dat['quad'] = self.dists[varName].preferredQuadrature
-      polyType=dat['poly']
+      polyType = dat['poly']
       subType = None
       distr = self.dists[varName]
       if polyType == 'Legendre':
         if distr.type == 'Uniform':
-          quadType=dat['quad']
+          quadType = dat['quad']
         else:
-          quadType='CDF'
-          subType=dat['quad']
-          if subType not in ['Legendre','ClenshawCurtis']:
-            self.raiseAnError(IOError,'Quadrature '+subType+' not compatible with Legendre polys for '+distr.type+' for variable '+varName+'!')
+          quadType = 'CDF'
+          subType = dat['quad']
+          if subType not in ['Legendre', 'ClenshawCurtis']:
+            self.raiseAnError(IOError, 'Quadrature ' + subType +
+                              ' not compatible with Legendre polys for ' +
+                              distr.type + ' for variable ' + varName + '!')
       else:
-        quadType=dat['quad']
+        quadType = dat['quad']
       if quadType not in distr.compatibleQuadrature:
-        self.raiseAnError(IOError,'Quadrature type"',quadType,'"is not compatible with variable"',varName,'"distribution"',distr.type,'"')
+        self.raiseAnError(IOError, 'Quadrature type"', quadType,
+                          '"is not compatible with variable"', varName,
+                          '"distribution"', distr.type, '"')
 
-      quad = Quadratures.returnInstance(quadType,self,Subtype=subType)
-      quad.initialize(distr,self.messageHandler)
-      self.quadDict[varName]=quad
+      quad = Quadratures.returnInstance(quadType, self, Subtype=subType)
+      quad.initialize(distr, self.messageHandler)
+      self.quadDict[varName] = quad
 
-      poly = OrthoPolynomials.returnInstance(polyType,self)
-      poly.initialize(quad,self.messageHandler)
+      poly = OrthoPolynomials.returnInstance(polyType, self)
+      poly.initialize(quad, self.messageHandler)
       self.polyDict[varName] = poly
 
       self.importanceDict[varName] = float(dat['weight'])
 
-  def localGenerateInput(self,model,myInput):
+  def localGenerateInput(self, model, myInput):
     """
       Function to select the next most informative point for refining the limit
       surface search.
@@ -281,22 +333,25 @@ class SparseGridCollocation(Grid):
       @ Out, None
     """
     try:
-      pt,weight = self.sparseGrid[self.counter-1]
+      pt, weight = self.sparseGrid[self.counter - 1]
     except IndexError:
       raise utils.NoMoreSamplesNeeded
 
-    for v,varName in enumerate(self.sparseGrid.varNames):
+    for v, varName in enumerate(self.sparseGrid.varNames):
       # compute the SampledVarsPb for 1-D distribution
       if self.variables2distributionsMapping[varName]['totDim'] == 1:
         for key in varName.strip().split(','):
           self.values[key] = pt[v]
-        self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(pt[v])
-        self.inputInfo['ProbabilityWeight-'+varName] = self.inputInfo['SampledVarsPb'][varName]
+        self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(
+            pt[v])
+        self.inputInfo['ProbabilityWeight-'
+                       + varName] = self.inputInfo['SampledVarsPb'][varName]
       # compute the SampledVarsPb for N-D distribution
       # Assume only one N-D distribution is associated with sparse grid collocation method
-      elif self.variables2distributionsMapping[varName]['totDim'] > 1 and self.variables2distributionsMapping[varName]['reducedDim'] ==1:
+      elif self.variables2distributionsMapping[varName]['totDim'] > 1 and self.variables2distributionsMapping[varName]['reducedDim'] == 1:
         dist = self.variables2distributionsMapping[varName]['name']
-        ndCoordinates = np.zeros(len(self.distributions2variablesMapping[dist]))
+        ndCoordinates = np.zeros(
+            len(self.distributions2variablesMapping[dist]))
         positionList = self.distributions2variablesIndexList[dist]
         for varDict in self.distributions2variablesMapping[dist]:
           var = utils.first(varDict.keys())
@@ -309,14 +364,20 @@ class SparseGridCollocation(Grid):
           if location > -1:
             ndCoordinates[positionList.index(position)] = pt[location]
           else:
-            self.raiseAnError(IOError,'The variables ' + var + ' listed in sparse grid collocation sampler, but not used in the ROM!' )
+            self.raiseAnError(
+                IOError, 'The variables ' + var +
+                ' listed in sparse grid collocation sampler, but not used in the ROM!'
+            )
           for key in var.strip().split(','):
             self.values[key] = pt[location]
-        self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(ndCoordinates)
-        self.inputInfo['ProbabilityWeight-'+dist] = self.inputInfo['SampledVarsPb'][varName]
+        self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(
+            ndCoordinates)
+        self.inputInfo['ProbabilityWeight-'
+                       + dist] = self.inputInfo['SampledVarsPb'][varName]
 
     self.inputInfo['ProbabilityWeight'] = weight
-    self.inputInfo['PointProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
+    self.inputInfo['PointProbability'] = reduce(
+        mul, self.inputInfo['SampledVarsPb'].values())
     self.inputInfo['SamplerType'] = 'Sparse Grid Collocation'
 
   def readFromROM(self):

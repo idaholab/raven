@@ -16,7 +16,7 @@ Created on July 10, 2013
 
 @author: alfoa
 """
-from __future__ import division, print_function , unicode_literals, absolute_import
+from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default', DeprecationWarning)
 
@@ -29,12 +29,15 @@ from BaseClasses import BaseType
 from utils import InputData
 from Assembler import Assembler
 import MessageHandler
+
 #Internal Modules End-----------------------------------------------------------
+
 
 class PostProcessor(Assembler):
   """
     This is the base class for postprocessors
   """
+
   def __init__(self, messageHandler):
     """
       Constructor
@@ -42,8 +45,10 @@ class PostProcessor(Assembler):
       @ Out, None
     """
     Assembler.__init__(self)
-    self.type = self.__class__.__name__  # pp type
-    self.name = self.__class__.__name__  # pp name
+    # pp type
+    self.type = self.__class__.__name__
+    # pp name
+    self.name = self.__class__.__name__
     self.messageHandler = messageHandler
     self.metadataKeys = set()
 
@@ -57,7 +62,8 @@ class PostProcessor(Assembler):
         specifying input of cls.
     """
     ######## Temporary until this class inherits from the BaseType
-    inputSpecification = InputData.parameterInputFactory('PostProcessor', ordered=False, baseNode=InputData.RavenBase)
+    inputSpecification = InputData.parameterInputFactory(
+        'PostProcessor', ordered=False, baseNode=InputData.RavenBase)
     inputSpecification.addParam("name", InputData.StringType, True)
     ######## End Temporary until this class inherits from the BaseType
 
@@ -67,7 +73,7 @@ class PostProcessor(Assembler):
 
     return inputSpecification
 
-  def initialize(self, runInfo, inputs, initDict=None) :
+  def initialize(self, runInfo, inputs, initDict=None):
     """
       Method to initialize the pp.
       @ In, runInfo, dict, dictionary of run info (e.g. working dir, etc)
@@ -97,9 +103,10 @@ class PostProcessor(Assembler):
     pass
 
   ## TODO FIXME ##
-  # These two methods (addMetaKeys, provideExpectedMetaKeys) are made to be consistent with the BaseClasses.BaseType, and in
+  # These two methods (addMetaKeys, provideExpectedMetaKeys) are made to be consistent with the
+  # BaseClasses.BaseType, and in
   # that glorious day when the PostProcessors inherit from the BaseType, these implementations should be removed.
-  def addMetaKeys(self,*args):
+  def addMetaKeys(self, *args):
     """
       Adds keywords to a list of expected metadata keys.
       @ In, args, list(str), keywords to register

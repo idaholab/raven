@@ -20,11 +20,13 @@ import os
 import fileinput
 import re
 
+
 class RELAPparser():
   """
     Import the RELAP5 input as list of lines, provide methods to add/change entries and print it back
   """
-  def __init__(self,inputFile):
+
+  def __init__(self, inputFile):
     """
       Constructor
       @ In, inputFile, string, input file name
@@ -32,36 +34,38 @@ class RELAPparser():
     """
     self.printTag = 'RELAP5 PARSER'
     if not os.path.exists(inputFile):
-      raise IOError(self.printTag+'ERROR: not found RELAP input file')
-    IOfile = open(inputFile,'r')
+      raise IOError(self.printTag + 'ERROR: not found RELAP input file')
+    IOfile = open(inputFile, 'r')
     self.inputfile = inputFile
     self.deckLines = {}
     self.maxNumberOfDecks = 0
-    prevDeckLineNum       = 0
-    lines                 = IOfile.readlines()
+    prevDeckLineNum = 0
+    lines = IOfile.readlines()
     for lineNum, line in enumerate(lines):
       if line.strip().startswith("."):
         self.maxNumberOfDecks += 1
-        self.deckLines[self.maxNumberOfDecks] = lines[prevDeckLineNum:lineNum+1]
+        self.deckLines[self.maxNumberOfDecks] = lines[prevDeckLineNum:
+                                                      lineNum + 1]
         prevDeckLineNum = lineNum + 1
     if self.maxNumberOfDecks < 1:
-      raise IOError(self.printTag+ "ERROR: the file "+inputFile+" does not contain a end case fullstop '.'!")
+      raise IOError(self.printTag + "ERROR: the file " + inputFile +
+                    " does not contain a end case fullstop '.'!")
 
-  def printInput(self,outfile=None):
+  def printInput(self, outfile=None):
     """
       Method to print out the new input
       @ In, outfile, string, optional, output file root
       @ Out, None
     """
-    if outfile==None:
-      outfile =self.inputfile
+    if outfile == None:
+      outfile = self.inputfile
     outfile.open('w')
     for deckNum in self.deckLines.keys():
       for i in self.deckLines[deckNum]:
-        outfile.write('%s' %(i))
+        outfile.write('%s' % (i))
     outfile.close()
 
-  def modifyOrAdd(self,dictionaryList,save=True):
+  def modifyOrAdd(self, dictionaryList, save=True):
     """
       dictionaryList is a list of dictionaries of the required addition or modification
       the method looks in self.lines for a card number matching the card in modiDictionaryList
@@ -70,76 +74,93 @@ class RELAPparser():
       @ In, save, bool, optional, True if the original tree needs to be saved
       @ Out, lines, list, list of modified lines (of the original input)
     """
-    decks              = {}
-    lines              = []
+    decks = {}
+    lines = []
     for i in dictionaryList:
       if 'decks' not in i.keys():
-        raise IOError(self.printTag+"ERROR: no card inputs found!!")
+        raise IOError(self.printTag + "ERROR: no card inputs found!!")
       else:
         decks.update(i['decks'])
     for deckNum in decks.keys():
       a = self.deckLines.keys()
       if deckNum not in self.deckLines.keys():
-        raise IOError("RELAP5 Interface: The number of deck found in the original input file is "+str(self.maxNumberOfDecks)+" while the user requested to modify the deck number "+str(deckNum))
-      temp               = []
+        raise IOError(
+            "RELAP5 Interface: The number of deck found in the original input file is "
+            + str(self.maxNumberOfDecks) +
+            " while the user requested to modify the deck number " +
+            str(deckNum))
+      temp = []
       modiDictionaryList = decks[deckNum]
       temp.append('*RAVEN INPUT VALUES\n')
       if self.maxNumberOfDecks > 1:
-        temp.append('*'+' deckNum: '+str(deckNum)+'\n')
+        temp.append('*' + ' deckNum: ' + str(deckNum) + '\n')
       for j in modiDictionaryList:
         for var in modiDictionaryList[j]:
-          temp.append('* card: '+j+' word: '+str(var['position'])+' value: '+str(var['value'])+'\n')
+          temp.append('* card: ' + j + ' word: ' + str(var['position']) +
+                      ' value: ' + str(var['value']) + '\n')
       temp.append('*RAVEN INPUT VALUES\n')
 
-      temp+=self.deckLines[deckNum]
+      temp += self.deckLines[deckNum]
       cardLines = {}
-      foundAllCards = dict.fromkeys(modiDictionaryList.keys(),False)
+      foundAllCards = dict.fromkeys(modiDictionaryList.keys(), False)
       for lineNum, line in enumerate(temp):
         if all(foundAllCards.values()):
           break
-        if not re.match('^\s*\n',line):
+        if not re.match('^\s*\n', line):
           card = line.split()[0].strip()
           if card in modiDictionaryList.keys():
-            cardLines[card] = {'lineNumber':lineNum,'numberOfLevels':1,'numberOfAvailableWords':self.countNumberOfWords(line)}
+            cardLines[card] = {
+                'lineNumber': lineNum,
+                'numberOfLevels': 1,
+                'numberOfAvailableWords': self.countNumberOfWords(line)
+            }
             foundAllCards[card] = True
-            moveToNextLine      = True
-            cnt                 = 1
+            moveToNextLine = True
+            cnt = 1
             while moveToNextLine:
-              if temp[lineNum+cnt].strip().startswith("+"):
-                cardLines[card]['numberOfLevels'        ]+=1
-                cardLines[card]['numberOfAvailableWords']+=self.countNumberOfWords(temp[lineNum+cnt])
-                cnt+=1
+              if temp[lineNum + cnt].strip().startswith("+"):
+                cardLines[card]['numberOfLevels'] += 1
+                cardLines[card][
+                    'numberOfAvailableWords'] += self.countNumberOfWords(
+                        temp[lineNum + cnt])
+                cnt += 1
               else:
-                moveToNextLine=False
+                moveToNextLine = False
       # modify the cards
       for card in cardLines.keys():
         for var in modiDictionaryList[card]:
           if cardLines[card]['numberOfAvailableWords'] >= var['position']:
             totalNumberOfWords = 0
             for i in range(cardLines[card]['numberOfLevels']):
-              numberOfWords = self.countNumberOfWords(temp[cardLines[card]['lineNumber']+i])
-              if totalNumberOfWords+numberOfWords>=var['position']:
-                temp[cardLines[card]['lineNumber']+i] = self.replaceword(temp[cardLines[card]['lineNumber']+i],var['position']-totalNumberOfWords,var['value'])
+              numberOfWords = self.countNumberOfWords(
+                  temp[cardLines[card]['lineNumber'] + i])
+              if totalNumberOfWords + numberOfWords >= var['position']:
+                temp[cardLines[card]['lineNumber'] + i] = self.replaceword(
+                    temp[cardLines[card]['lineNumber'] + i],
+                    var['position'] - totalNumberOfWords, var['value'])
                 break
-              totalNumberOfWords+=numberOfWords
+              totalNumberOfWords += numberOfWords
           else:
-            raise IOError("RELAP5 Interface: The word that needs to be sampled is in a position ("+str(var['position'])+") > then the actual number of words ("+str(cardLines[card]['numberOfAvailableWords'])+")!!")
+            raise IOError(
+                "RELAP5 Interface: The word that needs to be sampled is in a position ("
+                + str(var['position']) + ") > then the actual number of words ("
+                + str(cardLines[card]['numberOfAvailableWords']) + ")!!")
       if save:
-        self.deckLines[deckNum]=temp
+        self.deckLines[deckNum] = temp
       lines = lines + temp
     return lines
 
-  def countNumberOfWords(self,line,additionFactor=-1):
+  def countNumberOfWords(self, line, additionFactor=-1):
     """
       Method to count the number of words in a certain line
       @ In, line, string, line to be evaluated
       @ In, additionFactor, int, addition factor
       @ Out, number, int, the number of words
     """
-    number = len(line.split())+additionFactor
+    number = len(line.split()) + additionFactor
     return number
 
-  def replaceword(self,line,position,value):
+  def replaceword(self, line, position, value):
     """
       Method to replace a word value with the a new value
       @ In, line, string, line to be modified
@@ -147,10 +168,10 @@ class RELAPparser():
       @ In, value, float, new value
       @ Out, newline, string, modified line
     """
-    temp=line.split()
-    temp[int(position)]=str(value)
-    newline=temp.pop(0)
+    temp = line.split()
+    temp[int(position)] = str(value)
+    newline = temp.pop(0)
     for i in temp:
-      newline=newline+'  '+i
-    newline=newline+'\n'
+      newline = newline + '  ' + i
+    newline = newline + '\n'
     return newline

@@ -19,7 +19,7 @@ Created on Jul 18 2016
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
-warnings.simplefilter('default',DeprecationWarning)
+warnings.simplefilter('default', DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -30,13 +30,16 @@ import scipy.spatial.distance as spDist
 
 #Internal Modules------------------------------------------------------------------------------------
 from .Metric import Metric
+
 #Internal Modules End--------------------------------------------------------------------------------
+
 
 class Minkowski(Metric):
   """
     Minkowski metrics which can be employed for both pointSets and historySets
   """
-  def initialize(self,inputDict):
+
+  def initialize(self, inputDict):
     """
       This method initialize the metric object
       @ In, inputDict, dict, dictionary containing initialization parameters
@@ -45,7 +48,7 @@ class Minkowski(Metric):
     self.p = None
     self.pivotParameter = None
 
-  def _localReadMoreXML(self,xmlNode):
+  def _localReadMoreXML(self, xmlNode):
     """
       Method that reads the portion of the xml input that belongs to this specialized class
       and initialize internal parameters
@@ -58,30 +61,38 @@ class Minkowski(Metric):
       if child.tag == 'pivotParameter':
         self.pivotParameter = child.text
 
-  def distance(self,x,y):
+  def distance(self, x, y):
     """
       This method actually calculates the distance between two dataObects x and y
       @ In, x, dict, dictionary containing data of x
       @ In, y, dict, dictionary containing data of y
       @ Out, value, float, distance between x and y
     """
-    if isinstance(x,np.ndarray) and isinstance(y,np.ndarray):
+    if isinstance(x, np.ndarray) and isinstance(y, np.ndarray):
       value = spDist.minkowski(x, y, self.p)
       return value
-    elif isinstance(x,dict) and isinstance(y,dict):
+    elif isinstance(x, dict) and isinstance(y, dict):
       if self.pivotParameter == None:
-        self.raiseAnError(IOError,'The Minkowski metrics is being used on a historySet without the parameter pivotParameter being specified')
+        self.raiseAnError(
+            IOError,
+            'The Minkowski metrics is being used on a historySet without the parameter pivotParameter being specified'
+        )
       if x.keys() == y.keys():
         value = 0
         for key in x.keys():
           if x[key].size == y[key].size:
             if key != self.pivotParameter:
               value += spDist.minkowski(x[key], y[key], self.p)
-            value = math.pow(value,1.0/self.p)
+            value = math.pow(value, 1.0 / self.p)
             return value
           else:
-            print('Metric Minkowski error: the length of the variable array ' + str(key) +' is not consistent among the two data sets')
+            print('Metric Minkowski error: the length of the variable array ' +
+                  str(key) + ' is not consistent among the two data sets')
       else:
-        print('Metric Minkowski error: the two data sets do not contain the same variables')
+        print(
+            'Metric Minkowski error: the two data sets do not contain the same variables'
+        )
     else:
-      print('Metric Minkowski error: the structures of the two data sets are different')
+      print(
+          'Metric Minkowski error: the structures of the two data sets are different'
+      )

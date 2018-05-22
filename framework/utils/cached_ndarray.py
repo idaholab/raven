@@ -19,7 +19,7 @@ Created on Feb 4, 2015
 #----- python 2 - 3 compatibility
 from __future__ import division, print_function, absolute_import
 import warnings
-warnings.simplefilter('default',DeprecationWarning)
+warnings.simplefilter('default', DeprecationWarning)
 #----- end python 2 - 3 compatibility
 #External Modules------------------------------------------------------------------------------------
 import sys
@@ -29,13 +29,23 @@ import numpy as np
 import xarray as xr
 import pandas as pd
 lock = threading.Lock()
+
 #External Modules End--------------------------------------------------------------------------------
+
 
 class c1darray(object):
   """
     This class performs the caching of the numpy ndarray class
   """
-  def __init__(self, shape = (100,), values = None, dtype=float, buff=None, offset=0, strides=None, order=None):
+
+  def __init__(self,
+               shape=(100, ),
+               values=None,
+               dtype=float,
+               buff=None,
+               offset=0,
+               strides=None,
+               order=None):
     """
       Constructor
       @ In, shape, tuple, optional, array shape
@@ -48,10 +58,11 @@ class c1darray(object):
       @ Out, None
     """
     if values is not None:
-      if shape != (100,) and values.shape != shape:
+      if shape != (100, ) and values.shape != shape:
         raise IOError("different shape")
       if type(values).__name__ != 'ndarray':
-        raise IOError("Only ndarray is accepted as type.Got "+type(values).__name__)
+        raise IOError(
+            "Only ndarray is accepted as type.Got " + type(values).__name__)
       self.values = values
       self.size = values.size
     else:
@@ -89,7 +100,7 @@ class c1darray(object):
     """
     return self.size
 
-  def append(self,x):
+  def append(self, x):
     """
       Append method. call format c1darrayInstance.append(value)
       @ In, x, element or array, the value or array to append
@@ -98,52 +109,54 @@ class c1darray(object):
 
     #lock.acquire()
     try:
-      if type(x).__name__ not in ['ndarray','c1darray']:
-        if self.size  == self.capacity:
+      if type(x).__name__ not in ['ndarray', 'c1darray']:
+        if self.size == self.capacity:
           self.capacity *= 4
-          newdata = np.zeros((self.capacity,),dtype=self.values.dtype)
+          newdata = np.zeros((self.capacity, ), dtype=self.values.dtype)
           newdata[:self.size] = self.values[:]
           self.values = newdata
         self.values[self.size] = x
-        self.size  += 1
+        self.size += 1
       else:
         if (self.capacity - self.size) < x.size:
           # to be safer
-          self.capacity += max(self.capacity*4,x.size) #self.capacity + x.size*4
-          newdata = np.zeros((self.capacity,),dtype=self.values.dtype)
+          # self.capacity + x.size*4
+          self.capacity += max(self.capacity * 4, x.size)
+          newdata = np.zeros((self.capacity, ), dtype=self.values.dtype)
           newdata[:self.size] = self.values[:self.size]
           self.values = newdata
         #for index in range(x.size):
-        self.values[self.size:self.size+x.size] = x[:]
-        self.size  += x.size
+        self.values[self.size:self.size + x.size] = x[:]
+        self.size += x.size
     finally:
       #lock.release()
       pass
 
-  def returnIndexClosest(self,value):
+  def returnIndexClosest(self, value):
     """
       Function that return the index of the element in the array closest to value
       @ In, value, double, query value
       @ Out, index, int, index of the element in the array closest to value
     """
-    index=-1
+    index = -1
     dist = sys.float_info.max
     for i in range(self.size):
-      if abs(self.values[i]-value)<dist:
-        dist = abs(self.values[i]-value)
+      if abs(self.values[i] - value) < dist:
+        dist = abs(self.values[i] - value)
         index = i
     return index
 
-  def returnIndexFirstPassage(self,value):
+  def returnIndexFirstPassage(self, value):
     """
       Function that return the index of the element that firstly crosses value
       @ In, value, double, query value
       @ Out, index, int, index of the element in the array closest to value
     """
-    index=-1
+    index = -1
     dist = sys.float_info.max
-    for i in range(1,self.size):
-      if (self.values[i]>=value and self.values[i-1]<=value) or (self.values[i]<=value and self.values[i-1]>=value):
+    for i in range(1, self.size):
+      if (self.values[i] >= value and self.values[i - 1] <= value) or (
+          self.values[i] <= value and self.values[i - 1] >= value):
         index = i
         break
     return index
@@ -154,13 +167,14 @@ class c1darray(object):
       @ In, None
       @ Out, index, int, index of the maximum value of the array
     """
-    index=-1
+    index = -1
     maxValue = -sys.float_info.max
     for i in range(self.size):
-      if self.values[i]>=maxValue:
+      if self.values[i] >= maxValue:
         maxValue = self.values[i]
         index = i
-        #break Breaking here guarantees you only ever get the first index (unless you have -sys.float_info_max in first entry)
+        # break Breaking here guarantees you only ever get the first index (unless you have -sys.float_info_max in
+        # first entry)
     return index
 
   def returnIndexMin(self):
@@ -169,13 +183,14 @@ class c1darray(object):
       @ In, None ,
       @ Out, index, int, index of the minimum value of the array
     """
-    index=-1
+    index = -1
     minValue = sys.float_info.max
     for i in range(self.size):
-      if self.values[i]<=minValue:
+      if self.values[i] <= minValue:
         minValue = self.values[i]
         index = i
-        #break Breaking here guarantees you only ever get the first index (unless you have sys.float_info_max in first entry)
+        # break Breaking here guarantees you only ever get the first index (unless you have sys.float_info_max in
+        # first entry)
     return index
 
   def __add__(self, x):
@@ -184,7 +199,9 @@ class c1darray(object):
       @ In, x, c1darray, the addendum
       @ Out, newArray, c1drray, sum of the two arrays
     """
-    newArray = c1darray(shape = self.size+np.array(x).shape[0], values=self.values[:self.size]+np.array(x))
+    newArray = c1darray(
+        shape=self.size + np.array(x).shape[0],
+        values=self.values[:self.size] + np.array(x))
     return newArray
 
   def __radd__(self, x):
@@ -194,18 +211,26 @@ class c1darray(object):
       @ In, x, c1darray, the addendum
       @ Out, newArray, c1drray, sum of the two arrays
     """
-    newArray = c1darray(shape = np.array(x).shape[0]+self.size, values=np.array(x)+self.values[:self.size])
+    newArray = c1darray(
+        shape=np.array(x).shape[0] + self.size,
+        values=np.array(x) + self.values[:self.size])
     return newArray
 
-  def __array__(self, dtype = None):
+  def __array__(self, dtype=None):
     """
       so that numpy's array() returns values
       @ In, dtype, np.type, the requested type of the array
       @ Out, __array__, numpy.ndarray, the requested array
     """
     if dtype != None:
-      return ndarray((self.size,), dtype, buffer=None, offset=0, strides=None, order=None)
-    else            :
+      return ndarray(
+          (self.size, ),
+          dtype,
+          buffer=None,
+          offset=0,
+          strides=None,
+          order=None)
+    else:
       return self.values[:self.size]
 
   def __repr__(self):
@@ -215,6 +240,7 @@ class c1darray(object):
       @ Out, __repr__, string, the representation string
     """
     return repr(self.values[:self.size])
+
 
 #
 #
@@ -231,13 +257,23 @@ class cNDarray(object):
     into a more useful form (e.g. xarray.Dataset) should be accomplished in the DataObject; this is just a collecting
     structure. - talbpw, 2017-10-20
   """
+
   ### CONSTRUCTOR ###
-  def __init__(self,values=None,width=None,length=None,dtype=float,buff=None,offset=0,strides=None,order=None):
+  def __init__(self,
+               values=None,
+               width=None,
+               length=None,
+               dtype=float,
+               buff=None,
+               offset=0,
+               strides=None,
+               order=None):
     """
       Constructor.
       @ In, values, np.ndarray, optional, matrix of initial values with shape (# samples, # entities)
       @ In, width, int, optional, if not using "values" then this is the number of entities to allocate
-      @ In, length, int, optional, if not using "values" then this is the initial capacity (number of samples) to allocate
+      @ In, length, int, optional, if not using "values" then this is the initial capacity (number of samples) to
+             allocate
       @ In, dtype, type, optional, sets the type of the content of the array
       @ In, buff, int, optional, buffer size
       @ In, offset, int, optional, array offeset
@@ -246,15 +282,20 @@ class cNDarray(object):
       @ Out, None
     """
     # members of this class
-    self.values   = None   # underlying data for this structure, np.ndarray with optional dtype (default float)
-    self.size     = None   # number of rows (samples) with actual data (not including empty cached)
-    self.width    = None   # number of entities aka columns
-    self.capacity = None   # cached np.ndarray size
+    self.values = None  # underlying data for this structure, np.ndarray with optional dtype (default float)
+    self.size = None  # number of rows (samples) with actual data (not including empty cached)
+    # number of entities aka columns
+    self.width = None
+    # cached np.ndarray size
+    self.capacity = None
     # priorities: initialize with values; if not, use width and length
     if values is not None:
       if type(values) != np.ndarray:
-        raise IOError('Only np.ndarray can be used to set "values" in "cNDarray".  Got '+type(values).__name__)
-      self.values = values         # underlying data structure
+        raise IOError(
+            'Only np.ndarray can be used to set "values" in "cNDarray".  Got '
+            + type(values).__name__)
+      # underlying data structure
+      self.values = values
       self.size = values.shape[0]
       try:
         self.width = values.shape[1]
@@ -265,11 +306,13 @@ class cNDarray(object):
       self.capacity = self.size
     else:
       if width is None:
-        raise IOError('Creating cNDarray: neither "values" nor "width" was specified!')
+        raise IOError(
+            'Creating cNDarray: neither "values" nor "width" was specified!')
       self.capacity = length if length is not None else 100
       self.width = width
       self.size = 0
-      self.values = ndarray((self.capacity,self.width),dtype,buff,offset,strides,order)
+      self.values = ndarray((self.capacity, self.width), dtype, buff, offset,
+                            strides, order)
 
   ### PROPERTIES ###
   @property
@@ -277,23 +320,30 @@ class cNDarray(object):
     """
       Shape property, as used in np.ndarray structures.
       @ In, None
-      @ Out, (int,int), the (#rows, #columns) of useful data in this cached array
+      # columns) of useful data in this cached array
+      @ Out, (int,int), the (
     """
-    return (self.size,self.width)
+    return (self.size, self.width)
 
   ### BUILTINS ###
-  def __array__(self, dtype = None):
+  def __array__(self, dtype=None):
     """
       so that numpy's array() returns values
       @ In, dtype, np.type, the requested type of the array
       @ Out, __array__, numpy.ndarray, the requested array
     """
     if dtype != None:
-      return ndarray((self.size,self.width), dtype, buffer=None, offset=0, strides=None, order=None)
+      return ndarray(
+          (self.size, self.width),
+          dtype,
+          buffer=None,
+          offset=0,
+          strides=None,
+          order=None)
     else:
       return self.getData()
 
-  def __getitem__(self,val):
+  def __getitem__(self, val):
     """
       Get item method.  Slicing should work as expected.
       @ In, val, slice object, the slicing object (e.g. 1, :, :2, 1:3, etc.)
@@ -327,48 +377,57 @@ class cNDarray(object):
     return repr(self.values[:self.size])
 
   ### UTILITY FUNCTIONS ###
-  def append(self,entry):
+  def append(self, entry):
     """
       Append method. call format c1darrayInstance.append(value)
-      @ In, entry, np.ndarray, the entries to append as [entry, entry, entry].  Must have shape (x, # entities), where x can be any nonzero number of samples.
+      @ In, entry, np.ndarray, the entries to append as [entry, entry, entry]. Must have shape (x, # entities),
+             where x can be any nonzero number of samples.
       @ Out, None
     """
-    # TODO extend to include sending in a (width,) shape np.ndarray to append a single sample, rather than have it forced to be a 1-entry array.
+    # TODO extend to include sending in a (width,) shape np.ndarray to append a single sample, rather than have it
+    # forced to be a 1-entry array.
     # entry.shape[0] is the number of new entries, entry.shape[1] is the number of variables being entered
     # entry must match width and be at least 1 entry long
     if type(entry) not in [np.ndarray]:
-      raise IOError('Tried to add new data to cNDarray.  Can only accept np.ndarray, but got '+type(entry).__name__)
+      raise IOError(
+          'Tried to add new data to cNDarray.  Can only accept np.ndarray, but got '
+          + type(entry).__name__)
     # for now require full correct shape, later handle the single entry case
-    if len(entry.shape)!=1:
+    if len(entry.shape) != 1:
       # TODO single entry case
-      raise IOError('Tried to add new data to cNDarray.  Need shape ({},) but got "{}"!'.format(self.width,entry.shape))
+      raise IOError(
+          'Tried to add new data to cNDarray.  Need shape ({},) but got "{}"!'.
+          format(self.width, entry.shape))
     # must have matching width (fix for single entry case)
     if entry.shape[0] != self.width:
-      raise IOError('Tried to add new data to cNDarray.  Need {} entries in array, but got '.format(self.width)+str(entry.shape[0]))
+      raise IOError(
+          'Tried to add new data to cNDarray.  Need {} entries in array, but got '.
+          format(self.width) + str(entry.shape[0]))
     # check if there's enough space in cache to append the new entries
     if self.size + 1 > self.capacity:
       # since there's not enough space, quadruple available space # TODO change growth parameter to be variable?
-      self.capacity += self.capacity*3
-      newdata = np.zeros((self.capacity,self.width),dtype=self.values.dtype)
+      self.capacity += self.capacity * 3
+      newdata = np.zeros((self.capacity, self.width), dtype=self.values.dtype)
       newdata[:self.size] = self.values[:self.size]
       self.values = newdata
     self.values[self.size] = entry[:]
     self.size += 1
 
-  def addEntity(self,vals,firstEver=False):
+  def addEntity(self, vals, firstEver=False):
     """
       Adds a column to the dataset.
-      @ In, vals, list, as list(#,#,#) where # is either single-valued or numpy array
+      # is either single-valued or numpy array
+      @ In, vals, list, as list(
       @ Out, None
     """
     # create a new column with up to the cached capacity
-    new = np.ndarray(self.capacity,dtype=object)
+    new = np.ndarray(self.capacity, dtype=object)
     # fill up to current filled size with the values
     new[:self.size] = vals
     # reshape so it can be stacked onto the existing data
-    new = new.reshape(self.capacity,1)
+    new = new.reshape(self.capacity, 1)
     # "hstack" stacks along the second dimension, or columns for us
-    self.values = np.hstack((self.values,new))
+    self.values = np.hstack((self.values, new))
     self.width += 1
 
   def getData(self):
@@ -379,12 +438,12 @@ class cNDarray(object):
     """
     return self.values[:self.size]
 
-  def removeEntity(self,index):
+  def removeEntity(self, index):
     """
       Removes a column from this dataset
       @ In, index, int, index of entry to remove
       @ Out, None
     """
-    assert(abs(index) < self.width)
-    self.values = np.delete(self.values,index,axis=1)
+    assert (abs(index) < self.width)
+    self.values = np.delete(self.values, index, axis=1)
     self.width -= 1

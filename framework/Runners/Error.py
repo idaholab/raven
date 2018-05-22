@@ -17,6 +17,7 @@ Created on Mar 5, 2013
 @author: maljdan
 """
 
+
 class Error(Exception):
   """ An exception for modeling failed runs within this module """
   pass

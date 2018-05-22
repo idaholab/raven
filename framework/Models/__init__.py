@@ -30,7 +30,7 @@ from .ExternalModel import ExternalModel
 from .Code import Code
 from .EnsembleModel import EnsembleModel
 from .PostProcessor import PostProcessor
-from .HybridModel   import HybridModel
+from .HybridModel import HybridModel
 
 ## [ Add new class here ]
 
@@ -40,11 +40,7 @@ from .Factory import needsRunInfo
 from .Factory import validate
 
 # We should not really need this as we do not use wildcard imports
-__all__ = ['Model',
-           'Dummy',
-           'ROM',
-           'ExternalModel',
-           'Code',
-           'EnsembleModel',
-           'PostProcessor',
-           'HybridModel']
+__all__ = [
+    'Model', 'Dummy', 'ROM', 'ExternalModel', 'Code', 'EnsembleModel',
+    'PostProcessor', 'HybridModel'
+]

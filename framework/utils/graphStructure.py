@@ -19,7 +19,7 @@ Created on Oct 27, 2016
 #----- python 2 - 3 compatibility
 from __future__ import division, print_function, absolute_import
 import warnings
-warnings.simplefilter('default',DeprecationWarning)
+warnings.simplefilter('default', DeprecationWarning)
 #----- end python 2 - 3 compatibility
 #External Modules------------------------------------------------------------------------------------
 import sys
@@ -27,6 +27,7 @@ import itertools
 #External Modules End--------------------------------------------------------------------------------
 #Internal Modules------------------------------------------------------------------------------------
 from utils import utils
+
 #Internal Modules End--------------------------------------------------------------------------------
 
 
@@ -35,6 +36,7 @@ class graphObject(object):
     This is a class that crates a graph object.
     It is inspired from the webisite http://www.python-course.eu/graphs_python.php
   """
+
   def __init__(self, graphDict=None):
     """
       Initializes a graph object
@@ -43,7 +45,7 @@ class graphObject(object):
     """
     if graphDict == None:
       graphDict = {}
-    self.__graphDict = { k.strip():v for k, v in graphDict.iteritems()}
+    self.__graphDict = {k.strip(): v for k, v in graphDict.iteritems()}
 
   def vertices(self):
     """
@@ -112,6 +114,7 @@ class graphObject(object):
           edges.append({vertex, neighbour})
     return edges
 
+
 #   def __str__(self):
 #       res = "vertices: "
 #       for k in self.__graphDict:
@@ -164,7 +167,7 @@ class graphObject(object):
       @ Out, isALoop, bool, is a loop?
     """
     path = set()
-    g    = self.__graphDict
+    g = self.__graphDict
 
     def visit(vertex):
       """
@@ -178,6 +181,7 @@ class graphObject(object):
           return True
       path.remove(vertex)
       return False
+
     return any(visit(v) for v in g)
 
   def findAllPaths(self, startVertex, endVertex, path=[]):
@@ -197,12 +201,12 @@ class graphObject(object):
     paths = []
     for vertex in graph[startVertex]:
       if vertex not in path:
-        extendedPaths = self.findAllPaths(vertex,endVertex,path)
+        extendedPaths = self.findAllPaths(vertex, endVertex, path)
         for p in extendedPaths:
           paths.append(p)
     return paths
 
-  def isConnected(self, verticesEncountered = None, startVertex=None):
+  def isConnected(self, verticesEncountered=None, startVertex=None):
     """
       Method that determines if the graph is connected (graph theory connectivity)
       @ In, verticesEncountered, set, the encountered vertices (generally it is None when called from outside)
@@ -228,7 +232,8 @@ class graphObject(object):
 
   def isConnectedNet(self, startVertex=None):
     """
-      Method that determines if the graph is a connected net (all the vertices are connect with each other through other vertices)
+      Method that determines if the graph is a connected net (all the vertices are connect with each other through
+      other vertices)
       This method can state that we have a connected net even if, based on graph theory, the graph is not connected
       @ In, startVertex, string, the starting vertex
       @ Out, graphNetConnected, bool, is the graph net fully connected?
@@ -266,18 +271,19 @@ class graphObject(object):
     uniquePaths = list(utils.filterAllSubSets(paths))
     return uniquePaths
 
-  def createSingleListOfVertices(self,uniquePaths=None):
+  def createSingleListOfVertices(self, uniquePaths=None):
     """
       This method is aimed to create a list of vertices from all the unique
       paths present in this graph
-      @ In, uniquePaths, list of list, optional, list of unique paths. If not present, the unique paths are going to be determined
+      @ In, uniquePaths, list of list, optional, list of unique paths. If not present, the unique paths are going to
+             be determined
       @ Out, singleList, list, list of vertices in "ascending" order
     """
     if uniquePaths is None:
       uniquePaths = self.findAllUniquePaths()
     singleList = []
     for pathCnt in range(len(uniquePaths)):
-      singleList = utils.mergeSequences(singleList,uniquePaths[pathCnt])
+      singleList = utils.mergeSequences(singleList, uniquePaths[pathCnt])
     return singleList
 
   def vertexDegree(self, vertex):
@@ -289,7 +295,7 @@ class graphObject(object):
       @ In, vertex, string, the vertex whose degree needs to be reported
       @ Out, degree, int, the degree of the vertex
     """
-    adjVertices =  self.__graphDict[vertex]
+    adjVertices = self.__graphDict[vertex]
     degree = len(adjVertices) + adjVertices.count(vertex)
     return degree
 
@@ -315,7 +321,7 @@ class graphObject(object):
       @ Out, isDegreeSeq, bool, is a degree sequence? (i.e. the sequence sequence is non-increasing)
     """
     # check if the sequence sequence is non-increasing:
-    isDegreeSeq = all( x>=y for x, y in zip(sequence, sequence[1:]))
+    isDegreeSeq = all(x >= y for x, y in zip(sequence, sequence[1:]))
     return isDegreeSeq
 
   def minDelta(self):
@@ -353,7 +359,7 @@ class graphObject(object):
     V = len(self.__graphDict.keys())
     E = len(self.edges())
     try:
-      dens = 2.0 * E / (V *(V - 1))
+      dens = 2.0 * E / (V * (V - 1))
     except:
       dens = 0
     return dens
@@ -364,13 +370,13 @@ class graphObject(object):
       @ In, None
       @ Out, diameter, integer, ensity of a graph
     """
-    v    = self.vertices()
+    v = self.vertices()
     vrev = list(reversed(v))
-    pairs = list(itertools.combinations(v,2))
-    pairs.extend(list(itertools.combinations(vrev,2)))
+    pairs = list(itertools.combinations(v, 2))
+    pairs.extend(list(itertools.combinations(vrev, 2)))
     smallestPaths = []
-    for (s,e) in pairs:
-      paths = self.findAllPaths(s,e)
+    for (s, e) in pairs:
+      paths = self.findAllPaths(s, e)
       sortedPath = sorted(paths, key=len)
       smallest = sortedPath[0] if len(sortedPath) > 0 else None
       if smallest is not None:
@@ -394,9 +400,9 @@ class graphObject(object):
       metConditions = False
     else:
       if Graph.isDegreeSequence(sequence):
-        for k in range(1,len(sequence) + 1):
+        for k in range(1, len(sequence) + 1):
           left = sum(sequence[:k])
-          right =  k * (k-1) + sum([min(x,k) for x in sequence[k:]])
+          right = k * (k - 1) + sum([min(x, k) for x in sequence[k:]])
           if left > right:
             metConditions = False
             break

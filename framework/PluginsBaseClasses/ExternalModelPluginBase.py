@@ -16,7 +16,7 @@ Created on November 6, 2017
 
 @author: alfoa
 """
-from __future__ import division, print_function , unicode_literals, absolute_import
+from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default', DeprecationWarning)
 
@@ -25,7 +25,9 @@ warnings.simplefilter('default', DeprecationWarning)
 
 #Internal Modules---------------------------------------------------------------
 from .PluginBase import PluginBase
+
 #Internal Modules End-----------------------------------------------------------
+
 
 class ExternalModelPluginBase(PluginBase):
   """
@@ -33,7 +35,7 @@ class ExternalModelPluginBase(PluginBase):
   """
   # List containing the methods that need to be checked in order to assess the
   # validity of a certain plugin. This list needs to be populated by the derived class
-  _methodsToCheck = ['run','initialize']
+  _methodsToCheck = ['run', 'initialize']
 
   def __init__(self):
     """
@@ -42,4 +44,3 @@ class ExternalModelPluginBase(PluginBase):
       @ Out, None
     """
     PluginBase.__init__(self)
-

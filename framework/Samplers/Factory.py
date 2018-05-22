@@ -19,7 +19,7 @@
 #for future compatibility with Python 3-----------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
-warnings.simplefilter('default',DeprecationWarning)
+warnings.simplefilter('default', DeprecationWarning)
 if not 'xrange' in dir(__builtins__):
   xrange = range
 #End compatibility block for Python 3-------------------------------------------
@@ -51,7 +51,6 @@ from Samplers.AdaptiveDynamicEventTree import AdaptiveDynamicEventTree
 ## Alternatively, to fully automate this file:
 # from Samplers import *
 ################################################################################
-
 """
  Interface Dictionary (factory) (private)
 """
@@ -59,20 +58,21 @@ from Samplers.AdaptiveDynamicEventTree import AdaptiveDynamicEventTree
 # imports defined above.
 __base = 'Sampler'
 __interFaceDict = {}
-__interFaceDict['MonteCarlo'              ] = MonteCarlo
-__interFaceDict['Grid'                    ] = Grid
-__interFaceDict['Stratified'              ] = Stratified
-__interFaceDict['FactorialDesign'         ] = FactorialDesign
-__interFaceDict['ResponseSurfaceDesign'   ] = ResponseSurfaceDesign
-__interFaceDict['Sobol'                   ] = Sobol
-__interFaceDict['SparseGridCollocation'   ] = SparseGridCollocation
-__interFaceDict['CustomSampler'           ] = CustomSampler
-__interFaceDict['EnsembleForward'         ] = EnsembleForward
-__interFaceDict['LimitSurfaceSearch'      ] = LimitSurfaceSearch
-__interFaceDict['AdaptiveSobol'           ] = AdaptiveSobol
-__interFaceDict['AdaptiveSparseGrid'      ] = AdaptiveSparseGrid
-__interFaceDict['DynamicEventTree'        ] = DynamicEventTree
+__interFaceDict['MonteCarlo'] = MonteCarlo
+__interFaceDict['Grid'] = Grid
+__interFaceDict['Stratified'] = Stratified
+__interFaceDict['FactorialDesign'] = FactorialDesign
+__interFaceDict['ResponseSurfaceDesign'] = ResponseSurfaceDesign
+__interFaceDict['Sobol'] = Sobol
+__interFaceDict['SparseGridCollocation'] = SparseGridCollocation
+__interFaceDict['CustomSampler'] = CustomSampler
+__interFaceDict['EnsembleForward'] = EnsembleForward
+__interFaceDict['LimitSurfaceSearch'] = LimitSurfaceSearch
+__interFaceDict['AdaptiveSobol'] = AdaptiveSobol
+__interFaceDict['AdaptiveSparseGrid'] = AdaptiveSparseGrid
+__interFaceDict['DynamicEventTree'] = DynamicEventTree
 __interFaceDict['AdaptiveDynamicEventTree'] = AdaptiveDynamicEventTree
+
 
 def knownTypes():
   """
@@ -83,7 +83,8 @@ def knownTypes():
   """
   return __interFaceDict.keys()
 
-def returnInstance(Type,caller):
+
+def returnInstance(Type, caller):
   """
     Attempts to create and return an instance of a particular type of object
     available to this factory.
@@ -96,9 +97,11 @@ def returnInstance(Type,caller):
     return __interFaceDict[Type]()
   except KeyError:
     print(knownTypes())
-    caller.raiseAnError(NameError,__name__+': unknown '+__base+' type '+Type)
+    caller.raiseAnError(NameError,
+                        __name__ + ': unknown ' + __base + ' type ' + Type)
 
-def returnClass(Type,caller):
+
+def returnClass(Type, caller):
   """
     Attempts to return a particular class type available to this factory.
     @ In, Type, string, string should be one of the knownTypes.
@@ -109,4 +112,5 @@ def returnClass(Type,caller):
   try:
     return __interFaceDict[Type]
   except KeyError:
-    caller.raiseAnError(NameError,__name__+': unknown '+__base+' type '+Type)
+    caller.raiseAnError(NameError,
+                        __name__ + ': unknown ' + __base + ' type ' + Type)
