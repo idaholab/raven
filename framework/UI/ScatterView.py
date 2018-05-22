@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """
   A view widget for visualizing scatterplots of data utilizing matplotlib.
 """
@@ -19,7 +18,7 @@
 #For future compatibility with Python 3
 from __future__ import division, print_function, absolute_import
 import warnings
-warnings.simplefilter('default',DeprecationWarning)
+warnings.simplefilter('default', DeprecationWarning)
 #End compatibility block for Python 3
 
 import matplotlib
@@ -37,14 +36,15 @@ import mpl_toolkits
 import matplotlib.pyplot
 import matplotlib.ticker
 
-
 import numpy as np
 from . import colors
+
 
 class ScatterView(BaseHierarchicalView):
   """
     A view widget for visualizing scatterplots of data utilizing matplotlib.
   """
+
   def __init__(self, mainWindow=None):
     """
       Constructor for the Scatter plot view
@@ -85,7 +85,7 @@ class ScatterView(BaseHierarchicalView):
 
     self.cmbVars = {}
 
-    for i,name in enumerate(['X','Y','Z','Color']):
+    for i, name in enumerate(['X', 'Y', 'Z', 'Color']):
       varLabel = name + ' variable:'
       self.cmbVars[name] = qtw.QComboBox()
 
@@ -100,13 +100,13 @@ class ScatterView(BaseHierarchicalView):
       if i < len(dimNames):
         self.cmbVars[name].setCurrentIndex(i)
       else:
-        self.cmbVars[name].setCurrentIndex(len(dimNames)-1)
+        self.cmbVars[name].setCurrentIndex(len(dimNames) - 1)
 
       self.cmbVars[name].currentIndexChanged.connect(self.updateScene)
 
-      subLayout.addWidget(qtw.QLabel(varLabel),row,col)
+      subLayout.addWidget(qtw.QLabel(varLabel), row, col)
       col += 1
-      subLayout.addWidget(self.cmbVars[name],row,col)
+      subLayout.addWidget(self.cmbVars[name], row, col)
       row += 1
       col = 0
 
@@ -115,9 +115,9 @@ class ScatterView(BaseHierarchicalView):
     self.cmbColorMaps.addItems(matplotlib.pyplot.colormaps())
     self.cmbColorMaps.setCurrentIndex(self.cmbColorMaps.findText('coolwarm'))
     self.cmbColorMaps.currentIndexChanged.connect(self.updateScene)
-    subLayout.addWidget(self.lblColorMaps,row,col)
+    subLayout.addWidget(self.lblColorMaps, row, col)
     col += 1
-    subLayout.addWidget(self.cmbColorMaps,row,col)
+    subLayout.addWidget(self.cmbColorMaps, row, col)
     mySplitter.addWidget(controls)
 
     self.cmbVars['Z'].setCurrentIndex(0)
@@ -133,7 +133,7 @@ class ScatterView(BaseHierarchicalView):
       @ In, None
       @ Out, QSize, the recommended size of this widget
     """
-    return qtc.QSize(300,600)
+    return qtc.QSize(300, 600)
 
   def selectionChanged(self):
     """
@@ -150,8 +150,8 @@ class ScatterView(BaseHierarchicalView):
       @ In, None
       @ Out, None
     """
-    fontSize=16
-    smallFontSize=12
+    fontSize = 16
+    smallFontSize = 12
     rows = self.mainWindow.getSelectedIndices()
     names = self.mainWindow.getDimensions()
     data = self.mainWindow.getData()
@@ -183,12 +183,14 @@ class ScatterView(BaseHierarchicalView):
 
     specialColorKeywords = ['Cluster']
 
-    for key,cmb in self.cmbVars.iteritems():
+    for key, cmb in self.cmbVars.iteritems():
       if dimensionality == 2 and key == 'Z':
         continue
       if cmb.currentText() == 'Cluster':
         labels = self.mainWindow.getLabels()
-        allValues[key] = np.array([self.mainWindow.getColor(label).name() for label in labels], dtype='|S7')
+        allValues[key] = np.array(
+            [self.mainWindow.getColor(label).name() for label in labels],
+            dtype='|S7')
         values[key] = allValues[key][rows]
         self.lblColorMaps.setEnabled(False)
         self.cmbColorMaps.setEnabled(False)
@@ -196,7 +198,7 @@ class ScatterView(BaseHierarchicalView):
         self.cmbColorMaps.setVisible(False)
       else:
         col = names.index(cmb.currentText())
-        allValues[key] = data[:,col]
+        allValues[key] = data[:, col]
         mins[key] = min(allValues[key])
         maxs[key] = max(allValues[key])
         values[key] = allValues[key][rows]
@@ -227,30 +229,37 @@ class ScatterView(BaseHierarchicalView):
     self.mplCanvas.axes.hold(True)
 
     if self.axesLabelAction.isChecked():
-      self.mplCanvas.axes.set_xlabel(self.cmbVars['X'].currentText(),size=fontSize,labelpad=10)
-      self.mplCanvas.axes.set_ylabel(self.cmbVars['Y'].currentText(),size=fontSize,labelpad=10)
+      self.mplCanvas.axes.set_xlabel(
+          self.cmbVars['X'].currentText(), size=fontSize, labelpad=10)
+      self.mplCanvas.axes.set_ylabel(
+          self.cmbVars['Y'].currentText(), size=fontSize, labelpad=10)
       if dimensionality == 3:
-        self.mplCanvas.axes.set_zlabel(self.cmbVars['Z'].currentText(),size=fontSize,labelpad=10)
+        self.mplCanvas.axes.set_zlabel(
+            self.cmbVars['Z'].currentText(), size=fontSize, labelpad=10)
 
-    ticks = np.linspace(mins['X'],maxs['X'],5)
+    ticks = np.linspace(mins['X'], maxs['X'], 5)
     self.mplCanvas.axes.set_xticks(ticks)
-    self.mplCanvas.axes.set_xlim([ticks[0],ticks[-1]])
+    self.mplCanvas.axes.set_xlim([ticks[0], ticks[-1]])
     self.mplCanvas.axes.xaxis.set_ticklabels([])
     self.mplCanvas.axes.yaxis.set_ticklabels([])
-    self.mplCanvas.axes.xaxis.set_major_formatter(matplotlib.ticker.FormatStrFormatter('%.2g'))
+    self.mplCanvas.axes.xaxis.set_major_formatter(
+        matplotlib.ticker.FormatStrFormatter('%.2g'))
 
-    ticks = np.linspace(mins['Y'],maxs['Y'],5)
+    ticks = np.linspace(mins['Y'], maxs['Y'], 5)
     self.mplCanvas.axes.set_yticks(ticks)
-    self.mplCanvas.axes.set_ylim([ticks[0],ticks[-1]])
-    self.mplCanvas.axes.yaxis.set_major_formatter(matplotlib.ticker.FormatStrFormatter('%.2g'))
+    self.mplCanvas.axes.set_ylim([ticks[0], ticks[-1]])
+    self.mplCanvas.axes.yaxis.set_major_formatter(
+        matplotlib.ticker.FormatStrFormatter('%.2g'))
 
     if dimensionality == 3:
-      ticks = np.linspace(mins['Z'],maxs['Z'],3)
+      ticks = np.linspace(mins['Z'], maxs['Z'], 3)
       self.mplCanvas.axes.set_zticks(ticks)
-      self.mplCanvas.axes.set_zlim([ticks[0],ticks[-1]])
-      self.mplCanvas.axes.zaxis.set_major_formatter(matplotlib.ticker.FormatStrFormatter('%.2g'))
+      self.mplCanvas.axes.set_zlim([ticks[0], ticks[-1]])
+      self.mplCanvas.axes.zaxis.set_major_formatter(
+          matplotlib.ticker.FormatStrFormatter('%.2g'))
 
-    for label in  (self.mplCanvas.axes.get_xticklabels()+self.mplCanvas.axes.get_yticklabels()):
+    for label in (self.mplCanvas.axes.get_xticklabels() +
+                  self.mplCanvas.axes.get_yticklabels()):
       label.set_fontsize(smallFontSize)
 
     self.mplCanvas.axes.hold(False)
@@ -267,14 +276,13 @@ class ScatterView(BaseHierarchicalView):
         @ In, None
         @ Out, None
     """
-    self.cmbVars['Z'].setCurrentIndex(self.cmbVars['Z'].count()-1)
+    self.cmbVars['Z'].setCurrentIndex(self.cmbVars['Z'].count() - 1)
     self.cmbVars['Color'].setCurrentIndex(0)
     self.updateScene()
     self.axesLabelAction.setChecked(True)
     self.updateScene()
     self.axesLabelAction.setChecked(False)
     self.updateScene()
-
 
     super(ScatterView, self).test()
     BaseHierarchicalView.test(self)

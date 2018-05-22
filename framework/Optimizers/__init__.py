@@ -26,12 +26,9 @@ from .Optimizer import Optimizer
 from .GradientBasedOptimizer import GradientBasedOptimizer
 from .SPSA import SPSA
 
-
 from .Factory import knownTypes
 from .Factory import returnInstance
 from .Factory import returnClass
-
-
 
 # # We should not really need this as we do not use wildcard imports
 # __all__ = ['Optimizer','GradientBasedOptimizer','SPSA']

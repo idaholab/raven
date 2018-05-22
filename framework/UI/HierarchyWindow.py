@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """
   A UI for visualizing hierarchical objects, specifically the hierarchical
   clustering made available from scipy.
@@ -20,7 +19,7 @@
 #For future compatibility with Python 3
 from __future__ import division, print_function, absolute_import
 import warnings
-warnings.simplefilter('default',DeprecationWarning)
+warnings.simplefilter('default', DeprecationWarning)
 #End compatibility block for Python 3
 
 from PySide import QtCore as qtc
@@ -41,6 +40,7 @@ import re
 import random
 import numpy as np
 
+
 class HierarchyWindow(qtw.QMainWindow):
   """
     A UI for visualizing hierarchical objects, specifically the hierarchical
@@ -49,6 +49,7 @@ class HierarchyWindow(qtw.QMainWindow):
   closed = qtc.Signal(qtc.QObject)
   sigLevelChanged = qtc.Signal(qtc.QObject)
   sigColorChanged = qtc.Signal(qtc.QObject)
+
   def __init__(self, engine, debug=None, views=None):
     """
       The initialization method for this window.
@@ -59,16 +60,16 @@ class HierarchyWindow(qtw.QMainWindow):
         view class instances based on the class name.
       @ Out, None
     """
-    super(HierarchyWindow,self).__init__()
+    super(HierarchyWindow, self).__init__()
     self.views = []
-    self.resize(800,600)
+    self.resize(800, 600)
     self.setCentralWidget(None)
     self.setDockOptions(qtw.QMainWindow.AllowNestedDocks)
 
     self.debug = debug
     self.engine = engine
 
-    self.levels = sorted(set(self.engine.linkage[:,2]))
+    self.levels = sorted(set(self.engine.linkage[:, 2]))
     self.colorMap = {}
 
     self.fileMenu = self.menuBar().addMenu('File')
@@ -83,7 +84,8 @@ class HierarchyWindow(qtw.QMainWindow):
 
     for subclass in BaseHierarchicalView.__subclasses__():
       action = newMenu.addAction(subclass.__name__)
-      action.triggered.connect(functools.partial(self.addNewView,action.text()))
+      action.triggered.connect(
+          functools.partial(self.addNewView, action.text()))
 
   def test(self):
     """
@@ -99,7 +101,7 @@ class HierarchyWindow(qtw.QMainWindow):
     labels = self.getLabels()
     self.decreaseLevel()
     self.increaseLevel()
-    self.setColor(0,qtg.QColor(255,0,0))
+    self.setColor(0, qtg.QColor(255, 0, 0))
 
     for view in self.views:
       view.updateScene()
@@ -109,8 +111,7 @@ class HierarchyWindow(qtw.QMainWindow):
 
       view.test()
 
-
-  def createDockWidget(self,view):
+  def createDockWidget(self, view):
     """
       Method to create a new child dock widget of a specified type.
       @ In, view, an object belonging to a subclass of BaseHierarchicalView
@@ -128,7 +129,7 @@ class HierarchyWindow(qtw.QMainWindow):
     else:
       dockWidget.setWidget(view)
 
-    self.addDockWidget(qtc.Qt.TopDockWidgetArea,dockWidget)
+    self.addDockWidget(qtc.Qt.TopDockWidgetArea, dockWidget)
     self.viewMenu.addAction(dockWidget.toggleViewAction())
 
   def addNewView(self, viewType):
@@ -144,10 +145,10 @@ class HierarchyWindow(qtw.QMainWindow):
       if subclass.__name__ == viewType:
         idx = 0
         for view in self.views:
-          if isinstance(view,subclass):
+          if isinstance(view, subclass):
             idx += 1
 
-        defaultWidgetName = subclass.__name__.replace('View','')
+        defaultWidgetName = subclass.__name__.replace('View', '')
         if idx > 0:
           defaultWidgetName += ' ' + str(idx)
 
@@ -161,14 +162,14 @@ class HierarchyWindow(qtw.QMainWindow):
         #self.sigSelectionChanged.connect(view.selectionChanged)
         #self.amsc.sigDataChanged.connect(view.dataChanged)
 
-  def closeEvent(self,event):
+  def closeEvent(self, event):
     """
       Event handler triggered when this window is closed.
       @ In, event, a QCloseEvent specifying the context of this event.
       @ Out, None
     """
     self.closed.emit(self)
-    return super(HierarchyWindow,self).closeEvent(event)
+    return super(HierarchyWindow, self).closeEvent(event)
 
   def increaseLevel(self):
     """
@@ -222,19 +223,18 @@ class HierarchyWindow(qtw.QMainWindow):
       heads[i] = [i]
       self.labels[i] = i
 
-    n = linkage.shape[0]+1
+    n = linkage.shape[0] + 1
     for i in range(linkage.shape[0]):
-      newIdx = n+i
-      leftChildIdx,rightChildIdx,level,size = linkage[i,:]
+      newIdx = n + i
+      leftChildIdx, rightChildIdx, level, size = linkage[i, :]
       if level <= newLevel:
         heads[newIdx] = heads.pop(leftChildIdx) + heads.pop(rightChildIdx)
       else:
         break
 
-      for head,children in heads.items():
+      for head, children in heads.items():
         for idx in children:
           self.labels[idx] = head
-
 
     self.levelChanged()
 
@@ -246,7 +246,7 @@ class HierarchyWindow(qtw.QMainWindow):
     """
     self.sigLevelChanged.emit(self)
 
-  def setColor(self,idx,color):
+  def setColor(self, idx, color):
     """
       Set the color of a specified index in the tree.
       @ In, idx, int, the index to be updated
@@ -256,7 +256,7 @@ class HierarchyWindow(qtw.QMainWindow):
     self.colorMap[idx] = color
     self.sigColorChanged.emit(self)
 
-  def getColor(self,idx):
+  def getColor(self, idx):
     """
       Get the color of a specified index in the tree.
       @ In, idx, int, the index to be updated.
@@ -274,9 +274,10 @@ class HierarchyWindow(qtw.QMainWindow):
       @ In, None
       @ Out, data, nparray, the data being used by this window.
     """
-    data = np.zeros((len(self.engine.features.values()[0]),len(self.engine.features.keys())))
-    for col,value in enumerate(self.engine.features.values()):
-      data[:,col] = value
+    data = np.zeros((len(self.engine.features.values()[0]),
+                     len(self.engine.features.keys())))
+    for col, value in enumerate(self.engine.features.values()):
+      data[:, col] = value
     return data
 
   def getDimensions(self):

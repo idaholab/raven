@@ -17,19 +17,19 @@ Factory for generating the instances of the  Models Module
 #for future compatibility with Python 3-----------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
-warnings.simplefilter('default',DeprecationWarning)
+warnings.simplefilter('default', DeprecationWarning)
 #End compatibility block for Python 3-------------------------------------------
 
 from utils import utils
 
-from .Model         import Model
-from .Dummy         import Dummy
-from .ROM           import ROM
+from .Model import Model
+from .Dummy import Dummy
+from .ROM import ROM
 from .ExternalModel import ExternalModel
-from .Code          import Code
+from .Code import Code
 from .EnsembleModel import EnsembleModel
 from .PostProcessor import PostProcessor
-from .HybridModel   import HybridModel
+from .HybridModel import HybridModel
 
 ## [ Add new class here ]
 
@@ -45,14 +45,15 @@ for classObj in utils.getAllSubclasses(eval(__base)):
   key = classObj.__name__
   __interFaceDict[key] = classObj
 
-
 ## Can this be removed?
-#__interFaceDict                   = (__interFaceDict.items()+CodeInterfaces.__interFaceDict.items()) #try to use this and remove the code interface
+# __interFaceDict                   = (__interFaceDict.items()+CodeInterfaces.__interFaceDict.items())
+# try to use this and remove the code interface
 
 #here the class methods are called to fill the information about the usage of the classes
 for classType in __interFaceDict.values():
   classType.generateValidateDict()
   classType.specializeValidateDict()
+
 
 def knownTypes():
   """
@@ -62,9 +63,11 @@ def knownTypes():
   """
   return __interFaceDict.keys()
 
+
 needsRunInfo = True
 
-def returnInstance(Type,runInfoDict,caller):
+
+def returnInstance(Type, runInfoDict, caller):
   """
     function used to generate a Model class
     @ In, Type, string, Model type
@@ -74,9 +77,12 @@ def returnInstance(Type,runInfoDict,caller):
     return __interFaceDict[Type](runInfoDict)
   except KeyError:
     availableClasses = ','.join(__interFaceDict.keys())
-    caller.raiseAnError(NameError,'MODELS','not known {} type {} (Available options: {})'.format(__base,Type,availableClasses))
+    caller.raiseAnError(NameError, 'MODELS',
+                        'not known {} type {} (Available options: {})'.format(
+                            __base, Type, availableClasses))
 
-def validate(className,role,what,caller):
+
+def validate(className, role, what, caller):
   """
     This is the general interface for the validation of a model usage
     @ In, className, string, the name of the class
@@ -86,6 +92,8 @@ def validate(className,role,what,caller):
     @ Out, None
   """
   if className in __interFaceDict:
-    return __interFaceDict[className].localValidateMethod(role,what)
+    return __interFaceDict[className].localValidateMethod(role, what)
   else:
-    caller.raiseAnError(IOError,'MODELS','the class '+str(className)+' it is not a registered model')
+    caller.raiseAnError(
+        IOError, 'MODELS',
+        'the class ' + str(className) + ' it is not a registered model')

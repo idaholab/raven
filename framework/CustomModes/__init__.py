@@ -28,24 +28,26 @@ from __future__ import absolute_import
 
 
 def __getModeHandlers():
-    """
+  """
       Finds all the mode handlers in this directory.
       @ In, None
       @ Out, modeHandlers, dictionary of all the mode handler classes indexed
        by a string mode name.
     """
-    import os
-    modeHandlers = {}
-    directory = os.path.dirname(__file__)
-    os.sys.path.append(directory)
+  import os
+  modeHandlers = {}
+  directory = os.path.dirname(__file__)
+  os.sys.path.append(directory)
 
-    for filename in os.listdir(directory):
-        if filename.endswith(".py") and not filename.startswith("__"):
-            module = __import__(filename[:-3]) #[:-3] to remove .py
-            if "modeName" in module.__dict__ and "modeClassName" in module.__dict__:
-                modeClassName = module.__dict__["modeClassName"]
-                modeHandlers[module.__dict__["modeName"]] = module.__dict__[modeClassName]
-    return modeHandlers
+  for filename in os.listdir(directory):
+    if filename.endswith(".py") and not filename.startswith("__"):
+      # [:-3] to remove .py
+      module = __import__(filename[:-3])
+      if "modeName" in module.__dict__ and "modeClassName" in module.__dict__:
+        modeClassName = module.__dict__["modeClassName"]
+        modeHandlers[module.__dict__["modeName"]] = module.__dict__[
+            modeClassName]
+  return modeHandlers
+
 
 modeHandlers = __getModeHandlers()
-

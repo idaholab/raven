@@ -19,7 +19,7 @@ Created on Jul 18 2016
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
-warnings.simplefilter('default',DeprecationWarning)
+warnings.simplefilter('default', DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -29,13 +29,16 @@ import abc
 #Internal Modules------------------------------------------------------------------------------------
 from BaseClasses import BaseType
 from utils import utils
+
 #Internal Modules End--------------------------------------------------------------------------------
 
-class Metric(utils.metaclass_insert(abc.ABCMeta,BaseType)):
+
+class Metric(utils.metaclass_insert(abc.ABCMeta, BaseType)):
   """
     This is the general interface to any RAVEN metric object.
     It contains an initialize, a _readMoreXML, and an evaluation (i.e., distance) methods
   """
+
   def __init__(self):
     """
       This is the basic method initialize the metric object
@@ -45,10 +48,12 @@ class Metric(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     BaseType.__init__(self)
     self.type = self.__class__.__name__
     self.name = self.__class__.__name__
-    self.acceptsProbability = False #If True the metric needs to be able to handle (value,probability) where value and probability are lists
-    self.acceptsDistribution = False #If True the metric needs to be able to handle a passed in Distribution
+    # If True the metric needs to be able to handle (value,probability) where value and probability are lists
+    self.acceptsProbability = False
+    # If True the metric needs to be able to handle a passed in Distribution
+    self.acceptsDistribution = False
 
-  def initialize(self,inputDict):
+  def initialize(self, inputDict):
     """
       This method initialize each metric object
       @ In, inputDict, dict, dictionary containing initialization parameters
@@ -56,7 +61,7 @@ class Metric(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     """
     pass
 
-  def _readMoreXML(self,xmlNode):
+  def _readMoreXML(self, xmlNode):
     """
       Method that reads the portion of the xml input that belongs to this specialized class
       and initialize internal parameters
@@ -65,8 +70,7 @@ class Metric(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     """
     self._localReadMoreXML(xmlNode)
 
-
-  def distance(self,x,y,**kwargs):
+  def distance(self, x, y, **kwargs):
     """
       This method actually calculates the distance between two dataObjects x and y
       @ In, x, dict, dictionary containing data of x

@@ -30,7 +30,9 @@ from utils import xmlUtils
 from utils import InputData
 import Files
 import Runners
+
 #Internal Modules End--------------------------------------------------------------------------------
+
 
 class RavenOutput(PostProcessor):
   """
@@ -42,6 +44,7 @@ class RavenOutput(PostProcessor):
   # object of some kind.  It should no longer be necessary to print to file then read back in again.
   # However, the implementation can still be used to read in XML outputs from CSV printings, so we
   # leave the code in the event it becomes desired again.
+
 
 #  @classmethod
 #  def getInputSpecification(cls):
@@ -143,13 +146,14 @@ class RavenOutput(PostProcessor):
 #      if child.getName() == 'File':
 #        numberOfSources += 1
 #        if 'name' not in child.parameterValues:
-#          self.raiseAnError(IOError,'Each "File" must have an associated "name"; missing for',child.getName(),child.value)
+# self.raiseAnError(IOError,'Each "File" must have an associated "name"; missing for',child.getName(),child.value)
 #        #make sure you provide an ID and a file name
 #        if 'ID' not in child.parameterValues:
 #          id = 0
 #          while id in self.files.keys():
 #            id += 1
-#          self.raiseAWarning(IOError,'Each "File" entry must have an associated "ID"; missing for',child.getName(),child.parameterValues['name'],'so ID is set to',id)
+# self.raiseAWarning(IOError,'Each "File" entry must have an associated "ID"; missing
+# for',child.getName(),child.parameterValues['name'],'so ID is set to',id)
 #        else:
 #          #assure ID is a number, since it's going into a data object
 #          id = child.parameterValues['ID']
@@ -166,11 +170,14 @@ class RavenOutput(PostProcessor):
 #              self.raiseAnError(IOError,'Must specify a "name" for each "output" block!  Missing for:',cchild.text)
 #            varName = cchild.parameterValues['name'].strip()
 #            if varName in self.files[id]['paths'].keys():
-#              self.raiseAnError(IOError,'Multiple "output" blocks for "%s" have the same "name":' %self.files[id]['name'],varName)
+# self.raiseAnError(IOError,'Multiple "output" blocks for "%s" have the same "name":'
+# %self.files[id]['name'],varName)
 #            self.files[id]['paths'][varName] = cchild.value.strip()
-#    #if dynamic, only one File can be specified currently; to fix this, how do you handle different-lengthed times in same data object?
+# if dynamic, only one File can be specified currently; to fix this, how do you handle different-lengthed times in
+# same data object?
 #    if self.dynamic and numberOfSources > 1:
-#      self.raiseAnError(IOError,'For Dynamic reading, only one "File" node can be specified!  Got',numberOfSources,'nodes.')
+# self.raiseAnError(IOError,'For Dynamic reading, only one "File" node can be specified!
+# Got',numberOfSources,'nodes.')
 #    # check there are entries for each
 #    if len(self.files)<1:
 #      self.raiseAWarning('No files were specified to read from!  Nothing will be done...')
@@ -178,7 +185,8 @@ class RavenOutput(PostProcessor):
 #    toRemove=[]
 #    for id,fileDict in self.files.items():
 #      if len(fileDict['paths'])<1:
-#        self.raiseAWarning('No outputs were specified for File with ID "%s"!  No extraction will be performed for this file...' %str(id))
+# self.raiseAWarning('No outputs were specified for File with ID "%s"! No extraction will be performed for this
+# file...' %str(id))
 #        toRemove.append(id)
 #    for rem in toRemove:
 #      del self.files[id]
@@ -209,7 +217,7 @@ class RavenOutput(PostProcessor):
 #    else:
 #      # each ID results in a realization for the requested attributes
 #      for id,fileDict in self.files.items():
-#        realization = {'inputs':{'ID':id},'outputs':{},'metadata':{'loadedFromRavenFile':str(fileDict['fileObject'])}}
+# realization = {'inputs':{'ID':id},'outputs':{},'metadata':{'loadedFromRavenFile':str(fileDict['fileObject'])}}
 #        for varName,path in fileDict['paths'].items():
 #          #read the value from the file's XML
 #          root,_ = xmlUtils.loadToTree(fileDict['fileObject'].getAbsFile())
@@ -221,7 +229,8 @@ class RavenOutput(PostProcessor):
 #  def collectOutput(self, finishedJob, output):
 #    """
 #      Function to place all of the computed data into the output object
-#      @ In, finishedJob, JobHandler External or Internal instance, A JobHandler object that is in charge of running this post-processor
+# @ In, finishedJob, JobHandler External or Internal instance, A JobHandler object that is in charge of running
+# this post-processor
 #      @ In, output, dataObjects, The object where we want to place our computed results
 #      @ Out, None
 #    """
@@ -234,11 +243,13 @@ class RavenOutput(PostProcessor):
 #    for real in realizations:
 #      for key in output.getParaKeys('inputs'):
 #        if key not in real['inputs'].keys():
-#          self.raiseAnError(RuntimeError, 'Requested input variable '+key+' has not been extracted. Check the consistency of your input')
+# self.raiseAnError(RuntimeError, 'Requested input variable '+key+' has not been extracted. Check the consistency
+# of your input')
 #        output.updateInputValue(key,real['inputs'][key])
 #      for key in output.getParaKeys('outputs'):
 #        if key not in real['outputs'].keys():
-#          self.raiseAnError(RuntimeError, 'Requested output variable '+key+' has not been extracted. Check the consistency of your input')
+# self.raiseAnError(RuntimeError, 'Requested output variable '+key+' has not been extracted. Check the consistency
+# of your input')
 #        output.updateOutputValue(key,real['outputs'][key])
 #      for key,val in real['metadata'].items():
 #        output.updateMetadata(key,val)

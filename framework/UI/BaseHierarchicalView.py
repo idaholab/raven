@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """
   This BaseHierarchicalView is used by the HierarchicalWindow
 """
@@ -19,7 +18,7 @@
 #For future compatibility with Python 3
 from __future__ import division, print_function, absolute_import
 import warnings
-warnings.simplefilter('default',DeprecationWarning)
+warnings.simplefilter('default', DeprecationWarning)
 #End compatibility block for Python 3
 
 from PySide.QtCore import QSize
@@ -27,9 +26,11 @@ from PySide.QtGui import QWidget
 
 from .ZoomableGraphicsView import ZoomableGraphicsView
 
+
 class BaseHierarchicalView(QWidget):
-  """ A base class for all widgets in this package.
   """
+  """
+
   def __init__(self, mainWindow=None, title=None):
     """
       Initialization method that can optionally specify the parent widget,
@@ -56,7 +57,7 @@ class BaseHierarchicalView(QWidget):
       @ In, None
       @ Out, size, QSize, suggested size
     """
-    return QSize(200,200)
+    return QSize(200, 200)
 
   def clearLayout(self, layout):
     """
@@ -72,7 +73,6 @@ class BaseHierarchicalView(QWidget):
           widget.deleteLater()
         else:
           self.clearLayout(item.layout())
-
 
   def updateScene(self):
     """

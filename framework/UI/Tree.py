@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """
     This file contains a Node data structure which is used to construct a Tree.
     This tree will handle performing layout for UI purposes.
@@ -20,15 +19,17 @@
 #For future compatibility with Python 3
 from __future__ import division, print_function, absolute_import
 import warnings
-warnings.simplefilter('default',DeprecationWarning)
+warnings.simplefilter('default', DeprecationWarning)
 #End compatibility block for Python 3
 
 import numpy as np
+
 
 class Node(object):
   """
     A Node data structure for use in a larger Tree.
   """
+
   def __init__(self, _id, parent=None, level=0, size=1):
     """
       THe Initialization method that will create a leaf node.
@@ -60,7 +61,7 @@ class Node(object):
       @ In, size, int, the number of items associated to the new node.
       @ Out, node, the new node.
     """
-    node = Node(_id,self,level,size)
+    node = Node(_id, self, level, size)
     self.children.append(node)
     return node
 
@@ -131,7 +132,7 @@ class Node(object):
 
     return maxChild
 
-  def Layout(self,xoffset,width, truncationSize=0, truncationLevel=0):
+  def Layout(self, xoffset, width, truncationSize=0, truncationLevel=0):
     """
       Get the leaf count of the current node restricted to two truncation
       parameters.
@@ -150,15 +151,15 @@ class Node(object):
             ancestor and the second is the id of the descendant.
     """
     ids = [self.id]
-    points = [(xoffset+width/2.,self.level)]
+    points = [(xoffset + width / 2., self.level)]
     edges = []
 
-    totalCount = self.getLeafCount(truncationSize,truncationLevel)
+    totalCount = self.getLeafCount(truncationSize, truncationLevel)
     if len(self.children) > 0 and totalCount > 1:
 
       myOffset = xoffset
 
-      def cmp(a,b):
+      def cmp(a, b):
         """
           A function for comparing two Node items
           @ In, a, Node, the first node to compare
@@ -179,11 +180,12 @@ class Node(object):
 
       for child in children:
         if not truncated:
-          edges.append((self.id,child.id))
+          edges.append((self.id, child.id))
 
-          count = child.getLeafCount(truncationSize,truncationLevel)
-          myWidth = float(count)/totalCount*width
-          (childIds,childPoints,childEdges) = child.Layout(myOffset,myWidth,truncationSize,truncationLevel)
+          count = child.getLeafCount(truncationSize, truncationLevel)
+          myWidth = float(count) / totalCount * width
+          (childIds, childPoints, childEdges) = child.Layout(
+              myOffset, myWidth, truncationSize, truncationLevel)
           ids.extend(childIds)
           points.extend(childPoints)
           edges.extend(childEdges)
@@ -195,5 +197,5 @@ class Node(object):
       ## If this guy has children, then we will readjust its X location to be
       ## the average of its immediate descendants
       if len(immediateDescendantXs) > 0:
-        points[0] = (np.average(immediateDescendantXs),self.level)
-    return (ids,points,edges)
+        points[0] = (np.average(immediateDescendantXs), self.level)
+    return (ids, points, edges)

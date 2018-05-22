@@ -19,7 +19,7 @@ Created on September 2017
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
-warnings.simplefilter('default',DeprecationWarning)
+warnings.simplefilter('default', DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -30,9 +30,12 @@ import abc
 #Internal Modules------------------------------------------------------------------------------------
 import MessageHandler
 from utils import utils
+
 #Internal Modules End--------------------------------------------------------------------------------
 
-class CrossValidation(utils.metaclass_insert(abc.ABCMeta), MessageHandler.MessageUser):
+
+class CrossValidation(
+    utils.metaclass_insert(abc.ABCMeta), MessageHandler.MessageUser):
   """
     Cross validation methods used to validate models
   """
@@ -74,5 +77,3 @@ class CrossValidation(utils.metaclass_insert(abc.ABCMeta), MessageHandler.Messag
       @ Out, None
     """
     pass
-
-

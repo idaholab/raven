@@ -34,4 +34,4 @@ from .Factory import returnInstance
 from .Factory import returnClass
 
 # We should not really need this as we do not use wildcard imports
-__all__ = ['OutStreamManager','OutStreamPlot','OutStreamPrint']
+__all__ = ['OutStreamManager', 'OutStreamPlot', 'OutStreamPrint']
