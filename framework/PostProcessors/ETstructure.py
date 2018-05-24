@@ -265,7 +265,7 @@ class ETstructure():
 
     if self.expand:
       pointSet = self.expandPointSet(pointSet,values)
-    
+
     return pointSet
 
   def expandPointSet(self,pointSet,values):

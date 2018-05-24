@@ -50,7 +50,7 @@ class ETImporter(PostProcessor):
     PostProcessor.__init__(self, messageHandler)
     self.printTag  = 'POSTPROCESSOR ET IMPORTER'
     self.expand    = None  # option that controls the structure of the ET. If True, the tree is expanded so that
-                           # all possible sequences are generated. Sequence label is maintained according to the 
+                           # all possible sequences are generated. Sequence label is maintained according to the
                            # original tree
     self.fileFormat = None # chosen format of the ET file
     self.allowedFormats = ['OpenPSA'] # ET formats that are supported
