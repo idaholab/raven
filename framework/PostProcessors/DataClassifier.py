@@ -176,7 +176,7 @@ class DataClassifier(PostProcessor):
           if not haveClassifier:
             haveClassifier = True
           else:
-            self.raiseAnError(IOError, "Both input data objects have been already classified! No need to execute this postprocessor", self.name)
+            self.raiseAnError(IOError, "Both input data objects have been already processed! No need to execute this postprocessor", self.name)
           if inputObject.type != 'PointSet':
             self.raiseAnError(IOError, "Only PointSet is allowed as classifier, but HistorySet", inputObject.name, "is provided!")
         else:
