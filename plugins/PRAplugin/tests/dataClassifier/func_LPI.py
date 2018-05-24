@@ -13,4 +13,9 @@
 # limitations under the License.
 
 def evaluate(self):
+  """
+    This method returns the variable LPI_status
+    @ In, None
+    @ Out, LPI_status, float, LPI system status
+  """
   return self.LPI_status

@@ -2064,70 +2064,24 @@ In addition to this XML node, several others are available:
     pseudo-random number generator state used for shuffling. If None, use default numpy RNG for shuffling.
 \end{itemize}
 
-\textbf{Example:}
-
-\begin{lstlisting}[style=XML]
-<Simulation>
- ...
-  <Files>
-    <Input name="output_cv" type="">output_cv.xml</Input>
-    <Input name="output_cv.csv" type="">output_cv.csv</Input>
-  </Files>
-  <Models>
-    ...
-    <ROM name="surrogate" subType="SciKitLearn">
-      <SKLtype>linear_model|LinearRegression</SKLtype>
-      <Features>x1,x2</Features>
-      <Target>ans</Target>
-      <fit_intercept>True</fit_intercept>
-      <normalize>True</normalize>
-    </ROM>
-    <PostProcessor name="pp1" subType="CrossValidation">
-        <SciKitLearn>
-            <SKLtype>KFold</SKLtype>
-            <n_splits>3</n_splits>
-            <shuffle>False</shuffle>
-            <random_state>None</random_state>
-        </SciKitLearn>
-        <Metric class="Metrics" type="SKL">m1</Metric>
-    </PostProcessor>
-    ...
-  </Models>
-  <Metrics>
-    <SKL name="m1">
-      <metricType>mean_absolute_error</metricType>
-    </SKL>
-  </Metrics>
-  <Steps>
-    <PostProcess name="PP1">
-        <Input class="DataObjects" type="PointSet">outputDataMC</Input>
-        <Input class="Models" type="ROM">surrogate</Input>
-        <Model class="Models" type="PostProcessor">pp1</Model>
-        <Output class="Files" type="">output_cv</Output>
-        <Output class="Files" type="">output_cv.csv</Output>
-    </PostProcess>
-  </Steps>
- ...
-</Simulation>
-\end{lstlisting}
 
 %%%%%%%%%%%%%% Data Classifier PP %%%%%%%%%%%%%%%%%%%
 
 \subsubsection{DataClassifier}
 \label{DataClassifierPP}
 The \textbf{DataClassifier} post-processor is specifically used to classify the data stored in the DataObjects. It
-accepts two DataObjects, one is used as the classifier which should be always \textbf{PointSet}, the other one is used
+accepts two DataObjects, one is used as the classifier which must be a \textbf{PointSet}, the other one is used
 as the input DataObject to be classified. 
 %
 \ppType{DataClassifier}{DataClassifier}
 %
 \begin{itemize}
-  \item \xmlNode{label}, \xmlDesc{string, required field}, the name of label that are used for the classifier. This
-    label should be already exist in the DataObject that is used as the classifer. This name will also used as
-    the label name for the DataObject that is used to be classified.
-  \item \xmlNode{variable}, \xmlDesc{required xml node}. In this node, the following attribute should be specified: 
+  \item \xmlNode{label}, \xmlDesc{string, required field}, the name of the label that are used for the classifier. This
+    label must exist in the DataObject that is used as the classifer. This name will also be used as
+    the label name for the DataObject that is classified.
+  \item \xmlNode{variable}, \xmlDesc{required, xml node}. In this node, the following attribute should be specified: 
     \begin{itemize}
-      \item \xmlAttr{name}, \xmlDesc{required string attribute}, the variable name, which should be exist in
+      \item \xmlAttr{name}, \xmlDesc{required, string attribute}, the variable name, which should be exist in
         the DataObject that is used as classifier.
     \end{itemize}
     and the following sub-node should also be specified:

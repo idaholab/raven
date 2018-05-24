@@ -14,8 +14,7 @@
 """
 Created on Dec 21, 2017
 
-@author: mandd
-
+  @author: mandd
 """
 
 from __future__ import division, print_function , unicode_literals, absolute_import
@@ -52,8 +51,8 @@ class FTImporter(PostProcessor):
     """
     PostProcessor.__init__(self, messageHandler)
     self.printTag = 'POSTPROCESSOR FT IMPORTER'
-    self.FTFormat = None
-    self.allowedFormats = ['OpenPSA']
+    self.FTFormat = None # chosen format of the FT file
+    self.allowedFormats = ['OpenPSA'] # FT formats that are supported
 
     self.topEventID = None
 
@@ -112,7 +111,6 @@ class FTImporter(PostProcessor):
       @ In,  inputs, list, list of file objects
       @ Out, out, dict, dict containing the processed FT
     """
-    #faultTreeModel = FTstructure(inputs, self.messageHandler, self.topEventID)
     faultTreeModel = FTstructure(inputs, self.topEventID)
     return faultTreeModel.returnDict()
 
@@ -133,21 +131,5 @@ class FTImporter(PostProcessor):
       outputDict['dims'][key] = []
     if output.type in ['PointSet']:
       output.load(outputDict['data'], style='dict', dims=outputDict['dims'])
-      #for key in output.getParaKeys('inputs'):
-      #  for value in outputDict[key]:
-      #    output.updateInputValue(str(key),value)
-      #for key in output.getParaKeys('outputs'):
-      #  for value in outputDict[key]:
-      #    output.updateOutputValue(str(key),value)
     else:
         self.raiseAnError(RuntimeError, 'FTImporter failed: Output type ' + str(output.type) + ' is not supported.')
-
-  def collectOutput_NEW_dataObject(self, finishedJob, output):
-    """
-      Function to place all of the computed data into the output object, (DataObjects)
-      @ In, finishedJob, object, JobHandler object that is in charge of running this postprocessor
-      @ In, output, object, the object where we want to place our computed results
-      @ Out, None
-    """
-    evaluation = finishedJob.getEvaluation()
-    outputDict = evaluation[1]

@@ -133,9 +133,9 @@ class Code(Model):
     self.fargs={'input':{}, 'output':'', 'moosevpp':''}
     for child in paramInput.subparts:
       if child.getName() =='executable':
-        self.executable = str(child.value)
+        self.executable = child.value
       if child.getName() =='walltime':
-        self.maxWallTime = float(child.value)
+        self.maxWallTime = child.value
       if child.getName() =='preexec':
         self.preExec = child.value
       elif child.getName() == 'clargs':
@@ -206,13 +206,15 @@ class Code(Model):
     if self.executable == '':
       self.raiseAWarning('The node "<executable>" was not found in the body of the code model '+str(self.name)+' so no code will be run...')
     else:
-      if '~' in self.executable:
-        self.executable = os.path.expanduser(self.executable)
-      abspath = os.path.abspath(str(self.executable))
-      if os.path.exists(abspath):
-        self.executable = abspath
-      else:
-        self.raiseAMessage('not found executable '+self.executable,'ExceptedError')
+      # To be decided!!!!
+      if os.environ.get('RAVENinterfaceCheck','False').lower() in utils.stringsThatMeanFalse():
+        if '~' in self.executable:
+          self.executable = os.path.expanduser(self.executable)
+        abspath = os.path.abspath(str(self.executable))
+        if os.path.exists(abspath):
+          self.executable = abspath
+        else:
+          self.raiseAMessage('not found executable '+self.executable,'ExceptedError')
     if self.preExec is not None:
       if '~' in self.preExec:
         self.preExec = os.path.expanduser(self.preExec)

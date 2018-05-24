@@ -47,9 +47,9 @@ class FTgate():
     """
     self.name         = None
     self.gate         = None
-    self.arguments    = []
-    self.negations    = []
-    self.params       = {}
+    self.arguments    = [] # input elements of the gate
+    self.negations    = [] # input elements of the gate that are negated
+    self.params       = {} # specific paramteres of the gate
     self.allowedGates = {'not':1,'and':'inf','or':'inf','xor':'inf','iff':2,'nand':'inf','nor':'inf','atleast':'inf','cardinality':'inf','imply':2}
 
     self.name = xmlNode.get('name')
@@ -62,13 +62,13 @@ class FTgate():
       else:
         raise IOError('FTImporterPostProcessor Post-Processor; gate ' + str(child.tag) + ' : is not recognized. Allowed gates are: '+ str(self.allowedGates.keys()))
 
-    for node in findAllRecursive(xmlNode, 'gate'):
+    for node in xmlU.findAllRecursive(xmlNode, 'gate'):
       self.arguments.append(node.get('name'))
 
-    for node in findAllRecursive(xmlNode, 'basic-event'):
+    for node in xmlU.findAllRecursive(xmlNode, 'basic-event'):
       self.arguments.append(node.get('name'))
 
-    for node in findAllRecursive(xmlNode, 'house-event'):
+    for node in xmlU.findAllRecursive(xmlNode, 'house-event'):
       self.arguments.append(node.get('name'))
 
     for child in xmlNode:
@@ -257,9 +257,9 @@ def ATLEASTgate(argumentValues,k):
     @ Out, outcome, float, calculated outcome of the gate
   """
   if argumentValues.count(1) >= k:
-      outcome = 1
+    outcome = 1
   else:
-      outcome = 0
+    outcome = 0
   return outcome
 
 def CARDINALITYgate(argumentValues,l,h):
@@ -277,17 +277,3 @@ def CARDINALITYgate(argumentValues,l,h):
     outcome = 0
   return outcome
 
-def findAllRecursive(node, element):
-  """
-    A function for recursively traversing a node in an elementTree to find
-    all instances of a tag.
-    Note that this method differs from findall() since it goes for all nodes,
-    subnodes, subsubnodes etc. recursively
-    @ In, node, ET.Element, the current node to search under
-    @ In, element, str, the string name of the tags to locate
-    @ InOut, result, list, a list of the currently recovered results
-  """
-  result=[]
-  for elem in node.iter(tag=element):
-    result.append(elem)
-  return result

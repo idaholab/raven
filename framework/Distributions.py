@@ -1730,11 +1730,8 @@ class MarkovCategorical(Categorical):
       @ Out, none
     """
     Categorical.__init__(self)
-    # remove before merge
-    #self.mapping        = {}
-    #self.values         = set()
-    #self.dimensionality = 1
-    #self.disttype       = 'Discrete'
+    self.dimensionality = 1
+    self.disttype       = 'Discrete'
     self.type           = 'MarkovCategorical'
     self.steadyStatePb  = None
     self.transition     = None
@@ -1748,7 +1745,7 @@ class MarkovCategorical(Categorical):
       @ Out, None
     """
     workingDir = paramInput.findFirst('workingDir')
-    if workingDir != None:
+    if workingDir is not None:
       self.workingDir = workingDir.value
     else:
       self.workingDir = os.getcwd()
@@ -1758,16 +1755,16 @@ class MarkovCategorical(Categorical):
         outcome = child.parameterValues["outcome"]
         markovIndex = child.parameterValues["index"]
         self.mapping[outcome] = markovIndex
-        if float(outcome) in self.values:
+        if outcome in self.values:
           self.raiseAnError(IOError,'Markov Categorical distribution has identical outcomes')
         else:
-          self.values.add(float(outcome))
+          self.values.add(outcome)
       elif child.getName() == "transition":
         transition = [float(value) for value in child.value.split()]
         dim = int(np.sqrt(len(transition)))
         if dim == 1:
           self.raiseAnError(IOError, "The dimension of transition matrix should be greater than 1!")
-        if dim**2 != len(transition):
+        elif dim**2 != len(transition):
           self.raiseAnError(IOError, "The transition matrix is not a square matrix!")
         self.transition = np.asarray(transition).reshape((-1,dim))
       elif child.getName() == "dataFile":
@@ -1783,7 +1780,6 @@ class MarkovCategorical(Categorical):
     invalid = self.dataFile is not None and self.transition is not None
     if invalid:
       self.raiseAnError(IOError, "Both 'transition' and 'dataFile' nodes are used to provide the transition matrix, this is currently not allowed!")
-      self.dataFile = None
     if len(self.mapping.values()) != len(set(self.mapping.values())):
       self.raiseAnError(IOError, "The states of Markov Categorical distribution have identifcal indices!")
 

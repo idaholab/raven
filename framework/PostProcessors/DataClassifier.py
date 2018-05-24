@@ -76,7 +76,7 @@ class DataClassifier(PostProcessor):
     self.printTag   = 'POSTPROCESSOR DataClassifier'
     self.mapping    = {}  # dictionary for mapping input space between different DataObjects {'variableName':'externalFunctionName'}
     self.funcDict   = {}  # Contains the function to be used {'variableName':externalFunctionInstance}
-    self.label      = None
+    self.label      = None # ID of the variable which containf the label values
 
   def _localGenerateAssembler(self, initDict):
     """
@@ -92,14 +92,15 @@ class DataClassifier(PostProcessor):
       self.funcDict[key] = availableFunc[val[1]]
       # check if the correct method is present
       if 'evaluate' not in self.funcDict[key].availableMethods():
-        self.raiseAnError(IOError, 'Function ', val[1], ' does not contain a method named "evaluate". It mush be present if this needs to be used by other RAVEN entities!')
+        self.raiseAnError(IOError, 'Function ', val[1], ' does not contain a method named "evaluate". '
+                                   'It mush be present if this needs to be used by other RAVEN entities!')
 
   def _localWhatDoINeed(self):
     """
       This method is a local mirror of the general whatDoINeed method that need to request
       special objects, e.g. Functions
       @ In, None
-      @ Out, needDict, list, list of objects needed
+      @ Out, needDict, dict, dictionary of objects needed
     """
     needDict = {}
     needDict['Functions'] = []
@@ -112,7 +113,7 @@ class DataClassifier(PostProcessor):
       Method to initialize the DataClassifier post-processor.
       @ In, runInfo, dict, dictionary of run info (e.g. working dir, etc)
       @ In, inputs, list, list of inputs
-      @ In, initDict, dict, dictionary with initialization options
+      @ In, initDict, dict, optional, dictionary with initialization options
       @ Out, None
     """
     PostProcessor.initialize(self, runInfo, inputs, initDict)
@@ -149,13 +150,13 @@ class DataClassifier(PostProcessor):
       @ In, currentInput, list, a list of DataObjects
       @ Out, newInput, list, list of converted data
     """
-    if type(currentInput) != list and len(currentInput) != 2:
+    if isinstance(currentInput,list) and len(currentInput) != 2:
       self.raiseAnError(IOError, "Two inputs DataObjects are required for postprocessor", self.name)
     newInput ={'classifier':{}, 'target':{}}
     haveClassifier = False
     haveTarget = False
     for inputObject in currentInput:
-      if type(inputObject) == dict:
+      if isinstance(inputObject, dict):
         newInput.append(inputObject)
       else:
         if not hasattr(inputObject, 'type') and inputObject.type not in ['PointSet', 'HistorySet']:
@@ -175,7 +176,7 @@ class DataClassifier(PostProcessor):
           if not haveClassifier:
             haveClassifier = True
           else:
-            self.raiseAnError(IOError, "Both input data objects have been already classifier! No need to execute this postprocessor", self.name)
+            self.raiseAnError(IOError, "Both input data objects have been already classified! No need to execute this postprocessor", self.name)
           if inputObject.type != 'PointSet':
             self.raiseAnError(IOError, "Only PointSet is allowed as classifier, but HistorySet", inputObject.name, "is provided!")
         else:

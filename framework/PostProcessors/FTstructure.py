@@ -25,6 +25,7 @@ warnings.simplefilter('default', DeprecationWarning)
 import MessageHandler
 from utils import utils
 from .FTgate import FTgate
+from utils import xmlUtils as xmlU
 #Internal Modules End-----------------------------------------------------------
 
 #External Modules---------------------------------------------------------------
@@ -45,25 +46,25 @@ class FTstructure():
       @ In,  inputs, list, list of file objects
       @ Out, outcome, dict, dict containing the processed FT
     """
-    self.basicEvents = []
-    self.houseEvents = {}
-    self.gateList    = {}
-    self.gateID      = []
-    self.topEventID  = topEventID
+    self.basicEvents = [] # List of Basic events of the FT
+    self.houseEvents = {} # List of House events of the FT
+    self.gateList    = {} # Dict of Gates of the FT
+    self.gateID      = [] # list of Gates name
+    self.topEventID  = topEventID # ID of the FT output
 
-    for file in inputs:
-      faultTree = ET.parse(file.getPath() + file.getFilename())
-      faultTree = findAllRecursive(faultTree,'opsa-mef')
+    for fileID in inputs:
+      faultTree = ET.parse(fileID.getPath() + fileID.getFilename())
+      faultTree = xmlU.findAllRecursive(faultTree,'opsa-mef')
 
-      for gate in findAllRecursive(faultTree[0], 'define-gate'):
+      for gate in xmlU.findAllRecursive(faultTree[0], 'define-gate'):
         FTGate = FTgate(gate)
         self.gateList[gate.get('name')] = FTGate
         self.gateID.append(gate.get('name'))
 
-      for basicEvent in findAllRecursive(faultTree[0], 'basic-event'):
+      for basicEvent in xmlU.findAllRecursive(faultTree[0], 'basic-event'):
         self.basicEvents.append(basicEvent.get('name'))
 
-      for houseEvent in findAllRecursive(faultTree[0], 'define-house-event'):
+      for houseEvent in xmlU.findAllRecursive(faultTree[0], 'define-house-event'):
         value = houseEvent.find('constant').get('value')
         if value in ['True','true']:
           value = 1.
@@ -78,7 +79,7 @@ class FTstructure():
 
   def returnDict(self):
     """
-      This method returns
+      This method calculates all possible input combinations and the corresponding output values]
       @ In,  None
       @ Out, outcome, dict, dictionary containing
     """
@@ -144,17 +145,4 @@ class FTstructure():
       outcome[self.topEventID][index] = out[self.topEventID]
     return outcome
 
-def findAllRecursive(node, element):
-  """
-    A function for recursively traversing a node in an elementTree to find
-    all instances of a tag.
-    Note that this method differs from findall() since it goes for all nodes,
-    subnodes, subsubnodes etc. recursively
-    @ In, node, ET.Element, the current node to search under
-    @ In, element, str, the string name of the tags to locate
-    @ InOut, result, list, a list of the currently recovered results
-  """
-  result=[]
-  for elem in node.iter(tag=element):
-    result.append(elem)
-  return result
+

@@ -13,4 +13,9 @@
 # limitations under the License.
 
 def evaluate(self):
+  """
+    This method returns the variable ACC_status
+    @ In, None
+    @ Out, ACC_status, float, accumulator system status
+  """
   return self.ACC_status

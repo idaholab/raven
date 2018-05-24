@@ -15,7 +15,11 @@
 import numpy as np
 
 def run(self,Input):
-
+  """
+    This method computes the final status of this simplified LB LOCA event in time dependent mode
+    @ In, Input, dict, dictionary of inputs from RAVEN
+    @ Out, None
+  """
   self.ACC      = Input['ACC_sim']
   self.time_LPI = Input['time_LPI']
   self.time_LPR = Input['time_LPR']

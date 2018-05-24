@@ -15,4 +15,9 @@
 import numpy as np
 
 def evaluate(self):
+  """
+    This method returns the variable ACC_status
+    @ In, None
+    @ Out, ACC_status, np.array, accumulator system status
+  """
   return np.amax(self.ACC_status)

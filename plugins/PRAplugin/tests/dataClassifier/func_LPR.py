@@ -13,4 +13,9 @@
 # limitations under the License.
 
 def evaluate(self):
+  """
+    This method returns the variable LPR_status
+    @ In, None
+    @ Out, LPR_status, float, LPR system status
+  """
   return self.LPR_status

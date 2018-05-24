@@ -346,3 +346,18 @@ def readExternalXML(extFile,extNode,cwd):
   if root.tag != extNode.strip():
     raise IOError('XML UTILS ERROR: Node "{}" is not the root node of "{}"!'.format(extNode,extFile))
   return root
+
+def findAllRecursive(node, element):
+  """
+    A function for recursively traversing a node in an elementTree to find
+    all instances of a tag.
+    Note that this method differs from findall() since it goes for all nodes,
+    subnodes, subsubnodes etc. recursively
+    @ In, node, ET.Element, the current node to search under
+    @ In, element, str, the string name of the tags to locate
+    @ InOut, result, list, a list of the currently recovered results
+  """
+  result=[]
+  for elem in node.iter(tag=element):
+    result.append(elem)
+  return result

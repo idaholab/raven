@@ -1,3 +1,22 @@
+# Copyright 2017 Battelle Energy Alliance, LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+"""
+Created on April 30, 2018
+
+@author: mandd
+"""
+
 from __future__ import division, print_function , unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default', DeprecationWarning)
@@ -109,7 +128,6 @@ class FTmodel(ExternalModelPluginBase):
       inputForFT[key] = Inputs[container.InvMapping[key]]
     value = container.faultTreeModel.evaluateFT(inputForFT)
     return value
-    #container.__dict__[container.topEventID]= value[container.topEventID]
 
   def runTimeDep(self, container, Inputs):
     """
@@ -136,9 +154,7 @@ class FTmodel(ExternalModelPluginBase):
           if time == 0.:
             outcome[var] = np.asarray([1.])
           else:
-            if outcome[var][0] > 0:
-              pass
-            else:
+            if outcome[var][0] <= 0:
               outcome[var] = np.asarray([time])
     return outcome
 
@@ -148,6 +164,7 @@ class FTmodel(ExternalModelPluginBase):
       @ In, container, object, self-like object where all the variables can be stored
       @ In, Inputs, dict, dictionary of inputs from RAVEN
       @ In, time, float, time at which the input variables need to be evaluated
+      @ Out, inputToBePassed, dict, value of the FT basic events at t=time
     """
     inputToBePassed = {}
     for key in Inputs.keys():

@@ -25,6 +25,7 @@ warnings.simplefilter('default', DeprecationWarning)
 import MessageHandler
 from utils import utils
 from utils import xmlUtils as xmlU
+import MessageHandler
 #Internal Modules End-----------------------------------------------------------
 
 #External Modules---------------------------------------------------------------
@@ -53,8 +54,8 @@ class ETstructure():
     listETs=[]
     listRoots=[]
 
-    for file in inputs:
-      eventTree = ET.parse(file.getPath() + file.getFilename())
+    for fileID in inputs:
+      eventTree = ET.parse(fileID.getPath() + fileID.getFilename())
       listETs.append(eventTree.getroot().get('name'))
       listRoots.append(eventTree.getroot())
     links = self.createLinkList(listRoots)
@@ -66,20 +67,20 @@ class ETstructure():
       finalAssembledTree = self.analyzeMultipleET(inputs,links,listRoots,listETs,rootETID)
       self.pointSet = self.analyzeSingleET(finalAssembledTree)
 
-    if len(links)==0 and len(inputs)>1:
+    elif len(links)==0 and len(inputs)>1:
       raise IOError('Multiple ET files have provided but they are not linked')
 
-    if len(links)>1 and len(inputs)==1:
+    elif len(links)>1 and len(inputs)==1:
       raise IOError('A single ET files has provided but it contains a link to an additional ET')
 
-    if len(links)==0 and len(inputs)==1:
+    elif len(links)==0 and len(inputs)==1:
       eventTree = ET.parse(inputs[0].getPath() + inputs[0].getFilename())
       self.pointSet = self.analyzeSingleET(eventTree.getroot())
 
   def solve(self,combination):
     """
       This method provides the sequence of the ET given the status of its branching conditions
-      @ In, combination, np.array, values of all ET branching conditions
+      @ In, combination, dict, values of all ET branching conditions
       @ In, outcome, float, sequence of the ET corresponding to the provided ET branching conditions
     """
     combinationArray=np.zeros(len(self.variables))
@@ -94,7 +95,7 @@ class ETstructure():
 
   def returnDict(self):
     """
-      This method returns the
+      This method returns the ET data
       @ In, None
       @ Out, outputDict, dict, dictionary containing the values of all ET branching conditions
       @ Out, self.variables, list, IDs of the ET branching conditions
@@ -238,7 +239,7 @@ class ETstructure():
       values[event] = []
       ## Iterate through the forks that use this event and gather all of the
       ## possible states
-      for fork in self.findAllRecursive(root.find('initial-state'), 'fork'):
+      for fork in xmlU.findAllRecursive(root.find('initial-state'), 'fork'):
         if fork.get('functional-event') == event:
           for path in fork.findall('path'):
             state = path.get('state')
@@ -255,7 +256,7 @@ class ETstructure():
     print("ETImporter variables identified: " + str(format(self.variables)))
 
     d = len(self.variables)
-    n = len(self.findAllRecursive(root.find('initial-state'), 'sequence'))
+    n = len(xmlU.findAllRecursive(root.find('initial-state'), 'sequence'))
     pointSet = -1 * np.ones((n, d + 1))
     rowCounter = 0
     for node in root.find('initial-state'):
@@ -264,7 +265,7 @@ class ETstructure():
 
     if self.expand:
       pointSet = self.expandPointSet(pointSet,values)
-
+    
     return pointSet
 
   def expandPointSet(self,pointSet,values):
@@ -416,21 +417,6 @@ class ETstructure():
         etMap[seq] = utils.floatConversion(seq)
     return etMap
 
-  def findAllRecursive(self, node, element):
-    """
-      A function for recursively traversing a node in an elementTree to find
-      all instances of a tag.
-      Note that this method differs from findall() since it goes for all nodes,
-      subnodes, subsubnodes etc. recursively
-      @ In, node, ET.Element, the current node to search under
-      @ In, element, str, the string name of the tags to locate
-      @ InOut, result, list, a list of the currently recovered results
-    """
-    result=[]
-    for elem in node.iter(tag=element):
-      result.append(elem)
-    return result
-
   def constructPointDFS(self, node, inputMap, stateMap, outputMap, X, rowCounter):
     """
       Construct a "sequence" using a depth-first search on a node, each call
@@ -449,7 +435,7 @@ class ETstructure():
             non-negative integers
       @ In, X, np.array, data object to populate with values
       @ In, rowCounter, int, the row we are currently editing in X
-      @ Out, offset, int, the number of rows of X this call has populated
+      @ Out, rowCounter, int, the number of rows of X this call has populated
     """
     # Construct point
     if node.tag == 'sequence':

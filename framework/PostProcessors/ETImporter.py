@@ -39,7 +39,7 @@ from .ETstructure import ETstructure
 
 class ETImporter(PostProcessor):
   """
-    This is the base class of the postprocessor that imports Event-Trees (ETs) into RAVEN as a PointSet
+    This is the base class of the PostProcessor that imports Event-Trees (ETs) into RAVEN as a PointSet
   """
   def __init__(self, messageHandler):
     """
@@ -49,9 +49,11 @@ class ETImporter(PostProcessor):
     """
     PostProcessor.__init__(self, messageHandler)
     self.printTag  = 'POSTPROCESSOR ET IMPORTER'
-    self.ETFormat  = None
-    self.expand    = False
-    self.allowedFormats = ['OpenPSA']
+    self.expand    = None  # option that controls the structure of the ET. If True, the tree is expanded so that
+                           # all possible sequences are generated. Sequence label is maintained according to the 
+                           # original tree
+    self.fileFormat = None # chosen format of the ET file
+    self.allowedFormats = ['OpenPSA'] # ET formats that are supported
 
   @classmethod
   def getInputSpecification(cls):
@@ -64,7 +66,7 @@ class ETImporter(PostProcessor):
     """
     inputSpecification = super(ETImporter, cls).getInputSpecification()
     inputSpecification.addSub(InputData.parameterInputFactory("fileFormat", contentType=InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("expand"    , contentType=InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("expand"    , contentType=InputData.BoolType))
     return inputSpecification
 
   def initialize(self, runInfo, inputs, initDict) :
@@ -102,16 +104,10 @@ class ETImporter(PostProcessor):
 
     expand = paramInput.findFirst('expand')
     self.expand = expand.value
-    if self.expand in ['True','true']:
-      self.expand = True
-    elif self.expand in ['false','False']:
-      self.expand = False
-    else:
-      self.raiseAnError(IOError, 'ETImporterPostProcessor Post-Processor ' + self.name + ', expand ' + str(self.expand) + ' : is not recognized')
 
   def run(self, inputs):
     """
-      This method executes the postprocessor action.
+      This method executes the PostProcessor action.
       @ In,  inputs, list, list of file objects
       @ Out, None
     """
@@ -121,7 +117,7 @@ class ETImporter(PostProcessor):
   def collectOutput(self, finishedJob, output):
     """
       Function to place all of the computed data into the output object, (DataObjects)
-      @ In, finishedJob, object, JobHandler object that is in charge of running this postprocessor
+      @ In, finishedJob, object, JobHandler object that is in charge of running this PostProcessor
       @ In, output, object, the object where we want to place our computed results
       @ Out, None
     """

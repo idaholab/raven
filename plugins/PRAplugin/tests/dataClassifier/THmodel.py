@@ -15,33 +15,37 @@
 import numpy as np
 
 def run(self,Input):
+  """
+    This method computes the final status of this simplified LB LOCA event
+    @ In, Input, dict, dictionary of inputs from RAVEN
+    @ Out, None
+  """
+  self.ACCstatus = Input['ACC_status'][0]
+  self.timeLPI   = Input['time_LPI'][0]
+  self.timeLPR   = Input['time_LPR'][0]
 
-  self.ACC_status = Input['ACC_status'][0]
-  self.time_LPI   = Input['time_LPI'][0]
-  self.time_LPR   = Input['time_LPR'][0]
+  timeToCDLPI = 6.
+  timeToCDLPR = 11.
 
-  timeToCD_LPI = 6.
-  timeToCD_LPR = 11.
-
-  if self.ACC_status == 1.:
+  if self.ACCstatus == 1.:
     self.out = 1.
-    self.LPI_status = 1.
-    self.LPR_status = 1.
+    self.LPIstatus = 1.
+    self.LPRstatus = 1.
   else:
-    self.LPI_act = self.time_LPI + 1.
-    if self.LPI_act > timeToCD_LPI:
+    self.LPIact = self.timeLPI + 1.
+    if self.LPIact > timeToCDLPI:
       self.out = 1.
-      self.LPI_status = 1.
-      self.LPR_status = 1.
+      self.LPIstatus = 1.
+      self.LPRstatus = 1.
     else:
-      self.LPI_status = 0.
-      self.LPR_act = self.LPI_act + self.time_LPR
-      if self.LPR_act > timeToCD_LPR:
+      self.LPIstatus = 0.
+      self.LPRact = self.LPIact + self.timeLPR
+      if self.LPRact > timeToCDLPR:
         self.out = 1.
-        self.LPR_status = 1.
+        self.LPRstatus = 1.
       else:
         self.out = 0.
-        self.LPR_status = 0.
+        self.LPRstatus = 0.
 
 
 

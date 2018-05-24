@@ -60,6 +60,7 @@ for moduleIndex in range(len(__moduleInterfaceList)):
             __interFaceDict[ravenEntityName][key] = modClass
             # check the validity of the plugin
             if not modClass.isAvalidPlugin():
+              print(modClass)
               raise IOError("The plugin based on the class "+ravenEntityName.strip()+" is not valid. Please check with the Plugin developer!")
 __knownTypes = [item for sublist in __interFaceDict.values() for item in sublist]
 

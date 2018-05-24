@@ -15,4 +15,9 @@
 import numpy as np
 
 def evaluate(self):
+  """
+    This method returns the variable LPR_status
+    @ In, None
+    @ Out, LPR_status, np.array, LPR system status
+  """
   return np.amax(self.LPR_status)

@@ -1,3 +1,22 @@
+# Copyright 2017 Battelle Energy Alliance, LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+"""
+Created on April 30, 2018
+
+@author: mandd
+"""
+
 from __future__ import division, print_function , unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default', DeprecationWarning)
@@ -29,14 +48,12 @@ class graphModel(ExternalModelPluginBase):
       @ In, xmlNode, xml.etree.ElementTree.Element, XML node that needs to be read
       @ Out, None
     """
-    container.modelFile = None
-    container.nodesIN   = None
-    container.nodesOUT  = None
+    container.modelFile = None # file name containing the RBD structure
+    container.nodesIN   = None # ID of the RBD input nodes
+    container.nodesOUT  = None # ID of the RBD output nodes
 
-    container.mapping    = {}
-    container.InvMapping = {}
-
-    container.calcMode = None
+    container.mapping    = {} # Mapping dictionary for input variables
+    container.InvMapping = {} # Inverse mapping dictionary for input variables
 
     for child in xmlNode:
       if   child.tag == 'nodesIN':
@@ -87,9 +104,9 @@ class graphModel(ExternalModelPluginBase):
       @ Out, None
     """
     graph = ET.parse(container.runInfo['WorkingDir'] + '/' + file)
-    graph = findAllRecursive(graph,'Graph')
+    graph = utils.findAllRecursive(graph,'Graph')
 
-    for node in findAllRecursive(graph[0], 'node'):
+    for node in utils.findAllRecursive(graph[0], 'node'):
       nodeName = node.get('name')
       nodeChilds = []
       deg = None
@@ -195,9 +212,7 @@ class graphModel(ExternalModelPluginBase):
           if time == 0.:
             outcome[var] = np.asarray([1.])
           else:
-            if outcome[var][0] > 0:
-              pass
-            else:
+            if outcome[var][0] <= 0:
               outcome[var] = np.asarray([time])
     return outcome
 
@@ -207,6 +222,7 @@ class graphModel(ExternalModelPluginBase):
       @ In, container, object, self-like object where all the variables can be stored
       @ In, Inputs, dict, dictionary of inputs from RAVEN
       @ In, time, float, time at which the input variables need to be evaluated
+      @ Out, inputToBePassed, dict, value of the RBD nodes at t=time
     """
     inputToBePassed = {}
     for key in Inputs.keys():
@@ -220,19 +236,5 @@ class graphModel(ExternalModelPluginBase):
             inputToBePassed[key] = np.asarray([1.])
     return inputToBePassed
 
-def findAllRecursive(node, element):
-  """
-    A function for recursively traversing a node in an elementTree to find
-    all instances of a tag.
-    Note that this method differs from findall() since it goes for all nodes,
-    subnodes, subsubnodes etc. recursively
-    @ In, node, ET.Element, the current node to search under
-    @ In, element, str, the string name of the tags to locate
-    @ InOut, result, list, a list of the currently recovered results
-  """
-  result=[]
-  for elem in node.iter(tag=element):
-    result.append(elem)
-  return result
 
 
