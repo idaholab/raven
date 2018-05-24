@@ -29,6 +29,7 @@ from utils import utils
 from utils import graphStructure as GS
 import copy
 from sets import Set
+from utils import xmlUtils as xmlU
 #External Modules End-----------------------------------------------------------
 
 #Internal Modules---------------------------------------------------------------
@@ -104,9 +105,9 @@ class graphModel(ExternalModelPluginBase):
       @ Out, None
     """
     graph = ET.parse(container.runInfo['WorkingDir'] + '/' + file)
-    graph = utils.findAllRecursive(graph,'Graph')
+    graph = xmlU.findAllRecursive(graph,'Graph')
 
-    for node in utils.findAllRecursive(graph[0], 'node'):
+    for node in xmlU.findAllRecursive(graph[0], 'node'):
       nodeName = node.get('name')
       nodeChilds = []
       deg = None
