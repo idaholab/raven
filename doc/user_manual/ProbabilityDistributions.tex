@@ -903,6 +903,72 @@ Example:
 </Distributions>
 \end{lstlisting}
 
+\subsection{Markov Categorical Distribution}
+\label{subsec:markovCategorical}
+
+The \textbf{MarkovCategorical} distribution is a specific discrete categorical distribution describes
+a random variable that can have $K$ possible outcomes, based on the steady state probabilities provided by
+Markov model.
+%
+\begin{itemize}
+  \item \xmlNode{transition}, \xmlDesc{float, optional field}, the transition matrix of given Markov model.
+  \item \xmlNode{dataFile}, \xmlDesc{string, optional xml node}. The path for the given data file, i.e. the transition matrix.
+    In this node, the following attribute should be specified: 
+    \begin{itemize}
+      \item \xmlAttr{fileType}, \xmlDesc{string, optional field}, the type of given data file, default is `csv'.
+    \end{itemize}
+  \nb Either \xmlNode{transition} or \xmlNode{dataFile} is required to provide the transition matrix.
+  \item \xmlNode{workingDir}, \xmlDesc{string, optional field}, the path of working directory
+  \item \xmlNode{state}, \xmlDesc{required xml node}. The output from this state indicates
+    the probability for outcome 1.
+    In this node, the following attribute should be specified:
+    \begin{itemize}
+      \item \xmlAttr{outcome}, \xmlDesc{float, required field}, outcome value. 
+      \item \xmlAttr{index}, \xmlDesc{integer, required field}, the index of steady state probabilities corresponding to the transition matrix. 
+    \end{itemize}
+  \item \xmlNode{state}, \xmlDesc{required xml node}. The output from this state indicates
+    the probability for outcome 2.
+    In this node, the following attribute should be specified:
+    \begin{itemize}
+      \item \xmlAttr{outcome}, \xmlDesc{float, required field}, outcome value. 
+      \item \xmlAttr{index}, \xmlDesc{integer, required field}, the index of steady state probabilities corresponding to the transition matrix. 
+    \end{itemize}
+  \item ...
+  \item \xmlNode{state}, \xmlDesc{required xml node}. The output from this state indicates
+    the probability for outcome K.
+    In this node, the following attribute should be specified:
+    \begin{itemize}
+      \item \xmlAttr{outcome}, \xmlDesc{float, required field}, outcome value. 
+      \item \xmlAttr{index}, \xmlDesc{integer, required field}, the index of steady state probabilities corresponding to the transition matrix. 
+    \end{itemize}
+
+\end{itemize}
+
+\textbf{Example:}
+
+\begin{lstlisting}[style=XML]
+<Simulation>
+ ...
+  <Distributions>
+    ...
+    <MarkovCategorical name="x_dist">
+        <!--dataFile fileType='csv'>transitionFile</dataFile-->
+        <transition>
+            -1.1   0.8   0.7
+            0.8    -1.4  0.2
+            0.3    0.6   -0.9
+        </transition>
+        <state outcome='1' index='1'/>
+        <state outcome='2' index='2'/>
+        <state outcome='4' index='3'/>
+    </MarkovCategorical>
+    ...
+  </Distributions>
+ ...
+</Simulation>
+\end{lstlisting}
+
+
 
 %%%%%% N-Dimensional Probability distributions
 \subsection{N-Dimensional Probability Distributions}
