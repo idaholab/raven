@@ -23,7 +23,6 @@ warnings.simplefilter('default', DeprecationWarning)
 
 #External Modules---------------------------------------------------------------
 import numpy as np
-import math
 #External Modules End-----------------------------------------------------------
 
 #Internal Modules---------------------------------------------------------------

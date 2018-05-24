@@ -119,10 +119,10 @@ class markovModel(ExternalModelPluginBase):
 
   def newState(self,dictIn):
     """
-      Method which calculates the next transtion out of a state
-      @ In, dictIn, dict, dictionary containing all possible transtions out of a state
-      @ Out, detTransitionTime, float, time of the next transtion
-      @ Out, detState, float, arrival state for the next transtion
+      Method which calculates the next transition out of a state
+      @ In, dictIn, dict, dictionary containing all possible transitions out of a state
+      @ Out, detTransitionTime, float, time of the next transition
+      @ Out, detState, float, arrival state for the next transition
     """
     detTrans   = {}
     stochTrans = {}
@@ -145,10 +145,10 @@ class markovModel(ExternalModelPluginBase):
 
   def detNewState(self,detTrans):
     """
-      Method which calculates the next transtion out of a state for a determinisct transtion
-      @ In, dictIn, dict, dictionary containing all possible transtions out of a state
-      @ Out, detTransitionTime, float, time of the next transtion
-      @ Out, detTransitionState, float, arrival state for the next transtion
+      Method which calculates the next transition out of a state for a deterministic transition
+      @ In, dictIn, dict, dictionary containing all possible transitions out of a state
+      @ Out, detTransitionTime, float, time of the next transition
+      @ Out, detTransitionState, float, arrival state for the next transition
     """
     detTransitionTime  = sys.float_info.max
     detTransitionState = None
@@ -170,10 +170,10 @@ class markovModel(ExternalModelPluginBase):
 
   def stochNewState(self,stochTrans):
     """
-      Method which calculates the next transtion out of a state for a stochastic transtion
-      @ In, dictIn, dict, dictionary containing all possible transtions out of a state
-      @ Out, transitionTime, float, time of the next transtion
-      @ Out, state, float, arrival state for the next transtion
+      Method which calculates the next transition out of a state for a stochastic transition
+      @ In, dictIn, dict, dictionary containing all possible transitions out of a state
+      @ Out, transitionTime, float, time of the next transition
+      @ Out, state, float, arrival state for the next transition
     """
     totLambda = sum(stochTrans.values())
     transitionTime = np.random.exponential(1./totLambda)

@@ -23,12 +23,10 @@ warnings.simplefilter('default', DeprecationWarning)
 
 #External Modules---------------------------------------------------------------
 import numpy as np
-import math
 import xml.etree.ElementTree as ET
 from utils import utils
 from utils import graphStructure as GS
 import copy
-from sets import Set
 from utils import xmlUtils as xmlU
 #External Modules End-----------------------------------------------------------
 
