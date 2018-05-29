@@ -49,7 +49,7 @@ import utils.TreeStructure as ETS
 
 class DynamicEventTree(Grid):
   """
-  DYNAMIC EVENT TREE Sampler (DET)
+    DYNAMIC EVENT TREE Sampler (DET)
   """
 
   @classmethod
@@ -212,13 +212,13 @@ class DynamicEventTree(Grid):
       @ Out, None
     """
     self.workingDir = model.workingDir
-    # returnBranchInfo = self.__readBranchInfo(jobObject.output)
     # Get the parent element tree (xml object) to retrieve the information needed to create the new inputs
     parentNode = self._retrieveParentNode(jobObject.identifier)
     # set runEnded and running to true and false respectively
     parentNode.add('runEnded',True)
     parentNode.add('running',False)
-    parentNode.add('endTime',self.actualEndTime)
+
+
     # Read the branch info from the parent calculation (just ended calculation)
     # This function stores the information in the dictionary 'self.actualBranchInfo'
     # If no branch info, this history is concluded => return
@@ -240,10 +240,9 @@ class DynamicEventTree(Grid):
     ## This appears to be the same, so I am switching to the model's workingDir
     ## since it is more directly available and less change to how data is stored
     ## in the args of a job instance. -- DPM 4/12/17
-    # jobWorkingDir = self.workingDir
-
     if not self.__readBranchInfo(jobObject.getMetadata()['outfile'], jobWorkingDir):
       parentNode.add('completedHistory', True)
+      parentNode.add('endTime',self.actualEndTime)
       return False
     # Collect the branch info in a multi-level dictionary
     endInfo = {'endTime':self.actualEndTime,'endTimeStep':self.actualEndTs,'branchDist':list(self.actualBranchInfo.keys())[0]}
@@ -254,8 +253,6 @@ class DynamicEventTree(Grid):
       #endInfo['branchDist'] = "<distribution>"+endInfo['branchDist']
     parentNode.add('actualEndTimeStep',self.actualEndTs)
     # # Get the parent element tree (xml object) to retrieve the information needed to create the new inputs
-    # if(jobObject.identifier == self.TreeInfo[self.rootToJob[jobObject.identifier]].getrootnode().name): endInfo['parentNode'] = self.TreeInfo[self.rootToJob[jobObject.identifier]].getrootnode()
-    # else: endInfo['parentNode'] = list(self.TreeInfo[self.rootToJob[jobObject.identifier]].getrootnode().iter(jobObject.identifier))[0]
     endInfo['parentNode'] = parentNode
     # get the branchedLevel dictionary
     branchedLevel = {}
@@ -273,7 +270,7 @@ class DynamicEventTree(Grid):
         # unchangedPb = probability (not conditional probability yet) that the event does not occur
         unchangedPb = 0.0
         try:
-          # changed_pb = probability (not conditional probability yet) that the event A occurs and the final state is 'alpha' """
+          # changed_pb = probability (not conditional probability yet) that the event A occurs and the final state is 'alpha'
           for pb in xrange(len(endInfo['branchChangedParams'][key]['associatedProbability'])):
             unchangedPb = unchangedPb + endInfo['branchChangedParams'][key]['associatedProbability'][pb]
         except KeyError:
@@ -293,25 +290,27 @@ class DynamicEventTree(Grid):
 
     self.branchCountOnLevel = 0
     # # set runEnded and running to true and false respectively
-    # endInfo['parentNode'].add('runEnded',True)
-    # endInfo['parentNode'].add('running',False)
-    # endInfo['parentNode'].add('endTime',self.actualEndTime)
     # The branchedLevel counter is updated
     if branchedLevel[endInfo['branchDist']] < len(self.branchProbabilities[endInfo['branchDist']]):
       branchedLevel[endInfo['branchDist']] += 1
+
     # Append the parent branchedLevel (updated for the new branch/es) in the list tha contains them
     # (it is needed in order to avoid overlapping among info coming from different parent calculations)
     # When this info is used, they are popped out
     self.branchedLevel.append(branchedLevel)
+
     # Append the parent end info in the list tha contains them
     # (it is needed in order to avoid overlapping among info coming from different parent calculations)
     # When this info is used, they are popped out
     self.endInfo.append(endInfo)
+
     # Compute conditional probability
     self.computeConditionalProbability()
+
     # Create the inputs and put them in the runQueue dictionary (if genRunQueue is true)
     if genRunQueue:
       self._createRunningQueue(model,myInput)
+      self._endJobRunnable = len(self.RunQueue['identifiers'])
     return True
 
   def computeConditionalProbability(self,index=None):
@@ -324,9 +323,9 @@ class DynamicEventTree(Grid):
     if not index:
       index = len(self.endInfo)-1
     try:
-      parentCondPb = self.endInfo[index]['parentNode'].get('conditionalPbr')
-      if not parentCondPb:
-        parentCondPb = 1.0
+      parentCondPb = self.endInfo[index]['parentNode'].get('conditionalPb')
+      if parentCondPb is None:
+        self.raiseAnError(Exception, "parent node conditional pb not found. It should not happen!!!")
     except KeyError:
       parentCondPb = 1.0
     # for all the branches the conditional pb is computed
@@ -373,19 +372,45 @@ class DynamicEventTree(Grid):
     #except? pass
     # Store the information in a dictionary that has as keywords the distributions that triggered
     for node in root:
-      if node.tag == "Distribution_trigger":
-        distName = node.attrib['name'].strip()
-        self.actualBranchInfo[distName] = {}
-        for child in node:
-          self.actualBranchInfo[distName][child.text.strip()] = {'varType':child.attrib['type'].strip(),'actualValue':child.attrib['actual_value'].strip().split(),'oldValue':child.attrib['old_value'].strip()}
-          if 'probability' in child.attrib:
-            asPb = child.attrib['probability'].strip().split()
-            self.actualBranchInfo[distName][child.text.strip()]['associatedProbability'] = []
-            #self.actualBranchInfo[distName][child.text.strip()]['associatedProbability'].append(float(asPb))
-            for index in range(len(asPb)):
-              self.actualBranchInfo[distName][child.text.strip()]['associatedProbability'].append(float(asPb[index]))
-      # we exit the loop here, because only one trigger at the time can be handled  right now
-      break
+      distTrigger = root.findall(".//Distribution_trigger")
+      if len(distTrigger) == 0:
+        self.raiseAnError(Exception, '"Distribution_trigger" node has not been found in file: '+str(filename))
+      elif len(distTrigger) > 1:
+        self.raiseAWarning ( 'More then one "Distribution_trigger" node have been found in file: '+str(filename)+'. Grepping the first one only!')
+      node = distTrigger[0]
+      distName = node.attrib['name'].strip()
+      self.actualBranchInfo[distName] = {}
+      variables = node.findall(".//Variable")
+      if len(variables) > 0:
+        for child in variables:
+          varName = child.text.strip()
+          varType = child.attrib.get('type','auxiliar').strip()
+          newValue = child.attrib.get('actual_value',None)
+          oldValue = child.attrib.get('old_value',None)
+          multiBranchPb = child.attrib.get('probability',None)
+          if newValue is None:
+            self.raiseAnError('"actual_value" is not present in the branch info file: '+str(filename)+'!')
+          if oldValue is None:
+            self.raiseAnError('"old_value" is not present in the branch info file: '+str(filename)+'!')
+          newValue = [elm.strip() for elm in newValue.split()]
+          if len(newValue) > 1:
+            if multiBranchPb is None:
+              self.raiseAnError(Exception, 'Multiple entries have been provided for "actual_value" (space separated value) but no "probability" attribute has been found!')
+            multiBranchPb = [elm.strip() for elm in multiBranchPb.split()]
+            if len(multiBranchPb) != len(newValue):
+              self.raiseAnError(Exception, 'Multiple entries have been provided for "actual_value" (space separated value) but the number of entries in "probability" attribute does not match!')
+            multiBranchPb = [utils.floatConversion(elm) for elm in multiBranchPb]
+            if None in multiBranchPb:
+              self.raiseAnError(ValueError, 'One of the entries in "probability" attribute can not be converted in float!')
+          if multiBranchPb is not None and len(newValue) == 1:
+            self.raiseAnError(Exception, 'Attribute "probability" has been inputted but no multi-branch detected.')
+          # store
+          self.actualBranchInfo[distName][varName] = {'varType':varType,'actualValue':newValue,'oldValue':oldValue.strip()}
+          if multiBranchPb is not None:
+            self.actualBranchInfo[distName][varName]['associatedProbability'] = multiBranchPb
+      else:
+        # not provided information regardind
+        self.actualBranchInfo[distName]['None'] = {'varType':'None','actualValue':'None','oldValue':'None'}
     # remove the file
     if self.removeXmlBranchInfo:
       os.remove(filename)
@@ -415,6 +440,7 @@ class DynamicEventTree(Grid):
       self.inputInfo['hybridsamplerCoordinate'  ] = copy.deepcopy(precSampled)
     self.inputInfo['prefix'                    ] = rname.encode()
     self.inputInfo['initiatorDistribution'     ] = []
+    self.inputInfo['triggeredVariable'         ] = b'None'
     self.inputInfo['PbThreshold'               ] = []
     self.inputInfo['ValueThreshold'            ] = []
     self.inputInfo['branchChangedParam'        ] = [b'None']
@@ -423,23 +449,17 @@ class DynamicEventTree(Grid):
     self.inputInfo['endTimeStep'               ] = 0
     self.inputInfo['RAVEN_parentID'            ] = "None"
     self.inputInfo['RAVEN_isEnding'            ] = True
-    self.inputInfo['conditionalPb'             ] = [1.0]
-    self.inputInfo['conditionalPbr'            ] = 1.0
+    self.inputInfo['conditionalPb'            ] = 1.0
     self.inputInfo['happenedEvent'             ] = False
     for key in self.branchProbabilities.keys():
       self.inputInfo['initiatorDistribution'].append(self.toBeSampled[key])
-    #for key in self.branchProbabilities.keys():self.inputInfo['initiatorDistribution'].append(key.encode())
     for key in self.branchProbabilities.keys():
       self.inputInfo['PbThreshold'].append(self.branchProbabilities[key][branchedLevel[key]])
-    #for key in self.branchProbabilities.keys():self.inputInfo['PbThreshold'].append(self.branchProbabilities[key][branchedLevel[key]])
     for key in self.branchProbabilities.keys():
       self.inputInfo['ValueThreshold'].append(self.branchValues[key][branchedLevel[key]])
-    #for key in self.branchProbabilities.keys():self.inputInfo['ValueThreshold'].append(self.branchValues[key][branchedLevel[key]])
     for varname in self.standardDETvariables:
       self.inputInfo['SampledVars'  ][varname] = self.branchValues[varname][branchedLevel[varname]]
-      #self.inputInfo['SampledVars'  ][varname] = self.branchValues[self.toBeSampled[varname]][branchedLevel[self.toBeSampled[varname]]]
       self.inputInfo['SampledVarsPb'][varname] = self.branchProbabilities[varname][branchedLevel[varname] ]
-      #self.inputInfo['SampledVarsPb'][varname] = self.branchProbabilities[self.toBeSampled[varname]][branchedLevel[self.toBeSampled[varname]]]
     # constant variables
     self._constantVariables()
 
@@ -447,8 +467,9 @@ class DynamicEventTree(Grid):
       for precSample in precSampled:
         self.inputInfo['SampledVars'  ].update(precSample['SampledVars'])
         self.inputInfo['SampledVarsPb'].update(precSample['SampledVarsPb'])
-    self.inputInfo['PointProbability' ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
-    self.inputInfo['ProbabilityWeight'] = self.inputInfo['PointProbability' ]
+    pointPb = reduce(mul,[it for sub in [pre['SampledVarsPb'].values() for pre in precSampled ] for it in sub] if precSampled else [1.0])
+    self.inputInfo['PointProbability' ] = pointPb
+    self.inputInfo['ProbabilityWeight'] = pointPb
     self.inputInfo.update({'ProbabilityWeight-'+key.strip():value for key,value in self.inputInfo['SampledVarsPb'].items()})
 
     if(self.maxSimulTime):
@@ -537,37 +558,31 @@ class DynamicEventTree(Grid):
       #subGroup.add('branchChangedParam',endInfo['branchChangedParams'].keys())
 
       for key in endInfo['branchChangedParams'].keys():
-        #subGroup.add('branchChangedParam',key)
         branchParams.append(key)
         if self.branchCountOnLevel != 1:
           branchChangedParamValue.append(endInfo['branchChangedParams'][key]['actualValue'][self.branchCountOnLevel-2])
           branchChangedParamPb.append(endInfo['branchChangedParams'][key]['associatedProbability'][self.branchCountOnLevel-2])
-          #subGroup.add('branchChangedParamValue',endInfo['branchChangedParams'][key]['actualValue'][self.branchCountOnLevel-2])
-          #subGroup.add('branchChangedParamPb',endInfo['branchChangedParams'][key]['associatedProbability'][self.branchCountOnLevel-2])
-          #condPbC.append(endInfo['branchChangedParams'][key]['changedConditionalPb'][self.branchCountOnLevel-2])
-          condPbC = condPbC + endInfo['branchChangedParams'][key]['changedConditionalPb'][self.branchCountOnLevel-2]
+          condPbC = endInfo['branchChangedParams'][key]['changedConditionalPb'][self.branchCountOnLevel-2]
           subGroup.add('happenedEvent',True)
         else:
           subGroup.add('happenedEvent',endInfo['parentNode'].get('happenedEvent'))
           branchChangedParamValue.append(endInfo['branchChangedParams'][key]['oldValue'])
           branchChangedParamPb.append(endInfo['branchChangedParams'][key]['unchangedPb'])
-          #subGroup.add('branchChangedParamValue',endInfo['branchChangedParams'][key]['oldValue'])
-          #subGroup.add('branchChangedParamPb',endInfo['branchChangedParams'][key]['unchangedPb'])
-          #condPbUn.append(endInfo['branchChangedParams'][key]['unchangedConditionalPb'])
-          condPbUn =  condPbUn + endInfo['branchChangedParams'][key]['unchangedConditionalPb']
+          condPbUn =  endInfo['branchChangedParams'][key]['unchangedConditionalPb']
       subGroup.add('branchChangedParam',branchParams)
       # add conditional probability
       if self.branchCountOnLevel != 1:
-        subGroup.add('conditionalPbr',condPbC)
+        subGroup.add('conditionalPb',condPbC)
         subGroup.add('branchChangedParamValue',branchChangedParamValue)
         subGroup.add('branchChangedParamPb',branchChangedParamPb)
       else:
-        subGroup.add('conditionalPbr',condPbUn)
+        subGroup.add('conditionalPb',condPbUn)
         subGroup.add('branchChangedParamValue',branchChangedParamValue)
         subGroup.add('branchChangedParamPb',branchChangedParamPb)
       # add initiator distribution info, start time, etc.
 
       subGroup.add('initiatorDistribution',self.toBeSampled[endInfo['branchDist']])
+      subGroup.add('triggeredVariable',endInfo['branchDist'])
       subGroup.add('startTime', endInfo['parentNode'].get('endTime'))
       # initialize the endTime to be equal to the start one... It will modified at the end of this branch
       subGroup.add('endTime', endInfo['parentNode'].get('endTime'))
@@ -586,7 +601,7 @@ class DynamicEventTree(Grid):
       self.inputInfo = {'prefix':rname.encode(),'endTimeStep':endInfo['endTimeStep'],
                 'branchChangedParam':subGroup.get('branchChangedParam'),
                 'branchChangedParamValue':subGroup.get('branchChangedParamValue'),
-                'conditionalPb':subGroup.get('conditionalPbr'),
+                'conditionalPb':subGroup.get('conditionalPb'),
                 'startTime':endInfo['parentNode'].get('endTime'),
                 'RAVEN_parentID':subGroup.get('parent'),
                 'RAVEN_isEnding':True}
@@ -606,7 +621,8 @@ class DynamicEventTree(Grid):
       #  In this case there is not a probability threshold that needs to be added in the input
       #  for this particular distribution
       if not (branchedLevel[endInfo['branchDist']] >= len(self.branchProbabilities[endInfo['branchDist']])):
-        self.inputInfo['initiatorDistribution'] = [self.toBeSampled[endInfo['branchDist']]]
+        self.inputInfo['initiatorDistribution' ] = [self.toBeSampled[endInfo['branchDist']]]
+        self.inputInfo['triggeredVariable'     ] = endInfo['branchDist']
         self.inputInfo['PbThreshold'           ] = [self.branchProbabilities[endInfo['branchDist']][branchedLevel[endInfo['branchDist']]]]
         self.inputInfo['ValueThreshold'        ] = [self.branchValues[endInfo['branchDist']][branchedLevel[endInfo['branchDist']]]]
       #  For the other distributions, we put the unbranched thresholds
@@ -617,6 +633,7 @@ class DynamicEventTree(Grid):
         self.inputInfo['initiatorDistribution' ] = []
         self.inputInfo['PbThreshold'           ] = []
         self.inputInfo['ValueThreshold'        ] = []
+        self.inputInfo['triggeredVariable'     ] = b'None'
       # Add the unbranched thresholds
       for key in self.branchProbabilities.keys():
         if not (key in self.toBeSampled[endInfo['branchDist']]) and (branchedLevel[key] < len(self.branchProbabilities[key])):
@@ -630,14 +647,13 @@ class DynamicEventTree(Grid):
       for varname in self.standardDETvariables:
         self.inputInfo['SampledVars'][varname]   = self.branchValues[varname][branchedLevel[varname]]
         self.inputInfo['SampledVarsPb'][varname] = self.branchProbabilities[varname][branchedLevel[varname]]
-        #self.inputInfo['SampledVars'][varname]   = self.branchValues[self.toBeSampled[varname]][branchedLevel[self.toBeSampled[varname]]]
-        #self.inputInfo['SampledVarsPb'][varname] = self.branchProbabilities[self.toBeSampled[varname]][branchedLevel[self.toBeSampled[varname]]]
       self._constantVariables()
       if precSampled:
         for precSample in precSampled:
           self.inputInfo['SampledVars'  ].update(precSample['SampledVars'])
           self.inputInfo['SampledVarsPb'].update(precSample['SampledVarsPb'])
-      self.inputInfo['PointProbability' ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())*subGroup.get('conditionalPbr')
+      pointPb = reduce(mul,[it for sub in [pre['SampledVarsPb'].values() for pre in precSampled ] for it in sub] if precSampled else [1.0])
+      self.inputInfo['PointProbability' ] = pointPb*subGroup.get('conditionalPb')
       self.inputInfo['ProbabilityWeight'] = self.inputInfo['PointProbability' ]
       self.inputInfo.update({'ProbabilityWeight-'+key.strip():value for key,value in self.inputInfo['SampledVarsPb'].items()})
       # Add the new input path into the RunQueue system
@@ -718,7 +734,6 @@ class DynamicEventTree(Grid):
       @ In, myInput, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
       @ Out, newerInput, list, list of new inputs
     """
-    #self._endJobRunnable = max([len(self.RunQueue['queue']),1])
     if self.counter <= 1:
       # If first branch input, create the queue
       self._createRunningQueue(model, myInput)
@@ -797,15 +812,6 @@ class DynamicEventTree(Grid):
         for prob in multiples:
           errorMsgs += "In variable " + str(keyk) + " the Threshold " + str(prob)+" appears multiple times!!\n"
           errorFound = True
-#         self.branchProbabilities[self.toBeSampled[keyk]] = gridInfo[keyk][2]
-#         self.branchProbabilities[self.toBeSampled[keyk]].sort(key=float)
-#         if max(self.branchProbabilities[self.toBeSampled[keyk]]) > 1:
-#           self.raiseAWarning("One of the Thresholds for distribution " + str(gridInfo[keyk][2]) + " is > 1")
-#           errorFound = True
-#           for index in range(len(sorted(self.branchProbabilities[self.toBeSampled[keyk]], key=float))):
-#             if sorted(self.branchProbabilities[self.toBeSampled[keyk]], key=float).count(sorted(self.branchProbabilities[self.toBeSampled[keyk]], key=float)[index]) > 1:
-#               self.raiseAWarning("In distribution " + str(self.toBeSampled[keyk]) + " the Threshold " + str(sorted(self.branchProbabilities[self.toBeSampled[keyk]], key=float)[index])+" appears multiple times!!")
-#               errorFound = True
       else:
         self.branchValues[keyk] = gridInfo[keyk][2]
         self.branchValues[keyk].sort(key=float)
@@ -815,13 +821,6 @@ class DynamicEventTree(Grid):
         for value in multiples:
           errorMsgs += "In variable " + str(keyk) + " the Threshold " + str(value)+" appears multiple times!!\n"
           errorFound = True
-#         self.branchValues[self.toBeSampled[keyk]] = gridInfo[keyk][2]
-#         self.branchValues[self.toBeSampled[keyk]].sort(key=float)
-#         for index in range(len(sorted(self.branchValues[self.toBeSampled[keyk]], key=float))):
-#           if sorted(self.branchValues[self.toBeSampled[keyk]], key=float).count(sorted(self.branchValues[self.toBeSampled[keyk]], key=float)[index]) > 1:
-#             self.raiseAWarning("In distribution " + str(self.toBeSampled[keyk]) + " the Threshold " + str(sorted(self.branchValues[self.toBeSampled[keyk]], key=float)[index])+" appears multiple times!!")
-#             errorFound = True
-
     # check if RELAP7 mode is activated, in case check that a <distribution> variable is unique in the input
     if any("<distribution>" in s for s in self.branchProbabilities.keys()):
       associatedDists = self.toBeSampled.values()
@@ -940,14 +939,33 @@ class DynamicEventTree(Grid):
       # branchings and we store them
       self.TreeInfo[self.name + '_' + str(precSample+1)] = ETS.HierarchicalTree(self.messageHandler,elm)
 
+    initBranchProbabilities = copy.copy(self.branchProbabilities)
+    initBranchValues        = copy.copy(self.branchValues)
     for key in self.branchProbabilities.keys():
-      #kk = self.toBeSampled.values().index(key)
-      #self.branchValues[key] = [self.distDict[self.toBeSampled.keys()[self.toBeSampled.values().index(key)]].ppf(float(self.branchProbabilities[key][index])) for index in range(len(self.branchProbabilities[key]))]
-      self.branchValues[key] = [self.distDict[key].ppf(float(self.branchProbabilities[key][index])) for index in range(len(self.branchProbabilities[key]))]
+      if self.variables2distributionsMapping[key]['totDim'] > 1:
+        # NDimensional Distrubutions (inverse Marginal CDF)
+        initBranchValues[key] = [self.distDict[key].inverseMarginalDistribution(float(self.branchProbabilities[key][index]),self.variables2distributionsMapping[key]['dim']-1) for index in range(len(self.branchProbabilities[key]))]
+      else:
+        # 1Dimensional Distributions (inverse CDF)
+        initBranchValues[key] = [self.distDict[key].ppf(float(self.branchProbabilities[key][index])) for index in range(len(self.branchProbabilities[key]))]
     for key in self.branchValues.keys():
-      #kk = self.toBeSampled.values().index(key)
-      #self.branchProbabilities[key] = [self.distDict[self.toBeSampled.keys()[self.toBeSampled.values().index(key)]].cdf(float(self.branchValues[key][index])) for index in range(len(self.branchValues[key]))]
-      self.branchProbabilities[key] = [self.distDict[key].cdf(float(self.branchValues[key][index])) for index in range(len(self.branchValues[key]))]
+      #self.distDict[variable].inverseMarginalDistribution(coordinatesPlusOne[variable] ,self.variables2distributionsMapping[key]['dim']-1)
+      if self.variables2distributionsMapping[key]['totDim'] > 1:
+        # NDimensional Distrubutions (Marginal CDF)
+        initBranchProbabilities[key] = [self.distDict[key].marginalDistribution(float(self.branchValues[key][index]),self.variables2distributionsMapping[key]['dim']-1) for index in range(len(self.branchValues[key]))]
+      else:
+        # 1Dimensional Distributions (CDF)
+        initBranchProbabilities[key] = [self.distDict[key].cdf(float(self.branchValues[key][index])) for index in range(len(self.branchValues[key]))]
+    self.branchValues.update(initBranchValues)
+    self.branchProbabilities.update(initBranchProbabilities)
+    for key in self.branchValues.keys():
+      # add the last forced branch (CDF=1)
+      if 1.0 not in self.branchProbabilities[key]:
+        self.branchProbabilities[key].append( 1.0 )
+        if self.variables2distributionsMapping[key]['totDim'] > 1:
+          self.branchValues[key].append(self.distDict[key].inverseMarginalDistribution(1.0,self.variables2distributionsMapping[key]['dim']-1) )
+        else:
+          self.branchValues[key].append( self.distDict[key].ppf(1.0) )
     self.limit = sys.maxsize
     # add expected metadata
-    self.addMetaKeys(*['RAVEN_parentID','RAVEN_isEnding'])
+    self.addMetaKeys(*['RAVEN_parentID','RAVEN_isEnding','conditionalPb','triggeredVariable','happenedEvent'])

@@ -80,7 +80,9 @@ class csvUtilityClass(object):
       isAlreadyIn = False
 
       # load the table data (from the csv file) into a numpy nd array
-      data = np.loadtxt(myFile, delimiter=delimeter, usecols=tuple([i for i in range(len(all_field_names))]))
+      data = np.atleast_2d(np.loadtxt(myFile,
+                                      delimiter=delimeter,
+                                      usecols=tuple([i for i in range(len(all_field_names))])))
       # close file
       myFile.close()
       self.allHeaders.extend(all_field_names)

@@ -134,6 +134,9 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
     """
     if not self.startAdaptive:
       self.startAdaptive = True
+      if len(self.lastOutput) == 0:
+        self.startAdaptive = False
+        return
       for treer in self.TreeInfo.values():
         for _ in treer.iterProvidedFunction(self._checkIfRunning):
           self.startAdaptive = False
@@ -279,8 +282,8 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
     subGroup = ETS.HierarchicalNode(self.messageHandler,rname)
     subGroup.add('parent', info['parentNode'].get('name'))
     subGroup.add('name', rname)
-    self.raiseADebug('cond pb = '+str(info['parentNode'].get('conditionalPbr')))
-    condPbC  = float(info['parentNode'].get('conditionalPbr'))
+    self.raiseADebug('cond pb = '+str(info['parentNode'].get('conditionalPb')))
+    condPbC  = float(info['parentNode'].get('conditionalPb'))
 
     # Loop over  branchChangedParams (events) and start storing information,
     # such as conditional pb, variable values, into the xml tree object
@@ -295,10 +298,8 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
       subGroup.add('branchChangedParam',branchParams)
       subGroup.add('branchChangedParamValue',branchChangedParamValue)
       subGroup.add('branchChangedParamPb',branchChangedParamPb)
-    else:
-      pass
     # add conditional probability
-    subGroup.add('conditionalPbr',condPbC)
+    subGroup.add('conditionalPb',condPbC)
     # add initiator distribution info, start time, etc.
     subGroup.add('startTime', info['parentNode'].get('endTime'))
     # initialize the endTime to be equal to the start one... It will modified at the end of this branch
@@ -309,6 +310,8 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
     subGroup.add('running',False)
     subGroup.add('queue',True)
     subGroup.add('completedHistory', False)
+    subGroup.add('happenedEvent', True)
+    subGroup.add('triggeredVariable',info['parentNode'].get('triggeredVariable'))
     # Append the new branch (subgroup) info to the parentNode in the tree object
     info['parentNode'].appendBranch(subGroup)
     # Fill the values dictionary that will be passed into the model in order to create an input
@@ -316,8 +319,10 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
     self.inputInfo = {'prefix':rname,'endTimeStep':info['parentNode'].get('actualEndTimeStep'),
               'branchChangedParam':subGroup.get('branchChangedParam'),
               'branchChangedParamValue':subGroup.get('branchChangedParamValue'),
-              'conditionalPb':subGroup.get('conditionalPbr'),
+              'conditionalPb':subGroup.get('conditionalPb'),
               'startTime':info['parentNode'].get('endTime'),
+              'happenedEvent':subGroup.get('happenedEvent'),
+              'triggeredVariable':subGroup.get('triggeredVariable'),
               'RAVEN_parentID':subGroup.get('parent'),
               'RAVEN_isEnding':True}
     # add the newer branch name to the map
@@ -344,7 +349,8 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
       for precSample in precSampled:
         self.inputInfo['SampledVars'  ].update(precSample['SampledVars'])
         self.inputInfo['SampledVarsPb'].update(precSample['SampledVarsPb'])
-    self.inputInfo['PointProbability' ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())*subGroup.get('conditionalPbr')
+    pointPb = reduce(mul,[it for sub in [pre['SampledVarsPb'].values() for pre in precSampled ] for it in sub] if precSampled else [1.0])
+    self.inputInfo['PointProbability' ] = pointPb*subGroup.get('conditionalPb')
     self.inputInfo['ProbabilityWeight'] = self.inputInfo['PointProbability' ]
     self.inputInfo.update({'ProbabilityWeight-'+key.strip():value for key,value in self.inputInfo['SampledVarsPb'].items()})
     # add additional edits if needed

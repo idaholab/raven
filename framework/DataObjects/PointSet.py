@@ -178,6 +178,7 @@ class PointSet(DataSet):
                 'clusterLabel': name of variable to cluster printing by.  If included then triggers history-like printing.
       @ Out, None
     """
+    startIndex = 0 if 'RAVEN_isEnding' in self.getVars() else start
     # hierarchical flag controls the printing/plotting of the dataobject in case it is an hierarchical one.
     # If True, all the branches are going to be printed/plotted independenttly, otherwise the are going to be reconstructed
     # In this case, if self.hierarchical is False, the histories are going to be reconstructed
@@ -186,9 +187,9 @@ class PointSet(DataSet):
       keep = self._getRequestedElements(kwargs)
       toDrop = list(var for var in self.getVars() if var not in keep)
       #FIXME: THIS IS EXTREMELY SLOW
-      full = self._constructHierPaths()[start:]
+      full = self._constructHierPaths()[startIndex:]
       # set up data to write
-      mode = 'a' if start > 0 else 'w'
+      mode = 'a' if startIndex > 0 else 'w'
 
       self.raiseADebug('Printing data to CSV: "{}"'.format(fileName+'.csv'))
       # get the list of elements the user requested to write
@@ -202,4 +203,4 @@ class PointSet(DataSet):
         self._usePandasWriteCSV(fileName,data,ordered,keepSampleTag = self.sampleTag in keep,mode=mode)
         mode = 'a'
     else:
-      DataSet._toCSV(self, fileName, start, **kwargs)
+      DataSet._toCSV(self, fileName, startIndex, **kwargs)
