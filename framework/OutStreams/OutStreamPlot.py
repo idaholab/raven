@@ -277,8 +277,9 @@ class OutStreamPlot(OutStreamManager):
     for pltIndex in range(len(self.outStreamTypes)):
       if len(self.sourceData[pltIndex]) == 0:
         return False
-      dataSet = self.sourceData[pltIndex].asDataset()
+
       if self.sourceData[pltIndex].type.strip() != 'HistorySet':
+        dataSet = self.sourceData[pltIndex].asDataset()
         for i in range(len(self.xCoordinates [pltIndex])):
           xSplit = self.__splitVariableNames('x', (pltIndex, i))
           if xSplit[2].strip() not in self.sourceData[pltIndex].getVars(xSplit[1].lower()):
@@ -324,6 +325,7 @@ class OutStreamPlot(OutStreamManager):
           self.raiseAnError(Exception,"the <colorMap> variable has a size ("+str(self.colorMapValues[pltIndex][1][-1].size)+") that is not consistent with respect the one ("+str(sizeToMatch)+") inputted in <x>")
       else:
         # HistorySet
+        dataSet = self.sourceData[pltIndex].asDataset('dict')
         for cnt in range(len(self.sourceData[pltIndex])):
           maxSize = 0
           for i in range(len(self.xCoordinates [pltIndex])):
