@@ -2,6 +2,7 @@
 
 #Similar to setup_raven_libs.sh, but installs libraries, not just opens environment
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+CONDA_DEFS="$HOME/miniconda2/etc/profile.d/conda.sh"
 
 conda_install_or_create ()
 {
@@ -30,14 +31,49 @@ try_using_raven_environment ()
     fi
 }
 
+# try activating conda base once so that $CONDA_EXE gets filled in.
+## See discussion https://github.com/conda/conda/issues/7126
+## attempt to make sure conda is around and understood.
+### THIS decision tree is relevant to conda 4.5.4; supposedly this will all be fixed in conda 4.6.
+# if "conda" is a recognized command ...
+echo Attempting to locate \"conda\" ...
+if command -v conda 2> /dev/null;
+then
+  # if the executable environment already set up ...
+  if  [ "${#CONDA_EXE}" -gt 0 ];
+  then
+    echo ... conda located at ${CONDA_EXE}
+  # if not, then this can be helped out by activating any environment
+  else
+    echo ... conda available but exec variable not set, so initializing base library ...
+    conda activate base
+    echo ... conda established.
+  fi
+else
+  # conda is not found, so try locating it in the default place
+  echo \"conda\" has not been found, checking for definitions in ${CONDA_DEFS} ...
+  if test -e ${CONDA_DEFS};
+  then
+    echo ... found!  Sourcing definitions ...
+    source ${CONDA_DEFS}
+    echo ... activating base environment ...
+    conda activate base
+    echo ... conda established.
+  else
+    echo Unable to locate \"conda\"!
+    exit 404
+  fi
+fi
+
 # if conda version 4.4+, they use function definitions instead of path inclusion.
 ## however, they also define the CONDA_EXE variable, which is available.
 ## once loaded, command -v conda works for both versions of conda.
 if [ "${#CONDA_EXE}" -gt 0 ];
 then
   echo sourcing conda function definitions ...
-  . "$(dirname $(dirname "${CONDA_EXE}"))/etc/profile.d/conda.sh"
+  source "$(dirname $(dirname "${CONDA_EXE}"))/etc/profile.d/conda.sh"
 fi
+
 
 if command -v conda 2> /dev/null;
 then
@@ -46,8 +82,14 @@ then
   echo ... checking environments ...
   conda_install_or_create
 else
-  echo conda not initially located, checking for RAVEN conda ...
-  try_using_raven_environment
+  echo conda not initially located, checking for definitions at ${CONDA_DEFS} ...
+  if test -e ${CONDA_DEFS}
+  then
+    source ${CONDA_DEFS}
+  else
+    echo conda not initially located, checking for RAVEN conda ...
+    try_using_raven_environment
+  fi
   if which conda 2> /dev/null;
   then
     echo conda located, checking environments ...

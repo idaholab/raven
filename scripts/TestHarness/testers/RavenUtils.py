@@ -39,9 +39,9 @@ modules_to_try = [("h5py"      ,'h5py.__version__'      ,'2.4.0' ,'2.6.0' ,None 
                   ("scipy"     ,'scipy.__version__'     ,"0.14.0","0.17.1",None   ),
                   ("sklearn"   ,'sklearn.__version__'   ,"0.18"  ,"0.18.0",None   ),
                   ("pandas"    ,'pandas.__version__'    ,"0.20.0","0.20.3",None   ),
-                  ("xarray"    ,'xarray.__version__'    ,"0.9.5" ,"0.9.5" ,"0.9.6"),
+                  ("xarray"    ,'xarray.__version__'    ,"0.9.5" ,"0.10.3",None   ),
                   ("netCDF4"   ,'netCDF4.__version__'   ,"1.2.3" ,"1.2.4" ,None   ),
-                  ("matplotlib",'matplotlib.__version__',"1.3.1" ,"1.5.3" ,None   )]
+                  ("matplotlib",'matplotlib.__version__',"1.3.1" ,"2.1.1" ,None   )]
 
 ## attempt at modernizing, mostly passing but a few parallel failures:
 #modules_to_try = [("h5py"      ,'h5py.__version__'      ,'2.4.0' ,'2.7.0' ,None   ),
