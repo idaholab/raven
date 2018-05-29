@@ -33,7 +33,7 @@ def inPython3():
 # quality assurance module version, maximum version)
 # Deep learning requires Scikit-Learn version at least 0.18
 
-## versions on falcon, EXCEPT scipy (not avail on  and h5py
+## working Conda 4.5.4, May 2018
 modules_to_try = [("h5py"      ,'h5py.__version__'      ,'2.4.0' ,'2.6.0' ,None   ),
                   #("numpy"     ,'numpy.__version__'     ,"1.8.0" ,"1.9.1",None   ),
                   ("scipy"     ,'scipy.__version__'     ,"0.14.0","0.17.1",None   ),
@@ -43,23 +43,16 @@ modules_to_try = [("h5py"      ,'h5py.__version__'      ,'2.4.0' ,'2.6.0' ,None 
                   ("netCDF4"   ,'netCDF4.__version__'   ,"1.2.3" ,"1.2.4" ,None   ),
                   ("matplotlib",'matplotlib.__version__',"1.3.1" ,"2.1.1" ,None   )]
 
-## attempt at modernizing, mostly passing but a few parallel failures:
-#modules_to_try = [("h5py"      ,'h5py.__version__'      ,'2.4.0' ,'2.7.0' ,None   ),
-#                  ("numpy"     ,'numpy.__version__'     ,"1.8.0" ,"1.14.0",None   ),
-#                  ("scipy"     ,'scipy.__version__'     ,"0.14.0","0.19.1",None   ),
-#                  ("sklearn"   ,'sklearn.__version__'   ,"0.18"  ,"0.19.0",None   ),
-#                  ("pandas"    ,'pandas.__version__'    ,"0.20.0","0.20.3",None   ),
-#                  ("xarray"    ,'xarray.__version__'    ,"0.9.5" ,"0.9.6" ,"0.9.6"),
-#                  ("netCDF4"   ,'netCDF4.__version__'   ,"1.2.3" ,"1.3.1" ,None   ),
-#                  ("matplotlib",'matplotlib.__version__',"1.3.1" ,"2.1.0" ,None   )]
+optional_test_libraries = [ ('pillow','PIL.__version__',"5.0.0","5.1.0",None) ]
 
-def __lookUpPreferredVersion(name):
+def __lookUpPreferredVersion(name,optional=False):
   """
     Look up the preferred version in the modules.
     @In, name, string, the name of the module
     @Out, result, string, returns the version as a string or "" if unknown
   """
-  for  i,fv,ev,qa,mv in modules_to_try:
+  index = modules_to_try if not optional else optional_test_libraries
+  for  i,fv,ev,qa,mv in index:
     if name == i:
       return qa
   return ""
@@ -81,6 +74,8 @@ __condaList = [("h5py"        ,__lookUpPreferredVersion("h5py"      )),
                ("nomkl"       ,""),
                ("numexpr"     ,"")
                ]
+
+__condaOptional = [ ('pillow',__lookUpPreferredVersion("pillow")) ]
 
 __pipList = [#("numpy",__lookUpPreferredVersion("numpy")),
              ("h5py",__lookUpPreferredVersion("h5py")),
@@ -201,13 +196,15 @@ def checkForMissingModules(subprocessCheck = True):
     notQA.extend(moduleNotQA)
   return missing, outOfRange, notQA
 
-def __condaString():
+def __condaString(includeOptionals=False):
   """
-  Generates a string with version ids that can be passed to conda.
-  returns s, string, a list of packages for conda to install
+    Generates a string with version ids that can be passed to conda.
+    returns s, string, a list of packages for conda to install
+    @ In, includeOptionals, bool, optional, if True then add optional testing libraries to install list
+    @ Out, s, str, message that could be pasted into a bash command to install libraries
   """
   s = ""
-  for name, version in __condaList:
+  for name, version in __condaList + ([] if not includeOptionals else __condaOptional):
     if len(version) == 0:
       s += name+" "
     else:
@@ -220,7 +217,7 @@ if __name__ == '__main__':
     print(__condaString())
   elif '--conda-install' in sys.argv:
     print("conda install --name raven_libraries -y ",end=" ")
-    print(__condaString())
+    print(__condaString('--optional' in sys.argv))
   elif '--pip-install' in sys.argv:
     print("pip install",end=" ")
     for i,qa in __pipList:

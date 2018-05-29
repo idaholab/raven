@@ -1,19 +1,32 @@
 #!/bin/bash
 
+echo Establishing RAVEN conda environment ...
+
 #Similar to setup_raven_libs.sh, but installs libraries, not just opens environment
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 CONDA_DEFS="$HOME/miniconda2/etc/profile.d/conda.sh"
+
+# if runner desires optional test libraries (like PIL) to be installed,
+#   they can request it by passing --optional to this script
+if [ "$1" == "--optional" ];
+then
+  echo ... including optional testing libraries ...
+  INSTALL_OPTIONAL="--optional"
+else
+  echo ... only including required libraries ...
+  INSTALL_OPTIONAL=" "
+fi
 
 conda_install_or_create ()
 {
   if conda env list | grep -q raven_libraries;
   then
     echo ... RAVEN environment located, checking packages ...
-    `python $SCRIPT_DIR/TestHarness/testers/RavenUtils.py --conda-install`
+    `python $SCRIPT_DIR/TestHarness/testers/RavenUtils.py --conda-install ${INSTALL_OPTIONAL}`
   else
     echo ... No RAVEN environment located, creating it ...
     try_using_raven_environment
-    `python $SCRIPT_DIR/TestHarness/testers/RavenUtils.py --conda-create`
+    `python $SCRIPT_DIR/TestHarness/testers/RavenUtils.py --conda-create ${INSTALL_OPTIONAL}`
   fi
 }
 
