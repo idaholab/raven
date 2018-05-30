@@ -39,10 +39,8 @@ import types
 import time
 import atexit
 import user
-#import dill as pickle
 import cPickle as pickle
 import cloudpickle
-#import pickle
 import pptransport
 import ppauto
 import ppcommon
@@ -144,7 +142,7 @@ class _Worker(object):
         """Starts local worker"""
         if _USE_SUBPROCESS:
             proc = subprocess.Popen(self.command, stdin=subprocess.PIPE,
-                    stdout=subprocess.PIPE)#, stderr=subprocess.PIPE)
+                    stdout=subprocess.PIPE) #, stderr=subprocess.PIPE)
             self.t = pptransport.CPipeTransport(proc.stdout, proc.stdin)
         else:
             self.t = pptransport.CPipeTransport(
@@ -469,12 +467,9 @@ class Server(object):
 
         sfunc = self.__dumpsfunc((func, ) + depfuncs, modules)
         sargs = cloudpickle.dumps(args, self.__pickle_proto)
-        # add local directory and sys.path to PYTHONPATH
-        # pythondirs = [os.getcwd()] + sys.path
 
-        # pytpath = cloudpickle.dumps(os.environ["PYTHONPATH"])
         self.__queue_lock.acquire()
-        self.__queue.append((task, sfunc, sargs)) #, pytpath))
+        self.__queue.append((task, sfunc, sargs))
         self.__queue_lock.release()
 
         self.logger.debug("Task %i submited, function='%s'" %
@@ -541,37 +536,33 @@ class Server(object):
                     stat.time = 0.0
         return self.__stats
 
-    def collect_stats_in_list(self):
-        """collect job execution statistics in list. Useful for benchmarking on
+    def print_stats(self):
+        """Prints job execution statistics. Useful for benchmarking on
            clusters"""
-        returnList = []
-        returnList.append("Job execution statistics:")
+
+        print "Job execution statistics:"
         walltime = time.time() - self.__creation_time
         statistics = self.get_stats().items()
         totaljobs = 0.0
         for ppserver, stat in statistics:
             totaljobs += stat.njobs
-        returnList.append(" job count | % of all jobs | job time sum | time per job | job server")
+        print " job count | % of all jobs | job time sum | " \
+                "time per job | job server"
         for ppserver, stat in statistics:
             if stat.njobs:
-                returnList.append("    %6i |        %6.2f |     %8.4f |  %11.6f | %s" \
+                print "    %6i |        %6.2f |     %8.4f |  %11.6f | %s" \
                         % (stat.njobs, 100.0*stat.njobs/totaljobs, stat.time,
-                        stat.time/stat.njobs, ppserver, ))
-        returnList.append("Time elapsed since server creation " + str(walltime))
-        returnList.append(str(self.__active_tasks)+ " active tasks," +  str(self.get_ncpus()) + " cores")
-        #print self.__active_tasks, "active tasks,", self.get_ncpus(), "cores"
+                        stat.time/stat.njobs, ppserver, )
+        print "Time elapsed since server creation", walltime
+        print self.__active_tasks, "active tasks,", self.get_ncpus(), "cores"
 
         if not self.__accurate_stats:
-            returnList.append("WARNING: statistics provided above is not accurate due to job rescheduling")
-        return returnList
-
-
-    def print_stats(self):
-        """Prints job execution statistics. Useful for benchmarking on
-           clusters"""
-        for row in self.collect_stats_in_list(): print(row)
+            print "WARNING: statistics provided above is not accurate" \
+                  " due to job rescheduling"
+        print
 
     # all methods below are for internal use only
+
     def insert(self, sfunc, sargs, task=None):
         """Inserts function into the execution queue. It's intended for
            internal use only (ppserver.py).
@@ -759,7 +750,7 @@ class Server(object):
         self.logger.debug("Task %i ended",  job.tid)
         self.__scheduler()
 
-    def _run_remote(self, job, sfunc, sargs, rworker): #, pytpath):
+    def _run_remote(self, job, sfunc, sargs, rworker):
         """Runs a job remotelly"""
         self.logger.debug("Task (remote) %i started",  job.tid)
 

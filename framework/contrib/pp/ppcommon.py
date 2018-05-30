@@ -37,7 +37,6 @@ version = "1.6.4"
 
 def start_thread(name,  target,  args=(),  kwargs={},  daemon=True):
     """Starts a thread"""
-    #print(name+str(target)+str(args)+str(kwargs))
     thread = threading.Thread(name=name,  target=target, args=args,  kwargs=kwargs)
     thread.daemon = daemon
     thread.start()
