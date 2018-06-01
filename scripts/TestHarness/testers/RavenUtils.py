@@ -34,14 +34,16 @@ def inPython3():
 # Deep learning requires Scikit-Learn version at least 0.18
 
 ## versions on falcon, EXCEPT scipy (not avail on  and h5py
-modules_to_try = [("h5py"      ,'h5py.__version__'      ,'2.4.0' ,'2.6.0' ,None   ),
+modules_to_try = [
+                  ("h5py"      ,'h5py.__version__'      ,'2.4.0' ,'2.6.0' ,None   ),
                   #("numpy"     ,'numpy.__version__'     ,"1.8.0" ,"1.9.1",None   ),
                   ("scipy"     ,'scipy.__version__'     ,"0.14.0","0.17.1",None   ),
                   ("sklearn"   ,'sklearn.__version__'   ,"0.18"  ,"0.18.0",None   ),
                   ("pandas"    ,'pandas.__version__'    ,"0.20.0","0.20.3",None   ),
                   ("xarray"    ,'xarray.__version__'    ,"0.9.5" ,"0.9.5" ,"0.9.6"),
                   ("netCDF4"   ,'netCDF4.__version__'   ,"1.2.3" ,"1.2.4" ,None   ),
-                  ("matplotlib",'matplotlib.__version__',"1.3.1" ,"1.5.3" ,None   )]
+                  ("matplotlib",'matplotlib.__version__',"1.3.1" ,"1.5.3" ,None   )
+                  ]
 
 ## attempt at modernizing, mostly passing but a few parallel failures:
 #modules_to_try = [("h5py"      ,'h5py.__version__'      ,'2.4.0' ,'2.7.0' ,None   ),
@@ -73,13 +75,12 @@ __condaList = [("h5py"        ,__lookUpPreferredVersion("h5py"      )),
                ("netcdf4"     ,__lookUpPreferredVersion("netCDF4"   )),
                ("matplotlib"  ,__lookUpPreferredVersion("matplotlib")),
                ("python"      ,"2.7"),
+               #("conda"       ,"4.5.4"), needs to be base conda that's updated?
                ("pyside"      ,""),
                ("swig"        ,""),
                ("pylint"      ,""),
                ("coverage"    ,""),
-               ("lxml"        ,""),
-               ("nomkl"       ,""),
-               ("numexpr"     ,"")
+               ("lxml"        ,"")
                ]
 
 __pipList = [#("numpy",__lookUpPreferredVersion("numpy")),
