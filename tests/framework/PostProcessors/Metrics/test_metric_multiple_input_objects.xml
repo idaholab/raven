@@ -5,6 +5,7 @@
     <Sequence>mcRun, PP1</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+
   <TestInfo>
     <name>framework/PostProcessors/Metric/test_multiple_input_objects</name>
     <author>wangc</author>
@@ -13,11 +14,10 @@
     <description>
       This test checks the Metric PostProcessor to accept multiple input data objects
     </description>
+    <revisions>
+      <revision author="wangc" date="2017-12-06">convert to using new data objects</revision>
+    </revisions>
   </TestInfo>
-
-  <Files>
-    <Input name="output_metric" type="">output_metric.xml</Input>
-  </Files>
 
   <Models>
     <ExternalModel ModuleToLoad="../../../AnalyticModels/atten_and_poly.py" name="poly" subType="">
@@ -29,7 +29,7 @@
       <Metric class="Metrics" type="SKL">euclidean</Metric>
     </PostProcessor>
   </Models>
-  
+
   <Metrics>
     <SKL name="euclidean">
       <metricType>euclidean</metricType>
@@ -73,7 +73,8 @@
       <Input class="DataObjects" type="PointSet">outputDataMC1</Input>
       <Input class="DataObjects" type="PointSet">outputDataMC2</Input>
       <Model class="Models" type="PostProcessor">pp1</Model>
-      <Output class="Files" type="">output_metric</Output>
+      <Output class="DataObjects" type="PointSet">pp1_metric</Output>
+      <Output class="OutStreams" type="Print">pp1_metric_dump</Output>
     </PostProcess>
   </Steps>
 
@@ -90,6 +91,20 @@
       <Input>x1,x2</Input>
       <Output>ans2</Output>
     </PointSet>
+    <PointSet name="pp1_metric">
+      <Output>pp1_vars</Output>
+    </PointSet>
   </DataObjects>
+
+  <VariableGroups>
+    <Group name="pp1_vars">euclidean_ans2_ans</Group>
+  </VariableGroups>
+
+  <OutStreams>
+    <Print name="pp1_metric_dump">
+      <type>csv</type>
+      <source>pp1_metric</source>
+    </Print>
+  </OutStreams>
 
 </Simulation>

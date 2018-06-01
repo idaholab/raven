@@ -4,9 +4,9 @@ import warnings
 warnings.simplefilter('default',DeprecationWarning)
 
 import sys
-import utils
+import crowTestUtils as utils
 
-distribution1D = utils.find_distribution1D()
+distribution1D = utils.findCrowModule('distribution1D')
 
 geometric_distribution = distribution1D.BasicGeometricDistribution(0.25)
 
@@ -26,3 +26,19 @@ utils.checkAnswer("geometric ppf(0.9)",geometric_distribution.inverseCdf(0.9),7.
 print(results)
 
 sys.exit(results["fail"])
+
+"""
+ <TestInfo>
+    <name>crow.test_geometric</name>
+    <author>cogljj</author>
+    <created>2017-03-24</created>
+    <classesTested>crow</classesTested>
+    <description>
+      This test is a Unit Test for the crow swig classes. It tests that the geometric
+      distribution is accessable by Python
+    </description>
+    <revisions>
+      <revision author="alfoa" date="2018-05-15">Adding this test description.</revision>
+    </revisions>
+ </TestInfo>
+"""

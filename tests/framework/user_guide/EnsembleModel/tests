@@ -1,0 +1,8 @@
+[Tests]
+  [./Basic]
+    type = 'RavenFramework'
+    input = 'basic.xml'
+    csv = 'run_basic/results.csv'
+  [../]
+
+[]

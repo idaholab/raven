@@ -1,19 +1,20 @@
 [Tests]
-  [./static]
-    type   = 'RavenFramework'
-    input  = 'test_notime.xml'
-    csv    = 'static/data.csv'
-	  output = 'static/data.xml static/basic.xml static/collocation.xml'
-  [../]
-  [./dynamic]
-    type   = 'RavenFramework'
-    input  = 'test_time.xml'
-    csv    = 'dynamic/point_dump.csv'
-    output = 'dynamic/point_dump.xml'
-  [../]
-  [./invalidXMLtag]
-    type   = 'RavenFramework'
-    input  = 'test_invalid_xml_tag_name.xml'
-    output = 'invalidXMLtagName/point_dump.csv'
-  [../]
+#  DISABLED while RavenOutput postprocessor is deprecated.
+#  [./static]
+#    type   = 'RavenFramework'
+#    input  = 'test_notime.xml'
+#    csv    = 'static/data.csv'
+#	  output = 'static/data.xml static/basic.xml static/collocation.xml'
+#  [../]
+#  [./dynamic]
+#    type   = 'RavenFramework'
+#    input  = 'test_time.xml'
+#    csv    = 'dynamic/point_dump.csv'
+#    output = 'dynamic/point_dump.xml'
+#  [../]
+#  [./invalidXMLtag]
+#    type   = 'RavenFramework'
+#    input  = 'test_invalid_xml_tag_name.xml'
+#    output = 'invalidXMLtagName/point_dump.csv'
+#  [../]
 []

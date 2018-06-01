@@ -19,6 +19,7 @@
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
     </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>metaModelLinearParallelWithOptimizer</WorkingDir>
     <Sequence>testMetamodelHeatTransfer,dumpResults</Sequence>
@@ -52,7 +53,7 @@
       </Model>
       <Model class="Models" type="ExternalModel">
           heatTransfer
-          <Input class="DataObjects" type="PointSet">inputHolder</Input>
+        <Input class="DataObjects" type="PointSet">inputHolder</Input>
         <TargetEvaluation class="DataObjects" type="PointSet">heatTransferContainer</TargetEvaluation>
       </Model>
     </EnsembleModel>
@@ -60,30 +61,30 @@
 
   <Optimizers>
     <SPSA name="opt_smp">
-        <initialization>
-          <limit>100</limit>
-          <type>min</type>
-          <initialSeed>30</initialSeed>
-        </initialization>
-        <TargetEvaluation class="DataObjects" type="PointSet">optOutput</TargetEvaluation>
-        <convergence>
-          <iterationLimit>100</iterationLimit>
-          <relativeThreshold>1e-6</relativeThreshold>
-        </convergence>
-        <variable name="leftTemperature">
-			    <upperBound>250</upperBound>
-			    <lowerBound>249</lowerBound>
-          <initial>250</initial>
-        </variable>
-        <variable name="rightTemperature">
-			    <upperBound>250</upperBound>
-			    <lowerBound>249</lowerBound>
-          <initial>250</initial>
-        </variable>
-        <objectVar>solution</objectVar>
-        <parameter>
-          <numGradAvgIterations>1</numGradAvgIterations>
-        </parameter>
+      <initialization>
+        <limit>100</limit>
+        <type>min</type>
+        <initialSeed>30</initialSeed>
+      </initialization>
+      <TargetEvaluation class="DataObjects" type="PointSet">optOutput</TargetEvaluation>
+      <convergence>
+        <iterationLimit>100</iterationLimit>
+        <relativeThreshold>1e-6</relativeThreshold>
+      </convergence>
+      <variable name="leftTemperature">
+        <upperBound>250</upperBound>
+        <lowerBound>249</lowerBound>
+        <initial>250</initial>
+      </variable>
+      <variable name="rightTemperature">
+        <upperBound>250</upperBound>
+        <lowerBound>249</lowerBound>
+        <initial>250</initial>
+      </variable>
+      <objectVar>solution</objectVar>
+      <parameter>
+        <numGradAvgIterations>1</numGradAvgIterations>
+      </parameter>
     </SPSA>
   </Optimizers>
 
@@ -92,7 +93,7 @@
       <Input class="DataObjects" type="PointSet">inputHolder</Input>
       <Model class="Models" type="EnsembleModel">heatTransferEnsembleModel</Model>
       <Optimizer class="Optimizers" type="SPSA">opt_smp</Optimizer>
-      <SolutionExport class="DataObjects" type="HistorySet">optData</SolutionExport>
+      <SolutionExport class="DataObjects" type="PointSet">optData</SolutionExport>
       <Output class="DataObjects" type="PointSet">metaModelOutputTest</Output>
       <Output class="DataObjects" type="PointSet">optOutput</Output>
       <Output class="DataObjects" type="PointSet">thermalConductivityComputationContainer</Output>
@@ -101,7 +102,7 @@
     </MultiRun>
     <IOStep name="dumpResults" pauseAtEnd="True">
       <Input class="DataObjects" type="PointSet">heatTransferContainer</Input>
-      <Input class="DataObjects" type="HistorySet">optData</Input>
+      <Input class="DataObjects" type="PointSet">optData</Input>
       <Input class="DataObjects" type="PointSet">optOutput</Input>
       <Input class="DataObjects" type="PointSet">thermalConductivityComputationContainer</Input>
       <Input class="DataObjects" type="PointSet">metaModelOutputTest</Input>
@@ -120,79 +121,86 @@
     <Print name="thermalConductivityComputationContainerDump">
       <type>csv</type>
       <source>thermalConductivityComputationContainer</source>
+      <what>input,output</what>
     </Print>
     <Print name="heatTransferContainerDump">
       <type>csv</type>
       <source>heatTransferContainer</source>
+      <what>input,output</what>
     </Print>
     <Print name="metaModelOutputTestDump">
       <type>csv</type>
       <source>metaModelOutputTest</source>
+      <what>input,output</what>
     </Print>
     <Print name="optimizationHistoryDump">
       <type>csv</type>
       <source>optData</source>
+      <clusterLabel>trajID</clusterLabel>
     </Print>
     <Print name="mdlDataDump">
       <type>csv</type>
       <source>optOutput</source>
+      <what>input,output</what>
     </Print>
-
-    <Plot  name="optPath" overwrite="false" verbosity="debug">
-        <actions>
-            <how>pdf</how>
-        </actions>
-        <plotSettings>
-            <plot>
-                <type>scatter</type>
-                <x>optData|Output|leftTemperature</x>
-                <y>optData|Output|rightTemperature</y>
-                <z>optData|Output|solution</z>
-            </plot>
-            <xlabel>leftTemperature</xlabel>
-            <ylabel>rightTemperature</ylabel>
-            <zlabel>Loss Function</zlabel>
-        </plotSettings>
+    <Plot name="optPath" overwrite="false" verbosity="debug">
+      <actions>
+        <how>pdf</how>
+      </actions>
+      <plotSettings>
+        <plot>
+          <type>scatter</type>
+          <x>optData|Output|leftTemperature</x>
+          <y>optData|Output|rightTemperature</y>
+          <z>optData|Output|solution</z>
+        </plot>
+        <xlabel>leftTemperature</xlabel>
+        <ylabel>rightTemperature</ylabel>
+        <zlabel>Loss Function</zlabel>
+      </plotSettings>
     </Plot>
-
-    <Plot  name="plotIteration" overwrite="false" verbosity="debug">
-        <actions>
-            <how>pdf</how>
-        </actions>
-        <plotSettings>
-            <gridSpace>3 1</gridSpace>
-            <plot>
-                <type>line</type>
-                <x>optData|Output|varsUpdate</x>
-                <y>optData|Output|leftTemperature</y>
-                <interpPointsX>300</interpPointsX>
-                <gridLocation><x>0</x><y>0</y></gridLocation>
-                <ylabel>x1</ylabel>
-            </plot>
-
-            <plot>
-                <type>line</type>
-                <x>optData|Output|varsUpdate</x>
-                <y>optData|Output|rightTemperature</y>
-                <interpPointsX>300</interpPointsX>
-                <gridLocation><x>1</x><y>0</y></gridLocation>
-                <ylabel>2</ylabel>
-            </plot>
-
-
-            <plot>
-                <type>line</type>
-                <x>optData|Output|varsUpdate</x>
-                <y>optData|Output|solution</y>
-                <interpPointsX>300</interpPointsX>
-                <gridLocation><x>2</x><y>0</y></gridLocation>
-                <ylabel>c</ylabel>
-            </plot>
-
-
-        </plotSettings>
+    <Plot name="plotIteration" overwrite="false" verbosity="debug">
+      <actions>
+        <how>pdf</how>
+      </actions>
+      <plotSettings>
+        <gridSpace>3 1</gridSpace>
+        <plot>
+          <type>line</type>
+          <x>optData|Output|varsUpdate</x>
+          <y>optData|Output|leftTemperature</y>
+          <interpPointsX>300</interpPointsX>
+          <gridLocation>
+            <x>0</x>
+            <y>0</y>
+          </gridLocation>
+          <ylabel>x1</ylabel>
+        </plot>
+        <plot>
+          <type>line</type>
+          <x>optData|Output|varsUpdate</x>
+          <y>optData|Output|rightTemperature</y>
+          <interpPointsX>300</interpPointsX>
+          <gridLocation>
+            <x>1</x>
+            <y>0</y>
+          </gridLocation>
+          <ylabel>2</ylabel>
+        </plot>
+        <plot>
+          <type>line</type>
+          <x>optData|Output|varsUpdate</x>
+          <y>optData|Output|solution</y>
+          <interpPointsX>300</interpPointsX>
+          <gridLocation>
+            <x>2</x>
+            <y>0</y>
+          </gridLocation>
+          <ylabel>c</ylabel>
+        </plot>
+      </plotSettings>
     </Plot>
-    <Plot  name="metaModelOutputTestSolution" overwrite="false" verbosity="debug">
+    <Plot name="metaModelOutputTestSolution" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>scatter</type>
@@ -220,7 +228,7 @@
         </title>
       </actions>
     </Plot>
-    <Plot  name="metaModelOutputTestK" overwrite="false" verbosity="debug">
+    <Plot name="metaModelOutputTestK" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>scatter</type>
@@ -271,10 +279,10 @@
       <Input>leftTemperature,rightTemperature</Input>
       <Output>k,solution</Output>
     </PointSet>
-    <HistorySet name="optData">
-        <Input>trajID</Input>
-        <Output>solution,rightTemperature,leftTemperature,varsUpdate</Output>
-    </HistorySet>
+    <PointSet name="optData">
+      <Input>trajID</Input>
+      <Output>solution,rightTemperature,leftTemperature,varsUpdate</Output>
+    </PointSet>
   </DataObjects>
 
 </Simulation>

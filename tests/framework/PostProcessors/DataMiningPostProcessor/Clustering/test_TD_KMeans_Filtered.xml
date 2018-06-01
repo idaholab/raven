@@ -156,7 +156,7 @@
       <Output>time,x,y,z</Output>
     </HistorySet>
     <HistorySet name="clusterInfo">
-      <Input>labels</Input>
+      <Input>KMeans1Labels</Input>
       <Output>time,x,y,z</Output>
     </HistorySet>
   </DataObjects>

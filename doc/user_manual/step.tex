@@ -622,7 +622,7 @@ The output of the above command would look like as follows:
 \subsection{RomTrainer}
 \label{subsec:stepRomTrainer}
 The \textbf{RomTrainer} step type performs the training of a Reduced Order
-Model.
+Model (aka Surrogate Mode).
 %
 The specifications of this step must be defined within a \xmlNode{RomTrainer}
 block.
@@ -655,8 +655,10 @@ This XML node accepts the following attributes:
     type.
     This attribute specifies the object type within the main object class.
     For example, the \xmlAttr{type} attribute might be \xmlString{PointSet}.
-    \nb Since the ROMs currently present in RAVEN are not time-dependent, the
-    only allowable types are \xmlString{Point} and \xmlString{PointSet}.
+    \nb Depending on which type of \xmlString{DataObjects} is used, the ROM
+    will be a Static or Dynamic (i.e. time-dependent) model. This implies that
+    both \xmlString{PointSet} and \xmlString{HistorySet} are allowed (but not
+    \xmlString{DataSet} yet).
   \end{itemize}
 \item \xmlNode{Output}, \xmlDesc{string, required parameter}, names a ROM entity
   that is going to be trained.
@@ -679,9 +681,13 @@ Example:
 \begin{lstlisting}[style=XML,morekeywords={class}]
 <Steps>
   ...
-  <RomTrainer name='aStepName'>
-    <Input  class='DataObjects'  type='PointSet'>aTPS</Input>
-    <Output class='Models' type='ROM'         >aROM</Output>
+  <RomTrainer name='aStepNameStaticROM'>
+    <Input  class='DataObjects'  type='PointSet'>aPS</Input>
+    <Output class='Models'         type='ROM'     >aROM</Output>
+  </RomTrainer>
+    <RomTrainer name='aStepNameTimeDependentROM'>
+    <Input    class='DataObjects'  type='HistorySet'>aHS</Input>
+    <Output class='Models'           type='ROM'       >aTimeDepROM</Output>
   </RomTrainer>
   ...
 </Steps>
