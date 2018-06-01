@@ -544,25 +544,76 @@ below) in the \xmlNode{Input} nodes:
 </Steps>
 \end{lstlisting}
 %
-Example of how to use a ROM exported by RAVEN using the IOStep,
-where (x1,x2) are the input variable names for which the ROM has been trained:
+As already mentioned, the \xmlNode{IOStep} can be used to export (serialize) a ROM 
+in a binary file. To use the exported ROM in an external Python (or
+Python-compatible) code, the RAVEN framework must be present in end-user machine.
+The main reason for this is that the \textit{Pickle} module uses the class definitions to template
+the reconstruction of the serialized object in memory. 
+\\ In order to faciliate the usage of the serialized ROM in an external Python code, the RAVEN
+team provided a utility class contained in :
+\begin{lstlisting}[language=bash]
+ ./raven/scripts/externalROMloader.py
+\end{lstlisting}
+An example of how to use this utility class to load and use a serialized ROM (already trained) is reported below:
 %
 Example Python Function:
 \begin{lstlisting}[language=python]
-import os
-from glob import glob
-import inspect
-import utils
+from externalROMloader import ravenROMexternal
 import numpy as np
-for dirr,_,_ in os.walk("path_to_framework"):
- utils.add_path(dirr)
-import pickle
-fileobj = open('zFile','rb')
-unpickledObj = pickle.load(fileobj)
-dictionary={"x1":np.atleast_1d(Value1),"x2":np.atleast_1d(Value2)}
-eval=unpickledObj.evaluate(dictionary)
+rom = ravenROMexternal("path_to_pickled_rom/ROM.pk",
+                                     "path_to_RAVEN_framework")
+request = {"x1":np.atleast_1d(Value1),"x2":np.atleast_1d(Value2)}
+eval  = rom.evaluate(request)
 print str(eval)
-fileobj.close()
+\end{lstlisting}
+
+The module above can also be used to evaluate a ROM from input file:
+\begin{lstlisting}[language=bash]
+  python ./raven/scripts/externalROMloader.py input_file.xml
+\end{lstlisting}
+The input file has the following format:
+\begin{lstlisting}[style=XML,morekeywords={class}]
+<?xml version="1.0" ?>
+<external_rom>
+  <RAVENdir>path_to_RAVEN_framework</RAVENdir>
+  <ROMfile>ath_to_pickled_rom/ROM.pk</ROMfile>
+  <evaluate>
+    <x1>0. 1. 0.5</x1>
+    <x2>0. 0.4 2.1</x2>
+  </evaluate>
+  <inspect>true</inspect>
+  <outputFile>output_file_name</outputFile>
+</external_rom>
+\end{lstlisting}
+The output of the above command would look like as follows:
+\begin{lstlisting}[style=XML,morekeywords={class}]
+<?xml version="1.0" ?>
+<UROM>
+  <settings>
+    <Target>ans</Target>
+    <name>UROM</name>
+    <IndexSet>TensorProduct</IndexSet>
+    <Features>[u'x1' u'x2']</Features>
+    <PolynomialOrder>2</PolynomialOrder>
+  </settings>
+  <evaluations>
+    <evaluation realization="1">
+      <x2>0.0</x2>
+      <x1>0.0</x1>
+      <ans>-3.1696867353e-14</ans>
+    </evaluation>
+    <evaluation realization="2">
+      <x2>0.4</x2>
+      <x1>1.0</x1>
+      <ans>1.4</ans>
+    </evaluation>
+    <evaluation realization="3">
+      <x2>2.1</x2>
+      <x1>0.5</x1>
+      <ans>2.6</ans>
+    </evaluation>
+  </evaluations>
+</UROM>
 \end{lstlisting}
 
 %%%%%%%%%%%%%%%%%%%%
@@ -571,7 +622,7 @@ fileobj.close()
 \subsection{RomTrainer}
 \label{subsec:stepRomTrainer}
 The \textbf{RomTrainer} step type performs the training of a Reduced Order
-Model.
+Model (aka Surrogate Mode).
 %
 The specifications of this step must be defined within a \xmlNode{RomTrainer}
 block.
@@ -604,8 +655,10 @@ This XML node accepts the following attributes:
     type.
     This attribute specifies the object type within the main object class.
     For example, the \xmlAttr{type} attribute might be \xmlString{PointSet}.
-    \nb Since the ROMs currently present in RAVEN are not time-dependent, the
-    only allowable types are \xmlString{Point} and \xmlString{PointSet}.
+    \nb Depending on which type of \xmlString{DataObjects} is used, the ROM
+    will be a Static or Dynamic (i.e. time-dependent) model. This implies that
+    both \xmlString{PointSet} and \xmlString{HistorySet} are allowed (but not
+    \xmlString{DataSet} yet).
   \end{itemize}
 \item \xmlNode{Output}, \xmlDesc{string, required parameter}, names a ROM entity
   that is going to be trained.
@@ -628,9 +681,13 @@ Example:
 \begin{lstlisting}[style=XML,morekeywords={class}]
 <Steps>
   ...
-  <RomTrainer name='aStepName'>
-    <Input  class='DataObjects'  type='PointSet'>aTPS</Input>
-    <Output class='Models' type='ROM'         >aROM</Output>
+  <RomTrainer name='aStepNameStaticROM'>
+    <Input  class='DataObjects'  type='PointSet'>aPS</Input>
+    <Output class='Models'         type='ROM'     >aROM</Output>
+  </RomTrainer>
+    <RomTrainer name='aStepNameTimeDependentROM'>
+    <Input    class='DataObjects'  type='HistorySet'>aHS</Input>
+    <Output class='Models'           type='ROM'       >aTimeDepROM</Output>
   </RomTrainer>
   ...
 </Steps>

@@ -82,8 +82,7 @@
       <Output>OutputPlaceHolder</Output>
     </PointSet>
     <PointSet name="solns">
-      <Input>x1,x2,x3,x4,x5,x6</Input>
-      <Output>OutputPlaceHolder</Output>
+      <Input>x2,x3,x1,x6,x4,x5</Input>
     </PointSet>
   </DataObjects>
 
@@ -91,6 +90,7 @@
     <Print name="dump">
       <type>csv</type>
       <source>solns</source>
+      <what>input, output</what>
     </Print>
   </OutStreams>
 

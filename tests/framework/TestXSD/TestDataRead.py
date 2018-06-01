@@ -74,6 +74,7 @@ print('sub_value_2', repr(outerInput.subparts[2].subparts[0].value),
       repr(outerInput.subparts[2].subparts[0].name))
 checkAnswer('sub_value_2', outerInput.subparts[2].subparts[0].value)
 
+checkAnswer(["1", "abc", "3"], outerInput.subparts[1].parameterValues['list_of_strings'])
 
 outside = InputData.createXSD(test_classes.OuterInput)
 outsideTree = ET.ElementTree(outside)
@@ -89,6 +90,8 @@ try:
   testDoc = etree.parse(open(testMoreFilename,"r"))
 
   valid = schema.validate(testDoc)
+  if not valid:
+    print(schema.error_log)
   checkAnswer(True, valid)
   print("valid",valid)
 except ImportError:
@@ -110,6 +113,7 @@ sys.exit(passFails[1])
       <revision author="cogljj" date="2016-04-12">Renaming text to value in ParameterInput</revision>
       <revision author="cogljj" date="2016-07-05">Add ability to run without lxml. The first checkes for lxml and skips the test if missing. The second checkes for lxml before running part of the test.</revision>
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+      <revision author="alfoa" date="2018-01-31">Modified for new dataobject and correct check of boolean types</revision>
     </revisions>
   </TestInfo>
 """

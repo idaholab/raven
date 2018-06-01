@@ -13,6 +13,29 @@
   \nb As with other objects, this identifier can be used to reference this
   specific entity from other input blocks in the XML.
 }
+\newcommand{\shapeVariableDescription}
+{
+  \xmlAttr{shape},
+  \xmlDesc{comma-separated integers, optional field},
+  determines the number of samples and shape of samples
+  to be taken.  For example, \xmlAttr{shape}=``2,3'' will provide a 2 by 3
+  matrix of values, while \xmlAttr{shape}=``10'' will produce a vector of 10 values.
+  Omitting this optional attribute will result in a single scalar value instead.
+  Each of the values in the matrix or vector will be the same as the single sampled value.
+  \nb A model interface must be prepared to handle non-scalar inputs to use this option.
+}
+\newcommand{\shapeConstantDescription}
+{
+  \xmlAttr{shape},
+  \xmlDesc{comma-separated integers, optional field},
+  determines the shape of samples of the constant value.
+  For example, \xmlAttr{shape}=``2,3'' will shape the values into a 2 by 3
+  matrix, while \xmlAttr{shape}=``10'' will shape into a vector of 10 values.
+  Unlike the \xmlNode{variable}, the constant requires each value be entered; the number
+  of required values is equal to the product of the \xmlAttr{shape}.
+  \nb A model interface must be prepared to handle non-scalar inputs to use this option.
+}
+
 \renewcommand{\specBlock}[2]
 {
   The specifications of this sampler must be defined within #1 \xmlNode{#2} XML
@@ -98,10 +121,11 @@ XML node and the requirements for other attributes change:
 \newcommand{\variableDescription}
 {
   \xmlNode{variable}, \xmlDesc{XML node,
-  required parameter} will specify one attribute:
+  required parameter} can specify the following attribute:
   \begin{itemize}
     \item \xmlAttr{name}, \xmlDesc{required string attribute}, user-defined name
       of this variable.
+    \item \shapeVariableDescription
   \end{itemize}
 }
 
@@ -112,7 +136,12 @@ XML node and the requirements for other attributes change:
   kept constant.
   For doing this, as many \xmlNode{constant} nodes as needed can be
   input, where the body of the node contains the constant value that is
-  going to be injected as an additional variable
+  going to be injected as an additional variable.  The constant has the following attributes:
+  \begin{itemize}
+    \item \xmlAttr{name}, \xmlDesc{required string attribute}, user-defined name
+      of this constant.
+    \item \shapeConstantDescription
+  \end{itemize}
 }
 
 \newcommand{\distributionDescription}
@@ -276,7 +305,7 @@ XML node and the requirements for other attributes change:
 {
     \begin{itemize}
       \item \xmlNode{Restart}, \xmlDesc{string, optional field}, the
-        body of this XML node must contain the name of an appropriate \textbf{PointSet} defined in the
+        body of this XML node must contain the name of an appropriate \textbf{DataObject} defined in the
         \xmlNode{DataObjects} block (see Section~\ref{sec:DataObjects}).  It is used as a
         ``restart'' tool, where it accepts pre-existing solutions in the PointSet instead
         of recalculating solutions.
@@ -290,7 +319,7 @@ XML node and the requirements for other attributes change:
         body of this XML node must contain a valid floating point value.  If a \xmlNode{Restart} node is
         supplied for this \xmlNode{Sampler}, this node offers a way to determine how strictly matching points
         are determined.  Given a point in the input space, if that point is within a relative Euclidean
-        distance (equal to the tolerance) of a restart point, the nearest restart point will be used instead.
+        distance (equal to the tolerance) of a restart point, the nearest restart point will be used.
         \default{1e-15}
     \end{itemize}
 }
@@ -1637,17 +1666,29 @@ The \textbf{Custom} sampling approach allows the user to specify a predefined se
 \end{itemize}
 \vspace{-5mm}
 
-In the \textbf{CustomSampler} input block, the user needs to specify the variables need to be sampled. As already mentioned, these variables are inputted within consecutive XML blocks called \xmlNode{variable}.  In addition, the \xmlNode{Source} from which the samples need to be retrieved needs to be specified as well:
+In the \textbf{CustomSampler} input block, the user needs to specify the variables need to be sampled. As
+already mentioned, these variables are inputted within consecutive XML blocks called \xmlNode{variable}.  Note
+that if any variables are dependent on other dimensions (e.g. ``time''), the dependent dimensions need to be
+listed as variables as well.
+
+In addition, the \xmlNode{Source} from which the samples need to be retrieved needs to be specified:
 \begin{itemize}
-\item \variableDescription
+  \item \xmlNode{variable}, \xmlDesc{XML node,
+    required parameter} can specify the following attribute:
+    \begin{itemize}
+      \item \xmlAttr{name}, \xmlDesc{required string attribute}, user-defined name of this variable.
+      \item \xmlAttr{nameInSource}, \xmlDesc{optional string attribute}, name of the variable to read from in
+        \xmlNode{Source}.  \default Same as \xmlAttr{name}.
+      \item \shapeVariableDescription
+    \end{itemize}
  \item \xmlNode{Source}, \xmlDesc{XML node,
   required parameter} will specify the following attributes:
   \begin{itemize}
     \item \xmlAttr{class}, \xmlDesc{required string attribute}, class entity of the source where the samples need to be retrieved from.
      It can be either \textbf{Files} or \textbf{DataObjects}.
      \item \xmlAttr{type}, \xmlDesc{required string attribute}, type of the source withing the previously explained ``class''.
-      If \xmlAttr{class} is  \textbf{Files}, this attribute needs to be kept empty; otherwise it must be  \textbf{PointSet} (the only allowed
-      DataObjects usable as source in this sampler).
+      If \xmlAttr{class} is  \textbf{Files}, this attribute needs to be kept empty; otherwise it must be one
+      of the \textbf{DataSet} objects: PointSet, HistorySet, or DataSet.
       \\ \nb If the \xmlNode{Source} \xmlAttr{class} is  \textbf{Files}, the File needs to be a standard CSV file, specified in the
       \xmlNode{Files} XML block in the RAVEN input.
       \\ In addition, it is important to notice that if in the \xmlNode{Source}  the \textbf{PointProbability} and

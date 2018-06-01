@@ -36,6 +36,7 @@ from functools import reduce
 #Internal Modules------------------------------------------------------------------------------------
 from .ForwardSampler import ForwardSampler
 from utils import utils
+from utils import InputData
 import GridEntities
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -43,6 +44,37 @@ class Grid(ForwardSampler):
   """
     Samples the model on a given (by input) set of points
   """
+
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    inputSpecification = super(Grid, cls).getInputSpecification()
+    # grid input
+    gridInput = InputData.parameterInputFactory("grid", contentType=InputData.StringType)
+    gridInput.addParam("type", InputData.StringType)
+    gridInput.addParam("construction", InputData.StringType)
+    gridInput.addParam("steps", InputData.IntegerType)
+    # old outer distribution input
+    oldSubOutDist =  inputSpecification.popSub("Distribution")
+    newOuterDistributionInput = InputData.parameterInputFactory("Distribution", baseNode=oldSubOutDist)
+    # old variable input
+    oldSub = inputSpecification.popSub("variable")
+    newVariableInput = InputData.parameterInputFactory("variable", baseNode=oldSub)
+    # update variable input with new grid input
+    newVariableInput.addSub(gridInput)
+    inputSpecification.addSub(newVariableInput)
+    # update outer distribution input with new grid input
+    newOuterDistributionInput.addSub(gridInput)
+    inputSpecification.addSub(newOuterDistributionInput)
+
+    return inputSpecification
+
   def __init__(self):
     """
     Default Constructor that will initialize member variables with reasonable
@@ -58,13 +90,15 @@ class Grid(ForwardSampler):
     self.gridCoordinate       = []           # current grid coordinates
     self.gridEntity           = GridEntities.returnInstance('GridEntity',self)
 
-  def localInputAndChecks(self,xmlNode):
+  def localInputAndChecks(self,xmlNode, paramInput):
     """
       Class specific xml inputs will be read here and checked for validity.
       @ In, xmlNode, xml.etree.ElementTree.Element, The xml element node that will be checked against the available options specific to this Sampler.
+      @ In, paramInput, InputData.ParameterInput, the parsed parameters
       @ Out, None
     """
-    if 'limit' in xmlNode.attrib.keys():
+    #TODO remove using xmlNode
+    if 'limit' in paramInput.parameterValues:
       self.raiseAnError(IOError,'limit is not used in Grid sampler')
     self.limit = 1
     self.gridEntity._readMoreXml(xmlNode,dimensionTags=["variable","Distribution"],messageHandler=self.messageHandler, dimTagsPrefix={"Distribution":"<distribution>"})
@@ -177,39 +211,33 @@ class Grid(ForwardSampler):
       # Compute the ProbabilityWeight
       if ("<distribution>" in varName) or (self.variables2distributionsMapping[varName]['totDim']==1):
         if self.distDict[varName].getDisttype() == 'Discrete':
-          weight *= self.distDict[varName].pdf(coordinates[varName])
+          gridWeight = self.distDict[varName].pdf(coordinates[varName])
         else:
           if self.gridInfo[varName]=='CDF':
             if coordinatesPlusOne[varName] != sys.maxsize and coordinatesMinusOne[varName] != -sys.maxsize:
               midPlusCDF   = (coordinatesPlusOne[varName]+self.distDict[varName].cdf(self.values[key]))/2.0
               midMinusCDF  = (coordinatesMinusOne[varName]+self.distDict[varName].cdf(self.values[key]))/2.0
-              self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = midPlusCDF - midMinusCDF
-              weight *= midPlusCDF - midMinusCDF
             if coordinatesMinusOne[varName] == -sys.maxsize:
               midPlusCDF   = (coordinatesPlusOne[varName]+self.distDict[varName].cdf(self.values[key]))/2.0
               midMinusCDF  = 0.0
-              self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = midPlusCDF - midMinusCDF
-              weight *= midPlusCDF - midMinusCDF
             if coordinatesPlusOne[varName] == sys.maxsize:
               midPlusCDF   = 1.0
               midMinusCDF  = (coordinatesMinusOne[varName]+self.distDict[varName].cdf(self.values[key]))/2.0
-              self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = midPlusCDF - midMinusCDF
-              weight *= midPlusCDF - midMinusCDF
+            gridWeight = midPlusCDF - midMinusCDF
           else:
             # Value
             if coordinatesPlusOne[varName] != sys.maxsize and coordinatesMinusOne[varName] != -sys.maxsize:
               midPlusValue   = (self.values[key]+coordinatesPlusOne[varName])/2.0
               midMinusValue  = (self.values[key]+coordinatesMinusOne[varName])/2.0
-              weight *= self.distDict[varName].cdf(midPlusValue) - self.distDict[varName].cdf(midMinusValue)
-              self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = self.distDict[varName].cdf(midPlusValue) - self.distDict[varName].cdf(midMinusValue)
+              gridWeight = self.distDict[varName].cdf(midPlusValue) - self.distDict[varName].cdf(midMinusValue)
             if coordinatesMinusOne[varName] == -sys.maxsize:
               midPlusValue   = (self.values[key]+coordinatesPlusOne[varName])/2.0
-              self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = self.distDict[varName].cdf(midPlusValue) - 0.0
-              weight *= self.distDict[varName].cdf(midPlusValue) - 0.0
+              gridWeight = self.distDict[varName].cdf(midPlusValue) - 0.0
             if coordinatesPlusOne[varName] == sys.maxsize:
               midMinusValue  = (self.values[key]+coordinatesMinusOne[varName])/2.0
-              self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = 1.0 - self.distDict[varName].cdf(midMinusValue)
-              weight *= 1.0 - self.distDict[varName].cdf(midMinusValue)
+              gridWeight = 1.0 - self.distDict[varName].cdf(midMinusValue)
+        self.inputInfo['ProbabilityWeight-'+varName] = gridWeight
+        weight *= gridWeight
       # ND variable
       else:
         if self.variables2distributionsMapping[varName]['reducedDim']==1:
@@ -245,7 +273,7 @@ class Grid(ForwardSampler):
               if coordinatesPlusOne[variable] == sys.maxsize:
                 dxs[positionList.index(position)]          =  self.distDict[varName].returnUpperBound(positionList.index(position)) - (coordinates[variable.strip()]+coordinatesMinusOne[variable])/2.0
                 ndCoordinate[positionList.index(position)] = (self.distDict[varName].returnUpperBound(positionList.index(position)) + (coordinates[variable.strip()]+coordinatesMinusOne[variable])/2.0) /2.0
-          self.inputInfo['ProbabilityWeight-'+varName.replace(",","!")] = self.distDict[varName].cellIntegral(ndCoordinate,dxs)
+          self.inputInfo['ProbabilityWeight-'+distName] = self.distDict[varName].cellIntegral(ndCoordinate,dxs)
           weight *= self.distDict[varName].cellIntegral(ndCoordinate,dxs)
     self.inputInfo['PointProbability' ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
     self.inputInfo['ProbabilityWeight'] = copy.deepcopy(weight)

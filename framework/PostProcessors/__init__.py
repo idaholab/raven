@@ -32,13 +32,14 @@ from .ImportanceRank import ImportanceRank
 from .InterfacedPostProcessor import InterfacedPostProcessor
 from .LimitSurface import LimitSurface
 from .LimitSurfaceIntegral import LimitSurfaceIntegral
-from .RavenOutput import RavenOutput
+# from .RavenOutput import RavenOutput # deprecated for now
 from .SafestPoint import SafestPoint
 
 from .TopologicalDecomposition import TopologicalDecomposition
 from .DataMining import DataMining
 from .Metric import Metric
 from .CrossValidation import CrossValidation
+from .ETImporter import ETImporter
 
 additionalModules = []
 ## These utilize the optional prequisite library PySide, so don't error if they
@@ -65,9 +66,11 @@ __all__ = ['PostProcessor',
            'InterfacedPostProcessor',
            'LimitSurface',
            'LimitSurfaceIntegral',
-           'RavenOutput',
            'SafestPoint',
            'TopologicalDecomposition',
            'DataMining',
            'Metric',
-           'CrossValidation'] + additionalModules
+           'CrossValidation',
+           'ETImporter'] + additionalModules
+
+#           'RavenOutput', # deprecated for now

@@ -19,6 +19,7 @@ Created on Feb 20, 2013
 
 This is the Driver of RAVEN
 """
+
 #For future compatibility with Python 3
 from __future__ import division, print_function, absolute_import
 import warnings
@@ -37,7 +38,7 @@ import traceback
 #warning: this needs to be before importing h5py
 os.environ["MV2_ENABLE_AFFINITY"]="0"
 
-frameworkDir = os.path.dirname(os.path.abspath(sys.argv[0]))
+frameworkDir = os.path.dirname(os.path.abspath(__file__))
 from utils import utils
 import utils.TreeStructure as TS
 utils.find_crow(frameworkDir)
@@ -217,7 +218,8 @@ if __name__ == '__main__':
       sys.exit(1)
 
     # call the function to load the external xml files into the input tree
-    simulation.XMLpreprocess(root,inputFileName=inputFile)
+    cwd = os.path.dirname(os.path.abspath(inputFile))
+    simulation.XMLpreprocess(root,cwd)
     #generate all the components of the simulation
     #Call the function to read and construct each single module of the simulation
     simulation.XMLread(root,runInfoSkip=set(["DefaultInputFile"]),xmlFilename=inputFile)

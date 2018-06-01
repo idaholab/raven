@@ -78,7 +78,7 @@
   <Models>
     <Dummy name="MyDummy" print="True" subType=""/>
     <ExternalModel ModuleToLoad="../../../AnalyticModels/gFunction" name="poly" subType="">
-      <variables>x1,x2,x3,x5,x6,x7,x8,ans</variables>
+      <variables>x1,x2,x3,x4,x5,x6,x7,x8,ans</variables>
     </ExternalModel>
     <ROM name="rom" subType="HDMRRom">
       <SobolOrder>2</SobolOrder>
@@ -96,7 +96,7 @@
       <Output>OutputPlaceHolder</Output>
     </PointSet>
     <PointSet name="solns">
-      <Input>x1,x2,x3,x4,x5,x6,x7,x8</Input>
+      <Input>x8,x2,x3,x1,x6,x7,x4,x5</Input>
       <Output>ans</Output>
     </PointSet>
   </DataObjects>
@@ -105,6 +105,7 @@
     <Print name="dump">
       <type>csv</type>
       <source>solns</source>
+      <what>input,output</what>
     </Print>
     <Print name="dumprom">
       <type>xml</type>

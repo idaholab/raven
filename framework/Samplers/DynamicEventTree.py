@@ -43,6 +43,7 @@ from .MonteCarlo import MonteCarlo
 from .Stratified import Stratified
 from .Sampler import Sampler
 from utils import utils
+from utils import InputData
 import utils.TreeStructure as ETS
 #Internal Modules End-------------------------------------------------------------------------------
 
@@ -50,6 +51,45 @@ class DynamicEventTree(Grid):
   """
   DYNAMIC EVENT TREE Sampler (DET)
   """
+
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    inputSpecification = super(DynamicEventTree, cls).getInputSpecification()
+
+    inputSpecification.addParam("printEndXmlSummary", InputData.StringType)
+    inputSpecification.addParam("maxSimulationType", InputData.FloatType)
+    inputSpecification.addParam("removeXmlBranchInfo", InputData.StringType)
+
+    oldSub = inputSpecification.popSub("Distribution")
+    newDistributionInput = InputData.parameterInputFactory("Distribution", baseNode=oldSub)
+    gridInput = InputData.parameterInputFactory("grid", contentType=InputData.StringType)
+    gridInput.addParam("type", InputData.StringType)
+    gridInput.addParam("construction", InputData.StringType)
+    gridInput.addParam("steps", InputData.IntegerType)
+
+    newDistributionInput.addSub(gridInput)
+    inputSpecification.addSub(newDistributionInput)
+
+    #Strict mode off because basically this allows things to be passed to
+    # sub Samplers, which will be checked later.
+    hybridSamplerInput = InputData.parameterInputFactory("HybridSampler", strictMode=False)
+    hybridSamplerInput.addParam("type", InputData.StringType)
+
+    for nodeName in ['variable','Distribution']:
+      nodeInput = InputData.parameterInputFactory(nodeName, strictMode=False)
+      nodeInput.addParam("name", InputData.StringType)
+      hybridSamplerInput.addSub(nodeInput)
+    inputSpecification.addSub(hybridSamplerInput)
+
+    return inputSpecification
+
   def __init__(self):
     """
     Default Constructor that will initialize member variables with reasonable
@@ -172,7 +212,6 @@ class DynamicEventTree(Grid):
       @ Out, None
     """
     self.workingDir = model.workingDir
-
     # returnBranchInfo = self.__readBranchInfo(jobObject.output)
     # Get the parent element tree (xml object) to retrieve the information needed to create the new inputs
     parentNode = self._retrieveParentNode(jobObject.identifier)
@@ -221,10 +260,8 @@ class DynamicEventTree(Grid):
     # get the branchedLevel dictionary
     branchedLevel = {}
     for distk, distpb in zip(endInfo['parentNode'].get('SampledVarsPb').keys(),endInfo['parentNode'].get('SampledVarsPb').values()):
-    #for distk, distpb in zip(endInfo['parentNode'].get('initiatorDistribution'),endInfo['parentNode'].get('PbThreshold')):
       if distk not in self.epistemicVariables.keys():
         branchedLevel[distk] = utils.index(self.branchProbabilities[distk],distpb)
-
     if not branchedLevel:
       self.raiseAnError(RuntimeError,'branchedLevel of node '+jobObject.identifier+'not found!')
     # Loop of the parameters that have been changed after a trigger gets activated
@@ -275,7 +312,6 @@ class DynamicEventTree(Grid):
     # Create the inputs and put them in the runQueue dictionary (if genRunQueue is true)
     if genRunQueue:
       self._createRunningQueue(model,myInput)
-
     return True
 
   def computeConditionalProbability(self,index=None):
@@ -385,7 +421,8 @@ class DynamicEventTree(Grid):
     self.inputInfo['branchChangedParamValue'   ] = [b'None']
     self.inputInfo['startTime'                 ] = -sys.float_info.max
     self.inputInfo['endTimeStep'               ] = 0
-    self.inputInfo['parentID'                  ] = 'root'
+    self.inputInfo['RAVEN_parentID'            ] = "None"
+    self.inputInfo['RAVEN_isEnding'            ] = True
     self.inputInfo['conditionalPb'             ] = [1.0]
     self.inputInfo['conditionalPbr'            ] = 1.0
     self.inputInfo['happenedEvent'             ] = False
@@ -412,13 +449,14 @@ class DynamicEventTree(Grid):
         self.inputInfo['SampledVarsPb'].update(precSample['SampledVarsPb'])
     self.inputInfo['PointProbability' ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
     self.inputInfo['ProbabilityWeight'] = self.inputInfo['PointProbability' ]
+    self.inputInfo.update({'ProbabilityWeight-'+key.strip():value for key,value in self.inputInfo['SampledVarsPb'].items()})
 
     if(self.maxSimulTime):
       self.inputInfo['endTime'] = self.maxSimulTime
     # Add the new input path into the RunQueue system
     newInputs = {'args':[str(self.type)], 'kwargs':dict(self.inputInfo)}
     for key,value in self.inputInfo.items():
-      rootnode.add(key,value)
+      rootnode.add(key,copy.copy(value))
     self.RunQueue['queue'].append(newInputs)
     self.RunQueue['identifiers'].append(self.inputInfo['prefix'].encode())
     self.rootToJob[self.inputInfo['prefix']] = rname
@@ -482,7 +520,6 @@ class DynamicEventTree(Grid):
       branchedLevel = copy.deepcopy(branchedLevelParent)
       # Get Parent node name => the branch name is creating appending to this name  a comma and self.branchCountOnLevel counter
       rname = endInfo['parentNode'].get('name') + '-' + str(self.branchCountOnLevel)
-
       # create a subgroup that will be appended to the parent element in the xml tree structure
       subGroup = ETS.HierarchicalNode(self.messageHandler,rname.encode())
       subGroup.add('parent', endInfo['parentNode'].get('name'))
@@ -551,8 +588,10 @@ class DynamicEventTree(Grid):
                 'branchChangedParamValue':subGroup.get('branchChangedParamValue'),
                 'conditionalPb':subGroup.get('conditionalPbr'),
                 'startTime':endInfo['parentNode'].get('endTime'),
-                'parentID':subGroup.get('parent')}
+                'RAVEN_parentID':subGroup.get('parent'),
+                'RAVEN_isEnding':True}
 
+      #'RAVEN_parentID','RAVEN_isEnding'
       self.inputInfo['happenedEvent'] = subGroup.get('happenedEvent')
       # add additional edits if needed
       model.getAdditionalInputEdits(self.inputInfo)
@@ -600,12 +639,13 @@ class DynamicEventTree(Grid):
           self.inputInfo['SampledVarsPb'].update(precSample['SampledVarsPb'])
       self.inputInfo['PointProbability' ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())*subGroup.get('conditionalPbr')
       self.inputInfo['ProbabilityWeight'] = self.inputInfo['PointProbability' ]
+      self.inputInfo.update({'ProbabilityWeight-'+key.strip():value for key,value in self.inputInfo['SampledVarsPb'].items()})
       # Add the new input path into the RunQueue system
-      newInputs = {'args': [str(self.type)], 'kwargs': dict(self.inputInfo)}
+      newInputs = {'args': [str(self.type)], 'kwargs':dict(self.inputInfo)}
       self.RunQueue['queue'].append(newInputs)
       self.RunQueue['identifiers'].append(self.inputInfo['prefix'])
       for key,value in self.inputInfo.items():
-        subGroup.add(key,value)
+        subGroup.add(key,copy.copy(value))
       popped = endInfo.pop('parentNode')
       subGroup.add('endInfo',copy.deepcopy(endInfo))
       endInfo['parentNode'] = popped
@@ -707,23 +747,26 @@ class DynamicEventTree(Grid):
     for hybridsampler in self.hybridStrategyToApply.values():
       hybridsampler._generateDistributions(availableDist,availableFunc)
 
-  def localInputAndChecks(self,xmlNode):
+  def localInputAndChecks(self,xmlNode, paramInput):
     """
       Class specific xml inputs will be read here and checked for validity.
       @ In, xmlNode, xml.etree.ElementTree.Element, The xml element node that will be checked against the available options specific to this Sampler.
+      @ In, paramInput, InputData.ParameterInput, the parsed parameters
       @ Out, None
     """
-    self._localInputAndChecksDET(xmlNode)
-    self._localInputAndChecksHybrid(xmlNode)
+    #TODO remove using xmlNode
+    self._localInputAndChecksDET(xmlNode, paramInput)
+    self._localInputAndChecksHybrid(xmlNode, paramInput)
 
-  def _localInputAndChecksDET(self,xmlNode):
+  def _localInputAndChecksDET(self,xmlNode, paramInput):
     """
       Class specific inputs will be read here and checked for validity.
       This method reads the standard DET portion only (no hybrid)
       @ In, xmlNode, xml.etree.ElementTree.Element, The xml element node that will be checked against the available options specific to this Sampler.
+      @ In, paramInput, InputData.ParameterInput, the parsed parameters
       @ Out, None
     """
-    Grid.localInputAndChecks(self,xmlNode)
+    Grid.localInputAndChecks(self,xmlNode, paramInput)
     if 'printEndXmlSummary'  in xmlNode.attrib.keys():
       self.printEndXmlSummary  = xmlNode.attrib['printEndXmlSummary'].lower()  in utils.stringsThatMeanTrue()
     if 'removeXmlBranchInfo' in xmlNode.attrib.keys():
@@ -790,11 +833,12 @@ class DynamicEventTree(Grid):
     # Append the branchedLevel dictionary in the proper list
     self.branchedLevel.append(branchedLevel)
 
-  def _localInputAndChecksHybrid(self,xmlNode):
+  def _localInputAndChecksHybrid(self,xmlNode, paramInput):
     """
       Class specific inputs will be read here and checked for validity.
       This method reads the hybrid det portion only
       @ In, xmlNode, xml.etree.ElementTree.Element, The xml element node that will be checked against the available options specific to this Sampler.
+      @ In, paramInput, InputData.ParameterInput, the parsed parameters
       @ Out, None
     """
     for child in xmlNode:
@@ -811,7 +855,10 @@ class DynamicEventTree(Grid):
         # give the hybridsampler sampler the message handler
         self.hybridStrategyToApply[child.attrib['type']].setMessageHandler(self.messageHandler)
         # make the hybridsampler sampler read  its own xml block
-        self.hybridStrategyToApply[child.attrib['type']]._readMoreXML(child)
+        childCopy = copy.deepcopy(child)
+        childCopy.tag = child.attrib['type']
+        childCopy.attrib.pop('type')
+        self.hybridStrategyToApply[child.attrib['type']]._readMoreXML(childCopy)
         # store the variables that represent the epistemic space
         self.epistemicVariables.update(dict.fromkeys(self.hybridStrategyToApply[child.attrib['type']].toBeSampled.keys(),{}))
 
@@ -902,3 +949,5 @@ class DynamicEventTree(Grid):
       #self.branchProbabilities[key] = [self.distDict[self.toBeSampled.keys()[self.toBeSampled.values().index(key)]].cdf(float(self.branchValues[key][index])) for index in range(len(self.branchValues[key]))]
       self.branchProbabilities[key] = [self.distDict[key].cdf(float(self.branchValues[key][index])) for index in range(len(self.branchValues[key]))]
     self.limit = sys.maxsize
+    # add expected metadata
+    self.addMetaKeys(*['RAVEN_parentID','RAVEN_isEnding'])

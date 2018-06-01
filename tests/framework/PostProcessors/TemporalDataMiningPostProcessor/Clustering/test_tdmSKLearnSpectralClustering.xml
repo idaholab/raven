@@ -150,11 +150,17 @@
   <DataObjects>
     <HistorySet name='clusterInfo'>
       <Input>labels</Input>
-      <Output>Time,x1,x2</Output>
+      <Output>x1,x2</Output>
+      <options>
+          <pivotParameter>Time</pivotParameter>
+      </options>
     </HistorySet>
     <HistorySet name="mData">
-        <Input>n</Input>
-        <Output>Time,x1,x2</Output>
+      <Input>n</Input>
+      <Output>x1,x2</Output>
+      <options>
+          <pivotParameter>Time</pivotParameter>
+      </options>
     </HistorySet>
   </DataObjects>
 </Simulation>

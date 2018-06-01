@@ -116,47 +116,27 @@ class TopologicalDecomposition(PostProcessor):
       @ In, currentInp, list or DataObjects, The input object to process
       @ Out, inputDict, dict, the converted input
     """
-    if type(currentInp) == list:
-      currentInput = currentInp [-1]
-    else:
-      currentInput = currentInp
-    if type(currentInput) == dict:
-      if 'features' in currentInput.keys():
-        return currentInput
-    inputDict = {'features':{}, 'targets':{}, 'metadata':{}}
-    if hasattr(currentInput, 'type'):
-      inType = currentInput.type
-    elif type(currentInput).__name__ == 'list':
-      inType = 'list'
-    else:
+    # TODO typechecking against what currentInp can be; so far it's a length=1 list with a dataobject inside
+    currentInp = currentInp[0]
+    currentInp.asDataset()
+    # nowadays, our only input should be DataObject
+    ## if no "type", then you're not a PointSet or HistorySet
+    if not hasattr(currentInp,'type') or currentInp.type != 'PointSet':
       self.raiseAnError(IOError, self.__class__.__name__,
-                        ' postprocessor accepts files, HDF5, Data(s) only. ',
-                        ' Requested: ', type(currentInput))
-
-    if inType not in ['HDF5', 'PointSet', 'list'] and not isinstance(currentInput,Files.File):
-      self.raiseAnError(IOError, self, self.__class__.__name__ + ' post-processor only accepts files, HDF5, or DataObjects! Got ' + str(inType) + '!!!!')
-    # FIXME: implement this feature
-    if isinstance(currentInput,Files.File):
-      if currentInput.subtype == 'csv':
-        pass
-    # FIXME: implement this feature
-    if inType == 'HDF5':
-      pass  # to be implemented
-    if inType in ['PointSet']:
-      for targetP in self.parameters['features']:
-        if   targetP in currentInput.getParaKeys('input'):
-          inputDict['features'][targetP] = currentInput.getParam('input' , targetP)
-        elif targetP in currentInput.getParaKeys('output'):
-          inputDict['features'][targetP] = currentInput.getParam('output', targetP)
-      for targetP in self.parameters['targets']:
-        if   targetP in currentInput.getParaKeys('input'):
-          inputDict['targets'][targetP] = currentInput.getParam('input' , targetP)
-        elif targetP in currentInput.getParaKeys('output'):
-          inputDict['targets'][targetP] = currentInput.getParam('output', targetP)
-      inputDict['metadata'] = currentInput.getAllMetadata()
-    # now we check if the sampler that genereted the samples are from adaptive... in case... create the grid
-    if 'SamplerType' in inputDict['metadata'].keys():
-      pass
+                        ' postprocessor only accepts PointSet DataObjects for input. ',
+                        ' Requested: ', type(currentInp))
+    # now we know we have a PointSet
+    ## TODO FIXME maintaining old structure for now, in the future convert to use DataObject directly
+    ##    and not bother with inputToInternal
+    ##    This works particularly well since we only accept point sets.
+    data = currentInp.asDataset(outType='dict')['data']
+    inputDict = {'features':dict((var,data[var]) for var in self.parameters['features']),
+                 'targets' :dict((var,data[var]) for var in self.parameters['targets' ]),
+                 'metadata':currentInp.getMeta(general=True)}
+    #if 'PointProbability' in currentInp.getVars():
+    inputDict['metadata']['PointProbability'] = currentInp.getVarValues('PointProbability').values
+    #else:
+    #  raise NotImplementedError # TODO
     return inputDict
 
   def _localReadMoreXML(self, xmlNode):
@@ -168,6 +148,16 @@ class TopologicalDecomposition(PostProcessor):
     """
     paramInput = TopologicalDecomposition.getInputSpecification()()
     paramInput.parseNode(xmlNode)
+    self._handleInput(paramInput)
+    # register metadata
+    self.addMetaKeys('maxLabel','minLabel')
+
+  def _handleInput(self, paramInput):
+    """
+      Function to handle the parsed paramInput for this class.
+      @ In, paramInput, ParameterInput, the already parsed input.
+      @ Out, None
+    """
     for child in paramInput.subparts:
       if child.getName() == "graph":
         self.graph = child.value.encode('ascii').lower()
@@ -225,6 +215,20 @@ class TopologicalDecomposition(PostProcessor):
     inputList,outputDict = evaluation
 
     if output.type == 'PointSet':
+      # TODO this is a slow dict-based implementation.  It should be improved on need.
+      # TODO can inputList ever be multiple dataobjects?
+      if len(inputList) > 1:
+        self.raiseAnError(NotImplementedError, 'Need to implement looping over all inputs.')
+      fromInput = inputList[0].asDataset('dict')['data']
+      results = dict((var,fromInput[var]) for var in output.getVars() if var in fromInput.keys())
+      for label in ['minLabel','maxLabel']:
+        results[label] = outputDict[label]
+      output.load(results,style='dict')
+      output.addMeta(self.type,{'general':{'hierarchy':outputDict['hierarchy']}})
+      return
+
+
+      #### OLD ####
       requestedInput = output.getParaKeys('input')
       requestedOutput = output.getParaKeys('output')
       dataLength = None
@@ -310,7 +314,7 @@ class TopologicalDecomposition(PostProcessor):
       self.inputData[:, i] = myDataIn[lbl.encode('UTF-8')]
 
     if self.weighted:
-      self.weights = inputIn[0].getMetadata('PointProbability')
+      self.weights = internalInput['metadata']['PointProbability']
     else:
       self.weights = None
 

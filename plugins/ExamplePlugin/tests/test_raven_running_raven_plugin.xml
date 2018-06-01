@@ -1,0 +1,102 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>plugins/ExamplePlugin.TestPluginExample</name>
+    <author>alfoa</author>
+    <created>2017-11-17</created>
+    <classesTested>Models.ExternalModel</classesTested>
+    <description>
+       This test is aimed to check the functionality of the RAVEN code interface (RAVEN running RAVEN)
+       executing an external plugin (ExternalModel) plugin
+    </description>
+  </TestInfo>
+  <!-- RUNINFO -->
+  <RunInfo>
+    <WorkingDir>ravenRunningRavenPlugin</WorkingDir>
+    <Sequence>FirstMRun</Sequence>
+    <!-- This settings here are going to run 3 SLAVE RAVENs at a time, each of them using 2 processors -->
+    <batchSize>1</batchSize>
+    <NumMPI>1</NumMPI>
+    <mode>mpi</mode>
+  </RunInfo>
+
+<Files>
+    <Input name="test_example_plugin.xml" type="raven" >test_example_plugin.xml</Input>
+</Files>
+
+  <!-- STEPS -->
+  <Steps>
+    <MultiRun name="FirstMRun" re-seeding="1">
+      <Input class="Files" type="raven">test_example_plugin.xml</Input>
+      <Model class="Models" type="Code">raven_running_plugin</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
+      <Output class="Databases" type="HDF5">test_external_db</Output>
+      <Output class="DataObjects" type="PointSet">testPointSet</Output>
+      <Output class="OutStreams" type="Print">testPointSet_dump</Output>
+    </MultiRun>
+  </Steps>
+
+  <!-- MODELS -->
+  <Models>
+    <Code name="raven_running_plugin" subType="RAVEN">
+        <executable>%FRAMEWORK_DIR%/../raven_framework</executable>
+        <outputExportOutStreams>dumpSumOfExpOutput</outputExportOutStreams>
+        <alias variable="b"  type="input">Samplers|MonteCarlo@name:test_MC|constant@name:b</alias>
+        <alias variable="a"  type="input">Samplers|MonteCarlo@name:test_MC|constant@name:a</alias>
+    </Code>
+  </Models>
+
+  <!-- DISTRIBUTIONS -->
+  <Distributions>
+    <Normal name="a_dist">
+      <mean>4</mean>
+      <sigma>0.1</sigma>
+    </Normal>
+    <Normal name="b_dist">
+      <mean>0.0001</mean>
+      <sigma>0.000001</sigma>
+    </Normal>
+  </Distributions>
+
+  <!-- SAMPLERS -->
+  <Samplers>
+    <MonteCarlo name="MC_external">
+      <samplerInit>
+        <limit>2</limit>
+      </samplerInit>
+      <variable name="a">
+        <distribution>a_dist</distribution>
+      </variable>
+      <variable name="b">
+        <distribution>b_dist</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <!-- DATABASES -->
+  <Databases>
+    <HDF5 name="test_external_db" readMode="overwrite"/>
+  </Databases>
+
+  <!-- OUTSTREAMS -->
+  <OutStreams>
+    <Print name="testPointSet_dump">
+      <type>csv</type>
+      <source>testPointSet</source>
+      <what>input,output</what>
+    </Print>
+  </OutStreams>
+
+  <!-- DATA OBJECTS -->
+  <DataObjects>
+    <PointSet name="inputPlaceHolder">
+      <Input>a,b</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="testPointSet">
+      <Input>a,c,b</Input>
+      <Output>Xi,monotonicVariable</Output>
+    </PointSet>
+  </DataObjects>
+
+</Simulation>

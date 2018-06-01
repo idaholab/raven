@@ -99,16 +99,21 @@ elif library_report:
   framework_dir = os.path.abspath(os.path.join(os.path.dirname(sys.argv[0]),"framework"))
   utils.find_crow(framework_dir)
   try:
-    distribution1D = utils.find_distribution1D()
+    distribution1D = utils.findCrowModule('distribution1D')
     print("distribution1D","\n",distribution1D)
     print()
-  except:
+  except ImportError:
     print("distribution1D not found\n")
   try:
-    interpolationND = utils.find_interpolationND()
+    interpolationND = utils.findCrowModule('interpolationND')
     print("interpolationND","\n",interpolationND)
-  except:
+  except ImportError:
     print("interpolationND not found\n")
+  try:
+    randomENG = utils.findCrowModule('randomENG')
+    print("randomENG","\n",randomENG)
+  except ImportError:
+    print("randomENG not found\n")
 else:
   from TestHarness import TestHarness
   sys.path.append(os.path.join("scripts","TestHarness","testers"))
@@ -126,3 +131,5 @@ else:
         print(warning)
     # Run the tests!
     TestHarness.buildAndRun(sys.argv, app_name, MOOSE_DIR)
+
+

@@ -26,16 +26,41 @@ warnings.simplefilter('default',DeprecationWarning)
 
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
+import copy
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
 from .ForwardSampler import ForwardSampler
+from utils import InputData
 #Internal Modules End--------------------------------------------------------------------------------
 
 class CustomSampler(ForwardSampler):
   """
     Custom Sampler
   """
+
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    inputSpecification = super(CustomSampler, cls).getInputSpecification()
+    sourceInput = InputData.parameterInputFactory("Source", contentType=InputData.StringType)
+    sourceInput.addParam("type", InputData.StringType)
+    sourceInput.addParam("class", InputData.StringType)
+    inputSpecification.addSub(sourceInput)
+
+    # add "nameInSource" attribute to <variable>
+    var = inputSpecification.popSub('variable')
+    var.addParam("nameInSource", InputData.StringType, required=False)
+    inputSpecification.addSub(var)
+
+    return inputSpecification
+
   def __init__(self):
     """
       Default Constructor that will initialize member variables with reasonable
@@ -46,8 +71,10 @@ class CustomSampler(ForwardSampler):
     ForwardSampler.__init__(self)
     self.pointsToSample = {}
     self.infoFromCustom = {}
+    self.nameInSource = {} # dictionary to map the variable's sampled name to the name it has in Source
     self.addAssemblerObject('Source','1',True)
     self.printTag = 'SAMPLER CUSTOM'
+    self.readingFrom = None # either File or DataObject, determines sample generation
 
   def _readMoreXMLbase(self,xmlNode):
     """
@@ -55,15 +82,25 @@ class CustomSampler(ForwardSampler):
       @ In, xmlNode, xml.etree.ElementTree.Element, The xml element node that will be checked against the available options specific to this Sampler.
       @ Out, None
     """
+    #TODO remove using xmlNode
     self.readSamplerInit(xmlNode)
+    self.nameInSource = {}
     for child in xmlNode:
       if child.tag == 'variable':
-        self.toBeSampled[child.attrib['name']] = 'custom'
+        # acquire name
+        name = child.attrib['name']
+        # check for an "alias" source name
+        self.nameInSource[name] = child.attrib.get('nameInSource',name)
+        # determine if a sampling function is used
+        funct = child.find("function")
+        if funct is None:
+          # custom samples use a "custom" distribution
+          self.toBeSampled[name] = 'custom'
+        else:
+          self.dependentSample[name] = funct.text.strip()
       if child.tag == 'Source'  :
         if child.attrib['class'] not in ['Files','DataObjects']:
           self.raiseAnError(IOError, "Source class attribute must be either 'Files' or 'DataObjects'!!!")
-        if child.attrib['class'] == 'DataObjects' and child.attrib['type'] != 'PointSet':
-          self.raiseAnError(IOError, "Source type attribute must be 'PointSet' if class attribute is 'DataObjects'!!!")
     if len(self.toBeSampled.keys()) == 0:
       self.raiseAnError(IOError,"no variables got inputted!!!!!!")
 
@@ -74,7 +111,11 @@ class CustomSampler(ForwardSampler):
       @ In, None
       @ Out, needDict, dict, list of objects needed (in this case it is empty, since no distrubtions are needed and the Source is loaded automatically)
     """
-    return {}
+    needDict = {}
+    needDict['Functions']     = [] # In case functions have been inputted
+    for func in self.dependentSample.values():
+      needDict['Functions'].append((None,func))
+    return needDict
 
   def _localGenerateAssembler(self,initDict):
     """
@@ -87,9 +128,17 @@ class CustomSampler(ForwardSampler):
     for key, value in self.assemblerObjects.items():
       if key == 'Source':
         self.assemblerDict[key] =  []
-        for interface in value:
-          self.assemblerDict[key].append([interface[0],interface[1],interface[2],initDict[interface[0]][interface[2]]])
-    if len(self.assemblerDict.keys()) == 0:
+        for entity,etype,name in value:
+          self.assemblerDict[key].append([entity,etype,name,initDict[entity][name]])
+    for key,val in self.dependentSample.items():
+      if val not in initDict['Functions'].keys():
+        self.raiseAnError('Function',val,'was not found among the available functions:',initDict['Functions'].keys())
+      self.funcDict[key] = initDict['Functions'][val]
+      # check if the correct method is present
+      if "evaluate" not in self.funcDict[key].availableMethods():
+        self.raiseAnError(IOError,'Function '+self.funcDict[key].name+' does not contain a method named "evaluate". It must be present if this needs to be used in a Sampler!')
+
+    if 'Source' not in self.assemblerDict:
       self.raiseAnError(IOError,"No Source object has been found!")
 
   def localInitialize(self):
@@ -103,36 +152,51 @@ class CustomSampler(ForwardSampler):
     """
     # check the source
     if self.assemblerDict['Source'][0][0] == 'Files':
+      self.readingFrom = 'File'
       csvFile = self.assemblerDict['Source'][0][3]
       csvFile.open(mode='r')
-      headers = [x.replace("\n","") for x in csvFile.readline().split(",")]
+      headers = [x.replace("\n","").strip() for x in csvFile.readline().split(",")]
       data = np.loadtxt(self.assemblerDict['Source'][0][3], dtype=np.float, delimiter=',', skiprows=1, ndmin=2)
+      lenRlz = len(data)
       csvFile.close()
       for var in self.toBeSampled.keys():
-        if var not in headers:
-          self.raiseAnError(IOError, "variable "+ var+ " not found in the file "+csvFile.getFilename())
-        self.pointsToSample[var] = data[:,headers.index(var)]
+        for subVar in var.split(','):
+          subVar = subVar.strip()
+          sourceName = self.nameInSource[subVar]
+          if sourceName not in headers:
+            self.raiseAnError(IOError, "variable "+ sourceName + " not found in the file "
+                    + csvFile.getFilename())
+          self.pointsToSample[subVar] = data[:,headers.index(sourceName)]
+          subVarPb = 'ProbabilityWeight-'
+          if subVarPb in headers:
+            self.infoFromCustom[subVarPb+subVar] = data[:, headers.index(subVarPb+sourceName)]
+          else:
+            self.infoFromCustom[subVarPb+subVar] = np.ones(lenRlz)
       if 'PointProbability' in headers:
         self.infoFromCustom['PointProbability'] = data[:,headers.index('PointProbability')]
+      else:
+        self.infoFromCustom['PointProbability'] = np.ones(lenRlz)
       if 'ProbabilityWeight' in headers:
         self.infoFromCustom['ProbabilityWeight'] = data[:,headers.index('ProbabilityWeight')]
+      else:
+        self.infoFromCustom['ProbabilityWeight'] = np.ones(lenRlz)
+      self.limit = len(self.pointsToSample.values()[0])
     else:
+      self.readingFrom = 'DataObject'
       dataObj = self.assemblerDict['Source'][0][3]
+      lenRlz = len(dataObj)
+      dataSet = dataObj.asDataset()
+      self.pointsToSample = dataObj.sliceByIndex(dataObj.sampleTag)
       for var in self.toBeSampled.keys():
-        if var not in dataObj.getParaKeys('input') + dataObj.getParaKeys('output'):
-          self.raiseAnError(IOError,"the variable "+ var+ " not found in "+dataObj.type +" "+dataObj.name)
-        self.pointsToSample[var] = dataObj.getParam('input', var, nodeId = 'ending') if var in dataObj.getParaKeys('input') else dataObj.getParam('output', var, nodeId = 'ending')
-      if 'PointProbability'  in dataObj.getParaKeys('metadata'):
-        self.infoFromCustom['PointProbability'] = dataObj.getMetadata('PointProbability',nodeId='ending')
-      if 'ProbabilityWeight' in dataObj.getParaKeys('metadata'):
-        self.infoFromCustom['ProbabilityWeight'] = dataObj.getMetadata('ProbabilityWeight',nodeId='ending')
-    self.limit = len(self.pointsToSample.values()[0])
+        for subVar in var.split(','):
+          subVar = subVar.strip()
+          sourceName = self.nameInSource[subVar]
+          if sourceName not in dataObj.getVars() + dataObj.getVars('indexes'):
+            self.raiseAnError(IOError,"the variable "+ sourceName + " not found in "+ dataObj.type + " " + dataObj.name)
+      self.limit = len(self.pointsToSample)
     #TODO: add restart capability here!
     if self.restartData:
       self.raiseAnError(IOError,"restart capability not implemented for CustomSampler yet!")
-#       self.counter+=len(self.restartData)
-#       self.raiseAMessage('Number of points from restart: %i' %self.counter)
-#       self.raiseAMessage('Number of points needed:       %i' %(self.limit-self.counter))
 
   def localGenerateInput(self,model,myInput):
     """
@@ -144,11 +208,32 @@ class CustomSampler(ForwardSampler):
       @ In, myInput, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
       @ Out, None
     """
-    # create values dictionary
-    for var in self.toBeSampled.keys():
-      self.values[var] = self.pointsToSample[var][self.counter-1]
-    if 'PointProbability' in self.infoFromCustom.keys():
+    if self.readingFrom == 'DataObject':
+      # data is stored as slices of a data object, so take from that
+      rlz = self.pointsToSample[self.counter-1]
+      for var in self.toBeSampled.keys():
+        for subVar in var.split(','):
+          subVar = subVar.strip()
+          sourceName = self.nameInSource[subVar]
+          # get the value(s) for the variable for this realization
+          self.values[subVar] = rlz[sourceName].values
+          # set the probability weight due to this variable (default to 1)
+          pbWtName = 'ProbabilityWeight-'
+          self.inputInfo[pbWtName+subVar] = rlz.get(pbWtName+sourceName,1.0)
+      # get realization-level required meta information, or default to 1
+      for meta in ['PointProbability','ProbabilityWeight']:
+        self.inputInfo[meta] = rlz.get(meta,1.0)
+    elif self.readingFrom == 'File':
+      # data is stored in file, so we already parsed the values
+      # create values dictionary
+      for var in self.toBeSampled.keys():
+        for subVar in var.split(','):
+          subVar = subVar.strip()
+          # assign the custom sampled variables values to the sampled variables
+          self.values[subVar] = self.pointsToSample[subVar][self.counter-1]
+          # This is the custom sampler, assign the ProbabilityWeights based on the provided values
+          self.inputInfo['ProbabilityWeight-' + subVar] = self.infoFromCustom['ProbabilityWeight-' + subVar][self.counter-1]
+      # Construct probabilities based on the user provided information
       self.inputInfo['PointProbability'] = self.infoFromCustom['PointProbability'][self.counter-1]
-    if 'ProbabilityWeight' in self.infoFromCustom.keys():
       self.inputInfo['ProbabilityWeight'] = self.infoFromCustom['ProbabilityWeight'][self.counter-1]
     self.inputInfo['SamplerType'] = 'Custom'

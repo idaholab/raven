@@ -41,12 +41,68 @@ from .AdaptiveSampler import AdaptiveSampler
 import Distributions
 from AMSC_Object import AMSC_Object
 from utils import randomUtils
+from utils import InputData
 #Internal Modules End--------------------------------------------------------------------------------
 
 class LimitSurfaceSearch(AdaptiveSampler):
   """
     A sampler that will adaptively locate the limit surface of a given problem
   """
+
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    inputSpecification = super(LimitSurfaceSearch, cls).getInputSpecification()
+
+    convergenceInput = InputData.parameterInputFactory("Convergence", contentType=InputData.FloatType)
+    convergenceInput.addParam("limit", InputData.IntegerType)
+    convergenceInput.addParam("forceIteration", InputData.StringType)
+    convergenceInput.addParam("weight", InputData.StringType)
+    convergenceInput.addParam("persistence", InputData.IntegerType)
+    convergenceInput.addParam("subGridTol", InputData.FloatType)
+
+    inputSpecification.addSub(convergenceInput)
+
+    batchStrategyInput = InputData.parameterInputFactory("batchStrategy",
+                                                         contentType=InputData.StringType)
+    inputSpecification.addSub(batchStrategyInput)
+
+    maxBatchSizeInput = InputData.parameterInputFactory("maxBatchSize", contentType=InputData.IntegerType)
+    inputSpecification.addSub(maxBatchSizeInput)
+    scoringInput = InputData.parameterInputFactory("scoring", contentType=InputData.StringType)
+    inputSpecification.addSub(scoringInput)
+    simplificationInput = InputData.parameterInputFactory("simplification", contentType=InputData.FloatType)
+    inputSpecification.addSub(simplificationInput)
+
+    thicknessInput = InputData.parameterInputFactory("thickness", contentType=InputData.IntegerType)
+    inputSpecification.addSub(thicknessInput)
+
+    thresholdInput = InputData.parameterInputFactory("threshold", contentType=InputData.FloatType)
+    inputSpecification.addSub(thresholdInput)
+
+    romInput = InputData.parameterInputFactory("ROM", contentType=InputData.StringType)
+    romInput.addParam("type", InputData.StringType)
+    romInput.addParam("class", InputData.StringType)
+    inputSpecification.addSub(romInput)
+
+    targetEvaluationInput = InputData.parameterInputFactory("TargetEvaluation", contentType=InputData.StringType)
+    targetEvaluationInput.addParam("type", InputData.StringType)
+    targetEvaluationInput.addParam("class", InputData.StringType)
+    inputSpecification.addSub(targetEvaluationInput)
+
+    functionInput = InputData.parameterInputFactory("Function", contentType=InputData.StringType)
+    functionInput.addParam("type", InputData.StringType)
+    functionInput.addParam("class", InputData.StringType)
+    inputSpecification.addSub(functionInput)
+
+    return inputSpecification
+
   def __init__(self):
     """
       Default Constructor that will initialize member variables with reasonable
@@ -136,12 +192,14 @@ class LimitSurfaceSearch(AdaptiveSampler):
       if isinstance(dist,Distributions.NDimensionalDistributions):
         self.raiseAnError(IOError,'ND Dists not supported for this sampler (yet)!')
 
-  def localInputAndChecks(self,xmlNode):
+  def localInputAndChecks(self,xmlNode, paramInput):
     """
       Class specific xml inputs will be read here and checked for validity.
       @ In, xmlNode, xml.etree.ElementTree.Element, The xml element node that will be checked against the available options specific to this Sampler.
+      @ In, paramInput, InputData.ParameterInput, the parsed parameters
       @ Out, None
     """
+    #TODO remove using xmlNode
     if 'limit' in xmlNode.attrib.keys():
       try:
         self.limit = int(xmlNode.attrib['limit'])
@@ -298,12 +356,12 @@ class LimitSurfaceSearch(AdaptiveSampler):
     #self.memoryStep        = 5               # number of step for which the memory is kept
     self.solutionExport    = solutionExport
     # check if solutionExport is actually a "DataObjects" type "PointSet"
-    if type(solutionExport).__name__ != "PointSet":
-      self.raiseAnError(IOError,'solutionExport type is not a PointSet. Got '+ type(solutionExport).__name__+'!')
+    if solutionExport.type != "PointSet":
+      self.raiseAnError(IOError,'solutionExport type is not a PointSet. Got '+ solutionExport.type +'!')
     self.surfPoint         = None             #coordinate of the points considered on the limit surface
     self.oldTestMatrix     = OrderedDict()    #This is the test matrix to use to store the old evaluation of the function
     self.persistenceMatrix = OrderedDict()    #this is a matrix that for each point of the testing grid tracks the persistence of the limit surface position
-    if self.goalFunction.name not in self.solutionExport.getParaKeys('output'):
+    if self.goalFunction.name not in self.solutionExport.getVars('output'):
       self.raiseAnError(IOError,'Goal function name does not match solution export data output.')
     # set number of job request-able after a new evaluation
     self._endJobRunnable   = 1
@@ -355,20 +413,20 @@ class LimitSurfaceSearch(AdaptiveSampler):
     if self.converged:
       return False
     #test on what to do
-    if ready      == False:
+    if not ready:
       return ready #if we exceeded the limit just return that we are done
     if type(self.lastOutput) == dict:
-      if self.lastOutput == None and self.limitSurfacePP.ROM.amITrained==False:
+      if self.lastOutput == None and not self.limitSurfacePP.ROM.amITrained:
         return ready
     else:
       #if the last output is not provided I am still generating an input batch, if the rom was not trained before we need to start clean
-      if self.lastOutput.isItEmpty() and self.limitSurfacePP.ROM.amITrained==False:
+      if len(self.lastOutput) == 0 and not self.limitSurfacePP.ROM.amITrained:
         return ready
     #first evaluate the goal function on the newly sampled points and store them in mapping description self.functionValue RecontructEnding
     if type(self.lastOutput) == dict:
       self.limitSurfacePP._initializeLSppROM(self.lastOutput,False)
     else:
-      if not self.lastOutput.isItEmpty():
+      if len(self.lastOutput) > 0:
         self.limitSurfacePP._initializeLSppROM(self.lastOutput,False)
     self.raiseADebug('Classifier ' +self.name+' has been trained!')
     self.oldTestMatrix = copy.deepcopy(self.limitSurfacePP.getTestMatrix("all",exceptionGrid=self.exceptionGrid))    #copy the old solution (contained in the limit surface PP) for convergence check
@@ -417,6 +475,10 @@ class LimitSurfaceSearch(AdaptiveSampler):
     self.raiseAMessage('counter: '+str(self.counter)+'       Error: ' +str(testError)+' Repetition: '+str(self.repetition))
     #if the number of point on the limit surface is > than compute persistence
     realAxisNames, cnt = [key.replace('<distribution>','') for key in self.axisName], 0
+    if self.solutionExport is not None:
+      rlz = {}
+      # reset solution export
+      self.solutionExport.reset()
     for gridID,listsurfPoint in self.listSurfPoint.items():
       if len(listsurfPoint)>0:
         self.invPointPersistence[gridID] = np.ones(len(listsurfPoint))
@@ -428,20 +490,15 @@ class LimitSurfaceSearch(AdaptiveSampler):
             self.invPointPersistence[gridID] = (maxPers-self.invPointPersistence[gridID])/maxPers
         else:
           self.firstSurface = False
-        if self.solutionExport!=None:
-          for varName in self.solutionExport.getParaKeys('inputs'):
-            for varIndex in range(len(self.axisName)):
-              if varName == realAxisNames[varIndex]:
-                if cnt == 0:
-                  self.solutionExport.removeInputValue(varName)
-                for value in self.surfPoint[gridID][:,varIndex]:
-                  self.solutionExport.updateInputValue(varName,copy.copy(value))
-          # to be fixed
-          if cnt == 0:
-            self.solutionExport.removeOutputValue(self.goalFunction.name)
-          for index in range(len(evaluations[gridID])):
-            self.solutionExport.updateOutputValue(self.goalFunction.name,copy.copy(evaluations[gridID][index]))
-        cnt+=1
+        if self.solutionExport is not None:
+          # construct the realizations dict
+          localRlz = {varName: (self.surfPoint[gridID][:,varIndex] if varName not in rlz else np.concatenate(( rlz[varName],self.surfPoint[gridID][:,varIndex] )) ) for varIndex,varName in enumerate(realAxisNames) }
+          localRlz[self.goalFunction.name] = evaluations[gridID] if self.goalFunction.name not in rlz else np.concatenate( (rlz[self.goalFunction.name],evaluations[gridID])  )
+          rlz.update(localRlz)
+    # add the full realizations
+    if self.solutionExport is not None:
+      if len(rlz):
+        self.solutionExport.load(rlz,style='dict')
 
     # Keep track of some extra points that we will add to thicken the limit
     # surface candidate set
@@ -560,6 +617,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
           for varIndex, _ in enumerate([key.replace('<distribution>','') for key in self.axisName]):
             self.values[self.axisName[varIndex]] = copy.copy(float(self.surfPoint[maxGridId][maxId,varIndex]))
             self.inputInfo['SampledVarsPb'][self.axisName[varIndex]] = self.distDict[self.axisName[varIndex]].pdf(self.values[self.axisName[varIndex]])
+            self.inputInfo['ProbabilityWeight-'+self.axisName[varIndex]] = self.distDict[self.axisName[varIndex]].pdf(self.values[self.axisName[varIndex]])
           varSet=True
         else:
           self.raiseADebug('Maximum score is 0.0')
@@ -624,6 +682,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
         for varIndex, varName in enumerate(axisNames):
           self.values[self.axisName[varIndex]] = float(selectedPoint[varIndex])
           self.inputInfo['SampledVarsPb'][self.axisName[varIndex]] = self.distDict[self.axisName[varIndex]].pdf(self.values[self.axisName[varIndex]])
+          self.inputInfo['ProbabilityWeight-'+self.axisName[varIndex]] = self.distDict[self.axisName[varIndex]].pdf(self.values[self.axisName[varIndex]])
         varSet=True
       elif self.batchStrategy == 'naive':
         ########################################################################
@@ -643,6 +702,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
         for varIndex, varName in enumerate(axisNames):
           self.values[self.axisName[varIndex]] = float(selectedPoint[varIndex])
           self.inputInfo['SampledVarsPb'][self.axisName[varIndex]] = self.distDict[self.axisName[varIndex]].pdf(self.values[self.axisName[varIndex]])
+          self.inputInfo['ProbabilityWeight-'+self.axisName[varIndex]] = self.distDict[self.axisName[varIndex]].pdf(self.values[self.axisName[varIndex]])
         varSet=True
 
     if not varSet:
@@ -656,6 +716,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
         self.inputInfo['distributionType'][key]  = self.distDict[key].type
         self.inputInfo['SampledVarsPb'   ][key]  = self.distDict[key].pdf(self.values[key])
         self.inputInfo['ProbabilityWeight-'+key] = self.distDict[key].pdf(self.values[key])
+        self.addMetaKeys(*['ProbabilityWeight-'+key])
     self.inputInfo['PointProbability'    ]      = reduce(mul, self.inputInfo['SampledVarsPb'].values())
     # the probability weight here is not used, the post processor is going to recreate the grid associated and use a ROM for the probability evaluation
     self.inputInfo['ProbabilityWeight']         = self.inputInfo['PointProbability']

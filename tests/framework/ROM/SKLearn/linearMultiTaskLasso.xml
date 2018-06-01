@@ -59,6 +59,7 @@
       <type>csv</type>
       <source>outData</source>
       <filename>outLinearMultiTaskLasso</filename>
+      <what>input,output</what>
     </Print>
   </OutStreams>
 

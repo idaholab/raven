@@ -23,6 +23,7 @@ warnings.simplefilter('default', DeprecationWarning)
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
 import math
+import copy
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -367,6 +368,14 @@ class ComparisonStatistics(PostProcessor):
     """
     paramInput = ComparisonStatistics.getInputSpecification()()
     paramInput.parseNode(xmlNode)
+    self._handleInput(paramInput)
+
+  def _handleInput(self, paramInput):
+    """
+      Function to handle the parsed paramInput for this class.
+      @ In, paramInput, ParameterInput, the already parsed input.
+      @ Out, None
+    """
     for outer in paramInput.subparts:
       if outer.getName() == 'compare':
         compareGroup = ComparisonStatistics.CompareGroup()
@@ -444,9 +453,9 @@ class ComparisonStatistics(PostProcessor):
       reference = compareGroup.referenceData
       foundDataObjects = []
       for name, kind, rest in dataPulls:
-        data = self.dataDict[name].getParametersValues(kind)
+        dataSet = self.dataDict[name].asDataset()
         if len(rest) == 1:
-          foundDataObjects.append(data[rest[0]])
+          foundDataObjects.append(copy.copy(dataSet[rest[0]].values))
       dataToProcess.append((dataPulls, foundDataObjects, reference))
     if not isinstance(output,Files.File):
       self.raiseAnError(IOError, 'unsupported type ' + str(type(output)))

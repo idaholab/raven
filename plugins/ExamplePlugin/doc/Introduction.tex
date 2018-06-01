@@ -1,0 +1,22 @@
+\section{Introduction}
+\label{sec:Introduction}
+In this section, the developer of an ExternalModel plugin in RAVEN ( \cite{RAVEN} and \cite{RAVENtheoryMan}) should
+report a brief description of what the plugin is intended to do.
+
+\subsection{Example Plugin: SumOfExponential}
+ In order to show how to develop a plugin, a simple Model that performs a summation
+ of exponential (over time (or any monotonic variable)) has been developed:
+ \newline
+ \begin{math}
+        Xi(t)=\sum_{i=1}^{n} coef_i*e^{var_i*t}
+  \end{math}
+  \newline
+ where:
+ \begin{itemize}
+    \item $var_i$ is the $i-th$ variable (sampled by RAVEN). It is used as exponent of the 
+            $exp$ function
+   \item $coef_i$ is the $i-th$  coefficient for the exponential having as exponent the  
+            variable $var_i$
+   \item $t$ is the independent variable (monotonic variable).
+ \end{itemize}
+

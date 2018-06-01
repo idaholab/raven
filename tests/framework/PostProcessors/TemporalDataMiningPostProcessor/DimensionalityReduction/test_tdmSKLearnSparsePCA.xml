@@ -54,9 +54,6 @@
 
   <Samplers>
     <Grid name="gridSampler">
-      <samplerInit>
-         <limit>150</limit>
-      </samplerInit>
       <variable name="n">
         <distribution>uniDist</distribution>
                 <grid type='value' construction='equal' steps='149'>0.0 149.0</grid>
@@ -103,11 +100,13 @@
   <DataObjects>
     <PointSet name="inputPlaceHolder">
       <Input>n</Input>
-      <Output>OutputPlaceHolder</Output>
     </PointSet>
     <HistorySet name="mData">
       <Input>n</Input>
-      <Output>Time,x1,x2,x3,x4</Output>
+      <Output>x1,x2,x3,x4</Output>
+      <options>
+          <pivotParameter>Time</pivotParameter>
+      </options>
     </HistorySet>
   </DataObjects>
 </Simulation>

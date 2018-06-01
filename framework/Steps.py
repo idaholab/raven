@@ -29,11 +29,13 @@ import time
 import abc
 import os
 import sys
+import itertools
 if sys.version_info.major > 2:
   import pickle
 else:
   import cPickle as pickle
 import copy
+import numpy as np
 #import pickle as cloudpickle
 import cloudpickle
 #External Modules End--------------------------------------------------------------------------------
@@ -42,9 +44,10 @@ import cloudpickle
 from BaseClasses import BaseType
 import Files
 from utils import utils
+from utils import InputData
 import Models
 from OutStreams import OutStreamManager
-from DataObjects import Data
+from DataObjects import DataObject
 #Internal Modules End--------------------------------------------------------------------------------
 
 
@@ -100,6 +103,31 @@ class Step(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     self.failureHandling = {"fail":True, "repetitions":0, "perturbationFactor":0.0, "jobRepetitionPerformed":{}}
     self.printTag = 'STEPS'
 
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    inputSpecification = super(Step, cls).getInputSpecification()
+
+    inputSpecification.addParam("sleepTime", InputData.FloatType)
+    inputSpecification.addParam("re-seeding", InputData.StringType)
+    inputSpecification.addParam("pauseAtEnd", InputData.StringType)
+    inputSpecification.addParam("fromDirectory", InputData.StringType)
+    inputSpecification.addParam("repeatFailureRuns", InputData.StringType)
+
+    for stepPart in ["Input","Model","Sampler","Output","Optimizer","SolutionExport","Function"]:
+      stepPartInput = InputData.parameterInputFactory(stepPart, contentType=InputData.StringType)
+      stepPartInput.addParam("class", InputData.StringType, True)
+      stepPartInput.addParam("type", InputData.StringType, True)
+      inputSpecification.addSub(stepPartInput)
+
+    return inputSpecification
+
   def _readMoreXML(self,xmlNode):
     """
       Handles the reading of all the XML describing the step
@@ -107,12 +135,22 @@ class Step(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       @ In, xmlNode, xml.etree.ElementTree.Element, XML element node that represents the portion of the input that belongs to this Step class
       @ Out, None
     """
+    paramInput = self.getInputSpecification()()
+    paramInput.parseNode(xmlNode)
+    self._handleInput(paramInput)
+
+  def _handleInput(self, paramInput):
+    """
+      Function to handle the parsed paramInput for this class.
+      @ In, paramInput, ParameterInput, the already parsed input.
+      @ Out, None
+    """
     printString = 'For step of type {0:15} and name {1:15} the attribute {3:10} has been assigned to a not understandable value {2:10}'
     self.raiseADebug('move this tests to base class when it is ready for all the classes')
-    if not set(xmlNode.attrib.keys()).issubset(set(self._knownAttribute)):
-      self.raiseAnError(IOError,'In step of type {0:15} and name {1:15} there are unknown attributes {2:100}'.format(self.type,self.name,str(xmlNode.attrib.keys())))
-    if 're-seeding' in xmlNode.attrib.keys():
-      self.initSeed=xmlNode.attrib['re-seeding']
+    if not set(paramInput.parameterValues.keys()).issubset(set(self._knownAttribute)):
+      self.raiseAnError(IOError,'In step of type {0:15} and name {1:15} there are unknown attributes {2:100}'.format(self.type,self.name,str(paramInput.parameterValues.keys())))
+    if 're-seeding' in paramInput.parameterValues:
+      self.initSeed=paramInput.parameterValues['re-seeding']
       if self.initSeed.lower()   == "continue":
         self.initSeed  = "continue"
       else:
@@ -120,27 +158,23 @@ class Step(utils.metaclass_insert(abc.ABCMeta,BaseType)):
           self.initSeed  = int(self.initSeed)
         except:
           self.raiseAnError(IOError,printString.format(self.type,self.name,self.initSeed,'re-seeding'))
-    if 'sleepTime' in xmlNode.attrib.keys():
-      try:
-        self.sleepTime = float(xmlNode.attrib['sleepTime'])
-      except:
-        self.raiseAnError(IOError,printString.format(self.type,self.name,xmlNode.attrib['sleepTime'],'sleepTime'))
-    for child in xmlNode:
-      classType, classSubType = child.attrib.get('class'), child.attrib.get('type')
-      if None in [classType,classSubType]:
-        self.raiseAnError(IOError,"In Step named "+self.name+", subnode "+ child.tag + ", and body content = "+ child.text +" the attribute class and/or type has not been found!")
-      self.parList.append([child.tag,child.attrib.get('class'),child.attrib.get('type'),child.text])
+    if 'sleepTime' in paramInput.parameterValues:
+      self.sleepTime = paramInput.parameterValues['sleepTime']
+    for child in paramInput.subparts:
+      classType = child.parameterValues['class']
+      classSubType = child.parameterValues['type']
+      self.parList.append([child.getName(),classType,classSubType,child.value])
 
     self.pauseEndStep = False
-    if 'pauseAtEnd' in xmlNode.attrib.keys():
-      if   xmlNode.attrib['pauseAtEnd'].lower() in utils.stringsThatMeanTrue():
+    if 'pauseAtEnd' in paramInput.parameterValues:
+      if   paramInput.parameterValues['pauseAtEnd'].lower() in utils.stringsThatMeanTrue():
         self.pauseEndStep = True
-      elif xmlNode.attrib['pauseAtEnd'].lower() in utils.stringsThatMeanFalse():
+      elif paramInput.parameterValues['pauseAtEnd'].lower() in utils.stringsThatMeanFalse():
         self.pauseEndStep = False
       else:
-        self.raiseAnError(IOError,printString.format(self.type,self.name,xmlNode.attrib['pauseAtEnd'],'pauseAtEnd'))
-    if 'repeatFailureRuns' in xmlNode.attrib.keys():
-      failureSettings = str(xmlNode.attrib['repeatFailureRuns']).split("|")
+        self.raiseAnError(IOError,printString.format(self.type,self.name,paramInput.parameterValues['pauseAtEnd'],'pauseAtEnd'))
+    if 'repeatFailureRuns' in paramInput.parameterValues:
+      failureSettings = str(paramInput.parameterValues['repeatFailureRuns']).split("|")
       self.failureHandling['fail'] = False
       #failureSettings = str(xmlNode.attrib['repeatFailureRuns']).split("|")
       #if len(failureSettings) not in [1,2]: (for future usage)
@@ -155,16 +189,16 @@ class Step(utils.metaclass_insert(abc.ABCMeta,BaseType)):
         self.raiseAnError(IOError,'In Step named '+self.name+' it was not possible to cast "repetitions" attribute into an integer!')
       #if self.failureHandling['perturbationFactor'] is None:
       #  self.raiseAnError(IOError,'In Step named '+self.name+' it was not possible to cast "perturbationFactor" attribute into a float!')
-    self._localInputAndChecks(xmlNode)
+    self._localInputAndCheckParam(paramInput)
     if None in self.parList:
       self.raiseAnError(IOError,'A problem was found in  the definition of the step '+str(self.name))
 
   @abc.abstractmethod
-  def _localInputAndChecks(self,xmlNode):
+  def _localInputAndCheckParam(self,paramInput):
     """
       Place here specialized reading, input consistency check and
       initialization of what will not change during the whole life of the object
-      @ In, xmlNode, xml.etree.ElementTree.Element, XML element node that represents the portion of the input that belongs to this Step class
+      @ In, paramInput, ParameterInput, node that represents the portion of the input that belongs to this Step class
       @ Out, None
     """
     pass
@@ -231,6 +265,27 @@ class Step(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     """
     pass
 
+  def _registerMetadata(self,inDictionary):
+    """
+      collects expected metadata keys and deliver them to output data objects
+      @ In, inDictionary, dict, initialization dictionary
+      @ Out, None
+    """
+    ## first collect them
+    metaKeys = set()
+    for role,entities in inDictionary.items():
+      if isinstance(entities,list):
+        for entity in entities:
+          if hasattr(entity,'provideExpectedMetaKeys'):
+            metaKeys = metaKeys.union(entity.provideExpectedMetaKeys())
+      else:
+        if hasattr(entities,'provideExpectedMetaKeys'):
+          metaKeys = metaKeys.union(entities.provideExpectedMetaKeys())
+    ## then give them to the output data objects
+    for out in inDictionary['Output']+(inDictionary['TargetEvaluation'] if 'TargetEvaluation' in inDictionary else []):
+      if 'addExpectedMeta' in dir(out):
+        out.addExpectedMeta(metaKeys)
+
   def _endStepActions(self,inDictionary):
     """
       This method is intended for performing actions at the end of a step
@@ -278,11 +333,11 @@ class SingleRun(Step):
     self.lockedFileName = "ravenLocked.raven"
     self.printTag       = 'STEP SINGLERUN'
 
-  def _localInputAndChecks(self,xmlNode):
+  def _localInputAndCheckParam(self,paramInput):
     """
       Place here specialized reading, input consistency check and
       initialization of what will not change during the whole life of the object
-      @ In, xmlNode, xml.etree.ElementTree.Element, XML element node that represents the portion of the input that belongs to this Step class
+      @ In, paramInput, ParameterInput, node that represents the portion of the input that belongs to this Step class
       @ Out, None
     """
     self.raiseADebug('the mapping used in the model for checking the compatibility of usage should be more similar to self.parList to avoid the double mapping below','FIXME')
@@ -366,8 +421,8 @@ class SingleRun(Step):
         inDictionary['Output'][i].initialize(self.name)
       elif inDictionary['Output'][i].type in ['OutStreamPlot','OutStreamPrint']:
         inDictionary['Output'][i].initialize(inDictionary)
-
       self.raiseADebug('for the role Output the item of class {0:15} and name {1:15} has been initialized'.format(inDictionary['Output'][i].type,inDictionary['Output'][i].name))
+    self._registerMetadata(inDictionary)
 
   def _localTakeAstepRun(self,inDictionary):
     """
@@ -463,14 +518,14 @@ class MultiRun(SingleRun):
     self.counter          = 0  #just an handy counter of the runs already performed
     self.printTag = 'STEP MULTIRUN'
 
-  def _localInputAndChecks(self,xmlNode):
+  def _localInputAndCheckParam(self,paramInput):
     """
       Place here specialized reading, input consistency check and
       initialization of what will not change during the whole life of the object
-      @ In, xmlNode, xml.etree.ElementTree.Element, XML element node that represents the portion of the input that belongs to this Step class
+      @ In, paramInput, ParameterInput, node that represents the portion of the input that belongs to this Step class
       @ Out, None
     """
-    SingleRun._localInputAndChecks(self,xmlNode)
+    SingleRun._localInputAndCheckParam(self,paramInput)
     if self.samplerType not in [item[0] for item in self.parList]:
       self.raiseAnError(IOError,'It is not possible a multi-run without a sampler or optimizer!')
 
@@ -498,6 +553,16 @@ class MultiRun(SingleRun):
       @ Out, None
     """
     SingleRun._localInitializeStep(self,inDictionary)
+    # check that no input data objects are also used as outputs?
+    for out in inDictionary['Output']:
+      if out.type not in ['PointSet','HistorySet','DataSet']:
+        continue
+      for inp in inDictionary['Input']:
+        if inp.type not in ['PointSet','HistorySet','DataSet']:
+          continue
+        if inp == out:
+          self.raiseAnError(IOError,'The same data object should not be used as both <Input> and <Output> in the same MultiRun step! ' \
+              + 'Step: "{}", DataObject: "{}"'.format(self.name,out.name))
     self.counter = 0
     self._samplerInitDict['externalSeeding'] = self.initSeed
     self._initializeSampler(inDictionary)
@@ -516,6 +581,7 @@ class MultiRun(SingleRun):
       else:
         self._outputCollectionLambda.append((lambda x: x[1].addOutput(), outIndex))
         self._outputDictCollectionLambda.append((lambda x: x[1].addOutput(), outIndex))
+    self._registerMetadata(inDictionary)
     self.raiseADebug('Generating input batch of size '+str(inDictionary['jobHandler'].runInfoDict['batchSize']))
     # set up and run the first batch of samples
     # FIXME this duplicates a lot of code from _locatTakeAstepRun, which should be consolidated
@@ -529,10 +595,7 @@ class MultiRun(SingleRun):
       if inDictionary[self.samplerType].amIreadyToProvideAnInput():
         try:
           newInput = self._findANewInputToRun(inDictionary[self.samplerType], inDictionary['Model'], inDictionary['Input'], inDictionary['Output'])
-          if isinstance(inDictionary["Model"], Models.EnsembleModel):
-            inDictionary["Model"].submitAsClient(newInput, inDictionary[self.samplerType].type, inDictionary['jobHandler'], **copy.deepcopy(inDictionary[self.samplerType].inputInfo))
-          else:
-            inDictionary["Model"].submit(newInput, inDictionary[self.samplerType].type, inDictionary['jobHandler'], **copy.deepcopy(inDictionary[self.samplerType].inputInfo))
+          inDictionary["Model"].submit(newInput, inDictionary[self.samplerType].type, inDictionary['jobHandler'], **copy.deepcopy(inDictionary[self.samplerType].inputInfo))
           self.raiseADebug('Submitted input '+str(inputIndex+1))
         except utils.NoMoreSamplesNeeded:
           self.raiseAMessage('Sampler returned "NoMoreSamplesNeeded".  Continuing...')
@@ -559,6 +622,7 @@ class MultiRun(SingleRun):
       # collect finished jobs
       finishedJobs = jobHandler.getFinished()
       for finishedJob in finishedJobs:
+        finishedJob.trackTime('step_collected')
         # update number of collected runs
         self.counter +=1
         # collect run if it succeeded
@@ -592,6 +656,7 @@ class MultiRun(SingleRun):
             self.raiseAWarning('The sampler/optimizer "'+sampler.type+'" is able to handle failed runs!')
         # finalize actual sampler
         sampler.finalizeActualSampling(finishedJob,model,inputs)
+        finishedJob.trackTime('step_finished')
         # add new job
 
         isEnsemble = isinstance(model, Models.EnsembleModel)
@@ -606,10 +671,7 @@ class MultiRun(SingleRun):
           if sampler.amIreadyToProvideAnInput():
             try:
               newInput = self._findANewInputToRun(sampler, model, inputs, outputs)
-              if isEnsemble:
-                model.submitAsClient(newInput, inDictionary[self.samplerType].type, jobHandler, **copy.deepcopy(sampler.inputInfo))
-              else:
-                model.submit(newInput, inDictionary[self.samplerType].type, jobHandler, **copy.deepcopy(sampler.inputInfo))
+              model.submit(newInput, inDictionary[self.samplerType].type, jobHandler, **copy.deepcopy(sampler.inputInfo))
             except utils.NoMoreSamplesNeeded:
               self.raiseAMessage('Sampler returned "NoMoreSamplesNeeded".  Continuing...')
               break
@@ -621,8 +683,9 @@ class MultiRun(SingleRun):
         self.raiseADebug('Finished with %d runs submitted, %d jobs running, and %d completed jobs waiting to be processed.' % (jobHandler.numSubmitted(),jobHandler.numRunning(),len(jobHandler.getFinishedNoPop())) )
         break
       time.sleep(self.sleepTime)
-    # if any new collected runs failed, let the sampler treat them appropriately
-    sampler.handleFailedRuns(self.failedRuns)
+    # END while loop that runs the step iterations
+    # if any collected runs failed, let the sampler treat them appropriately, and any other closing-out actions
+    sampler.finalizeSampler(self.failedRuns)
 
   def _findANewInputToRun(self, sampler, model, inputs, outputs):
     """
@@ -646,12 +709,18 @@ class MultiRun(SingleRun):
     while found != 0:
       found,newInp = sampler.generateInput(model,inputs)
       if found == 1:
+        # loop over the outputs for this step and collect the data for each
         for collector, outIndex in self._outputDictCollectionLambda:
           collector([newInp,outputs[outIndex]])
     return newInp
 #
 #
 #
+
+class PostProcess(SingleRun):
+  """
+    This is an alternate name for SingleRun
+  """
 
 #
 #
@@ -669,11 +738,11 @@ class RomTrainer(Step):
     Step.__init__(self)
     self.printTag = 'STEP ROM TRAINER'
 
-  def _localInputAndChecks(self,xmlNode):
+  def _localInputAndCheckParam(self,paramInput):
     """
       Place here specialized reading, input consistency check and
       initialization of what will not change during the whole life of the object
-      @ In, xmlNode, xml.etree.ElementTree.Element, XML element node that represents the portion of the input that belongs to this Step class
+      @ In, paramInput, ParameterInput, node that represents the portion of the input that belongs to this Step class
       @ Out, None
     """
     if [item[0] for item in self.parList].count('Input')!=1:
@@ -768,11 +837,11 @@ class IOStep(Step):
     # also determine if this is an invalid combination
     for i in range(len(outputs)):
       if inDictionary['Input'][i].type == 'HDF5':
-        if isinstance(outputs[i],Data):
+        if isinstance(outputs[i],DataObject.DataObject):
           self.actionType.append('HDF5-dataObjects')
         else:
           self.raiseAnError(IOError,'In Step named ' + self.name + '. This step accepts A DataObjects as Output only, when the Input is an HDF5. Got ' + inDictionary['Output'][i].type)
-      elif  isinstance(inDictionary['Input'][i],Data):
+      elif  isinstance(inDictionary['Input'][i],DataObject.DataObject):
         if outputs[i].type == 'HDF5':
           self.actionType.append('dataObjects-HDF5')
         else:
@@ -785,7 +854,7 @@ class IOStep(Step):
       elif isinstance(inDictionary['Input'][i],Files.File):
         if   isinstance(outputs[i],Models.ROM):
           self.actionType.append('FILES-ROM')
-        elif isinstance(outputs[i],Data):
+        elif isinstance(outputs[i],DataObject.DataObject):
           self.actionType.append('FILES-dataObjects')
         else:
           self.raiseAnError(IOError,'In Step named ' + self.name + '. This step accepts A ROM as Output only, when the Input is a Files. Got ' + inDictionary['Output'][i].type)
@@ -807,13 +876,16 @@ class IOStep(Step):
       for i in range(len(inDictionary['Input'])):
         if self.actionType[i].startswith('dataObjects-'):
           inInput = inDictionary['Input'][i]
-          inInput.loadXMLandCSV(self.fromDirectory)
+          filename = os.path.join(self.fromDirectory, inInput.name)
+          inInput.load(filename, style='csv')
 
     #Initialize all the OutStreamPrint and OutStreamPlot outputs
     for output in inDictionary['Output']:
       if type(output).__name__ in ['OutStreamPrint','OutStreamPlot']:
         output.initialize(inDictionary)
         self.raiseADebug('for the role Output the item of class {0:15} and name {1:15} has been initialized'.format(output.type,output.name))
+    # register metadata
+    self._registerMetadata(inDictionary)
 
   def _localTakeAstepRun(self,inDictionary):
     """
@@ -825,10 +897,18 @@ class IOStep(Step):
     for i in range(len(outputs)):
       if self.actionType[i] == 'HDF5-dataObjects':
         #inDictionary['Input'][i] is HDF5, outputs[i] is a DataObjects
-        outputs[i].addOutput(inDictionary['Input'][i])
+        allRealizations = inDictionary['Input'][i].allRealizations()
+        ## TODO convert to load function when it can handle unstructured multiple realizations
+        for rlz in allRealizations:
+          outputs[i].addRealization(rlz)
       elif self.actionType[i] == 'dataObjects-HDF5':
         #inDictionary['Input'][i] is a dataObjects, outputs[i] is HDF5
-        outputs[i].addGroupDataObjects({'group':inDictionary['Input'][i].name},inDictionary['Input'][i])
+        ## TODO convert to load function when it can handle unstructured multiple realizations
+        for rlzNo in range(len(inDictionary['Input'][i])):
+          rlz = inDictionary['Input'][i].realization(rlzNo, unpackXArray=True)
+          rlz = dict((var,np.atleast_1d(val)) for var, val in rlz.items())
+          outputs[i].addRealization(rlz)
+
       elif self.actionType[i] == 'ROM-FILES':
         #inDictionary['Input'][i] is a ROM, outputs[i] is Files
         #check the ROM is trained first
@@ -858,7 +938,7 @@ class IOStep(Step):
         #inDictionary['Input'][i] is a Files, outputs[i] is PointSet
         infile = inDictionary['Input'][i]
         options = {'fileToLoad':infile}
-        outputs[i].loadXMLandCSV(inDictionary['Input'][i].getPath(),options)
+        outputs[i].load(inDictionary['Input'][i].getPath(),'csv',**options)
       else:
         self.raiseAnError(IOError,"Unknown action type "+self.actionType[i])
     for output in inDictionary['Output']:
@@ -876,15 +956,15 @@ class IOStep(Step):
     paramDict = {}
     return paramDict # no inputs
 
-  def _localInputAndChecks(self,xmlNode):
+  def _localInputAndCheckParam(self,paramInput):
     """
       Place here specialized reading, input consistency check and
       initialization of what will not change during the whole life of the object
-      @ In, xmlNode, xml.etree.ElementTree.Element, XML element node that represents the portion of the input that belongs to this Step class
+      @ In, paramInput, ParameterInput, node that represents the portion of the input that belongs to this Step class
       @ Out, None
     """
-    if 'fromDirectory' in xmlNode.attrib.keys():
-      self.fromDirectory = xmlNode.attrib['fromDirectory']
+    if 'fromDirectory' in paramInput.parameterValues:
+      self.fromDirectory = paramInput.parameterValues['fromDirectory']
 
 #
 #
@@ -894,7 +974,7 @@ __interFaceDict['SingleRun'        ] = SingleRun
 __interFaceDict['MultiRun'         ] = MultiRun
 __interFaceDict['IOStep'           ] = IOStep
 __interFaceDict['RomTrainer'       ] = RomTrainer
-__interFaceDict['PostProcess'      ] = SingleRun
+__interFaceDict['PostProcess'      ] = PostProcess
 __base                               = 'Step'
 
 def returnInstance(Type,caller):

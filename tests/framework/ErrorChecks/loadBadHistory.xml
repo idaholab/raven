@@ -1,9 +1,23 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
-
+  <TestInfo>
+    <name>framework/ErrorChecks.badHistory</name>
+    <author>maljovec</author>
+    <created>2017-07-21</created>
+    <classesTested>Steps.IOStep, DataObjects.HistorySet</classesTested>
+    <description>
+       This test is aimed to check the functionality of RAVEN to error out in case some input inconsistencies are found.
+       In this case, the data contained in ``badHistorySet.csv'' is foulty and the code (HistorySet)
+       needs to error out.
+    </description>
+    <revisions>
+      <revision author="alfoa" date="2018-05-15">Adding this test description.</revision>
+    </revisions>
+  </TestInfo>
+  
   <RunInfo>
     <WorkingDir>badData</WorkingDir>
-    <Sequence>readData</Sequence> 
+    <Sequence>readData</Sequence>
   </RunInfo>
 
   <Files>
@@ -12,16 +26,19 @@
 
   <DataObjects>
     <HistorySet name="data">
-      <Input>year,scaling_load</Input>
-      <Output>seconds,load</Output>
+      <Input>index,scaling</Input>
+      <Output>number</Output>
+      <options>
+        <pivotParameter>seconds</pivotParameter>
+      </options>
     </HistorySet>
   </DataObjects>
 
   <Steps>
     <IOStep name='readData' pauseAtEnd = 'True'>
       <Input  class='Files'       type=''>rawDataFile</Input>
-      <Output class='DataObjects' type='HistorySet'>data</Output>          
+      <Output class='DataObjects' type='HistorySet'>data</Output>
     </IOStep>
   </Steps>
-  
+
 </Simulation>

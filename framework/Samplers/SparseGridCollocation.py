@@ -34,6 +34,7 @@ from functools import reduce
 #Internal Modules------------------------------------------------------------------------------------
 from .Grid import Grid
 from utils import utils
+from utils import InputData
 import Distributions
 import Quadratures
 import OrthoPolynomials
@@ -44,6 +45,27 @@ class SparseGridCollocation(Grid):
   """
     Sparse Grid Collocation sampling strategy
   """
+
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    inputSpecification = super(SparseGridCollocation, cls).getInputSpecification()
+    inputSpecification.addParam("parallel", InputData.StringType)
+    inputSpecification.addParam("outfile", InputData.StringType)
+
+    romInput = InputData.parameterInputFactory("ROM", contentType=InputData.StringType)
+    romInput.addParam("type", InputData.StringType)
+    romInput.addParam("class", InputData.StringType)
+    inputSpecification.addSub(romInput)
+
+    return inputSpecification
+
   def __init__(self):
     """
       Default Constructor that will initialize member variables with reasonable
@@ -94,12 +116,14 @@ class SparseGridCollocation(Grid):
       if isinstance(dist,Distributions.NDimensionalDistributions):
         self.raiseAnError(IOError,'ND Dists contain the variables in the original input space are  not supported for this sampler!')
 
-  def localInputAndChecks(self,xmlNode):
+  def localInputAndChecks(self,xmlNode, paramInput):
     """
       Class specific xml inputs will be read here and checked for validity.
       @ In, xmlNode, xml.etree.ElementTree.Element, The xml element node that will be checked against the available options specific to this Sampler.
+      @ In, paramInput, InputData.ParameterInput, the parsed parameters
       @ Out, None
     """
+    #TODO remove using xmlNode
     self.doInParallel = xmlNode.attrib['parallel'].lower() in ['1','t','true','y','yes'] if 'parallel' in xmlNode.attrib.keys() else True
     self.writeOut = xmlNode.attrib['outfile'] if 'outfile' in xmlNode.attrib.keys() else None
     for child in xmlNode:
@@ -267,7 +291,7 @@ class SparseGridCollocation(Grid):
         for key in varName.strip().split(','):
           self.values[key] = pt[v]
         self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(pt[v])
-        self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = self.inputInfo['SampledVarsPb'][varName]
+        self.inputInfo['ProbabilityWeight-'+varName] = self.inputInfo['SampledVarsPb'][varName]
       # compute the SampledVarsPb for N-D distribution
       # Assume only one N-D distribution is associated with sparse grid collocation method
       elif self.variables2distributionsMapping[varName]['totDim'] > 1 and self.variables2distributionsMapping[varName]['reducedDim'] ==1:
@@ -289,7 +313,7 @@ class SparseGridCollocation(Grid):
           for key in var.strip().split(','):
             self.values[key] = pt[location]
         self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(ndCoordinates)
-        self.inputInfo['ProbabilityWeight-'+varName.replace(",","!")] = self.inputInfo['SampledVarsPb'][varName]
+        self.inputInfo['ProbabilityWeight-'+dist] = self.inputInfo['SampledVarsPb'][varName]
 
     self.inputInfo['ProbabilityWeight'] = weight
     self.inputInfo['PointProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())

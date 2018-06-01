@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<Simulation verbosity="silent">
+<Simulation verbosity="debug">
 
   <TestInfo>
     <name>framework/Samplers/AdaptiveBatch.GreedyDistance</name>
@@ -38,7 +38,7 @@
       <Output class="DataObjects" type="PointSet">response</Output>
     </MultiRun>
     <MultiRun name="adapt">
-      <Input class="DataObjects" type="PointSet">response</Input>
+      <Input class="DataObjects" type="PointSet">inputHolder</Input>
       <Model class="Models" type="ExternalModel">function</Model>
       <Sampler class="Samplers" type="LimitSurfaceSearch">adaptiveSearch</Sampler>
       <SolutionExport class="DataObjects" type="PointSet">limit_surface</SolutionExport>
@@ -54,15 +54,19 @@
 
   <DataObjects>
     <PointSet name="dummyIn">
-      <Input>x1,x2</Input>
+      <Input>x2,x1</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
     <PointSet name="response">
-      <Input>x1,x2</Input>
+      <Input>x2,x1</Input>
       <Output>y</Output>
     </PointSet>
+    <PointSet name="inputHolder">
+        <Input>x2,x1</Input>
+        <Output>OutputPlaceHolder</Output>
+    </PointSet>
     <PointSet name="limit_surface">
-      <Input>x1,x2</Input>
+      <Input>x2,x1</Input>
       <Output>label</Output>
     </PointSet>
   </DataObjects>
@@ -134,10 +138,12 @@
     <Print name="greedy_d_ls">
       <type>csv</type>
       <source>limit_surface</source>
+      <what>input,output</what>
     </Print>
     <Print name="greedy_d_samples">
       <type>csv</type>
       <source>response</source>
+      <what>input,output</what>
     </Print>
   </OutStreams>
 

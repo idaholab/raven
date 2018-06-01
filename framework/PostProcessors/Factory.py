@@ -35,7 +35,7 @@ from .ImportanceRank import ImportanceRank
 from .InterfacedPostProcessor import InterfacedPostProcessor
 from .LimitSurface import LimitSurface
 from .LimitSurfaceIntegral import LimitSurfaceIntegral
-from .RavenOutput import RavenOutput
+# from .RavenOutput import RavenOutput # deprecated for now
 from .SafestPoint import SafestPoint
 
 from .TopologicalDecomposition import TopologicalDecomposition
@@ -51,6 +51,7 @@ except ImportError:
   pass
 
 ## [ Add new class here ]
+from .ETImporter import ETImporter
 
 ################################################################################
 ## Alternatively, to fully automate this file:
