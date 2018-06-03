@@ -373,7 +373,7 @@ class DynamicEventTree(Grid):
     # Store the information in a dictionary that has as keywords the distributions that triggered
     for node in root:
       distTrigger = root.findall(".//Distribution_trigger")
-      if len(distTrigger) == 0:
+      if not len(distTrigger):
         self.raiseAnError(Exception, '"Distribution_trigger" node has not been found in file: '+str(filename))
       elif len(distTrigger) > 1:
         self.raiseAWarning ( 'More then one "Distribution_trigger" node have been found in file: '+str(filename)+'. Grepping the first one only!')
@@ -518,7 +518,7 @@ class DynamicEventTree(Grid):
     #  Pop out the last endInfo information and the branchedLevel
     branchedLevelParent     = self.branchedLevel.pop(0)
     endInfo                 = self.endInfo.pop(0)
-    self.branchCountOnLevel = 0 #?
+    self.branchCountOnLevel = 0  
     # n_branches = number of branches need to be run
     nBranches = endInfo['n_branches']
     # Check if the distribution that just triggered hitted the last probability threshold .
