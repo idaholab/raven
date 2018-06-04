@@ -156,13 +156,15 @@
       if (_cdf_provided){
         throwError("BasicMultiDimensionalCartesianSpline Distribution error: inverseMarginal calculation not available if CDF provided");
       }else{
-        value = _interpolator.splineCartesianInverseMarginal(f, dimension, 0.01);
+        value = _interpolator.splineCartesianInverseMarginal(f, dimension, 1.e-6);
       }
     }else
       throwError("BasicMultiDimensionalCartesianSpline Distribution error: CDF value for inverse marginal distribution is above 1.0");
 
     return value;
   }
+
+
 
   int
   BasicMultiDimensionalCartesianSpline::returnDimensionality()

@@ -518,7 +518,7 @@ class DynamicEventTree(Grid):
     #  Pop out the last endInfo information and the branchedLevel
     branchedLevelParent     = self.branchedLevel.pop(0)
     endInfo                 = self.endInfo.pop(0)
-    self.branchCountOnLevel = 0  
+    self.branchCountOnLevel = 0
     # n_branches = number of branches need to be run
     nBranches = endInfo['n_branches']
     # Check if the distribution that just triggered hitted the last probability threshold .
@@ -944,7 +944,7 @@ class DynamicEventTree(Grid):
     for key in self.branchProbabilities.keys():
       if ("<distribution>" in key) or (self.variables2distributionsMapping[key]['totDim']==1):
         # 1Dimensional Distributions (inverse CDF)
-        initBranchValues[key] = [self.distDict[key].ppf(float(self.branchProbabilities[key][index])) for index in range(len(self.branchProbabilities[key]))]        
+        initBranchValues[key] = [self.distDict[key].ppf(float(self.branchProbabilities[key][index])) for index in range(len(self.branchProbabilities[key]))]
       else:
         # NDimensional Distrubutions (inverse Marginal CDF)
         initBranchValues[key] = [self.distDict[key].inverseMarginalDistribution(float(self.branchProbabilities[key][index]),self.variables2distributionsMapping[key]['dim']-1) for index in range(len(self.branchProbabilities[key]))]
@@ -953,7 +953,7 @@ class DynamicEventTree(Grid):
       #self.distDict[variable].inverseMarginalDistribution(coordinatesPlusOne[variable] ,self.variables2distributionsMapping[key]['dim']-1)
       if ("<distribution>" in key) or (self.variables2distributionsMapping[key]['totDim']==1):
         # 1Dimensional Distributions (CDF)
-        initBranchProbabilities[key] = [self.distDict[key].cdf(float(self.branchValues[key][index])) for index in range(len(self.branchValues[key]))]        
+        initBranchProbabilities[key] = [self.distDict[key].cdf(float(self.branchValues[key][index])) for index in range(len(self.branchValues[key]))]
       else:
         # NDimensional Distrubutions (Marginal CDF)
         initBranchProbabilities[key] = [self.distDict[key].marginalDistribution(float(self.branchValues[key][index]),self.variables2distributionsMapping[key]['dim']-1) for index in range(len(self.branchValues[key]))]

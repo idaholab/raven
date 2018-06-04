@@ -2654,16 +2654,15 @@ class NDimensionalDistributions(Distribution):
     """
     value = self._distribution.returnUpperBound(dimension)
     return value
+
   def marginalDistribution(self, x, variable):
     """
       Compute the cdf marginal distribution
       @ In, x, float, the coordinate for at which the inverse marginal distribution needs to be computed
       @ In, variable, int, the variable id
-      @ Out, result.x, float, the marginal cdf value at coordinate x
+      @ Out, marginalDistribution, float, the marginal cdf value at coordinate x
     """
-    fun = lambda cdfVal,val,var: abs(val - self._distribution.inverseMarginal(cdfVal, var))
-    result = scipy.optimize.minimize_scalar(fun,bounds=[sys.float_info.min,1.-sys.float_info.min],args=(x,variable),method='bounded')
-    return result.x
+    return self._distribution.marginal(x, variable)
 
 DistributionsCollection.addSub(NDimensionalDistributions.getInputSpecification())
 
@@ -2802,7 +2801,7 @@ class NDInverseWeight(NDimensionalDistributions):
 
   def inverseMarginalDistribution(self, x, variable):
     """
-      Compute the inverse of the Margina distribution
+      Compute the inverse of the Marginal distribution
       @ In, x, float, the cdf for at which the inverse marginal distribution needs to be computed
       @ In, variable, int, the variable id
       @ Out, inverseMarginal, float, the marginal inverse cdf value at coordinate x
