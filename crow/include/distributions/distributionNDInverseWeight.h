@@ -184,6 +184,15 @@ public:
     return value;
   }
 
+  double marginal(double x, int dimension){
+        double value=0.0;
+        if (_cdf_provided){
+            throwError("BasicMultiDimensionalInverseWeight Distribution error: marginal calculation not available if CDF provided");
+        }else{
+            value = _cdf_spline.marginal(x, dimension);
+        }
+        return value;
+    }
 
   int
   returnDimensionality()
