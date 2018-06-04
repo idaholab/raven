@@ -3229,6 +3229,15 @@ class DynamicModeDecomposition(supervisedLearning):
     if self.pivotParameterID not in self.target:
       self.raiseAnError(IOError,"The pivotParameter "+self.pivotParameterID+" must be part of the Target space!")
 
+  def __setstate__(self, newstate):
+    """
+      Initialize the DMD with the data contained in newstate
+      @ In, newstate, dict, it contains all the information needed by the ROM to be initialized
+      @ Out, None
+    """
+    self.__dict__.update(newstate)
+    self.KDTreeFinder = spatial.KDTree(self.featureVals)
+
   def _localNormalizeData(self,values,names,feat):
     """
       Overwrites default normalization procedure.
