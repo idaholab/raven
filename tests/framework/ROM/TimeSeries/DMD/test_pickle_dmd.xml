@@ -1,0 +1,106 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+    
+ <TestInfo>
+    <name>framework/ROM/TimeSeries/DMD.PickleDMD</name>
+    <author>alfoa</author>
+    <created>2018-06-04</created>
+    <classesTested>SupervisedLearning.DynamicModeDecomposition</classesTested>
+    <description>
+       This test is aimed to check that the DMD-based surrogate models can be
+       serialized and used in a working calculation flow.
+    </description>
+    <revisions>
+      <revision author="alfoa" date="2018-06-04">Adding this test description.</revision>
+    </revisions>
+  </TestInfo>
+ 
+    <RunInfo>
+        <WorkingDir>PickledHighOrderDMD</WorkingDir>
+	    <Sequence>
+             unpickleROM,
+             runDMD,
+             writeOut</Sequence>
+        <batchSize>1</batchSize>
+    </RunInfo>
+    <Files>
+        <!--  we load the data from the PolyExponential database -->
+        <Input name="rawDataFile">../../PolyExponential/data/decay_heat.csv</Input>
+        <Input name="ROMpk" type="">../HighOrderDMD/ROMpk</Input>
+    </Files>
+    <Distributions>
+		<Uniform name="enrichmentDist">
+			<lowerBound>3.4</lowerBound>
+			<upperBound>9.9</upperBound>
+		</Uniform>
+        <Uniform name="burnupDist">
+            <lowerBound>16.501</lowerBound>
+            <upperBound>26.402</upperBound>
+        </Uniform>
+	</Distributions>
+
+	<Samplers>
+		<MonteCarlo name="mcSampler">
+			<samplerInit>
+                <limit>4</limit>
+                <initialSeed>20021986</initialSeed>
+			</samplerInit>
+			<variable name="enrichment">
+				<distribution>enrichmentDist</distribution>
+			</variable>
+            <variable name="burnup">
+                <distribution>burnupDist</distribution>
+            </variable>
+        </MonteCarlo>
+	</Samplers>
+
+	<Models>
+        <ROM name='DMDrom' subType='pickledROM'/>
+    </Models>
+    <Steps>
+        <IOStep name='unpickleROM'>
+         <Input       class = 'Files'       type = ''              >ROMpk</Input>
+         <Output      class = 'Models' type = 'ROM'                >DMDrom</Output>
+        </IOStep>
+		<MultiRun name='runDMD'>
+			<Input    class = 'DataObjects' type = 'PointSet'      >dataIn</Input>
+			<Model    class='Models'        type = 'ROM'           >DMDrom</Model>
+            <Sampler  class="Samplers"      type="MonteCarlo"      >mcSampler</Sampler>
+			<Output   class = 'DataObjects' type = 'HistorySet'    >synDataDMD</Output>
+		</MultiRun>
+        <IOStep name='writeOut' pauseAtEnd = 'True'>
+			<Input    class = 'DataObjects'  type = 'HistorySet'   >synDataDMD</Input>
+            <Output   class = 'OutStreams'   type = 'Print'        >outputDMDHighOrder</Output>
+		</IOStep>
+    </Steps>
+    <OutStreams>
+        <Print name = 'outputDMDHighOrder' dir="outputDMD">
+            <type>csv</type>
+            <source>synDataDMD</source>
+        </Print>
+        <Print name = 'ROMCoefficientsXML'>
+            <type>xml</type>
+            <source>DMDrom</source>
+            <what>eigs,amplitudes,modes,dmdTimeScale,timeScale</what>
+        </Print>
+    </OutStreams>
+	
+    <DataObjects>
+      <PointSet name="dataIn">
+        <Input>enrichment,burnup</Input>
+        <Output>OutputPlaceHolder</Output>
+      </PointSet>
+      <HistorySet name="rawData">
+        <Input>enrichment,burnup</Input>
+        <Output>decay_heat,decay_heat_pu</Output>
+      </HistorySet>
+      <HistorySet name="synDataDMD" >
+       <Input>enrichment,burnup</Input>
+       <Output>decay_heat,decay_heat_pu</Output>
+      </HistorySet>
+    </DataObjects>
+</Simulation>
+
+
+
+

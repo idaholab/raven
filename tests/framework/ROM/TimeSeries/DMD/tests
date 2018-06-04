@@ -15,4 +15,13 @@
    rel_err = 0.0001
   [../]
 
+ [./PickleDMD]
+   type = 'RavenFramework'
+   input = 'test_pickle_dmd.xml'
+   output = 'PickledHighOrderDMD/outputDMD/outputDMDHighOrder.xml PickledHighOrderDMD/ROMCoefficientsXML.xml'
+   csv = 'PickledHighOrderDMD/outputDMD/outputDMDHighOrder_0.csv'
+   rel_err = 0.0001
+   prereq = HighOrderDMD
+  [../]
+
 []
