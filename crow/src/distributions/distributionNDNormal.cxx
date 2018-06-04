@@ -118,7 +118,7 @@ void BasicMultivariateNormal::basicMultivariateNormalInit(unsigned int &rows, un
    std::vector<double> alpha (_mu.size());
    std::vector<double> beta (_mu.size());
 
-   int numberOfDiscretizations = 30;
+   int numberOfDiscretizations = 20;
    for(unsigned int i=0; i<dimensions; i++){
      alpha.at(i) = 0.0;
      beta.at(i)  = 0.0;
@@ -263,7 +263,7 @@ BasicMultivariateNormal::BasicMultivariateNormal(std::vector<double> vec_cov_mat
   //setup the nearest symmetric semi-positive definite covariance matrix
   resetSingularValues(_left_singular_vectors, _right_singular_vectors, _singular_values,_svd_transformed_matrix);
 
-  int numberOfDiscretizations = 30;
+  int numberOfDiscretizations = 20;
   unsigned int dimensions = _mu.size();
   for(unsigned int i=0; i<dimensions; i++){
     std::vector<double> discretization_temp;
