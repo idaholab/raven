@@ -198,6 +198,7 @@ class DataMining(PostProcessor):
 
     self.PreProcessor = None
     self.metric = None
+    self.pivotParameter = 'time'                          ## default pivotParameter for HistorySet
 
   def _localWhatDoINeed(self):
     """
@@ -224,10 +225,6 @@ class DataMining(PostProcessor):
     """
     dataSet = currentInput.asDataset()
     inputDict = {'Features': {}, 'parameters': {}, 'Labels': {}, 'metadata': {}}
-    if self.pivotParameter is None and self.metric is not None:
-      if not hasattr(self.metric, 'pivotParameter'):
-        self.raiseAnError(IOError, 'HistorySet is provided as input, but this post-processor ', self.name, ' can not handle it!')
-      self.pivotParameter = self.metric.pivotParameter
     if self.PreProcessor is None and self.metric is None:
       if not currentInput.checkIndexAlignment(indexesToCheck=self.pivotParameter):
         self.raiseAnError(IOError, "The data provided by the DataObject ", currentInput.name, " is not synchronized!")
