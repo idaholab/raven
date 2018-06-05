@@ -51,14 +51,6 @@
       <Input>x0,y0,z0</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
-    <HistorySet name="outMC1">
-      <Input>x0,y0,z0</Input>
-      <Output>time,x1,y1,z1</Output>
-    </HistorySet>
-    <HistorySet name="outMC2">
-      <Input>x0,y0,z0</Input>
-      <Output>time,x2,y2,z2</Output>
-    </HistorySet>
     <PointSet name="pp1_out">
         <Output>
             dtwI_x2_x1,
@@ -69,6 +61,14 @@
             dtwII_z2_z1
         </Output>
     </PointSet>
+    <HistorySet name="outMC1">
+      <Input>x0,y0,z0</Input>
+      <Output>time,x1,y1,z1</Output>
+    </HistorySet>
+    <HistorySet name="outMC2">
+      <Input>x0,y0,z0</Input>
+      <Output>time,x2,y2,z2</Output>
+    </HistorySet>
   </DataObjects>
 
   <OutStreams>
