@@ -17,7 +17,6 @@
 
   <Files>
     <Input name="output_metric" type="">output_metric_td.xml</Input>
-    <Input name="output_metric.csv" type="">output_metric_td.csv</Input>
   </Files>
 
   <Models>
@@ -27,6 +26,8 @@
     <PostProcessor name="pp1" subType="Metric">
       <Features type="variable">x0, x, x</Features>
       <Targets type="variable">y0, y, z</Targets>
+      <multiOutput>raw_values</multiOutput>
+      <pivotParameter>time</pivotParameter>
       <Metric class="Metrics" type="SKL">EVC</Metric>
       <Metric class="Metrics" type="SKL">MAE</Metric>
       <Metric class="Metrics" type="SKL">R2</Metric>
@@ -34,6 +35,42 @@
     </PostProcessor>
   </Models>
   
+  <DataObjects>
+    <PointSet name="inputPlaceHolder2">
+      <Input>x0,y0,z0</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <HistorySet name="outHistData">
+      <Input>x0,y0,z0</Input>
+      <Output>x,y,z,time</Output>
+    </HistorySet>
+    <HistorySet name="pp1_out">
+      <Input>
+         EVC_y0_x0,
+         MAE_y0_x0,
+         MSE_y0_x0,
+         R2_y0_x0
+      </Input>
+      <Output>
+         EVC_y_x,
+         EVC_z_x,
+         MAE_y_x,
+         MAE_z_x,
+         R2_y_x,
+         R2_z_x,
+         MSE_y_x,
+         MSE_z_x
+      </Output>
+    </HistorySet>
+  </DataObjects>
+  
+  <OutStreams>
+    <Print name="pp1_print">
+      <type>csv</type>
+      <source>pp1_out</source>
+    </Print>
+  </OutStreams>
+
   <Metrics>
     <SKL name="EVC">
       <metricType>regression|explained_variance_score</metricType>
@@ -92,20 +129,10 @@
     <PostProcess name="PP1">
       <Input class="DataObjects" type="HistorySet">outHistData</Input>
       <Model class="Models" type="PostProcessor">pp1</Model>
+      <Output class="DataObjects" type="HistorySet">pp1_out</Output>
+      <Output class="OutStreams" type="Print">pp1_print</Output>
       <Output class="Files" type="">output_metric</Output>
-      <Output class="Files" type="">output_metric.csv</Output>
     </PostProcess>
   </Steps>
-
-  <DataObjects>
-    <PointSet name="inputPlaceHolder2">
-      <Input>x0,y0,z0</Input>
-      <Output>OutputPlaceHolder</Output>
-    </PointSet>
-    <HistorySet name="outHistData">
-      <Input>x0,y0,z0</Input>
-      <Output>x,y,z,time</Output>
-    </HistorySet>
-  </DataObjects>
 
 </Simulation>

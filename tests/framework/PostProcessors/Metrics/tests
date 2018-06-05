@@ -5,7 +5,6 @@
     UnorderedCsv = 'mcMetricRun/dumpMC.csv mcMetricRun/pp1_metric_dump.csv'
     rel_err = 0.00001
     zero_threshold = 1e-9
-    skip = 'require scikitlearn version > 17'
   [../]
   [./multipleInputs]
     type = 'RavenFramework'
@@ -50,6 +49,8 @@
     type = 'RavenFramework'
     input = 'test_metric_td.xml'
     UnorderedXml = 'metricTD/output_metric_td.xml'
+    csv = 'metricTD/pp1_print_0.csv'
+    output = 'metricTD/pp1_print.csv'
     rel_err = 0.00001
     zero_threshold = 1e-9
   [../]
@@ -63,7 +64,7 @@
   [./testScipyMetricBoolean]
     type = 'RavenFramework'
     input = 'test_metric_scipy_boolean.xml'
-    UnorderedXml = 'scipyMetricsBoolean/output_metric.xml'
+    csv = 'scipyMetricsBoolean/pp1_print.csv'
     rel_err = 0.00001
     zero_threshold = 1e-9
   [../]

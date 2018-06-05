@@ -178,7 +178,7 @@ class Metric(PostProcessor):
             self.raiseAnError(IOError, self, 'Pivot parameter', self.pivotParameter,'has not been found in DataObject', currentInput.name)
           if not currentInput.checkIndexAlignment(indexesToCheck=self.pivotParameter):
             self.raiseAnError(IOError, "HistorySet", currentInput.name," is not syncronized, please use Interfaced PostProcessor HistorySetSync to pre-process it")
-          pivotValue = currentInput.asDataset()[self.pivotParameter].values
+          pivotValues = currentInput.asDataset()[self.pivotParameter].values
           if len(self.pivotValues) == 0:
             self.pivotValues = pivotValues
           elif set(self.pivotValues) != set(pivotValues):
@@ -265,18 +265,14 @@ class Metric(PostProcessor):
     outputDict = evaluation[1]
     # FIXME store the data in DataObjects
     if isinstance(output, Files.File):
-      availExtens = ['xml', 'csv']
+      availExtens = ['xml']
       outputExtension = output.getExt().lower()
       if outputExtension not in availExtens:
         self.raiseAMessage('Metric postprocessor did not recognize extension ".', str(outputExtension), '". The output will be dumped to a text file')
       output.setPath(self._workingDir)
       self.raiseADebug('Write Metric prostprocessor output in file with name: ', output.getAbsFile())
       output.open('w')
-      if outputExtension == 'xml':
-        self._writeXML(output, outputDict)
-      else:
-        separator = ' ' if outputExtension != 'csv' else ','
-        self._writeText(output, outputDict, separator)
+      self._writeXML(output, outputDict)
     elif output.type in ['PointSet', 'HistorySet']:
       self.raiseADebug('Dumping output in data object named', output.name)
       rlz = {}
@@ -284,7 +280,7 @@ class Metric(PostProcessor):
         newKey = key.replace("|","_")
         rlz[newKey] = val
       if self.dynamic:
-        rlz[self.pivotParameter] = np.atleast_1d(self.pivotValue)
+        rlz[self.pivotParameter] = np.atleast_1d(self.pivotValues)
       output.addRealization(rlz)
     elif output.type == 'HDF5':
       self.raiseAWarning('Output type', str(output.type), 'is not yet implemented. Skip it')
@@ -307,59 +303,23 @@ class Metric(PostProcessor):
     outputInstance.initialize(output.getFilename(), self.messageHandler, path=output.getPath())
     outputInstance.newTree('MetricPostProcessor', pivotParam=self.pivotParameter)
     if self.dynamic:
-      for ts, pivotVal in enumerate(self.pivotValues):
-        for key, values in outputDictionary.items():
-          if "|" in key:
-            metricName, nodeName = key.split('|')
-            if type(values) in [list, np.ndarray]:
-              outputInstance.addScalar(nodeName, metricName,values[ts], pivotVal=pivotVal)
+      for key, values in outputDictionary.items():
+        if "|" in key:
+          metricName, nodeName = key.split('|')
+          for ts, pivotVal in enumerate(self.pivotValues):
+            if values.shape[0] == 1:
+              outputInstance.addScalar(nodeName, metricName,values[0], pivotVal=pivotVal)
             else:
-              self.raiseAnError(IOError, "Invalid format for the return output dictionary")
+              outputInstance.addScalar(nodeName, metricName,values[ts], pivotVal=pivotVal)
     else:
       for key, values in outputDictionary.items():
         if "|" in key:
           metricName, nodeName = key.split('|')
-          if type(values) == float:
-            outputInstance.addScalar(nodeName, metricName, values)
-          elif type(values) in [list, np.ndarray]:
-            if len(list(values)) == 1:
-              outputInstance.addScalar(nodeName, metricName, values[0])
-            else:
-              self.raiseAnError(IOError, "Multiple values are returned from metric '", metricName, "', this is currently not allowed")
+          if len(list(values)) == 1:
+            outputInstance.addScalar(nodeName, metricName, values[0])
           else:
-            self.raiseAnError(IOError, "Unrecognized type of input value '", type(values), "'")
+            self.raiseAnError(IOError, "Multiple values are returned from metric '", metricName, "', this is currently not allowed")
     outputInstance.writeFile()
-
-  def _writeText(self, output, outputDictionary, separator=' '):
-    """
-      Defines the method for writing the post-processor to a .csv file
-      @ In, output, File object, file to write to
-      @ In, outputDictionary, dict, dictionary stores metric outputs
-      @ In, separator, string, optional, separator string
-      @ Out, None
-    """
-    if self.dynamic:
-      output.write('Dynamic Metric', separator, 'Pivot Parameter', separator, self.pivotParameter, separator, os.linesep)
-    outputResults = [outputDictionary]
-    for ts, outputDict in enumerate(outputResults):
-      if self.dynamic:
-        output.write('Pivot value' + separator + str(self.pivotValues[ts]) + os.linesep)
-      for key, values in outputDict.items():
-        if "|" in key:
-          metricName, nodeName = key.split('|')
-          output.write('Metrics' + separator)
-          output.write(metricName + os.linesep)
-          output.write(nodeName)
-          if type(values) == float:
-            output.write(str(values) + os.linesep)
-          elif type(values) in [list, np.ndarray]:
-            if len(list(values)) == 1:
-              output.write(str(values[0]) + os.linesep)
-            else:
-              output.write(''.join( [separator + str(item) for item in values]) + os.linesep)
-              #self.raiseAnError(IOError, "Multiple values are returned from metric '", metricName, "', this is currently not allowed")
-          else:
-            self.raiseAnError(IOError, "Unrecognized type of input value '", type(values), "'")
 
   def run(self, inputIn):
     """
