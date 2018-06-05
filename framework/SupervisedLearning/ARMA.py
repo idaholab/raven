@@ -341,7 +341,7 @@ class ARMA(supervisedLearning):
                                        nsample = numSamples,
                                        distrvs = randEngine,
                                        sigma = np.sqrt(model.sigma2),
-                                       burnin = 2.6*max(self.Pmax,self.Qmax)) # @epinas, 2018
+                                       burnin = 2*max(self.Pmax,self.Qmax)) # @epinas, 2018
     return hist
 
   def _generateVARMASignal(self, model, numSamples=None, randEngine=None):
