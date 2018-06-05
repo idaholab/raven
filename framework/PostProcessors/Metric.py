@@ -174,16 +174,11 @@ class Metric(PostProcessor):
         hasHistorySet = True
         if self.multiOutput == 'raw_values':
           self.dynamic = True
-          if self.pivotParameter not in currentInput.getParaKeys('output'):
+          if self.pivotParameter not in currentInput.getVars('indexes'):
             self.raiseAnError(IOError, self, 'Pivot parameter', self.pivotParameter,'has not been found in DataObject', currentInput.name)
-          outputs = currentInput.getParametersValues('outputs', nodeId='ending')
-          numSteps = len(outputs.values()[0].values()[0])
-          pivotValues = []
-          for step in range(len(outputs.values()[0][self.pivotParameter])):
-            currentSnapShot = [outputs[i][self.pivotParameter][step] for i in outputs.keys()]
-            if len(set(currentSnapShot)) > 1:
-              self.raiseAnError(IOError, "HistorySet", currentInput.name," is not syncronized, please use Interfaced PostProcessor HistorySetSync to pre-process it")
-            pivotValues.append(currentSnapShot[-1])
+          if not currentInput.checkIndexAlignment(indexesToCheck=self.pivotParameter):
+            self.raiseAnError(IOError, "HistorySet", currentInput.name," is not syncronized, please use Interfaced PostProcessor HistorySetSync to pre-process it")
+          pivotValue = currentInput.asDataset()[self.pivotParameter].values
           if len(self.pivotValues) == 0:
             self.pivotValues = pivotValues
           elif set(self.pivotValues) != set(pivotValues):
@@ -269,8 +264,6 @@ class Metric(PostProcessor):
       self.raiseAnError(RuntimeError, "Job ", finishedJob.identifier, "failed!")
     outputDict = evaluation[1]
     # FIXME store the data in DataObjects
-    output.addRealization(outputDict)
-
     if isinstance(output, Files.File):
       availExtens = ['xml', 'csv']
       outputExtension = output.getExt().lower()
@@ -284,6 +277,17 @@ class Metric(PostProcessor):
       else:
         separator = ' ' if outputExtension != 'csv' else ','
         self._writeText(output, outputDict, separator)
+    elif output.type in ['PointSet', 'HistorySet']:
+      self.raiseADebug('Dumping output in data object named', output.name)
+      rlz = {}
+      for key, val in outputDict.items():
+        newKey = key.replace("|","_")
+        rlz[newKey] = val
+      if self.dynamic:
+        rlz[self.pivotParameter] = np.atleast_1d(self.pivotValue)
+      output.addRealization(outputDict)
+    elif output.type == 'HDF5':
+      self.raiseAWarning('Output type', str(output.type), 'is not yet implemented. Skip it')
     else:
       self.raiseAnError(IOError, 'Output type ', str(output.type), ' can not be used for postprocessor', self.name)
 
@@ -304,24 +308,26 @@ class Metric(PostProcessor):
     outputInstance.newTree('MetricPostProcessor', pivotParam=self.pivotParameter)
     if self.dynamic:
       for ts, pivotVal in enumerate(self.pivotValues):
-        for metricName, metricValues in outputDictionary.items():
-          for nodeName, nodeValues in metricValues.items():
-            if type(nodeValues) in [list, np.ndarray]:
-              outputInstance.addScalar(nodeName, metricName,nodeValues[ts], pivotVal=pivotVal)
+        for key, values in outputDictionary.items():
+          if "|" in key:
+            metricName, nodeName = key.split('|')
+            if type(values) in [list, np.ndarray]:
+              outputInstance.addScalar(nodeName, metricName,values[ts], pivotVal=pivotVal)
             else:
               self.raiseAnError(IOError, "Invalid format for the return output dictionary")
     else:
-      for metricName, metricValues in outputDictionary.items():
-        for nodeName, nodeValues in metricValues.items():
-          if type(nodeValues) == float:
-            outputInstance.addScalar(nodeName, metricName, nodeValues)
-          elif type(nodeValues) in [list, np.ndarray]:
-            if len(list(nodeValues)) == 1:
-              outputInstance.addScalar(nodeName, metricName, nodeValues[0])
+      for key, values in outputDictionary.items():
+        if "|" in key:
+          metricName, nodeName = key.split('|')
+          if type(values) == float:
+            outputInstance.addScalar(nodeName, metricName, values)
+          elif type(values) in [list, np.ndarray]:
+            if len(list(values)) == 1:
+              outputInstance.addScalar(nodeName, metricName, values[0])
             else:
               self.raiseAnError(IOError, "Multiple values are returned from metric '", metricName, "', this is currently not allowed")
           else:
-            self.raiseAnError(IOError, "Unrecognized type of input value '", type(value), "'")
+            self.raiseAnError(IOError, "Unrecognized type of input value '", type(values), "'")
     outputInstance.writeFile()
 
   def _writeText(self, output, outputDictionary, separator=' '):
@@ -332,31 +338,28 @@ class Metric(PostProcessor):
       @ In, separator, string, optional, separator string
       @ Out, None
     """
-<<<<<<< HEAD
     if self.dynamic:
       output.write('Dynamic Metric', separator, 'Pivot Parameter', separator, self.pivotParameter, separator, os.linesep)
-    outputResults = [outputDictionary] if not self.dynamic else outputDictionary.values()
-=======
     outputResults = [outputDictionary]
->>>>>>> add options to output time-dependent metrics results
     for ts, outputDict in enumerate(outputResults):
       if self.dynamic:
-        output.write('Pivot value' + separator + str(outputDictionary.keys()[ts]) + os.linesep)
-      for metricName, nodeValues in outputDict.items():
-        output.write('Metrics' + separator)
-        output.write(metricName + os.linesep)
-        for nodeName, value in nodeValues.items():
+        output.write('Pivot value' + separator + str(self.pivotValues[ts]) + os.linesep)
+      for key, values in outputDict.items():
+        if "|" in key:
+          metricName, nodeName = key.split('|')
+          output.write('Metrics' + separator)
+          output.write(metricName + os.linesep)
           output.write(nodeName)
-          if type(value) == float:
-            output.write(str(value) + os.linesep)
-          elif type(value) in [list, np.ndarray]:
-            if len(list(value)) == 1:
-              output.write(str(value[0]) + os.linesep)
+          if type(values) == float:
+            output.write(str(values) + os.linesep)
+          elif type(values) in [list, np.ndarray]:
+            if len(list(values)) == 1:
+              output.write(str(values[0]) + os.linesep)
             else:
-              output.write(''.join( [separator + str(item) for item in value]) + os.linesep)
+              output.write(''.join( [separator + str(item) for item in values]) + os.linesep)
               #self.raiseAnError(IOError, "Multiple values are returned from metric '", metricName, "', this is currently not allowed")
           else:
-            self.raiseAnError(IOError, "Unrecognized type of input value '", type(value), "'")
+            self.raiseAnError(IOError, "Unrecognized type of input value '", type(values), "'")
 
   def run(self, inputIn):
     """
@@ -367,32 +370,16 @@ class Metric(PostProcessor):
     measureList = self.inputToInternal(inputIn)
     outputDict = {}
     assert len(self.features) == len(measureList)
-<<<<<<< HEAD
-    for cnt in range(len(self.features)):
-      nodeName = (str(self.features[cnt]) + '-' + str(self.targets[cnt])).replace("|","_")
-      for metricInstance in self.metricsDict.values():
-        if hasattr(metricInstance, 'metricType'):
-          metricName = "_".join(metricInstance.metricType)
-        else:
-          metricName = metricInstance.type
-        metricName = metricInstance.name + '_' + metricName
-        varName = metricName + '|' + nodeName
-        metricEngine = MetricDistributor.returnInstance('MetricDistributor',metricInstance,self)
-        output = metricEngine.evaluate(measureList[cnt], weights=None, multiOutput='mean')
-        outputDict[varName] = np.atleast_1d(output)
-
-=======
     for metricInstance in self.metricsDict.values():
       if hasattr(metricInstance, 'metricType'):
         metricName = "_".join(metricInstance.metricType)
       else:
         metricName = metricInstance.type
       metricName = metricInstance.name + '_' + metricName
-      outputDict[metricName] = {}
       metricEngine = MetricDistributor.returnInstance('MetricDistributor',metricInstance,self)
       for cnt in range(len(self.features)):
         nodeName = (str(self.features[cnt]) + '-' + str(self.targets[cnt])).replace("|","_")
+        varName = metricName + '|' + nodeName
         output = metricEngine.evaluate(measureList[cnt], weights=self.weight, multiOutput=self.multiOutput)
-        outputDict[metricName][nodeName] = output
->>>>>>> add options to output time-dependent metrics results
+        outputDict[varName] = np.atleast_1d(output)
     return outputDict
