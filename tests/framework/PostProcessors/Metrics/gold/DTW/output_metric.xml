@@ -1,16 +1,16 @@
 <MetricPostProcessor type="Static">
-  <x1-x2>
-    <dtwII_DTW>0.699485458274</dtwII_DTW>
-    <dtwI_DTW>29.0425028949</dtwI_DTW>
-  </x1-x2>
+  <z2_z1>
+    <dtwI>77.3366410552</dtwI>
+    <dtwII>1.12395018388</dtwII>
+  </z2_z1>
 
-  <y1-y2>
-    <dtwII_DTW>0.599048121853</dtwII_DTW>
-    <dtwI_DTW>35.8681242526</dtwI_DTW>
-  </y1-y2>
+  <y2_y1>
+    <dtwII>0.599048121853</dtwII>
+    <dtwI>35.8681242526</dtwI>
+  </y2_y1>
 
-  <z1-z2>
-    <dtwII_DTW>1.12395018388</dtwII_DTW>
-    <dtwI_DTW>77.3366410552</dtwI_DTW>
-  </z1-z2>
+  <x2_x1>
+    <dtwI>29.0425028949</dtwI>
+    <dtwII>0.699485458274</dtwII>
+  </x2_x1>
 </MetricPostProcessor>

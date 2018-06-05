@@ -1,5 +1,0 @@
-<MetricPostProcessor type="Static">
-  <ans-ans2>
-    <mean_squared_error_regression_mean_squared_error>6.64747697805</mean_squared_error_regression_mean_squared_error>
-  </ans-ans2>
-</MetricPostProcessor>

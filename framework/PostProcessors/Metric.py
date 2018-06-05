@@ -110,7 +110,7 @@ class Metric(PostProcessor):
       inputOrOutput = [inputOrOutput.lower()]
     else:
       dataName = None
-      inputOrOutput = ['inputs','outputs']
+      inputOrOutput = ['input','output']
     for currentInput in currentInputs:
       inputType = None
       if hasattr(currentInput, 'type'):
@@ -285,7 +285,7 @@ class Metric(PostProcessor):
         rlz[newKey] = val
       if self.dynamic:
         rlz[self.pivotParameter] = np.atleast_1d(self.pivotValue)
-      output.addRealization(outputDict)
+      output.addRealization(rlz)
     elif output.type == 'HDF5':
       self.raiseAWarning('Output type', str(output.type), 'is not yet implemented. Skip it')
     else:
@@ -371,15 +371,10 @@ class Metric(PostProcessor):
     outputDict = {}
     assert len(self.features) == len(measureList)
     for metricInstance in self.metricsDict.values():
-      if hasattr(metricInstance, 'metricType'):
-        metricName = "_".join(metricInstance.metricType)
-      else:
-        metricName = metricInstance.type
-      metricName = metricInstance.name + '_' + metricName
       metricEngine = MetricDistributor.returnInstance('MetricDistributor',metricInstance,self)
-      for cnt in range(len(self.features)):
-        nodeName = (str(self.features[cnt]) + '-' + str(self.targets[cnt])).replace("|","_")
-        varName = metricName + '|' + nodeName
+      for cnt in range(len(self.targets)):
+        nodeName = (str(self.targets[cnt]) + '_' + str(self.features[cnt])).replace("|","_")
+        varName = metricInstance.name + '|' + nodeName
         output = metricEngine.evaluate(measureList[cnt], weights=self.weight, multiOutput=self.multiOutput)
         outputDict[varName] = np.atleast_1d(output)
     return outputDict

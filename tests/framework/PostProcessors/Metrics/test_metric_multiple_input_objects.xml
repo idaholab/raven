@@ -98,7 +98,7 @@
   </DataObjects>
 
   <VariableGroups>
-    <Group name="pp1_vars">euclidean_ans2_ans</Group>
+    <Group name="pp1_vars">mean_squared_error_ans2_ans</Group>
   </VariableGroups>
 
   <OutStreams>

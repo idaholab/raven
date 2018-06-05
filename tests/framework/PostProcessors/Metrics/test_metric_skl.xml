@@ -94,6 +94,7 @@
       <Model class="Models" type="PostProcessor">pp1</Model>
       <Output class="DataObjects" type="PointSet">pp1_metric</Output>
       <Output class="OutStreams" type="Print">pp1_metric_dump</Output>
+      <Output class="Files"      type="">output_metric</Output>
     </PostProcess>
   </Steps>
 
@@ -109,41 +110,20 @@
     <PointSet name="pp1_metric">
       <Output>pp1_vars</Output>
     </PointSet>
-    <PointSet name="pp2_metric">
-      <Output>pp2_vars</Output>
-    </PointSet>
   </DataObjects>
 
   <VariableGroups>
-    <Group name="pp1_vars">euclidean_ans2_ans,
-                 rbf_ans2_ans,
-                 poly_ans2_ans,
-                 sigmoid_ans2_ans,
-                 polynomial_ans2_ans,
-                 linear_ans2_ans,
-                 cosine_ans2_ans,
-                 cityblock_ans2_ans,
-                 l1_ans2_ans,
-                 l2_ans2_ans,
-                 manhattan_ans2_ans,
-                 laplacian_ans2_ans,
+    <Group name="pp1_vars">
                  explained_variance_score_ans2_ans,
                  mean_absolute_error_ans2_ans,
                  mean_squared_error_ans2_ans,
-                 median_absolute_error_ans2_ans,
                  r2_score_ans2_ans</Group>
-    <Group name="pp2_vars">chi2_x1_ans2,
-                 additive_chi2_x1_ans2</Group>
   </VariableGroups>
 
   <OutStreams>
     <Print name="pp1_metric_dump">
       <type>csv</type>
       <source>pp1_metric</source>
-    </Print>
-    <Print name="pp2_metric_dump">
-      <type>csv</type>
-      <source>pp2_metric</source>
     </Print>
   </OutStreams>
 

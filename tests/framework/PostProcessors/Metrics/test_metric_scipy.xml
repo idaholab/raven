@@ -33,6 +33,32 @@
     </PostProcessor>
   </Models>
   
+  <DataObjects>
+    <PointSet name="inputPlaceHolder2">
+      <Input>x1,x2</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="outputDataMC">
+      <Input>x1,x2</Input>
+      <Output>ans,ans2</Output>
+    </PointSet>
+    <PointSet name="pp1_out">
+        <Output>
+            braycurtis_ans2_ans,
+            canberra_ans2_ans,
+            correlation_ans2_ans,
+            minkowski_ans2_ans
+        </Output>
+    </PointSet>
+  </DataObjects>
+  
+  <OutStreams>
+    <Print name="pp1_print">
+      <type>csv</type>
+      <source>pp1_out</source>
+    </Print>
+  </OutStreams>
+
   <Metrics>
     <ScipyMetric name="braycurtis">
       <metricType>paired_distance|braycurtis</metricType>
@@ -85,19 +111,9 @@
     <PostProcess name="PP1">
       <Input class="DataObjects" type="PointSet">outputDataMC</Input>
       <Model class="Models" type="PostProcessor">pp1</Model>
-      <Output class="Files" type="">output_metric</Output>
+      <Output class="DataObjects" type="PointSet">pp1_out</Output>
+      <Output class="OutStreams" type="Print">pp1_print</Output>
     </PostProcess>
   </Steps>
-
-  <DataObjects>
-    <PointSet name="inputPlaceHolder2">
-      <Input>x1,x2</Input>
-      <Output>OutputPlaceHolder</Output>
-    </PointSet>
-    <PointSet name="outputDataMC">
-      <Input>x1,x2</Input>
-      <Output>ans,ans2</Output>
-    </PointSet>
-  </DataObjects>
 
 </Simulation>

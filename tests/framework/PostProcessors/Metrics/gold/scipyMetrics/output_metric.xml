@@ -1,8 +1,0 @@
-<MetricPostProcessor type="Static">
-  <ans-ans2>
-    <minkowski_paired_distance_minkowski>6.74863984473</minkowski_paired_distance_minkowski>
-    <canberra_paired_distance_canberra>6.41037902528</canberra_paired_distance_canberra>
-    <braycurtis_paired_distance_braycurtis>1.06800110361</braycurtis_paired_distance_braycurtis>
-    <correlation_paired_distance_correlation>1.98118802292</correlation_paired_distance_correlation>
-  </ans-ans2>
-</MetricPostProcessor>

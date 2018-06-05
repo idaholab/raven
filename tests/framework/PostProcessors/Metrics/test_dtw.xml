@@ -59,7 +59,24 @@
       <Input>x0,y0,z0</Input>
       <Output>time,x2,y2,z2</Output>
     </HistorySet>
+    <PointSet name="pp1_out">
+        <Output>
+            dtwI_x2_x1,
+            dtwI_y2_y1,
+            dtwI_z2_z1,
+            dtwII_x2_x1,
+            dtwII_y2_y1,
+            dtwII_z2_z1
+        </Output>
+    </PointSet>
   </DataObjects>
+
+  <OutStreams>
+    <Print name="pp1_print">
+      <type>csv</type>
+      <source>pp1_out</source>
+    </Print>
+  </OutStreams>
 
   <Distributions>
     <Normal name="x0_distrib">
@@ -111,6 +128,8 @@
       <Input class="DataObjects" type="HistorySet">outMC1</Input>
       <Input class="DataObjects" type="HistorySet">outMC2</Input>
       <Model class="Models" type="PostProcessor">pp1</Model>
+      <Output class="DataObjects" type="PointSet">pp1_out</Output>
+      <Output class="OutStreams" type="Print">pp1_print</Output>
       <Output class="Files" type="">output_metric</Output>
       <Output class="Files" type="">output_metric.csv</Output>
     </PostProcess>
