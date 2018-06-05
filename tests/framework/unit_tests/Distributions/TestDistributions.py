@@ -1026,9 +1026,9 @@ checkCrowDist("NDCartesianSpline",ndCartesianSpline,{'type': 'NDCartesianSplineD
 #ND MultiVariate Normal
 
 ndMultiVariateNormal = ET.Element("MultivariateNormal",{"name":"test","method":"spline"})
-munode = createElement("mu", text="3000 2500")
+munode = createElement("mu", text="10 20")
 ndMultiVariateNormal.append(munode)
-covariancenode = createElement("covariance", text=" 810000 0 \n 0 490000")
+covariancenode = createElement("covariance", text=" 4 0 \n 0 16")
 ndMultiVariateNormal.append(covariancenode)
 
 ndMultiVariate = getDistribution(ndMultiVariateNormal)
@@ -1036,16 +1036,16 @@ ndMultiVariate = getDistribution(ndMultiVariateNormal)
 ## Should these be checked?
 initParams = ndMultiVariate.getInitParams()
 
-marginalCDF1 = ndMultiVariate.marginalDistribution(3000, 0)
-marginalCDF2 = ndMultiVariate.marginalDistribution(2500, 1)
+marginalCDF1 = ndMultiVariate.marginalDistribution(10, 0)
+marginalCDF2 = ndMultiVariate.marginalDistribution(20, 1)
 
 inverse1 = ndMultiVariate.inverseMarginalDistribution(0.5, 0)
 inverse2 = ndMultiVariate.inverseMarginalDistribution(0.5, 1)
 
-checkAnswer("MultiVariate marginalDim1(3000)" , marginalCDF1, 0.502581219038, tol=0.001, relative=True)
-checkAnswer("MultiVariate marginalDim2(2500)" , marginalCDF2, 0.503825380044, tol=0.001, relative=True)
-checkAnswer("MultiVariate inverseMarginalDim1(0.5)" , inverse1, 3000.419, tol=0.001, relative=True)
-checkAnswer("MultiVariate inverseMarginalDim2(0.5)" , inverse2, 2500.044, tol=0.001, relative=True)
+checkAnswer("MultiVariate marginalDim1(3000)" , marginalCDF1, 0.501, tol=0.01, relative=True)
+checkAnswer("MultiVariate marginalDim2(2500)" , marginalCDF2, 0.501, tol=0.01, relative=True)
+checkAnswer("MultiVariate inverseMarginalDim1(0.5)" , inverse1, 10., tol=0.01, relative=True)
+checkAnswer("MultiVariate inverseMarginalDim2(0.5)" , inverse2, 20., tol=0.01, relative=True)
 
 #Test Categorical
 
