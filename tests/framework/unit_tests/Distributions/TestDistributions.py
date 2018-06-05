@@ -66,7 +66,9 @@ def checkAnswer(comment,value,expected,tol=1e-10, relative=False):
     @ In, relative, bool, optional, the tolerance needs be checked relative?
     @ Out, None
   """
-  diff = abs(value - expected) if not relative else abs(value - expected)/expected
+  if relative:
+    denominator = expected if expected != 0. else 1.0
+  diff = abs(value - expected) if not relative else abs(value - expected)/denominator
   if diff > tol:
     print("checking answer",comment,value,"!=",expected)
     results["fail"] += 1
@@ -1040,10 +1042,10 @@ marginalCDF2 = ndMultiVariate.marginalDistribution(2500, 1)
 inverse1 = ndMultiVariate.inverseMarginalDistribution(0.5, 0)
 inverse2 = ndMultiVariate.inverseMarginalDistribution(0.5, 1)
 
-checkAnswer("MultiVariate marginalDim1(3000)" , marginalCDF1, 0.5, tol=0.001, True)
-checkAnswer("MultiVariate marginalDim2(2500)" , marginalCDF2, 0.5, tol=0.001, True)
-checkAnswer("MultiVariate inverseMarginalDim1(0.5)" , inverse1, 3000.419, tol=0.001, True)
-checkAnswer("MultiVariate inverseMarginalDim2(0.5)" , inverse2, 2500.044, tol=0.001, True)
+checkAnswer("MultiVariate marginalDim1(3000)" , marginalCDF1, 0.502581219038, tol=0.001, relative=True)
+checkAnswer("MultiVariate marginalDim2(2500)" , marginalCDF2, 0.503825380044, tol=0.001, relative=True)
+checkAnswer("MultiVariate inverseMarginalDim1(0.5)" , inverse1, 3000.419, tol=0.001, relative=True)
+checkAnswer("MultiVariate inverseMarginalDim2(0.5)" , inverse2, 2500.044, tol=0.001, relative=True)
 
 #Test Categorical
 
