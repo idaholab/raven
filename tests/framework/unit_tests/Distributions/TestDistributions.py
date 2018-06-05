@@ -56,16 +56,18 @@ results = {"pass":0,"fail":0}
 #def floatNotEqual(a,b):
 #  return abs(a - b) > 1e-10
 
-def checkAnswer(comment,value,expected,tol=1e-10):
+def checkAnswer(comment,value,expected,tol=1e-10, relative=False):
   """
     This method is aimed to compare two floats given a certain tolerance
     @ In, comment, string, a comment printed out if it fails
     @ In, value, float, the value to compare
     @ In, expected, float, the expected value
     @ In, tol, float, optional, the tolerance
+    @ In, relative, bool, optional, the tolerance needs be checked relative?
     @ Out, None
   """
-  if abs(value - expected) > tol:
+  diff = abs(value - expected) if not relative else abs(value - expected)/expected
+  if diff > tol:
     print("checking answer",comment,value,"!=",expected)
     results["fail"] += 1
   else:
@@ -1038,10 +1040,10 @@ marginalCDF2 = ndMultiVariate.marginalDistribution(2500, 1)
 inverse1 = ndMultiVariate.inverseMarginalDistribution(0.5, 0)
 inverse2 = ndMultiVariate.inverseMarginalDistribution(0.5, 1)
 
-checkAnswer("MultiVariate marginalDim1(3000)" , marginalCDF1, 0.5, tol=0.01)
-checkAnswer("MultiVariate marginalDim2(2500)" , marginalCDF2, 0.5, tol=0.01)
-checkAnswer("MultiVariate inverseMarginalDim1(0.5)" , inverse1, 3000.419, tol=0.001)
-checkAnswer("MultiVariate inverseMarginalDim2(0.5)" , inverse2, 2500.044, tol=0.001)
+checkAnswer("MultiVariate marginalDim1(3000)" , marginalCDF1, 0.5, tol=0.001, True)
+checkAnswer("MultiVariate marginalDim2(2500)" , marginalCDF2, 0.5, tol=0.001, True)
+checkAnswer("MultiVariate inverseMarginalDim1(0.5)" , inverse1, 3000.419, tol=0.001, True)
+checkAnswer("MultiVariate inverseMarginalDim2(0.5)" , inverse2, 2500.044, tol=0.001, True)
 
 #Test Categorical
 
