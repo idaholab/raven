@@ -1772,10 +1772,11 @@ Fault-Trees to the branch (i.e., fork) point.
 \label{MetricPP}
 The \textbf{Metric} post-processor is specifically used to calculate the distance values among points from PointSets and histories from HistorySets,
 while the \textbf{Metrics} block (See Chapter \ref{sec:Metrics}) allows the user to specify the similarity/dissimilarity metrics to be used in this
-post-processor. It is important to notice that this post-processor currently can only accept \textbf{PointSet} data
-object and does not accept \textbf{HistorySet} data.  If the name of the variable is unique, it can be used,
-otherwise the variable can be specified with $DataObjectName|InputOrOutput|VariableName$ like other places in RAVEN.
-Some of the Metrics also accept distributions to calculate the distance against.  These are specified by using the name of the distribution.
+post-processor. Both \textbf{PointSet} and \textbf{HistorySet} can be accepted by this post-processor.
+If the name of given variable is unique, it can be used directly, otherwise the variable can be specified
+with $DataObjectName|InputOrOutput|VariableName$ like other places in RAVEN.
+Some of the Metrics also accept distributions to calculate the distance against.
+These are specified by using the name of the distribution.
 %
 \ppType{Metric}{Metric}
 %
@@ -1794,6 +1795,14 @@ Some of the Metrics also accept distributions to calculate the distance against.
       \item \xmlAttr{type}, \xmlDesc{required string attribute}, the type of provided features. Currently only
         accept `variable'.
     \end{itemize}
+  \item \xmlNode{multiOutput}, \xmlDesc{optional string attribute}, only used when \textbf{HistorySet} is used as
+    input. Defines aggregating of time-dependent metrics' calculations. Available options include:
+    \textbf{mean, max, min, raw\_values} over the time. For example, when `mean' is used, the metrics' calculations
+    will be averaged over the time. When `raw\_values' is used, the full set of  metrics' calculations will be dumped.
+    \default{raw\_values}
+  \item \xmlNode{pivotParameter}, \xmlDesc{optional string attribute}, only used when \textbf{HistorySet}
+    is used as input. The pivotParameter for given metrics' calculations.
+    \default{time}
   \item \xmlNode{Metric}, \xmlDesc{string, required field}, specifies the \textbf{Metric} name that is defined via
     \textbf{Metrics} entity. In this xml-node, the following xml attributes need to be specified:
     \begin{itemize}
@@ -1813,17 +1822,12 @@ Some of the Metrics also accept distributions to calculate the distance against.
       <Features type="variable">ans</Features>
       <Targets type="variable">ans2</Targets>
       <Metric class="Metrics" type="SKL">euclidean</Metric>
-      <Metric class="Metrics" type="SKL">rbf</Metric>
-      <Metric class="Metrics" type="SKL">poly</Metric>
-      <Metric class="Metrics" type="SKL">sigmoid</Metric>
-      <Metric class="Metrics" type="SKL">polynomial</Metric>
-      <Metric class="Metrics" type="SKL">linear</Metric>
       <Metric class="Metrics" type="SKL">cosine</Metric>
-      <Metric class="Metrics" type="SKL">cityblock</Metric>
-      <Metric class="Metrics" type="SKL">l1</Metric>
-      <Metric class="Metrics" type="SKL">l2</Metric>
       <Metric class="Metrics" type="SKL">manhattan</Metric>
-      <Metric class="Metrics" type="SKL">laplacian</Metric>
+      <Metric class="Metrics" type="ScipyMetric">braycurtis</Metric>
+      <Metric class="Metrics" type="ScipyMetric">canberra</Metric>
+      <Metric class="Metrics" type="ScipyMetric">correlation</Metric>
+      <Metric class="Metrics" type="ScipyMetric">minkowski</Metric>
     </PostProcessor>
     ...
   </Models>
@@ -1834,7 +1838,7 @@ Some of the Metrics also accept distributions to calculate the distance against.
 In order to access the results from this post-processor, RAVEN will define the variables as ``MetricName'' +
 ``\_'' + ``TargetVariableName'' + ``\_'' + ``FeatureVariableName'' to store the calculation results, and these
 variables are also accessible by the users through RAVEN entities \textbf{DataObjects} and \textbf{OutStreams}.
-In previous example, variables such as \textit{euclidean\_ans2\_ans, rbf\_ans2\_ans, poly\_ans2\_ans} are accessible
+In previous example, variables such as \textit{euclidean\_ans2\_ans, cosine\_ans2\_ans, poly\_ans2\_ans} are accessible
 by the users.
 
 %%%%%%%%%%%%%% Cross Validation PP %%%%%%%%%%%%%%%%%%%
