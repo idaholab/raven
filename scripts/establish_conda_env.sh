@@ -19,14 +19,33 @@ fi
 
 conda_install_or_create ()
 {
+  # determine operating system
+  case $OSTYPE in
+    "linux-gnu")
+      OSOPTION="--linux"
+      ;;
+    "darwin"*)
+      OSOPTION="--mac"
+      ;;
+    "msys"*)
+      OSOPTION="--windows"
+      ;;
+    "cygwin"*)
+      OSOPTION="--windows"
+      ;;
+    *)
+      OSOPTION=""
+      ;;
+  esac
+  # set up library environment
   if conda env list | grep -q raven_libraries;
   then
     echo ... RAVEN environment located, checking packages ...
-    `python $SCRIPT_DIR/TestHarness/testers/RavenUtils.py --conda-install ${INSTALL_OPTIONAL}`
+    `python $SCRIPT_DIR/TestHarness/testers/RavenUtils.py --conda-install ${INSTALL_OPTIONAL} ${OSOPTION}`
   else
     echo ... No RAVEN environment located, creating it ...
     try_using_raven_environment
-    `python $SCRIPT_DIR/TestHarness/testers/RavenUtils.py --conda-create ${INSTALL_OPTIONAL}`
+    `python $SCRIPT_DIR/TestHarness/testers/RavenUtils.py --conda-create ${INSTALL_OPTIONAL} ${OSOPTION}`
   fi
 }
 
@@ -82,16 +101,7 @@ else
   fi
 fi
 
-# if conda version 4.4+, they use function definitions instead of path inclusion.
-## however, they also define the CONDA_EXE variable, which is available.
-## once loaded, command -v conda works for both versions of conda.
-if [ "${#CONDA_EXE}" -gt 0 ];
-then
-  echo sourcing conda function definitions ...
-  source "$(dirname $(dirname "${CONDA_EXE}"))/etc/profile.d/conda.sh"
-fi
-
-
+# determine if conda is available after all of that.
 if command -v conda 2> /dev/null;
 then
   echo conda located, checking version ...
