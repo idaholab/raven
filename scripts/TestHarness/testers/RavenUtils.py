@@ -66,6 +66,7 @@ __condaList = [("h5py"        ,__lookUpPreferredVersion("h5py"      )),
                ("xarray"      ,__lookUpPreferredVersion("xarray"    )),
                ("netcdf4"     ,__lookUpPreferredVersion("netCDF4"   )),
                ("matplotlib"  ,__lookUpPreferredVersion("matplotlib")),
+               ("tensorflow"  ,__lookUpPreferredVersion("tensorflow")),
                ("python"      ,"2.7"),
                ("pyside"      ,""),
                ("swig"        ,""),
@@ -85,6 +86,7 @@ __pipList = [#("numpy",__lookUpPreferredVersion("numpy")),
              ("matplotlib",__lookUpPreferredVersion("matplotlib")),
              ("xarray",__lookUpPreferredVersion("xarray")),
              ("netCDF4",__lookUpPreferredVersion("netcdf4")),
+             ("tensorflow",__lookUpPreferredVersion("tensorflow")),
              ("pandas",__lookUpPreferredVersion("pandas")) ]
 
 def moduleReport(module,version=''):
