@@ -84,9 +84,11 @@ def returnInstance(Type,caller,**kwargs):
   """
   try:
     return __interfaceDict[Type](caller.messageHandler,**kwargs)
-  except KeyError:
-    print(knownTypes())
-    caller.raiseAnError(NameError,__name__+': unknown '+__base+' type '+Type)
+  except KeyError as e:
+    if Type not in __interfaceDict:
+      caller.raiseAnError(NameError,__name__+': unknown '+__base+' type '+Type)
+    else:
+      raise e
 
 def returnClass(Type,caller):
   """

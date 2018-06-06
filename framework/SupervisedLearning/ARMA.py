@@ -70,7 +70,7 @@ class ARMA(supervisedLearning):
     self.Qmin              = kwargs.get('Qmin', 0)
     self.reseedCopies      = kwargs.get('reseedCopies',True)
     self.outTruncation     = kwargs.get('outTruncation', None) # Additional parameters to allow user to specify the time series to be all positive or all negative
-    self.pivotParameterID  = kwargs.get('pivotParameter', 'Time')
+    self.pivotParameterID  = kwargs['pivotParameter']
     self.pivotParameterValues = None  # In here we store the values of the pivot parameter (e.g. Time)
     self.seed              = kwargs.get('seed',None)
 

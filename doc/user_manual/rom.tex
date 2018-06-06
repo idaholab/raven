@@ -2950,9 +2950,8 @@ below).
 \subnodeIntro
 
 \begin{itemize}
-  \item \xmlNode{pivotParameter}, \xmlDesc{string, optional field}, defines the pivot variable (e.g., time) that is non-decreasing in
+  \item \xmlNode{pivotParameter}, \xmlDesc{string, required field}, defines the pivot variable (e.g., time) that is non-decreasing in
   the input HistorySet.
-  \default{Time}
   \item \xmlNode{Features}, \xmlDesc{comma separated string, required field}, defines the features (e.g., scaling). Note that only
   one feature is allowed for \xmlString{ARMA} and in current implementation this is used for evaluation only.
   \item \xmlNode{Target}, \xmlDesc{comma separated string, required field}, defines the variable(s) of the
