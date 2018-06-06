@@ -50,7 +50,7 @@ try_using_raven_environment ()
 ### THIS decision tree is relevant to conda 4.5.4; supposedly this will all be fixed in conda 4.6.
 # if "conda" is a recognized command ...
 echo Attempting to locate \"conda\" ...
-if command -v conda 2> /dev/null;
+if command -V conda 2> /dev/null;
 then
   # if the executable environment already set up ...
   if  [ "${#CONDA_EXE}" -gt 0 ];
@@ -59,6 +59,10 @@ then
   # if not, then this can be helped out by activating any environment
   else
     echo ... conda available but exec variable not set, so initializing base library ...
+    if test -e ${CONDA_DEFS};
+    then
+      source ${CONDA_DEFS}
+    fi
     conda activate base
     echo ... conda established.
   fi
