@@ -63,7 +63,7 @@ class Metric(PostProcessor):
     inputSpecification.addSub(targetsInput)
     multiOutputInput = InputData.parameterInputFactory("multiOutput", contentType=InputData.StringType)
     inputSpecification.addSub(multiOutputInput)
-    multiOutputEnum = InputData.makeEnumType('MultiOutput', 'MultiOutputType', ['mean','max','min','raw_values'])
+    multiOutput = InputData.makeEnumType('MultiOutput', 'MultiOutputType', ['mean','max','min','raw_values'])
     multiOutputInput = InputData.parameterInputFactory("multiOutput", contentType=multiOutput)
     inputSpecification.addSub(multiOutputInput)
     weightInput = InputData.parameterInputFactory("weight", contentType=InputData.FloatListType)
@@ -118,7 +118,7 @@ class Metric(PostProcessor):
       inputType = None
       if hasattr(currentInput, 'type'):
         inputType = currentInput.type
-      if dataName != currentInput.name:
+      if dataName is not None and dataName != currentInput.name:
         continue
       if inputType in ['PointSet', 'HistorySet']:
         dataSet = currentInput.asDataset()
@@ -142,7 +142,7 @@ class Metric(PostProcessor):
           metricData = currentInput
 
     if metricData is None:
-      self.raiseAnError(IOError, "Feature or target variable " + origMetricDataName + "is not found")
+      self.raiseAnError(IOError, "Feature or target variable " + origMetricDataName + " is not found")
     return metricData
 
   def inputToInternal(self, currentInputs):
