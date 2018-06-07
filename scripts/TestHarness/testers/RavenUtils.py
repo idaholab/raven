@@ -34,13 +34,13 @@ def inPython3():
 # Deep learning requires Scikit-Learn version at least 0.18
 
 ## working Conda 4.5.4, May 2018
-modules_to_try = [("h5py"      ,'h5py.__version__'      ,'2.4.0' ,'2.6.0' ,None   ),
+modules_to_try = [("h5py"      ,'h5py.__version__'      ,'2.4.0' ,'2.7.1' ,None   ), # 2.6.0
                   #("numpy"     ,'numpy.__version__'     ,"1.8.0" ,"1.9.1",None   ),
                   ("scipy"     ,'scipy.__version__'     ,"1.1.0","1.1.0",None   ),
                   ("sklearn"   ,'sklearn.__version__'   ,"0.19.1"  ,"0.19.1",None   ),
                   ("pandas"    ,'pandas.__version__'    ,"0.20.0","0.20.3",None   ),
                   ("xarray"    ,'xarray.__version__'    ,"0.9.5" ,"0.10.3",None   ),
-                  ("netCDF4"   ,'netCDF4.__version__'   ,"1.2.3" ,"1.2.4" ,None   ),
+                  ("netCDF4"   ,'netCDF4.__version__'   ,"1.2.3" ,"1.4.0" ,None   ), # 1.2.4
                   ## NOTE there is a known bug in netCDF4 prior to 1.3.1 where having a path length
                   # of exactly 88 characters can create a seg fault.  However, h5py has no new libraries
                   # after 2.7 and is not compatible with hdf5 greater than 1.8.17, while netCDF4 requires
