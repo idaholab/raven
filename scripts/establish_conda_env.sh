@@ -47,7 +47,7 @@ fi
 conda_install_or_create ()
 {
   # set up library environment
-  if conda env list | grep -q raven_libraries;
+  if conda env list | grep raven_libraries;
   then
     echo ... RAVEN environment located, checking packages ...
     COMMAND=`echo $(python $SCRIPT_DIR/TestHarness/testers/RavenUtils.py --conda-install ${INSTALL_OPTIONAL} ${OSOPTION})`
