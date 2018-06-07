@@ -224,6 +224,22 @@ def randPointsInHypersphere(dim,samples=1,r=1,keepMatrix=False):
     return _reduceRedundantListing(pts,dim,samples)
   return pts
 
+def newRNG(env=None):
+  """
+    Provides a new instance of the random number generator.
+    @ In, env, string, optional, type of random number generator.  Defaults to global default.
+    @ Out, engine, object, RNG producer
+  """
+  if env is None:
+    env = stochasticEnv
+  if env == 'crow':
+    engine = findCrowModule('randomENG').RandomClass()
+  elif env == 'numpy':
+    engine = np.random.RandomState()
+  else:
+    raise TypeError('Unrecognized environment requested:',env)
+  return engine
+
 ### internal utilities ###
 
 def _reduceRedundantListing(data,dim,samples):
