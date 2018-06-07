@@ -4,7 +4,34 @@ echo Establishing RAVEN conda environment ...
 
 #Similar to setup_raven_libs.sh, but installs libraries, not just opens environment
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-CONDA_DEFS="$HOME/miniconda2/etc/profile.d/conda.sh"
+
+# determine operating system
+case $OSTYPE in
+  "linux-gnu")
+    OSOPTION="--linux"
+    ;;
+  "darwin"*)
+    OSOPTION="--mac"
+    ;;
+  "msys"*)
+    OSOPTION="--windows"
+    ;;
+  "cygwin"*)
+    OSOPTION="--windows"
+    ;;
+  *)
+    OSOPTION=""
+    ;;
+esac
+
+# default location of conda definitions, windows is unsurprisingly an exception
+if [[ $OSOPTION == "--windows" ]];
+then
+  CONDA_DEFS="/c/ProgramData/Miniconda2/etc/profile.d/conda.sh";
+else
+  CONDA_DEFS="$HOME/miniconda2/etc/profile.d/conda.sh";
+fi
+
 
 # if runner desires optional test libraries (like PIL) to be installed,
 #   they can request it by passing --optional to this script
@@ -19,24 +46,6 @@ fi
 
 conda_install_or_create ()
 {
-  # determine operating system
-  case $OSTYPE in
-    "linux-gnu")
-      OSOPTION="--linux"
-      ;;
-    "darwin"*)
-      OSOPTION="--mac"
-      ;;
-    "msys"*)
-      OSOPTION="--windows"
-      ;;
-    "cygwin"*)
-      OSOPTION="--windows"
-      ;;
-    *)
-      OSOPTION=""
-      ;;
-  esac
   # set up library environment
   if conda env list | grep -q raven_libraries;
   then
