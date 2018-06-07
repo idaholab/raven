@@ -75,8 +75,8 @@ __condaList = [("h5py"        ,__lookUpPreferredVersion("h5py"      )),
                ("pylint"      ,""),
                ("coverage"    ,""),
                ("lxml"        ,""),
-               ("nomkl"       ,""),
-               ("numexpr"     ,"")
+               #("nomkl"       ,""),
+               #("numexpr"     ,"")
                ]
 
 __condaOptional = [ ('pillow',__lookUpPreferredVersion("pillow")) ]
