@@ -89,6 +89,7 @@ class PairwiseMetric(Metric):
     """
     Metric.__init__(self)
     self.metricType = None
+    # True indicates the metric needs to be able to handle pairwise data
     self._pairwiseHandling = True
 
   def _localReadMoreXML(self,xmlNode):
@@ -116,7 +117,7 @@ class PairwiseMetric(Metric):
         if type(newValue) == list:
           newValue = np.asarray(newValue)
         self.distParams[key] = newValue
-      except:
+      except ValueError:
         self.distParams[key] = value
 
   def __evaluateLocal__(self, x, y = None, axis = 0, weights =None, **kwargs):

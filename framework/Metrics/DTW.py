@@ -25,7 +25,6 @@ warnings.simplefilter('default',DeprecationWarning)
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
 import copy
-#import sklearn.metrics.pairwise as pairwise
 import scipy.spatial.distance as spatialDistance
 #External Modules End--------------------------------------------------------------------------------
 
@@ -45,9 +44,14 @@ class DTW(Metric):
       @ Out, None
     """
     Metric.__init__(self)
+    # order of DTW calculation, 0 specifices a classical DTW, and 1 specifies derivative DTW
     self.order            = None
+    # the ID of distance function to be employed to determine the local distance evaluation of two time series
+    # Available options are provided by scipy pairwise distances, i.e. cityblock, cosine, euclidean, manhattan.
     self.localDistance    = None
+    # True indicates the metric needs to be able to handle dynamic data
     self._dynamicHandling = True
+    # True indicates the metric needs to be able to handle pairwise data
     self._pairwiseHandling = True
 
   def _localReadMoreXML(self, xmlNode):
@@ -95,14 +99,14 @@ class DTW(Metric):
       @ In, kwargs, dictionary of parameters characteristic of each metric
       @ Out, value, float, metric result
     """
-    assert isinstance(x, np.ndarray), "The input data x should be numpy.ndarray"
-    assert isinstance(x, np.ndarray), "The input data y should be numpy.ndarray"
+    assert (isinstance(x, np.ndarray))
+    assert (isinstance(x, np.ndarray))
     tempX = copy.copy(x)
     tempY = copy.copy(y)
     if axis == 0:
-      assert len(x) == len(y), "The first dimension of first input is not the same as the first dimension of second input"
+      assert (len(x) == len(y))
     elif axis == 1:
-      assert x.shape[1] == y.shape[1], "The second dimension of first input is not the same as the second dimension of second input"
+      assert (x.shape[1] == y.shape[1])
       tempX = tempX.T
       tempY = tempY.T
     else:

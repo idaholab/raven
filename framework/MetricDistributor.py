@@ -51,28 +51,14 @@ class MetricDistributor(utils.metaclass_insert(abc.ABCMeta,BaseType),MessageHand
       @ Out, None
     """
     self.printTag                = 'MetricDistributor'
+    # object of message handler
     self.messageHandler          = messageHandler
+    # instance of given Metric
     self.estimator                = estimator
+    # True if the instance of given metric, i.e. 'estimator', can handle time-dependent data, else False
     self.canHandleDynamicData = self.estimator.isDynamic()
+    # True if the instance of given metric, i.e. 'estimator', can handle pairwise data, else False
     self.canHandlePairwiseData = self.estimator.isPairwise()
-
-  def __getstate__(self):
-    """
-      This function return the state of the class
-      @ In, None
-      @ Out, state, dict, it contains all the information needed by the class to be initialized
-    """
-    state = self.__dict__.copy()
-    return state
-
-  def __setstate__(self, newState):
-    """
-      Initialize the class with the data contained in newstate
-      @ In, newState, dict, it contains all the information needed by the class to be initialized
-      @ Out, None
-    """
-    self.__dict__.update(newState)
-    return newState
 
   def getInitParams(self):
     """
@@ -84,6 +70,9 @@ class MetricDistributor(utils.metaclass_insert(abc.ABCMeta,BaseType),MessageHand
         and each parameter's initial value as the dictionary values
     """
     paramDict = {}
+    paramDict['Handle dynamic data'] = self.canHandleDynamicData
+    paramDict['Handle pairwise data'] = self.canHandlePairwiseData
+    paramDict['Metric name'] = self.estimator.name
     return paramDict
 
   def evaluatePairwise(self, pairedData):
@@ -92,12 +81,12 @@ class MetricDistributor(utils.metaclass_insert(abc.ABCMeta,BaseType),MessageHand
       @ In, pairedData, tuple, (featureValues, targetValues), both featureValues and targetValues
         are 2D numpy array with the same number of columns. For example, featureValues with shape
         (numRealizations1,numParameters), targetValues with shape (numRealizations2, numParameters)
-      @ Out, output, numpy.array, 2D array, with shape (numRealizations1,numRealization2)
+      @ Out, output, numpy.ndarray, 2D array, with shape (numRealizations1,numRealization2)
     """
     assert(type(pairedData).__name__ == 'tuple', "The paired data is not a tuple!")
     if not self.canHandlePairwiseData:
       self.raiseAnError(IOError, "The metric", self.estimator.name, "can not handle pairwise data")
-    feat, targ = pairedData[0], pairedData[1]
+    feat, targ = pairedData
     output = self.estimator.evaluate(feat,targ)
     return output
 
@@ -110,14 +99,13 @@ class MetricDistributor(utils.metaclass_insert(abc.ABCMeta,BaseType),MessageHand
       @ In, multiOutput, string, 'mean', 'max', 'min' or 'raw_values'
       @ Out, output, numpy.array, 1D array, processed output from the estimator
     """
-    # FIXME: check the consistence of provided data
-    assert(type(pairedData).__name__ == 'tuple', "The paired data is not a tuple!")
+    assert(type(pairedData).__name__ == 'tuple')
     # Error check for input data
     dynamicOutput = []
-    for i in range(len(pairedData)):
-      if not self.estimator.acceptsDistribution and isinstance(pairedData[i], Distributions.Distribution):
+    for pData in pairedData:
+      if not self.estimator.acceptsDistribution and isinstance(pData, Distributions.Distribution):
         self.raiseAnError(IOError, "Distribution is provided, but the metric ", self.estimator.name, " can not handle it!")
-    feat, targ = pairedData[0], pairedData[1]
+    feat, targ = pairedData
     if isinstance(feat, Distributions.Distribution) and isinstance(targ, Distributions.Distribution):
       out = self.estimator.evaluate(feat, targ)
       dynamicOutput.append(out)
@@ -125,6 +113,7 @@ class MetricDistributor(utils.metaclass_insert(abc.ABCMeta,BaseType),MessageHand
       targVals = np.asarray(targ[0])
       for hist in range(targVals.shape[1]):
         if targ[1] is not None:
+          assert(len(targVals[:,hist]) == len(targ[1]))
           targIn = (targVals[:,hist], targ[1])
         else:
           targIn = targVals[:,hist]
@@ -134,6 +123,7 @@ class MetricDistributor(utils.metaclass_insert(abc.ABCMeta,BaseType),MessageHand
       featVals = np.asarray(feat[0])
       for hist in range(featVals.shape[1]):
         if feat[1] is not None:
+          assert(len(featVals[:,hist]) == len(feat[1]))
           featIn = (featVals[:,hist], feat[1])
         else:
           featIn = featVals[:,hist]
@@ -148,6 +138,7 @@ class MetricDistributor(utils.metaclass_insert(abc.ABCMeta,BaseType),MessageHand
         else:
           featIn = featVals[:,hist]
         if targ[1] is not None:
+          assert(len(targVals[:,hist]) == len(targ[1]))
           targIn = (targVals[:,hist], targ[1])
         else:
           targIn = targVals[:,hist]
@@ -156,8 +147,10 @@ class MetricDistributor(utils.metaclass_insert(abc.ABCMeta,BaseType),MessageHand
     else:
       featVals = np.asarray(feat[0])
       targVals = np.asarray(targ[0])
+      assert(featVals.shape[0] == targVals.shape[0])
       if feat[1] is not None:
         dataWeight = np.asarray(feat[1])
+        assert(featVals.shape[0] == dataWeight.shape[0])
       else:
         dataWeight = None
       # FIXME: Currently, we only use the weights of given features to compute the metric, this

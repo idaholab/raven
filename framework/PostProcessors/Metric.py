@@ -55,22 +55,25 @@ class Metric(PostProcessor):
         specifying input of cls.
     """
     inputSpecification = super(Metric, cls).getInputSpecification()
-    FeaturesInput = InputData.parameterInputFactory("Features", contentType=InputData.StringType)
-    FeaturesInput.addParam("type", InputData.StringType)
-    inputSpecification.addSub(FeaturesInput)
-    TargetsInput = InputData.parameterInputFactory("Targets", contentType=InputData.StringType)
-    TargetsInput.addParam("type", InputData.StringType)
-    inputSpecification.addSub(TargetsInput)
-    MultiOutputInput = InputData.parameterInputFactory("multiOutput", contentType=InputData.StringType)
-    inputSpecification.addSub(MultiOutputInput)
-    WeightInput = InputData.parameterInputFactory("weight", contentType=InputData.StringType)
-    inputSpecification.addSub(WeightInput)
-    PivotParameterInput = InputData.parameterInputFactory("pivotParameter", contentType=InputData.StringType)
-    inputSpecification.addSub(PivotParameterInput)
-    MetricInput = InputData.parameterInputFactory("Metric", contentType=InputData.StringType)
-    MetricInput.addParam("class", InputData.StringType, True)
-    MetricInput.addParam("type", InputData.StringType, True)
-    inputSpecification.addSub(MetricInput)
+    featuresInput = InputData.parameterInputFactory("Features", contentType=InputData.StringListType)
+    featuresInput.addParam("type", InputData.StringType)
+    inputSpecification.addSub(featuresInput)
+    targetsInput = InputData.parameterInputFactory("Targets", contentType=InputData.StringListType)
+    targetsInput.addParam("type", InputData.StringType)
+    inputSpecification.addSub(targetsInput)
+    multiOutputInput = InputData.parameterInputFactory("multiOutput", contentType=InputData.StringType)
+    inputSpecification.addSub(multiOutputInput)
+    multiOutputEnum = InputData.makeEnumType('MultiOutput', 'MultiOutputType', ['mean','max','min','raw_values'])
+    multiOutputInput = InputData.parameterInputFactory("multiOutput", contentType=multiOutput)
+    inputSpecification.addSub(multiOutputInput)
+    weightInput = InputData.parameterInputFactory("weight", contentType=InputData.FloatListType)
+    inputSpecification.addSub(weightInput)
+    pivotParameterInput = InputData.parameterInputFactory("pivotParameter", contentType=InputData.StringType)
+    inputSpecification.addSub(pivotParameterInput)
+    metricInput = InputData.parameterInputFactory("Metric", contentType=InputData.StringType)
+    metricInput.addParam("class", InputData.StringType, True)
+    metricInput.addParam("type", InputData.StringType, True)
+    inputSpecification.addSub(metricInput)
 
     return inputSpecification
 
@@ -115,11 +118,8 @@ class Metric(PostProcessor):
       inputType = None
       if hasattr(currentInput, 'type'):
         inputType = currentInput.type
-
-      if dataName is not None and dataName != currentInput.name:
-        #The dataname is not a match
+      if dataName != currentInput.name:
         continue
-
       if inputType in ['PointSet', 'HistorySet']:
         dataSet = currentInput.asDataset()
         metadata = currentInput.getMeta(pointwise=True)
@@ -233,17 +233,17 @@ class Metric(PostProcessor):
         if 'type' not in child.parameterValues.keys() or 'class' not in child.parameterValues.keys():
           self.raiseAnError(IOError, 'Tag Metric must have attributes "class" and "type"')
       elif child.getName() == 'Features':
-        self.features = list(var.strip() for var in child.value.split(','))
+        self.features = child.value
         self.featuresType = child.parameterValues['type']
       elif child.getName() == 'Targets':
-        self.targets = list(var.strip() for var in child.value.split(','))
+        self.targets = child.value
         self.TargetsType = child.parameterValues['type']
       elif child.getName() == 'multiOutput':
-        self.multiOutput = child.value.strip()
+        self.multiOutput = child.value
       elif child.getName() == 'weight':
-        self.weight = np.asarray(list(float(var) for var in child.value.split(',')))
+        self.weight = np.asarray(child.value))
       elif child.getName() == 'pivotParameter':
-        self.pivotParameter = child.value.strip()
+        self.pivotParameter = child.value
       else:
         self.raiseAnError(IOError, "Unknown xml node ", child.getName(), " is provided for metric system")
 
@@ -271,7 +271,6 @@ class Metric(PostProcessor):
         self.raiseAMessage('Metric postprocessor did not recognize extension ".', str(outputExtension), '". The output will be dumped to a text file')
       output.setPath(self._workingDir)
       self.raiseADebug('Write Metric prostprocessor output in file with name: ', output.getAbsFile())
-      output.open('w')
       self._writeXML(output, outputDict)
     elif output.type in ['PointSet', 'HistorySet']:
       self.raiseADebug('Dumping output in data object named', output.name)
@@ -283,13 +282,13 @@ class Metric(PostProcessor):
         rlz[self.pivotParameter] = np.atleast_1d(self.pivotValues)
       output.addRealization(rlz)
     elif output.type == 'HDF5':
-      self.raiseAWarning('Output type', str(output.type), 'is not yet implemented. Skip it')
+      self.raiseAnError(IOError, 'Output type', str(output.type), 'is not yet implemented. Skip it')
     else:
       self.raiseAnError(IOError, 'Output type ', str(output.type), ' can not be used for postprocessor', self.name)
 
   def _writeXML(self,output,outputDictionary):
     """
-      Defines the method for writing the post-processor to a .csv file
+      Defines the method for writing the post-processor to a .xml file
       @ In, output, File object, file to write to
       @ In, outputDictionary, dict, dictionary stores importance ranking outputs
       @ Out, None
@@ -304,21 +303,21 @@ class Metric(PostProcessor):
     outputInstance.newTree('MetricPostProcessor', pivotParam=self.pivotParameter)
     if self.dynamic:
       for key, values in outputDictionary.items():
-        if "|" in key:
-          metricName, nodeName = key.split('|')
-          for ts, pivotVal in enumerate(self.pivotValues):
-            if values.shape[0] == 1:
-              outputInstance.addScalar(nodeName, metricName,values[0], pivotVal=pivotVal)
-            else:
-              outputInstance.addScalar(nodeName, metricName,values[ts], pivotVal=pivotVal)
+        assert("|" in key)
+        metricName, nodeName = key.split('|')
+        for ts, pivotVal in enumerate(self.pivotValues):
+          if values.shape[0] == 1:
+            outputInstance.addScalar(nodeName, metricName,values[0], pivotVal=pivotVal)
+          else:
+            outputInstance.addScalar(nodeName, metricName,values[ts], pivotVal=pivotVal)
     else:
       for key, values in outputDictionary.items():
-        if "|" in key:
-          metricName, nodeName = key.split('|')
-          if len(list(values)) == 1:
-            outputInstance.addScalar(nodeName, metricName, values[0])
-          else:
-            self.raiseAnError(IOError, "Multiple values are returned from metric '", metricName, "', this is currently not allowed")
+        assert("|" in key)
+        metricName, nodeName = key.split('|')
+        if len(list(values)) == 1:
+          outputInstance.addScalar(nodeName, metricName, values[0])
+        else:
+          self.raiseAnError(IOError, "Multiple values are returned from metric '", metricName, "', this is currently not allowed")
     outputInstance.writeFile()
 
   def run(self, inputIn):
@@ -329,7 +328,7 @@ class Metric(PostProcessor):
     """
     measureList = self.inputToInternal(inputIn)
     outputDict = {}
-    assert len(self.features) == len(measureList)
+    assert(len(self.features) == len(measureList))
     for metricInstance in self.metricsDict.values():
       metricEngine = MetricDistributor.returnInstance('MetricDistributor',metricInstance,self)
       for cnt in range(len(self.targets)):

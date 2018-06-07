@@ -322,7 +322,8 @@ class CrossValidation(PostProcessor):
           metricValue = metricInstance.evaluate(targetValue, testDict[targetName])
           if hasattr(metricInstance, 'metricType'):
             if metricInstance.metricType[1] not in self.validMetrics:
-              self.raiseAnError(IOError, "The metric type: ", metricInstance.metricType[1], " can not be used, the accepted metric types are: ", str(self.validMetrics))
+              self.raiseAnError(IOError, "The metric type: ", metricInstance.metricType[1], " can not be used, \
+                      the accepted metric types are: ", ",".join(self.validMetrics))
             metricName = metricInstance.metricType[1]
           else:
             self.raiseAnError(IOError, "The metric: ", metricInstance.name, " can not be used, the accepted metric types are: ", str(self.validMetrics))

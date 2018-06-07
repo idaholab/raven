@@ -38,7 +38,9 @@ class CDFAreaDifference(Metric):
       @ Out, NOne
     """
     Metric.__init__(self)
+    # If True the metric needs to be able to handle (value,probability) where value and probability are lists
     self.acceptsProbability = True
+    # If True the metric needs to be able to handle a passed in Distribution
     self.acceptsDistribution = True
 
   def _localReadMoreXML(self,xmlNode):

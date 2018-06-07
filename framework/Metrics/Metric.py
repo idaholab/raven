@@ -45,10 +45,14 @@ class Metric(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     BaseType.__init__(self)
     self.type = self.__class__.__name__
     self.name = self.__class__.__name__
-    self.acceptsProbability  = False # If True the metric needs to be able to handle (value,probability) where value and probability are lists
-    self.acceptsDistribution = False # If True the metric needs to be able to handle a passed in Distribution
-    self._dynamicHandling    = False # If True the metric needs to be able to handle dynamic data
-    self._pairwiseHandling   = False # If True the metric needs to be able to handle pairwise data
+    # If True the metric needs to be able to handle (value,probability) where value and probability are lists
+    self.acceptsProbability  = False
+    # If True the metric needs to be able to handle a passed in Distribution
+    self.acceptsDistribution = False
+    # If True the metric needs to be able to handle dynamic data
+    self._dynamicHandling    = False
+    # If True the metric needs to be able to handle pairwise data
+    self._pairwiseHandling   = False
 
   def initialize(self, inputDict):
     """
@@ -108,11 +112,11 @@ class Metric(utils.metaclass_insert(abc.ABCMeta,BaseType)):
   def __evaluateLocal__(self, x, y, weights = None, axis = 0, **kwargs):
     """
       This method compute the metric between x and y
-      @ In, x, numpy.array or instance of Distributions.Distribution, array containing data of x,
+      @ In, x, numpy.ndarray or instance of Distributions.Distribution, array containing data of x,
         or given distribution.
-      @ In, y, numpy.array, or instance of Distributions.Distribution, array containing data of y,
+      @ In, y, numpy.ndarray, or instance of Distributions.Distribution, array containing data of y,
         or given distribution.
-      @ In, weights, None or numpy.array, an array of weights associated with x
+      @ In, weights, numpy.ndarray, optional,  an array of weights associated with x
       @ In, axis, integer, axis along which a metric is performed, default is 0,
         i.e. the metric will performed along the first dimension (the "rows").
         If metric postprocessor is used, the first dimension is the RAVEN_sample_ID,

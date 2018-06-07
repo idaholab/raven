@@ -235,7 +235,7 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
               inputI[ind] = valueI
               inputJ[ind] = valueJ
             pairedData = ((inputI,None), (inputJ,None))
-            # TODO: Using loops can be very slow for large number of realizations
+            # FIXME: Using loops can be very slow for large number of realizations
             self.normValues[i][j] = metric.evaluate(pairedData)
             if i != j:
               self.normValues[j][i] = self.normValues[i][j]

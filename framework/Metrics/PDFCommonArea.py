@@ -38,7 +38,9 @@ class PDFCommonArea(Metric):
       @ Out, NOne
     """
     Metric.__init__(self)
+    # If True the metric needs to be able to handle (value,probability) where value and probability are lists
     self.acceptsProbability = True
+    # If True the metric needs to be able to handle a passed in Distribution
     self.acceptsDistribution = True
 
   def _localReadMoreXML(self,xmlNode):
@@ -57,7 +59,7 @@ class PDFCommonArea(Metric):
         or given distribution.
       @ In, y, numpy.array, or instance of Distributions.Distribution, array containing data of y,
         or given distribution.
-      @ In, weights, None or array_like (numpy.array or list), not used in this metric
+      @ In, weights, array_like (numpy.array or list), optional, not used in this metric
       @ In, axis, integer, default is 0, not used for this metric.
       @ In, kwargs, dictionary of parameters characteristic of each metric
       @ Out, value, float, metric result, PDF common area

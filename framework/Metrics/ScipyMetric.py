@@ -65,6 +65,8 @@ class ScipyMetric(Metric):
       @ Out, None
     """
     Metric.__init__(self)
+    # The type of given metric, None or List of two elements, first element should be in availMetrics.keys()
+    # and sencond element should be in availMetrics.values()[firstElement].keys()
     self.metricType = None
 
   def _localReadMoreXML(self,xmlNode):
@@ -92,7 +94,7 @@ class ScipyMetric(Metric):
         if type(newValue) == list:
           newValue = np.asarray(newValue)
         self.distParams[key] = newValue
-      except:
+      except ValueError:
         self.distParams[key] = value
 
   def __evaluateLocal__(self, x, y, weights = None, axis = 0, **kwargs):

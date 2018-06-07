@@ -180,25 +180,15 @@ class DataMining(PostProcessor):
 
     self.requiredAssObject = (True, (['PreProcessor','Metric'], ['-1','-1']))
 
-    self.solutionExport = None                            ## A data object to
-                                                          ## hold derived info
-                                                          ## about the algorithm
-                                                          ## being performed,
-                                                          ## e.g., cluster
-                                                          ## centers or a
-                                                          ## projection matrix
-                                                          ## for dimensionality
-                                                          ## reduction methods
+    self.solutionExport = None  ## A data object to hold derived info about the algorithm being performed,
+                                ## e.g., cluster centers or a projection matrix for dimensionality reduction methods
 
-    self.labelFeature = None                              ## User customizable
-                                                          ## column name for the
-                                                          ## labels associated
-                                                          ## to a clustering or
-                                                          ## a DR algorithm
+    self.labelFeature = None    ## User customizable column name for the labels associated to a clustering or
+                                ## a DR algorithm
 
-    self.PreProcessor = None
-    self.metric = None
-    self.pivotParameter = None                          ## default pivotParameter for HistorySet
+    self.PreProcessor = None    ## Instance of PreProcessor, default is None
+    self.metric = None          ## Instance of Metric, default is None
+    self.pivotParameter = None  ## default pivotParameter for HistorySet
 
   def _localWhatDoINeed(self):
     """
@@ -585,7 +575,7 @@ class DataMining(PostProcessor):
     self.unSupervisedEngine.features = Input['Features']
     if not self.unSupervisedEngine.amITrained:
       metric = None
-      if self.metric !=None:
+      if self.metric is not None:
         metric = MetricDistributor.returnInstance('MetricDistributor', self.metric, self)
       self.unSupervisedEngine.train(Input['Features'], metric)
     self.unSupervisedEngine.confidence()
