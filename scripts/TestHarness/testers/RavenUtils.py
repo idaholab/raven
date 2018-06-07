@@ -93,7 +93,7 @@ __pipList = [#("numpy",__lookUpPreferredVersion("numpy")),
              ("scikit-learn",__lookUpPreferredVersion("sklearn")),
              ("matplotlib",__lookUpPreferredVersion("matplotlib")),
              ("xarray",__lookUpPreferredVersion("xarray")),
-             ("netCDF4",__lookUpPreferredVersion("netcdf4")),
+             ("netCDF4",__lookUpPreferredVersion("netCDF4")),
              #("tensorflow",__lookUpPreferredVersion("tensorflow")),
              ("pandas",__lookUpPreferredVersion("pandas")) ]
 
