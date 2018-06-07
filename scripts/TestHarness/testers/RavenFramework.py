@@ -22,6 +22,7 @@ import os
 import subprocess
 import sys
 import distutils.version
+import platform
 
 # Set this outside the class because the framework directory is constant for
 #  each instance of this Tester, and in addition, there is a problem with the
@@ -54,6 +55,7 @@ class RavenFramework(Tester):
     params.addParam('required_libraries','','Skip test if any of these libraries are not found')
     params.addParam('minimum_library_versions','','Skip test if the library listed is below the supplied version (e.g. minimum_library_versions = \"name1 version1 name2 version2\")')
     params.addParam('skip_if_env','','Skip test if this environmental variable is defined')
+    params.addParam('skip_if_OS','','Skip test if the operating system defined')
     params.addParam('test_interface_only',False,'Test the interface only (without running the driven code')
     params.addParam('check_absolute_value',False,'if true the values are compared in absolute value (abs(trueValue)-abs(testValue)')
     params.addParam('zero_threshold',sys.float_info.min*4.0,'it represents the value below which a float is considered zero (XML comparison only)')
@@ -98,21 +100,40 @@ class RavenFramework(Tester):
     self.driver = os.path.join(RAVEN_DIR,'Driver.py')
 
   def checkRunnable(self, option):
-    missing,too_old = _missing_modules, _too_old_modules
+    missing = _missing_modules
+    too_old = _too_old_modules
+    # remove tests based on skipping criteria
+    ## required module is missing
     if len(missing) > 0:
       self.setStatus('skipped (Missing python modules: '+" ".join(missing)+
                      " PYTHONPATH="+os.environ.get("PYTHONPATH","")+')',
                      self.bucket_skip)
       return False
+    ## required module is present, but too old
     if len(too_old) > 0  and RavenUtils.checkVersions():
       self.setStatus('skipped (Old version python modules: '+" ".join(too_old)+
                      " PYTHONPATH="+os.environ.get("PYTHONPATH","")+')',
                      self.bucket_skip)
       return False
+    ## an environment varible value causes a skip
     if len(self.specs['skip_if_env']) > 0:
       env_var = self.specs['skip_if_env']
       if env_var in os.environ:
         self.setStatus('skipped (found environmental variable "'+env_var+'")',
+                       self.bucket_skip)
+        return False
+    ## OS
+    if len(self.specs['skip_if_OS']) > 0:
+      skip_os = [x.strip().lower() for x in self.specs['skip_if_OS'].split(',')]
+      print 'skip:',skip_os
+      # get simple-name platform (options are Linux, Windows, Darwin, or SunOS that I've seen)
+      os = platform.system().lower()
+      # replace Darwin with more expected "mac"
+      if os == 'darwin':
+        os = 'mac'
+      print 'os:',os
+      if os in skip_os:
+        self.setStatus('skipped (OS is "{}")'.format(os),
                        self.bucket_skip)
         return False
     for lib in self.required_libraries:
