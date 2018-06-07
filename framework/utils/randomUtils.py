@@ -227,7 +227,7 @@ def randPointsInHypersphere(dim,samples=1,r=1,keepMatrix=False):
 def newRNG(env=None):
   """
     Provides a new instance of the random number generator.
-    @ In, env, string, optional, type of random number generator.  Defaults to global default.
+    @ In, env, string, optional, type of random number generator.  Defaults to global option stored in "stochasticEnv".
     @ Out, engine, object, RNG producer
   """
   if env is None:
