@@ -13,6 +13,7 @@
       <revision author="alfoa" date="2016-05-25">Fixed absolute path</revision>
       <revision author="talbpaul" date="2016-09-15">Test updates</revision>
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+      <revision author="talbpaul" date="2018-05-02">Added nameInSource test to get "x" from "xalias"</revision>
     </revisions>
   </TestInfo>
 
@@ -33,18 +34,10 @@
   <Samplers>
     <CustomSampler name="customSamplerFile">
       <Source class="Files" type="">samples.csv</Source>
-      <variable name="x"/>
+      <variable name="x" nameInSource="xalias"/>
       <variable name="y"/>
       <variable name="z"/>
     </CustomSampler>
-    <!--
-      <CustomSampler name="customSamplerDataObject">
-        <Source class="DataObjects" type="PointSet">outCustomSampler</Source>
-        <variable name="x"/>
-        <variable name="y"/>
-        <variable name="z"/>
-      </CustomSampler>
-    -->
   </Samplers>
 
   <DataObjects>

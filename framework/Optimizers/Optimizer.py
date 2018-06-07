@@ -614,8 +614,9 @@ class Optimizer(Sampler):
     if self.solutionExport is None:
       self.raiseAnError(IOError,'The results of optimization cannot be obtained without a SolutionExport defined in the Step!')
 
-    if type(solutionExport).__name__ != "PointSet":
-      self.raiseAnError(IOError,'solutionExport type must be a PointSet. Got '+ type(solutionExport).__name__+ '!')
+    if type(solutionExport).__name__ not in ["PointSet","DataSet"]:
+      self.raiseAnError(IOError,'solutionExport type must be a PointSet or DataSet. Got '+\
+                                 type(solutionExport).__name__+ '!')
 
     if 'Function' in self.assemblerDict.keys():
       self.constraintFunction = self.assemblerDict['Function'][0][3]

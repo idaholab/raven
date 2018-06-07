@@ -539,8 +539,12 @@ class DataSet(DataObject):
         del self._pivotParams[pivot]
         # if in self._data, clear the index
         if not noData and pivot in self._data.dims:
-          del self._data[pivot] # = self._data.drop(pivot,dim
+          del self._data[pivot]
+        # if in aligned indexes, remove it there as well
+        if pivot in self._alignedIndexes:
+          del self._alignedIndexes[pivot]
     # TODO remove references from general metadata?
+
     if self._scaleFactors is not None:
       self._scaleFactors.pop(variable,None)
     #either way reset kdtree
@@ -1298,6 +1302,9 @@ class DataSet(DataObject):
     assert(self._collector is not None)
     assert(index < len(self._collector))
     rlz = dict(zip(self._orderedVars,self._collector[index]))
+    # don't forget the aligned indices! If indexes stored there instead of in collector, retrieve them
+    for var,vals in self._alignedIndexes.items():
+      rlz[var] = vals
     return rlz
 
   def _getRealizationFromCollectorByValue(self,toMatch,tol=1e-15):
