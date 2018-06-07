@@ -241,7 +241,7 @@ class Metric(PostProcessor):
       elif child.getName() == 'multiOutput':
         self.multiOutput = child.value
       elif child.getName() == 'weight':
-        self.weight = np.asarray(child.value))
+        self.weight = np.asarray(child.value)
       elif child.getName() == 'pivotParameter':
         self.pivotParameter = child.value
       else:
