@@ -25,7 +25,7 @@ case $OSTYPE in
 esac
 
 # default location of conda definitions, windows is unsurprisingly an exception
-if [[ $OSOPTION == "--windows" ]];
+if [[ "$OSOPTION" = "--windows" ]];
 then
   CONDA_DEFS="/c/ProgramData/Miniconda2/etc/profile.d/conda.sh";
 else
