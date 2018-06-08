@@ -106,7 +106,7 @@ class DTW(Metric):
     if axis == 0:
       assert (len(x) == len(y))
     elif axis == 1:
-      assert (x.shape[1] == y.shape[1]) self.raiseAnError(IOError, "The second dimension of first input is not \
+      assert(x.shape[1] == y.shape[1]), self.raiseAnError(IOError, "The second dimension of first input is not \
               the same as the second dimension of second input!")
       tempX = tempX.T
       tempY = tempY.T
