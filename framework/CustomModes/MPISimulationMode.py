@@ -21,6 +21,7 @@ warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
 import os
+import sys
 import math
 import string
 import Simulation
@@ -66,6 +67,7 @@ class MPISimulationMode(Simulation.SimulationMode):
         nodefile = os.environ["PBS_NODEFILE"]
       else:
         nodefile = self.__nodefile
+      self.raiseADebug('Setting up remote nodes based on "{}"'.format(nodefile))
       lines = open(nodefile,"r").readlines()
       #XXX This is an undocumented way to pass information back
       newRunInfo['Nodes'] = list(lines)
@@ -79,6 +81,7 @@ class MPISimulationMode(Simulation.SimulationMode):
         newRunInfo['batchSize'] = maxBatchsize
         self.raiseAWarning("changing batchsize from "+str(oldBatchsize)+" to "+str(maxBatchsize)+" to fit on "+str(len(lines))+" processors")
       newBatchsize = newRunInfo['batchSize']
+      self.raiseADebug('Batch size is "{}"'.format(newBatchsize))
       if newBatchsize > 1:
         #need to split node lines so that numMPI nodes are available per run
         workingDir = runInfoDict['WorkingDir']
@@ -143,13 +146,16 @@ class MPISimulationMode(Simulation.SimulationMode):
       jobName = jobName[:10]+'-'+jobName[-4:]
       print('JobName is limited to 15 characters; truncating to '+jobName)
     #Generate the qsub command needed to run input
+    ## find the raven_framework location
+    driverLocation = os.path.abspath(sys.argv[0])
+    raven = os.path.abspath(os.path.join(os.path.dirname(driverLocation),'..','raven_framework'))
     command = ["qsub","-N",jobName]+\
               runInfoDict["clusterParameters"]+\
               ["-l",
                "select="+str(coresNeeded)+":ncpus="+str(ncpus)+":mpiprocs=1"+memString,
                "-l","walltime="+runInfoDict["expectedTime"],
                "-l","place="+self.__place,"-v",
-               'COMMAND="../raven_framework '+
+               'COMMAND="{} '.format(raven)+
                " ".join(runInfoDict["SimulationFiles"])+'"',
                runInfoDict['RemoteRunCommand']]
     #Change to frameworkDir so we find raven_qsub_command.sh
