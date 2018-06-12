@@ -37,11 +37,11 @@ wait_lines ()
         fails=$fails', '$NAME
         num_fails=$(($num_fails+1))
         printf '\n\nStandard Error:\n'
-        cat $RAVEN_FRAMEWORK_DIR/test_qsub.e*
+        cat test_qsub.e*
         printf '\n\nStandard Output:\n'
-        cat $RAVEN_FRAMEWORK_DIR/test_qsub.o*
+        cat test_qsub.o*
     fi
-    rm $RAVEN_FRAMEWORK_DIR/test_qsub.[eo]*
+    rm test_qsub.[eo]*
 
 }
 
