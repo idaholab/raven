@@ -5,11 +5,10 @@ if test -n "$PBS_O_WORKDIR"; then
     cd $PBS_O_WORKDIR
 fi
 
-source activate raven_libraries
-
-echo 'python:'
-which python
-echo ''
+# "which python" does not necessarily show "conda" if conda hasn't been activated yet
+#echo 'python:'
+#which python
+#echo ''
 echo 'mpiexec:'
 which mpiexec
 echo ''
