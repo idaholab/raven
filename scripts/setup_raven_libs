@@ -4,26 +4,76 @@
 try_use_raven_environment ()
 {
     #First check home directory for a script, then /opt/raven_libs
-    if test -e $HOME/.raven/environments/raven_libs_profile;
+  if test -e $HOME/.raven/environments/raven_libs_profile;
+  then
+    echo  ... sourcing $HOME/.raven/environments/raven_libs_profile.
+    source $HOME/.raven/environments/raven_libs_profile
+  else
+    if test -e /opt/raven_libs/environments/raven_libs_profile;
     then
-	source $HOME/.raven/environments/raven_libs_profile
+      echo  ... sourcing /opt/raven_libs/environments/raven_libs_profile
+      source /opt/raven_libs/environments/raven_libs_profile
     else
-	if test -e /opt/raven_libs/environments/raven_libs_profile;
-	then
-	    source /opt/raven_libs/environments/raven_libs_profile
-	fi
+      echo ... no raven library environment found!  Assuming already established.
     fi
+  fi
 }
 
+echo Setting up raven python libraries ...
+
+# FIXME a lot of this code duplicates what's in establish_conda_env.sh, which extends
+#   what is done here in order to install libraries in the first place, and set up the
+#   conda environment.  We should try to find a way to extract the common parts to
+#   reduce code duplication.
+
+# determine OS (for setting default conda location)
+case $OSTYPE in
+  "linux-gnu")
+    OSOPTION="--linux"
+    ;;
+  "darwin"*)
+    OSOPTION="--mac"
+    ;;
+  "msys"*)
+    OSOPTION="--windows"
+    ;;
+  "cygwin"*)
+    OSOPTION="--windows"
+    ;;
+  *)
+    OSOPTION=""
+    ;;
+esac
+
+# default location of conda definitions, windows is unsurprisingly an exception
+## This is compatible with conda 4.4+, but not 4.3.
+if [[ "$OSOPTION" = "--windows" ]];
+then
+  CONDA_DEFS="/c/ProgramData/Miniconda2/etc/profile.d/conda.sh";
+else
+  CONDA_DEFS="$HOME/miniconda2/etc/profile.d/conda.sh";
+fi
+
+# source conda definitions (for conda 4.4+)
+echo Attempting to locate \"conda\" ...
+if test -e ${CONDA_DEFS};
+then
+  echo Sourcing conda definitions at ${CONDA_DEFS}
+  source ${CONDA_DEFS}
+fi
+
 #Check for conda and activate raven_libraries
-if which conda 2> /dev/null;
+if command -v conda 2> /dev/null;
 then
     if conda env list | grep raven_libraries > /dev/null;
     then
-	source activate raven_libraries
+      echo  ... activating conda environment raven_libraries.
+      conda activate raven_libraries
     else
-	try_use_raven_environment
+      echo  ... conda known, but raven_libraries not found.  Looking for raven environments ...
+      try_use_raven_environment
     fi
 else
+    echo  ... conda unknown, looking for raven environments ...
     try_use_raven_environment
 fi

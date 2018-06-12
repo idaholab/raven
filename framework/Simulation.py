@@ -516,6 +516,7 @@ class Simulation(MessageHandler.MessageUser):
       @ Out, None
     """
     #move the full simulation environment in the working directory
+    self.raiseADebug('Moving to working directory:',self.runInfoDict['WorkingDir'])
     os.chdir(self.runInfoDict['WorkingDir'])
     #add also the new working dir to the path
     sys.path.append(os.getcwd())

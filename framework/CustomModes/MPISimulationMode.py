@@ -134,6 +134,7 @@ class MPISimulationMode(Simulation.SimulationMode):
     else:
       memString = ""
     #batchSize = runInfoDict['batchSize']
+    cwd = os.getcwd()
     frameworkDir = runInfoDict["FrameworkDir"]
     ncpus = runInfoDict['NumThreads']
     jobName = runInfoDict['JobName'] if 'JobName' in runInfoDict.keys() else 'raven_qsub'
@@ -147,20 +148,20 @@ class MPISimulationMode(Simulation.SimulationMode):
       print('JobName is limited to 15 characters; truncating to '+jobName)
     #Generate the qsub command needed to run input
     ## find the raven_framework location
-    driverLocation = os.path.abspath(sys.argv[0])
-    raven = os.path.abspath(os.path.join(os.path.dirname(driverLocation),'..','raven_framework'))
+    frameworkLocation = os.path.dirname(os.path.abspath(sys.argv[0]))
+    raven = os.path.abspath(os.path.join(frameworkLocation,'..','raven_framework'))
     command = ["qsub","-N",jobName]+\
               runInfoDict["clusterParameters"]+\
               ["-l",
-               "select="+str(coresNeeded)+":ncpus="+str(ncpus)+":mpiprocs=1"+memString,
+                  "select={}:ncpus={}:mpiprocs=1{}".format(coresNeeded,ncpus,memString),#"+str(coresNeeded)+":ncpus="+str(ncpus)+":mpiprocs=1"+memString,
                "-l","walltime="+runInfoDict["expectedTime"],
                "-l","place="+self.__place,"-v",
                'COMMAND="{} '.format(raven)+
                " ".join(runInfoDict["SimulationFiles"])+'"',
                runInfoDict['RemoteRunCommand']]
-    #Change to frameworkDir so we find raven_qsub_command.sh
+    # Change to the working dir, so log files go to the right place
     remoteRunCommand = {}
-    remoteRunCommand["cwd"] = frameworkDir
+    remoteRunCommand["cwd"] = cwd #frameworkDir
     remoteRunCommand["args"] = command
     print("remoteRunCommand",remoteRunCommand)
     return remoteRunCommand
