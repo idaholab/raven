@@ -85,7 +85,7 @@ else:
   distStochEnv = findCrowModule('distribution1D').DistributionContainer.instance()
   boxMullerGen = BoxMullerGenerator()
 
-def randomSeed(value,seedBoth=True):
+def randomSeed(value,seedBoth=False):
   """
     Function to get a random seed
     @ In, value, float, the seed
