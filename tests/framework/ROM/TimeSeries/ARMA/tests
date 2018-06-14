@@ -14,7 +14,7 @@
    type = 'RavenFramework'
    input = 'test_ARMA.xml'
    csv = 'ARMA/stats.csv'
-   rel_err = 1e-6
+   rel_err = 1e-3
   [../]
   [./ARMAparallel]
    type = 'RavenFramework'
