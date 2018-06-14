@@ -806,7 +806,7 @@ checkRlz('Remove variable rlz -1',data.realization(index=-1),rlz)
 # collapse and re-check
 data.asDataset()
 checkArray('Remove variable remaining vars',data.getVars(),['a'],str)
-checkRlz('Remove variable rlz -1',data.realization(index=-1),rlz)
+checkRlz('Remove variable rlz -1, ds',data.realization(index=-1),rlz)
 # check we can add a new realization
 data.addRealization({'a':np.array([2.1]), 't':np.array([0])})
 
