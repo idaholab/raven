@@ -8,20 +8,18 @@
  # Ubuntu 16.04 LTS : 9.457659911
  # Ubuntu 18.04 LTS : 9.466078333
  # As we can observe, we at most can rely on 2 digits of similarity even on the first point.
+ # A good alternative for non-correlated ARMAs is to run statistics on the results (mean, variance) and check those instead.
 
  [./ARMA]
    type = 'RavenFramework'
    input = 'test_ARMA.xml'
-   output = 'ARMA/writeSynDataOut.csv ARMA/writeSynDataOut.xml'
-   csv = 'ARMA/writeSynDataOut_0.csv'
-   rel_err = 1e-1
+   csv = 'ARMA/stats.csv'
+   rel_err = 1e-6
   [../]
   [./ARMAparallel]
    type = 'RavenFramework'
    input = 'test_ARMA_parallel.xml'
    output = 'ARMAparallel/writeSynDataOut.csv ARMAparallel/writeSynDataOut.xml'
-   #csv = 'ARMAparallel/writeSynDataOut_0.csv'
-   #rel_err = 0.1
   [../]
   [./ARMAreseedPrecursor]
    type = 'RavenFramework'
