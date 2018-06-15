@@ -15,14 +15,20 @@ try_use_raven_environment ()
     fi
 }
 
+# source conda definitions if present
+if [[ -z ${CONDA_DEFS} && -f ${CONDA_DEFS} ]];
+then
+  . ${CONDA_DEFS}
+fi
+
 #Check for conda and activate raven_libraries
 if which conda 2> /dev/null;
 then
     if conda env list | grep raven_libraries > /dev/null;
     then
-	source activate raven_libraries
+      source activate raven_libraries
     else
-	try_use_raven_environment
+      try_use_raven_environment
     fi
 else
     try_use_raven_environment
