@@ -6,6 +6,7 @@ fi
 
 # set up conda definitions location (for the establish_conda_env.sh script)
 export CONDA_DEFS="/apps/local/miniconda2/4.5.4/etc/profile.d/conda.sh"
+export CONDA_ENVS_PATH="~/.conda/falcon/envs"
 
 which python
 which mpiexec
