@@ -253,12 +253,14 @@ if __name__ == '__main__':
     OS = 'mac'
   elif '--linux' in sys.argv:
     OS = 'linux'
+  # check for environemnt definition of raven libs
+  libName = os.getenv('RAVEN_LIBS_NAME','raven_libraries')
   # what did the caller ask to do?
   if '--conda-create' in sys.argv:
-    print("conda create --name raven_libraries -y ",end="")
+    print("conda create --name {} -y ".format(libName), end="")
     print(__condaString(includeOptionals = ('--optional' in sys.argv), OS = OS))
   elif '--conda-install' in sys.argv:
-    print("conda install --name raven_libraries -y ",end=" ")
+    print("conda install --name {} -y ".format(libName), end=" ")
     print(__condaString(includeOptionals = ('--optional' in sys.argv), OS = OS))
   elif '--pip-install' in sys.argv:
     print("pip install",end=" ")
