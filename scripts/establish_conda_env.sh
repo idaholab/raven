@@ -152,6 +152,7 @@ then
   echo "  Mode: $ECE_MODE"
   echo "  Verbosity: $ECE_VERBOSE"
   echo "  Clean: $ECE_CLEAN"
+  echo "  Conda Defs: $CONDA_DEFS"
   if [[ $ECE_MODE == 1 ]];
   then
     echo 'Loading RAVEN libraries ...'
@@ -179,7 +180,7 @@ then
   source ${CONDA_DEFS}
 else
   echo Conda definitions not found at \"${CONDA_DEFS}\"!
-  echo Specify the location of miniconda2/etc/profile.d/conda.sh through the $CONDA_DEFS variable.
+  echo Specify the location of miniconda2/etc/profile.d/conda.sh through the --conda-defs option.
   exit 1
 fi
 
