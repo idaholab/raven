@@ -43,7 +43,7 @@ function find_conda_defs ()
 	if [ -z ${CONDA_DEFS} ];
 	then
     # first check the RAVEN RC file for the key
-    CONDA_DEFS=`echo $(python update_install_data.py --read CONDA_DEFS)`
+    CONDA_DEFS=`echo $(python ${ECE_SCRIPT_DIR}/update_install_data.py --read CONDA_DEFS)`
     # if not setin RC, then will be empty string; next try defaults
     if [[ ${#CONDA_DEFS} == 0 ]];
     then
@@ -194,7 +194,7 @@ establish_OS
 if [ -z $RAVEN_LIBS_NAME ];
 then
   # check the RC file first
-  RAVEN_LIBS_NAME=`echo $(python update_install_data.py --read RAVEN_LIBS_NAME)`
+  RAVEN_LIBS_NAME=`echo $(python ${ECE_SCRIPT_DIR}/update_install_data.py --read RAVEN_LIBS_NAME)`
   # if not found through the RC file, will be empty string, so default to raven_libraries
   if [[ ${#RAVEN_LIBS_NAME} == 0 ]];
   then
