@@ -11,7 +11,6 @@ RAVEN_DIR=`(cd $RAVEN_DIRNAME; pwd)`
 
 # DEFAULTS
 SKIP_CONDA=1 # 0 for skipping conda, 1 for not skipping
-CONDA_DEFS_ARG=" "
 
 # set up run keywords
 # "ARGS" stores command line arguments not treated in this file (passed through)
@@ -34,14 +33,9 @@ do
     --skip-conda)
       SKIP_CONDA=0
       ;;
-    --conda-defs)
-      # passthrough to establish_conda_envs
-      shift
-      CONDA_DEFS_ARG="--conda-defs $1"
-      ;;
     *)
       # otherwise, pass through arguments to Driver.py
-      ARGS[${#ARGS[@]}]="$var"
+      ARGS[${#ARGS[@]}]="$1"
   esac
   shift
 done

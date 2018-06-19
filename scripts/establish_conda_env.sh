@@ -10,8 +10,8 @@
 # location of conda definitions: CONDA_DEFS (defaults if not set based on OS)
 # name for raven libraries: RAVEN_LIBS_NAME (defaults to raven_libraries if not set)
 
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-RAVEN_UTILS=${SCRIPT_DIR}/TestHarness/testers/RavenUtils.py
+ECE_SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+RAVEN_UTILS=${ECE_SCRIPT_DIR}/TestHarness/testers/RavenUtils.py
 
 function establish_OS ()
 {
@@ -42,31 +42,42 @@ function find_conda_defs ()
 {
 	if [ -z ${CONDA_DEFS} ];
 	then
-		# default location of conda definitions, windows is unsurprisingly an exception
-		if [[ "$OSOPTION" = "--windows" ]];
-		then
-			export CONDA_DEFS="/c/ProgramData/Miniconda2/etc/profile.d/conda.sh";
-		else
-			export CONDA_DEFS="$HOME/miniconda2/etc/profile.d/conda.sh";
-		fi
+    # first check the RAVEN RC file for the key
+    CONDA_DEFS=`echo $(python update_install_data.py --read CONDA_DEFS)`
+    # if not setin RC, then will be empty string; next try defaults
+    if [[ ${#CONDA_DEFS} == 0 ]];
+    then
+      # default location of conda definitions, windows is unsurprisingly an exception
+      if [[ "$OSOPTION" = "--windows" ]];
+      then
+        CONDA_DEFS="/c/ProgramData/Miniconda2/etc/profile.d/conda.sh";
+      else
+        CONDA_DEFS="$HOME/miniconda2/etc/profile.d/conda.sh";
+      fi
+    # if found in RC, just use that.
+    else
+      if [[ $ECE_VERBOSE == 0 ]];
+      then
+        echo Found conda path in ravenrc: ${CONDA_DEFS}
+        echo \>\> If this is not the desirable path, rerun with argument --conda-defs \[path\] or remove the entry from raven/.ravenrc file.
+      fi
+    fi
 	fi
 }
 
 function install_libraries()
 {
-  if [[ $ECE_VERBOSE ]]; then echo Installing libraries ...; fi
-  # XXX need to set environment name when sent to RAVEN_UTILS !!
-  COMMAND=`echo $(python ${RAVEN_UTILS} --conda-install ${INSTALL_OPTIONAL} ${OSOPTION})`
+  if [[ $ECE_VERBOSE == 0 ]]; then echo Installing libraries ...; fi
+  local COMMAND=`echo $(python ${RAVEN_UTILS} --conda-install ${INSTALL_OPTIONAL} ${OSOPTION})`
   echo conda command: ${COMMAND}
   ${COMMAND}
 }
 
 function create_libraries()
 {
-  if [[ $ECE_VERBOSE ]]; then echo Installing libraries ...; fi
-  # XXX need to set environment name when sent to RAVEN_UTILS !!
-  COMMAND=`echo $(python ${RAVEN_UTILS} --conda-create ${INSTALL_OPTIONAL} ${OSOPTION})`
-  echo conda command: ${COMMAND}
+  if [[ $ECE_VERBOSE == 0 ]]; then echo Installing libraries ...; fi
+  local COMMAND=`echo $(python ${RAVEN_UTILS} --conda-create ${INSTALL_OPTIONAL} ${OSOPTION})`
+  if [[ $ECE_VERBOSE == 0 ]]; then echo conda command: ${COMMAND}; fi
   ${COMMAND}
 }
 
@@ -106,6 +117,20 @@ function display_usage()
 	echo ''
 }
 
+function activate_env()
+{
+  if [[ $ECE_VERBOSE == 0 ]]; then echo Activating environment ...; fi
+  conda activate ${RAVEN_LIBS_NAME}
+}
+
+function set_install_settings()
+{
+  if [[ $ECE_VERBOSE == 0 ]]; then echo Setting install variables ...; fi
+  local COMMAND="python $ECE_SCRIPT_DIR/update_install_data.py --write --conda-defs ${CONDA_DEFS} --RAVEN_LIBS_NAME ${RAVEN_LIBS_NAME}"
+  if [[ $ECE_VERBOSE == 0 ]]; then echo ${COMMAND}; fi
+  ${COMMAND}
+}
+
 # main
 
 # set default operation
@@ -137,7 +162,7 @@ do
       ;;
     --conda-defs)
       shift
-      export CONDA_DEFS=$1
+      CONDA_DEFS=$1
       ;;
     --no-clean)
       ECE_CLEAN=1
@@ -168,11 +193,31 @@ establish_OS
 # set raven libraries environment name, if not set
 if [ -z $RAVEN_LIBS_NAME ];
 then
-  export RAVEN_LIBS_NAME=raven_libraries
+  # check the RC file first
+  RAVEN_LIBS_NAME=`echo $(python update_install_data.py --read RAVEN_LIBS_NAME)`
+  # if not found through the RC file, will be empty string, so default to raven_libraries
+  if [[ ${#RAVEN_LIBS_NAME} == 0 ]];
+  then
+    RAVEN_LIBS_NAME=raven_libraries
+    if [[ $ECE_VERBOSE == 0 ]]; then echo \"${RAVEN_LIBS_NAME}\" not found in global variables or ravenrc, defaulting to ${RAVEN_LIBS_NAME}; fi
+  # verbosity to print library name findings in RC file
+  else
+    if [[ $ECE_VERBOSE == 0 ]];
+    then 
+      echo \$RAVEN_LIBS_NAME set through raven/.ravenrc to ${RAVEN_LIBS_NAME}
+      echo \>\> If this is not desired, then remove it from the ravenrc file before running.
+    fi
+  fi
+else
+  if [[ $ECE_VERBOSE == 0 ]];
+  then 
+    echo RAVEN library name set through \$RAVEN_LIBS_NAME global variable.
+    echo \>\> If this is not desired, then unset the variable before running.
+  fi
 fi
 if [[ $ECE_VERBOSE == 0 ]]; then echo RAVEN conda environment is named \"${RAVEN_LIBS_NAME}\"; fi
 
-# establish conda function definitions (conda 4.4+ ONLY)
+# establish conda function definitions (conda 4.4+ ONLY, 4.3 and before not supported)
 find_conda_defs
 if test -e ${CONDA_DEFS};
 then
@@ -180,7 +225,7 @@ then
   source ${CONDA_DEFS}
 else
   echo Conda definitions not found at \"${CONDA_DEFS}\"!
-  echo Specify the location of miniconda2/etc/profile.d/conda.sh through the --conda-defs option.
+  echo \>\> Specify the location of miniconda2/etc/profile.d/conda.sh through the --conda-defs option.
   exit 1
 fi
 
@@ -188,7 +233,7 @@ fi
 if [[ $ECE_VERBOSE == 0 ]]; then echo `conda -V`; fi
 
 # find RAVEN libraries environment
-if conda env list | grep ${RAVEN_LIBS_NAME} 2> /dev/null;
+if conda env list | grep ${RAVEN_LIBS_NAME};
 then
   if [[ $ECE_VERBOSE == 0 ]]; then echo Found library environment ...; fi
   LIBS_EXIST=0
@@ -222,19 +267,23 @@ then
       conda deactivate
       conda remove -n ${RAVEN_LIBS_NAME} --all -y
       create_libraries
-    # if libs exist, but not clean mode, install
+      activate_env
+      set_install_settings
+    # if libs exist, but not clean mode, install;
     else
       install_libraries
+      activate_env
+      set_install_settings
     fi
   # if libraries don't exist, create them
   else
     create_libraries
+    activate_env
+    # store information about this creation in raven/.ravenrc text file
+    if [[ $ECE_VERBOSE == 0 ]]; then echo  ... writing settings to raven/.ravenrc ...; fi
+    set_install_settings
   fi
 fi
 
-# by here, libraries exist and have been created, so activate them
-if [[ $ECE_VERBOSE == 0 ]]; then echo Activating environment ...; fi
-conda activate ${RAVEN_LIBS_NAME}
+
 if [[ $ECE_VERBOSE == 0 ]]; then echo  ... done!; fi
-
-
