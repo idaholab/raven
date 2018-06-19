@@ -98,7 +98,10 @@ if __name__ == '__main__':
     writeRC(updateScript,RC)
   elif mode == 'read':
     # load RC values
-    RC = loadRC(updateScript)
+    if os.path.isfile(updateScript):
+      RC = loadRC(updateScript)
+    else:
+      RC = {}
     # print values for requested argument
     for entry in sys.argv[1:]:
       print(RC.get(entry,''))
