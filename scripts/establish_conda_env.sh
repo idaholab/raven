@@ -189,6 +189,7 @@ fi
 
 # determine operating system
 establish_OS
+if [[ $ECE_VERBOSE == 0 ]]; then echo Detected OS as ${OSOPTION} ...; fi
 
 # set raven libraries environment name, if not set
 if [ -z $RAVEN_LIBS_NAME ];
