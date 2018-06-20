@@ -13,6 +13,9 @@
 ECE_SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 RAVEN_UTILS=${ECE_SCRIPT_DIR}/TestHarness/testers/RavenUtils.py
 
+# fail if ANYTHING this script fails
+set -e
+
 function establish_OS ()
 {
 	case $OSTYPE in
@@ -120,7 +123,7 @@ function display_usage()
 function activate_env()
 {
   if [[ $ECE_VERBOSE == 0 ]]; then echo Activating environment ...; fi
-  conda activate ${RAVEN_LIBS_NAME}
+  SUCCESS=`conda activate ${RAVEN_LIBS_NAME}`
 }
 
 function set_install_settings()
@@ -272,23 +275,20 @@ then
       conda deactivate
       conda remove -n ${RAVEN_LIBS_NAME} --all -y
       create_libraries
-      activate_env
-      set_install_settings
     # if libs exist, but not clean mode, install;
     else
       install_libraries
-      activate_env
-      set_install_settings
     fi
   # if libraries don't exist, create them
   else
     create_libraries
-    activate_env
-    # store information about this creation in raven/.ravenrc text file
-    if [[ $ECE_VERBOSE == 0 ]]; then echo  ... writing settings to raven/.ravenrc ...; fi
-    set_install_settings
   fi
 fi
 
+# activate environment and write settings if successful
+activate_env
+# store information about this creation in raven/.ravenrc text file
+if [[ $ECE_VERBOSE == 0 ]]; then echo  ... writing settings to raven/.ravenrc ...; fi
+set_install_settings
 
 if [[ $ECE_VERBOSE == 0 ]]; then echo  ... done!; fi
