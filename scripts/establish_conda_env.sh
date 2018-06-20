@@ -13,7 +13,7 @@
 ECE_SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 RAVEN_UTILS=${ECE_SCRIPT_DIR}/TestHarness/testers/RavenUtils.py
 
-# fail if ANYTHING this script fails
+# fail if ANYTHING this script fails (mostly, there are exceptions)
 set -e
 
 function establish_OS ()
@@ -148,7 +148,7 @@ do
   case "$1" in
     --help)
       display_usage
-      exit 0
+      return
       ;;
     --load)
       ECE_MODE=1
@@ -230,7 +230,7 @@ then
 else
   echo Conda definitions not found at \"${CONDA_DEFS}\"!
   echo \>\> Specify the location of miniconda2/etc/profile.d/conda.sh through the --conda-defs option.
-  exit 1
+  return 1
 fi
 
 # debug output conda version
@@ -258,7 +258,7 @@ then
   else
     echo conda environment ${RAVEN_LIBS_NAME} not found!
     echo Please run "raven/establish_conda_env.sh" with argument "--install".
-    exit 1
+    return 1
   fi
 fi
 
