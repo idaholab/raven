@@ -204,14 +204,14 @@ then
   # verbosity to print library name findings in RC file
   else
     if [[ $ECE_VERBOSE == 0 ]];
-    then 
+    then
       echo \$RAVEN_LIBS_NAME set through raven/.ravenrc to ${RAVEN_LIBS_NAME}
       echo \>\> If this is not desired, then remove it from the ravenrc file before running.
     fi
   fi
 else
   if [[ $ECE_VERBOSE == 0 ]];
-  then 
+  then
     echo RAVEN library name set through \$RAVEN_LIBS_NAME global variable.
     echo \>\> If this is not desired, then unset the variable before running.
   fi
@@ -247,8 +247,12 @@ fi
 ## load only
 if [[ $ECE_MODE == 1 ]];
 then
-  if [[ ! $LIBS_EXIST == 0 ]];
+  # as long as library env exists, activate it
+  if [[ $LIBS_EXIST == 0 ]];
   then
+    activate_env
+  # if it doesn't exist, make some noise.
+  else
     echo conda environment ${RAVEN_LIBS_NAME} not found!
     echo Please run "raven/establish_conda_env.sh" with argument "--install".
     exit 1
