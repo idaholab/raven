@@ -8,7 +8,7 @@ else
 fi
 SCRIPT_DIR=`(cd $SCRIPT_DIRNAME; pwd)`
 
-source $SCRIPT_DIR/scripts/establish_conda_env.sh --quiet --load
+source $SCRIPT_DIR/scripts/establish_conda_env.sh --load
 # this copy the plugins tests into raven tests
 python $SCRIPT_DIR/scripts/copy_plugins_tests.py
 # run the tests
