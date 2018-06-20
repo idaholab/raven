@@ -123,7 +123,7 @@ function display_usage()
 function activate_env()
 {
   if [[ $ECE_VERBOSE == 0 ]]; then echo Activating environment ...; fi
-  SUCCESS=`conda activate ${RAVEN_LIBS_NAME}`
+  conda activate ${RAVEN_LIBS_NAME}
 }
 
 function set_install_settings()
