@@ -3,9 +3,9 @@
 SCRIPT_DIRNAME=`dirname $0`
 SCRIPT_DIR=`(cd $SCRIPT_DIRNAME; pwd)`
 
+cd $SCRIPT_DIR/..
+
 # activate raven libraries
 source ../scripts/establish-conda-env.sh --load --quiet
-
-cd $SCRIPT_DIR/..
 
 pylint --disable=all --enable=missing-docstring --enable=no-absolute-import --enable=old-division --enable=print-statement --enable=file-builtin --enable=multiple-statements framework/
