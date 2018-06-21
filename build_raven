@@ -36,7 +36,7 @@ do
 #      ;;
   esac
   shift
-#done
+done
 #### END FUTURE WORK
 
 if [[ $LIBS_MODE == 0 ]]; then
