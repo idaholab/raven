@@ -1,12 +1,23 @@
 #!/bin/bash
 
+echo Making RAVEN ...
+
 # activate conda environement
 . scripts/establish_conda_env.sh --load
 
-echo DEBUGG python: `which python`
+echo ''
+echo python: `which python`
+echo ''
+
+# clean up to avoid issue
+echo Cleaning old build ...
+make clean
 
 # set up hit.cpp so that it has a newer timestamp than hit.pyx
 touch moose/framework/contrib/hit/hit.cpp
 
+echo Making ...
 # make
 make
+
+echo ... done!
