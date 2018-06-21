@@ -2,6 +2,9 @@ RAVEN_DIR := $(CURR_DIR)
 #Conda doesn't work with anything but bash and zsh
 SHELL := /bin/bash
 
+# touch hit.cpp to make sure its time stamp is different than hit.pyx
+## this is not a clean solution, but hopefully it prevents asking to use cython
+CYTHON_AVOIDANCE_ACTION=$($SHELL -c 'touch $(MOOSE_DIR)/framework/contrib/hit/hit.cpp')
 
 
 ################################################################################
