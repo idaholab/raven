@@ -40,17 +40,22 @@ done
 #### END FUTURE WORK
 
 if [[ $LIBS_MODE == 0 ]]; then
+  #### FUTURE WORK:
   # clear .ravenrc
-  if [[ -f "$RAVEN_BUILD_DIR/.ravenrc" ]]; then
-    rm "$RAVEN_BUILD_DIR/.ravenrc"
-  fi
+  #if [[ -f "$RAVEN_BUILD_DIR/.ravenrc" ]]; then
+  #  rm "$RAVEN_BUILD_DIR/.ravenrc"
+  #fi
 
   # combining install script for python libs and make?
-  echo Establishing Python libraries ...
-  . scripts/establish_conda_env.sh --install ${ECE_ARGS}
+  #echo Establishing Python libraries ...
+  #. scripts/establish_conda_env.sh --install ${ECE_ARGS}
 
   # identify python
-  echo python: `which python`
+  #echo python: `which python`
+  #### END FUTURE WORK
+  ## remove when FUTURE WORK is in place
+  echo Establishing Python libraries ...
+  . scripts/establish_conda_env.sh --load ${ECE_ARGS}
 
   # clean up to assure library matching
   echo Cleaning old build ...
