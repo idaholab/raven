@@ -271,7 +271,7 @@ then
     # if libs exist and clean mode, scrub them
     if [[ $ECE_CLEAN == 0 ]];
     then
-      if [[ $ECE_VERBOSE == 0 ]]; then ... echo Removing old environment ...; fi
+      if [[ $ECE_VERBOSE == 0 ]]; then echo ... Removing old environment ...; fi
       conda deactivate
       conda remove -n ${RAVEN_LIBS_NAME} --all -y
       create_libraries
