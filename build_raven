@@ -1,47 +1,71 @@
 #!/bin/bash
+
+# fail if anything here fails
+set -e
+
 RAVEN_BUILD_DIR="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 echo Making RAVEN ...
 
 # defaults
+MAKE_ARGS=" "
+LIBS_MODE=0 # 0 is "create", 1 is "load"
+#### FUTURE WORK:
+####   combine "make" and "establish_conda_env.sh" into one installation command
 ECE_ARGS=" "
 
 # read arguments
 while test $# -gt 0
 do
   case "$1" in
-    --help)     ECE_ARGS="${ECE_ARGS} --help"; ;;
-    --optional) ECE_ARGS="${ECE_ARGS} --optional"; ;;
-    --no-clean) ECE_ARGS="${ECE_ARGS} --no-clean"; ;;
-    --conda-defs)
-      shift
-      ECE_ARGS="${ECE_ARGS} --conda-defs $1"; ;;
+     --coverage)
+       MAKE_ARGS="${MAKE_ARGS} coverage=true graceful=true"
+       LIBS_MODE=1
+       ;;
+     --jobs) MAKE_ARGS="-j $1 ${MAKE_ARGS}"
+#    --help)     ECE_ARGS="${ECE_ARGS} --help"; ;;
+#    --optional) ECE_ARGS="${ECE_ARGS} --optional"; ;;
+#    --no-clean) ECE_ARGS="${ECE_ARGS} --no-clean"; ;;
+#    --conda-defs)
+#      shift
+#      ECE_ARGS="${ECE_ARGS} --conda-defs $1"
+#      ;;
+#    --raven-libs-name)
+#      shift
+#      export RAVEN_LIBS_NAME="$1"
+#      ;;
   esac
   shift
-done
+#done
+#### END FUTURE WORK
 
-# clear .ravenrc
-if [[ -f "$RAVEN_BUILD_DIR/.ravenrc" ]]; then
-  rm "$RAVEN_BUILD_DIR/.ravenrc"
+if [[ $LIBS_MODE == 0 ]]; then
+  # clear .ravenrc
+  if [[ -f "$RAVEN_BUILD_DIR/.ravenrc" ]]; then
+    rm "$RAVEN_BUILD_DIR/.ravenrc"
+  fi
+
+  # combining install script for python libs and make?
+  echo Establishing Python libraries ...
+  . scripts/establish_conda_env.sh --install ${ECE_ARGS}
+
+  # identify python
+  echo python: `which python`
+
+  # clean up to assure library matching
+  echo Cleaning old build ...
+  make clean
+
+  # set up hit.cpp so that it has a newer timestamp than hit.pyx
+  touch moose/framework/contrib/hit/hit.cpp
+else
+  echo Establishing Python libraries ...
+  . scripts/establish_conda_env.sh --load ${ECE_ARGS}
 fi
 
-# combining install script for python libs and make?
-echo Establishing Python libraries ...
-. scripts/establish_conda_env.sh --install ${ECE_ARGS}
-
-echo ''
-echo python: `which python`
-echo ''
-
-# clean up to avoid issue
-echo Cleaning old build ...
-make clean
-
-# set up hit.cpp so that it has a newer timestamp than hit.pyx
-touch moose/framework/contrib/hit/hit.cpp
 
 echo Making ...
 # make
-make
+make ${MAKE_ARGS}
 
 echo ... done!

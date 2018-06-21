@@ -1,5 +1,6 @@
 #!/bin/bash
 echo 'Running RAVEN tests ...'
+
 SCRIPT_NAME=`readlink $0`
 if test -x "$SCRIPT_NAME";
 then
