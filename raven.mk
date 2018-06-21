@@ -2,17 +2,16 @@ RAVEN_DIR := $(CURR_DIR)
 #Conda doesn't work with anything but bash and zsh
 SHELL := /bin/bash
 
-# touch hit.cpp to make sure its time stamp is different than hit.pyx
-## this is not a clean solution, but hopefully it prevents asking to use cython
-CYTHON_AVOIDANCE_ACTION=$($SHELL -c 'touch $(MOOSE_DIR)/framework/contrib/hit/hit.cpp')
-
-
 ################################################################################
 ## Build system for Approximate Morse-Smale Complex (AMSC)
 include $(RAVEN_DIR)/amsc.mk
 ###############################################################################
+
+################################################################################
+## Build system for "hit", required by moose regression test system
 hit $(MOOSE_DIR)/python/hit.so:: $(FRAMEWORK_DIR)/contrib/hit/hit.cpp $(FRAMEWORK_DIR)/contrib/hit/lex.cc $(FRAMEWORK_DIR)/contrib/hit/parse.cc
 	bash -c 'cd scripts/TestHarness/hit-windows && ./build_hit.sh'
+###############################################################################
 
 framework_modules:: amsc python_crow_modules hit
 

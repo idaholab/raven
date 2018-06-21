@@ -18,7 +18,7 @@ echo 'Loading plugin tests ...'
 python $SCRIPT_DIR/scripts/copy_plugins_tests.py
 # run the tests
 echo 'Running tests ...'
-./backend_run_tests --skip-config-check "$@"
+python backend_run_tests --skip-config-check "$@"
 # grep return code
 rc=$?
 # this copy back the plugins and remove them from the source folder
