@@ -8,6 +8,7 @@ fails=''
 
 pushd ../../framework
 RAVEN_FRAMEWORK_DIR=$(pwd)
+source ../scripts/establish_conda_env.sh --load
 popd
 
 wait_lines ()

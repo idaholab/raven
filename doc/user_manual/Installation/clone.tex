@@ -8,7 +8,7 @@ The installation of RAVEN involves the following steps:
 \begin{itemize}
   \item Obtain the source code,
   \item Install the prerequisite Python libraries using conda,
-  \item Compile dependencies using \texttt{make}
+  \item Compile
 \end{itemize}
 
 
@@ -58,7 +58,7 @@ replacing \texttt{/path/to} with the install path for \texttt{conda}.
 \subsubsection{Compiling RAVEN}
 Once Python libraries are established and the source code present, navigate to \texttt{raven} and run
 \begin{lstlisting}[language=bash]
-make
+./build_raven
 \end{lstlisting}
 This will compile several dependent libraries.  This step has the highest potential for revealing problems in
 the operating system setup, particularly for Windows.  See troubleshooting on the \wiki for help sorting out
@@ -91,7 +91,7 @@ RAVEN, navigate to \texttt{raven}, then run the commands
 \begin{lstlisting}[language=bash]
 git pull
 ./scripts/establish_conda_env.sh
-make
+./build_raven
 \end{lstlisting}
 
 
