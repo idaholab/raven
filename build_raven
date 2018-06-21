@@ -1,9 +1,33 @@
 #!/bin/bash
+RAVEN_BUILD_DIR="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 echo Making RAVEN ...
 
-# activate conda environement
-. scripts/establish_conda_env.sh --load
+# defaults
+ECE_ARGS=" "
+
+# read arguments
+while test $# -gt 0
+do
+  case "$1" in
+    --help)     ECE_ARGS="${ECE_ARGS} --help"; ;;
+    --optional) ECE_ARGS="${ECE_ARGS} --optional"; ;;
+    --no-clean) ECE_ARGS="${ECE_ARGS} --no-clean"; ;;
+    --conda-defs)
+      shift
+      ECE_ARGS="${ECE_ARGS} --conda-defs $1"; ;;
+  esac
+  shift
+done
+
+# clear .ravenrc
+if [[ -f "$RAVEN_BUILD_DIR/.ravenrc" ]]; then
+  rm "$RAVEN_BUILD_DIR/.ravenrc"
+fi
+
+# combining install script for python libs and make?
+echo Establishing Python libraries ...
+. scripts/establish_conda_env.sh --install ${ECE_ARGS}
 
 echo ''
 echo python: `which python`
