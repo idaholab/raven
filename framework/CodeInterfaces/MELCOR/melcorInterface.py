@@ -13,7 +13,7 @@
 # limitations under the License.
 """
   Created on April 18, 2017
-  @author: Matteo Donorio (University of Rome La Sapienza)
+  @author: Matteo D'Onorio (University of Rome La Sapienza)
 """
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings

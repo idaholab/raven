@@ -14,7 +14,7 @@
 """
 
   Created on April 18, 2017
-  @author: Matteo Donorio (University of Rome La Sapienza)
+  @author: Matteo D'Onorio (University of Rome La Sapienza)
   This is a utility class for the creation of the command.
   It is not an interface that can work on its own
 """

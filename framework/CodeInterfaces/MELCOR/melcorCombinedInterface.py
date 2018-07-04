@@ -13,7 +13,7 @@
 # limitations under the License.
 """
   Created on April 18, 2017
-  @author: Matteo Donorio (University of Rome La Sapienza),
+  @author: Matteo D'Onorio (University of Rome La Sapienza),
            Fabio Gianneti (University of Rome La Sapienza),
            Andrea Alfonsi (INL)
 """
