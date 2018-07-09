@@ -110,7 +110,7 @@ class simpleInputParser():
     fileobject.close()
 \end{lstlisting}
 It is important to notice that for most of the codes, a wild-card approach can be used. In case this approach fits the user's needs,
-the RAVEN developer team suggests to inherit from the $GenericCode$ Interface (see section ~\ref{subsec:genericCodeInterface}).
+the RAVEN developer team suggests to inherit from the $GenericCode$ Interface (see section ~\ref{subsec:genericInterface}).
 
 %%% OUTPUT %%%
 \textbf{\textit{\underline{Output}}}
@@ -263,7 +263,7 @@ RAVEN is going to call this function passing in the following arguments:
               input files. This list of files is the one the code interface needs to use to print the new perturbed list of files.
               Indeed, RAVEN already changes the file location in sub-directories and the Code Interface does not need to
               change the filename or location of the files. For example, the files are going to have a absolute path as following:
-              $.\textbackslash path_to_working_directory\textbackslash stepName\textbackslash anUniqueIdentifier\textbackslash filename.extension$. In case of sampling, the 
+              $.\\ path\_to\_working\_directory\\stepName\\anUniqueIdentifier\\filename.extension$. In case of sampling, the 
               ``\textit{anUniqueIdentifier}'' is going to be an integer (e.g. 1).
   \item \textbf{\texttt{oriInputFiles}} , data type = list, List of the original input files;
   \item  \textbf{\texttt{samplerType}} , data type = string, Sampler type (e.g. MonteCarlo,
