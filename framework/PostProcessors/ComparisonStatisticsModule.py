@@ -36,6 +36,10 @@ import Runners
 import Distributions
 #Internal Modules End--------------------------------------------------------------------------------
 
+# global number of integration points
+## note on Falcon that using 1e5 causes a seg fault.
+integrationSegments = int(5e4)
+
 def _getGraphs(functions, fZStats = False):
   """
     Returns the graphs of the functions.
@@ -80,7 +84,7 @@ def _getGraphs(functions, fZStats = False):
   if len(means) < 2:
     return
 
-  cdfAreaDifference = mathUtils.simpson(lambda x:abs(cdfs[1](x)-cdfs[0](x)),lowLow,highHigh,100000)
+  cdfAreaDifference = mathUtils.simpson(lambda x:abs(cdfs[1](x)-cdfs[0](x)),lowLow,highHigh,integrationSegments)
 
   def firstMomentSimpson(f, a, b, n):
     """
@@ -95,9 +99,9 @@ def _getGraphs(functions, fZStats = False):
 
   #print a bunch of comparison statistics
   pdfCommonArea = mathUtils.simpson(lambda x:min(pdfs[0](x),pdfs[1](x)),
-                            lowLow,highHigh,100000)
+                            lowLow,highHigh,integrationSegments)
   for i in range(len(pdfs)):
-    pdfArea = mathUtils.simpson(pdfs[i],lowLow,highHigh,100000)
+    pdfArea = mathUtils.simpson(pdfs[i],lowLow,highHigh,integrationSegments)
     retDict['pdf_area_'+names[i]] = pdfArea
     dataStats[i]["pdf_area"] = pdfArea
   retDict['cdf_area_difference'] = cdfAreaDifference
@@ -196,8 +200,6 @@ def __processData(data, methodInfo):
   ret['omega'] = omega
   ret['xi'] = xi
   return ret
-
-
 
 def _getPDFandCDFfromData(dataName, data, csv, methodInfo, interpolation,
                          generateCSV):
@@ -410,7 +412,6 @@ class ComparisonStatistics(PostProcessor):
         else:
           self.raiseADebug('unexpected interpolation method ' + interpolation)
           self.interpolation = interpolation
-
 
   def _localGenerateAssembler(self, initDict):
     """
