@@ -25,7 +25,7 @@ warnings.simplefilter('default', DeprecationWarning)
 import numpy as np
 import math
 import sys
-import random
+#import random
 import copy
 from operator import mul
 #External Modules End-----------------------------------------------------------
@@ -50,6 +50,7 @@ class markovModel(ExternalModelPluginBase):
     """
     container.initState = None # Markov Model initial state
     container.finState  = None # Markov Model final state
+    container.seed      = None # Markov Model seed number 
     container.states    = {}   # Markov Model dictionary of states
 
     for child in xmlNode:
@@ -57,6 +58,8 @@ class markovModel(ExternalModelPluginBase):
         container.initState  = child.text.strip()
       if   child.tag == 'finState':
         container.finState  = child.text.strip()
+      if   child.tag == 'seed':
+        container.seed = float(child.text.strip())
       elif child.tag == 'endTime':
         container.endTime = float(child.text.strip())
       elif child.tag == 'state':
@@ -95,7 +98,10 @@ class markovModel(ExternalModelPluginBase):
       @ In, inputFiles, list, list of input files (if any)
       @ Out, None
     """
-    np.random.seed(250678)
+    if container.seed is None: 
+      pass
+    else:
+        np.random.seed(250678)
 
   def run(self, container, Inputs):
     """
