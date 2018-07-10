@@ -7,7 +7,7 @@
   </RunInfo>
 
   <Steps>
-      <MultiRun  name='MultiRun' verbosity='debug'>
+      <MultiRun  name='MultiRun'>
         <Input   class="DataObjects" type="PointSet"      >inputPlaceHolderMain</Input>
         <Model   class='Models'      type='ExternalModel' >CRAFT_Model</Model>
         <Sampler class='Samplers'    type='MonteCarlo'    >MC_main</Sampler>
@@ -53,7 +53,7 @@
   <Samplers>
     <MonteCarlo name="MC_main">
       <samplerInit>
-        <limit>5000</limit>
+        <limit>10</limit>
         <initialSeed>2561978</initialSeed>
       </samplerInit>
       <constant name='a_V1'>3.E-4</constant>
@@ -204,37 +204,49 @@
     <!-- Performance models-->
     <ExternalModel name="ET_V1" ModuleToLoad="ET_V1" subType="">
       <variables>T, t_V1, p_V1, t_V2, p_V2, t_SG, p_SG, t_P1, p_P1, t_P2, p_P2,
-                 outcome_V1, p_V1_ET</variables>
+                 outcome_V1, p_V1_ET,t_V1_ET</variables>
     </ExternalModel>
     <ExternalModel name="ET_V2" ModuleToLoad="ET_V2" subType="">
       <variables>T, t_V1, p_V1, t_V2, p_V2, t_SG, p_SG, t_P1, p_P1, t_P2, p_P2,
-                 outcome_V2, p_V2_ET</variables>
+                 outcome_V2, p_V2_ET,t_V2_ET</variables>
     </ExternalModel>
     <ExternalModel name="ET_SG" ModuleToLoad="ET_SG" subType="">
       <variables>T, t_V1, p_V1, t_V2, p_V2, t_SG, p_SG, t_P1, p_P1, t_P2, p_P2,
-                 outcome_SG, p_SG_ET</variables>
+                 outcome_SG, p_SG_ET,t_SG_ET</variables>
     </ExternalModel>
     <ExternalModel name="ET_P1P2" ModuleToLoad="ET_P1P2" subType="">
       <variables>T, t_V1, p_V1, t_V2, p_V2, t_SG, p_SG, t_P1, p_P1, t_P2, p_P2,
-                 outcome_P1P2, p_P1P2_ET</variables>
+                 outcome_P1P2, p_P1P2_ET,t_P1P2_ET</variables>
     </ExternalModel>
 
     <!-- Cost models-->
     <ExternalModel name="cost_V1" ModuleToLoad="cost_V1" subType="">
-      <variables>outcome_V1, p_V1_ET, outcome_V2, p_V2_ET, outcome_SG, p_SG_ET, outcome_P1P2, p_P1P2_ET,
-                 cost_V1, p_V1_cost</variables>
+      <variables>outcome_V1, p_V1_ET, t_V1_ET, 
+                 outcome_V2, p_V2_ET, t_V2_ET, 
+                 outcome_SG, p_SG_ET, t_SG_ET, 
+                 outcome_P1P2, p_P1P2_ET, t_P1P2_ET,
+                 cost_V1, p_V1_cost,t_V1_cost</variables>
     </ExternalModel>
     <ExternalModel name="cost_V2" ModuleToLoad="cost_V2" subType="">
-      <variables>outcome_V1, p_V1_ET, outcome_V2, p_V2_ET, outcome_SG, p_SG_ET, outcome_P1P2, p_P1P2_ET,
-                 cost_V2, p_V2_cost</variables>
+      <variables>outcome_V1, p_V1_ET, t_V1_ET, 
+                 outcome_V2, p_V2_ET, t_V2_ET, 
+                 outcome_SG, p_SG_ET, t_SG_ET, 
+                 outcome_P1P2, p_P1P2_ET, t_P1P2_ET,
+                 cost_V2, p_V2_cost,t_V2_cost</variables>
     </ExternalModel>
     <ExternalModel name="cost_SG" ModuleToLoad="cost_SG" subType="">
-      <variables>outcome_V1, p_V1_ET, outcome_V2, p_V2_ET, outcome_SG, p_SG_ET, outcome_P1P2, p_P1P2_ET,
-                 cost_SG, p_SG_cost</variables>
+      <variables>outcome_V1, p_V1_ET, t_V1_ET, 
+                 outcome_V2, p_V2_ET, t_V2_ET, 
+                 outcome_SG, p_SG_ET, t_SG_ET, 
+                 outcome_P1P2, p_P1P2_ET, t_P1P2_ET,
+                 cost_SG, p_SG_cost,t_SG_cost</variables>
     </ExternalModel>
     <ExternalModel name="cost_P1P2" ModuleToLoad="cost_P1P2" subType="">
-      <variables>outcome_V1, p_V1_ET, outcome_V2, p_V2_ET, outcome_SG, p_SG_ET, outcome_P1P2, p_P1P2_ET,
-                 cost_P1P2, p_P1P2_cost</variables>
+      <variables>outcome_V1, p_V1_ET, t_V1_ET, 
+                 outcome_V2, p_V2_ET, t_V2_ET, 
+                 outcome_SG, p_SG_ET, t_SG_ET, 
+                 outcome_P1P2, p_P1P2_ET, t_P1P2_ET,
+                 cost_P1P2, p_P1P2_cost,t_P1P2_cost</variables>
     </ExternalModel>
   </Models>
 
@@ -287,36 +299,48 @@
 
     <PointSet name="ET_V1_PS">
       <Input>T, t_V1, p_V1, t_V2, p_V2, t_SG, p_SG, t_P1, p_P1, t_P2, p_P2</Input>
-      <Output>outcome_V1, p_V1_ET</Output>
+      <Output>outcome_V1, p_V1_ET, t_V1_ET</Output>
     </PointSet>
     <PointSet name="ET_V2_PS">
        <Input>T, t_V1, p_V1, t_V2, p_V2, t_SG, p_SG, t_P1, p_P1, t_P2, p_P2</Input>
-      <Output>outcome_V2, p_V2_ET</Output>
+      <Output>outcome_V2, p_V2_ET, t_V2_ET</Output>
     </PointSet>
     <PointSet name="ET_SG_PS">
        <Input>T, t_V1, p_V1, t_V2, p_V2, t_SG, p_SG, t_P1, p_P1, t_P2, p_P2</Input>
-      <Output>outcome_SG, p_SG_ET</Output>
+      <Output>outcome_SG, p_SG_ET, t_SG_ET</Output>
     </PointSet>
     <PointSet name="ET_P1P2_PS">
        <Input>T, t_V1, p_V1, t_V2, p_V2, t_SG, p_SG, t_P1, p_P1, t_P2, p_P2</Input>
-      <Output>outcome_P1P2, p_P1P2_ET</Output>
+      <Output>outcome_P1P2, p_P1P2_ET, t_P1P2_ET</Output>
     </PointSet>
 
     <PointSet name="cost_V1_PS">
-      <Input>outcome_V1, p_V1_ET, outcome_V2, p_V2_ET, outcome_SG, p_SG_ET, outcome_P1P2, p_P1P2_ET</Input>
-      <Output>cost_V1, p_V1_cost</Output>
+      <Input>outcome_V1, p_V1_ET, t_V1_ET, 
+             outcome_V2, p_V2_ET, t_V2_ET, 
+             outcome_SG, p_SG_ET, t_SG_ET, 
+             outcome_P1P2, p_P1P2_ET, t_P1P2_ET</Input>
+      <Output>cost_V1, p_V1_cost, t_V1_cost</Output>
     </PointSet>
     <PointSet name="cost_V2_PS">
-      <Input>outcome_V1, p_V1_ET, outcome_V2, p_V2_ET, outcome_SG, p_SG_ET, outcome_P1P2, p_P1P2_ET</Input>
-      <Output>cost_V2, p_V2_cost</Output>
+      <Input>outcome_V1, p_V1_ET, t_V1_ET, 
+             outcome_V2, p_V2_ET, t_V2_ET, 
+             outcome_SG, p_SG_ET, t_SG_ET, 
+             outcome_P1P2, p_P1P2_ET, t_P1P2_ET</Input>
+      <Output>cost_V2, p_V2_cost, t_V2_cost</Output>
     </PointSet>
     <PointSet name="cost_SG_PS">
-      <Input>outcome_V1, p_V1_ET, outcome_V2, p_V2_ET, outcome_SG, p_SG_ET, outcome_P1P2, p_P1P2_ET</Input>
-      <Output>cost_SG, p_SG_cost</Output>
+      <Input>outcome_V1, p_V1_ET, t_V1_ET, 
+             outcome_V2, p_V2_ET, t_V2_ET, 
+             outcome_SG, p_SG_ET, t_SG_ET, 
+             outcome_P1P2, p_P1P2_ET, t_P1P2_ET</Input>
+      <Output>cost_SG, p_SG_cost, t_SG_cost</Output>
     </PointSet>
     <PointSet name="cost_P1P2_PS">
-      <Input>outcome_V1, p_V1_ET, outcome_V2, p_V2_ET, outcome_SG, p_SG_ET, outcome_P1P2, p_P1P2_ET</Input>
-      <Output>cost_P1P2, p_P1P2_cost</Output>
+      <Input>outcome_V1, p_V1_ET, t_V1_ET, 
+             outcome_V2, p_V2_ET, t_V2_ET, 
+             outcome_SG, p_SG_ET, t_SG_ET, 
+             outcome_P1P2, p_P1P2_ET, t_P1P2_ET</Input>
+      <Output>cost_P1P2, p_P1P2_cost, t_P1P2_cost</Output>
     </PointSet>
 
     <PointSet name="main">
@@ -331,14 +355,14 @@
               t_P1, p_P1,
               t_P2, p_P2,
               t_SG, p_SG,
-              outcome_V1, p_V1_ET,
-              outcome_V2, p_V2_ET,
-              outcome_SG, p_SG_ET,
-              outcome_P1P2, p_P1P2_ET,
-              cost_V1, p_V1_cost,
-              cost_V2, p_V2_cost,
-              cost_SG, p_SG_cost,
-              cost_P1P2, p_P1P2_cost
+              outcome_V1, p_V1_ET, t_V1_ET,
+              outcome_V2, p_V2_ET, t_V2_ET,
+              outcome_SG, p_SG_ET, t_SG_ET,
+              outcome_P1P2, p_P1P2_ET, t_P1P2_ET,
+              cost_V1, p_V1_cost, t_V1_cost,
+              cost_V2, p_V2_cost, t_V2_cost,
+              cost_SG, p_SG_cost, t_SG_cost,
+              cost_P1P2, p_P1P2_cost, t_P1P2_cost
       </Output>
     </PointSet>
     <PointSet name="inputPlaceHolderMain">

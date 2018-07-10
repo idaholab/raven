@@ -12,3 +12,4 @@ def run(self,Input):
     self.cost_V2 = numberDaysSD * costPerDay 
 
   self.p_V2_cost = self.p_V2_ET
+  self.t_V2_cost = self.t_V2_ET

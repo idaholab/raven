@@ -14,4 +14,5 @@ def run(self,Input):
     self.outcome_V1 = 1 # SD
 
   self.p_V1_ET = self.p_V1
+  self.t_V1_ET = self.t_V1
 

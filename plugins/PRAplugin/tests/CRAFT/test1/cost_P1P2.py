@@ -23,3 +23,4 @@ def run(self,Input):
     print('error costP1P2')   
 
   self.p_P1P2_cost = self.p_P1P2_ET
+  self.t_P1P2_cost = self.t_P1P2_ET
