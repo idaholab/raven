@@ -25,7 +25,7 @@ and Optimizers (see \ref{sec:Optimizers}) sections can be used.
 
  An example of the code interface is shown here.  The input parameters are read
  from the input files \texttt{gen.one} and \texttt{gen.two} respectively.
- The code is run using \texttt{python}, so that is part of the \xmlNode{prepend} node.
+ The code is run using \texttt{python}, so that is part of the \xmlNode{clargs} node with the \xmlAttr{type} equal \xmlString{prepend}.
  The command line entry to normally run the code is
 \begin{lstlisting}[language=bash]
 python poly_inp.py -i gen.one -a gen.two -o myOut
@@ -41,7 +41,6 @@ Example:
       <clargs type='input'   arg='-i' extension='.one'/>
       <clargs type='input'   arg='-a' extension='.two'/>
       <clargs type='output'  arg='-o'/>
-      <prepend>python</prepend>
     </Code>
 \end{lstlisting}
 
@@ -67,7 +66,6 @@ Example:
       <clargs   type='input'   arg='-i'  extension='.one'/>
       <fileargs type='input'   arg='two' extension='.two'/>
       <fileargs type='output'  arg='out'/>
-      <prepend>python</prepend>
     </Code>
 \end{lstlisting}
 and the corresponding template input file lines would be changed to read
@@ -97,7 +95,6 @@ Example:
       <clargs   type='input'   arg='-i'  extension='.one'/>
       <fileargs type='input'   arg='two' extension='.two'/>
       <outputFile>fixed_output.csv</outputFile>
-      <prepend>python</prepend>
     </Code>
 \end{lstlisting}
 
