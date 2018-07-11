@@ -1,0 +1,249 @@
+<initial prompt>no</initial prompt>
+<comment>
+TEST CASE NAME: Class Changes
+
+TEST SCRIPT FILE NAMES:  Class_Chg_DEMO.mac
+This test verifies class changes in change sets by creating a change
+set, adding a class change, generating the basic event data,
+then validating sequence cut set results.
+
+NAME OF APPLICATION UNDER TEST:  SAPHIRE 7.0
+
+TEST CASE PURPOSE:
+
+REQUIREMENT(S) VERIFIED:   TBD
+
+TEST-51 Change Set Processing- Class
+  (1) Class change - all events, probability 0.1
+  (2) Class change - ?-MOV-1 events, probability 0.5  ( a subset )
+
+TEST-50 Change Set Processing-Single
+  (3)  Single change - E-MOV-A event, probability 0.2
+
+TEST-52 Change Set Processing-Marked Order
+    Marked change sets from scenarios 1, 2, 3 (marked in that order)
+
+TEST CASE ABSTRACT OF TECHNIQUES USED TO TEST THE FEATURE:
+The automated tests described herein are grouped to run consecutively.
+
+OTHER FILES REQUIRED TO RUN TEST CASE:
+None.
+
+</comment>
+
+<setup>
+  <verbose>
+    <type>detail</type>
+    <file name>%D</file name>
+  </verbose>
+</setup>
+
+<scenario>
+  <start>
+    <name>%P-51A</name>
+    <description>Class change -  All events</description>
+    <test>TEST-51A</test>
+   </start>
+</scenario>
+
+<change set>
+  <unmark></unmark>
+  <delete>
+    <name>ALL-EVENTS</name>
+  </delete>
+  <add>
+    <name>ALL-EVENTS</name>
+    <description>Class change all events Change Set</description>
+    <class>
+      <event name>*</event name>
+      <suscept>1</suscept>
+      <probability>1.0E-1</probability>
+    </class>
+  </add>
+  <mark name>ALL-EVENTS</mark name>
+  <generate></generate>
+</change set>
+
+<sequence>
+  <unmark></unmark>
+  <include>
+    <mark event tree mask>LOSP</mark event tree mask>
+    <mask operation>and</mask operation>
+    <mark sequence mask>2</mark sequence mask>
+    <mask operation>and</mask operation>
+    <mark logic fault tree>*</mark logic fault tree>
+  </include>
+
+  <solve>
+    <truncation>1.0E-15</truncation>
+  </solve>
+
+  <report>
+    <type>cut set</type>
+    <file name>all_cutset.rpt</file name>
+  </report>
+
+  <compare file>
+    <input 1>all_cutset.rpt</input 1>
+    <input 2>qa_all_cutset.rpt</input 2>
+    <output>compare.rpt</output>
+  </compare file>
+
+</sequence>
+
+<scenario><end></end></scenario>
+
+<scenario>
+  <start>
+    <name>%P-51B</name>
+    <description>Class Change - ?-MOV-1 Events</description>
+    <test>TEST-51B</test>
+  </start>
+</scenario>
+
+<change set>
+  <unmark></unmark>
+  <delete>
+    <name>MOV-1-EVENTS</name>
+  </delete>
+  <add>
+    <name>MOV-1-EVENTS</name>
+    <description>Class change subset events Change Set</description>
+    <class>
+      <event name>?-MOV-CC-1</event name>
+      <calc type>1</calc type>
+      <probability>5.0E-1</probability>
+    </class>
+  </add>
+    <mark name>MOV-1-EVENTS</mark name>
+    <generate></generate>
+</change set>
+
+<sequence>
+  <unmark></unmark>
+  <include>
+    <mark event tree mask>LOSP</mark event tree mask>
+    <mask operation>and</mask operation>
+    <mark sequence mask>2</mark sequence mask>
+    <mask operation>and</mask operation>
+    <mark logic fault tree>*</mark logic fault tree>
+  </include>
+
+  <solve>
+    <truncation>1.0E-15</truncation>
+  </solve>
+
+  <report>
+    <type>cut set</type>
+    <file name>subset_cutset.rpt</file name>
+  </report>
+
+  <compare file>
+    <input 1>subset_cutset.rpt</input 1>
+    <input 2>qa_subset_cutset.rpt</input 2>
+    <output>compare.rpt</output>
+  </compare file>
+</sequence>
+
+<scenario><end></end></scenario>
+
+<scenario>
+  <start>
+    <name>%P-50</name>
+    <description>Single Change - 1 Event</description>
+    <test>TEST-50</test>
+  </start>
+</scenario>
+
+<change set>
+  <unmark></unmark>
+  <delete>
+    <name>SINGLE-1</name>
+  </delete>
+  <add>
+    <name>SINGLE-1</name>
+    <description>Single Event Change Set</description>
+    <single>
+      <event name>E-MOV-CC-A</event name>
+      <calc type>1</calc type>
+      <probability>2.0E-1</probability>
+    </single>
+  </add>
+  <mark name>SINGLE-1</mark name>
+  <generate></generate>
+</change set>
+
+<sequence>
+  <unmark></unmark>
+  <include>
+    <mark event tree mask>LOSP</mark event tree mask>
+    <mask operation>and</mask operation>
+    <mark sequence mask>2</mark sequence mask>
+    <mask operation>and</mask operation>
+    <mark logic fault tree>*</mark logic fault tree>
+  </include>
+
+  <solve>
+    <truncation>1.0E-15</truncation>
+  </solve>
+
+  <report>
+    <type>cut set</type>
+    <file name>sgl_cutset.rpt</file name>
+  </report>
+
+  <compare file>
+    <input 1>sgl_cutset.rpt</input 1>
+    <input 2>qa_sgl_cutset.rpt</input 2>
+    <output>compare.rpt</output>
+  </compare file>
+
+</sequence>
+
+<scenario><end></end></scenario>
+
+<scenario>
+  <start>
+    <name>%P-52</name>
+    <description>Marked Change Sets </description>
+    <test>TEST-52</test>
+  </start>
+</scenario>
+
+<change set>
+  <unmark></unmark>
+  <mark name>ALL-EVENTS</mark name>
+  <mark name>MOV-1-EVENTS</mark name>
+  <mark name>SINGLE-1</mark name>
+  <generate></generate>
+</change set>
+
+<sequence>
+  <unmark></unmark>
+  <include>
+    <mark event tree mask>LOSP</mark event tree mask>
+    <mask operation>and</mask operation>
+    <mark sequence mask>2</mark sequence mask>
+    <mask operation>and</mask operation>
+    <mark logic fault tree>*</mark logic fault tree>
+  </include>
+
+  <solve>
+    <truncation>1.0E-15</truncation>
+  </solve>
+
+  <report>
+    <type>cut set</type>
+    <file name>ordered_cutset.rpt</file name>
+  </report>
+
+  <compare file>
+    <input 1>ordered_cutset.rpt</input 1>
+    <input 2>qa_ordered_cutset.rpt</input 2>
+    <output>compare.rpt</output>
+  </compare file>
+</sequence>
+
+<scenario><end></end></scenario>
+
+<program exit></program exit>
