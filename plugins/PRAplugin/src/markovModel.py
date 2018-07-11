@@ -50,7 +50,7 @@ class markovModel(ExternalModelPluginBase):
     """
     container.initState = None # Markov Model initial state
     container.finState  = None # Markov Model final state
-    container.seed      = None # Markov Model seed number 
+    container.seed      = None # Markov Model seed number
     container.states    = {}   # Markov Model dictionary of states
 
     for child in xmlNode:
@@ -98,7 +98,7 @@ class markovModel(ExternalModelPluginBase):
       @ In, inputFiles, list, list of input files (if any)
       @ Out, None
     """
-    if container.seed is None: 
+    if container.seed is None:
       pass
     else:
         np.random.seed(250678)
