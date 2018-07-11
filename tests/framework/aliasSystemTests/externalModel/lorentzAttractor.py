@@ -36,12 +36,12 @@ def run(self,Input):
   self.z = np.zeros(numberTimeSteps)
   self.time = np.zeros(numberTimeSteps)
 
-  self.firstVar  = Input['firstVar']
-  self.secondVar = Input['secondVar']
+  firstVar  = Input['awful.variable+name']
+  secondVar = Input['@another|awful name']
   self.z0  = Input['z0']
 
-  self.firstOut[0] = Input['firstVar']
-  self.secondOut[0] = Input['secondVar']
+  self.firstOut[0] = firstVar
+  self.secondOut[0] = secondVar
   self.z[0] = Input['z0']
   self.time[0]= 0
 

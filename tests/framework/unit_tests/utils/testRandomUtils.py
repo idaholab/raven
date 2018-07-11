@@ -244,6 +244,34 @@ if False:
   plt.plot(x,y,'.')
   plt.show()
 
+
+# RNG factory
+## unseeded (default seeding)
+engine = randomUtils.newRNG()
+sampled = [engine.random() for _ in range(5)]
+correct = [0.814723692093,
+           0.135477004139,
+           0.905791934325,
+           0.835008589978,
+           0.126986811898]
+checkArray('Independent RNG, unseeded',sampled,correct)
+
+## reseeded (42)
+engine.seed(42)
+correct = [0.374540114397,
+           0.796542984386,
+           0.950714311784,
+           0.183434787715,
+           0.731993938501]
+sampled = [engine.random() for _ in range(5)]
+checkArray('Independent RNG, reseeded',sampled,correct)
+
+## seeded (42) -> should be same as "reseeded"
+engine = randomUtils.newRNG()
+engine.seed(42)
+sampled = [engine.random() for _ in range(5)]
+checkArray('Independent RNG, seeded',sampled,correct)
+
 print(results)
 
 sys.exit(results["fail"])
