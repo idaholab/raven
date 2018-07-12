@@ -1,0 +1,141 @@
+<Simulation verbosity="debug">
+
+  <RunInfo>
+      <WorkingDir>./</WorkingDir>
+      <Sequence>loadData</Sequence>
+      <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name="pointset">Print_sim_PS.csv</Input>
+  </Files>
+
+  <Steps>
+    <IOStep name='loadData'>
+      <Input   class="Files"        type=""          >pointset</Input>
+      <Output  class="DataObjects"  type="PointSet"  >main</Output>
+      <Output  class="OutStreams"   type="Plot"      >plot_V1</Output>
+      <Output  class="OutStreams"   type="Plot"      >plot_V2</Output>
+      <Output  class="OutStreams"   type="Plot"      >plot_SG</Output>
+      <Output  class="OutStreams"   type="Plot"      >plot_P1P2</Output>
+    </IOStep>
+    <!--PostProcess name="PP">
+      <Input   class="DataObjects"  type="HistorySet"     >main</Input>
+      <Model   class="Models"       type="PostProcessor"  >craft_PP</Model>
+      <Output  class="DataObjects"  type="PointSet"       >main_PP</Output>
+    </PostProcess-->
+  </Steps>
+
+  <!--Models>
+    <PostProcessor name="craft_PP" subType="InterfacedPostProcessor">
+      <method>craftPP</method>
+      <view type='1'>Ta</view>
+      <view type='2'>T1,T2</view>      
+    </PostProcessor>
+  </Models-->
+
+  <DataObjects>
+    <PointSet name="main">
+      <Input>T, a_V1, b_V1,
+             a_V2, b_V2,
+             alpha_P1, beta_P1,
+             delta_P2,
+             alpha_SG, beta_SG
+      </Input>
+      <Output>t_V1, p_V1,
+              t_V2, p_V2,
+              t_P1, p_P1,
+              t_P2, p_P2,
+              t_SG, p_SG,
+              outcome_V1, p_V1_ET, t_V1_ET,
+              outcome_V2, p_V2_ET, t_V2_ET,
+              outcome_SG, p_SG_ET, t_SG_ET,
+              outcome_P1P2, p_P1P2_ET, t_P1P2_ET,
+              cost_V1, p_V1_cost, t_V1_cost,
+              cost_V2, p_V2_cost, t_V2_cost,
+              cost_SG, p_SG_cost, t_SG_cost,
+              cost_P1P2, p_P1P2_cost, t_P1P2_cost
+      </Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Plot  name="plot_V1" overwrite="false">
+      <plotSettings>
+        <plot>
+          <type>scatter</type>
+          <x>main|Output|t_V1_cost</x>
+          <y>main|Output|p_V1_cost</y>
+          <z>main|Output|cost_V1</z>
+        </plot>
+        <xlabel>time</xlabel>
+        <ylabel>probability</ylabel>
+        <zlabel>cost</zlabel>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+        <title>
+          <text>V1</text>
+        </title>
+      </actions>
+    </Plot>
+    <Plot  name="plot_V2" overwrite="false">
+      <plotSettings>
+        <plot>
+          <type>scatter</type>
+          <x>main|Output|t_V2_cost</x>
+          <y>main|Output|p_V2_cost</y>
+          <z>main|Output|cost_V2</z>
+        </plot>
+        <xlabel>time</xlabel>
+        <ylabel>probability</ylabel>
+        <zlabel>cost</zlabel>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+        <title>
+          <text>V2</text>
+        </title>
+      </actions>
+    </Plot>
+    <Plot  name="plot_SG" overwrite="false">
+      <plotSettings>
+        <plot>
+          <type>scatter</type>
+          <x>main|Output|t_SG_cost</x>
+          <y>main|Output|p_SG_cost</y>
+          <z>main|Output|cost_SG</z>
+        </plot>
+        <xlabel>time</xlabel>
+        <ylabel>probability</ylabel>
+        <zlabel>cost</zlabel>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+        <title>
+          <text>SG</text>
+        </title>
+      </actions>
+    </Plot>
+    <Plot  name="plot_P1P2" overwrite="false">
+      <plotSettings>
+        <plot>
+          <type>scatter</type>
+          <x>main|Output|t_P1P2_cost</x>
+          <y>main|Output|p_P1P2_cost</y>
+          <z>main|Output|cost_P1P2</z>
+        </plot>
+        <xlabel>time</xlabel>
+        <ylabel>probability</ylabel>
+        <zlabel>cost</zlabel>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+        <title>
+          <text>P1P2</text>
+        </title>
+      </actions>
+    </Plot>
+  </OutStreams>
+
+</Simulation>
