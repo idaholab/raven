@@ -35,7 +35,7 @@ def inPython3():
 
 ## working Conda 4.5.4, May 2018
 modules_to_try = [("h5py"      ,'h5py.__version__'      ,'2.4.0' ,'2.7.1' ,None   ), # 2.6.0
-                  #("numpy"     ,'numpy.__version__'     ,"1.8.0" ,"1.9.1",None   ),
+                  ("numpy"     ,'numpy.__version__'     ,"1.8.0" ,"1.12.1",None   ),
                   ("scipy"     ,'scipy.__version__'     ,"1.1.0","1.1.0",None   ),
                   ("sklearn"   ,'sklearn.__version__'   ,"0.19.1"  ,"0.19.1",None   ),
                   ("pandas"    ,'pandas.__version__'    ,"0.20.0","0.20.3",None   ),
@@ -67,7 +67,7 @@ def __lookUpPreferredVersion(name,optional=False):
   return ""
 
 __condaList = [("h5py"        ,__lookUpPreferredVersion("h5py"      )),
-               #("numpy"       ,__lookUpPreferredVersion("numpy"     )),
+               ("numpy"       ,__lookUpPreferredVersion("numpy"     )),
                ("scipy"       ,__lookUpPreferredVersion("scipy"     )),
                ("scikit-learn",__lookUpPreferredVersion("sklearn"   )),
                ("pandas"      ,__lookUpPreferredVersion("pandas"    )),
@@ -87,7 +87,7 @@ __condaList = [("h5py"        ,__lookUpPreferredVersion("h5py"      )),
 
 __condaOptional = [ ('pillow',__lookUpPreferredVersion("pillow")) ]
 
-__pipList = [#("numpy",__lookUpPreferredVersion("numpy")),
+__pipList = [("numpy",__lookUpPreferredVersion("numpy")),
              ("h5py",__lookUpPreferredVersion("h5py")),
              ("scipy",__lookUpPreferredVersion("scipy")),
              ("scikit-learn",__lookUpPreferredVersion("sklearn")),
