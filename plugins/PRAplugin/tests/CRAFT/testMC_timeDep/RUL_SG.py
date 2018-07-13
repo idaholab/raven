@@ -16,5 +16,5 @@ def run(self,Input):
 
   self.p_SG = np.zeros(len(self.time))
 
-  for index,value in np.ndenumerate(self.time):
-     self.p_SG[index[0]] = float(RULmodel(Input['alpha_SG'], Input['beta_SG'], value))
+  for ts in range(len(self.time)):
+    self.p_SG[ts] = float(RULmodel(Input['alpha_SG'], Input['beta_SG'], self.time[ts]))

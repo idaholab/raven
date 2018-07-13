@@ -1,4 +1,4 @@
-<Simulation verbosity="debug">
+<Simulation verbosity='debug'>
 
   <RunInfo>
       <WorkingDir>./</WorkingDir>
@@ -8,13 +8,13 @@
 
   <Steps>
       <MultiRun  name='MultiRun'>
-        <Input   class="DataObjects" type="PointSet"      >inputPlaceHolderMain</Input>
+        <Input   class='DataObjects' type='PointSet'      >inputPlaceHolderMain</Input>
         <Model   class='Models'      type='ExternalModel' >CRAFT_Model</Model>
         <Sampler class='Samplers'    type='MonteCarlo'    >MC_main</Sampler>
         <Output  class='DataObjects' type='DataSet'       >main</Output>
       </MultiRun>
       <IOStep name='print'>
-        <Input   class="DataObjects" type="DataSet"       >main</Input>
+        <Input   class='DataObjects' type='DataSet'       >main</Input>
         <Output  class='OutStreams'  type='Print'         >Print_sim_PS</Output>
       </IOStep>
   </Steps>
@@ -51,7 +51,7 @@
   </Distributions>
 
   <Samplers>
-    <MonteCarlo name="MC_main">
+    <MonteCarlo name='MC_main'>
       <samplerInit>
         <limit>1</limit>
         <initialSeed>2561978</initialSeed>
@@ -88,69 +88,69 @@
   </Samplers>
 
   <Models>
-    <EnsembleModel name="CRAFT_Model" subType="">
-      <Model class="Models" type="ExternalModel">plantData
-        <Input            class="DataObjects" type="PointSet"   >inputPlaceHolder_plantData_PS</Input>
-        <TargetEvaluation class="DataObjects" type="HistorySet"    >plantData_PS</TargetEvaluation>
+    <EnsembleModel name='CRAFT_Model' subType=''>
+      <Model class='Models' type='ExternalModel'>plantData
+        <Input            class='DataObjects' type='PointSet'   >inputPlaceHolder_plantData_PS</Input>
+        <TargetEvaluation class='DataObjects' type='HistorySet' >plantData_PS</TargetEvaluation>
       </Model>
 
-      <Model class="Models" type="ExternalModel">lambdaV1
-        <Input            class="DataObjects" type="PointSet"  >inputPlaceHolder_lambdaV1_PS</Input>
-        <TargetEvaluation class="DataObjects" type="DataSet"   >lambdaV1_PS</TargetEvaluation>
+      <Model class='Models' type='ExternalModel'>lambdaV1
+        <Input            class='DataObjects' type='PointSet'  >inputPlaceHolder_lambdaV1_PS</Input>
+        <TargetEvaluation class='DataObjects' type='DataSet'   >lambdaV1_PS</TargetEvaluation>
       </Model>
-      <Model class="Models" type="ExternalModel">lambdaV2
-        <Input            class="DataObjects" type="PointSet"  >inputPlaceHolder_lambdaV2_PS</Input>
-        <TargetEvaluation class="DataObjects" type="DataSet"   >lambdaV2_PS</TargetEvaluation>
+      <Model class='Models' type='ExternalModel'>lambdaV2
+        <Input            class='DataObjects' type='PointSet'  >inputPlaceHolder_lambdaV2_PS</Input>
+        <TargetEvaluation class='DataObjects' type='DataSet'   >lambdaV2_PS</TargetEvaluation>
       </Model>
-      <Model class="Models" type="ExternalModel">RUL_P1
-        <Input            class="DataObjects" type="PointSet"  >inputPlaceHolder_RUL_P1_PS</Input>
-        <TargetEvaluation class="DataObjects" type="DataSet"   >RUL_P1_PS</TargetEvaluation>
+      <Model class='Models' type='ExternalModel'>RUL_P1
+        <Input            class='DataObjects' type='PointSet'  >inputPlaceHolder_RUL_P1_PS</Input>
+        <TargetEvaluation class='DataObjects' type='DataSet'   >RUL_P1_PS</TargetEvaluation>
       </Model>
-      <Model class="Models" type="ExternalModel">unav_P2
-        <Input            class="DataObjects" type="PointSet"  >inputPlaceHolder_unav_P2_PS</Input>
-        <TargetEvaluation class="DataObjects" type="DataSet"   >unav_P2_PS</TargetEvaluation>
+      <Model class='Models' type='ExternalModel'>unav_P2
+        <Input            class='DataObjects' type='PointSet'  >inputPlaceHolder_unav_P2_PS</Input>
+        <TargetEvaluation class='DataObjects' type='DataSet'   >unav_P2_PS</TargetEvaluation>
       </Model>
-      <Model class="Models" type="ExternalModel">RUL_SG
-        <Input            class="DataObjects" type="PointSet"  >inputPlaceHolder_RUL_SG_PS</Input>
-        <TargetEvaluation class="DataObjects" type="DataSet"   >RUL_SG_PS</TargetEvaluation>
-      </Model>
-
-      <Model class="Models" type="ExternalModel">ET_V1
-        <Input            class="DataObjects" type="PointSet"  >inputPlaceHolder_ET_V1_PS</Input>
-        <TargetEvaluation class="DataObjects" type="DataSet"   >ET_V1_PS</TargetEvaluation>
-      </Model>
-      <Model class="Models" type="ExternalModel">ET_V2
-        <Input            class="DataObjects" type="PointSet"  >inputPlaceHolder_ET_V2_PS</Input>
-        <TargetEvaluation class="DataObjects" type="DataSet"   >ET_V2_PS</TargetEvaluation>
-      </Model>
-      <Model class="Models" type="ExternalModel">ET_SG
-        <Input            class="DataObjects" type="PointSet"  >inputPlaceHolder_ET_SG_PS</Input>
-        <TargetEvaluation class="DataObjects" type="DataSet"   >ET_SG_PS</TargetEvaluation>
-      </Model>
-      <Model class="Models" type="ExternalModel">ET_P1P2
-        <Input            class="DataObjects" type="PointSet"  >inputPlaceHolder_ET_P1P2_PS</Input>
-        <TargetEvaluation class="DataObjects" type="DataSet"   >ET_P1P2_PS</TargetEvaluation>
+      <Model class='Models' type='ExternalModel'>RUL_SG
+        <Input            class='DataObjects' type='PointSet'  >inputPlaceHolder_RUL_SG_PS</Input>
+        <TargetEvaluation class='DataObjects' type='DataSet'   >RUL_SG_PS</TargetEvaluation>
       </Model>
 
-      <Model class="Models" type="ExternalModel">cost_V1
-        <Input            class="DataObjects" type="PointSet"  >inputPlaceHolder_cost_V1_PS</Input>
-        <TargetEvaluation class="DataObjects" type="DataSet"   >cost_V1_PS</TargetEvaluation>
+      <Model class='Models' type='ExternalModel'>ET_V1
+        <Input            class='DataObjects' type='PointSet'  >inputPlaceHolder_ET_V1_PS</Input>
+        <TargetEvaluation class='DataObjects' type='DataSet'   >ET_V1_PS</TargetEvaluation>
       </Model>
-      <Model class="Models" type="ExternalModel">cost_V2
-        <Input            class="DataObjects" type="PointSet"  >inputPlaceHolder_cost_V2_PS</Input>
-        <TargetEvaluation class="DataObjects" type="DataSet"   >cost_V2_PS</TargetEvaluation>
+      <Model class='Models' type='ExternalModel'>ET_V2
+        <Input            class='DataObjects' type='PointSet'  >inputPlaceHolder_ET_V2_PS</Input>
+        <TargetEvaluation class='DataObjects' type='DataSet'   >ET_V2_PS</TargetEvaluation>
       </Model>
-      <Model class="Models" type="ExternalModel">cost_SG
-        <Input            class="DataObjects" type="PointSet"  >inputPlaceHolder_cost_SG_PS</Input>
-        <TargetEvaluation class="DataObjects" type="DataSet"   >cost_SG_PS</TargetEvaluation>
+      <Model class='Models' type='ExternalModel'>ET_SG
+        <Input            class='DataObjects' type='PointSet'  >inputPlaceHolder_ET_SG_PS</Input>
+        <TargetEvaluation class='DataObjects' type='DataSet'   >ET_SG_PS</TargetEvaluation>
       </Model>
-      <Model class="Models" type="ExternalModel">cost_P1P2
-        <Input            class="DataObjects" type="PointSet"  >inputPlaceHolderMain</Input>
-        <TargetEvaluation class="DataObjects" type="DataSet"   >cost_P1P2_PS</TargetEvaluation>
+      <Model class='Models' type='ExternalModel'>ET_P1P2
+        <Input            class='DataObjects' type='PointSet'  >inputPlaceHolder_ET_P1P2_PS</Input>
+        <TargetEvaluation class='DataObjects' type='DataSet'   >ET_P1P2_PS</TargetEvaluation>
+      </Model>
+
+      <Model class='Models' type='ExternalModel'>cost_V1
+        <Input            class='DataObjects' type='PointSet'  >inputPlaceHolder_cost_V1_PS</Input>
+        <TargetEvaluation class='DataObjects' type='DataSet'   >cost_V1_PS</TargetEvaluation>
+      </Model>
+      <Model class='Models' type='ExternalModel'>cost_V2
+        <Input            class='DataObjects' type='PointSet'  >inputPlaceHolder_cost_V2_PS</Input>
+        <TargetEvaluation class='DataObjects' type='DataSet'   >cost_V2_PS</TargetEvaluation>
+      </Model>
+      <Model class='Models' type='ExternalModel'>cost_SG
+        <Input            class='DataObjects' type='PointSet'  >inputPlaceHolder_cost_SG_PS</Input>
+        <TargetEvaluation class='DataObjects' type='DataSet'   >cost_SG_PS</TargetEvaluation>
+      </Model>
+      <Model class='Models' type='ExternalModel'>cost_P1P2
+        <Input            class='DataObjects' type='PointSet'  >inputPlaceHolderMain</Input>
+        <TargetEvaluation class='DataObjects' type='DataSet'   >cost_P1P2_PS</TargetEvaluation>
       </Model>  
     </EnsembleModel>
 
-    <ExternalModel name="plantData" ModuleToLoad="plantData" subType="">
+    <ExternalModel name='plantData' ModuleToLoad='plantData' subType=''>
       <variables>a_V1, b_V1,
                  a_V2, b_V2,
                  alpha_P1, beta_P1,
@@ -160,7 +160,7 @@
     </ExternalModel>
 
     <!-- Reliability models-->
-    <ExternalModel name="lambdaV1" ModuleToLoad="lambdaV1" subType="">
+    <ExternalModel name='lambdaV1' ModuleToLoad='lambdaV1' subType=''>
       <variables>time, a_V1, b_V1,
                  a_V2, b_V2,
                  alpha_P1, beta_P1,
@@ -168,7 +168,7 @@
                  alpha_SG, beta_SG,
                  p_V1</variables>
     </ExternalModel>
-    <ExternalModel name="lambdaV2" ModuleToLoad="lambdaV2" subType="">
+    <ExternalModel name='lambdaV2' ModuleToLoad='lambdaV2' subType=''>
       <variables>time, a_V1, b_V1,
                  a_V2, b_V2,
                  alpha_P1, beta_P1,
@@ -176,7 +176,7 @@
                  alpha_SG, beta_SG,
                  p_V2</variables>
     </ExternalModel>
-    <ExternalModel name="RUL_P1" ModuleToLoad="RUL_P1" subType="">
+    <ExternalModel name='RUL_P1' ModuleToLoad='RUL_P1' subType=''>
       <variables>time, a_V1, b_V1,
                  a_V2, b_V2,
                  alpha_P1, beta_P1,
@@ -184,7 +184,7 @@
                  alpha_SG, beta_SG,
                  p_P1</variables>
     </ExternalModel>
-    <ExternalModel name="unav_P2" ModuleToLoad="unav_P2" subType="">
+    <ExternalModel name='unav_P2' ModuleToLoad='unav_P2' subType=''>
       <variables>time, a_V1, b_V1,
                  a_V2, b_V2,
                  alpha_P1, beta_P1,
@@ -192,7 +192,7 @@
                  alpha_SG, beta_SG,
                  p_P2</variables>
     </ExternalModel>
-    <ExternalModel name="RUL_SG" ModuleToLoad="RUL_SG" subType="">
+    <ExternalModel name='RUL_SG' ModuleToLoad='RUL_SG' subType=''>
       <variables>time, opPower,
                  a_V1, b_V1,
                  a_V2, b_V2,
@@ -203,40 +203,40 @@
     </ExternalModel>
 
     <!-- Performance models-->
-    <ExternalModel name="ET_V1" ModuleToLoad="ET_V1" subType="">
+    <ExternalModel name='ET_V1' ModuleToLoad='ET_V1' subType=''>
       <variables>time, p_V1, p_V2, p_P1, p_P2, p_SG,
                  outcome_V1</variables>
     </ExternalModel>
-    <ExternalModel name="ET_V2" ModuleToLoad="ET_V2" subType="">
+    <ExternalModel name='ET_V2' ModuleToLoad='ET_V2' subType=''>
       <variables>time, p_V1, p_V2, p_P1, p_P2, p_SG,
                  outcome_V2</variables>
     </ExternalModel>
-    <ExternalModel name="ET_SG" ModuleToLoad="ET_SG" subType="">
+    <ExternalModel name='ET_SG' ModuleToLoad='ET_SG' subType=''>
       <variables>time, p_V1, p_V2, p_P1, p_P2, p_SG,
                  outcome_SG</variables>
     </ExternalModel>
-    <ExternalModel name="ET_P1P2" ModuleToLoad="ET_P1P2" subType="">
+    <ExternalModel name='ET_P1P2' ModuleToLoad='ET_P1P2' subType=''>
       <variables>time, p_V1, p_V2, p_P1, p_P2, p_SG,
                  outcome_P1P2_0, outcome_P1P2_1, outcome_P1P2_2</variables>
     </ExternalModel>
 
     <!-- Cost models-->
-    <ExternalModel name="cost_V1" ModuleToLoad="cost_V1" subType="">
+    <ExternalModel name='cost_V1' ModuleToLoad='cost_V1' subType=''>
       <variables>time, cost_V1</variables>
     </ExternalModel>
-    <ExternalModel name="cost_V2" ModuleToLoad="cost_V2" subType="">
+    <ExternalModel name='cost_V2' ModuleToLoad='cost_V2' subType=''>
       <variables>time, cost_V2</variables>
     </ExternalModel>
-    <ExternalModel name="cost_SG" ModuleToLoad="cost_SG" subType="">
+    <ExternalModel name='cost_SG' ModuleToLoad='cost_SG' subType=''>
       <variables>time, cost_SG</variables>
     </ExternalModel>
-    <ExternalModel name="cost_P1P2" ModuleToLoad="cost_P1P2" subType="">
+    <ExternalModel name='cost_P1P2' ModuleToLoad='cost_P1P2' subType=''>
       <variables>time, cost_P1P2_0, cost_P1P2_1, cost_P1P2_2</variables>
     </ExternalModel>
   </Models>
 
   <DataObjects>
-    <HistorySet name="plantData_PS">
+    <HistorySet name='plantData_PS'>
       <Input>a_V1, b_V1,
              a_V2, b_V2,
              alpha_P1, beta_P1,
@@ -245,105 +245,114 @@
       </Input>
       <Output>opPower</Output>
         <options>
-            <pivotParameter>time</pivotParameter>
+          <pivotParameter>time</pivotParameter>
         </options>
     </HistorySet>
 
-    <DataSet name="lambdaV1_PS">
-      <Input>time, a_V1, b_V1,
+    <DataSet name='lambdaV1_PS'>
+      <Input>time, opPower, 
+             a_V1, b_V1,
              a_V2, b_V2,
              alpha_P1, beta_P1,
              delta_P2,
              alpha_SG, beta_SG
       </Input>
       <Output>p_V1</Output>
+      <Index var='time'>opPower</Index>
     </DataSet>
-    <DataSet name="lambdaV2_PS">
-      <Input>time, a_V1, b_V1,
+    <DataSet name='lambdaV2_PS'>
+      <Input>time, opPower, 
+             a_V1, b_V1,
              a_V2, b_V2,
              alpha_P1, beta_P1,
              delta_P2,
              alpha_SG, beta_SG
       </Input>
       <Output>p_V2</Output>
+      <Index var='time'>opPower</Index>
     </DataSet>
-    <DataSet name="RUL_P1_PS">
-      <Input>time, a_V1, b_V1,
+    <DataSet name='RUL_P1_PS'>
+      <Input>time, opPower, 
+             a_V1, b_V1,
              a_V2, b_V2,
              alpha_P1, beta_P1,
              delta_P2,
              alpha_SG, beta_SG
       </Input>
       <Output>p_P1</Output>
+      <Index var='time'>opPower</Index>
     </DataSet>
-    <DataSet name="unav_P2_PS">
-      <Input>time, a_V1, b_V1,
+    <DataSet name='unav_P2_PS'>
+      <Input>time, opPower, 
+             a_V1, b_V1,
              a_V2, b_V2,
              alpha_P1, beta_P1,
              delta_P2,
              alpha_SG, beta_SG
       </Input>
       <Output>p_P2</Output>
+      <Index var='time'>opPower</Index>
     </DataSet>
-    <DataSet name="RUL_SG_PS">
-      <Input>opPower, a_V1, b_V1,
+    <DataSet name='RUL_SG_PS'>
+      <Input>time, opPower, 
+             a_V1, b_V1,
              a_V2, b_V2,
              alpha_P1, beta_P1,
              delta_P2,
              alpha_SG, beta_SG
       </Input>
       <Output>p_SG</Output>
-      <Index var="time">opPower</Index>
+      <Index var='time'>opPower</Index>
     </DataSet>
 
-    <DataSet name="ET_V1_PS">
+    <DataSet name='ET_V1_PS'>
       <Input>time, p_V1, p_V2, p_SG, p_P1, p_P2</Input>
       <Output>outcome_V1</Output>
     </DataSet>
-    <DataSet name="ET_V2_PS">
+    <DataSet name='ET_V2_PS'>
        <Input>time, p_V1, p_V2, p_SG, p_P1, p_P2</Input>
       <Output>outcome_V2</Output>
     </DataSet>
-    <DataSet name="ET_SG_PS">
+    <DataSet name='ET_SG_PS'>
        <Input>time, p_V1, p_V2, p_SG, p_P1, p_P2</Input>
       <Output>outcome_SG</Output>
     </DataSet>
-    <DataSet name="ET_P1P2_PS">
+    <DataSet name='ET_P1P2_PS'>
        <Input>time, p_V1, p_V2, p_SG, p_P1, p_P2</Input>
       <Output>outcome_P1P2_0, outcome_P1P2_1, outcome_P1P2_2</Output>
     </DataSet>
 
-    <DataSet name="cost_V1_PS">
+    <DataSet name='cost_V1_PS'>
       <Input>time, outcome_V1, outcome_V2, outcome_SG, outcome_P1P2_0, outcome_P1P2_1, outcome_P1P2_2</Input>
       <Output>cost_V1</Output>
     </DataSet>
-    <DataSet name="cost_V2_PS">
+    <DataSet name='cost_V2_PS'>
       <Input>time, outcome_V1, outcome_V2, outcome_SG, outcome_P1P2_0, outcome_P1P2_1, outcome_P1P2_2</Input>
       <Output>cost_V2</Output>
     </DataSet>
-    <DataSet name="cost_SG_PS">
+    <DataSet name='cost_SG_PS'>
       <Input>time, outcome_V1, outcome_V2, outcome_SG, outcome_P1P2_0, outcome_P1P2_1, outcome_P1P2_2</Input>
       <Output>cost_SG</Output>
     </DataSet>
-    <DataSet name="cost_P1P2_PS">
+    <DataSet name='cost_P1P2_PS'>
       <Input>time, outcome_V1, outcome_V2, outcome_SG, outcome_P1P2_0, outcome_P1P2_1, outcome_P1P2_2</Input>
       <Output>cost_P1P2_0, cost_P1P2_1, cost_P1P2_2</Output>
     </DataSet>
 
-    <DataSet name="main">
+    <DataSet name='main'>
       <Input>a_V1, b_V1,
              a_V2, b_V2,
              alpha_P1, beta_P1,
              delta_P2,
              alpha_SG, beta_SG
       </Input>
-      <Output>time,
-              p_V1, p_V2, p_P1, p_P2, p_SG,
+      <Output>p_V1, p_V2, p_P1, p_P2, p_SG,
               outcome_V1, outcome_V2, outcome_SG, outcome_P1P2_0, outcome_P1P2_1, outcome_P1P2_2,
               cost_V1, cost_V2, cost_SG, cost_P1P2_0, cost_P1P2_1, cost_P1P2_2 
       </Output>
+      <Index var='time'>p_SG</Index>
     </DataSet>
-    <PointSet name="inputPlaceHolderMain">
+    <PointSet name='inputPlaceHolderMain'>
       <Input>a_V1, b_V1,
              a_V2, b_V2,
              alpha_P1, beta_P1,
@@ -353,66 +362,66 @@
       <Output>OutputPlaceHolder</Output>
     </PointSet>
 
-    <PointSet name="inputPlaceHolder_plantData_PS">
+    <PointSet name='inputPlaceHolder_plantData_PS'>
       <Input>InputPlaceHolder</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
-    <PointSet name="inputPlaceHolder_lambdaV1_PS">
+    <PointSet name='inputPlaceHolder_lambdaV1_PS'>
       <Input>InputPlaceHolder</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
-    <PointSet name="inputPlaceHolder_lambdaV2_PS">
+    <PointSet name='inputPlaceHolder_lambdaV2_PS'>
       <Input>InputPlaceHolder</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
-    <PointSet name="inputPlaceHolder_RUL_P1_PS">
+    <PointSet name='inputPlaceHolder_RUL_P1_PS'>
       <Input>InputPlaceHolder</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
-    <PointSet name="inputPlaceHolder_unav_P2_PS">
+    <PointSet name='inputPlaceHolder_unav_P2_PS'>
       <Input>InputPlaceHolder</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
-    <PointSet name="inputPlaceHolder_RUL_SG_PS">
+    <PointSet name='inputPlaceHolder_RUL_SG_PS'>
       <Input>InputPlaceHolder</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
-    <PointSet name="inputPlaceHolder_ET_V1_PS">
+    <PointSet name='inputPlaceHolder_ET_V1_PS'>
       <Input>InputPlaceHolder</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
-    <PointSet name="inputPlaceHolder_ET_V2_PS">
+    <PointSet name='inputPlaceHolder_ET_V2_PS'>
        <Input>InputPlaceHolder</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
-    <PointSet name="inputPlaceHolder_ET_SG_PS">
+    <PointSet name='inputPlaceHolder_ET_SG_PS'>
        <Input>InputPlaceHolder</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
-    <PointSet name="inputPlaceHolder_ET_P1P2_PS">
+    <PointSet name='inputPlaceHolder_ET_P1P2_PS'>
        <Input>InputPlaceHolder</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
-    <PointSet name="inputPlaceHolder_cost_V1_PS">
+    <PointSet name='inputPlaceHolder_cost_V1_PS'>
       <Input>InputPlaceHolder</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
-    <PointSet name="inputPlaceHolder_cost_V2_PS">
+    <PointSet name='inputPlaceHolder_cost_V2_PS'>
       <Input>InputPlaceHolder</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
-    <PointSet name="inputPlaceHolder_cost_SG_PS">
+    <PointSet name='inputPlaceHolder_cost_SG_PS'>
       <Input>InputPlaceHolder</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
-    <PointSet name="inputPlaceHolder_cost_P1P2_PS">
+    <PointSet name='inputPlaceHolder_cost_P1P2_PS'>
       <Input>InputPlaceHolder</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
   </DataObjects>
 
   <OutStreams>
-    <Print name="Print_sim_PS">
+    <Print name='Print_sim_PS'>
       <type>csv</type>
       <source>main</source>
       <what>input,output</what>
