@@ -12,6 +12,7 @@
 #export PYTHONPATH=$HOME/raven_libs/pylibs/lib/python2.7/site-packages
 
 module purge
+module load use.moose moose-dev-gcc
 module load pbs_is_loaded raven-devel #raven-devel-gcc
 source activate raven_libraries
 

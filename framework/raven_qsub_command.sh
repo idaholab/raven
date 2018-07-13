@@ -6,7 +6,8 @@ fi
 
 # conda definitions should be set up in raven/.ravenrc after installing with raven/scripts/establish_conda_env.sh
 module load raven-devel
-module load use.moose moose-dev-gcc
+module load raven-devel-gcc
+#module load mpi4py/1.3.1-gmvolf-5.5.4-Python-2.7.9
 ##  also the name of the raven libraries conda environment
 source activate raven_libraries
 
