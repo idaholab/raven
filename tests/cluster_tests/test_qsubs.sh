@@ -47,7 +47,7 @@ wait_lines ()
 echo Current directory: `pwd`
 
 echo Removing old databases...
-echo `rm -Rf DatabaseStorage/`
+rm -Rf DatabaseStorage/
 
 rm -Rf FirstMQRun/
 
