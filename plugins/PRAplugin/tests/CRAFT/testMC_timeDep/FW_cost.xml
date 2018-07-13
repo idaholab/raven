@@ -111,7 +111,7 @@
       </Model>
       <Model class="Models" type="ExternalModel">
         unav_P2
-        <Input            class="DataObjects" type="PointSet  " >inputPlaceHolder_unav_P2_PS</Input>
+        <Input            class="DataObjects" type="PointSet" >inputPlaceHolder_unav_P2_PS</Input>
         <TargetEvaluation class="DataObjects" type="HistorySet" >unav_P2_PS</TargetEvaluation>
       </Model>
       <Model class="Models" type="ExternalModel">
