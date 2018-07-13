@@ -8,12 +8,12 @@ def RULmodel(mu,sigma,time):
   # b = 0.267
   prob = norm.cdf(time, mu, sigma)
   return prob
-   
+
 
 def run(self,Input):
   # intput: alpha, beta
   # output: t, p
-
+  self.time = Input['opPower']
   self.p_SG = np.zeros(len(self.time))
 
   for index,value in np.ndenumerate(self.time):

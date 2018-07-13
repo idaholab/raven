@@ -90,7 +90,7 @@
   <Models>
     <EnsembleModel name="CRAFT_Model" subType="">
       <Model class="Models" type="ExternalModel">plantData
-        <Input            class="DataObjects" type="PointSet"   >inputPlaceHolder_plantData_PS</Input>
+        <Input            class="DataObjects" type="PointSet"   >inputPlaceHolderMain</Input>
         <TargetEvaluation class="DataObjects" type="HistorySet"    >plantData_PS</TargetEvaluation>
       </Model>
 
@@ -145,7 +145,7 @@
         <TargetEvaluation class="DataObjects" type="DataSet"   >cost_SG_PS</TargetEvaluation>
       </Model>
       <Model class="Models" type="ExternalModel">cost_P1P2
-        <Input            class="DataObjects" type="PointSet"  >inputPlaceHolderMain</Input>
+        <Input            class="DataObjects" type="PointSet"  >inputPlaceHolder_cost_P1P2_PS</Input>
         <TargetEvaluation class="DataObjects" type="DataSet"   >cost_P1P2_PS</TargetEvaluation>
       </Model>  
     </EnsembleModel>
@@ -161,7 +161,7 @@
 
     <!-- Reliability models-->
     <ExternalModel name="lambdaV1" ModuleToLoad="lambdaV1" subType="">
-      <variables>time, a_V1, b_V1,
+      <variables>opPower, time, a_V1, b_V1,
                  a_V2, b_V2,
                  alpha_P1, beta_P1,
                  delta_P2,
@@ -169,7 +169,7 @@
                  p_V1</variables>
     </ExternalModel>
     <ExternalModel name="lambdaV2" ModuleToLoad="lambdaV2" subType="">
-      <variables>time, a_V1, b_V1,
+      <variables>opPower, time, a_V1, b_V1,
                  a_V2, b_V2,
                  alpha_P1, beta_P1,
                  delta_P2,
@@ -177,7 +177,7 @@
                  p_V2</variables>
     </ExternalModel>
     <ExternalModel name="RUL_P1" ModuleToLoad="RUL_P1" subType="">
-      <variables>time, a_V1, b_V1,
+      <variables>opPower, time, a_V1, b_V1,
                  a_V2, b_V2,
                  alpha_P1, beta_P1,
                  delta_P2,
@@ -185,7 +185,7 @@
                  p_P1</variables>
     </ExternalModel>
     <ExternalModel name="unav_P2" ModuleToLoad="unav_P2" subType="">
-      <variables>time, a_V1, b_V1,
+      <variables>opPower, time, a_V1, b_V1,
                  a_V2, b_V2,
                  alpha_P1, beta_P1,
                  delta_P2,
@@ -204,34 +204,34 @@
 
     <!-- Performance models-->
     <ExternalModel name="ET_V1" ModuleToLoad="ET_V1" subType="">
-      <variables>time, p_V1, p_V2, p_P1, p_P2, p_SG,
+      <variables>opPower, time, p_V1, p_V2, p_P1, p_P2, p_SG,
                  outcome_V1</variables>
     </ExternalModel>
     <ExternalModel name="ET_V2" ModuleToLoad="ET_V2" subType="">
-      <variables>time, p_V1, p_V2, p_P1, p_P2, p_SG,
+      <variables>opPower, time, p_V1, p_V2, p_P1, p_P2, p_SG,
                  outcome_V2</variables>
     </ExternalModel>
     <ExternalModel name="ET_SG" ModuleToLoad="ET_SG" subType="">
-      <variables>time, p_V1, p_V2, p_P1, p_P2, p_SG,
+      <variables>opPower, time, p_V1, p_V2, p_P1, p_P2, p_SG,
                  outcome_SG</variables>
     </ExternalModel>
     <ExternalModel name="ET_P1P2" ModuleToLoad="ET_P1P2" subType="">
-      <variables>time, p_V1, p_V2, p_P1, p_P2, p_SG,
+      <variables>opPower, time, p_V1, p_V2, p_P1, p_P2, p_SG,
                  outcome_P1P2_0, outcome_P1P2_1, outcome_P1P2_2</variables>
     </ExternalModel>
 
     <!-- Cost models-->
     <ExternalModel name="cost_V1" ModuleToLoad="cost_V1" subType="">
-      <variables>time, cost_V1</variables>
+      <variables>opPower, time, cost_V1</variables>
     </ExternalModel>
     <ExternalModel name="cost_V2" ModuleToLoad="cost_V2" subType="">
-      <variables>time, cost_V2</variables>
+      <variables>opPower, time, cost_V2</variables>
     </ExternalModel>
     <ExternalModel name="cost_SG" ModuleToLoad="cost_SG" subType="">
-      <variables>time, cost_SG</variables>
+      <variables>opPower, time, cost_SG</variables>
     </ExternalModel>
     <ExternalModel name="cost_P1P2" ModuleToLoad="cost_P1P2" subType="">
-      <variables>time, cost_P1P2_0, cost_P1P2_1, cost_P1P2_2</variables>
+      <variables>opPower, time, cost_P1P2_0, cost_P1P2_1, cost_P1P2_2</variables>
     </ExternalModel>
   </Models>
 
@@ -250,40 +250,44 @@
     </HistorySet>
 
     <DataSet name="lambdaV1_PS">
-      <Input>time, a_V1, b_V1,
+      <Input>opPower, time, a_V1, b_V1,
              a_V2, b_V2,
              alpha_P1, beta_P1,
              delta_P2,
              alpha_SG, beta_SG
       </Input>
       <Output>p_V1</Output>
+      <Index var="time">opPower,p_V1</Index>
     </DataSet>
     <DataSet name="lambdaV2_PS">
-      <Input>time, a_V1, b_V1,
+      <Input>opPower, time, a_V1, b_V1,
              a_V2, b_V2,
              alpha_P1, beta_P1,
              delta_P2,
              alpha_SG, beta_SG
       </Input>
       <Output>p_V2</Output>
+      <Index var="time">opPower,p_V2</Index>
     </DataSet>
     <DataSet name="RUL_P1_PS">
-      <Input>time, a_V1, b_V1,
+      <Input>opPower, time, a_V1, b_V1,
              a_V2, b_V2,
              alpha_P1, beta_P1,
              delta_P2,
              alpha_SG, beta_SG
       </Input>
       <Output>p_P1</Output>
+      <Index var="time">opPower,p_P1</Index>
     </DataSet>
     <DataSet name="unav_P2_PS">
-      <Input>time, a_V1, b_V1,
+      <Input>opPower, time, a_V1, b_V1,
              a_V2, b_V2,
              alpha_P1, beta_P1,
              delta_P2,
              alpha_SG, beta_SG
       </Input>
       <Output>p_P2</Output>
+      <Index var="time">opPower, p_P2</Index>
     </DataSet>
     <DataSet name="RUL_SG_PS">
       <Input>opPower, a_V1, b_V1,
@@ -293,41 +297,49 @@
              alpha_SG, beta_SG
       </Input>
       <Output>p_SG</Output>
-      <Index var="time">opPower</Index>
+      <Index var="time">opPower,p_SG</Index>
     </DataSet>
 
     <DataSet name="ET_V1_PS">
-      <Input>time, p_V1, p_V2, p_SG, p_P1, p_P2</Input>
+      <Input>opPower, time, p_V1, p_V2, p_SG, p_P1, p_P2</Input>
       <Output>outcome_V1</Output>
+      <Index var="time">opPower,outcome_V1, p_V1, p_V2, p_SG, p_P1, p_P2</Index>
     </DataSet>
     <DataSet name="ET_V2_PS">
-       <Input>time, p_V1, p_V2, p_SG, p_P1, p_P2</Input>
+       <Input>opPower, time, p_V1, p_V2, p_SG, p_P1, p_P2</Input>
       <Output>outcome_V2</Output>
+      <Index var="time">opPower,outcome_V2, p_V1, p_V2, p_SG, p_P1, p_P2</Index>
     </DataSet>
     <DataSet name="ET_SG_PS">
-       <Input>time, p_V1, p_V2, p_SG, p_P1, p_P2</Input>
+       <Input>opPower, time, p_V1, p_V2, p_SG, p_P1, p_P2</Input>
       <Output>outcome_SG</Output>
+      <Index var="time">opPower,outcome_SG, p_V1, p_V2, p_SG, p_P1, p_P2</Index>
     </DataSet>
     <DataSet name="ET_P1P2_PS">
-       <Input>time, p_V1, p_V2, p_SG, p_P1, p_P2</Input>
+       <Input>opPower, time, p_V1, p_V2, p_SG, p_P1, p_P2</Input>
       <Output>outcome_P1P2_0, outcome_P1P2_1, outcome_P1P2_2</Output>
+      <Index var="time">opPower,outcome_P1P2_0, outcome_P1P2_1, outcome_P1P2_2, p_V1, p_V2, p_SG, p_P1, p_P2</Index>
     </DataSet>
 
     <DataSet name="cost_V1_PS">
-      <Input>time, outcome_V1, outcome_V2, outcome_SG, outcome_P1P2_0, outcome_P1P2_1, outcome_P1P2_2</Input>
+      <Input>opPower, time, outcome_V1, outcome_V2, outcome_SG, outcome_P1P2_0, outcome_P1P2_1, outcome_P1P2_2</Input>
       <Output>cost_V1</Output>
+      <Index var="time">opPower,cost_V1, outcome_V1, outcome_V2, outcome_SG, outcome_P1P2_0, outcome_P1P2_1, outcome_P1P2_2</Index>
     </DataSet>
     <DataSet name="cost_V2_PS">
-      <Input>time, outcome_V1, outcome_V2, outcome_SG, outcome_P1P2_0, outcome_P1P2_1, outcome_P1P2_2</Input>
+      <Input>opPower, time, outcome_V1, outcome_V2, outcome_SG, outcome_P1P2_0, outcome_P1P2_1, outcome_P1P2_2</Input>
       <Output>cost_V2</Output>
+      <Index var="time">opPower, cost_V2, outcome_V1, outcome_V2, outcome_SG, outcome_P1P2_0, outcome_P1P2_1, outcome_P1P2_2</Index>
     </DataSet>
     <DataSet name="cost_SG_PS">
-      <Input>time, outcome_V1, outcome_V2, outcome_SG, outcome_P1P2_0, outcome_P1P2_1, outcome_P1P2_2</Input>
+      <Input>opPower, time, outcome_V1, outcome_V2, outcome_SG, outcome_P1P2_0, outcome_P1P2_1, outcome_P1P2_2</Input>
       <Output>cost_SG</Output>
+      <Index var="time">opPower, cost_SG, outcome_V1, outcome_V2, outcome_SG, outcome_P1P2_0, outcome_P1P2_1, outcome_P1P2_2</Index>
     </DataSet>
     <DataSet name="cost_P1P2_PS">
-      <Input>time, outcome_V1, outcome_V2, outcome_SG, outcome_P1P2_0, outcome_P1P2_1, outcome_P1P2_2</Input>
+      <Input>opPower, time, outcome_V1, outcome_V2, outcome_SG, outcome_P1P2_0, outcome_P1P2_1, outcome_P1P2_2</Input>
       <Output>cost_P1P2_0, cost_P1P2_1, cost_P1P2_2</Output>
+      <Index var="time">opPower,cost_P1P2_0, cost_P1P2_1, cost_P1P2_2, outcome_V1, outcome_V2, outcome_SG, outcome_P1P2_0, outcome_P1P2_1, outcome_P1P2_2</Index>
     </DataSet>
 
     <DataSet name="main">
@@ -337,11 +349,14 @@
              delta_P2,
              alpha_SG, beta_SG
       </Input>
-      <Output>time,
+      <Output>time, opPower,
               p_V1, p_V2, p_P1, p_P2, p_SG,
               outcome_V1, outcome_V2, outcome_SG, outcome_P1P2_0, outcome_P1P2_1, outcome_P1P2_2,
               cost_V1, cost_V2, cost_SG, cost_P1P2_0, cost_P1P2_1, cost_P1P2_2 
       </Output>
+      <Index var="time">opPower,p_V1, p_V2, p_P1, p_P2, p_SG,
+              outcome_V1, outcome_V2, outcome_SG, outcome_P1P2_0, outcome_P1P2_1, outcome_P1P2_2,
+              cost_V1, cost_V2, cost_SG, cost_P1P2_0, cost_P1P2_1, cost_P1P2_2 </Index>
     </DataSet>
     <PointSet name="inputPlaceHolderMain">
       <Input>a_V1, b_V1,
