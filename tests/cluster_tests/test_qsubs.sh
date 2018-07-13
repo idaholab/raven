@@ -44,6 +44,8 @@ wait_lines ()
 
 }
 
+rm -Rf DatabaseStorage/
+
 rm -Rf FirstMQRun/
 
 #REQUIREMENT_TEST R-IS-7
