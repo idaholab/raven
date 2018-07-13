@@ -8,13 +8,13 @@
 
   <Steps>
       <MultiRun  name='MultiRun'>
-        <Input   class="DataObjects" type="HistorySet"    >inputPlaceHolderMain</Input>
+        <Input   class="DataObjects" type="PointSet"      >inputPlaceHolderMain</Input>
         <Model   class='Models'      type='ExternalModel' >CRAFT_Model</Model>
         <Sampler class='Samplers'    type='MonteCarlo'    >MC_main</Sampler>
-        <Output  class='DataObjects' type='HistorySet'    >main</Output>
+        <Output  class='DataObjects' type='DataSet'       >main</Output>
       </MultiRun>
       <IOStep name='print'>
-        <Input   class="DataObjects" type="HistorySet"    >main</Input>
+        <Input   class="DataObjects" type="DataSet"       >main</Input>
         <Output  class='OutStreams'  type='Print'         >Print_sim_PS</Output>
       </IOStep>
   </Steps>
@@ -56,6 +56,7 @@
         <limit>1</limit>
         <initialSeed>2561978</initialSeed>
       </samplerInit>
+
       <constant name='a_V1'>3.E-4</constant>
       <variable name='b_V1'>
         <distribution>b_V1_dist</distribution>
@@ -90,76 +91,76 @@
     <EnsembleModel name="CRAFT_Model" subType="">
       <Model class="Models" type="ExternalModel">
         plantData
-        <Input            class="DataObjects" type="HistorySet"   >inputPlaceHolder_plantData_PS</Input>
-        <TargetEvaluation class="DataObjects" type="HistorySet"   >plantData_PS</TargetEvaluation>
+        <Input            class="DataObjects" type="PointSet"   >inputPlaceHolder_plantData_PS</Input>
+        <TargetEvaluation class="DataObjects" type="HistorySet" >plantData_PS</TargetEvaluation>
       </Model>
 
       <Model class="Models" type="ExternalModel">
         lambdaV1
-        <Input            class="DataObjects" type="HistorySet"   >inputPlaceHolder_lambdaV1_PS</Input>
-        <TargetEvaluation class="DataObjects" type="HistorySet"   >lambdaV1_PS</TargetEvaluation>
+        <Input            class="DataObjects" type="PointSet"  >inputPlaceHolder_lambdaV1_PS</Input>
+        <TargetEvaluation class="DataObjects" type="DataSet"   >lambdaV1_PS</TargetEvaluation>
       </Model>
       <Model class="Models" type="ExternalModel">
         lambdaV2
-        <Input            class="DataObjects" type="HistorySet"   >inputPlaceHolder_lambdaV2_PS</Input>
-        <TargetEvaluation class="DataObjects" type="HistorySet"   >lambdaV2_PS</TargetEvaluation>
+        <Input            class="DataObjects" type="PointSet"  >inputPlaceHolder_lambdaV2_PS</Input>
+        <TargetEvaluation class="DataObjects" type="DataSet"   >lambdaV2_PS</TargetEvaluation>
       </Model>
       <Model class="Models" type="ExternalModel">
         RUL_P1
-        <Input            class="DataObjects" type="HistorySet"   >inputPlaceHolder_RUL_P1_PS</Input>
-        <TargetEvaluation class="DataObjects" type="HistorySet"   >RUL_P1_PS</TargetEvaluation>
+        <Input            class="DataObjects" type="PointSet"  >inputPlaceHolder_RUL_P1_PS</Input>
+        <TargetEvaluation class="DataObjects" type="DataSet"   >RUL_P1_PS</TargetEvaluation>
       </Model>
       <Model class="Models" type="ExternalModel">
         unav_P2
-        <Input            class="DataObjects" type="HistorySet"   >inputPlaceHolder_unav_P2_PS</Input>
-        <TargetEvaluation class="DataObjects" type="HistorySet"   >unav_P2_PS</TargetEvaluation>
+        <Input            class="DataObjects" type="PointSet"  >inputPlaceHolder_unav_P2_PS</Input>
+        <TargetEvaluation class="DataObjects" type="DataSet"   >unav_P2_PS</TargetEvaluation>
       </Model>
       <Model class="Models" type="ExternalModel">
         RUL_SG
-        <Input            class="DataObjects" type="HistorySet"   >inputPlaceHolder_RUL_SG_PS</Input>
-        <TargetEvaluation class="DataObjects" type="HistorySet"   >RUL_SG_PS</TargetEvaluation>
+        <Input            class="DataObjects" type="PointSet"  >inputPlaceHolder_RUL_SG_PS</Input>
+        <TargetEvaluation class="DataObjects" type="DataSet"   >RUL_SG_PS</TargetEvaluation>
       </Model>
 
       <Model class="Models" type="ExternalModel">
         ET_V1
-        <Input            class="DataObjects" type="HistorySet"   >inputPlaceHolder_ET_V1_PS</Input>
-        <TargetEvaluation class="DataObjects" type="HistorySet"   >ET_V1_PS</TargetEvaluation>
+        <Input            class="DataObjects" type="PointSet"  >inputPlaceHolder_ET_V1_PS</Input>
+        <TargetEvaluation class="DataObjects" type="DataSet"   >ET_V1_PS</TargetEvaluation>
       </Model>
       <Model class="Models" type="ExternalModel">
         ET_V2
-        <Input            class="DataObjects" type="HistorySet"   >inputPlaceHolder_ET_V2_PS</Input>
-        <TargetEvaluation class="DataObjects" type="HistorySet"   >ET_V2_PS</TargetEvaluation>
+        <Input            class="DataObjects" type="PointSet"  >inputPlaceHolder_ET_V2_PS</Input>
+        <TargetEvaluation class="DataObjects" type="DataSet"   >ET_V2_PS</TargetEvaluation>
       </Model>
       <Model class="Models" type="ExternalModel">
         ET_SG
-        <Input            class="DataObjects" type="HistorySet"   >inputPlaceHolder_ET_SG_PS</Input>
-        <TargetEvaluation class="DataObjects" type="HistorySet"   >ET_SG_PS</TargetEvaluation>
+        <Input            class="DataObjects" type="PointSet"  >inputPlaceHolder_ET_SG_PS</Input>
+        <TargetEvaluation class="DataObjects" type="DataSet"   >ET_SG_PS</TargetEvaluation>
       </Model>
       <Model class="Models" type="ExternalModel">
         ET_P1P2
-        <Input            class="DataObjects" type="HistorySet"   >inputPlaceHolder_ET_P1P2_PS</Input>
-        <TargetEvaluation class="DataObjects" type="HistorySet"   >ET_P1P2_PS</TargetEvaluation>
+        <Input            class="DataObjects" type="PointSet"  >inputPlaceHolder_ET_P1P2_PS</Input>
+        <TargetEvaluation class="DataObjects" type="DataSet"   >ET_P1P2_PS</TargetEvaluation>
       </Model>
 
       <Model class="Models" type="ExternalModel">
         cost_V1
-        <Input            class="DataObjects" type="HistorySet"   >inputPlaceHolder_cost_V1_PS</Input>
-        <TargetEvaluation class="DataObjects" type="HistorySet"   >cost_V1_PS</TargetEvaluation>
+        <Input            class="DataObjects" type="PointSet"  >inputPlaceHolder_cost_V1_PS</Input>
+        <TargetEvaluation class="DataObjects" type="DataSet"   >cost_V1_PS</TargetEvaluation>
       </Model>
       <Model class="Models" type="ExternalModel">
         cost_V2
-        <Input            class="DataObjects" type="HistorySet"   >inputPlaceHolder_cost_V2_PS</Input>
-        <TargetEvaluation class="DataObjects" type="HistorySet"   >cost_V2_PS</TargetEvaluation>
+        <Input            class="DataObjects" type="PointSet"  >inputPlaceHolder_cost_V2_PS</Input>
+        <TargetEvaluation class="DataObjects" type="DataSet"   >cost_V2_PS</TargetEvaluation>
       </Model>
       <Model class="Models" type="ExternalModel">
         cost_SG
-        <Input            class="DataObjects" type="HistorySet"   >inputPlaceHolder_cost_SG_PS</Input>
-        <TargetEvaluation class="DataObjects" type="HistorySet"   >cost_SG_PS</TargetEvaluation>
+        <Input            class="DataObjects" type="PointSet"  >inputPlaceHolder_cost_SG_PS</Input>
+        <TargetEvaluation class="DataObjects" type="DataSet"   >cost_SG_PS</TargetEvaluation>
       </Model>
       <Model class="Models" type="ExternalModel">
         cost_P1P2
-        <Input            class="DataObjects" type="HistorySet"   >inputPlaceHolderMain</Input>
-        <TargetEvaluation class="DataObjects" type="HistorySet"   >cost_P1P2_PS</TargetEvaluation>
+        <Input            class="DataObjects" type="PointSet"  >inputPlaceHolderMain</Input>
+        <TargetEvaluation class="DataObjects" type="DataSet"   >cost_P1P2_PS</TargetEvaluation>
       </Model>  
     </EnsembleModel>
 
@@ -258,7 +259,7 @@
       <Output>time</Output>
     </HistorySet>
 
-    <HistorySet name="lambdaV1_PS">
+    <DataSet name="lambdaV1_PS">
       <Input>time, a_V1, b_V1,
              a_V2, b_V2,
              alpha_P1, beta_P1,
@@ -266,8 +267,8 @@
              alpha_SG, beta_SG
       </Input>
       <Output>p_V1</Output>
-    </HistorySet>
-    <HistorySet name="lambdaV2_PS">
+    </DataSet>
+    <DataSet name="lambdaV2_PS">
       <Input>time, a_V1, b_V1,
              a_V2, b_V2,
              alpha_P1, beta_P1,
@@ -275,8 +276,8 @@
              alpha_SG, beta_SG
       </Input>
       <Output>p_V2</Output>
-    </HistorySet>
-    <HistorySet name="RUL_P1_PS">
+    </DataSet>
+    <DataSet name="RUL_P1_PS">
       <Input>time, a_V1, b_V1,
              a_V2, b_V2,
              alpha_P1, beta_P1,
@@ -284,8 +285,8 @@
              alpha_SG, beta_SG
       </Input>
       <Output>p_P1</Output>
-    </HistorySet>
-    <HistorySet name="unav_P2_PS">
+    </DataSet>
+    <DataSet name="unav_P2_PS">
       <Input>time, a_V1, b_V1,
              a_V2, b_V2,
              alpha_P1, beta_P1,
@@ -293,8 +294,8 @@
              alpha_SG, beta_SG
       </Input>
       <Output>p_P2</Output>
-    </HistorySet>
-    <HistorySet name="RUL_SG_PS">
+    </DataSet>
+    <DataSet name="RUL_SG_PS">
       <Input>time, a_V1, b_V1,
              a_V2, b_V2,
              alpha_P1, beta_P1,
@@ -302,43 +303,43 @@
              alpha_SG, beta_SG
       </Input>
       <Output>p_SG</Output>
-    </HistorySet>
+    </DataSet>
 
-    <HistorySet name="ET_V1_PS">
+    <DataSet name="ET_V1_PS">
       <Input>time, p_V1, p_V2, p_SG, p_P1, p_P2</Input>
       <Output>outcome_V1</Output>
-    </HistorySet>
-    <HistorySet name="ET_V2_PS">
+    </DataSet>
+    <DataSet name="ET_V2_PS">
        <Input>time, p_V1, p_V2, p_SG, p_P1, p_P2</Input>
       <Output>outcome_V2</Output>
-    </HistorySet>
-    <HistorySet name="ET_SG_PS">
+    </DataSet>
+    <DataSet name="ET_SG_PS">
        <Input>time, p_V1, p_V2, p_SG, p_P1, p_P2</Input>
       <Output>outcome_SG</Output>
-    </HistorySet>
-    <HistorySet name="ET_P1P2_PS">
+    </DataSet>
+    <DataSet name="ET_P1P2_PS">
        <Input>time, p_V1, p_V2, p_SG, p_P1, p_P2</Input>
       <Output>outcome_P1P2_0, outcome_P1P2_1, outcome_P1P2_2</Output>
-    </HistorySet>
+    </DataSet>
 
-    <HistorySet name="cost_V1_PS">
+    <DataSet name="cost_V1_PS">
       <Input>time, outcome_V1, outcome_V2, outcome_SG, outcome_P1P2_0, outcome_P1P2_1, outcome_P1P2_2</Input>
       <Output>cost_V1</Output>
-    </HistorySet>
-    <HistorySet name="cost_V2_PS">
+    </DataSet>
+    <DataSet name="cost_V2_PS">
       <Input>time, outcome_V1, outcome_V2, outcome_SG, outcome_P1P2_0, outcome_P1P2_1, outcome_P1P2_2</Input>
       <Output>cost_V2</Output>
-    </HistorySet>
-    <HistorySet name="cost_SG_PS">
+    </DataSet>
+    <DataSet name="cost_SG_PS">
       <Input>time, outcome_V1, outcome_V2, outcome_SG, outcome_P1P2_0, outcome_P1P2_1, outcome_P1P2_2</Input>
       <Output>cost_SG</Output>
-    </HistorySet>
-    <HistorySet name="cost_P1P2_PS">
+    </DataSet>
+    <DataSet name="cost_P1P2_PS">
       <Input>time, outcome_V1, outcome_V2, outcome_SG, outcome_P1P2_0, outcome_P1P2_1, outcome_P1P2_2</Input>
       <Output>cost_P1P2_0, cost_P1P2_1, cost_P1P2_2</Output>
-    </HistorySet>
+    </DataSet>
 
-    <HistorySet name="main">
+    <DataSet name="main">
       <Input>a_V1, b_V1,
              a_V2, b_V2,
              alpha_P1, beta_P1,
@@ -350,8 +351,8 @@
               outcome_V1, outcome_V2, outcome_SG, outcome_P1P2_0, outcome_P1P2_1, outcome_P1P2_2,
               cost_V1, cost_V2, cost_SG, cost_P1P2_0, cost_P1P2_1, cost_P1P2_2 
       </Output>
-    </HistorySet>
-    <HistorySet name="inputPlaceHolderMain">
+    </DataSet>
+    <PointSet name="inputPlaceHolderMain">
       <Input>a_V1, b_V1,
              a_V2, b_V2,
              alpha_P1, beta_P1,
@@ -359,64 +360,64 @@
              alpha_SG, beta_SG
       </Input>
       <Output>OutputPlaceHolder</Output>
-    </HistorySet>
+    </PointSet>
 
-    <HistorySet name="inputPlaceHolder_plantData_PS">
-      <Input>InputPlaceHolder</Input>
-      <Output>time</Output>
-    </HistorySet>
-    <HistorySet name="inputPlaceHolder_lambdaV1_PS">
-      <Input>InputPlaceHolder</Input>
-      <Output>p_V1</Output>
-    </HistorySet>
-    <HistorySet name="inputPlaceHolder_lambdaV2_PS">
-      <Input>InputPlaceHolder</Input>
-      <Output>p_V2</Output>
-    </HistorySet>
-    <HistorySet name="inputPlaceHolder_RUL_P1_PS">
-      <Input>InputPlaceHolder</Input>
-      <Output>p_P1</Output>
-    </HistorySet>
-    <HistorySet name="inputPlaceHolder_unav_P2_PS">
-      <Input>InputPlaceHolder</Input>
-      <Output>p_P2</Output>
-    </HistorySet>
-    <HistorySet name="inputPlaceHolder_RUL_SG_PS">
-      <Input>InputPlaceHolder</Input>
-      <Output>p_SG</Output>
-    </HistorySet>
-    <HistorySet name="inputPlaceHolder_ET_V1_PS">
+    <PointSet name="inputPlaceHolder_plantData_PS">
       <Input>InputPlaceHolder</Input>
       <Output>OutputPlaceHolder</Output>
-    </HistorySet>
-    <HistorySet name="inputPlaceHolder_ET_V2_PS">
+    </PointSet>
+    <PointSet name="inputPlaceHolder_lambdaV1_PS">
+      <Input>InputPlaceHolder</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="inputPlaceHolder_lambdaV2_PS">
+      <Input>InputPlaceHolder</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="inputPlaceHolder_RUL_P1_PS">
+      <Input>InputPlaceHolder</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="inputPlaceHolder_unav_P2_PS">
+      <Input>InputPlaceHolder</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="inputPlaceHolder_RUL_SG_PS">
+      <Input>InputPlaceHolder</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="inputPlaceHolder_ET_V1_PS">
+      <Input>InputPlaceHolder</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="inputPlaceHolder_ET_V2_PS">
        <Input>InputPlaceHolder</Input>
       <Output>OutputPlaceHolder</Output>
-    </HistorySet>
-    <HistorySet name="inputPlaceHolder_ET_SG_PS">
+    </PointSet>
+    <PointSet name="inputPlaceHolder_ET_SG_PS">
        <Input>InputPlaceHolder</Input>
       <Output>OutputPlaceHolder</Output>
-    </HistorySet>
-    <HistorySet name="inputPlaceHolder_ET_P1P2_PS">
+    </PointSet>
+    <PointSet name="inputPlaceHolder_ET_P1P2_PS">
        <Input>InputPlaceHolder</Input>
       <Output>OutputPlaceHolder</Output>
-    </HistorySet>
-    <HistorySet name="inputPlaceHolder_cost_V1_PS">
+    </PointSet>
+    <PointSet name="inputPlaceHolder_cost_V1_PS">
       <Input>InputPlaceHolder</Input>
       <Output>OutputPlaceHolder</Output>
-    </HistorySet>
-    <HistorySet name="inputPlaceHolder_cost_V2_PS">
+    </PointSet>
+    <PointSet name="inputPlaceHolder_cost_V2_PS">
       <Input>InputPlaceHolder</Input>
       <Output>OutputPlaceHolder</Output>
-    </HistorySet>
-    <HistorySet name="inputPlaceHolder_cost_SG_PS">
+    </PointSet>
+    <PointSet name="inputPlaceHolder_cost_SG_PS">
       <Input>InputPlaceHolder</Input>
       <Output>OutputPlaceHolder</Output>
-    </HistorySet>
-    <HistorySet name="inputPlaceHolder_cost_P1P2_PS">
+    </PointSet>
+    <PointSet name="inputPlaceHolder_cost_P1P2_PS">
       <Input>InputPlaceHolder</Input>
       <Output>OutputPlaceHolder</Output>
-    </HistorySet>
+    </PointSet>
   </DataObjects>
 
   <OutStreams>
