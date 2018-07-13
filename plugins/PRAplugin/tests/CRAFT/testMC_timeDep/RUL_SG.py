@@ -14,8 +14,7 @@ def run(self,Input):
   # intput: alpha, beta
   # output: t, p
 
-  self.p_SG = np.zeros(Input['time'].size)
+  self.p_SG = np.zeros(len(self.time))
 
-  for index,value in np.ndenumerate(Input['time']):
+  for index,value in np.ndenumerate(self.time):
      self.p_SG[index[0]] = float(RULmodel(Input['alpha_SG'], Input['beta_SG'], value))
-       

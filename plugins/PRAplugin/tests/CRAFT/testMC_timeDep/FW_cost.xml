@@ -91,7 +91,7 @@
     <EnsembleModel name="CRAFT_Model" subType="">
       <Model class="Models" type="ExternalModel">plantData
         <Input            class="DataObjects" type="PointSet"   >inputPlaceHolder_plantData_PS</Input>
-        <TargetEvaluation class="DataObjects" type="DataSet"    >plantData_PS</TargetEvaluation>
+        <TargetEvaluation class="DataObjects" type="HistorySet"    >plantData_PS</TargetEvaluation>
       </Model>
 
       <Model class="Models" type="ExternalModel">lambdaV1
@@ -156,7 +156,7 @@
                  alpha_P1, beta_P1,
                  delta_P2,
                  alpha_SG, beta_SG,
-                 time</variables>
+                 time,opPower</variables>
     </ExternalModel>
 
     <!-- Reliability models-->
@@ -193,7 +193,8 @@
                  p_P2</variables>
     </ExternalModel>
     <ExternalModel name="RUL_SG" ModuleToLoad="RUL_SG" subType="">
-      <variables>time, a_V1, b_V1,
+      <variables>time, opPower,
+                 a_V1, b_V1,
                  a_V2, b_V2,
                  alpha_P1, beta_P1,
                  delta_P2,
@@ -235,15 +236,18 @@
   </Models>
 
   <DataObjects>
-    <DataSet name="plantData_PS">
+    <HistorySet name="plantData_PS">
       <Input>a_V1, b_V1,
              a_V2, b_V2,
              alpha_P1, beta_P1,
              delta_P2,
              alpha_SG, beta_SG
       </Input>
-      <Output>time</Output>
-    </DataSet>
+      <Output>opPower</Output>
+        <options>
+            <pivotParameter>time</pivotParameter>
+        </options>
+    </HistorySet>
 
     <DataSet name="lambdaV1_PS">
       <Input>time, a_V1, b_V1,
@@ -282,13 +286,14 @@
       <Output>p_P2</Output>
     </DataSet>
     <DataSet name="RUL_SG_PS">
-      <Input>time, a_V1, b_V1,
+      <Input>opPower, a_V1, b_V1,
              a_V2, b_V2,
              alpha_P1, beta_P1,
              delta_P2,
              alpha_SG, beta_SG
       </Input>
       <Output>p_SG</Output>
+      <Index var="time">opPower</Index>
     </DataSet>
 
     <DataSet name="ET_V1_PS">
