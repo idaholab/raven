@@ -89,76 +89,62 @@
 
   <Models>
     <EnsembleModel name="CRAFT_Model" subType="">
-      <Model class="Models" type="ExternalModel">
-        plantData
+      <Model class="Models" type="ExternalModel">plantData
         <Input            class="DataObjects" type="PointSet"   >inputPlaceHolder_plantData_PS</Input>
-        <TargetEvaluation class="DataObjects" type="HistorySet" >plantData_PS</TargetEvaluation>
+        <TargetEvaluation class="DataObjects" type="DataSet"    >plantData_PS</TargetEvaluation>
       </Model>
 
-      <Model class="Models" type="ExternalModel">
-        lambdaV1
+      <Model class="Models" type="ExternalModel">lambdaV1
         <Input            class="DataObjects" type="PointSet"  >inputPlaceHolder_lambdaV1_PS</Input>
         <TargetEvaluation class="DataObjects" type="DataSet"   >lambdaV1_PS</TargetEvaluation>
       </Model>
-      <Model class="Models" type="ExternalModel">
-        lambdaV2
+      <Model class="Models" type="ExternalModel">lambdaV2
         <Input            class="DataObjects" type="PointSet"  >inputPlaceHolder_lambdaV2_PS</Input>
         <TargetEvaluation class="DataObjects" type="DataSet"   >lambdaV2_PS</TargetEvaluation>
       </Model>
-      <Model class="Models" type="ExternalModel">
-        RUL_P1
+      <Model class="Models" type="ExternalModel">RUL_P1
         <Input            class="DataObjects" type="PointSet"  >inputPlaceHolder_RUL_P1_PS</Input>
         <TargetEvaluation class="DataObjects" type="DataSet"   >RUL_P1_PS</TargetEvaluation>
       </Model>
-      <Model class="Models" type="ExternalModel">
-        unav_P2
+      <Model class="Models" type="ExternalModel">unav_P2
         <Input            class="DataObjects" type="PointSet"  >inputPlaceHolder_unav_P2_PS</Input>
         <TargetEvaluation class="DataObjects" type="DataSet"   >unav_P2_PS</TargetEvaluation>
       </Model>
-      <Model class="Models" type="ExternalModel">
-        RUL_SG
+      <Model class="Models" type="ExternalModel">RUL_SG
         <Input            class="DataObjects" type="PointSet"  >inputPlaceHolder_RUL_SG_PS</Input>
         <TargetEvaluation class="DataObjects" type="DataSet"   >RUL_SG_PS</TargetEvaluation>
       </Model>
 
-      <Model class="Models" type="ExternalModel">
-        ET_V1
+      <Model class="Models" type="ExternalModel">ET_V1
         <Input            class="DataObjects" type="PointSet"  >inputPlaceHolder_ET_V1_PS</Input>
         <TargetEvaluation class="DataObjects" type="DataSet"   >ET_V1_PS</TargetEvaluation>
       </Model>
-      <Model class="Models" type="ExternalModel">
-        ET_V2
+      <Model class="Models" type="ExternalModel">ET_V2
         <Input            class="DataObjects" type="PointSet"  >inputPlaceHolder_ET_V2_PS</Input>
         <TargetEvaluation class="DataObjects" type="DataSet"   >ET_V2_PS</TargetEvaluation>
       </Model>
-      <Model class="Models" type="ExternalModel">
-        ET_SG
+      <Model class="Models" type="ExternalModel">ET_SG
         <Input            class="DataObjects" type="PointSet"  >inputPlaceHolder_ET_SG_PS</Input>
         <TargetEvaluation class="DataObjects" type="DataSet"   >ET_SG_PS</TargetEvaluation>
       </Model>
-      <Model class="Models" type="ExternalModel">
-        ET_P1P2
+      <Model class="Models" type="ExternalModel">ET_P1P2
         <Input            class="DataObjects" type="PointSet"  >inputPlaceHolder_ET_P1P2_PS</Input>
         <TargetEvaluation class="DataObjects" type="DataSet"   >ET_P1P2_PS</TargetEvaluation>
       </Model>
 
-      <Model class="Models" type="ExternalModel">
-        cost_V1
+      <Model class="Models" type="ExternalModel">cost_V1
         <Input            class="DataObjects" type="PointSet"  >inputPlaceHolder_cost_V1_PS</Input>
         <TargetEvaluation class="DataObjects" type="DataSet"   >cost_V1_PS</TargetEvaluation>
       </Model>
-      <Model class="Models" type="ExternalModel">
-        cost_V2
+      <Model class="Models" type="ExternalModel">cost_V2
         <Input            class="DataObjects" type="PointSet"  >inputPlaceHolder_cost_V2_PS</Input>
         <TargetEvaluation class="DataObjects" type="DataSet"   >cost_V2_PS</TargetEvaluation>
       </Model>
-      <Model class="Models" type="ExternalModel">
-        cost_SG
+      <Model class="Models" type="ExternalModel">cost_SG
         <Input            class="DataObjects" type="PointSet"  >inputPlaceHolder_cost_SG_PS</Input>
         <TargetEvaluation class="DataObjects" type="DataSet"   >cost_SG_PS</TargetEvaluation>
       </Model>
-      <Model class="Models" type="ExternalModel">
-        cost_P1P2
+      <Model class="Models" type="ExternalModel">cost_P1P2
         <Input            class="DataObjects" type="PointSet"  >inputPlaceHolderMain</Input>
         <TargetEvaluation class="DataObjects" type="DataSet"   >cost_P1P2_PS</TargetEvaluation>
       </Model>  
@@ -249,7 +235,7 @@
   </Models>
 
   <DataObjects>
-    <HistorySet name="plantData_PS">
+    <DataSet name="plantData_PS">
       <Input>a_V1, b_V1,
              a_V2, b_V2,
              alpha_P1, beta_P1,
@@ -257,7 +243,7 @@
              alpha_SG, beta_SG
       </Input>
       <Output>time</Output>
-    </HistorySet>
+    </DataSet>
 
     <DataSet name="lambdaV1_PS">
       <Input>time, a_V1, b_V1,
