@@ -8,6 +8,11 @@ fi
 module load raven-devel
 module load use.moose moose-dev-gcc
 ##  also the name of the raven libraries conda environment
+source activate raven_libraries
+
+echo `conda env list`
+echo DEBUGG HERE IN RQC
+conda list
 
 which python
 which mpiexec
