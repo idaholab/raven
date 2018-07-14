@@ -87,18 +87,17 @@ class GenericCode(CodeInterfaceBase):
     #check for output either in clargs or fargs
     #if len(fargs['output'])<1 and 'output' not in clargs.keys():
     #  raise IOError('No output file was specified, either in clargs or fileargs!')
-    #check for duplicate extension use
-    usedExt=[]
-    for ext in list(clargs['input'][flag] for flag in clargs['input'].keys()) + list(fargs['input'][var] for var in fargs['input'].keys()):
-      if ext not in usedExt:
-        usedExt.append(ext)
-      else:
-        raise IOError('GenericCodeInterface cannot handle multiple input files with the same extension.  You may need to write your own interface.')
-
     #check all required input files are there
     inFiles=inputFiles[:]
-    for exts in list(clargs['input'][flag] for flag in clargs['input'].keys()) + list(fargs['input'][var] for var in fargs['input'].keys()):
-      for ext in exts:
+    #check for duplicate extension use
+    usedExt=[]
+    for elems in list(clargs['input'][flag] for flag in clargs['input'].keys()) + list(fargs['input'][var] for var in fargs['input'].keys()):
+      for elem in elems:
+        ext = elem[0]
+        if ext not in usedExt:
+          usedExt.append(ext)
+        else:
+          raise IOError('GenericCodeInterface cannot handle multiple input files with the same extension.  You may need to write your own interface.')
         found=False
         for inf in inputFiles:
           if '.'+inf.getExt() == ext:
@@ -107,6 +106,7 @@ class GenericCode(CodeInterfaceBase):
             break
         if not found:
           raise IOError('input extension "'+ext+'" listed in input but not in inputFiles!')
+
     #TODO if any remaining, check them against valid inputs
 
     #PROBLEM this is limited, since we can't figure out which .xml goes to -i and which to -d, for example.
@@ -131,18 +131,20 @@ class GenericCode(CodeInterfaceBase):
     todo += executable
     index=None
     #inputs
-    for flag,exts in clargs['input'].items():
+    for flag,elems in clargs['input'].items():
       if flag == 'noarg':
-        for ext in exts:
+        for elem in elems:
+          ext, delimiter = elem[0], elem[1]
           idx,fname = getFileWithExtension(inputFiles,ext.strip('.'))
-          todo+=' '+fname.getFilename()
+          todo += delimiter + fname.getFilename()
           if index == None:
             index = idx
         continue
       todo += ' '+flag
-      for ext in exts:
+      for elem in elems:
+        ext, delimiter = elem[0], elem[1]
         idx,fname = getFileWithExtension(inputFiles,ext.strip('.'))
-        todo+=' '+fname.getFilename()
+        todo += delimiter + fname.getFilename()
         if index == None:
           index = idx
     #outputs

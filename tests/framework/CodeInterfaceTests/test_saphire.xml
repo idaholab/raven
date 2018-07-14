@@ -21,10 +21,14 @@
   </Files>
 
   <Models>
-    <Code name="saphire" subType="GenericCode">
+    <Code name="saphire" subType="Saphire">
       <executable></executable>
       <clargs arg="project=pathToProject" type="text"/>
       <clargs arg="macro" extension=".mac" type="input" delimiter="="/>
+      <outputFile>fixed_output.csv</outputFile>
+      <codeOutput type="uncertainty">eventTreeSequenceUncertainty.txt</codeOutput>
+      <codeOutput type="uncertainty">faultTreeUncertainty.txt</codeOutput>
+      <!--codeOutput type="importance">faultTreeImportance.txt</codeOutput-->
     </Code>
   </Models>
 
@@ -85,7 +89,7 @@
   </DataObjects>
 
   <OutStreams>
-    <Print name="samphirePrint">
+    <Print name="saphirePrint">
       <type>csv</type>
       <source>saphireDump</source>
       <what>input,output</what>

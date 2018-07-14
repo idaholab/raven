@@ -68,6 +68,7 @@ class Code(Model):
 
     ClargsInput.addParam("arg", InputData.StringType, False)
     ClargsInput.addParam("extension", InputData.StringType, False)
+    ClargsInput.addParam("delimiter", InputData.StringType, False)
     inputSpecification.addSub(ClargsInput)
     ## End command line arguments tag
 
@@ -134,14 +135,18 @@ class Code(Model):
       if child.getName() =='preexec':
         self.preExec = child.value
       elif child.getName() == 'clargs':
-        argtype = child.parameterValues['type']      if 'type'      in child.parameterValues else None
-        arg     = child.parameterValues['arg']       if 'arg'       in child.parameterValues else None
-        ext     = child.parameterValues['extension'] if 'extension' in child.parameterValues else None
+        argtype    = child.parameterValues['type']      if 'type'      in child.parameterValues else None
+        arg        = child.parameterValues['arg']       if 'arg'       in child.parameterValues else None
+        ext        = child.parameterValues['extension'] if 'extension' in child.parameterValues else None
+        # The default delimiter is one empty space
+        delimiter  = child.parameterValues['delimiter'] if 'delimiter' in child.parameterValues else ' '
         if argtype == None:
           self.raiseAnError(IOError,'"type" for clarg not specified!')
         elif argtype == 'text':
           if ext != None:
             self.raiseAWarning('"text" nodes only accept "type" and "arg" attributes! Ignoring "extension"...')
+          if delimiter != None:
+            self.raiseAWarning('"text" nodes only accept "type" and "arg" attributes! Ignoring "delimiter"...')
           if arg == None:
             self.raiseAnError(IOError,'"arg" for clarg '+argtype+' not specified! Enter text to be used.')
           self.clargs['text']=arg
@@ -149,11 +154,13 @@ class Code(Model):
           if ext == None:
             self.raiseAnError(IOError,'"extension" for clarg '+argtype+' not specified! Enter filetype to be listed for this flag.')
           if arg == None:
-            self.clargs['input']['noarg'].append(ext)
+            self.clargs['input']['noarg'].append((ext,delimiter))
           else:
             if arg not in self.clargs['input'].keys():
               self.clargs['input'][arg]=[]
-            self.clargs['input'][arg].append(ext)
+            # add delimiter to the 'arg' for SAPHIRE interface, since one need to provide
+            # 'marco=pathToMacroInputFile' in the command line, the delimiter='=' will be used instead of empty space
+            self.clargs['input'][arg].append((ext,delimiter))
         elif argtype == 'output':
           if arg == None:
             self.raiseAnError(IOError,'"arg" for clarg '+argtype+' not specified! Enter flag for output file specification.')
@@ -218,7 +225,7 @@ class Code(Model):
         self.raiseAMessage('not found preexec '+self.preExec,'ExceptedError')
     self.code = Code.CodeInterfaces.returnCodeInterface(self.subType,self)
     self.code.readMoreXML(xmlNode) #TODO figure out how to handle this with InputData
-    self.code.setInputExtension(list(a.strip('.') for b in (c for c in self.clargs['input'].values()) for a in b))
+    self.code.setInputExtension(list(a[0].strip('.') for b in (c for c in self.clargs['input'].values()) for a in b))
     self.code.addInputExtension(list(a.strip('.') for b in (c for c in self.fargs ['input'].values()) for a in b))
     self.code.addDefaultExtension()
 

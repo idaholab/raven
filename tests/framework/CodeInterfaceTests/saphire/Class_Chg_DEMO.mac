@@ -57,7 +57,7 @@ None.
     <class>
       <event name>*</event name>
       <suscept>1</suscept>
-      <probability>1.0E-1</probability>
+      <probability>$RAVEN-allEventsPb$</probability>
     </class>
   </add>
   <mark name>ALL-EVENTS</mark name>
@@ -112,7 +112,7 @@ None.
     <class>
       <event name>?-MOV-CC-1</event name>
       <calc type>1</calc type>
-      <probability>5.0E-1</probability>
+      <probability>$RAVEN-mov1EventsPb$</probability>
     </class>
   </add>
     <mark name>MOV-1-EVENTS</mark name>
@@ -166,7 +166,7 @@ None.
     <single>
       <event name>E-MOV-CC-A</event name>
       <calc type>1</calc type>
-      <probability>2.0E-1</probability>
+      <probability>$RAVEN-single1Pb$</probability>
     </single>
   </add>
   <mark name>SINGLE-1</mark name>
