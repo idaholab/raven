@@ -145,7 +145,7 @@ class Code(Model):
         elif argtype == 'text':
           if ext != None:
             self.raiseAWarning('"text" nodes only accept "type" and "arg" attributes! Ignoring "extension"...')
-          if delimiter != None:
+          if delimiter != " ":
             self.raiseAWarning('"text" nodes only accept "type" and "arg" attributes! Ignoring "delimiter"...')
           if arg == None:
             self.raiseAnError(IOError,'"arg" for clarg '+argtype+' not specified! Enter text to be used.')

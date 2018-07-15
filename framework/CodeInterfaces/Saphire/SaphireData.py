@@ -40,12 +40,12 @@ class SaphireData:
       outFileName, outFileType = outFile[0], outFile[1]
       if outFileType == 'uncertainty':
         headers, data = self.getUncertainty(outFileName)
-        self.headerNames.append(headers)
-        self.outData.append(data)
+        self.headerNames.extend(headers)
+        self.outData.extend(data)
       elif outFileType == 'importance':
         headers, data = self.getImportance(outFileName)
-        self.headerNames.append(headers)
-        self.outData.append(data)
+        self.headerNames.extend(headers)
+        self.outData.extend(data)
       elif outFileType == 'quantiles':
         print("File:",outFileName, "with type", outFileType, "is not implemented yet! Skipping" )
         pass
@@ -102,9 +102,13 @@ class SaphireData:
     """
     outObj = open(output.strip()+".csv", mode='w+') if not output.endswith('csv') else open(output.strip(), mode='w+')
     # create string for header names
+    print(self.headerNames)
+    print(self.outData)
     headerString = ",".join(self.headerNames)
     # write & save array as csv file
-    np.savetxt(outObj, self.outData, delimiter=',', header=headerString, comments='')
+    # FIXME: There is a problem with the numpy.savetxt, if provided data is 1D array_like, the demiliter will be
+    # ignored, and out file format is not correct
+    np.savetxt(outObj, [self.outData], delimiter=',', header=headerString, comments='')
     outObj.close()
 
 
