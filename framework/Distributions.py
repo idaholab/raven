@@ -1710,12 +1710,8 @@ class MarkovCategorical(Categorical):
     StatePartInput.addParam("outcome", InputData.FloatType, True)
     StatePartInput.addParam("index", InputData.IntegerType, True)
     TransitionInput = InputData.parameterInputFactory("transition", contentType=InputData.StringType)
-    DataFileInput = InputData.parameterInputFactory("dataFile", contentType=InputData.StringType)
-    DataFileInput.addParam("fileType", InputData.StringType, False)
-
     inputSpecification.addSub(StatePartInput, InputData.Quantity.one_to_infinity)
     inputSpecification.addSub(TransitionInput, InputData.Quantity.zero_to_one)
-    inputSpecification.addSub(DataFileInput, InputData.Quantity.zero_to_one)
     inputSpecification.addSub(InputData.parameterInputFactory("workingDir", contentType=InputData.StringType))
     ## Because we do not inherit from the base class, we need to manually
     ## add the name back in.
@@ -1735,8 +1731,6 @@ class MarkovCategorical(Categorical):
     self.type           = 'MarkovCategorical'
     self.steadyStatePb  = None
     self.transition     = None
-    self.dataFile       = None
-    self.dataFileType   = None
 
   def _handleInput(self, paramInput):
     """
@@ -1767,19 +1761,10 @@ class MarkovCategorical(Categorical):
         elif dim**2 != len(transition):
           self.raiseAnError(IOError, "The transition matrix is not a square matrix!")
         self.transition = np.asarray(transition).reshape((-1,dim))
-      elif child.getName() == "dataFile":
-        self.dataFile = os.path.join(self.workingDir, child.value.strip())
-        if 'fileType' in child.parameterValues:
-          self.dataFileType = child.parameterValues['fileType']
-        else:
-          self.dataFileType = 'csv'
     #Check the correctness of user inputs
-    invalid = self.dataFile is None and self.transition is None
+    invalid = self.transition is None
     if invalid:
-      self.raiseAnError(IOError, "Transition matrix is not provided, please use 'transition' or 'dataFile' node to provide the transition matrix!")
-    invalid = self.dataFile is not None and self.transition is not None
-    if invalid:
-      self.raiseAnError(IOError, "Both 'transition' and 'dataFile' nodes are used to provide the transition matrix, this is currently not allowed!")
+      self.raiseAnError(IOError, "Transition matrix is not provided, please use 'transition' node to provide the transition matrix!")
     if len(self.mapping.values()) != len(set(self.mapping.values())):
       self.raiseAnError(IOError, "The states of Markov Categorical distribution have identifcal indices!")
 
@@ -1806,9 +1791,6 @@ class MarkovCategorical(Categorical):
       @ In, None
       @ Out, None
     """
-    # Load the transition matrix
-    if self.transition is None:
-      self.transition = self.loadData(self.dataFile, fileType=self.dataFileType)
     self.steadyStatePb = self.computeSteadyStatePb(self.transition)
     for key, value in self.mapping.items():
       try:
@@ -1816,15 +1798,6 @@ class MarkovCategorical(Categorical):
       except IndexError:
         self.raiseAnError(IOError, "Index ",value, " for outcome ", key, " is out of bounds! Maximum index should be ", len(self.steadyStatePb))
     Categorical.initializeDistribution(self)
-
-  def loadData(self,filename,fileType='csv'):
-    """
-      Function that load transition matrix from file
-      @ In, filename, string, the name of transition matrix file
-      @ In, fileType, string, the type of transition matrix file, default is 'csv'
-      @ Out, transition, numpy.array, the transition matrix
-    """
-    pass
 
   def computeSteadyStatePb(self, transition):
     """

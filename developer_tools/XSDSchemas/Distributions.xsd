@@ -208,17 +208,6 @@
         <xsd:attribute name="verbosity" type="verbosityAttr" default="all"/>
     </xsd:complexType>
     
-    <xsd:complexType name="dataFileType">
-        <xsd:simpleContent>
-            <xsd:extension base="xsd:string">
-                <xsd:attribute name="fileType" type="xsd:string"/>
-            </xsd:extension>
-        </xsd:simpleContent>
-    </xsd:complexType>
-    <xsd:element name="dataFile"  type="dataFileType"/>
-    
-    <xsd:element name="transition"            type="floatList"/>
-    
     <xsd:complexType name="MarkovStateType">
         <xsd:attribute name="outcome" type="xsd:decimal" use="required"/>
         <xsd:attribute name="index" type="xsd:positiveInteger" use="required"/>
@@ -226,10 +215,7 @@
 
     <xsd:complexType name="MarkovCategoricalDistribution">
         <xsd:sequence>
-            <xsd:choice>
-              <xsd:element ref="dataFile"/>
-              <xsd:element ref="transition"/>
-            </xsd:choice>
+            <xsd:element name="transition"   type="floatList"  minOccurs="1" maxOccurs="1"/>
             <xsd:element name="workingDir"   type="xsd:string" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="state" type="MarkovStateType" minOccurs="1" maxOccurs="200"/>
         </xsd:sequence>

@@ -215,6 +215,8 @@ class Code(Model):
           self.executable = abspath
         else:
           self.raiseAMessage('not found executable '+self.executable,'ExceptedError')
+      else:
+        self.executable = ''
     if self.preExec is not None:
       if '~' in self.preExec:
         self.preExec = os.path.expanduser(self.preExec)
