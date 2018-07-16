@@ -12,7 +12,9 @@
 #export PYTHONPATH=$HOME/raven_libs/pylibs/lib/python2.7/site-packages
 
 module purge
-module load pbs_is_loaded raven-devel-gcc
+module load pbs_is_loaded raven-devel
+module load MVAPICH2/2.0.1-GCC-4.9.2
+source activate raven_libraries
 
 if test -n "$PBS_O_WORKDIR"; then
     cd $PBS_O_WORKDIR
