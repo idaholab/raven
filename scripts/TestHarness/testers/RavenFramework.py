@@ -125,14 +125,13 @@ class RavenFramework(Tester):
     ## OS
     if len(self.specs['skip_if_OS']) > 0:
       skip_os = [x.strip().lower() for x in self.specs['skip_if_OS'].split(',')]
-      print 'skip:',skip_os
       # get simple-name platform (options are Linux, Windows, Darwin, or SunOS that I've seen)
-      current_os = platform.system().lower()
+      currentOS = platform.system().lower()
       # replace Darwin with more expected "mac"
-      if current_os == 'darwin':
-        current_os = 'mac'
-      if current_os in skip_os:
-        self.setStatus('skipped (OS is "{}")'.format(current_os),
+      if currentOS == 'darwin':
+        currentOS = 'mac'
+      if currentOS in skip_os:
+        self.setStatus('skipped (OS is "{}")'.format(currentOS),
                        self.bucket_skip)
         return False
     for lib in self.required_libraries:

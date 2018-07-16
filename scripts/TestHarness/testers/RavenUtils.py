@@ -208,18 +208,18 @@ def checkForMissingModules(subprocessCheck = True):
     notQA.extend(moduleNotQA)
   return missing, outOfRange, notQA
 
-def __condaString(includeOptionals=False,OS=None):
+def __condaString(includeOptionals=False,opSys=None):
   """
     Generates a string with version ids that can be passed to conda.
     returns s, string, a list of packages for conda to install
     @ In, includeOptionals, bool, optional, if True then add optional testing libraries to install list
-    @ In, OS, string, optional, if included then parse conda list according to request
+    @ In, opSys, string, optional, if included then parse conda list according to request
     @ Out, s, str, message that could be pasted into a bash command to install libraries
   """
   s = ""
   libList = __condaList + ([] if not includeOptionals else __condaOptional)
-  if OS is not None:
-    libList = parseCondaForOS(libList,OS)
+  if opSys is not None:
+    libList = parseCondaForOS(libList,opSys)
   for name, version in libList:
     if len(version) == 0:
       s += name+" "
@@ -227,18 +227,18 @@ def __condaString(includeOptionals=False,OS=None):
       s += name+"="+version+" "
   return s
 
-def parseCondaForOS(libs,os):
+def parseCondaForOS(libs,opSys):
   """
     Modifies the list of Conda for a particular operating system.
     @ In, libs, list, list of libraries as (lib,version)
-    @ In, os, string, name of operating system (mac, windows, linux)
+    @ In, opSys, string, name of operating system (mac, windows, linux)
     @ Out, libs, updated libs list
   """
-  if os == 'windows':
+  if opSys == 'windows':
     pass # nothing special to do currently
-  elif os == 'mac':
+  elif opSys == 'mac':
     pass # nothing special to do currently
-  elif os == 'linux':
+  elif opSys == 'linux':
     # add noMKL libraries to prevent Intel crash errors
     libs.append( ('nomkl'  ,'') )
     libs.append( ('numexpr','') )
@@ -247,22 +247,22 @@ def parseCondaForOS(libs,os):
 
 if __name__ == '__main__':
   # allow the operating system to be specified
-  OS = None
+  opSys = None
   if '--windows' in sys.argv:
-    OS = 'windows'
+    opSys = 'windows'
   elif '--mac' in sys.argv:
-    OS = 'mac'
+    opSys = 'mac'
   elif '--linux' in sys.argv:
-    OS = 'linux'
+    opSys = 'linux'
   # check for environemnt definition of raven libs
   libName = os.getenv('RAVEN_LIBS_NAME','raven_libraries')
   # what did the caller ask to do?
   if '--conda-create' in sys.argv:
     print("conda create --name {} -y ".format(libName), end="")
-    print(__condaString(includeOptionals = ('--optional' in sys.argv), OS = OS))
+    print(__condaString(includeOptionals = ('--optional' in sys.argv), opSys = opSys))
   elif '--conda-install' in sys.argv:
     print("conda install --name {} -y ".format(libName), end=" ")
-    print(__condaString(includeOptionals = ('--optional' in sys.argv), OS = OS))
+    print(__condaString(includeOptionals = ('--optional' in sys.argv), opSys = opSys))
   elif '--pip-install' in sys.argv:
     print("pip install",end=" ")
     for i,qa in __pipList:
