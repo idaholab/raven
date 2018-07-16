@@ -37,9 +37,7 @@ import Distributions
 #Internal Modules End--------------------------------------------------------------------------------
 
 # global number of integration points
-## note on Falcon that using 1e5 causes a seg fault.
 integrationSegments = int(1e5)
-#integrationSegments = int(5e4)
 
 
 def _getGraphs(functions, fZStats = False):
