@@ -40,7 +40,7 @@ wait_lines ()
         printf '\n\nStandard Output:\n'
         cat $RAVEN_FRAMEWORK_DIR/test_qsub.o*
     fi
-    rm $RAVEN_FRAMEWORK_DIR/test_qsub.[eo]*
+    rm $RAVEN_FRAMEWORK_DIR/test_qsub.[eo]* || echo Trying to remove *.o*, *.e* files but not found. Continuing ...
 
 }
 
