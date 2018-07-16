@@ -36,9 +36,9 @@ wait_lines ()
         fails=$fails', '$NAME
         num_fails=$(($num_fails+1))
         printf '\n\nStandard Error:\n'
-        cat $RAVEN_FRAMEWORK_DIR/test_qsub.e*
+        cat $RAVEN_FRAMEWORK_DIR/test_qsub.e* || echo No *.e* file found! Continuing ...
         printf '\n\nStandard Output:\n'
-        cat $RAVEN_FRAMEWORK_DIR/test_qsub.o*
+        cat $RAVEN_FRAMEWORK_DIR/test_qsub.o* || echo No *.o* file found! Continuing ...
     fi
     rm $RAVEN_FRAMEWORK_DIR/test_qsub.[eo]* || echo Trying to remove *.o*, *.e* files but not found. Continuing ...
     echo ''
@@ -72,7 +72,7 @@ wait_lines 'FirstMLRun/[1-6]/*.csv' 6 mpiqsub_limitnode
 rm -Rf FirstMRun/
 
 echo ''
-echo 'Running interactive MPI test ...'
+echo 'Running interactive MPI test ...' `pwd`
 qsub -P moose -l select=6:ncpus=4:mpiprocs=1 -l walltime=10:00:00 -l place=free -W block=true ./run_mpi_test.sh
 
 wait_lines 'FirstMRun/[1-6]/*test.csv' 6 mpi
