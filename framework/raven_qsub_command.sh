@@ -5,11 +5,13 @@ if test -n "$PBS_O_WORKDIR"; then
     cd $PBS_O_WORKDIR
 fi
 
-# "which python" does not necessarily show "conda" if conda hasn't been activated yet
-#echo 'python:'
-#which python
-#echo ''
-echo 'mpiexec:'
+# conda definitions should be set up in raven/.ravenrc after installing with raven/scripts/establish_conda_env.sh
+module load raven-devel
+module load MVAPICH2/2.0.1-GCC-4.9.2
+##  also the name of the raven libraries conda environment
+source activate raven_libraries
+
+which python
 which mpiexec
 echo ''
 echo $COMMAND
