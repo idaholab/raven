@@ -72,7 +72,7 @@ wait_lines 'FirstMLRun/[1-6]/*.csv' 6 mpiqsub_limitnode
 rm -Rf FirstMRun/
 
 echo ''
-echo 'Running interactive MPI test ...' `pwd`
+echo 'Running interactive MPI test ...'
 qsub -P moose -l select=6:ncpus=4:mpiprocs=1 -l walltime=10:00:00 -l place=free -W block=true ./run_mpi_test.sh
 
 wait_lines 'FirstMRun/[1-6]/*test.csv' 6 mpi
