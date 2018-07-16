@@ -98,7 +98,7 @@ class markovModel(ExternalModelPluginBase):
       @ In, inputFiles, list, list of input files (if any)
       @ Out, None
     """
-    if container.seed is None:
+    if container.seed is not None:
       pass
     else:
         np.random.seed(250678)
