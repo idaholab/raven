@@ -19,4 +19,5 @@ def run(self,Input):
   self.p_V1 = np.zeros(Input['time'].size)
 
   for index,value in np.ndenumerate(Input['time']):
-    self.p_V1[index[0]] = quad(pdfFailure, 0, value, args=(Input['a_V1'],Input['b_V1']))[0]
+    #self.p_V1[index[0]] = quad(pdfFailure, 0, value, args=(Input['a_V1'],Input['b_V1']))[0]
+    self.p_V1[index[0]] = 1. - math.exp(-quad(timeDepLambda, 0, value, args=(Input['a_V1'],Input['b_V1']))[0]) 

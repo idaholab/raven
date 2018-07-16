@@ -20,5 +20,6 @@ def run(self,Input):
   self.p_V2 = np.zeros(Input['time'].size)
 
   for index,value in np.ndenumerate(Input['time']):
-    self.p_V2[index[0]] = quad(pdfFailure, 0, value, args=(Input['a_V2'],Input['b_V2']))[0]
+    #self.p_V2[index[0]] = quad(pdfFailure, 0, value, args=(Input['a_V2'],Input['b_V2']))[0]
+    self.p_V2[index[0]] = 1. - quad(timeDepLambda, 0, value, args=(Input['a_V2'],Input['b_V2']))[0]
 
