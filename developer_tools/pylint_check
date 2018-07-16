@@ -1,8 +1,14 @@
 #!/bin/bash
 
+# fail if any of these commands fail
+set -e
+
 SCRIPT_DIRNAME=`dirname $0`
 SCRIPT_DIR=`(cd $SCRIPT_DIRNAME; pwd)`
 
 cd $SCRIPT_DIR/..
+
+# activate raven libraries
+source $SCRIPT_DIR/../scripts/establish_conda_env.sh --load --quiet
 
 pylint --disable=all --enable=missing-docstring --enable=no-absolute-import --enable=old-division --enable=print-statement --enable=file-builtin --enable=multiple-statements framework/
