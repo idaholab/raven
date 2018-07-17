@@ -438,13 +438,15 @@ checkFails('Metadata get missing general','Some requested keys could not be foun
 #        READ/WRITE FROM FILE        #
 ######################################
 # to netCDF
-netname = 'PointSetUnitTest.nc'
-data.write(netname,style='netcdf',format='NETCDF4') # WARNING this will fail if netCDF4 not installed
-checkTrue('Wrote to netcdf',os.path.isfile(netname))
+# NOTE: due to a cool little seg fault error in netCDF4 versions less than 1.3.1, we cannot test it currently.
+# Leaving implementation for the future.
+#netname = 'PointSetUnitTest.nc'
+#data.write(netname,style='netcdf',format='NETCDF4') # WARNING this will fail if netCDF4 not installed
+#checkTrue('Wrote to netcdf',os.path.isfile(netname))
 ## read fresh from netCDF
-dataNET = PointSet.PointSet()
-dataNET.messageHandler = mh
-dataNET.load(netname,style='netcdf')
+#dataNET = PointSet.PointSet()
+#dataNET.messageHandler = mh
+#dataNET.load(netname,style='netcdf')
 # validity of load is checked below, in ACCESS USING GETTERS section
 
 # to CSV
@@ -521,23 +523,23 @@ os.remove(csvname+'.csv')
 # test contents of data in parallel (base, netcdf, csv)
 # by index
 checkRlz('PointSet full origin idx 1',data.realization(index=1),rlz1)
-checkRlz('PointSet full netcdf idx 1',dataNET.realization(index=1),rlz1)
+#checkRlz('PointSet full netcdf idx 1',dataNET.realization(index=1),rlz1)
 checkRlz('PointSet full csvxml idx 1',dataCSV.realization(index=1),rlz1)
 # by match
 idx,rlz = data.realization(matchDict={'prefix':'third'})
 checkSame('PointSet full origin match idx',idx,2)
 checkRlz('PointSet full origin match',rlz,rlz2)
-idx,rlz = dataNET.realization(matchDict={'prefix':'third'})
-checkSame('PointSet full netcdf match idx',idx,2)
-checkRlz('PointSet full netCDF match',rlz,rlz2)
+#idx,rlz = dataNET.realization(matchDict={'prefix':'third'})
+#checkSame('PointSet full netcdf match idx',idx,2)
+#checkRlz('PointSet full netCDF match',rlz,rlz2)
 idx,rlz = dataCSV.realization(matchDict={'prefix':'third'})
 checkSame('PointSet full csvxml match idx',idx,2)
 checkRlz('PointSet full csvxml match',rlz,rlz2)
 # TODO metadata checks?
 
 ## remove files, for cleanliness (comment out to debug)
-dataNET._data.close()
-os.remove(netname) # if this is a problem because of lazy loading, force dataNET to load completely
+#dataNET._data.close()
+#os.remove(netname) # if this is a problem because of lazy loading, force dataNET to load completely
 
 ######################################
 #         SELECTIVE SAMPLING         #
