@@ -88,6 +88,7 @@
     type   = 'RavenFramework'
     input  = 'test_dataMiningHierarchical.xml'
     csv    = 'Hierarchical/dummy.csv'
+    skip_if_OS = windows
   [../]
   [./agglomerativeDTW]
     type   = 'RavenFramework'

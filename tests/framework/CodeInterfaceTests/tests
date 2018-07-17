@@ -107,6 +107,8 @@
   csv = 'RELAP5interfaceTest/testDummyStep/1/out~snc01.csv RELAP5interfaceTest/testDummyStep/2/out~snc01.csv RELAP5interfaceTest/testDummyStep/3/out~snc01.csv RELAP5interfaceTest/testDummyStep/4/out~snc01.csv RELAP5interfaceTest/testDummyStep/5/out~snc01.csv'
   text = 'RELAP5interfaceTest/testDummyStep/1/snc01.i RELAP5interfaceTest/testDummyStep/2/snc01.i'
   test_interface_only = True
+  # Windows has a 1e-14 difference in the snc01.i that disqualifies it from matching.
+  skip_if_OS = windows
  [../]
 
  [./RELAP5interfaceTestSingleRunNoExecutable]
