@@ -1,37 +1,37 @@
 [Tests]
  [./test_mpi]
    input=test_mpi.xml
-   skip = 'not real test'
+   skip = 'cluster only test'
    type = RavenFramework
  [../]
  [./test_pbsdsh]
    input=test_pbs.xml
-   skip = 'not real test'
+   skip = 'cluster only test'
    type = RavenFramework
  [../]
  [./test_mpiqsub]
    input=test_mpiqsub_local.xml
-   skip = 'not real test'
+   skip = 'cluster only test'
    type = RavenFramework
  [../]
  [./test_mpiqsub_parameters]
    input=test_mpiqsub_flex.xml
-   skip = 'not real test'
+   skip = 'cluster only test'
    type = RavenFramework
  [../]
  [./test_mpiqsub_limitnode]
    input=test_mpiqsub_limitnode.xml
-   skip = 'not real test'
+   skip = 'cluster only test'
    type = RavenFramework
  [../]
  [./test_mpiqsub_nosplit]
    input=test_mpiqsub_nosplit.xml
-   skip = 'not real test'
+   skip = 'cluster only test'
    type = RavenFramework
  [../]
  [./test_mpi_fake]
    input=test_mpi.xmll
-   skip = 'not real test'
+   skip = 'cluster only test'
    type = RavenFramework
  [../]
 []

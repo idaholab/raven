@@ -1,0 +1,29 @@
+\subsection{Mac OSX Installation}
+\label{sec:install mac}
+
+When using an Apple Macintosh computer, software dependencies are met
+by following steps:
+\begin{itemize}
+  \item Install the XCode command line tools from Apple,
+  \item Install the XQuartz  X-Window system server,
+\end{itemize}
+
+\subsubsection{Installing XCode Command Line Tools}
+
+The XCode command line tools package from Apple Computer provides the C++
+compilers and git source code control tools needed to obtain and build RAVEN.
+It is freely available from the Apple store. In order to obtain it the following command should be launched in an open terminal:
+\begin{lstlisting}[language=bash]
+ xcode-select --install
+\end{lstlisting}
+
+\subsubsection{Installing XQuartz}
+XQuartz is an implementation of the X Server for the Mac OSX operating system.
+XQuartz is freely available on the web and can be downloaded from the link
+ \url{https://dl.bintray.com/xquartz/downloads/XQuartz-2.7.9.dmg}.
+\\After downloaded, install the package.
+
+With XCode and XQuartz installed, continue on to install conda (see section \ref{sec:install conda}).
+
+\nb While \texttt{gcc} and
+\texttt{git} are also required, they are installed by default in the OSX system.
