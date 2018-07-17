@@ -52,9 +52,7 @@
   [./VARMA]
    type = 'RavenFramework'
    input = 'varma.xml'
-   output = 'VARMA/plot_VARMA.png VARMA/plot_input.png VARMA/samples.csv VARMA/samples_0.csv'
-   csv = 'VARMA/stats.csv'
-   rel_err = 1e-6
+   output = 'VARMA/plot_VARMA.png VARMA/plot_input.png VARMA/samples.csv VARMA/samples_0.csv VARMA/stats.csv VARMA/stats.xml'
   [../]
 
 []
