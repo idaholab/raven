@@ -115,9 +115,14 @@ class ScipyMetric(Metric):
       if int(sv[0]) > 0:
         if weights is not None and 'w' not in self.distParams.keys():
           self.distParams['w'] = weights
-        if 'w' in self.distParams.keys():
+        # FIXME: In Scipy version 1.1.0, the function scipy.spatial.distance.canberra and
+        # scipy.spatial.distance.sokalmichener will accept the weights, and the calculated results from
+        # these functions will affected by the normalization of the weights. The following is disabled for
+        # this purpose  --- wangc July 17, 2018
+        # For future development, please pay attention to canberra, minkowski, and sokalmichener metrics
+        #if 'w' in self.distParams.keys():
           # Normalized weights, since methods exist in Scipy are using unnormalized weights
-          self.distParams['w'] = np.asarray(self.distParams['w'])/np.sum(self.distParams['w'])
+          #self.distParams['w'] = np.asarray(self.distParams['w'])/np.sum(self.distParams['w'])
       else:
         if 'w' in self.distParams.keys():
           self.raiseAWarning("Weights will not be used, since weights provided with key word 'w' is not supported for your current version of scipy!")

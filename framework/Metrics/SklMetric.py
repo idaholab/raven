@@ -133,7 +133,7 @@ class SKL(Metric):
     #######################################################################################
     assert(isinstance(x,np.ndarray))
     assert(isinstance(y,np.ndarray))
-    assert(x.shape == y.shape, "Input data x, y should have the same shape")
+    assert(x.shape == y.shape), "Input data x, y should have the same shape"
     if weights is not None and self.metricType[0] == 'regression' and 'sample_weight' not in self.distParams.keys():
       self.distParams['sample_weight'] = weights
     if self.metricType[0] == 'regression':
@@ -151,7 +151,7 @@ class SKL(Metric):
       x = x.T
       y = y.T
       # check the dimension of weights
-      assert(x.shape[0] == len(weights), "'weights' should have the same length of the first dimension of input data")
+      assert(x.shape[0] == len(weights)), "'weights' should have the same length of the first dimension of input data"
     elif axis != 0:
       self.raiseAnError(IOError, "Valid axis value should be '0' or '1' for the evaluate method of metric", self. name, "value", axis, "is provided!")
     try:

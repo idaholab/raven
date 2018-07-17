@@ -137,18 +137,18 @@ class PairwiseMetric(Metric):
     """
     if axis != 0 and axis != 1:
       self.raiseAnError(IOError, "Acceptable values for axis are 0 or 1, but the provided value is", axis)
-    assert(isinstance(x,np.ndarray), "Input data x should be numpy.array")
+    assert(isinstance(x,np.ndarray)), "Input data x should be numpy.array"
     if len(x.shape) == 1:
       x = x.reshape(-1,1)
     if axis == 1:
       x = x.T
     if y != None:
-      assert(isinstance(y,np.ndarray), "Input data y should be numpy.array")
+      assert(isinstance(y,np.ndarray)), "Input data y should be numpy.array"
       if len(y.shape) == 1:
         y = y.reshape(-1,1)
       if axis == 1:
         y = y.T
-      assert(x.shape[1] == y.shape[1], "The number of columns in x should be the same as the number of columns in y")
+      assert(x.shape[1] == y.shape[1]), "The number of columns in x should be the same as the number of columns in y"
     dictTemp = utils.mergeDictionaries(kwargs,self.distParams)
     # set up the metric engine if it is None
     if self.__class__.availMetrics[self.metricType[0]][self.metricType[1]] == None:

@@ -67,6 +67,11 @@
       <type>csv</type>
       <source>pp1_out</source>
     </Print>
+    <Print name="mc_print">
+      <type>csv</type>
+      <source>outputDataMC</source>
+      <what>input, output</what>
+    </Print>
   </OutStreams>
 
   <Metrics>
@@ -130,6 +135,7 @@
       <Model class="Models" type="ExternalModel">poly</Model>
       <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
       <Output class="DataObjects" type="PointSet">outputDataMC</Output>
+      <Output class="OutStreams" type="Print">mc_print</Output>
     </MultiRun>
     <PostProcess name="PP1">
       <Input class="DataObjects" type="PointSet">outputDataMC</Input>

@@ -77,6 +77,10 @@ and \xmlNode{PDFCommonArea}. This XML node requires the following attributes:
     objects, this name can be used to refer to this specific entity from other input blocks in the XML.
 \end{itemize}
 
+\nb If you are using \xmlNode{ScipyMetric}, please pay more attention on the weight associated with the metric
+calculations. Scipy does not normalize the weight during the calculation, and the results can be significant difference
+from the normalized weight.
+
 In RAVEN, lots of metrics are just interfaces directly with metrics available within \textbf{Scipy} and
 \textbf{SciKit-Learn}. In this case, the algorithm for the metrics is choosen by the subnode \xmlNode{metricType}
 under the parent node \xmlNode{SKL} (metric from SciKit-Learn) or \xmlNode{ScipyMetric} (metric from Scipy). For
@@ -178,7 +182,7 @@ In the RAVEN input file, these metrics are defined as follows:
     <ScipyMetric name="minkowski">
         <metricType>paired_distance|minkowski</metricType>
         <p>5</p>
-        <w>[0.4, 0.3, 0.2, 0.1, 0.5]</w>
+        <w>[0.1, 0.1, 0.1, 0.1, 0.1]</w>
     </ScipyMetric>
   </Metrics>
   ...

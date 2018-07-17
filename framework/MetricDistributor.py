@@ -83,7 +83,7 @@ class MetricDistributor(utils.metaclass_insert(abc.ABCMeta,BaseType),MessageHand
         (numRealizations1,numParameters), targetValues with shape (numRealizations2, numParameters)
       @ Out, output, numpy.ndarray, 2D array, with shape (numRealizations1,numRealization2)
     """
-    assert(type(pairedData).__name__ == 'tuple', "The paired data is not a tuple!")
+    assert(type(pairedData).__name__ == 'tuple'), "The paired data is not a tuple!"
     if not self.canHandlePairwiseData:
       self.raiseAnError(IOError, "The metric", self.estimator.name, "can not handle pairwise data")
     feat, targ = pairedData
