@@ -15,6 +15,9 @@
       </MultiRun>
       <IOStep name='print'>
         <Input   class="DataObjects" type="DataSet"       >main</Input>
+        <Output  class='OutStreams'  type='Plot'          >plot_V1</Output>
+        <Output  class='OutStreams'  type='Plot'          >plot_V2</Output>
+        <Output  class='OutStreams'  type='Plot'          >plot_SG</Output>
         <Output  class='OutStreams'  type='Print'         >Print_sim_PS</Output>
       </IOStep>
   </Steps>
@@ -455,6 +458,61 @@
       <source>main</source>
       <what>input,output</what>
     </Print>
+
+    <Plot name='plot_V1' overwrite='false' verbosity='debug'>
+      <plotSettings>
+        <plot>
+          <type>line</type>
+          <interpolationType>linear</interpolationType>
+          <interpPointsX>1000</interpPointsX>
+          <x>main|Output|time</x>
+          <y>main|Output|cost_V1</y>
+          <z>main|Output|outcome_V1</z>
+        </plot>
+        <xlabel>time [days]</xlabel>
+        <ylabel>cost_V1</ylabel>
+        <zlabel>outcome_V1</zlabel>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+      </actions>
+    </Plot>
+    <Plot name='plot_V2' overwrite='false' verbosity='debug'>
+      <plotSettings>
+        <plot>
+          <type>line</type>
+          <interpolationType>linear</interpolationType>
+          <interpPointsX>1000</interpPointsX>
+          <x>main|Output|time</x>
+          <y>main|Output|cost_V2</y>
+          <z>main|Output|outcome_V2</z>
+        </plot>
+        <xlabel>time [days]</xlabel>
+        <ylabel>cost_V2</ylabel>
+        <zlabel>outcome_V2</zlabel>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+      </actions>
+    </Plot>
+    <Plot name='plot_SG' overwrite='false' verbosity='debug'>
+      <plotSettings>
+        <plot>
+          <type>line</type>
+          <interpolationType>linear</interpolationType>
+          <interpPointsX>1000</interpPointsX>
+          <x>main|Output|time</x>
+          <y>main|Output|cost_SG</y>
+          <z>main|Output|outcome_SG</z>
+        </plot>
+        <xlabel>time [days]</xlabel>
+        <ylabel>cost_SG</ylabel>
+        <zlabel>outcome_SG</zlabel>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+      </actions>
+    </Plot>
   </OutStreams>
 
 </Simulation>
