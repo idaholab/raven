@@ -29,23 +29,23 @@ def run(self,Input):
 
   if self.ACCstatus == 1.:
     self.out = 1.
-    self.LPIstatus = 1.
-    self.LPRstatus = 1.
+    self.LPI_status = 1.
+    self.LPR_status = 1.
   else:
     self.LPIact = self.timeLPI + 1.
     if self.LPIact > timeToCDLPI:
       self.out = 1.
-      self.LPIstatus = 1.
-      self.LPRstatus = 1.
+      self.LPI_status = 1.
+      self.LPR_status = 1.
     else:
-      self.LPIstatus = 0.
+      self.LPI_status = 0.
       self.LPRact = self.LPIact + self.timeLPR
       if self.LPRact > timeToCDLPR:
         self.out = 1.
-        self.LPRstatus = 1.
+        self.LPR_status = 1.
       else:
         self.out = 0.
-        self.LPRstatus = 0.
+        self.LPR_status = 0.
 
 
 
