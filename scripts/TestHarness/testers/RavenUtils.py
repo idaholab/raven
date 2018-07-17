@@ -39,7 +39,7 @@ modules_to_try = [("h5py"       ,'h5py.__version__'       ,'2.4.0' ,'2.6.0' ,Non
                   ("scipy"      ,'scipy.__version__'      ,"0.14.0","0.17.1",None   ),
                   ("sklearn"    ,'sklearn.__version__'    ,"0.18"  ,"0.18.0",None   ),
                   ("pandas"     ,'pandas.__version__'     ,"0.20.0","0.20.3",None   ),
-                  ("xarray"     ,'xarray.__version__'     ,"0.9.5" ,"0.9.5" ,"0.9.6"),
+                  ("xarray"     ,'xarray.__version__'     ,"0.9.5" ,"0.9.5" ,None   ),
                   ("netCDF4"    ,'netCDF4.__version__'    ,"1.2.3" ,"1.2.4" ,None   ),
                   ("statsmodels",'statsmodels.__version__',"0.8.0" ,"0.8.0" ,None   ),
                   ("matplotlib" ,'matplotlib.__version__' ,"1.3.1" ,"1.5.3" ,None   )]

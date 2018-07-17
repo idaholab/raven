@@ -22,12 +22,12 @@
 
   <RunInfo>
     <WorkingDir>VARMA</WorkingDir>
-    <Sequence>read,train,sample,write</Sequence>
+    <Sequence>read,train,sample,write,load,stats</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
 
   <Steps>
-    <IOStep name="read" pauseAtEnd="True">
+    <IOStep name="read">
       <Input class="Files" type="">source</Input>
       <Output class="DataObjects" type="HistorySet">training</Output>
     </IOStep>
@@ -48,16 +48,37 @@
       <Output class="OutStreams" type="Plot">plot_samples</Output>
       <Output class="OutStreams" type="Plot">plot_training</Output>
     </IOStep>
+    <IOStep name="load">
+      <Input class="Files" type="">synthetic</Input>
+      <Output class="DataObjects" type="PointSet">asPoints</Output>
+    </IOStep>
+    <PostProcess name="stats">
+      <Input class="DataObjects" type="PointSet">asPoints</Input>
+      <Model class="Models" type="PostProcessor">stats</Model>
+      <Output class="DataObjects" type="PointSet">stats</Output>
+      <Output class="OutStreams" type="Print">stats</Output>
+    </PostProcess>
   </Steps>
 
   <Files>
     <Input name="source">correlated.csv</Input>
+    <Input name="synthetic">samples_0.csv</Input>
   </Files>
 
   <DataObjects>
     <PointSet name="placeholder">
       <Input>scaling</Input>
       <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="asPoints">
+      <Input>Time</Input>
+      <Output>A,B</Output>
+    </PointSet>
+    <PointSet name="stats">
+      <Output>
+        mean_A, var_A,
+        mean_B, var_B,
+        covar_A_B, covar_B_A</Output>
     </PointSet>
     <HistorySet name="training">
       <Input>scaling</Input>
@@ -87,6 +108,14 @@
       <Qmax>1</Qmax>
       <Qmin>1</Qmin>
     </ROM>
+    <PostProcessor name="stats" subType="BasicStatistics">
+      <expectedValue prefix="mean">A,B</expectedValue>
+      <variance prefix="var">A,B</variance>
+      <covariance prefix="covar">
+        <targets>A,B</targets>
+        <features>A,B</features>
+      </covariance>
+    </PostProcessor>
   </Models>
 
   <Samplers>
@@ -104,6 +133,10 @@
       <type>csv</type>
       <source>samples</source>
       <what>input, output</what>
+    </Print>
+    <Print name="stats">
+      <type>csv</type>
+      <source>stats</source>
     </Print>
     <Plot name="plot_samples" overwrite="false">
       <filename>plot_VARMA</filename>
