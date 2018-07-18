@@ -184,6 +184,9 @@ class ARMA(supervisedLearning):
       @ In, targetVals, array, shape = [n_timeStep, n_dimensions], an array of time series data
     """
     self.raiseADebug('Training...')
+    # DEBUG FILE -> uncomment lines with this file in it to get series information.  This should be made available
+    #    through a RomTrainer SolutionExport or something similar, or perhaps just an Output DataObject, in the future.
+    # debugfile = open('debugg_varma.csv','w')
     # obtain pivot parameter
     self.raiseADebug('... gathering pivot values ...')
     self.pivotParameterValues = targetVals[:,:,self.target.index(self.pivotParameterID)]
@@ -200,8 +203,10 @@ class ARMA(supervisedLearning):
 
     # prep the correlation data structure
     correlationData = np.zeros([len(self.pivotParameterValues),len(self.correlations)])
+
     for t,target in enumerate(self.target):
       timeSeriesData = targetVals[:,t]
+      #debugfile.writelines('{}_original,'.format(target)+','.join(str(d) for d in timeSeriesData)+'\n')
       # if we're removing Fourier signal, do that now.
       self.raiseADebug('... scrubbing the signal for target "{}" ...'.format(target))
       if self.hasFourierSeries:
@@ -210,7 +215,9 @@ class ARMA(supervisedLearning):
                                                          self.fourierPara['basePeriod'],
                                                          self.fourierPara['FourierOrder'],
                                                          timeSeriesData)
+        #debugfile.writelines('{}_fourier,'.format(target)+','.join(str(d) for d in self.fourierResults[target]['predict'])+'\n')
         timeSeriesData -= self.fourierResults[target]['predict']
+        #debugfile.writelines('{}_nofourier,'.format(target)+','.join(str(d) for d in timeSeriesData)+'\n')
       # Transform data to obatain normal distrbuted series. See
       # J.M.Morales, R.Minguez, A.J.Conejo "A methodology to generate statistically dependent wind speed scenarios,"
       # Applied Energy, 87(2010) 843-855
@@ -218,6 +225,7 @@ class ARMA(supervisedLearning):
       self.cdfParams[target] = self._trainCDF(timeSeriesData)
       # normalize data
       normed = self._normalizeThroughCDF(timeSeriesData, self.cdfParams[target])
+      #debugfile.writelines('{}_normed,'.format(target)+','.join(str(d) for d in normed)+'\n')
       # check if this target is part of a correlation set, or standing alone
       if target in self.correlations:
         # store the data and train it separately in a moment
@@ -231,7 +239,8 @@ class ARMA(supervisedLearning):
 
     # now handle the training of the correlated armas
     if len(self.correlations):
-      self.varmaResult = self._trainVARMA(correlationData)
+      self.varmaResult, self.varmaDist = self._trainVARMA(correlationData)
+    #debugfile.close()
 
   def __evaluateLocal__(self,featureVals):
     """
@@ -308,12 +317,14 @@ class ARMA(supervisedLearning):
       @ In, data, np.array, data to bin
       @ Out, n, integer, number of bins
     """
+    # Freedman-Diaconis
     iqr = np.percentile(data,75) - np.percentile(data,25)
     if iqr <= 0.0:
       self.raiseAnError(ValueError,'While computing CDF, 25 and 75 percentile are the same number!')
     size = 2.0 * iqr / np.cbrt(data.size)
     # tend towards too many bins, not too few
-    return int(np.ceil((max(data) - min(data))/size))
+    n = int(np.ceil((max(data) - min(data))/size))
+    return n
 
   def _denormalizeThroughCDF(self, data, params):
     """
@@ -354,11 +365,20 @@ class ARMA(supervisedLearning):
     """
     if numSamples is None:
       numSamples =  len(self.pivotParameterValues)
+    # sample measure, state shocks
+    ## TODO it appears that measure shock always has a 0 variance multivariate normal, so just create it
+    measureShocks = np.zeros([numSamples,len(self.target)])
+    ## state shocks come from sampling multivariate
+    stateShocks = np.array([self.varmaDist.rvs() for _ in range(numSamples)])
     # pick an intial by sampling multinormal distribution?
     # FIXME pick a random state; for now starts at 0
     # FIXME using numpy rng!  Figure out how to use ours!  (already queried Cameron and Ross in HPC dept)
     # FIXME for now bypassing initial state, rng, and params update
-    obs, states = model.ssm.simulate(numSamples)
+    ## it seems when not provided, the initial state is determined by
+    #      statslmodels.tsa.statespace.kalman_filter.simulate, under self.initialization='stationary'
+    ## are measurement_shocks or state_shocks the disturbance random noise we want to provide to simulate??
+    # TODO burn-in on the samples?
+    obs, states = model.ssm.simulate(numSamples,measurement_shocks=measureShocks,state_shocks=stateShocks)
     return obs
 
   def _generateFourierSignal(self, pivots, basePeriod, fourierOrder):
@@ -566,12 +586,29 @@ class ARMA(supervisedLearning):
       Train correlated ARMA model on white noise ARMA, with Fourier already removed
       @ In, data, np.array(np.array(float)), data on which to train with shape (# pivot values, # targets)
       @ Out, results, statsmodels.tsa.arima_model.ARMAResults, fitted VARMA
+      @ Out, stateDist, Distributions.MultivariateNormal, MVN from which VARMA noise is taken
     """
     Pmax = self.Pmax
     Qmax = self.Qmax
     model = sm.tsa.VARMAX(endog=data, order=(Pmax,Qmax))
-    results = model.fit(disp=False)
-    return model
+    self.raiseADebug('... fitting VARMA ...')
+    results = model.fit(disp=False,maxiter=1000)
+    lenHist,numVars = data.shape
+    # train multivariate normal distributions using covariances, keep it around so we can control the RNG
+    ## TODO what is the difference between the "state" and "measurement" statistics?
+    ## for now, it appears "measurement" always has 0 covariance, and so is all zeros (see _generateVARMASignal)
+    ## all the noise comes from the stateful properties
+    stateDist = Distributions.MultivariateNormal()
+    stateDist.method = 'pca'
+    stateDist.dimension = numVars
+    stateDist.rank = numVars
+    stateDist.mu = np.zeros(numVars)
+    stateDist.covariance = np.ravel(model.ssm['state_cov'.encode('ascii')])
+    stateDist.messageHandler = self.messageHandler
+    stateDist.initializeDistribution()
+    # NOTE: uncomment this line to get a printed summary of a lot of information about the fitting.
+    #self.raiseADebug('VARMA model training summary:\n',results.summary())
+    return model, stateDist
 
   ### ESSENTIALLY UNUSED ###
   def _localNormalizeData(self,values,names,feat):
