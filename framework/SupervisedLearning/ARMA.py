@@ -31,13 +31,14 @@ import statsmodels.api as sm # VARMAX is in sm.tsa
 from statsmodels.tsa.arima_model import ARMA as smARMA
 import numpy as np
 from scipy import optimize
+from scipy.linalg import solve_discrete_lyapunov
+from sklearn import linear_model, neighbors
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
 from utils import randomUtils
 import Distributions
 from .SupervisedLearning import supervisedLearning
-from sklearn import linear_model, neighbors
 #Internal Modules End--------------------------------------------------------------------------------
 
 class ARMA(supervisedLearning):
@@ -239,7 +240,11 @@ class ARMA(supervisedLearning):
 
     # now handle the training of the correlated armas
     if len(self.correlations):
-      self.varmaResult, self.varmaDist = self._trainVARMA(correlationData)
+      varma, noiseDist, initDist = self._trainVARMA(correlationData)
+      # FUTURE if extending to multiple VARMA per training, these will need to be dictionaries
+      self.varmaResult = varma
+      self.varmaNoise = noiseDist
+      self.varmaInit = initDist
     #debugfile.close()
 
   def __evaluateLocal__(self,featureVals):
@@ -314,6 +319,7 @@ class ARMA(supervisedLearning):
   def _computeNumberOfBins(self,data):
     """
       Uses the Freedman-Diaconis rule for histogram binning
+      -> For relatively few samples, this can cause unnatural flat-lining on low, top end of CDF
       @ In, data, np.array, data to bin
       @ Out, n, integer, number of bins
     """
@@ -323,7 +329,8 @@ class ARMA(supervisedLearning):
       self.raiseAnError(ValueError,'While computing CDF, 25 and 75 percentile are the same number!')
     size = 2.0 * iqr / np.cbrt(data.size)
     # tend towards too many bins, not too few
-    n = int(np.ceil((max(data) - min(data))/size))
+    # also don't use less than 20 bins, it makes some pretty sketchy CDFs otherwise
+    n = max(int(np.ceil((max(data) - min(data))/size)),20)
     return n
 
   def _denormalizeThroughCDF(self, data, params):
@@ -355,32 +362,6 @@ class ARMA(supervisedLearning):
                                        burnin = 2*max(self.Pmax,self.Qmax)) # @epinas, 2018
     return hist
 
-  def _generateVARMASignal(self, model, numSamples=None, randEngine=None):
-    """
-      Generates a set of correlated synthetic histories from fitted parameters.
-      @ In, model, statsmodels.tsa.arima_model.ARMAResults, fitted ARMA such as otained from _trainARMA
-      @ In, numSamples, int, optional, number of samples to take (default to pivotParameters length)
-      @ In, randEngine, instance, optional, method to call to get random samples (for example "randEngine(size=6)")
-      @ Out, hist, np.array(float), synthetic ARMA signal
-    """
-    if numSamples is None:
-      numSamples =  len(self.pivotParameterValues)
-    # sample measure, state shocks
-    ## TODO it appears that measure shock always has a 0 variance multivariate normal, so just create it
-    measureShocks = np.zeros([numSamples,len(self.target)])
-    ## state shocks come from sampling multivariate
-    stateShocks = np.array([self.varmaDist.rvs() for _ in range(numSamples)])
-    # pick an intial by sampling multinormal distribution?
-    # FIXME pick a random state; for now starts at 0
-    # FIXME using numpy rng!  Figure out how to use ours!  (already queried Cameron and Ross in HPC dept)
-    # FIXME for now bypassing initial state, rng, and params update
-    ## it seems when not provided, the initial state is determined by
-    #      statslmodels.tsa.statespace.kalman_filter.simulate, under self.initialization='stationary'
-    ## are measurement_shocks or state_shocks the disturbance random noise we want to provide to simulate??
-    # TODO burn-in on the samples?
-    obs, states = model.ssm.simulate(numSamples,measurement_shocks=measureShocks,state_shocks=stateShocks)
-    return obs
-
   def _generateFourierSignal(self, pivots, basePeriod, fourierOrder):
     """
       Generate fourier signal as specified by the input file
@@ -396,6 +377,29 @@ class ARMA(supervisedLearning):
         fourier[base][:, 2*orderBp] = np.sin(2*np.pi*(orderBp+1)/base*pivots)
         fourier[base][:, 2*orderBp+1] = np.cos(2*np.pi*(orderBp+1)/base*pivots)
     return fourier
+
+  def _generateVARMASignal(self, model, numSamples=None, randEngine=None):
+    """
+      Generates a set of correlated synthetic histories from fitted parameters.
+      @ In, model, statsmodels.tsa.statespace.VARMAX, fitted VARMA such as otained from _trainVARMA
+      @ In, numSamples, int, optional, number of samples to take (default to pivotParameters length)
+      @ In, randEngine, instance, optional, method to call to get random samples (for example "randEngine(size=6)")
+      @ Out, hist, np.array(float), synthetic ARMA signal
+    """
+    if numSamples is None:
+      numSamples =  len(self.pivotParameterValues)
+    # sample measure, state shocks
+    ## TODO it appears that measure shock always has a 0 variance multivariate normal, so just create it
+    measureShocks = np.zeros([numSamples,len(self.target)])
+    ## state shocks come from sampling multivariate
+    stateShocks = np.array([self.varmaNoise.rvs() for _ in range(numSamples)])
+    # pick an intial by sampling multinormal distribution
+    init = np.array(self.varmaInit.rvs())
+    obs, states = model.ssm.simulate(numSamples,
+                                     initial_state = init,
+                                     measurement_shocks = measureShocks,
+                                     state_shocks = stateShocks)
+    return obs
 
   def _interpolateDist(self,x,y,Xlow,Xhigh,Ylow,Yhigh,inMask):
     """
@@ -581,12 +585,31 @@ class ARMA(supervisedLearning):
     fourierResult['predict'] = np.asarray(fourierEngine.predict(fSeriesBest))
     return fourierResult
 
+  def _trainMultivariateNormal(self,dim,means,cov):
+    """
+      Trains multivariate normal distribution for future sampling
+      @ In, dim, int, number of dimensions
+      @ In, means, np.array, distribution mean
+      @ In, cov, np.ndarray, dim x dim matrix of covariance terms
+      @ Out, dist, Distributions.MultivariateNormal, distribution
+    """
+    dist = Distributions.MultivariateNormal()
+    dist.method = 'pca'
+    dist.dimension = dim
+    dist.rank = dim
+    dist.mu = means
+    dist.covariance = np.ravel(cov)
+    dist.messageHandler = self.messageHandler
+    dist.initializeDistribution()
+    return dist
+
   def _trainVARMA(self,data):
     """
       Train correlated ARMA model on white noise ARMA, with Fourier already removed
       @ In, data, np.array(np.array(float)), data on which to train with shape (# pivot values, # targets)
       @ Out, results, statsmodels.tsa.arima_model.ARMAResults, fitted VARMA
       @ Out, stateDist, Distributions.MultivariateNormal, MVN from which VARMA noise is taken
+      @ Out, initDist, Distributions.MultivariateNormal, MVN from which VARMA initial state is taken
     """
     Pmax = self.Pmax
     Qmax = self.Qmax
@@ -595,20 +618,27 @@ class ARMA(supervisedLearning):
     results = model.fit(disp=False,maxiter=1000)
     lenHist,numVars = data.shape
     # train multivariate normal distributions using covariances, keep it around so we can control the RNG
-    ## TODO what is the difference between the "state" and "measurement" statistics?
-    ## for now, it appears "measurement" always has 0 covariance, and so is all zeros (see _generateVARMASignal)
+    ## it appears "measurement" always has 0 covariance, and so is all zeros (see _generateVARMASignal)
     ## all the noise comes from the stateful properties
-    stateDist = Distributions.MultivariateNormal()
-    stateDist.method = 'pca'
-    stateDist.dimension = numVars
-    stateDist.rank = numVars
-    stateDist.mu = np.zeros(numVars)
-    stateDist.covariance = np.ravel(model.ssm['state_cov'.encode('ascii')])
-    stateDist.messageHandler = self.messageHandler
-    stateDist.initializeDistribution()
+    stateDist = self._trainMultivariateNormal(numVars,np.zeros(numVars),model.ssm['state_cov'.encode('ascii')])
+    # train initial state sampler
+    ## Used to pick an initial state for the VARMA by sampling from the multivariate normal noise
+    #    and using the AR and MA initial conditions.  Implemented so we can control the RNG internally.
+    #    Implementation taken directly from statsmodels.tsa.statespace.kalman_filter.KalmanFilter.simulate
+    ## get mean
+    smoother = model.ssm
+    mean = np.linalg.solve(np.eye(smoother.k_states) - smoother['transition'.encode('ascii'),:,:,0],
+                           smoother['state_intercept'.encode('ascii'),:,0])
+    ## get covariance
+    r = smoother['selection'.encode('ascii'),:,:,0]
+    q = smoother['state_cov'.encode('ascii'),:,:,0]
+    selCov = r.dot(q).dot(r.T)
+    cov = solve_discrete_lyapunov(smoother['transition'.encode('ascii'),:,:,0], selCov)
+    # FIXME it appears this is always resulting in a lowest-value initial state.  Why?
+    initDist = self._trainMultivariateNormal(len(mean),mean,cov)
     # NOTE: uncomment this line to get a printed summary of a lot of information about the fitting.
     #self.raiseADebug('VARMA model training summary:\n',results.summary())
-    return model, stateDist
+    return model, stateDist, initDist
 
   ### ESSENTIALLY UNUSED ###
   def _localNormalizeData(self,values,names,feat):
