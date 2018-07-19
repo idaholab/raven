@@ -54,7 +54,7 @@
    input = 'varma.xml'
    output = 'VARMA/plot_VARMA.png VARMA/plot_input.png VARMA/samples.csv VARMA/samples_0.csv VARMA/stats.xml'
    csv = 'VARMA/stats.csv'
-   rel_err = 1e-4
+   rel_err = 1e-2 # we only take 100 samples
   [../]
 
 []
