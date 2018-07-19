@@ -309,7 +309,7 @@ class EnsembleModel(Dummy):
     #   e -> d -> f
     if not self.ensembleModelGraph.isConnectedNet():
       isolatedModels = self.ensembleModelGraph.findIsolatedVertices()
-      #self.raiseAnError(IOError, "Some models are not connected. Possible candidates are: "+' '.join(isolatedModels))
+      self.raiseAnError(IOError, "Some models are not connected. Possible candidates are: "+' '.join(isolatedModels))
     # get all paths
     allPath = self.ensembleModelGraph.findAllUniquePaths(self.initialStartModels)
     ###################################################
