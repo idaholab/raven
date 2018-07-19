@@ -142,11 +142,7 @@ class graphObject(object):
       @ In, endVertex, string, the ending vertex
       @ Out, extendedPath, list, list of verteces (path)
     """
-    graphDict = copy.copy(self.__graphDict)
-    for inModel, outModels in self.__graphDict.items():
-      for outModel in outModels:
-        if inModel not in graphDict[outModel]:
-          graphDict[outModel].append(inModel)
+    graph = self.__graphDict
     path = path + [startVertex]
     extendedPath = None
     if startVertex == endVertex:
