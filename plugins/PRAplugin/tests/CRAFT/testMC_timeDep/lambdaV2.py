@@ -9,7 +9,7 @@ def timeDepLambda(t,a,b):
 
 def pdfFailure(t,a,b):
   first  = timeDepLambda(t,a,b)
-  second = math.exp(-quad(timeDepLambda, 0, t, args=(a,b))[0]) 
+  second = math.exp(-quad(timeDepLambda, 0, t, args=(a,b))[0])
   return first*second
 
 def run(self,Input):

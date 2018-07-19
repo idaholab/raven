@@ -1,8 +1,8 @@
 import random
 
 def run(self,Input):
-  # intput: 
-  # output: 
+  # intput:
+  # output:
 
   if self.outcome_P1P2 == 0:
     self.cost_P1P2 = 0.
@@ -16,11 +16,11 @@ def run(self,Input):
     costSD       = numberDaysSD * costPerDaySD
 
     costPerDayReg = 0.2 + 0.1 * random.random()
-    costReg       = numberDaysSD * costPerDayReg 
+    costReg       = numberDaysSD * costPerDayReg
 
     self.cost_P1P2 = costSD + costReg
   else:
-    print('error costP1P2')   
+    print('error costP1P2')
 
   self.p_P1P2_cost = self.p_P1P2_ET
   self.t_P1P2_cost = self.t_P1P2_ET

@@ -11,7 +11,7 @@ def run(self,Input):
   powerDuration = 18.*30. # 18 months, 30 days per months
   SDduration    = 30.
   cycle = powerDuration + SDduration
- 
+
   self.time    = np.arange(dt,T,dt)
   self.opPower = 100 * np.ones(len(self.time))
 

@@ -1,8 +1,8 @@
 import random
 
 def run(self,Input):
-  # intput: 
-  # output: 
+  # intput:
+  # output:
 
   if self.outcome_SG == 0:
     self.cost_SG = 0.

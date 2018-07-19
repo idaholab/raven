@@ -8,7 +8,7 @@ def timeDepLambda(t,a,b):
 
 def pdfFailure(t,a,b):
   first  = timeDepLambda(t,a,b)
-  second = math.exp(-quad(timeDepLambda, 0, t, args=(a,b))[0]) 
+  second = math.exp(-quad(timeDepLambda, 0, t, args=(a,b))[0])
   return first*second
 
 def run(self,Input):
@@ -20,4 +20,4 @@ def run(self,Input):
 
   for index,value in np.ndenumerate(Input['time']):
     #self.p_V1[index[0]] = quad(pdfFailure, 0, value, args=(Input['a_V1'],Input['b_V1']))[0]
-    self.p_V1[index[0]] = 1. - math.exp(-quad(timeDepLambda, 0, value, args=(Input['a_V1'],Input['b_V1']))[0]) 
+    self.p_V1[index[0]] = 1. - math.exp(-quad(timeDepLambda, 0, value, args=(Input['a_V1'],Input['b_V1']))[0])

@@ -7,7 +7,7 @@ def RULmodel(mu,sigma,time):
   # b = 0.267
   prob = norm.cdf(time, mu, sigma)
   return prob
-   
+
 
 def run(self,Input):
   # intput: alpha, beta
@@ -19,6 +19,6 @@ def run(self,Input):
     self.t_SG = random.random()*Input['T']
     self.p_SG = float(RULmodel(Input['alpha_SG'], Input['beta_SG'], self.t_SG))
   else:
-    self.t_SG = Input['T']+ 1.0 
+    self.t_SG = Input['T']+ 1.0
     self.p_SG = 1.0 - float(RULmodel(Input['alpha_SG'], Input['beta_SG'], self.t_SG))
-       
+

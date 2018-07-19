@@ -2,8 +2,8 @@ import random
 import numpy as np
 
 def run(self,Input):
-  # intput: 
-  # output: 
+  # intput:
+  # output:
 
   self.cost_P1P2_0 = np.zeros(Input['time'].size)
 
@@ -17,6 +17,6 @@ def run(self,Input):
   costSD       = numberDaysSD * costPerDaySD
 
   costPerDayReg = 0.2 + 0.1 * random.random()
-  costReg       = numberDaysSD * costPerDayReg 
+  costReg       = numberDaysSD * costPerDayReg
 
   self.cost_P1P2_2 = (costSD + costReg) * np.ones(Input['time'].size)
