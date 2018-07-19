@@ -748,6 +748,3 @@ class ctfdata:
               externalFlow = False
     #print(dictArray.shape)
     return dictArray, header
-
-#foo = ctfdata('/Users/tezba-mac/projects/newParserTests/fold/deck_inflow_2_in.out')
-#foo
