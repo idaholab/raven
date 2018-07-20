@@ -40,6 +40,7 @@ class Saphire(GenericCode):
     """
     GenericCode.__init__(self)
     self.codeOutputs = {} # the root of the outputs
+    self.outputDest = 'publish' # Saphire will dump its outputs to this folder
 
   def addDefaultExtension(self):
     """
@@ -72,7 +73,7 @@ class Saphire(GenericCode):
     """
     filesIn = []
     for outName, outType in self.codeOutputs.items():
-      filesIn.append((os.path.join(workingDir, outName), outType))
+      filesIn.append((os.path.join(workingDir, self.outputDest, outName), outType))
     outputParser = SaphireData(filesIn)
     outputParser.writeCSV(os.path.join(workingDir, output))
 
