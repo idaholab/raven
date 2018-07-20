@@ -438,13 +438,13 @@ class NDinterpolatorRom(supervisedLearning):
       del a
     return state
 
-  def __setstate__(self, newstate):
+  def __setstate__(self, state):
     """
-      Initialize the ROM with the data contained in newstate
-      @ In, newstate, dict, it contains all the information needed by the ROM to be initialized
+      Initialize the ROM with the data contained in state
+      @ In, state, dict, it contains all the information needed by the ROM to be initialized
       @ Out, None
     """
-    self.__dict__.update(newstate)
+    self.__dict__.update(state)
     self.__initLocal__()
     #only train if the original copy was trained
     if self.amITrained:
@@ -1617,13 +1617,13 @@ class MSR(NDinterpolatorRom):
     state.pop('kdTree')
     return state
 
-  def __setstate__(self,newState):
+  def __setstate__(self,state):
     """
-      Initialize the ROM with the data contained in newstate
-      @ In, newState, dict, it contains all the information needed by the ROM to be initialized
+      Initialize the ROM with the data contained in state
+      @ In, state, dict, it contains all the information needed by the ROM to be initialized
       @ Out, None
     """
-    for key, value in newState.iteritems():
+    for key, value in state.iteritems():
       setattr(self, key, value)
     self.kdTree             = None
     self.__amsc             = []
@@ -2210,6 +2210,9 @@ class SciKitLearn(supervisedLearning):
     """
     supervisedLearning.__init__(self,messageHandler,**kwargs)
     name  = self.initOptionDict.pop('name','')
+    if 'pivotParameter' in self.initOptionDict:
+      # remove pivot parameter if present
+      self.initOptionDict.pop("pivotParameter")
     self.printTag = 'SCIKITLEARN'
     if 'SKLtype' not in self.initOptionDict.keys():
       self.raiseAnError(IOError,'to define a scikit learn ROM the SKLtype keyword is needed (from ROM "'+name+'")')
@@ -3229,6 +3232,15 @@ class DynamicModeDecomposition(supervisedLearning):
     if self.pivotParameterID not in self.target:
       self.raiseAnError(IOError,"The pivotParameter "+self.pivotParameterID+" must be part of the Target space!")
 
+  def __setstate__(self, state):
+    """
+      Initialize the DMD with the data contained in state
+      @ In, state, dict, it contains all the information needed by the ROM to be initialized
+      @ Out, None
+    """
+    self.__dict__.update(state)
+    self.KDTreeFinder = spatial.KDTree(self.featureVals)
+
   def _localNormalizeData(self,values,names,feat):
     """
       Overwrites default normalization procedure.
@@ -3322,15 +3334,17 @@ class DynamicModeDecomposition(supervisedLearning):
     for target in list(set(self.target) - set([self.pivotParameterID])):
       reconstructData = self._reconstructData(target).real
       # find the nearest data and compute weights
-      weights, indexes = self.KDTreeFinder.query(featureVals, k=min(2**len(self.features),len(reconstructData)))
-      # if 0 (perfect match), assign minimum possible distance
-      weights[weights == 0] = sys.float_info.min
-      weights =1./weights
-      # normalize to 1
-      weights = weights/weights.sum()
-      for point in range(len(weights)):
-        returnEvaluation[target] =  np.sum ((weights[point,:]*reconstructData[indexes[point,:]].T) , axis=1)
-
+      if len(reconstructData) > 1:
+        weights, indexes = self.KDTreeFinder.query(featureVals, k=min(2**len(self.features),len(reconstructData)))
+        # if 0 (perfect match), assign minimum possible distance
+        weights[weights == 0] = sys.float_info.min
+        weights =1./weights
+        # normalize to 1
+        weights = weights/weights.sum()
+        for point in range(len(weights)):
+          returnEvaluation[target] =  np.sum ((weights[point,:]*reconstructData[indexes[point,:]].T) , axis=1)
+      else:
+        returnEvaluation[target] = reconstructData[0]
     return returnEvaluation
 
   def _localPrintXMLSetup(self,outFile,options={}):
