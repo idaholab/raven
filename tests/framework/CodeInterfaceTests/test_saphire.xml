@@ -18,13 +18,14 @@
 
   <Files>
     <Input name="macro" type="">Class_Chg_DEMO.mac</Input>
+    <Input name="demo" type="">demo.zip</Input>
   </Files>
 
   <Models>
     <Code name="saphire" subType="Saphire">
       <executable></executable>
-      <clargs arg="project=pathToProject" type="text"/>
       <clargs arg="macro" extension=".mac" type="input" delimiter="="/>
+      <clargs arg="project" extension=".zip" type="input" delimiter="="/>
       <outputFile>fixed_output.csv</outputFile>
       <codeOutput type="uncertainty">ET_UQ.txt</codeOutput>
       <codeOutput type="uncertainty">FT_UQ.txt</codeOutput>
@@ -74,6 +75,7 @@
   <Steps>
     <MultiRun name="sample">
       <Input class="Files" type="">macro</Input>
+      <Input class="Files" type="">demo</Input>
       <Model class="Models" type="Code">saphire</Model>
       <Sampler class="Samplers" type="MonteCarlo">mcSaphire</Sampler>
       <Output class="DataObjects" type="PointSet">saphireDump</Output>
