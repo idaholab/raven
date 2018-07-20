@@ -143,7 +143,64 @@ None.
     <input 2>qa_subset_cutset.rpt</input 2>
     <output>compare.rpt</output>
   </compare file>
+
+  <importance>
+    <group>yes</group>
+    <seed>4321</seed>
+    <sort order>name</sort order>
+    <file name>imp-all.csv</file name>
+    <report format>csv</report format>
+  </importance>
+
+  <comment>
+    <report>
+     <type>use title</type>
+     <title>Uncertainty Quantiles</title>
+     <file name>%Pquantile.csv</file name>
+     <report format>csv</report format>
+    </report>
+  </comment>
+
 </sequence>
+
+<event tree>
+  <mark mask>LOSP</mark mask>
+  
+  <uncertainty>
+     <sample>5000</sample>
+     <seed>1234</seed>
+     <method>mcs</method>
+     <intermediate>csv</intermediate>
+     <file name>uq.csv</file name>
+  </uncertainty>
+  
+  <report>
+     <type>use title</type>
+     <title>Uncertainty</title>
+     <file name>quantile.csv</file name>
+     <report format>csv</report format>
+  </report>
+</event tree>
+
+<fault tree>
+  <mark logic fault tree>*</mark logic fault tree>
+  
+  <uncertainty>
+     <sample>5000</sample>
+     <seed>1234</seed>
+     <method>lhs</method>
+     <intermediate>csv</intermediate>
+     <file name>ftuq_im.csv</file name>
+  </uncertainty>
+  
+  <report>
+    <type>results</type>
+    <sub type>current only</sub type>
+	<file name>ftuq.csv</file name>
+	<report format>csv</report format>
+  </report>
+  
+</fault tree>
 
 <scenario><end></end></scenario>
 

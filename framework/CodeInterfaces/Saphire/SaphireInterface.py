@@ -63,6 +63,80 @@ class Saphire(GenericCode):
       outName = outNode.text.strip()
       self.codeOutputs[outName] = outType
 
+  def generateCommand(self,inputFiles,executable,clargs=None, fargs=None, preExec=None):
+    """
+      See base class.  Collects all the clargs and the executable to produce the command-line call.
+      Returns tuple of commands and base file name for run.
+      Commands are a list of tuples, indicating parallel/serial and the execution command to use.
+      @ In, inputFiles, list, List of input files (length of the list depends on the number of inputs have been added in the Step is running this code)
+      @ In, executable, string, executable name with absolute path (e.g. /home/path_to_executable/code.exe)
+      @ In, clargs, dict, optional, dictionary containing the command-line flags the user can specify in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 i0extension =0 .inp0/ >< /Code >)
+      @ In, fargs, dict, optional, a dictionary containing the axuiliary input file variables the user can specify in the input (e.g. under the node < Code >< fileargstype =0 input0arg =0 aux0extension =0 .aux0/ >< /Code >)
+      @ In, preExec, string, optional, a string the command that needs to be pre-executed before the actual command here defined
+      @ Out, returnCommand, tuple, tuple containing the generated command. returnCommand[0] is the command to run the code (string), returnCommand[1] is the name of the output root
+    """
+    if clargs==None:
+      raise IOError('No input file was specified in clargs!')
+    #check all required input files are there
+    inFiles=inputFiles[:]
+    #check for duplicate extension use
+    usedExt=[]
+    for elems in list(clargs['input'][flag] for flag in clargs['input'].keys()) + list(fargs['input'][var] for var in fargs['input'].keys()):
+      for elem in elems:
+        ext = elem[0]
+        if ext not in usedExt:
+          usedExt.append(ext)
+        else:
+          raise IOError('Saphire cannot handle multiple input files with the same extension')
+        found=False
+        for inf in inputFiles:
+          if '.'+inf.getExt() == ext:
+            found=True
+            inFiles.remove(inf)
+            break
+        if not found:
+          raise IOError('input extension "'+ext+'" listed in input but not in inputFiles!')
+
+    #TODO if any remaining, check them against valid inputs
+
+    #PROBLEM this is limited, since we can't figure out which .xml goes to -i and which to -d, for example.
+    def getFileWithExtension(fileList,ext):
+      """
+      Just a script to get the file with extension ext from the fileList.
+      @ In, fileList, the string list of filenames to pick from.
+      @ Out, ext, the string extension that the desired filename ends with.
+      """
+      found = False
+      for index,inputFile in enumerate(fileList):
+        if inputFile.getExt() == ext:
+          found=True
+          break
+      if not found:
+        raise IOError('No InputFile with extension '+ext+' found!')
+      return index,inputFile
+
+    todo = ''
+    todo += executable
+    index=None
+    #inputs
+    for flag,elems in clargs['input'].items():
+      if flag == 'noarg': continue
+      todo += ' '+flag
+      for elem in elems:
+        ext, delimiter = elem[0], elem[1]
+        idx,fname = getFileWithExtension(inputFiles,ext.strip('.'))
+        todo += delimiter + fname.getAbsFile()
+        if index == None:
+          index = idx
+    #outputs
+    self.caseName = inputFiles[index].getBase()
+    outFile = 'out~'+self.caseName
+    if self.fixedOutFileName is not None:
+      outFile = self.fixedOutFileName
+    returnCommand = [('parallel',todo)],outFile
+    print('Execution Command: '+str(returnCommand[0]))
+    return returnCommand
+
   def finalizeCodeOutput(self,command,output,workingDir):
     """
       This method is called by the RAVEN code at the end of each run. It will convert the SAPHIRE outputs into RAVEN
