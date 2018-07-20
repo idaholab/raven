@@ -186,7 +186,7 @@ class hdf5Database(MessageHandler.MessageUser):
       @ Out, None
     """
     parentID  = rlz.get("RAVEN_parentID",[None])[0]
-    groupName = str(rlz.get("prefix")[0] if not isinstance(rlz.get("prefix"),basestring) else rlz.get("prefix"))
+    groupName = str(rlz.get("prefix", "None")[0] if not isinstance(rlz.get("prefix"),basestring) else rlz.get("prefix", "None"))
     if parentID:
       #If Hierarchical structure, firstly add the root group
       if not self.firstRootGroup or parentID == "None":
