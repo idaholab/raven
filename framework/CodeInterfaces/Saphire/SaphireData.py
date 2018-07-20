@@ -102,8 +102,6 @@ class SaphireData:
     """
     outObj = open(output.strip()+".csv", mode='w+') if not output.endswith('csv') else open(output.strip(), mode='w+')
     # create string for header names
-    print(self.headerNames)
-    print(self.outData)
     headerString = ",".join(self.headerNames)
     # write & save array as csv file
     # FIXME: There is a problem with the numpy.savetxt, if provided data is 1D array_like, the demiliter will be
