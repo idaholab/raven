@@ -1,4 +1,0 @@
-Fault Tree Uncertainty
-
-Name, Point Estimate, Mean, 5th, Median, 95th, Standard Dev., Skewness, Kurtosis, Num of Samples, Seed
-BRAKE-SYS, 5.001E-1, 4.997E-1, 6.267E-3, 4.913E-1, 9.932E-1, 3.556E-1, 8.482E-3, 1.483E+0, 3000, 27297

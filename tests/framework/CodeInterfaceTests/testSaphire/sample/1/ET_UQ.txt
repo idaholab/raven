@@ -1,6 +1,0 @@
-Event Tree Sequence Uncertainty
-
-Name, Point Estimate, Mean, 5th, Median, 95th, Standard Dev., Skewness, Kurtosis, Num of Samples, Seed
-OBSTRUCT:2, 1.195E-5, 1.155E-5, 5.940E-11, 3.269E-7, 5.449E-5, 5.190E-5, 1.224E+1, 2.146E+2, 3000, 21197
-OBSTRUCT:4, 0.000E+0, 0.000E+0, 0.000E+0, 0.000E+0, 0.000E+0, 0.000E+0, 1.000E+38, 1.000E+38, 3000, 21517
-OBSTRUCT:6, 5.979E-6, 5.832E-6, 1.181E-11, 7.525E-8, 1.874E-5, 5.531E-5, 3.610E+1, 1.601E+3, 3000, 21877
