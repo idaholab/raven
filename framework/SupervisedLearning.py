@@ -3322,15 +3322,17 @@ class DynamicModeDecomposition(supervisedLearning):
     for target in list(set(self.target) - set([self.pivotParameterID])):
       reconstructData = self._reconstructData(target).real
       # find the nearest data and compute weights
-      weights, indexes = self.KDTreeFinder.query(featureVals, k=min(2**len(self.features),len(reconstructData)))
-      # if 0 (perfect match), assign minimum possible distance
-      weights[weights == 0] = sys.float_info.min
-      weights =1./weights
-      # normalize to 1
-      weights = weights/weights.sum()
-      for point in range(len(weights)):
-        returnEvaluation[target] =  np.sum ((weights[point,:]*reconstructData[indexes[point,:]].T) , axis=1)
-
+      if len(reconstructData) > 1:
+        weights, indexes = self.KDTreeFinder.query(featureVals, k=min(2**len(self.features),len(reconstructData)))
+        # if 0 (perfect match), assign minimum possible distance
+        weights[weights == 0] = sys.float_info.min
+        weights =1./weights
+        # normalize to 1
+        weights = weights/weights.sum()
+        for point in range(len(weights)):
+          returnEvaluation[target] =  np.sum ((weights[point,:]*reconstructData[indexes[point,:]].T) , axis=1)
+      else:
+        returnEvaluation[target] = reconstructData[0]
     return returnEvaluation
 
   def _localPrintXMLSetup(self,outFile,options={}):
