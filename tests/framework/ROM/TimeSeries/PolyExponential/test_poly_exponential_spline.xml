@@ -57,9 +57,9 @@
 
 	<Models>
 		<ROM name='PolyExp' subType='PolyExponential'>
-			<Target>time,decay_heat,decay_heat_pu</Target>
+			<Target>t,decay_heat,decay_heat_pu</Target>
 			<Features>enrichment,burnup</Features>
-			<pivotParameter>time</pivotParameter>
+			<pivotParameter>t</pivotParameter>
             <coeffRegressor>spline</coeffRegressor>
             <numberExpTerms>2</numberExpTerms>
             <max_iter>30000</max_iter>
@@ -111,10 +111,16 @@
       <HistorySet name="rawData">
         <Input>enrichment,burnup</Input>
         <Output>decay_heat,decay_heat_pu</Output>
+        <options>
+            <pivotParameter>t</pivotParameter>
+        </options>
       </HistorySet>
       <HistorySet name="synDataPolyExp" >
        <Input>enrichment,burnup</Input>
        <Output>decay_heat,decay_heat_pu</Output>
+       <options>
+           <pivotParameter>t</pivotParameter>
+       </options>
       </HistorySet>
     </DataObjects>
 </Simulation>
