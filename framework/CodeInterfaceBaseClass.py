@@ -44,6 +44,7 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
       @ Out, None
     """
     self.inputExtensions = []
+    self.ignoreInputExtensions = ['zip'] # the list of input extensions that will be ignored by the code interface.
 
   def genCommand(self,inputFiles,executable,flags=None, fileArgs=None, preExec=None):
     """
@@ -128,7 +129,8 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
       @ In, exts, list, list or other array containing accepted input extension (e.g.[".i",".inp"])
       @ Out, None
     """
-    self.inputExtensions = exts[:]
+    self.inputExtensions = []
+    self.addInputExtension(exts)
 
   def addInputExtension(self,exts):
     """
@@ -137,7 +139,8 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
       @ Out, None
     """
     for e in exts:
-      self.inputExtensions.append(e)
+      if e not in self.ignoreInputExtensions:
+        self.inputExtensions.append(e)
 
   def addDefaultExtension(self):
     """
