@@ -21,7 +21,6 @@ warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
 import os
-import sys
 import math
 import string
 import Simulation
