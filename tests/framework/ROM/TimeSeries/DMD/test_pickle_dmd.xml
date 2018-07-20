@@ -93,10 +93,16 @@
       <HistorySet name="rawData">
         <Input>enrichment,burnup</Input>
         <Output>decay_heat,decay_heat_pu</Output>
+        <options>
+            <pivotParameter>t</pivotParameter>
+        </options>
       </HistorySet>
       <HistorySet name="synDataDMD" >
        <Input>enrichment,burnup</Input>
        <Output>decay_heat,decay_heat_pu</Output>
+       <options>
+           <pivotParameter>t</pivotParameter>
+       </options>
       </HistorySet>
     </DataObjects>
 </Simulation>
