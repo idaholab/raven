@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<Simulation verbosity="silent">
+<Simulation verbosity="debug">
   <TestInfo>
     <name>saphire</name>
     <author>wangc</author>
@@ -23,12 +23,12 @@
 
   <Models>
     <Code name="saphire" subType="Saphire">
-      <executable></executable>
+      <executable>"C:\Saphire 8\tools\SAPHIRE.exe"</executable>
       <clargs arg="macro" extension=".mac" type="input" delimiter="="/>
       <clargs arg="project" extension=".zip" type="input" delimiter="="/>
       <outputFile>fixed_output.csv</outputFile>
-      <codeOutput type="uncertainty">ET_UQ.txt</codeOutput>
-      <codeOutput type="uncertainty">FT_UQ.txt</codeOutput>
+      <codeOutput type="uncertainty">et_uq.csv</codeOutput>
+      <codeOutput type="uncertainty">ft_uq.csv</codeOutput>
       <!--codeOutput type="importance">faultTreeImportance.txt</codeOutput-->
     </Code>
   </Models>
@@ -86,7 +86,9 @@
   <DataObjects>
     <PointSet name="saphireDump">
       <Input>allEventsPb, mov1EventPb, single1Pb</Input>
-      <Output>BRAKE-SYS_Mean,BRAKE-SYS_Standard~Dev.,OBSTRUCT:2_Mean</Output>
+      <Output>LOSP:3_Mean,LOSP:2_Standard~Dev.,CCS_Mean, ECS_Mean, CCS_Standard~Dev., ECS_Standard~Dev., CCS_Skewness,
+	      ECS_Skewness, CCS_Kurtosis, ECS_Kurtosis, CCS_5th, CCS_95th, ECS_5th, ECS_95th
+      </Output>
     </PointSet>
   </DataObjects>
 

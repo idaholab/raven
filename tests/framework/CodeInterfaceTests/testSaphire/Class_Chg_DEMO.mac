@@ -171,20 +171,20 @@ None.
      <seed>1234</seed>
      <method>mcs</method>
      <intermediate>csv</intermediate>
-     <file name>uq.csv</file name>
+     <file name>uq_im.csv</file name>
   </uncertainty>
   
   <report>
      <type>use title</type>
      <title>Uncertainty</title>
-     <file name>quantile.csv</file name>
+     <file name>et_uq.csv</file name>
      <report format>csv</report format>
   </report>
 </event tree>
 
 <fault tree>
-  <mark logic fault tree>*</mark logic fault tree>
-  
+  <mark name>CCS</mark name>
+  <mark name>ECs</mark name> 
   <uncertainty>
      <sample>5000</sample>
      <seed>1234</seed>
@@ -194,11 +194,20 @@ None.
   </uncertainty>
   
   <report>
+    <type>use title</type>
+    <title>Uncertainty</title>
+    <file name>ft_uq.csv</file name>
+    <report format>csv</report format>
+  </report>
+
+  <comment>
+  <report>
     <type>results</type>
     <sub type>current only</sub type>
 	<file name>ftuq.csv</file name>
 	<report format>csv</report format>
   </report>
+  </comment>
   
 </fault tree>
 

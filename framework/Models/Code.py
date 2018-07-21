@@ -489,7 +489,7 @@ class Code(Model):
     self.raiseAMessage('Execution command submitted:',command)
     if platform.system() == 'Windows':
       command = self._expandForWindows(command)
-      self.raiseAMessage("modified command to" + repr(command))
+      self.raiseAMessage("modified command to", repr(command))
       for key, value in localenv.items():
         localenv[key]=str(value)
     ## This code should be evaluated by the job handler, so it is fine to wait

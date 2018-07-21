@@ -40,7 +40,7 @@ class Saphire(GenericCode):
     """
     GenericCode.__init__(self)
     self.codeOutputs = {} # the root of the outputs
-    self.outputDest = 'publish' # Saphire will dump its outputs to this folder
+    self.outputDest = 'Publish' # Saphire will dump its outputs to this folder
 
   def addDefaultExtension(self):
     """
