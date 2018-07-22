@@ -1,4 +1,4 @@
 #!/bin/bash
 cd `dirname $0`
-source scripts/setup_raven_libs
+source scripts/establish_conda_env.sh --quiet --load
 ./backend_run_tests --re=framework --skip-config-check "$@"

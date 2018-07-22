@@ -2659,7 +2659,7 @@ class NDimensionalDistributions(Distribution):
     """
       Compute the cdf marginal distribution
       @ In, x, float, the coordinate for at which the inverse marginal distribution needs to be computed
-      @ In, variable, int, the variable id
+      @ In, variable, int, the variable id dimension coordinate (e.g. 0 => 1st coordinate, 1 => 2nd coordinate)
       @ Out, marginalDistribution, float, the marginal cdf value at coordinate x
     """
     return self._distribution.marginal(x, variable)
@@ -2803,7 +2803,7 @@ class NDInverseWeight(NDimensionalDistributions):
     """
       Compute the inverse of the Marginal distribution
       @ In, x, float, the cdf for at which the inverse marginal distribution needs to be computed
-      @ In, variable, int, the variable id
+      @ In, variable, int, the variable id dimension coordinate (e.g. 0 => 1st coordinate, 1 => 2nd coordinate)
       @ Out, inverseMarginal, float, the marginal inverse cdf value at coordinate x
     """
     if (x>=0.0) and (x<=1.0):
@@ -2992,7 +2992,7 @@ class NDCartesianSpline(NDimensionalDistributions):
     """
       Compute the inverse of the Margina distribution
       @ In, x, float, the coordinate for at which the inverse marginal distribution needs to be computed
-      @ In, variable, string, the variable id
+      @ In, variable, int, the variable id dimension coordinate (e.g. 0 => 1st coordinate, 1 => 2nd coordinate)
       @ Out, inverseMarginal, float, the marginal cdf value at coordinate x
     """
     if (x>=0.0) and (x<=1.0):
@@ -3379,7 +3379,7 @@ class MultivariateNormal(NDimensionalDistributions):
     """
       Compute the inverse of the Margina distribution
       @ In, x, float, the coordinate for at which the inverse marginal distribution needs to be computed
-      @ In, variable, string, the variable id
+      @ In, variable, int, the variable id dimension coordinate (e.g. 0 => 1st coordinate, 1 => 2nd coordinate)
       @ Out, inverseMarginal, float, the marginal cdf value at coordinate x
     """
     if (x >= 0.0) and (x <= 1.0):

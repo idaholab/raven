@@ -183,8 +183,15 @@ public:
 
     return value;
   }
-
-  double marginal(double x, int dimension){
+  double marginal(double x, int dimension)
+    /**
+     * Method to get the margina cdf give the dimension id
+     * and the value x
+     * @ In, double, x, the parameter value
+     * @ In, int, dimension, the dimension id
+     * @ Out, double, value, the marginal CDF value at x for dim dimension
+     */
+    {
         double value=0.0;
         if (_cdf_provided){
             throwError("BasicMultiDimensionalInverseWeight Distribution error: marginal calculation not available if CDF provided");

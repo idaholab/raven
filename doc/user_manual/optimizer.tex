@@ -331,16 +331,16 @@ convergence. This node accepts the following sub-nodes:
   \item \xmlNode{minStepSize}, \xmlDesc{float, optional field}, specifies the minimum allowable step size in
     the normalized input space, ranging from 0 (no movement) to 1 (spans any dimension).
       \default{1e-9}
-  \item \xmlNode{gainGrowthSize}, \xmlDesc{float, optional field}, specifies the rate at which the step size
+  \item \xmlNode{gainGrowthFactor}, \xmlDesc{float, optional field}, specifies the rate at which the step size
     should grow when it does grow, for instance when multiple steps are in the same direction.  Increasing
     this will increase the likelihood that an optimization path travels quickly across the domain along a
     consistent gradient.
       \default{2}
-  \item \xmlNode{gainShrinkSize}, \xmlDesc{float, optional field}, specifies the rate at which the step size
+  \item \xmlNode{gainShrinkFactor}, \xmlDesc{float, optional field}, specifies the rate at which the step size
     should shrink when it does shrink, for instance when switching directions on successive steps.  Increasing
     this will slow convergence, but decrease the likelihood of achieving false convergence due to small step
     sizes.
-      \default{same value as grainGrowthSize}
+      \default{same value as gainGrowthFactor}
   \end{itemize}
 \item \xmlNode{parameter}, \xmlDesc{XML node, optional parameter} will accepts the following sub-nodes:
   \begin{itemize}
