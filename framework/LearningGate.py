@@ -67,7 +67,8 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
     self.pivotParameterId     = self.initializationOptions.get("pivotParameter",'time')
     # return instance of the ROMclass
     modelInstance = SupervisedLearning.returnInstance(ROMclass,self,**self.initializationOptions)
-    # check if the model can autonomously handle the time-dependency (if not and time-dep data are passed in, a list of ROMs are constructed)
+    # check if the model can autonomously handle the time-dependency
+    # (if not and time-dep data are passed in, a list of ROMs are constructed)
     self.canHandleDynamicData = modelInstance.isDynamic()
     # is this ROM  time-dependent ?
     self.isADynamicModel      = False

@@ -516,6 +516,7 @@ class Simulation(MessageHandler.MessageUser):
       @ Out, None
     """
     #move the full simulation environment in the working directory
+    self.raiseADebug('Moving to working directory:',self.runInfoDict['WorkingDir'])
     os.chdir(self.runInfoDict['WorkingDir'])
     #add also the new working dir to the path
     sys.path.append(os.getcwd())
@@ -608,6 +609,9 @@ class Simulation(MessageHandler.MessageUser):
         else:
           self.runInfoDict['printInput'] = text+'.xml'
       elif element.tag == 'WorkingDir':
+        # first store the cwd, the "CallDir"
+        self.runInfoDict['CallDir'] = os.getcwd()
+        # then get the requested "WorkingDir"
         tempName = element.text
         if '~' in tempName:
           tempName = os.path.expanduser(tempName)
@@ -618,8 +622,11 @@ class Simulation(MessageHandler.MessageUser):
         else:
           if xmlFilename == None:
             self.raiseAnError(IOError,'Relative working directory requested but xmlFilename is None.')
+          # store location of the input
           xmlDirectory = os.path.dirname(os.path.abspath(xmlFilename))
+          self.runInfoDict['InputDir'] = xmlDirectory
           rawRelativeWorkingDir = element.text.strip()
+          # working dir is file location + relative working dir
           self.runInfoDict['WorkingDir'] = os.path.join(xmlDirectory,rawRelativeWorkingDir)
         utils.makeDir(self.runInfoDict['WorkingDir'])
       elif element.tag == 'maxQueueSize':

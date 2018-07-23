@@ -1,0 +1,34 @@
+<DataObjects>
+	<PointSet name="inputHolder">
+		<Input>DeltaTimeScramToAux,DG1recoveryTime</Input>
+		<Output>OutputPlaceHolder</Output>
+	</PointSet>
+	<PointSet name="Pointset_from_database_for_rom_trainer">
+		<Input>DeltaTimeScramToAux,DG1recoveryTime</Input>
+		<Output>CladTempThreshold,time</Output>
+	</PointSet>
+	<HistorySet name="Historyset_from_database_for_rom_trainer">
+		<Input>DeltaTimeScramToAux,DG1recoveryTime</Input>
+		<Output>CladTempThreshold</Output>
+	</HistorySet>
+	<PointSet name="data_for_sampling_empty_at_begin">
+		<Input>DeltaTimeScramToAux,DG1recoveryTime</Input>
+		<Output>OutputPlaceHolder</Output>
+	</PointSet>
+	<PointSet name="data_for_sampling_empty_at_begin_nd">
+		<Input>DeltaTimeScramToAux,DG1recoveryTime</Input>
+		<Output>OutputPlaceHolder</Output>
+	</PointSet>
+	<PointSet name="outputMontecarloRom">
+		<Input>DeltaTimeScramToAux,DG1recoveryTime</Input>
+		<!--Output>CladTempThreshold</Output-->
+	</PointSet>
+	<HistorySet name="outputMontecarloRomHS">
+			<Input>DeltaTimeScramToAux,DG1recoveryTime</Input>
+			<Output>CladTempThreshold,time</Output>
+	</HistorySet>
+	<PointSet name="outputMontecarloRomND">
+		<Input>DeltaTimeScramToAux,DG1recoveryTime</Input>
+		<Output>CladTempThreshold</Output>
+	</PointSet>
+</DataObjects>

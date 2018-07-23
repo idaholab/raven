@@ -399,11 +399,13 @@ class SingleRun(Step):
     if 'SolutionExport' in inDictionary.keys():
       modelInitDict['SolutionExport'] = inDictionary['SolutionExport']
     if inDictionary['Model'].createWorkingDir:
-      currentWorkingDirectory = os.path.join(inDictionary['jobHandler'].runInfoDict['WorkingDir'],inDictionary['jobHandler'].runInfoDict['stepName'])
+      currentWorkingDirectory = os.path.join(inDictionary['jobHandler'].runInfoDict['WorkingDir'],
+                                             inDictionary['jobHandler'].runInfoDict['stepName'])
       try:
         os.mkdir(currentWorkingDirectory)
       except OSError:
-        self.raiseAWarning('current working dir '+currentWorkingDirectory+' already exists, this might imply deletion of present files')
+        self.raiseAWarning('current working dir '+currentWorkingDirectory+' already exists, ' +
+                           'this might imply deletion of present files')
         if utils.checkIfPathAreAccessedByAnotherProgram(currentWorkingDirectory,3.0):
           self.raiseAWarning('directory '+ currentWorkingDirectory + ' is likely used by another program!!! ')
         if utils.checkIfLockedRavenFileIsPresent(currentWorkingDirectory,self.lockedFileName):
@@ -412,7 +414,8 @@ class SingleRun(Step):
         atexit.register(utils.removeFile,os.path.join(currentWorkingDirectory,self.lockedFileName))
     inDictionary['Model'].initialize(inDictionary['jobHandler'].runInfoDict,inDictionary['Input'],modelInitDict)
 
-    self.raiseADebug('for the role Model  the item of class {0:15} and name {1:15} has been initialized'.format(inDictionary['Model'].type,inDictionary['Model'].name))
+    self.raiseADebug('for the role Model  the item of class {0:15} and name {1:15} has been initialized'.format(
+      inDictionary['Model'].type,inDictionary['Model'].name))
 
     #HDF5 initialization
     for i in range(len(inDictionary['Output'])):
@@ -451,7 +454,8 @@ class SingleRun(Step):
     ## this should default to all of the ones in the input? Is it possible to
     ## get an input field in the outputs variable that is not in the inputs
     ## variable defined above? - DPM 4/6/2017
-    model.submit(inputs, None, jobHandler, **{'SampledVars':{},'additionalEdits':{}}) #empty dictionary corresponds to sampling data in multirun
+    #empty dictionary corresponds to sampling data in MultiRun
+    model.submit(inputs, None, jobHandler, **{'SampledVars':{'prefix':'None'},'additionalEdits':{}})
     while True:
       finishedJobs = jobHandler.getFinished()
       for finishedJob in finishedJobs:
@@ -462,7 +466,6 @@ class SingleRun(Step):
               model.collectOutput(finishedJob,output)
             else:
               output.addOutput()
-            #else: model.collectOutput(finishedJob,output)
         else:
           self.raiseADebug('the job "'+finishedJob.identifier+'" has failed.')
           if self.failureHandling['fail']:
@@ -474,13 +477,16 @@ class SingleRun(Step):
             if self.failureHandling['jobRepetitionPerformed'][finishedJob.identifier] <= self.failureHandling['repetitions']:
               # we re-add the failed job
               jobHandler.reAddJob(finishedJob)
-              self.raiseAWarning('As prescribed in the input, trying to re-submit the job "'+finishedJob.identifier+'". Trial '+
-                               str(self.failureHandling['jobRepetitionPerformed'][finishedJob.identifier]) +'/'+str(self.failureHandling['repetitions']))
+              self.raiseAWarning('As prescribed in the input, trying to re-submit the job "'+
+                                 finishedJob.identifier+'". Trial '+
+                               str(self.failureHandling['jobRepetitionPerformed'][finishedJob.identifier]) +
+                               '/'+str(self.failureHandling['repetitions']))
               self.failureHandling['jobRepetitionPerformed'][finishedJob.identifier] += 1
             else:
               #add run to a pool that can be sent to the sampler later
               self.failedRuns.append(copy.copy(finishedJob))
-              self.raiseAWarning('The job "'+finishedJob.identifier+'" has been submitted '+ str(self.failureHandling['repetitions'])+' times, failing all the times!!!')
+              self.raiseAWarning('The job "'+finishedJob.identifier+'" has been submitted '+
+                                 str(self.failureHandling['repetitions'])+' times, failing all the times!!!')
       if jobHandler.isFinished() and len(jobHandler.getFinishedNoPop()) == 0:
         break
       time.sleep(self.sleepTime)
