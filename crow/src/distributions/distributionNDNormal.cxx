@@ -117,13 +117,12 @@ void BasicMultivariateNormal::basicMultivariateNormalInit(unsigned int &rows, un
    std::vector< std::vector<double> > discretizations;
    std::vector<double> alpha (_mu.size());
    std::vector<double> beta (_mu.size());
-
-   int numberOfDiscretizations = 10;
-
+   // for now we use this to be a bit more less problem dependent
+   double floatDiscretizations = (1./std::pow(1.e-4,1./ (double)dimensions)) + 0.5;
+   int numberOfDiscretizations = (int)floatDiscretizations;
    for(unsigned int i=0; i<dimensions; i++){
      alpha.at(i) = 0.0;
      beta.at(i)  = 0.0;
-
      numberValues = numberValues * numberOfDiscretizations;
 
      std::vector<double> discretization_temp;
@@ -137,12 +136,10 @@ void BasicMultivariateNormal::basicMultivariateNormalInit(unsigned int &rows, un
      _lower_bounds.push_back(discretization_temp.at(0));
      _upper_bounds.push_back(discretization_temp.back());
    }
-
    std::vector< double > values (numberValues);
    for(int i=0; i<numberValues; i++){
      std::vector<int> intCoordinates;
-     base10ToBaseN(i,10,intCoordinates);
-
+     base10ToBaseN(i,numberOfDiscretizations,intCoordinates);
      std::vector<double> point_coordinates(dimensions);
      std::vector<int> intCoordinatesFormatted(dimensions);
 
@@ -156,7 +153,6 @@ void BasicMultivariateNormal::basicMultivariateNormalInit(unsigned int &rows, un
 
      values.at(i) = getPdf(point_coordinates, _mu, _inverse_cov_matrix);
    }
-
    _cartesian_distribution = BasicMultiDimensionalCartesianSpline(discretizations,values,alpha,beta,false);
 
 }
@@ -268,8 +264,11 @@ BasicMultivariateNormal::BasicMultivariateNormal(std::vector<double> vec_cov_mat
   //setup the nearest symmetric semi-positive definite covariance matrix
   resetSingularValues(_left_singular_vectors, _right_singular_vectors, _singular_values,_svd_transformed_matrix);
 
-  int numberOfDiscretizations = 10;
   unsigned int dimensions = _mu.size();
+  // for now we use this to be a bit more less problem dependent
+  double floatDiscretizations = (1./std::pow(1.e-4,1./ (double)dimensions)) + 0.5;
+  int numberOfDiscretizations = (int)floatDiscretizations;
+    
   for(unsigned int i=0; i<dimensions; i++){
     std::vector<double> discretization_temp;
     double sigma = sqrt(_cov_matrix[i][i]);
