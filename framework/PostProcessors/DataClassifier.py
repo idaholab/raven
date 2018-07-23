@@ -121,7 +121,7 @@ class DataClassifier(PostProcessor):
   def _localReadMoreXML(self, xmlNode):
     """
       Method to read the portion of the XML input that belongs to this specialized class
-      @ In, xmlNode, xml.etree.Element, XML element node
+      @ In, xmlNode, xml.etree.ElementTree.Element, XML element node
       @ Out, None
     """
     paramInput = DataClassifier.getInputSpecification()()
@@ -159,7 +159,7 @@ class DataClassifier(PostProcessor):
       if isinstance(inputObject, dict):
         newInput.append(inputObject)
       else:
-        if not hasattr(inputObject, 'type') and inputObject.type not in ['PointSet', 'HistorySet']:
+        if inputObject.type not in ['PointSet', 'HistorySet']:
           self.raiseAnError(IOError, "The input for this postprocesor", self.name, "is not acceptable! Allowed inputs are 'PointSet' and 'HistorySet'.")
         if len(inputObject) == 0:
           self.raiseAnError(IOError, "The input", inputObject.name, "is empty!")
@@ -187,8 +187,8 @@ class DataClassifier(PostProcessor):
             self.raiseAnError(IOError, "None of the input DataObjects can be used as the reference classifier! Either the label", \
                     self.label, "is not exist in the output of the DataObjects or the inputs of the DataObjects are not the same as", \
                     ','.join(self.mapping.keys()))
-        newInput[dataType]['input'] = dict.fromkeys(inputParams, None)
-        newInput[dataType]['output'] = dict.fromkeys(outputParams, None)
+        newInput[dataType]['input'] = dict.fromkeys(inputParams)
+        newInput[dataType]['output'] = dict.fromkeys(outputParams)
         if inputObject.type == 'PointSet':
           for elem in inputParams:
             newInput[dataType]['input'][elem] = copy.deepcopy(inputDataset[elem].values)
@@ -201,13 +201,12 @@ class DataClassifier(PostProcessor):
           newInput[dataType]['type'] = inputObject.type
           newInput[dataType]['name'] = inputObject.name
           numRlzs = len(inputObject)
-          newInput[dataType]['historySizes'] = dict.fromkeys(range(numRlzs), None)
+          newInput[dataType]['historySizes'] = dict.fromkeys(range(numRlzs))
           for i in range(numRlzs):
             rlz = inputObject.realization(index=i)
             for elem in inputParams:
               if newInput[dataType]['input'][elem] is None:
                 newInput[dataType]['input'][elem] = np.empty(0)
-              #newInput[dataType]['input'][elem] = np.append(newInput[dataType]['input'][elem], rlz[elem].values[-1])
               newInput[dataType]['input'][elem] = np.append(newInput[dataType]['input'][elem], rlz[elem])
             for elem in outputParams:
               if newInput[dataType]['output'][elem] is None:
@@ -265,8 +264,6 @@ class DataClassifier(PostProcessor):
       @ Out, None
     """
     evaluation = finishedJob.getEvaluation()
-    if isinstance(evaluation, Runners.Error):
-      self.raiseAnError(RuntimeError, "Job ", finishedJob.identifier, " failed!")
     inputObjects, outputDict = evaluation
 
     if isinstance(output, Files.File):
@@ -278,11 +275,7 @@ class DataClassifier(PostProcessor):
         break
     if inputObject != output:
       ## Copy any data you need from the input DataObject before adding new data
-      inputDataset = inputObject.asDataset()
-      rlzs = {}
-      for key in output.getVars('input') + output.getVars('output') + output.indexes:
-        if key in inputObject.getVars('input') + inputObject.getVars('output') + inputObject.indexes:
-          rlzs[key] = copy.deepcopy(inputDataset[key].values)
+      rlzs = inputObject.asDataset(outType='dict')['data']
       if output.type == 'PointSet':
         output.load(rlzs, style='dict')
       elif output.type == 'HistorySet':
