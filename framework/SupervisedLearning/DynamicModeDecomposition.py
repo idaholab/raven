@@ -82,6 +82,15 @@ class DynamicModeDecomposition(supervisedLearning):
     if self.pivotParameterID not in self.target:
       self.raiseAnError(IOError,"The pivotParameter "+self.pivotParameterID+" must be part of the Target space!")
 
+  def __setstate__(self,state):
+    """
+      Initializes the DMD with the data contained in state
+      @ In, state, dict, it contains all the information needed by the ROM to be initialized
+      @ Out, None
+    """
+    self.__dict__.update(state)
+    self.KDTreeFinder = spatial.KDTree(self.featureVals)
+
   def _localNormalizeData(self,values,names,feat):
     """
       Overwrites default normalization procedure.
@@ -175,14 +184,17 @@ class DynamicModeDecomposition(supervisedLearning):
     for target in list(set(self.target) - set([self.pivotParameterID])):
       reconstructData = self._reconstructData(target).real
       # find the nearest data and compute weights
-      weights, indexes = self.KDTreeFinder.query(featureVals, k=min(2**len(self.features),len(reconstructData)))
-      # if 0 (perfect match), assign minimum possible distance
-      weights[weights == 0] = sys.float_info.min
-      weights =1./weights
-      # normalize to 1
-      weights = weights/weights.sum()
-      for point in range(len(weights)):
-        returnEvaluation[target] =  np.sum ((weights[point,:]*reconstructData[indexes[point,:]].T) , axis=1)
+      if len(reconstructData) > 1:
+        weights, indexes = self.KDTreeFinder.query(featureVals, k=min(2**len(self.features),len(reconstructData)))
+        # if 0 (perfect match), assign minimum possible distance
+        weights[weights == 0] = sys.float_info.min
+        weights =1./weights
+        # normalize to 1
+        weights = weights/weights.sum()
+        for point in range(len(weights)):
+          returnEvaluation[target] =  np.sum ((weights[point,:]*reconstructData[indexes[point,:]].T) , axis=1)
+      else:
+        returnEvaluation[target] = reconstructData[0]
 
     return returnEvaluation
 

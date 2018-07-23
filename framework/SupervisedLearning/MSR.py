@@ -228,13 +228,13 @@ class MSR(NDinterpolatorRom):
     state.pop('kdTree')
     return state
 
-  def __setstate__(self,newState):
+  def __setstate__(self,state):
     """
-      Initialize the ROM with the data contained in newstate
-      @ In, newState, dict, it contains all the information needed by the ROM to be initialized
+      Initialize the ROM with the data contained in state
+      @ In, state, dict, it contains all the information needed by the ROM to be initialized
       @ Out, None
     """
-    for key, value in newState.iteritems():
+    for key, value in state.iteritems():
       setattr(self, key, value)
     self.kdTree             = None
     self.__amsc             = []

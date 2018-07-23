@@ -67,13 +67,13 @@ class NDinterpolatorRom(supervisedLearning):
       del a
     return state
 
-  def __setstate__(self, newstate):
+  def __setstate__(self, state):
     """
-      Initialize the ROM with the data contained in newstate
-      @ In, newstate, dict, it contains all the information needed by the ROM to be initialized
+      Initialize the ROM with the data contained in state
+      @ In, state, dict, it contains all the information needed by the ROM to be initialized
       @ Out, None
     """
-    self.__dict__.update(newstate)
+    self.__dict__.update(state)
     self.__initLocal__()
     #only train if the original copy was trained
     if self.amITrained:
