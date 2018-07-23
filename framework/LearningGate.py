@@ -36,6 +36,7 @@ from utils import utils
 import SupervisedLearning
 import MessageHandler
 #Internal Modules End--------------------------------------------------------------------------------
+
 class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),MessageHandler.MessageUser):
   """
     This class represents an interface with all the supervised learning algorithms
@@ -229,8 +230,11 @@ def returnInstance(gateType, ROMclass, caller, **kwargs):
   """
   try:
     return __interfaceDict[gateType](ROMclass, caller.messageHandler,**kwargs)
-  except KeyError as ae:
-    caller.raiseAnError(NameError,'not known '+__base+' type '+str(gateType))
+  except KeyError as e:
+    if gateType not in __interfaceDict:
+      caller.raiseAnError(NameError,'not known '+__base+' type '+str(gateType))
+    else:
+      raise e
 
 def returnClass(ROMclass,caller):
   """
