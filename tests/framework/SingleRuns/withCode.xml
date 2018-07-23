@@ -23,6 +23,7 @@
       <Input class="Files" type="Input">inp</Input>
       <Model class="Models" type="Code">projectile</Model>
       <Output class="DataObjects" type="PointSet">sample</Output>
+      <Output class="Databases" type="HDF5">testDBwithSingleRun</Output>
       <Output class="OutStreams" type="Print">sample</Output>
     </SingleRun>
   </Steps>
@@ -46,7 +47,11 @@
       <Output>r</Output>
     </PointSet>
   </DataObjects>
-
+  
+  <Databases>
+      <HDF5 name="testDBwithSingleRun" readMode="overwrite"/>
+  </Databases>
+  
   <OutStreams>
     <Print name="sample">
       <type>csv</type>
