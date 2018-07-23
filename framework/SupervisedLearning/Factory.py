@@ -14,7 +14,7 @@
 """
   Created on May 8, 2018
   @author: talbpaul
-  extracted from SupervisedLearning.py
+  Originally from SupervisedLearning.py, split in PR #650 in July 2018
 """
 #for future compatibility with Python 3-----------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import

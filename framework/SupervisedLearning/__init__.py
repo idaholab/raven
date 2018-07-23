@@ -16,6 +16,7 @@
 
   Created on May 8, 2018
   @author: talbpaul
+  Originally from SupervisedLearning.py, split in PR #650 in July 2018
   supercedes SupervisedLearning.py
 """
 

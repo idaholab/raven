@@ -16,6 +16,7 @@
 
   @author: talbpaul
 
+  Originally from ../SupervisedLearning.py, split in PR #650 in July 2018
   Base subclass definition for all supported type of ROM aka Surrogate Models etc
   Previous module notes:
   here we intend ROM as super-visioned learning,

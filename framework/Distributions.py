@@ -449,7 +449,7 @@ class BoostDistribution(Distribution):
   def rvs(self, size=None):
     """
       Function to get random numbers
-      @ In, size, int, number of entries to return
+      @ In, size, int, optional, number of entries to return (one if None)
       @ Out, rvsValue, float or list, requested random number or numbers
     """
     if size is None:
