@@ -176,7 +176,7 @@ class SciKitLearn(supervisedLearning):
     """
     supervisedLearning.__init__(self,messageHandler,**kwargs)
     name  = self.initOptionDict.pop('name','')
-    if 'pivotParameter' in self.initOptionsDict:
+    if 'pivotParameter' in self.initOptionDict:
       # remove pivot parameter if present
       self.initOptionsDict.pop('pivotParameter')
     self.printTag = 'SCIKITLEARN'
