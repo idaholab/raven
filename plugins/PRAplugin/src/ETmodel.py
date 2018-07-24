@@ -71,6 +71,7 @@ class ETmodel(ExternalModelPluginBase):
   def createNewInput(self, container, inputs, samplerType, **Kwargs):
     """
       This function has been added for this model in order to be able to create an ETstructure from multiple files
+      @ In, container, object, self-like object where all the variables can be stored
       @ In, myInput, list, the inputs (list) to start from to generate the new one
       @ In, samplerType, string, is the type of sampler that is calling to generate a new input
       @ In, **kwargs, dict,  is a dictionary that contains the information coming from the sampler,

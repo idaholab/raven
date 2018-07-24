@@ -52,8 +52,6 @@ class FTImporter(PostProcessor):
     PostProcessor.__init__(self, messageHandler)
     self.printTag = 'POSTPROCESSOR FT IMPORTER'
     self.FTFormat = None # chosen format of the FT file
-    self.allowedFormats = ['OpenPSA'] # FT formats that are supported
-
     self.topEventID = None
 
   @classmethod
@@ -66,7 +64,8 @@ class FTImporter(PostProcessor):
         specifying input of cls.
     """
     inputSpecification = super(FTImporter, cls).getInputSpecification()
-    inputSpecification.addSub(InputData.parameterInputFactory("fileFormat", contentType=InputData.StringType))
+    fileAllowedFormats = InputData.makeEnumType("FTFileFormat", "FTFileFormatType", ["OpenPSA"])
+    inputSpecification.addSub(InputData.parameterInputFactory("fileFormat", contentType=fileAllowedFormats))
     inputSpecification.addSub(InputData.parameterInputFactory("topEventID", contentType=InputData.StringType))
     return inputSpecification
 
@@ -84,7 +83,7 @@ class FTImporter(PostProcessor):
     """
       Function to read the portion of the xml input that belongs to this specialized class
       and initialize some stuff based on the inputs got
-      @ In, xmlNode, xml.etree.Element, Xml element node
+      @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
       @ Out, None
     """
     paramInput = FTImporter.getInputSpecification()()
@@ -99,9 +98,6 @@ class FTImporter(PostProcessor):
     """
     fileFormat = paramInput.findFirst('fileFormat')
     self.fileFormat = fileFormat.value
-    if self.fileFormat not in self.allowedFormats:
-      self.raiseAnError(IOError, 'FTImporterPostProcessor Post-Processor ' + self.name + ', format ' + str(self.fileFormat) + ' : is not supported')
-
     topEventID = paramInput.findFirst('topEventID')
     self.topEventID = topEventID.value
 

@@ -36,7 +36,7 @@ import itertools
 from collections import OrderedDict
 #External Modules End-----------------------------------------------------------
 
-class ETstructure():
+class ETstructure(object):
   """
     This is the base class of the ET structure which actually handles ET structures which is used by the ETimporter and the ETmodel
   """

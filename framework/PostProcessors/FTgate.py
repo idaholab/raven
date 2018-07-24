@@ -35,7 +35,7 @@ import itertools
 from collections import OrderedDict
 #External Modules End-----------------------------------------------------------
 
-class FTgate():
+class FTgate(object):
   """
     This is the base class for all possible Boolean logic gates to be employed in Fault-Trees
   """
@@ -122,28 +122,28 @@ class FTgate():
       @ Out, outcome, float, calculated outcome of the gate
     """
     if self.gate == 'and':
-      outcome = ANDgate(argumentValues.values())
+      outcome = andGate(argumentValues.values())
     elif self.gate == 'or':
-      outcome = ORgate(argumentValues.values())
+      outcome = orGate(argumentValues.values())
     elif self.gate == 'nor':
-      outcome = NORgate(argumentValues.values())
+      outcome = norGate(argumentValues.values())
     elif self.gate == 'nand':
-      outcome = NANDgate(argumentValues.values())
+      outcome = nandGate(argumentValues.values())
     elif self.gate == 'xor':
-      outcome = XORgate(argumentValues.values())
+      outcome = xorGate(argumentValues.values())
     elif self.gate == 'iff':
-      outcome = IFFgate(argumentValues.values())
+      outcome = iffGate(argumentValues.values())
     elif self.gate == 'atleast':
-      outcome = ATLEASTgate(argumentValues.values(),float(self.params['min']))
+      outcome = atLeastGate(argumentValues.values(),float(self.params['min']))
     elif self.gate == 'cardinality':
-      outcome = CARDINALITYgate(argumentValues.values(),float(self.params['min']),float(self.params['max']))
+      outcome = cardinalityGate(argumentValues.values(),float(self.params['min']),float(self.params['max']))
     elif self.gate == 'imply':
-      outcome = IMPLYgate(argumentValues)
+      outcome = implyGate(argumentValues)
     elif self.gate == 'not':
-      outcome = NOTgate(argumentValues.values())
+      outcome = notGate(argumentValues.values())
     return outcome
 
-def NOTgate(value):
+def notGate(value):
   """
     Method that evaluates the NOT gate
     @ In, value, list, list of values
@@ -157,7 +157,7 @@ def NOTgate(value):
     outcome = 0
   return outcome
 
-def ANDgate(argumentValues):
+def andGate(argumentValues):
   """
     Method that evaluates the AND gate
     @ In, argumentValues, list, list of values
@@ -169,7 +169,7 @@ def ANDgate(argumentValues):
     outcome = 1
   return outcome
 
-def ORgate(argumentValues):
+def orGate(argumentValues):
   """
     Method that evaluates the OR gate
     @ In, argumentValues, list, list of values
@@ -181,29 +181,29 @@ def ORgate(argumentValues):
       outcome = 0
   return outcome
 
-def NANDgate(argumentValues):
+def nandGate(argumentValues):
   """
     Method that evaluates the NAND gate
     @ In, argumentValues, list, list of values
     @ Out, outcome, float, calculated outcome of the gate
   """
   out = []
-  out.append(ANDgate(argumentValues))
-  outcome = NOTgate(out)
+  out.append(andGate(argumentValues))
+  outcome = notGate(out)
   return outcome
 
-def NORgate(argumentValues):
+def norGate(argumentValues):
   """
     Method that evaluates the NOR gate
     @ In, argumentValues, list, list of values
     @ Out, outcome, float, calculated outcome of the gate
   """
   out = []
-  out.append(ORgate(argumentValues))
-  outcome = NOTgate(out)
+  out.append(orGate(argumentValues))
+  outcome = notGate(out)
   return outcome
 
-def XORgate(argumentValues):
+def xorGate(argumentValues):
   """
     Method that evaluates the XOR gate
     The XOR gate gives a true (1 or HIGH) output when the number of true inputs is odd.
@@ -217,18 +217,18 @@ def XORgate(argumentValues):
     outcome = 0
   return outcome
 
-def IFFgate(argumentValues):
+def iffGate(argumentValues):
   """
     Method that evaluates the IFF gate
     @ In, argumentValues, list, list of values
     @ Out, outcome, float, calculated outcome of the gate
   """
   out = []
-  out.append(XORgate(argumentValues))
-  outcome = NOTgate(out)
+  out.append(xorGate(argumentValues))
+  outcome = notGate(out)
   return outcome
 
-def IMPLYgate(argumentValues):
+def implyGate(argumentValues):
   """
     Method that evaluates the IMPLY gate
     Note that this gate requires a specific definition of the two inputs. This definition is specifed in the order of the events provided in the input file
@@ -249,7 +249,7 @@ def IMPLYgate(argumentValues):
     outcome = 1
   return outcome
 
-def ATLEASTgate(argumentValues,k):
+def atLeastGate(argumentValues,k):
   """
     Method that evaluates the ATLEAST gate
     @ In, argumentValues, list, list of values
@@ -262,7 +262,7 @@ def ATLEASTgate(argumentValues,k):
     outcome = 0
   return outcome
 
-def CARDINALITYgate(argumentValues,l,h):
+def cardinalityGate(argumentValues,l,h):
   """
     Method that evaluates the CARDINALITY gate
     @ In, argumentValues, list, list of values

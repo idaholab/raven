@@ -36,7 +36,7 @@ import itertools
 from collections import OrderedDict
 #External Modules End-----------------------------------------------------------
 
-class FTstructure():
+class FTstructure(object):
   """
     This is the base class of the FT structure which actually handles FT structures which is used by the FTimporter and the FTmodel
   """
@@ -79,7 +79,7 @@ class FTstructure():
 
   def returnDict(self):
     """
-      This method calculates all possible input combinations and the corresponding output values]
+      This method calculates all possible input combinations and the corresponding output values
       @ In,  None
       @ Out, outcome, dict, dictionary containing
     """

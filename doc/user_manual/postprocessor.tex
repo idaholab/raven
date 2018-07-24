@@ -1767,6 +1767,62 @@ Fault-Trees to the branch (i.e., fork) point.
 \end{lstlisting}
 
 
+%%%%%%%%%%%%%% FTImporter PP %%%%%%%%%%%%%%%%%%%
+
+\subsubsection{FTImporter}
+\label{FTImporterPP}
+The \textbf{FTImporter} post-processor has been designed to import Fault-Tree (FT) object into
+RAVEN. This is performed by saving the structure of the FT (from file) as a \textbf{PointSet}
+(only \textbf{PointSet} are allowed). 
+
+Each Point in the PointSet represents a unique combination of the basic events.
+The PointSet is structured as follows: input variables are the basic events, output variable is the top event of the FT.
+The value for each input and output variable can have the following values:
+\begin{itemize}
+  \item  0: False
+  \item  1: True
+\end{itemize}
+
+Since several FT file formats are available, as of now only the OpenPSA format
+(see https://open-psa.github.io/joomla1.5/index.php.html) is supported.
+
+%
+\ppType{FTImporter}{FTImporter}
+%
+\begin{itemize}
+  \item \xmlNode{fileFormat}, \xmlDesc{string, required field}, specifies the format of the file that contains the
+    FT structure (supported format: OpenPSA).
+  \item  \xmlNode{topEventID},\xmlDesc{string, required parameter}, the name of the top event of the FT
+\end{itemize}
+
+\textbf{Example:}
+
+\begin{lstlisting}[style=XML,morekeywords={anAttribute},caption=FT Importer input example., label=lst:FT_PP_InputExample]
+  <Files>
+    <Input name="faultTreeTest" type="">FTimporter_not.xml</Input>
+  </Files>
+  
+  <Models>
+    ...
+    <PostProcessor name="FTimporter" subType="FTImporter">
+      <fileFormat>OpenPSA</fileFormat>
+      <topEventID>TOP</topEventID>
+    </PostProcessor> 
+    ...  
+  </Models>
+
+  <Steps>
+    ...
+    <PostProcess name="import">
+      <Input   class="Files"        type=""                >faultTreeTest</Input>
+      <Model   class="Models"       type="PostProcessor"   >FTimporter</Model>
+      <Output  class="DataObjects"  type="PointSet"        >FT_PS</Output>
+    </PostProcess>
+    ...
+  </Steps>
+
+\end{lstlisting}
+
 %%%%%%%%%%%%%% Metric PP %%%%%%%%%%%%%%%%%%%
 
 \subsubsection{Metric}
