@@ -1,6 +1,6 @@
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework/PostProcessors/FTimporterPostProcessor</name>
+    <name>framework/PostProcessors/FTimporterPostProcessor.FTimporter_and_withNOT_embedded</name>
     <author>mandd</author>
     <created>2017-11-07</created>
     <classesTested>ETimporter</classesTested>
