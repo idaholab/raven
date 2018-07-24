@@ -33,7 +33,7 @@ from utils import xmlUtils as xmlU
 from utils import utils
 import Files
 import Runners
-from .ETstructure import ETstructure
+from .ETStructure import ETStructure
 #Internal Modules End-----------------------------------------------------------
 
 
@@ -111,7 +111,7 @@ class ETImporter(PostProcessor):
       @ In,  inputs, list, list of file objects
       @ Out, None
     """
-    eventTreeModel = ETstructure(self.expand, inputs)
+    eventTreeModel = ETStructure(self.expand, inputs)
     return eventTreeModel.returnDict()
 
   def collectOutput(self, finishedJob, output):

@@ -37,7 +37,7 @@
   </Samplers>
   
   <Models>
-    <ExternalModel name="graph" subType="graphModel">
+    <ExternalModel name="graph" subType="GraphModel">
       <variables>statusA,statusB,statusC,statusD,statusOUT</variables>
       <modelFile>graphTestTD</modelFile>
       <nodesIN>in</nodesIN>

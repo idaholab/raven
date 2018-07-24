@@ -75,7 +75,7 @@
   </Samplers>
   
   <Models>
-    <ExternalModel name="ET" subType="ETmodel">
+    <ExternalModel name="ET" subType="ETModel">
       <variables>initEvent,statusACC,statusLPI,LPR,sequence</variables>
       <map var='initEvent' >IE</map>
       <map var='statusACC' >ACC</map>
@@ -84,21 +84,21 @@
       <sequenceID>sequence</sequenceID>
     </ExternalModel>
 
-    <ExternalModel name="FT1" subType="FTmodel">
+    <ExternalModel name="FT1" subType="FTModel">
       <variables>A,B,LPR</variables>
       <topEvents>LPR</topEvents>
       <map var='A'>A</map>
       <map var='B'>B</map>
     </ExternalModel>
 
-    <ExternalModel name="FT2" subType="FTmodel">
+    <ExternalModel name="FT2" subType="FTModel">
       <variables>A,C,alpha</variables>
       <topEvents>alpha</topEvents>
       <map var='A'>A</map>
       <map var='C'>C</map>
     </ExternalModel>
 
-    <ExternalModel name="graph" subType="graphModel">
+    <ExternalModel name="graph" subType="GraphModel">
       <variables>alpha,beta,gamma,statusACC</variables>
       <modelFile>RBD</modelFile>
       <nodesIN>signal</nodesIN>
@@ -109,7 +109,7 @@
       <map var='statusACC' >ACC</map>
     </ExternalModel>
 
-    <ExternalModel name="markov" subType="markovModel">
+    <ExternalModel name="markov" subType="MarkovModel">
       <variables>initialState,statusLPI</variables>
       <initState>initialState</initState>
       <finState>statusLPI</finState>

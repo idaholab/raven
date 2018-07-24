@@ -24,7 +24,7 @@ warnings.simplefilter('default', DeprecationWarning)
 #Internal Modules---------------------------------------------------------------
 import MessageHandler
 from utils import utils
-from .FTgate import FTgate
+from .FTGate import FTGate
 from utils import xmlUtils as xmlU
 #Internal Modules End-----------------------------------------------------------
 
@@ -36,7 +36,7 @@ import itertools
 from collections import OrderedDict
 #External Modules End-----------------------------------------------------------
 
-class FTstructure(object):
+class FTStructure(object):
   """
     This is the base class of the FT structure which actually handles FT structures which is used by the FTimporter and the FTmodel
   """
@@ -57,8 +57,8 @@ class FTstructure(object):
       faultTree = xmlU.findAllRecursive(faultTree,'opsa-mef')
 
       for gate in xmlU.findAllRecursive(faultTree[0], 'define-gate'):
-        FTGate = FTgate(gate)
-        self.gateList[gate.get('name')] = FTGate
+        ftGate = FTGate(gate)
+        self.gateList[gate.get('name')] = ftGate
         self.gateID.append(gate.get('name'))
 
       for basicEvent in xmlU.findAllRecursive(faultTree[0], 'basic-event'):

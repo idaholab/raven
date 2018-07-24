@@ -34,7 +34,7 @@ from .PostProcessor import PostProcessor
 from utils import InputData
 from utils import xmlUtils as xmlU
 from utils import utils
-from .FTstructure import FTstructure
+from .FTStructure import FTStructure
 import Files
 import Runners
 #Internal Modules End-----------------------------------------------------------
@@ -107,7 +107,7 @@ class FTImporter(PostProcessor):
       @ In,  inputs, list, list of file objects
       @ Out, out, dict, dict containing the processed FT
     """
-    faultTreeModel = FTstructure(inputs, self.topEventID)
+    faultTreeModel = FTStructure(inputs, self.topEventID)
     return faultTreeModel.returnDict()
 
 

@@ -36,7 +36,7 @@ from utils.randomUtils import random
 #Internal Modules End-----------------------------------------------------------
 
 
-class markovModel(ExternalModelPluginBase):
+class MarkovModel(ExternalModelPluginBase):
   """
     This class is designed to create a Markov model
   """
@@ -75,20 +75,20 @@ class markovModel(ExternalModelPluginBase):
             elif childChild.get('type') == 'unif':
               value = [float(var.strip()) for var in childChild.get('value').split(",")]
             else:
-              raise IOError("markovModel: transition " + str (childChild.get('type')) + " is not allowed")
+              raise IOError("MarkovModel: transition " + str (childChild.get('type')) + " is not allowed")
             container.states[child.get('name')][childChild.text.strip()] = value
           else:
-            raise IOError("markovModel: xml node " + str (childChild.tag) + " is not allowed")
+            raise IOError("MarkovModel: xml node " + str (childChild.tag) + " is not allowed")
 
     statesIDs = container.states.keys()
     for state in container.states:
       transitions = container.states[state].keys()
       if not set(transitions).issubset(set(statesIDs)):
-        raise IOError("markovModel: the set of transtions " + str (set(transitions)) + " out of state " + str(state) + " lead to not defined states")
+        raise IOError("MarkovModel: the set of transtions " + str (set(transitions)) + " out of state " + str(state) + " lead to not defined states")
     if container.initState is None:
-      raise IOError("markovModel: <initState> XML block is not specified")
+      raise IOError("MarkovModel: <initState> XML block is not specified")
     if container.finState is None:
-      raise IOError("markovModel: <finState> XML block is not specified")
+      raise IOError("MarkovModel: <finState> XML block is not specified")
 
   def initialize(self, container,runInfoDict,inputFiles):
     """

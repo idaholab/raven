@@ -33,7 +33,7 @@
   </Samplers>
   
   <Models>
-    <ExternalModel name="graph" subType="graphModel">
+    <ExternalModel name="graph" subType="GraphModel">
       <variables>status2,status3,status4,status5,statusSG1,statusSG2,statusSG3</variables>
       <!-- xml portion for this plugin only -->
       <modelFile>graphTest</modelFile>

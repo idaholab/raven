@@ -26,11 +26,11 @@ warnings.simplefilter('default', DeprecationWarning)
 
 #Internal Modules---------------------------------------------------------------
 from PluginsBaseClasses.ExternalModelPluginBase import ExternalModelPluginBase
-from PostProcessors.ETstructure import ETstructure
+from PostProcessors.ETStructure import ETStructure
 #Internal Modules End-----------------------------------------------------------
 
 
-class ETmodel(ExternalModelPluginBase):
+class ETModel(ExternalModelPluginBase):
   """
     This class is designed to create an Event-Tree model
   """
@@ -56,7 +56,7 @@ class ETmodel(ExternalModelPluginBase):
       elif child.tag == 'sequenceID':
         container.sequenceID = child.text.strip()
       else:
-        raise IOError("ETmodel: xml node " + str (child.tag) + " is not allowed")
+        raise IOError("ETModel: xml node " + str (child.tag) + " is not allowed")
 
   def initialize(self, container, runInfoDict, inputFiles):
     """
@@ -70,7 +70,7 @@ class ETmodel(ExternalModelPluginBase):
 
   def createNewInput(self, container, inputs, samplerType, **Kwargs):
     """
-      This function has been added for this model in order to be able to create an ETstructure from multiple files
+      This function has been added for this model in order to be able to create an ETStructure from multiple files
       @ In, container, object, self-like object where all the variables can be stored
       @ In, myInput, list, the inputs (list) to start from to generate the new one
       @ In, samplerType, string, is the type of sampler that is calling to generate a new input
@@ -78,7 +78,7 @@ class ETmodel(ExternalModelPluginBase):
            a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
       @ Out, ([(inputDict)],copy.deepcopy(kwargs)), tuple, return the new input in a tuple form
     """
-    container.eventTreeModel = ETstructure(inputs=inputs, expand=True)
+    container.eventTreeModel = ETStructure(inputs=inputs, expand=True)
     return Kwargs
 
   def run(self, container, Inputs):

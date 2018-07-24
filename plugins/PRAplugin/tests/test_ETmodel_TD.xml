@@ -11,7 +11,7 @@
   </Files>
   
   <Models> 
-    <ExternalModel name="ET" subType="ETmodel">
+    <ExternalModel name="ET" subType="ETModel">
       <variables>statusACC,statusLPI,statusLPR,sequence</variables>
       <map var='statusACC'>ACC</map>
       <map var='statusLPI'>LPI</map>

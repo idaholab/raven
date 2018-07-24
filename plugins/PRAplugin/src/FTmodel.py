@@ -31,7 +31,7 @@ from PostProcessors.FTstructure import FTstructure
 #Internal Modules End-----------------------------------------------------------
 
 
-class FTmodel(ExternalModelPluginBase):
+class FTModel(ExternalModelPluginBase):
   """
     This class is designed to create a Fault-Tree model
   """
@@ -55,7 +55,7 @@ class FTmodel(ExternalModelPluginBase):
       elif child.tag == 'variables':
         variables = [str(var.strip()) for var in child.text.split(",")]
       else:
-        raise IOError("FTmodel: xml node " + str (child.tag) + " is not allowed")
+        raise IOError("FTModel: xml node " + str (child.tag) + " is not allowed")
 
   def initialize(self, container, runInfoDict, inputFiles):
     """

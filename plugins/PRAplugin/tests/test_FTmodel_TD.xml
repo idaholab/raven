@@ -11,7 +11,7 @@
   </Files>
   
   <Models> 
-    <ExternalModel name="FT" subType="FTmodel">
+    <ExternalModel name="FT" subType="FTModel">
       <variables>statusA,statusB,statusC,statusD,TOP</variables>
       <topEvents>TOP</topEvents>
       <map var='statusA'>A</map>

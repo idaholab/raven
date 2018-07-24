@@ -35,14 +35,14 @@ from PluginsBaseClasses.ExternalModelPluginBase import ExternalModelPluginBase
 #Internal Modules End-----------------------------------------------------------
 
 
-class graphModel(ExternalModelPluginBase):
+class GraphModel(ExternalModelPluginBase):
   """
     This class is designed to create a directed graph model which is employed to model Reliability Block Diagrams
   """
 
   def _readMoreXML(self, container, xmlNode):
     """
-      Method to read the portion of the XML that belongs to graphModel
+      Method to read the portion of the XML that belongs to GraphModel
       @ In, container, object, self-like object where all the variables can be stored
       @ In, xmlNode, xml.etree.ElementTree.Element, XML node that needs to be read
       @ Out, None
@@ -70,20 +70,20 @@ class graphModel(ExternalModelPluginBase):
         print('xml error')
 
     if container.nodesIN is None:
-      raise IOError("graphModel: <nodesIN> XML block is not specified")
+      raise IOError("GraphModel: <nodesIN> XML block is not specified")
     if container.nodesOUT is None:
-      raise IOError("graphModel: <nodesOUT> XML block is not specified")
+      raise IOError("GraphModel: <nodesOUT> XML block is not specified")
     if container.modelFile is None:
-      raise IOError("graphModel: <modelFile> XML block is not specified")
+      raise IOError("GraphModel: <modelFile> XML block is not specified")
 
     if set(variables) != set(container.mapping.keys()):
-      raise IOError("graphModel: the set of variables specified in the <variables> " + str(set(variables)) + " XML block does not match with the specified mapping" + str(set(container.mapping.keys())))
+      raise IOError("GraphModel: the set of variables specified in the <variables> " + str(set(variables)) + " XML block does not match with the specified mapping" + str(set(container.mapping.keys())))
     if not set(container.nodesOUT) <= set(container.mapping.values()):
-      raise IOError("graphModel: the set of out variables specified in the <nodesOUT> " + str(set(variables)) + " XML block does not match with the specified mapping" + str(set(container.mapping.values())))
+      raise IOError("GraphModel: the set of out variables specified in the <nodesOUT> " + str(set(variables)) + " XML block does not match with the specified mapping" + str(set(container.mapping.values())))
 
   def initialize(self, container,runInfoDict,inputFiles):
     """
-      Method to initialize the graphModel
+      Method to initialize the GraphModel
       @ In, container, object, self-like object where all the variables can be stored
       @ In, runInfoDict, dict, dictionary containing all the RunInfo parameters (XML node <RunInfo>)
       @ In, inputFiles, list, list of input files (if any)

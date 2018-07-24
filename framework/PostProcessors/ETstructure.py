@@ -36,7 +36,7 @@ import itertools
 from collections import OrderedDict
 #External Modules End-----------------------------------------------------------
 
-class ETstructure(object):
+class ETStructure(object):
   """
     This is the base class of the ET structure which actually handles ET structures which is used by the ETimporter and the ETmodel
   """
@@ -61,7 +61,7 @@ class ETstructure(object):
     links = self.createLinkList(listRoots)
 
     if len(inputs)>0:
-      rootETID = self.checkETstructure(links,listETs,connectivityMatrix)
+      rootETID = self.checkETStructure(links,listETs,connectivityMatrix)
 
     if len(links)>=1 and len(inputs)>1:
       finalAssembledTree = self.analyzeMultipleET(inputs,links,listRoots,listETs,rootETID)
@@ -142,7 +142,7 @@ class ETstructure(object):
           linkList.append(dep)
     return linkList
 
-  def checkETstructure(self,links,listETs,connectivityMatrix):
+  def checkETStructure(self,links,listETs,connectivityMatrix):
     """
       This method checks that the structure of the ET is consistent. In particular, it checks that only one root ET
       and at least one leaf ET is provided. As an example consider the following ET structure:

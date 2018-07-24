@@ -1,11 +1,11 @@
 \section{FT Model}
-\label{sec:FTmodel}
+\label{sec:FTModel}
 
 This model is designed to read from file the structure of the FT and to import such Boolean logic structure as a RAVEN model.
 The FT must be specified in a specific format: the OpenPSA format (\href{<url>}{https://github.com/open-psa}). 
 As an example, the FT of Fig.~\ref{fig:FT} is translated in the OpenPSA as shown below:
 
-\begin{lstlisting}[style=XML,morekeywords={anAttribute},caption=FT in OpenPSA format., label=lst:FTmodel]
+\begin{lstlisting}[style=XML,morekeywords={anAttribute},caption=FT in OpenPSA format., label=lst:FTModel]
 <opsa-mef>
     <define-fault-tree name="FT">
         <define-gate name="TOP">
@@ -62,12 +62,12 @@ As an example, the FT of Fig.~\ref{fig:FT} is translated in the OpenPSA as shown
     \label{fig:FT}
 \end{figure}
 
-The FT of Fig.~\ref{fig:FT} and defined in Listing~\ref{lst:FTmodel} can be defined in the RAVEN input file as follows:
+The FT of Fig.~\ref{fig:FT} and defined in Listing~\ref{lst:FTModel} can be defined in the RAVEN input file as follows:
 
 \begin{lstlisting}[style=XML,morekeywords={anAttribute},caption=FT model input example., label=lst:FT_InputExample]
   <Models> 
     ...
-    <ExternalModel name="FT" subType="FTmodel">
+    <ExternalModel name="FT" subType="FTModel">
       <variables>
         statusBE1,statusBE2,statusBE3,statusBE4,TOP
       </variables>
