@@ -3,7 +3,7 @@
 
 This Post-Processor is designed to import an ET as a PointSet in RAVEN.
 The ET must be specified in a specific format: the OpenPSA format (\href{<url>}{https://github.com/open-psa}). 
-As an example, the ET of Fig.~\ref{fig:ET} is translated in the OpenPSA as shown in Listing~\ref{lst:ETmodel}.
+As an example, the ET of Fig.~\ref{fig:ET} is translated in the OpenPSA as shown in Listing~\ref{lst:ETModel}.
 The work-flow is shown below:
 
 \begin{lstlisting}[style=XML,morekeywords={anAttribute},caption=ET Importer input example., label=lst:ET_PP_InputExample]
@@ -59,7 +59,7 @@ The value for each input variable can have the following values:
 \end{itemize}
 Note that the 0 or 1 values are specified in the \xmlNode{<path state="0">} or \xmlNode{<path state="1">} nodes in the ET OpenPSA file.
 
-Provided this definition, the ET model of Fig.~\ref{fig:ET} and described in Listing~\ref{lst:ETmodel}, 
+Provided this definition, the ET model of Fig.~\ref{fig:ET} and described in Listing~\ref{lst:ETModel}, 
 the resulting model in RAVEN is characterized by these variables:
 \begin{itemize}
 	\item Input variables: statusACC, statusLPI, statusLPR
