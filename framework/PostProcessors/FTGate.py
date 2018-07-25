@@ -35,7 +35,7 @@ import itertools
 from collections import OrderedDict
 #External Modules End-----------------------------------------------------------
 
-class FTgate(object):
+class FTGate(object):
   """
     This is the base class for all possible Boolean logic gates to be employed in Fault-Trees
   """

@@ -27,7 +27,7 @@ import numpy as np
 
 #Internal Modules---------------------------------------------------------------
 from PluginsBaseClasses.ExternalModelPluginBase import ExternalModelPluginBase
-from PostProcessors.FTstructure import FTstructure
+from PostProcessors.FTStructure import FTStructure
 #Internal Modules End-----------------------------------------------------------
 
 
@@ -76,7 +76,7 @@ class FTModel(ExternalModelPluginBase):
            a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
       @ Out, ([(inputDict)],copy.deepcopy(kwargs)), tuple, return the new input in a tuple form
     """
-    container.faultTreeModel = FTstructure(inputs, container.topEventID)
+    container.faultTreeModel = FTStructure(inputs, container.topEventID)
     container.faultTreeModel.FTsolver()
     return Kwargs
 
