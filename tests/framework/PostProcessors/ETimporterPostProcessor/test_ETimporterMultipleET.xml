@@ -1,6 +1,6 @@
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework/PostProcessors.ETimporterPostProcessorMultipleET</name>
+    <name>framework/PostProcessors.ETimporterPostProcessorMultipleET.ET_importer_OpenPSA_coupledET</name>
     <author>mandd</author>
     <created>2017-11-07</created>
     <classesTested>ETimporter</classesTested>

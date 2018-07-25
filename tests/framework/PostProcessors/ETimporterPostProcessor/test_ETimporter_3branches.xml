@@ -1,6 +1,6 @@
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework/PostProcessors/ETimporterPostProcessor</name>
+    <name>framework/PostProcessors/ETimporterPostProcessor.ET_importer_3branches</name>
     <author>mandd</author>
     <created>2017-11-07</created>
     <classesTested>ETimporter</classesTested>
