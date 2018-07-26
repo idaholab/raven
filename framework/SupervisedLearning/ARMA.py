@@ -58,18 +58,23 @@ class ARMA(supervisedLearning):
                            and printing messages
       @ In, kwargs: an arbitrary dictionary of keywords and values
     """
+    # general infrastructure
     supervisedLearning.__init__(self,messageHandler,**kwargs)
     self.printTag          = 'ARMA'
     self._dynamicHandling  = True # This ROM is able to manage the time-series on its own.
+    # training storage
     self.trainingData      = {} # holds normalized ('norm') and original ('raw') training data, by target
     self.cdfParams         = {} # dictionary of fitted CDF parameters, by target
-    self.fourierResults    = {} # dictionary of Fourier results, by target
     self.armaResult        = {} # dictionary of assorted useful arma information, by target
     self.correlations      = [] # list of correlated variables
+    self.fourierResults    = {} # dictionary of Fourier results, by target
+    # training parameters
+    self.fourierParams     = {} # dict of Fourier training params, by target (if requested, otherwise not present)
     self.Pmax              = kwargs.get('Pmax', 3) # bounds for autoregressive lag
     self.Pmin              = kwargs.get('Pmin', 0)
     self.Qmax              = kwargs.get('Qmax', 3) # bounds for moving average lag
     self.Qmin              = kwargs.get('Qmin', 0)
+    # data manipulation
     self.reseedCopies      = kwargs.get('reseedCopies',True)
     self.outTruncation     = kwargs.get('outTruncation', None) # Additional parameters to allow user to specify the time series to be all positive or all negative
     self.pivotParameterID  = kwargs['pivotParameter']
@@ -122,34 +127,80 @@ class ARMA(supervisedLearning):
           'the same value, and similarly for Q.  If optimizing is desired, please contact us so we can expedite '+
           'the fix.')
 
-    # Initialize parameters for Fourier detrending
-    if 'Fourier' not in self.initOptionDict.keys():
-      self.hasFourierSeries = False
-    else:
-      self.hasFourierSeries = True
-      self.fourierPara = {}
-      basePeriods = self.initOptionDict['Fourier']
-      if isinstance(basePeriods,basestring):
-        basePeriods = [float(s) for s in basePeriods.split(',')]
-      else:
-        basePeriods = [float(basePeriods)]
-      self.fourierPara['basePeriod'] = basePeriods
-      if len(set(self.fourierPara['basePeriod'])) != len(self.fourierPara['basePeriod']):
-        self.raiseAnError(IOError,'The same Fourier value was listed multiple times!')
-      self.fourierPara['FourierOrder'] = {}
-      if 'FourierOrder' not in self.initOptionDict.keys():
-        self.fourierPara['basePeriod'] = dict((basePeriod, 4) for basePeriod in self.fourierPara['basePeriod'])
-      else:
-        orders = self.initOptionDict['FourierOrder']
-        if isinstance(orders,str):
-          orders = [int(x) for x in orders.split(',')]
-        else:
-          orders = [orders]
-        if len(self.fourierPara['basePeriod']) != len(orders):
-          self.raiseAnError(ValueError, 'Number of FourierOrder entries should be "{}"'
-                                         .format(len(self.fourierPara['basePeriod'])))
-        self.fourierPara['FourierOrder'] = dict((basePeriod, orders[i])
-                                               for i,basePeriod in enumerate(self.fourierPara['basePeriod']))
+    # read SPECIFIC parameters for Fourier detrending
+    ## read off of paramInput since duplicating nodes
+    paramInput = kwargs['paramInput']
+    for child in paramInput.subparts:
+      if child.getName() == 'SpecificFourier':
+        # clear old information
+        periods = None
+        orders = None
+        # what variables share this Fourier?
+        variables = child.parameterValues['variables']
+        # check for variables that aren't targets
+        missing = set(variables) - set(self.target)
+        if len(missing):
+          self.raiseAnError(IOError,
+                            'Requested SpecificFourier for variables {} but not found among targets!'.format(missing))
+        # record requested Fourier periods, orders
+        for cchild in child.subparts:
+          if cchild.getName() == 'periods':
+            periods = cchild.value
+          elif cchild.getName() == 'orders':
+            orders = cchild.value
+        # sanity check
+        if len(periods) != len(orders):
+          self.raiseADebug(IOError,'"periods" and "orders" need to have the same number of entries' +\
+                                   'for variable group "{}"!'.format(variables))
+        # set these params for each variable
+        for v in variables:
+          self.raiseADebug('recording specific Fourier settings for "{}"'.format(v))
+          if v in self.fourierParams:
+            self.raiseAWarning('Fourier params for "{}" were specified multiple times! Using first values ...'
+                               .format(v))
+            continue
+          self.fourierParams[v] = {'periods': periods,
+                                   'orders': dict(zip(periods,orders))}
+
+    # read GENERAL parameters for Fourier detrending
+    ## these apply to everyone without SpecificFourier nodes
+    ## use basePeriods to check if Fourier node present
+    basePeriods = paramInput.findFirst('Fourier')
+    if basePeriods is not None:
+      # read periods
+      basePeriods = basePeriods.value
+      print('DEBUGG basePeriods',basePeriods,type(basePeriods))
+      if len(set(basePeriods)) != len(basePeriods):
+        self.raiseAnError(IOError,'Some <Fourier> periods have been listed multiple times!')
+      # read orders
+      baseOrders = self.initOptionDict.get('FourierOrder', [1]*len(basePeriods))
+      if len(basePeriods) != len(baseOrders):
+        self.raiseAnError(IOError,'{} Fourier periods were requested, but only {} Fourier order expansions were given!'
+                                   .format(len(basePeriods),len(baseOrders)))
+      # set to any variable that doesn't already have a specific one
+      for v in set(self.target) - set(self.fourierParams.keys()):
+        self.raiseADebug('setting general Fourier settings for "{}"'.format(v))
+        self.fourierParams[v] = {'periods': basePeriods,
+                                 'orders': dict(zip(basePeriods,baseOrders))}
+
+      ##### OLD #####
+      #self.fourierParams['basePeriod'] = basePeriods
+      #if len(set(self.fourierParams['basePeriod'])) != len(self.fourierParams['basePeriod']):
+      #  self.raiseAnError(IOError,'The same Fourier value was listed multiple times!')
+      #self.fourierParams['FourierOrder'] = {}
+      #if 'FourierOrder' not in self.initOptionDict.keys():
+      #  self.fourierParams['basePeriod'] = dict((basePeriod, 4) for basePeriod in self.fourierParams['basePeriod'])
+      #else:
+      #  orders = self.initOptionDict['FourierOrder']
+      #  if isinstance(orders,str):
+      #    orders = [int(x) for x in orders.split(',')]
+      #  else:
+      #    orders = [orders]
+      #  if len(self.fourierParams['basePeriod']) != len(orders):
+      #    self.raiseAnError(ValueError, 'Number of FourierOrder entries should be "{}"'
+      #                                   .format(len(self.fourierParams['basePeriod'])))
+      #  self.fourierParams['FourierOrder'] = dict((basePeriod, orders[i])
+      #                                         for i,basePeriod in enumerate(self.fourierParams['basePeriod']))
 
   def __getstate__(self):
     """
@@ -211,11 +262,11 @@ class ARMA(supervisedLearning):
       #debugfile.writelines('{}_original,'.format(target)+','.join(str(d) for d in timeSeriesData)+'\n')
       # if we're removing Fourier signal, do that now.
       self.raiseADebug('... scrubbing the signal for target "{}" ...'.format(target))
-      if self.hasFourierSeries:
+      if target in self.fourierParams:
         self.raiseADebug('... ... analyzing Fourier signal ...')
         self.fourierResults[target] = self._trainFourier(self.pivotParameterValues,
-                                                         self.fourierPara['basePeriod'],
-                                                         self.fourierPara['FourierOrder'],
+                                                         self.fourierParams[target]['periods'],
+                                                         self.fourierParams[target]['orders'],
                                                          timeSeriesData)
         #debugfile.writelines('{}_fourier,'.format(target)+','.join(str(d) for d in self.fourierResults[target]['predict'])+'\n')
         timeSeriesData -= self.fourierResults[target]['predict']
@@ -287,7 +338,7 @@ class ARMA(supervisedLearning):
       #debuggFile.writelines('signal_arma,'+','.join(str(x) for x in signal)+'\n')
 
       # Add fourier trends
-      if self.hasFourierSeries:
+      if target in self.fourierParams:
         signal += self.fourierResults[target]['predict']
         #debuggFile.writelines('signal_fourier,'+','.join(str(x) for x in self.fourierResults[target]['predict'])+'\n')
 

@@ -49,6 +49,13 @@
    rel_err = 5e-2
   [../]
 
+  [./MultipleFourier]
+   type = 'RavenFramework'
+   input = 'multiple_fourier.xml'
+   output = MultipleFourier/samples.csv'
+   csv = 'MultipleFourier/samples_0.csv'
+  [../]
+
   [./VARMA]
    type = 'RavenFramework'
    input = 'varma.xml'

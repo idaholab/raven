@@ -162,17 +162,21 @@ class ROM(Dummy):
     inputSpecification.addSub(InputData.parameterInputFactory("optimizer", InputData.StringType)) #enum
     inputSpecification.addSub(InputData.parameterInputFactory("random_start", InputData.IntegerType))
     # ARMA
-    correlated = InputData.parameterInputFactory('correlate')
-    inputSpecification.addSub(correlated)
+    inputSpecification.addSub(InputData.parameterInputFactory('correlate', InputData.StringListType))
     inputSpecification.addSub(InputData.parameterInputFactory("Pmax", InputData.IntegerType))
     inputSpecification.addSub(InputData.parameterInputFactory("Pmin", InputData.IntegerType))
     inputSpecification.addSub(InputData.parameterInputFactory("Qmax", InputData.IntegerType))
     inputSpecification.addSub(InputData.parameterInputFactory("Qmin", InputData.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("outTruncation", InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("Fourier", InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("FourierOrder", InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("reseedCopies", InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("seed", InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("reseedCopies", InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("outTruncation", InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("Fourier", contentType=InputData.FloatListType))
+    inputSpecification.addSub(InputData.parameterInputFactory("FourierOrder", contentType=InputData.IntegerListType))
+    specFourier = InputData.parameterInputFactory('SpecificFourier', strictMode=True)
+    specFourier.addParam("variables", InputData.StringListType, True)
+    specFourier.addSub(InputData.parameterInputFactory('periods', contentType=InputData.FloatListType))
+    specFourier.addSub(InputData.parameterInputFactory('orders', contentType=InputData.IntegerListType))
+    inputSpecification.addSub(specFourier)
     # inputs for neural_network
     inputSpecification.addSub(InputData.parameterInputFactory("hidden_layer_sizes", InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("activation", InputData.StringType))
@@ -270,7 +274,7 @@ class ROM(Dummy):
     # if working with a pickled ROM, send along that information
     if self.subType == 'pickledROM':
       self.initializationOptionDict['pickled'] = True
-    self._initializeSupervisedGate(**self.initializationOptionDict)
+    self._initializeSupervisedGate(paramInput=paramInput, **self.initializationOptionDict)
     #the ROM is instanced and initialized
     self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(SupervisedLearning),True)) - set(self.mods))
     self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(LearningGate),True)) - set(self.mods))
@@ -281,7 +285,7 @@ class ROM(Dummy):
       @ In, initializationOptions, dict, the initialization options
       @ Out, None
     """
-    self.supervisedEngine = LearningGate.returnInstance('SupervisedGate', self.subType, self,**initializationOptions)
+    self.supervisedEngine = LearningGate.returnInstance('SupervisedGate', self.subType, self, **initializationOptions)
 
   def printXML(self,options={}):
     """
