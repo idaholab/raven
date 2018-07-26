@@ -70,35 +70,35 @@ class Scale(CodeInterfaceBase):
         raise IOError("timeUOM not recognized. Supported are:" +','.join(['s','m','h','d','y']))
 
   def findInps(self,inputFiles):
-      """
-        Locates the input files required by Scale Interface
-        @ In, inputFiles, list, list of Files objects
-        @ Out, inputDict, dict, dictionary containing Scale required input files
-      """
-      inputDict = {}
-      origen = []
-      triton = []
+    """
+      Locates the input files required by Scale Interface
+      @ In, inputFiles, list, list of Files objects
+      @ Out, inputDict, dict, dictionary containing Scale required input files
+    """
+    inputDict = {}
+    origen = []
+    triton = []
 
-      for inputFile in inputFiles:
-        if inputFile.getType().strip().lower() == "triton":
-          triton.append(inputFile)
-        elif inputFile.getType().strip().lower() == "origen":
-          origen.append(inputFile)
-      if len(triton) > 1:
-        raise IOError('multiple triton input files have been found. Only one is allowed!')
-      if len(origen) > 1:
-        raise IOError('multiple origen input files have been found. Only one is allowed!')
-      # Check if the input requested by the sequence has been found
-      if self.sequence.count('triton') != len(triton):
-        raise IOError('triton input file has not been found. Files type must be set to "triton"!')
-      if self.sequence.count('origen') != len(origen):
-        raise IOError('origen input file has not been found. Files type must be set to "origen"!')
-      # add inputs
-      if len(origen) > 0:
-        inputDict['origen'] = origen
-      if len(triton) > 0:
-        inputDict['triton'] = triton
-      return inputDict
+    for inputFile in inputFiles:
+      if inputFile.getType().strip().lower() == "triton":
+        triton.append(inputFile)
+      elif inputFile.getType().strip().lower() == "origen":
+        origen.append(inputFile)
+    if len(triton) > 1:
+      raise IOError('multiple triton input files have been found. Only one is allowed!')
+    if len(origen) > 1:
+      raise IOError('multiple origen input files have been found. Only one is allowed!')
+    # Check if the input requested by the sequence has been found
+    if self.sequence.count('triton') != len(triton):
+      raise IOError('triton input file has not been found. Files type must be set to "triton"!')
+    if self.sequence.count('origen') != len(origen):
+      raise IOError('origen input file has not been found. Files type must be set to "origen"!')
+    # add inputs
+    if len(origen) > 0:
+      inputDict['origen'] = origen
+    if len(triton) > 0:
+      inputDict['triton'] = triton
+    return inputDict
 
   def generateCommand(self, inputFiles, executable, clargs=None, fargs=None):
     """
