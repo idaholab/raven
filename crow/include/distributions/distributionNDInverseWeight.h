@@ -183,7 +183,7 @@ public:
 
     return value;
   }
-  
+
   double marginal(double x, int dimension)
     /**
      * Method to get the margina cdf give the dimension id
