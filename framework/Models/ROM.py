@@ -164,6 +164,7 @@ class ROM(Dummy):
     # ARMA
     correlated = InputData.parameterInputFactory('correlate')
     inputSpecification.addSub(correlated)
+    inputSpecification.addSub(InputData.parameterInputFactory("ZeroFilter", InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("Pmax", InputData.IntegerType))
     inputSpecification.addSub(InputData.parameterInputFactory("Pmin", InputData.IntegerType))
     inputSpecification.addSub(InputData.parameterInputFactory("Qmax", InputData.IntegerType))
