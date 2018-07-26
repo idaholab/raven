@@ -269,8 +269,8 @@ class phisicsdata():
   def getNumberOfGroups(self):
     """
       Gives the number of energy groups used in the PHISICS simulations.
-      @ In, None 
-      @ Out, None 
+      @ In, None
+      @ Out, None
     """
     self.Ngroups = 0
     with open(
@@ -439,7 +439,7 @@ class phisicsdata():
   def getReactionRates(self, numberOfMPI):
     """
       Gets the reactions rates, power for each group in PHISICS
-      @ In, numberOfMPI, interger, number of MPI user-defined 
+      @ In, numberOfMPI, interger, number of MPI user-defined
       @ Out, myReactDict, dictionary, dictionary containing the reaction rate info
     """
     flagStart = 0
@@ -492,7 +492,7 @@ class phisicsdata():
       @ In, startStringFlag, string, string marker.
       @ In, endStringFlag, string, string marker.
       @ In, numberOfMPI, interger, number of MPI user-defined
-      @ Out, myMatrixDict, dictionary, nested dictionary that contains the fission matrix information. 
+      @ Out, myMatrixDict, dictionary, nested dictionary that contains the fission matrix information.
                                     Template: {group number(from):{region number:{group(to):{mpi:Vslue}}}}
     """
     flagStart = 0
@@ -541,7 +541,7 @@ class phisicsdata():
 
   def locateXYandGroups(self, IDlist):
     """
-      Locates what the position number of the x, y, z coordinates and the first energy group are in the INSTANT csv output file. 
+      Locates what the position number of the x, y, z coordinates and the first energy group are in the INSTANT csv output file.
       @ In, IDlist, list, list of all the parameter in the csv output
       @ Out, xPositionInList, interger, position of the parameter x in the list
       @ Out, yPositionInList, interger, position of the parameter y in the list
@@ -1054,7 +1054,7 @@ class phisicsdata():
 
   def writeMrtauCSV(self, mrtauDict):
     """
-      Prints the MRTAU standalone data in a csv file. 
+      Prints the MRTAU standalone data in a csv file.
       @ In, mrtauDict, dictionary, contains all the values collected from MRTAU output
       @ Out, None
     """

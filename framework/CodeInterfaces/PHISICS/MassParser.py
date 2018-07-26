@@ -12,7 +12,7 @@ from decimal import Decimal
 
 class MassParser():
   """
-    Parses the MRTAU mass input file and replaces the masses with the perturbed values. This class is only used in MRTAU standalone cases. 
+    Parses the MRTAU mass input file and replaces the masses with the perturbed values. This class is only used in MRTAU standalone cases.
   """
 
   def __init__(self, inputFiles, workingDir, **pertDict):
@@ -109,9 +109,9 @@ class MassParser():
 
   def printInput(self, workingDir):
     """
-      Prints out the pertubed masses file into a .dat file. The workflow is: 
-      open a new file with a dummy name; parse the unperturbed library; print the line in the dummy and  
-      replace with perturbed variables if necessary, Change the name of the dummy file. 
+      Prints out the pertubed masses file into a .dat file. The workflow is:
+      open a new file with a dummy name; parse the unperturbed library; print the line in the dummy and
+      replace with perturbed variables if necessary, Change the name of the dummy file.
       @ In, workingDir, string, path to working directory
       @ Out, None
     """
