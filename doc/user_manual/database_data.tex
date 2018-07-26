@@ -145,7 +145,7 @@ needs to specify the following sub-nodes:
 \end{itemize}
 
 The  \xmlNode{PointSet} and  \xmlNode{HistorySet} objects are a specialization of the  \xmlNode{DataSet} where the 
-independent dimensions are defaulted to none, for the \xmlNode{PointSet}, or to the \textit{pivotParameter} (e.g. time), for the \xmlNode{HistorySet}.
+independent dimensions are defaulted to ``None'', for the \xmlNode{PointSet}, or to the \textit{pivotParameter} (e.g. time), for the \xmlNode{HistorySet}.
 If a  \xmlNode{DataSet} needs to be constructed, an additional information (e.g. sub-node) needs to be inputted, the  \xmlNode{Index}:
 
 \begin{itemize}
@@ -164,6 +164,10 @@ can optionally specify a XML node named  \xmlNode{options}. The  \xmlNode{option
 contain the following optional XML sub-nodes:
 
 \begin{itemize}
+   \item \xmlNode{pivotParameter}, \xmlDesc{string, optional field}, used to
+       specify  the name of the independent dimension (e.g. time) used in the  \xmlNode{HistorySet}. By default,
+       the pivotParameter is set to \textbf{``time''};
+      
   \item \xmlNode{inputRow}, \xmlDesc{integer, optional field}, used to
        specify  the row (in the CSV file or HDF5 table) from which the input space
       needs to be retrieved (e.g. the time-step);
@@ -249,6 +253,7 @@ contain the following optional XML sub-nodes:
     </PointSet>
     <HistorySet name='stories1'>
         <options>
+            <pivotParameter>TIME</pivotParameter>
             <inputRow>1</inputRow>
             <outputRow>-1</outputRow>
         </options>
