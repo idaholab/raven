@@ -64,6 +64,7 @@ class ARMA(supervisedLearning):
     self.trainingData      = {} # holds normalized ('norm') and original ('raw') training data, by target
     self.cdfParams         = {} # dictionary of fitted CDF parameters, by target
     self.fourierResults    = {} # dictionary of Fourier results, by target
+    self.fourierSecondRes  = {} # dictionary of Fourier results, second pass, by target
     self.armaResult        = {} # dictionary of assorted useful arma information, by target
     self.correlations      = [] # list of correlated variables
     self.Pmax              = kwargs.get('Pmax', 3) # bounds for autoregressive lag
@@ -230,6 +231,18 @@ class ARMA(supervisedLearning):
         debugfile.writelines('{}_fourier,'.format(target)+','.join(str(d) for d in self.fourierResults[target]['predict'])+'\n')
         timeSeriesData -= self.fourierResults[target]['predict']
         debugfile.writelines('{}_nofourier,'.format(target)+','.join(str(d) for d in timeSeriesData)+'\n')
+        ## SECOND PASS FOURIER FILTER HACK
+        ## -> take a second stab at the data with some arbitrary Fourier frequencies to get out the remaining signal
+        bases = [24*60*60]
+        orders = dict((b,1) for b in bases)
+        self.fourierSecondRes[target] = self._trainFourier(self.pivotParameterValues,
+                                                           bases, # base periods, 8 hours
+                                                           orders, #frequency multiples
+                                                           timeSeriesData)
+        debugfile.writelines('{}_fourier2,'.format(target)+','.join(str(d) for d in self.fourierSecondRes[target]['predict'])+'\n')
+        timeSeriesData -= self.fourierSecondRes[target]['predict']
+        debugfile.writelines('{}_nofourier2,'.format(target)+','.join(str(d) for d in timeSeriesData)+'\n')
+        ## END SECOND PASS FOURIER FILTER HACK
       # SOLAR HACK
       ## find the mask for the requested target where values are nonzero
       if target == self.zeroFilterTarget:
@@ -276,10 +289,19 @@ class ARMA(supervisedLearning):
         zeroed = correlationData[self.notZeroFilterMask]
         ## throw out the part that's all zeros (axis 1, row corresponding to filter target)
         zeroed = np.delete(zeroed, self.correlations.index(self.zeroFilterTarget), 1)
-        self.raiseADebug('... ...  ... training unzeroed ...')
+        print('zero shape:',zeroed.shape)
+        self.raiseADebug('... ... ... training unzeroed ...')
         unzVarma, unzNoise, unzInit = self._trainVARMA(unzeroed)
-        self.raiseADebug('... ...  ... training zeroed ...')
-        zVarma, zNoise, zInit = self._trainVARMA(zeroed)
+        self.raiseADebug('... ... ... training zeroed ...')
+        ## the VAR fails if only 1 variable is non-constant, so we need to decide whether "zeroed" is actually an ARMA
+        ## -> instead of a VARMA
+        if zeroed.shape[1] == 1:
+          # then actually train an ARMA instead
+          zVarma = self._trainARMA(zeroed)
+          zNoise = None # NOTE this is used to check whether an ARMA was trained later!
+          zInit = None
+        else:
+          zVarma, zNoise, zInit = self._trainVARMA(zeroed)
         self.varmaResult = (unzVarma, zVarma) # NOTE how for zero-filtering we split the results up
         self.varmaNoise = (unzNoise, zNoise)
         self.varmaInit = (unzInit, zInit)
@@ -322,14 +344,26 @@ class ARMA(supervisedLearning):
           filterTargetIndex = self.correlations.index(self.zeroFilterTarget)
           # if so, we need to sample both VARMAs
           # have we already taken the correlated sample yet?
-          if unzeroedSample is None:
+          if correlatedSample is None:
             # if not, take the samples now
             unzeroedSample = self._generateVARMASignal(self.varmaResult[0],
                                                  numSamples = self.zeroFilterMask.sum(),
-                                                 randEngine = self.normEngine.rvs)
-            zeroedSample = self._generateVARMASignal(self.varmaResult[1],
-                                                 numSamples = self.notZeroFilterMask.sum(),
-                                                 randEngine = self.normEngine.rvs)
+                                                 randEngine = self.normEngine.rvs,
+                                                 rvsIndex = 0)
+            ## zero sampling is dependent on whether the trained model is a VARMA or ARMA
+            if self.varmaNoise[1] is not None:
+              zeroedSample = self._generateVARMASignal(self.varmaResult[1],
+                                                   numSamples = self.notZeroFilterMask.sum(),
+                                                   randEngine = self.normEngine.rvs,
+                                                   rvsIndex = 1)
+            else:
+              result = self.varmaResult[1]
+              sample = self._generateARMASignal(result,
+                                                numSamples = self.notZeroFilterMask.sum(),
+                                                randEngine = self.normEngine.rvs)
+              zeroedSample = np.zeros((self.notZeroFilterMask.sum(),1))
+              zeroedSample[:,0] = sample
+            correlatedSample = True # placeholder, signifies we've sampled the correlated distribution
           # reconstruct base signal from samples
           ## initialize
           signal = np.zeros(len(self.pivotParameterValues))
@@ -339,7 +373,7 @@ class ARMA(supervisedLearning):
           if target != self.zeroFilterTarget:
             # fix offset since we didn't include zero-filter target in zeroed correlated arma
             indexOffset = 0 if corrIndex < filterTargetIndex else -1
-            signal[self.zeroFilterMask] = zeroedSample[:,corrIndex+indexOffset]
+            signal[self.notZeroFilterMask] = zeroedSample[:,corrIndex+indexOffset]
         # if no zero-filtering (but still correlated):
         else:
           ## check if sample taken yet
@@ -472,12 +506,13 @@ class ARMA(supervisedLearning):
         fourier[base][:, 2*orderBp+1] = np.cos(2*np.pi*(orderBp+1)/base*pivots)
     return fourier
 
-  def _generateVARMASignal(self, model, numSamples=None, randEngine=None):
+  def _generateVARMASignal(self, model, numSamples=None, randEngine=None, rvsIndex=None):
     """
       Generates a set of correlated synthetic histories from fitted parameters.
       @ In, model, statsmodels.tsa.statespace.VARMAX, fitted VARMA such as otained from _trainVARMA
       @ In, numSamples, int, optional, number of samples to take (default to pivotParameters length)
       @ In, randEngine, instance, optional, method to call to get random samples (for example "randEngine(size=6)")
+      @ In, rvsIndex, int, optional, if provided then will take from list of varmaNoise and varmaInit distributions
       @ Out, hist, np.array(float), synthetic ARMA signal
     """
     if numSamples is None:
@@ -486,9 +521,14 @@ class ARMA(supervisedLearning):
     ## TODO it appears that measure shock always has a 0 variance multivariate normal, so just create it
     measureShocks = np.zeros([numSamples,len(self.target)])
     ## state shocks come from sampling multivariate
-    stateShocks = np.array([self.varmaNoise.rvs() for _ in range(numSamples)])
+    noiseDist = self.varmaNoise
+    initDist = self.varmaInit
+    if rvsIndex is not None:
+      noiseDist = noiseDist[rvsIndex]
+      initDist = initDist[rvsIndex]
+    stateShocks = np.array([noiseDist.rvs() for _ in range(numSamples)])
     # pick an intial by sampling multinormal distribution
-    init = np.array(self.varmaInit.rvs())
+    init = np.array(initDist.rvs())
     obs, states = model.ssm.simulate(numSamples,
                                      initial_state = init,
                                      measurement_shocks = measureShocks,
@@ -708,7 +748,7 @@ class ARMA(supervisedLearning):
     Pmax = self.Pmax
     Qmax = self.Qmax
     model = sm.tsa.VARMAX(endog=data, order=(Pmax,Qmax))
-    self.raiseADebug('... fitting VARMA ...')
+    self.raiseADebug('... ... ... fitting VARMA ...')
     results = model.fit(disp=False,maxiter=1000)
     lenHist,numVars = data.shape
     # train multivariate normal distributions using covariances, keep it around so we can control the RNG
