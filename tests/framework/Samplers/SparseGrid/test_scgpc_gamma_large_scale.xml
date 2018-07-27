@@ -6,7 +6,7 @@
     <batchSize>1</batchSize>
   </RunInfo>
   <TestInfo>
-    <name>framework/Samplers/SparseGrid/gamma_large_scale</name>
+    <name>framework/Samplers/SparseGrid.gamma_large_scale</name>
     <author>wangc</author>
     <created>2018-07-26</created>
     <classesTested>Samplers.SparseGridCollocation</classesTested>
@@ -14,18 +14,24 @@
         This tests using SparseGridCollocation with gamma-distributed inputs with large scale parameters
         to test the fix for issue #693
     </description>
+    <analytic>
+        This test is analytic in mean and variance documented in the analytic tests.
+        Two models are used:
+        ans = x1 + x2 with analytic mean = 4.7, variance = 3.565
+        ans = x1**2 + x2**2 with analytic mean = 14.655, variance = 215.638125
+    </analytic>
   </TestInfo>
 
   <Distributions>
     <Gamma name="GammaDist1">
       <low>0</low>
       <alpha>11</alpha>
-      <beta>5.0E-5</beta>
+      <beta>5</beta>
     </Gamma>
     <Gamma name="GammaDist2">
       <low>0</low>
-      <alpha>11</alpha>
-      <beta>37</beta>
+      <alpha>2</alpha>
+      <beta>0.8</beta>
     </Gamma>
   </Distributions>
 
