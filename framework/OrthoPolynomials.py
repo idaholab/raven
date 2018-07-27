@@ -377,7 +377,7 @@ class Laguerre(OrthogonalPolynomial):
       @ In, order, int, polynomial order to get norm of
       @ Out, norm, float, value of poly norm
     """
-    return np.sqrt(gamma(1.0+order)/gamma(1.0+order+self.params[0]))
+    return np.sqrt(gamma(1.0+order)*gamma(1.0+self.params[0])/gamma(1.0+order+self.params[0]))
 
 
 

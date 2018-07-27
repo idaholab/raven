@@ -44,10 +44,10 @@
   <Models>
     <Dummy name="MyDummy" subType=""/>
     <ExternalModel ModuleToLoad="polynomial" name="polynomial" subType="">
-      <variables>x1,x2,ans</variables>
+      <variables>x1,x2,ans,ans2</variables>
     </ExternalModel>
     <ROM name="GROM" subType="GaussPolynomialRom">
-      <Target>ans</Target>
+      <Target>ans,ans2</Target>
       <Features>x1,x2</Features>
       <IndexSet>TensorProduct</IndexSet>
       <PolynomialOrder>2</PolynomialOrder>
@@ -92,11 +92,11 @@
     </PointSet>
     <PointSet name="Gtests">
       <Input>x1,x2</Input>
-      <Output>ans</Output>
+      <Output>ans,ans2</Output>
     </PointSet>
     <PointSet name="Gsolns">
       <Input>x1,x2</Input>
-      <Output>ans</Output>
+      <Output>ans,ans2</Output>
     </PointSet>
   </DataObjects>
 
