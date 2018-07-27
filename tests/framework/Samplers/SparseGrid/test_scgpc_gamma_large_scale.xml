@@ -49,7 +49,7 @@
 
   <Models>
     <Dummy name="MyDummy" subType=""/>
-    <ExternalModel ModuleToLoad="polynomial" name="polynomial" subType="">
+    <ExternalModel ModuleToLoad="../../../AnalyticModels/poly_scgpc_gamma" name="polynomial" subType="">
       <variables>x1,x2,ans,ans2</variables>
     </ExternalModel>
     <ROM name="GROM" subType="GaussPolynomialRom">
