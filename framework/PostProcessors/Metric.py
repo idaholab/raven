@@ -263,7 +263,6 @@ class Metric(PostProcessor):
     if isinstance(evaluation, Runners.Error):
       self.raiseAnError(RuntimeError, "Job ", finishedJob.identifier, "failed!")
     outputDict = evaluation[1]
-    # FIXME store the data in DataObjects
     if isinstance(output, Files.File):
       availExtens = ['xml']
       outputExtension = output.getExt().lower()

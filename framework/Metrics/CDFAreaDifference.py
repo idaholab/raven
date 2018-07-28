@@ -59,9 +59,9 @@ class CDFAreaDifference(Metric):
         or given distribution.
       @ In, y, numpy.array, or instance of Distributions.Distribution, array containing data of y,
         or given distribution.
-      @ In, weights, None or array_like (numpy.array or list), not used in this metric
+      @ In, weights, array_like (numpy.array or list), not used in this metric
       @ In, axis, integer, default is 0, not used for this metric.
-      @ In, kwargs, dictionary of parameters characteristic of each metric
+      @ In, kwargs,dict, dictionary of parameters characteristic of each metric
       @ Out, value, float, metric result, CDF area difference
     """
     value = Metrics.MetricUtilities._getCDFAreaDifference(x,y)

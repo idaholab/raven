@@ -78,12 +78,12 @@ class Metric(utils.metaclass_insert(abc.ABCMeta,BaseType)):
         or given distribution.
       @ In, y, numpy.array, or instance of Distributions.Distribution, array containing data of y,
         or given distribution.
-      @ In, weights, None or numpy.array, an array of weights associated with x
+      @ In, weights, numpy.array, an array of weights associated with x
       @ In, axis, integer, axis along which a metric is performed, default is 0,
         i.e. the metric will performed along the first dimension (the "rows").
         If metric postprocessor is used, the first dimension is the RAVEN_sample_ID,
         and the second dimension is the pivotParameter if HistorySet is provided.
-      @ In, kwargs, dictionary of parameters characteristic of each metric
+      @ In, kwargs, dict, dictionary of parameters characteristic of each metric
       @ Out, value, float or numpy.array, metric results between x and y
     """
     value = self.__evaluateLocal__(x, y, weights=weights, axis = 0, **kwargs)

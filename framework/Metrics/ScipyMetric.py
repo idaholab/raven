@@ -102,7 +102,7 @@ class ScipyMetric(Metric):
       This method computes difference between two points x and y based on given metric
       @ In, x, 1-D numpy.ndarray, array containing data of x.
       @ In, y, 1-D numpy.ndarray, array containing data of y.
-      @ In, weights, None or array_like (numpy.array or list), optional weights associated
+      @ In, weights, array_like (numpy.array or list), optional weights associated
       @ In, axis, integer, default is 0, not used in this metric
       @ In, kwargs, dictionary of parameters characteristic of each metric
       @ Out, value, float, metric result
