@@ -37,7 +37,7 @@ an input file:
   input space and the resulting sets of temporal evolution in the output
   space.
   %
-   \item \xmlNode{DataSet} is a generalization of the previously described DataObject, 
+   \item \xmlNode{DataSet} is a generalization of the previously described DataObject,
    aimed to contain a mixture of data (scalars, arrays, etc.). The variables here stored
    can be independent (i.e. scalars) or dependent (arrays) on certain dimensions (e.g. time, coordinates, etc.).
   %
@@ -120,12 +120,12 @@ available attributes:
 %  %
 %  \default{None}
 
-  \item \xmlAttr{hierarchical}, \xmlDesc{optional boolean attribute}, 
-  This flag is going to ``control'' the printing/plotting of the DataObject in 
+  \item \xmlAttr{hierarchical}, \xmlDesc{optional boolean attribute},
+  This flag is going to ``control'' the printing/plotting of the DataObject in
   case a hierarchical structure is determined (e.g.
   data coming from Dynamic Event Tree-like approaches):
   \begin{itemize}
-    \item if \textbf{True} all the branches of the tree are going to be printed/plotted independently 
+    \item if \textbf{True} all the branches of the tree are going to be printed/plotted independently
                (i.e. all the branches are going to be exposed independently)
     \item if \textbf{False} all the branches are going to be walked back and reconstructed in order to create independent histories
   \end{itemize}
@@ -134,7 +134,7 @@ available attributes:
 \end{itemize}
 \vspace{-5mm}
 In each XML node (e.g. \xmlNode{PointSet}, \xmlNode{HistorySet} or  \xmlNode{DataSet}), the user
-needs to specify the following sub-nodes:
+specifies the following sub-nodes:
 \begin{itemize}
   \item \xmlNode{Input}, \xmlDesc{comma separated string, required field}, lists
   the input parameters to which this data is connected.
@@ -142,53 +142,54 @@ needs to specify the following sub-nodes:
   \item \xmlNode{Output}, \xmlDesc{comma separated string, required field}, lists
   the output parameters to which this data is connected.
   %
-\end{itemize}
-
-The  \xmlNode{PointSet} and  \xmlNode{HistorySet} objects are a specialization of the  \xmlNode{DataSet} where the 
-independent dimensions are defaulted to ``None'', for the \xmlNode{PointSet}, or to the \textit{pivotParameter} (e.g. time), for the \xmlNode{HistorySet}.
-If a  \xmlNode{DataSet} needs to be constructed, an additional information (e.g. sub-node) needs to be inputted, the  \xmlNode{Index}:
-
-\begin{itemize}
-  \item \xmlNode{Index}, \xmlDesc{comma separated string, required field (if  \xmlNode{DataSet})}, lists
+  \item \xmlNode{Index}, \xmlDesc{comma separated string, required for \xmlNode{DataSet}}, lists
   the dependent variables that depend on this index (specified through the attribute  \xmlAttr{var}).
   This XML node requires the following attribute:
    \begin{itemize}
-       \item \xmlAttr{var}, \xmlDesc{required string attribute}, the dimension name of this index (e.g. time)
+     \item \xmlAttr{var}, \xmlDesc{required string attribute}, the dimension name of this index (e.g. time)
    \end{itemize}
+ \item \xmlNode{options}, \xmlDesc{optional node}, contains additional option nodes
+   for data objects.  This node contains the following subnodes:
+   \begin{itemize}
+     \item \xmlNode{pivotParameter}, \xmlDesc{optional, string}, specifies the \textit{pivotParameter} for a
+       \xmlNode{HistorySet}. The pivot parameter is the shared index of the output variables in the data
+       object.  \default time
+    \item \xmlNode{inputRow}, \xmlDesc{integer, optional field}, used to
+         specify  the row (in a CSV file or HDF5 table) from which the input space
+        needs to be retrieved (e.g. the time-step);
+    %
+    \item \xmlNode{outputRow}, \xmlDesc{integer, optional field}, used to
+         specify  the row (in the CSV file or HDF5 table) from which the output space
+        needs to be retrieved (e.g. the time-step). If this node is inputted, the nodes
+         \xmlNode{operator} and  \xmlNode{outputPivotValue} can not be inputted (mutually exclusive).
+       \\\nb This XML node is available for DataObjects of type \xmlNode{PointSet} only;
+    %
+    \item \xmlNode{operator}, \xmlDesc{string, optional field}, is aimed to perform
+         simple operations on the data to be stored.
+         The 3 options currently available are:
+         \begin{itemize}
+            \item \xmlString{max}
+            \item \xmlString{min}
+            \item \xmlString{average}
+         \end{itemize}
+         If this node is inputted, the nodes
+         \xmlNode{outputRow} and  \xmlNode{outputPivotValue} can not be inputted (mutually exclusive).
+         \\\nb This XML node is available for DataObjects of type \xmlNode{PointSet} only;
+   \end{itemize}
+
   %
 \end{itemize}
 
+The  \xmlNode{PointSet} and  \xmlNode{HistorySet} objects are a specialization of the  \xmlNode{DataSet}. In
+the \xmlNode{PointSet}, the input and output space are all exclusively scalar values.  These values might be
+extracted from a vector of values for each entry using the \xmlNode{options} node, but the end result is a
+single scalar per input or output variable.
 
-In addition to the XML nodes \xmlNode{Input} and \xmlNode{Output} explained above, the user
-can optionally specify a XML node named  \xmlNode{options}. The  \xmlNode{options} node can
-contain the following optional XML sub-nodes:
+For the \xmlNode{HistorySet}, all inputs must be scalar, and all outputs must share an index (the
+\textit{pivotParameter}.  There cannot be scalars in any of the outputs. The pivotParameter can be changed
+through the corresponding node in the \xmlNode{options} node.
 
-\begin{itemize}
-   \item \xmlNode{pivotParameter}, \xmlDesc{string, optional field}, used to
-       specify  the name of the independent dimension (e.g. time) used in the  \xmlNode{HistorySet}. By default,
-       the pivotParameter is set to \textbf{``time''};
-      
-  \item \xmlNode{inputRow}, \xmlDesc{integer, optional field}, used to
-       specify  the row (in the CSV file or HDF5 table) from which the input space
-      needs to be retrieved (e.g. the time-step);
-  %
-  \item \xmlNode{outputRow}, \xmlDesc{integer, optional field}, used to
-       specify  the row (in the CSV file or HDF5 table) from which the output space
-      needs to be retrieved (e.g. the time-step). If this node is inputted, the nodes
-       \xmlNode{operator} and  \xmlNode{outputPivotValue} can not be inputted (mutually exclusive).
-     \\\nb This XML node is available for DataObjects of type \xmlNode{PointSet} only;
-  %
-  \item \xmlNode{operator}, \xmlDesc{string, optional field}, is aimed to perform
-       simple operations on the data to be stored.
-       The 3 options currently available are:
-       \begin{itemize}
-          \item \xmlString{max}
-          \item \xmlString{min}
-          \item \xmlString{average}
-       \end{itemize}
-       If this node is inputted, the nodes
-       \xmlNode{outputRow} and  \xmlNode{outputPivotValue} can not be inputted (mutually exclusive).
-       \\\nb This XML node is available for DataObjects of type \xmlNode{PointSet} only;
+
   %
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   %%%% This feature is being disabled until the DataObjects handle data in a
@@ -224,22 +225,21 @@ contain the following optional XML sub-nodes:
   %  \end{itemize}
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   %
-  It needs to be noticed that if the optional nodes in the block \xmlNode{options} are not inputted, the following default are applied:
-    \begin{itemize}
-       \item the Input space (scalars) is retrieved from the first row in the CSVs files or HDF5 tables (if the parameters specified are not 
-          among the variables sampled by RAVEN); In case of the  \xmlNode{DataSet}, if any of the input space variables depend on an \xmlNode{Index}, they 
-          are going to be linked to the \xmlNode{Index} variable
-       \item  the output space defaults are as follows:
-       \begin{itemize}
-           \item if \xmlNode{PointSet}, the output space is retrieved from the last row in the CSVs files or HDF5 tables;
-           \item if \xmlNode{HistorySet}, the output space is represented by all the rows found in  the CSVs or HDF5 tables.
-           \item if \xmlNode{DataSet}, the output space of the variables that do not depends on any index is retrieved from the last row in the CSVs files or HDF5 tables; 
-           on the contrary, the output space of the variables that depends on indexes is represented by all the rows found in  the CSVs or HDF5 tables (if they match 
-           with the indexes' dimension)
-        \end{itemize}
+Note that if the optional nodes in the block \xmlNode{options} are not inputted, the following default are applied:
+\begin{itemize}
+   \item the Input space (scalars) is retrieved from the first row in the CSVs files or HDF5 tables (if the parameters specified are not
+      among the variables sampled by RAVEN); In case of the  \xmlNode{DataSet}, if any of the input space variables depend on an \xmlNode{Index}, they
+      are going to be linked to the \xmlNode{Index} variable
+   \item  the output space defaults are as follows:
+   \begin{itemize}
+       \item if \xmlNode{PointSet}, the output space is retrieved from the last row in the CSVs files or HDF5 tables;
+       \item if \xmlNode{HistorySet}, the output space is represented by all the rows found in  the CSVs or HDF5 tables.
+       \item if \xmlNode{DataSet}, the output space of the variables that do not depends on any index is retrieved from the last row in the CSVs files or HDF5 tables;
+       on the contrary, the output space of the variables that depends on indexes is represented by all the rows found in  the CSVs or HDF5 tables (if they match
+       with the indexes' dimension)
     \end{itemize}
-    
 \end{itemize}
+
 
 \begin{lstlisting}[style=XML,morekeywords={operator,hierarchical,name,var}]
   <DataObjects>
