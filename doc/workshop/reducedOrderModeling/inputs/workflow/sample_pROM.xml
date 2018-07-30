@@ -62,13 +62,11 @@
 	        <Input   class="DataObjects"      type="PointSet"     >Data1</Input>
 	        <Model   class="Models"           type="ROM"          >pROM3</Model>
 	        <Sampler class="Samplers"         type="Grid"         >Grid_ROM</Sampler>
-	        <Output  class="DataObjects"      type="PointSet"   >outPROM_y3</Output>
+	        <Output  class="DataObjects"      type="PointSet"   >outPROM</Output>
 	    </MultiRun>
 	    <IOStep name="plot_data_3" pauseAtEnd="True">
-	        <Input   class="DataObjects"      type="PointSet"   >outPROM_y3</Input>
-	        <Input   class="DataObjects"      type="PointSet"   >outGRID_y3</Input>
-	        <Output  class="OutStreams"       type="Plot"         >plot_ROM_RSy3</Output>
-	        <Output  class="OutStreams"       type="Plot"         >plot_RSy3</Output>
+	        <Input   class="DataObjects"      type="PointSet"   >outPROM</Input>
+	        <Output  class="OutStreams"       type="Plot"         >plot_PROM</Output>
 	    </IOStep>
 	</Steps>
 	
@@ -85,57 +83,28 @@
 	        <Input>v0,angle</Input>
 	        <Output>OutputPlaceHolder</Output>
 	    </PointSet>
-	    <PointSet name="outPROM_y3">
-	        <Input>v0,angle</Input>
-	        <Output>x,y,r,t</Output>
-	    </PointSet>
-	    <PointSet name="outGRID_y4">
-	        <Input>v0,angle</Input>
-	        <Output>x,y,r,t</Output>
-	    </PointSet>
-	    <PointSet name="outROM_y4">
+	    <PointSet name="outPROM">
 	        <Input>v0,angle</Input>
 	        <Output>x,y,r,t</Output>
 	    </PointSet>
 	</DataObjects>
 	
 	<OutStreams>
-	    <Plot name="plot_ROM_RSy3" overwrite="False">
-	        <plotSettings>
-	            <plot>
-	                <type>scatter</type>
-	                <x>outPROM_y3|Input|v0</x>
-	                <y>outPROM_y3|Input|angle</y>
-	                <z>outPROM_y3|Output|x</z>
-	                <colorMap>outPROM_y3|Input|v0</colorMap>
-	                <cmap>jet</cmap>
-	            </plot>
-	        </plotSettings>
-	        <actions>
-	            <how>png</how>
-	            <title>
-	                <text>Sampled Input Space: ROM3</text>
-	            </title>
-	        </actions>
-	    </Plot>
-	    <Plot name="plot_RSy3" overwrite="False">
-	        <plotSettings>
-	            <plot>
-	                <type>scatter</type>
-	                <x>outGRID_y3|Input|v0</x>
-	                <y>outGRID_y3|Input|angle</y>
-	                <z>outGRID_y3|Output|y</z>
-	                <colorMap>outGRID_y3|Input|v0</colorMap>
-	                <cmap>jet</cmap>
-	            </plot>
-	        </plotSettings>
-	        <actions>
-	            <how>png</how>
-	            <title>
-	                <text>Sampled Input Space: Function</text>
-	            </title>
-	        </actions>
-	    </Plot>
+      <Plot  name="plot_PROM">
+        <plotSettings>
+          <plot>
+            <type>scatter</type>
+            <x>outPROM|Input|v0</x>
+            <y>outPROM|Input|angle</y>
+            <z>outPROM|Output|r</z>
+            <colorMap>outPROM|Output|t</colorMap>
+          </plot>
+          <xlabel>v0</xlabel>
+          <ylabel>angle</ylabel>
+          <zlabel>r</zlabel>
+        </plotSettings>
+        <actions><how>png,screen</how></actions>
+      </Plot>
 	</OutStreams>
 
 </Simulation>

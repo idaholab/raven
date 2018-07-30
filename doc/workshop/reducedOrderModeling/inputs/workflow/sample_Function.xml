@@ -14,7 +14,8 @@
 	    <Sampler class="Samplers"         type="Grid"          >grid</Sampler>
 	    <Output  class="DataObjects"      type="PointSet"      >outGRID</Output>
 	    <Output  class="Databases"        type="HDF5"          >out_db</Output>
-	    <Output  class="OutStreams"       type="Print"         >out_dump</Output>
+        <Output  class="OutStreams"       type="Print"         >out_dump</Output>
+        <Output  class="OutStreams"       type="Plot"          >out_plot</Output>
       </MultiRun>
 	</Steps>
 	
@@ -64,6 +65,21 @@
         <source>outGRID</source>
         <what>input,output</what>
 	  </Print>
+      <Plot  name="out_plot">
+        <plotSettings>
+          <plot>
+            <type>scatter</type>
+            <x>outGRID|Input|v0</x>
+            <y>outGRID|Input|angle</y>
+            <z>outGRID|Output|r</z>
+            <colorMap>outGRID|Output|t</colorMap>
+          </plot>
+          <xlabel>v0</xlabel>
+          <ylabel>angle</ylabel>
+          <zlabel>r</zlabel>
+        </plotSettings>
+        <actions><how>png,screen</how></actions>
+      </Plot>
 	</OutStreams>
 	
 	<DataObjects>
@@ -76,6 +92,7 @@
         <Output>y,x,r,t</Output>
 	  </PointSet>
 	</DataObjects>
+    
 
 </Simulation>
 

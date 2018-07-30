@@ -65,8 +65,8 @@
 	    <IOStep name="plot_data_4" pauseAtEnd="True">
 	        <Input   class="DataObjects"  type="PointSet"     >outROM_y4</Input>
 	        <Input   class="DataObjects"  type="PointSet"     >outGRID_y4</Input>
-	        <Output  class="OutStreams"   type="Plot"         >plot_ROM_RSy4</Output>
-	        <Output  class="OutStreams"   type="Plot"         >plot_RSy4</Output>
+	        <Output  class="OutStreams"   type="Plot"         >plot_ROM</Output>
+	        <Output  class="OutStreams"   type="Plot"         >plot_Grid</Output>
 	    </IOStep>
 	</Steps>
 		
@@ -90,42 +90,36 @@
 	</DataObjects>
 	
 	<OutStreams>
-	    <Plot name="plot_ROM_RSy4" overwrite="False">
-	        <plotSettings>
-	            <plot>
-	                <type>scatter</type>
-	                <x>outROM_y4|Input|v0</x>
-	                <y>outROM_y4|Input|angle</y>
-	                <z>outROM_y4|Output|x</z>
-	                <colorMap>outROM_y4|Input|v0</colorMap>
-	                <cmap>jet</cmap>
-	            </plot>
-	        </plotSettings>
-	        <actions>
-	            <how>png</how>
-	            <title>
-	                <text>Sampled Input Space: ROM4</text>
-	            </title>
-	        </actions>
-	    </Plot>
-	    <Plot name="plot_RSy4" overwrite="False">
-	        <plotSettings>
-	            <plot>
-	                <type>scatter</type>
-	                <x>outGRID_y4|Input|v0</x>
-	                <y>outGRID_y4|Input|angle</y>
-	                <z>outGRID_y4|Output|y</z>
-	                <colorMap>outGRID_y4|Input|v0</colorMap>
-	                <cmap>jet</cmap>
-	            </plot>
-	        </plotSettings>
-	        <actions>
-	            <how>png</how>
-	            <title>
-	                <text>Sampled Input Space: Function</text>
-	            </title>
-	        </actions>
-	    </Plot>
+      <Plot  name="plot_ROM">
+        <plotSettings>
+          <plot>
+            <type>scatter</type>
+            <x>outROM_y4|Input|v0</x>
+            <y>outROM_y4|Input|angle</y>
+            <z>outROM_y4|Output|r</z>
+            <colorMap>outROM_y4|Output|t</colorMap>
+          </plot>
+          <xlabel>v0</xlabel>
+          <ylabel>angle</ylabel>
+          <zlabel>r</zlabel>
+        </plotSettings>
+        <actions><how>png,screen</how></actions>
+      </Plot>
+      <Plot  name="plot_Grid">
+        <plotSettings>
+          <plot>
+            <type>scatter</type>
+            <x>outGRID_y4|Input|v0</x>
+            <y>outGRID_y4|Input|angle</y>
+            <z>outGRID_y4|Output|r</z>
+            <colorMap>outGRID_y4|Output|t</colorMap>
+          </plot>
+          <xlabel>v0</xlabel>
+          <ylabel>angle</ylabel>
+          <zlabel>r</zlabel>
+        </plotSettings>
+        <actions><how>png,screen</how></actions>
+      </Plot>
 	</OutStreams>
 
 </Simulation>
