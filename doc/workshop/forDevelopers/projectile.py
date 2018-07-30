@@ -130,7 +130,7 @@ if __name__=="__main__":
   outFile = open(outFile+'.csv','w')
   outFile.writelines('x0,y0,v0,ang,r,x,y,t\n')
   inpstr = ','.join(str(i) for i in (io.x0,io.y0,io.v0,io.ang))
-  for i in range(len(io.time)):
+  for i in range(len(io.t)):
     outFile.writelines(inpstr+',%f,%f,%f,%f\n' %(io.r[i],io.x[i],io.y[i],io.t[i]))
   outFile.close()
   print 'Done!'
