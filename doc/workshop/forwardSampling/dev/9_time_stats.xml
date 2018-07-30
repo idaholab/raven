@@ -2,7 +2,7 @@
 <Simulation>
   <RunInfo>
     <WorkingDir>.</WorkingDir>
-    <Sequence>generate_data,print</Sequence>
+    <Sequence>generate_data,sync,stats,print</Sequence>
     <batchSize>4</batchSize>
   </RunInfo>
 
@@ -13,9 +13,19 @@
       <Model   class="Models"      type="ExternalModel">projectile</Model>
       <Output  class="DataObjects" type="HistorySet"     >results</Output>
     </MultiRun>
-    <IOStep name="print" pauseAtEnd="True">
-      <Input  class="DataObjects" type="HistorySet">results</Input>
-      <Output class="OutStreams"  type="Print"   >to_file</Output>
+    <PostProcess name="sync">
+      <Input class="DataObjects" type="HistorySet">results</Input>
+      <Model class="Models" type="PostProcessor">syncer</Model>
+      <Output class="DataObjects" type="HistorySet">synced</Output>
+    </PostProcess>
+    <PostProcess name="stats">
+      <Input class="DataObjects" type="HistorySet">synced</Input>
+      <Model class="Models" type="PostProcessor">stats</Model>
+      <Output class="DataObjects" type="HistorySet">stats</Output>
+    </PostProcess>
+    <IOStep name="print">
+      <Input  class="DataObjects" type="HistorySet">stats</Input>
+      <Output class="OutStreams"  type="Plot"   >stats</Output>
     </IOStep>
   </Steps>
 
@@ -23,6 +33,22 @@
     <ExternalModel ModuleToLoad="../../forDevelopers/projectile.py" name="projectile" subType="">
       <variables>v0,y0,angle,x,y,t</variables>
     </ExternalModel>
+    <PostProcessor name="syncer" subType="InterfacedPostProcessor">
+      <method>HistorySetSync</method>
+      <pivotParameter>t</pivotParameter>
+      <extension>zeroed</extension>
+      <syncMethod>grid</syncMethod>
+      <numberOfSamples>20</numberOfSamples>
+    </PostProcessor>
+    <PostProcessor name="stats" subType="BasicStatistics">
+      <pivotParameter>t</pivotParameter>
+      <expectedValue prefix="mean">v0,y0,angle,x,y</expectedValue>
+      <variance prefix="var">x,y</variance>
+      <sensitivity prefix="sens">
+        <targets>x,y</targets>
+        <features>v0,y0,ang</features>
+      </sensitivity>
+    </PostProcessor>
   </Models>
 
   <Samplers>
@@ -72,12 +98,26 @@
         <pivotParameter>t</pivotParameter>
       </options>
     </HistorySet>
+    <HistorySet name="synced">
+      <Input>v0,y0,angle</Input>
+      <Output>x,y</Output>
+      <options>
+        <pivotParameter>t</pivotParameter>
+      </options>
+    </HistorySet>
+    <HistorySet name="stats">
+      <Input>mean_v0,mean_y0,mean_angle</Input>
+      <Output>x,y</Output>
+      <options>
+        <pivotParameter>t</pivotParameter>
+      </options>
+    </HistorySet>
   </DataObjects>
 
   <OutStreams>
-    <Print name="to_file">
+    <Print name="synced">
       <type>csv</type>
-      <source>results</source>
+      <source>synced</source>
     </Print>
   </OutStreams>
 

@@ -2,7 +2,7 @@
 <Simulation>
   <RunInfo>
     <WorkingDir>.</WorkingDir>
-    <Sequence>generate_data,print</Sequence>
+    <Sequence>generate_data,sync,print</Sequence>
     <batchSize>4</batchSize>
   </RunInfo>
 
@@ -13,9 +13,14 @@
       <Model   class="Models"      type="ExternalModel">projectile</Model>
       <Output  class="DataObjects" type="HistorySet"     >results</Output>
     </MultiRun>
-    <IOStep name="print" pauseAtEnd="True">
-      <Input  class="DataObjects" type="HistorySet">results</Input>
-      <Output class="OutStreams"  type="Print"   >to_file</Output>
+    <PostProcess name="sync">
+      <Input class="DataObjects" type="HistorySet">results</Input>
+      <Model class="Models" type="PostProcessor">syncer</Model>
+      <Output class="DataObjects" type="HistorySet">synced</Output>
+    </PostProcess>
+    <IOStep name="print">
+      <Input  class="DataObjects" type="HistorySet">synced</Input>
+      <Output class="OutStreams"  type="Print"   >synced</Output>
     </IOStep>
   </Steps>
 
@@ -23,6 +28,13 @@
     <ExternalModel ModuleToLoad="../../forDevelopers/projectile.py" name="projectile" subType="">
       <variables>v0,y0,angle,x,y,t</variables>
     </ExternalModel>
+    <PostProcessor name="syncer" subType="InterfacedPostProcessor">
+      <method>HistorySetSync</method>
+      <pivotParameter>t</pivotParameter>
+      <extension>zeroed</extension>
+      <syncMethod>grid</syncMethod>
+      <numberOfSamples>20</numberOfSamples>
+    </PostProcessor>
   </Models>
 
   <Samplers>
@@ -72,12 +84,19 @@
         <pivotParameter>t</pivotParameter>
       </options>
     </HistorySet>
+    <HistorySet name="synced">
+      <Input>v0,y0,angle</Input>
+      <Output>x,y</Output>
+      <options>
+        <pivotParameter>t</pivotParameter>
+      </options>
+    </HistorySet>
   </DataObjects>
 
   <OutStreams>
-    <Print name="to_file">
+    <Print name="synced">
       <type>csv</type>
-      <source>results</source>
+      <source>synced</source>
     </Print>
   </OutStreams>
 
