@@ -19,7 +19,7 @@
 	</Steps>
 	
 	<Models>
-      <ExternalModel name="projectile" ModuleToLoad="projectile" subType="">
+        <ExternalModel name="projectile" ModuleToLoad="../../projectile" subType="">
         <variables>x0,v0,y0,angle,x,y,r,t</variables>
       </ExternalModel>
 	</Models>
