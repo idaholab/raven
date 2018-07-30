@@ -8,54 +8,50 @@
 	</RunInfo>
 	
 	<Steps>
-    <MultiRun name="FirstMRun" pauseAtEnd="True">
+      <MultiRun name="FirstMRun" pauseAtEnd="True">
 	    <Input   class="DataObjects"      type="PointSet"      >inputPlaceHolder</Input>
-	    <Model   class="Models"           type="ExternalModel" >PythonModule</Model>
-	    <Sampler class="Samplers"         type="Grid"          >Grid_function</Sampler>
+	    <Model   class="Models"           type="ExternalModel" >projectile</Model>
+	    <Sampler class="Samplers"         type="Grid"          >grid</Sampler>
 	    <Output  class="DataObjects"      type="PointSet"      >outGRID</Output>
 	    <Output  class="Databases"        type="HDF5"          >out_db</Output>
 	    <Output  class="OutStreams"       type="Print"         >out_dump</Output>
-    </MultiRun>
+      </MultiRun>
 	</Steps>
 	
 	<Models>
-    <ExternalModel name="PythonModule" subType="" ModuleToLoad="workshop_model">
-       <variables>x1,x2,x3,y1,y2,y3,y4,y5</variables>
-    </ExternalModel>
+      <ExternalModel name="projectile" ModuleToLoad="projectile" subType="">
+        <variables>x0,v0,y0,angle,x,y,r,t</variables>
+      </ExternalModel>
 	</Models>
 	
-	<Distributions>
-	  <Normal name="normal_trunc">
-	    <mean>0.5</mean>
-	    <sigma>0.1</sigma>
-	    <lowerBound>0</lowerBound>
-	    <upperBound>1</upperBound>
-	  </Normal>
-	  <Normal name="normal">
-	    <mean>2</mean>
-	    <sigma>0.2</sigma>
-	  </Normal>
-	  <Uniform name="uniform">
-	    <upperBound>4</upperBound>
-	    <lowerBound>1</lowerBound>
-	  </Uniform>
+    <Distributions>
+        <Normal name="v0_d">
+            <mean>1.0</mean>
+            <sigma>0.5</sigma>
+            <lowerBound>0</lowerBound>
+            <upperBound>3.0</upperBound>
+        </Normal>
+        <Normal name="angle_d">
+            <mean>45</mean>
+            <sigma>5</sigma>
+            <lowerBound>5</lowerBound>
+            <upperBound>85</upperBound>
+        </Normal>
 	</Distributions>
 	
-	<Samplers>
-	  <Grid name="Grid_function">
-	    <variable name="x1" >
-	      <distribution>normal_trunc</distribution>
-	      <grid type="value" construction="equal" steps="5">0.0 1.0</grid>
-	    </variable>
-	    <variable name="x2" >
-	      <distribution>normal</distribution>
-	      <grid type="value" construction="equal" steps="5">1.5 2.5</grid>
-	    </variable>
-	    <variable name="x3" >
-	      <distribution>uniform</distribution>
-	      <grid type="value" construction="equal" steps="5">1.0 4.0</grid>
-	    </variable>
-	  </Grid>
+    <Samplers>
+      <Grid name="grid">
+          <variable name="v0">
+              <distribution>v0_d</distribution>
+              <grid construction="equal" steps="6" type="CDF">0.1 0.9</grid>
+          </variable>
+          <variable name="angle">
+              <distribution>angle_d</distribution>
+              <grid construction="equal" steps="6" type="CDF">0.1 0.9</grid>
+          </variable>
+          <constant name="x0">0</constant>
+          <constant name="y0">0</constant>
+      </Grid>
 	</Samplers>
 	
 	<Databases>
@@ -65,18 +61,19 @@
 	<OutStreams>
 	  <Print name="out_dump">
 	    <type>csv</type>
-	    <source>outGRID</source>
+        <source>outGRID</source>
+        <what>input,output</what>
 	  </Print>
 	</OutStreams>
 	
 	<DataObjects>
-	  <PointSet name="outGRID">
-	    <Input>x1,x2,x3</Input>
-	    <Output>y1,y2,y3,y4,y5</Output>
-	  </PointSet>
 	  <PointSet name="inputPlaceHolder">
-	    <Input>x1,x2,x3</Input>
+	    <Input>x0,v0,y0,angle</Input>
 	    <Output>OutputPlaceHolder</Output>
+	  </PointSet>
+	  <PointSet name="outGRID">
+	    <Input>x0,v0,y0,angle</Input>
+        <Output>y,x,r,t</Output>
 	  </PointSet>
 	</DataObjects>
 
