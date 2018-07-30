@@ -66,7 +66,7 @@ def __lookUpPreferredVersion(name,optional=False):
     if name == i:
       return qa
   return ""
-
+# libraries to install with Conda
 __condaList = [("h5py"        ,__lookUpPreferredVersion("h5py"      )),
                ("numpy"       ,__lookUpPreferredVersion("numpy"     )),
                ("scipy"       ,__lookUpPreferredVersion("scipy"     )),
@@ -79,7 +79,6 @@ __condaList = [("h5py"        ,__lookUpPreferredVersion("h5py"      )),
                #("tensorflow"  ,__lookUpPreferredVersion("tensorflow")),
                ("python"      ,"2.7"),
                ("hdf5"        ,"1.8.18"),
-               ("pyside"      ,""),
                ("swig"        ,""),
                ("pylint"      ,""),
                ("coverage"    ,""),
@@ -87,8 +86,12 @@ __condaList = [("h5py"        ,__lookUpPreferredVersion("h5py"      )),
                #("nomkl"       ,""),
                #("numexpr"     ,"")
                ]
-
+# libraries to install with conda-forge
+__condaForgeList = [("pyside","")
+                   ]
+# optional conda libraries
 __condaOptional = [ ('pillow',__lookUpPreferredVersion("pillow")) ]
+
 
 __pipList = [("numpy",__lookUpPreferredVersion("numpy")),
              ("h5py",__lookUpPreferredVersion("h5py")),
@@ -224,6 +227,26 @@ def __condaString(includeOptionals=False,opSys=None):
   if opSys is not None:
     libList = parseCondaForOS(libList,opSys)
   for name, version in libList:
+    # no conda-forge
+    if len(version) == 0:
+      s += name+" "
+    else:
+      s += name+"="+version+" "
+  return s
+
+def __condaForgeString(opSys=None):
+  """
+    Generates a string with version ids that can be passed to conda (conda-forge).
+    returns s, string, a list of packages for conda to install
+    @ In, opSys, string, optional, if included then parse conda list according to request
+    @ Out, s, str, message that could be pasted into a bash command to install libraries
+  """
+  s = ""
+  libList = __condaForgeList
+  if opSys is not None:
+    libList = parseCondaForOS(libList,opSys)
+  for name, version in libList:
+    # conda-forge
     if len(version) == 0:
       s += name+" "
     else:
@@ -251,21 +274,29 @@ def parseCondaForOS(libs,opSys):
 if __name__ == '__main__':
   # allow the operating system to be specified
   opSys = None
+  condaForge = False
   if '--windows' in sys.argv:
     opSys = 'windows'
   elif '--mac' in sys.argv:
     opSys = 'mac'
   elif '--linux' in sys.argv:
     opSys = 'linux'
+  if '--conda-forge' in sys.argv:
+    # just install command is generated
+    condaForge = True
+
   # check for environemnt definition of raven libs
   libName = os.getenv('RAVEN_LIBS_NAME','raven_libraries')
   # what did the caller ask to do?
-  if '--conda-create' in sys.argv:
+  if '--conda-create' in sys.argv and not condaForge:
     print("conda create --name {} -y ".format(libName), end="")
     print(__condaString(includeOptionals = ('--optional' in sys.argv), opSys = opSys))
   elif '--conda-install' in sys.argv:
     print("conda install --name {} -y ".format(libName), end=" ")
-    print(__condaString(includeOptionals = ('--optional' in sys.argv), opSys = opSys))
+    if not condaForge:
+      print(__condaString(includeOptionals = ('--optional' in sys.argv), opSys = opSys))
+    else:
+      print("-c conda-forge "+ __condaForgeString(opSys = opSys))
   elif '--pip-install' in sys.argv:
     print("pip install",end=" ")
     for i,qa in __pipList:
