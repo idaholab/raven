@@ -639,6 +639,18 @@ by the following sub-node within the main \xmlNode{ROM} XML node:
 \end{itemize}
 Based on the \xmlNode{SKLtype} several different algorithms are available.
 %
+In addition, the temporal vairable for a \textbf{HistorySet} \xmlString{SciKitLearn}
+is specified in \xmlNode{pivotParameter}:
+\begin{itemize}
+  \item \xmlNode{pivotParameter}, \xmlDesc{string, optional parameter}, specifies the pivot
+    variable (e.g. time, etc) in the input HistorySet.
+    \default{time}
+\end{itemize}
+\nb for HistorySet's \xmlString{SciKitLearn} performs the task given in \xmlNode{SKLtype} for
+each time step. and so only synchronized HistorySet can be used as input to this ROM. For
+unsynchronized HistorySet, use \xmlString{HistorySetSync} method in \xmlString{Interfaced}
+post-processor to synchronize the input data before using \xmlString{SciKitLearn}.
+
 In the following paragraphs a brief explanation and the input requirements are
 reported for each of them.
 %
