@@ -13,6 +13,8 @@
 # limitations under the License.
 import math
 def run(self, Input):
-  # self.leftTemperature (boundary condition - left) self.rightTemperature (boundary condition - right)
-  self.averageTemperature = (self.leftTemperature + self.rightTemperature)/2.0
-  self.k = 38.23/(129.2 + self.averageTemperature) + 0.6077E-12*self.averageTemperature
+  energy = Input.get('energy', 1.0)
+  mass = Input.get('mass', 1.0)
+  self.energy =  energy
+  self.mass =  mass
+  self.v0 = math.sqrt(2.0*self.energy/self.mass)

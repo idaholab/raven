@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Simulation verbosity="debug">
+
+    <RunInfo>
+
+	    <WorkingDir>results</WorkingDir>
+    	<Sequence>FirstMRun,plot</Sequence>
+    	<batchSize>1</batchSize>
+	</RunInfo>
+	
+    <Distributions>
+        <Normal name="angle_d">
+            <mean>45</mean>
+            <sigma>5</sigma>
+            <lowerBound>5</lowerBound>
+            <upperBound>85</upperBound>
+        </Normal>
+        <Normal name="mass_d">
+            <mean>10.0</mean>
+            <sigma>1.0</sigma>
+            <lowerBound>0</lowerBound>
+            <upperBound>20</upperBound>
+        </Normal>
+        <Normal name="energy_d">
+            <mean>100</mean>
+            <sigma>10</sigma>
+            <lowerBound>0</lowerBound>
+            <upperBound>200</upperBound>
+        </Normal>
+	</Distributions>
+	
+    <Samplers>
+        <MonteCarlo name="mcSampler">
+            <samplerInit>
+                <limit>10</limit>
+                <initialSeed>080118</initialSeed>
+            </samplerInit>
+            <variable name="angle">
+                <distribution>angle_d</distribution>
+            </variable>
+            <variable name="mass">
+                <distribution>mass_d</distribution>
+            </variable>
+            <variable name="energy">
+                <distribution>energy_d</distribution>
+            </variable>
+            <constant name="x0">0</constant>
+            <constant name="y0">0</constant>
+        </MonteCarlo>
+	</Samplers>
+    
+    <DataObjects>
+	    <PointSet name="inputPlaceHolder">
+	        <Input>energy,mass</Input>
+	        <Output>OutputPlaceHolder</Output>
+        </PointSet>
+	    <PointSet name="inputHolderProjectile">
+	        <Input>angle,x0,v0,y0</Input>
+	        <Output>OutputPlaceHolder</Output>
+	    </PointSet>
+	    <PointSet name="inputHolderKEnergy">
+	        <Input>mass,energy</Input>
+	        <Output>OutputPlaceHolder</Output>
+	    </PointSet>
+	    <PointSet name="projectileContainer">
+	        <Input>x0,y0,v0,angle</Input>
+	        <Output>r,t</Output>
+	    </PointSet>
+	    <PointSet name="KEnergyContainer">
+	        <Input>mass,energy</Input>
+	        <Output>v0</Output>
+	    </PointSet>
+	    <PointSet name="outMC">
+	        <Input>energy, mass, angle</Input>
+            <Output>r,t</Output>
+	    </PointSet>
+	</DataObjects>
+	
+	<Models>
+        <ExternalModel name="projectile" ModuleToLoad="../../projectile" subType="">
+            <variables>x0,v0,y0,angle,x,y,r,t</variables>
+        </ExternalModel>
+        <ExternalModel name="kineticEnergy" ModuleToLoad="../../kineticEnergy" subType="">
+            <variables>energy, mass, v0</variables>
+        </ExternalModel>
+        <EnsembleModel name="ensembleModel" subType="">
+            <Model class="Models" type="ExternalModel">
+                projectile
+                <Input class="DataObjects" type="PointSet">inputHolderProjectile</Input>
+                <TargetEvaluation class="DataObjects" type="PointSet">projectileContainer</TargetEvaluation>
+            </Model>
+            <Model class="Models" type="ExternalModel">
+                kineticEnergy
+                <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
+                <TargetEvaluation class="DataObjects" type="PointSet">KEnergyContainer</TargetEvaluation>
+            </Model>
+        </EnsembleModel>
+
+	</Models>
+    
+    <Steps>
+        <MultiRun name="FirstMRun" pauseAtEnd="True">
+	        <Input   class="DataObjects"      type="PointSet"      >inputPlaceHolder</Input>
+	        <Model   class="Models"           type="EnsembleModel" >ensembleModel</Model>
+	        <Sampler class="Samplers"         type="MonteCarlo"    >mcSampler</Sampler>
+            <Output  class="DataObjects"      type="PointSet"      >outMC</Output>
+        </MultiRun>
+        <IOStep name='plot'>
+            <Input  class="DataObjects"      type="PointSet"      >outMC</Input>
+            <Output  class="OutStreams"      type="Plot"          >plotMC</Output>
+        </IOStep>
+	</Steps>
+	
+    <OutStreams>
+        <Plot name="plotMC">
+            <plotSettings>
+                <plot>
+                    <type>scatter</type>
+                    <x>outMC|Input|energy</x>
+                    <y>outMC|Output|r</y>
+                    <c>blue</c>
+                </plot>
+                <xlabel>energy</xlabel>
+                <ylabel>r</ylabel>
+            </plotSettings>
+            <actions><how>png,screen</how></actions>
+        </Plot>
+	</OutStreams>
+	
+</Simulation>
+
+
+

@@ -3,7 +3,6 @@
 
     <RunInfo>
 	    <WorkingDir>results</WorkingDir>
-    	<!--Sequence>FirstMRun,trainRom,dumpRom,loadRom,sampleRom, plot</Sequence-->
     	<Sequence>FirstMRun,trainRom,sampleRom, plot</Sequence>
     	<batchSize>1</batchSize>
 	</RunInfo>
@@ -72,16 +71,7 @@
             <Target>r</Target>
             <p>3</p>
         </ROM>
-        <ROM name="loadIDW" subType="NDinvDistWeight">
-            <Features>angle</Features>
-            <Target>r</Target>
-            <p>3</p>
-        </ROM>
 	</Models>
-
-    <Files>
-        <Input name='pkIDW' type=''>pkIDW</Input>
-    </Files>
 
     <Steps>
         <MultiRun name="FirstMRun" pauseAtEnd="True">
@@ -94,14 +84,6 @@
             <Input class="DataObjects" type="PointSet">outMC</Input>
             <Output class="Models"     type="ROM">IDW</Output>
         </RomTrainer>
-        <!--IOStep name='dumpRom'>
-            <Input class='Models'   type='ROM'>IDW</Input>
-            <Output class='Files'   type=''   >pkIDW</Output>
-        </IOStep>
-        <IOStep name='loadRom'>
-            <Input class='Files'    type=''   >pkIDW</Input>
-            <Output class='Models'  type='ROM'>loadIDW</Output>
-        </IOStep-->
         <MultiRun name='sampleRom'>
             <Input class='DataObjects'  type='PointSet'>romIn</Input>
             <Model class='Models'       type='ROM'>IDW</Model>
