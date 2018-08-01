@@ -1,0 +1,55 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <RunInfo>
+    <WorkingDir>workingdir</WorkingDir>
+    <Sequence>read,train,dump</Sequence>
+  </RunInfo>
+
+  <Steps>
+  <!-- Synthetic DEMAND  -->
+    <IOStep name='read'>
+      <Input    class = 'Files'       type = ''             >datafile</Input>
+      <Output   class = 'DataObjects' type = 'HistorySet'   >raw</Output>
+    </IOStep>
+    <RomTrainer name='train'>
+      <Input    class = 'DataObjects' type = 'History'      >raw</Input>
+      <Output   class = 'Models'      type = 'ROM'          >arma</Output>
+    </RomTrainer>
+    <IOStep name='dump'>
+      <Input    class = 'Models'      type = 'ROM'          >arma</Input>
+      <Output   class = 'Files'       type = ''             >pk</Output>
+    </IOStep>
+  </Steps>
+
+  <Files>
+    <Input name="datafile">ercotNC_all_hourly.csv</Input>
+    <Input name="pk">ercotNC_VARMA.pk</Input>
+  </Files>
+
+  <Models>
+    <ROM name='arma' subType='ARMA'>
+      <Target>Demand, GHI, Time</Target>
+      <Features>scaling</Features>
+      <ZeroFilter>GHI</ZeroFilter>
+      <pivotParameter>Time</pivotParameter>
+      <correlate>Demand, GHI</correlate>
+      <Pmax>3</Pmax>
+      <Pmin>3</Pmin>
+      <Qmax>1</Qmax>
+      <Qmin>1</Qmin>
+      <Fourier>31556952,7889238,86400</Fourier> <!-- 1 year, 3 months, 1 day -->
+      <FourierOrder>1,1,1</FourierOrder>
+    </ROM>
+  </Models>
+
+  <DataObjects>
+    <HistorySet name="raw">
+      <Input>scaling</Input>
+      <Output>Demand, Speed, GHI, Temperature</Output>
+      <options>
+        <pivotParameter>Time</pivotParameter>
+      </options>
+    </HistorySet>
+  </DataObjects>
+
+</Simulation>

@@ -163,6 +163,7 @@ class ROM(Dummy):
     inputSpecification.addSub(InputData.parameterInputFactory("random_start", InputData.IntegerType))
     # ARMA
     inputSpecification.addSub(InputData.parameterInputFactory('correlate', InputData.StringListType))
+    inputSpecification.addSub(InputData.parameterInputFactory("ZeroFilter", InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("Pmax", InputData.IntegerType))
     inputSpecification.addSub(InputData.parameterInputFactory("Pmin", InputData.IntegerType))
     inputSpecification.addSub(InputData.parameterInputFactory("Qmax", InputData.IntegerType))
