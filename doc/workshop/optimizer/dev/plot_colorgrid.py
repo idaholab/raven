@@ -17,6 +17,6 @@ X,Y = np.meshgrid(angles,vels)
 Z = np.zeros((samps,samps))
 for i in range(samps):
   for j in range(samps):
-    Z[i,j] = f.prange(vels[j],angles[i])
+    Z[i,j] = f.prange(Y[i,j],X[i,j]*np.pi/180.)
 
 pk.dump((X,Y,Z),file('response.pk','w'))
