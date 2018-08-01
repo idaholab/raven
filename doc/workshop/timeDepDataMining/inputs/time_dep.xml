@@ -2,14 +2,9 @@
 <Simulation verbosity="debug">
   <RunInfo>
     <WorkingDir>basicStatisticsTimeDependent</WorkingDir>
-    <Sequence>FirstMRun,timeDepBasicStatPP,readStats</Sequence>
+    <Sequence>FirstMRun,timeDepBasicStatPP</Sequence>
     <batchSize>100</batchSize>
   </RunInfo>
-
-  <Files>
-    <Input name="output_TD_BS.csv" type=""  >output_TD_BS1.csv</Input>
-    <Input name="output_TD_BS.xml" type=""  >output_TD_BS1.xml</Input>
-  </Files>
 
   <Models>
     <ExternalModel ModuleToLoad="lorentzAttractor" name="PythonModule" subType="">
@@ -17,17 +12,8 @@
     </ExternalModel>
     <PostProcessor name="timeDepBasicStat" subType="BasicStatistics">
       <pivotParameter>time</pivotParameter>
-      <expectedValue>x,y,z</expectedValue>
-      <percentile_5>x,y,z</percentile_5>
-      <percentile_95>x,y,z</percentile_95>
-    </PostProcessor>
-    <PostProcessor name="readStats" subType="RavenOutput">
-      <dynamic>true</dynamic>
-      <File ID="0" name="output_TD_BS.xml">
-        <output name="mean"          >x | expectedValue </output>
-        <output name="percentile_5"  >x | percentile_5 </output>
-        <output name="percentile_95" >x | percentile_95 </output>
-      </File>
+      <expectedValue prefix="mean" >x,y,z</expectedValue>
+      <percentile prefix="percentile">x,y,z</percentile>
     </PostProcessor>
   </Models>
   
@@ -66,15 +52,7 @@
     <PostProcess name="timeDepBasicStatPP">
       <Input    class="DataObjects"   type="HistorySet"      >HistorySet</Input>
       <Model    class="Models"        type="PostProcessor"   >timeDepBasicStat</Model>
-      <Output   class="Files"         type=""                >output_TD_BS.csv</Output>
-      <Output   class="Files"         type=""                >output_TD_BS.xml</Output>
-      <Output   class="DataObjects"   type="HistorySet"      >HistorySet</Output>
-    </PostProcess>
-    <PostProcess name="readStats">
-      <Input    class="Files"         type=""                >output_TD_BS.xml</Input>
-      <Input    class="DataObjects"   type="HistorySet"      >HistorySet</Input>
-      <Model    class="Models"        type="PostProcessor"   >readStats</Model>
-      <Output   class="DataObjects"   type="PointSet"        >stats</Output>
+      <Output   class="DataObjects"   type="HistorySet"      >basicStatHistory</Output>
       <Output   class="OutStreams"    type="Plot"            >Plotdata</Output>
       <Output   class="OutStreams"    type="Plot"            >PlotRawdata</Output>
     </PostProcess>
@@ -89,20 +67,20 @@
       <plotSettings>
         <plot>
           <type>scatter</type>
-          <x>stats|Input|time</x>
-          <y>stats|Output|percentile_5</y>
+          <x>basicStatHistory|Output|time</x>
+          <y>basicStatHistory|Output|percentile_5_x</y>
           <marker>.</marker>
         </plot>
         <plot>
           <type>scatter</type>
-          <x>stats|Input|time</x>
-          <y>stats|Output|percentile_95</y>
+          <x>basicStatHistory|Output|time</x>
+          <y>basicStatHistory|Output|percentile_95_x</y>
           <marker>.</marker>
         </plot>
         <plot>
           <type>scatter</type>
-          <x>stats|Input|time</x>
-          <y>stats|Output|mean</y>
+          <x>basicStatHistory|Output|time</x>
+          <y>basicStatHistory|Output|mean_x</y>
           <marker>.</marker>
         </plot>
         <xlabel>time</xlabel>
@@ -141,13 +119,22 @@
       <Input>x0,y0,z0</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
-    <PointSet name="stats">
-      <Input>time</Input>
-      <Output>mean,percentile_5,percentile_95</Output>
-    </PointSet>
     <HistorySet name="HistorySet">
       <Input>x0,y0,z0</Input>
       <Output>time,x,y,z</Output>
+      <options>
+          <pivotParameter>time</pivotParameter>
+      </options>
+    </HistorySet>
+    <HistorySet name="basicStatHistory">
+      <Output>
+        mean_x,mean_y,mean_z,
+        percentile_5_x,percentile_5_y,percentile_5_z,
+        percentile_95_x,percentile_95_y,percentile_95_z
+      </Output>
+      <options>
+          <pivotParameter>time</pivotParameter>
+      </options>
     </HistorySet>
   </DataObjects>
 
