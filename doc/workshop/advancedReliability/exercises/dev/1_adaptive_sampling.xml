@@ -8,9 +8,12 @@
 
   <Steps>
     <MultiRun name="adaptive_sampling">
-      <!--  add the input here -->
+      <Sampler class="Samplers" type="LimitSurfaceSearch">adaptiveSearch</Sampler>
       <SolutionExport class="DataObjects" type="PointSet">limitSurface</SolutionExport>
- 
+      <Input   class="DataObjects" type="PointSet"     >placeholder</Input>
+      <Model   class="Models"      type="ExternalModel">projectile</Model>
+      <Output  class="DataObjects" type="PointSet"     >results</Output>
+      <Output class="OutStreams"  type="Print"   >to_file</Output>
     </MultiRun>
     <IOStep name="plot" pauseAtEnd="True">
       <Input  class="DataObjects" type="PointSet">results</Input>

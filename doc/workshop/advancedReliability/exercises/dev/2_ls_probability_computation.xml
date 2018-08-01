@@ -2,25 +2,32 @@
 <Simulation>
   <RunInfo>
     <WorkingDir>.</WorkingDir>
-    <Sequence>adaptive_sampling,plot</Sequence>
+    <Sequence>load_ls,integral,plot</Sequence>
     <batchSize>10</batchSize>
   </RunInfo>
 
   <Steps>
-    <MultiRun name="adaptive_sampling">
-      <!--  add the input here -->
-      <SolutionExport class="DataObjects" type="PointSet">limitSurface</SolutionExport>
- 
-    </MultiRun>
-    <IOStep name="plot" pauseAtEnd="True">
-      <Input  class="DataObjects" type="PointSet">results</Input>
+    <IOStep name="load_ls" >
+      <Input  class="Files" type="">limitSurfaceFile</Input>
+      <Output  class="DataObjects" type="PointSet">limitSurface</Output>
+    </IOStep>
+    <PostProcess name="integral" >
       <Input  class="DataObjects" type="PointSet">limitSurface</Input>
-      <Output class="OutStreams"  type="Print"   >to_file</Output>
-      <Output class="OutStreams"  type="Print"   >ls_to_file</Output>
-      <Output class="OutStreams"  type="Plot"    >to_plot</Output>
+      <Model   class="Models"     type="PostProcessor">LS_Integral</Model>
+      <Output class="DataObjects" type="PointSet">probability_failure</Output>
+    </PostProcess>
+    <IOStep name="plot" pauseAtEnd="True">
+      <Input  class="DataObjects" type="PointSet">limitSurface</Input>
+      <Input class="DataObjects" type="PointSet">probability_failure</Input>
+      <Output class="OutStreams"  type="Print">probability_failure</Output>
+      <Output class="OutStreams"  type="Plot">to_plot</Output>
     </IOStep>
   </Steps>
-
+  
+  <Files>
+    <Input name="limitSurfaceFile" type="">ls_to_file.csv</Input>
+  </Files>
+  
   <Functions>
     <External file="adaptive_test_goal" name="decision">
       <variable>r</variable>
@@ -40,24 +47,20 @@
       <tol>1e-5</tol>
       <C>50</C>
     </ROM>
+    <PostProcessor name="LS_Integral" subType="LimitSurfaceIntegral">
+        <outputName>EventProbability</outputName>
+        <tolerance>0.05</tolerance>
+        <seed> 02201986 </seed>
+        <integralType>MonteCarlo</integralType>
+        <target>decision</target>
+        <variable name="v0">
+            <distribution> vel_dist </distribution>
+        </variable>
+        <variable name="angle">
+            <distribution> angle_dist </distribution>
+        </variable>
+    </PostProcessor>
   </Models>
-
-  <Samplers>
-    <LimitSurfaceSearch name="adaptiveSearch">
-      <ROM class="Models" type="ROM">acceleration_ROM</ROM>
-      <Function class="Functions" type="External">decision</Function>
-      <TargetEvaluation class="DataObjects" type="PointSet">results</TargetEvaluation>
-      <Convergence forceIteration="False" limit="3000" persistence="20" weight="CDF">5e-4</Convergence>
-      <variable name="v0">
-          <distribution>vel_dist</distribution>
-      </variable>
-      <variable name="angle">
-          <distribution>angle_dist</distribution>
-      </variable>
-      <constant name="x0">0</constant>
-      <constant name="y0">0</constant>
-    </LimitSurfaceSearch>
-  </Samplers>
 
   <Distributions>
     <Normal name="vel_dist">
@@ -76,24 +79,20 @@
     <PointSet name="placeholder">
       <Input>v0,angle</Input>
     </PointSet>
-    <PointSet name="results">
-      <Input>v0,angle</Input>
-      <Output>r,t</Output>
-    </PointSet>
     <PointSet name="limitSurface">
         <Input>v0,angle</Input>
         <Output>decision</Output>
     </PointSet>
+    <PointSet name="probability_failure">
+        <Input>v0,angle</Input>
+        <Output>decision,EventProbability</Output>
+    </PointSet>
   </DataObjects>
 
   <OutStreams>
-    <Print name="to_file">
-      <type>csv</type>
-      <source>results</source>
-    </Print>
-    <Print name="ls_to_file">
+    <Print name="probability_failure">
         <type>csv</type>
-        <source>limitSurface</source>
+        <source>probability_failure</source>
     </Print>
     <Plot  name="to_plot">
       <plotSettings>

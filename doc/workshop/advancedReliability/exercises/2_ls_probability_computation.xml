@@ -12,9 +12,7 @@
       <Output  class="DataObjects" type="PointSet">limitSurface</Output>
     </IOStep>
     <PostProcess name="integral" >
-      <Input  class="DataObjects" type="PointSet">limitSurface</Input>
-      <Model   class="Models"     type="PostProcessor">LS_Integral</Model>
-      <Output class="DataObjects" type="PointSet">probability_failure</Output>
+      <!--  add the input here -->
     </PostProcess>
     <IOStep name="plot" pauseAtEnd="True">
       <Input  class="DataObjects" type="PointSet">limitSurface</Input>
