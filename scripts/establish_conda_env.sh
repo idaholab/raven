@@ -74,6 +74,11 @@ function install_libraries()
   local COMMAND=`echo $(python ${RAVEN_UTILS} --conda-install ${INSTALL_OPTIONAL} ${OSOPTION})`
   echo ... conda command: ${COMMAND}
   ${COMMAND}
+  # conda-forge
+  if [[ $ECE_VERBOSE == 0 ]]; then echo ... Installing libraries from conda-forge ...; fi
+  local COMMAND=`echo $(python ${RAVEN_UTILS} --conda-forge --conda-install ${OSOPTION})`
+  if [[ $ECE_VERBOSE == 0 ]]; then echo ... conda-forge command: ${COMMAND}; fi
+  ${COMMAND}
 }
 
 function create_libraries()
@@ -81,6 +86,11 @@ function create_libraries()
   if [[ $ECE_VERBOSE == 0 ]]; then echo ... Installing libraries ...; fi
   local COMMAND=`echo $(python ${RAVEN_UTILS} --conda-create ${INSTALL_OPTIONAL} ${OSOPTION})`
   if [[ $ECE_VERBOSE == 0 ]]; then echo ... conda command: ${COMMAND}; fi
+  ${COMMAND}
+  # conda-forge
+  if [[ $ECE_VERBOSE == 0 ]]; then echo ... Installing libraries from conda-forge ...; fi
+  local COMMAND=`echo $(python ${RAVEN_UTILS} --conda-forge --conda-install ${OSOPTION})`
+  if [[ $ECE_VERBOSE == 0 ]]; then echo ... conda-forge command: ${COMMAND}; fi
   ${COMMAND}
 }
 
