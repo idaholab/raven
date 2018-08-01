@@ -1,0 +1,110 @@
+<?xml version="1.0" ?>
+<Simulation>
+  <RunInfo>
+    <WorkingDir>.</WorkingDir>
+    <Sequence>load_ls,integral,plot</Sequence>
+    <batchSize>10</batchSize>
+  </RunInfo>
+
+  <Steps>
+    <IOStep name="load_ls" >
+      <Input  class="Files" type="">limitSurfaceFile</Input>
+      <Output  class="DataObjects" type="PointSet">limitSurface</Output>
+    </IOStep>
+    <PostProcess name="integral" >
+      <!--  add the input here -->
+    </PostProcess>
+    <IOStep name="plot" pauseAtEnd="True">
+      <Input  class="DataObjects" type="PointSet">limitSurface</Input>
+      <Input class="DataObjects" type="PointSet">probability_failure</Input>
+      <Output class="OutStreams"  type="Print">probability_failure</Output>
+      <Output class="OutStreams"  type="Plot">to_plot</Output>
+    </IOStep>
+  </Steps>
+  
+  <Files>
+    <Input name="limitSurfaceFile" type="">ls_to_file.csv</Input>
+  </Files>
+  
+  <Functions>
+    <External file="adaptive_test_goal" name="decision">
+      <variable>r</variable>
+    </External>
+  </Functions>
+
+  <Models>
+    <ExternalModel ModuleToLoad="projectile_model/projectile.py" name="projectile" subType="">
+      <variables>v0,angle,r,t</variables>
+    </ExternalModel>
+    <ROM name="acceleration_ROM" subType="SciKitLearn">
+      <Features>v0,angle</Features>
+      <Target>decision</Target>
+      <SKLtype>svm|SVC</SKLtype>
+      <kernel>rbf</kernel>
+      <gamma>10</gamma>
+      <tol>1e-5</tol>
+      <C>50</C>
+    </ROM>
+    <PostProcessor name="LS_Integral" subType="LimitSurfaceIntegral">
+        <outputName>EventProbability</outputName>
+        <tolerance>0.05</tolerance>
+        <seed> 02201986 </seed>
+        <integralType>MonteCarlo</integralType>
+        <target>decision</target>
+        <variable name="v0">
+            <distribution> vel_dist </distribution>
+        </variable>
+        <variable name="angle">
+            <distribution> angle_dist </distribution>
+        </variable>
+    </PostProcessor>
+  </Models>
+
+  <Distributions>
+    <Normal name="vel_dist">
+      <mean>30</mean>
+      <sigma>5</sigma>
+      <lowerBound>1</lowerBound>
+      <upperBound>60</upperBound>
+    </Normal>
+    <Uniform name="angle_dist">
+      <lowerBound>5</lowerBound>
+      <upperBound>85</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <DataObjects>
+    <PointSet name="placeholder">
+      <Input>v0,angle</Input>
+    </PointSet>
+    <PointSet name="limitSurface">
+        <Input>v0,angle</Input>
+        <Output>decision</Output>
+    </PointSet>
+    <PointSet name="probability_failure">
+        <Input>v0,angle</Input>
+        <Output>decision,EventProbability</Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="probability_failure">
+        <type>csv</type>
+        <source>probability_failure</source>
+    </Print>
+    <Plot  name="to_plot">
+      <plotSettings>
+        <plot>
+          <type>scatter</type>
+          <x>limitSurface|Input|v0</x>
+          <y>limitSurface|Input|angle</y>
+          <colorMap>limitSurface|Output|decision</colorMap>
+        </plot>
+        <xlabel>v0</xlabel>
+        <ylabel>angle</ylabel>
+      </plotSettings>
+      <actions><how>png,screen</how></actions>
+    </Plot>
+  </OutStreams>
+
+</Simulation>

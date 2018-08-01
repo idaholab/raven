@@ -38,7 +38,7 @@
   <Samplers>
     <MonteCarlo name="my_mc">
       <samplerInit>
-        <limit>1000</limit>
+        <limit>10</limit>
         <initialSeed>42</initialSeed>
       </samplerInit>
       <variable name="v0">
