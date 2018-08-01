@@ -132,7 +132,7 @@ if __name__=="__main__":
   outFile.writelines(header.strip()+'\n')
   inpstr = ' '.join("{:8.4f}".format(i) for i in (io.x0,io.y0,io.v0,io.ang))
   for i in range(len(io.t)):
-    outFile.writelines( (inpstr+  ' '.join("{:8.4f}".format(i) for i in (io.r[i],io.x[i],io.y[i],io.t[i]))).strip() +"\n")
+    outFile.writelines( (inpstr+" " +  ' '.join("{:8.4f}".format(i) for i in (io.r[i],io.x[i],io.y[i],io.t[i]))).strip() +"\n")
   outFile.writelines('-'*(8*8+4)+'\n')
   outFile.writelines('SUCCESS'+'\n')
   outFile.close()

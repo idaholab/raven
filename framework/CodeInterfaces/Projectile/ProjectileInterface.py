@@ -83,18 +83,8 @@ class Projectile(CodeInterfaceBase):
       raise Exception('Projectile INTERFACE ERROR -> Only one input file is accepted!')
     # get the dictionary containing the perturbed variables (contained in the "SampledVars")
     varDict = Kwargs['SampledVars']
-    # read the original input file lines (read mode "r")
-    with open(currentInputFiles[0].getAbsFile(), 'r') as src:
-      inputLines= src.readlines()
-    # construct a list of variables out of the input lies (to check if the input variables are the consistent with the one in the original model)
-    originalKeys = [x.split("=")[0] for x in inputLines if x.strip() != ""]
-    # check if the perturbed variables are consistent with the original model input
-    #if set(originalKeys) != set(varDict.keys()):
-    #  raise Exception('Projectile INTERFACE ERROR -> Variables contained in the original input files are different with respect to the ones perturbed!')
-    # we are ready to write the new input file (open in write mode "w")
-    with open(currentInputFiles[0].getAbsFile(), 'w') as src:
-      for var, value in varDict.items():
-        src.writelines(var+ " = "+ str(value)+"\n")
+    # continue on your own
+    
     return currentInputFiles
 
   def finalizeCodeOutput(self, command, output, workingDir):
@@ -110,17 +100,5 @@ class Projectile(CodeInterfaceBase):
     # open output file
     outfileName = os.path.join(workingDir,output+".txt" )
     with open(outfileName, 'r') as src:
-      headers = [x.strip() for x in  src.readline().split() ]
-      data = []
-      line = ""
-      # starts reading
-      while not line.strip().startswith("--"):
-        line = src.readline()
-        if not line.strip().startswith("--"):
-          data.append(",".join( line.split())+"\n")
-      # write the output file
-      with open(os.path.join(workingDir,output+".csv" ),"w") as outputFile:
-        outputFile.writelines(",".join( headers ) +"\n")
-        for i in range(len(data)):
-          outputFile.writelines(data[i])
+      # continue on your own
 
