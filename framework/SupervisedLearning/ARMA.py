@@ -64,7 +64,6 @@ class ARMA(supervisedLearning):
     self.trainingData      = {} # holds normalized ('norm') and original ('raw') training data, by target
     self.cdfParams         = {} # dictionary of fitted CDF parameters, by target
     self.fourierResults    = {} # dictionary of Fourier results, by target
-    self.fourierSecondRes  = {} # dictionary of Fourier results, second pass, by target
     self.armaResult        = {} # dictionary of assorted useful arma information, by target
     self.correlations      = [] # list of correlated variables
     self.Pmax              = kwargs.get('Pmax', 3) # bounds for autoregressive lag
@@ -227,22 +226,11 @@ class ARMA(supervisedLearning):
         self.fourierResults[target] = self._trainFourier(self.pivotParameterValues,
                                                          self.fourierPara['basePeriod'],
                                                          self.fourierPara['FourierOrder'],
-                                                         timeSeriesData)
+                                                         timeSeriesData,
+                                                         zeroFilter = target == self.zeroFilterTarget)
         debugfile.writelines('{}_fourier,'.format(target)+','.join(str(d) for d in self.fourierResults[target]['predict'])+'\n')
         timeSeriesData -= self.fourierResults[target]['predict']
         debugfile.writelines('{}_nofourier,'.format(target)+','.join(str(d) for d in timeSeriesData)+'\n')
-        ## SECOND PASS FOURIER FILTER HACK
-        ## -> take a second stab at the data with some arbitrary Fourier frequencies to get out the remaining signal
-        bases = [24*60*60]
-        orders = dict((b,1) for b in bases)
-        self.fourierSecondRes[target] = self._trainFourier(self.pivotParameterValues,
-                                                           bases, # base periods, 8 hours
-                                                           orders, #frequency multiples
-                                                           timeSeriesData)
-        debugfile.writelines('{}_fourier2,'.format(target)+','.join(str(d) for d in self.fourierSecondRes[target]['predict'])+'\n')
-        timeSeriesData -= self.fourierSecondRes[target]['predict']
-        debugfile.writelines('{}_nofourier2,'.format(target)+','.join(str(d) for d in timeSeriesData)+'\n')
-        ## END SECOND PASS FOURIER FILTER HACK
       # SOLAR HACK
       ## find the mask for the requested target where values are nonzero
       if target == self.zeroFilterTarget:
@@ -672,42 +660,59 @@ class ARMA(supervisedLearning):
               #'cdfSearch':neighbors.NearestNeighbors(n_neighbors=2).fit([[c] for c in cdf])}
     return params
 
-  def _trainFourier(self, pivotValues, basePeriod, order, values):
+  def _trainFourier(self, pivotValues, basePeriod, order, values, zeroFilter=False):
     """
       Perform fitting of Fourier series on self.timeSeriesDatabase
       @ In, pivotValues, np.array, list of values for the independent variable (e.g. time)
       @ In, basePeriod, list, list of the base periods
       @ In, order, dict, Fourier orders to extract for each base period
       @ In, values, np.array, list of values for the dependent variable (signal to take fourier from)
+      @ In, zeroFilter, bool, optional, if True then apply zero-filtering for fourier fitting
       @ Out, fourierResult, dict, results of this training in keys 'residues', 'fOrder', 'predict'
     """
-    fourierSeriesAll = self._generateFourierSignal(pivotValues,
+    fourierSeriesOriginal = self._generateFourierSignal(pivotValues,
                                                    basePeriod,
                                                    order)
     fourierEngine = linear_model.LinearRegression()
 
+    # if using zero-filter, cut the parts of the Fourier and values that correspond to the zero-value portions
+    if zeroFilter:
+      values = values[self.zeroFilterMask]
+      fourierSeriesAll = dict((period,vals[self.zeroFilterMask]) for period,vals in fourierSeriesOriginal.items())
+    else:
+      fourierSeriesAll = fourierSeriesOriginal
+
     # get the combinations of fourier signal orders to consider
-    temp = {}
     temp = [range(1,order[bp]+1) for bp in order]
     fourOrders = list(itertools.product(*temp)) # generate the set of combinations of the Fourier order
 
     criterionBest = np.inf
     fSeriesBest = []
-    fourierResult={}
-    fourierResult['residues'] = 0
-    fourierResult['fOrder'] = []
+    fourierResult={'residues': 0,
+                   'fOrder': []}
 
+    # for all combinations of Fourier periods and orders ...
     for fOrder in fourOrders:
-      fSeries = np.zeros(shape=(pivotValues.size,2*sum(fOrder)))
+      # generate container for Fourier series evaluation
+      fSeries = np.zeros(shape=(values.size,2*sum(fOrder)))
+      # running indices for orders and sine/cosine coefficients
       indexTemp = 0
-      for index,bp in enumerate(order.keys()):
+      # for each base period requested ...
+      for index,bp in enumerate(order):
+        # store the series values for the given periods
         fSeries[:,indexTemp:indexTemp+fOrder[index]*2] = fourierSeriesAll[bp][:,0:fOrder[index]*2]
+        # update the running index
         indexTemp += fOrder[index]*2
+      # find the correct magnitudes to best fit the data
+      ## note in the zero-filter case, this is fitting the truncated data
       fourierEngine.fit(fSeries,values)
+      # determine the (normalized) error associated with this best fit
       r = (fourierEngine.predict(fSeries)-values)**2
       if r.size > 1:
         r = sum(r)
-      r = r/pivotValues.size
+      # TODO any reason to scale this error? values.size should be the same for every order, so all scales same
+      r = r/values.size
+      # TODO is anything gained by the copy and deepcopy for r?
       criterionCurrent = copy.copy(r)
       if  criterionCurrent< criterionBest:
         fourierResult['fOrder'] = copy.deepcopy(fOrder)
@@ -715,8 +720,19 @@ class ARMA(supervisedLearning):
         fourierResult['residues'] = copy.deepcopy(r)
         criterionBest = copy.deepcopy(criterionCurrent)
 
+    # retrain the best-fitting set of orders
     fourierEngine.fit(fSeriesBest,values)
-    fourierResult['predict'] = np.asarray(fourierEngine.predict(fSeriesBest))
+    print('DEBUGG params:',fourierEngine.get_params())
+    print('DEBUGG coef:',fourierEngine.coef_)
+    # produce the best-fitting signal
+    fourierSignal = np.asarray(fourierEngine.predict(fSeriesBest))
+    # if zero-filtered, put zeroes back into the Fourier series
+    if zeroFilter:
+      signal = np.zeros(pivotValues.size)
+      signal[self.zeroFilterMask] = fourierSignal
+    else:
+      signal = fourierSignal
+    fourierResult['predict'] = signal
     return fourierResult
 
   def _trainMultivariateNormal(self,dim,means,cov):
