@@ -2975,10 +2975,29 @@ below).
   \default{3}
   \item \xmlNode{Qmin}, \xmlDesc{integer, optional field}, defines the minimum value of $q$.
   \default{0}
-  \item \xmlNode{Fourier}, \xmlDesc{integers, optional field}, must be positive integers. This defines the based period (with unit of second) that would be used for Fourier detrending, i.e., this field defines $1/f_m$ in the above equation. When this filed is not specified, the ARMA considers no Fourier detrend.
-  \item \xmlNode{FourierOrder}, \xmlDesc{integers, optional field}, must be positive integers. The number of integers specified in this field should be exactly same as the number of base periods specified in the node \xmlNode{Fourier}. This field defines $K_m$ in the above equation.
   \item \xmlNode{outTruncation}, \xmlDesc{string, optional field}, defines whether and how the output time series is truncated. Currently available options are: positive, negative.
   \default{None}
+  \item \xmlNode{Fourier}, \xmlDesc{integers, optional field}, must be positive integers. This defines the
+    based period that will be used for Fourier detrending, i.e., this field defines $1/f_m$ in the above equation.
+    When this filed is not specified, the ARMA considers no Fourier detrend.
+  \item \xmlNode{FourierOrder}, \xmlDesc{integers, optional field}, must be positive integers. The number of integers specified
+    in this field should be exactly same as the number of base periods specified in the node \xmlNode{Fourier}.
+    This field defines $K_m$ in the above equation.
+  \item \xmlNode{SpecificFourier}, \xmlDesc{node, optional}, provides a means to specify different Fourier
+    decomposition for different target variables.  Values given in the subnodes of this node will supercede
+    the defaults set by the  \xmlNode{Fourier} and \xmlNode{FourierOrder} nodes.  This node accepts the
+    requires the following attribute:
+    \begin{itemize}
+      \item \xmlAttr{variables}, \xmlDesc{comma-separated list, required field}, lists the variables to whom
+        the \xmlNode{SpecificFourier} parameters will apply.
+    \end{itemize}
+    Additionally, the \xmlNode{SpecificFourier} node takes the following subnodes:
+    \begin{itemize}
+      \item \xmlNode{periods}, \xmlDesc{comma-separated list, required field}, lists the (fundamental)
+        periodic wavelength of the Fourier decomposition for these variables, as in the \xmlNode{Fourier} general node.
+      \item \xmlNode{orders}, \xmlDesc{comma-separated list, required field}, lists the highest integer
+        subdivision desired for each period requested in \xmlNode{periods}, as \xmlNode{FourierOrder} above.
+    \end{itemize}
 \end{itemize}
 
 \textbf{Example:}
