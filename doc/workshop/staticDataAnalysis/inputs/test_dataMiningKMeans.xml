@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<Simulation>
+<Simulation verbosity="debug">
   <RunInfo>
     <WorkingDir>KMeans</WorkingDir>
     <Sequence>read_in_csv1,pp1</Sequence>

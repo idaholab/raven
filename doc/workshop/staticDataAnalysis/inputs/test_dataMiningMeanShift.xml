@@ -1,10 +1,9 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <RunInfo>
-    <internalParallel>true</internalParallel>
     <WorkingDir>MeanShift</WorkingDir>
-    <Sequence>readIn,MeanShiftBlobs,MeanShiftCircles,MeanShiftMoons,output</Sequence>
-    <batchSize>2</batchSize>
+    <Sequence>readIn</Sequence>
+    <batchSize>1</batchSize>
   </RunInfo>
 
   <Files>
@@ -12,158 +11,23 @@
   </Files>
 
   <Models>
-    <PostProcessor name="MeanShiftBlobs" subType="DataMining" verbosity="quiet">
+    <PostProcessor name="MeanShift" subType="DataMining" verbosity="quiet">
       <KDD lib="SciKitLearn">
         <Features>x1,x2</Features>
         <SKLtype>cluster|MeanShift</SKLtype>
         <bin_seeding>True</bin_seeding>
-      </KDD>
-      <!-- <DataObject class="DataObjects" type="PointSet">DataSets</DataObject> -->
-    </PostProcessor>
-    <PostProcessor name="MeanShiftCircles" subType="DataMining" verbosity="quiet">
-      <KDD lib="SciKitLearn">
-        <Features>y1,y2</Features>
-        <SKLtype>cluster|MeanShift</SKLtype>
-        <bin_seeding>True</bin_seeding>
-      </KDD>
-    </PostProcessor>
-    <PostProcessor name="MeanShiftMoons" subType="DataMining" verbosity="quiet">
-      <KDD lib="SciKitLearn">
-        <Features>z1,z2</Features>
-        <SKLtype>cluster|MeanShift</SKLtype>
-        <bin_seeding>True</bin_seeding>
+        <bandwidth></bandwidth>
       </KDD>
     </PostProcessor>
   </Models>
 
   <Steps>
     <IOStep name="readIn" pauseAtEnd="True">
-      <Input class="Files" type="">DataSetsFile</Input>
-      <Output class="DataObjects" type="PointSet">DataSets</Output>
+      <Input  class="Files"       type=""         >DataSetsFile</Input>
+      <Output class="DataObjects" type="PointSet" >DataSets</Output>
     </IOStep>
-    <IOStep name="output" pauseAtEnd="True">
-      <Input class="DataObjects" type="PointSet">DataSets</Input>
-      <Output class="OutStreams" type="Plot">PlotMeanShift</Output>
-      <Input class="DataObjects" type="PointSet">DataSets</Input>
-      <Output class="OutStreams" type="Plot">PlotMeanShiftBlobs</Output>
-    </IOStep>
-    <PostProcess name="MeanShiftBlobs" pauseAtEnd="True">
-      <Input class="DataObjects" type="PointSet">DataSets</Input>
-      <Model class="Models" type="PostProcessor">MeanShiftBlobs</Model>
-      <Output class="DataObjects" type="PointSet">DataSets</Output>
-      <Output class="OutStreams" type="Print">dummy</Output>
-    </PostProcess>
-    <PostProcess name="MeanShiftCircles" pauseAtEnd="True">
-      <Input class="DataObjects" type="PointSet">DataSets</Input>
-      <Model class="Models" type="PostProcessor">MeanShiftCircles</Model>
-      <Output class="DataObjects" type="PointSet">DataSets</Output>
-      <Output class="OutStreams" type="Print">dummy</Output>
-    </PostProcess>
-    <PostProcess name="MeanShiftMoons" pauseAtEnd="True">
-      <Input class="DataObjects" type="PointSet">DataSets</Input>
-      <Model class="Models" type="PostProcessor">MeanShiftMoons</Model>
-      <Output class="DataObjects" type="PointSet">DataSets</Output>
-      <Output class="OutStreams" type="Print">dummy</Output>
-    </PostProcess>
   </Steps>
 
-  <OutStreams>
-    <Print name="dummy">
-      <type>csv</type>
-      <source>DataSets</source>
-    </Print>
-    <Plot  name="PlotMeanShift" overwrite="false">
-      <plotSettings>
-        <gridSpace>3 1</gridSpace>
-        <plot>
-          <type>dataMining</type>
-          <SKLtype>cluster</SKLtype>
-          <x>DataSets|input|x1</x>
-          <y>DataSets|input|x2</y>
-          <clusterLabels>DataSets|Output|MeanShiftBlobsLabels</clusterLabels>
-          <gridLocation>
-            <x>0</x>
-            <y>0</y>
-          </gridLocation>
-          <range>
-            <xmin>-2</xmin>
-            <xmax>2</xmax>
-            <ymin>-2</ymin>
-            <ymax>2</ymax>
-          </range>
-          <kwargs>
-            <edgecolor>None</edgecolor>
-          </kwargs>
-        </plot>
-        <plot>
-          <type>dataMining</type>
-          <SKLtype>cluster</SKLtype>
-          <x>DataSets|input|y1</x>
-          <y>DataSets|input|y2</y>
-          <clusterLabels>DataSets|Output|MeanShiftCirclesLabels</clusterLabels>
-          <gridLocation>
-            <x>1</x>
-            <y>0</y>
-          </gridLocation>
-          <range>
-            <xmin>-4</xmin>
-            <xmax>4</xmax>
-            <ymin>-4</ymin>
-            <ymax>4</ymax>
-          </range>
-          <kwargs>
-            <edgecolor>None</edgecolor>
-          </kwargs>
-        </plot>
-        <plot>
-          <type>dataMining</type>
-          <SKLtype>cluster</SKLtype>
-          <x>DataSets|input|z1</x>
-          <y>DataSets|input|z2</y>
-          <clusterLabels>DataSets|Output|MeanShiftMoonsLabels</clusterLabels>
-          <gridLocation>
-            <x>2</x>
-            <y>0</y>
-          </gridLocation>
-          <range>
-            <xmin>-4</xmin>
-            <xmax>4</xmax>
-            <ymin>-4</ymin>
-            <ymax>4</ymax>
-          </range>
-          <kwargs>
-            <edgecolor>None</edgecolor>
-          </kwargs>
-        </plot>
-      </plotSettings>
-      <actions>
-        <how>png</how>
-      </actions>
-    </Plot>
-    <Plot  name="PlotMeanShiftBlobs" overwrite="false">
-      <plotSettings>
-        <plot>
-          <type>dataMining</type>
-          <SKLtype>cluster</SKLtype>
-          <x>DataSets|input|x1</x>
-          <y>DataSets|input|x2</y>
-          <clusterLabels>DataSets|Output|MeanShiftBlobsLabels</clusterLabels>
-          <range>
-            <xmin>-2</xmin>
-            <xmax>2</xmax>
-            <ymin>-2</ymin>
-            <ymax>2</ymax>
-          </range>
-          <kwargs>
-            <edgecolor>None</edgecolor>
-          </kwargs>
-        </plot>
-      </plotSettings>
-      <actions>
-        <how>png</how>
-      </actions>
-    </Plot>
-  </OutStreams>
 
   <DataObjects>
     <PointSet name="DataSets">
