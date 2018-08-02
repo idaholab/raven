@@ -16,15 +16,15 @@
         <Features>x1,x2</Features>
         <SKLtype>cluster|MeanShift</SKLtype>
         <bin_seeding>True</bin_seeding>
-        <bandwidth></bandwidth>
       </KDD>
     </PostProcessor>
   </Models>
 
   <Steps>
     <IOStep name="readIn" pauseAtEnd="True">
-      <Input  class="Files"       type=""         >DataSetsFile</Input>
-      <Output class="DataObjects" type="PointSet" >DataSets</Output>
+      <Input    class="Files"         type=""           >DataSetsFile</Input>
+      <Output   class="DataObjects"   type="PointSet"   >DataSets</Output>
+      <Output   class="OutStreams"    type="Plot"       >PlotAll</Output>
     </IOStep>
   </Steps>
 
