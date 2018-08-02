@@ -130,8 +130,8 @@ class PairwiseMetric(Metric):
       @ In, axis, integer, 0 or 1, axis along which a metric is performed, default is 0,
         i.e. the metric will performed along the first dimension (the "rows"). If axis = 1,
         then x = x.T, y = y.T
-      @ In, weights, unused
-      @ In, kwargs, dictionary of parameters characteristic of each metric
+      @ In, weights, array_like (numpy.ndarray or list), optional, unused in this method
+      @ In, kwargs, dict, dictionary of parameters characteristic of each metric
       @ Out, value, 2D numpy.ndarray, metric result, shape (numRowsInX, numRowsInY) if y is not
         None, otherwise shape (numRowsInX, numRowsInX)
     """

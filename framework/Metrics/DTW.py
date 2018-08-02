@@ -90,7 +90,7 @@ class DTW(Metric):
       @ In, y, numpy.ndarray, array containing data of y, if 1D array is provided,
         the array will be reshaped via y.reshape(-1,1), shape (n_samples, ), if 2D
         array is provided, shape (n_samples, n_time_steps)
-      @ In, weights, array_like (numpy.array or list), optional weights associated
+      @ In, weights, array_like (numpy.array or list), optional, weights associated
         with input, shape (n_samples) if axis = 0, otherwise shape (n_time_steps)
       @ In, axis, integer, optional, axis along which a metric is performed, default is 0,
         i.e. the metric will performed along the first dimension (the "rows").

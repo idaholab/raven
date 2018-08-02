@@ -117,11 +117,11 @@ class SKL(Metric):
         array is provided, shape (n_samples, n_outputs)
       @ In, weights, array_like (numpy.array or list), optional, weights associated
         with input, shape (n_samples) if axis = 0, otherwise shape (n_outputs)
-      @ In, axis, integer, axis along which a metric is performed, default is 0,
+      @ In, axis, integer, optional, axis along which a metric is performed, default is 0,
         i.e. the metric will performed along the first dimension (the "rows").
         If metric postprocessor is used, the first dimension is the RAVEN_sample_ID,
         and the second dimension is the pivotParameter if HistorySet is provided.
-      @ In, kwargs, dictionary of parameters characteristic of each metric
+      @ In, kwargs, dict, dictionary of parameters characteristic of each metric
       @ Out, value, numpy.ndarray, metric result, shape (n_outputs) if axis = 0, otherwise
         shape (n_samples), we assume the dimension of input numpy.ndarray is no more than 2.
     """

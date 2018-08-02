@@ -95,9 +95,9 @@ class MetricDistributor(utils.metaclass_insert(abc.ABCMeta,BaseType),MessageHand
       Method to perform the evaluation of given paired data
       @ In, pairedData, tuple, ((featureValues, probabilityWeight), (targetValues, probabilityWeight)), both
         featureValues and targetValues  have the same shape (numRealizations,  numHistorySteps)
-      @ In, weights, None or array_like, An array of weights associated with the pairedData
-      @ In, multiOutput, string, 'mean', 'max', 'min' or 'raw_values'
-      @ Out, output, numpy.array, 1D array, processed output from the estimator
+      @ In, weights, array_like (numpy.ndarray or list), optional,  An array of weights associated with the pairedData
+      @ In, multiOutput, string, optional, 'mean', 'max', 'min' or 'raw_values'
+      @ Out, output, numpy.ndarray, 1D array, processed output from the estimator
     """
     assert(type(pairedData).__name__ == 'tuple')
     # Error check for input data

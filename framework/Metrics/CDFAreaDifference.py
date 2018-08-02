@@ -55,12 +55,12 @@ class CDFAreaDifference(Metric):
   def __evaluateLocal__(self, x, y, weights = None, axis = 0, **kwargs):
     """
       This method computes difference between two points x and y based on given metric
-      @ In, x, numpy.array or instance of Distributions.Distribution, array containing data of x,
+      @ In, x,  instance of Distributions.Distribution, tuple or list, array containing data of x,
         or given distribution.
-      @ In, y, numpy.array, or instance of Distributions.Distribution, array containing data of y,
+      @ In, y, instance of Distributions.Distribution, tuple or list, array containing data of y,
         or given distribution.
-      @ In, weights, array_like (numpy.array or list), not used in this metric
-      @ In, axis, integer, default is 0, not used for this metric.
+      @ In, weights, array_like (numpy.ndarray or list), optional, not used in this metric
+      @ In, axis, integer, optional, default is 0, not used for this metric.
       @ In, kwargs,dict, dictionary of parameters characteristic of each metric
       @ Out, value, float, metric result, CDF area difference
     """
