@@ -1,0 +1,86 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <RunInfo>
+    <WorkingDir>MeanShift</WorkingDir>
+    <Sequence>readIn,pp1</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name="DataSetsFile">./DataSets.csv</Input>
+  </Files>
+
+  <Models>
+    <PostProcessor name="MeanShift" subType="DataMining" verbosity="quiet">
+      <KDD lib="SciKitLearn">
+        <Features>x1,x2</Features>
+        <SKLtype>cluster|MeanShift</SKLtype>
+        <bin_seeding>True</bin_seeding>  
+      </KDD>
+    </PostProcessor>
+  </Models>
+
+  <Steps>
+    <IOStep name="readIn" pauseAtEnd="True">
+      <Input    class="Files"         type=""           >DataSetsFile</Input>
+      <Output   class="DataObjects"   type="PointSet"   >DataSets</Output>
+      <Output   class="OutStreams"    type="Plot"       >PlotAll</Output>
+    </IOStep>
+    <PostProcess name="pp1" pauseAtEnd="True">
+      <Input    class="DataObjects"   type="PointSet"       >DataSets</Input>
+      <Model    class="Models"        type="PostProcessor"  >MeanShift</Model>
+      <Output   class="DataObjects"   type="PointSet"       >DataSetsCL</Output>
+      <Output   class="OutStreams"    type="Plot"           >PlotClustered</Output>
+      <Output   class="OutStreams"    type="Print"          >Printdata</Output>
+    </PostProcess>
+  </Steps>
+
+
+  <DataObjects>
+    <PointSet name="DataSets">
+      <Input>x1,x2,y1,y2</Input>
+      <Output>z1,z2,Output</Output>
+    </PointSet>
+    <PointSet name="DataSetsCL">
+      <Input>x1,x2,y1,y2</Input>
+      <Output>z1,z2,Output</Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="Printdata">
+      <type>csv</type>
+      <source>DataSetsCL</source>
+    </Print>
+    <Plot name="PlotAll" verbosity="debug">
+      <plotSettings>
+        <plot>
+          <type>scatter</type>
+          <x>DataSets|Input|x1</x>
+          <y>DataSets|Input|x2</y>
+        </plot>
+        <xlabel>x1</xlabel>
+        <ylabel>x2</ylabel>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+      </actions>
+    </Plot>
+    <Plot name="PlotClustered" verbosity="debug">
+      <plotSettings>
+        <plot>
+          <type>scatter</type>
+          <x>DataSetsCL|Input|x1</x>
+          <y>DataSetsCL|Input|x2</y>
+          <colorMap>DataSetsCL|Output|MeanShiftLabels</colorMap>
+        </plot>
+        <xlabel>x1</xlabel>
+        <ylabel>x2</ylabel>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+      </actions>
+    </Plot>
+  </OutStreams>
+
+</Simulation>
