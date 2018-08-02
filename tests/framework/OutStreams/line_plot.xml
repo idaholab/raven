@@ -1,11 +1,6 @@
 <?xml version="1.0" ?>
 <Simulation verbosity = 'debug'>
-  <RunInfo>
-    <WorkingDir>linePlot</WorkingDir>
-    <Sequence>generate_data,plot</Sequence>
-    <batchSize>1</batchSize>
-  </RunInfo>
-
+    
   <TestInfo>
     <name>framework/OutStreams.line</name>
     <author>wangc</author>
@@ -16,6 +11,12 @@
         HistorySet is used. Fix issue #722
     </description>
   </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>linePlot</WorkingDir>
+    <Sequence>generate_data,plot</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
 
   <Steps>
     <MultiRun name="generate_data">
