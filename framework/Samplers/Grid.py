@@ -169,7 +169,15 @@ class Grid(ForwardSampler):
           recastDict[varName] = [self.distDict[varName].ppf]
         else:
           recastDict[varName] = [self.distDict[varName].inverseMarginalDistribution,[self.variables2distributionsMapping[varName]['dim']-1]]
-      elif self.gridInfo[varName]!='value':
+      elif self.gridInfo[varName] == 'value':
+        gridLB = self.gridEntity.gridInitDict['lowerBounds'][varName]
+        gridUB = self.gridEntity.gridInitDict['upperBounds'][varName]
+        distLB = self.distDict[varName].lowerBound
+        distUB = self.distDict[varName].upperBound
+        if gridLB < distLB or gridUB > distUB:
+          self.raiseAnError(IOError, 'Grids defined for', varName, 'in range (', gridLB, gridUB,
+          ') is outside the range of given distribution', self.distDict[varName].type, '(',distLB, distUB,')!')
+      else:
         self.raiseAnError(IOError,self.gridInfo[varName]+' is not know as value keyword for type. Sampler: '+self.name)
     if self.externalgGridCoord:
       currentIndexes = self.gridEntity.returnIteratorIndexesFromIndex(self.gridCoordinate)
