@@ -21,8 +21,8 @@
   <Steps>
     <MultiRun name="generate_data">
       <Input   class="DataObjects"  type="PointSet"       >placeholder</Input>
-      <Sampler class="Samplers"     type="MonteCarlo"     >my_mc</Sampler>
       <Model   class="Models"       type="ExternalModel"  >projectile</Model>
+      <Sampler class="Samplers"     type="MonteCarlo"     >my_mc</Sampler>
       <Output  class="DataObjects"  type="HistorySet"     >results</Output>
     </MultiRun>
     <IOStep name="plot">
