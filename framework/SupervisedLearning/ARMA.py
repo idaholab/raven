@@ -277,7 +277,7 @@ class ARMA(supervisedLearning):
         self.fourierResults[target] = self._trainFourier(self.pivotParameterValues,
                                                          self.fourierParams[target]['periods'],
                                                          self.fourierParams[target]['orders'],
-                                                         timeSeriesData)
+                                                         timeSeriesData,
                                                          zeroFilter = target == self.zeroFilterTarget)
         #debugfile.writelines('{}_fourier,'.format(target)+','.join(str(d) for d in self.fourierResults[target]['predict'])+'\n')
         timeSeriesData -= self.fourierResults[target]['predict']
