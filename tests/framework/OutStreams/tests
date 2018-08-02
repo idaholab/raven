@@ -58,4 +58,9 @@
   input = 'test_legend.xml'
   output = 'plot/legendTest.png'
  [../]
+ [./line]
+  type = 'RavenFramework'
+  input = 'line_plot.xml'
+  output = 'linePlot/to_plot_line.png'
+ [../]
 []

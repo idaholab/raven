@@ -1,0 +1,104 @@
+<?xml version="1.0" ?>
+<Simulation verbosity = 'debug'>
+  <RunInfo>
+    <WorkingDir>linePlot</WorkingDir>
+    <Sequence>generate_data,plot</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <TestInfo>
+    <name>framework/OutStreams.line</name>
+    <author>wangc</author>
+    <created>2018-08-02</created>
+    <classesTested>OutStreams.Plot</classesTested>
+    <description>
+        Test to check the functionalities of OutStreams system in RAVEN of line Plot, when
+        HistorySet is used. Fix issue #722
+    </description>
+  </TestInfo>
+
+  <Steps>
+    <MultiRun name="generate_data">
+      <Input   class="DataObjects"  type="PointSet"       >placeholder</Input>
+      <Sampler class="Samplers"     type="MonteCarlo"     >my_mc</Sampler>
+      <Model   class="Models"       type="ExternalModel"  >projectile</Model>
+      <Output  class="DataObjects"  type="HistorySet"     >results</Output>
+    </MultiRun>
+    <IOStep name="plot">
+      <Input   class="DataObjects"  type="HistorySet"     >results</Input>
+      <Output  class="OutStreams"   type="Plot"           >to_plot</Output>
+    </IOStep>
+  </Steps>
+  
+  <Models>
+    <ExternalModel ModuleToLoad="projectile_mod.py" name="projectile" subType="">
+      <variables>v0,angle,r,x,y,time,var1</variables>
+    </ExternalModel>
+  </Models>
+
+  <Samplers>
+    <MonteCarlo name="my_mc">
+      <samplerInit>
+        <limit>100</limit>
+        <initialSeed>42</initialSeed>
+      </samplerInit>
+      <variable name="v0">
+        <distribution>vel_dist</distribution>
+      </variable>
+      <variable name="angle">
+        <distribution>angle_dist</distribution>
+      </variable>
+      <variable name="var1">
+        <distribution>dist1</distribution>
+      </variable>
+      <constant name="x0">0</constant>
+      <constant name="y0">0</constant>
+    </MonteCarlo>
+  </Samplers>
+
+  <Distributions>
+    <Uniform name="vel_dist">
+      <lowerBound>1</lowerBound>
+      <upperBound>60</upperBound>
+    </Uniform>
+    <Uniform name="angle_dist">
+      <lowerBound>5</lowerBound>
+      <upperBound>85</upperBound>
+    </Uniform>
+    <Uniform name="dist1">
+      <lowerBound>-2</lowerBound>
+      <upperBound>2</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <DataObjects>
+    <PointSet name="placeholder">
+      <Input>v0,angle,var1</Input>
+    </PointSet>
+    <HistorySet name="results">
+      <Input>v0,y0,angle,var1</Input>
+      <Output>x,y,time</Output>
+    </HistorySet>
+  </DataObjects>
+
+  <OutStreams>
+    <Plot  name="to_plot">
+      <plotSettings>
+        <plot>
+          <type>line</type>
+          <marker>.</marker>
+          <x>results|Output|time</x>
+          <y>results|Output|x</y>
+          <z>results|Output|y</z>
+        </plot>
+        <xlabel>time</xlabel>
+        <ylabel>x</ylabel>
+        <zlabel>y</zlabel>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+      </actions>
+    </Plot>
+  </OutStreams>
+
+</Simulation>
