@@ -56,16 +56,20 @@ results = {"pass":0,"fail":0}
 #def floatNotEqual(a,b):
 #  return abs(a - b) > 1e-10
 
-def checkAnswer(comment,value,expected,tol=1e-10):
+def checkAnswer(comment,value,expected,tol=1e-10, relative=False):
   """
     This method is aimed to compare two floats given a certain tolerance
     @ In, comment, string, a comment printed out if it fails
     @ In, value, float, the value to compare
     @ In, expected, float, the expected value
     @ In, tol, float, optional, the tolerance
+    @ In, relative, bool, optional, the tolerance needs be checked relative?
     @ Out, None
   """
-  if abs(value - expected) > tol:
+  if relative:
+    denominator = expected if expected != 0. else 1.0
+  diff = abs(value - expected) if not relative else abs(value - expected)/denominator
+  if diff > tol:
     print("checking answer",comment,value,"!=",expected)
     results["fail"] += 1
   else:
@@ -1022,9 +1026,9 @@ checkCrowDist("NDCartesianSpline",ndCartesianSpline,{'type': 'NDCartesianSplineD
 #ND MultiVariate Normal
 
 ndMultiVariateNormal = ET.Element("MultivariateNormal",{"name":"test","method":"spline"})
-munode = createElement("mu", text="3000 2500")
+munode = createElement("mu", text="10 20")
 ndMultiVariateNormal.append(munode)
-covariancenode = createElement("covariance", text=" 810000 0 \n 0 490000")
+covariancenode = createElement("covariance", text=" 4 0 \n 0 16")
 ndMultiVariateNormal.append(covariancenode)
 
 ndMultiVariate = getDistribution(ndMultiVariateNormal)
@@ -1032,16 +1036,16 @@ ndMultiVariate = getDistribution(ndMultiVariateNormal)
 ## Should these be checked?
 initParams = ndMultiVariate.getInitParams()
 
-marginalCDF1 = ndMultiVariate.marginalDistribution(3000, 0)
-marginalCDF2 = ndMultiVariate.marginalDistribution(2500, 1)
+marginalCDF1 = ndMultiVariate.marginalDistribution(10, 0)
+marginalCDF2 = ndMultiVariate.marginalDistribution(20, 1)
 
 inverse1 = ndMultiVariate.inverseMarginalDistribution(0.5, 0)
 inverse2 = ndMultiVariate.inverseMarginalDistribution(0.5, 1)
 
-checkAnswer("MultiVariate marginalDim1(3000)" , marginalCDF1, 0.5, tol=0.01)
-checkAnswer("MultiVariate marginalDim2(2500)" , marginalCDF2, 0.5, tol=0.01)
-checkAnswer("MultiVariate inverseMarginalDim1(0.5)" , inverse1, 3000., tol=0.001)
-checkAnswer("MultiVariate inverseMarginalDim2(0.5)" , inverse2, 2499.859, tol=0.001)
+checkAnswer("MultiVariate marginalDim1(3000)" , marginalCDF1, 0.501, tol=0.01, relative=True)
+checkAnswer("MultiVariate marginalDim2(2500)" , marginalCDF2, 0.501, tol=0.01, relative=True)
+checkAnswer("MultiVariate inverseMarginalDim1(0.5)" , inverse1, 10., tol=0.01, relative=True)
+checkAnswer("MultiVariate inverseMarginalDim2(0.5)" , inverse2, 20., tol=0.01, relative=True)
 
 #Test Categorical
 

@@ -117,8 +117,9 @@ void BasicMultivariateNormal::basicMultivariateNormalInit(unsigned int &rows, un
    std::vector< std::vector<double> > discretizations;
    std::vector<double> alpha (_mu.size());
    std::vector<double> beta (_mu.size());
-
-   int numberOfDiscretizations = 15;
+   // for now we use this to be a bit more less problem dependent
+   double floatDiscretizations = (1./std::pow(1.e-4,1./ (double)dimensions)) + 0.5;
+   int numberOfDiscretizations = (int)floatDiscretizations;
    for(unsigned int i=0; i<dimensions; i++){
      alpha.at(i) = 0.0;
      beta.at(i)  = 0.0;
@@ -263,8 +264,11 @@ BasicMultivariateNormal::BasicMultivariateNormal(std::vector<double> vec_cov_mat
   //setup the nearest symmetric semi-positive definite covariance matrix
   resetSingularValues(_left_singular_vectors, _right_singular_vectors, _singular_values,_svd_transformed_matrix);
 
-  int numberOfDiscretizations = 15;
   unsigned int dimensions = _mu.size();
+  // for now we use this to be a bit more less problem dependent
+  double floatDiscretizations = (1./std::pow(1.e-4,1./ (double)dimensions)) + 0.5;
+  int numberOfDiscretizations = (int)floatDiscretizations;
+    
   for(unsigned int i=0; i<dimensions; i++){
     std::vector<double> discretization_temp;
     double sigma = sqrt(_cov_matrix[i][i]);

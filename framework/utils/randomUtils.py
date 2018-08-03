@@ -85,10 +85,11 @@ else:
   distStochEnv = findCrowModule('distribution1D').DistributionContainer.instance()
   boxMullerGen = BoxMullerGenerator()
 
-def randomSeed(value):
+def randomSeed(value,seedBoth=False):
   """
     Function to get a random seed
     @ In, value, float, the seed
+    @ In, seedBoth, bool, optional, if True then seed both random environments
     @ Out, None
   """
   if stochasticEnv == 'numpy':
@@ -99,6 +100,8 @@ def randomSeed(value):
     # we must do the following now since there is no separation between the distribution (stoch eviroment) and the one here
     ## TODO: split it in the sampler. Design needed.
     distStochEnv.seedRandom(value)
+    if seedBoth:
+      np.random.seed(value+1) # +1 just to prevent identical seed sets
   print('randomUtils: Global random number seed has been changed to',value)
 
 def random(dim=1,samples=1,keepMatrix=False):
@@ -223,6 +226,22 @@ def randPointsInHypersphere(dim,samples=1,r=1,keepMatrix=False):
   else:
     return _reduceRedundantListing(pts,dim,samples)
   return pts
+
+def newRNG(env=None):
+  """
+    Provides a new instance of the random number generator.
+    @ In, env, string, optional, type of random number generator.  Defaults to global option stored in "stochasticEnv".
+    @ Out, engine, object, RNG producer
+  """
+  if env is None:
+    env = stochasticEnv
+  if env == 'crow':
+    engine = findCrowModule('randomENG').RandomClass()
+  elif env == 'numpy':
+    engine = np.random.RandomState()
+  else:
+    raise TypeError('Unrecognized environment requested:',env)
+  return engine
 
 ### internal utilities ###
 

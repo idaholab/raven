@@ -977,9 +977,12 @@ class OutStreamPlot(OutStreamManager):
             self.plt3D = plt.subplot(self.gridSpace[x[0]:x[-1], y[0]:y[-1]], projection = '3d')
       elif self.dim == 3:
         self.plt3D = plt.subplot(111, projection='3d')
-      # If the number of plots to be shown in this figure > 1, hold the old ones (They are going to be shown together... because unity is much better than separation)
-      if len(self.outStreamTypes) > 1:
-        plt.hold(True)
+
+      # calling "plt.hold" has been deprecated.
+      # If the figure isn't cleared (or a new figure opened), it will keep adding plots.
+      # This set of comments can be removed when "hold" has been demonstrated unneccessary.
+      # if len(self.outStreamTypes) > 1:
+      #  plt.hold(True)
       if 'gridSpace' in self.options['plotSettings'].keys():
         plt.locator_params(axis = 'y', nbins = 4)
         plt.ticklabel_format(**{'style':'sci', 'scilimits':(0, 1), 'useOffset':False, 'axis':'both'})

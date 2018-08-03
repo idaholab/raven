@@ -1,17 +1,25 @@
 [Tests]
+ # NOTE the ARMA training optimization sequence is often very, very dependent on small changes in values.
+ # As a result, it is very difficult to get the same results on slightly different systems, such as different operating systems.
+ # By way of comparison, running the test_ARMA.xml input and comparing the first entry in the first sampled history, the following
+ # operating system results are obtained, each with identical python library installations, with both crow and numpy seeded identically::
+ # MAC OSX (10.12.6): 9.457661108
+ # Windows 7 Test   : 9.457661214
+ # Ubuntu 16.04 LTS : 9.457659911
+ # Ubuntu 18.04 LTS : 9.466078333
+ # As we can observe, we at most can rely on 2 digits of similarity even on the first point.
+ # A good alternative for non-correlated ARMAs is to run statistics on the results (mean, variance) and check those instead.
+
  [./ARMA]
    type = 'RavenFramework'
    input = 'test_ARMA.xml'
-   output = 'ARMA/writeSynDataOut.csv ARMA/writeSynDataOut.xml'
-   #csv = 'ARMA/writeSynDataOut_0.csv'
-   #rel_err = 0.1
+   csv = 'ARMA/stats.csv'
+   rel_err = 1e-3
   [../]
   [./ARMAparallel]
    type = 'RavenFramework'
    input = 'test_ARMA_parallel.xml'
    output = 'ARMAparallel/writeSynDataOut.csv ARMAparallel/writeSynDataOut.xml'
-   #csv = 'ARMAparallel/writeSynDataOut_0.csv'
-   #rel_err = 0.1
   [../]
   [./ARMAreseedPrecursor]
    type = 'RavenFramework'
@@ -26,4 +34,27 @@
    prereq = ARMAreseedPrecursor
    skip = 'needs the new RNG entity'
   [../]
+
+ [./SingleFourier]
+   type = 'RavenFramework'
+   input = 'single_fourier.xml'
+   csv = 'SingleFourier/synthetic_0.csv'
+   rel_err = 5e-2
+  [../]
+
+  [./MultipleArma]
+   type = 'RavenFramework'
+   input = 'multiple_arma.xml'
+   csv = 'MultipleArma/samples.csv MultipleArma/samples_0.csv MultipleArma/samples_1.csv'
+   rel_err = 5e-2
+  [../]
+
+  [./VARMA]
+   type = 'RavenFramework'
+   input = 'varma.xml'
+   output = 'VARMA/plot_VARMA.png VARMA/plot_input.png VARMA/samples.csv VARMA/samples_0.csv VARMA/stats.xml'
+   csv = 'VARMA/stats.csv'
+   rel_err = 1e-2 # we only take 100 samples
+  [../]
+
 []

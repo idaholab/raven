@@ -95,12 +95,12 @@ class RAVEN(CodeInterfaceBase):
         # check for existence
         if not os.path.exists(source):
           raise IOError(self.printTag+' ERROR: the conversionModule "{}" was not found!'
-                        .format(self.extModForVarsManipulationPath))
+                        .format(source))
         # check module is imported
         checkImport = utils.importFromPath(source)
         if checkImport is None:
           raise IOError(self.printTag+' ERROR: the conversionModule "{}" failed on import!'
-                        .format(self.extModForVarsManipulationPath))
+                        .format(source))
         # check methods are in place
         noScalar = 'convertNotScalarSampledVariables' in checkImport.__dict__
         scalar = 'manipulateScalarSampledVariables' in checkImport.__dict__
