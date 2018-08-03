@@ -11,13 +11,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+Modified by Alp Tezbasaran @ INL (6/21/2018)
+"""
+
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
 from ctfdata import ctfdata
 from CodeInterfaceBaseClass import CodeInterfaceBase
+from GenericCodeInterface import GenericParser
+
 import os
-class CobraTF(CodeInterfaceBase):
+class CTF(CodeInterfaceBase):
   """
     this class is used a part of a code dictionary to specialize Model.Code for Cobra-TF (CTF)
   """
@@ -32,29 +38,65 @@ class CobraTF(CodeInterfaceBase):
     outfile  = os.path.join(workingDir,output+'.out')
     outputobj= ctfdata(outfile)
     outputobj.writeCSV(os.path.join(workingDir,output+'.csv'))
+  def findInps(self,inputFiles):
+      """
+        Locates the input files required by CTF (Cobra-TF) Interface
+        @ In, inputFiles, list, list of Files objects
+        @ Out, inputDict, dict, dictionary containing Scale required input files
+      """
+      inputDict = {}
+      CTF = []
+      vuq_param = []
+      vuq_mult = []
 
-  def createNewInput(self, currentInputFiles, oriInputFiles, samplerType ,**Kwargs):
+      for inputFile in inputFiles:
+          if inputFile.getType().strip().lower() == "ctf":
+              CTF.append(inputFile)
+          elif inputFile.getType().strip().lower() == "vuq_param":
+              vuq_param.append(inputFile)
+          elif inputFile.getType().strip().lower() == "vuq_mult":
+              vuq_mult.append(inputFile)
+
+      # raise error if there are multiple input files (not allowed)
+      if len(CTF) > 1:
+        raise IOError('multiple CTF input files have been found. Only one is allowed!')
+      if len(vuq_param) > 1:
+        raise IOError('multiple vuq_param.txt input files have been found. Only one is allowed!')
+      if len(vuq_mult) > 1:
+        raise IOError('multiple vuq_mult.txt input files have been found. Only one is allowed!')
+
+      # raise error if the names of the vuq files are different (not allowed)
+      # TO BE CODED
+
+      # add inputs
+      if len(CTF) > 0:
+         inputDict['CTF'] = CTF
+      if len(vuq_param) > 0:
+         inputDict['vuq_param'] = vuq_param
+      if len(vuq_param) > 0:
+         inputDict['vuq_mult'] = vuq_mult
+      return inputDict
+
+  def createNewInput(self, currentInputFiles, origInputFiles, samplerType, **Kwargs):
     """
-      this generates a new CTF input file based on the sampled values from RAVEN
-      # @ In, Kwargs
-      # @ Out, current input files
+      Generates new perturbed input files for Scale sequences
+      @ In, currentInputFiles, list,  list of current input files
+      @ In, origInputFiles, list, list of the original input files
+      @ In, samplerType, string, Sampler type (e.g. MonteCarlo, Adaptive, etc. see manual Samplers section)
+      @ In, Kwargs, dict, dictionary of parameters. In this dictionary there is another dictionary called "SampledVars"
+        where RAVEN stores the variables that got sampled (e.g. Kwargs['SampledVars'] => {'var1':10,'var2':40})
+      @ Out, newInputFiles, list, list of new input files (modified or not)
     """
-    from CTFparser import CTFparser
-    if 'dynamicevent' in samplerType.lower():
-      raise IOError("Sampler type error: Dynamic Even Tree-based sampling is not implemented yet!")
-    found = False
-    for inputFile in currentInputFiles:
-      if inputFile.getExt() in self.getInputExtension():
-        found = True
-        break
-    if not found:
-      raise IOError('Input file missing: Check if the input file (.inp) is located in the working directory!' )
-    ctfParser = CTFparser(inputFile.getAbsFile())
-    modifDict = Kwargs["SampledVars"]
-    ctfParser.changeVariable(modifDict)
-    modifiedDictionary = ctfParser.modifiedDictionary
-    ctfParser.printInput(inputFile.getAbsFile())
+    #print(currentInputFiles)
+    if 'dynamiceventtree' in str(samplerType).lower():
+      raise IOError("Dynamic Event Tree-based samplers not supported by Scale interface yet!")
+    currentInputsToPerturb = [item for subList in self.findInps(currentInputFiles).values() for item in subList]
+    originalInputs         = [item for subList in self.findInps(origInputFiles).values() for item in subList]
+    parser = GenericParser.GenericParser(currentInputsToPerturb)
+    parser.modifyInternalDictionary(**Kwargs)
+    parser.writeNewInput(currentInputsToPerturb,originalInputs)
     return currentInputFiles
+
 
   def generateCommand(self,inputFiles,executable,clargs=None,fargs=None):
     """
@@ -68,6 +110,9 @@ class CobraTF(CodeInterfaceBase):
       @ In, fargs, dict, optional, a dictionary containing the auxiliary input file variables the user can specify in the input (Not needed)
       @ Out, returnCommand, tuple, tuple containing the generated command. returnCommand[0] is the command to run the code (string), returnCommand[1] is the name of the output root
     """
+
+    inputDict = self.findInps(inputFiles)
+
     found = False
     for inputFile in inputFiles:
       if inputFile.getExt() in self.getInputExtension():

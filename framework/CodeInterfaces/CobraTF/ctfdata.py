@@ -18,23 +18,33 @@ class ctfdata:
     Class that parses CTF output file and reads in (output files type: .ctf.out) and write a csv file
   """
 
-  def __init__(self, filen):
+  # def __init__(self, filen):
+  def __init__(self,filen):
+
     """
       Constructor
       @ In, filen, string, file name to be parsed
       @ Out, None
     """
+
     # check file existence (1)
-    if "ctf.out" not in filen:
+    if ("ctf.out" not in filen) and  ("deck.out" not in filen):
       raise IOError(
             "Check if the supported output file (*.ctf.out) is included.")
+
     # check file existence (2)
     try:
       self.lines = open(filen, "r").readlines()
     except:
       raise IOError('input file missing')
+
+
     self.deckEndTimeInfo = self.getTimeDeck(self.lines)
     self.majorData, self.headerName = self.getMajor(self.lines)
+
+
+  def returner(self):
+    return 0
 
   def writeCSV(self, filen):
     """
@@ -76,81 +86,81 @@ class ctfdata:
     """
     # Booleans
     # start output reading (skip 'input file listing' in the output)
-    outTime1 = False
+    outTime1 = False                    # These require comments
     outTime2 = False
     outType1 = False
     outType2 = False
     outType3 = False
     outType4 = False
+    outType5 = False                    # Cylindrical Rods
+    outType6 = False                    # Heat Slab
     # descriptions in the output file to discriminate different types of information
     # to check total number of channels & node
-    checkChannelNum = False
+    readChannelCount = False
     checkNodeNum = False
     # count time step
     timestepCount = 0
     # number of averaged variables (total variables that are supposed to be printed in the major edit output file)
     averageVariablesCount = 15
     # number of variables (total variables that are supposed to be printed in the major edit output file)
-    variablesCount = 38
+    variablesCount = 43                             # Channel data (41 column)
+    # number of variables for fuel rod data
+    variableFuelCount = 10
+    # number of variables for cylindrical rod data
+    variableCylCount = 8
+    # number of variables for heat slabs
+    variableHeatSlab = 8
     # number of channels
     channelCount = 0
     # number of axial nodes (channel)
     nodeCount = 0
     # number of fuel nodes
     fuelCount = 0
+    # number of surfaces (total)
+    surfaceCount = 0
+    # number of heat slabs
+    heatSlabCount = 0
+    # flags for XXX
     count1 = 0
     count2 = 0
-    # 1. count the total number of time steps, channels, axial nodes, and fuel rods.
+    count3 = 0
+    # 1. count the total number of time steps, channels, axial nodes, fuel rods and cylindrical rods.
     for line in lines:
-      # to check total number of channel
-      if 'subchannel data' in line:
-        checkChannelNum = True
-      if 'axial loss coefficients' in line:
-        checkChannelNum = False
-        checkNodeNum = True
-      if '------- *******************' in line:
-        checkNodeNum = False
       if all(x in line for x in ['aver.', 'properties' , 'channels']):
         outTime1 = True # for output reading start (stay 'True' once it is activated)
         outTime2 = True # to check simTime evolution
         timestepCount += 1
       if all(x in line for x in ['fluid', 'properties' , 'channel']):
         outType1 = True
-        channelNumber = line.split()[9]
-      if all(x in line for x in ['nuclear', 'fuel' , 'rod', 'no.']):
-        outType4 = True
+      # to read total number of channels
+      if all(x in line for x in ['of', 'channels', 'nodes', '(nominal)']):
+        readChannelCount = True
+      if (readChannelCount) and (line != '\n') and (line.split()[0].isdigit()):
       # read total channel number
-      if (checkChannelNum == True) and (line != '\n') and (line.split()[0].isdigit()):
         channelCount = int(line.split()[0])
-      # read total node number per channel
-      if (checkNodeNum == True) and (line != '\n') and (line.split()[0].isdigit()):
-        nodeCount = int(line.split()[len(line.split()) - 1])
-      # skip any blank line and lines that don't start with number
-      if (outTime1 == True) and (line != '\n') and (line.split()[0].isdigit()):
-        # filter few more lines that include characters
-        if (line.split()[1].replace('.', '', 1).isdigit()):
-          # read output type 1
-          if outType1:
-            count1 = count1 + 1
-            if (count1 == 1):  # read axial node number
-              nodeCount = int(line.split()[0])
-              outType1 = False
-          if outType4:
-            count2 = count2 + 1
-            if (count2 == 1):  # read fuel rod number
-              fuelCount = int(line.split()[0])
-              outType4 = False
-    # check if output file (*ctf.out) has information for channels and nodes
-    if (count1 == 0):
-      channelCount = 1
-      variablesCount = 0
-    # 2. create numpy array (based on the output reading)
-    if count2 == 0:  # w/o fuel rod
-      dictArray = np.zeros((int(timestepCount), int(
-          (variablesCount + averageVariablesCount) * channelCount * nodeCount + 1)))
-    else:  # with fuel rod (10)
-      dictArray = np.zeros((int(timestepCount), int(
-            (variablesCount + averageVariablesCount + 10) * channelCount * nodeCount + 1)))
+        nodeCount = int(line.split()[1])
+        #print('Channel Count = ', channelCount)
+        #print('Node Count = ', nodeCount)
+      # to stop reading channel count
+      if 'channel           channels above                   channels below' in line:
+        readChannelCount = False
+      # read total fuel rod number
+      if all(x in line for x in ['no.', 'of' , 'fuel', 'rods']):
+        fuelCount = int(line.split()[5])                            # this number includes fuel rods and cylindrical tubes (output inherently reports it that way)
+        #print('Fuel Count = ', fuelCount)
+      # read total surface number
+      if all(x in line for x in ['no.', 'of' , 'fuel', 'surfaces']):
+        surfaceCount = int(line.split()[-1])                        # total surface count (not surface number per node)
+        #print('Surface Count', surfaceCount)
+      # read total heat slab number
+      if all(x in line for x in ['no.', 'of' , 'heat', 'slabs']):
+        heatSlabCount = int(line.split()[-1])                        # total heat slab count
+        #print('Heat Slab Count = ', heatSlabCount)
+
+    dictArray = np.zeros((int(timestepCount), int(
+            variablesCount * channelCount * (nodeCount + 1)  + variableFuelCount * fuelCount *
+              surfaceCount * (nodeCount + 2) + variableHeatSlab * heatSlabCount * (nodeCount)
+            + 1 * averageVariablesCount * (nodeCount + 1) + 1)))
     # 3. read input again (assign values to dictArray)
     # initialize booleans
     outTime1 = False
@@ -160,10 +170,19 @@ class ctfdata:
     outType2 = False
     outType3 = False
     outType4 = False
+    outType5 = False                # Cylinder Rod
+    outType6 = False                # Heat Slab
     headerWrite = True
+
+    internalFlow = False
+    externalFlow = False
 
     timestepCount = 0
     variableNumber = 0
+
+    #print('channelCount =',channelCount)
+    #print('fuelCount =',fuelCount)
+
     # create new array (for header names)
     header = []
     for line in lines:
@@ -192,30 +211,65 @@ class ctfdata:
       if all(x in line for x in ['fluid', 'properties' , 'channel']):
         outType1 = True
         channelNumber = line.split()[9]
+        #print(channelNumber)
       # output type 2
       if all(x in line for x in ['enthalpy', 'density', 'net']):
         outType2 = True
       # output type 3
       if all(x in line for x in ['----', 'gas' , 'volumetric', 'analysis']):
         outType3 = True
-      # output type 4 (fuel ord)
+      # output type 4 (fuel rod)
       if all(x in line for x in ['nuclear', 'fuel' , 'rod', 'no.']):
         outType4 = True
+        #print(line)
+        fuelNumber = int(line.split()[-6])
+      # surface of the fuel rods
+      if (outType4 == True) and len(line.split()) == 5 and all(x in line for x in ['surface', 'no.']):
+        #print(line)
+        surfaceNumber = int(line.split()[-3])
+      # output type 5 (cylindrical tube)
+      if all(x in line for x in ['cylindrical', 'tube' , 'rod', 'no.']):
+        outType5 = True
+        cylRodNumber = int(line.split()[-6])
+      # surface number of the cylindrical tubes
+      if (outType5 == True) and len(line.split()) == 5 and all(x in line for x in ['surface', 'no.']):
+        surfaceNumber = int(line.split()[-3])
+      # decide if the flow is external or internal
+      if (outType5) and (line != '\n') and (line.split()[0].isdigit()):
+        if line.split()[3].replace('.', '', 1).isdigit():
+          internalFlow = True
+        elif line.split()[-2].replace('.', '', 1).isdigit():
+          externalFlow = True
+      # heat slab number
+      if all(x in line for x in ['heat', 'slab' , '(tube)', 'no.','simulation', 'time']):
+        outType6 = True
+        heatSlabNumber = int(line.split()[3])
+      # decide if the flow is internal or external
+      if outType6 and ('fluid channel on inside surface =  0' in line):
+        externalFlow = True
+      elif outType6 and ('fluid channel on outside surface =  0' in line):
+        internalFlow = True
       # skip any blank line and lines that don't start with number
       if (outTime1 == True) and (line != '\n') and (line.split()[0].isdigit()):
         # filter few more lines that include characters
+        #print(line)
         if (line.split()[1].replace('.', '', 1).isdigit()):
+          #print(line)
           if outTypeAvg:
             # define axial location
             ax = int(line.split()[0])
             # save header name of each variable
             keyName = 'AVG_ch' + '_ax' + str(ax)
-            for j in range(2, len(line.split())):
-              variableNumber += 1
-              dictArray[timestepCount - 1,
+            for j in range(1, len(line.split())):
+              if line.split()[2] != '*****':
+                variableNumber += 1
+                dictArray[timestepCount - 1,
                         variableNumber] = line.split()[j]
               if headerWrite:
-                if j == 2:
+                if j == 1:
+                  headerName = keyName + '_height'
+                  header.append(headerName)
+                elif j == 2:
                   headerName = keyName + '_quality'
                   header.append(headerName)
                 elif j == 3:
@@ -272,12 +326,15 @@ class ctfdata:
             ax = int(line.split()[0])
             # save header name of each variable
             keyName = 'ch' + channelNumber + '_ax' + str(ax)
-            for j in range(2, len(line.split())):
+            for j in range(1, len(line.split())):
               variableNumber += 1
               dictArray[timestepCount - 1,
                           variableNumber] = line.split()[j]
               if headerWrite:
-                if j == 2:
+                if j == 1:
+                  headerName = keyName + '_height'
+                  header.append(headerName)
+                elif j == 2:
                   headerName = keyName + '_pressure'
                   header.append(headerName)
                 elif j == 3:
@@ -331,12 +388,15 @@ class ctfdata:
             ax = int(line.split()[0])
             # save header name of each variable
             keyName = 'ch' + channelNumber + '_ax' + str(ax)
-            for j in range(2, len(line.split())):
+            for j in range(1, len(line.split())):
               variableNumber += 1
               dictArray[timestepCount - 1,
                        variableNumber] = line.split()[j]
               if headerWrite:
-                if j == 2:
+                if j == 1:
+                  headerName = keyName + '_height'
+                  header.append(headerName)
+                elif j == 2:
                   headerName = keyName + '_enthalpyVapor'
                   header.append(headerName)
                 elif j == 3:
@@ -382,12 +442,17 @@ class ctfdata:
             ax = int(line.split()[0])
             # save header name of each variable
             keyName = 'ch' + channelNumber + '_ax' + str(ax)
-            for j in range(2, len(line.split())):
+            #print(line)
+            #print('Channel Number = ', channelNumber )
+            for j in range(1, len(line.split())):
               variableNumber += 1
               dictArray[timestepCount - 1,
                 variableNumber] = line.split()[j]
               if headerWrite:
-                if j == 2:
+                if j == 1:
+                  headerName = keyName + '_height'
+                  header.append(headerName)
+                elif j == 2:
                   headerName = keyName + '_enthalpyNonCondensableMixture'
                   header.append(headerName)
                 elif j == 3:
@@ -432,26 +497,30 @@ class ctfdata:
                 # at end of rod info, reset outType3 booleans
             if ax == 1:
               outType3 = False
+        #print(line)
         if (line.split()[1].replace('.', '', 1).isdigit()) or ('*' in line.split()[1]):
           # read output type 4
           if outType4:
             # define axial location
-            fuelNumber = int(line.split()[0])
+            ax = int(line.split()[0])
             # save header name of each variable
-            keyName = 'fuel_rod' + str(fuelNumber)
+            keyName = 'fuelRod' + str(fuelNumber) + '_surface' + str(surfaceNumber) + '_ax' + str(ax)
             # line filtering due to the existence of '*' in the output
             if '*' in line:
               lineFiltered = line.replace('*', "")
             else:
               lineFiltered = line
-            for j in range(2, len(lineFiltered.split())):
+            for j in range(1, len(lineFiltered.split())):
               variableNumber += 1
               # skip the non-numeric elements
               if j != 5:
                 dictArray[timestepCount - 1,
                           variableNumber] = lineFiltered.split()[j]
               if headerWrite:
-                if j == 2:
+                if j == 1:
+                  headerName = keyName + '_height'
+                  header.append(headerName)
+                elif j == 2:
                   headerName = keyName + '_fluidTemperatureLiquid'
                   header.append(headerName)
                 elif j == 3:
@@ -481,7 +550,201 @@ class ctfdata:
                 else:
                   raise IOError(
                       "Error: Unexpected output file format. Check the oufput file (output type 4, fuel rod).")
-            # at end of rod info, reset outType3 booleans
-            if fuelNumber == 1:
+            # at end of rod info, reset outType4 booleans
+            if ax == 1:
               outType4 = False
+          # read output type 5 for external flow
+          if outType5 and externalFlow:
+            # define axial location
+            ax = int(line.split()[0])
+            # save header name of each variable
+            keyName = 'cylRod' + str(cylRodNumber) + '_surface' + str(surfaceNumber) + '_ax' + str(ax)
+            # line filtering due to the existence of '*' in the output
+            if '*' in line:
+              lineFiltered = line.replace('*', "")
+            else:
+              lineFiltered = line
+            for j in range(1, len(lineFiltered.split())):
+              variableNumber += 1
+              # skip the non-numeric elements
+              if j != 3:
+                dictArray[timestepCount - 1,
+                          variableNumber] = lineFiltered.split()[j]
+              if headerWrite:
+                if j == 1:
+                  headerName = keyName + '_height'
+                  header.append(headerName)
+                elif j == 2:
+                  headerName = keyName + '_outsideSurfaceHeatFlux'
+                  header.append(headerName)
+                elif j == 3:
+                  headerName = keyName + '_outsideSurfaceTransferMode'
+                  header.append(headerName)
+                elif j == 4:
+                  headerName = keyName + '_outsideSurfaceWallTemperature'
+                  header.append(headerName)
+                elif j == 5:
+                  headerName = keyName + '_outsideSurfaceVaporTemperature'
+                  header.append(headerName)
+                elif j == 6:
+                  headerName = keyName + '_outsideSurfaceLiquidTemperature'
+                  header.append(headerName)
+                elif j == 7:
+                  headerName = keyName + '_insideSurfaceWallTemperature'
+                  header.append(headerName)
+                elif j == 8:
+                  headerName = keyName + '_insideSurfaceHeatFlux'
+                  header.append(headerName)
+                else:
+                  raise IOError(
+                      "Error: Unexpected output file format. Check the oufput file (output type 5, fuel rod, external flow).")
+            # at end of rod info, reset outType5 booleans
+            if ax == 1:
+              outType5 = False
+              externalFlow = False
+          # read output type 5 for internal flow
+          if outType5 and internalFlow:
+            # define axial location
+            ax = int(line.split()[0])
+            # save header name of each variable
+            keyName = 'cylRod' + str(cylRodNumber) + '_surface' + str(surfaceNumber) + '_ax' + str(ax)
+            # line filtering due to the existence of '*' in the output
+            if '*' in line:
+              lineFiltered = line.replace('*', "")
+            else:
+              lineFiltered = line
+            for j in range(1, len(lineFiltered.split())):
+              variableNumber += 1
+              # skip the non-numeric elements
+              if j != 7:
+                dictArray[timestepCount - 1,
+                          variableNumber] = lineFiltered.split()[j]
+              if headerWrite:
+                if j == 1:
+                  headerName = keyName + '_height'
+                  header.append(headerName)
+                elif j == 2:
+                  headerName = keyName + '_outsideSurfaceHeatFlux'
+                  header.append(headerName)
+                elif j == 3:
+                  headerName = keyName + '_outsideSurfaceWallTemperature'
+                  header.append(headerName)
+                elif j == 4:
+                  headerName = keyName + '_insideSurfaceLiquidTemperature'
+                  header.append(headerName)
+                elif j == 5:
+                  headerName = keyName + '_insideSurfaceVaporTemperature'
+                  header.append(headerName)
+                elif j == 6:
+                  headerName = keyName + '_insideSurfaceWallTemperature'
+                  header.append(headerName)
+                elif j == 7:
+                  headerName = keyName + '_insideSurfaceTransferMode'
+                  header.append(headerName)
+                elif j == 8:
+                  headerName = keyName + '_insideSurfaceHeatFlux'
+                  header.append(headerName)
+                else:
+                  raise IOError(
+                      "Error: Unexpected output file format. Check the oufput file (output type 5, fuel rod, internal flow).")
+            # at end of rod info, reset outType5 booleans
+            if ax == 1:
+              outType5 = False
+              internalFlow = False
+          # read output type 6 for internal flow
+          if outType6 and internalFlow:
+            # define axial location
+            ax = int(line.split()[0])
+            # save header name of each variable
+            keyName = 'heatSlab' + str(heatSlabNumber) + '_ax' + str(ax)
+            # line filtering due to the existence of '*' in the output
+            if '*' in line:
+              lineFiltered = line.replace('*', "")
+            else:
+              lineFiltered = line
+            for j in range(1, len(lineFiltered.split())):
+              variableNumber += 1
+              # skip the non-numeric elements
+              if j != 7:
+                dictArray[timestepCount - 1,
+                          variableNumber] = lineFiltered.split()[j]
+              if headerWrite:
+                if j == 1:
+                  headerName = keyName + '_height'
+                  header.append(headerName)
+                elif j == 2:
+                  headerName = keyName + '_outsideSurfaceHeatFlux'
+                  header.append(headerName)
+                elif j == 3:
+                  headerName = keyName + '_outsideSurfaceWallTemperature'
+                  header.append(headerName)
+                elif j == 4:
+                  headerName = keyName + '_insideSurfaceLiquidTemperature'
+                  header.append(headerName)
+                elif j == 5:
+                  headerName = keyName + '_insideSurfaceVaporTemperature'
+                  header.append(headerName)
+                elif j == 6:
+                  headerName = keyName + '_insideSurfaceWallTemperature'
+                  header.append(headerName)
+                elif j == 7:
+                  headerName = keyName + '_insideSurfaceTransferMode'
+                  header.append(headerName)
+                elif j == 8:
+                  headerName = keyName + '_insideSurfaceHeatFlux'
+                  header.append(headerName)
+                else:
+                  raise IOError(
+                      "Error: Unexpected output file format. Check the oufput file (output type 6, heat slab, internal flow).")
+            # at end of rod info, reset outType6 booleans
+            if ax == 2:
+              outType6 = False
+              internalFlow = False
+          # read output type 6 for external flow
+          if outType6 and externalFlow:
+            # define axial location
+            ax = int(line.split()[0])
+            # save header name of each variable
+            keyName = 'heatSlab' + str(heatSlabNumber) + '_ax' + str(ax)
+            # line filtering due to the existence of '*' in the output
+            if '*' in line:
+              lineFiltered = line.replace('*', "")
+            else:
+              lineFiltered = line
+            for j in range(1, len(lineFiltered.split())):
+              variableNumber += 1
+              # skip the non-numeric elements
+              if j != 3:
+                dictArray[timestepCount - 1,
+                          variableNumber] = lineFiltered.split()[j]
+              if headerWrite:
+                if j == 1:
+                  headerName = keyName + '_height'
+                  header.append(headerName)
+                elif j == 2:
+                  headerName = keyName + '_outsideSurfaceHeatFlux'
+                  header.append(headerName)
+                elif j == 3:
+                  headerName = keyName + '_outsideSurfaceTransferMode'
+                  header.append(headerName)
+                elif j == 4:
+                  headerName = keyName + '_outsideSurfaceWallTemperature'
+                  header.append(headerName)
+                elif j == 5:
+                  headerName = keyName + '_outsideSurfaceVaporTemperature'
+                  header.append(headerName)
+                elif j == 6:
+                  headerName = keyName + '_outsideSurfaceLiquidTemperature'
+                  header.append(headerName)
+                elif j == 7:
+                  headerName = keyName + '_insideSurfaceWallTemperature'
+                  header.append(headerName)
+                else:
+                  raise IOError(
+                      "Error: Unexpected output file format. Check the oufput file (output type 6, heat slab, external flow).")
+            # at end of rod info, reset outType6 booleans
+            if ax == 2:
+              outType6 = False
+              externalFlow = False
+    #print(dictArray.shape)
     return dictArray, header
