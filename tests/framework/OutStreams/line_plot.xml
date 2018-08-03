@@ -32,8 +32,8 @@
   </Steps>
   
   <Models>
-    <ExternalModel ModuleToLoad="projectile_mod.py" name="projectile" subType="">
-      <variables>v0,angle,r,x,y,time,var1</variables>
+    <ExternalModel ModuleToLoad="../../AnalyticModels/projectile.py" name="projectile" subType="">
+      <variables>v0,angle,r,x,y,time,var1,timeOption</variables>
     </ExternalModel>
   </Models>
 
@@ -54,6 +54,7 @@
       </variable>
       <constant name="x0">0</constant>
       <constant name="y0">0</constant>
+      <constant name="timeOption">1</constant>
     </MonteCarlo>
   </Samplers>
 
@@ -74,7 +75,7 @@
 
   <DataObjects>
     <PointSet name="placeholder">
-      <Input>v0,angle,var1</Input>
+      <Input>v0,angle,var1,timeOption</Input>
     </PointSet>
     <HistorySet name="results">
       <Input>v0,y0,angle,var1</Input>
