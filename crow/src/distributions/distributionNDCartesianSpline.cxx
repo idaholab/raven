@@ -164,8 +164,6 @@
     return value;
   }
 
-
-
   int
   BasicMultiDimensionalCartesianSpline::returnDimensionality()
   {
