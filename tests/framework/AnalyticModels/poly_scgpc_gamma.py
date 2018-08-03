@@ -11,6 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+#***************************************
+#* Simple analytic test ExternalModule *
+#***************************************
+# This model tests the stochastic collocation with gamma distribution
+
 import numpy as np
 
 def eval(inp,exp):
@@ -19,3 +24,7 @@ def eval(inp,exp):
 def run(self,Input):
   self.ans = eval((self.x1,self.x2),1.0)
   self.ans2 = eval((self.x1,self.x2),2.0)
+
+#
+#  This model has analytic mean and variance documented in raven/docs/tests
+#
