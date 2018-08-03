@@ -368,8 +368,11 @@ class BoostDistribution(Distribution):
       @ In, x, float, value to get the cdf at
       @ Out, retunrCdf, float, requested cdf
     """
-    retunrCdf = self._distribution.cdf(x)
-    return retunrCdf
+    if hasattr(x,'__len__'):
+      returnCdf = np.array([self.cdf(i) for i in x])
+    else:
+      returnCdf = self._distribution.cdf(x)
+    return returnCdf
 
   def ppf(self,x):
     """
@@ -377,8 +380,12 @@ class BoostDistribution(Distribution):
       @ In, x, float, value to get the inverse cdf at
       @ Out, retunrPpf, float, requested inverse cdf
     """
-    retunrPpf = self._distribution.inverseCdf(x)
-    return retunrPpf
+    # TODO speed this up by doing it in Crow, not in python
+    if hasattr(x,'__len__'):
+      returnPpf = np.array([self.ppf(i) for i in x])
+    else:
+      returnPpf = self._distribution.inverseCdf(x)
+    return returnPpf
 
   def pdf(self,x):
     """
@@ -439,16 +446,17 @@ class BoostDistribution(Distribution):
     return untrMode
 
 
-  def rvs(self,*args):
+  def rvs(self, size=None):
     """
       Function to get random numbers
-      @ In, args, dict, args
+      @ In, size, int, optional, number of entries to return (one if None)
       @ Out, rvsValue, float or list, requested random number or numbers
     """
-    if len(args) == 0:
+    if size is None:
       rvsValue = self.ppf(random())
     else:
-      rvsValue = [self.rvs() for _ in range(args[0])]
+      # TODO to speed up, do this on the C side instead of in python
+      rvsValue = np.array([self.rvs() for _ in range(size)])
     return rvsValue
 
 class Uniform(BoostDistribution):
@@ -869,7 +877,6 @@ class Gamma(BoostDistribution):
     @ In, None, None
     @ Out float, norm
     """
-    #return self.beta**self.alpha/factorial(self.alpha-1.)
     return 1./factorial(self.alpha-1)
 
 DistributionsCollection.addSub(Gamma.getInputSpecification())
@@ -2655,6 +2662,15 @@ class NDimensionalDistributions(Distribution):
     value = self._distribution.returnUpperBound(dimension)
     return value
 
+  def marginalDistribution(self, x, variable):
+    """
+      Compute the cdf marginal distribution
+      @ In, x, float, the coordinate for at which the inverse marginal distribution needs to be computed
+      @ In, variable, int, the variable id dimension coordinate (e.g. 0 => 1st coordinate, 1 => 2nd coordinate)
+      @ Out, marginalDistribution, float, the marginal cdf value at coordinate x
+    """
+    return self._distribution.marginal(x, variable)
+
 DistributionsCollection.addSub(NDimensionalDistributions.getInputSpecification())
 
 class NDInverseWeight(NDimensionalDistributions):
@@ -2792,13 +2808,15 @@ class NDInverseWeight(NDimensionalDistributions):
 
   def inverseMarginalDistribution(self, x, variable):
     """
-      Compute the inverse of the Margina distribution
-      @ In, x, float, the coordinate for at which the inverse marginal distribution needs to be computed
-      @ In, variable, string, the variable id
-      @ Out, inverseMarginal, float, the marginal cdf value at coordinate x
+      Compute the inverse of the Marginal distribution
+      @ In, x, float, the cdf for at which the inverse marginal distribution needs to be computed
+      @ In, variable, int, the variable id dimension coordinate (e.g. 0 => 1st coordinate, 1 => 2nd coordinate)
+      @ Out, inverseMarginal, float, the marginal inverse cdf value at coordinate x
     """
-    if (x>0.0) and (x<1.0):
-      inverseMarginal = self._distribution.inverseMarginal(x, variable)
+    if (x>=0.0) and (x<=1.0):
+      inverseMarginal = self._distribution.inverseMarginal(min(1.-sys.float_info.epsilon,
+                                                           max(sys.float_info.epsilon,x)),
+                                                           variable)
     else:
       self.raiseAnError(ValueError,'NDInverseWeight: inverseMarginalDistribution(x) with x outside [0.0,1.0]')
     return inverseMarginal
@@ -2981,11 +2999,13 @@ class NDCartesianSpline(NDimensionalDistributions):
     """
       Compute the inverse of the Margina distribution
       @ In, x, float, the coordinate for at which the inverse marginal distribution needs to be computed
-      @ In, variable, string, the variable id
+      @ In, variable, int, the variable id dimension coordinate (e.g. 0 => 1st coordinate, 1 => 2nd coordinate)
       @ Out, inverseMarginal, float, the marginal cdf value at coordinate x
     """
     if (x>=0.0) and (x<=1.0):
-      inverseMarginal = self._distribution.inverseMarginal(x, variable)
+      inverseMarginal = self._distribution.inverseMarginal(min(1.-sys.float_info.epsilon,
+                                                           max(sys.float_info.epsilon,x)),
+                                                           variable)
     else:
       self.raiseAnError(ValueError,'NDCartesianSpline: inverseMarginalDistribution(x) with x ' +str(x)+' outside [0.0,1.0]')
     return inverseMarginal
@@ -3366,14 +3386,18 @@ class MultivariateNormal(NDimensionalDistributions):
     """
       Compute the inverse of the Margina distribution
       @ In, x, float, the coordinate for at which the inverse marginal distribution needs to be computed
-      @ In, variable, string, the variable id
+      @ In, variable, int, the variable id dimension coordinate (e.g. 0 => 1st coordinate, 1 => 2nd coordinate)
       @ Out, inverseMarginal, float, the marginal cdf value at coordinate x
     """
-    if (x > 0.0) and (x < 1.0):
+    if (x >= 0.0) and (x <= 1.0):
       if self.method == 'pca':
-        inverseMarginal = self._distribution.inverseMarginalForPCA(x)
+        inverseMarginal = self._distribution.inverseMarginalForPCA(min(1.-sys.float_info.epsilon,
+                                                                   max(sys.float_info.epsilon,
+                                                                   x)))
       elif self.method == 'spline':
-        inverseMarginal=  self._distribution.inverseMarginal(x, variable)
+        inverseMarginal=  self._distribution.inverseMarginal(min(1.-sys.float_info.epsilon,
+                                                             max(sys.float_info.epsilon,x)),
+                                                             variable)
     else:
       self.raiseAnError(ValueError,'NDInverseWeight: inverseMarginalDistribution(x) with x ' +str(x)+' outside [0.0,1.0]')
     return inverseMarginal
