@@ -69,28 +69,28 @@ In the \xmlNode{ROM} input block, the following XML sub-nodes are required,
 independent of the \xmlAttr{subType} specified:
 %
 \begin{itemize}
-%  \item \xmlNode{Features}, \xmlDesc{comma separated string, required field},
-%  specifies the names of the features of this ROM.
-%  %
-%  \nb These parameters will be requested for the training of this object (see
-%  Section~\ref{subsec:stepRomTrainer}).
-%  \item \xmlNode{Target}, \xmlDesc{comma separated string, required field},
-%  contains a comma separated list of the targets of this ROM.
-%  %
-%  The parameters listed here represent the figures of merit this ROM is supposed
-%  to predict.
-%  %
-%  \nb These parameters are going to be requested for the training of this object
-%  (see Section~\ref{subsec:stepRomTrainer}).
   %
-   \item \xmlNode{Features}, \xmlDesc{comma separated string, required field}, specifies the names of the features of this ROM.
-   \nb These parameters are going to be requested for the training of this object (see Section~\ref{subsec:stepRomTrainer});
-    \item \xmlNode{Target}, \xmlDesc{comma separated string, required field}, contains a comma separated list of the targets of this ROM. These parameters are the Figures of Merit (FOMs) this ROM is supposed to predict.
+   \item \xmlNode{Features}, \xmlDesc{comma separated string, required field}, 
+     specifies the names of the features of this ROM.
+   \nb These parameters are going to be requested for the training of this object
+    (see Section~\ref{subsec:stepRomTrainer});
+    \item \xmlNode{Target}, \xmlDesc{comma separated string, required field},
+      contains a comma separated list of the targets of this ROM. These parameters 
+      are the Figures of Merit (FOMs) this ROM is supposed to predict.
     \nb These parameters are going to be requested for the training of this
     object (see Section \ref{subsec:stepRomTrainer}).
-
 \end{itemize}
 
+If a time-dependent ROM is requested, a \textbf{HistorySet} should be provided.
+The temporal vairable specified in the \textbf{HistorySet} should be also listed
+as sub-nodes inside \xmlNode{ROM}
+%
+\begin{itemize}
+  \item \xmlNode{pivotParameter}, \xmlDesc{string, optional parameter}, specifies the pivot
+    variable (e.g. time, etc) used in the input HistorySet.
+    \default{time}
+\end{itemize}
+%
 In addition, if the user wants to use the alias system, the following XML block can be inputted:
 \begin{itemize}
   \item \aliasSystemDescription{ROM}
@@ -639,15 +639,8 @@ by the following sub-node within the main \xmlNode{ROM} XML node:
 \end{itemize}
 Based on the \xmlNode{SKLtype} several different algorithms are available.
 %
-In addition, the temporal vairable for a \textbf{HistorySet} \xmlString{SciKitLearn}
-is specified in \xmlNode{pivotParameter}:
-\begin{itemize}
-  \item \xmlNode{pivotParameter}, \xmlDesc{string, optional parameter}, specifies the pivot
-    variable (e.g. time, etc) in the input HistorySet.
-    \default{time}
-\end{itemize}
 \nb for HistorySet's \xmlString{SciKitLearn} performs the task given in \xmlNode{SKLtype} for
-each time step. and so only synchronized HistorySet can be used as input to this ROM. For
+each time step, and only synchronized HistorySet can be used as input to this ROM. For
 unsynchronized HistorySet, use \xmlString{HistorySetSync} method in \xmlString{Interfaced}
 post-processor to synchronize the input data before using \xmlString{SciKitLearn}.
 
