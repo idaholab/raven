@@ -1,0 +1,122 @@
+<?xml version="1.0" ?>
+<Simulation>
+  <TestInfo>
+    <author>rouxpn</author>
+    <created>2018-04-23</created>
+    <description>
+       An example of using the MRTAU standalone within the PHISICS code interface. 
+    </description>
+    <revisions>
+      <revision author="rouxpn" date="2018-04-23">mrtau test case</revision>
+    </revisions>
+  </TestInfo>
+  <RunInfo>
+    <WorkingDir>./mrtau</WorkingDir>
+    <Sequence>mrtauTest</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name="decay.dat"           type="decay"             perturbable="True"   subDirectory="mrtau_libraries" >decay.dat</Input>
+    <Input name="lib_inp_path.xml"    type="path"              perturbable="False"                                 >lib_inp_path.xml</Input>
+    <Input name="Depletion_input.xml" type="Depletion_input"   perturbable="False"                                 >Depletion_input.xml</Input>
+    <Input name="FissionYield.dat"    type="FissionYield"      perturbable="True"  subDirectory="mrtau_libraries"  >FissionYield.dat</Input>
+    <Input name="FissQValue.dat"      type="FissQValue"        perturbable="True"  subDirectory="mrtau_libraries"  >FissQValue.dat</Input>
+    <Input name="AlphaDecay.path"     type="AlphaDecay"        perturbable="True"  subDirectory="mrtau_libraries"  >AlphaDecay.path</Input>
+    <Input name="Beta+Decay.path"     type="Beta+Decay"        perturbable="True"  subDirectory="mrtau_libraries"  >Beta+Decay.path</Input>
+    <Input name="Beta+xDecay.path"    type="Beta+xDecay"       perturbable="True"  subDirectory="mrtau_libraries"  >Beta+xDecay.path</Input>
+    <Input name="BetaDecay.path"      type="BetaDecay"         perturbable="True"  subDirectory="mrtau_libraries"  >BetaDecay.path</Input>
+    <Input name="BetaxDecay.path"     type="BetaxDecay"        perturbable="True"  subDirectory="mrtau_libraries"  >BetaxDecay.path</Input>
+    <Input name="IntTraDecay.path"    type="IntTraDecay"       perturbable="True"  subDirectory="mrtau_libraries"  >IntTraDecay.path</Input>
+    <Input name="N,2N.path"           type="N,2N"              perturbable="False" subDirectory="mrtau_libraries"  >N,2N.path</Input>
+    <Input name="N,ALPHA.path"        type="N,ALPHA"           perturbable="False" subDirectory="mrtau_libraries"  >N,ALPHA.path</Input>
+    <Input name="N,G.path"            type="N,G"               perturbable="False" subDirectory="mrtau_libraries"  >N,G.path</Input>
+    <Input name="N,Gx.path"           type="N,Gx"              perturbable="False" subDirectory="mrtau_libraries"  >N,Gx.path</Input>
+    <Input name="N,P.path"            type="N,P"               perturbable="False" subDirectory="mrtau_libraries"  >N,P.path</Input>
+    <Input name="budep.inp"           type="budep"             perturbable="False" subDirectory="mrtau_libraries"  >budep.inp</Input>
+    <Input name="CRAM_coeff_PF.dat"   type="CRAM_coeff_PF"     perturbable="False" subDirectory="mrtau_libraries"  >CRAM_coeff_PF.dat</Input>
+    <Input name="IsotopeList.dat"     type="IsotopeList"       perturbable="False" subDirectory="mrtau_libraries"  >IsotopeList.dat</Input>
+    <Input name="mass.inp"            type="mass"              perturbable="False" subDirectory="mrtau_libraries"  >mass.inp</Input>
+  </Files>
+
+  <Models>
+    <Code name="PHISICS" subType="Phisics">
+       <executable>mrtau_standalone</executable>
+       <mrtauStandAlone>T</mrtauStandAlone>
+    </Code>
+  </Models>
+
+  <Distributions>
+    <Normal name="DECAY|BETA|PU241_distrib">
+      <mean>6.81E-10</mean>
+      <sigma>3.0E-10</sigma>
+      <upperBound>8.0E-10</upperBound>
+      <lowerBound>1.0E-10</lowerBound>
+    </Normal>
+    <Normal name="MASS|NP237_distrib">
+      <mean>5.0</mean>
+      <sigma>1</sigma>
+      <upperBound>6.0</upperBound>
+      <lowerBound>4.0</lowerBound>
+    </Normal>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="MC_samp">
+      <samplerInit>
+        <limit>2</limit>
+      </samplerInit>
+      <variable name="DECAY|BETA|PU241">
+        <distribution>DECAY|BETA|PU241_distrib</distribution>
+      </variable>
+      <variable name="MASS|NP237">
+        <distribution>MASS|NP237_distrib</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="mrtauTest">
+      <Input class="Files" type="decay"             >decay.dat</Input>
+      <Input class="Files" type="path"              >lib_inp_path.xml</Input>
+      <Input class="Files" type="Depletion_input"   >Depletion_input.xml</Input>
+      <Input class="Files" type="FissionYield"      >FissionYield.dat</Input>
+      <Input class="Files" type="FissQValue"        >FissQValue.dat</Input>
+      <Input class="Files" type="AlphaDecay"        >AlphaDecay.path</Input>
+      <Input class="Files" type="Beta+Decay"        >Beta+Decay.path</Input>
+      <Input class="Files" type="Beta+xDecay"       >Beta+xDecay.path</Input>
+      <Input class="Files" type="BetaDecay"         >BetaDecay.path</Input>
+      <Input class="Files" type="BetaxDecay"        >BetaxDecay.path</Input>
+      <Input class="Files" type="IntTraDecay"       >IntTraDecay.path</Input>
+      <Input class="Files" type="N,2N"              >N,2N.path</Input>  
+      <Input class="Files" type="N,ALPHA"           >N,ALPHA.path</Input>
+      <Input class="Files" type="N,G"               >N,G.path</Input>
+      <Input class="Files" type="N,Gx"              >N,Gx.path</Input>
+      <Input class="Files" type="N,P"               >N,P.path</Input> 
+      <Input class="Files" type="budep"             >budep.inp</Input>   
+      <Input class="Files" type="CRAM_coeff_PF"     >CRAM_coeff_PF.dat</Input>
+      <Input class="Files" type="IsotopeList"       >IsotopeList.dat</Input> 
+      <Input class="Files" type="mass"              >mass.inp</Input>
+      <Model class="Models" type="Code">PHISICS</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MC_samp</Sampler>
+      <Output class="DataObjects" type="PointSet">outMC</Output>
+      <Output class="OutStreams" type="Print">out_streams_RAVEN</Output>
+    </MultiRun>
+  </Steps>
+
+  <OutStreams>
+    <Print name="out_streams_RAVEN">
+      <type>csv</type>
+      <source>outMC</source>
+    </Print>
+  </OutStreams>
+  
+  <DataObjects>
+    <PointSet name="outMC">
+      <Input>DECAY|BETA|PU241</Input>
+      <Output>numDensity|NP237</Output>
+    </PointSet>
+  </DataObjects>
+
+</Simulation>
+
