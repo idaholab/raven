@@ -219,7 +219,6 @@ class Phisics(CodeInterfaceBase):
     """
     #default values if the flag is not in the raven input
     self.mrtauStandAlone = False
-    self.mrtauExecutable = None
     self.phisicsRelap = False
     self.printSpatialRR = False
     self.printSpatialFlux = False
@@ -236,9 +235,6 @@ class Phisics(CodeInterfaceBase):
               child.tag +
               "> -- only supports the following text (case insensitive): \n True \n T \n False \n F. \n Default Value is False"
           )
-      if child.tag == 'mrtauStandAloneExecutable' and self.mrtauStandAlone is True:
-        self.mrtauExecutable = child.text
-
       if child.tag == 'printSpatialRR':
         if (child.text.lower() == 't' or child.text.lower() == 'true'):
           self.printSpatialRR = True
@@ -277,7 +273,6 @@ class Phisics(CodeInterfaceBase):
     """
     mapDict = self.mapInputFileType(inputFiles)
     if self.mrtauStandAlone:
-      executable = self.mrtauExecutable
       commandToRun = executable
       outputfile = 'out~'
     else:
@@ -346,16 +341,22 @@ class Phisics(CodeInterfaceBase):
     """
     failure = True
     if not self.mrtauStandAlone:
-      with open(os.path.join(workingDir, output), 'r') as f:
-        for line in f:
-          if re.search(r'task\s+ended', line, re.IGNORECASE):
-            failure = False
+      outputFile = None
+      if os.path.exists(os.path.join(workingDir, self.instantOutput)):
+        outputFile = os.path.join(workingDir, self.instantOutput)
+      elif os.path.exists(os.path.join(workingDir, self.instantOutput+"-0")):
+        outputFile = os.path.join(workingDir, self.instantOutput+"-0")
+      if outputFile is not None:
+        with open(outputFile, 'r') as f:
+          for line in f:
+            if re.search(r'task\s+ended', line, re.IGNORECASE):
+              failure = False
     else:
-      with open(os.path.join(workingDir, 'Errors_CPUt.txt'), 'r') as f:
-        for line in f:
-          if re.search(r'NO\s+ERRORS\s+IN\s+THE\s+CALCULATION', line,
-                       re.IGNORECASE):
-            failure = False
+      if os.path.exists(os.path.join(workingDir, 'Errors_CPUt.txt')):
+        with open(os.path.join(workingDir, 'Errors_CPUt.txt'), 'r') as f:
+          for line in f:
+            if re.search(r'NO\s+ERRORS\s+IN\s+THE\s+CALCULATION', line, re.IGNORECASE):
+              failure = False
     return failure
 
   def mapInputFileType(self, currentInputFiles):
@@ -381,7 +382,7 @@ class Phisics(CodeInterfaceBase):
     """
     mandatoryType = ["depletion_input", "path"]
     if not self.mrtauStandAlone:
-      mandatoryType.extend("inp", "material", "xs-library")
+      mandatoryType.extend(["inp", "material", "xs-library"])
     else:
       mandatoryType.append("mass")
     for key in mandatoryType:
