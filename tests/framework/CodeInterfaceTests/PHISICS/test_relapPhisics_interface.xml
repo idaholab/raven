@@ -1,0 +1,134 @@
+<?xml version="1.0" ?>
+<Simulation>
+  <TestInfo>
+    <name>framework/CodeInterfaceTests/PHISICS.phisicsRelap5</name>
+    <author>rouxpn</author>
+    <created>2018-04-25</created>
+    <description>
+        This test is aimed to test the mechanics of the combined interface PHISICS/RELAP5 using the
+        RELAP5 (coupled with PHISICS) executable.
+        The density of the I135 is perturbed (PHISICS side) and the heat capacity of a heat structure.
+    </description>
+    <revisions>
+      <revision author="rouxpn" date="2018-04-25">phisics test case</revision>
+    </revisions>
+  </TestInfo>
+  <RunInfo>
+    <WorkingDir>./phisicsRelap5</WorkingDir>
+    <Sequence>phisicsRelap5Test</Sequence>
+    <batchSize>3</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name="decay.dat"           type="decay"             perturbable="True"   subDirectory="MRTAU_lib"  >decay.dat</Input>
+    <Input name="inst_cont.xml"       type="inp"               perturbable="False"                            >inst_cont.xml</Input>
+    <Input name="lib_inp_path.xml"    type="path"              perturbable="False"                            >lib_inp_path.xml</Input>
+    <Input name="mat.xml"             type="Material"          perturbable="True"                             >mat.xml</Input>
+    <Input name="dep.xml"             type="Depletion_input"   perturbable="False"                            >dep.xml</Input>
+    <Input name="lib.xml"             type="Xs-Library"        perturbable="False"                            >lib.xml</Input>
+    <Input name="FissionYield.dat"    type="FissionYield"      perturbable="True"  subDirectory="MRTAU_lib"   >FissionYield.dat</Input>
+    <Input name="FissQValue.dat"      type="FissQValue"        perturbable="True"  subDirectory="MRTAU_lib"   >FissQValue.dat</Input>
+    <Input name="AlphaDecay.path"     type="AlphaDecay"        perturbable="True"  subDirectory="MRTAU_lib"   >AlphaDecay.path</Input>
+    <Input name="Beta+Decay.path"     type="Beta+Decay"        perturbable="True"  subDirectory="MRTAU_lib"   >Beta+Decay.path</Input>
+    <Input name="Beta+xDecay.path"    type="Beta+xDecay"       perturbable="True"  subDirectory="MRTAU_lib"   >Beta+xDecay.path</Input>
+    <Input name="BetaDecay.path"      type="BetaDecay"         perturbable="True"  subDirectory="MRTAU_lib"   >BetaDecay.path</Input>
+    <Input name="BetaxDecay.path"     type="BetaxDecay"        perturbable="True"  subDirectory="MRTAU_lib"   >BetaxDecay.path</Input>
+    <Input name="IntTraDecay.path"    type="IntTraDecay"       perturbable="True"  subDirectory="MRTAU_lib"   >IntTraDecay.path</Input>
+    <Input name="N,2N.path"           type="N,2N"              perturbable="False" subDirectory="MRTAU_lib"   >N,2N.path</Input>
+    <Input name="N,ALPHA.path"        type="N,ALPHA"           perturbable="False" subDirectory="MRTAU_lib"   >N,ALPHA.path</Input>
+    <Input name="N,G.path"            type="N,G"               perturbable="False" subDirectory="MRTAU_lib"   >N,G.path</Input>
+    <Input name="N,Gx.path"           type="N,Gx"              perturbable="False" subDirectory="MRTAU_lib"   >N,Gx.path</Input>
+    <Input name="N,P.path"            type="N,P"               perturbable="False" subDirectory="MRTAU_lib"   >N,P.path</Input>  
+    <Input name="budep.inp"           type="budep"             perturbable="False" subDirectory="MRTAU_lib"   >budep.inp</Input>
+    <Input name="CRAM_coeff_PF.dat"   type="CRAM_coeff_PF"     perturbable="False" subDirectory="MRTAU_lib"   >CRAM_coeff_PF.dat</Input>
+    <Input name="IsotopeList.dat"     type="IsotopeList"       perturbable="False" subDirectory="MRTAU_lib"   >IsotopeList.dat</Input>
+    <Input name="mass.inp"            type="mass"              perturbable="False" subDirectory="MRTAU_lib"   >mass.inp</Input>
+    <Input name="tabMapping.xml"      type="tabMap"             perturbable="False"                           >tabMapping.xml</Input>
+    <Input name="snc01.i"             type="relapInp"          perturbable="True"                             >snc01.i</Input>
+  </Files>
+
+  <Models>
+    <Code name="PHISICS_RELAP5" subType="PhisicsRelap5">
+       <executable>ls</executable>
+       <printSpatialRR>F</printSpatialRR>
+       <printSpatialFlux>F</printSpatialFlux>
+    </Code>    
+  </Models>
+
+  <Distributions>
+    <Normal name="DENSITY|MATF1|FUEL_distrib">
+      <mean>1.0</mean>
+      <sigma>0.01</sigma>
+      <upperBound>1.3</upperBound>
+      <lowerBound>0.7</lowerBound>
+    </Normal>
+    <Normal name="heat_capacity_154">
+      <mean>44.5</mean>
+      <sigma>0.5</sigma>
+      <upperBound>40</upperBound>
+      <lowerBound>49</lowerBound>
+    </Normal>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="MC_samp">
+      <samplerInit>
+        <limit>2</limit>
+      </samplerInit>
+      <variable name="DENSITY|MATF1|FUEL">
+        <distribution>DENSITY|MATF1|FUEL_distrib</distribution>
+      </variable>
+      <variable name="20100154:2">
+        <distribution>heat_capacity_154</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="phisicsRelap5Test">
+      <Input class="Files" type="decay"              >decay.dat</Input>
+      <Input class="Files" type="inp"                >inst_cont.xml</Input>
+      <Input class="Files" type="path"               >lib_inp_path.xml</Input>
+      <Input class="Files" type="Material"           >mat.xml</Input>
+      <Input class="Files" type="Depletion_input"    >dep.xml</Input>
+      <Input class="Files" type="Xs-Library"         >lib.xml</Input>
+      <Input class="Files" type="FissionYield"       >FissionYield.dat</Input>
+      <Input class="Files" type="FissQValue"         >FissQValue.dat</Input>
+      <Input class="Files" type="AlphaDecay"         >AlphaDecay.path</Input>
+      <Input class="Files" type="Beta+Decay"         >Beta+Decay.path</Input>
+      <Input class="Files" type="Beta+xDecay"        >Beta+xDecay.path</Input>
+      <Input class="Files" type="BetaDecay"          >BetaDecay.path</Input>
+      <Input class="Files" type="BetaxDecay"         >BetaxDecay.path</Input>
+      <Input class="Files" type="IntTraDecay"        >IntTraDecay.path</Input>  
+      <Input class="Files" type="N,2N.path"          >N,2N.path</Input>  
+      <Input class="Files" type="N,ALPHA.path"       >N,ALPHA.path</Input>
+      <Input class="Files" type="N,G.path"           >N,G.path</Input>
+      <Input class="Files" type="N,Gx.path"          >N,Gx.path</Input>
+      <Input class="Files" type="N,P.path"           >N,P.path</Input> 
+      <Input class="Files" type="budep.inp"          >budep.inp</Input>   
+      <Input class="Files" type="CRAM_coeff_PF.dat"  >CRAM_coeff_PF.dat</Input> 
+      <Input class="Files" type="IsotopeList.dat"    >IsotopeList.dat</Input> 
+      <Input class="Files" type="mass.inp"           >mass.inp</Input> 
+      <Input class="Files" type="relapInp"           >snc01.i</Input>
+      <Model class="Models" type="Code">PHISICS_RELAP5</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MC_samp</Sampler>
+      <Output class="DataObjects" type="PointSet">outMC</Output>
+      <Output class="OutStreams" type="Print">out_streams_RAVEN</Output>
+    </MultiRun>
+  </Steps>
+  
+  <OutStreams>
+      <Print name="out_streams_RAVEN">
+        <type>csv</type>
+        <source>outMC</source>
+      </Print>
+  </OutStreams>
+
+  <DataObjects>
+      <PointSet name="outMC">
+        <Input>DENSITY|MATF1|FUEL,20100154:2</Input>
+        <Output>keff</Output>
+      </PointSet>
+  </DataObjects>
+
+</Simulation>

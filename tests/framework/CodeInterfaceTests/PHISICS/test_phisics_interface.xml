@@ -1,10 +1,13 @@
 <?xml version="1.0" ?>
 <Simulation>
   <TestInfo>
+    <name>framework/CodeInterfaceTests/PHISICS.phisics</name>
     <author>rouxpn</author>
     <created>2018-04-23</created>
     <description>
-       An example of using the PHISICS code interface. 
+        This test is aimed to test the mechanics of the interface between RAVEN and
+        PHISICS, using the full-blonde PHISICS executable.
+        Qvalues, decay constants, initial densities and cross sections get perturbed.
     </description>
     <revisions>
       <revision author="alfoa" date="2018-07-08">modified to make it work and to remove nuclear data</revision>
