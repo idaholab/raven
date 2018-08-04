@@ -59,13 +59,13 @@ class ROM(Dummy):
     InterpolationInput.addParam("quad", InputData.StringType, False)
     InterpolationInput.addParam("poly", InputData.StringType, False)
     InterpolationInput.addParam("weight", InputData.FloatType, False)
+    inputSpecification.addSub(InterpolationInput)
 
     inputSpecification.addSub(InputData.parameterInputFactory('Features',contentType=InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory('Target',contentType=InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("IndexPoints", InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("IndexSet",IndexSetInputType))
     inputSpecification.addSub(InputData.parameterInputFactory('pivotParameter',contentType=InputData.StringType))
-    inputSpecification.addSub(InterpolationInput)
     inputSpecification.addSub(InputData.parameterInputFactory("PolynomialOrder", InputData.IntegerType))
     inputSpecification.addSub(InputData.parameterInputFactory("SobolOrder", InputData.IntegerType))
     inputSpecification.addSub(InputData.parameterInputFactory("SparseGrid", InputData.StringType))
@@ -161,6 +161,9 @@ class ROM(Dummy):
     inputSpecification.addSub(InputData.parameterInputFactory("nugget", InputData.FloatType))
     inputSpecification.addSub(InputData.parameterInputFactory("optimizer", InputData.StringType)) #enum
     inputSpecification.addSub(InputData.parameterInputFactory("random_start", InputData.IntegerType))
+    # ARMA
+    correlated = InputData.parameterInputFactory('correlate')
+    inputSpecification.addSub(correlated)
     inputSpecification.addSub(InputData.parameterInputFactory("Pmax", InputData.IntegerType))
     inputSpecification.addSub(InputData.parameterInputFactory("Pmin", InputData.IntegerType))
     inputSpecification.addSub(InputData.parameterInputFactory("Qmax", InputData.IntegerType))
@@ -169,7 +172,7 @@ class ROM(Dummy):
     inputSpecification.addSub(InputData.parameterInputFactory("Fourier", InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("FourierOrder", InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("reseedCopies", InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("reseedValue", InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("seed", InputData.IntegerType))
     # inputs for neural_network
     inputSpecification.addSub(InputData.parameterInputFactory("hidden_layer_sizes", InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("activation", InputData.StringType))

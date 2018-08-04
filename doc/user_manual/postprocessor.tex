@@ -125,7 +125,7 @@ data objects, depending on the type of statistics the user wants to compute:
       For example, if we define ``sen'' as the prefix for \textbf{sensitivity}, target ``y'' and feature ``x'', then
       variable ``sen\_y\_x'' will be defined by RAVEN.
       \nb These variable will be used by RAVEN for the internal calculations. It is also accessible by the user through
-      \textbf{DataObjects} and \textbf{OutStreams}. 
+      \textbf{DataObjects} and \textbf{OutStreams}.
   \end{itemize}
    %
   \nb If the weights are present in the system then weighted quantities are calculated automatically. In addition, if a matrix quantity is requested (e.g. Covariance matrix, etc.), only the weights in the output space are going to be used for both input and output space (the computation of the joint probability between input and output spaces is not implemented yet).
@@ -172,7 +172,7 @@ data objects, depending on the type of statistics the user wants to compute:
 \end{lstlisting}
 
 In this case, the RAVEN variables ``mean\_x01, mean\_x02, sen\_x01\_a, sen\_x02\_a, sen\_x01\_b, sen\_x02\_b''
-will be created and accessible for the RAVEN entities \textbf{DataObjects} and \textbf{OutStreams}. 
+will be created and accessible for the RAVEN entities \textbf{DataObjects} and \textbf{OutStreams}.
 
 \textbf{Example (Static, multiple matrix nodes):} This example shows how multiple nodes can specify
 particular metrics multiple times to include different target/feature combinations.  This postprocessor
@@ -768,8 +768,11 @@ Section~\ref{sec:functions} for more details).
 \begin{itemize}
   \item \xmlNode{method}, \xmlDesc{comma separated string, required field},
   lists the method names of an external Function that will be computed (each
-  returning a post-processing value). The name of the method represents a new
-  variable that can be stored in a new \textbf{\textit{DataObjects}} entity.
+  returning a post-processing value). \nb New variable names will be defined as:
+  ``Function Name in this post-processor'' + ``\_`` + ``variable name in XML
+  node \xmlNode{method}''. These new varialbes will be used to store the computed
+  values from the list of methods, and can be accessed by the users through RAVEN
+  entities \textbf{DataObjects} and \textbf{OutStreams}.
   \item \xmlNode{Function}, \xmlDesc{xml node, required string field}, specifies
   the name of a Function where the \textit{methods} listed above are defined.
   %
@@ -1097,7 +1100,7 @@ This Post-Processor performs the conversion from HistorySet to PointSet performi
 In the \xmlNode{PostProcessor} input block, the following XML sub-nodes are available:
 
 \begin{itemize}
-   \item \xmlNode{pivotParameter}, \xmlDesc{string, optional field}, ID of the temporal variable. Default is ``time''. 
+   \item \xmlNode{pivotParameter}, \xmlDesc{string, optional field}, ID of the temporal variable. Default is ``time''.
    \nb Used just in case the  \xmlNode{pivotValue}-based operation  is requested
     \item \xmlNode{operator}, \xmlDesc{string, optional field}, the operation to perform on the output space:
       \begin{itemize}
@@ -1115,10 +1118,10 @@ In the \xmlNode{PostProcessor} input block, the following XML sub-nodes are avai
         \item \textbf{celing}, find the value that is the nearest with respect to the \xmlNode{pivotValue} but greater then the  \xmlNode{pivotValue}
         \item \textbf{interpolate}, if the exact  \xmlNode{pivotValue}  can not be found, interpolate using a linear approach
        \end{itemize}
-       
+
        \nb Valid just in case \xmlNode{pivotValue} is present
      \item \xmlNode{row}, \xmlDesc{int, optional field}, the row index at which the outputs need to be extracted.
-       \nb This node can be inputted only if \xmlNode{operator} and \xmlNode{pivotValue} are not present   
+       \nb This node can be inputted only if \xmlNode{operator} and \xmlNode{pivotValue} are not present
 \end{itemize}
 
 This example will show how the XML input block would look like:
@@ -1699,7 +1702,7 @@ The resulting PointSet has \emph{time} as an input and \emph{first} as an output
 \subsubsection{ETImporter}
 \label{ETImporterPP}
 The \textbf{ETImporter} post-processor has been designed to import Event-Tree (ET) object into
-RAVEN. This is performed by saving the structure of the ET (from file) as a \textbf{PointSet} (only \textbf{PointSet} are allowed). 
+RAVEN. This is performed by saving the structure of the ET (from file) as a \textbf{PointSet} (only \textbf{PointSet} are allowed).
 Since an ET is a static Boolean logic structure, the \textbf{PointSet} is structured as follows:
 \begin{itemize}
   \item Input variables of the \textbf{PointSet} are the branching conditions of the ET. The value of each input variable can be:
@@ -1707,7 +1710,7 @@ Since an ET is a static Boolean logic structure, the \textbf{PointSet} is struct
     \item  0: event did occur (typically upper branch)
     \item  1: event did not occur (typically lower branch)
     \item -1: event is not queried (no branching occured)
-  \end{itemize}   
+  \end{itemize}
   \item Output variables of the \textbf{PointSet} are the ID of each branch of the ET (i.e., positive integers greater than 0)
 \end{itemize}
 Since several ET file formats are available, as of now only the OpenPSA format (see https://open-psa.github.io/joomla1.5/index.php.html) is supported.
@@ -1750,7 +1753,7 @@ Fault-Trees to the branch (i.e., fork) point.
     ...
     <PostProcessor name="ETImporter" subType="ETImporter">
       <fileFormat>OpenPSA</fileFormat>
-    </PostProcessor>   
+    </PostProcessor>
     ...
   </Models>
  ...

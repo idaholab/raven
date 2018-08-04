@@ -36,6 +36,7 @@ from utils import utils
 import SupervisedLearning
 import MessageHandler
 #Internal Modules End--------------------------------------------------------------------------------
+
 class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),MessageHandler.MessageUser):
   """
     This class represents an interface with all the supervised learning algorithms
@@ -63,10 +64,11 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
       if not 'Target' in self.initializationOptions.keys():
         self.raiseAnError(IOError,'No Targets specified!!!')
     # check if pivotParameter is specified and in case store it
-    self.pivotParameterId     = self.initializationOptions.pop("pivotParameter",'time')
+    self.pivotParameterId     = self.initializationOptions.get("pivotParameter",'time')
     # return instance of the ROMclass
     modelInstance = SupervisedLearning.returnInstance(ROMclass,self,**self.initializationOptions)
-    # check if the model can autonomously handle the time-dependency (if not and time-dep data are passed in, a list of ROMs are constructed)
+    # check if the model can autonomously handle the time-dependency
+    # (if not and time-dep data are passed in, a list of ROMs are constructed)
     self.canHandleDynamicData = modelInstance.isDynamic()
     # is this ROM  time-dependent ?
     self.isADynamicModel      = False
@@ -228,8 +230,11 @@ def returnInstance(gateType, ROMclass, caller, **kwargs):
   """
   try:
     return __interfaceDict[gateType](ROMclass, caller.messageHandler,**kwargs)
-  except KeyError as ae:
-    caller.raiseAnError(NameError,'not known '+__base+' type '+str(gateType))
+  except KeyError as e:
+    if gateType not in __interfaceDict:
+      caller.raiseAnError(NameError,'not known '+__base+' type '+str(gateType))
+    else:
+      raise e
 
 def returnClass(ROMclass,caller):
   """

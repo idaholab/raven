@@ -43,8 +43,8 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
     PostProcessorInterfaceBase.initialize(self)
     self.inputFormat  = 'HistorySet'
     self.outputFormat = 'HistorySet'
-    if not hasattr(self, 'pivotParameter'):
-      self.pivotParameter = 'Time' #FIXME this assumes the ARMA model!  Dangerous assumption.
+    #if not hasattr(self, 'pivotParameter'):
+    #  self.pivotParameter = 'Time' #FIXME this assumes the ARMA model!  Dangerous assumption.
     if not hasattr(self, 'outputLen'):
       self.outputLen = None
 
@@ -62,6 +62,11 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
         self.pivotParameter = child.text
       elif child.tag == 'outputLen':
         self.outputLen = float(child.text)
+
+    # checks
+    if not hasattr(self, 'pivotParameter'):
+      self.raiseAnError(IOError,'"pivotParameter" was not specified for "{}" PostProcessor!'.format(self.name))
+
 
   def retrieveHistory(self,dictIn,N):
     """
