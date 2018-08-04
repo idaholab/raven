@@ -40,4 +40,11 @@
   output = 'large/large_restart.xml'
   UnorderedCsv = 'large/large_restart.csv'
  [../]
+ 
+ [./Constant]
+  type = 'RavenFramework'
+  input = 'test_restart_constant.xml'
+  UnorderedCsv = 'con/coarse.csv con/restart.csv'
+  remove_unicode_identifier = true
+ [../]
 []

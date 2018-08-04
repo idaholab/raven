@@ -1,0 +1,113 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/Samplers/Restart.Constant</name>
+    <author>wangc</author>
+    <created>2018-08-04</created>
+    <classesTested>Samplers.Grid</classesTested>
+    <description>
+        The essence of this test is to demonstrate the restart capability with constant variable,
+        i.e. test the scaling factor for constant samples as mentioned in issue #690
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>con</WorkingDir>
+    <Sequence>makeCoarse, makeFineRestart,print</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="makeCoarse">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ExternalModel">coarsemod</Model>
+      <Sampler class="Samplers" type="Grid">coarse</Sampler>
+      <Output class="DataObjects" type="PointSet">solns</Output>
+    </MultiRun>
+    <MultiRun name="makeFineRestart">
+      <Input class="DataObjects" type="PointSet">solns</Input>
+      <Model class="Models" type="ExternalModel">finemod</Model>
+      <Sampler class="Samplers" type="Grid">fineRestart</Sampler>
+      <Output class="DataObjects" type="PointSet">solnsRestart</Output>
+    </MultiRun>
+    <IOStep name="print">
+      <Input class="DataObjects" type="PointSet">solns</Input>
+      <Input class="DataObjects" type="PointSet">solnsRestart</Input>
+      <Output class="OutStreams" type="Print">coarse</Output>
+      <Output class="OutStreams" type="Print">restart</Output>
+    </IOStep>
+  </Steps>
+
+  <Distributions>
+    <Uniform name="u1">
+      <lowerBound>1</lowerBound>
+      <upperBound>2</upperBound>
+    </Uniform>
+    <Uniform name="u2">
+      <lowerBound>2</lowerBound>
+      <upperBound>3</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Samplers>
+    <Grid name="coarse">
+      <variable name="x1">
+        <distribution>u1</distribution>
+        <grid construction="equal" steps="1" type="CDF">0.0 1.0</grid>
+      </variable>
+      <constant name="x2">2.0</constant>
+    </Grid>
+    <Grid name="fineRestart">
+      <variable name="x1">
+        <distribution>u1</distribution>
+        <grid construction="equal" steps="2" type="CDF">0.0 1.0</grid>
+      </variable>
+      <variable name="x2">
+        <distribution>u2</distribution>
+        <grid construction="equal" steps="2" type="CDF">0.0 1.0</grid>
+      </variable>
+      <Restart class="DataObjects" type="PointSet">solns</Restart>
+    </Grid>
+  </Samplers>
+
+  <Models>
+    <Dummy name="MyDummy" subType=""/>
+    <!-- The "coarsemod" model will output a reponse of 1.0, while "finemod" gives 2.0.
+         This allows the test to distinguish which samples originated in "coarse" and which in "fine".-->
+    <ExternalModel ModuleToLoad="../coarse" name="coarsemod" subType="">
+      <variables>x1,x2,ans</variables>
+    </ExternalModel>
+    <ExternalModel ModuleToLoad="../fine" name="finemod" subType="">
+      <variables>x1,x2,ans</variables>
+    </ExternalModel>
+  </Models>
+
+  <DataObjects>
+    <PointSet name="dummyIN">
+      <Input>x1,x2</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="solns">
+      <Input>x1,x2</Input>
+      <Output>ans</Output>
+    </PointSet>
+    <PointSet name="solnsRestart">
+      <Input>x1,x2</Input>
+      <Output>ans</Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="coarse">
+      <type>csv</type>
+      <source>solns</source>
+      <what>input,output</what>
+    </Print>
+    <Print name="restart">
+      <type>csv</type>
+      <source>solnsRestart</source>
+      <what>input,output</what>
+    </Print>
+  </OutStreams>
+
+</Simulation>
