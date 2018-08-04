@@ -7,7 +7,7 @@
        An example of using the MRTAU standalone within the PHISICS code interface. 
     </description>
     <revisions>
-      <revision author="rouxpn" date="2018-04-23">mrtau test case</revision>
+        <revision author="alfoa" date="2018-07-08">modified to make it work and to remove nuclear data</revision>
     </revisions>
   </TestInfo>
   <RunInfo>
@@ -41,7 +41,7 @@
 
   <Models>
     <Code name="PHISICS" subType="Phisics">
-       <executable>mrtau_standalone</executable>
+       <executable>xxxx</executable>
        <mrtauStandAlone>T</mrtauStandAlone>
     </Code>
   </Models>

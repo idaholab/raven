@@ -5,7 +5,7 @@
     input = 'test_mrtau_standalone.xml'
     output = 'mrtau/mrtauTest/1/mrtau.csv mrtau/mrtauTest/2/mrtau.csv'
     UnorderedCsv = 'mrtau/out_streams_RAVEN.csv'
-    text = 'mrtau/mrtau_libraries/decay.dat'
+    text = 'mrtau/mrtauTest/1/mrtau_libraries/decay.dat'
  [../]
  [./phisics]
    type = 'RavenFramework'
@@ -13,8 +13,8 @@
    input = 'test_phisics_interface.xml'
    output = 'phisics/phisicsTest2D/1/HTGR_test.csv phisics/phisicsTest2D/2/HTGR_test.csv'
    UnorderedCsv = 'phisics/out_streams_RAVEN.csv'
-   text = 'phisics/library_fiss/decay.dat'
-   UnorderedXml = 'phisics/Material.xml '
+   text = 'phisics/phisicsTest2D/1/mrtau_libraries/decay.dat'
+   UnorderedXml = 'phisics/phisicsTest2D/1/Material.xml'
  [../]
   [./phisicsRelap5]
     type = 'RavenFramework'
@@ -23,5 +23,6 @@
     output = 'phisicsRelap5/phisicsRelap5Test/1/relapPhisics.csv phisicsRelap5/phisicsRelap5Test/2/relapPhisics.csv'
     UnorderedCsv = 'phisicsRelap5/out_streams_RAVEN.csv'
     text = 'phisicsRelap5/MRTAU_lib/decay.dat'
-    UnorderedXml = 'phisicsRelap5/mat.xml '
+    UnorderedXml = 'phisicsRelap5/mat.xml'
  [../]
+[]
