@@ -3468,17 +3468,17 @@ The \xmlNode{Code} block will contain attributes \xmlAttr{name} and
 \xmlAttr{subType}. The \xmlAttr{name} identifies that particular \xmlNode{Code} model within RAVEN, and
 \xmlAttr{subType} specifies which code interface the model will use. 
 
-The \xmlNode{executable} block contains the absolute or relative path (with respect to the current working directory) to PHISICS that RAVEN will use to run generated input files.
+The \xmlNode{executable} block contains the absolute or relative path (with respect to the current working directory) 
+to PHISICS that RAVEN will use to run generated input files.
 
-The \xmlNode{mrtauStandAlone} node informs whether or not MrTau is ran in standalone mode. The \xmlNode{mrtauStandAlone} accepts only a boolean entry (\xmlString{true}, \xmlString{t}, \xmlString{false},\xmlString{f}). It is case insensitive. 
+The \xmlNode{mrtauStandAlone} node informs whether or not MrTau is ran in standalone mode. The 
+\xmlNode{mrtauStandAlone} accepts only a boolean entry (\xmlString{true}, \xmlString{t}, \xmlString{false}
+,\xmlString{f}). It is case insensitive. 
 Default: false. 
 If \xmlNode{mrtauStandAlone} is false, a coupled INSTANT+MrTau calculation is ran, using the Phisics executable. 
-If \xmlNode{mrtauStandAlone} is true, a subnode \xmlNode{mrtauStandAloneExecutable} has to be defined. 
 
-The \xmlNode{mrtauStandAloneExecutable} node should contain the absolute or relative path (with respect to the current working directory) path to the MrTau executable. 
-Default: None (\xmlNode{mrtauStandAloneExecutable} is required if \xmlNode{mrtauStandAlone} is \xmlString{true}). 
-
-The \xmlNode{printSpatialRR} node indicates if the spatial reaction rates computed by PHISICS are to be included in the RAVEN csv output. The entry is case insensitive. 
+The \xmlNode{printSpatialRR} node indicates if the spatial reaction rates computed by PHISICS are to be included 
+in the RAVEN csv output. The entry is case insensitive. 
 . If False, the total reaction rates are printed instead. Default: False (spatial reaction rate not printed). 
 
 The \xmlNode{printSpatialFlux} node indicates if the spatial neutron fluxes computed by PHISICS are to be included in the RAVEN csv output. The entry is case insensitive. Default: False (spatial fluxes not printed). 
@@ -3490,13 +3490,13 @@ An example of the \xmlNode{Models} block is given below:
     <Code name="PHISICS" subType="Phisics">
        <executable>./path/to/instant/executable</executable>   
        <mrtauStandAlone>F</mrtauStandAlone>
-        <mrtauStandAloneExecutable>./path/to/mrtau/executable              </mrtauStandAloneExecutable>
        <printSpatialRR>F</printSpatialRR>
        <printSpatialFlux>T</printSpatialFlux>
     </Code>
   </Models>
 \end{lstlisting}
-In the example, note that because \xmlNode{mrtauStandAlone} is false, \xmlNode{mrtauStandAloneExecutable} is ignored. If  \xmlNode{mrtauStandAlone} is changed to \xmlString{true}, the path \xmlString{/path/to/mrtau/executable} will be read to get the MrTau executable. 
+In the example, note that because \xmlNode{mrtauStandAlone} is false.
+If  \xmlNode{mrtauStandAlone} is changed to \xmlString{true}, the path \xmlString{/path/to/mrtau/executable} will be read to get the MrTau executable. 
 In the example, RAVEN is used in PHISICS standalone mode. Spatial neutron fluxes are printed a and no spatial reaction rates are printed in the RAVEN output.  
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
