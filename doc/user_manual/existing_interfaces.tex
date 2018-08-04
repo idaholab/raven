@@ -156,62 +156,77 @@ The \xmlNode{executable}
 block should contain the absolute or relative (with respect to the current working
 directory) path to the RAVEN framework script (\textbf{raven\_framework}).
 \\ In addition to the attributes and xml nodes reported above, the RAVEN accepts the following XML nodes (required and optional):
-\begin{itemize}
+\begin{itemize} % nodes for code
   \item  \xmlNode{outputExportOutStreams}, \xmlDesc{comma separated list,
-  required parameter} will specify the  \xmlNode{OutStreams} that will be loaded as outputs of the SLAVE RAVEN.
-  Maximum two  \xmlNode{OutStreams} can be listed here (1 for PointSet and/or 1 for HistorySet).
-  \item  \xmlNode{conversionModule}, \xmlDesc{string,
-  optional parameter} will specify the path to a \textit{Python} module that can contain two methods:
-      \begin{itemize}
-         \item \textbf{\textit{manipulateScalarSampledVariables}}, a method that is aimed to manipulate sampled variables and to create more in case needed.
-         Example:
-          \begin{lstlisting}[language=python]
-def manipulateScalarSampledVariables(sampledVariables):
-  """
-  This method is aimed to manipulate scalar variables.
-  The user can create new variables based on the
-  variables sampled by RAVEN
-   @ In, sampledVariables, dict, dictionary of
-       sampled variables ({"var1":value1,"var2":value2})
-   @ Out, None, the new variables should be
-                 added in the "sampledVariables" dictionary
-  """
-  newVariableValue =
-    sampledVariables['Distributions|Uniform@name:a_dist|lowerBound']
-    + 1.0
-  sampledVariables['Distributions|Uniform@name:a_dist|upperBound'] =
-    newVariableValue
-  return
-           \end{lstlisting}
+    required parameter} will specify the  \xmlNode{OutStreams} that will be loaded as outputs of the SLAVE RAVEN.
+    Maximum two  \xmlNode{OutStreams} can be listed here (1 for PointSet and/or 1 for HistorySet).
+  \item  \xmlNode{conversion}, \xmlDesc{Node,optional parameter} will specify details of conversion scripts to
+    be used in creating the inner RAVEN input file.  This node contains the following nodes:
+    \begin{itemize} % nodes for conversion
+      \item \xmlNode{module}, \xmlDesc{Node, required parameter} contains the information about a specific
+        conversion module (python file).  This node can be repeated multiple times.
+        This node has the following attribute:
+        \begin{itemize} % attributes for module
+          \item \xmlAttr{source}, \xmlDesc{string, required} provides the path to the conversion module including
+              the module file itself.  There are two methods that can be placed in the conversion module:
+              \begin{itemize} % functions for module
+                 \item \textbf{\textit{manipulateScalarSampledVariables}}, a method that is aimed to manipulate sampled variables and to create more in case needed.
+                 Example:
+                  \begin{lstlisting}[language=python]
+                    def manipulateScalarSampledVariables(sampledVariables):
+                      """
+                      This method is aimed to manipulate scalar variables.
+                      The user can create new variables based on the
+                      variables sampled by RAVEN
+                       @ In, sampledVariables, dict, dictionary of
+                           sampled variables ({"var1":value1,"var2":value2})
+                       @ Out, None, the new variables should be
+                                     added in the "sampledVariables" dictionary
+                      """
+                      newVariableValue =
+                        sampledVariables['Distributions|Uniform@name:a_dist|lowerBound']
+                        + 1.0
+                      sampledVariables['Distributions|Uniform@name:a_dist|upperBound'] =
+                        newVariableValue
+                      return
+                   \end{lstlisting}
 
-         \item \textbf{\textit{convertNotScalarSampledVariables}}, a method that is aimed to convert not scalar variables (e.g. 1D arrays) into multiple scalar variables
-         (e.g.  \xmlNode{constant}(s) in a sampling strategy).
-          This method is going to be required in case not scalar variables are detected by the interface.
-          Example:
-          \begin{lstlisting}[language=python]
- def convertNotScalarSampledVariables(noScalarVariables):
-  """
-  This method is aimed to convert not scalar
-  variables into multiple scalar variables. The user MUST
-   create new variables based on the not Scalar Variables
-    sampled (and passed in) by RAVEN
-  @ In, noScalarVariables, dict, dictionary of sampled
-       variables that are not scalar ({"var1":1Darray1,"var2":1Darray2})
-  @ Out, newVars, dict,  the new variables that have
-       been created based on the not scalar variables
-       contained in "noScalarVariables" dictionary
-  """
-  oneDimensionalArray =
-      noScalarVariables['temperatureHistory']
-  newVars = {}
-  for cnt, value in enumerate(oneDimensionalArray):
-    newVars['Samplers|MonteCarlo@name:myMC|constant'+
-               '@name=temperatureHistory'+str(cnt)] =
-               oneDimensionalArray[cnt]
-  return newVars
-           \end{lstlisting}
-      \end{itemize}
-\end{itemize}
+                 \item \textbf{\textit{convertNotScalarSampledVariables}}, a method that is aimed to convert not scalar variables (e.g. 1D arrays) into multiple scalar variables
+                 (e.g.  \xmlNode{constant}(s) in a sampling strategy).
+                  This method is going to be required in case not scalar variables are detected by the interface.
+                  Example:
+                  \begin{lstlisting}[language=python]
+                   def convertNotScalarSampledVariables(noScalarVariables):
+                    """
+                    This method is aimed to convert not scalar
+                    variables into multiple scalar variables. The user MUST
+                     create new variables based on the not Scalar Variables
+                      sampled (and passed in) by RAVEN
+                    @ In, noScalarVariables, dict, dictionary of sampled
+                         variables that are not scalar ({"var1":1Darray1,"var2":1Darray2})
+                    @ Out, newVars, dict,  the new variables that have
+                         been created based on the not scalar variables
+                         contained in "noScalarVariables" dictionary
+                    """
+                    oneDimensionalArray =
+                        noScalarVariables['temperatureHistory']
+                    newVars = {}
+                    for cnt, value in enumerate(oneDimensionalArray):
+                      newVars['Samplers|MonteCarlo@name:myMC|constant'+
+                                 '@name=temperatureHistory'+str(cnt)] =
+                                 oneDimensionalArray[cnt]
+                    return newVars
+                  \end{lstlisting}
+              \end{itemize} % end functions for module
+        \end{itemize} % end attributes for module
+        The \xmlNode{module} node also takes the following node:
+        \begin{itemize} % nodes of module
+          \item \xmlNode{variables}, \xmlDesc{comma-separated list, required} provides a comma-separated list of
+            the variables from the MASTER RAVEN that need to be accessed by the conversion script module.  The
+            variables listed here use the pipe naming system (un-aliased names).
+        \end{itemize} % end nodes of module
+    \end{itemize} % end nodes for conversion
+\end{itemize} % end nodes for code
 
 Code input example:
 \begin{lstlisting}[style=XML]
@@ -220,9 +235,11 @@ Code input example:
       <outputExportOutStreams>
          HistorySetOutStream,PointSetOutStream
       </outputExportOutStreams>
-      <conversionModule>
-        ~/Users/username/whateverConversionModule.py
-      </conversionModule>
+      <conversion>
+        <module source=/Users/username/whateverConversionModule.py>
+          <variables>a,b,x,y</variables>
+        </module>
+      </conversion>
     </Code>
 \end{lstlisting}
 

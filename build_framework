@@ -9,7 +9,7 @@ else
 fi
 SCRIPT_DIR=`(cd $SCRIPT_DIRNAME; pwd)`
 
-source $SCRIPT_DIR/scripts/setup_raven_libs
+source $SCRIPT_DIR/scripts/establish_conda_env.sh --quiet --load
 
 #These don't always work for setup.py, so safer to unset them.
 unset CXX CC

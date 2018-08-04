@@ -22,12 +22,14 @@ done
 
 rm -Rvf pdfs
 
+# load raven libraries
+source ../scripts/establish_conda_env.sh --load --quiet
 
 # add custom, collective inputs to TEXINPUTS
 #
 # Since on Windows we use MikTeX (which is a native Windows program), the TEXTINPUTS variable used i
-#   to tell the LaTeX processor where to look for .sty files must be set using Windows-style paths 
-#   (not the Unix-style ones used on other platforms).  This also means semi-colons need to be used 
+#   to tell the LaTeX processor where to look for .sty files must be set using Windows-style paths
+#   (not the Unix-style ones used on other platforms).  This also means semi-colons need to be used
 #   to separate terms instead of the Unix colon.
 #
 if [ "$(expr substr $(uname -s) 1 5)" == "MINGW" ]

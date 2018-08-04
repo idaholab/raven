@@ -22,6 +22,8 @@
   type = 'RavenFramework'
   input = 'historySetFromDBAttributes.xml'
   csv = 'DataobjectsAttributes/stories2_from_DB_dump_5.csv DataobjectsAttributes/stories2_from_DB_dump_4.csv DataobjectsAttributes/stories2_from_DB_dump_3.csv DataobjectsAttributes/stories2_from_DB_dump_2.csv DataobjectsAttributes/stories2_from_DB_dump_1.csv DataobjectsAttributes/stories2_from_DB_dump_0.csv DataobjectsAttributes/stories1_from_DB_dump_5.csv DataobjectsAttributes/stories1_from_DB_dump_4.csv DataobjectsAttributes/stories1_from_DB_dump_3.csv DataobjectsAttributes/stories1_from_DB_dump_2.csv DataobjectsAttributes/stories1_from_DB_dump_1.csv DataobjectsAttributes/stories1_from_DB_dump_0.csv'
+  # prevent concurrent running
+  prereq = test_output_from_db_point_attributes
  [../]
 
  [./dataObject_metadata]

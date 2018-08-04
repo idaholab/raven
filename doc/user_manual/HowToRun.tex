@@ -17,9 +17,8 @@ To run RAVEN, open a terminal and use the following command (replace \texttt{<in
 raven_framework <inputFileName.xml>
 \end{lstlisting}
 
-Alternatively, the \texttt{Driver.py} script can be directly used.  The RAVEN driver is contained in the folder ``\texttt{raven/framework}.'' In this case, the command is:
-
-\begin{lstlisting}[language=bash]
-python raven/framework/Driver.py <inputFileName.xml>
-\end{lstlisting}
-
+Using \texttt{raven\_framework} is the recommended way to run RAVEN.  In the event bypassing the typical
+environment loading and checks is desired, it can also be run via
+the \texttt{Driver.py} script using python, with the input file as argument.  However, this is not
+recommended, as it will use whatever default versions of Python and other libraries are discovered, rather
+than the matching libraries set up during installation.

@@ -780,9 +780,13 @@ class DataSet(DataObject):
       #    When this need comes, we will change this check(alfoa)
       if self.indexes:
         if key in self._fromVarToIndex and rlz[self._fromVarToIndex[key]].shape != rlz[key].shape:
-          self.raiseAWarning(('Variable "{}" has not a consistent shape with respect its index "{}": '+
-                             'shape({}) /= shape({})!')
-                            .format(key,self._fromVarToIndex[key],rlz[key].shape,rlz[self._fromVarToIndex[key]].shape))
+          self.raiseAWarning(('Variable "{}" with shape {} '+
+                              'is not consistent with respect its index "{}" with shape {}!')
+                              .format(key,
+                                      rlz[key].shape,
+                                      self._fromVarToIndex[key],
+                                      rlz[self._fromVarToIndex[key]].shape)
+                              )
           return False
     # all conditions for failing formatting were not met, so formatting is fine
     return True
