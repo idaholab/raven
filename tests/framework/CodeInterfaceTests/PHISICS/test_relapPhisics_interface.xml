@@ -4,6 +4,7 @@
     <name>framework/CodeInterfaceTests/PHISICS.phisicsRelap5</name>
     <author>rouxpn</author>
     <created>2018-04-25</created>
+    <classesTested>Models.Code.PhisicsRelap5</classesTested>
     <description>
         This test is aimed to test the mechanics of the combined interface PHISICS/RELAP5 using the
         RELAP5 (coupled with PHISICS) executable.

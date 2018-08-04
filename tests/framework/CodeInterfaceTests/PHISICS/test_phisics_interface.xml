@@ -4,6 +4,7 @@
     <name>framework/CodeInterfaceTests/PHISICS.phisics</name>
     <author>rouxpn</author>
     <created>2018-04-23</created>
+    <classesTested>Models.Code.Phisics</classesTested>
     <description>
         This test is aimed to test the mechanics of the interface between RAVEN and
         PHISICS, using the full-blonde PHISICS executable.
