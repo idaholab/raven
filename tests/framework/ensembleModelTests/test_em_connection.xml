@@ -115,27 +115,16 @@
     </MultiRun>
     <IOStep name="dumpResults" pauseAtEnd="True">
       <Input  class="DataObjects"  type="PointSet"      >metaModelData</Input>
-      <Output class="OutStreams"   type="Plot"          >plotData</Output>
+      <Output class="OutStreams"   type="Print"          >printData</Output>
     </IOStep>
   </Steps>
 
-  <OutStreams>  
-    <Plot  name="plotData" overwrite="false" verbosity="debug">
-      <plotSettings>
-        <plot>
-          <type>scatter</type>
-          <x>metaModelData|Input|A</x>
-          <y>metaModelData|Input|B</y>
-          <z>metaModelData|Output|F</z>
-        </plot>
-        <xlabel>A</xlabel>
-        <ylabel>B</ylabel>
-        <zlabel>F</zlabel>
-      </plotSettings>
-      <actions>
-        <how>png</how>
-      </actions>
-    </Plot> 
+  <OutStreams>
+    <Print name="printData">
+      <type>csv</type>
+      <source>metaModelData</source>
+      <what>input, output</what>
+    </Print>
   </OutStreams>
 
   <DataObjects>

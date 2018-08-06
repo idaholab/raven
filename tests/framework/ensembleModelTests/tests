@@ -94,7 +94,7 @@
  [./testEMConnection]
    type = 'RavenFramework'
    input = 'test_em_connection.xml'
-   output = 'checkConnection/1-plotData_scatter.png'
+   UnorderedCsv = 'checkConnection/printData.csv'
  [../]
 
 []

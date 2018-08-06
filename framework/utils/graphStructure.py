@@ -125,6 +125,8 @@ class graphObject(object):
   def findIsolatedVertices(self):
     """
       This method ispects the graph and returns a list of isolated vertices.
+      WARNING: the self.__extendDictForGraphTheory() is used here, and never store the outputs
+      of this method into the self.__graphDict.
       @ In, None
       @ Out, isolated, list, list of isolated nodes (verteces)
     """
@@ -229,7 +231,10 @@ class graphObject(object):
 
   def isConnectedNet(self):
     """
-      Method that determines if the graph is a connected net (all the vertices are connect with each other through other vertices)
+      Method that determines if the graph is a connected net (all the vertices are connect
+      with each other through other vertices).
+      WARNING: the self.__extendDictForGraphTheory() is used here, and never store the outputs
+      of this method into the self.__graphDict.
       @ In, None
       @ Out, graphNetConnected, bool, is the graph net fully connected?
     """
@@ -239,7 +244,11 @@ class graphObject(object):
 
   def __extendDictForGraphTheory(self):
     """
-      Method to extend the graph dictionary in order to be accepted by the graph theory
+      Method to extend the graph dictionary in order to be accepted by the graph theory.
+      WARNING: This is method is only used to extend the __graphDict, and should be only
+      used for isConnectedNet method. The extended dictionary should not be stored in
+      __graphDict. This is because the class graphObject is supposed to work with
+      directed graph to determine the execution orders of the Models listed under EnsembleModel.
       @ In, None
       @ Out, graphDict, dict, the extended graph dictionary, used for isConnectedNet and findIsolatedVertices
     """

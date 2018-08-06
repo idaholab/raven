@@ -11,18 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import numpy as np
-import copy
-import time
-# CAUTION HERE #
-# IT IS IMPORTANT THAT THE USER IS AWARE THAT THE EXTERNAL MODEL (RUN METHOD)
-# NEEDS TO BE THREAD-SAFE!!!!!
-# IN CASE IT IS NOT, THE USER NEEDS TO SET A LOCK SYSTEM!!!!!
-import threading
-localLock = threading.RLock()
-
-def initialize(self, runInfo, inputs):
-  pass
 
 def run(self, Input):
+  """
+    A dummy model used to check the connections for the EnsembleModel
+    @ In, self, object, object to store members on
+    @ In, Input, dict, dictionary containing inputs from RAVEN
+    @ Out, None
+  """
+  self.E = Input.get('E')
   self.F = self.E + 1.0
