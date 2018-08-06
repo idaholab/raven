@@ -728,7 +728,7 @@ class phisicsdata():
           stringIsFloatNumber = self.isFloatNumber(line.split(','))
           if stringIsFloatNumber:
             line = re.sub(r'\n', r'', line)
-            if float(line.split(',')[0]) == matchedTimeSteps[timeStepIndex]:
+            if float(line.split(',')[0]) == float(matchedTimeSteps[timeStepIndex]):
               for i in range(1, len(self.isotopeList)):
                 timeStepList.append(line.split(',')[0])
                 depLabelList.append(
