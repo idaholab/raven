@@ -12,7 +12,7 @@
   </TestInfo>
 
   <RunInfo>
-    <WorkingDir>con</WorkingDir>
+    <WorkingDir>constant</WorkingDir>
     <Sequence>makeCoarse, makeFineRestart,print</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>

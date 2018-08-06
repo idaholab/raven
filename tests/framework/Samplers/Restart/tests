@@ -44,7 +44,7 @@
  [./Constant]
   type = 'RavenFramework'
   input = 'test_restart_constant.xml'
-  UnorderedCsv = 'con/coarse.csv con/restart.csv'
+  UnorderedCsv = 'constant/coarse.csv constant/restart.csv'
   remove_unicode_identifier = true
  [../]
 []
