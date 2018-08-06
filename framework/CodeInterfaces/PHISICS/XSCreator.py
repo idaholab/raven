@@ -4,21 +4,18 @@ Created on September 1st, 2017
 """
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
-warnings.simplefilter('default', DeprecationWarning)
+warnings.simplefilter('default',DeprecationWarning)
 import os
 from decimal import Decimal
 import xml.etree.ElementTree as ET
 from xml.etree.ElementTree import Element, SubElement, Comment
 from xml.dom import minidom
 
-
 class XSCreator():
   """
     Creates a perturbed cross section xml file based.
   """
-
-  def __init__(self, inputFiles, booleanTab, workingDir, tabMapFileName,
-               **pertDict):
+  def __init__(self,inputFiles,booleanTab,workingDir,tabMapFileName,**pertDict):
     """
       Parses the PHISICS scaled_xs data file.
       @ In, inputFiles, string, file name the perturbed cross sections are printed into
@@ -29,21 +26,21 @@ class XSCreator():
       @ In, pertDict, dictionary, dictionary of perturbed variables
       @ Out, None
     """
-    self.pertDict = self.scientificNotation(pertDict)  # Perturbed variables
+    self.pertDict = self.scientificNotation(pertDict) # Perturbed variables
     self.listedDict = self.fileReconstruction(self.pertDict)
-    self.generateXML(workingDir, booleanTab, inputFiles, tabMapFileName)
+    self.generateXML(workingDir,booleanTab,inputFiles,tabMapFileName)
 
-  def scientificNotation(self, pertDict):
+  def scientificNotation(self,pertDict):
     """
       Converts the numerical values into a scientific notation.
       @ In, pertDict, dictionary, perturbed variables
       @ Out, pertDict, dictionary, perturbed variables in scientific format
     """
     for key, value in pertDict.iteritems():
-      pertDict[key] = '%.3E' % Decimal(str(value))
+      pertDict[key] = '%.3E' % Decimal(str(value)) 
     return pertDict
-
-  def tabMapping(self, tab, tabMapFileName):
+    
+  def tabMapping(self,tab,tabMapFileName):
     """
       Links the tabulation number to the actual tabulation points
       @ In, tab, string, refers to the tabulation number
@@ -61,8 +58,8 @@ class XSCreator():
           tabList.append(tabXML.attrib.get('name'))
           valueList.append(tabXML.text)
     return tabList, valueList
-
-  def prettify(self, elem):
+    
+  def prettify(self,elem):
     """
       Returns a pretty-printed xml string for the Element.
       @ In, elem, xml.etree.ElementTree.Element
@@ -71,8 +68,8 @@ class XSCreator():
     roughString = ET.tostring(elem, 'utf-8')
     reparsed = minidom.parseString(roughString)
     return reparsed.toprettyxml(indent="  ")
-
-  def generateXML(self, workingDir, bool, inputFiles, tabMapFileName):
+    
+  def generateXML(self,workingDir,bool,inputFiles,tabMapFileName):
     """
       Creates an xml file from the interface.
       @ In, workingDir, string, absolute path to working directory
@@ -81,71 +78,79 @@ class XSCreator():
       @ In, tabMapFileName, string, absolute path to xml tabulation file
       @ Out, modifiedFile, string, name of the xml file created (under a dummy name)
     """
-    top = Element('scaling_library')
-
+    top = Element('scaling_library', {'print_xml':'t'})
+    print (self.listedDict)
     for XS in self.listedDict.iterkeys():
       for tabulation in self.listedDict.get('XS').iterkeys():
         topChild = SubElement(top, 'set')
         if bool:
-          tabList, valueList = self.tabMapping(tabulation, tabMapFileName)
-          for tab, value in zip(tabList, valueList):
-            tabChild = SubElement(topChild, 'tab', {'name': tab})
+          tabList, valueList = self.tabMapping(tabulation,tabMapFileName)
+          for tab,value in zip(tabList,valueList):
+            tabChild = SubElement(topChild, 'tab', {'name':tab})
             tabChild.text = value
         for material in self.listedDict.get('XS').get(tabulation).iterkeys():
-          tabulationChild = SubElement(topChild, 'library',
-                                       {'lib_name': material.lower()})
-          for isotope in self.listedDict.get('XS').get(tabulation).get(
-              material).iterkeys():
-            for typeOfXs in self.listedDict.get('XS').get(tabulation).get(
-                material).get(isotope).iterkeys():
-              libraryChild = SubElement(tabulationChild, 'isotope', {
-                  'id': isotope.lower(),
-                  'type': typeOfXs.lower()
-              })
-              for reaction in self.listedDict.get('XS').get(tabulation).get(
-                  material).get(isotope).get(typeOfXs).iterkeys():
-                groupList = []
-                valueList = []
-                for count, (group, value) in enumerate(
-                    self.listedDict.get('XS').get(tabulation).get(material)
-                    .get(isotope).get(typeOfXs).get(reaction).iteritems()):
-                  numberOfGroupsPerturbed = len(
-                      self.listedDict.get('XS').get(tabulation).get(material)
-                      .get(isotope).get(typeOfXs).get(reaction).keys()) - 1
-                  groupList.append(group)
-                  valueList.append(value)
-                  if count == numberOfGroupsPerturbed:
-                    groups = ','.join(str(e) for e in groupList)
-                    values = ','.join(str(f) for f in valueList)
-                    reactionChild = SubElement(libraryChild, reaction.lower(),
-                                               {'g': groups})
-                    reactionChild.text = values
+          tabulationChild = SubElement(topChild, 'library', {'lib_name':material})
+          for isotope in self.listedDict.get('XS').get(tabulation).get(material).iterkeys():
+            for typeOfXs in self.listedDict.get('XS').get(tabulation).get(material).get(isotope).iterkeys():
+              libraryChild = SubElement(tabulationChild, 'isotope', {'id':isotope, 'type':typeOfXs.lower()})
+              for reaction in self.listedDict.get('XS').get(tabulation).get(material).get(isotope).get(typeOfXs).iterkeys():
+                #groupList = []
+                #valueList = []
+                for count,(group,value) in enumerate(self.listedDict.get('XS').get(tabulation).get(material).get(isotope).get(typeOfXs).get(reaction).iteritems()):
+                  #numberOfGroupsPerturbed = len(self.listedDict.get('XS').get(tabulation).get(material).get(isotope).get(typeOfXs).get(reaction).keys()) - 1
+                  #groupList.append(group)
+                  #valueList.append(value)
+                  #if count == numberOfGroupsPerturbed:
+                    #groups = ','.join(str(e) for e in groupList)
+                    #values = ','.join(str(f) for f in valueList)
+                  reactionChild = SubElement(libraryChild, self.formatXS(reaction), {'g':group})
+                  reactionChild.text = value
     fileObj = open(inputFiles, 'w')
     fileObj.write(self.prettify(top))
     fileObj.close()
-
-  def cleanEmpty(self, reconstructedDict):
+  
+  def formatXS(self,reaction):
+    """
+      Formats the reaction type to the proper PHISICS template
+      @ In, reaction, string, a reaction type, in capital letters 'FISSIONXS'
+      @ Out, reactionTemplated, a reaction type, templated 'FissionXS'
+    """
+    if reaction == 'FISSIONXS':
+      reactionTemplated = 'FissionXS'
+    elif reaction == 'KAPPAXS':
+      reactionTemplated = 'KappaXS'
+    elif reaction == 'NUFISSIONXS':
+      reactionTemplated = 'NuFissionXS'
+    elif reaction == 'N2NXS':
+      reactionTemplated = 'n2nXS'
+    elif reaction == 'NPXS':
+      reactionTemplated = 'npXS'
+    elif reaction == 'NALPHAXS':
+      reactionTemplated = 'nalphaXS'
+    elif reaction == 'NGXS':
+      reactionTemplated = 'ngXS'
+    else:
+      raise IOError('the type of cross section '+reaction+' cannot be processed. Refer to manual for available reactions.')
+    return reactionTemplated
+  
+  def cleanEmpty(self,reconstructedDict):
     """
       Removes all the empty string in the nested dictionary reconstructedDict.
       @ In, reconstructedDict, dictionary or list,  nested dictionary or list
       @ Out, cleanEmpty, dictionary or list, nested dictionary or list without trailing blanks
     """
-    if not isinstance(reconstructedDict, (dict, list)):
+    if not isinstance(reconstructedDict,(dict,list)):
       return reconstructedDict
     if isinstance(reconstructedDict, list):
       return [v for v in (self.cleanEmpty(v) for v in reconstructedDict) if v]
-    return {
-        k: v
-        for k, v in ((k, self.cleanEmpty(v))
-                     for k, v in reconstructedDict.items()) if v
-    }
+    return {k: v for k, v in ((k, self.cleanEmpty(v)) for k, v in reconstructedDict.items()) if v}
 
-  def fileReconstruction(self, deconstructedDict):
+  def fileReconstruction(self,deconstructedDict):
     """
       Converts the formatted dictionary -> {'XS|FUEL1|U235|FISSION|1':1.30, 'XS|FUEL2|U238|ABS|2':4.69}
       into a dictionary of dictionaries that has the format -> {'XS':{'FUEL1':{'U235':{'FISSION':{'1':1.30}}}}, 'FUEL2':{'U238':{'ABS':{'2':4.69}}}}
       @ In, deconstructedDict, dictionary, dictionary of perturbed variables
-      @ Out, leanReconstructedDict, dictionary, nested dictionary of perturbed variables
+      @ Out, leanReconstructedDict, dictionary, nested dictionary of perturbed variables 
     """
     reconstructedDict = {}
     perturbedPhysicalParameters = []
@@ -155,13 +160,12 @@ class XSCreator():
     perturbedTypes = []
     perturbedReactions = []
     perturbedGroups = []
-
+      
     pertDictSet = set(self.pertDict)
     deconstructedDictSet = set(deconstructedDict)
     for key in pertDictSet.intersection(deconstructedDictSet):
       if len(key.split('|')) != 7:
-        raise IOError(
-            "The cross section variable " + key + " is not properly formatted")
+        raise IOError("The cross section variable "+key+" is not properly formatted")
       perturbedPhysicalParameters.append(key.split('|')[0])
       perturbedTabulationPoint.append(key.split('|')[1])
       perturbedMaterials.append(key.split('|')[2])
@@ -169,7 +173,7 @@ class XSCreator():
       perturbedTypes.append(key.split('|')[4])
       perturbedReactions.append(key.split('|')[5])
       perturbedGroups.append(key.split('|')[6])
-
+    
     for pertPhysicalParam in perturbedPhysicalParameters:
       reconstructedDict[pertPhysicalParam] = {}
       for pertTabulationPoint in perturbedTabulationPoint:
@@ -177,21 +181,16 @@ class XSCreator():
         for mat in perturbedMaterials:
           reconstructedDict[pertPhysicalParam][pertTabulationPoint][mat] = {}
           for isotope in perturbedIsotopes:
-            reconstructedDict[pertPhysicalParam][pertTabulationPoint][mat][
-                isotope] = {}
+            reconstructedDict[pertPhysicalParam][pertTabulationPoint][mat][isotope] = {}
             for reactType in perturbedTypes:
-              reconstructedDict[pertPhysicalParam][pertTabulationPoint][mat][
-                  isotope][reactType] = {}
+              reconstructedDict[pertPhysicalParam][pertTabulationPoint][mat][isotope][reactType] = {}
               for react in perturbedReactions:
-                reconstructedDict[pertPhysicalParam][pertTabulationPoint][mat][
-                    isotope][reactType][react] = {}
+                reconstructedDict[pertPhysicalParam][pertTabulationPoint][mat][isotope][reactType][react] = {}
                 for group in perturbedGroups:
-                  reconstructedDict[pertPhysicalParam][pertTabulationPoint][
-                      mat][isotope][reactType][react][group] = {}
+                  reconstructedDict[pertPhysicalParam][pertTabulationPoint][mat][isotope][reactType][react][group] = {}
     for typeKey, value in deconstructedDict.iteritems():
       if typeKey in pertDictSet:
         keyWords = typeKey.split('|')
-        reconstructedDict[keyWords[0]][keyWords[1]][keyWords[2]][keyWords[3]][
-            keyWords[4]][keyWords[5]][keyWords[6]] = value
+        reconstructedDict[keyWords[0]][keyWords[1]][keyWords[2]][keyWords[3]][keyWords[4]][keyWords[5]][keyWords[6]] = value
     leanReconstructedDict = self.cleanEmpty(reconstructedDict)
     return leanReconstructedDict
