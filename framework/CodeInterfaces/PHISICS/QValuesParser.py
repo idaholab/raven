@@ -39,14 +39,14 @@ class QValuesParser():
       pertDict[key] = '%.3E' % Decimal(str(value))
     return pertDict
 
-  def matrixPrinter(self, infile, outfile):
+  def matrixPrinter(self, lines, outfile):
     """
       Prints the perturbed Qvalues matrix in the outfile.
-      @ In, infile, file object, input file in file object format
+      @ In, lines, list, unperturbed input file lines
       @ In, outfile, file object, output file in file object format
       @ Out, None
     """
-    for line in infile:
+    for line in lines:
       line = line.upper().split()
       line[0] = re.sub(r'(.*?)(\w+)(-)(\d+M?)', r'\1\2\4', line[0])
       for isotopeID in self.listedQValuesDict.iterkeys():
@@ -61,25 +61,24 @@ class QValuesParser():
         outfile.writelines(
             ' ' + "{0:<7s}".format(line[0]) + "{0:<7s}".format(line[1] + "\n"))
 
-  def hardcopyPrinter(self, modifiedFile):
+  def hardcopyPrinter(self, lines):
     """
       Prints the hardcopied information at the begining of the xml file.
-      @ In, modifiedFile, string, output temperary file name
+      @ In, lines, list, unperturbed input file lines
       @ Out, None
     """
-    with open(modifiedFile, 'a') as outfile:
-      with open(self.inputFiles) as infile:
-        for line in infile:
-          if not line.split():
-            continue  # if the line is blank, ignore it
-          if re.match(r'(.*?)\s+\w+(-?)\d+\s+\d+.\d+', line):
-            outfile.writelines(
-                ' ' + "{0:<7s}".format(line.upper().split()[0]) +
-                "{0:<7s}".format(line.upper().split()[1]) +
-                "\n")  # print the first fission qvalue line of the matrix
-            break
-          outfile.writelines(line)
-        self.matrixPrinter(infile, outfile)
+    with open(self.inputFiles, 'a+') as outfile:      
+      for line in lines:
+        if not line.split():
+          continue  # if the line is blank, ignore it
+        if re.match(r'(.*?)\s+\w+(-?)\d+\s+\d+.\d+', line):
+          outfile.writelines(
+              ' ' + "{0:<7s}".format(line.upper().split()[0]) +
+              "{0:<7s}".format(line.upper().split()[1]) +
+              "\n")  # print the first fission qvalue line of the matrix
+          break
+        outfile.writelines(line)
+      self.matrixPrinter(lines, outfile)
       outfile.writelines(' END')
 
   def fileReconstruction(self):
@@ -107,7 +106,12 @@ class QValuesParser():
       @ In, workingDir, string, path to working directory
       @ Out, None
     """
-    modifiedFile = os.path.join(workingDir, 'test.dat')
-    open(modifiedFile, 'w')
-    self.hardcopyPrinter(modifiedFile)
-    os.rename(modifiedFile, self.inputFiles)
+    # open the unperturbed file 
+    openInputFile = open(self.inputFiles, "r")
+    lines = openInputFile.readlines()
+    openInputFile.close()
+    
+    # remove the file if was already existing
+    if os.path.exists(self.inputFiles): 
+      os.remove(self.inputFiles) 
+    self.hardcopyPrinter(lines)

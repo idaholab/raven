@@ -33,7 +33,7 @@ class PathParser():
     self.fileReconstruction()  # Puts the perturbed variables in a dictionary
     self.printInput(
         workingDir
-    )  # Replaces the the nominal values by the perturbed one and print in a file
+    )  # Replaces the nom. values by the perturbed one and prints in a file
 
   def scientificNotation(self, pertDict):
     """
@@ -97,22 +97,26 @@ class PathParser():
       @ In, workingDir, string, path to working directory
       @ Out, None
     """
+    # open the unperturbed file 
+    openInputFile = open(self.inputFiles, "r")
+    lines = openInputFile.readlines()
+    openInputFile.close()
+    
+    # remove the file if was already existing
+    if os.path.exists(self.inputFiles): 
+      os.remove(self.inputFiles) 
     sectionCounter = 0
-    modifiedFile = os.path.join(workingDir, 'test.dat')
-    open(modifiedFile, 'w')
-    with open(modifiedFile, 'a') as outfile:
-      with open(self.inputFiles) as infile:
-        for line in infile:
-          if re.search(r'(.*?)(\s?)[a-zA-Z](\s+Qvalue)', line.strip()):
-            sectionCounter = sectionCounter + 1
-          if not line.split():
-            continue  # if the line is blank, ignore it
-          if sectionCounter == 1 and self.endStringCounter == 0:  #actinide section
-            self.harcodingSection = 1
-            self.matrixPrinter(line, outfile)
-          if sectionCounter == 2 and self.endStringCounter == 1:  #FP section
-            self.harcodingSection = 2
-            self.matrixPrinter(line, outfile)
-          if self.harcodingSection != 1 and self.harcodingSection != 2:
-            outfile.writelines(line)
-    os.rename(modifiedFile, self.inputFiles)
+    with open(self.inputFiles, 'a+') as outfile:      
+      for line in lines:
+        if re.search(r'(.*?)(\s?)[a-zA-Z](\s+Qvalue)', line.strip()):
+          sectionCounter = sectionCounter + 1
+        if not line.split():
+          continue  # if the line is blank, ignore it
+        if sectionCounter == 1 and self.endStringCounter == 0:  #actinide section
+          self.harcodingSection = 1
+          self.matrixPrinter(line, outfile)
+        if sectionCounter == 2 and self.endStringCounter == 1:  #FP section
+          self.harcodingSection = 2
+          self.matrixPrinter(line, outfile)
+        if self.harcodingSection != 1 and self.harcodingSection != 2:
+          outfile.writelines(line)

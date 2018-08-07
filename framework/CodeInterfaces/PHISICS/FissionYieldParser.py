@@ -23,27 +23,30 @@ class FissionYieldParser():
       @ In, pertDict, dictionary, dictionary of perturbed variables
       @ Out, None
     """
-    self.allYieldList = [
-    ]  # Contains all the fission yield families in fast and thermal spectrum
+    self.allYieldList = []  # all the fis. yield families in fast and thermal spectrum
     self.inputFiles = inputFiles
-    self.spectrum = [
-        'Thermal', 'Fast'
-    ]  # Possible spectrum found in the library. Each of them have an independent library
+    self.spectrum = ['Thermal', 'Fast']  # Possible spectrum found in the library. 
     self.typeOfSpectrum = None  # Flag. Takes the value of one of the possible spectrum, depending what line of the file is parsed
     self.isotopeList = []  # Fission products having a fission yield defined
     self.spectrumNumbering = {
-    }  # Keys: type of spectrum (fast or theraml), values: numbering dictionary
+    }  # Keys: type of spectrum (fast or thermal), values: numbering dictionary
     self.listedYieldDict = {}  # Nested dictionary of perturbed variables
 
     self.pertYieldDict = self.scientificNotation(
         pertDict)  # Perturbed variables
-    self.characterizeLibrary()
+    
+    # open the unperturbed file 
+    openInputFile = open(self.inputFiles, "r")
+    lines = openInputFile.readlines()
+    openInputFile.close()
+    
+    self.characterizeLibrary(lines)
     self.isotopeList = list(set(
         self.isotopeList))  # Removes all the repetion in the isotope list
     self.numberOfIsotopes = len(self.isotopeList)
     self.fileReconstruction()  # Puts the perturbed variables in a dictionary
     self.printInput(
-        workingDir
+        workingDir, lines
     )  # Replaces the the nominal values by the perturbed one and print in a file
 
   def scientificNotation(self, pertDict):
@@ -56,16 +59,13 @@ class FissionYieldParser():
       pertDict[key] = '%.3E' % Decimal(str(value))
     return pertDict
 
-  def characterizeLibrary(self):
+  def characterizeLibrary(self,lines):
     """
       Characterizes the structure of the library. Teaches the type of decay available for the fast spectrum family and thermal family.
-      @ In, None
+      @ In, lines, list, unperturbed input file lines
       @ Out, None
     """
     concatenateYieldList = []
-    OpenInputFile = open(self.inputFiles, "r")
-    lines = OpenInputFile.readlines()
-    OpenInputFile.close()
     for line in lines:
       if re.match(r'(.*?)Thermal Fission Yield', line):
         self.typeOfSpectrum = self.spectrum[0]
@@ -104,16 +104,16 @@ class FissionYieldParser():
         isotopeLines = line.split()
         self.isotopeList.append(isotopeLines[0])
 
-  def matrixPrinter(self, infile, outfile, spectra):
+  def matrixPrinter(self, lines, outfile, spectra):
     """
       Prints the perturbed decay matrix in the outfile.
-      @ In, infile, file object, input file in file object format
+      @ In, lines, list, unperturbed input file lines
       @ In, outfile, file object, output file in file object format
       @ In, spectra, integer, indicates if the yields are related to a thermal spectrum (0) or a fast spectrum (1)
       @ Out, None
     """
     isotopeCounter = 0
-    for line in infile:
+    for line in lines:
       if re.search(r'END\s+', line):
         return
       line = line.strip()
@@ -161,48 +161,47 @@ class FissionYieldParser():
         outfile.writelines(' ' + ''.join(
             line[0:len(self.spectrumNumbering.get(spectra)) + 1]) + "\n")
         if isotopeCounter == self.numberOfIsotopes:
-          for lineInput in infile:
+          for lineInput in lines:
             lineStripped = lineInput.strip()
       except KeyError:
         raise Exception(
             'Make sure the fission yields you are perturbing have existing values in the unperturbed fission yield library'
         )
 
-  def hardcopyPrinter(self, spectra, modifiedFile):
+  def hardcopyPrinter(self, spectra, lines):
     """
       Prints the hardcopied information at the begining of the xml file.
       @ In, spectra, integer, indicates if the yields are related to a thermal spectrum (0) or a fast spectrum (1)
-      @ In, modifiedFile, string, output temperary file name
+      @ In, lines, list, unperturbed input file lines
       @ Out, None
     """
     flag = 0
-    with open(modifiedFile, 'a') as outfile:
-      with open(self.inputFiles) as infile:
-        for line in infile:
+    with open(self.inputFiles, 'a+') as outfile:      
+      for line in lines:
+        if re.match(
+            r'(.*?)END\s+\w+', line.strip()
+        ) and spectra == self.spectrum[1]:  # find the line- END Fast Fission Yield (2)
+          flag = 2
+        if flag == 2:
+          if re.match(r'(.*?)\w+(-?)\d+\s+\w+\s+\w(-?)\d+\s+\w',
+                      line.strip()) and spectra == self.spectrum[1]:
+            outfile.writelines(line)
+            break
+          outfile.writelines(line)
+        if (re.match(r'(.*?)' + spectra, line.strip())
+            and spectra == self.spectrum[0]
+            ):  # find the line- Thermal Fission Yield (1)
+          flag = 1
+        if flag == 1:
           if re.match(
-              r'(.*?)END\s+\w+', line.strip()
-          ) and spectra == self.spectrum[1]:  # find the line- END Fast Fission Yield (2)
-            flag = 2
-          if flag == 2:
-            if re.match(r'(.*?)\w+(-?)\d+\s+\w+\s+\w(-?)\d+\s+\w',
-                        line.strip()) and spectra == self.spectrum[1]:
-              outfile.writelines(line)
-              break
+              r'(.*?)\w+(-?)\d+\s+\w+\s+\w(-?)\d+\s+\w', line.strip()
+          ) and spectra == self.spectrum[0]:  # find the line U-235 FY U-238 FY (last hardcopied line)
             outfile.writelines(line)
-          if (re.match(r'(.*?)' + spectra, line.strip())
-              and spectra == self.spectrum[0]
-              ):  # find the line- Thermal Fission Yield (1)
-            flag = 1
-          if flag == 1:
-            if re.match(
-                r'(.*?)\w+(-?)\d+\s+\w+\s+\w(-?)\d+\s+\w', line.strip()
-            ) and spectra == self.spectrum[0]:  # find the line U-235 FY U-238 FY (last hardcopied line)
-              outfile.writelines(line)
-              flag = 0
-              break
-            outfile.writelines(line)
-        self.matrixPrinter(infile, outfile, spectra)
-      outfile.close()
+            flag = 0
+            break
+          outfile.writelines(line)
+      self.matrixPrinter(lines, outfile, spectra)
+    outfile.close()
 
   def fileReconstruction(self):
     """
@@ -231,18 +230,18 @@ class FissionYieldParser():
       self.listedYieldDict[yieldTypeKey.split('|')[1]][yieldTypeKey.split('|')[
           3]][yieldTypeKey.split('|')[2]] = yieldValue
 
-  def printInput(self, workingDir):
+  def printInput(self, workingDir, lines):
     """
       Prints out the pertubed fission yield library into a .dat file. The workflow is:
       open a new file with a dummy name; parse the unperturbed library; print the line in the dummy and
       replace with perturbed variables if necessary, Change the name of the dummy file.
       @ In, workingDir, string, path to working directory
+      @ In, lines, list, unperturbed input file lines
       @ Out, None
     """
-    modifiedFile = os.path.join(workingDir, 'test.dat')
-    open(modifiedFile, 'w')
+    if os.path.exists(self.inputFiles): 
+      os.remove(self.inputFiles) # remove the file if was already existing
     for spectra in self.spectrum:
-      self.hardcopyPrinter(spectra, modifiedFile)
-    with open(modifiedFile, 'a') as outfile:
+      self.hardcopyPrinter(spectra, lines)
+    with open(self.inputFiles, 'a') as outfile:
       outfile.writelines(' end')
-    os.rename(modifiedFile, self.inputFiles)

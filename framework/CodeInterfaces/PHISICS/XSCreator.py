@@ -37,7 +37,7 @@ class XSCreator():
       @ Out, pertDict, dictionary, perturbed variables in scientific format
     """
     for key, value in pertDict.iteritems():
-      pertDict[key] = '%.3E' % Decimal(str(value)) 
+      pertDict[key] = '%.8E' % Decimal(str(value)) 
     return pertDict
     
   def tabMapping(self,tab,tabMapFileName):

@@ -31,21 +31,26 @@ class DecayParser():
 
     self.inputFiles = inputFiles
     self.pertDict = self.scientificNotation(pertDict)
-    self.characterizeLibrary()
+    # open the unperturbed file 
+    openInputFile = open(self.inputFiles, "r")
+    lines = openInputFile.readlines()
+    openInputFile.close()
+    
+    self.characterizeLibrary(lines)
     self.fileReconstruction()
-    self.printInput(workingDir)
+    self.printInput(workingDir,lines)
 
-  def matrixPrinter(self, infile, outfile, atomicNumber):
+  def matrixPrinter(self, lines, outfile, atomicNumber):
     """
       The xml files is split into two categories: hardcopied lines (banner, column labels etc.) that cannot
       be modified by RAVEN variable definition, and matrix lines that can be modified by RAVEN variable definition.
       This method treats the matrix lines, and print them into the perturbed file.
-      @ In, infile, file object, input file in file object format
+      @ In, lines, list, unperturbed input file lines
       @ In, outfile, file object, output file in file object format
       @ In, atomicNumber, integer, indicates if the isotope parsed is an actinide (0) or a fission product (1)
       @ Out, None
     """
-    for line in infile:
+    for line in lines:
       line = line.upper().split()
       line[0] = re.sub(r'(.*?)(\w+)(-)(\d+M?)', r'\1\2\4',
                        line[0])  # remove isotope dashes
@@ -89,53 +94,49 @@ class DecayParser():
       except KeyError:  # happens for all the unperturbed isotopes
         pass
 
-  def hardcopyPrinter(self, atomicNumber, modifiedFile):
+  def hardcopyPrinter(self, atomicNumber, lines):
     """
       The files are split into two categories: hardcopied lines (banner, column labels etc.) that cannot
       be modified by RAVEN variable definition, and matrix lines that can be modified by RAVEN variable definition.
       This method treats the hardcopied lines, and then call the matrix line handler method.
       @ In, atomicNumber, integer, indicates if the isotope parsed is an actinide (0) or a fission product (1)
-      @ In, modifiedFile, string, output temperary file name
+      @ In, lines, list, unperturbed input file lines
       @ Out, None
     """
     flag = 0
-    with open(modifiedFile, 'a') as outfile:
-      with open(self.inputFiles) as infile:
-        for line in infile:
-          if not line.split():
-            continue  # if the line is blank, ignore it
-          if re.match(r'(.*?)' + atomicNumber + 's',
-                      line.strip()) and atomicNumber == self.isotopeParsed[0]:
-            flag = 2
-          if flag == 2:
-            # three conditions: 1- match a serie of space+alphanumeric+space+alphanumeric 2- the line has the word BETA 3 - the flag 'actinide' is on
-            if re.match(r'(.*?)\s+\w+(\W)\s+\w+(\W)', line) and any(
-                s in 'BETA' for s in
-                line.split()) and atomicNumber == self.isotopeParsed[0]:
-              outfile.writelines(line)
-              break
+    with open(self.inputFiles, 'a+') as outfile:      
+      for line in lines:
+        if not line.split():
+          continue  # if the line is blank, ignore it
+        if re.match(r'(.*?)' + atomicNumber + 's',
+                    line.strip()) and atomicNumber == self.isotopeParsed[0]:
+          flag = 2
+        if flag == 2:
+          # three conditions: 1- match a serie of space+alphanumeric+space+alphanumeric 2- the line has the word BETA 3 - the flag 'actinide' is on
+          if re.match(r'(.*?)\s+\w+(\W)\s+\w+(\W)', line) and any(
+              s in 'BETA' for s in
+              line.split()) and atomicNumber == self.isotopeParsed[0]:
             outfile.writelines(line)
-          if any(s in atomicNumber + 'roducts' for s in line.split()):
-            flag = 1
-          if flag == 1:
-            if re.match(r'(.*?)\s+\w+(\W)\s+\w+(\W)', line) and any(
-                s in 'BETA' for s in
-                line.split()) and atomicNumber == self.isotopeParsed[1]:
-              outfile.writelines(line)
-              break
+            break
+          outfile.writelines(line)
+        if any(s in atomicNumber + 'roducts' for s in line.split()):
+          flag = 1
+        if flag == 1:
+          if re.match(r'(.*?)\s+\w+(\W)\s+\w+(\W)', line) and any(
+              s in 'BETA' for s in
+              line.split()) and atomicNumber == self.isotopeParsed[1]:
             outfile.writelines(line)
-        self.matrixPrinter(infile, outfile, atomicNumber)
+            break
+          outfile.writelines(line)
+      self.matrixPrinter(lines, outfile, atomicNumber)
 
-  def characterizeLibrary(self):
+  def characterizeLibrary(self,lines):
     """
       Characterizes the structure of the library. Teaches the type of decay available for the actinide family and FP family.
-      @ In, None
+      @ In, lines, list, unperturbed input file lines
       @ Out, None
     """
     concatenateDecayList = []
-    openInputFile = open(self.inputFiles, "r")
-    lines = openInputFile.readlines()
-    openInputFile.close()
 
     for line in lines:
       if re.match(r'(.*?)Actinides', line):
@@ -210,18 +211,18 @@ class DecayParser():
       for i in range(len(self.allDecayList)):
         self.listedDict[decayKeyWords[2]][decayKeyWords[1]] = decayValue
 
-  def printInput(self, workingDir):
+  def printInput(self, workingDir,lines):
     """
       Prints out the pertubed decay library into a file. The workflow is:
       Open a new file with a dummy name; parse the unperturbed library; print the line in the dummy,
       replace with perturbed variables if necessary. Change the name of the dummy file.
       @ In, workingDir, string, path to working directory
+      @ In, lines, list, unperturbed input file lines
       @ Out, None
     """
-    modifiedFile = os.path.join(workingDir, 'test.dat')
-    open(modifiedFile, 'w')
+    if os.path.exists(self.inputFiles): 
+      os.remove(self.inputFiles) # remove the file if was already existing
     for atomicNumber in self.isotopeParsed:
-      self.hardcopyPrinter(atomicNumber, modifiedFile)
-    with open(modifiedFile, 'a') as outfile:
+      self.hardcopyPrinter(atomicNumber, lines)
+    with open(self.inputFiles, 'a') as outfile:
       outfile.writelines(' end')
-    os.rename(modifiedFile, self.inputFiles)

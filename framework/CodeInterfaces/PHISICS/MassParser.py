@@ -39,14 +39,14 @@ class MassParser():
       pertDict[key] = '%.3E' % Decimal(str(value))
     return pertDict
 
-  def matrixPrinter(self, infile, outfile):
+  def matrixPrinter(self, lines, outfile):
     """
       Prints the perturbed mass matrix in the outfile.
-      @ In, infile, file object, input file in file object format
+      @ In, lines, list, unperturbed input file lines
       @ In, outfile, file object, output file in file object format
       @ Out, None
     """
-    for line in infile:
+    for line in lines:
       line = line.upper().split()
       line[0] = re.sub(r'(.*?)(\w+)(-)(\d+M?)', r'\1\2\4', line[0])
       for isotopeID in self.listedDict['MASS'].iterkeys():
@@ -61,15 +61,14 @@ class MassParser():
         outfile.writelines(' ' + "{0:<7s}".format(line[0]) + "{0:<7s}".format(
             line[1]) + ' ' + "{0:<7s}".format(line[2]) + "\n")
 
-  def hardcopyPrinter(self, modifiedFile):
+  def hardcopyPrinter(self, lines):
     """
       Prints the hardcopied information at the begining of the file.
       @ In, modifiedFile, string, output temperary file name
       @ Out, None
     """
-    with open(modifiedFile, 'a') as outfile:
-      with open(self.inputFiles) as infile:
-        for line in infile:
+    with open(self.inputFiles, 'a+') as outfile:      
+      for line in lines:
           if not line.split():
             continue  # if the line is blank, ignore it
           if re.match(r'(.*?)\s+\w+(-?)\d+\s+\d+.\d+', line):
@@ -80,7 +79,7 @@ class MassParser():
                 "\n")  # print the line of the mass matrix
             break
           outfile.writelines(line)
-        self.matrixPrinter(infile, outfile)
+      self.matrixPrinter(lines, outfile)
       outfile.writelines(' END')
 
   def fileReconstruction(self, deconstructedDict):
@@ -115,7 +114,11 @@ class MassParser():
       @ In, workingDir, string, path to working directory
       @ Out, None
     """
-    modifiedFile = os.path.join(workingDir, 'test.dat')
-    open(modifiedFile, 'w')
-    self.hardcopyPrinter(modifiedFile)
-    os.rename(modifiedFile, self.inputFiles)
+    if os.path.exists(self.inputFiles): 
+      os.remove(self.inputFiles) # remove the file if was already existing
+    # open the unperturbed file 
+    openInputFile = open(self.inputFiles, "r")
+    lines = openInputFile.readlines()
+    openInputFile.close()
+    
+    self.hardcopyPrinter(lines)
