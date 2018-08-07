@@ -67,7 +67,7 @@ class MassParser():
       @ In, modifiedFile, string, output temperary file name
       @ Out, None
     """
-    with open(self.inputFiles, 'a+') as outfile:      
+    with open(self.inputFiles, 'a+') as outfile:
       for line in lines:
           if not line.split():
             continue  # if the line is blank, ignore it
@@ -114,11 +114,11 @@ class MassParser():
       @ In, workingDir, string, path to working directory
       @ Out, None
     """
-    if os.path.exists(self.inputFiles): 
+    if os.path.exists(self.inputFiles):
       os.remove(self.inputFiles) # remove the file if was already existing
-    # open the unperturbed file 
+    # open the unperturbed file
     openInputFile = open(self.inputFiles, "r")
     lines = openInputFile.readlines()
     openInputFile.close()
-    
+
     self.hardcopyPrinter(lines)

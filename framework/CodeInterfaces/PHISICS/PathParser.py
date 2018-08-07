@@ -97,16 +97,16 @@ class PathParser():
       @ In, workingDir, string, path to working directory
       @ Out, None
     """
-    # open the unperturbed file 
+    # open the unperturbed file
     openInputFile = open(self.inputFiles, "r")
     lines = openInputFile.readlines()
     openInputFile.close()
-    
+
     # remove the file if was already existing
-    if os.path.exists(self.inputFiles): 
-      os.remove(self.inputFiles) 
+    if os.path.exists(self.inputFiles):
+      os.remove(self.inputFiles)
     sectionCounter = 0
-    with open(self.inputFiles, 'a+') as outfile:      
+    with open(self.inputFiles, 'a+') as outfile:
       for line in lines:
         if re.search(r'(.*?)(\s?)[a-zA-Z](\s+Qvalue)', line.strip()):
           sectionCounter = sectionCounter + 1

@@ -25,7 +25,7 @@ class FissionYieldParser():
     """
     self.allYieldList = []  # all the fis. yield families in fast and thermal spectrum
     self.inputFiles = inputFiles
-    self.spectrum = ['Thermal', 'Fast']  # Possible spectrum found in the library. 
+    self.spectrum = ['Thermal', 'Fast']  # Possible spectrum found in the library.
     self.typeOfSpectrum = None  # Flag. Takes the value of one of the possible spectrum, depending what line of the file is parsed
     self.isotopeList = []  # Fission products having a fission yield defined
     self.spectrumNumbering = {
@@ -34,12 +34,12 @@ class FissionYieldParser():
 
     self.pertYieldDict = self.scientificNotation(
         pertDict)  # Perturbed variables
-    
-    # open the unperturbed file 
+
+    # open the unperturbed file
     openInputFile = open(self.inputFiles, "r")
     lines = openInputFile.readlines()
     openInputFile.close()
-    
+
     self.characterizeLibrary(lines)
     self.isotopeList = list(set(
         self.isotopeList))  # Removes all the repetion in the isotope list
@@ -176,7 +176,7 @@ class FissionYieldParser():
       @ Out, None
     """
     flag = 0
-    with open(self.inputFiles, 'a+') as outfile:      
+    with open(self.inputFiles, 'a+') as outfile:
       for line in lines:
         if re.match(
             r'(.*?)END\s+\w+', line.strip()
@@ -239,7 +239,7 @@ class FissionYieldParser():
       @ In, lines, list, unperturbed input file lines
       @ Out, None
     """
-    if os.path.exists(self.inputFiles): 
+    if os.path.exists(self.inputFiles):
       os.remove(self.inputFiles) # remove the file if was already existing
     for spectra in self.spectrum:
       self.hardcopyPrinter(spectra, lines)

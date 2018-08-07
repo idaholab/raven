@@ -31,11 +31,11 @@ class DecayParser():
 
     self.inputFiles = inputFiles
     self.pertDict = self.scientificNotation(pertDict)
-    # open the unperturbed file 
+    # open the unperturbed file
     openInputFile = open(self.inputFiles, "r")
     lines = openInputFile.readlines()
     openInputFile.close()
-    
+
     self.characterizeLibrary(lines)
     self.fileReconstruction()
     self.printInput(workingDir,lines)
@@ -104,7 +104,7 @@ class DecayParser():
       @ Out, None
     """
     flag = 0
-    with open(self.inputFiles, 'a+') as outfile:      
+    with open(self.inputFiles, 'a+') as outfile:
       for line in lines:
         if not line.split():
           continue  # if the line is blank, ignore it
@@ -220,7 +220,7 @@ class DecayParser():
       @ In, lines, list, unperturbed input file lines
       @ Out, None
     """
-    if os.path.exists(self.inputFiles): 
+    if os.path.exists(self.inputFiles):
       os.remove(self.inputFiles) # remove the file if was already existing
     for atomicNumber in self.isotopeParsed:
       self.hardcopyPrinter(atomicNumber, lines)
