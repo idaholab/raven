@@ -1,52 +1,59 @@
 <?xml version="1.0" ?>
 <Simulation>
   <TestInfo>
-    <name>framework/CodeInterfaceTests/PHISICS.mrtau</name>
     <author>rouxpn</author>
     <created>2018-04-23</created>
-    <classesTested>Models.Code.Phisics</classesTested>
     <description>
-       This test is aimed to test the mechanics of the interface between RAVEN and
-       PHISICS, using the burnup code MRTAU.
-       The decay constant of the PU241 is perturbed and the mass of the NP237.
+       An example of using the MRTAU standalone within the PHISICS code interface. 
     </description>
     <revisions>
-        <revision author="alfoa" date="2018-07-08">modified to make it work and to remove nuclear data</revision>
+      <revision author="rouxpn" date="2018-04-23">mrtau test case</revision>
     </revisions>
   </TestInfo>
   <RunInfo>
     <WorkingDir>./mrtau</WorkingDir>
     <Sequence>mrtauTest</Sequence>
+    <!--
+    <clusterParameters>-P art</clusterParameters>  
+    <RemoteRunCommand>raven_qsub_intel_scale.sh</RemoteRunCommand> 
+    <NodeParameter>-machinefile</NodeParameter> 
+    <MPIExec>mpirun</MPIExec>
+    <mode>mpi 
+        <runQSUB/> 
+    </mode>    
     <batchSize>1</batchSize>
+    <NumMPI>2</NumMPI>
+    -->
   </RunInfo>
 
   <Files>
-    <Input name="decay.dat"           type="decay"             perturbable="True"   subDirectory="mrtau_libraries" >decay.dat</Input>
-    <Input name="lib_inp_path.xml"    type="path"              perturbable="False"                                 >lib_inp_path.xml</Input>
-    <Input name="Depletion_input.xml" type="Depletion_input"   perturbable="False"                                 >Depletion_input.xml</Input>
-    <Input name="FissionYield.dat"    type="FissionYield"      perturbable="True"  subDirectory="mrtau_libraries"  >FissionYield.dat</Input>
-    <Input name="FissQValue.dat"      type="FissQValue"        perturbable="True"  subDirectory="mrtau_libraries"  >FissQValue.dat</Input>
-    <Input name="AlphaDecay.path"     type="AlphaDecay"        perturbable="True"  subDirectory="mrtau_libraries"  >AlphaDecay.path</Input>
-    <Input name="Beta+Decay.path"     type="Beta+Decay"        perturbable="True"  subDirectory="mrtau_libraries"  >Beta+Decay.path</Input>
-    <Input name="Beta+xDecay.path"    type="Beta+xDecay"       perturbable="True"  subDirectory="mrtau_libraries"  >Beta+xDecay.path</Input>
-    <Input name="BetaDecay.path"      type="BetaDecay"         perturbable="True"  subDirectory="mrtau_libraries"  >BetaDecay.path</Input>
-    <Input name="BetaxDecay.path"     type="BetaxDecay"        perturbable="True"  subDirectory="mrtau_libraries"  >BetaxDecay.path</Input>
-    <Input name="IntTraDecay.path"    type="IntTraDecay"       perturbable="True"  subDirectory="mrtau_libraries"  >IntTraDecay.path</Input>
-    <Input name="N,2N.path"           type="N,2N"              perturbable="False" subDirectory="mrtau_libraries"  >N,2N.path</Input>
-    <Input name="N,ALPHA.path"        type="N,ALPHA"           perturbable="False" subDirectory="mrtau_libraries"  >N,ALPHA.path</Input>
-    <Input name="N,G.path"            type="N,G"               perturbable="False" subDirectory="mrtau_libraries"  >N,G.path</Input>
-    <Input name="N,Gx.path"           type="N,Gx"              perturbable="False" subDirectory="mrtau_libraries"  >N,Gx.path</Input>
-    <Input name="N,P.path"            type="N,P"               perturbable="False" subDirectory="mrtau_libraries"  >N,P.path</Input>
-    <Input name="budep.inp"           type="budep"             perturbable="False" subDirectory="mrtau_libraries"  >budep.inp</Input>
-    <Input name="CRAM_coeff_PF.dat"   type="CRAM_coeff_PF"     perturbable="False" subDirectory="mrtau_libraries"  >CRAM_coeff_PF.dat</Input>
-    <Input name="IsotopeList.dat"     type="IsotopeList"       perturbable="False" subDirectory="mrtau_libraries"  >IsotopeList.dat</Input>
-    <Input name="mass.inp"            type="mass"              perturbable="False" subDirectory="mrtau_libraries"  >mass.inp</Input>
+    <Input name="decay.dat"           type="decay"             perturbable="True"   subDirectory="library_fiss" >decay.dat</Input>
+    <Input name="lib_inp_path.xml"    type="path"              perturbable="False"                              >lib_inp_path.xml</Input>
+    <Input name="Depletion_input.xml" type="Depletion_input"   perturbable="False"                              >Depletion_input.xml</Input>
+    <Input name="FissionYield.dat"    type="FissionYield"      perturbable="True"  subDirectory="library_fiss"  >FissionYield.dat</Input>
+    <Input name="FissQValue.dat"      type="FissQValue"        perturbable="True"  subDirectory="library_fiss"  >FissQValue.dat</Input>
+    <Input name="AlphaDecay.path"     type="AlphaDecay"        perturbable="True"  subDirectory="path"          >AlphaDecay.path</Input>
+    <Input name="Beta+Decay.path"     type="Beta+Decay"        perturbable="True"  subDirectory="path"          >Beta+Decay.path</Input>
+    <Input name="Beta+xDecay.path"    type="Beta+xDecay"       perturbable="True"  subDirectory="path"          >Beta+xDecay.path</Input>
+    <Input name="BetaDecay.path"      type="BetaDecay"         perturbable="True"  subDirectory="path"          >BetaDecay.path</Input>
+    <Input name="BetaxDecay.path"     type="BetaxDecay"        perturbable="True"  subDirectory="path"          >BetaxDecay.path</Input>
+    <Input name="IntTraDecay.path"    type="IntTraDecay"       perturbable="True"  subDirectory="path"          >IntTraDecay.path</Input>
+    <Input name="N,2N.path"           type="N,2N"              perturbable="False" subDirectory="path"          >N,2N.path</Input>
+    <Input name="N,ALPHA.path"        type="N,ALPHA"           perturbable="False" subDirectory="path"          >N,ALPHA.path</Input>
+    <Input name="N,G.path"            type="N,G"               perturbable="False" subDirectory="path"          >N,G.path</Input>
+    <Input name="N,Gx.path"           type="N,Gx"              perturbable="False" subDirectory="path"          >N,Gx.path</Input>
+    <Input name="N,P.path"            type="N,P"               perturbable="False" subDirectory="path"          >N,P.path</Input>  
+    <Input name="budep.inp"           type="budep"             perturbable="False" subDirectory="library_fiss"  >budep.inp</Input>
+    <Input name="CRAM_coeff_PF.dat"   type="CRAM_coeff_PF"     perturbable="False" subDirectory="library_fiss"  >CRAM_coeff_PF.dat</Input>
+    <Input name="IsotopeList.dat"     type="IsotopeList"       perturbable="False" subDirectory="input_dpl"     >IsotopeList.dat</Input>
+    <Input name="mass.inp"            type="mass"              perturbable="False" subDirectory="input_dpl"     >mass.inp</Input>
   </Files>
 
   <Models>
     <Code name="PHISICS" subType="Phisics">
-       <executable>xxxx</executable>
+       <executable>/home/rouxpn/PHISICS/PHISICS_8/projects/bin/dpl_instant_run</executable> 
        <mrtauStandAlone>T</mrtauStandAlone>
+        <mrtauStandAloneExecutable>/home/rouxpn/PHISICS/PHISICS_8/projects/bin/mrtau_standalone</mrtauStandAloneExecutable>
     </Code>
   </Models>
 
@@ -54,14 +61,18 @@
     <Normal name="DECAY|BETA|PU241_distrib">
       <mean>6.81E-10</mean>
       <sigma>3.0E-10</sigma>
-      <upperBound>8.0E-10</upperBound>
-      <lowerBound>1.0E-10</lowerBound>
     </Normal>
     <Normal name="MASS|NP237_distrib">
       <mean>5.0</mean>
       <sigma>1</sigma>
-      <upperBound>6.0</upperBound>
-      <lowerBound>4.0</lowerBound>
+    </Normal>
+    <Normal name="MASS|BR79_distrib">
+      <mean>1.0E-05</mean>
+      <sigma>1.0E-05</sigma>
+    </Normal>
+    <Normal name="DECAY|BETAPLUS|SE76_distrib">
+      <mean>1.0E-10</mean>
+      <sigma>1.0E-10</sigma>
     </Normal>
   </Distributions>
 
@@ -75,6 +86,12 @@
       </variable>
       <variable name="MASS|NP237">
         <distribution>MASS|NP237_distrib</distribution>
+      </variable>
+      <variable name="MASS|BR79">
+        <distribution>MASS|BR79_distrib</distribution>
+      </variable>
+      <variable name="DECAY|BETAPLUS|SE76">
+        <distribution>DECAY|BETAPLUS|SE76_distrib</distribution>
       </variable>
     </MonteCarlo>
   </Samplers>
@@ -98,9 +115,10 @@
       <Input class="Files" type="N,Gx"              >N,Gx.path</Input>
       <Input class="Files" type="N,P"               >N,P.path</Input> 
       <Input class="Files" type="budep"             >budep.inp</Input>   
-      <Input class="Files" type="CRAM_coeff_PF"     >CRAM_coeff_PF.dat</Input>
+      <Input class="Files" type="CRAM_coeff_PF"     >CRAM_coeff_PF.dat</Input> 
       <Input class="Files" type="IsotopeList"       >IsotopeList.dat</Input> 
-      <Input class="Files" type="mass"              >mass.inp</Input>
+      <Input class="Files" type="mass"              >mass.inp</Input> 
+          
       <Model class="Models" type="Code">PHISICS</Model>
       <Sampler class="Samplers" type="MonteCarlo">MC_samp</Sampler>
       <Output class="DataObjects" type="PointSet">outMC</Output>
@@ -117,7 +135,7 @@
   
   <DataObjects>
     <PointSet name="outMC">
-      <Input>DECAY|BETA|PU241</Input>
+      <Input>DECAY|BETA|PU241,DECAY|BETAPLUS|SE76</Input>
       <Output>numDensity|NP237</Output>
     </PointSet>
   </DataObjects>

@@ -1,59 +1,67 @@
 <?xml version="1.0" ?>
 <Simulation>
   <TestInfo>
-    <name>framework/CodeInterfaceTests/PHISICS.phisics</name>
     <author>rouxpn</author>
     <created>2018-04-23</created>
-    <classesTested>Models.Code.Phisics</classesTested>
     <description>
-        This test is aimed to test the mechanics of the interface between RAVEN and
-        PHISICS, using the full-blonde PHISICS executable.
-        Qvalues, decay constants, initial densities and cross sections get perturbed.
+       An example of using the PHISICS code interface. 
     </description>
     <revisions>
-      <revision author="alfoa" date="2018-07-08">modified to make it work and to remove nuclear data</revision>
+      <revision author="rouxpn" date="2017-11-06">phisics test case</revision>
     </revisions>
   </TestInfo>
   <RunInfo>
     <WorkingDir>./phisics</WorkingDir>
     <Sequence>phisicsTest2D</Sequence>
+    <!--
+    <clusterParameters>-P art</clusterParameters>  
+    <RemoteRunCommand>raven_qsub_intel_scale.sh</RemoteRunCommand> 
+    <NodeParameter>-machinefile</NodeParameter> 
+    <MPIExec>mpirun</MPIExec>
+    <mode>mpi 
+        <runQSUB/> 
+    </mode>    
     <batchSize>1</batchSize>
+    <NumMPI>2</NumMPI>
+    -->
   </RunInfo>
 
   <Files>
-    <Input name="inp.xml"             type="inp"               perturbable="False"                                 >inp.xml</Input>
-    <Input name="lib_inp_path.xml"    type="path"              perturbable="False"                                 >lib_inp_path.xml</Input>
-    <Input name="Material.xml"        type="Material"          perturbable="True"                                  >Material.xml</Input>
-    <Input name="Depletion_input.xml" type="Depletion_input"   perturbable="False"                                 >Depletion_input.xml</Input>
-    <Input name="Xs-Library.xml"      type="Xs-Library"        perturbable="False"                                 >Xs-Library.xml</Input>
-    <Input name="scaled_xs.xml"       type="XS"                perturbable="True"                                  >scaled_xs.xml</Input>
-    <Input name="tabMapping.xml"      type="tabMap"            perturbable="False"                                 >tabMapping.xml</Input>
-    <Input name="decay.dat"           type="decay"             perturbable="True"  subDirectory="mrtau_libraries"  >decay.dat</Input>
-    <Input name="FissionYield.dat"    type="FissionYield"      perturbable="True"  subDirectory="mrtau_libraries"  >FissionYield.dat</Input>
-    <Input name="FissQValue.dat"      type="FissQValue"        perturbable="True"  subDirectory="mrtau_libraries"  >FissQValue.dat</Input>
-    <Input name="AlphaDecay.path"     type="AlphaDecay"        perturbable="True"  subDirectory="mrtau_libraries"  >AlphaDecay.path</Input>
-    <Input name="Beta+Decay.path"     type="Beta+Decay"        perturbable="True"  subDirectory="mrtau_libraries"  >Beta+Decay.path</Input>
-    <Input name="Beta+xDecay.path"    type="Beta+xDecay"       perturbable="True"  subDirectory="mrtau_libraries"  >Beta+xDecay.path</Input>
-    <Input name="BetaDecay.path"      type="BetaDecay"         perturbable="True"  subDirectory="mrtau_libraries"  >BetaDecay.path</Input>
-    <Input name="BetaxDecay.path"     type="BetaxDecay"        perturbable="True"  subDirectory="mrtau_libraries"  >BetaxDecay.path</Input>
-    <Input name="IntTraDecay.path"    type="IntTraDecay"       perturbable="True"  subDirectory="mrtau_libraries"  >IntTraDecay.path</Input>
-    <Input name="N,2N.path"           type="N,2N"              perturbable="False" subDirectory="mrtau_libraries"  >N,2N.path</Input>
-    <Input name="N,ALPHA.path"        type="N,ALPHA"           perturbable="False" subDirectory="mrtau_libraries"  >N,ALPHA.path</Input>
-    <Input name="N,G.path"            type="N,G"               perturbable="False" subDirectory="mrtau_libraries"  >N,G.path</Input>
-    <Input name="N,Gx.path"           type="N,Gx"              perturbable="False" subDirectory="mrtau_libraries"  >N,Gx.path</Input>
-    <Input name="N,P.path"            type="N,P"               perturbable="False" subDirectory="mrtau_libraries"  >N,P.path</Input>
-    <Input name="budep.inp"           type="budep"             perturbable="False" subDirectory="mrtau_libraries"  >budep.inp</Input>
-    <Input name="CRAM_coeff_PF.dat"   type="CRAM_coeff_PF"     perturbable="False" subDirectory="mrtau_libraries"  >CRAM_coeff_PF.dat</Input>
-    <Input name="IsotopeList.dat"     type="IsotopeList"       perturbable="False" subDirectory="mrtau_libraries"  >IsotopeList.dat</Input>
-    <Input name="mass.inp"            type="mass"              perturbable="False" subDirectory="mrtau_libraries"  >mass.inp</Input>
+    <Input name="decay.dat"           type="decay"             perturbable="True"   subDirectory="library_fiss" >decay.dat</Input>
+    <Input name="inp.xml"             type="inp"               perturbable="False"                              >inp.xml</Input>
+    <Input name="lib_inp_path.xml"    type="path"              perturbable="False"                              >lib_inp_path.xml</Input>
+    <Input name="Material.xml"        type="Material"          perturbable="True"                               >Material.xml</Input>
+    <Input name="Depletion_input.xml" type="Depletion_input"   perturbable="False"                              >Depletion_input.xml</Input>
+    <Input name="Xs-Library.xml"      type="Xs-Library"        perturbable="False"                              >Xs-Library.xml</Input>
+    <Input name="FissionYield.dat"    type="FissionYield"      perturbable="True"  subDirectory="library_fiss"  >FissionYield.dat</Input>
+    <Input name="FissQValue.dat"      type="FissQValue"        perturbable="True"  subDirectory="library_fiss"  >FissQValue.dat</Input>
+    <Input name="AlphaDecay.path"     type="AlphaDecay"        perturbable="True"  subDirectory="path"          >AlphaDecay.path</Input>
+    <Input name="Beta+Decay.path"     type="Beta+Decay"        perturbable="True"  subDirectory="path"          >Beta+Decay.path</Input>
+    <Input name="Beta+xDecay.path"    type="Beta+xDecay"       perturbable="True"  subDirectory="path"          >Beta+xDecay.path</Input>
+    <Input name="BetaDecay.path"      type="BetaDecay"         perturbable="True"  subDirectory="path"          >BetaDecay.path</Input>
+    <Input name="BetaxDecay.path"     type="BetaxDecay"        perturbable="True"  subDirectory="path"          >BetaxDecay.path</Input>
+    <Input name="IntTraDecay.path"    type="IntTraDecay"       perturbable="True"  subDirectory="path"          >IntTraDecay.path</Input>
+    <Input name="ft30f001"            type="isoXS"             perturbable="False"                              >ft30f001</Input>
+    <Input name="scaled_xs.xml"       type="XS"                perturbable="True"                               >scaled_xs.xml</Input>
+    <Input name="N,2N.path"           type="N,2N"              perturbable="False" subDirectory="path"          >N,2N.path</Input>
+    <Input name="N,ALPHA.path"        type="N,ALPHA"           perturbable="False" subDirectory="path"          >N,ALPHA.path</Input>
+    <Input name="N,G.path"            type="N,G"               perturbable="False" subDirectory="path"          >N,G.path</Input>
+    <Input name="N,Gx.path"           type="N,Gx"              perturbable="False" subDirectory="path"          >N,Gx.path</Input>
+    <Input name="N,P.path"            type="N,P"               perturbable="False" subDirectory="path"          >N,P.path</Input>  
+    <Input name="budep.inp"           type="budep"             perturbable="False" subDirectory="library_fiss"  >budep.inp</Input>
+    <Input name="CRAM_coeff_PF.dat"   type="CRAM_coeff_PF"     perturbable="False" subDirectory="library_fiss"  >CRAM_coeff_PF.dat</Input>
+    <Input name="IsotopeList.dat"     type="IsotopeList"       perturbable="False" subDirectory="input_dpl"     >IsotopeList.dat</Input>
+    <Input name="mass.inp"            type="mass"              perturbable="False" subDirectory="input_dpl"     >mass.inp</Input>
+    <Input name="tabMapping.xml"      type="tabMap"            perturbable="False"                              >tabMapping.xml</Input>
   </Files>
 
   <Models>
     <Code name="PHISICS" subType="Phisics">
-       <executable>ls</executable>
+       <executable>/home/rouxpn/PHISICS/PHISICS_8/projects/bin/dpl_instant_run</executable>   
        <mrtauStandAlone>F</mrtauStandAlone>
        <printSpatialRR>F</printSpatialRR>
        <printSpatialFlux>F</printSpatialFlux>
+        <mrtauStandAloneExecutable>/home/rouxpn/PHISICS/PHISICS_8/projects/bin/mrtau_standalone</mrtauStandAloneExecutable>
     </Code>
   </Models>
 
@@ -70,11 +78,13 @@
       <upperBound>6.0</upperBound>
       <lowerBound>5.0</lowerBound>
     </Normal>
-    <Normal name="DENSITY|FUEL3|XE135_distrib">
-      <mean>10000</mean>
-      <sigma>100</sigma>
-      <upperBound>10000</upperBound>
-      <lowerBound>9900</lowerBound>
+    <Normal name="FY|THERMAL|U235|I135_distrib">
+      <mean>5.7775</mean>
+      <sigma>0.5</sigma>
+    </Normal>
+    <Normal name="DENSITY|MATF3|U-235_distrib">
+      <mean>5.0E-07</mean>
+      <sigma>1.0E-07</sigma>
     </Normal>
     <Normal name="QVALUES|PU241_distrib">
       <mean>0.02</mean>
@@ -130,13 +140,18 @@
     <MonteCarlo name="MC_samp">
       <samplerInit>
         <limit>2</limit>
-        <initialSeed>20021986</initialSeed>
       </samplerInit>
       <variable name="DECAY|BETA|ZN68">
         <distribution>DECAY|BETA|ZN68_distrib</distribution>
       </variable>
       <variable name="FY|FAST|U235|ZN67">
         <distribution>FY|FAST|U235|ZN67_distrib</distribution>
+      </variable>
+      <variable name="FY|THERMAL|U235|I135">
+        <distribution>FY|THERMAL|U235|I135_distrib</distribution>
+      </variable>
+      <variable name="DENSITY|MATF3|U-235">
+        <distribution>DENSITY|MATF3|U-235_distrib</distribution>
       </variable>
       <variable name="QVALUES|PU241">
         <distribution>QVALUES|PU241_distrib</distribution>
@@ -162,9 +177,6 @@
       <variable name="XS|1|FUEL1|U235|MULTIPLIER|FISSIONXS|1">
         <distribution>XS|1|FUEL1|U235|MULTIPLIER|FISSIONXS|1_distrib</distribution>
       </variable>
-      <variable name="DENSITY|matF1|I135">
-          <distribution>DENSITY|FUEL3|XE135_distrib</distribution>
-      </variable>
     </MonteCarlo>
   </Samplers>
 
@@ -184,7 +196,8 @@
       <Input class="Files" type="BetaDecay"         >BetaDecay.path</Input>
       <Input class="Files" type="BetaxDecay"        >BetaxDecay.path</Input>
       <Input class="Files" type="IntTraDecay"       >IntTraDecay.path</Input>
-      <Input class="Files" type="XS"                >scaled_xs.xml</Input>
+      <Input class="Files" type="ft30f001"          >ft30f001</Input>
+      <Input class="Files" type="XS"                >scaled_xs.xml</Input>   
       <Input class="Files" type="N,2N"              >N,2N.path</Input>  
       <Input class="Files" type="N,ALPHA"           >N,ALPHA.path</Input>
       <Input class="Files" type="N,G"               >N,G.path</Input>

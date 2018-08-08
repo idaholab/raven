@@ -1,14 +1,10 @@
 <?xml version="1.0" ?>
 <Simulation>
   <TestInfo>
-    <name>framework/CodeInterfaceTests/PHISICS.phisicsRelap5</name>
     <author>rouxpn</author>
     <created>2018-04-25</created>
-    <classesTested>Models.Code.PhisicsRelap5</classesTested>
     <description>
-        This test is aimed to test the mechanics of the combined interface PHISICS/RELAP5 using the
-        RELAP5 (coupled with PHISICS) executable.
-        The density of the I135 is perturbed (PHISICS side) and the heat capacity of a heat structure.
+       An example of using the PHISICS-RELAP code interface.
     </description>
     <revisions>
       <revision author="rouxpn" date="2018-04-25">phisics test case</revision>
@@ -17,7 +13,18 @@
   <RunInfo>
     <WorkingDir>./phisicsRelap5</WorkingDir>
     <Sequence>phisicsRelap5Test</Sequence>
+    <!--
+    <clusterParameters>-P art</clusterParameters>  
+    <RemoteRunCommand>raven_qsub_intel.sh</RemoteRunCommand>  
+    <NodeParameter>-machinefile</NodeParameter> 
+    <MPIExec>mpirun</MPIExec>
+    <mode>mpi 
+        <runQSUB/> 
+    </mode>
+    
     <batchSize>3</batchSize>
+    <NumMPI>1</NumMPI>
+    -->
   </RunInfo>
 
   <Files>
@@ -44,13 +51,20 @@
     <Input name="CRAM_coeff_PF.dat"   type="CRAM_coeff_PF"     perturbable="False" subDirectory="MRTAU_lib"   >CRAM_coeff_PF.dat</Input>
     <Input name="IsotopeList.dat"     type="IsotopeList"       perturbable="False" subDirectory="MRTAU_lib"   >IsotopeList.dat</Input>
     <Input name="mass.inp"            type="mass"              perturbable="False" subDirectory="MRTAU_lib"   >mass.inp</Input>
-    <Input name="tabMapping.xml"      type="tabMap"             perturbable="False"                           >tabMapping.xml</Input>
-    <Input name="snc01.i"             type="relapInp"          perturbable="True"                             >snc01.i</Input>
+    <Input name="tabMapping.xml"      type="tabMap"             perturbable="False"                            >tabMapping.xml</Input>
+    <Input name="ex_3a_R_CR_nom.i"    type="relapInp"          perturbable="False"                            >ex_3a_R_CR_nom.i</Input>
+    <Input name="tpfh2o"              type="relapH2o"               perturbable="False"                            >tpfh2o</Input>
+    <Input name="tpfh2on2"              type="relaph2on2"               perturbable="False"                            >tpfh2on2</Input>
+    <Input name="tpfn2"              type="relapn2"               perturbable="False"                            >tpfn2</Input>
+    <Input name="tpfhe"               type="relapHe"                perturbable="False"                            >tpfhe</Input>
+    <Input name="rellic.bin"          type="relapRellic"            perturbable="False"                            >rellic.bin</Input>
+    <Input name="relap5_INL_falcon.x" type="relapExecutable"        perturbable="False"                            >relap5_INL_falcon.x</Input>
   </Files>
 
   <Models>
     <Code name="PHISICS_RELAP5" subType="PhisicsRelap5">
-       <executable>ls</executable>
+       <executable>/home/rouxpn/RAVEN/PHISICS_RELAP5/relap5_INL_falcon.x</executable> 
+       <mrtauStandAlone>F</mrtauStandAlone>  
        <printSpatialRR>F</printSpatialRR>
        <printSpatialFlux>F</printSpatialFlux>
     </Code>    
@@ -110,7 +124,14 @@
       <Input class="Files" type="CRAM_coeff_PF.dat"  >CRAM_coeff_PF.dat</Input> 
       <Input class="Files" type="IsotopeList.dat"    >IsotopeList.dat</Input> 
       <Input class="Files" type="mass.inp"           >mass.inp</Input> 
-      <Input class="Files" type="relapInp"           >snc01.i</Input>
+      <Input class="Files" type="relapInp"           >ex_3a_R_CR_nom.i</Input>
+      <Input class="Files" type="h2o"                >tpfh2o</Input>
+      <Input class="Files" type="h2on2"                >tpfh2on2</Input>
+      <Input class="Files" type="n2"                >tpfn2</Input>
+      <Input class="Files" type="he"                 >tpfhe</Input>
+      <Input class="Files" type="rellic"             >rellic.bin</Input>
+      <Input class="Files" type="executable"         >relap5_INL_falcon.x</Input>
+      
       <Model class="Models" type="Code">PHISICS_RELAP5</Model>
       <Sampler class="Samplers" type="MonteCarlo">MC_samp</Sampler>
       <Output class="DataObjects" type="PointSet">outMC</Output>
