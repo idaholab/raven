@@ -172,8 +172,13 @@ class Grid(ForwardSampler):
       elif self.gridInfo[varName] == 'value':
         gridLB = self.gridEntity.gridInitDict['lowerBounds'][varName]
         gridUB = self.gridEntity.gridInitDict['upperBounds'][varName]
-        distLB = self.distDict[varName].lowerBound
-        distUB = self.distDict[varName].upperBound
+        if self.variables2distributionsMapping[varName]['totDim']==1:
+          distLB = self.distDict[varName].lowerBound
+          distUB = self.distDict[varName].upperBound
+        else:
+          dim = self.variables2distributionsMapping[varName]['dim']-1
+          distLB = self.distDict[varName].returnLowerBound(dim)
+          distUB = self.distDict[varName].returnUpperBound(dim)
         if gridLB < distLB or gridUB > distUB:
           self.raiseAnError(IOError, 'Grids defined for', varName, 'in range (', gridLB, gridUB,
           ') is outside the range of given distribution', self.distDict[varName].type, '(',distLB, distUB,')!')
