@@ -1,0 +1,10 @@
+enrichment,burnup,filename
+5.9,26.402,decay_heat_12.csv
+5.9,18.858,decay_heat_14.csv
+5.9,16.501,decay_heat_15.csv
+7.2,26.402,decay_heat_24.csv
+7.2,18.858,decay_heat_26.csv
+7.2,16.501,decay_heat_27.csv
+9.9,26.402,decay_heat_36.csv
+9.9,18.858,decay_heat_38.csv
+9.9,16.501,decay_heat_39.csv

@@ -1,31 +1,26 @@
-<data name="test_dataobject" type="HistorySet"><input>TIMELOCA</input><output>PPS,PSGGEN(1),WWTOTFW(1),ZWDC2SG(1),TIME</output><inputFilename>test_dataobject.csv</inputFilename><metadata><PbThreshold>array([ 0.27777778,  0.4       ,  0.5       ,  0.5       ,  0.4       ,
-        0.27777778,  0.27777778,  0.4       ,  0.4       ,  0.5       ,
-        0.4       ,  0.4       ,  0.27777778,  0.4       ,  0.5       ,
-        0.5       ,  0.4       ])</PbThreshold><ValueThreshold>array([ 500.,  720.,  900.,  900.,  720.,  500.,  500.,  720.,  720.,
-        900.,  720.,  720.,  500.,  720.,  900.,  900.,  720.])</ValueThreshold><crowDist>array([ {u'TIMELOCA': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1800.0}', u'AFWOFF': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1800.0}'}], dtype=object)</crowDist><SampledVars>array([{'TIMELOCA': 500, 'AFWOFF': 720.0},
-       {'TIMELOCA': 900, 'AFWOFF': 720.0},
-       {'TIMELOCA': 500, 'AFWOFF': 720.0},
-       {'TIMELOCA': 900, 'AFWOFF': 720.0},
-       {'TIMELOCA': 500, 'AFWOFF': 720.0},
-       {'TIMELOCA': 900, 'AFWOFF': 720.0}], dtype=object)</SampledVars><initiatorDistribution>array(['uniform', 'uniform', 'uniform', 'uniform', 'uniform', 'uniform',
-       'uniform', 'uniform', 'uniform', 'uniform', 'uniform', 'uniform',
-       'uniform', 'uniform', 'uniform', 'uniform', 'uniform'], dtype=object)</initiatorDistribution><endTimeStep>array([ 0, -1, -1, -1, -1, -1])</endTimeStep><conditionalPbr>array([ 1.])</conditionalPbr><executable>array(['', '', '', '', '', ''], dtype=object)</executable><ProbabilityWeight>array([ 0.11111111,  0.43333333,  0.09259259,  0.17333333,  0.03703704,
-        0.26      ])</ProbabilityWeight><happenedEvent>array([False, False,  True,  True,  True,  True], dtype=bool)</happenedEvent><prefix>array(['det_1', 'det_1-1', 'det_1-2', 'det_1-1-2', 'det_1-2-2',
-       'det_1-1-2-2'], dtype=object)</prefix><PointProbability>array([ 0.11111111,  0.43333333,  0.09259259,  0.17333333,  0.03703704,
-        0.26      ])</PointProbability><branchChangedParam>array(['None', 'ABBN(1)', 'ABBN(2)', 'ABBN(3)', 'ABBN(1)', 'ABBN(2)',
-       'ABBN(3)', 'IEVNT(224)', 'IEVNT(224)', 'ABBN(1)', 'ABBN(2)',
-       'ABBN(3)'], dtype=object)</branchChangedParam><additionalEdits>array([{u'input': {}, u'moosevpp': u'', u'output': u''},
-       {u'input': {}, u'moosevpp': u'', u'output': u''},
-       {u'input': {}, u'moosevpp': u'', u'output': u''},
-       {u'input': {}, u'moosevpp': u'', u'output': u''},
-       {u'input': {}, u'moosevpp': u'', u'output': u''},
-       {u'input': {}, u'moosevpp': u'', u'output': u''}], dtype=object)</additionalEdits><startTime>array([ -1.79769313e+308,   0.00000000e+000,   0.00000000e+000,
-         5.00135760e+002,   7.20163190e+002,   7.20187630e+002])</startTime><parentID>array([u'root', u'det_1', u'det_1', u'det_1-1', u'det_1-2', u'det_1-1-2'], dtype=object)</parentID><SampledVarsPb>array([{'TIMELOCA': 0.2777777777777778, 'AFWOFF': 0.4},
-       {'TIMELOCA': 0.5, 'AFWOFF': 0.4},
-       {'TIMELOCA': 0.2777777777777778, 'AFWOFF': 0.4},
-       {'TIMELOCA': 0.5, 'AFWOFF': 0.4},
-       {'TIMELOCA': 0.2777777777777778, 'AFWOFF': 0.4},
-       {'TIMELOCA': 0.5, 'AFWOFF': 0.4}], dtype=object)</SampledVarsPb><branchChangedParamValue>array(['None', '0.000114', '0.000114', '0.000114', '0.008', '0.008',
-       '0.008', '1', '1', '0.008', '0.008', '0.008'], dtype=object)</branchChangedParamValue><outfile>array([u'out~test', u'out~test', u'out~test', u'out~test', u'out~test',
-       u'out~test'], dtype=object)</outfile><conditionalPb>array([ 1.        ,  2.16666667,  0.83333333,  0.86666667,  0.33333333,
-        1.3       ])</conditionalPb></metadata></data>
+<DataObjectMetadata name="Temporal_Evolution">
+  <DataSet type="Static">
+    <dims>
+      <PPS>TIME</PPS>
+    </dims>
+    <general>
+      <inputs>TIMELOCA</inputs>
+      <pointwise_meta>ProbabilityWeight,RAVEN_isEnding,PointProbability,ProbabilityWeight-AFWOFF,RAVEN_parentID,prefix,ProbabilityWeight-TIMELOCA</pointwise_meta>
+      <outputs>PPS,PSGGEN(1),ZWDC2SG(1),WWTOTFW(1)</outputs>
+      <sampleTag>RAVEN_sample_ID</sampleTag>
+    </general>
+    <Hierarchical>
+      <path>det_1</path>
+      <path>det_1,det_1-1</path>
+      <path>det_1,det_1-1</path>
+      <path>det_1,det_1-2</path>
+      <path>det_1,det_1-2</path>
+      <path>det_1,det_1-1,det_1-1-2</path>
+      <path>det_1,det_1-1,det_1-1-2</path>
+      <path>det_1,det_1-2,det_1-2-2</path>
+      <path>det_1,det_1-2,det_1-2-2</path>
+      <path>det_1,det_1-1,det_1-1-2,det_1-1-2-2</path>
+    </Hierarchical>
+  </DataSet>
+  
+</DataObjectMetadata>

@@ -33,13 +33,14 @@ import operator
 from collections import OrderedDict
 import csv
 from scipy.interpolate import UnivariateSpline
+import math as math
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
 from BaseClasses import BaseType
 from utils import utils
 from utils.randomUtils import random
-distribution1D = utils.find_distribution1D()
+distribution1D = utils.findCrowModule('distribution1D')
 from utils import InputData
 from utils import mathUtils
 #Internal Modules End--------------------------------------------------------------------------------
@@ -52,8 +53,6 @@ def factorial(x):
   """
   fact = gamma(x+1)
   return fact
-
-stochasticEnv = distribution1D.DistributionContainer.instance()
 
 """
   Mapping between internal framework and Crow distribution name
@@ -77,6 +76,7 @@ _FrameworkToCrowDistNames = { 'Uniform':'UniformDistribution',
                               'MultivariateNormal' : 'MultivariateNormalDistribution',
                               'Laplace' : 'LaplaceDistribution',
                               'Geometric' : 'GeometricDistribution',
+                              'LogUniform' : 'LogUniformDistribution',
 }
 
 class DistributionsCollection(InputData.ParameterInput):
@@ -368,8 +368,11 @@ class BoostDistribution(Distribution):
       @ In, x, float, value to get the cdf at
       @ Out, retunrCdf, float, requested cdf
     """
-    retunrCdf = self._distribution.cdf(x)
-    return retunrCdf
+    if hasattr(x,'__len__'):
+      returnCdf = np.array([self.cdf(i) for i in x])
+    else:
+      returnCdf = self._distribution.cdf(x)
+    return returnCdf
 
   def ppf(self,x):
     """
@@ -377,8 +380,12 @@ class BoostDistribution(Distribution):
       @ In, x, float, value to get the inverse cdf at
       @ Out, retunrPpf, float, requested inverse cdf
     """
-    retunrPpf = self._distribution.inverseCdf(x)
-    return retunrPpf
+    # TODO speed this up by doing it in Crow, not in python
+    if hasattr(x,'__len__'):
+      returnPpf = np.array([self.ppf(i) for i in x])
+    else:
+      returnPpf = self._distribution.inverseCdf(x)
+    return returnPpf
 
   def pdf(self,x):
     """
@@ -439,16 +446,17 @@ class BoostDistribution(Distribution):
     return untrMode
 
 
-  def rvs(self,*args):
+  def rvs(self, size=None):
     """
       Function to get random numbers
-      @ In, args, dict, args
+      @ In, size, int, optional, number of entries to return (one if None)
       @ Out, rvsValue, float or list, requested random number or numbers
     """
-    if len(args) == 0:
+    if size is None:
       rvsValue = self.ppf(random())
     else:
-      rvsValue = [self.rvs() for _ in range(args[0])]
+      # TODO to speed up, do this on the C side instead of in python
+      rvsValue = np.array([self.rvs() for _ in range(size)])
     return rvsValue
 
 class Uniform(BoostDistribution):
@@ -553,15 +561,15 @@ class Uniform(BoostDistribution):
 
   def convertUniformToLegendre(self,y):
     """Converts from distribution domain to standard Legendre [-1,1].
-    @ In, y, float/array of floats, points to convert
-    @ Out float/array of floats, converted points
+      @ In, y, float/array of floats, points to convert
+      @ Out float/array of floats, converted points
     """
     return (y-self.untruncatedMean())/(self.range/2.)
 
   def convertLegendreToUniform(self,x):
     """Converts from standard Legendre [-1,1] to distribution domain.
-    @ In, y, float/array of floats, points to convert
-    @ Out float/array of floats, converted points
+      @ In, y, float/array of floats, points to convert
+      @ Out float/array of floats, converted points
     """
     return self.range/2.*x+self.untruncatedMean()
 
@@ -869,7 +877,6 @@ class Gamma(BoostDistribution):
     @ In, None, None
     @ Out float, norm
     """
-    #return self.beta**self.alpha/factorial(self.alpha-1.)
     return 1./factorial(self.alpha-1)
 
 DistributionsCollection.addSub(Gamma.getInputSpecification())
@@ -2441,6 +2448,119 @@ class Custom1D(Distribution):
 
 DistributionsCollection.addSub(Custom1D.getInputSpecification())
 
+class LogUniform(Distribution):
+  """
+    Log Uniform univariate distribution
+    If x~LogUnif(a,b) then log(x)~Unif(log(a),log(b))
+  """
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    inputSpecification = super(LogUniform, cls).getInputSpecification()
+
+    BaseInputType = InputData.makeEnumType("base", "baseType", ["natural","decimal"])
+
+    inputSpecification.addSub(InputData.parameterInputFactory("lowerBound", contentType=InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("upperBound", contentType=InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("base"      , BaseInputType))
+
+    return inputSpecification
+
+  def __init__(self):
+    """
+      Constructor
+      @ In, None
+      @ Out, None
+    """
+    Distribution.__init__(self)
+    self.upperBound = None
+    self.lowerBound = None
+    self.base       = None
+
+  def initializeDistribution(self):
+    """
+      Method to initialize the distribution
+      @ In, None
+      @ Out, None
+    """
+    self.minVal = min(math.exp(self.upperBound),math.exp(self.lowerBound))
+    self.maxVal = max(math.exp(self.upperBound),math.exp(self.lowerBound))
+
+  def _handleInput(self, paramInput):
+    """
+      Function to handle the common parts of the distribution parameter input.
+      @ In, paramInput, ParameterInput, the already parsed input.
+      @ Out, None
+    """
+    self.lowerBound = paramInput.findFirst('lowerBound').value
+    if self.lowerBound is None:
+      self.raiseAnError(IOError,' lowerBound parameter is needed for LogUniform distribution')
+
+    self.upperBound = paramInput.findFirst('upperBound').value
+    if self.upperBound is None:
+      self.raiseAnError(IOError,' upperBound parameter is needed for LogUniform distribution')
+
+    if self.upperBound < self.lowerBound:
+      self.raiseAnError(IOError,' LogUniform distribution: the upperBound parameter is lower than the lowerBound parameter')
+
+    self.base = paramInput.findFirst('base').value
+    if self.base not in ['natural','decimal']:
+      self.raiseAnError(IOError,' base parameter is needed for LogUniform distribution (either natural or decimal)')
+
+  def pdf(self,x):
+    """
+      Function that calculates the pdf value of x
+      @ In, x, float , coordinates to get the pdf at
+      @ Out, pdfValue, float, requested pdf
+    """
+    if self.base == 'natural':
+      pdfValue = 1./(self.upperBound-self.lowerBound) * 1./x
+    else:
+      pdfValue = 1./(self.upperBound-self.lowerBound) * 1./x * 1./math.log(10.)
+      print(x,pdfValue)
+    return pdfValue
+
+  def cdf(self,x):
+    """
+      Function that calculates the cdf value of x
+      @ In, x, float , coordinates to get the cdf at
+      @ Out, pdfValue, float, requested pdf
+    """
+    if self.base == 'natural':
+      cdfValue = (math.log(x)-self.lowerBound)/(self.upperBound-self.lowerBound)
+    else:
+      cdfValue = (math.log10(x)-self.lowerBound)/(self.upperBound-self.lowerBound)
+    return cdfValue
+
+  def ppf(self,x):
+    """
+      Return the ppf of given coordinate
+      @ In, x, float, the x coordinates
+      @ Out, ppfValue, float, ppf values
+    """
+    if self.base == 'natural':
+      ppfValue = math.exp((self.upperBound-self.lowerBound)*x + self.lowerBound)
+    else:
+      ppfValue = 10.**((self.upperBound-self.lowerBound)*x + self.lowerBound)
+    return ppfValue
+
+  def rvs(self):
+    """
+      Return a random value
+      @ In, None
+      @ Out, rvsValue, float, the random value
+    """
+    rvsValue = self.ppf(random())
+    return rvsValue
+
+DistributionsCollection.addSub(LogUniform.getInputSpecification())
+
 class NDimensionalDistributions(Distribution):
   """
     General base class for NDimensional distributions
@@ -2541,6 +2661,15 @@ class NDimensionalDistributions(Distribution):
     """
     value = self._distribution.returnUpperBound(dimension)
     return value
+
+  def marginalDistribution(self, x, variable):
+    """
+      Compute the cdf marginal distribution
+      @ In, x, float, the coordinate for at which the inverse marginal distribution needs to be computed
+      @ In, variable, int, the variable id dimension coordinate (e.g. 0 => 1st coordinate, 1 => 2nd coordinate)
+      @ Out, marginalDistribution, float, the marginal cdf value at coordinate x
+    """
+    return self._distribution.marginal(x, variable)
 
 DistributionsCollection.addSub(NDimensionalDistributions.getInputSpecification())
 
@@ -2679,13 +2808,15 @@ class NDInverseWeight(NDimensionalDistributions):
 
   def inverseMarginalDistribution(self, x, variable):
     """
-      Compute the inverse of the Margina distribution
-      @ In, x, float, the coordinate for at which the inverse marginal distribution needs to be computed
-      @ In, variable, string, the variable id
-      @ Out, inverseMarginal, float, the marginal cdf value at coordinate x
+      Compute the inverse of the Marginal distribution
+      @ In, x, float, the cdf for at which the inverse marginal distribution needs to be computed
+      @ In, variable, int, the variable id dimension coordinate (e.g. 0 => 1st coordinate, 1 => 2nd coordinate)
+      @ Out, inverseMarginal, float, the marginal inverse cdf value at coordinate x
     """
-    if (x>0.0) and (x<1.0):
-      inverseMarginal = self._distribution.inverseMarginal(x, variable)
+    if (x>=0.0) and (x<=1.0):
+      inverseMarginal = self._distribution.inverseMarginal(min(1.-sys.float_info.epsilon,
+                                                           max(sys.float_info.epsilon,x)),
+                                                           variable)
     else:
       self.raiseAnError(ValueError,'NDInverseWeight: inverseMarginalDistribution(x) with x outside [0.0,1.0]')
     return inverseMarginal
@@ -2868,11 +2999,13 @@ class NDCartesianSpline(NDimensionalDistributions):
     """
       Compute the inverse of the Margina distribution
       @ In, x, float, the coordinate for at which the inverse marginal distribution needs to be computed
-      @ In, variable, string, the variable id
+      @ In, variable, int, the variable id dimension coordinate (e.g. 0 => 1st coordinate, 1 => 2nd coordinate)
       @ Out, inverseMarginal, float, the marginal cdf value at coordinate x
     """
     if (x>=0.0) and (x<=1.0):
-      inverseMarginal = self._distribution.inverseMarginal(x, variable)
+      inverseMarginal = self._distribution.inverseMarginal(min(1.-sys.float_info.epsilon,
+                                                           max(sys.float_info.epsilon,x)),
+                                                           variable)
     else:
       self.raiseAnError(ValueError,'NDCartesianSpline: inverseMarginalDistribution(x) with x ' +str(x)+' outside [0.0,1.0]')
     return inverseMarginal
@@ -3253,14 +3386,18 @@ class MultivariateNormal(NDimensionalDistributions):
     """
       Compute the inverse of the Margina distribution
       @ In, x, float, the coordinate for at which the inverse marginal distribution needs to be computed
-      @ In, variable, string, the variable id
+      @ In, variable, int, the variable id dimension coordinate (e.g. 0 => 1st coordinate, 1 => 2nd coordinate)
       @ Out, inverseMarginal, float, the marginal cdf value at coordinate x
     """
-    if (x > 0.0) and (x < 1.0):
+    if (x >= 0.0) and (x <= 1.0):
       if self.method == 'pca':
-        inverseMarginal = self._distribution.inverseMarginalForPCA(x)
+        inverseMarginal = self._distribution.inverseMarginalForPCA(min(1.-sys.float_info.epsilon,
+                                                                   max(sys.float_info.epsilon,
+                                                                   x)))
       elif self.method == 'spline':
-        inverseMarginal=  self._distribution.inverseMarginal(x, variable)
+        inverseMarginal=  self._distribution.inverseMarginal(min(1.-sys.float_info.epsilon,
+                                                             max(sys.float_info.epsilon,x)),
+                                                             variable)
     else:
       self.raiseAnError(ValueError,'NDInverseWeight: inverseMarginalDistribution(x) with x ' +str(x)+' outside [0.0,1.0]')
     return inverseMarginal
@@ -3348,6 +3485,7 @@ __interFaceDict['NDCartesianSpline' ] = NDCartesianSpline
 __interFaceDict['MultivariateNormal'] = MultivariateNormal
 __interFaceDict['Laplace'           ] = Laplace
 __interFaceDict['Geometric'         ] = Geometric
+__interFaceDict['LogUniform'        ] = LogUniform
 __knownTypes                          = __interFaceDict.keys()
 
 def knownTypes():

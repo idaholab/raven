@@ -1,0 +1,167 @@
+' THIS INPUT FILE HAS BEEN SANITIZED and MODIFIED with fake numbers keeping only few section to test the interface
+=t-depl parm=centrm
+httr_assembly_with_31_fuel_rods
+v7-252
+
+'number densities come from John Bess's 2006 benchmark HTTR-GCR-RESR-003 (pg. 95-97) from MCNP input
+read composition
+ u-234      1   0 1.0590E-05   1200  end 
+ u-235      1   0 $RAVEN-u235dens$   1200  end
+ u-238      1   0 $RAVEN-u238dens$   1200  end
+ o          1   0 0.0000E-02   1200  end
+ b-10       1   0 0.0000E-07   1200  end 
+' Add trace nuclides to be used in creating the ORIGEN library
+ H-1        1   0   1.0000E-20 1200  end 
+ He-4       1   0   1.0000E-20 1200  end 
+ B-11       1   0   1.0000E-20 1200  end 
+ N-14       1   0   1.0000E-20 1200  end 
+ Cf-252     1   0   1.0000E-20 1200  end
+'Buffer layer
+ C-graphite 2   0   0.0000E-02 1200  end
+ B-10       2   0   0.0000E-08 1200  end 
+'IPyC layer
+ C-graphite 3   0   0.0000E-02 1200  end
+ B-10       3   0   0.0000E-08 1200  end 
+'SiC layer                      
+ Si-28      4   0   0.0000E-02 1200  end
+ Si-29      4   0   0.0000E-03 1200  end
+ Si-30      4   0   0.0000E-03 1200  end
+ C-graphite 4   0   0.0000E-02 1200  end
+ B-10       4   0   0.0000E-08 1200  end
+'OPyC layer                    
+ C-graphite 5   0   0.0000E-02 1200  end
+ B-10       5   0   0.0000E-08 1200  end
+'fuel compact graphite matrix  
+ C-graphite 9   0   0.0000E-02 1200  end  
+ B-10       9   0   0.0000E-08 1200  end 
+' IG-110 graphite
+ C-graphite 11  0   0.0000E-02 1000  end  
+ B-10       11  0   0.0000E-08 1000  end 
+'2.0 w/t B-10 poison           
+ B-10       6   0   0.0000E-04 1000  end
+ B-11       6   0   0.0000E-03 1000  end
+ C-graphite 6   0   0.0000E-02 1000  end
+ C-graphite 7   0   0.0000E-02 1000  end
+ C-graphite 8   0   0.0000E-02 1000  end
+'
+ C-graphite 10  0   0.0000E-02 1000  end
+ He-4       12  0   0.0000E-05 1000  end
+' 21 is graphite sleeve        
+ C-graphite 21  0   0.0000E-02 1000  end
+ B-10       21  0   0.0000E-09 1000  end
+'
+ He-4       22  0   0.0000E-05 1000  end
+ He-4       23  0   0.0000E-05 1000  end
+ He-4       24  0   0.0000E-05 1000  end
+end composition
+
+read depletion
+  1  flux 6 end 
+end depletion
+read keep
+ newt
+end keep 
+read burndata
+  power=33.3  burn=$RAVEN-burning_time$    down=0.   nlib=10 end
+end burndata
+read opus 
+  units=gram symnuc=Ra-226 Ra-228 Ac-227 Ac-228 Th-228 Th-229
+                    Th-230 Th-231 Th-232 Th-234 Pa-231 Pa-233 U-232 U-233 U-234
+                    U-235 U-236 U-238 Np-237 Pu-238 Pu-239 Pu-240 Pu-241 Pu-242
+                    Pu-244 Am-241 Am-242m Am-242 Am-243 Cm-242 Cm-243 Cm-244 Cm-245 
+                    Cm-246 Cm-247 Cm-248 cf-249 cf-250 cf-251 cf-252
+                    Sr-90 Zr-93 Tc-99 I-129 Cs-135 Cs-137 B-10 B-11
+                    C-14 He-4 end
+  matl=0  end  
+end opus 
+read model
+read parameter
+ solntype=keff
+ drawit=yes
+ prtflux=yes
+ echo=yes
+ timed=yes 
+ epseigen=0.0001
+end parameter
+read materials
+  mix=1  pn=1  end
+  mix=2  pn=2  end
+  mix=3  pn=2  end
+  mix=4  pn=2  end
+  mix=5  pn=2  end
+  mix=6  pn=2  end
+  mix=7  pn=2  end
+  mix=8  pn=2  end
+  mix=9  pn=2  end 
+  mix=10 pn=2  end 
+  mix=11 pn=2  end 
+  mix=12 pn=1  end 
+  mix=13 pn=2  end
+  mix=21 pn=2  end 
+  mix=22 pn=1  end 
+  mix=23 pn=1  end
+end materials
+read geometry
+unit 6
+com="annular fuel compact in hex prism"
+ cylinder 1   0.0    sides=20
+ cylinder 2   0.0    sides=20
+ cylinder 3   0.0    sides=20
+ cylinder 4   0.0    sides=20
+ hexprism 5   0.0 
+ media 12 1  1
+ media 13 1 -1 2
+ media 21 1 -2 3
+ media 23 1 -3 4 
+ media 11 1 -4 5
+ boundary 5
+unit 9
+com="large helium coolant channel in hexprism"
+ cylinder 1    0.0    sides=20
+ hexprism 2    0.0    
+ media 12 1 1
+ media 11 1 -1 2
+ boundary 2
+unit 10
+com="small helium coolant channel"
+ cylinder 1    0.0      sides=20
+ hexprism 2    0.0   
+ media 12 1 1
+ media 11 1 -1 2
+ boundary 2
+unit 11
+com="h-451 block graphite"
+ hexprism 2   0.0    
+ media 11 1 2
+ boundary 2
+unit 21 
+com="burnable poison channel"
+ cylinder 1    0.0      sides=20
+ hexprism 2    0.0    
+ media  6 1 1
+ media 11 1 -1 2
+ boundary 2
+global unit 12
+com="fuel block lattice"
+ rhexprism 1       18  
+ media 11 1 1
+ array 5 1  place 5 5 0 0
+ boundary 1 100 100
+end geometry
+read array
+ara=5 nux=9 nuy=9 typ=shexagonal 
+ com='fuel block lattice'
+ fill
+   xxxx
+  end fill
+end array
+end data
+end model
+end
+
+=shell
+  cp ${TMPDIR}/ft71f001 ${RTNDIR}/${BASENAME}.f71
+  cp ${TMPDIR}/i_opus0001 $RTNDIR/${BASENAME}.opus01
+  cp ${TMPDIR}/ft33f001.cmbined ${RTNDIR}/${BASENAME}.f33
+  cp ${TMPDIR}/ft33f001.mix0001 ${RTNDIR}/${BASENAME}.f33
+end

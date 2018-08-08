@@ -1,8 +1,0 @@
-<CrossValidationPostProcessor type="Static">
-  <ans>
-    <m1_mean_absolute_error>
-      <cv-0>0.23197280401</cv-0>
-      <cv-1>0.276027409862</cv-1>
-    </m1_mean_absolute_error>
-  </ans>
-</CrossValidationPostProcessor>

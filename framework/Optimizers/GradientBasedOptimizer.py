@@ -79,6 +79,9 @@ class GradientBasedOptimizer(Optimizer):
     self.gainShrinkFactor            = 2.              # max step shrinking factor
     self.perturbationIndices         = []              # in this list we store the indeces that correspond to the perturbation. It is not ideal but it is quick and dirty now
 
+    # register metadata
+    self.addMetaKeys('trajID','varsUpdate','prefix')
+
   def localInputAndChecks(self, xmlNode):
     """
       Method to read the portion of the xml input that belongs to all gradient based optimizer only
@@ -165,15 +168,15 @@ class GradientBasedOptimizer(Optimizer):
       @ Out, _checkModelFinish, tuple(bool, int), (1,realization dictionary),
             (indicating whether the Model has finished the evaluation over input identified by traj+updateKey+evalID, the index of the location of the input in dataobject)
     """
-    if self.mdlEvalHist.isItEmpty():
+    if len(self.mdlEvalHist) == 0:
       return (False,-1)
-    prefix = self.mdlEvalHist.getMetadata('prefix')
-    for index, pr in enumerate(prefix):
-      pr = pr.split(utils.returnIdSeparator())[-1].split('_')
-      # use 'prefix' to locate the input sent out. The format is: trajID + iterID + (v for variable update; otherwise id for gradient evaluation) + global ID
-      if pr[0] == str(traj) and pr[1] == str(updateKey) and pr[2] == str(evalID):
-        return (True, index)
-    return (False, -1)
+    lookFor = '{}_{}_{}'.format(traj,updateKey,evalID)
+    index,match = self.mdlEvalHist.realization(matchDict = {'prefix':lookFor})
+    # if no match, return False
+    if match is None:
+      return False,-1
+    # otherwise, return index of match
+    return True, index
 
   def localGenerateInput(self,model,oldInput):
     """
@@ -183,6 +186,21 @@ class GradientBasedOptimizer(Optimizer):
       @ Out, None
     """
     self.readyVarsUpdate = {traj:False for traj in self.optTrajLive}
+
+  def calculateMultivectorMagnitude(self,values):
+    """
+      Calculates the magnitude of vector "values", where values might be a combination of scalars and vectors (but not matrices [yet]).
+      Calculates the magnitude as if "values" were flattened into a 1d array.
+      @ In, values, list, values for which the magnitude will be calculated
+      @ Out, mag, float, magnitude
+    """
+    # use np.linalg.norm (Frobenius norm) to calculate magnitude
+    ## pre-normalise vectors, this is mathematically equivalent to flattening the vector first
+    ## NOTE this assumes gradient vectors are 0 or 1 dimensional, not 2 or more! (vectors or scalars, not matrices)
+    # TODO this could be sped up if we could avoid calling np.atleast_1d twice, but net slower if we loop first
+    preMag = [np.linalg.norm(val) if len(np.atleast_1d(val))>1 else np.atleast_1d(val)[0] for val in values]
+    ## then get the magnitude of the result, and return it
+    return np.linalg.norm(preMag)
 
   def evaluateGradient(self, optVarsValues, traj):
     """
@@ -195,33 +213,36 @@ class GradientBasedOptimizer(Optimizer):
       @ In, traj, int, the trajectory id
       @ Out, gradient, dict, dictionary containing gradient estimation. gradient should have the form {varName: gradEstimation}
     """
-    # currently unused, allow subclasses to modify gradient evaluation
+    # store old values
+    self.counter['gradientHistory'][traj][1] = copy.copy(self.counter['gradientHistory'][traj][0])
+    self.counter['gradNormHistory'][traj][1] = copy.copy(self.counter['gradNormHistory'][traj][0])
     gradient = None # for now...most of the stuff in the localEvaluate can be performed here
     gradient = self.localEvaluateGradient(optVarsValues, traj, gradient)
-    # we intend for gradient to give direction only
-    gradientNorm = np.linalg.norm(gradient.values()) #might be infinite!
+    # we intend for gradient to give direction only, so get the versor
+    ## NOTE this assumes gradient vectors are 0 or 1 dimensional, not 2 or more! (vectors or scalars, not matrices)
+    gradientNorm = self.calculateMultivectorMagnitude(gradient.values())
+    # store this norm, infinite or not
+    self.counter['gradNormHistory'][traj][0] = gradientNorm
     #fix inf
     if gradientNorm == np.inf:
       # if there are infinites, then only infinites should remain, and they are +-1
-      for var in gradient.keys():
-        if gradient[var] == -np.inf:
-          gradient[var] = -1.0
-        elif gradient[var] == np.inf:
-          gradient[var] = 1.0
-        else:
-          gradient[var] = 0
+      for v,var in enumerate(gradient.keys()):
+        # first, set all non-infinites to 0, since they can't compete with infinites
+        gradient[var][-np.inf < gradient[var] < np.inf] =  0.0
+        # set +- infinites to +- 1 (arbitrary) since they're all equally important
+        gradient[var][gradient[var] == -np.inf] = -1.0
+        gradient[var][gradient[var] ==  np.inf] =  1.0
       # set up the new grad norm
-      infGradientNorm = np.linalg.norm(gradient.values())
-      for var in gradient.keys():
-        gradient[var] = gradient[var]/infGradientNorm
-    # else, if no infinites, use normal norm
-    elif gradientNorm > 0.0:
+      gradientNorm = self.calculateMultivectorMagnitude(gradient.values())
+    # normalize gradient (if norm is zero, skip this)
+    if gradientNorm != 0.0:
       for var in gradient.keys():
         gradient[var] = gradient[var]/gradientNorm
-    self.counter['gradientHistory'][traj][1] = copy.deepcopy(self.counter['gradientHistory'][traj][0])
+        # if float coming in, make it a float going out
+        if len(gradient[var])==1:
+          gradient[var] = float(gradient[var])
+    # store gradient
     self.counter['gradientHistory'][traj][0] = gradient
-    self.counter['gradNormHistory'][traj][1] = copy.deepcopy(self.counter['gradNormHistory'][traj][0])
-    self.counter['gradNormHistory'][traj][0] = gradientNorm
     return gradient
 
   def _createEvaluationIdentifier(self,trajID,iterID,evalType):
@@ -293,7 +314,7 @@ class GradientBasedOptimizer(Optimizer):
 
     ## first, determine if we want to keep the new point
     # obtain the old loss value
-    oldLossVal = self.counter['recentOptHist'][traj][0]['output']
+    oldLossVal = self.counter['recentOptHist'][traj][0][self.objVar]
     # see if new point is better than old point
     newerIsBetter = self.checkIfBetter(currentLossVal,oldLossVal)
     # if this was a recommended preconditioning point, we should not be converged.
@@ -301,7 +322,7 @@ class GradientBasedOptimizer(Optimizer):
     # if improved, keep it and move forward; otherwise, reject it and recommend cutting step size
     if newerIsBetter:
       self.status[traj]['reason'] = 'found new opt point'
-      self.raiseADebug('Accepting potential opt point for improved loss value')
+      self.raiseADebug('Accepting potential opt point for improved loss value.  Diff: {}, New: {}, Old: {}'.format(abs(currentLossVal-oldLossVal),currentLossVal,oldLossVal))
       #TODO REWORK this belongs in the base class optimizer; grad shouldn't know about multilevel!!
       #  -> this parameter is how multilevel knows that a successful perturbation of an outer loop has been performed
       #  maybe implement a "acceptPoint" method in base class?
@@ -375,10 +396,21 @@ class GradientBasedOptimizer(Optimizer):
         converged = converged or relTolCheck
 
         #same coordinate check
-        oldInputSpace = set(self.optVarsHist[traj][varsUpdate].items())
-        curInputSpace = set(self.counter['recentOptHist'][traj][0]['inputs'].items())
-        sameCoordinateCheck = oldInputSpace == curInputSpace
-        self.raiseAMessage(printString.format('Same coordinate check',str(minStepSizeCheck)))
+        sameCoordinateCheck = True
+        for var,values in self.optVarsHist[traj][varsUpdate].items():
+          # don't check constants, of course they're the same
+          if var in self.constants:
+            continue
+          # differentiate vectors and scalars for checking
+          if hasattr(values,'__len__'):
+            if any(values != self.counter['recentOptHist'][traj][0][var]):
+              sameCoordinateCheck = False
+              break
+          else:
+            if values != self.counter['recentOptHist'][traj][0][var]:
+              sameCoordinateCheck = False
+              break
+        self.raiseAMessage(printString.format('Same coordinate check',str(sameCoordinateCheck)))
         converged = converged or sameCoordinateCheck
 
     if converged:
@@ -431,7 +463,7 @@ class GradientBasedOptimizer(Optimizer):
           if len(inp) < 1: #empty
             continue
           removeLocalFlag = True
-          dist = np.sqrt(np.sum(list((inp[var] - currentInput[var])**2 for var in self.getOptVars())))
+          dist = self.calculateMultivectorMagnitude( [inp[var] - currentInput[var] for var in self.getOptVars(traj=trajToRemove)] )
           if dist < self.thresholdTrajRemoval:
             self.raiseADebug('Halting trajectory "{}" because it is following trajectory "{}"'.format(trajToRemove,traj))
             self.trajectoriesKilled[traj].append(trajToRemove)
@@ -494,35 +526,38 @@ class GradientBasedOptimizer(Optimizer):
       # failed trajectory
       failedTrajectory = int(prefix.split("_")[0])
     # TODO REWORK move this whole piece to Optimizer base class as much as possible
-    if len(self.mdlEvalHist) > 0:
+    if len(self.mdlEvalHist) != 0:
       for traj in self.optTraj:
         failedTraj = traj == failedTrajectory
         if self.counter['solutionUpdate'][traj] <= self.counter['varsUpdate'][traj]:
+          # check whether solution export needs updating, and get indices of entries that need to be added
           solutionExportUpdatedFlag, indices = self._getJobsByID(traj)
           if solutionExportUpdatedFlag or failedTraj:
             #get evaluations (input,output) from the collection of all evaluations
             if not failedTraj:
-              inputeval=self.mdlEvalHist.getParametersValues('inputs', nodeId = 'RecontructEnding')
-              outputeval=self.mdlEvalHist.getParametersValues('outputs', nodeId = 'RecontructEnding')
               #TODO this might be faster for non-stochastic if we do an "if" here on gradDict['numIterForAve']
               #make a place to store distinct evaluation values
-              outputs = {}
-              for outvar in self.solutionExport.getParaKeys('outputs'):
-                if outvar not in outputeval.keys():
-                  continue
-                outputs[outvar] = np.zeros(self.gradDict['numIterForAve'])
+              outputs = dict((var,np.zeros(self.gradDict['numIterForAve'],dtype=object))
+                  for var in self.solutionExport.getVars('output')
+                  if var in self.mdlEvalHist.getVars('output'))
               # get output values corresponding to evaluations of the opt point
               # also add opt points to the grad perturbation list
               self.gradDict['pertPoints'][traj] = np.zeros((1+self.paramDict['pertSingleGrad'])*self.gradDict['numIterForAve'],dtype=dict)
               for i, index in enumerate(indices):
-                for outvar in outputs.keys():
-                  outputs[outvar][i] = outputeval[outvar][index]
-                  if outvar == self.objVar:
-                    self.gradDict['pertPoints'][traj][i] = {'inputs':self.normalizeData(dict((k,v[index]) for k,v in inputeval.items())),
-                                                            'output':outputs[self.objVar][i]}
+                # get the realization from the targetEvaluation
+                vals = self.mdlEvalHist.realization(index=index)
+                # place values TODO this could be vectorized significantly!
+                for var in outputs.keys():
+                  if hasattr(vals[var],'__len__') and len(vals[var]) == 1:
+                    outputs[var][i] = float(vals[var])
+                  else:
+                    outputs[var][i] = vals[var]
+                  if var == self.objVar:
+                    self.gradDict['pertPoints'][traj][i] = {'inputs':self.normalizeData(dict((var,vals[var]) for var in self.mdlEvalHist.getVars('input'))),
+                                                            'output':outputs[var][i]}
               # assumed output value is the mean of sampled values
-              for outvar,vals in outputs.items():
-                outputs[outvar] = vals.mean()
+              for var,vals in outputs.items():
+                outputs[var] = vals.mean()
               currentObjectiveValue = outputs[self.objVar]#.mean()
               # check convergence
               # TODO REWORK move this to localStillReady, along with the gradient evaluation
@@ -547,67 +582,94 @@ class GradientBasedOptimizer(Optimizer):
               except KeyError:
                 # this means we don't have an entry for this trajectory yet, so don't copy anything
                 pass
-              self.counter['recentOptHist'][traj][0] = {}
-              self.counter['recentOptHist'][traj][0]['inputs'] = self.optVarsHist[traj][self.counter['varsUpdate'][traj]]
-              self.counter['recentOptHist'][traj][0]['output'] = currentObjectiveValue
+              # store realization of most recent developments
+              rlz = {}
+              rlz.update(self.optVarsHist[traj][self.counter['varsUpdate'][traj]])
+              rlz.update(outputs)
+              self.counter['recentOptHist'][traj][0] = rlz
               if traj not in self.counter['prefixHistory']:
                 self.counter['prefixHistory'][traj] = []
               self.counter['prefixHistory'][traj].append(prefix)
             # update solution export
             #FIXME much of this should move to the base class!
             if not failedTraj:
-              if 'trajID' not in self.solutionExport.getParaKeys('inputs'):
-                self.raiseAnError(IOError, 'trajID is not in the <inputs> space of the solutionExport data object specified for this optimization step!  Please add it.')
-              trajID = traj+1 # This is needed to be compatible with historySet object
-              self.solutionExport.updateInputValue([trajID,'trajID'], traj)
-              #otherOutVars = self.solutionExport.getParaKeys('outputs')
-              output = self.solutionExport.getParametersValues('outputs', nodeId = 'RecontructEnding').get(trajID,{})
-              badValue = -1 #value to use if we don't have a value # TODO make this accessible to user?
-              for var in self.solutionExport.getParaKeys('outputs'):
-                old = copy.deepcopy(output.get(var, np.asarray([])))
-                new = None #prevents accidental data copying
-                if var in self.getOptVars():
-                  new = self.denormalizeData(self.counter['recentOptHist'][traj][0]['inputs'])[var] #inputeval[var][index]
-                elif var == self.objVar:
-                  new = self.counter['recentOptHist'][traj][0]['output']
-                elif var in outputs.keys():
-                  new = outputs[var]
-                elif var == 'varsUpdate':
-                  new = [self.counter['solutionUpdate'][traj]]
-                elif var == 'stepSize':
-                  try:
-                    new = [self.counter['lastStepSize'][traj]]
-                  except KeyError:
-                    new = badValue
-                elif var.startswith( 'gradient_'):
-                  varName = var[9:]
-                  vec = self.counter['gradientHistory'][traj][0].get(varName,None)
-                  if vec is not None:
-                    new = vec*self.counter['gradNormHistory'][traj][0]
-                  else:
-                    new = badValue
-                elif var.startswith( 'convergenceAbs'):
-                  try:
-                    new = self.convergenceProgress[traj].get('abs',badValue)
-                  except KeyError:
-                    new = badValue
-                elif var.startswith( 'convergenceRel'):
-                  try:
-                    new = self.convergenceProgress[traj].get('rel',badValue)
-                  except KeyError:
-                    new = badValue
-                elif var.startswith( 'convergenceGrad'):
-                  try:
-                    new = self.convergenceProgress[traj].get('grad',badValue)
-                  except KeyError:
-                    new = badValue
-                else:
-                  self.raiseAnError(IOError,'Unrecognized output request:',var)
-                new = np.asarray(new)
-                self.solutionExport.updateOutputValue([trajID,var],np.append(old,new))
+              # only write here if we want to write on EVERY optimizer iteration (each new optimal point)
+              if self.writeSolnExportOn == 'every':
+                self.writeToSolutionExport(traj)
+              # whether we wrote to solution export or not, update the counter
               self.counter['solutionUpdate'][traj] += 1
           else: #not ready to update solutionExport
             break
+
+  def writeToSolutionExport(self,traj):
+    """
+      Standardizes how the solution export is written to.
+      Uses data from "recentOptHist" and other counters to fill in values.
+      @ In, traj, int, the trajectory for which an entry is being written
+      @ Out, None
+    """
+    # create realization to add to data object
+    rlz = {}
+    badValue = -1 #value to use if we don't have a value # TODO make this accessible to user?
+    recent = self.counter['recentOptHist'][traj][0]
+    for var in self.solutionExport.getVars():
+      # if this variable has indices, add them to the realization
+      indexes = self.solutionExport.getDimensions(var)[var]
+      if len(indexes):
+        # use the prefix to find the right realization
+        ## NOTE there will be a problem with unsynchronized histories!
+        varUpdate = self.counter['solutionUpdate'][traj]
+        # negative values wouldn't make sense
+        varUpdate = max(0,varUpdate-1)
+        prefix = '{}_{}_{}'.format(traj,varUpdate,0)
+        _,match = self.mdlEvalHist.realization(matchDict = {'prefix':prefix})
+        for index in indexes:
+          rlz[index] = match[index]
+      # CASE: what variable is asked for:
+      # inputs, objVar, other outputs
+      if var in recent.keys():
+        new = self.denormalizeData(recent)[var]
+      elif var in self.constants:
+        new = self.constants[var]
+      # custom counters: varsUpdate, trajID, stepSize
+      elif var == 'varsUpdate':
+        new = self.counter['solutionUpdate'][traj]
+      elif var == 'trajID':
+        new = traj+1 # +1 is for historical reasons, when histories were indexed on 1 instead of 0
+      elif var == 'stepSize':
+        try:
+          new = self.counter['lastStepSize'][traj]
+        except KeyError:
+          new = badValue
+      # variable-dependent information: gradients
+      elif var.startswith( 'gradient_'):
+        varName = var[9:]
+        vec = self.counter['gradientHistory'][traj][0].get(varName,None)
+        if vec is not None:
+          new = vec*self.counter['gradNormHistory'][traj][0]
+        else:
+          new = badValue
+      # convergence metrics
+      elif var.startswith( 'convergenceAbs'):
+        try:
+          new = self.convergenceProgress[traj].get('abs',badValue)
+        except KeyError:
+          new = badValue
+      elif var.startswith( 'convergenceRel'):
+        try:
+          new = self.convergenceProgress[traj].get('rel',badValue)
+        except KeyError:
+          new = badValue
+      elif var.startswith( 'convergenceGrad'):
+        try:
+          new = self.convergenceProgress[traj].get('grad',badValue)
+        except KeyError:
+          new = badValue
+      else:
+        self.raiseAnError(IOError,'Unrecognized output request:',var)
+      # format for realization
+      rlz[var] = np.atleast_1d(new)
+    self.solutionExport.addRealization(rlz)
 
   def fractionalStepChangeFromGradHistory(self,traj):
     """
@@ -632,11 +694,13 @@ class GradientBasedOptimizer(Optimizer):
     # otherwise, no recommendation for this trajectory, so move on
     #if we don't have two evaluated gradients, just return 1.0
     grad1 = self.counter['gradientHistory'][traj][1]
-    if len(grad1) < 1:
+    if len(grad1) == 0: # aka if grad1 is empty dict
       return 1.0
     #otherwise, do the dot product between the last two gradients
     grad0 = self.counter['gradientHistory'][traj][0]
-    prod = np.sum(list(grad0[key]*grad1[key] for key in grad0.keys()))
+    # scalar product
+    ## NOTE assumes scalar or vector, not matrix, values
+    prod = np.sum( [np.sum(grad0[key]*grad1[key]) for key in grad0.keys()] )
     #rescale from [-1, 1] to [1/g, g]
     if prod > 0:
       frac = self.gainGrowthFactor**prod
@@ -689,3 +753,29 @@ class GradientBasedOptimizer(Optimizer):
     Optimizer.proposeNewPoint(self,traj,point)
     self.counter['varsUpdate'][traj] += 1 #usually done when evaluating gradient, but we're bypassing that
     self.queueUpOptPointRuns(traj,self.recommendedOptPoint[traj])
+
+  def finalizeSampler(self,failedRuns):
+    """
+      Method called at the end of the Step when no more samples will be taken.  Closes out optimizer.
+      @ In, failedRuns, list, list of JobHandler.ExternalRunner objects
+      @ Out, None
+    """
+    Optimizer.handleFailedRuns(self,failedRuns)
+    # if writing soln export only on final, now is the time to do it
+    if self.writeSolnExportOn == 'final':
+      # get the most optimal point among the trajectories
+      bestValue = None
+      bestTraj = None
+      for traj in self.counter['recentOptHist'].keys():
+        value = self.counter['recentOptHist'][traj][0][self.objVar]
+        self.raiseADebug('For trajectory "{}" the best value was'.format(traj),value)
+        if bestTraj is None:
+          bestTraj = traj
+          bestValue = value
+          continue
+        if self.checkIfBetter(value,bestValue):
+          bestTraj = traj
+          bestValue = value
+      # now have the best trajectory, so write solution export
+      self.raiseADebug('The best overall trajectory ending was for trajectory "{}".'.format(bestTraj))
+      self.writeToSolutionExport(bestTraj)

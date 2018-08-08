@@ -29,11 +29,13 @@ import time
 import abc
 import os
 import sys
+import itertools
 if sys.version_info.major > 2:
   import pickle
 else:
   import cPickle as pickle
 import copy
+import numpy as np
 #import pickle as cloudpickle
 import cloudpickle
 #External Modules End--------------------------------------------------------------------------------
@@ -45,7 +47,7 @@ from utils import utils
 from utils import InputData
 import Models
 from OutStreams import OutStreamManager
-from DataObjects import Data
+from DataObjects import DataObject
 #Internal Modules End--------------------------------------------------------------------------------
 
 
@@ -143,7 +145,6 @@ class Step(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-
     printString = 'For step of type {0:15} and name {1:15} the attribute {3:10} has been assigned to a not understandable value {2:10}'
     self.raiseADebug('move this tests to base class when it is ready for all the classes')
     if not set(paramInput.parameterValues.keys()).issubset(set(self._knownAttribute)):
@@ -264,6 +265,27 @@ class Step(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     """
     pass
 
+  def _registerMetadata(self,inDictionary):
+    """
+      collects expected metadata keys and deliver them to output data objects
+      @ In, inDictionary, dict, initialization dictionary
+      @ Out, None
+    """
+    ## first collect them
+    metaKeys = set()
+    for role,entities in inDictionary.items():
+      if isinstance(entities,list):
+        for entity in entities:
+          if hasattr(entity,'provideExpectedMetaKeys'):
+            metaKeys = metaKeys.union(entity.provideExpectedMetaKeys())
+      else:
+        if hasattr(entities,'provideExpectedMetaKeys'):
+          metaKeys = metaKeys.union(entities.provideExpectedMetaKeys())
+    ## then give them to the output data objects
+    for out in inDictionary['Output']+(inDictionary['TargetEvaluation'] if 'TargetEvaluation' in inDictionary else []):
+      if 'addExpectedMeta' in dir(out):
+        out.addExpectedMeta(metaKeys)
+
   def _endStepActions(self,inDictionary):
     """
       This method is intended for performing actions at the end of a step
@@ -377,11 +399,13 @@ class SingleRun(Step):
     if 'SolutionExport' in inDictionary.keys():
       modelInitDict['SolutionExport'] = inDictionary['SolutionExport']
     if inDictionary['Model'].createWorkingDir:
-      currentWorkingDirectory = os.path.join(inDictionary['jobHandler'].runInfoDict['WorkingDir'],inDictionary['jobHandler'].runInfoDict['stepName'])
+      currentWorkingDirectory = os.path.join(inDictionary['jobHandler'].runInfoDict['WorkingDir'],
+                                             inDictionary['jobHandler'].runInfoDict['stepName'])
       try:
         os.mkdir(currentWorkingDirectory)
       except OSError:
-        self.raiseAWarning('current working dir '+currentWorkingDirectory+' already exists, this might imply deletion of present files')
+        self.raiseAWarning('current working dir '+currentWorkingDirectory+' already exists, ' +
+                           'this might imply deletion of present files')
         if utils.checkIfPathAreAccessedByAnotherProgram(currentWorkingDirectory,3.0):
           self.raiseAWarning('directory '+ currentWorkingDirectory + ' is likely used by another program!!! ')
         if utils.checkIfLockedRavenFileIsPresent(currentWorkingDirectory,self.lockedFileName):
@@ -390,7 +414,8 @@ class SingleRun(Step):
         atexit.register(utils.removeFile,os.path.join(currentWorkingDirectory,self.lockedFileName))
     inDictionary['Model'].initialize(inDictionary['jobHandler'].runInfoDict,inDictionary['Input'],modelInitDict)
 
-    self.raiseADebug('for the role Model  the item of class {0:15} and name {1:15} has been initialized'.format(inDictionary['Model'].type,inDictionary['Model'].name))
+    self.raiseADebug('for the role Model  the item of class {0:15} and name {1:15} has been initialized'.format(
+      inDictionary['Model'].type,inDictionary['Model'].name))
 
     #HDF5 initialization
     for i in range(len(inDictionary['Output'])):
@@ -399,8 +424,8 @@ class SingleRun(Step):
         inDictionary['Output'][i].initialize(self.name)
       elif inDictionary['Output'][i].type in ['OutStreamPlot','OutStreamPrint']:
         inDictionary['Output'][i].initialize(inDictionary)
-
       self.raiseADebug('for the role Output the item of class {0:15} and name {1:15} has been initialized'.format(inDictionary['Output'][i].type,inDictionary['Output'][i].name))
+    self._registerMetadata(inDictionary)
 
   def _localTakeAstepRun(self,inDictionary):
     """
@@ -429,7 +454,8 @@ class SingleRun(Step):
     ## this should default to all of the ones in the input? Is it possible to
     ## get an input field in the outputs variable that is not in the inputs
     ## variable defined above? - DPM 4/6/2017
-    model.submit(inputs, None, jobHandler, **{'SampledVars':{},'additionalEdits':{}}) #empty dictionary corresponds to sampling data in multirun
+    #empty dictionary corresponds to sampling data in MultiRun
+    model.submit(inputs, None, jobHandler, **{'SampledVars':{'prefix':'None'},'additionalEdits':{}})
     while True:
       finishedJobs = jobHandler.getFinished()
       for finishedJob in finishedJobs:
@@ -440,7 +466,6 @@ class SingleRun(Step):
               model.collectOutput(finishedJob,output)
             else:
               output.addOutput()
-            #else: model.collectOutput(finishedJob,output)
         else:
           self.raiseADebug('the job "'+finishedJob.identifier+'" has failed.')
           if self.failureHandling['fail']:
@@ -452,13 +477,16 @@ class SingleRun(Step):
             if self.failureHandling['jobRepetitionPerformed'][finishedJob.identifier] <= self.failureHandling['repetitions']:
               # we re-add the failed job
               jobHandler.reAddJob(finishedJob)
-              self.raiseAWarning('As prescribed in the input, trying to re-submit the job "'+finishedJob.identifier+'". Trial '+
-                               str(self.failureHandling['jobRepetitionPerformed'][finishedJob.identifier]) +'/'+str(self.failureHandling['repetitions']))
+              self.raiseAWarning('As prescribed in the input, trying to re-submit the job "'+
+                                 finishedJob.identifier+'". Trial '+
+                               str(self.failureHandling['jobRepetitionPerformed'][finishedJob.identifier]) +
+                               '/'+str(self.failureHandling['repetitions']))
               self.failureHandling['jobRepetitionPerformed'][finishedJob.identifier] += 1
             else:
               #add run to a pool that can be sent to the sampler later
               self.failedRuns.append(copy.copy(finishedJob))
-              self.raiseAWarning('The job "'+finishedJob.identifier+'" has been submitted '+ str(self.failureHandling['repetitions'])+' times, failing all the times!!!')
+              self.raiseAWarning('The job "'+finishedJob.identifier+'" has been submitted '+
+                                 str(self.failureHandling['repetitions'])+' times, failing all the times!!!')
       if jobHandler.isFinished() and len(jobHandler.getFinishedNoPop()) == 0:
         break
       time.sleep(self.sleepTime)
@@ -531,6 +559,16 @@ class MultiRun(SingleRun):
       @ Out, None
     """
     SingleRun._localInitializeStep(self,inDictionary)
+    # check that no input data objects are also used as outputs?
+    for out in inDictionary['Output']:
+      if out.type not in ['PointSet','HistorySet','DataSet']:
+        continue
+      for inp in inDictionary['Input']:
+        if inp.type not in ['PointSet','HistorySet','DataSet']:
+          continue
+        if inp == out:
+          self.raiseAnError(IOError,'The same data object should not be used as both <Input> and <Output> in the same MultiRun step! ' \
+              + 'Step: "{}", DataObject: "{}"'.format(self.name,out.name))
     self.counter = 0
     self._samplerInitDict['externalSeeding'] = self.initSeed
     self._initializeSampler(inDictionary)
@@ -549,6 +587,7 @@ class MultiRun(SingleRun):
       else:
         self._outputCollectionLambda.append((lambda x: x[1].addOutput(), outIndex))
         self._outputDictCollectionLambda.append((lambda x: x[1].addOutput(), outIndex))
+    self._registerMetadata(inDictionary)
     self.raiseADebug('Generating input batch of size '+str(inDictionary['jobHandler'].runInfoDict['batchSize']))
     # set up and run the first batch of samples
     # FIXME this duplicates a lot of code from _locatTakeAstepRun, which should be consolidated
@@ -562,10 +601,7 @@ class MultiRun(SingleRun):
       if inDictionary[self.samplerType].amIreadyToProvideAnInput():
         try:
           newInput = self._findANewInputToRun(inDictionary[self.samplerType], inDictionary['Model'], inDictionary['Input'], inDictionary['Output'])
-          if isinstance(inDictionary["Model"], Models.EnsembleModel):
-            inDictionary["Model"].submitAsClient(newInput, inDictionary[self.samplerType].type, inDictionary['jobHandler'], **copy.deepcopy(inDictionary[self.samplerType].inputInfo))
-          else:
-            inDictionary["Model"].submit(newInput, inDictionary[self.samplerType].type, inDictionary['jobHandler'], **copy.deepcopy(inDictionary[self.samplerType].inputInfo))
+          inDictionary["Model"].submit(newInput, inDictionary[self.samplerType].type, inDictionary['jobHandler'], **copy.deepcopy(inDictionary[self.samplerType].inputInfo))
           self.raiseADebug('Submitted input '+str(inputIndex+1))
         except utils.NoMoreSamplesNeeded:
           self.raiseAMessage('Sampler returned "NoMoreSamplesNeeded".  Continuing...')
@@ -592,6 +628,7 @@ class MultiRun(SingleRun):
       # collect finished jobs
       finishedJobs = jobHandler.getFinished()
       for finishedJob in finishedJobs:
+        finishedJob.trackTime('step_collected')
         # update number of collected runs
         self.counter +=1
         # collect run if it succeeded
@@ -625,6 +662,7 @@ class MultiRun(SingleRun):
             self.raiseAWarning('The sampler/optimizer "'+sampler.type+'" is able to handle failed runs!')
         # finalize actual sampler
         sampler.finalizeActualSampling(finishedJob,model,inputs)
+        finishedJob.trackTime('step_finished')
         # add new job
 
         isEnsemble = isinstance(model, Models.EnsembleModel)
@@ -639,10 +677,7 @@ class MultiRun(SingleRun):
           if sampler.amIreadyToProvideAnInput():
             try:
               newInput = self._findANewInputToRun(sampler, model, inputs, outputs)
-              if isEnsemble:
-                model.submitAsClient(newInput, inDictionary[self.samplerType].type, jobHandler, **copy.deepcopy(sampler.inputInfo))
-              else:
-                model.submit(newInput, inDictionary[self.samplerType].type, jobHandler, **copy.deepcopy(sampler.inputInfo))
+              model.submit(newInput, inDictionary[self.samplerType].type, jobHandler, **copy.deepcopy(sampler.inputInfo))
             except utils.NoMoreSamplesNeeded:
               self.raiseAMessage('Sampler returned "NoMoreSamplesNeeded".  Continuing...')
               break
@@ -654,8 +689,9 @@ class MultiRun(SingleRun):
         self.raiseADebug('Finished with %d runs submitted, %d jobs running, and %d completed jobs waiting to be processed.' % (jobHandler.numSubmitted(),jobHandler.numRunning(),len(jobHandler.getFinishedNoPop())) )
         break
       time.sleep(self.sleepTime)
-    # if any new collected runs failed, let the sampler treat them appropriately
-    sampler.handleFailedRuns(self.failedRuns)
+    # END while loop that runs the step iterations
+    # if any collected runs failed, let the sampler treat them appropriately, and any other closing-out actions
+    sampler.finalizeSampler(self.failedRuns)
 
   def _findANewInputToRun(self, sampler, model, inputs, outputs):
     """
@@ -679,6 +715,7 @@ class MultiRun(SingleRun):
     while found != 0:
       found,newInp = sampler.generateInput(model,inputs)
       if found == 1:
+        # loop over the outputs for this step and collect the data for each
         for collector, outIndex in self._outputDictCollectionLambda:
           collector([newInp,outputs[outIndex]])
     return newInp
@@ -806,11 +843,11 @@ class IOStep(Step):
     # also determine if this is an invalid combination
     for i in range(len(outputs)):
       if inDictionary['Input'][i].type == 'HDF5':
-        if isinstance(outputs[i],Data):
+        if isinstance(outputs[i],DataObject.DataObject):
           self.actionType.append('HDF5-dataObjects')
         else:
           self.raiseAnError(IOError,'In Step named ' + self.name + '. This step accepts A DataObjects as Output only, when the Input is an HDF5. Got ' + inDictionary['Output'][i].type)
-      elif  isinstance(inDictionary['Input'][i],Data):
+      elif  isinstance(inDictionary['Input'][i],DataObject.DataObject):
         if outputs[i].type == 'HDF5':
           self.actionType.append('dataObjects-HDF5')
         else:
@@ -823,7 +860,7 @@ class IOStep(Step):
       elif isinstance(inDictionary['Input'][i],Files.File):
         if   isinstance(outputs[i],Models.ROM):
           self.actionType.append('FILES-ROM')
-        elif isinstance(outputs[i],Data):
+        elif isinstance(outputs[i],DataObject.DataObject):
           self.actionType.append('FILES-dataObjects')
         else:
           self.raiseAnError(IOError,'In Step named ' + self.name + '. This step accepts A ROM as Output only, when the Input is a Files. Got ' + inDictionary['Output'][i].type)
@@ -845,13 +882,16 @@ class IOStep(Step):
       for i in range(len(inDictionary['Input'])):
         if self.actionType[i].startswith('dataObjects-'):
           inInput = inDictionary['Input'][i]
-          inInput.loadXMLandCSV(self.fromDirectory)
+          filename = os.path.join(self.fromDirectory, inInput.name)
+          inInput.load(filename, style='csv')
 
     #Initialize all the OutStreamPrint and OutStreamPlot outputs
     for output in inDictionary['Output']:
       if type(output).__name__ in ['OutStreamPrint','OutStreamPlot']:
         output.initialize(inDictionary)
         self.raiseADebug('for the role Output the item of class {0:15} and name {1:15} has been initialized'.format(output.type,output.name))
+    # register metadata
+    self._registerMetadata(inDictionary)
 
   def _localTakeAstepRun(self,inDictionary):
     """
@@ -863,10 +903,18 @@ class IOStep(Step):
     for i in range(len(outputs)):
       if self.actionType[i] == 'HDF5-dataObjects':
         #inDictionary['Input'][i] is HDF5, outputs[i] is a DataObjects
-        outputs[i].addOutput(inDictionary['Input'][i])
+        allRealizations = inDictionary['Input'][i].allRealizations()
+        ## TODO convert to load function when it can handle unstructured multiple realizations
+        for rlz in allRealizations:
+          outputs[i].addRealization(rlz)
       elif self.actionType[i] == 'dataObjects-HDF5':
         #inDictionary['Input'][i] is a dataObjects, outputs[i] is HDF5
-        outputs[i].addGroupDataObjects({'group':inDictionary['Input'][i].name},inDictionary['Input'][i])
+        ## TODO convert to load function when it can handle unstructured multiple realizations
+        for rlzNo in range(len(inDictionary['Input'][i])):
+          rlz = inDictionary['Input'][i].realization(rlzNo, unpackXArray=True)
+          rlz = dict((var,np.atleast_1d(val)) for var, val in rlz.items())
+          outputs[i].addRealization(rlz)
+
       elif self.actionType[i] == 'ROM-FILES':
         #inDictionary['Input'][i] is a ROM, outputs[i] is Files
         #check the ROM is trained first
@@ -896,7 +944,7 @@ class IOStep(Step):
         #inDictionary['Input'][i] is a Files, outputs[i] is PointSet
         infile = inDictionary['Input'][i]
         options = {'fileToLoad':infile}
-        outputs[i].loadXMLandCSV(inDictionary['Input'][i].getPath(),options)
+        outputs[i].load(inDictionary['Input'][i].getPath(),'csv',**options)
       else:
         self.raiseAnError(IOError,"Unknown action type "+self.actionType[i])
     for output in inDictionary['Output']:

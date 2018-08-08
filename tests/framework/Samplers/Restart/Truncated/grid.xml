@@ -125,10 +125,12 @@
     <Print name="coarse">
       <type>csv</type>
       <source>coarse</source>
+      <what>input,output</what>
     </Print>
     <Print name="fine">
       <type>csv</type>
       <source>fine</source>
+      <what>input,output</what>
     </Print>
   </OutStreams>
 

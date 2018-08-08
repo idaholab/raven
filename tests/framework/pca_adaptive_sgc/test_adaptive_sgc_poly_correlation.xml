@@ -6,7 +6,7 @@
     <Sequence>sample,train,print,stats</Sequence>
   </RunInfo>
   <TestInfo>
-    <name>framework/pca_adaptive_sgc/test_adaptive_sgc_poly_analytic</name>
+    <name>framework/pca_adaptive_sgc.test_adaptive_sgc_poly_analytic</name>
     <author>wangc</author>
     <created>2015-11-20</created>
     <classesTested>Distributions.MultivariateNormal,Samplers.AdaptiveSparseGrid,SupervisedLearning.GaussPolynomialROM</classesTested>

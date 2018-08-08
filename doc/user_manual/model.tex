@@ -42,13 +42,13 @@
   These aliases can be used anywhere in the RAVEN input to refer to the #1
   variables.
   %
-  In the body of this node the user specifies the name of the variable that the model is going to use 
+  In the body of this node the user specifies the name of the variable that the model is going to use
   (during its execution).
   %
   The actual alias, usable throughout the RAVEN input, is instead defined in the
-  \xmlAttr{variable} attribute of this tag. 
+  \xmlAttr{variable} attribute of this tag.
   \\The user can specify aliases for both the input and the output space. As sanity check, RAVEN
-  requires an additional required attribute \xmlAttr{type}. This attribute can be either ``input'' or ``output''. 
+  requires an additional required attribute \xmlAttr{type}. This attribute can be either ``input'' or ``output''.
   %
   \nb The user can specify as many aliases as needed.
   %
@@ -655,6 +655,204 @@
 }
 %%%%%%%%%%%%%%%%%%%% End Common Gaussian Process Parameters %%%%%%%%%%%%%%%%%%%%
 
+%%%%%%%%%%%%%%%%%%%%%% Common Multi-layer Perceptron Parameters %%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\hiddenLayerSizesMLPDescription}[1]
+{
+  \xmlNode{hidden\_layer\_sizes}, \xmlDesc{tuple, length = n\_layers - 2, optional field}, the ith
+  element represents the number of neurons in the ith hidden layer.
+  %
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
+}
+
+\newcommand{\activationMLPDescription}[1]
+{
+  \xmlNode{activation}, \xmlDesc{string, optional field}, activation function for the hidden layer.
+  \begin{itemize}
+    \item \textit{identity}, no-op activation, useful to implement linear bottleneck, returns
+      f(x) = x
+    \item \textit{logistic}, the logistic sigmoid function, returns f(x) = 1/(1+exp(-x))
+    \item \textit{tanh}, the hyperbolic tan function, returns f(x) = tanh(x)
+    \item \textit{relu}, the rectified linear function, returns f(x) = max(0, x)
+  \end{itemize}
+
+  %
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
+}
+
+\newcommand{\solverMLPDescription}[1]
+{
+  \xmlNode{solver}, \xmlDesc{string, optional field}, The solver for weight optimization.
+  \begin{itemize}
+    \item \textit{lbfgs}, is an optimizer in the family of quasi-Newton methods
+    \item \textit{sgd}, refers to stochastic gradient descent
+    \item \textit{adam}, refers to a stochastic gradient-based optimizer proposed by
+      Kingma, Diederik, and Jimmy Ba.
+  \end{itemize}
+  \nb The default solver \textit{adam} works pretty well on relatively large datasets
+  (with thousands of training samples or more) in terms of both training time and validation
+  score. For small datasets, however, \textit{lbfgs} can converge faster and perform better.
+  %
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
+}
+
+
+\newcommand{\alphaMLPDescription}[1]
+{
+  \xmlNode{alpha}, \xmlDesc{float, optional field}, L2 penalty parameter
+  %
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
+}
+
+\newcommand{\batchSizeMLPDescription}[1]
+{
+  \xmlNode{batch\_size}, \xmlDesc{int or `auto', optional field}, Size of minibatches for stochastic
+  optimizers. If the solver is \textit{lbfgs}, the classifier will not use minibatch. When
+  set to \textit{auto}, batch\_size = min(200, n\_samples)
+  %
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
+}
+
+
+\newcommand{\learningRateMLPDescription}[1]
+{
+  \xmlNode{learning\_rate}, \xmlDesc{string, optional field}, Learning rate schedule for weight updates
+  \begin{itemize}
+    \item \textit{constant}, is a constant learning rate given by \textit{learning\_rate\_init}
+    \item \textit{invscaling}, gradually decreases the learning rate at each time step `t' using an
+      inverse scaling exponent of `power\_t'. effective\_learning\_rate = learning\_rate\_init / pow(t, power\_t)
+    \item \textit{adaptive}, keeps the learning rate constant to `learning\_rate\_init' as long as
+      training loss keeps decreasing. Each time two consecutive epochs fail to decrease training loss by at least
+       tol, or fail to increase validation score by at least tol if `early\_stopping' is on, the current
+       learning rate is divided by 5.
+       \nb Only used when \textit{solver = `sgd'}
+  \end{itemize}
+  %
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
+}
+
+\newcommand{\learningRateInitMLPDescription}[1]
+{
+  \xmlNode{learning\_rate\_init}, \xmlDesc{float, optional field}, The initial learning rate used. It
+  controls the step-size in updating the weights. Only used when solver = `sgd' or `adam'
+  %
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
+}
+
+
+\newcommand{\powerTMLPDescription}[1]
+{
+  \xmlNode{power\_t}, \xmlDesc{float, optional field}, the exponent for inverse scaling learning rate.
+  It is used in updating effective learning rate when the learning\_rate is set to `invscaling'. only
+  used when solver = `sgd'
+  %
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
+}
+
+\newcommand{\maxIterMLPDescription}[1]
+{
+  \xmlNode{max\_iter}, \xmlDesc{int, optional field}, maximum number of iterations. The solver iterates until
+  convergence (determined by `tol') or this number of iterations. For stochastic solvers (`sgd', `adam'), note
+  that this determines the number of epochs (how many times each data point will be used), not the number
+  of gradient steps
+  %
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
+}
+
+
+
+\newcommand{\shuffleMLPDescription}[1]
+{
+  \xmlNode{shuffle}, \xmlDesc{bool, optional field}, whether to shuffle samples in each iteration. Only used
+  when solver = `sgd' or `adam'
+  %
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
+}
+
+\newcommand{\randomStateMLPDescription}[1]
+{
+  \xmlNode{random\_state}, \xmlDesc{int, RandomState instance or None, optional field}
+  if int, random\_state is the seed used by the random number generator; If RandomState
+  instance, random\_state is the random number generator; If None, the random number
+  generator is the RandomState instance used by np.random.
+  %
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
+}
+\newcommand{\tolMLPDescription}[1]
+{
+  \xmlNode{tol}, \xmlDesc{float, optional field}, tolerance for optimization. When the loss or
+  score is not improving by at least tol for two consecutive iterations, unless learning\_rate
+  is set to `adaptive', convergence is considered to be reached and training stops.
+  %
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
+}
+\newcommand{\verboseMLPDescription}[1]
+{
+  \xmlNode{verbose}, \xmlDesc{bool, optional field}, whether to print progress messages or stdout
+  %
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
+}
+\newcommand{\warmStartMLPDescription}[1]
+{
+  \xmlNode{warm\_start}, \xmlDesc{bool, optional field}, when set to True, reuse the solution of 
+  previous call to fit as initialization, otherise, just erase the previous solution.
+  %
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
+}
+\newcommand{\momentumMLPDescription}[1]
+{
+  \xmlNode{momentum}, \xmlDesc{float, optional field}, momentum for gradient descent update.
+  Should be between 0 and 1. Only used when solver = `sgd'.
+  %
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
+}
+\newcommand{\nesterovsMomentumMLPDescription}[1]
+{
+  \xmlNode{nesterovs\_momentum}, \xmlDesc{bool, optional field}, whether to use Nesterov's momentum.
+  Only used when solver='sgd' and momentum > 0.
+  %
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
+}
+\newcommand{\earlyStoppingMLPDescription}[1]
+{
+  \xmlNode{early\_stopping}, \xmlDesc{bool, optional field}, whether to use early stopping to terminate
+  training when validation score is not improving. If set to true, it will automatically set aside 10\%
+  of training data as validation and terminate training when validation score is not improving by at
+  least tol for two consecutive epochs. Only effective when solver=`sgd' or `adam'.
+  %
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
+}
+\newcommand{\validationFractionMLPDescription}[1]
+{
+  \xmlNode{validation\_fraction}, \xmlDesc{float, optional field}, the proportion of training data to set
+  aside as validation set for early stopping. Must be between 0 and 1. Only used if early\_stopping is True.
+  %
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
+}
+\newcommand{\epsilonMLPDescription}[1]
+{
+  \xmlNode{epsilon}, \xmlDesc{float, optional field}, value for numerical stability in adam. Only used
+  when solver = `adam'
+  %
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
+}
+
+\newcommand{\betaAMLPDescription}[1]
+{
+  \xmlNode{beta\_1}, \xmlDesc{float, optional field}, exponential decay rate for estimates of first moment
+  vector in adam. should be in [0, 1). only used when solver = `adam'
+  %
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
+}
+\newcommand{\betaBMLPDescription}[1]
+{
+  \xmlNode{beta\_2}, \xmlDesc{float, optional field}, exponentail decay rate for estimates of second moment
+  vector in adam. should be in [0, 1). only used when solver = `adam'
+  %
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
+}
+
+%%%%%%%%%%%%%%%%%%%% End Common Multi-layer Perceptron Parameters %%%%%%%%%%%%%%%%%%%%
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 In RAVEN, \textbf{Models} are important entities.
@@ -913,7 +1111,7 @@ Section~\ref{sec:steps}).
   <Models>
     ...
     <Dummy name='aUserDefinedName1' subType=''/>
-    
+
     <Dummy name='aUserDefinedName2' subType=''>
       <alias variable="a_RAVEN_input_variable" type="input">
       another_name_for_this_variable_in_the_model
@@ -1261,7 +1459,7 @@ As already mentioned, the \textbf{EnsembleModel} is able to combine \textbf{Code
 \textbf{ExternalModel}(see ~\ref{subsec:models_externalModel}) and \textbf{ROM}(see ~\ref{subsec:models_externalModel}) Models.
 \\It is aimed to create a chain of Models (whose execution order is determined by the Input/Output relationships among them).
   If the relationships among the models evolve in a non-linear system, a Picard's Iteration scheme is employed.
-\\Currently this model is able to share information (i.e. data) using both \textbf{PointSet} and \textbf{HistorySet}.
+\\Currently this model is able to share information (i.e. data) using \textbf{PointSet},  \textbf{HistorySet} and \textbf{DataSet}
 
 The specifications of a EnsembleModel must be defined within the XML block
 \xmlNode{EnsembleModel}.
@@ -1312,8 +1510,8 @@ here specified need to be inputted in the\xmlNode{Models} main XML block) :
         a data object defined in the \xmlNode{DataObjects} block (see
         Section~\ref{sec:DataObjects}).
         %
-        Currently, the  \xmlNode{EnsembleModel} accept ``DataObjects''  both of type
-        ``PointSet'' and ``HistorySet''.
+        Currently, the  \xmlNode{EnsembleModel} accept all \textbf{\textit{DataObjects'}}  types:
+        \textbf{PointSet},  \textbf{HistorySet} and \textbf{DataSet}
         \nb The  \xmlNode{TargetEvaluation} is primary used for input-output identification. If the linked
         DataObject is not placed as additional output of the Step where the EnsembleModel is used, it will
         not be filled with the data coming from the calculation and it will be kept empty.
@@ -1324,15 +1522,20 @@ here specified need to be inputted in the\xmlNode{Models} main XML block) :
         \nb All the inputs here specified need to be listed in the Steps where the EnsembleModel
         is used.
      \item \xmlNode{Output}, \xmlDesc{string, optional field},
-        represents the output entities that need to be linked to this sub-model.  \nb The \xmlNode{Output}s here specified are not part 
+        represents the output entities that need to be linked to this sub-model.  \nb The \xmlNode{Output}s here 
+        specified are not part 
         of the determination of the EnsembleModel execution but represent an additional storage of results from the
-        sub-models. For example, if the \xmlNode{TargetEvaluation} is of type PointSet (since just scalar data needs to be transferred to other 
+        sub-models. For example, if the \xmlNode{TargetEvaluation} is of type PointSet (since just scalar data needs to 
+        be transferred to other 
         models) and the sub-model is able to also output history-type data, this Output can be of type HistorySet.
-        Note that the structure of each Output dataObject must include only variables (either input or output) that are defined among the model.
-        As an example, the Output dataObjects cannot contained variables that are defined at the Ensemble model level.
+        Note that the structure of each Output dataObject must include only variables (either input or output) that are 
+        defined among the model.
+        As an example, the Output dataObjects cannot contained variables that are defined at the Ensemble model 
+        level.
         %
-        The user can specify as many \xmlNode{Output} (s) as needed. The optional \xmlNode{Output}s  can be of both classes ``DataObjects'' and ``Databases'' 
-        (e.g. PointSet, HistorySet, HDF5).
+        The user can specify as many \xmlNode{Output} (s) as needed. The optional \xmlNode{Output}s  can be of 
+        both classes ``DataObjects'' and ``Databases'' 
+        (e.g. \textit{PointSet}, \textit{HistorySet}, \textit{DataSet}, \textit{HDF5}).
         \nb \textbf{The \xmlNode{Output} (s) here specified MUST be listed in the Step in which the EnsembleModel is used.}
     \end{itemize}
   %
@@ -1347,22 +1550,38 @@ It is important to notice that when the EnsembleModel detects a chain of models 
   %
   \begin{itemize}
      \item \xmlNode{maxIterations}, \xmlDesc{integer, optional field},
-        maximum number of Picard's iteration to be performed (in case the iteration scheme does 
+        maximum number of Picard's iteration to be performed (in case the iteration scheme does
         not previously converge). \default{30};
      \item \xmlNode{tolerance}, \xmlDesc{float, optional field},
-        convergence criterion. It represents the L2 norm residue below which the Picard's iterative scheme is 
+        convergence criterion. It represents the L2 norm residue below which the Picard's iterative scheme is
         considered converged. \default{0.001};
      \item \xmlNode{initialConditions}, \xmlDesc{XML node, required parameter  (if Picard's activated)},
         Within this sub-node, the initial conditions for the input variables (that are part of a loop)  need to
         be specified in sub-nodes named with the variable name (e.g. \xmlNode{varName}). The body of the
-        \xmlNode{varName} contains the value of the initial conditions (scalar or arrays, depending of the 
-        type of variable). If an array needs to be inputted, the user can specify the attribute  \xmlAttr{repeat} 
+        \xmlNode{varName} contains the value of the initial conditions (scalar or arrays, depending of the
+        type of variable). If an array needs to be inputted, the user can specify the attribute  \xmlAttr{repeat}
         and the code is going to repeat for  \xmlAttr{repeat}-times the value inputted in the body.
-     \item \xmlNode{initialStartModels}, \xmlDesc{XML node, only required parameter when Picard's iteration is activated},
+     \item \xmlNode{initialStartModels}, \xmlDesc{XML node, only required parameter when Picard's iteration is 
+     activated},
         specifies the list of models that will be initially executed. \nb Do not input this node for non-Picard calculations,
         otherwise an error will be raised.
   \end{itemize}
 \end{itemize}
+
+\nb \textcolor{red} { \textbf{ It is crucial to understand that the choice of the \xmlNode{DataObject} used as
+ \newline \xmlNode{TargetEvaluation} determines how the data are going to be transferred from a model to
+  the other. If for example the chain of models is $A \rightarrow B$:}}
+\begin{itemize}
+  \item \textcolor{red} { \textbf{ If model $B$ expects as input scalars and outputs time-series, the \xmlNode{TargetEvaluation}  
+  of the  model $B$ will be a \textit{HistorySet} and the  \xmlNode{TargetEvaluation} of the model $A$ will be either 
+  a \textit{PointSet} or a \textit{DataSet} (where the output variables that need to be transferred to the model $A$ are scalars) }    }
+   \item \textcolor{red} { \textbf{ If model $B$ expects as input scalars and time-series and outputs time-series or scalars or both, the \xmlNode{TargetEvaluation}  
+  of the  model $B$ will be a \textit{DataSet} and the \newline  \xmlNode{TargetEvaluation} of the model $A$ will be either 
+  a \textit{HistorySet} or a \textit{DataSet}  }    }
+  \item \textcolor{red} { \textbf{ If both model $A$ and $B$ expect as input scalars and output scalars, the \xmlNode{TargetEvaluation}  
+  of the  both models  $A$  and $B$ will be  \textit{PointSet}s  }  }
+\end{itemize}
+
 \textbf{Example (Linear System):}
 \begin{lstlisting}[style=XML,morekeywords={subType,debug,name,class,type}]
 <Simulation>
@@ -1420,7 +1639,7 @@ It is important to notice that when the EnsembleModel detects a chain of models 
            <var3> 45.0</var3>
          </initialConditions>
       </settings>
-          
+
       <Model class="Models" type="ExternalModel">
         thermalConductivityComputation
         <TargetEvaluation class="DataObjects" type="PointSet">

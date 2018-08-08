@@ -71,7 +71,7 @@ data objects, depending on the type of statistics the user wants to compute:
 %
 \ppType{BasicStatistics post-processor}{BasicStatistics}
 \begin{itemize}
-  \item \xmlNode{(metric)}, \xmlDesc{comma separated string or node list, required field},
+  \item \xmlNode{"metric"}, \xmlDesc{comma separated string or node list, required field},
     specifications for the metric to be calculated.  The name of each node is the requested metric.  There are
     two forms for specifying the requested parameters of the metric.  For scalar values such as
     \xmlNode{expectedValue} and \xmlNode{variance}, the text of the node is a comma-separated list of the
@@ -103,6 +103,7 @@ data objects, depending on the type of statistics the user wants to compute:
     the \textbf{variationCoefficient} will be \textbf{INF}.
     \item \textbf{skewness}: skewness
     \item \textbf{kurtosis}: excess kurtosis (also known as Fisher's kurtosis)
+    \item \textbf{samples}: the number of samples in the data set used to determine the statistics.
   \end{itemize}
   The matrix quantities available for request are:
   \begin{itemize}
@@ -112,11 +113,20 @@ data objects, depending on the type of statistics the user wants to compute:
     \item \textbf{NormalizedSensitivity}: matrix of normalized sensitivity
     coefficients. \nb{It is the matrix of normalized VarianceDependentSensitivity}
     \item \textbf{VarianceDependentSensitivity}: matrix of sensitivity coefficients dependent on the variance of the variables
-    \item \textbf{samples}: the number of samples in the data set used to determine the statistics.
   \end{itemize}
-  If all the quantities need to be computed, this can be done through the \xmlNode{all} node, which
-  requires the \xmlNode{targets} and \xmlNode{features} sub-nodes.
-
+  This XML node needs to contain the attribute:
+  \begin{itemize}
+    \itemsep0em
+    \item \xmlAttr{prefix}, \xmlDesc{required string attribute}, user-defined prefix for the given \textbf{metric}.
+      For scalar quantifies, RAVEN will define a variable with name defined as:  ``prefix'' + ``\_'' + ``parameter name''.
+      For example, if we define ``mean'' as the prefix for \textbf{expectedValue}, and parameter ``x'', then variable
+      ``mean\_x'' will be defined by RAVEN.
+      For matrix quantities, RAVEN will define a variable with name defined as: ``prefix'' + ``\_'' + ``target parameter name'' + ``\_'' + ``feature parameter name''.
+      For example, if we define ``sen'' as the prefix for \textbf{sensitivity}, target ``y'' and feature ``x'', then
+      variable ``sen\_y\_x'' will be defined by RAVEN.
+      \nb These variable will be used by RAVEN for the internal calculations. It is also accessible by the user through
+      \textbf{DataObjects} and \textbf{OutStreams}.
+  \end{itemize}
    %
   \nb If the weights are present in the system then weighted quantities are calculated automatically. In addition, if a matrix quantity is requested (e.g. Covariance matrix, etc.), only the weights in the output space are going to be used for both input and output space (the computation of the joint probability between input and output spaces is not implemented yet).
   \\
@@ -139,39 +149,6 @@ data objects, depending on the type of statistics the user wants to compute:
   quantities are going to be calculated, if \textit{False} unbiased.
   \default{False}
   %
-  \item \xmlNode{methodsToRun}, \xmlDesc{comma separated string, optional
-  field}, specifies the method names of an external Function that need to be run
-  before computing any of the predefined quantities.
-  %
-  If this XML node is specified, the \xmlNode{Function} node must be present.
-  %
-  \default{None}
-% Assembler Objects
-  \item \textbf{Assembler Objects} This object is required in case the  \xmlNode{methodsToRun}
-  node is specified.
-  %
-  The object must be listed with a rigorous syntax that, except for the xml
-  node tag, is common among all the objects.
-  %
-  Each of these nodes must contain 2 attributes that are used to map those
-  within the simulation framework:
-  \begin{itemize}
-    \item \xmlAttr{class}, \xmlDesc{required string attribute}, it is the main
-    ``class'' the listed object is from;
-    \item \xmlAttr{type}, \xmlDesc{required string attribute}, it is the object
-    identifier or sub-type.
-    %
-  \end{itemize}
-  The \textbf{BasicStatistics} post-processor approach optionally accepts the
-  following object type:
-  \begin{itemize}
-    \item \xmlNode{Function}, \xmlDesc{string, required field}, The body of
-    this xml block needs to contain the name of an External Function defined
-    within the \xmlNode{Functions} main block (see section \ref{sec:functions}).
-    %
-    This object needs to contain the methods listed in the node
-    \xmlNode{methodsToRun}.
-  \end{itemize}
 \end{itemize}
 \textbf{Example (Static Statistics):}  This example demonstrates how to request the expected value of
 \xmlString{x01} and \xmlString{x02}, along with the sensitivity of both \xmlString{x01} and \xmlString{x02} to
@@ -182,12 +159,11 @@ data objects, depending on the type of statistics the user wants to compute:
   <Models>
     ...
     <PostProcessor name='aUserDefinedName' subType='BasicStatistics' verbosity='debug'>
-      <expectedValue>x01,x02</expectedValue>
-      <sensitivity>
+      <expectedValue prefix='mean'>x01,x02</expectedValue>
+      <sensitivity prefix='sen'>
         <targets>x01,x02</targets>
         <features>a,b</features>
       </sensitivity>
-      <methodsToRun>failureProbability</methodsToRun>
     </PostProcessor>
     ...
   </Models>
@@ -195,24 +171,8 @@ data objects, depending on the type of statistics the user wants to compute:
 </Simulation>
 \end{lstlisting}
 
-\textbf{Example (Static using \xmlNode{all}):} This example is similar to the one above, but shows using the
-\xmlNode{all} node.
-\begin{lstlisting}[style=XML,morekeywords={name,subType,debug}]
-<Simulation>
-  ...
-  <Models>
-    ...
-    <PostProcessor name='aUserDefinedName' subType='BasicStatistics' verbosity='debug'>
-      <all>
-        <targets>x01,x02</targets>
-        <features>a,b</features>
-      </all>
-    </PostProcessor>
-    ...
-  </Models>
-  ...
-</Simulation>
-\end{lstlisting}
+In this case, the RAVEN variables ``mean\_x01, mean\_x02, sen\_x01\_a, sen\_x02\_a, sen\_x01\_b, sen\_x02\_b''
+will be created and accessible for the RAVEN entities \textbf{DataObjects} and \textbf{OutStreams}.
 
 \textbf{Example (Static, multiple matrix nodes):} This example shows how multiple nodes can specify
 particular metrics multiple times to include different target/feature combinations.  This postprocessor
@@ -224,12 +184,12 @@ $Y$ as well as the sensitivity of $C$ to $W$ and $Z$.
   <Models>
     ...
     <PostProcessor name='aUserDefinedName' subType='BasicStatistics' verbosity='debug'>
-      <expectedValue>A,B,C</expectedValue>
-      <sensitivity>
+      <expectedValue prefix='mean'>A,B,C</expectedValue>
+      <sensitivity prefix='sen1'>
         <targets>A,B</targets>
         <features>x,y</features>
       </sensitivity>
-      <sensitivity>
+      <sensitivity prefix='sen2'>
         <targets>C</targets>
         <features>w,z</features>
       </sensitivity>
@@ -246,12 +206,11 @@ $Y$ as well as the sensitivity of $C$ to $W$ and $Z$.
   <Models>
     ...
     <PostProcessor name='aUserDefinedNameForDynamicPP' subType='BasicStatistics' verbosity='debug'>
-      <expectedValue>x01,x02</expectedValue>
-      <sensitivity>
+      <expectedValue prefix='mean'>x01,x02</expectedValue>
+      <sensitivity prefix='sen'>
         <targets>x01,x02</targets>
         <features>a,b</features>
       </sensitivity>
-      <methodsToRun>failureProbability</methodsToRun>
       <pivotParameter>time</pivotParameter>
     </PostProcessor>
     ...
@@ -416,7 +375,18 @@ matrix and the inverse transformation matrix when the PCA reduction is used.
     the subnodes \xmlNode{latent} and \xmlNode{manifest} under \xmlNode{features} are required (more details can be found in the following).
     %
   \end{itemize}
-   %
+  %
+  \nb For each computed quantity, RAVEN will define a unique variable name so that the data can be accessible by the users
+  through RAVEN entities \textbf{DataObjects} and \textbf{OutStreams}. These variable names are defined as follows:
+  \begin{itemize}
+    \item \xmlString{SensitivityIndex}: `sensitivityIndex' + `\_' + `targetVariableName' + `\_' + `latentFeatureVariableName'
+    \item \xmlString{ImportanceIndex}: `importanceIndex' + `\_' + `targetVariableName' + `\_' + `latentFeatureVariableName'
+    \item \xmlString{PCAIndex}: `pcaIndex' + `\_' + `latentFeatureVariableName'
+    \item \xmlString{transformation}: `transformation' + `\_' + `manifestFeatureVariableName' + `\_' + `latentFeatureVariableName'
+    \item \xmlString{InverseTransformation}: `inverseTransformation' + `\_' + `latentFeatureVariableName' + `\_' + `manifestFeatureVariableName'
+    \item \xmlString{ManifestSensitivity}: `manifestSensitivity' + `\_' + `targetVariableName' + `\_' + `manifestFeatureVariableName'
+  \end{itemize}
+  %
   If all the quantities need to be computed, the user can input in the body of \xmlNode{what} the string \xmlString{all}.
   \nb \xmlString{all} equivalent to \xmlString {SensitivityIndex, ImportanceIndex, PCAIndex}.
 
@@ -494,11 +464,11 @@ matrix and the inverse transformation matrix when the PCA reduction is used.
           <dimensions>1,2</dimensions>
         </manifest>
         <latent>
-          <variables>latent_1, latent_2</variables>
-          <dimensions>1,2</dimensions>
+          <variables>latent1</variables>
+          <dimensions>1</dimensions>
         </latent>
       </features>
-      <targets>y1,y2</targets>
+      <targets>y</targets>
       <mvnDistribution>MVN</mvnDistribution>
     </PostProcessor>
     ...
@@ -506,6 +476,11 @@ matrix and the inverse transformation matrix when the PCA reduction is used.
   ...
 </Simulation>
 \end{lstlisting}
+
+The calculation results can be accessible via variables ``sensitivityIndex\_y\_latent1, importanceIndex\_y\_latent1,
+manifestSensitivity\_y\_x1, manifestSensitivity\_y\_x2, transformation\_x1\_latent1, transformation\_x2\_latent1,
+inverseTransformation\_latnet1\_x1, inverseTransformation\_laent1\_x2'' through RAVEN entities \textbf{DataObjects}
+and \textbf{OutStreams}.
 
 %%%%% PP SafestPoint %%%%%%%
 \subsubsection{SafestPoint}
@@ -547,7 +522,9 @@ At present only the ``equal'' grid type is available.
                 \item \xmlAttr{type}, \xmlDesc{required string attribute}, is the object
     identifier or sub-type.
         \end{itemize}
-        \item \xmlNode{controllable} lists the controllable variables.
+             \item  \xmlNode{outputName}, \xmlDesc{string, required field}, specifies the name of the output variable where the probability is going to be stored.
+               \nb This variable name must be listed in the \xmlNode{Output} field of the Output DataObject
+        \item \xmlNode{controllable}, \xmlDesc{XML node, required field},  lists the controllable variables.
   %
   Each variable is associated with its name and the two items below:
         \begin{itemize}
@@ -558,7 +535,7 @@ At present only the ``equal'' grid type is available.
     tolerance of the sampling grid.
     %
         \end{itemize}
-        \item \xmlNode{non-controllable} lists the non-controllable variables.
+        \item \xmlNode{non-controllable}, \xmlDesc{XML node, required field}, lists the non-controllable variables.
   %
   Each variable is associated with its name and the two items below:
         \begin{itemize}
@@ -700,13 +677,16 @@ The \textbf{LimitSurfaceIntegral} post-processor is aimed to compute the likelih
 represented by the Limit Surface (either from the LimitSurface post-processor or Adaptive sampling strategies).
 The inputted Limit Surface needs to be, in the  \textbf{PostProcess} step, of type  \textbf{PointSet} and needs to contain
 both boundary sides (-1.0, +1.0).
-\\ The \textbf{LimitSurfaceIntegral} post-processor accepts as outputs both files (CSV) and/or  \textbf{PointSet}s.
+%\\ The \textbf{LimitSurfaceIntegral} post-processor accepts as outputs both files (CSV) and/or  \textbf{PointSet}s.
+\\ The \textbf{LimitSurfaceIntegral} post-processor accepts as output  \textbf{PointSet}s only.
 
 \ppType{LimitSurfaceIntegral}{LimitSurfaceIntegral}
 \begin{itemize}
 \item \variableDescription
  \variableChildIntro
  \begin{itemize}
+     \item  \xmlNode{outputName}, \xmlDesc{string, required field}, specifies the name of the output variable where the probability is going to be stored.
+               \nb This variable name must be listed in the \xmlNode{Output} field of the Output DataObject
     \item   \xmlNode{distribution}, \xmlDesc{string,
                optional field}, name of the distribution that is associated to this variable.
               Its name needs to be contained in the \xmlNode{Distributions} block explained
@@ -744,6 +724,7 @@ both boundary sides (-1.0, +1.0).
         <integralType>MonteCarlo</integralType>
         <seed>20021986</seed>
         <target>goalFunctionOutput</target>
+        <outputName>EventProbability</outputName>
         <variable name='x0'>
           <distribution>x0_distrib</distribution>
         </variable>
@@ -756,6 +737,7 @@ both boundary sides (-1.0, +1.0).
         <integralType>MonteCarlo</integralType>
         <seed>20021986</seed>
         <target>goalFunctionOutput</target>
+        <outputName>EventProbability</outputName>
         <variable name='x0'>
           <lowerBound>-2.0</lowerBound>
           <upperBound>12.0</upperBound>
@@ -786,8 +768,11 @@ Section~\ref{sec:functions} for more details).
 \begin{itemize}
   \item \xmlNode{method}, \xmlDesc{comma separated string, required field},
   lists the method names of an external Function that will be computed (each
-  returning a post-processing value). The name of the method represents a new
-  variable that can be stored in a new \textbf{\textit{DataObjects}} entity.
+  returning a post-processing value). \nb New variable names will be defined as:
+  ``Function Name in this post-processor'' + ``\_`` + ``variable name in XML
+  node \xmlNode{method}''. These new varialbes will be used to store the computed
+  values from the list of methods, and can be accessed by the users through RAVEN
+  entities \textbf{DataObjects} and \textbf{OutStreams}.
   \item \xmlNode{Function}, \xmlDesc{xml node, required string field}, specifies
   the name of a Function where the \textit{methods} listed above are defined.
   %
@@ -866,6 +851,12 @@ def aNewPointSetParameter(self):
   ...
 </Simulation>
 \end{lstlisting}
+
+\nb The calculation results from this post-processor are stored in the internal variables. These variables
+are accessible by the users through RAVEN entities \textbf{DataObjects} and \textbf{OutStreams}. The names
+of these variables are defined as: ``Function Name in this post-processor'' + ``\_`` + ``variable name in XML
+node \xmlNode{method}''. For example, in previous case, variables ``operators\_Delta'' and ``operators\_Sum''
+are defined by RAVEN to store the outputs of this post-processor.
 
 %%%%% PP TopologicalDecomposition %%%%%%%
 \subsubsection{TopologicalDecomposition}
@@ -1099,6 +1090,75 @@ inputDict['output']['data'][hist1] = {'time': array([ .1,.2,.3]),
                               'outputVar1':array([ .4,.5,.6])}
 inputDict['output']['data'][hist2] = {'time': array([ .1,.2,.3]),
                               'outputVar1':array([ .14,.15,.16])}
+\end{lstlisting}
+
+
+\paragraph{Method: HStoPSOperator}
+
+This Post-Processor performs the conversion from HistorySet to PointSet performing a projection of the output space.
+
+In the \xmlNode{PostProcessor} input block, the following XML sub-nodes are available:
+
+\begin{itemize}
+   \item \xmlNode{pivotParameter}, \xmlDesc{string, optional field}, ID of the temporal variable. Default is ``time''.
+   \nb Used just in case the  \xmlNode{pivotValue}-based operation  is requested
+    \item \xmlNode{operator}, \xmlDesc{string, optional field}, the operation to perform on the output space:
+      \begin{itemize}
+        \item \textbf{min}, compute the minimum of each variable along each single history
+         \item \textbf{max}, compute the maximum of each variable along each single history
+         \item \textbf{average}, compute the average of each variable along each single history
+       \end{itemize}
+        \nb This node can be inputted only if \xmlNode{pivotValue} and \xmlNode{row} are not present
+     \item \xmlNode{pivotValue}, \xmlDesc{float, optional field}, the value of the pivotParameter with respect to the other outputs need to be extracted.
+       \nb This node can be inputted only if \xmlNode{operator} and \xmlNode{row} are not present
+     \item \xmlNode{pivotStrategy}, \xmlDesc{string, optional field}, The strategy to use for the pivotValue:
+       \begin{itemize}
+        \item \textbf{nearest}, find the value that is the nearest with respect the \xmlNode{pivotValue}
+        \item \textbf{floor}, find the value that is the nearest with respect to the \xmlNode{pivotValue} but less then the  \xmlNode{pivotValue}
+        \item \textbf{celing}, find the value that is the nearest with respect to the \xmlNode{pivotValue} but greater then the  \xmlNode{pivotValue}
+        \item \textbf{interpolate}, if the exact  \xmlNode{pivotValue}  can not be found, interpolate using a linear approach
+       \end{itemize}
+
+       \nb Valid just in case \xmlNode{pivotValue} is present
+     \item \xmlNode{row}, \xmlDesc{int, optional field}, the row index at which the outputs need to be extracted.
+       \nb This node can be inputted only if \xmlNode{operator} and \xmlNode{pivotValue} are not present
+\end{itemize}
+
+This example will show how the XML input block would look like:
+
+\begin{lstlisting}[style=XML,morekeywords={subType,debug,name,class,type}]
+<Simulation>
+  ...
+  <Models>
+    ...
+    <PostProcessor name="HStoPSperatorRows" subType="InterfacedPostProcessor">
+      <method>HStoPSOperator</method>
+      <row>-1</row>
+    </PostProcessor>
+    <PostProcessor name="HStoPSoperatorPivotValues" subType="InterfacedPostProcessor">
+        <method>HStoPSOperator</method>
+        <pivotParameter>time</pivotParameter>
+        <pivotValue>0.3</pivotValue>
+    </PostProcessor>
+    <PostProcessor name="HStoPSoperatorOperatorMax" subType="InterfacedPostProcessor">
+        <method>HStoPSOperator</method>
+        <pivotParameter>time</pivotParameter>
+        <operator>max</operator>
+    </PostProcessor>
+    <PostProcessor name="HStoPSoperatorOperatorMin" subType="InterfacedPostProcessor">
+        <method>HStoPSOperator</method>
+        <pivotParameter>time</pivotParameter>
+        <operator>min</operator>
+    </PostProcessor>
+    <PostProcessor name="HStoPSoperatorOperatorAverage" subType="InterfacedPostProcessor">
+        <method>HStoPSOperator</method>
+        <pivotParameter>time</pivotParameter>
+        <operator>average</operator>
+    </PostProcessor>
+    ...
+  </Models>
+  ...
+</Simulation>
 \end{lstlisting}
 
 \paragraph{Method: HistorySetSampling}
@@ -1505,6 +1565,11 @@ be specified.
       file.  This will appear as an entry in the output \xmlNode{DataObject} and the corresponding column are
       the values extracted from this file.  If not specified, RAVEN will attempt to find a suitable integer ID
       to use, and a warning will be raised.
+
+      When defining the \xmlNode{DataObject} that this postprocessor will write to, and when using the static
+      (non-\xmlNode{dynamic}) form of the postprocessor, the \xmlNode{input} space should be given as
+      \xmlString{ID}, and the output variables should be the outputs specified in the postprocessor. See the
+      examples below.  In the data object, the variable values will be keyed on the \xmlString{ID} parameter.
   \end{itemize}
   Each value that needs to be extracted from the file needs to be specified by one of the following
   \xmlNode{output} nodes within the \xmlNode{File} node:
@@ -1548,7 +1613,11 @@ follows.  Note that the name of the variables we want changes slightly between t
   </ans>
 </BasicStatistics>
 \end{lstlisting}
-The RAVEN input to extract this information would appear as follows:
+
+The RAVEN input to extract this information would appear as follows.
+We include an example of defining the \xmlNode{DataObject} that this postprocessor will write out to, for
+further clarity.
+
 \begin{lstlisting}[style=XML]
 <Simulation>
  ...
@@ -1559,7 +1628,7 @@ The RAVEN input to extract this information would appear as follows:
  ...
  <Models>
    ...
-   <PostProcessor name='pp' subType='RavenOut'>
+   <PostProcessor name='pp' subType='RavenOutput'>
      <File name='in1' ID='1'>
        <output name='first'>ans/val1</output>
        <output name='second'>ans/val2</output>
@@ -1571,6 +1640,15 @@ The RAVEN input to extract this information would appear as follows:
    </PostProcessor>
    ...
  </Models>
+ ...
+ <DataObjects>
+   ...
+   <PointSet name='pointSetName'>
+     <input>ID</input>
+     <output>first,second</output>
+   </PointSet>
+   ...
+ </DataObjects>
  ...
 </Simulation>
 \end{lstlisting}
@@ -1624,7 +1702,7 @@ The resulting PointSet has \emph{time} as an input and \emph{first} as an output
 \subsubsection{ETImporter}
 \label{ETImporterPP}
 The \textbf{ETImporter} post-processor has been designed to import Event-Tree (ET) object into
-RAVEN. This is performed by saving the structure of the ET (from file) as a \textbf{PointSet} (only \textbf{PointSet} are allowed). 
+RAVEN. This is performed by saving the structure of the ET (from file) as a \textbf{PointSet} (only \textbf{PointSet} are allowed).
 Since an ET is a static Boolean logic structure, the \textbf{PointSet} is structured as follows:
 \begin{itemize}
   \item Input variables of the \textbf{PointSet} are the branching conditions of the ET. The value of each input variable can be:
@@ -1632,7 +1710,7 @@ Since an ET is a static Boolean logic structure, the \textbf{PointSet} is struct
     \item  0: event did occur (typically upper branch)
     \item  1: event did not occur (typically lower branch)
     \item -1: event is not queried (no branching occured)
-  \end{itemize}   
+  \end{itemize}
   \item Output variables of the \textbf{PointSet} are the ID of each branch of the ET (i.e., positive integers greater than 0)
 \end{itemize}
 Since several ET file formats are available, as of now only the OpenPSA format (see https://open-psa.github.io/joomla1.5/index.php.html) is supported.
@@ -1675,7 +1753,7 @@ Fault-Trees to the branch (i.e., fork) point.
     ...
     <PostProcessor name="ETImporter" subType="ETImporter">
       <fileFormat>OpenPSA</fileFormat>
-    </PostProcessor>   
+    </PostProcessor>
     ...
   </Models>
  ...
@@ -1695,10 +1773,12 @@ Fault-Trees to the branch (i.e., fork) point.
 
 \subsubsection{Metric}
 \label{MetricPP}
-The \textbf{Metric} post-processor is specifically used to calculate the distance values among points and histories,
+The \textbf{Metric} post-processor is specifically used to calculate the distance values among points from PointSets and histories from HistorySets,
 while the \textbf{Metrics} block (See Chapter \ref{sec:Metrics}) allows the user to specify the similarity/dissimilarity metrics to be used in this
 post-processor. It is important to notice that this post-processor currently can only accept \textbf{PointSet} data
-object and does not accept \textbf{HistorySet} data.  If the name of the variable is unique, it can be used, otherwise the variable can be specified with DataObjectName|InputOrOutput|variablename like other places in RAVEN.  Some of the Metrics also accept distributions to calculate the distance against.  These are specified by using the name of the distribution.
+object and does not accept \textbf{HistorySet} data.  If the name of the variable is unique, it can be used,
+otherwise the variable can be specified with $DataObjectName|InputOrOutput|VariableName$ like other places in RAVEN.
+Some of the Metrics also accept distributions to calculate the distance against.  These are specified by using the name of the distribution.
 %
 \ppType{Metric}{Metric}
 %
@@ -1754,6 +1834,12 @@ object and does not accept \textbf{HistorySet} data.  If the name of the variabl
 </Simulation>
 \end{lstlisting}
 
+In order to access the results from this post-processor, RAVEN will define the variables as ``MetricName'' +
+``\_'' + ``TargetVariableName'' + ``\_'' + ``FeatureVariableName'' to store the calculation results, and these
+variables are also accessible by the users through RAVEN entities \textbf{DataObjects} and \textbf{OutStreams}.
+In previous example, variables such as \textit{euclidean\_ans2\_ans, rbf\_ans2\_ans, poly\_ans2\_ans} are accessible
+by the users.
+
 %%%%%%%%%%%%%% Cross Validation PP %%%%%%%%%%%%%%%%%%%
 
 \subsubsection{CrossValidation}
@@ -1783,6 +1869,58 @@ only accept \textbf{PointSet} data object.
     \xmlString{mean\_absolute\_error}, \xmlString{explained\_variance\_score}, \xmlString{r2\_score},
     \xmlString{mean\_squared\_error}, and \xmlString{median\_absolute\_error}.
 \end{itemize}
+
+\textbf{Example:}
+
+\begin{lstlisting}[style=XML]
+<Simulation>
+ ...
+  <Files>
+    <Input name="output_cv" type="">output_cv.xml</Input>
+    <Input name="output_cv.csv" type="">output_cv.csv</Input>
+  </Files>
+  <Models>
+    ...
+    <ROM name="surrogate" subType="SciKitLearn">
+      <SKLtype>linear_model|LinearRegression</SKLtype>
+      <Features>x1,x2</Features>
+      <Target>ans</Target>
+      <fit_intercept>True</fit_intercept>
+      <normalize>True</normalize>
+    </ROM>
+    <PostProcessor name="pp1" subType="CrossValidation">
+        <SciKitLearn>
+            <SKLtype>KFold</SKLtype>
+            <n_splits>3</n_splits>
+            <shuffle>False</shuffle>
+            <random_state>None</random_state>
+        </SciKitLearn>
+        <Metric class="Metrics" type="SKL">m1</Metric>
+    </PostProcessor>
+    ...
+  </Models>
+  <Metrics>
+    <SKL name="m1">
+      <metricType>mean_absolute_error</metricType>
+    </SKL>
+  </Metrics>
+  <Steps>
+    <PostProcess name="PP1">
+        <Input class="DataObjects" type="PointSet">outputDataMC</Input>
+        <Input class="Models" type="ROM">surrogate</Input>
+        <Model class="Models" type="PostProcessor">pp1</Model>
+        <Output class="Files" type="">output_cv</Output>
+        <Output class="Files" type="">output_cv.csv</Output>
+    </PostProcess>
+  </Steps>
+ ...
+</Simulation>
+\end{lstlisting}
+
+In order to access the results from this post-processor, RAVEN will define the variables as ``cv'' +
+``\_'' + ``MetricName'' + ``\_'' + ``ROMTargetVariable'' to store the calculation results, and these
+variables are also accessible by the users through RAVEN entities \textbf{DataObjects} and \textbf{OutStreams}.
+In previous example, variable \textit{cv\_m1\_ans} are accessible by the users.
 
 \paragraph{SciKitLearn}
 
@@ -1946,49 +2084,3 @@ In addition to this XML node, several others are available:
     pseudo-random number generator state used for shuffling. If None, use default numpy RNG for shuffling.
 \end{itemize}
 
-\textbf{Example:}
-
-\begin{lstlisting}[style=XML]
-<Simulation>
- ...
-  <Files>
-    <Input name="output_cv" type="">output_cv.xml</Input>
-    <Input name="output_cv.csv" type="">output_cv.csv</Input>
-  </Files>
-  <Models>
-    ...
-    <ROM name="surrogate" subType="SciKitLearn">
-      <SKLtype>linear_model|LinearRegression</SKLtype>
-      <Features>x1,x2</Features>
-      <Target>ans</Target>
-      <fit_intercept>True</fit_intercept>
-      <normalize>True</normalize>
-    </ROM>
-    <PostProcessor name="pp1" subType="CrossValidation">
-        <SciKitLearn>
-            <SKLtype>KFold</SKLtype>
-            <n_splits>3</n_splits>
-            <shuffle>False</shuffle>
-            <random_state>None</random_state>
-        </SciKitLearn>
-        <Metric class="Metrics" type="SKL">m1</Metric>
-    </PostProcessor>
-    ...
-  </Models>
-  <Metrics>
-    <SKL name="m1">
-      <metricType>mean_absolute_error</metricType>
-    </SKL>
-  </Metrics>
-  <Steps>
-    <PostProcess name="PP1">
-        <Input class="DataObjects" type="PointSet">outputDataMC</Input>
-        <Input class="Models" type="ROM">surrogate</Input>
-        <Model class="Models" type="PostProcessor">pp1</Model>
-        <Output class="Files" type="">output_cv</Output>
-        <Output class="Files" type="">output_cv.csv</Output>
-    </PostProcess>
-  </Steps>
- ...
-</Simulation>
-\end{lstlisting}

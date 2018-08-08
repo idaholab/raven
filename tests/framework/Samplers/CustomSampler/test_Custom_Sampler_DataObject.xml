@@ -13,6 +13,7 @@
       <revision author="alfoa" date="2016-05-25">Fixed absolute path</revision>
       <revision author="talbpaul" date="2016-09-15">Test updates</revision>
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+      <revision author="talbpaul" date="2018-05-02">Added nameInSource test renaming "x" to "xnew"</revision>
     </revisions>
   </TestInfo>
   <RunInfo>
@@ -33,7 +34,7 @@
   <Samplers>
     <CustomSampler name="customSamplerDataObject">
       <Source class="DataObjects" type="PointSet">outCustomSamplerFromFile</Source>
-      <variable name="x"/>
+      <variable name="xnew" nameInSource="x"/>
       <variable name="y"/>
       <variable name="z"/>
     </CustomSampler>
@@ -41,7 +42,7 @@
 
   <DataObjects>
     <PointSet name="outCustomSampler">
-      <Input>x,y,z</Input>
+      <Input>y,xnew,z</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
     <PointSet name="outCustomSamplerFromFile">
@@ -49,7 +50,7 @@
       <Output>OutputPlaceHolder</Output>
     </PointSet>
     <PointSet name="dummyIN">
-      <Input>x,y,z</Input>
+      <Input>xnew,y,z</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
   </DataObjects>
@@ -58,6 +59,7 @@
     <Print name="outCustomSampler_dump">
       <type>csv</type>
       <source>outCustomSampler</source>
+      <what>input,output</what>
     </Print>
   </OutStreams>
 

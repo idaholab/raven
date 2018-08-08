@@ -1,42 +1,45 @@
+#this input file is used in the rattlesnake regression tests
+#we use this input file to test the following capabilities of raven
+#1. the moose based app interface can work with rattlesnake
+#2. the moose based app interface can handle input files with key values defined in multiple lines (see issue #500)
 [Mesh]
- type = GeneratedBIDMesh
- dim = 2
- xmin = 0
- xmax = 80
- ymin = 0
- ymax = 80
- elem_type = QUAD9
- nx = 10
- ny = 10
- subdomain='1 1 1 2 2 2 2 1 1 1
-            1 1 1 2 2 2 2 1 1 1
-            1 1 1 2 2 2 2 1 1 1
-            2 2 2 3 3 3 3 1 1 1
-            2 2 2 3 3 3 3 1 1 1
-            2 2 2 3 3 3 3 1 1 1
-            2 2 2 3 3 3 3 1 1 1
-            1 1 1 1 1 1 1 1 1 1
-            1 1 1 1 1 1 1 1 1 1
-            1 1 1 1 1 1 1 1 1 1'
-
- uniform_refine = 0
+  type = GeneratedBIDMesh
+  dim = 2
+  xmin = 0
+  xmax = 80
+  ymin = 0
+  ymax = 80
+  elem_type = QUAD9
+  nx = 10
+  ny = 10
+  subdomain='1 1 1 2 2 2 2 1 1 1
+             1 1 1 2 2 2 2 1 1 1
+             1 1 1 2 2 2 2 1 1 1
+             2 2 2 3 3 3 3 1 1 1
+             2 2 2 3 3 3 3 1 1 1
+             2 2 2 3 3 3 3 1 1 1
+             2 2 2 3 3 3 3 1 1 1
+             1 1 1 1 1 1 1 1 1 1
+             1 1 1 1 1 1 1 1 1 1
+             1 1 1 1 1 1 1 1 1 1'
+  uniform_refine = 0
 []
 
-[RattleSnakeParams]
- calculation_type = CD
+[TransportSystems]
+  particle = neutron
+  equation_type = eigenvalue
 
- G = 2
- NA = 0
- n_delay_groups = 1
+  G = 2
 
- eigenvalue = 1
- transient = 0
+  DirichletBoundary = '1 2'
+  ReflectingBoundary = '0 3'
 
- p0aux2mat = false
- order = FIRST
-
- DirichletBoundary = '1 2'
- ReflectingBoundary = '0 3'
+  [./diff]
+    scheme = CFEM-Diffusion
+    family = LAGRANGE
+    order = FIRST
+    n_delay_groups = 1
+  [../]
 []
 
 [Materials]
@@ -45,7 +48,7 @@
   [./seed11]
     type = MixedNeutronicsMaterial
     block = 2
-    multigroup_library = 'xs.xml'
+    library_file = 'xs.xml'
     library_name = 'twigl'
     material_id = 1
     grid_names = temperature
@@ -57,7 +60,7 @@
   [./blanket1]
     type = MixedNeutronicsMaterial
     block = 1
-    multigroup_library = 'xs.xml'
+    library_file = 'xs.xml'
     library_name = 'twigl'
     material_id = 1
     grid_names = temperature
@@ -69,7 +72,7 @@
   [./seed21]
     type = MixedNeutronicsMaterial
     block = 3
-    multigroup_library = 'xs.xml'
+    library_file = 'xs.xml'
     library_name = 'twigl'
     material_id = 1
     grid_names = temperature
@@ -112,10 +115,10 @@
 []
 
 [Postprocessors]
- [./power]
-  type = ElementIntegralVariablePostprocessor
-  variable = fission_source
- [../]
+  [./power]
+    type = ElementIntegralVariablePostprocessor
+    variable = fission_source
+  [../]
 []
 
 [Outputs]

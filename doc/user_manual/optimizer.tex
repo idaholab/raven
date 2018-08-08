@@ -197,6 +197,12 @@ specified:
     of the second.  Note that this value is
     calculated as Euclidean distance in a normalized 0 to 1 cubic domain, not the original input space domain.
     \default{0.05}
+    \item \xmlNode{writeSteps},  \xmlDesc{string, optional field}, specifies how often the current optimal
+      point should be stored to the solution export.  Options are \xmlString{every}, in which case each new
+      optimal point will be stored in the solution export; or \xmlString{final}, in which case only the most
+      optimal point found during the simulation will be stored in the solution export.
+    \default{every};
+
   \end{itemize}
 \end{itemize}
 \begin{itemize}
@@ -286,12 +292,6 @@ specified:
                 a preconditioner to this subset, chosen from the \xmlNode{Preconditioner} nodes defined within
                 the optimzer, and identified by the text of those nodes.  See the documentation for the
                 preconditioner node above for details on how they affect the calculation flow.
-              \item \xmlAttr{holdOutputSpace}, \xmlDesc{parameter names, optional comma separated parameter}, provides the option to identify some output parameters that
-              need to be kept on hold at this subspace optimization level. This capability is
-              currently implemented for the \textit{EnsembleModel} only.  In other words,
-              all the models that have, in their output spaces, the parameter here specified
-              will not be re-run for the iteration $i$ but the solution at iteration $i-1$ will be
-              used.
             \end{itemize}
         \end{itemize}
 
@@ -309,9 +309,7 @@ specified:
     Every input variable must have an initial value specified either through this node, or through a
     preconditioner in multilevel optimization or through a linked Sampler (see above).
   \end{itemize}
-\end{itemize}
-\constantVariablesDescription
-\begin{itemize}
+\item \constantVariablesDescription
 \item \xmlNode{convergence}, \xmlDesc{XML node, optional parameter} will specify parameters associated with optimization
 convergence. This node accepts the following sub-nodes:
   \begin{itemize}
@@ -333,16 +331,16 @@ convergence. This node accepts the following sub-nodes:
   \item \xmlNode{minStepSize}, \xmlDesc{float, optional field}, specifies the minimum allowable step size in
     the normalized input space, ranging from 0 (no movement) to 1 (spans any dimension).
       \default{1e-9}
-  \item \xmlNode{gainGrowthSize}, \xmlDesc{float, optional field}, specifies the rate at which the step size
+  \item \xmlNode{gainGrowthFactor}, \xmlDesc{float, optional field}, specifies the rate at which the step size
     should grow when it does grow, for instance when multiple steps are in the same direction.  Increasing
     this will increase the likelihood that an optimization path travels quickly across the domain along a
     consistent gradient.
       \default{2}
-  \item \xmlNode{gainShrinkSize}, \xmlDesc{float, optional field}, specifies the rate at which the step size
+  \item \xmlNode{gainShrinkFactor}, \xmlDesc{float, optional field}, specifies the rate at which the step size
     should shrink when it does shrink, for instance when switching directions on successive steps.  Increasing
     this will slow convergence, but decrease the likelihood of achieving false convergence due to small step
     sizes.
-      \default{same value as grainGrowthSize}
+      \default{same value as gainGrowthFactor}
   \end{itemize}
 \item \xmlNode{parameter}, \xmlDesc{XML node, optional parameter} will accepts the following sub-nodes:
   \begin{itemize}
@@ -435,8 +433,8 @@ Example:
 \subsubsection{Finite Difference Gradient Optimizer (FiniteDifferenceGradientOptimizer)}
 \label{subsubsubsec:FiniteDifferenceGradientOptimizer}
 The \textbf{FiniteDifferenceGradientOptimizer} optimization approach is  the simplest Gradient based approach since it is based on the
-first order evaluation of the Gradient.  A minimal number of $n variable$ 
-model evaluations are required in order to get a first order approximation of the gradient.  
+first order evaluation of the Gradient.  A minimal number of $n variable$
+model evaluations are required in order to get a first order approximation of the gradient.
 
 Current implementation of \textbf{FiniteDifferenceGradientOptimizer} can also handles
 constrained optimization problem. This paragraph briefly describes how current implementation ensures the input satisfies the
@@ -651,7 +649,7 @@ convergence. This node accepts the following sub-nodes:
         \cite{spall1998implementation}. A practical suggestion for $\gamma$ is 0.101 (paired with an
         $\alpha$ value of 0.602); however, the asymptotic limit is $\gamma=1/6$ ($\alpha=1$). \default{0.101}
       \item \xmlNode{c}, \xmlDesc{float, optional field} Step size coefficient.  This term determines the
-        nominal step size, and increasing it will directly increase the distance between points sampled in evaluating the gradient. 
+        nominal step size, and increasing it will directly increase the distance between points sampled in evaluating the gradient.
         It is suggested this parameter be approximately equal to the standard
         deviation of the measurement noise in the response for stochastic responses.  For regular responses,
         it can be a small arbitrary value. \default{0.005}

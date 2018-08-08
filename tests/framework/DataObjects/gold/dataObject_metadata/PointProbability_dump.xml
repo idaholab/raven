@@ -1,10 +1,11 @@
-<data name="PointProbability_dump" type="Pointset"><input>y0,x0,z0,PointProbability</input><output>y02,x,y01,z01,z02,time,y,x02,x01,z</output><inputFilename>PointProbability_dump.csv</inputFilename><metadata><SamplerType>array([u'MonteCarlo', u'MonteCarlo', u'MonteCarlo', u'MonteCarlo'], dtype=object)</SamplerType><crowDist>array([ {u'y0': '{"mu": 100.0, "sigma": 1.0, "type": "NormalDistribution"}', u'x0': '{"mu": 4.0, "sigma": 1.0, "type": "NormalDistribution"}', u'z0': '{"mu": 4.0, "sigma": 1.0, "type": "NormalDistribution"}'},
-       {u'y0': '{"mu": 100.0, "sigma": 1.0, "type": "NormalDistribution"}', u'x0': '{"mu": 4.0, "sigma": 1.0, "type": "NormalDistribution"}', u'z0': '{"mu": 4.0, "sigma": 1.0, "type": "NormalDistribution"}'},
-       {u'y0': '{"mu": 100.0, "sigma": 1.0, "type": "NormalDistribution"}', u'x0': '{"mu": 4.0, "sigma": 1.0, "type": "NormalDistribution"}', u'z0': '{"mu": 4.0, "sigma": 1.0, "type": "NormalDistribution"}'},
-       {u'y0': '{"mu": 100.0, "sigma": 1.0, "type": "NormalDistribution"}', u'x0': '{"mu": 4.0, "sigma": 1.0, "type": "NormalDistribution"}', u'z0': '{"mu": 4.0, "sigma": 1.0, "type": "NormalDistribution"}'}], dtype=object)</crowDist><SampledVars>array([ {u'y0': 99.012507081063973, u'x0': 3.2619817145027161, u'z0': 4.2869502275243052},
-       {u'y0': 101.23388677615947, u'x0': 4.2734319619734293, u'z0': 4.3101542546951945},
-       {u'y0': 101.90232113862186, u'x0': 4.0863446044304554, u'z0': 5.0868032604019673},
-       {u'y0': 99.401537225357387, u'x0': 4.7705194747183342, u'z0': 4.2889944806309703}], dtype=object)</SampledVars><ProbabilityWeight>array([ 1.,  1.,  1.,  1.])</ProbabilityWeight><prefix>array(['1', '2', '3', '4'], dtype=object)</prefix><SampledVarsPb>array([ {u'y0': 0.24499691369523272, u'x0': 0.30383392443031965, u'z0': 0.3828512487363036},
-       {u'y0': 0.1863410240463188, u'x0': 0.3843041232891688, u'z0': 0.38020816863546536},
-       {u'y0': 0.06532689949224404, u'x0': 0.39745791346774356, u'z0': 0.2210184279360058},
-       {u'y0': 0.33353169538017097, u'x0': 0.2964761021379282, u'z0': 0.3826259349814136}], dtype=object)</SampledVarsPb><PointProbability>array([ 0.02849882,  0.02722732,  0.00573868,  0.03783565])</PointProbability></metadata></data>
+<DataObjectMetadata name="PointSetExternalModel">
+  <DataSet type="Static">
+    <general>
+      <inputs>x0,y0,z0</inputs>
+      <pointwise_meta>PointProbability</pointwise_meta>
+      <outputs>time,x02,y02,z02,x01,y01,z01,x,y,z</outputs>
+      <sampleTag>RAVEN_sample_ID</sampleTag>
+    </general>
+  </DataSet>
+  
+</DataObjectMetadata>

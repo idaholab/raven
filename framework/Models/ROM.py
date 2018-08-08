@@ -23,6 +23,7 @@ warnings.simplefilter('default',DeprecationWarning)
 #External Modules------------------------------------------------------------------------------------
 import copy
 import inspect
+import numpy as np
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -58,13 +59,13 @@ class ROM(Dummy):
     InterpolationInput.addParam("quad", InputData.StringType, False)
     InterpolationInput.addParam("poly", InputData.StringType, False)
     InterpolationInput.addParam("weight", InputData.FloatType, False)
+    inputSpecification.addSub(InterpolationInput)
 
     inputSpecification.addSub(InputData.parameterInputFactory('Features',contentType=InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory('Target',contentType=InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("IndexPoints", InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("IndexSet",IndexSetInputType))
     inputSpecification.addSub(InputData.parameterInputFactory('pivotParameter',contentType=InputData.StringType))
-    inputSpecification.addSub(InterpolationInput)
     inputSpecification.addSub(InputData.parameterInputFactory("PolynomialOrder", InputData.IntegerType))
     inputSpecification.addSub(InputData.parameterInputFactory("SobolOrder", InputData.IntegerType))
     inputSpecification.addSub(InputData.parameterInputFactory("SparseGrid", InputData.StringType))
@@ -160,6 +161,9 @@ class ROM(Dummy):
     inputSpecification.addSub(InputData.parameterInputFactory("nugget", InputData.FloatType))
     inputSpecification.addSub(InputData.parameterInputFactory("optimizer", InputData.StringType)) #enum
     inputSpecification.addSub(InputData.parameterInputFactory("random_start", InputData.IntegerType))
+    # ARMA
+    correlated = InputData.parameterInputFactory('correlate')
+    inputSpecification.addSub(correlated)
     inputSpecification.addSub(InputData.parameterInputFactory("Pmax", InputData.IntegerType))
     inputSpecification.addSub(InputData.parameterInputFactory("Pmin", InputData.IntegerType))
     inputSpecification.addSub(InputData.parameterInputFactory("Qmax", InputData.IntegerType))
@@ -168,7 +172,32 @@ class ROM(Dummy):
     inputSpecification.addSub(InputData.parameterInputFactory("Fourier", InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("FourierOrder", InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("reseedCopies", InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("reseedValue", InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("seed", InputData.IntegerType))
+    # inputs for neural_network
+    inputSpecification.addSub(InputData.parameterInputFactory("hidden_layer_sizes", InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("activation", InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("batch_size", InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("learning_rate_init", InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("momentum", InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("nesterovs_momentum", InputData.StringType)) # bool
+    inputSpecification.addSub(InputData.parameterInputFactory("early_stopping", InputData.StringType)) # bool
+    inputSpecification.addSub(InputData.parameterInputFactory("validation_fraction", InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("beta_1", InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("beta_2", InputData.FloatType))
+    # PolyExp
+    inputSpecification.addSub(InputData.parameterInputFactory("maxNumberExpTerms", InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("numberExpTerms", InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("maxPolyOrder", InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("polyOrder", InputData.IntegerType))
+    coeffRegressorEnumType = InputData.makeEnumType("coeffRegressor","coeffRegressorType",["poly","spline","nearest"])
+    inputSpecification.addSub(InputData.parameterInputFactory("coeffRegressor", contentType=coeffRegressorEnumType))
+    # DMD
+    inputSpecification.addSub(InputData.parameterInputFactory("rankSVD", InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("energyRankSVD", InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("rankTLSQ", InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("exactModes", InputData.BoolType))
+    inputSpecification.addSub(InputData.parameterInputFactory("optimized", InputData.BoolType))
+    inputSpecification.addSub(InputData.parameterInputFactory("dmdType", InputData.StringType))
 
     #Estimators can include ROMs, and so because baseNode does a copy, this
     #needs to be after the rest of ROMInput is defined.
@@ -261,7 +290,9 @@ class ROM(Dummy):
       @ Out, None
     """
     #determine dynamic or static
-    dynamic          = self.supervisedEngine.isADynamicModel
+    dynamic = self.supervisedEngine.isADynamicModel
+    # determine if it can handle dynamic data
+    handleDynamicData = self.supervisedEngine.canHandleDynamicData
     # get pivot parameter
     pivotParameterId = self.supervisedEngine.pivotParameterId
     # establish file
@@ -269,7 +300,7 @@ class ROM(Dummy):
       filenameLocal = options['filenameroot']
     else:
       filenameLocal = self.name + '_dump'
-    if dynamic:
+    if dynamic and not handleDynamicData:
       outFile = Files.returnInstance('DynamicXMLOutput',self)
     else:
       outFile = Files.returnInstance('StaticXMLOutput',self)
@@ -284,9 +315,11 @@ class ROM(Dummy):
     #handle 'all' case
     if 'all' in targets:
       targets = ROMtargets
+    # setup print
+    engines[0].printXMLSetup(outFile,options)
     #this loop is only 1 entry long if not dynamic
     for s,rom in enumerate(engines):
-      if dynamic:
+      if dynamic and not handleDynamicData:
         pivotValue = self.supervisedEngine.historySteps[s]
       else:
         pivotValue = 0
@@ -337,7 +370,7 @@ class ROM(Dummy):
       self.amITrained               = copy.deepcopy(trainingSet.amITrained)
       self.supervisedEngine         = copy.deepcopy(trainingSet.supervisedEngine)
     else:
-      self.trainingSet = copy.copy(self._inputToInternal(trainingSet, full=True))
+      self.trainingSet = copy.copy(self._inputToInternal(trainingSet))
       self._replaceVariablesNamesWithAliasSystem(self.trainingSet, 'inout', False)
       self.supervisedEngine.train(self.trainingSet)
       self.amITrained = self.supervisedEngine.amITrained
@@ -362,6 +395,9 @@ class ROM(Dummy):
     """
     inputToROM       = self._inputToInternal(request)
     outputEvaluation = self.supervisedEngine.evaluate(inputToROM)
+    # assure numpy array formatting # TODO can this be done in the supervised engine instead?
+    for k,v in outputEvaluation.items():
+      outputEvaluation[k] = np.atleast_1d(v)
     return outputEvaluation
 
   def _externalRun(self,inRun):
@@ -383,15 +419,22 @@ class ROM(Dummy):
         @ In, samplerType, string, is the type of sampler that is calling to generate a new input
         @ In, kwargs, dict,  is a dictionary that contains the information coming from the sampler,
            a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
-        @ Out, returnValue, tuple, This will hold two pieces of information,
-          the first item will be the input data used to generate this sample,
-          the second item will be the output of this model given the specified
+        @ Out, rlz, dict, This will hold two pieces of information,
+          the first will be the input data used to generate this sample,
+          the second will be the output of this model given the specified
           inputs
     """
     Input = self.createNewInput(myInput, samplerType, **kwargs)
     inRun = self._manipulateInput(Input[0])
-    returnValue = inRun,self._externalRun(inRun)
-    return returnValue
+    # collect results from model run
+    result = self._externalRun(inRun)
+    # build realization
+    # assure rlz has all metadata
+    self._replaceVariablesNamesWithAliasSystem(kwargs['SampledVars'] ,'input',True)
+    rlz = dict((var,np.atleast_1d(kwargs[var])) for var in kwargs.keys())
+    # update rlz with input space from inRun and output space from result
+    rlz.update(dict((var,np.atleast_1d(inRun[var] if var in kwargs['SampledVars'] else result[var])) for var in set(result.keys()+inRun.keys())))
+    return rlz
 
   def reseed(self,seed):
     """
@@ -400,3 +443,4 @@ class ROM(Dummy):
       @ Out, None
     """
     self.supervisedEngine.reseed(seed)
+

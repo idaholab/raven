@@ -80,26 +80,40 @@ class RAVEN(CodeInterfaceBase):
     if len(self.linkedDataObjectOutStreamsNames) > 2:
       raise IOError(self.printTag+' ERROR: outputExportOutStreams node. The maximum number of linked OutStreams are 2 (1 for PointSet and 1 for HistorySet)!')
 
-    child = xmlNode.find("conversionModule")
+    self.conversionDict = {} # {modulePath : {'variables': [], 'noScalar': 0, 'scalar': 0}, etc }
+    child = xmlNode.find("conversion")
     if child is not None:
-      self.extModForVarsManipulationPath = os.path.expanduser(child.text.strip())
-      if not os.path.isabs(self.extModForVarsManipulationPath):
-        self.extModForVarsManipulationPath = os.path.abspath(self.extModForVarsManipulationPath)
-      # check if it exist
-      if not os.path.exists(self.extModForVarsManipulationPath):
-        raise IOError(self.printTag+' ERROR: the conversionModule "'+self.extModForVarsManipulationPath+'" has not been found!')
-      extModForVarsManipulation = utils.importFromPath(self.extModForVarsManipulationPath)
-      if extModForVarsManipulation is None:
-        raise IOError(self.printTag+' ERROR: the conversionModule "'+self.extModForVarsManipulationPath+'" failed to be imported!')
-      # check if the methods are there
-      if 'convertNotScalarSampledVariables' in extModForVarsManipulation.__dict__.keys():
-        self.hasMethods['noscalar'] = True
-      if 'manipulateScalarSampledVariables' in extModForVarsManipulation.__dict__.keys():
-        self.hasMethods['scalar'  ] = True
-      if not self.hasMethods['scalar'] and not self.hasMethods['noscalar']:
-        raise IOError(self.printTag +' ERROR: the conversionModule "'+self.extModForVarsManipulationPath
-                                    +'" does not contain any of the usable methods! Expected at least '
-                                    +'one of: "manipulateScalarSampledVariables" and/or "manipulateScalarSampledVariables"!')
+      for moduleNode in child:
+        # get the module to be used for conversion
+        source = moduleNode.attrib.get('source',None)
+        if source is None:
+          raise IOError(self.printTag+' ERROR: no module "source" listed in "conversion" subnode attributes!')
+        # fix up the path
+        source = os.path.expanduser(source)
+        if not os.path.isabs(source):
+          source = os.path.abspath(source)
+        # check for existence
+        if not os.path.exists(source):
+          raise IOError(self.printTag+' ERROR: the conversionModule "{}" was not found!'
+                        .format(source))
+        # check module is imported
+        checkImport = utils.importFromPath(source)
+        if checkImport is None:
+          raise IOError(self.printTag+' ERROR: the conversionModule "{}" failed on import!'
+                        .format(source))
+        # check methods are in place
+        noScalar = 'convertNotScalarSampledVariables' in checkImport.__dict__
+        scalar = 'manipulateScalarSampledVariables' in checkImport.__dict__
+        if not (noScalar or scalar):
+          raise IOError(self.printTag +' ERROR: the conversionModule "'+source
+                        +'" does not contain any of the usable methods! Expected at least '
+                        +'one of: "manipulateScalarSampledVariables" and/or "manipulateScalarSampledVariables"!')
+        # acquire the variables to be modified
+        varNode = moduleNode.find('variables')
+        if varNode is None:
+          raise IOError(self.printTag+' ERROR: no node "variables" listed in "conversion|module" subnode!')
+        variables = [x.strip() for x in varNode.text.split(',')]
+        self.conversionDict[source] = {'variables':variables, 'noScalar':noScalar, 'scalar':scalar}
 
   def __findInputFile(self,inputFiles):
     """
@@ -185,40 +199,24 @@ class RAVEN(CodeInterfaceBase):
     self.innerWorkingDir = parser.workingDir
     # get sampled variables
     modifDict = Kwargs['SampledVars']
-    # check if there are noscalar variables
-    noscalarVars, totSizeExpected = {}, 0
-    for var, value in modifDict.items():
-      if np.asarray(value).size > 1:
-        noscalarVars[var] = np.asarray(value)
-        totSizeExpected += noscalarVars[var].size
-    if len(noscalarVars) > 0 and not self.hasMethods['noscalar']:
-      raise IOError(self.printTag+' ERROR: No scalar variables ('+','.join(noscalarVars.keys())
-                                  + ') have been detected but no convertNotScalarSampledVariables has been inputted!')
-    # check if ext module has been inputted
-    if self.hasMethods['noscalar'] or self.hasMethods['scalar']:
-      extModForVarsManipulation = utils.importFromPath(self.extModForVarsManipulationPath)
-    if self.hasMethods['noscalar']:
-      if len(noscalarVars) > 0:
-        toPopOut = noscalarVars.keys()
-        try:
-          newVars = extModForVarsManipulation.convertNotScalarSampledVariables(noscalarVars)
-          if type(newVars).__name__ != 'dict':
-            raise IOError(self.printTag+' ERROR: convertNotScalarSampledVariables must return a dictionary!')
-          if len(newVars) != totSizeExpected:
-            raise IOError(self.printTag+' ERROR: The total number of variables expected from method convertNotScalarSampledVariables is "'+str(totSizeExpected)+'". Got:"'+str(len(newVars))+'"!')
-          modifDict.update(newVars)
-          for noscalarVar in toPopOut:
-            modifDict.pop(noscalarVar)
-        except TypeError:
-          raise IOError(self.printTag+' ERROR: convertNotScalarSampledVariables accept only one argument convertNotScalarSampledVariables(variableDict)')
-      else:
-        print(self.printTag+' Warning: method "convertNotScalarSampledVariables" has been inputted but no "no scalar" variables have been found!')
-    # check if ext module has the method to manipulate the variables
-    if self.hasMethods['scalar']:
-      try:
-        extModForVarsManipulation.manipulateScalarSampledVariables(modifDict)
-      except TypeError:
-        raise IOError(self.printTag+' ERROR: manipulateScalarSampledVariables accept only one argument manipulateScalarSampledVariables(variableDict)')
+
+    # apply conversion scripts
+    for source,convDict in self.conversionDict.items():
+      module = utils.importFromPath(source)
+      varVals = dict((var,np.asarray(modifDict[var])) for var in convDict['variables'])
+      # modify vector+ variables that need to be flattened
+      if convDict['noScalar']:
+        # call conversion
+        newVars = module.convertNotScalarSampledVariables(varVals)
+        # check type
+        if type(newVars).__name__ != 'dict':
+          raise IOError(self.printTag+' ERROR: convertNotScalarSampledVariables in "{}" must return a dictionary!'.format(source))
+        # apply new and/or updated values
+        modifDict.update(newVars)
+      # modify scalar variables
+      if convDict['scalar']:
+        # call conversion, value changes happen in-place
+        module.manipulateScalarSampledVariables(modifDict)
 
     # we work on batchSizes here
     newBatchSize = Kwargs['NumMPI']
@@ -293,13 +291,38 @@ class RAVEN(CodeInterfaceBase):
                                                  (internally we check if the return variable is a dict and if it is returned by RAVEN (if not, we error out))
     """
 
+    ##### TODO This is an exception to the way CodeInterfaces usually run.
+    # The return dict for this CodeInterface is a dictionary of data objects (either one or two of them, up to one each point set and history set).
+    # Normally, the end result of this method is producing a CSV file with the data to load.
+    # When data objects are returned, this triggers an "if" path in Models/Code.py in evaluateSample().  There's an "else"
+    # that can be found by searching for the comment "we have the DataObjects -> raven-runs-raven case only so far".
+    # See more details there.
+    #####
     dataObjectsToReturn = {}
+    numRlz = None
     for filename in self.linkedDataObjectOutStreamsNames:
+      # load the output CSV into a data object, so we can return that
+      ## load the XML initialization information and type
       dataObjectInfo = self.outStreamsNamesAndType[filename]
-      dataObjectsToReturn[dataObjectInfo[0]] = DataObjects.returnInstance(dataObjectInfo[1],None)
-      dataObjectsToReturn[dataObjectInfo[0]]._readMoreXML(dataObjectInfo[2])
-      dataObjectsToReturn[dataObjectInfo[0]].name = filename
-      dataObjectsToReturn[dataObjectInfo[0]].loadXMLandCSV(os.path.join(workingDir,self.innerWorkingDir))
+      # create an instance of the correct data object type
+      data = DataObjects.returnInstance(dataObjectInfo[1],None)
+      # dummy message handler to handle message parsing, TODO this stinks and should be fixed.
+      data.messageHandler = DataObjects.DataObject.MessageCourier()
+      # initialize the data object by reading the XML
+      data._readMoreXML(dataObjectInfo[2])
+      # set the name, then load the data
+      data.name = filename
+      data.load(os.path.join(workingDir,self.innerWorkingDir,filename),style='csv')
+      # check consistency of data object number of realizations
+      if numRlz is None:
+        # set the standard if you're the first data object
+        numRlz = len(data)
+      else:
+        # otherwise, check that the number of realizations is appropriate
+        if len(data) != numRlz:
+          raise IOError('The number of realizations in output CSVs from the inner RAVEN run are not consistent!  In "{}" received "{}" realization(s), but other data objects had "{}" realization(s)!'.format(data.name,len(data),numRlz))
+      # store the object to return
+      dataObjectsToReturn[dataObjectInfo[0]] = data
     return dataObjectsToReturn
 
 

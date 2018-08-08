@@ -83,6 +83,7 @@
     <Print name="samples">
       <type>csv</type>
       <source>samples</source>
+      <what>input, output</what>
     </Print>
   </OutStreams>
 

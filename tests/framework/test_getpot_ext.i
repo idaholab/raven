@@ -55,6 +55,9 @@
         node = source
         xmlToLoad = ExternalXMLTest/external_printsource.xml
       [../]
+      [./what]
+        value = input,output
+      [../]
     [../]
   [../]
 

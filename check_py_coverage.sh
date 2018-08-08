@@ -48,7 +48,7 @@ cd tests/framework
 #coverage help run
 FRAMEWORK_DIR=`(cd ../../framework && pwd)`
 
-source $SCRIPT_DIR/scripts/setup_raven_libs
+source $SCRIPT_DIR/scripts/establish_conda_env.sh --quiet --load
 
 EXTRA="--rcfile=$FRAMEWORK_DIR/../tests/framework/.coveragerc --source=$FRAMEWORK_DIR -a --omit=$FRAMEWORK_DIR/contrib/*"
 export COVERAGE_FILE=`pwd`/.coverage

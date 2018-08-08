@@ -23,6 +23,7 @@ warnings.simplefilter('default', DeprecationWarning)
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
 import math
+import copy
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -34,6 +35,10 @@ import Files
 import Runners
 import Distributions
 #Internal Modules End--------------------------------------------------------------------------------
+
+# global number of integration points
+integrationSegments = int(1e5)
+
 
 def _getGraphs(functions, fZStats = False):
   """
@@ -79,7 +84,7 @@ def _getGraphs(functions, fZStats = False):
   if len(means) < 2:
     return
 
-  cdfAreaDifference = mathUtils.simpson(lambda x:abs(cdfs[1](x)-cdfs[0](x)),lowLow,highHigh,100000)
+  cdfAreaDifference = mathUtils.simpson(lambda x:abs(cdfs[1](x)-cdfs[0](x)),lowLow,highHigh,integrationSegments)
 
   def firstMomentSimpson(f, a, b, n):
     """
@@ -94,9 +99,9 @@ def _getGraphs(functions, fZStats = False):
 
   #print a bunch of comparison statistics
   pdfCommonArea = mathUtils.simpson(lambda x:min(pdfs[0](x),pdfs[1](x)),
-                            lowLow,highHigh,100000)
+                            lowLow,highHigh,integrationSegments)
   for i in range(len(pdfs)):
-    pdfArea = mathUtils.simpson(pdfs[i],lowLow,highHigh,100000)
+    pdfArea = mathUtils.simpson(pdfs[i],lowLow,highHigh,integrationSegments)
     retDict['pdf_area_'+names[i]] = pdfArea
     dataStats[i]["pdf_area"] = pdfArea
   retDict['cdf_area_difference'] = cdfAreaDifference
@@ -195,8 +200,6 @@ def __processData(data, methodInfo):
   ret['omega'] = omega
   ret['xi'] = xi
   return ret
-
-
 
 def _getPDFandCDFfromData(dataName, data, csv, methodInfo, interpolation,
                          generateCSV):
@@ -410,7 +413,6 @@ class ComparisonStatistics(PostProcessor):
           self.raiseADebug('unexpected interpolation method ' + interpolation)
           self.interpolation = interpolation
 
-
   def _localGenerateAssembler(self, initDict):
     """
       This method  is used for sending to the instanciated class, which is implementing the method, the objects that have been requested through "whatDoINeed" method
@@ -452,9 +454,9 @@ class ComparisonStatistics(PostProcessor):
       reference = compareGroup.referenceData
       foundDataObjects = []
       for name, kind, rest in dataPulls:
-        data = self.dataDict[name].getParametersValues(kind)
+        dataSet = self.dataDict[name].asDataset()
         if len(rest) == 1:
-          foundDataObjects.append(data[rest[0]])
+          foundDataObjects.append(copy.copy(dataSet[rest[0]].values))
       dataToProcess.append((dataPulls, foundDataObjects, reference))
     if not isinstance(output,Files.File):
       self.raiseAnError(IOError, 'unsupported type ' + str(type(output)))

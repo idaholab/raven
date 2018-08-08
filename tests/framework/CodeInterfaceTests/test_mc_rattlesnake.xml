@@ -28,6 +28,7 @@
   <Models>
     <Code name="Rattlesnake" subType="Rattlesnake">
       <executable>
+        %FRAMEWORK_DIR%/../../rattlesnake/rattlesnake-%METHOD%
         <!--  /path/to/rattlesnake/executable -->
         <!-- here we should put the executable. Since we want to test the interface only, it is going to be empty -->
       </executable>
@@ -88,12 +89,13 @@
     <Print name="out_mc_dump">
       <type>csv</type>
       <source>outMC</source>
+      <what>input,output</what>
     </Print>
   </OutStreams>
 
   <DataObjects>
     <PointSet name="outMC">
-      <Input>f11,f22,c11,c22,t11,t22,n11,n22,Materials|seed11|densities</Input>
+      <Input>c22,n11,f11,f22,t11,n22,c11,t22,Materials|seed11|densities</Input>
       <Output>eigenvalue</Output>
     </PointSet>
   </DataObjects>
