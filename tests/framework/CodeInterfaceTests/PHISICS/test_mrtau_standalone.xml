@@ -1,24 +1,29 @@
 <?xml version="1.0" ?>
 <Simulation>
   <TestInfo>
+    <name>framework/CodeInterfaceTests/PHISICS.mrtau</name>
     <author>rouxpn</author>
     <created>2018-04-23</created>
+    <classesTested>Models.Code.Phisics</classesTested>
     <description>
-       An example of using the MRTAU standalone within the PHISICS code interface. 
+       This test is aimed to test the mechanics of the interface between RAVEN and
+       PHISICS, using the burnup code MRTAU.
+       The decay constant of the PU241 is perturbed and the mass of the NP237.
     </description>
     <revisions>
-      <revision author="rouxpn" date="2018-04-23">mrtau test case</revision>
+        <revision author="alfoa" date="2018-07-08">modified to make it work and to remove nuclear data</revision>
     </revisions>
   </TestInfo>
   <RunInfo>
     <WorkingDir>./mrtau</WorkingDir>
     <Sequence>mrtauTest</Sequence>
+    <batchSize>1</batchSize>
   </RunInfo>
 
   <Files>
+    <Input name="decay.dat"           type="decay"             perturbable="True"   subDirectory="mrtau_libraries" >decay.dat</Input>
     <Input name="lib_inp_path.xml"    type="path"              perturbable="False"                                 >lib_inp_path.xml</Input>
     <Input name="Depletion_input.xml" type="Depletion_input"   perturbable="False"                                 >Depletion_input.xml</Input>
-    <Input name="decay.dat"           type="decay"             perturbable="True"  subDirectory="mrtau_libraries"  >decay.dat</Input>
     <Input name="FissionYield.dat"    type="FissionYield"      perturbable="True"  subDirectory="mrtau_libraries"  >FissionYield.dat</Input>
     <Input name="FissQValue.dat"      type="FissQValue"        perturbable="True"  subDirectory="mrtau_libraries"  >FissQValue.dat</Input>
     <Input name="AlphaDecay.path"     type="AlphaDecay"        perturbable="True"  subDirectory="mrtau_libraries"  >AlphaDecay.path</Input>
@@ -40,9 +45,8 @@
 
   <Models>
     <Code name="PHISICS" subType="Phisics">
-       <executable>/home/rouxpn/PHISICS/PHISICS_8/projects/bin/dpl_instant_run</executable> 
+       <executable>/home/rouxpn/PHISICS/PHISICS_8/projects/bin/mrtau_standalone</executable>
        <mrtauStandAlone>T</mrtauStandAlone>
-        <mrtauStandAloneExecutable>/home/rouxpn/PHISICS/PHISICS_8/projects/bin/mrtau_standalone</mrtauStandAloneExecutable>
     </Code>
   </Models>
 
@@ -53,7 +57,7 @@
     </Normal>
     <Normal name="MASS|NP237_distrib">
       <mean>5.0</mean>
-      <sigma>1</sigma>
+      <sigma>1.0</sigma>
     </Normal>
     <Normal name="MASS|BR79_distrib">
       <mean>1.0E-05</mean>
@@ -104,10 +108,9 @@
       <Input class="Files" type="N,Gx"              >N,Gx.path</Input>
       <Input class="Files" type="N,P"               >N,P.path</Input> 
       <Input class="Files" type="budep"             >budep.inp</Input>   
-      <Input class="Files" type="CRAM_coeff_PF"     >CRAM_coeff_PF.dat</Input> 
+      <Input class="Files" type="CRAM_coeff_PF"     >CRAM_coeff_PF.dat</Input>
       <Input class="Files" type="IsotopeList"       >IsotopeList.dat</Input> 
-      <Input class="Files" type="mass"              >mass.inp</Input> 
-          
+      <Input class="Files" type="mass"              >mass.inp</Input>
       <Model class="Models" type="Code">PHISICS</Model>
       <Sampler class="Samplers" type="MonteCarlo">MC_samp</Sampler>
       <Output class="DataObjects" type="PointSet">outMC</Output>
@@ -124,10 +127,9 @@
   
   <DataObjects>
     <PointSet name="outMC">
-      <Input>DECAY|BETA|PU241,DECAY|BETAPLUS|SE76</Input>
+      <Input>DECAY|BETA|PU241</Input>
       <Output>numDensity|NP237</Output>
     </PointSet>
   </DataObjects>
 
 </Simulation>
-
