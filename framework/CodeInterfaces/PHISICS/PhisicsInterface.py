@@ -222,6 +222,7 @@ class Phisics(CodeInterfaceBase):
     self.phisicsRelap = False
     self.printSpatialRR = False
     self.printSpatialFlux = False
+    self.executableMrtau = None
     for child in xmlNode:
       if child.tag == 'mrtauStandAlone':
         self.mrtauStandAlone = None
@@ -271,7 +272,6 @@ class Phisics(CodeInterfaceBase):
       @ Out, returnCommand, tuple, tuple containing the generated command. returnCommand[0] is the command to
                                    run the code (string), returnCommand[1] is the name of the output root
     """
-    #if mrtau is used in standalone and the mrtau executable is not specified
     mapDict = self.mapInputFileType(inputFiles)
     if self.mrtauStandAlone:
       commandToRun = executable
