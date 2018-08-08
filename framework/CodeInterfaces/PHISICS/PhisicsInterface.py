@@ -347,6 +347,8 @@ class Phisics(CodeInterfaceBase):
         outputFile = os.path.join(workingDir, self.instantOutput)
       elif os.path.exists(os.path.join(workingDir, self.instantOutput+"0")):
         outputFile = os.path.join(workingDir, self.instantOutput+"0")
+      elif os.path.exists(os.path.join(workingDir, self.instantOutput+"-0")):
+        outputFile = os.path.join(workingDir, self.instantOutput+"-0")
       if outputFile is not None:
         with open(outputFile, 'r') as f:
           for line in f:
