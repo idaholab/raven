@@ -80,12 +80,16 @@ def run(self,Input):
   y0 = Input.get('y0',0.0)
   v0 = Input.get('v0',1.0)
   ang = Input.get('angle',45.)*np.pi/180.
+  timeOption = Input.get('timeOption', 0)
   self.x0 = x0
   self.y0 = y0
   self.v0 = v0
   self.ang = ang
-
-  ts = np.linspace(0,1,10) #time_to_ground(v0,ang,y0),10)
+  self.timeOption = timeOption
+  if timeOption == 0:
+    ts = np.linspace(0,1,10) #time_to_ground(v0,ang,y0),10)
+  else:
+    ts = np.linspace(0,time_to_ground(v0,ang,y0),50)
 
   vx0 = np.cos(ang)*v0
   vy0 = np.sin(ang)*v0

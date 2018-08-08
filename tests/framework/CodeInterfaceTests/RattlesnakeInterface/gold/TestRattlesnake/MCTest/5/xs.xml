@@ -36,7 +36,7 @@
       <Isotope I="  1 " L="  0 " NS=" 1 " Name="  pseudo-seed1  ">
         
       
-        <Total index="g">2.43133e-01  8.33333e-01</Total>
+        <Total index="g">2.40554e-01  8.33333e-01</Total>
         
       
         <Scattering has2l="false" index="pgl" profile=" 1">
@@ -49,21 +49,21 @@
           
 	  
           <Value>
-            2.23039e-01
-            1.02267e-02 6.83333e-01
+            2.20401e-01
+            1.01057e-02 6.83333e-01
 </Value>
           
       
         </Scattering>
         
       
-        <nuFission index="p">6.83742e-03  2.00000e-01</nuFission>
+        <nuFission index="p">6.76734e-03  2.00000e-01</nuFission>
         
       
-        <Removal>2.00944e-02  1.50000e-01</Removal>
+        <Removal>2.01534e-02  1.50000e-01</Removal>
         
       
-        <Transport>2.42953e-01  8.49077e-01</Transport>
+        <Transport>2.38710e-01  8.65366e-01</Transport>
         
     
         <FissionSpectrum index="g">1.00000e+00  0.00000e+00</FissionSpectrum>
@@ -81,7 +81,7 @@
       <Isotope I="1" L="0" NS="1" Name="pseudo-seed2">
         
       
-        <Total index="g">2.56410e-01  6.32356e-01</Total>
+        <Total index="g">2.56410e-01  6.97349e-01</Total>
         
       
         <Scattering has2l="false" index="pgl" profile="1">
@@ -95,17 +95,17 @@
 	  
           <Value>
             2.38410e-01
-            1.00000e-02 5.80067e-01
+            1.00000e-02 6.48515e-01
 </Value>
           
       
         </Scattering>
         
       
-        <nuFission index="p">3.00000e-03  6.57650e-02</nuFission>
+        <nuFission index="p">3.00000e-03  5.75961e-02</nuFission>
         
       
-        <Removal>1.80000e-02  5.22889e-02</Removal>
+        <Removal>1.80000e-02  4.88341e-02</Removal>
         
       
         <Transport>2.56410e-01  6.66667e-01</Transport>
@@ -126,7 +126,7 @@
       <Isotope I="1" L="0" NS="1" Name="pseudo-seed1-dup">
         
       
-        <Total index="g">2.43133e-01  8.33333e-01</Total>
+        <Total index="g">2.40554e-01  8.33333e-01</Total>
         
       
         <Scattering has2l="false" index="pgl" profile="1">
@@ -139,18 +139,18 @@
           
 	  
           <Value>
-            2.23039e-01
-            1.02267e-02 6.83333e-01
+            2.20401e-01
+            1.01057e-02 6.83333e-01
 </Value>
           
       
         </Scattering>
         
       
-        <nuFission index="p">6.83742e-03  2.00000e-01</nuFission>
+        <nuFission index="p">6.76734e-03  2.00000e-01</nuFission>
         
       
-        <Removal>2.00944e-02  1.50000e-01</Removal>
+        <Removal>2.01534e-02  1.50000e-01</Removal>
         
       
         <Transport>2.38095e-01  8.33333e-01</Transport>
