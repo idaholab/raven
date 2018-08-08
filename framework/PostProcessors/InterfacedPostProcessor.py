@@ -135,7 +135,9 @@ class InterfacedPostProcessor(PostProcessor):
       self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : self.inputFormat not correctly initialized')
     if self.postProcessor.outputFormat not in set(['HistorySet','PointSet']):
       self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : self.outputFormat not correctly initialized')
+    self.raiseADebug('InterfacedPostProcessor Post-Processor '+ self.name +' : start to prepare input dictionary')
     inputDic= self.inputToInternal(inputIn)
+    self.raiseADebug('InterfacedPostProcessor Post-Processor '+ self.name +' : start to run')
     outputDic = self.postProcessor.run(inputDic)
     return outputDic
 

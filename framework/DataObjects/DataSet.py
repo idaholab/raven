@@ -988,16 +988,16 @@ class DataSet(DataObject):
     # main data
     ## initialize with np arrays of objects
     dataDict['data'] = dict((var,np.zeros(self.size,dtype=object)) for var in self.vars+self.indexes)
-    ## loop over realizations to get distinct values without NaNs
-    for var in self.vars:
-      # how we get and store variables depends on the dimensionality of the variable
-      dims=self.getDimensions(var)[var]
-      # if scalar (no dims and not an index), just grab the values
-      if len(dims)==0 and var not in self.indexes:
-        dataDict['data'][var] = self.asDataset()[var].values
-        continue
-      # otherwise, need to remove NaNs, so loop over slices
-      for s,rlz in enumerate(self.sliceByIndex(self.sampleTag)):
+    # need to remove NaNs, so loop over slices
+    for s,rlz in enumerate(self.sliceByIndex(self.sampleTag)):
+      ## loop over realizations to get distinct values without NaNs
+      for var in self.vars:
+        # how we get and store variables depends on the dimensionality of the variable
+        dims=self.getDimensions(var)[var]
+        # if scalar (no dims and not an index), just grab the values
+        if len(dims)==0 and var not in self.indexes:
+          dataDict['data'][var] = self.asDataset()[var].values
+          continue
         # get data specific to this var for this realization (slice)
         data = rlz[var]
         # need to drop indexes for which no values are present
