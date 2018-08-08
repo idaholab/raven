@@ -27,8 +27,8 @@ class MaterialParser():
       noDashDict[self.noDash(key)] = value
     self.pertDict = self.scientificNotation(noDashDict) # Perturbed variables
     self.inputFiles = inputFiles                      # material inp file
-    self.tree = ET.parse(self.inputFiles)             # xml tree  
-    self.root = self.tree.getroot()                   # xml root 
+    self.tree = ET.parse(self.inputFiles)             # xml tree
+    self.root = self.tree.getroot()                   # xml root
     self.listedDict = self.fileReconstruction(self.pertDict)
     self.printInput(workingDir)
 
@@ -39,9 +39,9 @@ class MaterialParser():
       @ Out, pertDict, dictionary, perturbed variables in scientific format
     """
     for key, value in pertDict.iteritems():
-      pertDict[key] = '%.4E' % Decimal(str(value)) 
+      pertDict[key] = '%.4E' % Decimal(str(value))
     return pertDict
-    
+
   def replaceValues(self,genericXMLdict):
     """
       Replaces the values from the pertured dict and puts them in the deconstructed original dictionary
@@ -56,14 +56,14 @@ class MaterialParser():
 
   def noDash(self, dashStr):
     """
-      Removes the dash from the isotope key. hence the variables are dash-independent. 
+      Removes the dash from the isotope key. hence the variables are dash-independent.
       The isotope name in the material file and the isotope name in the raven variable do not have to match, in terms of dashes
       @ In, dashStr, string, isotope name with or without dash
       @ Out, noDashStr, string, without dash
     """
     noDashStr = dashStr.replace('-','')
     return noDashStr
-    
+
   def dictFormatingFromPerturbedToGeneric(self,XMLdict):
     """
       Transforms the dictionary coming from the xml file into the templated dictionary.
@@ -102,7 +102,7 @@ class MaterialParser():
       for isotopeXML in matXML.findall('isotope'):
         XMLdict['density'][matXML.attrib.get('id')][self.noDash(isotopeXML.attrib.get('id'))] = isotopeXML.attrib.get('density')
     return XMLdict
-  
+
   def unifyElements(self,listWithRepetitions):
     """
       removes any repetitions of elements in a list.
@@ -138,13 +138,13 @@ class MaterialParser():
       keyWords = typeKey.split('|')
       reconstructedDict[keyWords[0]][keyWords[1]][keyWords[2]] = value
     return reconstructedDict
-    
+
   def printInput(self,workingDir):
     """
       Prints out the pertubed xml material file into a xml file.
       @ In, workingDir, string, path to working directory
       @ Out, None
-    """  
+    """
     XMLdict = self.dictFormatingFromXmlToPerturbed()
     genericXMLdict = self.dictFormatingFromPerturbedToGeneric(XMLdict)
     newXMLDict = self.replaceValues(genericXMLdict)

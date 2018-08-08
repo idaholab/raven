@@ -31,11 +31,11 @@ class DecayParser():
 
     self.inputFiles = inputFiles
     self.pertDict = self.scientificNotation(pertDict)
-    # open the unperturbed file 
+    # open the unperturbed file
     openInputFile = open(self.inputFiles, "r")
     lines = openInputFile.readlines()
     openInputFile.close()
-    
+
     self.characterizeLibrary(lines)
     self.fileReconstruction()
     self.printInput(workingDir,lines)
@@ -90,8 +90,8 @@ class DecayParser():
       @ Out, None
     """
     flag = 0
-    count = 0 
-    with open(self.inputFiles, 'a+') as outfile:      
+    count = 0
+    with open(self.inputFiles, 'a+') as outfile:
       for line in lines:
         # if the line is blank, ignore it
         if not line.split():
@@ -101,17 +101,17 @@ class DecayParser():
           outfile.writelines(line)
         if re.match(r'(.*?)' + atomicNumber + 'roducts', line.strip())and atomicNumber == self.isotopeParsed[1]:
           flag = 1 # if the word FProducts is found
-          outfile.writelines(line)  
+          outfile.writelines(line)
         if flag == 2:
           # for the actinides decay section
           if re.match(r'(.*?)\s+\w+(\W)\s+\w+(\W)', line) and any(
               s in 'BETA' for s in
               line.split()) and atomicNumber == self.isotopeParsed[0] and count == 0:
-            count = count + 1 
+            count = count + 1
             outfile.writelines(line)
-          self.matrixPrinter(line, outfile, atomicNumber)      
+          self.matrixPrinter(line, outfile, atomicNumber)
         if flag == 1:
-          #for the FP decay section 
+          #for the FP decay section
           if re.match(r'(.*?)\s+\w+(\W)\s+\w+(\W)', line) and any(
               s in 'BETA' for s in
               line.split()) and atomicNumber == self.isotopeParsed[1]:
@@ -208,7 +208,7 @@ class DecayParser():
       @ In, lines, list, unperturbed input file lines
       @ Out, None
     """
-    if os.path.exists(self.inputFiles): 
+    if os.path.exists(self.inputFiles):
       os.remove(self.inputFiles) # remove the file if was already existing
     for atomicNumber in self.isotopeParsed:
       self.hardcopyPrinter(atomicNumber, lines)
