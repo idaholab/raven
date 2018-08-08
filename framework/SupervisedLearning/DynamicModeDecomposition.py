@@ -138,14 +138,16 @@ class DynamicModeDecomposition(supervisedLearning):
       @ In, featureVals, numpy.ndarray, shape=[n_timeStep, n_dimensions], an array of input data # Not use for ARMA training
       @ In, targetVals, numpy.ndarray, shape = [n_timeStep, n_dimensions], an array of time series data
     """
-    self.featureVals  = featureVals
-    self.KDTreeFinder = spatial.KDTree(featureVals)
+    # get index of sorted coordinates
+    ind = np.lexsort(tuple([featureVals[:, i] for i in range(len(self.features))]))
+    self.featureVals  = featureVals[ind]
+    self.KDTreeFinder = spatial.KDTree(self.featureVals)
     pivotParamIndex   = self.target.index(self.pivotParameterID)
     self.pivotValues  = targetVals[0,:,pivotParamIndex]
     ts                = len(self.pivotValues)
     for target in list(set(self.target) - set([self.pivotParameterID])):
       targetParamIndex  = self.target.index(target)
-      snaps = targetVals[:,:,targetParamIndex]
+      snaps = targetVals[:,:,targetParamIndex][ind]
       # if number of features (i.e. samples) > number of snapshots, we apply the high order DMD or HODMD has been requested
       imposedHODMD = False
       if self.dmdParams['dmdType'] == 'hodmd' or snaps.shape[0] < snaps.shape[1]:
@@ -166,7 +168,7 @@ class DynamicModeDecomposition(supervisedLearning):
       if imposedHODMD:
         self._modes[target] = self._modes[target][:targetVals[:,:,targetParamIndex].shape[0],:]
       self._amplitudes[target] = mathUtils.computeAmplitudeCoefficients(self._modes[target],
-                                                                        targetVals[:,:,targetParamIndex],
+                                                                        targetVals[:,:,targetParamIndex][ind],
                                                                         self._eigs[target],
                                                                         self.dmdParams['optimized'])
     # Default timesteps (even if the time history is not equally spaced in time, we "trick" the dmd to think it).
