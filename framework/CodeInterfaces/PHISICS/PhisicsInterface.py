@@ -222,6 +222,7 @@ class Phisics(CodeInterfaceBase):
     self.phisicsRelap = False
     self.printSpatialRR = False
     self.printSpatialFlux = False
+    self.executableMrtau = None
     for child in xmlNode:
       if child.tag == 'mrtauStandAlone':
         self.mrtauStandAlone = None
@@ -235,6 +236,8 @@ class Phisics(CodeInterfaceBase):
               child.tag +
               "> -- only supports the following text (case insensitive): \n True \n T \n False \n F. \n Default Value is False"
           )
+      if child.tag == 'mrtauStandAloneExecutable':  
+        self.executableMrtau = child.text
       if child.tag == 'printSpatialRR':
         if (child.text.lower() == 't' or child.text.lower() == 'true'):
           self.printSpatialRR = True
@@ -271,9 +274,12 @@ class Phisics(CodeInterfaceBase):
       @ Out, returnCommand, tuple, tuple containing the generated command. returnCommand[0] is the command to
                                    run the code (string), returnCommand[1] is the name of the output root
     """
+    #if mrtau is used in standalone and the mrtau executable is not specified
+    if self.mrtauStandAlone and self.executableMrtau is None: 
+      raise IOError("the interface is used in MRTAU standalone mode, but no MRTAU executable was specified")
     mapDict = self.mapInputFileType(inputFiles)
     if self.mrtauStandAlone:
-      commandToRun = executable
+      commandToRun = self.executableMrtau
       outputfile = 'out~'
     else:
       commandToRun = executable + ' ' + inputFiles[mapDict['inp'.lower(
@@ -344,8 +350,8 @@ class Phisics(CodeInterfaceBase):
       outputFile = None
       if os.path.exists(os.path.join(workingDir, self.instantOutput)):
         outputFile = os.path.join(workingDir, self.instantOutput)
-      elif os.path.exists(os.path.join(workingDir, self.instantOutput+"-0")):
-        outputFile = os.path.join(workingDir, self.instantOutput+"-0")
+      elif os.path.exists(os.path.join(workingDir, self.instantOutput+"0")):
+        outputFile = os.path.join(workingDir, self.instantOutput+"0")
       if outputFile is not None:
         with open(outputFile, 'r') as f:
           for line in f:

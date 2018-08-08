@@ -31,68 +31,54 @@ class DecayParser():
 
     self.inputFiles = inputFiles
     self.pertDict = self.scientificNotation(pertDict)
-    # open the unperturbed file
+    # open the unperturbed file 
     openInputFile = open(self.inputFiles, "r")
     lines = openInputFile.readlines()
     openInputFile.close()
-
+    
     self.characterizeLibrary(lines)
     self.fileReconstruction()
     self.printInput(workingDir,lines)
 
-  def matrixPrinter(self, lines, outfile, atomicNumber):
+  def matrixPrinter(self, line, outfile, atomicNumber):
     """
       The xml files is split into two categories: hardcopied lines (banner, column labels etc.) that cannot
       be modified by RAVEN variable definition, and matrix lines that can be modified by RAVEN variable definition.
       This method treats the matrix lines, and print them into the perturbed file.
-      @ In, lines, list, unperturbed input file lines
+      @ In, line, list, unperturbed input file line
       @ In, outfile, file object, output file in file object format
       @ In, atomicNumber, integer, indicates if the isotope parsed is an actinide (0) or a fission product (1)
       @ Out, None
     """
-    for line in lines:
-      line = line.upper().split()
-      line[0] = re.sub(r'(.*?)(\w+)(-)(\d+M?)', r'\1\2\4',
-                       line[0])  # remove isotope dashes
-      for isotopeID in self.listedDict.iterkeys():
-        if line[0] == isotopeID:
-          typeOfDecayPerturbed = []
-          typeOfDecayPerturbed = self.listedDict.get(isotopeID, {}).keys()
-          for i in range(len(typeOfDecayPerturbed)):
-            try:
-              if self.isotopeClassifier.get(isotopeID) == self.isotopeParsed[
-                  0]:  # it means the isotope is an actinide
-                line[self.decayModeNumbering.get(atomicNumber).get(
-                    typeOfDecayPerturbed[i])] = str(
-                        self.listedDict.get(isotopeID).get(
-                            typeOfDecayPerturbed[i]))
-              elif self.isotopeClassifier.get(isotopeID) == self.isotopeParsed[
-                  1]:  # it means the isotope is a FP
-                line[self.decayModeNumbering.get(atomicNumber).get(
-                    typeOfDecayPerturbed[i])] = str(
-                        self.listedDict.get(isotopeID).get(
-                            typeOfDecayPerturbed[i]))
-            except KeyError:
-              raise KeyError(
-                  'you used the decay mode' + str(typeOfDecayPerturbed) +
-                  'Check if the decay mode ' + str(typeOfDecayPerturbed) +
-                  'exist in the decay library. You can also check if you perturbed dictionary is under the format |DECAY|DECAYMODE|ISOTOPEID.'
-              )
-      if any('ACTINIDES' in s for s in line):
-        flag = self.isotopeParsed[0]
-      elif any('FPRODUCTS' in s for s in line):
-        flag = self.isotopeParsed[1]
-      try:
-        if self.isotopeClassifier[line[0]] == atomicNumber:
-          line[0] = "{0:<7s}".format(line[0])
-          i = 1
-          while i <= len(self.decayModeNumbering[atomicNumber]):
-            line[i] = "{0:<11s}".format(line[i])
-            i = i + 1
-          outfile.writelines(' ' + ''.join(
-              line[0:len(self.decayModeNumbering[atomicNumber]) + 1]) + "\n")
-      except KeyError:  # happens for all the unperturbed isotopes
-        pass
+    line = line.upper().split()
+    line[0] = re.sub(r'(.*?)(\w+)(-)(\d+M?)', r'\1\2\4', line[0])  # remove isotope dashes
+    for isotopeID in self.listedDict.iterkeys():
+      if line[0] == isotopeID:
+        typeOfDecayPerturbed = []
+        typeOfDecayPerturbed = self.listedDict.get(isotopeID, {}).keys()
+        for i in range(len(typeOfDecayPerturbed)):
+          try:
+            if self.isotopeClassifier.get(isotopeID) == self.isotopeParsed[0]:  # it means the isotope is an actinide
+              line[self.decayModeNumbering.get(atomicNumber).get(typeOfDecayPerturbed[i])] = str(self.listedDict.get(isotopeID).get(typeOfDecayPerturbed[i]))
+            elif self.isotopeClassifier.get(isotopeID) == self.isotopeParsed[1]:  # it means the isotope is a FP
+              line[self.decayModeNumbering.get(atomicNumber).get(typeOfDecayPerturbed[i])] = str(self.listedDict.get(isotopeID).get(typeOfDecayPerturbed[i]))
+          except (KeyError, TypeError):
+            raise KeyError('you used the decay mode' + str(typeOfDecayPerturbed) +'Check if the decay mode ' + str(typeOfDecayPerturbed) +'exist in the decay library. You can also check if you perturbed dictionary is under the format |DECAY|DECAYMODE|ISOTOPEID.')
+    if any('ACTINIDES' in s for s in line):
+      flag = self.isotopeParsed[0]
+    elif any('FPRODUCTS' in s for s in line):
+      flag = self.isotopeParsed[1]
+    try:
+      if self.isotopeClassifier[line[0]] == atomicNumber:
+        line[0] = "{0:<7s}".format(line[0])
+        i = 1
+        while i <= len(self.decayModeNumbering[atomicNumber]):
+          line[i] = "{0:<11s}".format(line[i])
+          i = i + 1
+        outfile.writelines(' ' + ''.join(
+            line[0:len(self.decayModeNumbering[atomicNumber]) + 1]) + "\n")
+    except KeyError:  # happens for all the unperturbed isotopes
+      pass
 
   def hardcopyPrinter(self, atomicNumber, lines):
     """
@@ -104,31 +90,33 @@ class DecayParser():
       @ Out, None
     """
     flag = 0
-    with open(self.inputFiles, 'a+') as outfile:
+    count = 0 
+    with open(self.inputFiles, 'a+') as outfile:      
       for line in lines:
+        # if the line is blank, ignore it
         if not line.split():
-          continue  # if the line is blank, ignore it
-        if re.match(r'(.*?)' + atomicNumber + 's',
-                    line.strip()) and atomicNumber == self.isotopeParsed[0]:
-          flag = 2
+          continue
+        if re.match(r'(.*?)' + atomicNumber + 's', line.strip()) and atomicNumber == self.isotopeParsed[0]:
+          flag = 2 # if the word Actinides is found
+          outfile.writelines(line)
+        if re.match(r'(.*?)' + atomicNumber + 'roducts', line.strip())and atomicNumber == self.isotopeParsed[1]:
+          flag = 1 # if the word FProducts is found
+          outfile.writelines(line)  
         if flag == 2:
-          # three conditions: 1- match a serie of space+alphanumeric+space+alphanumeric 2- the line has the word BETA 3 - the flag 'actinide' is on
+          # for the actinides decay section
           if re.match(r'(.*?)\s+\w+(\W)\s+\w+(\W)', line) and any(
               s in 'BETA' for s in
-              line.split()) and atomicNumber == self.isotopeParsed[0]:
+              line.split()) and atomicNumber == self.isotopeParsed[0] and count == 0:
+            count = count + 1 
             outfile.writelines(line)
-            break
-          outfile.writelines(line)
-        if any(s in atomicNumber + 'roducts' for s in line.split()):
-          flag = 1
+          self.matrixPrinter(line, outfile, atomicNumber)      
         if flag == 1:
+          #for the FP decay section 
           if re.match(r'(.*?)\s+\w+(\W)\s+\w+(\W)', line) and any(
               s in 'BETA' for s in
               line.split()) and atomicNumber == self.isotopeParsed[1]:
             outfile.writelines(line)
-            break
-          outfile.writelines(line)
-      self.matrixPrinter(lines, outfile, atomicNumber)
+          self.matrixPrinter(line, outfile, atomicNumber)
 
   def characterizeLibrary(self,lines):
     """
@@ -220,7 +208,7 @@ class DecayParser():
       @ In, lines, list, unperturbed input file lines
       @ Out, None
     """
-    if os.path.exists(self.inputFiles):
+    if os.path.exists(self.inputFiles): 
       os.remove(self.inputFiles) # remove the file if was already existing
     for atomicNumber in self.isotopeParsed:
       self.hardcopyPrinter(atomicNumber, lines)

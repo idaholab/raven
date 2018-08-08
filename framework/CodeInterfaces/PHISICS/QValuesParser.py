@@ -67,7 +67,7 @@ class QValuesParser():
       @ In, lines, list, unperturbed input file lines
       @ Out, None
     """
-    with open(self.inputFiles, 'a+') as outfile:
+    with open(self.inputFiles, 'a+') as outfile:      
       for line in lines:
         if not line.split():
           continue  # if the line is blank, ignore it
@@ -106,12 +106,12 @@ class QValuesParser():
       @ In, workingDir, string, path to working directory
       @ Out, None
     """
-    # open the unperturbed file
+    # open the unperturbed file 
     openInputFile = open(self.inputFiles, "r")
     lines = openInputFile.readlines()
     openInputFile.close()
-
+    
     # remove the file if was already existing
-    if os.path.exists(self.inputFiles):
-      os.remove(self.inputFiles)
+    if os.path.exists(self.inputFiles): 
+      os.remove(self.inputFiles) 
     self.hardcopyPrinter(lines)

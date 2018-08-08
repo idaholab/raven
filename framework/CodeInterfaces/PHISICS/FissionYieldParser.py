@@ -25,7 +25,7 @@ class FissionYieldParser():
     """
     self.allYieldList = []  # all the fis. yield families in fast and thermal spectrum
     self.inputFiles = inputFiles
-    self.spectrum = ['Thermal', 'Fast']  # Possible spectrum found in the library.
+    self.spectrum = ['Thermal', 'Fast']  # Possible spectrum found in the library. 
     self.typeOfSpectrum = None  # Flag. Takes the value of one of the possible spectrum, depending what line of the file is parsed
     self.isotopeList = []  # Fission products having a fission yield defined
     self.spectrumNumbering = {
@@ -34,12 +34,12 @@ class FissionYieldParser():
 
     self.pertYieldDict = self.scientificNotation(
         pertDict)  # Perturbed variables
-
-    # open the unperturbed file
+    
+    # open the unperturbed file 
     openInputFile = open(self.inputFiles, "r")
     lines = openInputFile.readlines()
     openInputFile.close()
-
+    
     self.characterizeLibrary(lines)
     self.isotopeList = list(set(
         self.isotopeList))  # Removes all the repetion in the isotope list
@@ -104,7 +104,7 @@ class FissionYieldParser():
         isotopeLines = line.split()
         self.isotopeList.append(isotopeLines[0])
 
-  def matrixPrinter(self, lines, outfile, spectra):
+  def matrixPrinter(self, line, outfile, spectra):
     """
       Prints the perturbed decay matrix in the outfile.
       @ In, lines, list, unperturbed input file lines
@@ -113,60 +113,59 @@ class FissionYieldParser():
       @ Out, None
     """
     isotopeCounter = 0
-    for line in lines:
-      if re.search(r'END\s+', line):
-        return
-      line = line.strip()
-      if not line:
-        continue
-      line = line.upper().split()
-      line[0] = re.sub(r'(.*?)(\w+)(-)(\d+M?)', r'\1\2\4',
-                       line[0])  # remove the dashes in isotope names
-      spectraUpper = spectra.upper()
-      try:
-        for fissionProductID in self.listedYieldDict[spectraUpper].iterkeys():
-          for actinideID in self.listedYieldDict[spectraUpper][
-              fissionProductID].iterkeys():
-            if line[0] == fissionProductID:
-              typeOfYieldPerturbed = []
-              self.spectrumUpperCase = [x.upper() for x in self.spectrum]
-              typeOfYieldPerturbed = self.listedYieldDict.get(
-                  spectraUpper).get(fissionProductID).keys()
-              for i in range(len(typeOfYieldPerturbed)):
-                try:
-                  if self.listedYieldDict.get(spectraUpper).get(
-                      fissionProductID).get(typeOfYieldPerturbed[i]) != {}:
-                    line[self.spectrumNumbering.get(spectra).get(
-                        typeOfYieldPerturbed[i])] = str(
-                            self.listedYieldDict.get(spectraUpper).get(
-                                fissionProductID).get(typeOfYieldPerturbed[i]))
-                except TypeError:
-                  raise Exception(
-                      'Make sure the fission yields you are perturbing have existing values in the unperturbed fission yield library'
-                  )
-      except KeyError:
-        pass  # pass you pertub 'FAST': {u'ZN67': {u'U235': '5.659E+00'}} only, the case 'THERMAL': {u'ZN67': {u'U235': '5.659E+00'}} ignored in the line for fissionProductID in self.listedYieldDict[spectraUpper].iterkeys() (because non existent)
-      try:
-        isotopeCounter = isotopeCounter + 1
-        line[0] = "{0:<7s}".format(line[0])
-        i = 1
-        while i <= len(
-            self.spectrumNumbering.get(spectra)
-        ):  # while i is smaller than the number of columns that represents the number of fission yield families
-          try:
-            line[i] = "{0:<11s}".format(line[i])
-            i = i + 1
-          except IndexError:
-            i = i + 1
-        outfile.writelines(' ' + ''.join(
-            line[0:len(self.spectrumNumbering.get(spectra)) + 1]) + "\n")
-        if isotopeCounter == self.numberOfIsotopes:
-          for lineInput in lines:
-            lineStripped = lineInput.strip()
-      except KeyError:
-        raise Exception(
-            'Make sure the fission yields you are perturbing have existing values in the unperturbed fission yield library'
-        )
+    if re.search(r'END\s+', line):
+      return
+    line = line.strip()
+    line = line.upper().split()
+    line[0] = re.sub(r'(.*?)(\w+)(-)(\d+M?)', r'\1\2\4',
+                     line[0])  # remove the dashes in isotope names
+    spectraUpper = spectra.upper()
+    try:  
+      for fissionProductID in self.listedYieldDict[spectraUpper].iterkeys():
+        for actinideID in self.listedYieldDict[spectraUpper][
+            fissionProductID].iterkeys():
+          if line[0] == fissionProductID:
+            typeOfYieldPerturbed = []
+            self.spectrumUpperCase = [x.upper() for x in self.spectrum]
+            typeOfYieldPerturbed = self.listedYieldDict.get(
+                spectraUpper).get(fissionProductID).keys()
+            for i in range(len(typeOfYieldPerturbed)):
+              try:
+                if self.listedYieldDict.get(spectraUpper).get(
+                    fissionProductID).get(typeOfYieldPerturbed[i]) != {}:
+                  line[self.spectrumNumbering.get(spectra).get(
+                      typeOfYieldPerturbed[i])] = str(
+                          self.listedYieldDict.get(spectraUpper).get(
+                              fissionProductID).get(typeOfYieldPerturbed[i]))
+                  print (line[self.spectrumNumbering.get(spectra).get(
+                      typeOfYieldPerturbed[i])])
+              except TypeError:
+                raise Exception(
+                    'Make sure the fission yields you are perturbing have existing values in the unperturbed fission yield library'
+                )
+    except KeyError:
+      pass  # pass you pertub 'FAST': {u'ZN67': {u'U235': '5.659E+00'}} only, the case 'THERMAL': {u'ZN67': {u'U235': '5.659E+00'}} ignored in the line for fissionProductID in self.listedYieldDict[spectraUpper].iterkeys() (because non existent)
+    try:
+      isotopeCounter = isotopeCounter + 1
+      line[0] = "{0:<7s}".format(line[0])
+      i = 1
+      while i <= len(
+          self.spectrumNumbering.get(spectra)
+      ):  # while i is smaller than the number of columns that represents the number of fission yield families
+        try:
+          line[i] = "{0:<11s}".format(line[i])
+          i = i + 1
+        except IndexError:
+          i = i + 1
+      outfile.writelines(' ' + ''.join(
+          line[0:len(self.spectrumNumbering.get(spectra)) + 1]) + "\n")
+      if isotopeCounter == self.numberOfIsotopes:
+        for lineInput in lines:
+          lineStripped = lineInput.strip()
+    except KeyError:
+      raise Exception(
+          'Make sure the fission yields you are perturbing have existing values in the unperturbed fission yield library'
+      )
 
   def hardcopyPrinter(self, spectra, lines):
     """
@@ -176,31 +175,37 @@ class FissionYieldParser():
       @ Out, None
     """
     flag = 0
-    with open(self.inputFiles, 'a+') as outfile:
+    matrixFlag = 0
+    with open(self.inputFiles, 'a+') as outfile:      
       for line in lines:
-        if re.match(
-            r'(.*?)END\s+\w+', line.strip()
-        ) and spectra == self.spectrum[1]:  # find the line- END Fast Fission Yield (2)
+        if not line.split():
+          continue
+        if re.search(r'' + self.spectrum[1] + ' Fission Yield ' , line.strip()) and spectra == self.spectrum[1]:  # find the line- END Fast Fission Yield (2)
           flag = 2
         if flag == 2:
-          if re.match(r'(.*?)\w+(-?)\d+\s+\w+\s+\w(-?)\d+\s+\w',
-                      line.strip()) and spectra == self.spectrum[1]:
+          if re.match(r'(.*?)\w+(-?)\d+\s+\w+\s+\w(-?)\d+\s+\w',line.strip()) and spectra == self.spectrum[1] and matrixFlag == 0:
+            outfile.writelines(line)   
+            matrixFlag = 4 
+          elif matrixFlag == 4:
+            self.matrixPrinter(line, outfile, spectra)
+          else:
             outfile.writelines(line)
-            break
-          outfile.writelines(line)
-        if (re.match(r'(.*?)' + spectra, line.strip())
-            and spectra == self.spectrum[0]
-            ):  # find the line- Thermal Fission Yield (1)
+          
+        if (re.match(r'(.*?)' + self.spectrum[0], line.strip()) and spectra == self.spectrum[0]):  # find the line- Thermal Fission Yield (1)
           flag = 1
         if flag == 1:
-          if re.match(
-              r'(.*?)\w+(-?)\d+\s+\w+\s+\w(-?)\d+\s+\w', line.strip()
-          ) and spectra == self.spectrum[0]:  # find the line U-235 FY U-238 FY (last hardcopied line)
-            outfile.writelines(line)
-            flag = 0
+          if re.search(r'Fast Fission Yield ', line) :  # find the line- END Fast Fission Yield (2)
+            outfile.writelines('END ')
+            flag = 2
             break
-          outfile.writelines(line)
-      self.matrixPrinter(lines, outfile, spectra)
+          if re.match(r'(.*?)\w+(-?)\d+\s+\w+\s+\w(-?)\d+\s+\w', line.strip()) and spectra == self.spectrum[0] and matrixFlag == 0:  # find the line U-235 FY U-238 FY (last hardcopied line)
+            outfile.writelines(line)
+            matrixFlag = 3
+          elif matrixFlag == 3:
+            self.matrixPrinter(line, outfile, spectra)
+          else:
+            outfile.writelines(line)          
+          
     outfile.close()
 
   def fileReconstruction(self):
@@ -239,7 +244,7 @@ class FissionYieldParser():
       @ In, lines, list, unperturbed input file lines
       @ Out, None
     """
-    if os.path.exists(self.inputFiles):
+    if os.path.exists(self.inputFiles): 
       os.remove(self.inputFiles) # remove the file if was already existing
     for spectra in self.spectrum:
       self.hardcopyPrinter(spectra, lines)
