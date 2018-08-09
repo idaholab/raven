@@ -75,6 +75,7 @@
     <MonteCarlo name="MC_samp">
       <samplerInit>
         <limit>2</limit>
+        <initialSeed>20021986</initialSeed>
       </samplerInit>
       <variable name="DECAY|BETA|PU241">
         <distribution>DECAY|BETA|PU241_distrib</distribution>

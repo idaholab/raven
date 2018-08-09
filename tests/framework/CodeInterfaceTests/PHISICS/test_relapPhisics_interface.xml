@@ -81,6 +81,7 @@
     <MonteCarlo name="MC_samp">
       <samplerInit>
         <limit>2</limit>
+        <initialSeed>20021986</initialSeed>
       </samplerInit>
       <variable name="DENSITY|MATF1|FUEL">
         <distribution>DENSITY|MATF1|FUEL_distrib</distribution>
