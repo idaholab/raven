@@ -177,8 +177,8 @@ class Grid(ForwardSampler):
           distUB = self.distDict[varName].upperBound
         else:
           dim = self.variables2distributionsMapping[varName]['dim']-1
-          distLB = self.distDict[varName].returnLowerBound(dim)
-          distUB = self.distDict[varName].returnUpperBound(dim)
+          distLB = self.distDict[varName].lowerBound[dim]
+          distUB = self.distDict[varName].upperBound[dim]
         if gridLB < distLB or gridUB > distUB:
           self.raiseAnError(IOError, 'Grids defined for', varName, 'in range (', gridLB, gridUB,
           ') is outside the range of given distribution', self.distDict[varName].type, '(',distLB, distUB,')!')

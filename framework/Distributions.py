@@ -3162,6 +3162,12 @@ class MultivariateNormal(NDimensionalDistributions):
       self._distribution = distribution1D.BasicMultivariateNormal(covariance, mu)
     elif self.method == 'pca':
       self._distribution = distribution1D.BasicMultivariateNormal(covariance, mu, str(self.covarianceType), self.rank)
+    if self.transformation:
+      self.lowerBound = [-sys.float_info.max]*self.rank
+      self.upperBound = [sys.float_info.max]*self.rank
+    else:
+      self.lowerBound = [self.returnLowerBound(dim) for dim in range(self.dimension)]
+      self.upperBound = [self.returnUpperBound(dim) for dim in range(self.dimension)]
 
   def cdf(self,x):
     """
@@ -3442,24 +3448,6 @@ class MultivariateNormal(NDimensionalDistributions):
     else:
       self.raiseAnError(NotImplementedError,'rvs is not yet implemented for ' + self.method + ' method')
     return rvsValue
-
-  def returnLowerBound(self, dimension):
-    """
-      Function that return the lower bound of the distribution for a particular dimension
-      @ In, dimension, int, dimension considered
-      @ Out, value, float, lower bound of the distribution
-    """
-    value = -sys.float_info.max
-    return value
-
-  def returnUpperBound(self, dimension):
-    """
-      Function that return the upper bound of the distribution for a particular dimension
-      @ In, dimension, int, dimension considered
-      @ Out, value, float, upper bound of the distribution
-    """
-    value = sys.float_info.max
-    return value
 
 DistributionsCollection.addSub(MultivariateNormal.getInputSpecification())
 
