@@ -1,10 +1,6 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="all">
-  <RunInfo>
-    <WorkingDir>scgpc</WorkingDir>
-    <Sequence>sample,train,dump,print</Sequence>
-    <batchSize>1</batchSize>
-  </RunInfo>
+    
   <TestInfo>
     <name>framework/Samplers/ROM/timeDepGuassPoly</name>
     <author>talbpaul</author>
@@ -13,8 +9,16 @@
     <description>
       This tests using a time-dependent GaussPolynomialROM.
     </description>
+    <revisions>
+      <revision author="wangc" date="2018-08-09">Add pivotParameter for time dependent ROM</revision>
+    </revisions>
   </TestInfo>
 
+  <RunInfo>
+    <WorkingDir>scgpc</WorkingDir>
+    <Sequence>sample,train,dump,print</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
   <Files>
     <Input name="rom_pk" type="">rom.pk</Input>
   </Files>
@@ -43,12 +47,13 @@
   </Steps>
 
   <Models>
-    <ExternalModel ModuleToLoad="../AnalyticModels/projectile" name="proj" subType="">
-      <variables>x,y,r,time,x0,y0</variables>
+    <ExternalModel ModuleToLoad="../../AnalyticModels/projectile" name="proj" subType="">
+      <variables>x,y,r,t,x0,y0</variables>
     </ExternalModel>
     <ROM name="rom" subType="GaussPolynomialRom">
       <Features>x0,y0</Features>
-      <Target>time,x,y,r</Target>
+      <Target>t,x,y,r</Target>
+      <pivotParameter>t</pivotParameter>
       <IndexSet>TotalDegree</IndexSet>
       <PolynomialOrder>1</PolynomialOrder>
     </ROM>
@@ -96,7 +101,10 @@
     </PointSet>
     <HistorySet name="trainset">
       <Input>x0,y0</Input>
-      <Output>time,x,y,r</Output>
+      <Output>t,x,y,r</Output>
+      <options>
+          <pivotParameter>t</pivotParameter>
+      </options>
     </HistorySet>
   </DataObjects>
 
