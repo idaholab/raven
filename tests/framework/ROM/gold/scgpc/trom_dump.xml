@@ -1,5 +1,7 @@
 <ROM type="Dynamic">
-<time value="0.0">
+  <type>GAUSSgpcROM(t-x-y-r)</type>
+
+  <t value="0.0">
     <x>
       <mean>0.0</mean>
       <expectedValue>0.0</expectedValue>
@@ -72,8 +74,9 @@
         <x0>0.0</x0>
       </sobolTotalIndices>
     </r>
-  </time>
-  <time value="0.111111111111">
+  </t>
+
+  <t value="0.111111111111">
     <x>
       <mean>0.0785674201318</mean>
       <expectedValue>0.0785674201318</expectedValue>
@@ -146,8 +149,9 @@
         <x0>0.0</x0>
       </sobolTotalIndices>
     </r>
-  </time>
-  <time value="0.222222222222">
+  </t>
+
+  <t value="0.222222222222">
     <x>
       <mean>0.157134840264</mean>
       <expectedValue>0.157134840264</expectedValue>
@@ -220,8 +224,9 @@
         <x0>0.0</x0>
       </sobolTotalIndices>
     </r>
-  </time>
-  <time value="0.333333333333">
+  </t>
+
+  <t value="0.333333333333">
     <x>
       <mean>0.235702260396</mean>
       <expectedValue>0.235702260396</expectedValue>
@@ -294,8 +299,9 @@
         <x0>0.0</x0>
       </sobolTotalIndices>
     </r>
-  </time>
-  <time value="0.444444444444">
+  </t>
+
+  <t value="0.444444444444">
     <x>
       <mean>0.314269680527</mean>
       <expectedValue>0.314269680527</expectedValue>
@@ -368,8 +374,9 @@
         <x0>0.0</x0>
       </sobolTotalIndices>
     </r>
-  </time>
-  <time value="0.555555555556">
+  </t>
+
+  <t value="0.555555555556">
     <x>
       <mean>0.392837100659</mean>
       <expectedValue>0.392837100659</expectedValue>
@@ -442,8 +449,9 @@
         <x0>0.0</x0>
       </sobolTotalIndices>
     </r>
-  </time>
-  <time value="0.666666666667">
+  </t>
+
+  <t value="0.666666666667">
     <x>
       <mean>0.471404520791</mean>
       <expectedValue>0.471404520791</expectedValue>
@@ -516,8 +524,9 @@
         <x0>0.0</x0>
       </sobolTotalIndices>
     </r>
-  </time>
-  <time value="0.777777777778">
+  </t>
+
+  <t value="0.777777777778">
     <x>
       <mean>0.549971940923</mean>
       <expectedValue>0.549971940923</expectedValue>
@@ -590,8 +599,9 @@
         <x0>0.0</x0>
       </sobolTotalIndices>
     </r>
-  </time>
-  <time value="0.888888888889">
+  </t>
+
+  <t value="0.888888888889">
     <x>
       <mean>0.628539361055</mean>
       <expectedValue>0.628539361055</expectedValue>
@@ -664,8 +674,9 @@
         <x0>0.0</x0>
       </sobolTotalIndices>
     </r>
-  </time>
-  <time value="1.0">
+  </t>
+
+  <t value="1.0">
     <x>
       <mean>0.707106781187</mean>
       <expectedValue>0.707106781187</expectedValue>
@@ -738,5 +749,5 @@
         <x0>0.0</x0>
       </sobolTotalIndices>
     </r>
-  </time>
-  </ROM>
+  </t>
+</ROM>

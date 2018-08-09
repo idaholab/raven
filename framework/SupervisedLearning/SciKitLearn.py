@@ -179,7 +179,7 @@ class SciKitLearn(supervisedLearning):
     name  = self.initOptionDict.pop('name','')
     if 'pivotParameter' in self.initOptionDict:
       # remove pivot parameter if present
-      self.initOptionsDict.pop('pivotParameter')
+      self.initOptionDict.pop('pivotParameter')
     self.printTag = 'SCIKITLEARN'
     if 'SKLtype' not in self.initOptionDict.keys():
       self.raiseAnError(IOError,'to define a scikit learn ROM the SKLtype keyword is needed (from ROM "'+name+'")')
