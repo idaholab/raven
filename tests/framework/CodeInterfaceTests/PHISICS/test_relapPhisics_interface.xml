@@ -10,13 +10,16 @@
         RELAP5 (coupled with PHISICS) executable.
         The density of the I135 (PHISICS side) and the initial temperature
         for time-dep volume 201 are perturbed.
+        NOTE: The input files and data have been epurated from nuclear data; consequentially
+        the case is not runable for real with PHISICS and RELAP5-3D coupled. The coupled
+        suite will error out.
     </description>
     <revisions>
       <revision author="rouxpn" date="2018-08-08">PHISICS RELAP suite test case added</revision>
     </revisions>
   </TestInfo>
   <RunInfo>
-    <WorkingDir>./phisicsRelap</WorkingDir>
+    <WorkingDir>phisicsRelap5</WorkingDir>
     <Sequence>phisicsRelap5Test</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
@@ -47,11 +50,8 @@
     <Input name="lib.xml"             type="Xs-Library"        perturbable="False"                            >lib.xml</Input>
     <Input name="tabMapping.xml"      type="tabMap"            perturbable="False"                            >tabMapping.xml</Input>
     <Input name="ex_3a_R_CR_nom.i"    type="relapInp"          perturbable="True"                             >ex_3a_R_CR_nom.i</Input>
-    <Input name="tpfh2o"              type="relapH2o"          perturbable="False"                            >tpfh2o</Input>
-    <Input name="tpfh2on2"            type="relaph2on2"        perturbable="False"                            >tpfh2on2</Input>
-    <Input name="tpfn2"               type="relapn2"           perturbable="False"                            >tpfn2</Input>
-    <Input name="tpfhe"               type="relapHe"           perturbable="False"                            >tpfhe</Input>
-    <Input name="rellic.bin"          type="relapRellic"       perturbable="False"                            >rellic.bin</Input>
+    <Input name="tpfh2o"              type="relapH2o"          perturbable="False"                            >tpfh2o_empty</Input>
+    <Input name="rellic.bin"          type="relapRellic"       perturbable="False"                            >example_license_file.bin</Input>
   </Files>
 
   <Models>
@@ -118,9 +118,7 @@
       <Input class="Files" type="mass.inp"           >mass.inp</Input> 
       <Input class="Files" type="relapInp"           >ex_3a_R_CR_nom.i</Input>
       <Input class="Files" type="relapH2o"           >tpfh2o</Input>
-      <Input class="Files" type="relaph2on2"         >tpfh2on2</Input>
-      <Input class="Files" type="relapn2"           >tpfn2</Input>
-      <Input class="Files" type="relapHe"           >tpfhe</Input>
+      <Input class="Files" type="relapRellic"        >rellic.bin</Input>
       <Model class="Models" type="Code">PHISICS_RELAP5</Model>
       <Sampler class="Samplers" type="MonteCarlo">MC_samp</Sampler>
       <Output class="DataObjects" type="PointSet">outMC</Output>
@@ -137,7 +135,7 @@
 
   <DataObjects>
       <PointSet name="outMC">
-        <Input>DENSITY|MATF1|FUEL,20100154:2</Input>
+        <Input>DENSITY|MATF1|FUEL,2500201:3</Input>
         <Output>keff</Output>
       </PointSet>
   </DataObjects>

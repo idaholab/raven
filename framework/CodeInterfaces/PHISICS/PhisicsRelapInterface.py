@@ -20,13 +20,15 @@ import warnings
 warnings.simplefilter('default',DeprecationWarning)
 import os
 import re
+import combine
+import xml.etree.ElementTree as ET
+import copy
 from CodeInterfaceBaseClass import CodeInterfaceBase
 import phisicsdata
 import relapdata
 from PhisicsInterface import Phisics
 from Relap5Interface import Relap5
-import xml.etree.ElementTree as ET
-import copy
+
 from  __builtin__ import any as b_any
 
 class PhisicsRelap5(CodeInterfaceBase):
@@ -154,9 +156,13 @@ class PhisicsRelap5(CodeInterfaceBase):
     self.Relap5Interface.finalizeCodeOutput(command,self.outFileName,workingDir)
     # PHISICS post processing
     self.PhisicsInterface.finalizeCodeOutput(command,output,workingDir,phiRel=True,relapOut=self.outFileName)
-    import combine
     jobTitle = self.PhisicsInterface.jobTitle
     combine.combine(workingDir,os.path.join(workingDir,self.outFileName+'.csv'),os.path.join(workingDir,jobTitle+'.csv'),self.depTimeDict,self.inpTimeDict,relapPhisicsCsv+'.csv')
+    # remove the old CSVs
+    if os.path.exists(os.path.join(workingDir,self.outFileName+'.csv')):
+      os.remove(os.path.join(workingDir,self.outFileName+'.csv'))
+    if os.path.exists(os.path.join(workingDir,self.outFileName+'.csv')):
+      os.remove(os.path.join(workingDir,jobTitle+'.csv'))
     return relapPhisicsCsv
 
   def checkForOutputFailure(self,output,workingDir):
@@ -171,10 +177,10 @@ class PhisicsRelap5(CodeInterfaceBase):
       @ Out, failure, bool, True if the job is failed, False otherwise
     """
     failure = True
-    failure = self.Relap5Interface.checkForOutputFailure(self.outFileName + self.outputExt,workingDir)
+    failure = self.Relap5Interface.checkForOutputFailure(self.outFileName,workingDir)
     if failure:
       raise IOError('The check Output Failure returns a job failed')
-    return self.Relap5Interface.checkForOutputFailure(self.outFileName + self.outputExt,workingDir)
+    return failure
 
   def tailorRelap5InputFiles(self,currentInputFiles):
     """

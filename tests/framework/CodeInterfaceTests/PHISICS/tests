@@ -22,8 +22,7 @@
     input = 'test_relapPhisics_interface.xml'
     output = 'phisicsRelap5/phisicsRelap5Test/1/relapPhisics.csv phisicsRelap5/phisicsRelap5Test/2/relapPhisics.csv'
     UnorderedCsv = 'phisicsRelap5/out_streams_RAVEN.csv'
-    text = 'phisicsRelap5/MRTAU_lib/decay.dat'
-    UnorderedXml = 'phisicsRelap5/mat.xml'
-    skip=True
+    text = 'phisicsRelap5/phisicsRelap5Test/1/ex_3a_R_CR_nom.i'
+    UnorderedXml = 'phisicsRelap5/phisicsRelap5Test/1/mat.xml'
  [../]
 []

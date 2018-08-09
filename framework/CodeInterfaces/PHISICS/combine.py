@@ -127,7 +127,8 @@ class combine():
         os.remove(cleanUpFiles) # remove the file if was already existing
     thBurnStep = paramDict['inpTimeDict']['TH_between_BURN'].split(' ')
     with open(os.path.join(workingDir,'dummy.csv'), 'wb') as f:
-      instantWriter = csv.writer(f, delimiter=str(u',').encode('utf-8'),quotechar=str(u' ').encode('utf-8'), quoting=csv.QUOTE_MINIMAL)
+      instantWriter = csv.writer(f, delimiter=str(u',').encode('utf-8'),quotechar=str(u' ').encode('utf-8'),
+                                 quoting=csv.QUOTE_MINIMAL)
       instantWriter.writerow(self.joinLine(paramDict['phiDict'][0],paramDict['relDict'][0]))
       instantWriter.writerow([0.0] * self.numOfParameters + [paramDict['relDict'][1]])
       lineNumber = 1
@@ -135,13 +136,21 @@ class combine():
       mrTau = 0
       while THbetweenBurn < len(thBurnStep):
         lineNumber = lineNumber + 1
-        if float(paramDict['relDict'][lineNumber].split(',')[paramDict['relapTimePosition']]) <= float(thBurnStep[THbetweenBurn]): # if the time on a relap line is <= than the TH_between_burn selected
-          instantWriter.writerow(self.joinLine(paramDict['phiDict'][self.timeStepSelected[mrTau]],paramDict['relDict'][lineNumber])) # print the relap line with the phisics line corresponding to last time step of a burnstep
-        if paramDict['relDict'][lineNumber].split(',')[paramDict['relapTimePosition']] > thBurnStep[THbetweenBurn]: # if the relap time on a line is larger the TH_between_burn selected
-          THbetweenBurn = THbetweenBurn + 1 # change the TH_between_burn selected
-          mrTau = mrTau + 1 # change the burn step in phisics
-          if THbetweenBurn == len(thBurnStep): # if this is the last TH_between_burn
-            instantWriter.writerow(self.joinLine(paramDict['phiDict'][paramDict['numOfPhisicsLines'] - 1],paramDict['relDict'][paramDict['numOfRelapLines'] - 1])) # print the last line of phisics and relap.
+        # if the time on a relap line is <= than the TH_between_burn selected
+        if float(paramDict['relDict'][lineNumber].split(',')[paramDict['relapTimePosition']]) <= float(thBurnStep[THbetweenBurn]):
+          # print the relap line with the phisics line corresponding to last time step of a burnstep
+          instantWriter.writerow(self.joinLine(paramDict['phiDict'][self.timeStepSelected[mrTau]],paramDict['relDict'][lineNumber]))
+        # if the relap time on a line is larger the TH_between_burn selected
+        if paramDict['relDict'][lineNumber].split(',')[paramDict['relapTimePosition']] > thBurnStep[THbetweenBurn]:
+          # change the TH_between_burn selected
+          THbetweenBurn = THbetweenBurn + 1
+          # change the burn step in phisics
+          mrTau = mrTau + 1
+          # if this is the last TH_between_burn
+          if THbetweenBurn == len(thBurnStep):
+            # print the last line of phisics and relap.
+            instantWriter.writerow(self.joinLine(paramDict['phiDict'][paramDict['numOfPhisicsLines'] - 1],
+                                                 paramDict['relDict'][paramDict['numOfRelapLines'] - 1]))
     with open(os.path.join(workingDir,'dummy.csv'), 'r') as inFile:
       with open(os.path.join(workingDir,paramDict['relapPhisicsCsv']), 'wb') as outFile:
         for line in inFile:
@@ -150,3 +159,6 @@ class combine():
             pass
           else:
             outFile.write(cleanedLine)
+    if os.path.exists('dummy.csv'):
+      os.remove('dummy.csv')
+

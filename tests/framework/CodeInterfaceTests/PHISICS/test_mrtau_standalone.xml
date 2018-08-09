@@ -9,6 +9,8 @@
        This test is aimed to test the mechanics of the interface between RAVEN and
        PHISICS, using the burnup code MRTAU.
        The decay constant of the PU241 is perturbed and the mass of the NP237.
+       NOTE: The input files and data have been epurated from nuclear data; consequentially
+       the case is not runable for real with PHISICS (MRTAU). The code will error out.
     </description>
     <revisions>
         <revision author="alfoa" date="2018-07-08">modified to make it work and to remove nuclear data</revision>

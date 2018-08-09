@@ -9,6 +9,8 @@
         This test is aimed to test the mechanics of the interface between RAVEN and
         PHISICS, using the full-blonde PHISICS executable.
         Qvalues, decay constants, initial densities and cross sections get perturbed.
+        NOTE: The input files and data have been epurated from nuclear data; consequentially
+        the case is not runable for real with PHISICS. The code will error out.
     </description>
     <revisions>
       <revision author="alfoa" date="2018-07-08">modified to make it work and to remove nuclear data</revision>
