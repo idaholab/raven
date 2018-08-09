@@ -91,5 +91,10 @@
    UnorderedCsv = 'IndexInputOutput/step_out.csv IndexInputOutput/step_out_2.csv IndexInputOutput/step_out_4.csv IndexInputOutput/step_out_6.csv IndexInputOutput/step_out_8.csv'
  [../]
 
+ [./testEMConnection]
+   type = 'RavenFramework'
+   input = 'test_em_connection.xml'
+   UnorderedCsv = 'checkConnection/printData.csv'
+ [../]
 
 []
