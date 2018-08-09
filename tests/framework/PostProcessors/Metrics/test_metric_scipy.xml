@@ -72,7 +72,7 @@
     <ScipyMetric name="minkowski">
         <metricType>paired_distance|minkowski</metricType>
         <p>5</p>
-        <w>[0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]</w>
+        <w>0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1</w>
     </ScipyMetric>
   </Metrics>
 

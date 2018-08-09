@@ -25,12 +25,27 @@ warnings.simplefilter('default',DeprecationWarning)
 #Internal Modules------------------------------------------------------------------------------------
 from .Metric import Metric
 import Metrics.MetricUtilities
+from utils import InputData
 #Internal Modules End--------------------------------------------------------------------------------
 
 class PDFCommonArea(Metric):
   """
     Metric to compare two datasets using the PDF Common Area.
   """
+
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    inputSpecification = super(PDFCommonArea, cls).getInputSpecification()
+
+    return inputSpecification
+
   def __init__(self):
     """
       Constructor

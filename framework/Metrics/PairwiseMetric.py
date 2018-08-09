@@ -41,6 +41,7 @@ from sklearn.metrics import r2_score
 
 #Internal Modules------------------------------------------------------------------------------------
 from .Metric import Metric
+from utils import InputData
 #Internal Modules End--------------------------------------------------------------------------------
 
 
@@ -81,6 +82,23 @@ class PairwiseMetric(Metric):
   availMetrics['pairwise']['sokalsneath']       = None
   availMetrics['pairwise']['yule']              = None
 
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    inputSpecification = super(PairwiseMetric, cls).getInputSpecification()
+    inputSpecification.addSub(InputData.parameterInputFactory("metricType",contentType=InputData.StringType),quantity=InputData.Quantity.one)
+    inputSpecification.addSub(InputData.parameterInputFactory("degree",contentType=InputData.IntegerType),quantity=InputData.Quantity.zero_to_one)
+    inputSpecification.addSub(InputData.parameterInputFactory("gamma",contentType=InputData.FloatType),quantity=InputData.Quantity.zero_to_one)
+    inputSpecification.addSub(InputData.parameterInputFactory("coef0",contentType=InputData.IntegerType),quantity=InputData.Quantity.zero_to_one)
+
+    return inputSpecification
+
   def __init__(self):
     """
       Constructor
@@ -100,25 +118,18 @@ class PairwiseMetric(Metric):
       @ Out, None
     """
     self.distParams = {}
-    for child in xmlNode:
-      if child.tag == 'metricType':
-        self.metricType = list(elem.strip() for elem in child.text.split('|'))
+    paramInput = PairwiseMetric.getInputSpecification()()
+    paramInput.parseNode(xmlNode)
+    for child in paramInput.subparts:
+      if child.getName() == "metricType":
+        self.metricType = list(elem.strip() for elem in child.value.split('|'))
         if len(self.metricType) != 2:
-          self.raiseAnError(IOError, "Metric type: '", child.tag, "' is not correct, please check the user manual for the correct metric type!")
+          self.raiseAnError(IOError, "Metric type: '", child.value, "' is not correct, please check the user manual for the correct metric type!")
       else:
-        self.distParams[str(child.tag)] = utils.tryParse(child.text)
+        self.distParams[child.getName()] = child.value
 
     if self.metricType[0] not in self.__class__.availMetrics.keys() or self.metricType[1] not in self.__class__.availMetrics[self.metricType[0]].keys():
       self.raiseAnError(IOError, "Metric '", self.name, "' with metricType '", self.metricType[0], "|", self.metricType[1], "' is not valid!")
-
-    for key, value in self.distParams.items():
-      try:
-        newValue = ast.literal_eval(value)
-        if type(newValue) == list:
-          newValue = np.asarray(newValue)
-        self.distParams[key] = newValue
-      except ValueError:
-        self.distParams[key] = value
 
   def __evaluateLocal__(self, x, y = None, axis = 0, weights =None, **kwargs):
     """

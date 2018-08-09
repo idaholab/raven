@@ -28,7 +28,7 @@ import abc
 
 #Internal Modules------------------------------------------------------------------------------------
 from BaseClasses import BaseType
-from utils import utils
+from utils import utils, InputData
 #Internal Modules End--------------------------------------------------------------------------------
 
 class Metric(utils.metaclass_insert(abc.ABCMeta,BaseType)):
@@ -36,6 +36,20 @@ class Metric(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     This is the general interface to any RAVEN metric object.
     It contains an initialize, a _readMoreXML, and an evaluation (i.e., distance) methods
   """
+
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    inputSpecification = super(Metric, cls).getInputSpecification()
+
+    return inputSpecification
+
   def __init__(self):
     """
       This is the basic method initialize the metric object

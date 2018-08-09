@@ -30,6 +30,7 @@ import scipy.spatial.distance as spatialDistance
 
 #Internal Modules------------------------------------------------------------------------------------
 from .Metric import Metric
+from utils import InputData
 #Internal Modules End--------------------------------------------------------------------------------
 
 class DTW(Metric):
@@ -37,6 +38,22 @@ class DTW(Metric):
     Dynamic Time Warping Metric
     Class for measuring similarity between two variables X and Y, i.e. two temporal sequences
   """
+
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    inputSpecification = super(DTW, cls).getInputSpecification()
+    inputSpecification.addSub(InputData.parameterInputFactory("order",contentType=InputData.IntegerType),quantity=InputData.Quantity.one)
+    inputSpecification.addSub(InputData.parameterInputFactory("localDistance",contentType=InputData.StringType),quantity=InputData.Quantity.one)
+
+    return inputSpecification
+
   def __init__(self):
     """
       Constructor
@@ -61,25 +78,15 @@ class DTW(Metric):
       @ In, xmlNode, xml.etree.Element, Xml element node
       @ Out, None
     """
-    self.requiredKeywords = set(['order','localDistance'])
-    self.wrongKeywords = set()
-    for child in xmlNode:
-      if child.tag == 'order':
-        if child.text in ['0','1']:
-          self.order = float(child.text)
-        else:
-          self.raiseAnError(IOError,'DTW metrics - specified order ' + str(child.text) + ' is not recognized (allowed values are 0 or 1)')
-        self.requiredKeywords.remove('order')
-      if child.tag == 'localDistance':
-        self.localDistance = child.text
-        self.requiredKeywords.remove('localDistance')
-      if child.tag not in self.requiredKeywords:
-        self.wrongKeywords.add(child.tag)
-
-    if self.requiredKeywords:
-      self.raiseAnError(IOError,'The DTW metrics is missing the following parameters: ' + str(self.requiredKeywords))
-    if not self.wrongKeywords:
-      self.raiseAnError(IOError,'The DTW metrics block contains parameters that are not recognized: ' + str(self.wrongKeywords))
+    paramInput = DTW.getInputSpecification()()
+    paramInput.parseNode(xmlNode)
+    for child in paramInput.subparts:
+      if child.getName() == "order":
+        self.order = child.value
+        if self.order not in [0,1]:
+          self.raiseAnError(IOError, "DTW metrics - specified order", self.order, "is not recognized (allowed values are 0 or 1)")
+      elif child.getName() == "localDistance":
+        self.localDistance = child.value
 
   def __evaluateLocal__(self, x, y, weights = None, axis = 0, **kwargs):
     """
