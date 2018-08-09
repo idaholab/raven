@@ -2738,6 +2738,8 @@ class NDInverseWeight(NDimensionalDistributions):
       self._distribution = distribution1D.BasicMultiDimensionalInverseWeight(str(self.dataFilename), self.p,True)
     else:
       self._distribution = distribution1D.BasicMultiDimensionalInverseWeight(str(self.dataFilename), self.p,False)
+    self.lowerBound = [self.returnLowerBound(dim) for dim in range(self.dimension)]
+    self.upperBound = [self.returnUpperBound(dim) for dim in range(self.dimension)]
 
   def cdf(self,x):
     """
@@ -2927,6 +2929,8 @@ class NDCartesianSpline(NDimensionalDistributions):
       self._distribution = distribution1D.BasicMultiDimensionalCartesianSpline(str(self.dataFilename),True)
     else:
       self._distribution = distribution1D.BasicMultiDimensionalCartesianSpline(str(self.dataFilename),False)
+    self.lowerBound = [self.returnLowerBound(dim) for dim in range(self.dimension)]
+    self.upperBound = [self.returnUpperBound(dim) for dim in range(self.dimension)]
 
   def cdf(self,x):
     """
