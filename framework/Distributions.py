@@ -1641,6 +1641,9 @@ class Categorical(Distribution):
     if not mathUtils.compareFloats(totPsum,1.0):
       self.raiseAnError(IOError,'Categorical distribution cannot be initialized: sum of probabilities is '+repr(totPsum)+', not 1.0')
 
+    self.lowerBound = min(self.mapping.keys())
+    self.upperBound = max(self.mapping.keys())
+
   def pdf(self,x):
     """
       Function that calculates the pdf value of x
@@ -2271,7 +2274,7 @@ class Weibull(BoostDistribution):
       self.upperBound = sys.float_info.max
     else:
       if self.lowerBoundUsed == False:
-        self.lowerBound = self.lowerBound
+        self.lowerBound = self.low
       if self.upperBoundUsed == False:
         self.upperBound = sys.float_info.max
       self._distribution = distribution1D.BasicWeibullDistribution(self.k,self.lambdaVar,self.lowerBound,self.upperBound,self.low)
