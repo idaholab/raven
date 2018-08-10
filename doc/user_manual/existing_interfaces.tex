@@ -2966,17 +2966,18 @@ Finally, the variable \textbf{\textit{zrMoles}} needs to be specified in the spe
 \end{lstlisting}
 %
 %%%%%%%%%%%%%%%%%%%%%%%
-%%%%%% COBRA-TF  INTERFACE %%%%%%
+%%%%%% CTF  INTERFACE %%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%
-\subsection{COBRA-TF Interface}
-This section presents the main aspects of the interface between RAVEN and Cobra-TF system,
-the consequent RAVEN input adjustments and the modifications of the Cobra-TF
-files required to run the two coupled codes.
-\\ \textcolor{red}{
-\textbf{\textit{\nb This interface is currently working only with the specific type of Cobra-TF output file (.ctf.out) }}
+\subsection{CTF Interface}
+This section presents the main aspects of the interface between RAVEN and CTF (COBRA-TF) system,
+the consequent RAVEN input adjustments and the modifications of the CTF
+files required to run the two coupled codes. \noindent
+
+\noindent \textcolor{red}{
+\textbf{\textit{\nb This interface is currently working only with the specific type of CTF output file (.ctf.out or deck.out (if input file name is deck.inp)) }}
 }
 
-In the following sections a short explanation on how to use RAVEN coupled with Cobra-TF is reported.
+\noindent In the following sections a short explanation on how to use RAVEN coupled with CTF is reported.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Sequence}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -2985,6 +2986,7 @@ In the \xmlNode{Sequence} section, the names of the steps declared in the
 %
 As an example, if we called the first MultiRun ``Grid\_Sampler'' and the second
 MultiRun ``MC\_Sampler'' in the sequence section we should see this:
+
 \begin{lstlisting}[style=XML]
 <Sequence>Grid_Sampler, MC_Sampler</Sequence>
 \end{lstlisting}
@@ -2999,7 +3001,8 @@ For the \xmlNode{batchSize} and \xmlNode{mode} sections please refer to the
 \subsubsection{RunInfo}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 After all of these blocks are filled out, a standard example RunInfo block may
-look like the example below:
+look like the example below: \\
+
 \begin{lstlisting}[style=XML]
 <RunInfo>
   <WorkingDir>~/workingDir</WorkingDir>
@@ -3008,12 +3011,12 @@ look like the example below:
 </RunInfo>
 \end{lstlisting}
 In this example, the \xmlNode{batchSize} is set to $8$; this means that 8 simulatenous (parallel) instances
-of COBRA-TF are going to be executed when a sampling strategy is employed.
+of CTF are going to be executed when a sampling strategy is employed.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Models}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-As any other Code, in order to activate the Cobra-TF interface, a \xmlNode{Code} XML node needs to be inputted, within the
+As any other Code, in order to activate the CTF interface, a \xmlNode{Code} XML node needs to be inputted, within the
 main XML node \xmlNode{Models}.
 \\The  \xmlNode{Code} XML node contains the
 information needed to execute the specific External Code.
@@ -3045,9 +3048,10 @@ information needed to execute the specific External Code.
 \end{itemize}
 
 An example  is shown  below:
+
 \begin{lstlisting}[style=XML]
 <Models>
-    <Code name="MyCobraTF" subType="CobraTF">
+    <Code name="MyCobraTF" subType="CTF">
       <executable>path/to/cobratf</executable>
     </Code>
 </Models>
@@ -3056,27 +3060,34 @@ An example  is shown  below:
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Files}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-The \xmlNode{Files} XML node has to contain all the files required to run the external code  (Cobra-TF).
-For RAVEN coupled with Cobra-TF, only input file(s) (.inp) are needed.
+The \xmlNode{Files} XML node has to contain all the files required to run the external code  (CTF).
+For RAVEN coupled with CTF, there are three input files. CTF input file (.inp) is required by the code. This input file includes all the geometry, boundary and calculation definitions.
 
-Example:
+\noindent There are two additional files (\textit{optional}) that can be used for model parameter perturbation(s) (vuq$\_$param.txt, vuq$\_$mult.txt). These two files can be used to change variables of models embedded in CTF. The ''vuq$\_$param.txt'' file includes parameter values, and ''vuq$\_$mult.txt'' file includes multipliers or additions to parameters. These files are not required by CTF unless a parameter modification is desired. One, both or neither of them can be included in the simulation folder. The code first controls if these files exist and does modifications accordingly if needed.
+
+\noindent
+\textbf{\textit{\nb Currently CTF does not accept any file names other than \textcolor{red}{vuq$\_$params.txt} and \textcolor{red}{vuq$\_$mult.txt} for parameter exposure}}
+
+\noindent Example:
 \begin{lstlisting}[style=XML]
 <Files>
-  <Input name="cobraTF_input" type="">case1.inp</Input>
+  <Input name="CTF_input" type="ctf">case1.inp</Input>
+  <Input name="vuq_param_input" type="vuq_param">vuq_param.txt</Input>
+  <Input name="vuq_mult_input" type="vuq_mult">vuq_mult.txt</Input>
 </Files>
 \end{lstlisting}
 The files mentioned in this section
  need, then, to be placed into the working directory specified
 by the \xmlNode{workingDir} node in the \xmlNode{RunInfo} XML node.
 
-\paragraph{Output Files conversion}
-Since RAVEN expects to receive a CSV file containing the outputs of the simulation, the results in the Cobra-TF output
+\paragraph{Output Files Conversion}
+Since RAVEN expects to receive a CSV file containing the outputs of the simulation, the results in the CTF output
 files (.ctf.out) need to be converted by the code interface.
 
-\textcolor{red}{
-\textbf{It is important to note that the interface output collection (i.e., the parser of the Cobra-TF output) is currently able to extract
-major edit data (.ctf.out) only. Only those variables printed in the "major edit" output files are exported and made available to RAVEN.} }
-\\The following information is collected from Cobra-TF output file (.ctf.out):
+\noindent \textcolor{red}{
+\textbf{It is important to note that the interface output collection (i.e., the parser of the CTF output) is currently able to extract
+major edit data (.ctf.out) only. Only those variables printed in the "major edit" output files are exported and made available to RAVEN.} } \\
+\\The following information is collected from CTF output file (.ctf.out):
 \begin{itemize}
   \item \textit{\textbf{average properties for channels}}
   \begin{lstlisting}[basicstyle=\tiny]
@@ -3133,8 +3144,8 @@ major edit data (.ctf.out) only. Only those variables printed in the "major edit
   \begin{lstlisting}[basicstyle=\tiny]
           nuclear fuel rod no.  1                         simulation time =    0.00 seconds
              surface no.  1 of  1
-          -----------------------        conducts heat to channels  1  0  0  0  0  0               geometry type =  1
-                                         and azimuthally to surfaces   1 and   1                   no. of radial nodes = 13
+          -----------------------        conducts heat to channels  1  0  0  0  0  0        geometry type =  1
+                                         and azimuthally to surfaces   1 and   1            no. of radial nodes = 13
 
  **********************************************************************************************
 
@@ -3152,92 +3163,190 @@ major edit data (.ctf.out) only. Only those variables printed in the "major edit
      \label{CSVfuelRod}
      \tabcolsep=0.11cm
      \tiny
-     \begin{tabular}{|c|c|c|c|c|c|c|c|c|c|}
-     time    & fuel\_rod10\_fluidTemperatureLiquid  & fuel\_rod10\_fluidTemperatureVapor & fuel\_rod10\_surfaceHeatflux & fuel\_rod10\_heatTransferMode & fuel\_rod10\_caldOutTemperature & ...  \\
-     0.00 & 464.1 & 467.1  & 0.5929E+04               & 0        & 466.08         & ...
+     \begin{tabular}{|c|c|c|c|}
+     time    & fuelRod10\_surface1\_ax10\_fluidTemperatureLiquid  & fuelRod10\_surface1\_ax10\_fluidTemperatureVapor & ... \\
+     0.00 & 464.1 & 467.1  &  ...
      \end{tabular}
    \end{table}
 
- \item \textit{\textbf{Cobra-TF's Output Variables and Corresponding Names in CSV file}}
+   \item \textit{\textbf{cyclindrical tube}}
 
-   In CSV file, the output results obtained from the Cobra-TF output file (.ctf.out) will be saved with the names as described in Table 12.
-   \begin{table}[h]
-    \centering
-    \caption[caption]{Variables Name List in CSV File \\\hspace{\textwidth} \textcolor{red}{(NN: Axial Node Number; CN: Channel Number)}}
-    \label{CSVvariableNames}
-    \tabcolsep=0.11cm
-    \scriptsize
-    \begin{tabular}{|l|l|}
-     \hline
-     \textbf{Output Variable} & \textbf{Name in CSV file} \\  \hline
-     simulation time  & time   \\
-     channels' average quality  & AVG\_ch\_ax\textcolor{red}{NN}\_quality \\
-     channels' average void fraction (liquid)  & AVG\_ch\_ax\textcolor{red}{NN}\_voidFractionLiquid \\
-     channels' average void fraction (vapor)  & AVG\_ch\_ax\textcolor{red}{NN}\_voidFractionVapor \\
-     channels' average entrainment (volumetric) fraction  & AVG\_ch\_ax\textcolor{red}{NN}\_volumeEntrainFraction \\
-     channels' average mass flow rate (liquid)  & AVG\_ch\_ax\textcolor{red}{NN}\_massFlowRateLiquid \\
-     channels' average mass flow rate (vapor)  & AVG\_ch\_ax\textcolor{red}{NN}\_massFlowRateVapor \\
-     channels' average entrainment rate (mass flow rate)  & AVG\_ch\_ax\textcolor{red}{NN}\_massFlowRateEntrain \\
-     channels' average mass flow rate (integrated)  & AVG\_ch\_ax\textcolor{red}{NN}\_massFlowRateIntegrated \\
-     channels' average enthalpy increase (liquid)  & AVG\_ch\_ax\textcolor{red}{NN}\_enthalpyIncreaseLiquid \\
-     channels' average enthalpy increase (vapor)  & AVG\_ch\_ax\textcolor{red}{NN}\_enthalpyIncreaseVapor \\
-     channels' average enthalpy increase (integrated)  & AVG\_ch\_ax\textcolor{red}{NN}\_enthalpyIncreaseIntegrated \\
-     channels' average mixture enthalpy  & AVG\_ch\_ax\textcolor{red}{NN}\_enthalpyMixture \\
-     channels' average heat added to liquid & AVG\_ch\_ax\textcolor{red}{NN}\_heatAddedToLiquid \\
-     channels' average heat added to vapor & AVG\_ch\_ax\textcolor{red}{NN}\_heatAddedToVapor \\
-     channels' average heat added (integrated)  & AVG\_ch\_ax\textcolor{red}{NN}\_heatAddedIntegrated' \\
+      \noindent \textcolor{red}{
+   \textbf{Warning: CTF reports results for cylindrical tubes based on the flow type. Not every result will be available depending on the \underline{internal} or \underline{external} flow type. Check output file and see if the flow around heat slab is internal or external. If the user requests values that are not in the output file reported values will be from different columns and wrong. For example there is no outside surface liquid temperature when flow is internal.} } \\
 
-     channel pressure & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_pressure \\
-     channel liquid velocity  & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_velocityLiquid \\
-     channel vapor velocity  & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_velocityVapor \\
-     channel entrainment rate (velocity) & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_velocityEntrain \\
-     channel void fraction (liquid) & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_voidFractionLiquid \\
-     channel void fraction (vapor)  & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_voidFractionVapor \\
-     channel volume fraction of entrainment liquid  & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_volumeEntrainFraction \\
-     channel mass flow rate (liquid) & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_massFlowRateLiquid \\
-     channel mass flow rate (vapor)  & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_massFlowRateVapor \\
-     channel entrainment rate (mass flow rate) & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_massFlowRateEntrain \\
-     channel flow regime ID & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_flowRegimeID \\
-     channel heat added to liquid & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_heatAddedToLiquid \\
-     channel heat added to vapor  & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_heatAddedToVapor \\
-     channel evaporation rate  & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_evaporationRate \\
+   \begin{lstlisting}[basicstyle=\tiny]
+    cylindrical tube rod no.  5                         simulation time =    2.00 seconds
+           surface no.  1 of  4
+    ------------------------        conducts heat to channels 10  0  0  0  0  0               geometry type =  2
+                                    and azimuthally to surfaces   4 and   2                   no. of radial nodes =  2
 
-     channel enthalpy of vapor  & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_enthalpyVapor \\
-     channel enthalpy of saturated vapor & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_enthalpySaturatedVapor \\
-     channel enthalpy difference between vapor and saturated vapor & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_enthalpyVapor-SaturatedVapor \\
-     channel enthalpy of liquid & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_enthalpyLiquid \\
-     channel enthalpy of saturated liquid & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_enthalpySaturatedLiquid \\
-     channel enthalpy difference between liquid and saturated liquid & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_enthalpyLiquid-SaturatedLiquid \\
-     channel enthalpy of mixture & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_enthalpyMixture \\
-     channel density of liquid  & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_densityLiquid \\
-     channel density of vapor  & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_densityVapor \\
-     channel density of mixture & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_densityMixture \\
-     channel net entrainment rate (difference between entrainment rate and de-entrainment rate)  & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_netEntrainRate \\
-     % gas volumetric analysis
-     channel enthalpy of the mixture of non-condensable gases & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_enthalpyNonCondensableMixture \\
-     channel density of the mixture of non-condensable gases & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_densityNonCondensableMixture \\
-     channel steam volume fraction [0-100] & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_volumeFractionSteam \\
-     channel air volume fraction [0-100] & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_volumeFractionAir \\
-     channel total equivalent diameter of the liquid droplets (all droplets as a single big one) (diam-ld) & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_equiDiameterLiquidDroplet \\
-     channel averaged diameter of liquid droplets field (diam-sd) & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_avgDiameterLiquidDroplet \\
-     channel averaged flow rate of liquid droplets field (flow-sd) & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_avgFlowRateLiquidDroplet \\
-     channel averaged velocity of liquid droplets field (veloc-sd) & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_avgVelocityLiquidDroplet \\
-     channel evaporation rate of liquid droplets field (gamsd) & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_evaporationRateLiquidDroplet \\
-     % fuel rod
-     fuel rod fluid temperatures (liquid) & fuel\_rod\textcolor{red}{NN}\_fluidTemperatureLiquid \\
-     fuel rod fluid temperatures (vapor)  & fuel\_rod\textcolor{red}{NN}\_fluidTemperatureVapor \\
-     fuel rod surface heat flux & fuel\_rod\textcolor{red}{NN}\_surfaceHeatflux \\
-     %fuel rod surface heat transfer mode [-] & fuel\_rod\textcolor{red}{(Rod Node Number)}\_heatTransferMode \\
-     clad outer surface temperature  & fuel\_rod\textcolor{red}{NN}\_caldOutTemperature \\
-     clad inner surface temperature  & fuel\_rod\textcolor{red}{NN}\_cladInTemperature \\
-     gap conductance  & fuel\_rod\textcolor{red}{NN}\_gapConductance \\
-     fuel outer suface temperature  & fuel\_rod\textcolor{red}{NN}\_fuelTemperatureSurface \\
-     fuel center temperature  & fuel\_rod\textcolor{red}{NN}\_fuelTemperatureCenter \\
 
-    \end{tabular}
+ **********************************************************************************************************************
 
-   \end{table}
+ rod    axial    *-------------- outside surface ----------------*   *---------------- inside surface ----------------*
+ node  location   heat flux   h.t.  **** temperatures (deg-f) ****   **** temperatures (deg-f) ****    h.t.   heat flux
+ no.    (in.)     (b/h-ft2)   mode     wall     vapor     liquid       liquid     vapor     wall       mode   (b/h-ftl)
+ ----  --------   ---------   ----   -------   -------   -------       -------   -------   -------
+
+  51    144.00  -0.4424E+03   spl    629.71     653.31    629.77                           629.68           0.0000E+00
+  \end{lstlisting}
+    that will be converted in the following way (CSV):
+    \begin{table}[h]
+      \centering
+      \caption{CSV transport info (cylindrical tube)}
+      \label{CSVfuelRod}
+      \tabcolsep=0.11cm
+      \tiny
+      \begin{tabular}{|c|c|c|c|}
+      time    & cylRod10\_surface1\_ax51\_outsideSurfaceHeatFlux  & cylRod10\_surface1\_ax51\_outsideSurfaceWallTemperature &  ...  \\
+      0.00 & -0.4424E+03 & 629.71  & ...
+      \end{tabular}
+    \end{table}
+
+  \item \textit{\textbf{heat slab (tube)}}
+
+   \noindent \textcolor{red}{
+   \textbf{Warning: CTF reports results for heat slabs based on the flow type. Not every result will be available depending on the \underline{internal} or \underline{external} flow type. Check output file and see if the flow around heat slab is internal or external. If the user requests values that are not in the output file reported values will be from different columns and wrong. For example there is no outside surface liquid temperature when flow is internal.} } \\
+
+   \begin{lstlisting}[basicstyle=\tiny]
+          heat slab no.  1  (tube)                  simulation time =   20.00 seconds
+                                                    fluid channel on inside surface =  1
+                                                    fluid channel on outside surface =  0
+                                                    geometry type =  1
+                                                    no. of nodes =   2
+
+
+ ***************************************************************************************************************
+
+   rod    axial    *------------- outside surface ------------* *-------------- inside surface ----------------*
+   node  location   heat flux  h.t.  ** temperatures (deg-f) ** ** temperatures (deg-f) ****    h.t.   heat flux
+   no.    (in.)     (b/h-ft2)  mode   wall     vapor     liquid liquid     vapor     wall       mode   (b/h-ftl)
+   ----  --------   ---------  ----  ------   -------   ------- -------   -------   -------
+
+    21     19.69    999666E+00       200.00                     212.00    212.00    247.85     tran    0.2641E+02
+  \end{lstlisting}
+    that will be converted in the following way (CSV):
+    \begin{table}[h]
+      \centering
+      \caption{CSV transport info (heat slab (tube) tube)}
+      \label{CSVfuelRod}
+      \tabcolsep=0.11cm
+      \tiny
+      \begin{tabular}{|c|c|c|c|}
+      time    & heatSlab1\_ax21\_outsideSurfaceHeatFlux &  heatSlab1\_ax21\_outsideSurfaceWallTemperature &  ...  \\
+      0.00 & 999666E+00 & 200.00  & ...
+      \end{tabular}
+    \end{table}
+
+ \item \textit{\textbf{CTF's Output Variables and Corresponding Names in CSV file}}
+
+   In CSV file, the output results obtained from the CTF output file (.ctf.out) will be saved with the names as described in Table \ref{CSVvariableNames}.
+
 \end{itemize}
+
+\captionsetup{justification=centering}
+\captionof{table}{Variables Name List in CSV File \hspace{\textwidth} \textcolor{red}{NN: Axial Node Number; CN: Channel Number; \\ RN: Rod Number; SN: Surface Number: HN: Heat Slab Number}}
+\label{CSVvariableNames}
+\begingroup
+% header and footer information
+\scriptsize
+\begin{longtable}{|l|l|}
+\hline
+\textbf{Output Variable} & \textbf{Name in CSV file} \\
+\hline
+\endhead
+\hline
+\endfoot
+% body of table
+      \scriptsize {simulation time  & time  } \\
+      channels' average height  & AVG\_ch\_ax\textcolor{red}{NN}\_height \\
+      channels' average quality  & AVG\_ch\_ax\textcolor{red}{NN}\_quality \\
+      channels' average void fraction (liquid)  & AVG\_ch\_ax\textcolor{red}{NN}\_voidFractionLiquid \\
+      channels' average void fraction (vapor)  & AVG\_ch\_ax\textcolor{red}{NN}\_voidFractionVapor \\
+      channels' average entrainment (volumetric) fraction  & AVG\_ch\_ax\textcolor{red}{NN}\_volumeEntrainFraction \\
+      channels' average mass flow rate (liquid)  & AVG\_ch\_ax\textcolor{red}{NN}\_massFlowRateLiquid \\
+      channels' average mass flow rate (vapor)  & AVG\_ch\_ax\textcolor{red}{NN}\_massFlowRateVapor \\
+      channels' average entrainment rate (mass flow rate)  & AVG\_ch\_ax\textcolor{red}{NN}\_massFlowRateEntrain \\
+      channels' average mass flow rate (integrated)  & AVG\_ch\_ax\textcolor{red}{NN}\_massFlowRateIntegrated \\
+      channels' average enthalpy increase (liquid)  & AVG\_ch\_ax\textcolor{red}{NN}\_enthalpyIncreaseLiquid \\
+      channels' average enthalpy increase (vapor)  & AVG\_ch\_ax\textcolor{red}{NN}\_enthalpyIncreaseVapor \\
+      channels' average enthalpy increase (integrated)  & AVG\_ch\_ax\textcolor{red}{NN}\_enthalpyIncreaseIntegrated \\
+      channels' average mixture enthalpy  & AVG\_ch\_ax\textcolor{red}{NN}\_enthalpyMixture \\
+      channels' average heat added to liquid & AVG\_ch\_ax\textcolor{red}{NN}\_heatAddedToLiquid \\
+      channels' average heat added to vapor & AVG\_ch\_ax\textcolor{red}{NN}\_heatAddedToVapor \\
+      channels' average heat added (integrated)  & AVG\_ch\_ax\textcolor{red}{NN}\_heatAddedIntegrated' \\
+      channel height & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_height \\
+      channel pressure & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_pressure \\
+      channel liquid velocity  & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_velocityLiquid \\
+      channel vapor velocity  & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_velocityVapor \\
+      channel entrainment rate (velocity) & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_velocityEntrain \\
+      channel void fraction (liquid) & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_voidFractionLiquid \\
+      channel void fraction (vapor)  & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_voidFractionVapor \\
+      channel volume fraction of entrainment liquid  & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_volumeEntrainFraction \\
+      channel mass flow rate (liquid) & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_massFlowRateLiquid \\
+      channel mass flow rate (vapor)  & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_massFlowRateVapor \\
+      channel entrainment rate (mass flow rate) & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_massFlowRateEntrain \\
+      channel flow regime ID & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_flowRegimeID \\
+      channel heat added to liquid & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_heatAddedToLiquid \\
+      channel heat added to vapor  & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_heatAddedToVapor \\
+      channel evaporation rate  & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_evaporationRate \\
+      channel enthalpy of vapor  & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_enthalpyVapor \\
+      channel enthalpy of saturated vapor & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_enthalpySaturatedVapor \\
+      channel enthalpy difference between vapor and saturated vapor & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_enthalpyVapor-SaturatedVapor \\
+      channel enthalpy of liquid & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_enthalpyLiquid \\
+      channel enthalpy of saturated liquid & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_enthalpySaturatedLiquid \\
+      channel enthalpy difference between liquid and saturated liquid & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_enthalpyLiquid-SaturatedLiquid \\
+      channel enthalpy of mixture & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_enthalpyMixture \\
+      channel density of liquid  & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_densityLiquid \\
+      channel density of vapor  & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_densityVapor \\
+      channel density of mixture & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_densityMixture \\
+      channel net entrainment rate & \\ (difference between entrainment rate and de-entrainment rate)  & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_netEntrainRate \\
+      % gas volumetric analysis
+      channel enthalpy of the mixture of non-condensable gases & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_enthalpyNonCondensableMixture \\
+      channel density of the mixture of non-condensable gases & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_densityNonCondensableMixture \\
+      channel steam volume fraction [0-100] & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_volumeFractionSteam \\
+      channel air volume fraction [0-100] & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_volumeFractionAir \\
+      channel total equivalent diameter of the liquid droplets & \\ (all droplets as a single big one) (diam-ld) & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_equiDiameterLiquidDroplet \\
+      channel averaged diameter of liquid droplets field (diam-sd) & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_avgDiameterLiquidDroplet \\
+      channel averaged flow rate of liquid droplets field (flow-sd) & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_avgFlowRateLiquidDroplet \\
+      channel averaged velocity of liquid droplets field (veloc-sd) & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_avgVelocityLiquidDroplet \\
+      channel evaporation rate of liquid droplets field (gamsd) & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_evaporationRateLiquidDroplet \\
+      % fuel rod
+      fuel rod height & fuelRod\textcolor{red}{RN}\_surface\textcolor{red}{SN}\_ax\textcolor{red}{NN}\_height \\
+      fuel rod fluid temperatures (liquid) & fuelRod\textcolor{red}{RN}\_surface\textcolor{red}{SN}\_ax\textcolor{red}{NN}\_fluidTemperatureLiquid \\
+      fuel rod fluid temperatures (vapor)  & fuelRod\textcolor{red}{RN}\_surface\textcolor{red}{SN}\_ax\textcolor{red}{NN}\_fluidTemperatureVapor \\
+      fuel rod surface heat flux & fuelRod\textcolor{red}{RN}\_surface\textcolor{red}{SN}\_ax\textcolor{red}{NN}\_surfaceHeatflux \\
+      %fuel rod surface heat transfer mode [-] & fuelRod\textcolor{red}{(Rod Node Number)}_surfaceN\textcolor{red}{SN}_ax\textcolor{red}{NN}\_heatTransferMode \\
+      clad outer surface temperature  & fuelRod\textcolor{red}{RN}\_surface\textcolor{red}{SN}\_ax\textcolor{red}{NN}\_cladOutTemperature \\
+      clad iRNer surface temperature  & fuelRod\textcolor{red}{RN}\_surface\textcolor{red}{SN}\_ax\textcolor{red}{NN}\_cladInTemperature \\
+      gap conductance  & fuelRod\textcolor{red}{RN}\_surface\textcolor{red}{SN}\_ax\textcolor{red}{NN}\_gapConductance \\
+      fuel outer suface temperature  & fuelRod\textcolor{red}{RN}\_surface\textcolor{red}{SN}\_ax\textcolor{red}{NN}\_fuelTemperatureSurface \\
+      fuel center temperature  & fuelRod\textcolor{red}{RN}\_surface\textcolor{red}{SN}\_ax\textcolor{red}{NN}\_fuelTemperatureCenter \\
+      % cylindrical rod
+      cylindrical tube height & cylRod\textcolor{red}{RN}\_surface\textcolor{red}{SN}\_ax\textcolor{red}{NN}\_height \\
+      cylindrical tube outside surface heat flux & cylRod\textcolor{red}{RN}\_surface\textcolor{red}{SN}\_ax\textcolor{red}{NN}\_outsideSurfaceHeatFlux \\
+      cylindrical tube outside surface wall temperature & cylRod\textcolor{red}{RN}\_surface\textcolor{red}{SN}\_ax\textcolor{red}{NN}\_outsideSurfaceWallTemperature \\
+      cylindrical tube outside surface vapor temperature & cylRod\textcolor{red}{RN}\_surface\textcolor{red}{SN}\_ax\textcolor{red}{NN}\_outsideSurfaceVaporTemperature \\
+      cylindrical tube outside surface liquid temperature & cylRod\textcolor{red}{RN}\_surface\textcolor{red}{SN}\_ax\textcolor{red}{NN}\_outsideSurfaceLiquidTemperature \\
+      cylindrical tube inside surface wall temperature & cylRod\textcolor{red}{RN}\_surface\textcolor{red}{SN}\_ax\textcolor{red}{NN}\_insideSurfaceWallTemperature \\
+      cylindrical tube inside surface vapor temperature & cylRod\textcolor{red}{RN}\_surface\textcolor{red}{SN}\_ax\textcolor{red}{NN}\_insideSurfaceVaporTemperature \\
+      cylindrical tube inside surface liquid temperature & cylRod\textcolor{red}{RN}\_surface\textcolor{red}{SN}\_ax\textcolor{red}{NN}\_insideSurfaceLiquidTemperature \\
+      cylindrical tube inside surface heat flux & cylRod\textcolor{red}{RN}\_surface\textcolor{red}{SN}\_ax\textcolor{red}{NN}\_insideSurfaceHeatFlux \\
+      % heat slab
+      heat slab (tube) height & heatSlab\textcolor{red}{HN}\_ax\textcolor{red}{NN}\_height \\
+      heat slab (tube) outside surface heat flux & heatSlab\textcolor{red}{HN}\_ax\textcolor{red}{NN}\_outsideSurfaceHeatFlux\\
+      heat slab (tube) outside surface wall temperature & heatSlab\textcolor{red}{HN}\_ax\textcolor{red}{NN}\_outsideSurfaceWallTemperature\\
+      heat slab (tube) outside surface vapor temperature & heatSlab\textcolor{red}{HN}\_ax\textcolor{red}{NN}\_outsideSurfaceVaporTemperature\\
+      heat slab (tube) outside surface liquid temperature & heatSlab\textcolor{red}{HN}\_ax\textcolor{red}{NN}\_outsideSurfaceLiquidTemperature\\
+      heat slab (tube) inside surface wall temperature & heatSlab\textcolor{red}{HN}\_ax\textcolor{red}{NN}\_insideSurfaceWallTemperature\\
+      heat slab (tube) inside surface vapor temperature & heatSlab\textcolor{red}{HN}\_ax\textcolor{red}{NN}\_insideSurfaceVaporTemperature\\
+      heat slab (tube) inside surface liquid temperature & heatSlab\textcolor{red}{HN}\_ax\textcolor{red}{NN}\_insideSurfaceLiquidTemperature\\
+      heat slab (tube) inside surface heat flux & heatSlab\textcolor{red}{HN}\_ax\textcolor{red}{NN}\_insideSurfaceHeatFlux
+      \hline
+\end{longtable}
+\endgroup
+
+\textbf{\textit{\nb RAVEN, regonizes failed or crashed CTF runs and no data will be saved from those.}}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Distributions}
@@ -3249,6 +3358,7 @@ For all the possibile distributions and all their possible inputs please see the
 chapter about Distributions (see~\ref{sec:distributions}).
 %
 Here we report an example of a Normal distribution:
+
 \begin{lstlisting}[style=XML,morekeywords={name,debug}]
 <Distributions verbosity='debug'>
     <Normal name="GridLossCoeff">
@@ -3260,6 +3370,7 @@ Here we report an example of a Normal distribution:
  </Distributions>
 \end{lstlisting}
 
+\noindent
 It is good practice to name the distribution something similar to what kind of
 variable is going to be sampled, since there might be many variables with the
 same kind of distributions but different input parameters.
@@ -3268,9 +3379,10 @@ same kind of distributions but different input parameters.
 \subsubsection{Samplers}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 In the \xmlNode{Samplers} block we want to define the variables that are going to be sampled.
-%
-\\The perturbation is performed by assigning the 'line number' and 'position (word number)' of the values that need to be changed in the original Cobra-TF input to the RAVEN input.
-Specifically, the variable name in the form of \textbf{\textit{Line Number|Position}} needs to be defined in the specific Sampler.
+
+\noindent The perturbation or optimization of the input of any CTF sequence is performed using the approach detailed in the \textit{Generic Interface} section (see \ref{subsec:genericInterface}). Briefly, this approach uses
+ ``wild-cards'' (placed in the original input files) for injecting the perturbed values.
+ For example, if the original input file (that needs to be perturbed) is the following:
 
 \textbf{Example}:
 We want to do the sampling of 1 single variable:
@@ -3278,13 +3390,13 @@ We want to do the sampling of 1 single variable:
   \item The Grid Loss Coefficient Data used in the line number 343 and word number 1 (position).
 \end{itemize}
 
-We are going to sample this variable using two different sampling methods: Grid and MonteCarlo.
+\noindent We are going to sample this variable using two different sampling methods: Grid and MonteCarlo.
 The RAVEN input is then written as follows:
 
 \begin{lstlisting}[style=XML,morekeywords={name,type,construction,lowerBound,steps,limit,initialSeed}]
 <Samplers verbosity='debug'>
   <Grid name='Grid_Sampler' >
-    <variable name='343|1'>
+    <variable name='GrdLss'>
       <distribution>GridLossCoeff</distribution>
       <grid type='CDF' construction='equal'  steps='10'>0.001 0.999</grid>
     </variable>
@@ -3293,19 +3405,48 @@ The RAVEN input is then written as follows:
      <samplerInit>
        <limit>1000</limit>
      </samplerInit>
-    <variable name='343|1'>
+    <variable name='GrdLss'>
       <distribution>GridLossCoeff</distribution>
   </MonteCarlo>
 </Samplers>
 \end{lstlisting}
 
-It can be seen that each variable is connected with a proper distribution
+\\CTF input file should be modified with wild-cards in the following way.
+\begin{lstlisting}[basicstyle=\tiny]
+***********************************************************************************************
+*GROUP 7 - Grid Loss Coefficient Data                                                         *
+***********************************************************************************************
+**NGR
+    7
+*Card 7.1
+**  NCD NGT  IFGQF IFSDRP  IFESPV  IFTPE  IGTEMP  NFBS  NDM9 NDM10 NDM11 NDM12 NDM13 NDM14
+     21   0      0      0       0      0       0     0     0     0     0     0     0     0
+*Card 7.2
+**       CDL      J   CD1   CD2   CD3   CD4   CD5   CD6   CD7   CD8   CD9  CD10  CD11  CD12
+ $RAVEN-GrdLss$   1     1     2     3     4     5     6     7     8     9    10    11    12
+     0.90700      1    13    14    15    16    17    18    19    20    21    22    23    24
+     0.90700      1    25    26    27    28    29    30    31    32    33    34    35    36
+
+\end{lstlisting}
+\\ vuq$\_$param.txt and vuq$\_$mult.txt files are modified similarly with defined variable names.
+\begin{lstlisting}[basicstyle=\tiny]
+k_chen_1 = 0.24
+k_chen_2 = 0.75
+k_db_1 = $RAVEN-DB1$
+k_db_2 = $RAVEN-DB2$
+k_db_3 = $RAVEN-DB3$
+k_db_4 = 7.86
+k_wf_1 = 1.691
+k_wf_2 = 0.43
+\end{lstlisting}
+
+\noindent It can be seen that each variable is connected with a proper distribution
 defined in the \\\xmlNode{Distributions} block (from the previous example).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Steps}
-For a Cobra-TF interface, the \xmlNode{MultiRun} step type will most likely be
-used.
+For a CTF interface, the \xmlNode{MultiRun} step type will most likely be
+used. But \xmlNode{SingleRun} step can also be used for plotting and data extraction purposes.
 %
 First, the step needs to be named: this name will be one of the names used in
 the \xmlNode{sequence} block.
@@ -3318,10 +3459,12 @@ In our example, \texttt{Grid\_Sampler} and \texttt{MC\_Sampler}.
 
 With this step, we need to import all the files needed for the simulation:
 \begin{itemize}
-  \item Cobra-TF input file
+  \item CTF input files
 \end{itemize}
 \begin{lstlisting}[style=XML,morekeywords={name,class,type}]
-    <Input   class='Files' type=''>inputFileCobra</Input>
+    <Input class="Files" type="">CTFinput</Input>
+    <Input class="Files" type="">vuq_param</Input>
+    <Input class="Files" type="" >vuq_mult</Input>
 \end{lstlisting}
 We then need to define which model will be used:
 \begin{lstlisting}[style=XML]
@@ -3346,7 +3489,9 @@ one:
 \begin{lstlisting}[style=XML]
 <Steps verbosity='debug'>
   <MultiRun name='Grid_Sampler' verbosity='debug'>
-    <Input   class='Files' type=''>inputFileCobra.inp</Input>
+    <Input   class='Files' type=''>CTFinput</Input>
+    <Input   class="Files" type="">vuq_param</Input>
+    <Input   class="Files" type="" >vuq_mult</Input>
     <Model   class='Models'    type='Code'>MyCobraTF</Model>
     <Sampler class='Samplers'  type='Grid'>Grid_Sampler</Sampler>
     <Output  class='Databases' type='HDF5'>Grid_out</Output>
@@ -3354,7 +3499,9 @@ one:
     <Output  class='DataObjects' type='HistorySet'>GridCTFHistorySet</Output>
   </MultiRun>
   <MultiRun name='MC_Sampler' verbosity='debug' re-seeding='210491'>
-    <Input   class='Files' type=''>inputFileCobra.inp</Input>
+    <Input   class='Files' type=''>CTFinput</Input>
+    <Input   class="Files" type="">vuq_param</Input>
+    <Input   class="Files" type="" >vuq_mult</Input>
     <Model   class='Models'    type='Code'>MyCobraTF</Model>
     <Sampler class='Samplers'  type='MonteCarlo'>MC_Sampler</Sampler>
     <Output  class='Databases' type='HDF5'      >MC_out</Output>
