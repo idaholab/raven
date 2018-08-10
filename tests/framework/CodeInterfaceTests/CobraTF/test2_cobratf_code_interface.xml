@@ -1,8 +1,8 @@
 <?xml version="1.0" ?>
-<Simulation>
+<Simulation verbosity="debug">
   <TestInfo>
     <name>framework/CodeInterfaceTests/CobraTF.test2</name>
-    <author>jyoo</author>
+    <author>jyoo,alptezbasaran</author>
     <created>2018-04-03</created>
     <classesTested>Models.Code.CobraTF</classesTested>
     <description>
@@ -14,17 +14,18 @@
   </TestInfo>
   <RunInfo>
     <WorkingDir>CobraTFinterfaceTest2</WorkingDir>
-    <Sequence>testDummyStep_MC, testDummyStep_Grid</Sequence>
+    <Sequence>testDummyStep_Grid</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
 
   <Files>
-    <Input name="cobra_input" type="" >small_3x3rod_HFP.inp</Input>
+    <Input name="cobra_input" type="ctf" >small_3x3rod_HFP.inp</Input>
   </Files>
 
   <Models>
-    <Code name="MyCobraTF" subType="CobraTF">
+    <Code name="MyCobraTF" subType="CTF">
       <executable>
+        <!--/path/to/cobratf/executable -->
         <!--  here we should put the executable. But since we want to test the interface only, it is going to be empty -->
       </executable>
     </Code>
@@ -50,15 +51,15 @@
       <samplerInit>
         <limit>2</limit>
       </samplerInit>
-      <variable name="200|1">
+      <variable name="GL1">
         <distribution>dist_for_GridLoss_1</distribution>
       </variable>
-      <variable name="201|1">
+      <variable name="GL2">
         <distribution>dist_for_GridLoss_2</distribution>
       </variable>
     </MonteCarlo>
     <Grid name='Grid_Sampler' >
-      <variable name='205|1'>
+      <variable name='GL3'>
         <distribution>dist_for_GridLoss_2</distribution>
         <grid type='CDF' construction='equal'  steps='1'>0.8 0.999</grid>
       </variable>
@@ -91,11 +92,11 @@
 
   <DataObjects>
     <PointSet name="grid_ps">
-      <Input>205|1</Input>
+      <Input>GL3</Input>
       <Output>AVG_ch_ax50_quality,AVG_ch_ax50_voidFractionLiquid,AVG_ch_ax50_voidFractionVapor,AVG_ch_ax50_volumeEntrainFraction,AVG_ch_ax50_massFlowRateLiquid</Output>
     </PointSet>
     <PointSet name="mc_ps">
-      <Input>200|1,201|1</Input>
+      <Input>GL1,GL2</Input>
       <Output>AVG_ch_ax50_quality,AVG_ch_ax50_voidFractionLiquid,AVG_ch_ax50_voidFractionVapor,AVG_ch_ax50_volumeEntrainFraction,AVG_ch_ax50_massFlowRateLiquid</Output>
     </PointSet>
 

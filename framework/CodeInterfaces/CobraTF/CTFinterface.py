@@ -11,15 +11,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+Modified by Alp Tezbasaran @ INL
+July 2018
+"""
+
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
 from ctfdata import ctfdata
 from CodeInterfaceBaseClass import CodeInterfaceBase
+from GenericCodeInterface import GenericParser
+
 import os
-class CobraTF(CodeInterfaceBase):
+class CTF(CodeInterfaceBase):
   """
-    this class is used a part of a code dictionary to specialize Model.Code for Cobra-TF (CTF)
+    this class is used a part of a code dictionary to specialize Model.Code for CTF (Cobra-TF)
   """
   def finalizeCodeOutput(self,command,output,workingDir):
     """
@@ -29,31 +36,72 @@ class CobraTF(CodeInterfaceBase):
       @ In, workingDir, string, current working dir
       @ Out, output, string, optional, present in case the root of the output file gets changed in this method.
     """
+
     outfile  = os.path.join(workingDir,output+'.out')
     outputobj= ctfdata(outfile)
     outputobj.writeCSV(os.path.join(workingDir,output+'.csv'))
 
-  def createNewInput(self, currentInputFiles, oriInputFiles, samplerType ,**Kwargs):
+  def findInps(self,inputFiles):
     """
-      this generates a new CTF input file based on the sampled values from RAVEN
-      # @ In, Kwargs
-      # @ Out, current input files
+      Locates the input files required by CTF (Cobra-TF) Interface
+      @ In, inputFiles, list, list of Files objects
+      @ Out, inputDict, dict, dictionary containing Scale required input files
     """
-    from CTFparser import CTFparser
-    if 'dynamicevent' in samplerType.lower():
-      raise IOError("Sampler type error: Dynamic Even Tree-based sampling is not implemented yet!")
-    found = False
-    for inputFile in currentInputFiles:
-      if inputFile.getExt() in self.getInputExtension():
-        found = True
-        break
-    if not found:
-      raise IOError('Input file missing: Check if the input file (.inp) is located in the working directory!' )
-    ctfParser = CTFparser(inputFile.getAbsFile())
-    modifDict = Kwargs["SampledVars"]
-    ctfParser.changeVariable(modifDict)
-    modifiedDictionary = ctfParser.modifiedDictionary
-    ctfParser.printInput(inputFile.getAbsFile())
+    inputDict = {}
+    CTF = []
+    vuqParam = []
+    vuqMult = []
+
+    for inputFile in inputFiles:
+      if inputFile.getType().strip().lower() == "ctf":
+        CTF.append(inputFile)
+      elif inputFile.getType().strip().lower() == "vuq_param":
+        vuqParam.append(inputFile)
+      elif inputFile.getType().strip().lower() == "vuq_mult":
+        vuqMult.append(inputFile)
+
+    # raise error if there are multiple input files (not allowed)
+    if len(CTF) > 1:
+      raise IOError('multiple CTF input files have been found. Only one is allowed!')
+    if len(vuqParam) > 1:
+      raise IOError('multiple vuq_param.txt input files have been found. Only one is allowed!')
+    if len(vuqMult) > 1:
+      raise IOError('multiple vuq_mult.txt input files have been found. Only one is allowed!')
+
+    # raise error if the names of the vuq files are defined different than hard coded ones (not allowed)
+    # multiplier modifier name check
+    if (len(vuqMult) == 1) and (vuqMult[0].getFilename() != "vuq_mult.txt"):
+      raise IOError("Name of the multiplier modifier file must be 'vuq_mult.txt' in RAVEN input and placed in the working directory. No other name is accepted!")
+    # parameter modifier name check
+    if (len(vuqParam) == 1) and (vuqParam[0].getFilename() != "vuq_param.txt"  ):
+      raise IOError("Name of the parameter modifier file must be 'vuq_param.txt' in RAVEN input and placed in the working directory. No other name is accepted!")
+
+    # add inputs
+    if len(CTF) > 0:
+       inputDict['CTF'] = CTF
+    if len(vuqParam) > 0:
+       inputDict['vuq_param'] = vuqParam
+    if len(vuqMult) > 0:
+       inputDict['vuq_mult'] = vuqMult
+    return inputDict
+
+  def createNewInput(self, currentInputFiles, origInputFiles, samplerType, **Kwargs):
+    """
+      Generates new perturbed input files for Scale sequences
+      @ In, currentInputFiles, list,  list of current input files
+      @ In, origInputFiles, list, list of the original input files
+      @ In, samplerType, string, Sampler type (e.g. MonteCarlo, Adaptive, etc. see manual Samplers section)
+      @ In, Kwargs, dict, dictionary of parameters. In this dictionary there is another dictionary called "SampledVars"
+        where RAVEN stores the variables that got sampled (e.g. Kwargs['SampledVars'] => {'var1':10,'var2':40})
+      @ Out, newInputFiles, list, list of new input files (modified or not)
+    """
+    if 'dynamiceventtree' in str(samplerType).lower():
+      raise IOError("Dynamic Event Tree-based samplers not supported by Scale interface yet!")
+    currentInputsToPerturb = [item for subList in self.findInps(currentInputFiles).values() for item in subList]
+    originalInputs         = [item for subList in self.findInps(origInputFiles).values() for item in subList]
+    parser = GenericParser.GenericParser(currentInputsToPerturb)
+    parser.modifyInternalDictionary(**Kwargs)
+    parser.writeNewInput(currentInputsToPerturb,originalInputs)
     return currentInputFiles
 
   def generateCommand(self,inputFiles,executable,clargs=None,fargs=None):
@@ -68,6 +116,9 @@ class CobraTF(CodeInterfaceBase):
       @ In, fargs, dict, optional, a dictionary containing the auxiliary input file variables the user can specify in the input (Not needed)
       @ Out, returnCommand, tuple, tuple containing the generated command. returnCommand[0] is the command to run the code (string), returnCommand[1] is the name of the output root
     """
+
+    inputDict = self.findInps(inputFiles)
+
     found = False
     for inputFile in inputFiles:
       if inputFile.getExt() in self.getInputExtension():
@@ -78,5 +129,6 @@ class CobraTF(CodeInterfaceBase):
     commandToRun = executable + ' ' + inputFile.getFilename()
     commandToRun = commandToRun.replace("\n"," ")
     output = inputFile.getBase() + '.ctf'
+
     returnCommand = [('parallel', commandToRun)], output
     return returnCommand
