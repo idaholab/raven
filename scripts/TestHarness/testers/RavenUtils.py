@@ -36,8 +36,8 @@ def inPython3():
 ## working Conda 4.5.4, May 2018
 modules_to_try = [("h5py"      ,'h5py.__version__'      ,'2.4.0' ,'2.7.1' ,None   ), # 2.6.0
                   ("numpy"     ,'numpy.__version__'     ,"1.8.0" ,"1.12.1",None   ),
-                  ("scipy"     ,'scipy.__version__'     ,"1.1.0","1.1.0",None   ),
-                  ("sklearn"   ,'sklearn.__version__'   ,"0.19.1"  ,"0.19.1",None   ),
+                  ("scipy"     ,'scipy.__version__'     ,"1.1.0" ,"1.1.0" ,None   ),
+                  ("sklearn"   ,'sklearn.__version__'   ,"0.19.1","0.19.1",None   ),
                   ("pandas"    ,'pandas.__version__'    ,"0.20.0","0.20.3",None   ),
                   ("xarray"    ,'xarray.__version__'    ,"0.9.5" ,"0.10.3",None   ),
                   ("netCDF4"   ,'netCDF4.__version__'   ,"1.2.3" ,"1.4.0" ,None   ), # 1.2.4
@@ -50,7 +50,8 @@ modules_to_try = [("h5py"      ,'h5py.__version__'      ,'2.4.0' ,'2.7.1' ,None 
                   #("tensorflow",'tensorflow.__version__',"1.1.0" ,"1.1.0" ,None   ),
                   # On Windows conda, there are no Python 2.7-compatible versions of TensorFlow, although
                   ## these exist on Mac and Linux condas.  Darn.
-                  ("matplotlib",'matplotlib.__version__',"1.3.1" ,"2.1.1" ,None   )]
+                  ("statsmodels",'statsmodels.__version__',"0.8.0","0.8.0" ,None   ),
+                  ("matplotlib",'matplotlib.__version__'  ,"1.3.1","2.1.1" ,None   )]
 
 optional_test_libraries = [ ('pillow','PIL.__version__',"5.0.0","5.1.0",None) ]
 
@@ -65,7 +66,7 @@ def __lookUpPreferredVersion(name,optional=False):
     if name == i:
       return qa
   return ""
-
+# libraries to install with Conda
 __condaList = [("h5py"        ,__lookUpPreferredVersion("h5py"      )),
                ("numpy"       ,__lookUpPreferredVersion("numpy"     )),
                ("scipy"       ,__lookUpPreferredVersion("scipy"     )),
@@ -74,10 +75,10 @@ __condaList = [("h5py"        ,__lookUpPreferredVersion("h5py"      )),
                ("xarray"      ,__lookUpPreferredVersion("xarray"    )),
                ("netcdf4"     ,__lookUpPreferredVersion("netCDF4"   )),
                ("matplotlib"  ,__lookUpPreferredVersion("matplotlib")),
+               ("statsmodels" ,__lookUpPreferredVersion("statsmodels")),
                #("tensorflow"  ,__lookUpPreferredVersion("tensorflow")),
                ("python"      ,"2.7"),
                ("hdf5"        ,"1.8.18"),
-               ("pyside"      ,""),
                ("swig"        ,""),
                ("pylint"      ,""),
                ("coverage"    ,""),
@@ -85,8 +86,12 @@ __condaList = [("h5py"        ,__lookUpPreferredVersion("h5py"      )),
                #("nomkl"       ,""),
                #("numexpr"     ,"")
                ]
-
+# libraries to install with conda-forge
+__condaForgeList = [("pyside","")
+                   ]
+# optional conda libraries
 __condaOptional = [ ('pillow',__lookUpPreferredVersion("pillow")) ]
+
 
 __pipList = [("numpy",__lookUpPreferredVersion("numpy")),
              ("h5py",__lookUpPreferredVersion("h5py")),
@@ -95,6 +100,7 @@ __pipList = [("numpy",__lookUpPreferredVersion("numpy")),
              ("matplotlib",__lookUpPreferredVersion("matplotlib")),
              ("xarray",__lookUpPreferredVersion("xarray")),
              ("netCDF4",__lookUpPreferredVersion("netCDF4")),
+             ("statsmodels",__lookUpPreferredVersion("netcdf4")),
              #("tensorflow",__lookUpPreferredVersion("tensorflow")),
              ("pandas",__lookUpPreferredVersion("pandas")) ]
 
@@ -221,6 +227,26 @@ def __condaString(includeOptionals=False,opSys=None):
   if opSys is not None:
     libList = parseCondaForOS(libList,opSys)
   for name, version in libList:
+    # no conda-forge
+    if len(version) == 0:
+      s += name+" "
+    else:
+      s += name+"="+version+" "
+  return s
+
+def __condaForgeString(opSys=None):
+  """
+    Generates a string with version ids that can be passed to conda (conda-forge).
+    returns s, string, a list of packages for conda to install
+    @ In, opSys, string, optional, if included then parse conda list according to request
+    @ Out, s, str, message that could be pasted into a bash command to install libraries
+  """
+  s = ""
+  libList = __condaForgeList
+  if opSys is not None:
+    libList = parseCondaForOS(libList,opSys)
+  for name, version in libList:
+    # conda-forge
     if len(version) == 0:
       s += name+" "
     else:
@@ -248,21 +274,29 @@ def parseCondaForOS(libs,opSys):
 if __name__ == '__main__':
   # allow the operating system to be specified
   opSys = None
+  condaForge = False
   if '--windows' in sys.argv:
     opSys = 'windows'
   elif '--mac' in sys.argv:
     opSys = 'mac'
   elif '--linux' in sys.argv:
     opSys = 'linux'
+  if '--conda-forge' in sys.argv:
+    # just install command is generated
+    condaForge = True
+
   # check for environemnt definition of raven libs
   libName = os.getenv('RAVEN_LIBS_NAME','raven_libraries')
   # what did the caller ask to do?
-  if '--conda-create' in sys.argv:
+  if '--conda-create' in sys.argv and not condaForge:
     print("conda create --name {} -y ".format(libName), end="")
     print(__condaString(includeOptionals = ('--optional' in sys.argv), opSys = opSys))
   elif '--conda-install' in sys.argv:
     print("conda install --name {} -y ".format(libName), end=" ")
-    print(__condaString(includeOptionals = ('--optional' in sys.argv), opSys = opSys))
+    if not condaForge:
+      print(__condaString(includeOptionals = ('--optional' in sys.argv), opSys = opSys))
+    else:
+      print("-c conda-forge "+ __condaForgeString(opSys = opSys))
   elif '--pip-install' in sys.argv:
     print("pip install",end=" ")
     for i,qa in __pipList:

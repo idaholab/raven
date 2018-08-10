@@ -36,12 +36,12 @@ provide access to several different algorithms.
 These sub-types are specified in the \xmlAttr{subType} attribute and should be
 one of the following:
 \begin{itemize}
-  \item \xmlString{GaussPolynomialRom}, for both static and time-dependent regression 
-  \item \xmlString{HDMRRom}, for both static and time-dependent regression 
-  \item \xmlString{NDinvDistWeight}, for both static and time-dependent regression 
-  \item \xmlString{NDSpline}, for both static and time-dependent regression 
+  \item \xmlString{GaussPolynomialRom}, for both static and time-dependent regression
+  \item \xmlString{HDMRRom}, for both static and time-dependent regression
+  \item \xmlString{NDinvDistWeight}, for both static and time-dependent regression
+  \item \xmlString{NDSpline}, for both static and time-dependent regression
   \item \xmlString{SciKitLearn}, for both static and time-dependent regression and classification
-  \item \xmlString{MSR}, for both static and time-dependent regression 
+  \item \xmlString{MSR}, for both static and time-dependent regression
   \item \xmlString{ARMA}, for time-dependent stochastic regression (time series generator)
   \item \xmlString{PolyExponential}, for time-dependent regression
   \item \xmlString{DMD}, for time-dependent regression
@@ -69,28 +69,28 @@ In the \xmlNode{ROM} input block, the following XML sub-nodes are required,
 independent of the \xmlAttr{subType} specified:
 %
 \begin{itemize}
-%  \item \xmlNode{Features}, \xmlDesc{comma separated string, required field},
-%  specifies the names of the features of this ROM.
-%  %
-%  \nb These parameters will be requested for the training of this object (see
-%  Section~\ref{subsec:stepRomTrainer}).
-%  \item \xmlNode{Target}, \xmlDesc{comma separated string, required field},
-%  contains a comma separated list of the targets of this ROM.
-%  %
-%  The parameters listed here represent the figures of merit this ROM is supposed
-%  to predict.
-%  %
-%  \nb These parameters are going to be requested for the training of this object
-%  (see Section~\ref{subsec:stepRomTrainer}).
   %
-   \item \xmlNode{Features}, \xmlDesc{comma separated string, required field}, specifies the names of the features of this ROM.
-   \nb These parameters are going to be requested for the training of this object (see Section~\ref{subsec:stepRomTrainer});
-    \item \xmlNode{Target}, \xmlDesc{comma separated string, required field}, contains a comma separated list of the targets of this ROM. These parameters are the Figures of Merit (FOMs) this ROM is supposed to predict.
+   \item \xmlNode{Features}, \xmlDesc{comma separated string, required field}, 
+     specifies the names of the features of this ROM.
+   \nb These parameters are going to be requested for the training of this object
+    (see Section~\ref{subsec:stepRomTrainer});
+    \item \xmlNode{Target}, \xmlDesc{comma separated string, required field},
+      contains a comma separated list of the targets of this ROM. These parameters 
+      are the Figures of Merit (FOMs) this ROM is supposed to predict.
     \nb These parameters are going to be requested for the training of this
     object (see Section \ref{subsec:stepRomTrainer}).
-
 \end{itemize}
 
+If a time-dependent ROM is requested, a \textbf{HistorySet} should be provided.
+The temporal vairable specified in the \textbf{HistorySet} should be also listed
+as sub-nodes inside \xmlNode{ROM}
+%
+\begin{itemize}
+  \item \xmlNode{pivotParameter}, \xmlDesc{string, optional parameter}, specifies the pivot
+    variable (e.g. time, etc) used in the input HistorySet.
+    \default{time}
+\end{itemize}
+%
 In addition, if the user wants to use the alias system, the following XML block can be inputted:
 \begin{itemize}
   \item \aliasSystemDescription{ROM}
@@ -639,6 +639,11 @@ by the following sub-node within the main \xmlNode{ROM} XML node:
 \end{itemize}
 Based on the \xmlNode{SKLtype} several different algorithms are available.
 %
+\nb for HistorySet's \xmlString{SciKitLearn} performs the task given in \xmlNode{SKLtype} for
+each time step, and only synchronized HistorySet can be used as input to this ROM. For
+unsynchronized HistorySet, use \xmlString{HistorySetSync} method in \xmlString{Interfaced}
+post-processor to synchronize the input data before using \xmlString{SciKitLearn}.
+
 In the following paragraphs a brief explanation and the input requirements are
 reported for each of them.
 %
@@ -2814,7 +2819,7 @@ The disadvantages of Gaussian Processes for Machine Learning include:
 It has been more than 70 years since Warren McCulloch and Water Pitts modeled the first
 artificial neural network (ANN) that mimicked the way brains work. These days, deep learning
 based on ANN is showing outstanding results for solving a wide variety of robotic tasks in
-the areas of perception, planning, localization, and control. 
+the areas of perception, planning, localization, and control.
 %
 \textbf{Multi-layer Perceptron (MLP)} is a supervised learning algorithm that can learn
 a non-linear function approximator for either classifcation or regression. It is different
@@ -2908,25 +2913,39 @@ Therefore, it uses the square error as the loss function, and the output is a se
 %%%% ROM Model - ARMA  %%%%%%%
 \subsubsection{ARMA}
 \label{subsubsec:arma}
-The ARMA sub-type contains a single ROM type, based on an autoregressive moving average time series model.
+The ARMA sub-type contains a single ROM type, based on an autoregressive moving average time series model with
+Fourier signal processing, sometimes referred to as a FARMA.
 %
 ARMA is a type of time dependent model that characterizes the autocorrelation between time series data. The mathematic description of ARMA is given as
 \begin{equation*}
 x_t = \sum_{i=1}^p\phi_ix_{t-i}+\alpha_t+\sum_{j=1}^q\theta_j\alpha_{t-j},
 \end{equation*}
-where $x$ is a vector of dimension $n$, and $\phi_i$ and $\theta_j$ are both $n$ by $n$ matrices. When $q=0$, the above is 
-autoregressive (AR); when $p=0$, the above is moving average (MA). The user is allowed to provide upper and lower limits for $p$ 
-and $q$ (see below), and the training process will choose the optimal $p$ and $q$ that fall into the user-specified range. When 
-training ARMA, the input needs to be a synchronized HistorySet. For unsynchronized data, use PostProcessor methods to 
-synchronize the data before training ARMA.
+where $x$ is a vector of dimension $n$, and $\phi_i$ and $\theta_j$ are both $n$ by $n$ matrices. When $q=0$, the above is
+autoregressive (AR); when $p=0$, the above is moving average (MA).
+While plans for optimizing $p$ and $q$ are under consideration, currently setting $Pmin$ and $Pmax$ to the
+same value is required, and similarly for $Qmin$ and $Qmax$.
+%The user is allowed to provide upper and lower limits for $p$
+%and $q$ (see below), and the training process will choose the optimal $p$ and $q$ that fall into the user-specified range.
+When
+training an ARMA, the input needs to be a synchronized HistorySet. For unsynchronized data, use PostProcessor methods to
+synchronize the data before training an ARMA.
 
-The ARMA model implemented allows an option to use Fourier series to detrend the time series before fitting to ARMA model to 
-train. The Fourier trend will be stored in the trained ARMA model for data generation. The following equation describes the detrend 
+The ARMA model implemented allows an option to use Fourier series to detrend the time series before fitting to ARMA model to
+train. The Fourier trend will be stored in the trained ARMA model for data generation. The following equation
+describes the detrending
 process.
 \begin{equation*}
 x_t = y_t - \sum_m\left\{\sum_{k=1}^{K_m}a_k\sin(2\pi kf_mt)+\sum_{k=1}^{K_m}b_k\cos(2\pi kf_mt)\right\},
 \end{equation*}
 where $K_m$ and $f_m$ are user-defined parameters.
+
+By default, each target in the training will be considered independent and have an unique ARMA for each
+target.  Correlated targets can be specified through the \xmlNode{correlate} node, at which point
+the correlated targets will be trained together using a vector ARMA (or VARMA). Due to limitations in
+the VARMA, in order to seed samples the VARMA must be trained with the node \xmlNode{seed}, which acts
+independently from the global random seed used by other RAVEN entities.
+
+Both the ARMA and VARMA make use of the \texttt{statsmodels} python package.
 
 %
 In order to use this Reduced Order Model, the \xmlNode{ROM} attribute
@@ -2936,12 +2955,20 @@ below).
 \subnodeIntro
 
 \begin{itemize}
-  \item \xmlNode{pivotParameter}, \xmlDesc{string, optional field}, defines the pivot variable (e.g., time) that is non-decreasing in 
+  \item \xmlNode{pivotParameter}, \xmlDesc{string, required field}, defines the pivot variable (e.g., time) that is non-decreasing in
   the input HistorySet.
-  \default{Time}
-  \item \xmlNode{Features}, \xmlDesc{comma separated string, required field}, defines the features (e.g., scaling). Note that only 
+  \item \xmlNode{Features}, \xmlDesc{comma separated string, required field}, defines the features (e.g., scaling). Note that only
   one feature is allowed for \xmlString{ARMA} and in current implementation this is used for evaluation only.
-  \item \xmlNode{Target}, \xmlDesc{comma separated string, required field}, defines the variables of the time series.
+  \item \xmlNode{Target}, \xmlDesc{comma separated string, required field}, defines the variable(s) of the
+    time series.  Should include the pivot parameter (or Index).
+  \item \xmlNode{correlate}, \xmlDesc{comma separated string, optional field}, indicates the listed variables
+    should be considered as influencing each other, and trained together instead of independently.  This node
+    can only be listed once, so all variables that are desired for correlation should be included.  \nb The
+    correlated VARMA takes notably longer to train than the independent ARMAs for the same number of targets.
+  \item \xmlNode{seed}, \xmlDesc{integer, optional field}, provides seed for ONLY the VARMA sampling.  Has no
+    effect on ARMA single-target sampling or other RAVEN entities.  Must be provided before training; it cannot
+    be changed once trained.
+  \default{True}
   \item \xmlNode{reseedCopies}, \xmlDesc{boolean, optional field}, if True then whenever the ARMA is copied, a
     random reseeding will be performed to ensure different histories.
   \default{True}
@@ -2995,12 +3022,12 @@ where:
 \begin{itemize}
   \item $\mathbf{z}$ is the independent  monotonic variable (e.g. time)
   \item $\mathbf{X}$  is the vector of the other independent (parametric) variables  (Features)
-  \item $\mathbf{P_{i}}(X)$ is a polynomial of rank M function of the parametric space X 
-  \item  $\mathbf{Q_{i}}(X)$ is a polynomial of rank M function of the parametric space X 
-  \item  $\mathbf{N}$ is the number of requested exponential terms. 
+  \item $\mathbf{P_{i}}(X)$ is a polynomial of rank M function of the parametric space X
+  \item  $\mathbf{Q_{i}}(X)$ is a polynomial of rank M function of the parametric space X
+  \item  $\mathbf{N}$ is the number of requested exponential terms.
 \end{itemize}
-It is crucial to notice that this model is quite suitable for FOMs whose drivers are characterized by an exponential-like behavior. 
-In addition, it is important to notice that the exponential terms' coefficients are computed running a genetic-algorithm optimization 
+It is crucial to notice that this model is quite suitable for FOMs whose drivers are characterized by an exponential-like behavior.
+In addition, it is important to notice that the exponential terms' coefficients are computed running a genetic-algorithm optimization
 problem, which is quite slow in case of increasing number of ``numberExpTerms''.
 %
 In order to use this Reduced Order Model, the \xmlNode{ROM} attribute
@@ -3010,7 +3037,7 @@ below).
 \subnodeIntro
 
 \begin{itemize}
-  \item \xmlNode{pivotParameter}, \xmlDesc{string, optional field}, defines the pivot variable (e.g., time) that represents the 
+  \item \xmlNode{pivotParameter}, \xmlDesc{string, optional field}, defines the pivot variable (e.g., time) that represents the
   independent monotonic variable
   \default{time}
   \item \xmlNode{Features}, \xmlDesc{comma separated string, required field}, defines the features (i.e. input parameters) of this
@@ -3018,15 +3045,15 @@ below).
   \item \xmlNode{Target}, \xmlDesc{comma separated string, required field}, defines output FOMs that are going to be predicted
   \item \xmlNode{numberExpTerms}, \xmlDesc{integer, optional field}, the number of exponential terms to be used ($N$ above)
    \default{3}
-  \item \xmlNode{coeffRegressor}, \xmlDesc{string, optional field}, defines which regressor to use for interpolating the 
+  \item \xmlNode{coeffRegressor}, \xmlDesc{string, optional field}, defines which regressor to use for interpolating the
    exponential coefficient. Available are ``spline'',``poly'' and ``nearest''.
     \default{spline}
-  \item \xmlNode{polyOrder}, \xmlDesc{integer, optional field}, the polynomial order to be used for interpolating the exponential 
-  coefficients. Only valid in case of  \xmlNode{coeffRegressor} set to ``poly''. 
+  \item \xmlNode{polyOrder}, \xmlDesc{integer, optional field}, the polynomial order to be used for interpolating the exponential
+  coefficients. Only valid in case of  \xmlNode{coeffRegressor} set to ``poly''.
    \default{2}
   \item \xmlNode{tol}, \xmlDesc{float, optional field}, relative tolerance of the optimization problem (differential evolution optimizer)
    \default{1e-3}
-  \item \xmlNode{maxNumberIter}, \xmlDesc{integer, optional field}, maximum number of iterations (generations) for the 
+  \item \xmlNode{maxNumberIter}, \xmlDesc{integer, optional field}, maximum number of iterations (generations) for the
   optimization problem  (differential evolution optimizer)
    \default{5000}
 \end{itemize}
@@ -3050,7 +3077,7 @@ below).
   ...
 </Simulation>
 \end{lstlisting}
-Once the ROM is trained (\textbf{Step} \xmlNode{RomTrainer}), its coefficients can be exported into an XML file 
+Once the ROM is trained (\textbf{Step} \xmlNode{RomTrainer}), its coefficients can be exported into an XML file
 via an \xmlNode{OutStream} of type \xmlAttr{Print}. The following variable/parameters can be exported (i.e. \xmlNode{what} node
 in \xmlNode{OutStream} of type \xmlAttr{Print}):
 \begin{itemize}
@@ -3072,9 +3099,9 @@ in \xmlNode{OutStream} of type \xmlAttr{Print}):
     <Print name = 'dumpAllCoefficients'>
       <type>xml</type>
       <source>PolyExp</source>
-      <!--  
+      <!--
         here the <what> node is omitted. All the available params/coefficients
-        are going to be printed out 
+        are going to be printed out
       -->
     </Print>
     <Print name = 'dumpSomeCoefficients'>
@@ -3110,31 +3137,31 @@ below).
      \item \textit{hodmd}, for high order DMD.
    \end{itemize}
    \default{dmd}
-  \item \xmlNode{pivotParameter}, \xmlDesc{string, optional field}, defines the pivot variable (e.g., time) that represents the 
+  \item \xmlNode{pivotParameter}, \xmlDesc{string, optional field}, defines the pivot variable (e.g., time) that represents the
   independent monotonic variable
   \default{time}
   \item \xmlNode{Features}, \xmlDesc{comma separated string, required field}, defines the features (i.e. input parameters) of this
   model
   \item \xmlNode{Target}, \xmlDesc{comma separated string, required field}, defines output FOMs that are going to be predicted
-  \item \xmlNode{rankSVD}, \xmlDesc{integer, optional field}, defines the truncation rank to be used for the SVD. 
+  \item \xmlNode{rankSVD}, \xmlDesc{integer, optional field}, defines the truncation rank to be used for the SVD.
      Available options are:
      \begin{itemize}
-     \item \textit{-1}, no truncation is performed 
+     \item \textit{-1}, no truncation is performed
      \item \textit{0}, optimal rank is internally computed
      \item \textit{>1}, this rank is going to be used for the truncation
    \end{itemize}
    \default{-1}
-  \item \xmlNode{energyRankSVD}, \xmlDesc{float, optional field},  energy level ($0.0 < float < 1.0$) used to compute the rank such 
-    as computed rank is the number of the biggest singular values needed to reach the energy identified by  
+  \item \xmlNode{energyRankSVD}, \xmlDesc{float, optional field},  energy level ($0.0 < float < 1.0$) used to compute the rank such
+    as computed rank is the number of the biggest singular values needed to reach the energy identified by
     \xmlNode{energyRankSVD}. This node has always priority over  \xmlNode{rankSVD}
     \default{None}
-  \item \xmlNode{rankTLSQ}, \xmlDesc{integer, optional field}, $int > 0$ that defines the truncation rank to be used for the total 
+  \item \xmlNode{rankTLSQ}, \xmlDesc{integer, optional field}, $int > 0$ that defines the truncation rank to be used for the total
    least square problem. If not inputted, no truncation is applied
    \default{None}
-   \item \xmlNode{exactModes}, \xmlDesc{bool, optional field}, True if the exact modes need to be computed (eigenvalues and 
+   \item \xmlNode{exactModes}, \xmlDesc{bool, optional field}, True if the exact modes need to be computed (eigenvalues and
    eigenvectors),   otherwise the projected ones (using the left-singular matrix after SVD).
   \default{True}
-  \item \xmlNode{optimized}, \xmlDesc{float, optional field}, True if the amplitudes need to be computed minimizing the error 
+  \item \xmlNode{optimized}, \xmlDesc{float, optional field}, True if the amplitudes need to be computed minimizing the error
    between the modes and all the time-steps or False, if only the 1st timestep only needs to be considered
    \default{True}
 
@@ -3161,7 +3188,7 @@ below).
   ...
 </Simulation>
 \end{lstlisting}
-Once the ROM  is trained (\textbf{Step} \xmlNode{RomTrainer}), its parameters/coefficients can be exported into an XML file 
+Once the ROM  is trained (\textbf{Step} \xmlNode{RomTrainer}), its parameters/coefficients can be exported into an XML file
 via an \xmlNode{OutStream} of type \xmlAttr{Print}. The following variable/parameters can be exported (i.e. \xmlNode{what} node
 in \xmlNode{OutStream} of type \xmlAttr{Print}):
 \begin{itemize}
@@ -3189,9 +3216,9 @@ in \xmlNode{OutStream} of type \xmlAttr{Print}):
     <Print name = 'dumpAllCoefficients'>
       <type>xml</type>
       <source>DMD</source>
-      <!--  
+      <!--
         here the <what> node is omitted. All the available params/coefficients
-        are going to be printed out 
+        are going to be printed out
       -->
     </Print>
     <Print name = 'dumpSomeCoefficients'>

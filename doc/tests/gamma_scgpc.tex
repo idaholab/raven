@@ -1,0 +1,58 @@
+\section{Stochastic Collocation with Gamma Distribution}
+Associated external model: \texttt{poly\_scgpc\_gamma.py}
+
+Recall that the \textit{Gamma} distribution has the probability density function
+\begin{align}
+  f(x) = \frac{x^{\alpha-1}e^{-x/\beta}}{\beta^\alpha\Gamma\left(\alpha\right)}, \alpha > 0, \beta > 0
+\end{align}
+
+The following two polynomials are used to compute the analytic statistical moments:
+\textit{Gamma} distribution:
+\begin{align}
+  u_1(x, y) = x + y \\
+  u_2(x, y) = x^2 + y^2
+\end{align}
+where $x$ and $y$ are two mutually independent \textit{Gamma} variates, i.e.
+\begin{align}
+  x \thicksim \Gamma\left(\alpha_{1},\beta_{1}\right) \notag \\
+  y \thicksim \Gamma\left(\alpha_{2},\beta_{2}\right) \notag
+\end{align}
+
+\subsection{Mean and Variance}
+The first two statistical moments of $u_1(x,y)$ and $u_2{x,y}$ are:
+\begin{align}
+  \expv{u_1(x,y)} &= \int_{0}^\infty dxdyP\left(x,y\right)u_1\left(x,y\right), \notag \\
+  &= \int_{0}^\infty dxdy \Gamma\left(\alpha_{1},\beta_{1}\right) \Gamma\left(\alpha_{2},\beta_{2}\right) u_1\left(x,y\right), \notag \\
+  &= \frac{\alpha_{1}}{\beta_{1}} + \frac{\alpha_{2}}{\beta_{2}}
+\end{align}
+\begin{align}
+  \expv{u_2(x,y)} &= \int_{0}^\infty dxdyP\left(x,y\right)u_2\left(x,y\right), \notag \\
+  &= \int_{0}^\infty dxdy \Gamma\left(\alpha_{1},\beta_{1}\right) \Gamma\left(\alpha_{2},\beta_{2}\right) u_2\left(x,y\right), \notag \\
+  &= \frac{\left(\alpha_{1} + 1\right)\alpha_1}{\beta_{1}^2} + \frac{\left(\alpha_{2}+1\right)\alpha_2}{\beta_{2}^2}
+\end{align}
+
+\begin{align}
+  \text{var}[u_1(x,y)] &= \int_{0}^\infty dxdyP\left(x,y\right)\left[u_1\left(x,y\right) - \expv{u_1(x,y)}\right]^2, \notag \\
+  &= \frac{\alpha_{1}}{\beta_{1}^2} + \frac{\alpha_{2}}{\beta_{2}^2}
+\end{align}
+\begin{align}
+  \text{var}[u_2(x,y)] &= \int_{0}^\infty dxdyP\left(x,y\right)\left[u_2\left(x,y\right) - \expv{u_2(x,y)}\right]^2, \notag \\
+  &= \frac{\left(4\alpha_{1} + 6.0\right)\left(\alpha_{1} + 1\right)\alpha_1}{\beta_{1}^4} + \frac{\left(4\alpha_{2} + 6.0\right)\left(\alpha_{2}+1\right)\alpha_2}{\beta_{2}^4}
+\end{align}
+
+\subsection{numeric values}
+Some numeric values for the mean and variance are listed below for given distributions:
+\begin{align}
+  x \thicksim \Gamma\left(11, 5\right) \notag \\
+  y \thicksim \Gamma\left(2, 0.8\right) \notag
+\end{align}
+\begin{table}[h!]
+  \centering
+  \begin{tabular}{c|c|c}
+    $Function$ & mean & variance \\ \hline
+    $u_1$ & 4.7    & 3.565 \\
+    $u_2$ & 14.655 & 215.638125 \\
+  \end{tabular}
+\end{table}
+
+
