@@ -29,12 +29,11 @@
 
   <Models>
     <Code name="poly" subType="GenericCode">
-      <executable>runCode/poly_inp_io.py</executable>
+      <executable>poly_inp_io.py</executable>
       <clargs arg="python" type="prepend"/>
       <clargs arg="-i" extension=".one" type="input"/>
       <fileargs arg="aux" extension=".two" type="input"/>
       <fileargs arg="output" type="output"/>
-      <prepend>python</prepend>
     </Code>
     <ROM name="knr" subType="SciKitLearn">
       <SKLtype>neighbors|KNeighborsRegressor</SKLtype>

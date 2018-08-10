@@ -90,22 +90,14 @@ class GenericCode(CodeInterfaceBase):
     #check all required input files are there
     inFiles=inputFiles[:]
     #check for duplicate extension use
-    usedExt=[]
-    for elems in list(clargs['input'][flag] for flag in clargs['input'].keys()) + list(fargs['input'][var] for var in fargs['input'].keys()):
-      for elem in elems:
-        ext = elem[0]
-        if ext not in usedExt:
-          usedExt.append(ext)
-        else:
-          raise IOError('GenericCodeInterface cannot handle multiple input files with the same extension.  You may need to write your own interface.')
-        found=False
-        for inf in inputFiles:
-          if '.'+inf.getExt() == ext:
-            found=True
-            inFiles.remove(inf)
-            break
-        if not found:
-          raise IOError('input extension "'+ext+'" listed in input but not in inputFiles!')
+    extsClargs = list(ext[0][0] for ext in clargs['input'].values() if len(ext) != 0)
+    extsFargs  = list(ext[0] for ext in fargs['input'].values())
+    usedExts = extsClargs + extsFargs
+    if len(usedExts) != len(set(usedExts)):
+      raise IOError('GenericCodeInterface cannot handle multiple input files with the same extension.  You may need to write your own interface.')
+    for inf in inputFiles:
+      if '.'+inf.getExt() not in usedExts:
+        raise IOError('The input extension', inf.getExt(), 'of', inf.getFilename(), 'is not found! Available extensions are', ','.join(usedExts))
 
     #TODO if any remaining, check them against valid inputs
 

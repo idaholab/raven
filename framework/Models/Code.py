@@ -116,6 +116,8 @@ class Code(Model):
     self.codeFlags          = None #flags that need to be passed into code interfaces(if present)
     self.printTag           = 'CODE MODEL'
     self.createWorkingDir   = True
+    self.foundExecutable    = True # True indicates the executable is found, otherwise not found
+    self.foundPreExec       = True # True indicates the pre-executable is found, otherwise not found
 
   def _readMoreXML(self,xmlNode):
     """
@@ -214,6 +216,7 @@ class Code(Model):
       if os.path.exists(abspath):
         self.executable = abspath
       else:
+        self.foundExecutable = False
         self.raiseAMessage('not found executable '+self.executable,'ExceptedError')
     if self.preExec is not None:
       if '~' in self.preExec:
@@ -222,6 +225,7 @@ class Code(Model):
       if os.path.exists(abspath):
         self.preExec = abspath
       else:
+        self.foundPreExec = False
         self.raiseAMessage('not found preexec '+self.preExec,'ExceptedError')
     self.code = Code.CodeInterfaces.returnCodeInterface(self.subType,self)
     self.code.readMoreXML(xmlNode) #TODO figure out how to handle this with InputData
@@ -293,6 +297,19 @@ class Code(Model):
       self.oriInputFiles[-1].setPath(subSubDirectory)
     self.currentInputFiles        = None
     self.outFileRoot              = None
+    if not self.foundExecutable:
+      path = os.path.join(runInfoDict['WorkingDir'],self.executable)
+      if os.path.exists(path):
+        self.executable = path
+      else:
+        self.raiseAnError(IOError, "The provided executable", self.executable,"is not found!")
+    if not self.foundPreExec:
+      path = os.path.join(runInfoDict['WorkingDir'],self.preExec)
+      if os.path.exists(path):
+        self.preExec = path
+      else:
+        self.raiseAnError("Pre-Executable",self.preExec,"is not found!")
+
 
   def createNewInput(self,currentInput,samplerType,**kwargs):
     """
@@ -495,6 +512,8 @@ class Code(Model):
     ## This code should be evaluated by the job handler, so it is fine to wait
     ## until the execution of the external subprocess completes.
     process = utils.pickleSafeSubprocessPopen(command, shell=True, stdout=outFileObject, stderr=outFileObject, cwd=localenv['PWD'], env=localenv)
+    # TODO: The following changed is required for SAPHIRE interface.
+    #process = utils.pickleSafeSubprocessPopen(command, shell=False, stdout=outFileObject, stderr=outFileObject, cwd=localenv['PWD'], env=localenv)
     process.wait()
 
     returnCode = process.returncode
