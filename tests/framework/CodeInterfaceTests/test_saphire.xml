@@ -29,7 +29,6 @@
       <outputFile>fixed_output.csv</outputFile>
       <codeOutput type="uncertainty">et_uq.csv</codeOutput>
       <codeOutput type="uncertainty">ft_uq.csv</codeOutput>
-      <!--codeOutput type="importance">faultTreeImportance.txt</codeOutput-->
     </Code>
   </Models>
 
