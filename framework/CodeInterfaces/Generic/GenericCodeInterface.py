@@ -96,8 +96,13 @@ class GenericCode(CodeInterfaceBase):
     if len(usedExts) != len(set(usedExts)):
       raise IOError('GenericCodeInterface cannot handle multiple input files with the same extension.  You may need to write your own interface.')
     for inf in inputFiles:
-      if '.'+inf.getExt() not in usedExts:
-        raise IOError('The input extension', inf.getExt(), 'of', inf.getFilename(), 'is not found! Available extensions are', ','.join(usedExts))
+      ext = '.' + inf.getExt() if inf.getExt() is not None else ''
+      try:
+        usedExts.remove(ext)
+      except ValueError:
+        pass
+    if len(usedExts) != 0:
+      raise IOError('Input extension',','.join(usedExts),'listed in XML node Code, but not found in the list of Input of <Files>')
 
     #TODO if any remaining, check them against valid inputs
 

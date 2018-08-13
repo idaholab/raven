@@ -146,6 +146,7 @@ class OpenModelica(CodeInterfaceBase):
       @ In, None
       @ Out, None
     """
+    CodeInterfaceBase.__init__(self)
     #  Generate the command to run OpenModelica.  The form of the command is:
     #
     #    <executable> -f <init file xml> -r <outputfile>

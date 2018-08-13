@@ -117,6 +117,7 @@ class Dymola(CodeInterfaceBase):
       @ In, None
       @ Out, None
     """
+    CodeInterfaceBase.__init__(self)
     self.variablesToLoad = [] # the variables that should be loaded from the mat file (by default, all of them)
 
   def _readMoreXML(self,xmlNode):

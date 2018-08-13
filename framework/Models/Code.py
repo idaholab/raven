@@ -302,13 +302,13 @@ class Code(Model):
       if os.path.exists(path):
         self.executable = path
       else:
-        self.raiseAnError(IOError, "The provided executable", self.executable,"is not found!")
+        self.raiseAMessage('not found executable '+self.executable,'ExceptedError')
     if not self.foundPreExec:
       path = os.path.join(runInfoDict['WorkingDir'],self.preExec)
       if os.path.exists(path):
         self.preExec = path
       else:
-        self.raiseAnError("Pre-Executable",self.preExec,"is not found!")
+        self.raiseAMessage('not found pre-executable '+self.executable,'ExceptedError')
 
 
   def createNewInput(self,currentInput,samplerType,**kwargs):
