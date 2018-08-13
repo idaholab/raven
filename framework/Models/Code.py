@@ -364,6 +364,18 @@ class Code(Model):
 
     return (newInput,kwargs)
 
+  def _expandCommand(self, origCommand):
+    """
+      Function to expand a command from string to list
+      @ In, origCommand, string, The command to check for expantion
+      @ Out, commandSplit, string or String List, the expanded command or the original if not expanded.
+    """
+    if origCommand.strip() == '':
+      return ['echo', 'no command provided']
+    # In Windows Python, you can get some backslashes in your paths
+    commandSplit = shlex.split(origCommand.replace("\\","/"))
+    return commandSplit
+
   def _expandForWindows(self, origCommand):
     """
       Function to expand a command that has a #! to a windows runnable command
@@ -511,9 +523,12 @@ class Code(Model):
         localenv[key]=str(value)
     ## This code should be evaluated by the job handler, so it is fine to wait
     ## until the execution of the external subprocess completes.
-    process = utils.pickleSafeSubprocessPopen(command, shell=True, stdout=outFileObject, stderr=outFileObject, cwd=localenv['PWD'], env=localenv)
-    # TODO: The following changed is required for SAPHIRE interface.
-    #process = utils.pickleSafeSubprocessPopen(command, shell=False, stdout=outFileObject, stderr=outFileObject, cwd=localenv['PWD'], env=localenv)
+    #process = utils.pickleSafeSubprocessPopen(command, shell=True, stdout=outFileObject, stderr=outFileObject, cwd=localenv['PWD'], env=localenv)
+    # TODO: The following changes are required for SAPHIRE interface.
+    command = self._expandCommand(command)
+    process = utils.pickleSafeSubprocessPopen(command, shell=False, stdout=outFileObject, stderr=outFileObject, cwd=localenv['PWD'], env=localenv)
+    # TODO: The above changes are required for SAPHIRE interface
+    ################################################################
     process.wait()
 
     returnCode = process.returncode
