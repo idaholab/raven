@@ -3194,7 +3194,7 @@ major edit data (.ctf.out) only. Only those variables printed in the "major edit
     \begin{table}[h]
       \centering
       \caption{CSV transport info (cylindrical tube)}
-      \label{CSVfuelRod}
+      \label{CSVcylTube}
       \tabcolsep=0.11cm
       \tiny
       \begin{tabular}{|c|c|c|c|}
@@ -3229,7 +3229,7 @@ major edit data (.ctf.out) only. Only those variables printed in the "major edit
     \begin{table}[h]
       \centering
       \caption{CSV transport info (heat slab (tube) tube)}
-      \label{CSVfuelRod}
+      \label{CSVheatSlab}
       \tabcolsep=0.11cm
       \tiny
       \begin{tabular}{|c|c|c|c|}
@@ -3258,7 +3258,7 @@ major edit data (.ctf.out) only. Only those variables printed in the "major edit
 \hline
 \endfoot
 % body of table
-      \scriptsize {simulation time  & time  } \\
+      \scriptsize {simulation time  }&\scriptsize{ time  } \\
       channels' average height  & AVG\_ch\_ax\textcolor{red}{NN}\_height \\
       channels' average quality  & AVG\_ch\_ax\textcolor{red}{NN}\_quality \\
       channels' average void fraction (liquid)  & AVG\_ch\_ax\textcolor{red}{NN}\_voidFractionLiquid \\
@@ -3342,7 +3342,6 @@ major edit data (.ctf.out) only. Only those variables printed in the "major edit
       heat slab (tube) inside surface vapor temperature & heatSlab\textcolor{red}{HN}\_ax\textcolor{red}{NN}\_insideSurfaceVaporTemperature\\
       heat slab (tube) inside surface liquid temperature & heatSlab\textcolor{red}{HN}\_ax\textcolor{red}{NN}\_insideSurfaceLiquidTemperature\\
       heat slab (tube) inside surface heat flux & heatSlab\textcolor{red}{HN}\_ax\textcolor{red}{NN}\_insideSurfaceHeatFlux
-      \hline
 \end{longtable}
 \endgroup
 
@@ -3411,7 +3410,7 @@ The RAVEN input is then written as follows:
 </Samplers>
 \end{lstlisting}
 
-\\CTF input file should be modified with wild-cards in the following way.
+CTF input file should be modified with wild-cards in the following way.
 \begin{lstlisting}[basicstyle=\tiny]
 ***********************************************************************************************
 *GROUP 7 - Grid Loss Coefficient Data                                                         *
@@ -3428,7 +3427,7 @@ The RAVEN input is then written as follows:
      0.90700      1    25    26    27    28    29    30    31    32    33    34    35    36
 
 \end{lstlisting}
-\\ vuq$\_$param.txt and vuq$\_$mult.txt files are modified similarly with defined variable names.
+vuq$\_$param.txt and vuq$\_$mult.txt files are modified similarly with defined variable names.
 \begin{lstlisting}[basicstyle=\tiny]
 k_chen_1 = 0.24
 k_chen_2 = 0.75
