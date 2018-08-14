@@ -420,7 +420,8 @@ class ARMA(supervisedLearning):
             ## if not, do so now
             correlatedSample = self._generateVARMASignal(self.varmaResult[0],
                                                          numSamples = len(self.pivotParameterValues),
-                                                         randEngine = self.normEngine.rvs)
+                                                         randEngine = self.normEngine.rvs,
+                                                         rvsIndex = 0)
           # take base signal from sample
           signal = correlatedSample[:,self.correlations.index(target)]
       # if NOT correlated
