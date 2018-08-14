@@ -14,6 +14,7 @@ mn = np.random.multivariate_normal(mean,cov,size=N)
 
 # sample
 A,B,C = zip(*mn)
+D = np.random.rand(N)+30.
 
 ##### OLD #####
 #A = np.random.rand(N) - 0.5
@@ -25,11 +26,13 @@ t = np.arange(N)
 
 idx = pd.Index(t,name='Time')
 df = pd.DataFrame(mn,index=idx, columns=['A','B','C'])
+df['D'] = D
 
 print df
 fig,ax = plt.subplots()
 df.plot(y='A',label='A',marker='.',ax=ax)
 df.plot(y='B',label='B',marker='.',ax=ax)
 df.plot(y='C',label='C',marker='.',ax=ax)
+df.plot(y='D',label='D',marker='.',ax=ax)
 plt.show()
 df.to_csv('correlated_0.csv')

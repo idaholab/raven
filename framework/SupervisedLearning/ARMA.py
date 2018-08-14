@@ -568,7 +568,7 @@ class ARMA(supervisedLearning):
       numSamples =  len(self.pivotParameterValues)
     # sample measure, state shocks
     ## TODO it appears that measure shock always has a 0 variance multivariate normal, so just create it
-    measureShocks = np.zeros([numSamples,len(self.target)])
+    measureShocks = np.zeros([numSamples,len(self.correlations)])
     ## state shocks come from sampling multivariate
     noiseDist = self.varmaNoise
     initDist = self.varmaInit
