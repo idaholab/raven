@@ -432,7 +432,7 @@ class Code(Model):
           self.raiseAWarning("Could not find msys in "+os.getcwd())
         commandSplit = realExecutable + [executable] + commandSplit[1:]
         return commandSplit
-    return origCommand
+    return commandSplit
 
   def evaluateSample(self, myInput, samplerType, kwargs):
     """
@@ -521,11 +521,12 @@ class Code(Model):
       self.raiseAMessage("modified command to", repr(command))
       for key, value in localenv.items():
         localenv[key]=str(value)
+    else:
+      command = self._expandCommand(command)
     ## This code should be evaluated by the job handler, so it is fine to wait
     ## until the execution of the external subprocess completes.
     #process = utils.pickleSafeSubprocessPopen(command, shell=True, stdout=outFileObject, stderr=outFileObject, cwd=localenv['PWD'], env=localenv)
     # TODO: The following changes are required for SAPHIRE interface.
-    command = self._expandCommand(command)
     process = utils.pickleSafeSubprocessPopen(command, shell=False, stdout=outFileObject, stderr=outFileObject, cwd=localenv['PWD'], env=localenv)
     # TODO: The above changes are required for SAPHIRE interface
     ################################################################
