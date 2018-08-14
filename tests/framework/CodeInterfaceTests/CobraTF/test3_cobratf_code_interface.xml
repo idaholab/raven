@@ -3,13 +3,13 @@
   <TestInfo>
     <name>framework/CodeInterfaceTests/CobraTF.test3</name>
     <author>alptezbasaran</author>
-    <created>2018-22-07</created>
+    <created>2018-07-22</created>
     <classesTested>Models.Code.CobraTF</classesTested>
     <description>
        An example of using the CobraTF code interface. This test is aimed to test the mechanics of the interface using two supplementary input files (vuq_params.txt and vuq_mult.txt). All input files are to be perturbed
     </description>
     <revisions>
-      <revision author="alptezbasaran" date="2018-22-07">New CobraTF test case</revision>
+      <revision author="alptezbasaran" date="2018-07-22">New CobraTF test case</revision>
     </revisions>
   </TestInfo>
   <RunInfo>

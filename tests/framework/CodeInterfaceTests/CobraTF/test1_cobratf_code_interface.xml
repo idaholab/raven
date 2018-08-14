@@ -9,7 +9,7 @@
        An example of using the CobraTF code interface. This test is aimed to test the mechanics of the interface using a MonteCarlo sampling strategy.
     </description>
     <revisions>
-      <revision author="jyoo" date="2018-04-03">New CobraTF test case</revision>
+      <revision author="jyoo, alptezbasaran" date="2018-04-03">New CobraTF test case</revision>
     </revisions>
   </TestInfo>
   <RunInfo>

@@ -3,13 +3,13 @@
   <TestInfo>
     <name>framework/CodeInterfaceTests/CobraTF.test5</name>
     <author>alptezbasaran</author>
-    <created>2018-26-07</created>
+    <created>2018-07-26</created>
     <classesTested>Models.Code.CobraTF</classesTested>
     <description>
        An example of using the CobraTF code interface. This test is aimed to test the output conversion if input file name is 'deck.inp'
     </description>
     <revisions>
-      <revision author="alptezbasaran" date="2018-26-07">New CobraTF test case</revision>
+      <revision author="alptezbasaran" date="2018-07-26">New CobraTF test case</revision>
     </revisions>
   </TestInfo>
   <RunInfo>
