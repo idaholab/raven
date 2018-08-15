@@ -420,7 +420,8 @@ class ARMA(supervisedLearning):
             ## if not, do so now
             correlatedSample = self._generateVARMASignal(self.varmaResult[0],
                                                          numSamples = len(self.pivotParameterValues),
-                                                         randEngine = self.normEngine.rvs)
+                                                         randEngine = self.normEngine.rvs,
+                                                         rvsIndex = 0)
           # take base signal from sample
           signal = correlatedSample[:,self.correlations.index(target)]
       # if NOT correlated
@@ -491,6 +492,15 @@ class ARMA(supervisedLearning):
       @ Out, n, integer, number of bins
     """
     # Freedman-Diaconis
+    print('DEBUGG data num:',len(set(data)))
+    print('DEBUGG      max:',data.max())
+    print('DEBUGG      min:',data.min())
+    print('DEBUGG        1:',np.percentile(data,1))
+    print('DEBUGG       99:',np.percentile(data,99))
+    print('DEBUGG       25:',np.percentile(data,25))
+    print('DEBUGG       75:',np.percentile(data,75))
+    import cPickle as pk
+    pk.dump(data,file('debugg_data_pct.pk','w'))
     iqr = np.percentile(data,75) - np.percentile(data,25)
     if iqr <= 0.0:
       self.raiseAnError(ValueError,'While computing CDF, 25 and 75 percentile are the same number!')
@@ -558,7 +568,7 @@ class ARMA(supervisedLearning):
       numSamples =  len(self.pivotParameterValues)
     # sample measure, state shocks
     ## TODO it appears that measure shock always has a 0 variance multivariate normal, so just create it
-    measureShocks = np.zeros([numSamples,len(self.target)])
+    measureShocks = np.zeros([numSamples,len(self.correlations)])
     ## state shocks come from sampling multivariate
     noiseDist = self.varmaNoise
     initDist = self.varmaInit
