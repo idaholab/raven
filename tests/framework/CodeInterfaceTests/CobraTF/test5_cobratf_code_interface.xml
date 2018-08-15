@@ -53,7 +53,7 @@
   <DataObjects>
     <PointSet name="outdata">
       <Input>InputPlaceHolder</Input>
-      <Output>heatSlab1_ax101_insideSurfaceWallTemperature,heatSlab1_ax100_insideSurfaceWallTemperature,heatSlab1_ax99_insideSurfaceWallTemperature</Output>
+      <Output>AVG_ch_ax4_quality</Output>
     </PointSet>
   </DataObjects>
 

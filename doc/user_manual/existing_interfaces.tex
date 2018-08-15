@@ -3065,6 +3065,20 @@ For RAVEN coupled with CTF, there are three input files. CTF input file (.inp) i
 
 \noindent There are two additional files (\textit{optional}) that can be used for model parameter perturbation(s) (vuq$\_$param.txt, vuq$\_$mult.txt). These two files can be used to change variables of models embedded in CTF. The ''vuq$\_$param.txt'' file includes parameter values, and ''vuq$\_$mult.txt'' file includes multipliers or additions to parameters. These files are not required by CTF unless a parameter modification is desired. One, both or neither of them can be included in the simulation folder. The code first controls if these files exist and does modifications accordingly if needed.
 
+The  \xmlNode{Files} XML node contains the information needed to execute CTF.
+
+\attrsIntro
+%
+\vspace{-5mm}
+\begin{itemize}
+  \itemsep0em
+  \item \nameDescription
+  \item \xmlAttr{type}, \xmlDesc{required string attribute}, specifies the
+  input type used by CTF (ctf, vuq$\_$mult, vuq$\_$param).
+  %
+  \nb CTF requires one input deck and it must be defined in RAVEN input. Parameter exposure input files (vuq$\_$mult.txt, vuq$\_$param.txt) are optional.
+\end{itemize}
+
 \noindent
 \textbf{\textit{\nb Currently CTF does not accept any file names other than \textcolor{red}{vuq$\_$params.txt} and \textcolor{red}{vuq$\_$mult.txt} for parameter exposure}}
 
@@ -3082,12 +3096,12 @@ by the \xmlNode{workingDir} node in the \xmlNode{RunInfo} XML node.
 
 \paragraph{Output Files Conversion}
 Since RAVEN expects to receive a CSV file containing the outputs of the simulation, the results in the CTF output
-files (.ctf.out) need to be converted by the code interface.
+files (.ctf.out or deck.out) need to be converted by the code interface.
 
 \noindent \textcolor{red}{
 \textbf{It is important to note that the interface output collection (i.e., the parser of the CTF output) is currently able to extract
-major edit data (.ctf.out) only. Only those variables printed in the "major edit" output files are exported and made available to RAVEN.} } \\
-\\The following information is collected from CTF output file (.ctf.out):
+major edit data (.ctf.out or deck.out) only. Only those variables printed in the "major edit" output files are exported and made available to RAVEN.} } \\
+\\The following information is collected from CTF output file (.ctf.out or deck.out):
 \begin{itemize}
   \item \textit{\textbf{average properties for channels}}
   \begin{lstlisting}[basicstyle=\tiny]
@@ -3386,7 +3400,7 @@ In the \xmlNode{Samplers} block we want to define the variables that are going t
 \textbf{Example}:
 We want to do the sampling of 1 single variable:
 \begin{itemize}
-  \item The Grid Loss Coefficient Data used in the line number 343 and word number 1 (position).
+  \item The Grid Loss Coefficient Data is used from sampled values.
 \end{itemize}
 
 \noindent We are going to sample this variable using two different sampling methods: Grid and MonteCarlo.
@@ -3427,7 +3441,18 @@ CTF input file should be modified with wild-cards in the following way.
      0.90700      1    25    26    27    28    29    30    31    32    33    34    35    36
 
 \end{lstlisting}
+
+It is also possible to modify input values in parameter exposure input files.\\
+
+\textbf{Example}:
+We want to do the sampling of 3 correlation parameters (Dittus-Boelter parameter modification, DB1 $\times$ Re$^{DB2}$ $\times$ Pr$^{DB3}$):
+
+\begin{itemize}
+  \item DB1, DB2, DB3 values will be sampled and vuq\_param.txt will be modified with sampled values.
+\end{itemize}
+
 vuq$\_$param.txt and vuq$\_$mult.txt files are modified similarly with defined variable names.
+
 \begin{lstlisting}[basicstyle=\tiny]
 k_chen_1 = 0.24
 k_chen_2 = 0.75
@@ -3488,7 +3513,7 @@ one:
 \begin{lstlisting}[style=XML]
 <Steps verbosity='debug'>
   <MultiRun name='Grid_Sampler' verbosity='debug'>
-    <Input   class='Files' type=''>CTFinput</Input>
+    <Input   class='Files' type="">CTFinput</Input>
     <Input   class="Files" type="">vuq_param</Input>
     <Input   class="Files" type="" >vuq_mult</Input>
     <Model   class='Models'    type='Code'>MyCobraTF</Model>

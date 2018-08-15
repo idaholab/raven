@@ -68,12 +68,13 @@ class CTF(CodeInterfaceBase):
       raise IOError('multiple vuq_mult.txt input files have been found. Only one is allowed!')
 
     # raise error if the names of the vuq files are defined different than hard coded ones (not allowed)
+    hardCodedInputNames = ["vuq_mult.txt", "vuq_param.txt"]
     # multiplier modifier name check
-    if (len(vuqMult) == 1) and (vuqMult[0].getFilename() != "vuq_mult.txt"):
-      raise IOError("Name of the multiplier modifier file must be 'vuq_mult.txt' in RAVEN input and placed in the working directory. No other name is accepted!")
+    if (len(vuqMult) == 1) and (vuqMult[0].getFilename() != hardCodedInputNames[0]):
+      raise IOError("Name of the multiplier modifier file must be " + hardCodedInputNames[0] + " in RAVEN input and placed in the working directory. No other name is accepted!")
     # parameter modifier name check
-    if (len(vuqParam) == 1) and (vuqParam[0].getFilename() != "vuq_param.txt"  ):
-      raise IOError("Name of the parameter modifier file must be 'vuq_param.txt' in RAVEN input and placed in the working directory. No other name is accepted!")
+    if (len(vuqParam) == 1) and (vuqParam[0].getFilename() != hardCodedInputNames[1] ):
+      raise IOError("Name of the parameter modifier file must be " + hardCodedInputNames[1] + " in RAVEN input and placed in the working directory. No other name is accepted!")
 
     # add inputs
     if len(CTF) > 0:
