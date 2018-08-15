@@ -27,6 +27,7 @@ import copy
 from collections import OrderedDict, defaultdict
 from sklearn.linear_model import LinearRegression
 import six
+import xarray as xr
 #External Modules End-----------------------------------------------------------
 
 #Internal Modules---------------------------------------------------------------
@@ -152,6 +153,8 @@ class BasicStatistics(PostProcessor):
     self.pivotParameter = None # time-dependent statistics pivot parameter
     self.pivotValue = None # time-dependent statistics pivot parameter values
     self.dynamic        = False # is it time-dependent?
+    self.sampleTag      = None  # Tag used to track samples
+    self.pbPresent      = False # True if the ProbabilityWeight is available
 
   def inputToInternal(self, currentInp):
     """
@@ -160,45 +163,49 @@ class BasicStatistics(PostProcessor):
       @ In, currentInp, object, an object that needs to be converted
       @ Out, inputDict, dict, dictionary of the converted data
     """
-    # each post processor knows how to handle the coming inputs. The BasicStatistics postprocessor accept all the input type (files (csv only), hdf5 and datas
+    # The BasicStatistics postprocessor only accept DataObjects
     self.dynamic = False
     currentInput = currentInp [-1] if type(currentInp) == list else currentInp
     if len(currentInput) == 0:
       self.raiseAnError(IOError, "In post-processor " +self.name+" the input "+currentInput.name+" is empty.")
 
-    if type(currentInput).__name__ =='dict':
-      if 'targets' not in currentInput.keys() and 'timeDepData' not in currentInput.keys():
-        self.raiseAnError(IOError, 'Did not find targets or timeDepData in input dictionary')
-      return [currentInput]
     if currentInput.type not in ['PointSet','HistorySet']:
       self.raiseAnError(IOError, self, 'BasicStatistics postprocessor accepts PointSet and HistorySet only! Got ' + currentInput.type)
 
-    metadata =  currentInput.getMeta(pointwise=True)
-    inputList = []
-    if currentInput.type == 'PointSet':
-      inputDict = {}
-      #FIXME: the following operation is slow, and we should operate on the data
-      # directly without transforming it into dicts first.
-      inputDict['targets'] = currentInput.getVarValues(self.parameters['targets'])
-      inputDict['metadata'] =  metadata
-      inputList.append(inputDict)
-    elif currentInput.type == 'HistorySet':
+    # extract all required data from input DataObjects, an input dataset is constructed
+    dataSet = currentInput.asDataset()
+    inputDataset = dataSet[self.parameters['targets']]
+    self.sampleTag = currentInput.sampleTag()
+
+    if currentInput.type == 'HistorySet':
+      dims = inputDataset.dims.keys()
       if self.pivotParameter is None:
-        self.raiseAnError(IOError, self, 'Time-dependent statistics is requested (HistorySet) but no pivotParameter got inputted!')
-      self.dynamic = True
-      self.pivotValue = currentInput.asDataset()[self.pivotParameter].values
-      if not currentInput.checkIndexAlignment(indexesToCheck=self.pivotParameter):
-        self.raiseAnError(IOError, "The data provided by the data objects", currentInput.name, "is not synchronized!")
-      slices = currentInput.sliceByIndex(self.pivotParameter)
-      for sliceData in slices:
-        inputDict = {}
-        inputDict['metadata'] = metadata
-        inputDict['targets'] = dict((target, sliceData[target]) for target in self.parameters['targets'])
-        inputList.append(inputDict)
+        if len(dims) > 1:
+          self.raiseAnError(IOError, self, 'Time-dependent statistics is requested (HistorySet) but no pivotParameter
+                got inputted!')
+      elif self.pivotParameter not in dims:
+        self.raiseAnError(IOError, self, 'Pivot parameter', self.pivotParameter, 'is not the associated index for
+                requested variables', ','.join(self.parameters['targets']))
+      else:
+        self.dynamic = True
+        if not currentInput.checkIndexAlignment(indexesToCheck=self.pivotParameter):
+          self.raiseAnError(IOError, "The data provided by the data objects", currentInput.name, "is not synchronized!")
+        self.pivotValue = inputDataset[self.pivotParameter].values
+    # extract all required meta data
+    metaVars = currentInput.getVars('meta')
+    pbWeights = {}
+    self.pbPresent = True if 'ProbabilityWeight' in metaVars else False
+    if not self.pbPresent:
+      self.raiseAWarning('BasicStatistics postprocessor did not detect ProbabilityWeights! Assuming unit weights instead...')
+    else:
+      weights = dataSet['ProbabilityWeight']
+      pbWeights['ProbabilityWeight'] = weights/weights.sum()
+    for target in self.allUsedParams:
+      if 'ProbabilityWeight-'+target in metaVars:
+        weights = dataSet['ProbabilityWeight-'+target]
+        pbWeights['ProbabilityWeight-'+target] = weights/weights.sum()
 
-    self.raiseAMessage("Recasting performed")
-
-    return inputList
+    return inputDataset, pbWeights
 
   def initialize(self, runInfo, inputs, initDict):
     """
@@ -444,41 +451,15 @@ class BasicStatistics(PostProcessor):
       result = np.median(arrayIn)
     return result
 
-  def __runLocal(self, inputDict):
+  def __runLocal(self, inputData):
     """
       This method executes the postprocessor action. In this case, it computes all the requested statistical FOMs
       @ In, inputDict, dict, dictionary containing the input, output, and metadata
       @ Out, outputDict, dict, Dictionary containing the results
     """
-    pbWeights, pbPresent  = {'realization':None}, False
-    # setting some convenience values
-    parameterSet = list(self.allUsedParams)
-    if 'metadata' in inputDict.keys():
-      pbPresent = 'ProbabilityWeight' in inputDict['metadata'].keys() if 'metadata' in inputDict.keys() else False
-    if not pbPresent:
-      pbWeights['realization'] = None
-      if 'metadata' in inputDict.keys():
-        if 'SamplerType' in inputDict['metadata'].keys():
-          if inputDict['metadata']['SamplerType'].values[0] != 'MonteCarlo' :
-            self.raiseAWarning('BasicStatistics postprocessor did not detect ProbabilityWeights! Assuming unit weights instead...')
-        else:
-          self.raiseAWarning('BasicStatistics postprocessor did not detect ProbabilityWeights. Assuming unit weights instead...')
-    else:
-      pbWeights['realization'] = inputDict['metadata']['ProbabilityWeight'].values/np.sum(inputDict['metadata']['ProbabilityWeight'].values)
-    #This section should take the probability weight for each sampling variable
-    pbWeights['SampledVarsPbWeight'] = {'SampledVarsPbWeight':{}}
-    if 'metadata' in inputDict.keys():
-      for target in parameterSet:
-        if 'ProbabilityWeight-'+target in inputDict['metadata'].keys():
-          pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][target] = np.asarray(inputDict['metadata']['ProbabilityWeight-'+target].values)
-          pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][target][:] = pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][target][:]/np.sum(pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][target])
-
-    #establish a dict of indices to parameters and vice versa
-    parameter2index = dict((param,p) for p,param in enumerate(inputDict['targets'].keys()))
-
+    inputDataset, pbWeights = inputData[0], inputData[1]
     #storage dictionary for skipped metrics
     self.skipped = {}
-
     #construct a dict of required computations
     needed = dict((metric,{'targets':set()}) for metric in self.scalarVals)
     needed.update(dict((metric,{'targets':set(),'features':set()}) for metric in self.vectorVals))
@@ -527,7 +508,6 @@ class BasicStatistics(PostProcessor):
     #
     # BEGIN actual calculations
     #
-    calculations = {}
     # do things in order to preserve prereqs
     # TODO many of these could be sped up through vectorization
     # TODO additionally, this could be done with less code duplication, probably
@@ -543,30 +523,43 @@ class BasicStatistics(PostProcessor):
       if len(needed[metric]['targets'])>0:
         self.raiseADebug('Starting "'+metric+'"...')
         calculations[metric]={}
+
     #
     # samples
     #
     metric = 'samples'
     startMetric(metric)
-    for targetP in needed[metric]['targets']:
-      calculations[metric][targetP] = len(inputDict['targets'][targetP].values)
+    numRlz = inputDataset.sizes[self.sampleTag]
+    # Store the calculation results into a data set
+    samples = xr.DataArray([numRlz]*len(self.parameters['targets']),dims=('targets'),coords={'targets':self.parameters['targets']})
+    calcDataset = xr.Dataset({metric:samples})
     #
     # expected value
     #
     metric = 'expectedValue'
     startMetric(metric)
-    for targetP in needed[metric]['targets']:
-      if pbPresent:
-        relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
-        calculations[metric][targetP] = np.average(inputDict['targets'][targetP].values, weights = relWeight)
-      else:
-        relWeight  = None
-        calculations[metric][targetP] = np.mean(inputDict['targets'][targetP].values)
+    dataSet = inputDataset[list(needed[metric]['targets'])]
+    if self.pbPresent:
+      dataSet = dataSet * pbWeights
+      expectedValue = dataSet.sum(dim = self.sampleTag)
+    else:
+      expectedValue = dataSet.mean(dim = self.sampleTag)
+    calcDataset[metric] = expectedValue
     #
     # variance
     #
     metric = 'variance'
     startMetric(metric)
+    dataSet = inputDataset[list(needed[metric]['targets'])]
+    if self.pbPresent:
+      dataSet = dataSet * pbWeights
+      varianceValue = dataSet.sum(dim = self.sampleTag)
+    else:
+      varianceValue = dataSet.mean(dim = self.sampleTag)
+    calcDataset[metric] = varianceValue
+
+
+
     for targetP in needed[metric]['targets']:
       if pbPresent:
         relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
@@ -720,7 +713,6 @@ class BasicStatistics(PostProcessor):
       paramSamples = np.zeros((len(params), inputDict['targets'][params[0]].values.size))
       pbWeightsList = [None]*len(inputDict['targets'].keys())
       for p,param in enumerate(params):
-        dataIndex = parameter2index[param]
         paramSamples[p,:] = inputDict['targets'][param].values[:]
         pbWeightsList[p] = pbWeights['realization'] if param not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][param]
       pbWeightsList.append(pbWeights['realization'])
@@ -863,22 +855,8 @@ class BasicStatistics(PostProcessor):
       @ In,  inputIn, object, object contained the data to process. (inputToInternal output)
       @ Out, outputDict, dict, Dictionary containing the results
     """
-    inputAdapted = self.inputToInternal(inputIn)
-    if not self.dynamic:
-      outputDict = self.__runLocal(inputAdapted[0])
-    else:
-      # time dependent (actually pivot-dependent)
-      self.raiseADebug('BasicStatistics Pivot-Dependent output:')
-      outputList = []
-      for inputDict in inputAdapted:
-        outputList.append(self.__runLocal(inputDict))
-      #FIXME: swith to defaultdict
-      outputDict = dict((var,list()) for var in outputList[0].keys())
-      for output in outputList:
-        for var, value in output.items():
-          outputDict[var] = np.append(outputDict[var], value)
-      # add the pivot parameter and its values
-      outputDict[self.pivotParameter] = np.atleast_1d(self.pivotValue)
+    inputData = self.inputToInternal(inputIn)
+    outputDict = self.__runLocal(inputData)
 
     return outputDict
 
