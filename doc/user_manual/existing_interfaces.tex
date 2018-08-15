@@ -3380,6 +3380,18 @@ Here we report an example of a Normal distribution:
       <upperBound>0.9</upperBound>
       <lowerBound>0.6</lowerBound>
     </Normal>
+    <Uniform name="DB1dist">
+      <upperBound>0.026</upperBound>
+      <lowerBound>0.020</lowerBound>
+    </Uniform>
+    <Uniform name="DB2dist">
+      <upperBound>0.9</upperBound>
+      <lowerBound>0.7</lowerBound>
+    </Uniform>
+    <Uniform name="DB3dist">
+      <upperBound>0.5</upperBound>
+      <lowerBound>0.3</lowerBound>
+    </Uniform>
  </Distributions>
 \end{lstlisting}
 
@@ -3420,6 +3432,16 @@ The RAVEN input is then written as follows:
      </samplerInit>
     <variable name='GrdLss'>
       <distribution>GridLossCoeff</distribution>
+    </variable>
+    <variable name='DB1'>
+      <distribution>DB1dist</distribution>
+    </variable>
+    <variable name='DB2'>
+      <distribution>DB2dist</distribution>
+    </variable>
+    <variable name='DB3'>
+      <distribution>DB3dist</distribution>
+    </variable>
   </MonteCarlo>
 </Samplers>
 \end{lstlisting}
