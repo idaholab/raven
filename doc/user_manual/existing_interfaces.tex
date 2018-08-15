@@ -3486,9 +3486,9 @@ With this step, we need to import all the files needed for the simulation:
   \item CTF input files
 \end{itemize}
 \begin{lstlisting}[style=XML,morekeywords={name,class,type}]
-    <Input class="Files" type="">CTFinput</Input>
-    <Input class="Files" type="">vuq_param</Input>
-    <Input class="Files" type="" >vuq_mult</Input>
+    <Input class="Files" type="ctf">CTFinput</Input>
+    <Input class="Files" type="vuq_param">vuq_param</Input>
+    <Input class="Files" type="vuq_mult" >vuq_mult</Input>
 \end{lstlisting}
 We then need to define which model will be used:
 \begin{lstlisting}[style=XML]
@@ -3513,9 +3513,9 @@ one:
 \begin{lstlisting}[style=XML]
 <Steps verbosity='debug'>
   <MultiRun name='Grid_Sampler' verbosity='debug'>
-    <Input   class='Files' type="">CTFinput</Input>
-    <Input   class="Files" type="">vuq_param</Input>
-    <Input   class="Files" type="" >vuq_mult</Input>
+    <Input   class='Files' type="ctf">CTFinput</Input>
+    <Input   class="Files" type="vuq_param">vuq_param</Input>
+    <Input   class="Files" type="vuq_mult" >vuq_mult</Input>
     <Model   class='Models'    type='Code'>MyCobraTF</Model>
     <Sampler class='Samplers'  type='Grid'>Grid_Sampler</Sampler>
     <Output  class='Databases' type='HDF5'>Grid_out</Output>
