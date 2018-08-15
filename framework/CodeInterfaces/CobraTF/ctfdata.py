@@ -88,8 +88,8 @@ class ctfdata:
     """
     # Booleans
     # start output reading (skip 'input file listing' in the output)
-    outTime1 = False
-    outTime2 = False
+    outTime1 = False                    # Time information
+    outTime2 = False                    # Time information
     outType1 = False                    # Channel data first group columns
     outType2 = False                    # Channel data second group columns
     outType3 = False                    # Channel data third group columns
@@ -101,7 +101,7 @@ class ctfdata:
     readChannelCount = False
     checkNodeNum = False
     # count time step
-    timestepCount = 0
+    timeStepCount = 0
     # number of averaged variables (total variables that are supposed to be printed in the major edit output file)
     averageVariablesCount = 15
     # number of variables (total variables that are supposed to be printed in the major edit output file)
@@ -128,7 +128,7 @@ class ctfdata:
       if all(x in line for x in ['aver.', 'properties' , 'channels']):
         outTime1 = True # for output reading start (stay 'True' once it is activated)
         outTime2 = True # to check simTime evolution
-        timestepCount += 1
+        timeStepCount += 1
       if all(x in line for x in ['fluid', 'properties' , 'channel']):
         outType1 = True
       # to read total number of channels
@@ -151,7 +151,7 @@ class ctfdata:
       if all(x in line for x in ['no.', 'of' , 'heat', 'slabs']):
         heatSlabCount = int(line.split()[-1])                        # total heat slab count
 
-    dictArray = np.zeros((int(timestepCount), int(
+    dictArray = np.zeros((int(timeStepCount), int(
             variablesCount * channelCount * (nodeCount + 1)  + variableFuelCount * fuelCount *
               surfaceCount * (nodeCount + 2) + variableHeatSlab * heatSlabCount * (nodeCount)
             + 1 * averageVariablesCount * (nodeCount + 1) + 1)))
@@ -171,7 +171,7 @@ class ctfdata:
     internalFlow = False            # Internal Flow flag
     externalFlow = False            # External flow flag
 
-    timestepCount = 0               # Time pointer
+    timeStepCount = 0               # Time pointer
     variableNumber = 0              # Variable pointer
 
     # create new array (for header names)
@@ -186,14 +186,14 @@ class ctfdata:
         # save simTime to major_Dict
         simTime = line.split()[3]
         # save time info. into dictArray[]
-        dictArray[timestepCount, 0] = simTime
+        dictArray[timeStepCount, 0] = simTime
         # array of header names (write only once initially)
-        if (timestepCount >= 1):
+        if (timeStepCount >= 1):
           headerWrite = False
         else:
           header.append('time')
         # time step increase
-        timestepCount += 1
+        timeStepCount += 1
         # rewind varablesNumber every time step
         variableNumber = 0
         # to check time evolution
@@ -249,7 +249,7 @@ class ctfdata:
             for j in range(1, len(line.split())):
               if line.split()[2] != '*****':
                 variableNumber += 1
-                dictArray[timestepCount - 1,
+                dictArray[timeStepCount - 1,
                         variableNumber] = line.split()[j]
               if headerWrite:
                 if j == 1:
@@ -314,7 +314,7 @@ class ctfdata:
             keyName = 'ch' + channelNumber + '_ax' + str(ax)
             for j in range(1, len(line.split())):
               variableNumber += 1
-              dictArray[timestepCount - 1,
+              dictArray[timeStepCount - 1,
                           variableNumber] = line.split()[j]
               if headerWrite:
                 if j == 1:
@@ -377,7 +377,7 @@ class ctfdata:
             keyName = 'ch' + channelNumber + '_ax' + str(ax)
             for j in range(1, len(line.split())):
               variableNumber += 1
-              dictArray[timestepCount - 1,
+              dictArray[timeStepCount - 1,
                        variableNumber] = line.split()[j]
               if headerWrite:
                 if j == 1:
@@ -431,7 +431,7 @@ class ctfdata:
             keyName = 'ch' + channelNumber + '_ax' + str(ax)
             for j in range(1, len(line.split())):
               variableNumber += 1
-              dictArray[timestepCount - 1,
+              dictArray[timeStepCount - 1,
                 variableNumber] = line.split()[j]
               if headerWrite:
                 if j == 1:
@@ -499,7 +499,7 @@ class ctfdata:
               variableNumber += 1
               # skip the non-numeric elements
               if j != 5:
-                dictArray[timestepCount - 1,
+                dictArray[timeStepCount - 1,
                           variableNumber] = lineFiltered.split()[j]
               if headerWrite:
                 if j == 1:
@@ -554,7 +554,7 @@ class ctfdata:
               variableNumber += 1
               # skip the non-numeric elements
               if j != 3:
-                dictArray[timestepCount - 1,
+                dictArray[timeStepCount - 1,
                           variableNumber] = lineFiltered.split()[j]
               if headerWrite:
                 if j == 1:
@@ -604,7 +604,7 @@ class ctfdata:
               variableNumber += 1
               # skip the non-numeric elements
               if j != 7:
-                dictArray[timestepCount - 1,
+                dictArray[timeStepCount - 1,
                           variableNumber] = lineFiltered.split()[j]
               if headerWrite:
                 if j == 1:
@@ -654,7 +654,7 @@ class ctfdata:
               variableNumber += 1
               # skip the non-numeric elements
               if j != 7:
-                dictArray[timestepCount - 1,
+                dictArray[timeStepCount - 1,
                           variableNumber] = lineFiltered.split()[j]
               if headerWrite:
                 if j == 1:
@@ -704,7 +704,7 @@ class ctfdata:
               variableNumber += 1
               # skip the non-numeric elements
               if j != 3:
-                dictArray[timestepCount - 1,
+                dictArray[timeStepCount - 1,
                           variableNumber] = lineFiltered.split()[j]
               if headerWrite:
                 if j == 1:

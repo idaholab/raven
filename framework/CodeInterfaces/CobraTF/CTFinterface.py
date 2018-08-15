@@ -36,7 +36,6 @@ class CTF(CodeInterfaceBase):
       @ In, workingDir, string, current working dir
       @ Out, output, string, optional, present in case the root of the output file gets changed in this method.
     """
-
     outfile  = os.path.join(workingDir,output+'.out')
     outputobj= ctfdata(outfile)
     outputobj.writeCSV(os.path.join(workingDir,output+'.csv'))
@@ -45,7 +44,7 @@ class CTF(CodeInterfaceBase):
     """
       Locates the input files required by CTF (Cobra-TF) Interface
       @ In, inputFiles, list, list of Files objects
-      @ Out, inputDict, dict, dictionary containing Scale required input files
+      @ Out, inputDict, dict, dictionary containing CTF required input files
     """
     inputDict = {}
     CTF = []
@@ -96,7 +95,7 @@ class CTF(CodeInterfaceBase):
       @ Out, newInputFiles, list, list of new input files (modified or not)
     """
     if 'dynamiceventtree' in str(samplerType).lower():
-      raise IOError("Dynamic Event Tree-based samplers not supported by Scale interface yet!")
+      raise IOError("Dynamic Event Tree-based samplers not supported by CTF interface yet!")
     currentInputsToPerturb = [item for subList in self.findInps(currentInputFiles).values() for item in subList]
     originalInputs         = [item for subList in self.findInps(origInputFiles).values() for item in subList]
     parser = GenericParser.GenericParser(currentInputsToPerturb)
@@ -116,9 +115,6 @@ class CTF(CodeInterfaceBase):
       @ In, fargs, dict, optional, a dictionary containing the auxiliary input file variables the user can specify in the input (Not needed)
       @ Out, returnCommand, tuple, tuple containing the generated command. returnCommand[0] is the command to run the code (string), returnCommand[1] is the name of the output root
     """
-
-    inputDict = self.findInps(inputFiles)
-
     found = False
     for inputFile in inputFiles:
       if inputFile.getExt() in self.getInputExtension():
@@ -129,6 +125,5 @@ class CTF(CodeInterfaceBase):
     commandToRun = executable + ' ' + inputFile.getFilename()
     commandToRun = commandToRun.replace("\n"," ")
     output = inputFile.getBase() + '.ctf'
-
     returnCommand = [('parallel', commandToRun)], output
     return returnCommand
