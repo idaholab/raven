@@ -288,6 +288,8 @@ class SPSA(GradientBasedOptimizer):
       pert = optVarsValues[i + numGrads] #the perturbed point
       # calculate grad(F) wrt each input variable
       # fix infinities!
+      print('DEBUGG opt keys:',opt.keys())
+      print('DEBUGG pert keys:',pert.keys())
       lossDiff = mathUtils.diffWithInfinites(pert['output'],opt['output'])
       #cover "max" problems
       # TODO it would be good to cover this in the base class somehow, but in the previous implementation this

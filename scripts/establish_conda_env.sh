@@ -161,11 +161,9 @@ function set_install_settings()
   ${COMMAND}
 }
 
+
 # main
 
-INRC=$(read_ravenrc "CONDA_DEFS")
-echo result: $INRC
-exit
 # set default operation
 ECE_MODE=1 # 1 for loading, 2 for install, 0 for help
 INSTALL_OPTIONAL="" # --optional if installing optional, otherwise blank
@@ -228,7 +226,7 @@ if [[ $ECE_VERBOSE == 0 ]]; then echo ... Detected OS as ${OSOPTION} ...; fi
 if [ -z $RAVEN_LIBS_NAME ];
 then
   # check the RC file first
-  RAVEN_LIBS_NAME=$(read_ravenrc "CONDA_DEFS")  #FOLLOWING DOES NOT WORK on systems with old python `echo $(python ${ECE_SCRIPT_DIR}/update_install_data.py --read RAVEN_LIBS_NAME)`
+  RAVEN_LIBS_NAME=$(read_ravenrc "RAVEN_LIBS_NAME")  #FOLLOWING DOES NOT WORK on systems with old python `echo $(python ${ECE_SCRIPT_DIR}/update_install_data.py --read RAVEN_LIBS_NAME)`
   # if not found through the RC file, will be empty string, so default to raven_libraries
   if [[ ${#RAVEN_LIBS_NAME} == 0 ]];
   then
@@ -313,12 +311,13 @@ then
   else
     create_libraries
   fi
+  # since installation successful, write changed settings
+  ## store information about this creation in raven/.ravenrc text file
+  if [[ $ECE_VERBOSE == 0 ]]; then echo  ... writing settings to raven/.ravenrc ...; fi
+  set_install_settings
 fi
 
 # activate environment and write settings if successful
 activate_env
-# store information about this creation in raven/.ravenrc text file
-if [[ $ECE_VERBOSE == 0 ]]; then echo  ... writing settings to raven/.ravenrc ...; fi
-set_install_settings
 
 if [[ $ECE_VERBOSE == 0 ]]; then echo  ... done!; fi
