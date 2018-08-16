@@ -3063,7 +3063,7 @@ An example  is shown  below:
 The \xmlNode{Files} XML node has to contain all the files required to run the external code  (CTF).
 For RAVEN coupled with CTF, there are three input files. CTF input file (.inp) is required by the code. This input file includes all the geometry, boundary and calculation definitions.
 
-\noindent There are two additional files (\textit{optional}) that can be used for model parameter perturbation(s) (vuq$\_$param.txt, vuq$\_$mult.txt). These two files can be used to change variables of models embedded in CTF. The ''vuq$\_$param.txt'' file includes parameter values, and ''vuq$\_$mult.txt'' file includes multipliers or additions to parameters. These files are not required by CTF unless a parameter modification is desired. One, both or neither of them can be included in the simulation folder. The code first controls if these files exist and does modifications accordingly if needed.
+\noindent There are two additional files (\textit{optional}) that can be used for model parameter perturbation(s) (vuq$\_$param.txt, vuq$\_$mult.txt). These two files can be used to change variables of models embedded in CTF. The ''vuq$\_$param.txt'' file includes parameter values, and ''vuq$\_$mult.txt'' file includes multipliers or additions to parameters. These files are not required by CTF unless a parameter exposure is desired. One, both or neither of them can be included in the simulation folder. The code first controls if these files exist and does modifications accordingly if needed.
 
 The  \xmlNode{Files} XML node contains the information needed to execute CTF.
 
@@ -3074,13 +3074,14 @@ The  \xmlNode{Files} XML node contains the information needed to execute CTF.
   \itemsep0em
   \item \nameDescription
   \item \xmlAttr{type}, \xmlDesc{required string attribute}, specifies the
-  input type used by CTF (ctf, vuq$\_$mult, vuq$\_$param).
-  %
-  \nb CTF requires one input deck and it must be defined in RAVEN input. Parameter exposure input files (vuq$\_$mult.txt, vuq$\_$param.txt) are optional.
+  input type used by CTF (ctf, vuq$\_$mult, vuq$\_$param). Accepted types are as follows.
+  \begin{itemize}
+    \item CTF, \xmlDesc{required string attribute}, identifies the CTF input file (geometry, boundary, calculation options, etc.) and the code currently accept any name for input. One CTF input file is required.
+    \item vuq\_mult, \xmlDesc{optional string attribute if closure modifiers are used}, identifies the closure term multiplier input file. If user needs to alter closure terms this file should be used and named \textcolor{red}{vuq$\_$mult.txt}. No other file name is accepted.
+    \item vuq\_param, \xmlDesc{optional string attribute if model parameter modifiers are used}, identifies the model parameter input file. If user needs to change model parameters this file this model should be used and named \textcolor{red}{vuq$\_$params.txt}. No other file name is accepted.
+    \item "", Empty type is also accepted by RAVEN input to perturb. Currently, CTF does not use any other input file that is not mentioned above, but to sample auxiliary files, this option can be used.
+  \end{itemize}
 \end{itemize}
-
-\noindent
-\textbf{\textit{\nb Currently CTF does not accept any file names other than \textcolor{red}{vuq$\_$params.txt} and \textcolor{red}{vuq$\_$mult.txt} for parameter exposure}}
 
 \noindent Example:
 \begin{lstlisting}[style=XML]
@@ -3088,6 +3089,7 @@ The  \xmlNode{Files} XML node contains the information needed to execute CTF.
   <Input name="CTF_input" type="ctf">case1.inp</Input>
   <Input name="vuq_param_input" type="vuq_param">vuq_param.txt</Input>
   <Input name="vuq_mult_input" type="vuq_mult">vuq_mult.txt</Input>
+  <Input name="auxiliary_input" type="">auxiliaryInput</Input>
 </Files>
 \end{lstlisting}
 The files mentioned in this section

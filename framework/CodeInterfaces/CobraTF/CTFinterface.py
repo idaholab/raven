@@ -50,6 +50,7 @@ class CTF(CodeInterfaceBase):
     CTF = []
     vuqParam = []
     vuqMult = []
+    otherInp = []
 
     for inputFile in inputFiles:
       if inputFile.getType().strip().lower() == "ctf":
@@ -58,6 +59,8 @@ class CTF(CodeInterfaceBase):
         vuqParam.append(inputFile)
       elif inputFile.getType().strip().lower() == "vuq_mult":
         vuqMult.append(inputFile)
+      else:
+        otherInp.append(inputFile)
 
     # raise error if there are multiple input files (not allowed)
     if len(CTF) > 1:
@@ -79,10 +82,14 @@ class CTF(CodeInterfaceBase):
     # add inputs
     if len(CTF) > 0:
        inputDict['CTF'] = CTF
+    else:
+       raise IOError("At least one CTF input is required")
     if len(vuqParam) > 0:
        inputDict['vuq_param'] = vuqParam
     if len(vuqMult) > 0:
        inputDict['vuq_mult'] = vuqMult
+    if len(otherInp) > 0:
+      inputDict['otherInp'] = otherInp
     return inputDict
 
   def createNewInput(self, currentInputFiles, origInputFiles, samplerType, **Kwargs):
