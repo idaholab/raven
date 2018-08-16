@@ -91,6 +91,8 @@ function find_conda_defs ()
       fi
     fi
 	fi
+  # fix Windows backslashes to be forwardslashes, compatible with all *nix
+  CONDA_DEFS="${CONDA_DEFS//\\//}"
 }
 
 function install_libraries()
