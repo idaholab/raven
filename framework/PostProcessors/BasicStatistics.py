@@ -193,17 +193,19 @@ class BasicStatistics(PostProcessor):
         self.pivotValue = inputDataset[self.pivotParameter].values
     # extract all required meta data
     metaVars = currentInput.getVars('meta')
-    pbWeights = {}
+    pbWeights = xr.Dataset()
     self.pbPresent = True if 'ProbabilityWeight' in metaVars else False
-    if not self.pbPresent:
-      self.raiseAWarning('BasicStatistics postprocessor did not detect ProbabilityWeights! Assuming unit weights instead...')
-    else:
-      weights = dataSet['ProbabilityWeight']
-      pbWeights['ProbabilityWeight'] = weights/weights.sum()
-    for target in self.allUsedParams:
-      if 'ProbabilityWeight-'+target in metaVars:
-        weights = dataSet['ProbabilityWeight-'+target]
-        pbWeights['ProbabilityWeight-'+target] = weights/weights.sum()
+    if self.pbPresent:
+      probabilityWeight = dataSet['ProbabilityWeight']/dataSet['ProbabilityWeight'].sum()
+    for target in self.parameters['targets']:
+      pbName = 'ProbabilityWeight-' + target
+      if pbName in metaVars:
+        pbWeights[target] = dataSet[pbName]/dataSet[pbName].sum()
+      elif self.pbPresent:
+        pbWeights[target] = probabilityWeight
+      else:
+        pbWeights[target] = None
+        self.raiseAWarning('BasicStatistics postprocessor did not detect ProbabilityWeights! Assuming unit weights instead...')
 
     return inputDataset, pbWeights
 
@@ -420,6 +422,17 @@ class BasicStatistics(PostProcessor):
       result = np.average((arrayIn - expValue)**2)*unbiasCorr
     return result
 
+  def _computeVarianceXR(self,arrayIn,expValue,pbWeight=None, dim):
+    """
+      Method to compute the Variance (fisher) of an array of observations
+      @ In, arrayIn, list/numpy.array, the array of values from which the Variance needs to be estimated
+      @ In, expValue, float, expected value of arrayIn
+      @ In, pbWeight, list/numpy.array, optional, the reliability weights that correspond to the values in 'array'. If not present, an unweighted approach is used
+      @ Out, result, float, the Variance of the array of data
+    """
+    return xr.apply_ufunc(self._computeVarianceXR, arrayIn, expValue, pbWeight, input_core_dims=[[dim],[],[]],kwargs={'axis':-1})
+
+
   def _computeSigma(self,arrayIn,variance,pbWeight=None):
     """
       Method to compute the sigma of an array of observations
@@ -511,6 +524,8 @@ class BasicStatistics(PostProcessor):
     # do things in order to preserve prereqs
     # TODO many of these could be sped up through vectorization
     # TODO additionally, this could be done with less code duplication, probably
+    # Store the calculation results into a data set
+    calculations = {}
     #################
     # SCALAR VALUES #
     #################
@@ -522,17 +537,16 @@ class BasicStatistics(PostProcessor):
       """
       if len(needed[metric]['targets'])>0:
         self.raiseADebug('Starting "'+metric+'"...')
-        calculations[metric]={}
-
+        #calculations[metric]={}
     #
     # samples
     #
     metric = 'samples'
     startMetric(metric)
     numRlz = inputDataset.sizes[self.sampleTag]
-    # Store the calculation results into a data set
-    samples = xr.DataArray([numRlz]*len(self.parameters['targets']),dims=('targets'),coords={'targets':self.parameters['targets']})
-    calcDataset = xr.Dataset({metric:samples})
+    # TODO: remove latter
+    #samples = xr.DataArray([numRlz]*len(self.parameters['targets']),dims=('targets'),coords={'targets':self.parameters['targets']})
+    calculations[metric] = numRlz
     #
     # expected value
     #
@@ -540,18 +554,31 @@ class BasicStatistics(PostProcessor):
     startMetric(metric)
     dataSet = inputDataset[list(needed[metric]['targets'])]
     if self.pbPresent:
-      dataSet = dataSet * pbWeights
+      pbWeight = pbWeights[list(needed[metric]['targets'])]
+      for target in needed[metric]['targets']:
+        dataSet[target] = dataSet[target] * pbWeights[target]
       expectedValue = dataSet.sum(dim = self.sampleTag)
     else:
       expectedValue = dataSet.mean(dim = self.sampleTag)
-    calcDataset[metric] = expectedValue
+    calculation[metric] = expectedValue
     #
     # variance
     #
     metric = 'variance'
     startMetric(metric)
     dataSet = inputDataset[list(needed[metric]['targets'])]
+    calcXR = xr.Dataset()
+    for target in needed[metric]['targets']:
+      if not self.dynamic:
+        calcXR[target] = self._computeVariance(dataSet[target],calculation['expectedValue'][target],pbWeight=relWeight)
+      else:
+        calcXR[target] = self._computeVarianceXR(dataSet[target],calculation['expectedValue'][target],pbWeights[target],self.sampleTag)
+
+
+
+
     if self.pbPresent:
+      relWeight
       dataSet = dataSet * pbWeights
       varianceValue = dataSet.sum(dim = self.sampleTag)
     else:
