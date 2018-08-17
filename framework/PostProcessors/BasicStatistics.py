@@ -34,6 +34,7 @@ import xarray as xr
 from .PostProcessor import PostProcessor
 from utils import utils
 from utils import InputData
+from utils import mathUtils
 import Files
 import Runners
 #Internal Modules End-----------------------------------------------------------
@@ -193,19 +194,19 @@ class BasicStatistics(PostProcessor):
         self.pivotValue = inputDataset[self.pivotParameter].values
     # extract all required meta data
     metaVars = currentInput.getVars('meta')
-    pbWeights = xr.Dataset()
+    pbWeights = None
     self.pbPresent = True if 'ProbabilityWeight' in metaVars else False
     if self.pbPresent:
+      pbWeights = xr.Dataset()
       probabilityWeight = dataSet['ProbabilityWeight']/dataSet['ProbabilityWeight'].sum()
-    for target in self.parameters['targets']:
-      pbName = 'ProbabilityWeight-' + target
-      if pbName in metaVars:
-        pbWeights[target] = dataSet[pbName]/dataSet[pbName].sum()
-      elif self.pbPresent:
-        pbWeights[target] = probabilityWeight
-      else:
-        pbWeights[target] = None
-        self.raiseAWarning('BasicStatistics postprocessor did not detect ProbabilityWeights! Assuming unit weights instead...')
+      for target in self.parameters['targets']:
+        pbName = 'ProbabilityWeight-' + target
+        if pbName in metaVars:
+          pbWeights[target] = dataSet[pbName]/dataSet[pbName].sum()
+        elif self.pbPresent:
+          pbWeights[target] = probabilityWeight
+    else:
+      self.raiseAWarning('BasicStatistics postprocessor did not detect ProbabilityWeights! Assuming unit weights instead...')
 
     return inputDataset, pbWeights
 
@@ -323,14 +324,27 @@ class BasicStatistics(PostProcessor):
     else:
       self.raiseAnError(IOError, 'Output type ' + str(output.type) + ' unknown.')
 
+  def __computePower(self, p, dataset):
+    """
+      Compute the p-th power of weights
+      @ In, p, int, the power
+      @ In, dataset, xarray.Dataset, weights
+      @ Out, pw, xarray.Dataset, the p-th power of weights
+    """
+    pw = xr.Dataset()
+    for target, targValue in weights.data_vars.items():
+      pw[target] = np.power(weights,p)
+    return pw
+
   def __computeVp(self,p,weights):
     """
       Compute the sum of p-th power of weights
       @ In, p, int, the power
-      @ In, weights, list or numpy.array, weights
-      @ Out, vp, float, the sum of p-th power of weights
+      @ In, weights, xarray.Dataset, weights
+      @ Out, vp, xarray.Dataset, the sum of p-th power of weights
     """
-    vp = np.sum(np.power(weights,p))
+    vp = self.__computePower(p,weights)
+    vp = vp.sum()
     return vp
 
   def __computeUnbiasedCorrection(self,order,weightsOrN):
@@ -366,7 +380,7 @@ class BasicStatistics(PostProcessor):
         corrFactor = (float(weightsOrN)*(float(weightsOrN)**2.0-2.0*float(weightsOrN)+3.0))/((float(weightsOrN)-1)*(float(weightsOrN)-2)*(float(weightsOrN)-3)),(3.0*float(weightsOrN)*(2.0*float(weightsOrN)-3.0))/((float(weightsOrN)-1)*(float(weightsOrN)-2)*(float(weightsOrN)-3))
     return corrFactor
 
-  def _computeKurtosis(self,arrayIn,expValue,variance,pbWeight=None):
+  def _computeKurtosis(self, arrayIn, expValue, variance, pbWeight=None, dim=None):
     """
       Method to compute the Kurtosis (fisher) of an array of observations
       @ In, arrayIn, list/numpy.array, the array of values from which the Kurtosis needs to be estimated
@@ -375,21 +389,30 @@ class BasicStatistics(PostProcessor):
       @ In, pbWeight, list/numpy.array, optional, the reliability weights that correspond to the values in 'array'. If not present, an unweighted approach is used
       @ Out, result, float, the Kurtosis of the array of data
     """
+    if dim is None:
+      dim = self.sampleTag
+    vr = self.__computePower(2.0, variance)
     if pbWeight is not None:
       unbiasCorr = self.__computeUnbiasedCorrection(4,pbWeight) if not self.biased else 1.0
+      vp = 1.0/self.__computeVp(1,pbWeight)
+      p4 = ((arrayIn - expValue)**4.0 * pbWeight).sum(dim=dim)
       if not self.biased:
-        result = -3.0 + ((1.0/self.__computeVp(1,pbWeight))*np.sum(np.dot(np.power(arrayIn - expValue,4.0),pbWeight))*unbiasCorr[0]-unbiasCorr[1]*np.power(((1.0/self.__computeVp(1,pbWeight))*np.sum(np.dot(np.power(arrayIn - expValue,2.0),pbWeight))),2.0))/np.power(variance,2.0)
+        p2 = ((arrayIn - expValue)**2.0 * pbWeight).sum(dim=dim)
+        result = -3.0 + (p4*unbiasCorr[0]*vp - (p2*vp)**2.0 * unbiasCorr[1]) / vr
       else:
-        result = -3.0 + ((1.0/self.__computeVp(1,pbWeight))*np.sum(np.dot(np.power(arrayIn - expValue,4.0),pbWeight))*unbiasCorr)/np.power(variance,2.0)
+        result = -3.0 + (p4 * vp * unbiasCorr) / vr
     else:
-      unbiasCorr = self.__computeUnbiasedCorrection(4,len(arrayIn)) if not self.biased else 1.0
+      unbiasCorr = self.__computeUnbiasedCorrection(4,arrayIn.sizes[dim]) if not self.biased else 1.0
+      vp = 1.0 / arrayIn.sizes[dim]
+      p4 = ((arrayIn - expValue)**4.0).sum(dim=dim)
       if not self.biased:
-        result = -3.0 + ((1.0/float(len(arrayIn)))*np.sum((arrayIn - expValue)**4)*unbiasCorr[0]-unbiasCorr[1]*(np.average((arrayIn - expValue)**2))**2.0)/(variance)**2.0
+        p2 = (arrayIn - expValue).var(dim=dim)
+        result = -3.0 + (p4*unbiasCorr[0]*vp-p2**2.0*unbiasCorr[1]) / vr
       else:
-        result = -3.0 + ((1.0/float(len(arrayIn)))*np.sum((arrayIn - expValue)**4)*unbiasCorr)/(variance)**2.0
+        result = -3.0 + (p4*unbiasCorr*vp) / vr
     return result
 
-  def _computeSkewness(self,arrayIn,expValue,variance,pbWeight=None):
+  def _computeSkewness(self, arrayIn, expValue, variance, pbWeight=None, dim=None):
     """
       Method to compute the skewness of an array of observations
       @ In, arrayIn, list/numpy.array, the array of values from which the skewness needs to be estimated
@@ -398,15 +421,20 @@ class BasicStatistics(PostProcessor):
       @ In, pbWeight, list/numpy.array, optional, the reliability weights that correspond to the values in 'array'. If not present, an unweighted approach is used
       @ Out, result, float, the skewness of the array of data
     """
+    if dim is None:
+      dim = self.sampleTag
+    vr = self.__computePower(1.5, variance)
     if pbWeight is not None:
       unbiasCorr = self.__computeUnbiasedCorrection(3,pbWeight) if not self.biased else 1.0
-      result = (1.0/self.__computeVp(1,pbWeight))*np.sum(np.dot(np.power(arrayIn - expValue,3.0),pbWeight))*unbiasCorr/np.power(variance,1.5)
+      vp = 1.0/self.__computeVp(1,pbWeight)
+      result = ((arrayIn - expValue)**3 * pbWeight).sum(dim=dim) * vp * unbiasCorr / vr
     else:
-      unbiasCorr = self.__computeUnbiasedCorrection(3,len(arrayIn)) if not self.biased else 1.0
-      result = ((1.0/float(len(arrayIn)))*np.sum((arrayIn - expValue)**3)*unbiasCorr)/np.power(variance,1.5)
+      unbiasCorr = self.__computeUnbiasedCorrection(3,arrayIn.sizes[dim]) if not self.biased else 1.0
+      vp = 1.0 / arrayIn.sizes[dim]
+      result = ((arrayIn - expValue)**3).sum(dim=dim) * vp * unbiasCorr) / vr
     return result
 
-  def _computeVariance(self,arrayIn,expValue,pbWeight=None):
+  def _computeVariance(self, arrayIn, expValue, pbWeight=None, dim = None):
     """
       Method to compute the Variance (fisher) of an array of observations
       @ In, arrayIn, list/numpy.array, the array of values from which the Variance needs to be estimated
@@ -414,24 +442,16 @@ class BasicStatistics(PostProcessor):
       @ In, pbWeight, list/numpy.array, optional, the reliability weights that correspond to the values in 'array'. If not present, an unweighted approach is used
       @ Out, result, float, the Variance of the array of data
     """
+    if dim is None:
+      dim = self.sampleTag
     if pbWeight is not None:
       unbiasCorr = self.__computeUnbiasedCorrection(2,pbWeight) if not self.biased else 1.0
-      result = (1.0/self.__computeVp(1,pbWeight))*np.average((arrayIn - expValue)**2,weights= pbWeight)*unbiasCorr
+      vp = 1.0/self.__computeVp(1,pbWeight)
+      result = ((arrayIn-expValue)**2 * pbWeight).sum(dim=dim) * vp * unbiasCorr
     else:
-      unbiasCorr = self.__computeUnbiasedCorrection(2,len(arrayIn)) if not self.biased else 1.0
-      result = np.average((arrayIn - expValue)**2)*unbiasCorr
+      unbiasCorr = self.__computeUnbiasedCorrection(2,arrayIn.sizes[dim]) if not self.biased else 1.0
+      result =  (arrayIn-expValue).var(dim=dim) * unbiasCorr
     return result
-
-  def _computeVarianceXR(self,arrayIn,expValue,pbWeight=None, dim):
-    """
-      Method to compute the Variance (fisher) of an array of observations
-      @ In, arrayIn, list/numpy.array, the array of values from which the Variance needs to be estimated
-      @ In, expValue, float, expected value of arrayIn
-      @ In, pbWeight, list/numpy.array, optional, the reliability weights that correspond to the values in 'array'. If not present, an unweighted approach is used
-      @ Out, result, float, the Variance of the array of data
-    """
-    return xr.apply_ufunc(self._computeVarianceXR, arrayIn, expValue, pbWeight, input_core_dims=[[dim],[],[]],kwargs={'axis':-1})
-
 
   def _computeSigma(self,arrayIn,variance,pbWeight=None):
     """
@@ -443,7 +463,7 @@ class BasicStatistics(PostProcessor):
     """
     return np.sqrt(variance)
 
-  def _computeWeightedPercentile(self,arrayIn,pbWeight,percent=0.5):
+  def _computeWeightedPercentile(self,arrayIn,pbWeight,percent=0.5,dim=None):
     """
       Method to compute the weighted percentile in a array of data
       @ In, arrayIn, list/numpy.array, the array of values from which the percentile needs to be estimated
@@ -451,6 +471,8 @@ class BasicStatistics(PostProcessor):
       @ In, percent, float, the percentile that needs to be computed (between 0.01 and 1.0)
       @ Out, result, float, the percentile
     """
+    if dim is None:
+      dim = self.sampleTag
     idxs                   = np.argsort(np.asarray(zip(pbWeight,arrayIn))[:,1])
     # Inserting [0.0,arrayIn[idxs[0]]] is needed when few samples are generated and
     # a percentile that is < that the first pb weight is requested. Otherwise the median
@@ -554,118 +576,81 @@ class BasicStatistics(PostProcessor):
     startMetric(metric)
     dataSet = inputDataset[list(needed[metric]['targets'])]
     if self.pbPresent:
-      pbWeight = pbWeights[list(needed[metric]['targets'])]
-      for target in needed[metric]['targets']:
-        dataSet[target] = dataSet[target] * pbWeights[target]
+      relWeight = pbWeights[list(needed[metric]['targets'])]
+      dataSet = dataSet * relWeights
       expectedValue = dataSet.sum(dim = self.sampleTag)
     else:
       expectedValue = dataSet.mean(dim = self.sampleTag)
-    calculation[metric] = expectedValue
+    calculations[metric] = expectedValue
     #
     # variance
     #
     metric = 'variance'
     startMetric(metric)
     dataSet = inputDataset[list(needed[metric]['targets'])]
-    calcXR = xr.Dataset()
-    for target in needed[metric]['targets']:
-      if not self.dynamic:
-        calcXR[target] = self._computeVariance(dataSet[target],calculation['expectedValue'][target],pbWeight=relWeight)
-      else:
-        calcXR[target] = self._computeVarianceXR(dataSet[target],calculation['expectedValue'][target],pbWeights[target],self.sampleTag)
-
-
-
-
-    if self.pbPresent:
-      relWeight
-      dataSet = dataSet * pbWeights
-      varianceValue = dataSet.sum(dim = self.sampleTag)
-    else:
-      varianceValue = dataSet.mean(dim = self.sampleTag)
-    calcDataset[metric] = varianceValue
-
-
-
-    for targetP in needed[metric]['targets']:
-      if pbPresent:
-        relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
-      else:
-        relWeight  = None
-      calculations[metric][targetP] = self._computeVariance(inputDict['targets'][targetP].values,calculations['expectedValue'][targetP],pbWeight=relWeight)
-      #sanity check
-      if (calculations[metric][targetP] == 0):
-        self.raiseAWarning('The variable: ' + targetP + ' has zero variance! Please check your input in PP: ' + self.name)
+    meanSet = calculations['expectedValue'][list(needed[metric]['targets'])]
+    relWeight = pbWeights[list(needed[metric]['targets'])] if self.pbPresent else None
+    calculations[metric] = self._computeVariance(dataSet,meanSet,pbWeight=relWeight,dim=self.sampleTag)
     #
     # sigma
     #
     metric = 'sigma'
     startMetric(metric)
-    for targetP in needed[metric]['targets']:
-      if calculations['variance'][targetP] == 0:
-        #np.Infinity:
-        self.raiseAWarning('The variable: ' + targetP + ' has zero sigma! Please check your input in PP: ' + self.name)
-        calculations[metric][targetP] = 0.0
-      else:
-        calculations[metric][targetP] = self._computeSigma(inputDict['targets'][targetP].values,calculations['variance'][targetP])
+    calculations[metric] = self.__computePower(0.5,calculations['variance'][list(needed[metric]['targets'])])
     #
     # coeff of variation (sigma/mu)
     #
     metric = 'variationCoefficient'
     startMetric(metric)
-    for targetP in needed[metric]['targets']:
-      if calculations['expectedValue'][targetP] == 0:
-        self.raiseAWarning('Expected Value for ' + targetP + ' is zero! Variation Coefficient cannot be calculated, so setting as infinite.')
-        calculations[metric][targetP] = np.Infinity
-      else:
-        calculations[metric][targetP] = calculations['sigma'][targetP]/calculations['expectedValue'][targetP]
+    calculations[metric] = calculations['sigma'][needed[metric]['targets']] / calculations['expectedValue'][needed[metric]['targets']]
     #
     # skewness
     #
     metric = 'skewness'
     startMetric(metric)
-    for targetP in needed[metric]['targets']:
-      if pbPresent:
-        relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
-      else:
-        relWeight  = None
-      calculations[metric][targetP] = self._computeSkewness(inputDict['targets'][targetP].values,calculations['expectedValue'][targetP],calculations['variance'][targetP],pbWeight=relWeight)
+    dataSet = inputDataset[list(needed[metric]['targets'])]
+    meanSet = calculations['expectedValue'][list(needed[metric]['targets'])]
+    varianceSet = calculations['variance'][list(needed[metric]['targets'])]
+    relWeight = pbWeights[list(needed[metric]['targets'])] if self.pbPresent else None
+    calculations[metric] = self._computeSkewness(dataSet,meanSet,varianceSet,pbWeight=relWeight,dim=self.sampleTag)
     #
     # kurtosis
     #
     metric = 'kurtosis'
     startMetric(metric)
-    for targetP in needed[metric]['targets']:
-      if pbPresent:
-        relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
-      else:
-        relWeight  = None
-      calculations[metric][targetP] = self._computeKurtosis(inputDict['targets'][targetP].values,calculations['expectedValue'][targetP],calculations['variance'][targetP],pbWeight=relWeight)
+    dataSet = inputDataset[list(needed[metric]['targets'])]
+    meanSet = calculations['expectedValue'][list(needed[metric]['targets'])]
+    varianceSet = calculations['variance'][list(needed[metric]['targets'])]
+    relWeight = pbWeights[list(needed[metric]['targets'])] if self.pbPresent else None
+    calculations[metric] = self._computeKurtosis(dataSet,meanSet,varianceSet,pbWeight=relWeight,dim=self.sampleTag)
     #
     # median
     #
     metric = 'median'
     startMetric(metric)
-    for targetP in needed[metric]['targets']:
-      if pbPresent:
-        relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
-        calculations[metric][targetP] = self._computeWeightedPercentile(inputDict['targets'][targetP].values,relWeight,percent=0.5)
-      else:
-        calculations[metric][targetP] = np.median(inputDict['targets'][targetP].values)
+    dataSet = inputDataset[list(needed[metric]['targets'])]
+    relWeight = pbWeights[list(needed[metric]['targets'])] if self.pbPresent else None
+    if self.pbPresent:
+      dataSet = dataSet * relWeight
+      bb = dataSet.where(dataSet==dataSet.quantile(0.5,dim=self.sampleTag,interpolation='nearest'),drop=True)
+
+      calculations[metric] = self._computeWeightedPercentile(dataSet,relWeight,percent=0.5,dim=self.sampleTag)
+    else:
+      calculations[metric] = dataSet.median(dim=self.sampleTag)
     #
     # maximum
     #
     metric = 'maximum'
     startMetric(metric)
-    for targetP in needed[metric]['targets']:
-      calculations[metric][targetP] = np.amax(inputDict['targets'][targetP].values)
+    dataSet = inputDataset[list(needed[metric]['targets'])]
+    calculations[metric] = dataSet.max(dim=self.sampleTag)
     #
     # minimum
     #
     metric = 'minimum'
     startMetric(metric)
-    for targetP in needed[metric]['targets']:
-      calculations[metric][targetP] = np.amin(inputDict['targets'][targetP].values)
+    dataSet = inputDataset[list(needed[metric]['targets'])]
+    calculations[metric] = dataSet.min(dim=self.sampleTag)
 
     #################
     # VECTOR VALUES #
