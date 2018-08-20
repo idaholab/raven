@@ -631,10 +631,11 @@ class BasicStatistics(PostProcessor):
     dataSet = inputDataset[list(needed[metric]['targets'])]
     relWeight = pbWeights[list(needed[metric]['targets'])] if self.pbPresent else None
     if self.pbPresent:
-      dataSet = dataSet * relWeight
-      bb = dataSet.where(dataSet==dataSet.quantile(0.5,dim=self.sampleTag,interpolation='nearest'),drop=True)
-
-      calculations[metric] = self._computeWeightedPercentile(dataSet,relWeight,percent=0.5,dim=self.sampleTag)
+      dataSetWeighted = dataSet * relWeight
+      # interpolation: {'linear', 'lower', 'higher','midpoint','nearest'}, do not try to use 'linear' or 'midpoint'
+      # The xarray.Dataset.where() will not return the corrrect solution
+      medianSet = dataSet.where(dataSetWeighted==dataSetWeighted.quantile(0.5,dim=self.sampleTag,interpolation='nearest')).sum(self.sampleTag)
+      calculations[metric] = medianSet
     else:
       calculations[metric] = dataSet.median(dim=self.sampleTag)
     #
