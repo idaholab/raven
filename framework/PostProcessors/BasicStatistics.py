@@ -98,7 +98,7 @@ class BasicStatistics(PostProcessor):
       if scalar == 'percentile':
         #percent is a string type because otherwise we can't tell 95.0 from 95
         # which matters because the number is used in output.
-        scalarSpecification.addParam("percent", InputData.StringType)
+        scalarSpecification.addParam("percent", InputData.FloatListType)
       scalarSpecification.addParam("prefix", InputData.StringType)
       inputSpecification.addSub(scalarSpecification)
 
@@ -268,22 +268,23 @@ class BasicStatistics(PostProcessor):
           self.raiseAWarning('No targets were specified in text of <'+tag+'>!  Skipping metric...')
           continue
         #prepare storage dictionary, keys are percentiles, values are set(targets)
-        if 'percentile' not in self.toDo.keys():
+        if tag not in self.toDo.keys():
           self.toDo[tag] = [] # list of {'targets':(), 'prefix':str, 'percent':str}
         if 'percent' not in child.parameterValues:
-          strPercent = ['5', '95']
+          reqPercent = [5, 95]
         else:
-          strPercent = [child.parameterValues['percent']]
-        for reqPercent in strPercent:
-          self.toDo[tag].append({'targets':set(targets),
-                                 'prefix':prefix,
-                                 'percent':reqPercent})
+          reqPercent = child.parameterValues['percent']
+        self.toDo[tag].append({'targets':set(targets),
+                               'prefix':prefix,
+                               'percent':reqPercent})
       elif tag in self.scalarVals:
-        self.toDo[tag] = [] # list of {'targets':(), 'prefix':str}
+        if tag not in self.toDo.keys():
+          self.toDo[tag] = [] # list of {'targets':(), 'prefix':str}
         self.toDo[tag].append({'targets':set(child.value),
                                'prefix':prefix})
       elif tag in self.vectorVals:
-        self.toDo[tag] = [] # list of {'targets':(),'features':(), 'prefix':str}
+        if tag not in self.toDo.keys():
+          self.toDo[tag] = [] # list of {'targets':(),'features':(), 'prefix':str}
         tnode = child.findFirst('targets')
         if tnode is None:
           self.raiseAnError('Request for vector value <'+tag+'> requires a "targets" node, and none was found!')
@@ -463,29 +464,6 @@ class BasicStatistics(PostProcessor):
     """
     return np.sqrt(variance)
 
-  def _computeWeightedPercentile(self,arrayIn,pbWeight,percent=0.5,dim=None):
-    """
-      Method to compute the weighted percentile in a array of data
-      @ In, arrayIn, list/numpy.array, the array of values from which the percentile needs to be estimated
-      @ In, pbWeight, list/numpy.array, the reliability weights that correspond to the values in 'array'
-      @ In, percent, float, the percentile that needs to be computed (between 0.01 and 1.0)
-      @ Out, result, float, the percentile
-    """
-    if dim is None:
-      dim = self.sampleTag
-    idxs                   = np.argsort(np.asarray(zip(pbWeight,arrayIn))[:,1])
-    # Inserting [0.0,arrayIn[idxs[0]]] is needed when few samples are generated and
-    # a percentile that is < that the first pb weight is requested. Otherwise the median
-    # is returned (that is wrong).
-    sortedWeightsAndPoints = np.insert(np.asarray(zip(pbWeight[idxs],arrayIn[idxs])),0,[0.0,arrayIn[idxs[0]]],axis=0)
-    weightsCDF             = np.cumsum(sortedWeightsAndPoints[:,0])
-    try:
-      index = utils.find_le_index(weightsCDF,percent)
-      result = sortedWeightsAndPoints[index,1]
-    except ValueError:
-      result = np.median(arrayIn)
-    return result
-
   def __runLocal(self, inputData):
     """
       This method executes the postprocessor action. In this case, it computes all the requested statistical FOMs
@@ -551,114 +529,132 @@ class BasicStatistics(PostProcessor):
     #################
     # SCALAR VALUES #
     #################
-    def startMetric(metric):
-      """
-        Common starting for each metric calculation.
-        @ In, metric, string, name of metric
-        @ Out, None
-      """
-      if len(needed[metric]['targets'])>0:
-        self.raiseADebug('Starting "'+metric+'"...')
-        #calculations[metric]={}
     #
     # samples
     #
     metric = 'samples'
-    startMetric(metric)
-    numRlz = inputDataset.sizes[self.sampleTag]
-    # TODO: remove latter
-    #samples = xr.DataArray([numRlz]*len(self.parameters['targets']),dims=('targets'),coords={'targets':self.parameters['targets']})
-    calculations[metric] = numRlz
+    if len(needed[metric]['targets'])>0:
+      self.raiseADebug('Starting "'+metric+'"...')
+      numRlz = inputDataset.sizes[self.sampleTag]
+      # TODO: remove latter
+      #samples = xr.DataArray([numRlz]*len(self.parameters['targets']),dims=('targets'),coords={'targets':self.parameters['targets']})
+      calculations[metric] = numRlz
     #
     # expected value
     #
     metric = 'expectedValue'
-    startMetric(metric)
-    dataSet = inputDataset[list(needed[metric]['targets'])]
-    if self.pbPresent:
-      relWeight = pbWeights[list(needed[metric]['targets'])]
-      dataSet = dataSet * relWeights
-      expectedValue = dataSet.sum(dim = self.sampleTag)
-    else:
-      expectedValue = dataSet.mean(dim = self.sampleTag)
-    calculations[metric] = expectedValue
+    if len(needed[metric]['targets'])>0:
+      self.raiseADebug('Starting "'+metric+'"...')
+      dataSet = inputDataset[list(needed[metric]['targets'])]
+      if self.pbPresent:
+        relWeight = pbWeights[list(needed[metric]['targets'])]
+        dataSet = dataSet * relWeights
+        expectedValue = dataSet.sum(dim = self.sampleTag)
+      else:
+        expectedValue = dataSet.mean(dim = self.sampleTag)
+      calculations[metric] = expectedValue
     #
     # variance
     #
     metric = 'variance'
-    startMetric(metric)
-    dataSet = inputDataset[list(needed[metric]['targets'])]
-    meanSet = calculations['expectedValue'][list(needed[metric]['targets'])]
-    relWeight = pbWeights[list(needed[metric]['targets'])] if self.pbPresent else None
-    calculations[metric] = self._computeVariance(dataSet,meanSet,pbWeight=relWeight,dim=self.sampleTag)
+    if len(needed[metric]['targets'])>0:
+      self.raiseADebug('Starting "'+metric+'"...')
+      dataSet = inputDataset[list(needed[metric]['targets'])]
+      meanSet = calculations['expectedValue'][list(needed[metric]['targets'])]
+      relWeight = pbWeights[list(needed[metric]['targets'])] if self.pbPresent else None
+      calculations[metric] = self._computeVariance(dataSet,meanSet,pbWeight=relWeight,dim=self.sampleTag)
     #
     # sigma
     #
     metric = 'sigma'
-    startMetric(metric)
-    calculations[metric] = self.__computePower(0.5,calculations['variance'][list(needed[metric]['targets'])])
+    if len(needed[metric]['targets'])>0:
+      self.raiseADebug('Starting "'+metric+'"...')
+      calculations[metric] = self.__computePower(0.5,calculations['variance'][list(needed[metric]['targets'])])
     #
     # coeff of variation (sigma/mu)
     #
     metric = 'variationCoefficient'
-    startMetric(metric)
-    calculations[metric] = calculations['sigma'][needed[metric]['targets']] / calculations['expectedValue'][needed[metric]['targets']]
+    if len(needed[metric]['targets'])>0:
+      self.raiseADebug('Starting "'+metric+'"...')
+      calculations[metric] = calculations['sigma'][needed[metric]['targets']] / calculations['expectedValue'][needed[metric]['targets']]
     #
     # skewness
     #
     metric = 'skewness'
-    startMetric(metric)
-    dataSet = inputDataset[list(needed[metric]['targets'])]
-    meanSet = calculations['expectedValue'][list(needed[metric]['targets'])]
-    varianceSet = calculations['variance'][list(needed[metric]['targets'])]
-    relWeight = pbWeights[list(needed[metric]['targets'])] if self.pbPresent else None
-    calculations[metric] = self._computeSkewness(dataSet,meanSet,varianceSet,pbWeight=relWeight,dim=self.sampleTag)
+    if len(needed[metric]['targets'])>0:
+      self.raiseADebug('Starting "'+metric+'"...')
+      dataSet = inputDataset[list(needed[metric]['targets'])]
+      meanSet = calculations['expectedValue'][list(needed[metric]['targets'])]
+      varianceSet = calculations['variance'][list(needed[metric]['targets'])]
+      relWeight = pbWeights[list(needed[metric]['targets'])] if self.pbPresent else None
+      calculations[metric] = self._computeSkewness(dataSet,meanSet,varianceSet,pbWeight=relWeight,dim=self.sampleTag)
     #
     # kurtosis
     #
     metric = 'kurtosis'
-    startMetric(metric)
-    dataSet = inputDataset[list(needed[metric]['targets'])]
-    meanSet = calculations['expectedValue'][list(needed[metric]['targets'])]
-    varianceSet = calculations['variance'][list(needed[metric]['targets'])]
-    relWeight = pbWeights[list(needed[metric]['targets'])] if self.pbPresent else None
-    calculations[metric] = self._computeKurtosis(dataSet,meanSet,varianceSet,pbWeight=relWeight,dim=self.sampleTag)
+    if len(needed[metric]['targets'])>0:
+      self.raiseADebug('Starting "'+metric+'"...')
+      dataSet = inputDataset[list(needed[metric]['targets'])]
+      meanSet = calculations['expectedValue'][list(needed[metric]['targets'])]
+      varianceSet = calculations['variance'][list(needed[metric]['targets'])]
+      relWeight = pbWeights[list(needed[metric]['targets'])] if self.pbPresent else None
+      calculations[metric] = self._computeKurtosis(dataSet,meanSet,varianceSet,pbWeight=relWeight,dim=self.sampleTag)
     #
     # median
     #
     metric = 'median'
-    startMetric(metric)
-    dataSet = inputDataset[list(needed[metric]['targets'])]
-    relWeight = pbWeights[list(needed[metric]['targets'])] if self.pbPresent else None
-    if self.pbPresent:
-      dataSetWeighted = dataSet * relWeight
-      # interpolation: {'linear', 'lower', 'higher','midpoint','nearest'}, do not try to use 'linear' or 'midpoint'
-      # The xarray.Dataset.where() will not return the corrrect solution
-      medianSet = dataSet.where(dataSetWeighted==dataSetWeighted.quantile(0.5,dim=self.sampleTag,interpolation='nearest')).sum(self.sampleTag)
-      calculations[metric] = medianSet
-    else:
-      calculations[metric] = dataSet.median(dim=self.sampleTag)
+    if len(needed[metric]['targets'])>0:
+      self.raiseADebug('Starting "'+metric+'"...')
+      dataSet = inputDataset[list(needed[metric]['targets'])]
+      relWeight = pbWeights[list(needed[metric]['targets'])] if self.pbPresent else None
+      if self.pbPresent:
+        dataSetWeighted = dataSet * relWeight
+        # interpolation: {'linear', 'lower', 'higher','midpoint','nearest'}, do not try to use 'linear' or 'midpoint'
+        # The xarray.Dataset.where() will not return the corrrect solution
+        # 'lower' is used for consistent
+        medianSet = dataSet.where(dataSetWeighted==dataSetWeighted.quantile(0.5,dim=self.sampleTag,interpolation='lower')).sum(self.sampleTag)
+        calculations[metric] = medianSet
+      else:
+        calculations[metric] = dataSet.median(dim=self.sampleTag)
     #
     # maximum
     #
     metric = 'maximum'
-    startMetric(metric)
-    dataSet = inputDataset[list(needed[metric]['targets'])]
-    calculations[metric] = dataSet.max(dim=self.sampleTag)
+    if len(needed[metric]['targets'])>0:
+      self.raiseADebug('Starting "'+metric+'"...')
+      dataSet = inputDataset[list(needed[metric]['targets'])]
+      calculations[metric] = dataSet.max(dim=self.sampleTag)
     #
     # minimum
     #
     metric = 'minimum'
-    startMetric(metric)
-    dataSet = inputDataset[list(needed[metric]['targets'])]
-    calculations[metric] = dataSet.min(dim=self.sampleTag)
+    if len(needed[metric]['targets'])>0:
+      self.raiseADebug('Starting "'+metric+'"...')
+      dataSet = inputDataset[list(needed[metric]['targets'])]
+      calculations[metric] = dataSet.min(dim=self.sampleTag)
+    #
+    # percentile, this metric is handled differently
+    #
+    metric = 'percentile'
+    if len(needed[metric]['targets'])>0:
+      self.raiseADebug('Starting "'+metric+'"...')
+      calculations[metric] = []
+      for targetDict in self.toDo[metric]:
+        percent = targetDict['percent']
+        dataSet = inputDataset[list(targetDict['targets'])]
+        if self.pbPresent:
+          relWeight = pbWeights[list(targetDict['targets'])]
+          dataSetWeighted = dataSet * relWeight
+          # interpolation: {'linear', 'lower', 'higher','midpoint','nearest'}, do not try to use 'linear' or 'midpoint'
+          # The xarray.Dataset.where() will not return the corrrect solution
+          # 'lower' is used for consistent
+          # using xarray.Dataset.sel(**{'quantile':reqPercent}) to retrieve the quantile values
+          percentileSet = dataSet.where(dataSetWeighted==dataSetWeighted.quantile(percent,dim=self.sampleTag,interpolation='lower')).sum(self.sampleTag)
+          calculations[metric].append(percentileSet)
+        else:
+          percentileSet = dataSet.quantile(percent,dim=self.sampleTag,interpolation='lower')
+          calculations[metric].append(percentileSet)
 
-    #################
-    # VECTOR VALUES #
-    #################
-    #
-    # sensitivity matrix
-    #
     def startVector(metric):
       """
         Common method among all metrics for establishing parameters
@@ -671,35 +667,38 @@ class BasicStatistics(PostProcessor):
       targets = []
       features = []
       skip = True
-      allParams = set(needed[metric]['targets'])
-      allParams.update(set(needed[metric]['features']))
-      if len(needed[metric]['targets'])>0 and len(allParams)>=2:
+      if len(needed[metric]['targets'])>0:
         self.raiseADebug('Starting "'+metric+'"...')
-        calculations[metric]={}
         targets = needed[metric]['targets']
         features = needed[metric]['features']
         skip = False #True only if we don't have targets and features
-        if len(features)<1:
-          self.raiseAWarning('No features specified for <'+metric+'>!  Please specify features in a <features> node (see the manual).  Skipping...')
-          skip = True
-      elif len(needed[metric]['targets']) == 0:
-        #unrequested, no message needed
-        pass
-      elif len(allParams) < 2:
-        #insufficient target/feature combinations (usually when only 1 target and 1 feature, and they are the same)
-        self.raiseAWarning('A total of',len(allParams),'were provided for metric',metric,'but at least 2 are required!  Skipping...')
       if skip:
         if metric not in self.skipped.keys():
-          self.skipped[metric] = {}
-        self.skipped[metric].update(needed[metric])
+          self.skipped[metric] = True
       return targets,features,skip
 
+    #################
+    # VECTOR VALUES #
+    #################
+    #
+    # sensitivity matrix
+    #
     metric = 'sensitivity'
     targets,features,skip = startVector(metric)
     #NOTE sklearn expects the transpose of what we usually do in RAVEN, so #samples by #features
     if not skip:
       #for sensitivity matrix, we don't use numpy/scipy methods to calculate matrix operations,
       #so we loop over targets and features
+      targetSet = inputDataset[targets]
+      featureSet = inputDataset[features]
+      for paramDict in self.toDo[metric]:
+        targetSet = targetSet[paramDict['targets']]
+        featureSet = featureSet[paramDict['features']]
+        inpSamples = np.atleast_2d(np.)
+
+
+
+
       for t,target in enumerate(targets):
         calculations[metric][target] = {}
         targetVals = inputDict['targets'][target].values
@@ -807,25 +806,6 @@ class BasicStatistics(PostProcessor):
           expValueRatio = calculations['expectedValue'][feature]/calculations['expectedValue'][param]
           calculations[metric][param][feature] = calculations['VarianceDependentSensitivity'][param][feature]*expValueRatio
 
-    # The following dict is used to collect outputs from calculations
-    outputDict = {}
-    #
-    # percentile, this metric is handled differently
-    #
-    metric = 'percentile'
-    if len(needed[metric]['targets'])>0:
-      self.raiseADebug('Starting "'+metric+'"...')
-      for targetDict in self.toDo[metric]:
-        percent = float(targetDict['percent'])
-        prefix = targetDict['prefix'].strip()
-        for targetP in targetDict['targets']:
-          varName = '_'.join([prefix, targetDict['percent'].strip(), targetP])
-          if pbPresent:
-            relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
-            outputDict[varName] = np.atleast_1d(self._computeWeightedPercentile(inputDict['targets'][targetP].values,relWeight,percent=float(percent)/100.0))
-          else:
-            outputDict[varName] = np.percentile(inputDict['targets'][targetP].values, float(percent), interpolation='lower')
-
     #collect only the requested calculations except percentile, since it has been already collected
     #in the outputDict.
     for metric, requestList  in self.toDo.items():
@@ -842,9 +822,8 @@ class BasicStatistics(PostProcessor):
         #if matrix block, extract desired values
         else:
           #check if it was skipped for some reason
-          skip = self.skipped.get(metric, None)
-          if skip is not None:
-            self.raiseADebug('Metric',metric,'was skipped for parameters',targetDict,'!  See warnings for details.  Ignoring...')
+          skip = self.skipped.get(metric, False)
+          if skip:
             continue
           if metric in ['pearson', 'covariance']:
             for targetP in targetDict['targets']:
