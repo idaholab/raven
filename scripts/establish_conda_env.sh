@@ -72,8 +72,6 @@ function find_conda_defs ()
 	then
     # first check the RAVEN RC file for the key
     CONDA_DEFS=$(read_ravenrc "CONDA_DEFS")
-    ## the following DOES NOT work if the system python is too old!
-    #CONDA_DEFS=`echo $(python ${ECE_SCRIPT_DIR}/update_install_data.py --read CONDA_DEFS)`
     # if not set in RC, then will be empty string; next try defaults
     if [[ ${#CONDA_DEFS} == 0 ]];
     then
@@ -226,7 +224,7 @@ if [[ $ECE_VERBOSE == 0 ]]; then echo ... Detected OS as ${OSOPTION} ...; fi
 if [ -z $RAVEN_LIBS_NAME ];
 then
   # check the RC file first
-  RAVEN_LIBS_NAME=$(read_ravenrc "RAVEN_LIBS_NAME")  #FOLLOWING DOES NOT WORK on systems with old python `echo $(python ${ECE_SCRIPT_DIR}/update_install_data.py --read RAVEN_LIBS_NAME)`
+  RAVEN_LIBS_NAME=$(read_ravenrc "RAVEN_LIBS_NAME")
   # if not found through the RC file, will be empty string, so default to raven_libraries
   if [[ ${#RAVEN_LIBS_NAME} == 0 ]];
   then

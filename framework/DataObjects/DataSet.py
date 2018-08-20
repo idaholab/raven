@@ -216,7 +216,13 @@ class DataSet(DataObject):
     if self._collector is None:
       self._collector = self._newCollector(width=len(rlz))
     # append
-    self._collector.append(newData)
+    try:
+      self._collector.append(newData)
+    except IOError as e:
+      print('DEBUGG d.o. vars:',self.vars)
+      print('DEBUGG d.o. ordered:',self._orderedVars)
+      print('DEBUGG rlz  vars:',rlz.keys())
+
     # if hierarchical, clear the parent as an ending
     self._clearParentEndingStatus(rlz)
     # reset scaling factors, kd tree
@@ -465,7 +471,7 @@ class DataSet(DataObject):
         if index > numInData-1:
           ## if past the data AND the collector, we don't have that entry
           if index > numInData + numInCollector - 1:
-            self.raiseAnError(IndexError,'Requested index "{}" but only have {} entries (zero-indexed)!'.format(index,numInData+numInCollector))
+            self.raiseAnError(IndexError,'{}: Requested index "{}" but only have {} entries (zero-indexed)!'.format(self.name,index,numInData+numInCollector))
           ## otherwise, take from the collector
           else:
             rlz = self._getRealizationFromCollectorByIndex(index - numInData)

@@ -658,7 +658,16 @@ class EnsembleModel(Dummy):
           ## does not return the indexes values (TO FIX)
           inRunTargetEvaluations[modelIn].asDataset()
           # get realization
-          dataSet = inRunTargetEvaluations[modelIn].realization(index=iterationCount-1,unpackXArray=True)
+          ##### DEBUGGGGG #######
+          try:
+            dataSet = inRunTargetEvaluations[modelIn].realization(index=iterationCount-1,unpackXArray=True)
+          except IndexError as e:
+            TE = inRunTargetEvaluations[modelIn]
+            msg = ''
+            msg += 'TE: '+str(TE)+' '+TE.name+' len: '+str(len(TE))+' data: '+str(len(TE._data))+' coll: '+str(len(TE._collector))
+            print('\n\n\n\n',msg,'\n\n\n\n')
+            raise e
+          ##### END DEBUGGGGG #######
           ##FIXME: the following dict construction is a temporary solution since the realization method returns scalars if we have a PointSet
           dataSet = {key:np.atleast_1d(dataSet[key]) for key in dataSet}
           responseSpace         = dataSet
