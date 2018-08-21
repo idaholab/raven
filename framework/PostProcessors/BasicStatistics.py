@@ -156,6 +156,7 @@ class BasicStatistics(PostProcessor):
     self.dynamic        = False # is it time-dependent?
     self.sampleTag      = None  # Tag used to track samples
     self.pbPresent      = False # True if the ProbabilityWeight is available
+    self.realizationWeight = None
 
   def inputToInternal(self, currentInp):
     """
@@ -198,13 +199,13 @@ class BasicStatistics(PostProcessor):
     self.pbPresent = True if 'ProbabilityWeight' in metaVars else False
     if self.pbPresent:
       pbWeights = xr.Dataset()
-      probabilityWeight = dataSet['ProbabilityWeight']/dataSet['ProbabilityWeight'].sum()
+      self.realizationWeight = dataSet['ProbabilityWeight']/dataSet['ProbabilityWeight'].sum()
       for target in self.parameters['targets']:
         pbName = 'ProbabilityWeight-' + target
         if pbName in metaVars:
           pbWeights[target] = dataSet[pbName]/dataSet[pbName].sum()
         elif self.pbPresent:
-          pbWeights[target] = probabilityWeight
+          pbWeights[target] = self.realizationWeight
     else:
       self.raiseAWarning('BasicStatistics postprocessor did not detect ProbabilityWeights! Assuming unit weights instead...')
 
@@ -689,26 +690,35 @@ class BasicStatistics(PostProcessor):
     if not skip:
       #for sensitivity matrix, we don't use numpy/scipy methods to calculate matrix operations,
       #so we loop over targets and features
-      targetSet = inputDataset[targets]
-      featureSet = inputDataset[features]
+      calculations[metric] = []
       for paramDict in self.toDo[metric]:
-        targetSet = targetSet[paramDict['targets']]
-        featureSet = featureSet[paramDict['features']]
-        inpSamples = np.atleast_2d(np.)
-
-
-
-
-      for t,target in enumerate(targets):
-        calculations[metric][target] = {}
-        targetVals = inputDict['targets'][target].values
-        #don't do self-sensitivity
-        inpSamples = np.atleast_2d(np.asarray(list(inputDict['targets'][f].values for f in features if f!=target))).T
-        useFeatures = list(f for f in features if f != target)
-        #use regressor coefficients as sensitivity
-        regressDict = dict(zip(useFeatures, LinearRegression().fit(inpSamples,targetVals).coef_))
-        for f,feature in enumerate(features):
-          calculations[metric][target][feature] = 1.0 if feature==target else regressDict[feature]
+        targList = paramDict['targets']
+        featList = paramDict['features']
+        dataSet = inputDataset[targList + featList]
+        if self.pivotParameter in dataSet.dims.keys():
+          ds = None
+          pivotVals = []
+          for label, group in dataSet.groupby(self.pivotParameter):
+            # construct target and feature matrices
+            featSamples = group[featList].to_array().transpose(self.sampleTag,'variable')
+            targSamples = group[targList].to_array().transpose(self.sampleTag,'variable')
+            featVars = featSamples.coords['variable'].values
+            targVars = targSamples.coords['variable'].values
+            regCoeff = LinearRegression().fit(featSamples.values,targSamples.values).coef_
+            pivotVals.append(label)
+            da = xr.DataArray(regCoeff, dims=('targets','features'), coords={'targets':targVars,'features':featVars})
+            ds = da if ds is None else xr.concat([ds,da], dim=self.pivotParameter)
+          ds.coords[self.pivotParameter] = pivotVals
+          calculations[metric].append(ds)
+        else:
+          # construct target and feature matrices
+          featSamples = dataSet[featList].to_array().transpose(self.sampleTag,'variable')
+          targSamples = dataSet[targList].to_array().transpose(self.sampleTag,'variable')
+          featVars = featSamples.coords['variable'].values
+          targVars = targSamples.coords['variable'].values
+          regCoeff = LinearRegression().fit(featSamples.values,targSamples.values).coef_
+          da = xr.DataArray(regCoeff, dims=('targets','features'), coords={'targets':targVars,'features':featVars})
+          calculations[metric].append(da)
     #
     # covariance matrix
     #
@@ -721,21 +731,51 @@ class BasicStatistics(PostProcessor):
       #   dependent on the percentage of the full matrix desired, would be better.
       # IF this is fixed, make sure all the features and targets are requested for all the metrics
       #   dependent on this metric
+      calculations[metric] = {}
       params = list(set(targets).union(set(features)))
-      paramSamples = np.zeros((len(params), inputDict['targets'][params[0]].values.size))
-      pbWeightsList = [None]*len(inputDict['targets'].keys())
-      for p,param in enumerate(params):
-        paramSamples[p,:] = inputDict['targets'][param].values[:]
-        pbWeightsList[p] = pbWeights['realization'] if param not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][param]
-      pbWeightsList.append(pbWeights['realization'])
-      #Note: this is basically "None in pbWeightsList", but
-      # using "is None" instead of "== None", which is more reliable
-      if True in [x is None for x in pbWeightsList]:
-        covar = self.covariance(paramSamples)
+      dataSet = inputDataset[params]
+      realWeight = pbWeight[params] if self.pbPresent else None
+      if self.pbPresent:
+        fact = self.__computeUnbiasedCorrection(2, self.realizationWeight) if not self.biased else 1.0
+        meanSet = (dataSet * relWeights).sum(dim = self.sampleTag)
       else:
-        covar = self.covariance(paramSamples, weights = pbWeightsList)
-      calculations[metric]['matrix'] = covar
-      calculations[metric]['params'] = params
+        meanSet = dataSet.mean(dim = self.sampleTag)
+        fact = 1.0 / (float(dataSet.sizes[self.sampleTag]) - 1.0) if not sel.biased else 1.0 / float(dataSet.sizes[self.sampleTag])
+      varianceSet = self._computeVariance(dataSet,meanSet,pbWeight=relWeight,dim=self.sampleTag)
+      calculations[metric]['variance'] = varianceSet
+      dataSet = dataSet - meanSet
+      if self.pivotParameter in dataSet.dims.keys():
+        ds = None
+        pivotVals = []
+        for label, group in dataSet.groupby(self.pivotParameter):
+          # construct target and feature matrices
+          paramSamples = group.to_array().transpose('variable',self.sampleTag)
+          targVars = paramSamples.coords['variable'].values
+          paramSamples = paramSamples.values
+          if self.pbPresent:
+            paramSamplesT = (paramSamples*self.realizationWeight.values).T
+          else:
+            paramSamplesT = paramSamples.T
+          cov = np.dot(paramSamples, paramSamplesT.conj())
+          cov *= fact
+          pivotVals.append(label)
+          da = xr.DataArray(cov, dims=('targets','features'), coords={'targets':targVars,'features':targVars})
+          ds = da if ds is None else xr.concat([ds,da], dim=self.pivotParameter)
+        ds.coords[self.pivotParameter] = pivotVals
+        calculations[metric]['cov'] = ds
+      else:
+        # construct target and feature matrices
+        paramSamples = group.to_array().transpose('variable',self.sampleTag)
+        targVars = paramSamples.coords['variable'].values
+        paramSamples = paramSamples.values
+        if self.pbPresent:
+          paramSamplesT = (paramSamples*self.realizationWeight.values).T
+        else:
+          paramSamplesT = paramSamples.T
+        cov = np.dot(paramSamples, paramSamplesT.conj())
+        cov *= fact
+        da = xr.DataArray(cov, dims=('targets','features'), coords={'targets':targVars,'features':targVars})
+        calculations[metric]['cov'] = da
 
     def getCovarianceSubset(desired):
       """
@@ -743,6 +783,7 @@ class BasicStatistics(PostProcessor):
         @ Out, reducedSecond, np.array, reduced covariance matrix
         @ Out, wantedParams, list(str), parameter labels for reduced covar matrix
       """
+
       wantedIndices = list(calculations['covariance']['params'].index(d) for d in desired)
       wantedParams = list(calculations['covariance']['params'][i] for i in wantedIndices)
       #retain rows, colums
@@ -806,6 +847,8 @@ class BasicStatistics(PostProcessor):
           expValueRatio = calculations['expectedValue'][feature]/calculations['expectedValue'][param]
           calculations[metric][param][feature] = calculations['VarianceDependentSensitivity'][param][feature]*expValueRatio
 
+
+
     #collect only the requested calculations except percentile, since it has been already collected
     #in the outputDict.
     for metric, requestList  in self.toDo.items():
@@ -851,65 +894,6 @@ class BasicStatistics(PostProcessor):
     outputDict = self.__runLocal(inputData)
 
     return outputDict
-
-  def covariance(self, feature, weights = None, rowVar = 1):
-    """
-      This method calculates the covariance Matrix for the given data.
-      Unbiased unweighted covariance matrix, weights is None, bias is 0 (default)
-      Biased unweighted covariance matrix,   weights is None, bias is 1
-      Unbiased weighted covariance matrix,   weights is not None, bias is 0
-      Biased weighted covariance matrix,     weights is not None, bias is 1
-      can be calculated depending on the selection of the inputs.
-      @ In,  feature, list/numpy.array, [#targets,#samples]  features' samples
-      @ In,  weights, list of list/numpy.array, optional, [#targets,#samples,realizationWeights]  reliability weights, and the last one in the list is the realization weights. Default is None
-      @ In,  rowVar, int, optional, If rowVar is non-zero, then each row represents a variable,
-                                    with samples in the columns. Otherwise, the relationship is transposed. Default=1
-      @ Out, covMatrix, list/numpy.array, [#targets,#targets] the covariance matrix
-    """
-    X = np.array(feature, ndmin = 2, dtype = np.result_type(feature, np.float64))
-    w = np.zeros(feature.shape, dtype = np.result_type(feature, np.float64))
-    if X.shape[0] == 1:
-      rowVar = 1
-    if rowVar:
-      N = X.shape[1]
-      featuresNumber = X.shape[0]
-      axis = 0
-      for myIndex in range(featuresNumber):
-        if weights is None:
-          w[myIndex,:] = np.ones(N)/float(N)
-        else:
-          w[myIndex,:] = np.array(weights[myIndex],dtype=np.result_type(feature, np.float64))[:] if weights is not None else np.ones(len(w[myIndex,:]),dtype =np.result_type(feature, np.float64))[:]
-    else:
-      N = X.shape[0]
-      featuresNumber = X.shape[1]
-      axis = 1
-      for myIndex in range(featuresNumber):
-        if weights is None:
-          w[myIndex,:] = np.ones(N)/float(N)
-        else:
-          w[:,myIndex] = np.array(weights[myIndex], dtype=np.result_type(feature, np.float64))[:] if weights is not None else np.ones(len(w[:,myIndex]),dtype=np.result_type(feature, np.float64))[:]
-    realizationWeights = weights[-1] if weights is not None else np.ones(N)/float(N)
-    if N <= 1:
-      self.raiseAWarning("Degrees of freedom <= 0")
-      return np.zeros((featuresNumber,featuresNumber), dtype = np.result_type(feature, np.float64))
-    diff = X - np.atleast_2d(np.average(X, axis = 1 - axis, weights = w)).T
-    covMatrix = np.ones((featuresNumber,featuresNumber), dtype = np.result_type(feature, np.float64))
-    for myIndex in range(featuresNumber):
-      for myIndexTwo in range(featuresNumber):
-        # The weights that are used here should represent the joint probability (P(x,y)).
-        # Since I have no way yet to compute the joint probability with weights only (eventually I can think to use an estimation of the P(x,y) computed through a 2D histogram construction and weighted a posteriori with the 1-D weights),
-        # I decided to construct a weighting function that is defined as Wi = (2.0*Wi,x*Wi,y)/(Wi,x+Wi,y) that respects the constrains of the
-        # covariance (symmetric and that the diagonal is == variance) but that is completely arbitrary and for that not used. As already mentioned, I need the joint probability to compute the E[XY] = integral[xy*p(x,y)dxdy]. Andrea
-        # for now I just use the realization weights
-        #jointWeights = (2.0*weights[myIndex][:]*weights[myIndexTwo][:])/(weights[myIndex][:]+weights[myIndexTwo][:])
-        #jointWeights = jointWeights[:]/np.sum(jointWeights)
-        if myIndex == myIndexTwo:
-          jointWeights = w[myIndex]/np.sum(w[myIndex])
-        else:
-          jointWeights = realizationWeights/np.sum(realizationWeights)
-        fact = self.__computeUnbiasedCorrection(2,jointWeights) if not self.biased else 1.0/np.sum(jointWeights)
-        covMatrix[myIndex,myIndexTwo] = np.sum(diff[:,myIndex]*diff[:,myIndexTwo]*jointWeights[:]*fact) if not rowVar else np.sum(diff[myIndex,:]*diff[myIndexTwo,:]*jointWeights[:]*fact)
-    return covMatrix
 
   def corrCoeff(self, covM):
     """
