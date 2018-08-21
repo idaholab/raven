@@ -279,7 +279,7 @@ class ARMA(supervisedLearning):
                                                          self.fourierParams[target]['orders'],
                                                          timeSeriesData,
                                                          zeroFilter = target == self.zeroFilterTarget)
-        #debugfile.writelines('{}_fourier,'.format(target)+','.join(str(d) for d in self.fourierResults[target]['predict'])+'\n')
+        debugfile.writelines('{}_fourier,'.format(target)+','.join(str(d) for d in self.fourierResults[target]['predict'])+'\n')
         timeSeriesData -= self.fourierResults[target]['predict']
         debugfile.writelines('{}_nofourier,'.format(target)+','.join(str(d) for d in timeSeriesData)+'\n')
       # SOLAR HACK
@@ -435,8 +435,6 @@ class ARMA(supervisedLearning):
                                             randEngine = self.normEngine.rvs)
           ## if so, then expand result into signal space (functionally, put back in all the zeros)
           signal = np.zeros(len(self.pivotParameterValues))
-          print('DEBUGG zfm:',self.zeroFilterMask.shape)
-          print('DEBUGG sample:',sample.shape)
           signal[self.zeroFilterMask] = sample
         else:
           ## if not, no extra work to be done here!
@@ -445,17 +443,25 @@ class ARMA(supervisedLearning):
                                             randEngine = self.normEngine.rvs)
           signal = sample
       # END creating base signal
+      # DEBUGG adding arbitrary variables
+      returnEvaluation[target+'_0base'] = copy.copy(signal)
       # denoise
       signal = self._denormalizeThroughCDF(signal,self.cdfParams[target])
+      # DEBUGG adding arbitrary variables
+      returnEvaluation[target+'_1denorm'] = copy.copy(signal)
       #debuggFile.writelines('signal_arma,'+','.join(str(x) for x in signal)+'\n')
 
       # Add fourier trends
       if target in self.fourierParams:
         signal += self.fourierResults[target]['predict']
+        # DEBUGG adding arbitrary variables
+        returnEvaluation[target+'_2fourier'] = copy.copy(signal)
         #debuggFile.writelines('signal_fourier,'+','.join(str(x) for x in self.fourierResults[target]['predict'])+'\n')
 
       # Re-zero out zero filter target's zero regions
       if target == self.zeroFilterTarget:
+        # DEBUGG adding arbitrary variables
+        returnEvaluation[target+'_3zerofilter'] = copy.copy(signal)
         signal[self.notZeroFilterMask] = 0.0
 
       # Ensure positivity
@@ -464,10 +470,14 @@ class ARMA(supervisedLearning):
           signal = np.absolute(signal)
         elif self.outTruncation == 'negative':
           signal = -np.absolute(signal)
+        # DEBUGG adding arbitrary variables
+        returnEvaluation[target+'_4truncated'] = copy.copy(signal)
 
       # store results
       ## FIXME this is ASSUMING the input to ARMA is only ever a single scaling factor.
       signal *= featureVals[0]
+      # DEBUGG adding arbitrary variables
+      returnEvaluation[target+'_5scaled'] = copy.copy(signal)
       # sanity check on the signal
       assert(signal.size == returnEvaluation[self.pivotParameterID].size)
       #debuggFile.writelines('final,'+','.join(str(x) for x in signal)+'\n')
@@ -508,6 +518,8 @@ class ARMA(supervisedLearning):
     # tend towards too many bins, not too few
     # also don't use less than 20 bins, it makes some pretty sketchy CDFs otherwise
     n = max(int(np.ceil((max(data) - min(data))/size)),20)
+    n *= 100
+    self.raiseADebug('Bins for ARMA empirical CDF:',n)
     return n
 
   def _denormalizeThroughCDF(self, data, params):
