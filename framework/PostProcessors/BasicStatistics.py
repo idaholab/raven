@@ -742,7 +742,6 @@ class BasicStatistics(PostProcessor):
         meanSet = dataSet.mean(dim = self.sampleTag)
         fact = 1.0 / (float(dataSet.sizes[self.sampleTag]) - 1.0) if not sel.biased else 1.0 / float(dataSet.sizes[self.sampleTag])
       varianceSet = self._computeVariance(dataSet,meanSet,pbWeight=relWeight,dim=self.sampleTag)
-      calculations[metric]['variance'] = varianceSet
       dataSet = dataSet - meanSet
       if self.pivotParameter in dataSet.dims.keys():
         ds = None
@@ -758,11 +757,13 @@ class BasicStatistics(PostProcessor):
             paramSamplesT = paramSamples.T
           cov = np.dot(paramSamples, paramSamplesT.conj())
           cov *= fact
+          variance = varianceSet[targVars].isel(**{self.pivotParameter:label}).to_array().values
+          np.fill_diagonal(cov,variance)
           pivotVals.append(label)
           da = xr.DataArray(cov, dims=('targets','features'), coords={'targets':targVars,'features':targVars})
           ds = da if ds is None else xr.concat([ds,da], dim=self.pivotParameter)
         ds.coords[self.pivotParameter] = pivotVals
-        calculations[metric]['cov'] = ds
+        calculations[metric] = ds
       else:
         # construct target and feature matrices
         paramSamples = group.to_array().transpose('variable',self.sampleTag)
@@ -774,8 +775,10 @@ class BasicStatistics(PostProcessor):
           paramSamplesT = paramSamples.T
         cov = np.dot(paramSamples, paramSamplesT.conj())
         cov *= fact
+        variance = varianceSet[targVars].to_array().values
+        np.fill_diagonal(cov,variance)
         da = xr.DataArray(cov, dims=('targets','features'), coords={'targets':targVars,'features':targVars})
-        calculations[metric]['cov'] = da
+        calculations[metric] = da
 
     def getCovarianceSubset(desired):
       """
@@ -783,13 +786,8 @@ class BasicStatistics(PostProcessor):
         @ Out, reducedSecond, np.array, reduced covariance matrix
         @ Out, wantedParams, list(str), parameter labels for reduced covar matrix
       """
-
-      wantedIndices = list(calculations['covariance']['params'].index(d) for d in desired)
-      wantedParams = list(calculations['covariance']['params'][i] for i in wantedIndices)
-      #retain rows, colums
-      reducedFirst = calculations['covariance']['matrix'][wantedIndices]
-      reducedSecond = reducedFirst[:,wantedIndices]
-      return reducedSecond, wantedParams
+      reducedCov = calculations['covariance'].sel(**{'targets':desired,'features':desired})
+      return reducedCov
     #
     # pearson matrix
     #
@@ -798,9 +796,21 @@ class BasicStatistics(PostProcessor):
     targets,features,skip = startVector(metric)
     if not skip:
       params = list(set(targets).union(set(features)))
-      reducedCovar,reducedParams = getCovarianceSubset(params)
-      calculations[metric]['matrix'] = self.corrCoeff(reducedCovar)
-      calculations[metric]['params'] = reducedParams
+      reducedCovar = getCovarianceSubset(params)
+      targCoords = reducedCovar.coords['targets'].values
+      if self.pivotParameter in reducedCovar.dims.keys():
+        pivotCoords = reducedCovar.coords[self.pivotParameter].values
+        ds = None
+        for label, group in reducedCovar.groupby(self.pivotParameter):
+          corrMatrix = self.corrCoeff(group.values)
+          da = xr.DataArray(corrMatrix, dims=('targets','features'), coords={'targets':targCoords,'features':targCoords})
+          ds = da if ds is None else xr.concat([ds,da], dim=self.pivotParameter)
+        ds.coords[self.pivotParameter] = pivotCoords
+        calculations[metric] = ds
+      else:
+        corrMatrix = self.corrCoeff(reducedCovar.values)
+        da = xr.DataArray(corrMatrix, dims=('targets','features'), coords={'targets':targCoords,'features':targCoords})
+        calculations[metric] = da
     #
     # VarianceDependentSensitivity matrix
     # The formula for this calculation is coming from: http://www.math.uah.edu/stat/expect/Matrices.html
@@ -808,22 +818,30 @@ class BasicStatistics(PostProcessor):
     # where Y is a vector of outputs, and X is a vector of inputs, cov(Y,X) is the covariance matrix of Y and X,
     # vc(X) is the covariance matrix of X with itself.
     # The variance dependent sensitivity matrix is defined as: cov(Y,X) * [vc(X)]^(-1)
-    #
     metric = 'VarianceDependentSensitivity'
     targets,features,skip = startVector(metric)
     if not skip:
       params = list(set(targets).union(set(features)))
-      reducedCovar,reducedParams = getCovarianceSubset(params)
-      inputSamples = np.zeros((len(params),inputDict['targets'][params[0]].values.size))
-      pbWeightsList = [None]*len(params)
-      for p,param in enumerate(reducedParams):
-        inputSamples[p,:] = inputDict['targets'][param].values[:]
-        pbWeightsList[p] = pbWeights['realization'] if param not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][param]
-      pbWeightsList.append(pbWeights['realization'])
+      reducedCovar = getCovarianceSubset(params)
+      targCoords = reducedCovar.coords['targets'].values
+      if self.pivotParameter in reducedCovar.dims.keys():
+        pivotCoords = reducedCovar.coords[self.pivotParameter].values
+        ds = None
+        for label, group in reducedCovar.groupby(self.pivotParameter):
+          corrMatrix = self.corrCoeff(group.values)
+          da = xr.DataArray(corrMatrix, dims=('targets','features'), coords={'targets':targCoords,'features':targCoords})
+          ds = da if ds is None else xr.concat([ds,da], dim=self.pivotParameter)
+        ds.coords[self.pivotParameter] = pivotCoords
+        calculations[metric] = ds
+      else:
+        corrMatrix = self.corrCoeff(reducedCovar.values)
+        da = xr.DataArray(corrMatrix, dims=('targets','features'), coords={'targets':targCoords,'features':targCoords})
+        calculations[metric] = da
+
+
       for p,param in enumerate(reducedParams):
         calculations[metric][param] = {}
         targCoefs = list(r for r in reducedParams if r!=param)
-        inpParams = np.delete(inputSamples,p,axis=0)
         inpCovMatrix = np.delete(reducedCovar,p,axis=0)
         inpCovMatrix = np.delete(inpCovMatrix,p,axis=1)
         outInpCov = np.delete(reducedCovar[p,:],p)
@@ -908,11 +926,12 @@ class BasicStatistics(PostProcessor):
     """
     try:
       d = np.diag(covM)
-      corrMatrix = covM / np.sqrt(np.multiply.outer(d, d))
     except ValueError:
       # scalar covariance
       # nan if incorrect value (nan, inf, 0), 1 otherwise
-      corrMatrix = covM / covM
-    # to prevent numerical instability
-    return corrMatrix
+      return covM / covM
+    stdDev = np.sqrt(d)
+    covM /= stdDev[:,None]
+    covM /= stdDev[None,:]
+    return covM
 
