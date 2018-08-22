@@ -702,6 +702,7 @@ class BasicStatistics(PostProcessor):
         targList = list(paramDict['targets'])
         featList = list(paramDict['features'])
         dataSet = inputDataset[targList + featList]
+        intersectionSet = set(targList) & set(featList)
         if self.pivotParameter in dataSet.sizes.keys():
           ds = None
           pivotVals = []
@@ -711,9 +712,25 @@ class BasicStatistics(PostProcessor):
             targSamples = group[targList].to_array().transpose(self.sampleTag,'variable')
             featVars = featSamples.coords['variable'].values
             targVars = targSamples.coords['variable'].values
-            regCoeff = LinearRegression().fit(featSamples.values,targSamples.values).coef_
+            featSamples = featSamples.values
+            targSamples = targSamples.values
+            if not intersectionSet:
+              senMatrix = LinearRegression().fit(featSamples,targSamples).coef_
+            else:
+              # Target variables are in feature variables list, multi-target linear regression can not be used
+              # Since the 'multi-colinearity' exists, we need to loop over target variables
+              # TODO: Some general methods need to be implemented in order to handle the 'multi-colinearity' -- wangc
+              senMatrix = np.zeros((len(targVars), len(featVars)))
+              for p, targ in enumerate(targVars):
+                ind = list(featVars).index(targ) if targ in featVars else None
+                if ind is not None:
+                  featMat = np.delete(featSamples,ind,axis=1)
+                regCoeff = LinearRegression().fit(featMat, targSamples[:,p]).coef_
+                if ind is not None:
+                  regCoeff = np.insert(regCoeff,p,1.0)
+                senMatrix[p,:] = regCoeff
             pivotVals.append(label)
-            da = xr.DataArray(regCoeff, dims=('targets','features'), coords={'targets':targVars,'features':featVars})
+            da = xr.DataArray(senMatrix, dims=('targets','features'), coords={'targets':targVars,'features':featVars})
             ds = da if ds is None else xr.concat([ds,da], dim=self.pivotParameter)
           ds.coords[self.pivotParameter] = pivotVals
           calculations[metric].append(ds)
@@ -723,8 +740,24 @@ class BasicStatistics(PostProcessor):
           targSamples = dataSet[targList].to_array().transpose(self.sampleTag,'variable')
           featVars = featSamples.coords['variable'].values
           targVars = targSamples.coords['variable'].values
-          regCoeff = LinearRegression().fit(featSamples.values,targSamples.values).coef_
-          da = xr.DataArray(regCoeff, dims=('targets','features'), coords={'targets':targVars,'features':featVars})
+          featSamples = featSamples.values
+          targSamples = targSamples.values
+          if not intersectionSet:
+            senMatrix = LinearRegression().fit(featSamples,targSamples).coef_
+          else:
+            # Target variables are in feature variables list, multi-target linear regression can not be used
+            # Since the 'multi-colinearity' exists, we need to loop over target variables
+            # TODO: Some general methods need to be implemented in order to handle the 'multi-colinearity' -- wangc
+            senMatrix = np.zeros((len(targVars), len(featVars)))
+            for p, targ in enumerate(targVars):
+              ind = list(featVars).index(targ) if targ in featVars else None
+              if ind is not None:
+                featMat = np.delete(featSamples,ind,axis=1)
+              regCoeff = LinearRegression().fit(featMat, targSamples[:,p]).coef_
+              if ind is not None:
+                regCoeff = np.insert(regCoeff,p,1.0)
+              senMatrix[p,:] = regCoeff
+          da = xr.DataArray(senMatrix, dims=('targets','features'), coords={'targets':targVars,'features':featVars})
           calculations[metric].append(da)
     #
     # covariance matrix
