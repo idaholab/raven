@@ -14,7 +14,7 @@
 """
 Created on July 10, 2013
 
-@author: alfoa
+@author: alfoa, wangc
 """
 from __future__ import division, print_function , unicode_literals, absolute_import
 import warnings
@@ -180,7 +180,7 @@ class BasicStatistics(PostProcessor):
     self.sampleTag = currentInput.sampleTag
 
     if currentInput.type == 'HistorySet':
-      dims = inputDataset.dims.keys()
+      dims = inputDataset.sizes.keys()
       if self.pivotParameter is None:
         if len(dims) > 1:
           self.raiseAnError(IOError, self, 'Time-dependent statistics is requested (HistorySet) but no pivotParameter \
@@ -199,13 +199,13 @@ class BasicStatistics(PostProcessor):
     self.pbPresent = True if 'ProbabilityWeight' in metaVars else False
     if self.pbPresent:
       pbWeights = xr.Dataset()
-      self.realizationWeight = dataSet['ProbabilityWeight']/dataSet['ProbabilityWeight'].sum()
+      self.realizationWeight = dataSet[['ProbabilityWeight']]/dataSet[['ProbabilityWeight']].sum()
       for target in self.parameters['targets']:
         pbName = 'ProbabilityWeight-' + target
         if pbName in metaVars:
           pbWeights[target] = dataSet[pbName]/dataSet[pbName].sum()
         elif self.pbPresent:
-          pbWeights[target] = self.realizationWeight
+          pbWeights[target] = self.realizationWeight['ProbabilityWeight']
     else:
       self.raiseAWarning('BasicStatistics postprocessor did not detect ProbabilityWeights! Assuming unit weights instead...')
 
@@ -272,9 +272,9 @@ class BasicStatistics(PostProcessor):
         if tag not in self.toDo.keys():
           self.toDo[tag] = [] # list of {'targets':(), 'prefix':str, 'percent':str}
         if 'percent' not in child.parameterValues:
-          reqPercent = [5, 95]
+          reqPercent = [0.05, 0.95]
         else:
-          reqPercent = child.parameterValues['percent']
+          reqPercent = list(percent/100. for percent in child.parameterValues['percent'])
         self.toDo[tag].append({'targets':set(targets),
                                'prefix':prefix,
                                'percent':reqPercent})
@@ -334,8 +334,8 @@ class BasicStatistics(PostProcessor):
       @ Out, pw, xarray.Dataset, the p-th power of weights
     """
     pw = xr.Dataset()
-    for target, targValue in weights.data_vars.items():
-      pw[target] = np.power(weights,p)
+    for target, targValue in dataset.data_vars.items():
+      pw[target] = np.power(targValue,p)
     return pw
 
   def __computeVp(self,p,weights):
@@ -519,6 +519,13 @@ class BasicStatistics(PostProcessor):
     needed['covariance']['targets'].update(needed['VarianceDependentSensitivity']['targets'])
     needed['covariance']['features'].update(needed['VarianceDependentSensitivity']['features'])
 
+    for metric, params in needed.items():
+      needed[metric]['targets'] = list(params['targets'])
+      try:
+        needed[metric]['features'] = list(params['features'])
+      except KeyError:
+        pass
+
     #
     # BEGIN actual calculations
     #
@@ -549,7 +556,7 @@ class BasicStatistics(PostProcessor):
       dataSet = inputDataset[list(needed[metric]['targets'])]
       if self.pbPresent:
         relWeight = pbWeights[list(needed[metric]['targets'])]
-        dataSet = dataSet * relWeights
+        dataSet = dataSet * relWeight
         expectedValue = dataSet.sum(dim = self.sampleTag)
       else:
         expectedValue = dataSet.mean(dim = self.sampleTag)
@@ -692,10 +699,10 @@ class BasicStatistics(PostProcessor):
       #so we loop over targets and features
       calculations[metric] = []
       for paramDict in self.toDo[metric]:
-        targList = paramDict['targets']
-        featList = paramDict['features']
+        targList = list(paramDict['targets'])
+        featList = list(paramDict['features'])
         dataSet = inputDataset[targList + featList]
-        if self.pivotParameter in dataSet.dims.keys():
+        if self.pivotParameter in dataSet.sizes.keys():
           ds = None
           pivotVals = []
           for label, group in dataSet.groupby(self.pivotParameter):
@@ -734,16 +741,16 @@ class BasicStatistics(PostProcessor):
       calculations[metric] = {}
       params = list(set(targets).union(set(features)))
       dataSet = inputDataset[params]
-      realWeight = pbWeight[params] if self.pbPresent else None
+      realWeight = pbWeights[params] if self.pbPresent else None
       if self.pbPresent:
-        fact = self.__computeUnbiasedCorrection(2, self.realizationWeight) if not self.biased else 1.0
-        meanSet = (dataSet * relWeights).sum(dim = self.sampleTag)
+        fact = (self.__computeUnbiasedCorrection(2, self.realizationWeight)).to_array().values if not self.biased else 1.0
+        meanSet = (dataSet * relWeight).sum(dim = self.sampleTag)
       else:
         meanSet = dataSet.mean(dim = self.sampleTag)
         fact = 1.0 / (float(dataSet.sizes[self.sampleTag]) - 1.0) if not self.biased else 1.0 / float(dataSet.sizes[self.sampleTag])
       varianceSet = self._computeVariance(dataSet,meanSet,pbWeight=relWeight,dim=self.sampleTag)
       dataSet = dataSet - meanSet
-      if self.pivotParameter in dataSet.dims.keys():
+      if self.pivotParameter in dataSet.sizes.keys():
         ds = None
         pivotVals = []
         for label, group in dataSet.groupby(self.pivotParameter):
@@ -766,11 +773,11 @@ class BasicStatistics(PostProcessor):
         calculations[metric] = ds
       else:
         # construct target and feature matrices
-        paramSamples = group.to_array().transpose('variable',self.sampleTag)
+        paramSamples = dataSet.to_array().transpose('variable',self.sampleTag)
         targVars = paramSamples.coords['variable'].values
         paramSamples = paramSamples.values
         if self.pbPresent:
-          paramSamplesT = (paramSamples*self.realizationWeight.values).T
+          paramSamplesT = (paramSamples*self.realizationWeight['ProbabilityWeight'].values).T
         else:
           paramSamplesT = paramSamples.T
         cov = np.dot(paramSamples, paramSamplesT.conj())
@@ -798,7 +805,7 @@ class BasicStatistics(PostProcessor):
       params = list(set(targets).union(set(features)))
       reducedCovar = getCovarianceSubset(params)
       targCoords = reducedCovar.coords['targets'].values
-      if self.pivotParameter in reducedCovar.dims.keys():
+      if self.pivotParameter in reducedCovar.sizes.keys():
         pivotCoords = reducedCovar.coords[self.pivotParameter].values
         ds = None
         for label, group in reducedCovar.groupby(self.pivotParameter):
@@ -824,14 +831,13 @@ class BasicStatistics(PostProcessor):
       params = list(set(targets).union(set(features)))
       reducedCovar = getCovarianceSubset(params)
       targCoords = reducedCovar.coords['targets'].values
-      if self.pivotParameter in reducedCovar.dims.keys():
+      if self.pivotParameter in reducedCovar.sizes.keys():
         pivotCoords = reducedCovar.coords[self.pivotParameter].values
         ds = None
         for label, group in reducedCovar.groupby(self.pivotParameter):
           senMatrix = np.zeros(len(targCoords), len(targCoords))
           covMatrix = group.values
           for p,param in enumerate(targCoords):
-            reduceTargs = list(r for r in reducedParams if r!=param)
             covX = np.delete(covMatrix,p,axis=0)
             covX = np.delete(covX,p,axis=1)
             covYX = np.delete(covMatrix[p,:],p)
@@ -843,10 +849,9 @@ class BasicStatistics(PostProcessor):
         ds.coords[self.pivotParameter] = pivotCoords
         calculations[metric] = ds
       else:
-        senMatrix = np.zeros(len(targCoords), len(targCoords))
+        senMatrix = np.zeros((len(targCoords), len(targCoords)))
         covMatrix = reducedCovar.values
         for p,param in enumerate(targCoords):
-          reduceTargs = list(r for r in reducedParams if r!=param)
           covX = np.delete(covMatrix,p,axis=0)
           covX = np.delete(covX,p,axis=1)
           covYX = np.delete(covMatrix[p,:],p)
@@ -865,9 +870,9 @@ class BasicStatistics(PostProcessor):
       params = list(set(targets).union(set(features)))
       reducedSen = calculations['VarianceDependentSensitivity'].sel(**{'targets':params,'features':params})
       meanDA = calculations['expectedValue'][params].to_array()
-      meanDA.rename({'variable':'targets'})
+      meanDA = meanDA.rename({'variable':'targets'})
       reducedSen /= meanDA
-      meanDA.rename({'targets':'features'})
+      meanDA = meanDA.rename({'targets':'features'})
       reducedSen *= meanDA
       calculations[metric] = reducedSen
     """
