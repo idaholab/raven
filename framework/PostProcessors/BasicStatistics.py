@@ -792,7 +792,7 @@ class BasicStatistics(PostProcessor):
           targVars = paramSamples.coords['variable'].values
           paramSamples = paramSamples.values
           if self.pbPresent:
-            paramSamplesT = (paramSamples*self.realizationWeight.values).T
+            paramSamplesT = (paramSamples*self.realizationWeight['ProbabilityWeight'].values).T
           else:
             paramSamplesT = paramSamples.T
           cov = np.dot(paramSamples, paramSamplesT.conj())
