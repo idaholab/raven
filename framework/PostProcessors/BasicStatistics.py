@@ -177,16 +177,16 @@ class BasicStatistics(PostProcessor):
     # extract all required data from input DataObjects, an input dataset is constructed
     dataSet = currentInput.asDataset()
     inputDataset = dataSet[self.parameters['targets']]
-    self.sampleTag = currentInput.sampleTag()
+    self.sampleTag = currentInput.sampleTag
 
     if currentInput.type == 'HistorySet':
       dims = inputDataset.dims.keys()
       if self.pivotParameter is None:
         if len(dims) > 1:
-          self.raiseAnError(IOError, self, 'Time-dependent statistics is requested (HistorySet) but no pivotParameter
+          self.raiseAnError(IOError, self, 'Time-dependent statistics is requested (HistorySet) but no pivotParameter \
                 got inputted!')
       elif self.pivotParameter not in dims:
-        self.raiseAnError(IOError, self, 'Pivot parameter', self.pivotParameter, 'is not the associated index for
+        self.raiseAnError(IOError, self, 'Pivot parameter', self.pivotParameter, 'is not the associated index for \
                 requested variables', ','.join(self.parameters['targets']))
       else:
         self.dynamic = True
@@ -433,7 +433,7 @@ class BasicStatistics(PostProcessor):
     else:
       unbiasCorr = self.__computeUnbiasedCorrection(3,arrayIn.sizes[dim]) if not self.biased else 1.0
       vp = 1.0 / arrayIn.sizes[dim]
-      result = ((arrayIn - expValue)**3).sum(dim=dim) * vp * unbiasCorr) / vr
+      result = ((arrayIn - expValue)**3).sum(dim=dim) * vp * unbiasCorr / vr
     return result
 
   def _computeVariance(self, arrayIn, expValue, pbWeight=None, dim = None):
@@ -740,7 +740,7 @@ class BasicStatistics(PostProcessor):
         meanSet = (dataSet * relWeights).sum(dim = self.sampleTag)
       else:
         meanSet = dataSet.mean(dim = self.sampleTag)
-        fact = 1.0 / (float(dataSet.sizes[self.sampleTag]) - 1.0) if not sel.biased else 1.0 / float(dataSet.sizes[self.sampleTag])
+        fact = 1.0 / (float(dataSet.sizes[self.sampleTag]) - 1.0) if not self.biased else 1.0 / float(dataSet.sizes[self.sampleTag])
       varianceSet = self._computeVariance(dataSet,meanSet,pbWeight=relWeight,dim=self.sampleTag)
       dataSet = dataSet - meanSet
       if self.pivotParameter in dataSet.dims.keys():
@@ -757,7 +757,7 @@ class BasicStatistics(PostProcessor):
             paramSamplesT = paramSamples.T
           cov = np.dot(paramSamples, paramSamplesT.conj())
           cov *= fact
-          variance = varianceSet[targVars].isel(**{self.pivotParameter:label}).to_array().values
+          variance = varianceSet[targVars].sel(**{self.pivotParameter:label}).to_array().values
           np.fill_diagonal(cov,variance)
           pivotVals.append(label)
           da = xr.DataArray(cov, dims=('targets','features'), coords={'targets':targVars,'features':targVars})
@@ -870,7 +870,7 @@ class BasicStatistics(PostProcessor):
       meanDA.rename({'targets':'features'})
       reducedSen *= meanDA
       calculations[metric] = reducedSen
-"""
+    """
     #collect only the requested calculations except percentile, since it has been already collected
     #in the outputDict.
     for metric, requestList  in self.toDo.items():
@@ -903,7 +903,7 @@ class BasicStatistics(PostProcessor):
               for feature in targetDict['features']:
                 varName = prefix + '_' + targetP + '_' + feature
                 outputDict[varName] = np.atleast_1d(calculations[metric][targetP][feature])
-"""
+    """
 
     return calculations
 
