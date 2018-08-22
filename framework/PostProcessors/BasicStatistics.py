@@ -842,7 +842,7 @@ class BasicStatistics(PostProcessor):
             covX = np.delete(covX,p,axis=1)
             covYX = np.delete(covMatrix[p,:],p)
             sensCoef = np.dot(covYX,np.linalg.pinv(covX))
-            np.insert(sensCoef,p,1.0)
+            sensCoef = np.insert(sensCoef,p,1.0)
             senMatrix[p,:] = sensCoef
           da = xr.DataArray(senMatrix, dims=('targets','features'), coords={'targets':targCoords,'features':targCoords})
           ds = da if ds is None else xr.concat([ds,da], dim=self.pivotParameter)
@@ -856,7 +856,7 @@ class BasicStatistics(PostProcessor):
           covX = np.delete(covX,p,axis=1)
           covYX = np.delete(covMatrix[p,:],p)
           sensCoef = np.dot(covYX,np.linalg.pinv(covX))
-          np.insert(sensCoef,p,1.0)
+          sensCoef = np.insert(sensCoef,p,1.0)
           senMatrix[p,:] = sensCoef
         da = xr.DataArray(senMatrix, dims=('targets','features'), coords={'targets':targCoords,'features':targCoords})
         calculations[metric] = da
