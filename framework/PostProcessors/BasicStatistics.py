@@ -322,7 +322,7 @@ class BasicStatistics(PostProcessor):
     outputRealization = evaluation[1]
     if output.type in ['PointSet','HistorySet']:
       self.raiseADebug('Dumping output in data object named ' + output.name)
-      output.addRealization(outputRealization)
+      #output.addRealization(outputRealization)
     else:
       self.raiseAnError(IOError, 'Output type ' + str(output.type) + ' unknown.')
 
@@ -828,29 +828,33 @@ class BasicStatistics(PostProcessor):
         pivotCoords = reducedCovar.coords[self.pivotParameter].values
         ds = None
         for label, group in reducedCovar.groupby(self.pivotParameter):
-          corrMatrix = self.corrCoeff(group.values)
-          da = xr.DataArray(corrMatrix, dims=('targets','features'), coords={'targets':targCoords,'features':targCoords})
+          senMatrix = np.zeros(len(targCoords), len(targCoords))
+          covMatrix = group.values
+          for p,param in enumerate(targCoords):
+            reduceTargs = list(r for r in reducedParams if r!=param)
+            covX = np.delete(covMatrix,p,axis=0)
+            covX = np.delete(covX,p,axis=1)
+            covYX = np.delete(covMatrix[p,:],p)
+            sensCoef = np.dot(covYX,np.linalg.pinv(covX))
+            np.insert(sensCoef,p,1.0)
+            senMatrix[p,:] = sensCoef
+          da = xr.DataArray(senMatrix, dims=('targets','features'), coords={'targets':targCoords,'features':targCoords})
           ds = da if ds is None else xr.concat([ds,da], dim=self.pivotParameter)
         ds.coords[self.pivotParameter] = pivotCoords
         calculations[metric] = ds
       else:
-        corrMatrix = self.corrCoeff(reducedCovar.values)
-        da = xr.DataArray(corrMatrix, dims=('targets','features'), coords={'targets':targCoords,'features':targCoords})
+        senMatrix = np.zeros(len(targCoords), len(targCoords))
+        covMatrix = reducedCovar.values
+        for p,param in enumerate(targCoords):
+          reduceTargs = list(r for r in reducedParams if r!=param)
+          covX = np.delete(covMatrix,p,axis=0)
+          covX = np.delete(covX,p,axis=1)
+          covYX = np.delete(covMatrix[p,:],p)
+          sensCoef = np.dot(covYX,np.linalg.pinv(covX))
+          np.insert(sensCoef,p,1.0)
+          senMatrix[p,:] = sensCoef
+        da = xr.DataArray(senMatrix, dims=('targets','features'), coords={'targets':targCoords,'features':targCoords})
         calculations[metric] = da
-
-
-      for p,param in enumerate(reducedParams):
-        calculations[metric][param] = {}
-        targCoefs = list(r for r in reducedParams if r!=param)
-        inpCovMatrix = np.delete(reducedCovar,p,axis=0)
-        inpCovMatrix = np.delete(inpCovMatrix,p,axis=1)
-        outInpCov = np.delete(reducedCovar[p,:],p)
-        sensCoefDict = dict(zip(targCoefs,np.dot(outInpCov,np.linalg.pinv(inpCovMatrix))))
-        for f,feature in enumerate(reducedParams):
-          if param == feature:
-            calculations[metric][param][feature] = 1.0
-          else:
-            calculations[metric][param][feature] = sensCoefDict[feature]
     #
     # Normalized variance dependent sensitivity matrix
     # variance dependent sensitivity  normalized by the mean (% change of output)/(% change of input)
@@ -858,15 +862,15 @@ class BasicStatistics(PostProcessor):
     metric = 'NormalizedSensitivity'
     targets,features,skip = startVector(metric)
     if not skip:
-      reducedCovar,reducedParams = getCovarianceSubset(params)
-      for p,param in enumerate(reducedParams):
-        calculations[metric][param] = {}
-        for f,feature in enumerate(reducedParams):
-          expValueRatio = calculations['expectedValue'][feature]/calculations['expectedValue'][param]
-          calculations[metric][param][feature] = calculations['VarianceDependentSensitivity'][param][feature]*expValueRatio
-
-
-
+      params = list(set(targets).union(set(features)))
+      reducedSen = calculations['VarianceDependentSensitivity'].sel(**{'targets':params,'features':params})
+      meanDA = calculations['expectedValue'][params].to_array()
+      meanDA.rename({'variable':'targets'})
+      reducedSen /= meanDA
+      meanDA.rename({'targets':'features'})
+      reducedSen *= meanDA
+      calculations[metric] = reducedSen
+"""
     #collect only the requested calculations except percentile, since it has been already collected
     #in the outputDict.
     for metric, requestList  in self.toDo.items():
@@ -899,8 +903,9 @@ class BasicStatistics(PostProcessor):
               for feature in targetDict['features']:
                 varName = prefix + '_' + targetP + '_' + feature
                 outputDict[varName] = np.atleast_1d(calculations[metric][targetP][feature])
+"""
 
-    return outputDict
+    return calculations
 
   def run(self, inputIn):
     """
