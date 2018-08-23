@@ -657,7 +657,7 @@ class BasicStatistics(PostProcessor):
           # The xarray.Dataset.where() will not return the corrrect solution
           # 'lower' is used for consistent
           # using xarray.Dataset.sel(**{'quantile':reqPercent}) to retrieve the quantile values
-          percentileSet = dataSet.where(dataSetWeighted==dataSetWeighted.quantile(percent,dim=self.sampleTag,interpolation='lower')).sum(self.sampleTag)
+          percentileSet = dataSet.where(dataSetWeighted==dataSetWeighted.quantile(percent,dim=self.sampleTag,interpolation='lower')).mean(self.sampleTag)
           calculations[metric].append(percentileSet)
         else:
           percentileSet = dataSet.quantile(percent,dim=self.sampleTag,interpolation='lower')
@@ -813,31 +813,14 @@ class BasicStatistics(PostProcessor):
         pivotCoords = reducedCovar.coords[self.pivotParameter].values
         ds = None
         for label, group in reducedCovar.groupby(self.pivotParameter):
-          senMatrix = np.zeros(len(targCoords), len(targCoords))
-          covMatrix = group.values
-          for p,param in enumerate(targCoords):
-            covX = np.delete(covMatrix,p,axis=0)
-            covX = np.delete(covX,p,axis=1)
-            covYX = np.delete(covMatrix[p,:],p)
-            sensCoef = np.dot(covYX,np.linalg.pinv(covX))
-            sensCoef = np.insert(sensCoef,p,1.0)
-            senMatrix[p,:] = sensCoef
-          da = xr.DataArray(senMatrix, dims=('targets','features'), coords={'targets':targCoords,'features':targCoords})
+          da = self.varianceDepSenCalculation(targCoords,group.values)
           ds = da if ds is None else xr.concat([ds,da], dim=self.pivotParameter)
         ds.coords[self.pivotParameter] = pivotCoords
         calculations[metric] = ds
       else:
-        senMatrix = np.zeros((len(targCoords), len(targCoords)))
-        covMatrix = reducedCovar.values
-        for p,param in enumerate(targCoords):
-          covX = np.delete(covMatrix,p,axis=0)
-          covX = np.delete(covX,p,axis=1)
-          covYX = np.delete(covMatrix[p,:],p)
-          sensCoef = np.dot(covYX,np.linalg.pinv(covX))
-          sensCoef = np.insert(sensCoef,p,1.0)
-          senMatrix[p,:] = sensCoef
-        da = xr.DataArray(senMatrix, dims=('targets','features'), coords={'targets':targCoords,'features':targCoords})
+        da = self.varianceDepSenCalculation(targCoords,reducedCovar.values)
         calculations[metric] = da
+
     #
     # Normalized variance dependent sensitivity matrix
     # variance dependent sensitivity  normalized by the mean (% change of output)/(% change of input)
@@ -962,5 +945,19 @@ class BasicStatistics(PostProcessor):
     np.fill_diagonal(cov,variance)
     da = xr.DataArray(cov, dims=('targets','features'), coords={'targets':targVars,'features':targVars})
 
+    return da
+
+  def varianceDepSenCalculation(self,targCoords, cov):
+    """
+    """
+    senMatrix = np.zeros((len(targCoords), len(targCoords)))
+    for p,param in enumerate(targCoords):
+      covX = np.delete(cov,p,axis=0)
+      covX = np.delete(covX,p,axis=1)
+      covYX = np.delete(cov[p,:],p)
+      sensCoef = np.dot(covYX,np.linalg.pinv(covX))
+      sensCoef = np.insert(sensCoef,p,1.0)
+      senMatrix[p,:] = sensCoef
+    da = xr.DataArray(senMatrix, dims=('targets','features'), coords={'targets':targCoords,'features':targCoords})
     return da
 
