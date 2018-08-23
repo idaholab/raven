@@ -707,6 +707,8 @@ class BasicStatistics(PostProcessor):
           ds = None
           pivotVals = []
           for label, group in dataSet.groupby(self.pivotParameter):
+            da = self.sensitivityCalculation(featList,targList,group,intersectionSet)
+            """
             # construct target and feature matrices
             featSamples = group[featList].to_array().transpose(self.sampleTag,'variable')
             targSamples = group[targList].to_array().transpose(self.sampleTag,'variable')
@@ -729,13 +731,16 @@ class BasicStatistics(PostProcessor):
                 if ind is not None:
                   regCoeff = np.insert(regCoeff,p,1.0)
                 senMatrix[p,:] = regCoeff
-            pivotVals.append(label)
             da = xr.DataArray(senMatrix, dims=('targets','features'), coords={'targets':targVars,'features':featVars})
+            """
+            pivotVals.append(label)
             ds = da if ds is None else xr.concat([ds,da], dim=self.pivotParameter)
           ds.coords[self.pivotParameter] = pivotVals
           calculations[metric].append(ds)
         else:
           # construct target and feature matrices
+          da = self.sensitivityCalculation(featList,targList,dataSet,intersectionSet)
+          """
           featSamples = dataSet[featList].to_array().transpose(self.sampleTag,'variable')
           targSamples = dataSet[targList].to_array().transpose(self.sampleTag,'variable')
           featVars = featSamples.coords['variable'].values
@@ -758,6 +763,7 @@ class BasicStatistics(PostProcessor):
                 regCoeff = np.insert(regCoeff,p,1.0)
               senMatrix[p,:] = regCoeff
           da = xr.DataArray(senMatrix, dims=('targets','features'), coords={'targets':targVars,'features':featVars})
+          """
           calculations[metric].append(da)
     #
     # covariance matrix
@@ -774,7 +780,7 @@ class BasicStatistics(PostProcessor):
       calculations[metric] = {}
       params = list(set(targets).union(set(features)))
       dataSet = inputDataset[params]
-      realWeight = pbWeights[params] if self.pbPresent else None
+      relWeight = pbWeights[params] if self.pbPresent else None
       if self.pbPresent:
         fact = (self.__computeUnbiasedCorrection(2, self.realizationWeight)).to_array().values if not self.biased else 1.0
         meanSet = (dataSet * relWeight).sum(dim = self.sampleTag)
@@ -942,7 +948,11 @@ class BasicStatistics(PostProcessor):
                 varName = prefix + '_' + targetP + '_' + feature
                 outputDict[varName] = np.atleast_1d(calculations[metric][targetP][feature])
     """
-
+    # TODO: the following lines are for debugging, remove when complete
+    for key,val in calculations.items():
+      print(key)
+      print(val)
+      print('======================================')
     return calculations
 
   def run(self, inputIn):
@@ -977,4 +987,33 @@ class BasicStatistics(PostProcessor):
     covM /= stdDev[:,None]
     covM /= stdDev[None,:]
     return covM
+
+  def sensitivityCalculation(self,featList, targList, dataSet, intersectionSet):
+    """
+    """
+    # construct target and feature matrices
+    featSamples = dataSet[featList].to_array().transpose(self.sampleTag,'variable')
+    targSamples = dataSet[targList].to_array().transpose(self.sampleTag,'variable')
+    featVars = featSamples.coords['variable'].values
+    targVars = targSamples.coords['variable'].values
+    featSamples = featSamples.values
+    targSamples = targSamples.values
+    if not intersectionSet:
+      senMatrix = LinearRegression().fit(featSamples,targSamples).coef_
+    else:
+      # Target variables are in feature variables list, multi-target linear regression can not be used
+      # Since the 'multi-colinearity' exists, we need to loop over target variables
+      # TODO: Some general methods need to be implemented in order to handle the 'multi-colinearity' -- wangc
+      senMatrix = np.zeros((len(targVars), len(featVars)))
+      for p, targ in enumerate(targVars):
+        ind = list(featVars).index(targ) if targ in featVars else None
+        if ind is not None:
+          featMat = np.delete(featSamples,ind,axis=1)
+        regCoeff = LinearRegression().fit(featMat, targSamples[:,p]).coef_
+        if ind is not None:
+          regCoeff = np.insert(regCoeff,p,1.0)
+        senMatrix[p,:] = regCoeff
+    da = xr.DataArray(senMatrix, dims=('targets','features'), coords={'targets':targVars,'features':featVars})
+
+    return da
 
