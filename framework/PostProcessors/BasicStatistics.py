@@ -39,26 +39,6 @@ import Files
 import Runners
 #Internal Modules End-----------------------------------------------------------
 
-
-#class BasicStatisticsInput(InputData.ParameterInput):
-#  """
-#    Class for reading the Basic Statistics block
-#  """
-
-#BasicStatisticsInput.createClass("PostProcessor", False, baseNode=ModelInput)
-#BasicStatisticsInput.addSub(WhatInput)
-#BiasedInput = InputData.parameterInputFactory("biased", contentType=InputData.StringType) #bool
-#BasicStatisticsInput.addSub(BiasedInput)
-#ParameterInput = InputData.parameterInputFactory("parameters", contentType=InputData.StringType)
-#BasicStatisticsInput.addSub(ParameterInput)
-#MethodsToRunInput = InputData.parameterInputFactory("methodsToRun", contentType=InputData.StringType)
-#BasicStatisticsInput.addSub(MethodsToRunInput)
-#FunctionInput = InputData.parameterInputFactory("Function", contentType=InputData.StringType)
-#BasicStatisticsInput.addSub(FunctionInput)
-#PivotParameterInput = InputData.parameterInputFactory("pivotParameter", contentType=InputData.StringType)
-#BasicStatisticsInput.addSub(PivotParameterInput)
-
-#
 class BasicStatistics(PostProcessor):
   """
     BasicStatistics filter class. It computes all the most popular statistics
@@ -119,20 +99,8 @@ class BasicStatistics(PostProcessor):
     methodsToRunInput = InputData.parameterInputFactory("methodsToRun", contentType=InputData.StringType)
     inputSpecification.addSub(methodsToRunInput)
 
-    biasedInput = InputData.parameterInputFactory("biased", contentType=InputData.StringType) #bool
+    biasedInput = InputData.parameterInputFactory("biased", contentType=InputData.BoolType)
     inputSpecification.addSub(biasedInput)
-
-    ## TODO: Fill this in with the appropriate tags
-
-    # inputSpecification.addSub(WhatInput)
-    # BiasedInput = InputData.parameterInputFactory("biased", contentType=InputData.StringType) #bool
-    # inputSpecification.addSub(BiasedInput)
-    # ParameterInput = InputData.parameterInputFactory("parameters", contentType=InputData.StringType)
-    # inputSpecification.addSub(ParameterInput)
-    # FunctionInput = InputData.parameterInputFactory("Function", contentType=InputData.StringType)
-    # inputSpecification.addSub(FunctionInput)
-    # PivotParameterInput = InputData.parameterInputFactory("pivotParameter", contentType=InputData.StringType)
-    # inputSpecification.addSub(PivotParameterInput)
 
     return inputSpecification
 
@@ -156,14 +124,14 @@ class BasicStatistics(PostProcessor):
     self.dynamic        = False # is it time-dependent?
     self.sampleTag      = None  # Tag used to track samples
     self.pbPresent      = False # True if the ProbabilityWeight is available
-    self.realizationWeight = None
+    self.realizationWeight = None # The joint probabilities
 
   def inputToInternal(self, currentInp):
     """
       Method to convert an input object into the internal format that is
       understandable by this pp.
       @ In, currentInp, object, an object that needs to be converted
-      @ Out, inputDict, dict, dictionary of the converted data
+      @ Out, (inputDataset, pbWeights), tuple, the dataset of inputs and the corresponding variable probability weight
     """
     # The BasicStatistics postprocessor only accept DataObjects
     self.dynamic = False
@@ -330,7 +298,7 @@ class BasicStatistics(PostProcessor):
     """
       Compute the p-th power of weights
       @ In, p, int, the power
-      @ In, dataset, xarray.Dataset, weights
+      @ In, dataset, xarray.Dataset, probability weights of all input variables
       @ Out, pw, xarray.Dataset, the p-th power of weights
     """
     pw = xr.Dataset()
@@ -342,7 +310,7 @@ class BasicStatistics(PostProcessor):
     """
       Compute the sum of p-th power of weights
       @ In, p, int, the power
-      @ In, weights, xarray.Dataset, weights
+      @ In, weights, xarray.Dataset, probability weights of all input variables
       @ Out, vp, xarray.Dataset, the sum of p-th power of weights
     """
     vp = self.__computePower(p,weights)
@@ -355,8 +323,9 @@ class BasicStatistics(PostProcessor):
       Reference paper:
       Lorenzo Rimoldini, "Weighted skewness and kurtosis unbiased by sample size", http://arxiv.org/pdf/1304.6564.pdf
       @ In, order, int, moment order
-      @ In, weightsOrN, list/numpy.array or int, if list/numpy.array -> weights else -> number of samples
-      @ Out, corrFactor, float (order <=3) or tuple of floats (order ==4), the unbiased correction factor
+      @ In, weightsOrN, xarray.Dataset or int, if xarray.Dataset -> weights else -> number of samples
+      @ Out, corrFactor, xarray.Dataset or int, xarray.Dataset (order <=3) or tuple of xarray.Dataset (order ==4),
+        the unbiased correction factor if weightsOrN is xarray.Dataset else integer
     """
     if order > 4:
       self.raiseAnError(RuntimeError,"computeUnbiasedCorrection is implemented for order <=4 only!")
@@ -385,11 +354,12 @@ class BasicStatistics(PostProcessor):
   def _computeKurtosis(self, arrayIn, expValue, variance, pbWeight=None, dim=None):
     """
       Method to compute the Kurtosis (fisher) of an array of observations
-      @ In, arrayIn, list/numpy.array, the array of values from which the Kurtosis needs to be estimated
-      @ In, expValue, float, expected value of arrayIn
-      @ In, variance, float, variance of arrayIn
-      @ In, pbWeight, list/numpy.array, optional, the reliability weights that correspond to the values in 'array'. If not present, an unweighted approach is used
-      @ Out, result, float, the Kurtosis of the array of data
+      @ In, arrayIn, xarray.Dataset, the dataset from which the Kurtosis needs to be estimated
+      @ In, expValue, xarray.Dataset, expected value of arrayIn
+      @ In, variance, xarray.Dataset, variance of arrayIn
+      @ In, pbWeight, xarray.DataSet, optional, the reliability weights that correspond to the values in 'array'.
+        If not present, an unweighted approach is used
+      @ Out, result, xarray.Dataset, the Kurtosis of the dataset arrayIn.
     """
     if dim is None:
       dim = self.sampleTag
@@ -417,11 +387,12 @@ class BasicStatistics(PostProcessor):
   def _computeSkewness(self, arrayIn, expValue, variance, pbWeight=None, dim=None):
     """
       Method to compute the skewness of an array of observations
-      @ In, arrayIn, list/numpy.array, the array of values from which the skewness needs to be estimated
-      @ In, expValue, float, expected value of arrayIn
-      @ In, variance, float, variance value of arrayIn
-      @ In, pbWeight, list/numpy.array, optional, the reliability weights that correspond to the values in 'array'. If not present, an unweighted approach is used
-      @ Out, result, float, the skewness of the array of data
+      @ In, arrayIn, xarray.Dataset, the dataset from which the skewness needs to be estimated
+      @ In, expValue, xarray.Dataset, expected value of arrayIn
+      @ In, variance, xarray.Dataset, variance value of arrayIn
+      @ In, pbWeight, xarray.Dataset, optional, the reliability weights that correspond to dataset arrayIn.
+        If not present, an unweighted approach is used
+      @ Out, result, xarray.Dataset, the skewness of the dataset arrayIn
     """
     if dim is None:
       dim = self.sampleTag
@@ -439,10 +410,11 @@ class BasicStatistics(PostProcessor):
   def _computeVariance(self, arrayIn, expValue, pbWeight=None, dim = None):
     """
       Method to compute the Variance (fisher) of an array of observations
-      @ In, arrayIn, list/numpy.array, the array of values from which the Variance needs to be estimated
-      @ In, expValue, float, expected value of arrayIn
-      @ In, pbWeight, list/numpy.array, optional, the reliability weights that correspond to the values in 'array'. If not present, an unweighted approach is used
-      @ Out, result, float, the Variance of the array of data
+      @ In, arrayIn, xarray.Dataset, the dataset from which the Variance needs to be estimated
+      @ In, expValue, xarray.Dataset, expected value of arrayIn
+      @ In, pbWeight, xarray.Dataset, optional, the reliability weights that correspond to dataset arrayIn.
+        If not present, an unweighted approach is used
+      @ Out, result, xarray.Dataset, the Variance of the dataset arrayIn
     """
     if dim is None:
       dim = self.sampleTag
@@ -458,17 +430,19 @@ class BasicStatistics(PostProcessor):
   def _computeSigma(self,arrayIn,variance,pbWeight=None):
     """
       Method to compute the sigma of an array of observations
-      @ In, arrayIn, list/numpy.array, the array of values from which the sigma needs to be estimated
-      @ In, variance, float, variance of arrayIn
-      @ In, pbWeight, list/numpy.array, optional, the reliability weights that correspond to the values in 'array'. If not present, an unweighted approach is used
-      @ Out, sigma, float, the sigma of the array of data
+      @ In, arrayIn, xarray.Dataset, the dataset from which the standard deviation needs to be estimated
+      @ In, variance, xarray.Dataset, variance of arrayIn
+      @ In, pbWeight, xarray.Dataset, optional, the reliability weights that correspond to dataset arrayIn.
+        If not present, an unweighted approach is used
+      @ Out, sigma, xarray.Dataset, the sigma of the dataset of arrayIn
     """
     return np.sqrt(variance)
 
   def __runLocal(self, inputData):
     """
       This method executes the postprocessor action. In this case, it computes all the requested statistical FOMs
-      @ In, inputDict, dict, dictionary containing the input, output, and metadata
+      @ In, inputData, tuple,  (inputDataset, pbWeights), tuple, the dataset of inputs and the corresponding
+        variable probability weight
       @ Out, outputDict, dict, Dictionary containing the results
     """
     inputDataset, pbWeights = inputData[0], inputData[1]
@@ -710,7 +684,7 @@ class BasicStatistics(PostProcessor):
           pivotVals = dataSet.coords[self.pivotParameter].values
           ds = None
           for i in range(len(pivotVals)):
-            da = self.sensitivityCalculation(featList,targList,featSet[i,...],targSet[i,...],intersectionSet)
+            da = self.sensitivityCalculation(featList,targList,featSet[i,:,:],targSet[i,:,:],intersectionSet)
             ds = da if ds is None else xr.concat([ds,da], dim=self.pivotParameter)
           ds.coords[self.pivotParameter] = pivotVals
           calculations[metric].append(ds)
@@ -768,8 +742,7 @@ class BasicStatistics(PostProcessor):
     def getCovarianceSubset(desired):
       """
         @ In, desired, list(str), list of parameters to extract from covariance matrix
-        @ Out, reducedSecond, np.array, reduced covariance matrix
-        @ Out, wantedParams, list(str), parameter labels for reduced covar matrix
+        @ Out, reducedCov, xarray.DataArray, reduced covariance matrix
       """
       reducedCov = calculations['covariance'].sel(**{'targets':desired,'features':desired})
       return reducedCov
@@ -836,6 +809,8 @@ class BasicStatistics(PostProcessor):
       meanDA = meanDA.rename({'targets':'features'})
       reducedSen *= meanDA
       calculations[metric] = reducedSen
+
+
     """
     #collect only the requested calculations except percentile, since it has been already collected
     #in the outputDict.
@@ -870,6 +845,8 @@ class BasicStatistics(PostProcessor):
                 varName = prefix + '_' + targetP + '_' + feature
                 outputDict[varName] = np.atleast_1d(calculations[metric][targetP][feature])
     """
+
+
     # TODO: the following lines are for debugging, remove when complete
     for key,val in calculations.items():
       print(key)
@@ -896,8 +873,8 @@ class BasicStatistics(PostProcessor):
       Unbiased weighted covariance matrix,   weights is not None, bias is 0
       Biased weighted covariance matrix,     weights is not None, bias is 1
       can be calcuated depending on the selection of the inputs.
-      @ In,  covM, list/numpy.array, [#targets,#targets] covariance matrix
-      @ Out, corrMatrix, list/numpy.array, [#targets,#targets] the correlation matrix
+      @ In,  covM, numpy.array, [#targets,#targets] covariance matrix
+      @ Out, covM, numpy.array, [#targets,#targets] correlation matrix
     """
     try:
       d = np.diag(covM)
@@ -912,6 +889,13 @@ class BasicStatistics(PostProcessor):
 
   def sensitivityCalculation(self,featVars, targVars, featSamples, targSamples, intersectionSet):
     """
+      This method computes the sensitivity coefficients based on the SciKitLearn LinearRegression method
+      @ In, featVars, list, list of feature variables
+      @ In, targVars, list, list of target variables
+      @ In, featSamples, numpy.ndarray, [#samples, #features] array of features
+      @ In, targSamples, numpy.ndarray, [#samples, #targets] array of targets
+      @ In, intersectionSet, boolean, True if some target variables are in the list of features
+      @ Out, da, xarray.DataArray, contains the calculations of sensitivity coefficients
     """
     if not intersectionSet:
       senMatrix = LinearRegression().fit(featSamples,targSamples).coef_
@@ -929,12 +913,16 @@ class BasicStatistics(PostProcessor):
           regCoeff = np.insert(regCoeff,p,1.0)
         senMatrix[p,:] = regCoeff
     da = xr.DataArray(senMatrix, dims=('targets','features'), coords={'targets':targVars,'features':featVars})
-
     return da
 
   def covarianceCalculation(self,paramSamples,fact,variance,targVars):
     """
-
+      This method computes the covariance of given sample matrix
+      @ In, paramSamples, numpy.ndarray, [#parameters, #samples], array of parameters
+      @ In, fact, float, the unbiase correction factor
+      @ In, variance, numpy.ndarray, [#parameters], variance of parameters
+      @ In, targVars, list, the list of parameters
+      @ Out, da, xarray.DataArray, contains the calculations of covariance
     """
     if self.pbPresent:
       paramSamplesT = (paramSamples*self.realizationWeight['ProbabilityWeight'].values).T
@@ -944,11 +932,14 @@ class BasicStatistics(PostProcessor):
     cov *= fact
     np.fill_diagonal(cov,variance)
     da = xr.DataArray(cov, dims=('targets','features'), coords={'targets':targVars,'features':targVars})
-
     return da
 
   def varianceDepSenCalculation(self,targCoords, cov):
     """
+      This method computes the covariance of given sample matrix
+      @ In, targCoords, list, the list of parameters
+      @ In, cov, numpy.ndarray, the covariance of parameters
+      @ Out, da, xarray.DataArray, contains the calculations of variance dependent sensitivities
     """
     senMatrix = np.zeros((len(targCoords), len(targCoords)))
     for p,param in enumerate(targCoords):
