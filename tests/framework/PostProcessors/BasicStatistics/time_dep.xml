@@ -64,10 +64,13 @@
       <Output class="DataObjects" type="HistorySet">HistorySetPostProcTest</Output>
     </MultiRun>
     <PostProcess name="timeDepBasicStatPP">
-      <Input class="DataObjects" type="HistorySet">HistorySetPostProcTest</Input>
+      <Input class="DataObjects" type="PointSet">HistorySetPostProcTest</Input>
       <Model class="Models" type="PostProcessor">timeDepBasicStat</Model>
+      <Output class="DataObjects" type="DataSet">basicStatSet</Output>
+      <!--
       <Output class="DataObjects" type="HistorySet">basicStatHistory</Output>
       <Output class="OutStreams" type="Print">HistorySetPostProcTest_dump</Output>
+      -->
     </PostProcess>
   </Steps>
 
@@ -112,6 +115,51 @@
             <pivotParameter>time</pivotParameter>
         </options>
     </HistorySet>
+    <DataSet name='basicStatSet'>
+        <Output>
+            variance, 
+            covariance,
+            percentile,
+            pearson,
+            expectedValue,
+            sigma,
+            kurtosis,
+            skewness,
+            variationCoefficient,
+            samples,
+            median
+        </Output>
+        <Index var='time'>
+            variance, 
+            covariance,
+            percentile,
+            pearson,
+            expectedValue,
+            sigma,
+            kurtosis,
+            skewness,
+            variationCoefficient,
+            median
+        </Index>
+        <Index var='targets'>
+            variance, 
+            covariance,
+            percentile,
+            pearson,
+            expectedValue,
+            sigma,
+            kurtosis,
+            skewness,
+            variationCoefficient,
+            samples,
+            median
+        </Index>
+        <Index var='features'>
+            covariance,
+            pearson
+        </Index>
+        <Index var='percent'>percentile</Index>
+    </DataSet>
   </DataObjects>
 
 </Simulation>

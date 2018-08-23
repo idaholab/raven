@@ -411,10 +411,10 @@ class DataSet(DataObject):
       self.raiseAnError(RuntimeError,'Unrecognized request type:',type(var))
     return res
 
-  def load(self,fileName,style='netCDF',**kwargs):
+  def load(self,dataIn,style='netCDF',**kwargs):
     """
       Reads this dataset from disk based on the format.
-      @ In, fileName, str, path and name of file to read
+      @ In, dataIn, str, path and name of file to read
       @ In, style, str, optional, options are enumerated below
       @ In, kwargs, dict, optional, additional arguments to pass to reading function
       @ Out, None
@@ -422,17 +422,19 @@ class DataSet(DataObject):
     style = style.lower()
     # if fileToLoad in kwargs, then filename is actualle fileName/fileToLoad
     if 'fileToLoad' in kwargs.keys():
-      fileName = kwargs['fileToLoad'].getAbsFile()
+      dataIn = kwargs['fileToLoad'].getAbsFile()
     # load based on style for loading
     if style == 'netcdf':
-      self._fromNetCDF(fileName,**kwargs)
+      self._fromNetCDF(dataIn,**kwargs)
     elif style == 'csv':
       # make sure we don't include the "csv"
-      if fileName.endswith('.csv'):
-        fileName = fileName[:-4]
-      self._fromCSV(fileName,**kwargs)
+      if dataIn.endswith('.csv'):
+        dataIn = dataIn[:-4]
+      self._fromCSV(dataIn,**kwargs)
     elif style == 'dict':
-      self._fromDict(fileName,**kwargs)
+      self._fromDict(dataIn,**kwargs)
+    elif style == 'dataset':
+      self._fromXarrayDataset(dataIn)
     # TODO dask
     else:
       self.raiseAnError(NotImplementedError,'Unrecognized read style: "{}"'.format(style))
@@ -1272,6 +1274,11 @@ class DataSet(DataObject):
     # convert metadata back to XML files
     for key,val in self._data.attrs.items():
       self._meta[key] = pk.loads(val.encode('utf-8'))
+
+  def _fromXarrayDataset(self,dataset):
+    """
+    """
+    self._data = dataset
 
   def _getCompatibleType(self,val):
     """

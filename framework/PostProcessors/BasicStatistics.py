@@ -914,8 +914,8 @@ class BasicStatistics(PostProcessor):
       self.raiseAnError(RuntimeError, "No available output to collect (run possibly not finished yet)")
 
     outputRealization = evaluation[1]
-    if output.type in ['PointSet','HistorySet']:
+    if output.type in ['PointSet','HistorySet','DataSet']:
       self.raiseADebug('Dumping output in data object named ' + output.name)
-      #output.addRealization(outputRealization)
+      output.load(outputRealization,style='dataset')
     else:
       self.raiseAnError(IOError, 'Output type ' + str(output.type) + ' unknown.')
