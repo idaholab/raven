@@ -112,7 +112,7 @@ class FiniteDifferenceGradientOptimizer(SPSA):
 
     # Evaluate gradient at each point
     for i in range(self.gradDict['numIterForAve']):
-      opt  = optVarsValues[i]                                  #the latest opt point
+      opt = optVarsValues[i]                                  #the latest opt point
       for j in range(self.paramDict['pertSingleGrad']):
         # loop over the perturbation to construct the full gradient
         pert = optVarsValues[self.gradDict['numIterForAve']+i+j] #the perturbed point
@@ -127,6 +127,9 @@ class FiniteDifferenceGradientOptimizer(SPSA):
         # gradient is calculated in normalized space
         dh = pert['inputs'][var] - opt['inputs'][var]
         if abs(dh) < 1e-15:
+          self.raiseADebug('Values:',pert['inputs'][var],opt['inputs'][var])
+          self.raiseADebug('opt:',opt)
+          self.raiseADebug('pert:',pert)
           self.raiseAnError(RuntimeError,'While calculating the gradArray a "dh" very close to zero was found for var:',var)
         gradArray[var][i] = lossDiff/dh
     gradient = {}
