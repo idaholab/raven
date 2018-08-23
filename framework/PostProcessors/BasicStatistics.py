@@ -704,66 +704,22 @@ class BasicStatistics(PostProcessor):
         dataSet = inputDataset[targList + featList]
         intersectionSet = set(targList) & set(featList)
         if self.pivotParameter in dataSet.sizes.keys():
+          dataSet = dataSet.to_array().transpose(self.pivotParameter,self.sampleTag,'variable')
+          featSet = dataSet.sel(**{'variable':featList}).values
+          targSet = dataSet.sel(**{'variable':targList}).values
+          pivotVals = dataSet.coords[self.pivotParameter].values
           ds = None
-          pivotVals = []
-          for label, group in dataSet.groupby(self.pivotParameter):
-            da = self.sensitivityCalculation(featList,targList,group,intersectionSet)
-            """
-            # construct target and feature matrices
-            featSamples = group[featList].to_array().transpose(self.sampleTag,'variable')
-            targSamples = group[targList].to_array().transpose(self.sampleTag,'variable')
-            featVars = featSamples.coords['variable'].values
-            targVars = targSamples.coords['variable'].values
-            featSamples = featSamples.values
-            targSamples = targSamples.values
-            if not intersectionSet:
-              senMatrix = LinearRegression().fit(featSamples,targSamples).coef_
-            else:
-              # Target variables are in feature variables list, multi-target linear regression can not be used
-              # Since the 'multi-colinearity' exists, we need to loop over target variables
-              # TODO: Some general methods need to be implemented in order to handle the 'multi-colinearity' -- wangc
-              senMatrix = np.zeros((len(targVars), len(featVars)))
-              for p, targ in enumerate(targVars):
-                ind = list(featVars).index(targ) if targ in featVars else None
-                if ind is not None:
-                  featMat = np.delete(featSamples,ind,axis=1)
-                regCoeff = LinearRegression().fit(featMat, targSamples[:,p]).coef_
-                if ind is not None:
-                  regCoeff = np.insert(regCoeff,p,1.0)
-                senMatrix[p,:] = regCoeff
-            da = xr.DataArray(senMatrix, dims=('targets','features'), coords={'targets':targVars,'features':featVars})
-            """
-            pivotVals.append(label)
+          for i in range(len(pivotVals)):
+            da = self.sensitivityCalculation(featList,targList,featSet[i,...],targSet[i,...],intersectionSet)
             ds = da if ds is None else xr.concat([ds,da], dim=self.pivotParameter)
           ds.coords[self.pivotParameter] = pivotVals
           calculations[metric].append(ds)
         else:
           # construct target and feature matrices
-          da = self.sensitivityCalculation(featList,targList,dataSet,intersectionSet)
-          """
-          featSamples = dataSet[featList].to_array().transpose(self.sampleTag,'variable')
-          targSamples = dataSet[targList].to_array().transpose(self.sampleTag,'variable')
-          featVars = featSamples.coords['variable'].values
-          targVars = targSamples.coords['variable'].values
-          featSamples = featSamples.values
-          targSamples = targSamples.values
-          if not intersectionSet:
-            senMatrix = LinearRegression().fit(featSamples,targSamples).coef_
-          else:
-            # Target variables are in feature variables list, multi-target linear regression can not be used
-            # Since the 'multi-colinearity' exists, we need to loop over target variables
-            # TODO: Some general methods need to be implemented in order to handle the 'multi-colinearity' -- wangc
-            senMatrix = np.zeros((len(targVars), len(featVars)))
-            for p, targ in enumerate(targVars):
-              ind = list(featVars).index(targ) if targ in featVars else None
-              if ind is not None:
-                featMat = np.delete(featSamples,ind,axis=1)
-              regCoeff = LinearRegression().fit(featMat, targSamples[:,p]).coef_
-              if ind is not None:
-                regCoeff = np.insert(regCoeff,p,1.0)
-              senMatrix[p,:] = regCoeff
-          da = xr.DataArray(senMatrix, dims=('targets','features'), coords={'targets':targVars,'features':featVars})
-          """
+          dataSet = dataSet.to_array().transpose(self.sampleTag,'variable')
+          featSet = dataSet.sel(**{'variable':featList}).values
+          targSet = dataSet.sel(**{'variable':targList}).values
+          da = self.sensitivityCalculation(featList,targList,featSet,targSet,intersectionSet)
           calculations[metric].append(da)
     #
     # covariance matrix
@@ -787,43 +743,26 @@ class BasicStatistics(PostProcessor):
       else:
         meanSet = dataSet.mean(dim = self.sampleTag)
         fact = 1.0 / (float(dataSet.sizes[self.sampleTag]) - 1.0) if not self.biased else 1.0 / float(dataSet.sizes[self.sampleTag])
+      targVars = list(dataSet.data_vars)
       varianceSet = self._computeVariance(dataSet,meanSet,pbWeight=relWeight,dim=self.sampleTag)
       dataSet = dataSet - meanSet
       if self.pivotParameter in dataSet.sizes.keys():
         ds = None
-        pivotVals = []
-        for label, group in dataSet.groupby(self.pivotParameter):
+        paramDA = dataSet.to_array().transpose(self.pivotParameter,'variable',self.sampleTag).values
+        varianceDA = varianceSet[targVars].to_array().transpose(self.pivotParameter,'variable').values
+        pivotVals = dataSet.coords[self.pivotParameter].values
+        for i in range(len(pivotVals)):
           # construct target and feature matrices
-          paramSamples = group.to_array().transpose('variable',self.sampleTag)
-          targVars = paramSamples.coords['variable'].values
-          paramSamples = paramSamples.values
-          if self.pbPresent:
-            paramSamplesT = (paramSamples*self.realizationWeight['ProbabilityWeight'].values).T
-          else:
-            paramSamplesT = paramSamples.T
-          cov = np.dot(paramSamples, paramSamplesT.conj())
-          cov *= fact
-          variance = varianceSet[targVars].sel(**{self.pivotParameter:label}).to_array().values
-          np.fill_diagonal(cov,variance)
-          pivotVals.append(label)
-          da = xr.DataArray(cov, dims=('targets','features'), coords={'targets':targVars,'features':targVars})
+          paramSamples = paramDA[i,...]
+          da = self.covarianceCalculation(paramDA[i,...],fact,varianceDA[i,:],targVars)
           ds = da if ds is None else xr.concat([ds,da], dim=self.pivotParameter)
         ds.coords[self.pivotParameter] = pivotVals
         calculations[metric] = ds
       else:
         # construct target and feature matrices
-        paramSamples = dataSet.to_array().transpose('variable',self.sampleTag)
-        targVars = paramSamples.coords['variable'].values
-        paramSamples = paramSamples.values
-        if self.pbPresent:
-          paramSamplesT = (paramSamples*self.realizationWeight['ProbabilityWeight'].values).T
-        else:
-          paramSamplesT = paramSamples.T
-        cov = np.dot(paramSamples, paramSamplesT.conj())
-        cov *= fact
-        variance = varianceSet[targVars].to_array().values
-        np.fill_diagonal(cov,variance)
-        da = xr.DataArray(cov, dims=('targets','features'), coords={'targets':targVars,'features':targVars})
+        paramSamples = dataSet.to_array().transpose('variable',self.sampleTag).values
+        varianceDA = varianceSet[targVars].to_array().values
+        da = self.covarianceCalculation(paramSamples,fact,varianceDA,targVars)
         calculations[metric] = da
 
     def getCovarianceSubset(desired):
@@ -988,16 +927,9 @@ class BasicStatistics(PostProcessor):
     covM /= stdDev[None,:]
     return covM
 
-  def sensitivityCalculation(self,featList, targList, dataSet, intersectionSet):
+  def sensitivityCalculation(self,featVars, targVars, featSamples, targSamples, intersectionSet):
     """
     """
-    # construct target and feature matrices
-    featSamples = dataSet[featList].to_array().transpose(self.sampleTag,'variable')
-    targSamples = dataSet[targList].to_array().transpose(self.sampleTag,'variable')
-    featVars = featSamples.coords['variable'].values
-    targVars = targSamples.coords['variable'].values
-    featSamples = featSamples.values
-    targSamples = targSamples.values
     if not intersectionSet:
       senMatrix = LinearRegression().fit(featSamples,targSamples).coef_
     else:
@@ -1014,6 +946,21 @@ class BasicStatistics(PostProcessor):
           regCoeff = np.insert(regCoeff,p,1.0)
         senMatrix[p,:] = regCoeff
     da = xr.DataArray(senMatrix, dims=('targets','features'), coords={'targets':targVars,'features':featVars})
+
+    return da
+
+  def covarianceCalculation(self,paramSamples,fact,variance,targVars):
+    """
+
+    """
+    if self.pbPresent:
+      paramSamplesT = (paramSamples*self.realizationWeight['ProbabilityWeight'].values).T
+    else:
+      paramSamplesT = paramSamples.T
+    cov = np.dot(paramSamples, paramSamplesT.conj())
+    cov *= fact
+    np.fill_diagonal(cov,variance)
+    da = xr.DataArray(cov, dims=('targets','features'), coords={'targets':targVars,'features':targVars})
 
     return da
 
