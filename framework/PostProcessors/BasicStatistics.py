@@ -245,7 +245,7 @@ class BasicStatistics(PostProcessor):
           reqPercent = list(percent/100. for percent in child.parameterValues['percent'])
         self.toDo[tag].append({'targets':set(targets),
                                'prefix':prefix,
-                               'percent':reqPercent})
+                               'percent':set(reqPercent)})
       elif tag in self.scalarVals:
         if tag not in self.toDo.keys():
           self.toDo[tag] = [] # list of {'targets':(), 'prefix':str}
@@ -275,24 +275,6 @@ class BasicStatistics(PostProcessor):
       else:
         self.raiseAWarning('Unrecognized node in BasicStatistics "',tag,'" has been ignored!')
     assert (len(self.toDo)>0), self.raiseAnError(IOError, 'BasicStatistics needs parameters to work on! Please check input for PP: ' + self.name)
-
-  def collectOutput(self, finishedJob, output):
-    """
-      Function to place all of the computed data into the output object
-      @ In, finishedJob, JobHandler External or Internal instance, A JobHandler object that is in charge of running this post-processor
-      @ In, output, dataObjects, The object where we want to place our computed results
-      @ Out, None
-    """
-    evaluation = finishedJob.getEvaluation()
-    if isinstance(evaluation, Runners.Error):
-      self.raiseAnError(RuntimeError, "No available output to collect (run possibly not finished yet)")
-
-    outputRealization = evaluation[1]
-    if output.type in ['PointSet','HistorySet']:
-      self.raiseADebug('Dumping output in data object named ' + output.name)
-      #output.addRealization(outputRealization)
-    else:
-      self.raiseAnError(IOError, 'Output type ' + str(output.type) + ' unknown.')
 
   def __computePower(self, p, dataset):
     """
@@ -443,19 +425,23 @@ class BasicStatistics(PostProcessor):
       This method executes the postprocessor action. In this case, it computes all the requested statistical FOMs
       @ In, inputData, tuple,  (inputDataset, pbWeights), tuple, the dataset of inputs and the corresponding
         variable probability weight
-      @ Out, outputDict, dict, Dictionary containing the results
+      @ Out, outputSet, xarray.Dataset, dataset containing the results
     """
     inputDataset, pbWeights = inputData[0], inputData[1]
     #storage dictionary for skipped metrics
     self.skipped = {}
     #construct a dict of required computations
-    needed = dict((metric,{'targets':set()}) for metric in self.scalarVals)
+    needed = dict((metric,{'targets':set(),'percent':set()}) for metric in self.scalarVals)
     needed.update(dict((metric,{'targets':set(),'features':set()}) for metric in self.vectorVals))
     for metric, params in self.toDo.items():
       for entry in params:
         needed[metric]['targets'].update(entry['targets'])
         try:
           needed[metric]['features'].update(entry['features'])
+        except KeyError:
+          pass
+        try:
+          needed[metric]['percent'].update(entry['percent'])
         except KeyError:
           pass
 
@@ -503,11 +489,9 @@ class BasicStatistics(PostProcessor):
     #
     # BEGIN actual calculations
     #
-    # do things in order to preserve prereqs
-    # TODO many of these could be sped up through vectorization
-    # TODO additionally, this could be done with less code duplication, probably
-    # Store the calculation results into a data set
+
     calculations = {}
+
     #################
     # SCALAR VALUES #
     #################
@@ -518,9 +502,8 @@ class BasicStatistics(PostProcessor):
     if len(needed[metric]['targets'])>0:
       self.raiseADebug('Starting "'+metric+'"...')
       numRlz = inputDataset.sizes[self.sampleTag]
-      # TODO: remove latter
-      #samples = xr.DataArray([numRlz]*len(self.parameters['targets']),dims=('targets'),coords={'targets':self.parameters['targets']})
-      calculations[metric] = numRlz
+      samplesDA = xr.DataArray([numRlz]*len(self.parameters['targets']),dims=('targets'),coords={'targets':self.parameters['targets']})
+      calculations[metric] = samplesDA
     #
     # expected value
     #
@@ -531,10 +514,10 @@ class BasicStatistics(PostProcessor):
       if self.pbPresent:
         relWeight = pbWeights[list(needed[metric]['targets'])]
         dataSet = dataSet * relWeight
-        expectedValue = dataSet.sum(dim = self.sampleTag)
+        expectedValueDS = dataSet.sum(dim = self.sampleTag)
       else:
-        expectedValue = dataSet.mean(dim = self.sampleTag)
-      calculations[metric] = expectedValue
+        expectedValueDS = dataSet.mean(dim = self.sampleTag)
+      calculations[metric] = expectedValueDS
     #
     # variance
     #
@@ -544,14 +527,16 @@ class BasicStatistics(PostProcessor):
       dataSet = inputDataset[list(needed[metric]['targets'])]
       meanSet = calculations['expectedValue'][list(needed[metric]['targets'])]
       relWeight = pbWeights[list(needed[metric]['targets'])] if self.pbPresent else None
-      calculations[metric] = self._computeVariance(dataSet,meanSet,pbWeight=relWeight,dim=self.sampleTag)
+      varianceDS = self._computeVariance(dataSet,meanSet,pbWeight=relWeight,dim=self.sampleTag)
+      calculations[metric] = varianceDS
     #
     # sigma
     #
     metric = 'sigma'
     if len(needed[metric]['targets'])>0:
       self.raiseADebug('Starting "'+metric+'"...')
-      calculations[metric] = self.__computePower(0.5,calculations['variance'][list(needed[metric]['targets'])])
+      sigmaDS = self.__computePower(0.5,calculations['variance'][list(needed[metric]['targets'])])
+      calculations[metric] = sigmaDS
     #
     # coeff of variation (sigma/mu)
     #
@@ -595,9 +580,9 @@ class BasicStatistics(PostProcessor):
         # The xarray.Dataset.where() will not return the corrrect solution
         # 'lower' is used for consistent
         medianSet = dataSet.where(dataSetWeighted==dataSetWeighted.quantile(0.5,dim=self.sampleTag,interpolation='lower')).sum(self.sampleTag)
-        calculations[metric] = medianSet
       else:
-        calculations[metric] = dataSet.median(dim=self.sampleTag)
+        medianSet = dataSet.median(dim=self.sampleTag)
+      calculations[metric] = medianSet
     #
     # maximum
     #
@@ -620,22 +605,19 @@ class BasicStatistics(PostProcessor):
     metric = 'percentile'
     if len(needed[metric]['targets'])>0:
       self.raiseADebug('Starting "'+metric+'"...')
-      calculations[metric] = []
-      for targetDict in self.toDo[metric]:
-        percent = targetDict['percent']
-        dataSet = inputDataset[list(targetDict['targets'])]
-        if self.pbPresent:
-          relWeight = pbWeights[list(targetDict['targets'])]
-          dataSetWeighted = dataSet * relWeight
-          # interpolation: {'linear', 'lower', 'higher','midpoint','nearest'}, do not try to use 'linear' or 'midpoint'
-          # The xarray.Dataset.where() will not return the corrrect solution
-          # 'lower' is used for consistent
-          # using xarray.Dataset.sel(**{'quantile':reqPercent}) to retrieve the quantile values
-          percentileSet = dataSet.where(dataSetWeighted==dataSetWeighted.quantile(percent,dim=self.sampleTag,interpolation='lower')).mean(self.sampleTag)
-          calculations[metric].append(percentileSet)
-        else:
-          percentileSet = dataSet.quantile(percent,dim=self.sampleTag,interpolation='lower')
-          calculations[metric].append(percentileSet)
+      dataSet = inputDataset[list(needed[metric]['targets'])]
+      percent = list(needed[metric]['percent'])
+      if self.pbPresent:
+        relWeight = pbWeights[list(needed[metric]['targets'])]
+        dataSetWeighted = dataSet * relWeight
+        # interpolation: {'linear', 'lower', 'higher','midpoint','nearest'}, do not try to use 'linear' or 'midpoint'
+        # The xarray.Dataset.where() will not return the corrrect solution
+        # 'lower' is used for consistent
+        # using xarray.Dataset.sel(**{'quantile':reqPercent}) to retrieve the quantile values
+        percentileSet = dataSet.where(dataSetWeighted==dataSetWeighted.quantile(percent,dim=self.sampleTag,interpolation='lower')).mean(self.sampleTag)
+      else:
+        percentileSet = dataSet.quantile(percent,dim=self.sampleTag,interpolation='lower')
+      calculations[metric] = percentileSet.rename({'quantile':'percent'})
 
     def startVector(metric):
       """
@@ -651,8 +633,8 @@ class BasicStatistics(PostProcessor):
       skip = True
       if len(needed[metric]['targets'])>0:
         self.raiseADebug('Starting "'+metric+'"...')
-        targets = needed[metric]['targets']
-        features = needed[metric]['features']
+        targets = list(needed[metric]['targets'])
+        features = list(needed[metric]['features'])
         skip = False #True only if we don't have targets and features
       if skip:
         if metric not in self.skipped.keys():
@@ -671,30 +653,27 @@ class BasicStatistics(PostProcessor):
     if not skip:
       #for sensitivity matrix, we don't use numpy/scipy methods to calculate matrix operations,
       #so we loop over targets and features
-      calculations[metric] = []
-      for paramDict in self.toDo[metric]:
-        targList = list(paramDict['targets'])
-        featList = list(paramDict['features'])
-        dataSet = inputDataset[targList + featList]
-        intersectionSet = set(targList) & set(featList)
-        if self.pivotParameter in dataSet.sizes.keys():
-          dataSet = dataSet.to_array().transpose(self.pivotParameter,self.sampleTag,'variable')
-          featSet = dataSet.sel(**{'variable':featList}).values
-          targSet = dataSet.sel(**{'variable':targList}).values
-          pivotVals = dataSet.coords[self.pivotParameter].values
-          ds = None
-          for i in range(len(pivotVals)):
-            da = self.sensitivityCalculation(featList,targList,featSet[i,:,:],targSet[i,:,:],intersectionSet)
-            ds = da if ds is None else xr.concat([ds,da], dim=self.pivotParameter)
-          ds.coords[self.pivotParameter] = pivotVals
-          calculations[metric].append(ds)
-        else:
-          # construct target and feature matrices
-          dataSet = dataSet.to_array().transpose(self.sampleTag,'variable')
-          featSet = dataSet.sel(**{'variable':featList}).values
-          targSet = dataSet.sel(**{'variable':targList}).values
-          da = self.sensitivityCalculation(featList,targList,featSet,targSet,intersectionSet)
-          calculations[metric].append(da)
+      params = list(set(targets).union(set(features)))
+      dataSet = inputDataset[params]
+      relWeight = pbWeights[params] if self.pbPresent else None
+      intersectionSet = set(targets) & set(features)
+      if self.pivotParameter in dataSet.sizes.keys():
+        dataSet = dataSet.to_array().transpose(self.pivotParameter,self.sampleTag,'variable')
+        featSet = dataSet.sel(**{'variable':features}).values
+        targSet = dataSet.sel(**{'variable':targets}).values
+        pivotVals = dataSet.coords[self.pivotParameter].values
+        da = None
+        for i in range(len(pivotVals)):
+          ds = self.sensitivityCalculation(features,targets,featSet[i,:,:],targSet[i,:,:],intersectionSet)
+          da = ds if da is None else xr.concat([da,ds], dim=self.pivotParameter)
+        da.coords[self.pivotParameter] = pivotVals
+      else:
+        # construct target and feature matrices
+        dataSet = dataSet.to_array().transpose(self.sampleTag,'variable')
+        featSet = dataSet.sel(**{'variable':features}).values
+        targSet = dataSet.sel(**{'variable':targets}).values
+        da = self.sensitivityCalculation(features,targets,featSet,targSet,intersectionSet)
+      calculations[metric] = da
     #
     # covariance matrix
     #
@@ -707,7 +686,6 @@ class BasicStatistics(PostProcessor):
       #   dependent on the percentage of the full matrix desired, would be better.
       # IF this is fixed, make sure all the features and targets are requested for all the metrics
       #   dependent on this metric
-      calculations[metric] = {}
       params = list(set(targets).union(set(features)))
       dataSet = inputDataset[params]
       relWeight = pbWeights[params] if self.pbPresent else None
@@ -811,59 +789,20 @@ class BasicStatistics(PostProcessor):
       calculations[metric] = reducedSen
 
 
-    """
-    #collect only the requested calculations except percentile, since it has been already collected
-    #in the outputDict.
-    for metric, requestList  in self.toDo.items():
-      if metric == 'percentile':
-        continue
-      for targetDict in requestList:
-        prefix = targetDict['prefix'].strip()
-        if metric in self.scalarVals:
-          for targetP in targetDict['targets']:
-            varName = prefix + '_' + targetP
-            outputDict[varName] = np.atleast_1d(calculations[metric][targetP])
-        #TODO someday we might need to expand the "skipped" check to include scalars, but for now
-        #   the only reason to skip is if an invalid matrix is requested
-        #if matrix block, extract desired values
+    outputSet = xr.Dataset()
+    for metric, ds in calculations.items():
+        if metric in self.scalarVals and metric !='samples':
+          outputSet[metric] = ds.to_array().rename({'variable':'targets'})
         else:
-          #check if it was skipped for some reason
-          skip = self.skipped.get(metric, False)
-          if skip:
-            continue
-          if metric in ['pearson', 'covariance']:
-            for targetP in targetDict['targets']:
-              targetIndex = calculations[metric]['params'].index(targetP)
-              for feature in targetDict['features']:
-                varName = prefix + '_' + targetP + '_' + feature
-                featureIndex = calculations[metric]['params'].index(feature)
-                outputDict[varName] = np.atleast_1d(calculations[metric]['matrix'][targetIndex,featureIndex])
-          #if matrix but stored in dictionaries, just grab the values
-          elif metric in ['sensitivity','NormalizedSensitivity','VarianceDependentSensitivity']:
-            for targetP in targetDict['targets']:
-              for feature in targetDict['features']:
-                varName = prefix + '_' + targetP + '_' + feature
-                outputDict[varName] = np.atleast_1d(calculations[metric][targetP][feature])
-    """
-
+          outputSet[metric] = ds
 
     # TODO: the following lines are for debugging, remove when complete
     for key,val in calculations.items():
       print(key)
       print(val)
       print('======================================')
-    return calculations
 
-  def run(self, inputIn):
-    """
-      This method executes the postprocessor action. In this case, it computes all the requested statistical FOMs
-      @ In,  inputIn, object, object contained the data to process. (inputToInternal output)
-      @ Out, outputDict, dict, Dictionary containing the results
-    """
-    inputData = self.inputToInternal(inputIn)
-    outputDict = self.__runLocal(inputData)
-
-    return outputDict
+    return outputSet
 
   def corrCoeff(self, covM):
     """
@@ -952,3 +891,31 @@ class BasicStatistics(PostProcessor):
     da = xr.DataArray(senMatrix, dims=('targets','features'), coords={'targets':targCoords,'features':targCoords})
     return da
 
+  def run(self, inputIn):
+    """
+      This method executes the postprocessor action. In this case, it computes all the requested statistical FOMs
+      @ In,  inputIn, object, object contained the data to process. (inputToInternal output)
+      @ Out, outputSet, xarray.Dataset, dataset containing the results
+    """
+    inputData = self.inputToInternal(inputIn)
+    outputSet = self.__runLocal(inputData)
+
+    return outputSet
+
+  def collectOutput(self, finishedJob, output):
+    """
+      Function to place all of the computed data into the output object
+      @ In, finishedJob, JobHandler External or Internal instance, A JobHandler object that is in charge of running this post-processor
+      @ In, output, dataObjects, The object where we want to place our computed results
+      @ Out, None
+    """
+    evaluation = finishedJob.getEvaluation()
+    if isinstance(evaluation, Runners.Error):
+      self.raiseAnError(RuntimeError, "No available output to collect (run possibly not finished yet)")
+
+    outputRealization = evaluation[1]
+    if output.type in ['PointSet','HistorySet']:
+      self.raiseADebug('Dumping output in data object named ' + output.name)
+      #output.addRealization(outputRealization)
+    else:
+      self.raiseAnError(IOError, 'Output type ' + str(output.type) + ' unknown.')
