@@ -20,7 +20,7 @@
   </TestInfo>
 
   <Models>
-    <ExternalModel ModuleToLoad="../simpleMirrowModel" name="mirrowModel" subType="">
+    <ExternalModel ModuleToLoad="simpleMirrowModel" name="mirrowModel" subType="">
       <variables>x,y,x1</variables>
     </ExternalModel>
     <PostProcessor name="analyticalTest" subType="BasicStatistics" verbosity="debug">
