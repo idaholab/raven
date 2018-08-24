@@ -147,8 +147,8 @@ class OutStreamPrint(OutStreamManager):
 
     for index in range(len(self.sourceName)):
       try:
-        empty = len(self.sourceData[index]) == 0
-      except TypeError:
+        empty = self.sourceData.isEmpty
+      except AttributeError:
         empty = False
       if not empty:
         if self.options['type'] == 'csv':

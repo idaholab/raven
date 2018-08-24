@@ -633,21 +633,25 @@ class DataSet(DataObject):
     if style.lower() == 'netcdf':
       self._toNetCDF(fileName,**kwargs)
     elif style.lower() == 'csv':
-      if len(self._data[self.sampleTag])==0: #TODO what if it's just metadata?
+      if len(self.asDataset().variables)==0: #TODO what if it's just metadata?
         self.raiseAWarning('Nothing to write!')
         return
       #first write the CSV
       firstIndex = kwargs.get('firstIndex',0)
       self._toCSV(fileName,start=firstIndex,**kwargs)
       # then the metaxml
-      self._toCSVXML(fileName,**kwargs)
+      if 'DataSet' in self._meta.keys():
+        self._toCSVXML(fileName,**kwargs)
     # TODO dask?
     else:
       self.raiseAnError(NotImplementedError,'Unrecognized write style: "{}"'.format(style))
     if not self.hierarchical and 'RAVEN_isEnding' in self.getVars():
       return len(self._data.where(self._data['RAVEN_isEnding']==True,drop=True)['RAVEN_isEnding'])
     else:
-      return len(self) # so that other entities can track which realization we've written
+      if self.sampleTag in self._data.sizes.keys():
+        return len(self) # so that other entities can track which realization we've written
+      else:
+        return 0 # not 'RAVEN_sample_ID' is found
 
   ### BUIlTINS AND PROPERTIES ###
   # These are special commands that RAVEN entities can use to interact with the data object
@@ -658,6 +662,17 @@ class DataSet(DataObject):
       @ Out, int, number of samples in this dataset
     """
     return self.size
+
+  @property
+  def isEmpty(self):
+    """
+      @ In, None
+      @ Out, boolean, True if the dataset is empty otherwise False
+    """
+    empty = True
+    if len(self.asDataset().variables) > 0:
+      empty = False
+    return empty
 
   @property
   def vars(self):
@@ -1278,7 +1293,38 @@ class DataSet(DataObject):
   def _fromXarrayDataset(self,dataset):
     """
     """
-    self._data = dataset
+    if self._collector is not None or self._data is not None:
+      self.raiseAnError(IOError, 'DataObject', self.name.strip(),'is not empty!')
+    #select data from dataset
+    providedVars  = set(dataset.data_vars.keys())
+    requiredVars  = set(self.getVars())
+    ## figure out who's missing from the IO space
+    missing = requiredVars - providedVars
+    if len(missing) > 0:
+      self.raiseAnError(KeyError,'Variables are missing from "source" that are required for data object "',
+                                  self.name.strip(),'":',",".join(missing))
+    providedDims = set(dataset.sizes.keys())
+    requiredDims = set(self.indexes)
+    missing = requiredDims - providedDims
+    if len(missing) > 0:
+      self.raiseAnError(KeyError,'Dimensions are missing from "source" that are required for data object "',
+                                  self.name.strip(),'":',",".join(missing))
+    # select the required data from given dataset
+    datasetSub = dataset[list(requiredVars)]
+    # check the dimensions
+    for var in self.vars:
+      requiredDims = self.getDimensions(var)[var]
+      # make sure "dims" isn't polluted
+      assert(self.sampleTag not in dims)
+      providedDims = datasetSub[var].sizes.keys()
+      if set(requiredDims) != set(providedDims):
+        self.raiseAnError(KeyError,'Dimensions of variable',var,'from "source"', ",".join(providedDims),
+                'is not consistent with the required dimensions for data object "',
+                self.name.strip(),'":',",".join(requiredDims))
+    self._orderedVars = self.vars + self.indexes
+    self._data = datasetSub
+    for key, val in self._data.attrs.items():
+      self._meta[key] = val
 
   def _getCompatibleType(self,val):
     """
