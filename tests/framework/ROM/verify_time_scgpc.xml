@@ -1,10 +1,5 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
-  <RunInfo>
-    <WorkingDir>scgpc</WorkingDir>
-    <Sequence>load,sampleRom,sampleModel,print</Sequence>
-    <batchSize>1</batchSize>
-  </RunInfo>
   <TestInfo>
     <name>framework/Samplers/ROM/verifyGaussPolyRom</name>
     <author>talbpaul</author>
@@ -17,7 +12,16 @@
       This test uses the "projectile.py" ballistic model and tracks position in time.  The evaluations of this model
       as well as the ROMs should match the results documented there.
     </analytic>
+    <revisions>
+      <revision author="wangc" date="2018-08-09">Add pivotParameter for time dependent ROM</revision>
+    </revisions>
   </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>scgpc</WorkingDir>
+    <Sequence>load,sampleRom,sampleModel,print</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
 
   <Files>
     <Input name="rom_pk" type="">rom.pk</Input>
@@ -49,12 +53,13 @@
   </Steps>
 
   <Models>
-    <ExternalModel ModuleToLoad="../AnalyticModels/projectile" name="proj" subType="">
-      <variables>x,y,r,time,x0,y0</variables>
+    <ExternalModel ModuleToLoad="../../AnalyticModels/projectile" name="proj" subType="">
+      <variables>x,y,r,t,x0,y0</variables>
     </ExternalModel>
     <ROM name="rom" subType="GaussPolynomialRom">
       <Features>x0,y0</Features>
-      <Target>time,x,y,r</Target>
+      <Target>t,x,y,r</Target>
+      <pivotParameter>t</pivotParameter>
       <IndexSet>TotalDegree</IndexSet>
       <PolynomialOrder>1</PolynomialOrder>
     </ROM>
@@ -102,11 +107,17 @@
     </PointSet>
     <HistorySet name="romSamples">
       <Input>x0,y0</Input>
-      <Output>time,x,y,r</Output>
+      <Output>t,x,y,r</Output>
+      <options>
+          <pivotParameter>t</pivotParameter>
+      </options>
     </HistorySet>
     <HistorySet name="modelSamples">
       <Input>x0,y0</Input>
-      <Output>time,x,y,r</Output>
+      <Output>t,x,y,r</Output>
+      <options>
+          <pivotParameter>t</pivotParameter>
+      </options>
     </HistorySet>
   </DataObjects>
 

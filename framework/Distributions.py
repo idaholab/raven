@@ -877,7 +877,6 @@ class Gamma(BoostDistribution):
     @ In, None, None
     @ Out float, norm
     """
-    #return self.beta**self.alpha/factorial(self.alpha-1.)
     return 1./factorial(self.alpha-1)
 
 DistributionsCollection.addSub(Gamma.getInputSpecification())

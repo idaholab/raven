@@ -28,6 +28,7 @@
   <Models>
     <Code name="Rattlesnake" subType="Rattlesnake">
       <executable>
+        %FRAMEWORK_DIR%/../../rattlesnake/rattlesnake-%METHOD%
         <!--  /path/to/rattlesnake/executable -->
         <!-- here we should put the executable. Since we want to test the interface only, it is going to be empty -->
       </executable>
