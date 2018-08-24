@@ -96,6 +96,9 @@ class BasicStatistics(PostProcessor):
     pivotParameterInput = InputData.parameterInputFactory('pivotParameter', contentType=InputData.StringType)
     inputSpecification.addSub(pivotParameterInput)
 
+    datasetInput = InputData.parameterInputFactory('dataset', contentType=InputData.BoolType)
+    inputSpecification.addSub(datasetInput)
+
     methodsToRunInput = InputData.parameterInputFactory("methodsToRun", contentType=InputData.StringType)
     inputSpecification.addSub(methodsToRunInput)
 
@@ -125,6 +128,7 @@ class BasicStatistics(PostProcessor):
     self.sampleTag      = None  # Tag used to track samples
     self.pbPresent      = False # True if the ProbabilityWeight is available
     self.realizationWeight = None # The joint probabilities
+    self.outputDataset  = False # True if the user wants to dump the outputs to dataset
 
   def inputToInternal(self, currentInp):
     """
@@ -241,11 +245,14 @@ class BasicStatistics(PostProcessor):
           self.toDo[tag] = [] # list of {'targets':(), 'prefix':str, 'percent':str}
         if 'percent' not in child.parameterValues:
           reqPercent = [0.05, 0.95]
+          strPercent = ['5','95']
         else:
-          reqPercent = list(percent/100. for percent in child.parameterValues['percent'])
+          reqPercent = set(percent/100. for percent in child.parameterValues['percent'])
+          strPercent = set(str(percent) for percent in child.parameterValues['percent'])
         self.toDo[tag].append({'targets':set(targets),
                                'prefix':prefix,
-                               'percent':set(reqPercent)})
+                               'percent':reqPercent,
+                               'strPercent':strPercent})
       elif tag in self.scalarVals:
         if tag not in self.toDo.keys():
           self.toDo[tag] = [] # list of {'targets':(), 'prefix':str}
@@ -272,6 +279,8 @@ class BasicStatistics(PostProcessor):
           self.biased = True
       elif tag == "pivotParameter":
         self.pivotParameter = child.value
+      elif tag == "dataset":
+        self.outputDataset = True
       else:
         self.raiseAWarning('Unrecognized node in BasicStatistics "',tag,'" has been ignored!')
     assert (len(self.toDo)>0), self.raiseAnError(IOError, 'BasicStatistics needs parameters to work on! Please check input for PP: ' + self.name)
@@ -425,7 +434,7 @@ class BasicStatistics(PostProcessor):
       This method executes the postprocessor action. In this case, it computes all the requested statistical FOMs
       @ In, inputData, tuple,  (inputDataset, pbWeights), tuple, the dataset of inputs and the corresponding
         variable probability weight
-      @ Out, outputSet, xarray.Dataset, dataset containing the results
+      @ Out, outputSet or outputDict, xarray.Dataset or dict, dataset or dictionary containing the results
     """
     inputDataset, pbWeights = inputData[0], inputData[1]
     #storage dictionary for skipped metrics
@@ -789,20 +798,47 @@ class BasicStatistics(PostProcessor):
       calculations[metric] = reducedSen
 
 
-    outputSet = xr.Dataset()
-    for metric, ds in calculations.items():
-        if metric in self.scalarVals and metric !='samples':
-          outputSet[metric] = ds.to_array().rename({'variable':'targets'})
-        else:
-          outputSet[metric] = ds
-
     # TODO: the following lines are for debugging, remove when complete
     for key,val in calculations.items():
       print(key)
       print(val)
       print('======================================')
 
-    return outputSet
+
+    outputSet = xr.Dataset()
+    for metric, ds in calculations.items():
+      if metric in self.scalarVals and metric !='samples':
+        outputSet[metric] = ds.to_array().rename({'variable':'targets'})
+      else:
+       outputSet[metric] = ds
+    if self.outputDataset:
+      return outputSet
+    else:
+      outputDict = {}
+      for metric, requestList  in self.toDo.items():
+        for targetDict in requestList:
+          prefix = targetDict['prefix'].strip()
+          for target in targetDict['targets']:
+            if metric in self.scalarVals and metric != 'percentile':
+              varName = prefix + '_' + target
+              outputDict[varName] = np.atleast_1d(outputSet[metric].sel(**{'targets':target}))
+            elif metric == 'percentile':
+              for percent in targetDict['strPercent']:
+                varName = '_'.join([prefix,percent,target])
+                percentVal = float(percent)/100.
+                outputDict[varName] = np.atleast_1d(outputSet[metric].sel(**{'targets':target,'percent':percentVal}))
+            else:
+              #check if it was skipped for some reason
+              skip = self.skipped.get(metric, None)
+              if skip is not None:
+                self.raiseADebug('Metric',metric,'was skipped for parameters',targetDict,'!  See warnings for details.  Ignoring...')
+                continue
+              for feature in targetDict['features']:
+                varName = '_'.join([prefix,target,feature])
+                outputDict[varName] = np.atleast_1d(outputSet[metric].sel(**{'targets':target,'features':feature}))
+      if self.pivotParameter in outputSet.sizes.keys():
+        outputDict[self.pivotParameter] = np.atleast_1d(self.pivotValue)
+      return outputDict
 
   def corrCoeff(self, covM):
     """
@@ -895,7 +931,7 @@ class BasicStatistics(PostProcessor):
     """
       This method executes the postprocessor action. In this case, it computes all the requested statistical FOMs
       @ In,  inputIn, object, object contained the data to process. (inputToInternal output)
-      @ Out, outputSet, xarray.Dataset, dataset containing the results
+      @ Out, outputSet, xarray.Dataset or dictionary, dataset or dictionary containing the results
     """
     inputData = self.inputToInternal(inputIn)
     outputSet = self.__runLocal(inputData)
@@ -914,8 +950,13 @@ class BasicStatistics(PostProcessor):
       self.raiseAnError(RuntimeError, "No available output to collect (run possibly not finished yet)")
 
     outputRealization = evaluation[1]
-    if output.type in ['PointSet','HistorySet','DataSet']:
+    if output.type in ['PointSet','HistorySet']:
+      if self.outputDataset:
+        self.raiseAnError(IOError, "DataSet output is required, but the provided type of DataObject is",output.type)
       self.raiseADebug('Dumping output in data object named ' + output.name)
+      output.addRealization(outputRealization)
+    elif output.type in ['DataSet']:
+      self.raiseADebug('Dumping output in DataSet named ' + output.name)
       output.load(outputRealization,style='dataset')
     else:
       self.raiseAnError(IOError, 'Output type ' + str(output.type) + ' unknown.')
