@@ -1315,7 +1315,7 @@ class DataSet(DataObject):
     for var in self.vars:
       requiredDims = self.getDimensions(var)[var]
       # make sure "dims" isn't polluted
-      assert(self.sampleTag not in dims)
+      assert(self.sampleTag not in requiredDims)
       providedDims = datasetSub[var].sizes.keys()
       if set(requiredDims) != set(providedDims):
         self.raiseAnError(KeyError,'Dimensions of variable',var,'from "source"', ",".join(providedDims),

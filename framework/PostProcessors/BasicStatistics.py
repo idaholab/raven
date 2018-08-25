@@ -96,7 +96,7 @@ class BasicStatistics(PostProcessor):
     pivotParameterInput = InputData.parameterInputFactory('pivotParameter', contentType=InputData.StringType)
     inputSpecification.addSub(pivotParameterInput)
 
-    datasetInput = InputData.parameterInputFactory('dataset', contentType=InputData.BoolType)
+    datasetInput = InputData.parameterInputFactory('dataset', contentType=InputData.StringType)
     inputSpecification.addSub(datasetInput)
 
     methodsToRunInput = InputData.parameterInputFactory("methodsToRun", contentType=InputData.StringType)
@@ -280,7 +280,8 @@ class BasicStatistics(PostProcessor):
       elif tag == "pivotParameter":
         self.pivotParameter = child.value
       elif tag == "dataset":
-        self.outputDataset = child.value
+        if child.value.lower() in utils.stringsThatMeanTrue():
+          self.outputDataset = True
       else:
         self.raiseAWarning('Unrecognized node in BasicStatistics "',tag,'" has been ignored!')
     assert (len(self.toDo)>0), self.raiseAnError(IOError, 'BasicStatistics needs parameters to work on! Please check input for PP: ' + self.name)
