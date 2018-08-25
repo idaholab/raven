@@ -239,10 +239,7 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     # TODO typechecking, assertions
     coords = set().union(*params.values())
     for coord in coords:
-      if coord not in self.pivotParams:
-        self._pivotParams[coord] = list(var for var in params.keys() if coord in params[var])
-      else:
-        self._pivotParams[coord] = list(set(list(var for var in params.keys() if coord in params[var]) + self._pivotParams[coord]))
+      self._pivotParams[coord] = list(var for var in params.keys() if coord in params[var])
 
   def setSelectiveInput(self,option,value):
     """
