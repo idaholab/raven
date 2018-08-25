@@ -58,10 +58,10 @@ coverage erase
 DRIVER=$FRAMEWORK_DIR/Driver.py
 for I in $(python ${SCRIPT_DIR}/developer_tools/get_coverage_tests.py)
 do
-    #DIR=`dirname $I`
-    #BASE=`basename $I`
+    DIR=`dirname $I`
+    BASE=`basename $I`
     #echo Running $DIR $BASE
-    #(cd $DIR && coverage run $EXTRA $DRIVER $BASE)
+    cd $DIR
     echo coverage run $EXTRA $DRIVER $I
     coverage run $EXTRA $DRIVER $I
 done

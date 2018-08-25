@@ -48,24 +48,20 @@ def getRegressionTests(skipThese=[],skipExpectedFails=True):
           testType = "notfound"
   return doTests
 
-def getRegressionList(skipThese=[],skipExpectedFails=True):
-  """
-    Collects all the RAVEN regression tests into a list
-    Must be run from this directory or another that is two directories below RAVEN.
-    @ In, skipThese, list(str), filenames to skip in check
-    @ In, skipExpectedFails, bool, if True skips framework/ErrorCheck directory
-    @ Out, list(str), list of full paths to files
-  """
-  fileDict = getRegressionTests()
-  filelist = []
-  for dir,files in fileDict.items():
-    for f in files:
-      filelist.append(os.path.join(dir,f))
-  return filelist
-
 if __name__ == '__main__':
-  if '--skip-fails' in sys.argv: skipFails = True
-  else: skipFails = False
+  getPythonTests = False
+  skipFails = False
+  getInterfaceCheckTests = False
+  if '--skip-fails' in sys.argv:
+    skipFails = True
+  else:
+    skipFails = False
+  if '--get-python-tests' in sys.argv:
+    # unit tests flag has priority over interface check
+    getPythonTests = True
+  elif '--get-interface-chek-tests' in sys.argv:
+    getInterfaceCheckTests = True
+    
   skipThese = ['test_rom_trainer.xml','../../framework/TestDistributions.py']
   doTests = getRegressionTests(skipThese,skipExpectedFails = skipFails)
   #print doTests
