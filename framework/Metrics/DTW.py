@@ -49,7 +49,8 @@ class DTW(Metric):
         specifying input of cls.
     """
     inputSpecification = super(DTW, cls).getInputSpecification()
-    inputSpecification.addSub(InputData.parameterInputFactory("order",contentType=InputData.IntegerType),quantity=InputData.Quantity.one)
+    orderInputType = InputData.makeEnumType("order","orderType",["0","1"])
+    inputSpecification.addSub(InputData.parameterInputFactory("order",contentType=orderInputType),quantity=InputData.Quantity.one)
     inputSpecification.addSub(InputData.parameterInputFactory("localDistance",contentType=InputData.StringType),quantity=InputData.Quantity.one)
 
     return inputSpecification
@@ -82,9 +83,7 @@ class DTW(Metric):
     paramInput.parseNode(xmlNode)
     for child in paramInput.subparts:
       if child.getName() == "order":
-        self.order = child.value
-        if self.order not in [0,1]:
-          self.raiseAnError(IOError, "DTW metrics - specified order", self.order, "is not recognized (allowed values are 0 or 1)")
+        self.order = int(child.value)
       elif child.getName() == "localDistance":
         self.localDistance = child.value
 
