@@ -112,7 +112,7 @@ then
     coverage run $EXTRA $FRAMEWORK_DIR/Driver.py test_topology_ui.xml interactiveCheck || true
     cd $FRAMEWORK_DIR/../tests/framework/PostProcessors/DataMiningPostProcessor/Clustering/
     coverage run $EXTRA $FRAMEWORK_DIR/Driver.py hierarchical_ui.xml interactiveCheck || true
-    kill -9 $xvfbPID
+    kill -9 $xvfbPID || true
     export DISPLAY=$oldDisplay
 else
     ## Try these tests anyway, we can get some coverage out of them even if the

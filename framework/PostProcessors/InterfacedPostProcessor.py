@@ -120,10 +120,10 @@ class InterfacedPostProcessor(PostProcessor):
 
     self.postProcessor.initialize()
     self.postProcessor.readMoreXML(xmlNode)
-    if self.returnFormat("input") not in set(['HistorySet','PointSet']):
+    if not set(self.returnFormat("input").split("|")) <= set(['HistorySet','PointSet']):
       self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +
                         ' : self.inputFormat not correctly initialized')
-    if self.returnFormat("output") not in set(['HistorySet','PointSet']):
+    if not set(self.returnFormat("output").split("|")) <= set(['HistorySet','PointSet']):
       self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +
                         ' : self.outputFormat not correctly initialized')
 
@@ -133,8 +133,9 @@ class InterfacedPostProcessor(PostProcessor):
       @ In, inputIn, dict, dictionary of data to process
       @ Out, outputDic, dict, dict containing the post-processed results
     """
+    inputTypes = set([inp.type for inp in inputIn])
     for inp in inputIn:
-      if inp.type != self.returnFormat("input"):
+      if not inputTypes <= set(self.returnFormat("input").split("|")):
         self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor named "'+ self.name +
                               '" : The input object "'+ inp.name +'" provided is of the wrong type. Got "'+
                               inp.type + '" but expected "'+self.returnFormat("input") + '"!')
