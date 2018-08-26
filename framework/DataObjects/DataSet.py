@@ -1380,6 +1380,10 @@ class DataSet(DataObject):
         # variable doesn't have a scale factor (yet? Why not?)
           loc = 0.0
           scale = 1.0
+        if scale == 0:
+          # TODO: Seem to me, we need to find a better way to compare data
+          # The scale will be zero if Grid Sampler is used, reset to 1.0
+          scale = 1.0
         scaleVal = (val-loc)/scale
         # create mask of where the dataarray matches the desired value
         mask *= abs((self._data[var]-loc)/scale - scaleVal) < tol
