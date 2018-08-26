@@ -49,6 +49,10 @@ cd tests/framework
 FRAMEWORK_DIR=`(cd ../../framework && pwd)`
 
 source $SCRIPT_DIR/scripts/establish_conda_env.sh --quiet --load
+# get display var
+DISPLAY_VAR=`(echo $DISPLAY)`
+# reset it
+export DISPLAY=
 
 EXTRA="--rcfile=$FRAMEWORK_DIR/../tests/framework/.coveragerc --source=$FRAMEWORK_DIR -a --omit=$FRAMEWORK_DIR/contrib/*"
 export COVERAGE_FILE=`pwd`/.coverage
@@ -56,38 +60,44 @@ export COVERAGE_FILE=`pwd`/.coverage
 coverage erase
 #skip test_rom_trainer.xml
 DRIVER=$FRAMEWORK_DIR/Driver.py
-for I in $(python ${SCRIPT_DIR}/developer_tools/get_coverage_tests.py)
+echo ...Running Code Interface tests...
+# get the tests runnable by RAVEN (interface check)
+for I in $(python ${SCRIPT_DIR}/developer_tools/get_coverage_tests.py --get-interface-check-tests --skip-fails)
+do
+    DIR=`dirname $I`
+    BASE=`basename $I`
+    #echo Running $DIR $BASE
+    cd $DIR
+    echo coverage run $EXTRA $DRIVER $I interfaceCheck
+    coverage run $EXTRA $DRIVER $I interfaceCheck
+done
+
+echo ...Running Verification tests...
+# get the tests runnable by RAVEN (not interface check)
+for I in $(python ${SCRIPT_DIR}/developer_tools/get_coverage_tests.py --skip-fails)
 do
     DIR=`dirname $I`
     BASE=`basename $I`
     #echo Running $DIR $BASE
     cd $DIR
     echo coverage run $EXTRA $DRIVER $I
-    coverage run $EXTRA $DRIVER $I
+    coverage run $EXTRA $DRIVER $I || true
 done
-coverage run $EXTRA ../../framework/TestDistributions.py
 
-# code interface tests START
-cd CodeInterfaceTests
-coverage run $EXTRA $FRAMEWORK_DIR/Driver.py test_relap5_code_interface.xml interfaceCheck
-coverage run $EXTRA $FRAMEWORK_DIR/Driver.py test_perturb_mammoth_bison_relap7.xml interfaceCheck
-coverage run $EXTRA $FRAMEWORK_DIR/Driver.py test_mammoth_r7_bison_no_exe_hdf5_restart.xml interfaceCheck
-coverage run $EXTRA $FRAMEWORK_DIR/Driver.py test_perturb_all_rattlesnake_bison.xml interfaceCheck
-coverage run $EXTRA $FRAMEWORK_DIR/Driver.py test_perturb_mammoth_rattlesnake_bison.xml interfaceCheck
-coverage run $EXTRA $FRAMEWORK_DIR/Driver.py test_relap5_code_interface_alias.xml interfaceCheck
-coverage run $EXTRA $FRAMEWORK_DIR/Driver.py test_relap5_code_interface_multideck.xml interfaceCheck
-coverage run $EXTRA $FRAMEWORK_DIR/Driver.py test_relap5_code_interface_multideck_choosing_deck_output.xml interfaceCheck
-coverage run $EXTRA $FRAMEWORK_DIR/Driver.py test_OpenModelica_code_interface.xml interfaceCheck
-coverage run $EXTRA $FRAMEWORK_DIR/Driver.py test_Dymola_code_interface.xml interfaceCheck
-coverage run $EXTRA $FRAMEWORK_DIR/Driver.py test_Dymola_code_interface_timedep.xml interfaceCheck
-coverage run $EXTRA $FRAMEWORK_DIR/Driver.py test_maap5_code_interface_forward.xml interfaceCheck
-coverage run $EXTRA $FRAMEWORK_DIR/Driver.py test_maap5_code_interface_det.xml interfaceCheck
-coverage run $EXTRA $FRAMEWORK_DIR/Driver.py test_maap5_code_interface_hybrid_det.xml interfaceCheck
-coverage run $EXTRA $FRAMEWORK_DIR/Driver.py test_maap5_code_interface_adaptive_det.xml interfaceCheck
-coverage run $EXTRA $FRAMEWORK_DIR/Driver.py test_maap5_code_interface_adaptive_hybrid_det.xml interfaceCheck
-coverage run $EXTRA $FRAMEWORK_DIR/Driver.py test_maap5_code_interface_det_multibranch.xml interfaceCheck
-coverage run $EXTRA $FRAMEWORK_DIR/Driver.py test_relap5_code_inss.xml interfaceCheck
-# code interface tests END
+echo ...Running Unit tests...
+# get the tests runnable by RAVEN (python tests (unit-tests))
+for I in $(python ${SCRIPT_DIR}/developer_tools/get_coverage_tests.py --get-python-tests --skip-fails)
+do
+    DIR=`dirname $I`
+    BASE=`basename $I`
+    #echo Running $DIR $BASE
+    cd $DIR
+    echo coverage run $EXTRA $I
+    coverage run $EXTRA $I 
+done
+
+#get DISPLAY BACK
+DISPLAY=$DISPLAY_VAR
 
 if which Xvfb
 then

@@ -462,7 +462,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
       self.repetition +=1                                              # we are increasing persistence
     if self.persistence<self.repetition:
       ready =  False
-      if self.subGridTol != self.tolerance and evaluations is not None and self.refinedPerformed != True:
+      if self.subGridTol != self.tolerance and evaluations is not None and self.refinedPerformed != True and len(testMatrixDict) > 0:
         # we refine the grid since we converged on the coarse one. we use the "ceil" method in order to be sure
         # that the volumetric cell weight is <= of the subGridTol
         self.raiseAMessage("Grid refinement activated! Refining the evaluation grid!")
