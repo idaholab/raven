@@ -92,9 +92,11 @@ do
     DIR=`dirname $I`
     BASE=`basename $I`
     #echo Running $DIR $BASE
-    cd $DIR
-    echo coverage run $EXTRA $DRIVER $I
-    coverage run $EXTRA $DRIVER $I || true
+    if [ -d "$DIR" ]; then
+        cd $DIR
+        echo coverage run $EXTRA $DRIVER $I
+        coverage run $EXTRA $DRIVER $I || true
+    fi
 done
 
 #get DISPLAY BACK
