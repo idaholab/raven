@@ -2,7 +2,7 @@
 <density_type>  2   </density_type> 
 <print_out>  t   </print_out>
     <mat fissile="true" id="matF1" lib_name="matF1" used="true">     
-        <isotope density="1.0034E+00" id="FUEL">   
+        <isotope density="9.8095E-01" id="FUEL">   
             <tab name="BURN-UP" value="0.0" />
             <tab name="T_fuel" value="293" />
             <tab name="T_mod" value="293" />
