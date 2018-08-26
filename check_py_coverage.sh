@@ -72,6 +72,18 @@ do
     coverage run $EXTRA $DRIVER $I interfaceCheck
 done
 
+echo ...Running Unit tests...
+# get the tests runnable by RAVEN (python tests (unit-tests))
+for I in $(python ${SCRIPT_DIR}/developer_tools/get_coverage_tests.py --get-python-tests --skip-fails)
+do
+    DIR=`dirname $I`
+    BASE=`basename $I`
+    #echo Running $DIR $BASE
+    cd $DIR
+    echo coverage run $EXTRA $I
+    coverage run $EXTRA $I
+done
+
 echo ...Running Verification tests...
 # get the tests runnable by RAVEN (not interface check)
 for I in $(python ${SCRIPT_DIR}/developer_tools/get_coverage_tests.py --skip-fails)
@@ -84,18 +96,6 @@ do
     coverage run $EXTRA $DRIVER $I || true
 done
 
-echo ...Running Unit tests...
-# get the tests runnable by RAVEN (python tests (unit-tests))
-for I in $(python ${SCRIPT_DIR}/developer_tools/get_coverage_tests.py --get-python-tests --skip-fails)
-do
-    DIR=`dirname $I`
-    BASE=`basename $I`
-    #echo Running $DIR $BASE
-    cd $DIR
-    echo coverage run $EXTRA $I
-    coverage run $EXTRA $I 
-done
-
 #get DISPLAY BACK
 DISPLAY=$DISPLAY_VAR
 
@@ -105,19 +105,19 @@ then
     xvfbPID=$!
     oldDisplay=$DISPLAY
     export DISPLAY=:8888
-    cd ../PostProcessors/TopologicalPostProcessor
-    coverage run $EXTRA $FRAMEWORK_DIR/Driver.py test_topology_ui.xml interactiveCheck
-    cd ../DataMiningPostProcessor/Clustering/
-    coverage run $EXTRA $FRAMEWORK_DIR/Driver.py hierarchical_ui.xml interactiveCheck
+    cd $FRAMEWORK_DIR/../tests/framework/PostProcessors/TopologicalPostProcessor
+    coverage run $EXTRA $FRAMEWORK_DIR/Driver.py test_topology_ui.xml interactiveCheck || true
+    cd $FRAMEWORK_DIR/../tests/framework/PostProcessors/DataMiningPostProcessor/Clustering/
+    coverage run $EXTRA $FRAMEWORK_DIR/Driver.py hierarchical_ui.xml interactiveCheck || true
     kill -9 $xvfbPID
     export DISPLAY=$oldDisplay
 else
     ## Try these tests anyway, we can get some coverage out of them even if the
     ## UI fails or is unavailable.
-    cd ../PostProcessors/TopologicalPostProcessor
-    coverage run $EXTRA $FRAMEWORK_DIR/Driver.py test_topology_ui.xml interactiveCheck
-    cd ../DataMiningPostProcessor/Clustering/
-    coverage run $EXTRA $FRAMEWORK_DIR/Driver.py hierarchical_ui.xml interactiveCheck
+    cd $FRAMEWORK_DIR/../tests/framework/PostProcessors/TopologicalPostProcessor
+    coverage run $EXTRA $FRAMEWORK_DIR/Driver.py test_topology_ui.xml interactiveCheck || true
+    cd $FRAMEWORK_DIR/../tests/framework/PostProcessors/DataMiningPostProcessor/Clustering/
+    coverage run $EXTRA $FRAMEWORK_DIR/Driver.py hierarchical_ui.xml interactiveCheck || true
 fi
 
 ## Go to the final directory and generate the html documents
