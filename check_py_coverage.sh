@@ -87,7 +87,7 @@ done
 
 echo ...Running Verification tests...
 # get the tests runnable by RAVEN (not interface check)
-for I in $(python ${SCRIPT_DIR}/developer_tools/get_coverage_tests.py --skip-fails)
+for I in $(python ${SCRIPT_DIR}/developer_tools/get_coverage_tests.py)
 do
     DIR=`dirname $I`
     BASE=`basename $I`
