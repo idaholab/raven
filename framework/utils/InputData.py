@@ -117,6 +117,26 @@ IntegerType.createClass("integer","xsd:integer")
 #
 #
 #
+class BooleanType(InputType):
+  """
+    A type for boolean data.
+  """
+
+  @classmethod
+  def convert(cls, value):
+    """
+      Converts value from string to a boolean.
+      @ In, value, string, the value to convert
+      @ Out, convert, int, the converted value
+    """
+    return value in utils.stringsThatMeanTrue()
+
+BooleanType.createClass("boolean","xsd:boolean")
+
+#
+#
+#
+#
 class FloatType(InputType):
   """
     A type for floating point data.

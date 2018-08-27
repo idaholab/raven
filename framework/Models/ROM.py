@@ -63,12 +63,6 @@ class ROM(Dummy):
 
     inputSpecification.addSub(InputData.parameterInputFactory('Features',contentType=InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory('Target',contentType=InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("IndexPoints", InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("IndexSet",IndexSetInputType))
-    inputSpecification.addSub(InputData.parameterInputFactory('pivotParameter',contentType=InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("PolynomialOrder", InputData.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("SobolOrder", InputData.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("SparseGrid", InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("persistence", InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("gradient", InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("simplification", InputData.FloatType))
@@ -161,6 +155,13 @@ class ROM(Dummy):
     inputSpecification.addSub(InputData.parameterInputFactory("nugget", InputData.FloatType))
     inputSpecification.addSub(InputData.parameterInputFactory("optimizer", InputData.StringType)) #enum
     inputSpecification.addSub(InputData.parameterInputFactory("random_start", InputData.IntegerType))
+    # GaussPolynomialROM and HDMRRom
+    inputSpecification.addSub(InputData.parameterInputFactory("IndexPoints", InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("IndexSet",IndexSetInputType))
+    inputSpecification.addSub(InputData.parameterInputFactory('pivotParameter',contentType=InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("PolynomialOrder", InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("SobolOrder", InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("SparseGrid", InputData.StringType))
     # ARMA
     inputSpecification.addSub(InputData.parameterInputFactory('correlate', InputData.StringListType))
     inputSpecification.addSub(InputData.parameterInputFactory("ZeroFilter", InputData.StringType))
@@ -170,9 +171,12 @@ class ROM(Dummy):
     inputSpecification.addSub(InputData.parameterInputFactory("Qmin", InputData.IntegerType))
     inputSpecification.addSub(InputData.parameterInputFactory("seed", InputData.IntegerType))
     inputSpecification.addSub(InputData.parameterInputFactory("reseedCopies", InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("outTruncation", InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("Fourier", contentType=InputData.FloatListType))
     inputSpecification.addSub(InputData.parameterInputFactory("FourierOrder", contentType=InputData.IntegerListType))
+    outTrunc = InputData.parameterInputFactory('outTruncation', contentType=InputData.StringListType, strictMode=True)
+    domainEnumType = InputData.makeEnumType('domain','truncateDomainType',['positive','negative'])
+    outTrunc.addParam('domain', domainEnumType, True)
+    inputSpecification.addSub(outTrunc)
     specFourier = InputData.parameterInputFactory('SpecificFourier', strictMode=True)
     specFourier.addParam("variables", InputData.StringListType, True)
     specFourier.addSub(InputData.parameterInputFactory('periods', contentType=InputData.FloatListType))
@@ -264,7 +268,9 @@ class ROM(Dummy):
           continue
         if child.getName() not in self.initializationOptionDict.keys():
           self.initializationOptionDict[child.getName()]={}
-        self.initializationOptionDict[child.getName()][child.value]=child.parameterValues
+        print('DEBUGG',child.getName(),child.value,child.parameterValues)
+        # "tuple" here allows values to be listed, probably not great but works
+        self.initializationOptionDict[child.getName()][tuple(child.value)]=child.parameterValues
       else:
         if child.getName() == 'estimator':
           self.initializationOptionDict[child.getName()] = {}

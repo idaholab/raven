@@ -76,7 +76,7 @@ class ARMA(supervisedLearning):
     self.Qmin              = kwargs.get('Qmin', 0)
     # data manipulation
     self.reseedCopies      = kwargs.get('reseedCopies',True)
-    self.outTruncation     = kwargs.get('outTruncation', None) # Additional parameters to allow user to specify the time series to be all positive or all negative
+    self.outTruncation = {'positive':set(),'negative':set()} # store truncation requests
     self.pivotParameterID  = kwargs['pivotParameter']
     self.pivotParameterValues = None  # In here we store the values of the pivot parameter (e.g. Time)
     self.seed              = kwargs.get('seed',None)
@@ -133,11 +133,22 @@ class ARMA(supervisedLearning):
           'the same value, and similarly for Q.  If optimizing is desired, please contact us so we can expedite '+
           'the fix.')
 
-    # read SPECIFIC parameters for Fourier detrending
-    ## read off of paramInput since duplicating nodes
+    # read off of paramInput for more detailed inputs # TODO someday everything should read off this!
     paramInput = kwargs['paramInput']
     for child in paramInput.subparts:
-      if child.getName() == 'SpecificFourier':
+      # read truncation requests (really value limits, not truncation)
+      if child.getName() == 'outTruncation':
+        # did the user request positive or negative?
+        domain = child.parameterValues['domain']
+        # if a recognized request, store it for later
+        if domain in self.outTruncation:
+          self.outTruncation[domain] = self.outTruncation[domain] | set(child.value)
+        # if unrecognized, error out
+        else:
+          self.raiseAnError(IOError,'Unrecognized "domain" for "outTruncation"! Was expecting "positive" '+\
+                                    'or "negative" but got "{}"'.format(domain))
+      # read SPECIFIC parameters for Fourier detrending
+      elif child.getName() == 'SpecificFourier':
         # clear old information
         periods = None
         orders = None
@@ -464,12 +475,13 @@ class ARMA(supervisedLearning):
         returnEvaluation[target+'_3zerofilter'] = copy.copy(signal)
         signal[self.notZeroFilterMask] = 0.0
 
-      # Ensure positivity
-      if self.outTruncation is not None:
-        if self.outTruncation == 'positive':
-          signal = np.absolute(signal)
-        elif self.outTruncation == 'negative':
-          signal = -np.absolute(signal)
+      # Domain limitations
+      for domain,requests in self.outTruncation.items():
+        if target in requests:
+          if domain == 'postiive':
+            signal = np.absolute(signal)
+          elif domain == 'negative':
+            signal = -np.absolute(signal)
         # DEBUGG adding arbitrary variables
         returnEvaluation[target+'_4truncated'] = copy.copy(signal)
 
