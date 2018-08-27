@@ -561,7 +561,7 @@ class EnsembleModel(Dummy):
     for modelIn in self.orderList:
       # reset the DataObject for the projection
       self.localTargetEvaluations[modelIn].reset()
-      inRunTargetEvaluations[modelIn] = copy.copy(self.localTargetEvaluations[modelIn])
+      inRunTargetEvaluations[modelIn] = copy.deepcopy(self.localTargetEvaluations[modelIn])
     residueContainer = dict.fromkeys(self.modelsDictionary.keys())
     gotOutputs       = [{}]*len(self.orderList)
     typeOutputs      = ['']*len(self.orderList)
@@ -634,6 +634,8 @@ class EnsembleModel(Dummy):
               # wait until the model finishes, in order to get ready to run the subsequential one
               while not jobHandler.isThisJobFinished(modelIn+utils.returnIdSeparator()+identifier):
                 time.sleep(1.e-3)
+              # DEBUGG delay for HPC file writing or returning?
+              time.sleep(1.e-1)
               nextModel = moveOn = True
             else:
               time.sleep(1.e-3)
@@ -664,7 +666,9 @@ class EnsembleModel(Dummy):
           except IndexError as e:
             TE = inRunTargetEvaluations[modelIn]
             msg = ''
-            msg += 'TE: '+str(TE)+' '+TE.name+' len: '+str(len(TE))+' data: '+str(len(TE._data))+' coll: '+str(len(TE._collector))
+            msg += 'TE: '+str(TE)+' '+TE.name+' len: '+str(len(TE))
+            msg +=' data: '+str(len(TE._data) if TE._data is not None else 'None')
+            msg +=' coll: '+str(len(TE._collector) if TE._collector is not None else 'None')
             print('\n\n\n\n',msg,'\n\n\n\n')
             raise e
           ##### END DEBUGGGGG #######
