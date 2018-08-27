@@ -795,8 +795,6 @@ class ARMA(supervisedLearning):
 
     # retrain the best-fitting set of orders
     fourierEngine.fit(fSeriesBest,values)
-    print('DEBUGG params:',fourierEngine.get_params())
-    print('DEBUGG coef:',fourierEngine.coef_)
     # produce the best-fitting signal
     fourierSignal = np.asarray(fourierEngine.predict(fSeriesBest))
     # if zero-filtered, put zeroes back into the Fourier series
