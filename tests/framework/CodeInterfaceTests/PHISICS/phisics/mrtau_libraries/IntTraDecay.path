@@ -1,0 +1,30 @@
+INTER_TRA_PATHS                            DECAY 
+Actinides
+ 0                 !flag: if 0 Actinide block is jumped, otherwise is used
+ ISOT   SON1    SON2	  SON3
+  U234  none
+ END
+ INTER_TRA_Branching
+ ISOT   B. ratio
+  U234  0.0000
+ END 
+ INTER_TRA_Qvalue 
+ ISOT   Qvalue 
+  U234  0.0000
+ END 
+Fission Products
+ INTER_TRA_PATHS
+ ISOT   SON1    SON2     SON3 
+ ALPHA  none
+ END 
+ INTER_TRA_Branching                
+ ISOT   B. ratio        
+ ALPHA  0.0000
+ END 
+ INTER_TRA_Qvalue            
+ ISOT    Qvalue
+ ALPHA   0.0000           
+ END 
+
+
+
