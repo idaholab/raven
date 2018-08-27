@@ -1,0 +1,830 @@
+  Current Version:
+    Git Branch : devel
+    Git Commit : f29ea879a1932735e7eae8fa6f814a223d819db4
+    Commit Date: Wed Dec 6 12:33:35 2017 -0700
+ 
+                Prepared by Battelle Energy Alliance, LLC
+                  Under Contract No. DE-AC07-05ID14517
+                   With the U. S. Department of Energy
+ 
+ NOTICE:  This computer software was prepared by Battelle Energy Alliance, LLC,
+ hereinafter the Contractor, under Contract No. DE-AC07-05ID14517 with the
+ United States (U.S.) Department of Energy (DOE).  All rights in the computer
+ software are reserved by DOE on behalf of the United States Government and, if
+ applicable, the Contractor as provided in the Contract. You are authorized to
+ use this computer software for Governmental purposes but it is not to be
+ released or distributed to the public.  
+ NEITHER THE UNITED STATES GOVERNMENT, NOR DOE, NOR THE CONTRACTOR MAKE ANY
+ WARRANTY, EXPRESSED OR IMPLIED, OR ASSUMES ANY LIABILITY OR RESPONSIBILITY FOR
+ THE USE, ACCURACY, COMPLETENESS, OR USEFULNESS OR ANY INFORMATION, APPARATUS,
+ PRODUCT, OR PROCESS DISCLOSED, OR REPRESENTS THAT ITS USE WOULD NOT INFRINGE
+ PRIVATELY OWNED RIGHTS.
+ This notice, including this sentence, must appear on any copies of this
+ computer software.
+ 
+ EXPORT RESTRICTIONS. The provider of this computer software and its employees
+ and its agents are subject to U.S. export control laws that prohibit or
+ restrict (i) transactions with certain parties, and (ii) the type and level of
+ technologies and services that may be exported. You agree to comply fully with
+ all laws and regulations of the United States and other countries (Export Laws)
+ to assure that neither this computer software, nor any direct products thereof
+ are (1) exported, directly or indirectly, in violation of Export Laws, or (2)
+ are used for any purpose prohibited by Export Laws, including, without
+ limitation, nuclear, chemical, or biological weapons proliferation. 
+ 
+ None of this computer software or underlying information or technology may be
+ downloaded or otherwise exported or re-exported (i) into (or to a national or
+ resident of) Cuba, North Korea, Iran, Sudan, Syria or any other country to
+ which the U.S. has embargoed goods; or (ii) to anyone on the U.S. Treasury
+ Department's List of Specially Designated Nationals or the U.S. Commerce
+ Department's Denied Persons List, Unverified List, Entity List,
+ Nonproliferation Sanctions or General Orders.  By downloading or using this
+ computer software, you are agreeing to the foregoing and you are representing
+ and warranting that you are not located in, under the control of, or a
+ national or resident of any such country or on any such list, and that you
+ acknowledge you are responsible to obtain any necessary U.S. government
+ authorization to ensure compliance with U.S. law.
+-------------------------------------------------------------------------------
+               .__                   __                    __   
+               |__|  ____    _______/  |_ _____     ____ _/  |_ 
+               |  | /    \  /  ___/\   __\\__  \   /    \\   __\
+               |  ||   |  \ \___ \  |  |   / __ \_|   |  \|  |  
+               |__||___|  //____  > |__|  (____  /|___|  /|__|  
+                        \/      \/             \/      \/       
+                         (BUILD from Revision $WCREV$ at $WCDATE$)
+-------------------------------------------------------------------------------
+ 
+Start running on 04/25/2018 at 10:31:18 in time zone -06
+ 
+ Warning: all groups use same mesh when there is no mesh refinement!
+ multimesh is turned off forcely!
+ 
+Control parameters:
+ 
+   Solve after initialization (T/F)..........        T
+   Calculation type (0/1)....................        1
+   Normal and ajoint (0/1/2).................        0
+   SN, PN or SPN (0/1/2).....................        1
+   Thermal Power (W)......................... 1.00E+00
+   Maximum source anisotropic order..........        1
+   Problem dimension.........................        2
+   Transient on..............................        F
+   Write restart file........................        F
+ 
+   Input file name........................... inp.xml
+   Output file name.......................... HTGR_test.o-0
+   Working directory......................... 
+   Debug geometry (T/F)......................        F
+   Debug mesh manager (T/F)..................        F
+   Debug multigroup solver (T/F).............        F
+   Debug ingroup solver (T/F)................        F
+   Debug MPI communication (T/F).............        F
+   Debug multigroup material data (T/F)......        T
+   Generate balance report (T/F).............        T
+   Balance report is in short format (T/F)...        F
+   Balance report is generated (T/F).........        T
+   Generate element averaged flux (T/F)......        T
+   Maximum order of produced flux moments....        0
+   VTK file generation control (0/1/2).......        0
+   Cell cuts to generate flux VTK file.......        2
+   Only output flat fission source VTK.......        F
+   Try to merge VTKs.........................        F
+   VTK flux file name........................ noexp
+   Block control on Exodus file writing......        1
+   Exodus file generation control (0/1)......        0
+   Exodus flux file name..................... solution
+   Comma Separated Value Printing Options: 
+   CSV Format................................Table
+   CSV Flux by Material......................        T
+   CSV Flux by Subdomain.....................        F
+   CSV Power by Material.....................        F
+   CSV Power by Material.....................        F
+   CSV Relative Power by Material............        F
+   CSV Relative Power by Subdomain...........        F
+   CSV Power Density by Material.............        F
+   CSV Power Density by Subdomain............        F
+   CSV Relative Power Density by Material....        F
+   CSV Relative Power Density by Subdomain...        F
+ 
+   Mesh-group correspondence (0/1/2).........        0
+   Geometry file type (1/2).................. regular
+   Geometry file name........................ inp.xml
+   Initial PN order..........................        1
+   User assigned maximum PN order............        1
+   User assigned minimum PN order............        1
+   Interior initial polynomial order.........        6
+   Surface initial polynomial order..........        1
+   Interior source polynomial order..........        3
+   PN order for preconditioner...............        1
+   Interior preconditioner polynomial order..        2
+   Surface preconditioner polynomial order...        0
+   Shape function of extruded hexgon.........        1
+ 
+   Working library type (1/2/3)..............        1
+   Working library name...................... working_library
+   Material file name........................ inp.xml
+ 
+   External volumetric source file name...... inp.xml
+   Boundary surface source file name......... inp.xml
+   Point source file name.................... inp.xml
+ 
+   Outer acceleration technique (0/1)........        1
+   Thermal acceleration technique (0)........        0
+   Maximum number of thermal iterations......        5
+   Maximum number of outer iterations........     1500
+   Convergence criteria of k-eff............. 1.00E-06
+   Convergence criteria of fission source.... 1.00E-06
+   Convergence criteria of scalar flux....... 1.00E-04
+   Criteria of quantities of interest........ 1.00E-06
+   Convergence criteria on thermal iteration. 1.00E-06
+   Convergence factor on thermal iteration... 1.00E-04
+   Initial guess of k-effective.............. 1.000000
+   Standard output echo option (0/1/2/3).....        2
+   Perform inner rebalance ..................        F
+ 
+   Convergence criteria on inner iteration... 1.00E-07
+   Convergence factor on inner iteration..... 1.00E-03
+   Maximum number of inner iterations........      100
+   Convergence adjustment for CG or GMRes.... 1.00E+00
+   Inner iterative method(0/1-RB/CG/GMRes)...        0
+   Inner acceleration technique (0/1)........        0
+   Use w-factor to accelerate R-B algorithm..        F
+   Split 3D sweep into plane and axial.......        F
+   Maximum number of sweeps in plane.........        F
+   Maximum number of sweeps in z.............        F
+   GMRES restart number......................       20
+   Maximum number of iterations for GMRES....     1000
+   Maximum number of iterations for CG.......     1000
+   TTG acceleration damping.................. 1.000000
+ 
+ 
+Predefined program constants:
+   Kind of large integers....................       8
+   Default real kind.........................       8
+   MPI is turned on..........................     yes
+ 
+   Number of processors......................       2
+   Processor ID..............................       0
+ 
+ XML_GET - end of tag not found (buffer too small?)
+    At or near line                   119
+Warning: NO RELAP5 tabulation correspondencies given for library set 1 .!
+ 
+Warning: NO RELAP5 feedbacks will be considered for this library set.!
+ 
+  *********************************************
+  *       XS LIBRARY CONSTRUCTOR REPORT       *
+  *********************************************
+  *                                           *
+  *********************************************
+  *       COMPUTATIONAL TIME FOR LIBRARY      *
+  *               CONSTRUCTION                *
+  *********************************************
+  *  ACTION       *     CPU time (minutes)    *
+  *********************************************
+  *  Reading      *     0.001065              *
+  *  Manipulating *     0.000011              *
+  *  Broadcasting *     0.000019              *
+  *  Assembling   *     0.000005              *
+  *  Printing     *     0.000000              *
+  *********************************************
+  *  Total        *     0.001101              *
+  *********************************************
+ WARNING :"BETA_Qvalue" not found for isotope U235                              
+                                                                                
+                                           
+ BETA_Qvalue set to 0.0
+ WARNING :"BETA+_Qvalue" not found for isotope U235                             
+                                                                                
+                                           
+ BETA+_Qvalue set to 0.0
+ WARNING :"ALPHA_Qvalue" not found for isotope U235                             
+                                                                                
+                                           
+ ALPHA_Qvalue set to 0.0
+ WARNING :"BETA_Qvalue" not found for isotope I135                              
+                                                                                
+                                           
+ BETA_Qvalue set to 0.0
+ WARNING :"BETA+_Qvalue" not found for isotope I135                             
+                                                                                
+                                           
+ BETA+_Qvalue set to 0.0
+ WARNING :"ALPHA_Qvalue" not found for isotope I135                             
+                                                                                
+                                           
+ ALPHA_Qvalue set to 0.0
+ WARNING :"INTER_TRAN_Qvalue" not found for isotope I135                        
+                                                                                
+                                           
+ INTER_TRAN_Qvalue set to 0.0
+ WARNING :"INTER_TRAN_PATHS" not found for isotope I135                         
+                                                                                
+                                           
+ INTER_TRAN_PATHS set to none
+ WARNING :"INTER_TRAN_Branching" not found for isotope I135                     
+                                                                                
+                                           
+ INTER_TRAN_Branching set to 0.0
+ WARNING :"SepEff" not found for isotope I135                                   
+                                                                                
+                                           
+ Separation Eff set to 1.0
+ Measure of the sub-domain with material 1 :    27.0000000000000     
+ Measure of the sub-domain with material 2 :   0.000000000000000E+000
+ Measure of the sub-domain with material 3 :   0.000000000000000E+000
+ 
+################################################################################
+#                                                                              #
+# XS LIBRARY print out                                                         #
+#                                                                              #
+################################################################################
+ 
+ Number of groups .........   4
+ Number of media ..........   3
+ Number of neutron groups..   0
+ Number of gamma groups....   0
+ 
+ Medium #    1
+ -------------
+ 
+ matF1                                                                   
+ 
+ Anisotropy order   ....   0
+ 
+ Sparsity pattern
+ Arrival gr  Ani order    FDG   LDG
+  1           0           1      1
+  2           0           1      2
+  3           0           1      4
+  4           0           1      4
+ 
+ 
+ Total cross section
+ 
+ Group  XS value
+  1    1.9188807960E-01
+  2    2.2552997811E-01
+  3    2.2419859603E-01
+  4    2.2969597667E-01
+ 
+ Absorption cross section
+ 
+ Group  XS value
+  1    1.0619008344E-04
+  2    1.4843150870E-03
+  3    1.0526777989E-03
+  4    1.1580288872E-03
+ 
+ (n,2n) cross section
+ 
+ Group  XS value
+  1    5.2893650166E-08
+  2    0.0000000000E+00
+  3    0.0000000000E+00
+  4    0.0000000000E+00
+ 
+ Scattering ratio
+ 
+ Group value
+  1    9.8469624260E-01
+  2    8.6956802165E-01
+  3    9.1983760440E-01
+  4    9.9463941718E-01
+ 
+ Diffusion coefficient
+ 
+ Group value
+  1    1.7371237131E+00
+  2    1.4780001139E+00
+  3    1.4867770773E+00
+  4    1.4511936089E+00
+ 
+ Removal cross section
+ 
+ Group value
+  1    2.9366086186E-03
+  2    2.9416321221E-02
+  3    1.7972296548E-02
+  4    1.2313043058E-03
+ 
+ Transport cross section
+ 
+ Group value
+  1
+  2
+  3
+  4
+ 
+ Fission cross section
+ 
+ Group  XS value
+  1    2.9888707915E-05
+  2    1.8268521517E-04
+  3    1.2135465507E-04
+  4    8.9181180858E-04
+ 
+ nu.fission cross section
+ 
+ Group  XS value
+  1    7.3435218265E-05
+  2    4.4505493184E-04
+  3    2.9570364029E-04
+  4    2.1730780312E-03
+ 
+ kappa.fission cross section
+ 
+ Group  XS value
+  1    9.3000816225E-16
+  2    5.6788970879E-15
+  3    3.7723934717E-15
+  4    2.7722584921E-14
+ 
+ Fission spectrum
+ 
+ Group  XS value
+  1    1.0000001788E+00
+  2    2.0624311503E-07
+  3    7.2791676686E-08
+  4    9.5777938913E-09
+ 
+ Scattering cross section
+ 
+ Anisotropy order  0
+ 
+ Group  XS value
+  1   1.8895147098E-01
+  2   2.8304185348E-03  1.9611365689E-01
+  3   2.8569297874E-13  2.7932006134E-02  2.0622629948E-01  7.3275418615E-05
+  4   8.7641304448E-38  0.0000000000E+00  1.6919618749E-02  2.2846467237E-01
+ 
+ XS LIBRARY print out (continued)
+ 
+ Media usage ... 
+ Medium    0 not used
+ Medium    1 used
+ Medium    2 not used
+ Medium    3 not used
+ 
+ Number of fast groups ....   2
+ Number of thermal groups .   2
+ Highest anisotropy .......   0
+ Lowest anisotropy ........   0
+ 
+ Sparsity pattern
+ Arrival gr    FDG   LDG
+  1           1      1
+  2           1      2
+  3           1      4
+  4           1      4
+ 
+ Maximum scattering ratio of all used media
+ 
+  1       9.8469624260E-01
+  2       8.6956802165E-01
+  3       9.1983760440E-01
+  4       9.9463941718E-01
+ 
+################################################################################
+ 
+ Number of elements of group   1 :          1
+ Number of elements of group   2 :          1
+ Number of elements of group   3 :          1
+ Number of elements of group   4 :          1
+ 
+ Number of element  types for group    1 : 1
+ Number of response types for group    1 : 1
+ Number of boundary types for group    1 : 0
+ Number of element  types for group    2 : 1
+ Number of response types for group    2 : 1
+ Number of boundary types for group    2 : 0
+ Number of element  types for group    3 : 1
+ Number of response types for group    3 : 1
+ Number of boundary types for group    3 : 0
+ Number of element  types for group    4 : 1
+ Number of response types for group    4 : 1
+ Number of boundary types for group    4 : 0
+ 
+ A        matrix assembled in    0.00s with memory         25kB
+ Face     matrix assembled in    0.00s with memory         30kB
+ Response matrix assembled in    0.00s with memory         34kB
+ Boundary matrix assembled in    0.00s with memory         34kB
+ 
+ Solver initialization is done!
+ ----------------------------------
+ Estimated memory cost in bytes on
+               mesh:      162144
+     ingroup solver:       35584
+  multigroup solver:        3192
+  -----------------:----------
+              total:      200920
+ 
+ Estimated time cost in seconds on
+      cross section:       0.251
+         FE library:       0.003
+    assocating DoFs:       0.000
+     local matrices:       0.002
+  -----------------:----------
+              total:       0.255
+ ----------------------------------
+ 
+Depletion Control parameters:
+Main Control
+ 
+   Job Name.................................. HTGR_test                                         
+   Stand-alone (T / F).......................         F
+   Initial Composition Flag..................         2
+   Calculation Type (1 / 2)..................         2
+   Calculation Power Flag (1 / 2 / 3)........         1
+   Exponential Method........................      CRAM
+   Method Order..............................        14
+   Spectrum Type.............................   Thermal
+   Plot Type (1 / 2 / 3).....................         2
+   Extra Plot Type (1 / 2 / 3)...............         3
+   Decay Heat computed ...................... YES (kW)
+   Burn-up computed ......................... YES (GWd/MtHM)
+   Total Power computed ..................... NO
+   Initial isotope list to be sorted(T / F)..         T
+   Time-step number to skip in the output....         1
+   Number of Multi TP loops..................         1
+   Separation Efficiency control (1 / 2).....         1
+   Interpolate cross sections (T / F)........         F
+ 
+Time Control
+ 
+   Time Input Type (seconds,hours,days)...... hours    
+   Number of Time tabulation intervals.......         1
+   Time-steps for each tabulation interval 
+   Interval   1 Number of time steps.........         1
+   Time-step lenghts for each tabulation interval 
+   Interval   1 Time step lenght (seconds)...  3.60E+06
+   Lower and upper boundaries for each tabulation interval 
+   Interval   1 Lower Boundary (seconds).....  0.00E+00
+   Interval   1 Upper Boundary (seconds).....  3.60E+06
+   Cycle lenght (seconds)....................  3.60E+06
+   Begin of Life (seconds)...................  0.00E+00
+   End of Life (seconds).....................  3.60E+06
+ 
+ Multigroup solver started...
+ 
+  1 thermal iteration(s) done, with Error=  1.00E+00 at     0.00s
+  2 thermal iteration(s) done, with Error=  1.03E-01 at     0.00s
+  3 thermal iteration(s) done, with Error=  5.91E-03 at     0.00s
+  4 thermal iteration(s) done, with Error=  3.28E-04 at     0.00s
+  5 thermal iteration(s) done, with Error=  2.00E-05 at     0.00s
+ Thermal iterations done.
+    1  k-eff=  1.666389384218492  1.00E+00   lambda=  1.6663893842  4.00E-01  time=    0.00s
+  1 thermal iteration(s) done, with Error=  6.15E-05 at     0.00s
+ Thermal iterations done.
+    2  k-eff=  1.666390231825586  8.22E-02   lambda=  1.6663902318  5.09E-07  time=    0.00s
+  1 thermal iteration(s) done, with Error=  2.29E-03 at     0.01s
+  2 thermal iteration(s) done, with Error=  5.26E-04 at     0.01s
+  3 thermal iteration(s) done, with Error=  1.20E-04 at     0.01s
+  4 thermal iteration(s) done, with Error=  9.11E-06 at     0.01s
+  5 thermal iteration(s) done, with Error=  3.44E-07 at     0.01s
+ Thermal iterations done.
+    3  k-eff=  1.666390282130874  7.04E-02   lambda=  1.6663902821  3.02E-08  time=    0.01s
+  1 thermal iteration(s) done, with Error=  6.72E-06 at     0.01s
+ Thermal iterations done.
+    4  k-eff=  1.666390282130900  3.69E-03   lambda=  1.6663902821  1.56E-14  time=    0.01s
+  1 thermal iteration(s) done, with Error=  1.50E-05 at     0.01s
+  2 thermal iteration(s) done, with Error=  3.43E-06 at     0.01s
+  3 thermal iteration(s) done, with Error=  7.84E-07 at     0.01s
+  4 thermal iteration(s) done, with Error=  1.78E-07 at     0.01s
+ Thermal iterations done.
+    5  k-eff=  1.666390282130902  5.91E-03   lambda=  1.6663902821  1.07E-15  time=    0.01s
+  1 thermal iteration(s) done, with Error=  1.01E-09 at     0.01s
+ Thermal iterations done.
+    6  k-eff=  1.666390282130902  2.42E-04   lambda=  1.6663902821  2.66E-16  time=    0.01s
+  1 thermal iteration(s) done, with Error=  4.14E-08 at     0.01s
+  2 thermal iteration(s) done, with Error=  9.50E-09 at     0.02s
+ Thermal iterations done.
+    7  k-eff=  1.666390282130902  2.53E-04   lambda=  1.6663902821  2.66E-16  time=    0.02s
+  1 thermal iteration(s) done, with Error=  2.17E-09 at     0.02s
+ Thermal iterations done.
+    8  k-eff=  1.666390282130902  3.92E-05   lambda=  1.6663902821  2.66E-16  time=    0.02s
+################################################################################
+#                                                                              #
+# Solver Report                                                                #
+#                                                                              #
+################################################################################
+ The total number of outer iterations performed.....         8
+ The total number of thermal iterations performed...        20
+ The total number of inner iterations performed.....        56
+ The total number of sweeps performed...............      2228
+ 
+ The CPU time in matrix-vector products (s).........     0.015
+ The CPU time in inner iterations (s)...............     0.015
+ The CPU time in preconditioner (s).................     0.000
+ The CPU time in inners (s).........................     0.016
+ The CPU time in thermals (s).......................     0.011
+ The CPU time in outers (s).........................     0.017
+ 
+ The k-effective at the last power iteration........  1.66639028
+ The achieved error for the eigenvalue.............. 2.665E-16
+ The achieved error for the flux.................... 3.916E-05
+ 
+ The achieved error for the flux integral:
+  Group ID | Thermal iter. | Inner iter. |
+  ---------|---------------|-------------|
+        1  |               |   2.524E-07 |
+        2  |               |   2.021E-07 |
+        3  |     2.144E-13 |   1.934E-07 |
+        4  |     2.171E-09 |   3.998E-07 |
+  ---------|---------------|-------------|
+################################################################################
+ 
+################################################################################
+#                                                                              #
+# Balance report                                                               #
+#                                                                              #
+################################################################################
+Subdomain volumes:
+      1  8.1000000000E+01
+ 
+ 
+ ***Balance report for the primal solution****
+ 
+ Group Region |    external source        fission+in-scattering  in-group scattering    region leakage-in    |    total collision        bdry net-out-leakage   region leakage-out     domain net-out-lkg   |    Balance             
+ -------------|----------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------|------------------------
+    1      1  |    0.00000000000000E+00   1.56818728463027E+10   1.00901275558475E+12   0.00000000000000E+00 |    1.02469443056143E+12   0.00000000000000E+00   0.00000000000000E+00   4.98055345633205E+05 |    9.99999707048683E-01
+    2      1  |    0.00000000000000E+00   1.51146164757952E+10   1.00766156030115E+11   0.00000000000000E+00 |    1.15880705730635E+11   0.00000000000000E+00   0.00000000000000E+00   6.67753370826205E+04 |    9.99999999999466E-01
+    3      1  |    0.00000000000000E+00   1.52036840342065E+10   1.74457242727286E+11   0.00000000000000E+00 |    1.89660916114538E+11   0.00000000000000E+00   0.00000000000000E+00   2.73224840169679E+04 |    9.99999912077158E-01
+    4      1  |    0.00000000000000E+00   1.43131602190952E+10   2.65580808462470E+12   0.00000000000000E+00 |    2.67012149201532E+12   0.00000000000000E+00   0.00000000000000E+00  -2.47171522887994E+05 |    9.99999999999999E-01
+ -------------|----------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------|------------------------
+ 
+ Other reaction rates:
+ Group Region |           averaged flux                  power             absorption                    n2n                fission           fis. neutron |
+ -------------|--------------------------------------------------------------------------------------------------------------------------------------------|
+    1      1  |    6.59267034818432E+10   4.96630216020836E-03   5.67061733642471E+08   2.82455423238494E+05   1.59607582720191E+08   3.92148690632879E+08 |
+ -------------|--------------------------------------------------------------------------------------------------------------------------------------------|
+  Group total |    6.59267034818432E+10   4.96630216020836E-03   5.67061733642471E+08   2.82455423238494E+05   1.59607582720191E+08   3.92148690632879E+08 |
+ -------------|--------------------------------------------------------------------------------------------------------------------------------------------|
+    2      1  |    6.34339615802575E+09   2.91790301149447E-03   7.62663488224221E+08   0.00000000000000E+00   9.38664200559578E+07   2.28675939322849E+08 |
+ -------------|--------------------------------------------------------------------------------------------------------------------------------------------|
+  Group total |    6.34339615802575E+09   2.91790301149447E-03   7.62663488224221E+08   0.00000000000000E+00   9.38664200559578E+07   2.28675939322849E+08 |
+ -------------|--------------------------------------------------------------------------------------------------------------------------------------------|
+    3      1  |    1.04438334270904E+10   3.19125817223829E-03   8.90513318354139E+08   0.00000000000000E+00   1.02660032056563E+08   2.50150644602561E+08 |
+ -------------|--------------------------------------------------------------------------------------------------------------------------------------------|
+  Group total |    1.04438334270904E+10   3.19125817223829E-03   8.90513318354139E+08   0.00000000000000E+00   1.02660032056563E+08   2.50150644602561E+08 |
+ -------------|--------------------------------------------------------------------------------------------------------------------------------------------|
+    4      1  |    1.43513453487528E+11   3.22263676032843E-01   1.34616107117456E+10   0.00000000000000E+00   1.03669463933541E+10   2.52611405693465E+10 |
+ -------------|--------------------------------------------------------------------------------------------------------------------------------------------|
+  Group total |    1.43513453487528E+11   3.22263676032843E-01   1.34616107117456E+10   0.00000000000000E+00   1.03669463933541E+10   2.52611405693465E+10 |
+ -------------|--------------------------------------------------------------------------------------------------------------------------------------------|
+ -------------|--------------------------------------------------------------------------------------------------------------------------------------------|
+        Total |    2.26227386554487E+11   3.33339139376784E-01   1.56818492519664E+10   2.82455423238494E+05   1.07230804281868E+10   2.61321158439048E+10 |
+ -------------|--------------------------------------------------------------------------------------------------------------------------------------------|
+ 
+ Fission matrices of all regions gp(row) -> g(col):
+  Region:    1
+  ----|----------------------------------------------------------------------------------------------|
+      |                       1                      2                      3                      4 |
+  ----| ---------------------------------------------------------------------------------------------|
+    1 |    3.92148760754529E+08   8.08779675113361E+01   2.85451607014962E+01   3.75591933363445E+00 |
+    2 |    2.28675980213293E+08   4.71628380585162E+01   1.66457050411200E+01   2.19021101473925E+00 |
+    3 |    2.50150689332982E+08   5.15918481697703E+01   1.82088848447739E+01   2.39589131578527E+00 |
+    4 |    2.52611450863904E+10   5.20993632025047E+03   1.83880077705052E+03   2.41945997832974E+02 |
+  ----|----------------------------------------------------------------------------------------------|
+ 
+ Scattering matrices of all regions gp(row) -> g(col):
+  Region:    1
+  ----|----------------------------------------------------------------------------------------------|
+      |                       1                      2                      3                      4 |
+  ----| ---------------------------------------------------------------------------------------------|
+    1 |    1.00901275558475E+12   1.51146132415175E+10   1.52561850001394E+00   4.68010085580011E-25 |
+    2 |    0.00000000000000E+00   1.00766156030115E+11   1.43518862122958E+10   0.00000000000000E+00 |
+    3 |    0.00000000000000E+00   0.00000000000000E+00   1.74457242727286E+11   1.43131600688975E+10 |
+    4 |    0.00000000000000E+00   0.00000000000000E+00   8.51796678875482E+08   2.65580808462470E+12 |
+  ----|----------------------------------------------------------------------------------------------|
+################################################################################
+
+ Multigroup solver ended!
+ 
+ ********************
+ ***INSTANT OUTPUT***
+ ********************
+ Time Step     =                    1
+ Cycle Number  =                    1
+ Time(seconds) =            3.600E+06
+
+  
+################################################################################
+#                                                                              #
+# Element average flux                                                         #
+#                                                                              #
+################################################################################
+ On mesh:  1
+ Element                                  Group ID                                            Fission
+      ID  X              Y                1            2            3            4            Source
+--------------------------------------------------------------------------------------------------------
+       1     1.500000000    4.500000000   1.9778E+11   1.9030E+10   3.1332E+10   4.3054E+11   9.6786E+08
+--------------------------------------------------------------------------------------------------------
+################################################################################
+
+ ********************
+ ****MIXER OUTPUT****
+ ********************
+ Time Step     =                    1
+ Cycle Number  =                    1
+ Time(seconds) =            3.600E+06
+
+  
+  
+    ******************************
+    *      _     _  ___  _  _    *
+    *  |\ |  |\||  | | ||  |     *
+    *  | ||- | | - | | ||-  -    *
+    *  |/ |_ | | _|| | ||_  _|   *
+    *                            *
+    ******************************
+  
+    Tabulations and Atoms/(barn*cm) 
+    ******************************************************
+   Material:     1, ID:                matF1 Dpl used:  T
+    ******************************************************
+  
+        Tabulation Spatial Moment  1
+           BURN-UP  4.9987170110E-02
+            T_fuel  1.2000000000E+03
+             T_mod  1.2000000000E+03
+             XE135  0.0000000000E+00
+  
+      Isotope Spatial Moment  1
+         U235  4.0835895139E-06
+         U238  2.1989745640E-05
+         I135  1.1375397626E-25
+          O16  3.9112000000E-05
+   CGRAPHITE_  1.3038000000E-05
+   CGRAPHITE_  4.6917000000E-02
+    ******************************************************
+   Material:     2, ID:                matF2 Dpl used:  T
+    ******************************************************
+  
+        Tabulation Spatial Moment  1
+           BURN-UP  4.9984559189E-02
+            T_fuel  1.2000000000E+03
+             T_mod  1.2000000000E+03
+             XE135  0.0000000000E+00
+  
+      Isotope Spatial Moment  1
+         U235  4.0835896024E-06
+         U238  2.1989745643E-05
+         I135  1.1375397658E-25
+          O16  3.9112000000E-05
+   CGRAPHITE_  1.3038000000E-05
+   CGRAPHITE_  4.6917000000E-02
+    ******************************************************
+   Material:     3, ID:                matF3 Dpl used:  T
+    ******************************************************
+  
+        Tabulation Spatial Moment  1
+           BURN-UP  4.9987170110E-02
+            T_fuel  1.2000000000E+03
+             T_mod  1.2000000000E+03
+             XE135  0.0000000000E+00
+  
+      Isotope Spatial Moment  1
+         U235  4.0835895139E-06
+         U238  2.1989745640E-05
+         I135  1.1375397626E-25
+          O16  3.9112000000E-05
+   CGRAPHITE_  1.3038000000E-05
+   CGRAPHITE_  4.6917000000E-02
+                      ********************
+                      ****MRTAU OUTPUT****
+                      ********************
+ ------------------------------------------------------
+ ------------------------- 
+   ******************************************
+   *      _  _   ___  _____  ___            *
+   *     | \/ | |   |   |   |   | |   |     *
+   *     |    | |___|   |   |___| |   |     *
+   *     |    | |  \    |   |   | |   |     *
+   *     |    | |   \   |   |   | |___|     *
+   *                                        *
+   * DATE:04/25/2018 at 10:31:18 in GMT-06  *
+   ******************************************
+   *
+   * MULTI-REACTOR TRANSMUTATION ANALISYS UTILITY
+   *
+ 
+
+  *************************************************************
+  *  ___    ___    ___    ___  _____     ___           ___    *
+  * |   |  |      |   |  |       |   |  |   |  |\  |  |       *
+  * |___|  |_     |___|  |       |   |  |   |  | \ |  |___    *
+  * | \    |      |   |  |       |   |  |   |  |  \|      |   *
+  * |  \   |___   |   |  |___    |   |  |___|  |   |   ___|   *
+  *                                                           *
+  * DATE:04/25/2018 at 10:31:18 in GMT-06                     *
+  *************************************************************
+  *
+  *********************************************************
+  * LEGEND *                                              *
+  **********                                              *
+  * NUMB BOEC: Begin of Life Atom Numbers                 *
+  * NUMB EOEC: End of Life Atom Numbers                   *
+  * MASS BOEC: Begin of Life Masses                       *
+  * MASS EOEC: End of Life Masses                         *
+  * CAPT CONS: End of Life Micro reaction rates (Capture) *
+  * FISS CONS: End of Life Micro reaction rates (Fission) *
+  * CAPT ACT : End of Life Macro reaction rates (Capture) *
+  * FISS ACT : End of Life Macro reaction rates (Fission) *
+  *********************************************************
+   ***************************************************************
+   * Material                 matF1 * Density spatial moment   1 *
+   ***************************************************************
+  
+                 NUMB BOEC         NUMB EOEC        MASS BOEC         MASS EOEC         CAPT CONST        FISS CONST         CAPT ACT          FISS ACT
+ISOTOPE          (cm^2/b)          (cm^2/b)            (kg)              (kg)            (atom/s)          (atom/s)         (N*atom/s)        (N*atom/s)
+  
+U235          1.103031000E-004  1.102569169E-004  4.305124464E-005  4.303321939E-005  1.917937087E-011  9.714856828E-011  2.114658300E-015  1.071130162E-014
+U238          5.937300000E-004  5.937231323E-004  2.346864113E-004  2.346836967E-004  3.200816496E-012  1.228199016E-014  1.900398796E-015  7.292101666E-018
+  
+ 
+
+ ******************************************************************************
+ *  _    __   _  __                __  __   ___    __       ___  __       ___ *
+ * | \  |    /  |  | |   |   |  | |   |  |   |    |  | |  |  |  |  | |  |  |  *
+ * |  | |-  |   |__| |---|   |--| |-  |__|   |    |  | |  |  |  |__| |  |  |  *
+ * |_/  |__  \_ |  |   |     |  | |__ |  |   |    |__| |__|  |  |    |__|  |  *
+ *                                                                            *
+ * DATE:04/25/2018 at 10:31:18 in GMT-06                                      *
+ ******************************************************************************
+ *
+   ***************************************************************
+   * Material                 matF1 * Density spatial moment   1 *
+   ***************************************************************
+  
+                      Decay Heat Power (kW) with Time (days)
+
+ INDIVIDUAL DECAY HEAT BLOCK
+  
+ TIME (days)             U235              U238              I135  
+ 0.000000000E+000  0.000000000E+000  0.000000000E+000  0.000000000E+000
+ 4.166666667E+001  0.000000000E+000  0.000000000E+000  0.000000000E+000
+  
+ CUMULATIVE DECAY HEAT BLOCK
+  
+ TIME (days)            Power
+ 0.000000000E+000  0.000000000E+000
+ 4.166666667E+001  0.000000000E+000
+ 
+ 
+
+  ******************************************
+  *          ___         ___               *
+  *         |   | |   | |   | |\  |        *
+  *         |___| |   | |___| | \ |        *
+  *         |   | |   | |  \  |  \|        *
+  *         |___| |___| |   \ |   |        *
+  *                                        *
+  * DATE:04/25/2018 at 10:31:18 in GMT-06  *
+  ******************************************
+  *
+  * MULTI-REACTOR TRANSMUTATION ANALISYS UTILITY
+  *
+   ***************************************************************
+   * Material                 matF1 * Density spatial moment   1 *
+   ***************************************************************
+  
+  BURNUP OUTPUT
+  
+                    Burn Up (GWd/MTHM) with Time (days)
+
+  TIME (days)           Burn Up
+  0.000000000E+000  0.000000000E+000
+  4.166666667E+001  4.998717011E-002
+ 
+ 
+
+ 
+
+  *****************************************
+  *         _  _   ___   ___   ___        *
+  *        | \/ | |   | |     |           *
+  *        |    | |___| |___  |___        *
+  *        |    | |   |     |     |       *
+  *        |    | |   |  ___|  ___|       *
+  *                                       *
+  * DATE:04/25/2018 at 10:31:18 in GMT-06 *
+  *****************************************
+  *
+  * MULTI-REACTOR TRANSMUTATION ANALISYS UTILITY
+  *
+                                                      Mass (kg) with Time (days)
+   ***************************************************************
+   * Material                 matF1 * Density spatial moment   1 *
+   ***************************************************************
+  
+ TIME (days)             U235              U238              I135  
+ 0.000000000E+000  4.305124464E-005  2.346864113E-004  6.880919844E-025
+ 4.166666667E+001  4.303321939E-005  2.346836967E-004  6.880555490E-025
+ 
+ 
+
+ 
+ 
+Task ended on 04/25/2018 at 10:31:18 in time zone -06!
+CPU time (min)=        0.0

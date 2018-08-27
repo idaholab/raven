@@ -47,18 +47,19 @@ def convert(tree,fileName=None):
   steps = simulation.find('Steps')
   postProcess = steps.findall('PostProcess')
   TestInfo = simulation.find('TestInfo')
-  revisions = TestInfo.find('revisions')
-  hasRev = True
-  if revisions is None:
-    revisions = ET.Element('revisions')
-    hasRev = False
-  rev = ET.Element('revision')
-  rev.attrib['author'] = 'wangc'
-  rev.attrib['date'] = '2017-12-20'
-  rev.text = 'convert test to use the new DataObjects with the new structure of basic statistic'
-  revisions.append(rev)
-  if not hasRev:
-    TestInfo.append(revisions)
+  if TestInfo is not None:
+    revisions = TestInfo.find('revisions')
+    hasRev = True
+    if revisions is None:
+      revisions = ET.Element('revisions')
+      hasRev = False
+    rev = ET.Element('revision')
+    rev.attrib['author'] = 'wangc'
+    rev.attrib['date'] = '2017-12-20'
+    rev.text = 'convert test to use the new DataObjects with the new structure of basic statistic'
+    revisions.append(rev)
+    if not hasRev:
+      TestInfo.append(revisions)
 
   toRemove = []
 

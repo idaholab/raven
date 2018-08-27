@@ -300,13 +300,6 @@ class EnsembleModel(Dummy):
     # construct the ensemble model directed graph
     self.ensembleModelGraph = graphStructure.graphObject(modelsToOutputModels)
     # make some checks
-    # FIXME: the following check is too tight, even if the models are connected, the
-    # code may still raise an error. I think in really, we do not need to raise an error,
-    # maybe a warning is enough. For example:
-    #   a -> b -> c
-    #        ^
-    #        |
-    #   e -> d -> f
     if not self.ensembleModelGraph.isConnectedNet():
       isolatedModels = self.ensembleModelGraph.findIsolatedVertices()
       self.raiseAnError(IOError, "Some models are not connected. Possible candidates are: "+' '.join(isolatedModels))

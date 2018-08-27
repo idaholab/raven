@@ -34,7 +34,8 @@ else
     fi
 
     cd $BUILD_DIR
-    $DOWNLOADER https://pypi.python.org/packages/source/c/coverage/coverage-3.7.1.tar.gz #md5=67d4e393f4c6a5ffc18605409d2aa1ac
+    #SHA256=56e448f051a201c5ebbaa86a5efd0ca90d327204d8b059ab25ad0f35fbfd79f1
+    $DOWNLOADER https://files.pythonhosted.org/packages/35/fe/e7df7289d717426093c68d156e0fd9117c8f4872b6588e8a8928a0f68424/coverage-4.5.1.tar.gz
     tar -xvzf coverage-3.7.1.tar.gz
     cd coverage-3.7.1
     (unset CC CXX; $PYTHON_CMD setup.py install --prefix=$INSTALL_DIR)
@@ -49,6 +50,10 @@ cd tests/framework
 FRAMEWORK_DIR=`(cd ../../framework && pwd)`
 
 source $SCRIPT_DIR/scripts/establish_conda_env.sh --quiet --load
+# get display var
+DISPLAY_VAR=`(echo $DISPLAY)`
+# reset it
+export DISPLAY=
 
 EXTRA="--rcfile=$FRAMEWORK_DIR/../tests/framework/.coveragerc --source=$FRAMEWORK_DIR -a --omit=$FRAMEWORK_DIR/contrib/*"
 export COVERAGE_FILE=`pwd`/.coverage
@@ -56,38 +61,46 @@ export COVERAGE_FILE=`pwd`/.coverage
 coverage erase
 #skip test_rom_trainer.xml
 DRIVER=$FRAMEWORK_DIR/Driver.py
+echo ...Running Code Interface tests...
+# get the tests runnable by RAVEN (interface check)
+for I in $(python ${SCRIPT_DIR}/developer_tools/get_coverage_tests.py --get-interface-check-tests --skip-fails)
+do
+    DIR=`dirname $I`
+    BASE=`basename $I`
+    #echo Running $DIR $BASE
+    cd $DIR
+    echo coverage run $EXTRA $DRIVER $I interfaceCheck
+    coverage run $EXTRA $DRIVER $I interfaceCheck
+done
+
+echo ...Running Unit tests...
+# get the tests runnable by RAVEN (python tests (unit-tests))
+for I in $(python ${SCRIPT_DIR}/developer_tools/get_coverage_tests.py --get-python-tests --skip-fails)
+do
+    DIR=`dirname $I`
+    BASE=`basename $I`
+    #echo Running $DIR $BASE
+    cd $DIR
+    echo coverage run $EXTRA $I
+    coverage run $EXTRA $I
+done
+
+echo ...Running Verification tests...
+# get the tests runnable by RAVEN (not interface check)
 for I in $(python ${SCRIPT_DIR}/developer_tools/get_coverage_tests.py)
 do
-    #DIR=`dirname $I`
-    #BASE=`basename $I`
+    DIR=`dirname $I`
+    BASE=`basename $I`
     #echo Running $DIR $BASE
-    #(cd $DIR && coverage run $EXTRA $DRIVER $BASE)
-    echo coverage run $EXTRA $DRIVER $I
-    coverage run $EXTRA $DRIVER $I
+    if [ -d "$DIR" ]; then
+        cd $DIR
+        echo coverage run $EXTRA $DRIVER $I
+        coverage run $EXTRA $DRIVER $I || true
+    fi
 done
-coverage run $EXTRA ../../framework/TestDistributions.py
 
-# code interface tests START
-cd CodeInterfaceTests
-coverage run $EXTRA $FRAMEWORK_DIR/Driver.py test_relap5_code_interface.xml interfaceCheck
-coverage run $EXTRA $FRAMEWORK_DIR/Driver.py test_perturb_mammoth_bison_relap7.xml interfaceCheck
-coverage run $EXTRA $FRAMEWORK_DIR/Driver.py test_mammoth_r7_bison_no_exe_hdf5_restart.xml interfaceCheck
-coverage run $EXTRA $FRAMEWORK_DIR/Driver.py test_perturb_all_rattlesnake_bison.xml interfaceCheck
-coverage run $EXTRA $FRAMEWORK_DIR/Driver.py test_perturb_mammoth_rattlesnake_bison.xml interfaceCheck
-coverage run $EXTRA $FRAMEWORK_DIR/Driver.py test_relap5_code_interface_alias.xml interfaceCheck
-coverage run $EXTRA $FRAMEWORK_DIR/Driver.py test_relap5_code_interface_multideck.xml interfaceCheck
-coverage run $EXTRA $FRAMEWORK_DIR/Driver.py test_relap5_code_interface_multideck_choosing_deck_output.xml interfaceCheck
-coverage run $EXTRA $FRAMEWORK_DIR/Driver.py test_OpenModelica_code_interface.xml interfaceCheck
-coverage run $EXTRA $FRAMEWORK_DIR/Driver.py test_Dymola_code_interface.xml interfaceCheck
-coverage run $EXTRA $FRAMEWORK_DIR/Driver.py test_Dymola_code_interface_timedep.xml interfaceCheck
-coverage run $EXTRA $FRAMEWORK_DIR/Driver.py test_maap5_code_interface_forward.xml interfaceCheck
-coverage run $EXTRA $FRAMEWORK_DIR/Driver.py test_maap5_code_interface_det.xml interfaceCheck
-coverage run $EXTRA $FRAMEWORK_DIR/Driver.py test_maap5_code_interface_hybrid_det.xml interfaceCheck
-coverage run $EXTRA $FRAMEWORK_DIR/Driver.py test_maap5_code_interface_adaptive_det.xml interfaceCheck
-coverage run $EXTRA $FRAMEWORK_DIR/Driver.py test_maap5_code_interface_adaptive_hybrid_det.xml interfaceCheck
-coverage run $EXTRA $FRAMEWORK_DIR/Driver.py test_maap5_code_interface_det_multibranch.xml interfaceCheck
-coverage run $EXTRA $FRAMEWORK_DIR/Driver.py test_relap5_code_inss.xml interfaceCheck
-# code interface tests END
+#get DISPLAY BACK
+DISPLAY=$DISPLAY_VAR
 
 if which Xvfb
 then
@@ -95,19 +108,19 @@ then
     xvfbPID=$!
     oldDisplay=$DISPLAY
     export DISPLAY=:8888
-    cd ../PostProcessors/TopologicalPostProcessor
-    coverage run $EXTRA $FRAMEWORK_DIR/Driver.py test_topology_ui.xml interactiveCheck
-    cd ../DataMiningPostProcessor/Clustering/
-    coverage run $EXTRA $FRAMEWORK_DIR/Driver.py hierarchical_ui.xml interactiveCheck
-    kill -9 $xvfbPID
+    cd $FRAMEWORK_DIR/../tests/framework/PostProcessors/TopologicalPostProcessor
+    coverage run $EXTRA $FRAMEWORK_DIR/Driver.py test_topology_ui.xml interactiveCheck || true
+    cd $FRAMEWORK_DIR/../tests/framework/PostProcessors/DataMiningPostProcessor/Clustering/
+    coverage run $EXTRA $FRAMEWORK_DIR/Driver.py hierarchical_ui.xml interactiveCheck || true
+    kill -9 $xvfbPID || true
     export DISPLAY=$oldDisplay
 else
     ## Try these tests anyway, we can get some coverage out of them even if the
     ## UI fails or is unavailable.
-    cd ../PostProcessors/TopologicalPostProcessor
-    coverage run $EXTRA $FRAMEWORK_DIR/Driver.py test_topology_ui.xml interactiveCheck
-    cd ../DataMiningPostProcessor/Clustering/
-    coverage run $EXTRA $FRAMEWORK_DIR/Driver.py hierarchical_ui.xml interactiveCheck
+    cd $FRAMEWORK_DIR/../tests/framework/PostProcessors/TopologicalPostProcessor
+    coverage run $EXTRA $FRAMEWORK_DIR/Driver.py test_topology_ui.xml interactiveCheck || true
+    cd $FRAMEWORK_DIR/../tests/framework/PostProcessors/DataMiningPostProcessor/Clustering/
+    coverage run $EXTRA $FRAMEWORK_DIR/Driver.py hierarchical_ui.xml interactiveCheck || true
 fi
 
 ## Go to the final directory and generate the html documents

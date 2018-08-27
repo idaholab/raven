@@ -91,10 +91,11 @@ class LimitSurface(PostProcessor):
     self.tolerance         = 1.0e-4           #SubGrid tolerance
     self.gridFromOutside   = False            #The grid has been passed from outside (self._initFromDict)?
     self.lsSide            = "negative"       # Limit surface side to compute the LS for (negative,positive,both)
-    self.gridEntity        = None
-    self.bounds            = None
-    self.jobHandler        = None
-    self.transfMethods     = {}
+    self.gridEntity        = None             # the Grid object
+    self.bounds            = None             # the container for the domain of search
+    self.jobHandler        = None             # job handler pointer
+    self.transfMethods     = {}               # transformation methods container
+    self.crossedLimitSurf  = False            # Limit surface has been crossed?
     self.addAssemblerObject('ROM','-1', True)
     self.addAssemblerObject('Function','1')
     self.printTag = 'POSTPROCESSOR LIMITSURFACE'
@@ -204,7 +205,12 @@ class LimitSurface(PostProcessor):
       if type(inp).__name__ in ['dict','OrderedDict']:
         if self.externalFunction.name in inp:
           inp[self.externalFunction.name] = np.concatenate((inp[self.externalFunction.name],np.asarray(self.functionValue[self.externalFunction.name][myIndex])))
-    if np.sum(self.functionValue[self.externalFunction.name]) == float(len(self.functionValue[self.externalFunction.name])) or np.sum(self.functionValue[self.externalFunction.name]) == -float(len(self.functionValue[self.externalFunction.name])):
+    # check if the Limit Surface has been crossed
+    self.crossedLimitSurf = not (np.sum(self.functionValue[self.externalFunction.name]) ==
+                                 float(len(self.functionValue[self.externalFunction.name])) or
+                                 np.sum(self.functionValue[self.externalFunction.name]) ==
+                                 -float(len(self.functionValue[self.externalFunction.name])))
+    if not self.crossedLimitSurf:
       if raiseErrorIfNotFound:
         self.raiseAnError(ValueError, 'LimitSurface: all the Function evaluations brought to the same result (No Limit Surface has been crossed...). Increase or change the data set!')
       else:

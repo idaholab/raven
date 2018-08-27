@@ -82,8 +82,8 @@ class OutStreamPrint(OutStreamManager):
     for index in range(len(self.sourceName)):
       paramDict['Source Name ' + str(index) + ' :'] = self.sourceName[index]
     if self.what:
-      for index in range(len(self.what)):
-        paramDict['Variable Name ' + str(index) + ' :'] = self.what[index]
+      for index, var in enumerate(self.what.split(',')):
+        paramDict['Variable Name ' + str(index) + ' :'] = var
     return paramDict
 
   def initialize(self, inDict):
