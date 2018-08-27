@@ -669,9 +669,10 @@ class DataSet(DataObject):
       @ In, None
       @ Out, boolean, True if the dataset is empty otherwise False
     """
-    empty = True
-    if len(self.asDataset().variables) > 0:
-      empty = False
+    try:
+      empty = False if len(self.asDataset().variables) > 0 else True
+    except AttributeError:
+      empty = True
     return empty
 
   @property

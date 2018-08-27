@@ -147,7 +147,7 @@ class OutStreamPrint(OutStreamManager):
 
     for index in range(len(self.sourceName)):
       try:
-        empty = self.sourceData.isEmpty
+        empty = self.sourceData[index].isEmpty
       except AttributeError:
         empty = False
       if not empty:
