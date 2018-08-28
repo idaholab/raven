@@ -399,6 +399,7 @@ Hence, it is strongly recommended to set up the RELAP5 input file so that the si
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Models}
+\label{subsubsection:Relap5Models}
 For the \xmlNode{Models} block here is a standard example of how it would look
 when using RELAP5 as the external model:
 \begin{lstlisting}[style=XML]
@@ -1708,6 +1709,9 @@ after RAVEN completes a sequence. For example:
 </RunInfo>
 \end{lstlisting}
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%% RATTLESNAKE INTERFACE %%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -2963,17 +2967,18 @@ Finally, the variable \textbf{\textit{zrMoles}} needs to be specified in the spe
 \end{lstlisting}
 %
 %%%%%%%%%%%%%%%%%%%%%%%
-%%%%%% COBRA-TF  INTERFACE %%%%%%
+%%%%%% CTF  INTERFACE %%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%
-\subsection{COBRA-TF Interface}
-This section presents the main aspects of the interface between RAVEN and Cobra-TF system,
-the consequent RAVEN input adjustments and the modifications of the Cobra-TF
-files required to run the two coupled codes.
-\\ \textcolor{red}{
-\textbf{\textit{\nb This interface is currently working only with the specific type of Cobra-TF output file (.ctf.out) }}
+\subsection{CTF Interface}
+This section presents the main aspects of the interface between RAVEN and CTF (COBRA-TF) system,
+the consequent RAVEN input adjustments and the modifications of the CTF
+files required to run the two coupled codes. \noindent
+
+\noindent \textcolor{red}{
+\textbf{\textit{\nb This interface is currently working only with the specific type of CTF output file (.ctf.out or deck.out (if input file name is deck.inp)) }}
 }
 
-In the following sections a short explanation on how to use RAVEN coupled with Cobra-TF is reported.
+\noindent In the following sections a short explanation on how to use RAVEN coupled with CTF is reported.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Sequence}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -2982,6 +2987,7 @@ In the \xmlNode{Sequence} section, the names of the steps declared in the
 %
 As an example, if we called the first MultiRun ``Grid\_Sampler'' and the second
 MultiRun ``MC\_Sampler'' in the sequence section we should see this:
+
 \begin{lstlisting}[style=XML]
 <Sequence>Grid_Sampler, MC_Sampler</Sequence>
 \end{lstlisting}
@@ -2996,7 +3002,8 @@ For the \xmlNode{batchSize} and \xmlNode{mode} sections please refer to the
 \subsubsection{RunInfo}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 After all of these blocks are filled out, a standard example RunInfo block may
-look like the example below:
+look like the example below: \\
+
 \begin{lstlisting}[style=XML]
 <RunInfo>
   <WorkingDir>~/workingDir</WorkingDir>
@@ -3005,12 +3012,12 @@ look like the example below:
 </RunInfo>
 \end{lstlisting}
 In this example, the \xmlNode{batchSize} is set to $8$; this means that 8 simulatenous (parallel) instances
-of COBRA-TF are going to be executed when a sampling strategy is employed.
+of CTF are going to be executed when a sampling strategy is employed.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Models}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-As any other Code, in order to activate the Cobra-TF interface, a \xmlNode{Code} XML node needs to be inputted, within the
+As any other Code, in order to activate the CTF interface, a \xmlNode{Code} XML node needs to be inputted, within the
 main XML node \xmlNode{Models}.
 \\The  \xmlNode{Code} XML node contains the
 information needed to execute the specific External Code.
@@ -3042,9 +3049,10 @@ information needed to execute the specific External Code.
 \end{itemize}
 
 An example  is shown  below:
+
 \begin{lstlisting}[style=XML]
 <Models>
-    <Code name="MyCobraTF" subType="CobraTF">
+    <Code name="MyCobraTF" subType="CTF">
       <executable>path/to/cobratf</executable>
     </Code>
 </Models>
@@ -3053,27 +3061,50 @@ An example  is shown  below:
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Files}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-The \xmlNode{Files} XML node has to contain all the files required to run the external code  (Cobra-TF).
-For RAVEN coupled with Cobra-TF, only input file(s) (.inp) are needed.
+The \xmlNode{Files} XML node has to contain all the files required to run the external code  (CTF).
+For RAVEN coupled with CTF, there are three input files. CTF input file (.inp) is required by the code. This input file includes all the geometry, boundary and calculation definitions.
 
-Example:
+\noindent There are two additional files (\textit{optional}) that can be used for model parameter perturbation(s) (vuq$\_$param.txt, vuq$\_$mult.txt). These two files can be used to change variables of models embedded in CTF. The ''vuq$\_$param.txt'' file includes parameter values, and ''vuq$\_$mult.txt'' file includes multipliers or additions to parameters. These files are not required by CTF unless a parameter exposure is desired. One, both or neither of them can be included in the simulation folder. The code first controls if these files exist and does modifications accordingly if needed.
+
+The  \xmlNode{Files} XML node contains the information needed to execute CTF.
+
+\attrsIntro
+%
+\vspace{-5mm}
+\begin{itemize}
+  \itemsep0em
+  \item \nameDescription
+  \item \xmlAttr{type}, \xmlDesc{required string attribute}, specifies the
+  input type used by CTF (ctf, vuq$\_$mult, vuq$\_$param). Accepted types are as follows.
+  \begin{itemize}
+    \item CTF, \xmlDesc{required string attribute}, identifies the CTF input file (geometry, boundary, calculation options, etc.) and the code currently accept any name for input. One CTF input file is required.
+    \item vuq\_mult, \xmlDesc{optional string attribute if closure modifiers are used}, identifies the closure term multiplier input file. If user needs to alter closure terms this file should be used and named \textcolor{red}{vuq$\_$mult.txt}. No other file name is accepted.
+    \item vuq\_param, \xmlDesc{optional string attribute if model parameter modifiers are used}, identifies the model parameter input file. If user needs to change model parameters this file this model should be used and named \textcolor{red}{vuq$\_$params.txt}. No other file name is accepted.
+    \item "", Empty type is also accepted by RAVEN input to perturb. Currently, CTF does not use any other input file that is not mentioned above, but to sample auxiliary files, this option can be used.
+  \end{itemize}
+\end{itemize}
+
+\noindent Example:
 \begin{lstlisting}[style=XML]
 <Files>
-  <Input name="cobraTF_input" type="">case1.inp</Input>
+  <Input name="CTF_input" type="ctf">case1.inp</Input>
+  <Input name="vuq_param_input" type="vuq_param">vuq_param.txt</Input>
+  <Input name="vuq_mult_input" type="vuq_mult">vuq_mult.txt</Input>
+  <Input name="auxiliary_input" type="">auxiliaryInput</Input>
 </Files>
 \end{lstlisting}
 The files mentioned in this section
  need, then, to be placed into the working directory specified
 by the \xmlNode{workingDir} node in the \xmlNode{RunInfo} XML node.
 
-\paragraph{Output Files conversion}
-Since RAVEN expects to receive a CSV file containing the outputs of the simulation, the results in the Cobra-TF output
-files (.ctf.out) need to be converted by the code interface.
+\paragraph{Output Files Conversion}
+Since RAVEN expects to receive a CSV file containing the outputs of the simulation, the results in the CTF output
+files (.ctf.out or deck.out) need to be converted by the code interface.
 
-\textcolor{red}{
-\textbf{It is important to note that the interface output collection (i.e., the parser of the Cobra-TF output) is currently able to extract
-major edit data (.ctf.out) only. Only those variables printed in the "major edit" output files are exported and made available to RAVEN.} }
-\\The following information is collected from Cobra-TF output file (.ctf.out):
+\noindent \textcolor{red}{
+\textbf{It is important to note that the interface output collection (i.e., the parser of the CTF output) is currently able to extract
+major edit data (.ctf.out or deck.out) only. Only those variables printed in the "major edit" output files are exported and made available to RAVEN.} } \\
+\\The following information is collected from CTF output file (.ctf.out or deck.out):
 \begin{itemize}
   \item \textit{\textbf{average properties for channels}}
   \begin{lstlisting}[basicstyle=\tiny]
@@ -3130,8 +3161,8 @@ major edit data (.ctf.out) only. Only those variables printed in the "major edit
   \begin{lstlisting}[basicstyle=\tiny]
           nuclear fuel rod no.  1                         simulation time =    0.00 seconds
              surface no.  1 of  1
-          -----------------------        conducts heat to channels  1  0  0  0  0  0               geometry type =  1
-                                         and azimuthally to surfaces   1 and   1                   no. of radial nodes = 13
+          -----------------------        conducts heat to channels  1  0  0  0  0  0        geometry type =  1
+                                         and azimuthally to surfaces   1 and   1            no. of radial nodes = 13
 
  **********************************************************************************************
 
@@ -3149,92 +3180,189 @@ major edit data (.ctf.out) only. Only those variables printed in the "major edit
      \label{CSVfuelRod}
      \tabcolsep=0.11cm
      \tiny
-     \begin{tabular}{|c|c|c|c|c|c|c|c|c|c|}
-     time    & fuel\_rod10\_fluidTemperatureLiquid  & fuel\_rod10\_fluidTemperatureVapor & fuel\_rod10\_surfaceHeatflux & fuel\_rod10\_heatTransferMode & fuel\_rod10\_caldOutTemperature & ...  \\
-     0.00 & 464.1 & 467.1  & 0.5929E+04               & 0        & 466.08         & ...
+     \begin{tabular}{|c|c|c|c|}
+     time    & fuelRod10\_surface1\_ax10\_fluidTemperatureLiquid  & fuelRod10\_surface1\_ax10\_fluidTemperatureVapor & ... \\
+     0.00 & 464.1 & 467.1  &  ...
      \end{tabular}
    \end{table}
 
- \item \textit{\textbf{Cobra-TF's Output Variables and Corresponding Names in CSV file}}
+   \item \textit{\textbf{cyclindrical tube}}
 
-   In CSV file, the output results obtained from the Cobra-TF output file (.ctf.out) will be saved with the names as described in Table 12.
-   \begin{table}[h]
-    \centering
-    \caption[caption]{Variables Name List in CSV File \\\hspace{\textwidth} \textcolor{red}{(NN: Axial Node Number; CN: Channel Number)}}
-    \label{CSVvariableNames}
-    \tabcolsep=0.11cm
-    \scriptsize
-    \begin{tabular}{|l|l|}
-     \hline
-     \textbf{Output Variable} & \textbf{Name in CSV file} \\  \hline
-     simulation time  & time   \\
-     channels' average quality  & AVG\_ch\_ax\textcolor{red}{NN}\_quality \\
-     channels' average void fraction (liquid)  & AVG\_ch\_ax\textcolor{red}{NN}\_voidFractionLiquid \\
-     channels' average void fraction (vapor)  & AVG\_ch\_ax\textcolor{red}{NN}\_voidFractionVapor \\
-     channels' average entrainment (volumetric) fraction  & AVG\_ch\_ax\textcolor{red}{NN}\_volumeEntrainFraction \\
-     channels' average mass flow rate (liquid)  & AVG\_ch\_ax\textcolor{red}{NN}\_massFlowRateLiquid \\
-     channels' average mass flow rate (vapor)  & AVG\_ch\_ax\textcolor{red}{NN}\_massFlowRateVapor \\
-     channels' average entrainment rate (mass flow rate)  & AVG\_ch\_ax\textcolor{red}{NN}\_massFlowRateEntrain \\
-     channels' average mass flow rate (integrated)  & AVG\_ch\_ax\textcolor{red}{NN}\_massFlowRateIntegrated \\
-     channels' average enthalpy increase (liquid)  & AVG\_ch\_ax\textcolor{red}{NN}\_enthalpyIncreaseLiquid \\
-     channels' average enthalpy increase (vapor)  & AVG\_ch\_ax\textcolor{red}{NN}\_enthalpyIncreaseVapor \\
-     channels' average enthalpy increase (integrated)  & AVG\_ch\_ax\textcolor{red}{NN}\_enthalpyIncreaseIntegrated \\
-     channels' average mixture enthalpy  & AVG\_ch\_ax\textcolor{red}{NN}\_enthalpyMixture \\
-     channels' average heat added to liquid & AVG\_ch\_ax\textcolor{red}{NN}\_heatAddedToLiquid \\
-     channels' average heat added to vapor & AVG\_ch\_ax\textcolor{red}{NN}\_heatAddedToVapor \\
-     channels' average heat added (integrated)  & AVG\_ch\_ax\textcolor{red}{NN}\_heatAddedIntegrated' \\
+      \noindent \textcolor{red}{
+   \textbf{Warning: CTF reports results for cylindrical tubes based on the flow type. Not every result will be available depending on the \underline{internal} or \underline{external} flow type. Check output file and see if the flow around heat slab is internal or external. If the user requests values that are not in the output file reported values will be from different columns and wrong. For example there is no outside surface liquid temperature when flow is internal.} } \\
 
-     channel pressure & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_pressure \\
-     channel liquid velocity  & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_velocityLiquid \\
-     channel vapor velocity  & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_velocityVapor \\
-     channel entrainment rate (velocity) & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_velocityEntrain \\
-     channel void fraction (liquid) & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_voidFractionLiquid \\
-     channel void fraction (vapor)  & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_voidFractionVapor \\
-     channel volume fraction of entrainment liquid  & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_volumeEntrainFraction \\
-     channel mass flow rate (liquid) & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_massFlowRateLiquid \\
-     channel mass flow rate (vapor)  & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_massFlowRateVapor \\
-     channel entrainment rate (mass flow rate) & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_massFlowRateEntrain \\
-     channel flow regime ID & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_flowRegimeID \\
-     channel heat added to liquid & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_heatAddedToLiquid \\
-     channel heat added to vapor  & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_heatAddedToVapor \\
-     channel evaporation rate  & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_evaporationRate \\
+   \begin{lstlisting}[basicstyle=\tiny]
+    cylindrical tube rod no.  5                         simulation time =    2.00 seconds
+           surface no.  1 of  4
+    ------------------------        conducts heat to channels 10  0  0  0  0  0               geometry type =  2
+                                    and azimuthally to surfaces   4 and   2                   no. of radial nodes =  2
 
-     channel enthalpy of vapor  & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_enthalpyVapor \\
-     channel enthalpy of saturated vapor & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_enthalpySaturatedVapor \\
-     channel enthalpy difference between vapor and saturated vapor & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_enthalpyVapor-SaturatedVapor \\
-     channel enthalpy of liquid & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_enthalpyLiquid \\
-     channel enthalpy of saturated liquid & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_enthalpySaturatedLiquid \\
-     channel enthalpy difference between liquid and saturated liquid & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_enthalpyLiquid-SaturatedLiquid \\
-     channel enthalpy of mixture & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_enthalpyMixture \\
-     channel density of liquid  & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_densityLiquid \\
-     channel density of vapor  & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_densityVapor \\
-     channel density of mixture & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_densityMixture \\
-     channel net entrainment rate (difference between entrainment rate and de-entrainment rate)  & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_netEntrainRate \\
-     % gas volumetric analysis
-     channel enthalpy of the mixture of non-condensable gases & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_enthalpyNonCondensableMixture \\
-     channel density of the mixture of non-condensable gases & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_densityNonCondensableMixture \\
-     channel steam volume fraction [0-100] & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_volumeFractionSteam \\
-     channel air volume fraction [0-100] & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_volumeFractionAir \\
-     channel total equivalent diameter of the liquid droplets (all droplets as a single big one) (diam-ld) & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_equiDiameterLiquidDroplet \\
-     channel averaged diameter of liquid droplets field (diam-sd) & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_avgDiameterLiquidDroplet \\
-     channel averaged flow rate of liquid droplets field (flow-sd) & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_avgFlowRateLiquidDroplet \\
-     channel averaged velocity of liquid droplets field (veloc-sd) & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_avgVelocityLiquidDroplet \\
-     channel evaporation rate of liquid droplets field (gamsd) & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_evaporationRateLiquidDroplet \\
-     % fuel rod
-     fuel rod fluid temperatures (liquid) & fuel\_rod\textcolor{red}{NN}\_fluidTemperatureLiquid \\
-     fuel rod fluid temperatures (vapor)  & fuel\_rod\textcolor{red}{NN}\_fluidTemperatureVapor \\
-     fuel rod surface heat flux & fuel\_rod\textcolor{red}{NN}\_surfaceHeatflux \\
-     %fuel rod surface heat transfer mode [-] & fuel\_rod\textcolor{red}{(Rod Node Number)}\_heatTransferMode \\
-     clad outer surface temperature  & fuel\_rod\textcolor{red}{NN}\_caldOutTemperature \\
-     clad inner surface temperature  & fuel\_rod\textcolor{red}{NN}\_cladInTemperature \\
-     gap conductance  & fuel\_rod\textcolor{red}{NN}\_gapConductance \\
-     fuel outer suface temperature  & fuel\_rod\textcolor{red}{NN}\_fuelTemperatureSurface \\
-     fuel center temperature  & fuel\_rod\textcolor{red}{NN}\_fuelTemperatureCenter \\
 
-    \end{tabular}
+ **********************************************************************************************************************
 
-   \end{table}
+ rod    axial    *-------------- outside surface ----------------*   *---------------- inside surface ----------------*
+ node  location   heat flux   h.t.  **** temperatures (deg-f) ****   **** temperatures (deg-f) ****    h.t.   heat flux
+ no.    (in.)     (b/h-ft2)   mode     wall     vapor     liquid       liquid     vapor     wall       mode   (b/h-ftl)
+ ----  --------   ---------   ----   -------   -------   -------       -------   -------   -------
+
+  51    144.00  -0.4424E+03   spl    629.71     653.31    629.77                           629.68           0.0000E+00
+  \end{lstlisting}
+    that will be converted in the following way (CSV):
+    \begin{table}[h]
+      \centering
+      \caption{CSV transport info (cylindrical tube)}
+      \label{CSVcylTube}
+      \tabcolsep=0.11cm
+      \tiny
+      \begin{tabular}{|c|c|c|c|}
+      time    & cylRod10\_surface1\_ax51\_outsideSurfaceHeatFlux  & cylRod10\_surface1\_ax51\_outsideSurfaceWallTemperature &  ...  \\
+      0.00 & -0.4424E+03 & 629.71  & ...
+      \end{tabular}
+    \end{table}
+
+  \item \textit{\textbf{heat slab (tube)}}
+
+   \noindent \textcolor{red}{
+   \textbf{Warning: CTF reports results for heat slabs based on the flow type. Not every result will be available depending on the \underline{internal} or \underline{external} flow type. Check output file and see if the flow around heat slab is internal or external. If the user requests values that are not in the output file reported values will be from different columns and wrong. For example there is no outside surface liquid temperature when flow is internal.} } \\
+
+   \begin{lstlisting}[basicstyle=\tiny]
+          heat slab no.  1  (tube)                  simulation time =   20.00 seconds
+                                                    fluid channel on inside surface =  1
+                                                    fluid channel on outside surface =  0
+                                                    geometry type =  1
+                                                    no. of nodes =   2
+
+
+ ***************************************************************************************************************
+
+   rod    axial    *------------- outside surface ------------* *-------------- inside surface ----------------*
+   node  location   heat flux  h.t.  ** temperatures (deg-f) ** ** temperatures (deg-f) ****    h.t.   heat flux
+   no.    (in.)     (b/h-ft2)  mode   wall     vapor     liquid liquid     vapor     wall       mode   (b/h-ftl)
+   ----  --------   ---------  ----  ------   -------   ------- -------   -------   -------
+
+    21     19.69    999666E+00       200.00                     212.00    212.00    247.85     tran    0.2641E+02
+  \end{lstlisting}
+    that will be converted in the following way (CSV):
+    \begin{table}[h]
+      \centering
+      \caption{CSV transport info (heat slab (tube) tube)}
+      \label{CSVheatSlab}
+      \tabcolsep=0.11cm
+      \tiny
+      \begin{tabular}{|c|c|c|c|}
+      time    & heatSlab1\_ax21\_outsideSurfaceHeatFlux &  heatSlab1\_ax21\_outsideSurfaceWallTemperature &  ...  \\
+      0.00 & 999666E+00 & 200.00  & ...
+      \end{tabular}
+    \end{table}
+
+ \item \textit{\textbf{CTF's Output Variables and Corresponding Names in CSV file}}
+
+   In CSV file, the output results obtained from the CTF output file (.ctf.out) will be saved with the names as described in Table \ref{CSVvariableNames}.
+
 \end{itemize}
+
+\captionsetup{justification=centering}
+\captionof{table}{Variables Name List in CSV File \hspace{\textwidth} \textcolor{red}{NN: Axial Node Number; CN: Channel Number; \\ RN: Rod Number; SN: Surface Number: HN: Heat Slab Number}}
+\label{CSVvariableNames}
+\begingroup
+% header and footer information
+\scriptsize
+\begin{longtable}{|l|l|}
+\hline
+\textbf{Output Variable} & \textbf{Name in CSV file} \\
+\hline
+\endhead
+\hline
+\endfoot
+% body of table
+      \scriptsize {simulation time  }&\scriptsize{ time  } \\
+      channels' average height  & AVG\_ch\_ax\textcolor{red}{NN}\_height \\
+      channels' average quality  & AVG\_ch\_ax\textcolor{red}{NN}\_quality \\
+      channels' average void fraction (liquid)  & AVG\_ch\_ax\textcolor{red}{NN}\_voidFractionLiquid \\
+      channels' average void fraction (vapor)  & AVG\_ch\_ax\textcolor{red}{NN}\_voidFractionVapor \\
+      channels' average entrainment (volumetric) fraction  & AVG\_ch\_ax\textcolor{red}{NN}\_volumeEntrainFraction \\
+      channels' average mass flow rate (liquid)  & AVG\_ch\_ax\textcolor{red}{NN}\_massFlowRateLiquid \\
+      channels' average mass flow rate (vapor)  & AVG\_ch\_ax\textcolor{red}{NN}\_massFlowRateVapor \\
+      channels' average entrainment rate (mass flow rate)  & AVG\_ch\_ax\textcolor{red}{NN}\_massFlowRateEntrain \\
+      channels' average mass flow rate (integrated)  & AVG\_ch\_ax\textcolor{red}{NN}\_massFlowRateIntegrated \\
+      channels' average enthalpy increase (liquid)  & AVG\_ch\_ax\textcolor{red}{NN}\_enthalpyIncreaseLiquid \\
+      channels' average enthalpy increase (vapor)  & AVG\_ch\_ax\textcolor{red}{NN}\_enthalpyIncreaseVapor \\
+      channels' average enthalpy increase (integrated)  & AVG\_ch\_ax\textcolor{red}{NN}\_enthalpyIncreaseIntegrated \\
+      channels' average mixture enthalpy  & AVG\_ch\_ax\textcolor{red}{NN}\_enthalpyMixture \\
+      channels' average heat added to liquid & AVG\_ch\_ax\textcolor{red}{NN}\_heatAddedToLiquid \\
+      channels' average heat added to vapor & AVG\_ch\_ax\textcolor{red}{NN}\_heatAddedToVapor \\
+      channels' average heat added (integrated)  & AVG\_ch\_ax\textcolor{red}{NN}\_heatAddedIntegrated' \\
+      channel height & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_height \\
+      channel pressure & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_pressure \\
+      channel liquid velocity  & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_velocityLiquid \\
+      channel vapor velocity  & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_velocityVapor \\
+      channel entrainment rate (velocity) & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_velocityEntrain \\
+      channel void fraction (liquid) & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_voidFractionLiquid \\
+      channel void fraction (vapor)  & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_voidFractionVapor \\
+      channel volume fraction of entrainment liquid  & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_volumeEntrainFraction \\
+      channel mass flow rate (liquid) & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_massFlowRateLiquid \\
+      channel mass flow rate (vapor)  & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_massFlowRateVapor \\
+      channel entrainment rate (mass flow rate) & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_massFlowRateEntrain \\
+      channel flow regime ID & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_flowRegimeID \\
+      channel heat added to liquid & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_heatAddedToLiquid \\
+      channel heat added to vapor  & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_heatAddedToVapor \\
+      channel evaporation rate  & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_evaporationRate \\
+      channel enthalpy of vapor  & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_enthalpyVapor \\
+      channel enthalpy of saturated vapor & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_enthalpySaturatedVapor \\
+      channel enthalpy difference between vapor and saturated vapor & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_enthalpyVapor-SaturatedVapor \\
+      channel enthalpy of liquid & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_enthalpyLiquid \\
+      channel enthalpy of saturated liquid & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_enthalpySaturatedLiquid \\
+      channel enthalpy difference between liquid and saturated liquid & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_enthalpyLiquid-SaturatedLiquid \\
+      channel enthalpy of mixture & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_enthalpyMixture \\
+      channel density of liquid  & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_densityLiquid \\
+      channel density of vapor  & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_densityVapor \\
+      channel density of mixture & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_densityMixture \\
+      channel net entrainment rate & \\ (difference between entrainment rate and de-entrainment rate)  & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_netEntrainRate \\
+      % gas volumetric analysis
+      channel enthalpy of the mixture of non-condensable gases & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_enthalpyNonCondensableMixture \\
+      channel density of the mixture of non-condensable gases & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_densityNonCondensableMixture \\
+      channel steam volume fraction [0-100] & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_volumeFractionSteam \\
+      channel air volume fraction [0-100] & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_volumeFractionAir \\
+      channel total equivalent diameter of the liquid droplets & \\ (all droplets as a single big one) (diam-ld) & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_equiDiameterLiquidDroplet \\
+      channel averaged diameter of liquid droplets field (diam-sd) & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_avgDiameterLiquidDroplet \\
+      channel averaged flow rate of liquid droplets field (flow-sd) & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_avgFlowRateLiquidDroplet \\
+      channel averaged velocity of liquid droplets field (veloc-sd) & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_avgVelocityLiquidDroplet \\
+      channel evaporation rate of liquid droplets field (gamsd) & ch\textcolor{red}{CN}\_ax\textcolor{red}{NN}\_evaporationRateLiquidDroplet \\
+      % fuel rod
+      fuel rod height & fuelRod\textcolor{red}{RN}\_surface\textcolor{red}{SN}\_ax\textcolor{red}{NN}\_height \\
+      fuel rod fluid temperatures (liquid) & fuelRod\textcolor{red}{RN}\_surface\textcolor{red}{SN}\_ax\textcolor{red}{NN}\_fluidTemperatureLiquid \\
+      fuel rod fluid temperatures (vapor)  & fuelRod\textcolor{red}{RN}\_surface\textcolor{red}{SN}\_ax\textcolor{red}{NN}\_fluidTemperatureVapor \\
+      fuel rod surface heat flux & fuelRod\textcolor{red}{RN}\_surface\textcolor{red}{SN}\_ax\textcolor{red}{NN}\_surfaceHeatflux \\
+      %fuel rod surface heat transfer mode [-] & fuelRod\textcolor{red}{(Rod Node Number)}_surfaceN\textcolor{red}{SN}_ax\textcolor{red}{NN}\_heatTransferMode \\
+      clad outer surface temperature  & fuelRod\textcolor{red}{RN}\_surface\textcolor{red}{SN}\_ax\textcolor{red}{NN}\_cladOutTemperature \\
+      clad iRNer surface temperature  & fuelRod\textcolor{red}{RN}\_surface\textcolor{red}{SN}\_ax\textcolor{red}{NN}\_cladInTemperature \\
+      gap conductance  & fuelRod\textcolor{red}{RN}\_surface\textcolor{red}{SN}\_ax\textcolor{red}{NN}\_gapConductance \\
+      fuel outer suface temperature  & fuelRod\textcolor{red}{RN}\_surface\textcolor{red}{SN}\_ax\textcolor{red}{NN}\_fuelTemperatureSurface \\
+      fuel center temperature  & fuelRod\textcolor{red}{RN}\_surface\textcolor{red}{SN}\_ax\textcolor{red}{NN}\_fuelTemperatureCenter \\
+      % cylindrical rod
+      cylindrical tube height & cylRod\textcolor{red}{RN}\_surface\textcolor{red}{SN}\_ax\textcolor{red}{NN}\_height \\
+      cylindrical tube outside surface heat flux & cylRod\textcolor{red}{RN}\_surface\textcolor{red}{SN}\_ax\textcolor{red}{NN}\_outsideSurfaceHeatFlux \\
+      cylindrical tube outside surface wall temperature & cylRod\textcolor{red}{RN}\_surface\textcolor{red}{SN}\_ax\textcolor{red}{NN}\_outsideSurfaceWallTemperature \\
+      cylindrical tube outside surface vapor temperature & cylRod\textcolor{red}{RN}\_surface\textcolor{red}{SN}\_ax\textcolor{red}{NN}\_outsideSurfaceVaporTemperature \\
+      cylindrical tube outside surface liquid temperature & cylRod\textcolor{red}{RN}\_surface\textcolor{red}{SN}\_ax\textcolor{red}{NN}\_outsideSurfaceLiquidTemperature \\
+      cylindrical tube inside surface wall temperature & cylRod\textcolor{red}{RN}\_surface\textcolor{red}{SN}\_ax\textcolor{red}{NN}\_insideSurfaceWallTemperature \\
+      cylindrical tube inside surface vapor temperature & cylRod\textcolor{red}{RN}\_surface\textcolor{red}{SN}\_ax\textcolor{red}{NN}\_insideSurfaceVaporTemperature \\
+      cylindrical tube inside surface liquid temperature & cylRod\textcolor{red}{RN}\_surface\textcolor{red}{SN}\_ax\textcolor{red}{NN}\_insideSurfaceLiquidTemperature \\
+      cylindrical tube inside surface heat flux & cylRod\textcolor{red}{RN}\_surface\textcolor{red}{SN}\_ax\textcolor{red}{NN}\_insideSurfaceHeatFlux \\
+      % heat slab
+      heat slab (tube) height & heatSlab\textcolor{red}{HN}\_ax\textcolor{red}{NN}\_height \\
+      heat slab (tube) outside surface heat flux & heatSlab\textcolor{red}{HN}\_ax\textcolor{red}{NN}\_outsideSurfaceHeatFlux\\
+      heat slab (tube) outside surface wall temperature & heatSlab\textcolor{red}{HN}\_ax\textcolor{red}{NN}\_outsideSurfaceWallTemperature\\
+      heat slab (tube) outside surface vapor temperature & heatSlab\textcolor{red}{HN}\_ax\textcolor{red}{NN}\_outsideSurfaceVaporTemperature\\
+      heat slab (tube) outside surface liquid temperature & heatSlab\textcolor{red}{HN}\_ax\textcolor{red}{NN}\_outsideSurfaceLiquidTemperature\\
+      heat slab (tube) inside surface wall temperature & heatSlab\textcolor{red}{HN}\_ax\textcolor{red}{NN}\_insideSurfaceWallTemperature\\
+      heat slab (tube) inside surface vapor temperature & heatSlab\textcolor{red}{HN}\_ax\textcolor{red}{NN}\_insideSurfaceVaporTemperature\\
+      heat slab (tube) inside surface liquid temperature & heatSlab\textcolor{red}{HN}\_ax\textcolor{red}{NN}\_insideSurfaceLiquidTemperature\\
+      heat slab (tube) inside surface heat flux & heatSlab\textcolor{red}{HN}\_ax\textcolor{red}{NN}\_insideSurfaceHeatFlux
+\end{longtable}
+\endgroup
+
+\textbf{\textit{\nb RAVEN, regonizes failed or crashed CTF runs and no data will be saved from those.}}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Distributions}
@@ -3246,6 +3374,7 @@ For all the possibile distributions and all their possible inputs please see the
 chapter about Distributions (see~\ref{sec:distributions}).
 %
 Here we report an example of a Normal distribution:
+
 \begin{lstlisting}[style=XML,morekeywords={name,debug}]
 <Distributions verbosity='debug'>
     <Normal name="GridLossCoeff">
@@ -3254,9 +3383,22 @@ Here we report an example of a Normal distribution:
       <upperBound>0.9</upperBound>
       <lowerBound>0.6</lowerBound>
     </Normal>
+    <Uniform name="DB1dist">
+      <upperBound>0.026</upperBound>
+      <lowerBound>0.020</lowerBound>
+    </Uniform>
+    <Uniform name="DB2dist">
+      <upperBound>0.9</upperBound>
+      <lowerBound>0.7</lowerBound>
+    </Uniform>
+    <Uniform name="DB3dist">
+      <upperBound>0.5</upperBound>
+      <lowerBound>0.3</lowerBound>
+    </Uniform>
  </Distributions>
 \end{lstlisting}
 
+\noindent
 It is good practice to name the distribution something similar to what kind of
 variable is going to be sampled, since there might be many variables with the
 same kind of distributions but different input parameters.
@@ -3265,23 +3407,24 @@ same kind of distributions but different input parameters.
 \subsubsection{Samplers}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 In the \xmlNode{Samplers} block we want to define the variables that are going to be sampled.
-%
-\\The perturbation is performed by assigning the 'line number' and 'position (word number)' of the values that need to be changed in the original Cobra-TF input to the RAVEN input.
-Specifically, the variable name in the form of \textbf{\textit{Line Number|Position}} needs to be defined in the specific Sampler.
+
+\noindent The perturbation or optimization of the input of any CTF sequence is performed using the approach detailed in the \textit{Generic Interface} section (see \ref{subsec:genericInterface}). Briefly, this approach uses
+ ``wild-cards'' (placed in the original input files) for injecting the perturbed values.
+ For example, if the original input file (that needs to be perturbed) is the following:
 
 \textbf{Example}:
 We want to do the sampling of 1 single variable:
 \begin{itemize}
-  \item The Grid Loss Coefficient Data used in the line number 343 and word number 1 (position).
+  \item The Grid Loss Coefficient Data is used from sampled values.
 \end{itemize}
 
-We are going to sample this variable using two different sampling methods: Grid and MonteCarlo.
+\noindent We are going to sample this variable using two different sampling methods: Grid and MonteCarlo.
 The RAVEN input is then written as follows:
 
 \begin{lstlisting}[style=XML,morekeywords={name,type,construction,lowerBound,steps,limit,initialSeed}]
 <Samplers verbosity='debug'>
   <Grid name='Grid_Sampler' >
-    <variable name='343|1'>
+    <variable name='GrdLss'>
       <distribution>GridLossCoeff</distribution>
       <grid type='CDF' construction='equal'  steps='10'>0.001 0.999</grid>
     </variable>
@@ -3290,19 +3433,69 @@ The RAVEN input is then written as follows:
      <samplerInit>
        <limit>1000</limit>
      </samplerInit>
-    <variable name='343|1'>
+    <variable name='GrdLss'>
       <distribution>GridLossCoeff</distribution>
+    </variable>
+    <variable name='DB1'>
+      <distribution>DB1dist</distribution>
+    </variable>
+    <variable name='DB2'>
+      <distribution>DB2dist</distribution>
+    </variable>
+    <variable name='DB3'>
+      <distribution>DB3dist</distribution>
+    </variable>
   </MonteCarlo>
 </Samplers>
 \end{lstlisting}
 
-It can be seen that each variable is connected with a proper distribution
+CTF input file should be modified with wild-cards in the following way.
+\begin{lstlisting}[basicstyle=\tiny]
+***********************************************************************************************
+*GROUP 7 - Grid Loss Coefficient Data                                                         *
+***********************************************************************************************
+**NGR
+    7
+*Card 7.1
+**  NCD NGT  IFGQF IFSDRP  IFESPV  IFTPE  IGTEMP  NFBS  NDM9 NDM10 NDM11 NDM12 NDM13 NDM14
+     21   0      0      0       0      0       0     0     0     0     0     0     0     0
+*Card 7.2
+**       CDL      J   CD1   CD2   CD3   CD4   CD5   CD6   CD7   CD8   CD9  CD10  CD11  CD12
+ $RAVEN-GrdLss$   1     1     2     3     4     5     6     7     8     9    10    11    12
+     0.90700      1    13    14    15    16    17    18    19    20    21    22    23    24
+     0.90700      1    25    26    27    28    29    30    31    32    33    34    35    36
+
+\end{lstlisting}
+
+It is also possible to modify input values in parameter exposure input files.\\
+
+\textbf{Example}:
+We want to do the sampling of 3 correlation parameters (Dittus-Boelter parameter modification, DB1 $\times$ Re$^{DB2}$ $\times$ Pr$^{DB3}$):
+
+\begin{itemize}
+  \item DB1, DB2, DB3 values will be sampled and vuq\_param.txt will be modified with sampled values.
+\end{itemize}
+
+vuq$\_$param.txt and vuq$\_$mult.txt files are modified similarly with defined variable names.
+
+\begin{lstlisting}[basicstyle=\tiny]
+k_chen_1 = 0.24
+k_chen_2 = 0.75
+k_db_1 = $RAVEN-DB1$
+k_db_2 = $RAVEN-DB2$
+k_db_3 = $RAVEN-DB3$
+k_db_4 = 7.86
+k_wf_1 = 1.691
+k_wf_2 = 0.43
+\end{lstlisting}
+
+\noindent It can be seen that each variable is connected with a proper distribution
 defined in the \\\xmlNode{Distributions} block (from the previous example).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Steps}
-For a Cobra-TF interface, the \xmlNode{MultiRun} step type will most likely be
-used.
+For a CTF interface, the \xmlNode{MultiRun} step type will most likely be
+used. But \xmlNode{SingleRun} step can also be used for plotting and data extraction purposes.
 %
 First, the step needs to be named: this name will be one of the names used in
 the \xmlNode{sequence} block.
@@ -3315,10 +3508,12 @@ In our example, \texttt{Grid\_Sampler} and \texttt{MC\_Sampler}.
 
 With this step, we need to import all the files needed for the simulation:
 \begin{itemize}
-  \item Cobra-TF input file
+  \item CTF input files
 \end{itemize}
 \begin{lstlisting}[style=XML,morekeywords={name,class,type}]
-    <Input   class='Files' type=''>inputFileCobra</Input>
+    <Input class="Files" type="ctf">CTFinput</Input>
+    <Input class="Files" type="vuq_param">vuq_param</Input>
+    <Input class="Files" type="vuq_mult" >vuq_mult</Input>
 \end{lstlisting}
 We then need to define which model will be used:
 \begin{lstlisting}[style=XML]
@@ -3343,7 +3538,9 @@ one:
 \begin{lstlisting}[style=XML]
 <Steps verbosity='debug'>
   <MultiRun name='Grid_Sampler' verbosity='debug'>
-    <Input   class='Files' type=''>inputFileCobra.inp</Input>
+    <Input   class='Files' type="ctf">CTFinput</Input>
+    <Input   class="Files" type="vuq_param">vuq_param</Input>
+    <Input   class="Files" type="vuq_mult" >vuq_mult</Input>
     <Model   class='Models'    type='Code'>MyCobraTF</Model>
     <Sampler class='Samplers'  type='Grid'>Grid_Sampler</Sampler>
     <Output  class='Databases' type='HDF5'>Grid_out</Output>
@@ -3351,7 +3548,9 @@ one:
     <Output  class='DataObjects' type='HistorySet'>GridCTFHistorySet</Output>
   </MultiRun>
   <MultiRun name='MC_Sampler' verbosity='debug' re-seeding='210491'>
-    <Input   class='Files' type=''>inputFileCobra.inp</Input>
+    <Input   class='Files' type=''>CTFinput</Input>
+    <Input   class="Files" type="">vuq_param</Input>
+    <Input   class="Files" type="" >vuq_mult</Input>
     <Model   class='Models'    type='Code'>MyCobraTF</Model>
     <Sampler class='Samplers'  type='MonteCarlo'>MC_Sampler</Sampler>
     <Output  class='Databases' type='HDF5'      >MC_out</Output>
@@ -3640,3 +3839,636 @@ outputs will be saved in the \textbf{DataObject} ``saphireDump'', and will be pr
     </MultiRun>
   </Steps>
 \end{lstlisting}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%% PHISICS INTERFACE %%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{PHISICS Interface} 
+\label{subsec:PhisicsInterface}
+%
+\subsubsection{General Information}
+%
+This section covers the input specification for running PHISICS through RAVEN.
+The interface can be used to perturb the PHISICS input files including the INSTANT and MRTAU input decks
+and the following libraries: cross sections, fission yield, decay, fission Q-values, decay Q-values and the XML material input. 
+The interface also the cabablity to work in MRTAU standlone calculations, in INSTANT/MRTAU mode (PHISICS) and 
+in PHISICS/RELAP5 coupled mode (see~\ref{subsec:PhisicsRelap5Interface}). 
+%
+\subsubsection{Files} 
+\label{subsubsec:PhisicsInterfaceFiles}
+\xmlNode{Files} includes two attributes \xmlAttr{name} and \xmlAttr{type} entries, identically as other interfaces.   
+It also includes two optional attributes \xmlAttr{perturbable} and \xmlAttr{subDirectory}.
+
+The \xmlAttr{name} attribute is a user-defined internal name for the file contained in the node. 
+Default: None (required entry).  
+
+The \xmlAttr{type} attribute identifies which base-level parser an input file is used within.  The \xmlAttr{type} has to be specified as long as the 
+file is parsed by the interface or an interface's parser. \xmlAttr{type} is hardcoded for this speciific inputs, in order to assign each input to its corresponding RAVEN parser. 
+Default: None (required entry if parsed). 
+
+The corresponding hardcoded flags accepted by RAVEN are given in Table~\ref{TypeTable}. The type attributes are case-incensitive. 
+\begin{table}[]
+  \centering
+  \caption{Correspondance between the type attributes required and the PHISICS input files}\label{TypeTable}
+    \begin{tabular}{l|l|l}
+\textit{Type Attribute} & \textit{Corresponding PHISICS input}                           & \textit{Perturbable} \\
+\hline
+decay                   & MrTau decay library                          & Yes                  \\
+inp                     & XML Instant input                            & No                   \\
+path                    & XML MrTau path-to-libraries file             & No                   \\
+material                & XML MrTau material input                     & Yes                  \\
+depletion\_input        & XML MrTau depletion input                    & No                   \\
+Xs-Library              & XML MrTau library input                      & No                   \\
+FissionYield            & MrTau fission yield library                  & Yes                  \\
+FissQValue              & MrTau fission Q-values                       & Yes                  \\
+AlphaDecay              & MrTau $\alpha$ decay library                 & Yes                  \\
+Beta+Decay              & MrTau $\beta^+$ decay library                & Yes                  \\
+Beta+xDecay             & MrTau $\beta^{+*}$ decay library             & Yes                  \\
+BetaDecay               & MrTau $\beta$ decay library                  & Yes                  \\
+BetaxDecay              & MrTau $\beta^*$ decay library                & Yes                  \\
+IntTraDecay             & MrTau internal transition decay library      & Yes                  \\
+XS                      & XML XS scaling factors file                  & Yes                  \\
+N,2N                    & MrTau n,2n library                           & No                   \\
+N,ALPHA                 & MrTau n,$\alpha$ library                     & No                   \\
+N,G                     & MrTau n,$\gamma$ library                     & No                   \\
+N,Gx                    & MrTau n,$\gamma^*$ library                   & No                   \\
+N,P                     & MrTau n,proton library                       & No                   \\
+budep                   & MrTau burn-up history                        & No                   \\
+CRAM\_coeff\_PF         & MrTau CRAM coefficients                      & No                   \\
+IsotopeList             & MrTau isotope list input                     & No                   \\
+mass                    & MrTau mass input                             & No                   \\
+tabMap             & XML tabulation mapping                       & No                   
+    \end{tabular}
+\end{table}
+
+The cross section libraries files can be defined with any \xmlAttr{type} attribute.
+The tabulation mapping file is optional. If a \xmlAttr{type}=\xmlString{tabMap} is found in an \xmlNode{Input} node, the cross section
+parser will be based on the tabulation points provided in the tabulation mapping file. If no tabulation mapping file is provided, 
+the cross section parser will print the perturbed cross section in one single tabulation point. 
+The \xmlAttr{perturbable} attribute indicates whether the input file can be perturbed. It is an optional boolean attribute.  
+Default: False
+
+The \xmlAttr{subDirectory} indicates the subdirectory to which RAVEN search an input file. It is an optional attribute.  
+Default: . / (relative path of the working directory)
+
+The \xmlString{Input File} string is the user-defined input file name. 
+The XML file specifying the library input paths corresponding to the decay, fission yields, the Q-values and the Mrtau standalone inputs will be automatically populated according to the user-input file names. 
+The Instant-MrTau input files material, library, instant control, library path and depletion are also user-defined in the input section. The user does not have to use the default file names. 
+Example:
+\begin{lstlisting}[style=XML]
+<File>
+  <Input name="path"  type="path"  perturbable="False"                    >pathMrTau.xml</Input>
+  <Input name="dec"   type="decay" perturbable="True" subDirectory="libF" >decayLibrary.dat</Input>
+  <Input name="input" type="inp"   perturbable="False"                    >inpInstant.xml</Input>
+</File>
+\end{lstlisting}
+in the example, the path-to-MrTau-libraries is pointed by the \xmlAttr{type}="path". The file name associated to the path-to-MrTau-libraries file is then user-defined as \xmlString{pathMrTau.xml}. 
+It is located in the working directory and it cannot be perturbed. 
+
+The decay library is pointed by the \xmlAttr{type}="decay". The file name associated to the decay library is then user-defined as \xmlString{decayLibrary.dat}. 
+The decay library is located at the relative path "libF". This path and name will be populated in the \xmlString{pathMrTau.xml} file automatically. The decay library can be perturbed.
+
+The Instant XML input is pointed by the \xmlAttr{type}="inp". The file name associated to the Instant input is then user-defined as \xmlString{inpInstant.xml}. 
+it is located in the working directory and it cannot be perturbed. 
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Models}
+\label{subsubsection:PhisicsModel}
+The user provides paths to executables for sampled variables within the \xmlNode{Models} block.  
+
+The \xmlNode{Code} block will contain attributes \xmlAttr{name} and
+\xmlAttr{subType}. The \xmlAttr{name} identifies that particular \xmlNode{Code} model within RAVEN, and
+\xmlAttr{subType} specifies which code interface the model will use. 
+
+The \xmlNode{executable} block contains the absolute or relative path (with respect to the current working directory) 
+to PHISICS that RAVEN will use to run generated input files.
+
+The \xmlNode{mrtauStandAlone} node informs whether or not MrTau is ran in standalone mode. The 
+\xmlNode{mrtauStandAlone} accepts only a boolean entry (\xmlString{true}, \xmlString{t}, \xmlString{false}
+,\xmlString{f}). It is case insensitive. 
+Default: false. 
+If \xmlNode{mrtauStandAlone} is false, a coupled INSTANT+MrTau calculation is ran, using the Phisics executable. 
+
+The \xmlNode{printSpatialRR} node indicates if the spatial reaction rates computed by PHISICS are to be included 
+in the RAVEN csv output. The entry is case insensitive. 
+. If False, the total reaction rates are printed instead. Default: False (spatial reaction rate not printed). 
+
+The \xmlNode{printSpatialFlux} node indicates if the spatial neutron fluxes computed by PHISICS are to be included in the RAVEN csv output. The entry is case insensitive. Default: False (spatial fluxes not printed). 
+
+An example of the \xmlNode{Models} block is given below:
+
+\begin{lstlisting}[style=XML]
+  <Models>
+    <Code name="PHISICS" subType="Phisics">
+       <executable>./path/to/instant/executable</executable>   
+       <mrtauStandAlone>F</mrtauStandAlone>
+       <printSpatialRR>F</printSpatialRR>
+       <printSpatialFlux>T</printSpatialFlux>
+    </Code>
+  </Models>
+\end{lstlisting}
+In the example, note that because \xmlNode{mrtauStandAlone} is false.
+If  \xmlNode{mrtauStandAlone} is changed to \xmlString{true}, the path \xmlString{/path/to/mrtau/executable} will be read to get the MrTau executable. 
+In the example, RAVEN is used in PHISICS standalone mode. Spatial neutron fluxes are printed a and no spatial reaction rates are printed in the RAVEN output.  
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Distributions}
+The \xmlNode{Distributions} block defines all distributions used to
+sample variables in the current RAVEN run.
+
+For all the possible distributions and their possible inputs please
+refer to the Distributions chapter (see~\ref{sec:distributions}).
+%
+It is good practice to name a distribution and its corresponding sampled variable with identical root names, and appending sufix to the distribution name, since there might be many variables with the
+same kind of distributions but different input parameters.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Samplers}
+\label{subsubsection:SamplersPhisics}
+The \xmlNode{Samplers} block defines the variables to be sampled.
+After defining a sampling scheme, the variables to be sampled and
+their distributions are identified in the \xmlNode{variable} blocks.
+The \xmlAttr{name} must be formatted according to library which the variable belongs to. 
+The description of the \xmlString{variable} template is detailed in the next sub-sections for the decay
+ constants (\ref{decayPara}), the fission yields (\ref{FYPara}), the number densities (\ref{NDPara}), 
+the fission Q-values (\ref{FQPara}), the $\alpha$ decay Q-values (\ref{AlphaPara}), the $\beta^{+}$ Q-values
+ (\ref{BetaPlusPara}), $\beta^{+*}$ Q-values (\ref{BetaPlusStarPara}), $\beta$ Q-values (\ref{BetaPara}), 
+$\beta^{*}$ Q-values (\ref{BetaStarPara}), the internal transition decay Q-values (\ref{IntTraPara}) and the cross 
+section scaling factors (\ref{XSPara}). 
+
+\paragraph{Decay constant variable} \label{decayPara}
+
+The \xmlString{variable} template is: DECAY$\vert$TYPE\_OF\_DECAY$\vert$ISOTOPE. 
+The type of decay (TYPE\_OF\_DECAY) is the decay mode relative to the isotope's decay constant perturbed. 
+The type of decay depends on the isotope perturbed. 
+If the isotope is an actinide, the available decay modes are:
+\begin{enumerate}
+  \item [$-$]BETA; 
+  \item [$-$]BETA+; 
+  \item [$-$]ALPHA. 
+\end{enumerate}
+If the isotope is a fission product, the available decay modes are:
+\begin{enumerate}
+  \item [$-$]BETA; 
+  \item [$-$]BETA*; 
+  \item [$-$]BETA+;
+  \item [$-$]BETA+*;
+  \item [$-$]ALPHA;
+  \item [$-$]INTER\_TRAN.
+\end{enumerate}
+
+The decay types are immediately parsed from the MRTAU decay library. Hence, If the user modifies the decay labels
+ in the decay library, 
+the user will have to modify the her/his decay type in the RAVEN input. The isotope defined in the variable has
+ to originally exist in the decay library.  
+
+\paragraph{Fission yield variable} \label{FYPara} 
+The \xmlString{variable} template is FY$\vert$SPECTRUM$\vert$FISSION\_ISOTOPE$\vert$FISSION\_PRODUCT. 
+
+The types of spectrum (SPECTRUM) available are: FAST; THERMAL. 
+The fission isotopes (FISSION\_ISOTOPE) and fission products (FISSION\_PRODUCT) in the variable have to 
+originally exist in the fission yield library. 
+
+\paragraph{Number density variable} \label{NDPara} 
+The \xmlString{variable} template is DENSITY$\vert$MATERIAL\_ID$\vert$ISOTOPE. 
+The Material ID (MATERIAL\_ID) has to originally exist in the material XML input. The isotope in the variable has to 
+be originally defined within the material ID aforementioned.  
+
+\paragraph{Fission Q-values variables} \label{FQPara}
+The \xmlString{variable} template is QVALUES$\vert$ ISOTOPE. 
+
+The isotope (ISOTOPE) in the variable has to originally exist in the fission Q-values library. 
+
+\paragraph{$\alpha$ decay variable} \label{AlphaPara}
+The \xmlString{variable} template is ALPHADECAY$\vert$ISOTOPE.
+
+The isotope (ISOTOPE) in the variable has to originally exist in the $\alpha$ decay Q-values library.
+
+\paragraph{$\beta^{+}$ decay variable} \label{BetaPlusPara} 
+The \xmlString{variable} template is BETA+DECAY$\vert$ ISOTOPE. 
+
+The isotope (ISOTOPE) in the variable has to originally exist in the $\beta^+$ decay Q-values library.
+
+\paragraph{$\beta^{+*}$ decay variable} \label{BetaPlusStarPara}
+The \xmlString{variable} template is BETA+XDECAY$\vert$ISOTOPE. 
+
+The isotope (ISOTOPE) in the variable has to originally exist in the $\beta^{+*}$ decay Q-values library.
+
+\paragraph{$\beta$ decay variable} \label{BetaPara} 
+The \xmlString{variable} template is BETADECAY$\vert$ISOTOPE. 
+
+The isotope (ISOTOPE) in the variable has to originally exist in the $\beta$ decay Q-values library.
+
+\paragraph{$\beta^{*}$ decay variable} \label{BetaStarPara} 
+The \xmlString{variable} template is BETAXDECAY$\vert$ISOTOPE. 
+
+The isotope (ISOTOPE) in the variable has to originally exist in the $\beta^*$ decay Q-values library.
+
+\paragraph{Internal transition decay variable} \label{IntTraPara} 
+The \xmlString{variable} template is INTTRADECAY$\vert$ISOTOPE. 
+
+The isotope (ISOTOPE) in the variable has originally to exist in the internal transition decay Q-value library.
+
+\paragraph{Cross section scaling factors} \label{XSPara}
+The \xmlString{variable} template is: 
+
+XS$\vert$TABULATION\_POINT$\vert$MATERIAL\_ID$\vert$ISOTOPE$\vert$OPERATOR$\vert$XS\_TYPE$\vert$GROUP\_NUMBER. 
+\begin{enumerate}
+  \item [$\cdot$]The tabulation point (TABULATION\_POINT) is the integer referrencing to the tabulation point. 
+  The tabulation numbering is given by the XML input file 'tabMapping.xml' (Section \ref{additionalInput}).
+   If there are no tabulations, the tabulation number has to be 1. 
+  \item [$\cdot$]The material ID (MATERIAL\_ID) is the string referring to the material in which the isotope is defined. 
+  The Material ID  has to originally exist in the material XML file. 
+   \item [$\cdot$]The isotope (ISOTOPE) is the ISOTOPE that the user desires to perturbed. The isotope perturbed 
+   has to originally exist in the material ID.
+   \item [$\cdot$]The operator (OPERATOR) determines how the cross section is perturbed from its nominal value. 
+   The operators available are: 
+   \begin{enumerate}
+      \item[$-$]ADDITIVE; The additive operator adds the user-defined value to the nominal cross section value. 
+      \item[$-$]MULTIPLIER; the multiplier operator multiplies the user-defined factor to the nominal value. 
+      \item[$-$]ABSOLUTE; the absolute operator replaces the nominal value by the user-defined value. 
+  \end{enumerate}
+  \item [$\cdot$]The types of cross sections (CROSS\_SECTION\_TYPE) available are:
+  \begin{enumerate}
+     \item[$-$]FISSIONXS; Fission cross section. 
+     \item[$-$]NPXS; Neutron to proton capture cross section. 
+     \item[$-$]NGXS; Neutron to gamma capture cross section. 
+     \item[$-$]NUFISSIONXS; $\nu$*fission cross section. The $\nu$*fission is coordinated with the
+        fission cross section so that only the coefficient $\nu$ is perturbed.  
+      \item[$-$]SCATTERINGXS. Total scattering cross section.
+      \item[$-$]N2NXS. n,2n cross section. 
+      \item[$-$]NALPHAXS. Neutron to alpha capture cross section.
+      \item[$-$]KAPPAXS. Kappa coefficient.
+   \end{enumerate}
+   \item The group number (GROUP\_NUMBER) is the group number of the cross section perturbed. 
+    The group number is an integer and has to be inferior or equal to the number of groups used in the cross section library. 
+\end{enumerate}
+An example is given for each type of variable in Table \ref{VariableExampleTable}. 
+
+\begin{table}[]
+\centering
+\caption{Examples of possible variable names}\label{VariableExampleTable}
+\begin{tabular}{l|l|l}
+\textit{Input file perturbed} & \textit{Variable perturbed}  & \textit{Example}  \\
+\hline
+Decay lib.               & Decay constant              & DECAY$\vert$BETAX$\vert$SE78     \\
+Fission yield lib.       & Fission yield               & FY$\vert$FAST$\vert$U235$\vert$NB93       \\
+XML Material             & Number densitiy             & DENSITY$\vert$FUEL1$\vert$PU239     \\
+Fission Q-values lib.    & Fission Q-value              & QVALUES$\vert$U235            \\
+$\alpha$ decay lib.      & $\alpha$ decay Q-value       & ALPHADECAY$\vert$U234         \\
+$\beta^{+}$ decay lib.     & $\beta^{+}$ decay Q-value      & BETA+DECAY$\vert$U235         \\
+$\beta^{+*}$ decay lib.  & $\beta^{+*}$ decay Q-value   & BETA+XDECAY$\vert$U236        \\
+$\beta$ decay lib.       & $\beta$ decay Q-value       & BETADECAY$\vert$CM242         \\
+$\beta^{*}$ decay lib.     & $\beta^{*}$ decay Q-value      & BETAXDECAY$\vert$PU240        \\
+Internal transition lib. & Internal transition Q-value  & INTTRADECAY$\vert$U238        \\
+XS scaling factors       & XS scaling factor           & XS$\vert$1$\vert$FUEL1$\vert$U238$\vert$ABSOLUTE$\vert$N2NXS$\vert$4 \\
+\end{tabular}
+\end{table}
+
+The following example is a Monte Carlo-based sampler with two variables. The $\beta$ decay constant of
+ uranium $^{235}$U and the $^{135}$Xe n,p cross section in group 12 at tabulation point 1 within the material
+  ID "F1" are to be perturbed. The absolute operator is chosen for the n,p cross section, which means the 
+  nominal value will be replaced by the averaged value defined in the distribution block, with its corresponding distribution. 
+
+\begin{lstlisting}[style=XML]
+  <Samplers>
+    <MonteCarlo name="MC_samp"> 
+      <samplerInit>
+        <limit>100</limit>
+      </samplerInit>
+      <variable name="DECAY|BETA|U235">
+        <distribution>DECAY|BETA|U235_dis</distribution>
+      </variable>
+      <variable name="XS|1|FUEL1|XE135|ABSOLUTE|NPXS|12">
+        <distribution>XS|1|FUEL1|XE135|ABSOLUTE|NPXS|12_dis                   </distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+\end{lstlisting}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Steps}
+For a PHISICS interface, the \xmlNode{MultiRun} step type will most likely be used. First, the step needs
+to be named: this name will be one of the names used in the \xmlNode{Sequence} block. 
+In the example, the step is called \xmlString{testDummyStep}.
+%
+\begin{lstlisting}[style=XML]
+<Steps>
+  <MultiRun name='testDummyStep' verbosity='debug'>
+    <Input   class='Files' type='decay'>decay.dat</Input>
+    <Input   class='Files' type='inp'>inp.xml</Input>
+    <Input   class='Files' type='XS'>xs.xml</Input>
+    <Model   class='Models' type='Code'>PHISICS</Model>
+    <Sampler class='Samplers' type='MonteCarlo'>MC_samp</Sampler>
+    <Output  class='Databases' type='HDF5'>DataB_REL5_1</Ouput>
+  </MultiRun>    
+</Steps>
+\end{lstlisting}
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Additional Input} 
+\label{subsubsection:PhisicsAdditionalInput}
+In addition to the usual PHISICS inputs required (INSTANT input, depletion input, material 
+ input, library input, path input) and the regular MrTau libraries, additional inputs may be required, depending on the user's needs. 
+\begin{enumerate}
+\item [$\cdot$]A file 'tabMapping.xml' is (optional) maps the cross section tabulation points for interpolation purposes. 
+The tabulation mapping assigns an integer to a given tabulation in order to identify it in the RAVEN variable definition. 
+The format of the tabulation mapping is the following: 
+\begin{lstlisting}[style=XML]
+<mapping>
+  <tabulation set="1">
+    <tab name="mod_temperature">559.0</tab>
+    <tab name="BURN-UP">0.0</tab>
+  </tabulation>
+  <tabulation set="2">
+    <tab name="mod_temperature">1000</tab>
+    <tab name="BURN-UP">0.0</tab>
+  </tabulation>
+  <tabulation set="3">
+    <tab name="mod_temperature">1000</tab>
+    <tab name="BURN-UP">100</tab>
+  </tabulation>
+</mapping> 
+\end{lstlisting}
+In \xmlNode{tabulation}, the \xmlAttr{set} refers to the user-defined number assigned to a given tabulation point. 
+This \xmlAttr{set} number corresponds to the second argument of the cross section scaling factor variable.   
+The user enters the tabulation parameters and corresponding tabulation values with the \xmlNode{tabulation},
+ using the sub-node \xmlNode{tab}. 
+
+\item [$\cdot$]If the user perturbs cross sections, an XML file 'scaled\_xs.xml' will be generated at each perturbation
+ in the output folder. 
+The file 'scaled\_xs.xml' is automatically created from the cross section variables defined in the RAVEN 
+\xmlNode{Sampler} block (see \ref{XSPara}). The cross section file 'scaled\_xs.xml' has the following format: 
+ 
+\begin{lstlisting}[style=XML]
+<scaling_library>
+  <tabulation>
+    <tab name="mod_temperature">559.0</tab>
+    <tab name="BURN-UP">0.0</tab>
+    <library lib_name="fuel1" >
+      <isotope id="xe135" type="absolute">
+        <npxs g="8,3,12">8.889E+02,3.333E+02,1.212E+05</npxs>
+      </isotope>
+      <isotope id="u235" type="multiplier">
+        <fissionxs g="1">2.019E-02</fissionxs>
+      </isotope>
+    </library>
+  </tabulation>
+<scaling_library>  
+\end{lstlisting}
+The tabulation points \xmlNode{tab} are optional have to agree with the tabulation points defined in the
+ ``tabMapping.xml'' if they are provided. 
+The \xmlNode{library} has one required attribute \xmlAttr{lib\_name} corresponding to one of the libraries 
+listed in the PHISICS library input. 
+The \xmlNode{isotope} provides the information related to an isotope included in the library aforementioned. 
+The \xmlAttr{id} gives the isotope ID (no dash allowed). 
+The \xmlAttr{type} specifies the type of operator used (\xmlString{additive}, \xmlString{multiplier} or
+ \xmlString{absolute}). 
+The sub-node \xmlNode{XS} (where 'XS' is the perturb-able type of cross sections listed in section~\ref{XSPara})
+ provides the cross section information. 
+The \xmlAttr{g} attribute refers to the group numbers to be perturbed, separated by commas. 
+The \xmlString{XS} provides the scaling factors or the new cross section values. 
+\end{enumerate}
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Output Files Conversion} 
+\label{subsubsection:PhisicsOutFileConv}
+
+The PHISICS output available for RAVEN post-processing are described in this section. The PHISICS outputs
+ are by convention separated by '$\vert$' if they are contained in a matrix form such as group-wise or region-wise values. 
+In the PHISICS mode (i.e. \xmlNode{mrtauStandalone} is \xmlString{False}) The variables available for RAVEN
+ post-processing are:
+\begin{enumerate}
+  \item [$-$]the MrTau time; 
+  \item [$-$]the multiplication factor; 
+  \item [$-$]the multiplication factor error; 
+  \item [$-$]the spatial reaction rates (only if \xmlNode{printSpatialRR} is \xmlString{True});
+  \item [$-$]the spatial power (only if \xmlNode{printSpatialRR} is \xmlString{True});
+  \item [$-$]the spatial fluxes by region (only if \xmlNode{printSpatialRR} is \xmlString{True});
+  \item [$-$]the neutron fluxes by cell (only if \xmlNode{printSpatialFlux} is \xmlString{True});
+  \item [$-$]the neutron fluxes by material (only if \xmlNode{printSpatialFlux} is \xmlString{True});
+  \item [$-$]the total reaction rates (only if \xmlNode{printSpatialRR} is \xmlString{False});
+  \item [$-$]the decay heat (only if decay heat flag is on in the PHISICS input);
+  \item [$-$]the burnup;
+  \item [$-$]the cross section values (only for perturbed cross sections);
+  \item [$-$]the PHISICS cpu time.
+\end{enumerate}
+
+In the MrTau standalone mode (i.e \xmlNode{mrtauStandalone} is \xmlString{True}) The variables available for RAVEN post-processing are:
+\begin{enumerate}
+  \item [$-$]the MRTAU time; 
+  \item [$-$]the isotope number densities;
+  \item [$-$]the decay heat.
+\end{enumerate}
+
+The variable template is provided in Table \ref{VariableTemplateTable}. In the table, the region number is taken equal to 4,
+ the group number is taken equal to 7, the cell number equal to 2 and the material number equal to 3. 
+Those values are only examples and can be adapted to the user's convenience.  
+
+\begin{table}[]
+\centering
+\caption{template of the RAVEN output variables}\label{VariableTemplateTable}
+\begin{tabular}{l|l|l}
+\textit{Variable} & \textit{Variable template}  & \textit{Comment}  \\
+\hline
+MrTau Time                     & timeMrTau                            & \\
+Multiplication Factor          & keff                                 & \\
+Multiplication Factor Error    & errorKeff                            & \\
+n2n Reaction Rate              & n2n$\vert$gr7$\vert$reg4             & only if \xmlNode{printSpatialRR} is \xmlString{True})    \\
+Power                          & power$\vert$gr7$\vert$reg4           & only if \xmlNode{printSpatialRR} is \xmlString{True})    \\
+Absorption Reaction Rate       & absorption$\vert$gr7$\vert$reg4      & only if \xmlNode{printSpatialRR} is \xmlString{True})    \\
+Fission Reaction Rate          & fission$\vert$gr7$\vert$reg4         & only if \xmlNode{printSpatialRR} is \xmlString{True})    \\
+Neutron Flux                   & flux$\vert$gr7$\vert$reg4            & only if \xmlNode{printSpatialRR} is \xmlString{True})    \\
+$\nu$ Fission Reaction Rate    & neutron$\vert$gr7$\vert$reg4         & only if \xmlNode{printSpatialRR} is \xmlString{True})    \\
+Neutron Flux by Cell           & flux$\vert$cell2$\vert$gr7           & only if \xmlNode{printSpatialFlux} is \xmlString{True})  \\
+Neutron Flux by Material       & flux$\vert$mat3$\vert$gr4            & only if \xmlNode{printSpatialFlux} is \xmlString{True})  \\
+Total n2n Reaction Rate        & n2n$\vert$Total                      & only if \xmlNode{printSpatialRR} is \xmlString{False})  \\
+Total Power reaction Rate      & power$\vert$Total                    & only if \xmlNode{printSpatialRR} is \xmlString{False})  \\
+Total Absorption Reaction Rate & absorption$\vert$Total               & only if \xmlNode{printSpatialRR} is \xmlString{False})  \\
+Total Fission Reaction Rate    & fission$\vert$Total                  & only if \xmlNode{printSpatialRR} is \xmlString{False})  \\
+Total Neutron Flux             & flux$\vert$Total                     & only if \xmlNode{printSpatialRR} is \xmlString{False})  \\
+Total $\nu$ Fis. Reaction Rate & neutron$\vert$Total                  & only if \xmlNode{printSpatialRR} is \xmlString{False})  \\
+Decay Heat                     & decay$\vert$Fuel1$\vert$gr4          & only if the decay heat flag is turned on in PHISICS  \\
+Cross sections                 & fuel1$\vert$xe135$\vert$npxs$\vert$8 & only if cross sections are perturbed  \\
+PHISIC CPU time                & cpuTime                              & \\
+\end{tabular}
+\end{table}
+$\nu$ is the average number of neutrons generated after fission. Note that the material number in the neutron
+ flux by material corresponds to the material ID number in the PHISICS csv output, 
+while the material string ID in the decay heat corresponds to the material name given by the user in the xml 
+material file. Hence, the neutron flux by material will always have the format matX, where X is an integer. 
+The decay heat material is user-defined in the xml material file via the attribute \xmlAttr{id} of the \xmlNode{mat} node.  
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%% PHISICS/RELAP5 INTERFACE %%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{PHISICS/RELAP5 Interface} 
+\label{subsec:PhisicsRelap5Interface}
+%
+\subsubsection{General Information}
+%
+This section covers the input specification for running PHISICS/RELAP5 through RAVEN.
+This interface can be used to perturb the PHISICS and/or RELAP5 input files. This interface is strongly built around the PHISICS and RELAP5 
+standalone interfaces, hence this sections covers the additional cautions to take care of to run the coupled PHISICS/RELAP5 code. The 
+user will find additional information regarding PHISICS in section \ref{subsec:PhisicsInterface} or RELAP5 in section \ref{subsec:RELAP5Interface}.
+%
+\subsubsection{Files}
+\label{subsec:PhisicsRelap5Files}
+\xmlNode{Files} includes two attributes \xmlAttr{name} and \xmlAttr{type} entries, identically as other interfaces.   
+It also includes two optional attributes \xmlAttr{perturbable} and \xmlAttr{subDirectory}.
+
+The \xmlAttr{name} attribute is a user-defined internal name for the file contained in the node. 
+Default: None (required entry).  
+
+For the files parsed by the PHISICS interface or the PHISICS interface's parsers, some of the \xmlAttr{type} attributes are hardcoded. 
+The accepted PHISICS \xmlAttr{type} attributes are given in Table \ref{TypeTable} and are not repeated here. Additional information can be found in section \ref{subsubsec:PhisicsInterfaceFiles}. 
+All the necessary RELAP5 input files need to have a \xmlAttr{type} attribute starting with the string 'relap'. 
+The necessary RELAP5 files for use in the coupled PHISICS/RELAP mode within RAVEN are given in Table~\ref{PhisicsRelap5TypeTable}. The files associated 
+with a  \xmlAttr{type} that does not start with the string 'relap' will be treated by the PHISICS interface. 
+The  \xmlAttr{type} attributes are case-incensitive. 
+\begin{table}[]
+  \centering
+  \caption{Example of RELAP5 type attributes in coupled PHISICS/RELAP5 mode}\label{PhisicsRelap5TypeTable}
+    \begin{tabular}{l|l|l}
+\textit{Type Attribute} & \textit{Corresponding RELAP5 input} & \textit{Perturbable} \\
+\hline
+relapFluid              & fluid properties                  & No  \\
+relapInp                & Relap input File                  & yes \\
+relapLicense            & license for the RELAP5 executable & No  \\                                      
+    \end{tabular}
+\end{table}
+
+Example of acceptable RELAP5 entries within PHISICS/RELAP5:
+\begin{lstlisting}[style=XML]
+<File>
+  <Input name="H2O"       type="relaph2o"     perturbable="False">tph2o</Input>
+  <Input name="H2"        type="relaph2"      perturbable="False">tph2</Input>
+  <Input name="inputDeck" type="relapInput"   perturbable="True" >inp.i</Input>
+  <Input name="lic"       type="relapLicence" perturbable="False">license.bin</Input>
+</File>
+\end{lstlisting}
+%
+\subsubsection{Models}
+The user has to provide the paths to executables for the sampled variables within the \xmlNode{Models} block.  
+
+The \xmlNode{Code} block will contain attributes \xmlAttr{name} and \xmlAttr{subType}. 
+The \xmlAttr{name} identifies the particular \xmlNode{Code} model within RAVEN, and \xmlAttr{subType} 
+specifies which code interface the model will use. \xmlAttr{subType}=\xmlString{PhisicsRelap5} is the class name 
+currently used for PHISICS/RELAP5 coupled calculations.  
+
+The \xmlNode{executable} block contains the absolute or relative path (with respect to the current working directory) to PHISICS/RELAP5 
+that RAVEN will use to run the code. The additional nodes in the \xmlNode{Models} applicable to PHISICS standalone and RELAP5 standalone 
+are valid in coupled mode and can be consulted in section~\ref{subsubsection:PhisicsModel} and section~\ref{subsubsection:Relap5Models} respectively. 
+Exception: the use of MrTau in standalone mode (i.e. \xmlNode{mrtauStandAlone} set to \xmlString{True}) is not allowed in PHISICS/RELAP5 coupled 
+calculations. 
+
+An example of the \xmlNode{Models} block is given below:
+
+\begin{lstlisting}[style=XML]
+  <Models>
+    <Code name="PHISICS_RELAP5" subType="PhisicsRelap5">
+       <executable>./path/to/instant/executable</executable>   
+    </Code>
+  </Models>
+\end{lstlisting}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Distributions}
+The \xmlNode{Distributions} block defines all distributions used to
+sample variables in the current RAVEN run.
+
+For all the possible distributions and their possible inputs please
+refer to the Distributions chapter (see~\ref{sec:distributions}).
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Samplers}\label{SamplerPhisicsRelap5}
+The \xmlNode{Samplers} block defines the variables to be sampled.
+After defining a sampling scheme, the variables to be sampled and
+their distributions are identified in the \xmlNode{variable} blocks.
+The \xmlAttr{name} must be formatted according to the PHISICS library which the variable belongs to. 
+Information relative to PHISICS distributions are in section~\ref{subsubsection:SamplersPhisics},
+as well as specifications on PHISICS variable names. 
+An example of a \xmlNode{Samplers} block is given below:
+\begin{lstlisting}[style=XML]
+ <Samplers>
+    <MonteCarlo name="MC_samp">
+      <samplerInit>
+        <limit>10</limit>
+      </samplerInit>
+      <variable name="DENSITY|FUEL1|U238">
+        <distribution>DENSITY|FUEL1|U238_distrib</distribution>
+      </variable>
+      <variable name="20100154:2">
+        <distribution>heat_capacity_154</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+\end{lstlisting}
+In this example, the variable \xmlString{DENSITY$\vert$FUEL1$\vert$U238} is relative to PHISICS and the variable \xmlString{20100154:2} is relative to RELAP5.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Steps}
+The tasks performed by RAVEN need to be defined in the \xmlNode{Steps} block. Each task needs to be defined with a \xmlAttr{name}. This \xmlAttr{name} is later on used in the 
+the \xmlNode{Sequence} block. In the example, the step is called \xmlString{testDummyStep}.
+%
+\begin{lstlisting}[style=XML]
+<Steps>
+  <MultiRun name='testDummyStep' verbosity='debug'>
+    <Input class='Files' type='decay'>decay.dat</Input>
+    <Input class='Files' type='inp'>inp.xml</Input>
+    <Input class='Files' type='XS'>xs.xml</Input>
+    <Input class="Files" type="relapFluid">tpfhe</Input>
+    <Input class="Files" type="relapExec">relap5Exec.x</Input>
+    <Model class="Models" type="Code">PHISICS_RELAP5</Model>
+    <Sampler class="Samplers" type="MonteCarlo">MC_samp</Sampler>
+    <Output class="Databases" type="HDF5">DataB_REL5_1</Output>
+    <Output class="DataObjects" type="PointSet">collset</Output>
+    </MultiRun>
+  </MultiRun>    
+</Steps>
+\end{lstlisting}
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Additional Input} 
+\label{subsubsection:PhisicsRelap5AdditionalInput}
+The PHISICS additional inputs are described in section~\ref{subsubsection:PhisicsAdditionalInput}. The RELAP5 additional inputs are described in 
+section ~\ref{subsubsection:Relap5Models}. 
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Output Files Conversion} 
+\label{subsubsection:PhisicsRelap5OutputFileConversion}
+
+The PHISICS output available for RAVEN post-processing are described in section~\ref{subsubsection:PhisicsOutFileConv}. 
+The output printed from PHISICS and RELAP5 are synchronized in the RAVEN csv output. The synchronization scheme is explained in this section. 
+
+At t = 0 seconds, the RELAP5 initialized output are printed in the csv output, while the output variables from PHISICS are taken equal to 0. 
+Then, the RAVEN/PHISICS/RELAP5 post-processor finds the time step number at the end of each PHISICS 
+burn step based on the \xmlNode{tab\_time\_step} values, and prints the RELAP minor edits according to the \xmlNode{TH\_between\_BURN} values.
+
+Let's consider the following example: 
+\begin{enumerate}
+\item [$-$]\xmlNode{tab\_time\_step} \xmlString{5 3 2} \xmlNode{/tab\_time\_step} (in the PHISICS depletion file); 
+\item [$-$]\xmlNode{TH\_between\_BURN} \xmlString{1.0 2.0} \xmlNode{TH\_between\_BURN}() in the PHISICS input file);
+\item [$-$]\xmlNode{tabulation\_boundaries} \xmlString{5.0 35.0 45.0}\xmlNode{tabulation\_boundaries} (upper burn step boundaries in the PHISICS depletion file). 
+\item [$-$]in the RELAP5 input, a 3.0 seconds steady state is considered, with minor edits every 0.5 seconds.
+\end{enumerate}
+The first PHISICS/RELAP5 output line printed will be at t = 0 seconds. The PHISICS outputs are set to 0.0, the RELAP5 values are obtained at the end of the initialization. 
+The second line printed will be at the PHISICS time step \xmlString{5} (end of the first burn step, corresponding to t = 5.0 seconds), 
+and prints the RELAP5 minor edits as long as the time from the minor edits is lower than the first \xmlNode{TH\_between\_BURN} value \xmlString{1.0}.
+The RELAP5 minor edits are printed along with the PHISICS burn step \xmlString{5} as long as time in the minor edits is smaller or equal to \xmlString{1.0}. 
+When the RELAP5 time in the minor edits time is greater than \xmlString{1.0}, the end of the second PHISICS burn step is targetted, from the 
+\xmlNode{tab\_time\_step}: \xmlString{3}. This corresponds to a PHISICS time equal to 35.0 seconds. The RELAP5 minor edits are printed along with the PHISICS values at t = 35.0 s, 
+as long as the minor data time is smaller than the \xmlNode{TH\_between\_BURN} equal to \xmlString{2.0}. 
+Finally, the last PHISICS time step at 45.0 seconds is printed along with the RELAP5 minor edits. 
+Overall, the output variables printed will be:
+
+mrtauTime, n2n$\vert$gr1$\vert$reg4, httemp\_3001010\_1, time
+
+0.000, 0.000, 1.526, 0.000 
+
+5.000, 1.111, 1.859, 0.500
+
+5.000, 1.111, 2.369, 1.000
+
+35.00, 7.800, 3.666, 1.500
+
+35.00, 7.800, 4.789, 2.000
+
+45.00, 9.330, 4.225, 3.000

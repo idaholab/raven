@@ -25,7 +25,7 @@ import xml.etree.ElementTree as ET
 import sys, os
 
 ravenDir = os.path.dirname(os.path.dirname(os.getcwd()))
-frameworkDir = os.path.join(ravenDir,"framework")
+frameworkDir = os.path.join(ravenDir,"../framework")
 sys.path.append(frameworkDir)
 
 from utils import InputData
@@ -47,7 +47,7 @@ def checkAnswer(expected, actual):
 
 errors = []
 
-testStrictFilename = os.path.join("TestXSD","test_strict.xml")
+testStrictFilename = "test_strict.xml"
 
 parser = ET.parse(testStrictFilename)
 

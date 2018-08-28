@@ -84,7 +84,8 @@ class DataMining(PostProcessor):
     sciPyTypeInput = InputData.parameterInputFactory("SCIPYtype", contentType=InputData.StringType)
     kddInput.addSub(sciPyTypeInput)
 
-    for name, inputType in [("Features",InputData.StringType),
+    for name, inputType in [("interactive",InputData.StringType),
+                            ("Features",InputData.StringType),
                             ("n_components",InputData.StringType),
                             ("covariance_type",InputData.StringType),
                             ("random_state",InputData.StringType),

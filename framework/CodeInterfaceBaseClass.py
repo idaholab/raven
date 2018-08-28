@@ -62,7 +62,7 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
     subcodeCommand,outputfileroot = self.generateCommand(inputFiles,executable,clargs=flags,fargs=fileArgs,preExec=preExec)
 
     if os.environ.get('RAVENinterfaceCheck','False').lower() in utils.stringsThatMeanTrue():
-      return [('parallel','')],outputfileroot
+      return [('parallel','echo')],outputfileroot
     returnCommand = subcodeCommand,outputfileroot
     return returnCommand
 

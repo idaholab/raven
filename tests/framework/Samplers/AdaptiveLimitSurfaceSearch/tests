@@ -11,4 +11,8 @@
   input = 'test_adaptive_sampler.xml'
   csv = 'Adapt/limitSurfaceDump.csv'
  [../]
+ [./adaptive_sampler_no_crossing]
+  type = 'RavenFramework'
+  input = 'test_limit_surface_no_crossing_transition.xml'
+ [../]
 []
