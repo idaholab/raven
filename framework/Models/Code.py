@@ -383,7 +383,7 @@ class Code(Model):
       @ Out, commandSplit, string or String List, the expanded command or the original if not expanded.
     """
     if origCommand.strip() == '':
-      return origCommand
+      return ['echo', 'no command provided']
     # In Windows Python, you can get some backslashes in your paths
     commandSplit = shlex.split(origCommand.replace("\\","/"))
     executable = commandSplit[0]
