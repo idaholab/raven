@@ -74,6 +74,7 @@ class ARMA(supervisedLearning):
     self.Pmin              = kwargs.get('Pmin', 0)
     self.Qmax              = kwargs.get('Qmax', 3) # bounds for moving average lag
     self.Qmin              = kwargs.get('Qmin', 0)
+    self.segments          = kwargs.get('segments', 1)
     # data manipulation
     self.reseedCopies      = kwargs.get('reseedCopies',True)
     self.outTruncation = {'positive':set(),'negative':set()} # store truncation requests
@@ -199,25 +200,6 @@ class ARMA(supervisedLearning):
         self.raiseADebug('setting general Fourier settings for "{}"'.format(v))
         self.fourierParams[v] = {'periods': basePeriods,
                                  'orders': dict(zip(basePeriods,baseOrders))}
-
-      ##### OLD #####
-      #self.fourierParams['basePeriod'] = basePeriods
-      #if len(set(self.fourierParams['basePeriod'])) != len(self.fourierParams['basePeriod']):
-      #  self.raiseAnError(IOError,'The same Fourier value was listed multiple times!')
-      #self.fourierParams['FourierOrder'] = {}
-      #if 'FourierOrder' not in self.initOptionDict.keys():
-      #  self.fourierParams['basePeriod'] = dict((basePeriod, 4) for basePeriod in self.fourierParams['basePeriod'])
-      #else:
-      #  orders = self.initOptionDict['FourierOrder']
-      #  if isinstance(orders,str):
-      #    orders = [int(x) for x in orders.split(',')]
-      #  else:
-      #    orders = [orders]
-      #  if len(self.fourierParams['basePeriod']) != len(orders):
-      #    self.raiseAnError(ValueError, 'Number of FourierOrder entries should be "{}"'
-      #                                   .format(len(self.fourierParams['basePeriod'])))
-      #  self.fourierParams['FourierOrder'] = dict((basePeriod, orders[i])
-      #                                         for i,basePeriod in enumerate(self.fourierParams['basePeriod']))
 
   def __getstate__(self):
     """

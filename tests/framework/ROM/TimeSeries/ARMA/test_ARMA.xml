@@ -55,7 +55,8 @@
       <Pmin>2</Pmin>
       <Qmax>1</Qmax>
       <Qmin>1</Qmin>
-      <outTruncation>positive</outTruncation>
+      <segments>12</segments><!--UNUSED TODO FIXME -->
+      <outTruncation domain='positive'>Speed</outTruncation>
       <Fourier>604800,86400</Fourier>
       <FourierOrder>2,2</FourierOrder>
     </ROM>

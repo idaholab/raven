@@ -163,6 +163,7 @@ class ROM(Dummy):
     inputSpecification.addSub(InputData.parameterInputFactory("SobolOrder", InputData.IntegerType))
     inputSpecification.addSub(InputData.parameterInputFactory("SparseGrid", InputData.StringType))
     # ARMA
+    inputSpecification.addSub(InputData.parameterInputFactory('segments', InputData.IntegerType))
     inputSpecification.addSub(InputData.parameterInputFactory('correlate', InputData.StringListType))
     inputSpecification.addSub(InputData.parameterInputFactory("ZeroFilter", InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("Pmax", InputData.IntegerType))
