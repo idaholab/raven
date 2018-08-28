@@ -149,6 +149,19 @@ data objects, depending on the type of statistics the user wants to compute:
   quantities are going to be calculated, if \textit{False} unbiased.
   \default{False}
   %
+  \item \xmlNode{dataset}, \xmlDesc{string (boolean), optional field}, if \textit{True} \xmlString{DataSet}
+    will be used to store the calculation results, if \textit{False} \xmlString{PointSet} or \xmlString{HistorySet}
+    will be used to store the calculation results.
+    \nb The optional \xmlString{DataSet} is added only to this Post-Processor, one can still use the \xmlString{OutStreams}
+    to print the variables available in the \textit{DataSet}. The \xmlString{"metric"} names are used as the
+    variable names, i.e. variable names listed in \xmlNode{Input} or \xmlNode{Output}. If scalar metrics, such as 
+    \xmlNode{expectedValue} and \xmlNode{variance}, are requested, the index variable \xmlString{targets} will be required.
+    If vector metrics, such as \xmlNode{covariance} and \xmlNode{sensitivity}, are requested, the index variables
+    \xmlString{targets} and \xmlString{features} will be required. If \xmlNode{percentile} is requested, an additional
+    index variable \xmlString{percent} should be added. In addition, if dynamic BasicStatistics (e.g. time) is requested,
+    the index variable \xmlString{time}  will be required.
+  \default{False}
+  %
 \end{itemize}
 \textbf{Example (Static Statistics):}  This example demonstrates how to request the expected value of
 \xmlString{x01} and \xmlString{x02}, along with the sensitivity of both \xmlString{x01} and \xmlString{x02} to
@@ -216,9 +229,47 @@ $Y$ as well as the sensitivity of $C$ to $W$ and $Z$.
     ...
   </Models>
   ...
+  <HistorySet name='basicStatHistorySet'>
+    <Output>
+      mean_x01,mean_x02,
+      sen_x01_a, sen_x01_b,
+      sen_x02_a, sen_x02_b
+    </Output>
+    <options>
+      <pivotParameter>time</pivotParameter>
+    </options>
+  </HistorySet>
 </Simulation>
 \end{lstlisting}
 
+\textbf{Example (Dumping the results into DataSet):}
+\begin{lstlisting}[style=XML,morekeywords={name,subType,debug}]
+<Simulation>
+  ...
+  <Models>
+    ...
+    <PostProcessor name='aUserDefinedNameForDynamicPP' subType='BasicStatistics' verbosity='debug'>
+      <dataset>True</dataset>
+      <expectedValue prefix='mean'>x01,x02</expectedValue>
+      <sensitivity prefix='sen'>
+        <targets>x01,x02</targets>
+        <features>a,b</features>
+      </sensitivity>
+      <pivotParameter>time</pivotParameter>
+    </PostProcessor>
+    ...
+  </Models>
+  ...
+  <DataObjects>
+    <DataSet name='basicStatDataSet'>
+      <Output>expectedValue,sensitivity</Output>
+      <Index var='time'>expectedValue,sensitivity</Index>
+      <Index var='targets'>expectedValue,sensitivity</Index>
+      <Index var='features'>sensitivity</Index>
+    </DataSet>
+  </DataObjects>
+</Simulation>
+\end{lstlisting}
 %%%%% PP ComparisonStatistics %%%%%%%
 \subsubsection{ComparisonStatistics}
 \label{ComparisonStatistics}
