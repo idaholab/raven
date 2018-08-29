@@ -187,13 +187,12 @@ class ARMA(supervisedLearning):
     if basePeriods is not None:
       # read periods
       basePeriods = basePeriods.value
-      print('DEBUGG basePeriods',basePeriods,type(basePeriods))
       if len(set(basePeriods)) != len(basePeriods):
         self.raiseAnError(IOError,'Some <Fourier> periods have been listed multiple times!')
       # read orders
       baseOrders = self.initOptionDict.get('FourierOrder', [1]*len(basePeriods))
       if len(basePeriods) != len(baseOrders):
-        self.raiseAnError(IOError,'{} Fourier periods were requested, but only {} Fourier order expansions were given!'
+        self.raiseAnError(IOError,'{} Fourier periods were requested, but {} Fourier order expansions were given!'
                                    .format(len(basePeriods),len(baseOrders)))
       # set to any variable that doesn't already have a specific one
       for v in set(self.target) - set(self.fourierParams.keys()):
@@ -264,9 +263,8 @@ class ARMA(supervisedLearning):
         self.notZeroFilterMask = self._trainZeroRemoval(timeSeriesData) # where zeros are not
         self.zeroFilterMask = np.logical_not(self.notZeroFilterMask) # where zeroes are
       # if we're removing Fourier signal, do that now.
-      self.raiseADebug('... scrubbing the signal for target "{}" ...'.format(target))
       if target in self.fourierParams:
-        self.raiseADebug('... ... analyzing Fourier signal ...')
+        self.raiseADebug('... analyzing Fourier signal  for target "{}" ...'.format(target))
         self.fourierResults[target] = self._trainFourier(self.pivotParameterValues,
                                                          self.fourierParams[target]['periods'],
                                                          self.fourierParams[target]['orders'],
@@ -289,7 +287,7 @@ class ARMA(supervisedLearning):
     for t,target in enumerate(self.target):
       # if target correlated with the zero-filter target, truncate the training material now?
       timeSeriesData = targetVals[:,t]
-      self.raiseADebug('... ... analyzing ARMA properties ...')
+      self.raiseADebug('... analyzing ARMA properties for target "{}" ...'.format(target))
       self.cdfParams[target] = self._trainCDF(timeSeriesData)
       # normalize data
       normed = self._normalizeThroughCDF(timeSeriesData, self.cdfParams[target])
@@ -460,7 +458,7 @@ class ARMA(supervisedLearning):
       # Domain limitations
       for domain,requests in self.outTruncation.items():
         if target in requests:
-          if domain == 'postiive':
+          if domain == 'positive':
             signal = np.absolute(signal)
           elif domain == 'negative':
             signal = -np.absolute(signal)
@@ -496,15 +494,6 @@ class ARMA(supervisedLearning):
       @ Out, n, integer, number of bins
     """
     # Freedman-Diaconis
-    print('DEBUGG data num:',len(set(data)))
-    print('DEBUGG      max:',data.max())
-    print('DEBUGG      min:',data.min())
-    print('DEBUGG        1:',np.percentile(data,1))
-    print('DEBUGG       99:',np.percentile(data,99))
-    print('DEBUGG       25:',np.percentile(data,25))
-    print('DEBUGG       75:',np.percentile(data,75))
-    import cPickle as pk
-    pk.dump(data,file('debugg_data_pct.pk','w'))
     iqr = np.percentile(data,75) - np.percentile(data,25)
     if iqr <= 0.0:
       self.raiseAnError(ValueError,'While computing CDF, 25 and 75 percentile are the same number!')
@@ -513,7 +502,7 @@ class ARMA(supervisedLearning):
     # also don't use less than 20 bins, it makes some pretty sketchy CDFs otherwise
     n = max(int(np.ceil((max(data) - min(data))/size)),20)
     n *= 100
-    self.raiseADebug('Bins for ARMA empirical CDF:',n)
+    self.raiseADebug('... ... bins for ARMA empirical CDF:',n)
     return n
 
   def _denormalizeThroughCDF(self, data, params):
