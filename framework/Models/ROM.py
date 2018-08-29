@@ -382,6 +382,12 @@ class ROM(Dummy):
       self.amITrained               = copy.deepcopy(trainingSet.amITrained)
       self.supervisedEngine         = copy.deepcopy(trainingSet.supervisedEngine)
     else:
+      # TODO: The following check may need to be moved to Dummy Class -- wangc 7/30/2018
+      if type(trainingSet).__name__ != 'dict' and trainingSet.type == 'HistorySet':
+        pivotParameterId = self.supervisedEngine.pivotParameterId
+        if not trainingSet.checkIndexAlignment(indexesToCheck=pivotParameterId):
+          self.raiseAnError(IOError, "The data provided by the data object", trainingSet.name, "is not synchonized!",
+                  "The time-dependent ROM requires all the histories are synchonized!")
       self.trainingSet = copy.copy(self._inputToInternal(trainingSet))
       self._replaceVariablesNamesWithAliasSystem(self.trainingSet, 'inout', False)
       self.supervisedEngine.train(self.trainingSet)

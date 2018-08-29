@@ -769,8 +769,11 @@ Section~\ref{sec:functions} for more details).
 \begin{itemize}
   \item \xmlNode{method}, \xmlDesc{comma separated string, required field},
   lists the method names of an external Function that will be computed (each
-  returning a post-processing value). The name of the method represents a new
-  variable that can be stored in a new \textbf{\textit{DataObjects}} entity.
+  returning a post-processing value). \nb New variable names will be defined as:
+  ``Function Name in this post-processor'' + ``\_`` + ``variable name in XML
+  node \xmlNode{method}''. These new varialbes will be used to store the computed
+  values from the list of methods, and can be accessed by the users through RAVEN
+  entities \textbf{DataObjects} and \textbf{OutStreams}.
   \item \xmlNode{Function}, \xmlDesc{xml node, required string field}, specifies
   the name of a Function where the \textit{methods} listed above are defined.
   %

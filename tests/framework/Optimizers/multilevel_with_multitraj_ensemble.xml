@@ -10,14 +10,17 @@
       This test runs the multilevel optimization with multiple trajectories on Beale's function and an amplifier (EnsembleModel)
       It tests the possibility to block some models (Beale) in the optimization process when multilevel optimization is performed.
     </description>
+    <revisions>
+        <revision author="alfoa" date="2018-08-25">switch from snapshot to writeSteps</revision>
+    </revisions>
   </TestInfo>
 
   <!-- actual RAVEN input -->
   <RunInfo>
     <WorkingDir>MTMLwithEnsembleAndModelHolding</WorkingDir>
-    <Sequence>optimize,print,getOptPoint</Sequence>
+    <Sequence>optimize,print</Sequence>
     <batchSize>1</batchSize>
-    <maxQueueSize>0</maxQueueSize>
+    <maxQueueSize>1</maxQueueSize>
   </RunInfo>
 
   <Steps>
@@ -33,12 +36,6 @@
       <Input class="DataObjects" type="PointSet">opt_soln</Input>
       <Output class="OutStreams" type="Print">opt_soln</Output>
     </IOStep>
-    <PostProcess name="getOptPoint">
-      <Input class="DataObjects" type="HistorySet">opt_export</Input>
-      <Model class="Models" type="PostProcessor">snapshot</Model>
-      <Output class="DataObjects" type="PointSet">opt_soln</Output>
-      <Output class="OutStreams" type="Print">opt_soln</Output>
-    </PostProcess>
   </Steps>
 
   <Optimizers>

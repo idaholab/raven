@@ -28,7 +28,7 @@ from lxml import etree
 testDir = os.getcwd()
 print("testDir", testDir)
 ravenDir = os.path.dirname(os.path.dirname(testDir))
-frameworkDir = os.path.join(ravenDir,"framework")
+frameworkDir = os.path.join(ravenDir,"../framework")
 sys.path.append(frameworkDir)
 
 
@@ -37,7 +37,7 @@ import test_classes
 
 
 
-schemaDoc = etree.parse(open(os.path.join(testDir,"TestXSD","test_more.xsd"),"r"))
+schemaDoc = etree.parse(open(os.path.join(testDir,"test_more.xsd"),"r"))
 
 schema = etree.XMLSchema(schemaDoc)
 
@@ -58,7 +58,7 @@ def checkAnswer(expected, actual):
 
 for xmlFile in ["test_fail_no_required_attr.xml","test_fail_wrong_content.xml",
                 "test_fail_wrong_order.xml","test_fail_wrong_attribute_type.xml"]:
-  testDoc = etree.parse(open(os.path.join("TestXSD",xmlFile),"r"))
+  testDoc = etree.parse(open(xmlFile,"r"))
 
   valid = schema.validate(testDoc)
   print("valid", valid, xmlFile)
