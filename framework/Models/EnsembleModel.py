@@ -627,8 +627,6 @@ class EnsembleModel(Dummy):
               # wait until the model finishes, in order to get ready to run the subsequential one
               while not jobHandler.isThisJobFinished(modelIn+utils.returnIdSeparator()+identifier):
                 time.sleep(1.e-3)
-              # DEBUGG delay for HPC file writing or returning?
-              time.sleep(1.e-1)
               nextModel = moveOn = True
             else:
               time.sleep(1.e-3)
@@ -653,18 +651,7 @@ class EnsembleModel(Dummy):
           ## does not return the indexes values (TO FIX)
           inRunTargetEvaluations[modelIn].asDataset()
           # get realization
-          ##### DEBUGGGGG #######
-          try:
-            dataSet = inRunTargetEvaluations[modelIn].realization(index=iterationCount-1,unpackXArray=True)
-          except IndexError as e:
-            TE = inRunTargetEvaluations[modelIn]
-            msg = ''
-            msg += 'TE: '+str(TE)+' '+TE.name+' len: '+str(len(TE))
-            msg +=' data: '+str(len(TE._data) if TE._data is not None else 'None')
-            msg +=' coll: '+str(len(TE._collector) if TE._collector is not None else 'None')
-            print('\n\n\n\n',msg,'\n\n\n\n')
-            raise e
-          ##### END DEBUGGGGG #######
+          dataSet = inRunTargetEvaluations[modelIn].realization(index=iterationCount-1,unpackXArray=True)
           ##FIXME: the following dict construction is a temporary solution since the realization method returns scalars if we have a PointSet
           dataSet = {key:np.atleast_1d(dataSet[key]) for key in dataSet}
           responseSpace         = dataSet

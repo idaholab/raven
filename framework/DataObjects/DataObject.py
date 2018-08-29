@@ -466,28 +466,3 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     pass
 
 
-#
-#
-#
-#
-#class MessageCourier:
-#  """
-#    Acts as a message handler when we don't have access to a real one.
-#  """
-#  def message(*args,**kwargs):
-#    """
-#      Prints message.
-#      @ In, args, list, stuff to print
-#      @ In, kwargs, dict, unused
-#      @ Out, None
-#    """
-#    print(' '.join(list(str(a) for a in args)))
-#
-#  def error(etype,*args,**kwargs):
-#    """
-#      Raises error.  First argument is the error type.
-#      @ In, args, list, unused
-#      @ In, kwargs, dict, unused
-#      @ Out, None
-#    """
-#    raise etype

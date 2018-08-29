@@ -237,7 +237,7 @@ class ARMA(supervisedLearning):
     self.raiseADebug('Training...')
     # DEBUG FILE -> uncomment lines with this file in it to get series information.  This should be made available
     #    through a RomTrainer SolutionExport or something similar, or perhaps just an Output DataObject, in the future.
-    debugfile = open('debugg_varma.csv','w')
+    #debugfile = open('debugg_varma.csv','w')
     # obtain pivot parameter
     self.raiseADebug('... gathering pivot values ...')
     self.pivotParameterValues = targetVals[:,:,self.target.index(self.pivotParameterID)]
@@ -257,7 +257,7 @@ class ARMA(supervisedLearning):
 
     for t,target in enumerate(self.target):
       timeSeriesData = targetVals[:,t]
-      debugfile.writelines('{}_original,'.format(target)+','.join(str(d) for d in timeSeriesData)+'\n')
+      #debugfile.writelines('{}_original,'.format(target)+','.join(str(d) for d in timeSeriesData)+'\n')
       # if this target governs the zero filter, extract it now
       if target == self.zeroFilterTarget:
         self.notZeroFilterMask = self._trainZeroRemoval(timeSeriesData) # where zeros are not
@@ -270,15 +270,15 @@ class ARMA(supervisedLearning):
                                                          self.fourierParams[target]['orders'],
                                                          timeSeriesData,
                                                          zeroFilter = target == self.zeroFilterTarget)
-        debugfile.writelines('{}_fourier,'.format(target)+','.join(str(d) for d in self.fourierResults[target]['predict'])+'\n')
+        #debugfile.writelines('{}_fourier,'.format(target)+','.join(str(d) for d in self.fourierResults[target]['predict'])+'\n')
         timeSeriesData -= self.fourierResults[target]['predict']
-        debugfile.writelines('{}_nofourier,'.format(target)+','.join(str(d) for d in timeSeriesData)+'\n')
-      # SOLAR HACK
+        #debugfile.writelines('{}_nofourier,'.format(target)+','.join(str(d) for d in timeSeriesData)+'\n')
+      # zero filter application
       ## find the mask for the requested target where values are nonzero
       if target == self.zeroFilterTarget:
         # artifically force signal to 0 post-fourier subtraction where it should be zero
         targetVals[:,t][self.notZeroFilterMask] = 0.0
-        debugfile.writelines('{}_zerofilter,'.format(target)+','.join(str(d) for d in timeSeriesData)+'\n')
+        #debugfile.writelines('{}_zerofilter,'.format(target)+','.join(str(d) for d in timeSeriesData)+'\n')
 
 
     # Transform data to obatain normal distrbuted series. See
@@ -291,7 +291,7 @@ class ARMA(supervisedLearning):
       self.cdfParams[target] = self._trainCDF(timeSeriesData)
       # normalize data
       normed = self._normalizeThroughCDF(timeSeriesData, self.cdfParams[target])
-      debugfile.writelines('{}_normed,'.format(target)+','.join(str(d) for d in normed)+'\n')
+      #debugfile.writelines('{}_normed,'.format(target)+','.join(str(d) for d in normed)+'\n')
       # check if this target is part of a correlation set, or standing alone
       if target in self.correlations:
         # store the data and train it separately in a moment
@@ -304,7 +304,6 @@ class ARMA(supervisedLearning):
           # don't bother training the part that's all zeros; it'll still be all zeros
           # just train the data portions
           normed = normed[self.zeroFilterMask]
-          print('DEBUGG target norm:',target,normed.shape)
         self.raiseADebug('... ... training ...')
         self.armaResult[target] = self._trainARMA(normed)
         self.raiseADebug('... ... finished training target "{}"'.format(target))
@@ -319,7 +318,6 @@ class ARMA(supervisedLearning):
         zeroed = correlationData[self.notZeroFilterMask]
         ## throw out the part that's all zeros (axis 1, row corresponding to filter target)
         zeroed = np.delete(zeroed, self.correlations.index(self.zeroFilterTarget), 1)
-        print('zero shape:',zeroed.shape)
         self.raiseADebug('... ... ... training unzeroed ...')
         unzVarma, unzNoise, unzInit = self._trainVARMA(unzeroed)
         self.raiseADebug('... ... ... training zeroed ...')
@@ -342,7 +340,7 @@ class ARMA(supervisedLearning):
         self.varmaNoise = (noiseDist,)
         self.varmaInit = (initDist,)
 
-    debugfile.close()
+    #debugfile.close()
 
   def __evaluateLocal__(self,featureVals):
     """
@@ -434,25 +432,25 @@ class ARMA(supervisedLearning):
                                             randEngine = self.normEngine.rvs)
           signal = sample
       # END creating base signal
-      # DEBUGG adding arbitrary variables
-      returnEvaluation[target+'_0base'] = copy.copy(signal)
+      # DEBUGG adding arbitrary variables for debugging, TODO find a more elegant way, leaving these here as markers
+      #returnEvaluation[target+'_0base'] = copy.copy(signal)
       # denoise
       signal = self._denormalizeThroughCDF(signal,self.cdfParams[target])
       # DEBUGG adding arbitrary variables
-      returnEvaluation[target+'_1denorm'] = copy.copy(signal)
+      #returnEvaluation[target+'_1denorm'] = copy.copy(signal)
       #debuggFile.writelines('signal_arma,'+','.join(str(x) for x in signal)+'\n')
 
       # Add fourier trends
       if target in self.fourierParams:
         signal += self.fourierResults[target]['predict']
         # DEBUGG adding arbitrary variables
-        returnEvaluation[target+'_2fourier'] = copy.copy(signal)
+        #returnEvaluation[target+'_2fourier'] = copy.copy(signal)
         #debuggFile.writelines('signal_fourier,'+','.join(str(x) for x in self.fourierResults[target]['predict'])+'\n')
 
       # Re-zero out zero filter target's zero regions
       if target == self.zeroFilterTarget:
         # DEBUGG adding arbitrary variables
-        returnEvaluation[target+'_3zerofilter'] = copy.copy(signal)
+        #returnEvaluation[target+'_3zerofilter'] = copy.copy(signal)
         signal[self.notZeroFilterMask] = 0.0
 
       # Domain limitations
@@ -463,13 +461,13 @@ class ARMA(supervisedLearning):
           elif domain == 'negative':
             signal = -np.absolute(signal)
         # DEBUGG adding arbitrary variables
-        returnEvaluation[target+'_4truncated'] = copy.copy(signal)
+        #returnEvaluation[target+'_4truncated'] = copy.copy(signal)
 
       # store results
       ## FIXME this is ASSUMING the input to ARMA is only ever a single scaling factor.
       signal *= featureVals[0]
       # DEBUGG adding arbitrary variables
-      returnEvaluation[target+'_5scaled'] = copy.copy(signal)
+      #returnEvaluation[target+'_5scaled'] = copy.copy(signal)
       # sanity check on the signal
       assert(signal.size == returnEvaluation[self.pivotParameterID].size)
       #debuggFile.writelines('final,'+','.join(str(x) for x in signal)+'\n')

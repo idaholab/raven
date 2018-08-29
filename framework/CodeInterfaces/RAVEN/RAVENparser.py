@@ -61,7 +61,6 @@ class RAVENparser():
     xmlUtils.expandExternalXML(self.tree,cwd)
 
     # get the NAMES of the variable groups
-    # XXX working; need to replace variable groups, not just check the list of them
     variableGroupNode = self.tree.find('VariableGroups')
     if variableGroupNode is not None:
       # make a messageHandler and messageUsesr to handle variable group creation

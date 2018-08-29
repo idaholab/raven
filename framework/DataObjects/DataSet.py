@@ -184,6 +184,7 @@ class DataSet(DataObject):
     try:
       rlz = dict((var,rlz[var]) for var in self.getVars()+self.indexes)
     except KeyError as e:
+      self.raiseADebug('Variables provided:',rlz.keys())
       self.raiseAnError(KeyError,'Provided realization does not have all requisite values for object "{}": "{}"'.format(self.name,e.args[0]))
     # check consistency, but make it an assertion so it can be passed over
     if not self._checkRealizationFormat(rlz):
@@ -216,12 +217,7 @@ class DataSet(DataObject):
     if self._collector is None:
       self._collector = self._newCollector(width=len(rlz))
     # append
-    try:
-      self._collector.append(newData)
-    except IOError as e:
-      print('DEBUGG d.o. vars:',self.vars)
-      print('DEBUGG d.o. ordered:',self._orderedVars)
-      print('DEBUGG rlz  vars:',rlz.keys())
+    self._collector.append(newData)
 
     # if hierarchical, clear the parent as an ending
     self._clearParentEndingStatus(rlz)

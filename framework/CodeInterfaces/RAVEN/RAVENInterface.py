@@ -188,18 +188,6 @@ class RAVEN(CodeInterfaceBase):
     varGroupNames = parser.returnVarGroups()
     ## store globally
     self.variableGroups = varGroupNames
-    #if len(varGroupNames) > 0:
-    #  # check if they are not present in the linked outstreams
-    #  for outstream in self.linkedDataObjectOutStreamsNames:
-    #    inputNode = self.outStreamsNamesAndType[outstream][2].find("Input")
-    #    outputNode = self.outStreamsNamesAndType[outstream][2].find("Output")
-    #    inputVariables = [x.strip() for x in inputNode.text.split(",")] if inputNode is not None else []
-    #    outputVariables = [x.strip() for x in outputNode.text.split(",")] if outputNode is not None else []
-        # XXX implemented now ... I think?
-        #if any (varGroupName in inputVariables+outputVariables for varGroupName in varGroupNames):
-        #  raise IOError(self.printTag+' ERROR: The VariableGroup system is not supported in the current ' +
-        #                              'implementation of the interface for the DataObjects specified in the '+
-        #                              '<outputExportOutStreams> XML node!')
     # get inner working dir
     self.innerWorkingDir = parser.workingDir
     # get sampled variables
@@ -316,8 +304,6 @@ class RAVEN(CodeInterfaceBase):
       # create an instance of the correct data object type
       data = DataObjects.returnInstance(dataObjectInfo[1],None)
       # initialize the data object by reading the XML
-      ## XXX need to readXML instead of _readMoreXML so variable groups get applied -> where do I get the variable groups?
-      # data._readMoreXML(dataObjectInfo[2])
       data.readXML(dataObjectInfo[2], messageHandler, variableGroups=self.variableGroups)
       # set the name, then load the data
       data.name = filename
