@@ -55,12 +55,6 @@ class ROM(Dummy):
     IndexSetInputType = InputData.makeEnumType("indexSet","indexSetType",["TensorProduct","TotalDegree","HyperbolicCross","Custom"])
     CriterionInputType = InputData.makeEnumType("criterion", "criterionType", ["bic","aic","gini","entropy","mse"])
 
-    InterpolationInput = InputData.parameterInputFactory('Interpolation', contentType=InputData.StringType)
-    InterpolationInput.addParam("quad", InputData.StringType, False)
-    InterpolationInput.addParam("poly", InputData.StringType, False)
-    InterpolationInput.addParam("weight", InputData.FloatType, False)
-    inputSpecification.addSub(InterpolationInput)
-
     inputSpecification.addSub(InputData.parameterInputFactory('Features',contentType=InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory('Target',contentType=InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("persistence", InputData.StringType))
@@ -162,6 +156,11 @@ class ROM(Dummy):
     inputSpecification.addSub(InputData.parameterInputFactory("PolynomialOrder", InputData.IntegerType))
     inputSpecification.addSub(InputData.parameterInputFactory("SobolOrder", InputData.IntegerType))
     inputSpecification.addSub(InputData.parameterInputFactory("SparseGrid", InputData.StringType))
+    InterpolationInput = InputData.parameterInputFactory('Interpolation', contentType=InputData.StringType)
+    InterpolationInput.addParam("quad", InputData.StringType, False)
+    InterpolationInput.addParam("poly", InputData.StringType, False)
+    InterpolationInput.addParam("weight", InputData.FloatType, False)
+    inputSpecification.addSub(InterpolationInput)
     # ARMA
     inputSpecification.addSub(InputData.parameterInputFactory('segments', InputData.IntegerType))
     inputSpecification.addSub(InputData.parameterInputFactory('correlate', InputData.StringListType))
@@ -269,9 +268,9 @@ class ROM(Dummy):
           continue
         if child.getName() not in self.initializationOptionDict.keys():
           self.initializationOptionDict[child.getName()]={}
-        print('DEBUGG',child.getName(),child.value,child.parameterValues)
         # "tuple" here allows values to be listed, probably not great but works
-        self.initializationOptionDict[child.getName()][tuple(child.value)]=child.parameterValues
+        key = child.value if not isinstance(child.value,list) else tuple(child.value)
+        self.initializationOptionDict[child.getName()][key]=child.parameterValues
       else:
         if child.getName() == 'estimator':
           self.initializationOptionDict[child.getName()] = {}
