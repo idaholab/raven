@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+<?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
     <name>framework/ROM/TimeSeries/ARMA.MultipleArma</name>
@@ -7,7 +7,6 @@
     <classesTested>SupervisedLearning.ARMA</classesTested>
     <description>
       Tests creation of multiple INDEPENDENT target ARMA ROMs from a single training run.
-
       While it uses the first 100 entries from the correlated ARMA training data, it does not consider the variables correlated.
     </description>
   </TestInfo>
@@ -62,7 +61,7 @@
       <Pmin>2</Pmin>
       <Qmax>1</Qmax>
       <Qmin>1</Qmin>
-      <outTruncation>positive</outTruncation>
+      <outTruncation domain="positive">A,B,Time</outTruncation>
       <Fourier>10,20</Fourier>
       <FourierOrder>2,2</FourierOrder>
     </ROM>
