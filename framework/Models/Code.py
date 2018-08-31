@@ -432,7 +432,7 @@ class Code(Model):
           self.raiseAWarning("Could not find msys in "+os.getcwd())
         commandSplit = realExecutable + [executable] + commandSplit[1:]
         return commandSplit
-    return commandSplit
+    return origCommand
 
   def evaluateSample(self, myInput, samplerType, kwargs):
     """
