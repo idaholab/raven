@@ -847,7 +847,7 @@ class ARMA(supervisedLearning):
       A test for SOLAR GHI data.
       @ In, data, np.array, original signal
       @ In, tol, float, optional, tolerance below which to consider 0
-      @ Out, zero mask, mask where zeros occur
+      @ Out, mask, np.ndarray(bool), mask where zeros occur
     """
     # where should the data be truncated?
     mask = data < tol

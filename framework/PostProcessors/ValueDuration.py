@@ -63,8 +63,9 @@ class ValueDuration(PostProcessor):
       @ Out, None
     """
     PostProcessor.__init__(self, messageHandler)
+    self.dynamic = True # from base class, indicates time-dependence is handled internally
     self.numBins = None # integer number of bins to use in creating the duration curve. TODO default?
-    self.dynamic = True
+    self.targets = None # list of strings, variables to apply postprocessor to
 
   def _localReadMoreXML(self, xmlNode):
     """
@@ -90,24 +91,13 @@ class ValueDuration(PostProcessor):
       elif tag == 'bins':
         self.numBins = child.value
 
-  def initialize(self, runInfo, inputs, initDict):
-    """
-      Method to initialize the pp.
-      In here the working dir is grepped.
-      @ In, runInfo, dict, dictionary of run info (e.g. working dir, etc)
-      @ In, inputs, list, list of inputs
-      @ In, initDict, dict, dictionary with initialization options
-      @ Out, None
-    """
-    PostProcessor.initialize(self, runInfo, inputs, initDict)
-
   def inputToInternal(self, currentInp):
     """
       Method to convert an input object into the internal format that is
       understandable by this pp.
       In this case, we only want data objects!
       @ In, currentInp, object, an object that needs to be converted
-      @ Out, inputDict, dict, dictionary of the converted data
+      @ Out, currentInp, DataObject.HistorySet, input data
     """
     if len(currentInp) > 1:
       self.raiseAnError(IOError, 'Expected 1 input HistorySet, but received {} inputs!'.format(len(currentInp)))
@@ -155,7 +145,7 @@ class ValueDuration(PostProcessor):
     """
       Function to place all of the computed data into the output object
       @ In, finishedJob, JobHandler External or Internal instance, A JobHandler object that is in charge of running this post-processor
-      @ In, output, dataObjects, The object where we want to place our computed results
+      @ In, output, DataObject.DataObject, The object where we want to place our computed results
       @ Out, None
     """
     evaluation = finishedJob.getEvaluation()

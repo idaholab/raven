@@ -554,6 +554,7 @@ class EnsembleModel(Dummy):
     for modelIn in self.orderList:
       # reset the DataObject for the projection
       self.localTargetEvaluations[modelIn].reset()
+      # deepcopy assures distinct copies
       inRunTargetEvaluations[modelIn] = copy.deepcopy(self.localTargetEvaluations[modelIn])
     residueContainer = dict.fromkeys(self.modelsDictionary.keys())
     gotOutputs       = [{}]*len(self.orderList)

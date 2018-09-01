@@ -42,6 +42,8 @@ class InputType(object):
 
     ## Rename the class to something understandable by a developer
     cls.__name__ = str(name+'Spec')
+    # register class name to module (necessary for pickling)
+    globals()[cls.__name__] = cls
 
     cls.name = name
     cls.xmlType = xmlType
@@ -112,26 +114,6 @@ class IntegerType(InputType):
     return int(value)
 
 IntegerType.createClass("integer","xsd:integer")
-
-#
-#
-#
-#
-class BooleanType(InputType):
-  """
-    A type for boolean data.
-  """
-
-  @classmethod
-  def convert(cls, value):
-    """
-      Converts value from string to a boolean.
-      @ In, value, string, the value to convert
-      @ Out, convert, int, the converted value
-    """
-    return value in utils.stringsThatMeanTrue()
-
-BooleanType.createClass("boolean","xsd:boolean")
 
 #
 #
@@ -272,6 +254,8 @@ class EnumBaseType(InputType):
 
     ## Rename the class to something understandable by a developer
     cls.__name__ = str(name+'Spec')
+    # register class name to module (necessary for pickling)
+    globals()[cls.__name__] = cls
 
     cls.name = name
     cls.xmlType = xmlType
@@ -370,6 +354,8 @@ class ParameterInput(object):
 
     ## Rename the class to something understandable by a developer
     cls.__name__ = str(name+'Spec')
+    # register class name to module (necessary for pickling)
+    globals()[cls.__name__] = cls
 
     cls.name = name
     cls.strictMode = strictMode

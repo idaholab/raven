@@ -14,21 +14,21 @@ D = np.zeros(N)
 
 # Fourer Moments: A sin(2pi/k * t)
 # A and B share the same frequencies, as do C and D
-f_A = {100.0 : 1.0,
+fA = {100.0 : 1.0,
         20.0 : 1.0}
-f_B = {100.0 : 4.0,
+fB = {100.0 : 4.0,
         20.0 : 2.0}
-f_C = { 50.0 : 1.0,
+fC = { 50.0 : 1.0,
         10.0 : 1.0}
-f_D = { 50.0 : 4.0,
+fD = { 50.0 : 4.0,
         10.0 : 2.0}
-for freq,magn in f_A.items():
+for freq,magn in fA.items():
   A += magn * np.sin(2.0*np.pi*t/freq)
-for freq,magn in f_B.items():
+for freq,magn in fB.items():
   B += magn * np.sin(2.0*np.pi*t/freq)
-for freq,magn in f_C.items():
+for freq,magn in fC.items():
   C += magn * np.sin(2.0*np.pi*t/freq)
-for freq,magn in f_D.items():
+for freq,magn in fD.items():
   D += magn * np.sin(2.0*np.pi*t/freq)
 
 mn = zip(A,B,C,D)

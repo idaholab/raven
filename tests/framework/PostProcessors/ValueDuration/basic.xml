@@ -1,6 +1,6 @@
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework/PostProcessors/ValueDuration</name>
+    <name>framework/PostProcessors/ValueDuration.Basic</name>
     <author>talbpaul</author>
     <created>2018-08-28</created>
     <classesTested>PostProcessors.ValueDuration</classesTested>
