@@ -97,7 +97,7 @@ class ExternalPostProcessor(PostProcessor):
               + " but multiple inputs are provided!")
       else:
         currentInput = currentInput[-1]
-    assert(hasattr(currentInput, 'type'), "The type is missing for input object! We should always associate a type with it.")
+    assert(hasattr(currentInput, 'type')), "The type is missing for input object! We should always associate a type with it."
     inType = currentInput.type
     if inType in ['PointSet', 'HistorySet']:
       dataSet = currentInput.asDataset()
