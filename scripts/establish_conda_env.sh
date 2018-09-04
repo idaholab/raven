@@ -91,6 +91,9 @@ function find_conda_defs ()
       fi
     fi
 	fi
+
+  # fix Windows backslashes to be forward, compatible with all *nix including mingw
+  CONDA_DEFS="${CONDA_DEFS//\\//}"
 }
 
 function install_libraries()
