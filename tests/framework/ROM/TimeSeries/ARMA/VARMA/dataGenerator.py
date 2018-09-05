@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-N = 100
+N = 1000
 
 mean = np.array([42,42,42])
 #         A     B     C
