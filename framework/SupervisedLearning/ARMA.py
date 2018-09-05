@@ -81,8 +81,7 @@ class ARMA(supervisedLearning):
     self.pivotParameterID  = kwargs['pivotParameter']
     self.pivotParameterValues = None  # In here we store the values of the pivot parameter (e.g. Time)
     self.seed              = kwargs.get('seed',None)
-    zeroFilterDict         = kwargs.get('ZeroFilter',{})
-    self.zeroFilterTarget  = zeroFilterDict.keys()[0][0] # target for whom zeros should be filtered out
+    self.zeroFilterTarget  = None # target for whom zeros should be filtered out
     self.zeroFilterTol     = None # tolerance for zerofiltering to be considered zero, set below
     self.zeroFilterMask    = None # mask of places where zftarget is zero, or None if unused
 
@@ -152,7 +151,7 @@ class ARMA(supervisedLearning):
                                     'or "negative" but got "{}"'.format(domain))
       # additional info for zerofilter
       elif child.getName() == 'ZeroFilter':
-        # target already read above through kwargs, we just need to read the tolerance
+        self.zeroFilterTarget = child.value
         self.zeroFilterTol = child.parameterValues.get('tol',1e-16)
       # read SPECIFIC parameters for Fourier detrending
       elif child.getName() == 'SpecificFourier':
