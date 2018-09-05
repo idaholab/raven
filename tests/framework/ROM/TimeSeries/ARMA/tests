@@ -44,9 +44,9 @@
 
   [./MultipleArma]
    type = 'RavenFramework'
-   input = 'multiple_arma.xml'
-   csv = 'MultipleArma/samples.csv MultipleArma/samples_0.csv MultipleArma/samples_1.csv'
-   rel_err = 5e-2
+   input = 'multiple_arma.xml MultipleArma/samples.csv MultipleArma/samples_0.csv MultipleArma/samples_1.csv MultipleArma/stats.xml'
+   csv = 'MultipleArma/stats.csv'
+   rel_err = 1e-1
   [../]
 
   [./MultipleFourier]
@@ -61,7 +61,7 @@
    input = 'varma.xml'
    output = 'VARMA/plot_VARMA.png VARMA/plot_input.png VARMA/samples.csv VARMA/samples_0.csv VARMA/stats.xml'
    csv = 'VARMA/stats.csv'
-   rel_err = 0.2 # we only take 100 samples and test covariance
+   rel_err = 1e-1
   [../]
 
   [./ZeroFilter]
