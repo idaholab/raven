@@ -44,7 +44,8 @@
 
   [./MultipleArma]
    type = 'RavenFramework'
-   input = 'multiple_arma.xml MultipleArma/samples.csv MultipleArma/samples_0.csv MultipleArma/samples_1.csv MultipleArma/stats.xml'
+   input = 'multiple_arma.xml'
+   output = 'MultipleArma/samples.csv MultipleArma/samples_0.csv MultipleArma/samples_1.csv MultipleArma/stats.xml'
    csv = 'MultipleArma/stats.csv'
    rel_err = 1e-1
   [../]
