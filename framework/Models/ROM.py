@@ -164,7 +164,6 @@ class ROM(Dummy):
     # ARMA
     inputSpecification.addSub(InputData.parameterInputFactory('segments', InputData.IntegerType))
     inputSpecification.addSub(InputData.parameterInputFactory('correlate', InputData.StringListType))
-    inputSpecification.addSub(InputData.parameterInputFactory("ZeroFilter", InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("Pmax", InputData.IntegerType))
     inputSpecification.addSub(InputData.parameterInputFactory("Pmin", InputData.IntegerType))
     inputSpecification.addSub(InputData.parameterInputFactory("Qmax", InputData.IntegerType))
@@ -173,10 +172,16 @@ class ROM(Dummy):
     inputSpecification.addSub(InputData.parameterInputFactory("reseedCopies", InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("Fourier", contentType=InputData.FloatListType))
     inputSpecification.addSub(InputData.parameterInputFactory("FourierOrder", contentType=InputData.IntegerListType))
-    outTrunc = InputData.parameterInputFactory('outTruncation', contentType=InputData.StringListType, strictMode=True)
+    ### ARMA zero filter
+    zeroFilt = InputData.parameterInputFactory('ZeroFilter', contentType=InputData.StringListType)
+    zeroFilt.addParam('tol', InputData.FloatType)
+    inputSpecification.addSub(zeroFilt)
+    ### ARMA out truncation
+    outTrunc = InputData.parameterInputFactory('outTruncation', contentType=InputData.StringListType)
     domainEnumType = InputData.makeEnumType('domain','truncateDomainType',['positive','negative'])
     outTrunc.addParam('domain', domainEnumType, True)
     inputSpecification.addSub(outTrunc)
+    ### ARMA specific fourier
     specFourier = InputData.parameterInputFactory('SpecificFourier', strictMode=True)
     specFourier.addParam("variables", InputData.StringListType, True)
     specFourier.addSub(InputData.parameterInputFactory('periods', contentType=InputData.FloatListType))

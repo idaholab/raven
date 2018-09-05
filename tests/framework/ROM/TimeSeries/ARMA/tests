@@ -70,6 +70,6 @@
     input = 'zero_filter.xml'
     output = 'ZeroFilter/synthetic.csv ZeroFilter/synthetic_0.csv ZeroFilter/synthetic.xml ZeroFilter/stats.xml'
     csv = 'ZeroFilter/stats.csv'
-    rel_err = 3e-2
+    rel_err = 1e-1
   [../]
 []
