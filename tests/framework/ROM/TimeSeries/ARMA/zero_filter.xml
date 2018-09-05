@@ -68,8 +68,8 @@
       <correlate>Demand, GHI</correlate>
       <Pmax>3</Pmax>
       <Pmin>3</Pmin>
-      <Qmax>1</Qmax>
-      <Qmin>1</Qmin>
+      <Qmax>2</Qmax>
+      <Qmin>2</Qmin>
       <Fourier>86400</Fourier> <!-- 1 year, 3 months, 1 day -->
       <FourierOrder>1</FourierOrder>
     </ROM>
