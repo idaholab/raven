@@ -63,7 +63,7 @@
     <ROM name='arma' subType='ARMA'>
       <Target>Demand, Speed, GHI, Temperature, Time</Target>
       <Features>scaling</Features>
-      <ZeroFilter>GHI</ZeroFilter>
+      <ZeroFilter tol='1e-10'>GHI</ZeroFilter>
       <pivotParameter>Time</pivotParameter>
       <correlate>Demand, GHI</correlate>
       <Pmax>3</Pmax>

@@ -81,12 +81,14 @@ class ARMA(supervisedLearning):
     self.pivotParameterID  = kwargs['pivotParameter']
     self.pivotParameterValues = None  # In here we store the values of the pivot parameter (e.g. Time)
     self.seed              = kwargs.get('seed',None)
-    self.zeroFilterTarget  = kwargs.get('ZeroFilter',None) # SOLAR HACK
+    zeroFilterDict         = kwargs.get('ZeroFilter',{})
+    self.zeroFilterTarget  = zeroFilterDict.keys()[0][0] # target for whom zeros should be filtered out
+    self.zeroFilterTol     = None # tolerance for zerofiltering to be considered zero, set below
     self.zeroFilterMask    = None # mask of places where zftarget is zero, or None if unused
 
     # check zeroFilterTarget is one of the targets given
     if self.zeroFilterTarget is not None and self.zeroFilterTarget not in self.target:
-      self.raiseAnError('Requested ZeroFilter on "{}" but this target was not found among the ROM targets!')
+      self.raiseAnError('Requested ZeroFilter on "{}" but this target was not found among the ROM targets!'.format(self.zeroFilterTarget))
 
     # get seed if provided
     ## FIXME only applies to VARMA sampling right now, since it has to be sampled through Numpy!
@@ -148,6 +150,10 @@ class ARMA(supervisedLearning):
         else:
           self.raiseAnError(IOError,'Unrecognized "domain" for "outTruncation"! Was expecting "positive" '+\
                                     'or "negative" but got "{}"'.format(domain))
+      # additional info for zerofilter
+      elif child.getName() == 'ZeroFilter':
+        # target already read above through kwargs, we just need to read the tolerance
+        self.zeroFilterTol = child.parameterValues.get('tol',1e-16)
       # read SPECIFIC parameters for Fourier detrending
       elif child.getName() == 'SpecificFourier':
         # clear old information
@@ -260,7 +266,7 @@ class ARMA(supervisedLearning):
       #debugfile.writelines('{}_original,'.format(target)+','.join(str(d) for d in timeSeriesData)+'\n')
       # if this target governs the zero filter, extract it now
       if target == self.zeroFilterTarget:
-        self.notZeroFilterMask = self._trainZeroRemoval(timeSeriesData) # where zeros are not
+        self.notZeroFilterMask = self._trainZeroRemoval(timeSeriesData,tol=self.zeroFilterTol) # where zeros are not
         self.zeroFilterMask = np.logical_not(self.notZeroFilterMask) # where zeroes are
       # if we're removing Fourier signal, do that now.
       if target in self.fourierParams:
