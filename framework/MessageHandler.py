@@ -228,7 +228,7 @@ class MessageHandler(object):
       @ Out, paint, string, formatted string
     """
     if color.lower() not in self.colors.keys():
-      self.messaage(self,'Requested color %s not recognized!  Skipping...' %color,'Warning','quiet')
+      self.message(self,'Requested color %s not recognized!  Skipping...' %color,'Warning','quiet')
       return str
     return self.colors[color.lower()]+str+self.colors['neutral']
 
