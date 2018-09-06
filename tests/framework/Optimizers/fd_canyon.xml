@@ -1,0 +1,98 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/Optimizers.FD_Canyon</name>
+    <author>talbpaul</author>
+    <created>2018-09-05</created>
+    <classesTested>Optimizers.FiniteDifferenceGradientOptimizer</classesTested>
+    <description>
+      Originally this models tests minimizing $x y \cos(s+y)$, but has been extended to test the finite difference
+      gradient optimizer with denoising in 2 dimensions, to assure indexing works correctly.
+    </description>
+    <analytic>
+      This test minimizes the function x y cos(x+y), which when limited to 0..x..pi and 0..y..pi has a minimum at
+      (1.8218,1.8218) of -2.90946.
+    </analytic>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>FD_Canyon</WorkingDir>
+    <Sequence>optimize,print</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="optimize">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ExternalModel">parabola</Model>
+      <Optimizer class="Optimizers" type="SPSA">opter</Optimizer>
+      <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
+      <Output class="DataObjects" type="PointSet">optOut</Output>
+    </MultiRun>
+    <IOStep name="print" pauseAtEnd="True">
+      <Input class="DataObjects" type="PointSet">opt_export</Input>
+      <Output class="OutStreams" type="Print">opt_export</Output>
+    </IOStep>
+  </Steps>
+
+  <Optimizers>
+    <FiniteDifferenceGradientOptimizer name="opter">
+      <initialization>
+        <limit>2000</limit>
+        <initialSeed>42</initialSeed>
+        <writeSteps>final</writeSteps>
+      </initialization>
+      <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
+      <convergence>
+        <gradientThreshold>1e-5</gradientThreshold>
+        <relativeThreshold>1e-5</relativeThreshold>
+        <absoluteThreshold>1e-5</absoluteThreshold>
+        <gainGrowthFactor>1.5</gainGrowthFactor>
+        <gainShrinkFactor>1.25</gainShrinkFactor>
+      </convergence>
+      <variable name="x">
+        <upperBound>3.14159</upperBound>
+        <lowerBound>0</lowerBound>
+        <initial>1</initial>
+      </variable>
+      <variable name="y">
+        <upperBound>3.14159</upperBound>
+        <lowerBound>0</lowerBound>
+        <initial>1</initial>
+      </variable>
+      <objectVar>ans</objectVar>
+      <parameter>
+        <numGradAvgIterations>2</numGradAvgIterations>
+      </parameter>
+    </FiniteDifferenceGradientOptimizer>
+  </Optimizers>
+
+  <Models>
+    <ExternalModel ModuleToLoad="model" name="parabola" subType="">
+      <variables>x,y,ans</variables>
+    </ExternalModel>
+  </Models>
+
+  <DataObjects>
+    <PointSet name="dummyIN">
+      <Input>x,y</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="optOut">
+      <Input>x,y</Input>
+      <Output>ans</Output>
+    </PointSet>
+    <PointSet name="opt_export">
+      <Input>trajID</Input>
+      <Output>x,y,ans,varsUpdate</Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="opt_export">
+      <type>csv</type>
+      <source>opt_export</source>
+    </Print>
+  </OutStreams>
+
+</Simulation>
