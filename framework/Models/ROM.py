@@ -173,7 +173,7 @@ class ROM(Dummy):
     inputSpecification.addSub(InputData.parameterInputFactory("Fourier", contentType=InputData.FloatListType))
     inputSpecification.addSub(InputData.parameterInputFactory("FourierOrder", contentType=InputData.IntegerListType))
     ### ARMA zero filter
-    zeroFilt = InputData.parameterInputFactory('ZeroFilter', contentType=InputData.StringListType)
+    zeroFilt = InputData.parameterInputFactory('ZeroFilter', contentType=InputData.StringType)
     zeroFilt.addParam('tol', InputData.FloatType)
     inputSpecification.addSub(zeroFilt)
     ### ARMA out truncation
