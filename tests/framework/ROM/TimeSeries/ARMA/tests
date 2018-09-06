@@ -63,6 +63,7 @@
    output = 'VARMA/plot_VARMA.png VARMA/plot_input.png VARMA/samples.csv VARMA/samples_0.csv VARMA/stats.xml'
    csv = 'VARMA/stats.csv'
    rel_err = 1e-1
+   max_time = 500
   [../]
 
   [./ZeroFilter]
@@ -70,6 +71,7 @@
     input = 'zero_filter.xml'
     output = 'ZeroFilter/synthetic.csv ZeroFilter/synthetic_0.csv ZeroFilter/synthetic.xml ZeroFilter/stats.xml'
     csv = 'ZeroFilter/stats.csv'
-    rel_err = 1e-1
+    rel_err = 2e-1
+    max_time = 300
   [../]
 []
