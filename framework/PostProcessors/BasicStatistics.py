@@ -933,14 +933,6 @@ class BasicStatistics(PostProcessor):
       if self.pivotParameter in outputSet.sizes.keys():
         outputDict[self.pivotParameter] = np.atleast_1d(self.pivotValue)
 
-      # TODO: the following lines are for debugging, remove when complete
-      #for key,val in outputDict.items():
-      #  if 'percentile' in key:
-      #    print(key)
-      #    print(val)
-      #    print('======================================')
-      #print(outputDict)
-
       return outputDict
 
   def corrCoeff(self, covM):
