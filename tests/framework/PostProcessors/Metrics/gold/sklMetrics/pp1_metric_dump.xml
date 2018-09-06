@@ -1,7 +1,7 @@
 <DataObjectMetadata name="pp1_metric">
   <DataSet type="Static">
     <general>
-      <outputs>euclidean_ans2_ans,rbf_ans2_ans,poly_ans2_ans,sigmoid_ans2_ans,polynomial_ans2_ans,linear_ans2_ans,cosine_ans2_ans,cityblock_ans2_ans,l1_ans2_ans,l2_ans2_ans,manhattan_ans2_ans,laplacian_ans2_ans,explained_variance_score_ans2_ans,mean_absolute_error_ans2_ans,mean_squared_error_ans2_ans,median_absolute_error_ans2_ans,r2_score_ans2_ans</outputs>
+      <outputs>explained_variance_score_ans2_ans,mean_absolute_error_ans2_ans,mean_squared_error_ans2_ans,r2_score_ans2_ans</outputs>
       <sampleTag>RAVEN_sample_ID</sampleTag>
     </general>
   </DataSet>
