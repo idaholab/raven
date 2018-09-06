@@ -1,0 +1,39 @@
+<DEPLETION_INPUT>
+  <title>HTGR_test</title>
+  <input_files>/home/rouxpn/RAVEN/NEWT/htgr_cluster/adapt/1/lib_inp_path_2d_bench.xml</input_files>
+  <Control_parameters>
+    <calculation_control>
+      <standalone>no</standalone>
+      <calc_type>2</calc_type>
+      <exp_method>CRAM</exp_method>
+      <method_order>14</method_order>
+      <spectrum_type>thermal</spectrum_type>
+      <decay_heat_type>2</decay_heat_type>
+      <burn_up>3</burn_up>
+      <multi_cycle_control NTP="1">
+      </multi_cycle_control>
+      <n_tab_interval>1</n_tab_interval>
+      <power_history>1.0</power_history>
+      <sep_eff_control>1</sep_eff_control>
+    </calculation_control>
+    <output_control>
+      <plot_input>t</plot_input>
+      <plot_type>2</plot_type>
+      <extra_plot>3</extra_plot>
+      <time_step_skip_out>0</time_step_skip_out>
+      <output_representation>user</output_representation>
+    </output_control>
+    <time_control type="hours">
+      <tab_time_step>1</tab_time_step>
+      <tabulation_boundaries>
+        <low>0.0</low>
+        <up>1000</up>
+      </tabulation_boundaries>
+      <cycle_parameters>
+        <cycle_lenght>1000</cycle_lenght>
+        <begin_life>0.0</begin_life>
+        <end_life>1000</end_life>       
+      </cycle_parameters>      
+    </time_control>
+  </Control_parameters>
+</DEPLETION_INPUT>

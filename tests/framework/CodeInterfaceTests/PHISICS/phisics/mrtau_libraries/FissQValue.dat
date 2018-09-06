@@ -1,0 +1,5 @@
+!FissQvalues                                              !FISSION Q VALUES
+ 1                                              !Flag: (1) Q_Values in MeV / (2) Q_Values in eV
+ ISOT     MeV   
+ PU241  196.370 
+ END

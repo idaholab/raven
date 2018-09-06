@@ -1,0 +1,24 @@
+<library base="NGNP">           
+<density_type>  2   </density_type> 
+<print_out>  t   </print_out>
+    <mat id="matF1" lib_name="matF1" used="true" fissile="true">     
+        <isotope id="FUEL" density="1.0">   
+            <tab name="BURN-UP" value="0.0"/>
+            <tab name="T_fuel" value="293"/>
+            <tab name="T_mod" value="293"/>
+            <tab name="XE135" value="0"/>
+        </isotope>  
+        <isotope id="XE135" density="0">    
+            <tab name="BURN-UP" value="0.0"/>
+            <tab name="T_fuel" value="293"/>
+            <tab name="T_mod" value="293"/>
+            <tab name="XE135" value="0"/>
+        </isotope>  
+        <isotope id="I135" density="0"> 
+            <tab name="BURN-UP" value="0.0"/>
+            <tab name="T_fuel" value="293"/>
+            <tab name="T_mod" value="293"/>
+            <tab name="XE135" value="0"/>
+        </isotope>  
+    </mat>      
+</library>          

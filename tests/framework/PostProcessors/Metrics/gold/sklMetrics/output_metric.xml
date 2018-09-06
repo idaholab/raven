@@ -1,0 +1,8 @@
+<MetricPostProcessor type="Static">
+  <ans2_ans>
+    <mean_absolute_error>2.01729705995</mean_absolute_error>
+    <mean_squared_error>7.06621390422</mean_squared_error>
+    <r2_score>-0.697606406772</r2_score>
+    <explained_variance_score>-0.490588326927</explained_variance_score>
+  </ans2_ans>
+</MetricPostProcessor>
