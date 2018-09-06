@@ -10,7 +10,7 @@
       gradient optimizer with denoising in 2 dimensions, to assure indexing works correctly.
     </description>
     <analytic>
-      This test minimizes the function x y cos(x+y), which when limited to 0..x..pi and 0..y..pi has a minimum at
+      This test minimizes the documented 2D Canyon function x y cos(x+y), which when limited to 0..x..pi and 0..y..pi has a minimum at
       (1.8218,1.8218) of -2.90946.
     </analytic>
   </TestInfo>
@@ -24,7 +24,7 @@
   <Steps>
     <MultiRun name="optimize">
       <Input class="DataObjects" type="PointSet">dummyIN</Input>
-      <Model class="Models" type="ExternalModel">parabola</Model>
+      <Model class="Models" type="ExternalModel">canyon</Model>
       <Optimizer class="Optimizers" type="SPSA">opter</Optimizer>
       <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
       <Output class="DataObjects" type="PointSet">optOut</Output>
@@ -68,7 +68,7 @@
   </Optimizers>
 
   <Models>
-    <ExternalModel ModuleToLoad="model" name="parabola" subType="">
+    <ExternalModel ModuleToLoad="../../AnalyticModels/optimizing/canyon" name="canyon" subType="">
       <variables>x,y,ans</variables>
     </ExternalModel>
   </Models>
