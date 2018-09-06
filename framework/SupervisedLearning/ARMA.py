@@ -152,6 +152,8 @@ class ARMA(supervisedLearning):
       # additional info for zerofilter
       elif child.getName() == 'ZeroFilter':
         self.zeroFilterTarget = child.value
+        if self.zeroFilterTarget not in self.target:
+          self.raiseAnError(IOError,'Requested zero filtering for "{}" but not found among targets!'.format(self.zeroFilterTarget))
         self.zeroFilterTol = child.parameterValues.get('tol',1e-16)
       # read SPECIFIC parameters for Fourier detrending
       elif child.getName() == 'SpecificFourier':
@@ -242,7 +244,9 @@ class ARMA(supervisedLearning):
     self.raiseADebug('Training...')
     # DEBUG FILE -> uncomment lines with this file in it to get series information.  This should be made available
     #    through a RomTrainer SolutionExport or something similar, or perhaps just an Output DataObject, in the future.
-    #debugfile = open('debugg_varma.csv','w')
+    writeTrainDebug = False
+    if writeTrainDebug:
+      debugfile = open('debugg_varma.csv','w')
     # obtain pivot parameter
     self.raiseADebug('... gathering pivot values ...')
     self.pivotParameterValues = targetVals[:,:,self.target.index(self.pivotParameterID)]
@@ -262,7 +266,8 @@ class ARMA(supervisedLearning):
 
     for t,target in enumerate(self.target):
       timeSeriesData = targetVals[:,t]
-      #debugfile.writelines('{}_original,'.format(target)+','.join(str(d) for d in timeSeriesData)+'\n')
+      if writeTrainDebug:
+        debugfile.writelines('{}_original,'.format(target)+','.join(str(d) for d in timeSeriesData)+'\n')
       # if this target governs the zero filter, extract it now
       if target == self.zeroFilterTarget:
         self.notZeroFilterMask = self._trainZeroRemoval(timeSeriesData,tol=self.zeroFilterTol) # where zeros are not
@@ -275,15 +280,18 @@ class ARMA(supervisedLearning):
                                                          self.fourierParams[target]['orders'],
                                                          timeSeriesData,
                                                          zeroFilter = target == self.zeroFilterTarget)
-        #debugfile.writelines('{}_fourier,'.format(target)+','.join(str(d) for d in self.fourierResults[target]['predict'])+'\n')
+        if writeTrainDebug:
+          debugfile.writelines('{}_fourier,'.format(target)+','.join(str(d) for d in self.fourierResults[target]['predict'])+'\n')
         timeSeriesData -= self.fourierResults[target]['predict']
-        #debugfile.writelines('{}_nofourier,'.format(target)+','.join(str(d) for d in timeSeriesData)+'\n')
+        if writeTrainDebug:
+          debugfile.writelines('{}_nofourier,'.format(target)+','.join(str(d) for d in timeSeriesData)+'\n')
       # zero filter application
       ## find the mask for the requested target where values are nonzero
       if target == self.zeroFilterTarget:
         # artifically force signal to 0 post-fourier subtraction where it should be zero
         targetVals[:,t][self.notZeroFilterMask] = 0.0
-        #debugfile.writelines('{}_zerofilter,'.format(target)+','.join(str(d) for d in timeSeriesData)+'\n')
+        if writeTrainDebug:
+          debugfile.writelines('{}_zerofilter,'.format(target)+','.join(str(d) for d in timeSeriesData)+'\n')
 
 
     # Transform data to obatain normal distrbuted series. See
@@ -296,7 +304,8 @@ class ARMA(supervisedLearning):
       self.cdfParams[target] = self._trainCDF(timeSeriesData)
       # normalize data
       normed = self._normalizeThroughCDF(timeSeriesData, self.cdfParams[target])
-      #debugfile.writelines('{}_normed,'.format(target)+','.join(str(d) for d in normed)+'\n')
+      if writeTrainDebug:
+        debugfile.writelines('{}_normed,'.format(target)+','.join(str(d) for d in normed)+'\n')
       # check if this target is part of a correlation set, or standing alone
       if target in self.correlations:
         # store the data and train it separately in a moment
@@ -345,7 +354,8 @@ class ARMA(supervisedLearning):
         self.varmaNoise = (noiseDist,)
         self.varmaInit = (initDist,)
 
-    #debugfile.close()
+    if writeTrainDebug:
+      debugfile.close()
 
   def __evaluateLocal__(self,featureVals):
     """
@@ -498,12 +508,15 @@ class ARMA(supervisedLearning):
     """
     # Freedman-Diaconis
     iqr = np.percentile(data,75) - np.percentile(data,25)
-    if iqr <= 0.0:
-      self.raiseAnError(ValueError,'While computing CDF, 25 and 75 percentile are the same number!')
-    size = 2.0 * iqr / np.cbrt(data.size)
-    # tend towards too many bins, not too few
-    # also don't use less than 20 bins, it makes some pretty sketchy CDFs otherwise
-    n = max(int(np.ceil((max(data) - min(data))/size)),20)
+    # see if we can use Freedman-Diaconis
+    if iqr > 0.0:
+      size = 2.0 * iqr / np.cbrt(data.size)
+      # tend towards too many bins, not too few
+      # also don't use less than 20 bins, it makes some pretty sketchy CDFs otherwise
+      n = max(int(np.ceil((max(data) - min(data))/size)),20)
+    else:
+      self.raiseAWarning('While computing CDF, 25 and 75 percentile are the same number; using Root instead of Freedman-Diaconis.')
+      n = max(int(np.ceil(np.sqrt(data.size))),20)
     n *= 100
     self.raiseADebug('... ... bins for ARMA empirical CDF:',n)
     return n
