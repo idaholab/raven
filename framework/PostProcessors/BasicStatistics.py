@@ -902,6 +902,10 @@ class BasicStatistics(PostProcessor):
       else:
        outputSet[metric] = ds
     if self.outputDataset:
+      # Add 'RAVEN_sample_ID' to output dataset for consistence
+      if 'RAVEN_sample_ID' not in outputSet.sizes.keys():
+        outputSet = outputSet.expand_dims('RAVEN_sample_ID')
+        outputSet['RAVEN_sample_ID'] = [0]
       return outputSet
     else:
       outputDict = {}

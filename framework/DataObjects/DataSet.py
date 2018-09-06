@@ -648,10 +648,7 @@ class DataSet(DataObject):
     if not self.hierarchical and 'RAVEN_isEnding' in self.getVars():
       return len(self._data.where(self._data['RAVEN_isEnding']==True,drop=True)['RAVEN_isEnding'])
     else:
-      if self.sampleTag in self._data.sizes.keys():
-        return len(self) # so that other entities can track which realization we've written
-      else:
-        return 0 # not 'RAVEN_sample_ID' is found
+      return len(self) # so that other entities can track which realization we've written
 
   ### BUIlTINS AND PROPERTIES ###
   # These are special commands that RAVEN entities can use to interact with the data object
@@ -669,10 +666,7 @@ class DataSet(DataObject):
       @ In, None
       @ Out, boolean, True if the dataset is empty otherwise False
     """
-    try:
-      empty = False if len(self.asDataset().variables) > 0 else True
-    except AttributeError:
-      empty = True
+    empty = True if self.size == 0 else False
     return empty
 
   @property
@@ -1294,7 +1288,7 @@ class DataSet(DataObject):
   def _fromXarrayDataset(self,dataset):
     """
     """
-    if self._collector is not None or self._data is not None:
+    if not self.isEmpty:
       self.raiseAnError(IOError, 'DataObject', self.name.strip(),'is not empty!')
     #select data from dataset
     providedVars  = set(dataset.data_vars.keys())
@@ -1304,7 +1298,8 @@ class DataSet(DataObject):
     if len(missing) > 0:
       self.raiseAnError(KeyError,'Variables are missing from "source" that are required for data object "',
                                   self.name.strip(),'":',",".join(missing))
-    providedDims = set(dataset.sizes.keys())
+    # remove self.sampleTag since it is an internal used dimension
+    providedDims = set(dataset.sizes.keys()) - set([self.sampleTag])
     requiredDims = set(self.indexes)
     missing = requiredDims - providedDims
     if len(missing) > 0:
@@ -1314,11 +1309,11 @@ class DataSet(DataObject):
     datasetSub = dataset[list(requiredVars)]
     # check the dimensions
     for var in self.vars:
-      requiredDims = self.getDimensions(var)[var]
+      requiredDims = set(self.getDimensions(var)[var])
       # make sure "dims" isn't polluted
       assert(self.sampleTag not in requiredDims)
-      providedDims = datasetSub[var].sizes.keys()
-      if set(requiredDims) != set(providedDims):
+      providedDims = set(datasetSub[var].sizes.keys()) - set([self.sampleTag])
+      if requiredDims != providedDims:
         self.raiseAnError(KeyError,'Dimensions of variable',var,'from "source"', ",".join(providedDims),
                 'is not consistent with the required dimensions for data object "',
                 self.name.strip(),'":',",".join(requiredDims))

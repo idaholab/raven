@@ -149,17 +149,21 @@ data objects, depending on the type of statistics the user wants to compute:
   quantities are going to be calculated, if \textit{False} unbiased.
   \default{False}
   %
-  \item \xmlNode{dataset}, \xmlDesc{string (boolean), optional field}, if \textit{True} \xmlString{DataSet}
+  \item \xmlNode{dataset}, \xmlDesc{boolean, optional field}, if \textit{True} \xmlString{DataSet}
     will be used to store the calculation results, if \textit{False} \xmlString{PointSet} or \xmlString{HistorySet}
     will be used to store the calculation results.
-    \nb The optional \xmlString{DataSet} is added only to this Post-Processor, one can still use the \xmlString{OutStreams}
+    \nb The optional \xmlString{DataSet} is added only to this PostProcessor, one can still use the \xmlString{OutStreams}
     to print the variables available in the \textit{DataSet}. The \xmlString{"metric"} names are used as the
-    variable names, i.e. variable names listed in \xmlNode{Input} or \xmlNode{Output}. If scalar metrics, such as 
-    \xmlNode{expectedValue} and \xmlNode{variance}, are requested, the index variable \xmlString{targets} will be required.
-    If vector metrics, such as \xmlNode{covariance} and \xmlNode{sensitivity}, are requested, the index variables
-    \xmlString{targets} and \xmlString{features} will be required. If \xmlNode{percentile} is requested, an additional
-    index variable \xmlString{percent} should be added. In addition, if dynamic BasicStatistics (e.g. time) is requested,
-    the index variable \xmlString{time}  will be required.
+    variable names, i.e. variable names listed in \xmlNode{Input} or \xmlNode{Output} in the defined \xmlString{DataSet}.
+    In addition, the extra node \xmlNode{Index} is required, and the value for \xmlAttr{var} can be found in the following:
+    \begin{itemize}
+      \item scalar metrics, such as \xmlNode{expectedValue} and \xmlNode{variance}, 
+        are requested, the index variable \xmlString{targets} will be required.
+      \item vector metrics, such as \xmlNode{covariance} and \xmlNode{sensitivity}, are requested, the index variables
+        \xmlString{targets} and \xmlString{features} will be required. 
+      \item If \xmlNode{percentile} is requested, an additional index variable \xmlString{percent} should be added.
+      \item when dynamic BasicStatistics (e.g. time) is requested, the index variable \xmlString{time}  will be required.
+    \end{itemize}
   \default{False}
   %
 \end{itemize}
