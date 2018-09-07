@@ -26,6 +26,7 @@ import xml.dom.minidom as pxml
 import re
 import os
 from .utils import isString
+import VariableGroups
 
 #define type checking
 def isComment(node):
