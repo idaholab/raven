@@ -414,7 +414,7 @@ class Simulation(MessageHandler.MessageUser):
     varGroupNode = xmlNode.find('VariableGroups')
     # init, read XML for variable groups
     if varGroupNode is not None:
-      varGroups = readVariableGroups(varGroupNode,self.messageHandler,self)
+      varGroups = xmlUtils.readVariableGroups(varGroupNode,self.messageHandler,self)
     else:
       varGroups={}
     # read other nodes
@@ -816,37 +816,3 @@ class Simulation(MessageHandler.MessageUser):
           else:
             self.raiseAnError(IOError,'Requested object '+obj[1]+' is not part of the Main Class '+mainClassStr + '!')
       objectInstance.generateAssembler(neededobjs)
-
-# this method is made available at the module level to any callers
-def readVariableGroups(xmlNode,messageHandler,caller):
-  """
-    Reads the XML for the variable groups and initializes them
-    @ In, xmlNode, ElementTree.Element, xml node to read in
-    @ In, messageHandler, MessageHandler.MessageHandler instance, message handler to assign to the variable group objects
-    @ In, caller, MessageHandler.MessageUser instance, entity calling this method (needs to inherit from MessageHandler.MessageUser)
-    @ Out, varGroups, dict, dictionary of variable groups (names to the variable lists to replace the names)
-  """
-  varGroups = {}
-  for child in xmlNode:
-    varGroup = VariableGroups.VariableGroup()
-    varGroup.readXML(child,messageHandler)
-    varGroups[varGroup.name]=varGroup
-  # initialize variable groups
-  while any(not vg.initialized for vg in varGroups.values()):
-    numInit = 0 #new vargroups initialized this pass
-    for vg in varGroups.values():
-      if vg.initialized:
-        continue
-      try:
-        deps = list(varGroups[dp] for dp in vg.getDependencies())
-      except KeyError as e:
-        caller.raiseAnError(IOError,'Dependency %s listed but not found in varGroups!' %e)
-      if all(varGroups[dp].initialized for dp in vg.getDependencies()):
-        vg.initialize(varGroups.values())
-        numInit+=1
-    if numInit == 0:
-      caller.raiseAWarning('variable group status:')
-      for name,vg in varGroups.items():
-        caller.raiseAWarning('   ',name,':',vg.initialized)
-      caller.raiseAnError(RuntimeError,'There was an infinite loop building variable groups!')
-  return varGroups

@@ -31,7 +31,6 @@ import numpy as np
 from collections import OrderedDict
 
 from utils import xmlUtils, mathUtils
-import Simulation # to get the varGroups parsing method
 import MessageHandler # to give VariableGroups a messageHandler and handle messages
 
 class RAVENparser():
@@ -68,7 +67,7 @@ class RAVENparser():
       messageHandler = MessageHandler.MessageHandler()
       messageHandler.initialize({'verbosity':'quiet'})
       messageUser = MessageHandler.MessageUser()
-      self.varGroups = Simulation.readVariableGroups(variableGroupNode,messageHandler,messageUser)
+      self.varGroups = xmlUtils.readVariableGroups(variableGroupNode,messageHandler,messageUser)
 
     # do some sanity checks
     sequence = [step.strip() for step in self.tree.find('.//RunInfo/Sequence').text.split(",")]
