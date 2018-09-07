@@ -521,7 +521,7 @@ class Code(Model):
       self.raiseAMessage("modified command to", repr(command))
       for key, value in localenv.items():
         localenv[key]=str(value)
-    if not self.code.getRunOnShell():
+    elif not self.code.getRunOnShell():
       command = self._expandCommand(command)
     ## This code should be evaluated by the job handler, so it is fine to wait
     ## until the execution of the external subprocess completes
