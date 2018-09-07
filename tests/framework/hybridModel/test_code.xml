@@ -23,7 +23,7 @@
   
   <Metrics>
       <SKL name="m1">
-          <metricType>mean_squared_error</metricType>
+          <metricType>regression|mean_squared_error</metricType>
       </SKL>
   </Metrics>
 

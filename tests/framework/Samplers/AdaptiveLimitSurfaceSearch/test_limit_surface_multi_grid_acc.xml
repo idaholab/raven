@@ -99,7 +99,7 @@
   </Models>
 
   <Functions>
-    <External file="limitSurfaceMultiGrid/goalFunctionTwoIslands" name="goalFunction">
+    <External file="goalFunctionTwoIslands" name="goalFunction">
       <variable>x1</variable>
       <variable>x2</variable>
       <variable>y4</variable>

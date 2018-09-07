@@ -1,0 +1,138 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="all">
+  <RunInfo>
+    <WorkingDir>metricTD</WorkingDir>
+    <Sequence>mcRun, PP1</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+  <TestInfo>
+    <name>framework/PostProcessors/Metric/test_metric_td</name>
+    <author>wangc</author>
+    <created>2017-11-20</created>
+    <classesTested>PostProcessors.Metric</classesTested>
+    <description>
+      This test checks the Metric PostProcessor to handle time-dependent data
+    </description>
+  </TestInfo>
+
+  <Files>
+    <Input name="output_metric" type="">output_metric_td.xml</Input>
+  </Files>
+
+  <Models>
+    <ExternalModel ModuleToLoad="../../../AnalyticModels/lorentzAttractor_disc.py" name="poly" subType="">
+      <variables>x0, y0, z0, time, x, y, z</variables>
+    </ExternalModel>
+    <PostProcessor name="pp1" subType="Metric">
+      <Features type="variable">x0, x, x</Features>
+      <Targets type="variable">y0, y, z</Targets>
+      <multiOutput>raw_values</multiOutput>
+      <pivotParameter>time</pivotParameter>
+      <Metric class="Metrics" type="SKL">EVC</Metric>
+      <Metric class="Metrics" type="SKL">MAE</Metric>
+      <Metric class="Metrics" type="SKL">R2</Metric>
+      <Metric class="Metrics" type="SKL">MSE</Metric>
+    </PostProcessor>
+  </Models>
+  
+  <DataObjects>
+    <PointSet name="inputPlaceHolder2">
+      <Input>x0,y0,z0</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <HistorySet name="outHistData">
+      <Input>x0,y0,z0</Input>
+      <Output>x,y,z,time</Output>
+    </HistorySet>
+    <HistorySet name="pp1_out">
+      <Input>
+         EVC_y0_x0,
+         MAE_y0_x0,
+         MSE_y0_x0,
+         R2_y0_x0
+      </Input>
+      <Output>
+         EVC_y_x,
+         EVC_z_x,
+         MAE_y_x,
+         MAE_z_x,
+         R2_y_x,
+         R2_z_x,
+         MSE_y_x,
+         MSE_z_x
+      </Output>
+    </HistorySet>
+  </DataObjects>
+  
+  <OutStreams>
+    <Print name="pp1_print">
+      <type>csv</type>
+      <source>pp1_out</source>
+    </Print>
+  </OutStreams>
+
+  <Metrics>
+    <SKL name="EVC">
+      <metricType>regression|explained_variance_score</metricType>
+    </SKL>
+    <SKL name="MAE">
+      <metricType>regression|mean_absolute_error</metricType>
+    </SKL>
+    <SKL name="R2">
+      <metricType>regression|r2_score</metricType>
+    </SKL>
+    <SKL name="MSE">
+      <metricType>regression|mean_squared_error</metricType>
+    </SKL>
+  </Metrics>
+
+  <Distributions>
+    <Normal name="x0_distrib">
+      <mean>1</mean>
+      <sigma>1</sigma>
+    </Normal>
+    <Normal name="y0_distrib">
+      <mean>2</mean>
+      <sigma>1</sigma>
+    </Normal>
+    <Normal name="z0_distrib">
+      <mean>3</mean>
+      <sigma>1</sigma>
+    </Normal>
+  </Distributions>
+  
+  <Samplers>
+    <MonteCarlo name="MC_external">
+      <samplerInit>
+        <limit>10</limit>
+        <initialSeed>1</initialSeed>
+      </samplerInit>
+      <variable name="x0">
+        <distribution>x0_distrib</distribution>
+      </variable>
+      <variable name="y0">
+        <distribution>y0_distrib</distribution>
+      </variable>
+      <variable name="z0">
+        <distribution>z0_distrib</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="mcRun" re-seeding="10311986">
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder2</Input>
+      <Model class="Models" type="ExternalModel">poly</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
+      <Output class="DataObjects" type="HistorySet">outHistData</Output>
+    </MultiRun>
+    <PostProcess name="PP1">
+      <Input class="DataObjects" type="HistorySet">outHistData</Input>
+      <Model class="Models" type="PostProcessor">pp1</Model>
+      <Output class="DataObjects" type="HistorySet">pp1_out</Output>
+      <Output class="OutStreams" type="Print">pp1_print</Output>
+      <Output class="Files" type="">output_metric</Output>
+    </PostProcess>
+  </Steps>
+
+</Simulation>
