@@ -41,6 +41,7 @@ class Saphire(GenericCode):
     GenericCode.__init__(self)
     self.codeOutputs = {} # the root of the outputs
     self.outputDest = 'Publish' # Saphire will dump its outputs to this folder
+    self.setRunOnShell(shell=False) # Saphire can not run through shell
 
   def addDefaultExtension(self):
     """

@@ -357,6 +357,15 @@ def checkForOutputFailure(self, command, output, workingDir):
       open(os.path.join(workingDir,output+'.o'),"r").readlines())
  \end{lstlisting}
 
+\subsubsection{Method: \texttt{setRunOnShell}}
+\label{subsubsec:setRunOnShell}
+\begin{lstlisting}[language=python]
+self.setRunOnShell(shell=True)
+\end{lstlisting}
+The \textbf{setRunOnShell} function is an optional method. The default for shell is ``True''.
+If external codes can not run through ``Shell'', the code interface developers should call this
+function with ``shell=False'' in the ``\_\_init\_\_'' method.
+
 \subsection{Tools for Developing Code Interfaces}
 To make generating a code interface as simple as possible, there are several tools RAVEN makes available within the Code Interface objects.
 

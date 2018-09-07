@@ -43,8 +43,25 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
       @ In, None
       @ Out, None
     """
-    self.inputExtensions = []
+    self.inputExtensions = []            # list of input extensions
     self.ignoreInputExtensions = ['zip'] # the list of input extensions that will be ignored by the code interface.
+    self._runOnShell = True               # True if the specified command by the code interfaces will be executed through shell.
+
+  def setRunOnShell(self,shell=True):
+    """
+      Method used to set the the executation of code command through shell if shell=True
+      @ In, shell, Boolean, True if the users want to execute their code through shell
+      @ Out, None
+    """
+    self._runOnShell = shell
+
+  def getRunOnShell(self):
+    """
+      Method to return the status of self._runOnShell
+      @ In, None
+      @ Out, None
+    """
+    return self._runOnShell
 
   def genCommand(self,inputFiles,executable,flags=None, fileArgs=None, preExec=None):
     """

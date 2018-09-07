@@ -23,6 +23,7 @@
 
   <Models>
     <Code name="saphire" subType="Saphire">
+      <shell>False</shell>
       <executable>"C:\Saphire 8\tools\SAPHIRE.exe"</executable>
       <clargs arg="macro" extension=".mac" type="input" delimiter="="/>
       <clargs arg="project" extension=".zip" type="input" delimiter="="/>

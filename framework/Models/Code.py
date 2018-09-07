@@ -383,7 +383,7 @@ class Code(Model):
       @ Out, commandSplit, string or String List, the expanded command or the original if not expanded.
     """
     if origCommand.strip() == '':
-      return ['echo', 'no command provided']
+      return origCommand
     # In Windows Python, you can get some backslashes in your paths
     commandSplit = shlex.split(origCommand.replace("\\","/"))
     executable = commandSplit[0]
@@ -521,14 +521,11 @@ class Code(Model):
       self.raiseAMessage("modified command to", repr(command))
       for key, value in localenv.items():
         localenv[key]=str(value)
-    else:
+    if not self.code.getRunOnShell():
       command = self._expandCommand(command)
     ## This code should be evaluated by the job handler, so it is fine to wait
-    ## until the execution of the external subprocess completes.
-    #process = utils.pickleSafeSubprocessPopen(command, shell=True, stdout=outFileObject, stderr=outFileObject, cwd=localenv['PWD'], env=localenv)
-    # TODO: The following changes are required for SAPHIRE interface.
-    process = utils.pickleSafeSubprocessPopen(command, shell=False, stdout=outFileObject, stderr=outFileObject, cwd=localenv['PWD'], env=localenv)
-    # TODO: The above changes are required for SAPHIRE interface
+    ## until the execution of the external subprocess completes
+    process = utils.pickleSafeSubprocessPopen(command, shell=self.code.getRunOnShell(), stdout=outFileObject, stderr=outFileObject, cwd=localenv['PWD'], env=localenv)
     ################################################################
     process.wait()
 
