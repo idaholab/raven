@@ -55,7 +55,6 @@
         <targets>x,y,z</targets>
         <features>x,y,z</features>
       </VarianceDependentSensitivity>
-      <multipleLinear>True</multipleLinear>
     </PostProcessor>
   </Models>
 

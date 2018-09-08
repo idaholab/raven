@@ -132,7 +132,7 @@ class BasicStatistics(PostProcessor):
     self.pbPresent      = False # True if the ProbabilityWeight is available
     self.realizationWeight = None # The joint probabilities
     self.outputDataset  = False # True if the user wants to dump the outputs to dataset
-    self.multipleLinear = False # True if multiple linear regression is requested
+    self.multipleLinear = True # True if multiple linear regression is requested
 
   def inputToInternal(self, currentInp):
     """
@@ -319,8 +319,8 @@ class BasicStatistics(PostProcessor):
         if child.value.lower() in utils.stringsThatMeanTrue():
           self.outputDataset = True
       elif tag == "multipleLinear":
-        if child.value.lower() in utils.stringsThatMeanTrue():
-          self.multipleLinear = True
+        if child.value.lower() in utils.stringsThatMeanFalse():
+          self.multipleLinear = False
       else:
         self.raiseAWarning('Unrecognized node in BasicStatistics "',tag,'" has been ignored!')
     assert (len(self.toDo)>0), self.raiseAnError(IOError, 'BasicStatistics needs parameters to work on! Please check input for PP: ' + self.name)
