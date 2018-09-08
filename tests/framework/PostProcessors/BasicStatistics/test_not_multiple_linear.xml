@@ -1,0 +1,124 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="all">
+  <RunInfo>
+    <WorkingDir>notMultipleLinear</WorkingDir>
+    <Sequence>mc,pp</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <TestInfo>
+    <name>framework/PostProcessors/BasicStatistics/nml</name>
+    <author>wangc</author>
+    <created>2018-09-08</created>
+    <classesTested>PostProcessors.BasicStatistics</classesTested>
+    <description>
+        This test checks sensitivity, variance dependent sensitivity calculations
+        without using the multiple linear regression method. This means the inputs
+        are treated uncorrelated with respective to the output space
+    </description>
+  </TestInfo>
+
+  <Models>
+    <ExternalModel ModuleToLoad="linearModel" name="mirrow" subType="">
+      <variables>u0,v0,w0,x0,y0,z0,u1,v1,w1,x1,y1,z1</variables>
+    </ExternalModel>
+    <PostProcessor name="basicStat" subType="BasicStatistics" verbosity="debug">
+      <multipleLinear>False</multipleLinear>
+      <sensitivity prefix="sen">
+        <targets>u1,v1,w1,x1,y1,z1</targets>
+        <features>u0,v0,w0,x0,y0,z0</features>
+      </sensitivity>
+      <VarianceDependentSensitivity prefix="vsen">
+        <targets>u1,v1,w1,x1,y1,z1</targets>
+        <features>u0,v0,w0,x0,y0,z0</features>
+      </VarianceDependentSensitivity>
+    </PostProcessor>
+  </Models>
+
+  <Distributions>
+    <Normal name="distribI">
+      <mean>100</mean>
+      <sigma>50.0</sigma>
+    </Normal>
+    <Normal name="distribII">
+      <mean>100</mean>
+      <sigma>50.0</sigma>
+    </Normal>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="MC_external">
+      <samplerInit>
+        <limit>10</limit>
+      </samplerInit>
+      <variable name="u0,v0,w0">
+        <distribution>distribI</distribution>
+      </variable>
+      <variable name="x0,y0,z0">
+        <distribution>distribII</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="mc" re-seeding="20021986">
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
+      <Model class="Models" type="ExternalModel">mirrow</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
+      <Output class="DataObjects" type="PointSet">outputDataMC</Output>
+    </MultiRun>
+    <PostProcess name="pp">
+      <Input class="DataObjects" type="PointSet">outputDataMC</Input>
+      <Model class="Models" type="PostProcessor">basicStat</Model>
+      <Output class="DataObjects" type="PointSet">basicStatPP</Output>
+      <Output class="OutStreams" type="Print">basicStatPP_dump</Output>
+    </PostProcess>
+  </Steps>
+
+  <OutStreams>
+    <Print name="basicStatPP_dump">
+      <type>csv</type>
+      <source>basicStatPP</source>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="inputPlaceHolder">
+      <Input>u0,v0,w0,x0,y0,z0</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="outputDataMC">
+      <Input>u0,v0,w0,x0,y0,z0</Input>
+      <Output>u1,v1,w1,x1,y1,z1</Output>
+    </PointSet>
+    <PointSet name="basicStatPP">
+      <Output>analyticalTest_vars</Output>
+    </PointSet>
+  </DataObjects>
+
+  <VariableGroups>
+      <Group name="analyticalTest_vars">
+                 sen_u1_u0,
+                 sen_v1_v0,
+                 sen_w1_w0,
+                 sen_x1_x0,
+                 sen_y1_y0,
+                 sen_z1_z0,
+                 sen_u1_v0,
+                 sen_u1_w0,
+                 sen_x1_y0,
+                 sen_x1_z0,
+                 vsen_u1_u0,
+                 vsen_v1_v0,
+                 vsen_w1_w0,
+                 vsen_x1_x0,
+                 vsen_y1_y0,
+                 vsen_z1_z0,
+                 vsen_u1_v0,
+                 vsen_u1_w0,
+                 vsen_x1_y0,
+                 vsen_x1_z0
+      </Group>
+  </VariableGroups>
+
+</Simulation>
