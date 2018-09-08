@@ -105,6 +105,9 @@ class BasicStatistics(PostProcessor):
     biasedInput = InputData.parameterInputFactory("biased", contentType=InputData.StringType)
     inputSpecification.addSub(biasedInput)
 
+    multipleLinearInput = InputData.parameterInputFactory("multipleLinear", contentType=InputData.StringType)
+    inputSpecification.addSub(multipleLinearInput)
+
     return inputSpecification
 
   def __init__(self, messageHandler):
