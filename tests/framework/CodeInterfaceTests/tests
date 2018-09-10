@@ -338,10 +338,4 @@
    rel_err = 0.0001
  [../]
  
- [./SaphireNoExe]
-   type = 'RavenFramework'
-   input = 'test_saphire.xml'
-   test_interface_only = True
-   UnorderedCsv = 'testSaphire/saphirePrint.csv'
- [../]
 []

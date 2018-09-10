@@ -147,7 +147,7 @@ class Code(Model):
         elif argtype == 'text':
           if ext != None:
             self.raiseAWarning('"text" nodes only accept "type" and "arg" attributes! Ignoring "extension"...')
-          if delimiter != " ":
+          if not delimiter.strip():
             self.raiseAWarning('"text" nodes only accept "type" and "arg" attributes! Ignoring "delimiter"...')
           if arg == None:
             self.raiseAnError(IOError,'"arg" for clarg '+argtype+' not specified! Enter text to be used.')
@@ -160,8 +160,9 @@ class Code(Model):
           else:
             if arg not in self.clargs['input'].keys():
               self.clargs['input'][arg]=[]
-            # add delimiter to the 'arg' for SAPHIRE interface, since one need to provide
-            # 'marco=pathToMacroInputFile' in the command line, the delimiter='=' will be used instead of empty space
+            # The delimiter is used to link 'arg' with the input file that have the file extension
+            # given by 'extension'. In general, empty space is used. But in some specific cases, the codes may require
+            # some specific delimiters to link the 'arg' and input files
             self.clargs['input'][arg].append((ext,delimiter))
         elif argtype == 'output':
           if arg == None:
@@ -366,14 +367,20 @@ class Code(Model):
 
   def _expandCommand(self, origCommand):
     """
-      Function to expand a command from string to list
+      Function to expand a command from string to list.
+      RAVEN employs subprocess.Popen to spawn new processes, and RAVEN allows code interface developers
+      to control shell argument of Popen. When shell is True, a string is required for the command. When shell
+      is False, a sequence, i.e. a list of strings, is required.
+      The reasons are: In general, a sequence of arguments is preferred, as it allows the module to
+      take care of any required escaping and quoting of arguments. When shell is True, a string is preferred,
+      since when a sequence is provided, only the first item specifies the command string, and any additional
+      items will be treated as additional arguments to the shell itself.
       @ In, origCommand, string, The command to check for expantion
       @ Out, commandSplit, string or String List, the expanded command or the original if not expanded.
     """
     if origCommand.strip() == '':
       return ['echo', 'no command provided']
-    # In Windows Python, you can get some backslashes in your paths
-    commandSplit = shlex.split(origCommand.replace("\\","/"))
+    commandSplit = shlex.split(origCommand)
     return commandSplit
 
   def _expandForWindows(self, origCommand):

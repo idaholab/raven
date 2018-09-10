@@ -39,9 +39,24 @@ class Saphire(GenericCode):
       @ Out, None
     """
     GenericCode.__init__(self)
-    self.codeOutputs = {} # the root of the outputs
+    self.codeOutputs = {} # dict of {codeOutputFileName:codeOutputFileType}, SAPHIRE can generate multiple output files
+                          # such as uncertainty files for event trees or fault trees, and importance files for event
+                          # trees or fault trees. This dictionary will store the users defined outputflies that
+                          # will be collected.
     self.outputDest = 'Publish' # Saphire will dump its outputs to this folder
+    self.ignoreInputExtensions = ['zip'] # the list of input extensions that will be ignored by the code interface.
+                                         # i.e. files with extension 'zip' will not be perturbed.
     self.setRunOnShell(shell=False) # Saphire can not run through shell
+
+  def addInputExtension(self,exts):
+    """
+      This method adds a list of extension the code interface accepts for the input files
+      @ In, exts, list, list or other array containing accepted input extension (e.g.[".i",".inp"])
+      @ Out, None
+    """
+    for e in exts:
+      if e not in self.ignoreInputExtensions:
+        self.inputExtensions.append(e)
 
   def addDefaultExtension(self):
     """

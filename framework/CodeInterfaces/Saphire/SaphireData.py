@@ -34,8 +34,8 @@ class SaphireData:
       @ In, outFiles, list, list of output files of SAPHIRE
       @ Out, None
     """
-    self.headerNames = []
-    self.outData = []
+    self.headerNames = [] # list of variable names in SAPHIRE output files
+    self.outData = []     # list of variable values in SAPHIRE output files
     for outFile in outFiles:
       outFileName, outFileType = outFile[0], outFile[1]
       if outFileType == 'uncertainty':
@@ -56,8 +56,8 @@ class SaphireData:
     """
       Method to extract the uncertainty information of Event Tree or Fault Tree from SAPHIRE output files
       @ In, outName, string, the name of output file
-      @ Out, headerNames, list, list of output variable names
-      @ Out, outData, list, list of output variable values
+      @ Out, (headerNames,outData), tuple, where headerNames is a list of output variable names and
+        outData is a list of output variable values
     """
     headerNames = []
     outData = []

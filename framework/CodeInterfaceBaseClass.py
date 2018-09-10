@@ -44,7 +44,6 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
       @ Out, None
     """
     self.inputExtensions = []            # list of input extensions
-    self.ignoreInputExtensions = ['zip'] # the list of input extensions that will be ignored by the code interface.
     self._runOnShell = True               # True if the specified command by the code interfaces will be executed through shell.
 
   def setRunOnShell(self,shell=True):
@@ -156,8 +155,7 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
       @ Out, None
     """
     for e in exts:
-      if e not in self.ignoreInputExtensions:
-        self.inputExtensions.append(e)
+      self.inputExtensions.append(e)
 
   def addDefaultExtension(self):
     """
