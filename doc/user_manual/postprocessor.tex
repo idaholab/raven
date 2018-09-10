@@ -23,6 +23,7 @@ Currently, the following types are available in RAVEN:
   \item \textbf{DataMining}
   \item \textbf{Metric}
   \item \textbf{CrossValidation}
+  \item \textbf{ValueDuration}
   %\item \textbf{PrintCSV}
   %\item \textbf{LoadCsvIntoInternalObject}
 \end{itemize}
@@ -2146,3 +2147,46 @@ In addition to this XML node, several others are available:
     pseudo-random number generator state used for shuffling. If None, use default numpy RNG for shuffling.
 \end{itemize}
 
+
+%%%%%%%%%%%%%% ValueDuration %%%%%%%%%%%%%%%%%%%
+\subsubsection{ValueDuration}
+\label{ValueDurationPP}
+The \xmlNode{ValueDuration} postprocessor is a tool to construct a particular kind of histogram, where the
+independent variable is the number of times a variable exceeds a particular value, and the dependent variable
+is the values themselves.  An example of this is the Load Duration Curve in energy modeling. This approach is
+similar to that used in Lebesgue integration. Note that for each realization in the input
+\xmlNode{HistorySet}, a seperate load duration curve will be created for each target.
+
+The \xmlNode{ValueDuration} postprocessor can only act on \xmlNode{HistorySet} data objects, and generates a
+\xmlNode{HistorySet} in return.  Two output variables are created for each \xmlAttr{target}:
+\xmlString{counts\_x} and \xmlString{bins\_x}, where \xmlString{x} is replaced by the name of the target.
+These must be specified in the output data object in order to be collected.
+
+To plot a traditional Load Duration Curve, the x-axis should be the bins variable, and the y-axis should be
+the counts variable.
+
+\ppType{ValueDuration}{ValueDuration}
+%
+\begin{itemize}
+  \item \xmlNode{target}, \xmlDesc{comma separated strings, required field}, specifies the names of the
+    target(s) for which Value Duration histograms should be generated.
+  \item \xmlNode{bins}, \xmlDesc{integer, required field}, specifies the number of bins that the values of the
+    targets should be counted into.
+\end{itemize}
+
+\textbf{Example:}
+
+\begin{lstlisting}[style=XML]
+<Simulation>
+ ...
+  <Models>
+    ...
+    <PostProcessor name="pp" subType="ValueDuration">
+      <target>x, y</target>
+      <bins>100</bins>
+    </PostProcessor>
+    ...
+  </Models>
+ ...
+</Simulation>
+\end{lstlisting}

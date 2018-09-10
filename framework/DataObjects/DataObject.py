@@ -35,6 +35,7 @@ import xarray as xr
 from BaseClasses import BaseType
 from Files import StaticXMLOutput
 from utils import utils, cached_ndarray, InputData, xmlUtils, mathUtils
+from MessageHandler import MessageHandler
 
 class DataObjectsCollection(InputData.ParameterInput):
   """
@@ -220,7 +221,7 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta,BaseType)):
         self._fromVarToIndex.update(dict.fromkeys( self._pivotParams[ind], ind))
 
     if self.messageHandler is None:
-      self.messageHandler = MessageCourier()
+      self.messageHandler = MessageHandler()
 
   def _setDefaultPivotParams(self):
     """
@@ -469,28 +470,3 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     pass
 
 
-#
-#
-#
-#
-class MessageCourier:
-  """
-    Acts as a message handler when we don't have access to a real one.
-  """
-  def message(*args,**kwargs):
-    """
-      Prints message.
-      @ In, args, list, stuff to print
-      @ In, kwargs, dict, unused
-      @ Out, None
-    """
-    print(' '.join(list(str(a) for a in args)))
-
-  def error(etype,*args,**kwargs):
-    """
-      Raises error.  First argument is the error type.
-      @ In, args, list, unused
-      @ In, kwargs, dict, unused
-      @ Out, None
-    """
-    raise etype

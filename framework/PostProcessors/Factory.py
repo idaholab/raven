@@ -28,20 +28,23 @@ if not 'xrange' in dir(__builtins__):
 ################################################################################
 from utils import utils
 from .PostProcessor import PostProcessor
-from .BasicStatistics import BasicStatistics
-from .ComparisonStatisticsModule import ComparisonStatistics
-from .ExternalPostProcessor import ExternalPostProcessor
-from .ImportanceRank import ImportanceRank
-from .InterfacedPostProcessor import InterfacedPostProcessor
-from .LimitSurface import LimitSurface
-from .LimitSurfaceIntegral import LimitSurfaceIntegral
-# from .RavenOutput import RavenOutput # deprecated for now
-from .SafestPoint import SafestPoint
 
-from .TopologicalDecomposition import TopologicalDecomposition
-from .DataMining import DataMining
 from .Metric import Metric
+from .DataMining import DataMining
+from .ETImporter import ETImporter
+from .SafestPoint import SafestPoint
+from .LimitSurface import LimitSurface
+from .ValueDuration import ValueDuration
+from .ImportanceRank import ImportanceRank
+from .BasicStatistics import BasicStatistics
 from .CrossValidation import CrossValidation
+from .LimitSurfaceIntegral import LimitSurfaceIntegral
+from .ExternalPostProcessor import ExternalPostProcessor
+from .InterfacedPostProcessor import InterfacedPostProcessor
+from .TopologicalDecomposition import TopologicalDecomposition
+from .ComparisonStatisticsModule import ComparisonStatistics
+# from .RavenOutput import RavenOutput # deprecated for now
+
 ## These utilize the optional prequisite library PySide, so don't error if they
 ## do not import appropriately.
 try:
@@ -51,7 +54,6 @@ except ImportError:
   pass
 
 ## [ Add new class here ]
-from .ETImporter import ETImporter
 
 ################################################################################
 ## Alternatively, to fully automate this file:

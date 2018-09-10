@@ -184,6 +184,7 @@ class DataSet(DataObject):
     try:
       rlz = dict((var,rlz[var]) for var in self.getVars()+self.indexes)
     except KeyError as e:
+      self.raiseADebug('Variables provided:',rlz.keys())
       self.raiseAnError(KeyError,'Provided realization does not have all requisite values for object "{}": "{}"'.format(self.name,e.args[0]))
     # check consistency, but make it an assertion so it can be passed over
     if not self._checkRealizationFormat(rlz):
@@ -217,6 +218,7 @@ class DataSet(DataObject):
       self._collector = self._newCollector(width=len(rlz))
     # append
     self._collector.append(newData)
+
     # if hierarchical, clear the parent as an ending
     self._clearParentEndingStatus(rlz)
     # reset scaling factors, kd tree
@@ -467,7 +469,7 @@ class DataSet(DataObject):
         if index > numInData-1:
           ## if past the data AND the collector, we don't have that entry
           if index > numInData + numInCollector - 1:
-            self.raiseAnError(IndexError,'Requested index "{}" but only have {} entries (zero-indexed)!'.format(index,numInData+numInCollector))
+            self.raiseAnError(IndexError,'{}: Requested index "{}" but only have {} entries (zero-indexed)!'.format(self.name,index,numInData+numInCollector))
           ## otherwise, take from the collector
           else:
             rlz = self._getRealizationFromCollectorByIndex(index - numInData)
