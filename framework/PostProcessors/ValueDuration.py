@@ -96,7 +96,7 @@ class ValueDuration(PostProcessor):
       Method to convert an input object into the internal format that is
       understandable by this pp.
       In this case, we only want data objects!
-      @ In, currentInp, object, an object that needs to be converted
+      @ In, currentInp, list, an object that needs to be converted
       @ Out, currentInp, DataObject.HistorySet, input data
     """
     if len(currentInp) > 1:
