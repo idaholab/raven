@@ -1,2 +1,2 @@
-euclidean_ans2_ans,rbf_ans2_ans,poly_ans2_ans,sigmoid_ans2_ans,polynomial_ans2_ans,linear_ans2_ans,cosine_ans2_ans,cityblock_ans2_ans,l1_ans2_ans,l2_ans2_ans,manhattan_ans2_ans,laplacian_ans2_ans,explained_variance_score_ans2_ans,mean_absolute_error_ans2_ans,mean_squared_error_ans2_ans,median_absolute_error_ans2_ans,r2_score_ans2_ans
-8.1532061043789046,3.6744060651185575e-15,28.467927124738843,-0.99995358764147835,28.467927124738843,-6.3355343804289035,-0.29565233368899413,18.672347717536638,18.672347717536638,8.1532061043789046,18.672347717536638,8.8176165952244491e-05,-0.49058832692722087,2.0172970599471278,7.0662139042248571,1.4271190094338664,-0.69760640677163099
+explained_variance_score_ans2_ans,mean_absolute_error_ans2_ans,mean_squared_error_ans2_ans,r2_score_ans2_ans
+-0.490588326927,2.01729705995,7.06621390422,-0.697606406772

@@ -123,11 +123,11 @@ class GaussPolynomialRom(supervisedLearning):
       elif key=='PolynomialOrder':
         self.maxPolyOrder = val
       elif key=='Interpolation':
-        for var,val in val.items():
+        for var,value in val.items():
           self.itpDict[var]={'poly'  :'DEFAULT',
                              'quad'  :'DEFAULT',
                              'weight':'1'}
-          for atrName,atrVal in val.items():
+          for atrName,atrVal in value.items():
             if atrName in ['poly','quad','weight']:
               self.itpDict[var][atrName]=atrVal
             else:

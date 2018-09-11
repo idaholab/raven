@@ -220,9 +220,25 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
         self.normValues = np.zeros((cardinality,cardinality))
         keys = tdictNorm.keys()
         for i in range(cardinality):
-          for j in range(i+1,cardinality):
-            self.normValues[i][j] = metric.distance(tdictNorm[keys[i]],tdictNorm[keys[j]])
-            self.normValues[j][i] = self.normValues[i][j]
+          for j in range(i,cardinality):
+            # process the input data for the metric, numpy.array is required
+            assert(tdictNorm[keys[i]].keys() == tdictNorm[keys[j]].keys())
+            numParamsI = len(tdictNorm[keys[i]].keys())
+            numStepsI = len(tdictNorm[keys[i]].values()[0])
+            numStepsJ = len(tdictNorm[keys[j]].values()[0])
+
+            inputI = np.empty((numParamsI, numStepsI))
+            inputJ = np.empty((numParamsI, numStepsJ))
+            for ind, params in enumerate(tdictNorm[keys[i]].keys()):
+              valueI = tdictNorm[keys[i]][params]
+              valueJ = tdictNorm[keys[j]][params]
+              inputI[ind] = valueI
+              inputJ[ind] = valueJ
+            pairedData = ((inputI,None), (inputJ,None))
+            # FIXME: Using loops can be very slow for large number of realizations
+            self.normValues[i][j] = metric.evaluate(pairedData)
+            if i != j:
+              self.normValues[j][i] = self.normValues[i][j]
       else:
         ## PointSet
         normValues = np.zeros(shape = (realizationCount, featureCount))
@@ -231,7 +247,8 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
           featureValues = tdict[feat]
           (mu,sigma) = mathUtils.normalizationFactors(featureValues)
           normValues[:, cnt] = (featureValues - mu) / sigma
-        self.normValues = metric.distance(normValues)
+        # compute the pairwised distance for given matrix
+        self.normValues = metric.evaluatePairwise((normValues,None))
 
     self.__trainLocal__()
     self.amITrained = True

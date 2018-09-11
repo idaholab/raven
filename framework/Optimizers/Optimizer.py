@@ -957,7 +957,8 @@ class Optimizer(Sampler):
       overMask = check > self.optVarsInit['upperBound'][var]
       underMask = check < self.optVarsInit['lowerBound'][var]
       if np.sum(overMask)+np.sum(underMask) > 0:
-        self.raiseAWarning('A variable violated boundary constraints! "{}"={}'.format(var,optVars[var]))
+        self.raiseAWarning('A variable violated boundary constraints! Details below (enable DEBUG printing)')
+        self.raiseADebug('Violating values: "{}"={}'.format(var,optVars[var]))
         satisfied = False
         violatedConstrains['internal'].append( (var,underMask,overMask) )
 

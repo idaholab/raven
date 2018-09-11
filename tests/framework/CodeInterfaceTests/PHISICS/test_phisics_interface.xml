@@ -1,0 +1,206 @@
+<?xml version="1.0" ?>
+<Simulation>
+  <TestInfo>
+    <name>framework/CodeInterfaceTests/PHISICS.phisics</name>
+    <author>rouxpn</author>
+    <created>2018-04-23</created>
+    <classesTested>Models.Code.Phisics</classesTested>
+    <description>
+        This test is aimed to test the mechanics of the interface between RAVEN and
+        PHISICS, using the full-blonde PHISICS executable.
+        Qvalues, decay constants, initial densities and cross sections get perturbed.
+        NOTE: The input files and data have been epurated from nuclear data; consequentially
+        the case is not runable for real with PHISICS. The code will error out.
+    </description>
+    <revisions>
+      <revision author="alfoa" date="2018-07-08">modified to make it work and to remove nuclear data</revision>
+    </revisions>
+  </TestInfo>
+  <RunInfo>
+    <WorkingDir>./phisics</WorkingDir>
+    <Sequence>phisicsTest2D</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name="inp.xml"             type="inp"               perturbable="False"                                 >inp.xml</Input>
+    <Input name="lib_inp_path.xml"    type="path"              perturbable="False"                                 >lib_inp_path.xml</Input>
+    <Input name="Material.xml"        type="Material"          perturbable="True"                                  >Material.xml</Input>
+    <Input name="Depletion_input.xml" type="Depletion_input"   perturbable="False"                                 >Depletion_input.xml</Input>
+    <Input name="Xs-Library.xml"      type="Xs-Library"        perturbable="False"                                 >Xs-Library.xml</Input>
+    <Input name="scaled_xs.xml"       type="XS"                perturbable="True"                                  >scaled_xs.xml</Input>
+    <Input name="tabMapping.xml"      type="tabMap"            perturbable="False"                                 >tabMapping.xml</Input>
+    <Input name="decay.dat"           type="decay"             perturbable="True"  subDirectory="mrtau_libraries"  >decay.dat</Input>
+    <Input name="FissionYield.dat"    type="FissionYield"      perturbable="True"  subDirectory="mrtau_libraries"  >FissionYield.dat</Input>
+    <Input name="FissQValue.dat"      type="FissQValue"        perturbable="True"  subDirectory="mrtau_libraries"  >FissQValue.dat</Input>
+    <Input name="AlphaDecay.path"     type="AlphaDecay"        perturbable="True"  subDirectory="mrtau_libraries"  >AlphaDecay.path</Input>
+    <Input name="Beta+Decay.path"     type="Beta+Decay"        perturbable="True"  subDirectory="mrtau_libraries"  >Beta+Decay.path</Input>
+    <Input name="Beta+xDecay.path"    type="Beta+xDecay"       perturbable="True"  subDirectory="mrtau_libraries"  >Beta+xDecay.path</Input>
+    <Input name="BetaDecay.path"      type="BetaDecay"         perturbable="True"  subDirectory="mrtau_libraries"  >BetaDecay.path</Input>
+    <Input name="BetaxDecay.path"     type="BetaxDecay"        perturbable="True"  subDirectory="mrtau_libraries"  >BetaxDecay.path</Input>
+    <Input name="IntTraDecay.path"    type="IntTraDecay"       perturbable="True"  subDirectory="mrtau_libraries"  >IntTraDecay.path</Input>
+    <Input name="N,2N.path"           type="N,2N"              perturbable="False" subDirectory="mrtau_libraries"  >N,2N.path</Input>
+    <Input name="N,ALPHA.path"        type="N,ALPHA"           perturbable="False" subDirectory="mrtau_libraries"  >N,ALPHA.path</Input>
+    <Input name="N,G.path"            type="N,G"               perturbable="False" subDirectory="mrtau_libraries"  >N,G.path</Input>
+    <Input name="N,Gx.path"           type="N,Gx"              perturbable="False" subDirectory="mrtau_libraries"  >N,Gx.path</Input>
+    <Input name="N,P.path"            type="N,P"               perturbable="False" subDirectory="mrtau_libraries"  >N,P.path</Input>
+    <Input name="budep.inp"           type="budep"             perturbable="False" subDirectory="mrtau_libraries"  >budep.inp</Input>
+    <Input name="CRAM_coeff_PF.dat"   type="CRAM_coeff_PF"     perturbable="False" subDirectory="mrtau_libraries"  >CRAM_coeff_PF.dat</Input>
+    <Input name="IsotopeList.dat"     type="IsotopeList"       perturbable="False" subDirectory="mrtau_libraries"  >IsotopeList.dat</Input>
+    <Input name="mass.inp"            type="mass"              perturbable="False" subDirectory="mrtau_libraries"  >mass.inp</Input>
+  </Files>
+
+  <Models>
+    <Code name="PHISICS" subType="Phisics">
+       <executable>ls</executable>
+       <mrtauStandAlone>F</mrtauStandAlone>
+       <printSpatialRR>F</printSpatialRR>
+       <printSpatialFlux>F</printSpatialFlux>
+    </Code>
+  </Models>
+
+  <Distributions>
+    <Normal name="DECAY|BETA|ZN68_distrib">
+      <mean>4.5E-10</mean>
+      <sigma>1.0E-10</sigma>
+    </Normal>
+    <Normal name="FY|FAST|U235|ZN67_distrib">
+      <mean>5.7E-10</mean>
+      <sigma>1.0E-10</sigma>
+    </Normal>
+    <Normal name="FY|THERMAL|U235|I135_distrib">
+      <mean>5.7E-10</mean>
+      <sigma>1.0E-10</sigma>
+    </Normal>
+    <Normal name="DENSITY|MATF3|U-235_distrib">
+      <mean>7.77E-09</mean>
+      <sigma>1.0E-09</sigma>
+    </Normal>
+    <Normal name="QVALUES|PU241_distrib">
+      <mean>0.02</mean>
+      <sigma>0.001</sigma>
+    </Normal>
+    <Normal name="ALPHADECAY|U234_distrib">
+      <mean>0.02</mean>
+      <sigma>0.001</sigma>
+    </Normal>
+    <Normal name="BETA+DECAY|NB93_distrib">
+      <mean>0.02</mean>
+      <sigma>0.001</sigma>
+    </Normal>
+    <Normal name="BETA+XDECAY|U234_distrib">
+      <mean>0.02</mean>
+      <sigma>0.001</sigma>
+    </Normal>
+    <Normal name="BETADECAY|MO95_distrib">
+      <mean>0.02</mean>
+      <sigma>0.001</sigma>
+    </Normal>
+    <Normal name="BETAXDECAY|U234_distrib">
+      <mean>0.02</mean>
+      <sigma>0.001</sigma>
+    </Normal>
+    <Normal name="INTTRADECAY|U234_distrib">
+      <mean>0.02</mean>
+      <sigma>0.001</sigma>
+    </Normal>
+    <Normal name="XS|1|matF1|U235|MULTIPLIER|FISSIONXS|1_distrib">
+      <mean>0.02</mean>
+      <sigma>0.001</sigma>
+    </Normal>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="MC_samp">
+      <samplerInit>
+        <limit>2</limit>
+        <initialSeed>20021986</initialSeed>
+      </samplerInit>
+      <variable name="DECAY|BETA|ZN68">
+        <distribution>DECAY|BETA|ZN68_distrib</distribution>
+      </variable>
+      <variable name="FY|FAST|U235|ZN67">
+        <distribution>FY|FAST|U235|ZN67_distrib</distribution>
+      </variable>
+      <variable name="FY|THERMAL|U235|I135">
+        <distribution>FY|THERMAL|U235|I135_distrib</distribution>
+      </variable>
+      <variable name="DENSITY|MATF3|U-235">
+        <distribution>DENSITY|MATF3|U-235_distrib</distribution>
+      </variable>
+      <variable name="QVALUES|PU241">
+        <distribution>QVALUES|PU241_distrib</distribution>
+      </variable>
+      <variable name="ALPHADECAY|U234">
+        <distribution>ALPHADECAY|U234_distrib</distribution>
+      </variable>
+      <variable name="BETA+DECAY|NB93">
+        <distribution>BETA+DECAY|NB93_distrib</distribution>
+      </variable>
+      <variable name="BETA+XDECAY|U234">
+        <distribution>BETA+XDECAY|U234_distrib</distribution>
+      </variable>
+      <variable name="BETADECAY|MO95">
+        <distribution>BETADECAY|MO95_distrib</distribution>
+      </variable>
+      <variable name="BETAXDECAY|U234">
+        <distribution>BETAXDECAY|U234_distrib</distribution>
+      </variable>
+      <variable name="INTTRADECAY|U234">
+        <distribution>INTTRADECAY|U234_distrib</distribution>
+      </variable>
+      <variable name="XS|1|matF1|U235|MULTIPLIER|FISSIONXS|1">
+        <distribution>XS|1|matF1|U235|MULTIPLIER|FISSIONXS|1_distrib</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="phisicsTest2D">
+      <Input class="Files" type="decay"             >decay.dat</Input>
+      <Input class="Files" type="inp"               >inp.xml</Input>
+      <Input class="Files" type="path"              >lib_inp_path.xml</Input>
+      <Input class="Files" type="Material"          >Material.xml</Input>
+      <Input class="Files" type="Depletion_input"   >Depletion_input.xml</Input>
+      <Input class="Files" type="Xs-Library"        >Xs-Library.xml</Input>
+      <Input class="Files" type="FissionYield"      >FissionYield.dat</Input>
+      <Input class="Files" type="FissQValue"        >FissQValue.dat</Input>
+      <Input class="Files" type="AlphaDecay"        >AlphaDecay.path</Input>
+      <Input class="Files" type="Beta+Decay"        >Beta+Decay.path</Input>
+      <Input class="Files" type="Beta+xDecay"       >Beta+xDecay.path</Input>
+      <Input class="Files" type="BetaDecay"         >BetaDecay.path</Input>
+      <Input class="Files" type="BetaxDecay"        >BetaxDecay.path</Input>
+      <Input class="Files" type="IntTraDecay"       >IntTraDecay.path</Input>
+      <Input class="Files" type="XS"                >scaled_xs.xml</Input>
+      <Input class="Files" type="N,2N"              >N,2N.path</Input>  
+      <Input class="Files" type="N,ALPHA"           >N,ALPHA.path</Input>
+      <Input class="Files" type="N,G"               >N,G.path</Input>
+      <Input class="Files" type="N,Gx"              >N,Gx.path</Input>
+      <Input class="Files" type="N,P"               >N,P.path</Input> 
+      <Input class="Files" type="budep"             >budep.inp</Input>   
+      <Input class="Files" type="CRAM_coeff_PF"     >CRAM_coeff_PF.dat</Input> 
+      <Input class="Files" type="IsotopeList"       >IsotopeList.dat</Input> 
+      <Input class="Files" type="mass"              >mass.inp</Input> 
+      <Input class="Files" type="tabMap"            >tabMapping.xml</Input> 
+          
+      <Model class="Models" type="Code">PHISICS</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MC_samp</Sampler>
+      <Output class="DataObjects" type="PointSet">outMC</Output>
+      <Output class="OutStreams" type="Print">out_streams_RAVEN</Output>
+    </MultiRun>
+  </Steps>
+  
+  <OutStreams>
+    <Print name="out_streams_RAVEN">
+      <type>csv</type>
+      <source>outMC</source>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="outMC">
+      <Input>DECAY|BETA|ZN68,FY|FAST|U235|ZN67</Input>
+      <Output>keff</Output>
+      </PointSet>
+    </DataObjects>
+</Simulation>

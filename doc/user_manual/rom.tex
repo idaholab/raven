@@ -70,12 +70,12 @@ independent of the \xmlAttr{subType} specified:
 %
 \begin{itemize}
   %
-   \item \xmlNode{Features}, \xmlDesc{comma separated string, required field}, 
+   \item \xmlNode{Features}, \xmlDesc{comma separated string, required field},
      specifies the names of the features of this ROM.
    \nb These parameters are going to be requested for the training of this object
     (see Section~\ref{subsec:stepRomTrainer});
     \item \xmlNode{Target}, \xmlDesc{comma separated string, required field},
-      contains a comma separated list of the targets of this ROM. These parameters 
+      contains a comma separated list of the targets of this ROM. These parameters
       are the Figures of Merit (FOMs) this ROM is supposed to predict.
     \nb These parameters are going to be requested for the training of this
     object (see Section \ref{subsec:stepRomTrainer}).
@@ -2980,10 +2980,42 @@ below).
   \default{3}
   \item \xmlNode{Qmin}, \xmlDesc{integer, optional field}, defines the minimum value of $q$.
   \default{0}
-  \item \xmlNode{Fourier}, \xmlDesc{integers, optional field}, must be positive integers. This defines the based period (with unit of second) that would be used for Fourier detrending, i.e., this field defines $1/f_m$ in the above equation. When this filed is not specified, the ARMA considers no Fourier detrend.
-  \item \xmlNode{FourierOrder}, \xmlDesc{integers, optional field}, must be positive integers. The number of integers specified in this field should be exactly same as the number of base periods specified in the node \xmlNode{Fourier}. This field defines $K_m$ in the above equation.
-  \item \xmlNode{outTruncation}, \xmlDesc{string, optional field}, defines whether and how the output time series is truncated. Currently available options are: positive, negative.
+  \item \xmlNode{outTruncation}, \xmlDesc{comma-separated string, optional}, defines whether and how output
+    time series are limited in domain. This node has one attribute, \xmlAttr{domain}, whose value can be
+    \xmlString{positive} or \xmlString{negative}. The value of this node contains the list of targets to whom
+    this domain limitation should be applied. In the event a negative value is discovered in a target whose
+    domain is strictly positive, the absolute value of the original negative value will be used instead, and
+    similarly for the negative domain.
   \default{None}
+  \item \xmlNode{ZeroFilter}, \xmlDesc{comma-separated string, optional field}, turns on \emph{zero filtering}
+    for the listed targets. Zero filtering is a very specific algorithm, and should not be used without
+    understanding its application.  When zero filtering is enabled, the ARMA will remove all the values from
+    the training data equal to zero for the target, then train on the remaining data (including Fourier detrending
+    if applicable). If the target is set as correlated to another target, the second target will be treated as
+    two distinct series: one containing times in which the original target is zero, and one in the remaining
+    times. The results from separated ARMAs are recombined after sampling. This can be a methodology for
+    treating histories with long zero-value segments punctuated periodically by peaks.
+  \item \xmlNode{Fourier}, \xmlDesc{comma-separated integers, optional field}, must be positive integers. This defines the
+    based period that will be used for Fourier detrending, i.e., this field defines $1/f_m$ in the above equation.
+    When this filed is not specified, the ARMA considers no Fourier detrend.
+  \item \xmlNode{FourierOrder}, \xmlDesc{comma-separated integers, optional field}, must be positive integers. The number of integers specified
+    in this field should be exactly same as the number of base periods specified in the node \xmlNode{Fourier}.
+    This field defines $K_m$ in the above equation.
+  \item \xmlNode{SpecificFourier}, \xmlDesc{node, optional}, provides a means to specify different Fourier
+    decomposition for different target variables.  Values given in the subnodes of this node will supercede
+    the defaults set by the  \xmlNode{Fourier} and \xmlNode{FourierOrder} nodes.  This node accepts the
+    requires the following attribute:
+    \begin{itemize}
+      \item \xmlAttr{variables}, \xmlDesc{comma-separated list, required field}, lists the variables to whom
+        the \xmlNode{SpecificFourier} parameters will apply.
+    \end{itemize}
+    Additionally, the \xmlNode{SpecificFourier} node takes the following subnodes:
+    \begin{itemize}
+      \item \xmlNode{periods}, \xmlDesc{comma-separated integers, required field}, lists the (fundamental)
+        periodic wavelength of the Fourier decomposition for these variables, as in the \xmlNode{Fourier} general node.
+      \item \xmlNode{orders}, \xmlDesc{comma-separated integers, required field}, lists the highest integer
+        subdivision desired for each period requested in \xmlNode{periods}, as \xmlNode{FourierOrder} above.
+    \end{itemize}
 \end{itemize}
 
 \textbf{Example:}

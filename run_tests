@@ -12,7 +12,6 @@ SCRIPT_DIR=`(cd $SCRIPT_DIRNAME; pwd)`
 
 echo 'Loading libraries ...'
 source $SCRIPT_DIR/scripts/establish_conda_env.sh --load
-echo 'DEBUGG python: ' `which python`
 
 # this copy the plugins tests into raven tests
 echo 'Loading plugin tests ...'

@@ -115,15 +115,17 @@ class InterfacedPostProcessor(PostProcessor):
         self.methodToRun = child.text
     self.postProcessor = InterfacedPostProcessor.PostProcessorInterfaces.returnPostProcessorInterface(self.methodToRun,self)
     if not isinstance(self.postProcessor,PostProcessorInterfaceBase):
-      self.raiseAnError(IOError, 'InterfacedPostProcessor Post-Processor '+ self.name +' : not correctly coded; it must inherit the PostProcessorInterfaceBase class')
+      self.raiseAnError(IOError, 'InterfacedPostProcessor Post-Processor '+ self.name +
+                        ' : not correctly coded; it must inherit the PostProcessorInterfaceBase class')
 
     self.postProcessor.initialize()
     self.postProcessor.readMoreXML(xmlNode)
-    if self.postProcessor.inputFormat not in set(['HistorySet','PointSet']):
-      self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : self.inputFormat not correctly initialized')
-    if self.postProcessor.outputFormat not in set(['HistorySet','PointSet']):
-      self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : self.outputFormat not correctly initialized')
-
+    if not set(self.returnFormat("input").split("|")) <= set(['HistorySet','PointSet']):
+      self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +
+                        ' : self.inputFormat not correctly initialized')
+    if not set(self.returnFormat("output").split("|")) <= set(['HistorySet','PointSet']):
+      self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +
+                        ' : self.outputFormat not correctly initialized')
 
   def run(self, inputIn):
     """
@@ -131,11 +133,14 @@ class InterfacedPostProcessor(PostProcessor):
       @ In, inputIn, dict, dictionary of data to process
       @ Out, outputDic, dict, dict containing the post-processed results
     """
-    if self.postProcessor.inputFormat not in set(['HistorySet','PointSet']):
-      self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : self.inputFormat not correctly initialized')
-    if self.postProcessor.outputFormat not in set(['HistorySet','PointSet']):
-      self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : self.outputFormat not correctly initialized')
+    inputTypes = set([inp.type for inp in inputIn])
+    for inp in inputIn:
+      if not inputTypes <= set(self.returnFormat("input").split("|")):
+        self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor named "'+ self.name +
+                              '" : The input object "'+ inp.name +'" provided is of the wrong type. Got "'+
+                              inp.type + '" but expected "'+self.returnFormat("input") + '"!')
     inputDic= self.inputToInternal(inputIn)
+    self.raiseADebug('InterfacedPostProcessor Post-Processor '+ self.name +' : start to run')
     outputDic = self.postProcessor.run(inputDic)
     return outputDic
 

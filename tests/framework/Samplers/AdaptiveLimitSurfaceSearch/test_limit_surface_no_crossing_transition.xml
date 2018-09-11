@@ -1,0 +1,122 @@
+<?xml version="1.0" ?>
+<Simulation>
+  <!-- TestInfo -->
+  <TestInfo>
+    <name>framework/Samplers/AdaptiveLimitSurfaceSearch.adaptive_sampler_no_crossing</name>
+    <author>alfoa</author>
+    <created>2018-08-25</created>
+    <classesTested>Samplers.LimitSurfaceSearch, Models.ExternalModel, Models.ROM</classesTested>
+    <description>
+        This  test is aimed to test that the LimitSurfaceSearch Sampler is able to successfully
+        detect a failure of the adaptive search (No limit surface crossed). This test is connected
+        to the defect mitigation reported in the issue #704
+    </description>
+    <revisions>
+        <revision author="alfoa" date="2018-08-25">
+            Added the test for testing the mitigation for the issue #704
+        </revision>
+    </revisions>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>.</WorkingDir>
+    <Sequence>adapt</Sequence>
+    <batchSize>1</batchSize>
+    <maxQueueSize>1</maxQueueSize>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="adapt" pauseAtEnd="true">
+      <Input class="DataObjects" type="PointSet">dummy</Input>
+      <Model class="Models" type="ExternalModel">testFunction</Model>
+      <Sampler class="Samplers" type="LimitSurfaceSearch">adaptiveSearch</Sampler>
+      <SolutionExport class="DataObjects" type="PointSet">limitSurface</SolutionExport>
+      <Output class="DataObjects" type="PointSet">sampledPoints</Output>
+    </MultiRun>
+  </Steps>
+
+  <DataObjects>
+    <PointSet name="sampledPoints">
+      <Input>x1,x2,x3</Input>
+      <Output>y1,y2</Output>
+    </PointSet>
+    <PointSet name="dummy">
+      <Input>x1,x2,x3</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="limitSurface">
+      <Input>x2,x3,x1</Input>
+      <Output>decision</Output>
+    </PointSet>
+  </DataObjects>
+
+  <Distributions>
+    <Normal name="x1_dst">
+      <upperBound>1</upperBound>
+      <lowerBound>-1</lowerBound>
+      <mean>0.05</mean>
+      <sigma>0.01</sigma>
+    </Normal>
+    <Normal name="x2_dst">
+      <upperBound>1</upperBound>
+      <lowerBound>-1</lowerBound>
+      <mean>-0.015</mean>
+      <sigma>0.005</sigma>
+    </Normal>
+    <Normal name="x3_dst">
+      <upperBound>1</upperBound>
+      <lowerBound>-1</lowerBound>
+      <mean>0</mean>
+      <sigma>0.75</sigma>
+    </Normal>
+  </Distributions>
+
+  <Samplers>
+    <LimitSurfaceSearch name="adaptiveSearch">
+      <ROM class="Models" type="ROM">accelerated_ROM</ROM>
+      <Function class="Functions" type="External">decision</Function>
+      <TargetEvaluation class="DataObjects" type="PointSet">sampledPoints</TargetEvaluation>
+      <Convergence forceIteration="False" limit="3000" subGridTol="1e-4" persistence="10" weight="CDF">1e-3</Convergence>
+      <variable name="x1">
+        <distribution>x1_dst</distribution>
+      </variable>
+      <variable name="x2">
+        <distribution>x2_dst</distribution>
+      </variable>
+      <variable name="x3">
+        <distribution>x3_dst</distribution>
+      </variable>
+    </LimitSurfaceSearch>
+  </Samplers>
+
+  <Models>
+    <ExternalModel ModuleToLoad="Adapt/adaptive_test_model" name="testFunction" subType="">
+      <variables>x1,x2,x3,y1,y2</variables>
+    </ExternalModel>
+    <ROM name="accelerated_ROM" subType="SciKitLearn">
+      <Features>x1,x2,x3</Features>
+      <Target>decision</Target>
+      <SKLtype>svm|SVC</SKLtype>
+      <kernel>rbf</kernel>
+      <gamma>10</gamma>
+      <tol>1e-5</tol>
+      <C>50</C>
+      <random_state>0</random_state>
+    </ROM>
+  </Models>
+
+  <Functions>
+    <External file="Adapt/adaptive_test_goal" name="decision">
+      <variable>y1</variable>
+      <variable>y2</variable>
+    </External>
+  </Functions>
+
+  <OutStreams>
+    <Print name="limitSurfaceDump">
+      <type>csv</type>
+      <source>limitSurface</source>
+    </Print>
+  </OutStreams>
+
+</Simulation>

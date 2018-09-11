@@ -347,7 +347,7 @@ data.addRealization(dict(rlz0))
 # get realization by index, from collector
 checkRlz('Dataset append 0',data.realization(index=0),rlz0,skip=['time'])
 # try to access the inaccessible
-checkFails('DataSet get nonexistant realization by index','Requested index \"1\" but only have 1 entries (zero-indexed)!',data.realization,kwargs={'index':1})
+checkFails('DataSet get nonexistant realization by index','DataSet: Requested index "1" but only have 1 entries (zero-indexed)!',data.realization,kwargs={'index':1})
 # add more data
 data.addRealization(dict(rlz1))
 data.addRealization(dict(rlz2))

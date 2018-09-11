@@ -312,7 +312,7 @@ data.addRealization(rlz0)
 # get realization by index, from collector
 checkRlz('PointSet append 0',data.realization(index=0),rlz0)
 # try to access the inaccessible
-checkFails('PointSet inaccessible index check','Requested index \"1\" but only have 1 entries (zero-indexed)!',data.realization,kwargs={'index':1})
+checkFails('PointSet inaccessible index check','PointSet: Requested index "1" but only have 1 entries (zero-indexed)!',data.realization,kwargs={'index':1})
 # add more data
 data.addRealization(rlz1)
 data.addRealization(rlz2)

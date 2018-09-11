@@ -1,0 +1,114 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/ROM/TimeSeries/ARMA.MultipleFourier</name>
+    <author>talbpaul</author>
+    <created>2018-07-26</created>
+    <classesTested>SupervisedLearning.ARMA</classesTested>
+    <description>
+      Tests the feature of having independent Fourier modes for each training target.
+      Original data is pure Fourier modes made with dataGenerator.
+
+      This test is not analytic, but the input training set corralated_0.csv should be very nearly
+      exactly replicated by samples_0.csv.
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>MultipleFourier</WorkingDir>
+    <Sequence>read,train,sample,write</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Steps>
+    <IOStep name="read">
+      <Input class="Files" type="">source</Input>
+      <Output class="DataObjects" type="HistorySet">training</Output>
+    </IOStep>
+    <RomTrainer name="train">
+      <Input class="DataObjects" type="HistorySet">training</Input>
+      <Output class="Models" type="ROM">rom</Output>
+    </RomTrainer>
+    <MultiRun name="sample">
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Model class="Models" type="ROM">rom</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
+      <Output class="DataObjects" type="HistorySet">samples</Output>
+    </MultiRun>
+    <IOStep name="write">
+      <Input class="DataObjects" type="HistorySet">samples</Input>
+      <Output class="OutStreams" type="Print">samples</Output>
+    </IOStep>
+  </Steps>
+
+  <Files>
+    <Input name="source">correlated.csv</Input>
+  </Files>
+
+  <DataObjects>
+    <PointSet name="placeholder">
+      <Input>scaling</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <HistorySet name="training">
+      <Input>scaling</Input>
+      <Output>A,B,C,D</Output>
+      <options>
+        <pivotParameter>Time</pivotParameter>
+      </options>
+    </HistorySet>
+    <HistorySet name="samples">
+      <Input>scaling</Input>
+      <Output>A,B,C,D</Output>
+      <options>
+        <pivotParameter>Time</pivotParameter>
+      </options>
+    </HistorySet>
+  </DataObjects>
+
+  <Models>
+    <ROM name="rom" subType="ARMA">
+      <Target>A,B,C,D,Time</Target>
+      <Features>scaling</Features>
+      <seed>84</seed>
+      <pivotParameter>Time</pivotParameter>
+      <Pmax>3</Pmax>
+      <Pmin>3</Pmin>
+      <Qmax>1</Qmax>
+      <Qmin>1</Qmin>
+      <SpecificFourier variables="A,B">
+        <periods>20,100</periods>
+        <orders>1,1</orders>
+      </SpecificFourier>
+      <Fourier>10,50</Fourier> <!-- will apply to the rest (C,D) -->
+      <FourierOrder>1,1</FourierOrder>
+    </ROM>
+    <PostProcessor name="stats" subType="BasicStatistics">
+      <expectedValue prefix="mean">A,B</expectedValue>
+      <variance prefix="var">A,B</variance>
+      <covariance prefix="covar">
+        <targets>A,B</targets>
+        <features>A,B</features>
+      </covariance>
+    </PostProcessor>
+  </Models>
+
+  <Samplers>
+    <MonteCarlo name="mc">
+      <samplerInit>
+        <limit>1</limit>
+        <initialSeed>2</initialSeed>
+      </samplerInit>
+      <constant name="scaling">1.0</constant>
+    </MonteCarlo>
+  </Samplers>
+
+  <OutStreams>
+    <Print name="samples">
+      <type>csv</type>
+      <source>samples</source>
+      <what>input, output</what>
+    </Print>
+  </OutStreams>
+
+</Simulation>
