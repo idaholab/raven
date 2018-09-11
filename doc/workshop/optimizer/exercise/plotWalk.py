@@ -24,7 +24,7 @@ ax.set_ylabel('velocity')
 fig.colorbar(im)
 
 # load walk data
-cases = [0]
+cases = range(5)
 data = {}
 for c,case in enumerate(cases):
   try:

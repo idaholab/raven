@@ -41,12 +41,12 @@
       <variable name="v0">
         <lowerBound>1</lowerBound>
         <upperBound>60</upperBound>
-        <initial>30</initial>
+        <initial>30,10,1,60</initial>
       </variable>
       <variable name="angle">
         <lowerBound>5</lowerBound>
         <upperBound>85</upperBound>
-        <initial>45</initial>
+        <initial>45,18,5,85</initial>
       </variable>
       <objectVar>r</objectVar>
       <TargetEvaluation class="DataObjects" type="PointSet">results</TargetEvaluation>
