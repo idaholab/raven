@@ -1,0 +1,91 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <RunInfo>
+    <WorkingDir>Basic</WorkingDir>
+    <Sequence>Sample,Process</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <TestInfo>
+    <name>framework/PostProcessors/SampleSelector/Basic</name>
+    <author>gm</author>
+    <created>2018-09-12</created>
+    <classesTested>PostProcessors.SampleSelector</classesTested>
+    <description>
+      This test checks basic functionalities of the Sample Selector
+    </description>
+  </TestInfo>
+
+  <Models>
+    <ExternalModel ModuleToLoad="simpleMirrowModel" name="mirrowModel" subType="">
+      <variables>x,y,x1</variables>
+    </ExternalModel>
+    <PostProcessor name="PP" subType="SampleSelector" verbosity="debug">
+      <target> x1 </target>
+      <criterion> min </criterion>
+    </PostProcessor>
+  </Models>
+
+  <Distributions>
+    <Normal name="x0_distrib">
+      <mean>100</mean>
+      <sigma>50.0</sigma>
+    </Normal>
+    <Normal name="y0_distrib">
+      <mean>100</mean>
+      <sigma>50.0</sigma>
+    </Normal>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="MC_external">
+      <samplerInit>
+        <limit>10</limit>
+      </samplerInit>
+      <variable name="x">
+        <distribution>x0_distrib</distribution>
+      </variable>
+      <variable name="y">
+        <distribution>y0_distrib</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="Sample" re-seeding="20021986">
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder2</Input>
+      <Model class="Models" type="ExternalModel">mirrowModel</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
+      <Output class="DataObjects" type="PointSet">outputDataMC</Output>
+    </MultiRun>
+    <PostProcess name="Process">
+      <Input class="DataObjects" type="PointSet">outputDataMC</Input>
+      <Model class="Models" type="PostProcessor">PP</Model>
+      <Output class="DataObjects" type="PointSet">selected</Output>
+      <Output class="OutStreams" type="Print">selected_printed</Output>
+    </PostProcess>
+  </Steps>
+
+  <OutStreams>
+    <Print name="selected_printed">
+      <type>csv</type>
+      <source>selected</source>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="inputPlaceHolder2">
+      <Input>x,y</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="outputDataMC">
+      <Input>x,y</Input>
+      <Output>x1</Output>
+    </PointSet>
+    <PointSet name="selected">
+      <Input>x,y</Input>
+      <Output>x1</Output>
+    </PointSet>
+  </DataObjects>
+
+</Simulation>
