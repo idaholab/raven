@@ -1,0 +1,63 @@
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/PostProcessors/FastFourierTransform.Basic</name>
+    <author>talbpaul</author>
+    <created>2018-09-11</created>
+    <classesTested>PostProcessors.FastFourierTransform</classesTested>
+    <description>
+      Tests the basic functionality of the FastFourierTransform postprocessor to
+      create a frequency-amplitude Fourier analysis of a signal.
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>Basic</WorkingDir>
+    <Sequence>read,process</Sequence>
+  </RunInfo>
+
+  <Files>
+    <Input name="inFile">writeSynDataOut.csv</Input>
+  </Files>
+
+  <Models>
+    <PostProcessor name="fft" subType="FastFourierTransform">
+      <target>Speed</target>
+    </PostProcessor>
+  </Models>
+
+  <Steps>
+    <IOStep name="read">
+      <Input class="Files" type="">inFile</Input>
+      <Output class="DataObjects" type="HistorySet">inData</Output>
+    </IOStep>
+    <PostProcess name="process" pauseAtEnd="True">
+      <Input class="DataObjects" type="HistorySet">inData</Input>
+      <Model class="Models" type="PostProcessor">fft</Model>
+      <Output class="DataObjects" type="HistorySet">fft_out</Output>
+      <Output class="OutStreams" type="Print">fft</Output>
+    </PostProcess>
+  </Steps>
+
+  <OutStreams>
+    <Print name="fft">
+      <type>csv</type>
+      <source>fft_out</source>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <HistorySet name="inData">
+      <Input>scaling</Input>
+      <Output>Speed</Output>
+      <options>
+        <pivotParameter>Time</pivotParameter>
+      </options>
+    </HistorySet>
+    <HistorySet name="fft_out">
+      <Output>Speed_fft_period,Speed_fft_amplitude</Output>
+      <options>
+        <pivotParameter>Speed_fft_frequency</pivotParameter>
+      </options>
+    </HistorySet>
+  </DataObjects>
+</Simulation>

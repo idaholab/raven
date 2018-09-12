@@ -38,6 +38,7 @@ from .ValueDuration import ValueDuration
 from .ImportanceRank import ImportanceRank
 from .BasicStatistics import BasicStatistics
 from .CrossValidation import CrossValidation
+from .FastFourierTransform import FastFourierTransform
 from .LimitSurfaceIntegral import LimitSurfaceIntegral
 from .ExternalPostProcessor import ExternalPostProcessor
 from .InterfacedPostProcessor import InterfacedPostProcessor
