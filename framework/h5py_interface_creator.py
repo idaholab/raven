@@ -190,7 +190,7 @@ class hdf5Database(MessageHandler.MessageUser):
     if prefix is not None:
       groupName = str(prefix[0] if not isinstance(prefix,basestring) else prefix)
     else:
-      # this can happen when we want to add sample generated data (e.g. LimitSurface) in the database
+      # this can happen when we want to add sampler generated data (e.g. LimitSurface) in the database
       groupName = str(len(self.allGroupPaths))
     if parentID:
       #If Hierarchical structure, firstly add the root group
