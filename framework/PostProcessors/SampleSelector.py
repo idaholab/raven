@@ -119,8 +119,6 @@ class SampleSelector(PostProcessor):
     realizations = []
     # actual method: pick min/max target
     d = inData.asDataset()
-    print('DEBUGG',d)
-    print('DEBUGG',self.target)
     i = d[self.target].argmin()
     pick = inData.realization(index = i)
         
