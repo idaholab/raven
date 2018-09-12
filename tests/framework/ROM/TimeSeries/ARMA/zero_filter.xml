@@ -17,24 +17,24 @@
   </RunInfo>
 
   <Steps>
-    <IOStep name='read'>
-      <Input class='Files' type =''>datafile</Input>
-      <Output class='DataObjects' type='HistorySet'>raw</Output>
+    <IOStep name="read">
+      <Input class="Files" type="">datafile</Input>
+      <Output class="DataObjects" type="HistorySet">raw</Output>
     </IOStep>
-    <IOStep name='readSynth'>
-      <Input class='Files' type =''>synthfile</Input>
-      <Output class='DataObjects' type='HistorySet'>synth2</Output>
+    <IOStep name="readSynth">
+      <Input class="Files" type="">synthfile</Input>
+      <Output class="DataObjects" type="HistorySet">synth2</Output>
     </IOStep>
     <MultiRun name="sample">
-      <Input class='DataObjects' type='PointSet'>placeholder</Input>
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
       <Model class="Models" type="ROM">arma</Model>
       <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
       <Output class="DataObjects" type="HistorySet">synthetic</Output>
       <Output class="OutStreams" type="Print">synthetic</Output>
     </MultiRun>
-    <RomTrainer name='train'>
-      <Input    class = 'DataObjects' type = 'History'      >raw</Input>
-      <Output   class = 'Models'      type = 'ROM'          >arma</Output>
+    <RomTrainer name="train">
+      <Input class="DataObjects" type="History">raw</Input>
+      <Output class="Models" type="ROM">arma</Output>
     </RomTrainer>
     <PostProcess name="stats">
       <Input class="DataObjects" type="PointSet">synth2</Input>
@@ -60,18 +60,23 @@
   </Samplers>
 
   <Models>
-    <ROM name='arma' subType='ARMA'>
+    <ROM name="arma" subType="ARMA">
       <Target>Demand, Speed, GHI, Temperature, Time</Target>
       <Features>scaling</Features>
-      <ZeroFilter tol='1e-10'>GHI</ZeroFilter>
+      <ZeroFilter tol="1e-10">GHI</ZeroFilter>
       <pivotParameter>Time</pivotParameter>
       <correlate>Demand, GHI</correlate>
-      <Pmax>3</Pmax>
-      <Pmin>3</Pmin>
-      <Qmax>2</Qmax>
-      <Qmin>2</Qmin>
-      <Fourier>86400</Fourier> <!-- 1 year, 3 months, 1 day -->
+      <Fourier>86400</Fourier>
+      <!-- 1 year, 3 months, 1 day -->
       <FourierOrder>1</FourierOrder>
+      <P>3</P>
+      <Q>2</Q>
+      <P>3</P>
+      <Q>2</Q>
+      <P>3</P>
+      <Q>2</Q>
+      <P>3</P>
+      <Q>2</Q>
     </ROM>
     <PostProcessor name="stats" subType="BasicStatistics">
       <expectedValue prefix="mean">Demand,GHI</expectedValue>

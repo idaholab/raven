@@ -32,10 +32,8 @@
       <Target>Speed,Time</Target>
       <Features>scaling</Features>
       <pivotParameter>Time</pivotParameter>
-      <Pmax>2</Pmax>
-      <Pmin>2</Pmin>
-      <Qmax>1</Qmax>
-      <Qmin>1</Qmin>
+      <P>2</P>
+      <Q>1</Q>
       <outTruncation domain="positive">Speed</outTruncation>
       <Fourier>604800,86400</Fourier>
       <FourierOrder>2,2</FourierOrder>

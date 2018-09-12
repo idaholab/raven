@@ -44,13 +44,17 @@
       <Target>Speed,Time</Target>
       <Features>scaling</Features>
       <pivotParameter>Time</pivotParameter>
-      <Pmax>2</Pmax>
-      <Pmin>2</Pmin>
-      <Qmax>1</Qmax>
-      <Qmin>1</Qmin>
       <outTruncation domain="positive">Speed,Time</outTruncation>
       <Fourier>86400</Fourier>
       <FourierOrder>2</FourierOrder>
+      <P>2</P>
+      <Q>1</Q>
+      <P>2</P>
+      <Q>1</Q>
+      <P>2</P>
+      <Q>1</Q>
+      <P>2</P>
+      <Q>1</Q>
     </ROM>
   </Models>
 
