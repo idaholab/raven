@@ -46,7 +46,7 @@
   </Models>
 
   <Functions>
-    <External file="MAAP5_adaptiveHybridDET_test/maapFunctionSimple.py" name="maapFunctionSimple">
+    <External file="maapFunctionSimple.py" name="maapFunctionSimple">
       <variable>FAIL</variable>
     </External>
   </Functions>

@@ -1,0 +1,1 @@
+k_gama = 0.0 ! shut off phase change mass transfer because this is air/water

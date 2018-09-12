@@ -33,6 +33,7 @@ from utils import InputData
 import Files
 import unSupervisedLearning
 import Runners
+import MetricDistributor
 #Internal Modules End-----------------------------------------------------------
 
 class DataMining(PostProcessor):
@@ -84,7 +85,8 @@ class DataMining(PostProcessor):
     sciPyTypeInput = InputData.parameterInputFactory("SCIPYtype", contentType=InputData.StringType)
     kddInput.addSub(sciPyTypeInput)
 
-    for name, inputType in [("Features",InputData.StringType),
+    for name, inputType in [("interactive",InputData.StringType),
+                            ("Features",InputData.StringType),
                             ("n_components",InputData.StringType),
                             ("covariance_type",InputData.StringType),
                             ("random_state",InputData.StringType),
@@ -179,24 +181,15 @@ class DataMining(PostProcessor):
 
     self.requiredAssObject = (True, (['PreProcessor','Metric'], ['-1','-1']))
 
-    self.solutionExport = None                            ## A data object to
-                                                          ## hold derived info
-                                                          ## about the algorithm
-                                                          ## being performed,
-                                                          ## e.g., cluster
-                                                          ## centers or a
-                                                          ## projection matrix
-                                                          ## for dimensionality
-                                                          ## reduction methods
+    self.solutionExport = None  ## A data object to hold derived info about the algorithm being performed,
+                                ## e.g., cluster centers or a projection matrix for dimensionality reduction methods
 
-    self.labelFeature = None                              ## User customizable
-                                                          ## column name for the
-                                                          ## labels associated
-                                                          ## to a clustering or
-                                                          ## a DR algorithm
+    self.labelFeature = None    ## User customizable column name for the labels associated to a clustering or
+                                ## a DR algorithm
 
-    self.PreProcessor = None
-    self.metric = None
+    self.PreProcessor = None    ## Instance of PreProcessor, default is None
+    self.metric = None          ## Instance of Metric, default is None
+    self.pivotParameter = None  ## default pivotParameter for HistorySet
 
   def _localWhatDoINeed(self):
     """
@@ -223,10 +216,8 @@ class DataMining(PostProcessor):
     """
     dataSet = currentInput.asDataset()
     inputDict = {'Features': {}, 'parameters': {}, 'Labels': {}, 'metadata': {}}
-    if self.pivotParameter is None and self.metric is not None:
-      if not hasattr(self.metric, 'pivotParameter'):
-        self.raiseAnError(IOError, 'HistorySet is provided as input, but this post-processor ', self.name, ' can not handle it!')
-      self.pivotParameter = self.metric.pivotParameter
+    if self.pivotParameter is None:
+      self.pivotParameter = currentInput.indexes[-1]
     if self.PreProcessor is None and self.metric is None:
       if not currentInput.checkIndexAlignment(indexesToCheck=self.pivotParameter):
         self.raiseAnError(IOError, "The data provided by the DataObject ", currentInput.name, " is not synchronized!")
@@ -584,7 +575,10 @@ class DataMining(PostProcessor):
     """
     self.unSupervisedEngine.features = Input['Features']
     if not self.unSupervisedEngine.amITrained:
-      self.unSupervisedEngine.train(Input['Features'], self.metric)
+      metric = None
+      if self.metric is not None:
+        metric = MetricDistributor.returnInstance('MetricDistributor', self.metric, self)
+      self.unSupervisedEngine.train(Input['Features'], metric)
     self.unSupervisedEngine.confidence()
     self.userInteraction()
     outputDict = self.unSupervisedEngine.outputDict

@@ -1,0 +1,30 @@
+ALPHA_PATHS                                DECAY	     NOTE:REMEBER TO MODIFY THE NP238... IT DECAYS BETA!!!!
+Actinides
+ 1                 !flag: if 0 Actinide block is jumped, otherwise is used
+ ISOT    SON1    SON2    SON3    SON4    SON5    SON6    SON7                                                                                             
+ U234   none   
+ END 
+ ALPHA_Branching                     
+ ISOT    B.ratio                       
+ U234    1.0000                                               
+ END 
+ ALPHA_Qvalue                                
+ ISOT    Qvalue  (MeV)                              
+ U234    1.0000                      
+ END
+Fission Products
+ ALPHA_PATHS
+ ISOT    SON1    SON2    SON3    SON4    SON5    SON6    SON7
+ ALPHA   none  
+ END
+ ALPHA_Branching                    
+ ISOT    B.ratio           
+ ALPHA   0.0000    
+ END
+ ALPHA_Qvalue
+ ISOT    Qvalue           
+ ALPHA   0.0000        
+ END 
+ 
+ 
+ 

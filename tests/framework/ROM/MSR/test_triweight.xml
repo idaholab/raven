@@ -32,7 +32,7 @@
   </RunInfo>
 
   <Models>
-    <ExternalModel ModuleToLoad="./testFunction" name="foo" subType="">
+    <ExternalModel ModuleToLoad="../testFunction" name="foo" subType="">
       <variables>X,Y,Z</variables>
     </ExternalModel>
     <ROM name="modelUnderTest" subType="MSR">

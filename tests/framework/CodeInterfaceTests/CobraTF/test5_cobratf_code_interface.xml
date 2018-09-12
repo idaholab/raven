@@ -1,0 +1,60 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/CodeInterfaceTests/CobraTF.test5</name>
+    <author>alptezbasaran</author>
+    <created>2018-07-26</created>
+    <classesTested>Models.Code.CobraTF</classesTested>
+    <description>
+       An example of using the CobraTF code interface. This test is aimed to test the output conversion if input file name is 'deck.inp'
+    </description>
+    <revisions>
+      <revision author="alptezbasaran" date="2018-07-26">New CobraTF test case</revision>
+    </revisions>
+  </TestInfo>
+  <RunInfo>
+    <WorkingDir>CobraTFinterfaceTest5</WorkingDir>
+    <Sequence>testDummyStep_Single</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name="cobra_input" type="ctf">deck.inp</Input>
+    <Input name="paramInput" type="vuq_param">vuq_param.txt</Input>
+  </Files>
+
+  <Models>
+    <Code name="MyCobraTF" subType="CTF">
+      <executable>
+        <!--/path/to/cobratf/executable -->
+        <!-- here we should put the executable. But since we want to test the interface only, it is going to be empty -->
+      </executable>
+    </Code>
+  </Models>
+
+  <Steps>
+    <SingleRun name="testDummyStep_Single">
+      <Input class="Files" type="">cobra_input</Input>
+      <Input class="Files" type="">paramInput</Input>
+      <Model class="Models" type="Code">MyCobraTF</Model>
+      <Output class="DataObjects" type="PointSet">outdata</Output>
+      <Output class="OutStreams" type="Print">cobra_out</Output>
+    </SingleRun>
+  </Steps>
+
+  <OutStreams>
+    <Print name="cobra_out">
+      <type>csv</type>
+      <source>outdata</source>
+      <what>input,output</what>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="outdata">
+      <Input>InputPlaceHolder</Input>
+      <Output>AVG_ch_ax4_quality</Output>
+    </PointSet>
+  </DataObjects>
+
+</Simulation>

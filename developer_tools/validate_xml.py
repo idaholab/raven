@@ -28,7 +28,7 @@ def validateTests():
     @ Out, int, number of failed tests.
   """
   print 'Beginning test validation...'
-  tests = get_coverage_tests.getRegressionTests(skipThese=['test_rom_trainer.xml'],skipExpectedFails=True)
+  tests = get_coverage_tests.getRegressionTests(skipExpectedFails=True)
   res=[0,0,0] #run, pass, fail
   failed={}
   devnull = open(os.devnull, "wb")

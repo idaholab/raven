@@ -231,26 +231,6 @@
   csv = 'mode_test/FirstMRun/2/out~pump_fake.csv'
  [../]
 
- [./test_xsd_input_data]
-  type = 'RavenPython'
-  input = 'TestXSD/TestDataRead.py'
-  requires_swig2 = True
- [../]
-
- [./test_strict_input_data]
-  type = 'RavenPython'
-  input = 'TestXSD/TestStrictCheck.py'
-  requires_swig2 = True
- [../]
-
- [./test_xsd_input_fails]
-  type = 'RavenPython'
-  input = 'TestXSD/TestFails.py'
-  requires_swig2 = True
-  required_libraries = lxml
-  prereq = test_xsd_input_data
- [../]
-
  [./test_xml_differ]
   type = 'RavenPython'
   input = 'TestDiffer/TestXMLDiffer.py'

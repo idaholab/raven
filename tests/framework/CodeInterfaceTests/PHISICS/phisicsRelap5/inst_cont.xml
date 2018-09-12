@@ -1,0 +1,45 @@
+<phisicsRelap>
+<INSTANT_INPUTS>
+  <Output_controls>
+     <vtkgen>0</vtkgen>
+     <dbgmat>f</dbgmat>
+     <flxgen>t</flxgen>
+     <momprod>0</momprod>
+     <csvgeomode>false</csvgeomode>
+     <flxsubcsv>true</flxsubcsv>
+     <pwdensubcsv>true</pwdensubcsv>
+     <blengen>t</blengen>
+  </Output_controls>
+  <Mesh>
+     <pn>1</pn>
+     <pint>6</pint>
+     <psurf>1</psurf>
+     <psour>3</psour>
+  </Mesh>
+  <IterativeSolver>
+     <echo>2</echo>
+     <oacc_typ>1</oacc_typ>
+     <iacc_typ>0</iacc_typ>
+     <epskeff>1.0E-06</epskeff>
+     <epsflux>1.0E-04</epsflux>
+     <maxouter>1500</maxouter>
+     <keff0>1.05</keff0>
+     <maxinner>100</maxinner>
+     <facinner>1E-3</facinner>
+     <PNinner>0</PNinner>
+     <omegaon>f</omegaon>
+     <tacc_typ>0</tacc_typ>
+     <maxthml>5</maxthml>
+     <facthml>1E-4</facthml>
+  </IterativeSolver>
+</INSTANT_INPUTS>
+
+<PHISICS_AD>
+  <IZ>1</IZ>
+  <xs_tol>0.0</xs_tol>
+  <BURN_TH>T</BURN_TH>
+  <TH_between_BURN>1.0</TH_between_BURN>
+  <TH_VTK_time>     20.0  100.0  99.5  1.0</TH_VTK_time>
+  <TH_VTK_time_mult> 5     4      1     0</TH_VTK_time_mult>
+ </PHISICS_AD>
+ </phisicsRelap>

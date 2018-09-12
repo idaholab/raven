@@ -25,16 +25,19 @@ from __future__ import absolute_import
 ## 'from PostProcessors.PostProcessor import PostProcessor' outside
 ## of this submodule
 from .PostProcessor import PostProcessor
-from .BasicStatistics import BasicStatistics
-from .ComparisonStatisticsModule import ComparisonStatistics
-from .ExternalPostProcessor import ExternalPostProcessor
-from .ImportanceRank import ImportanceRank
-from .InterfacedPostProcessor import InterfacedPostProcessor
-from .LimitSurface import LimitSurface
-from .LimitSurfaceIntegral import LimitSurfaceIntegral
-# from .RavenOutput import RavenOutput # deprecated for now
-from .SafestPoint import SafestPoint
 
+from .Metric import Metric
+from .ETImporter import ETImporter
+from .DataMining import DataMining
+from .SafestPoint import SafestPoint
+from .LimitSurface import LimitSurface
+from .ValueDuration import ValueDuration
+from .ImportanceRank import ImportanceRank
+from .CrossValidation import CrossValidation
+from .BasicStatistics import BasicStatistics
+from .LimitSurfaceIntegral import LimitSurfaceIntegral
+from .ExternalPostProcessor import ExternalPostProcessor
+from .InterfacedPostProcessor import InterfacedPostProcessor
 from .TopologicalDecomposition import TopologicalDecomposition
 from .DataMining import DataMining
 from .Metric import Metric
@@ -42,6 +45,8 @@ from .CrossValidation import CrossValidation
 from .ETImporter import ETImporter
 from .FTImporter import FTImporter
 from .DataClassifier import DataClassifier
+from .ComparisonStatisticsModule import ComparisonStatistics
+# from .RavenOutput import RavenOutput # deprecated for now
 
 additionalModules = []
 ## These utilize the optional prequisite library PySide, so don't error if they
@@ -73,6 +78,7 @@ __all__ = ['PostProcessor',
            'DataMining',
            'Metric',
            'CrossValidation',
+           'ValueDuration',
            'ETImporter',
            'FTImporter',
            'DataClassifier'] + additionalModules

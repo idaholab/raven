@@ -29,7 +29,7 @@
 
   <Metrics>
       <SKL name="m1">
-          <metricType>explained_variance_score</metricType>
+          <metricType>regression|explained_variance_score</metricType>
       </SKL>
   </Metrics>
 

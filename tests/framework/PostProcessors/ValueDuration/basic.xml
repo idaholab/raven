@@ -1,0 +1,78 @@
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/PostProcessors/ValueDuration.Basic</name>
+    <author>talbpaul</author>
+    <created>2018-08-28</created>
+    <classesTested>PostProcessors.ValueDuration</classesTested>
+    <description>
+      Tests the basic functionality of the ValueDuration postprocessor to create their unique brand of cumulative histograms.
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>Basic</WorkingDir>
+    <Sequence>read,process</Sequence>
+  </RunInfo>
+
+  <Files>
+    <Input name="inFile">writeSynDataOut.csv</Input>
+  </Files>
+
+  <Models>
+    <PostProcessor name="val_dur" subType="ValueDuration">
+      <target>Speed</target>
+      <bins>100</bins>
+    </PostProcessor>
+  </Models>
+
+  <Steps>
+    <IOStep name="read">
+      <Input class="Files" type="">inFile</Input>
+      <Output class="DataObjects" type="HistorySet">inData</Output>
+    </IOStep>
+    <PostProcess name="process" pauseAtEnd="True">
+      <Input class="DataObjects" type="HistorySet">inData</Input>
+      <Model class="Models" type="PostProcessor">val_dur</Model>
+      <Output class="DataObjects" type="HistorySet">durations</Output>
+      <Output class="OutStreams" type="Print">durations</Output>
+      <Output class="OutStreams" type="Plot">plotDurations</Output>
+    </PostProcess>
+  </Steps>
+
+  <OutStreams>
+    <Print name="durations">
+      <type>csv</type>
+      <source>durations</source>
+    </Print>
+    <Plot name="plotDurations">
+      <plotSettings>
+        <plot>
+          <type>scatter</type>
+          <x>durations|Output|counts_Speed</x>
+          <y>durations|Output|bins_Speed</y>
+        </plot>
+          <xlabel>Number Exceeding Value</xlabel>
+          <ylabel>Value</ylabel>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+      </actions>
+    </Plot>
+  </OutStreams>
+
+  <DataObjects>
+    <HistorySet name="inData">
+      <Input>scaling</Input>
+      <Output>Speed</Output>
+      <options>
+        <pivotParameter>Time</pivotParameter>
+      </options>
+    </HistorySet>
+    <HistorySet name="durations">
+      <Output>counts_Speed</Output>
+      <options>
+        <pivotParameter>bins_Speed</pivotParameter>
+      </options>
+    </HistorySet>
+  </DataObjects>
+</Simulation>

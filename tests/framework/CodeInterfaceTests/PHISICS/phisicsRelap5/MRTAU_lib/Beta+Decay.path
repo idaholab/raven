@@ -1,0 +1,29 @@
+BETA+_PATHS                                DECAY 
+Actinides
+ 1                 !flag: if 0 Actinide block is jumped, otherwise is used
+ ISOT   SON1    SON2     SON3
+ NP237  none 
+ END 
+ BETA+_Branching 
+ ISOT   B. ratio
+ NP237  0.0000    
+ END 
+ BETA+_Qvalue
+ ISOT   Qvalue
+ NP237  0.0000 
+ END
+Fission Products
+ BETA+_PATHS
+ ISOT   SON1    SON2    SON3    SON4    SON5    SON6    SON7
+ NB93   none
+ END 
+ BETA+_Branching                   
+ ISOT   B. ratio        
+ NB93   0.0000                                                      
+ END 
+ BETA+_Qvalue       
+ ISOT    Qvalue
+ NB93    0.0000
+ END
+
+

@@ -184,6 +184,7 @@ class DataSet(DataObject):
     try:
       rlz = dict((var,rlz[var]) for var in self.getVars()+self.indexes)
     except KeyError as e:
+      self.raiseADebug('Variables provided:',rlz.keys())
       self.raiseAnError(KeyError,'Provided realization does not have all requisite values for object "{}": "{}"'.format(self.name,e.args[0]))
     # check consistency, but make it an assertion so it can be passed over
     if not self._checkRealizationFormat(rlz):
@@ -217,6 +218,7 @@ class DataSet(DataObject):
       self._collector = self._newCollector(width=len(rlz))
     # append
     self._collector.append(newData)
+
     # if hierarchical, clear the parent as an ending
     self._clearParentEndingStatus(rlz)
     # reset scaling factors, kd tree
@@ -418,10 +420,10 @@ class DataSet(DataObject):
       self.raiseAnError(RuntimeError,'Unrecognized request type:',type(var))
     return res
 
-  def load(self,fileName,style='netCDF',**kwargs):
+  def load(self,dataIn,style='netCDF',**kwargs):
     """
       Reads this dataset from disk based on the format.
-      @ In, fileName, str, path and name of file to read
+      @ In, dataIn, str, path and name of file to read
       @ In, style, str, optional, options are enumerated below
       @ In, kwargs, dict, optional, additional arguments to pass to reading function
       @ Out, None
@@ -429,17 +431,19 @@ class DataSet(DataObject):
     style = style.lower()
     # if fileToLoad in kwargs, then filename is actualle fileName/fileToLoad
     if 'fileToLoad' in kwargs.keys():
-      fileName = kwargs['fileToLoad'].getAbsFile()
+      dataIn = kwargs['fileToLoad'].getAbsFile()
     # load based on style for loading
     if style == 'netcdf':
-      self._fromNetCDF(fileName,**kwargs)
+      self._fromNetCDF(dataIn,**kwargs)
     elif style == 'csv':
       # make sure we don't include the "csv"
-      if fileName.endswith('.csv'):
-        fileName = fileName[:-4]
-      self._fromCSV(fileName,**kwargs)
+      if dataIn.endswith('.csv'):
+        dataIn = dataIn[:-4]
+      self._fromCSV(dataIn,**kwargs)
     elif style == 'dict':
-      self._fromDict(fileName,**kwargs)
+      self._fromDict(dataIn,**kwargs)
+    elif style == 'dataset':
+      self._fromXarrayDataset(dataIn)
     # TODO dask
     else:
       self.raiseAnError(NotImplementedError,'Unrecognized read style: "{}"'.format(style))
@@ -472,7 +476,7 @@ class DataSet(DataObject):
         if index > numInData-1:
           ## if past the data AND the collector, we don't have that entry
           if index > numInData + numInCollector - 1:
-            self.raiseAnError(IndexError,'Requested index "{}" but only have {} entries (zero-indexed)!'.format(index,numInData+numInCollector))
+            self.raiseAnError(IndexError,'{}: Requested index "{}" but only have {} entries (zero-indexed)!'.format(self.name,index,numInData+numInCollector))
           ## otherwise, take from the collector
           else:
             rlz = self._getRealizationFromCollectorByIndex(index - numInData)
@@ -638,14 +642,15 @@ class DataSet(DataObject):
     if style.lower() == 'netcdf':
       self._toNetCDF(fileName,**kwargs)
     elif style.lower() == 'csv':
-      if len(self._data[self.sampleTag])==0: #TODO what if it's just metadata?
+      if len(self.asDataset().variables)==0: #TODO what if it's just metadata?
         self.raiseAWarning('Nothing to write!')
         return
       #first write the CSV
       firstIndex = kwargs.get('firstIndex',0)
       self._toCSV(fileName,start=firstIndex,**kwargs)
       # then the metaxml
-      self._toCSVXML(fileName,**kwargs)
+      if 'DataSet' in self._meta.keys():
+        self._toCSVXML(fileName,**kwargs)
     # TODO dask?
     else:
       self.raiseAnError(NotImplementedError,'Unrecognized write style: "{}"'.format(style))
@@ -663,6 +668,15 @@ class DataSet(DataObject):
       @ Out, int, number of samples in this dataset
     """
     return self.size
+
+  @property
+  def isEmpty(self):
+    """
+      @ In, None
+      @ Out, boolean, True if the dataset is empty otherwise False
+    """
+    empty = True if self.size == 0 else False
+    return empty
 
   @property
   def vars(self):
@@ -993,25 +1007,30 @@ class DataSet(DataObject):
     dataDict['dims']     = self.getDimensions()
     dataDict['metadata'] = self.getMeta(general=True)
     # main data
-    ## initialize with np arrays of objects
-    dataDict['data'] = dict((var,np.zeros(self.size,dtype=object)) for var in self.vars+self.indexes)
-    ## loop over realizations to get distinct values without NaNs
-    for var in self.vars:
-      # how we get and store variables depends on the dimensionality of the variable
-      dims=self.getDimensions(var)[var]
-      # if scalar (no dims and not an index), just grab the values
-      if len(dims)==0 and var not in self.indexes:
+    if self.type == "PointSet":
+      ## initialize with np arrays of objects
+      dataDict['data'] = dict((var,np.zeros(self.size,dtype=object)) for var in self.vars)
+      for var in self.vars:
         dataDict['data'][var] = self.asDataset()[var].values
-        continue
-      # otherwise, need to remove NaNs, so loop over slices
+    else:
+      dataDict['data'] = dict((var,np.zeros(self.size,dtype=object)) for var in self.vars+self.indexes)
+      # need to remove NaNs, so loop over slices
       for s,rlz in enumerate(self.sliceByIndex(self.sampleTag)):
-        # get data specific to this var for this realization (slice)
-        data = rlz[var]
-        # need to drop indexes for which no values are present
-        for index in dims:
-          data = data.dropna(index)
-          dataDict['data'][index][s] = data[index].values
-        dataDict['data'][var][s] = data.values
+        ## loop over realizations to get distinct values without NaNs
+        for var in self.vars:
+          # how we get and store variables depends on the dimensionality of the variable
+          dims=self.getDimensions(var)[var]
+          # if scalar (no dims and not an index), just grab the values
+          if len(dims)==0 and var not in self.indexes:
+            dataDict['data'][var] = self.asDataset()[var].values
+            continue
+          # get data specific to this var for this realization (slice)
+          data = rlz[var]
+          # need to drop indexes for which no values are present
+          for index in dims:
+            data = data.dropna(index)
+            dataDict['data'][index][s] = data[index].values
+          dataDict['data'][var][s] = data.values
     return dataDict
 
   def _convertToXrDataset(self):
@@ -1280,6 +1299,43 @@ class DataSet(DataObject):
     for key,val in self._data.attrs.items():
       self._meta[key] = pk.loads(val.encode('utf-8'))
 
+  def _fromXarrayDataset(self,dataset):
+    """
+    """
+    if not self.isEmpty:
+      self.raiseAnError(IOError, 'DataObject', self.name.strip(),'is not empty!')
+    #select data from dataset
+    providedVars  = set(dataset.data_vars.keys())
+    requiredVars  = set(self.getVars())
+    ## figure out who's missing from the IO space
+    missing = requiredVars - providedVars
+    if len(missing) > 0:
+      self.raiseAnError(KeyError,'Variables are missing from "source" that are required for data object "',
+                                  self.name.strip(),'":',",".join(missing))
+    # remove self.sampleTag since it is an internal used dimension
+    providedDims = set(dataset.sizes.keys()) - set([self.sampleTag])
+    requiredDims = set(self.indexes)
+    missing = requiredDims - providedDims
+    if len(missing) > 0:
+      self.raiseAnError(KeyError,'Dimensions are missing from "source" that are required for data object "',
+                                  self.name.strip(),'":',",".join(missing))
+    # select the required data from given dataset
+    datasetSub = dataset[list(requiredVars)]
+    # check the dimensions
+    for var in self.vars:
+      requiredDims = set(self.getDimensions(var)[var])
+      # make sure "dims" isn't polluted
+      assert(self.sampleTag not in requiredDims)
+      providedDims = set(datasetSub[var].sizes.keys()) - set([self.sampleTag])
+      if requiredDims != providedDims:
+        self.raiseAnError(KeyError,'Dimensions of variable',var,'from "source"', ",".join(providedDims),
+                'is not consistent with the required dimensions for data object "',
+                self.name.strip(),'":',",".join(requiredDims))
+    self._orderedVars = self.vars + self.indexes
+    self._data = datasetSub
+    for key, val in self._data.attrs.items():
+      self._meta[key] = val
+
   def _getCompatibleType(self,val):
     """
       Determines the data type for "val" that is compatible with the rest of the data object.
@@ -1386,6 +1442,10 @@ class DataSet(DataObject):
         except KeyError: # IndexError?
         # variable doesn't have a scale factor (yet? Why not?)
           loc = 0.0
+          scale = 1.0
+        if scale == 0:
+          # TODO: Seem to me, we need to find a better way to compare data
+          # The scale will be zero if Grid Sampler is used, reset to 1.0
           scale = 1.0
         scaleVal = (val-loc)/scale
         # create mask of where the dataarray matches the desired value

@@ -940,6 +940,7 @@ class IOStep(Step):
         # reseed as requested
         if reseedInt is not None:
           outputs[i].reseed(reseedInt)
+
       elif self.actionType[i] == 'FILES-dataObjects':
         #inDictionary['Input'][i] is a Files, outputs[i] is PointSet
         infile = inDictionary['Input'][i]

@@ -27,11 +27,12 @@ if not 'xrange' in dir(__builtins__):
 ################################################################################
 from utils import utils
 from .Metric import Metric
-from .Minkowski import Minkowski
 from .DTW import DTW
 from .SklMetric import SKL
+from .PairwiseMetric import PairwiseMetric
 from .CDFAreaDifference import CDFAreaDifference
 from .PDFCommonArea import PDFCommonArea
+from .ScipyMetric import ScipyMetric
 ## [ Add new class here ]
 ################################################################################
 ## Alternatively, to fully automate this file:
