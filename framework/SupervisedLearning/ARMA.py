@@ -70,10 +70,8 @@ class ARMA(supervisedLearning):
     self.fourierResults    = {} # dictionary of Fourier results, by target
     # training parameters
     self.fourierParams     = {} # dict of Fourier training params, by target (if requested, otherwise not present)
-    self.Pmax              = kwargs.get('Pmax', 3) # bounds for autoregressive lag
-    self.Pmin              = kwargs.get('Pmin', 0)
-    self.Qmax              = kwargs.get('Qmax', 3) # bounds for moving average lag
-    self.Qmin              = kwargs.get('Qmin', 0)
+    self.P                 = kwargs.get('P', 3) # autoregressive lag
+    self.Q                 = kwargs.get('Q', 3) # moving average lag
     self.segments          = kwargs.get('segments', 1)
     # data manipulation
     self.reseedCopies      = kwargs.get('reseedCopies',True)
@@ -128,12 +126,6 @@ class ARMA(supervisedLearning):
     # can only handle one scaling input currently
     if len(self.features) != 1:
       self.raiseAnError(IOError,"The ARMA can only currently handle a single feature, which scales the outputs!")
-
-    # we aren't set up to optimize p and q anymore, so if they're different error out
-    if self.Pmin != self.Pmax or self.Qmax != self.Qmin:
-      self.raiseAnError(IOError,'ARMA temporarily has optimizing P and Q disabled; please set Pmax and Pmin to '+
-          'the same value, and similarly for Q.  If optimizing is desired, please contact us so we can expedite '+
-          'the fix.')
 
     # read off of paramInput for more detailed inputs # TODO someday everything should read off this!
     paramInput = kwargs['paramInput']
@@ -547,7 +539,7 @@ class ARMA(supervisedLearning):
                                        nsample = numSamples,
                                        distrvs = randEngine,
                                        sigma = np.sqrt(model.sigma2),
-                                       burnin = 2*max(self.Pmax,self.Qmax)) # @epinas, 2018
+                                       burnin = 2*max(self.P,self.Q)) # @epinas, 2018
     return hist
 
   def _generateFourierSignal(self, pivots, basePeriod, fourierOrder):
@@ -702,11 +694,9 @@ class ARMA(supervisedLearning):
       @ Out, results, statsmodels.tsa.arima_model.ARMAResults, fitted ARMA
     """
     # input parameters
-    # XXX change input parameters to just p,q
-    # TODO option to optimize for best p,q?
-    Pmax = self.Pmax
-    Qmax = self.Qmax
-    return smARMA(data, order=(Pmax,Qmax)).fit(disp=False)
+    P = self.P
+    Q = self.Q
+    return smARMA(data, order=(P,Q)).fit(disp=False)
 
   def _trainCDF(self,data):
     """
@@ -831,8 +821,8 @@ class ARMA(supervisedLearning):
       @ Out, stateDist, Distributions.MultivariateNormal, MVN from which VARMA noise is taken
       @ Out, initDist, Distributions.MultivariateNormal, MVN from which VARMA initial state is taken
     """
-    Pmax = self.Pmax
-    Qmax = self.Qmax
+    Pmax = self.P
+    Qmax = self.Q
     model = sm.tsa.VARMAX(endog=data, order=(Pmax,Qmax))
     self.raiseADebug('... ... ... fitting VARMA ...')
     results = model.fit(disp=False,maxiter=1000)

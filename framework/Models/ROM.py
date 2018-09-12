@@ -164,10 +164,8 @@ class ROM(Dummy):
     # ARMA
     inputSpecification.addSub(InputData.parameterInputFactory('segments', InputData.IntegerType))
     inputSpecification.addSub(InputData.parameterInputFactory('correlate', InputData.StringListType))
-    inputSpecification.addSub(InputData.parameterInputFactory("Pmax", InputData.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("Pmin", InputData.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("Qmax", InputData.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("Qmin", InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("P", InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("Q", InputData.IntegerType))
     inputSpecification.addSub(InputData.parameterInputFactory("seed", InputData.IntegerType))
     inputSpecification.addSub(InputData.parameterInputFactory("reseedCopies", InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("Fourier", contentType=InputData.FloatListType))

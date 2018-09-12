@@ -2922,8 +2922,6 @@ x_t = \sum_{i=1}^p\phi_ix_{t-i}+\alpha_t+\sum_{j=1}^q\theta_j\alpha_{t-j},
 \end{equation*}
 where $x$ is a vector of dimension $n$, and $\phi_i$ and $\theta_j$ are both $n$ by $n$ matrices. When $q=0$, the above is
 autoregressive (AR); when $p=0$, the above is moving average (MA).
-While plans for optimizing $p$ and $q$ are under consideration, currently setting $Pmin$ and $Pmax$ to the
-same value is required, and similarly for $Qmin$ and $Qmax$.
 %The user is allowed to provide upper and lower limits for $p$
 %and $q$ (see below), and the training process will choose the optimal $p$ and $q$ that fall into the user-specified range.
 When
@@ -2972,14 +2970,10 @@ below).
   \item \xmlNode{reseedCopies}, \xmlDesc{boolean, optional field}, if True then whenever the ARMA is copied, a
     random reseeding will be performed to ensure different histories.
   \default{True}
-  \item \xmlNode{Pmax}, \xmlDesc{integer, optional field}, defines the maximum value of $p$.
+  \item \xmlNode{P}, \xmlDesc{integer, optional field}, defines the value of $p$.
   \default{3}
-  \item \xmlNode{Pmin}, \xmlDesc{integer, optional field}, defines the minimum value of $p$.
-  \default{0}
-  \item \xmlNode{Qmax}, \xmlDesc{integer, optional field}, defines the maximum value of $q$.
+  \item \xmlNode{Q}, \xmlDesc{integer, optional field}, defines the value of $q$.
   \default{3}
-  \item \xmlNode{Qmin}, \xmlDesc{integer, optional field}, defines the minimum value of $q$.
-  \default{0}
   \item \xmlNode{outTruncation}, \xmlDesc{comma-separated string, optional}, defines whether and how output
     time series are limited in domain. This node has one attribute, \xmlAttr{domain}, whose value can be
     \xmlString{positive} or \xmlString{negative}. The value of this node contains the list of targets to whom
