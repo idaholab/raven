@@ -24,6 +24,7 @@ Currently, the following types are available in RAVEN:
   \item \textbf{Metric}
   \item \textbf{CrossValidation}
   \item \textbf{ValueDuration}
+  \item \textbf{FastFourierTransform}
   %\item \textbf{PrintCSV}
   %\item \textbf{LoadCsvIntoInternalObject}
 \end{itemize}
@@ -158,10 +159,10 @@ data objects, depending on the type of statistics the user wants to compute:
     variable names, i.e. variable names listed in \xmlNode{Input} or \xmlNode{Output} in the defined \xmlString{DataSet}.
     In addition, the extra node \xmlNode{Index} is required, and the value for \xmlAttr{var} can be found in the following:
     \begin{itemize}
-      \item scalar metrics, such as \xmlNode{expectedValue} and \xmlNode{variance}, 
+      \item scalar metrics, such as \xmlNode{expectedValue} and \xmlNode{variance},
         are requested, the index variable \xmlString{targets} will be required.
       \item vector metrics, such as \xmlNode{covariance} and \xmlNode{sensitivity}, are requested, the index variables
-        \xmlString{targets} and \xmlString{features} will be required. 
+        \xmlString{targets} and \xmlString{features} will be required.
       \item If \xmlNode{percentile} is requested, an additional index variable \xmlString{percent} should be added.
       \item when dynamic BasicStatistics (e.g. time) is requested, the index variable \xmlString{time}  will be required.
     \end{itemize}
@@ -2184,6 +2185,47 @@ the counts variable.
     <PostProcessor name="pp" subType="ValueDuration">
       <target>x, y</target>
       <bins>100</bins>
+    </PostProcessor>
+    ...
+  </Models>
+ ...
+</Simulation>
+\end{lstlisting}
+
+
+%%%%%%%%%%%%%% FastFourierTransform %%%%%%%%%%%%%%%%%%%
+\subsubsection{FastFourierTransform}
+\label{FastFourierTransformPP}
+The \xmlNode{FastFourierTransform} postprocessor provides access to the Numpy fast fourier transform function
+\texttt{numpy.fft.fft}
+and provides the frequencies, periods, and amplitudes from performing the transform. The periods are simply
+the inverse of the frequencies, and the frequency units are the deltas between pivot values in the provided
+input. For example, if data is collected every 3600 seconds, the units of frequency are per-hour.  This
+postrpocessor expects uniformly-spaced pivot values. Note that for each realization in the input data object,
+a separate fft will be created for each target.
+
+The \xmlNode{FastFourierTransform} postprocessor can act on any target in a DataObject that depends on a
+single index, and generates three histories per sample per target: an independent variable
+\xmlString{target\_fft\_frequency}, and two dependent values \xmlString{target\_fft\_period} and
+\xmlString{target\_fft\_amplitude}, which both depend on the frequency by default. In all three outputs,
+\emph{target} is replaced by the name of the target for which the fft was requested.
+
+\ppType{FastFourierTransform}{FastFourierTransform}
+%
+\begin{itemize}
+  \item \xmlNode{target}, \xmlDesc{comma separated strings, required field}, specifies the names of the
+    target(s) for which the fast Fourier transform should be calculated.
+\end{itemize}
+
+\textbf{Example:}
+
+\begin{lstlisting}[style=XML]
+<Simulation>
+ ...
+  <Models>
+    ...
+    <PostProcessor name="pp" subType="FastFourierTransform">
+      <target>x, y</target>
     </PostProcessor>
     ...
   </Models>
