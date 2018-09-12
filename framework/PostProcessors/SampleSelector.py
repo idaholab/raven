@@ -14,7 +14,7 @@
 """
 Created on August 28, 2018
 
-@author: talbpaul
+@author: giovannimaronati
 """
 from __future__ import division, print_function , unicode_literals, absolute_import
 import warnings
@@ -121,7 +121,7 @@ class SampleSelector(PostProcessor):
     d = inData.asDataset()
     i = d[self.target].argmin()
     pick = inData.realization(index = i)
-        
+
     return pick
 
   def collectOutput(self, finishedJob, output):
@@ -139,4 +139,3 @@ class SampleSelector(PostProcessor):
     for key,value in pick.items():
         pick[key] = np.atleast_1d(value)
     output.addRealization(pick)
-
