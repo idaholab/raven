@@ -65,16 +65,16 @@ class CrossValidation(PostProcessor):
 
     sciKitLearnInput.addSub(sklTypeInput)
 
-    for name, inputType in [("n",InputData.IntegerType),
-                            ("p",InputData.IntegerType),
+    for name, inputType in [("p",InputData.IntegerType),
                             ("n_splits",InputData.IntegerType),
-                            ("shuffle",InputData.StringType),
-                            ("random_state",InputData.StringType),
-                            ("y",InputData.StringType),
-                            ("labels",InputData.StringType),
-                            ("n_iter",InputData.IntegerType),
-                            ("test_size",InputData.StringType),
-                            ("train_size",InputData.StringType),
+                            ("shuffle",InputData.BoolType),
+                            ("random_state",InputData.IntegerType),
+                            ('max_train_size',InputData.IntegerType),
+                            ('test_fold', InputData.FloatListType),
+                            ("test_size",InputData.FloatOrIntType),
+                            ("train_size",InputData.FloatOrIntType),
+                            ('n_groups',InputData.IntegerType),
+                            ("labels",InputData.FloatListType),
                             ("scores",InputData.StringType)]:
       dataType = InputData.parameterInputFactory(name, contentType=inputType)
       sciKitLearnInput.addSub(dataType)
@@ -97,10 +97,6 @@ class CrossValidation(PostProcessor):
     self.cvScore        = None
     # assembler objects to be requested
     self.addAssemblerObject('Metric', 'n', True)
-    # The list of cross validation engine that require the parameter 'n'
-    # This will be removed if we updated the scikit-learn to version 0.20
-    # We will rely on the code to decide the value for the parameter 'n'
-    self.CVList = ['KFold', 'LeaveOneOut', 'LeavePOut', 'ShuffleSplit']
     #self.validMetrics = ['mean_absolute_error', 'explained_variance_score', 'r2_score', 'mean_squared_error', 'median_absolute_error']
     # 'median_absolute_error' is removed, the reasons for that are:
     # 1. this metric can not accept multiple ouptuts
@@ -179,7 +175,7 @@ class CrossValidation(PostProcessor):
       if len(child.parameterValues) > 0:
         initDict[child.getName()] = dict(child.parameterValues)
       else:
-        initDict[child.getName()] = utils.tryParse(child.value)
+        initDict[child.getName()] = child.value
     return initDict
 
   def inputToInternal(self, currentInp, full = False):
@@ -300,17 +296,16 @@ class CrossValidation(PostProcessor):
       self.raiseAnError(IOError, "Not implemented yet")
     initDict = copy.deepcopy(self.initializationOptionDict)
     cvEngine = None
+    groups = None
     for key, value in initDict.items():
       if key == "SciKitLearn":
-        if value['SKLtype'] in self.CVList:
-          dataSize = np.asarray(inputDict.values()[0]).size
-          value['n'] = dataSize
+        groups = value.pop("labels",None)
         cvEngine = CrossValidations.returnInstance(key, self, **value)
         break
     if cvEngine is None:
       self.raiseAnError(IOError, "No cross validation engine is provided!")
     outputDict = {}
-    for trainIndex, testIndex in cvEngine.generateTrainTestIndices():
+    for trainIndex, testIndex in cvEngine.generateTrainTestIndices(inputDict.values()[0], y=None, groups=groups):
       trainDict, testDict = self.__generateTrainTestInputs(inputDict, trainIndex, testIndex)
       ## Train the rom
       cvEstimator.train(trainDict)
