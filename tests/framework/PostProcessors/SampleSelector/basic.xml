@@ -2,29 +2,38 @@
 <Simulation verbosity="debug">
   <RunInfo>
     <WorkingDir>Basic</WorkingDir>
-    <Sequence>Sample,Process</Sequence>
+    <Sequence>Sample,Process_min,Process_max</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
 
   <TestInfo>
-    <name>framework/PostProcessors/SampleSelector/Basic</name>
+    <name>framework/PostProcessors/SampleSelector.Basic</name>
     <author>gm</author>
     <created>2018-09-12</created>
     <classesTested>PostProcessors.SampleSelector</classesTested>
     <description>
-      This test checks basic functionalities of the Sample Selector
+      This test checks basic functionalities of the Sample Selector. The model
+      multiplies the input x by 2.5 to obtain x1, and y is multiplied by 3.5 to obtain y1.
+      x and y are sampled through a Monte Carlo sampler, with 10 realizations. The
+      SampleSelector postprocessor is called twice, once to pick the minimum of x1,
+      and once to pick the maximum of y1.
     </description>
   </TestInfo>
 
   <Models>
     <ExternalModel ModuleToLoad="simpleMirrowModel" name="mirrowModel" subType="">
-      <variables>x,y,x1</variables>
+      <variables>x,y,x1,y1</variables>
     </ExternalModel>
-    <PostProcessor name="PP" subType="SampleSelector" verbosity="debug">
+    <PostProcessor name="PPmin" subType="SampleSelector" verbosity="debug">
       <target> x1 </target>
       <criterion> min </criterion>
     </PostProcessor>
+    <PostProcessor name="PPmax" subType="SampleSelector" verbosity="debug">
+      <target> y1 </target>
+      <criterion> max </criterion>
+    </PostProcessor>
   </Models>
+
 
   <Distributions>
     <Normal name="x0_distrib">
@@ -58,18 +67,28 @@
       <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
       <Output class="DataObjects" type="PointSet">outputDataMC</Output>
     </MultiRun>
-    <PostProcess name="Process">
+    <PostProcess name="Process_min">
       <Input class="DataObjects" type="PointSet">outputDataMC</Input>
-      <Model class="Models" type="PostProcessor">PP</Model>
-      <Output class="DataObjects" type="PointSet">selected</Output>
-      <Output class="OutStreams" type="Print">selected_printed</Output>
+      <Model class="Models" type="PostProcessor">PPmin</Model>
+      <Output class="DataObjects" type="PointSet">selected_min</Output>
+      <Output class="OutStreams" type="Print">selected_printed_min</Output>
+    </PostProcess>
+    <PostProcess name="Process_max">
+      <Input class="DataObjects" type="PointSet">outputDataMC</Input>
+      <Model class="Models" type="PostProcessor">PPmax</Model>
+      <Output class="DataObjects" type="PointSet">selected_max</Output>
+      <Output class="OutStreams" type="Print">selected_printed_max</Output>
     </PostProcess>
   </Steps>
 
   <OutStreams>
-    <Print name="selected_printed">
+    <Print name="selected_printed_min">
       <type>csv</type>
-      <source>selected</source>
+      <source>selected_min</source>
+    </Print>
+    <Print name="selected_printed_max">
+      <type>csv</type>
+      <source>selected_max</source>
     </Print>
   </OutStreams>
 
@@ -80,11 +99,15 @@
     </PointSet>
     <PointSet name="outputDataMC">
       <Input>x,y</Input>
-      <Output>x1</Output>
+      <Output>x1,y1</Output>
     </PointSet>
-    <PointSet name="selected">
+    <PointSet name="selected_min">
       <Input>x,y</Input>
       <Output>x1</Output>
+    </PointSet>
+    <PointSet name="selected_max">
+      <Input>x,y</Input>
+      <Output>y1</Output>
     </PointSet>
   </DataObjects>
 

@@ -33,9 +33,9 @@ import Runners
 
 class SampleSelector(PostProcessor):
   """
-    Constructs a load duration curve.
-    x-axis is time spent above a particular variable's value,
-    y-axis is the value of the variable.
+    This postprocessor selects the row in which the minimum or the maximum
+    of a target is found.The postprocessor can  act on DataObject, and
+    generates a DataObject in return.
   """
 
   @classmethod
@@ -47,7 +47,6 @@ class SampleSelector(PostProcessor):
       @ Out, inputSpecification, InputData.ParameterInput, class to use for
         specifying input of cls.
     """
-    ## This will replace the lines above
     inSpec= super(SampleSelector, cls).getInputSpecification()
     inSpec.addSub(InputData.parameterInputFactory('target',
                                                   contentType=InputData.StringType,
@@ -137,5 +136,5 @@ class SampleSelector(PostProcessor):
 
     pick = evaluation[1]
     for key,value in pick.items():
-        pick[key] = np.atleast_1d(value)
+      pick[key] = np.atleast_1d(value)
     output.addRealization(pick)

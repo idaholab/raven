@@ -1,0 +1,8 @@
+[Tests]
+  [./Basic]
+    type = 'RavenFramework'
+    input = 'basic.xml'
+    output = 'Basic/selected_printed.xml'
+    csv = 'Basic/selected_printed_min.csv Basic/selected_printed_max.csv'
+  [../]
+[]
