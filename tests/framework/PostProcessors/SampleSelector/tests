@@ -2,7 +2,7 @@
   [./Basic]
     type = 'RavenFramework'
     input = 'basic.xml'
-    output = 'Basic/selected_printed.xml'
+    output = 'Basic/selected_printed_min.xml Basic/selected_printed_max.xml'
     csv = 'Basic/selected_printed_min.csv Basic/selected_printed_max.csv'
   [../]
 []
