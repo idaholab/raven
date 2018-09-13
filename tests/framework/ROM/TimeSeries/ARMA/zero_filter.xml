@@ -71,12 +71,6 @@
       <FourierOrder>1</FourierOrder>
       <P>3</P>
       <Q>2</Q>
-      <P>3</P>
-      <Q>2</Q>
-      <P>3</P>
-      <Q>2</Q>
-      <P>3</P>
-      <Q>2</Q>
     </ROM>
     <PostProcessor name="stats" subType="BasicStatistics">
       <expectedValue prefix="mean">Demand,GHI</expectedValue>
