@@ -35,6 +35,7 @@ from .ETImporter import ETImporter
 from .SafestPoint import SafestPoint
 from .LimitSurface import LimitSurface
 from .ValueDuration import ValueDuration
+from .SampleSelector import SampleSelector
 from .ImportanceRank import ImportanceRank
 from .BasicStatistics import BasicStatistics
 from .CrossValidation import CrossValidation
