@@ -305,7 +305,14 @@ class CrossValidation(PostProcessor):
     if cvEngine is None:
       self.raiseAnError(IOError, "No cross validation engine is provided!")
     outputDict = {}
-    for trainIndex, testIndex in cvEngine.generateTrainTestIndices(inputDict.values()[0], y=None, groups=groups):
+    # In SciKit-Learn (version > 0.18), module model_selection is used to perform cross validation
+    # A wrapper in RAVEN is created, and the method .split is replaced with generateTrainTestIndices
+    # In the old version, 'labels' is used for the label-related cross validation. In the new versions
+    # Both keywords 'y' and 'groups' can be used to specify the labels. The keyword 'y' is mainly used by
+    # SciKit-Learn supervised learning problems, and 'groups' become additional option to specify the group
+    # labels that can be used while splitting the dataset into train/test set. For our purpose, only one
+    # label option is needed. ~ wangc
+    for trainIndex, testIndex in cvEngine.generateTrainTestIndices(inputDict.values()[0], y=groups, groups=groups):
       trainDict, testDict = self.__generateTrainTestInputs(inputDict, trainIndex, testIndex)
       ## Train the rom
       cvEstimator.train(trainDict)
