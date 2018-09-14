@@ -51,16 +51,12 @@ class SciKitLearn(CrossValidation):
   availImpl['LabelShuffleSplit'      ] = (cross_validation.GroupShuffleSplit,      'float')
   availImpl['LeaveOneLabelOut'       ] = (cross_validation.LeaveOneGroupOut,       'float')
   availImpl['LeavePLabelOut'         ] = (cross_validation.LeavePGroupsOut,         'float')
-
-  availImpl['PredefinedSplit'         ] = (cross_validation.PredefinedSplit,        'float')
-  availImpl['TimeSeriesSplit'         ] = (cross_validation.TimeSeriesSplit,        'float')
-
+  # Method may needed
+  #availImpl['PredefinedSplit'         ] = (cross_validation.PredefinedSplit,        'float')
+  #availImpl['TimeSeriesSplit'         ] = (cross_validation.TimeSeriesSplit,        'float')
   # Methods available for SciKit-Learn version >= 0.19
   #availImpl['RepeatedKFold'           ] = (cross_validation.RepeatedKFold,          'float')
   #availImpl['RepeatedStratifiedKFold' ] = (cross_validation.RepeatedStratifiedKFold,'float')
-
-
-
 
   def __init__(self, messageHandler, **kwargs):
     """
