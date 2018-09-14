@@ -134,6 +134,7 @@ class FiniteDifferenceGradientOptimizer(SPSA):
         # gradient is calculated in normalized space
         dh = pert['inputs'][var] - opt['inputs'][var]
         if abs(dh) < 1e-15:
+          self.raiseADebug('Values:',pert['inputs'][var],opt['inputs'][var])
           self.raiseAnError(RuntimeError,'While calculating the gradArray a "dh" very close to zero was found for var:',var)
         gradArray[var][i] = lossDiff/dh
     gradient = {}

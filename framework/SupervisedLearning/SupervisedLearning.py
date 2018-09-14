@@ -103,16 +103,14 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
       self.initOptionDict = {}
     if 'Features' not in self.initOptionDict.keys():
       self.raiseAnError(IOError,'Feature names not provided')
-    if 'Target'   not in self.initOptionDict.keys():
+    if 'Target' not in self.initOptionDict.keys():
       self.raiseAnError(IOError,'Target name not provided')
-    self.features = self.initOptionDict['Features'].split(',')
-    self.target   = self.initOptionDict['Target'  ].split(',')
-    self.initOptionDict.pop('Target')
-    self.initOptionDict.pop('Features')
+    self.features = self.initOptionDict.pop('Features').split(',')
+    self.target = self.initOptionDict.pop('Target').split(',')
     self.verbosity = self.initOptionDict['verbosity'] if 'verbosity' in self.initOptionDict else None
     for target in self.target:
-      if self.features.count(target) > 0:
-        self.raiseAnError(IOError,'The target "'+target+'" is also in the feature space!')
+      if target in self.features: #self.features.count(target) > 0:
+        self.raiseAnError(IOError,'The target "'+target+'" is also in the features!')
     #average value and sigma are used for normalization of the feature data
     #a dictionary where for each feature a tuple (average value, sigma)
     self.muAndSigmaFeatures = {}

@@ -72,24 +72,30 @@
     </PointSet>
     <PointSet name="asPoints">
       <Input>Time</Input>
-      <Output>A,B</Output>
+      <Output>A,B,C,D</Output>
     </PointSet>
     <PointSet name="stats">
       <Output>
         mean_A, var_A,
         mean_B, var_B,
-        covar_A_B, covar_B_A</Output>
+        mean_C, var_C,
+        mean_D, var_D,
+                   covar_A_B, covar_A_C, covar_A_D,
+        covar_B_A,            covar_B_C, covar_B_D,
+        covar_C_A, covar_C_B,            covar_C_D,
+        covar_D_A, covar_D_B, covar_D_C
+      </Output>
     </PointSet>
     <HistorySet name="training">
       <Input>scaling</Input>
-      <Output>A,B</Output>
+      <Output>A,B,C,D</Output>
       <options>
         <pivotParameter>Time</pivotParameter>
       </options>
     </HistorySet>
     <HistorySet name="samples">
       <Input>scaling</Input>
-      <Output>A,B</Output>
+      <Output>A,B,C,D</Output>
       <options>
         <pivotParameter>Time</pivotParameter>
       </options>
@@ -98,10 +104,10 @@
 
   <Models>
     <ROM name="VARMA" subType="ARMA">
-      <Target>A,B,Time</Target>
+      <Target>A,B,C,D,Time</Target>
       <Features>scaling</Features>
       <seed>84</seed>
-      <correlate>A,B</correlate>
+      <correlate>A,B,C</correlate>
       <pivotParameter>Time</pivotParameter>
       <Pmax>3</Pmax>
       <Pmin>3</Pmin>
@@ -109,11 +115,11 @@
       <Qmin>1</Qmin>
     </ROM>
     <PostProcessor name="stats" subType="BasicStatistics">
-      <expectedValue prefix="mean">A,B</expectedValue>
-      <variance prefix="var">A,B</variance>
+      <expectedValue prefix="mean">A,B,C,D</expectedValue>
+      <variance prefix="var">A,B,C,D</variance>
       <covariance prefix="covar">
-        <targets>A,B</targets>
-        <features>A,B</features>
+        <targets>A,B,C,D</targets>
+        <features>A,B,C,D</features>
       </covariance>
     </PostProcessor>
   </Models>
@@ -153,10 +159,16 @@
           <y>samples|Output|B</y>
           <interpPointsX>100</interpPointsX>
         </plot>
+        <plot>
+          <type>line</type>
+          <x>samples|Output|Time</x>
+          <y>samples|Output|C</y>
+          <interpPointsX>100</interpPointsX>
+        </plot>
       </plotSettings>
       <actions>
         <title>
-          <text>A,B VARMA</text>
+          <text>A,B,C VARMA</text>
         </title>
         <how>png</how>
       </actions>
@@ -176,10 +188,16 @@
           <y>training|Output|B</y>
           <interpPointsX>100</interpPointsX>
         </plot>
+        <plot>
+          <type>line</type>
+          <x>training|Output|Time</x>
+          <y>training|Output|C</y>
+          <interpPointsX>100</interpPointsX>
+        </plot>
       </plotSettings>
       <actions>
         <title>
-          <text>A,B Original</text>
+          <text>A,B,C Original</text>
         </title>
         <how>png</how>
       </actions>

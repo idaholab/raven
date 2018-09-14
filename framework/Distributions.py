@@ -165,6 +165,15 @@ class Distribution(BaseType):
     self._localSetState(pdict)
     self.initializeDistribution()
 
+  def _localSetState(self,pdict):
+    """
+      Set the pickling state (local)
+      Default implementation, do nothing special
+      @ In, pdict, dict, the namespace state
+      @ Out, None
+    """
+    pass
+
   def _handleInput(self, paramInput):
     """
       Function to handle the common parts of the distribution parameter input.
@@ -3137,6 +3146,18 @@ class MultivariateNormal(NDimensionalDistributions):
       self.raiseAnError(IOError,'Invalid dimensions! Covariance has %i entries (%i x %i), but mu has %i entries!' %(len(self.covariance),covDim,covDim,len(self.mu)))
     self.initializeDistribution()
 
+  def _localSetState(self,pdict):
+    """
+      Set the pickling state (local)
+      @ In, pdict, dict, the namespace state
+      @ Out, None
+    """
+    self.method = pdict.pop('method')
+    self.dimension = pdict.pop('dimension')
+    self.rank = pdict.pop('rank')
+    self.mu = pdict.pop('mu')
+    self.covariance = pdict.pop('covariance')
+
   def getInitParams(self):
     """
       Function to get the initial values of the input parameters that belong to
@@ -3146,6 +3167,11 @@ class MultivariateNormal(NDimensionalDistributions):
         and each parameter's initial value as the dictionary values
     """
     paramDict = NDimensionalDistributions.getInitParams(self)
+    paramDict['method'] = self.method
+    paramDict['dimension'] = self.dimension
+    paramDict['rank'] = self.rank
+    paramDict['mu'] = self.mu
+    paramDict['covariance'] = self.covariance
     return paramDict
 
   def initializeDistribution(self):

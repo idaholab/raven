@@ -1,0 +1,122 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/ROM/TimeSeries/ARMA.ZeroFilter</name>
+    <author>talbpaul</author>
+    <created>2018-08-29</created>
+    <classesTested>SupervisedLearning.ARMA</classesTested>
+    <description>
+      Tests the ZeroFilter functionality of the ARMA, including as a correlated variable.  Note the mean and variance
+      especially of GHI change significantly if the zero-filtering is not working.
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>ZeroFilter</WorkingDir>
+    <Sequence>read,train,sample,readSynth,stats</Sequence>
+  </RunInfo>
+
+  <Steps>
+    <IOStep name='read'>
+      <Input class='Files' type =''>datafile</Input>
+      <Output class='DataObjects' type='HistorySet'>raw</Output>
+    </IOStep>
+    <IOStep name='readSynth'>
+      <Input class='Files' type =''>synthfile</Input>
+      <Output class='DataObjects' type='HistorySet'>synth2</Output>
+    </IOStep>
+    <MultiRun name="sample">
+      <Input class='DataObjects' type='PointSet'>placeholder</Input>
+      <Model class="Models" type="ROM">arma</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
+      <Output class="DataObjects" type="HistorySet">synthetic</Output>
+      <Output class="OutStreams" type="Print">synthetic</Output>
+    </MultiRun>
+    <RomTrainer name='train'>
+      <Input    class = 'DataObjects' type = 'History'      >raw</Input>
+      <Output   class = 'Models'      type = 'ROM'          >arma</Output>
+    </RomTrainer>
+    <PostProcess name="stats">
+      <Input class="DataObjects" type="PointSet">synth2</Input>
+      <Model class="Models" type="PostProcessor">stats</Model>
+      <Output class="DataObjects" type="PointSet">stats</Output>
+      <Output class="OutStreams" type="Print">stats</Output>
+    </PostProcess>
+  </Steps>
+
+  <Files>
+    <Input name="datafile">inp.csv</Input>
+    <Input name="synthfile">synthetic_0.csv</Input>
+  </Files>
+
+  <Samplers>
+    <MonteCarlo name="mc">
+      <samplerInit>
+        <limit>1</limit>
+        <initialSeed>42</initialSeed>
+      </samplerInit>
+      <constant name="scaling">1.0</constant>
+    </MonteCarlo>
+  </Samplers>
+
+  <Models>
+    <ROM name='arma' subType='ARMA'>
+      <Target>Demand, Speed, GHI, Temperature, Time</Target>
+      <Features>scaling</Features>
+      <ZeroFilter tol='1e-10'>GHI</ZeroFilter>
+      <pivotParameter>Time</pivotParameter>
+      <correlate>Demand, GHI</correlate>
+      <Pmax>3</Pmax>
+      <Pmin>3</Pmin>
+      <Qmax>2</Qmax>
+      <Qmin>2</Qmin>
+      <Fourier>86400</Fourier> <!-- 1 year, 3 months, 1 day -->
+      <FourierOrder>1</FourierOrder>
+    </ROM>
+    <PostProcessor name="stats" subType="BasicStatistics">
+      <expectedValue prefix="mean">Demand,GHI</expectedValue>
+      <variance prefix="var">Demand,GHI</variance>
+    </PostProcessor>
+  </Models>
+
+  <DataObjects>
+    <PointSet name="placeholder">
+      <Input>scaling</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="synth2">
+      <Input>Time</Input>
+      <Output>Demand, GHI</Output>
+    </PointSet>
+    <PointSet name="stats">
+      <Input>mean_GHI,var_GHI</Input>
+      <Output>mean_Demand,var_Demand</Output>
+    </PointSet>
+    <HistorySet name="raw">
+      <Input>scaling</Input>
+      <Output>Demand, Speed, GHI, Temperature</Output>
+      <options>
+        <pivotParameter>Time</pivotParameter>
+      </options>
+    </HistorySet>
+    <HistorySet name="synthetic">
+      <Input>scaling</Input>
+      <Output>Demand, Speed, GHI, Temperature</Output>
+      <options>
+        <pivotParameter>Time</pivotParameter>
+      </options>
+    </HistorySet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="synthetic">
+      <type>csv</type>
+      <source>synthetic</source>
+    </Print>
+    <Print name="stats">
+      <type>csv</type>
+      <source>stats</source>
+    </Print>
+  </OutStreams>
+
+</Simulation>

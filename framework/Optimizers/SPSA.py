@@ -722,7 +722,7 @@ class SPSA(GradientBasedOptimizer):
       Utility function to compute the ak coefficients (gain sequence ak)
       @ In, paramDict, dict, dictionary containing information to compute gain parameter
       @ In, iterNum, int, current iteration index
-      @ Out, ak, float, current value for gain ak
+      @ Out, new, float, current value for gain ak
     """
     #TODO FIXME is this a good idea?
     try:
@@ -732,10 +732,10 @@ class SPSA(GradientBasedOptimizer):
       ak = a / (iterNum + A) ** alpha
     # modify step size based on the history of the gradients used
     frac = self.fractionalStepChangeFromGradHistory(traj)
-    ak *= frac
-    self.raiseADebug('step gain size for traj "{}" iternum "{}": {}'.format(traj,iterNum,ak))
-    self.counter['lastStepSize'][traj] = ak
-    return ak
+    new = ak*frac
+    self.raiseADebug('step gain size for traj "{}" iternum "{}": {:1.3e} (root {:1.2e} frac {:1.2e})'.format(traj,iterNum,new,ak,frac))
+    self.counter['lastStepSize'][traj] = new
+    return new
 
   def _getAlgorithmState(self,traj):
     """
