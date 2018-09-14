@@ -23,7 +23,7 @@
       <variables>u0,v0,w0,x0,y0,z0,u1,v1,w1,x1,y1,z1</variables>
     </ExternalModel>
     <PostProcessor name="basicStat" subType="BasicStatistics" verbosity="debug">
-      <multipleLinear>False</multipleLinear>
+      <multipleFeatures>False</multipleFeatures>
       <sensitivity prefix="sen">
         <targets>u1,v1,w1,x1,y1,z1</targets>
         <features>u0,v0,w0,x0,y0,z0</features>

@@ -96,17 +96,17 @@ class BasicStatistics(PostProcessor):
     pivotParameterInput = InputData.parameterInputFactory('pivotParameter', contentType=InputData.StringType)
     inputSpecification.addSub(pivotParameterInput)
 
-    datasetInput = InputData.parameterInputFactory('dataset', contentType=InputData.StringType)
+    datasetInput = InputData.parameterInputFactory('dataset', contentType=InputData.BoolType)
     inputSpecification.addSub(datasetInput)
 
     methodsToRunInput = InputData.parameterInputFactory("methodsToRun", contentType=InputData.StringType)
     inputSpecification.addSub(methodsToRunInput)
 
-    biasedInput = InputData.parameterInputFactory("biased", contentType=InputData.StringType)
+    biasedInput = InputData.parameterInputFactory("biased", contentType=InputData.BoolType)
     inputSpecification.addSub(biasedInput)
 
-    multipleLinearInput = InputData.parameterInputFactory("multipleLinear", contentType=InputData.StringType)
-    inputSpecification.addSub(multipleLinearInput)
+    multipleFeaturesInput = InputData.parameterInputFactory("multipleFeatures", contentType=InputData.BoolType)
+    inputSpecification.addSub(multipleFeaturesInput)
 
     return inputSpecification
 
@@ -132,7 +132,7 @@ class BasicStatistics(PostProcessor):
     self.pbPresent      = False # True if the ProbabilityWeight is available
     self.realizationWeight = None # The joint probabilities
     self.outputDataset  = False # True if the user wants to dump the outputs to dataset
-    self.multipleLinear = True # True if multiple linear regression is requested
+    self.multipleFeatures = True # True if multiple features are employed in linear regression as feature inputs
 
   def inputToInternal(self, currentInp):
     """
@@ -311,16 +311,13 @@ class BasicStatistics(PostProcessor):
                                'features':set(fnode.value),
                                'prefix':prefix})
       elif tag == "biased":
-        if child.value.lower() in utils.stringsThatMeanTrue():
-          self.biased = True
+        self.biased = child.value
       elif tag == "pivotParameter":
         self.pivotParameter = child.value
       elif tag == "dataset":
-        if child.value.lower() in utils.stringsThatMeanTrue():
-          self.outputDataset = True
-      elif tag == "multipleLinear":
-        if child.value.lower() in utils.stringsThatMeanFalse():
-          self.multipleLinear = False
+        self.outputDataset = child.value
+      elif tag == "multipleFeatures":
+        self.multipleFeatures = child.value
       else:
         self.raiseAWarning('Unrecognized node in BasicStatistics "',tag,'" has been ignored!')
     assert (len(self.toDo)>0), self.raiseAnError(IOError, 'BasicStatistics needs parameters to work on! Please check input for PP: ' + self.name)
@@ -974,7 +971,13 @@ class BasicStatistics(PostProcessor):
       @ In, intersectionSet, boolean, True if some target variables are in the list of features
       @ Out, da, xarray.DataArray, contains the calculations of sensitivity coefficients
     """
-    if self.multipleLinear:
+    if self.multipleFeatures:
+      # intersectionSet is flag that used to check the relationship between the features and targets.
+      # If True, part of the target variables are listed in teh feature set, then multivariate linear
+      # regression should not be used, and a loop over the target set is required.
+      # If False, which means there is no overlap between the target set and feature set.
+      # mutivariate linear regression can be used. However, for both cases, co-linearity check should be
+      # added for the feature set. ~ wangc
       if not intersectionSet:
         senMatrix = LinearRegression().fit(featSamples,targSamples).coef_
       else:
@@ -1026,7 +1029,7 @@ class BasicStatistics(PostProcessor):
       @ Out, da, xarray.DataArray, contains the calculations of variance dependent sensitivities
     """
     senMatrix = np.zeros((len(targCoords), len(targCoords)))
-    if self.multipleLinear:
+    if self.multipleFeatures:
       for p, param in enumerate(targCoords):
         covX = np.delete(cov,p,axis=0)
         covX = np.delete(covX,p,axis=1)
