@@ -17,63 +17,105 @@ import os
 
 def convert(tree,fileName=None):
   """
-    Converts input files to be compatible with merge request #789.
-    Remove nodes random_state, train_size, tset_size if they are None
-    Change text of labels node to list
-    Change node n_iter to n_splits
-    Change node p to n_groups for LeavePLabelOut
-    Change node y to labels
-    @ In, tree, xml.etree.ElementTree.ElementTree object, the contents of a
-      RAVEN input file
+    Converts the metric input files to use the new data objects
+    @ In, tree, xml.etree.ElementTree.ElementTree object, the contents of a RAVEN input file
     @ In, fileName, the name for the raven input file
-    @Out, tree, xml.etree.ElementTree.ElementTree object, the modified RAVEN
-      input file
+    @Out, tree, xml.etree.ElementTree.ElementTree object, the modified RAVEN input file
   """
-  rootNode = tree.getroot()
-  if rootNode.tag not in ['Simulation', 'PostProcessor', 'SciKitLearn']:
-    ## This is not a valid input file, or at least not one we care about for
-    ## this conversion
-    return tree
+  simulation = tree.getroot()
+  models = simulation.find('Models')
+  hasDataObjects = True
+  hasOutStreams = True
 
-  for cvNode in rootNode.iter('PostProcessor'):
-    if cvNode.attrib['subType'] == 'CrossValidation':
-      sklNode = cvNode.find('SciKitLearn')
-      trainSize = sklNode.find('train_size')
-      if trainSize is not None and trainSize.text.strip() == 'None':
-        sklNode.remove(trainSize)
-      testSize = sklNode.find('test_size')
-      if testSize is not None and testSize.text.strip() == 'None':
-        sklNode.remove(testSize)
-      randomState = sklNode.find('random_state')
-      if randomState is not None and randomState.text.strip() == 'None':
-        sklNode.remove(randomState)
-      nIter = sklNode.find('n_iter')
-      if nIter is not None:
-        param = nIter.text.strip()
-        nSplits = ET.Element('n_splits')
-        nSplits.text = param
-        sklNode.remove(nIter)
-        sklNode.append(nSplits)
-      labelNode = sklNode.find('labels')
-      if labelNode is not None:
-        params = labelNode.text.strip('[').strip(']')
-        labelNode.text = params
-      yNode = sklNode.find('y')
-      if yNode is not None:
-        params = yNode.text.strip('[').strip(']')
-        labelNode = ET.Element('labels')
-        labelNode.text = params
-        sklNode.remove(yNode)
-        sklNode.append(labelNode)
-      pNode = sklNode.find('p')
-      if pNode is not None and sklNode.find('SKLtype').text.strip() == 'LeavePLabelOut':
-        params = pNode.text.strip()
-        nGroups = ET.Element('n_groups')
-        nGroups.text = params
-        sklNode.remove(pNode)
-        sklNode.append(nGroups)
+  dataObjects = simulation.find('DataObjects')
+  if dataObjects is None:
+    dataObjects = ET.Element('DataObjects')
+    hasDataObjects = False
+  outStreams = simulation.find('OutStreams')
+  if outStreams is None:
+    outStreams = ET.Element('OutStreams')
+    hasOutStreams = False
+
+  steps = simulation.find('Steps')
+  postProcess = steps.findall('PostProcess')
+
+  if models is None: return tree # no models, no BasicStats
+  modelNames = []
+  romTargets = {}
+  scoreDict = {}
+  for model in models:
+    if model.tag == 'PostProcessor' and model.attrib['subType'] == 'CrossValidation':
+      metrics = model.findall('Metric')
+      metricNames = []
+      modelNames.append(model.attrib['name'])
+      for metric in metrics:
+        metricName = metric.text.strip()
+        metricNames.append(metricName)
+      sklNode = model.find('SciKitLearn')
+      score = sklNode.find('scores')
+      if score is not None:
+        scoreDict[model.attrib['name']] = True
+      else:
+        scoreDict[model.attrib['name']] = False
+    if model.tag == 'ROM':
+      romTargets[model.attrib['name']] = [var.strip() for var in model.find('Target').text.split(',')]
+
+  for modelName in modelNames:
+
+    dataSetName = modelName + '_cv'
+    printNode = ET.Element('Print')
+    printNode.attrib['name'] = dataSetName + '_dump'
+    typeNode = ET.SubElement(printNode,'type')
+    typeNode.text = 'csv'
+    sourceNode = ET.SubElement(printNode,'source')
+    sourceNode.text = dataSetName
+    outStreams.append(printNode)
+    for pp in postProcess:
+      if modelName == pp.find('Model').text.strip():
+        inputs = pp.findall('Input')
+        for inputObj in inputs:
+          if inputObj.attrib['class'] == 'Models':
+            romName = inputObj.text.strip()
+            varNames = []
+            for metricName in metricNames:
+              for targs in romTargets[romName]:
+                varName = 'cv' + '_' + metricName + '_' + targs
+                varNames.append(varName)
+            if not scoreDict[modelName]:
+              varNames.append('RAVEN_CV_ID')
+            dataSet = ET.Element('PointSet')
+            dataSet.attrib['name'] = dataSetName
+            outNode = ET.SubElement(dataSet,'Output')
+            outNode.text = ','.join(varNames)
+            dataObjects.append(dataSet)
+        outputs = pp.findall('Output')
+        remove = False
+        hasPrint = False
+        for output in outputs:
+          if output.attrib['class'] == 'Files':
+            output.attrib['class'] = 'DataObjects'
+            output.attrib['type'] = 'PointSet'
+            output.text = dataSetName
+            if remove:
+              pp.remove(output)
+            else:
+              remove = True
+          elif output.attrib['class'] == 'OutStreams' and output.attrib['type'] == 'Print':
+            output.text = dataSetName + '_dump'
+            hasPrint = True
+          elif output.attrib['class'] == 'DataObjects':
+            pp.remove(output)
+        if not hasPrint:
+          printNode = ET.SubElement(pp, 'Output')
+          printNode.attrib['class'] = 'OutStreams'
+          printNode.attrib['type'] = 'Print'
+          printNode.text = dataSetName + '_dump'
+    if not hasDataObjects:
+      simulation.append(dataObjects)
+    if not hasOutStreams:
+      simulation.append(outStreams)
+
   return tree
-
 
 if __name__=='__main__':
   import convert_utils
