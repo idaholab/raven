@@ -299,10 +299,11 @@ class ROM(Dummy):
     """
     self.supervisedEngine = LearningGate.returnInstance('SupervisedGate', self.subType, self, **initializationOptions)
 
-  def printXML(self,options={}):
+  def writeXML(self, writeTo = None, what='all'):
     """
-      Called by the OutStreamPrint object to cause the ROM to print itself to file.
-      @ In, options, dict, optional, the options to use in printing, including filename, things to print, etc.
+      Called by the OutStreamPrint object to cause the ROM to print itself
+      @ In, writeTo, DataObject, object to write XML to
+      @ In, what, string, keyword requesting what should be printed
       @ Out, None
     """
     #determine dynamic or static
@@ -311,6 +312,22 @@ class ROM(Dummy):
     handleDynamicData = self.supervisedEngine.canHandleDynamicData
     # get pivot parameter
     pivotParameterId = self.supervisedEngine.pivotParameterId
+    # if the ROM is "dynamic" (e.g. time-dependent targets), then how we print depends
+    #    on whether the engine is naturally dynamic or whether we need to handle that part.
+    if dynamic:
+      if handleDynamicData:
+        # time-dependent, but we don't manage the output; the engine does
+        metaFile = Files.returnInstance('StaticXMLOutput')
+      else:
+        # time-dependent, and we manage the output
+    else:
+      # not time-dependent
+      metaFile = Files.returnInstance('StaticXMLOutput')
+    # initialize output file; it shouldn't actually get written to file
+    metaFile.initialize('dummy',self.messageHandler)
+
+
+    #### OLD ####
     # establish file
     if 'filenameroot' in options.keys():
       filenameLocal = options['filenameroot']

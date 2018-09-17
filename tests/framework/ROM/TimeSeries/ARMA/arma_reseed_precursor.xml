@@ -53,7 +53,9 @@
     </RomTrainer>
     <IOStep name="writeOut" pauseAtEnd="True">
       <Input class="Models" type="ROM">ARMA</Input>
+      <Input class="Models" type="ROM">ARMA</Input>
       <Output class="Files" type="">pk</Output>
+      <Output class="DataObjects" type="HistorySet">signals</Output>
     </IOStep>
   </Steps>
 
@@ -61,6 +63,12 @@
     <HistorySet name="rawData">
       <Input>scaling</Input>
       <Output>Speed,Time</Output>
+      <options>
+        <pivotParameter>Time</pivotParameter>
+      </options>
+    </HistorySet>
+    <HistorySet name="signals">
+      <Output>Speed_Original, Speed_Fourier, Speed_Residual, Speed_Normalized</Output>
       <options>
         <pivotParameter>Time</pivotParameter>
       </options>

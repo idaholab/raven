@@ -126,7 +126,7 @@ class DataSet(DataObject):
     """
       Adds general (not pointwise) metadata to this data object.  Can add several values at once, collected
       as a dict keyed by target variables.
-      Data ends up being written as follows (see docstrings above for dict structure)
+      Data ends up being written as follows (see docstrings below for dict structure)
        - A good default for 'target' is 'general' if there's not a specific target
       <tag>
         <target>
