@@ -11,6 +11,9 @@
       This test is not analytic, but the input training set corralated_0.csv should be very nearly
       exactly replicated by samples_0.csv.
     </description>
+    <revisions>
+      <revision author='talbpaul' date='2018-09-13'>changed Pmax and Pmin to P (same for Q)</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
@@ -78,12 +81,6 @@
       <Fourier>10,50</Fourier>
       <!-- will apply to the rest (C,D) -->
       <FourierOrder>1,1</FourierOrder>
-      <P>3</P>
-      <Q>1</Q>
-      <P>3</P>
-      <Q>1</Q>
-      <P>3</P>
-      <Q>1</Q>
       <P>3</P>
       <Q>1</Q>
     </ROM>

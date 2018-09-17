@@ -14,6 +14,7 @@
       <revision author="alfoa" date="2017-12-13">adapted for new DataObject structure</revision>
       <revision author="alfoa" date="2018-04-26">Modified location of the test (ARMA folder)</revision>
       <revision author="talbpaul" date="2018-06-14">Now tests history statistics instead of points</revision>
+      <revision author='talbpaul' date='2018-09-13'>changed Pmax and Pmin to P (same for Q)</revision>
     </revisions>
   </TestInfo>
 
@@ -55,12 +56,6 @@
       <outTruncation domain="positive">Speed</outTruncation>
       <Fourier>604800,86400</Fourier>
       <FourierOrder>2,2</FourierOrder>
-      <P>2</P>
-      <Q>1</Q>
-      <P>2</P>
-      <Q>1</Q>
-      <P>2</P>
-      <Q>1</Q>
       <P>2</P>
       <Q>1</Q>
     </ROM>

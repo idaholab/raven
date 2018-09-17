@@ -9,6 +9,9 @@
       Tests the ZeroFilter functionality of the ARMA, including as a correlated variable.  Note the mean and variance
       especially of GHI change significantly if the zero-filtering is not working.
     </description>
+    <revisions>
+      <revision author='talbpaul' date='2018-09-13'>changed Pmax and Pmin to P (same for Q)</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>

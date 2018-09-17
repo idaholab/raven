@@ -9,6 +9,9 @@
       Tests creation of multiple INDEPENDENT target ARMA ROMs from a single training run.
       While it uses the entries from the correlated ARMA (VARMA) training data, it does not consider the variables correlated.
     </description>
+    <revisions>
+      <revision author='talbpaul' date='2018-09-13'>changed Pmax and Pmin to P (same for Q)</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>

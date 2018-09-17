@@ -13,6 +13,7 @@
       <revision author="talbpaul" date="2017-07-12">created</revision>
       <revision author="alfoa" date="2017-12-13">adapted for new DataObject structure</revision>
       <revision author="alfoa" date="2018-04-26">Modified location of the test (ARMA folder)</revision>
+      <revision author="talbpaul" date="2018-09-13">changed Pmax and Pmin to P (same for Q)</revision>
     </revisions>
   </TestInfo>
 

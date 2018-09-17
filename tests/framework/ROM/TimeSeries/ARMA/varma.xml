@@ -16,6 +16,9 @@
        value space, and B can be far from A for each Time value.  This provides a quick view norm
        to see that the correlation is working correctly.
     </description>
+    <revisions>
+      <revision author='talbpaul' date='2018-09-13'>changed Pmax and Pmin to P (same for Q)</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>

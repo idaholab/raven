@@ -2922,8 +2922,6 @@ x_t = \sum_{i=1}^p\phi_ix_{t-i}+\alpha_t+\sum_{j=1}^q\theta_j\alpha_{t-j},
 \end{equation*}
 where $x$ is a vector of dimension $n$, and $\phi_i$ and $\theta_j$ are both $n$ by $n$ matrices. When $q=0$, the above is
 autoregressive (AR); when $p=0$, the above is moving average (MA).
-%The user is allowed to provide upper and lower limits for $p$
-%and $q$ (see below), and the training process will choose the optimal $p$ and $q$ that fall into the user-specified range.
 When
 training an ARMA, the input needs to be a synchronized HistorySet. For unsynchronized data, use PostProcessor methods to
 synchronize the data before training an ARMA.
