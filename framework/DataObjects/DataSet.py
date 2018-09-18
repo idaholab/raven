@@ -39,7 +39,6 @@ try:
   from .DataObject import DataObject
 except ValueError:
   from DataObject import DataObject
-from Files import StaticXMLOutput
 from utils import utils, cached_ndarray, InputData, xmlUtils, mathUtils
 
 # for profiling with kernprof
@@ -122,10 +121,10 @@ class DataSet(DataObject):
     self._metavars.extend(keys)
     self._orderedVars.extend(keys)
 
-  def addMeta(self,tag,xmlDict):
+  def addMeta(self, tag, xmlDict = None, node = None):
     """
       Adds general (not pointwise) metadata to this data object.  Can add several values at once, collected
-      as a dict keyed by target variables.
+      as a dict keyed by target variables. Alternatively, a node can be added directly.
       Data ends up being written as follows (see docstrings below for dict structure)
        - A good default for 'target' is 'general' if there's not a specific target
       <tag>
@@ -145,27 +144,37 @@ class DataSet(DataObject):
         </target>
       </tag>
       @ In, tag, str, section to add metadata to, usually the data submitter (BasicStatistics, DataObject, etc)
-      @ In, xmlDict, dict, data to change, of the form {target:{scalarMetric:value,scalarMetric:value,vectorMetric:{wrt:value,wrt:value}}}
+      @ In, xmlDict, dict, optional, data to change, of the form {target:{scalarMetric:value,scalarMetric:value,vectorMetric:{wrt:value,wrt:value}}}
+      @ In, node, xml.etree.ElementTree.Element, optional, already-filled node to add directly
       @ Out, None
     """
-    # TODO potentially slow if MANY top level tags
-    if tag not in self._meta.keys():
-      # TODO store elements as Files object XML, for now
-      new = StaticXMLOutput()
-      new.initialize(self.name,self.messageHandler) # TODO replace name when writing later
-      new.newTree(tag)
-      self._meta[tag] = new
-    destination = self._meta[tag]
-    for target in xmlDict.keys():
-      for metric,value in xmlDict[target].items():
-        # Two options: if a dict is given, means vectorMetric case
-        if isinstance(value,dict):
-          destination.addVector(target,metric,value)
-        # Otherwise, scalarMetric
-        else:
-          # sanity check to make sure suitable values are passed in
-          assert(mathUtils.isSingleValued(value))
-          destination.addScalar(target,metric,value)
+    # check either xmlDict OR node
+    ## this should not be user-facing, so check through assertion
+    assert(not (xmlDict is None and node is None))
+    assert(not (xmlDict is not None and node is not None))
+    # if an xmlDict was provided ....
+    if xmlDict is not None:
+      # check if tag already exists
+      ## TODO potentially slow if MANY top level tags
+      if tag not in self._meta.keys():
+        new = xmlUtils.StaticXmlElement(self.name)
+        self._meta[tag] = new
+      destination = self._meta[tag]
+      for target in xmlDict.keys():
+        for metric,value in xmlDict[target].items():
+          # Two options: if a dict is given, means vectorMetric case
+          if isinstance(value,dict):
+            destination.addVector(target,metric,value)
+          # Otherwise, scalarMetric
+          else:
+            # sanity check to make sure suitable values are passed in
+            assert(mathUtils.isSingleValued(value))
+            destination.addScalar(target,metric,value)
+    # otherwise if a node was provided directly ...
+    else:
+      ## TODO check replacement?
+      ## TODO check structure?
+      self._meta[tag] = node
 
   def addRealization(self,rlz):
     """

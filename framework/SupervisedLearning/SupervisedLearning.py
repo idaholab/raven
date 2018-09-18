@@ -263,44 +263,39 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     currParDict = dict({'Trained':self.amITrained}.items() + self.__CurrentSettingDictLocal__().items())
     return currParDict
 
-  def printXMLSetup(self,outFile,options={}):
+  def writeXMLPreamble(self,writeTo):
     """
       Allows the SVE to put whatever it wants into an XML file only once (right before calling pringXML)
-      @ In, outFile, Files.File, either StaticXMLOutput or DynamicXMLOutput file
-      @ In, options, dict, optional, dict of string-based options to use, including filename, things to print, etc
+      @ In, writeTo, xmlUtils.StaticXmlElement, StaticXmlElement to write to
       @ Out, None
     """
-    outFile.addScalar('ROM',"type",self.printTag)
-    self._localPrintXMLSetup(outFile,options)
+    writeTo.addScalar('ROM',"type",self.printTag)
+    self._localWriteXMLSetup(writeTo)
 
-  def _localPrintXMLSetup(self,outFile,pivotVal,options={}):
+  def _localWriteXMLSetup(self,writeTo):
     """
       Specific local method for printing anything desired to xml file at the begin of the print.
       Overwrite in inheriting classes.
-      @ In, outFile, Files.File, either StaticXMLOutput or DynamicXMLOutput file
-      @ In, options, dict, optional, dict of string-based options to use, including filename, things to print, etc
+      @ In, writeTo, xmlUtils.StaticXmlElement, StaticXmlElement to write to
       @ Out, None
     """
     pass
 
-  def printXML(self,outFile,pivotVal,options={}):
+  def writeXML(self,writeTo):
     """
       Allows the SVE to put whatever it wants into an XML to print to file.
-      @ In, outFile, Files.File, either StaticXMLOutput or DynamicXMLOutput file
-      @ In, pivotVal, float, value of pivot parameters to use in printing if dynamic
-      @ In, options, dict, optional, dict of string-based options to use, including filename, things to print, etc
+      @ In, writeTo, xmlUtils.StaticXmlElement, StaticXmlElement to write to
       @ Out, None
     """
-    self._localPrintXML(outFile,pivotVal,options)
+    self._localWriteXML(writeTo)
 
-  def _localPrintXML(self,node,options={}):
+  def _localWriteXML(self,node,options={}):
     """
       Specific local method for printing anything desired to xml file.  Overwrite in inheriting classes.
       @ In, outFile, Files.File, either StaticXMLOutput or DynamicXMLOutput file
-      @ In, options, dict, optional, dict of string-based options to use, including filename, things to print, etc
       @ Out, None
     """
-    outFile.addScalar('ROM',"noInfo",'ROM of type '+str(self.printTag.strip())+' has no special output options.')
+    outFile.addScalar('ROM',"noInfo",'ROM has no special output options.')
 
   def isDynamic(self):
     """

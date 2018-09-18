@@ -30,6 +30,7 @@ import numpy as np
 from .Dummy import Dummy
 import SupervisedLearning
 from utils import utils
+from utils import xmlUtils
 from utils import InputData
 import Files
 import LearningGate
@@ -299,10 +300,9 @@ class ROM(Dummy):
     """
     self.supervisedEngine = LearningGate.returnInstance('SupervisedGate', self.subType, self, **initializationOptions)
 
-  def writeXML(self, writeTo = None, what='all'):
+  def writeXML(self, what='all'):
     """
       Called by the OutStreamPrint object to cause the ROM to print itself
-      @ In, writeTo, DataObject, object to write XML to
       @ In, what, string, keyword requesting what should be printed
       @ Out, None
     """
@@ -312,59 +312,49 @@ class ROM(Dummy):
     handleDynamicData = self.supervisedEngine.canHandleDynamicData
     # get pivot parameter
     pivotParameterId = self.supervisedEngine.pivotParameterId
+    # find some general settings needed for either dynamic or static handling
+    ## get all the targets the ROMs have
+    ROMtargets = self.supervisedEngine.initializationOptions['Target'].split(",")
+    ## establish requested targets
+    targets = ROMtargets if what=='all' else what.split(',')
+    ## establish sets of engines to work from
+    engines = self.supervisedEngine.supervisedContainer
     # if the ROM is "dynamic" (e.g. time-dependent targets), then how we print depends
     #    on whether the engine is naturally dynamic or whether we need to handle that part.
-    if dynamic:
-      if handleDynamicData:
-        # time-dependent, but we don't manage the output; the engine does
-        metaFile = Files.returnInstance('StaticXMLOutput')
-      else:
-        # time-dependent, and we manage the output
+    if dynamic and not handleDynamicData:
+      # time-dependent, but we manage the output (chopped)
+      xml = xmlUtils.DynamicXmlElement(self.name, pivotParam = picotParameterId)
+      ## pre-print printing
+      engines[0].writeXMLPreamble(xml) #let the first engine write the preamble
+      for s,rom in enumerate(engines):
+        pivotValue = self.supervisedEngine.historySteps[s]
+        for target in targets:
+          #skip the pivot param
+          if target == pivotParameterId:
+            continue
+          #otherwise, call engine's print method
+          self.raiseAMessage('Printing time-like',pivotValue,'target',target,'ROM XML')
+          subXML = xmlUtils.StaticXmlElement(self.name)
+          rom.writeXML(subXML)
+          # XXX WORKING: get the write time-dependent structure written on dynamic XML
+      # XXX
     else:
-      # not time-dependent
-      metaFile = Files.returnInstance('StaticXMLOutput')
-    # initialize output file; it shouldn't actually get written to file
-    metaFile.initialize('dummy',self.messageHandler)
+      # directly accept the results from the engine
+      xml = xmlUtils.StaticXmlElement(self.name)
+      ## pre-print printing
+      engines[0].writeXMLPreamble(xml)
+      engines[0].writeXML(xml)
+    return xml
 
 
     #### OLD ####
-    # establish file
-    if 'filenameroot' in options.keys():
-      filenameLocal = options['filenameroot']
-    else:
-      filenameLocal = self.name + '_dump'
-    if dynamic and not handleDynamicData:
-      outFile = Files.returnInstance('DynamicXMLOutput',self)
-    else:
-      outFile = Files.returnInstance('StaticXMLOutput',self)
-    outFile.initialize(filenameLocal+'.xml',self.messageHandler)
-    outFile.newTree('ROM',pivotParam=pivotParameterId)
-    #get all the targets the ROMs have
-    ROMtargets = self.supervisedEngine.initializationOptions['Target'].split(",")
-    #establish targets
-    targets = options['target'].split(',') if 'target' in options.keys() else ROMtargets
-    #establish sets of engines to work from
-    engines = self.supervisedEngine.supervisedContainer
-    #handle 'all' case
-    if 'all' in targets:
-      targets = ROMtargets
-    # setup print
-    engines[0].printXMLSetup(outFile,options)
     #this loop is only 1 entry long if not dynamic
-    for s,rom in enumerate(engines):
       if dynamic and not handleDynamicData:
-        pivotValue = self.supervisedEngine.historySteps[s]
       else:
         pivotValue = 0
-      for target in targets:
         #for key,target in step.items():
-        #skip the pivot param
-        if target == pivotParameterId:
-          continue
-        #otherwise, if this is one of the requested keys, call engine's print method
         if target in ROMtargets:
           options['Target'] = target
-          self.raiseAMessage('Printing time-like',pivotValue,'target',target,'ROM XML')
           rom.printXML(outFile,pivotValue,options)
     self.raiseADebug('Writing to XML file...')
     outFile.writeFile()
