@@ -583,8 +583,6 @@ __interFaceDict               = {}
 __interFaceDict['RAVEN']      = RAVENGenerated
 __interFaceDict['CSV']        = CSV
 __interFaceDict['Input']      = UserGenerated
-__interFaceDict['StaticXMLOutput']  = StaticXMLOutput
-__interFaceDict['DynamicXMLOutput'] = DynamicXMLOutput
 __knownTypes                  = __interFaceDict.keys()
 
 def knownTypes():

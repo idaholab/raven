@@ -263,39 +263,25 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     currParDict = dict({'Trained':self.amITrained}.items() + self.__CurrentSettingDictLocal__().items())
     return currParDict
 
-  def writeXMLPreamble(self,writeTo):
+  def writeXMLPreamble(self, writeTo, targets):
     """
       Allows the SVE to put whatever it wants into an XML file only once (right before calling pringXML)
+      Extend in subclasses.
       @ In, writeTo, xmlUtils.StaticXmlElement, StaticXmlElement to write to
+      @ In, targets, list, list of targets for whom information should be written
       @ Out, None
     """
     writeTo.addScalar('ROM',"type",self.printTag)
-    self._localWriteXMLSetup(writeTo)
 
-  def _localWriteXMLSetup(self,writeTo):
-    """
-      Specific local method for printing anything desired to xml file at the begin of the print.
-      Overwrite in inheriting classes.
-      @ In, writeTo, xmlUtils.StaticXmlElement, StaticXmlElement to write to
-      @ Out, None
-    """
-    pass
-
-  def writeXML(self,writeTo):
+  def writeXML(self, writeTo, targets):
     """
       Allows the SVE to put whatever it wants into an XML to print to file.
+      Overload in subclasses.
       @ In, writeTo, xmlUtils.StaticXmlElement, StaticXmlElement to write to
+      @ In, targets, list, list of targets for whom information should be written
       @ Out, None
     """
-    self._localWriteXML(writeTo)
-
-  def _localWriteXML(self,node,options={}):
-    """
-      Specific local method for printing anything desired to xml file.  Overwrite in inheriting classes.
-      @ In, outFile, Files.File, either StaticXMLOutput or DynamicXMLOutput file
-      @ Out, None
-    """
-    outFile.addScalar('ROM',"noInfo",'ROM has no special output options.')
+    writeTo.addScalar('ROM',"noInfo",'ROM has no special output options.')
 
   def isDynamic(self):
     """

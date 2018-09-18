@@ -151,17 +151,14 @@ class GaussPolynomialRom(supervisedLearning):
     if self.maxPolyOrder < 1:
       self.raiseAnError(IOError,'Polynomial order cannot be less than 1 currently.')
 
-  def _localPrintXML(self,outFile,pivotVal,options={}):
+  def writeXML(self, writeTo, targets):
     """
       Adds requested entries to XML node.
-      @ In, outFile, Files.File, either StaticXMLOutput or DynamicXMLOutput file
-      @ In, pivotVal, float, value of pivot parameters to use in printing if dynamic
-      @ In, options, dict, optional, dict of string-based options to use, including filename, things to print, etc
-        May include:
-        'what': comma-separated string list, the qualities to print out
-        'pivotVal': float value of dynamic pivotParam value
+      @ In, writeTo, xmlUtils.StaticXmlElement, StaticXmlElement to write to
+      @ In, targets, list, list of targets for whom to write
       @ Out, None
     """
+    #supervisedLearning.writeXML(self,writeTo,targets)
     if not self.amITrained:
       self.raiseAnError(RuntimeError,'ROM is not yet trained!')
     #reset stats so they're fresh for this calculation
@@ -178,15 +175,16 @@ class GaussPolynomialRom(supervisedLearning):
     scalars = list(s.lower() for s in scalars)
     vectors = list(v.lower() for v in vectors)
     #establish requests, defaulting to "all"
-    if 'what' in options.keys():
-      requests = list(o.strip() for o in options['what'].split(','))
-    else:
-      requests =['all']
+    # TODO can user request subset?
+    #if 'what' in options.keys():
+    #  requests = list(o.strip() for o in options['what'].split(','))
+    #else:
+    #  requests =['all']
     # Target
-    target = options.get('Target',self.target[0])
+    target = self.target[0] # options.get('Target',self.target[0])
     #handle "all" option
-    if 'all' in requests:
-      requests = canDo
+    #if 'all' in requests:
+    requests = canDo
     # loop over the requested items
     for request in requests:
       request=request.strip()
@@ -205,7 +203,7 @@ class GaussPolynomialRom(supervisedLearning):
             val = self.numRuns
           else:
             val = len(self.sparseGrid)
-        outFile.addScalar(target,request,val,pivotVal=pivotVal)
+        writeTo.addScalar(target,request,val)
       elif request.lower() in vectors:
         if request.lower() == 'polycoeffs':
           valueDict = OrderedDict()
@@ -239,7 +237,7 @@ class GaussPolynomialRom(supervisedLearning):
               valueDict[name] = sobolIndices[key]
             elif request.lower() == 'soboltotalindices':
               valueDict[name] = sobolTotals[key]
-        outFile.addVector(target,request,valueDict,pivotVal=pivotVal)
+        writeTo.addVector(target,request,valueDict)
       else:
         self.raiseAWarning('ROM does not know how to return "'+request+'".  Skipping...')
 

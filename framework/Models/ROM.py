@@ -325,7 +325,7 @@ class ROM(Dummy):
       # time-dependent, but we manage the output (chopped)
       xml = xmlUtils.DynamicXmlElement(self.name, pivotParam = picotParameterId)
       ## pre-print printing
-      engines[0].writeXMLPreamble(xml) #let the first engine write the preamble
+      engines[0].writeXMLPreamble(xml,what) #let the first engine write the preamble
       for s,rom in enumerate(engines):
         pivotValue = self.supervisedEngine.historySteps[s]
         for target in targets:
@@ -334,31 +334,32 @@ class ROM(Dummy):
             continue
           #otherwise, call engine's print method
           self.raiseAMessage('Printing time-like',pivotValue,'target',target,'ROM XML')
-          subXML = xmlUtils.StaticXmlElement(self.name)
-          rom.writeXML(subXML)
-          # XXX WORKING: get the write time-dependent structure written on dynamic XML
+          subXML = xmlUtils.StaticXmlElement(target)
+          rom.writeXML(subXML,what)
+          xml.addScalarNode(subXML,pivotValue)
+          # XXX WORKING: get the right time-dependent structure written on dynamic XML
       # XXX
     else:
       # directly accept the results from the engine
       xml = xmlUtils.StaticXmlElement(self.name)
       ## pre-print printing
-      engines[0].writeXMLPreamble(xml)
-      engines[0].writeXML(xml)
+      engines[0].writeXMLPreamble(xml,what)
+      engines[0].writeXML(xml,what)
     return xml
 
 
     #### OLD ####
     #this loop is only 1 entry long if not dynamic
-      if dynamic and not handleDynamicData:
-      else:
-        pivotValue = 0
-        #for key,target in step.items():
-        if target in ROMtargets:
-          options['Target'] = target
-          rom.printXML(outFile,pivotValue,options)
-    self.raiseADebug('Writing to XML file...')
-    outFile.writeFile()
-    self.raiseAMessage('ROM XML printed to "'+filenameLocal+'.xml"')
+    #  if dynamic and not handleDynamicData:
+    #  else:
+    #    pivotValue = 0
+    #    #for key,target in step.items():
+    #    if target in ROMtargets:
+    #      options['Target'] = target
+    #      rom.printXML(outFile,pivotValue,options)
+    #self.raiseADebug('Writing to XML file...')
+    #outFile.writeFile()
+    #self.raiseAMessage('ROM XML printed to "'+filenameLocal+'.xml"')
 
   def reset(self):
     """

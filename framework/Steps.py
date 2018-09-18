@@ -958,15 +958,16 @@ class IOStep(Step):
         ## print information from the ROM to the data set or associated XML.
         # XXX TODO WORKING
         romModel = inDictionary['Input'][i]
-        print('What is this rom?',romModel)
         # get non-pointwise data (to place in XML metadata of data object)
         ## TODO how can user ask for particular information?
-        xmlDict = rom.writeXML(writeTo = outputs[i], what='all')
-        outputs[i].addMeta(rom.name, xmlDict)
+        xml = romModel.writeXML(what='all')
+        self.raiseADebug('Adding meta "{}" to output "{}"'.format(xml.getRoot().tag,outputs[i].name))
+        outputs[i].addMeta(romModel.name, node = xml)
         # get pointwise data (to place in main section of data object)
-        realizations = rom._localPrintData()
-        for rlz in realizations:
-          outputs[i].addRealization(rlz)
+        ## TODO XXX
+        #realizations = romModel._localPrintData()
+        #for rlz in realizations:
+        #  outputs[i].addRealization(rlz)
 
       elif self.actionType[i] == 'ROM-FILES':
         #inDictionary['Input'][i] is a ROM, outputs[i] is Files

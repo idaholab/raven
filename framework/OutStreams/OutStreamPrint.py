@@ -150,7 +150,7 @@ class OutStreamPrint(OutStreamManager):
         empty = self.sourceData[index].isEmpty
       except AttributeError:
         empty = False
-      if not empty:
+      if True: #not empty:
         if self.options['type'] == 'csv':
           filename = dictOptions['filenameroot']
           rlzIndex = self.indexPrinted.get(filename,0)
@@ -161,6 +161,7 @@ class OutStreamPrint(OutStreamManager):
               self.raiseAWarning('Label clustering currently only works for PointSet data objects!  Skipping for',self.sourceData[index].name)
             else:
               dictOptions['clusterLabel'] = self.options['clusterLabel']
+          rlzIndex = self.sourceData[index].write(filename,style='CSV',**dictOptions)
           try:
             rlzIndex = self.sourceData[index].write(filename,style='CSV',**dictOptions)
           except AttributeError:
@@ -172,6 +173,10 @@ class OutStreamPrint(OutStreamManager):
             self.sourceData[index].printXML(dictOptions)
           except AttributeError:
             self.raiseAnError(NotImplementedError, 'No implementation for source type', self.sourceData[index].type, 'and output type "'+str(self.options['type'].strip())+'"!')
+      else:
+        # even though it's empty, maybe there's still metadata!
+        self.raiseAWarning('No CSV for "{}"; it is empty!'.format(self.sourceData[index].name))
+
 
 
   def finalize(self):

@@ -644,14 +644,14 @@ class DataSet(DataObject):
     if style.lower() == 'netcdf':
       self._toNetCDF(fileName,**kwargs)
     elif style.lower() == 'csv':
-      if len(self.asDataset().variables)==0: #TODO what if it's just metadata?
-        self.raiseAWarning('Nothing to write!')
-        return
-      #first write the CSV
-      firstIndex = kwargs.get('firstIndex',0)
-      self._toCSV(fileName,start=firstIndex,**kwargs)
+      if len(self)==0: #TODO what if it's just metadata?
+        self.raiseAWarning('Nothing to write to CSV! Checking metadata ...')
+      else:
+        #first write the CSV
+        firstIndex = kwargs.get('firstIndex',0)
+        self._toCSV(fileName,start=firstIndex,**kwargs)
       # then the metaxml
-      if 'DataSet' in self._meta.keys():
+      if len(self._meta):
         self._toCSVXML(fileName,**kwargs)
     # TODO dask?
     else:
@@ -1671,7 +1671,7 @@ class DataSet(DataObject):
       mode = 'w'
 
     data = data.drop(toDrop)
-    self.raiseADebug('Printing data to CSV: "{}"'.format(filenameLocal+'.csv'))
+    self.raiseADebug('Printing data from "{}" to CSV: "{}"'.format(self.name,filenameLocal+'.csv'))
     # get the list of elements the user requested to write
     # order data according to user specs # TODO might be time-inefficient, allow user to skip?
     ordered = list(i for i in self._inputs if i in keep)
@@ -1717,37 +1717,40 @@ class DataSet(DataObject):
     meta = copy.deepcopy(self._meta)
     # remove variables that aren't being "kept" from the meta record
     keep = self._getRequestedElements(kwargs)
-    ## remove from "dims"
-    dimsNode = xmlUtils.findPath(meta['DataSet'].tree.getroot(),'dims')
-    if dimsNode is not None:
+    if 'DataSet' in meta.keys():
+      ## remove from "dims"
+      dimsNode = xmlUtils.findPath(meta['DataSet'].getRoot(),'dims')
+      if dimsNode is not None:
+        toRemove = []
+        for child in dimsNode:
+          if child.tag not in keep:
+            toRemove.append(child)
+        for r in toRemove:
+          dimsNode.remove(r)
+      ## remove from "inputs, outputs, pointwise"
       toRemove = []
-      for child in dimsNode:
-        if child.tag not in keep:
-          toRemove.append(child)
+      genNode =  xmlUtils.findPath(meta['DataSet'].getRoot(),'general')
+      for child in genNode:
+        if child.tag in ['inputs','outputs','pointwise_meta']:
+          vs = []
+          for var in child.text.split(','):
+            if var.strip() in keep:
+              vs.append(var)
+          if len(vs) == 0:
+            toRemove.append(child)
+          else:
+            child.text = ','.join(vs)
       for r in toRemove:
-        dimsNode.remove(r)
-    ## remove from "inputs, outputs, pointwise"
-    genNode =  xmlUtils.findPath(meta['DataSet'].tree.getroot(),'general')
-    toRemove = []
-    for child in genNode:
-      if child.tag in ['inputs','outputs','pointwise_meta']:
-        vs = []
-        for var in child.text.split(','):
-          if var.strip() in keep:
-            vs.append(var)
-        if len(vs) == 0:
-          toRemove.append(child)
-        else:
-          child.text = ','.join(vs)
-    for r in toRemove:
-      genNode.remove(r)
+        genNode.remove(r)
 
     self.raiseADebug('Printing metadata XML: "{}"'.format(fileName+'.xml'))
     with open(fileName+'.xml','w') as ofile:
       #header
       ofile.writelines('<DataObjectMetadata name="{}">\n'.format(self.name))
       for name,target in meta.items():
-        xml = target.writeFile(asString=True,startingTabs=1,addRavenNewlines=False)
+        print('what is it?',name,type(target))
+        xml = xmlUtils.prettify(target.getRoot(),startingTabs=1,addRavenNewlines=False)
+        #target.writeFile(asString=True,startingTabs=1,addRavenNewlines=False)
         ofile.writelines('  '+xml+'\n')
       ofile.writelines('</DataObjectMetadata>\n')
 

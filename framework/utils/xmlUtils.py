@@ -544,6 +544,16 @@ class DynamicXmlElement(StaticXmlElement):
     pivotNode = self._findPivotNode(pivotVal)
     StaticXmlElement.addScalar(self, target, name, value, root = pivotNode, attrs = attrs)
 
+  def addScalarNode(self, node, pivotVal):
+    """
+      Places an already-constructed XML node under a pivot value node.
+      @ In, node, xml.etree.ElementTree.Element, node to add under pivot node
+      @ In, pivotVal, float, value of pivot where node should be placed
+      @ Out, None
+    """
+    pivot = self._findPivotNode(pivotVal)
+    # TODO merge existing nodes if present? Future work.
+    pivot.append(node)
 
   def _findPivotNode(self,pivotVal):
     """
