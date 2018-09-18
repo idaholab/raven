@@ -12,14 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import xml.etree.ElementTree as ET
-import xml.dom.minidom as pxml
-import os
 
 def convert(tree,fileName=None):
   """
-    Converts input files to be compatible with merge request #460:
-     - Removes "all" node
-     - Sets default variable names
+    Converts input files to be compatible with merge request #785:
+      Where ARMA exists, removes <Pmax>, <Pmin>, <Qmax>, and <Qmin>, and adds <P> and <Q>
     @ In, tree, xml.etree.ElementTree.ElementTree object, the contents of a RAVEN input file
     @ In, fileName, the name for the raven input file
     @Out, tree, xml.etree.ElementTree.ElementTree object, the modified RAVEN input file
