@@ -323,9 +323,9 @@ class ROM(Dummy):
     #    on whether the engine is naturally dynamic or whether we need to handle that part.
     if dynamic and not handleDynamicData:
       # time-dependent, but we manage the output (chopped)
-      xml = xmlUtils.DynamicXmlElement(self.name, pivotParam = picotParameterId)
+      xml = xmlUtils.DynamicXmlElement(self.name, pivotParam = pivotParameterId)
       ## pre-print printing
-      engines[0].writeXMLPreamble(xml,what) #let the first engine write the preamble
+      engines[0].writeXMLPreamble(xml) #let the first engine write the preamble
       for s,rom in enumerate(engines):
         pivotValue = self.supervisedEngine.historySteps[s]
         for target in targets:
@@ -335,7 +335,7 @@ class ROM(Dummy):
           #otherwise, call engine's print method
           self.raiseAMessage('Printing time-like',pivotValue,'target',target,'ROM XML')
           subXML = xmlUtils.StaticXmlElement(target)
-          rom.writeXML(subXML,what)
+          rom.writeXML(subXML)
           xml.addScalarNode(subXML,pivotValue)
           # XXX WORKING: get the right time-dependent structure written on dynamic XML
       # XXX
@@ -343,8 +343,8 @@ class ROM(Dummy):
       # directly accept the results from the engine
       xml = xmlUtils.StaticXmlElement(self.name)
       ## pre-print printing
-      engines[0].writeXMLPreamble(xml,what)
-      engines[0].writeXML(xml,what)
+      engines[0].writeXMLPreamble(xml)
+      engines[0].writeXML(xml)
     return xml
 
 

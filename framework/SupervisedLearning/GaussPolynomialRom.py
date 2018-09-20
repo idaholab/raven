@@ -151,14 +151,13 @@ class GaussPolynomialRom(supervisedLearning):
     if self.maxPolyOrder < 1:
       self.raiseAnError(IOError,'Polynomial order cannot be less than 1 currently.')
 
-  def writeXML(self, writeTo, targets):
+  def writeXML(self, writeTo, requests = None):
     """
       Adds requested entries to XML node.
       @ In, writeTo, xmlUtils.StaticXmlElement, StaticXmlElement to write to
-      @ In, targets, list, list of targets for whom to write
+      @ In, requests, list, list of requests for whom to write
       @ Out, None
     """
-    #supervisedLearning.writeXML(self,writeTo,targets)
     if not self.amITrained:
       self.raiseAnError(RuntimeError,'ROM is not yet trained!')
     #reset stats so they're fresh for this calculation
@@ -184,7 +183,8 @@ class GaussPolynomialRom(supervisedLearning):
     target = self.target[0] # options.get('Target',self.target[0])
     #handle "all" option
     #if 'all' in requests:
-    requests = canDo
+    if requests is None:
+      requests = canDo
     # loop over the requested items
     for request in requests:
       request=request.strip()

@@ -625,19 +625,20 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
         impact = self._convergence(poly,rom.supervisedEngine.supervisedContainer[0],t)
         self.actImpact[t][poly] = impact
 
-  def _writeConvergencePoint(self,runPoint):
-    """
-      Writes XML out for this ROM at this point in the run
-      @ In, runPoint, int, the target runs for this statepoint
-      @ Out, None
-    """
-    fname = self.studyFileBase+str(runPoint)
-    self.raiseAMessage('Preparing to write state %i to %s.xml...' %(runPoint,fname))
-    rom = copy.deepcopy(self.ROM)
-    self._finalizeROM(rom)
-    rom.train(self.solns)
-    options = {'filenameroot':fname, 'what':'all'}
-    rom.printXML(options)
+  # disabled until we determine a consistent way to do this without bypassing dataobjects
+  #def _writeConvergencePoint(self,runPoint):
+  #  """
+  #    Writes XML out for this ROM at this point in the run
+  #    @ In, runPoint, int, the target runs for this statepoint
+  #    @ Out, None
+  #  """
+  #  fname = self.studyFileBase+str(runPoint)
+  #  self.raiseAMessage('Preparing to write state %i to %s.xml...' %(runPoint,fname))
+  #  rom = copy.deepcopy(self.ROM)
+  #  self._finalizeROM(rom)
+  #  rom.train(self.solns)
+  #  options = {'filenameroot':fname, 'what':'all'}
+  #  rom.printXML(options)
 
   def _writePickle(self,runPoint):
     """

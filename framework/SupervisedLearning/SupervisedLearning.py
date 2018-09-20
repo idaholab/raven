@@ -263,7 +263,7 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     currParDict = dict({'Trained':self.amITrained}.items() + self.__CurrentSettingDictLocal__().items())
     return currParDict
 
-  def writeXMLPreamble(self, writeTo, targets):
+  def writeXMLPreamble(self, writeTo, targets=None):
     """
       Allows the SVE to put whatever it wants into an XML file only once (right before calling pringXML)
       Extend in subclasses.
@@ -273,7 +273,7 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     """
     writeTo.addScalar('ROM',"type",self.printTag)
 
-  def writeXML(self, writeTo, targets):
+  def writeXML(self, writeTo, targets=None):
     """
       Allows the SVE to put whatever it wants into an XML to print to file.
       Overload in subclasses.
