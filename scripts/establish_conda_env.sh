@@ -41,13 +41,38 @@ function establish_OS ()
 	esac
 }
 
+function read_ravenrc ()
+{
+  # $1 should be the keyword we're looking for
+  # returns keyword argument through echo
+  ## note that "| xargs" trims leading and trailing whitespace
+  local TARGET=`echo $1 | xargs`
+  # location of the RC file
+  local RCNAME="${ECE_SCRIPT_DIR}/../.ravenrc"
+  # if the RC file exists, loop through it and read keyword arguments split by "="
+  if [ -f "$RCNAME" ]; then
+    while IFS='=' read -r KEY ARG || [[ -n "$keyarg" ]]; do
+      # trim whitespace
+      KEY=`echo $KEY | xargs`
+      ARG=`echo $ARG | xargs`
+      # check for key match
+      if [ "$KEY" = "$TARGET" ]; then
+        echo "$ARG"
+        return 0
+      fi
+    done < ${RCNAME}
+  fi
+  # if not found, return empty
+  echo ''
+}
+
 function find_conda_defs ()
 {
 	if [ -z ${CONDA_DEFS} ];
 	then
     # first check the RAVEN RC file for the key
-    CONDA_DEFS=`echo $(python ${ECE_SCRIPT_DIR}/update_install_data.py --read CONDA_DEFS)`
-    # if not setin RC, then will be empty string; next try defaults
+    CONDA_DEFS=$(read_ravenrc "CONDA_DEFS")
+    # if not set in RC, then will be empty string; next try defaults
     if [[ ${#CONDA_DEFS} == 0 ]];
     then
       # default location of conda definitions, windows is unsurprisingly an exception
@@ -66,6 +91,9 @@ function find_conda_defs ()
       fi
     fi
 	fi
+
+  # fix Windows backslashes to be forward, compatible with all *nix including mingw
+  CONDA_DEFS="${CONDA_DEFS//\\//}"
 }
 
 function install_libraries()
@@ -144,6 +172,7 @@ function set_install_settings()
   ${COMMAND}
 }
 
+
 # main
 
 # set default operation
@@ -208,7 +237,7 @@ if [[ $ECE_VERBOSE == 0 ]]; then echo ... Detected OS as ${OSOPTION} ...; fi
 if [ -z $RAVEN_LIBS_NAME ];
 then
   # check the RC file first
-  RAVEN_LIBS_NAME=`echo $(python ${ECE_SCRIPT_DIR}/update_install_data.py --read RAVEN_LIBS_NAME)`
+  RAVEN_LIBS_NAME=$(read_ravenrc "RAVEN_LIBS_NAME")
   # if not found through the RC file, will be empty string, so default to raven_libraries
   if [[ ${#RAVEN_LIBS_NAME} == 0 ]];
   then
@@ -293,12 +322,13 @@ then
   else
     create_libraries
   fi
+  # since installation successful, write changed settings
+  ## store information about this creation in raven/.ravenrc text file
+  if [[ $ECE_VERBOSE == 0 ]]; then echo  ... writing settings to raven/.ravenrc ...; fi
+  set_install_settings
 fi
 
 # activate environment and write settings if successful
 activate_env
-# store information about this creation in raven/.ravenrc text file
-if [[ $ECE_VERBOSE == 0 ]]; then echo  ... writing settings to raven/.ravenrc ...; fi
-set_install_settings
 
 if [[ $ECE_VERBOSE == 0 ]]; then echo  ... done!; fi

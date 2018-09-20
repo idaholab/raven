@@ -58,23 +58,36 @@ class ARMA(supervisedLearning):
                            and printing messages
       @ In, kwargs: an arbitrary dictionary of keywords and values
     """
+    # general infrastructure
     supervisedLearning.__init__(self,messageHandler,**kwargs)
     self.printTag          = 'ARMA'
     self._dynamicHandling  = True # This ROM is able to manage the time-series on its own.
+    # training storage
     self.trainingData      = {} # holds normalized ('norm') and original ('raw') training data, by target
     self.cdfParams         = {} # dictionary of fitted CDF parameters, by target
-    self.fourierResults    = {} # dictionary of Fourier results, by target
     self.armaResult        = {} # dictionary of assorted useful arma information, by target
     self.correlations      = [] # list of correlated variables
+    self.fourierResults    = {} # dictionary of Fourier results, by target
+    # training parameters
+    self.fourierParams     = {} # dict of Fourier training params, by target (if requested, otherwise not present)
     self.Pmax              = kwargs.get('Pmax', 3) # bounds for autoregressive lag
     self.Pmin              = kwargs.get('Pmin', 0)
     self.Qmax              = kwargs.get('Qmax', 3) # bounds for moving average lag
     self.Qmin              = kwargs.get('Qmin', 0)
+    self.segments          = kwargs.get('segments', 1)
+    # data manipulation
     self.reseedCopies      = kwargs.get('reseedCopies',True)
-    self.outTruncation     = kwargs.get('outTruncation', None) # Additional parameters to allow user to specify the time series to be all positive or all negative
+    self.outTruncation = {'positive':set(),'negative':set()} # store truncation requests
     self.pivotParameterID  = kwargs['pivotParameter']
     self.pivotParameterValues = None  # In here we store the values of the pivot parameter (e.g. Time)
     self.seed              = kwargs.get('seed',None)
+    self.zeroFilterTarget  = None # target for whom zeros should be filtered out
+    self.zeroFilterTol     = None # tolerance for zerofiltering to be considered zero, set below
+    self.zeroFilterMask    = None # mask of places where zftarget is zero, or None if unused
+
+    # check zeroFilterTarget is one of the targets given
+    if self.zeroFilterTarget is not None and self.zeroFilterTarget not in self.target:
+      self.raiseAnError('Requested ZeroFilter on "{}" but this target was not found among the ROM targets!'.format(self.zeroFilterTarget))
 
     # get seed if provided
     ## FIXME only applies to VARMA sampling right now, since it has to be sampled through Numpy!
@@ -122,34 +135,77 @@ class ARMA(supervisedLearning):
           'the same value, and similarly for Q.  If optimizing is desired, please contact us so we can expedite '+
           'the fix.')
 
-    # Initialize parameters for Fourier detrending
-    if 'Fourier' not in self.initOptionDict.keys():
-      self.hasFourierSeries = False
-    else:
-      self.hasFourierSeries = True
-      self.fourierPara = {}
-      basePeriods = self.initOptionDict['Fourier']
-      if isinstance(basePeriods,basestring):
-        basePeriods = [float(s) for s in basePeriods.split(',')]
-      else:
-        basePeriods = [float(basePeriods)]
-      self.fourierPara['basePeriod'] = basePeriods
-      if len(set(self.fourierPara['basePeriod'])) != len(self.fourierPara['basePeriod']):
-        self.raiseAnError(IOError,'The same Fourier value was listed multiple times!')
-      self.fourierPara['FourierOrder'] = {}
-      if 'FourierOrder' not in self.initOptionDict.keys():
-        self.fourierPara['basePeriod'] = dict((basePeriod, 4) for basePeriod in self.fourierPara['basePeriod'])
-      else:
-        orders = self.initOptionDict['FourierOrder']
-        if isinstance(orders,str):
-          orders = [int(x) for x in orders.split(',')]
+    # read off of paramInput for more detailed inputs # TODO someday everything should read off this!
+    paramInput = kwargs['paramInput']
+    for child in paramInput.subparts:
+      # read truncation requests (really value limits, not truncation)
+      if child.getName() == 'outTruncation':
+        # did the user request positive or negative?
+        domain = child.parameterValues['domain']
+        # if a recognized request, store it for later
+        if domain in self.outTruncation:
+          self.outTruncation[domain] = self.outTruncation[domain] | set(child.value)
+        # if unrecognized, error out
         else:
-          orders = [orders]
-        if len(self.fourierPara['basePeriod']) != len(orders):
-          self.raiseAnError(ValueError, 'Number of FourierOrder entries should be "{}"'
-                                         .format(len(self.fourierPara['basePeriod'])))
-        self.fourierPara['FourierOrder'] = dict((basePeriod, orders[i])
-                                               for i,basePeriod in enumerate(self.fourierPara['basePeriod']))
+          self.raiseAnError(IOError,'Unrecognized "domain" for "outTruncation"! Was expecting "positive" '+\
+                                    'or "negative" but got "{}"'.format(domain))
+      # additional info for zerofilter
+      elif child.getName() == 'ZeroFilter':
+        self.zeroFilterTarget = child.value
+        if self.zeroFilterTarget not in self.target:
+          self.raiseAnError(IOError,'Requested zero filtering for "{}" but not found among targets!'.format(self.zeroFilterTarget))
+        self.zeroFilterTol = child.parameterValues.get('tol',1e-16)
+      # read SPECIFIC parameters for Fourier detrending
+      elif child.getName() == 'SpecificFourier':
+        # clear old information
+        periods = None
+        orders = None
+        # what variables share this Fourier?
+        variables = child.parameterValues['variables']
+        # check for variables that aren't targets
+        missing = set(variables) - set(self.target)
+        if len(missing):
+          self.raiseAnError(IOError,
+                            'Requested SpecificFourier for variables {} but not found among targets!'.format(missing))
+        # record requested Fourier periods, orders
+        for cchild in child.subparts:
+          if cchild.getName() == 'periods':
+            periods = cchild.value
+          elif cchild.getName() == 'orders':
+            orders = cchild.value
+        # sanity check
+        if len(periods) != len(orders):
+          self.raiseADebug(IOError,'"periods" and "orders" need to have the same number of entries' +\
+                                   'for variable group "{}"!'.format(variables))
+        # set these params for each variable
+        for v in variables:
+          self.raiseADebug('recording specific Fourier settings for "{}"'.format(v))
+          if v in self.fourierParams:
+            self.raiseAWarning('Fourier params for "{}" were specified multiple times! Using first values ...'
+                               .format(v))
+            continue
+          self.fourierParams[v] = {'periods': periods,
+                                   'orders': dict(zip(periods,orders))}
+
+    # read GENERAL parameters for Fourier detrending
+    ## these apply to everyone without SpecificFourier nodes
+    ## use basePeriods to check if Fourier node present
+    basePeriods = paramInput.findFirst('Fourier')
+    if basePeriods is not None:
+      # read periods
+      basePeriods = basePeriods.value
+      if len(set(basePeriods)) != len(basePeriods):
+        self.raiseAnError(IOError,'Some <Fourier> periods have been listed multiple times!')
+      # read orders
+      baseOrders = self.initOptionDict.get('FourierOrder', [1]*len(basePeriods))
+      if len(basePeriods) != len(baseOrders):
+        self.raiseAnError(IOError,'{} Fourier periods were requested, but {} Fourier order expansions were given!'
+                                   .format(len(basePeriods),len(baseOrders)))
+      # set to any variable that doesn't already have a specific one
+      for v in set(self.target) - set(self.fourierParams.keys()):
+        self.raiseADebug('setting general Fourier settings for "{}"'.format(v))
+        self.fourierParams[v] = {'periods': basePeriods,
+                                 'orders': dict(zip(basePeriods,baseOrders))}
 
   def __getstate__(self):
     """
@@ -188,7 +244,9 @@ class ARMA(supervisedLearning):
     self.raiseADebug('Training...')
     # DEBUG FILE -> uncomment lines with this file in it to get series information.  This should be made available
     #    through a RomTrainer SolutionExport or something similar, or perhaps just an Output DataObject, in the future.
-    # debugfile = open('debugg_varma.csv','w')
+    writeTrainDebug = False
+    if writeTrainDebug:
+      debugfile = open('debugg_varma.csv','w')
     # obtain pivot parameter
     self.raiseADebug('... gathering pivot values ...')
     self.pivotParameterValues = targetVals[:,:,self.target.index(self.pivotParameterID)]
@@ -208,26 +266,46 @@ class ARMA(supervisedLearning):
 
     for t,target in enumerate(self.target):
       timeSeriesData = targetVals[:,t]
-      #debugfile.writelines('{}_original,'.format(target)+','.join(str(d) for d in timeSeriesData)+'\n')
+      if writeTrainDebug:
+        debugfile.writelines('{}_original,'.format(target)+','.join(str(d) for d in timeSeriesData)+'\n')
+      # if this target governs the zero filter, extract it now
+      if target == self.zeroFilterTarget:
+        self.notZeroFilterMask = self._trainZeroRemoval(timeSeriesData,tol=self.zeroFilterTol) # where zeros are not
+        self.zeroFilterMask = np.logical_not(self.notZeroFilterMask) # where zeroes are
       # if we're removing Fourier signal, do that now.
-      self.raiseADebug('... scrubbing the signal for target "{}" ...'.format(target))
-      if self.hasFourierSeries:
-        self.raiseADebug('... ... analyzing Fourier signal ...')
+      if target in self.fourierParams:
+        self.raiseADebug('... analyzing Fourier signal  for target "{}" ...'.format(target))
         self.fourierResults[target] = self._trainFourier(self.pivotParameterValues,
-                                                         self.fourierPara['basePeriod'],
-                                                         self.fourierPara['FourierOrder'],
-                                                         timeSeriesData)
-        #debugfile.writelines('{}_fourier,'.format(target)+','.join(str(d) for d in self.fourierResults[target]['predict'])+'\n')
+                                                         self.fourierParams[target]['periods'],
+                                                         self.fourierParams[target]['orders'],
+                                                         timeSeriesData,
+                                                         zeroFilter = target == self.zeroFilterTarget)
+        if writeTrainDebug:
+          debugfile.writelines('{}_fourier,'.format(target)+','.join(str(d) for d in self.fourierResults[target]['predict'])+'\n')
         timeSeriesData -= self.fourierResults[target]['predict']
-        #debugfile.writelines('{}_nofourier,'.format(target)+','.join(str(d) for d in timeSeriesData)+'\n')
-      # Transform data to obatain normal distrbuted series. See
-      # J.M.Morales, R.Minguez, A.J.Conejo "A methodology to generate statistically dependent wind speed scenarios,"
-      # Applied Energy, 87(2010) 843-855
-      self.raiseADebug('... ... analyzing ARMA properties ...')
+        if writeTrainDebug:
+          debugfile.writelines('{}_nofourier,'.format(target)+','.join(str(d) for d in timeSeriesData)+'\n')
+      # zero filter application
+      ## find the mask for the requested target where values are nonzero
+      if target == self.zeroFilterTarget:
+        # artifically force signal to 0 post-fourier subtraction where it should be zero
+        targetVals[:,t][self.notZeroFilterMask] = 0.0
+        if writeTrainDebug:
+          debugfile.writelines('{}_zerofilter,'.format(target)+','.join(str(d) for d in timeSeriesData)+'\n')
+
+
+    # Transform data to obatain normal distrbuted series. See
+    # J.M.Morales, R.Minguez, A.J.Conejo "A methodology to generate statistically dependent wind speed scenarios,"
+    # Applied Energy, 87(2010) 843-855
+    for t,target in enumerate(self.target):
+      # if target correlated with the zero-filter target, truncate the training material now?
+      timeSeriesData = targetVals[:,t]
+      self.raiseADebug('... analyzing ARMA properties for target "{}" ...'.format(target))
       self.cdfParams[target] = self._trainCDF(timeSeriesData)
       # normalize data
       normed = self._normalizeThroughCDF(timeSeriesData, self.cdfParams[target])
-      #debugfile.writelines('{}_normed,'.format(target)+','.join(str(d) for d in normed)+'\n')
+      if writeTrainDebug:
+        debugfile.writelines('{}_normed,'.format(target)+','.join(str(d) for d in normed)+'\n')
       # check if this target is part of a correlation set, or standing alone
       if target in self.correlations:
         # store the data and train it separately in a moment
@@ -235,18 +313,49 @@ class ARMA(supervisedLearning):
         correlationData[:,self.correlations.index(target)] = normed
       else:
         # go ahead and train it now
+        ## if using zero filtering and target is the zero-filtered, only train on the masked part
+        if target == self.zeroFilterTarget:
+          # don't bother training the part that's all zeros; it'll still be all zeros
+          # just train the data portions
+          normed = normed[self.zeroFilterMask]
         self.raiseADebug('... ... training ...')
         self.armaResult[target] = self._trainARMA(normed)
         self.raiseADebug('... ... finished training target "{}"'.format(target))
 
     # now handle the training of the correlated armas
     if len(self.correlations):
-      varma, noiseDist, initDist = self._trainVARMA(correlationData)
-      # FUTURE if extending to multiple VARMA per training, these will need to be dictionaries
-      self.varmaResult = varma
-      self.varmaNoise = noiseDist
-      self.varmaInit = initDist
-    #debugfile.close()
+      self.raiseADebug('... ... training correlated: {} ...'.format(self.correlations))
+      # if zero filtering, then all the correlation data gets split
+      if self.zeroFilterTarget in self.correlations:
+        # split data into the zero-filtered and non-zero filtered
+        unzeroed = correlationData[self.zeroFilterMask]
+        zeroed = correlationData[self.notZeroFilterMask]
+        ## throw out the part that's all zeros (axis 1, row corresponding to filter target)
+        zeroed = np.delete(zeroed, self.correlations.index(self.zeroFilterTarget), 1)
+        self.raiseADebug('... ... ... training unzeroed ...')
+        unzVarma, unzNoise, unzInit = self._trainVARMA(unzeroed)
+        self.raiseADebug('... ... ... training zeroed ...')
+        ## the VAR fails if only 1 variable is non-constant, so we need to decide whether "zeroed" is actually an ARMA
+        ## -> instead of a VARMA
+        if zeroed.shape[1] == 1:
+          # then actually train an ARMA instead
+          zVarma = self._trainARMA(zeroed)
+          zNoise = None # NOTE this is used to check whether an ARMA was trained later!
+          zInit = None
+        else:
+          zVarma, zNoise, zInit = self._trainVARMA(zeroed)
+        self.varmaResult = (unzVarma, zVarma) # NOTE how for zero-filtering we split the results up
+        self.varmaNoise = (unzNoise, zNoise)
+        self.varmaInit = (unzInit, zInit)
+      else:
+        varma, noiseDist, initDist = self._trainVARMA(correlationData)
+        # FUTURE if extending to multiple VARMA per training, these will need to be dictionaries
+        self.varmaResult = (varma,)
+        self.varmaNoise = (noiseDist,)
+        self.varmaInit = (initDist,)
+
+    if writeTrainDebug:
+      debugfile.close()
 
   def __evaluateLocal__(self,featureVals):
     """
@@ -268,39 +377,112 @@ class ARMA(supervisedLearning):
     #debuggFile.writelines('Time,'+','.join(str(x) for x in self.pivotParameterValues)+'\n')
     correlatedSample = None
     for tIdx,target in enumerate(self.target):
-      # random signal
+      # start with the random gaussian signal
       if target in self.correlations:
-        if correlatedSample is None:
-          correlatedSample = self._generateVARMASignal(self.varmaResult,
-                                                       numSamples = len(self.pivotParameterValues),
-                                                       randEngine = self.normEngine.rvs)
-        signal = correlatedSample[:,self.correlations.index(target)]
+        # where is target in correlated data
+        corrIndex = self.correlations.index(target)
+        # check if we have zero-filtering in play here
+        if len(self.varmaResult) > 1:
+          # where would the filter be in the index lineup had we included it in the zeroed varma?
+          filterTargetIndex = self.correlations.index(self.zeroFilterTarget)
+          # if so, we need to sample both VARMAs
+          # have we already taken the correlated sample yet?
+          if correlatedSample is None:
+            # if not, take the samples now
+            unzeroedSample = self._generateVARMASignal(self.varmaResult[0],
+                                                 numSamples = self.zeroFilterMask.sum(),
+                                                 randEngine = self.normEngine.rvs,
+                                                 rvsIndex = 0)
+            ## zero sampling is dependent on whether the trained model is a VARMA or ARMA
+            if self.varmaNoise[1] is not None:
+              zeroedSample = self._generateVARMASignal(self.varmaResult[1],
+                                                   numSamples = self.notZeroFilterMask.sum(),
+                                                   randEngine = self.normEngine.rvs,
+                                                   rvsIndex = 1)
+            else:
+              result = self.varmaResult[1]
+              sample = self._generateARMASignal(result,
+                                                numSamples = self.notZeroFilterMask.sum(),
+                                                randEngine = self.normEngine.rvs)
+              zeroedSample = np.zeros((self.notZeroFilterMask.sum(),1))
+              zeroedSample[:,0] = sample
+            correlatedSample = True # placeholder, signifies we've sampled the correlated distribution
+          # reconstruct base signal from samples
+          ## initialize
+          signal = np.zeros(len(self.pivotParameterValues))
+          ## first the data from the non-zero portions of the original signal
+          signal[self.zeroFilterMask] = unzeroedSample[:,corrIndex]
+          ## then the data from the zero portions (if the filter target, don't bother because they're zero anyway)
+          if target != self.zeroFilterTarget:
+            # fix offset since we didn't include zero-filter target in zeroed correlated arma
+            indexOffset = 0 if corrIndex < filterTargetIndex else -1
+            signal[self.notZeroFilterMask] = zeroedSample[:,corrIndex+indexOffset]
+        # if no zero-filtering (but still correlated):
+        else:
+          ## check if sample taken yet
+          if correlatedSample is None:
+            ## if not, do so now
+            correlatedSample = self._generateVARMASignal(self.varmaResult[0],
+                                                         numSamples = len(self.pivotParameterValues),
+                                                         randEngine = self.normEngine.rvs,
+                                                         rvsIndex = 0)
+          # take base signal from sample
+          signal = correlatedSample[:,self.correlations.index(target)]
+      # if NOT correlated
       else:
         result = self.armaResult[target] # ARMAResults object
         # generate baseline ARMA + noise
-        signal = self._generateARMASignal(result,
-                                          numSamples = len(self.pivotParameterValues),
-                                          randEngine = self.normEngine.rvs)
-
+        # are we zero-filtering?
+        if target == self.zeroFilterTarget:
+          sample = self._generateARMASignal(result,
+                                            numSamples = self.zeroFilterMask.sum(),
+                                            randEngine = self.normEngine.rvs)
+          ## if so, then expand result into signal space (functionally, put back in all the zeros)
+          signal = np.zeros(len(self.pivotParameterValues))
+          signal[self.zeroFilterMask] = sample
+        else:
+          ## if not, no extra work to be done here!
+          sample = self._generateARMASignal(result,
+                                            numSamples = len(self.pivotParameterValues),
+                                            randEngine = self.normEngine.rvs)
+          signal = sample
+      # END creating base signal
+      # DEBUGG adding arbitrary variables for debugging, TODO find a more elegant way, leaving these here as markers
+      #returnEvaluation[target+'_0base'] = copy.copy(signal)
       # denoise
       signal = self._denormalizeThroughCDF(signal,self.cdfParams[target])
+      # DEBUGG adding arbitrary variables
+      #returnEvaluation[target+'_1denorm'] = copy.copy(signal)
       #debuggFile.writelines('signal_arma,'+','.join(str(x) for x in signal)+'\n')
 
       # Add fourier trends
-      if self.hasFourierSeries:
+      if target in self.fourierParams:
         signal += self.fourierResults[target]['predict']
+        # DEBUGG adding arbitrary variables
+        #returnEvaluation[target+'_2fourier'] = copy.copy(signal)
         #debuggFile.writelines('signal_fourier,'+','.join(str(x) for x in self.fourierResults[target]['predict'])+'\n')
 
-      # Ensure positivity
-      if self.outTruncation is not None:
-        if self.outTruncation == 'positive':
-          signal = np.absolute(signal)
-        elif self.outTruncation == 'negative':
-          signal = -np.absolute(signal)
+      # Re-zero out zero filter target's zero regions
+      if target == self.zeroFilterTarget:
+        # DEBUGG adding arbitrary variables
+        #returnEvaluation[target+'_3zerofilter'] = copy.copy(signal)
+        signal[self.notZeroFilterMask] = 0.0
+
+      # Domain limitations
+      for domain,requests in self.outTruncation.items():
+        if target in requests:
+          if domain == 'positive':
+            signal = np.absolute(signal)
+          elif domain == 'negative':
+            signal = -np.absolute(signal)
+        # DEBUGG adding arbitrary variables
+        #returnEvaluation[target+'_4truncated'] = copy.copy(signal)
 
       # store results
       ## FIXME this is ASSUMING the input to ARMA is only ever a single scaling factor.
       signal *= featureVals[0]
+      # DEBUGG adding arbitrary variables
+      #returnEvaluation[target+'_5scaled'] = copy.copy(signal)
       # sanity check on the signal
       assert(signal.size == returnEvaluation[self.pivotParameterID].size)
       #debuggFile.writelines('final,'+','.join(str(x) for x in signal)+'\n')
@@ -326,12 +508,17 @@ class ARMA(supervisedLearning):
     """
     # Freedman-Diaconis
     iqr = np.percentile(data,75) - np.percentile(data,25)
-    if iqr <= 0.0:
-      self.raiseAnError(ValueError,'While computing CDF, 25 and 75 percentile are the same number!')
-    size = 2.0 * iqr / np.cbrt(data.size)
-    # tend towards too many bins, not too few
-    # also don't use less than 20 bins, it makes some pretty sketchy CDFs otherwise
-    n = max(int(np.ceil((max(data) - min(data))/size)),20)
+    # see if we can use Freedman-Diaconis
+    if iqr > 0.0:
+      size = 2.0 * iqr / np.cbrt(data.size)
+      # tend towards too many bins, not too few
+      # also don't use less than 20 bins, it makes some pretty sketchy CDFs otherwise
+      n = max(int(np.ceil((max(data) - min(data))/size)),20)
+    else:
+      self.raiseAWarning('While computing CDF, 25 and 75 percentile are the same number; using Root instead of Freedman-Diaconis.')
+      n = max(int(np.ceil(np.sqrt(data.size))),20)
+    n *= 100
+    self.raiseADebug('... ... bins for ARMA empirical CDF:',n)
     return n
 
   def _denormalizeThroughCDF(self, data, params):
@@ -379,23 +566,29 @@ class ARMA(supervisedLearning):
         fourier[base][:, 2*orderBp+1] = np.cos(2*np.pi*(orderBp+1)/base*pivots)
     return fourier
 
-  def _generateVARMASignal(self, model, numSamples=None, randEngine=None):
+  def _generateVARMASignal(self, model, numSamples=None, randEngine=None, rvsIndex=None):
     """
       Generates a set of correlated synthetic histories from fitted parameters.
       @ In, model, statsmodels.tsa.statespace.VARMAX, fitted VARMA such as otained from _trainVARMA
       @ In, numSamples, int, optional, number of samples to take (default to pivotParameters length)
       @ In, randEngine, instance, optional, method to call to get random samples (for example "randEngine(size=6)")
+      @ In, rvsIndex, int, optional, if provided then will take from list of varmaNoise and varmaInit distributions
       @ Out, hist, np.array(float), synthetic ARMA signal
     """
     if numSamples is None:
       numSamples =  len(self.pivotParameterValues)
     # sample measure, state shocks
     ## TODO it appears that measure shock always has a 0 variance multivariate normal, so just create it
-    measureShocks = np.zeros([numSamples,len(self.target)])
+    measureShocks = np.zeros([numSamples,len(self.correlations)])
     ## state shocks come from sampling multivariate
-    stateShocks = np.array([self.varmaNoise.rvs() for _ in range(numSamples)])
+    noiseDist = self.varmaNoise
+    initDist = self.varmaInit
+    if rvsIndex is not None:
+      noiseDist = noiseDist[rvsIndex]
+      initDist = initDist[rvsIndex]
+    stateShocks = np.array([noiseDist.rvs() for _ in range(numSamples)])
     # pick an intial by sampling multinormal distribution
-    init = np.array(self.varmaInit.rvs())
+    init = np.array(initDist.rvs())
     obs, states = model.ssm.simulate(numSamples,
                                      initial_state = init,
                                      measurement_shocks = measureShocks,
@@ -539,42 +732,59 @@ class ARMA(supervisedLearning):
               #'cdfSearch':neighbors.NearestNeighbors(n_neighbors=2).fit([[c] for c in cdf])}
     return params
 
-  def _trainFourier(self, pivotValues, basePeriod, order, values):
+  def _trainFourier(self, pivotValues, basePeriod, order, values, zeroFilter=False):
     """
       Perform fitting of Fourier series on self.timeSeriesDatabase
       @ In, pivotValues, np.array, list of values for the independent variable (e.g. time)
       @ In, basePeriod, list, list of the base periods
       @ In, order, dict, Fourier orders to extract for each base period
       @ In, values, np.array, list of values for the dependent variable (signal to take fourier from)
+      @ In, zeroFilter, bool, optional, if True then apply zero-filtering for fourier fitting
       @ Out, fourierResult, dict, results of this training in keys 'residues', 'fOrder', 'predict'
     """
-    fourierSeriesAll = self._generateFourierSignal(pivotValues,
+    fourierSeriesOriginal = self._generateFourierSignal(pivotValues,
                                                    basePeriod,
                                                    order)
     fourierEngine = linear_model.LinearRegression()
 
+    # if using zero-filter, cut the parts of the Fourier and values that correspond to the zero-value portions
+    if zeroFilter:
+      values = values[self.zeroFilterMask]
+      fourierSeriesAll = dict((period,vals[self.zeroFilterMask]) for period,vals in fourierSeriesOriginal.items())
+    else:
+      fourierSeriesAll = fourierSeriesOriginal
+
     # get the combinations of fourier signal orders to consider
-    temp = {}
     temp = [range(1,order[bp]+1) for bp in order]
     fourOrders = list(itertools.product(*temp)) # generate the set of combinations of the Fourier order
 
     criterionBest = np.inf
     fSeriesBest = []
-    fourierResult={}
-    fourierResult['residues'] = 0
-    fourierResult['fOrder'] = []
+    fourierResult={'residues': 0,
+                   'fOrder': []}
 
+    # for all combinations of Fourier periods and orders ...
     for fOrder in fourOrders:
-      fSeries = np.zeros(shape=(pivotValues.size,2*sum(fOrder)))
+      # generate container for Fourier series evaluation
+      fSeries = np.zeros(shape=(values.size,2*sum(fOrder)))
+      # running indices for orders and sine/cosine coefficients
       indexTemp = 0
-      for index,bp in enumerate(order.keys()):
+      # for each base period requested ...
+      for index,bp in enumerate(order):
+        # store the series values for the given periods
         fSeries[:,indexTemp:indexTemp+fOrder[index]*2] = fourierSeriesAll[bp][:,0:fOrder[index]*2]
+        # update the running index
         indexTemp += fOrder[index]*2
+      # find the correct magnitudes to best fit the data
+      ## note in the zero-filter case, this is fitting the truncated data
       fourierEngine.fit(fSeries,values)
+      # determine the (normalized) error associated with this best fit
       r = (fourierEngine.predict(fSeries)-values)**2
       if r.size > 1:
         r = sum(r)
-      r = r/pivotValues.size
+      # TODO any reason to scale this error? values.size should be the same for every order, so all scales same
+      r = r/values.size
+      # TODO is anything gained by the copy and deepcopy for r?
       criterionCurrent = copy.copy(r)
       if  criterionCurrent< criterionBest:
         fourierResult['fOrder'] = copy.deepcopy(fOrder)
@@ -582,8 +792,17 @@ class ARMA(supervisedLearning):
         fourierResult['residues'] = copy.deepcopy(r)
         criterionBest = copy.deepcopy(criterionCurrent)
 
+    # retrain the best-fitting set of orders
     fourierEngine.fit(fSeriesBest,values)
-    fourierResult['predict'] = np.asarray(fourierEngine.predict(fSeriesBest))
+    # produce the best-fitting signal
+    fourierSignal = np.asarray(fourierEngine.predict(fSeriesBest))
+    # if zero-filtered, put zeroes back into the Fourier series
+    if zeroFilter:
+      signal = np.zeros(pivotValues.size)
+      signal[self.zeroFilterMask] = fourierSignal
+    else:
+      signal = fourierSignal
+    fourierResult['predict'] = signal
     return fourierResult
 
   def _trainMultivariateNormal(self,dim,means,cov):
@@ -615,7 +834,7 @@ class ARMA(supervisedLearning):
     Pmax = self.Pmax
     Qmax = self.Qmax
     model = sm.tsa.VARMAX(endog=data, order=(Pmax,Qmax))
-    self.raiseADebug('... fitting VARMA ...')
+    self.raiseADebug('... ... ... fitting VARMA ...')
     results = model.fit(disp=False,maxiter=1000)
     lenHist,numVars = data.shape
     # train multivariate normal distributions using covariances, keep it around so we can control the RNG
@@ -640,6 +859,17 @@ class ARMA(supervisedLearning):
     # NOTE: uncomment this line to get a printed summary of a lot of information about the fitting.
     #self.raiseADebug('VARMA model training summary:\n',results.summary())
     return model, stateDist, initDist
+
+  def _trainZeroRemoval(self, data, tol=1e-10):
+    """
+      A test for SOLAR GHI data.
+      @ In, data, np.array, original signal
+      @ In, tol, float, optional, tolerance below which to consider 0
+      @ Out, mask, np.ndarray(bool), mask where zeros occur
+    """
+    # where should the data be truncated?
+    mask = data < tol
+    return mask
 
   ### ESSENTIALLY UNUSED ###
   def _localNormalizeData(self,values,names,feat):

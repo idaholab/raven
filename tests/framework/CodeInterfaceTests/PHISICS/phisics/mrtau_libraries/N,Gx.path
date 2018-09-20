@@ -1,0 +1,20 @@
+N,GAMMA*_PATHS                             N,REACTION       
+Actinides
+ 0                 !flag: if 0 Actinide block is jumped, otherwise is used
+ ISOT   SON1    SON2     SON3 
+  NP237  none                                    
+ END 
+ N,GAMMA*_Branching 
+ ISOT   B. ratio
+ NP237  0.0000 
+ END
+Fission Products
+ N,GAMMA*_PATHS
+ ISOT     SON1    SON2     SON3
+ ALPHA    none     
+ END 
+ N,GAMMA*_Branching 
+ ISOT     B.ratios
+ ALPHA    0.0000  
+ END 
+ 

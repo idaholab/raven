@@ -32,8 +32,9 @@ import copy
 from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase
 
 class riskMeasuresDiscrete(PostProcessorInterfaceBase):
-  """ This class implements the four basic risk-importance measures
-      This class inherits form the base class PostProcessorInterfaceBase and it contains three methods:
+  """
+    This class implements the four basic risk-importance measures
+    This class inherits form the base class PostProcessorInterfaceBase and it contains three methods:
       - initialize
       - run
       - readMoreXML
@@ -42,8 +43,8 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
 
   def availableMeasures(cls):
     """
-        A class level constant that tells developers what measures are available from this class
-        @ In, cls, the RiskMeasureDiscrete class of which this object will be a type
+      A class level constant that tells developers what measures are available from this class
+      @ In, cls, the RiskMeasureDiscrete class of which this object will be a type
     """
     return cls._availableMeasures
 
@@ -52,10 +53,9 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
       Method to initialize the Interfaced Post-processor
       @ In, None
       @ Out, None
-
     """
     PostProcessorInterfaceBase.initialize(self)
-    self.inputFormat  = 'PointSet'
+    self.inputFormat  = 'PointSet|HistorySet'
     self.outputFormat = 'PointSet'
 
   def readMoreXML(self,xmlNode):

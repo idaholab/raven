@@ -1,0 +1,44 @@
+<DEPLETION_INPUT>
+  <title>MHTGR-350</title>
+    <Control_parameters>
+    <calculation_control>
+      <skip_dpl>F</skip_dpl>
+      <standalone>no</standalone>
+      <calc_type>2</calc_type>
+      <power_calc_type>1</power_calc_type>
+      <exp_method>CRAM</exp_method>
+      <method_order>14</method_order>
+      <spectrum_type>thermal</spectrum_type>
+      <decay_heat_type>2</decay_heat_type>
+    <total_power>MW</total_power>
+      <burn_up>3</burn_up>
+      <multi_cycle_control NTP="1"> </multi_cycle_control>
+      <n_tab_interval>1</n_tab_interval>
+      <power_history> 1.0 </power_history>
+      <sep_eff_control>1</sep_eff_control>
+      <TRU_enrichment>10.0</TRU_enrichment> 
+    </calculation_control>
+    <output_control>
+      <average_bu>t</average_bu>
+      <densities_csv>t</densities_csv>
+      <print_dh_csv>1</print_dh_csv>
+      <print_bu_csv>1</print_bu_csv>
+      <print_power_csv>1</print_power_csv>
+      <plot_type>2</plot_type>   
+      <tab_time_step_skip>1</tab_time_step_skip>
+      <output_representation>user</output_representation>
+    </output_control>
+    <time_control>
+      <tab_time_step>1</tab_time_step>
+      <tabulation_boundaries>
+        <low>0.0</low>
+        <up>5.0</up>
+      </tabulation_boundaries>
+      <cycle_parameters>
+        <cycle_lenght>5.0</cycle_lenght>
+        <begin_life>0.0</begin_life>
+        <end_life>5.0</end_life>       
+      </cycle_parameters>      
+    </time_control>
+  </Control_parameters>
+</DEPLETION_INPUT>

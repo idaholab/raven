@@ -45,8 +45,16 @@
   [./MultipleArma]
    type = 'RavenFramework'
    input = 'multiple_arma.xml'
-   csv = 'MultipleArma/samples.csv MultipleArma/samples_0.csv MultipleArma/samples_1.csv'
-   rel_err = 5e-2
+   output = 'MultipleArma/samples.csv MultipleArma/samples_0.csv MultipleArma/samples_1.csv MultipleArma/stats.xml'
+   csv = 'MultipleArma/stats.csv'
+   rel_err = 1e-1
+  [../]
+
+  [./MultipleFourier]
+   type = 'RavenFramework'
+   input = 'multiple_fourier.xml'
+   output = 'MultipleFourier/samples.csv'
+   csv = 'MultipleFourier/samples_0.csv'
   [../]
 
   [./VARMA]
@@ -54,7 +62,16 @@
    input = 'varma.xml'
    output = 'VARMA/plot_VARMA.png VARMA/plot_input.png VARMA/samples.csv VARMA/samples_0.csv VARMA/stats.xml'
    csv = 'VARMA/stats.csv'
-   rel_err = 1e-2 # we only take 100 samples
+   rel_err = 1e-1
+   max_time = 500
   [../]
 
+  [./ZeroFilter]
+    type = 'RavenFramework'
+    input = 'zero_filter.xml'
+    output = 'ZeroFilter/synthetic.csv ZeroFilter/synthetic_0.csv ZeroFilter/synthetic.xml ZeroFilter/stats.xml'
+    csv = 'ZeroFilter/stats.csv'
+    rel_err = 2e-1
+    max_time = 300
+  [../]
 []

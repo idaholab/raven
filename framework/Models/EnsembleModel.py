@@ -300,13 +300,6 @@ class EnsembleModel(Dummy):
     # construct the ensemble model directed graph
     self.ensembleModelGraph = graphStructure.graphObject(modelsToOutputModels)
     # make some checks
-    # FIXME: the following check is too tight, even if the models are connected, the
-    # code may still raise an error. I think in really, we do not need to raise an error,
-    # maybe a warning is enough. For example:
-    #   a -> b -> c
-    #        ^
-    #        |
-    #   e -> d -> f
     if not self.ensembleModelGraph.isConnectedNet():
       isolatedModels = self.ensembleModelGraph.findIsolatedVertices()
       self.raiseAnError(IOError, "Some models are not connected. Possible candidates are: "+' '.join(isolatedModels))
@@ -561,7 +554,8 @@ class EnsembleModel(Dummy):
     for modelIn in self.orderList:
       # reset the DataObject for the projection
       self.localTargetEvaluations[modelIn].reset()
-      inRunTargetEvaluations[modelIn] = copy.copy(self.localTargetEvaluations[modelIn])
+      # deepcopy assures distinct copies
+      inRunTargetEvaluations[modelIn] = copy.deepcopy(self.localTargetEvaluations[modelIn])
     residueContainer = dict.fromkeys(self.modelsDictionary.keys())
     gotOutputs       = [{}]*len(self.orderList)
     typeOutputs      = ['']*len(self.orderList)

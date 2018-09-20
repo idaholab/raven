@@ -1,0 +1,75 @@
+<XS-library type="2" n_library_sets="1">                                
+<na_cut> 1 </na_cut>                              
+<library_set_info ID="1"> 
+
+  <tab_values N_tab="4">                                
+   <BURN-UP> 0 </BURN-UP>                             
+   <tab name="T_fuel">1</tab>
+   <tab name="T_mod">1</tab>
+   <tab name="XE135">0</tab>  
+  </tab_values>                                
+              
+  <RELAP_tab_corr>
+    <tab_corr name="T_fuel">1 1</tab_corr>
+    <tab_corr name="T_mod">3 1</tab_corr> 
+  </RELAP_tab_corr>
+  
+</library_set_info>
+
+<library_set ID="1">                                
+   <Micro NG="10" NF="6" n_libraries="1">
+    <NeutronEnergyBound> 27 26 25 24 23 22 21 20 19 18 17 16 15 14 13 12 11 10 9 8 7 6 5 4 3 2 1 </NeutronEnergyBound>   
+    <BURNUP-STEP N="1" type="GWd">                               
+    <tabulation ID="0.0" P="1">                               
+     <POINT ID="1">                              
+      <tab name="T_fuel"> 1 </tab>
+      <tab name="T_mod"> 1 </tab>
+      <tab name="XE135"> 0 </tab>                           
+      <library ID="1" lib_name="matF1" n_iso="3" na="1">                             
+       <isotope id="FUEL" fissile="true">                            
+        <beta> 0.0 0.0 0.0 0.0 0.0 0.0 </beta>
+        <TotalXS> 0.0  0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 </TotalXS>
+        <NuFissionXS> 0.0  0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0</NuFissionXS>
+        <FissionXS> 0.0  0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 </FissionXS>
+        <ChiXS> 0.0  0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 </ChiXS>
+        <ChiDelXS nf="1"> 0.0  0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 </ChiDelXS>
+        <ChiDelXS nf="2"> 0.0  0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 </ChiDelXS>
+        <ChiDelXS nf="3"> 0.0  0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 </ChiDelXS>
+        <ChiDelXS nf="4"> 0.0  0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 </ChiDelXS>
+        <ChiDelXS nf="5">0.0  0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 </ChiDelXS>
+        <ChiDelXS nf="6"> 0.0  0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 </ChiDelXS>
+        <KappaXS> 0.0  0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 </KappaXS>
+        <ngXS> 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 </ngXS>
+        <ScatteringXS>                           
+          <XS>
+            0.0  0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0
+            0.0  0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0
+            0.0  0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0
+            0.0  0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0
+            0.0  0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0
+            0.0  0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0
+            0.0  0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0
+            0.0  0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0
+            0.0  0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0
+            0.0  0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0
+           </XS>
+        </ScatteringXS>                           
+       </isotope>                            
+       <isotope id="Xe135" fissile="false">                            
+        <ngXS> 0.0  0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 </ngXS>
+        <TotalXS> 0.0  0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 </TotalXS>
+        <FY> 0.0  0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0</FY>
+       </isotope>                            
+       <isotope id="I135" fissile="false">                            
+        <FY> 0.0  0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 </FY>
+        <TotalXS> 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 </TotalXS>
+        <ngXS> 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 </ngXS>
+       </isotope>                            
+      </library>                              
+     </POINT>                                                           
+    </tabulation>                               
+    </BURNUP-STEP>                               
+   </Micro>
+</library_set>
+
+</XS-library>                                

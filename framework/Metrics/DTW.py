@@ -25,104 +25,129 @@ warnings.simplefilter('default',DeprecationWarning)
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
 import copy
-import sklearn.metrics.pairwise as pairwise
+import scipy.spatial.distance as spatialDistance
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
 from .Metric import Metric
+from utils import InputData
 #Internal Modules End--------------------------------------------------------------------------------
 
 class DTW(Metric):
   """
-    Dynamic Time Warping metrics which can be employed only for historySets
+    Dynamic Time Warping Metric
+    Class for measuring similarity between two variables X and Y, i.e. two temporal sequences
   """
-  def initialize(self,inputDict):
-    """
-      This method initialize the metric object
-      @ In, inputDict, dict, dictionary containing initialization parameters
-      @ Out, none
-    """
-    self.pivotParameter = None
-    self.order          = None
-    self.localDistance  = None
 
-  def _localReadMoreXML(self,xmlNode):
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    inputSpecification = super(DTW, cls).getInputSpecification()
+    orderInputType = InputData.makeEnumType("order","orderType",["0","1"])
+    inputSpecification.addSub(InputData.parameterInputFactory("order",contentType=orderInputType),quantity=InputData.Quantity.one)
+    inputSpecification.addSub(InputData.parameterInputFactory("localDistance",contentType=InputData.StringType),quantity=InputData.Quantity.one)
+
+    return inputSpecification
+
+  def __init__(self):
+    """
+      Constructor
+      @ In, None
+      @ Out, None
+    """
+    Metric.__init__(self)
+    # order of DTW calculation, 0 specifices a classical DTW, and 1 specifies derivative DTW
+    self.order            = None
+    # the ID of distance function to be employed to determine the local distance evaluation of two time series
+    # Available options are provided by scipy pairwise distances, i.e. cityblock, cosine, euclidean, manhattan.
+    self.localDistance    = None
+    # True indicates the metric needs to be able to handle dynamic data
+    self._dynamicHandling = True
+    # True indicates the metric needs to be able to handle pairwise data
+    self._pairwiseHandling = True
+
+  def _localReadMoreXML(self, xmlNode):
     """
       Method that reads the portion of the xml input that belongs to this specialized class
       and initialize internal parameters
       @ In, xmlNode, xml.etree.Element, Xml element node
       @ Out, None
     """
-    self.requiredKeywords = set(['pivotParameter','order','localDistance'])
-    self.wrongKeywords = set()
-    for child in xmlNode:
-      if child.tag == 'order':
-        if child.text in ['0','1']:
-          self.order = float(child.text)
-        else:
-          self.raiseAnError(IOError,'DTW metrics - specified order ' + str(child.text) + ' is not recognized (allowed values are 0 or 1)')
-        self.requiredKeywords.remove('order')
-      if child.tag == 'pivotParameter':
-        self.pivotParameter = child.text
-        self.requiredKeywords.remove('pivotParameter')
-      if child.tag == 'localDistance':
-        self.localDistance = child.text
-        self.requiredKeywords.remove('localDistance')
-      if child.tag not in self.requiredKeywords:
-        self.wrongKeywords.add(child.tag)
+    paramInput = DTW.getInputSpecification()()
+    paramInput.parseNode(xmlNode)
+    for child in paramInput.subparts:
+      if child.getName() == "order":
+        self.order = int(child.value)
+      elif child.getName() == "localDistance":
+        self.localDistance = child.value
 
-    if self.requiredKeywords:
-      self.raiseAnError(IOError,'The DTW metrics is missing the following parameters: ' + str(self.requiredKeywords))
-    if not self.wrongKeywords:
-      self.raiseAnError(IOError,'The DTW metrics block contains parameters that are not recognized: ' + str(self.wrongKeywords))
-
-  def distance(self,x,y):
+  def __evaluateLocal__(self, x, y, weights = None, axis = 0, **kwargs):
     """
-      This method set the data return the distance between two histories x and y
-      @ In, x, dict, dictionary containing data of x
-      @ In, y, dict, dictionary containing data of y
-      @ Out, value, float, distance between x and y
+      This method computes DTW distance between two inputs x and y based on given metric
+      @ In, x, numpy.ndarray, array containing data of x, if 1D array is provided,
+        the array will be reshaped via x.reshape(-1,1), shape (n_samples, ), if 2D
+        array is provided, shape (n_samples, n_time_steps)
+      @ In, y, numpy.ndarray, array containing data of y, if 1D array is provided,
+        the array will be reshaped via y.reshape(-1,1), shape (n_samples, ), if 2D
+        array is provided, shape (n_samples, n_time_steps)
+      @ In, weights, array_like (numpy.array or list), optional, weights associated
+        with input, shape (n_samples) if axis = 0, otherwise shape (n_time_steps)
+      @ In, axis, integer, optional, axis along which a metric is performed, default is 0,
+        i.e. the metric will performed along the first dimension (the "rows").
+        If metric postprocessor is used, the first dimension is the RAVEN_sample_ID,
+        and the second dimension is the pivotParameter if HistorySet is provided.
+      @ In, kwargs, dict, dictionary of parameters characteristic of each metric
+      @ Out, value, float, metric result
     """
-    tempX = copy.deepcopy(x)
-    tempY = copy.deepcopy(y)
-    if isinstance(tempX,np.ndarray) and isinstance(tempY,np.ndarray):
-      self.raiseAnError(IOError,'The DTW metrics is being used only for historySet')
-    elif isinstance(tempX,dict) and isinstance(tempY,dict):
-      if tempX.keys() == tempY.keys():
-        timeLengthX = tempX[self.pivotParameter].size
-        timeLengthY = tempY[self.pivotParameter].size
-        del tempX[self.pivotParameter]
-        del tempY[self.pivotParameter]
-        X = np.empty((len(tempX.keys()),timeLengthX))
-        Y = np.empty((len(tempY.keys()),timeLengthY))
-        for index, key in enumerate(tempX):
-          if self.order == 1:
-            tempX[key] = np.gradient(tempX[key])
-            tempY[key] = np.gradient(tempY[key])
-          X[index] = tempX[key]
-          Y[index] = tempY[key]
-        value = self.dtwDistance(X,Y)
-        return value
-      else:
-        self.raiseAnError('Metric DTW error: the two data sets do not contain the same variables')
+    assert (isinstance(x, np.ndarray))
+    assert (isinstance(x, np.ndarray))
+    tempX = copy.copy(x)
+    tempY = copy.copy(y)
+    if axis == 0:
+      assert (len(x) == len(y))
+    elif axis == 1:
+      assert(x.shape[1] == y.shape[1]), self.raiseAnError(IOError, "The second dimension of first input is not \
+              the same as the second dimension of second input!")
+      tempX = tempX.T
+      tempY = tempY.T
     else:
-      self.raiseAnError('Metric DTW error: the structures of the two data sets are different')
+      self.raiseAnError(IOError, "Valid axis value should be '0' or '1' for the evaluate method of metric", self.name)
 
-  def dtwDistance(self,x,y):
+    if len(tempX.shape) == 1:
+      tempX = tempX.reshape(1,-1)
+    if len(tempY.shape) == 1:
+      tempY = tempY.reshape(1,-1)
+    X = np.empty(tempX.shape)
+    Y = np.empty(tempY.shape)
+    for index in range(len(tempX)):
+      if self.order == 1:
+        X[index] = np.gradient(tempX[index])
+        Y[index] = np.gradient(tempY[index])
+      else:
+        X[index] = tempX[index]
+        Y[index] = tempY[index]
+    value = self.dtwDistance(X, Y)
+    return value
+
+  def dtwDistance(self, x, y):
     """
       This method actually calculates the distance between two histories x and y
       @ In, x, numpy.ndarray, data matrix for x
       @ In, y, numpy.ndarray, data matrix for y
       @ Out, value, float, distance between x and y
     """
-    assert len(x)
-    assert len(y)
     r, c = len(x[0,:]), len(y[0,:])
     D0 = np.zeros((r + 1, c + 1))
     D0[0, 1:] = np.inf
     D0[1:, 0] = np.inf
     D1 = D0[1:, 1:]
-    D1 = pairwise.pairwise_distances(x.T,y.T, metric=self.localDistance)
+    D1 = spatialDistance.cdist(x.T,y.T, metric=self.localDistance)
     C = D1.copy()
     for i in range(r):
       for j in range(c):
@@ -135,7 +160,7 @@ class DTW(Metric):
       path = self.tracePath(D0)
     return D1[-1, -1]
 
-  def tracePath(self,D):
+  def tracePath(self, D):
     """
       This method calculate the time warping path given a local distance matrix D
       @ In, D,  numpy.ndarray (2D), local distance matrix D

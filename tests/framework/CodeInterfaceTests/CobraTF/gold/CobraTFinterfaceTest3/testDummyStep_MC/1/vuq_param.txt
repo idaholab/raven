@@ -1,0 +1,2 @@
+k_rhol = 1010.55548807 ! Liquid density from report NUREG-CR-3373
+k_rhov = 3.2986063555   ! Vapor density calculated from ideal gas law and assuming 1.225 kg/m^3 at STP

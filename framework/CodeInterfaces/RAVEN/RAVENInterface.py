@@ -29,6 +29,8 @@ from CodeInterfaceBaseClass import CodeInterfaceBase
 import DataObjects
 import csvUtilities
 
+from MessageHandler import MessageHandler
+
 class RAVEN(CodeInterfaceBase):
   """
     this class is used as part of a code dictionary to specialize Model.Code for RAVEN
@@ -184,17 +186,8 @@ class RAVEN(CodeInterfaceBase):
                                  +' '.join(self.outStreamsNamesAndType.keys())+'"!')
     # get variable groups
     varGroupNames = parser.returnVarGroups()
-    if len(varGroupNames) > 0:
-      # check if they are not present in the linked outstreams
-      for outstream in self.linkedDataObjectOutStreamsNames:
-        inputNode = self.outStreamsNamesAndType[outstream][2].find("Input")
-        outputNode = self.outStreamsNamesAndType[outstream][2].find("Output")
-        inputVariables = inputNode.text.split(",") if inputNode is not None else []
-        outputVariables =  outputNode.text.split(",") if outputNode is not None else []
-        if any (varGroupName in inputVariables+outputVariables for varGroupName in varGroupNames):
-          raise IOError(self.printTag+' ERROR: The VariableGroup system is not supported in the current ' +
-                                      'implementation of the interface for the DataObjects specified in the '+
-                                      '<outputExportOutStreams> XML node!')
+    ## store globally
+    self.variableGroups = varGroupNames
     # get inner working dir
     self.innerWorkingDir = parser.workingDir
     # get sampled variables
@@ -253,16 +246,18 @@ class RAVEN(CodeInterfaceBase):
       @ Out, failure, bool, True if the job is failed, False otherwise
     """
     failure = False
+    # check for log file
     try:
       outputToRead = open(os.path.join(workingDir,output),"r")
     except IOError:
-      failure = True
       print(self.printTag+' ERROR: The RAVEN SLAVE log file  "'+str(os.path.join(workingDir,output))+'" does not exist!')
-    if not failure:
-      readLines = outputToRead.readlines()
-      if not any("Run complete" in x for x in readLines[-20:]):
-        failure = True
+      return True
+    # check for completed run
+    readLines = outputToRead.readlines()
+    if not any("Run complete" in x for x in readLines[-20:]):
       del readLines
+      return True
+    # check for output CSV (and data)
     if not failure:
       for filename in self.linkedDataObjectOutStreamsNames:
         outStreamFile = os.path.join(workingDir,self.innerWorkingDir,filename+".csv")
@@ -300,16 +295,16 @@ class RAVEN(CodeInterfaceBase):
     #####
     dataObjectsToReturn = {}
     numRlz = None
+    messageHandler = MessageHandler()
+    messageHandler.initialize({'verbosity':'quiet'})
     for filename in self.linkedDataObjectOutStreamsNames:
       # load the output CSV into a data object, so we can return that
       ## load the XML initialization information and type
       dataObjectInfo = self.outStreamsNamesAndType[filename]
       # create an instance of the correct data object type
       data = DataObjects.returnInstance(dataObjectInfo[1],None)
-      # dummy message handler to handle message parsing, TODO this stinks and should be fixed.
-      data.messageHandler = DataObjects.DataObject.MessageCourier()
       # initialize the data object by reading the XML
-      data._readMoreXML(dataObjectInfo[2])
+      data.readXML(dataObjectInfo[2], messageHandler, variableGroups=self.variableGroups)
       # set the name, then load the data
       data.name = filename
       data.load(os.path.join(workingDir,self.innerWorkingDir,filename),style='csv')
