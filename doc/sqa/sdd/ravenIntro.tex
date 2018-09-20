@@ -1,0 +1,70 @@
+
+\subsection{System Purpose}
+
+The RAVEN code is a generic software framework to perform parametric
+and probabilistic analysis based on the response of complex system
+codes. RAVEN is capable of investigating the system response as well
+as the input space using Monte Carlo, Grid, or Latin Hyper Cube
+sampling schemes, but its strength is focused toward system feature
+discovery, such as limit surfaces, separating regions of the input
+space leading to system failure, using dynamic supervised learning
+techniques.
+
+The development of RAVEN started in 2012 to satisfy the need to
+provide a modern risk evaluation framework. RAVEN's principal
+assignment is to provide the necessary software and algorithms in
+order to employ the concept developed by the Risk Informed Safety
+Margin Characterization (RISMC) program. RISMC is one of the pathways
+defined within the Light Water Reactor Sustainability (LWRS)
+program. In the RISMC approach, the goal is not just specifically
+identifying the frequency of an event potentially leading to a system
+failure, but the closeness (or not) to key safety-related events. This
+approach may be used in identifying and increasing the safety margins
+related to those events. A safety margin is a numerical value
+quantifying the probability that a safety metric (e.g. as peak
+pressure in a pipe) is exceeded under certain conditions. The initial
+development of RAVEN has been focused on providing dynamic risk
+assessment capability to the MOOSE application RELAP-7, currently
+under development at the INL and, the likely future replacement of the
+RELAP5-3D code. Most of the capabilities implemented using RELAP-7 are
+easily deployable for other system codes.
+
+\subsection{System Scope}
+
+The produced product is the RAVEN software.  It is a computer
+code designed for probabilistic analysis.  RAVEN is a statistical
+analysis tool that is used to estimate risk by computing real numbers
+to determine what can go wrong, how likely is it, and what are its
+consequences.  RAVEN takes in input (such as input files for
+subprograms, or CSV files of data) and then can run subprograms with
+perturbed input to calculate the result of physical simulations with
+varying input parameters.  Then RAVEN takes the output of those
+program or the data provided and performs statistical analysis on the
+data.
+
+\subsection{Other Design Documentation}
+
+In addition to this document, with every merge request developer
+documentation is automatically extracted from the source code using
+Doxygen and is available to developers at
+\url{https://hpcsc.inl.gov/ssl/RAVEN/docs/classes.html}
+
+The software is under configuration management process identified in
+`` Configuration Management Plan for Modeling and Simulation
+Software'' PLN-4004 Revision 3.
+
+\subsection{Definitions and Acronyms}
+
+\begin{description}
+\item[API] Application Programming Interfaces
+\item[CDF] Cumulative Distribution Function
+\item[DET] Dynamic Event Tree
+\item[LWRS] Light Water Reactor Sustainability
+\item[MC] Monte Carlo
+\item[MOOSE] Multiphysics Object-Oriented Simulation Environment
+\item[PDF] Probability Distribution Function
+\item[RAVEN] Risk Analysis Virtual ENvironment
+\item[RELAP-7] Reactor Excursion and Leak Analysis Program v.7
+\item[RISMC] Risk Informed Safety Margin Characterization
+\item[ROM] Reduced Order Model
+\end{description}
