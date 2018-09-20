@@ -18,19 +18,19 @@
 
   <Metrics>
       <SKL name="m1">
-          <metricType>mean_absolute_error</metricType>
+          <metricType>regression|mean_absolute_error</metricType>
       </SKL>
   </Metrics>
 
   <Models>
-        <ExternalModel name="projectile" ModuleToLoad="../../projectile" subType="">
+    <ExternalModel name="projectile" ModuleToLoad="../../../../ExternalModels/projectile" subType="">
             <variables>angle,x,y,r,t</variables>
-        </ExternalModel>
-        <ROM name="IDW" subType="NDinvDistWeight">
+    </ExternalModel>
+    <ROM name="IDW" subType="NDinvDistWeight">
             <Features>angle</Features>
             <Target>r</Target>
             <p>3</p>
-        </ROM>
+    </ROM>
     <PostProcessor name="pp1" subType="CrossValidation">
         <SciKitLearn>
             <SKLtype>KFold</SKLtype>
@@ -41,6 +41,7 @@
         <Metric class="Metrics" type="SKL">m1</Metric>
     </PostProcessor>
     <HybridModel name="hybrid" subType="">
+        <!-- For hands-on remove all following subnodes -->
         <Model class="Models" type="ExternalModel">projectile</Model>
         <ROM class="Models" type="ROM">IDW</ROM>
         <TargetEvaluation class="DataObjects" type="PointSet">projectileContainer</TargetEvaluation>

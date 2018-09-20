@@ -14,5 +14,6 @@
     type = 'RavenFramework'
     input = 'pbFromLS.xml'
     csv = 'results/integral.csv'
+    prereq = runLS
   [../]
 []
