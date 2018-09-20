@@ -26,11 +26,11 @@
   [./FS5]
     type = 'RavenFramework'
     input = 'ForwardSampling5.xml'
-    UnorderedCsv = 'r5/Stat_basicStatPP_dump.csv'
+    output = 'r5/Stat_basicStatPP_dump.csv'
   [../]
   [./FS6]
     type = 'RavenFramework'
     input = 'ForwardSampling6.xml'
-    UnorderedCsv = 'r6/Stat_basicStatPP_dump.csv'
+    csv = 'r6/Stat_basicStatPP_dump.csv'
   [../]
 []
