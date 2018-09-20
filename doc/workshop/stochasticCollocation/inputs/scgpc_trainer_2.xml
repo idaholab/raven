@@ -23,8 +23,6 @@
       <Output class="Models" type="ROM">scgpc_rom</Output>
     </RomTrainer>
     <IOStep name="print">
-      <Input class="DataObjects" type="PointSet">training_data</Input>
-      <Output class="OutStreams" type="Print">training_data</Output>
       <Input class="Models" type="ROM">scgpc_rom</Input>
       <Output class="OutStreams" type="Print">rom_stats_2</Output>
     </IOStep>
@@ -39,7 +37,7 @@
       <lowerBound>25</lowerBound>
       <upperBound>65</upperBound>
     </Uniform>
-    <Uniform name="velocity_dist">
+    <Uniform name="v0_dist">
       <lowerBound>15</lowerBound>
       <upperBound>40</upperBound>
     </Uniform>
@@ -50,8 +48,8 @@
       <variable name="angle">
         <distribution>angle_dist</distribution>
       </variable>
-      <variable name="velocity">
-        <distribution>velocity_dist</distribution>
+      <variable name="v0">
+        <distribution>v0_dist</distribution>
       </variable>
       <ROM class="Models" type="ROM">scgpc_rom</ROM>
     </SparseGridCollocation>
@@ -59,31 +57,31 @@
 
   <Models>
     <Code name="ballistic" subType="GenericCode">
-      <executable>./projectile.py</executable>
+      <executable>../../ExternalModels/projectile.py</executable>
       <clargs arg="python" type="prepend"></clargs>
       <clargs arg="-i" extension=".i" type="input"></clargs>
       <clargs arg="-o" type="output"></clargs>
     </Code>
     <ROM name="scgpc_rom" subType="GaussPolynomialRom">
       <Target>r,x,y</Target>
-      <Features>velocity,angle</Features>
+      <Features>v0,angle</Features>
       <IndexSet>TotalDegree</IndexSet>
       <PolynomialOrder>2</PolynomialOrder>
+      <pivotParameter>t</pivotParameter>
     </ROM>
   </Models>
 
   <DataObjects>
     <HistorySet name="training_data">
-      <Input>velocity,angle</Input>
-      <Output>r,x,y,time</Output>
+      <Input>v0,angle</Input>
+      <Output>r,x,y,t</Output>
+      <options>
+          <pivotParameter>t</pivotParameter>
+      </options>
     </HistorySet>
   </DataObjects>
 
   <OutStreams>
-    <Print name="training_data">
-      <type>csv</type>
-      <source>training_data</source>
-    </Print>
     <Print name="rom_stats_2">
       <type>xml</type>
       <source>scgpc_rom</source>
