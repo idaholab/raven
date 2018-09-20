@@ -1,5 +1,5 @@
 [Tests]
-  [./Adapt]
+  [./ensemble]
     type = 'RavenFramework'
     input = '1_ensemble_model.xml'
     output = 'results/to_plot_scatter.png'

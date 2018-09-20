@@ -1,7 +1,7 @@
 [Tests]
-  [./Adapt]
+  [./hybrid]
     type = 'RavenFramework'
-    input = 't_hybrid_model.xml
+    input = 'test_hybrid_model.xml'
     output = 'results/printTargetEval.csv'
   [../]
 []
