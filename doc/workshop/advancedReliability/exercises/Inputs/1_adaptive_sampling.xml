@@ -1,13 +1,14 @@
 <?xml version="1.0" ?>
 <Simulation>
   <RunInfo>
-    <WorkingDir>.</WorkingDir>
+    <WorkingDir>Results</WorkingDir>
     <Sequence>adaptive_sampling,plot</Sequence>
     <batchSize>10</batchSize>
   </RunInfo>
 
   <Steps>
     <MultiRun name="adaptive_sampling">
+      <!-- For hands-on, remove the following subnodes execept the SolutionExport -->
       <Sampler class="Samplers" type="LimitSurfaceSearch">adaptiveSearch</Sampler>
       <SolutionExport class="DataObjects" type="PointSet">limitSurface</SolutionExport>
       <Input   class="DataObjects" type="PointSet"     >placeholder</Input>
@@ -31,7 +32,7 @@
   </Functions>
 
   <Models>
-    <ExternalModel ModuleToLoad="projectile_model/projectile.py" name="projectile" subType="">
+    <ExternalModel ModuleToLoad="../../../../ExternalModels/projectile.py" name="projectile" subType="">
       <variables>v0,angle,r,t</variables>
     </ExternalModel>
     <ROM name="acceleration_ROM" subType="SciKitLearn">
@@ -109,7 +110,7 @@
         <xlabel>v0</xlabel>
         <ylabel>angle</ylabel>
       </plotSettings>
-      <actions><how>png,screen</how></actions>
+      <actions><how>png</how></actions>
     </Plot>
   </OutStreams>
 
