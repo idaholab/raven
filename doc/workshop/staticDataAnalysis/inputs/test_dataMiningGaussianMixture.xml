@@ -1,9 +1,9 @@
 <?xml version="1.0" ?>
-<Simulation verbosity="silent">
+<Simulation verbosity="debug">
   <RunInfo>
     <WorkingDir>GaussianMixture</WorkingDir>
     <Sequence>readIn,GaussianMixtureBlobs,output</Sequence>
-    <batchSize>100</batchSize>
+    <batchSize>1</batchSize>
   </RunInfo>
 
   <Files>
@@ -26,18 +26,18 @@
 
   <Steps>
     <IOStep name="readIn" pauseAtEnd="True">
-      <Input class="Files" type="">DataSetsFile</Input>
-      <Output class="DataObjects" type="PointSet">DataSets</Output>
+      <Input  class="Files"        type=""         >DataSetsFile</Input>
+      <Output class="DataObjects"  type="PointSet" >DataSets</Output>
     </IOStep>
     <IOStep name="output" pauseAtEnd="True">
-      <Input class="DataObjects" type="PointSet">DataSets</Input>
-      <Output class="OutStreams" type="Plot">PlotGaussianMixtureBlobs</Output>
+      <Input  class="DataObjects" type="PointSet" >DataSets</Input>
+      <Output class="OutStreams"  type="Plot"     >PlotGaussianMixtureBlobs</Output>
     </IOStep>
     <PostProcess name="GaussianMixtureBlobs" pauseAtEnd="True">
-      <Input class="DataObjects" type="PointSet">DataSets</Input>
-      <Model class="Models" type="PostProcessor">GaussianMixtureBlobs</Model>
-      <Output class="DataObjects" type="PointSet">DataSets</Output>
-      <Output class="OutStreams" type="Print">Plotdata</Output>
+      <Input  class="DataObjects" type="PointSet"      >DataSets</Input>
+      <Model  class="Models"      type="PostProcessor" >GaussianMixtureBlobs</Model>
+      <Output class="DataObjects" type="PointSet"      >DataSets</Output>
+      <Output class="OutStreams"  type="Print"         >Plotdata</Output>
     </PostProcess>
   </Steps>
 
@@ -46,14 +46,14 @@
       <type>csv</type>
       <source>DataSets</source>
     </Print>
-    <Plot name="PlotGaussianMixtureBlobs" overwrite="false">
+    <Plot  name="PlotGaussianMixtureBlobs" overwrite="false">
       <plotSettings>
         <plot>
-          <type>dataMining</type>
-          <SKLtype>cluster</SKLtype>
+          <type>scatter</type>
           <x>DataSets|input|x1</x>
           <y>DataSets|input|x2</y>
-          <clusterLabels>DataSets|Output|GaussianMixtureBlobsLabels</clusterLabels>
+          <cmap>Set1</cmap>
+          <colorMap>DataSets|Output|GaussianMixtureBlobsLabels</colorMap>
           <kwargs>
             <edgecolor>None</edgecolor>
           </kwargs>
@@ -62,6 +62,7 @@
       <actions>
         <how>png</how>
       </actions>
+      <filename>scatter</filename>
     </Plot>
   </OutStreams>
 

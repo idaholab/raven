@@ -23,7 +23,6 @@
       <Model    class="Models"        type="PostProcessor"   >KMeans1</Model>
       <SolutionExport class="DataObjects" type="HistorySet"  >clusterInfo</SolutionExport>
       <Output   class="DataObjects"   type="HistorySet"      >outMC</Output>
-      <Output   class="OutStreams"    type="Plot"            >clusterCenters</Output>
       <Output   class="OutStreams"    type="Plot"            >plot3</Output>
       <Output   class="OutStreams"    type="Plot"            >Clustered_HS</Output>
       <Output   class="OutStreams"    type="Plot"            >plot5</Output>
@@ -135,7 +134,7 @@
       <Output>time,x,y,z</Output>
     </HistorySet>
     <HistorySet name="clusterInfo">
-      <Input>labels</Input>
+      <Input>KMeans1Labels</Input>
       <Output>time,x,y,z</Output>
     </HistorySet>
   </DataObjects>
@@ -157,25 +156,7 @@
       <actions>
         <how>png</how>
       </actions>
-    </Plot>    
-    <Plot   name="clusterCenters" overwrite="false" verbosity="debug">
-      <plotSettings>
-        <plot>
-          <type>line</type>
-          <interpolationType>cubic</interpolationType>
-          <interpPointsX>1000</interpPointsX>
-          <x>clusterInfo|Output|time</x>
-          <y>clusterInfo|Output|y</y>
-          <z>clusterInfo|Output|z</z>
-        </plot>
-        <xlabel>time</xlabel>
-        <ylabel>x</ylabel>
-        <zlabel>y</zlabel>
-      </plotSettings>
-      <actions>
-        <how>png</how>
-      </actions>
-    </Plot>	  
+    </Plot>      
     <Plot  name="plot3" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>

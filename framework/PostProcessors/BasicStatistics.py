@@ -895,12 +895,12 @@ class BasicStatistics(PostProcessor):
       reducedSen *= meanDA
       calculations[metric] = reducedSen
 
-    outputSet = xr.Dataset()
+
     for metric, ds in calculations.items():
       if metric in self.scalarVals and metric !='samples':
-        outputSet[metric] = ds.to_array().rename({'variable':'targets'})
-      else:
-       outputSet[metric] = ds
+        calculations[metric] = ds.to_array().rename({'variable':'targets'})
+    outputSet = xr.Dataset(data_vars=calculations)
+
     if self.outputDataset:
       # Add 'RAVEN_sample_ID' to output dataset for consistence
       if 'RAVEN_sample_ID' not in outputSet.sizes.keys():

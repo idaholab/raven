@@ -71,6 +71,7 @@
         <xlabel>PCAComponent1</xlabel>
         <ylabel>PCAComponent2</ylabel>
       </plotSettings>
+      <filename>ica</filename>
       <actions>
         <how>png</how>
       </actions>

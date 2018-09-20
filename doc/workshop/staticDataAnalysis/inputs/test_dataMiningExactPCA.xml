@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<Simulation verbosity="silent">
+<Simulation verbosity="debug">
   <RunInfo>
     <WorkingDir>ExactPCA</WorkingDir>
     <Sequence>readIn,KMeans,PCAIris,output</Sequence>

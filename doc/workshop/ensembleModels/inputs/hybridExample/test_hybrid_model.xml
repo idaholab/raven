@@ -1,0 +1,125 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <RunInfo>
+    <WorkingDir>results</WorkingDir>
+    <Sequence>hybridRun,print</Sequence>
+    <batchSize>1</batchSize>
+    <internalParallel>False</internalParallel>
+  </RunInfo>
+
+  <Distributions>
+        <Normal name="angle_d">
+            <mean>45</mean>
+            <sigma>5</sigma>
+            <lowerBound>5</lowerBound>
+            <upperBound>85</upperBound>
+        </Normal>
+  </Distributions>
+
+  <Metrics>
+      <SKL name="m1">
+          <metricType>regression|mean_absolute_error</metricType>
+      </SKL>
+  </Metrics>
+
+  <Models>
+    <ExternalModel name="projectile" ModuleToLoad="../../../../ExternalModels/projectile" subType="">
+            <variables>angle,x,y,r,t</variables>
+    </ExternalModel>
+    <ROM name="IDW" subType="NDinvDistWeight">
+            <Features>angle</Features>
+            <Target>r</Target>
+            <p>3</p>
+    </ROM>
+    <PostProcessor name="pp1" subType="CrossValidation">
+        <SciKitLearn>
+            <SKLtype>KFold</SKLtype>
+            <n_splits>10</n_splits>
+            <shuffle>False</shuffle>
+            <random_state>None</random_state>
+        </SciKitLearn>
+        <Metric class="Metrics" type="SKL">m1</Metric>
+    </PostProcessor>
+    <HybridModel name="hybrid" subType="">
+        <!-- For hands-on remove all following subnodes -->
+        <Model class="Models" type="ExternalModel">projectile</Model>
+        <ROM class="Models" type="ROM">IDW</ROM>
+        <TargetEvaluation class="DataObjects" type="PointSet">projectileContainer</TargetEvaluation>
+        <CV class="Models" type="PostProcessor">pp1</CV>
+        <settings>
+            <tolerance>0.005</tolerance>
+            <maxTrainSize>1000</maxTrainSize>
+            <minInitialTrainSize>10</minInitialTrainSize>
+        </settings>
+        <validationMethod name="CrowdingDistance">
+            <threshold>0.2</threshold>
+        </validationMethod>
+    </HybridModel>
+  </Models>
+
+  <Samplers>
+        <MonteCarlo name="mcSampler">
+            <samplerInit>
+                <limit>100</limit>
+                <initialSeed>080118</initialSeed>
+            </samplerInit>
+            <variable name="angle">
+                <distribution>angle_d</distribution>
+            </variable>
+            <constant name="v0">1.0</constant>
+            <constant name="x0">0</constant>
+            <constant name="y0">0</constant>
+        </MonteCarlo>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="hybridRun">
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
+      <Model class="Models" type="HybridModel">hybrid</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mcSampler</Sampler>
+      <Output class="DataObjects" type="PointSet">outMC</Output>
+      <Output class="DataObjects" type="PointSet">projectileContainer</Output>
+    </MultiRun>
+        <IOStep name='print'>
+            <Input  class="DataObjects"      type="PointSet"      >projectileContainer</Input>
+            <Output  class="OutStreams"      type="Print"          >printTargetEval</Output>
+        </IOStep>
+  </Steps>
+  
+  <DataObjects>
+	    <PointSet name="inputPlaceHolder">
+	        <Input>angle</Input>
+	        <Output>OutputPlaceHolder</Output>
+	    </PointSet>
+	    <PointSet name="outMC">
+	        <Input>angle</Input>
+            <Output>r</Output>
+	    </PointSet>
+	    <PointSet name="projectileContainer">
+	        <Input>angle</Input>
+            <Output>r</Output>
+	    </PointSet>
+  </DataObjects>
+  
+  <OutStreams>
+      <Print name="printTargetEval">
+          <type>csv</type>
+          <source>projectileContainer</source>
+      </Print>
+        <Plot name="plotMC">
+            <plotSettings>
+                <plot>
+                    <type>scatter</type>
+                    <x>outMC|Input|angle</x>
+                    <y>outMC|Output|r</y>
+                    <c>blue</c>
+                </plot>
+                <xlabel>angle</xlabel>
+                <ylabel>r</ylabel>
+            </plotSettings>
+            <actions><how>png,screen</how></actions>
+        </Plot>
+	</OutStreams>
+
+
+</Simulation>

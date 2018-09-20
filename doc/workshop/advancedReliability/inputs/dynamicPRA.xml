@@ -1,39 +1,38 @@
+<?xml version="1.0" ?>
 <Simulation verbosity="debug">
-	  
-	<RunInfo>
-	  <WorkingDir>./results</WorkingDir>
-	  <Sequence>MCRun,Plots,PP</Sequence>
-	  <batchSize>50</batchSize>
-	</RunInfo>
-	
+  <RunInfo>
+    <WorkingDir>./results</WorkingDir>
+    <Sequence>MCRun,Plots,PP</Sequence>
+    <batchSize>50</batchSize>
+  </RunInfo>
+
   <Files>
-    <Input name="integral.xml"  type="">integral.xml</Input>
-  </Files>
-	
-	<Steps>
-	  <MultiRun name="MCRun">
-	    <Input   class="DataObjects"  type="PointSet"       >inputPlaceHolder</Input>
-	    <Model   class="Models"       type="ExternalModel"  >PythonModule</Model>
-	    <Sampler class="Samplers"     type="MonteCarlo"     >MC</Sampler>
-	    <Output  class="DataObjects"  type="PointSet"       >outPS</Output>
-	    <Output  class="DataObjects"  type="HistorySet"     >outHS</Output>
-	  </MultiRun>
-	  <IOStep name="Plots">
-	    <Input   class="DataObjects"  type="PointSet"       >outPS</Input>
-	    <Input   class="DataObjects"  type="HistorySet"     >outHS</Input>
-	    <Output  class="OutStreams"   type="Plot"           >plot1</Output>
-	    <Output  class="OutStreams"   type="Plot"           >plot2</Output>
-	    <Output  class="OutStreams"   type="Plot"           >plot3</Output>
-	    <Output  class="OutStreams"   type="Plot"           >plot4</Output>
-	    <Output  class="OutStreams"   type="Plot"           >plot6</Output>
-	  </IOStep>
+    </Files>
+  <Steps>
+    <MultiRun name="MCRun">
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
+      <Model class="Models" type="ExternalModel">PythonModule</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MC</Sampler>
+      <Output class="DataObjects" type="PointSet">outPS</Output>
+      <Output class="DataObjects" type="HistorySet">outHS</Output>
+    </MultiRun>
+    <IOStep name="Plots">
+      <Input class="DataObjects" type="PointSet">outPS</Input>
+      <Input class="DataObjects" type="HistorySet">outHS</Input>
+      <Output class="OutStreams" type="Plot">plot1</Output>
+      <Output class="OutStreams" type="Plot">plot2</Output>
+      <Output class="OutStreams" type="Plot">plot3</Output>
+      <Output class="OutStreams" type="Plot">plot4</Output>
+      <Output class="OutStreams" type="Plot">plot6</Output>
+    </IOStep>
     <PostProcess name="PP">
-      <Input   class="DataObjects"  type="PointSet"       >outPS</Input>
-      <Model   class="Models"       type="PostProcessor"  >integral</Model>
-      <Output  class="Files"        type=""               >integral.xml</Output>
+      <Input class="DataObjects" type="PointSet">outPS</Input>
+      <Model class="Models" type="PostProcessor">integral</Model>
+      <Output class="DataObjects" type="PointSet">integral_basicStatPP</Output>
+      <Output class="OutStreams" type="Print">integral_basicStatPP_dump</Output>
     </PostProcess>
-	</Steps>
-	  
+  </Steps>
+
   <Distributions>
     <Uniform name="tREC_dist">
       <lowerBound>300.0</lowerBound>
@@ -44,7 +43,7 @@
       <upperBound>300.0</upperBound>
     </Uniform>
   </Distributions>
-  
+
   <Samplers>
     <MonteCarlo name="MC">
       <samplerInit>
@@ -58,114 +57,125 @@
       </variable>
     </MonteCarlo>
   </Samplers>
-	
-	<DataObjects>
-	  <PointSet name="outPS">
-	    <Input>tREC,tSBO</Input>
-	    <Output>Tmax,outcome</Output>
-	  </PointSet>
+
+  <DataObjects>
+    <PointSet name="outPS">
+      <Input>tREC,tSBO</Input>
+      <Output>Tmax,outcome</Output>
+    </PointSet>
     <HistorySet name="outHS">
       <Input>tREC,tSBO</Input>
       <Output>T,time,heatRem</Output>
     </HistorySet>
-	  <PointSet name="inputPlaceHolder">
-	    <Input>tREC,tSBO</Input>
-	    <Output>OutputPlaceHolder</Output>
-	  </PointSet>
-	</DataObjects>
-	
-	<Models>
-	  <ExternalModel name="PythonModule" subType="" ModuleToLoad="modelTH">
-	    <variables>tREC,tSBO,T,time,Tmax,outcome,heatRem</variables>
-	  </ExternalModel>
+    <PointSet name="inputPlaceHolder">
+      <Input>tREC,tSBO</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="integral_basicStatPP">
+      <Output>integral_vars</Output>
+    </PointSet>
+  </DataObjects>
+
+  <Models>
+    <ExternalModel ModuleToLoad="modelTH" name="PythonModule" subType="">
+      <variables>tREC,tSBO,T,time,Tmax,outcome,heatRem</variables>
+    </ExternalModel>
     <PostProcessor name="integral" subType="BasicStatistics" verbosity="debug">
-      <expectedValue>outcome</expectedValue>
+      <expectedValue prefix="mean">outcome</expectedValue>
     </PostProcessor>
-	</Models>
-	
-	<OutStreams>
-	    <Plot name="plot1" overwrite="false" interactive="True">
-	      <plotSettings>
-	        <plot>
-	          <type>scatter</type>
-	          <x>outPS|Input|tREC</x>
-	          <y>outPS|Input|tSBO</y>
-	          <colorMap>outPS|Output|outcome</colorMap>
-	        </plot>
-	        <xlabel>tREC</xlabel>
-	        <ylabel>tSBO</ylabel>
-	      </plotSettings>
-	      <actions>
-	        <how>png</how>
-	        <range>
-	          <xmin>300.0</xmin>
-	          <xmax>1440.0</xmax>   
-	          <ymin>100.0</ymin>    
-	          <ymax>300.0</ymax>
-	        </range>
-	      </actions>
-	    </Plot>
-	    <Plot name="plot2" overwrite="false" verbosity="debug">
-	      <plotSettings>
-	        <plot>
-	          <type>histogram</type>
-	          <x>outPS|Input|tREC</x>
-	          <bins>30</bins>
-	          <normed>True</normed>
-	        </plot>
-	        <xlabel>recovery time [min]</xlabel>
-	        <ylabel>pdf</ylabel>
-	      </plotSettings>
-	      <actions>
-	        <how>png</how>
-	      </actions>
-	    </Plot>
-	    <Plot name="plot3" overwrite="false" verbosity="debug">
-	      <plotSettings>
-	        <plot>
-	          <type>histogram</type>
-	          <x>outPS|Input|tSBO</x>
-	          <bins>30</bins>
-	          <normed>True</normed>
-	        </plot>
-	        <xlabel>SBO time [min]</xlabel>
-	        <ylabel>pdf</ylabel>
-	      </plotSettings>
-	      <actions>
-	        <how>png</how>
-	      </actions>
-	    </Plot>
-	    <Plot name="plot4" overwrite="false" verbosity="debug">
-	      <plotSettings>
-	        <plot>
-	          <type>histogram</type>
-	          <x>outPS|Output|Tmax</x>
-	          <bins>30</bins>
-	          <normed>True</normed>
-	        </plot>
-	        <xlabel>max Temp [C]</xlabel>
-	        <ylabel>pdf</ylabel>
-	      </plotSettings>
-	      <actions>
-	        <how>png</how>
-	      </actions>
-	    </Plot>
-	    <Plot name="plot6" overwrite="false" verbosity="debug">
-	      <plotSettings>
-	        <plot>
-	          <type>line</type>
-	          <interpolationType>linear</interpolationType>
-	          <interpPointsX>500</interpPointsX>
-	          <x>outHS|Output|time</x>
-	          <y>outHS|Output|T</y>
-	        </plot>
-	        <xlabel>time [min]</xlabel>
-	        <ylabel>T [C]</ylabel>
-	      </plotSettings>
-	      <actions>
-	        <how>png</how>
-	      </actions>
-	    </Plot>
-	</OutStreams>
+  </Models>
+
+  <OutStreams>
+    <Plot interactive="True" name="plot1" overwrite="false">
+      <plotSettings>
+        <plot>
+          <type>scatter</type>
+          <x>outPS|Input|tREC</x>
+          <y>outPS|Input|tSBO</y>
+          <colorMap>outPS|Output|outcome</colorMap>
+        </plot>
+        <xlabel>tREC</xlabel>
+        <ylabel>tSBO</ylabel>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+        <range>
+          <xmin>300.0</xmin>
+          <xmax>1440.0</xmax>
+          <ymin>100.0</ymin>
+          <ymax>300.0</ymax>
+        </range>
+      </actions>
+    </Plot>
+    <Plot name="plot2" overwrite="false" verbosity="debug">
+      <plotSettings>
+        <plot>
+          <type>histogram</type>
+          <x>outPS|Input|tREC</x>
+          <bins>30</bins>
+          <normed>True</normed>
+        </plot>
+        <xlabel>recovery time [min]</xlabel>
+        <ylabel>pdf</ylabel>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+      </actions>
+    </Plot>
+    <Plot name="plot3" overwrite="false" verbosity="debug">
+      <plotSettings>
+        <plot>
+          <type>histogram</type>
+          <x>outPS|Input|tSBO</x>
+          <bins>30</bins>
+          <normed>True</normed>
+        </plot>
+        <xlabel>SBO time [min]</xlabel>
+        <ylabel>pdf</ylabel>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+      </actions>
+    </Plot>
+    <Plot name="plot4" overwrite="false" verbosity="debug">
+      <plotSettings>
+        <plot>
+          <type>histogram</type>
+          <x>outPS|Output|Tmax</x>
+          <bins>30</bins>
+          <normed>True</normed>
+        </plot>
+        <xlabel>max Temp [C]</xlabel>
+        <ylabel>pdf</ylabel>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+      </actions>
+    </Plot>
+    <Plot name="plot6" overwrite="false" verbosity="debug">
+      <plotSettings>
+        <plot>
+          <type>line</type>
+          <interpolationType>linear</interpolationType>
+          <interpPointsX>500</interpPointsX>
+          <x>outHS|Output|time</x>
+          <y>outHS|Output|T</y>
+        </plot>
+        <xlabel>time [min]</xlabel>
+        <ylabel>T [C]</ylabel>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+      </actions>
+    </Plot>
+    <Print name="integral_basicStatPP_dump">
+      <type>csv</type>
+      <source>integral_basicStatPP</source>
+    </Print>
+  </OutStreams>
+
+  <VariableGroups>
+    <Group name="integral_vars">mean_outcome</Group>
+  </VariableGroups>
 
 </Simulation>

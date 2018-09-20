@@ -1,0 +1,78 @@
+<?xml version="1.0" ?>
+<Simulation>
+  <RunInfo>
+    <WorkingDir>.</WorkingDir>
+    <Sequence>optimize,print</Sequence>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="optimize">
+      <Optimizer class="Optimizers" type="SPSA" >hunter</Optimizer>
+      <Input   class="DataObjects" type="PointSet"     >placeholder</Input>
+      <Model   class="Models"      type="ExternalModel">projectile</Model>
+      <SolutionExport class="DataObjects" type="PointSet">search_path</SolutionExport>
+      <Output  class="DataObjects" type="PointSet"     >results</Output>
+    </MultiRun>
+    <IOStep name="print" pauseAtEnd="True">
+      <Input  class="DataObjects" type="PointSet">search_path</Input>
+      <Output class="OutStreams"  type="Print"   >to_file</Output>
+    </IOStep>
+  </Steps>
+
+  <Models>
+    <ExternalModel ModuleToLoad="../../forDevelopers/projectile.py" name="projectile" subType="">
+      <variables>v0,y0,angle,r,t</variables>
+    </ExternalModel>
+  </Models>
+
+  <Optimizers>
+    <SPSA name="hunter">
+      <initialization>
+        <limit>1000</limit>
+        <initialSeed>42</initialSeed>
+        <type>max</type>
+        <writeSteps>every</writeSteps>
+      </initialization>
+      <convergence>
+        <gradientThreshold>1e-1</gradientThreshold>
+        <gainGrowthFactor>2</gainGrowthFactor>
+        <gainShrinkFactor>2</gainShrinkFactor>
+      </convergence>
+      <variable name="v0">
+        <lowerBound>1</lowerBound>
+        <upperBound>60</upperBound>
+        <initial>30,10,1,60</initial>
+      </variable>
+      <variable name="angle">
+        <lowerBound>5</lowerBound>
+        <upperBound>85</upperBound>
+        <initial>45,18,5,85</initial>
+      </variable>
+      <objectVar>r</objectVar>
+      <TargetEvaluation class="DataObjects" type="PointSet">results</TargetEvaluation>
+    </SPSA>
+  </Optimizers>
+
+  <DataObjects>
+    <PointSet name="placeholder">
+      <Input>v0,angle</Input>
+    </PointSet>
+    <PointSet name="results">
+      <Input>v0,angle</Input>
+      <Output>r,t</Output>
+    </PointSet>
+    <PointSet name="search_path">
+      <Input>trajID</Input>
+      <Output>v0,angle,r,varsUpdate</Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="to_file">
+      <type>csv</type>
+      <source>search_path</source>
+      <clusterLabel>trajID</clusterLabel>
+    </Print>
+  </OutStreams>
+
+</Simulation>

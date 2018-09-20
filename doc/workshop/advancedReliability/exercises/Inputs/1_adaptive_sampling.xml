@@ -1,0 +1,117 @@
+<?xml version="1.0" ?>
+<Simulation>
+  <RunInfo>
+    <WorkingDir>Results</WorkingDir>
+    <Sequence>adaptive_sampling,plot</Sequence>
+    <batchSize>10</batchSize>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="adaptive_sampling">
+      <!-- For hands-on, remove the following subnodes execept the SolutionExport -->
+      <Sampler class="Samplers" type="LimitSurfaceSearch">adaptiveSearch</Sampler>
+      <SolutionExport class="DataObjects" type="PointSet">limitSurface</SolutionExport>
+      <Input   class="DataObjects" type="PointSet"     >placeholder</Input>
+      <Model   class="Models"      type="ExternalModel">projectile</Model>
+      <Output  class="DataObjects" type="PointSet"     >results</Output>
+      <Output class="OutStreams"  type="Print"   >to_file</Output>
+    </MultiRun>
+    <IOStep name="plot" pauseAtEnd="True">
+      <Input  class="DataObjects" type="PointSet">results</Input>
+      <Input  class="DataObjects" type="PointSet">limitSurface</Input>
+      <Output class="OutStreams"  type="Print"   >to_file</Output>
+      <Output class="OutStreams"  type="Print"   >ls_to_file</Output>
+      <Output class="OutStreams"  type="Plot"    >to_plot</Output>
+    </IOStep>
+  </Steps>
+
+  <Functions>
+    <External file="adaptive_test_goal" name="decision">
+      <variable>r</variable>
+    </External>
+  </Functions>
+
+  <Models>
+    <ExternalModel ModuleToLoad="../../../../ExternalModels/projectile.py" name="projectile" subType="">
+      <variables>v0,angle,r,t</variables>
+    </ExternalModel>
+    <ROM name="acceleration_ROM" subType="SciKitLearn">
+      <Features>v0,angle</Features>
+      <Target>decision</Target>
+      <SKLtype>svm|SVC</SKLtype>
+      <kernel>rbf</kernel>
+      <gamma>10</gamma>
+      <tol>1e-5</tol>
+      <C>50</C>
+    </ROM>
+  </Models>
+
+  <Samplers>
+    <LimitSurfaceSearch name="adaptiveSearch">
+      <ROM class="Models" type="ROM">acceleration_ROM</ROM>
+      <Function class="Functions" type="External">decision</Function>
+      <TargetEvaluation class="DataObjects" type="PointSet">results</TargetEvaluation>
+      <Convergence forceIteration="False" limit="3000" persistence="20" weight="CDF">5e-4</Convergence>
+      <variable name="v0">
+          <distribution>vel_dist</distribution>
+      </variable>
+      <variable name="angle">
+          <distribution>angle_dist</distribution>
+      </variable>
+      <constant name="x0">0</constant>
+      <constant name="y0">0</constant>
+    </LimitSurfaceSearch>
+  </Samplers>
+
+  <Distributions>
+    <Normal name="vel_dist">
+      <mean>30</mean>
+      <sigma>5</sigma>
+      <lowerBound>1</lowerBound>
+      <upperBound>60</upperBound>
+    </Normal>
+    <Uniform name="angle_dist">
+      <lowerBound>5</lowerBound>
+      <upperBound>85</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <DataObjects>
+    <PointSet name="placeholder">
+      <Input>v0,angle</Input>
+    </PointSet>
+    <PointSet name="results">
+      <Input>v0,angle</Input>
+      <Output>r,t</Output>
+    </PointSet>
+    <PointSet name="limitSurface">
+        <Input>v0,angle</Input>
+        <Output>decision</Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="to_file">
+      <type>csv</type>
+      <source>results</source>
+    </Print>
+    <Print name="ls_to_file">
+        <type>csv</type>
+        <source>limitSurface</source>
+    </Print>
+    <Plot  name="to_plot">
+      <plotSettings>
+        <plot>
+          <type>scatter</type>
+          <x>limitSurface|Input|v0</x>
+          <y>limitSurface|Input|angle</y>
+          <colorMap>limitSurface|Output|decision</colorMap>
+        </plot>
+        <xlabel>v0</xlabel>
+        <ylabel>angle</ylabel>
+      </plotSettings>
+      <actions><how>png</how></actions>
+    </Plot>
+  </OutStreams>
+
+</Simulation>
