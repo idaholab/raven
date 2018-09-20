@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation>
   <RunInfo>
-    <WorkingDir>.</WorkingDir>
+    <WorkingDir>r7</WorkingDir>
     <Sequence>generate_data,print</Sequence>
     <batchSize>4</batchSize>
   </RunInfo>
@@ -20,7 +20,7 @@
   </Steps>
 
   <Models>
-    <ExternalModel ModuleToLoad="../../forDevelopers/projectile.py" name="projectile" subType="">
+    <ExternalModel ModuleToLoad="../../../ExternalModels/projectile.py" name="projectile" subType="">
       <variables>v0,y0,angle,x,y,t</variables>
     </ExternalModel>
   </Models>

@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation>
   <RunInfo>
-    <WorkingDir>.</WorkingDir>
+    <WorkingDir>r5</WorkingDir>
     <Sequence>generate_data,stats,plot</Sequence>
     <batchSize>4</batchSize>
   </RunInfo>
@@ -28,7 +28,7 @@
   </Steps>
 
   <Models>
-    <ExternalModel ModuleToLoad="../../forDevelopers/projectile.py" name="projectile" subType="">
+    <ExternalModel ModuleToLoad="../../../ExternalModels/projectile.py" name="projectile" subType="">
       <variables>x0,y0,v0,angle,r,t</variables>
     </ExternalModel>
     <PostProcessor name="stats" subType="BasicStatistics">
@@ -123,7 +123,7 @@
         <ylabel>angle</ylabel>
         <zlabel>r</zlabel>
       </plotSettings>
-      <actions><how>png,screen</how></actions>
+      <actions><how>png</how></actions>
     </Plot>
   </OutStreams>
 

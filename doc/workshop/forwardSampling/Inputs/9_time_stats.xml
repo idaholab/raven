@@ -1,8 +1,8 @@
 <?xml version="1.0" ?>
 <Simulation>
   <RunInfo>
-    <WorkingDir>.</WorkingDir>
-    <Sequence>generate_data,sync,print</Sequence>
+    <WorkingDir>r9</WorkingDir>
+    <Sequence>generate_data,sync,stats,print</Sequence>
     <batchSize>4</batchSize>
   </RunInfo>
 
@@ -18,14 +18,19 @@
       <Model class="Models" type="PostProcessor">syncer</Model>
       <Output class="DataObjects" type="HistorySet">synced</Output>
     </PostProcess>
+    <PostProcess name="stats">
+      <Input class="DataObjects" type="HistorySet">synced</Input>
+      <Model class="Models" type="PostProcessor">stats</Model>
+      <Output class="DataObjects" type="HistorySet">stats</Output>
+    </PostProcess>
     <IOStep name="print">
-      <Input  class="DataObjects" type="HistorySet">synced</Input>
-      <Output class="OutStreams"  type="Print"   >synced</Output>
+      <Input  class="DataObjects" type="HistorySet">stats</Input>
+      <Output class="OutStreams"  type="Print"   >stats</Output>
     </IOStep>
   </Steps>
 
   <Models>
-    <ExternalModel ModuleToLoad="../../forDevelopers/projectile.py" name="projectile" subType="">
+    <ExternalModel ModuleToLoad="../../../ExternalModels/projectile.py" name="projectile" subType="">
       <variables>v0,y0,angle,x,y,t</variables>
     </ExternalModel>
     <PostProcessor name="syncer" subType="InterfacedPostProcessor">
@@ -34,6 +39,15 @@
       <extension>zeroed</extension>
       <syncMethod>grid</syncMethod>
       <numberOfSamples>20</numberOfSamples>
+    </PostProcessor>
+    <PostProcessor name="stats" subType="BasicStatistics">
+      <pivotParameter>t</pivotParameter>
+      <expectedValue prefix="mean">v0,y0,angle,x,y</expectedValue>
+      <variance prefix="var">x,y</variance>
+      <sensitivity prefix="sens">
+        <targets>x,y</targets>
+        <features>v0,y0,angle</features>
+      </sensitivity>
     </PostProcessor>
   </Models>
 
@@ -91,12 +105,19 @@
         <pivotParameter>t</pivotParameter>
       </options>
     </HistorySet>
+    <HistorySet name="stats">
+      <Input>mean_v0,mean_y0,mean_angle</Input>
+      <Output>var_x,var_y</Output>
+      <options>
+        <pivotParameter>t</pivotParameter>
+      </options>
+    </HistorySet>
   </DataObjects>
 
   <OutStreams>
-    <Print name="synced">
+    <Print name="stats">
       <type>csv</type>
-      <source>synced</source>
+      <source>stats</source>
     </Print>
   </OutStreams>
 

@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation>
   <RunInfo>
-    <WorkingDir>.</WorkingDir>
+    <WorkingDir>r1</WorkingDir>
     <Sequence>generate_data,plot</Sequence>
     <batchSize>4</batchSize>
   </RunInfo>
@@ -21,7 +21,7 @@
   </Steps>
 
   <Models>
-    <ExternalModel ModuleToLoad="../../forDevelopers/projectile.py" name="projectile" subType="">
+    <ExternalModel ModuleToLoad="../../../ExternalModels/projectile.py" name="projectile" subType="">
       <variables>v0,angle,r,t</variables>
     </ExternalModel>
   </Models>
@@ -44,12 +44,10 @@
   </Samplers>
 
   <Distributions>
-    <Normal name="vel_dist">
-      <mean>30</mean>
-      <sigma>5</sigma>
+    <Uniform name="vel_dist">
       <lowerBound>1</lowerBound>
       <upperBound>60</upperBound>
-    </Normal>
+    </Uniform>
     <Uniform name="angle_dist">
       <lowerBound>5</lowerBound>
       <upperBound>85</upperBound>
@@ -84,7 +82,7 @@
         <ylabel>angle</ylabel>
         <zlabel>r</zlabel>
       </plotSettings>
-      <actions><how>png,screen</how></actions>
+      <actions><how>png</how></actions>
     </Plot>
   </OutStreams>
 
