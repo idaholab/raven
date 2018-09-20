@@ -3,7 +3,7 @@
 
     <RunInfo>
 
-	    <WorkingDir>results</WorkingDir>
+	    <WorkingDir>r1</WorkingDir>
     	<Sequence>FirstMRun,plot</Sequence>
     	<batchSize>1</batchSize>
 	</RunInfo>
@@ -44,7 +44,7 @@
 	</DataObjects>
 	
 	<Models>
-        <ExternalModel name="projectile" ModuleToLoad="../../projectile" subType="">
+      <ExternalModel name="projectile" ModuleToLoad="../../../../ExternalModels/projectile" subType="">
         <variables>x0,v0,y0,angle,x,y,r,t</variables>
       </ExternalModel>
 	</Models>
@@ -74,7 +74,7 @@
                 <xlabel>angle</xlabel>
                 <ylabel>r</ylabel>
             </plotSettings>
-            <actions><how>png,screen</how></actions>
+            <actions><how>png</how></actions>
         </Plot>
 	</OutStreams>
 	
