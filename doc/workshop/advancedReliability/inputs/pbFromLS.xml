@@ -11,7 +11,7 @@
   </Files>
 
   <Databases>
-    <HDF5 directory="../resultsLS/DatabaseStorage" name="out_db_adaptive" readMode="read"/>
+      <HDF5 directory="./" name="out_db_adaptive" readMode="read"/>
   </Databases>
 
   <Models>
