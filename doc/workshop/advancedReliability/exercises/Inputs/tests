@@ -9,6 +9,7 @@
     input = '2_ls_probability_computation.xml'
     UnorderedCsv = 'Results/probability_failure.csv'
     output = 'Results/to_plot_ls_scatter.png'
+    rel_err = 0.01
     prereq = Adapt
   [../]
 []
