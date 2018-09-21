@@ -303,5 +303,7 @@ if __name__ == '__main__':
       print(i+"=="+qa,end=" ")
     print()
   elif '--manual-list' in sys.argv:
-    for i,fv,ev,qa,mv in modules_to_try:
-      print("\item",i+"-"+qa)
+    print('\\begin{itemize}')
+    for i,qa in __condaList+__condaForgeList+__condaOptional:
+      print("  \item",i+ (("-"+qa) if len(qa.strip())>0 else ""))
+    print("\end{itemize}")
