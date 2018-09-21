@@ -12,7 +12,7 @@
   [./dmPCA]
     type = 'RavenFramework'
     input = 'test_dataMiningExactPCA.xml'
-    outpu = 'ExactPCA/1-PlotIris_dataMining.png'
+    output = 'ExactPCA/1-PlotIris_dataMining.png'
   [../]
   [./dmGM2]
     type = 'RavenFramework'

@@ -1,5 +1,12 @@
 <?xml version="1.0" ?>
 <Simulation>
+  <TestInfo>
+    <name>doc/workshop/forwardSampling/Inputs/previous.FS4</name>
+    <author>wangc</author>
+    <created>2018-09-21</created>
+    <classesTested>Samplers.EnsembleForward OutStreams.Plot</classesTested>
+    <description>Workshop test: test Forward Sampling Capabilities</description>
+  </TestInfo>
   <RunInfo>
     <WorkingDir>r4</WorkingDir>
     <Sequence>GenerateData,Plot</Sequence>

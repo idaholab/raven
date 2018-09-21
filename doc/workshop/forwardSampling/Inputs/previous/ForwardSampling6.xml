@@ -1,5 +1,12 @@
 <?xml version="1.0" ?>
 <Simulation>
+  <TestInfo>
+    <name>doc/workshop/forwardSampling/Inputs/previous.FS6</name>
+    <author>wangc</author>
+    <created>2018-09-21</created>
+    <classesTested>PostProcessors.BasicStatistics</classesTested>
+    <description>Workshop test: test Forward Sampling Capabilities</description>
+  </TestInfo>
   <RunInfo>
     <WorkingDir>r6</WorkingDir>
     <Sequence>GenerateData,PP</Sequence>
