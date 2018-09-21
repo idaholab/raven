@@ -1,3 +1,17 @@
+# Copyright 2017 Battelle Energy Alliance, LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 """
   Module for producing an animation of optimization histories
   for 2D problems given pickled mesh grid data.  For examples
@@ -12,9 +26,9 @@ import numpy as np
 
 # load function data
 bX,bY,bZ = pk.load(file('../dev/response.pk','r'))
-print bX.shape
-print bY.shape
-print bZ.shape
+print(bX.shape)
+print(bY.shape)
+print(bZ.shape)
 fig = plt.figure()
 ax = fig.add_subplot(111)
 #norm = colors.LogNorm(vmin=1e-2,vmax=1e3)
@@ -42,7 +56,7 @@ for c,case in enumerate(cases):
     cases = cases[:c]
     break
 
-print data
+print(data)
 
 # point the first dot
 points = []
@@ -55,7 +69,7 @@ for case in cases:
   points.append(point)
   trails.append(trail)
 
-def update_point(n,data,points,trails):
+def updatePoint(n,data,points,trails):
   """
     Function to be called to update the animation points, one iteration at a time.
     @ In, n, int, the iteration to use
@@ -76,7 +90,7 @@ def update_point(n,data,points,trails):
   ax.set_title('iteration {}'.format(n))
   return point
 
-ani=animation.FuncAnimation(fig,update_point,max(len(data[case]['angle']) for case in cases),fargs=(data,points,trails),interval=100,repeat_delay=3000)
+ani=animation.FuncAnimation(fig,updatePoint,max(len(data[case]['angle']) for case in cases),fargs=(data,points,trails),interval=100,repeat_delay=3000)
 Writer = animation.writers['ffmpeg']
 writer = Writer(fps=15,bitrate=1800)
 ani.save('path.mp4',writer=writer)

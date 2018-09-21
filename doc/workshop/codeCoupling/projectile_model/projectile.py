@@ -38,34 +38,34 @@ def prange(v,th,y0=0,g=9.8):
   """
   return v*np.cos(th)/g * (v*np.sin(th) + np.sqrt(v*v*np.sin(th)**2+2.*g*y0))
 
-def time_to_ground(v,th,y0=0,g=9.8):
+def timeToGround(v,th,y0=0,g=9.8):
   """
     Calculates the analytic time of flight
     @ In, v, float, velocity of the projectile
     @ In, th, float, angle to the ground for initial projectile motion
     @ In, y0, float, optional, initial height of projectile
     @ In, g, float, optional, gravitational constant (m/s/s)
-    @ Out, time_to_ground, float, time projectile is above the ground
+    @ Out, timeToGround, float, time projectile is above the ground
   """
   return v*np.sin(th)/g + np.sqrt(v*v*np.sin(th)**2+2.*g*y0)/g
 
-def x_pos(x0,v,t):
+def xPosition(x0,v,t):
   """
     Calculates the x position in time
     @ In, x0, float, initial horizontal position
     @ In, v, float, velocity of the projectile
     @ In, t, float, time of flight
-    @ Out, x_pos, float, horizontal position
+    @ Out, xPosition, float, horizontal position
   """
   return x0 + v*t
 
-def y_pos(y0,v,t):
+def yPosition(y0,v,t):
   """
     Calculates the analytic vertical position in time
     @ In, y0, float, initial vertical position
     @ In, v, float, velocity of the projectile
     @ In, t, float, time of flight
-    @ Out, y_pos, float, vertical position
+    @ Out, yPosition, float, vertical position
   """
   return y0 + v*t - 4.9*t*t
 
@@ -86,7 +86,7 @@ def run(self,Input):
   self.ang = ang
 
   #ts = np.linspace(0,1,10)
-  ts = np.linspace(0,time_to_ground(v0,ang,y0),20)
+  ts = np.linspace(0,timeToGround(v0,ang,y0),20)
 
   vx0 = np.cos(ang)*v0
   vy0 = np.sin(ang)*v0
@@ -96,8 +96,8 @@ def run(self,Input):
   self.y = np.zeros(len(ts))
   self.r = np.zeros(len(ts))
   for i,t in enumerate(ts):
-    self.x[i] = x_pos(x0,vx0,t)
-    self.y[i] = y_pos(y0,vy0,t)
+    self.x[i] = xPosition(x0,vx0,t)
+    self.y[i] = yPosition(y0,vy0,t)
     self.r[i] = r
   self.t = ts
 

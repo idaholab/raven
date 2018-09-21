@@ -2,11 +2,10 @@
 <Simulation verbosity="debug">
 
     <RunInfo>
-
-	    <WorkingDir>r1</WorkingDir>
-    	<Sequence>FirstMRun,plot</Sequence>
-    	<batchSize>1</batchSize>
-	</RunInfo>
+        <WorkingDir>r1</WorkingDir>
+        <Sequence>FirstMRun,plot</Sequence>
+        <batchSize>1</batchSize>
+    </RunInfo>
 	
     <Distributions>
         <Normal name="angle_d">

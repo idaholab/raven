@@ -2,10 +2,10 @@
 <Simulation verbosity="debug">
 
     <RunInfo>
-	    <WorkingDir>r2</WorkingDir>
-    	<Sequence>FirstMRun,trainRom,plot</Sequence>
+        <WorkingDir>r2</WorkingDir>
+        <Sequence>FirstMRun,trainRom,plot</Sequence>
     	<batchSize>1</batchSize>
-	</RunInfo>
+    </RunInfo>
     
     <Distributions>
         <Normal name="angle_d">
