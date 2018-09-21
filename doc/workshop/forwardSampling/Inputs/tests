@@ -37,14 +37,12 @@
   [./FW7]
     type = 'RavenFramework'
     input = '7_history_sets.xml'
-    csv = 'r7/to_file_0.csv'
-    output = 'r7/to_file.csv'
+    output = 'r7/to_file.csv r7/to_file_0.csv'
   [../]
   [./FW8]
     type = 'RavenFramework'
     input = '8_history_sync.xml'
-    csv = 'r8/synced_0.csv'
-    output = 'r8/synced.csv'
+    output = 'r8/synced.csv r8/synced_0.csv'
   [../]
   [./FW9]
     type = 'RavenFramework'
