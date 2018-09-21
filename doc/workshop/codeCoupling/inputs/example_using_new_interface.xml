@@ -7,12 +7,12 @@
   </RunInfo>
 
   <Files>
-    <Input name="originalInput" type="">batemanWorkshopInput.xml</Input>
+      <Input name="originalInput" type="">../../../ExternalModels/Bateman/batemanWorkshopInput.xml</Input>
   </Files>
 
   <Models>
     <Code name="myWorkshopCode" subType="BatemanSimple">
-      <executable>simpleCode/AnalyticalDplMain.py</executable>
+        <executable>../../ExternalModels/Bateman/AnalyticalDplMain.py</executable>
     </Code>
   </Models>
 

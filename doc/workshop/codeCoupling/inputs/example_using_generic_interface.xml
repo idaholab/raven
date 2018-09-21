@@ -7,12 +7,12 @@
   </RunInfo>
 
   <Files>
-    <Input name="originalInput" type="">batemanWorkshopInput.xml</Input>
+      <Input name="originalInput" type="">../../../ExternalModels/Bateman/batemanWorkshopInputGeneric.xml</Input>
   </Files>
 
   <Models>
     <Code name="myWorkshopCode" subType="GenericCode">
-      <executable>simpleCode/AnalyticalDplMain.py</executable>
+      <executable>../../ExternalModels/Bateman/AnalyticalDplMain.py</executable>
       <clargs arg="python" type="prepend"/>
       <clargs arg="" extension=".xml" type="input"/>
       <clargs arg=" " extension=".csv" type="output"/>
