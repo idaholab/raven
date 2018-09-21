@@ -2,7 +2,7 @@
 <Simulation color="true" verbosity="debug">
   <RunInfo>
     <WorkingDir>run</WorkingDir>
-    <Sequence>make,train,serialize,print</Sequence>
+    <Sequence>make2,train,serialize,print</Sequence>
     <batchSize>8</batchSize>
   </RunInfo>
 
@@ -12,7 +12,7 @@
   </Files>
 
   <Steps>
-    <MultiRun name="make">
+    <MultiRun name="make2">
       <Input class="Files" type="">ballistic_in</Input>
       <Model class="Models" type="ExternalModel">ballistic</Model>
       <Sampler class="Samplers" type="SparseGridCollocation">sg_samp</Sampler>
