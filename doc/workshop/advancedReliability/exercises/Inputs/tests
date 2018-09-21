@@ -2,7 +2,6 @@
   [./Adapt]
     type = 'RavenFramework'
     input = '1_adaptive_sampling.xml'
-    UnorderedCsv = 'Results/ls_to_file.csv Results/to_file.csv'
     output = 'Results/to_plot_scatter.png'
   [../]
   [./LS]

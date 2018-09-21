@@ -2,7 +2,6 @@
   [./scTrain1]
     type = 'RavenFramework'
     input = 'scgpc_trainer_1.xml'
-    UnorderedCsv = 'run/training_data_0.csv'
     output = 'run/training_data.csv run/scgpc_1.pk run/rom_stats_1.xml'
   [../]
   [./scTrain2]
