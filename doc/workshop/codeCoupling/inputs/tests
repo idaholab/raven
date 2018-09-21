@@ -2,7 +2,7 @@
   [./genericInterface]
     type = 'RavenFramework'
     input = 'example_using_generic_interface.xml'
-    csv = 'exampleGenericInterface/outPointSet_dump.csv exampleGenericInterface/outPointSetAverage_dump.csv exampleGenericInterface/outputHistories_dump_0.csv'
+    UnorderedCsv = 'exampleGenericInterface/outPointSet_dump.csv exampleGenericInterface/outPointSetAverage_dump.csv exampleGenericInterface/outputHistories_dump_0.csv'
     output = 'exampleGenericInterface/outputHistories_dump.csv'
   [../]
 []

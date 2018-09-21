@@ -13,6 +13,7 @@
   [./pbFromLS]
     type = 'RavenFramework'
     input = 'pbFromLS.xml'
-    csv = 'results/integral.csv'
+    csv = 'resultsPB/integral.csv'
+    rel_err = 0.001
   [../]
 []

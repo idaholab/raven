@@ -2,7 +2,7 @@
   [./codeInterface]
     type = 'RavenFramework'
     input = 'sample_new_code_interface.xml'
-    csv = 'sampleProjectile/to_file.csv'
+    UnorderedCsv = 'sampleProjectile/to_file.csv'
     output = 'sampleProjectile/to_plot_scatter.png'
   [../]
 []
