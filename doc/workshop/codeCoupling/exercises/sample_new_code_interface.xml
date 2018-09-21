@@ -26,7 +26,7 @@
   
   <Models>
     <!--
-    <ExternalModel ModuleToLoad="../../forDevelopers/projectile.py" name="projectile" subType="">
+    <ExternalModel ModuleToLoad="../../ExternalModels/projectile.py" name="projectile" subType="">
       <variables>v0,angle,r,t</variables>
     </ExternalModel>
      -->
@@ -91,7 +91,7 @@
         <ylabel>angle</ylabel>
         <zlabel>r</zlabel>
       </plotSettings>
-      <actions><how>png,screen</how></actions>
+      <actions><how>png</how></actions>
     </Plot>
   </OutStreams>
 

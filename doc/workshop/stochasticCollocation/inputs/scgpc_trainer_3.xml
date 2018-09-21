@@ -7,7 +7,7 @@
   </RunInfo>
 
   <Files>
-    <Input name="ballistic_in">projectile_input.i</Input>
+    <Input name="ballistic_in">../../../ExternalModels/input.i</Input>
     <Input name="pkfile">scgpc_3.pk</Input>
   </Files>
 
@@ -56,7 +56,7 @@
   </Samplers>
 
   <Models>
-    <Code name="ballistic" subType="GenericCode">
+    <Code name="ballistic" subType="Projectile">
       <executable>../../ExternalModels/projectile.py</executable>
       <clargs arg="python" type="prepend"></clargs>
       <clargs arg="-i" extension=".i" type="input"></clargs>
