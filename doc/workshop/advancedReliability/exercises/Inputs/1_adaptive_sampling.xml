@@ -1,5 +1,13 @@
 <?xml version="1.0" ?>
 <Simulation>
+  <TestInfo>
+    <name>doc/workshop/advancedReliability/exercises/Inputs.Adapt</name>
+    <author>wangc</author>
+    <created>2018-09-21</created>
+    <classesTested>Sampler.LimitSurfaceSearch</classesTested>
+    <description>Workshop test: advanced reliability test using Limit Surface Search</description>
+  </TestInfo>
+
   <RunInfo>
     <WorkingDir>Results</WorkingDir>
     <Sequence>adaptive_sampling,plot</Sequence>
@@ -11,17 +19,17 @@
       <!-- For hands-on, remove the following subnodes execept the SolutionExport -->
       <Sampler class="Samplers" type="LimitSurfaceSearch">adaptiveSearch</Sampler>
       <SolutionExport class="DataObjects" type="PointSet">limitSurface</SolutionExport>
-      <Input   class="DataObjects" type="PointSet"     >placeholder</Input>
-      <Model   class="Models"      type="ExternalModel">projectile</Model>
-      <Output  class="DataObjects" type="PointSet"     >results</Output>
-      <Output class="OutStreams"  type="Print"   >to_file</Output>
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Model class="Models" type="ExternalModel">projectile</Model>
+      <Output class="DataObjects" type="PointSet">results</Output>
+      <Output class="OutStreams" type="Print">to_file</Output>
     </MultiRun>
     <IOStep name="plot" pauseAtEnd="True">
-      <Input  class="DataObjects" type="PointSet">results</Input>
-      <Input  class="DataObjects" type="PointSet">limitSurface</Input>
-      <Output class="OutStreams"  type="Print"   >to_file</Output>
-      <Output class="OutStreams"  type="Print"   >ls_to_file</Output>
-      <Output class="OutStreams"  type="Plot"    >to_plot</Output>
+      <Input class="DataObjects" type="PointSet">results</Input>
+      <Input class="DataObjects" type="PointSet">limitSurface</Input>
+      <Output class="OutStreams" type="Print">to_file</Output>
+      <Output class="OutStreams" type="Print">ls_to_file</Output>
+      <Output class="OutStreams" type="Plot">to_plot</Output>
     </IOStep>
   </Steps>
 
@@ -53,10 +61,10 @@
       <TargetEvaluation class="DataObjects" type="PointSet">results</TargetEvaluation>
       <Convergence forceIteration="False" limit="3000" persistence="20" weight="CDF">5e-4</Convergence>
       <variable name="v0">
-          <distribution>vel_dist</distribution>
+        <distribution>vel_dist</distribution>
       </variable>
       <variable name="angle">
-          <distribution>angle_dist</distribution>
+        <distribution>angle_dist</distribution>
       </variable>
       <constant name="x0">0</constant>
       <constant name="y0">0</constant>
@@ -85,8 +93,8 @@
       <Output>r,t</Output>
     </PointSet>
     <PointSet name="limitSurface">
-        <Input>v0,angle</Input>
-        <Output>decision</Output>
+      <Input>v0,angle</Input>
+      <Output>decision</Output>
     </PointSet>
   </DataObjects>
 
@@ -96,10 +104,10 @@
       <source>results</source>
     </Print>
     <Print name="ls_to_file">
-        <type>csv</type>
-        <source>limitSurface</source>
+      <type>csv</type>
+      <source>limitSurface</source>
     </Print>
-    <Plot  name="to_plot">
+    <Plot name="to_plot">
       <plotSettings>
         <plot>
           <type>scatter</type>
@@ -110,7 +118,9 @@
         <xlabel>v0</xlabel>
         <ylabel>angle</ylabel>
       </plotSettings>
-      <actions><how>png</how></actions>
+      <actions>
+        <how>png</how>
+      </actions>
     </Plot>
   </OutStreams>
 

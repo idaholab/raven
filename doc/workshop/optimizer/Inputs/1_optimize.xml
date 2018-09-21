@@ -1,5 +1,13 @@
 <?xml version="1.0" ?>
 <Simulation>
+  <TestInfo>
+    <name>doc/workshop/optimizer/Inputs.optimizer</name>
+    <author>wangc</author>
+    <created>2018-09-21</created>
+    <classesTested>Samplers.Optimizer</classesTested>
+    <description>Workshop test: test Optimizer capability</description>
+  </TestInfo>
+
   <RunInfo>
     <WorkingDir>results</WorkingDir>
     <Sequence>optimize,print</Sequence>
@@ -7,15 +15,15 @@
 
   <Steps>
     <MultiRun name="optimize">
-      <Optimizer class="Optimizers" type="SPSA" >hunter</Optimizer>
-      <Input   class="DataObjects" type="PointSet"     >placeholder</Input>
-      <Model   class="Models"      type="ExternalModel">projectile</Model>
+      <Optimizer class="Optimizers" type="SPSA">hunter</Optimizer>
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Model class="Models" type="ExternalModel">projectile</Model>
       <SolutionExport class="DataObjects" type="PointSet">search_path</SolutionExport>
-      <Output  class="DataObjects" type="PointSet"     >results</Output>
+      <Output class="DataObjects" type="PointSet">results</Output>
     </MultiRun>
     <IOStep name="print" pauseAtEnd="True">
-      <Input  class="DataObjects" type="PointSet">search_path</Input>
-      <Output class="OutStreams"  type="Print"   >to_file</Output>
+      <Input class="DataObjects" type="PointSet">search_path</Input>
+      <Output class="OutStreams" type="Print">to_file</Output>
     </IOStep>
   </Steps>
 

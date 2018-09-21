@@ -1,5 +1,13 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
+  <TestInfo>
+    <name>doc/workshop/timeDepDataMining/inputs.bstatT</name>
+    <author>wangc</author>
+    <created>2018-09-21</created>
+    <classesTested>PostProcessors.BasicStatistics</classesTested>
+    <description>Workshop test: Time dependent basic statistics analysis</description>
+  </TestInfo>
+
   <RunInfo>
     <WorkingDir>basicStatisticsTimeDependent</WorkingDir>
     <Sequence>FirstMRun,timeDepBasicStatPP</Sequence>
@@ -12,11 +20,11 @@
     </ExternalModel>
     <PostProcessor name="timeDepBasicStat" subType="BasicStatistics">
       <pivotParameter>time</pivotParameter>
-      <expectedValue prefix="mean" >x,y,z</expectedValue>
+      <expectedValue prefix="mean">x,y,z</expectedValue>
       <percentile prefix="percentile">x,y,z</percentile>
     </PostProcessor>
   </Models>
-  
+
   <Distributions>
     <Normal name="distrib">
       <mean>4</mean>
@@ -44,17 +52,17 @@
 
   <Steps>
     <MultiRun name="FirstMRun">
-      <Input    class="DataObjects"   type="PointSet"        >inputPlaceHolder</Input>
-      <Model    class="Models"        type="ExternalModel"   >PythonModule</Model>
-      <Sampler  class="Samplers"      type="MonteCarlo"      >MC_external</Sampler>
-      <Output   class="DataObjects"   type="HistorySet"      >HistorySet</Output>
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
+      <Model class="Models" type="ExternalModel">PythonModule</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
+      <Output class="DataObjects" type="HistorySet">HistorySet</Output>
     </MultiRun>
     <PostProcess name="timeDepBasicStatPP">
-      <Input    class="DataObjects"   type="HistorySet"      >HistorySet</Input>
-      <Model    class="Models"        type="PostProcessor"   >timeDepBasicStat</Model>
-      <Output   class="DataObjects"   type="HistorySet"      >basicStatHistory</Output>
-      <Output   class="OutStreams"    type="Plot"            >Plotdata</Output>
-      <Output   class="OutStreams"    type="Plot"            >PlotRawdata</Output>
+      <Input class="DataObjects" type="HistorySet">HistorySet</Input>
+      <Model class="Models" type="PostProcessor">timeDepBasicStat</Model>
+      <Output class="DataObjects" type="HistorySet">basicStatHistory</Output>
+      <Output class="OutStreams" type="Plot">Plotdata</Output>
+      <Output class="OutStreams" type="Plot">PlotRawdata</Output>
     </PostProcess>
   </Steps>
 
@@ -123,7 +131,7 @@
       <Input>x0,y0,z0</Input>
       <Output>time,x,y,z</Output>
       <options>
-          <pivotParameter>time</pivotParameter>
+        <pivotParameter>time</pivotParameter>
       </options>
     </HistorySet>
     <HistorySet name="basicStatHistory">
@@ -133,7 +141,7 @@
         percentile_95_x,percentile_95_y,percentile_95_z
       </Output>
       <options>
-          <pivotParameter>time</pivotParameter>
+        <pivotParameter>time</pivotParameter>
       </options>
     </HistorySet>
   </DataObjects>

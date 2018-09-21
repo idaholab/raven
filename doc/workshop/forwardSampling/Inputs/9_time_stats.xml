@@ -1,5 +1,13 @@
 <?xml version="1.0" ?>
 <Simulation>
+  <TestInfo>
+    <name>doc/workshop/forwardSampling/Inputs.FW9</name>
+    <author>wangc</author>
+    <created>2018-09-21</created>
+    <classesTested>PostProcessors.BasicStatistics</classesTested>
+    <description>Workshop test: test Forward Sampling Capabilities, i.e. Time dependent basic statistics</description>
+  </TestInfo>
+
   <RunInfo>
     <WorkingDir>r9</WorkingDir>
     <Sequence>generate_data,sync,stats,print</Sequence>
@@ -8,10 +16,10 @@
 
   <Steps>
     <MultiRun name="generate_data">
-      <Sampler class="Samplers"    type="MonteCarlo"   >my_mc</Sampler>
-      <Input   class="DataObjects" type="PointSet"     >placeholder</Input>
-      <Model   class="Models"      type="ExternalModel">projectile</Model>
-      <Output  class="DataObjects" type="HistorySet"     >results</Output>
+      <Sampler class="Samplers" type="MonteCarlo">my_mc</Sampler>
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Model class="Models" type="ExternalModel">projectile</Model>
+      <Output class="DataObjects" type="HistorySet">results</Output>
     </MultiRun>
     <PostProcess name="sync">
       <Input class="DataObjects" type="HistorySet">results</Input>
@@ -24,8 +32,8 @@
       <Output class="DataObjects" type="HistorySet">stats</Output>
     </PostProcess>
     <IOStep name="print">
-      <Input  class="DataObjects" type="HistorySet">stats</Input>
-      <Output class="OutStreams"  type="Print"   >stats</Output>
+      <Input class="DataObjects" type="HistorySet">stats</Input>
+      <Output class="OutStreams" type="Print">stats</Output>
     </IOStep>
   </Steps>
 

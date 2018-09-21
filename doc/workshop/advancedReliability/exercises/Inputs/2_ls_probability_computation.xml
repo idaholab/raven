@@ -1,5 +1,13 @@
 <?xml version="1.0" ?>
 <Simulation>
+  <TestInfo>
+    <name>doc/workshop/advancedReliability/exercises/Inputs.LS</name>
+    <author>wangc</author>
+    <created>2018-09-21</created>
+    <classesTested>PostProcessor.LimitSurfaceIntegral</classesTested>
+    <description>Workshop test: advanced reliability test using Limit Surface Integral PostProcessor</description>
+  </TestInfo>
+
   <RunInfo>
     <WorkingDir>Results</WorkingDir>
     <Sequence>load_ls,integral,plot</Sequence>
@@ -7,27 +15,27 @@
   </RunInfo>
 
   <Steps>
-    <IOStep name="load_ls" >
-      <Input  class="Files" type="">limitSurfaceFile</Input>
-      <Output  class="DataObjects" type="PointSet">limitSurface</Output>
+    <IOStep name="load_ls">
+      <Input class="Files" type="">limitSurfaceFile</Input>
+      <Output class="DataObjects" type="PointSet">limitSurface</Output>
     </IOStep>
-    <PostProcess name="integral" >
-      <Input  class="DataObjects" type="PointSet">limitSurface</Input>
-      <Model   class="Models"     type="PostProcessor">LS_Integral</Model>
+    <PostProcess name="integral">
+      <Input class="DataObjects" type="PointSet">limitSurface</Input>
+      <Model class="Models" type="PostProcessor">LS_Integral</Model>
       <Output class="DataObjects" type="PointSet">probability_failure</Output>
     </PostProcess>
     <IOStep name="plot" pauseAtEnd="True">
-      <Input  class="DataObjects" type="PointSet">limitSurface</Input>
+      <Input class="DataObjects" type="PointSet">limitSurface</Input>
       <Input class="DataObjects" type="PointSet">probability_failure</Input>
-      <Output class="OutStreams"  type="Print">probability_failure</Output>
-      <Output class="OutStreams"  type="Plot">to_plot_ls</Output>
+      <Output class="OutStreams" type="Print">probability_failure</Output>
+      <Output class="OutStreams" type="Plot">to_plot_ls</Output>
     </IOStep>
   </Steps>
-  
+
   <Files>
     <Input name="limitSurfaceFile" type="">ls_to_file.csv</Input>
   </Files>
-  
+
   <Functions>
     <External file="adaptive_test_goal" name="decision">
       <variable>r</variable>
@@ -48,17 +56,17 @@
       <C>50</C>
     </ROM>
     <PostProcessor name="LS_Integral" subType="LimitSurfaceIntegral">
-        <outputName>EventProbability</outputName>
-        <tolerance>0.05</tolerance>
-        <seed> 02201986 </seed>
-        <integralType>MonteCarlo</integralType>
-        <target>decision</target>
-        <variable name="v0">
-            <distribution> vel_dist </distribution>
-        </variable>
-        <variable name="angle">
-            <distribution> angle_dist </distribution>
-        </variable>
+      <outputName>EventProbability</outputName>
+      <tolerance>0.05</tolerance>
+      <seed> 02201986 </seed>
+      <integralType>MonteCarlo</integralType>
+      <target>decision</target>
+      <variable name="v0">
+        <distribution> vel_dist </distribution>
+      </variable>
+      <variable name="angle">
+        <distribution> angle_dist </distribution>
+      </variable>
     </PostProcessor>
   </Models>
 
@@ -80,21 +88,21 @@
       <Input>v0,angle</Input>
     </PointSet>
     <PointSet name="limitSurface">
-        <Input>v0,angle</Input>
-        <Output>decision</Output>
+      <Input>v0,angle</Input>
+      <Output>decision</Output>
     </PointSet>
     <PointSet name="probability_failure">
-        <Input>v0,angle</Input>
-        <Output>decision,EventProbability</Output>
+      <Input>v0,angle</Input>
+      <Output>decision,EventProbability</Output>
     </PointSet>
   </DataObjects>
 
   <OutStreams>
     <Print name="probability_failure">
-        <type>csv</type>
-        <source>probability_failure</source>
+      <type>csv</type>
+      <source>probability_failure</source>
     </Print>
-    <Plot  name="to_plot_ls">
+    <Plot name="to_plot_ls">
       <plotSettings>
         <plot>
           <type>scatter</type>
@@ -105,7 +113,9 @@
         <xlabel>v0</xlabel>
         <ylabel>angle</ylabel>
       </plotSettings>
-      <actions><how>png</how></actions>
+      <actions>
+        <how>png</how>
+      </actions>
     </Plot>
   </OutStreams>
 

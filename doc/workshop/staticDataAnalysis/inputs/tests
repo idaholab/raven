@@ -1,0 +1,38 @@
+[Tests]
+  [./dmGM1]
+    type = 'RavenFramework'
+    input = 't.xml'
+    csv = 'GaussianMixture/Plotdata.csv'
+    output = 'GaussianMixture/1-PlotGaussianMixtureBlobs_dataMining.png'
+  [../]
+  [./dmICA]
+    type = 'RavenFramework'
+    input = 'test_dataMiningExactICA.xml'
+    csv = 'ExactPCA/Plotdata.csv'
+    output = 'ExactPCA/ica.png'
+  [../]
+  [./dmPCA]
+    type = 'RavenFramework'
+    input = 'test_dataMiningExactPCA.xml'
+    csv = 'ExactPCA/dummy.csv'
+    outpu = 'ExactPCA/1-PlotIris_dataMining.png'
+  [../]
+  [./dmGM2]
+    type = 'RavenFramework'
+    input = 'test_dataMiningGaussianMixture.xml'
+    csv = 'GaussianMixture/DataSets.csv'
+    output = 'GaussianMixture/scatter.png'
+  [../]
+  [./dmKMeans]
+    type = 'RavenFramework'
+    input = 'test_dataMiningKMeans.xml'
+    csv = 'KMeans/dump_data.csv'
+    output = 'KMeans/PlotKMeans1_dataMining.png KMeans/1-PlotAll_dataMining-dataMining-dataMining.png'
+  [../]
+  [./dmMeanShift]
+    type = 'RavenFramework'
+    input = 'test_dataMiningMeanShift_complete.xml'
+    csv = 'MeanShift/Printdata.csv'
+    output = 'MeanShift/PlotClustered_scatter.png MeanShift/PlotAll_scatter.png'
+  [../]
+[]

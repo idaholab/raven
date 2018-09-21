@@ -1,5 +1,13 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
+  <TestInfo>
+    <name>doc/workshop/advancedReliability/inputs.dPRA</name>
+    <author>wangc</author>
+    <created>2018-09-21</created>
+    <classesTested/>
+    <description>Workshop test: advanced reliability test using dynamic PRA</description>
+  </TestInfo>
+
   <RunInfo>
     <WorkingDir>./results</WorkingDir>
     <Sequence>MCRun,Plots,PP</Sequence>

@@ -1,5 +1,12 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
+  <TestInfo>
+    <name>doc/workshop/timeDepDataMining/inputs.KMeans</name>
+    <author>wangc</author>
+    <created>2018-09-21</created>
+    <classesTested>PostProcessors.DataMining</classesTested>
+    <description>Workshop test: Time dependent data mining with KMeans analysis wit preprocessor</description>
+  </TestInfo>
 
   <RunInfo>
     <WorkingDir>resultsKMEANS</WorkingDir>

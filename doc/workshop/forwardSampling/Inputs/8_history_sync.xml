@@ -1,5 +1,13 @@
 <?xml version="1.0" ?>
 <Simulation>
+  <TestInfo>
+    <name>doc/workshop/forwardSampling/Inputs.FW8</name>
+    <author>wangc</author>
+    <created>2018-09-21</created>
+    <classesTested>PostProcessors.InterfacePostProcessor</classesTested>
+    <description>Workshop test: test Forward Sampling Capabilities</description>
+  </TestInfo>
+
   <RunInfo>
     <WorkingDir>r8</WorkingDir>
     <Sequence>generate_data,sync,print</Sequence>
@@ -8,10 +16,10 @@
 
   <Steps>
     <MultiRun name="generate_data">
-      <Sampler class="Samplers"    type="MonteCarlo"   >my_mc</Sampler>
-      <Input   class="DataObjects" type="PointSet"     >placeholder</Input>
-      <Model   class="Models"      type="ExternalModel">projectile</Model>
-      <Output  class="DataObjects" type="HistorySet"     >results</Output>
+      <Sampler class="Samplers" type="MonteCarlo">my_mc</Sampler>
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Model class="Models" type="ExternalModel">projectile</Model>
+      <Output class="DataObjects" type="HistorySet">results</Output>
     </MultiRun>
     <PostProcess name="sync">
       <Input class="DataObjects" type="HistorySet">results</Input>
@@ -19,8 +27,8 @@
       <Output class="DataObjects" type="HistorySet">synced</Output>
     </PostProcess>
     <IOStep name="print">
-      <Input  class="DataObjects" type="HistorySet">synced</Input>
-      <Output class="OutStreams"  type="Print"   >synced</Output>
+      <Input class="DataObjects" type="HistorySet">synced</Input>
+      <Output class="OutStreams" type="Print">synced</Output>
     </IOStep>
   </Steps>
 

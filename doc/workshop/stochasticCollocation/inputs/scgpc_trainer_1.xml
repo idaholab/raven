@@ -1,4 +1,13 @@
+<?xml version="1.0" ?>
 <Simulation color="true" verbosity="debug">
+  <TestInfo>
+    <name>doc/workshop/stochasticCollocation/inputs.scTrain1</name>
+    <author>wangc</author>
+    <created>2018-09-21</created>
+    <classesTested>Models.ROM</classesTested>
+    <description>Workshop test: using sthochastic collocation sampler to train and evaluate a Gaussian Polynomial ROM</description>
+  </TestInfo>
+
   <RunInfo>
     <WorkingDir>run</WorkingDir>
     <Sequence>make,train,serialize,print</Sequence>
@@ -59,9 +68,9 @@
   <Models>
     <Code name="ballistic" subType="Projectile">
       <executable>../../ExternalModels/projectile.py</executable>
-      <clargs arg="python" type="prepend"></clargs>
-      <clargs arg="-i" extension=".i" type="input"></clargs>
-      <clargs arg="-o" type="output"></clargs>
+      <clargs arg="python" type="prepend"/>
+      <clargs arg="-i" extension=".i" type="input"/>
+      <clargs arg="-o" type="output"/>
     </Code>
     <ROM name="scgpc_rom" subType="GaussPolynomialRom">
       <Target>r,x,y</Target>
@@ -77,7 +86,7 @@
       <Input>v0,angle</Input>
       <Output>r,x,y,t</Output>
       <options>
-          <pivotParameter>t</pivotParameter>
+        <pivotParameter>t</pivotParameter>
       </options>
     </HistorySet>
   </DataObjects>

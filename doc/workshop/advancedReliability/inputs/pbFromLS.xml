@@ -1,5 +1,13 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
+  <TestInfo>
+    <name>doc/workshop/advancedReliability/inputs.runLS</name>
+    <author>wangc</author>
+    <created>2018-09-21</created>
+    <classesTested/>
+    <description>Workshop test: advanced reliability test with Limit surface integral postprocessor</description>
+  </TestInfo>
+
   <RunInfo>
     <WorkingDir>resultsPB</WorkingDir>
     <Sequence>extract_data_adapt,integral</Sequence>
@@ -11,7 +19,7 @@
   </Files>
 
   <Databases>
-      <HDF5 directory="./" name="out_db_adaptive" readMode="read"/>
+    <HDF5 directory="./" name="out_db_adaptive" readMode="read"/>
   </Databases>
 
   <Models>

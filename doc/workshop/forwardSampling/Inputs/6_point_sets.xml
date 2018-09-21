@@ -1,5 +1,13 @@
 <?xml version="1.0" ?>
 <Simulation>
+  <TestInfo>
+    <name>doc/workshop/forwardSampling/Inputs.FW6</name>
+    <author>wangc</author>
+    <created>2018-09-21</created>
+    <classesTested>DataObjects.PointSet</classesTested>
+    <description>Workshop test: test Forward Sampling Capabilities</description>
+  </TestInfo>
+
   <RunInfo>
     <WorkingDir>r6</WorkingDir>
     <Sequence>generate_data,print</Sequence>
@@ -8,14 +16,14 @@
 
   <Steps>
     <MultiRun name="generate_data">
-      <Sampler class="Samplers"    type="MonteCarlo"   >my_mc</Sampler>
-      <Input   class="DataObjects" type="PointSet"     >placeholder</Input>
-      <Model   class="Models"      type="ExternalModel">projectile</Model>
-      <Output  class="DataObjects" type="PointSet"     >results</Output>
+      <Sampler class="Samplers" type="MonteCarlo">my_mc</Sampler>
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Model class="Models" type="ExternalModel">projectile</Model>
+      <Output class="DataObjects" type="PointSet">results</Output>
     </MultiRun>
     <IOStep name="print" pauseAtEnd="True">
-      <Input  class="DataObjects" type="PointSet">results</Input>
-      <Output class="OutStreams"  type="Print"   >to_file</Output>
+      <Input class="DataObjects" type="PointSet">results</Input>
+      <Output class="OutStreams" type="Print">to_file</Output>
     </IOStep>
   </Steps>
 

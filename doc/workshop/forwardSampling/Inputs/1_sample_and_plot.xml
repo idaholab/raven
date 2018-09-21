@@ -1,5 +1,13 @@
 <?xml version="1.0" ?>
 <Simulation>
+  <TestInfo>
+    <name>doc/workshop/forwardSampling/Inputs.FW1</name>
+    <author>wangc</author>
+    <created>2018-09-21</created>
+    <classesTested>Samplers.MonteCarlo OutStreams.Plot</classesTested>
+    <description>Workshop test: test Forward Sampling Capabilities</description>
+  </TestInfo>
+
   <RunInfo>
     <WorkingDir>r1</WorkingDir>
     <Sequence>generate_data,plot</Sequence>
@@ -8,15 +16,15 @@
 
   <Steps>
     <MultiRun name="generate_data">
-      <Sampler class="Samplers"    type="MonteCarlo"   >my_mc</Sampler>
-      <Input   class="DataObjects" type="PointSet"     >placeholder</Input>
-      <Model   class="Models"      type="ExternalModel">projectile</Model>
-      <Output  class="DataObjects" type="PointSet"     >results</Output>
+      <Sampler class="Samplers" type="MonteCarlo">my_mc</Sampler>
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Model class="Models" type="ExternalModel">projectile</Model>
+      <Output class="DataObjects" type="PointSet">results</Output>
     </MultiRun>
     <IOStep name="plot" pauseAtEnd="True">
-      <Input  class="DataObjects" type="PointSet">results</Input>
-      <Output class="OutStreams"  type="Print"   >to_file</Output>
-      <Output class="OutStreams"  type="Plot"    >to_plot</Output>
+      <Input class="DataObjects" type="PointSet">results</Input>
+      <Output class="OutStreams" type="Print">to_file</Output>
+      <Output class="OutStreams" type="Plot">to_plot</Output>
     </IOStep>
   </Steps>
 
@@ -69,7 +77,7 @@
       <type>csv</type>
       <source>results</source>
     </Print>
-    <Plot  name="to_plot">
+    <Plot name="to_plot">
       <plotSettings>
         <plot>
           <type>scatter</type>
@@ -82,7 +90,9 @@
         <ylabel>angle</ylabel>
         <zlabel>r</zlabel>
       </plotSettings>
-      <actions><how>png</how></actions>
+      <actions>
+        <how>png</how>
+      </actions>
     </Plot>
   </OutStreams>
 

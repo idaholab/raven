@@ -1,5 +1,13 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="all">
+  <TestInfo>
+    <name>doc/workshop/codeCoupling/input.genericInterface</name>
+    <author>wangc</author>
+    <created>2018-09-21</created>
+    <classesTested>Models.Code</classesTested>
+    <description>Workshop test: test code coupling with Bateman model using generic code interface</description>
+  </TestInfo>
+
   <RunInfo>
     <WorkingDir>exampleGenericInterface</WorkingDir>
     <Sequence>runGrid,outputResults</Sequence>
@@ -7,7 +15,7 @@
   </RunInfo>
 
   <Files>
-      <Input name="originalInput" type="">../../../ExternalModels/Bateman/batemanWorkshopInputGeneric.xml</Input>
+    <Input name="originalInput" type="">../../../ExternalModels/Bateman/batemanWorkshopInputGeneric.xml</Input>
   </Files>
 
   <Models>
@@ -43,32 +51,32 @@
         <grid construction="equal" steps="4" type="CDF">0.1 0.8</grid>
       </variable>
       <variable name="Bsigma">
-          <distribution>sigmaDist</distribution>
-          <grid construction="equal" steps="3" type="CDF">0.1 0.8</grid>
+        <distribution>sigmaDist</distribution>
+        <grid construction="equal" steps="3" type="CDF">0.1 0.8</grid>
       </variable>
       <variable name="BdecayConstant">
-          <distribution>decayDist</distribution>
-          <grid construction="equal" steps="4" type="CDF">0.1 0.8</grid>
+        <distribution>decayDist</distribution>
+        <grid construction="equal" steps="4" type="CDF">0.1 0.8</grid>
       </variable>
     </Grid>
   </Samplers>
 
   <Steps>
     <MultiRun name="runGrid">
-      <Input   class="Files"       type=""          >originalInput</Input>
-      <Model   class="Models"      type="Code"      >myWorkshopCode</Model>
-      <Sampler class="Samplers"    type="Grid"      >myGrid</Sampler>
-      <Output  class="DataObjects" type="HistorySet">outputHistories</Output>
-      <Output  class="DataObjects" type="PointSet"  >outPointSet</Output>
-      <Output  class="DataObjects" type="PointSet"  >outPointSetAverage</Output>
+      <Input class="Files" type="">originalInput</Input>
+      <Model class="Models" type="Code">myWorkshopCode</Model>
+      <Sampler class="Samplers" type="Grid">myGrid</Sampler>
+      <Output class="DataObjects" type="HistorySet">outputHistories</Output>
+      <Output class="DataObjects" type="PointSet">outPointSet</Output>
+      <Output class="DataObjects" type="PointSet">outPointSetAverage</Output>
     </MultiRun>
     <IOStep name="outputResults">
-      <Input  class="DataObjects" type="HistorySet" >outputHistories</Input>
-      <Input  class="DataObjects" type="PointSet"   >outPointSet</Input>
-      <Input  class="DataObjects" type="PointSet"   >outPointSetAverage</Input>
-      <Output  class="OutStreams"  type="Print"     >outPointSet_dump</Output>
-      <Output  class="OutStreams"  type="Print"     >outPointSetAverage_dump</Output>
-      <Output  class="OutStreams"  type="Print"     >outputHistories_dump</Output>
+      <Input class="DataObjects" type="HistorySet">outputHistories</Input>
+      <Input class="DataObjects" type="PointSet">outPointSet</Input>
+      <Input class="DataObjects" type="PointSet">outPointSetAverage</Input>
+      <Output class="OutStreams" type="Print">outPointSet_dump</Output>
+      <Output class="OutStreams" type="Print">outPointSetAverage_dump</Output>
+      <Output class="OutStreams" type="Print">outputHistories_dump</Output>
     </IOStep>
   </Steps>
 
@@ -82,8 +90,8 @@
       <source>outPointSetAverage</source>
     </Print>
     <Print name="outputHistories_dump">
-        <type>csv</type>
-        <source>outputHistories</source>
+      <type>csv</type>
+      <source>outputHistories</source>
     </Print>
   </OutStreams>
 

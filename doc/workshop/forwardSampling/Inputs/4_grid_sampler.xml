@@ -1,5 +1,13 @@
 <?xml version="1.0" ?>
 <Simulation>
+  <TestInfo>
+    <name>doc/workshop/forwardSampling/Inputs.FW4</name>
+    <author>wangc</author>
+    <created>2018-09-21</created>
+    <classesTested>Samplers.Grid</classesTested>
+    <description>Workshop test: test Forward Sampling Capabilities</description>
+  </TestInfo>
+
   <RunInfo>
     <WorkingDir>r4</WorkingDir>
     <Sequence>generate_data,plot</Sequence>
@@ -8,15 +16,15 @@
 
   <Steps>
     <MultiRun name="generate_data">
-      <Sampler class="Samplers"    type="Grid"         >my_grid</Sampler>
-      <Input   class="DataObjects" type="PointSet"     >placeholder</Input>
-      <Model   class="Models"      type="ExternalModel">projectile</Model>
-      <Output  class="DataObjects" type="PointSet"     >results</Output>
+      <Sampler class="Samplers" type="Grid">my_grid</Sampler>
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Model class="Models" type="ExternalModel">projectile</Model>
+      <Output class="DataObjects" type="PointSet">results</Output>
     </MultiRun>
     <IOStep name="plot" pauseAtEnd="True">
-      <Input  class="DataObjects" type="PointSet">results</Input>
-      <Output class="OutStreams"  type="Print"   >to_file</Output>
-      <Output class="OutStreams"  type="Plot"    >to_plot</Output>
+      <Input class="DataObjects" type="PointSet">results</Input>
+      <Output class="OutStreams" type="Print">to_file</Output>
+      <Output class="OutStreams" type="Plot">to_plot</Output>
     </IOStep>
   </Steps>
 
@@ -44,11 +52,11 @@
     <Grid name="my_grid">
       <variable name="y0">
         <distribution>y0_dist</distribution>
-        <grid type='CDF' construction='equal' steps='30'>0 1</grid>
+        <grid construction="equal" steps="30" type="CDF">0 1</grid>
       </variable>
       <variable name="angle">
         <distribution>angle_dist</distribution>
-        <grid type='CDF' construction='equal' steps='30'>0 1</grid>
+        <grid construction="equal" steps="30" type="CDF">0 1</grid>
       </variable>
       <constant name="x0">0</constant>
       <constant name="v0">30</constant>
@@ -56,12 +64,14 @@
   </Samplers>
 
   <Distributions>
-    <!--<Normal name="vel_dist">
-      <mean>30</mean>
-      <sigma>5</sigma>
-      <lowerBound>1</lowerBound>
-      <upperBound>60</upperBound>
-    </Normal>-->
+    <!--
+      <Normal name="vel_dist">
+        <mean>30</mean>
+        <sigma>5</sigma>
+        <lowerBound>1</lowerBound>
+        <upperBound>60</upperBound>
+      </Normal>
+    -->
     <Uniform name="y0_dist">
       <lowerBound>0</lowerBound>
       <upperBound>1</upperBound>
@@ -87,7 +97,7 @@
       <type>csv</type>
       <source>results</source>
     </Print>
-    <Plot  name="to_plot">
+    <Plot name="to_plot">
       <plotSettings>
         <plot>
           <type>scatter</type>
@@ -100,7 +110,9 @@
         <ylabel>angle</ylabel>
         <zlabel>r</zlabel>
       </plotSettings>
-      <actions><how>png</how></actions>
+      <actions>
+        <how>png</how>
+      </actions>
     </Plot>
   </OutStreams>
 

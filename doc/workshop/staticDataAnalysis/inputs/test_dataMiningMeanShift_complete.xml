@@ -1,5 +1,13 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
+  <TestInfo>
+    <name>doc/workshop/staticDataAnalysis/inputs.MeanShift</name>
+    <author>wangc</author>
+    <created>2018-09-21</created>
+    <classesTested>PostProcessors.DataMining</classesTested>
+    <description>Workshop test: DataMining with MeanShift method</description>
+  </TestInfo>
+
   <RunInfo>
     <WorkingDir>MeanShift</WorkingDir>
     <Sequence>readIn,pp1</Sequence>
@@ -15,26 +23,25 @@
       <KDD lib="SciKitLearn">
         <Features>x1,x2</Features>
         <SKLtype>cluster|MeanShift</SKLtype>
-        <bin_seeding>True</bin_seeding>  
+        <bin_seeding>True</bin_seeding>
       </KDD>
     </PostProcessor>
   </Models>
 
   <Steps>
     <IOStep name="readIn" pauseAtEnd="True">
-      <Input    class="Files"         type=""           >DataSetsFile</Input>
-      <Output   class="DataObjects"   type="PointSet"   >DataSets</Output>
-      <Output   class="OutStreams"    type="Plot"       >PlotAll</Output>
+      <Input class="Files" type="">DataSetsFile</Input>
+      <Output class="DataObjects" type="PointSet">DataSets</Output>
+      <Output class="OutStreams" type="Plot">PlotAll</Output>
     </IOStep>
     <PostProcess name="pp1" pauseAtEnd="True">
-      <Input    class="DataObjects"   type="PointSet"       >DataSets</Input>
-      <Model    class="Models"        type="PostProcessor"  >MeanShift</Model>
-      <Output   class="DataObjects"   type="PointSet"       >DataSetsCL</Output>
-      <Output   class="OutStreams"    type="Plot"           >PlotClustered</Output>
-      <Output   class="OutStreams"    type="Print"          >Printdata</Output>
+      <Input class="DataObjects" type="PointSet">DataSets</Input>
+      <Model class="Models" type="PostProcessor">MeanShift</Model>
+      <Output class="DataObjects" type="PointSet">DataSetsCL</Output>
+      <Output class="OutStreams" type="Plot">PlotClustered</Output>
+      <Output class="OutStreams" type="Print">Printdata</Output>
     </PostProcess>
   </Steps>
-
 
   <DataObjects>
     <PointSet name="DataSets">
