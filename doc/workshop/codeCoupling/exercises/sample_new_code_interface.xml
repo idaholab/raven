@@ -21,7 +21,7 @@
   </Steps>
   
   <Files>
-      <Input name="originalInput" type="">input.i</Input>
+      <Input name="originalInput" type="">../../../ExternalModels/input.i</Input>
   </Files>
   
   <Models>
@@ -31,7 +31,7 @@
     </ExternalModel>
      -->
     <Code name="projectile" subType="Projectile">
-        <executable>../projectile_model/projectile.py</executable>
+        <executable>../../ExternalModels/projectile.py</executable>
     </Code>
   </Models>
 

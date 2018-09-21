@@ -128,12 +128,15 @@ if __name__=="__main__":
   print 'Simulating ...'
   run(io,Input)
   #write output
-  print 'Writing output to',outFile+'.csv','...'
-  outFile = open(outFile+'.csv','w')
-  outFile.writelines('x0,y0,v0,ang,r,x,y,t\n')
-  inpstr = ','.join(str(i) for i in (io.x0,io.y0,io.v0,io.ang))
+  print 'Writing output to',outFile+'.txt','...'
+  outFile = open(outFile+'.txt','w')
+  header = ' '.join("{:8s}".format(i) for i in ('x0','y0','v0','ang','r','x','y','t'))+ '\n'
+  outFile.writelines(header.strip()+'\n')
+  inpstr = ' '.join("{:8.4f}".format(i) for i in (io.x0,io.y0,io.v0,io.ang))
   for i in range(len(io.t)):
-    outFile.writelines(inpstr+',%f,%f,%f,%f\n' %(io.r[i],io.x[i],io.y[i],io.t[i]))
+    outFile.writelines( (inpstr+" " +  ' '.join("{:8.4f}".format(i) for i in (io.r[i],io.x[i],io.y[i],io.t[i]))).strip() +"\n")
+  outFile.writelines('-'*(8*8+4)+'\n')
+  outFile.writelines('SUCCESS'+'\n')
   outFile.close()
   print 'Done!'
   print ''
