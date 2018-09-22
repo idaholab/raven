@@ -13,5 +13,6 @@
     type = 'RavenFramework'
     input = 'TD_hierarchical_dtw.xml'
     output = 'resultsHierarchicalDTW/1-Cluster_0_line.pdf resultsHierarchicalDTW/1-Cluster_1_line.pdf resultsHierarchicalDTW/1-plot1_line.pdf resultsHierarchicalDTW/dendrogram.pdf'
+    max_time = 500
   [../]
 []
