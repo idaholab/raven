@@ -1,10 +1,11 @@
 LATEX_FLAGS=-interaction=nonstopmode
 
-all: default raven_software_requirements_specifications.pdf
+all: raven_software_requirements_specifications.pdf
 
 raven_software_requirements_specifications.pdf : raven_software_requirements_specifications.tex raven_software_requirements_specifications.bib ../sdd/ravenIntro.tex ../../version.tex ../sdd/ravenDepAndLimitations.tex
+	python ../../../scripts/TestHarness/testers/RavenUtils.py --manual-list > dependencies.tex
+	python ../../../developer_tools/readRequirementsAndCreateLatex.py -i requirements_list.xml -o requirements.tex 
 	pdflatex $(LATEX_FLAGS) raven_software_requirements_specifications.tex
-	bibtex raven_software_requirements_specifications
 	pdflatex $(LATEX_FLAGS) raven_software_requirements_specifications.tex
 	pdflatex $(LATEX_FLAGS) raven_software_requirements_specifications.tex
 

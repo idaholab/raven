@@ -205,7 +205,7 @@ showstringspaces=false            %
     linkcolor=black,
     urlcolor=black
 }
-
+%\usepackage[table,xcdraw]{xcolor}
 \newcommand{\wiki}{\href{https://github.com/idaholab/raven/wiki}{RAVEN wiki}}
 
 % Compress lists of citations like [33,34,35,36,37] to [33-37]
@@ -375,21 +375,17 @@ showstringspaces=false            %
 
 \input{../sdd/ravenIntro.tex}
 \input{../sdd/ravenDepAndLimitations.tex}
-\cite{RAVENuserManual}
-
-%\input{ravenDesignStakeHoldersAndConcerns.tex}
-%\input{ravenSoftwareDesing.tex}
-%\input{dataInterfaceSystemControl.tex}
-
-
+\input{requirements.tex}
+\input{ravenSystemOperations.tex}
+ 
 
     % ---------------------------------------------------------------------- %
     % References
     %
 
-\addcontentsline{toc}{section}{References}
-\bibliographystyle{ieeetr}
-\bibliography{raven_software_requirements_specifications}
+%\addcontentsline{toc}{section}{References}
+%\bibliographystyle{ieeetr}
+%\bibliography{raven_software_requirements_specifications}
 
 \section*{Document Version Information}
 

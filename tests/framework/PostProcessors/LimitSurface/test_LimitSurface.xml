@@ -25,7 +25,7 @@
           Moved LimitSurface Postprocessor tests in a specific directory (tests/framework/PostProcessors/LimitSurface) and updated for new DataObject structure
       </revision>
     </revisions>
-    <requirements>R-RA-1</requirements>
+    <requirements>R-RA-1 R-RA-7</requirements>
   </TestInfo>
   <RunInfo>
     <WorkingDir>limitSurface</WorkingDir>

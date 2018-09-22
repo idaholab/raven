@@ -213,12 +213,13 @@ class testDescription(object):
     latexString += '   \\begin{itemize} \n'
     latexString += '     \\item ' +classTested.strip()+'\n'
     latexString += '   \\end{itemize} \n'
-    # is analytical?
+    # is requirement?
     if requirementsNode is not None:
-      requirementDescription = requirementsNode.text
+      requirementDescription = requirementsNode.text.split() if "," not in requirementDescription else requirementsNode.text.split(",")
       latexString += '   \\item This test fulfills the following requirement:\n'
       latexString += '   \\begin{itemize} \n'
-      latexString += '     \\item ' +requirementDescription.strip().replace("#","\#")+'\n'
+      for req in requirementDescription:
+        latexString += '     \\item ' +req.strip().replace("#","\#")+'\n'
       latexString += '   \\end{itemize} \n'
     if revisionsNode is not None and len(revisionsNode) > 0:
       latexString += '   \\item Since the creation of this test, the following main revisions have been performed:\n'
