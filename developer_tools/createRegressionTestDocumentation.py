@@ -215,7 +215,7 @@ class testDescription(object):
     latexString += '   \\end{itemize} \n'
     # is requirement?
     if requirementsNode is not None:
-      requirementDescription = requirementsNode.text.split() if "," not in requirementDescription else requirementsNode.text.split(",")
+      requirementDescription = requirementsNode.text.split() if "," not in requirementsNode.text else requirementsNode.text.split(",")
       latexString += '   \\item This test fulfills the following requirement:\n'
       latexString += '   \\begin{itemize} \n'
       for req in requirementDescription:

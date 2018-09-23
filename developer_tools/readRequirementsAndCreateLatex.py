@@ -126,11 +126,6 @@ if __name__ == '__main__':
     outputLatex = sys.argv[index+1].strip()
   except ValueError:
     raise ValueError("Not found command line argument -o")
-  try:
-    index = sys.argv.index("s")
-    section = sys.argv[index+1].strip()    
-  except ValueError:
-    section = "section"
 
   app, groups = readRequirementsXml(requirementFile)
   writeLatexFromDictionaryOfRequirements(app,groups,outputLatex)
