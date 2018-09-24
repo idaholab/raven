@@ -49,10 +49,10 @@ def createLatexFile(reqDictionary,reqDocument,outputLatex):
     @ In, outputLatex, string, the output latex file
     @ Out, None
   """
-
+  app, allGroups = reqDocument
   fileObject = open(outputLatex,"w+")
-  fileObject.write(" \\documentclass{"+documentClass+"}\n")
-  for packageLatex in latexPackages: fileObject.write(" \\usepackage{"+packageLatex.strip()+"} \n")
+  fileObject.write(" \\documentclass[pdf,12pt]{../../user_manual/INLreport}\n")
+  #for packageLatex in latexPackages: fileObject.write(" \\usepackage{"+packageLatex.strip()+"} \n")
   fileObject.write(" \\usepackage{hyperref} \n \\usepackage[automark,nouppercase]{scrpage2} \n")
   fileObject.write(" \\usepackage[obeyspaces,dvipsnames,svgnames,x11names,table,hyperref]{xcolor} \n")
   fileObject.write(" \\usepackage{times} \n \\usepackage[FIGBOTCAP,normal,bf,tight]{subfigure} \n")
@@ -67,26 +67,44 @@ def createLatexFile(reqDictionary,reqDocument,outputLatex):
   fileObject.write(' morestring=[b]", \n morecomment=[s]{<?}{?>}, \n morecomment=[s][\color{forestgreen}]{<!--}{-->},')
   fileObject.write(' keywordstyle=\\color{cyan}, \n stringstyle=\\ttfamily\color{black}, tagstyle=\color{blue}\\bf \\ttfamily \n }')
 
-  fileObject.write(" \\title{RAVEN Requirements Traceability Matrix}\n")
+  fileObject.write(" \\title{"+app.strip().upper()+" Requirements Traceability Matrix}\n")
   fileObject.write(" \\begin{document} \n \\maketitle \n")
+  fileObject.write(" \\section{SYSTEM REQUIREMENTS} \n")
+  fileObject.write(" \\subsection{Requirements Traceability Matrix} \n")
+  fileObject.write(" This section contains all of the requirements, \n")
+  fileObject.write(" test cases, acceptance criteria, and expected and \n")
+  fileObject.write(" actual results to ensure satisfaction of requirements.\n")
 
-  app, allGroups = reqDocument
+  
   
   for group, groupDict in allGroups.items():
+    fileObject.write(" \\subsubsection{"+group.strip()+"} \n")
     for reqSetName,reqSet in groupDict.items():
-      for reqName,req in reqSet.items()
-        pass
-  
-  reqDictionary = defaultdict(list)
-  for testName,req in requirementDict.items():
-    for reqId in req.find("requirements").text.split():
-      reqDictionary[reqId.strip()].append(testName)  
-  
-  
-  fileObject.close()
-  
-  return reqDictionary
+      # create table here
+      
+      fileObject.write("\\begin{table}[!ht] \n")
+      fileObject.write("\\setlength\extrarowheight{2pt} \n")
+      fileObject.write("\\begin{tabularx}{\\textwidth}{|C|C|C|C|} \n") 
+      fileObject.write("\\hline \n") 
+      fileObject.write("\\textbf{Requirment ID} & \\textbf{Requirment Description} & \\textbf{Test(s)} & \\textbf{Tested by}  \\\ \hline \n")
+      fileObject.write("\\hline \n") 
 
+      for reqName,req in reqSet.items():
+        requirementTests = reqDictionary.get(reqName)
+        if requirementTests is None:
+          source = req.get("source")
+          if source is not None:
+            requirementTests = [source]
+        requirementTests = [] if requirementTests is None else requirementTests
+        fileObject.write(" "+reqName.strip()+" & "+req['description']+" & "+' , '.join(requirementTests)+" & Automatic Regression Test System \\\ \hline \n")
+        fileObject.write("\\hline \n") 
+      fileObject.write("\\end{tabularx} \n") 
+      fileObject.write("\\caption{"+reqSetName.strip()+"}\n")
+      fileObject.write("\\end{table}\n")
+  fileObject.write("\\end{document}")  
+  fileObject.close()
+ 
+ 
 if __name__ == '__main__':
   try:
     index = sys.argv.index("-i")
