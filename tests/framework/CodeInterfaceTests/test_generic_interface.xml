@@ -14,7 +14,9 @@
       <revision author="talbpaul" date="2016-01-04">Re-golded for updated external model variables</revision>
       <revision author="maljdan" date="2016-04-06">Updating test cases to reflect the changes to the user input.</revision>
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+      <revision author="alfoa" date="2018-10-01">This is a requirement test now.</revision>
     </revisions>
+    <requirements>R-IS-6</requirements>
   </TestInfo>
   <RunInfo>
     <JobName>testGenericCodeInterface</JobName>

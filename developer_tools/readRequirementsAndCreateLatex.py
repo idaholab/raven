@@ -32,7 +32,7 @@ def writeLatexFromDictionaryOfRequirements(applicationName,requirementGroups,out
   indexSec = 0
   fileObject = open(outputFileName,"w+")
   #fileObject.write("\usepackage[table,xcdraw]{xcolor}\n")
- 
+
   fileObject.write("\\"+sections[0].strip()+"{System Requirements: " +applicationName.strip()+"}\n")
   for group, value in requirementGroups.items():
     fileObject.write("\\"+sections[1].strip()+"{" +group.strip()+"}\n")
@@ -54,7 +54,7 @@ def writeLatexFromDictionaryOfRequirements(applicationName,requirementGroups,out
       #fileObject.write("\end{table}\n")
   fileObject.close()
 
-  
+
 def readRequirementsXml(fileName):
   """
     Method to read the XML containing the requirements for a certain application
@@ -70,7 +70,7 @@ def readRequirementsXml(fileName):
     raise IOError('The root node is not requirements_specification for file '+fileName+'\n')
   applicationName = root.attrib.get("application")
   if applicationName is None:
-    raise IOError('the requirements_specification node must contain the attribute "application"!')  
+    raise IOError('the requirements_specification node must contain the attribute "application"!')
   requirementGroups = OrderedDict()
   allGroups = root.findall('.//requirement_group')
   if len(allGroups) == 0:
@@ -80,29 +80,29 @@ def readRequirementsXml(fileName):
     if groupName is None:
       raise IOError('the attribute "id" must be present for any <requirement_group>!')
     if groupName in requirementGroups:
-      raise IOError('the requirement_group with "id"='+groupName+ ' has been already inputted!')    
+      raise IOError('the requirement_group with "id"='+groupName+ ' has been already inputted!')
     requirementGroups[groupName] = OrderedDict()
     # find requirement sets
     allRequirementSets = group.findall('.//requirement_set')
     if len(allRequirementSets) == 0:
-      raise IOError('No requirement_set node has been found for requirement_group "'+groupName+'"')    
+      raise IOError('No requirement_set node has been found for requirement_group "'+groupName+'"')
     for rset in allRequirementSets:
       setName = rset.attrib.get("caption")
       if setName is None:
         raise IOError('the attribute "caption" must be present for any <requirement_set>!')
       if setName in requirementGroups[groupName]:
-        raise IOError('the requirement_set with "caption"='+ setName + ' in requirement_group ' +   groupName+ ' has been already inputted!')    
+        raise IOError('the requirement_set with "caption"='+ setName + ' in requirement_group ' +   groupName+ ' has been already inputted!')
       requirementGroups[groupName][setName] = OrderedDict()
       # find all requirements for this set
       allRequirements = rset.findall('.//requirement')
       if len(allRequirements) == 0:
-        raise IOError('No requirement node has been found for requirement_group "'+groupName+'" in requirement_set "'+setName+'"!')    
+        raise IOError('No requirement node has been found for requirement_group "'+groupName+'" in requirement_set "'+setName+'"!')
       for req in allRequirements:
         reqName = req.attrib.get("id_code")
         if reqName is None:
           raise IOError('the attribute "id_code" must be present for any <requirement>!')
         if reqName in requirementGroups[groupName][setName]:
-          raise IOError('the requirement with "id_code"='+reqName+' in the requirement_set with "caption"='+ setName + ' in requirement_group ' +   groupName+ ' has been already inputted!')      
+          raise IOError('the requirement with "id_code"='+reqName+' in the requirement_set with "caption"='+ setName + ' in requirement_group ' +   groupName+ ' has been already inputted!')
         requirementGroups[groupName][setName][reqName] = OrderedDict.fromkeys(['description','source'])
         description = req.find('.//description')
         source = req.find('.//source')
@@ -112,7 +112,7 @@ def readRequirementsXml(fileName):
                         ' has been already inputted!')
         requirementGroups[groupName][setName][reqName]['description'] = description.text.strip()
         if source is not None:
-          requirementGroups[groupName][setName][reqName]['source'] = source.text.strip()
+          requirementGroups[groupName][setName][reqName]['source'] = source.text.strip().split(";")
   return applicationName, requirementGroups
 
 if __name__ == '__main__':
@@ -129,7 +129,7 @@ if __name__ == '__main__':
 
   app, groups = readRequirementsXml(requirementFile)
   writeLatexFromDictionaryOfRequirements(app,groups,outputLatex)
-  
+
 
 
 

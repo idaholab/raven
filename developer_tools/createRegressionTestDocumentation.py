@@ -99,10 +99,13 @@ class testDescription(object):
     __testList = []
     filesWithDescription = OrderedDict()
     noDescriptionFiles = []
-    startDir = os.path.join(os.path.dirname(__file__),'../tests')
+    startDir = os.path.join(os.path.dirname(__file__),'../')
     for dirr,_,_ in os.walk(startDir):
       __testInfoList.extend(glob(os.path.join(dirr,"tests")))
     for testInfoFile in __testInfoList:
+      if 'moose' in os.path.split(testInfoFile) or not os.path.isfile(testInfoFile):
+        continue
+      print(testInfoFile)
       fileObject = open(testInfoFile,"r+")
       fileLines = fileObject.readlines()
       dirName = os.path.dirname(testInfoFile)

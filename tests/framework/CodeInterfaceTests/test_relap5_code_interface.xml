@@ -16,7 +16,9 @@
       <revision author="alfoa" date="2016-11-17">Closes #750</revision>
       <revision author="alfoa" date="2016-11-17">Added alias for output system</revision>
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+      <revision author="alfoa" date="2018-10-01">This is a requirement test now.</revision>
     </revisions>
+    <requirements>R-SI-1</requirements>
   </TestInfo>
   <RunInfo>
     <WorkingDir>RELAP5interfaceTest</WorkingDir>

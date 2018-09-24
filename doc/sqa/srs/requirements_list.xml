@@ -7,21 +7,27 @@
       <requirement_set caption="Minimum Requirements">
           <requirement id_code="R-M-1">
               <description>Computer: Any POSIX (and POSIX-like) system</description>
+              <source>``RAVEN User Manual'', INL/EXT-15-34123; Continous Integration System</source>
           </requirement>
           <requirement id_code="R-M-2">
               <description>RAM: 2 GB per core execution (depending on the type of analysis and data genarated)</description>
+              <source>``RAVEN User Manual'', INL/EXT-15-34123; Continous Integration System</source>
           </requirement>
           <requirement id_code="R-M-3">
               <description>Disk: 10 GB (size depending on the type of analysis and data genarated)</description>
+              <source>``RAVEN User Manual'', INL/EXT-15-34123; Continous Integration System</source>
           </requirement>
           <requirement id_code="R-M-4">
               <description>Compilers: GCC, Clang, or Intel</description>
+              <source>``RAVEN User Manual'', INL/EXT-15-34123; Continous Integration System</source>
           </requirement>
           <requirement id_code="R-M-5">
               <description>Language: Python 2.7</description>
+              <source>``RAVEN User Manual'', INL/EXT-15-34123; Continous Integration System</source>
           </requirement>
           <requirement id_code="R-M-6">
               <description>Version Control: Git</description>
+              <source>``RAVEN User Manual'', INL/EXT-15-34123; Continous Integration System</source>
           </requirement>
         </requirement_set>
           
@@ -122,12 +128,14 @@
           </requirement>
           <requirement id_code="R-IS-7">
               <description>RAVEN shall be able to run external codes in parallel on distributed memory machines.</description>
+              <source>raven/cluster_tests/test_mpi.xml; raven/cluster_tests/test_mpiqsub_local.xml; raven/cluster_tests/test_pbs.xml</source>
           </requirement>
           <requirement id_code="R-IS-8">
               <description>RAVEN shall be able to run internal models in parallel on shared memory machines.</description>
           </requirement>
           <requirement id_code="R-IS-9">
               <description>RAVEN shall be able to run internal models in parallel on distributed memory machines.</description>
+              <source>raven/cluster_tests/InternalParallel/test_internal_parallel_extModel.xml; raven/cluster_tests/InternalParallel/test_internal_parallel_PP_LS.xml; raven/cluster_tests/InternalParallel/test_internal_parallel_ROM_scikit.xml</source>
           </requirement>
       </requirement_set>
         

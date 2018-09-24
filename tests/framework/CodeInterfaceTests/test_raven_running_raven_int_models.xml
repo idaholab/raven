@@ -12,7 +12,9 @@
     </description>
     <revisions>
       <revision author="talbpaul" date="2018-08-31">added VariableGroups to inner/slave input file</revision>
+      <revision author="alfoa" date="2018-10-01">This is a requirement test now.</revision>
     </revisions>
+    <requirements>R-SI-1</requirements>
   </TestInfo>
   <!-- RUNINFO -->
   <RunInfo>
