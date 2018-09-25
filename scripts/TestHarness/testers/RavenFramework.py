@@ -105,22 +105,22 @@ class RavenFramework(Tester):
     # remove tests based on skipping criteria
     ## required module is missing
     if len(missing) > 0:
-      self.setStatus('skipped (Missing python modules: '+" ".join(missing)+
-                     " PYTHONPATH="+os.environ.get("PYTHONPATH","")+')',
-                     self.bucket_skip)
+      self.addCaveats('skipped (Missing python modules: '+" ".join(missing)+
+                     " PYTHONPATH="+os.environ.get("PYTHONPATH","")+')')
+      self.setStatus(self.skip)
       return False
     ## required module is present, but too old
     if len(too_old) > 0  and RavenUtils.checkVersions():
-      self.setStatus('skipped (Old version python modules: '+" ".join(too_old)+
-                     " PYTHONPATH="+os.environ.get("PYTHONPATH","")+')',
-                     self.bucket_skip)
+      self.addCaveats('skipped (Old version python modules: '+" ".join(too_old)+
+                     " PYTHONPATH="+os.environ.get("PYTHONPATH","")+')')
+      self.setStatus(self.skip)
       return False
     ## an environment varible value causes a skip
     if len(self.specs['skip_if_env']) > 0:
       env_var = self.specs['skip_if_env']
       if env_var in os.environ:
-        self.setStatus('skipped (found environmental variable "'+env_var+'")',
-                       self.bucket_skip)
+        self.addCaveats('skipped (found environmental variable "'+env_var+'")')
+        self.setStatus(self.skip)
         return False
     ## OS
     if len(self.specs['skip_if_OS']) > 0:
@@ -131,49 +131,49 @@ class RavenFramework(Tester):
       if currentOS == 'darwin':
         currentOS = 'mac'
       if currentOS in skip_os:
-        self.setStatus('skipped (OS is "{}")'.format(currentOS),
-                       self.bucket_skip)
+        self.addCaveats('skipped (OS is "{}")'.format(currentOS))
+        self.setStatus(self.skip)
         return False
     for lib in self.required_libraries:
       found, message, version =  RavenUtils.moduleReport(lib,'')
       if not found:
-        self.setStatus('skipped (Unable to import library: "'+lib+'")',
-                       self.bucket_skip)
+        self.addCaveats('skipped (Unable to import library: "'+lib+'")')
+        self.setStatus(self.skip)
         return False
 
     i = 0
     if len(self.minimum_libraries) % 2:
-      self.setStatus('skipped (libraries are not matched to versions numbers: '+str(self.minimum_libraries)+')',
-                     self.bucket_skip)
+      self.addCaveats('skipped (libraries are not matched to versions numbers: '+str(self.minimum_libraries)+')')
+      self.setStatus(self.skip)
       return False
     while i < len(self.minimum_libraries):
       libraryName = self.minimum_libraries[i]
       libraryVersion = self.minimum_libraries[i+1]
       found, message, actualVersion = RavenUtils.moduleReport(libraryName,libraryName+'.__version__')
       if not found:
-        self.setStatus('skipped (Unable to import library: "'+libraryName+'")',
-                       self.bucket_skip)
+        self.addCaveats('skipped (Unable to import library: "'+libraryName+'")')
+        self.setStatus(self.skip)
         return False
       if distutils.version.LooseVersion(actualVersion) < distutils.version.LooseVersion(libraryVersion):
-        self.setStatus('skipped (Outdated library: "'+libraryName+'")',
-                       self.bucket_skip)
+        self.addCaveats('skipped (Outdated library: "'+libraryName+'")')
+        self.setStatus(self.skip)
         return False
       i+=2
 
     if len(self.required_executable) > 0 and \
        not os.path.exists(self.required_executable):
-      self.setStatus('skipped (Missing executable: "'+self.required_executable+'")',
-                     self.bucket_skip)
+      self.addCaveats('skipped (Missing executable: "'+self.required_executable+'")')
+      self.setStatus(self.skip)
       return False
     try:
       if len(self.required_executable) > 0 and \
          subprocess.call([self.required_executable],stdout=subprocess.PIPE) != 0:
-        self.setStatus('skipped (Failing executable: "'+self.required_executable+'")',
-                      self.bucket_skip)
+        self.addCaveats('skipped (Failing executable: "'+self.required_executable+'")')
+        self.setStatus(self.skip)
         return False
     except:
-      self.setStatus('skipped (Error when trying executable: "'+self.required_executable+'")',
-                     self.bucket_skip)
+      self.addCaveats('skipped (Error when trying executable: "'+self.required_executable+'")')
+      self.setStatus(self.skip)
       return False
     filenameSet = set()
     duplicateFiles = []
@@ -183,9 +183,9 @@ class RavenFramework(Tester):
       else:
         duplicateFiles.append(filename)
     if len(duplicateFiles) > 0:
-      self.setStatus('[incorrect test] duplicated files specified: '+
-                     " ".join(duplicateFiles),
-                     self.bucket_skip)
+      self.addCaveats('[incorrect test] duplicated files specified: '+
+                     " ".join(duplicateFiles))
+      self.setStatus(self.skip)
       return False
     return True
 
@@ -212,10 +212,10 @@ class RavenFramework(Tester):
     else:
       output = self.rawProcessResults(moose_dir, options, output)
       if self.didPass():
-        self.setStatus('Unexpected success',self.bucket_fail)
+        self.setStatus(self.fail, 'Unexpected success')
         return output
       else:
-        self.setStatus(self.success_message, self.bucket_success)
+        self.setStatus(self.success)
         return output
 
   def rawProcessResults(self, moose_dir, options, output):
@@ -225,7 +225,7 @@ class RavenFramework(Tester):
         missing.append(filename)
 
     if len(missing) > 0:
-      self.setStatus('CWD '+os.getcwd()+' METHOD '+os.environ.get("METHOD","?")+' Expected files not created '+" ".join(missing),self.bucket_fail)
+      self.setStatus(self.fail, 'CWD '+os.getcwd()+' METHOD '+os.environ.get("METHOD","?")+' Expected files not created '+" ".join(missing))
       return output
 
     #csv
@@ -235,7 +235,7 @@ class RavenFramework(Tester):
       csv_diff = CSVDiffer(self.specs['test_dir'],self.csv_files)
     message = csv_diff.diff()
     if csv_diff.getNumErrors() > 0:
-      self.setStatus(message,self.bucket_diff)
+      self.setStatus(self.diff, message)
       return output
 
     #unordered csv
@@ -255,7 +255,7 @@ class RavenFramework(Tester):
 
     ucsv_same,ucsv_messages = ucsv_diff.diff()
     if not ucsv_same:
-      self.setStatus(ucsv_messages, self.bucket_diff)
+      self.setStatus(self.diff, ucsv_messages)
       return output
 
     #xml
@@ -269,7 +269,7 @@ class RavenFramework(Tester):
     xml_diff = XMLDiff(self.specs['test_dir'],self.xml_files,**xmlopts)
     (xml_same,xml_messages) = xml_diff.diff()
     if not xml_same:
-      self.setStatus(xml_messages, self.bucket_diff)
+      self.setStatus(self.diff, xml_messages)
       return output
 
     #unordered xml
@@ -277,7 +277,7 @@ class RavenFramework(Tester):
     uxml_diff = XMLDiff(self.specs['test_dir'],self.uxml_files,**xmlopts)
     (uxml_same,uxml_messages) = uxml_diff.diff()
     if not uxml_same:
-      self.setStatus(uxml_messages, self.bucket_diff)
+      self.setStatus(self.diff, uxml_messages)
       return output
 
     #text
@@ -285,7 +285,7 @@ class RavenFramework(Tester):
     textDiff = TextDiff(self.specs['test_dir'],self.text_files,**textOpts)
     (textSame,textMessages) = textDiff.diff()
     if not textSame:
-      self.setStatus(textMessages, self.bucket_diff)
+      self.setStatus(self.diff, textMessages)
       return output
 
     #image
@@ -295,8 +295,8 @@ class RavenFramework(Tester):
     imgDiff = ImageDiff(self.specs['test_dir'],self.img_files,**imageOpts)
     (imgSame,imgMessages) = imgDiff.diff()
     if not imgSame:
-      self.setStatus(imgMessages, self.bucket_diff)
+      self.setStatus(self.diff, imgMessages)
       return output
 
-    self.setStatus(self.success_message, self.bucket_success)
+    self.setStatus(self.success)
     return output

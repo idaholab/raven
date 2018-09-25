@@ -63,7 +63,8 @@ class CrowPython(Tester):
   def checkRunnable(self, option):
     """ Checks if a test case is capable of being run on the current system. """
     if self.specs['requires_swig2'] and not CrowPython.has_swig2:
-      self.setStatus('skipped (No swig 2.0 found)', self.bucket_skip)
+      self.addCaveats('skipped (No swig 2.0 found)')
+      self.setStatus(self.skip)
       return False
     return True
 
@@ -76,7 +77,7 @@ class CrowPython(Tester):
         @ Out: a tuple with the error return code and the output passed in.
     """
     if self.exit_code != 0:
-      self.setStatus(str(self.exit_code), self.bucket_fail)
+      self.setStatus(self.fail, str(self.exit_code))
       return output
-    self.setStatus(self.success_message, self.bucket_success)
+    self.setStatus(self.success)
     return output
