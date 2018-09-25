@@ -1,86 +1,9 @@
 \section{Data Classifier}
 \label{sec:dataClassifier}
 
-The \textbf{DataClassifier} post-processor is specifically used to classify the data stored in the DataObjects. It
-accepts two DataObjects, one is used as the classifier which should be always \textbf{PointSet}, the other one, i.e.
-either \textbf{PointSet} or \textbf{HistorySet} is used as the input DataObject to be classified. 
-%
-In order to use this post-processor, the users need to specify two different DataObjects, i.e.
-\begin{lstlisting}[style=XML]
-  <DataObjects>
-    <PointSet name="ET_PS">
-      <Input>ACC, LPI</Input>
-      <Output>sequence</Output>
-    </PointSet>
-    <PointSet name="sim_PS">
-      <Input>ACC_status, LPI_status</Input>
-      <Output>out</Output>
-    </PointSet>
-  </DataObjects>
-\end{lstlisting}
-The first data object ``ET\_PS'' contains the event tree with input variables ``ACC, LPI'' and output label ``sequence''.
-This data object will be used to classify the data in the second data object ``sim\_PS''. The results will be stored in
-the output data object with the same label ``sequence''. Since these two data objects contain different inputs,
-\xmlNode{Functions} will be used to create the maps between the inputs:
-\begin{lstlisting}[style=XML]
-  <Functions>
-    <External file="func_ACC.py" name="func_ACC">
-      <variable>ACC_status</variable>
-    </External>
-    <External file="func_LPI.py" name="func_LPI">
-      <variable>LPI_status</variable>
-    </External>
-  </Functions>
-\end{lstlisting}
-
-The inputs to these functions are the inputs of the data object that will be classified, and the outputs of these functions
-are the inputs of data object that is used as the classifier.
-
-\textbf{Example Python Function for ``func\_ACC.py''}
-\begin{lstlisting}[language=python]
-def evaluate(self):
-  return self.ACC_status
-\end{lstlisting}
-
-\textbf{Example Python Function for ``func\_LPI.py''}
-\begin{lstlisting}[language=python]
-def evaluate(self):
-  return self.LPI_status
-\end{lstlisting}
-
-\nb All the functions that are used to create the maps should be include the ``evaluate'' method.
-
-The \textbf{DataClassifier} is provided below:
-\begin{lstlisting}[style=XML]
-    <PostProcessor name="ET_Classifier" subType="DataClassifier">
-      <label>sequence</label>
-      <variable name='ACC'>
-        <Function class="Functions" type="External">func_ACC</Function>
-      </variable>
-      <variable name='LPI'>
-        <Function class="Functions" type="External">func_LPI</Function>
-      </variable>
-    </PostProcessor>
-\end{lstlisting}
-The definitions for the XML nodes can be found in the RAVEN user manual. The label ``sequence''
-and the variables ``ACC, LPI'' should be exist in the data object that is used as the classifier,
-while the functions ``func\_ACC, func\_LPI'' are used to map relationships between the input data objects.
-
-The classification can be achieved via the \xmlNode{Steps} as shown below:
-\begin{lstlisting}[style=XML]
-<Simulation>
- ...
-  <Steps>
-    <PostProcess name="classify">
-      <Input   class="DataObjects"  type="PointSet"        >ET_PS</Input>
-      <Input   class="DataObjects"  type="PointSet"        >sim_PS</Input>
-      <Model   class="Models"       type="PostProcessor"   >ET_Classifier</Model>
-      <Output  class="DataObjects"  type="PointSet"        >sim_PS</Output>
-    </PostProcess>
-  </Steps>
- ...
-</Simulation>
-\end{lstlisting}
+The \textbf{DataClassifier} post-processor is specifically used to classify the data stored in the DataObjects. 
+The details about this post-processors can be found in raven user manual subsection \textbf{PostProcessor}
+of section \textbf{Models}.
 
 \subsection{Data Classifier reference tests}
 \begin{itemize}
