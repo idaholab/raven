@@ -11,12 +11,14 @@ SCRIPT_DIR=`(cd $SCRIPT_DIRNAME; pwd)`
 
 ORIGPYTHONPATH="$PYTHONPATH"
 
+
+
+echo 'Running RAVEN coverage test ...'
+
 update_python_path ()
 {
-    if ls -d $INSTALL_DIR/*/python*/site-packages/
-    then
-        export PYTHONPATH=`ls -d $INSTALL_DIR/*/python*/site-packages/`:"$ORIGPYTHONPATH"
-    fi
+  echo 'Loading libraries ...'
+  source $SCRIPT_DIR/scripts/establish_conda_env.sh --load
 }
 
 update_python_path
