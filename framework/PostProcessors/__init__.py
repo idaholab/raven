@@ -32,6 +32,7 @@ from .DataMining import DataMining
 from .SafestPoint import SafestPoint
 from .LimitSurface import LimitSurface
 from .ValueDuration import ValueDuration
+from .SampleSelector import SampleSelector
 from .ImportanceRank import ImportanceRank
 from .CrossValidation import CrossValidation
 from .BasicStatistics import BasicStatistics
@@ -79,7 +80,8 @@ __all__ = ['PostProcessor',
            'Metric',
            'CrossValidation',
            'ValueDuration',
-           'ETImporter',
            'FTImporter',
-           'DataClassifier'] + additionalModules
-#          'RavenOutput', # deprecated for now
+           'DataClassifier',
+           'SampleSelector',
+           'ETImporter'] + additionalModules
+#           'RavenOutput', # deprecated for now
