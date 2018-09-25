@@ -222,7 +222,8 @@ class UnorderedCSVDiffer:
         if len(match) == 0:
           same = False
           msg.append('Could not find match for row "{}" in Gold:\n{}'.format(idx+1,find)) #+1 because of header row
-          print(testCSV)
+          msg.append('The Test output csv is:')
+          msg.append(str(testCSV))
           # stop looking once a mismatch is found
           break
       self.finalizeMessage(same,msg,testFilename)
