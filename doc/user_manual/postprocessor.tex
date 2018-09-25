@@ -24,6 +24,7 @@ Currently, the following types are available in RAVEN:
   \item \textbf{Metric}
   \item \textbf{CrossValidation}
   \item \textbf{ValueDuration}
+  \item \textbf{SampleSelector}
   %\item \textbf{PrintCSV}
   %\item \textbf{LoadCsvIntoInternalObject}
 \end{itemize}
@@ -2190,3 +2191,38 @@ the counts variable.
  ...
 </Simulation>
 \end{lstlisting}
+
+
+%%%%%%%%%%%%%% SampleSelector %%%%%%%%%%%%%%%%%%%
+\subsubsection{SampleSelector}
+\label{SampleSelectorPP}
+The \xmlNode{SampleSelector} postprocessor is a tool to select the row in which the minimum or the maximum of a target is found.
+
+The \xmlNode{SampleSelector} postprocessor can  act on \xmlNode{DataObjects}, and generates a
+\xmlNode{DataObject} in return.
+
+\ppType{SampleSelector}{SampleSelector}
+%
+\begin{itemize}
+  \item \xmlNode{target}, \xmlDesc{string, required field}, specifies the name of the
+    target for which the minimum or maximum should be found.
+  \item \xmlNode{criterion}, \xmlDesc{string, required field}, specifies whether the minimum or maximum should be found.
+\end{itemize}
+
+\textbf{Example:}
+
+\begin{lstlisting}[style=XML]
+<Simulation>
+ ...
+  <Models>
+    ...
+    <PostProcessor name="pp" subType="SampleSelector">
+      <target>x</target>
+      <criterion>min</criterion>
+    </PostProcessor>
+    ...
+  </Models>
+ ...
+</Simulation>
+\end{lstlisting}
+
