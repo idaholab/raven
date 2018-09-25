@@ -110,7 +110,7 @@ class VariableGroup(BaseClasses.BaseType):
         self.variables.remove(v)
 
     # finished
-    self.raiseADebug('Variable group "{}" includes:'.format(self.name),self.getVarsString)
+    self.raiseADebug('Variable group "{}" includes:'.format(self.name),self.getVarsString())
 
 
   def getVars(self):
