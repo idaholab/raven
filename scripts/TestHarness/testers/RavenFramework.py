@@ -211,7 +211,7 @@ class RavenFramework(Tester):
       return self.rawProcessResults(moose_dir, options, output)
     else:
       output = self.rawProcessResults(moose_dir, options, output)
-      if self.didPass():
+      if self.isPass():
         self.setStatus(self.fail, 'Unexpected success')
         return output
       else:
@@ -229,7 +229,7 @@ class RavenFramework(Tester):
       return output
 
     #csv
-    if len(self.specs["rel_err"]) > 0:
+    if type(self.specs["rel_err"]) == type(float()):
       csv_diff = CSVDiffer(self.specs['test_dir'],self.csv_files,relative_error=float(self.specs["rel_err"]))
     else:
       csv_diff = CSVDiffer(self.specs['test_dir'],self.csv_files)
@@ -241,7 +241,7 @@ class RavenFramework(Tester):
     #unordered csv
     checkAbsoluteValue = self.specs["check_absolute_value"]
     zeroThreshold = self.specs["zero_threshold"]
-    if len(self.specs["rel_err"]) > 0:
+    if type(self.specs["rel_err"]) == type(float()):
       ucsv_diff = UnorderedCSVDiffer(self.specs['test_dir'],
                   self.ucsv_files,
                   relative_error = float(self.specs["rel_err"]),
@@ -260,12 +260,14 @@ class RavenFramework(Tester):
 
     #xml
     xmlopts = {}
-    if len(self.specs["rel_err"]) > 0: xmlopts['rel_err'] = float(self.specs["rel_err"])
+    if type(self.specs["rel_err"]) == type(float()):
+      xmlopts['rel_err'] = float(self.specs["rel_err"])
     xmlopts['zero_threshold'] = float(self.specs["zero_threshold"])
     xmlopts['unordered'     ] = False
     xmlopts['remove_whitespace'] = self.specs['remove_whitespace'] == True
     xmlopts['remove_unicode_identifier'] = self.specs['remove_unicode_identifier']
-    if len(self.specs['xmlopts'])>0: xmlopts['xmlopts'] = self.specs['xmlopts'].split(' ')
+    if len(self.specs['xmlopts']) > 0:
+      xmlopts['xmlopts'] = self.specs['xmlopts'].split(' ')
     xml_diff = XMLDiff(self.specs['test_dir'],self.xml_files,**xmlopts)
     (xml_same,xml_messages) = xml_diff.diff()
     if not xml_same:
