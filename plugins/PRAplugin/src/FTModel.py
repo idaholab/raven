@@ -35,6 +35,13 @@ class FTModel(ExternalModelPluginBase):
   """
     This class is designed to create a Fault-Tree model
   """
+  def __init__(self):
+    """
+      Constructor
+      @ In, None
+      @ Out, None
+    """
+    ExternalModelPluginBase.__init__(self)
 
   def _readMoreXML(self, container, xmlNode):
     """

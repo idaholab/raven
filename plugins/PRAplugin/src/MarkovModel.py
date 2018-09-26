@@ -25,14 +25,14 @@ warnings.simplefilter('default', DeprecationWarning)
 import numpy as np
 import math
 import sys
-#import random
 import copy
 from operator import mul
 #External Modules End-----------------------------------------------------------
 
 #Internal Modules---------------------------------------------------------------
 from PluginsBaseClasses.ExternalModelPluginBase import ExternalModelPluginBase
-from utils.randomUtils import random
+from utils.randomUtils import newRNG
+
 #Internal Modules End-----------------------------------------------------------
 
 
@@ -40,6 +40,14 @@ class MarkovModel(ExternalModelPluginBase):
   """
     This class is designed to create a Markov model
   """
+  def __init__(self):
+    """
+      Constructor
+      @ In, None
+      @ Out, None
+    """
+    ExternalModelPluginBase.__init__(self)
+    self.randomEngine = None   # a instance of random number generator
 
   def _readMoreXML(self, container, xmlNode):
     """
@@ -98,10 +106,11 @@ class MarkovModel(ExternalModelPluginBase):
       @ In, inputFiles, list, list of input files (if any)
       @ Out, None
     """
+    self.randomEngine = newRNG(env='numpy')
     if container.seed is not None:
-      pass
+      self.randomEngine.seed(container.seed)
     else:
-        np.random.seed(250678)
+      self.randomEngine.seed(250678)
 
   def run(self, container, Inputs):
     """
@@ -167,7 +176,7 @@ class MarkovModel(ExternalModelPluginBase):
       elif len(detTrans[key]) == 2:
         lowVal  = min(detTrans[key])
         highVal = max(detTrans[key])
-        time = np.random.uniform(low=lowVal, high=highVal)
+        time = self.randomEngine.uniform(low=lowVal, high=highVal)
         if time<detTransitionTime:
           detTransitionTime = time
           detTransitionState = key
@@ -182,10 +191,10 @@ class MarkovModel(ExternalModelPluginBase):
       @ Out, state, float, arrival state for the next transition
     """
     totLambda = sum(stochTrans.values())
-    transitionTime = np.random.exponential(1./totLambda)
+    transitionTime = self.randomEngine.exponential(1./totLambda)
     for transition in stochTrans.keys():
       stochTrans[transition] = stochTrans[transition]/totLambda
-    state = np.random.choice(stochTrans.keys(), size = 1, p=stochTrans.values())[0]
+    state = self.randomEngine.choice(stochTrans.keys(), size = 1, p=stochTrans.values())[0]
     return transitionTime, state
 
 

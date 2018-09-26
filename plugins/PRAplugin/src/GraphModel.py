@@ -39,6 +39,13 @@ class GraphModel(ExternalModelPluginBase):
   """
     This class is designed to create a directed graph model which is employed to model Reliability Block Diagrams
   """
+  def __init__(self):
+    """
+      Constructor
+      @ In, None
+      @ Out, None
+    """
+    ExternalModelPluginBase.__init__(self)
 
   def _readMoreXML(self, container, xmlNode):
     """
