@@ -1,0 +1,8 @@
+[Tests]
+  [./codeInterface]
+    type = 'RavenFramework'
+    input = 'sample_new_code_interface.xml'
+    UnorderedCsv = 'sampleProjectile/to_file.csv'
+    output = 'sampleProjectile/to_plot_scatter.png'
+  [../]
+[]

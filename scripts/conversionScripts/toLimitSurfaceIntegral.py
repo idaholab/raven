@@ -27,6 +27,10 @@ def convert(tree,fileName=None):
   steps = simulation.find('Steps')
   postProcess = steps.findall('PostProcess')
   outStreams  = simulation.find('OutStreams')
+  hasOutStreams = True
+  if not outStreams:
+    hasOutStreams = False
+    outStreams = ET.Element('OutStreams')
   PointSets  = simulation.find('DataObjects').findall('PointSet')
   files = simulation.find('Files')
   filesInput = files.findall('Input')
@@ -87,11 +91,17 @@ def convert(tree,fileName=None):
             sourceET = ET.Element('source')
             sourceET.text = dataObjectName
             filesInputOutstreams[out.text].append(sourceET)
-            outStreams.append(filesInputOutstreams[out.text])
+            if not outStreams:
+              outStreams = ET.Element('OutStreams')
+              outStreams.append(filesInputOutstreams[out.text])
+            else:
+              outStreams.append(filesInputOutstreams[out.text])
             out.text = filesInputOutstreams[out.text].attrib['name']
           else:
             #remove it
             pp.remove(out)
+  if not hasOutStreams:
+    simulation.append(outStreams)
   return tree
 
 if __name__=='__main__':

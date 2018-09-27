@@ -1,0 +1,14 @@
+[Tests]
+  [./genericInterface]
+    type = 'RavenFramework'
+    input = 'example_using_generic_interface.xml'
+    UnorderedCsv = 'exampleGenericInterface/outPointSet_dump.csv exampleGenericInterface/outPointSetAverage_dump.csv'
+    output = 'exampleGenericInterface/outputHistories_dump.csv'
+  [../]
+  [./batemanInterface]
+    type = 'RavenFramework'
+    input = 'example_using_new_interface.xml'
+    UnorderedCsv = 'exampleTestInterface/outPointSet_dump.csv exampleTestInterface/outPointSetAverage_dump.csv'
+    output = 'exampleTestInterface/outputHistories_dump.csv'
+  [../]
+[]
