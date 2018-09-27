@@ -19,6 +19,7 @@ def run(self, Input):
   self.time = numpy.zeros(number_of_steps)
   DeltaTimeScramToAux = Input["DeltaTimeScramToAux"]
   DG1recoveryTime = Input["DG1recoveryTime"]
+  print('DEBUGG run:',DeltaTimeScramToAux,DG1recoveryTime)
   self.CladTempThreshold = numpy.zeros(number_of_steps)
   self.UpperPlenumEnergy= numpy.zeros(number_of_steps)
   for i in range(len(self.time)):
