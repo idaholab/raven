@@ -471,6 +471,10 @@ class DataMining(PostProcessor):
       @ InOut, outputObject, dataObjects, A reference to an object where we want
         to place our computed results
     """
+    if len(outputObject) !=0:
+      self.raiseAnError(IOError,"There is some information already stored in the DataObject",outputObject.name, \
+              "the calculations from PostProcessor",self.name, " can not be stored in this DataObject!", \
+              "Please provide a new empty DataObject for this PostProcessor!")
     ## When does this actually happen?
     evaluation = finishedJob.getEvaluation()
     if isinstance(evaluation, Runners.Error):
@@ -481,64 +485,41 @@ class DataMining(PostProcessor):
     inputObject = inputObject[0]
     ## Store everything we cannot wrangle from the input data object and the
     ## result of the dataMineDict
-    missingKeys = []
     ############################################################################
-    ## If the input data object is different from the output data object, we
-    ## need to explicitly copy everything over that the user requests from the
-    ## input object
-    if inputObject != outputObject:
-      if inputObject.type != outputObject.type:
-        self.raiseAnError(IOError, 'The type of output data object ', outputObject.name, ' is not consistent with the type of input data object ', self.inputObject, '! Please check your input file')
-      rlzs = {}
-      inputData = inputObject.asDataset()
-      ## First copy any data you need from the input object
-      ## before adding new data
-      for key in outputObject.getVars('Input')+outputObject.getVars('Output'):
-        if key in inputObject.getVars('Input') + inputObject.getVars('Output'):
-          rlzs[key] = copy.deepcopy(inputObject.getVarValues(key).values)
-        else:
-          missingKeys.append(key)
-      if outputObject.type == 'PointSet':
-        outputObject.load(rlzs, style='dict')
-      elif outputObject.type == 'HistorySet':
-        rlzs[self.pivotParameter] = np.atleast_1d(self.pivotVariable)
-        outputObject.load(rlzs, style='dict', dims=inputObject.getDimensions())
-      else:
-        self.raiseAnError(IOError, 'Unrecognized type for output data object ', outputObject.name, '! Available type are HistorySet or PointSet!')
-    ## End data copy
-    ############################################################################
+    if inputObject.type != outputObject.type:
+      self.raiseAnError(IOError,"The type of output DataObject",outputObject.name,"is not consistent with input",\
+              "DataObject type, i.e. ",outputObject.type,"!=",inputObject.type)
+    rlzs = {}
+    dataset = inputObject.asDataset().copy(deep=True)
+    sampleTag = inputObject.sampleTag
+    sampleCoord = dataset[sampleTag].values
+    availVars = dataset.data_vars.keys()
+    if outputObject.type == 'PointSet':
+      for key,value in dataMineDict['outputs'].items():
+        if key in availVars and not np.array_equal(value,dataset[key].values):
+          newDA = xr.DataArray(value,dims=(sampleTag),coords={sampleTag:sampleCoord})
+          dataset = dataset.drop(key)
+          dataset[key] = newDA
+        elif key not in availVars:
+          newDA = xr.DataArray(value,dims=(sampleTag),coords={sampleTag:sampleCoord})
+          dataset[key] = newDA
+    elif outputObject.type == 'HistorySet':
+      for key,values in dataMineDict['outputs'].items():
+        if key not in availVars:
+          expDict = {}
+          for index, value in enumerate(values):
+            timeLength = len(self.pivotVariable[index])
+            arrayBase = value * np.ones(timeLength)
+            xrArray = xr.DataArray(arrayBase,dims=(self.pivotParameter), coords=[self.pivotVariable[index]])
+            expDict[sampleCoord[index]] = xrArray
+          ds = xr.Dataset(data_vars=expDict)
+          ds = ds.to_array().rename({'variable':sampleTag})
+          dataset[key] = ds
+    else:
+      self.raiseAnError(IOError, 'Unrecognized type for output data object ', outputObject.name, \
+              '! Available type are HistorySet or PointSet!')
 
-    ############################################################################
-    ## Now augment the DataObject by adding the computed labels and/or
-    ## transformed coordinates aka the new columns added to the DataObject
-    for key in dataMineDict['outputs']:
-      if key in missingKeys:
-        missingKeys.remove(key)
-      for param in outputObject.getVars('output'):
-        if key == param:
-          outputObject.remove(variable=key)
-      if outputObject.type == 'PointSet':
-        outputObject.addVariable(key, copy.copy(dataMineDict['outputs'][key]),classify='output')
-      elif outputObject.type == 'HistorySet':
-        expValues = np.zeros(len(outputObject), dtype=object)
-        values = dataMineDict['outputs'][key]
-        for index, value in enumerate(values):
-          timeLength = len(self.pivotVariable[index])
-          arrayBase = value * np.ones(timeLength)
-          xrArray = xr.DataArray(arrayBase,dims=(self.pivotParameter), coords=[self.pivotVariable[index]])
-          expValues[index] = xrArray
-        outputObject.addVariable(key, expValues,classify='output')
-    ## End data augmentation
-    ############################################################################
-
-    if len(missingKeys) > 0:
-      missingKeys = ','.join(missingKeys)
-      self.raiseAWarning("The {} \"{}\" used as an output specifies the "
-                           "following inputs/outputs that could not be resolved "
-                           "by the \"{}\" {}: {}".format(outputObject.type,
-                                                         outputObject.name,
-                                                         self.name, "Model",
-                                                         missingKeys))
+    outputObject.load(dataset,style='dataset')
 
   def run(self, inputIn):
     """
@@ -714,15 +695,6 @@ class DataMining(PostProcessor):
       self.raiseAnError(RuntimeError, 'Bicluster has not yet been implemented.')
 
     ## Rename the algorithm output to point to the user-defined label feature
-    # if 'labels' in outputDict:
-    #   outputDict['outputs'][self.labelFeature] = outputDict['outputs'].pop('labels')
-    # elif 'embeddingVectors' in outputDict['outputs']:
-    #   transformedData = outputDict['outputs'].pop('embeddingVectors')
-    #   reducedDimensionality = transformedData.shape[1]
-
-    #   for i in range(reducedDimensionality):
-    #     newColumnName = self.labelFeature + str(i + 1)
-    #     outputDict['outputs'][newColumnName] =  transformedData[:, i]
 
     if 'labels' in self.unSupervisedEngine.outputDict['outputs'].keys():
       labels = np.zeros(shape=(numberOfSample,numberOfHistoryStep))
