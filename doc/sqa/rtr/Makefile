@@ -2,7 +2,7 @@ LATEX_FLAGS=-interaction=nonstopmode
 
 all: default raven_requirements_traceability_matrix.pdf
 
-raven_requirements_traceability_matrix.pdf : raven_requirements_traceability_matrix.tex raven_requirements_traceability_matrix.bib ../sdd/ravenIntro.tex ../../version.tex ../sdd/ravenDepAndLimitations.tex
+raven_requirements_traceability_matrix.pdf : raven_requirements_traceability_matrix.tex raven_requirements_traceability_matrix.bib intro.tex ../../version.tex ../sdd/ravenDepAndLimitations.tex
 	pdflatex $(LATEX_FLAGS) raven_requirements_traceability_matrix.tex
 	pdflatex $(LATEX_FLAGS) raven_requirements_traceability_matrix.tex
 	pdflatex $(LATEX_FLAGS) raven_requirements_traceability_matrix.tex

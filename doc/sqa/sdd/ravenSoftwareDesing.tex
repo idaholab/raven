@@ -83,7 +83,7 @@ model can be integrated and interrogated. The RAVEN framework provides APIs for
   \item Post-Processors (PPs)
 \end{itemize}
 In the 
-following paragraphs, a brief explanation of each of this Model categories is reported.
+following paragraphs, a brief explanation of each of these Model categories is reported.
 \paragraph{Code} ~\\
 The \textit{Code} model represents the communication pipe between the RAVEN framework and any system and/or 
 physical code/model. The communication between RAVEN and any driven code is performed through the implementation 
@@ -110,17 +110,16 @@ Reduced Order Model is trained to emulate a high fidelity numerical representati
 Two general characteristics of these models can be generally assumed (even if exceptions are possible):
 \begin{enumerate}
    \item The higher the number of realizations in the training sets, the higher is the accuracy of the prediction performed by 
-   the reduced order model. This statement is true for most of the cases although some ROMs might be subject to the over-
-   fitting issues. The over-fitting phenomenon is not discussed here, since its occurrence is highly dependent on the 
+   the reduced order model. This statement is true for most of the cases although some ROMs might be subject to the overfitting issues. The over-fitting phenomenon is not discussed here, since its occurrence is highly dependent on the 
    algorithm type, (and there is large number of ROM options available in RAVEN). Every time the user chooses a particular 
-   reduced order model algorithm to use, he should consult the relative literature;
+   reduced order model algorithm to use, he should consult the relevant literature;
    \item The smaller the size of the input domain with respect to the variability of the system response, the more likely the 
    surrogate model will be able to represent the system output space.
 \end{enumerate}
-Currently, RAVEN supports more than 50 different ROM algorithms. 
+
 
 \paragraph{Hybrid Models} ~\\
-The Hybrid Model is able to combine ROM) and any other high-fidelity Model (e.g. Code, ExternalModel). 
+The Hybrid Model is able to combine ROM and any other high-fidelity Model (e.g. Code, ExternalModel). 
 The ROMs will be 
 ``trained'' based on the results from the high-fidelity model. The accuracy of the ROMs will be evaluated based on the 
 cross validation scores, and the validity of the ROMs will be determined via some local validation metrics. After these 
@@ -177,7 +176,7 @@ of the inverse for uni-variate distributions is guaranteed by the monotonicity o
 is 
 not sufficient since the $CDF(X)\longrightarrow [0,1],X \in  R^{N} $ and therefore it could not be a bijective function. From 
 an application point of view, this means the inverse of a N-D CDF is not unique.
-\\As an example, the Figure~\ref{fig:NDDistributionExample} shows a multivariate normal distribution for a pipe failure as 
+\\As an example, Figure~\ref{fig:NDDistributionExample} shows a multivariate normal distribution for a pipe failure as 
 function of the pressure and temperature. The plane identifies an isoprobability surface (in this case, a line) that represents 
 a probability threshold of 50 \% in this example.  Hence, the inverse of this CDF is an infinite number of points.
  \\As easily infer-able, the standard sampling approach cannot directly be employed. When multivariate distributions are 
@@ -215,13 +214,11 @@ In the RAVEN framework, several different and well-known forward samplers are av
 \item Factorials
 \item Etc.
 \end{itemize}
-As already mentioned, all these sampling strategies are well known, as well as their properties. Therefore, a detailed 
-investigation of their application is not provided.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \paragraph{Dynamic Event Tree Samplers}~\\
 In order to clarify the idea behind the Dynamic Event Tree Sampler currently available in RAVEN, a small overview is 
 needed.
-\\In technological complex systems, as nuclear power plants, an accident scenario begins with an initiating event and then 
+\\In technologically complex systems, as nuclear power plants, an accident scenario begins with an initiating event and then 
 evolves over time through the interaction of dynamics and stochastic events. This mutual action leads to the production of 
 infinitely many different scenarios, which define a continuous dynamic event tree with infinite branches. At each time point, 
 the stochastic variability of the accident outcomes is determined by a multivariate probability distribution. The PRA analysis 
@@ -251,9 +248,7 @@ point 2.
 by aleatory uncertainty are sampled using a dynamic event tree approach, while the ones characterized by epistemic 
 uncertainty are sampled through ``forward'' sampling strategies.
 \\As already mentioned, this strategy requires a tight interaction between the system code and the sampling driver (i.e., 
-RAVEN framework). In addition, the system code must have a control logic capability (i.e. trigger system). For these 
-reasons, the application of this sampling approach to a generic code needs a larger effort when compared to the other 
-Samplers available in RAVEN.
+RAVEN framework). In addition, the system code must have a control logic capability (i.e. trigger system).  
 \\In the RAVEN framework, several different DET-based samplers are available:
 \begin{itemize}
 \item Dynamic Event Tree (aleatory sampling);
