@@ -395,7 +395,7 @@ class HybridModel(Dummy):
     error = None
     # we only allow to define one metric in the cross validation PP
     for key, metricList in self.metricCategories.items():
-      if metricType in metricList:
+      if metricType[1] in metricList:
         if key == 'find_min':
           # use displacement from the optimum to indicate tolerance
           error = 1.0 - np.amin(errorList)
@@ -404,7 +404,7 @@ class HybridModel(Dummy):
         converged = True if error <= self.romConvergence else False
         break
     if error is None:
-      self.raiseAnError(IOError, "Metric %s used for cross validation can not be handled by the HybridModel." %metricName)
+      self.raiseAnError(IOError, "Metric %s used for cross validation can not be handled by the HybridModel." %metricType[1])
     if not converged:
       self.raiseADebug("The current error: ", str(error), " is not met with the given tolerance ", str(self.romConvergence))
     else:

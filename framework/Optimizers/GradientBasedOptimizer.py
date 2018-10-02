@@ -135,7 +135,10 @@ class GradientBasedOptimizer(Optimizer):
       self.trajectoriesKilled[traj]          = []
     # end job runnable equal to number of trajectory
     self._endJobRunnable = len(self.optTraj)
-    # compute perturbation indeces
+    # initialize index lists
+    ## opt point evaluations are indices 0 through number of re-evaluation points
+    self.optPointIndices = list(range(0,self.gradDict['numIterForAve']+1))
+    ## perturbation evaluations are indices starting at the end of optPoint and going through all the rest
     self.perturbationIndices = list(range(self.gradDict['numIterForAve'],self.gradDict['numIterForAve']*(self.paramDict['pertSingleGrad']+1)))
     #specializing the self.localLocalInitialize()
     self.localLocalInitialize(solutionExport=solutionExport)

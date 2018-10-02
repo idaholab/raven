@@ -155,7 +155,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
     #counting successful matches
     if who not in cls.validateDict.keys():
-      raise IOError('The role '+str(who)+' does not exist in the class '+str(cls))
+      raise IOError('The role "{}" is not recognized for the entity "{}"'.format(who,cls))
     for myItemDict in cls.validateDict[who]:
       myItemDict['tempCounter'] = 0
     for anItem in what:

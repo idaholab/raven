@@ -10,6 +10,10 @@
     <batchSize>1</batchSize>
   </RunInfo>
 
+  <VariableGroups>
+    <Group name="GRO_targets">DeltaTimeScramToAux,DG1recoveryTime</Group>
+  </VariableGroups>
+
   <Distributions>
     <Uniform name="auxbackup">
       <lowerBound>0</lowerBound>
@@ -23,10 +27,10 @@
 
   <Models>
     <ExternalModel ModuleToLoad="TMI_fake" name="PythonModule" subType="">
-      <variables>DeltaTimeScramToAux,DG1recoveryTime,time,CladTempThreshold</variables>
+      <variables>GRO_targets,time,CladTempThreshold</variables>
     </ExternalModel>
     <ROM name="ROM1" subType="SciKitLearn">
-      <Features>DeltaTimeScramToAux,DG1recoveryTime</Features>
+      <Features>GRO_targets</Features>
       <Target>CladTempThreshold</Target>
       <SKLtype>svm|SVR</SKLtype>
       <kernel>linear</kernel>
@@ -35,7 +39,7 @@
       <coef0>0.0</coef0>
     </ROM>
     <ROM name="ROMHS" subType="SciKitLearn">
-      <Features>DeltaTimeScramToAux,DG1recoveryTime</Features>
+      <Features>GRO_targets</Features>
       <Target>CladTempThreshold,time</Target>
       <SKLtype>svm|SVR</SKLtype>
       <kernel>linear</kernel>
@@ -44,7 +48,7 @@
       <coef0>0.0</coef0>
     </ROM>
     <ROM name="ROM2" subType="NDinvDistWeight">
-      <Features>DeltaTimeScramToAux,DG1recoveryTime</Features>
+      <Features>GRO_targets</Features>
       <Target>CladTempThreshold</Target>
       <p>3</p>
     </ROM>
