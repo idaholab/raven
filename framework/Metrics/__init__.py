@@ -22,10 +22,14 @@ from __future__ import absolute_import
 ## 'from OutStreamManagers.OutStreamPlot import OutStreamPlot' outside
 ## of this submodule
 from .Metric import Metric
-from .Minkowski import Minkowski
-
+from .DTW import DTW
+from .SklMetric import SKL
+from .PairwiseMetric import PairwiseMetric
+from .CDFAreaDifference import CDFAreaDifference
+from .PDFCommonArea import PDFCommonArea
+from .ScipyMetric import ScipyMetric
 from .Factory import knownTypes
 from .Factory import returnInstance
 from .Factory import returnClass
 
-__all__ = ['Minkowski','DTW']
+__all__ = ['DTW','SKL','PairwiseMetric','CDFAreaDifference','PDFCommonArea','ScipyMetric']

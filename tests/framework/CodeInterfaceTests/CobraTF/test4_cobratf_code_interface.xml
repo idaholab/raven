@@ -1,0 +1,89 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/CodeInterfaceTests/CobraTF.test4</name>
+    <author>alptezbasaran</author>
+    <created>2018-07-24</created>
+    <classesTested>Models.Code.CobraTF</classesTested>
+    <description>
+       An example of using the CobraTF code interface. This test is aimed to test the mechanics of the interface using a supplementary input file (vuq_params.txt). All input files are to be perturbed. Newly added heat slab output parser capabilities are tested.
+    </description>
+    <revisions>
+      <revision author="alptezbasaran" date="2018-07-24">New CobraTF test case</revision>
+    </revisions>
+  </TestInfo>
+  <RunInfo>
+    <WorkingDir>CobraTFinterfaceTest4</WorkingDir>
+    <Sequence>testDummyStep_MC</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name="cobra_input" type="ctf">heat_exchanger.inp</Input>
+    <Input name="paramInput" type="vuq_param">vuq_param.txt</Input>
+  </Files>
+
+  <Models>
+    <Code name="MyCobraTF" subType="CTF">
+      <executable>
+        <!--/path/to/cobratf/executable -->
+        <!--  here we should put the executable. But since we want to test the interface only, it is going to be empty -->
+      </executable>
+    </Code>
+  </Models>
+
+  <Distributions>
+    <Uniform name="dist_for_db_1">
+      <lowerBound>990.0</lowerBound>
+      <upperBound>1010.0</upperBound>
+    </Uniform>
+
+    <Uniform name="dist_for_Temp">
+      <lowerBound>145.0</lowerBound>
+      <upperBound>155.0</upperBound>
+    </Uniform>
+
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="MC_samp">
+      <samplerInit>
+        <limit>2</limit>
+      </samplerInit>
+      <variable name="db_1">
+        <distribution>dist_for_db_1</distribution>
+      </variable>
+      <variable name="Temp">
+        <distribution>dist_for_Temp</distribution>
+      </variable>
+
+    </MonteCarlo>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="testDummyStep_MC">
+      <Input class="Files" type="">cobra_input</Input>
+      <Input class="Files" type="">paramInput</Input>
+      <Model class="Models" type="Code">MyCobraTF</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MC_samp</Sampler>
+      <Output class="DataObjects" type="PointSet">mc_ps</Output>
+      <Output class="OutStreams" type="Print">cobra_out</Output>
+    </MultiRun>
+  </Steps>
+
+  <OutStreams>
+    <Print name="cobra_out">
+      <type>csv</type>
+      <source>mc_ps</source>
+      <what>input,output</what>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="mc_ps">
+      <Input>db_1,Temp</Input>
+      <Output>heatSlab1_ax101_insideSurfaceWallTemperature</Output>
+    </PointSet>
+  </DataObjects>
+
+</Simulation>

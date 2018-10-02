@@ -1,9 +1,0 @@
-<DataObjectMetadata name="pp2_metric">
-  <DataSet type="Static">
-    <general>
-      <outputs>chi2_x1_ans2,additive_chi2_x1_ans2</outputs>
-      <sampleTag>RAVEN_sample_ID</sampleTag>
-    </general>
-  </DataSet>
-  
-</DataObjectMetadata>

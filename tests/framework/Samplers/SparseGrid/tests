@@ -63,6 +63,12 @@
   UnorderedXml = 'scgpc/Gdumprom.xml'
   csv = 'scgpc/Gdump.csv'
  [../]
+ [./gamma_large_scale]
+  type = 'RavenFramework'
+  input = 'test_scgpc_gamma_large_scale.xml'
+  UnorderedXml = 'scgpc/dumpromGammaXml.xml'
+  csv = 'scgpc/dumpGamma.csv scgpc/dumpromGamma.csv'
+ [../]
  [./beta]
   type = 'RavenFramework'
   input = 'test_scgpc_beta.xml'

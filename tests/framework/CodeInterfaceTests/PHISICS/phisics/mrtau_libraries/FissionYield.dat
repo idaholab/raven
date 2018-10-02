@@ -1,0 +1,20 @@
+Thermal Fission Yield (1)
+Spectrum = 1       Number Fission Yield Group =     1         
+   Actinide       Actinide
+Representative  Represented
+ Np237   4               
+                Np237  U-238  Np238  Pu238     
+
+        Np237  FY
+ ALPHA  0.000E+00
+ END
+Fast Fission Yield (2)
+Spectrum = 2       Number Fission Yield Group =     1   
+   Actinide       Actinide
+Representative  Represented           
+ U235    1              
+                U235
+ 
+        U235   FY
+ ZN67  0.000E+00 
+ END               

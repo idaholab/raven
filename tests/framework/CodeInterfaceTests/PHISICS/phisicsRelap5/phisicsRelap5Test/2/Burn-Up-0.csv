@@ -1,0 +1,25 @@
+ Burn-Up(GWd/MTHM) with Time (days)
+
+Material:,matF1_kn_1,Gaussian Point,  1
+  
+ TIME (days),Burn-Up
+ 0.000000000E+000, 0.000000000E+000
+ 5.000000000E+000, 3.509134720E-003
+ 
+Material:,matF1_kn_2,Gaussian Point,  1
+  
+ TIME (days),Burn-Up
+ 0.000000000E+000, 0.000000000E+000
+ 5.000000000E+000, 8.842502061E-003
+ 
+Material:,matF1_kn_3,Gaussian Point,  1
+  
+ TIME (days),Burn-Up
+ 0.000000000E+000, 0.000000000E+000
+ 5.000000000E+000, 3.509134645E-003
+ 
+Average Burn-Up(GWd/MTHM)
+
+ TIME (days),Average
+ 0.000000000E+000, 0.000000000E+000
+ 5.000000000E+000, 5.286923809E-003

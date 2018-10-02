@@ -1,0 +1,17 @@
+ PHISICS,CSV,SOLUTION,Time,4.320E+05, Cycle Number,1,Time Step,1
+ POWER DENSITY BY CELLS
+ 
+CELL,MESH,SUBDOMAIN,AXIAL,COR,DIN,ATES, POWER D
+ ID , ID ,   ID   ,LEVEL,X,Y,Z,Watts/cm^3
+       1,       1,       1,     1,   18.000000000,   31.176914536,   39.650000000,   0.00000E+00
+       2,       1,       2,     1,    0.000000000,    0.000000000,   39.650000000,   0.00000E+00
+       3,       1,       3,     1,   36.000000000,    0.000000000,   39.650000000,   0.00000E+00
+ 
+ POWER DENSITY BY SUBDOMAIN
+ 
+ SUBDOMAIN,POWER D
+     ID   ,Watts/cm^3
+      1,   0.0000E+00
+      2,   0.0000E+00
+      3,   0.0000E+00
+ 
