@@ -208,7 +208,7 @@
  [./testExternalModelReseed]
   type = 'RavenFramework'
   input = 'test_external_reseed.xml'
-  output = 'externalModel/testPrintHistorySet_dump_0.csv externalModel/testPrintHistorySet_dump_1.csv externalModel/testPrintHistorySet_dump_2.csv'
+  output = 'externalModelReseed/testPrintHistorySet_dump_0.csv externalModelReseed/testPrintHistorySet_dump_1.csv externalModelReseed/testPrintHistorySet_dump_2.csv'
   max_time = 100
   rel_err = 0.001
   prereq = testExternalModel
