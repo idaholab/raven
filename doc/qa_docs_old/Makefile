@@ -21,3 +21,5 @@ requirements.odt : requirements.tex ../version.tex
 ../version.tex : *.tex
 	git log -1 --format="%H %an %aD" .. > ../version.tex
 
+clean:
+	@rm -f *~ *.aux *.bbl *.blg *.log *.out *.toc *.lot *.lof *.pdf
