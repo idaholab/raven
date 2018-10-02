@@ -211,7 +211,6 @@
   output = 'externalModelReseed/testPrintHistorySet_dump_0.csv externalModelReseed/testPrintHistorySet_dump_1.csv externalModelReseed/testPrintHistorySet_dump_2.csv'
   max_time = 100
   rel_err = 0.001
-  prereq = testExternalModel
  [../]
 
  [./test_bison_mc_simple_and_alias_system]
