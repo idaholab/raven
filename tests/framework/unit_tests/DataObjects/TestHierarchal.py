@@ -36,9 +36,9 @@ find_crow(frameworkDir)
 import MessageHandler
 
 # find location of data objects
-sys.path.append(os.path.join(frameworkDir,'DataObjects'))
+#sys.path.append(os.path.join(frameworkDir,'DataObjects'))
 
-import DataSet
+import DataObjects
 
 mh = MessageHandler.MessageHandler()
 mh.initialize({'verbosity':'silent', 'callerLength':10, 'tagLength':10})
@@ -136,7 +136,7 @@ def checkArray(comment,first,second,dtype,tol=1e-10,update=True):
     for i in range(len(first)):
       if dtype == float:
         pres = checkFloat('',first[i],second[i],tol,update=False)
-      elif dtype in (str,unicode):
+      elif dtype.__name__ in ('str','unicode'):
         pres = checkSame('',first[i],second[i],update=False)
       if not pres:
         print('checking array',comment,'|','entry "{}" does not match: {} != {}'.format(i,first[i],second[i]))
@@ -171,7 +171,7 @@ def checkRlz(comment,first,second,tol=1e-10,update=True,skip=None):
         continue
       if isinstance(val,(float,int)) and not isinstance(val,bool):
         pres = checkFloat('',val,second[key][0],tol,update=False)
-      elif isinstance(val,(str,unicode,bool,np.bool_)):
+      elif type(val).__name__ in ('str','unicode','bool','bool_','str_'):
         pres = checkSame('',val,second[key][0],update=False)
       elif isinstance(val,np.ndarray):
         if isinstance(val[0],(float,int)):
@@ -264,7 +264,7 @@ xml.append(createElement('Input',text='a,'))
 xml.append(createElement('Output',text='b'))
 xml.append(createElement('Index',attrib={'var':'time'},text='b'))
 # construct
-data = DataSet.DataSet()
+data = DataObjects.DataSet()
 # initialization
 data.messageHandler = mh
 mh.verbosity = 'debug'
