@@ -1,5 +1,13 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="silent">
+  <TestInfo>
+    <name>doc/workshop/staticDataAnalysis/inputs.dmICA</name>
+    <author>wangc</author>
+    <created>2018-09-21</created>
+    <classesTested>PostProcessors.DataMining</classesTested>
+    <description>Workshop test: DataMining with ICA method</description>
+  </TestInfo>
+
   <RunInfo>
     <WorkingDir>ExactPCA</WorkingDir>
     <Sequence>readIn,KMeans,PCAIris,output</Sequence>
@@ -57,7 +65,7 @@
       <type>csv</type>
       <source>DataSets</source>
     </Print>
-    <Plot  name="PlotIris" overwrite="false" verbosity="debug">
+    <Plot name="PlotIris" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>dataMining</type>
@@ -71,6 +79,7 @@
         <xlabel>PCAComponent1</xlabel>
         <ylabel>PCAComponent2</ylabel>
       </plotSettings>
+      <filename>ica</filename>
       <actions>
         <how>png</how>
       </actions>

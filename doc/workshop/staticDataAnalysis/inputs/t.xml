@@ -1,5 +1,13 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="silent">
+  <TestInfo>
+    <name>doc/workshop/staticDataAnalysis/inputs.dmGM1</name>
+    <author>wangc</author>
+    <created>2018-09-21</created>
+    <classesTested>PostProcessors.DataMining</classesTested>
+    <description>Workshop test: DataMining with Gaussian Process</description>
+  </TestInfo>
+
   <RunInfo>
     <WorkingDir>GaussianMixture</WorkingDir>
     <Sequence>readIn,GaussianMixtureBlobs,output</Sequence>
