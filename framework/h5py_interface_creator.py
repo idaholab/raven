@@ -45,6 +45,22 @@ import MessageHandler
 import Files
 #Internal Modules End--------------------------------------------------------------------------------
 
+def _dumps(val):
+  """
+    Method to convert an arbitary value to something h5py can store
+    @ In, val, any, data to encode
+    @ Out, _dumps, np.void, encoded data
+  """
+  return np.void(pk.dumps(val))
+
+def _loads(val):
+  """
+    Method to undo what _dumps does
+    @ In, val, np.void, data to decode
+    @ Out, _loads, any, data decoded
+  """
+  return pk.loads(val.tostring())
+
 #
 #  *************************
 #  *  HDF5 DATABASE CLASS  *
@@ -135,8 +151,8 @@ class hdf5Database(MessageHandler.MessageUser):
     if not self.fileOpen:
       self.h5FileW = self.openDatabaseW(self.filenameAndPath,'a')
     if 'allGroupPaths' in self.h5FileW.attrs and 'allGroupEnds' in self.h5FileW.attrs:
-      self.allGroupPaths = pk.loads(self.h5FileW.attrs['allGroupPaths'])
-      self.allGroupEnds  = pk.loads(self.h5FileW.attrs['allGroupEnds'])
+      self.allGroupPaths = _loads(self.h5FileW.attrs['allGroupPaths'])
+      self.allGroupEnds  = _loads(self.h5FileW.attrs['allGroupEnds'])
     else:
       self.h5FileW.visititems(self.__isGroup)
     self.raiseAMessage('TOTAL NUMBER OF GROUPS = ' + str(len(self.allGroupPaths)))
@@ -166,7 +182,7 @@ class hdf5Database(MessageHandler.MessageUser):
       @ In, keys, set(), the metadata list
       @ Out, None
     """
-    self.h5FileW.attrs['expectedMetadata'] = pk.dumps(list(keys),protocol=0)
+    self.h5FileW.attrs['expectedMetadata'] = _dumps(list(keys))
 
   def provideExpectedMetaKeys(self):
     """
@@ -177,7 +193,7 @@ class hdf5Database(MessageHandler.MessageUser):
     meta = set()
     gotMeta = self.h5FileW.attrs.get('expectedMetadata',None)
     if gotMeta is not None:
-      meta = set(pk.loads(gotMeta))
+      meta = set(_loads(gotMeta))
     return meta
 
   def addGroup(self,rlz):
@@ -209,8 +225,8 @@ class hdf5Database(MessageHandler.MessageUser):
       self.__addGroupRootLevel(groupName,rlz)
       self.firstRootGroup = True
       self.type = 'MC'
-    self.h5FileW.attrs['allGroupPaths'] = pk.dumps(self.allGroupPaths,protocol=0)
-    self.h5FileW.attrs['allGroupEnds'] = pk.dumps(self.allGroupEnds,protocol=0)
+    self.h5FileW.attrs['allGroupPaths'] = _dumps(self.allGroupPaths)
+    self.h5FileW.attrs['allGroupEnds'] = _dumps(self.allGroupEnds)
     self.h5FileW.flush()
 
 
@@ -254,8 +270,8 @@ class hdf5Database(MessageHandler.MessageUser):
     grp.attrs[b'groupName'] = groupNameInit
     self.allGroupPaths.append("/" + groupNameInit)
     self.allGroupEnds["/" + groupNameInit] = False
-    self.h5FileW.attrs['allGroupPaths'] = pk.dumps(self.allGroupPaths,protocol=0)
-    self.h5FileW.attrs['allGroupEnds'] = pk.dumps(self.allGroupEnds,protocol=0)
+    self.h5FileW.attrs['allGroupPaths'] = _dumps(self.allGroupPaths)
+    self.h5FileW.attrs['allGroupEnds'] = _dumps(self.allGroupEnds)
     self.h5FileW.flush()
 
   def __checkTypeHDF5(self, value, neg):
@@ -299,13 +315,13 @@ class hdf5Database(MessageHandler.MessageUser):
     if len(varKeysIntfloat) > 0:
       varShapeIntfloat = [dataIntFloat[key].shape for key in varKeysIntfloat]
       # get data names
-      group.attrs[b'data_namesIntfloat'] = pk.dumps(varKeysIntfloat,protocol=0)
+      group.attrs[b'data_namesIntfloat'] = _dumps(varKeysIntfloat)
       # get data shapes
-      group.attrs[b'data_shapesIntfloat'] = pk.dumps(varShapeIntfloat,protocol=0)
+      group.attrs[b'data_shapesIntfloat'] = _dumps(varShapeIntfloat)
       # get data shapes
       end   = np.cumsum(varShapeIntfloat)
       begin = np.concatenate(([0],end[0:-1]))
-      group.attrs[b'data_begin_endIntfloat'] = pk.dumps((begin.tolist(),end.tolist()),protocol=0)
+      group.attrs[b'data_begin_endIntfloat'] = _dumps((begin.tolist(),end.tolist()))
       # get data names
       group.create_dataset(name + "_dataIntFloat", dtype="float", data=(np.concatenate( list(dataIntFloat.values())).ravel()))
       group.attrs[b'hasIntfloat'] = True
@@ -314,15 +330,15 @@ class hdf5Database(MessageHandler.MessageUser):
     if len(varKeysOther) > 0:
       varShapeOther = [dataOther[key].shape for key in varKeysOther]
       # get data names
-      group.attrs[b'data_namesOther'] = pk.dumps(varKeysOther,protocol=0)
+      group.attrs[b'data_namesOther'] = _dumps(varKeysOther)
       # get data shapes
-      group.attrs[b'data_shapesOther'] = pk.dumps(varShapeOther,protocol=0)
+      group.attrs[b'data_shapesOther'] = _dumps(varShapeOther)
       # get data shapes
       end   = np.cumsum(varShapeOther)
       begin = np.concatenate(([0],end[0:-1]))
-      group.attrs[b'data_begin_endOther'] = pk.dumps((begin.tolist(),end.tolist()),protocol=0)
+      group.attrs[b'data_begin_endOther'] = _dumps((begin.tolist(),end.tolist()))
       # get data names
-      group.attrs[name + '_dataOther'] = pk.dumps(np.concatenate( list(dataOther.values())).ravel().tolist(),protocol=0)
+      group.attrs[name + '_dataOther'] = _dumps(np.concatenate( list(dataOther.values())).ravel().tolist())
       group.attrs[b'hasOther'] = True
     # add some info
     group.attrs[b'groupName'     ] = name
@@ -493,19 +509,19 @@ class hdf5Database(MessageHandler.MessageUser):
       dataSetIntFloat = group[name + "_dataIntFloat"]
       # Get some variables of interest
       nVarsIntfloat      = group.attrs[b'nVarsIntfloat']
-      varShapeIntfloat   = pk.loads(group.attrs[b'data_shapesIntfloat'])
-      varKeysIntfloat    = pk.loads(group.attrs[b'data_namesIntfloat'])
-      begin, end          = pk.loads(group.attrs[b'data_begin_endIntfloat'])
+      varShapeIntfloat   = _loads(group.attrs[b'data_shapesIntfloat'])
+      varKeysIntfloat    = _loads(group.attrs[b'data_namesIntfloat'])
+      begin, end          = _loads(group.attrs[b'data_begin_endIntfloat'])
       # Reconstruct the dataset
       newData = {key : np.reshape(dataSetIntFloat[begin[cnt]:end[cnt]], varShapeIntfloat[cnt]) for cnt,key in enumerate(varKeysIntfloat)}
     if hasOther:
       # get the "other" data
-      datasetOther = pk.loads(group.attrs[name + "_dataOther"])
+      datasetOther = _loads(group.attrs[name + "_dataOther"])
       # Get some variables of interest
       nVarsOther      = group.attrs[b'nVarsOther']
-      varShapeOther   = pk.loads(group.attrs[b'data_shapesOther'])
-      varKeysOther    = pk.loads(group.attrs[b'data_namesOther'])
-      begin, end       = pk.loads(group.attrs[b'data_begin_endOther'])
+      varShapeOther   = _loads(group.attrs[b'data_shapesOther'])
+      varKeysOther    = _loads(group.attrs[b'data_namesOther'])
+      begin, end       = _loads(group.attrs[b'data_begin_endOther'])
       # Reconstruct the dataset
       newData.update({key : np.reshape(datasetOther[begin[cnt]:end[cnt]], varShapeOther[cnt]) for cnt,key in enumerate(varKeysOther)})
     return newData
