@@ -683,6 +683,8 @@ class MultiRun(SingleRun):
               break
           else:
             break
+      # terminate jobs as requested by the sampler, in case they're not needed anymore
+      jobHandler.terminateJobs(sampler.getJobsToEnd(clear=True))
       ## If all of the jobs given to the job handler have finished, and the sampler
       ## has nothing else to provide, then we are done with this step.
       if jobHandler.isFinished() and not sampler.amIreadyToProvideAnInput():

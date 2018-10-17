@@ -136,6 +136,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.restartData                   = None                      # presampled points to restart from
     self.restartTolerance              = 1e-15                     # strictness with which to find matches in the restart data
     self.restartIsCompatible           = None                      # flags restart as compatible with the sampling scheme (used to speed up checking)
+    self._jobsToEnd                    = []                        # list of strings, containing job prefixes that should be cancelled.
 
     self._endJobRunnable               = sys.maxsize               # max number of inputs creatable by the sampler right after a job ends (e.g., infinite for MC, 1 for Adaptive, etc)
 
@@ -604,6 +605,17 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
           paramDict['Variable: '+var+' has value'] = paramDict[key][var]
     paramDict.update(self.localGetCurrentSetting())
     return paramDict
+
+  def getJobsToEnd(self, clear=False):
+    """
+      Provides a list of jobs that should be terminated.
+      @ In, clear, bool, optional, if True then clear list after returning.
+      @ Out, ret, list, jobs to terminate
+    """
+    ret = set(self._jobsToEnd[:])
+    if clear:
+      self._jobsToEnd = []
+    return ret
 
   def localGetCurrentSetting(self):
     """

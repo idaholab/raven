@@ -4,7 +4,7 @@
     <name>framework/Optimizers.StochasticFiniteDifference</name>
     <author>alfoa</author>
     <created>2017-09-11</created>
-    <classesTested>Optimizer.FiniteDifferenceGradientOptimizer</classesTested>
+    <classesTested>Optimizer.FiniteDifference</classesTested>
     <description>
       This test runs the optimization (Finite difference forward) on a inverse parabola with signal-to-noise ratio close to 1.0 using
       multiple gradient evaluations to denoise the response space.  It tests stochastic optimization mechanics.
@@ -39,7 +39,7 @@
   </Steps>
 
   <Optimizers>
-    <FiniteDifferenceGradientOptimizer name="opter">
+    <FiniteDifference name="opter">
       <initialization>
         <limit>2000</limit>
         <initialSeed>42</initialSeed>
@@ -61,7 +61,7 @@
       <parameter>
         <numGradAvgIterations>26</numGradAvgIterations>
       </parameter>
-    </FiniteDifferenceGradientOptimizer>
+    </FiniteDifference>
   </Optimizers>
 
   <Models>

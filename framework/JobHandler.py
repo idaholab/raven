@@ -729,3 +729,24 @@ class JobHandler(MessageHandler.MessageUser):
         unfinishedRuns = [run for run in runList if run is not None]
         for run in unfinishedRuns:
           run.kill()
+
+  def terminateJobs(self, ids):
+    """
+      Kills running jobs that match the given ids.
+      @ In, ids, list(str), job prefixes to terminate
+      @ Out, None
+    """
+    with self.__queueLock:
+      for queue in [self.__queue, self.__clientQueue, self.__running, self.__clientRunning]:
+        toRemove = []
+        for job in queue:
+          if job is not None and job.uniqueHandler in ids:
+            # this assumes that each uniqueHandle only exists once in any queue anywhere
+            ids.remove(uniqueHandler)
+            toRemove.append(job)
+        for job in toRemove:
+          queue.remove(job)
+          self.raiseADebug('Terminated job "{}" by request.'.format(job.uniqueHandler))
+    if len(ids):
+      self.raiseADebug('Tried to remove some jobs but not found in any queues:',ids)
+

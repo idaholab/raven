@@ -38,7 +38,7 @@ from .SPSA import SPSA
 from utils import mathUtils,randomUtils
 #Internal Modules End--------------------------------------------------------------------------------
 
-class FiniteDifferenceGradientOptimizer(SPSA):
+class FiniteDifference(SPSA):
   """
     Finite Difference Gradient Optimizer
     This class currently inherits from the SPSA (since most of the gradient based machinery is there).
