@@ -22,11 +22,13 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
 
+import sys
 import math
 import copy
 import scipy
 from scipy import interpolate, stats, integrate
 import numpy as np
+import six
 from utils.utils import UreturnPrintTag,UreturnPrintPostTag
 
 def normal(x,mu=0.0,sigma=1.0):
@@ -561,8 +563,7 @@ def isAString(val):
     @ In, val, object, check
     @ Out, isAString, bool, result
   """
-  # str,unicode inherit from basestring
-  return isinstance(val,basestring)
+  return isinstance(val, six.string_types)
 
 def isAFloatOrInt(val,nanOk=True):
   """
@@ -572,7 +573,7 @@ def isAFloatOrInt(val,nanOk=True):
     @ In, nanOk, bool, optional, if True then NaN and inf are acceptable
     @ Out, isAFloatOrInt, bool, result
   """
-  if isinstance(val,(float,int,long,np.number)):
+  if isinstance(val,six.integer_types) or  isinstance(val,(float,np.number)):
     # bools are ints, unfortunately
     if isABoolean(val):
       return False
@@ -608,7 +609,7 @@ def isAnInteger(val,nanOk=False):
     @ In, nanOk, bool, optional, if True then NaN and inf are acceptable
     @ Out, isAnInteger, bool, result
   """
-  if isinstance(val,(int,np.integer,long)):
+  if isinstance(val,six.integer_types) or isinstance(val,np.integer):
     # exclude booleans
     if isABoolean(val):
       return False
