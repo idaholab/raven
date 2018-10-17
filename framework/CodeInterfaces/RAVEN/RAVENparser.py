@@ -50,7 +50,7 @@ class RAVENparser():
     if not os.path.exists(inputFile):
       raise IOError(self.printTag+' ERROR: Not found RAVEN input file')
     try:
-      tree = ET.parse(file(inputFile,'r'))
+      tree = ET.parse(open(inputFile,'r'))
     except IOError as e:
       raise IOError(self.printTag+' ERROR: Input Parsing error!\n' +str(e)+'\n')
     self.tree = tree.getroot()
@@ -265,7 +265,7 @@ class RAVENparser():
               else:
                 allowAddNodes.append(None)
               allowAddNodesPath[component.strip()] = attribConstruct
-          if pathNode.endswith("]") and attribConstruct.values()[-1] is None:
+          if pathNode.endswith("]") and list(attribConstruct.values())[-1] is None:
             changeTheNode = False
           else:
             changeTheNode = True
