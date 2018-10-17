@@ -166,7 +166,7 @@ class hdf5Database(MessageHandler.MessageUser):
       @ In, keys, set(), the metadata list
       @ Out, None
     """
-    self.h5FileW.attrs['expectedMetadata'] = pk.dumps(list(keys))
+    self.h5FileW.attrs['expectedMetadata'] = pk.dumps(list(keys),protocol=0)
 
   def provideExpectedMetaKeys(self):
     """
@@ -254,8 +254,8 @@ class hdf5Database(MessageHandler.MessageUser):
     grp.attrs[b'groupName'] = groupNameInit
     self.allGroupPaths.append("/" + groupNameInit)
     self.allGroupEnds["/" + groupNameInit] = False
-    self.h5FileW.attrs['allGroupPaths'] = pk.dumps(self.allGroupPaths)
-    self.h5FileW.attrs['allGroupEnds'] = pk.dumps(self.allGroupEnds)
+    self.h5FileW.attrs['allGroupPaths'] = pk.dumps(self.allGroupPaths,protocol=0)
+    self.h5FileW.attrs['allGroupEnds'] = pk.dumps(self.allGroupEnds,protocol=0)
     self.h5FileW.flush()
 
   def __checkTypeHDF5(self, value, neg):
