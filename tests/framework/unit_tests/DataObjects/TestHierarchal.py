@@ -171,7 +171,7 @@ def checkRlz(comment,first,second,tol=1e-10,update=True,skip=None):
         continue
       if isinstance(val,(float,int)) and not isinstance(val,bool):
         pres = checkFloat('',val,second[key][0],tol,update=False)
-      elif type(val).__name__ in ('str','unicode','bool','bool_','str_'):
+      elif type(val).__name__ in ('str','unicode','bool','bool_','str_','unicode_'):
         pres = checkSame('',val,second[key][0],update=False)
       elif isinstance(val,np.ndarray):
         if isinstance(val[0],(float,int)):

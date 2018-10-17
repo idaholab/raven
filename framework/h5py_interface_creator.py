@@ -59,7 +59,10 @@ def _loads(val):
     @ In, val, np.void, data to decode
     @ Out, _loads, any, data decoded
   """
-  return pk.loads(val.tostring())
+  if hasattr(val,'tostring'):
+    return pk.loads(val.tostring())
+  else:
+    return pk.loads(val)
 
 #
 #  *************************
