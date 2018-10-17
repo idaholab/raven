@@ -180,7 +180,7 @@ def historySnapShoots(valueDict, numberOfTimeStep):
     @ Out, outDic, list, it contains the temporal slice of all histories
   """
   outDict = []
-  numberOfRealizations = len(valueDict.values()[-1])
+  numberOfRealizations = len(list(valueDict.values())[-1])
   outPortion, inPortion = {}, {}
   numberSteps = - 1
   # check consistency of the dictionary

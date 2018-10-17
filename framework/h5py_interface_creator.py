@@ -191,7 +191,7 @@ class hdf5Database(MessageHandler.MessageUser):
     parentID  = rlz.get("RAVEN_parentID",[None])[0]
     prefix    = rlz.get("prefix")
     if prefix is not None:
-      groupName = str(prefix[0] if not isinstance(prefix,basestring) else prefix)
+      groupName = str(prefix[0] if not utils.isString(prefix) else prefix)
     else:
       # this can happen when we want to add sampler generated data (e.g. LimitSurface) in the database
       groupName = str(len(self.allGroupPaths))

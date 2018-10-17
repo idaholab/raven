@@ -158,7 +158,7 @@ class JobHandler(MessageHandler.MessageUser):
         metadataFailedRun = running.getMetadata()
         metadataToKeep = metadataFailedRun
         if metadataFailedRun is not None:
-          metadataKeys      = metadataFailedRun.keys()
+          metadataKeys      = list(metadataFailedRun.keys())
           if 'jobHandler' in metadataKeys:
             metadataKeys.pop(metadataKeys.index("jobHandler"))
             metadataToKeep = { keepKey: metadataFailedRun[keepKey] for keepKey in metadataKeys }

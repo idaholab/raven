@@ -24,6 +24,7 @@ warnings.simplefilter('default',DeprecationWarning)
 import copy
 import numpy as np
 import time
+import itertools
 from collections import OrderedDict
 #External Modules End--------------------------------------------------------------------------------
 
@@ -119,7 +120,7 @@ class EnsembleModel(Dummy):
               self.modelsDictionary[modelName][childChild.tag] = childChild.text.strip()
             except KeyError:
               self.raiseAnError(IOError, 'The role '+str(childChild.tag) +" can not be used in the EnsebleModel. Check the manual for allowable nodes!")
-        if self.modelsDictionary[modelName].values().count(None) != 1:
+        if list(self.modelsDictionary[modelName].values()).count(None) != 1:
           self.raiseAnError(IOError, "TargetEvaluation xml block needs to be inputted!")
         if len(self.modelsDictionary[modelName]['Input']) == 0:
           self.raiseAnError(IOError, "Input XML node for Model" + modelName +" has not been inputted!")
@@ -392,7 +393,7 @@ class EnsembleModel(Dummy):
     """
     # check if all the inputs of the submodule are covered by the sampled vars and Outputs of the other sub-models
     if self.needToCheckInputs:
-      allCoveredVariables = list(set(self.allOutputs + kwargs['SampledVars'].keys()))
+      allCoveredVariables = list(set(itertools.chain(self.allOutputs,kwargs['SampledVars'].keys())))
 
     identifier = kwargs['prefix']
     # global prefix
@@ -479,7 +480,7 @@ class EnsembleModel(Dummy):
         a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
       @ Out, returnValue, dict, This holds the output information of the evaluated sample.
     """
-    kwargsKeys = kwargs.keys()
+    kwargsKeys = list(kwargs.keys())
     kwargsKeys.pop(kwargsKeys.index("jobHandler"))
     kwargsToKeep = { keepKey: kwargs[keepKey] for keepKey in kwargsKeys}
     jobHandler = kwargs['jobHandler']
