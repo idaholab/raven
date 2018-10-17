@@ -637,7 +637,7 @@ class StaticXMLOutput(RAVENGenerated):
     #prettify tree
     pretty = xmlUtils.prettify(self.tree,**kwargs)
     if asString:
-      return pretty
+      return utils.toString(pretty)
     #make sure file is written cleanly and anew
     if self.isOpen():
       self.close()

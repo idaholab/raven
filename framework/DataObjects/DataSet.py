@@ -25,8 +25,10 @@ import os
 import sys
 import copy
 import itertools
-import __builtin__
-import cPickle as pk
+try:
+  import cPickle as pk
+except ModuleNotFoundError:
+  import pickle as pk
 import xml.etree.ElementTree as ET
 
 import abc
@@ -44,8 +46,9 @@ from utils import utils, cached_ndarray, InputData, xmlUtils, mathUtils
 
 # for profiling with kernprof
 try:
+  import __builtin__
   __builtin__.profile
-except AttributeError:
+except (AttributeError,ModuleNotFoundError):
   # profiler not preset, so pass through
   def profile(func):
     """
@@ -1739,6 +1742,7 @@ class DataSet(DataObject):
       ofile.writelines('<DataObjectMetadata name="{}">\n'.format(self.name))
       for name,target in meta.items():
         xml = target.writeFile(asString=True,startingTabs=1,addRavenNewlines=False)
+        print("&"*10,type(target),type(xml))
         ofile.writelines('  '+xml+'\n')
       ofile.writelines('</DataObjectMetadata>\n')
 

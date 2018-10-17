@@ -20,10 +20,12 @@ import warnings
 warnings.simplefilter('default',DeprecationWarning)
 
 import sys,os
-import __builtin__
 import functools
 import copy
-import cPickle as pk
+try:
+  import cPickle as pk
+except ModuleNotFoundError:
+  import pickle as pk
 import xml.etree.ElementTree as ET
 
 import abc
@@ -41,8 +43,9 @@ except ValueError: #attempted relative import in non-package
 
 # for profiling with kernprof
 try:
+  import __builtin__
   __builtin__.profile
-except AttributeError:
+except (AttributeError,ModuleNotFoundError):
   # profiler not preset, so pass through
   def profile(func):
     """

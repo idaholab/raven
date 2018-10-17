@@ -29,7 +29,6 @@ import relapdata
 from PhisicsInterface import Phisics
 from Relap5Interface import Relap5
 
-from  __builtin__ import any as b_any
 
 class PhisicsRelap5(CodeInterfaceBase):
   """
