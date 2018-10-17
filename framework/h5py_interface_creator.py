@@ -32,7 +32,7 @@ import os
 import copy
 try:
   import cPickle as pk
-except ModuleNotFoundError:
+except ImportError:
   import pickle as pk
 import string
 import difflib

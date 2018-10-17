@@ -27,7 +27,7 @@ import copy
 import itertools
 try:
   import cPickle as pk
-except ModuleNotFoundError:
+except ImportError:
   import pickle as pk
 import xml.etree.ElementTree as ET
 
@@ -48,7 +48,7 @@ from utils import utils, cached_ndarray, InputData, xmlUtils, mathUtils
 try:
   import __builtin__
   __builtin__.profile
-except (AttributeError,ModuleNotFoundError):
+except (AttributeError,ImportError):
   # profiler not preset, so pass through
   def profile(func):
     """

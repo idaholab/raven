@@ -25,7 +25,7 @@ import copy
 import functools
 try:
   import cPickle as pk
-except ModuleNotFoundError:
+except ImportError:
   import pickle as pk
 import xml.etree.ElementTree as ET
 

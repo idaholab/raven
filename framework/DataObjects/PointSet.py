@@ -24,7 +24,7 @@ import functools
 import copy
 try:
   import cPickle as pk
-except ModuleNotFoundError:
+except ImportError:
   import pickle as pk
 import xml.etree.ElementTree as ET
 
@@ -45,7 +45,7 @@ except ValueError: #attempted relative import in non-package
 try:
   import __builtin__
   __builtin__.profile
-except (AttributeError,ModuleNotFoundError):
+except (AttributeError,ImportError):
   # profiler not preset, so pass through
   def profile(func):
     """
