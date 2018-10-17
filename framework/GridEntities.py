@@ -302,7 +302,7 @@ class GridEntity(GridBase):
             self.raiseAnError(ValueError, "can not convert 'dim' attribute in integer!")
     #check for globalGrid type of structure
     globalGrids = {}
-    for key in gridInfo.keys():
+    for key in list(gridInfo.keys()): #list() to create copy so pop can be used
       splitted = key.split(":")
       if splitted[0].strip() == 'globalGrid':
         globalGrids[splitted[1]] = gridInfo.pop(key)

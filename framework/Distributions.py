@@ -2372,9 +2372,9 @@ class Custom1D(Distribution):
       @ Out, None
     """
 
-    f = open(self.dataFilename, 'rb')
+    f = open(self.dataFilename, 'r')
     reader = csv.reader(f)
-    headers = reader.next()
+    headers = next(reader)
     indexFunctionID = headers.index(self.functionID)
     indexVariableID = headers.index(self.variableID)
     f.close()
