@@ -209,8 +209,8 @@ class hdf5Database(MessageHandler.MessageUser):
       self.__addGroupRootLevel(groupName,rlz)
       self.firstRootGroup = True
       self.type = 'MC'
-    self.h5FileW.attrs['allGroupPaths'] = pk.dumps(self.allGroupPaths)
-    self.h5FileW.attrs['allGroupEnds'] = pk.dumps(self.allGroupEnds)
+    self.h5FileW.attrs['allGroupPaths'] = pk.dumps(self.allGroupPaths,protocol=0)
+    self.h5FileW.attrs['allGroupEnds'] = pk.dumps(self.allGroupEnds,protocol=0)
     self.h5FileW.flush()
 
 
@@ -295,34 +295,34 @@ class hdf5Database(MessageHandler.MessageUser):
     # get other dtype data (strings and objects)
     dataOther    = dict( (key, np.atleast_1d(value)) for (key, value) in rlz.items() if self.__checkTypeHDF5(value, True) )
     # get size of each data variable (float)
-    varKeysIntfloat = dataIntFloat.keys()
+    varKeysIntfloat = list(dataIntFloat.keys())
     if len(varKeysIntfloat) > 0:
       varShapeIntfloat = [dataIntFloat[key].shape for key in varKeysIntfloat]
       # get data names
-      group.attrs[b'data_namesIntfloat'] = pk.dumps(varKeysIntfloat)
+      group.attrs[b'data_namesIntfloat'] = pk.dumps(varKeysIntfloat,protocol=0)
       # get data shapes
-      group.attrs[b'data_shapesIntfloat'] = pk.dumps(varShapeIntfloat)
+      group.attrs[b'data_shapesIntfloat'] = pk.dumps(varShapeIntfloat,protocol=0)
       # get data shapes
       end   = np.cumsum(varShapeIntfloat)
       begin = np.concatenate(([0],end[0:-1]))
-      group.attrs[b'data_begin_endIntfloat'] = pk.dumps((begin.tolist(),end.tolist()))
+      group.attrs[b'data_begin_endIntfloat'] = pk.dumps((begin.tolist(),end.tolist()),protocol=0)
       # get data names
-      group.create_dataset(name + "_dataIntFloat", dtype="float", data=(np.concatenate( dataIntFloat.values()).ravel()))
+      group.create_dataset(name + "_dataIntFloat", dtype="float", data=(np.concatenate( list(dataIntFloat.values())).ravel()))
       group.attrs[b'hasIntfloat'] = True
     # get size of each data variable (other type)
-    varKeysOther = dataOther.keys()
+    varKeysOther = list(dataOther.keys())
     if len(varKeysOther) > 0:
       varShapeOther = [dataOther[key].shape for key in varKeysOther]
       # get data names
-      group.attrs[b'data_namesOther'] = pk.dumps(varKeysOther)
+      group.attrs[b'data_namesOther'] = pk.dumps(varKeysOther,protocol=0)
       # get data shapes
-      group.attrs[b'data_shapesOther'] = pk.dumps(varShapeOther)
+      group.attrs[b'data_shapesOther'] = pk.dumps(varShapeOther,protocol=0)
       # get data shapes
       end   = np.cumsum(varShapeOther)
       begin = np.concatenate(([0],end[0:-1]))
-      group.attrs[b'data_begin_endOther'] = pk.dumps((begin.tolist(),end.tolist()))
+      group.attrs[b'data_begin_endOther'] = pk.dumps((begin.tolist(),end.tolist()),protocol=0)
       # get data names
-      group.attrs[name + b'_dataOther'] = pk.dumps(np.concatenate( dataOther.values()).ravel().tolist())
+      group.attrs[name + '_dataOther'] = pk.dumps(np.concatenate( list(dataOther.values())).ravel().tolist(),protocol=0)
       group.attrs[b'hasOther'] = True
     # add some info
     group.attrs[b'groupName'     ] = name
