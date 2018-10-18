@@ -173,7 +173,7 @@ class BasicStatistics(PostProcessor):
         self.raiseAWarning('BasicStatistics postprocessor did not detect ProbabilityWeights! Assuming unit weights instead...')
       if 'RAVEN_sample_ID' not in inputDataset.sizes.keys():
         self.raiseAWarning('BasicStatisitics postprocessor did not detect RAVEN_sample_ID! Assuming the first dimension of given data...')
-        self.sampleTag = inputDataset.sizes.keys()[0]
+        self.sampleTag = utils.first(inputDataset.sizes.keys())
       return inputDataset, pbWeights
 
     if currentInput.type not in ['PointSet','HistorySet']:

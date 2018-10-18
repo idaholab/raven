@@ -523,11 +523,11 @@ class LimitSurfaceSearch(AdaptiveSampler):
       for surfPoint in points:
         setSurfPoint.add(tuple(surfPoint))
       newIndices = set(setSurfPoint)
-      for step in xrange(1,self.thickness):
+      for step in range(1,self.thickness):
         prevPoints = set(newIndices)
         newIndices = set()
         for i,iCoords in enumerate(prevPoints):
-          for d in xrange(len(iCoords)):
+          for d in range(len(iCoords)):
             offset = np.zeros(len(iCoords),dtype=int)
             offset[d] = 1
             if iCoords[d] - offset[d] > 0:
@@ -588,7 +588,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
       self.scores = OrderedDict()
       for key, value in self.invPointPersistence.items():
         self.scores[key] = np.zeros(len(self.surfPoint[key]))
-        for i in xrange(len(self.listsurfPoint)):
+        for i in range(len(self.listsurfPoint)):
           self.scores[key][i] = 1
     else:
       self.raiseAnError(NotImplementedError,self.scoringMethod + ' scoring method is not implemented yet')
@@ -653,10 +653,10 @@ class LimitSurfaceSearch(AdaptiveSampler):
 
           flattenedSurfPoints = np.array(flattenedSurfPoints)
           for i,iCoords in enumerate(flattenedBandPoints):
-            for j in xrange(i+1, len(flattenedBandPoints)):
+            for j in range(i+1, len(flattenedBandPoints)):
               jCoords = flattenedBandPoints[j]
               ijValidNeighbors = True
-              for d in xrange(len(jCoords)):
+              for d in range(len(jCoords)):
                 if abs(iCoords[d] - jCoords[d]) > 1:
                   ijValidNeighbors = False
                   break
