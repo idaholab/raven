@@ -46,7 +46,7 @@ class FTGate(object):
       @ Out, None
     """
     self.name         = None # Specific ID of the gate
-    self.gate         = None # Type of logic gate (see self.allowedGates for a loist of allowed gate types)   
+    self.gate         = None # Type of logic gate (see self.allowedGates for a loist of allowed gate types)
     self.arguments    = [] # input elements of the gate
     self.negations    = [] # input elements of the gate that are negated
     self.params       = {} # specific paramteres of the gate

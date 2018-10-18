@@ -98,15 +98,15 @@ class ETStructure(object):
     """
       This method returns the ET data
       @ In, None
-      @ Out, (outputDict,self.variables), tuple, tuple containing 1) outputDict (dict, dictionary containing the 
-                                                 values of all ET branching conditions) and 2) self.variables 
+      @ Out, (outputDict,self.variables), tuple, tuple containing 1) outputDict (dict, dictionary containing the
+                                                 values of all ET branching conditions) and 2) self.variables
                                                 (list, IDs of the ET branching conditions)
     """
     outputDict = {}
     for index, var in enumerate(self.variables):
       outputDict[var] = self.pointSet[:, index]
     outputDict['sequence'] = self.pointSet[:, -1]
-    
+
     return outputDict, self.variables
 
   def createLinkList(self,listRoots):
