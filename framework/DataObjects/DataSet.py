@@ -948,13 +948,12 @@ class DataSet(DataObject):
           pass #not there, so didn't need to remove
         dimsMeta[var] = ','.join(dims)
       # store sample tag, IO information, coordinates
+      self.addMeta('DataSet',{'dims':dimsMeta})
       self.addMeta('DataSet',{'general':{'sampleTag':self.sampleTag,
                                          'inputs':','.join(self._inputs),
                                          'outputs':','.join(self._outputs),
                                          'pointwise_meta':','.join(self._metavars),
-                                         },
-                              'dims':dimsMeta,
-                             })
+      }})
     elif action == 'extend':
       # TODO compatability check!
       # TODO Metadata update?
