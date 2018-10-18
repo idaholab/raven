@@ -333,6 +333,8 @@ class GradientBasedOptimizer(Optimizer):
     else:
       self.status[traj]['reason'] = 'rejecting bad opt point'
       self.raiseADebug('Rejecting potential opt point for worse loss value. old: "{}", new: "{}"'.format(oldLossVal,currentLossVal))
+      # TODO XXX FIXME WORKING terminate all gradient runs for this run
+      self._jobsToEnd.extend(self._createEvaluationIdentifier(traj,varsUpdate,i) for i in self.perturbationIndices)
       # cut the next step size to hopefully stay in the valley instead of climb up the other side
       self.recommendToGain[traj] = 'cut'
 

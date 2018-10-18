@@ -1,0 +1,123 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/Optimizers.TerminateParallel</name>
+    <author>talbpaul</author>
+    <created>2018-10-17</created>
+    <classesTested>Optimizer</classesTested>
+    <description>
+      This test is meant to demonstrate the optimizer's capability to terminate unneeded jobs when incorrect guesses are
+      made for optimal points, and the gradient evaluation points need to be terminated.
+
+      This is accomplished by coupling the Beale and Stress models.
+    </description>
+    <analytic>
+      This test uses both Beale's function, which is documented in the analytic tests documentation under
+      the Optimizer functions section, as well as the Stress function, which is in the same tests documentation.
+    </analytic>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>TerminateParallel</WorkingDir>
+    <Sequence>optimize,print</Sequence>
+    <batchSize>20</batchSize>
+    <maxQueueSize>20</maxQueueSize>
+    <internalParallel>True</internalParallel>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="optimize">
+      <Input class="DataObjects" type="PointSet">bealeDummy</Input>
+      <Model class="Models" type="EnsembleModel">ens</Model>
+      <Optimizer class="Optimizers" type="FiniteDifference">opter</Optimizer>
+      <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
+      <Output class="DataObjects" type="PointSet">optOut</Output>
+    </MultiRun>
+    <IOStep name="print">
+      <Input class="DataObjects" type="PointSet">opt_export</Input>
+      <Output class="OutStreams" type="Print">opt_export</Output>
+    </IOStep>
+  </Steps>
+
+  <Optimizers>
+    <FiniteDifference name="opter">
+      <initialization>
+        <limit>2000</limit>
+        <initialSeed>42</initialSeed>
+        <thresholdTrajRemoval>1e-2</thresholdTrajRemoval>
+        <writeSteps>every</writeSteps>
+      </initialization>
+      <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
+      <convergence>
+        <gradientThreshold>1e-1</gradientThreshold>
+        <gainGrowthFactor>1.5</gainGrowthFactor>
+        <gainShrinkFactor>1.25</gainShrinkFactor>
+      </convergence>
+      <variable name="x">
+        <upperBound>4.5</upperBound>
+        <lowerBound>-4.5</lowerBound>
+        <initial>2,2,0,-2,-2</initial>
+      </variable>
+      <variable name="y">
+        <upperBound>4.5</upperBound>
+        <lowerBound>-4.5</lowerBound>
+        <initial>2,-2,0,2,-2</initial>
+      </variable>
+      <constant name="interval">1e-0</constant>
+      <objectVar>ans</objectVar>
+    </FiniteDifference>
+  </Optimizers>
+
+  <Models>
+    <ExternalModel ModuleToLoad="../../../framework/AnalyticModels/optimizing/beale" name="beale" subType="">
+      <variables>x,y,ans</variables>
+    </ExternalModel>
+    <ExternalModel ModuleToLoad="../../../framework/AnalyticModels/stress" name="stress" subType="">
+      <variables>interval,done</variables>
+    </ExternalModel>
+    <EnsembleModel name="ens" subType="">
+      <Model class="Models" type="ExternalModel">beale
+        <Input class="DataObjects" type="PointSet">bealeDummy</Input>
+        <TargetEvaluation class="DataObjects" type="PointSet">bealeEval</TargetEvaluation>
+      </Model>
+      <Model class="Models" type="ExternalModel">stress
+        <Input class="DataObjects" type="PointSet">stressDummy</Input>
+        <TargetEvaluation class="DataObjects" type="PointSet">stressEval</TargetEvaluation>
+      </Model>
+    </EnsembleModel>
+  </Models>
+
+  <DataObjects>
+    <PointSet name="bealeDummy">
+      <Input>x,y</Input>
+    </PointSet>
+    <PointSet name="stressDummy">
+      <Input>ans,interval</Input>
+    </PointSet>
+    <PointSet name="bealeEval">
+      <Input>x,y</Input>
+      <Output>ans</Output>
+    </PointSet>
+    <PointSet name="stressEval">
+      <Input>ans,interval</Input>
+      <Output>done</Output>
+    </PointSet>
+    <PointSet name="optOut">
+      <Input>x,y</Input>
+      <Output>ans</Output>
+    </PointSet>
+    <PointSet name="opt_export">
+      <Input>trajID</Input>
+      <Output>x,y,ans,varsUpdate</Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="opt_export">
+      <type>csv</type>
+      <source>opt_export</source>
+      <clusterLabel>trajID</clusterLabel>
+    </Print>
+  </OutStreams>
+
+</Simulation>

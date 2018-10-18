@@ -748,5 +748,5 @@ class JobHandler(MessageHandler.MessageUser):
           queue.remove(job)
           self.raiseADebug('Terminated job "{}" by request.'.format(job.uniqueHandler))
     if len(ids):
-      self.raiseADebug('Tried to remove some jobs but not found in any queues:',ids)
+      self.raiseADebug('Tried to remove some jobs but not found in any queues:',', '.join(ids))
 
