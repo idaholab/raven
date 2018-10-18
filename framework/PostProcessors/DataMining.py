@@ -423,7 +423,7 @@ class DataMining(PostProcessor):
           ## put all of the information and then to remove the ones we process.
           ## - dpm 6/8/16
           self.initializationOptionDict[child.getName()] = {}
-          for key,value in child.parameterValues.iteritems():
+          for key,value in child.parameterValues.items():
             if key == 'lib':
               self.type = value
             elif key == 'labelFeature':

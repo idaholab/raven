@@ -230,7 +230,7 @@ class ExternalPostProcessor(PostProcessor):
     ## Evaluate the method and add it to the outputDict, also if the method
     ## adjusts the input data, then you should update it as well.
     warningMessages = []
-    for methodName, (interface, method) in methodMap.iteritems():
+    for methodName, (interface, method) in methodMap.items():
       # The deep copy is needed since the interface postprocesor will change the values of inputDict
       tempInputDict = copy.deepcopy(inputDict)
       outputDict[methodName] = np.atleast_1d(copy.copy(interface.evaluate(method, tempInputDict)))

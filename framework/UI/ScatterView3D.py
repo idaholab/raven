@@ -251,7 +251,7 @@ class ScatterView3D(BaseTopologicalView):
 
     specialColorKeywords = ['Segment','Minimum Flow', 'Maximum Flow']
 
-    for key,cmb in self.cmbVars.iteritems():
+    for key,cmb in self.cmbVars.items():
       if cmb.currentText() == 'Predicted from Linear Fit':
         allValues[key] = self.amsc.PredictY(None)
         mins[key] = min(allValues[key])
@@ -270,7 +270,7 @@ class ScatterView3D(BaseTopologicalView):
         colorMap = self.amsc.GetColors()
         partitions = self.amsc.Partitions()
         allValues[key] = np.zeros(self.amsc.GetSampleSize(),dtype='|S7')
-        for extPair,items in partitions.iteritems():
+        for extPair,items in partitions.items():
           for item in items:
             allValues[key][item] = colorMap[extPair]
         values[key] = allValues[key][rows]
@@ -280,7 +280,7 @@ class ScatterView3D(BaseTopologicalView):
         colorMap = self.amsc.GetColors()
         partitions = self.amsc.Partitions()
         allValues[key] = np.zeros(self.amsc.GetSampleSize(),dtype='|S7')
-        for extPair,items in partitions.iteritems():
+        for extPair,items in partitions.items():
           for item in items:
             allValues[key][item] = colorMap[extPair[1]]
         values[key] = allValues[key][rows]
@@ -290,7 +290,7 @@ class ScatterView3D(BaseTopologicalView):
         colorMap = self.amsc.GetColors()
         partitions = self.amsc.Partitions()
         allValues[key] = np.zeros(self.amsc.GetSampleSize(),dtype='|S7')
-        for extPair,items in partitions.iteritems():
+        for extPair,items in partitions.items():
           for item in items:
             allValues[key][item] = colorMap[extPair[0]]
         values[key] = allValues[key][rows]

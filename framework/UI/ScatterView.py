@@ -183,7 +183,7 @@ class ScatterView(BaseHierarchicalView):
 
     specialColorKeywords = ['Cluster']
 
-    for key,cmb in self.cmbVars.iteritems():
+    for key,cmb in self.cmbVars.items():
       if dimensionality == 2 and key == 'Z':
         continue
       if cmb.currentText() == 'Cluster':

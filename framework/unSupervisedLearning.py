@@ -165,7 +165,7 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
 
     ## Check that all of the values have the same length
     if not isinstance(utils.first(tdict.values()),dict):
-      for name,val in tdict.iteritems():
+      for name,val in tdict.items():
         if name in self.features and realizationCount != val.size:
           self.raiseAnError(IOError, ' In training set, the number of realizations are inconsistent among the requested features.')
 
@@ -181,7 +181,7 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
 
     ## Not sure when this would ever happen, but check that the data you are
     ## given is a 1D array?
-    # for name,val in tdict.iteritems():
+    # for name,val in tdict.items():
     #   if name in self.features:
     #     resp = self.checkArrayConsistency(val)
     #     if not resp[0]:
@@ -289,7 +289,7 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
         msg = 'The requested features: %s do not exist in the evaluate set.' % str(list(unidentifiedFeatures))
       self.raiseAnError(IOError, msg)
 
-    for name,values in edict.iteritems():
+    for name,values in edict.items():
       resp = self.checkArrayConsistency(values)
       if not resp[0]:
         self.raiseAnError(IOError, ' In evaluate request for feature ' + name + ':' + resp[1])

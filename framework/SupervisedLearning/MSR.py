@@ -235,7 +235,7 @@ class MSR(NDinterpolatorRom):
       @ In, state, dict, it contains all the information needed by the ROM to be initialized
       @ Out, None
     """
-    for key, value in state.iteritems():
+    for key, value in state.items():
       setattr(self, key, value)
     self.kdTree             = None
     self.__amsc             = []
@@ -475,7 +475,7 @@ class MSR(NDinterpolatorRom):
           h = sorted(dists)[self.knn-1]
         else:
           h = self.bandwidth
-        for key,indices in partitions.iteritems():
+        for key,indices in partitions.items():
           #############
           ## Using SciKit Learn, we have a limited number of kernel functions to
           ## choose from.
@@ -516,7 +516,7 @@ class MSR(NDinterpolatorRom):
       elif self.partitionPredictor == 'svm':
         partitions = self.__amsc[index].Partitions(self.simplification)
         labels = np.zeros(self.X.shape[0])
-        for idx,(key,indices) in enumerate(partitions.iteritems()):
+        for idx,(key,indices) in enumerate(partitions.items()):
           labels[np.array(indices)] = idx
         # In order to make this deterministic for testing purposes, let's fix
         # the random state of the SVM object. Maybe, this could be exposed to the

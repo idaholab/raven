@@ -449,7 +449,7 @@ class AMSC_Object(object):
     if self.segmentFits is None or len(self.segmentFits) == 0:
       self.BuildModels(self.persistence)
     coefficients = {}
-    for key,fit in self.segmentFits.iteritems():
+    for key,fit in self.segmentFits.items():
       coefficients[key] = fit[1:]
       # coefficients[key] = fit[:]
     return coefficients
@@ -466,7 +466,7 @@ class AMSC_Object(object):
     if self.segmentFits is None or len(self.segmentFits) == 0:
       self.BuildModels(self.persistence)
     rSquared = {}
-    for key,fitness in self.segmentFitnesses.iteritems():
+    for key,fitness in self.segmentFitnesses.items():
       rSquared[key] = fitness
     return rSquared
 
@@ -483,7 +483,7 @@ class AMSC_Object(object):
     if self.segmentFits is None or len(self.segmentFits) == 0:
       self.BuildModels(self.persistence)
     pearson = {}
-    for key,fit in self.pearson.iteritems():
+    for key,fit in self.pearson.items():
       pearson[key] = fit[:]
     return pearson
 
@@ -500,7 +500,7 @@ class AMSC_Object(object):
     if self.segmentFits is None or len(self.segmentFits) == 0:
       self.BuildModels(self.persistence)
     spearman = {}
-    for key,fit in self.spearman.iteritems():
+    for key,fit in self.spearman.items():
       spearman[key] = fit[:]
     return spearman
 
@@ -518,7 +518,7 @@ class AMSC_Object(object):
       indices = list(range(0,self.GetSampleSize()))
 
     mask = np.ones(len(indices), dtype=bool)
-    for header,bounds in self.filters.iteritems():
+    for header,bounds in self.filters.items():
       if header in self.names:
         idx = self.names.index(header)
         if idx >= 0 and idx < len(self.names)-1:
@@ -661,7 +661,7 @@ class AMSC_Object(object):
     """
     partitions = self.Partitions(persistence)
 
-    for key,items in partitions.iteritems():
+    for key,items in partitions.items():
       X = self.Xnorm[np.array(items),:]
       y = np.array(self.Y[np.array(items)])
       w = self.w[np.array(items)]
@@ -837,7 +837,7 @@ class AMSC_Object(object):
 
     predictedY = np.zeros(self.GetSampleSize())
     if fit == 'linear':
-      for key,items in partitions.iteritems():
+      for key,items in partitions.items():
         beta_hat = self.segmentFits[key][1:]
         y_intercept = self.segmentFits[key][0]
         for idx in items:
@@ -977,7 +977,7 @@ class AMSC_Object(object):
 
     self.pearson = {}
     self.spearman = {}
-    for key,items in partitions.iteritems():
+    for key,items in partitions.items():
       X = self.Xnorm[np.array(items),:]
       y = self.Y[np.array(items)]
 
@@ -1216,7 +1216,7 @@ try:
       """
       partitions = self.Partitions(self.persistence)
       indices = []
-      for extPair,indexSet in partitions.iteritems():
+      for extPair,indexSet in partitions.items():
         if extPair in self.selectedSegments \
         or extPair[0] in self.selectedExtrema \
         or extPair[1] in self.selectedExtrema:

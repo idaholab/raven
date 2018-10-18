@@ -179,14 +179,14 @@ class phisicsdata():
     summedDict = lambda: defaultdict(summedDict)
     mySummedDict = summedDict()
     if not self.printSpatialRR:
-      for parameter, mpi in nestedDict.iteritems():
+      for parameter, mpi in nestedDict.items():
         sumString = '%.15E' % Decimal(
             sum([float(elm) for elm in mpi.values()]))
         mySummedDict[parameter] = sumString
     else:
-      for group, region in nestedDict.iteritems():
-        for region, parameter in region.iteritems():
-          for parameter, mpi in parameter.iteritems():
+      for group, region in nestedDict.items():
+        for region, parameter in region.items():
+          for parameter, mpi in parameter.items():
             sumString = '%.15E' % Decimal(
                 sum([float(elm) for elm in mpi.values()]))
             mySummedDict[group][region][parameter] = sumString
