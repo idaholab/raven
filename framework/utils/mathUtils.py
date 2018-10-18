@@ -24,6 +24,7 @@ warnings.simplefilter('default',DeprecationWarning)
 
 import sys
 import math
+import functools
 import copy
 import scipy
 from scipy import interpolate, stats, integrate
@@ -191,11 +192,11 @@ def historySnapShoots(valueDict, numberOfTimeStep):
       # check the time-step size
       outPortion[variable] = np.asarray(value)
       if numberSteps == -1:
-        numberSteps = reduce(lambda x, y: x*y, list(outPortion.values()[-1].shape))/numberOfRealizations
+        numberSteps = functools.reduce(lambda x, y: x*y, list(list(outPortion.values())[-1].shape))/numberOfRealizations
       if len(list(outPortion[variable].shape)) != 2:
         return "historySnapShoots method: number of time steps are not consistent among the different histories for variable "+variable
-      if reduce(lambda x, y:
-        x*y, list(outPortion.values()[-1].shape))/numberOfRealizations != numberSteps :
+      if functools.reduce(lambda x, y:
+        x*y, list(list(outPortion.values())[-1].shape))/numberOfRealizations != numberSteps :
         return "historySnapShoots method: number of time steps are not consistent among the different histories for variable "+variable+". Expected "+str(numberSteps)+" /= "+ sum(list(outPortion[variable].shape))/numberOfRealizations
     else:
       inPortion [variable] = np.asarray(value)
