@@ -731,7 +731,7 @@ class DataMining(PostProcessor):
       outputDict['outputs'][self.labelFeature] = labels
     elif 'embeddingVectors' in outputDict['outputs']:
       transformedData = outputDict['outputs'].pop('embeddingVectors')
-      reducedDimensionality = transformedData.values()[0].shape[1]
+      reducedDimensionality = utils.first(transformedData.values()).shape[1]
 
       for i in range(reducedDimensionality):
         dimensionI = np.zeros(shape=(numberOfSample,numberOfHistoryStep))

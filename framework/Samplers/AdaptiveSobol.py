@@ -846,7 +846,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
       for t in self.targets:
         self.statesFile.writelines('  %12s' %t)
       self.statesFile.writelines('\n')
-      for coeff in self.romShell[sub].supervisedEngine.supervisedContainer[0].polyCoeffDict.values()[0].keys():
+      for coeff in utils.first(self.romShell[sub].supervisedEngine.supervisedContainer[0].polyCoeffDict.values()).keys():
         self.statesFile.writelines('    %12s' %','.join(str(c) for c in coeff))
         for t in self.targets:
           self.statesFile.writelines('  %1.6e' %self.romShell[sub].supervisedEngine.supervisedContainer[0].polyCoeffDict[t][coeff])
@@ -859,7 +859,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
           self.statesFile.writelines('    %12s %12s\n' %(sub,item[2]))
       #polynomials on the fringe that aren't being trained
       self.statesFile.writelines('EXPECTED:\n')
-      for poly in self.samplers[sub].expImpact.values()[0].keys():
+      for poly in utils.first(self.samplers[sub].expImpact.values()).keys():
         self.statesFile.writelines('    %12s' %','.join(str(c) for c in poly))
         self.statesFile.writelines('  %1.6e' %self.samplers[sub].expImpact[t][poly])
         self.statesFile.writelines('\n')

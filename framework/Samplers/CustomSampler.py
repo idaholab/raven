@@ -31,7 +31,7 @@ import copy
 
 #Internal Modules------------------------------------------------------------------------------------
 from .ForwardSampler import ForwardSampler
-from utils import InputData
+from utils import InputData, utils
 #Internal Modules End--------------------------------------------------------------------------------
 
 class CustomSampler(ForwardSampler):
@@ -180,7 +180,7 @@ class CustomSampler(ForwardSampler):
         self.infoFromCustom['ProbabilityWeight'] = data[:,headers.index('ProbabilityWeight')]
       else:
         self.infoFromCustom['ProbabilityWeight'] = np.ones(lenRlz)
-      self.limit = len(self.pointsToSample.values()[0])
+      self.limit = len(utils.first(self.pointsToSample.values()))
     else:
       self.readingFrom = 'DataObject'
       dataObj = self.assemblerDict['Source'][0][3]

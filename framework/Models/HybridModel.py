@@ -374,7 +374,7 @@ class HybridModel(Dummy):
       if info['targetName'] in exploredTargets:
         self.raiseAnError(IOError, "Multiple metrics are used in cross validation '", self.cvInstance.name, "'. Currently, this can not be processed by the HybridModel '", self.name, "'!")
       exploredTargets.append(info['targetName'])
-      name = self.cvInstance.interface.metricsDict.keys()[0]
+      name = utils.first(self.cvInstance.interface.metricsDict.keys())
       converged = self.checkErrors(info['metricType'], metricValues)
     return converged
 

@@ -214,7 +214,7 @@ class HierarchyWindow(qtw.QMainWindow):
 
     linkage = self.engine.linkage
 
-    self.labels = np.zeros(len(self.engine.features.values()[0]))
+    self.labels = np.zeros(len(list(self.engine.features.values())[0]))
 
     heads = {}
 
@@ -274,7 +274,7 @@ class HierarchyWindow(qtw.QMainWindow):
       @ In, None
       @ Out, data, nparray, the data being used by this window.
     """
-    data = np.zeros((len(self.engine.features.values()[0]),len(self.engine.features.keys())))
+    data = np.zeros((len(list(self.engine.features.values())[0]),len(self.engine.features.keys())))
     for col,value in enumerate(self.engine.features.values()):
       data[:,col] = value
     return data

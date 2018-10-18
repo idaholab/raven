@@ -177,7 +177,7 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
           self.foundEpistemicTree, treer = True, tree
           break
     else:
-      treer = self.TreeInfo.values()[0]
+      treer = utils.first(self.TreeInfo.values())
 
     # check if in the adaptive points already explored (if not push into the grid)
     if not self.insertAdaptBPb:

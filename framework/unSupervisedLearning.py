@@ -144,8 +144,8 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
       self.raiseAnError(IOError, ' method "train". The training set needs to be provided through a dictionary. Type of the in-object is ' + str(type(tdict)))
 
     featureCount = len(self.features)
-    if not isinstance(tdict[tdict.keys()[0]],dict):
-      realizationCount = tdict.values()[0].size
+    if not isinstance(tdict[utils.first(tdict.keys())],dict):
+      realizationCount = utils.first(tdict.values()).size
 
     ############################################################################
     ## Error-handling
@@ -164,7 +164,7 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
       self.raiseAnError(IOError, msg)
 
     ## Check that all of the values have the same length
-    if not isinstance(tdict.values()[0],dict):
+    if not isinstance(utils.first(tdict.values()),dict):
       for name,val in tdict.iteritems():
         if name in self.features and realizationCount != val.size:
           self.raiseAnError(IOError, ' In training set, the number of realizations are inconsistent among the requested features.')
@@ -202,7 +202,7 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
     else:
       # metric != None
       ## The dictionary represents a HistorySet
-      if isinstance(tdict.values()[0],dict):
+      if isinstance(utils.first(tdict.values()),dict):
         ## normalize data
 
         ## But why this way? This should be one of the options, this looks like
@@ -224,8 +224,8 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
             # process the input data for the metric, numpy.array is required
             assert(tdictNorm[keys[i]].keys() == tdictNorm[keys[j]].keys())
             numParamsI = len(tdictNorm[keys[i]].keys())
-            numStepsI = len(tdictNorm[keys[i]].values()[0])
-            numStepsJ = len(tdictNorm[keys[j]].values()[0])
+            numStepsI = len(utils.first(tdictNorm[keys[i]].values()))
+            numStepsJ = len(utils.first(tdictNorm[keys[j]].values()))
 
             inputI = np.empty((numParamsI, numStepsI))
             inputJ = np.empty((numParamsI, numStepsJ))
@@ -270,7 +270,7 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
 
     names = edict.keys()
 
-    realizationCount = edict.values()[0].size
+    realizationCount = utils.first(edict.values()).size
     featureCount = len(self.features)
 
     ############################################################################

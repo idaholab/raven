@@ -27,7 +27,7 @@ import copy
 
 #Internal Modules---------------------------------------------------------------
 from .PostProcessor import PostProcessor
-from utils import InputData
+from utils import InputData, utils
 import Files
 import Runners
 #Internal Modules End-----------------------------------------------------------
@@ -257,7 +257,7 @@ class ExternalPostProcessor(PostProcessor):
     # TODO: We assume the structure of input to the external pp is the same as the struture of output to this external pp
     # An interface pp should be used if the user wants to merge two data objects, or change the structures of input data
     # objects.
-    numRlz = len(outputDict.values()[0])
+    numRlz = len(utils.first(outputDict.values()))
     for val in outputDict.values():
       if len(val) != numRlz:
         self.raiseAnError(IOError, "The return results from the external functions have different number of realizations!"
