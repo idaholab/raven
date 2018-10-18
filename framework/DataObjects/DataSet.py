@@ -247,6 +247,13 @@ class DataSet(DataObject):
       self._inputs.append(varName)
     elif classify == 'output':
       self._outputs.append(varName)
+      if type(values[0]) == xr.DataArray:
+        indexes = values[0].sizes.keys()
+        for index in indexes:
+          if index in self._pivotParams.keys():
+            self._pivotParams[index].append(varName)
+          else:
+            self._pivotParams[index]=[varName]
     else:
       self._metavars.append(varName)
     self._orderedVars.append(varName)
