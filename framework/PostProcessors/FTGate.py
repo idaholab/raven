@@ -45,8 +45,8 @@ class FTGate(object):
       @ In, xmlNode, xml.etree.Element, Xml element node
       @ Out, None
     """
-    self.name         = None
-    self.gate         = None
+    self.name         = None # Specific ID of the gate
+    self.gate         = None # Type of logic gate (see self.allowedGates for a loist of allowed gate types)   
     self.arguments    = [] # input elements of the gate
     self.negations    = [] # input elements of the gate that are negated
     self.params       = {} # specific paramteres of the gate
@@ -176,9 +176,9 @@ def orGate(argumentValues):
     @ Out, outcome, float, calculated outcome of the gate
   """
   if 1 in argumentValues:
-      outcome = 1
+    outcome = 1
   else:
-      outcome = 0
+    outcome = 0
   return outcome
 
 def nandGate(argumentValues):

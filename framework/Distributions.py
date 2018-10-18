@@ -1748,8 +1748,8 @@ class MarkovCategorical(Categorical):
     self.dimensionality = 1
     self.disttype       = 'Discrete'
     self.type           = 'MarkovCategorical'
-    self.steadyStatePb  = None
-    self.transition     = None
+    self.steadyStatePb  = None # variable containing the steady state probabilities of the Markov Model
+    self.transition     = None # transition matrix of a continuous time Markov Model
 
   def _handleInput(self, paramInput):
     """

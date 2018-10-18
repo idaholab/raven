@@ -14,7 +14,7 @@
 """
 Created on Dec 21, 2017
 
-  @author: mandd
+@author: mandd
 """
 
 from __future__ import division, print_function , unicode_literals, absolute_import
@@ -128,4 +128,4 @@ class FTImporter(PostProcessor):
     if output.type in ['PointSet']:
       output.load(outputDict['data'], style='dict', dims=outputDict['dims'])
     else:
-        self.raiseAnError(RuntimeError, 'FTImporter failed: Output type ' + str(output.type) + ' is not supported.')
+      self.raiseAnError(RuntimeError, 'FTImporter failed: Output type ' + str(output.type) + ' is not supported.')

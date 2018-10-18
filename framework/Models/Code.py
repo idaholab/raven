@@ -206,7 +206,6 @@ class Code(Model):
     if self.executable == '':
       self.raiseAWarning('The node "<executable>" was not found in the body of the code model '+str(self.name)+' so no code will be run...')
     else:
-      # To be decided!!!!
       if os.environ.get('RAVENinterfaceCheck','False').lower() in utils.stringsThatMeanFalse():
         if '~' in self.executable:
           self.executable = os.path.expanduser(self.executable)

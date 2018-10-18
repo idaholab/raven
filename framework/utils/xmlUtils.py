@@ -356,7 +356,7 @@ def findAllRecursive(node, element):
     subnodes, subsubnodes etc. recursively
     @ In, node, ET.Element, the current node to search under
     @ In, element, str, the string name of the tags to locate
-    @ InOut, result, list, a list of the currently recovered results
+    @ Out, result, list, a list of the currently recovered results
   """
   result=[]
   for elem in node.iter(tag=element):

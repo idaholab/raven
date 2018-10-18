@@ -43,7 +43,8 @@ class ETStructure(object):
   def __init__(self, expand, inputs):
     """
       This method executes the post-processor action.
-      @ In,  inputs, list, list of file objects
+      @ In, inputs, list, list of file objects
+      @ In, expand, bool, boolean variable which indicates if the ET needs to be factorially expanded
       @ Out, None
     """
     self.expand = expand
@@ -97,14 +98,15 @@ class ETStructure(object):
     """
       This method returns the ET data
       @ In, None
-      @ Out, outputDict, dict, dictionary containing the values of all ET branching conditions
-      @ Out, self.variables, list, IDs of the ET branching conditions
+      @ Out, (outputDict,self.variables), tuple, tuple containing 1) outputDict (dict, dictionary containing the 
+                                                 values of all ET branching conditions) and 2) self.variables 
+                                                (list, IDs of the ET branching conditions)
     """
     outputDict = {}
     for index, var in enumerate(self.variables):
       outputDict[var] = self.pointSet[:, index]
     outputDict['sequence'] = self.pointSet[:, -1]
-
+    
     return outputDict, self.variables
 
   def createLinkList(self,listRoots):
@@ -149,6 +151,7 @@ class ETStructure(object):
          ET1 ----> ET2 ----> ET3
           |------> ET4 ----> ET5
       Five ETs have been provided, ET1 is the only root ET while ET3 and ET5 are leaf ET.
+      @ In, links, list, list containing all the link connectivities among ETs
       @ In, listETs, list, list containing the ID of the ETs
       @ In, connectivityMatrix, np.array, matrix containing connectivity mapping
       @ Out, rootETID, xml.etree.Element, root of the main ET
@@ -221,7 +224,7 @@ class ETStructure(object):
     """
       This method executes the analysis of the ET if a single ET is provided.
       @ In,  masterRoot, xml.etree.Element, root of the ET
-      @ Out, outputDict, dict, dictionary containing the pointSet data
+      @ Out, pointSet, np.array, numpy matrix containing the pointSet data
     """
     root = self.checkSubBranches(masterRoot)
 
@@ -273,6 +276,7 @@ class ETStructure(object):
       This method performs a full-factorial expansion of the ET: if a branch contains a -1 element this method
       duplicate the branch; each duplicated branch contains element values equal to +1 and 0.
       @ In,  pointSet, np.array, original point set
+      @ In, values, dict, dictionary containing the numerical value associated to each functional event
       @ Out, pointSet, np.array, expanded point set
     """
     for col in range(pointSet.shape[1]):
@@ -299,8 +303,8 @@ class ETStructure(object):
           <define-event-tree name="Link-to-LP-Event-Tree">
 
       @ In,  root, xml.etree.Element, root of the root ET
-      @ Out, dependencies, list, ID of the linked ET (e.g., Link-to-LP-Event-Tree)
-      @ Out, seqID, list, ID of the link in the root ET (e.g., Link-to-LP)
+      @ Out, returnData, tuple, tuple containing 1) dependencies (list of ID of the linked ET (e.g., Link-to-LP-Event-Tree))
+                                and seqID (list of ID of the link in the root ET (e.g., Link-to-LP))
     """
     dependencies = []
     seqID        = []
@@ -310,7 +314,8 @@ class ETStructure(object):
         if 'event-tree' in child.tag:
           dependencies.append(child.get('name'))
           seqID.append(node.get('name'))
-    return dependencies, seqID
+    returnData = dependencies, seqID
+    return returnData
 
   def mergeLinkedTrees(self,rootMaster,rootSlave,location):
     """
