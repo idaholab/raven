@@ -910,7 +910,7 @@ class OutStreamPlot(OutStreamManager):
       self.raiseAnError(TypeError, 'This Plot interface is able to handle 2D-3D plot only')
 
     if 'gridSpace' in self.options['plotSettings'].keys():
-      grid = map(int, self.options['plotSettings']['gridSpace'].split(' '))
+      grid = list(map(int, self.options['plotSettings']['gridSpace'].split(' ')))
       self.gridSpace = matplotlib.gridspec.GridSpec(grid[0], grid[1])
 
   def addOutput(self):
@@ -941,11 +941,11 @@ class OutStreamPlot(OutStreamManager):
         x = None
         y = None
         if 'x' in  plotSettings['gridLocation'].keys():
-          x = map(int, plotSettings['gridLocation']['x'].strip().split(' '))
+          x = list(map(int, plotSettings['gridLocation']['x'].strip().split(' ')))
         else:
           x = None
         if 'y' in  plotSettings['gridLocation'].keys():
-          y = map(int, plotSettings['gridLocation']['y'].strip().split(' '))
+          y = list(map(int, plotSettings['gridLocation']['y'].strip().split(' ')))
         else:
           y = None
         if   (len(x) == 1 and len(y) == 1):

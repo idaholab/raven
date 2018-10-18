@@ -925,7 +925,7 @@ class temporalSciKitLearn(unSupervisedLearning):
         #   self.metaDict['clusterCentersIndices'][t] = range(noClusters)
         # else:
         #   self.metaDict['clusterCentersIndices'][t] = range(noClusters)  # use list(set(self.SKLEngine.Method.labels_)) to collect outliers
-        self.metaDict['clusterCentersIndices'][t] = range(noClusters)
+        self.metaDict['clusterCentersIndices'][t] = list(range(noClusters))
 
         # # collect optional output
         # if hasattr(self.SKLEngine.Method, 'inertia_'):
@@ -1168,7 +1168,7 @@ class temporalSciKitLearn(unSupervisedLearning):
     for n1 in range(N1):
       for n2 in range(N2):
         dMatrix[n1,n2] = self.__computeDist__(t,n1,n2,dataCenter,'DistanceWithDecay')
-    _, mapping = self.__localReMap__(dMatrix, (range(N1), range(N2)))
+    _, mapping = self.__localReMap__(dMatrix, (list(range(N1)), list(range(N2))))
 
     remap = {}
     f1, f2 = [False]*N1, [False]*N2

@@ -102,9 +102,9 @@ class MSR(NDinterpolatorRom):
     # value checking in place since the type cast can fail.
     for key,val in kwargs.items():
       if key.lower() == 'graph':
-        self.graph = val.strip().encode('ascii').lower()
+        self.graph = val.strip().lower()
       elif key.lower() == "gradient":
-        self.gradient = val.strip().encode('ascii').lower()
+        self.gradient = val.strip().lower()
       elif key.lower() == "beta":
         try:
           self.beta = float(val)
@@ -112,7 +112,7 @@ class MSR(NDinterpolatorRom):
           # If the user has specified a graph, use it, otherwise be sure to use
           #  the default when checking whether this is a warning or an error
           if 'graph' in kwargs:
-            graph = kwargs['graph'].strip().encode('ascii').lower()
+            graph = kwargs['graph'].strip().lower()
           else:
             graph = self.graph
           if graph.endswith('beta skeleton'):
@@ -146,7 +146,7 @@ class MSR(NDinterpolatorRom):
             # If the user has specified a strategy, use it, otherwise be sure to
             #  use the default when checking whether this is a warning or an error
             if 'partitionPredictor' in kwargs:
-              partPredictor = kwargs['partitionPredictor'].strip().encode('ascii').lower()
+              partPredictor = kwargs['partitionPredictor'].strip().lower()
             else:
               partPredictor = self.partitionPredictor
             if partPredictor == 'kde':
@@ -158,9 +158,9 @@ class MSR(NDinterpolatorRom):
                                  'using the', partPredictor, 'partition',
                                  'predictor')
       elif key.lower() == 'persistence':
-        self.persistence = val.strip().encode('ascii').lower()
+        self.persistence = val.strip().lower()
       elif key.lower() == 'partitionpredictor':
-        self.partitionPredictor = val.strip().encode('ascii').lower()
+        self.partitionPredictor = val.strip().lower()
       elif key.lower() == 'smooth':
         self.blending = True
       elif key.lower() == "kernel":
@@ -192,7 +192,7 @@ class MSR(NDinterpolatorRom):
                         self.acceptedPersistenceParam,')')
     if self.partitionPredictor not in self.acceptedPredictorParam:
       self.raiseAnError(IOError, 'Requested unknown partition predictor:'
-                        '\"'+self.partitionPredictor+'\"','(Available options:',
+                        '\"'+repr(self.partitionPredictor)+'\"','(Available options:',
                         self.acceptedPredictorParam,')')
     if self.bandwidth <= 0:
       if self.partitionPredictor == 'kde':
@@ -266,7 +266,7 @@ class MSR(NDinterpolatorRom):
     if self.knn <= 0:
       self.knn = self.X.shape[0]
 
-    names = [name.encode('ascii') for name in self.features + self.target]
+    names = self.features + self.target
     # Data is already normalized, so ignore this parameter
     ### Comment replicated from the post-processor version, not sure what it
     ### means (DM)

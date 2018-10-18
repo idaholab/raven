@@ -361,7 +361,7 @@ class AMSC_Object(object):
     self.persistences = sorted(list(set(self.persistences)))
 
     partitions = self.Partitions(self.persistences[0])
-    cellIdxs = np.array(partitions.keys())
+    cellIdxs = np.array(list(partitions.keys()))
     self.minIdxs = np.unique(cellIdxs[:,0])
     self.maxIdxs = np.unique(cellIdxs[:,1])
 
