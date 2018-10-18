@@ -269,7 +269,7 @@ class AMSC_Object(object):
 
     if self.names is None:
       self.names = []
-      for d in xrange(self.GetDimensionality()):
+      for d in range(self.GetDimensionality()):
         self.names.append('x%d' % d)
       self.names.append('y')
 
@@ -308,8 +308,8 @@ class AMSC_Object(object):
         sys.stderr.write('%f s\n' % (end-start))
 
       pairs = []                              # prevent duplicates with this guy
-      for e1 in xrange(0,edges.shape[0]):
-        for col in xrange(0,edges.shape[1]):
+      for e1 in range(0,edges.shape[0]):
+        for col in range(0,edges.shape[1]):
           e2 = edges.item(e1,col)
           if e1 != e2:
             pairs.append((e1,e2))
@@ -515,7 +515,7 @@ class AMSC_Object(object):
           filter criterion.
     """
     if indices is None:
-      indices = list(xrange(0,self.GetSampleSize()))
+      indices = list(range(0,self.GetSampleSize()))
 
     mask = np.ones(len(indices), dtype=bool)
     for header,bounds in self.filters.iteritems():
@@ -693,9 +693,9 @@ class AMSC_Object(object):
           parameters.
     """
     if rows is None:
-      rows = list(xrange(0,self.GetSampleSize()))
+      rows = list(range(0,self.GetSampleSize()))
     if cols is None:
-      cols = list(xrange(0,self.GetDimensionality()))
+      cols = list(range(0,self.GetDimensionality()))
 
     if applyFilters:
       rows = self.GetMask(rows)
@@ -714,9 +714,9 @@ class AMSC_Object(object):
           values filtered by the three input parameters.
     """
     if rows is None:
-      rows = list(xrange(0,self.GetSampleSize()))
+      rows = list(range(0,self.GetSampleSize()))
     if cols is None:
-      cols = list(xrange(0,self.GetDimensionality()))
+      cols = list(range(0,self.GetDimensionality()))
 
     rows = sorted(list(set(rows)))
     if applyFilters:
@@ -737,7 +737,7 @@ class AMSC_Object(object):
           values filtered by the two input parameters.
     """
     if indices is None:
-      indices = list(xrange(0,self.GetSampleSize()))
+      indices = list(range(0,self.GetSampleSize()))
     else:
       indices = sorted(list(set(indices)))
 
@@ -757,7 +757,7 @@ class AMSC_Object(object):
           index of the specified rows.
     """
     if indices is None:
-      indices = list(xrange(0,self.GetSampleSize()))
+      indices = list(range(0,self.GetSampleSize()))
     elif isinstance(indices,collections.Iterable):
       indices = sorted(list(set(indices)))
     else:
@@ -790,7 +790,7 @@ class AMSC_Object(object):
           to the input data rows filtered by the two input parameters.
     """
     if indices is None:
-      indices = list(xrange(0,self.GetSampleSize()))
+      indices = list(range(0,self.GetSampleSize()))
     else:
       indices = sorted(list(set(indices)))
 
@@ -846,7 +846,7 @@ class AMSC_Object(object):
     ## go here
 
     if indices is None:
-      indices = list(xrange(0,self.GetSampleSize()))
+      indices = list(range(0,self.GetSampleSize()))
     if applyFilters:
       indices = self.GetMask(indices)
     indices = np.array(sorted(list(set(indices))))
@@ -867,7 +867,7 @@ class AMSC_Object(object):
           filtered by the three input parameters.
     """
     if indices is None:
-      indices = list(xrange(0,self.GetSampleSize()))
+      indices = list(range(0,self.GetSampleSize()))
     else:
       indices = sorted(list(set(indices)))
     if applyFilters:
@@ -984,7 +984,7 @@ class AMSC_Object(object):
       self.pearson[key] = []
       self.spearman[key] = []
 
-      for col in xrange(0,X.shape[1]):
+      for col in range(0,X.shape[1]):
         sigmaXcol = np.std(X[:,col])
         self.pearson[key].append(scipy.stats.pearsonr(X[:,col], y)[0])
         self.spearman[key].append(scipy.stats.spearmanr(X[:,col], y)[0])

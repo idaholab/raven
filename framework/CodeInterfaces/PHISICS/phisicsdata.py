@@ -614,7 +614,7 @@ class phisicsdata():
             )  # removes the spaces, in order to have only comma-separated values
             line = line.rstrip(
             )  # removes the newline, in order to have only comma-separated values
-            for g in xrange(1, self.Ngroups + 1):
+            for g in range(1, self.Ngroups + 1):
               if countTimeStep == 1:  # the labels are the same for each time step
                 fluxLabelList.append('flux' + '|' + 'cell' +
                                      line.split(',')[0] + '|' + 'gr' + str(g))
@@ -624,7 +624,7 @@ class phisicsdata():
           if stringIsNumber:
             line = re.sub(r' ', r'', line)
             line = re.sub(r'\n', r'', line)
-            for g in xrange(1, self.Ngroups + 1):
+            for g in range(1, self.Ngroups + 1):
               if countTimeStep == 1:
                 matFluxLabelList.append('flux' + '|' + 'mat' + line.split(',')
                                         [0] + '|' + 'gr' + str(g))
@@ -676,7 +676,7 @@ class phisicsdata():
             )  # removes the spaces, in order to have only comma-separated values
             line = line.rstrip(
             )  # removes the newline, in order to have only comma-separated values
-            for g in xrange(1, self.Ngroups + 1):
+            for g in range(1, self.Ngroups + 1):
               if countTimeStep == 1:  # the labels are the same for each time step
                 labelList.append('flux' + '|' + 'cell' + line.split(',')[0] +
                                  '|' + 'gr' + str(g))
@@ -690,7 +690,7 @@ class phisicsdata():
             )  # removes the spaces, in order to have only comma-separated values
             line = line.rstrip(
             )  # removes the newline, in order to have only comma-separated values
-            for g in xrange(1, self.Ngroups + 1):
+            for g in range(1, self.Ngroups + 1):
               if countTimeStep == 1:
                 labelList.append('flux' + '|' + 'mat' + line.split(',')[0] +
                                  '|' + 'gr' + str(g))
@@ -915,7 +915,7 @@ class phisicsdata():
             stringIsFloatNumber = self.isFloatNumber(decayLine)
           if stringIsFloatNumber and decayLine != []:
             if float(decayLine[0]) == float(matchedTimeSteps[timeStepIndex]):
-              for i in xrange(0, len(self.isotopeListMrtau)):
+              for i in range(0, len(self.isotopeListMrtau)):
                 self.numDensityLabelListMrtau.append(
                     'numDensity' + '|' + self.isotopeListMrtau[i])
                 self.decayLabelListMrtau.append(

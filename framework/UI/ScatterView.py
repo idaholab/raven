@@ -174,7 +174,7 @@ class ScatterView(BaseHierarchicalView):
     myColormap = colors.cm.get_cmap(self.cmbColorMaps.currentText())
 
     if len(rows) == 0:
-      rows = list(xrange(data.shape[0]))
+      rows = list(range(data.shape[0]))
 
     allValues = {}
     values = {}

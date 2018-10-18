@@ -21,8 +21,6 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import warnings
 from datetime import datetime
 warnings.simplefilter('default',DeprecationWarning)
-if not 'xrange' in dir(__builtins__):
-  xrange = range
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -244,7 +242,7 @@ class hdf5Database(MessageHandler.MessageUser):
     """
     attribs = {} if attributes is None else attributes
     groupNameInit = groupName+"_"+datetime.now().strftime("%m-%d-%Y-%H-%S")
-    for index in xrange(len(self.allGroupPaths)):
+    for index in range(len(self.allGroupPaths)):
       comparisonName = self.allGroupPaths[index]
       splittedPath=comparisonName.split('/')
       if len(splittedPath) > 0:

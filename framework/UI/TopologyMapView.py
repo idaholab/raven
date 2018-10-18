@@ -334,7 +334,7 @@ class CustomPathItem(qtw.QGraphicsPathItem):
     super(CustomPathItem,self).setPen(pen)
     bgColor = pen.color()
     bgColor.setAlpha(50)
-    for i in xrange(4,len(self.graphics),4):
+    for i in range(4,len(self.graphics),4):
       self.graphics[i][1].setBrush(qtg.QBrush(pen.color().lighter()))
       self.graphics[i+1][1].setBrush(qtg.QBrush(pen.color().darker()))
 
@@ -878,7 +878,7 @@ class TopologyMapView(BaseTopologicalView):
           startTheta = 0
 
         radius = diameter/2.
-        for i in xrange(3):
+        for i in range(3):
           theta = startTheta+i*120
           theta = theta*math.pi/180.
           triangle.append(qtc.QPointF(x+radius*math.cos(theta),y-radius*math.sin(theta)))

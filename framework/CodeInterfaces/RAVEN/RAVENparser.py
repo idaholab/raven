@@ -19,8 +19,6 @@ Created on Sept 10, 2017
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
-if not 'xrange' in dir(__builtins__):
-  xrange = range
 
 import xml.etree.ElementTree as ET
 import xml.dom.minidom
