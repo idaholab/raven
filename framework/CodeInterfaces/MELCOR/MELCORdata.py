@@ -138,8 +138,8 @@ class MELCORdata:
       @ Out, None
     """
     IOcsvfile=open(filen,'w+')
-    getHeaders = self.timeParams.values()[0].keys()
-    CFHeaders = self.functions.values()[0].keys()
+    getHeaders = list(self.timeParams.values())[0].keys()
+    CFHeaders = list(self.functions.values())[0].keys()
     header = ','.join(getHeaders + CFHeaders)
     header = "time,"+header+"\n"
     IOcsvfile.write(header)

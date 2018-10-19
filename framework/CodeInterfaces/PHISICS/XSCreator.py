@@ -36,7 +36,7 @@ class XSCreator():
       @ In, pertDict, dictionary, perturbed variables
       @ Out, pertDict, dictionary, perturbed variables in scientific format
     """
-    for key, value in pertDict.iteritems():
+    for key, value in pertDict.items():
       pertDict[key] = '%.8E' % Decimal(str(value))
     return pertDict
 
@@ -96,7 +96,7 @@ class XSCreator():
               for reaction in self.listedDict.get('XS').get(tabulation).get(material).get(isotope).get(typeOfXs).iterkeys():
                 #groupList = []
                 #valueList = []
-                for count,(group,value) in enumerate(self.listedDict.get('XS').get(tabulation).get(material).get(isotope).get(typeOfXs).get(reaction).iteritems()):
+                for count,(group,value) in enumerate(self.listedDict.get('XS').get(tabulation).get(material).get(isotope).get(typeOfXs).get(reaction).items()):
                   #numberOfGroupsPerturbed = len(self.listedDict.get('XS').get(tabulation).get(material).get(isotope).get(typeOfXs).get(reaction).keys()) - 1
                   #groupList.append(group)
                   #valueList.append(value)
@@ -188,7 +188,7 @@ class XSCreator():
                 reconstructedDict[pertPhysicalParam][pertTabulationPoint][mat][isotope][reactType][react] = {}
                 for group in perturbedGroups:
                   reconstructedDict[pertPhysicalParam][pertTabulationPoint][mat][isotope][reactType][react][group] = {}
-    for typeKey, value in deconstructedDict.iteritems():
+    for typeKey, value in deconstructedDict.items():
       if typeKey in pertDictSet:
         keyWords = typeKey.split('|')
         reconstructedDict[keyWords[0]][keyWords[1]][keyWords[2]][keyWords[3]][keyWords[4]][keyWords[5]][keyWords[6]] = value

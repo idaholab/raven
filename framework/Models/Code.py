@@ -574,7 +574,7 @@ class Code(Model):
         #  -> in addition, we have to fix the probability weights.
         ## get the number of realizations
         ### we already checked consistency in the CodeInterface, so just get the length of the first data object
-        numRlz = len(finalCodeOutputFile.values()[0])
+        numRlz = len(utils.first(finalCodeOutputFile.values()))
         ## set up the return container
         exportDict = {'RAVEN_isBatch':True,'realizations':[]}
         ## set up each realization
@@ -703,7 +703,7 @@ class Code(Model):
       @ Out, returnList, list, list of export dictionaries
     """
     returnList = []
-    if exportDict['outputSpaceParams'].values()[0].__class__.__base__.__name__ != 'Data':
+    if utils.first(exportDict['outputSpaceParams'].values()).__class__.__base__.__name__ != 'Data':
       returnList.append(exportDict)
     else:
       # get the DataObject that is compatible with this output
@@ -717,13 +717,13 @@ class Code(Model):
           break
       if compatibleDataObject is None:
         # if none found (e.g. => we are filling an HistorySet with a PointSet), we take the first one
-        compatibleDataObject = exportDict['outputSpaceParams'].values()[0]
+        compatibleDataObject = utils.first(exportDict['outputSpaceParams'].values())
       # get the values
       inputs = compatibleDataObject.getParametersValues('inputs',nodeId = 'RecontructEnding')
       unstructuredInputs = compatibleDataObject.getParametersValues('unstructuredinputs',nodeId = 'RecontructEnding')
       outputs = compatibleDataObject.getParametersValues('outputs',nodeId = 'RecontructEnding')
       metadata = compatibleDataObject.getAllMetadata(nodeId = 'RecontructEnding')
-      inputKeys = inputs.keys() if compatibleDataObject.type == 'PointSet' else inputs.values()[0].keys()
+      inputKeys = inputs.keys() if compatibleDataObject.type == 'PointSet' else utils.first(inputs.values()).keys()
       # expand inputspace of current RAVEN
       for i in range(len(compatibleDataObject)):
         appendDict = {'inputSpaceParams':{},'outputSpaceParams':{},'metadata':{}}

@@ -21,7 +21,6 @@ import warnings
 warnings.simplefilter('default',DeprecationWarning)
 
 import os
-from  __builtin__ import any
 import copy
 import numpy as np
 from utils import utils

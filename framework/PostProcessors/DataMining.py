@@ -423,7 +423,7 @@ class DataMining(PostProcessor):
           ## put all of the information and then to remove the ones we process.
           ## - dpm 6/8/16
           self.initializationOptionDict[child.getName()] = {}
-          for key,value in child.parameterValues.iteritems():
+          for key,value in child.parameterValues.items():
             if key == 'lib':
               self.type = value
             elif key == 'labelFeature':
@@ -731,7 +731,7 @@ class DataMining(PostProcessor):
       outputDict['outputs'][self.labelFeature] = labels
     elif 'embeddingVectors' in outputDict['outputs']:
       transformedData = outputDict['outputs'].pop('embeddingVectors')
-      reducedDimensionality = transformedData.values()[0].shape[1]
+      reducedDimensionality = utils.first(transformedData.values()).shape[1]
 
       for i in range(reducedDimensionality):
         dimensionI = np.zeros(shape=(numberOfSample,numberOfHistoryStep))

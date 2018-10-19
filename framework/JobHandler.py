@@ -20,8 +20,6 @@ Created on Mar 5, 2013
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
-if not 'xrange' in dir(__builtins__):
-  xrange = range
 #End compatibility block for Python 3-------------------------------------------
 
 #External Modules---------------------------------------------------------------
@@ -158,7 +156,7 @@ class JobHandler(MessageHandler.MessageUser):
         metadataFailedRun = running.getMetadata()
         metadataToKeep = metadataFailedRun
         if metadataFailedRun is not None:
-          metadataKeys      = metadataFailedRun.keys()
+          metadataKeys      = list(metadataFailedRun.keys())
           if 'jobHandler' in metadataKeys:
             metadataKeys.pop(metadataKeys.index("jobHandler"))
             metadataToKeep = { keepKey: metadataFailedRun[keepKey] for keepKey in metadataKeys }

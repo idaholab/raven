@@ -210,7 +210,7 @@ class GaussPolynomialRom(supervisedLearning):
         if request.lower() == 'polycoeffs':
           valueDict = OrderedDict()
           valueDict['inputVariables'] = ','.join(self.features)
-          keys = self.polyCoeffDict[target].keys()
+          keys = list(self.polyCoeffDict[target].keys())
           keys.sort()
           for key in keys:
             valueDict['_'+'_'.join(str(k) for k in key)+'_'] = self.polyCoeffDict[target][key]
