@@ -25,8 +25,10 @@ import os
 import sys
 import copy
 import itertools
-import __builtin__
-import cPickle as pk
+try:
+  import cPickle as pk
+except ImportError:
+  import pickle as pk
 import xml.etree.ElementTree as ET
 
 import abc
@@ -44,8 +46,9 @@ from utils import utils, cached_ndarray, InputData, xmlUtils, mathUtils
 
 # for profiling with kernprof
 try:
+  import __builtin__
   __builtin__.profile
-except AttributeError:
+except (AttributeError,ImportError):
   # profiler not preset, so pass through
   def profile(func):
     """
@@ -952,13 +955,12 @@ class DataSet(DataObject):
           pass #not there, so didn't need to remove
         dimsMeta[var] = ','.join(dims)
       # store sample tag, IO information, coordinates
+      self.addMeta('DataSet',{'dims':dimsMeta})
       self.addMeta('DataSet',{'general':{'sampleTag':self.sampleTag,
                                          'inputs':','.join(self._inputs),
                                          'outputs':','.join(self._outputs),
                                          'pointwise_meta':','.join(self._metavars),
-                                         },
-                              'dims':dimsMeta,
-                             })
+      }})
     elif action == 'extend':
       # TODO compatability check!
       # TODO Metadata update?
@@ -1261,7 +1263,7 @@ class DataSet(DataObject):
     # set orderedVars to all vars, for now don't be fancy with alignedIndexes
     self._orderedVars = self.vars + self.indexes
     # make a collector from scratch
-    rows = len(source.values()[0])
+    rows = len(utils.first(source.values()))
     cols = len(self._orderedVars)
     # can this for-loop be done in a comprehension?  The dtype seems to be a bit of an issue.
     data = np.zeros([rows,cols],dtype=object)
@@ -1385,7 +1387,7 @@ class DataSet(DataObject):
     assert(self._collector is not None)
     # TODO KD Tree for faster values -> still want in collector?
     # TODO slow double loop
-    lookingFor = toMatch.values()
+    lookingFor = list(toMatch.values())
     for r,row in enumerate(self._collector[:,tuple(self._orderedVars.index(var) for var in toMatch.keys())]):
       match = True
       for e,element in enumerate(row):

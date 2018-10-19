@@ -22,7 +22,10 @@ import warnings
 warnings.simplefilter('default',DeprecationWarning)
 
 import sys, os
-import cPickle as pk
+try:
+  import cPickle as pk
+except ImportError:
+  import pickle as pk
 import numpy as np
 import xml.etree.ElementTree as ET
 

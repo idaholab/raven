@@ -27,6 +27,7 @@ warnings.simplefilter('default',DeprecationWarning)
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
 import math
+import sys
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -34,6 +35,16 @@ from .NDinterpolatorRom import NDinterpolatorRom
 from .SupervisedLearning import supervisedLearning
 from sklearn import neighbors, svm
 #Internal Modules End--------------------------------------------------------------------------------
+
+def _toStr(s):
+  """
+    Removes unicode from strings in Python 2 so amsc can use it.
+    @ In, s, unicode or str, String to convert to plain str
+    @ Out, s, str, Converted str
+  """
+  if sys.version_info.major > 2:
+    return s
+  return s.encode('ascii')
 
 class MSR(NDinterpolatorRom):
   """
@@ -102,9 +113,9 @@ class MSR(NDinterpolatorRom):
     # value checking in place since the type cast can fail.
     for key,val in kwargs.items():
       if key.lower() == 'graph':
-        self.graph = val.strip().encode('ascii').lower()
+        self.graph = _toStr(val.strip()).lower()
       elif key.lower() == "gradient":
-        self.gradient = val.strip().encode('ascii').lower()
+        self.gradient = _toStr(val.strip()).lower()
       elif key.lower() == "beta":
         try:
           self.beta = float(val)
@@ -112,7 +123,7 @@ class MSR(NDinterpolatorRom):
           # If the user has specified a graph, use it, otherwise be sure to use
           #  the default when checking whether this is a warning or an error
           if 'graph' in kwargs:
-            graph = kwargs['graph'].strip().encode('ascii').lower()
+            graph = _toStr(kwargs['graph'].strip()).lower()
           else:
             graph = self.graph
           if graph.endswith('beta skeleton'):
@@ -146,7 +157,7 @@ class MSR(NDinterpolatorRom):
             # If the user has specified a strategy, use it, otherwise be sure to
             #  use the default when checking whether this is a warning or an error
             if 'partitionPredictor' in kwargs:
-              partPredictor = kwargs['partitionPredictor'].strip().encode('ascii').lower()
+              partPredictor = _toStr(kwargs['partitionPredictor'].strip()).lower()
             else:
               partPredictor = self.partitionPredictor
             if partPredictor == 'kde':
@@ -158,9 +169,9 @@ class MSR(NDinterpolatorRom):
                                  'using the', partPredictor, 'partition',
                                  'predictor')
       elif key.lower() == 'persistence':
-        self.persistence = val.strip().encode('ascii').lower()
+        self.persistence = _toStr(val.strip()).lower()
       elif key.lower() == 'partitionpredictor':
-        self.partitionPredictor = val.strip().encode('ascii').lower()
+        self.partitionPredictor = _toStr(val.strip()).lower()
       elif key.lower() == 'smooth':
         self.blending = True
       elif key.lower() == "kernel":
@@ -192,7 +203,7 @@ class MSR(NDinterpolatorRom):
                         self.acceptedPersistenceParam,')')
     if self.partitionPredictor not in self.acceptedPredictorParam:
       self.raiseAnError(IOError, 'Requested unknown partition predictor:'
-                        '\"'+self.partitionPredictor+'\"','(Available options:',
+                        '\"'+repr(self.partitionPredictor)+'\"','(Available options:',
                         self.acceptedPredictorParam,')')
     if self.bandwidth <= 0:
       if self.partitionPredictor == 'kde':
@@ -235,7 +246,7 @@ class MSR(NDinterpolatorRom):
       @ In, state, dict, it contains all the information needed by the ROM to be initialized
       @ Out, None
     """
-    for key, value in state.iteritems():
+    for key, value in state.items():
       setattr(self, key, value)
     self.kdTree             = None
     self.__amsc             = []
@@ -266,7 +277,7 @@ class MSR(NDinterpolatorRom):
     if self.knn <= 0:
       self.knn = self.X.shape[0]
 
-    names = [name.encode('ascii') for name in self.features + self.target]
+    names = [_toStr(name) for name in self.features + self.target]
     # Data is already normalized, so ignore this parameter
     ### Comment replicated from the post-processor version, not sure what it
     ### means (DM)
@@ -475,7 +486,7 @@ class MSR(NDinterpolatorRom):
           h = sorted(dists)[self.knn-1]
         else:
           h = self.bandwidth
-        for key,indices in partitions.iteritems():
+        for key,indices in partitions.items():
           #############
           ## Using SciKit Learn, we have a limited number of kernel functions to
           ## choose from.
@@ -516,7 +527,7 @@ class MSR(NDinterpolatorRom):
       elif self.partitionPredictor == 'svm':
         partitions = self.__amsc[index].Partitions(self.simplification)
         labels = np.zeros(self.X.shape[0])
-        for idx,(key,indices) in enumerate(partitions.iteritems()):
+        for idx,(key,indices) in enumerate(partitions.items()):
           labels[np.array(indices)] = idx
         # In order to make this deterministic for testing purposes, let's fix
         # the random state of the SVM object. Maybe, this could be exposed to the

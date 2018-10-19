@@ -177,7 +177,7 @@ class DecayParser():
       @ In, pertDict, dictionary, perturbed variables
       @ Out, pertDict, dictionary, perturbed variables in scientific format
     """
-    for key, value in pertDict.iteritems():
+    for key, value in pertDict.items():
       pertDict[key] = '%.3E' % Decimal(str(value))
     return pertDict
 
@@ -194,7 +194,7 @@ class DecayParser():
       perturbedIsotopes.append(splittedDecayKeywords[2])
     for i in range(len(perturbedIsotopes)):
       self.listedDict[perturbedIsotopes[i]] = {}
-    for decayTypeKey, decayValue in self.pertDict.iteritems():
+    for decayTypeKey, decayValue in self.pertDict.items():
       decayKeyWords = decayTypeKey.split('|')
       for i in range(len(self.allDecayList)):
         self.listedDict[decayKeyWords[2]][decayKeyWords[1]] = decayValue
