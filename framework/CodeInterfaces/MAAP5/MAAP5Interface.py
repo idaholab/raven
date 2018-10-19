@@ -33,6 +33,9 @@ import copy
 import re
 import math
 import sys
+import threading #Andrea suggestion as of 2018.08 to overcome dictionary error
+import time #VR (to sleep for RESTART) 14.10.2018
+import random #VR (to sleep for RESTART) 14.10.2018
 
 class MAAP5(GenericCode):
 
@@ -95,16 +98,24 @@ class MAAP5(GenericCode):
       @ Out, newInputFiles, list, list of newer input files, list of the new input files (modified and not)
     """
     self.samplerType=samplerType
+    # We need to dump the branch dictionary kwargs to the file to use it by fnalizeCodeOutput to create correct multiBranch probabilities
     if 'DynamicEventTree' in samplerType:
+      f=open(Kwargs['subDirectory']+'/Kwargs.txt','w')
+      f.write(repr(Kwargs))
+      f.close
+
       if Kwargs['RAVEN_parentID'] == 'None': self.oriInput(oriInputFiles) #original input files are checked only the first time
       self.stopSimulation(currentInputFiles, Kwargs)
 ###########
       if Kwargs['RAVEN_parentID'] != 'None':
-        if self.printDebug : print('Kwargs',Kwargs)
+        if self.printDebug : print('Kwargs',Kwargs,'\n')
         if self.restartUseVar==True: self.restart(currentInputFiles, Kwargs['RAVEN_parentID'])
 #        self.includeUpdate(currentInputFiles)
 ###########
-        if len(self.multiBranchOccurred)>0: self.multiBranchMethod(currentInputFiles, Kwargs)
+        if len(self.multiBranchOccurred)>0: 
+	  self.multiBranchMethod(currentInputFiles, Kwargs)
+	  if self.printDebug : print ('Calling multiBranchMethod, priting Kwargs',Kwargs)
+
 ###########
         if str(Kwargs['prefix'].split('-')[-1]) != '1': self.modifyBranch(currentInputFiles, Kwargs)
     return GenericCode.createNewInput(self,currentInputFiles,oriInputFiles,samplerType,**Kwargs)
@@ -547,6 +558,15 @@ class MAAP5(GenericCode):
       @ In, workingDir, string, current working dir
       @ Out, output, string, output csv file containing the variables of interest specified in the input
     """
+    print('workingDir:',workingDir) #02/08/2018
+    print('output:',output) #02/08/2018
+    print('exist-old:',os.path.exists('/'+workingDir+'/'+output+'~old')) #02/08/2018
+
+    if os.path.exists('/'+workingDir+'/'+output+'~old'): #02/08/2018
+      os.remove(workingDir+'/'+output) #02/08/2018
+      os.rename(workingDir+'/'+output+'~old',workingDir+'/'+output) #02/08/2018
+    #if '~dummy' in output: output='~'.join(output.split('~')[0:-1])  #02/08/2018
+
     csvSimulationFiles=[]
     realOutput=output.split("out~")[1] #rootname of the simulation files
     inp = os.path.join(workingDir,realOutput + ".inp") #input file of the simulation with the full path
@@ -596,15 +616,31 @@ class MAAP5(GenericCode):
     if (len(self.boolOutputVariables)>0): allVariableValues.extend(boolVariableEvolution)
 
     RAVENoutputFile=os.path.join(workingDir,output+".csv") #RAVEN will look for  output+'.csv'file but in the workingDir, so we need to append it to the filename
-    outputCSVfile=open(RAVENoutputFile,"w+")
-    csvwriter=csv.writer(outputCSVfile,delimiter=b',')
-    csvwriter.writerow(allVariableTags)
-    for i in range(len(allVariableValues[0])):
-      row=[]
-      for j in range(len(allVariableTags)):
-        row.append(allVariableValues[j][i])
-      csvwriter.writerow(row)
-    outputCSVfile.close()
+    print('RAVENoutputFile=',RAVENoutputFile)  # 16.10.18
+    print('RAVENoutputFile exist?',os.path.exists(RAVENoutputFile))   # 16.10.18
+    #if os.path.exists(RAVENoutputFile): print('RAVEN csv output file already existing')  # 16.10.18
+    if os.path.exists(RAVENoutputFile) and os.stat(RAVENoutputFile).st_size >=10000 : print('RAVEN csv output file already existing')  # 18.10.18
+    else:  # 16.10.18
+      print('Writing RAVEN csv output file')  # 16.10.18
+      outputCSVfile=open(RAVENoutputFile,"w+")
+      csvwriter=csv.writer(outputCSVfile,delimiter=b',')
+      csvwriter.writerow(allVariableTags)
+      for i in range(len(allVariableValues[0])):
+        row=[]
+        for j in range(len(allVariableTags)):
+          row.append(allVariableValues[j][i])
+        csvwriter.writerow(row)
+      outputCSVfile.close()
+
+    #outputCSVfile=open(RAVENoutputFile,"w+")
+    #csvwriter=csv.writer(outputCSVfile,delimiter=b',')
+    #csvwriter.writerow(allVariableTags)
+    #for i in range(len(allVariableValues[0])):
+    #  row=[]
+    #  for j in range(len(allVariableTags)):
+    #    row.append(allVariableValues[j][i])
+    #  csvwriter.writerow(row)
+    #outputCSVfile.close()
 
     if 'DynamicEventTree' in self.samplerType:
       dictTimer={} #
@@ -637,16 +673,18 @@ class MAAP5(GenericCode):
       #if any([dictTimeHappened.count(value) > 1 for value in dictTimer.values()]): raise IOError('Branch must occur at different times')
       ############
       key1 = max(dictTimer.values())
-      d1 = dict((v, k) for k, v in dictTimer.items())
+      d1 = dict((v, k) for k, v in dictTimer.iteritems())
       timerActivated = d1[key1]
       key2 = timerActivated.split('TIM')[-1]
-      d2 = dict((v, k) for k, v in self.timer.items())
+      d2 = dict((v, k) for k, v in self.timer.iteritems())
       varActivated = d2[key2]
       currentFolder=workingDir.split('/')[-1]
       for key, value in self.values[currentFolder].items():
         if key == varActivated: self.branch[currentFolder]=(key,value)
-
-      self.dictVariables(inp)
+      
+      #lock=threading.RLock() #03.08.2018 Andrea suggestion to lock threads while accessing this dictionary
+      #with lock:        #03.08.2018 Andrea suggestion to lock threads while accessing this dictionary
+      DictAllVars=self.dictVariables(inp)
       if self.stop.strip()!='mission_time':
         event=False
         userStop='IEVNT('+str(self.stop)+')'
@@ -656,15 +694,20 @@ class MAAP5(GenericCode):
       tilast=str(timeFloat[-1])
       self.tilastDict[currentFolder]=tilast
       if self.stop.strip()=='mission_time':
-        condition=(math.floor(float(tilast)) >= math.floor(float(self.endTime)))
+       condition=(math.floor(float(tilast)) >= math.floor(float(self.endTime)))
       else:
         condition=(event or (math.floor(float(tilast)) >= math.floor(float(self.endTime))))
       if not condition:
         DictBranchCurrent='Dict'+str(self.branch[currentFolder][0])
-        DictChanged=self.DictAllVars[DictBranchCurrent]
+        if self.printDebug : print('finalizeCodeOutput -- self.DictAllVars =', DictAllVars) #23/07/2018
+        if self.printDebug : print('finalizeCodeOutput -- DictBranchCurrent =', DictBranchCurrent) #23/07/2018
+        if self.printDebug : print('finalizeCodeOutput -- self.DictAllVars[DictBranchCurrent] =', DictAllVars[DictBranchCurrent]) #23/07/2018
+        DictChanged=DictAllVars[DictBranchCurrent]
+        if self.printDebug : print('finalizeCodeOutput -- DictChanged =', DictChanged) #23/07/2018
         self.branchXml(tilast, DictChanged,inp,dataDict)
 
-  def branchXml(self, tilast,Dict,inputFile,dataDict):
+
+  def branchXml(self,tilast,Dict,inputFile,dataDict):
     """
       ONLY FOR DET SAMPLER!
       This method writes the xml files used by RAVEN to create the two branches at each stop condition reached
@@ -695,8 +738,8 @@ class MAAP5(GenericCode):
     variableBranch=self.branch[str(branchName)][0]
 
     if variableBranch in self.DETsampledVars and variableBranch not in self.multiBranch:
-      DictName='Dict'+str(variableBranch)
-      dict1=self.DictAllVars[DictName]
+      #DictName='Dict'+str(variableBranch)     
+      dict1=Dict
       variables = list(dict1.keys())
       for var in variables: #e.g. for TIMELOCA variables are ABBN(1), ABBN(2), ABBN(3)
         if var==(self.branch[branchName])[0]: #ignore if the variable coincides with the trigger
@@ -710,14 +753,39 @@ class MAAP5(GenericCode):
     else:
 ###########
       self.multiBranchOccurred.append(variableBranch)
-###########
+
       methodToCall=getattr(multi,variableBranch)
+      # Here we call multibranch method defined in mutibranch.py
       listDict=methodToCall(self,dataDict)
+
+      # Here we need to adjust mutibranch probabilities by the conditional branching point probability.
+      # Triggered variables probabilities is contained in the Kwargs file written for each branch
+      # print('path',path)
+      f=open(path+'/Kwargs.txt','r')
+      diction=f.read()
+      f.close()
+      Kwargs=eval(diction)
+      condProb=float(Kwargs['SampledVarsPb'][variableBranch]) # CP - 03/20/2018 - here we read the probability value of the branch from the kwargs file
+      # print('condProb',condProb)
+      # print('listDict',listDict)
+      for enum in range(len(listDict)): # CP - 03/20/2018 - there is one dictionary for each variable changed within the branch  
+        prob=listDict[enum]['associated_pb'].split() # in each dictionary probabilities for each branh are contained in a string
+        #print('##',prob)
+        changedProbs=[]
+        
+        for pb in prob: 
+          #print('--',pb)
+          changedPb=str(float(pb)*condProb)
+          changedProbs.append(changedPb)
+        listDict[enum]['associated_pb']=' '.join(changedProbs) # CP - 03/20/2018 in the dictionary, multiple branches probabilities are updated to the conditional value
+        #print('##----------listDict[enum][associated_pb]',listDict[enum]['associated_pb'])
+        #print('##----------[.join(changedProbs)]',[' '.join(changedProbs)])
+      
+      #print('listDict',listDict)
+
       detU.writeXmlForDET(filename,variableBranch,listDict,stopInfo) #this function writes the xml file for DET
 
 ######################################################"
-
-
   def dictVariables(self,currentInp):
     """
       ONLY FOR DET SAMPLER!
@@ -729,7 +797,7 @@ class MAAP5(GenericCode):
     fileobject = open(currentInp, "r") #open MAAP .inp
     lines=fileobject.readlines()
     fileobject.close()
-    self.DictAllVars= {} #this dictionary will contain all the dicitonary, one for each DET sampled variable
+    DictAllVars= {} #this dictionary will contain all the dicitonary, one for each DET sampled variable
     for var in self.DETsampledVars:
       block = False
       DictVar = {}
@@ -755,8 +823,9 @@ class MAAP5(GenericCode):
           DictVar[modifiedVar] = modifiedValue
         if ('END' in line) and block:
           block = False
-      self.DictAllVars["Dict{0}".format(var)]= DictVar #with Dict{0}.format(var) dictionary referred to each single sampled variable is called DictVar (e.g., 'DictTIMELOCA', 'DictAFWOFF')
-      if self.printDebug : print('self.DictAllVars',self.DictAllVars)
+      DictAllVars["Dict{0}".format(var)]= DictVar #with Dict{0}.format(var) dictionary referred to each single sampled variable is called DictVar (e.g., 'DictTIMELOCA', 'DictAFWOFF')
+      if self.printDebug : print('self.DictAllVars',DictAllVars)
+    return DictAllVars
 
   def stopSimulation(self,currentInputFiles, Kwargs):
     """
@@ -889,7 +958,7 @@ class MAAP5(GenericCode):
 
     inc=filename.getAbsFile() #current include file name with full path
 
-    print('include file =', inc)
+    if self.printDebug : print('include file =', inc)
     fileobject = open(inc, "r") #open include file
     lines=fileobject.readlines()
     fileobject.close()
@@ -913,7 +982,130 @@ class MAAP5(GenericCode):
     fileobject.write(linesNewInput)
     fileobject.close()
 ###########
+  ##08/01/2018
+  def generateCommand(self,inputFiles,executable,clargs=None, fargs=None):
+    """
+      See base class.  Collects all the clargs and the executable to produce the command-line call.
+      Returns tuple of commands and base file name for run.
+      Commands are a list of tuples, indicating parallel/serial and the execution command to use.
+      @ In, inputFiles, list, List of input files (lenght of the list depends on the number of inputs have been added in the Step is running this code)
+      @ In, executable, string, executable name with absolute path (e.g. /home/path_to_executable/code.exe)
+      @ In, clargs, dict, optional, dictionary containing the command-line flags the user can specify in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 i0extension =0 .inp0/ >< /Code >)
+      @ In, fargs, dict, optional, a dictionary containing the axuiliary input file variables the user can specify in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 aux0extension =0 .aux0/ >< /Code >)
+      @ Out, returnCommand, tuple, tuple containing the generated command. returnCommand[0] is the command to run the code (string), returnCommand[1] is the name of the output root
+    """
+    #02/08/2018 This modification is added to skip simulating MAAP5 run, if previousy run successfully     
+    caseNameM='' 
+    finished=False
+    workingDir=str('/'.join(str(inputFiles[0]).split('/')[1:-1]))
+    caseNameM = str(inputFiles[0].getBase())
+    outFileM = 'out~'+caseNameM
+    print('--------------',workingDir,outFileM)
+    print('---out file existing---',os.path.exists('/'+workingDir+'/'+outFileM))
+    if os.path.exists('/'+workingDir+'/'+outFileM):
+      f=open('/'+workingDir+'/'+outFileM,'r')  
+      lines=f.readlines()
+      for line in lines:
+        if 'End Time:' in line: finished=True
 
+    if finished:
+      if os.path.exists('/'+workingDir+'/out~'+caseNameM+'_actual_branch_info.xml'): 
+        os.remove('/'+workingDir+'/out~'+caseNameM+'_actual_branch_info.xml')
+        print('removed ','/'+workingDir+'/out~'+caseNameM+'_actual_branch_info.xml')
+      print('finished=',finished)
+      os.rename(('/'+workingDir+'/'+outFileM),('/'+workingDir+'/'+outFileM+'~old'))
+      string='SIMULATION ALREADY RUN'
+      print(string)
+      self.caseName=caseNameM
+      self.outFile=outFileM
+      sleep_time=random.randint(5,20) #VR 17.10.18 add sleep to the scrip command instead of pausing raven
+      #VR 17.10.18 todo=' echo ' + string + ' dummy.txt'
+      todo=' echo ' + string + ' dummy.txt && sleep '+str(sleep_time)+'s' #VR 17.10.18
+      returnCommand = [('parallel',todo)],outFileM
+      #VR 17.10.18 sleep_time=random.randint(5,20) #VR 14.10.18
+      print('Execution Command: '+str(returnCommand[0]))      
+      #VR 17.10.18 time.sleep(sleep_time) #VR 14.10.18
+      return returnCommand
+
+    else:     #02/08/2018 generateCommand as GenericCodeInterface         
+      if clargs==None:
+        raise IOError('No input file was specified in clargs!')
+      #check for output either in clargs or fargs
+      #if len(fargs['output'])<1 and 'output' not in clargs.keys():
+      #  raise IOError('No output file was specified, either in clargs or fileargs!')
+      #check for duplicate extension use
+      usedExt=[]
+      for ext in list(clargs['input'][flag] for flag in clargs['input'].keys()) + list(fargs['input'][var] for var in fargs['input'].keys()):
+        if ext not in usedExt:
+          usedExt.append(ext)
+        else:
+          raise IOError('GenericCodeInterface cannot handle multiple input files with the same extension.  You may need to write your own interface.')
+
+      #check all required input files are there
+      inFiles=inputFiles[:]
+      for exts in list(clargs['input'][flag] for flag in clargs['input'].keys()) + list(fargs['input'][var] for var in fargs['input'].keys()):
+        for ext in exts:
+          found=False
+          for inf in inputFiles:
+            if '.'+inf.getExt() == ext:
+              found=True
+              inFiles.remove(inf)
+              break
+          if not found:
+            raise IOError('input extension "'+ext+'" listed in input but not in inputFiles!')
+      #TODO if any remaining, check them against valid inputs
+
+      #PROBLEM this is limited, since we can't figure out which .xml goes to -i and which to -d, for example.
+      def getFileWithExtension(fileList,ext):
+        """
+        Just a script to get the file with extension ext from the fileList.
+        @ In, fileList, the string list of filenames to pick from.
+        @ Out, ext, the string extension that the desired filename ends with.
+        """
+        found = False
+        for index,inputFile in enumerate(fileList):
+          if inputFile.getExt() == ext:
+            found=True
+            break
+        if not found:
+          raise IOError('No InputFile with extension '+ext+' found!')
+        return index,inputFile
+
+      #prepend
+      todo = ''
+      todo += clargs['pre']+' '
+      todo += executable
+      index=None
+      #inputs
+      for flag,exts in clargs['input'].items():
+        if flag == 'noarg':
+          for ext in exts:
+            idx,fname = getFileWithExtension(inputFiles,ext.strip('.'))
+            todo+=' '+fname.getFilename()
+            if index == None:
+              index = idx
+          continue
+        todo += ' '+flag
+        for ext in exts:
+          idx,fname = getFileWithExtension(inputFiles,ext.strip('.'))
+          todo+=' '+fname.getFilename()
+          if index == None:
+            index = idx
+      #outputs
+      #FIXME I think if you give multiple output flags this could result in overwriting
+      self.caseName = inputFiles[index].getBase()
+      outFile = 'out~'+self.caseName
+      if 'output' in clargs:
+        todo+=' '+clargs['output']+' '+outFile
+      if self.fixedOutFileName is not None:
+        outFile = self.fixedOutFileName
+      todo+=' '+clargs['text']
+      #postpend
+      todo+=' '+clargs['post']
+      returnCommand = [('parallel',todo)],outFile
+      print('Execution Command: '+str(returnCommand[0]))
+      return returnCommand
+    
 
 
 
