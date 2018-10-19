@@ -736,17 +736,24 @@ class JobHandler(MessageHandler.MessageUser):
       @ In, ids, list(str), job prefixes to terminate
       @ Out, None
     """
+    queues = [self.__queue, self.__clientQueue, self.__running, self.__clientRunning]
     with self.__queueLock:
-      for queue in [self.__queue, self.__clientQueue, self.__running, self.__clientRunning]:
+      for q,queue in enumerate(queues):
         toRemove = []
         for job in queue:
-          if job is not None and job.uniqueHandler in ids:
+          if job is not None and job.identifier in ids:
             # this assumes that each uniqueHandle only exists once in any queue anywhere
-            ids.remove(uniqueHandler)
+            ids.remove(job.identifier)
             toRemove.append(job)
         for job in toRemove:
-          queue.remove(job)
-          self.raiseADebug('Terminated job "{}" by request.'.format(job.uniqueHandler))
+          # for fixed-spot queues, need to replace job with None not remove
+          if isinstance(queue,list):
+            job.kill()
+            queue[queue.index(job)] = None
+          # for variable queues, can just remove the job
+          else:
+            queue.remove(job)
+          self.raiseADebug('Terminated job "{}" by request.'.format(job.identifier))
     if len(ids):
       self.raiseADebug('Tried to remove some jobs but not found in any queues:',', '.join(ids))
 

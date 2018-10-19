@@ -15,7 +15,7 @@ bX,bY,bZ = pk.load(file('beale_plotdata.pk','r'))
 fig = plt.figure()
 ax = fig.add_subplot(111)
 norm = colors.LogNorm(vmin=1e-2,vmax=1e3)
-im = ax.pcolormesh(bX,bY,bZ,norm=norm)
+im = ax.pcolormesh(bX,bY,bZ,norm=norm, cmap='gray')
 ax.set_xlabel('x')
 ax.set_ylabel('y')
 fig.colorbar(im)
@@ -46,7 +46,7 @@ clr = ax._get_lines.prop_cycler
 for case in cases:
   c = next(clr)['color']
   point, = ax.plot([data[case]['x'][0]],[data[case]['y'][0]],color=c,marker='${}$'.format(case))
-  trail, = ax.plot([data[case]['x'][0]],[data[case]['y'][0]],'-',color=c,alpha=0.5)
+  trail, = ax.plot([data[case]['x'][0]],[data[case]['y'][0]],'.-',color=c,alpha=0.5)
   points.append(point)
   trails.append(trail)
 

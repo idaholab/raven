@@ -75,6 +75,7 @@ request for the output of a Gradient-Based Optimizer run.  They include the foll
 \begin{itemize}
   \item \xmlString{varsUpdate}, is the iteration number for each new optimal point;
   \item \xmlString{stepSize}, is the step size used to go from the previous optimal point to the current step;
+  \item \xmlString{accepted}, is whether the candidate optimal point was accepted (True) or rejected (False);
   \item \xmlString{gradient\_var}, where \emph{var} is replaced by an input variable name, provides the
     gradient in the \emph{var} direction followed to arrive at the current optimal point (evaluated at the
     previous optimal point);

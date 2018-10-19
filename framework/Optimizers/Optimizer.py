@@ -46,6 +46,9 @@ class Optimizer(Sampler):
     Optimizer is a special type of "samplers" that own the optimization strategy (Type) and they generate the input values to optimize a loss function.
     The most significant deviation from the Samplers is that they do not use distributions.
   """
+  ##########################
+  # Initialization Methods #
+  ##########################
   @classmethod
   def getInputSpecification(cls):
     """
@@ -170,7 +173,6 @@ class Optimizer(Sampler):
     self.counter['mdlEval']             = 0                         # Counter of the model evaluation performed (better the input generated!!!). It is reset by calling the function self.initialize
     self.counter['varsUpdate']          = 0                         # Counter of the optimization iteration.
     self.counter['recentOptHist']       = {}                        # as {traj: [pt0, pt1]} where each pt is {'inputs':{var:val}, 'output':val}, the two most recently-accepted points by value
-    self.counter['prefixHistory']       = {}                        # as {traj: [prefix1, prefix2]} where each prefix is the job identifier for each trajectory
     self.counter['persistence'  ]       = {}                        # as {traj: n} where n is the number of consecutive converges
     #limits
     ## while "limit" is scalar in Sampler, it's more complicated in Optimizer
@@ -255,14 +257,6 @@ class Optimizer(Sampler):
     self.addAssemblerObject('Function','-1')
     self.addAssemblerObject('Preconditioner','-n')
     self.addAssemblerObject('Sampler','-1')   #This Sampler can be used to initialize the optimization initial points (e.g. partially replace the <initial> blocks for some variables)
-
-  def _expandVectorVariables(self):
-    """
-      Normally used to extend variables; in the Optimizer, we do that in localGenerateInput
-      @ In, None
-      @ Out, None
-    """
-    pass
 
   def _localGenerateAssembler(self,initDict):
     """
@@ -470,73 +464,6 @@ class Optimizer(Sampler):
       if set(self.mlSequence) != set(self.mlBatches.keys()):
         self.raiseAWarning('There is a mismatch between the multilevel batches defined and batches used in the sequence!  Some variables may not be optimized correctly ...')
 
-  def _numberOfSamples(self,traj=None):
-    """
-      Calculates the number of independent variables (one for each scalar plus each scalar in each vector).
-      @ In, traj, int, optional, if provided then only count variables in current trajectory
-      @ Out, _numberOfSamples, int, total number of independent values that need sampling
-    """
-    return sum(np.prod(self.variableShapes[var]) for var in self.getOptVars(traj))
-
-  def getOptVars(self,traj=None,full=False):
-    """
-      Returns the variables in the active optimization space
-      @ In, full, bool, optional, if True will always give ALL the opt variables
-      @ Out, optVars, list(string), variables in the current optimization space
-    """
-    if full or not self.multilevel or traj is None:
-      return self.fullOptVars
-    else:
-      return self.optVars[traj]
-
-  def endJobRunnable(self):
-    """
-      Returns the maximum number of inputs allowed to be created by the optimizer right after a job ends
-      @ In, None
-      @ Out, endJobRunnable, int, number of runnable jobs at the end of each job
-    """
-    return self._endJobRunnable
-
-  def getInitParams(self):
-    """
-      This function is called from the base class to print some of the information inside the class.
-      Whatever is permanent in the class and not inherited from the parent class should be mentioned here
-      The information is passed back in the dictionary. No information about values that change during the simulation are allowed
-      @ In, None
-      @ Out, paramDict, dict, dictionary containing the parameter names as keys
-                              and each parameter's initial value as the dictionary values
-    """
-    paramDict = {}
-    for variable in self.getOptVars():
-      paramDict[variable] = 'is sampled as a decision variable'
-    paramDict['limit_mdlEval' ]        = self.limit['mdlEval']
-    paramDict['limit_optIter']         = self.limit['varsUpdate']
-    paramDict['initial seed' ]         = self.initSeed
-    paramDict.update(self.localGetInitParams())
-    return paramDict
-
-  def getCurrentSetting(self):
-    """
-      This function is called from the base class to print some of the information inside the class.
-      Whatever is a temporary value in the class and not inherited from the parent class should be mentioned here
-      The information is passed back in the dictionary
-      @ In, None
-      @ Out, paramDict, dict, dictionary containing the parameter names as keys
-                              and each parameter's initial value as the dictionary values
-    """
-    paramDict = {}
-    paramDict['counter_mdlEval'       ] = self.counter['mdlEval']
-    paramDict['counter_varsUpdate'    ] = self.counter['varsUpdate']
-    paramDict['initial seed'  ] = self.initSeed
-    for key in self.inputInfo:
-      if key!='SampledVars':
-        paramDict[key] = self.inputInfo[key]
-      else:
-        for var in self.inputInfo['SampledVars'].keys():
-          paramDict['Variable: '+var+' has value'] = paramDict[key][var]
-    paramDict.update(self.localGetCurrentSetting())
-    return paramDict
-
   def initialize(self,externalSeeding=None,solutionExport=None):
     """
       This function should be called every time a clean optimizer is needed. Called before takeAstep in <Step>
@@ -695,63 +622,9 @@ class Optimizer(Sampler):
 
     self.localInitialize(solutionExport=solutionExport)
 
-  def checkInputs(self,inp):
-    """
-      Checks that all the values of the optimization variables have been set for the point.
-      @ In, inp, dict, {var:val} input space point
-      @ Out, okay, bool, True if all inputs there, False if not
-      @ Out, missing, list, list of missing variables
-    """
-    missing = []
-    for var in self.getOptVars():
-      if inp.get(var,None) is None:
-        missing.append(var)
-        okay = False
-    return len(missing)==0,missing
-
-  def applyPreconditioner(self,batch,originalPoint,denormalize=True):
-    """
-      Applies the preconditioner model of a batch to the original point given.
-      @ In, batch, string, name of the subsequence batch whose preconditioner needs to be applied
-      @ In, originalPoint, dict, {var:val} the point that needs preconditioning (normalized space)
-      @ In, denormalize, bool, optional, if True then the originalPoint will be denormalized before running in the preconditioner
-      @ Out, results, dict, {var:val} the preconditioned point (still normalized space)
-    """
-    precond = self.mlPreconditioners.get(batch,None)
-    if precond is not None:
-      self.raiseADebug('Running preconditioner on batch "{}"'.format(batch))
-      # TODO someday this might need to be extended when other models or more complex external models are used for precond
-      precond.createNewInput([{}],'Optimizer')
-      if denormalize:
-        originalPoint = self.denormalizeData(originalPoint)
-      infoDict = {'SampledVars':dict(originalPoint)}
-      # remove preconditioned space from infoDict sampledVars
-      # -> we do this because we copy infoDict[SampledVars] values to overwrite results values
-      #    but we want to retain the values given by the preconditioner, not the infoDict value.
-      for var in self.mlBatches[batch]:
-        del infoDict['SampledVars'][var]
-      # add constants in
-      for key,value in self.constants.items():
-        infoDict['SampledVars'][key] = value
-      # run the preconditioner
-      preResults = precond.evaluateSample([infoDict['SampledVars']],'Optimizer',infoDict)
-      # flatten results #TODO breaks for multi-entry arrays
-      for key,val in preResults.items():
-        preResults[key] = val.item(0)
-      #restore to normalized space if the original point was normalized space
-      if denormalize:
-        preResults = self.normalizeData(preResults)
-      # construct new input point from results + originalPoint
-      results = {}
-      for key in originalPoint.keys():
-        if key in preResults.keys():
-          results[key] = preResults[key]
-        else:
-          results[key] = originalPoint[key]
-      return results
-    else:
-      return originalPoint
-
+  ###############
+  # Run Methods #
+  ###############
   def amIreadyToProvideAnInput(self):
     """
       This is a method that should be called from any user of the optimizer before requiring the generation of a new input.
@@ -821,14 +694,326 @@ class Optimizer(Sampler):
       ready = self.localStillReady(True)
     return ready
 
-  @abc.abstractmethod
-  def getPreviousIdentifierGivenCurrent(self,prefix):
+  ###################
+  # Utility Methods #
+  ###################
+  def applyPreconditioner(self,batch,originalPoint,denormalize=True):
     """
-      Method to get the previous identifier given the current prefix
-      @ In, prefix, str, the current identifier
-      @ Out, previousPrefix, str, the previous identifier
+      Applies the preconditioner model of a batch to the original point given.
+      @ In, batch, string, name of the subsequence batch whose preconditioner needs to be applied
+      @ In, originalPoint, dict, {var:val} the point that needs preconditioning (normalized space)
+      @ In, denormalize, bool, optional, if True then the originalPoint will be denormalized before running in the preconditioner
+      @ Out, results, dict, {var:val} the preconditioned point (still normalized space)
+    """
+    precond = self.mlPreconditioners.get(batch,None)
+    if precond is not None:
+      self.raiseADebug('Running preconditioner on batch "{}"'.format(batch))
+      # TODO someday this might need to be extended when other models or more complex external models are used for precond
+      precond.createNewInput([{}],'Optimizer')
+      if denormalize:
+        originalPoint = self.denormalizeData(originalPoint)
+      infoDict = {'SampledVars':dict(originalPoint)}
+      # remove preconditioned space from infoDict sampledVars
+      # -> we do this because we copy infoDict[SampledVars] values to overwrite results values
+      #    but we want to retain the values given by the preconditioner, not the infoDict value.
+      for var in self.mlBatches[batch]:
+        del infoDict['SampledVars'][var]
+      # add constants in
+      for key,value in self.constants.items():
+        infoDict['SampledVars'][key] = value
+      # run the preconditioner
+      preResults = precond.evaluateSample([infoDict['SampledVars']],'Optimizer',infoDict)
+      # flatten results #TODO breaks for multi-entry arrays
+      for key,val in preResults.items():
+        preResults[key] = val.item(0)
+      #restore to normalized space if the original point was normalized space
+      if denormalize:
+        preResults = self.normalizeData(preResults)
+      # construct new input point from results + originalPoint
+      results = {}
+      for key in originalPoint.keys():
+        if key in preResults.keys():
+          results[key] = preResults[key]
+        else:
+          results[key] = originalPoint[key]
+      return results
+    else:
+      return originalPoint
+
+  def cancelJobs(self, ids):
+    """
+      Flags jobs with the ids provided to be cancelled.
+      @ In, ids, list(str), prefixes/job IDs that need to be cancelled
+      @ Out, None
+    """
+    # first knock them out of the submission queues
+    for traj in self.optTraj:
+      toRemove = []
+      for job in self.submissionQueue[traj]:
+        prefix = job['prefix']
+        if prefix in ids:
+          toRemove.append(job)
+          ids.remove(prefix)
+          self.raiseADebug('Removing {} from run list by request'.format(prefix))
+      for r in toRemove:
+        self.submissionQueue[traj].remove(r)
+    # then put them in the termination list
+    self._jobsToEnd.extend(ids)
+
+  def checkConstraint(self, optVars):
+    """
+      Method to check whether a set of decision variables satisfy the constraint or not in UNNORMALIZED input space
+      @ In, optVars, dict, dictionary containing the value of decision variables to be checked, in form of {varName: varValue}
+      @ Out, satisfaction, tuple, (bool,list) => (variable indicating the satisfaction of constraints at the point optVars, masks for the under/over violations)
+    """
+    violatedConstrains = {'internal':[],'external':[]}
+    if self.constraintFunction == None:
+      satisfied = True
+    else:
+      satisfied = True if self.constraintFunction.evaluate("constrain",optVars) == 1 else False
+      if not satisfied:
+        violatedConstrains['external'].append(self.constraintFunction.name)
+    for var in optVars:
+      varSatisfy=True
+      # this should work whether optVars is an array or a single value
+      check = np.atleast_1d(optVars[var])
+      overMask = check > self.optVarsInit['upperBound'][var]
+      underMask = check < self.optVarsInit['lowerBound'][var]
+      if np.sum(overMask)+np.sum(underMask) > 0:
+        self.raiseAWarning('A variable violated boundary constraints! Details below (enable DEBUG printing)')
+        self.raiseADebug('Violating values: "{}"={}'.format(var,optVars[var]))
+        satisfied = False
+        violatedConstrains['internal'].append( (var,underMask,overMask) )
+
+    satisfied = self.localCheckConstraint(optVars, satisfied)
+    satisfaction = satisfied,violatedConstrains
+    return satisfaction
+
+  @abc.abstractmethod
+  def checkConvergence(self):
+    """
+      Method to check whether the convergence criteria has been met.
+      @ In, none,
+      @ Out, convergence, bool, variable indicating whether the convergence criteria has been met.
+    """
+
+  def checkInputs(self,inp):
+    """
+      Checks that all the values of the optimization variables have been set for the point.
+      @ In, inp, dict, {var:val} input space point
+      @ Out, okay, bool, True if all inputs there, False if not
+      @ Out, missing, list, list of missing variables
+    """
+    missing = []
+    for var in self.getOptVars():
+      if inp.get(var,None) is None:
+        missing.append(var)
+        okay = False
+    return len(missing)==0,missing
+
+  def checkIfBetter(self,a,b):
+    """
+      Checks if a is preferable to b for this optimization problem.  Helps mitigate needing to keep
+      track of whether a minimization or maximation problem is being run.
+      @ In, a, float, value to be compared
+      @ In, b, float, value to be compared against
+      @ Out, checkIfBetter, bool, True if a is preferable to b for this optimization
+    """
+    if self.optType == 'min':
+      return a <= b
+    elif self.optType == 'max':
+      return a >= b
+
+  @abc.abstractmethod
+  def clearCurrentOptimizationEffort(self):
+    """
+      Used to inform the subclass optimization effor that it needs to forget whatever opt data it is using
+      for the current point (for example, gradient determination points) so that we can start new.
+      @ In, None
+      @ Out, None
+    """
+    # README: this method is necessary because the base class optimizer doesn't know what needs to be reset in the
+    #         subclass, but the subclass doesn't know when it needs to call this method.
+    pass
+
+  def denormalizeData(self, optVars):
+    """
+      Method to normalize the data
+      @ In, optVars, dict, dictionary containing the value of decision variables to be deormalized, in form of {varName: varValue}
+      @ Out, optVarsDenorm, dict, dictionary containing the value of denormalized decision variables, in form of {varName: varValue}
+    """
+    optVarsDenorm = {}
+    for var in optVars.keys():
+      try:
+        optVarsDenorm[var] = optVars[var]*(self.optVarsInit['upperBound'][var]-self.optVarsInit['lowerBound'][var])+self.optVarsInit['lowerBound'][var]
+      except KeyError:
+        optVarsDenorm[var] = optVars[var]
+    return optVarsDenorm
+
+  def endJobRunnable(self):
+    """
+      Returns the maximum number of inputs allowed to be created by the optimizer right after a job ends
+      @ In, None
+      @ Out, endJobRunnable, int, number of runnable jobs at the end of each job
+    """
+    return self._endJobRunnable
+
+  def _expandVectorVariables(self):
+    """
+      Normally used to extend variables; in the Optimizer, we do that in localGenerateInput
+      @ In, None
+      @ Out, None
     """
     pass
+
+  def getCurrentSetting(self):
+    """
+      This function is called from the base class to print some of the information inside the class.
+      Whatever is a temporary value in the class and not inherited from the parent class should be mentioned here
+      The information is passed back in the dictionary
+      @ In, None
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
+                              and each parameter's initial value as the dictionary values
+    """
+    paramDict = {}
+    paramDict['counter_mdlEval'       ] = self.counter['mdlEval']
+    paramDict['counter_varsUpdate'    ] = self.counter['varsUpdate']
+    paramDict['initial seed'  ] = self.initSeed
+    for key in self.inputInfo:
+      if key!='SampledVars':
+        paramDict[key] = self.inputInfo[key]
+      else:
+        for var in self.inputInfo['SampledVars'].keys():
+          paramDict['Variable: '+var+' has value'] = paramDict[key][var]
+    paramDict.update(self.localGetCurrentSetting())
+    return paramDict
+
+  def getInitParams(self):
+    """
+      This function is called from the base class to print some of the information inside the class.
+      Whatever is permanent in the class and not inherited from the parent class should be mentioned here
+      The information is passed back in the dictionary. No information about values that change during the simulation are allowed
+      @ In, None
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
+                              and each parameter's initial value as the dictionary values
+    """
+    paramDict = {}
+    for variable in self.getOptVars():
+      paramDict[variable] = 'is sampled as a decision variable'
+    paramDict['limit_mdlEval' ]        = self.limit['mdlEval']
+    paramDict['limit_optIter']         = self.limit['varsUpdate']
+    paramDict['initial seed' ]         = self.initSeed
+    paramDict.update(self.localGetInitParams())
+    return paramDict
+
+  @abc.abstractmethod
+  def _getJobsByID(self):
+    """
+      Overwritten by the base class; obtains new solution export values
+      @ In, None
+      @ Out, None
+    """
+    pass
+
+  def getLossFunctionGivenId(self, evaluationID):
+    """
+      Method to get the Loss Function value given an evaluation ID
+      @ In, evaluationID, string, the evaluation identifier (prefix)
+      @ Out, objeciveValue, float, the loss function value
+    """
+    # get matching realization by matching "prefix"
+    # TODO the EnsembleModel prefix breaks this pattern!
+    _,rlz  = self.mdlEvalHist.realization(matchDict={'prefix':evaluationID})
+    # if no match found, return None
+    if rlz is None:
+      return None
+    # otherwise, return value (float assures single value)
+    return float(rlz[self.objVar])
+
+  def getOptVars(self,traj=None,full=False):
+    """
+      Returns the variables in the active optimization space
+      @ In, full, bool, optional, if True will always give ALL the opt variables
+      @ Out, optVars, list(string), variables in the current optimization space
+    """
+    if full or not self.multilevel or traj is None:
+      return self.fullOptVars
+    else:
+      return self.optVars[traj]
+
+  def _incrementCounter(self):
+    """
+      Increments counter and sets up prefix.
+      @ In, None
+      @ Out, None
+    """
+    self.counter['mdlEval'] +=1 #since we are creating the input for the next run we increase the counter and global counter
+    self.inputInfo['prefix'] = str(self.counter['mdlEval'])
+
+  @abc.abstractmethod
+  def localCheckConstraint(self, optVars, satisfaction = True):
+    """
+      Local method to check whether a set of decision variables satisfy the constraint or not
+      @ In, optVars, dict, dictionary containing the value of decision variables to be checked, in form of {varName: varValue}
+      @ In, satisfaction, bool, optional, variable indicating how the caller determines the constraint satisfaction at the point optVars
+      @ Out, satisfaction, bool, variable indicating the satisfaction of constraints at the point optVars
+    """
+    return satisfaction
+
+  def normalizeData(self, optVars):
+    """
+      Method to normalize the data
+      @ In, optVars, dict, dictionary containing the value of decision variables to be normalized, in form of {varName: varValue}
+      @ Out, optVarsNorm, dict, dictionary containing the value of normalized decision variables, in form of {varName: varValue}
+    """
+    optVarsNorm = {}
+    for var in optVars.keys():
+      try:
+        optVarsNorm[var] = (optVars[var]-self.optVarsInit['lowerBound'][var])/(self.optVarsInit['upperBound'][var]-self.optVarsInit['lowerBound'][var])
+      except KeyError:
+        optVarsNorm[var] = optVars[var]
+    return optVarsNorm
+
+  def _numberOfSamples(self,traj=None):
+    """
+      Calculates the number of independent variables (one for each scalar plus each scalar in each vector).
+      @ In, traj, int, optional, if provided then only count variables in current trajectory
+      @ Out, _numberOfSamples, int, total number of independent values that need sampling
+    """
+    return sum(np.prod(self.variableShapes[var]) for var in self.getOptVars(traj))
+
+  def removeConvergedTrajectory(self,convergedTraj):
+    """
+      Appropriate process for clearing out converged histories.  This lets the multilevel process intercede
+      when a trajectory is flagged for removal, in the event it is part of an inner loop.
+      @ In, convergedTraj, int, trajectory that has converged and might need to be removed
+      @ Out, None
+    """
+    for t,traj in enumerate(self.optTrajLive):
+      if traj == convergedTraj:
+        self.optTrajLive.pop(t)
+        break
+
+  def _performVariableTransform(self):
+    """
+      In the base Sampler, used to perform PCA-type transforms.
+      Here, we instead denormalize the multilevel static data.
+      @ In, None
+      @ Out, None
+    """
+    traj = self.inputInfo['trajID'] - 1
+    self.values.update(self.denormalizeData(self.mlStaticValues[traj]))
+
+  def proposeNewPoint(self,traj,point):
+    """
+      Sets a proposed point for the next in the opt chain.  Recommended to be overwritten in subclasses.
+      @ In, traj, int, trajectory who is getting proposed point
+      @ In, point, dict, new input space point as {var:val}
+      @ Out, None
+    """
+    point = copy.deepcopy(point)
+    self.optVarsHist[traj][self.counter['varsUpdate'][traj]] = point
+    self.recommendedOptPoint[traj] = point
 
   def updateMultilevelDepth(self, traj, depth, optPoint, setAll=False):
     """
@@ -899,138 +1084,6 @@ class Optimizer(Sampler):
     if traj not in self.optTrajLive:
       self.optTrajLive.append(traj)
 
-  def proposeNewPoint(self,traj,point):
-    """
-      Sets a proposed point for the next in the opt chain.  Recommended to be overwritten in subclasses.
-      @ In, traj, int, trajectory who is getting proposed point
-      @ In, point, dict, new input space point as {var:val}
-      @ Out, None
-    """
-    point = copy.deepcopy(point)
-    self.optVarsHist[traj][self.counter['varsUpdate'][traj]] = point
-    self.recommendedOptPoint[traj] = point
-
-  @abc.abstractmethod
-  def clearCurrentOptimizationEffort(self):
-    """
-      Used to inform the subclass optimization effor that it needs to forget whatever opt data it is using
-      for the current point (for example, gradient determination points) so that we can start new.
-      @ In, None
-      @ Out, None
-    """
-    # README: this method is necessary because the base class optimizer doesn't know what needs to be reset in the
-    #         subclass, but the subclass doesn't know when it needs to call this method.
-    pass
-
-  def getLossFunctionGivenId(self, evaluationID):
-    """
-      Method to get the Loss Function value given an evaluation ID
-      @ In, evaluationID, string, the evaluation identifier (prefix)
-      @ Out, objeciveValue, float, the loss function value
-    """
-    # get matching realization by matching "prefix"
-    # TODO the EnsembleModel prefix breaks this pattern!
-    _,rlz  = self.mdlEvalHist.realization(matchDict={'prefix':evaluationID})
-    # if no match found, return None
-    if rlz is None:
-      return None
-    # otherwise, return value (float assures single value)
-    return float(rlz[self.objVar])
-
-  def checkConstraint(self, optVars):
-    """
-      Method to check whether a set of decision variables satisfy the constraint or not in UNNORMALIZED input space
-      @ In, optVars, dict, dictionary containing the value of decision variables to be checked, in form of {varName: varValue}
-      @ Out, satisfaction, tuple, (bool,list) => (variable indicating the satisfaction of constraints at the point optVars, masks for the under/over violations)
-    """
-    violatedConstrains = {'internal':[],'external':[]}
-    if self.constraintFunction == None:
-      satisfied = True
-    else:
-      satisfied = True if self.constraintFunction.evaluate("constrain",optVars) == 1 else False
-      if not satisfied:
-        violatedConstrains['external'].append(self.constraintFunction.name)
-    for var in optVars:
-      varSatisfy=True
-      # this should work whether optVars is an array or a single value
-      check = np.atleast_1d(optVars[var])
-      overMask = check > self.optVarsInit['upperBound'][var]
-      underMask = check < self.optVarsInit['lowerBound'][var]
-      if np.sum(overMask)+np.sum(underMask) > 0:
-        self.raiseAWarning('A variable violated boundary constraints! Details below (enable DEBUG printing)')
-        self.raiseADebug('Violating values: "{}"={}'.format(var,optVars[var]))
-        satisfied = False
-        violatedConstrains['internal'].append( (var,underMask,overMask) )
-
-    satisfied = self.localCheckConstraint(optVars, satisfied)
-    satisfaction = satisfied,violatedConstrains
-    return satisfaction
-
-  @abc.abstractmethod
-  def localCheckConstraint(self, optVars, satisfaction = True):
-    """
-      Local method to check whether a set of decision variables satisfy the constraint or not
-      @ In, optVars, dict, dictionary containing the value of decision variables to be checked, in form of {varName: varValue}
-      @ In, satisfaction, bool, optional, variable indicating how the caller determines the constraint satisfaction at the point optVars
-      @ Out, satisfaction, bool, variable indicating the satisfaction of constraints at the point optVars
-    """
-    return satisfaction
-
-  @abc.abstractmethod
-  def checkConvergence(self):
-    """
-      Method to check whether the convergence criteria has been met.
-      @ In, none,
-      @ Out, convergence, bool, variable indicating whether the convergence criteria has been met.
-    """
-
-  def normalizeData(self, optVars):
-    """
-      Method to normalize the data
-      @ In, optVars, dict, dictionary containing the value of decision variables to be normalized, in form of {varName: varValue}
-      @ Out, optVarsNorm, dict, dictionary containing the value of normalized decision variables, in form of {varName: varValue}
-    """
-    optVarsNorm = {}
-    for var in optVars.keys():
-      try:
-        optVarsNorm[var] = (optVars[var]-self.optVarsInit['lowerBound'][var])/(self.optVarsInit['upperBound'][var]-self.optVarsInit['lowerBound'][var])
-      except KeyError:
-        optVarsNorm[var] = optVars[var]
-    return optVarsNorm
-
-  def denormalizeData(self, optVars):
-    """
-      Method to normalize the data
-      @ In, optVars, dict, dictionary containing the value of decision variables to be deormalized, in form of {varName: varValue}
-      @ Out, optVarsDenorm, dict, dictionary containing the value of denormalized decision variables, in form of {varName: varValue}
-    """
-    optVarsDenorm = {}
-    for var in optVars.keys():
-      try:
-        optVarsDenorm[var] = optVars[var]*(self.optVarsInit['upperBound'][var]-self.optVarsInit['lowerBound'][var])+self.optVarsInit['lowerBound'][var]
-      except KeyError:
-        optVarsDenorm[var] = optVars[var]
-    return optVarsDenorm
-
-  def _incrementCounter(self):
-    """
-      Increments counter and sets up prefix.
-      @ In, None
-      @ Out, None
-    """
-    self.counter['mdlEval'] +=1 #since we are creating the input for the next run we increase the counter and global counter
-    self.inputInfo['prefix'] = str(self.counter['mdlEval'])
-
-  def _performVariableTransform(self):
-    """
-      In the base Sampler, used to perform PCA-type transforms.
-      Here, we instead denormalize the multilevel static data.
-      @ In, None
-      @ Out, None
-    """
-    traj = self.inputInfo['trajID'] - 1
-    self.values.update(self.denormalizeData(self.mlStaticValues[traj]))
-
   def updateVariableHistory(self,data,traj):
     """
       Stores new historical points into the optimization history.
@@ -1043,38 +1096,3 @@ class Optimizer(Sampler):
     allData.update(self.normalizeData(data)) # data point not normalized a priori
     allData.update(self.mlStaticValues[traj]) # these are normalized
     self.optVarsHist[traj][self.counter['varsUpdate'][traj]] = copy.deepcopy(allData)
-
-  def removeConvergedTrajectory(self,convergedTraj):
-    """
-      Appropriate process for clearing out converged histories.  This lets the multilevel process intercede
-      when a trajectory is flagged for removal, in the event it is part of an inner loop.
-      @ In, convergedTraj, int, trajectory that has converged and might need to be removed
-      @ Out, None
-    """
-    for t,traj in enumerate(self.optTrajLive):
-      if traj == convergedTraj:
-        self.optTrajLive.pop(t)
-        break
-
-  @abc.abstractmethod
-  def _getJobsByID(self):
-    """
-      Overwritten by the base class; obtains new solution export values
-      @ In, None
-      @ Out, None
-    """
-    pass
-
-  def checkIfBetter(self,a,b):
-    """
-      Checks if a is preferable to b for this optimization problem.  Helps mitigate needing to keep
-      track of whether a minimization or maximation problem is being run.
-      @ In, a, float, value to be compared
-      @ In, b, float, value to be compared against
-      @ Out, checkIfBetter, bool, True if a is preferable to b for this optimization
-    """
-    if self.optType == 'min':
-      return a <= b
-    elif self.optType == 'max':
-      return a >= b
-

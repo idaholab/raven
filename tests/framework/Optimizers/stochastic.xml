@@ -45,16 +45,17 @@
   <Optimizers>
     <SPSA name="opter">
       <initialization>
-        <limit>2000</limit>
+        <limit>20000</limit>
         <initialSeed>42</initialSeed>
         <type>max</type>
-        <writeSteps>final</writeSteps>
+        <writeSteps>every</writeSteps>
       </initialization>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
       <convergence>
         <gradientThreshold>1e-3</gradientThreshold>
         <gainGrowthFactor>1.5</gainGrowthFactor>
         <gainShrinkFactor>1.25</gainShrinkFactor>
+        <!--<relativeThreshold>1e-6</relativeThreshold>-->
       </convergence>
       <variable name="x">
         <upperBound>1</upperBound>
@@ -86,7 +87,7 @@
     </PointSet>
     <PointSet name="opt_export">
       <Input>trajID</Input>
-      <Output>x,ans,reg,varsUpdate</Output>
+      <Output>x,ans,reg,varsUpdate,stepSize,accepted</Output>
     </PointSet>
   </DataObjects>
 
