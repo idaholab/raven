@@ -26,6 +26,8 @@ import xml.dom.minidom as pxml
 import re
 import os
 from .utils import isString
+from .graphStructure import graphObject
+import VariableGroups
 
 #define type checking
 def isComment(node):
@@ -346,3 +348,60 @@ def readExternalXML(extFile,extNode,cwd):
   if root.tag != extNode.strip():
     raise IOError('XML UTILS ERROR: Node "{}" is not the root node of "{}"!'.format(extNode,extFile))
   return root
+
+def findAllRecursive(node, element):
+  """
+    A function for recursively traversing a node in an elementTree to find
+    all instances of a tag.
+    Note that this method differs from findall() since it goes for all nodes,
+    subnodes, subsubnodes etc. recursively
+    @ In, node, ET.Element, the current node to search under
+    @ In, element, str, the string name of the tags to locate
+    @ Out, result, list, a list of the currently recovered results
+  """
+  result=[]
+  for elem in node.iter(tag=element):
+    result.append(elem)
+  return result
+
+def readVariableGroups(xmlNode,messageHandler,caller):
+  """
+    Reads the XML for the variable groups and initializes them
+    @ In, xmlNode, ElementTree.Element, xml node to read in
+    @ In, messageHandler, MessageHandler.MessageHandler instance, message handler to assign to the variable group objects
+    @ In, caller, MessageHandler.MessageUser instance, entity calling this method (needs to inherit from MessageHandler.MessageUser)
+    @ Out, varGroups, dict, dictionary of variable groups (names to the variable lists to replace the names)
+  """
+  # first find all the names
+  names = [node.attrib['name'] for node in xmlNode]
+
+  # find dependencies
+  deps = {}
+  nodes = {}
+  initials = []
+  for child in xmlNode:
+    name = child.attrib['name']
+    nodes[name] = child
+    needs = [s.strip().strip('-+^%') for s in child.text.split(',')]
+    for n in needs:
+      if n not in deps and n not in names:
+        deps[n] = []
+    deps[name] = needs
+    if len(deps[name]) == 0:
+      initials.append(name)
+  graph = graphObject(deps)
+  # sanity checking
+  if graph.isALoop():
+    caller.raiseAnError(IOError,'VariableGroups have circular dependency! Order:',' -> '.join(graph.createSingleListOfVertices(alls)))
+  # ordered list (least dependencies first)
+  hierarchy = list(reversed(graph.createSingleListOfVertices(graph.findAllUniquePaths(initials))))
+
+  # build entities
+  varGroups = {}
+  for name in hierarchy:
+    if len(deps[name]):
+      varGroup = VariableGroups.VariableGroup()
+      varGroup.readXML(nodes[name], messageHandler, varGroups)
+      varGroups[name] = varGroup
+
+  return varGroups

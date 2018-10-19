@@ -5,7 +5,6 @@
     UnorderedCsv = 'mcMetricRun/dumpMC.csv mcMetricRun/pp1_metric_dump.csv'
     rel_err = 0.00001
     zero_threshold = 1e-9
-    remove_whitespace = True
   [../]
   [./multipleInputs]
     type = 'RavenFramework'
@@ -13,25 +12,15 @@
     UnorderedCsv = 'multipleInputObjects/pp1_metric_dump.csv'
     rel_err = 0.00001
     zero_threshold = 1e-9
-    remove_whitespace = True
   [../]
   [./sklMetric]
     type = 'RavenFramework'
     input = 'test_metric_skl.xml'
-    output = 'sklMetrics/pp1_metric_dump.xml sklMetrics/pp2_metric_dump.xml'
-    UnorderedCsv = 'sklMetrics/pp1_metric_dump.csv sklMetrics/pp2_metric_dump.csv'
+    output = 'sklMetrics/pp1_metric_dump.xml'
+    UnorderedCsv = 'sklMetrics/pp1_metric_dump.csv'
+    UnorderedXml = 'sklMetrics/output_metric.xml'
     rel_err = 0.00001
     zero_threshold = 1e-9
-    remove_whitespace = True
-  [../]
-  [./minkowskiMetric]
-    type = 'RavenFramework'
-    input = 'test_Minkowski.xml'
-    output = 'minkowskiMetric/pp1_metric_dump.xml'
-    UnorderedCsv = 'minkowskiMetric/pp1_metric_dump.csv'
-    rel_err = 0.00001
-    zero_threshold = 1e-9
-    remove_whitespace = True
   [../]
   [./test_comparison_statistics_metrics]
     type = 'RavenFramework'
@@ -55,5 +44,36 @@
     type = 'RavenPython'
     input = 'unit_test_comparison_statistics.py'
     requires_swig2 = True
+  [../]
+  [./testMetricTD]
+    type = 'RavenFramework'
+    input = 'test_metric_td.xml'
+    UnorderedXml = 'metricTD/output_metric_td.xml'
+    csv = 'metricTD/pp1_print_0.csv'
+    output = 'metricTD/pp1_print.csv'
+    rel_err = 0.00001
+    zero_threshold = 1e-9
+  [../]
+  [./testScipyMetric]
+    type = 'RavenFramework'
+    input = 'test_metric_scipy.xml'
+    csv = 'scipyMetrics/pp1_print.csv'
+    rel_err = 0.00001
+    zero_threshold = 1e-9
+  [../]
+  [./testScipyMetricBoolean]
+    type = 'RavenFramework'
+    input = 'test_metric_scipy_boolean.xml'
+    csv = 'scipyMetricsBoolean/pp1_print.csv'
+    rel_err = 0.00001
+    zero_threshold = 1e-9
+  [../]
+  [./test_dtw]
+    type = 'RavenFramework'
+    input = 'test_dtw.xml'
+    UnorderedXml = 'DTW/output_metric.xml'
+    csv = 'DTW/pp1_print.csv'
+    rel_err = 0.00001
+    zero_threshold = 1e-9
   [../]
 []

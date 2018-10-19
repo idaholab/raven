@@ -24,8 +24,10 @@ import sys
 import copy
 import functools
 import itertools
-import __builtin__
-import cPickle as pk
+try:
+  import cPickle as pk
+except ImportError:
+  import pickle as pk
 import xml.etree.ElementTree as ET
 
 import abc
@@ -43,8 +45,9 @@ except ValueError: #attempted relative import in non-package
 
 # for profiling with kernprof
 try:
+  import __builtin__
   profile = __builtin__.profile
-except AttributeError:
+except (AttributeError,ImportError):
   # profiler not preset, so pass through
   def profile(func):
     """

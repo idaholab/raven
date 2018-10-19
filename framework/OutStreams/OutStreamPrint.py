@@ -20,8 +20,6 @@ Created on Nov 14, 2013
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
-if not 'xrange' in dir(__builtins__):
-  xrange = range
 #End compatibility block for Python 3-------------------------------------------
 #External Modules---------------------------------------------------------------
 import os
@@ -82,8 +80,8 @@ class OutStreamPrint(OutStreamManager):
     for index in range(len(self.sourceName)):
       paramDict['Source Name ' + str(index) + ' :'] = self.sourceName[index]
     if self.what:
-      for index in range(len(self.what)):
-        paramDict['Variable Name ' + str(index) + ' :'] = self.what[index]
+      for index, var in enumerate(self.what.split(',')):
+        paramDict['Variable Name ' + str(index) + ' :'] = var
     return paramDict
 
   def initialize(self, inDict):
@@ -147,8 +145,8 @@ class OutStreamPrint(OutStreamManager):
 
     for index in range(len(self.sourceName)):
       try:
-        empty = len(self.sourceData[index]) == 0
-      except TypeError:
+        empty = self.sourceData[index].isEmpty
+      except AttributeError:
         empty = False
       if not empty:
         if self.options['type'] == 'csv':

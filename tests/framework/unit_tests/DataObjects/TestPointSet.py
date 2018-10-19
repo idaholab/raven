@@ -35,16 +35,13 @@ from utils.utils import find_crow
 find_crow(frameworkDir)
 import MessageHandler
 
-# find location of data objects
-sys.path.append(os.path.join(frameworkDir,'DataObjects'))
-
-import PointSet
+import DataObjects
 
 mh = MessageHandler.MessageHandler()
 mh.initialize({'verbosity':'debug', 'callerLength':10, 'tagLength':10})
 
 print('Module undergoing testing:')
-print(PointSet)
+print(DataObjects.PointSet)
 print('')
 
 def createElement(tag,attrib=None,text=None):
@@ -136,7 +133,7 @@ def checkArray(comment,first,second,dtype,tol=1e-10,update=True):
     for i in range(len(first)):
       if dtype == float:
         pres = checkFloat('',first[i],second[i],tol,update=False)
-      elif dtype in (str,unicode):
+      elif dtype.__name__ in ('str','unicode'):
         pres = checkSame('',first[i],second[i],update=False)
       if not pres:
         print('checking array',comment,'|','entry "{}" does not match: {} != {}'.format(i,first[i],second[i]))
@@ -165,7 +162,7 @@ def checkRlz(comment,first,second,tol=1e-10,update=True):
     for key,val in first.items():
       if isinstance(val,float):
         pres = checkFloat('',val,second[key],tol,update=False)
-      elif isinstance(val,(str,unicode)):
+      elif type(val).__name__ in ('str','unicode','str_','unicode_'):
         pres = checkSame('',val,second[key][0],update=False)
       elif isinstance(val,xr.DataArray):
         if isinstance(val.item(0),(float,int)):
@@ -260,7 +257,7 @@ xml.append(createElement('Input',text='a,b'))
 xml.append(createElement('Output',text='x,z'))
 
 # check construction
-data = PointSet.PointSet()
+data = DataObjects.PointSet()
 # inputs, outputs
 checkSame('DataSet __init__ name',data.name,'PointSet')
 checkSame('DataSet __init__ print tag',data.printTag,'PointSet')
@@ -312,7 +309,7 @@ data.addRealization(rlz0)
 # get realization by index, from collector
 checkRlz('PointSet append 0',data.realization(index=0),rlz0)
 # try to access the inaccessible
-checkFails('PointSet inaccessible index check','Requested index \"1\" but only have 1 entries (zero-indexed)!',data.realization,kwargs={'index':1})
+checkFails('PointSet inaccessible index check','PointSet: Requested index "1" but only have 1 entries (zero-indexed)!',data.realization,kwargs={'index':1})
 # add more data
 data.addRealization(rlz1)
 data.addRealization(rlz2)
@@ -493,7 +490,7 @@ checkArray('CSV XML',lines,correct,str)
 xml = createElement('PointSet',attrib={'name':'test'})
 xml.append(createElement('Input',text='a,b'))
 xml.append(createElement('Output',text='x,z'))
-dataCSV = PointSet.PointSet()
+dataCSV = DataObjects.PointSet()
 dataCSV.messageHandler = mh
 dataCSV._readMoreXML(xml)
 ### load the data (with both CSV, XML)
@@ -544,7 +541,7 @@ checkRlz('PointSet full csvxml match',rlz,rlz2)
 ######################################
 #         SELECTIVE SAMPLING         #
 ######################################
-data = PointSet.PointSet()
+data = DataObjects.PointSet()
 xml = createElement('PointSet',attrib={'name':'test'})
 xml.append(createElement('Input',text='a'))
 xml.append(createElement('Output',text='x'))

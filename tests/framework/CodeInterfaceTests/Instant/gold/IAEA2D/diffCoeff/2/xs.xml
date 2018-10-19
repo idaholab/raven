@@ -32,7 +32,7 @@
 </ScatteringXS>
       
          
-      <DiffusionCoefficient>1.50803e+00  4.00000e-01</DiffusionCoefficient>
+      <DiffusionCoefficient>1.65830e+00  4.00000e-01</DiffusionCoefficient>
       
         
     </material>
@@ -65,7 +65,7 @@
 </ScatteringXS>
       
          
-      <DiffusionCoefficient>1.50000e+00  4.14482e-01</DiffusionCoefficient>
+      <DiffusionCoefficient>1.50000e+00  4.06251e-01</DiffusionCoefficient>
       
         
     </material>

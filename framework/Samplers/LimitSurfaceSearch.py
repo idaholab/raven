@@ -22,7 +22,6 @@
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
-#if not 'xrange' in dir(__builtins__): xrange = range
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -445,24 +444,35 @@ class LimitSurfaceSearch(AdaptiveSampler):
       for key, value in self.limitSurfacePP.getFunctionValue().items():
         tempDict[key] = value[myIndex]
       if len(self.hangingPoints) > 0:
-        self.hangingPoints = self.hangingPoints[~(self.hangingPoints==np.array([tempDict[varName] for varName in [key.replace('<distribution>','') for key in self.axisName]])).all(axis=1)][:]
+        self.hangingPoints = self.hangingPoints[
+          ~(self.hangingPoints==np.array([tempDict[varName]
+                                          for varName in [key.replace('<distribution>','')
+                                                          for key in self.axisName]])).all(axis=1)][:]
     for key,value in self.limitSurfacePP.getTestMatrix("all",exceptionGrid=self.exceptionGrid).items():
       self.persistenceMatrix[key] += value
+
     # get the test matrices' dictionaries to test the error
-    testMatrixDict, oldTestMatrixDict = list(self.limitSurfacePP.getTestMatrix("all",exceptionGrid=self.exceptionGrid).values()),list(self.oldTestMatrix.values())
-    # the first test matrices in the list are always represented by the coarse grid (if subGridTol activated) or the only grid available
+    testMatrixDict = list(self.limitSurfacePP.getTestMatrix("all",exceptionGrid=self.exceptionGrid).values())
+    oldTestMatrixDict = list(self.oldTestMatrix.values())
+    # the first test matrices in the list are always represented by the coarse grid
+    # (if subGridTol activated) or the only grid available
     coarseGridTestMatix, coarseGridOldTestMatix = testMatrixDict.pop(0), oldTestMatrixDict.pop(0)
     # compute the Linf norm with respect the location of the LS
     testError = np.sum(np.abs(np.subtract(coarseGridTestMatix,coarseGridOldTestMatix)))
     if len(testMatrixDict) > 0:
-      testError += np.sum(np.abs(np.subtract(testMatrixDict,oldTestMatrixDict))) # compute the error
+      # compute the error
+      testError += np.sum(np.abs(np.subtract(testMatrixDict,oldTestMatrixDict)))
     if (testError > self.errorTolerance):
-      ready, self.repetition = True, 0                                 # we still have error
+      # we still have error
+      ready, self.repetition = True, 0
     else:
-      self.repetition +=1                                              # we are increasing persistence
+      # we are increasing persistence
+      self.repetition +=1
     if self.persistence<self.repetition:
       ready =  False
-      if self.subGridTol != self.tolerance and evaluations is not None and self.refinedPerformed != True:
+      if self.subGridTol != self.tolerance \
+         and evaluations is not None \
+         and not self.refinedPerformed and self.limitSurfacePP.crossedLimitSurf:
         # we refine the grid since we converged on the coarse one. we use the "ceil" method in order to be sure
         # that the volumetric cell weight is <= of the subGridTol
         self.raiseAMessage("Grid refinement activated! Refining the evaluation grid!")
@@ -472,6 +482,9 @@ class LimitSurfaceSearch(AdaptiveSampler):
         self.errorTolerance = self.subGridTol
       else:
         self.converged = True
+        if not self.limitSurfacePP.crossedLimitSurf:
+          self.raiseAWarning("THE LIMIT SURFACE has NOT been crossed. The search FAILED!!!")
+
     self.raiseAMessage('counter: '+str(self.counter)+'       Error: ' +str(testError)+' Repetition: '+str(self.repetition))
     #if the number of point on the limit surface is > than compute persistence
     realAxisNames, cnt = [key.replace('<distribution>','') for key in self.axisName], 0
@@ -509,11 +522,11 @@ class LimitSurfaceSearch(AdaptiveSampler):
       for surfPoint in points:
         setSurfPoint.add(tuple(surfPoint))
       newIndices = set(setSurfPoint)
-      for step in xrange(1,self.thickness):
+      for step in range(1,self.thickness):
         prevPoints = set(newIndices)
         newIndices = set()
         for i,iCoords in enumerate(prevPoints):
-          for d in xrange(len(iCoords)):
+          for d in range(len(iCoords)):
             offset = np.zeros(len(iCoords),dtype=int)
             offset[d] = 1
             if iCoords[d] - offset[d] > 0:
@@ -574,7 +587,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
       self.scores = OrderedDict()
       for key, value in self.invPointPersistence.items():
         self.scores[key] = np.zeros(len(self.surfPoint[key]))
-        for i in xrange(len(self.listsurfPoint)):
+        for i in range(len(self.listsurfPoint)):
           self.scores[key][i] = 1
     else:
       self.raiseAnError(NotImplementedError,self.scoringMethod + ' scoring method is not implemented yet')
@@ -639,10 +652,10 @@ class LimitSurfaceSearch(AdaptiveSampler):
 
           flattenedSurfPoints = np.array(flattenedSurfPoints)
           for i,iCoords in enumerate(flattenedBandPoints):
-            for j in xrange(i+1, len(flattenedBandPoints)):
+            for j in range(i+1, len(flattenedBandPoints)):
               jCoords = flattenedBandPoints[j]
               ijValidNeighbors = True
-              for d in xrange(len(jCoords)):
+              for d in range(len(jCoords)):
                 if abs(iCoords[d] - jCoords[d]) > 1:
                   ijValidNeighbors = False
                   break

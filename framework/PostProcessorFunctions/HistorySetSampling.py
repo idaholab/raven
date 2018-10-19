@@ -125,7 +125,8 @@ class HistorySetSampling(PostProcessorInterfaceBase):
         self.raiseAnError(IOError, 'HistorySetSampling Interfaced Post-Processor ' + str(self.name) + ' : not recognized samplingType')
 
       for var in outData.keys():
-        outputDic['data'][var] = np.zeros(inputDic['numberRealizations'], dtype=object)
+        if hist == 0:
+          outputDic['data'][var] = np.zeros(inputDic['numberRealizations'], dtype=object)
         outputDic['data'][var][hist] = outData[var]
 
     if 'ProbabilityWeight' in inputDic['data'].keys():

@@ -21,7 +21,6 @@
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
-#if not 'xrange' in dir(__builtins__): xrange = range
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -169,7 +168,7 @@ class SPSA(GradientBasedOptimizer):
     # -> indicate the first ready action through the self.nextActionNeeded mechanic
     self.raiseADebug('Reviewing status of trajectories:')
     for traj in self.optTraj:
-      self.raiseADebug('   Traj: "{:^n}": Process: "{:^30.30}", Reason: "{:^30.30}"'.format(traj,self.status[traj].get('process','None'),self.status[traj].get('reason','None'),n=len(str(max(self.optTraj)))))
+      self.raiseADebug('   Traj: "{:^n}": Process: "{:^30.30}", Reason: "{:^30.30}"'.format(traj,str(self.status[traj].get('process','None')),self.status[traj].get('reason','None'),n=len(str(max(self.optTraj)))))
     for _ in range(len(self.optTrajLive)):
       # despite several attempts, this is the most elegant solution I've found to assure each
       #   trajectory gets even treatment.
@@ -722,7 +721,7 @@ class SPSA(GradientBasedOptimizer):
       Utility function to compute the ak coefficients (gain sequence ak)
       @ In, paramDict, dict, dictionary containing information to compute gain parameter
       @ In, iterNum, int, current iteration index
-      @ Out, ak, float, current value for gain ak
+      @ Out, new, float, current value for gain ak
     """
     #TODO FIXME is this a good idea?
     try:
@@ -732,10 +731,10 @@ class SPSA(GradientBasedOptimizer):
       ak = a / (iterNum + A) ** alpha
     # modify step size based on the history of the gradients used
     frac = self.fractionalStepChangeFromGradHistory(traj)
-    ak *= frac
-    self.raiseADebug('step gain size for traj "{}" iternum "{}": {}'.format(traj,iterNum,ak))
-    self.counter['lastStepSize'][traj] = ak
-    return ak
+    new = ak*frac
+    self.raiseADebug('step gain size for traj "{}" iternum "{}": {:1.3e} (root {:1.2e} frac {:1.2e})'.format(traj,iterNum,new,ak,frac))
+    self.counter['lastStepSize'][traj] = new
+    return new
 
   def _getAlgorithmState(self,traj):
     """

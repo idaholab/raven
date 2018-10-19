@@ -303,7 +303,7 @@ class CrossValidation(PostProcessor):
     for key, value in initDict.items():
       if key == "SciKitLearn":
         if value['SKLtype'] in self.CVList:
-          dataSize = np.asarray(inputDict.values()[0]).size
+          dataSize = np.asarray(utils.first(inputDict.values())).size
           value['n'] = dataSize
         cvEngine = CrossValidations.returnInstance(key, self, **value)
         break
@@ -319,10 +319,12 @@ class CrossValidation(PostProcessor):
       ## Compute the distance between ROM and given data using Metric system
       for targetName, targetValue in outputEvaluation.items():
         for metricInstance in self.metricsDict.values():
-          metricValue = metricInstance.distance(targetValue, testDict[targetName])
+          metricValue = metricInstance.evaluate(targetValue, testDict[targetName])
           if hasattr(metricInstance, 'metricType'):
-            if metricInstance.metricType not in self.validMetrics:
-              self.raiseAnError(IOError, "The metric type: ", metricInstance.metricType, " can not be used, the accepted metric types are: ", str(self.validMetrics))
+            if metricInstance.metricType[1] not in self.validMetrics:
+              self.raiseAnError(IOError, "The metric type: ", metricInstance.metricType[1], " can not be used, \
+                      the accepted metric types are: ", ",".join(self.validMetrics))
+            metricName = metricInstance.metricType[1]
           else:
             self.raiseAnError(IOError, "The metric: ", metricInstance.name, " can not be used, the accepted metric types are: ", str(self.validMetrics))
           varName = 'cv' + '_' + metricInstance.name + '_' + targetName
@@ -356,6 +358,6 @@ class CrossValidation(PostProcessor):
     if self.cvScore is not None:
       output.addRealization(outputDict)
     else:
-      cvIDs = {self.cvID: np.atleast_1d(range(len(outputDict.values()[0])))}
+      cvIDs = {self.cvID: np.atleast_1d(range(len(utils.first(outputDict.values()))))}
       outputDict.update(cvIDs)
       output.load(outputDict, style='dict')

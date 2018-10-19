@@ -8,6 +8,9 @@
     <description>
       Tests of the HistorySetSampling interfaced post-processor and all its sampling types
     </description>
+    <revisions>
+      <revision author="wangc" date="2018-08-08">Test the defect issue #739</revision>
+    </revisions>
   </TestInfo>
   
   <RunInfo>
@@ -142,7 +145,7 @@
   <Samplers>
     <MonteCarlo name="MC_external">
       <samplerInit>
-        <limit>1</limit>
+        <limit>2</limit>
       </samplerInit>
       <variable name="x0">
         <distribution>x0_distrib</distribution>
