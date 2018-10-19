@@ -55,7 +55,7 @@ class FissionYieldParser():
       @ In, pertDict, dictionary, perturbed variables
       @ Out, pertDict, dictionary, perturbed variables in scientific format
     """
-    for key, value in pertDict.iteritems():
+    for key, value in pertDict.items():
       pertDict[key] = '%.3E' % Decimal(str(value))
     return pertDict
 
@@ -231,7 +231,7 @@ class FissionYieldParser():
         for k in range(len(fissioningActinide)):
           self.listedYieldDict[spectrumType[i]][resultingFP[j]][
               fissioningActinide[k]] = {}
-    for yieldTypeKey, yieldValue in self.pertYieldDict.iteritems():
+    for yieldTypeKey, yieldValue in self.pertYieldDict.items():
       self.listedYieldDict[yieldTypeKey.split('|')[1]][yieldTypeKey.split('|')[
           3]][yieldTypeKey.split('|')[2]] = yieldValue
 

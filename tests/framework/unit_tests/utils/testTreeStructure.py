@@ -221,7 +221,7 @@ checkAnswer('Recorded data (dynamic 1):',c.findBranch('myMetric').text,3.14159)
 c = dynamic._findTarget(dynamic.getrootnode(),'myTarget',0.2)
 checkAnswer('Recorded data (dynamic 2):',c.findBranch('myMetric').text,299792358)
 
-print('{0}ed: {2}, {1}ed: {3}'.format(*(list(str(r) for r in results.keys())+results.values())))
+print('{0}ed: {2}, {1}ed: {3}'.format(*(list(str(r) for r in results.keys())+list(results.values()))))
 sys.exit(results["fail"])
 """
   <TestInfo>

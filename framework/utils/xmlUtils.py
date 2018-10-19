@@ -26,6 +26,7 @@ import xml.dom.minidom as pxml
 import re
 import os
 from .utils import isString
+from .graphStructure import graphObject
 import VariableGroups
 
 #define type checking
@@ -348,6 +349,21 @@ def readExternalXML(extFile,extNode,cwd):
     raise IOError('XML UTILS ERROR: Node "{}" is not the root node of "{}"!'.format(extNode,extFile))
   return root
 
+def findAllRecursive(node, element):
+  """
+    A function for recursively traversing a node in an elementTree to find
+    all instances of a tag.
+    Note that this method differs from findall() since it goes for all nodes,
+    subnodes, subsubnodes etc. recursively
+    @ In, node, ET.Element, the current node to search under
+    @ In, element, str, the string name of the tags to locate
+    @ Out, result, list, a list of the currently recovered results
+  """
+  result=[]
+  for elem in node.iter(tag=element):
+    result.append(elem)
+  return result
+
 def readVariableGroups(xmlNode,messageHandler,caller):
   """
     Reads the XML for the variable groups and initializes them
@@ -356,27 +372,36 @@ def readVariableGroups(xmlNode,messageHandler,caller):
     @ In, caller, MessageHandler.MessageUser instance, entity calling this method (needs to inherit from MessageHandler.MessageUser)
     @ Out, varGroups, dict, dictionary of variable groups (names to the variable lists to replace the names)
   """
-  varGroups = {}
+  # first find all the names
+  names = [node.attrib['name'] for node in xmlNode]
+
+  # find dependencies
+  deps = {}
+  nodes = {}
+  initials = []
   for child in xmlNode:
-    varGroup = VariableGroups.VariableGroup()
-    varGroup.readXML(child,messageHandler)
-    varGroups[varGroup.name]=varGroup
-  # initialize variable groups
-  while any(not vg.initialized for vg in varGroups.values()):
-    numInit = 0 #new vargroups initialized this pass
-    for vg in varGroups.values():
-      if vg.initialized:
-        continue
-      try:
-        deps = list(varGroups[dp] for dp in vg.getDependencies())
-      except KeyError as e:
-        caller.raiseAnError(IOError,'Dependency %s listed but not found in varGroups!' %e)
-      if all(varGroups[dp].initialized for dp in vg.getDependencies()):
-        vg.initialize(varGroups.values())
-        numInit+=1
-    if numInit == 0:
-      caller.raiseAWarning('variable group status:')
-      for name,vg in varGroups.items():
-        caller.raiseAWarning('   ',name,':',vg.initialized)
-      caller.raiseAnError(RuntimeError,'There was an infinite loop building variable groups!')
+    name = child.attrib['name']
+    nodes[name] = child
+    needs = [s.strip().strip('-+^%') for s in child.text.split(',')]
+    for n in needs:
+      if n not in deps and n not in names:
+        deps[n] = []
+    deps[name] = needs
+    if len(deps[name]) == 0:
+      initials.append(name)
+  graph = graphObject(deps)
+  # sanity checking
+  if graph.isALoop():
+    caller.raiseAnError(IOError,'VariableGroups have circular dependency! Order:',' -> '.join(graph.createSingleListOfVertices(alls)))
+  # ordered list (least dependencies first)
+  hierarchy = list(reversed(graph.createSingleListOfVertices(graph.findAllUniquePaths(initials))))
+
+  # build entities
+  varGroups = {}
+  for name in hierarchy:
+    if len(deps[name]):
+      varGroup = VariableGroups.VariableGroup()
+      varGroup.readXML(nodes[name], messageHandler, varGroups)
+      varGroups[name] = varGroup
+
   return varGroups

@@ -23,7 +23,6 @@
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
-#if not 'xrange' in dir(__builtins__): xrange = range
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -274,7 +273,7 @@ class DynamicEventTree(Grid):
         unchangedPb = 0.0
         try:
           # changed_pb = probability (not conditional probability yet) that the event A occurs and the final state is 'alpha' """
-          for pb in xrange(len(endInfo['branchChangedParams'][key]['associatedProbability'])):
+          for pb in range(len(endInfo['branchChangedParams'][key]['associatedProbability'])):
             unchangedPb = unchangedPb + endInfo['branchChangedParams'][key]['associatedProbability'][pb]
         except KeyError:
           self.raiseAWarning("KeyError:"+str(key))

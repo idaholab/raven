@@ -173,7 +173,7 @@ class BasicStatistics(PostProcessor):
         self.raiseAWarning('BasicStatistics postprocessor did not detect ProbabilityWeights! Assuming unit weights instead...')
       if 'RAVEN_sample_ID' not in inputDataset.sizes.keys():
         self.raiseAWarning('BasicStatisitics postprocessor did not detect RAVEN_sample_ID! Assuming the first dimension of given data...')
-        self.sampleTag = inputDataset.sizes.keys()[0]
+        self.sampleTag = utils.first(inputDataset.sizes.keys())
       return inputDataset, pbWeights
 
     if currentInput.type not in ['PointSet','HistorySet']:
@@ -470,11 +470,11 @@ class BasicStatistics(PostProcessor):
       @ In, percent, float, the percentile that needs to be computed (between 0.01 and 1.0)
       @ Out, result, float, the percentile
     """
-    idxs                   = np.argsort(np.asarray(zip(pbWeight,arrayIn))[:,1])
+    idxs                   = np.argsort(np.asarray(list(zip(pbWeight,arrayIn)))[:,1])
     # Inserting [0.0,arrayIn[idxs[0]]] is needed when few samples are generated and
     # a percentile that is < that the first pb weight is requested. Otherwise the median
     # is returned (that is wrong).
-    sortedWeightsAndPoints = np.insert(np.asarray(zip(pbWeight[idxs],arrayIn[idxs])),0,[0.0,arrayIn[idxs[0]]],axis=0)
+    sortedWeightsAndPoints = np.insert(np.asarray(list(zip(pbWeight[idxs],arrayIn[idxs]))),0,[0.0,arrayIn[idxs[0]]],axis=0)
     weightsCDF             = np.cumsum(sortedWeightsAndPoints[:,0])
     try:
       index = utils.find_le_index(weightsCDF,percent)

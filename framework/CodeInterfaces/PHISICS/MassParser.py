@@ -35,7 +35,7 @@ class MassParser():
       @ In, pertDict, dictionary, perturbed variables
       @ Out, pertDict, dictionary, perturbed variables in scientific format
     """
-        for key, value in pertDict.iteritems():
+        for key, value in pertDict.items():
             pertDict[key] = '%.3E' % Decimal(str(value))
         return pertDict
 
@@ -97,7 +97,7 @@ class MassParser():
             for j in range(len(perturbedIsotopes)):
                 reconstructedDict[perturbedPhysicalParameters[i]][
                     perturbedIsotopes[j]] = {}
-        for typeKey, value in deconstructedDict.iteritems():
+        for typeKey, value in deconstructedDict.items():
             keyWords = typeKey.split('|')
             reconstructedDict[keyWords[0]][keyWords[1]] = value
         return reconstructedDict

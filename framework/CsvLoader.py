@@ -21,8 +21,6 @@ data from csv files
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
-if not 'xrange' in dir(__builtins__):
-  xrange = range
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -110,7 +108,7 @@ class CsvLoader(MessageHandler.MessageUser):
     elif options['type'] == 'HistorySet':
       listhistIn  = {}
       listhistOut = {}
-      for index in xrange(len(fileIn)):
+      for index in range(len(fileIn)):
         tupleVar = self.__csvLoaderForHistory(fileIn[index],options)
         # dictionary of dictionary key = i => ith history ParameterValues dictionary
         listhistIn[index]  = tupleVar[0]
