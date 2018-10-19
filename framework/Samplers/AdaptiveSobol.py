@@ -937,7 +937,10 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
       #update the ROM with the new polynomial point
       sampler._updateQoI()
       #refresh the list of potential points in the index set
-      sampler.indexSet.forward(sampler.indexSet.points[-1])
+      #XXX below line was:
+      #sampler.indexSet.forward(sampler.indexSet.points[-1])
+      #but forward takes a single integer not a tuple like points[-1] is.
+      sampler.indexSet.forward()
       #update estimated impacts
       for pidx in sampler.indexSet.active:
         sampler._estimateImpact(pidx)
