@@ -649,4 +649,4 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
     rom = copy.deepcopy(self.ROM)
     self._finalizeROM(rom)
     rom.train(self.solns)
-    pickle.dump(rom,open(fname+'.pk','w'))
+    pickle.dump(rom,open(fname+'.pk','wb'))

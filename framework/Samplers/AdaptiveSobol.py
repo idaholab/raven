@@ -350,7 +350,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     #otherwise, take from the highest-impact sampler's needed points
     else:
       #pointsNeeded is in order from least to most impactful, so list reverse of keys.
-      subsets = self.pointsNeeded.keys()
+      subsets = list(self.pointsNeeded.keys())
       subsets.reverse()
       #now they're in order of impact.  Look for the next point to run.
       found = False
@@ -617,7 +617,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
         #get expected impact - the max impact among from the targets
         self.subsetExpImpact[p] = max(abs(self._calcExpImpact(p,t)) for t in self.targets)
     #now order the expected impacts so that lowest is first (-1 is highest)
-    toSort = zip(self.subsetExpImpact.keys(),self.subsetExpImpact.values())
+    toSort = list(zip(self.subsetExpImpact.keys(),self.subsetExpImpact.values()))
     toSort.sort(key=itemgetter(1))
     #restore them to the ordered dict.
     self.subsetExpImpact = OrderedDict()
