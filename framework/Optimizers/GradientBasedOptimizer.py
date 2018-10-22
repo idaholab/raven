@@ -363,16 +363,19 @@ class GradientBasedOptimizer(Optimizer):
             self.counter['recentOptHist'][traj][0] = optCandidate
             # find the new gradient for this trajectory at the new opt point
             grad = self.evaluateGradient(traj)
+            # get a new candidate
+            self._newOptPointAdd(grad, traj)
+            # add new gradient points
+            self._createPerturbationPoints(traj, self.counter['recentOptHist'][traj][0])
+            # reset storage
+            self._setupNewStorage(traj)
           ## if new point rejected, then scrap
           else:
-            # keep the old gradient, but cut the step size (recommendation to "cut" already happened in _updateConvergenceVector)
-            grad = self.counter['gradientHistory'][traj][0]
-          # regardless if candidate opt point was accepted or rejected, get a new candidate
-          self._newOptPointAdd(grad, traj)
-          # add new gradient points
-          self._createPerturbationPoints(traj, self.counter['recentOptHist'][traj][0])
-          # reset storage
-          self._setupNewStorage(traj)
+            # resample the gradient (if we skip this, the optimizer often gets stuck needlessly)
+            ## reset the storage but keep the old opt point
+            self._setupNewStorage(traj, keepOpt=True)
+            # resubmit gradient points
+            self._createPerturbationPoints(traj, self.counter['recentOptHist'][traj][0])
 
   def localGenerateInput(self,model,oldInput):
     """
@@ -656,12 +659,16 @@ class GradientBasedOptimizer(Optimizer):
           self.status[trajToRemove] = {'process':'following traj '+str(traj),'reason':'removed as redundant'}
           break
 
-  def _setupNewStorage(self,traj):
+  def _setupNewStorage(self,traj,keepOpt=False):
     """
       Assures correct structure for receiving results from sample evaluations
       @ In, traj, int, trajectory of interest
+      @ In, keepOpt, bool, optional, if True then don't reset the denoised opt
       @ Out, None
     """
+    # store denoised opt if requested
+    if keepOpt:
+      den = self.realizations[traj]['denoised']['opt']
     denoises = self.gradDict['numIterForAve']
     self.realizations[traj] = {'collect' : {'opt' : [ [] ],
                                             'grad': [ [] for _ in range(self.paramDict['pertSingleGrad']) ] },
@@ -670,6 +677,10 @@ class GradientBasedOptimizer(Optimizer):
                                'need'    : denoises,
                                'accepted': None,
                               }
+    # reset opt if requested
+    if keepOpt:
+      self.realizations[traj]['denoised']['opt'] = den
+      self.realizations[traj]['accepted'] = True
 
   def _updateConvergenceVector(self, traj, varsUpdate, currentPoint):
     """
