@@ -42,24 +42,18 @@ try:
     import user
 except ImportError:
     user = types  # using as a stub
-try:
-    import dill as pickle
-    from dill.source import importable
-    from dill.source import getname
-    from dill.source import _wrap
-except ImportError:
-    try: import cPickle as pickle
-    except ImportError: import pickle
-    def importable(func): # the original code
-        #get lines of the source and adjust indent
-        sourcelines = inspect.getsourcelines(func)[0]
-        #remove indentation from the first line
-        sourcelines[0] = sourcelines[0].lstrip()
-        return "".join(sourcelines)
-    def getname(obj): # just get __name__
-        return obj.__name__
-    def _wrap(f): # do nothing
-        return f
+#RAVEN CHANGE: switching to cloudpickle
+import cloudpickle as pickle
+def importable(func): # the original code
+    #get lines of the source and adjust indent
+    sourcelines = inspect.getsourcelines(func)[0]
+    #remove indentation from the first line
+    sourcelines[0] = sourcelines[0].lstrip()
+    return "".join(sourcelines)
+def getname(obj): # just get __name__
+    return obj.__name__
+def _wrap(f): # do nothing
+    return f
 import six
 import pptransport
 import ppauto
@@ -408,8 +402,9 @@ class Server(object):
         self.logger.info("pp local server started with %d workers"
                 % (self.__ncpus, ))
 
+    #RAVEN CHANGE: adding functionToSkip
     def submit(self, func, args=(), depfuncs=(), modules=(),
-            callback=None, callbackargs=(), group='default', globals=None):
+               callback=None, callbackargs=(), group='default', globals=None, functionToSkip = None):
         """Submits function to the execution queue
 
             func - function to be executed
@@ -424,6 +419,7 @@ class Server(object):
             jobs in a given group to finish
             globals - dictionary from which all modules, functions and classes
             will be imported, for instance: globals=globals()
+            functionToSkip - list of functions that need to be skipped from pickling
         """
 
         # perform some checks for frequent mistakes
@@ -486,7 +482,16 @@ class Server(object):
                    in ['builtins', '__builtin__', None]: pass
                 # do not include source for imported modules
                 elif ppc.is_not_imported(arg, modules):
-                    depfuncs += tuple(ppc.get_class_hierarchy(arg.__class__))
+                    #RAVEN CHANGE: adding functionToSkip removing.
+                    clshier = ppc.get_class_hierarchy(arg.__class__)
+                    if functionToSkip != None:
+                      tempclshier = []
+                      clshierstr = [str(elem) for elem in clshier] # we use string in order to avoid baseclass identity!
+                      functionToSkipSet = set([str(elem) for elem in functionToSkip])
+                      for cnt, clshierfun in enumerate(clshierstr):
+                        if clshierfun not in functionToSkipSet: tempclshier.append(clshier[cnt])
+                      clshier = tempclshier
+                    depfuncs += tuple(clshier)
 
         # if there is a function in the arguments add this
         # function to dependancies
