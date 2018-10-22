@@ -743,15 +743,16 @@ class GradientBasedOptimizer(Optimizer):
       converged = converged or minStepSizeCheck
 
       ## gradient norm
-      if len(self.counter['gradientHistory'][traj][0]) > 0:
-        gradNorm = self.counter['gradNormHistory'][traj][0]
-        self.convergenceProgress[traj]['grad'] = gradNorm
-        gradientNormCheck = gradNorm <= self.gradientNormTolerance
-      else:
-        gradNorm = np.nan
-        gradientNormCheck = False
-      printProgress('Gradient magnitude',gradientNormCheck,gradNorm,self.gradientNormTolerance)
-      converged = converged or gradientNormCheck
+      # XXX we don't track the actual gradient value anymore. Update the docs!
+      #if len(self.counter['gradientHistory'][traj][0]) > 0:
+      #  gradNorm = self.counter['gradNormHistory'][traj][0]
+      #  self.convergenceProgress[traj]['grad'] = gradNorm
+      #  gradientNormCheck = gradNorm <= self.gradientNormTolerance
+      #else:
+      #  gradNorm = np.nan
+      #  gradientNormCheck = False
+      #printProgress('Gradient magnitude',gradientNormCheck,gradNorm,self.gradientNormTolerance)
+      #converged = converged or gradientNormCheck
 
       # if accepting new point, then "same coordinate" and "abs" and "rel" checks are also valid reasons to converge
       if newerIsBetter:

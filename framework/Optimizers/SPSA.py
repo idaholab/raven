@@ -124,6 +124,7 @@ class SPSA(GradientBasedOptimizer):
       self.stochasticEngine = lambda: [(0.5+randomUtils.random()*(1.+randomUtils.random()/1000.*randomUtils.randomIntegers(-1, 1, self))) if self.stochasticDistribution.rvs() == 1 else
                                    -1.*(0.5+randomUtils.random()*(1.+randomUtils.random()/1000.*randomUtils.randomIntegers(-1, 1, self))) for _ in range(numValues)]
     elif stochDist == 'Hypersphere':
+      # TODO assure you can't get a "0" along any dimension! Need to be > 1e-15. Right now it's just highly unlikely.
       self.stochasticEngine = lambda: randomUtils.randPointsOnHypersphere(numValues) if numValues > 1 else [randomUtils.randPointsOnHypersphere(numValues)]
     else:
       self.raiseAnError(IOError, self.paramDict['stochasticEngine']+'is currently not supported for SPSA')
@@ -776,6 +777,8 @@ class SPSA(GradientBasedOptimizer):
     gradient = {}
     # difference in objective variable
     lossDiff = mathUtils.diffWithInfinites(pert[self.objVar], opt[self.objVar])
+    # we only need the +/- 1, we don't need the gradient value at all.
+    lossDiff = 1.0 if lossDiff > 0.0 else -1.0
     # force gradient descent
     if self.optType == 'max':
       lossDiff *= -1.0
