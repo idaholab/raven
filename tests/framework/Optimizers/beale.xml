@@ -46,14 +46,13 @@
   <Optimizers>
     <SPSA name="opter">
       <initialization>
-        <limit>5000</limit>
+        <limit>2000</limit>
         <initialSeed>42</initialSeed>
-        <thresholdTrajRemoval>1e-3</thresholdTrajRemoval>
+        <thresholdTrajRemoval>1e-5</thresholdTrajRemoval>
         <writeSteps>every</writeSteps>
       </initialization>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
       <convergence>
-        <relativeThreshold>1e-5</relativeThreshold>
         <gradientThreshold>1e-1</gradientThreshold>
         <gainGrowthFactor>1.5</gainGrowthFactor>
         <gainShrinkFactor>1.25</gainShrinkFactor>
@@ -90,7 +89,7 @@
     </PointSet>
     <PointSet name="opt_export">
       <Input>trajID</Input>
-      <Output>x,y,ans,varsUpdate,accepted</Output>
+      <Output>x,y,ans,varsUpdate</Output>
     </PointSet>
   </DataObjects>
 

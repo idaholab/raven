@@ -49,7 +49,7 @@
       <!-- Initialization Sampler -->
       <Sampler class="Samplers" type="Grid">initialPointsSampler</Sampler>
       <convergence>
-        <gradientThreshold>1e-4</gradientThreshold>
+        <relativeThreshold>1e-4</relativeThreshold>
         <gainGrowthFactor>1.5</gainGrowthFactor>
         <gainShrinkFactor>1.25</gainShrinkFactor>
       </convergence>
