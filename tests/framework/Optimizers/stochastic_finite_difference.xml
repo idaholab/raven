@@ -48,7 +48,6 @@
       </initialization>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
       <convergence>
-        <gradientThreshold>1e-2</gradientThreshold>
         <gainGrowthFactor>1.</gainGrowthFactor>
         <gainShrinkFactor>1.25</gainShrinkFactor>
       </convergence>
@@ -59,7 +58,7 @@
       </variable>
       <objectVar>ans</objectVar>
       <parameter>
-        <numGradAvgIterations>26</numGradAvgIterations>
+        <numGradAvgIterations>50</numGradAvgIterations>
       </parameter>
     </FiniteDifference>
   </Optimizers>
