@@ -206,39 +206,6 @@ class GradientBasedOptimizer(Optimizer):
     self.counter['gradientHistory'][traj][0] = gradient
     return gradient
 
-  def OLD_evaluateGradient(self):
-    # store old values
-    self.counter['gradientHistory'][traj][1] = copy.copy(self.counter['gradientHistory'][traj][0])
-    self.counter['gradNormHistory'][traj][1] = copy.copy(self.counter['gradNormHistory'][traj][0])
-    gradient = None # for now...most of the stuff in the localEvaluate can be performed here
-    gradient = self.localEvaluateGradient(optVarsValues, traj, gradient)
-    # we intend for gradient to give direction only, so get the versor
-    ## NOTE this assumes gradient vectors are 0 or 1 dimensional, not 2 or more! (vectors or scalars, not matrices)
-    gradientNorm = self.calculateMultivectorMagnitude(gradient.values())
-    # store this norm, infinite or not
-    self.counter['gradNormHistory'][traj][0] = gradientNorm
-    #fix inf
-    if gradientNorm == np.inf:
-      # if there are infinites, then only infinites should remain, and they are +-1
-      for v,var in enumerate(gradient.keys()):
-        # first, set all non-infinites to 0, since they can't compete with infinites
-        gradient[var][-np.inf < gradient[var] < np.inf] =  0.0
-        # set +- infinites to +- 1 (arbitrary) since they're all equally important
-        gradient[var][gradient[var] == -np.inf] = -1.0
-        gradient[var][gradient[var] ==  np.inf] =  1.0
-      # set up the new grad norm
-      gradientNorm = self.calculateMultivectorMagnitude(gradient.values())
-    # normalize gradient (if norm is zero, skip this)
-    if gradientNorm != 0.0:
-      for var in gradient.keys():
-        gradient[var] = gradient[var]/gradientNorm
-        # if float coming in, make it a float going out
-        if len(gradient[var])==1:
-          gradient[var] = float(gradient[var])
-    # store gradient
-    self.counter['gradientHistory'][traj][0] = gradient
-    return gradient
-
   def finalizeSampler(self,failedRuns):
     """
       Method called at the end of the Step when no more samples will be taken.  Closes out optimizer.
@@ -330,17 +297,10 @@ class GradientBasedOptimizer(Optimizer):
 
         # if we just finished "opt", check some acceptance and convergence checking
         if category == 'opt':
-          # check convergence and check if new point is accepted (better than old point)
-          accepted = self._updateConvergenceVector(traj, self.counter['solutionUpdate'][traj], outputs)
-          # store acceptance for later
-          self.realizations[traj]['accepted'] = accepted
-          # if converged, we can wrap up this trajectory
-          if self.convergeTraj[traj]:
-            # end any excess gradient evaluation jobs
-            self.cancelJobs([self._createEvaluationIdentifier(traj,self.counter['varsUpdate'][traj],i) for i in self.perturbationIndices])
-          # otherwise wait for grad evaluations to finish to move forward
+          self._finalizeOptimalCandidate(traj,outputs)
 
-        # if both opts and grads are done, then we can do an evaluation
+        # if both opts and grads are now done, then we can do an evaluation
+        ## note that by now we've ALREADY accepted the point; if it was rejected, it would have been reset by now.
         optDone = bool(len(self.realizations[traj]['denoised']['opt'][0]))
         gradDone = all( len(self.realizations[traj]['denoised']['grad'][i]) for i in range(self.paramDict['pertSingleGrad']))
         if optDone and gradDone:
@@ -352,30 +312,23 @@ class GradientBasedOptimizer(Optimizer):
           # whether we wrote to solution export or not, update the counter
           self.counter['solutionUpdate'][traj] += 1
           self.counter['varsUpdate'][traj] += 1
-          ## if accept, then update grad history
-          if self.realizations[traj]['accepted']:
-            try:
-              self.counter['recentOptHist'][traj][1] = copy.deepcopy(self.counter['recentOptHist'][traj][0])
-            except KeyError:
-              # this means we don't have an entry for this trajectory yet, so don't copy anything
-              pass
-            # store realization of most recent developments
-            self.counter['recentOptHist'][traj][0] = optCandidate
-            # find the new gradient for this trajectory at the new opt point
-            grad = self.evaluateGradient(traj)
-            # get a new candidate
-            self._newOptPointAdd(grad, traj)
+          ## since accepted, update history
+          try:
+            self.counter['recentOptHist'][traj][1] = copy.deepcopy(self.counter['recentOptHist'][traj][0])
+          except KeyError:
+            # this means we don't have an entry for this trajectory yet, so don't copy anything
+            pass
+          # store realization of most recent developments
+          self.counter['recentOptHist'][traj][0] = optCandidate
+          # find the new gradient for this trajectory at the new opt point
+          grad = self.evaluateGradient(traj)
+          # get a new candidate
+          new = self._newOptPointAdd(grad, traj)
+          if new is not None:
             # add new gradient points
-            self._createPerturbationPoints(traj, self.counter['recentOptHist'][traj][0])
-            # reset storage
-            self._setupNewStorage(traj)
-          ## if new point rejected, then scrap
-          else:
-            # resample the gradient (if we skip this, the optimizer often gets stuck needlessly)
-            ## reset the storage but keep the old opt point
-            self._setupNewStorage(traj, keepOpt=True)
-            # resubmit gradient points
-            self._createPerturbationPoints(traj, self.counter['recentOptHist'][traj][0])
+            self._createPerturbationPoints(traj, new)
+          # reset storage
+          self._setupNewStorage(traj)
 
   def localGenerateInput(self,model,oldInput):
     """
@@ -484,6 +437,47 @@ class GradientBasedOptimizer(Optimizer):
     identifier = str(trajID) + '_' + str(iterID) + '_' + str(evalType)
     return identifier
 
+  def _finalizeOptimalCandidate(self,traj,outputs):
+    """
+      Once all the data for an opt point has been collected:
+       - determine convergence
+       - determine redundancy
+       - determine acceptability
+       - queue new points (if rejected)
+      @ In, traj, int, the trajectory we are currently considering
+      @ In, outputs, dict, denoised new optimal point
+      @ Out, None
+    """
+    # check convergence and check if new point is accepted (better than old point)
+    accepted = self._updateConvergenceVector(traj, self.counter['solutionUpdate'][traj], outputs)
+    # if converged, we can wrap up this trajectory
+    if self.convergeTraj[traj]:
+      # end any excess gradient evaluation jobs
+      self.cancelJobs([self._createEvaluationIdentifier(traj,self.counter['varsUpdate'][traj],i) for i in self.perturbationIndices])
+    # if not accepted, we need to scrap this run and set up a new one
+    if accepted:
+      # store acceptance for later
+      self.realizations[traj]['accepted'] = accepted
+    else:
+      # cancel all gradient evaluations for the rejected candidate immediately
+      self.cancelJobs([self._createEvaluationIdentifier(traj,self.counter['varsUpdate'][traj],i) for i in self.perturbationIndices])
+      # update solution export
+      optCandidate = self.normalizeData(self.realizations[traj]['denoised']['opt'][0])
+      ## only write here if we want to write on EVERY optimizer iteration (each new optimal point)
+      if self.writeSolnExportOn == 'every':
+        self.writeToSolutionExport(traj, optCandidate, self.realizations[traj]['accepted'])
+      # whether we wrote to solution export or not, update the counter
+      self.counter['solutionUpdate'][traj] += 1
+      self.counter['varsUpdate'][traj] += 1
+      # new point setup
+      ## XXX keep the old grad point
+      grad = self.counter['gradientHistory'][traj][0]
+      new = self._newOptPointAdd(grad, traj)
+      if new is not None:
+        self._createPerturbationPoints(traj, new)
+      self._setupNewStorage(traj)
+      # XXX
+
   def fractionalStepChangeFromGradHistory(self,traj):
     """
       Uses the dot product between two successive gradients to determine a fractional multiplier for the step size.
@@ -502,7 +496,7 @@ class GradientBasedOptimizer(Optimizer):
         frac = self.gainGrowthFactor
       else:
         self.raiseAnError(RuntimeError,'unrecognized gain recommendation:',recommend)
-      self.raiseADebug('Based on recommendation, step size multiplier is:',frac)
+      self.raiseADebug('Based on recommendation "{}", step size multiplier is: {}'.format(recommend,frac))
       return frac
     # otherwise, no recommendation for this trajectory, so move on
     #if we don't have two evaluated gradients, just return 1.0
@@ -598,8 +592,8 @@ class GradientBasedOptimizer(Optimizer):
       @ Out, None
     """
     # TODO sanity check, this could be removed for efficiency later
-    if len(self.submissionQueue[traj]) > 0:
-      self.raiseAnError(RuntimeError,'Preparing to add opt evals to submission queue for trajectory "{}" but it is not empty: "{}"'.format(traj,self.submissionQueue[traj]))
+    #if len(self.submissionQueue[traj]) > 0:
+    #  self.raiseAnError(RuntimeError,'Preparing to add opt evals to submission queue for trajectory "{}" but it is not empty: "{}"'.format(traj,self.submissionQueue[traj]))
     for i in range(self.gradDict['numIterForAve']):
       #entries into the queue are as {'inputs':{var:val}, 'prefix':runid} where runid is <traj>_<varUpdate>_<evalNumber> as 0_0_2
       nPoint = {'inputs':copy.deepcopy(point)} #deepcopy to prevent simultaneous alteration
@@ -611,7 +605,7 @@ class GradientBasedOptimizer(Optimizer):
       Local method to remove multiple trajectory
       @ In, trajToRemove, int, identifier of the trajector to remove
       @ In, currentInput, dict, the last variable on trajectory traj
-      @ Out, None
+      @ Out, removed, bool, if True then trajectory was halted
     """
     # TODO replace this with a kdtree search
     removeFlag = False
@@ -635,16 +629,17 @@ class GradientBasedOptimizer(Optimizer):
       #don't consider removal if comparing against itself,
       #  or a trajectory removed by this one, or a trajectory removed by a trajectory removed by this one (recursive)
       #  -> this prevents mutual destruction cases
-      if traj not in notEligibleToRemove: #[trajToRemove] + self.trajectoriesKilled[trajToRemove]:
+      if traj not in notEligibleToRemove:
         #FIXME this can be quite an expensive operation, looping through each other trajectory
         for updateKey in self.optVarsHist[traj].keys():
           inp = copy.deepcopy(self.optVarsHist[traj][updateKey]) #FIXME deepcopy needed?
           if len(inp) < 1: #empty
             continue
-          removeLocalFlag = True
           dist = self.calculateMultivectorMagnitude( [inp[var] - currentInput[var] for var in self.getOptVars(traj=trajToRemove)] )
           if dist < self.thresholdTrajRemoval:
             self.raiseADebug('Halting trajectory "{}" because it is following trajectory "{}"'.format(trajToRemove,traj))
+            # cancel existing jobs for trajectory
+            self.cancelJobs([self._createEvaluationIdentifier(traj, self.counter['varsUpdate'][traj]-1, i) for i in self.perturbationIndices])
             self.trajectoriesKilled[traj].append(trajToRemove)
             #TODO the trajectory to remove should be chosen more carefully someday, for example, the one that has the smallest steps or lower loss value currently
             removeFlag = True
@@ -658,6 +653,9 @@ class GradientBasedOptimizer(Optimizer):
           self.optTrajLive.pop(trajInd)
           self.status[trajToRemove] = {'process':'following traj '+str(traj),'reason':'removed as redundant'}
           break
+      return True
+    else:
+      return False
 
   def _setupNewStorage(self,traj,keepOpt=False):
     """
