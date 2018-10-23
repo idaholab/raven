@@ -83,8 +83,6 @@ request for the output of a Gradient-Based Optimizer run.  They include the foll
     (see the description of the \xmlNode{convergence} node for more details);
   \item \xmlString{convergenceAbs}, the last-calculated absolute convergence of the loss function value
     (see the description of the \xmlNode{convergence} node for more details);
-  \item \xmlString{convergenceGrad}, the last-calculated norm of the gradient used to arrive at the
-    current point (see the description of the \xmlNode{convergence} node for more details).
 \end{itemize}
 Note that none of these additional parameters will be provided to the output DataObject by default; they must
 be specifically requested by listing them in the output space when defining the optimizing step's output data
@@ -104,7 +102,6 @@ Example:
       <iterationLimit>50</iterationLimit>
       <relativeThreshold>1e-3</relativeThreshold>
       <absoluteThreshold>1e-1</absoluteThreshold>
-      <gradientThreshold>1e-5</gradientThreshold>
       <persistence>1</persistence>
     </convergence>
     <parameter>
@@ -132,7 +129,7 @@ Example:
     <Output>
       x,y,z,varsUpdate,stepSize,
       gradient_x,gradient_y,
-      convergenceAbs,convergenceRel,convergenceGrad
+      convergenceAbs,convergenceRel
     </Output>
   </HistorySet>
   ...
@@ -326,9 +323,6 @@ convergence. This node accepts the following sub-nodes:
   in an ``absolute'' sense: when the absolute change of objective variable in two successive model evaluations is smaller
   than this specified threshold, the \xmlNode{SPSA} optimizer is in convergence and terminates the simulation.
       \default{0.0}
-  \item \xmlNode{gradientThreshold}, \xmlDesc{float, optional field}, specifies the convergence criteria to determine the optimality,
-   as function of the L2 norm of the gradient (useful for unconstrained problems): when the L2 norm od the gradient falls below this threshold, the \xmlNode{SPSA} optimizer is in convergence and terminates the simulation.
-      \default{1e-3}
   \item \xmlNode{minStepSize}, \xmlDesc{float, optional field}, specifies the minimum allowable step size in
     the normalized input space, ranging from 0 (no movement) to 1 (spans any dimension).
       \default{1e-9}
@@ -413,7 +407,6 @@ Example:
       <iterationLimit>50</iterationLimit>
       <relativeThreshold>1e-3</relativeThreshold>
       <absoluteThreshold>1e-1</absoluteThreshold>
-      <gradientThreshold>1e-5</gradientThreshold>
       <persistence>1</persistence>
     </convergence>
     <parameter>
@@ -618,9 +611,6 @@ convergence. This node accepts the following sub-nodes:
   in an ``absolute'' sense: when the absolute change of objective variable in two successive model evaluations is smaller
   than this specified threshold, the \xmlNode{FiniteDifferenceGradientOptimizer} optimizer is in convergence and terminates the simulation.
       \default{0.0}
-  \item \xmlNode{gradientThreshold}, \xmlDesc{float, optional field}, specifies the convergence criteria to determine the optimality,
-   as function of the L2 norm of the gradient (useful for unconstrained problems): when the L2 norm od the gradient falls below this threshold, the \xmlNode{FiniteDifferenceGradientOptimizer} optimizer is in convergence and terminates the simulation.
-      \default{1e-3}
   \item \xmlNode{minStepSize}, \xmlDesc{float, optional field}, specifies the minimum allowable step size in
     the normalized input space, ranging from 0 (no movement) to 1 (spans any dimension).
       \default{1e-9}
@@ -696,7 +686,6 @@ Example:
       <iterationLimit>50</iterationLimit>
       <relativeThreshold>1e-3</relativeThreshold>
       <absoluteThreshold>1e-1</absoluteThreshold>
-      <gradientThreshold>1e-5</gradientThreshold>
       <persistence>1</persistence>
     </convergence>
     <parameter>

@@ -15,6 +15,7 @@
     </analytic>
     <revisions>
       <revision author="talbpaul" date="2018-01-04">switch from snapshot to writeSteps final</revision>
+      <revision author='talbpaul' date='2018-10-23'>limited outputs checked to just the solution</revision>
     </revisions>
   </TestInfo>
 
@@ -82,8 +83,7 @@
       <Output>ans</Output>
     </PointSet>
     <PointSet name="opt_export">
-      <Input>trajID</Input>
-      <Output>x,y,ans,varsUpdate</Output>
+      <Output>ans</Output>
     </PointSet>
   </DataObjects>
 

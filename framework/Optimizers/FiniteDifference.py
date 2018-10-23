@@ -45,6 +45,9 @@ class FiniteDifference(SPSA):
     TODO: Move the SPSA machinery here (and GradientBasedOptimizer) and make the SPSA just take care of the
     random perturbation approach
   """
+  ##########################
+  # Initialization Methods #
+  ##########################
   def __init__(self):
     """
       Default Constructor
@@ -59,8 +62,15 @@ class FiniteDifference(SPSA):
     """
     SPSA.localInputAndChecks(self, xmlNode)
     self.paramDict['pertSingleGrad'] = len(self.fullOptVars)
-    self.gradDict['pertNeeded']      = self.gradDict['numIterForAve'] * (self.paramDict['pertSingleGrad']+1)
+    self.gradDict['pertNeeded'] = self.gradDict['numIterForAve'] * (self.paramDict['pertSingleGrad']+1)
 
+  ###############
+  # Run Methods #
+  ###############
+
+  ###################
+  # Utility Methods #
+  ###################
   def _getPerturbationDirection(self,perturbationIndex, traj):
     """
       This method is aimed to get the perturbation direction (i.e. in this case the random perturbation versor)
@@ -92,52 +102,25 @@ class FiniteDifference(SPSA):
     self.currentDirection = direction
     return direction
 
-  def localEvaluateGradient(self, optVarsValues, traj, gradient = None):
+  def localEvaluateGradient(self, traj):
     """
       Local method to evaluate gradient.
-      @ In, optVarsValues, dict, dictionary containing perturbed points.
-                                 optVarsValues should have the form {pertIndex: {varName: [varValue1 varValue2]}}
-                                 Therefore, each optVarsValues[pertIndex] should return a dict of variable values
-                                 that is sufficient for gradient evaluation for at least one variable
-                                 (depending on specific optimization algorithm)
       @ In, traj, int, the trajectory id
-      @ In, gradient, dict, optional, dictionary containing gradient estimation by the caller.
-                                      gradient should have the form {varName: gradEstimation}
       @ Out, gradient, dict, dictionary containing gradient estimation. gradient should have the form {varName: gradEstimation}
     """
-    gradArray = {}
-    optVars = self.getOptVars(traj=traj)
-    numRepeats = self.gradDict['numIterForAve']
-    for var in optVars:
-      gradArray[var] = np.zeros(self.gradDict['numIterForAve'],dtype=object)
-    # optVarsValues:
-    #  - the first <numRepeats> entries are the opt point (from 0 to numRepeats-1)
-    #  - the next <numRepeats> entries are one each in each direction in turns (dx1, dy1, dx2, dy2, etc)
-    #      dx are [lastOpt +1, lastOpt +3, lastOpt +5, etc] -> [lastOpt + <#var>*<index repeat>+1]
-    #      dy are [lastOpt +2, lastOpt +4, lastOpt +6, etc]
-    # Evaluate gradient at each point
-    for i in range(numRepeats):
-      opt  = optVarsValues[i] #the latest opt point
-      for j in range(self.paramDict['pertSingleGrad']): # AKA for each input variable
-        # loop over the perturbation to construct the full gradient
-        ## first numRepeats are all the opt point, not the perturbed point
-        ## then, need every Nth entry, where N is the number of variables
-        pert = optVarsValues[numRepeats + i*len(optVars) + j] #the perturbed point
-        #calculate grad(F) wrt each input variable
-        lossDiff = mathUtils.diffWithInfinites(pert['output'],opt['output'])
-        #cover "max" problems
-        # TODO it would be good to cover this in the base class somehow, but in the previous implementation this
-        #   sign flipping was only called when evaluating the gradient.
-        if self.optType == 'max':
-          lossDiff *= -1.0
-        var = optVars[j]
-        # gradient is calculated in normalized space
-        dh = pert['inputs'][var] - opt['inputs'][var]
-        if abs(dh) < 1e-15:
-          self.raiseADebug('Values:',pert['inputs'][var],opt['inputs'][var])
-          self.raiseAnError(RuntimeError,'While calculating the gradArray a "dh" very close to zero was found for var:',var)
-        gradArray[var][i] = lossDiff/dh
     gradient = {}
-    for var in optVars:
-      gradient[var] = np.atleast_1d(gradArray[var].mean())
+    inVars = self.getOptVars(traj=traj)
+    opt = self.realizations[traj]['denoised']['opt'][0]
+    allGrads = self.realizations[traj]['denoised']['grad']
+    for g,pert in enumerate(allGrads):
+      var = inVars[g]
+      lossDiff = mathUtils.diffWithInfinites(pert[self.objVar],opt[self.objVar])
+      lossDiff = 1.0 if lossDiff > 0.0 else -1.0
+      if self.optType == 'max':
+        lossDiff *= -1.0
+      dh = pert[var] - opt[var]
+      if abs(dh) < 1e-15:
+        self.raiseADebug('Values:',pert['inputs'][var],opt['inputs'][var])
+        self.raiseAnError(RuntimeError,'While calculating the gradArray a "dh" very close to zero was found for var:',var)
+      gradient[var] = np.atleast_1d(lossDiff * dh)
     return gradient

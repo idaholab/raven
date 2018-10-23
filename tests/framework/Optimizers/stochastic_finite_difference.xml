@@ -11,6 +11,7 @@
     </description>
     <revisions>
       <revision author="talbpaul" date="2018-01-04">switched from snapshot to writeSteps final</revision>
+      <revision author='talbpaul' date='2018-10-23'>limited outputs checked to just the solution</revision>
     </revisions>
     <analytic>
       This tests uses the inverse parabola as a basis for the noisy optimization. The inverse parabola is documented
@@ -80,8 +81,7 @@
       <Output>ans,reg</Output>
     </PointSet>
     <PointSet name="opt_export">
-      <Input>trajID</Input>
-      <Output>x,ans,reg,varsUpdate</Output>
+      <Output>ans,reg</Output>
     </PointSet>
   </DataObjects>
 

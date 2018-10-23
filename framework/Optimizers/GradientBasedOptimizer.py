@@ -218,7 +218,7 @@ class GradientBasedOptimizer(Optimizer):
     bestTraj = None
     for traj in self.counter['recentOptHist'].keys():
       value = self.counter['recentOptHist'][traj][0][self.objVar]
-      self.raiseADebug('For trajectory "{}" the best value was'.format(traj),value)
+      self.raiseADebug('For trajectory "{}" the best value was'.format(traj+1),value)
       if bestTraj is None:
         bestTraj = traj
         bestValue = value
@@ -227,8 +227,8 @@ class GradientBasedOptimizer(Optimizer):
         bestTraj = traj
         bestValue = value
     # now have the best trajectory, so write solution export
-    bestPoint = self.denormalizeData(self.counter['recentOptHist'][traj][0])
-    self.raiseADebug('The best overall trajectory ending was for trajectory "{}".'.format(bestTraj))
+    bestPoint = self.denormalizeData(self.counter['recentOptHist'][bestTraj][0])
+    self.raiseADebug('The best overall trajectory ending was for trajectory "{}".'.format(bestTraj+1))
     self.raiseADebug('    The optimal location is at:')
     for v in self.getOptVars():
       self.raiseADebug('                {} = {: 1.5e}'.format(v,bestPoint[v]))
@@ -237,13 +237,15 @@ class GradientBasedOptimizer(Optimizer):
     self.raiseADebug('| END OPTIMIZATION |')
     self.raiseADebug('====================')
     # _always_ re-add the last point to the solution export
-    toMatch = dict((var,bestPoint[var]) for var in bestPoint if var in self.solutionExport.getVars())
-    _,best = self.solutionExport.realization(matchDict=toMatch)
+    # OLD #
+    #toMatch = dict((var,bestPoint[var]) for var in bestPoint if var in self.solutionExport.getVars())
+    #_,best = self.solutionExport.realization(matchDict=toMatch)
     # reformat to be added FIXME this shouldn't be necessary!
-    for key,val in best.items():
-      best[key] = np.atleast_1d(val)
-    self.solutionExport.addRealization(best)
-    #self.writeToSolutionExport(bestTraj, self.normalizeData(bestPoint), True)
+    #for key,val in best.items():
+    #  best[key] = np.atleast_1d(val)
+    #self.solutionExport.addRealization(best)
+    overwrite = {'varsUpdate': self.counter['varsUpdate'][traj]}
+    self.writeToSolutionExport(bestTraj, self.normalizeData(bestPoint), True, overwrite=overwrite)
 
   def localEvaluateGradient(self, optVarsValues, gradient = None):
     """
@@ -728,6 +730,7 @@ class GradientBasedOptimizer(Optimizer):
       #printing utility
       printString = '    {:<21}: {:<5}'
       printVals = printString + ' (check: {:>+9.2e} < {:>+9.2e}, diff: {:>9.2e})'
+      # TODO rewrite this action as a lambda?
       def printProgress(name,boolCheck,test,gold):
         """
           Consolidates a commonly-used print statement to prevent errors and improve readability.
@@ -750,18 +753,6 @@ class GradientBasedOptimizer(Optimizer):
         minStepSizeCheck = False
       printProgress('Min step size',minStepSizeCheck,lastStep,self.minStepSize)
       converged = converged or minStepSizeCheck
-
-      ## gradient norm
-      # XXX we don't track the actual gradient value anymore. Update the docs!
-      #if len(self.counter['gradientHistory'][traj][0]) > 0:
-      #  gradNorm = self.counter['gradNormHistory'][traj][0]
-      #  self.convergenceProgress[traj]['grad'] = gradNorm
-      #  gradientNormCheck = gradNorm <= self.gradientNormTolerance
-      #else:
-      #  gradNorm = np.nan
-      #  gradientNormCheck = False
-      #printProgress('Gradient magnitude',gradientNormCheck,gradNorm,self.gradientNormTolerance)
-      #converged = converged or gradientNormCheck
 
       # if accepting new point, then "same coordinate" and "abs" and "rel" checks are also valid reasons to converge
       if newerIsBetter:
@@ -814,15 +805,18 @@ class GradientBasedOptimizer(Optimizer):
       self.raiseAMessage(' ... continuing trajectory "{}".'.format(traj))
     return newerIsBetter
 
-  def writeToSolutionExport(self,traj, recent, accepted):
+  def writeToSolutionExport(self,traj, recent, accepted, overwrite=None):
     """
       Standardizes how the solution export is written to.
       Uses data from "recentOptHist" and other counters to fill in values.
       @ In, traj, int, the trajectory for which an entry is being written
       @ In, recent, dict, the new optimal point (NORMALIZED) that needs to get written to the solution export
       @ In, accepted, bool, whether the most recent point was accepted or rejected as a bad move
+      @ In, overwrite, dict, optional, values to overwrite if requested as {key:val}
       @ Out, None
     """
+    if overwrite is None:
+      overwrite = {}
     # create realization to add to data object
     rlz = {}
     badValue = -1.0 #value to use if we don't have a value # TODO make this accessible to user?
@@ -841,7 +835,9 @@ class GradientBasedOptimizer(Optimizer):
           rlz[index] = match[index]
       # CASE: what variable is asked for:
       # inputs, objVar, other outputs
-      if var in recent.keys():
+      if var in overwrite:
+        new = overwrite[var]
+      elif var in recent.keys():
         new = self.denormalizeData(recent)[var]
       elif var in self.constants:
         new = self.constants[var]
@@ -874,11 +870,6 @@ class GradientBasedOptimizer(Optimizer):
       elif var.startswith( 'convergenceRel'):
         try:
           new = self.convergenceProgress[traj].get('rel',badValue)
-        except KeyError:
-          new = badValue
-      elif var.startswith( 'convergenceGrad'):
-        try:
-          new = self.convergenceProgress[traj].get('grad',badValue)
         except KeyError:
           new = badValue
       else:

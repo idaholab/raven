@@ -15,6 +15,9 @@
       This test uses both Beale's function, which is documented in the analytic tests documentation under
       the Optimizer functions section, as well as the Stress function, which is in the same tests documentation.
     </analytic>
+    <revisions>
+      <revision author='talbpaul' date='2018-10-23'>limited outputs checked to just the solution</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>

@@ -19,6 +19,7 @@
       <revision author="talbpaul" date="2017-07-11">changed model for simpler analytic checking</revision>
       <revision author="talbpaul" date="2017-07-18">added additional model output for testing mechanics</revision>
       <revision author="talbpaul" date="2018-01-04">siwtched from snapshot to writeSteps final</revision>
+      <revision author='talbpaul' date='2018-10-23'>limited outputs checked to just the solution</revision>
     </revisions>
   </TestInfo>
 
@@ -84,8 +85,7 @@
       <Output>ans,reg</Output>
     </PointSet>
     <PointSet name="opt_export">
-      <Input>trajID</Input>
-      <Output>x,ans,reg,varsUpdate,stepSize,accepted</Output>
+      <Output>ans,reg</Output>
     </PointSet>
   </DataObjects>
 
