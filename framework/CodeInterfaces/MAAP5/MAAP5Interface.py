@@ -451,10 +451,10 @@ class MAAP5(GenericCode):
       print('Events occur at: ', dictTimeHappened)
       #if any([dictTimeHappened.count(value) > 1 for value in dictTimer.values()]): raise IOError('Branch must occur at different times')
       key1 = max(dictTimer.values())
-      d1 = dict((v, k) for k, v in dictTimer.iteritems())
+      d1 = dict((v, k) for k, v in dictTimer.items())
       timerActivated = d1[key1]
       key2 = timerActivated.split('TIM')[-1]
-      d2 = dict((v, k) for k, v in self.timer.iteritems())
+      d2 = dict((v, k) for k, v in self.timer.items())
       varActivated = d2[key2]
       currentFolder = os.path.split(workingDir)[-1]
       for key, value in self.values[currentFolder].items():
