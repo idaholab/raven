@@ -231,8 +231,8 @@ class GradientBasedOptimizer(Optimizer):
     self.raiseADebug('The best overall trajectory ending was for trajectory "{}".'.format(bestTraj+1))
     self.raiseADebug('    The optimal location is at:')
     for v in self.getOptVars():
-      self.raiseADebug('                {} = {: 1.5e}'.format(v,bestPoint[v]))
-    self.raiseADebug('    The objective value there: {: 1.5e}'.format(bestValue))
+      self.raiseADebug('                {} = {}'.format(v,bestPoint[v]))
+    self.raiseADebug('    The objective value there: {}'.format(bestValue))
     self.raiseADebug('====================')
     self.raiseADebug('| END OPTIMIZATION |')
     self.raiseADebug('====================')
@@ -276,8 +276,16 @@ class GradientBasedOptimizer(Optimizer):
     self.raiseADebug('Collected sample "{}"'.format(prefix))
     failed = jobObject.getReturnCode() != 0
     if failed:
-      self.raiseADebug(' ... sample "{}" FAILED'.format(prefix))
-      # XXX TODO handle failed?
+      self.raiseADebug(' ... sample "{}" FAILED. Cutting step and re-queueing.'.format(prefix))
+      # since run failed, cut the step and requeue
+      ## cancel any further runs at this point
+      self.cancelJobs([self._createEvaluationIdentifier(traj,self.counter['varsUpdate'][traj],i) for i in range(self.perturbationIndices[-1])])
+      self.recommendToGain[traj] = 'cut'
+      grad = self.counter['gradientHistory'][traj][0]
+      new = self._newOptPointAdd(grad, traj)
+      if new is not None:
+        self._createPerturbationPoints(traj, new)
+      self._setupNewStorage(traj)
     else:
       # update self.realizations dictionary for the right trajectory
       # is this point an "opt" or a "grad" evaluations?

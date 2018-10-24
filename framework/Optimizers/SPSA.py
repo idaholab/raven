@@ -604,8 +604,6 @@ class SPSA(GradientBasedOptimizer):
     # difference in input variables
     for var in self.getOptVars(traj=traj):
       dh = pert[var] - opt[var]
-      if abs(dh) < 1e-15:
-        self.raiseAnError(RuntimeError,'While calculating the gradArray a "dh" of zero was found for var:',var)
       # keep dimensionality consistent, so at least 1D
       gradient[var] = np.atleast_1d(lossDiff * dh)
     return gradient
