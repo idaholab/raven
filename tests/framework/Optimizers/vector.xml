@@ -71,8 +71,8 @@
       </variable>
       <objectVar>ans</objectVar>
       <parameter>
-        <A>50</A>
-        <a>3</a>
+        <initialStepSize>0.6</initialStepSize>
+        <pertDist>0.01</pertDist>
       </parameter>
     </SPSA>
   </Optimizers>

@@ -83,12 +83,7 @@ class GradientBasedOptimizer(Optimizer):
     self.perturbationIndices         = []              # in this list we store the indeces that correspond to the perturbation.
 
     # REWORK 2018-10 for simultaneous point-and-gradient evaluations
-    self.realizations                = {}    # by trajectory, stores the results obtained from the jobs running
-                                             # structure:
-                                             # relizations[traj] =
-                                             #  { 'opt': [list of xr.DataSet realizations, one per denoising],
-                                             #    'grad': [ list of pert point evals per grad point needed [nested per denoising] ]
-                                             #  }
+    self.realizations                = {}    # by trajectory, stores the results obtained from the jobs running, see setupNewStorage for structure
 
     # register metadata
     self.addMetaKeys('trajID','varsUpdate','prefix')
@@ -235,14 +230,7 @@ class GradientBasedOptimizer(Optimizer):
     self.raiseADebug('====================')
     self.raiseADebug('| END OPTIMIZATION |')
     self.raiseADebug('====================')
-    # _always_ re-add the last point to the solution export
-    # OLD #
-    #toMatch = dict((var,bestPoint[var]) for var in bestPoint if var in self.solutionExport.getVars())
-    #_,best = self.solutionExport.realization(matchDict=toMatch)
-    # reformat to be added FIXME this shouldn't be necessary!
-    #for key,val in best.items():
-    #  best[key] = np.atleast_1d(val)
-    #self.solutionExport.addRealization(best)
+    # _always_ re-add the last point to the solution export, but use a new varsUpdate value
     overwrite = {'varsUpdate': self.counter['varsUpdate'][traj]}
     self.writeToSolutionExport(bestTraj, self.normalizeData(bestPoint), True, overwrite=overwrite)
 
@@ -306,13 +294,15 @@ class GradientBasedOptimizer(Optimizer):
 
         # if we just finished "opt", check some acceptance and convergence checking
         if category == 'opt':
-          self._finalizeOptimalCandidate(traj,outputs)
+          converged = self._finalizeOptimalCandidate(traj,outputs)
+        else:
+          converged = False
 
         # if both opts and grads are now done, then we can do an evaluation
         ## note that by now we've ALREADY accepted the point; if it was rejected, it would have been reset by now.
         optDone = bool(len(self.realizations[traj]['denoised']['opt'][0]))
         gradDone = all( len(self.realizations[traj]['denoised']['grad'][i]) for i in range(self.paramDict['pertSingleGrad']))
-        if optDone and gradDone:
+        if not converged and optDone and gradDone:
           optCandidate = self.normalizeData(self.realizations[traj]['denoised']['opt'][0])
           # update solution export
           ## only write here if we want to write on EVERY optimizer iteration (each new optimal point)
@@ -455,7 +445,7 @@ class GradientBasedOptimizer(Optimizer):
        - queue new points (if rejected)
       @ In, traj, int, the trajectory we are currently considering
       @ In, outputs, dict, denoised new optimal point
-      @ Out, None
+      @ Out, converged, bool, if True then indicates convergence has been reached
     """
     # check convergence and check if new point is accepted (better than old point)
     accepted = self._updateConvergenceVector(traj, self.counter['solutionUpdate'][traj], outputs)
@@ -463,6 +453,7 @@ class GradientBasedOptimizer(Optimizer):
     if self.convergeTraj[traj]:
       # end any excess gradient evaluation jobs
       self.cancelJobs([self._createEvaluationIdentifier(traj,self.counter['varsUpdate'][traj],i) for i in self.perturbationIndices])
+      return True #converged
     # if not accepted, we need to scrap this run and set up a new one
     if accepted:
       # store acceptance for later
@@ -479,13 +470,13 @@ class GradientBasedOptimizer(Optimizer):
       self.counter['solutionUpdate'][traj] += 1
       self.counter['varsUpdate'][traj] += 1
       # new point setup
-      ## XXX keep the old grad point
+      ## keep the old grad point
       grad = self.counter['gradientHistory'][traj][0]
       new = self._newOptPointAdd(grad, traj)
       if new is not None:
         self._createPerturbationPoints(traj, new)
       self._setupNewStorage(traj)
-      # XXX
+    return False #not converged
 
   def fractionalStepChangeFromGradHistory(self,traj):
     """
@@ -601,8 +592,6 @@ class GradientBasedOptimizer(Optimizer):
       @ Out, None
     """
     # TODO sanity check, this could be removed for efficiency later
-    #if len(self.submissionQueue[traj]) > 0:
-    #  self.raiseAnError(RuntimeError,'Preparing to add opt evals to submission queue for trajectory "{}" but it is not empty: "{}"'.format(traj,self.submissionQueue[traj]))
     for i in range(self.gradDict['numIterForAve']):
       #entries into the queue are as {'inputs':{var:val}, 'prefix':runid} where runid is <traj>_<varUpdate>_<evalNumber> as 0_0_2
       nPoint = {'inputs':copy.deepcopy(point)} #deepcopy to prevent simultaneous alteration
@@ -860,14 +849,6 @@ class GradientBasedOptimizer(Optimizer):
           new = badValue
       elif var == 'accepted':
         new = accepted
-      # variable-dependent information: gradients
-      elif var.startswith( 'gradient_'):
-        varName = var[9:]
-        vec = self.counter['gradientHistory'][traj][0].get(varName,None)
-        if vec is not None:
-          new = vec*self.counter['gradNormHistory'][traj][0]
-        else:
-          new = badValue
       # convergence metrics
       elif var.startswith( 'convergenceAbs'):
         try:

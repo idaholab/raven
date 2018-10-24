@@ -46,7 +46,7 @@
         <limit>4000</limit>
         <initialSeed>42</initialSeed>
         <thresholdTrajRemoval>1e-3</thresholdTrajRemoval>
-        <writeSteps>final</writeSteps>
+        <writeSteps>every</writeSteps>
       </initialization>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
       <convergence>
@@ -68,7 +68,6 @@
       </variable>
       <objectVar>ans</objectVar>
       <parameter>
-        <numGradAvgIterations>2</numGradAvgIterations>
         <stochasticDistribution>Bernoulli</stochasticDistribution>
       </parameter>
     </SPSA>
@@ -91,7 +90,8 @@
       <Output>ans</Output>
     </PointSet>
     <PointSet name="opt_export">
-      <Output>ans</Output>
+      <Input>trajID</Input>
+      <Output>x,y,ans,varsUpdate,accepted</Output>
     </PointSet>
   </DataObjects>
 
@@ -99,6 +99,7 @@
     <Print name="opt_export">
       <type>csv</type>
       <source>opt_export</source>
+      <clusterLabel>trajID</clusterLabel>
     </Print>
   </OutStreams>
 

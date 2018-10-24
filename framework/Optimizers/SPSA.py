@@ -88,24 +88,18 @@ class SPSA(GradientBasedOptimizer):
     """
     GradientBasedOptimizer.localInputAndChecks(self, xmlNode)
     self.currentDirection   = None
-    self.paramDict['alpha'] = float(self.paramDict.get('alpha', 0.602))
-    self.paramDict['gamma'] = float(self.paramDict.get('gamma', 0.101))
-    self.paramDict['A']     = 100. #float(self.paramDict.get('A', self.limit['mdlEval']/10.))
-    self.paramDict['a']     = self.paramDict.get('a', None)
-    self.paramDict['c']     = float(self.paramDict.get('c', 0.005))
-    #FIXME the optimization parameters should probably all operate ONLY on normalized data!
-    #  -> perhaps the whole optimizer should only work on optimized data.
-
     numValues = self._numberOfSamples()
-
-    #FIXME normalizing doesn't seem to have the desired effect, currently; it makes the step size very small (for large scales)
-    #if "a" was defaulted, use the average scale of the input space.
-    #This is the suggested value from the paper, missing a 1/gradient term since we don't know it yet.
-    if self.paramDict['a'] is None:
-      self.paramDict['a'] = mathUtils.hyperdiagonal(np.ones(numValues)) # the features are always normalized
-      self.raiseAMessage('Defaulting "a" gradient parameter to',self.paramDict['a'])
-    else:
-      self.paramDict['a'] = float(self.paramDict['a'])
+    # set the initial step size
+    ## use the hyperdiagonal of a unit hypercube with a side length equal to the user's provided initialStepSize * 1.0
+    stepPercent = float(self.paramDict.get('initialStepSize', 0.05))
+    self.paramDict['initialStepSize'] = mathUtils.hyperdiagonal(np.ones(numValues)*stepPercent)
+    self.raiseADebug('Based on initial step size factor of "{:1.5e}", initial step size is "{:1.5e}"'
+                         .format(stepPercent, self.paramDict['initialStepSize']))
+    # set the perturbation distance
+    ## if not given, default to 10% of the step size
+    self.paramDict['pertDist'] = float(self.paramDict.get('perturbationDistance',0.01))
+    self.raiseADebug('Perturbation distance is "{:1.5e}" percent of the step size'
+                         .format(self.paramDict['pertDist']))
 
     self.constraintHandlingPara['innerBisectionThreshold'] = float(self.paramDict.get('innerBisectionThreshold', 1e-2))
     self.constraintHandlingPara['innerLoopLimit'] = float(self.paramDict.get('innerLoopLimit', 1000))
@@ -139,6 +133,8 @@ class SPSA(GradientBasedOptimizer):
     self.trajCycle = cycle(self.optTraj)
     # build up queue of initial runs
     for traj in self.optTraj:
+      # for the first run, set the step size to the initial step size
+      self.counter['lastStepSize'][traj] = self.paramDict['initialStepSize']
       # construct initial point for trajectory
       values = {}
       for var in self.getOptVars(traj=traj):
@@ -201,7 +197,6 @@ class SPSA(GradientBasedOptimizer):
         return
     # if no submissions were found, then we shouldn't have flagged ourselves as Ready or there's a bigger issue!
     self.raiseAnError(RuntimeError,'Attempted to generate an input but there are none queued to provide!')
-    return
 
   ###################
   # Utility Methods #
@@ -320,41 +315,37 @@ class SPSA(GradientBasedOptimizer):
     except KeyError:
       pass
 
-  def _computeGainSequenceAk(self,paramDict,iterNum,traj):
+  def _computeStepSize(self,paramDict,iterNum,traj):
     """
-      Utility function to compute the ak coefficients (gain sequence ak)
+      Utility function to compute the step size
       @ In, paramDict, dict, dictionary containing information to compute gain parameter
       @ In, iterNum, int, current iteration index
       @ Out, new, float, current value for gain ak
     """
     #TODO FIXME is this a good idea?
     try:
-      ak = self.counter['lastStepSize'][traj]
+      size = self.counter['lastStepSize'][traj]
     except KeyError:
-      a = paramDict['a']
-      A = paramDict['A']
-      alpha = paramDict['alpha']
-      ak = a / (iterNum + A) ** alpha
+      size = paramDict['initialStepSize']
     # modify step size based on the history of the gradients used
     frac = self.fractionalStepChangeFromGradHistory(traj)
-    new = ak*frac
-    self.raiseADebug('step gain size for traj "{}" iternum "{}": {:1.3e} (root {:1.2e} frac {:1.2e})'.format(traj,iterNum,new,ak,frac))
+    new = size*frac
+    self.raiseADebug('step gain size for traj "{}" iternum "{}": {:1.3e} (root {:1.2e} frac {:1.2e})'.format(traj,iterNum,new,size,frac))
     self.counter['lastStepSize'][traj] = new
     return new
 
-  def _computeGainSequenceCk(self,paramDict,iterNum):
+  def _computePerturbationDistance(self,traj,paramDict,iterNum):
     """
-      Utility function to compute the ck coefficients (gain sequence ck)
+      Utility function to compute the perturbation distance (distance from opt point to grad point)
+      @ In, traj, int, integer label for current trajectory
       @ In, paramDict, dict, dictionary containing information to compute gain parameter
       @ In, iterNum, int, current iteration index
-      @ Out, ck, float, current value for gain ck
+      @ Out, distance, float, current value for gain ck
     """
-    c = paramDict['c']
-    gamma = paramDict['gamma']
-    ck = c / (iterNum) ** gamma *1.0
-    # XXX forget the ck, let's just make it local
-    ck = 1e-7
-    return ck
+    # perturbation point should be a percent of the intended step
+    pct = paramDict['pertDist']
+    distance = pct * self.counter['lastStepSize'][traj]
+    return distance
 
   def _createPerturbationPoints(self, traj, optPoint, submit=True):
     """
@@ -365,7 +356,7 @@ class SPSA(GradientBasedOptimizer):
       @ Out, points, list(dict), perturbation points
     """
     points = []
-    distance = self._computeGainSequenceCk(self.paramDict,self.counter['varsUpdate'][traj]+1)
+    distance = self._computePerturbationDistance(traj,self.paramDict,self.counter['varsUpdate'][traj]+1)
     for i in self.perturbationIndices:
       direction = self._getPerturbationDirection(i,traj)
       point = {}
@@ -614,10 +605,10 @@ class SPSA(GradientBasedOptimizer):
       @ In, traj, int, trajectory
       @ Out, varKPlus, dict, new point that has been queued (or None if no new points should be run for this traj)
     """
-    ak = self._computeGainSequenceAk(self.paramDict,self.counter['varsUpdate'][traj],traj) # Compute the new ak
+    stepSize = self._computeStepSize(self.paramDict, self.counter['varsUpdate'][traj], traj)
     self.optVarsHist[traj][self.counter['varsUpdate'][traj]] = {}
     varK = dict((var,self.counter['recentOptHist'][traj][0][var]) for var in self.getOptVars(traj))
-    varKPlus,modded = self._generateVarsUpdateConstrained(traj,ak,gradient,varK)
+    varKPlus,modded = self._generateVarsUpdateConstrained(traj, stepSize, gradient, varK)
     #check for redundant paths
     if len(self.optTrajLive) > 1 and self.counter['solutionUpdate'][traj] > 0:
       removed = self._removeRedundantTraj(traj, varKPlus)
@@ -627,7 +618,7 @@ class SPSA(GradientBasedOptimizer):
       return None
     #if the new point was modified by the constraint, reset the step size
     if modded:
-      del self.counter['lastStepSize'][traj]
+      self.counter['lastStepSize'][traj] = self.paramDict['initialStepSize']
       self.raiseADebug('Resetting step size for trajectory',traj,'due to hitting constraints')
     self.queueUpOptPointRuns(traj,varKPlus)
     self.optVarsHist[traj][self.counter['varsUpdate'][traj]] = varKPlus
