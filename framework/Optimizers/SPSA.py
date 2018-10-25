@@ -548,7 +548,6 @@ class SPSA(GradientBasedOptimizer):
   def _getAlgorithmState(self,traj):
     """
       Returns values specific to this algorithm such that it could pick up again relatively easily from here.
-      #REWORK functionally a getstate/setstate for multilevel
       @ In, traj, int, the trajectory being saved
       @ Out, state, dict, keys:values this algorithm cares about saving for this trajectory
     """
@@ -626,7 +625,6 @@ class SPSA(GradientBasedOptimizer):
 
   def _setAlgorithmState(self,traj,state):
     """
-      #REWORK functionally a getstate/setstate for multilevel
       @ In, traj, int, the trajectory being saved
       @ In, state, dict, keys:values this algorithm cares about saving for this trajectory
       @ Out, None

@@ -145,17 +145,6 @@ class Optimizer(Sampler):
     param.addSub(loop)
     inputSpecification.addSub(param)
 
-    # multilevel
-    multilevel = InputData.parameterInputFactory('multilevel', strictMode=True)
-    sequence = InputData.parameterInputFactory('sequence', contentType=InputData.StringType)
-    multilevel.addSub(sequence)
-    subspace = InputData.parameterInputFactory('subspace', contentType=InputData.StringListType, strictMode=True)
-    subspace.addParam('name', InputData.StringType, True)
-    subspace.addParam('precond', InputData.StringType)
-    subspace.addParam('holdOutputSpace', InputData.StringType)
-    multilevel.addSub(subspace)
-    inputSpecification.addSub(multilevel)
-
     return inputSpecification
 
   def __init__(self):
@@ -210,17 +199,6 @@ class Optimizer(Sampler):
     self.solutionExport                 = None                      # This is the data used to export the solution
     self.mdlEvalHist                    = None                      # Containing information of all model evaluation
     self.objSearchingROM                = None                      # ROM used internally for fast loss function evaluation
-    #multilevel
-    self.multilevel                     = False                     # indicates if operating in multilevel mode
-    self.mlBatches                      = {}                        # dict of {batchName:[list,of,vars]} that defines input subspaces
-    self.mlHoldBatches                  = {}                        # dict of {batchName:[list,of,vars]} that defines the optional output subspaces that need to be kept constant till convergence of this space
-    self.mlSequence                     = []                        # list of batch names that determines the order of convergence.  Last entry is converged most often and fastest (innermost loop).
-    self.mlDepth                        = {}                        # {traj: #} index of current recursion depth within self.mlSequence, must be initialized to None
-    self.mlStaticValues                 = {}                        # by traj, dictionary of static values for variables in fullOptVars but not in optVars due to multilevel
-    self.mlOutputStaticVariables        = {}                        # by traj, dictionary of list of output that must be kept constant due to multilevel
-    self.mlActiveSpaceSteps             = {}                        # by traj, integer to track iterations performed in optimizing the current, active subspace
-    self.mlBatchInfo                    = {}                        # by batch, by traj, info includes 'lastStepSize','gradientHistory','recommendToGain'
-    self.mlPreconditioners              = {}                        # by batch, the preconditioner models to use when transitioning subspaces
     #stateful tracking
     self.recommendedOptPoint            = {}                        # by traj, the next recommended point (as a dict) in the input space to move to
     self.nextActionNeeded               = (None,None)               # tool for localStillReady to inform localGenerateInput on the next action needed
@@ -392,32 +370,6 @@ class Optimizer(Sampler):
         for childChild in child.subparts:
           self.paramDict[childChild.getName()] = childChild.value
 
-      elif child.getName() == 'multilevel':
-        self.multilevel = True
-        for subnode in child.subparts:
-          if subnode.getName() == 'subspace':
-            #subspace name
-            try:
-              name = subnode.parameterValues['name']
-            except KeyError:
-              self.raiseAnError(IOError, 'A multilevel subspace is missing the "name" attribute!')
-            if name in self.mlBatches.keys():
-              self.raiseAnError(IOError,'Multilevel subspace "{}" has a duplicate name!'.format(name))
-            if "holdOutputSpace" in subnode.parameterValues:
-              self.mlHoldBatches[name] =  [var.strip() for var in subnode.parameterValues['holdOutputSpace'].split(",")]
-              self.raiseAMessage('For subspace "'+name+'" the following output space is asked to be kept on hold: '+','.join(self.mlHoldBatches[name]))
-            #subspace text
-            subspaceVars = subnode.value
-            if len(subspaceVars) < 1:
-              self.raiseAnError(IOError,'Multilevel subspace "{}" has no variables specified!'.format(name))
-            self.mlBatches[name] = subspaceVars
-            #subspace preconditioner
-            precond = subnode.parameterValues.get('precond')
-            if precond is not None:
-              self.mlPreconditioners[name] = precond
-          elif subnode.getName() == 'sequence':
-            self.mlSequence = list(x.strip() for x in subnode.value.split(','))
-
     # now that XML is read, do some checks and defaults
     # set defaults
     if self.writeSolnExportOn is None:
@@ -456,12 +408,6 @@ class Optimizer(Sampler):
       if len(self.optVarsInit['initial'][varName]) == 0:
         for traj in self.optTraj:
           self.optVarsInit['initial'][varName][traj] = None
-
-    if self.multilevel:
-      if len(self.mlSequence) < 1:
-        self.raiseAnError(IOError,'No "sequence" was specified for multilevel optimization!')
-      if set(self.mlSequence) != set(self.mlBatches.keys()):
-        self.raiseAWarning('There is a mismatch between the multilevel batches defined and batches used in the sequence!  Some variables may not be optimized correctly ...')
 
   def initialize(self,externalSeeding=None,solutionExport=None):
     """
@@ -549,38 +495,11 @@ class Optimizer(Sampler):
       if 'constrain' not in self.constraintFunction.availableMethods():
         self.raiseAnError(IOError,'the function provided to define the constraints must have an implemented method called "constrain"')
 
-    # initialize multilevel trajectory-based structures
+    # initialize dictionary entries
     # TODO a bunch of the gradient-level trajectory initializations should be moved here.
     for traj in self.optTraj:
-      self.optVars[traj]            = self.getOptVars() #initial as full space
-      self.mlDepth[traj]            = None
-      self.mlStaticValues[traj]     = {}
-      self.mlActiveSpaceSteps[traj] = 0
+      self.optVars[traj]            = self.getOptVars()
       self.submissionQueue[traj]    = deque()
-    for batch in self.mlBatches.keys():
-      self.mlBatchInfo[batch]       = {}
-    # line up preconditioners with their batches
-    for batch,precondName in self.mlPreconditioners.items():
-      try:
-        self.mlPreconditioners[batch] = self.preconditioners[precondName]
-      except IndexError:
-        self.raiseAnError(IOError,'Could not find preconditioner "{}" in <Preconditioner> nodes!'.format(precondName))
-
-    # apply multilevel preconditioners, in order
-    for traj in self.optTraj:
-      # initial point(s) are in self.optVarsInit['initial']
-      initPoint = dict((var,self.optVarsInit['initial'][var][traj]) for var in self.optVarsInit['initial'].keys())
-      # run all preconditioners on that point
-      for depth in range(len(self.mlSequence)):
-        batch = self.mlSequence[depth]
-        initPoint = self.applyPreconditioner(batch,initPoint,denormalize=False)
-      #check initial point consistency
-      okay,missing = self.checkInputs(initPoint)
-      if not okay:
-        self.raiseAnError(IOError,'While initializing model inputs, some were not set! Set them through preconditioners or using the <initial> block or a linked Sampler.\n  Missing:', ', '.join(missing))
-      # set the initial values that come from preconditioning
-      for var in self.getOptVars(full=True):
-        self.optVarsInit['initial'][var][traj] = initPoint[var]
 
     #check initial point array consistency
     rightLen = len(self.optTraj) #the hypothetical correct length
@@ -637,108 +556,11 @@ class Optimizer(Sampler):
       self.raiseAMessage('Reached limit for number of model evaluations!')
     convergence = self.checkConvergence()
     ready = self.localStillReady(ready)
-    #if converged and not ready, the optimizer believes it is done; check multilevel
-    # -> however, if we're waiting on point collection, don't do multilevel check; only when we want to submit a new point.
-    # REASONS TO INTERCEDE in multilevel:
-    #   1.) We're at the beginning so we need to initialize multilevel subspace distinction,
-    #   2.) We're in the outermost subspace, and have perturbed and converged, so we're completely converged
-    #   3.) We've converged the innermost subspace so we need to move to one subspace higher
-    #   4.) We're in a non-innermost subspace, and have perturbed but not converged, so we need to move back to innermost again
-    #   5.) We're in an intermediate subspace, and have perturbed and converged, so we need to move to one subspace higher
-    mlIntervene = False #will be True if we changed the state of the optimizer
-    #get the trajectory from the list of "next action needed"
-    if self.nextActionNeeded[1] is not None:
-      checkMLTrajs = [self.nextActionNeeded[1]]
-    else:
-      checkMLTrajs = []
-      for traj in self.status.keys():
-        if self.status[traj]['reason'] == 'converged':
-          checkMLTrajs.append(traj)
-    for traj in checkMLTrajs:
-      if self.multilevel and self.status[traj]['reason'] in ['found new opt point','converged'] :
-        # do we have any opt points yet?
-        if len(self.counter['recentOptHist'][traj][0]) > 0:
-          # get the latset optimization point (normalized)
-          latestPoint = dict((var,self.counter['recentOptHist'][traj][0][var]) for var in self.getOptVars())
-          #some flags for clarity of checking
-          justStarted = self.mlDepth[traj] is None
-          inInnermost = self.mlDepth[traj] is not None and self.mlDepth[traj] == len(self.mlSequence)-1
-          inOutermost = self.mlDepth[traj] is not None and self.mlDepth[traj] == 0
-          trajConverged = self.status[traj]['reason'] == 'converged'
-          # if we only have evaluated the initial point, set the depth to innermost and start grad sampling
-          if justStarted:
-            self.raiseADebug('Multilevel: initializing for trajectory "{}"'.format(traj))
-            self.updateMultilevelDepth(traj, len(self.mlSequence)-1, latestPoint, setAll=True)
-            mlIntervene = True
-          # if we haven't taken (and accepted) a new opt step, don't change anything
-          # otherwise, if we're in the outermost subspace AND we're converged, we're done!
-          # otherwise, if we're in the innermost subspace AND we're converged, then move to a higher subspace
-          elif trajConverged:#inOutermost and trajConverged:
-            if inOutermost:
-              self.raiseADebug('Multilevel: outermost subspace converged for trajectory "{}"!'.format(traj))
-            else:
-              self.raiseADebug('Multilevel: moving from converged subspace to higher subspace for trajectory "{}"'.format(traj))
-              self.updateMultilevelDepth(traj,self.mlDepth[traj]-1,latestPoint)
-              mlIntervene = True
-          # otherwise, if we're not in innermost and not converged, move to innermost subspace
-          else: #aka not converged
-            if not inInnermost and self.mlActiveSpaceSteps[traj] >= 1:
-              self.raiseADebug('Multilevel: moving from perturbed higher subspace back to innermost subspace for trajectory "{}"'.format(traj))
-              self.updateMultilevelDepth(traj, len(self.mlSequence)-1, latestPoint, setAll=True)
-              mlIntervene = True
-          #otherwise, we don't interfere with existing readiness
-    #if multilevel intervened, recheck readiness (should always result in ready=True???)
-    if mlIntervene:
-      self.raiseADebug('Because multilevel intervened, rechecking readiness of optimizer for trajectory "{}"'.format(traj))
-      ready = self.localStillReady(True)
     return ready
 
   ###################
   # Utility Methods #
   ###################
-  def applyPreconditioner(self,batch,originalPoint,denormalize=True):
-    """
-      Applies the preconditioner model of a batch to the original point given.
-      @ In, batch, string, name of the subsequence batch whose preconditioner needs to be applied
-      @ In, originalPoint, dict, {var:val} the point that needs preconditioning (normalized space)
-      @ In, denormalize, bool, optional, if True then the originalPoint will be denormalized before running in the preconditioner
-      @ Out, results, dict, {var:val} the preconditioned point (still normalized space)
-    """
-    precond = self.mlPreconditioners.get(batch,None)
-    if precond is not None:
-      self.raiseADebug('Running preconditioner on batch "{}"'.format(batch))
-      # TODO someday this might need to be extended when other models or more complex external models are used for precond
-      precond.createNewInput([{}],'Optimizer')
-      if denormalize:
-        originalPoint = self.denormalizeData(originalPoint)
-      infoDict = {'SampledVars':dict(originalPoint)}
-      # remove preconditioned space from infoDict sampledVars
-      # -> we do this because we copy infoDict[SampledVars] values to overwrite results values
-      #    but we want to retain the values given by the preconditioner, not the infoDict value.
-      for var in self.mlBatches[batch]:
-        del infoDict['SampledVars'][var]
-      # add constants in
-      for key,value in self.constants.items():
-        infoDict['SampledVars'][key] = value
-      # run the preconditioner
-      preResults = precond.evaluateSample([infoDict['SampledVars']],'Optimizer',infoDict)
-      # flatten results #TODO breaks for multi-entry arrays
-      for key,val in preResults.items():
-        preResults[key] = val.item(0)
-      #restore to normalized space if the original point was normalized space
-      if denormalize:
-        preResults = self.normalizeData(preResults)
-      # construct new input point from results + originalPoint
-      results = {}
-      for key in originalPoint.keys():
-        if key in preResults.keys():
-          results[key] = preResults[key]
-        else:
-          results[key] = originalPoint[key]
-      return results
-    else:
-      return originalPoint
-
   def cancelJobs(self, ids):
     """
       Flags jobs with the ids provided to be cancelled.
@@ -929,16 +751,13 @@ class Optimizer(Sampler):
     # otherwise, return value (float assures single value)
     return float(rlz[self.objVar])
 
-  def getOptVars(self,traj=None,full=False):
+  def getOptVars(self):
     """
       Returns the variables in the active optimization space
-      @ In, full, bool, optional, if True will always give ALL the opt variables
+      @ In, None
       @ Out, optVars, list(string), variables in the current optimization space
     """
-    if full or not self.multilevel or traj is None:
-      return self.fullOptVars
-    else:
-      return self.optVars[traj]
+    return self.fullOptVars
 
   def _incrementCounter(self):
     """
@@ -983,8 +802,7 @@ class Optimizer(Sampler):
 
   def removeConvergedTrajectory(self,convergedTraj):
     """
-      Appropriate process for clearing out converged histories.  This lets the multilevel process intercede
-      when a trajectory is flagged for removal, in the event it is part of an inner loop.
+      Appropriate process for clearing out converged histories.
       @ In, convergedTraj, int, trajectory that has converged and might need to be removed
       @ Out, None
     """
@@ -992,16 +810,6 @@ class Optimizer(Sampler):
       if traj == convergedTraj:
         self.optTrajLive.pop(t)
         break
-
-  def _performVariableTransform(self):
-    """
-      In the base Sampler, used to perform PCA-type transforms.
-      Here, we instead denormalize the multilevel static data.
-      @ In, None
-      @ Out, None
-    """
-    traj = self.inputInfo['trajID'] - 1
-    self.values.update(self.denormalizeData(self.mlStaticValues[traj]))
 
   def proposeNewPoint(self,traj,point):
     """
@@ -1014,75 +822,6 @@ class Optimizer(Sampler):
     self.optVarsHist[traj][self.counter['varsUpdate'][traj]] = point
     self.recommendedOptPoint[traj] = point
 
-  def updateMultilevelDepth(self, traj, depth, optPoint, setAll=False):
-    """
-      Updates the multilevel depth with static values for inactive subspaces
-      @ In, traj, the trajectory whose multilevel depth needs updating
-      @ In, depth, int, recursion depth in subspace loops, which ranges between 0 and the last index of self.multilevelSequence
-      @ In, optPoint, dict, dictionary point of latest optimization as {var:#, var:#} (normalized)
-      @ In, setAll, bool, optional, if True then we set ALL the static variables, not just the old active space
-      @ Out, None
-    """
-    #retain the old batch so we know which static values to set
-    if self.mlDepth[traj] is not None:
-      oldDepth = self.mlDepth[traj]
-      oldBatch = self.mlSequence[oldDepth]
-      firstTime = False
-      # retain th current state of the algorithm so we can set it later when we return to this batch
-      self.mlBatchInfo[oldBatch][traj] = self._getAlgorithmState(traj)
-    else:
-      firstTime = True
-      oldBatch = 'pre-initialize'
-      oldDepth = depth
-    # set the new active space
-    self.mlDepth[traj] = depth
-    newBatch = self.mlSequence[self.mlDepth[traj]]
-    self.raiseADebug('Transitioning multilevel subspace from "{}" to "{}" for trajectory "{}"...'.format(oldBatch,newBatch,traj))
-    # reset the number of iterations in each subspace
-    self.mlActiveSpaceSteps[traj] = 0
-    # set the active space to include only the desired batch
-    self.optVars[traj] = self.mlBatches[newBatch]
-    # set the remainder to static variables
-    if setAll:
-      toMakeStatic = set(self.fullOptVars)-set(self.mlBatches[newBatch])
-    else:
-      toMakeStatic = self.mlBatches[oldBatch]
-    if traj in self.mlOutputStaticVariables:
-      self.mlOutputStaticVariables.pop(traj)
-    if newBatch in self.mlHoldBatches:
-      self.raiseAMessage('For subspace "'+newBatch+'" the following output space is going to be kept on hold: '+','.join(self.mlHoldBatches[newBatch]))
-      self.mlOutputStaticVariables[traj] = self.mlHoldBatches[newBatch]
-
-    for var in toMakeStatic:
-      self.mlStaticValues[traj][var] = copy.deepcopy(optPoint[var])
-    # remove newBatch static values
-    for var in self.mlBatches[newBatch]:
-      try:
-        del self.mlStaticValues[traj][var]
-      except KeyError:
-        #it wasn't static before, so no problem
-        pass
-    # clear existing gradient determination data
-    if not firstTime:
-      self.clearCurrentOptimizationEffort(traj)
-    # apply preconditioner IFF we're going towards INNER loops
-    newInput = copy.deepcopy(optPoint)
-    if depth > oldDepth:
-      self.raiseADebug('Preconditioning subsets below',oldDepth,range(oldDepth+1,depth+1))
-      #apply changes all the way down
-      for d in range(oldDepth+1,depth+1):
-        precondBatch = self.mlSequence[d]
-        newInput = self.applyPreconditioner(precondBatch,newInput)
-        # TODO I don't like that this is called every time!
-        self.proposeNewPoint(traj,newInput)
-        self.status[traj]['process'] = 'submitting new opt points'
-        self.status[traj]['reason'] = 'received recommended point'
-    # if there's batch info about the new batch, set it
-    self._setAlgorithmState(traj,self.mlBatchInfo[newBatch].get(traj,None))
-    #make sure trajectory is live
-    if traj not in self.optTrajLive:
-      self.optTrajLive.append(traj)
-
   def updateVariableHistory(self,data,traj):
     """
       Stores new historical points into the optimization history.
@@ -1093,5 +832,4 @@ class Optimizer(Sampler):
     # collect static vars, values
     allData = {}
     allData.update(self.normalizeData(data)) # data point not normalized a priori
-    allData.update(self.mlStaticValues[traj]) # these are normalized
     self.optVarsHist[traj][self.counter['varsUpdate'][traj]] = copy.deepcopy(allData)

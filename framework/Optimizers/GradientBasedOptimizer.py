@@ -705,10 +705,6 @@ class GradientBasedOptimizer(Optimizer):
     if newerIsBetter:
       self.status[traj]['reason'] = 'found new opt point'
       self.raiseADebug('Accepting potential opt point for improved loss value.  Diff: {}, New: {}, Old: {}'.format(abs(currentLossVal-oldLossVal),currentLossVal,oldLossVal))
-      #TODO REWORK this belongs in the base class optimizer; grad shouldn't know about multilevel!!
-      #  -> this parameter is how multilevel knows that a successful perturbation of an outer loop has been performed
-      #  maybe implement a "acceptPoint" method in base class?
-      self.mlActiveSpaceSteps[traj] += 1
     else:
       self.status[traj]['reason'] = 'rejecting bad opt point'
       self.raiseADebug('Rejecting potential opt point for worse loss value. old: "{}", new: "{}"'.format(oldLossVal,currentLossVal))
