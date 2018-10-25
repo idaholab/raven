@@ -47,7 +47,7 @@
     <SPSA name="opter">
       <initialization>
         <limit>2000</limit>
-        <initialSeed>42</initialSeed>
+        <initialSeed>2</initialSeed>
         <type>max</type>
         <writeSteps>final</writeSteps>
       </initialization>

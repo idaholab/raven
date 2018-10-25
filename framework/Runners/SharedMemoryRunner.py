@@ -148,5 +148,6 @@ class SharedMemoryRunner(InternalRunner):
     """
     pid = self.thread.pid if self.thread is not None else None
     self.raiseAWarning('Terminating job with PID "{}" and RAVEN identifier "{}"'.format(pid, self.identifier))
-    os.kill(self.thread.pid, signal.SIGTERM)
+    if pid is not None:
+      os.kill(self.thread.pid, signal.SIGTERM)
     self.trackTime('runner_killed')

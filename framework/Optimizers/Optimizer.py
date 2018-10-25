@@ -503,7 +503,7 @@ class Optimizer(Sampler):
 
     #check initial point array consistency
     rightLen = len(self.optTraj) #the hypothetical correct length
-    for var in self.getOptVars(full=True):
+    for var in self.getOptVars():
       haveLen = len(self.optVarsInit['initial'][var])
       if haveLen != rightLen:
         self.raiseAnError(RuntimeError,'The number of trajectories for variable "{}" is incorrect!  Got {} but expected {}!  Check the <initial> block.'.format(var,haveLen,rightLen))
@@ -798,7 +798,7 @@ class Optimizer(Sampler):
       @ In, traj, int, optional, if provided then only count variables in current trajectory
       @ Out, _numberOfSamples, int, total number of independent values that need sampling
     """
-    return sum(np.prod(self.variableShapes[var]) for var in self.getOptVars(traj))
+    return sum(np.prod(self.variableShapes[var]) for var in self.getOptVars())
 
   def removeConvergedTrajectory(self,convergedTraj):
     """

@@ -57,11 +57,8 @@ class SPSA(GradientBasedOptimizer):
 
     # add additional parameters to "parameter"
     param = inputSpecification.popSub('parameter')
-    param.addSub(InputData.parameterInputFactory('gamma', contentType=InputData.FloatType, strictMode=True))
-    param.addSub(InputData.parameterInputFactory('c'    , contentType=InputData.FloatType, strictMode=True))
-    param.addSub(InputData.parameterInputFactory('a'    , contentType=InputData.FloatType, strictMode=True))
-    param.addSub(InputData.parameterInputFactory('alpha', contentType=InputData.FloatType, strictMode=True))
-    param.addSub(InputData.parameterInputFactory('A'    , contentType=InputData.FloatType, strictMode=True))
+    param.addSub(InputData.parameterInputFactory('initialStepSize', contentType=InputData.FloatType, strictMode=True))
+    param.addSub(InputData.parameterInputFactory('perturbationDistance', contentType=InputData.FloatType, strictMode=True))
 
     inputSpecification.addSub(param)
     return inputSpecification
@@ -137,7 +134,7 @@ class SPSA(GradientBasedOptimizer):
       self.counter['lastStepSize'][traj] = self.paramDict['initialStepSize']
       # construct initial point for trajectory
       values = {}
-      for var in self.getOptVars(traj=traj):
+      for var in self.getOptVars():
         # user-provided points
         values[var] = self.optVarsInit['initial'][var][traj]
         # assure points are within bounds; correct them if not
@@ -188,7 +185,7 @@ class SPSA(GradientBasedOptimizer):
       # if this trajectory has a run to submit, populate the submission dictionaries
       if len(self.submissionQueue[traj]):
         prefix, point = self.getQueuedPoint(traj)
-        for var in self.getOptVars(traj=traj):
+        for var in self.getOptVars():
           self.values[var] = point[var]
         self.inputInfo['prefix'] = prefix
         self.inputInfo['trajID'] = traj+1
@@ -211,7 +208,7 @@ class SPSA(GradientBasedOptimizer):
     """
     nVar = len(self.getOptVars())
     v1, v2 = np.zeros(shape=[nVar,]), np.zeros(shape=[nVar,])
-    for cnt, var in enumerate(self.getOptVars(traj=traj)):
+    for cnt, var in enumerate(self.getOptVars()):
       v1[cnt], v2[cnt] = copy.deepcopy(d1[var]), copy.deepcopy(d2[var])
     angle = np.arccos(np.dot(v1, v2)/np.linalg.norm(v1)/np.linalg.norm(v2))
     if np.isnan(angle):
@@ -245,7 +242,7 @@ class SPSA(GradientBasedOptimizer):
     frac = 0.5
     while np.absolute(bounds[1]-bounds[0]) >= innerBisectionThreshold:
       index = 0
-      for var in self.getOptVars(traj=traj):
+      for var in self.getOptVars():
         numSamples = np.prod(self.variableShapes[var])
         new = np.zeros(numSamples)
         for i in range(numSamples):
@@ -361,7 +358,7 @@ class SPSA(GradientBasedOptimizer):
       direction = self._getPerturbationDirection(i,traj)
       point = {}
       index = 0
-      for var in self.getOptVars(traj=traj):
+      for var in self.getOptVars():
         size = np.prod(self.variableShapes[var])
         if size > 1:
           new = np.zeros(size)
@@ -395,7 +392,7 @@ class SPSA(GradientBasedOptimizer):
     gain = [ak]*self._numberOfSamples() #technically too many entries, but unneeded ones will be *0 anyway just below here
     gain = np.asarray(gain)
     index = 0
-    for var in self.getOptVars(traj=traj):
+    for var in self.getOptVars():
       numSamples = np.prod(self.variableShapes[var])
       if numSamples == 1:
         new = varK[var]-gain[index]*gradient.get(var,0.0)
@@ -458,14 +455,14 @@ class SPSA(GradientBasedOptimizer):
     while not foundPendVector and loopCounter < innerLoopLimit:
       loopCounter += 1
       # randomly choose the index of a variable to be the dependent? pivot
-      depVarPos = randomUtils.randomIntegers(0,len(self.getOptVars(traj=traj))-1,self)
+      depVarPos = randomUtils.randomIntegers(0,len(self.getOptVars())-1,self)
       # if that variable is multidimensional, pick a dimension -> this is not precisely equal probability of picking, but that should be okay.
       varSize = np.prod(self.variableShapes[var])
       if varSize > 1:
         depVarIdx = randomUtils.randomIntegers(0,varSize-1,self)
       pendVector = {}
       npDot = 0
-      for varID, var in enumerate(self.getOptVars(traj=traj)):
+      for varID, var in enumerate(self.getOptVars()):
         varSize = np.prod(self.variableShapes[var])
         if varSize == 1:
           pendVector[var] = self.stochasticEngineForConstraintHandling.rvs() if varID != depVarPos else 0.0
@@ -475,7 +472,7 @@ class SPSA(GradientBasedOptimizer):
             pendVector[var][i] = self.stochasticEngineForConstraintHandling.rvs() if (varID != depVarPos and depVarIdx != i) else 0.0
           npDot += np.sum(pendVector[var]*gradient[var])
       # TODO does this need to be in a separate loop or can it go with above?
-      for varID, var in enumerate(self.getOptVars(traj=traj)):
+      for varID, var in enumerate(self.getOptVars()):
         if varID == depVarPos:
           varSize = np.prod(self.variableShapes[var])
           if varSize == 1:
@@ -483,14 +480,14 @@ class SPSA(GradientBasedOptimizer):
           else:
             pendVector[var][depVarIdx] = -npDot/gradient[var][depVarIdx]
 
-      r  = self.calculateMultivectorMagnitude([  gradient[var] for var in self.getOptVars(traj=traj)])
-      r /= self.calculateMultivectorMagnitude([pendVector[var] for var in self.getOptVars(traj=traj)])
-      for var in self.getOptVars(traj=traj):
+      r  = self.calculateMultivectorMagnitude([  gradient[var] for var in self.getOptVars()])
+      r /= self.calculateMultivectorMagnitude([pendVector[var] for var in self.getOptVars()])
+      for var in self.getOptVars():
         pendVector[var] = copy.deepcopy(pendVector[var])*r
 
       varKPlus = {}
       index = 0
-      for var in self.getOptVars(traj=traj):
+      for var in self.getOptVars():
         varSize = np.prod(self.variableShapes[var])
         new = np.zeros(varSize)
         for i in range(varSize):
@@ -508,7 +505,7 @@ class SPSA(GradientBasedOptimizer):
 
     if foundPendVector:
       lenPendVector = 0
-      for var in self.getOptVars(traj=traj):
+      for var in self.getOptVars():
         lenPendVector += np.sum(pendVector[var]**2)
       lenPendVector = np.sqrt(lenPendVector)
 
@@ -516,13 +513,13 @@ class SPSA(GradientBasedOptimizer):
       while self.angleBetween(traj,gradient, pendVector) > rotateDegreeUpperLimit:
         sumVector = {}
         lenSumVector = 0
-        for var in self.getOptVars(traj=traj):
+        for var in self.getOptVars():
           sumVector[var] = gradient[var] + pendVector[var]
           lenSumVector += np.sum(sumVector[var]**2)
 
         tempTempVarKPlus = {}
         index = 0
-        for var in self.getOptVars(traj=traj):
+        for var in self.getOptVars():
           sumVector[var] = copy.deepcopy(sumVector[var]/np.sqrt(lenSumVector)*lenPendVector)
           varSize = np.prod(self.variableShapes[var])
           new = np.zeros(varSize)
@@ -591,7 +588,7 @@ class SPSA(GradientBasedOptimizer):
     if self.optType == 'max':
       lossDiff *= -1.0
     # difference in input variables
-    for var in self.getOptVars(traj=traj):
+    for var in self.getOptVars():
       dh = pert[var] - opt[var]
       # keep dimensionality consistent, so at least 1D
       gradient[var] = np.atleast_1d(lossDiff * dh)
@@ -606,7 +603,7 @@ class SPSA(GradientBasedOptimizer):
     """
     stepSize = self._computeStepSize(self.paramDict, self.counter['varsUpdate'][traj], traj)
     self.optVarsHist[traj][self.counter['varsUpdate'][traj]] = {}
-    varK = dict((var,self.counter['recentOptHist'][traj][0][var]) for var in self.getOptVars(traj))
+    varK = dict((var,self.counter['recentOptHist'][traj][0][var]) for var in self.getOptVars())
     varKPlus,modded = self._generateVarsUpdateConstrained(traj, stepSize, gradient, varK)
     #check for redundant paths
     if len(self.optTrajLive) > 1 and self.counter['solutionUpdate'][traj] > 0:

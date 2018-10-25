@@ -71,8 +71,8 @@
       </variable>
       <objectVar>ans</objectVar>
       <parameter>
-        <initialStepSize>0.6</initialStepSize>
-        <pertDist>0.01</pertDist>
+        <initialStepSize>0.01</initialStepSize>
+        <perturbationDistance>0.001</perturbationDistance>
       </parameter>
     </SPSA>
   </Optimizers>

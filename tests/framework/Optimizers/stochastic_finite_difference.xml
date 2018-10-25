@@ -49,8 +49,8 @@
       </initialization>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
       <convergence>
-        <gainGrowthFactor>1.</gainGrowthFactor>
-        <gainShrinkFactor>1.25</gainShrinkFactor>
+        <gainGrowthFactor>2</gainGrowthFactor>
+        <gainShrinkFactor>1.5</gainShrinkFactor>
       </convergence>
       <variable name="x">
         <upperBound>1</upperBound>

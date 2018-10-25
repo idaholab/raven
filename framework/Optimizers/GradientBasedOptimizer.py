@@ -401,7 +401,7 @@ class GradientBasedOptimizer(Optimizer):
     """
     convergence = True
     for traj in self.optTraj:
-      if self.convergeTraj[traj] == False:
+      if not self.convergeTraj[traj]:
         convergence = False
         break
     return convergence
@@ -633,7 +633,7 @@ class GradientBasedOptimizer(Optimizer):
           inp = copy.deepcopy(self.optVarsHist[traj][updateKey]) #FIXME deepcopy needed?
           if len(inp) < 1: #empty
             continue
-          dist = self.calculateMultivectorMagnitude( [inp[var] - currentInput[var] for var in self.getOptVars(traj=trajToRemove)] )
+          dist = self.calculateMultivectorMagnitude( [inp[var] - currentInput[var] for var in self.getOptVars()] )
           if dist < self.thresholdTrajRemoval:
             self.raiseADebug('Halting trajectory "{}" because it is following trajectory "{}"'.format(trajToRemove,traj))
             # cancel existing jobs for trajectory
@@ -764,7 +764,7 @@ class GradientBasedOptimizer(Optimizer):
 
         #same coordinate check
         sameCoordinateCheck = True
-        for var in self.getOptVars(traj=traj):
+        for var in self.getOptVars():
           # don't check constants, of course they're the same
           if var in self.constants:
             continue

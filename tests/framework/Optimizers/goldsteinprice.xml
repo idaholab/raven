@@ -46,7 +46,7 @@
         <limit>4000</limit>
         <initialSeed>42</initialSeed>
         <thresholdTrajRemoval>1e-3</thresholdTrajRemoval>
-        <writeSteps>every</writeSteps>
+        <writeSteps>final</writeSteps>
       </initialization>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
       <convergence>
@@ -90,8 +90,7 @@
       <Output>ans</Output>
     </PointSet>
     <PointSet name="opt_export">
-      <Input>trajID</Input>
-      <Output>x,y,ans,varsUpdate,accepted</Output>
+      <Output>ans</Output>
     </PointSet>
   </DataObjects>
 
@@ -99,7 +98,6 @@
     <Print name="opt_export">
       <type>csv</type>
       <source>opt_export</source>
-      <clusterLabel>trajID</clusterLabel>
     </Print>
   </OutStreams>
 

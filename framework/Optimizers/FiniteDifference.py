@@ -77,7 +77,7 @@ class FiniteDifference(SPSA):
       @ In, traj, int, the trajectory id
       @ Out, direction, list, the versor for each optimization dimension
     """
-    optVars = self.getOptVars(traj)
+    optVars = self.getOptVars()
     if len(optVars) == 1:
       if self.currentDirection:
         factor = np.sum(self.currentDirection)*-1.0
@@ -86,7 +86,7 @@ class FiniteDifference(SPSA):
       direction = [factor]
     else:
       if perturbationIndex == self.perturbationIndices[0]:
-        direction = np.zeros(len(self.getOptVars(traj))).tolist()
+        direction = np.zeros(len(self.getOptVars())).tolist()
         factor = 1.0
         if self.currentDirection:
           factor = np.sum(self.currentDirection)*-1.0
@@ -108,7 +108,7 @@ class FiniteDifference(SPSA):
       @ Out, gradient, dict, dictionary containing gradient estimation. gradient should have the form {varName: gradEstimation}
     """
     gradient = {}
-    inVars = self.getOptVars(traj=traj)
+    inVars = self.getOptVars()
     opt = self.realizations[traj]['denoised']['opt'][0]
     allGrads = self.realizations[traj]['denoised']['grad']
     for g,pert in enumerate(allGrads):

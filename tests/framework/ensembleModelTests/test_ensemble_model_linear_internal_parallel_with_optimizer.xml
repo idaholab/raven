@@ -65,6 +65,7 @@
         <limit>100</limit>
         <type>min</type>
         <initialSeed>30</initialSeed>
+        <writeSteps>final</writeSteps>
       </initialization>
       <TargetEvaluation class="DataObjects" type="PointSet">optOutput</TargetEvaluation>
       <convergence>
@@ -111,7 +112,7 @@
       <Output class="OutStreams" type="Plot">metaModelOutputTestSolution</Output>
       <Output class="OutStreams" type="Plot">metaModelOutputTestK</Output>
       <Output class="OutStreams" type="Print">optimizationHistoryDump</Output>
-      <Output class="OutStreams" type="Print">mdlDataDump</Output>
+      <Output class="OutStreams" type="Print">optSolution</Output>
       <Output class="OutStreams" type="Plot">optPath</Output>
       <Output class="OutStreams" type="Plot">plotIteration</Output>
     </IOStep>
@@ -138,10 +139,9 @@
       <source>optData</source>
       <clusterLabel>trajID</clusterLabel>
     </Print>
-    <Print name="mdlDataDump">
+    <Print name="optSolution">
       <type>csv</type>
-      <source>optOutput</source>
-      <what>input,output</what>
+      <source>optData</source>
     </Print>
     <Plot name="optPath" overwrite="false" verbosity="debug">
       <actions>
