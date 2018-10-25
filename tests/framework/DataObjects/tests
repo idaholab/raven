@@ -67,7 +67,7 @@
  [./load_two_csv_histories_fail]
    type = 'RavenErrors'
    input = 'load_two_csv_histories_fail.xml'
-   expect_err = 'IOError: Not all variables requested for data object "data" were found in csv'
+   expect_err = 'Error: Not all variables requested for data object "data" were found in csv'
  [../]
 []
 

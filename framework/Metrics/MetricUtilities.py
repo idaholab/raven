@@ -70,7 +70,7 @@ def _getPDFandCDFfromWeightedData(data, weights, numBins, uniformBins, interpola
     @ Out, (dataStats, cdfFunc, pdfFunc), tuple, dataStats is dictionary with things like "mean" and "stdev", cdfFunction is a function that returns the CDF value and pdfFunc is a function that returns the PDF value.
   """
   # Sort the data
-  sortedData = zip(data, weights)
+  sortedData = list(zip(data, weights))
   sortedData.sort() #Sort the data.
   weightSum = sum(weights)
   value = 0 #Read only
