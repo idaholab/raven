@@ -53,7 +53,7 @@ class Phisics(CodeInterfaceBase):
         'reactions', 'atoms_plot', 'atoms_csv', 'decay_heat', 'bu_power',
         'flux', 'repository'
     ]
-    for xmlNodeNumber in xrange(0, len(xmlNodes)):
+    for xmlNodeNumber in range(0, len(xmlNodes)):
       for xmlNode in pathRoot.getiterator(xmlNodes[xmlNodeNumber]):
         self.outputFileNameDict[xmlNodes[xmlNodeNumber]] = xmlNode.text
 
@@ -186,17 +186,17 @@ class Phisics(CodeInterfaceBase):
     """
     distributedPerturbedVars = {}
     pertType = []
-    for i in perturbedVars.iterkeys(
+    for i in perturbedVars.keys(
     ):  # teach what are the type of perturbation (decay FY etc...)
       splittedKeywords = i.split('|')
       pertType.append(splittedKeywords[0])
-    for i in xrange(
+    for i in range(
         0, len(pertType)
     ):  # declare all the dictionaries according the different type of pert
       distributedPerturbedVars[pertType[i]] = {}
     for key, value in perturbedVars.items():  # populate the dictionaries
       splittedKeywords = key.split('|')
-      for j in xrange(0, len(pertType)):
+      for j in range(0, len(pertType)):
         if splittedKeywords[0] == pertType[j]:
           distributedPerturbedVars[pertType[j]][key] = value
     return distributedPerturbedVars
@@ -487,7 +487,7 @@ class Phisics(CodeInterfaceBase):
       self.numberOfMPI = 1
     else:
       self.numberOfMPI = self.getNumberOfMpi(Kwargs['precommand'])
-    for perturbedParam in self.distributedPerturbedVars.iterkeys():
+    for perturbedParam in self.distributedPerturbedVars.keys():
       if perturbedParam == 'DECAY':
         DecayParser.DecayParser(
             currentInputFiles[self.typeDict['decay']].getAbsFile(),

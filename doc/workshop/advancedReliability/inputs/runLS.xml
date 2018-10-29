@@ -1,22 +1,30 @@
+<?xml version="1.0" ?>
 <Simulation verbosity="debug">
-  
-	<RunInfo>
-	  <WorkingDir>./resultsLS</WorkingDir>
-	  <Sequence>MCRun,adaptive,plot,saveInDB</Sequence>
-	    <batchSize>8</batchSize>
-	    <NumThreads>4</NumThreads>
-	    <mode>mpi</mode>
-	    <NumMPI>2</NumMPI>
-	</RunInfo>
-	
-	<Files>
-	  <Input name="output_computeP" type="">output_computeP.csv</Input>
-	</Files>
-	
+  <TestInfo>
+    <name>doc/workshop/advancedReliability/inputs.runLS</name>
+    <author>wangc</author>
+    <created>2018-09-21</created>
+    <classesTested/>
+    <description>Workshop test: advanced reliability test with Limit surface search</description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>./resultsLS</WorkingDir>
+    <Sequence>MCRun,adaptive,plot,saveInDB</Sequence>
+    <batchSize>8</batchSize>
+    <NumThreads>4</NumThreads>
+    <mode>mpi</mode>
+    <NumMPI>2</NumMPI>
+  </RunInfo>
+
+  <Files>
+    <Input name="output_computeP" type="">output_computeP.csv</Input>
+  </Files>
+
   <Databases>
-    <HDF5 name="out_db_adaptive" readMode="overWrite" directory="DatabaseStorage"/>
+    <HDF5 directory="DatabaseStorage" name="out_db_adaptive" readMode="overWrite"/>
   </Databases>
-  
+
   <Distributions>
     <Uniform name="tREC_dist">
       <lowerBound>300.0</lowerBound>
@@ -41,10 +49,10 @@
       </variable>
     </MonteCarlo>
     <LimitSurfaceSearch name="Adaptive">
-      <ROM              class = "Models"          type = "ROM"        >ROM</ROM>
-      <Function         class = "Functions"       type = "External"   >goalFunction</Function>
-      <TargetEvaluation class = "DataObjects"     type = "PointSet"   >outPS</TargetEvaluation>
-      <Convergence      limit = "200" forceIteration = "False" weight = "value" persistence = "10">1.0e-5</Convergence>
+      <ROM class="Models" type="ROM">ROM</ROM>
+      <Function class="Functions" type="External">goalFunction</Function>
+      <TargetEvaluation class="DataObjects" type="PointSet">outPS</TargetEvaluation>
+      <Convergence forceIteration="False" limit="200" persistence="10" weight="value">1.0e-5</Convergence>
       <variable name="tREC">
         <distribution>tREC_dist</distribution>
       </variable>
@@ -53,40 +61,40 @@
       </variable>
     </LimitSurfaceSearch>
   </Samplers>
-  
+
   <Functions>
-    <External name="goalFunction" file= "goalFunction">
-        <variable>outcome</variable>
+    <External file="goalFunction" name="goalFunction">
+      <variable>outcome</variable>
     </External>
   </Functions>
-	
-	<Steps>
-	   <MultiRun name="MCRun">
-      <Input          class="DataObjects"        type="PointSet"           >inputPlaceHolder</Input>
-      <Model          class="Models"             type="ExternalModel"      >PythonModule</Model>
-      <Sampler        class="Samplers"           type="MonteCarlo"         >MC</Sampler>
-      <Output         class="DataObjects"        type="PointSet"           >outPS</Output>
+
+  <Steps>
+    <MultiRun name="MCRun">
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
+      <Model class="Models" type="ExternalModel">PythonModule</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MC</Sampler>
+      <Output class="DataObjects" type="PointSet">outPS</Output>
     </MultiRun>
-	  <MultiRun name="adaptive">
-	    <Input          class="DataObjects"        type="PointSet"           >inputPlaceHolder</Input>
-	    <Model          class="Models"             type="ExternalModel"      >PythonModule</Model>
-	    <Sampler        class="Samplers"           type="LimitSurfaceSearch" >Adaptive</Sampler>
-	    <SolutionExport class="DataObjects"        type="PointSet"           >limitSurface</SolutionExport>
-	    <Output         class="DataObjects"        type="PointSet"           >outPS</Output>	    
-	  </MultiRun>
-	  <IOStep name="plot">
-	    <Input          class="DataObjects"        type="PointSet"           >limitSurface</Input>
-	    <Input          class="DataObjects"        type="PointSet"           >outPS</Input>
-	    <Output         class="OutStreams"         type="Plot"               >plotLS</Output>
-	    <Output         class="OutStreams"         type="Plot"               >plotlSampledPoints</Output>
-	  </IOStep>
-    <IOStep name="saveInDB">
-      <Input          class="DataObjects"        type="PointSet"           >limitSurface</Input>
-      <Output         class="Databases"          type="HDF5"               >out_db_adaptive</Output>
+    <MultiRun name="adaptive">
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
+      <Model class="Models" type="ExternalModel">PythonModule</Model>
+      <Sampler class="Samplers" type="LimitSurfaceSearch">Adaptive</Sampler>
+      <SolutionExport class="DataObjects" type="PointSet">limitSurface</SolutionExport>
+      <Output class="DataObjects" type="PointSet">outPS</Output>
+    </MultiRun>
+    <IOStep name="plot">
+      <Input class="DataObjects" type="PointSet">limitSurface</Input>
+      <Input class="DataObjects" type="PointSet">outPS</Input>
+      <Output class="OutStreams" type="Plot">plotLS</Output>
+      <Output class="OutStreams" type="Plot">plotlSampledPoints</Output>
     </IOStep>
-	</Steps>
-	
-	<DataObjects>
+    <IOStep name="saveInDB">
+      <Input class="DataObjects" type="PointSet">limitSurface</Input>
+      <Output class="Databases" type="HDF5">out_db_adaptive</Output>
+    </IOStep>
+  </Steps>
+
+  <DataObjects>
     <PointSet name="outPS">
       <Input>tREC,tSBO</Input>
       <Output>Tmax,outcome</Output>
@@ -95,32 +103,32 @@
       <Input>tREC,tSBO</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
-	  <PointSet name="limitSurface">
-	    <Input>tREC,tSBO</Input>
-	    <Output>goalFunction</Output>
-	  </PointSet>
-	</DataObjects>
-	
-	<Models>
-    <ExternalModel name="PythonModule" subType="" ModuleToLoad="modelTH">
+    <PointSet name="limitSurface">
+      <Input>tREC,tSBO</Input>
+      <Output>goalFunction</Output>
+    </PointSet>
+  </DataObjects>
+
+  <Models>
+    <ExternalModel ModuleToLoad="modelTH" name="PythonModule" subType="">
       <variables>tREC,tSBO,T,time,Tmax,outcome,heatRem</variables>
     </ExternalModel>
-	  <ROM name="ROM" subType="SciKitLearn">
-	    <Features>tREC,tSBO</Features>
-	    <Target>goalFunction</Target>
-	    <SKLtype>svm|SVC</SKLtype>
-	    <kernel>rbf</kernel>
-	    <gamma>0.25</gamma>
-	    <C>25</C>
-	  </ROM>
-	</Models>	
-	
-	<OutStreams>
-	  <Print name="PointSet_dump">
-	    <type>csv</type>
-	    <source>outPS</source>
-	  </Print>
-    <Plot name="plot1" overwrite="false" interactive="True">
+    <ROM name="ROM" subType="SciKitLearn">
+      <Features>tREC,tSBO</Features>
+      <Target>goalFunction</Target>
+      <SKLtype>svm|SVC</SKLtype>
+      <kernel>rbf</kernel>
+      <gamma>0.25</gamma>
+      <C>25</C>
+    </ROM>
+  </Models>
+
+  <OutStreams>
+    <Print name="PointSet_dump">
+      <type>csv</type>
+      <source>outPS</source>
+    </Print>
+    <Plot interactive="True" name="plot1" overwrite="false">
       <plotSettings>
         <plot>
           <type>scatter</type>
@@ -135,7 +143,7 @@
         <how>png</how>
       </actions>
     </Plot>
-    <Plot name="plotLS" overwrite="false" interactive="True">
+    <Plot interactive="True" name="plotLS" overwrite="false">
       <plotSettings>
         <plot>
           <type>scatter</type>
@@ -150,36 +158,36 @@
         <how>png</how>
         <range>
           <xmin>300.0</xmin>
-          <xmax>1440.0</xmax>   
-          <ymin>0.0</ymin>    
+          <xmax>1440.0</xmax>
+          <ymin>0.0</ymin>
           <ymax>300.0</ymax>
         </range>
       </actions>
     </Plot>
-	  <Plot name="plotlSampledPoints" overwrite="False">
+    <Plot name="plotlSampledPoints" overwrite="False">
       <plotSettings>
-         <plot>
+        <plot>
           <type>scatter</type>
           <x>outPS|Input|tREC</x>
           <y>outPS|Input|tSBO</y>
           <colorMap>outPS|Output|outcome</colorMap>
-         </plot>
-         <xlabel>tREC</xlabel>
-         <ylabel>tSBO</ylabel>
+        </plot>
+        <xlabel>tREC</xlabel>
+        <ylabel>tSBO</ylabel>
       </plotSettings>
       <actions>
-         <how>png</how>
-         <title>
-             <text>Sampled Points</text>
-         </title>
-				<range>
-				  <xmin>300.0</xmin>
-				  <xmax>1440.0</xmax>   
-				  <ymin>0.0</ymin>    
-				  <ymax>300.0</ymax>
-				</range>
+        <how>png</how>
+        <title>
+          <text>Sampled Points</text>
+        </title>
+        <range>
+          <xmin>300.0</xmin>
+          <xmax>1440.0</xmax>
+          <ymin>0.0</ymin>
+          <ymax>300.0</ymax>
+        </range>
       </actions>
-	  </Plot>
-	</OutStreams>
+    </Plot>
+  </OutStreams>
 
 </Simulation>

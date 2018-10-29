@@ -1,0 +1,9 @@
+[Tests]
+  [./testMOOSEparser]
+    type = 'RavenFramework'
+    input = 'test_MOOSE_parser.xml'
+    text = 'parser_moose/1/MOOSE_parser.i parser_moose/2/MOOSE_parser.i'
+    test_interface_only = True
+  [../]
+[]
+

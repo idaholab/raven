@@ -25,8 +25,10 @@ import os
 import sys
 import copy
 import itertools
-import __builtin__
-import cPickle as pk
+try:
+  import cPickle as pk
+except ImportError:
+  import pickle as pk
 import xml.etree.ElementTree as ET
 
 import abc
@@ -44,8 +46,9 @@ from utils import utils, cached_ndarray, InputData, xmlUtils, mathUtils
 
 # for profiling with kernprof
 try:
+  import __builtin__
   __builtin__.profile
-except AttributeError:
+except (AttributeError,ImportError):
   # profiler not preset, so pass through
   def profile(func):
     """
@@ -184,6 +187,7 @@ class DataSet(DataObject):
     try:
       rlz = dict((var,rlz[var]) for var in self.getVars()+self.indexes)
     except KeyError as e:
+      self.raiseADebug('Variables provided:',rlz.keys())
       self.raiseAnError(KeyError,'Provided realization does not have all requisite values for object "{}": "{}"'.format(self.name,e.args[0]))
     # check consistency, but make it an assertion so it can be passed over
     if not self._checkRealizationFormat(rlz):
@@ -217,6 +221,7 @@ class DataSet(DataObject):
       self._collector = self._newCollector(width=len(rlz))
     # append
     self._collector.append(newData)
+
     # if hierarchical, clear the parent as an ending
     self._clearParentEndingStatus(rlz)
     # reset scaling factors, kd tree
@@ -245,6 +250,13 @@ class DataSet(DataObject):
       self._inputs.append(varName)
     elif classify == 'output':
       self._outputs.append(varName)
+      if type(values[0]) == xr.DataArray:
+        indexes = values[0].sizes.keys()
+        for index in indexes:
+          if index in self._pivotParams.keys():
+            self._pivotParams[index].append(varName)
+          else:
+            self._pivotParams[index]=[varName]
     else:
       self._metavars.append(varName)
     self._orderedVars.append(varName)
@@ -467,7 +479,7 @@ class DataSet(DataObject):
         if index > numInData-1:
           ## if past the data AND the collector, we don't have that entry
           if index > numInData + numInCollector - 1:
-            self.raiseAnError(IndexError,'Requested index "{}" but only have {} entries (zero-indexed)!'.format(index,numInData+numInCollector))
+            self.raiseAnError(IndexError,'{}: Requested index "{}" but only have {} entries (zero-indexed)!'.format(self.name,index,numInData+numInCollector))
           ## otherwise, take from the collector
           else:
             rlz = self._getRealizationFromCollectorByIndex(index - numInData)
@@ -943,13 +955,12 @@ class DataSet(DataObject):
           pass #not there, so didn't need to remove
         dimsMeta[var] = ','.join(dims)
       # store sample tag, IO information, coordinates
+      self.addMeta('DataSet',{'dims':dimsMeta})
       self.addMeta('DataSet',{'general':{'sampleTag':self.sampleTag,
                                          'inputs':','.join(self._inputs),
                                          'outputs':','.join(self._outputs),
                                          'pointwise_meta':','.join(self._metavars),
-                                         },
-                              'dims':dimsMeta,
-                             })
+      }})
     elif action == 'extend':
       # TODO compatability check!
       # TODO Metadata update?
@@ -1252,7 +1263,7 @@ class DataSet(DataObject):
     # set orderedVars to all vars, for now don't be fancy with alignedIndexes
     self._orderedVars = self.vars + self.indexes
     # make a collector from scratch
-    rows = len(source.values()[0])
+    rows = len(utils.first(source.values()))
     cols = len(self._orderedVars)
     # can this for-loop be done in a comprehension?  The dtype seems to be a bit of an issue.
     data = np.zeros([rows,cols],dtype=object)
@@ -1376,7 +1387,7 @@ class DataSet(DataObject):
     assert(self._collector is not None)
     # TODO KD Tree for faster values -> still want in collector?
     # TODO slow double loop
-    lookingFor = toMatch.values()
+    lookingFor = list(toMatch.values())
     for r,row in enumerate(self._collector[:,tuple(self._orderedVars.index(var) for var in toMatch.keys())]):
       match = True
       for e,element in enumerate(row):

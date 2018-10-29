@@ -9,124 +9,125 @@
        A copy of framework/ROM/TimeSeries.ARMA where the internal parallel system
        has been activated in order to test its functionality in conjunction
        with the ARMA model.
-
        This test is aimed to check the possibility to train an ARMA+Fourier model and its
        capability to generate intrinsically stochastic time series
     </description>
     <revisions>
       <revision author="alfoa" date="2017-02-03">Adding this test description.</revision>
-      <revision author="talbpaul" date="2017-07-12">Inserted "reseedCopies" option as False, batchSize to 2</revision>
+      <revision author="talbpaul" date="2017-07-12">Inserted &quot;reseedCopies&quot; option as False, batchSize to 2</revision>
       <revision author="alfoa" date="2017-12-13">adapted for new DataObject structure</revision>
       <revision author="alfoa" date="2018-04-26">Modified location of the test (ARMA folder)</revision>
     </revisions>
   </TestInfo>
 
+  <RunInfo>
+    <WorkingDir>ARMAparallel</WorkingDir>
+    <Sequence>readIn,ARMATrain,runARMA,writeOut</Sequence>
+    <batchSize>2</batchSize>
+    <internalParallel>True</internalParallel>
+  </RunInfo>
 
-    <RunInfo>
-        <WorkingDir>ARMAparallel</WorkingDir>
-		<Sequence>readIn,ARMATrain,runARMA,writeOut</Sequence>
-        <batchSize>2</batchSize>
-        <internalParallel>True</internalParallel>
-    </RunInfo>
-    <Files>
-        <Input name="rawDataFile">../ARMA/dataSet.csv</Input>
-    </Files>
-    <Distributions>
-		<Uniform name="uniDist">
-			<lowerBound>0</lowerBound>
-			<upperBound>1</upperBound>
-		</Uniform>
-	</Distributions>
+  <Files>
+    <Input name="rawDataFile">../ARMA/dataSet.csv</Input>
+  </Files>
 
-	<Samplers>
-		<MonteCarlo name="mcSampler">
-			<samplerInit>
-                <limit>3</limit>
-				<initialSeed>20021986</initialSeed>
-			</samplerInit>
-			<variable name="scaling">
-				<distribution>uniDist</distribution>
-			</variable>
-        </MonteCarlo>
-	</Samplers>
+  <Distributions>
+    <Uniform name="uniDist">
+      <lowerBound>0</lowerBound>
+      <upperBound>1</upperBound>
+    </Uniform>
+  </Distributions>
 
-	<Models>
-		<ROM name='ARMA' subType='ARMA'>
-			<Target>Speed,Time</Target>
-			<Features>scaling</Features>
+  <Samplers>
+    <MonteCarlo name="mcSampler">
+      <samplerInit>
+        <limit>3</limit>
+        <initialSeed>20021986</initialSeed>
+      </samplerInit>
+      <variable name="scaling">
+        <distribution>uniDist</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <Models>
+    <ROM name="ARMA" subType="ARMA">
+      <Target>Speed,Time</Target>
+      <Features>scaling</Features>
       <reseedCopies>False</reseedCopies>
-			<pivotParameter>Time</pivotParameter>
-			<Pmax>2</Pmax>
-			<Pmin>2</Pmin>
-			<Qmax>1</Qmax>
-			<Qmin>1</Qmin>
-			<outTruncation>positive</outTruncation>
-			<Fourier>604800,86400</Fourier>
-			<FourierOrder>2,2</FourierOrder>
-		</ROM>
-    </Models>
-    <Steps>
-        <IOStep name='readIn' pauseAtEnd = 'True'>
-       <Input    class = 'Files'        type = ''    >rawDataFile</Input>
-       <Output   class = 'DataObjects'       type = 'HistorySet'       >rawData</Output>
-        </IOStep>
-		<RomTrainer name='ARMATrain'>
-			<Input    class = 'DataObjects'       type = 'HistorySet'       >rawData</Input>
-			<Output   class='Models' 			  type ='ROM' 	 		 >ARMA</Output>
-		</RomTrainer>
-		<MultiRun name='runARMA'>
-			<Input    class = 'DataObjects'       type = 'PointSet'       >dataIn</Input>
-            <Model   class='Models' 			  type = 'ROM' 	 		 >ARMA</Model>
-			<Sampler class="Samplers"  type="MonteCarlo"  >mcSampler</Sampler>
-			<Output    class = 'DataObjects'       type = 'HistorySet'    >synData</Output>
-		</MultiRun>
-        <IOStep name='writeOut' pauseAtEnd = 'True'>
-			<Input    class = 'DataObjects'       type = 'HistorySet'    >synData</Input>
-			<Output   class = 'OutStreams'  type = 'Print'    >writeSynDataOut</Output>
-			<Output   class = 'OutStreams'  type = 'Plot'    >plotSynData</Output>
-		</IOStep>
-    </Steps>
-    <OutStreams>
-        <Print name = 'writeSynDataOut'>
-          <type>csv</type>
-          <source>synData</source>
-          <what>input, output</what>
-        </Print>
-		<Plot name="plotSynData" overwrite="false" >
-			<plotSettings>
-				<plot>
-					<type>line</type>
-					<x>synData|Output|Time</x>
-					<y>synData|Output|Speed</y>
-					<interpPointsX>52560</interpPointsX>
-				</plot>
-			</plotSettings>
-			<actions>
-				<how>png</how>
-			</actions>
-	    </Plot>
-	</OutStreams>
+      <pivotParameter>Time</pivotParameter>
+      <Pmax>2</Pmax>
+      <Pmin>2</Pmin>
+      <Qmax>1</Qmax>
+      <Qmin>1</Qmin>
+      <outTruncation domain="positive">Speed,Time</outTruncation>
+      <Fourier>604800,86400</Fourier>
+      <FourierOrder>2,2</FourierOrder>
+    </ROM>
+  </Models>
 
-    <DataObjects>
-      <PointSet name="dataIn">
-        <Input>scaling</Input>
-        <Output>OutputPlaceHolder</Output>
-      </PointSet>
-      <HistorySet name="rawData">
-        <Input>scaling</Input>
-        <Output>Speed,Time</Output>
-        <options>
-            <pivotParameter>Time</pivotParameter>
-        </options>
-      </HistorySet>
-      <HistorySet name="synData">
-        <Input>scaling</Input>
-        <Output>Speed,Time</Output>
-        <options>
-           <pivotParameter>Time</pivotParameter>
-        </options>
-      </HistorySet>
-    </DataObjects>
+  <Steps>
+    <IOStep name="readIn" pauseAtEnd="True">
+      <Input class="Files" type="">rawDataFile</Input>
+      <Output class="DataObjects" type="HistorySet">rawData</Output>
+    </IOStep>
+    <RomTrainer name="ARMATrain">
+      <Input class="DataObjects" type="HistorySet">rawData</Input>
+      <Output class="Models" type="ROM">ARMA</Output>
+    </RomTrainer>
+    <MultiRun name="runARMA">
+      <Input class="DataObjects" type="PointSet">dataIn</Input>
+      <Model class="Models" type="ROM">ARMA</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mcSampler</Sampler>
+      <Output class="DataObjects" type="HistorySet">synData</Output>
+    </MultiRun>
+    <IOStep name="writeOut" pauseAtEnd="True">
+      <Input class="DataObjects" type="HistorySet">synData</Input>
+      <Output class="OutStreams" type="Print">writeSynDataOut</Output>
+      <Output class="OutStreams" type="Plot">plotSynData</Output>
+    </IOStep>
+  </Steps>
+
+  <OutStreams>
+    <Print name="writeSynDataOut">
+      <type>csv</type>
+      <source>synData</source>
+      <what>input, output</what>
+    </Print>
+    <Plot name="plotSynData" overwrite="false">
+      <plotSettings>
+        <plot>
+          <type>line</type>
+          <x>synData|Output|Time</x>
+          <y>synData|Output|Speed</y>
+          <interpPointsX>52560</interpPointsX>
+        </plot>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+      </actions>
+    </Plot>
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="dataIn">
+      <Input>scaling</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <HistorySet name="rawData">
+      <Input>scaling</Input>
+      <Output>Speed,Time</Output>
+      <options>
+        <pivotParameter>Time</pivotParameter>
+      </options>
+    </HistorySet>
+    <HistorySet name="synData">
+      <Input>scaling</Input>
+      <Output>Speed,Time</Output>
+      <options>
+        <pivotParameter>Time</pivotParameter>
+      </options>
+    </HistorySet>
+  </DataObjects>
+
 </Simulation>
-
-

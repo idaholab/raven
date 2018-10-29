@@ -329,6 +329,7 @@
    type = 'RavenFramework'
    input = 'raven_running_raven_basic.xml'
    UnorderedCsv = 'Raven_running_raven_basic/outer_out.csv'
+   max_time = 500
  [../]
  [./RAVENrunningRAVEN_ROM]
    type = 'RavenFramework'

@@ -19,8 +19,6 @@ Created on Mar 25, 2013
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
-if not 'xrange' in dir(__builtins__):
-  xrange = range
 
 import xml.etree.ElementTree as ET
 import os
@@ -66,7 +64,7 @@ class MOOSEparser():
         if not line.startswith(b'#'):
           ind = line.find(b'=')
           if ind != -1:
-            listLine = line.split(b'=')
+            listLine = line.split(b'=', 1)
             attribName = listLine[0].strip()
             if b'#' not in listLine[1]:
               attribValue = listLine[1].strip()
@@ -254,7 +252,7 @@ class MOOSEparser():
       returnElement = copy.deepcopy(self.root)         #make a copy if save is requested
     else:
       returnElement = self.root                           #otherwise return the original modified
-    for i in xrange(len(modiDictionaryList)):
+    for i in range(len(modiDictionaryList)):
       name = modiDictionaryList[i]['name']
       del modiDictionaryList[i]['name']
       self.__modifyOrAdd(returnElement,name,modiDictionaryList[i])

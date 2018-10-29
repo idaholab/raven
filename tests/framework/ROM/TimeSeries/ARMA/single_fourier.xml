@@ -1,3 +1,4 @@
+<?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
     <name>framework/ROM/TimeSeries/ARMA.SingleFourier</name>
@@ -47,7 +48,7 @@
       <Pmin>2</Pmin>
       <Qmax>1</Qmax>
       <Qmin>1</Qmin>
-      <outTruncation>positive</outTruncation>
+      <outTruncation domain="positive">Speed,Time</outTruncation>
       <Fourier>86400</Fourier>
       <FourierOrder>2</FourierOrder>
     </ROM>
@@ -102,4 +103,5 @@
       </options>
     </HistorySet>
   </DataObjects>
+
 </Simulation>

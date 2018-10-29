@@ -22,7 +22,8 @@ UNAME := $(shell uname)
 
 ifneq ($(PYTHON3_WHICH),)
 	SWIG_PY_FLAGS=-py3
-	PYTHON_MODULES = $(CROW_DIR)/install/crow_modules/_distribution1Dpy2.so $(CROW_DIR)/install/crow_modules/_interpolationNDpy2.so $(CROW_DIR)/install/crow_modules/_randomENGpy2.so $(CROW_DIR)/install/crow_modules/_distribution1Dpy3.so $(CROW_DIR)/install/crow_modules/_interpolationNDpy3.so $(CROW_DIR)/install/crow_modules/_randomENGpy3.so
+#	PYTHON_MODULES = $(CROW_DIR)/install/crow_modules/_distribution1Dpy2.so $(CROW_DIR)/install/crow_modules/_interpolationNDpy2.so $(CROW_DIR)/install/crow_modules/_randomENGpy2.so
+	PYTHON_MODULES=$(CROW_DIR)/install/crow_modules/_distribution1Dpy3.so $(CROW_DIR)/install/crow_modules/_interpolationNDpy3.so $(CROW_DIR)/install/crow_modules/_randomENGpy3.so
 
 else #no Python3
 

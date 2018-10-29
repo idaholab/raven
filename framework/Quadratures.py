@@ -317,7 +317,7 @@ class SparseGrid(MessageHandler.MessageUser):
       @ Out, points, tuple(float) or tuple(tuple(float)), requested points
     """
     if n==None:
-      return self.SG.keys()
+      return list(self.SG.keys())
     else:
       return list(self.SG.keys())[n]
 
@@ -328,7 +328,7 @@ class SparseGrid(MessageHandler.MessageUser):
       @ Out, weights, float or tuple(float), requested weights
     """
     if n==None:
-      return self.SG.values()
+      return list(self.SG.values())
     else:
       try:
         return self.SG[tuple(n)]

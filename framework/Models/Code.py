@@ -27,6 +27,7 @@ import shutil
 import importlib
 import platform
 import shlex
+import time
 import numpy as np
 #External Modules End--------------------------------------------------------------------------------
 
@@ -58,6 +59,7 @@ class Code(Model):
     inputSpecification = super(Code, cls).getInputSpecification()
     inputSpecification.setStrictMode(False) #Code interfaces can allow new elements.
     inputSpecification.addSub(InputData.parameterInputFactory("executable", contentType=InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("walltime", contentType=InputData.FloatType))
     inputSpecification.addSub(InputData.parameterInputFactory("preexec", contentType=InputData.StringType))
 
     ## Begin command line arguments tag
@@ -118,6 +120,7 @@ class Code(Model):
     self.createWorkingDir   = True
     self.foundExecutable    = True # True indicates the executable is found, otherwise not found
     self.foundPreExec       = True # True indicates the pre-executable is found, otherwise not found
+    self.maxWallTime        = None # If set, this indicates the maximum CPU time a job can take.
 
   def _readMoreXML(self,xmlNode):
     """
@@ -133,7 +136,9 @@ class Code(Model):
     self.fargs={'input':{}, 'output':'', 'moosevpp':''}
     for child in paramInput.subparts:
       if child.getName() =='executable':
-        self.executable = str(child.value)
+        self.executable = child.value
+      if child.getName() =='walltime':
+        self.maxWallTime = child.value
       if child.getName() =='preexec':
         self.preExec = child.value
       elif child.getName() == 'clargs':
@@ -211,11 +216,14 @@ class Code(Model):
     if self.executable == '':
       self.raiseAWarning('The node "<executable>" was not found in the body of the code model '+str(self.name)+' so no code will be run...')
     else:
-      if '~' in self.executable:
-        self.executable = os.path.expanduser(self.executable)
-      abspath = os.path.abspath(str(self.executable))
-      if os.path.exists(abspath):
-        self.executable = abspath
+      if os.environ.get('RAVENinterfaceCheck','False').lower() in utils.stringsThatMeanFalse():
+        if '~' in self.executable:
+          self.executable = os.path.expanduser(self.executable)
+        abspath = os.path.abspath(str(self.executable))
+        if os.path.exists(abspath):
+          self.executable = abspath
+        else:
+          self.raiseAMessage('not found executable '+self.executable,'ExceptedError')
       else:
         self.foundExecutable = False
         self.raiseAMessage('not found executable '+self.executable,'ExceptedError')
@@ -531,10 +539,22 @@ class Code(Model):
     elif not self.code.getRunOnShell():
       command = self._expandCommand(command)
     ## This code should be evaluated by the job handler, so it is fine to wait
-    ## until the execution of the external subprocess completes
+    ## until the execution of the external subprocess completes.
     process = utils.pickleSafeSubprocessPopen(command, shell=self.code.getRunOnShell(), stdout=outFileObject, stderr=outFileObject, cwd=localenv['PWD'], env=localenv)
-    ################################################################
-    process.wait()
+
+    if self.maxWallTime is not None:
+      timeout = time.time() + self.maxWallTime
+      while True:
+        time.sleep(0.5)
+        process.poll()
+        if time.time() > timeout and process.returncode is None:
+          self.raiseAWarning('walltime exeeded in run in working dir: '+str(metaData['subDirectory'])+'. Killing the run...')
+          process.kill()
+          process.returncode = -1
+        if process.returncode is not None or time.time() > timeout:
+          break
+    else:
+      process.wait()
 
     returnCode = process.returncode
     # procOutput = process.communicate()[0]
@@ -599,7 +619,7 @@ class Code(Model):
         #  -> in addition, we have to fix the probability weights.
         ## get the number of realizations
         ### we already checked consistency in the CodeInterface, so just get the length of the first data object
-        numRlz = len(finalCodeOutputFile.values()[0])
+        numRlz = len(utils.first(finalCodeOutputFile.values()))
         ## set up the return container
         exportDict = {'RAVEN_isBatch':True,'realizations':[]}
         ## set up each realization
@@ -643,8 +663,6 @@ class Code(Model):
 
       ## Check if the user specified any file extensions for clean up
       for fileExt in fileExtensionsToDelete:
-        if not fileExt.startswith("."):
-          fileExt = "." + fileExt
         fileList = [ os.path.join(metaData['subDirectory'],f) for f in os.listdir(metaData['subDirectory']) if f.endswith(fileExt) ]
         for f in fileList:
           os.remove(f)
@@ -730,7 +748,7 @@ class Code(Model):
       @ Out, returnList, list, list of export dictionaries
     """
     returnList = []
-    if exportDict['outputSpaceParams'].values()[0].__class__.__base__.__name__ != 'Data':
+    if utils.first(exportDict['outputSpaceParams'].values()).__class__.__base__.__name__ != 'Data':
       returnList.append(exportDict)
     else:
       # get the DataObject that is compatible with this output
@@ -744,13 +762,13 @@ class Code(Model):
           break
       if compatibleDataObject is None:
         # if none found (e.g. => we are filling an HistorySet with a PointSet), we take the first one
-        compatibleDataObject = exportDict['outputSpaceParams'].values()[0]
+        compatibleDataObject = utils.first(exportDict['outputSpaceParams'].values())
       # get the values
       inputs = compatibleDataObject.getParametersValues('inputs',nodeId = 'RecontructEnding')
       unstructuredInputs = compatibleDataObject.getParametersValues('unstructuredinputs',nodeId = 'RecontructEnding')
       outputs = compatibleDataObject.getParametersValues('outputs',nodeId = 'RecontructEnding')
       metadata = compatibleDataObject.getAllMetadata(nodeId = 'RecontructEnding')
-      inputKeys = inputs.keys() if compatibleDataObject.type == 'PointSet' else inputs.values()[0].keys()
+      inputKeys = inputs.keys() if compatibleDataObject.type == 'PointSet' else utils.first(inputs.values()).keys()
       # expand inputspace of current RAVEN
       for i in range(len(compatibleDataObject)):
         appendDict = {'inputSpaceParams':{},'outputSpaceParams':{},'metadata':{}}

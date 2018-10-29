@@ -21,7 +21,6 @@
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
-#if not 'xrange' in dir(__builtins__): xrange = range
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -134,6 +133,7 @@ class FiniteDifferenceGradientOptimizer(SPSA):
         # gradient is calculated in normalized space
         dh = pert['inputs'][var] - opt['inputs'][var]
         if abs(dh) < 1e-15:
+          self.raiseADebug('Values:',pert['inputs'][var],opt['inputs'][var])
           self.raiseAnError(RuntimeError,'While calculating the gradArray a "dh" very close to zero was found for var:',var)
         gradArray[var][i] = lossDiff/dh
     gradient = {}

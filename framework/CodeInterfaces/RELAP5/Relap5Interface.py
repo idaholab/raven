@@ -22,7 +22,6 @@ warnings.simplefilter('default',DeprecationWarning)
 
 import os
 import copy
-from  __builtin__ import any
 import relapdata
 import shutil
 import re

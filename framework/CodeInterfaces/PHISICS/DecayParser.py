@@ -52,10 +52,10 @@ class DecayParser():
     """
     line = line.upper().split()
     line[0] = re.sub(r'(.*?)(\w+)(-)(\d+M?)', r'\1\2\4', line[0])  # remove isotope dashes
-    for isotopeID in self.listedDict.iterkeys():
+    for isotopeID in self.listedDict.keys():
       if line[0] == isotopeID:
         typeOfDecayPerturbed = []
-        typeOfDecayPerturbed = self.listedDict.get(isotopeID, {}).keys()
+        typeOfDecayPerturbed = list(self.listedDict.get(isotopeID, {}).keys())
         for i in range(len(typeOfDecayPerturbed)):
           try:
             if self.isotopeClassifier.get(isotopeID) == self.isotopeParsed[0]:  # it means the isotope is an actinide
@@ -177,7 +177,7 @@ class DecayParser():
       @ In, pertDict, dictionary, perturbed variables
       @ Out, pertDict, dictionary, perturbed variables in scientific format
     """
-    for key, value in pertDict.iteritems():
+    for key, value in pertDict.items():
       pertDict[key] = '%.3E' % Decimal(str(value))
     return pertDict
 
@@ -189,12 +189,12 @@ class DecayParser():
       @ Out, None
     """
     perturbedIsotopes = []
-    for key in self.pertDict.iterkeys():
+    for key in self.pertDict.keys():
       splittedDecayKeywords = key.split('|')
       perturbedIsotopes.append(splittedDecayKeywords[2])
     for i in range(len(perturbedIsotopes)):
       self.listedDict[perturbedIsotopes[i]] = {}
-    for decayTypeKey, decayValue in self.pertDict.iteritems():
+    for decayTypeKey, decayValue in self.pertDict.items():
       decayKeyWords = decayTypeKey.split('|')
       for i in range(len(self.allDecayList)):
         self.listedDict[decayKeyWords[2]][decayKeyWords[1]] = decayValue
