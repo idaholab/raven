@@ -143,4 +143,10 @@
   zero_threshold = 1e-14
  [../]
 
+  [./nml]
+    type = 'RavenFramework'
+    input = 'test_not_multiple_linear.xml'
+    UnorderedCsv = 'notMultipleLinear/basicStatPP_dump.csv'
+    rel_err = 1e-6
+  [../]
 []
