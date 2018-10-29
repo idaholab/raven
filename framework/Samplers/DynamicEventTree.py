@@ -534,7 +534,7 @@ class DynamicEventTree(Grid):
         nBranches -= 1
     # Loop over the branches for which the inputs must be created
     for _ in range(nBranches):
-      del self.inputInfo
+      #del self.inputInfo
       self.counter += 1
       self.branchCountOnLevel += 1
       branchedLevel = copy.deepcopy(branchedLevelParent)
@@ -597,13 +597,14 @@ class DynamicEventTree(Grid):
       endInfo['parentNode'].appendBranch(subGroup)
       # Fill the values dictionary that will be passed into the model in order to create an input
       # In this dictionary the info for changing the original input is stored
-      self.inputInfo = {'prefix':rname.encode(),'endTimeStep':endInfo['endTimeStep'],
-                'branchChangedParam':subGroup.get('branchChangedParam'),
-                'branchChangedParamValue':subGroup.get('branchChangedParamValue'),
-                'conditionalPb':subGroup.get('conditionalPb'),
-                'startTime':endInfo['parentNode'].get('endTime'),
-                'RAVEN_parentID':subGroup.get('parent'),
-                'RAVEN_isEnding':True}
+      self.inputInfo['prefix'] = rname.encode()
+      self.inputInfo['endTimeStep'] = endInfo['endTimeStep']
+      self.inputInfo['branchChangedParam'] = subGroup.get('branchChangedParam')
+      self.inputInfo['branchChangedParamValue'] = subGroup.get('branchChangedParamValue')
+      self.inputInfo['conditionalPb'] = subGroup.get('conditionalPb')
+      self.inputInfo['startTime'] = endInfo['parentNode'].get('endTime')
+      self.inputInfo['RAVEN_parentID'] = subGroup.get('parent')
+      self.inputInfo['RAVEN_isEnding'] = True
 
       #'RAVEN_parentID','RAVEN_isEnding'
       self.inputInfo['happenedEvent'] = subGroup.get('happenedEvent')

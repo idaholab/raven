@@ -483,17 +483,19 @@ class hdf5Database(MessageHandler.MessageUser):
 
     return workingList
 
-  def __getListOfParentGroups(self, grp, backGroups = []):
+  def __getListOfParentGroups(self, grp, backGroups = None):
     """
       Method to get the list of groups from the deepest to the root, given a certain group
       @ In, grp, h5py.Group, istance of the starting group
       @ InOut, backGroups, list, list of group instances (from the deepest to the root)
     """
+    if backGroups is None: backGroups = []
     if grp.parent and grp.parent != grp:
       parentGroup = grp.parent
       if not parentGroup.attrs.get("rootname",False):
         backGroups.append(parentGroup)
         self.__getListOfParentGroups(parentGroup, backGroups)
+    backGroups = list(set(backGroups))    
     return backGroups
 
   def __getNewDataFromGroup(self, group, name):
@@ -563,6 +565,8 @@ class hdf5Database(MessageHandler.MessageUser):
           # the root groups get skipped
           if grp.name not in ["/",self.parentGroupName]:
             data = self.__getNewDataFromGroup(grp, grp.attrs[b'groupName'])
+            try: data.pop("crowDist")
+            except: pass
             if len(data.keys()) != len(newData.keys()):
               self.raiseAnError(IOError,'Group named "' + grp.attrs[b'groupName'] + '" has an inconsistent number of variables in database "'+self.name+'"!')
             newData = {key : np.concatenate((newData[key],data[key])) for key in newData.keys()}

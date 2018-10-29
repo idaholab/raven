@@ -266,7 +266,7 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
       @ Out, None
     """
     endInfo = info['parentNode'].get('endInfo')
-    del self.inputInfo
+    #del self.inputInfo
     self.counter           += 1
     self.branchCountOnLevel = info['actualBranchOnLevel']+1
     # Get Parent node name => the branch name is creating appending to this name  a comma and self.branchCountOnLevel counter
@@ -315,7 +315,7 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
     info['parentNode'].appendBranch(subGroup)
     # Fill the values dictionary that will be passed into the model in order to create an input
     # In this dictionary the info for changing the original input is stored
-    self.inputInfo = {'prefix':rname,'endTimeStep':info['parentNode'].get('actualEndTimeStep'),
+    self.inputInfo.update({'prefix':rname,'endTimeStep':info['parentNode'].get('actualEndTimeStep'),
               'branchChangedParam':subGroup.get('branchChangedParam'),
               'branchChangedParamValue':subGroup.get('branchChangedParamValue'),
               'conditionalPb':subGroup.get('conditionalPb'),
@@ -323,7 +323,7 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
               'happenedEvent':subGroup.get('happenedEvent'),
               'triggeredVariable':subGroup.get('triggeredVariable'),
               'RAVEN_parentID':subGroup.get('parent'),
-              'RAVEN_isEnding':True}
+              'RAVEN_isEnding':True})
     # add the newer branch name to the map
     self.rootToJob[rname] = self.rootToJob[subGroup.get('parent')]
     # check if it is a preconditioned DET sampling, if so add the relative information
