@@ -42,6 +42,8 @@ class InputType(object):
 
     ## Rename the class to something understandable by a developer
     cls.__name__ = str(name+'Spec')
+    # register class name to module (necessary for pickling)
+    globals()[cls.__name__] = cls
 
     cls.name = name
     cls.xmlType = xmlType
@@ -252,6 +254,8 @@ class EnumBaseType(InputType):
 
     ## Rename the class to something understandable by a developer
     cls.__name__ = str(name+'Spec')
+    # register class name to module (necessary for pickling)
+    globals()[cls.__name__] = cls
 
     cls.name = name
     cls.xmlType = xmlType
@@ -290,7 +294,7 @@ class BoolType(EnumBaseType):
       @ In, value, string, the value to convert
       @ Out, convert, bool, the converted value
     """
-    if value in utils.stringsThatMeanTrue():
+    if value.lower() in utils.stringsThatMeanTrue():
       return True
     else:
       return False
@@ -350,6 +354,8 @@ class ParameterInput(object):
 
     ## Rename the class to something understandable by a developer
     cls.__name__ = str(name+'Spec')
+    # register class name to module (necessary for pickling)
+    globals()[cls.__name__] = cls
 
     cls.name = name
     cls.strictMode = strictMode

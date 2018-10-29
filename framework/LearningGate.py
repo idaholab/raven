@@ -36,6 +36,7 @@ from utils import utils
 import SupervisedLearning
 import MessageHandler
 #Internal Modules End--------------------------------------------------------------------------------
+
 class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),MessageHandler.MessageUser):
   """
     This class represents an interface with all the supervised learning algorithms
@@ -83,6 +84,11 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
       @ In, None
       @ Out, state, dict, it contains all the information needed by the ROM to be initialized
     """
+    # clear input specs, as they should all be read in by now
+    ## this isn't a great implementation; we should make paramInput picklable instead!
+    self.initializationOptions.pop('paramInput',None)
+    for eng in self.supervisedContainer:
+      eng.initOptionDict.pop('paramInput',None)
     # capture what is normally pickled
     state = self.__dict__.copy()
     if not self.amITrained:
@@ -98,6 +104,7 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
     """
     self.__dict__.update(newstate)
     if not self.amITrained:
+      # NOTE this will fail if the ROM requires the paramInput spec! Fortunately, you shouldn't pickle untrained.
       modelInstance             = SupervisedLearning.returnInstance(self.ROMclass,self,**self.initializationOptions)
       self.supervisedContainer  = [modelInstance]
 
@@ -229,8 +236,11 @@ def returnInstance(gateType, ROMclass, caller, **kwargs):
   """
   try:
     return __interfaceDict[gateType](ROMclass, caller.messageHandler,**kwargs)
-  except KeyError as ae:
-    caller.raiseAnError(NameError,'not known '+__base+' type '+str(gateType))
+  except KeyError as e:
+    if gateType not in __interfaceDict:
+      caller.raiseAnError(NameError,'not known '+__base+' type '+str(gateType))
+    else:
+      raise e
 
 def returnClass(ROMclass,caller):
   """

@@ -23,7 +23,7 @@
       <variables>sigma,rho,beta,x,y,z,time,x0,y0,z0</variables>
     </ExternalModel>
     <PostProcessor name="agglomerative" subType="DataMining" verbosity="quiet">
-      <Metric class="Metrics" type="Minkowski">example</Metric>
+      <Metric class="Metrics" type="ScipyMetric">example</Metric>
       <KDD lib="SciKitLearn" labelFeature='labels'>
         <Features>output</Features>
         <SKLtype>cluster|Agglomerative</SKLtype>
@@ -46,10 +46,10 @@
   </Models>
 
   <Metrics>
-    <Minkowski name="example">
-            <p>2</p>
-            <pivotParameter>time</pivotParameter>
-    </Minkowski>
+      <ScipyMetric name="example">
+          <metricType>paired_distance|minkowski</metricType>
+          <p>2</p>
+      </ScipyMetric>
   </Metrics>
 
   <Steps>

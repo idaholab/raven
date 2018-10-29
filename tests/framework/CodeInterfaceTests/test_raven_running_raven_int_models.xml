@@ -10,6 +10,9 @@
        SLAVE RAVEN runs. In this case, 3 simultaneous SLAVE RAVEN (batchSize=3) runs are going to be spawned, each of them using 2 processors (NumMPI=2).
        The NumMPI XML node MUST BE INPUTTED if the SLAVE RAVEN runs must run in multiple processors!
     </description>
+    <revisions>
+      <revision author="talbpaul" date="2018-08-31">added VariableGroups to inner/slave input file</revision>
+    </revisions>
   </TestInfo>
   <!-- RUNINFO -->
   <RunInfo>

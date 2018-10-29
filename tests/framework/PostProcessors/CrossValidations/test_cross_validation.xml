@@ -44,12 +44,12 @@
   </Models>
 
   <Metrics>
-    <SKL name="m1">
-      <metricType>mean_absolute_error</metricType>
-    </SKL>
-    <SKL name="m2">
-      <metricType>mean_absolute_error</metricType>
-    </SKL>
+      <SKL name="m1">
+          <metricType>regression|mean_absolute_error</metricType>
+      </SKL>
+      <SKL name="m2">
+          <metricType>regression|mean_absolute_error</metricType>
+      </SKL>
   </Metrics>
 
   <Distributions>

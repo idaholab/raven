@@ -35,16 +35,13 @@ from utils.utils import find_crow
 find_crow(frameworkDir)
 import MessageHandler
 
-# find location of data objects
-sys.path.append(os.path.join(frameworkDir,'DataObjects'))
-
-import HistorySet
+import DataObjects
 
 mh = MessageHandler.MessageHandler()
 mh.initialize({'verbosity':'debug', 'callerLength':10, 'tagLength':10})
 
 print('Module undergoing testing:')
-print(HistorySet )
+print(DataObjects.HistorySet )
 print('')
 
 def createElement(tag,attrib=None,text=None):
@@ -140,7 +137,7 @@ def checkArray(comment,first,second,dtype,tol=1e-10,update=True):
     for i in range(len(first)):
       if dtype == float:
         pres = checkFloat('',first[i],second[i],tol,update=False)
-      elif dtype in (str,unicode):
+      elif dtype.__name__ in ('str','unicode'):
         pres = checkSame('',first[i],second[i],update=False)
       if not pres:
         print('checking array',comment,'|','entry "{}" does not match: {} != {}'.format(i,first[i],second[i]))
@@ -175,13 +172,13 @@ def checkRlz(comment,first,second,tol=1e-10,update=True,skip=None):
         continue
       if isinstance(val,(float,int)):
         pres = checkFloat('',val,second[key][0],tol,update=False)
-      elif isinstance(val,(str,unicode)):
+      elif type(val).__name__ in ('str','unicode','str_','unicode_'):
         pres = checkSame('',val,second[key][0],update=False)
       elif isinstance(val,np.ndarray):
         if isinstance(val[0],(float,int)):
           pres = (val - second[key]).sum()<1e-20 #necessary due to roundoff
         else:
-          pres = val == second[key]
+          pres = (val == second[key]).all()
       elif isinstance(val,xr.DataArray):
         if isinstance(val.item(0),(float,int)):
           pres = (val - second[key]).sum()<1e-20 #necessary due to roundoff
@@ -271,7 +268,7 @@ options.append(createElement('pivotParameter',text='Timelike'))
 xml.append(options)
 
 # check construction
-data = HistorySet.HistorySet()
+data = DataObjects.HistorySet()
 # inputs, outputs
 checkSame('HistorySet __init__ name',data.name,'HistorySet')
 checkSame('HistorySet __init__ print tag',data.printTag,'HistorySet')
@@ -334,7 +331,7 @@ data.addRealization(dict(rlz0))
 # get realization by index, from collector
 checkRlz('HistorySet append 0',data.realization(index=0),rlz0,skip=['Timelike'])
 # try to access the inaccessible
-checkFails('HistorySet get nonexistant realization by index','Requested index \"1\" but only have 1 entries (zero-indexed)!',data.realization,kwargs={'index':1})
+checkFails('HistorySet get nonexistant realization by index','HistorySet: Requested index "1" but only have 1 entries (zero-indexed)!',data.realization,kwargs={'index':1})
 # add more data
 data.addRealization(dict(rlz1))
 data.addRealization(dict(rlz2))
@@ -572,7 +569,7 @@ xml.append(createElement('Output',text='x,y'))
 options = createElement('options')
 options.append(createElement('pivotParameter',text='Timelike'))
 xml.append(options)
-dataCSV = HistorySet.HistorySet()
+dataCSV = DataObjects.HistorySet()
 dataCSV.messageHandler = mh
 dataCSV._readMoreXML(xml)
 ### load the data (with both CSV, XML)
@@ -639,7 +636,7 @@ options = createElement('options')
 options.append(createElement('pivotParameter',text='Timelike'))
 xml.append(options)
 
-data = HistorySet.HistorySet()
+data = DataObjects.HistorySet()
 data.messageHandler = mh
 data._readMoreXML(xml)
 rlz = {'x': np.array([1, 2, 3]),
@@ -658,7 +655,7 @@ checkRlz('No input space',rlz0,rlz,skip='Timelike')
 xml = createElement('HistorySet',attrib={'name':'test'})
 xml.append(createElement('Input',text='a,b'))
 xml.append(createElement('Output',text='x,y'))
-data = HistorySet.HistorySet()
+data = DataObjects.HistorySet()
 data.messageHandler = mh
 data._readMoreXML(xml)
 rlz1 = {'a': np.array([1.0]),

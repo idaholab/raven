@@ -72,6 +72,7 @@
     <Print name="outGrid_dump">
       <type>csv</type>
       <source>outGrid</source>
+      <what>input, output</what>
     </Print>
   </OutStreams>
 

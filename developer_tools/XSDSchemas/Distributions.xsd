@@ -19,10 +19,11 @@
             <xsd:element name="Binomial"      type="BinomialDistribution"      minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="Poisson"       type="PoissonDistribution"       minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="Categorical"   type="CategoricalDistribution"   minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="MarkovCategorical"   type="MarkovCategoricalDistribution"   minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="Custom1D"      type="Custom1DDistribution"      minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element name="NDInverseWeight"   type="NDInverseWeightDistribution"   minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element name="NDCartesianSpline" type="NDCartesianSplineDistribution" minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element name="MultivariateNormal" type="MultivariateNormalDistribution" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="NDInverseWeight"    type="NDInverseWeightDistribution"        minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="NDCartesianSpline"  type="NDCartesianSplineDistribution"      minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="MultivariateNormal" type="MultivariateNormalDistribution"     minOccurs="0" maxOccurs="unbounded"/>
         </xsd:choice>
     </xsd:complexType>
     <!-- *********************************************************************** -->
@@ -198,12 +199,27 @@
             </xsd:extension>
         </xsd:simpleContent>
     </xsd:complexType>
-        <xsd:complexType name="CategoricalDistribution">
+
+    <xsd:complexType name="CategoricalDistribution">
         <xsd:sequence>
             <xsd:element name="state" type="stateType" minOccurs="1" maxOccurs="200"/>
         </xsd:sequence>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
         <xsd:attribute name="verbosity" type="verbosityAttr" default="all"/>
+    </xsd:complexType>
+    
+    <xsd:complexType name="MarkovStateType">
+        <xsd:attribute name="outcome" type="xsd:decimal" use="required"/>
+        <xsd:attribute name="index" type="xsd:positiveInteger" use="required"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="MarkovCategoricalDistribution">
+        <xsd:sequence>
+            <xsd:element name="transition"   type="floatList"  minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="workingDir"   type="xsd:string" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="state" type="MarkovStateType" minOccurs="1" maxOccurs="200"/>
+        </xsd:sequence>
+        <xsd:attribute name="name" type="xsd:string" use="required"/>
     </xsd:complexType>
 
     <xsd:complexType name="Custom1DDistribution">

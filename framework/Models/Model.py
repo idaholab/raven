@@ -155,7 +155,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
     #counting successful matches
     if who not in cls.validateDict.keys():
-      raise IOError('The role '+str(who)+' does not exist in the class '+str(cls))
+      raise IOError('The role "{}" is not recognized for the entity "{}"'.format(who,cls))
     for myItemDict in cls.validateDict[who]:
       myItemDict['tempCounter'] = 0
     for anItem in what:
@@ -265,8 +265,9 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     for aliasTyp in listAliasType:
       for varFramework,varModel in self.alias[aliasTyp].items():
         whichVar =  varModel if fromModelToFramework else varFramework
-        found = sampledVars.pop(whichVar,[sys.maxint])
-        if not np.array_equal(np.asarray(found), [sys.maxint]):
+        notFound = 2**62
+        found = sampledVars.pop(whichVar,[notFound])
+        if not np.array_equal(np.asarray(found), [notFound]):
           if fromModelToFramework:
             sampledVars[varFramework] = originalVariables[varModel]
           else:

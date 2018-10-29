@@ -1,0 +1,7 @@
+Actinide Mass
+ISOT    ATOM_WT    MASS(KG)
+ NP237  237.0482  0.000E-00
+ END    Fission Product Mass
+ISOT    ATOM_WT    MASS(KG)
+ ALPHA    4.0026  0.000E+00
+ END

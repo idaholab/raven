@@ -24,7 +24,7 @@ import numpy as np
 import copy
 from collections import defaultdict
 from functools import partial
-from utils import mathUtils
+from utils import mathUtils, utils
 
 class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
   """
@@ -43,8 +43,8 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
     PostProcessorInterfaceBase.initialize(self)
     self.inputFormat  = 'HistorySet'
     self.outputFormat = 'HistorySet'
-    if not hasattr(self, 'pivotParameter'):
-      self.pivotParameter = 'Time' #FIXME this assumes the ARMA model!  Dangerous assumption.
+    #if not hasattr(self, 'pivotParameter'):
+    #  self.pivotParameter = 'Time' #FIXME this assumes the ARMA model!  Dangerous assumption.
     if not hasattr(self, 'outputLen'):
       self.outputLen = None
 
@@ -62,6 +62,11 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
         self.pivotParameter = child.text
       elif child.tag == 'outputLen':
         self.outputLen = float(child.text)
+
+    # checks
+    if not hasattr(self, 'pivotParameter'):
+      self.raiseAnError(IOError,'"pivotParameter" was not specified for "{}" PostProcessor!'.format(self.name))
+
 
   def retrieveHistory(self,dictIn,N):
     """
@@ -93,7 +98,7 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
 
     #if output length (size of desired output history) not set, set it now
     if self.outputLen is None:
-      self.outputLen = np.asarray(inputDict['output'][inputDict['output'].keys()[0]][self.pivotParameter])[-1]
+      self.outputLen = np.asarray(inputDict['output'][utils.first(inputDict['output'].keys())][self.pivotParameter])[-1]
 
     ## Check if data is synchronized
     referenceHistory = 0
@@ -143,7 +148,7 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
     inputDict['output'] = reshapedData
     self.numHistory = len(inputDict['output'].keys()) #should be same as newHistoryCounter - 1, if that's faster
     #update the set of pivot parameter values to match the first of the reshaped histories
-    self.pivotValues = np.asarray(inputDict['output'][inputDict['output'].keys()[0]][self.pivotParameter])
+    self.pivotValues = np.asarray(inputDict['output'][utils.first(inputDict['output'].keys())][self.pivotParameter])
 
     # task: split the history into multiple subsequences so that the typical history can be constructed
     #  -> i.e., split the year history into multiple months, so we get a typical January, February, ..., hence a typical year

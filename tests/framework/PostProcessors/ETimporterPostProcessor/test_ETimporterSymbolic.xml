@@ -1,6 +1,6 @@
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework/PostProcessors.ETImporterPostProcessorSymbolic</name>
+      <name>framework/PostProcessors/ETimporterPostProcessor.ET_importer_OpenPSA_Symbolic</name>
     <author>mandd</author>
     <created>2017-11-07</created>
     <classesTested>ETimporter</classesTested>
@@ -25,6 +25,7 @@
   <Models>
     <PostProcessor name="ETimporter" subType="ETImporter">
       <fileFormat>OpenPSA</fileFormat>
+      <expand>False</expand>
     </PostProcessor>   
   </Models>
 

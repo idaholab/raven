@@ -1,0 +1,40 @@
+<mrtau_lib_inp_list default="f">
+   <input type="1">
+      <iso_list_inp>mrtau_libraries/IsotopeList.dat</iso_list_inp>
+      <mass_a_weight_inp>input_dpl/mass.inp</mass_a_weight_inp>
+   </input>
+   <libraries type="1">
+      <decay_lib>mrtau_libraries/decay.dat</decay_lib>
+      <xs_sep_lib>mrtau_libraries/budep.inp</xs_sep_lib>
+      <fiss_yields_lib>mrtau_libraries/FissionYield.dat</fiss_yields_lib>
+      <fiss_q_values_lib>mrtau_libraries/FissQValues.dat</fiss_q_values_lib>
+      <cram_lib>mrtau_libraries/CRAM_coeff_PF.dat</cram_lib>
+   </libraries>
+   <paths type="1">   
+      <n_reactions>
+         <n_gamma>mrtau_libraries/N,G.path</n_gamma>
+         <n_gamma_ex>mrtau_libraries/N,Gx.path</n_gamma_ex>
+         <n_2n>mrtau_libraries/N,2N.path</n_2n>
+         <n_p>mrtau_libraries/N,P.path</n_p>
+         <n_alpha>mrtau_libraries/N,ALPHA.path</n_alpha>
+      </n_reactions>
+      <decay>
+         <alpha>mrtau_libraries/AlphaDecay.path</alpha>
+         <beta>mrtau_libraries/BetaDecay.path</beta>
+         <beta_ex>mrtau_libraries/BetaxDecay.path</beta_ex>
+         <beta_plus>mrtau_libraries/Beta+Decay.path</beta_plus>
+         <beta_plus_ex>mrtau_libraries/Beta+xDecay.path</beta_plus_ex>
+         <int_tra>mrtau_libraries/IntTraDecay.path</int_tra>
+      </decay>      
+   </paths>
+   <output>
+      <reactions>reactions.out</reactions>
+      <atoms_plot>numbers.out</atoms_plot>
+      <atoms_csv>numbers.csv</atoms_csv>
+      <decay_heat>DecayHeat.out</decay_heat>
+      <bu_power>BuPower.out</bu_power>
+      <flux>flux_out.out</flux>
+      <repository>repository.out</repository>
+   </output>
+</mrtau_lib_inp_list>
+

@@ -1,0 +1,132 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="silent">
+  <TestInfo>
+    <name>framework/PostProcessors/BasicStatistics/timeDepDataset</name>
+    <author>wangc</author>
+    <created>2018-08-25</created>
+    <classesTested>PostProcessors.BasicStatistics</classesTested>
+    <description>
+      This tests dumping time-dependent basic statistics into dataset
+    </description>
+  </TestInfo>
+  <RunInfo>
+    <WorkingDir>basicStatisticsTimeDependent</WorkingDir>
+    <Sequence>FirstMRun,timeDepBasicStatPP</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+  <Files>
+      <Input name="basicStatisticsExternalModelTest.py" type="">basicStatisticsExternalModelTest.py</Input>
+      <Input name="samples.csv" type="">samples.csv</Input>
+  </Files>
+  <Models>
+    <ExternalModel ModuleToLoad="basicStatisticsExternalModelTest" name="PythonModule" subType="">
+      <variables>x,y,z,time,x0,x01,x02,y0,y02,y01,z0,z02,z01</variables>
+    </ExternalModel>
+    <PostProcessor name="timeDepBasicStat" subType="BasicStatistics" verbosity="silent">
+      <dataset>True</dataset>
+      <pivotParameter>time</pivotParameter>
+      <variance prefix="var">x0,y0,z0,x,y,z</variance>
+      <covariance prefix="cov">
+        <targets>x0,y0,z0,x,y,z</targets>
+        <features>x0,y0,z0,x,y,z</features>
+      </covariance>
+      <pearson prefix="pearson">
+        <targets>x0,y0,z0,x,y,z</targets>
+        <features>x0,y0,z0,x,y,z</features>
+      </pearson>
+      <expectedValue prefix="mean">x0,y0,z0,x,y,z</expectedValue>
+      <sigma prefix="sigma">x0,y0,z0,x,y,z</sigma>
+      <variationCoefficient prefix="vc">x0,y0,z0,x,y,z</variationCoefficient>
+      <skewness prefix="skew">x0,y0,z0,x,y,z</skewness>
+      <kurtosis prefix="kurt">x0,y0,z0,x,y,z</kurtosis>
+      <median prefix="median">x0,y0,z0,x,y,z</median>
+      <percentile prefix="percentile">x0,y0,z0,x,y,z</percentile>
+      <samples prefix="samp">x0,y0,z0,x,y,z</samples>
+    </PostProcessor>
+  </Models>
+
+  <Samplers>
+    <CustomSampler name="customSamplerFile">
+      <Source class="Files" type="">samples.csv</Source>
+      <variable name="x0"/>
+      <variable name="y0"/>
+      <variable name="z0"/>
+    </CustomSampler>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="FirstMRun">
+      <Input class="Files" type="">basicStatisticsExternalModelTest.py</Input>
+      <Model class="Models" type="ExternalModel">PythonModule</Model>
+      <Sampler class="Samplers" type="CustomSampler">customSamplerFile</Sampler>
+      <Output class="DataObjects" type="HistorySet">HistorySetPostProcTest</Output>
+    </MultiRun>
+    <PostProcess name="timeDepBasicStatPP">
+      <Input class="DataObjects" type="PointSet">HistorySetPostProcTest</Input>
+      <Model class="Models" type="PostProcessor">timeDepBasicStat</Model>
+      <Output class="DataObjects" type="DataSet">basicStatSet</Output>
+      <Output class="OutStreams" type="Print">datasetPrint</Output>
+    </PostProcess>
+  </Steps>
+
+  <OutStreams>
+    <Print name="datasetPrint">
+      <type>csv</type>
+      <source>basicStatSet</source>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <HistorySet name="HistorySetPostProcTest">
+      <Input>x0,y0,z0</Input>
+      <Output>time,x,y,z</Output>
+    </HistorySet>
+    <DataSet name='basicStatSet'>
+        <Output>
+            variance, 
+            covariance,
+            percentile,
+            pearson,
+            expectedValue,
+            sigma,
+            kurtosis,
+            skewness,
+            variationCoefficient,
+            samples,
+            median
+        </Output>
+        <Index var='time'>
+            variance, 
+            covariance,
+            percentile,
+            pearson,
+            expectedValue,
+            sigma,
+            kurtosis,
+            skewness,
+            variationCoefficient,
+            median,
+            samples
+        </Index>
+        <Index var='targets'>
+            variance, 
+            covariance,
+            percentile,
+            pearson,
+            expectedValue,
+            sigma,
+            kurtosis,
+            skewness,
+            variationCoefficient,
+            samples,
+            median
+        </Index>
+        <Index var='features'>
+            covariance,
+            pearson
+        </Index>
+        <Index var='percent'>percentile</Index>
+    </DataSet>
+  </DataObjects>
+
+</Simulation>

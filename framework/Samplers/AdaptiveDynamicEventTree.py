@@ -23,7 +23,6 @@
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
-#if not 'xrange' in dir(__builtins__): xrange = range
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -177,7 +176,7 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
           self.foundEpistemicTree, treer = True, tree
           break
     else:
-      treer = self.TreeInfo.values()[0]
+      treer = utils.first(self.TreeInfo.values())
 
     # check if in the adaptive points already explored (if not push into the grid)
     if not self.insertAdaptBPb:

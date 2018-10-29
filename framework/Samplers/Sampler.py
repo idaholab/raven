@@ -20,8 +20,6 @@ Created on Feb 16, 2013
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
-if not 'xrange' in dir(__builtins__):
-  xrange = range
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -731,7 +729,9 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ In, None
       @ Out, None
     """
-    fullyCorrVars = {s: self.inputInfo['SampledVarsPb'].pop(s) for s in self.inputInfo['SampledVarsPb'].keys() if "," in s}
+    #Need keys as list because modifying self.inputInfo['SampledVarsPb']
+    keys = list(self.inputInfo['SampledVarsPb'].keys())
+    fullyCorrVars = {s: self.inputInfo['SampledVarsPb'].pop(s) for s in keys if "," in s}
     # assign the SampledVarsPb to the fully correlated vars
     for key in fullyCorrVars:
       for kkey in key.split(","):
