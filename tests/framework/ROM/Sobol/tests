@@ -54,8 +54,8 @@
   [./AdaptiveSobol]
    type = 'RavenFramework'
    input = 'test_adapt_sobol.xml'
-   output = 'AdaptSobol/out_10.pk AdaptSobol/out_20.pk AdaptSobol/out_30.pk'
-   UnorderedXml = 'AdaptSobol/dumprom.xml AdaptSobol/out_10.xml AdaptSobol/out_20.xml AdaptSobol/out_30.xml'  # dumprom.xml is analytic test for mean, variance, "Attenuation" case # out*xml are consistency checks for convergence process
+   output = 'AdaptSobol/out_10.pk AdaptSobol/out_20.pk AdaptSobol/out_30.pk AdaptSobol/out_20.xml AdaptSobol/out_30.xml'
+   UnorderedXml = 'AdaptSobol/dumprom.xml AdaptSobol/out_10.xml'  # dumprom.xml is analytic test for mean, variance, "Attenuation" case # out*xml are consistency checks for convergence process
    UnorderedCsv = 'AdaptSobol/dump.csv'                      #consistency, quadrature points and solns
   [../]
   [./AdaptiveSobolMaxRuns]
