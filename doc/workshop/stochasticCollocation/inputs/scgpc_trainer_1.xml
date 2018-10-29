@@ -1,4 +1,13 @@
+<?xml version="1.0" ?>
 <Simulation color="true" verbosity="debug">
+  <TestInfo>
+    <name>doc/workshop/stochasticCollocation/inputs.scTrain1</name>
+    <author>wangc</author>
+    <created>2018-09-21</created>
+    <classesTested>Models.ROM</classesTested>
+    <description>Workshop test: using sthochastic collocation sampler to train and evaluate a Gaussian Polynomial ROM</description>
+  </TestInfo>
+
   <RunInfo>
     <WorkingDir>run</WorkingDir>
     <Sequence>make,train,serialize,print</Sequence>
@@ -6,7 +15,7 @@
   </RunInfo>
 
   <Files>
-    <Input name="ballistic_in">projectile_input.i</Input>
+    <Input name="ballistic_in">../../../ExternalModels/input.i</Input>
     <Input name="pkfile">scgpc_1.pk</Input>
   </Files>
 
@@ -38,7 +47,7 @@
       <lowerBound>25</lowerBound>
       <upperBound>65</upperBound>
     </Uniform>
-    <Uniform name="velocity_dist">
+    <Uniform name="v0_dist">
       <lowerBound>15</lowerBound>
       <upperBound>40</upperBound>
     </Uniform>
@@ -49,32 +58,36 @@
       <variable name="angle">
         <distribution>angle_dist</distribution>
       </variable>
-      <variable name="velocity">
-        <distribution>velocity_dist</distribution>
+      <variable name="v0">
+        <distribution>v0_dist</distribution>
       </variable>
       <ROM class="Models" type="ROM">scgpc_rom</ROM>
     </SparseGridCollocation>
   </Samplers>
 
   <Models>
-    <Code name="ballistic" subType="GenericCode">
-      <executable>./projectile.py</executable>
-      <clargs arg="python" type="prepend"></clargs>
-      <clargs arg="-i" extension=".i" type="input"></clargs>
-      <clargs arg="-o" type="output"></clargs>
+    <Code name="ballistic" subType="Projectile">
+      <executable>../../ExternalModels/projectile.py</executable>
+      <clargs arg="python" type="prepend"/>
+      <clargs arg="-i" extension=".i" type="input"/>
+      <clargs arg="-o" type="output"/>
     </Code>
     <ROM name="scgpc_rom" subType="GaussPolynomialRom">
       <Target>r,x,y</Target>
-      <Features>velocity,angle</Features>
+      <Features>v0,angle</Features>
       <IndexSet>TotalDegree</IndexSet>
       <PolynomialOrder>1</PolynomialOrder>
+      <pivotParameter>t</pivotParameter>
     </ROM>
   </Models>
 
   <DataObjects>
     <HistorySet name="training_data">
-      <Input>velocity,angle</Input>
-      <Output>r,x,y,time</Output>
+      <Input>v0,angle</Input>
+      <Output>r,x,y,t</Output>
+      <options>
+        <pivotParameter>t</pivotParameter>
+      </options>
     </HistorySet>
   </DataObjects>
 
