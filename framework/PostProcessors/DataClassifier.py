@@ -28,7 +28,7 @@ import numpy as np
 
 #Internal Modules---------------------------------------------------------------
 from BaseClasses import BaseType
-from utils import InputData
+from utils import InputData, utils
 from .PostProcessor import PostProcessor
 import MessageHandler
 import Files
@@ -232,7 +232,7 @@ class DataClassifier(PostProcessor):
     if outputType == 'HistorySet':
       outputDict['historySizes'] = copy.copy(targetDict['historySizes'])
 
-    numRlz = targetDict['input'].values()[0].size
+    numRlz = utils.first(targetDict['input'].values()).size
     outputDict[self.label] = np.empty(numRlz)
     for i in range(numRlz):
       tempTargDict = {}

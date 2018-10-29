@@ -350,7 +350,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     #otherwise, take from the highest-impact sampler's needed points
     else:
       #pointsNeeded is in order from least to most impactful, so list reverse of keys.
-      subsets = self.pointsNeeded.keys()
+      subsets = list(self.pointsNeeded.keys())
       subsets.reverse()
       #now they're in order of impact.  Look for the next point to run.
       found = False
@@ -617,7 +617,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
         #get expected impact - the max impact among from the targets
         self.subsetExpImpact[p] = max(abs(self._calcExpImpact(p,t)) for t in self.targets)
     #now order the expected impacts so that lowest is first (-1 is highest)
-    toSort = zip(self.subsetExpImpact.keys(),self.subsetExpImpact.values())
+    toSort = list(zip(self.subsetExpImpact.keys(),self.subsetExpImpact.values()))
     toSort.sort(key=itemgetter(1))
     #restore them to the ordered dict.
     self.subsetExpImpact = OrderedDict()
@@ -937,7 +937,10 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
       #update the ROM with the new polynomial point
       sampler._updateQoI()
       #refresh the list of potential points in the index set
-      sampler.indexSet.forward(sampler.indexSet.points[-1])
+      #XXX below line was:
+      #sampler.indexSet.forward(sampler.indexSet.points[-1])
+      #but forward takes a single integer not a tuple like points[-1] is.
+      sampler.indexSet.forward()
       #update estimated impacts
       for pidx in sampler.indexSet.active:
         sampler._estimateImpact(pidx)

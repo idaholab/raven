@@ -96,7 +96,7 @@ class ETModel(ExternalModelPluginBase):
     """
     inputForET = {}
     for key in container.InvMapping.keys():
-      if Inputs[container.InvMapping[key]] > 0:
+      if float(Inputs[container.InvMapping[key]]) > 0:
         inputForET[key] = 1.0
       else:
         inputForET[key] = 0.0

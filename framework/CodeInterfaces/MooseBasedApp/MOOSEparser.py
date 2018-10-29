@@ -64,7 +64,7 @@ class MOOSEparser():
         if not line.startswith(b'#'):
           ind = line.find(b'=')
           if ind != -1:
-            listLine = line.split(b'=')
+            listLine = line.split(b'=', 1)
             attribName = listLine[0].strip()
             if b'#' not in listLine[1]:
               attribValue = listLine[1].strip()

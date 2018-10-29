@@ -122,25 +122,25 @@ class FTGate(object):
       @ Out, outcome, float, calculated outcome of the gate
     """
     if self.gate == 'and':
-      outcome = andGate(argumentValues.values())
+      outcome = andGate(list(argumentValues.values()))
     elif self.gate == 'or':
-      outcome = orGate(argumentValues.values())
+      outcome = orGate(list(argumentValues.values()))
     elif self.gate == 'nor':
-      outcome = norGate(argumentValues.values())
+      outcome = norGate(list(argumentValues.values()))
     elif self.gate == 'nand':
-      outcome = nandGate(argumentValues.values())
+      outcome = nandGate(list(argumentValues.values()))
     elif self.gate == 'xor':
-      outcome = xorGate(argumentValues.values())
+      outcome = xorGate(list(argumentValues.values()))
     elif self.gate == 'iff':
-      outcome = iffGate(argumentValues.values())
+      outcome = iffGate(list(argumentValues.values()))
     elif self.gate == 'atleast':
-      outcome = atLeastGate(argumentValues.values(),float(self.params['min']))
+      outcome = atLeastGate(list(argumentValues.values()),float(self.params['min']))
     elif self.gate == 'cardinality':
-      outcome = cardinalityGate(argumentValues.values(),float(self.params['min']),float(self.params['max']))
+      outcome = cardinalityGate(list(argumentValues.values()),float(self.params['min']),float(self.params['max']))
     elif self.gate == 'imply':
       outcome = implyGate(argumentValues)
     elif self.gate == 'not':
-      outcome = notGate(argumentValues.values())
+      outcome = notGate(list(argumentValues.values()))
     return outcome
 
 def notGate(value):
@@ -242,7 +242,7 @@ def implyGate(argumentValues):
     @ In, argumentValues, list, list of values
     @ Out, outcome, float, calculated outcome of the gate
   """
-  keys = argumentValues.keys()
+  keys = list(argumentValues.keys())
   if argumentValues[keys[0]]==1 and argumentValues[keys[1]]==0:
     outcome = 0
   else:
