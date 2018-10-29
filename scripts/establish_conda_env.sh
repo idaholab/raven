@@ -153,6 +153,9 @@ function display_usage()
 	echo '    --optional'
 	echo '      Additionally installs optional libraries used in some RAVEN workflows.  Requires --install.'
 	echo ''
+	echo '    --py3'
+	echo '    When installing, make raven_libraries use Python 3'
+	echo ''
 	echo '    --quiet'
 	echo '      Runs script with minimal output'
 	echo ''
@@ -197,7 +200,11 @@ do
       ;;
     --optional)
       echo ... Including optional libraries ...
-      INSTALL_OPTIONAL="--optional"
+      INSTALL_OPTIONAL="--optional $INSTALL_OPTIONAL"
+      ;;
+    --py3)
+      echo ... Creating Python 3 libraries ...
+      INSTALL_OPTIONAL="--py3 $INSTALL_OPTIONAL"
       ;;
     --quiet)
       ECE_VERBOSE=1
