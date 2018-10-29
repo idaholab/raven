@@ -162,7 +162,7 @@ class _NetworkServer(pp.Server):
         mysocket.send(version)
         #generate a random string
         srandom = "".join([random.choice(string.ascii_letters)
-                for i in xrange(16)])
+                for i in range(16)])
         mysocket.send(srandom)
         answer = sha_new(srandom+self.secret).hexdigest()
         clientanswer = mysocket.receive()

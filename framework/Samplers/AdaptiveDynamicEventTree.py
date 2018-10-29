@@ -23,7 +23,6 @@
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
-#if not 'xrange' in dir(__builtins__): xrange = range
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -177,7 +176,7 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
           self.foundEpistemicTree, treer = True, tree
           break
     else:
-      treer = self.TreeInfo.values()[0]
+      treer = utils.first(self.TreeInfo.values())
 
     # check if in the adaptive points already explored (if not push into the grid)
     if not self.insertAdaptBPb:
@@ -452,7 +451,7 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
         if self.hybridDETstrategy is not None and not self.foundEpistemicTree:
           # adaptive hybrid DET and not found a tree in the epistemic space
           # take the first tree and modify the hybridsamplerCoordinate
-          hybridSampled = copy.deepcopy(self.TreeInfo.values()[0].getrootnode().get('hybridsamplerCoordinate'))
+          hybridSampled = copy.deepcopy(utils.first(self.TreeInfo.values()).getrootnode().get('hybridsamplerCoordinate'))
           for hybridStrategy in hybridSampled:
             for key in self.epistemicVariables.keys():
               if key in hybridStrategy['SampledVars'].keys():
@@ -566,7 +565,7 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
             varNode  = ET.Element('Distribution' if varName.startswith('<distribution>') else 'variable',{'name':varName.replace('<distribution>','')})
             varNode.append(ET.fromstring("<distribution>"+dist.name.strip()+"</distribution>"))
             distDict[dist.name.strip()] = self.distDict[varName]
-            varNode.append(ET.fromstring('<grid construction="custom" type="value">'+' '.join([str(elm) for elm in gridVector.values()[0][varName.replace('<distribution>','')]])+'</grid>'))
+            varNode.append(ET.fromstring('<grid construction="custom" type="value">'+' '.join([str(elm) for elm in utils.first(gridVector.values())[varName.replace('<distribution>','')]])+'</grid>'))
             xmlNode.find("HybridSampler").append(varNode)
         #TODO, need to pass real paramInput
         self._localInputAndChecksHybrid(xmlNode, paramInput=None)

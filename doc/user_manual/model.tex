@@ -937,7 +937,7 @@ described.
 %<alias variable='internal_variable_name'>Material|Fuel|thermal_conductivity</alias>
 \subsection{Code}
 \label{subsec:models_code}
-As already mentioned, the \textbf{Code} model represents an external system
+The \textbf{Code} model represents an external system
 software employing a high fidelity physical model.
 %
 The link between RAVEN and the driven code is performed at run-time, through
@@ -971,6 +971,10 @@ to couple a new code.
 \begin{itemize}
   \item \xmlNode{executable} \xmlDesc{string, required field} specifies the path
   of the executable to be used.
+
+  \item \xmlNode{walltime}  \xmlDesc{string, optional field} specifies the maximum 
+  allowed run time of the code; if the code running time is greater than the specified 
+  walltime then the code run is stopped. The stopped run is then considered as if it crashed.
   %
   \nb Either an absolute or relative path can be used.
   \item \aliasSystemDescription{Code}
@@ -1535,7 +1539,7 @@ here specified need to be inputted in the\xmlNode{Models} main XML block) :
         %
         The user can specify as many \xmlNode{Output} (s) as needed. The optional \xmlNode{Output}s  can be of 
         both classes ``DataObjects'' and ``Databases'' 
-        (e.g. \textit{PointSet}, \textit{HistorySet}, \textit{DataSet}, \textit{HDF5}).
+        (e.g. \textit{PointSet}, \textit{HistorySet}, \textit{DataSet}, \textit{HDF5})
         \nb \textbf{The \xmlNode{Output} (s) here specified MUST be listed in the Step in which the EnsembleModel is used.}
     \end{itemize}
   %

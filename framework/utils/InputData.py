@@ -319,7 +319,7 @@ class BoolType(EnumBaseType):
       @ In, value, string, the value to convert
       @ Out, convert, bool, the converted value
     """
-    if value in utils.stringsThatMeanTrue():
+    if value.lower() in utils.stringsThatMeanTrue():
       return True
     else:
       return False

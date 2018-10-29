@@ -45,6 +45,7 @@ import ast
 
 #Internal Modules------------------------------------------------------------------------------------
 from .SupervisedLearning import supervisedLearning
+from utils import utils
 #Internal Modules End--------------------------------------------------------------------------------
 
 class SciKitLearn(supervisedLearning):
@@ -233,7 +234,7 @@ class SciKitLearn(supervisedLearning):
     """
     returnDict = {}
     #get the number of inputs provided to this ROM to evaluate
-    numInputs = len(edict.values()[0])
+    numInputs = len(utils.first(edict.values()))
     #fill the target values
     for index,target in enumerate(self.target):
       returnDict[target] = np.ones(numInputs)*self.myNumber[index]

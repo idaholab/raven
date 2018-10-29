@@ -1,0 +1,42 @@
+[Tests]
+  [./sample]
+    type = 'RavenFramework'
+    input = '1_sample_Function.xml'
+    output = 'r1/plotMC_scatter.png'
+  [../]
+  [./train]
+    type = 'RavenFramework'
+    input = '2_train_rom.xml'
+    output = 'r2/plotMC_scatter.png'
+  [../]
+  [./pickle]
+    type = 'RavenFramework'
+    input = '3_pickle_rom.xml'
+    output = 'r3/plotMC_scatter.png r3/pkIDW'
+  [../]
+  [./load]
+    type = 'RavenFramework'
+    input = '4_load_rom.xml'
+    output = 'r4/plotMC_scatter.png r4/pkIDW'
+  [../]
+  [./srom]
+    type = 'RavenFramework'
+    input = '5_sample_rom.xml'
+    output = 'r5/plotMC_scatter-scatter.png r5/pkIDW'
+  [../]
+  [./sprom]
+    type = 'RavenFramework'
+    input = '6_sample_prom.xml'
+    output = 'r6/plotMC_scatter-scatter-scatter.png r6/pkIDW'
+  [../]
+  [./eval]
+    type = 'RavenFramework'
+    input = '7_evaluate_rom.xml'
+    output = 'r7/plotMC_line-scatter.png'
+  [../]
+  [./sc]
+    type = 'RavenFramework'
+    input = '9_sc_gpc.xml'
+    output = 'r9/plotMC_scatter-scatter.png'
+  [../]
+[]

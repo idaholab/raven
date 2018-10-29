@@ -22,8 +22,6 @@
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
-if not 'xrange' in dir(__builtins__):
-  xrange = range
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -221,7 +219,7 @@ class Stratified(Grid):
               gridCoordinate, distName =  self.distDict[varName].ppf(coordinate), self.variables2distributionsMapping[varName]['name']
               for distVarName in self.distributions2variablesMapping[distName]:
                 for subVar in utils.first(distVarName.keys()).strip().split(','):
-                  self.inputInfo['distributionName'][subVar], self.inputInfo['distributionType'][subVar], self.values[subVar] = self.toBeSampled[varName], self.distDict[varName].type, np.atleast_1d(gridCoordinate)[distVarName.values()[0]-1]
+                  self.inputInfo['distributionName'][subVar], self.inputInfo['distributionType'][subVar], self.values[subVar] = self.toBeSampled[varName], self.distDict[varName].type, np.atleast_1d(gridCoordinate)[utils.first(distVarName.values())-1]
               # coordinate stores the cdf values, we need to compute the pdf for SampledVarsPb
               self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(np.atleast_1d(gridCoordinate).tolist())
               gridsWeight = max(upper,lower) - min(upper,lower)
