@@ -186,7 +186,7 @@ class Phisics(CodeInterfaceBase):
     """
     distributedPerturbedVars = {}
     pertType = []
-    for i in perturbedVars.iterkeys(
+    for i in perturbedVars.keys(
     ):  # teach what are the type of perturbation (decay FY etc...)
       splittedKeywords = i.split('|')
       pertType.append(splittedKeywords[0])
@@ -485,7 +485,7 @@ class Phisics(CodeInterfaceBase):
       self.numberOfMPI = 1
     else:
       self.numberOfMPI = self.getNumberOfMpi(Kwargs['precommand'])
-    for perturbedParam in self.distributedPerturbedVars.iterkeys():
+    for perturbedParam in self.distributedPerturbedVars.keys():
       if perturbedParam == 'DECAY':
         DecayParser.DecayParser(
             currentInputFiles[self.typeDict['decay']].getAbsFile(),

@@ -11,7 +11,7 @@
       <name>Assembly type 1</name>
       
           
-      <TotalXS>2.29519e-01  8.33333e-01</TotalXS>
+      <TotalXS>2.27569e-01  8.33333e-01</TotalXS>
       
           
       <NuFissionXS>0.00000e+00  1.35000e-01</NuFissionXS>
@@ -27,8 +27,8 @@
       
           
       <ScatteringXS>
-            1.98475e-01
-            2.06635e-02 7.48301e-01
+            1.97044e-01
+            2.05145e-02 7.48301e-01
 </ScatteringXS>
       
         
@@ -41,7 +41,7 @@
       <name>Assembly type 2</name>
       
           
-      <TotalXS>2.22222e-01  8.61474e-01</TotalXS>
+      <TotalXS>2.22222e-01  8.57435e-01</TotalXS>
       
           
       <NuFissionXS>0.00000e+00  1.36387e-01</NuFissionXS>
@@ -71,7 +71,7 @@
       <name>Assembly type 3</name>
       
           
-      <TotalXS>2.29519e-01  8.33333e-01</TotalXS>
+      <TotalXS>2.27569e-01  8.33333e-01</TotalXS>
       
           
       <NuFissionXS>0.00000e+00  1.35000e-01</NuFissionXS>
@@ -87,8 +87,8 @@
       
           
       <ScatteringXS>
-            1.98475e-01
-            2.06635e-02 7.03301e-01
+            1.97044e-01
+            2.05145e-02 7.03301e-01
 </ScatteringXS>
       
         

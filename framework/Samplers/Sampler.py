@@ -27,6 +27,7 @@ import sys
 import copy
 import abc
 import json
+import itertools
 import numpy as np
 #External Modules End--------------------------------------------------------------------------------
 
@@ -446,7 +447,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       self.raiseADebug('Restart object: '+str(self.assemblerDict['Restart']))
       self.restartData = self.assemblerDict['Restart'][0][3]
       # check the right variables are in the restart
-      need = set(self.toBeSampled.keys()+self.dependentSample.keys())
+      need = set(itertools.chain(self.toBeSampled.keys(),self.dependentSample.keys()))
       if not need.issubset(set(self.restartData.getVars())):
         missing = need - set(self.restartData.getVars())
         #TODO this could be a warning, instead, but user wouldn't see it until the run was deep in

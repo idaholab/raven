@@ -46,7 +46,7 @@
       <Function class="Functions" type="External">goalFunctionForLimitSurface</Function>
     </PostProcessor>
     <PostProcessor name="LimitSurfaceIntegralWeighted" subType="LimitSurfaceIntegral">
-      <tolerance>0.01</tolerance>
+      <tolerance>0.001</tolerance>
       <integralType>MonteCarlo</integralType>
       <seed>20021986</seed>
       <target>goalFunctionForLimitSurface</target>
@@ -59,7 +59,7 @@
       </variable>
     </PostProcessor>
     <PostProcessor name="LimitSurfaceIntegralUnWeightedWithBounds" subType="LimitSurfaceIntegral">
-      <tolerance>0.01</tolerance>
+      <tolerance>0.001</tolerance>
       <integralType>MonteCarlo</integralType>
       <seed>20021986</seed>
       <target>goalFunctionForLimitSurface</target>
@@ -105,24 +105,23 @@
   </Distributions>
 
   <Samplers>
-    <MonteCarlo name="MC_external">
-      <samplerInit>
-        <limit>150</limit>
-      </samplerInit>
+    <Grid name="Grid_external">
       <variable name="x0">
         <distribution>x0_distrib</distribution>
+        <grid construction='equal' steps='10' type='CDF'>0.1 0.9</grid>
       </variable>
       <variable name="y0">
         <distribution>y0_distrib</distribution>
+        <grid construction='equal' steps='10' type='CDF'>0.1 0.9</grid>
       </variable>
-    </MonteCarlo>
+    </Grid>
   </Samplers>
 
   <Steps>
     <MultiRun name="FirstMRun" re-seeding="20021986">
       <Input class="DataObjects" type="PointSet">Dummy</Input>
       <Model class="Models" type="ExternalModel">PythonModule</Model>
-      <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
+      <Sampler class="Samplers" type="MonteCarlo">Grid_external</Sampler>
       <Output class="DataObjects" type="PointSet">PointSetPostProcTest</Output>
       <Output class="OutStreams" type="Print">PointSetPostProcTest_dump</Output>
     </MultiRun>
