@@ -87,7 +87,8 @@ __condaList = [("h5py"        ,__lookUpPreferredVersion("h5py"      )),
                #("numexpr"     ,"")
                ]
 # libraries to install with conda-forge
-__condaForgeList = [("pyside","")
+__condaForgeList = [("pyside",""),
+                    ("matplotlib","")
                    ]
 # optional conda libraries
 __condaOptional = [ ('pillow',__lookUpPreferredVersion("pillow")) ]
