@@ -37,7 +37,7 @@ class XSCreator():
       @ In, pertDict, dictionary, perturbed variables
       @ Out, pertDict, dictionary, perturbed variables in scientific format
     """
-    for key, value in pertDict.iteritems():
+    for key, value in pertDict.items():
       pertDict[key] = '%.8E' % Decimal(str(value))
     return pertDict
 
@@ -96,7 +96,7 @@ class XSCreator():
               for reaction in self.listedDict.get('XS').get(tabulation).get(material).get(isotope).get(typeOfXs).iterkeys():
                 #groupList = []
                 #valueList = []
-                for count,(group,value) in enumerate(self.listedDict.get('XS').get(tabulation).get(material).get(isotope).get(typeOfXs).get(reaction).iteritems()):
+                for count,(group,value) in enumerate(self.listedDict.get('XS').get(tabulation).get(material).get(isotope).get(typeOfXs).get(reaction).items()):
                   #numberOfGroupsPerturbed = len(self.listedDict.get('XS').get(tabulation).get(material).get(isotope).get(typeOfXs).get(reaction).keys()) - 1
                   #groupList.append(group)
                   #valueList.append(value)

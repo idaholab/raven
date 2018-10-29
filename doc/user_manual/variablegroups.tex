@@ -8,8 +8,9 @@ the input file, such as DataObjects, ROMs, and ExternalModels.
 Each entry in the \xmlNode{VariableGroups} block has a distinct name and list of each constituent variable in
 the group.
 %
-Alternatively, set operations can be used to construct variable groups from other variable groups.  In this case,
-the dependent groups and the base group on which operations should be performed must be listed.  The following types of
+Additionally, set operations can be used to construct variable groups from other variable groups, by listing
+them in node text along with the operation to perform.
+The following types of
 set operations are included in RAVEN:
 \begin{itemize}
   \item \texttt{+}, Union, the combination of all variables in the \xmlString{base} set and listed set,
@@ -18,8 +19,9 @@ set operations are included in RAVEN:
   \item \texttt{\%}, Symmetric Difference, the variables in only either the \xmlString{base} or listed set,
     but not both.
 \end{itemize}
-Multiple operations can be performed by separating them with commas in the text of the group node.  In the
-event the listed set is a single variable, it will be treated like a set with a single entry.
+Multiple set operations can be performed by separating them with commas in the text of the group node, whether
+they be variable groups or single variables. In the event a circular dependency loop is detected, an error will be
+raised. VariableGroups are evaluated in the order of entries listed in their node text.
 
 When using the variable groups in a node, they can be listed alone or as part of a comma-separated list.  The
 variable group name will only be substituted in the text of nodes, not attributes or tags.
@@ -31,13 +33,6 @@ Each \xmlNode{Group} node has the following attributes:
   \item \xmlAttr{name}, \xmlDesc{required string attribute}, user-defined name
   of the group. This is the identifier that will be used elsewhere in the RAVEN input.
   %
-  \item \xmlAttr{dependencies}, \xmlDesc{optional comma-separated string attribute}, the other variable groups
-    on which this group is dependent for construction.  If listed, all entries in the text of this node must
-    be proceeded by one of the set operators above.  Defaults to an empty string.
-  \item \xmlAttr{base}, \xmlDesc{optional string attribute}, the starting set for constructing a dependent
-    variable group.  This attribute is required if any dependencies are listed.  Set operations are performed
-    by performing the chosen operation on the variable group listed in this attribute along with the listed
-    variable group.  No default.
 \end{itemize}
 \vspace{-5mm}
 
@@ -48,15 +43,15 @@ remainder are examples of other operations.
 <Simulation>
   ...
   <VariableGroups>
-    <Group name="x_odd"  >x1,x3,x5</Group>
-    <Group name="x_even" >x2,x4,x6</Group>
-    <Group name="x_first">x1,x2,x3</Group>
-    <Group name="y_group">y1,y2</Group>
-    <Group name="add_remove" dependencies="x_first"         base="x_first">-x1,+ x4,+x5</Group>
-    <Group name="union"      dependencies="x_odd,x_even"    base="x_odd">+x_even</Group>
-    <Group name="complement" dependencies="x_odd,x_first"   base="x_odd">-x_first</Group>
-    <Group name="intersect"  dependencies="x_even,x_first"  base="x_even">^x_first</Group>
-    <Group name="sym_diff"   dependencies="x_odd,x_first"   base="x_odd">% x_first</Group>
+    <Group name="x_odd"     >x1,x3,x5</Group>
+    <Group name="x_even"    >x2,x4,x6</Group>
+    <Group name="x_first"   >x1,x2,x3</Group>
+    <Group name="y_group"   >y1,y2</Group>
+    <Group name="add_remove">x_first,-x1,+ x4,+x5</Group>
+    <Group name="union"     >x_odd,+x_even</Group>
+    <Group name="complement">x_odd,-x_first</Group>
+    <Group name="intersect" >x_even,^x_first</Group>
+    <Group name="sym_diff"  >x_odd,% x_first</Group>
   </VariableGroups>
   ...
   <DataObjects>

@@ -102,7 +102,7 @@ class mooseData:
       j = j + 1
       IOcsvfile.write('%s' %(tempString))
     IOcsvfile.write('\n')
-    for time in timeStep[timeStep.keys()[0]].keys():
+    for time in timeStep[list(timeStep.keys())[0]].keys():
       j = 0
       IOcsvfile.write('%s,' %(time))
       while(j < locationNo):

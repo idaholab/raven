@@ -193,7 +193,7 @@ class RavenOutput(PostProcessor):
 #    outputDict={'realizations':[]}
 #    if self.dynamic:
 #      #outputs are basically a point set with pivot as input and requested XML path entries as output
-#      fileName = self.files.values()[0]['fileObject'].getAbsFile()
+#      fileName = utils.first(self.files.values())['fileObject'].getAbsFile()
 #      root,_ = xmlUtils.loadToTree(fileName)
 #      #determine the pivot parameter
 #      pivot = root[0].tag
@@ -202,7 +202,7 @@ class RavenOutput(PostProcessor):
 #      for p,pivotStep in enumerate(root):
 #        realization = {'inputs':{},'outputs':{},'metadata':{'loadedFromRavenFile':fileName}}
 #        realization['inputs'][pivot] = float(pivotStep.attrib['value'])
-#        for name,path in self.files.values()[0]['paths'].items():
+#        for name,path in utils.first(self.files.values())['paths'].items():
 #          desiredNode = self._readPath(pivotStep,path,fileName)
 #          realization['outputs'][name] = float(desiredNode.text)
 #        outputDict['realizations'].append(realization)

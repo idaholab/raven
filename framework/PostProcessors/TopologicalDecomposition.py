@@ -273,7 +273,7 @@ class TopologicalDecomposition(PostProcessor):
 
         # Append the min/max labels to the data whether the user wants them or
         # not, and place the hierarchy information into the metadata
-        for key, values in outputDict.iteritems():
+        for key, values in outputDict.items():
           if key in ['minLabel', 'maxLabel']:
             for value in values:
               output.updateOutputValue(key, [value])
@@ -340,7 +340,7 @@ class TopologicalDecomposition(PostProcessor):
 
     outputDict['minLabel'] = np.zeros(self.pointCount)
     outputDict['maxLabel'] = np.zeros(self.pointCount)
-    for extPair, indices in partitions.iteritems():
+    for extPair, indices in partitions.items():
       for idx in indices:
         outputDict['minLabel'][idx] = extPair[0]
         outputDict['maxLabel'][idx] = extPair[1]
