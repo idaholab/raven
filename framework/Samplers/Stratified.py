@@ -182,10 +182,12 @@ class Stratified(Grid):
             dxs = np.zeros(len(self.distributions2variablesMapping[distName]))
             centerCoordinate = np.zeros(len(self.distributions2variablesMapping[distName]))
             positionList = self.distributions2variablesIndexList[distName]
-            for var in self.distributions2variablesMapping[distName]:
+            sorted_mapping = sorted([(utils.first(var.keys()).strip(),
+                                      utils.first(var.values())) for var in
+                                     self.distributions2variablesMapping[distName]])
+            for var in sorted_mapping:
               # if the varName is a comma separated list of strings the user wants to sample the comma separated variables with the same sampled value => link the value to all comma separated variables
-              variable = utils.first(var.keys()).strip()
-              position = utils.first(var.values())
+              variable, position = var
               upper = self.gridEntity.returnShiftedCoordinate(self.gridEntity.returnIteratorIndexes(),{variable:self.sampledCoordinate[self.counter-1][varCount]+1})[variable]
               lower = self.gridEntity.returnShiftedCoordinate(self.gridEntity.returnIteratorIndexes(),{variable:self.sampledCoordinate[self.counter-1][varCount]})[variable]
               varCount += 1
