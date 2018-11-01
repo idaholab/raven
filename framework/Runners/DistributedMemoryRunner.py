@@ -137,8 +137,14 @@ class DistributedMemoryRunner(InternalRunner):
       @ In, None
       @ Out, None
     """
-    tid = self.thread.tid if self.thread is not None else None
-    self.raiseAWarning('Terminating job with ID "{}" and RAVEN identifier "{}"'.format(tid,self.identifier))
-    if tid is not None:
-      os.kill(self.thread.tid, signal.SIGTERM)
+    # Does this actually kill the run, or just terminate the Task (self.thread)? The Task has no methods
+    ## whereby to terminate the job; maybe if we got the Worker doing the task, THAT would have a way to terminate it.
+    del self.thread
+    self.thread = None
+    self.returnCode = -1
+    ## OLD ##
+    #tid = self.thread.tid if self.thread is not None else None
+    #self.raiseAWarning('Terminating job with ID "{}" and RAVEN identifier "{}"'.format(tid,self.identifier))
+    #if tid is not None:
+    #  os.kill(self.thread.tid, signal.SIGTERM)
     self.trackTime('runner_killed')

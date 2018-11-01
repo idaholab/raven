@@ -45,7 +45,7 @@
   <Optimizers>
     <FiniteDifference name="opter">
       <initialization>
-        <limit>2000</limit>
+        <limit>20000</limit>
         <initialSeed>42</initialSeed>
         <thresholdTrajRemoval>1e-2</thresholdTrajRemoval>
         <writeSteps>every</writeSteps>
@@ -111,7 +111,7 @@
     </PointSet>
     <PointSet name="opt_export">
       <Input>trajID</Input>
-      <Output>x,y,ans,varsUpdate</Output>
+      <Output>x,y,ans,varsUpdate,accepted</Output>
     </PointSet>
   </DataObjects>
 
