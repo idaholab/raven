@@ -45,7 +45,9 @@
         <SKLtype>svm|SVC</SKLtype>
         <fit_intercept>True</fit_intercept>
         <normalize>True</normalize>
+        <random_state>0</random_state>
       </estimator>
+      <random_state>0</random_state>
     </ROM>
   </Models>
 
