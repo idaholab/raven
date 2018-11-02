@@ -29,7 +29,6 @@ import relapdata
 from PhisicsInterface import Phisics
 from Relap5Interface import Relap5
 
-from  __builtin__ import any as b_any
 
 class PhisicsRelap5(CodeInterfaceBase):
   """
@@ -92,7 +91,7 @@ class PhisicsRelap5(CodeInterfaceBase):
     for key in searchDict:
       for child in libraryRoot.getiterator(searchDict[key]):
         timeDict[dictKeys[key]] = child.text
-        return timeDict
+    return timeDict
 
   def _readMoreXML(self,xmlNode):
     """
@@ -211,7 +210,7 @@ class PhisicsRelap5(CodeInterfaceBase):
     passToDesignatedCode['phisics']['SampledVars'] = {}
     passToDesignatedCode['relap5']  = {}
     passToDesignatedCode['relap5']['SampledVars']  = {}
-    for var,value in perturbedVars.iteritems():
+    for var,value in perturbedVars.items():
       if var.split('|')[0] in set(self.phisicsVariables):
         passToDesignatedCode['phisics']['SampledVars'][var] = value
       else:

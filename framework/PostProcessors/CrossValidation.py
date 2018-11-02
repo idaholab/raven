@@ -122,7 +122,7 @@ class CrossValidation(PostProcessor):
       if metricIn[2] in self.metricsDict.keys():
         self.metricsDict[metricIn[2]] = metricIn[3]
 
-    if self.metricsDict.values().count(None) != 0:
+    if list(self.metricsDict.values()).count(None) != 0:
       metricName = self.metricsDict.keys()[list(self.metricsDict.values()).index(None)]
       self.raiseAnError(IOError, "Missing definition for Metric: ", metricName)
 
@@ -303,7 +303,7 @@ class CrossValidation(PostProcessor):
     for key, value in initDict.items():
       if key == "SciKitLearn":
         if value['SKLtype'] in self.CVList:
-          dataSize = np.asarray(inputDict.values()[0]).size
+          dataSize = np.asarray(utils.first(inputDict.values())).size
           value['n'] = dataSize
         cvEngine = CrossValidations.returnInstance(key, self, **value)
         break
@@ -358,6 +358,6 @@ class CrossValidation(PostProcessor):
     if self.cvScore is not None:
       output.addRealization(outputDict)
     else:
-      cvIDs = {self.cvID: np.atleast_1d(range(len(outputDict.values()[0])))}
+      cvIDs = {self.cvID: np.atleast_1d(range(len(utils.first(outputDict.values()))))}
       outputDict.update(cvIDs)
       output.load(outputDict, style='dict')

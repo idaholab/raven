@@ -423,7 +423,7 @@ class DataMining(PostProcessor):
           ## put all of the information and then to remove the ones we process.
           ## - dpm 6/8/16
           self.initializationOptionDict[child.getName()] = {}
-          for key,value in child.parameterValues.iteritems():
+          for key,value in child.parameterValues.items():
             if key == 'lib':
               self.type = value
             elif key == 'labelFeature':
@@ -640,7 +640,7 @@ class DataMining(PostProcessor):
           ##FIXME: You may also want to output the covariances of each pair of
           ## dimensions as well, this is currently only accessible from the solution export metadata
           ## We should list the variables name the solution export in order to access this data
-          for joffset,col in enumerate(self.unSupervisedEngine.features.keys()[i:]):
+          for joffset,col in enumerate(list(self.unSupervisedEngine.features.keys())[i:]):
             j = i+joffset
             covValues = mixtureCovars[:,i,j]
             covName = 'cov_'+str(key)+'_'+str(col)
@@ -703,7 +703,7 @@ class DataMining(PostProcessor):
       outputDict['outputs'][self.labelFeature] = labels
     elif 'embeddingVectors' in outputDict['outputs']:
       transformedData = outputDict['outputs'].pop('embeddingVectors')
-      reducedDimensionality = transformedData.values()[0].shape[1]
+      reducedDimensionality = utils.first(transformedData.values()).shape[1]
 
       for i in range(reducedDimensionality):
         dimensionI = np.zeros(shape=(numberOfSample,numberOfHistoryStep))
@@ -792,7 +792,7 @@ class DataMining(PostProcessor):
         rlzDims = {}
         rlzs = {}
         ## First store the label as the input for this cluster
-        mixLabels = range(int(np.max(componentMeanIndices.values()))+1)
+        mixLabels = range(int(np.max(list(componentMeanIndices.values())))+1)
         rlzs[self.labelFeature] = np.atleast_1d(mixLabels)
         rlzs[self.pivotParameter] = self.pivotVariable
         for rlzIndex in mixLabels:
@@ -823,7 +823,7 @@ class DataMining(PostProcessor):
           ## dimensions as well
           if mixtureCovars is not None:
             for i,row in enumerate(self.unSupervisedEngine.features.keys()):
-              for joffset,col in enumerate(self.unSupervisedEngine.features.keys()[i:]):
+              for joffset,col in enumerate(list(self.unSupervisedEngine.features.keys())[i:]):
                 j = i+joffset
                 timeSeries = np.zeros(numberOfHistoryStep)
                 for timeIdx in range(numberOfHistoryStep):

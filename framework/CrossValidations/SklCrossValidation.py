@@ -76,7 +76,10 @@ class SciKitLearn(CrossValidation):
 
     self.__class__.returnType = self.__class__.availImpl[self.SKLType][1]
 
-    for key, value in self.initOptionDict.items():
+    #Need to keep a copy of the keys since the dict is changing
+    keys = list(self.initOptionDict.keys())
+    for key in keys:
+      value = self.initOptionDict[key]
       try:
         newValue = ast.literal_eval(value)
         if type(newValue) == list:

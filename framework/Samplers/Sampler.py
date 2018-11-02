@@ -17,11 +17,9 @@ Created on Feb 16, 2013
 @author: alfoa
 """
 #for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
+from __future__ import division, print_function, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
-if not 'xrange' in dir(__builtins__):
-  xrange = range
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -29,6 +27,7 @@ import sys
 import copy
 import abc
 import json
+import itertools
 import numpy as np
 #External Modules End--------------------------------------------------------------------------------
 
@@ -448,7 +447,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       self.raiseADebug('Restart object: '+str(self.assemblerDict['Restart']))
       self.restartData = self.assemblerDict['Restart'][0][3]
       # check the right variables are in the restart
-      need = set(self.toBeSampled.keys()+self.dependentSample.keys())
+      need = set(itertools.chain(self.toBeSampled.keys(),self.dependentSample.keys()))
       if not need.issubset(set(self.restartData.getVars())):
         missing = need - set(self.restartData.getVars())
         #TODO this could be a warning, instead, but user wouldn't see it until the run was deep in
@@ -731,7 +730,9 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ In, None
       @ Out, None
     """
-    fullyCorrVars = {s: self.inputInfo['SampledVarsPb'].pop(s) for s in self.inputInfo['SampledVarsPb'].keys() if "," in s}
+    #Need keys as list because modifying self.inputInfo['SampledVarsPb']
+    keys = list(self.inputInfo['SampledVarsPb'].keys())
+    fullyCorrVars = {s: self.inputInfo['SampledVarsPb'].pop(s) for s in keys if "," in s}
     # assign the SampledVarsPb to the fully correlated vars
     for key in fullyCorrVars:
       for kkey in key.split(","):
