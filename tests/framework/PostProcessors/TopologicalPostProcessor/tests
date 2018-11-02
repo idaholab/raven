@@ -22,6 +22,7 @@
     csv = 'data/segProb.csv'
     output = 'data/segProb.xml'
     required_libraries = 'AMSC'
+    python3_only = true
   [../]
 
   [./persistence_value]
