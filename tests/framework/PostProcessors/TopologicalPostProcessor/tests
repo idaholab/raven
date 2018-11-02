@@ -30,6 +30,7 @@
     csv = 'data/segValue.csv'
     output = 'data/segValue.xml'
     required_libraries = 'AMSC'
+    python3_only = true
   [../]
 
   [./persistence_full]
