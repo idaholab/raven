@@ -206,6 +206,7 @@
     csv = 'data/outDataParallel.csv'
     output = 'data/outDataParallel.xml'
     required_libraries = 'AMSC'
+    python3_only = true
   [../]
 
    #[./topology_MSR_failures]
