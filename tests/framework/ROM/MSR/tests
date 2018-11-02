@@ -108,6 +108,7 @@
     # probabilities to be variant across implementations presumably since
     # different information is withheld in the cross-validation of the SVM?
     rel_err = 2e-1
+    python3_only = true
   [../]
 
   [./smoothBiweight]
