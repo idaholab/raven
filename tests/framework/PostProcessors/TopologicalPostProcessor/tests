@@ -59,6 +59,7 @@
     csv = 'data/segBS.csv'
     output = 'data/segBS.xml'
     required_libraries = 'AMSC'
+    python3_only = true
   [../]
 
   [./relaxed_beta_skeleton]
