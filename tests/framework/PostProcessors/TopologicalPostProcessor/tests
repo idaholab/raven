@@ -63,6 +63,7 @@
     csv = 'data/segRBS.csv'
     output = 'data/segRBS.xml'
     required_libraries = 'AMSC'
+    python3_only = true
   [../]
 
   [./interactive_UI]
