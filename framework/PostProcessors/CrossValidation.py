@@ -312,7 +312,7 @@ class CrossValidation(PostProcessor):
     # SciKit-Learn supervised learning problems, and 'groups' become additional option to specify the group
     # labels that can be used while splitting the dataset into train/test set. For our purpose, only one
     # label option is needed. ~ wangc
-    for trainIndex, testIndex in cvEngine.generateTrainTestIndices(inputDict.values()[0], y=groups, groups=groups):
+    for trainIndex, testIndex in cvEngine.generateTrainTestIndices(list(inputDict.values())[0], y=groups, groups=groups):
       trainDict, testDict = self.__generateTrainTestInputs(inputDict, trainIndex, testIndex)
       ## Train the rom
       cvEstimator.train(trainDict)
