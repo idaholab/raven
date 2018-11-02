@@ -80,20 +80,20 @@ class XSCreator():
     """
     top = Element('scaling_library', {'print_xml':'t'})
     print (self.listedDict)
-    for XS in self.listedDict.iterkeys():
-      for tabulation in self.listedDict.get('XS').iterkeys():
+    for XS in self.listedDict.keys():
+      for tabulation in self.listedDict.get('XS').keys():
         topChild = SubElement(top, 'set')
         if bool:
           tabList, valueList = self.tabMapping(tabulation,tabMapFileName)
           for tab,value in zip(tabList,valueList):
             tabChild = SubElement(topChild, 'tab', {'name':tab})
             tabChild.text = value
-        for material in self.listedDict.get('XS').get(tabulation).iterkeys():
+        for material in self.listedDict.get('XS').get(tabulation).keys():
           tabulationChild = SubElement(topChild, 'library', {'lib_name':material})
-          for isotope in self.listedDict.get('XS').get(tabulation).get(material).iterkeys():
-            for typeOfXs in self.listedDict.get('XS').get(tabulation).get(material).get(isotope).iterkeys():
+          for isotope in self.listedDict.get('XS').get(tabulation).get(material).keys():
+            for typeOfXs in self.listedDict.get('XS').get(tabulation).get(material).get(isotope).keys():
               libraryChild = SubElement(tabulationChild, 'isotope', {'id':isotope, 'type':typeOfXs.lower()})
-              for reaction in self.listedDict.get('XS').get(tabulation).get(material).get(isotope).get(typeOfXs).iterkeys():
+              for reaction in self.listedDict.get('XS').get(tabulation).get(material).get(isotope).get(typeOfXs).keys():
                 #groupList = []
                 #valueList = []
                 for count,(group,value) in enumerate(self.listedDict.get('XS').get(tabulation).get(material).get(isotope).get(typeOfXs).get(reaction).items()):

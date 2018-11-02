@@ -19,7 +19,7 @@
   supercedes Samplers.py from alfoa
 """
 #for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
+from __future__ import division, print_function, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
@@ -32,6 +32,7 @@ from operator import mul
 from functools import reduce
 from scipy import spatial
 from math import ceil
+import sys
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -42,6 +43,7 @@ from AMSC_Object import AMSC_Object
 from utils import randomUtils
 from utils import InputData
 #Internal Modules End--------------------------------------------------------------------------------
+
 
 class LimitSurfaceSearch(AdaptiveSampler):
   """
@@ -259,7 +261,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
       if child.tag == "generateCSVs":
         self.generateCSVs = True
       if child.tag == "batchStrategy":
-        self.batchStrategy = child.text.encode('ascii')
+        self.batchStrategy = child.text
         if self.batchStrategy not in self.acceptedBatchParam:
           self.raiseAnError(IOError, 'Requested unknown batch strategy: ',
                             self.batchStrategy, '. Available options: ',
@@ -273,7 +275,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
           self.raiseAWarning(IOError,'Requested an invalid maximum batch size: ', self.maxBatchSize, '. This should be a non-negative integer value. Defaulting to 1.')
           self.maxBatchSize = 1
       if child.tag == "scoring":
-        self.scoringMethod = child.text.encode('ascii')
+        self.scoringMethod = child.text
         if self.scoringMethod not in self.acceptedScoringParam:
           self.raiseAnError(IOError, 'Requested unknown scoring type: ', self.scoringMethod, '. Available options: ', self.acceptedScoringParam)
       if child.tag == 'simplification':
@@ -663,8 +665,8 @@ class LimitSurfaceSearch(AdaptiveSampler):
                 edges.append((i,j))
                 edges.append((j,i))
 
-          names = [ name.encode('ascii', 'ignore') for name in axisNames]
-          names.append('score'.encode('ascii','ignore'))
+          names = axisNames[:] #make copy
+          names.append('score')
           amsc = AMSC_Object(X=flattenedSurfPoints, Y=flattenedScores,
                              w=None, names=names, graph='none',
                              gradient='steepest', normalization='feature',

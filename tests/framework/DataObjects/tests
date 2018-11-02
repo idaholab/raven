@@ -29,14 +29,14 @@
  [./dataObject_metadata]
    type = 'RavenFramework'
    input = 'test_DataObject_metadata.xml'
-   xml = 'dataObject_metadata/PointProbability_dump.xml'
+   UnorderedXml = 'dataObject_metadata/PointProbability_dump.xml'
    csv = 'dataObject_metadata/PointProbability_dump.csv'
  [../]
 
  [./load_csv]
    type = 'RavenFramework'
    input = 'test_load_csv.xml'
-   xml = 'csv/output.xml'
+   UnorderedXml = 'csv/output.xml'
    csv = 'csv/output.csv'
  [../]
 

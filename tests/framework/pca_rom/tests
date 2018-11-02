@@ -2,7 +2,7 @@
  [./inputPCAReduction]
   type = 'RavenFramework'
   input = 'test_input_pca.xml'
-  xml = 'PCAReduction/testPrintPointSet_dump.xml'
+  UnorderedXml = 'PCAReduction/testPrintPointSet_dump.xml'
   csv = 'PCAReduction/testPrintPointSet_dump.csv'
   remove_unicode_identifier = true
  [../]
@@ -11,14 +11,14 @@
   type = 'RavenFramework'
   input = 'test_MVN_abs.xml'
   csv = 'MVNAbs/testPrintPointSetAbs_dump.csv'
-  xml = 'MVNAbs/testPrintPointSetAbs_dump.xml'
+  UnorderedXml = 'MVNAbs/testPrintPointSetAbs_dump.xml'
  [../]
 
  [./MVNRel]
   type = 'RavenFramework'
   input = 'test_MVN_rel.xml'
   csv = 'MVNRel/testPrintPointSetRel_dump.csv'
-  xml = 'MVNRel/testPrintPointSetRel_dump.xml'
+  UnorderedXml = 'MVNRel/testPrintPointSetRel_dump.xml'
  [../]
 
  [./ROM]
@@ -30,7 +30,7 @@
  [./oneDim]
   type = 'RavenFramework'
   input = 'test_one_dim_pca.xml'
-  xml = 'oneDimPCA/testPrintPointSet_dump.xml'
+  UnorderedXml = 'oneDimPCA/testPrintPointSet_dump.xml'
   csv = 'oneDimPCA/testPrintPointSet_dump.csv'
   remove_unicode_identifier = true
  [../]
