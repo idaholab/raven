@@ -5,6 +5,7 @@
     csv = 'data/myDump1.csv data/myDump2.csv data/myDump3.csv data/myDump4.csv'
     output = 'data/myDump1.xml data/myDump2.xml data/myDump3.xml data/myDump4.xml'
     required_libraries = 'AMSC'
+    python3_only = true
   [../]
 
   [./persistence_count]
