@@ -40,6 +40,7 @@
     csv = 'data/segFull.csv'
     output = 'data/segFull.xml'
     required_libraries = 'AMSC'
+    python3_only = true
   [../]
 
   [./knn]
