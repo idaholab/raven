@@ -18,6 +18,6 @@
    type = 'RavenFramework'
    input = 'from_dataset.xml'
    csv = 'FromDataset/samples.csv'
-   xml = 'FromDataset/samples.xml'
+   output = 'FromDataset/samples.xml'
  [../]
 []
