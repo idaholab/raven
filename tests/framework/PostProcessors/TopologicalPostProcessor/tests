@@ -48,6 +48,7 @@
     csv = 'data/segNN.csv'
     output = 'data/segNN.xml'
     required_libraries = 'AMSC'
+    python3_only = true
   [../]
 
   [./beta_skeleton]
