@@ -14,6 +14,7 @@
     csv = 'data/segCount.csv'
     output = 'data/segCount.xml'
     required_libraries = 'AMSC'
+    python3_only = true
   [../]
 
   [./persistence_prob]
