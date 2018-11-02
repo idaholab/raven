@@ -86,6 +86,7 @@
     csv = 'data/outDataUniform.csv'
     output = 'data/outDataUniform.xml'
     required_libraries = 'AMSC'
+    python3_only = true
   [../]
 
   [./SVM]
