@@ -70,11 +70,10 @@ class FiniteDifference(SPSA):
   ###################
   # Utility Methods #
   ###################
-  def _getPerturbationDirection(self,perturbationIndex, traj):
+  def _getPerturbationDirection(self,perturbationIndex):
     """
       This method is aimed to get the perturbation direction (i.e. in this case the random perturbation versor)
       @ In, perturbationIndex, int, the perturbation index (stored in self.perturbationIndices)
-      @ In, traj, int, the trajectory id
       @ Out, direction, list, the versor for each optimization dimension
     """
     optVars = self.getOptVars()
@@ -87,7 +86,6 @@ class FiniteDifference(SPSA):
     else:
       if perturbationIndex == self.perturbationIndices[0]:
         direction = np.zeros(len(self.getOptVars())).tolist()
-        factor = 1.0
         if self.currentDirection:
           factor = np.sum(self.currentDirection)*-1.0
         else:

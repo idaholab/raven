@@ -278,7 +278,7 @@ class GradientBasedOptimizer(Optimizer):
       # is this point an "opt" or a "grad" evaluations?
       category, number = self._identifierToLabel(identifier)
       # find index of sample in the target evaluation data object
-      done, index = self._checkModelFinish(str(traj), str(step), str(identifier)) # TODO is "step" right?
+      done, index = self._checkModelFinish(str(traj), str(step), str(identifier))
       # sanity check
       if not done:
         self.raiseAnError(RuntimeError,'Trying to collect "{}" but identifies as not done!'.format(prefix))
@@ -561,7 +561,7 @@ class GradientBasedOptimizer(Optimizer):
     """
     if identifier in self.perturbationIndices:
       category = 'grad'
-      number = identifier % self.paramDict['pertSingleGrad']
+      number = (identifier-1) % self.paramDict['pertSingleGrad']
     else:
       category = 'opt'
       number = 0

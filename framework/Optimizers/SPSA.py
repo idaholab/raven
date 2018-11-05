@@ -355,7 +355,7 @@ class SPSA(GradientBasedOptimizer):
     points = []
     distance = self._computePerturbationDistance(traj,self.paramDict,self.counter['varsUpdate'][traj]+1)
     for i in self.perturbationIndices:
-      direction = self._getPerturbationDirection(i,traj)
+      direction = self._getPerturbationDirection(i)
       point = {}
       index = 0
       for var in self.getOptVars():
@@ -554,11 +554,10 @@ class SPSA(GradientBasedOptimizer):
     state['recommendToGain'] = copy.deepcopy(self.recommendToGain           .get(traj,None))
     return state
 
-  def _getPerturbationDirection(self,perturbationIndex, traj):
+  def _getPerturbationDirection(self,perturbationIndex):
     """
       This method is aimed to get the perturbation direction (i.e. in this case the random perturbation versor)
       @ In, perturbationIndex, int, the perturbation index (stored in self.perturbationIndices)
-      @ In, traj, int, the trajectory id
       @ Out, direction, list, the versor for each optimization dimension
     """
     if perturbationIndex == self.perturbationIndices[0]:
