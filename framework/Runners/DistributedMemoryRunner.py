@@ -138,7 +138,7 @@ class DistributedMemoryRunner(InternalRunner):
       @ Out, None
     """
     tid = self.thread.tid if self.thread is not None else None
-    self.raiseAWarning('Terminating job with ID "{}" and RAVEN identifier "{}"'.format(tid,self.identifier))
+    self.raiseADebug('Terminating job with ID "{}" and RAVEN identifier "{}"'.format(tid,self.identifier))
     if tid is not None:
       os.kill(self.thread.tid, signal.SIGTERM)
     self.trackTime('runner_killed')

@@ -34,6 +34,7 @@ import abc
 import threading
 import random
 import socket
+import time
 #External Modules End-----------------------------------------------------------
 
 #Internal Modules---------------------------------------------------------------
@@ -71,7 +72,7 @@ class JobHandler(MessageHandler.MessageUser):
 
     self.isParallelPythonInitialized = False
 
-    self.sleepTime  = 0.005
+    self.sleepTime  = 1e-4 #0.005
     self.completed = False
 
     ## Determines whether to collect and print job timing summaries at the end of job runs.
@@ -325,6 +326,7 @@ class JobHandler(MessageHandler.MessageUser):
     if not self.isParallelPythonInitialized:
       self.__initializeParallelPython()
 
+    print('{:^1.20f} STEP LOOP JH start make runner'.format(time.time()))
     if self.ppserver is None or forceUseThreads:
       internalJob = Runners.SharedMemoryRunner(self.messageHandler, args,
                                                functionToRun,
@@ -340,11 +342,13 @@ class JobHandler(MessageHandler.MessageUser):
                                                     metadata, skipFunctions,
                                                     uniqueHandler,
                                                     profile=self.__profileJobs)
+    print('{:^1.20f} STEP LOOP JH end make runner'.format(time.time()))
 
     # set the client info
     internalJob.clientRunner = clientQueue
     # add the runner in the Queue
     self.reAddJob(internalJob)
+    print('{:^1.20f} STEP LOOP JH end add job'.format(time.time()))
 
   def reAddJob(self, runner):
     """
@@ -359,7 +363,9 @@ class JobHandler(MessageHandler.MessageUser):
         self.__clientQueue.append(runner)
       if self.__profileJobs:
         runner.trackTime('queue')
+      print('{:^1.20f} STEP LOOP JH add job to queue'.format(time.time()))
       self.__submittedJobs.append(runner.identifier)
+      print('{:^1.20f} STEP LOOP JH add job to history'.format(time.time()))
 
   def addClientJob(self, args, functionToRun, identifier, metadata=None, modulesToImport = [], uniqueHandler="any"):
     """

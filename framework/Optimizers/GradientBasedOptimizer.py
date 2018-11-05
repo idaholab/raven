@@ -560,9 +560,12 @@ class GradientBasedOptimizer(Optimizer):
       @ Out, label, tuple, first entry is "grad" or "opt", second is which grad it belongs to (opt is always 0)
     """
     if identifier in self.perturbationIndices:
-      return ('grad', identifier//self.gradDict['numIterForAve']-1) # -1 keeps us base-0, since first set is opt pt
+      category = 'grad'
+      number = identifier % self.paramDict['pertSingleGrad']
     else:
-      return ('opt',0)
+      category = 'opt'
+      number = 0
+    return category,number
 
   def localCheckConstraint(self, optVars, satisfaction = True):
     """
@@ -622,15 +625,20 @@ class GradientBasedOptimizer(Optimizer):
         fullList = getRemoved(rm, fullList)
       return fullList
     #end function definition
+
     notEligibleToRemove = [trajToRemove] + getRemoved(trajToRemove)
+    # determine if "trajToRemove" should be terminated because it is following "traj"
+    print('DEBUGG checking if traj "{}" should be removed ...'.format(trajToRemove))
+    print('DEBUGG ... not eligible: {}'.format(notEligibleToRemove))
     for traj in self.optTraj:
       #don't consider removal if comparing against itself,
       #  or a trajectory removed by this one, or a trajectory removed by a trajectory removed by this one (recursive)
       #  -> this prevents mutual destruction cases
       if traj not in notEligibleToRemove:
+        print('DEBUGG ... checking traj {} ...'.format(traj))
         #FIXME this can be quite an expensive operation, looping through each other trajectory
         for updateKey in self.optVarsHist[traj].keys():
-          inp = copy.deepcopy(self.optVarsHist[traj][updateKey]) #FIXME deepcopy needed?
+          inp = self.optVarsHist[traj][updateKey] #FIXME deepcopy needed? Used to be present, but removed for now.
           if len(inp) < 1: #empty
             continue
           dist = self.calculateMultivectorMagnitude( [inp[var] - currentInput[var] for var in self.getOptVars()] )
@@ -641,6 +649,7 @@ class GradientBasedOptimizer(Optimizer):
             self.trajectoriesKilled[traj].append(trajToRemove)
             #TODO the trajectory to remove should be chosen more carefully someday, for example, the one that has the smallest steps or lower loss value currently
             removeFlag = True
+            print('DEBUGG ... ... found killer point!')
             break
         if removeFlag:
           break
@@ -653,6 +662,7 @@ class GradientBasedOptimizer(Optimizer):
           break
       return True
     else:
+      print('DEBUGG ... no killer points!')
       return False
 
   def _setupNewStorage(self,traj,keepOpt=False):
