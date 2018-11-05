@@ -136,7 +136,7 @@ class Code(Model):
     self.fargs={'input':{}, 'output':'', 'moosevpp':''}
     for child in paramInput.subparts:
       if child.getName() =='executable':
-        self.executable = child.value
+        self.executable = child.value if child.value is not None else ''
       if child.getName() =='walltime':
         self.maxWallTime = child.value
       if child.getName() =='preexec':
