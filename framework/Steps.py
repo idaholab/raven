@@ -624,12 +624,8 @@ class MultiRun(SingleRun):
     # run step loop
     while True:
       # collect finished jobs
-      done = 0
       finishedJobs = jobHandler.getFinished()
       for finishedJob in finishedJobs:
-        timing_message = []
-        timing_message.append('{:^1.20f} STEP LOOP START'.format(time.time()))
-        done += 1
         finishedJob.trackTime('step_collected')
         # update number of collected runs
         self.counter +=1
@@ -665,9 +661,8 @@ class MultiRun(SingleRun):
         # finalize actual sampler
         sampler.finalizeActualSampling(finishedJob,model,inputs)
         finishedJob.trackTime('step_finished')
-        timing_message.append('{:^1.20f} STEP LOOP collected finished: {}'.format(time.time(),done))
-        # add new job
 
+        # add new jobs
         isEnsemble = isinstance(model, Models.EnsembleModel)
         # put back this loop (do not take it away again. it is NEEDED for NOT-POINT samplers(aka DET)). Andrea
         ## In order to ensure that the queue does not grow too large, we will
@@ -679,37 +674,24 @@ class MultiRun(SingleRun):
           self.raiseADebug('Testing if the sampler is ready to generate a new input')
 
           if sampler.amIreadyToProvideAnInput():
-            timing_message.append('{:^1.20f} STEP LOOP ready to provide input'.format(time.time()))
             try:
               newInput = self._findANewInputToRun(sampler, model, inputs, outputs)
-              timing_message.append('{:^1.20f} STEP LOOP found new input'.format(time.time()))
               model.submit(newInput, inDictionary[self.samplerType].type, jobHandler, **copy.deepcopy(sampler.inputInfo))
-              timing_message.append('{:^1.20f} STEP LOOP submitted new input'.format(time.time()))
               new += 1
             except utils.NoMoreSamplesNeeded:
               self.raiseAMessage('Sampler returned "NoMoreSamplesNeeded".  Continuing...')
               break
           else:
             break
-        timing_message.append('{:^1.20f} STEP LOOP submitted new: {}'.format(time.time(),new))
       # terminate jobs as requested by the sampler, in case they're not needed anymore
       num = len(sampler.getJobsToEnd(clear=False))
       jobHandler.terminateJobs(sampler.getJobsToEnd(clear=True))
-      if done > 0:
-        timing_message.append('{:^1.20f} STEP LOOP terminated jobs: {}'.format(time.time(),num))
       ## If all of the jobs given to the job handler have finished, and the sampler
       ## has nothing else to provide, then we are done with this step.
       if jobHandler.isFinished() and not sampler.amIreadyToProvideAnInput():
         self.raiseADebug('Finished with %d runs submitted, %d jobs running, and %d completed jobs waiting to be processed.' % (jobHandler.numSubmitted(),jobHandler.numRunning(),len(jobHandler.getFinishedNoPop())) )
         break
-      if done > 0:
-        timing_message.append('{:^1.20f} STEP LOOP sleep start'.format(time.time()))
       time.sleep(self.sleepTime)
-      if done > 0:
-        timing_message.append('{:^1.20f} STEP LOOP sleep end'.format(time.time()))
-      if done > 0:
-        timing_message.append('{:^1.20f} STEP LOOP END'.format(time.time()))
-        print('DEBUGG STEP TIMINGS: \n{}\nDEBUGG END STEP TIMINGS'.format('\n'.join(timing_message)))
     # END while loop that runs the step iterations
     # if any collected runs failed, let the sampler treat them appropriately, and any other closing-out actions
     sampler.finalizeSampler(self.failedRuns)

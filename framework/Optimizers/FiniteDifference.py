@@ -111,9 +111,6 @@ class FiniteDifference(SPSA):
     inVars = self.getOptVars()
     opt = self.realizations[traj]['denoised']['opt'][0]
     allGrads = self.realizations[traj]['denoised']['grad']
-    print('DEBUGG allGrads:')
-    for entry in allGrads:
-      print('DEBUGG    ',entry)
     for g,pert in enumerate(allGrads):
       var = inVars[g]
       lossDiff = mathUtils.diffWithInfinites(pert[self.objVar],opt[self.objVar])
