@@ -976,7 +976,14 @@ to couple a new code.
   allowed run time of the code; if the code running time is greater than the specified 
   walltime then the code run is stopped. The stopped run is then considered as if it crashed.
   %
-  \nb Either an absolute or relative path can be used.
+  \nb Both absolute and relative path can be used. In addition, the relative path
+  to the working directory can also be used.
+  %
+  \item \xmlNode{preexec} \xmlDesc{string, optional field} specifies the path of
+    pre-executable to be used.
+  \nb Both absolute and relative path can be used. In addition, the relative path
+  to the working directory can also be used.
+  %
   \item \aliasSystemDescription{Code}
   %
   \item \xmlNode{clargs} \xmlDesc{string, optional field} allows addition of
@@ -999,6 +1006,12 @@ to couple a new code.
     of file extension to use (for example, \texttt{-i} or \texttt{-o}).  This links the
     \xmlNode{Input} file in the \xmlNode{Step} to this location in the execution
     command.  Required for \xmlString{input} \xmlAttr{type}.
+    %
+    \item \xmlAttr{delimiter} \xmlDesc{string, optional field} specifies the delimiter
+      that is used between the \xmlAttr{arg} and the provided input file with
+      the extension given by \xmlAttr{extension}.
+      \nb This is currently only used to link the \xmlAttr{arg} and input file. i.e.
+      the \xmlAttr{type} should be \xmlString{input} in order to use this feature.
   \end{itemize}
   The execution command is combined in the order \xmlString{prepend},
   \xmlNode{executable}, \xmlString{input}, \xmlString{output}, \xmlString{text},
