@@ -34,6 +34,7 @@ import abc
 import threading
 import random
 import socket
+import time
 #External Modules End-----------------------------------------------------------
 
 #Internal Modules---------------------------------------------------------------
@@ -71,7 +72,7 @@ class JobHandler(MessageHandler.MessageUser):
 
     self.isParallelPythonInitialized = False
 
-    self.sleepTime  = 0.005
+    self.sleepTime  = 1e-4 #0.005
     self.completed = False
 
     ## Determines whether to collect and print job timing summaries at the end of job runs.
