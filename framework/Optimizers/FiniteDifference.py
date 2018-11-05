@@ -112,7 +112,7 @@ class FiniteDifference(SPSA):
     for g,pert in enumerate(allGrads):
       var = inVars[g]
       lossDiff = mathUtils.diffWithInfinites(pert[self.objVar],opt[self.objVar])
-      #lossDiff = 1.0 if lossDiff > 0.0 else -1.0
+      # unlike SPSA, keep the loss diff magnitude so we get the exact right direction
       if self.optType == 'max':
         lossDiff *= -1.0
       dh = pert[var] - opt[var]

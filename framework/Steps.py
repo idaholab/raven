@@ -669,7 +669,6 @@ class MultiRun(SingleRun):
         ## employ a threshold on the number of jobs the jobHandler can take,
         ## in addition, we cannot provide more jobs than the sampler can provide.
         ## So, we take the minimum of these two values.
-        new = 0
         for _ in range(min(jobHandler.availability(isEnsemble),sampler.endJobRunnable())):
           self.raiseADebug('Testing if the sampler is ready to generate a new input')
 
@@ -677,7 +676,6 @@ class MultiRun(SingleRun):
             try:
               newInput = self._findANewInputToRun(sampler, model, inputs, outputs)
               model.submit(newInput, inDictionary[self.samplerType].type, jobHandler, **copy.deepcopy(sampler.inputInfo))
-              new += 1
             except utils.NoMoreSamplesNeeded:
               self.raiseAMessage('Sampler returned "NoMoreSamplesNeeded".  Continuing...')
               break

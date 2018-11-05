@@ -151,11 +151,6 @@ class SharedMemoryRunner(InternalRunner):
       @ In, None
       @ Out, None
     """
-    ## OLD ##
-    #pid = self.thread.pid if self.thread is not None else None
-    #if pid is not None:
-    #  os.kill(self.thread.pid, signal.SIGTERM)
-    #self.trackTime('runner_killed')
     if self.thread is not None:
       self.raiseADebug('Terminating job thread "{}" and RAVEN identifier "{}"'.format(self.thread.ident, self.identifier))
       while self.thread is not None and self.thread.isAlive():
