@@ -96,7 +96,7 @@ class FTStructure(object):
     """
     self.gateSequence = []
     availBasicEvents = copy.deepcopy(self.basicEvents)
-    availBasicEvents = availBasicEvents + self.houseEvents.keys()
+    availBasicEvents = availBasicEvents + list(self.houseEvents.keys())
     counter = 0
     while True:
       complete=False
@@ -104,7 +104,7 @@ class FTStructure(object):
         if set(self.gateList[gate].returnArguments()) <= set(availBasicEvents):
           self.gateSequence.append(gate)
           availBasicEvents.append(gate)
-        if set(availBasicEvents) == set(self.basicEvents+self.gateID+self.houseEvents.keys()):
+        if set(availBasicEvents) == set(itertools.chain(self.basicEvents,self.gateID,self.houseEvents.keys())):
           complete=True
           break
         if counter > len(self.gateList.keys()):

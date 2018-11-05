@@ -121,7 +121,7 @@ class Scale(CodeInterfaceBase):
     for seq in self.sequence:
       self.outputRoot[seq.lower()] = inputDict[seq.lower()][0].getBase()
       executeCommand.append(('parallel',executable+' '+inputDict[seq.lower()][0].getFilename()))
-    returnCommand = executeCommand, self.outputRoot.values()[-1]
+    returnCommand = executeCommand, list(self.outputRoot.values())[-1]
     return returnCommand
 
   def createNewInput(self, currentInputFiles, origInputFiles, samplerType, **Kwargs):

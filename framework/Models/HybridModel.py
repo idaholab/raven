@@ -27,6 +27,7 @@ import copy
 import numpy as np
 from numpy import linalg
 import time
+import itertools
 from collections import OrderedDict
 #External Modules End--------------------------------------------------------------------------------
 
@@ -609,7 +610,7 @@ class HybridModel(Dummy):
       @ Out, rlz, dict, This holds the output information of the evaluated sample.
     """
     self.raiseADebug("Evaluate Sample")
-    kwargsKeys = kwargs.keys()
+    kwargsKeys = list(kwargs.keys())
     kwargsKeys.pop(kwargsKeys.index("jobHandler"))
     kwargsToKeep = {keepKey: kwargs[keepKey] for keepKey in kwargsKeys}
     jobHandler = kwargs['jobHandler']
@@ -619,7 +620,7 @@ class HybridModel(Dummy):
     # assure rlz has all metadata
     rlz = dict((var,np.atleast_1d(kwargsToKeep[var])) for var in kwargsToKeep.keys())
     # update rlz with input space from inRun and output space from result
-    rlz.update(dict((var,np.atleast_1d(kwargsToKeep['SampledVars'][var] if var in kwargs['SampledVars'] else result[var])) for var in set(result.keys()+kwargsToKeep['SampledVars'].keys())))
+    rlz.update(dict((var,np.atleast_1d(kwargsToKeep['SampledVars'][var] if var in kwargs['SampledVars'] else result[var])) for var in set(itertools.chain(result.keys(),kwargsToKeep['SampledVars'].keys()))))
 
     return rlz
 

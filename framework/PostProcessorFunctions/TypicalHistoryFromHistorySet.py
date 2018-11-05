@@ -57,7 +57,7 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
     self.name = xmlNode.attrib['name']
     for child in xmlNode:
       if child.tag == 'subseqLen':
-        self.subseqLen = map(int, child.text.split(','))
+        self.subseqLen = list(map(int, child.text.split(',')))
       elif child.tag == 'pivotParameter':
         self.pivotParameter = child.text
       elif child.tag == 'outputLen':

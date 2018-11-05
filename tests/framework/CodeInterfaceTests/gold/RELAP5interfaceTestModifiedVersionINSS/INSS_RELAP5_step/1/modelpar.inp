@@ -10,20 +10,20 @@ false,false,false,false,false,false,false
 0
 #1 Interfacial friction in bundle
 false
-0.746561782143
+1.51642183629
 -1
 #2 Interfacial friction in pipe
 false
-0.130328273701
+2.80643962727
 -1
 #3 Horizontal stratification 
 false
-4.61752870106
+0.200506708187
 -1
 -1
 #4 Fuel clad oxidization
 false
-1.31473097924
+0.710686936758
 0
 -1
 #5 Uncovered core heat transfer

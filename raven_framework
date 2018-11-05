@@ -55,11 +55,19 @@ fi
 case $MODE in
   'opt' )
     echo 'Running RAVEN in "opt" mode.'
-    python -O $RAVEN_DIR/framework/Driver.py "${ARGS[@]}"
+    if test -n "$CHECK_PYTHON3"; then
+        python3 -O $RAVEN_DIR/framework/Driver.py "${ARGS[@]}"
+    else
+        python -O $RAVEN_DIR/framework/Driver.py "${ARGS[@]}"
+    fi
     ;;
   'dev' )
     echo 'Running RAVEN in "dev" mode.'
-    python $RAVEN_DIR/framework/Driver.py "${ARGS[@]}"
+    if test -n "$CHECK_PYTHON3"; then
+        python3 $RAVEN_DIR/framework/Driver.py "${ARGS[@]}"
+    else
+        python $RAVEN_DIR/framework/Driver.py "${ARGS[@]}"
+    fi
     ;;
   'help' )
     echo ''

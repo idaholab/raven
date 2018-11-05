@@ -91,7 +91,7 @@ class PhisicsRelap5(CodeInterfaceBase):
     for key in searchDict:
       for child in libraryRoot.getiterator(searchDict[key]):
         timeDict[dictKeys[key]] = child.text
-        return timeDict
+    return timeDict
 
   def _readMoreXML(self,xmlNode):
     """

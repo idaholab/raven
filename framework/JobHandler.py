@@ -44,11 +44,8 @@ import MessageHandler
 import Runners
 import Models
 # for internal parallel
-if sys.version_info.major == 2:
-  import pp
-  import ppserver
-else:
-  print("pp does not support python3")
+import pp
+import ppserver
 # end internal parallel module
 #Internal Modules End-----------------------------------------------------------
 

@@ -218,11 +218,11 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
 
         cardinality = len(tdictNorm.keys())
         self.normValues = np.zeros((cardinality,cardinality))
-        keys = tdictNorm.keys()
+        keys = list(tdictNorm.keys())
         for i in range(cardinality):
           for j in range(i,cardinality):
             # process the input data for the metric, numpy.array is required
-            assert(tdictNorm[keys[i]].keys() == tdictNorm[keys[j]].keys())
+            assert(list(tdictNorm[keys[i]].keys()) == list(tdictNorm[keys[j]].keys()))
             numParamsI = len(tdictNorm[keys[i]].keys())
             numStepsI = len(utils.first(tdictNorm[keys[i]].values()))
             numStepsJ = len(utils.first(tdictNorm[keys[j]].values()))
@@ -967,7 +967,7 @@ class temporalSciKitLearn(unSupervisedLearning):
           numComponents = self.metaDict['means'][t].shape[0]
 
         # # collect component indices
-        self.metaDict['componentMeanIndices'][t] = range(numComponents)
+        self.metaDict['componentMeanIndices'][t] = list(range(numComponents))
 
         # # collect optional output
         if hasattr(self.SKLEngine.Method, 'weights_'):

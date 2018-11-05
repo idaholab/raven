@@ -92,7 +92,7 @@ class MarkovModel(ExternalModelPluginBase):
     for state in container.states:
       transitions = container.states[state].keys()
       if not set(transitions).issubset(set(statesIDs)):
-        raise IOError("MarkovModel: the set of transtions " + str (set(transitions)) + " out of state " + str(state) + " lead to not defined states")
+        raise IOError("MarkovModel: the set of transitions " + str (set(transitions)) + " out of state " + str(state) + " lead to not defined states")
     if container.initState is None:
       raise IOError("MarkovModel: <initState> XML block is not specified")
     if container.finState is None:
@@ -130,7 +130,7 @@ class MarkovModel(ExternalModelPluginBase):
       else:
         actualState = newState
 
-    container.__dict__[container.finState] = np.asarray(actualState)
+    container.__dict__[container.finState] = np.asarray(float(actualState))
 
   def newState(self,dictIn):
     """
@@ -194,7 +194,7 @@ class MarkovModel(ExternalModelPluginBase):
     transitionTime = self.randomEngine.exponential(1./totLambda)
     for transition in stochTrans.keys():
       stochTrans[transition] = stochTrans[transition]/totLambda
-    state = self.randomEngine.choice(stochTrans.keys(), size = 1, p=stochTrans.values())[0]
+    state = self.randomEngine.choice(list(stochTrans.keys()), size = 1, p=list(stochTrans.values()))[0]
     return transitionTime, state
 
 

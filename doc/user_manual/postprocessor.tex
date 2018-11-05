@@ -169,6 +169,16 @@ data objects, depending on the type of statistics the user wants to compute:
     \end{itemize}
   \default{False}
   %
+\item \xmlNode{multipleFeatures}, \xmlDesc(boolean, optional field), if \textbf{False}, this node can be used when
+    the users want to compute sensitivities based on one target variable with respect to one feature variable,
+    i.e. the sensitivity calculations are directly computed using the \textbf{Linear Regression} or 
+    \textbf{Best Linear Predictor} method with single feature. This method can be useful when the input features
+    depend on each other. The default value is \textbf{True}, which means the sensitivity calculations are performed
+    using \textbf{Linear Regression} or \textbf{Best Linear Predictor} method with multiple features. If the input
+    features are not fully correlated, the default value for \xmlNode{multipleFeatures} is always recommanded.
+    \nb this node only affects the calculations of metrics such as \xmlNode{sensitivity},
+    \xmlNode{VarianceDependentSensitivity} and \xmlNode{NormalizedSensitivity}.
+  \default{True}
 \end{itemize}
 \textbf{Example (Static Statistics):}  This example demonstrates how to request the expected value of
 \xmlString{x01} and \xmlString{x02}, along with the sensitivity of both \xmlString{x01} and \xmlString{x02} to
