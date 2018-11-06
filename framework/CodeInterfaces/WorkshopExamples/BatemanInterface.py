@@ -140,7 +140,7 @@ class BatemanSimple(CodeInterfaceBase):
         # if None, no variable has been found
         raise Exception('Not found variable '+var+' in input file '+ originalPath)
       # set the new variable value
-      varElement.text = str(varDict[var])
+      varElement.text = repr(varDict[var])
 
     # now we can re-write the input file
     tree.write(currentInputFiles[index].getAbsFile())

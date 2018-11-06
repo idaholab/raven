@@ -138,9 +138,9 @@ class GenericParser():
                   formatstringc = "{:"+self.formats[var][inputFile][0].strip()+"}"
                   self.segments[inputFile][place] = formatstringc.format(self.formats[var][inputFile][1](modDict[var]))
                 else:
-                  self.segments[inputFile][place] = str(modDict[var]).strip().rjust(self.formats[var][inputFile][1](self.formats[var][inputFile][0]))
+                  self.segments[inputFile][place] = repr(modDict[var]).strip().rjust(self.formats[var][inputFile][1](self.formats[var][inputFile][0]))
             else:
-              self.segments[inputFile][place] = str(modDict[var])
+              self.segments[inputFile][place] = repr(modDict[var])
           elif var in self.defaults.keys():
             if var in self.formats.keys():
               if inputFile in self.formats[var].keys():
@@ -148,7 +148,7 @@ class GenericParser():
                   formatstringc = "{:"+self.formats[var][inputFile][0].strip()+"}"
                   self.segments[inputFile][place] = formatstringc.format(self.formats[var][inputFile][1](self.defaults[var][inputFile]))
                 else:
-                  self.segments[inputFile][place] = str(self.defaults[var][inputFile]).strip().rjust(self.formats[var][inputFile][1](self.formats[var][inputFile][0]))
+                  self.segments[inputFile][place] = repr(self.defaults[var][inputFile]).strip().rjust(self.formats[var][inputFile][1](self.formats[var][inputFile][0]))
             else:
               self.segments[inputFile][place] = self.defaults[var][inputFile]
           elif var in ioVars:
