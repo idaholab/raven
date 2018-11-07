@@ -15,9 +15,11 @@
       This test checks basic functionalities of the Sample Selector. The model
       multiplies the input x by 2.5 to obtain x1, and y is multiplied by 3.5 to obtain y1.
       x and y are sampled through a Monte Carlo sampler, with 10 realizations. The
-      SampleSelector postprocessor is called twice, once to pick the minimum of x1,
-      and once to pick the maximum of y1.
+      SampleSelector postprocessor is called several times, testing each of the selection methods.
     </description>
+    <revisions>
+      <revision date="2018-11-6" author="talbpaul">added index selection method to test</revision>
+    </revisions>
   </TestInfo>
 
   <Models>
