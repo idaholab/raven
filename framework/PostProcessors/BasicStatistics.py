@@ -96,14 +96,17 @@ class BasicStatistics(PostProcessor):
     pivotParameterInput = InputData.parameterInputFactory('pivotParameter', contentType=InputData.StringType)
     inputSpecification.addSub(pivotParameterInput)
 
-    datasetInput = InputData.parameterInputFactory('dataset', contentType=InputData.StringType)
+    datasetInput = InputData.parameterInputFactory('dataset', contentType=InputData.BoolType)
     inputSpecification.addSub(datasetInput)
 
     methodsToRunInput = InputData.parameterInputFactory("methodsToRun", contentType=InputData.StringType)
     inputSpecification.addSub(methodsToRunInput)
 
-    biasedInput = InputData.parameterInputFactory("biased", contentType=InputData.StringType)
+    biasedInput = InputData.parameterInputFactory("biased", contentType=InputData.BoolType)
     inputSpecification.addSub(biasedInput)
+
+    multipleFeaturesInput = InputData.parameterInputFactory("multipleFeatures", contentType=InputData.BoolType)
+    inputSpecification.addSub(multipleFeaturesInput)
 
     return inputSpecification
 
@@ -129,6 +132,7 @@ class BasicStatistics(PostProcessor):
     self.pbPresent      = False # True if the ProbabilityWeight is available
     self.realizationWeight = None # The joint probabilities
     self.outputDataset  = False # True if the user wants to dump the outputs to dataset
+    self.multipleFeatures = True # True if multiple features are employed in linear regression as feature inputs
 
   def inputToInternal(self, currentInp):
     """
@@ -307,13 +311,13 @@ class BasicStatistics(PostProcessor):
                                'features':set(fnode.value),
                                'prefix':prefix})
       elif tag == "biased":
-        if child.value.lower() in utils.stringsThatMeanTrue():
-          self.biased = True
+        self.biased = child.value
       elif tag == "pivotParameter":
         self.pivotParameter = child.value
       elif tag == "dataset":
-        if child.value.lower() in utils.stringsThatMeanTrue():
-          self.outputDataset = True
+        self.outputDataset = child.value
+      elif tag == "multipleFeatures":
+        self.multipleFeatures = child.value
       else:
         self.raiseAWarning('Unrecognized node in BasicStatistics "',tag,'" has been ignored!')
     assert (len(self.toDo)>0), self.raiseAnError(IOError, 'BasicStatistics needs parameters to work on! Please check input for PP: ' + self.name)
@@ -967,22 +971,35 @@ class BasicStatistics(PostProcessor):
       @ In, intersectionSet, boolean, True if some target variables are in the list of features
       @ Out, da, xarray.DataArray, contains the calculations of sensitivity coefficients
     """
-    if not intersectionSet:
-      senMatrix = LinearRegression().fit(featSamples,targSamples).coef_
+    if self.multipleFeatures:
+      # intersectionSet is flag that used to check the relationship between the features and targets.
+      # If True, part of the target variables are listed in teh feature set, then multivariate linear
+      # regression should not be used, and a loop over the target set is required.
+      # If False, which means there is no overlap between the target set and feature set.
+      # mutivariate linear regression can be used. However, for both cases, co-linearity check should be
+      # added for the feature set. ~ wangc
+      if not intersectionSet:
+        senMatrix = LinearRegression().fit(featSamples,targSamples).coef_
+      else:
+        # Target variables are in feature variables list, multi-target linear regression can not be used
+        # Since the 'multi-colinearity' exists, we need to loop over target variables
+        # TODO: Some general methods need to be implemented in order to handle the 'multi-colinearity' -- wangc
+        senMatrix = np.zeros((len(targVars), len(featVars)))
+        for p, targ in enumerate(targVars):
+          ind = list(featVars).index(targ) if targ in featVars else None
+          if ind is not None:
+            featMat = np.delete(featSamples,ind,axis=1)
+          regCoeff = LinearRegression().fit(featMat, targSamples[:,p]).coef_
+          if ind is not None:
+            regCoeff = np.insert(regCoeff,ind,1.0)
+          senMatrix[p,:] = regCoeff
     else:
-      # Target variables are in feature variables list, multi-target linear regression can not be used
-      # Since the 'multi-colinearity' exists, we need to loop over target variables
-      # TODO: Some general methods need to be implemented in order to handle the 'multi-colinearity' -- wangc
       senMatrix = np.zeros((len(targVars), len(featVars)))
-      for p, targ in enumerate(targVars):
-        ind = list(featVars).index(targ) if targ in featVars else None
-        if ind is not None:
-          featMat = np.delete(featSamples,ind,axis=1)
-        regCoeff = LinearRegression().fit(featMat, targSamples[:,p]).coef_
-        if ind is not None:
-          regCoeff = np.insert(regCoeff,p,1.0)
-        senMatrix[p,:] = regCoeff
+      for p, feat in enumerate(featVars):
+        regCoeff = LinearRegression().fit(featSamples[:,p].reshape(-1,1),targSamples).coef_
+        senMatrix[:,p] = regCoeff[:,0]
     da = xr.DataArray(senMatrix, dims=('targets','features'), coords={'targets':targVars,'features':featVars})
+
     return da
 
   def covarianceCalculation(self,paramSamples,fact,variance,targVars):
@@ -1012,13 +1029,20 @@ class BasicStatistics(PostProcessor):
       @ Out, da, xarray.DataArray, contains the calculations of variance dependent sensitivities
     """
     senMatrix = np.zeros((len(targCoords), len(targCoords)))
-    for p,param in enumerate(targCoords):
-      covX = np.delete(cov,p,axis=0)
-      covX = np.delete(covX,p,axis=1)
-      covYX = np.delete(cov[p,:],p)
-      sensCoef = np.dot(covYX,np.linalg.pinv(covX))
-      sensCoef = np.insert(sensCoef,p,1.0)
-      senMatrix[p,:] = sensCoef
+    if self.multipleFeatures:
+      for p, param in enumerate(targCoords):
+        covX = np.delete(cov,p,axis=0)
+        covX = np.delete(covX,p,axis=1)
+        covYX = np.delete(cov[p,:],p)
+        sensCoef = np.dot(covYX,np.linalg.pinv(covX))
+        sensCoef = np.insert(sensCoef,p,1.0)
+        senMatrix[p,:] = sensCoef
+    else:
+      for p, param in enumerate(targCoords):
+        covX = cov[p,p]
+        covYX = cov[:,p]
+        sensCoef = covYX / covX
+        senMatrix[:,p] = sensCoef
     da = xr.DataArray(senMatrix, dims=('targets','features'), coords={'targets':targCoords,'features':targCoords})
     return da
 

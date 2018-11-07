@@ -29,14 +29,14 @@
  [./dataObject_metadata]
    type = 'RavenFramework'
    input = 'test_DataObject_metadata.xml'
-   xml = 'dataObject_metadata/PointProbability_dump.xml'
+   UnorderedXml = 'dataObject_metadata/PointProbability_dump.xml'
    csv = 'dataObject_metadata/PointProbability_dump.csv'
  [../]
 
  [./load_csv]
    type = 'RavenFramework'
    input = 'test_load_csv.xml'
-   xml = 'csv/output.xml'
+   UnorderedXml = 'csv/output.xml'
    csv = 'csv/output.csv'
  [../]
 
@@ -67,7 +67,7 @@
  [./load_two_csv_histories_fail]
    type = 'RavenErrors'
    input = 'load_two_csv_histories_fail.xml'
-   expect_err = 'IOError: Not all variables requested for data object "data" were found in csv'
+   expect_err = 'Error: Not all variables requested for data object "data" were found in csv'
  [../]
 []
 

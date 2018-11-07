@@ -30,7 +30,7 @@ def initialize(self, runInfoDict, inputFiles):
 
 def run(self, Inputs):
 
-  print "=============== Inside CreateHIST ================="
+  print("=============== Inside CreateHIST =================")
   self.G_vect = np.array([Inputs['G_a'][0], Inputs['G_b'][0], Inputs['G_c'][0]])
   self.Time   = np.array([float(index+1) for index in range(len(self.G_vect))])
-  print "=============== End CreateHIST ================="
+  print("=============== End CreateHIST =================")

@@ -362,7 +362,7 @@ class phisicsdata():
           line = re.sub(r'TIME\s+\(days\)', r'', line)
           line = re.sub(r' ', r'', line)
           line = re.sub(r'\n', r'', line)
-          self.isotopeListMrtau = filter(None, line.split(','))
+          self.isotopeListMrtau = list(filter(None, line.split(',')))
           break
 
   def getInstantTimeSteps(self, input):
@@ -826,7 +826,7 @@ class phisicsdata():
           for line in outfile:
             if re.search(r'Density spatial moment', line):
               count = count + 1
-              matLine = filter(None, line.split(' '))
+              matLine = list(filter(None, line.split(' ')))
               materialsDict['MPI-' + str(mpi)][count] = matLine[
                   matLine.index('Material') + 1]
               if count == mediaUsed:
@@ -870,7 +870,7 @@ class phisicsdata():
               breakFlag = 1
             if decayFlag == 1 and breakFlag == 0:
               line = line.rstrip()
-              decayLine = filter(None, line.split(' '))
+              decayLine = list(filter(None, line.split(' ')))
               if decayLine != []:
                 stringIsFloatNumber = self.isFloatNumber(decayLine)
               if stringIsFloatNumber and decayLine != []:
@@ -910,7 +910,7 @@ class phisicsdata():
           breakFlag = 1
         if decayFlag == 1 and breakFlag == 0:
           line = line.rstrip()
-          decayLine = filter(None, line.split(' '))
+          decayLine = list(filter(None, line.split(' ')))
           if decayLine != []:
             stringIsFloatNumber = self.isFloatNumber(decayLine)
           if stringIsFloatNumber and decayLine != []:
@@ -952,7 +952,7 @@ class phisicsdata():
             breakFlag = 1
           if buFlag == 1 and breakFlag == 0:
             line = line.rstrip()
-            buLine = filter(None, line.split(' '))
+            buLine = list(filter(None, line.split(' ')))
             if buLine != []:
               stringIsFloatNumber = self.isFloatNumber(buLine)
             if stringIsFloatNumber and buLine != []:
@@ -1011,8 +1011,8 @@ class phisicsdata():
         with open(csvOutput, 'a+') as f:
           instantWriter = csv.writer(
               f,
-              delimiter=str(u',').encode('utf-8'),
-              quotechar=str(u',').encode('utf-8'),
+              delimiter=str(','),
+              quotechar=str(','),
               quoting=csv.QUOTE_MINIMAL)
           if timeStepIndex == 0:
             instantWriter.writerow(
@@ -1033,8 +1033,8 @@ class phisicsdata():
         with open(csvOutput, 'a+') as f:
           instantWriter = csv.writer(
               f,
-              delimiter=str(u',').encode('utf-8'),
-              quotechar=str(u',').encode('utf-8'),
+              delimiter=str(','),
+              quotechar=str(','),
               quoting=csv.QUOTE_MINIMAL)
           if timeStepIndex == 0:
             instantWriter.writerow(
@@ -1062,8 +1062,8 @@ class phisicsdata():
     with open(csvOutput, 'a+') as f:
       mrtauWriter = csv.writer(
           f,
-          delimiter=str(u',').encode('utf-8'),
-          quotechar=str(u',').encode('utf-8'),
+          delimiter=str(','),
+          quotechar=str(','),
           quoting=csv.QUOTE_MINIMAL)
       if mrtauDict.get('timeStepIndex') == 0:
         mrtauWriter.writerow(['timeMrTau'] + self.numDensityLabelListMrtau +

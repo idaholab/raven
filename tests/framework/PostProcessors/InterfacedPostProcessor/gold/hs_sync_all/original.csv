@@ -1,6 +1,6 @@
-y,x,filename
-1.5,0.0,original_0.csv
-1.11270166538,0.0,original_1.csv
-1.88729833462,0.0,original_2.csv
-1.5,-0.774596669241,original_3.csv
-1.5,0.774596669241,original_4.csv
+x,y,filename
+0.0,1.5,original_0.csv
+-0.774596669241,1.5,original_1.csv
+0.774596669241,1.5,original_2.csv
+0.0,1.11270166538,original_3.csv
+0.0,1.88729833462,original_4.csv

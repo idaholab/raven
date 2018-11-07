@@ -27,7 +27,7 @@ import xml.etree.ElementTree as ET
 
 frameworkDir = os.path.normpath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir,os.pardir,os.pardir,'framework'))
 sys.path.append(frameworkDir)
-from utils import xmlUtils
+from utils import xmlUtils, utils
 
 from MessageHandler import MessageHandler
 mh = MessageHandler()
@@ -125,7 +125,7 @@ xmlTree = ET.parse(inFileName)
 toRemove = attemptFileClear(inFileName,toRemove)
 
 # test prettify
-pretty = xmlUtils.prettify(xmlTree)
+pretty = utils.toString(xmlUtils.prettify(xmlTree))
 prettyFileName = 'xml/testXMLPretty.xml'
 open(prettyFileName,'w').writelines(pretty)
 gold = ''.join(line.rstrip('\n\r') for line in open(os.path.join(os.path.dirname(__file__),'gold',prettyFileName),'r'))
@@ -303,7 +303,7 @@ strNode = """<testMainNode att=\"attrib1\">
     <secondFirstSubNode>secondFirstSubText</secondFirstSubNode>
   </secondSubNode>
 </testMainNode>"""
-if strNode != ET.tostring(node):
+if strNode != utils.toString(ET.tostring(node)):
   print('ERROR: loaded XML node:')
   print(ET.tostring(node))
   print(' ----- does not match expected:')
@@ -342,7 +342,7 @@ correct = """<root>
   </secondSubNode>
 </testMainNode></rootsub>
 </root>"""
-if correct != ET.tostring(root):
+if correct != utils.toString(ET.tostring(root)):
   print('ERROR: expanded XML node:')
   print(ET.tostring(root))
   print(' ----- does not match expected:')

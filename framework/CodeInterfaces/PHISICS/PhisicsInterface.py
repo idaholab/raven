@@ -186,7 +186,7 @@ class Phisics(CodeInterfaceBase):
     """
     distributedPerturbedVars = {}
     pertType = []
-    for i in perturbedVars.iterkeys(
+    for i in perturbedVars.keys(
     ):  # teach what are the type of perturbation (decay FY etc...)
       splittedKeywords = i.split('|')
       pertType.append(splittedKeywords[0])
@@ -254,7 +254,7 @@ class Phisics(CodeInterfaceBase):
           raise ValueError(
               "\n the node " + child.tag + "has to be a boolean entry")
 
-  def generateCommand(self, inputFiles, executable, clargs=None, fargs=None):
+  def generateCommand(self, inputFiles, executable, clargs=None, fargs=None, preExec=None):
     """
       This method is used to retrieve the command (in tuple format) needed to launch the Code.
       See base class.  Collects all the clargs and the executable to produce the command-line call.
@@ -269,6 +269,8 @@ class Phisics(CodeInterfaceBase):
       @ In, fargs, dict, optional, a dictionary containing the axuiliary input file variables the user can
                                    specify in the input (e.g. under the node < Code >< clargstype =0 input0arg
                                    =0 aux0extension =0 .aux0/ >< /Code >)
+      @ In, preExec, string, optional, a string the command that needs to be pre-executed before the actual
+                                       command here defined
       @ Out, returnCommand, tuple, tuple containing the generated command. returnCommand[0] is the command to
                                    run the code (string), returnCommand[1] is the name of the output root
     """
@@ -485,7 +487,7 @@ class Phisics(CodeInterfaceBase):
       self.numberOfMPI = 1
     else:
       self.numberOfMPI = self.getNumberOfMpi(Kwargs['precommand'])
-    for perturbedParam in self.distributedPerturbedVars.iterkeys():
+    for perturbedParam in self.distributedPerturbedVars.keys():
       if perturbedParam == 'DECAY':
         DecayParser.DecayParser(
             currentInputFiles[self.typeDict['decay']].getAbsFile(),

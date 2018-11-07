@@ -48,7 +48,7 @@ class MassParser():
       """
       line = line.upper().split()
       line[0] = re.sub(r'(.*?)(\w+)(-)(\d+M?)', r'\1\2\4', line[0])
-      for isotopeID in self.listedDict['MASS'].iterkeys():
+      for isotopeID in self.listedDict['MASS'].keys():
         if line[0] == isotopeID:
           try:
             line[2] = str(
@@ -89,7 +89,7 @@ class MassParser():
         perturbedIsotopes = []
         perturbedMaterials = []
         perturbedPhysicalParameters = []
-        for key in deconstructedDict.iterkeys():
+        for key in deconstructedDict.keys():
             perturbedIsotopes.append(key.split('|')[1])
             perturbedPhysicalParameters.append(key.split('|')[0])
         for i in range(len(perturbedPhysicalParameters)):

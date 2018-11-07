@@ -169,6 +169,16 @@ data objects, depending on the type of statistics the user wants to compute:
     \end{itemize}
   \default{False}
   %
+\item \xmlNode{multipleFeatures}, \xmlDesc(boolean, optional field), if \textbf{False}, this node can be used when
+    the users want to compute sensitivities based on one target variable with respect to one feature variable,
+    i.e. the sensitivity calculations are directly computed using the \textbf{Linear Regression} or 
+    \textbf{Best Linear Predictor} method with single feature. This method can be useful when the input features
+    depend on each other. The default value is \textbf{True}, which means the sensitivity calculations are performed
+    using \textbf{Linear Regression} or \textbf{Best Linear Predictor} method with multiple features. If the input
+    features are not fully correlated, the default value for \xmlNode{multipleFeatures} is always recommanded.
+    \nb this node only affects the calculations of metrics such as \xmlNode{sensitivity},
+    \xmlNode{VarianceDependentSensitivity} and \xmlNode{NormalizedSensitivity}.
+  \default{True}
 \end{itemize}
 \textbf{Example (Static Statistics):}  This example demonstrates how to request the expected value of
 \xmlString{x01} and \xmlString{x02}, along with the sensitivity of both \xmlString{x01} and \xmlString{x02} to
@@ -2239,7 +2249,6 @@ only accept \textbf{PointSet} data object.
             <SKLtype>KFold</SKLtype>
             <n_splits>3</n_splits>
             <shuffle>False</shuffle>
-            <random_state>None</random_state>
         </SciKitLearn>
         <Metric class="Metrics" type="SKL">m1</Metric>
     </PostProcessor>
@@ -2297,8 +2306,8 @@ In addition to this XML node, several others are available:
   \item \xmlNode{n\_splits}, \xmlDesc{integer, optional field}, number of folds, must be at least 2. \default{3}
   \item \xmlNode{shuffle}, \xmlDesc{boolean, optional field}, whether to shuffle the data before splitting into
     batches.
-  \item \xmlNode{random\_state}, \xmlDesc{None, integer or RandomState, optional field}, when shuffle=True,
-    pseudo-random number generator state used for shuffling. If None, use default numpy RNG for shuffling.
+  \item \xmlNode{random\_state}, \xmlDesc{integer, optional field}, when shuffle=True,
+    pseudo-random number generator state used for shuffling. If not present, use default numpy RNG for shuffling.
 \end{itemize}
 
 \paragraph{Stratified k-fold}
@@ -2310,12 +2319,12 @@ In order to use this algorithm, the user needs to set the subnode:
 
 In addition to this XML node, several others are available:
 \begin{itemize}
-  \item \xmlNode{y}, \xmlDesc{array-like, [n\_samples], required field}, samples to split in K folds.
+  \item \xmlNode{labels}, \xmlDesc{list of integers, (n\_samples), required field}, contains a label for each sample.
   \item \xmlNode{n\_splits}, \xmlDesc{integer, optional field}, number of folds, must be at least 2. \default{3}
   \item \xmlNode{shuffle}, \xmlDesc{boolean, optional field}, whether to shuffle the data before splitting into
     batches.
-  \item \xmlNode{random\_state}, \xmlDesc{None, integer or RandomState, optional field}, when shuffle=True,
-    pseudo-random number generator state used for shuffling. If None, use default numpy RNG for shuffling.
+  \item \xmlNode{random\_state}, \xmlDesc{integer, optional field}, when shuffle=True,
+    pseudo-random number generator state used for shuffling. If not present, use default numpy RNG for shuffling.
 \end{itemize}
 
 \paragraph{Label k-fold}
@@ -2328,7 +2337,7 @@ In order to use this algorithm, the user needs to set the subnode:
 
 In addition to this XML node, several others are available:
 \begin{itemize}
-  \item \xmlNode{labels}, \xmlDesc{array-like with shape (n\_samples, ), required field}, contains a label for
+  \item \xmlNode{labels}, \xmlDesc{list of integers with length (n\_samples, ), required field}, contains a label for
     each sample. The folds are built so that the same label does not appear in two different folds.
   \item \xmlNode{n\_splits}, \xmlDesc{integer, optional field}, number of folds, must be at least 2. \default{3}
 \end{itemize}
@@ -2366,7 +2375,7 @@ In order to use this algorithm, the user needs to set the subnode:
 
 In addition to this XML node, several others are available:
 \begin{itemize}
-  \item \xmlNode{labels}, \xmlDesc{array-like of integer with shape (n\_samples,), required field}, arbitrary
+  \item \xmlNode{labels}, \xmlDesc{list of integers, (n\_samples,), required field}, arbitrary
     domain-specific stratificatioin of the data to be used to draw the splits.
 \end{itemize}
 
@@ -2379,9 +2388,9 @@ In order to use this algorithm, the user needs to set the subnode:
 
 In addition to this XML node, several others are available:
 \begin{itemize}
-  \item \xmlNode{labels}, \xmlDesc{array-like of integer with shape (n\_samples,), required field}, arbitrary
+  \item \xmlNode{labels}, \xmlDesc{list of integers, (n\_samples,), required field}, arbitrary
     domain-specific stratificatioin of the data to be used to draw the splits.
-  \item \xmlNode{p}, \xmlDesc{integer, optional field}, number of samples to leave out in the test split.
+  \item \xmlNode{n\_groups}, \xmlDesc{integer, optional field}, number of samples to leave out in the test split.
 \end{itemize}
 
 \paragraph{ShuffleSplit}
@@ -2394,17 +2403,17 @@ In order to use this algorithm, the user needs to set the subnode:
 
 In addition to this XML node, several others are available:
 \begin{itemize}
-  \item \xmlNode{n\_iter}, \xmlDesc{integer, optional field}, number of re-shuffling and splitting iterations
+  \item \xmlNode{n\_splits}, \xmlDesc{integer, optional field}, number of re-shuffling and splitting iterations
     \default{10}.
-  \item \xmlNode{test\_size}, \xmlDesc{float, integer or None}, if float, should be between 0.0 and 1.0 and
+  \item \xmlNode{test\_size}, \xmlDesc{float or integer, optional field}, if float, should be between 0.0 and 1.0 and
     represent the proportion of the dataset to include in the test split. \default{0.1}
-    If integer, represents the absolute number of test samples. If None, the value is automatically set to
+    If integer, represents the absolute number of test samples. If not present, the value is automatically set to
     the complement of the train size.
-  \item \xmlNode{train\_size}, \xmlDesc{float, integer or None}, if float, should be between 0.0 and 1.0 and represent
+  \item \xmlNode{train\_size}, \xmlDesc{float or integer, optional field}, if float, should be between 0.0 and 1.0 and represent
     the proportion of the dataset to include in the train split. If integer, represents the absolute number of train
-    samples. If None, the value is automatically set to the complement of the test size. \default{None}
-  \item \xmlNode{random\_state}, \xmlDesc{None, integer or RandomState, optional field}, when shuffle=True,
-    pseudo-random number generator state used for shuffling. If None, use default numpy RNG for shuffling.
+    samples. If not present, the value is automatically set to the complement of the test size.
+  \item \xmlNode{random\_state}, \xmlDesc{integer, optional field}, when shuffle=True,
+    pseudo-random number generator state used for shuffling. If not present, use default numpy RNG for shuffling.
 \end{itemize}
 
 \paragraph{Label-Shuffle-Split}
@@ -2416,18 +2425,18 @@ In order to use this algorithm, the user needs to set the subnode:
 
 In addition to this XML node, several others are available:
 \begin{itemize}
-  \item \xmlNode{labels}, \xmlDesc{array, [n\_samples]}, labels of samples.
-  \item \xmlNode{n\_iter}, \xmlDesc{integer, optional field}, number of re-shuffling and splitting iterations
+  \item \xmlNode{labels}, \xmlDesc{list of integers, (n\_samples)}, labels of samples.
+  \item \xmlNode{n\_splits}, \xmlDesc{integer, optional field}, number of re-shuffling and splitting iterations
     \default{10}.
-  \item \xmlNode{test\_size}, \xmlDesc{float, integer or None}, if float, should be between 0.0 and 1.0 and
+  \item \xmlNode{test\_size}, \xmlDesc{float or integer, optional field}, if float, should be between 0.0 and 1.0 and
     represent the proportion of the dataset to include in the test split. \default{0.1}
-    If integer, represents the absolute number of test samples. If None, the value is automatically set to
+    If integer, represents the absolute number of test samples. If not present, the value is automatically set to
     the complement of the train size.
-  \item \xmlNode{train\_size}, \xmlDesc{float, integer or None}, if float, should be between 0.0 and 1.0 and represent
+  \item \xmlNode{train\_size}, \xmlDesc{float or integer, optional field}, if float, should be between 0.0 and 1.0 and represent
     the proportion of the dataset to include in the train split. If integer, represents the absolute number of train
-    samples. If None, the value is automatically set to the complement of the test size. \default{None}
-  \item \xmlNode{random\_state}, \xmlDesc{None, integer or RandomState, optional field}, when shuffle=True,
-    pseudo-random number generator state used for shuffling. If None, use default numpy RNG for shuffling.
+    samples. If not present, the value is automatically set to the complement of the test size.
+  \item \xmlNode{random\_state}, \xmlDesc{integer, optional field}, when shuffle=True,
+    pseudo-random number generator state used for shuffling. If not present, use default numpy RNG for shuffling.
 \end{itemize}
 
 

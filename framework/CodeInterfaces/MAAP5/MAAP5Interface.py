@@ -18,7 +18,7 @@
   @modified: Claudia Picoco    - picoco   (The Ohio State University)
 """
 
-from __future__ import division, print_function, unicode_literals, absolute_import
+from __future__ import division, print_function, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
 
@@ -264,7 +264,7 @@ class MAAP5(GenericCode):
           if self.printDebug : print('stopTimer =', self.stopTimer)
           stop=False
       for cont, var in enumerate(self.DETsampledVars):
-        var = var.encode('utf8')
+        var = var
         branchingMarker=str('C Branching '+var)
         if branchingMarker.strip() == ' '.join(line.split()).strip():
           #branching timer marker
@@ -623,7 +623,7 @@ class MAAP5(GenericCode):
     else:  # 16.10.18
       print('Writing RAVEN csv output file')  # 16.10.18
       outputCSVfile=open(RAVENoutputFile,"w+")
-      csvwriter=csv.writer(outputCSVfile,delimiter=b',')
+      csvwriter=csv.writer(outputCSVfile,delimiter=',')
       csvwriter.writerow(allVariableTags)
       for i in range(len(allVariableValues[0])):
         row=[]
@@ -631,16 +631,6 @@ class MAAP5(GenericCode):
           row.append(allVariableValues[j][i])
         csvwriter.writerow(row)
       outputCSVfile.close()
-
-    #outputCSVfile=open(RAVENoutputFile,"w+")
-    #csvwriter=csv.writer(outputCSVfile,delimiter=b',')
-    #csvwriter.writerow(allVariableTags)
-    #for i in range(len(allVariableValues[0])):
-    #  row=[]
-    #  for j in range(len(allVariableTags)):
-    #    row.append(allVariableValues[j][i])
-    #  csvwriter.writerow(row)
-    #outputCSVfile.close()
 
     if 'DynamicEventTree' in self.samplerType:
       dictTimer={} #
