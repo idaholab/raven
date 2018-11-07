@@ -319,7 +319,7 @@ class HDF5(DateBase):
     if type(index).__name__ == 'int' and index > len(allRealizations):
       rlz = None
     else:
-      rlz,_ = self.database._getRealizationByName(allRealizations[index] if type(index).__name__ == 'int' else index ,{'reconstruct':True})
+      rlz,_ = self.database._getRealizationByName(allRealizations[index] if type(index).__name__ == 'int' else index ,{'reconstruct':False})
     return rlz
 
 __base                  = 'Database'
