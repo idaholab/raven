@@ -37,7 +37,6 @@
       <clargs arg="-i" extension=".xml" type="input"/>
       <clargs arg="-a" extension=".two" type="input"/>
       <clargs arg="-o" type="output"/>
-      <prepend>python</prepend>
     </Code>
   </Models>
 

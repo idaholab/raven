@@ -78,7 +78,7 @@ class PathParser():
       @ Out, reconstructedDict, nested dictionary
     """
     perturbedIsotopes = []
-    for key in self.pertQValuesDict.iterkeys():
+    for key in self.pertQValuesDict.keys():
       perturbedIsotopes.append(key.split('|')[1])
     for perturbedIsotope in perturbedIsotopes:
       self.listedQValuesDict[perturbedIsotope] = {
@@ -86,7 +86,7 @@ class PathParser():
     for isotopeKeyName, QValue in self.pertQValuesDict.items():
       isotopeName = isotopeKeyName.split('|')
       self.listedQValuesDict[isotopeName[1]] = QValue
-    self.setOfPerturbedIsotopes = set(self.listedQValuesDict.iterkeys())
+    self.setOfPerturbedIsotopes = set(self.listedQValuesDict.keys())
 
   def printInput(self, workingDir):
     """

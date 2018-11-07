@@ -139,6 +139,31 @@ FloatType.createClass("float","xsd:double")
 #
 #
 #
+class FloatOrIntType(InputType):
+  """
+    A type for floating point or integer data.
+  """
+
+  @classmethod
+  def convert(cls, value):
+    """
+      Converts value from string to a float or int.
+      @ In, value, string, the value to convert
+      @ Out, val, float or int, the converted value
+    """
+    try:
+      val = int(value)
+      return val
+    except ValueError:
+      val = float(value)
+      return val
+
+FloatOrIntType.createClass("stringtype","xsd:string")
+
+#
+#
+#
+#
 class InterpretedListType(InputType):
   """
     A type for lists with unknown (but consistent) type; could be string, float, etc

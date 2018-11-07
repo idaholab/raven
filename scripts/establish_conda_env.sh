@@ -107,6 +107,11 @@ function install_libraries()
   local COMMAND=`echo $(python ${RAVEN_UTILS} --conda-forge --conda-install ${OSOPTION})`
   if [[ $ECE_VERBOSE == 0 ]]; then echo ... conda-forge command: ${COMMAND}; fi
   ${COMMAND}
+  if [[ $ZAP_PYTHON == 1 ]]; then
+      echo 'DELETING PYTHON (BECAUSE python POINTS TO python3)'
+      conda activate ${RAVEN_LIBS_NAME}
+      rm `which python`
+  fi
 }
 
 function create_libraries()
@@ -120,6 +125,11 @@ function create_libraries()
   local COMMAND=`echo $(python ${RAVEN_UTILS} --conda-forge --conda-install ${OSOPTION})`
   if [[ $ECE_VERBOSE == 0 ]]; then echo ... conda-forge command: ${COMMAND}; fi
   ${COMMAND}
+  if [[ $ZAP_PYTHON == 1 ]]; then
+      echo 'DELETING PYTHON (BECAUSE python POINTS TO python3)'
+      conda activate ${RAVEN_LIBS_NAME}
+      rm `which python`
+  fi
 }
 
 function display_usage()
@@ -153,6 +163,9 @@ function display_usage()
 	echo '    --optional'
 	echo '      Additionally installs optional libraries used in some RAVEN workflows.  Requires --install.'
 	echo ''
+	echo '    --py3'
+	echo '    When installing, make raven_libraries use Python 3'
+	echo ''
 	echo '    --quiet'
 	echo '      Runs script with minimal output'
 	echo ''
@@ -180,6 +193,7 @@ ECE_MODE=1 # 1 for loading, 2 for install, 0 for help
 INSTALL_OPTIONAL="" # --optional if installing optional, otherwise blank
 ECE_VERBOSE=0 # 0 for printing, anything else for no printing
 ECE_CLEAN=0 # 0 for yes (remove raven libs env before installing), 1 for don't remove it
+ZAP_PYTHON=0 #If 1 remove plain python executable after installing
 
 # parse command-line arguments
 while test $# -gt 0
@@ -197,7 +211,12 @@ do
       ;;
     --optional)
       echo ... Including optional libraries ...
-      INSTALL_OPTIONAL="--optional"
+      INSTALL_OPTIONAL="--optional $INSTALL_OPTIONAL"
+      ;;
+    --py3)
+      echo ... Creating Python 3 libraries ...
+      INSTALL_OPTIONAL="--py3 $INSTALL_OPTIONAL"
+      ZAP_PYTHON=1
       ;;
     --quiet)
       ECE_VERBOSE=1

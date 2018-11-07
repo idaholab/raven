@@ -152,7 +152,7 @@ class Sobol(SparseGridCollocation):
     self.pointsToRun.append(tuple(newpt))
     self.distinctPoints.add(tuple(newpt))
     #now do the rest
-    for combo,rom in self.ROMs.items():
+    for combo,rom in sorted(self.ROMs.items()):
       # just for each combo
       SG = rom.sparseGrid #they all should have the same sparseGrid
       SG._remap(combo)
