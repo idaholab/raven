@@ -1,6 +1,6 @@
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework/CodeInterfaceTests/RAVEN/Basic</name>
+    <name>framework/CodeInterfaceTests/RAVEN.Basic</name>
     <author>talbpaul</author>
     <created>2018-01-18</created>
     <classesTested>Models.Code.RAVEN</classesTested>
