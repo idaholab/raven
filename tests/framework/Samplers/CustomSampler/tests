@@ -20,4 +20,11 @@
    csv = 'FromDataset/samples.csv'
    output = 'FromDataset/samples.xml'
  [../]
+
+ [./ByIndex]
+   type = 'RavenFramework'
+   input = 'by_index.xml'
+   csv = 'ByIndex/samples.csv'
+   output = 'ByIndex/samples.xml'
+ [../]
 []
