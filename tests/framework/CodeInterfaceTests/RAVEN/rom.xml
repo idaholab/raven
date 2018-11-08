@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework/CodeInterfaceTests.RAVENrunningRAVEN_ROM</name>
+    <name>framework/CodeInterfaceTests.RAVEN.ROM</name>
     <author>alfoa</author>
     <created>2017-09-16</created>
     <classesTested>Models.Code.RAVEN</classesTested>
@@ -16,7 +16,7 @@
   </TestInfo>
   <!-- RUNINFO -->
   <RunInfo>
-    <WorkingDir>raven_running_raven_internal_models</WorkingDir>
+    <WorkingDir>ROM</WorkingDir>
     <Sequence>FirstMRun</Sequence>
     <!-- This settings here are going to run 3 SLAVE RAVENs at a time, each of them using 2 processors -->
     <batchSize>1</batchSize>
@@ -50,14 +50,14 @@
         <executable>%FRAMEWORK_DIR%/../raven_framework</executable>
         <outputExportOutStreams>outputMontecarloRom_dump,outputMontecarloRomHS_dump</outputExportOutStreams>
         <conversion>
-          <module source="raven_running_raven_internal_models/testConversionModule.py">
+          <module source="ROM/testConversionModule.py">
             <variables>Models|ROM@subType:SciKitLearn@name:ROM1|C</variables>
           </module>
+          <input source="ROM/testInputModification.py"/>
         </conversion>
         <alias variable="loss_factor" type="input">Models|ROM@subType:SciKitLearn@name:ROM1|C</alias>
         <alias variable="tollerance"  type="input">Models|ROM@subType:SciKitLearn@name:ROM1|tol</alias>
         <alias variable="DG1recoveryTime"  type="input">Samplers|Grid@name:gridRom|constant@name:DG1recoveryTime</alias>
-
     </Code>
   </Models>
 
