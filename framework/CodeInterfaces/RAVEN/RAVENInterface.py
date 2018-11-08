@@ -51,6 +51,8 @@ class RAVEN(CodeInterfaceBase):
     self.innerWorkingDir = ''
     # linked DataObjects
     self.linkedDataObjectOutStreamsNames = None
+    # input manipulation module
+    self.inputManipulationModule = None
 
   def addDefaultExtension(self):
     """
@@ -81,6 +83,7 @@ class RAVEN(CodeInterfaceBase):
     if len(self.linkedDataObjectOutStreamsNames) > 2:
       raise IOError(self.printTag+' ERROR: outputExportOutStreams node. The maximum number of linked OutStreams are 2 (1 for PointSet and 1 for HistorySet)!')
 
+    # load conversion modules
     self.conversionDict = {} # {modulePath : {'variables': [], 'noScalar': 0, 'scalar': 0}, etc }
     child = xmlNode.find("conversion")
     if child is not None:
@@ -102,19 +105,25 @@ class RAVEN(CodeInterfaceBase):
         if checkImport is None:
           raise IOError(self.printTag+' ERROR: the conversionModule "{}" failed on import!'
                         .format(source))
-        # check methods are in place
-        noScalar = 'convertNotScalarSampledVariables' in checkImport.__dict__
-        scalar = 'manipulateScalarSampledVariables' in checkImport.__dict__
-        if not (noScalar or scalar):
-          raise IOError(self.printTag +' ERROR: the conversionModule "'+source
-                        +'" does not contain any of the usable methods! Expected at least '
-                        +'one of: "manipulateScalarSampledVariables" and/or "manipulateScalarSampledVariables"!')
-        # acquire the variables to be modified
-        varNode = moduleNode.find('variables')
-        if varNode is None:
-          raise IOError(self.printTag+' ERROR: no node "variables" listed in "conversion|module" subnode!')
-        variables = [x.strip() for x in varNode.text.split(',')]
-        self.conversionDict[source] = {'variables':variables, 'noScalar':noScalar, 'scalar':scalar}
+        # variable conversion modules
+        if moduleNode.tag == 'module':
+          # check methods are in place
+          noScalar = 'convertNotScalarSampledVariables' in checkImport.__dict__
+          scalar = 'manipulateScalarSampledVariables' in checkImport.__dict__
+          if not (noScalar or scalar):
+            raise IOError(self.printTag +' ERROR: the conversionModule "'+source
+                          +'" does not contain any of the usable methods! Expected at least '
+                          +'one of: "manipulateScalarSampledVariables" and/or "manipulateScalarSampledVariables"!')
+          # acquire the variables to be modified
+          varNode = moduleNode.find('variables')
+          if varNode is None:
+            raise IOError(self.printTag+' ERROR: no node "variables" listed in "conversion|module" subnode!')
+          variables = [x.strip() for x in varNode.text.split(',')]
+          self.conversionDict[source] = {'variables':variables, 'noScalar':noScalar, 'scalar':scalar}
+
+        # custom input file manipulation
+        elif moduleNode.tag == 'input':
+          self.inputManipulationModule = source
 
   def __findInputFile(self,inputFiles):
     """
@@ -133,7 +142,7 @@ class RAVEN(CodeInterfaceBase):
       raise IOError(self.printTag+' ERROR: None of the input files are tagged with the "type" "raven" (e.g. <Input name="aName" type="raven">inputFileName.xml</Input>)')
     return inputFileIndex
 
-  def generateCommand(self,inputFiles,executable,clargs=None,fargs=None):
+  def generateCommand(self,inputFiles,executable,clargs=None,fargs=None, preExec=None):
     """
       See base class.  Collects all the clargs and the executable to produce the command-line call.
       Returns tuple of commands and base file name for run.
@@ -143,6 +152,7 @@ class RAVEN(CodeInterfaceBase):
       @ In, executable, string, executable name with absolute path (e.g. /home/path_to_executable/code.exe)
       @ In, clargs, dict, optional, dictionary containing the command-line flags the user can specify in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 i0extension =0 .inp0/ >< /Code >)
       @ In, fargs, dict, optional, a dictionary containing the axuiliary input file variables the user can specify in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 aux0extension =0 .aux0/ >< /Code >)
+      @ In, preExec, string, optional, a string the command that needs to be pre-executed before the actual command here defined
       @ Out, returnCommand, tuple, tuple containing the generated command. returnCommand[0] is the command to run the code (string), returnCommand[1] is the name of the output root
     """
     index = self.__findInputFile(inputFiles)
@@ -225,9 +235,13 @@ class RAVEN(CodeInterfaceBase):
       # either we have an internal parallel or NumMPI > 1
       modifDict['RunInfo|batchSize'       ] = newBatchSize
     #modifDict['RunInfo|internalParallel'] = internalParallel
-    #make tree
+    # make tree
     modifiedRoot = parser.modifyOrAdd(modifDict,save=True,allowAdd = True)
-    #make input
+    # modify tree
+    if self.inputManipulationModule is not None:
+      module = utils.importFromPath(self.inputManipulationModule)
+      modifiedRoot = module.modifyInput(modifiedRoot,modifDict)
+    # write input file
     parser.printInput(modifiedRoot,currentInputFiles[index].getAbsFile())
     # copy slave files
     parser.copySlaveFiles(currentInputFiles[index].getPath())
