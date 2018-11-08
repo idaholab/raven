@@ -18,6 +18,10 @@
     <Group name="GRO_targets">DeltaTimeScramToAux,DG1recoveryTime</Group>
   </VariableGroups>
 
+  <Files>
+    <Input name="TMI_fake">TMI_fake.py</Input>
+  </Files>
+
   <Distributions>
     <Uniform name="auxbackup">
       <lowerBound>0</lowerBound>
