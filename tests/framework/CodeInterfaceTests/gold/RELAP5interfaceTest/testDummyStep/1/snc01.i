@@ -1,9 +1,9 @@
 *RAVEN INPUT VALUES
-* card: 20100157 word: 2 value: 36.9999948425
-* card: 20100156 word: 2 value: 40.7524441199
-* card: 20100155 word: 2 value: 45.2080971338
-* card: 20100154 word: 2 value: 43.1157177297
 * card: 13550801 word: 6 value: 0.520951773483
+* card: 20100154 word: 2 value: 43.1157177297
+* card: 20100155 word: 2 value: 45.2080971338
+* card: 20100156 word: 2 value: 40.7524441199
+* card: 20100157 word: 2 value: 36.9999948425
 *RAVEN INPUT VALUES
 =typical pwr model -- 4 inch cold leg break 36.05 check case
 *                    Configuration Control Problem
