@@ -8,7 +8,7 @@
     <MultiRun name="sample" sleepTime='1e-6'>
       <Input class="DataObjects" type="PointSet">placeholder</Input>
       <Model class="Models" type="ExternalModel">attenuate</Model>
-      <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
+      <Sampler class="Samplers" type="Grid">grid</Sampler>
       <Output class="DataObjects" type="PointSet">inner_samples</Output>
     </MultiRun>
     <PostProcess name="stats">
@@ -36,19 +36,17 @@
   </Distributions>
 
   <Samplers>
-    <MonteCarlo name="mc">
-      <samplerInit>
-        <limit>100</limit>
-        <initialSeed>42</initialSeed>
-      </samplerInit>
+    <Grid name="grid">
       <variable name="y1">
         <distribution>dist</distribution>
+        <grid construction="equal" steps="1" type="CDF">0.0 1.0</grid>
       </variable>
       <variable name="y2">
         <distribution>dist</distribution>
+        <grid construction="equal" steps="1" type="CDF">0.0 1.0</grid>
       </variable>
       <constant name="testSecondAlias">0</constant>
-    </MonteCarlo>
+    </Grid>
   </Samplers>
 
   <OutStreams>

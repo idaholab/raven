@@ -160,7 +160,40 @@ directory) path to the RAVEN framework script (\textbf{raven\_framework}).
   \item  \xmlNode{conversion}, \xmlDesc{Node,optional parameter} will specify details of conversion scripts to
     be used in creating the inner RAVEN input file.  This node contains the following nodes:
     \begin{itemize} % nodes for conversion
-      \item \xmlNode{module}, \xmlDesc{Node, required parameter} contains the information about a specific
+      \item \xmlNode{module}, \xmlDesc{Node, optional parameter} a module for directly manipulating the xml
+        structure of perturbed input files. This can be used to modify the template input file in arbitrary
+        ways; however, it should be used with caution, and is considered an advanced method.
+        This node has the following attribute:
+        \begin{itemize} % attributes for module
+          \item \xmlAttr{source}, \xmlDesc{string, required} provides the path to the manipulation module including
+              the module file itself.  The following method should be defined in order to perform the input
+              manipulation:
+              \begin{itemize} % functions for module
+                 \item \textbf{\textit{modifyInput}}, manipulates the input in arbitrary ways. This method
+                   takes two arguments. The first is the root \xmlNode{Simulation} node of the template input
+                   file that has already been modified with the perturbed samples (the object is a Python
+                   \texttt{xml.etree.ElementTree.Element} object). The second input is a dictionary with all
+                   the modification information used to previously modify the template xml. The method should
+                   return the modified root.
+                 Example:
+                  \begin{lstlisting}[language=python]
+import xml.etree.ElementTree as ET
+def modifyInput(root, modDict):
+  """
+    Manipulate the inner RAVEN xml input.
+    @ In, root, ET.Element, perturbed RAVEN input
+    @ In, modDict, dictionary, modifications made to the input
+    @ Out, root, ET.Element, modified RAVEN input
+  """
+  # adds the file <Input name='aux_inp'>auxfile.txt</Input> to the <Files> node
+  filesNode = root.find('Files')
+  newNode = ET.Element('Input')
+  newNode.text = 'auxfile.txt'
+  newNode.attrib['name'] = 'aux_inp'
+  filesNode.append(newNode)
+  return root
+                   \end{lstlisting}
+      \item \xmlNode{module}, \xmlDesc{Node, optional parameter} contains the information about a specific
         conversion module (python file).  This node can be repeated multiple times.
         This node has the following attribute:
         \begin{itemize} % attributes for module
@@ -170,22 +203,22 @@ directory) path to the RAVEN framework script (\textbf{raven\_framework}).
                  \item \textbf{\textit{manipulateScalarSampledVariables}}, a method that is aimed to manipulate sampled variables and to create more in case needed.
                  Example:
                   \begin{lstlisting}[language=python]
-                    def manipulateScalarSampledVariables(sampledVariables):
-                      """
-                      This method is aimed to manipulate scalar variables.
-                      The user can create new variables based on the
-                      variables sampled by RAVEN
-                       @ In, sampledVariables, dict, dictionary of
-                           sampled variables ({"var1":value1,"var2":value2})
-                       @ Out, None, the new variables should be
-                                     added in the "sampledVariables" dictionary
-                      """
-                      newVariableValue =
-                        sampledVariables['Distributions|Uniform@name:a_dist|lowerBound']
-                        + 1.0
-                      sampledVariables['Distributions|Uniform@name:a_dist|upperBound'] =
-                        newVariableValue
-                      return
+def manipulateScalarSampledVariables(sampledVariables):
+  """
+  This method is aimed to manipulate scalar variables.
+  The user can create new variables based on the
+  variables sampled by RAVEN
+   @ In, sampledVariables, dict, dictionary of
+       sampled variables ({"var1":value1,"var2":value2})
+   @ Out, None, the new variables should be
+                 added in the "sampledVariables" dictionary
+  """
+  newVariableValue =
+    sampledVariables['Distributions|Uniform@name:a_dist|lowerBound']
+    + 1.0
+  sampledVariables['Distributions|Uniform@name:a_dist|upperBound'] =
+    newVariableValue
+  return
                    \end{lstlisting}
 
                  \item \textbf{\textit{convertNotScalarSampledVariables}}, a method that is aimed to convert not scalar variables (e.g. 1D arrays) into multiple scalar variables
@@ -193,26 +226,26 @@ directory) path to the RAVEN framework script (\textbf{raven\_framework}).
                   This method is going to be required in case not scalar variables are detected by the interface.
                   Example:
                   \begin{lstlisting}[language=python]
-                   def convertNotScalarSampledVariables(noScalarVariables):
-                    """
-                    This method is aimed to convert not scalar
-                    variables into multiple scalar variables. The user MUST
-                     create new variables based on the not Scalar Variables
-                      sampled (and passed in) by RAVEN
-                    @ In, noScalarVariables, dict, dictionary of sampled
-                         variables that are not scalar ({"var1":1Darray1,"var2":1Darray2})
-                    @ Out, newVars, dict,  the new variables that have
-                         been created based on the not scalar variables
-                         contained in "noScalarVariables" dictionary
-                    """
-                    oneDimensionalArray =
-                        noScalarVariables['temperatureHistory']
-                    newVars = {}
-                    for cnt, value in enumerate(oneDimensionalArray):
-                      newVars['Samplers|MonteCarlo@name:myMC|constant'+
-                                 '@name=temperatureHistory'+str(cnt)] =
-                                 oneDimensionalArray[cnt]
-                    return newVars
+ def convertNotScalarSampledVariables(noScalarVariables):
+   """
+   This method is aimed to convert not scalar
+   variables into multiple scalar variables. The user MUST
+    create new variables based on the not Scalar Variables
+     sampled (and passed in) by RAVEN
+   @ In, noScalarVariables, dict, dictionary of sampled
+        variables that are not scalar ({"var1":1Darray1,"var2":1Darray2})
+   @ Out, newVars, dict,  the new variables that have
+        been created based on the not scalar variables
+        contained in "noScalarVariables" dictionary
+   """
+   oneDimensionalArray =
+       noScalarVariables['temperatureHistory']
+   newVars = {}
+   for cnt, value in enumerate(oneDimensionalArray):
+     newVars['Samplers|MonteCarlo@name:myMC|constant'+
+                '@name=temperatureHistory'+str(cnt)] =
+                oneDimensionalArray[cnt]
+   return newVars
                   \end{lstlisting}
               \end{itemize} % end functions for module
         \end{itemize} % end attributes for module
@@ -227,75 +260,75 @@ directory) path to the RAVEN framework script (\textbf{raven\_framework}).
 
 Code input example:
 \begin{lstlisting}[style=XML]
-    <Code name="RAVENrunningRAVEN" subType="RAVEN">
-      <executable>../../../raven_framework</executable>
-      <outputExportOutStreams>
-         HistorySetOutStream,PointSetOutStream
-      </outputExportOutStreams>
-      <conversion>
-        <module source=/Users/username/whateverConversionModule.py>
-          <variables>a,b,x,y</variables>
-        </module>
-      </conversion>
-    </Code>
+<Code name="RAVENrunningRAVEN" subType="RAVEN">
+  <executable>../../../raven_framework</executable>
+  <outputExportOutStreams>
+     HistorySetOutStream,PointSetOutStream
+  </outputExportOutStreams>
+  <conversion>
+    <module source=/Users/username/whateverConversionModule.py>
+      <variables>a,b,x,y</variables>
+    </module>
+  </conversion>
+</Code>
 \end{lstlisting}
 
 Like for every other interface,  the syntax of the variable names is important to make the parser understand how to perturb an input file.
 \\ For the RAVEN interface, a syntax inspired by the XPath nomenclature is used.
 \begin{lstlisting}[style=XML]
-  <Samplers>
-    <MonteCarlo name="MC_external">
-       ...
-      <variable name="Models|ROM@subType:SciKitLearn@name:ROM1|C">
-        <distribution>C_distrib</distribution>
-      </variable>
-      <variable name="Models|ROM@subType:SciKitLearn@name:ROM1|tol">
-        <distribution>toll_distrib</distribution>
-      </variable>
-      <variable name="Samplers|Grid@name:'+
-            'GridName|variable@name:var1|grid@construction:equal@type:value@steps">
-        <distribution>categorical_step_distrib</distribution>
-      </variable>
-      ...
-    </MonteCarlo>
-  </Samplers>
+<Samplers>
+  <MonteCarlo name="MC_external">
+     ...
+    <variable name="Models|ROM@subType:SciKitLearn@name:ROM1|C">
+      <distribution>C_distrib</distribution>
+    </variable>
+    <variable name="Models|ROM@subType:SciKitLearn@name:ROM1|tol">
+      <distribution>toll_distrib</distribution>
+    </variable>
+    <variable name="Samplers|Grid@name:'+
+          'GridName|variable@name:var1|grid@construction:equal@type:value@steps">
+      <distribution>categorical_step_distrib</distribution>
+    </variable>
+    ...
+  </MonteCarlo>
+</Samplers>
 \end{lstlisting}
 In the above example, it can be inferred that each XML node (subnode) needs to be separated by a ``|'' separator. In addition,
 every time an XML node has attributes, the user can specify them using the ``@'' separator to specify a value for them.
 The first variable above will be pointing to the following XML sub-node ( \xmlNode{C}):
 \begin{lstlisting}[style=XML]
-      <Models>
-        <ROM name="ROM1" subType="SciKitLearn">
-           ...
-           <C>10.0</C>
-          ...
-       </ROM>
-      </Models>
+<Models>
+  <ROM name="ROM1" subType="SciKitLearn">
+     ...
+     <C>10.0</C>
+    ...
+ </ROM>
+</Models>
 \end{lstlisting}
 The second variable above will be pointing to the following XML sub-node ( \xmlNode{tol}):
 \begin{lstlisting}[style=XML]
-      <Models>
-        <ROM name="ROM1" subType="SciKitLearn">
-           ...
-           <tol>0.0001</tol>
-          ...
-       </ROM>
-      </Models>
+<Models>
+  <ROM name="ROM1" subType="SciKitLearn">
+     ...
+     <tol>0.0001</tol>
+    ...
+ </ROM>
+</Models>
 \end{lstlisting}
 The third variable above will be pointing to the following XML attribute ( \xmlAttr{steps}):
 \begin{lstlisting}[style=XML]
-  <Samplers>
-    <Grid name="GridName">
+<Samplers>
+  <Grid name="GridName">
+     ...
+    <variable name="var1">
        ...
-      <variable name="var1">
-         ...
-        <grid construction="equal" type="value" steps="1">0 1</grid>
-         ...
-      </variable>
+      <grid construction="equal" type="value" steps="1">0 1</grid>
+       ...
+    </variable>
 
-      ...
-    </MonteCarlo>
-  </Samplers>
+    ...
+  </MonteCarlo>
+</Samplers>
 \end{lstlisting}
 
 The above nomenclature must be used for all the variables to be sampled and for the variables generated by the two methods contained, in case, in
@@ -3842,30 +3875,30 @@ outputs will be saved in the \textbf{DataObject} ``saphireDump'', and will be pr
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%% PHISICS INTERFACE %%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{PHISICS Interface} 
+\subsection{PHISICS Interface}
 \label{subsec:PhisicsInterface}
 %
 \subsubsection{General Information}
 %
 This section covers the input specification for running PHISICS through RAVEN.
 The interface can be used to perturb the PHISICS input files including the INSTANT and MRTAU input decks
-and the following libraries: cross sections, fission yield, decay, fission Q-values, decay Q-values and the XML material input. 
-The interface also the cabablity to work in MRTAU standlone calculations, in INSTANT/MRTAU mode (PHISICS) and 
-in PHISICS/RELAP5 coupled mode (see~\ref{subsec:PhisicsRelap5Interface}). 
+and the following libraries: cross sections, fission yield, decay, fission Q-values, decay Q-values and the XML material input.
+The interface also the cabablity to work in MRTAU standlone calculations, in INSTANT/MRTAU mode (PHISICS) and
+in PHISICS/RELAP5 coupled mode (see~\ref{subsec:PhisicsRelap5Interface}).
 %
-\subsubsection{Files} 
+\subsubsection{Files}
 \label{subsubsec:PhisicsInterfaceFiles}
-\xmlNode{Files} includes two attributes \xmlAttr{name} and \xmlAttr{type} entries, identically as other interfaces.   
+\xmlNode{Files} includes two attributes \xmlAttr{name} and \xmlAttr{type} entries, identically as other interfaces.
 It also includes two optional attributes \xmlAttr{perturbable} and \xmlAttr{subDirectory}.
 
-The \xmlAttr{name} attribute is a user-defined internal name for the file contained in the node. 
-Default: None (required entry).  
+The \xmlAttr{name} attribute is a user-defined internal name for the file contained in the node.
+Default: None (required entry).
 
-The \xmlAttr{type} attribute identifies which base-level parser an input file is used within.  The \xmlAttr{type} has to be specified as long as the 
-file is parsed by the interface or an interface's parser. \xmlAttr{type} is hardcoded for this speciific inputs, in order to assign each input to its corresponding RAVEN parser. 
-Default: None (required entry if parsed). 
+The \xmlAttr{type} attribute identifies which base-level parser an input file is used within.  The \xmlAttr{type} has to be specified as long as the
+file is parsed by the interface or an interface's parser. \xmlAttr{type} is hardcoded for this speciific inputs, in order to assign each input to its corresponding RAVEN parser.
+Default: None (required entry if parsed).
 
-The corresponding hardcoded flags accepted by RAVEN are given in Table~\ref{TypeTable}. The type attributes are case-incensitive. 
+The corresponding hardcoded flags accepted by RAVEN are given in Table~\ref{TypeTable}. The type attributes are case-incensitive.
 \begin{table}[]
   \centering
   \caption{Correspondance between the type attributes required and the PHISICS input files}\label{TypeTable}
@@ -3896,23 +3929,23 @@ budep                   & MrTau burn-up history                        & No     
 CRAM\_coeff\_PF         & MrTau CRAM coefficients                      & No                   \\
 IsotopeList             & MrTau isotope list input                     & No                   \\
 mass                    & MrTau mass input                             & No                   \\
-tabMap             & XML tabulation mapping                       & No                   
+tabMap             & XML tabulation mapping                       & No
     \end{tabular}
 \end{table}
 
 The cross section libraries files can be defined with any \xmlAttr{type} attribute.
 The tabulation mapping file is optional. If a \xmlAttr{type}=\xmlString{tabMap} is found in an \xmlNode{Input} node, the cross section
-parser will be based on the tabulation points provided in the tabulation mapping file. If no tabulation mapping file is provided, 
-the cross section parser will print the perturbed cross section in one single tabulation point. 
-The \xmlAttr{perturbable} attribute indicates whether the input file can be perturbed. It is an optional boolean attribute.  
+parser will be based on the tabulation points provided in the tabulation mapping file. If no tabulation mapping file is provided,
+the cross section parser will print the perturbed cross section in one single tabulation point.
+The \xmlAttr{perturbable} attribute indicates whether the input file can be perturbed. It is an optional boolean attribute.
 Default: False
 
-The \xmlAttr{subDirectory} indicates the subdirectory to which RAVEN search an input file. It is an optional attribute.  
+The \xmlAttr{subDirectory} indicates the subdirectory to which RAVEN search an input file. It is an optional attribute.
 Default: . / (relative path of the working directory)
 
-The \xmlString{Input File} string is the user-defined input file name. 
-The XML file specifying the library input paths corresponding to the decay, fission yields, the Q-values and the Mrtau standalone inputs will be automatically populated according to the user-input file names. 
-The Instant-MrTau input files material, library, instant control, library path and depletion are also user-defined in the input section. The user does not have to use the default file names. 
+The \xmlString{Input File} string is the user-defined input file name.
+The XML file specifying the library input paths corresponding to the decay, fission yields, the Q-values and the Mrtau standalone inputs will be automatically populated according to the user-input file names.
+The Instant-MrTau input files material, library, instant control, library path and depletion are also user-defined in the input section. The user does not have to use the default file names.
 Example:
 \begin{lstlisting}[style=XML]
 <File>
@@ -3921,45 +3954,45 @@ Example:
   <Input name="input" type="inp"   perturbable="False"                    >inpInstant.xml</Input>
 </File>
 \end{lstlisting}
-in the example, the path-to-MrTau-libraries is pointed by the \xmlAttr{type}="path". The file name associated to the path-to-MrTau-libraries file is then user-defined as \xmlString{pathMrTau.xml}. 
-It is located in the working directory and it cannot be perturbed. 
+in the example, the path-to-MrTau-libraries is pointed by the \xmlAttr{type}="path". The file name associated to the path-to-MrTau-libraries file is then user-defined as \xmlString{pathMrTau.xml}.
+It is located in the working directory and it cannot be perturbed.
 
-The decay library is pointed by the \xmlAttr{type}="decay". The file name associated to the decay library is then user-defined as \xmlString{decayLibrary.dat}. 
+The decay library is pointed by the \xmlAttr{type}="decay". The file name associated to the decay library is then user-defined as \xmlString{decayLibrary.dat}.
 The decay library is located at the relative path "libF". This path and name will be populated in the \xmlString{pathMrTau.xml} file automatically. The decay library can be perturbed.
 
-The Instant XML input is pointed by the \xmlAttr{type}="inp". The file name associated to the Instant input is then user-defined as \xmlString{inpInstant.xml}. 
-it is located in the working directory and it cannot be perturbed. 
+The Instant XML input is pointed by the \xmlAttr{type}="inp". The file name associated to the Instant input is then user-defined as \xmlString{inpInstant.xml}.
+it is located in the working directory and it cannot be perturbed.
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Models}
 \label{subsubsection:PhisicsModel}
-The user provides paths to executables for sampled variables within the \xmlNode{Models} block.  
+The user provides paths to executables for sampled variables within the \xmlNode{Models} block.
 
 The \xmlNode{Code} block will contain attributes \xmlAttr{name} and
 \xmlAttr{subType}. The \xmlAttr{name} identifies that particular \xmlNode{Code} model within RAVEN, and
-\xmlAttr{subType} specifies which code interface the model will use. 
+\xmlAttr{subType} specifies which code interface the model will use.
 
-The \xmlNode{executable} block contains the absolute or relative path (with respect to the current working directory) 
+The \xmlNode{executable} block contains the absolute or relative path (with respect to the current working directory)
 to PHISICS that RAVEN will use to run generated input files.
 
-The \xmlNode{mrtauStandAlone} node informs whether or not MrTau is ran in standalone mode. The 
+The \xmlNode{mrtauStandAlone} node informs whether or not MrTau is ran in standalone mode. The
 \xmlNode{mrtauStandAlone} accepts only a boolean entry (\xmlString{true}, \xmlString{t}, \xmlString{false}
-,\xmlString{f}). It is case insensitive. 
-Default: false. 
-If \xmlNode{mrtauStandAlone} is false, a coupled INSTANT+MrTau calculation is ran, using the Phisics executable. 
+,\xmlString{f}). It is case insensitive.
+Default: false.
+If \xmlNode{mrtauStandAlone} is false, a coupled INSTANT+MrTau calculation is ran, using the Phisics executable.
 
-The \xmlNode{printSpatialRR} node indicates if the spatial reaction rates computed by PHISICS are to be included 
-in the RAVEN csv output. The entry is case insensitive. 
-. If False, the total reaction rates are printed instead. Default: False (spatial reaction rate not printed). 
+The \xmlNode{printSpatialRR} node indicates if the spatial reaction rates computed by PHISICS are to be included
+in the RAVEN csv output. The entry is case insensitive.
+. If False, the total reaction rates are printed instead. Default: False (spatial reaction rate not printed).
 
-The \xmlNode{printSpatialFlux} node indicates if the spatial neutron fluxes computed by PHISICS are to be included in the RAVEN csv output. The entry is case insensitive. Default: False (spatial fluxes not printed). 
+The \xmlNode{printSpatialFlux} node indicates if the spatial neutron fluxes computed by PHISICS are to be included in the RAVEN csv output. The entry is case insensitive. Default: False (spatial fluxes not printed).
 
 An example of the \xmlNode{Models} block is given below:
 
 \begin{lstlisting}[style=XML]
   <Models>
     <Code name="PHISICS" subType="Phisics">
-       <executable>./path/to/instant/executable</executable>   
+       <executable>./path/to/instant/executable</executable>
        <mrtauStandAlone>F</mrtauStandAlone>
        <printSpatialRR>F</printSpatialRR>
        <printSpatialFlux>T</printSpatialFlux>
@@ -3967,8 +4000,8 @@ An example of the \xmlNode{Models} block is given below:
   </Models>
 \end{lstlisting}
 In the example, note that because \xmlNode{mrtauStandAlone} is false.
-If  \xmlNode{mrtauStandAlone} is changed to \xmlString{true}, the path \xmlString{/path/to/mrtau/executable} will be read to get the MrTau executable. 
-In the example, RAVEN is used in PHISICS standalone mode. Spatial neutron fluxes are printed a and no spatial reaction rates are printed in the RAVEN output.  
+If  \xmlNode{mrtauStandAlone} is changed to \xmlString{true}, the path \xmlString{/path/to/mrtau/executable} will be read to get the MrTau executable.
+In the example, RAVEN is used in PHISICS standalone mode. Spatial neutron fluxes are printed a and no spatial reaction rates are printed in the RAVEN output.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Distributions}
@@ -3987,29 +4020,29 @@ same kind of distributions but different input parameters.
 The \xmlNode{Samplers} block defines the variables to be sampled.
 After defining a sampling scheme, the variables to be sampled and
 their distributions are identified in the \xmlNode{variable} blocks.
-The \xmlAttr{name} must be formatted according to library which the variable belongs to. 
+The \xmlAttr{name} must be formatted according to library which the variable belongs to.
 The description of the \xmlString{variable} template is detailed in the next sub-sections for the decay
- constants (\ref{decayPara}), the fission yields (\ref{FYPara}), the number densities (\ref{NDPara}), 
+ constants (\ref{decayPara}), the fission yields (\ref{FYPara}), the number densities (\ref{NDPara}),
 the fission Q-values (\ref{FQPara}), the $\alpha$ decay Q-values (\ref{AlphaPara}), the $\beta^{+}$ Q-values
- (\ref{BetaPlusPara}), $\beta^{+*}$ Q-values (\ref{BetaPlusStarPara}), $\beta$ Q-values (\ref{BetaPara}), 
-$\beta^{*}$ Q-values (\ref{BetaStarPara}), the internal transition decay Q-values (\ref{IntTraPara}) and the cross 
-section scaling factors (\ref{XSPara}). 
+ (\ref{BetaPlusPara}), $\beta^{+*}$ Q-values (\ref{BetaPlusStarPara}), $\beta$ Q-values (\ref{BetaPara}),
+$\beta^{*}$ Q-values (\ref{BetaStarPara}), the internal transition decay Q-values (\ref{IntTraPara}) and the cross
+section scaling factors (\ref{XSPara}).
 
 \paragraph{Decay constant variable} \label{decayPara}
 
-The \xmlString{variable} template is: DECAY$\vert$TYPE\_OF\_DECAY$\vert$ISOTOPE. 
-The type of decay (TYPE\_OF\_DECAY) is the decay mode relative to the isotope's decay constant perturbed. 
-The type of decay depends on the isotope perturbed. 
+The \xmlString{variable} template is: DECAY$\vert$TYPE\_OF\_DECAY$\vert$ISOTOPE.
+The type of decay (TYPE\_OF\_DECAY) is the decay mode relative to the isotope's decay constant perturbed.
+The type of decay depends on the isotope perturbed.
 If the isotope is an actinide, the available decay modes are:
 \begin{enumerate}
-  \item [$-$]BETA; 
-  \item [$-$]BETA+; 
-  \item [$-$]ALPHA. 
+  \item [$-$]BETA;
+  \item [$-$]BETA+;
+  \item [$-$]ALPHA.
 \end{enumerate}
 If the isotope is a fission product, the available decay modes are:
 \begin{enumerate}
-  \item [$-$]BETA; 
-  \item [$-$]BETA*; 
+  \item [$-$]BETA;
+  \item [$-$]BETA*;
   \item [$-$]BETA+;
   \item [$-$]BETA+*;
   \item [$-$]ALPHA;
@@ -4017,92 +4050,92 @@ If the isotope is a fission product, the available decay modes are:
 \end{enumerate}
 
 The decay types are immediately parsed from the MRTAU decay library. Hence, If the user modifies the decay labels
- in the decay library, 
+ in the decay library,
 the user will have to modify the her/his decay type in the RAVEN input. The isotope defined in the variable has
- to originally exist in the decay library.  
+ to originally exist in the decay library.
 
-\paragraph{Fission yield variable} \label{FYPara} 
-The \xmlString{variable} template is FY$\vert$SPECTRUM$\vert$FISSION\_ISOTOPE$\vert$FISSION\_PRODUCT. 
+\paragraph{Fission yield variable} \label{FYPara}
+The \xmlString{variable} template is FY$\vert$SPECTRUM$\vert$FISSION\_ISOTOPE$\vert$FISSION\_PRODUCT.
 
-The types of spectrum (SPECTRUM) available are: FAST; THERMAL. 
-The fission isotopes (FISSION\_ISOTOPE) and fission products (FISSION\_PRODUCT) in the variable have to 
-originally exist in the fission yield library. 
+The types of spectrum (SPECTRUM) available are: FAST; THERMAL.
+The fission isotopes (FISSION\_ISOTOPE) and fission products (FISSION\_PRODUCT) in the variable have to
+originally exist in the fission yield library.
 
-\paragraph{Number density variable} \label{NDPara} 
-The \xmlString{variable} template is DENSITY$\vert$MATERIAL\_ID$\vert$ISOTOPE. 
-The Material ID (MATERIAL\_ID) has to originally exist in the material XML input. The isotope in the variable has to 
-be originally defined within the material ID aforementioned.  
+\paragraph{Number density variable} \label{NDPara}
+The \xmlString{variable} template is DENSITY$\vert$MATERIAL\_ID$\vert$ISOTOPE.
+The Material ID (MATERIAL\_ID) has to originally exist in the material XML input. The isotope in the variable has to
+be originally defined within the material ID aforementioned.
 
 \paragraph{Fission Q-values variables} \label{FQPara}
-The \xmlString{variable} template is QVALUES$\vert$ ISOTOPE. 
+The \xmlString{variable} template is QVALUES$\vert$ ISOTOPE.
 
-The isotope (ISOTOPE) in the variable has to originally exist in the fission Q-values library. 
+The isotope (ISOTOPE) in the variable has to originally exist in the fission Q-values library.
 
 \paragraph{$\alpha$ decay variable} \label{AlphaPara}
 The \xmlString{variable} template is ALPHADECAY$\vert$ISOTOPE.
 
 The isotope (ISOTOPE) in the variable has to originally exist in the $\alpha$ decay Q-values library.
 
-\paragraph{$\beta^{+}$ decay variable} \label{BetaPlusPara} 
-The \xmlString{variable} template is BETA+DECAY$\vert$ ISOTOPE. 
+\paragraph{$\beta^{+}$ decay variable} \label{BetaPlusPara}
+The \xmlString{variable} template is BETA+DECAY$\vert$ ISOTOPE.
 
 The isotope (ISOTOPE) in the variable has to originally exist in the $\beta^+$ decay Q-values library.
 
 \paragraph{$\beta^{+*}$ decay variable} \label{BetaPlusStarPara}
-The \xmlString{variable} template is BETA+XDECAY$\vert$ISOTOPE. 
+The \xmlString{variable} template is BETA+XDECAY$\vert$ISOTOPE.
 
 The isotope (ISOTOPE) in the variable has to originally exist in the $\beta^{+*}$ decay Q-values library.
 
-\paragraph{$\beta$ decay variable} \label{BetaPara} 
-The \xmlString{variable} template is BETADECAY$\vert$ISOTOPE. 
+\paragraph{$\beta$ decay variable} \label{BetaPara}
+The \xmlString{variable} template is BETADECAY$\vert$ISOTOPE.
 
 The isotope (ISOTOPE) in the variable has to originally exist in the $\beta$ decay Q-values library.
 
-\paragraph{$\beta^{*}$ decay variable} \label{BetaStarPara} 
-The \xmlString{variable} template is BETAXDECAY$\vert$ISOTOPE. 
+\paragraph{$\beta^{*}$ decay variable} \label{BetaStarPara}
+The \xmlString{variable} template is BETAXDECAY$\vert$ISOTOPE.
 
 The isotope (ISOTOPE) in the variable has to originally exist in the $\beta^*$ decay Q-values library.
 
-\paragraph{Internal transition decay variable} \label{IntTraPara} 
-The \xmlString{variable} template is INTTRADECAY$\vert$ISOTOPE. 
+\paragraph{Internal transition decay variable} \label{IntTraPara}
+The \xmlString{variable} template is INTTRADECAY$\vert$ISOTOPE.
 
 The isotope (ISOTOPE) in the variable has originally to exist in the internal transition decay Q-value library.
 
 \paragraph{Cross section scaling factors} \label{XSPara}
-The \xmlString{variable} template is: 
+The \xmlString{variable} template is:
 
-XS$\vert$TABULATION\_POINT$\vert$MATERIAL\_ID$\vert$ISOTOPE$\vert$OPERATOR$\vert$XS\_TYPE$\vert$GROUP\_NUMBER. 
+XS$\vert$TABULATION\_POINT$\vert$MATERIAL\_ID$\vert$ISOTOPE$\vert$OPERATOR$\vert$XS\_TYPE$\vert$GROUP\_NUMBER.
 \begin{enumerate}
-  \item [$\cdot$]The tabulation point (TABULATION\_POINT) is the integer referrencing to the tabulation point. 
+  \item [$\cdot$]The tabulation point (TABULATION\_POINT) is the integer referrencing to the tabulation point.
   The tabulation numbering is given by the XML input file 'tabMapping.xml' (Section \ref{additionalInput}).
-   If there are no tabulations, the tabulation number has to be 1. 
-  \item [$\cdot$]The material ID (MATERIAL\_ID) is the string referring to the material in which the isotope is defined. 
-  The Material ID  has to originally exist in the material XML file. 
-   \item [$\cdot$]The isotope (ISOTOPE) is the ISOTOPE that the user desires to perturbed. The isotope perturbed 
+   If there are no tabulations, the tabulation number has to be 1.
+  \item [$\cdot$]The material ID (MATERIAL\_ID) is the string referring to the material in which the isotope is defined.
+  The Material ID  has to originally exist in the material XML file.
+   \item [$\cdot$]The isotope (ISOTOPE) is the ISOTOPE that the user desires to perturbed. The isotope perturbed
    has to originally exist in the material ID.
-   \item [$\cdot$]The operator (OPERATOR) determines how the cross section is perturbed from its nominal value. 
-   The operators available are: 
+   \item [$\cdot$]The operator (OPERATOR) determines how the cross section is perturbed from its nominal value.
+   The operators available are:
    \begin{enumerate}
-      \item[$-$]ADDITIVE; The additive operator adds the user-defined value to the nominal cross section value. 
-      \item[$-$]MULTIPLIER; the multiplier operator multiplies the user-defined factor to the nominal value. 
-      \item[$-$]ABSOLUTE; the absolute operator replaces the nominal value by the user-defined value. 
+      \item[$-$]ADDITIVE; The additive operator adds the user-defined value to the nominal cross section value.
+      \item[$-$]MULTIPLIER; the multiplier operator multiplies the user-defined factor to the nominal value.
+      \item[$-$]ABSOLUTE; the absolute operator replaces the nominal value by the user-defined value.
   \end{enumerate}
   \item [$\cdot$]The types of cross sections (CROSS\_SECTION\_TYPE) available are:
   \begin{enumerate}
-     \item[$-$]FISSIONXS; Fission cross section. 
-     \item[$-$]NPXS; Neutron to proton capture cross section. 
-     \item[$-$]NGXS; Neutron to gamma capture cross section. 
+     \item[$-$]FISSIONXS; Fission cross section.
+     \item[$-$]NPXS; Neutron to proton capture cross section.
+     \item[$-$]NGXS; Neutron to gamma capture cross section.
      \item[$-$]NUFISSIONXS; $\nu$*fission cross section. The $\nu$*fission is coordinated with the
-        fission cross section so that only the coefficient $\nu$ is perturbed.  
+        fission cross section so that only the coefficient $\nu$ is perturbed.
       \item[$-$]SCATTERINGXS. Total scattering cross section.
-      \item[$-$]N2NXS. n,2n cross section. 
+      \item[$-$]N2NXS. n,2n cross section.
       \item[$-$]NALPHAXS. Neutron to alpha capture cross section.
       \item[$-$]KAPPAXS. Kappa coefficient.
    \end{enumerate}
-   \item The group number (GROUP\_NUMBER) is the group number of the cross section perturbed. 
-    The group number is an integer and has to be inferior or equal to the number of groups used in the cross section library. 
+   \item The group number (GROUP\_NUMBER) is the group number of the cross section perturbed.
+    The group number is an integer and has to be inferior or equal to the number of groups used in the cross section library.
 \end{enumerate}
-An example is given for each type of variable in Table \ref{VariableExampleTable}. 
+An example is given for each type of variable in Table \ref{VariableExampleTable}.
 
 \begin{table}[]
 \centering
@@ -4126,12 +4159,12 @@ XS scaling factors       & XS scaling factor           & XS$\vert$1$\vert$FUEL1$
 
 The following example is a Monte Carlo-based sampler with two variables. The $\beta$ decay constant of
  uranium $^{235}$U and the $^{135}$Xe n,p cross section in group 12 at tabulation point 1 within the material
-  ID "F1" are to be perturbed. The absolute operator is chosen for the n,p cross section, which means the 
-  nominal value will be replaced by the averaged value defined in the distribution block, with its corresponding distribution. 
+  ID "F1" are to be perturbed. The absolute operator is chosen for the n,p cross section, which means the
+  nominal value will be replaced by the averaged value defined in the distribution block, with its corresponding distribution.
 
 \begin{lstlisting}[style=XML]
   <Samplers>
-    <MonteCarlo name="MC_samp"> 
+    <MonteCarlo name="MC_samp">
       <samplerInit>
         <limit>100</limit>
       </samplerInit>
@@ -4148,7 +4181,7 @@ The following example is a Monte Carlo-based sampler with two variables. The $\b
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Steps}
 For a PHISICS interface, the \xmlNode{MultiRun} step type will most likely be used. First, the step needs
-to be named: this name will be one of the names used in the \xmlNode{Sequence} block. 
+to be named: this name will be one of the names used in the \xmlNode{Sequence} block.
 In the example, the step is called \xmlString{testDummyStep}.
 %
 \begin{lstlisting}[style=XML]
@@ -4160,19 +4193,19 @@ In the example, the step is called \xmlString{testDummyStep}.
     <Model   class='Models' type='Code'>PHISICS</Model>
     <Sampler class='Samplers' type='MonteCarlo'>MC_samp</Sampler>
     <Output  class='Databases' type='HDF5'>DataB_REL5_1</Ouput>
-  </MultiRun>    
+  </MultiRun>
 </Steps>
 \end{lstlisting}
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsubsection{Additional Input} 
+\subsubsection{Additional Input}
 \label{subsubsection:PhisicsAdditionalInput}
-In addition to the usual PHISICS inputs required (INSTANT input, depletion input, material 
- input, library input, path input) and the regular MrTau libraries, additional inputs may be required, depending on the user's needs. 
+In addition to the usual PHISICS inputs required (INSTANT input, depletion input, material
+ input, library input, path input) and the regular MrTau libraries, additional inputs may be required, depending on the user's needs.
 \begin{enumerate}
-\item [$\cdot$]A file 'tabMapping.xml' is (optional) maps the cross section tabulation points for interpolation purposes. 
-The tabulation mapping assigns an integer to a given tabulation in order to identify it in the RAVEN variable definition. 
-The format of the tabulation mapping is the following: 
+\item [$\cdot$]A file 'tabMapping.xml' is (optional) maps the cross section tabulation points for interpolation purposes.
+The tabulation mapping assigns an integer to a given tabulation in order to identify it in the RAVEN variable definition.
+The format of the tabulation mapping is the following:
 \begin{lstlisting}[style=XML]
 <mapping>
   <tabulation set="1">
@@ -4187,18 +4220,18 @@ The format of the tabulation mapping is the following:
     <tab name="mod_temperature">1000</tab>
     <tab name="BURN-UP">100</tab>
   </tabulation>
-</mapping> 
+</mapping>
 \end{lstlisting}
-In \xmlNode{tabulation}, the \xmlAttr{set} refers to the user-defined number assigned to a given tabulation point. 
-This \xmlAttr{set} number corresponds to the second argument of the cross section scaling factor variable.   
+In \xmlNode{tabulation}, the \xmlAttr{set} refers to the user-defined number assigned to a given tabulation point.
+This \xmlAttr{set} number corresponds to the second argument of the cross section scaling factor variable.
 The user enters the tabulation parameters and corresponding tabulation values with the \xmlNode{tabulation},
- using the sub-node \xmlNode{tab}. 
+ using the sub-node \xmlNode{tab}.
 
 \item [$\cdot$]If the user perturbs cross sections, an XML file 'scaled\_xs.xml' will be generated at each perturbation
- in the output folder. 
-The file 'scaled\_xs.xml' is automatically created from the cross section variables defined in the RAVEN 
-\xmlNode{Sampler} block (see \ref{XSPara}). The cross section file 'scaled\_xs.xml' has the following format: 
- 
+ in the output folder.
+The file 'scaled\_xs.xml' is automatically created from the cross section variables defined in the RAVEN
+\xmlNode{Sampler} block (see \ref{XSPara}). The cross section file 'scaled\_xs.xml' has the following format:
+
 \begin{lstlisting}[style=XML]
 <scaling_library>
   <tabulation>
@@ -4213,34 +4246,34 @@ The file 'scaled\_xs.xml' is automatically created from the cross section variab
       </isotope>
     </library>
   </tabulation>
-<scaling_library>  
+<scaling_library>
 \end{lstlisting}
 The tabulation points \xmlNode{tab} are optional have to agree with the tabulation points defined in the
- ``tabMapping.xml'' if they are provided. 
-The \xmlNode{library} has one required attribute \xmlAttr{lib\_name} corresponding to one of the libraries 
-listed in the PHISICS library input. 
-The \xmlNode{isotope} provides the information related to an isotope included in the library aforementioned. 
-The \xmlAttr{id} gives the isotope ID (no dash allowed). 
+ ``tabMapping.xml'' if they are provided.
+The \xmlNode{library} has one required attribute \xmlAttr{lib\_name} corresponding to one of the libraries
+listed in the PHISICS library input.
+The \xmlNode{isotope} provides the information related to an isotope included in the library aforementioned.
+The \xmlAttr{id} gives the isotope ID (no dash allowed).
 The \xmlAttr{type} specifies the type of operator used (\xmlString{additive}, \xmlString{multiplier} or
- \xmlString{absolute}). 
+ \xmlString{absolute}).
 The sub-node \xmlNode{XS} (where 'XS' is the perturb-able type of cross sections listed in section~\ref{XSPara})
- provides the cross section information. 
-The \xmlAttr{g} attribute refers to the group numbers to be perturbed, separated by commas. 
-The \xmlString{XS} provides the scaling factors or the new cross section values. 
+ provides the cross section information.
+The \xmlAttr{g} attribute refers to the group numbers to be perturbed, separated by commas.
+The \xmlString{XS} provides the scaling factors or the new cross section values.
 \end{enumerate}
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsubsection{Output Files Conversion} 
+\subsubsection{Output Files Conversion}
 \label{subsubsection:PhisicsOutFileConv}
 
 The PHISICS output available for RAVEN post-processing are described in this section. The PHISICS outputs
- are by convention separated by '$\vert$' if they are contained in a matrix form such as group-wise or region-wise values. 
+ are by convention separated by '$\vert$' if they are contained in a matrix form such as group-wise or region-wise values.
 In the PHISICS mode (i.e. \xmlNode{mrtauStandalone} is \xmlString{False}) The variables available for RAVEN
  post-processing are:
 \begin{enumerate}
-  \item [$-$]the MrTau time; 
-  \item [$-$]the multiplication factor; 
-  \item [$-$]the multiplication factor error; 
+  \item [$-$]the MrTau time;
+  \item [$-$]the multiplication factor;
+  \item [$-$]the multiplication factor error;
   \item [$-$]the spatial reaction rates (only if \xmlNode{printSpatialRR} is \xmlString{True});
   \item [$-$]the spatial power (only if \xmlNode{printSpatialRR} is \xmlString{True});
   \item [$-$]the spatial fluxes by region (only if \xmlNode{printSpatialRR} is \xmlString{True});
@@ -4255,14 +4288,14 @@ In the PHISICS mode (i.e. \xmlNode{mrtauStandalone} is \xmlString{False}) The va
 
 In the MrTau standalone mode (i.e \xmlNode{mrtauStandalone} is \xmlString{True}) The variables available for RAVEN post-processing are:
 \begin{enumerate}
-  \item [$-$]the MRTAU time; 
+  \item [$-$]the MRTAU time;
   \item [$-$]the isotope number densities;
   \item [$-$]the decay heat.
 \end{enumerate}
 
 The variable template is provided in Table \ref{VariableTemplateTable}. In the table, the region number is taken equal to 4,
- the group number is taken equal to 7, the cell number equal to 2 and the material number equal to 3. 
-Those values are only examples and can be adapted to the user's convenience.  
+ the group number is taken equal to 7, the cell number equal to 2 and the material number equal to 3.
+Those values are only examples and can be adapted to the user's convenience.
 
 \begin{table}[]
 \centering
@@ -4293,38 +4326,38 @@ PHISIC CPU time                & cpuTime                              & \\
 \end{tabular}
 \end{table}
 $\nu$ is the average number of neutrons generated after fission. Note that the material number in the neutron
- flux by material corresponds to the material ID number in the PHISICS csv output, 
-while the material string ID in the decay heat corresponds to the material name given by the user in the xml 
-material file. Hence, the neutron flux by material will always have the format matX, where X is an integer. 
-The decay heat material is user-defined in the xml material file via the attribute \xmlAttr{id} of the \xmlNode{mat} node.  
+ flux by material corresponds to the material ID number in the PHISICS csv output,
+while the material string ID in the decay heat corresponds to the material name given by the user in the xml
+material file. Hence, the neutron flux by material will always have the format matX, where X is an integer.
+The decay heat material is user-defined in the xml material file via the attribute \xmlAttr{id} of the \xmlNode{mat} node.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%% PHISICS/RELAP5 INTERFACE %%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{PHISICS/RELAP5 Interface} 
+\subsection{PHISICS/RELAP5 Interface}
 \label{subsec:PhisicsRelap5Interface}
 %
 \subsubsection{General Information}
 %
 This section covers the input specification for running PHISICS/RELAP5 through RAVEN.
-This interface can be used to perturb the PHISICS and/or RELAP5 input files. This interface is strongly built around the PHISICS and RELAP5 
-standalone interfaces, hence this sections covers the additional cautions to take care of to run the coupled PHISICS/RELAP5 code. The 
+This interface can be used to perturb the PHISICS and/or RELAP5 input files. This interface is strongly built around the PHISICS and RELAP5
+standalone interfaces, hence this sections covers the additional cautions to take care of to run the coupled PHISICS/RELAP5 code. The
 user will find additional information regarding PHISICS in section \ref{subsec:PhisicsInterface} or RELAP5 in section \ref{subsec:RELAP5Interface}.
 %
 \subsubsection{Files}
 \label{subsec:PhisicsRelap5Files}
-\xmlNode{Files} includes two attributes \xmlAttr{name} and \xmlAttr{type} entries, identically as other interfaces.   
+\xmlNode{Files} includes two attributes \xmlAttr{name} and \xmlAttr{type} entries, identically as other interfaces.
 It also includes two optional attributes \xmlAttr{perturbable} and \xmlAttr{subDirectory}.
 
-The \xmlAttr{name} attribute is a user-defined internal name for the file contained in the node. 
-Default: None (required entry).  
+The \xmlAttr{name} attribute is a user-defined internal name for the file contained in the node.
+Default: None (required entry).
 
-For the files parsed by the PHISICS interface or the PHISICS interface's parsers, some of the \xmlAttr{type} attributes are hardcoded. 
-The accepted PHISICS \xmlAttr{type} attributes are given in Table \ref{TypeTable} and are not repeated here. Additional information can be found in section \ref{subsubsec:PhisicsInterfaceFiles}. 
-All the necessary RELAP5 input files need to have a \xmlAttr{type} attribute starting with the string 'relap'. 
-The necessary RELAP5 files for use in the coupled PHISICS/RELAP mode within RAVEN are given in Table~\ref{PhisicsRelap5TypeTable}. The files associated 
-with a  \xmlAttr{type} that does not start with the string 'relap' will be treated by the PHISICS interface. 
-The  \xmlAttr{type} attributes are case-incensitive. 
+For the files parsed by the PHISICS interface or the PHISICS interface's parsers, some of the \xmlAttr{type} attributes are hardcoded.
+The accepted PHISICS \xmlAttr{type} attributes are given in Table \ref{TypeTable} and are not repeated here. Additional information can be found in section \ref{subsubsec:PhisicsInterfaceFiles}.
+All the necessary RELAP5 input files need to have a \xmlAttr{type} attribute starting with the string 'relap'.
+The necessary RELAP5 files for use in the coupled PHISICS/RELAP mode within RAVEN are given in Table~\ref{PhisicsRelap5TypeTable}. The files associated
+with a  \xmlAttr{type} that does not start with the string 'relap' will be treated by the PHISICS interface.
+The  \xmlAttr{type} attributes are case-incensitive.
 \begin{table}[]
   \centering
   \caption{Example of RELAP5 type attributes in coupled PHISICS/RELAP5 mode}\label{PhisicsRelap5TypeTable}
@@ -4333,7 +4366,7 @@ The  \xmlAttr{type} attributes are case-incensitive.
 \hline
 relapFluid              & fluid properties                  & No  \\
 relapInp                & Relap input File                  & yes \\
-relapLicense            & license for the RELAP5 executable & No  \\                                      
+relapLicense            & license for the RELAP5 executable & No  \\
     \end{tabular}
 \end{table}
 
@@ -4348,25 +4381,25 @@ Example of acceptable RELAP5 entries within PHISICS/RELAP5:
 \end{lstlisting}
 %
 \subsubsection{Models}
-The user has to provide the paths to executables for the sampled variables within the \xmlNode{Models} block.  
+The user has to provide the paths to executables for the sampled variables within the \xmlNode{Models} block.
 
-The \xmlNode{Code} block will contain attributes \xmlAttr{name} and \xmlAttr{subType}. 
-The \xmlAttr{name} identifies the particular \xmlNode{Code} model within RAVEN, and \xmlAttr{subType} 
-specifies which code interface the model will use. \xmlAttr{subType}=\xmlString{PhisicsRelap5} is the class name 
-currently used for PHISICS/RELAP5 coupled calculations.  
+The \xmlNode{Code} block will contain attributes \xmlAttr{name} and \xmlAttr{subType}.
+The \xmlAttr{name} identifies the particular \xmlNode{Code} model within RAVEN, and \xmlAttr{subType}
+specifies which code interface the model will use. \xmlAttr{subType}=\xmlString{PhisicsRelap5} is the class name
+currently used for PHISICS/RELAP5 coupled calculations.
 
-The \xmlNode{executable} block contains the absolute or relative path (with respect to the current working directory) to PHISICS/RELAP5 
-that RAVEN will use to run the code. The additional nodes in the \xmlNode{Models} applicable to PHISICS standalone and RELAP5 standalone 
-are valid in coupled mode and can be consulted in section~\ref{subsubsection:PhisicsModel} and section~\ref{subsubsection:Relap5Models} respectively. 
-Exception: the use of MrTau in standalone mode (i.e. \xmlNode{mrtauStandAlone} set to \xmlString{True}) is not allowed in PHISICS/RELAP5 coupled 
-calculations. 
+The \xmlNode{executable} block contains the absolute or relative path (with respect to the current working directory) to PHISICS/RELAP5
+that RAVEN will use to run the code. The additional nodes in the \xmlNode{Models} applicable to PHISICS standalone and RELAP5 standalone
+are valid in coupled mode and can be consulted in section~\ref{subsubsection:PhisicsModel} and section~\ref{subsubsection:Relap5Models} respectively.
+Exception: the use of MrTau in standalone mode (i.e. \xmlNode{mrtauStandAlone} set to \xmlString{True}) is not allowed in PHISICS/RELAP5 coupled
+calculations.
 
 An example of the \xmlNode{Models} block is given below:
 
 \begin{lstlisting}[style=XML]
   <Models>
     <Code name="PHISICS_RELAP5" subType="PhisicsRelap5">
-       <executable>./path/to/instant/executable</executable>   
+       <executable>./path/to/instant/executable</executable>
     </Code>
   </Models>
 \end{lstlisting}
@@ -4383,9 +4416,9 @@ refer to the Distributions chapter (see~\ref{sec:distributions}).
 The \xmlNode{Samplers} block defines the variables to be sampled.
 After defining a sampling scheme, the variables to be sampled and
 their distributions are identified in the \xmlNode{variable} blocks.
-The \xmlAttr{name} must be formatted according to the PHISICS library which the variable belongs to. 
+The \xmlAttr{name} must be formatted according to the PHISICS library which the variable belongs to.
 Information relative to PHISICS distributions are in section~\ref{subsubsection:SamplersPhisics},
-as well as specifications on PHISICS variable names. 
+as well as specifications on PHISICS variable names.
 An example of a \xmlNode{Samplers} block is given below:
 \begin{lstlisting}[style=XML]
  <Samplers>
@@ -4405,7 +4438,7 @@ An example of a \xmlNode{Samplers} block is given below:
 In this example, the variable \xmlString{DENSITY$\vert$FUEL1$\vert$U238} is relative to PHISICS and the variable \xmlString{20100154:2} is relative to RELAP5.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Steps}
-The tasks performed by RAVEN need to be defined in the \xmlNode{Steps} block. Each task needs to be defined with a \xmlAttr{name}. This \xmlAttr{name} is later on used in the 
+The tasks performed by RAVEN need to be defined in the \xmlNode{Steps} block. Each task needs to be defined with a \xmlAttr{name}. This \xmlAttr{name} is later on used in the
 the \xmlNode{Sequence} block. In the example, the step is called \xmlString{testDummyStep}.
 %
 \begin{lstlisting}[style=XML]
@@ -4421,47 +4454,47 @@ the \xmlNode{Sequence} block. In the example, the step is called \xmlString{test
     <Output class="Databases" type="HDF5">DataB_REL5_1</Output>
     <Output class="DataObjects" type="PointSet">collset</Output>
     </MultiRun>
-  </MultiRun>    
+  </MultiRun>
 </Steps>
 \end{lstlisting}
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsubsection{Additional Input} 
+\subsubsection{Additional Input}
 \label{subsubsection:PhisicsRelap5AdditionalInput}
-The PHISICS additional inputs are described in section~\ref{subsubsection:PhisicsAdditionalInput}. The RELAP5 additional inputs are described in 
-section ~\ref{subsubsection:Relap5Models}. 
+The PHISICS additional inputs are described in section~\ref{subsubsection:PhisicsAdditionalInput}. The RELAP5 additional inputs are described in
+section ~\ref{subsubsection:Relap5Models}.
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsubsection{Output Files Conversion} 
+\subsubsection{Output Files Conversion}
 \label{subsubsection:PhisicsRelap5OutputFileConversion}
 
-The PHISICS output available for RAVEN post-processing are described in section~\ref{subsubsection:PhisicsOutFileConv}. 
-The output printed from PHISICS and RELAP5 are synchronized in the RAVEN csv output. The synchronization scheme is explained in this section. 
+The PHISICS output available for RAVEN post-processing are described in section~\ref{subsubsection:PhisicsOutFileConv}.
+The output printed from PHISICS and RELAP5 are synchronized in the RAVEN csv output. The synchronization scheme is explained in this section.
 
-At t = 0 seconds, the RELAP5 initialized output are printed in the csv output, while the output variables from PHISICS are taken equal to 0. 
-Then, the RAVEN/PHISICS/RELAP5 post-processor finds the time step number at the end of each PHISICS 
+At t = 0 seconds, the RELAP5 initialized output are printed in the csv output, while the output variables from PHISICS are taken equal to 0.
+Then, the RAVEN/PHISICS/RELAP5 post-processor finds the time step number at the end of each PHISICS
 burn step based on the \xmlNode{tab\_time\_step} values, and prints the RELAP minor edits according to the \xmlNode{TH\_between\_BURN} values.
 
-Let's consider the following example: 
+Let's consider the following example:
 \begin{enumerate}
-\item [$-$]\xmlNode{tab\_time\_step} \xmlString{5 3 2} \xmlNode{/tab\_time\_step} (in the PHISICS depletion file); 
+\item [$-$]\xmlNode{tab\_time\_step} \xmlString{5 3 2} \xmlNode{/tab\_time\_step} (in the PHISICS depletion file);
 \item [$-$]\xmlNode{TH\_between\_BURN} \xmlString{1.0 2.0} \xmlNode{TH\_between\_BURN}() in the PHISICS input file);
-\item [$-$]\xmlNode{tabulation\_boundaries} \xmlString{5.0 35.0 45.0}\xmlNode{tabulation\_boundaries} (upper burn step boundaries in the PHISICS depletion file). 
+\item [$-$]\xmlNode{tabulation\_boundaries} \xmlString{5.0 35.0 45.0}\xmlNode{tabulation\_boundaries} (upper burn step boundaries in the PHISICS depletion file).
 \item [$-$]in the RELAP5 input, a 3.0 seconds steady state is considered, with minor edits every 0.5 seconds.
 \end{enumerate}
-The first PHISICS/RELAP5 output line printed will be at t = 0 seconds. The PHISICS outputs are set to 0.0, the RELAP5 values are obtained at the end of the initialization. 
-The second line printed will be at the PHISICS time step \xmlString{5} (end of the first burn step, corresponding to t = 5.0 seconds), 
+The first PHISICS/RELAP5 output line printed will be at t = 0 seconds. The PHISICS outputs are set to 0.0, the RELAP5 values are obtained at the end of the initialization.
+The second line printed will be at the PHISICS time step \xmlString{5} (end of the first burn step, corresponding to t = 5.0 seconds),
 and prints the RELAP5 minor edits as long as the time from the minor edits is lower than the first \xmlNode{TH\_between\_BURN} value \xmlString{1.0}.
-The RELAP5 minor edits are printed along with the PHISICS burn step \xmlString{5} as long as time in the minor edits is smaller or equal to \xmlString{1.0}. 
-When the RELAP5 time in the minor edits time is greater than \xmlString{1.0}, the end of the second PHISICS burn step is targetted, from the 
-\xmlNode{tab\_time\_step}: \xmlString{3}. This corresponds to a PHISICS time equal to 35.0 seconds. The RELAP5 minor edits are printed along with the PHISICS values at t = 35.0 s, 
-as long as the minor data time is smaller than the \xmlNode{TH\_between\_BURN} equal to \xmlString{2.0}. 
-Finally, the last PHISICS time step at 45.0 seconds is printed along with the RELAP5 minor edits. 
+The RELAP5 minor edits are printed along with the PHISICS burn step \xmlString{5} as long as time in the minor edits is smaller or equal to \xmlString{1.0}.
+When the RELAP5 time in the minor edits time is greater than \xmlString{1.0}, the end of the second PHISICS burn step is targetted, from the
+\xmlNode{tab\_time\_step}: \xmlString{3}. This corresponds to a PHISICS time equal to 35.0 seconds. The RELAP5 minor edits are printed along with the PHISICS values at t = 35.0 s,
+as long as the minor data time is smaller than the \xmlNode{TH\_between\_BURN} equal to \xmlString{2.0}.
+Finally, the last PHISICS time step at 45.0 seconds is printed along with the RELAP5 minor edits.
 Overall, the output variables printed will be:
 
 mrtauTime, n2n$\vert$gr1$\vert$reg4, httemp\_3001010\_1, time
 
-0.000, 0.000, 1.526, 0.000 
+0.000, 0.000, 1.526, 0.000
 
 5.000, 1.111, 1.859, 0.500
 

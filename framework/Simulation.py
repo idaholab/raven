@@ -472,7 +472,7 @@ class Simulation(MessageHandler.MessageUser):
               else:
                 self.whichDict[Class][subType][name].readXML(childChild, self.messageHandler, globalAttributes=globalAttributes)
             else:
-              self.raiseAnError(IOError,'not found name attribute for one '+Class)
+              self.raiseAnError(IOError,'not found name attribute for one "{}": {}'.format(Class,subType))
       else:
         #tag not in whichDict, check if it's a documentation tag
         if child.tag not in ['TestInfo']:

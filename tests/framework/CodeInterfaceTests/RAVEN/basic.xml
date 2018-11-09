@@ -1,6 +1,6 @@
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework/CodeInterfaceTests.RAVENrunningRAVEN</name>
+    <name>framework/CodeInterfaceTests/RAVEN.Basic</name>
     <author>talbpaul</author>
     <created>2018-01-18</created>
     <classesTested>Models.Code.RAVEN</classesTested>
@@ -15,11 +15,12 @@
     </analytic>
     <revisions>
       <revision author="talbpaul" date="2018-05-02">added "fully-correlated" variable for innerUpperBound as a test of the mechanic</revision>
+      <revision author="talbpaul" date="2018-11-06">modified inner run to use grid for speed, consistent results</revision>
     </revisions>
   </TestInfo>
 
   <RunInfo>
-    <WorkingDir>Raven_running_raven_basic</WorkingDir>
+    <WorkingDir>Basic</WorkingDir>
     <Sequence>sample,print</Sequence>
   </RunInfo>
 
@@ -37,7 +38,7 @@
   </Steps>
 
   <Files>
-    <Input name="inner_input" type="raven" >mc_sample.xml</Input>
+    <Input name="inner_input" type="raven" >inner_sample.xml</Input>
   </Files>
 
   <Models>
@@ -47,7 +48,7 @@
         <alias variable="innerLowerBound" type="input">Distributions|Uniform@name:dist|lowerBound</alias>
         <alias variable="innerUpperBound" type="input">
           Distributions|Uniform@name:dist|upperBound,
-          Samplers|MonteCarlo|constant@name:testSecondAlias
+          Samplers|Grid|constant@name:testSecondAlias
         </alias>
     </Code>
   </Models>
