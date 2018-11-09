@@ -109,11 +109,8 @@ class RAVENparser():
     filesNode = self.tree.find('.//Files')
     if filesNode is not None:
       for child in self.tree.find('.//Files'):
-        subDirectory = child.attrib['subDirectory'] if 'subDirectory' in child.attrib else None
-        if subDirectory:
-          self.slaveInputFiles.append(os.path.expanduser(os.path.join(subDirectory,child.text.strip())))
-        else:
-          self.slaveInputFiles.append(os.path.expanduser(child.text.strip()))
+        subDirectory = child.attrib.get('subDirectory','')
+        self.slaveInputFiles.append(os.path.expanduser(os.path.join(self.workingDir,subDirectory,child.text.strip())))
 
     externalModels = self.tree.findall('.//Models/ExternalModel')
     if len(externalModels) > 0:

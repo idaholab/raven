@@ -244,7 +244,7 @@ class Dymola(CodeInterfaceBase):
     if bool(vectorsToPass):
       with open(currentInputFiles[indexVect].getAbsFile(), 'w') as Fvect:
         Fvect.write("#1\n")
-        for key, value in vectorsToPass.items() :
+        for key, value in sorted(vectorsToPass.items()) :
           inc = 0
           Fvect.write("double %s(%s,2) #Comments here\n" %(key, len(value)))
           for val in value:
