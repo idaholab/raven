@@ -954,7 +954,7 @@ class DataSet(DataObject):
           dims.remove(self.sampleTag)
         except ValueError:
           pass #not there, so didn't need to remove
-        dimsMeta[var] = ','.join(dims)
+        dimsMeta[name] = ','.join(dims)
       # store sample tag, IO information, coordinates
       self.addMeta('DataSet',{'dims':dimsMeta})
       self.addMeta('DataSet',{'general':{'sampleTag':self.sampleTag,
@@ -1632,13 +1632,14 @@ class DataSet(DataObject):
     mean = ds.mean().variables
     scale = ds.std().variables
     for name, val in mean.items():
-      try:
-        m = float(val.values)
-        s = float(scale[var].values)
-        self._scaleFactors[var] = (m,s)
-      except Exception:
-        self.raiseADebug('Had an issue with setting scaling factors for variable "{}". No big deal.'.format(var))
-        pass
+      if name in varList:
+        try:
+          m = float(val.values)
+          s = float(scale[name].values)
+          self._scaleFactors[name] = (m,s)
+        except Exception:
+          self.raiseADebug('Had an issue with setting scaling factors for variable "{}". No big deal.'.format(var))
+          pass
 
   def _toCSV(self,fileName,start=0,**kwargs):
     """
