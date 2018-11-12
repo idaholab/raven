@@ -1631,14 +1631,13 @@ class DataSet(DataObject):
     ds = self._data[varList] if var is not None else self._data
     mean = ds.mean().variables
     scale = ds.std().variables
-    for name, val in mean.items():
-      if name in varList:
-        try:
-          m = float(val.values)
-          s = float(scale[name].values)
-          self._scaleFactors[name] = (m,s)
-        except Exception:
-          self.raiseADebug('Had an issue with setting scaling factors for variable "{}". No big deal.'.format(var))
+    for name in varList:
+      try:
+        m = float(mean[name].values)
+        s = float(scale[name].values)
+        self._scaleFactors[name] = (m,s)
+      except Exception:
+        self.raiseADebug('Had an issue with setting scaling factors for variable "{}". No big deal.'.format(name))
 
   def _toCSV(self,fileName,start=0,**kwargs):
     """
