@@ -565,8 +565,6 @@ class hdf5Database(MessageHandler.MessageUser):
           # the root groups get skipped
           if grp.name not in ["/",self.parentGroupName]:
             data = self.__getNewDataFromGroup(grp, grp.attrs[b'groupName'])
-            try: data.pop("crowDist")
-            except: pass
             if len(data.keys()) != len(newData.keys()):
               self.raiseAnError(IOError,'Group named "' + grp.attrs[b'groupName'] + '" has an inconsistent number of variables in database "'+self.name+'"!')
             newData = {key : np.concatenate((newData[key],data[key])) for key in newData.keys()}
