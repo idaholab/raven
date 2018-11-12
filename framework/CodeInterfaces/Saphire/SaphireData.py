@@ -23,6 +23,18 @@ Created on July 12, 2018
 @author: wangc
 """
 
+def _deweird(s):
+  """
+    Sometimes numpy loadtxt returns strings like "b'stuff'"
+    This converts them to "stuff"
+    @ In, s, str, possibly weird string
+    @ Out, _deweird, str, possibly less weird string
+  """
+  if type(s) == str and s.startswith("b'") and s.endswith("'"):
+    return s[2:-1]
+  else:
+    return s
+
 class SaphireData:
   """
     Class that parses output of SAPHIRE outputs and write a RAVEN compatible CSV
@@ -66,10 +78,10 @@ class SaphireData:
     headers = data[0]
     for i in range(1, len(data)):
       for j in range(1, len(headers)):
-        name = data[i,0].strip().replace(" ", "~")
-        header = headers[j].strip().replace(" ", "~")
+        name = _deweird(data[i,0]).strip().replace(" ", "~")
+        header = _deweird(headers[j]).strip().replace(" ", "~")
         headerNames.append(name + '_' + header)
-        outData.append(float(data[i,j]))
+        outData.append(float(_deweird(data[i,j])))
 
     return headerNames, outData
 
@@ -87,10 +99,10 @@ class SaphireData:
     headers = data[0]
     for i in range(1, len(data)):
       for j in range(1, len(headers)):
-        name = data[i,0].strip().replace(" ", "~")
-        header = headers[j].strip().replace(" ", "~")
+        name = _deweird(data[i,0]).strip().replace(" ", "~")
+        header = _deweird(headers[j]).strip().replace(" ", "~")
         headerNames.append(name + '_' + header)
-        outData.append(float(data[i,j]))
+        outData.append(float(_deweird(data[i,j])))
 
     return headerNames, outData
 
@@ -100,7 +112,7 @@ class SaphireData:
       @ In, output, str, the name of output file
       @ Out, None
     """
-    outObj = open(output.strip()+".csv", mode='w+') if not output.endswith('csv') else open(output.strip(), mode='w+')
+    outObj = open(output.strip()+".csv", mode='w+b') if not output.endswith('csv') else open(output.strip(), mode='w+b')
     # create string for header names
     headerString = ",".join(self.headerNames)
     # write & save array as csv file
