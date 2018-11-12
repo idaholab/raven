@@ -53,7 +53,7 @@ class CustomSampler(ForwardSampler):
     sourceInput.addParam("class", InputData.StringType)
     inputSpecification.addSub(sourceInput)
 
-    inputSpecification.addSub(InputData.parameterInputFactory('index', contentType=InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory('index', contentType=InputData.IntegerListType))
 
     # add "nameInSource" attribute to <variable>
     var = inputSpecification.popSub('variable')
