@@ -80,6 +80,8 @@
    type = 'RavenFramework'
    input = 'test_large_num_vars_heavy.xml'
    csv = 'originalModelCSV/dump_evolution_heavy_0.csv'
+   heavy = true
+   max_time = 400
  [../]
 []
 
