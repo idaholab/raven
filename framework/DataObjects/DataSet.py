@@ -1639,7 +1639,6 @@ class DataSet(DataObject):
           self._scaleFactors[name] = (m,s)
         except Exception:
           self.raiseADebug('Had an issue with setting scaling factors for variable "{}". No big deal.'.format(var))
-          pass
 
   def _toCSV(self,fileName,start=0,**kwargs):
     """
