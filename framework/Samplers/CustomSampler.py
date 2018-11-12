@@ -53,6 +53,8 @@ class CustomSampler(ForwardSampler):
     sourceInput.addParam("class", InputData.StringType)
     inputSpecification.addSub(sourceInput)
 
+    inputSpecification.addSub(InputData.parameterInputFactory('index', contentType=InputData.IntegerListType))
+
     # add "nameInSource" attribute to <variable>
     var = inputSpecification.popSub('variable')
     var.addParam("nameInSource", InputData.StringType, required=False)
@@ -74,6 +76,7 @@ class CustomSampler(ForwardSampler):
     self.addAssemblerObject('Source','1',True)
     self.printTag = 'SAMPLER CUSTOM'
     self.readingFrom = None # either File or DataObject, determines sample generation
+    self.indexes = None
 
   def _readMoreXMLbase(self,xmlNode):
     """
@@ -97,9 +100,11 @@ class CustomSampler(ForwardSampler):
           self.toBeSampled[name] = 'custom'
         else:
           self.dependentSample[name] = funct.text.strip()
-      if child.tag == 'Source'  :
+      elif child.tag == 'Source'  :
         if child.attrib['class'] not in ['Files','DataObjects']:
           self.raiseAnError(IOError, "Source class attribute must be either 'Files' or 'DataObjects'!!!")
+      elif child.tag == 'index':
+        self.indexes = list(int(x) for x in child.text.split(','))
     if len(self.toBeSampled.keys()) == 0:
       self.raiseAnError(IOError,"no variables got inputted!!!!!!")
 
@@ -142,10 +147,7 @@ class CustomSampler(ForwardSampler):
 
   def localInitialize(self):
     """
-      Will perform all initialization specific to this Sampler. For instance,
-      creating an empty container to hold the identified surface points, error
-      checking the optionally provided solution export and other preset values,
-      and initializing the limit surface Post-Processor used by this sampler.
+      Will perform all initialization specific to this Sampler.
       @ In, None
       @ Out, None
     """
@@ -193,6 +195,12 @@ class CustomSampler(ForwardSampler):
           if sourceName not in dataObj.getVars() + dataObj.getVars('indexes'):
             self.raiseAnError(IOError,"the variable "+ sourceName + " not found in "+ dataObj.type + " " + dataObj.name)
       self.limit = len(self.pointsToSample)
+    # if "index" provided, limit sampling to those points
+    if self.indexes is not None:
+      self.limit = len(self.indexes)
+      maxIndex = max(self.indexes)
+      if maxIndex > len(self.pointsToSample) -1:
+        self.raiseAnError(IndexError,'Requested index "{}" from custom sampler, but highest index sample is "{}"!'.format(maxIndex,len(self.pointsToSample)-1))
     #TODO: add restart capability here!
     if self.restartData:
       self.raiseAnError(IOError,"restart capability not implemented for CustomSampler yet!")
@@ -207,9 +215,14 @@ class CustomSampler(ForwardSampler):
       @ In, myInput, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
       @ Out, None
     """
+    if self.indexes is None:
+      index = self.counter - 1
+    else:
+      index = self.indexes[self.counter-1]
+
     if self.readingFrom == 'DataObject':
       # data is stored as slices of a data object, so take from that
-      rlz = self.pointsToSample[self.counter-1]
+      rlz = self.pointsToSample[index]
       for var in self.toBeSampled.keys():
         for subVar in var.split(','):
           subVar = subVar.strip()
@@ -229,10 +242,10 @@ class CustomSampler(ForwardSampler):
         for subVar in var.split(','):
           subVar = subVar.strip()
           # assign the custom sampled variables values to the sampled variables
-          self.values[subVar] = self.pointsToSample[subVar][self.counter-1]
+          self.values[subVar] = self.pointsToSample[subVar][index]
           # This is the custom sampler, assign the ProbabilityWeights based on the provided values
-          self.inputInfo['ProbabilityWeight-' + subVar] = self.infoFromCustom['ProbabilityWeight-' + subVar][self.counter-1]
+          self.inputInfo['ProbabilityWeight-' + subVar] = self.infoFromCustom['ProbabilityWeight-' + subVar][index]
       # Construct probabilities based on the user provided information
-      self.inputInfo['PointProbability'] = self.infoFromCustom['PointProbability'][self.counter-1]
-      self.inputInfo['ProbabilityWeight'] = self.infoFromCustom['ProbabilityWeight'][self.counter-1]
+      self.inputInfo['PointProbability'] = self.infoFromCustom['PointProbability'][index]
+      self.inputInfo['ProbabilityWeight'] = self.infoFromCustom['ProbabilityWeight'][index]
     self.inputInfo['SamplerType'] = 'Custom'
