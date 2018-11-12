@@ -18,7 +18,7 @@
       SampleSelector postprocessor is called several times, testing each of the selection methods.
     </description>
     <revisions>
-      <revision date="2018-11-6" author="talbpaul">added index selection method to test</revision>
+      <revision date="2018-11-06" author="talbpaul">added index selection method to test</revision>
     </revisions>
   </TestInfo>
 

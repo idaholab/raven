@@ -1695,6 +1695,10 @@ In addition, the \xmlNode{Source} from which the samples need to be retrieved ne
       \textbf{ProbabilityWeight} quantities are not found, the samples are assumed to come from a MonteCarlo (from a  statistical
       post-processing prospective).
   \end{itemize}
+ \item \xmlNode{index}, \xmlDesc{comma-separated integer, optional parameter} indexes to use from the
+   \xmlNode{Source}. If provided, then only the listed indexes will be used. Indexes are zero-based; that is,
+   the first realization is indexed at 0, the second at 1, and so forth. Default is for all indices in the
+   source to be used.
  \item \constantVariablesDescription
 \end{itemize}
 
