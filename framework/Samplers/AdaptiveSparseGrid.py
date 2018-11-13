@@ -476,7 +476,7 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
     """
     point = None
     avg = 0
-    for pt in utils.first(self.expImpact.values()).keys():
+    for pt in sorted(utils.first(sorted(self.expImpact.values())).keys()):
       new = sum(self.expImpact[t][pt] for t in self.targets)/len(self.targets)
       if avg < new:
         avg = new
