@@ -64,6 +64,7 @@ class RavenFramework(Tester):
     params.addParam('remove_unicode_identifier', False, 'if true, then remove u infront of a single quote')
     params.addParam('interactive', False, 'if true, then RAVEN will be run with interactivity enabled.')
     params.addParam('python3_only', False, 'if true, then only use with Python3')
+    params.addParam('ignore_sign', False, 'if true, then only compare the absolute values')
     return params
 
   def getCommand(self, options):
@@ -251,12 +252,12 @@ class RavenFramework(Tester):
                   self.ucsv_files,
                   relative_error = float(self.specs["rel_err"]),
                   absolute_check = checkAbsoluteValue,
-                  zeroThreshold = zeroThreshold)
+                  zeroThreshold = zeroThreshold, ignore_sign=self.specs["ignore_sign"])
     else:
       ucsv_diff = UnorderedCSVDiffer(self.specs['test_dir'],
                   self.ucsv_files,
                   absolute_check = checkAbsoluteValue,
-                  zeroThreshold = zeroThreshold)
+                  zeroThreshold = zeroThreshold, ignore_sign=self.specs["ignore_sign"])
 
     ucsv_same,ucsv_messages = ucsv_diff.diff()
     if not ucsv_same:
