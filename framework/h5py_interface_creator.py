@@ -49,7 +49,7 @@ def _dumps(val):
     @ In, val, any, data to encode
     @ Out, _dumps, np.void, encoded data
   """
-  return np.void(pk.dumps(val))
+  return pk.dumps(val,protocol=0)
 
 def _loads(val):
   """
