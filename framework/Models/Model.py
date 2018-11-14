@@ -369,8 +369,9 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
            a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
         @ Out, None
     """
-    prefix = kwargs['prefix'] if 'prefix' in kwargs else None
-    uniqueHandler = kwargs['uniqueHandler'] if 'uniqueHandler' in kwargs.keys() else 'any'
+    prefix = kwargs.get("prefix") 
+    uniqueHandler = kwargs.get("uniqueHandler",'any')
+    forceThreads = kwargs.get("forceThreads",False)
 
     ## These kwargs are updated by createNewInput, so the job either should not
     ## have access to the metadata, or it needs to be updated from within the
@@ -382,37 +383,38 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     ## works, we are unable to pass a member function as a job because the
     ## pp library loses track of what self is, so instead we call it from the
     ## class and pass self in as the first parameter
-    jobHandler.addJob((self, myInput, samplerType, kwargs), self.__class__.evaluateSample, prefix, metadata=metadata, modulesToImport=self.mods, uniqueHandler=uniqueHandler)
+    jobHandler.addJob((self, myInput, samplerType, kwargs), self.__class__.evaluateSample, prefix, metadata=metadata, modulesToImport=self.mods, uniqueHandler=uniqueHandler, forceUseThreads=forceThreads)
 
-  def submitAsClient(self, myInput, samplerType, jobHandler, **kwargs):
-    """
-        This will submit an individual sample to be evaluated by this model to a
-        specified jobHandler as a client job. Note, some parameters are needed
-        by createNewInput and thus descriptions are copied from there.
-        @ In, myInput, list, the inputs (list) to start from to generate the new
-          one
-        @ In, samplerType, string, is the type of sampler that is calling to
-          generate a new input
-        @ In,  jobHandler, JobHandler instance, the global job handler instance
-        @ In, **kwargs, dict,  is a dictionary that contains the information
-          coming from the sampler, a mandatory key is the sampledVars' that
-          contains a dictionary {'name variable':value}
-        @ Out, None
-    """
-    prefix = kwargs['prefix'] if 'prefix' in kwargs else None
-    uniqueHandler = kwargs['uniqueHandler'] if 'uniqueHandler' in kwargs.keys() else 'any'
+  #def submitAsClient(self, myInput, samplerType, jobHandler, **kwargs):
+    #"""
+        #This will submit an individual sample to be evaluated by this model to a
+        #specified jobHandler as a client job. Note, some parameters are needed
+        #by createNewInput and thus descriptions are copied from there.
+        #@ In, myInput, list, the inputs (list) to start from to generate the new
+          #one
+        #@ In, samplerType, string, is the type of sampler that is calling to
+          #generate a new input
+        #@ In,  jobHandler, JobHandler instance, the global job handler instance
+        #@ In, **kwargs, dict,  is a dictionary that contains the information
+          #coming from the sampler, a mandatory key is the sampledVars' that
+          #contains a dictionary {'name variable':value}
+        #@ Out, None
+    #"""
+    #prefix = kwargs.get("prefix") 
+    #uniqueHandler = kwargs.get("uniqueHandler",'any')
+    #forceThreads = kwargs.get("forceThreads",False)
 
-    ## These kwargs are updated by createNewInput, so the job either should not
-    ## have access to the metadata, or it needs to be updated from within the
-    ## evaluateSample function, which currently is not possible since that
-    ## function does not know about the job instance.
-    metadata = kwargs
+    ### These kwargs are updated by createNewInput, so the job either should not
+    ### have access to the metadata, or it needs to be updated from within the
+    ### evaluateSample function, which currently is not possible since that
+    ### function does not know about the job instance.
+    #metadata = kwargs
 
-    ## This may look a little weird, but due to how the parallel python library
-    ## works, we are unable to pass a member function as a job because the
-    ## pp library loses track of what self is, so instead we call it from the
-    ## class and pass self in as the first parameter
-    jobHandler.addClientJob((self, myInput, samplerType, kwargs), self.__class__.evaluateSample, prefix, metadata=metadata, modulesToImport=self.mods, uniqueHandler=uniqueHandler)
+    ### This may look a little weird, but due to how the parallel python library
+    ### works, we are unable to pass a member function as a job because the
+    ### pp library loses track of what self is, so instead we call it from the
+    ### class and pass self in as the first parameter
+    #jobHandler.addClientJob((self, myInput, samplerType, kwargs), self.__class__.evaluateSample, prefix, metadata=metadata, modulesToImport=self.mods, uniqueHandler=uniqueHandler, forceUseThreads=forceThreads)
 
   def addOutputFromExportDictionary(self,exportDict,output,options,jobIdentifier):
     """

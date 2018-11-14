@@ -26,6 +26,7 @@
   <Files>
     <Input name="one.xml" type="">one.xml</Input>
     <Input name="inp.two" type="">inp.two</Input>
+    <Input name="inp.three" type="">inp.three</Input>
     <Input name="mesh" type="">dummy.e</Input>
     <Input name="a_dummy_file_for_subdirectory" type="" subDirectory="testSubDirectory">dummy_file_for_subdirectory.dummy</Input>
   </Files>
@@ -36,6 +37,7 @@
       <clargs arg="python" type="prepend"/>
       <clargs arg="-i" extension=".xml" type="input"/>
       <clargs arg="-a" extension=".two" type="input"/>
+      <clargs arg="-a" extension=".three" type="input"/>
       <clargs arg="-o" type="output"/>
     </Code>
   </Models>
