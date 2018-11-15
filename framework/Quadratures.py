@@ -193,7 +193,7 @@ class SparseGrid(MessageHandler.MessageUser):
       @ In, wts, array(float), weights for grid
       @ Out, None
     """
-    newSG={}
+    newSG=collections.OrderedDict()
     for p,pt in enumerate(pts):
       newSG[pt]=wts[p]
     self.SG=newSG
