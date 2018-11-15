@@ -446,7 +446,7 @@ checkSame('Metadata TestPP',treePP.tag,'TestPP')
 first,second = (c for c in treePP) # TODO always same order?
 
 checkSame('Metadata TestPP/firstVar tag',first.tag,'firstVar')
-sm1,vm,sm2 = (c for c in first) # TODO always same order?
+sm1,sm2,vm = (c for c in first) # TODO always same order?
 checkSame('Metadata TestPP/firstVar/scalarMetric1 tag',sm1.tag,'scalarMetric1')
 checkSame('Metadata TestPP/firstVar/scalarMetric1 value',sm1.text,'10.0')
 checkSame('Metadata TestPP/firstVar/scalarMetric2 tag',sm2.tag,'scalarMetric2')
@@ -476,14 +476,14 @@ checkSame('Metadata HistorySet entries',len(treeDS),2)
 dims,general = treeDS[:]
 checkSame('Metadata HistorySet/dims tag',dims.tag,'dims')
 checkSame('Metadata HistorySet/dims entries',len(dims),2)
-y,x = dims[:]
+x,y = dims[:]
 checkSame('Metadata HistorySet/dims/x tag',x.tag,'x')
 checkSame('Metadata HistorySet/dims/x value',x.text,'Timelike')
 checkSame('Metadata HistorySet/dims/y tag',y.tag,'y')
 checkSame('Metadata HistorySet/dims/y value',y.text,'Timelike')
 checkSame('Metadata HistorySet/general tag',general.tag,'general')
 checkSame('Metadata HistorySet/general entries',len(general),4)
-inputs,pointwise_meta,outputs,sampleTag = general[:]
+sampleTag,inputs,outputs,pointwise_meta = general[:]
 checkSame('Metadata HistorySet/general/inputs tag',inputs.tag,'inputs')
 checkSame('Metadata HistorySet/general/inputs value',inputs.text,'a,b')
 checkSame('Metadata HistorySet/general/outputs tag',outputs.tag,'outputs')
@@ -497,9 +497,9 @@ checkSame('Metadata HistorySet/general/sampleTag value',sampleTag.text,'RAVEN_sa
 meta = data.getMeta(pointwise=True,general=True)
 checkArray('Metadata get keys',sorted(meta.keys()),['DataSet','TestPP','prefix'],str)
 # fail to find pointwise in general
-checkFails('Metadata get missing general','Some requested keys could not be found in the requested metadata: set([u\'prefix\'])',data.getMeta,kwargs=dict(keys=['prefix'],general=True))
+checkFails('Metadata get missing general','Some requested keys could not be found in the requested metadata: {\'prefix\'}',data.getMeta,kwargs=dict(keys=['prefix'],general=True))
 # fail to find general in pointwise
-checkFails('Metadata get missing general','Some requested keys could not be found in the requested metadata: set([u\'HistorySet\'])',data.getMeta,kwargs=dict(keys=['HistorySet'],pointwise=True))
+checkFails('Metadata get missing general','Some requested keys could not be found in the requested metadata: {\'HistorySet\'}',data.getMeta,kwargs=dict(keys=['HistorySet'],pointwise=True))
 # TODO more value testing, easier "getting" of specific values
 
 
@@ -524,36 +524,36 @@ csvname = 'HistorySetUnitTest'
 data.write(csvname,style='CSV',**{'what':'a,b,c,x,y,z,RAVEN_sample_ID,prefix'})
 ## test metadata written
 correct = ['<DataObjectMetadata name="HistorySet">',
-'  <TestPP type="Static">',
-'    <firstVar>',
-'      <scalarMetric1>10.0</scalarMetric1>',
-'      <vectorMetric>',
-'        <a>1</a>',
-'        <c>3</c>',
-'        <b>2</b>',
-'        <d>4.0</d>',
-'      </vectorMetric>',
-'      <scalarMetric2>20</scalarMetric2>',
-'    </firstVar>',
-'    <secondVar>',
-'      <scalarMetric1>100.0</scalarMetric1>',
-'    </secondVar>',
-'  </TestPP>',
-'  ',
-'  <DataSet type="Static">',
-'    <dims>',
-'      <y>Timelike</y>',
-'      <x>Timelike</x>',
-'    </dims>',
-'    <general>',
-'      <inputs>a,b</inputs>',
-'      <pointwise_meta>prefix</pointwise_meta>',
-'      <outputs>x,y</outputs>',
-'      <sampleTag>RAVEN_sample_ID</sampleTag>',
-'    </general>',
-'  </DataSet>',
-'  ',
-'</DataObjectMetadata>']
+           '  <DataSet type="Static">',
+           '    <dims>',
+           '      <x>Timelike</x>',
+           '      <y>Timelike</y>',
+           '    </dims>',
+           '    <general>',
+           '      <sampleTag>RAVEN_sample_ID</sampleTag>',
+           '      <inputs>a,b</inputs>',
+           '      <outputs>x,y</outputs>',
+           '      <pointwise_meta>prefix</pointwise_meta>',
+           '    </general>',
+           '  </DataSet>',
+           '  ',
+           '  <TestPP type="Static">',
+           '    <firstVar>',
+           '      <scalarMetric1>10.0</scalarMetric1>',
+           '      <scalarMetric2>20</scalarMetric2>',
+           '      <vectorMetric>',
+           '        <a>1</a>',
+           '        <b>2</b>',
+           '        <c>3</c>',
+           '        <d>4.0</d>',
+           '      </vectorMetric>',
+           '    </firstVar>',
+           '    <secondVar>',
+           '      <scalarMetric1>100.0</scalarMetric1>',
+           '    </secondVar>',
+           '  </TestPP>',
+           '  ',
+           '</DataObjectMetadata>']
 # read in XML
 lines = open(csvname+'.xml','r').readlines()
 # remove line endings
