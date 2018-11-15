@@ -2,7 +2,7 @@
  [./testLimitSurfaceMultiGridSampling]
   type = 'RavenFramework'
   input = 'test_limit_surface_multi_grid_acc.xml'
-  csv = 'limitSurfaceMultiGrid/limitSurfaceTwoIslandsCSV.csv'
+  UnorderedCsv = 'limitSurfaceMultiGrid/limitSurfaceTwoIslandsCSV.csv'
   max_time = 300
   rel_err = 0.0001
  [../]
