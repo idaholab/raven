@@ -476,7 +476,9 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
     """
     point = None
     avg = 0
-    for pt in utils.first(self.expImpact.values()).keys():
+    #This finds a prototype of the samples from which the points can be found
+    prototype = self.expImpact[self.targets[0]]
+    for pt in sorted(prototype.keys()):
       new = sum(self.expImpact[t][pt] for t in self.targets)/len(self.targets)
       if avg < new:
         avg = new
