@@ -275,9 +275,8 @@ class OutStreamPlot(OutStreamManager):
     for pltIndex in range(len(self.outStreamTypes)):
       if len(self.sourceData[pltIndex]) == 0:
         return False
-
+      dataSet = self.sourceData[pltIndex].asDataset()
       if self.sourceData[pltIndex].type.strip() != 'HistorySet':
-        dataSet = self.sourceData[pltIndex].asDataset()
         for i in range(len(self.xCoordinates [pltIndex])):
           xSplit = self.__splitVariableNames('x', (pltIndex, i))
           if xSplit[2].strip() not in self.sourceData[pltIndex].getVars(xSplit[1].lower()):
