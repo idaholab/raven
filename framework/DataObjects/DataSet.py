@@ -959,7 +959,7 @@ class DataSet(DataObject):
       self.addMeta('DataSet',{'general':{'sampleTag':self.sampleTag,
                                          'inputs':','.join(self._inputs),
                                          'outputs':','.join(self._outputs),
-                                         'pointwise_meta':','.join(self._metavars),
+                                         'pointwise_meta':','.join(sorted(self._metavars)),
       }})
     elif action == 'extend':
       # TODO compatability check!
