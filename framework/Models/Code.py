@@ -848,7 +848,7 @@ class Code(Model):
            a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
         @ Out, None
     """
-    prefix = kwargs.get("prefix") 
+    prefix = kwargs.get("prefix")
     uniqueHandler = kwargs.get("uniqueHandler",'any')
 
     ## These two are part of the current metadata, so they will be added before

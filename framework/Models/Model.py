@@ -369,7 +369,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
            a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
         @ Out, None
     """
-    prefix = kwargs.get("prefix") 
+    prefix = kwargs.get("prefix")
     uniqueHandler = kwargs.get("uniqueHandler",'any')
     forceThreads = kwargs.get("forceThreads",False)
 
@@ -400,7 +400,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
           #contains a dictionary {'name variable':value}
         #@ Out, None
     #"""
-    #prefix = kwargs.get("prefix") 
+    #prefix = kwargs.get("prefix")
     #uniqueHandler = kwargs.get("uniqueHandler",'any')
     #forceThreads = kwargs.get("forceThreads",False)
 
