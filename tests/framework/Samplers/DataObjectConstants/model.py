@@ -15,4 +15,10 @@
 import numpy as np
 
 def run(self,Input):
+  """
+    Runs the model.
+    @ In, self, object, RAVEN's API storage object
+    @ In, Input, dict, RAVEN's dictionary storage object
+    @ Out, None
+  """
   self.z = self.x*self.C + self.D
