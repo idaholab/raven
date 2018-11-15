@@ -205,11 +205,6 @@ class PostProcessor(Model):
     """
     kwargs['forceThreads'] = True
     Model.submit(self,myInput, samplerType, jobHandler,**kwargs)
-    ## This may look a little weird, but due to how the parallel python library
-    ## works, we are unable to pass a member function as a job because the
-    ## pp library loses track of what self is, so instead we call it from the
-    ## class and pass self in as the first parameter
-    #jobHandler.addJob((self, myInput, samplerType, kwargs), self.__class__.evaluateSample, str(0), modulesToImport=self.mods, forceUseThreads=True)
 
   def evaluateSample(self, myInput, samplerType, kwargs):
     """
