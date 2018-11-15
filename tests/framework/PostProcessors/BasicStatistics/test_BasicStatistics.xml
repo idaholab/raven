@@ -313,6 +313,9 @@
     <PointSet name="checkIfMatrixCanBeComputed_basicStatPP">
       <Output>checkIfMatrixCanBeComputed_vars</Output>
     </PointSet>
+    <PointSet name="autoCorrelationTest_basicStatPP">
+      <Output>autoCorrelationTest_vars</Output>
+    </PointSet>
     <PointSet name="CreateInfinity_basicStatPP">
       <Output>CreateInfinity_vars</Output>
     </PointSet>
