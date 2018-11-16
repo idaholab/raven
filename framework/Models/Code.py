@@ -848,8 +848,8 @@ class Code(Model):
            a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
         @ Out, None
     """
-    prefix = kwargs['prefix'] if 'prefix' in kwargs else None
-    uniqueHandler = kwargs['uniqueHandler'] if 'uniqueHandler' in kwargs.keys() else 'any'
+    prefix = kwargs.get("prefix")
+    uniqueHandler = kwargs.get("uniqueHandler",'any')
 
     ## These two are part of the current metadata, so they will be added before
     ## the job is started, so that they will be captured in the metadata and match
