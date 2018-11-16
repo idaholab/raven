@@ -2,8 +2,8 @@
   <DataSet type="Static">
     <dims>
       <cosine>time</cosine>
-      <sine>time</sine>
       <square>time</square>
+      <sine>time</sine>
     </dims>
     <general>
       <inputs>var1,var2</inputs>
