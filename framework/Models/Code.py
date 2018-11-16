@@ -187,7 +187,7 @@ class Code(Model):
           if sys.version_info.major > 2:
             pythonName = "python3"
           else:
-            pythonName = "python2"
+            pythonName = "python"
           if 'pre' in self.clargs:
             self.clargs['pre'] = self.clargs['pre']+' '+pythonName
           else:
