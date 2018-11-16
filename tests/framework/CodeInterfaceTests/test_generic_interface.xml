@@ -70,6 +70,7 @@
     <MultiRun name="sample">
       <Input class="Files" type="">inp.two</Input>
       <Input class="Files" type="">one.xml</Input>
+      <Input class="Files" type="">inp.three</Input>
       <Input class="Files" type="">mesh</Input>
       <Input class="Files" type="">a_dummy_file_for_subdirectory</Input>
       <Model class="Models" type="Code">poly</Model>
