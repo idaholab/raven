@@ -135,13 +135,45 @@ XML node and the requirements for other attributes change:
   optional parameter} the user is able to input variables that need to be
   kept constant.
   For doing this, as many \xmlNode{constant} nodes as needed can be
-  input, where the body of the node contains the constant value that is
-  going to be injected as an additional variable.  The constant has the following attributes:
+  input.
+  %
+  There are options for setting a constant. To simply set the constant's value,
+  the body of the node contains the constant value, and the \xmlNode{constant}
+  node has the following attributes:
   \begin{itemize}
     \item \xmlAttr{name}, \xmlDesc{required string attribute}, user-defined name
       of this constant.
     \item \shapeConstantDescription
   \end{itemize}
+
+  Alternatively, the constant value can
+  be read from a DataObject that has been identified as a \xmlNode{ConstantSource} for
+  this Sampler. In this case, the body of the \xmlNode{constant} node is the name of the
+  variable that needs to be read from the \xmlNode{ConstantSource}, and the \xmlNode{constant}
+  node has the following additional attributes in addition to the those above:
+  \begin{itemize}
+    \item \xmlAttr{source}, \xmlDesc{required string attribute}, the name of the DataObject
+      containing the value to be used for this constant. This must be the name of one of
+      the \xmlNode{ConstantSource} DataObjects.
+    \item \xmlAttr{index}, \xmlDesc{optional integer attribute}, the index of the realization
+      in the source DataObject that contains the value to use for the constant. \default{the last entry}
+  \end{itemize}
+
+  By way of example, consider the following Sampler definition. The constant will be named
+  \xmlString{C} in the Sampler, and its value is taken from the DataObject \xmlString{MyConstant},
+  which is identified in the \xmlNode{ConstantSource} node. To find the value of the constant in
+  \xmlString{MyConstant}, the Sampler will look at the realization with index \xmlString{3} for the
+  value of variable \xmlString{A} to use as the constant value.
+  \begin{lstlisting}[style=XML]
+    <Samplers>
+      <WhatEverSampler name='whatever'>
+        <ConstantSource class='DataObjects' type='PointSet'>MyConstants</ConstantSource>
+        <constant name='C' source='MyConstants' index='3'>A</constant>
+      </WhatEverSampler>
+    </Samplers>
+  \end{lstlisting}
+
+
 }
 
 \newcommand{\distributionDescription}
@@ -268,7 +300,7 @@ XML node and the requirements for other attributes change:
     to control this sampler's convergence criterion.
 }
 
-\newcommand{\assemblerDescription}[1] %%NOTE this only applies to the adaptive sampler.  Why is it a newcommand? %%
+\newcommand{\assemblerDescription}[1]
 {
   \textbf{Assembler Objects} These objects are either required or optional
     depending on the functionality of the #1 Sampler.
@@ -321,6 +353,15 @@ XML node and the requirements for other attributes change:
         are determined.  Given a point in the input space, if that point is within a relative Euclidean
         distance (equal to the tolerance) of a restart point, the nearest restart point will be used.
         \default{1e-15}
+    \end{itemize}
+}
+\newcommand{\constantSourceDescription}[1]
+{
+    \begin{itemize}
+      \item \xmlNode{ConstantSource}, \xmlDesc{string, optional field}, the
+        body of this XML node must contain the name of an appropriate \textbf{DataObject} defined in the
+        \xmlNode{DataObjects} block (see Section~\ref{sec:DataObjects}).  It is used as a
+        source from which constants can take values.
     \end{itemize}
 }
 
@@ -615,6 +656,7 @@ listed in \xmlNode{manifestVariables} are used by the \xmlNode{Models}.
 \variablesTransformationDescription{MonteCarlo}
 \assemblerDescription{MonteCarlo}
 \restartDescription{MonteCarlo}
+\constantSourceDescription{MonteCarlo}
 
 Example:
 \begin{lstlisting}[style=XML]
@@ -705,6 +747,7 @@ are used by the \xmlNode{Models}.
 
 \assemblerDescription{Grid}
 \restartDescription{Grid}
+\constantSourceDescription{Grid}
 
 Example:
 \begin{lstlisting}[style=XML,morekeywords={construction,steps,lowerBound,upperBound}]
@@ -790,6 +833,7 @@ Because of the tight coupling between the Sampler and the ROM in stochastic coll
   \assemblerDescription{SparseGridCollocation}
   \ROMDescription{SparseGridCollocation}
   \restartDescription{SparseGridCollocation}
+  \constantSourceDescription{SparseGridCollocation}
 
 \footnotesize
 \begin{lstlisting}[style=XML]
@@ -933,6 +977,7 @@ Because of the tight coupling between the Sobol sampler and the HDMRRom, the Sam
   \assemblerDescription{Sobol}
   \ROMDescription{Sobol}
   \restartDescription{Sobol}
+  \constantSourceDescription{Sobol}
 
 \footnotesize
 \begin{lstlisting}[style=XML]
@@ -1017,6 +1062,7 @@ randomly selected, is picked and not all the nodal combinations (like in the
 
 \assemblerDescription{Stratified}
 \restartDescription{Stratified}
+\constantSourceDescription{Stratified}
 
 Example:
 \begin{lstlisting}[style=XML,morekeywords={construction,steps,lowerBound,upperBound}]

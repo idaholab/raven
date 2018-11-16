@@ -1,0 +1,8 @@
+[Tests]
+ [./DataObjectConstants]
+   type = 'RavenFramework'
+   input = 'dataobject_constants.xml'
+   csv = 'DataObjectConstants/presamples.csv DataObjectConstants/samples.csv'
+   output = 'DataObjectConstants/presamples.xml DataObjectConstants/samples.xml'
+ [../]
+[]
