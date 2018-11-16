@@ -182,5 +182,5 @@ class GenericCode(CodeInterfaceBase):
         origfiles.append(inputFile)
     parser = GenericParser.GenericParser(infiles)
     parser.modifyInternalDictionary(**Kwargs)
-    parser.writeNewInput(currentInputFiles,origfiles)
+    parser.writeNewInput(infiles,origfiles)
     return currentInputFiles
