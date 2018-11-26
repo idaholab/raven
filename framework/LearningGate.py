@@ -64,19 +64,23 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
       if not 'Target' in self.initializationOptions.keys():
         self.raiseAnError(IOError,'No Targets specified!!!')
     # check if pivotParameter is specified and in case store it
-    self.pivotParameterId     = self.initializationOptions.get("pivotParameter",'time')
+    self.pivotParameterId = self.initializationOptions.get("pivotParameter",'time')
     # return instance of the ROMclass
     modelInstance = SupervisedLearning.returnInstance(ROMclass,self,**self.initializationOptions)
     # check if the model can autonomously handle the time-dependency
     # (if not and time-dep data are passed in, a list of ROMs are constructed)
     self.canHandleDynamicData = modelInstance.isDynamic()
     # is this ROM  time-dependent ?
-    self.isADynamicModel      = False
+    self.isADynamicModel = False
     # if it is dynamic and time series are passed in, self.supervisedContainer is not going to be expanded, else it is going to
-    self.supervisedContainer     = [modelInstance]
-
+    self.supervisedContainer = [modelInstance]
     #
     self.historySteps         = []
+
+    ### ClusteredRom ###
+    if "Cluster" in self.initializationOptions:
+      print('DEBUGG clustering!')
+      aaa
 
   def __getstate__(self):
     """
