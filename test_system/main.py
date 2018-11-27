@@ -7,6 +7,8 @@ warnings.simplefilter('default',DeprecationWarning)
 import os
 import sys
 
+import trees.TreeStructure
+
 #XXX fixme to find a better way to the tests directory
 
 this_dir = os.path.abspath(os.path.dirname(__file__))
@@ -25,4 +27,11 @@ def get_test_lists(directory):
       test_list.append(os.path.join(root,'tests'))
   return test_list
 
-print(get_test_lists(test_dir))
+test_list = get_test_lists(test_dir)
+
+for test_file in test_list:
+    print(test_file)
+    tree = trees.TreeStructure.parse(test_file,'getpot')
+    for node in tree.getroot():
+        print(node.tag)
+        print(node.attrib)

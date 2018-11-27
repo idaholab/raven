@@ -174,8 +174,8 @@ def getpotToInputTree(getpot):
     #if comment in line, store it for now
     if '#' in line:
       if comment is not None:
-        raise NotImplementedError('need to handle comments better!')
         #need to stash comments, attributes for node
+        comment += "\n"+'#'.join(line.split('#')[1:])
       comment = '#'.join(line.split('#')[1:])
       line = line.split('#')[0].strip()
     #if starting new node
@@ -199,7 +199,8 @@ def getpotToInputTree(getpot):
       addComment(currentNode) #FIXME should belong to next child? Hard to say.
     #empty line
     elif line == '':
-      currentNode.addComment(comment)
+      if currentNode is not None:
+        currentNode.addComment(comment)
     #attribute setting line
     elif '=' in line:
       #TODO FIXME add attribute comment!
