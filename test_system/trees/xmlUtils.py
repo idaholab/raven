@@ -25,9 +25,15 @@ import xml.etree.ElementTree as ET
 import xml.dom.minidom as pxml
 import re
 import os
-from .utils import isString
-from .graphStructure import graphObject
-import VariableGroups
+#from .graphStructure import graphObject
+#import VariableGroups
+
+def isString(s):
+  """
+  Check if s is a string
+  s: parameter to check
+  """
+  return type(s).__name__ in ['unicode','str','bytes']
 
 #define type checking
 def isComment(node):
@@ -389,10 +395,10 @@ def readVariableGroups(xmlNode,messageHandler,caller):
     deps[name] = needs
     if len(deps[name]) == 0:
       initials.append(name)
-  graph = graphObject(deps)
+  #graph = graphObject(deps)
   # sanity checking
-  if graph.isALoop():
-    caller.raiseAnError(IOError,'VariableGroups have circular dependency! Order:',' -> '.join(graph.createSingleListOfVertices(alls)))
+  #if graph.isALoop():
+  #  caller.raiseAnError(IOError,'VariableGroups have circular dependency! Order:',' -> '.join(graph.createSingleListOfVertices(alls)))
   # ordered list (least dependencies first)
   hierarchy = list(reversed(graph.createSingleListOfVertices(graph.findAllUniquePaths(initials))))
 
