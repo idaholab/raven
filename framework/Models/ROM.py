@@ -56,8 +56,17 @@ class ROM(Dummy):
     IndexSetInputType = InputData.makeEnumType("indexSet","indexSetType",["TensorProduct","TotalDegree","HyperbolicCross","Custom"])
     CriterionInputType = InputData.makeEnumType("criterion", "criterionType", ["bic","aic","gini","entropy","mse"])
 
+    # general
     inputSpecification.addSub(InputData.parameterInputFactory('Features',contentType=InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory('Target',contentType=InputData.StringType))
+    # clustering
+    cluster = InputData.parameterInputFactory("Cluster", strictMode=True)
+    subspace = InputData.parameterInputFactory('subspace', InputData.StringType)
+    subspace.addParam('divisions', InputData.IntegerType, False)
+    cluster.addSub(subspace)
+    cluster.addSub(InputData.parameterInputFactory('numClusters', contentType=InputData.IntegerType))
+    inputSpecification.addSub(cluster)
+    # unsorted
     inputSpecification.addSub(InputData.parameterInputFactory("persistence", InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("gradient", InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("simplification", InputData.FloatType))

@@ -518,7 +518,6 @@ class ARMA(supervisedLearning):
     else:
       self.raiseAWarning('While computing CDF, 25 and 75 percentile are the same number; using Root instead of Freedman-Diaconis.')
       n = max(int(np.ceil(np.sqrt(data.size))),20)
-    n *= 100
     self.raiseADebug('... ... bins for ARMA empirical CDF:',n)
     return n
 
@@ -595,6 +594,26 @@ class ARMA(supervisedLearning):
                                      measurement_shocks = measureShocks,
                                      state_shocks = stateShocks)
     return obs
+
+  def getClusterParameter(self, *args, **kwargs):
+    """
+      Indicates the parameters on which this ROM can cluster.
+      @ In, None
+      @ Out, value, float, parameter value
+    """
+    # TODO algorithm for combining Fourier series and ARMA white noise variance
+    import matplotlib.pyplot as plt
+    plt.plot(range(len(self.fourierResults['Demand']['predict'])), self.fourierResults['Demand']['predict'])
+    plt.show()
+
+
+  def getRomClusterParams(self):
+    """
+      Indicates the parameters on which this ROM can cluster.
+      @ In, None
+      @ Out, params, list, clusterable parameters
+    """
+    return ['Fourier', 'ARMA_variance']
 
   def _interpolateDist(self,x,y,Xlow,Xhigh,Ylow,Yhigh,inMask):
     """
@@ -741,7 +760,7 @@ class ARMA(supervisedLearning):
       @ In, order, dict, Fourier orders to extract for each base period
       @ In, values, np.array, list of values for the dependent variable (signal to take fourier from)
       @ In, zeroFilter, bool, optional, if True then apply zero-filtering for fourier fitting
-      @ Out, fourierResult, dict, results of this training in keys 'residues', 'fOrder', 'predict'
+      @ Out, fourierResult, dict, results of this training in keys 'residues', 'fourierSet', 'predict'
     """
     fourierSeriesOriginal = self._generateFourierSignal(pivotValues,
                                                    basePeriod,
@@ -751,52 +770,56 @@ class ARMA(supervisedLearning):
     # if using zero-filter, cut the parts of the Fourier and values that correspond to the zero-value portions
     if zeroFilter:
       values = values[self.zeroFilterMask]
-      fourierSeriesAll = dict((period,vals[self.zeroFilterMask]) for period,vals in fourierSeriesOriginal.items())
+      fourierEvaluations = dict((period,vals[self.zeroFilterMask]) for period,vals in fourierSeriesOriginal.items())
     else:
-      fourierSeriesAll = fourierSeriesOriginal
+      fourierEvaluations = fourierSeriesOriginal
 
     # get the combinations of fourier signal orders to consider
-    temp = [range(1,order[bp]+1) for bp in order]
-    fourOrders = list(itertools.product(*temp)) # generate the set of combinations of the Fourier order
 
     criterionBest = np.inf
-    fSeriesBest = []
+    bestSignal = []
     fourierResult={'residues': 0,
-                   'fOrder': []}
+                   'fourierSet': []}
 
+    fourierBaseFrequencies = [range(1,order[bp]+1) for bp in order]
     # for all combinations of Fourier periods and orders ...
-    for fOrder in fourOrders:
+    for fourierSet in list(itertools.product(*fourierBaseFrequencies)):
       # generate container for Fourier series evaluation
-      fSeries = np.zeros(shape=(values.size,2*sum(fOrder)))
+      fourierSignals = np.zeros(shape=(values.size, 2*sum(fourierSet)))
       # running indices for orders and sine/cosine coefficients
-      indexTemp = 0
+      runningIndex = 0
       # for each base period requested ...
       for index,bp in enumerate(order):
         # store the series values for the given periods
-        fSeries[:,indexTemp:indexTemp+fOrder[index]*2] = fourierSeriesAll[bp][:,0:fOrder[index]*2]
+        ## TODO this may not be an ideally-indexed storage mechanism
+        ## dimensions are ?, Fourier combination (sine and cosine)
+        fourierSignals[:, runningIndex:runningIndex+fourierSet[index]*2] = fourierEvaluations[bp][:, 0:fourierSet[index]*2]
         # update the running index
-        indexTemp += fOrder[index]*2
+        runningIndex += fourierSet[index]*2
       # find the correct magnitudes to best fit the data
       ## note in the zero-filter case, this is fitting the truncated data
-      fourierEngine.fit(fSeries,values)
-      # determine the (normalized) error associated with this best fit
-      r = (fourierEngine.predict(fSeries)-values)**2
+      fourierEngine.fit(fourierSignals,values)
+      # determine the (normalized) residual/error associated with this best fit
+      r = (fourierEngine.predict(fourierSignals)-values)**2
       if r.size > 1:
         r = sum(r)
       # TODO any reason to scale this error? values.size should be the same for every order, so all scales same
       r = r/values.size
       # TODO is anything gained by the copy and deepcopy for r?
       criterionCurrent = copy.copy(r)
-      if  criterionCurrent< criterionBest:
-        fourierResult['fOrder'] = copy.deepcopy(fOrder)
-        fSeriesBest = copy.deepcopy(fSeries)
+      if  criterionCurrent < criterionBest:
+        # TODO this could be sped up by only keeping track of indexes for best, then deepcopying only those
+        fourierResult['fourierSet'] = copy.deepcopy(fourierSet)
+        bestSignal = copy.deepcopy(fourierSignals)
         fourierResult['residues'] = copy.deepcopy(r)
         criterionBest = copy.deepcopy(criterionCurrent)
 
     # retrain the best-fitting set of orders
-    fourierEngine.fit(fSeriesBest,values)
+    fourierEngine.fit(bestSignal,values)
+    # obtain the Fourier magnitude for each order
+    ## TODO HOW??
     # produce the best-fitting signal
-    fourierSignal = np.asarray(fourierEngine.predict(fSeriesBest))
+    fourierSignal = np.asarray(fourierEngine.predict(bestSignal))
     # if zero-filtered, put zeroes back into the Fourier series
     if zeroFilter:
       signal = np.zeros(pivotValues.size)

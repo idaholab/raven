@@ -34,6 +34,7 @@ from BaseClasses import BaseType
 from utils import mathUtils
 from utils import utils
 import SupervisedLearning
+import unSupervisedLearning
 import MessageHandler
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -51,11 +52,17 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
       @ In, kwargs, dict, an arbitrary list of kwargs
       @ Out, None
     """
-    self.printTag                = 'SupervisedGate'
-    self.messageHandler          = messageHandler
-    self.initializationOptions   = kwargs
-    self.amITrained              = False
-    self.ROMclass                = ROMclass
+    self.printTag              = 'SupervisedGate'
+    self.messageHandler        = messageHandler
+    self.initializationOptions = kwargs
+    self.amITrained            = False
+    self.ROMclass              = ROMclass
+    # members for clustered roms
+    self._usingRomClustering   = False             # are we using ROM clustering?
+    self._romClusterDivisions  = {}                # which parameters do we cluster, and how are they subdivided?
+    self._numberRomClusters    = None              # how many clusters should we find?
+    #
+
     #the ROM is instanced and initialized
     #if ROM comes from a pickled rom, this gate is just a placeholder and the Targets check doesn't apply
     self.pickled = self.initializationOptions.pop('pickled',False)
@@ -74,13 +81,26 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
     self.isADynamicModel = False
     # if it is dynamic and time series are passed in, self.supervisedContainer is not going to be expanded, else it is going to
     self.supervisedContainer = [modelInstance]
-    #
-    self.historySteps         = []
+    self.historySteps = []
 
     ### ClusteredRom ###
-    if "Cluster" in self.initializationOptions:
-      print('DEBUGG clustering!')
-      aaa
+    romName = self.initializationOptions['name']
+    self._usingRomClustering = "Cluster" in self.initializationOptions
+    if self._usingRomClustering:
+      # first check if ROM known how to be clustered
+      clusterMetrics = modelInstance.getRomClusterParams()
+      # get node from the input specs
+      clusterSpec = self.initializationOptions['paramInput'].findFirst('Cluster')
+      for node in clusterSpec.subparts:
+        if node.name == 'subspace':
+          self._romClusterDivisions[node.value] = node.parameterValues['divisions']
+        elif node.name == 'numClusters':
+          self._numberRomClusters = node.value
+          print('DEBUGG numcl:',self._numberRomClusters, type(self._numberRomClusters))
+      self.raiseADebug('Enabling ClusteredROM for "{}":'.format(romName))
+      for index, divisions in self._romClusterDivisions.items():
+        self.raiseADebug('    Dividing {:^20s} into {:^5d} divisions for clustering.'.format(index,divisions))
+      self.raiseADebug('    Using {:^5d} distinct clusters.'.format(self._numberRomClusters))
 
   def __getstate__(self):
     """
@@ -145,6 +165,13 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
     if len(trainingSet.keys()) == 0:
       self.raiseAnError(IOError,"The training set is empty!")
 
+    # if training using clustering, special treatment
+    if self._usingRomClustering:
+      self._trainByCluster(self._numberRomClusters, self._romClusterDivisions, trainingSet)
+      self.amITrained = True
+      return
+
+    # otherwise, traditional training
     if any(type(x).__name__ == 'list' for x in trainingSet.values()):
       # we need to build a "time-dependent" ROM
       self.isADynamicModel = True
@@ -176,6 +203,55 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
       #self._replaceVariablesNamesWithAliasSystem(self.trainingSet, 'inout', False)
       self.supervisedContainer[0].train(trainingSet)
     self.amITrained = True
+
+  def _trainByCluster(self, N, clusterParams, trainingSet):
+    """
+      Train ROM by training many ROMs depending on the input/index space clustering.
+      @ In, N, int, number of clusters to find and classify
+      @ In, clusterParams, dict, dictionary of inputs/indices to cluster on mapped to number of subdivisions to make
+      @ In, trainingSet, dict or list, data used to train the ROM; if a list is provided a temporal ROM is generated.
+      @ Out, None
+    """
+    # subdivide domain
+    ## instead of actually dividing, create masks
+    index, segments = clusterParams.items()[0]
+    # assumption: ARMA only trains on a single sample
+    dataLen = len(trainingSet[index][0])
+    counter = np.arange(dataLen)
+    counter = np.array_split(counter, segments)
+    print('DEBUGG counter len:',len(counter))
+    # masks[s][ctrs[0]:ctrs[-1]+1] = 1
+
+    #data = {}
+    #for var, vals in trainingSet.items():
+    #  data[var] = np.array_split(vals, clusterParams[var])
+
+    templateRom = self.supervisedContainer[0]
+    roms = []
+    for i in range(segments):
+      # train ROM for subdivision
+      picker = slice(counter[i][0], counter[i][-1]+1)
+      newRom = copy.deepcopy(templateRom)
+      # assumption: ARMA only trains on a single sample
+      self.raiseADebug('Training segment',i,picker)
+      newRom.train(dict((var,[trainingSet[var][0][picker]]) for var in trainingSet))
+      roms.append(newRom)
+
+    # cluster ROMs
+    ## create cluster data
+    dataToCluster = list(rom.getClusterParameter() for rom in roms)
+    ## make the clustering instance
+    initOptions = {'Features'  : TODO,
+                   'SKLtype'   : 'cluster|KMeans',
+                   'n_clusters': N,
+                   'tol'       : 1e-5,
+                   'init'      : 'random'}
+    clusterer = unSupervisedLearning.SciKitLearn(self.messageHandler, **initOptions)
+    clusterer.train(dataToCluster)
+    labels = clusterer.evaluate(dataToCluster)
+
+    # store mapping
+    aaa
 
   def confidence(self, request):
     """
