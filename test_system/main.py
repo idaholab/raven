@@ -7,9 +7,20 @@ warnings.simplefilter('default',DeprecationWarning)
 import os
 import sys
 import subprocess
+import argparse
+import re
 
 import pool
 import trees.TreeStructure
+
+parser = argparse.ArgumentParser(description="Test Runner")
+parser.add_argument('-j', '--jobs', dest='number_jobs', type=int, default=1,
+                    help='Specifies number of tests to run simultaneously (default: 1)')
+parser.add_argument('--re', dest='test_re_raw', default='.*',
+                    help='Only tests with this regular expression inside will be run')
+args = parser.parse_args()
+
+test_re = re.compile(args.test_re_raw)
 
 #XXX fixme to find a better way to the tests directory
 
@@ -65,11 +76,13 @@ for test_dir, test_file in test_list:
     #print(node.attrib)
     if node.attrib['type'] in ['RavenPython','CrowPython']:
       input_filename = node.attrib['input']
-      function_list.append((run_python_test, (test_dir, input_filename)))
       rel_test_dir = test_dir[len(base_test_dir)+1:]
-      test_name_list.append(rel_test_dir+os.sep+node.tag)
+      test_name = rel_test_dir+os.sep+node.tag
+      if test_re.search(test_name):
+        function_list.append((run_python_test, (test_dir, input_filename)))
+        test_name_list.append(test_name)
 
-run_pool = pool.MultiRun(function_list, 8)
+run_pool = pool.MultiRun(function_list, args.number_jobs)
 
 run_pool.run()
 
