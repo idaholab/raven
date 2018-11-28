@@ -49,7 +49,7 @@ def _dumps(val):
     @ In, val, any, data to encode
     @ Out, _dumps, np.void, encoded data
   """
-  return pk.dumps(val,protocol=0)
+  return np.void(pk.dumps(val, protocol=0))
 
 def _loads(val):
   """
@@ -63,7 +63,7 @@ def _loads(val):
     try:
       return pk.loads(val)
     except UnicodeDecodeError:
-      return pk.loads(val,encoding='bytes')
+      return pk.loads(val,errors='backslashreplace')
 
 #
 #  *************************
