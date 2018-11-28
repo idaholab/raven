@@ -55,7 +55,8 @@ def run_python_test(data):
     short = "Failed"
   return (passed, short, output)
 
-function_list = []
+function_list = [] #Store the data for the pool runner
+test_name_list = []
 for test_dir, test_file in test_list:
   #print(test_file)
   tree = trees.TreeStructure.parse(test_file, 'getpot')
@@ -65,6 +66,8 @@ for test_dir, test_file in test_list:
     if node.attrib['type'] in ['RavenPython','CrowPython']:
       input_filename = node.attrib['input']
       function_list.append((run_python_test, (test_dir, input_filename)))
+      rel_test_dir = test_dir[len(base_test_dir)+1:]
+      test_name_list.append(rel_test_dir+os.sep+node.tag)
 
 run_pool = pool.MultiRun(function_list, 8)
 
@@ -76,13 +79,12 @@ failed_list = []
 def process_result(index, input_data, output_data):
   test_dir, input_filename = input_data
   passed, short_comment, long_comment = output_data
-  path = os.path.join(test_dir, input_filename)
-  rel_path = path[len(base_test_dir)+1:]
-  print(rel_path)
+  test_name = test_name_list[index]
+  print(test_name)
   print(passed, short_comment)
   if not passed:
     results["fail"] += 1
-    failed_list.append(rel_path)
+    failed_list.append(test_name)
     print(long_comment)
   else:
     results["pass"] += 1
