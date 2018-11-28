@@ -8,6 +8,7 @@ import os
 import sys
 import subprocess
 
+import pool
 import trees.TreeStructure
 
 #XXX fixme to find a better way to the tests directory
@@ -54,7 +55,7 @@ def run_python_test(data):
     short = "Failed"
   return (passed, short, output)
 
-results = {"pass":0,"fail":0}
+function_list = []
 for test_dir, test_file in test_list:
   #print(test_file)
   tree = trees.TreeStructure.parse(test_file, 'getpot')
@@ -63,13 +64,26 @@ for test_dir, test_file in test_list:
     #print(node.attrib)
     if node.attrib['type'] in ['RavenPython','CrowPython']:
       input_filename = node.attrib['input']
-      print(os.path.join(test_dir, input_filename))
-      passed, short_comment, long_comment = run_python_test((test_dir, input_filename))
-      print(passed, short_comment)
-      if not passed:
-        results["fail"] += 1
-        print(long_comment)
-      else:
-        results["pass"] += 1
+      function_list.append((run_python_test, (test_dir, input_filename)))
+
+run_pool = pool.MultiRun(function_list, 8)
+
+run_pool.run()
+
+results = {"pass":0,"fail":0}
+
+def process_result(index, input_data, output_data):
+  test_dir, input_filename = input_data
+  passed, short_comment, long_comment = output_data
+  print(os.path.join(test_dir, input_filename))
+  print(passed, short_comment)
+  if not passed:
+    results["fail"] += 1
+    print(long_comment)
+  else:
+    results["pass"] += 1
+
+output_list = run_pool.process_results(process_result)
+run_pool.wait()
 
 print(results)
