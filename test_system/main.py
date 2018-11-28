@@ -14,9 +14,9 @@ import trees.TreeStructure
 #XXX fixme to find a better way to the tests directory
 
 this_dir = os.path.abspath(os.path.dirname(__file__))
-test_dir = os.path.join(os.path.dirname(this_dir),"tests")
+base_test_dir = os.path.join(os.path.dirname(this_dir),"tests")
 
-print(this_dir,test_dir)
+print(this_dir,base_test_dir)
 
 def get_test_lists(directory):
   """
@@ -24,12 +24,12 @@ def get_test_lists(directory):
   directory: the directory to start at
   """
   test_list = []
-  for root, dirs, files in os.walk(test_dir):
+  for root, dirs, files in os.walk(directory):
     if 'tests' in files:
       test_list.append((root,os.path.join(root,'tests')))
   return test_list
 
-test_list = get_test_lists(test_dir)
+test_list = get_test_lists(base_test_dir)
 
 def run_python_test(data):
   """
@@ -77,11 +77,12 @@ def process_result(index, input_data, output_data):
   test_dir, input_filename = input_data
   passed, short_comment, long_comment = output_data
   path = os.path.join(test_dir, input_filename)
-  print(path)
+  rel_path = path[len(base_test_dir)+1:]
+  print(rel_path)
   print(passed, short_comment)
   if not passed:
     results["fail"] += 1
-    failed_list.append(path)
+    failed_list.append(rel_path)
     print(long_comment)
   else:
     results["pass"] += 1
@@ -95,3 +96,4 @@ for path in failed_list:
   print(path)
 
 print(results)
+sys.exit(results["fail"])
