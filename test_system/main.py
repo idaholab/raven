@@ -71,19 +71,27 @@ run_pool = pool.MultiRun(function_list, 8)
 run_pool.run()
 
 results = {"pass":0,"fail":0}
+failed_list = []
 
 def process_result(index, input_data, output_data):
   test_dir, input_filename = input_data
   passed, short_comment, long_comment = output_data
-  print(os.path.join(test_dir, input_filename))
+  path = os.path.join(test_dir, input_filename)
+  print(path)
   print(passed, short_comment)
   if not passed:
     results["fail"] += 1
+    failed_list.append(path)
     print(long_comment)
   else:
     results["pass"] += 1
 
 output_list = run_pool.process_results(process_result)
 run_pool.wait()
+
+if results["fail"] > 0:
+  print("FAILED:")
+for path in failed_list:
+  print(path)
 
 print(results)
