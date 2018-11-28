@@ -98,7 +98,7 @@ class ravenROMexternal(object):
       the arrays have the shape (NumberOfRequestedEvaluations,)
     """
     output = []
-    for index in range(len(request.values()[0])):
+    for index in range(len(list(request.values())[0])):
       output.append(self.rom.evaluate({k:np.asarray(v[index]) for k,v in request.items()}))
     return output
 
