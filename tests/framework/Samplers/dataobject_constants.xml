@@ -82,14 +82,14 @@
       </variable>
     </Grid>
     <Grid name="grid">
-      <ConstantSource class="DataObjects" type="PointSet">presamples</ConstantSource>
-      <ConstantSource class="DataObjects" type="PointSet">presamples</ConstantSource>
       <variable name="x">
         <distribution>dist</distribution>
         <grid construction="equal" type="CDF" steps="2">0.1 0.9</grid>
       </variable>
       <constant name="C" source="presamples" index="0">A</constant>
       <constant name="D" source="presamples" index="1">B</constant>
+      <ConstantSource class="DataObjects" type="PointSet">presamples</ConstantSource>
+      <ConstantSource class="DataObjects" type="PointSet">presamples</ConstantSource>
     </Grid>
   </Samplers>
 
