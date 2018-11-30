@@ -164,6 +164,8 @@
                 <xsd:complexType mixed="true">
                     <xsd:attribute name="name" type="xsd:string" use="required"/>
                     <xsd:attribute name="shape" type="xsd:string" />
+                    <xsd:attribute name="index" type="xsd:string" />
+                    <xsd:attribute name="source" type="xsd:string" />
                 </xsd:complexType>
             </xsd:element>
             <xsd:element name="Distribution" type="extendedVariableType" minOccurs="0" maxOccurs="unbounded"/>
@@ -180,6 +182,12 @@
                             </xsd:complexType>
                         </xsd:element>
                     </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="ConstantSource"         minOccurs="0" maxOccurs='unbounded'>
+                <xsd:complexType mixed="true">
+                    <xsd:attribute name="class" type="xsd:string" use="required"/>
+                    <xsd:attribute name="type" type="xsd:string" />
                 </xsd:complexType>
             </xsd:element>
             <xsd:element name="Restart"         type="AssemblerObjectType"   minOccurs="0"  maxOccurs="unbounded"/>
