@@ -90,6 +90,11 @@ def get_testers(directory):
 testers = get_testers(os.path.join(up_one_dir, "scripts", "TestHarness", "testers"))
 print("Testers:",testers)
 
+tester_params = {}
+for tester in testers:
+  tester_params[tester] = testers[tester].validParams()
+print("Tester Params:",tester_params)
+
 function_list = [] #Store the data for the pool runner
 test_name_list = []
 for test_dir, test_file in test_list:
@@ -98,6 +103,11 @@ for test_dir, test_file in test_list:
   for node in tree.getroot():
     #print(node.tag)
     #print(node.attrib)
+    param_handler = tester_params[node.attrib['type']]
+    if not param_handler.check_for_required(node.attrib):
+      print("Missing Parameters in:", node.tag)
+    if not param_handler.check_for_all_known(node.attrib):
+      print("Unknown Parameters in:", node.tag, test_file)
     if node.attrib['type'] in ['RavenPython','CrowPython']:
       input_filename = node.attrib['input']
       rel_test_dir = test_dir[len(base_test_dir)+1:]
