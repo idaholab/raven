@@ -30,7 +30,6 @@
       <Sampler class="Samplers" type="LimitSurfaceSearch">adaptiveSearch</Sampler>
       <SolutionExport class="DataObjects" type="PointSet">limitSurface</SolutionExport>
       <Output class="DataObjects" type="PointSet">sampledPoints</Output>
-      <Output class="OutStreams" type="Print">limitSurfaceDump</Output>
     </MultiRun>
     <IOStep name="adaptdump" pauseAtEnd="true">
       <Input class="DataObjects" type="PointSet">limitSurface</Input>
@@ -40,11 +39,11 @@
 
   <DataObjects>
     <PointSet name="sampledPoints">
-      <Input>x1,</Input>
+      <Input>x1</Input>
       <Output>y1,y2</Output>
     </PointSet>
     <PointSet name="dummy">
-      <Input>x1,</Input>
+      <Input>x1</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
     <PointSet name="limitSurface">
