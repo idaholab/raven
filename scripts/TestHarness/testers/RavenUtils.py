@@ -117,11 +117,13 @@ def moduleReport(module,version=''):
     python = 'python'
   try:
     command = 'import '+module+';print('+module+')'
-    output = subprocess.check_output([python,'-c',command])
+    output = subprocess.check_output([python,'-c',command],
+                                     universal_newlines=True)
     if len(version) > 0:
       try:
         command =  'import '+module+';print('+version+')'
-        foundVersion = subprocess.check_output([python,'-c',command]).strip()
+        foundVersion = subprocess.check_output([python,'-c',command],
+                                               universal_newlines=True).strip()
       except:
         foundVersion = "NA"
     else:

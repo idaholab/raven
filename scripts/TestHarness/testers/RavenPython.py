@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from util import *
+#from util import *
 from Tester import Tester
 from CSVDiffer import CSVDiffer
 import RavenUtils
@@ -20,7 +20,8 @@ import distutils.version
 
 class RavenPython(Tester):
   try:
-    output_swig = subprocess.Popen(["swig","-version"],stdout=subprocess.PIPE).communicate()[0]
+    output_swig = subprocess.Popen(["swig","-version"],stdout=subprocess.PIPE,
+                                   universal_newlines=True).communicate()[0]
   except OSError:
     output_swig = "Failed"
 

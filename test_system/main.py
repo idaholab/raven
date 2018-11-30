@@ -9,9 +9,11 @@ import sys
 import subprocess
 import argparse
 import re
+import inspect
 
 import pool
 import trees.TreeStructure
+from Tester import Tester
 
 parser = argparse.ArgumentParser(description="Test Runner")
 parser.add_argument('-j', '--jobs', dest='number_jobs', type=int, default=1,
@@ -25,7 +27,8 @@ test_re = re.compile(args.test_re_raw)
 #XXX fixme to find a better way to the tests directory
 
 this_dir = os.path.abspath(os.path.dirname(__file__))
-base_test_dir = os.path.join(os.path.dirname(this_dir),"tests")
+up_one_dir = os.path.dirname(this_dir)
+base_test_dir = os.path.join(up_one_dir, "tests")
 
 print(this_dir,base_test_dir)
 
@@ -65,6 +68,27 @@ def run_python_test(data):
   else:
     short = "Failed"
   return (passed, short, output)
+
+def get_testers(directory):
+  """
+  imports all the testers in a directory
+  returns a dictionary with all the subclasses of Tester.
+  """
+  ret_dict = {}
+  os.sys.path.append(directory)
+  for filename in os.listdir(directory):
+    if filename.endswith(".py") and not filename.startswith("__"):
+      module = __import__(filename[:-3]) #[:-3] to remove .py
+      for name, value in module.__dict__.items():
+        #print("Unknown", name, value)
+        if inspect.isclass(value) and value is not Tester\
+           and issubclass(value, Tester):
+          ret_dict[name] = value
+  return ret_dict
+
+
+testers = get_testers(os.path.join(up_one_dir, "scripts", "TestHarness", "testers"))
+print("Testers:",testers)
 
 function_list = [] #Store the data for the pool runner
 test_name_list = []

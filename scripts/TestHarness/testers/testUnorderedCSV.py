@@ -14,6 +14,9 @@
 """
   Unit test for the UnorderedCSV differ
 """
+from __future__ import division, print_function, absolute_import
+import warnings
+warnings.simplefilter('default',DeprecationWarning)
 
 import sys
 from UnorderedCSVDiffer import UnorderedCSVDiffer as UCSV
@@ -25,9 +28,9 @@ def checkSame(comment,first,second,msg,results=None):
     results['pass'] += 1
   else:
     results['fail'] += 1
-    print 'FAILED '+comment
-    print msg
-    print ''
+    print('FAILED '+comment)
+    print(msg)
+    print('')
   return results
 
 def testAFile(fname):
@@ -56,5 +59,5 @@ if __name__ == '__main__':
 
 
 
-  print 'Passed:',results['pass'],'| Failed:',results['fail']
+  print('Passed:',results['pass'],'| Failed:',results['fail'])
   sys.exit(results['fail'])
