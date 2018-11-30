@@ -15,4 +15,9 @@
   type = 'RavenFramework'
   input = 'test_limit_surface_no_crossing_transition.xml'
  [../]
+ [./limit_surface_1_dimensional]
+  type = 'RavenFramework'
+  input = 'test_adaptive_sampler.xml'
+  csv = 'Adapt1D/limitSurfaceDump.csv'
+ [../]
 []

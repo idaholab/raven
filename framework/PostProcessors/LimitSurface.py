@@ -394,8 +394,11 @@ class LimitSurface(PostProcessor):
       self.gridCoord[nodeName].shape      = self.gridEntity.returnParameter("gridCoorShape",nodeName) #bring back the grid structure
       self.raiseADebug('LimitSurface: Prediction performed')
       # here next the points that are close to any change are detected by a gradient (it is a pre-screener)
-      toBeTested = np.squeeze(np.dstack(np.nonzero(np.sum(np.abs(np.gradient(self.testMatrix[nodeName])), axis = 0))))
-      toBeTested = np.atleast_2d(toBeTested) if len(np.atleast_1d(toBeTested)) > 0 else toBeTested
+      if self.nVar > 1:
+        toBeTested = np.squeeze(np.dstack(np.nonzero(np.sum(np.abs(np.gradient(self.testMatrix[nodeName])), axis = 0))))
+      else:
+        toBeTested = np.squeeze(np.dstack(np.nonzero(np.abs(np.gradient(self.testMatrix[nodeName])))))
+      toBeTested = np.atleast_2d(toBeTested).T if len(np.atleast_1d(toBeTested)) > 0 else toBeTested
       #printing----------------------
       self.raiseADebug('LimitSurface:  Limit surface candidate points')
       if self.getLocalVerbosity() == 'debug':
