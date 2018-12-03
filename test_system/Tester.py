@@ -3,6 +3,8 @@ from __future__ import division, print_function, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
 
+import subprocess
+
 class _Parameter:
 
   def __init__(self, name, help_text, default=None):
@@ -54,6 +56,13 @@ class _ValidParameters:
 
 class Tester:
 
+  #Various possible status buckets.
+  bucket_skip = 0
+  bucket_fail = 1
+  bucket_diff = 2
+  bucket_success = 3
+  bucket_not_set = 4
+
   @staticmethod
   def validParams():
     params = _ValidParameters()
@@ -64,3 +73,70 @@ class Tester:
     params.addParam('method', False, 'Method is ignored, but kept for compatibility')
     params.addParam('heavy', False, 'If true, run only with heavy tests')
     return params
+
+  def __init__(self, name, params):
+    """
+    Initializer for the class.  Takes a String name and a dictionary params
+    """
+    self.__name = name
+    self.specs = params
+
+  def run(self, data):
+    """
+    Runs this tester.
+    """
+    options = None
+    self.__bucket
+    if not self.checkRunnable(options):
+      return (failed, "not run", "Not run")
+
+    self.prepare()
+
+    command = self.getCommand(options)
+
+    directory = self.specs['test_dir']
+    process = subprocess.Popen(command, shell=False,
+                               stdout=subprocess.PIPE,
+                               stderr=subprocess.STDOUT,
+                               cwd=directory,
+                               universal_newlines=True)
+    output = process.communicate()[0]
+    self.exit_code = process.returncode
+    self.processResults(None, options, output)
+    return (self.__bucket == bucket_success,
+            ["SKIPPED", "FAILED", "DIFF", "SUCCESS", "NOT_SET"][self.__bucket],
+            output)
+
+  def checkRunnable(self, options):
+    """
+    Checks if this test case can run
+    """
+    return True
+
+  def setStatus(self, message, bucket):
+    """
+    Sets the message string and the bucket type
+    """
+    self.__message = message
+    self.__bucket = bucket
+
+  def processResults(self, moose_dir, options, output):
+    """
+    Handle the results of the test case.
+    moose_dir: unused
+    options: unused
+    output: the output of the test case.
+    """
+    assert False, "processResults not implemented"
+
+  def getCommand(self, options):
+    """
+    returns the command used to run the test
+    """
+    assert False, "getCommand not implemented"
+
+  def prepare(self, options = None):
+    """
+    gets the test ready to run.
+    """
+    return

@@ -97,6 +97,9 @@ print("Tester Params:",tester_params)
 
 function_list = [] #Store the data for the pool runner
 test_name_list = []
+function_postreq = {} #If this is non-empty for a key, enable the postreq's
+name_to_id = {}
+
 for test_dir, test_file in test_list:
   #print(test_file)
   tree = trees.TreeStructure.parse(test_file, 'getpot')
@@ -108,14 +111,23 @@ for test_dir, test_file in test_list:
       print("Missing Parameters in:", node.tag)
     if not param_handler.check_for_all_known(node.attrib):
       print("Unknown Parameters in:", node.tag, test_file)
+    rel_test_dir = test_dir[len(base_test_dir)+1:]
+    test_name = rel_test_dir+os.sep+node.tag
+    if "prereq" in node.attrib:
+      prereq = node.attrib['prereq']
+      prereq_name = rel_test_dir+os.sep+prereq
+      l = function_postreq.get(prereq_name, [])
+      l.append(test_name)
+      function_postreq[prereq_name] = l
     if node.attrib['type'] in ['RavenPython','CrowPython']:
       input_filename = node.attrib['input']
-      rel_test_dir = test_dir[len(base_test_dir)+1:]
-      test_name = rel_test_dir+os.sep+node.tag
       if test_re.search(test_name):
+        id_num = len(function_list)
         function_list.append((run_python_test, (test_dir, input_filename)))
         test_name_list.append(test_name)
+        name_to_id[test_name] = id_num
 
+#print(function_postreq, name_to_id)
 run_pool = pool.MultiRun(function_list, args.number_jobs)
 
 run_pool.run()
