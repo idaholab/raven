@@ -106,6 +106,9 @@ class Tester:
     if self.specs['skip'] is not False:
       self.__bucket = self.bucket_skip
       return (True, "SKIPPED", self.specs['skip'])
+    if self.specs['heavy'] is not False:
+      self.__bucket = self.bucket_skip
+      return (True, "SKIPPED (Heavy)", self.specs['skip'])
     if not self.checkRunnable(options):
       self.__bucket = self.bucket_fail
       return (False, "not run", self.__message)

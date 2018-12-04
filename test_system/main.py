@@ -146,7 +146,7 @@ def process_result(index, input_data, output_data):
   passed, short_comment, long_comment = output_data
   test_name = test_name_list[index]
   print(test_name)
-  print(passed, short_comment)
+  print(passed, short_comment, results)
   if not passed:
     results["fail"] += 1
     failed_list.append(test_name)
