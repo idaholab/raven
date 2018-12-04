@@ -97,6 +97,7 @@ print("Tester Params:",tester_params)
 
 function_list = [] #Store the data for the pool runner
 test_name_list = []
+ready_to_run = []
 function_postreq = {} #If this is non-empty for a key, enable the postreq's
 name_to_id = {}
 
@@ -119,6 +120,9 @@ for test_dir, test_file in test_list:
       l = function_postreq.get(prereq_name, [])
       l.append(test_name)
       function_postreq[prereq_name] = l
+      has_prereq = True
+    else:
+      has_prereq = False
     if test_re.search(test_name):
       params = dict(node.attrib)
       params['test_dir'] = test_dir
@@ -127,6 +131,7 @@ for test_dir, test_file in test_list:
       input_filename = node.attrib['input']
       function_list.append((tester.run, (test_dir, input_filename)))
       test_name_list.append(test_name)
+      ready_to_run.append(not has_prereq)
       name_to_id[test_name] = id_num
     #if node.attrib['type'] in ['RavenPython','CrowPython']:
     #  input_filename = node.attrib['input']
@@ -134,7 +139,7 @@ for test_dir, test_file in test_list:
     #    function_list.append((run_python_test, (test_dir, input_filename)))
 
 #print(function_postreq, name_to_id)
-run_pool = pool.MultiRun(function_list, args.number_jobs)
+run_pool = pool.MultiRun(function_list, args.number_jobs, ready_to_run)
 
 run_pool.run()
 
@@ -147,6 +152,11 @@ def process_result(index, input_data, output_data):
   test_name = test_name_list[index]
   if bucket == Tester.bucket_success:
     results["pass"] += 1
+    for postreq in function_postreq.get(test_name,[]):
+      if postreq in name_to_id:
+        job_id = name_to_id[postreq]
+        print("Enabling",postreq,job_id)
+        run_pool.enable_job(job_id)
   elif bucket == Tester.bucket_skip:
     results["skipped"] += 1
   else:

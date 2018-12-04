@@ -130,7 +130,7 @@ class Tester:
     self.exit_code = process.returncode
     self.processResults(None, options, output)
     return (self.__bucket,
-            self.get_bucket_name(self.__bucket),
+            self.__message,
             output)
 
   @staticmethod
