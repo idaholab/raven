@@ -119,13 +119,19 @@ for test_dir, test_file in test_list:
       l = function_postreq.get(prereq_name, [])
       l.append(test_name)
       function_postreq[prereq_name] = l
-    if node.attrib['type'] in ['RavenPython','CrowPython']:
+    if test_re.search(test_name):
+      params = dict(node.attrib)
+      params['test_dir'] = test_dir
+      tester = testers[node.attrib['type']](test_name, params)
+      id_num = len(function_list)
       input_filename = node.attrib['input']
-      if test_re.search(test_name):
-        id_num = len(function_list)
-        function_list.append((run_python_test, (test_dir, input_filename)))
-        test_name_list.append(test_name)
-        name_to_id[test_name] = id_num
+      function_list.append((tester.run, (test_dir, input_filename)))
+      test_name_list.append(test_name)
+      name_to_id[test_name] = id_num
+    #if node.attrib['type'] in ['RavenPython','CrowPython']:
+    #  input_filename = node.attrib['input']
+    #  if test_re.search(test_name):
+    #    function_list.append((run_python_test, (test_dir, input_filename)))
 
 #print(function_postreq, name_to_id)
 run_pool = pool.MultiRun(function_list, args.number_jobs)

@@ -63,6 +63,8 @@ class Tester:
   bucket_success = 3
   bucket_not_set = 4
 
+  success_message = "SUCCESS"
+
   @staticmethod
   def validParams():
     params = _ValidParameters()
@@ -72,6 +74,7 @@ class Tester:
     params.addParam('max_time', 300, 'Maximum time that test is allowed to run')
     params.addParam('method', False, 'Method is ignored, but kept for compatibility')
     params.addParam('heavy', False, 'If true, run only with heavy tests')
+    params.addParam('output', '', 'Output of the test')
     return params
 
   def __init__(self, name, params):
@@ -79,31 +82,51 @@ class Tester:
     Initializer for the class.  Takes a String name and a dictionary params
     """
     self.__name = name
-    self.specs = params
+    valid_params = self.validParams()
+    self.specs = valid_params.get_filled_dict(params)
+
+  def getTestDir(self):
+    """
+    Returns the test directory
+    """
+    return self.specs['test_dir']
+
+  def didPass(self):
+    """
+    Returns true if this test passed
+    """
+    return self.__bucket == self.bucket_success
 
   def run(self, data):
     """
     Runs this tester.
     """
     options = None
-    self.__bucket
+    self.__bucket = self.bucket_not_set
+    if self.specs['skip'] is not False:
+      self.__bucket = self.bucket_skip
+      return (True, "SKIPPED", self.specs['skip'])
     if not self.checkRunnable(options):
-      return (failed, "not run", "Not run")
+      self.__bucket = self.bucket_fail
+      return (False, "not run", self.__message)
 
     self.prepare()
 
     command = self.getCommand(options)
 
     directory = self.specs['test_dir']
-    process = subprocess.Popen(command, shell=False,
-                               stdout=subprocess.PIPE,
-                               stderr=subprocess.STDOUT,
-                               cwd=directory,
-                               universal_newlines=True)
+    try:
+      process = subprocess.Popen(command, shell=True,
+                                 stdout=subprocess.PIPE,
+                                 stderr=subprocess.STDOUT,
+                                 cwd=directory,
+                                 universal_newlines=True)
+    except IOError as ioe:
+      return (False, "FAILED", str(ioe))
     output = process.communicate()[0]
     self.exit_code = process.returncode
     self.processResults(None, options, output)
-    return (self.__bucket == bucket_success,
+    return (self.__bucket == self.bucket_success,
             ["SKIPPED", "FAILED", "DIFF", "SUCCESS", "NOT_SET"][self.__bucket],
             output)
 

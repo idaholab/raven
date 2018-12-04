@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from Tester import Tester
-from CSVDiffer import CSVDiffer
+from OrderedCSVDiffer import OrderedCSVDiffer
 from UnorderedCSVDiffer import UnorderedCSVDiffer
 from XMLDiff import XMLDiff
 from TextDiff import TextDiff
@@ -234,19 +234,29 @@ class RavenFramework(Tester):
       self.setStatus('CWD '+os.getcwd()+' METHOD '+os.environ.get("METHOD","?")+' Expected files not created '+" ".join(missing),self.bucket_fail)
       return output
 
+    checkAbsoluteValue = self.specs["check_absolute_value"]
+    zeroThreshold = self.specs["zero_threshold"]
+
     #csv
     if len(self.specs["rel_err"]) > 0:
-      csv_diff = CSVDiffer(self.specs['test_dir'],self.csv_files,relative_error=float(self.specs["rel_err"]))
+      csv_diff = OrderedCSVDiffer(self.specs['test_dir'],
+                                  self.csv_files,
+                                  relative_error = float(self.specs["rel_err"]),
+                                  absolute_check = checkAbsoluteValue,
+                                  zeroThreshold = zeroThreshold,
+                                  ignore_sign=self.specs["ignore_sign"])
     else:
-      csv_diff = CSVDiffer(self.specs['test_dir'],self.csv_files)
-    message = csv_diff.diff()
-    if csv_diff.getNumErrors() > 0:
-      self.setStatus(message,self.bucket_diff)
+      csv_diff = OrderedCSVDiffer(self.specs['test_dir'],
+                                  self.csv_files,
+                                  absolute_check = checkAbsoluteValue,
+                                  zeroThreshold = zeroThreshold,
+                                  ignore_sign=self.specs["ignore_sign"])
+    csv_same, csv_messages = csv_diff.diff()
+    if not csv_same > 0:
+      self.setStatus(csv_messages,self.bucket_diff)
       return output
 
     #unordered csv
-    checkAbsoluteValue = self.specs["check_absolute_value"]
-    zeroThreshold = self.specs["zero_threshold"]
     if len(self.specs["rel_err"]) > 0:
       ucsv_diff = UnorderedCSVDiffer(self.specs['test_dir'],
                   self.ucsv_files,

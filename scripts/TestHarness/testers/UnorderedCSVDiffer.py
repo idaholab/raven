@@ -248,8 +248,8 @@ class UnorderedCSVDiffer:
     # use absolute or relative?
     key = {'atol':tol} if self.__check_absolute_values else {'rtol':tol}
     # take care of infinites
-    csv = csv.replace(np.inf,-sys.maxint)
-    csv = csv.replace(np.nan,sys.maxint)
+    csv = csv.replace(np.inf,-sys.float_info.max)
+    csv = csv.replace(np.nan,sys.float_info.max)
     for col in csv.columns:
       example = csv[col].values.item(0) if csv[col].values.shape[0] != 0 else None
       # skip columns that aren't numbers TODO might skip float columns with "None" early on
