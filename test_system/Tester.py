@@ -105,13 +105,12 @@ class Tester:
     self.__bucket = self.bucket_not_set
     if self.specs['skip'] is not False:
       self.__bucket = self.bucket_skip
-      return (True, "SKIPPED", self.specs['skip'])
+      return (self.__bucket, "SKIPPED", self.specs['skip'])
     if self.specs['heavy'] is not False:
       self.__bucket = self.bucket_skip
-      return (True, "SKIPPED (Heavy)", self.specs['skip'])
+      return (self.__bucket, "SKIPPED (Heavy)", self.specs['skip'])
     if not self.checkRunnable(options):
-      self.__bucket = self.bucket_fail
-      return (False, "not run", self.__message)
+      return (self.__bucket, "Not Run", self.__message)
 
     self.prepare()
 
@@ -125,13 +124,24 @@ class Tester:
                                  cwd=directory,
                                  universal_newlines=True)
     except IOError as ioe:
-      return (False, "FAILED", str(ioe))
+      self.__bucket = self.bucket_fail
+      return (self.__bucket, "FAILED", str(ioe))
     output = process.communicate()[0]
     self.exit_code = process.returncode
     self.processResults(None, options, output)
-    return (self.__bucket == self.bucket_success,
-            ["SKIPPED", "FAILED", "DIFF", "SUCCESS", "NOT_SET"][self.__bucket],
+    return (self.__bucket,
+            self.get_bucket_name(self.__bucket),
             output)
+
+  @staticmethod
+  def get_bucket_name(bucket):
+    """
+    Returns the name of this bucket
+    """
+    names = ["SKIPPED", "FAILED", "DIFF", "SUCCESS", "NOT_SET"]
+    if 0 <= bucket < len(names):
+      return names[bucket]
+    return "UNKNOWN BUCKET"
 
   def checkRunnable(self, options):
     """

@@ -138,21 +138,24 @@ run_pool = pool.MultiRun(function_list, args.number_jobs)
 
 run_pool.run()
 
-results = {"pass":0,"fail":0}
+results = {"pass":0,"fail":0,"skipped":0}
 failed_list = []
 
 def process_result(index, input_data, output_data):
   test_dir, input_filename = input_data
-  passed, short_comment, long_comment = output_data
+  bucket, short_comment, long_comment = output_data
   test_name = test_name_list[index]
-  print(test_name)
-  print(passed, short_comment, results)
-  if not passed:
+  if bucket == Tester.bucket_success:
+    results["pass"] += 1
+  elif bucket == Tester.bucket_skip:
+    results["skipped"] += 1
+  else:
     results["fail"] += 1
     failed_list.append(test_name)
     print(long_comment)
-  else:
-    results["pass"] += 1
+  print(test_name)
+  print(Tester.get_bucket_name(bucket), short_comment, results)
+
 
 output_list = run_pool.process_results(process_result)
 run_pool.wait()
