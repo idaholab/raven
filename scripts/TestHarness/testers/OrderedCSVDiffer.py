@@ -84,6 +84,10 @@ class OrderedCSVDiffer:
     if self.__ignore_sign:
       a = abs(a)
       b = abs(b)
+    if abs(a) < self.__zero_threshold:
+      a = 0.0
+    if abs(b) < self.__zero_threshold:
+      b = 0.0
     if self.__check_absolute_values:
       return abs(a-b) < tol
     # otherwise, relative error
@@ -144,7 +148,10 @@ class OrderedCSVDiffer:
         continue
       ## at this point both CSVs have the same shape, with the same header contents.
       ## figure out column indexs
-      test_indexes = [test_headers.index(s) for s in gold_headers]
+      if gold_headers == test_headers:
+        test_indexes = range(len(gold_headers))
+      else:
+        test_indexes = [test_headers.index(s) for s in gold_headers]
       # So now for a test row:
       #  gold_row[x][y] should match test_row[x][test_indexes[y]]
       ## check for matching rows
@@ -158,13 +165,15 @@ class OrderedCSVDiffer:
           valIsNumber = type(testValue) == type(0.0)
           if matchIsNumber != valIsNumber:
             same = False
-            msg.append("Different types for "+str(goldValue)+" and "
+            msg.append("Different types in "+gold_headers[column]+" for "
+                       +str(goldValue)+" and "
                        +str(testValue))
           else:
             if not self.matches(goldValue, testValue, matchIsNumber,
                                self.__rel_err):
               same = False
-              msg.append("Different values for "+str(goldValue)+" and "
+              msg.append("Different values in "+gold_headers[column]+" for "
+                         +str(goldValue)+" and "
                        +str(testValue))
       self.finalizeMessage(same,msg,testFilename)
     return self.__same, self.__message
