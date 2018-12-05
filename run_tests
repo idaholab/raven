@@ -13,10 +13,16 @@ SCRIPT_DIR=`(cd $SCRIPT_DIRNAME; pwd)`
 echo 'Loading libraries ...'
 source $SCRIPT_DIR/scripts/establish_conda_env.sh --load
 
+if test -n "$CHECK_PYTHON3"; then
+    PYTHON=python3
+else
+    PYTHON=python2
+fi
+
 for A in "$@"; do
     case $A in
         --library_report | --library-report)
-            $SCRIPT_DIR/library_report
+            $PYTHON $SCRIPT_DIR/scripts/library_report
             exit
             ;;
     esac
@@ -24,13 +30,13 @@ done
 
 # this copy the plugins tests into raven tests
 echo 'Loading plugin tests ...'
-python $SCRIPT_DIR/scripts/copy_plugins_tests.py
+$PYTHON $SCRIPT_DIR/scripts/copy_plugins_tests.py
 # run the tests
 echo 'Running tests ...'
-python3 $SCRIPT_DIR/test_system/main.py "$@"
+$PYTHON $SCRIPT_DIR/test_system/main.py "$@"
 # grep return code
 rc=$?
 # this copy back the plugins and remove them from the source folder
-python $SCRIPT_DIR/scripts/copy_back_plugins_results.py
+$PYTHON $SCRIPT_DIR/scripts/copy_back_plugins_results.py
 # return code
 if [[ $rc != 0 ]]; then exit $rc; fi
