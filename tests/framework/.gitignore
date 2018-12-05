@@ -153,3 +153,16 @@ CodeInterfaceTests/DMInterfaceTestLoadSomeVars/testDummyStep/4/rawout~dsin
 CodeInterfaceTests/DMInterfaceTestLoadSomeVars/testDummyStep/5/dsin.txt
 CodeInterfaceTests/DMInterfaceTestLoadSomeVars/testDummyStep/5/rawout~dsin
 CodeInterfaceTests/DMInterfaceTestLoadSomeVars/testDummyStep/dsin.txt
+GridTestSameHDF5/GridRestarted/
+Optimizers/RavenRunningRaven/sample/
+ROM/TimeSeries/ARMA/ARMAparallel/
+ROM/TimeSeries/DMD/HighOrderDMD/
+ROM/TimeSeries/DMD/TraditionalDMD/
+ROM/TimeSeries/PolyExponential/PolyExpNearest/
+ROM/TimeSeries/PolyExponential/PolyExpPoly/
+ROM/TimeSeries/PolyExponential/PolyExpSpline/
+ensembleModelTests/ensembleModelFullyCorrVars/sampleMC/
+hybridModel/runCode/hybridModelCode/
+unit_tests/utils/parse/fromGetpotToGetpot.i
+unit_tests/utils/parse/fromXmltoGetpot.i
+user_guide/EnsembleModel/run_basic/sample/
