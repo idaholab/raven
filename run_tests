@@ -13,6 +13,15 @@ SCRIPT_DIR=`(cd $SCRIPT_DIRNAME; pwd)`
 echo 'Loading libraries ...'
 source $SCRIPT_DIR/scripts/establish_conda_env.sh --load
 
+for A in "$@"; do
+    case $A in
+        --library_report | --library-report)
+            $SCRIPT_DIR/library_report
+            exit
+            ;;
+    esac
+done
+
 # this copy the plugins tests into raven tests
 echo 'Loading plugin tests ...'
 python $SCRIPT_DIR/scripts/copy_plugins_tests.py
