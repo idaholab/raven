@@ -17,7 +17,7 @@
  [../]
  [./limit_surface_1_dimensional]
   type = 'RavenFramework'
-  input = 'test_adaptive_sampler.xml'
+  input = 'test_adaptive_sampler_1_d_limit_surface.xml'
   csv = 'Adapt1D/limitSurfaceDump.csv'
  [../]
 []

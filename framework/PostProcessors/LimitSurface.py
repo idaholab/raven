@@ -398,7 +398,7 @@ class LimitSurface(PostProcessor):
         toBeTested = np.squeeze(np.dstack(np.nonzero(np.sum(np.abs(np.gradient(self.testMatrix[nodeName])), axis = 0))))
       else:
         toBeTested = np.squeeze(np.dstack(np.nonzero(np.abs(np.gradient(self.testMatrix[nodeName])))))
-      toBeTested = np.atleast_2d(toBeTested).T if len(np.atleast_1d(toBeTested)) > 0 else toBeTested
+      toBeTested = np.atleast_2d(toBeTested).T if self.nVar == 1 else toBeTested
       #printing----------------------
       self.raiseADebug('LimitSurface:  Limit surface candidate points')
       if self.getLocalVerbosity() == 'debug':
