@@ -185,13 +185,15 @@ def process_result(index, input_data, output_data):
         run_pool.enable_job(job_id)
   elif bucket == Tester.bucket_skip:
     results["skipped"] += 1
+    print(short_comment)
   else:
     results["fail"] += 1
     failed_list.append(test_name)
+    print(short_comment)
     print(long_comment)
-  print(test_name)
-  print(Tester.get_bucket_name(bucket), short_comment, results)
-
+  number_done = sum(results.values())
+  print("({}/{}) {} {}".format(number_done, len(function_list),
+                               Tester.get_bucket_name(bucket),test_name))
 
 output_list = run_pool.process_results(process_result)
 run_pool.wait()
