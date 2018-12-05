@@ -186,6 +186,7 @@ def process_result(index, input_data, output_data):
   elif bucket == Tester.bucket_skip:
     results["skipped"] += 1
     print(short_comment)
+    print(long_comment)
   else:
     results["fail"] += 1
     failed_list.append(test_name)

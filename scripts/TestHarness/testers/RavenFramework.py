@@ -33,6 +33,10 @@ import platform
 myDir = os.path.dirname(os.path.realpath(__file__))
 RAVEN_DIR = os.path.abspath(os.path.join(myDir, '..', '..', '..', 'framework'))
 
+#Need to add the directory for AMSC for doing module checks.
+os.environ["PYTHONPATH"] = os.path.join(RAVEN_DIR,'contrib') + os.pathsep + os.environ.get("PYTHONPATH","")
+
+
 _missing_modules, _too_old_modules, _notQAModules = RavenUtils.checkForMissingModules()
 
 class RavenFramework(Tester):
