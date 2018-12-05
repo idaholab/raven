@@ -5,7 +5,10 @@ warnings.simplefilter('default',DeprecationWarning)
 
 
 import threading
-import queue
+try:
+  import queue
+except ImportError:
+  import Queue as queue
 import time
 
 class RunnerThread(threading.Thread):

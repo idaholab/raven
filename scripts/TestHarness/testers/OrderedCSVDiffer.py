@@ -109,7 +109,11 @@ class OrderedCSVDiffer:
       # load test file
       testFilename = os.path.join(self.__test_dir,outFile)
       try:
-        testCSV_file = open(testFilename, newline='')
+        try:
+          testCSV_file = open(testFilename, newline='')
+        except TypeError:
+          #We must be in Python 2
+          testCSV_file = open(testFilename, 'rb')
       # if file doesn't exist, that's another problem
       except IOError:
         msg.append('Test file does not exist!')
@@ -117,7 +121,11 @@ class OrderedCSVDiffer:
       # load gold file
       goldFilename = os.path.join(self.__test_dir, 'gold', outFile)
       try:
-        goldCSV_file = open(goldFilename, newline='')
+        try:
+          goldCSV_file = open(goldFilename, newline='')
+        except TypeError:
+          #We must be in Python 2
+          goldCSV_file = open(goldFilename, 'rb')
       # if file doesn't exist, that's another problem
       except IOError:
         msg.append('Gold file does not exist!')
