@@ -3,10 +3,10 @@ from __future__ import print_function
 import sys, os, subprocess, re
 
 # Set the current working directory to the directory where this script is located
-os.chdir(os.path.abspath(os.path.dirname(sys.argv[0])))
+os.chdir(os.path.abspath(os.path.dirname(os.path.dirname(sys.argv[0]))))
 
 #add framework contrib path
-RAVEN_DIR = os.path.dirname(os.path.realpath(__file__))
+RAVEN_DIR = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 os.environ["PYTHONPATH"] = os.path.join(RAVEN_DIR,'framework','contrib') + os.pathsep + os.environ.get("PYTHONPATH","")
 
 print("PYTHONPATH="+os.environ.get("PYTHONPATH",""))
@@ -37,8 +37,8 @@ try:
     print("Could not find RAVEN version info")
 except:
   print("Failed to find git version")
-sys.path.append(os.path.join("scripts","TestHarness","testers"))
-sys.path.insert(0,os.path.join("framework","utils"))
+sys.path.append(os.path.join(RAVEN_DIR,"scripts","TestHarness","testers"))
+sys.path.insert(0,os.path.join(RAVEN_DIR,"framework","utils"))
 import RavenUtils,utils
 #missing,too_old = RavenUtils.checkForMissingModules()
 #print(missing,too_old)
