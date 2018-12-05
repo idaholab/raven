@@ -10,6 +10,7 @@ import subprocess
 import argparse
 import re
 import inspect
+import time
 
 import pool
 import trees.TreeStructure
@@ -20,7 +21,29 @@ parser.add_argument('-j', '--jobs', dest='number_jobs', type=int, default=1,
                     help='Specifies number of tests to run simultaneously (default: 1)')
 parser.add_argument('--re', dest='test_re_raw', default='.*',
                     help='Only tests with this regular expression inside will be run')
+parser.add_argument('-l', dest='load_average', type=float, default=-1.0,
+                    help='wait until load average is below the number before starting a new test')
+
 args = parser.parse_args()
+
+if args.load_average > 0 and hasattr(os,"getloadavg"):
+  #XXX it would probably be better to do this before starting each test
+  while os.getloadavg()[0] > args.load_average:
+    print("Load Average too high, waiting ",os.getloadavg()[0])
+    time.sleep(1.0)
+
+def load_average_adapter(func):
+  """
+  Adapts func to not start until load average is low enough
+  """
+  def new_func(data):
+    """
+    function that waits until load average is lower.
+    """
+    while os.getloadavg()[0] > args.load_average:
+      time.sleep(1.0)
+    return func(data)
+  return new_func
 
 test_re = re.compile(args.test_re_raw)
 
@@ -129,7 +152,10 @@ for test_dir, test_file in test_list:
       tester = testers[node.attrib['type']](test_name, params)
       id_num = len(function_list)
       input_filename = node.attrib['input']
-      function_list.append((tester.run, (test_dir, input_filename)))
+      func = tester.run
+      if args.load_average > 0 and hasattr(os,"getloadavg"):
+        func = load_average_adapter(func)
+      function_list.append((func, (test_dir, input_filename)))
       test_name_list.append(test_name)
       ready_to_run.append(not has_prereq)
       name_to_id[test_name] = id_num
