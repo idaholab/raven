@@ -129,15 +129,3 @@ if __name__ == '__main__':
 
   app, groups = readRequirementsXml(requirementFile)
   writeLatexFromDictionaryOfRequirements(app,groups,outputLatex)
-
-
-
-
-
-
-
-
-
-
-
-
