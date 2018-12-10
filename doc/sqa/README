@@ -1,0 +1,11 @@
+Prepared by Andrea Alfonsi
+
+In this folder, the RAVEN and RAVEN basic plug-ins documentation is stored.
+
+To create the documentation, type the following command in any opened terminal:
+
+./make_docs
+
+This command will build the documentation and store the documents in a new folder
+called "sqa_distinct_documents"
+

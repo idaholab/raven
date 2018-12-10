@@ -20,8 +20,8 @@ do
   fi
 done
 
-rm -Rvf pdfs
-
+rm -Rvf sqa_built_documents
+mkdir sqa_built_documents
 # load raven libraries
 source ../scripts/establish_conda_env.sh --load --quiet
 
@@ -38,7 +38,17 @@ then
 else
   export TEXINPUTS=.:$SCRIPT_DIR/tex_inputs/:$TEXINPUTS
 fi
-
+# copy files that are not built
+# SQAP
+cp sqap/*.pdf sqa_built_documents/
+cp sqap/*.docx sqa_built_documents/
+# Configuration Item list
+cp CIlist/*.pdf sqa_built_documents/
+cp CIlist/*.docx sqa_built_documents/
+# CR_scheme
+cp CR_scheme.pptx sqa_built_documents/
+# Dashboard
+cp RAVEN_SQA_Status_Dashboard.pptx sqa_built_documents/
 
 if git describe
 then
@@ -53,7 +63,7 @@ then
     fi
 fi
 
-for DIR in  sdd rtr srs; do
+for DIR in  sdd rtr srs srs_rtr_combined; do
     cd $DIR
     echo Building in $DIR...
     if [[ 1 -eq $VERB ]]
@@ -64,6 +74,7 @@ for DIR in  sdd rtr srs; do
     fi
     if [[ 0 -eq $MADE ]]; then
         echo ...Successfully made docs in $DIR
+        cp *.pdf ../sqa_built_documents
     else
         echo ...Failed to make docs in $DIR
         exit -1
