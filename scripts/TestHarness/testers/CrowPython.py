@@ -76,8 +76,8 @@ class CrowPython(Tester):
         @ In, output: the output from the test case.
         @ Out: a tuple with the error return code and the output passed in.
     """
-    if self.exit_code != 0:
-      self.setStatus(str(self.exit_code), self.bucket_fail)
+    if self.results.exit_code != 0:
+      self.setStatus(str(self.results.exit_code), self.bucket_fail)
       return output
-    self.setStatus(self.success_message, self.bucket_success)
+    self.set_success()
     return output

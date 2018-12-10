@@ -4,6 +4,8 @@ import warnings
 warnings.simplefilter('default',DeprecationWarning)
 
 import subprocess
+import sys
+import time
 
 class _Parameter:
 
@@ -54,6 +56,18 @@ class _ValidParameters:
         return False
     return True
 
+class TestResult:
+  """
+  Class to store results of the test data
+  """
+
+  def __init__(self):
+    self.bucket = Tester.bucket_not_set
+    self.exit_code = None
+    self.message = None
+    self.output = None
+    self.runtime = None
+
 class Tester:
 
   #Various possible status buckets.
@@ -84,6 +98,7 @@ class Tester:
     self.__name = name
     valid_params = self.validParams()
     self.specs = valid_params.get_filled_dict(params)
+    self.results = TestResult()
 
   def getTestDir(self):
     """
@@ -95,28 +110,31 @@ class Tester:
     """
     Returns true if this test passed
     """
-    return self.__bucket == self.bucket_success
+    return self.results.bucket == self.bucket_success
 
   def run(self, data):
     """
     Runs this tester.
     """
     options = None
-    self.__bucket = self.bucket_not_set
     if self.specs['skip'] is not False:
-      self.__bucket = self.bucket_skip
-      return (self.__bucket, "SKIPPED", self.specs['skip'])
+      self.results.bucket = self.bucket_skip
+      self.results.message = self.specs['skip']
+      return self.results
     if self.specs['heavy'] is not False:
-      self.__bucket = self.bucket_skip
-      return (self.__bucket, "SKIPPED (Heavy)", self.specs['skip'])
+      self.results.bucket = self.bucket_skip
+      self.results.message = "SKIPPED (Heavy)"
+      return self.results
     if not self.checkRunnable(options):
-      return (self.__bucket, "Not Run", self.__message)
+      return self.results
 
     self.prepare()
 
     command = self.getCommand(options)
 
+    timeout = int(self.specs['max_time'])
     directory = self.specs['test_dir']
+    start_time = time.time() #Change to monotonic when min python raised to 3.3
     try:
       process = subprocess.Popen(command, shell=True,
                                  stdout=subprocess.PIPE,
@@ -124,14 +142,25 @@ class Tester:
                                  cwd=directory,
                                  universal_newlines=True)
     except IOError as ioe:
-      self.__bucket = self.bucket_fail
-      return (self.__bucket, "FAILED", str(ioe))
-    output = process.communicate()[0]
-    self.exit_code = process.returncode
+      self.results.bucket = self.bucket_fail
+      self.results.message = "FAILED "+str(ioe)
+      return self.results
+    if sys.version_info.major > 3 or (sys.version_info.major >= 3 and sys.version_info.minor >= 3):
+      #New timeout interface available starting in Python 3.3
+      try:
+        output = process.communicate(timeout=timeout)[0]
+      except subprocess.TimeoutExpired:
+        process.kill()
+        output = process.communicate()[0]
+    else:
+      output = process.communicate()[0]
+    end_time = time.time()
+    process_time = end_time - start_time
+    self.results.exit_code = process.returncode
+    self.results.runtime = process_time
     self.processResults(None, options, output)
-    return (self.__bucket,
-            self.__message,
-            output)
+    self.results.output = output
+    return self.results
 
   @staticmethod
   def get_bucket_name(bucket):
@@ -149,12 +178,19 @@ class Tester:
     """
     return True
 
+  def set_success(self):
+    """
+    Called by subclasses if this was a success.
+    """
+    self.results.bucket = self.bucket_success
+    self.results.message = Tester.get_bucket_name(self.results.bucket)
+
   def setStatus(self, message, bucket):
     """
     Sets the message string and the bucket type
     """
-    self.__message = message
-    self.__bucket = bucket
+    self.results.message = message
+    self.results.bucket = bucket
 
   def processResults(self, moose_dir, options, output):
     """

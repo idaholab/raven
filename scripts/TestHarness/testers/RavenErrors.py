@@ -105,7 +105,7 @@ class RavenErrors(Tester):
     """This method processes results. It checks if the expected error messgae keyword exists in the output stream."""
     for line in output.split('\n'):
       if self.specs['expect_err'] in line:
-        self.setStatus(self.success_message, self.bucket_success)
+        self.set_success()
         return output
     self.setStatus('The expected Error: ' +self.specs['expect_err']+' is not raised!', self.bucket_fail)
     return output

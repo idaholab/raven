@@ -130,8 +130,8 @@ class RavenPython(Tester):
     return True
 
   def processResults(self, moose_dir, options, output):
-    if self.exit_code != 0:
-      self.setStatus(str(self.exit_code), self.bucket_fail)
+    if self.results.exit_code != 0:
+      self.setStatus(str(self.results.exit_code), self.bucket_fail)
       return output
-    self.setStatus(self.success_message, self.bucket_success)
+    self.set_success()
     return output

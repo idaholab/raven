@@ -225,7 +225,7 @@ class RavenFramework(Tester):
         self.setStatus('Unexpected success',self.bucket_fail)
         return output
       else:
-        self.setStatus(self.success_message, self.bucket_success)
+        self.set_success()
         return output
 
   def rawProcessResults(self, moose_dir, options, output):
@@ -318,5 +318,5 @@ class RavenFramework(Tester):
       self.setStatus(imgMessages, self.bucket_diff)
       return output
 
-    self.setStatus(self.success_message, self.bucket_success)
+    self.set_success()
     return output

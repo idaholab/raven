@@ -174,7 +174,7 @@ failed_list = []
 
 def process_result(index, input_data, output_data):
   test_dir, input_filename = input_data
-  bucket, short_comment, long_comment = output_data
+  bucket = output_data.bucket
   test_name = test_name_list[index]
   if bucket == Tester.bucket_success:
     results["pass"] += 1
@@ -185,16 +185,19 @@ def process_result(index, input_data, output_data):
         run_pool.enable_job(job_id)
   elif bucket == Tester.bucket_skip:
     results["skipped"] += 1
-    print(short_comment)
-    print(long_comment)
+    print(output_data.message)
   else:
     results["fail"] += 1
     failed_list.append(test_name)
-    print(short_comment)
-    print(long_comment)
+    print(output_data.message)
+    print(output_data.output)
   number_done = sum(results.values())
-  print("({}/{}) {} {}".format(number_done, len(function_list),
-                               Tester.get_bucket_name(bucket),test_name))
+  print("({}/{}) {} ({}sec) {}".format(number_done, len(function_list),
+                                       Tester.get_bucket_name(bucket),
+                                       round(output_data.runtime,2)
+                                       if type(output_data.runtime) == type(0.0)
+                                       else output_data.runtime,
+                                       test_name))
 
 output_list = run_pool.process_results(process_result)
 run_pool.wait()
