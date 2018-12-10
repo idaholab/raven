@@ -27,8 +27,6 @@ from collections import OrderedDict, defaultdict
 import readRequirementsAndCreateLatex as readRequirements
 from createRegressionTestDocumentation import testDescription as regressionTests
 
-
-
 def contructRequirementMapWithTests(requirementDict):
   """
     Method to construct the link between requirements' ids and tests
@@ -107,15 +105,3 @@ if __name__ == '__main__':
   _, _, requirementDict = descriptionClass.splitTestDescription()
   reqDictionary = contructRequirementMapWithTests(requirementDict)
   createLatexFile(reqDictionary,reqDocument,outputLatex)
-
-
-
-
-
-
-
-
-
-
-
-
