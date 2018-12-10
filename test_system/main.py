@@ -207,5 +207,14 @@ if results["fail"] > 0:
 for path in failed_list:
   print(path)
 
-print(results)
+csv_report = open("test_report.csv","w")
+csv_report.write(",".join(["name","passed","bucket","time"])+"\n")
+for result,test_name in zip(output_list,test_name_list):
+  bucket_name = Tester.get_bucket_name(result.bucket)
+  out_line = ",".join([test_name,str(result.bucket ==  Tester.bucket_success),
+                       str(result.bucket),str(result.runtime)])
+  csv_report.write(out_line+"\n")
+csv_report.close()
+
+print("PASSED:",results["pass"],"FAILED:",results["fail"],"SKIPPED",results["skipped"])
 sys.exit(results["fail"])
