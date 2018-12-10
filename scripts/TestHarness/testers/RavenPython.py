@@ -13,7 +13,6 @@
 # limitations under the License.
 #from util import *
 from Tester import Tester
-from CSVDiffer import CSVDiffer
 import RavenUtils
 import os, subprocess
 import distutils.version

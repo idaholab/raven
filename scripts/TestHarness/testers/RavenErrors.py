@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from Tester import Tester
-from CSVDiffer import CSVDiffer
 import RavenUtils
 import os
 import subprocess
