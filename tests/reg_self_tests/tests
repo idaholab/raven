@@ -1,0 +1,6 @@
+[Tests]
+ [./ordered_csv]
+  type = 'RavenPython'
+  input = 'test_ordered_csv.py'
+ [../]
+[]
