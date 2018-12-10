@@ -145,7 +145,7 @@ class Tester:
       self.results.bucket = self.bucket_fail
       self.results.message = "FAILED "+str(ioe)
       return self.results
-    if sys.version_info.major > 3 or (sys.version_info.major >= 3 and sys.version_info.minor >= 3):
+    if sys.version_info >= (3,3):
       #New timeout interface available starting in Python 3.3
       try:
         output = process.communicate(timeout=timeout)[0]
