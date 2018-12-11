@@ -210,9 +210,12 @@ for path in failed_list:
 csv_report = open("test_report.csv","w")
 csv_report.write(",".join(["name","passed","bucket","time"])+"\n")
 for result,test_name in zip(output_list,test_name_list):
-  bucket_name = Tester.get_bucket_name(result.bucket)
-  out_line = ",".join([test_name,str(result.bucket ==  Tester.bucket_success),
-                       str(result.bucket),str(result.runtime)])
+  if result is not None:
+    bucket_name = Tester.get_bucket_name(result.bucket)
+    out_line = ",".join([test_name,str(result.bucket ==  Tester.bucket_success),
+                         bucket_name,str(result.runtime)])
+  else:
+    out_line = ",".join([test_name,str(False),"NO_PREREQ",str(0.0)])
   csv_report.write(out_line+"\n")
 csv_report.close()
 
