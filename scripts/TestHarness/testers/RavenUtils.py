@@ -88,7 +88,6 @@ __condaList = [("h5py"        ,__lookUpPreferredVersion("h5py"      )),
                ]
 # libraries to install with conda-forge
 __condaForgeList = [("pyside",""),
-                    ("matplotlib","")
                    ]
 # optional conda libraries
 __condaOptional = [ ('pillow',__lookUpPreferredVersion("pillow")) ]
@@ -288,6 +287,7 @@ if __name__ == '__main__':
   if '--py3' in sys.argv:
     pythonIndex = __condaList.index(("python","2.7"))
     __condaList[pythonIndex] = ("python","3")
+    __condaForgeList.append(("matplotlib",""))
 
   # check for environemnt definition of raven libs
   libName = os.getenv('RAVEN_LIBS_NAME','raven_libraries')
