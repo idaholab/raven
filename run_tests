@@ -16,7 +16,7 @@ source $SCRIPT_DIR/scripts/establish_conda_env.sh --load
 if test -n "$CHECK_PYTHON3"; then
     PYTHON=python3
 else
-    PYTHON=python2
+    PYTHON=python
 fi
 
 for A in "$@"; do
