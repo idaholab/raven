@@ -89,7 +89,7 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
     self.historySteps = []
 
     ### ClusteredRom ###
-    self.romName = self.initializationOptions['name']
+    self.romName = self.initializationOptions.get('name','unnamed')
     self._usingRomClustering = "Cluster" in self.initializationOptions
     if self._usingRomClustering:
       # first check if ROM known how to be clustered
@@ -162,17 +162,19 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
     paramDict = self.supervisedContainer[-1].returnInitialParameters()
     return paramDict
 
-  def train(self, trainingSet, assembledObjects):
+  def train(self, trainingSet, assembledObjects=None):
     """
       This function train the ROM this gate is linked to. This method is aimed to agnostically understand if a "time-dependent-like" ROM needs to be constructed.
       @ In, trainingSet, dict or list, data used to train the ROM; if a list is provided a temporal ROM is generated.
-      @ In, assembledObjects, dict, objects that the ROM Model has assembled via the Assembler
+      @ In, assembledObjects, dict, optional, objects that the ROM Model has assembled via the Assembler
       @ Out, None
     """
     if type(trainingSet).__name__ not in  'dict':
       self.raiseAnError(IOError,"The training set is not a dictionary!")
     if len(trainingSet.keys()) == 0:
       self.raiseAnError(IOError,"The training set is empty!")
+    if assembledObjects is None:
+      assembledObjects = {}
 
     # if training using clustering, special treatment
     if self._usingRomClustering:
@@ -666,6 +668,7 @@ def returnInstance(gateType, ROMclass, caller, **kwargs):
     @ In, kwargs, dict, a dictionary specifying the keywords and values needed to create the instance.
     @ Out, returnInstance, instance, an instance of a ROM
   """
+  return __interfaceDict[gateType](ROMclass, caller.messageHandler,**kwargs)
   try:
     return __interfaceDict[gateType](ROMclass, caller.messageHandler,**kwargs)
   except KeyError as e:
