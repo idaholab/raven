@@ -282,134 +282,134 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
       if len(remainder):
         self.raiseADebug('"{}" division(s) are being excluded from clustering consideration.'.format(len(remainder)))
 
-      clusterFeatureDict, roms = self._trainSubdomainRoms(templateRom, counter, trainingSet, clusterStrategy)
-      # if only segmenting, we're done!
-
-      features = sorted(clusterFeatureDict.keys())
-
-      ## metric heirarchy
-      featureGroups = collections.defaultdict(list)
-      for feature in features:
-        target, metric, ident = feature.split('|',2)
-        # the same might show up for multiple targets
-        if ident not in featureGroups[metric]:
-          featureGroups[metric].append(ident)
-
-      # weight and scale data
-      weightingStrategy = 'uniform' # TODO input from user
-      #weightingStrategy = 'variance'
-      #weightingStrategy = None
-      clusterFeatureDict = self._weightAndScaleClusters(features, featureGroups, clusterFeatureDict, weightingStrategy)
-
-      # cluster ROMs
-      labels = self._classifyROMs(classifier, features, clusterFeatureDict)
-      self.raiseAMessage('Identified "{}" clusters while training clustered ROM "{}"'.format(len(set(labels)),self.romName))
-
-      # train unclustered roms
-      if len(unclustered):
-        _, unclusteredROMs = self._trainSubdomainRoms(templateRom, unclustered, trainingSet, clusterStrategy)
-        labels = np.hstack([labels, [-1]*len(unclusteredROMs)])
-        roms = np.hstack([roms, unclusteredROMs])
-
-      #########
-      # debug #
-      #########
-      # try something
-      import pandas as pd
-      trainDF = pd.DataFrame(clusterFeatureDict)
-      # add labels
-      trainDF['labels'] = labels[labels != -1]
-      trainDF.to_csv('clustering.csv')
-
-      ## plot points, centers by feature pairs
-      if False:
-        self._plotPointsCenters(features,labels,clusterFeatureDict,centers)
-      ## plot signals as clustered
-      if True:
-        self._plotSignalsClustered(labels,roms,self.targetDatas)
-      #############
-      # END debug #
-      #############
-
-      # who's the best prototypical ROM for each cluster?
-      ## for the ARMA, we can pass in the Fourier coefficients along with the AVERAGE RESIDUAL training data
-      ## TODO this also depends on our strategy (segment, continuous, or clustered)
-      self._romClusterMap = dict((label, roms[labels==label]) for label in labels)
-    ## END CASE: clusteringStrategy
-
-  def _classifyROMs(self, classifier, features, clusterFeatureDict):
-    """
-      Classifies the subdomain roms.
-      @ In, classifier, Models.PostProcessor, classification model to use
-      @ In, features, list(str), ordered list of features
-      @ In, clusterFeatureDict, dictionary of data on which to train classifier
-      @ Out, labels, list(int), ordered list of labels corresponding to the ROM subdomains
-    """
-    # actual classifier is the unSupervisedEngine of the QDataMining of the Model
-    ## this is the unSupervisedLearning.SciKitLearn (or other) instance
-    classifier = classifier.interface.unSupervisedEngine
-    # update classifier features
-    classifier.updateFeatures(features)
-    # make the clustering instance
-    classifier.train(clusterFeatureDict)
-    # label the training data
-    labels = classifier.evaluate(clusterFeatureDict)
-    return labels
-
-  def _weightAndScaleClusters(self, features, featureGroups, clusterFeatureDict, weightingStrategy):
-    """
-      Applies normalization and weighting to cluster training features.
-      @ In, features, list(str), ordered list of features
-      @ In, featureGroups, dict, hierarchal structure of requested features
-      @ In, clusterFeatureDict, dict, features mapped to arrays of values (per ROM)
-      @ In, weightingStrategy, str, weighting strategy to use
-      @ Out, clusterFeatureDict, dict, weighted and scaled feature space
-    """
-    # scaling = {} # DEBUGG only
-    weights = np.zeros(len(features))
-    for f,feat in enumerate(features):
-      data = np.array(clusterFeatureDict[feat])
-      loc, scale = mathUtils.normalizationFactors(data, mode='scale')
-      # scaling[feat] = (loc,scale) # DEBUGG only
-      clusterFeatureDict[feat] = (data-loc)/scale
-      # apply weighting
-      _,metric,ID = feat.split('|',2)
-      if weightingStrategy == 'uniform':
-        weight = 1.0 # normalize later / float(len(features))
-      elif weightingStrategy == 'variance':
-        # weight is variance: MORE variance means MORE importance
-        std = np.std(clusterFeatureDict[feat])
-        weight = std
-      else:
-        # groupWeight = 1.0 / float(len(featureGroups))
-        # weight = groupWeight / float(len(featureGroups[metric]))
-        # normalize weights later
-        weight = 1.0 / float(len(featureGroups[metric]))
-      # DEBUGG
-      # apply special weighting
-      if metric == 'Basic' and ID in ['mean','min','max']:
-        weight *= 2
-      # scale training points by weights
-      # TODO do this after normalization # clusterFeatureDict[feat] *= weight
-      weights[f] = weight
-    # normalize weights
-    ## METHOD: sum of weights should be unity
-    scale = np.sum(weights)
-    ## METHOD: by volume, assuming all weights are 1.0 initially before preference
-    # vol = np.product(list(np.max(v) for v in clusterFeatureDict.values()))
-    # print('DEBUGG original volume:',vol)
-    # renormalize the entirety of the space to have the same hypervolume as before weighting
-    # newVolume = np.product(weights)
-    # oldVolume = 1.0 # because we scaled between 0 and 1, this will fail if you don't
-    # scale = (oldVolume/newVolume)**(1.0/float(len(features)))
-    ## END by volume
-    for feature,vals in clusterFeatureDict.items():
-      clusterFeatureDict[feature] = vals * scale
-      v = clusterFeatureDict[feature]
-      print('DEBUGG val range: {:15.15s} {:1.3e} {:1.3e} {:1.3e}'.format(feature,np.min(v),np.average(v),np.max(v)))
-    vol = np.product(list(np.max(v) for v in clusterFeatureDict.values()))
-    print('DEBUGG volume:',vol)
-    return clusterFeatureDict
+#      clusterFeatureDict, roms = self._trainSubdomainRoms(templateRom, counter, trainingSet, clusterStrategy)
+#      # if only segmenting, we're done!
+#
+#      features = sorted(clusterFeatureDict.keys())
+#
+#      ## metric heirarchy
+#      featureGroups = collections.defaultdict(list)
+#      for feature in features:
+#        target, metric, ident = feature.split('|',2)
+#        # the same might show up for multiple targets
+#        if ident not in featureGroups[metric]:
+#          featureGroups[metric].append(ident)
+#
+#      # weight and scale data
+#      weightingStrategy = 'uniform' # TODO input from user
+#      #weightingStrategy = 'variance'
+#      #weightingStrategy = None
+#      clusterFeatureDict = self._weightAndScaleClusters(features, featureGroups, clusterFeatureDict, weightingStrategy)
+#
+#      # cluster ROMs
+#      labels = self._classifyROMs(classifier, features, clusterFeatureDict)
+#      self.raiseAMessage('Identified "{}" clusters while training clustered ROM "{}"'.format(len(set(labels)),self.romName))
+#
+#      # train unclustered roms
+#      if len(unclustered):
+#        _, unclusteredROMs = self._trainSubdomainRoms(templateRom, unclustered, trainingSet, clusterStrategy)
+#        labels = np.hstack([labels, [-1]*len(unclusteredROMs)])
+#        roms = np.hstack([roms, unclusteredROMs])
+#
+#      #########
+#      # debug #
+#      #########
+#      # try something
+#      import pandas as pd
+#      trainDF = pd.DataFrame(clusterFeatureDict)
+#      # add labels
+#      trainDF['labels'] = labels[labels != -1]
+#      trainDF.to_csv('clustering.csv')
+#
+#      ## plot points, centers by feature pairs
+#      if False:
+#        self._plotPointsCenters(features,labels,clusterFeatureDict,centers)
+#      ## plot signals as clustered
+#      if True:
+#        self._plotSignalsClustered(labels,roms,self.targetDatas)
+#      #############
+#      # END debug #
+#      #############
+#
+#      # who's the best prototypical ROM for each cluster?
+#      ## for the ARMA, we can pass in the Fourier coefficients along with the AVERAGE RESIDUAL training data
+#      ## TODO this also depends on our strategy (segment, continuous, or clustered)
+#      self._romClusterMap = dict((label, roms[labels==label]) for label in labels)
+#    ## END CASE: clusteringStrategy
+#
+#  def _classifyROMs(self, classifier, features, clusterFeatureDict):
+#    """
+#      Classifies the subdomain roms.
+#      @ In, classifier, Models.PostProcessor, classification model to use
+#      @ In, features, list(str), ordered list of features
+#      @ In, clusterFeatureDict, dictionary of data on which to train classifier
+#      @ Out, labels, list(int), ordered list of labels corresponding to the ROM subdomains
+#    """
+#    # actual classifier is the unSupervisedEngine of the QDataMining of the Model
+#    ## this is the unSupervisedLearning.SciKitLearn (or other) instance
+#    classifier = classifier.interface.unSupervisedEngine
+#    # update classifier features
+#    classifier.updateFeatures(features)
+#    # make the clustering instance
+#    classifier.train(clusterFeatureDict)
+#    # label the training data
+#    labels = classifier.evaluate(clusterFeatureDict)
+#    return labels
+#
+#  def _weightAndScaleClusters(self, features, featureGroups, clusterFeatureDict, weightingStrategy):
+#    """
+#      Applies normalization and weighting to cluster training features.
+#      @ In, features, list(str), ordered list of features
+#      @ In, featureGroups, dict, hierarchal structure of requested features
+#      @ In, clusterFeatureDict, dict, features mapped to arrays of values (per ROM)
+#      @ In, weightingStrategy, str, weighting strategy to use
+#      @ Out, clusterFeatureDict, dict, weighted and scaled feature space
+#    """
+#    # scaling = {} # DEBUGG only
+#    weights = np.zeros(len(features))
+#    for f,feat in enumerate(features):
+#      data = np.array(clusterFeatureDict[feat])
+#      loc, scale = mathUtils.normalizationFactors(data, mode='scale')
+#      # scaling[feat] = (loc,scale) # DEBUGG only
+#      clusterFeatureDict[feat] = (data-loc)/scale
+#      # apply weighting
+#      _,metric,ID = feat.split('|',2)
+#      if weightingStrategy == 'uniform':
+#        weight = 1.0 # normalize later / float(len(features))
+#      elif weightingStrategy == 'variance':
+#        # weight is variance: MORE variance means MORE importance
+#        std = np.std(clusterFeatureDict[feat])
+#        weight = std
+#      else:
+#        # groupWeight = 1.0 / float(len(featureGroups))
+#        # weight = groupWeight / float(len(featureGroups[metric]))
+#        # normalize weights later
+#        weight = 1.0 / float(len(featureGroups[metric]))
+#      # DEBUGG
+#      # apply special weighting
+#      if metric == 'Basic' and ID in ['mean','min','max']:
+#        weight *= 2
+#      # scale training points by weights
+#      # TODO do this after normalization # clusterFeatureDict[feat] *= weight
+#      weights[f] = weight
+#    # normalize weights
+#    ## METHOD: sum of weights should be unity
+#    scale = np.sum(weights)
+#    ## METHOD: by volume, assuming all weights are 1.0 initially before preference
+#    # vol = np.product(list(np.max(v) for v in clusterFeatureDict.values()))
+#    # print('DEBUGG original volume:',vol)
+#    # renormalize the entirety of the space to have the same hypervolume as before weighting
+#    # newVolume = np.product(weights)
+#    # oldVolume = 1.0 # because we scaled between 0 and 1, this will fail if you don't
+#    # scale = (oldVolume/newVolume)**(1.0/float(len(features)))
+#    ## END by volume
+#    for feature,vals in clusterFeatureDict.items():
+#      clusterFeatureDict[feature] = vals * scale
+#      v = clusterFeatureDict[feature]
+#      print('DEBUGG val range: {:15.15s} {:1.3e} {:1.3e} {:1.3e}'.format(feature,np.min(v),np.average(v),np.max(v)))
+#    vol = np.product(list(np.max(v) for v in clusterFeatureDict.values()))
+#    print('DEBUGG volume:',vol)
+#    return clusterFeatureDict
 
   def _trainSubdomainRoms(self, templateRom, counter, trainingSet, strategy):
     """
@@ -505,66 +505,66 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
         next += length
     return counter, unclustered
 
-  def _evaluateBasicMetrics(self,data):
-    """
-      Evaluates basic statistical data for clustering.
-      For now does mean and std; in the future could leverage BasicStatistics?
-      @ In, data, dict, data to compute metrics for.
-      @ Out, metrics, dict, {feature:value} for features like "<target>_mean" etc
-    """
-    # TODO currently disabled
-    metrics = {}
-    for target,values in data.items():
-      feature = self._romClusterFeatureTemplate.format(target=target, metric='Basic', id='mean')
-      metrics[feature] = np.average(values)
-      feature = self._romClusterFeatureTemplate.format(target=target, metric='Basic', id='std')
-      metrics[feature] = np.std(values)
-      feature = self._romClusterFeatureTemplate.format(target=target, metric='Basic', id='max')
-      metrics[feature] = np.max(values)
-      feature = self._romClusterFeatureTemplate.format(target=target, metric='Basic', id='min')
-      metrics[feature] = np.min(values)
-    return metrics
-
-  def _plotSignalsClustered(self, labels, roms, targetDatas):
-    """
-      Debug tool. Should be removed or relocated when clustered ROMs are fully implemented.
-      Plots the original data, colored by ROM clusters.
-      @ In, labels, list(str), cluster labels corresponding to ROM order
-      @ In, roms, list(SupervisedLearning), trained subset ROMs in the same order as labels
-      @ In, targetDatas, dict, debugging tool
-      @ Out, None
-    """
-    targetDatas = np.array(targetDatas)
-    # TODO remove
-    import matplotlib.pyplot as plt
-    from matplotlib.lines import Line2D
-    fig,ax = plt.subplots()
-    ax.set_title('Clustered (Fourier)')
-    legends = []
-    for label in set(labels):
-      # legend
-      clr = ('C'+str(label)) if label >= 0 else 'k'
-      legends.append(Line2D([0],[0],color=clr))
-      #figS,axS = plt.subplots()
-      #axS.set_title('Compared: Cluster {}'.format(label))
-      mask = labels == label
-      for r in range(sum(mask)):
-        rom = roms[mask][r]
-        target = targetDatas[mask][r]
-        x = rom.pivotParameterValues
-        y = target['Demand']
-        index = list(roms).index(rom)+1
-        ax.plot(x, y, color=clr)
-        ax.plot([x[ 0]]*2, [5000,20000], 'k:')
-        ax.plot([x[-1]]*2, [5000,20000], 'k:')
-        if (index - 1) % 4 == 0:
-          ax.plot([x[ 0]]*2, [5000,20000], 'k-')
-        ax.text(np.average(x),6000,str(index), ha='center')
-        #axS.plot(x - x[0], y, label=str(list(roms).index(rom)+1))
-      #axS.legend(loc=0)
-    ax.legend(legends, list(set(labels)))
-    plt.savefig('clusters.png')
-    plt.show()
+#  def _evaluateBasicMetrics(self,data):
+#    """
+#      Evaluates basic statistical data for clustering.
+#      For now does mean and std; in the future could leverage BasicStatistics?
+#      @ In, data, dict, data to compute metrics for.
+#      @ Out, metrics, dict, {feature:value} for features like "<target>_mean" etc
+#    """
+#    # TODO currently disabled
+#    metrics = {}
+#    for target,values in data.items():
+#      feature = self._romClusterFeatureTemplate.format(target=target, metric='Basic', id='mean')
+#      metrics[feature] = np.average(values)
+#      feature = self._romClusterFeatureTemplate.format(target=target, metric='Basic', id='std')
+#      metrics[feature] = np.std(values)
+#      feature = self._romClusterFeatureTemplate.format(target=target, metric='Basic', id='max')
+#      metrics[feature] = np.max(values)
+#      feature = self._romClusterFeatureTemplate.format(target=target, metric='Basic', id='min')
+#      metrics[feature] = np.min(values)
+#    return metrics
+#
+#  def _plotSignalsClustered(self, labels, roms, targetDatas):
+#    """
+#      Debug tool. Should be removed or relocated when clustered ROMs are fully implemented.
+#      Plots the original data, colored by ROM clusters.
+#      @ In, labels, list(str), cluster labels corresponding to ROM order
+#      @ In, roms, list(SupervisedLearning), trained subset ROMs in the same order as labels
+#      @ In, targetDatas, dict, debugging tool
+#      @ Out, None
+#    """
+#    targetDatas = np.array(targetDatas)
+#    # TODO remove
+#    import matplotlib.pyplot as plt
+#    from matplotlib.lines import Line2D
+#    fig,ax = plt.subplots()
+#    ax.set_title('Clustered (Fourier)')
+#    legends = []
+#    for label in set(labels):
+#      # legend
+#      clr = ('C'+str(label)) if label >= 0 else 'k'
+#      legends.append(Line2D([0],[0],color=clr))
+#      #figS,axS = plt.subplots()
+#      #axS.set_title('Compared: Cluster {}'.format(label))
+#      mask = labels == label
+#      for r in range(sum(mask)):
+#        rom = roms[mask][r]
+#        target = targetDatas[mask][r]
+#        x = rom.pivotParameterValues
+#        y = target['Demand']
+#        index = list(roms).index(rom)+1
+#        ax.plot(x, y, color=clr)
+#        ax.plot([x[ 0]]*2, [5000,20000], 'k:')
+#        ax.plot([x[-1]]*2, [5000,20000], 'k:')
+#        if (index - 1) % 4 == 0:
+#          ax.plot([x[ 0]]*2, [5000,20000], 'k-')
+#        ax.text(np.average(x),6000,str(index), ha='center')
+#        #axS.plot(x - x[0], y, label=str(list(roms).index(rom)+1))
+#      #axS.legend(loc=0)
+#    ax.legend(legends, list(set(labels)))
+#    plt.savefig('clusters.png')
+#    plt.show()
 
   ### EVALUATING ###
   def _evaluateByCluster(self, request, uniqueClusters=False):
