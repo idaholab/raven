@@ -120,8 +120,7 @@ XML node and the requirements for other attributes change:
 }
 \newcommand{\variableDescription}
 {
-  \xmlNode{variable}, \xmlDesc{XML node,
-  required parameter} can specify the following attribute:
+  \xmlNode{variable}, \xmlDesc{XML node, required parameter} can specify the following attribute:
   \begin{itemize}
     \item \xmlAttr{name}, \xmlDesc{required string attribute}, user-defined name
       of this variable.
@@ -131,8 +130,7 @@ XML node and the requirements for other attributes change:
 
 \newcommand{\constantVariablesDescription}
 {
-  \xmlNode{constant}, \xmlDesc{XML node,
-  optional parameter} the user is able to input variables that need to be
+  \xmlNode{constant}, \xmlDesc{XML node, optional parameter} the user is able to input variables that need to be
   kept constant.
   For doing this, as many \xmlNode{constant} nodes as needed can be
   input.
@@ -164,15 +162,7 @@ XML node and the requirements for other attributes change:
   which is identified in the \xmlNode{ConstantSource} node. To find the value of the constant in
   \xmlString{MyConstant}, the Sampler will look at the realization with index \xmlString{3} for the
   value of variable \xmlString{A} to use as the constant value.
-  \begin{lstlisting}[style=XML]
-    <Samplers>
-      <WhatEverSampler name='whatever'>
-        <ConstantSource class='DataObjects' type='PointSet'>MyConstants</ConstantSource>
-        <constant name='C' source='MyConstants' index='3'>A</constant>
-      </WhatEverSampler>
-    </Samplers>
-  \end{lstlisting}
-
+  \lstinputlisting[style=XML]{const_example.xml}
 
 }
 
