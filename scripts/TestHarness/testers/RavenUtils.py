@@ -87,7 +87,7 @@ __condaList = [("h5py"        ,__lookUpPreferredVersion("h5py"      )),
                #("numexpr"     ,"")
                ]
 # libraries to install with conda-forge
-__condaForgeList = [("pyside","")
+__condaForgeList = [("pyside",""),
                    ]
 # optional conda libraries
 __condaOptional = [ ('pillow',__lookUpPreferredVersion("pillow")) ]
@@ -100,7 +100,7 @@ __pipList = [("numpy",__lookUpPreferredVersion("numpy")),
              ("matplotlib",__lookUpPreferredVersion("matplotlib")),
              ("xarray",__lookUpPreferredVersion("xarray")),
              ("netCDF4",__lookUpPreferredVersion("netCDF4")),
-             ("statsmodels",__lookUpPreferredVersion("netcdf4")),
+             ("statsmodels",__lookUpPreferredVersion("statsmodels")),
              #("tensorflow",__lookUpPreferredVersion("tensorflow")),
              ("pandas",__lookUpPreferredVersion("pandas")) ]
 
@@ -284,6 +284,10 @@ if __name__ == '__main__':
   if '--conda-forge' in sys.argv:
     # just install command is generated
     condaForge = True
+  if '--py3' in sys.argv:
+    pythonIndex = __condaList.index(("python","2.7"))
+    __condaList[pythonIndex] = ("python","3")
+    __condaForgeList.append(("matplotlib",""))
 
   # check for environemnt definition of raven libs
   libName = os.getenv('RAVEN_LIBS_NAME','raven_libraries')

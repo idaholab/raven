@@ -1,0 +1,94 @@
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/CodeInterfaceTests/RAVEN.Basic</name>
+    <author>talbpaul</author>
+    <created>2018-01-18</created>
+    <classesTested>Models.Code.RAVEN</classesTested>
+    <description>
+      Basic test of the raven-runs-raven interface.
+      Outer raven runs a grid sampling by changing the upper and lower bounds of the sampledVars distribution on the inner raven.
+      Inner raven runs 100 MC samples, does basic stats, and returns the mean, sigma to the outer raven.
+    </description>
+    <analytic>
+      Each sample in this test converges towards the analytic solutions discussed in the "changing lower, upper bounds" section of
+      the "attenuate" analytic model documentation.
+    </analytic>
+    <revisions>
+      <revision author="talbpaul" date="2018-05-02">added "fully-correlated" variable for innerUpperBound as a test of the mechanic</revision>
+      <revision author="talbpaul" date="2018-11-06">modified inner run to use grid for speed, consistent results</revision>
+    </revisions>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>Basic</WorkingDir>
+    <Sequence>sample,print</Sequence>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="sample">
+      <Input class="Files" type="raven">inner_input</Input>
+      <Model class="Models" type="Code">raven</Model>
+      <Sampler class="Samplers" type="Grid">grid</Sampler>
+      <Output class="DataObjects" type="PointSet">outer_samples</Output>
+    </MultiRun>
+    <IOStep name="print">
+      <Input class="DataObjects" type="PointSet">outer_samples</Input>
+      <Output class="OutStreams" type="Print">outer_out</Output>
+    </IOStep>
+  </Steps>
+
+  <Files>
+    <Input name="inner_input" type="raven" >inner_sample.xml</Input>
+  </Files>
+
+  <Models>
+    <Code name="raven" subType="RAVEN">
+        <executable>%FRAMEWORK_DIR%/../raven_framework</executable>
+        <outputExportOutStreams>inner_out</outputExportOutStreams>
+        <alias variable="innerLowerBound" type="input">Distributions|Uniform@name:dist|lowerBound</alias>
+        <alias variable="innerUpperBound" type="input">
+          Distributions|Uniform@name:dist|upperBound,
+          Samplers|Grid|constant@name:testSecondAlias
+        </alias>
+    </Code>
+  </Models>
+
+  <Distributions>
+    <Uniform name="dist_lower">
+      <lowerBound>0</lowerBound>
+      <upperBound>0.49999</upperBound>
+    </Uniform>
+    <Uniform name="dist_upper">
+      <lowerBound>0.50001</lowerBound>
+      <upperBound>1</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Samplers>
+    <Grid name="grid">
+      <variable name="innerLowerBound">
+        <distribution>dist_lower</distribution>
+        <grid type='CDF' construction='equal' steps='2'>0 1</grid>
+      </variable>
+      <variable name="innerUpperBound">
+        <distribution>dist_upper</distribution>
+        <grid type='CDF' construction='equal' steps='2'>0 1</grid>
+      </variable>
+    </Grid>
+  </Samplers>
+
+  <OutStreams>
+    <Print name="outer_out">
+      <type>csv</type>
+      <source>outer_samples</source>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="outer_samples">
+      <Input>innerLowerBound,innerUpperBound</Input>
+      <Output>mean_y1,mean_y2,mean_ans,mean_testSecondAlias</Output>
+    </PointSet>
+  </DataObjects>
+
+</Simulation>

@@ -36,7 +36,7 @@ class XSCreator():
       @ In, pertDict, dictionary, perturbed variables
       @ Out, pertDict, dictionary, perturbed variables in scientific format
     """
-    for key, value in pertDict.iteritems():
+    for key, value in pertDict.items():
       pertDict[key] = '%.8E' % Decimal(str(value))
     return pertDict
 
@@ -80,23 +80,23 @@ class XSCreator():
     """
     top = Element('scaling_library', {'print_xml':'t'})
     print (self.listedDict)
-    for XS in self.listedDict.iterkeys():
-      for tabulation in self.listedDict.get('XS').iterkeys():
+    for XS in self.listedDict.keys():
+      for tabulation in self.listedDict.get('XS').keys():
         topChild = SubElement(top, 'set')
         if bool:
           tabList, valueList = self.tabMapping(tabulation,tabMapFileName)
           for tab,value in zip(tabList,valueList):
             tabChild = SubElement(topChild, 'tab', {'name':tab})
             tabChild.text = value
-        for material in self.listedDict.get('XS').get(tabulation).iterkeys():
+        for material in self.listedDict.get('XS').get(tabulation).keys():
           tabulationChild = SubElement(topChild, 'library', {'lib_name':material})
-          for isotope in self.listedDict.get('XS').get(tabulation).get(material).iterkeys():
-            for typeOfXs in self.listedDict.get('XS').get(tabulation).get(material).get(isotope).iterkeys():
+          for isotope in self.listedDict.get('XS').get(tabulation).get(material).keys():
+            for typeOfXs in self.listedDict.get('XS').get(tabulation).get(material).get(isotope).keys():
               libraryChild = SubElement(tabulationChild, 'isotope', {'id':isotope, 'type':typeOfXs.lower()})
-              for reaction in self.listedDict.get('XS').get(tabulation).get(material).get(isotope).get(typeOfXs).iterkeys():
+              for reaction in self.listedDict.get('XS').get(tabulation).get(material).get(isotope).get(typeOfXs).keys():
                 #groupList = []
                 #valueList = []
-                for count,(group,value) in enumerate(self.listedDict.get('XS').get(tabulation).get(material).get(isotope).get(typeOfXs).get(reaction).iteritems()):
+                for count,(group,value) in enumerate(self.listedDict.get('XS').get(tabulation).get(material).get(isotope).get(typeOfXs).get(reaction).items()):
                   #numberOfGroupsPerturbed = len(self.listedDict.get('XS').get(tabulation).get(material).get(isotope).get(typeOfXs).get(reaction).keys()) - 1
                   #groupList.append(group)
                   #valueList.append(value)
@@ -188,7 +188,7 @@ class XSCreator():
                 reconstructedDict[pertPhysicalParam][pertTabulationPoint][mat][isotope][reactType][react] = {}
                 for group in perturbedGroups:
                   reconstructedDict[pertPhysicalParam][pertTabulationPoint][mat][isotope][reactType][react][group] = {}
-    for typeKey, value in deconstructedDict.iteritems():
+    for typeKey, value in deconstructedDict.items():
       if typeKey in pertDictSet:
         keyWords = typeKey.split('|')
         reconstructedDict[keyWords[0]][keyWords[1]][keyWords[2]][keyWords[3]][keyWords[4]][keyWords[5]][keyWords[6]] = value

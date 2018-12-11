@@ -1,5 +1,12 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
+  <TestInfo>
+    <name>doc/workshop/timeDepDataMining/inputs.KMeans</name>
+    <author>wangc</author>
+    <created>2018-09-21</created>
+    <classesTested>PostProcessors.DataMining</classesTested>
+    <description>Workshop test: Time dependent data mining with KMeans analysis wit preprocessor</description>
+  </TestInfo>
 
   <RunInfo>
     <WorkingDir>resultsKMEANS</WorkingDir>
@@ -23,7 +30,6 @@
       <Model    class="Models"        type="PostProcessor"   >KMeans1</Model>
       <SolutionExport class="DataObjects" type="HistorySet"  >clusterInfo</SolutionExport>
       <Output   class="DataObjects"   type="HistorySet"      >outMC</Output>
-      <Output   class="OutStreams"    type="Plot"            >clusterCenters</Output>
       <Output   class="OutStreams"    type="Plot"            >plot3</Output>
       <Output   class="OutStreams"    type="Plot"            >Clustered_HS</Output>
       <Output   class="OutStreams"    type="Plot"            >plot5</Output>
@@ -92,7 +98,7 @@
        <method>HS2PS</method>
        <pivotParameter>time</pivotParameter>
     </PostProcessor>
-    <ExternalModel ModuleToLoad="lorentzAttractor_disc" name="PythonModule" subType="">
+    <ExternalModel ModuleToLoad="../lorentzAttractor_disc" name="PythonModule" subType="">
       <variables>sigma,rho,beta,x,y,z,time,x0,y0,z0</variables>
     </ExternalModel>
     <PostProcessor name="filter0" subType="InterfacedPostProcessor">
@@ -135,7 +141,7 @@
       <Output>time,x,y,z</Output>
     </HistorySet>
     <HistorySet name="clusterInfo">
-      <Input>labels</Input>
+      <Input>KMeans1Labels</Input>
       <Output>time,x,y,z</Output>
     </HistorySet>
   </DataObjects>
@@ -157,25 +163,7 @@
       <actions>
         <how>png</how>
       </actions>
-    </Plot>    
-    <Plot   name="clusterCenters" overwrite="false" verbosity="debug">
-      <plotSettings>
-        <plot>
-          <type>line</type>
-          <interpolationType>cubic</interpolationType>
-          <interpPointsX>1000</interpPointsX>
-          <x>clusterInfo|Output|time</x>
-          <y>clusterInfo|Output|y</y>
-          <z>clusterInfo|Output|z</z>
-        </plot>
-        <xlabel>time</xlabel>
-        <ylabel>x</ylabel>
-        <zlabel>y</zlabel>
-      </plotSettings>
-      <actions>
-        <how>png</how>
-      </actions>
-    </Plot>	  
+    </Plot>      
     <Plot  name="plot3" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>

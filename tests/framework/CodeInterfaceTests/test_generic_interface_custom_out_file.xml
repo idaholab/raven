@@ -38,7 +38,6 @@
       <fileargs arg="aux" extension=".two" type="input"/>
       <!-- THIS outputFile xml node is used to specify a fixed output file (ONLY CSV) from which RAVEN will collect the results -->
       <outputFile>fixed_output.csv</outputFile>
-      <prepend>python</prepend>
     </Code>
   </Models>
 

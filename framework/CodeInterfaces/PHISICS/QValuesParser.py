@@ -35,7 +35,7 @@ class QValuesParser():
       @ In, pertDict, dictionary, perturbed variables
       @ Out, pertDict, dictionary, perturbed variables in scientific format
     """
-    for key, value in pertDict.iteritems():
+    for key, value in pertDict.items():
       pertDict[key] = '%.3E' % Decimal(str(value))
     return pertDict
 
@@ -49,7 +49,7 @@ class QValuesParser():
     for line in lines:
       line = line.upper().split()
       line[0] = re.sub(r'(.*?)(\w+)(-)(\d+M?)', r'\1\2\4', line[0])
-      for isotopeID in self.listedQValuesDict.iterkeys():
+      for isotopeID in self.listedQValuesDict.keys():
         if line[0] == isotopeID:
           try:
             line[1] = str(self.listedQValuesDict.get(isotopeID))
@@ -89,12 +89,12 @@ class QValuesParser():
       @ Out, None
     """
     perturbedIsotopes = []
-    for key in self.pertQValuesDict.iterkeys():
+    for key in self.pertQValuesDict.keys():
       perturbedIsotopes.append(key.split('|')[1])
     for perturbedIsotope in perturbedIsotopes:
       self.listedQValuesDict[perturbedIsotope] = {
       }  # declare all the dictionaries
-    for isotopeKeyName, QValue in self.pertQValuesDict.iteritems():
+    for isotopeKeyName, QValue in self.pertQValuesDict.items():
       isotopeName = isotopeKeyName.split('|')
       self.listedQValuesDict[isotopeName[1]] = QValue
 

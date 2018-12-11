@@ -121,7 +121,7 @@ class GaussPolynomialRom(supervisedLearning):
           self.indexSetVals.append(tuple(int(i) for i in s.split(',')))
         self.raiseADebug('points',self.indexSetVals)
       elif key=='PolynomialOrder':
-        self.maxPolyOrder = val
+        self.maxPolyOrder = int(val)
       elif key=='Interpolation':
         for var,value in val.items():
           self.itpDict[var]={'poly'  :'DEFAULT',
@@ -210,7 +210,7 @@ class GaussPolynomialRom(supervisedLearning):
         if request.lower() == 'polycoeffs':
           valueDict = OrderedDict()
           valueDict['inputVariables'] = ','.join(self.features)
-          keys = self.polyCoeffDict[target].keys()
+          keys = list(self.polyCoeffDict[target].keys())
           keys.sort()
           for key in keys:
             valueDict['_'+'_'.join(str(k) for k in key)+'_'] = self.polyCoeffDict[target][key]

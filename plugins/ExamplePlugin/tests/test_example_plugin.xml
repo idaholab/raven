@@ -50,11 +50,11 @@
       <samplerInit>
         <limit>2</limit>
       </samplerInit>
-      <constant name="a">0.0001</constant>
-      <constant name="b">-0.5</constant>
       <variable name="c">
           <distribution>one</distribution>
       </variable>
+      <constant name="a">0.0001</constant>
+      <constant name="b">-0.5</constant>
     </MonteCarlo>
   </Samplers>
 

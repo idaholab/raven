@@ -21,8 +21,6 @@ Module aimed to define the methods to group variables in the RAVEN frameworl
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
-if not 'xrange' in dir(__builtins__):
-  xrange = range
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -33,6 +31,10 @@ from collections import OrderedDict
 import BaseClasses
 #Internal Modules End--------------------------------------------------------------------------------
 
+#
+#
+#
+#
 class VariableGroup(BaseClasses.BaseType):
   """
     Allows grouping of variables for ease of access
@@ -45,113 +47,69 @@ class VariableGroup(BaseClasses.BaseType):
     """
     BaseClasses.BaseType.__init__(self)
     self.printTag       = 'VariableGroup'
-    self._dependents    = []             #name of groups this group's construction is dependent on
-    self._base          = None           #if dependent, the name of base group to start from
-    self._list          = []             #text from node
     self.variables      = []             #list of variable names
     self.initialized    = False          #true when initialized
 
-  def _readMoreXML(self,node):
+  def readXML(self, node, messageHandler, varGroups):
     """
       reads XML for more information
       @ In, node, xml.etree.ElementTree.Element, xml element to read data from
+      @ In, varGroups, dict, other variable groups including ones this depends on (if any)
       @ Out, None
     """
+    self.messageHandler = messageHandler
     #establish the name
     if 'name' not in node.attrib.keys():
       self.raiseAnError(IOError,'VariableGroups require a "name" attribute!')
     self.name = node.attrib['name']
-    #dependents
-    deps = node.attrib.get('dependencies',None)
-    if deps is not None and len(deps)>0:
-      if 'base' not in node.attrib.keys():
-        self.raiseAnError(IOError,'VariableGroups with dependencies require a "base" group to start from!')
-      self._base = node.attrib.get('base')
-      self._dependents = list(g.strip() for g in deps.split(','))
-    self._list = node.text.split(',')
+    # loop through variables and expand list
+    for dep in [s.strip() for s in node.text.split(',')]:
+      # get operator if provided
+      operator = '+'
+      if dep[0] in '+-^%':
+        operator = dep[0]
+        dep = dep[1:].strip()
+      # expand variables if a group name is given
+      if dep in varGroups:
+        dep = varGroups[dep].getVars()
+      else:
+        dep = [dep]
 
-  def initialize(self,varGroups):
-    """
-      Establish variable set.
-      @ In, varGroups, list, VariableGroup classes
-      @ Out, None
-    """
-    if len(self._dependents)==0:
-      self.variables = list(l.strip() for l in self._list) #set(l.strip() for l in self._list) #don't use sets, since they destroy order
-    else:
-      #get base
-      base = None
-      for group in varGroups:
-        if group.name==self._base:
-          base = group
-          break
-      if base is None:
-        self.raiseAnError(IOError,'Base %s not found among variable groups!' %self._base)
-      #get dependencies
-      deps=OrderedDict()
-      for depName in self._dependents:
-        dep = None
-        for group in varGroups:
-          if group.name==depName:
-            dep = group
-            break
-        if dep is None:
-          self.raiseAnError(IOError,'Dependent %s not found among variable groups!' %depName)
-        deps[depName] = dep
-      #get base set
-      baseVars = set(base.getVars())
-      #do modifiers to base
-      modifiers = list(m.strip() for m in self._list)
-      orderOps = [] #order of operations that occurred, just var names and dep lists
-      for mod in modifiers:
-        #remove internal whitespace
-        mod = mod.replace(' ','')
-        #get operator and varname
-        op = mod[0]
-        varName = mod[1:]
-        if op not in ['+','-','^','%']:
-          self.raiseAnError(IOError,'Unrecognized or missing dependency operator:',op,varName)
-        #if varName is a single variable, make it a set so it behaves like the rest
-        if varName not in deps.keys():
-          modSet = [varName]
-        else:
-          modSet = deps[varName].getVars()
-        orderOps.append(modSet[:])
-        modSet = set(modSet)
-        if   op == '+':
-          baseVars.update(modSet)
-        elif op == '-':
-          baseVars.difference_update(modSet)
-        elif op == '^':
-          baseVars.intersection_update(modSet)
-        elif op == '%':
-          baseVars.symmetric_difference_update(modSet)
-      #sort variable list into self.variables
-      #  -> first, sort through top-level vars
-      for var in base.getVars():
-        if var in baseVars:
-          self.variables.append(var)
-          baseVars.remove(var)
-      #  -> then, sort through deps/operations in order
-      for mod in orderOps:
-        for var in mod:
-          if var in baseVars:
-            self.variables.append(var)
-            baseVars.remove(var)
-      #  -> baseVars better be empty now!
-      if len(baseVars) > 0:
-        self.raiseAWarning('    End vars    :',self.variables)
-        self.raiseAWarning('    End BaseVars:',baseVars)
-        self.raiseAnError(RuntimeError, 'Not all variableGroup entries were accounted for!  The operations were not performed correctly')
-    self.initialized=True
+      # apply operators
+      toRemove = []
+      ## union
+      if operator == '+':
+        for d in dep:
+          if d not in self.variables:
+            self.variables.append(d)
+      ## difference
+      elif operator == '-':
+        for d in dep:
+          try:
+            self.variables.remove(d)
+          except ValueError:
+            self.raiseADebug('Was asked to remove "{}" from variable group "{}", but it is not present! Ignoring ...'
+                               .format(d,self.name))
+      ## intersection
+      elif operator == '^':
+        for v in self.variables:
+          if v not in dep:
+            toRemove.append(v)
+      ## symmetric difference
+      elif operator == '%':
+        for v in self.variables:
+          if v in dep:
+            toRemove.append(v)
+        for d in dep:
+          if d not in self.variables:
+            self.variables.append(d)
+      ## cleanup
+      for v in toRemove:
+        self.variables.remove(v)
 
-  def getDependencies(self):
-    """
-      Returns list object of strings containing variable group names
-      @ In, None
-      @ Out, _dependents, list(str), list of variable group names
-    """
-    return self._dependents[:]
+    # finished
+    self.raiseADebug('Variable group "{}" includes:'.format(self.name),self.getVarsString())
+
 
   def getVars(self):
     """
@@ -172,4 +130,4 @@ class VariableGroup(BaseClasses.BaseType):
 #
 #
 #
-# end
+#

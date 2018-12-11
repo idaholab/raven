@@ -2,38 +2,38 @@
  [./missingSteps]
         type = 'RavenErrors'
         input = 'test_noSteps.xml'
-        expect_err = 'IOError: The step list:'
+        expect_err = 'Error: The step list:'
  [../]
  [./MVNnotSquare]
         type = 'RavenErrors'
         input = 'test_MVN_not_square.xml'
-        expect_err = 'IOError: Covariance matrix is not square!'
+        expect_err = 'Error: Covariance matrix is not square!'
  [../]
  [./MVNbadDims]
         type = 'RavenErrors'
         input = 'test_MVN_bad_dims.xml'
-        expect_err = 'IOError: Invalid dimensions! Covariance'
+        expect_err = 'Error: Invalid dimensions! Covariance'
  [../]
  [./badHistory]
         type = 'RavenErrors'
         input = 'loadBadHistory.xml'
-        expect_err = 'IOError: Invalid data in input file:'
+        expect_err = 'Error: Invalid data in input file:'
  [../]
  [./badPointSet]
         type = 'RavenErrors'
         input = 'loadBadPointSet.xml'
-        expect_err = 'IOError: Invalid data in input file:'
+        expect_err = 'Error: Invalid data in input file:'
  [../]
 
  [./badInSimulation]
         type = 'RavenErrors'
         input = 'badInSimulation.xml'
-        expect_err = 'IOError: <steps> is not among the known simulation components'
+        expect_err = 'Error: <steps> is not among the known simulation components'
  [../]
 
  [./unsyncedTypicalHistory]
         type = 'RavenErrors'
         input = 'unsyncedTypicalHistory.xml'
-        expect_err = 'IOError: TypicalHistoryFromHistorySet Interfaced Post-Processor "TypicalHistory": one or more histories in the historySet have different time scales'
+        expect_err = 'Error: TypicalHistoryFromHistorySet Interfaced Post-Processor "TypicalHistory": one or more histories in the historySet have different time scales'
  [../]
 []

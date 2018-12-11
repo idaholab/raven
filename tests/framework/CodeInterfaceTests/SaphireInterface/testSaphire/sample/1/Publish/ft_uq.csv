@@ -1,0 +1,5 @@
+Fault Tree Uncertainty
+
+Name, Point Estimate, Mean, 5th, Median, 95th, Standard Dev., Skewness, Kurtosis, Num of Samples, Seed
+CCS, 5.480E-1, 2.641E-1, 3.931E-2, 1.832E-1, 7.718E-1, 2.276E-1, 1.284E+0, 3.906E+0, 5000, 1234
+ECS, 5.480E-1, 2.641E-1, 3.931E-2, 1.832E-1, 7.718E-1, 2.276E-1, 1.284E+0, 3.906E+0, 5000, 1234
