@@ -126,8 +126,8 @@ class combine():
       if os.path.exists(cleanUpFile):
         os.remove(cleanUpFiles) # remove the file if was already existing
     thBurnStep = paramDict['inpTimeDict']['TH_between_BURN'].split(' ')
-    with open(os.path.join(workingDir,'dummy.csv'), 'wb') as f:
-      instantWriter = csv.writer(f, delimiter=str(u',').encode('utf-8'),quotechar=str(u' ').encode('utf-8'),
+    with open(os.path.join(workingDir,'dummy.csv'), 'w') as f:
+      instantWriter = csv.writer(f, delimiter=str(','),quotechar=str(' '),
                                  quoting=csv.QUOTE_MINIMAL)
       instantWriter.writerow(self.joinLine(paramDict['phiDict'][0],paramDict['relDict'][0]))
       instantWriter.writerow([0.0] * self.numOfParameters + [paramDict['relDict'][1]])
@@ -152,7 +152,7 @@ class combine():
             instantWriter.writerow(self.joinLine(paramDict['phiDict'][paramDict['numOfPhisicsLines'] - 1],
                                                  paramDict['relDict'][paramDict['numOfRelapLines'] - 1]))
     with open(os.path.join(workingDir,'dummy.csv'), 'r') as inFile:
-      with open(os.path.join(workingDir,paramDict['relapPhisicsCsv']), 'wb') as outFile:
+      with open(os.path.join(workingDir,paramDict['relapPhisicsCsv']), 'w') as outFile:
         for line in inFile:
           cleanedLine = line.strip(' ')
           if re.match(r'^\s*$', line):

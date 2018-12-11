@@ -27,7 +27,11 @@ import xml.etree.ElementTree as ET
 
 frameworkDir = os.path.normpath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir,os.pardir,os.pardir,'framework'))
 sys.path.append(frameworkDir)
-from utils import xmlUtils
+from utils import xmlUtils, utils
+
+from MessageHandler import MessageHandler
+mh = MessageHandler()
+mh.initialize({})
 
 print (xmlUtils)
 
@@ -121,7 +125,7 @@ xmlTree = ET.parse(inFileName)
 toRemove = attemptFileClear(inFileName,toRemove)
 
 # test prettify
-pretty = xmlUtils.prettify(xmlTree)
+pretty = utils.toString(xmlUtils.prettify(xmlTree))
 prettyFileName = 'xml/testXMLPretty.xml'
 open(prettyFileName,'w').writelines(pretty)
 gold = ''.join(line.rstrip('\n\r') for line in open(os.path.join(os.path.dirname(__file__),'gold',prettyFileName),'r'))
@@ -299,7 +303,7 @@ strNode = """<testMainNode att=\"attrib1\">
     <secondFirstSubNode>secondFirstSubText</secondFirstSubNode>
   </secondSubNode>
 </testMainNode>"""
-if strNode != ET.tostring(node):
+if strNode != utils.toString(ET.tostring(node)):
   print('ERROR: loaded XML node:')
   print(ET.tostring(node))
   print(' ----- does not match expected:')
@@ -338,7 +342,7 @@ correct = """<root>
   </secondSubNode>
 </testMainNode></rootsub>
 </root>"""
-if correct != ET.tostring(root):
+if correct != utils.toString(ET.tostring(root)):
   print('ERROR: expanded XML node:')
   print(ET.tostring(root))
   print(' ----- does not match expected:')
@@ -346,7 +350,6 @@ if correct != ET.tostring(root):
   results['fail']+=1
 else:
   results['pass']+=1
-
 
 
 # test StaticXmlElement
@@ -429,12 +432,71 @@ except AttributeError:
 
 # for debugging:
 #print(xmlUtils.prettify(dynamic._tree,addRavenNewlines=False))
+###################
+# Variable Groups #
+###################
+
+print('')
+# all ( a, b, d)
+# d (some a, some b)
+# ab (a, b)
+# ce (c, e)
+# f is isolated
+example = """<VariableGroups>
+  <Group name="a">a1, a2, a3</Group>
+  <Group name="b">b1, b2, b3</Group>
+  <Group name="c">c1, c2, c3</Group>
+  <Group name="d">a1, b1</Group>
+  <Group name="e">e1, e2 ,e3</Group>
+  <Group name="f">f1, f2, f3</Group>
+  <Group name="ce">c, e</Group>
+  <Group name="ab">a,b</Group>
+  <Group name="abd">a,b,d</Group>
+  <Group name="plus">a,c</Group>
+  <Group name="minus">a,-d</Group>
+  <Group name="intersect">a,^d</Group>
+  <Group name="symmdiff">a,%d</Group>
+  <Group name="symmrev">d,%a</Group>
+</VariableGroups>"""
+node = ET.fromstring(example)
+groups = xmlUtils.readVariableGroups(node,mh,None)
+
+# test contents
+def testVarGroup(groups,g,right):
+  got = groups[g].getVarsString()
+  if got == right:
+    results['pass']+=1
+  else:
+    print('ERROR: Vargroups group "{}" should be "{}" but got "{}"!'.format(g,right,got))
+    results['fail']+=1
+
+# note that order matters for these solutions!
+testVarGroup(groups,'a','a1,a2,a3')             # a and b are first basic sets
+testVarGroup(groups,'b','b1,b2,b3')             # a and b are first basic sets
+testVarGroup(groups,'c','c1,c2,c3')             # c and e are second basic sets
+testVarGroup(groups,'d','a1,b1')                # d is just a1 and b1, to test one-entry-per-variable
+testVarGroup(groups,'e','e1,e2,e3')             # c and e are second basic sets
+testVarGroup(groups,'f','f1,f2,f3')             # f is isolated; nothing else uses it
+testVarGroup(groups,'ce','c1,c2,c3,e1,e2,e3')   # ce combines c and e
+testVarGroup(groups,'ab','a1,a2,a3,b1,b2,b3')   # ab combines a and b
+testVarGroup(groups,'abd','a1,a2,a3,b1,b2,b3')  # ab combines a and b
+testVarGroup(groups,'plus','a1,a2,a3,c1,c2,c3') # plus is OR for a and c
+testVarGroup(groups,'minus','a2,a3')            # minus is a but not d
+testVarGroup(groups,'intersect','a1')           # intersect is AND for a, d
+testVarGroup(groups,'symmdiff','a2,a3,b1')      # symdiff is XOR for a, d
+testVarGroup(groups,'symmrev','b1,a2,a3')       # symmrev shows order depends on how variables are put in
+
+
+
 
 
 
 
 
 print(results)
+
+
+
 
 sys.exit(results["fail"])
 """

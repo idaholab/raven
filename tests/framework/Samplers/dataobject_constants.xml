@@ -1,0 +1,109 @@
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/Samplers.DataObjectConstants</name>
+    <author>talbpaul</author>
+    <created>2018-11-14</created>
+    <classesTested>Sampler</classesTested>
+    <description>
+      Tests using a DataObject external to a Step as a source of constants for a Sampler.
+      The models are very simple, so to regold, assure the correct values pass through for
+      the constants and final result is obtained according to the models.
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>DataObjectConstants</WorkingDir>
+    <Sequence>presample, sample, print</Sequence>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="presample">
+      <Input class="DataObjects" type="PointSet">pre_placeholder</Input>
+      <Model class="Models" type="ExternalModel">premodel</Model>
+      <Sampler class="Samplers" type="Grid">pregrid</Sampler>
+      <Output class="DataObjects" type="PointSet">presamples</Output>
+    </MultiRun>
+    <MultiRun name="sample">
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Model class="Models" type="ExternalModel">model</Model>
+      <Sampler class="Samplers" type="Grid">grid</Sampler>
+      <Output class="DataObjects" type="PointSet">samples</Output>
+    </MultiRun>
+    <IOStep name="print">
+      <Input class="DataObjects" type="PointSet">presamples</Input>
+      <Input class="DataObjects" type="PointSet">samples</Input>
+      <Output class="OutStreams" type="Print">presamples</Output>
+      <Output class="OutStreams" type="Print">samples</Output>
+    </IOStep>
+  </Steps>
+
+  <DataObjects>
+    <PointSet name="pre_placeholder">
+      <Input>a,b</Input>
+    </PointSet>
+    <PointSet name="presamples">
+      <Input>a,b</Input>
+      <Output>A,B</Output>
+    </PointSet>
+    <PointSet name="placeholder">
+      <Input>x</Input>
+    </PointSet>
+    <PointSet name="samples">
+      <Input>x,C,D</Input>
+      <Output>z</Output>
+    </PointSet>
+  </DataObjects>
+
+  <Models>
+    <ExternalModel name="premodel" subType="" ModuleToLoad="premodel.py">
+      <variables>a,b,A,B</variables>
+    </ExternalModel>
+    <ExternalModel name="model" subType="" ModuleToLoad="model.py">
+      <variables>x,z,C,D</variables>
+    </ExternalModel>
+  </Models>
+
+  <Distributions>
+    <Normal name="dist">
+      <mean>0</mean>
+      <sigma>0.1</sigma>
+    </Normal>
+  </Distributions>
+
+  <Samplers>
+    <Grid name="pregrid">
+      <variable name="a">
+        <distribution>dist</distribution>
+        <grid construction="equal" type="CDF" steps="1">0.1 0.9</grid>
+      </variable>
+      <variable name="b">
+        <distribution>dist</distribution>
+        <grid construction="equal" type="CDF" steps="1">0.1 0.9</grid>
+      </variable>
+    </Grid>
+    <Grid name="grid">
+      <variable name="x">
+        <distribution>dist</distribution>
+        <grid construction="equal" type="CDF" steps="2">0.1 0.9</grid>
+      </variable>
+      <constant name="C" source="presamples" index="0">A</constant>
+      <constant name="D" source="presamples" index="1">B</constant>
+      <ConstantSource class="DataObjects" type="PointSet">presamples</ConstantSource>
+      <ConstantSource class="DataObjects" type="PointSet">presamples</ConstantSource>
+    </Grid>
+  </Samplers>
+
+  <OutStreams>
+    <Print name="presamples">
+      <type>csv</type>
+      <source>presamples</source>
+      <what>input,output</what>
+    </Print>
+    <Print name="samples">
+      <type>csv</type>
+      <source>samples</source>
+      <what>input,output</what>
+    </Print>
+  </OutStreams>
+
+</Simulation>

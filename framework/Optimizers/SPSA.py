@@ -21,7 +21,6 @@
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
-#if not 'xrange' in dir(__builtins__): xrange = range
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -169,7 +168,7 @@ class SPSA(GradientBasedOptimizer):
     # -> indicate the first ready action through the self.nextActionNeeded mechanic
     self.raiseADebug('Reviewing status of trajectories:')
     for traj in self.optTraj:
-      self.raiseADebug('   Traj: "{:^n}": Process: "{:^30.30}", Reason: "{:^30.30}"'.format(traj,self.status[traj].get('process','None'),self.status[traj].get('reason','None'),n=len(str(max(self.optTraj)))))
+      self.raiseADebug('   Traj: "{:^n}": Process: "{:^30.30}", Reason: "{:^30.30}"'.format(traj,str(self.status[traj].get('process','None')),self.status[traj].get('reason','None'),n=len(str(max(self.optTraj)))))
     for _ in range(len(self.optTrajLive)):
       # despite several attempts, this is the most elegant solution I've found to assure each
       #   trajectory gets even treatment.

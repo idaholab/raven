@@ -8,22 +8,22 @@
   [./externalModelFails]
     type = 'RavenErrors'
     input = 'withExternalModel.xml'
-    expect_err = 'IOError: <SingleRun> steps only support running "Code" model types!'
+    expect_err = 'Error: <SingleRun> steps only support running "Code" model types!'
   [../]
   [./ROMFails]
     type = 'RavenErrors'
     input = 'withROM.xml'
-    expect_err = 'IOError: <SingleRun> steps only support running "Code" model types!'
+    expect_err = 'Error: <SingleRun> steps only support running "Code" model types!'
   [../]
   [./postProcessorFails]
     type = 'RavenErrors'
     input = 'withPP.xml'
-    expect_err = 'IOError: <SingleRun> steps only support running "Code" model types!'
+    expect_err = 'Error: <SingleRun> steps only support running "Code" model types!'
   [../]
   [./dummyFails]
     type = 'RavenErrors'
     input = 'withDummy.xml'
-    expect_err = 'IOError: <SingleRun> steps only support running "Code" model types!'
+    expect_err = 'Error: <SingleRun> steps only support running "Code" model types!'
   [../]
 []
 

@@ -111,7 +111,7 @@ class CTF(CodeInterfaceBase):
     parser.writeNewInput(currentInputsToPerturb,originalInputs)
     return currentInputFiles
 
-  def generateCommand(self,inputFiles,executable,clargs=None,fargs=None):
+  def generateCommand(self,inputFiles,executable,clargs=None,fargs=None, preExec=None):
     """
       This method is used to retrieve the command (in tuple format) needed to launch the Code.
       Collects the executable to produce the command-line call.
@@ -121,6 +121,7 @@ class CTF(CodeInterfaceBase):
       @ In, executable, string, executable name with absolute path (e.g. /home/path_to_executable/code.exe)
       @ In, clargs, dict, optional, dictionary containing the command-line flags the user can specify in the input (Not needed)
       @ In, fargs, dict, optional, a dictionary containing the auxiliary input file variables the user can specify in the input (Not needed)
+      @ In, preExec, string, optional, a string the command that needs to be pre-executed before the actual command here defined
       @ Out, returnCommand, tuple, tuple containing the generated command. returnCommand[0] is the command to run the code (string), returnCommand[1] is the name of the output root
     """
     found = False

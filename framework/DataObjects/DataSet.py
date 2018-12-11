@@ -25,8 +25,10 @@ import os
 import sys
 import copy
 import itertools
-import __builtin__
-import cPickle as pk
+try:
+  import cPickle as pk
+except ImportError:
+  import pickle as pk
 import xml.etree.ElementTree as ET
 
 import abc
@@ -43,8 +45,9 @@ from utils import utils, cached_ndarray, InputData, xmlUtils, mathUtils
 
 # for profiling with kernprof
 try:
+  import __builtin__
   __builtin__.profile
-except AttributeError:
+except (AttributeError,ImportError):
   # profiler not preset, so pass through
   def profile(func):
     """
@@ -256,6 +259,13 @@ class DataSet(DataObject):
       self._inputs.append(varName)
     elif classify == 'output':
       self._outputs.append(varName)
+      if type(values[0]) == xr.DataArray:
+        indexes = values[0].sizes.keys()
+        for index in indexes:
+          if index in self._pivotParams.keys():
+            self._pivotParams[index].append(varName)
+          else:
+            self._pivotParams[index]=[varName]
     else:
       self._metavars.append(varName)
     self._orderedVars.append(varName)
@@ -941,9 +951,10 @@ class DataSet(DataObject):
       self._data.attrs = self._meta # appears to NOT be a reference
       # determine dimensions for each variable
       dimsMeta = {}
-      # TODO potentially slow loop
-      for var in self._inputs + self._outputs:
-        dims = list(new[var].dims)
+      for name, var in new.variables.items():
+        if name not in self._inputs + self._outputs:
+          continue
+        dims = list(var.dims)
         # don't list if only entry is sampleTag
         if dims == [self.sampleTag]:
           continue
@@ -952,15 +963,14 @@ class DataSet(DataObject):
           dims.remove(self.sampleTag)
         except ValueError:
           pass #not there, so didn't need to remove
-        dimsMeta[var] = ','.join(dims)
+        dimsMeta[name] = ','.join(dims)
       # store sample tag, IO information, coordinates
+      self.addMeta('DataSet',{'dims':dimsMeta})
       self.addMeta('DataSet',{'general':{'sampleTag':self.sampleTag,
                                          'inputs':','.join(self._inputs),
                                          'outputs':','.join(self._outputs),
-                                         'pointwise_meta':','.join(self._metavars),
-                                         },
-                              'dims':dimsMeta,
-                             })
+                                         'pointwise_meta':','.join(sorted(self._metavars)),
+      }})
     elif action == 'extend':
       # TODO compatability check!
       # TODO Metadata update?
@@ -1263,7 +1273,7 @@ class DataSet(DataObject):
     # set orderedVars to all vars, for now don't be fancy with alignedIndexes
     self._orderedVars = self.vars + self.indexes
     # make a collector from scratch
-    rows = len(source.values()[0])
+    rows = len(utils.first(source.values()))
     cols = len(self._orderedVars)
     # can this for-loop be done in a comprehension?  The dtype seems to be a bit of an issue.
     data = np.zeros([rows,cols],dtype=object)
@@ -1387,7 +1397,7 @@ class DataSet(DataObject):
     assert(self._collector is not None)
     # TODO KD Tree for faster values -> still want in collector?
     # TODO slow double loop
-    lookingFor = toMatch.values()
+    lookingFor = list(toMatch.values())
     for r,row in enumerate(self._collector[:,tuple(self._orderedVars.index(var) for var in toMatch.keys())]):
       match = True
       for e,element in enumerate(row):
@@ -1627,20 +1637,16 @@ class DataSet(DataObject):
         pass
     # TODO someday make KDTree too!
     assert(self._data is not None) # TODO check against collector entries?
-    for var in varList:
-      ## commented code. We use a try now for speed. It probably needs to be modified for ND arrays
-      # if not a float or int, don't scale it
-      # TODO this check is pretty convoluted; there's probably a better way to figure out the type of the variable
-      #first = self._data.groupby(var).first()[var].item(0)
-      #if (not mathUtils.isAFloatOrInt(first)) or np.isnan(first):# or self._data[var].isnull().all():
-      #  continue
+    ds = self._data[varList] if var is not None else self._data
+    mean = ds.mean().variables
+    scale = ds.std().variables
+    for name in varList:
       try:
-        mean = float(self._data[var].mean())
-        scale = float(self._data[var].std())
-        self._scaleFactors[var] = (mean,scale)
+        m = mean[name].values[()]
+        s = scale[name].values[()]
+        self._scaleFactors[name] = (m,s)
       except Exception:
-        self.raiseADebug('Had an issue with setting scaling factors for variable "{}". No big deal.'.format(var))
-        pass
+        self.raiseADebug('Had an issue with setting scaling factors for variable "{}". No big deal.'.format(name))
 
   def _toCSV(self,fileName,start=0,**kwargs):
     """

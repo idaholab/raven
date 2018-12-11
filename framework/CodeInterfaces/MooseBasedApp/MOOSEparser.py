@@ -19,13 +19,11 @@ Created on Mar 25, 2013
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
-if not 'xrange' in dir(__builtins__):
-  xrange = range
 
 import xml.etree.ElementTree as ET
 import os
 import copy
-from utils.utils import toBytes, toStrish, compare
+from utils.utils import toBytes, toStrish, compare, toString
 
 class MOOSEparser():
   """
@@ -40,7 +38,7 @@ class MOOSEparser():
     self.printTag = 'MOOSE_PARSER'
     if not os.path.exists(inputFile):
       raise IOError('not found MOOSE input file')
-    IOfile = open(inputFile,'rb')
+    IOfile = open(inputFile,'r')
     self.inputfile = inputFile
     lines = IOfile.readlines()
     self.root = ET.Element('root')
@@ -49,32 +47,32 @@ class MOOSEparser():
     parents = []
     parents.append(self.root)
     for line in lines:
-      line = line.lstrip().strip(b'\n')
-      if line.startswith(b'['):
+      line = line.lstrip().strip('\n')
+      if line.startswith('['):
         line = line.strip()
-        if line.startswith(b'[]') or line.startswith(b'[../]'):
+        if line.startswith('[]') or line.startswith('[../]'):
           current = parents.pop(len(parents)-1)
         else:
-          #name = line.strip(b'[').strip(b']').strip(b'../')
-          name = line[line.index(b'[')+1:line.index(b']')].strip(b'../').strip(b'./')
+          #name = line.strip('[').strip(']').strip('../')
+          name = line[line.index('[')+1:line.index(']')].strip('../').strip('./')
           parents.append(current)
           current      = ET.SubElement(current,name)
           current.tail = []
-          if b'#' in line[line.index(b']'):]:
-            current.tail.append(line[line.index(b']')+1:].strip(b'\n').lstrip())
+          if '#' in line[line.index(']'):]:
+            current.tail.append(line[line.index(']')+1:].strip('\n').lstrip())
       elif len(line)!=0:
-        if not line.startswith(b'#'):
-          ind = line.find(b'=')
+        if not line.startswith('#'):
+          ind = line.find('=')
           if ind != -1:
-            listLine = line.split(b'=')
+            listLine = line.split('=', 1)
             attribName = listLine[0].strip()
-            if b'#' not in listLine[1]:
+            if '#' not in listLine[1]:
               attribValue = listLine[1].strip()
             else:
               attribValue = listLine[1][:listLine[1].index('#')]
             current.attrib[attribName] = attribValue
           else:
-            if b'#' not in line:
+            if '#' not in line:
               attribValue = attribValue + '\n' + line
             else:
               attribValue = attribValue + '\n' + line[:line.index('#')]
@@ -88,33 +86,46 @@ class MOOSEparser():
       @ In, outfile, string, optional, output file root
       @ Out, None
     """
+    def write(IOfile, indent, xmlnode):
+      """
+        Method to print out the key and value pairs
+       @ In, IOfile, file, the file to write to
+       @ In, indent, string, the string to print before the key
+       @ In, xmlnode, ElementNode, the node with the attributes
+       @ Out, None
+      """
+      for key in sorted(xmlnode.attrib.keys()):
+        value = xmlnode.attrib[key]
+        if type(value) == float:
+          valueStr = repr(value)
+        else:
+          valueStr = toStrish(value)
+        IOfile.write(indent+key+' = '+valueStr+'\n')
     # 4 sub levels maximum
     def printSubLevels(xmlnode,IOfile,indentMultiplier):
-      IOfile.write(b'  '*indentMultiplier+b'[./'+toBytes(xmlnode.tag)+b']\n')
+      IOfile.write('  '*indentMultiplier+'[./'+xmlnode.tag+']\n')
       for string in xmlnode.tail if xmlnode.tail else []:
-        IOfile.write(b'    '*indentMultiplier+string+b'\n')
-      for key in xmlnode.attrib.keys():
-        IOfile.write(b'    '*indentMultiplier+toBytes(key)+b' = '+toBytes(toStrish(xmlnode.attrib[key]))+b'\n')
+        IOfile.write('    '*indentMultiplier+string+'\n')
+      write(IOfile, '    '*indentMultiplier, xmlnode)
     if outfile==None:
       outfile =self.inputfile
-    IOfile = open(outfile,'wb')
+    IOfile = open(outfile,'w')
     for child in self.root:
-      IOfile.write(b'['+toBytes(child.tag)+b']\n')
+      IOfile.write('['+child.tag+']\n')
       if child.tail:
         for string in child.tail:
-          IOfile.write(b'  '+string+b'\n')
-      for key in child.attrib.keys():
-        IOfile.write(b'  '+toBytes(key)+b' = '+toBytes(toStrish(child.attrib[key]))+b'\n')
+          IOfile.write('  '+string+'\n')
+      write(IOfile, '  ', child)
       for childChild in child:
         printSubLevels(childChild,IOfile,1)
         for childChildChild in childChild:
           printSubLevels(childChildChild,IOfile,2)
           for childChildChildChild in childChildChild:
             printSubLevels(childChildChildChild,IOfile,3)
-            IOfile.write(b'      [../]\n')
-          IOfile.write(b'    [../]\n')
-        IOfile.write(b'  [../]\n')
-      IOfile.write(b'[]\n')
+            IOfile.write('      [../]\n')
+          IOfile.write('    [../]\n')
+        IOfile.write('  [../]\n')
+      IOfile.write('[]\n')
 
   def findNodeInXML(self,name):
     """
@@ -254,7 +265,7 @@ class MOOSEparser():
       returnElement = copy.deepcopy(self.root)         #make a copy if save is requested
     else:
       returnElement = self.root                           #otherwise return the original modified
-    for i in xrange(len(modiDictionaryList)):
+    for i in range(len(modiDictionaryList)):
       name = modiDictionaryList[i]['name']
       del modiDictionaryList[i]['name']
       self.__modifyOrAdd(returnElement,name,modiDictionaryList[i])

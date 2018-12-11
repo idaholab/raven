@@ -1,5 +1,13 @@
 <?xml version="1.0" ?>
-<Simulation>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>doc/workshop/staticDataAnalysis/inputs.KMeans</name>
+    <author>wangc</author>
+    <created>2018-09-21</created>
+    <classesTested>PostProcessors.DataMining</classesTested>
+    <description>Workshop test: DataMining with KMeans method</description>
+  </TestInfo>
+
   <RunInfo>
     <WorkingDir>KMeans</WorkingDir>
     <Sequence>read_in_csv1,pp1</Sequence>

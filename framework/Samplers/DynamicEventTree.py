@@ -23,7 +23,6 @@
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
-#if not 'xrange' in dir(__builtins__): xrange = range
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -250,7 +249,7 @@ class DynamicEventTree(Grid):
     endInfo['branchChangedParams'] = self.actualBranchInfo[endInfo['branchDist']]
     # check if RELAP7 mode is activated, in case prepend the "<distribution>" string
     if any("<distribution>" in s for s in self.branchProbabilities.keys()):
-      endInfo['branchDist'] = self.toBeSampled.keys()[self.toBeSampled.values().index(endInfo['branchDist'])]
+      endInfo['branchDist'] = list(self.toBeSampled.keys())[list(self.toBeSampled.values()).index(endInfo['branchDist'])]
       #endInfo['branchDist'] = "<distribution>"+endInfo['branchDist']
     parentNode.add('actualEndTimeStep',self.actualEndTs)
     # # Get the parent element tree (xml object) to retrieve the information needed to create the new inputs
@@ -274,7 +273,7 @@ class DynamicEventTree(Grid):
         unchangedPb = 0.0
         try:
           # changed_pb = probability (not conditional probability yet) that the event A occurs and the final state is 'alpha' """
-          for pb in xrange(len(endInfo['branchChangedParams'][key]['associatedProbability'])):
+          for pb in range(len(endInfo['branchChangedParams'][key]['associatedProbability'])):
             unchangedPb = unchangedPb + endInfo['branchChangedParams'][key]['associatedProbability'][pb]
         except KeyError:
           self.raiseAWarning("KeyError:"+str(key))
@@ -413,7 +412,7 @@ class DynamicEventTree(Grid):
     # Fill th values dictionary in
     if precSampled:
       self.inputInfo['hybridsamplerCoordinate'  ] = copy.deepcopy(precSampled)
-    self.inputInfo['prefix'                    ] = rname.encode()
+    self.inputInfo['prefix'                    ] = rname
     self.inputInfo['initiatorDistribution'     ] = []
     self.inputInfo['PbThreshold'               ] = []
     self.inputInfo['ValueThreshold'            ] = []
@@ -458,7 +457,8 @@ class DynamicEventTree(Grid):
     for key,value in self.inputInfo.items():
       rootnode.add(key,copy.copy(value))
     self.RunQueue['queue'].append(newInputs)
-    self.RunQueue['identifiers'].append(self.inputInfo['prefix'].encode())
+    print(self.inputInfo['prefix'])
+    self.RunQueue['identifiers'].append(self.inputInfo['prefix'])
     self.rootToJob[self.inputInfo['prefix']] = rname
     del newInputs
     self.counter += 1
@@ -521,7 +521,7 @@ class DynamicEventTree(Grid):
       # Get Parent node name => the branch name is creating appending to this name  a comma and self.branchCountOnLevel counter
       rname = endInfo['parentNode'].get('name') + '-' + str(self.branchCountOnLevel)
       # create a subgroup that will be appended to the parent element in the xml tree structure
-      subGroup = ETS.HierarchicalNode(self.messageHandler,rname.encode())
+      subGroup = ETS.HierarchicalNode(self.messageHandler,rname)
       subGroup.add('parent', endInfo['parentNode'].get('name'))
       subGroup.add('name', rname)
       subGroup.add('completedHistory', False)
@@ -583,7 +583,7 @@ class DynamicEventTree(Grid):
       endInfo['parentNode'].appendBranch(subGroup)
       # Fill the values dictionary that will be passed into the model in order to create an input
       # In this dictionary the info for changing the original input is stored
-      self.inputInfo = {'prefix':rname.encode(),'endTimeStep':endInfo['endTimeStep'],
+      self.inputInfo = {'prefix':rname,'endTimeStep':endInfo['endTimeStep'],
                 'branchChangedParam':subGroup.get('branchChangedParam'),
                 'branchChangedParamValue':subGroup.get('branchChangedParamValue'),
                 'conditionalPb':subGroup.get('conditionalPbr'),
@@ -620,7 +620,7 @@ class DynamicEventTree(Grid):
       # Add the unbranched thresholds
       for key in self.branchProbabilities.keys():
         if not (key in self.toBeSampled[endInfo['branchDist']]) and (branchedLevel[key] < len(self.branchProbabilities[key])):
-          self.inputInfo['initiatorDistribution'].append(self.toBeSampled[key.encode()])
+          self.inputInfo['initiatorDistribution'].append(self.toBeSampled[key])
       for key in self.branchProbabilities.keys():
         if not (key in self.toBeSampled[endInfo['branchDist']]) and (branchedLevel[key] < len(self.branchProbabilities[key])):
           self.inputInfo['PbThreshold'   ].append(self.branchProbabilities[key][branchedLevel[key]])
