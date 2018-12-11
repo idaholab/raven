@@ -328,7 +328,7 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     """
     self.raiseAnError(NotImplementedError, '<Cluster> capabilities not yet implemented for "{}" ROM!'.format(self.__class__.__name__))
 
-  def getClusterParameter(self, *args, **kwargs):
+  def getRomClusterValues(self, *args, **kwargs):
     """
       Method to indicate what parameters can be used to cluster this ROM.
       By default, raises NotImplementedError.
