@@ -309,6 +309,25 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     """
     return
 
+  def getRomClusterParams(self):
+    """
+      Method to indicate what parameters can be used to cluster this ROM.
+      By default, raises NotImplementedError.
+      @ In, None
+      @ Out, params, list, list of clusterable parameters
+    """
+    self.raiseAnError(NotImplementedError, '<Cluster> capabilities not yet implemented for "{}" ROM!'.format(self.__class__.__name__))
+
+  def getRomClusterValues(self, *args, **kwargs):
+    """
+      Method to indicate what parameters can be used to cluster this ROM.
+      By default, raises NotImplementedError.
+      @ In, args, list, arbitrary arguments
+      @ In, kwargs, dict, arbitrary keyword arguments
+      @ Out, value, float, value of parameter
+    """
+    self.raiseAnError(NotImplementedError, '<Cluster> capabilities not yet implemented for "{}" ROM!'.format(self.__class__.__name__))
+
   @abc.abstractmethod
   def __trainLocal__(self,featureVals,targetVals):
     """

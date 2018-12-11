@@ -129,6 +129,16 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
     ## The normalized training data
     self.normValues = None
 
+  def updateFeatures(self, features):
+    """
+      Change the Features that this classifier targets. If this ROM is trained already, raises an error.
+      @ In, features, list(str), list of new features
+      @ Out, None
+    """
+    if self.amITrained:
+      self.raiseAnError(RuntimeError,'Trying to change the <Features> of an already-trained ROM!')
+    self.features = features
+
   def train(self, tdict, metric = None):
     """
       Method to perform the training of the unSuperVisedLearning algorithm

@@ -15,6 +15,31 @@
   constructing the \textit{#1} ROM.}
 }
 
+\newcommand{\romClusterOption}[0]
+{
+  \item \xmlNode{Cluster}, \xmlDesc{node, optional}, provides an alternative way to build the ROM. When
+    this mode is enabled, the subspace of the ROM (usually ``time'') will be divided into segments as
+    requested, then a distinct ROM will be trained on each of the segments. This is especially helpful if
+    during the subspace the ROM representation of the signal changes significantly. For example, if the signal
+    is different during summer and winter, then a signal can be divided and a distinct ROM trained on the
+    segments. By default, no segmentation occurs.  This node takes the following subnodes:
+    \begin{itemize}
+      \item \xmlNode{subspace}, \xmlDesc{string, required field} designates the subspace to divide. This
+        should be the pivot parameter (often ``time'') for the ROM. This node also requires one of the two
+        following attributes, used to determine how the subspace is divided:
+        \begin{itemize}
+          \item \xmlAttr{pivotLength}, \xmlDesc{float, optional field}, provides the value in the subspace
+            that each cluster should attempt to represent, independently of how the data is stored. For
+            example, if the subspace has hourly resolution, is measured in seconds, and the desired
+            segmentation is daily, the \xmlAttr{pivotLength} would be 86400.
+          \item \xmlAttr{divisions}, \xmlDesc{integer, optional field}, as an alternative to
+            \xmlAttr{pivotLength}, this attribute can be used to specify how many data points to include in
+            each subdivision, rather than use the pivot values. The algorithm will attempt to split the data
+            points as equally as possible.
+        \end{itemize}
+    \end{itemize}
+}
+
 \subsection{ROM}
 \label{subsec:models_ROM}
 A Reduced Order Model (ROM) is a mathematical model consisting of a fast
@@ -3016,6 +3041,7 @@ below).
       \item \xmlNode{orders}, \xmlDesc{comma-separated integers, required field}, lists the highest integer
         subdivision desired for each period requested in \xmlNode{periods}, as \xmlNode{FourierOrder} above.
     \end{itemize}
+    \romClusterOption
 \end{itemize}
 
 \textbf{Example:}
