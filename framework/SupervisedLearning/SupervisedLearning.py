@@ -273,6 +273,15 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     """
     writeTo.addScalar('ROM',"type",self.printTag)
 
+  def writePointwiseData(self):
+    """
+      Allows the SVE to add data to a DataObject
+      Overload in subclasses.
+      @ Out, realizations, realizations to write to data object
+    """
+    # by default, nothing to write!
+    return {}
+
   def writeXML(self, writeTo, targets=None):
     """
       Allows the SVE to put whatever it wants into an XML to print to file.

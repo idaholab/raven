@@ -1,6 +1,6 @@
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework/ROM/TimeSeries/ARMA.ARMA</name>
+    <name>framework/ROM/TimeSeries/ARMA.Basic</name>
     <author>alfoa</author>
     <created>2017-02-02</created>
     <classesTested>SupervisedLearning.ARMA</classesTested>
@@ -18,7 +18,7 @@
 
   <RunInfo>
     <WorkingDir>ARMA</WorkingDir>
-    <Sequence>readIn,ARMATrain,runARMA,writeOut,loadSynthetic,stats</Sequence>
+    <Sequence>readIn, ARMATrain, printARMA, runARMA, writeOut, loadSynthetic, stats</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
 
@@ -74,6 +74,11 @@
       <Input class="DataObjects" type="HistorySet">rawData</Input>
       <Output class="Models" type="ROM">ARMA</Output>
     </RomTrainer>
+    <IOStep name="printARMA">
+      <Input class="Models" type="ROM">ARMA</Input>
+      <Output class="DataObjects" type="DataSet">romMeta</Output>
+      <Output class="OutStreams" type="Print">romMeta</Output>
+    </IOStep>
     <MultiRun name="runARMA">
       <Input class="DataObjects" type="PointSet">dataIn</Input>
       <Model class="Models" type="ROM">ARMA</Model>
@@ -106,6 +111,10 @@
     <Print name="stats">
       <type>csv</type>
       <source>stats</source>
+    </Print>
+    <Print name="romMeta">
+      <type>csv</type>
+      <source>romMeta</source>
     </Print>
     <Plot name="plotSynData" overwrite="false">
       <plotSettings>
@@ -148,5 +157,6 @@
         <pivotParameter>Time</pivotParameter>
       </options>
     </HistorySet>
+    <DataSet name="romMeta"/>
   </DataObjects>
 </Simulation>

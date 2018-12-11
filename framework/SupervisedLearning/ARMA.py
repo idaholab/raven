@@ -872,6 +872,26 @@ class ARMA(supervisedLearning):
     mask = data < tol
     return mask
 
+  def writeXML(self, writeTo, targets=None):
+    """
+      Allows the SVE to put whatever it wants into an XML to print to file.
+      Overload in subclasses.
+      @ In, writeTo, xmlUtils.StaticXmlElement, entity to write to
+      @ In, targets, list, list of targets for whom information should be written
+      @ Out, None
+    """
+    if not self.amITrained:
+      self.raiseAnError(RuntimeError,'ROM is not yet trained! Cannot write to file.')
+    # things to write:
+    # - Fourier coefficients (by period, waveform)
+    for target in self.fourierResults:
+      for b,base in enumerate(self.fourierResults[target]['regression']['coeffs']):
+        for s,subdivision in enumerate(base):
+          for waveform, coeff in subdivision.items():
+            print('DEBUGG base: {} sub: {} wave: {} coeff: {}'.format(base,subdivision,waveform,coeff))
+    aaa
+    # - ARMA std
+
   ### ESSENTIALLY UNUSED ###
   def _localNormalizeData(self,values,names,feat):
     """
