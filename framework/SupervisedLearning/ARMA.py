@@ -265,8 +265,10 @@ class ARMA(supervisedLearning):
     # prep the correlation data structure
     correlationData = np.zeros([len(self.pivotParameterValues),len(self.correlations)])
 
+    import matplotlib.pyplot as plt
     for t,target in enumerate(self.target):
       timeSeriesData = targetVals[:,t]
+      plt.plot(range(len(timeSeriesData)),timeSeriesData,'k.-')
       if writeTrainDebug:
         debugfile.writelines('{}_original,'.format(target)+','.join(str(d) for d in timeSeriesData)+'\n')
       # if this target governs the zero filter, extract it now
@@ -319,7 +321,7 @@ class ARMA(supervisedLearning):
           # don't bother training the part that's all zeros; it'll still be all zeros
           # just train the data portions
           normed = normed[self.zeroFilterMask]
-        self.raiseADebug('... ... training ...')
+        self.raiseADebug('... ... training "{}"...'.format(target))
         self.armaResult[target] = self._trainARMA(normed)
         self.raiseADebug('... ... finished training target "{}"'.format(target))
 
@@ -355,6 +357,7 @@ class ARMA(supervisedLearning):
         self.varmaNoise = (noiseDist,)
         self.varmaInit = (initDist,)
 
+    plt.close()
     if writeTrainDebug:
       debugfile.close()
 
@@ -562,8 +565,8 @@ class ARMA(supervisedLearning):
     for base in basePeriod:
       fourier[base] = np.zeros((pivots.size, 2*fourierOrder[base]))
       for orderBp in range(fourierOrder[base]):
-        fourier[base][:, 2*orderBp] = np.sin(2*np.pi*(orderBp+1)/base*pivots)
-        fourier[base][:, 2*orderBp+1] = np.cos(2*np.pi*(orderBp+1)/base*pivots)
+        fourier[base][:, 2*orderBp]   = np.sin(2*np.pi * (orderBp+1) / base * pivots)
+        fourier[base][:, 2*orderBp+1] = np.cos(2*np.pi * (orderBp+1) / base * pivots)
     return fourier
 
   def _generateVARMASignal(self, model, numSamples=None, randEngine=None, rvsIndex=None):
@@ -595,17 +598,27 @@ class ARMA(supervisedLearning):
                                      state_shocks = stateShocks)
     return obs
 
-  def getClusterParameter(self, *args, **kwargs):
+  def getRomClusterValues(self, featureTemplate, *args, **kwargs):
     """
       Indicates the parameters on which this ROM can cluster.
-      @ In, None
-      @ Out, value, float, parameter value
+      @ In, featureTemplate, str, format for feature space names (takes target, separator, metric, and id)
+      @ Out, features, dict, cluster feature values
     """
-    # TODO algorithm for combining Fourier series and ARMA white noise variance
-    import matplotlib.pyplot as plt
-    plt.plot(range(len(self.fourierResults['Demand']['predict'])), self.fourierResults['Demand']['predict'])
-    plt.show()
-
+    # algorithm for providing Fourier series and ARMA white noise variance and #TODO covariance
+    features = {}
+    # include Fourier if available
+    for target in self.fourierResults:
+      for b,base in enumerate(self.fourierResults[target]['regression']['coeffs']):
+        for s,subdivision in enumerate(base):
+          for waveform, coeff in subdivision.items():
+            ID = '{}_{}_{}'.format(b,s+1,waveform)
+            feature = featureTemplate.format(target=target, metric='Fourier', id=ID)
+            features[feature] = coeff
+    # signal variance, ARMA (not varma)
+    for target,arma in self.armaResult.items():
+      feature = featureTemplate.format(target=target, metric='arma', id='std')
+      features[feature] = np.sqrt(arma.sigma2)
+    return features
 
   def getRomClusterParams(self):
     """
@@ -613,7 +626,7 @@ class ARMA(supervisedLearning):
       @ In, None
       @ Out, params, list, clusterable parameters
     """
-    return ['Fourier', 'ARMA_variance']
+    return ['Fourier', 'ARMA']
 
   def _interpolateDist(self,x,y,Xlow,Xhigh,Ylow,Yhigh,inMask):
     """
@@ -726,7 +739,16 @@ class ARMA(supervisedLearning):
     # TODO option to optimize for best p,q?
     Pmax = self.Pmax
     Qmax = self.Qmax
-    return smARMA(data, order=(Pmax,Qmax)).fit(disp=False)
+    try:
+      results = smARMA(data, order=(Pmax,Qmax)).fit(disp=False)
+    except Exception as e:
+      print('DEBUGG failed to solve')
+      import matplotlib.pyplot as plt
+      plt.plot(range(len(data)),data,'.-',label='residual')
+      plt.plot(range(len(data)),self.fourierResults['Demand']['predict'],'.-',label='fourier')
+      plt.show()
+      raise e
+    return results
 
   def _trainCDF(self,data):
     """
@@ -760,12 +782,22 @@ class ARMA(supervisedLearning):
       @ In, order, dict, Fourier orders to extract for each base period
       @ In, values, np.array, list of values for the dependent variable (signal to take fourier from)
       @ In, zeroFilter, bool, optional, if True then apply zero-filtering for fourier fitting
-      @ Out, fourierResult, dict, results of this training in keys 'residues', 'fourierSet', 'predict'
+      @ Out, fourierResult, dict, results of this training in keys 'residues', 'fourierSet', 'predict', 'regression'
     """
     fourierSeriesOriginal = self._generateFourierSignal(pivotValues,
-                                                   basePeriod,
-                                                   order)
-    fourierEngine = linear_model.LinearRegression()
+                                                        basePeriod,
+                                                        order)
+    # fourierSeriesOriginal dimensions, for each key (base):
+    #   0: length of history
+    #   1: evaluations, in order and flattened:
+    #                 0:   sin(1*2pi*t/base),
+    #                 1:   cos(1*2pi*t/base),
+    #                 2:   sin(2*2pi*t/base),
+    #                 3:   cos(2*2pi*t/base),
+    #                    etc,
+    #                 N-1: sin(order*2pi*t/base),
+    #                 N:   cos(order*2pi*t/base)
+    fourierEngine = linear_model.LinearRegression(normalize=False)
 
     # if using zero-filter, cut the parts of the Fourier and values that correspond to the zero-value portions
     if zeroFilter:
@@ -783,16 +815,21 @@ class ARMA(supervisedLearning):
 
     fourierBaseFrequencies = [range(1,order[bp]+1) for bp in order]
     # for all combinations of Fourier periods and orders ...
+    #print('DEBUGG values shape:',values.shape)
+    # "values" shape is the length of the history (in this case, like 730 entries)
     for fourierSet in list(itertools.product(*fourierBaseFrequencies)):
       # generate container for Fourier series evaluation
-      fourierSignals = np.zeros(shape=(values.size, 2*sum(fourierSet)))
+      fourierSignals = np.zeros(shape=(values.size, 2*sum(fourierSet))) # length of history by (sin,cos)(Fourier orders)
+      # dimensions:
+      #    0: length of history
+      #    1: evaluations of sine, cosine for each Fourier order in use
       # running indices for orders and sine/cosine coefficients
       runningIndex = 0
       # for each base period requested ...
       for index,bp in enumerate(order):
         # store the series values for the given periods
         ## TODO this may not be an ideally-indexed storage mechanism
-        ## dimensions are ?, Fourier combination (sine and cosine)
+        ## dimensions are (history length, Fourier combination (sine and cosine))
         fourierSignals[:, runningIndex:runningIndex+fourierSet[index]*2] = fourierEvaluations[bp][:, 0:fourierSet[index]*2]
         # update the running index
         runningIndex += fourierSet[index]*2
@@ -811,15 +848,90 @@ class ARMA(supervisedLearning):
         # TODO this could be sped up by only keeping track of indexes for best, then deepcopying only those
         fourierResult['fourierSet'] = copy.deepcopy(fourierSet)
         bestSignal = copy.deepcopy(fourierSignals)
+        bestSet = fourierSet[:]
         fourierResult['residues'] = copy.deepcopy(r)
         criterionBest = copy.deepcopy(criterionCurrent)
 
+    self.raiseADebug('Best Fourier matching set:',bestSet,order)
     # retrain the best-fitting set of orders
     fourierEngine.fit(bestSignal,values)
-    # obtain the Fourier magnitude for each order
-    ## TODO HOW??
-    # produce the best-fitting signal
+    # reproduce the best-fitting signal
     fourierSignal = np.asarray(fourierEngine.predict(bestSignal))
+
+    # obtain the Fourier magnitude for each order, to store as reference
+    ## translate indices to headers
+    coefMap = [None for _ in range(len(bestSet))]
+    ## structure of coefMap:
+    ##   list(list(dict))
+    ##   outermost list is the base period in order from the input -> NOPE, it's from order.keys() which is arbitrary
+    ##   second list is the subdivision of the base in numerically-increasing order (1, 2, 3, etc)
+    ##   dictionary has the coefficients as {'sin':coeff, 'cos':coeff}
+    ## see the debug check with plots below for an example of how to use the regression terms.
+    for c,coef in enumerate(fourierEngine.coef_):
+      # which base?
+      floor = 0
+      for b,base in enumerate(bestSet):
+        # how many values correspond to this base?
+        band = base*2
+        # are we between the last boundary and the next?
+        if c < floor + band:
+          correctBase = base
+          correctB = b
+          break
+        else:
+          floor += band
+      if coefMap[correctB] is None:
+        coefMap[correctB] = [{} for _ in range(bestSet[correctB])]
+      # which subdivision?
+      ## reset index list
+      subIndex = c - floor
+      subdivision = subIndex // 2
+      # sin/cos
+      if c % 2 == 0:
+        waveform = 'sin'
+      else:
+        waveform = 'cos'
+      coefMap[correctB][subdivision][waveform] = coef
+    # fill in coefMap with any base subdivisions that were not used
+    for i,(base,subdivs) in enumerate(order.items()):
+      if bestSet[i] < subdivs:
+        for _ in range(bestSet[i]+1,subdivs+1):
+          coefMap[i].append({'sin': 0.0, 'cos':0.0})
+
+    intercept = fourierEngine.intercept_
+    fourierResult['regression'] = {'intercept':intercept,
+                                   'coeffs'   :coefMap}
+
+    # debug check: plot the original versus the fit
+    if False:
+      debugg = np.zeros(values.size) + intercept
+      # start with a base period
+      for b,sub in enumerate(coefMap):
+        base = bestSet[b]
+        self.raiseADebug('base {}: {}'.format(basePeriod[b],base))
+        # subdivision
+        for s,waves in enumerate(sub):
+          self.raiseADebug('    subdivision:',s)
+          # sin/cos
+          for waveform in waves:
+            self.raiseADebug('      wave: {}, ampl {}'.format(waveform,waves[waveform]))
+            if waveform == 'sin':
+              debugg += waves[waveform] * np.sin(2.*np.pi * (s+1) / basePeriod[b] * pivotValues)
+              #fourier[base][:, 2*orderBp] = np.sin(2*np.pi*(orderBp+1)/base*pivots)
+            elif waveform == 'cos':
+              debugg += waves[waveform] * np.cos(2.*np.pi * (s+1) / basePeriod[b] * pivotValues)
+            else:
+              raise IOError
+      import sys
+      sys.stdout.flush()
+
+      import matplotlib.pyplot as plt
+      plt.plot(pivotValues, values, 'k', label='original')
+      plt.plot(pivotValues, debugg, ':', label='reconstruct')
+      plt.legend(loc=0)
+      plt.show()
+    # END debug check
+
     # if zero-filtered, put zeroes back into the Fourier series
     if zeroFilter:
       signal = np.zeros(pivotValues.size)

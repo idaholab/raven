@@ -74,4 +74,13 @@
     rel_err = 2e-1
     max_time = 300
   [../]
+
+  [./Segmented]
+    type = 'RavenFramework'
+    input = 'segmented.xml'
+    output = 'segmented/synthetic.csv segmented/synthetic_0.csv segmented/synthetic.xml segmented/stats.xml'
+    csv = 'segmented/stats.csv'
+    rel_err = 1e-3
+  [../]
+
 []

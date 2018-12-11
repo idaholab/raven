@@ -63,8 +63,19 @@ class ROM(Dummy):
     cluster = InputData.parameterInputFactory("Cluster", strictMode=True)
     subspace = InputData.parameterInputFactory('subspace', InputData.StringType)
     subspace.addParam('divisions', InputData.IntegerType, False)
+    subspace.addParam('pivotLength', InputData.FloatType, False)
     cluster.addSub(subspace)
-    cluster.addSub(InputData.parameterInputFactory('numClusters', contentType=InputData.IntegerType))
+    clsfr = InputData.parameterInputFactory('Classifier', strictMode=True, contentType=InputData.StringType)
+    clsfr.addParam('class', InputData.StringType, True)
+    clsfr.addParam('type', InputData.StringType, True)
+    cluster.addSub(clsfr)
+    metric = InputData.parameterInputFactory('Metric', strictMode=True, contentType=InputData.StringType)
+    metric.addParam('class', InputData.StringType, True)
+    metric.addParam('type', InputData.StringType, True)
+    cluster.addSub(metric)
+    feature = InputData.parameterInputFactory('feature', strictMode=True, contentType=InputData.StringType)
+    feature.addParam('weight', InputData.FloatType)
+    cluster.addSub(feature)
     inputSpecification.addSub(cluster)
     # unsorted
     inputSpecification.addSub(InputData.parameterInputFactory("persistence", InputData.StringType))
@@ -258,6 +269,10 @@ class ROM(Dummy):
     self.supervisedEngine          = None       # dict of ROM instances (== number of targets => keys are the targets)
     self.printTag = 'ROM MODEL'
 
+    # for Clustered ROM
+    self.addAssemblerObject('Classifier','-1',True)
+    self.addAssemblerObject('Metric','-n',True)
+
   def _readMoreXML(self,xmlNode):
     """
       Function to read the portion of the xml input that belongs to this specialized class
@@ -404,7 +419,9 @@ class ROM(Dummy):
                   "The time-dependent ROM requires all the histories are synchonized!")
       self.trainingSet = copy.copy(self._inputToInternal(trainingSet))
       self._replaceVariablesNamesWithAliasSystem(self.trainingSet, 'inout', False)
-      self.supervisedEngine.train(self.trainingSet)
+      # grab assembled stuff and pass it through
+      ## TODO this should be changed when the SupervisedLearning objects themselves can use the Assembler
+      self.supervisedEngine.train(self.trainingSet, self.assemblerDict)
       self.amITrained = self.supervisedEngine.amITrained
 
   def confidence(self,request,target = None):

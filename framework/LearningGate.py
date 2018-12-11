@@ -26,6 +26,7 @@ warnings.simplefilter('default',DeprecationWarning)
 import inspect
 import abc
 import copy
+import collections
 import numpy as np
 #External Modules End--------------------------------------------------------------------------------
 
@@ -34,7 +35,7 @@ from BaseClasses import BaseType
 from utils import mathUtils
 from utils import utils
 import SupervisedLearning
-import unSupervisedLearning
+import Metrics
 import MessageHandler
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -60,8 +61,12 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
     # members for clustered roms
     self._usingRomClustering   = False             # are we using ROM clustering?
     self._romClusterDivisions  = {}                # which parameters do we cluster, and how are they subdivided?
-    self._numberRomClusters    = None              # how many clusters should we find?
+    self._romClusterLengths    = {}                # OR which parameters do we cluster, and how long should each be?
     #
+    self._romClusterFeatureTemplate = '{target}|{metric}|{id}' # standardized for consistency
+    self._romClusterMetrics    = None              # list of requested metrics to apply (defaults to everything)
+    self._romClusterInfo       = {}                # data that should persist across methods
+    self._romClusterMap        = None              # maps labels to the ROMs that are represented by it
 
     #the ROM is instanced and initialized
     #if ROM comes from a pickled rom, this gate is just a placeholder and the Targets check doesn't apply
@@ -84,7 +89,7 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
     self.historySteps = []
 
     ### ClusteredRom ###
-    romName = self.initializationOptions['name']
+    self.romName = self.initializationOptions['name']
     self._usingRomClustering = "Cluster" in self.initializationOptions
     if self._usingRomClustering:
       # first check if ROM known how to be clustered
@@ -92,15 +97,18 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
       # get node from the input specs
       clusterSpec = self.initializationOptions['paramInput'].findFirst('Cluster')
       for node in clusterSpec.subparts:
+        # subspace: defines the space to subdivide and cluster
         if node.name == 'subspace':
-          self._romClusterDivisions[node.value] = node.parameterValues['divisions']
-        elif node.name == 'numClusters':
-          self._numberRomClusters = node.value
-          print('DEBUGG numcl:',self._numberRomClusters, type(self._numberRomClusters))
-      self.raiseADebug('Enabling ClusteredROM for "{}":'.format(romName))
-      for index, divisions in self._romClusterDivisions.items():
-        self.raiseADebug('    Dividing {:^20s} into {:^5d} divisions for clustering.'.format(index,divisions))
-      self.raiseADebug('    Using {:^5d} distinct clusters.'.format(self._numberRomClusters))
+          if 'divisions' in node.parameterValues:
+            self._romClusterDivisions[node.value] = node.parameterValues['divisions']
+          if 'pivotLength' in node.parameterValues:
+            self._romClusterLengths[node.value] = node.parameterValues['pivotLength']
+            # can't give both)
+            if len(self._romClusterDivisions):
+              self.raiseAnError(IOError,'Cannot provide both \'pivotLength\' and \'divisions\' for subspace!')
+        # features: user-identified requested metrics to apply
+      if not len(self._romClusterDivisions) and not len(self._romClusterLengths):
+        self.raiseAnError(IOError,'Must provide either \'pivotLength\' or \'divisions\' for subspace!')
 
   def __getstate__(self):
     """
@@ -154,10 +162,11 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
     paramDict = self.supervisedContainer[-1].returnInitialParameters()
     return paramDict
 
-  def train(self,trainingSet):
+  def train(self, trainingSet, assembledObjects):
     """
       This function train the ROM this gate is linked to. This method is aimed to agnostically understand if a "time-dependent-like" ROM needs to be constructed.
       @ In, trainingSet, dict or list, data used to train the ROM; if a list is provided a temporal ROM is generated.
+      @ In, assembledObjects, dict, objects that the ROM Model has assembled via the Assembler
       @ Out, None
     """
     if type(trainingSet).__name__ not in  'dict':
@@ -167,7 +176,9 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
 
     # if training using clustering, special treatment
     if self._usingRomClustering:
-      self._trainByCluster(self._numberRomClusters, self._romClusterDivisions, trainingSet)
+      self._romClassifier = assembledObjects.get('Classifier',[[None]*4])[0][3]
+      self._metricClassifiers = assembledObjects.get('Metric',None)
+      self._trainByCluster(self._romClassifier, self._romClusterDivisions, self._romClusterLengths, trainingSet, metrics=self._metricClassifiers)
       self.amITrained = True
       return
 
@@ -204,54 +215,392 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
       self.supervisedContainer[0].train(trainingSet)
     self.amITrained = True
 
-  def _trainByCluster(self, N, clusterParams, trainingSet):
+  ######################
+  # CLUSTERING METHODS #
+  ######################
+  ### TRAINING ###
+  def _trainByCluster(self, classifier, clusterParams, clusterLengths, trainingSet, metrics=None):
     """
       Train ROM by training many ROMs depending on the input/index space clustering.
-      @ In, N, int, number of clusters to find and classify
+      @ In, classifier, Models.PostProcessor, entity to classify roms
       @ In, clusterParams, dict, dictionary of inputs/indices to cluster on mapped to number of subdivisions to make
+      @ In, clusterLengths, dict, dictionary of inputs/indices to cluster on mapped to length of pivot values to include
       @ In, trainingSet, dict or list, data used to train the ROM; if a list is provided a temporal ROM is generated.
+      @ In, metrics, list(Metrics.Metric), optional, metrics with which to compare subdivided data (not from ROM training)
       @ Out, None
     """
-    # subdivide domain
-    ## instead of actually dividing, create masks
-    index, segments = clusterParams.items()[0]
-    # assumption: ARMA only trains on a single sample
-    dataLen = len(trainingSet[index][0])
-    counter = np.arange(dataLen)
-    counter = np.array_split(counter, segments)
-    print('DEBUGG counter len:',len(counter))
-    # masks[s][ctrs[0]:ctrs[-1]+1] = 1
-
-    #data = {}
-    #for var, vals in trainingSet.items():
-    #  data[var] = np.array_split(vals, clusterParams[var])
+    # TODO user option, once we can do other things
+    clusterStrategy = 'segments'
+    #clusterStrategy = 'continuous'
+    #clusterStrategy = 'cluster'
 
     templateRom = self.supervisedContainer[0]
+
+    if metrics is None:
+      metrics = []
+    if len(metrics):
+      self.raiseAnError(NotImplementedError,'Metrics have not been implemented for training by cluster yet!')
+
+    # subdivide domain
+    counter, remainder = self._subdivideDomain(clusterParams,clusterLengths,trainingSet,templateRom.pivotParameterID)
+    # store counter info
+    numSegments = len(counter)
+    self.raiseADebug('Enabling ClusteredROM for "{}":'.format(self.romName))
+    self.raiseADebug('Dividing {:^20s} into {:^5d} divisions for clustering.'.format(templateRom.pivotParameterID,
+                                                                                     numSegments))
+    # perform any distance metrics
+    # TODO not implemented yet
+    #for metricID in metrics:
+    #  name = '_'.join(metricID[:3])
+    #  metric = metricID[3]
+    #  print('DEBUGG',name,metric)
+    #  #value = metric.evaluate
+
+    # evaluate basic metrics and train subdomain roms
+    ## START CASE: clusteringStrategy
+    self.targetDatas = None # DEBUGG only
+    if clusterStrategy == 'segments':
+      _, roms = self._trainSubdomainRoms(templateRom, counter, trainingSet, clusterStrategy)
+
+      # TODO common to multiple methods
+      # train remainder roms
+      if len(remainder):
+        _, unclusteredROMs = self._trainSubdomainRoms(templateRom, remainder, trainingSet, clusterStrategy)
+        roms = np.hstack([roms, unclusteredROMs])
+
+      self._romClusterMap = dict((i, roms[i]) for i in range(len(roms)))
+
+    elif clusterStrategy == 'continuous':
+      # TODO not implemented yet!
+      self.raiseAnError(NotImplementedError,'"continuous" strategy not yet implemented!')
+      if len(remainder):
+        self.raiseADebug('"{}" division(s) are being excluded from clustering consideration.'.format(len(remainder)))
+
+    elif clusterStrategy == 'cluster':
+      # TODO started implementing, but some work needs to be done on the Evaluation side before it's ready
+      self.raiseAnError(NotImplementedError,'"cluster" strategy not yet implemented!')
+      if len(remainder):
+        self.raiseADebug('"{}" division(s) are being excluded from clustering consideration.'.format(len(remainder)))
+
+      clusterFeatureDict, roms = self._trainSubdomainRoms(templateRom, counter, trainingSet, clusterStrategy)
+      # if only segmenting, we're done!
+
+      features = sorted(clusterFeatureDict.keys())
+
+      ## metric heirarchy
+      featureGroups = collections.defaultdict(list)
+      for feature in features:
+        target, metric, ident = feature.split('|',2)
+        # the same might show up for multiple targets
+        if ident not in featureGroups[metric]:
+          featureGroups[metric].append(ident)
+
+      # weight and scale data
+      weightingStrategy = 'uniform' # TODO input from user
+      #weightingStrategy = 'variance'
+      #weightingStrategy = None
+      clusterFeatureDict = self._weightAndScaleClusters(features, featureGroups, clusterFeatureDict, weightingStrategy)
+
+      # cluster ROMs
+      labels = self._classifyROMs(classifier, features, clusterFeatureDict)
+      self.raiseAMessage('Identified "{}" clusters while training clustered ROM "{}"'.format(len(set(labels)),self.romName))
+
+      # train unclustered roms
+      if len(unclustered):
+        _, unclusteredROMs = self._trainSubdomainRoms(templateRom, unclustered, trainingSet, clusterStrategy)
+        labels = np.hstack([labels, [-1]*len(unclusteredROMs)])
+        roms = np.hstack([roms, unclusteredROMs])
+
+      #########
+      # debug #
+      #########
+      # try something
+      import pandas as pd
+      trainDF = pd.DataFrame(clusterFeatureDict)
+      # add labels
+      trainDF['labels'] = labels[labels != -1]
+      trainDF.to_csv('clustering.csv')
+
+      ## plot points, centers by feature pairs
+      if False:
+        self._plotPointsCenters(features,labels,clusterFeatureDict,centers)
+      ## plot signals as clustered
+      if True:
+        self._plotSignalsClustered(labels,roms,self.targetDatas)
+      #############
+      # END debug #
+      #############
+
+      # who's the best prototypical ROM for each cluster?
+      ## for the ARMA, we can pass in the Fourier coefficients along with the AVERAGE RESIDUAL training data
+      ## TODO this also depends on our strategy (segment, continuous, or clustered)
+      self._romClusterMap = dict((label, roms[labels==label]) for label in labels)
+    ## END CASE: clusteringStrategy
+
+  def _classifyROMs(self, classifier, features, clusterFeatureDict):
+    """
+      Classifies the subdomain roms.
+      @ In, classifier, Models.PostProcessor, classification model to use
+      @ In, features, list(str), ordered list of features
+      @ In, clusterFeatureDict, dictionary of data on which to train classifier
+      @ Out, labels, list(int), ordered list of labels corresponding to the ROM subdomains
+    """
+    # actual classifier is the unSupervisedEngine of the QDataMining of the Model
+    ## this is the unSupervisedLearning.SciKitLearn (or other) instance
+    classifier = classifier.interface.unSupervisedEngine
+    # update classifier features
+    classifier.updateFeatures(features)
+    # make the clustering instance
+    classifier.train(clusterFeatureDict)
+    # label the training data
+    labels = classifier.evaluate(clusterFeatureDict)
+    return labels
+
+  def _weightAndScaleClusters(self, features, featureGroups, clusterFeatureDict, weightingStrategy):
+    """
+      Applies normalization and weighting to cluster training features.
+      @ In, features, list(str), ordered list of features
+      @ In, featureGroups, dict, hierarchal structure of requested features
+      @ In, clusterFeatureDict, dict, features mapped to arrays of values (per ROM)
+      @ In, weightingStrategy, str, weighting strategy to use
+      @ Out, clusterFeatureDict, dict, weighted and scaled feature space
+    """
+    # scaling = {} # DEBUGG only
+    weights = np.zeros(len(features))
+    for f,feat in enumerate(features):
+      data = np.array(clusterFeatureDict[feat])
+      loc, scale = mathUtils.normalizationFactors(data, mode='scale')
+      # scaling[feat] = (loc,scale) # DEBUGG only
+      clusterFeatureDict[feat] = (data-loc)/scale
+      # apply weighting
+      _,metric,ID = feat.split('|',2)
+      if weightingStrategy == 'uniform':
+        weight = 1.0 # normalize later / float(len(features))
+      elif weightingStrategy == 'variance':
+        # weight is variance: MORE variance means MORE importance
+        std = np.std(clusterFeatureDict[feat])
+        weight = std
+      else:
+        # groupWeight = 1.0 / float(len(featureGroups))
+        # weight = groupWeight / float(len(featureGroups[metric]))
+        # normalize weights later
+        weight = 1.0 / float(len(featureGroups[metric]))
+      # DEBUGG
+      # apply special weighting
+      if metric == 'Basic' and ID in ['mean','min','max']:
+        weight *= 2
+      # scale training points by weights
+      # TODO do this after normalization # clusterFeatureDict[feat] *= weight
+      weights[f] = weight
+    # normalize weights
+    ## METHOD: sum of weights should be unity
+    scale = np.sum(weights)
+    ## METHOD: by volume, assuming all weights are 1.0 initially before preference
+    # vol = np.product(list(np.max(v) for v in clusterFeatureDict.values()))
+    # print('DEBUGG original volume:',vol)
+    # renormalize the entirety of the space to have the same hypervolume as before weighting
+    # newVolume = np.product(weights)
+    # oldVolume = 1.0 # because we scaled between 0 and 1, this will fail if you don't
+    # scale = (oldVolume/newVolume)**(1.0/float(len(features)))
+    ## END by volume
+    for feature,vals in clusterFeatureDict.items():
+      clusterFeatureDict[feature] = vals * scale
+      v = clusterFeatureDict[feature]
+      print('DEBUGG val range: {:15.15s} {:1.3e} {:1.3e} {:1.3e}'.format(feature,np.min(v),np.average(v),np.max(v)))
+    vol = np.product(list(np.max(v) for v in clusterFeatureDict.values()))
+    print('DEBUGG volume:',vol)
+    return clusterFeatureDict
+
+  def _trainSubdomainRoms(self, templateRom, counter, trainingSet, strategy):
+    """
+      Trains the ROMs on each clusterable subdomain, and calculates features based on the data, rom
+      @ In, templateRom, SupervisedLearning instance, base ROM as a template for training
+      @ In, counter, list(tuple), instructions for subdividing domain into subdomains
+      @ In, trainingSet, dict, data on which ROMs should be trained
+      @ In, strategy, str, clustering strategy (e.g. "segment", "continuous", "cluster")
+      @ Out, clusterFeatureDict, dict, clustering information as {feature: [rom values]}
+      @ Out, roms, np.array(SubpervisedLearning instances), trained ROMs for each subdomain
+    """
+    targets = templateRom.target[:]
+    targets.remove(templateRom.pivotParameterID)
+    clusterFeatureDict = {}
     roms = []
-    for i in range(segments):
-      # train ROM for subdivision
-      picker = slice(counter[i][0], counter[i][-1]+1)
+    if self.targetDatas is None:
+      self.targetDatas = [] # DEBUGG only
+    for i,subdiv in enumerate(counter):
+      # slicer for data selection
+      picker = slice(subdiv[0], subdiv[-1]+1)
+      ## TODO only consider one sample at 0? Should do more for non-ARMA ROMs!
+      ##  -> for now, only ARMAs can be used with this method, so we can address this later
+      data = dict((var,[trainingSet[var][0][picker]]) for var in trainingSet)
+      targetData = dict((var,data[var][0]) for var in targets)
+      self.targetDatas.append(targetData) # DEBUGG only
+      # create a new ROM and train it
       newRom = copy.deepcopy(templateRom)
-      # assumption: ARMA only trains on a single sample
       self.raiseADebug('Training segment',i,picker)
-      newRom.train(dict((var,[trainingSet[var][0][picker]]) for var in trainingSet))
+      newRom.train(data)
       roms.append(newRom)
+      # if clustering, evaluate metrics
+      if strategy in ['continuous','cluster']:
+        ## -> basic metrics (mean, variance, etc)
+        basicData = self._evaluateBasicMetrics(targetData)
+        for feature, val in basicData.items():
+          if i == 0:
+            clusterFeatureDict[feature] = [val]
+          else:
+            clusterFeatureDict[feature].append(val)
+        ## -> user-provided metrics
+        ### TODO self._evaluateMetrics()
+        ## -> ROM metrics
+        romData = newRom.getRomClusterValues(self._romClusterFeatureTemplate)
+        if i == 0:
+          for feature,val in romData.items():
+            clusterFeatureDict[feature] = [val]
+        else:
+          for feature,val in romData.items():
+            clusterFeatureDict[feature].append(val)
+    # fix rom list type
+    roms = np.array(roms)
+    return clusterFeatureDict, roms
 
-    # cluster ROMs
-    ## create cluster data
-    dataToCluster = list(rom.getClusterParameter() for rom in roms)
-    ## make the clustering instance
-    initOptions = {'Features'  : TODO,
-                   'SKLtype'   : 'cluster|KMeans',
-                   'n_clusters': N,
-                   'tol'       : 1e-5,
-                   'init'      : 'random'}
-    clusterer = unSupervisedLearning.SciKitLearn(self.messageHandler, **initOptions)
-    clusterer.train(dataToCluster)
-    labels = clusterer.evaluate(dataToCluster)
+  def _subdivideDomain(self, clusterParams, clusterLengths, trainingSet, pivotParam):
+    """
+      Creates markers for subdividing the pivot parameter domain, either based on number of subdivisions
+      or on requested pivotValue lengths.
+      @ In, clusterParams, dict, dictionary of inputs/indices to cluster on mapped to number of subdivisions to make
+      @ In, clusterLengths, dict, dictionary of inputs/indices to cluster on mapped to length of pivot values to include
+      @ In, trainingSet, dict or list, data used to train the ROM; if a list is provided a temporal ROM is generated.
+      @ In, pivotParam, str, name of pivot parameter variable on which do subdivide
+      @ Out, counter, list(tuple), indices that belong to each division; at minimum (first index, last index)
+      @ Out, unclustered, list(tuple), as "counter" but for segments that will not be clustered
+    """
+    # subdivide domain
+    unclustered = [] # data ranges that didn't get clustered because they are particular
+    if len(clusterParams):
+      # segment by equal spacing
+      index, segments = clusterParams.items()[0]
+      dataLen = len(trainingSet[index][0])
+      self._romClusterInfo['historyLength'] = dataLen
+      ## TODO assumption: ARMA only trains on a single sample
+      counter = np.arange(dataLen)
+      counter = np.array_split(counter, segments)
+    else:
+      # segment by value
+      ## TODO assumption: ARMA only trains on a single sample
+      pivot = trainingSet[pivotParam][0]
+      index, length = clusterLengths.items()[0]
+      dataLen = len(trainingSet[index][0])
+      self._romClusterInfo['historyLength'] = dataLen
+      # find where the data passes the requested length and make dividers
+      floor = 0
+      next = length
+      counter = []
+      while pivot[floor] < pivot[-1]:
+        cross = np.searchsorted(pivot,next)
+        if cross == len(pivot):
+          unclustered.append((floor,cross-1))
+          break
+        counter.append((floor,cross-1))
+        floor = cross
+        next += length
+    return counter, unclustered
 
-    # store mapping
-    aaa
+  def _evaluateBasicMetrics(self,data):
+    """
+      Evaluates basic statistical data for clustering.
+      For now does mean and std; in the future could leverage BasicStatistics?
+      @ In, data, dict, data to compute metrics for.
+      @ Out, metrics, dict, {feature:value} for features like "<target>_mean" etc
+    """
+    # TODO currently disabled
+    metrics = {}
+    for target,values in data.items():
+      feature = self._romClusterFeatureTemplate.format(target=target, metric='Basic', id='mean')
+      metrics[feature] = np.average(values)
+      feature = self._romClusterFeatureTemplate.format(target=target, metric='Basic', id='std')
+      metrics[feature] = np.std(values)
+      feature = self._romClusterFeatureTemplate.format(target=target, metric='Basic', id='max')
+      metrics[feature] = np.max(values)
+      feature = self._romClusterFeatureTemplate.format(target=target, metric='Basic', id='min')
+      metrics[feature] = np.min(values)
+    return metrics
+
+  def _plotSignalsClustered(self, labels, roms, targetDatas):
+    """
+      Debug tool. Should be removed or relocated when clustered ROMs are fully implemented.
+      Plots the original data, colored by ROM clusters.
+      @ In, labels, list(str), cluster labels corresponding to ROM order
+      @ In, roms, list(SupervisedLearning), trained subset ROMs in the same order as labels
+      @ In, targetDatas, dict, debugging tool
+      @ Out, None
+    """
+    targetDatas = np.array(targetDatas)
+    # TODO remove
+    import matplotlib.pyplot as plt
+    from matplotlib.lines import Line2D
+    fig,ax = plt.subplots()
+    ax.set_title('Clustered (Fourier)')
+    legends = []
+    for label in set(labels):
+      # legend
+      clr = ('C'+str(label)) if label >= 0 else 'k'
+      legends.append(Line2D([0],[0],color=clr))
+      #figS,axS = plt.subplots()
+      #axS.set_title('Compared: Cluster {}'.format(label))
+      mask = labels == label
+      for r in range(sum(mask)):
+        rom = roms[mask][r]
+        target = targetDatas[mask][r]
+        x = rom.pivotParameterValues
+        y = target['Demand']
+        index = list(roms).index(rom)+1
+        ax.plot(x, y, color=clr)
+        ax.plot([x[ 0]]*2, [5000,20000], 'k:')
+        ax.plot([x[-1]]*2, [5000,20000], 'k:')
+        if (index - 1) % 4 == 0:
+          ax.plot([x[ 0]]*2, [5000,20000], 'k-')
+        ax.text(np.average(x),6000,str(index), ha='center')
+        #axS.plot(x - x[0], y, label=str(list(roms).index(rom)+1))
+      #axS.legend(loc=0)
+    ax.legend(legends, list(set(labels)))
+    plt.savefig('clusters.png')
+    plt.show()
+
+  ### EVALUATING ###
+  def _evaluateByCluster(self, request, uniqueClusters=False):
+    """
+      Evaluate this ROM via clustering.
+      TODO this should be possible either by abbreviated representation or full representation
+      @ In, request, dict, realizations request ({'feature1':np.array(n_realizations),'feature2',np.array(n_realizations)})
+      @ In, uniqueClusters, bool, optional, if True then only evaluate each cluster once
+      @ Out, result, dict, dictionary of results ({target1:np.array,'target2':np.array}).
+    """
+    # template, for when generic info is needed
+    templateRom = self._romClusterMap.values()[0]
+    # evaluation storage
+    lastEntry = self._romClusterInfo['historyLength']
+    result = None # because we don't know the targets yet, wait until we get the first evaluation back to set this up
+    nextEntry = 0 # index to fill next data set in
+    # TODO looping directly over labels only works for "segment" strategy!
+    labels = range(max(self._romClusterMap.keys())+1)
+    self.raiseADebug('sampling from {} clusters'.format(len(labels)))
+    for label in labels:
+      rom = self._romClusterMap[label]
+      # sample each ROM
+      subResults = rom.evaluate(request)
+      if result is None:
+        result = dict((target,np.zeros(lastEntry)) for target in subResults.keys())
+      # stitch them together
+      # TODO assuming history set shape for data ... true for ARMA
+      entries = len(subResults.values()[0])
+      for target,values in subResults.items():
+        result[target][nextEntry:nextEntry+entries] = values
+      nextEntry += entries
+    return result
+
+  ##########################
+  # END CLUSTERING METHODS #
+  ##########################
 
   def confidence(self, request):
     """
@@ -284,13 +633,16 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
     if not self.amITrained:
       self.raiseAnError(RuntimeError, "ROM "+self.initializationOptions['name']+" has not been trained yet and, consequentially, can not be evaluated!")
     resultsDict = {}
-    for rom in self.supervisedContainer:
-      sliceEvaluation = rom.evaluate(request)
-      if len(resultsDict.keys()) == 0:
-        resultsDict.update(sliceEvaluation)
-      else:
-        for key in resultsDict.keys():
-          resultsDict[key] = np.append(resultsDict[key],sliceEvaluation[key])
+    if self._usingRomClustering:
+      resultsDict = self._evaluateByCluster(request)
+    else:
+      for rom in self.supervisedContainer:
+        sliceEvaluation = rom.evaluate(request)
+        if len(resultsDict.keys()) == 0:
+          resultsDict.update(sliceEvaluation)
+        else:
+          for key in resultsDict.keys():
+            resultsDict[key] = np.append(resultsDict[key],sliceEvaluation[key])
     return resultsDict
 
   def reseed(self,seed):
