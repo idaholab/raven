@@ -139,7 +139,7 @@ class Tester:
     differ: A subclass of Differ that tests a file produced by the run.
     """
     self.__differs.append(differ)
-  def getTestDir(self):
+  def get_test_dir(self):
     """
     Returns the test directory
     """
@@ -200,7 +200,7 @@ class Tester:
     self.processResults(None, options, output)
     self.results.output = output
     for differ in self.__differs:
-      same, message = differ.check_output(self.getTestDir())
+      same, message = differ.check_output(self.get_test_dir())
       if not same:
         if self.results.bucket == self.bucket_success:
           self.results.bucket = self.bucket_diff

@@ -206,7 +206,7 @@ class RavenFramework(Tester):
       the test.
       @ Out, createdFiles, [str], list of files created by the test.
     """
-    runpath = self.getTestDir()
+    runpath = self.get_test_dir()
     return list(os.path.join(runpath,file) for file in self.all_files)
 
   def prepare(self, options = None):
