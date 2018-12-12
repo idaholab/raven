@@ -103,9 +103,8 @@ class testDescription(object):
     for dirr,_,_ in os.walk(startDir):
       __testInfoList.extend(glob(os.path.join(dirr,"tests")))
     for testInfoFile in __testInfoList:
-      if 'moose' in os.path.split(testInfoFile) or not os.path.isfile(testInfoFile):
+      if 'moose' in testInfoFile.split(os.sep) or not os.path.isfile(testInfoFile):
         continue
-      print(testInfoFile)
       fileObject = open(testInfoFile,"r+")
       fileLines = fileObject.readlines()
       dirName = os.path.dirname(testInfoFile)
@@ -199,22 +198,22 @@ class testDescription(object):
       analyticalDescription = analyticNode.text.replace("_", "\_")
       latexString += '   \\item This test is analytic:\n'
       latexString += '   \\begin{itemize} \n'
-      latexString += '     \\item ' +analyticalDescription.strip().replace("#","\#")+'\n'
+      latexString += '     \\item ' +str(analyticalDescription).strip().replace("#","\#")+'\n'
       latexString += '   \\end{itemize} \n'
     # author
     latexString += '   \\item Original Author:\n'
     latexString += '   \\begin{itemize} \n'
-    latexString += '     \\item ' +author.strip()+'\n'
+    latexString += '     \\item ' +str(author).strip()+'\n'
     latexString += '   \\end{itemize} \n'
     # createdDate
     latexString += '   \\item Creation date:\n'
     latexString += '   \\begin{itemize} \n'
-    latexString += '     \\item ' +createdDate.strip()+'\n'
+    latexString += '     \\item ' +str(createdDate).strip()+'\n'
     latexString += '   \\end{itemize} \n'
     # classTested
     latexString += '   \\item The classes tested in this test are:\n'
     latexString += '   \\begin{itemize} \n'
-    latexString += '     \\item ' +classTested.strip()+'\n'
+    latexString += '     \\item ' +str(classTested).strip()+'\n'
     latexString += '   \\end{itemize} \n'
     # is requirement?
     if requirementsNode is not None:
@@ -229,8 +228,8 @@ class testDescription(object):
       latexString += '   \\begin{enumerate} \n'
       for child in revisionsNode:
         revisionText   = str(child.text).strip().replace("_", "\_").replace("#","\#")
-        revisionAuthor = child.attrib['author'].strip()
-        revisionDate   = child.attrib['date'].strip()
+        revisionAuthor = child.attrib.get('author',"None").strip()
+        revisionDate   = child.attrib.get('date',"None").strip()
         latexString += '     \\item revision info:\n'
         latexString += '       \\begin{itemize} \n'
         latexString += '         \\item author     : ' +revisionAuthor+'\n'

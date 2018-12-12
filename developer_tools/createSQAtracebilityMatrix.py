@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
- Created on Jan 20, 2017
+ Created on October 20, 2018
 
  @author: alfoa
 """
@@ -61,9 +61,6 @@ def createLatexFile(reqDictionary,reqDocument,outputLatex):
     fileObject.write(" \\subsubsection{"+group.strip()+"} \n")
     for reqSetName,reqSet in groupDict.items():
       # create table here
-
-      #fileObject.write("\\begin{table}[H] \n")
-      #fileObject.write("\\setlength\extrarowheight{2pt} \n")
       fileObject.write("\\begin{tabularx}{\\textwidth}{|s|s|b|} \n")
       fileObject.write("\\hline \n")
       fileObject.write("\\textbf{Requirment ID} & \\textbf{Requirment Description} & \\textbf{Test(s)}  \\\ \hline \n")
@@ -82,8 +79,6 @@ def createLatexFile(reqDictionary,reqDocument,outputLatex):
         fileObject.write("\\hline \n")
       fileObject.write("\\caption*{"+reqSetName.strip()+"}\n")
       fileObject.write("\\end{tabularx} \n")
-      #fileObject.write("\\caption{"+reqSetName.strip()+"}\n")
-      #fileObject.write("\\end{table}\n")
   fileObject.write("\\end{document}")
   fileObject.close()
 

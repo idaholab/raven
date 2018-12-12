@@ -31,27 +31,16 @@ def writeLatexFromDictionaryOfRequirements(applicationName,requirementGroups,out
   sections = ["section","subsection","subsubsection","paragraph"]
   indexSec = 0
   fileObject = open(outputFileName,"w+")
-  #fileObject.write("\usepackage[table,xcdraw]{xcolor}\n")
-
   fileObject.write("\\"+sections[0].strip()+"{System Requirements: " +applicationName.strip()+"}\n")
   for group, value in requirementGroups.items():
     fileObject.write("\\"+sections[1].strip()+"{" +group.strip()+"}\n")
     for reqSet, requirements in value.items():
       # construct table
       fileObject.write("\\"+sections[2].strip()+"{" +reqSet.strip()+"}\n")
-      #fileObject.write("\\begin{table}[ht]\n")
-      #fileObject.write("\caption"+"{" +reqSet.strip()+"}\n")
-      #fileObject.write("\label"+"{" +reqSet.strip()+"}\n")
-      #fileObject.write("\\begin{tabular}{|c|c|}\n")
-      #fileObject.write("\hline\n")
-      #fileObject.write("\\rowcolor[HTML]{C0C0C0}\n")
-      #fileObject.write(" \\textbf{Number} & \\textbf{Requirement Description} \\\ \\hline\n")
       # start write the requirements for this set
       for req, content in requirements.items():
         fileObject.write("\\"+sections[3].strip()+"{" +req.strip()+"} \n")
         fileObject.write(content['description'].strip() + "\n")
-      #fileObject.write("\end{tabular}\n")
-      #fileObject.write("\end{table}\n")
   fileObject.close()
 
 
