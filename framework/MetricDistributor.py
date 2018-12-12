@@ -161,6 +161,11 @@ class MetricDistributor(utils.metaclass_insert(abc.ABCMeta,BaseType),MessageHand
       else:
         for hist in range(featVals.shape[1]):
           out = self.estimator.evaluate(featVals[:,hist], targVals[:,hist], dataWeight)
+          if isinstance(out,np.ndarray):
+            if multiOutput != 'full':
+              out = np.average(out)
+            else:
+              out = np.average(out,axis=-1)
           dynamicOutput.append(out)
     if multiOutput == 'mean':
       output = [np.average(dynamicOutput, weights = weights)]
@@ -169,6 +174,8 @@ class MetricDistributor(utils.metaclass_insert(abc.ABCMeta,BaseType),MessageHand
     elif multiOutput == 'min':
       output = [np.amin(dynamicOutput)]
     elif multiOutput == 'raw_values':
+      output = dynamicOutput
+    elif multiOutput == 'full':
       output = dynamicOutput
     else:
       self.raiseAnError(IOError, "multiOutput: ", multiOutput, " is not acceptable! Please use 'mean', 'max', 'min' or 'full'")

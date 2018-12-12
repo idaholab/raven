@@ -106,17 +106,18 @@ class DTW(Metric):
       @ Out, value, float, metric result
     """
     assert (isinstance(x, np.ndarray))
-    assert (isinstance(x, np.ndarray))
+    assert (isinstance(y, np.ndarray))
     tempX = copy.copy(x)
     tempY = copy.copy(y)
-    if axis == 0:
-      assert (len(x) == len(y))
-    elif axis == 1:
-      assert(x.shape[1] == y.shape[1]), self.raiseAnError(IOError, "The second dimension of first input is not \
-              the same as the second dimension of second input!")
+    #if axis == 0:
+    #  assert (len(x) == len(y))
+    #elif axis == 1:
+    #  assert(x.shape[1] == y.shape[1]), self.raiseAnError(IOError, "The second dimension of first input is not \
+    #          the same as the second dimension of second input!")
+    if axis == 1:
       tempX = tempX.T
       tempY = tempY.T
-    else:
+    elif axis != 0:
       self.raiseAnError(IOError, "Valid axis value should be '0' or '1' for the evaluate method of metric", self.name)
 
     if len(tempX.shape) == 1:
@@ -128,11 +129,22 @@ class DTW(Metric):
     for index in range(len(tempX)):
       if self.order == 1:
         X[index] = np.gradient(tempX[index])
-        Y[index] = np.gradient(tempY[index])
       else:
         X[index] = tempX[index]
+    for index in range(len(tempY)):
+      if self.order == 1:
+        Y[index] = np.gradient(tempY[index])
+      else:
         Y[index] = tempY[index]
-    value = self.dtwDistance(X, Y)
+    if len(X) == len(Y):
+      value = self.dtwDistance(X, Y)
+    else:
+      value = 0.0
+      for ix in range(len(X)):
+        for iy in range(len(Y)):
+          value += self.dtwDistance(X[ix,:].reshape(1,-1),Y[iy,:].reshape(1,-1))
+      value = value/float(len(X)+len(Y))
+
     return value
 
   def dtwDistance(self, x, y):

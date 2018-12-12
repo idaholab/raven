@@ -38,6 +38,8 @@ import Metrics
 import Runners
 import Distributions
 import MetricDistributor
+import pandas as pd
+import xarray as xr
 #Internal Modules End--------------------------------------------------------------------------------
 
 class Metric(PostProcessor):
@@ -63,7 +65,7 @@ class Metric(PostProcessor):
     inputSpecification.addSub(targetsInput)
     multiOutputInput = InputData.parameterInputFactory("multiOutput", contentType=InputData.StringType)
     inputSpecification.addSub(multiOutputInput)
-    multiOutput = InputData.makeEnumType('MultiOutput', 'MultiOutputType', ['mean','max','min','raw_values'])
+    multiOutput = InputData.makeEnumType('MultiOutput', 'MultiOutputType', ['mean','max','min','raw_values','full'])
     multiOutputInput = InputData.parameterInputFactory("multiOutput", contentType=multiOutput)
     inputSpecification.addSub(multiOutputInput)
     weightInput = InputData.parameterInputFactory("weight", contentType=InputData.FloatListType)
@@ -133,7 +135,11 @@ class Metric(PostProcessor):
               requestData = requestData.reshape(-1,1)
             # If requested data are from input space, the shape will be (nSamples, 1)
             # If requested data are from history output space, the shape will be (nSamples, nTimeSteps)
-            metricData = (requestData, metadata['ProbabilityWeight'].values)
+            if 'ProbabilityWeight' in metadata.keys():
+              metricData = (requestData, metadata['ProbabilityWeight'].values)
+            else:
+              metricData = (requestData, None)
+
       elif isinstance(currentInput, Distributions.Distribution):
         if currentInput.name == metricDataName and dataName is None:
           if metricData is not None:
@@ -172,7 +178,7 @@ class Metric(PostProcessor):
         hasPointSet = True
       elif inputType == 'HistorySet':
         hasHistorySet = True
-        if self.multiOutput == 'raw_values':
+        if self.multiOutput in ['raw_values','full']:
           self.dynamic = True
           if self.pivotParameter not in currentInput.getVars('indexes'):
             self.raiseAnError(IOError, self, 'Pivot parameter', self.pivotParameter,'has not been found in DataObject', currentInput.name)
@@ -185,7 +191,7 @@ class Metric(PostProcessor):
             self.raiseAnError(IOError, "Pivot values for pivot parameter",self.pivotParameter, "in provided HistorySets are not the same")
       else:
         self.raiseAnError(IOError, "Metric cannot process "+inputType+ " of type "+str(type(currentInput)))
-    if self.multiOutput == 'raw_values' and hasPointSet and hasHistorySet:
+    if self.multiOutput in ['raw_values','full'] and hasPointSet and hasHistorySet:
         self.multiOutput = 'mean'
         self.raiseAWarning("Reset 'multiOutput' to 'mean', since both PointSet and HistorySet are provided as Inputs. Calculation outputs will be aggregated by averaging")
 
@@ -262,7 +268,7 @@ class Metric(PostProcessor):
     evaluation = finishedJob.getEvaluation()
     if isinstance(evaluation, Runners.Error):
       self.raiseAnError(RuntimeError, "Job ", finishedJob.identifier, "failed!")
-    outputDict = evaluation[1]
+    inputObjects, outputDict = evaluation
     if isinstance(output, Files.File):
       availExtens = ['xml']
       outputExtension = output.getExt().lower()
@@ -273,13 +279,32 @@ class Metric(PostProcessor):
       self._writeXML(output, outputDict)
     elif output.type in ['PointSet', 'HistorySet']:
       self.raiseADebug('Dumping output in data object named', output.name)
-      rlz = {}
-      for key, val in outputDict.items():
-        newKey = key.replace("|","_")
-        rlz[newKey] = val
-      if self.dynamic:
-        rlz[self.pivotParameter] = np.atleast_1d(self.pivotValues)
-      output.addRealization(rlz)
+      if self.multiOutput == 'raw_values':
+        rlz = {}
+        for key, val in outputDict.items():
+          newKey = key.replace("|","_")
+          rlz[newKey] = val
+        if self.dynamic:
+          rlz[self.pivotParameter] = np.atleast_1d(self.pivotValues)
+        output.addRealization(rlz)
+      elif self.multiOutput == 'full':
+        found = False
+        for inputObject in inputObjects:
+          dataset = inputObject.asDataset()
+          if self.features[0] in dataset.data_vars.keys():
+            sampleTag = inputObject.sampleTag
+            sampleCoord = dataset[sampleTag].values
+            found = True
+        if not found:
+          self.raiseAnError(IOError, "Features", self.features,"should be in one DataObject")
+        expDict = {}
+        for key, val in outputDict.items():
+          newKey = key.replace("|","_")
+          xrArray = xr.DataArray(val,dims=(self.pivotParameter,sampleTag),coords={self.pivotParameter:self.pivotValues,sampleTag:sampleCoord})
+          expDict[newKey] = xrArray
+        outputSet = xr.Dataset(data_vars=expDict)
+        output.load(outputSet,style='dataset')
+
     elif output.type == 'HDF5':
       self.raiseAnError(IOError, 'Output type', str(output.type), 'is not yet implemented. Skip it')
     else:
