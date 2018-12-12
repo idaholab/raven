@@ -814,8 +814,6 @@ class ARMA(supervisedLearning):
       # find the correct magnitudes to best fit the data
       ## note in the zero-filter case, this is fitting the truncated data
       fourierEngine.fit(fourierSignals,values)
-      print('DEBUGG fit params:',fourierEngine.get_params())
-      print('DEBUGG fit intcpt:',fourierEngine.intercept_)
       # determine the (normalized) residual/error associated with this best fit
       r = (fourierEngine.predict(fourierSignals)-values)**2
       if r.size > 1:

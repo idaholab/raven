@@ -1081,7 +1081,6 @@ class DataSet(DataObject):
         # gather the data type from first realization: if np.array, it's ND; otherwise singular
         dtype = self.types[v]
         if isinstance(self._collector[0,v],np.ndarray):
-          print('DEBUGG ndarray')
           # for each index, determine if all aligned; make data arrays as required
           dims = self.getDimensions(var)[var]
           # make sure "dims" isn't polluted
