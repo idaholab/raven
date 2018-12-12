@@ -14,7 +14,7 @@ import time
 
 import pool
 import trees.TreeStructure
-from Tester import Tester
+from Tester import Tester, Differ
 
 parser = argparse.ArgumentParser(description="Test Runner")
 parser.add_argument('-j', '--jobs', dest='number_jobs', type=int, default=1,
@@ -92,12 +92,13 @@ def run_python_test(data):
     short = "Failed"
   return (passed, short, output)
 
-def get_testers(directory):
+def get_testers_and_differs(directory):
   """
-  imports all the testers in a directory
+  imports all the testers and differs in a directory
   returns a dictionary with all the subclasses of Tester.
   """
-  ret_dict = {}
+  tester_dict = {}
+  differ_dict = {}
   os.sys.path.append(directory)
   for filename in os.listdir(directory):
     if filename.endswith(".py") and not filename.startswith("__"):
@@ -106,12 +107,17 @@ def get_testers(directory):
         #print("Unknown", name, value)
         if inspect.isclass(value) and value is not Tester\
            and issubclass(value, Tester):
-          ret_dict[name] = value
-  return ret_dict
+          tester_dict[name] = value
+        if inspect.isclass(value) and value is not Differ\
+           and issubclass(value, Differ):
+          differ_dict[name] = value
+
+  return tester_dict, differ_dict
 
 
-testers = get_testers(os.path.join(up_one_dir, "scripts", "TestHarness", "testers"))
+testers, differs = get_testers_and_differs(os.path.join(up_one_dir, "scripts", "TestHarness", "testers"))
 print("Testers:",testers)
+print("Differs:",differs)
 
 tester_params = {}
 for tester in testers:
@@ -150,6 +156,16 @@ for test_dir, test_file in test_list:
       params = dict(node.attrib)
       params['test_dir'] = test_dir
       tester = testers[node.attrib['type']](test_name, params)
+      for child in node.children:
+        print(test_name,"child",child)
+        child_type = child.attrib['type']
+        child_param_handler = differs[child_type].validParams()
+        if not child_param_handler.check_for_required(child.attrib):
+          print("Missing Parameters in:", child.tag, node.tag, test_file)
+        if not child_param_handler.check_for_all_known(child.attrib):
+          print("Unknown Parameters in:", child.tag, node.tag, test_file)
+        differ = differs[child_type](child.tag, dict(child.attrib))
+        tester.add_differ(differ)
       id_num = len(function_list)
       input_filename = node.attrib['input']
       func = tester.run
@@ -189,8 +205,8 @@ def process_result(index, input_data, output_data):
   else:
     results["fail"] += 1
     failed_list.append(test_name)
-    print(output_data.message)
     print(output_data.output)
+    print(output_data.message)
   number_done = sum(results.values())
   print("({}/{}) {} ({}sec) {}".format(number_done, len(function_list),
                                        Tester.get_bucket_name(bucket),

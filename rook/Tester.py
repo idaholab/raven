@@ -68,6 +68,38 @@ class TestResult:
     self.output = None
     self.runtime = None
 
+
+class Differ:
+  """
+  Subclass are intended to check something, such as that some
+  files exist and match the gold files.
+  """
+
+  @staticmethod
+  def validParams():
+    params = _ValidParameters()
+    params.addRequiredParam('type', 'The type of this differ')
+    params.addRequiredParam('output', 'Output of to check')
+    return params
+
+  def __init__(self, name, params):
+    """
+    Initializer for the class.  Takes a String name and a dictionary params
+    """
+    self.__name = name
+    valid_params = self.validParams()
+    self.specs = valid_params.get_filled_dict(params)
+
+  def check_output(self, test_dir):
+    """
+    Checks that the output matches the gold.
+    test_dir: the directory where the test is located.
+    Should return (same, message) where same is true if the
+    test passes, or false if the test failes.  message should
+    give a human readable explaination of the differences.
+    """
+    assert False, "Must override check_output"
+
 class Tester:
 
   #Various possible status buckets.
@@ -99,7 +131,14 @@ class Tester:
     valid_params = self.validParams()
     self.specs = valid_params.get_filled_dict(params)
     self.results = TestResult()
+    self.__differs = []
 
+  def add_differ(self, differ):
+    """
+    Adds a differ to run after the test completes.
+    differ: A subclass of Differ that tests a file produced by the run.
+    """
+    self.__differs.append(differ)
   def getTestDir(self):
     """
     Returns the test directory
@@ -160,6 +199,13 @@ class Tester:
     self.results.runtime = process_time
     self.processResults(None, options, output)
     self.results.output = output
+    for differ in self.__differs:
+      same, message = differ.check_output(self.getTestDir())
+      if not same:
+        if self.results.bucket == self.bucket_success:
+          self.results.bucket = self.bucket_diff
+          self.results.message = "" #remove success message.
+        self.results.message += "\n" + message
     return self.results
 
   @staticmethod

@@ -15,6 +15,8 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import sys,os
 import csv
 
+from Tester import Differ
+
 whoAmI = False # enable to show test dir and out files
 debug = False # enable to increase printing
 
@@ -89,6 +91,8 @@ class OrderedCSVDiffer:
     if abs(b) < self.__zero_threshold:
       b = 0.0
     if self.__check_absolute_values:
+      #XXX This does not seem to be what is described in
+      # the RavenFramework check_absolute_value parameter
       return abs(a-b) < tol
     # otherwise, relative error
     scale = abs(b) if b != 0 else 1.0
@@ -186,4 +190,45 @@ class OrderedCSVDiffer:
       self.finalizeMessage(same,msg,testFilename)
     return self.__same, self.__message
 
+
+class OrderedCSV(Differ):
+  """
+  This is the class to use for handling the parameters block.
+  """
+
+  @staticmethod
+  def validParams():
+    params = Differ.validParams()
+    params.addParam('rel_err','','Relative Error for csv files')
+    params.addParam('zero_threshold',sys.float_info.min*4.0,'it represents the value below which a float is considered zero (XML comparison only)')
+    params.addParam('ignore_sign', False, 'if true, then only compare the absolute values')
+    return params
+
+  def __init__(self, name, params):
+    """
+    Initializer for the class. Takes a String name and a dictionary params
+    """
+    Differ.__init__(self, name, params)
+    self.__zero_threshold = self.specs['zero_threshold']
+    self.__ignore_sign = bool(self.specs['ignore_sign'])
+    if len(self.specs['rel_err']) > 0:
+      self.__rel_err = float(self.specs['rel_err'])
+    else:
+      self.__rel_err = 1e-10
+    self.__csv_files = self.specs['output'].split()
+
+  def check_output(self, test_dir):
+    """
+    Checks that the output matches the gold.
+    test_dir: the directory where the test is located.
+    returns (same, message) where same is true if the
+    test passes, or false if the test failes.  message should
+    gives a human readable explaination of the differences.
+    """
+    csv_diff = OrderedCSVDiffer(test_dir,
+                                self.__csv_files,
+                                relative_error = self.__rel_err,
+                                zeroThreshold = self.__zero_threshold,
+                                ignore_sign = self.__ignore_sign)
+    return csv_diff.diff()
 
