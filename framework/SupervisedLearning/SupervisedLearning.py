@@ -277,10 +277,10 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     """
       Allows the SVE to add data to a DataObject
       Overload in subclasses.
-      @ Out, realizations, realizations to write to data object
+      @ Out, None
     """
     # by default, nothing to write!
-    return {}
+    self.raiseAMessage('Writing ROM "{}", but no pointwise data found. Moving on ...')
 
   def writeXML(self, writeTo, targets=None):
     """

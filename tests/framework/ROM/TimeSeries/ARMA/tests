@@ -13,7 +13,9 @@
  [./Basic]
    type = 'RavenFramework'
    input = 'basic.xml'
+   output = 'ARMA/romMeta.csv'
    csv = 'ARMA/stats.csv'
+   UnorderedXml = 'ARMA/romMeta.xml'
    rel_err = 1e-3
   [../]
   [./ARMAparallel]

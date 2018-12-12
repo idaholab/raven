@@ -13,11 +13,12 @@
       <revision author="alfoa" date="2017-12-13">adapted for new DataObject structure</revision>
       <revision author="alfoa" date="2018-04-26">Modified location of the test (ARMA folder)</revision>
       <revision author="talbpaul" date="2018-06-14">Now tests history statistics instead of points</revision>
+      <revision author="talbpaul" date="2018-12-12">Renamed from ARMA to Basic and added rom printing</revision>
     </revisions>
   </TestInfo>
 
   <RunInfo>
-    <WorkingDir>ARMA</WorkingDir>
+    <WorkingDir>Basic</WorkingDir>
     <Sequence>readIn, ARMATrain, printARMA, runARMA, writeOut, loadSynthetic, stats</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>

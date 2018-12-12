@@ -325,11 +325,22 @@ class ROM(Dummy):
     """
     self.supervisedEngine = LearningGate.returnInstance('SupervisedGate', self.subType, self, **initializationOptions)
 
+  def writePointwiseData(self, writeTo):
+    """
+      Called by the OutStreamPrint object to cause the ROM to print information about itself
+      @ In, writeTo, DataObject, data structure to add data to
+      @ Out, None
+    """
+    # TODO handle statepoint ROMs (dynamic, but rom doesn't handle intrinsically)
+    engines = self.supervisedEngine.supervisedContainer
+    for engine in engines:
+      engine.writePointwiseData(writeTo)
+
   def writeXML(self, what='all'):
     """
       Called by the OutStreamPrint object to cause the ROM to print itself
-      @ In, what, string, keyword requesting what should be printed
-      @ Out, None
+      @ In, what, string, optional, keyword requesting what should be printed
+      @ Out, xml, xmlUtils.StaticXmlElement, written meta
     """
     #determine dynamic or static
     dynamic = self.supervisedEngine.isADynamicModel
@@ -371,20 +382,6 @@ class ROM(Dummy):
       engines[0].writeXMLPreamble(xml)
       engines[0].writeXML(xml)
     return xml
-
-
-    #### OLD ####
-    #this loop is only 1 entry long if not dynamic
-    #  if dynamic and not handleDynamicData:
-    #  else:
-    #    pivotValue = 0
-    #    #for key,target in step.items():
-    #    if target in ROMtargets:
-    #      options['Target'] = target
-    #      rom.printXML(outFile,pivotValue,options)
-    #self.raiseADebug('Writing to XML file...')
-    #outFile.writeFile()
-    #self.raiseAMessage('ROM XML printed to "'+filenameLocal+'.xml"')
 
   def reset(self):
     """

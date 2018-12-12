@@ -961,9 +961,9 @@ class IOStep(Step):
         xml = romModel.writeXML(what='all')
         self.raiseADebug('Adding meta "{}" to output "{}"'.format(xml.getRoot().tag,outputs[i].name))
         outputs[i].addMeta(romModel.name, node = xml)
+        # XXX working
         # get pointwise data (to place in main section of data object)
-        ## TODO XXX
-        #realizations = romModel._localPrintData()
+        romModel.writePointwiseData(outputs[i])
         #for rlz in realizations:
         #  outputs[i].addRealization(rlz)
 

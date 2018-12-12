@@ -236,30 +236,34 @@ class DataSet(DataObject):
     # reset scaling factors, kd tree
     self._resetScaling()
 
-  def addVariable(self,varName,values,classify='meta'):
+  def addVariable(self,varName,values,classify='meta',indices=None):
     """
       Adds a variable/column to the data.  "values" needs to be as long as self.size.
       @ In, varName, str, name of new variable
       @ In, values, np.array, new values (floats/str for scalars, xr.DataArray for hists)
       @ In, classify, str, optional, either 'input', 'output', or 'meta'
+      @ In, indices, list, optional, list of indexes this variable depends on # TODO how to send them in?
       @ Out, None
     """
+    if indices is None:
+      indices = []
     # TODO might be removable
     assert(isinstance(values,np.ndarray))
-    assert(len(values) == self.size)
+    assert(len(values) == self.size), 'Expected {} entries in new variable but got {}!'.format(self.size, len(values))
     assert(classify in ['input','output','meta'])
-    # first, collapse existing entries
-    self.asDataset()
-    # format as single data array
-    # TODO worry about sampleTag values?
-    column = self._collapseNDtoDataArray(values,varName,labels=self._data[self.sampleTag])
-    # add to the dataset
-    self._data = self._data.assign(**{varName:column})
+    # if we're currently empty of data, then no new data to store (IMPORTANT: don't remove the assertion that len(values) == self.size above!)
+    if self.size != 0:
+      # first, collapse existing entries
+      self.asDataset()
+      labels = self._data[self.sampleTag]
+      column = self._collapseNDtoDataArray(values, varName, labels=labels)
+      # add to the dataset
+      self._data = self._data.assign(**{varName:column})
     if classify == 'input':
       self._inputs.append(varName)
     elif classify == 'output':
       self._outputs.append(varName)
-      if type(values[0]) == xr.DataArray:
+      if len(values) and type(values[0]) == xr.DataArray:
         indexes = values[0].sizes.keys()
         for index in indexes:
           if index in self._pivotParams.keys():
@@ -268,6 +272,12 @@ class DataSet(DataObject):
             self._pivotParams[index]=[varName]
     else:
       self._metavars.append(varName)
+    # if provided, set the indices for this variable
+    for index in indices:
+      if index in self._pivotParams.keys():
+        self._pivotParams[index].append(varName)
+      else:
+        self._pivotParams[index]=[varName]
     self._orderedVars.append(varName)
 
   def asDataset(self, outType='xrDataset'):
@@ -711,7 +721,10 @@ class DataSet(DataObject):
     # from collector
     s += self._collector.size if self._collector is not None else 0
     # from data
-    s += len(self._data[self.sampleTag]) if self._data is not None else 0
+    try:
+      s += len(self._data[self.sampleTag]) if self._data is not None else 0
+    except KeyError: #sampleTag not found, so it _should_ be empty ...
+      s += 0
     return s
 
   @property
@@ -1068,6 +1081,7 @@ class DataSet(DataObject):
         # gather the data type from first realization: if np.array, it's ND; otherwise singular
         dtype = self.types[v]
         if isinstance(self._collector[0,v],np.ndarray):
+          print('DEBUGG ndarray')
           # for each index, determine if all aligned; make data arrays as required
           dims = self.getDimensions(var)[var]
           # make sure "dims" isn't polluted
