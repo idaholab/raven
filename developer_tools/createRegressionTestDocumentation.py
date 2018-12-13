@@ -174,7 +174,7 @@ class testDescription(object):
     if createdDateNode is not None: createdDate = createdDateNode.text
     else                          : raise IOError("XML node <created> not found for test "+ fileName)
     if classTestedNode is not None: classTested = classTestedNode.text
-    else                          : raise IOError("XML node <classTested> not found for test "+ fileName)
+    else                          : raise IOError("XML node <classesTested> not found for test "+ fileName)
 
     nameChapter = name.replace("/", " ").replace("_", " ").upper()
     fileLocation = '.'+fileName.replace(self.__userPath,"")

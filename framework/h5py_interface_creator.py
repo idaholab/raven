@@ -139,6 +139,14 @@ class hdf5Database(MessageHandler.MessageUser):
       # The root name is / . it can be changed if addGroupInit is called
       self.parentGroupName = b'/'
 
+  def __len__(self):
+    """
+      Overload len method
+      @ In, None
+      @ Out, __len__, length
+    """
+    return len(self.allGroupPaths)
+
   def __createObjFromFile(self):
     """
       Function to create the list "self.allGroupPaths" and the dictionary "self.allGroupEnds"
@@ -207,11 +215,7 @@ class hdf5Database(MessageHandler.MessageUser):
     """
     parentID  = rlz.get("RAVEN_parentID",[None])[0]
     prefix    = rlz.get("prefix")
-    if prefix is not None:
-      groupName = str(prefix[0] if not utils.isString(prefix) else prefix)
-    else:
-      # this can happen when we want to add sampler generated data (e.g. LimitSurface) in the database
-      groupName = str(len(self.allGroupPaths))
+    groupName = str(prefix[0] if not utils.isString(prefix) else prefix)
     if parentID:
       #If Hierarchical structure, firstly add the root group
       if not self.firstRootGroup or parentID == "None":
