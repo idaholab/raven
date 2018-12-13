@@ -155,4 +155,10 @@
    UnorderedCsv = 'ste/basicStatPP_dump.csv'
    rel_err = 1e-6
  [../]
+ [./steGrid]
+   type = 'RavenFramework'
+   input = 'ste_grid.xml'
+   UnorderedCsv = 'steGrid/basicStatPP_dump.csv'
+   rel_err = 1e-6
+ [../]
 []
