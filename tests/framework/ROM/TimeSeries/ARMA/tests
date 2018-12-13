@@ -16,7 +16,7 @@
    output = 'ARMA/romMeta.csv'
    csv = 'ARMA/stats.csv'
    UnorderedXml = 'ARMA/romMeta.xml'
-   rel_err = 1e-3
+   rel_err = 5e-2
   [../]
   [./ARMAparallel]
    type = 'RavenFramework'
@@ -41,7 +41,7 @@
    type = 'RavenFramework'
    input = 'single_fourier.xml'
    csv = 'SingleFourier/synthetic_0.csv'
-   rel_err = 5e-2
+   rel_err = 6e-1
   [../]
 
   [./MultipleArma]
@@ -80,9 +80,9 @@
   [./Segmented]
     type = 'RavenFramework'
     input = 'segmented.xml'
-    output = 'segmented/synthetic.csv segmented/synthetic_0.csv segmented/synthetic.xml segmented/stats.xml'
-    csv = 'segmented/stats.csv'
-    rel_err = 1e-3
+    output = 'Segmented/synthetic.csv Segmented/synthetic_0.csv Segmented/synthetic.xml Segmented/stats.xml'
+    csv = 'Segmented/stats.csv'
+    rel_err = 1e-2
   [../]
 
 []

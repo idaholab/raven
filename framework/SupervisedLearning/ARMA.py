@@ -657,7 +657,7 @@ class ARMA(supervisedLearning):
     normed = self.normEngine.ppf(normed)
     return normed
 
-  def _sampleCDF(self,x,params):
+  def _sampleCDF(self, x, params):
     """
       Samples the CDF defined in 'params' to get values
       @ In, x, float, value at which to sample inverse CDF
@@ -738,17 +738,18 @@ class ARMA(supervisedLearning):
     # caluclate number of bins
     nBins = self._computeNumberOfBins(data)
     # construct histogram
-    counts, edges = np.histogram(data, bins = nBins, normed = True)
-    # bin widths
-    widths = edges[1:] - edges[:-1]
-    # numerical CDF
-    integrated = np.cumsum(counts)*np.average(widths)
+    counts, edges = np.histogram(data, bins = nBins, density = False)
+    counts = np.array(counts) / float(len(data))
+    # numerical CDF, normalizing to 0..1
+    cdf = np.cumsum(counts)
     # set lowest value as first entry,
-    ## from Jun implementation, min of CDF set to starting point for numerical issues
-    cdf = np.insert(integrated, 0, integrated[0])
+    ## from Jun implementation, min of CDF set to starting point for ?numerical issues?
+    #cdf = np.insert(cdf, 0, cdf[0]) # Jun
+    cdf = np.insert(cdf, 0, 0) # trying something else
     # store parameters
-    params = {'bins':edges,
-              'cdf':cdf}
+    params = {'bins': edges,
+              'pdf' : counts * nBins,
+              'cdf' : cdf}
               #'binSearch':neighbors.NearestNeighbors(n_neighbors=2).fit([[b] for b in edges]),
               #'cdfSearch':neighbors.NearestNeighbors(n_neighbors=2).fit([[c] for c in cdf])}
     return params
