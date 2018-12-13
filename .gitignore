@@ -60,6 +60,7 @@ tests/plugins
 plugins/ExamplePlugin/doc/version.tex
 build/
 .failed_tests
+.ravenrc
 
 # eclipse
 .project
