@@ -14,7 +14,7 @@
    type = 'RavenFramework'
    input = 'test_ARMA.xml'
    csv = 'ARMA/stats.csv'
-   rel_err = 1e-3
+   rel_err = 5e-2
   [../]
   [./ARMAparallel]
    type = 'RavenFramework'
@@ -39,7 +39,7 @@
    type = 'RavenFramework'
    input = 'single_fourier.xml'
    csv = 'SingleFourier/synthetic_0.csv'
-   rel_err = 5e-2
+   rel_err = 1e-1
   [../]
 
   [./MultipleArma]
@@ -80,7 +80,7 @@
     input = 'segmented.xml'
     output = 'segmented/synthetic.csv segmented/synthetic_0.csv segmented/synthetic.xml segmented/stats.xml'
     csv = 'segmented/stats.csv'
-    rel_err = 1e-3
+    rel_err = 1e-2
   [../]
 
 []
