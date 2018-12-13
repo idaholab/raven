@@ -91,8 +91,6 @@ class OrderedCSVDiffer:
     if abs(b) < self.__zero_threshold:
       b = 0.0
     if self.__check_absolute_values:
-      #XXX This does not seem to be what is described in
-      # the RavenFramework check_absolute_value parameter
       return abs(a-b) < tol
     # otherwise, relative error
     scale = abs(b) if b != 0 else 1.0
@@ -202,6 +200,7 @@ class OrderedCSV(Differ):
     params.addParam('rel_err','','Relative Error for csv files')
     params.addParam('zero_threshold',sys.float_info.min*4.0,'it represents the value below which a float is considered zero (XML comparison only)')
     params.addParam('ignore_sign', False, 'if true, then only compare the absolute values')
+    params.addParam('check_absolute_value',False,'if true the values are compared to the tolerance directectly, instead of relatively.')
     return params
 
   def __init__(self, name, params):
@@ -216,6 +215,7 @@ class OrderedCSV(Differ):
     else:
       self.__rel_err = 1e-10
     self.__csv_files = self.specs['output'].split()
+    self.__check_absolute_value = self.specs["check_absolute_value"]
 
   def check_output(self, test_dir):
     """
@@ -229,6 +229,7 @@ class OrderedCSV(Differ):
                                 self.__csv_files,
                                 relative_error = self.__rel_err,
                                 zeroThreshold = self.__zero_threshold,
-                                ignore_sign = self.__ignore_sign)
+                                ignore_sign = self.__ignore_sign,
+                                absolute_check = self.__check_absolute_value)
     return csv_diff.diff()
 

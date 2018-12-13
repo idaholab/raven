@@ -61,7 +61,7 @@ class RavenFramework(Tester):
     params.addParam('skip_if_env','','Skip test if this environmental variable is defined')
     params.addParam('skip_if_OS','','Skip test if the operating system defined')
     params.addParam('test_interface_only',False,'Test the interface only (without running the driven code')
-    params.addParam('check_absolute_value',False,'if true the values are compared in absolute value (abs(trueValue)-abs(testValue)')
+    params.addParam('check_absolute_value',False,'if true the values are compared to the tolerance directectly, instead of relatively.')
     params.addParam('zero_threshold',sys.float_info.min*4.0,'it represents the value below which a float is considered zero (XML comparison only)')
     params.addParam('remove_whitespace',False,'Removes whitespace before comparing xml node text if True')
     params.addParam('expected_fail', False, 'if true, then the test should fails, and if it passes, it fails.')

@@ -16,6 +16,8 @@ import sys,os
 import numpy as np
 import pandas as pd
 
+from Tester import Differ
+
 # get access to math tools from RAVEN
 try:
   from utils import mathUtils
@@ -259,4 +261,48 @@ class UnorderedCSVDiffer:
       csv[col].values[np.isclose(csv[col].values,0,**key)] = 0
     # TODO would like to sort here, but due to relative errors it doesn't do enough good.  Instead, sort in findRow.
     return csv
+
+class UnorderedCSV(Differ):
+  """
+  This is the class to use for handling the parameters block.
+  """
+
+  @staticmethod
+  def validParams():
+    params = Differ.validParams()
+    params.addParam('rel_err','','Relative Error for csv files')
+    params.addParam('zero_threshold',sys.float_info.min*4.0,'it represents the value below which a float is considered zero (XML comparison only)')
+    params.addParam('ignore_sign', False, 'if true, then only compare the absolute values')
+    params.addParam('check_absolute_value',False,'if true the values are compared to the tolerance directectly, instead of relatively.')
+    return params
+
+  def __init__(self, name, params):
+    """
+    Initializer for the class. Takes a String name and a dictionary params
+    """
+    Differ.__init__(self, name, params)
+    self.__zero_threshold = self.specs['zero_threshold']
+    self.__ignore_sign = bool(self.specs['ignore_sign'])
+    if len(self.specs['rel_err']) > 0:
+      self.__rel_err = float(self.specs['rel_err'])
+    else:
+      self.__rel_err = 1e-10
+    self.__csv_files = self.specs['output'].split()
+    self.__check_absolute_value = self.specs["check_absolute_value"]
+
+  def check_output(self, test_dir):
+    """
+    Checks that the output matches the gold.
+    test_dir: the directory where the test is located.
+    returns (same, message) where same is true if the
+    test passes, or false if the test failes.  message should
+    gives a human readable explaination of the differences.
+    """
+    csv_diff = UnorderedCSVDiffer(test_dir,
+                                  self.__csv_files,
+                                  relative_error = self.__rel_err,
+                                  zeroThreshold = self.__zero_threshold,
+                                  ignore_sign = self.__ignore_sign,
+                                  absolute_check = self.__check_absolute_value)
+    return csv_diff.diff()
 

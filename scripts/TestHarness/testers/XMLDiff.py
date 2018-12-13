@@ -16,6 +16,8 @@ import sys,os,re
 import xml.etree.ElementTree as ET
 import diffUtils as DU
 
+from Tester import Differ
+
 numTol = 1e-10 #effectively zero for our purposes
 
 def findBranches(node,path,finished):
@@ -377,3 +379,45 @@ class XMLDiff:
       self.__messages = self.__messages.replace('[','(')
       self.__messages = self.__messages.replace(']',')')
     return (self.__same,self.__messages)
+
+class XML(Differ):
+  """
+  This is the class to use for handling the XML block.
+  """
+  @staticmethod
+  def validParams():
+    params = Differ.validParams()
+    params.addParam('unordered', False, 'if true allow the tags in any order')
+    params.addParam('zero_threshold',sys.float_info.min*4.0,'it represents the value below which a float is considered zero (XML comparison only)')
+    params.addParam('remove_whitespace',False,'Removes whitespace before comparing xml node text if True')
+    params.addParam('remove_unicode_identifier', False, 'if true, then remove u infront of a single quote')
+    params.addParam('xmlopts','',"Options for xml checking")
+    params.addParam('rel_err','','Relative Error for csv files or floats in xml ones')
+    return params
+
+  def __init__(self, name, params):
+    """
+    Initializer for the class. Takes a String name and a dictionary params
+    """
+    Differ.__init__(self, name, params)
+    self.__xmlopts = {}
+    if len(self.specs["rel_err"]) > 0:
+      self.__xmlopts['rel_err'] = float(self.specs["rel_err"])
+    self.__xmlopts['zero_threshold'] = float(self.specs["zero_threshold"])
+    self.__xmlopts['unordered'     ] = bool(self.specs["unordered"])
+    self.__xmlopts['remove_whitespace'] = self.specs['remove_whitespace'] == True
+    self.__xmlopts['remove_unicode_identifier'] = self.specs['remove_unicode_identifier']
+    if len(self.specs['xmlopts'])>0:
+      self.__xmlopts['xmlopts'] = self.specs['xmlopts'].split(' ')
+    self.__xml_files = self.specs['output'].split()
+
+  def check_output(self, test_dir):
+    """
+    Checks that the output matches the gold.
+    test_dir: the directory where the test is located.
+    returns (same, message) where same is true if the
+    test passes, or false if the test failes.  message should
+    gives a human readable explaination of the differences.
+    """
+    xml_diff = XMLDiff(test_dir,self.__xml_files,**self.__xmlopts)
+    return xml_diff.diff()
