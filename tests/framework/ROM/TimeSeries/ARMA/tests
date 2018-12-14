@@ -83,7 +83,7 @@
     output = 'Segmented/synthetic.csv Segmented/synthetic_0.csv Segmented/synthetic.xml Segmented/stats.xml'
     csv = 'Segmented/stats.csv'
     rel_err = 1e-2
-    max_time = 500 # ONLY because of the current Windows test machine (2018 VDI)
+    max_time = 500 # ONLY due to 2018 Windows VDI test machine
   [../]
 
 []
