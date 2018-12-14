@@ -23,6 +23,8 @@ parser.add_argument('--re', dest='test_re_raw', default='.*',
                     help='Only tests with this regular expression inside will be run')
 parser.add_argument('-l', dest='load_average', type=float, default=-1.0,
                     help='wait until load average is below the number before starting a new test')
+parser.add_argument('--heavy', action='store_true',
+                    help='Run only heavy tests')
 
 args = parser.parse_args()
 
@@ -156,6 +158,8 @@ for test_dir, test_file in test_list:
       params = dict(node.attrib)
       params['test_dir'] = test_dir
       tester = testers[node.attrib['type']](test_name, params)
+      if args.heavy:
+        tester.run_heavy()
       for child in node.children:
         #print(test_name,"child",child)
         child_type = child.attrib['type']

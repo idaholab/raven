@@ -173,6 +173,7 @@ class Tester:
     self.specs = valid_params.get_filled_dict(params)
     self.results = TestResult()
     self.__differs = []
+    self.__run_heavy = False
 
   def add_differ(self, differ):
     """
@@ -192,6 +193,12 @@ class Tester:
     """
     return self.results.bucket == self.bucket_success
 
+  def run_heavy(self):
+    """
+    If called, run the heavy tests and not the light
+    """
+    self.__run_heavy = True
+
   def run(self, data):
     """
     Runs this tester.
@@ -201,9 +208,13 @@ class Tester:
       self.results.bucket = self.bucket_skip
       self.results.message = self.specs['skip']
       return self.results
-    if self.specs['heavy'] is not False:
+    if self.specs['heavy'] is not False and not self.__run_heavy:
       self.results.bucket = self.bucket_skip
       self.results.message = "SKIPPED (Heavy)"
+      return self.results
+    if self.specs['heavy'] is False and self.__run_heavy:
+      self.results.bucket = self.bucket_skip
+      self.results.message = "SKIPPED (not Heavy)"
       return self.results
     if not self.checkRunnable(options):
       return self.results
