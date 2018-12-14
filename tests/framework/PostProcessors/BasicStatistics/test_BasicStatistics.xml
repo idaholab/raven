@@ -181,6 +181,7 @@
 
   <Functions>
     <External file="basicStatisticsGeneral/testFunctionComputeProbability" name="testFunctionComputeProbability">
+      <revision author="wangc" date="2018-12-13">avoid metadata output since metadata is added in basicStatistics</revision>
       <variable>x01</variable>
     </External>
   </Functions>
@@ -273,26 +274,32 @@
     <Print name="InverseCorrelatedTest_basicStatPP_dump">
       <type>csv</type>
       <source>InverseCorrelatedTest_basicStatPP</source>
+      <what>input,output</what>
     </Print>
     <Print name="InputOutput_basicStatPP_dump">
       <type>csv</type>
       <source>InputOutput_basicStatPP</source>
+      <what>input,output</what>
     </Print>
     <Print name="NotCorrellatedTest_basicStatPP_dump">
       <type>csv</type>
       <source>NotCorrellatedTest_basicStatPP</source>
+      <what>input,output</what>
     </Print>
     <Print name="checkIfMatrixCanBeComputed_basicStatPP_dump">
       <type>csv</type>
       <source>checkIfMatrixCanBeComputed_basicStatPP</source>
+      <what>input,output</what>
     </Print>
     <Print name="autoCorrelationTest_basicStatPP_dump">
       <type>csv</type>
       <source>autoCorrelationTest_basicStatPP</source>
+      <what>input,output</what>
     </Print>
     <Print name="CreateInfinity_basicStatPP_dump">
       <type>csv</type>
       <source>CreateInfinity_basicStatPP</source>
+      <what>input,output</what>
     </Print>
   </OutStreams>
 

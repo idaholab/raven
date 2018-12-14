@@ -15,6 +15,7 @@
     </description>
     <revisions>
         <revision author="wangc" date="2017-12-05">convert test to use the new dataobjects</revision>
+        <revision author="wangc" date="2018-12-13">avoid metadata output since metadata is added in basicStatistics</revision>
     </revisions>
   </TestInfo>
   <Files>
@@ -75,6 +76,7 @@
     <Print name="HistorySetPostProcTest_dump">
       <type>csv</type>
       <source>basicStatHistory</source>
+      <what>input,output</what>
     </Print>
   </OutStreams>
 
