@@ -16,6 +16,8 @@
       <revision author="maljdan" date="2016-04-06">Updating test cases to reflect the changes to the user input.</revision>
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
     </revisions>
+    <requirements>R-F-1</requirements>
+    
   </TestInfo>
   <RunInfo>
     <WorkingDir>RandomTest</WorkingDir>

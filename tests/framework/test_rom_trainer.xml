@@ -22,7 +22,7 @@
       <revision author="maljdan" date="2016-05-20">Updating the test cases to remove references to Point or History.</revision>
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
     </revisions>
-    <requirements>R-RA-4</requirements>
+    <requirements>R-RA-4 R-F-1</requirements>
   </TestInfo>
   <RunInfo>
     <WorkingDir>test_rom_trainer</WorkingDir>
