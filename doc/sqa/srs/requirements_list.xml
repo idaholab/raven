@@ -48,7 +48,7 @@
               <description>RAVEN shall support a programmatic method for building up and/or downloading the necessary compiled objects/dependencies necessary for a simulation.</description>
           </requirement>
           <requirement id_code="R-F-4">
-              <description>RAVEN shall provide the ability to resume a previous simulation due to fault or intentional termination.</description>
+              <description>RAVEN shall provide the ability to resume a previous simulation using data generated and exported by RAVEN itself.</description>
           </requirement>
           <requirement id_code="R-F-5">
               <description>RAVEN shall allow for user-defined output types for simulation data.</description>
@@ -145,10 +145,10 @@
     <requirement_group id="System Interfaces">
       <requirement_set caption="Interface with external applications">
           <requirement id_code="R-SI-1">
-              <description>RAVEN shall be able to be coupled with any external application via input files.</description>
+              <description>RAVEN shall be able to be coupled with external applications via input files.</description>
           </requirement>
           <requirement id_code="R-SI-2">
-              <description>RAVEN shall be able to be coupled with any external application via Python API.</description>
+              <description>RAVEN shall be able to be coupled with external applications via Python API.</description>
           </requirement>
       </requirement_set>
       
