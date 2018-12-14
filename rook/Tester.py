@@ -6,6 +6,7 @@ warnings.simplefilter('default',DeprecationWarning)
 import subprocess
 import sys
 import time
+import threading
 
 class _Parameter:
 
@@ -100,6 +101,45 @@ class Differ:
     """
     assert False, "Must override check_output"
 
+class _TimeoutThread(threading.Thread):
+  """
+  This class will kill a process after a certain amount of time
+  """
+
+  def __init__(self, process, timeout):
+    """
+    process: A process that can be killed
+    timeout: float time in seconds to wait before killing the process.
+    """
+    self.__process = process
+    self.__timeout = timeout
+    self.__killed = False
+    threading.Thread.__init__(self)
+
+  def run(self):
+    """
+    Runs and waits for timeout, then kills process
+    """
+    start = time.time()
+    end = start + self.__timeout
+    while True:
+      if self.__process.poll() is not None:
+        #Process finished
+        break
+      if time.time() > end:
+        #Time over
+        self.__process.kill()
+        self.__killed = True
+        break
+      time.sleep(1.0)
+
+  def killed(self):
+    """
+    Returns if the process was killed.  Notice this will be false at the
+    start.
+    """
+    return self.__killed
+
 class Tester:
 
   #Various possible status buckets.
@@ -107,7 +147,8 @@ class Tester:
   bucket_fail = 1
   bucket_diff = 2
   bucket_success = 3
-  bucket_not_set = 4
+  bucket_timed_out = 4
+  bucket_not_set = 5
 
   success_message = "SUCCESS"
 
@@ -184,6 +225,7 @@ class Tester:
       self.results.bucket = self.bucket_fail
       self.results.message = "FAILED "+str(ioe)
       return self.results
+    timed_out = False
     if sys.version_info >= (3,3):
       #New timeout interface available starting in Python 3.3
       try:
@@ -191,14 +233,23 @@ class Tester:
       except subprocess.TimeoutExpired:
         process.kill()
         output = process.communicate()[0]
+        timed_out = True
     else:
+      timeout_killer = _TimeoutThread(process,timeout)
+      timeout_killer.start()
       output = process.communicate()[0]
+      if timeout_killer.killed():
+        timed_out = True
     end_time = time.time()
     process_time = end_time - start_time
     self.results.exit_code = process.returncode
     self.results.runtime = process_time
-    self.processResults(None, options, output)
     self.results.output = output
+    if timed_out:
+      self.results.bucket = self.bucket_timed_out
+      self.results.message = "Timed Out"
+      return self.results
+    self.processResults(None, options, output)
     for differ in self.__differs:
       same, message = differ.check_output(self.get_test_dir())
       if not same:
@@ -213,7 +264,7 @@ class Tester:
     """
     Returns the name of this bucket
     """
-    names = ["SKIPPED", "FAILED", "DIFF", "SUCCESS", "NOT_SET"]
+    names = ["SKIPPED", "FAILED", "DIFF", "SUCCESS", "TIMEOUT", "NOT_SET"]
     if 0 <= bucket < len(names):
       return names[bucket]
     return "UNKNOWN BUCKET"
