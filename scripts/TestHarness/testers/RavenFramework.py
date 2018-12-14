@@ -15,7 +15,7 @@ from Tester import Tester
 import OrderedCSVDiffer
 import UnorderedCSVDiffer
 import XMLDiff
-from TextDiff import TextDiff
+import TextDiff
 from RAVENImageDiff import ImageDiff
 import RavenUtils
 import os
@@ -106,13 +106,13 @@ class RavenFramework(Tester):
   def __init__(self, name, params):
     Tester.__init__(self, name, params)
     self.check_files = self.specs['output'      ].split(" ") if len(self.specs['output'      ]) > 0 else []
-    self.text_files  = self.specs['text'        ].split(" ") if len(self.specs['text'        ]) > 0 else []
     self.img_files   = self.specs['image'       ].split(" ") if len(self.specs['image'       ]) > 0 else []
-    self.all_files = self.check_files + self.text_files + self.img_files
+    self.all_files = self.check_files + self.img_files
     self.__make_differ('csv', OrderedCSVDiffer.OrderedCSV)
     self.__make_differ('UnorderedCsv', UnorderedCSVDiffer.UnorderedCSV)
     self.__make_differ('xml', XMLDiff.XML, {"unordered":False})
     self.__make_differ('UnorderedXml', XMLDiff.XML, {"unordered":True})
+    self.__make_differ('text', TextDiff.Text)
     self.required_executable = self.specs['required_executable']
     self.required_libraries = self.specs['required_libraries'].split(' ')  if len(self.specs['required_libraries']) > 0 else []
     self.minimum_libraries = self.specs['minimum_library_versions'].split(' ')  if len(self.specs['minimum_library_versions']) > 0 else []
@@ -254,14 +254,6 @@ class RavenFramework(Tester):
 
     if len(missing) > 0:
       self.setStatus('CWD '+os.getcwd()+' METHOD '+os.environ.get("METHOD","?")+' Expected files not created '+" ".join(missing),self.bucket_fail)
-      return output
-
-    #text
-    textOpts = {'comment': self.specs['comment']}
-    textDiff = TextDiff(self.specs['test_dir'],self.text_files,**textOpts)
-    (textSame,textMessages) = textDiff.diff()
-    if not textSame:
-      self.setStatus(textMessages, self.bucket_diff)
       return output
 
     #image

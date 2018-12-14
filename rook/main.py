@@ -157,7 +157,7 @@ for test_dir, test_file in test_list:
       params['test_dir'] = test_dir
       tester = testers[node.attrib['type']](test_name, params)
       for child in node.children:
-        print(test_name,"child",child)
+        #print(test_name,"child",child)
         child_type = child.attrib['type']
         child_param_handler = differs[child_type].validParams()
         if not child_param_handler.check_for_required(child.attrib):

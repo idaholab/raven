@@ -3,8 +3,11 @@
   type = 'RavenFramework'
   input = 'imageGeneration_ps.xml'
   output = 'plot/1-test_scatter.ps'
-  text = 'plot/1-test_scatter.ps'
-  comment = '%'
+  [./text_test]
+    type = Text
+    output = 'plot/1-test_scatter.ps'
+    comment = '%'
+  [../]
   minimum_library_versions = 'matplotlib 2.0'
  [../]
 

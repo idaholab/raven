@@ -15,6 +15,8 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import sys,os,re
 import difflib
 
+from Tester import Differ
+
 class TextDiff:
   """ TextDiff is used for comparing a bunch of xml files.
   """
@@ -82,3 +84,32 @@ class TextDiff:
       self.__messages = self.__messages.replace('[','(')
       self.__messages = self.__messages.replace(']',')')
     return (self.__same,self.__messages)
+
+class Text(Differ):
+  """
+  This is the class to use for handling the Text block.
+  """
+  @staticmethod
+  def validParams():
+    params = Differ.validParams()
+    params.addParam('comment','-20021986',"Character or string denoting comments, all text to the right of the symbol will be ignored in the diff of text files")
+    return params
+
+  def __init__(self, name, params):
+    """
+    Initializer for the class. Takes a String name and a dictionary params
+    """
+    Differ.__init__(self, name, params)
+    self.__text_opts = {'comment': self.specs['comment']}
+    self.__text_files = self.specs['output'].split()
+
+  def check_output(self, test_dir):
+    """
+    Checks that the output matches the gold.
+    test_dir: the directory where the test is located.
+    returns (same, message) where same is true if the
+    test passes, or false if the test failes.  message should
+    gives a human readable explaination of the differences.
+    """
+    text_diff =  TextDiff(test_dir, self.__text_files, **self.__text_opts)
+    return text_diff.diff()
