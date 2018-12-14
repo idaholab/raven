@@ -192,6 +192,12 @@ run_pool.run()
 results = {"pass":0,"fail":0,"skipped":0}
 failed_list = []
 
+def sec_format(runtime):
+  if type(runtime) == type(0.0):
+    return "{:6.2f}sec".format(runtime)
+  else:
+    return "  None!  "
+
 def process_result(index, input_data, output_data):
   test_dir, input_filename = input_data
   bucket = output_data.bucket
@@ -212,11 +218,9 @@ def process_result(index, input_data, output_data):
     print(output_data.output)
     print(output_data.message)
   number_done = sum(results.values())
-  print("({}/{}) {} ({}sec) {}".format(number_done, len(function_list),
+  print("({}/{}) {:7s} ({}) {}".format(number_done, len(function_list),
                                        Tester.get_bucket_name(bucket),
-                                       round(output_data.runtime,2)
-                                       if type(output_data.runtime) == type(0.0)
-                                       else output_data.runtime,
+                                       sec_format(output_data.runtime),
                                        test_name))
 
 output_list = run_pool.process_results(process_result)

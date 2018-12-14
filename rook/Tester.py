@@ -275,7 +275,7 @@ class Tester:
     """
     Returns the name of this bucket
     """
-    names = ["SKIPPED", "FAILED", "DIFF", "SUCCESS", "TIMEOUT", "NOT_SET"]
+    names = ["Skipped", "Failed", "Diff", "Success", "Timeout", "NOT_SET"]
     if 0 <= bucket < len(names):
       return names[bucket]
     return "UNKNOWN BUCKET"
