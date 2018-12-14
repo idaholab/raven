@@ -99,10 +99,12 @@ class testDescription(object):
     __testList = []
     filesWithDescription = OrderedDict()
     noDescriptionFiles = []
-    startDir = os.path.join(os.path.dirname(__file__),'../tests')
+    startDir = os.path.join(os.path.dirname(__file__),'../')
     for dirr,_,_ in os.walk(startDir):
       __testInfoList.extend(glob(os.path.join(dirr,"tests")))
     for testInfoFile in __testInfoList:
+      if 'moose' in testInfoFile.split(os.sep) or not os.path.isfile(testInfoFile):
+        continue
       fileObject = open(testInfoFile,"r+")
       fileLines = fileObject.readlines()
       dirName = os.path.dirname(testInfoFile)
@@ -172,7 +174,7 @@ class testDescription(object):
     if createdDateNode is not None: createdDate = createdDateNode.text
     else                          : raise IOError("XML node <created> not found for test "+ fileName)
     if classTestedNode is not None: classTested = classTestedNode.text
-    else                          : raise IOError("XML node <classTested> not found for test "+ fileName)
+    else                          : raise IOError("XML node <classesTested> not found for test "+ fileName)
 
     nameChapter = name.replace("/", " ").replace("_", " ").upper()
     fileLocation = '.'+fileName.replace(self.__userPath,"")
@@ -196,37 +198,38 @@ class testDescription(object):
       analyticalDescription = analyticNode.text.replace("_", "\_")
       latexString += '   \\item This test is analytic:\n'
       latexString += '   \\begin{itemize} \n'
-      latexString += '     \\item ' +analyticalDescription.strip().replace("#","\#")+'\n'
+      latexString += '     \\item ' +str(analyticalDescription).strip().replace("#","\#")+'\n'
       latexString += '   \\end{itemize} \n'
     # author
     latexString += '   \\item Original Author:\n'
     latexString += '   \\begin{itemize} \n'
-    latexString += '     \\item ' +author.strip()+'\n'
+    latexString += '     \\item ' +str(author).strip()+'\n'
     latexString += '   \\end{itemize} \n'
     # createdDate
     latexString += '   \\item Creation date:\n'
     latexString += '   \\begin{itemize} \n'
-    latexString += '     \\item ' +createdDate.strip()+'\n'
+    latexString += '     \\item ' +str(createdDate).strip()+'\n'
     latexString += '   \\end{itemize} \n'
     # classTested
     latexString += '   \\item The classes tested in this test are:\n'
     latexString += '   \\begin{itemize} \n'
-    latexString += '     \\item ' +classTested.strip()+'\n'
+    latexString += '     \\item ' +str(classTested).strip()+'\n'
     latexString += '   \\end{itemize} \n'
-    # is analytical?
+    # is requirement?
     if requirementsNode is not None:
-      requirementDescription = requirementsNode.text
+      requirementDescription = requirementsNode.text.split() if "," not in requirementsNode.text else requirementsNode.text.split(",")
       latexString += '   \\item This test fulfills the following requirement:\n'
       latexString += '   \\begin{itemize} \n'
-      latexString += '     \\item ' +requirementDescription.strip().replace("#","\#")+'\n'
+      for req in requirementDescription:
+        latexString += '     \\item ' +req.strip().replace("#","\#")+'\n'
       latexString += '   \\end{itemize} \n'
     if revisionsNode is not None and len(revisionsNode) > 0:
       latexString += '   \\item Since the creation of this test, the following main revisions have been performed:\n'
       latexString += '   \\begin{enumerate} \n'
       for child in revisionsNode:
         revisionText   = str(child.text).strip().replace("_", "\_").replace("#","\#")
-        revisionAuthor = child.attrib['author'].strip()
-        revisionDate   = child.attrib['date'].strip()
+        revisionAuthor = child.attrib.get('author',"None").strip()
+        revisionDate   = child.attrib.get('date',"None").strip()
         latexString += '     \\item revision info:\n'
         latexString += '       \\begin{itemize} \n'
         latexString += '         \\item author     : ' +revisionAuthor+'\n'

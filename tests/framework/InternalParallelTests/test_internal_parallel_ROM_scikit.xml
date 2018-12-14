@@ -16,7 +16,9 @@
       <revision author="maljdan" date="2016-04-25">Regolding based on 1-nearest neighbor regression. This should effectively report the same information as the training data.</revision>
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
       <revision author="maljdan" date="2017-09-19">Adding a maxQueueSize for testing a new feature.</revision>
+      <revision author="alfoa" date="2018-10-01">This is a requirement test now.</revision>
     </revisions>
+    <requirements>R-IS-8</requirements>
   </TestInfo>
   <RunInfo>
     <WorkingDir>InternalParallelScikit</WorkingDir>
