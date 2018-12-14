@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from Tester import Tester
-from OrderedCSVDiffer import OrderedCSVDiffer
-from UnorderedCSVDiffer import UnorderedCSVDiffer
-from XMLDiff import XMLDiff
+import OrderedCSVDiffer
+import UnorderedCSVDiffer
+import XMLDiff
 from TextDiff import TextDiff
 from RAVENImageDiff import ImageDiff
 import RavenUtils
@@ -84,17 +84,35 @@ class RavenFramework(Tester):
     else:
       return "python " + self.driver + " " + ravenflag + self.specs["input"]
 
+  def __make_differ(self, spec_name, differ_class, extra=None):
+    """
+    This adds a differ if the spec_name has files.
+    spec_name: string of the list of files to use with the differ.
+    differ_class: subclass of Differ to use with the files.
+    extra: dictionary of extra parameters
+    """
+    if len(self.specs[spec_name]) == 0:
+      #No files, so quit
+      return
+    files = self.specs[spec_name].split(" ")
+    self.all_files += files
+    differ_params = dict(self.specs)
+    differ_params["output"] = self.specs[spec_name]
+    differ_params["type"] = differ_class.__name__
+    if extra is not None:
+      differ_params.update(extra)
+    self.add_differ(differ_class(spec_name, differ_params))
 
   def __init__(self, name, params):
     Tester.__init__(self, name, params)
     self.check_files = self.specs['output'      ].split(" ") if len(self.specs['output'      ]) > 0 else []
-    self.csv_files   = self.specs['csv'         ].split(" ") if len(self.specs['csv'         ]) > 0 else []
-    self.xml_files   = self.specs['xml'         ].split(" ") if len(self.specs['xml'         ]) > 0 else []
-    self.ucsv_files  = self.specs['UnorderedCsv'].split(" ") if len(self.specs['UnorderedCsv']) > 0 else []
-    self.uxml_files  = self.specs['UnorderedXml'].split(" ") if len(self.specs['UnorderedXml']) > 0 else []
     self.text_files  = self.specs['text'        ].split(" ") if len(self.specs['text'        ]) > 0 else []
     self.img_files   = self.specs['image'       ].split(" ") if len(self.specs['image'       ]) > 0 else []
-    self.all_files = self.check_files + self.csv_files + self.xml_files + self.ucsv_files + self.uxml_files + self.text_files + self.img_files
+    self.all_files = self.check_files + self.text_files + self.img_files
+    self.__make_differ('csv', OrderedCSVDiffer.OrderedCSV)
+    self.__make_differ('UnorderedCsv', UnorderedCSVDiffer.UnorderedCSV)
+    self.__make_differ('xml', XMLDiff.XML, {"unordered":False})
+    self.__make_differ('UnorderedXml', XMLDiff.XML, {"unordered":True})
     self.required_executable = self.specs['required_executable']
     self.required_libraries = self.specs['required_libraries'].split(' ')  if len(self.specs['required_libraries']) > 0 else []
     self.minimum_libraries = self.specs['minimum_library_versions'].split(' ')  if len(self.specs['minimum_library_versions']) > 0 else []
@@ -236,68 +254,6 @@ class RavenFramework(Tester):
 
     if len(missing) > 0:
       self.setStatus('CWD '+os.getcwd()+' METHOD '+os.environ.get("METHOD","?")+' Expected files not created '+" ".join(missing),self.bucket_fail)
-      return output
-
-    checkAbsoluteValue = self.specs["check_absolute_value"]
-    zeroThreshold = self.specs["zero_threshold"]
-
-    #csv
-    if len(self.specs["rel_err"]) > 0:
-      csv_diff = OrderedCSVDiffer(self.specs['test_dir'],
-                                  self.csv_files,
-                                  relative_error = float(self.specs["rel_err"]),
-                                  absolute_check = checkAbsoluteValue,
-                                  zeroThreshold = zeroThreshold,
-                                  ignore_sign=self.specs["ignore_sign"])
-    else:
-      csv_diff = OrderedCSVDiffer(self.specs['test_dir'],
-                                  self.csv_files,
-                                  absolute_check = checkAbsoluteValue,
-                                  zeroThreshold = zeroThreshold,
-                                  ignore_sign=self.specs["ignore_sign"])
-    csv_same, csv_messages = csv_diff.diff()
-    if not csv_same > 0:
-      self.setStatus(csv_messages,self.bucket_diff)
-      return output
-
-    #unordered csv
-    if len(self.specs["rel_err"]) > 0:
-      ucsv_diff = UnorderedCSVDiffer(self.specs['test_dir'],
-                  self.ucsv_files,
-                  relative_error = float(self.specs["rel_err"]),
-                  absolute_check = checkAbsoluteValue,
-                  zeroThreshold = zeroThreshold, ignore_sign=self.specs["ignore_sign"])
-    else:
-      ucsv_diff = UnorderedCSVDiffer(self.specs['test_dir'],
-                  self.ucsv_files,
-                  absolute_check = checkAbsoluteValue,
-                  zeroThreshold = zeroThreshold, ignore_sign=self.specs["ignore_sign"])
-
-    ucsv_same,ucsv_messages = ucsv_diff.diff()
-    if not ucsv_same:
-      self.setStatus(ucsv_messages, self.bucket_diff)
-      return output
-
-    #xml
-    xmlopts = {}
-    if len(self.specs["rel_err"]) > 0: xmlopts['rel_err'] = float(self.specs["rel_err"])
-    xmlopts['zero_threshold'] = float(self.specs["zero_threshold"])
-    xmlopts['unordered'     ] = False
-    xmlopts['remove_whitespace'] = self.specs['remove_whitespace'] == True
-    xmlopts['remove_unicode_identifier'] = self.specs['remove_unicode_identifier']
-    if len(self.specs['xmlopts'])>0: xmlopts['xmlopts'] = self.specs['xmlopts'].split(' ')
-    xml_diff = XMLDiff(self.specs['test_dir'],self.xml_files,**xmlopts)
-    (xml_same,xml_messages) = xml_diff.diff()
-    if not xml_same:
-      self.setStatus(xml_messages, self.bucket_diff)
-      return output
-
-    #unordered xml
-    xmlopts['unordered'] = True
-    uxml_diff = XMLDiff(self.specs['test_dir'],self.uxml_files,**xmlopts)
-    (uxml_same,uxml_messages) = uxml_diff.diff()
-    if not uxml_same:
-      self.setStatus(uxml_messages, self.bucket_diff)
       return output
 
     #text
