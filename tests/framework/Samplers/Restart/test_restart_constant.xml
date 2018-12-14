@@ -9,6 +9,10 @@
         The essence of this test is to demonstrate the restart capability with constant variable,
         i.e. test the scaling factor for constant samples as mentioned in issue #690
     </description>
+    <revisions>
+        <revision author="alfoa" date="2018-10-01">This Test is now a requirement test.</revision>
+    </revisions>
+    <requirements>R-F-4</requirements>
   </TestInfo>
 
   <RunInfo>
