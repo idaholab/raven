@@ -22,7 +22,7 @@
       <revision author="cogljj" date="2016-10-07">Having both a color and a colormap doesn't make sense.</revision>
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
     </revisions>
-    <requirements>R-RA-3</requirements>
+    <requirements>R-RA-3 R-F-5 R-F-6</requirements>
   </TestInfo>
   <RunInfo>
     <WorkingDir>output_check</WorkingDir>

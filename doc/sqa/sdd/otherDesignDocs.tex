@@ -1,0 +1,26 @@
+\subsection{Other Design Documentation}
+
+In addition to this document, an automatic software documentation
+is generated every time a new CR (see def.) is approved. This
+documentation is automatically extracted from the source code using
+doxygen (see def.) and is available to developers at
+\url{https://hpcsc.inl.gov/ssl/RAVEN/docs/classes.html}.
+
+In order to generate(locally) a hard copy in ``html'' or ``latex'', any user/developer can 
+launch the 
+following command (in the raven directory):
+\begin{lstlisting}[language=bash]
+doxygen ./doc/doxygen/Doxyfile
+\end{lstlisting}
+Once the documentation is generated, any user/developer can navigate to the folder
+\begin{lstlisting}[language=bash]
+./doc/doxygen/latex
+\end{lstlisting}
+and type the following command:
+\begin{lstlisting}[language=bash]
+make refman.pdf
+\end{lstlisting}
+Once the command is executed, a ``pdf'' file named ``refman.pdf'' will be available.
+
+The doxygen software is under configuration management process identified in
+`` RAVEN Configuration Management '' PLN-5553.

@@ -11,6 +11,10 @@
         Xi(t)=\sum_{i=1}^{n} coef_i*e^{var_i*t}
        \end{math}
     </description>
+    <revisions>
+      <revision author="alfoa" date="2018-10-01">This is a requirement test now.</revision>
+    </revisions>
+    <requirements>R-SI-2</requirements>
   </TestInfo>
 
   <RunInfo>

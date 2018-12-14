@@ -13,6 +13,7 @@
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
       <revision author="alfoa" date="2017-12-14">Modified input since new structure of DataObject</revision>
     </revisions>
+    <requirements>R-F-6</requirements>
   </TestInfo>
   <RunInfo>
     <WorkingDir>GridTestSameHDF5</WorkingDir>
