@@ -28,6 +28,7 @@
     input  = 'test_tdmSKLearnKernelPCA.xml'
     csv    = 'KernelPCA/dummy_0.csv KernelPCA/dummy_149.csv'
     output = 'KernelPCA/dummy.csv'
+    max_time = 600
   [../]
   [./SparsePCA]
     type   = 'RavenFramework'
@@ -65,6 +66,7 @@
     csv     = 'LocallyLinearEmbedding/dummy_0.csv LocallyLinearEmbedding/dummy_149.csv'
     output  = 'LocallyLinearEmbedding/dummy.csv'
     rel_err = 0.001
+    max_time = 600
   [../]
   [./MultiDimensionalScaling]
     type   = 'RavenFramework'
