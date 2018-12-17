@@ -14,7 +14,9 @@
     </description>
     <revisions>
       <revision author="alfoa" date="2018-01-24">Adding this test description.</revision>
+      <revision author="alfoa" date="2018-10-01">This is a requirement test now.</revision>
     </revisions>
+    <requirements>R-IS-6</requirements>
   </TestInfo>
   <RunInfo>
     <JobName>GenericInterfaceIOCustomOutput</JobName>
