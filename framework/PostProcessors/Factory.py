@@ -21,8 +21,6 @@ Created on July 10, 2013
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
-if not 'xrange' in dir(__builtins__):
-  xrange = range
 #End compatibility block for Python 3-------------------------------------------
 
 ################################################################################
@@ -35,6 +33,7 @@ from .ETImporter import ETImporter
 from .SafestPoint import SafestPoint
 from .LimitSurface import LimitSurface
 from .ValueDuration import ValueDuration
+from .SampleSelector import SampleSelector
 from .ImportanceRank import ImportanceRank
 from .BasicStatistics import BasicStatistics
 from .CrossValidation import CrossValidation

@@ -356,7 +356,7 @@ class origenAndTritonData:
       @ In, fileout, str, the output file name
       @ Out, None
     """
-    fileObject = open(fileout.strip()+".csv", mode='w+') if not fileout.endswith('csv') else open(fileout.strip(), mode='w+')
+    fileObject = open(fileout.strip()+".csv", mode='wb+') if not fileout.endswith('csv') else open(fileout.strip(), mode='wb+')
     headers = ['time']
     timeGrid = None
     nParams = np.sum([len(data['info_ids']) for data in self.data.values() if data is not None])+1

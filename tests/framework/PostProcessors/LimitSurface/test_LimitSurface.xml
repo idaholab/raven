@@ -4,10 +4,10 @@
     <name>framework/PostProcessors/LimitSurface.testLimitSurfacePostProcessor</name>
     <author>alfoa</author>
     <created>2014-07-10</created>
-    <classesTested>Models.PostProcessors.LimitSurface, Functions.External</classesTested>
+    <classesTested>Models.PostProcessors.LimitSurface, Functions.External, Databases.HDF5</classesTested>
     <description>
        This test is aimed to check the capability of RAVEN to generate Limit Surfaces from a pre-generated data set (in this case, generated with
-       a MonteCarlo sampling), outputting the generated Limit Surface in DataObject.PointSet(s) reporting both transition boundaries (-1 1) or just
+       a MonteCarlo sampling), outputting the generated Limit Surface in DataObject.PointSet(s) and Databases.HDF5 reporting both transition boundaries (-1 1) or just
        one of them.
     </description>
     <revisions>
@@ -24,12 +24,19 @@
       <revision author="alfoa" date="2017-12-14">
           Moved LimitSurface Postprocessor tests in a specific directory (tests/framework/PostProcessors/LimitSurface) and updated for new DataObject structure
       </revision>
+      <revision author="alfoa" date="2018-09-11"> Added an additional IOStep to check that the limit surface DataObject can be dumped into a Database of type HDF5</revision>
     </revisions>
-    <requirements>R-RA-1</requirements>
+    <requirements>R-RA-1 R-RA-7</requirements>
   </TestInfo>
   <RunInfo>
     <WorkingDir>limitSurface</WorkingDir>
-    <Sequence>FirstMRun,ComputeLimitSurfacePositive,ComputeLimitSurfaceNegative,ComputeLimitSurfacePositiveNegative</Sequence>
+    <Sequence>
+        FirstMRun,
+        ComputeLimitSurfacePositive,
+        ComputeLimitSurfaceNegative,
+        ComputeLimitSurfacePositiveNegative,
+        dumpLimitSurfacePositiveNegativeInHDF5
+    </Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
 
@@ -134,8 +141,16 @@
       <Output class="DataObjects" type="PointSet">LimitSurfacePositiveNegative</Output>
       <Output class="OutStreams" type="Print">LimitSurfacePositiveNegative_dump</Output>
     </PostProcess>
+    <IOStep name="dumpLimitSurfacePositiveNegativeInHDF5">
+       <Input class="DataObjects" type="PointSet">LimitSurfacePositiveNegative</Input>
+       <Output class="Databases" type="HDF5">test_db_database</Output>
+    </IOStep>
   </Steps>
-
+  
+  <Databases>
+      <HDF5 name="test_db_database" readMode="overwrite"/>
+  </Databases>
+  
   <OutStreams>
     <Print name="PointSetPostProcTest_dump">
       <type>csv</type>

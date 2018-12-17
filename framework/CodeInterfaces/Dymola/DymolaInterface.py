@@ -117,6 +117,7 @@ class Dymola(CodeInterfaceBase):
       @ In, None
       @ Out, None
     """
+    CodeInterfaceBase.__init__(self)
     self.variablesToLoad = [] # the variables that should be loaded from the mat file (by default, all of them)
 
   def _readMoreXML(self,xmlNode):
@@ -143,7 +144,7 @@ class Dymola(CodeInterfaceBase):
   #                          generated as part of the model build process, which is called dsin.txt.
   #     <outputfile>     The simulation output, which is .mat file.
 
-  def generateCommand(self, inputFiles, executable, clargs=None, fargs=None):
+  def generateCommand(self, inputFiles, executable, clargs=None, fargs=None, preExec=None):
     """
       See base class.  Collects all the clargs and the executable to produce the command-line call.
       Returns tuple of commands and base file name for run.
@@ -152,6 +153,7 @@ class Dymola(CodeInterfaceBase):
       @ In, executable, string, executable name with absolute path (e.g. /home/path_to_executable/code.exe)
       @ In, clargs, dict, optional, dictionary containing the command-line flags the user can specify in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 i0extension =0 .inp0/ >< /Code >)
       @ In, fargs, dict, optional, a dictionary containing the axuiliary input file variables the user can specify in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 aux0extension =0 .aux0/ >< /Code >)
+      @ In, preExec, string, optional, a string the command that needs to be pre-executed before the actual command here defined
       @ Out, returnCommand, tuple, tuple containing the generated command. returnCommand[0] is the command to run the code (string), returnCommand[1] is the name of the output root
     """
 
@@ -222,7 +224,7 @@ class Dymola(CodeInterfaceBase):
     varDict = Kwargs['SampledVars']
 
     vectorsToPass= {}
-    for key, value in varDict.items():
+    for key, value in list(varDict.items()):
       if isinstance(value, bool):
         varDict[key] = 1 if value else 0
       if isinstance(value, numpy.ndarray):
@@ -242,7 +244,7 @@ class Dymola(CodeInterfaceBase):
     if bool(vectorsToPass):
       with open(currentInputFiles[indexVect].getAbsFile(), 'w') as Fvect:
         Fvect.write("#1\n")
-        for key, value in vectorsToPass.items() :
+        for key, value in sorted(vectorsToPass.items()) :
           inc = 0
           Fvect.write("double %s(%s,2) #Comments here\n" %(key, len(value)))
           for val in value:
@@ -251,9 +253,9 @@ class Dymola(CodeInterfaceBase):
 
     # Do the search and replace in input file "DymolaInitialisation"
     # Aliases for some regular sub-expressions.
-    u = '\d+' # Unsigned integer
+    u = '\\d+' # Unsigned integer
     i = '[+-]?' + u # Integer
-    f = i + '(?:\.' + u + ')?(?:[Ee][+-]' + u + ')?' # Floating point number
+    f = i + '(?:\\.' + u + ')?(?:[Ee][+-]' + u + ')?' # Floating point number
 
     # Possible regular expressions for a parameter specification (with '%s' for
     #   the parameter name)
@@ -448,7 +450,7 @@ class Dymola(CodeInterfaceBase):
       destFileName += '.csv' # Add the file extension .csv
 
       # Write the CSV file.
-      with open(destFileName,"wb") as csvFile:
+      with open(destFileName,"w") as csvFile:
         resultsWriter = csv.writer(csvFile, lineterminator=str(u'\n'), delimiter=str(u','), quotechar=str(u'"'))
         resultsWriter.writerows(varNames)
         resultsWriter.writerows(varTrajectories)

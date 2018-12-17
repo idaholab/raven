@@ -19,8 +19,6 @@ Created on Sept 10, 2017
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
-if not 'xrange' in dir(__builtins__):
-  xrange = range
 
 import xml.etree.ElementTree as ET
 import xml.dom.minidom
@@ -50,7 +48,7 @@ class RAVENparser():
     if not os.path.exists(inputFile):
       raise IOError(self.printTag+' ERROR: Not found RAVEN input file')
     try:
-      tree = ET.parse(file(inputFile,'r'))
+      tree = ET.parse(open(inputFile,'r'))
     except IOError as e:
       raise IOError(self.printTag+' ERROR: Input Parsing error!\n' +str(e)+'\n')
     self.tree = tree.getroot()
@@ -111,11 +109,8 @@ class RAVENparser():
     filesNode = self.tree.find('.//Files')
     if filesNode is not None:
       for child in self.tree.find('.//Files'):
-        subDirectory = child.attrib['subDirectory'] if 'subDirectory' in child.attrib else None
-        if subDirectory:
-          self.slaveInputFiles.append(os.path.expanduser(os.path.join(subDirectory,child.text.strip())))
-        else:
-          self.slaveInputFiles.append(os.path.expanduser(child.text.strip()))
+        subDirectory = child.attrib.get('subDirectory','')
+        self.slaveInputFiles.append(os.path.expanduser(os.path.join(self.workingDir,subDirectory,child.text.strip())))
 
     externalModels = self.tree.findall('.//Models/ExternalModel')
     if len(externalModels) > 0:
@@ -265,7 +260,7 @@ class RAVENparser():
               else:
                 allowAddNodes.append(None)
               allowAddNodesPath[component.strip()] = attribConstruct
-          if pathNode.endswith("]") and attribConstruct.values()[-1] is None:
+          if pathNode.endswith("]") and list(attribConstruct.values())[-1] is None:
             changeTheNode = False
           else:
             changeTheNode = True

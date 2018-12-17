@@ -15,7 +15,9 @@
       <revision author="maljdan" date="2016-04-06">Updating test cases to reflect the changes to the user input.</revision>
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
       <revision author="alfoa" date="2018-01-09">Modified for new dataobject structure</revision>
+      <revision author="alfoa" date="2018-10-01">This is a requirement test now.</revision>
     </revisions>
+    <requirements>R-IS-8</requirements>
   </TestInfo>
   <RunInfo>
     <WorkingDir>InternalParallelPostProcessorLS</WorkingDir>

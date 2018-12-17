@@ -17,11 +17,9 @@ Created on Feb 16, 2013
 @author: alfoa
 """
 #for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
+from __future__ import division, print_function, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
-if not 'xrange' in dir(__builtins__):
-  xrange = range
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -29,6 +27,7 @@ import sys
 import copy
 import abc
 import json
+import itertools
 import numpy as np
 #External Modules End--------------------------------------------------------------------------------
 
@@ -91,6 +90,8 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     constantInput = InputData.parameterInputFactory("constant", contentType=InputData.InterpretedListType)
     constantInput.addParam("name", InputData.StringType, True)
     constantInput.addParam("shape", InputData.IntegerListType, required=False)
+    constantInput.addParam("source", InputData.StringType, required=False)
+    constantInput.addParam("index", InputData.IntegerType, required=False)
 
     inputSpecification.addSub(constantInput)
 
@@ -101,6 +102,11 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     restartInput.addParam("type", InputData.StringType)
     restartInput.addParam("class", InputData.StringType)
     inputSpecification.addSub(restartInput)
+
+    sourceInput = InputData.parameterInputFactory("ConstantSource", contentType=InputData.StringType)
+    sourceInput.addParam("type", InputData.StringType)
+    sourceInput.addParam("class", InputData.StringType)
+    inputSpecification.addSub(sourceInput)
 
     return inputSpecification
 
@@ -133,9 +139,13 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.reseedAtEachIteration         = False                     # Logical flag. True if every newer evaluation is performed after a new reseeding
     self.FIXME                         = False                     # FIXME flag
     self.printTag                      = self.type                 # prefix for all prints (sampler type)
+
     self.restartData                   = None                      # presampled points to restart from
     self.restartTolerance              = 1e-15                     # strictness with which to find matches in the restart data
     self.restartIsCompatible           = None                      # flags restart as compatible with the sampling scheme (used to speed up checking)
+
+    self.constantSourceData            = None                      # dictionary of data objects from which constants can take values
+    self.constantSources               = {}                        # storage for the way to obtain constant information
 
     self._endJobRunnable               = sys.maxsize               # max number of inputs creatable by the sampler right after a job ends (e.g., infinite for MC, 1 for Adaptive, etc)
 
@@ -145,6 +155,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.NDSamplingParams               = {}                       # this dictionary contains a dictionary for each ND distribution (key). This latter dictionary contains the initialization parameters of the ND inverseCDF ('initialGridDisc' and 'tolerance')
     ######
     self.addAssemblerObject('Restart' ,'-n',True)
+    self.addAssemblerObject('ConstantSource' ,'-n',True)
 
     #used for PCA analysis
     self.variablesTransformationDict    = {}                       # for each variable 'modelName', the following informations are included: {'modelName': {latentVariables:[latentVar1, latentVar2, ...], manifestVariables:[manifestVar1,manifestVar2,...]}}
@@ -389,23 +400,33 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ Out, name, string, name of constant
       @ Out, value, float or np.array,
     """
+    # constantSources
     value = inp.value
     name = inp.parameterValues['name']
     shape = inp.parameterValues.get('shape',None)
-    # if single entry, remove array structure; if multiple entries, cast them as numpy array
-    if len(value) == 1:
-      value = value[0]
+    source = inp.parameterValues.get('source',None)
+    # if constant's value is provided directly by value ...
+    if source is None:
+      # if single entry, remove array structure; if multiple entries, cast them as numpy array
+      if len(value) == 1:
+        value = value[0]
+      else:
+        value = np.asarray(value)
+      # if specific shape requested, then reshape it
+      if shape is not None:
+        try:
+          value = value.reshape(shape)
+        except ValueError:
+          self.raiseAnError(IOError,
+              ('Requested shape "{}" ({} entries) for constant "{}"' +\
+              ' is not consistent with the provided values ({} entries)!')
+              .format(shape,np.prod(shape),name,len(value)))
+    # else if constant's value is provided from a DataObject ...
     else:
-      value = np.asarray(value)
-    # if specific shape requested, then reshape it
-    if shape is not None:
-      try:
-        value = value.reshape(shape)
-      except ValueError:
-        self.raiseAnError(IOError,
-            ('Requested shape "{}" ({} entries) for constant "{}"' +\
-            ' is not consistent with the provided values ({} entries)!')
-            .format(shape,np.prod(shape),name,len(value)))
+      self.constantSources[name] = {'shape'    : shape,
+                                      'source'   : source,
+                                      'index'    : inp.parameterValues.get('index',-1),
+                                      'sourceVar': value[0]} # generally, constants are a list, but in this case just take the only entry
     return name, value
 
   def getInitParams(self):
@@ -448,7 +469,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       self.raiseADebug('Restart object: '+str(self.assemblerDict['Restart']))
       self.restartData = self.assemblerDict['Restart'][0][3]
       # check the right variables are in the restart
-      need = set(self.toBeSampled.keys()+self.dependentSample.keys())
+      need = set(itertools.chain(self.toBeSampled.keys(),self.dependentSample.keys()))
       if not need.issubset(set(self.restartData.getVars())):
         missing = need - set(self.restartData.getVars())
         #TODO this could be a warning, instead, but user wouldn't see it until the run was deep in
@@ -460,17 +481,16 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     else:
       self.raiseAMessage('No restart for '+self.printTag)
 
-    #load restart data into existing points
-    # TODO do not copy data!  Read directly from restart.
-    #if self.restartData is not None:
-    #  if len(self.restartData) > 0:
-    #    inps = self.restartData.getInpParametersValues()
-    #    outs = self.restartData.getOutParametersValues()
-    #    #FIXME there is no guarantee ordering is accurate between restart data and sampler
-    #    inputs = list(v for v in inps.values())
-    #    existingInps = zip(*inputs)
-    #    outVals = zip(*list(v for v in outs.values()))
-    #    self.existing = dict(zip(existingInps,outVals))
+    if 'ConstantSource' in self.assemblerDict.keys():
+      # find all the sources requested in the sampler, map data objects to their requested names
+      self.constantSourceData = dict((a[2],a[3]) for a in self.assemblerDict['ConstantSource'])
+      for var,data in self.constantSources.items():
+        source = self.constantSourceData[data['source']]
+        rlz = source.realization(index=data['index'])
+        if data['sourceVar'] not in rlz:
+          self.raiseAnError(IOError,'Requested variable "{}" from DataObject "{}" to set constant "{}",'.format(data['sourceVar'], source.name, var) +\
+                                    ' but "{}" is not a variable in "{}"!'.format(data['sourceVar'], source.name))
+        self.constants[var] = rlz[data['sourceVar']]
 
     #specializing the self.localInitialize() to account for adaptive sampling
     if solutionExport != None:
@@ -731,7 +751,9 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ In, None
       @ Out, None
     """
-    fullyCorrVars = {s: self.inputInfo['SampledVarsPb'].pop(s) for s in self.inputInfo['SampledVarsPb'].keys() if "," in s}
+    #Need keys as list because modifying self.inputInfo['SampledVarsPb']
+    keys = list(self.inputInfo['SampledVarsPb'].keys())
+    fullyCorrVars = {s: self.inputInfo['SampledVarsPb'].pop(s) for s in keys if "," in s}
     # assign the SampledVarsPb to the fully correlated vars
     for key in fullyCorrVars:
       for kkey in key.split(","):

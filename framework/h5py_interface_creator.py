@@ -21,8 +21,6 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import warnings
 from datetime import datetime
 warnings.simplefilter('default',DeprecationWarning)
-if not 'xrange' in dir(__builtins__):
-  xrange = range
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -30,7 +28,10 @@ import h5py  as h5
 import numpy as np
 import os
 import copy
-import cPickle
+try:
+  import cPickle as pk
+except ImportError:
+  import pickle as pk
 import string
 import difflib
 #External Modules End--------------------------------------------------------------------------------
@@ -41,6 +42,25 @@ from utils import mathUtils
 import MessageHandler
 import Files
 #Internal Modules End--------------------------------------------------------------------------------
+
+def _dumps(val):
+  """
+    Method to convert an arbitary value to something h5py can store
+    @ In, val, any, data to encode
+    @ Out, _dumps, np.void, encoded data
+  """
+  return np.void(pk.dumps(val))
+
+def _loads(val):
+  """
+    Method to undo what _dumps does
+    @ In, val, np.void, data to decode
+    @ Out, _loads, any, data decoded
+  """
+  if hasattr(val,'tostring'):
+    return pk.loads(val.tostring())
+  else:
+    return pk.loads(val)
 
 #
 #  *************************
@@ -119,6 +139,14 @@ class hdf5Database(MessageHandler.MessageUser):
       # The root name is / . it can be changed if addGroupInit is called
       self.parentGroupName = b'/'
 
+  def __len__(self):
+    """
+      Overload len method
+      @ In, None
+      @ Out, __len__, length
+    """
+    return len(self.allGroupPaths)
+
   def __createObjFromFile(self):
     """
       Function to create the list "self.allGroupPaths" and the dictionary "self.allGroupEnds"
@@ -132,8 +160,8 @@ class hdf5Database(MessageHandler.MessageUser):
     if not self.fileOpen:
       self.h5FileW = self.openDatabaseW(self.filenameAndPath,'a')
     if 'allGroupPaths' in self.h5FileW.attrs and 'allGroupEnds' in self.h5FileW.attrs:
-      self.allGroupPaths = cPickle.loads(self.h5FileW.attrs['allGroupPaths'])
-      self.allGroupEnds  = cPickle.loads(self.h5FileW.attrs['allGroupEnds'])
+      self.allGroupPaths = _loads(self.h5FileW.attrs['allGroupPaths'])
+      self.allGroupEnds  = _loads(self.h5FileW.attrs['allGroupEnds'])
     else:
       self.h5FileW.visititems(self.__isGroup)
     self.raiseAMessage('TOTAL NUMBER OF GROUPS = ' + str(len(self.allGroupPaths)))
@@ -163,7 +191,7 @@ class hdf5Database(MessageHandler.MessageUser):
       @ In, keys, set(), the metadata list
       @ Out, None
     """
-    self.h5FileW.attrs['expectedMetadata'] = cPickle.dumps(list(keys))
+    self.h5FileW.attrs['expectedMetadata'] = _dumps(list(keys))
 
   def provideExpectedMetaKeys(self):
     """
@@ -174,7 +202,7 @@ class hdf5Database(MessageHandler.MessageUser):
     meta = set()
     gotMeta = self.h5FileW.attrs.get('expectedMetadata',None)
     if gotMeta is not None:
-      meta = set(cPickle.loads(gotMeta))
+      meta = set(_loads(gotMeta))
     return meta
 
   def addGroup(self,rlz):
@@ -186,7 +214,8 @@ class hdf5Database(MessageHandler.MessageUser):
       @ Out, None
     """
     parentID  = rlz.get("RAVEN_parentID",[None])[0]
-    groupName = str(rlz.get("prefix")[0] if not isinstance(rlz.get("prefix"),basestring) else rlz.get("prefix"))
+    prefix    = rlz.get("prefix")
+    groupName = str(prefix[0] if not utils.isString(prefix) else prefix)
     if parentID:
       #If Hierarchical structure, firstly add the root group
       if not self.firstRootGroup or parentID == "None":
@@ -201,8 +230,8 @@ class hdf5Database(MessageHandler.MessageUser):
       self.__addGroupRootLevel(groupName,rlz)
       self.firstRootGroup = True
       self.type = 'MC'
-    self.h5FileW.attrs['allGroupPaths'] = cPickle.dumps(self.allGroupPaths)
-    self.h5FileW.attrs['allGroupEnds'] = cPickle.dumps(self.allGroupEnds)
+    self.h5FileW.attrs['allGroupPaths'] = _dumps(self.allGroupPaths)
+    self.h5FileW.attrs['allGroupEnds'] = _dumps(self.allGroupEnds)
     self.h5FileW.flush()
 
 
@@ -217,7 +246,7 @@ class hdf5Database(MessageHandler.MessageUser):
     """
     attribs = {} if attributes is None else attributes
     groupNameInit = groupName+"_"+datetime.now().strftime("%m-%d-%Y-%H-%S")
-    for index in xrange(len(self.allGroupPaths)):
+    for index in range(len(self.allGroupPaths)):
       comparisonName = self.allGroupPaths[index]
       splittedPath=comparisonName.split('/')
       if len(splittedPath) > 0:
@@ -246,8 +275,8 @@ class hdf5Database(MessageHandler.MessageUser):
     grp.attrs[b'groupName'] = groupNameInit
     self.allGroupPaths.append("/" + groupNameInit)
     self.allGroupEnds["/" + groupNameInit] = False
-    self.h5FileW.attrs['allGroupPaths'] = cPickle.dumps(self.allGroupPaths)
-    self.h5FileW.attrs['allGroupEnds'] = cPickle.dumps(self.allGroupEnds)
+    self.h5FileW.attrs['allGroupPaths'] = _dumps(self.allGroupPaths)
+    self.h5FileW.attrs['allGroupEnds'] = _dumps(self.allGroupEnds)
     self.h5FileW.flush()
 
   def __checkTypeHDF5(self, value, neg):
@@ -287,34 +316,34 @@ class hdf5Database(MessageHandler.MessageUser):
     # get other dtype data (strings and objects)
     dataOther    = dict( (key, np.atleast_1d(value)) for (key, value) in rlz.items() if self.__checkTypeHDF5(value, True) )
     # get size of each data variable (float)
-    varKeysIntfloat = dataIntFloat.keys()
+    varKeysIntfloat = list(dataIntFloat.keys())
     if len(varKeysIntfloat) > 0:
       varShapeIntfloat = [dataIntFloat[key].shape for key in varKeysIntfloat]
       # get data names
-      group.attrs[b'data_namesIntfloat'] = cPickle.dumps(varKeysIntfloat)
+      group.attrs[b'data_namesIntfloat'] = _dumps(varKeysIntfloat)
       # get data shapes
-      group.attrs[b'data_shapesIntfloat'] = cPickle.dumps(varShapeIntfloat)
+      group.attrs[b'data_shapesIntfloat'] = _dumps(varShapeIntfloat)
       # get data shapes
       end   = np.cumsum(varShapeIntfloat)
       begin = np.concatenate(([0],end[0:-1]))
-      group.attrs[b'data_begin_endIntfloat'] = cPickle.dumps((begin.tolist(),end.tolist()))
+      group.attrs[b'data_begin_endIntfloat'] = _dumps((begin.tolist(),end.tolist()))
       # get data names
-      group.create_dataset(name + "_dataIntFloat", dtype="float", data=(np.concatenate( dataIntFloat.values()).ravel()))
+      group.create_dataset(name + "_dataIntFloat", dtype="float", data=(np.concatenate( list(dataIntFloat.values())).ravel()))
       group.attrs[b'hasIntfloat'] = True
     # get size of each data variable (other type)
-    varKeysOther = dataOther.keys()
+    varKeysOther = list(dataOther.keys())
     if len(varKeysOther) > 0:
       varShapeOther = [dataOther[key].shape for key in varKeysOther]
       # get data names
-      group.attrs[b'data_namesOther'] = cPickle.dumps(varKeysOther)
+      group.attrs[b'data_namesOther'] = _dumps(varKeysOther)
       # get data shapes
-      group.attrs[b'data_shapesOther'] = cPickle.dumps(varShapeOther)
+      group.attrs[b'data_shapesOther'] = _dumps(varShapeOther)
       # get data shapes
       end   = np.cumsum(varShapeOther)
       begin = np.concatenate(([0],end[0:-1]))
-      group.attrs[b'data_begin_endOther'] = cPickle.dumps((begin.tolist(),end.tolist()))
+      group.attrs[b'data_begin_endOther'] = _dumps((begin.tolist(),end.tolist()))
       # get data names
-      group.attrs[name + b'_dataOther'] = cPickle.dumps(np.concatenate( dataOther.values()).ravel().tolist())
+      group.attrs[name + '_dataOther'] = _dumps(np.concatenate( list(dataOther.values())).ravel().tolist())
       group.attrs[b'hasOther'] = True
     # add some info
     group.attrs[b'groupName'     ] = name
@@ -485,19 +514,19 @@ class hdf5Database(MessageHandler.MessageUser):
       dataSetIntFloat = group[name + "_dataIntFloat"]
       # Get some variables of interest
       nVarsIntfloat      = group.attrs[b'nVarsIntfloat']
-      varShapeIntfloat   = cPickle.loads(group.attrs[b'data_shapesIntfloat'])
-      varKeysIntfloat    = cPickle.loads(group.attrs[b'data_namesIntfloat'])
-      begin, end          = cPickle.loads(group.attrs[b'data_begin_endIntfloat'])
+      varShapeIntfloat   = _loads(group.attrs[b'data_shapesIntfloat'])
+      varKeysIntfloat    = _loads(group.attrs[b'data_namesIntfloat'])
+      begin, end          = _loads(group.attrs[b'data_begin_endIntfloat'])
       # Reconstruct the dataset
       newData = {key : np.reshape(dataSetIntFloat[begin[cnt]:end[cnt]], varShapeIntfloat[cnt]) for cnt,key in enumerate(varKeysIntfloat)}
     if hasOther:
       # get the "other" data
-      datasetOther = cPickle.loads(group.attrs[name + "_dataOther"])
+      datasetOther = _loads(group.attrs[name + "_dataOther"])
       # Get some variables of interest
       nVarsOther      = group.attrs[b'nVarsOther']
-      varShapeOther   = cPickle.loads(group.attrs[b'data_shapesOther'])
-      varKeysOther    = cPickle.loads(group.attrs[b'data_namesOther'])
-      begin, end       = cPickle.loads(group.attrs[b'data_begin_endOther'])
+      varShapeOther   = _loads(group.attrs[b'data_shapesOther'])
+      varKeysOther    = _loads(group.attrs[b'data_namesOther'])
+      begin, end       = _loads(group.attrs[b'data_begin_endOther'])
       # Reconstruct the dataset
       newData.update({key : np.reshape(datasetOther[begin[cnt]:end[cnt]], varShapeOther[cnt]) for cnt,key in enumerate(varKeysOther)})
     return newData
