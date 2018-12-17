@@ -6,7 +6,7 @@
     <batchSize>1</batchSize>
   </RunInfo>
   <TestInfo>
-    <name>framework/Samplers/Restart/LoadFromLargeCSV</name>
+    <name>framework/Samplers/Restart.LoadFromLargeCSV</name>
     <author>talbpaul</author>
     <created>2016-06-30</created>
     <classesTested>Samplers.Grid</classesTested>
