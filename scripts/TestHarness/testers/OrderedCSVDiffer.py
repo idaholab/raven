@@ -33,27 +33,28 @@ class OrderedCSVDiffer:
   """
     Used for comparing two CSV files without regard for column, row orders
   """
-  def __init__(self, test_dir, out_files,relative_error=1e-10,absolute_check=False,zeroThreshold=None,ignore_sign=False):
+  def __init__(self, out_files, gold_files,relative_error=1e-10,absolute_check=False,zeroThreshold=None,ignore_sign=False):
     """
       Create an UnorderedCSVDiffer class
       Note naming conventions are out of our control due to MOOSE test harness standards.
-      @ In, test_dir, the directory where the test takes place
       @ In, out_files, the files to be compared.  They will be in test_dir + out_files
+      @ In, gold_files, the files to be compared to the out_files.
       @ In, relative_error, float, optional, relative error
       @ In, absolute_check, bool, optional, if True then check absolute differences in the values instead of relative differences
       @ In, ignore_sign, bool, optional, if True then the sign will be ignored during the comparison
       @ Out, None.
     """
+    assert len(out_files) == len(gold_files)
     self.__out_files = out_files
+    self.__gold_files = gold_files
     self.__message = ""
     self.__same = True
-    self.__test_dir = test_dir
     self.__check_absolute_values = absolute_check
     self.__rel_err = relative_error
     self.__zero_threshold = float(zeroThreshold) if zeroThreshold is not None else 0.0
     self.__ignore_sign = ignore_sign
     if debug or whoAmI:
-      print('test dir :',self.__test_dir)
+      print('gold files:',self.__gold_files)
       print('out files:',self.__out_files)
     if debug:
       print('err      :',self.__rel_err)
@@ -104,12 +105,11 @@ class OrderedCSVDiffer:
       @ Out, messages, str, messages to print on fail
     """
     # read in files
-    for outFile in self.__out_files:
+    for testFilename, goldFilename in zip(self.__out_files, self.__gold_files):
       # local "same" and message list
       same = True
       msg = []
       # load test file
-      testFilename = os.path.join(self.__test_dir,outFile)
       try:
         try:
           testCSV_file = open(testFilename, newline='')
@@ -121,7 +121,6 @@ class OrderedCSVDiffer:
         msg.append('Test file does not exist!')
         same = False
       # load gold file
-      goldFilename = os.path.join(self.__test_dir, 'gold', outFile)
       try:
         try:
           goldCSV_file = open(goldFilename, newline='')
@@ -214,7 +213,6 @@ class OrderedCSV(Differ):
       self.__rel_err = float(self.specs['rel_err'])
     else:
       self.__rel_err = 1e-10
-    self.__csv_files = self.specs['output'].split()
     self.__check_absolute_value = self.specs["check_absolute_value"]
 
   def check_output(self, test_dir):
@@ -225,8 +223,10 @@ class OrderedCSV(Differ):
     test passes, or false if the test failes.  message should
     gives a human readable explaination of the differences.
     """
-    csv_diff = OrderedCSVDiffer(test_dir,
-                                self.__csv_files,
+    csv_files = self._get_test_files(test_dir)
+    gold_files = self._get_gold_files(test_dir)
+    csv_diff = OrderedCSVDiffer(csv_files,
+                                gold_files,
                                 relative_error = self.__rel_err,
                                 zeroThreshold = self.__zero_threshold,
                                 ignore_sign = self.__ignore_sign,

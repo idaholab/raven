@@ -53,7 +53,11 @@
  [./io_ROM_pickle]
   type = 'RavenFramework'
   input = 'test_io_ROM_pickle.xml'
-  csv = 'IO_ROM_PICKLE/PrintData_Pickle.csv IO_ROM_PICKLE/PrintData.csv'
+  [./csv]
+    type = OrderedCSV
+    output = 'IO_ROM_PICKLE/PrintData_Pickle.csv IO_ROM_PICKLE/PrintData.csv'
+    gold_files = 'IO_ROM_PICKLE_gold/PrintData_Pickle.csv IO_ROM_PICKLE_gold/PrintData.csv'
+  [../]
  [../]
 
  [./legend]

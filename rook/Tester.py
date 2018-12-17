@@ -5,6 +5,7 @@ warnings.simplefilter('default',DeprecationWarning)
 
 import subprocess
 import sys
+import os
 import time
 import threading
 
@@ -81,6 +82,7 @@ class Differ:
     params = _ValidParameters()
     params.addRequiredParam('type', 'The type of this differ')
     params.addRequiredParam('output', 'Output of to check')
+    params.addParam('gold_files', '', 'Gold filenames')
     return params
 
   def __init__(self, name, params):
@@ -90,6 +92,23 @@ class Differ:
     self.__name = name
     valid_params = self.validParams()
     self.specs = valid_params.get_filled_dict(params)
+    self.__output_files = self.specs['output'].split()
+
+  def _get_test_files(self, test_dir):
+    """
+    returns a list of the full path of the test files
+    """
+    return [os.path.join(test_dir, f) for f in self.__output_files]
+
+  def _get_gold_files(self, test_dir):
+    """
+    returns a list of the full path to the gold files
+    """
+    if len(self.specs['gold_files']) > 0:
+      gold_files = self.specs['gold_files'].split()
+      return [os.path.join(test_dir, f) for f in gold_files]
+    else:
+      return [os.path.join(test_dir, "gold", f) for f in self.__output_files]
 
   def check_output(self, test_dir):
     """
