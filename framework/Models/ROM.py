@@ -65,6 +65,7 @@ class ROM(Dummy):
     subspace = InputData.parameterInputFactory('subspace', InputData.StringType)
     subspace.addParam('divisions', InputData.IntegerType, False)
     subspace.addParam('pivotLength', InputData.FloatType, False)
+    subspace.addParam('shift', InputData.StringType, False)
     cluster.addSub(subspace)
     clsfr = InputData.parameterInputFactory('Classifier', strictMode=True, contentType=InputData.StringType)
     clsfr.addParam('class', InputData.StringType, True)
