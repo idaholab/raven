@@ -64,7 +64,6 @@ class RavenFramework(Tester):
     params.addParam('check_absolute_value',False,'if true the values are compared to the tolerance directectly, instead of relatively.')
     params.addParam('zero_threshold',sys.float_info.min*4.0,'it represents the value below which a float is considered zero (XML comparison only)')
     params.addParam('remove_whitespace',False,'Removes whitespace before comparing xml node text if True')
-    params.addParam('expected_fail', False, 'if true, then the test should fails, and if it passes, it fails.')
     params.addParam('remove_unicode_identifier', False, 'if true, then remove u infront of a single quote')
     params.addParam('interactive', False, 'if true, then RAVEN will be run with interactivity enabled.')
     params.addParam('python3_only', False, 'if true, then only use with Python3')
@@ -233,20 +232,7 @@ class RavenFramework(Tester):
       if os.path.exists(filename):
         os.remove(filename)
 
-  def processResults(self, moose_dir,  options, output):
-    expectedFail = self.specs['expected_fail']
-    if not expectedFail:
-      return self.rawProcessResults(moose_dir, options, output)
-    else:
-      output = self.rawProcessResults(moose_dir, options, output)
-      if self.didPass():
-        self.setStatus('Unexpected success',self.bucket_fail)
-        return output
-      else:
-        self.set_success()
-        return output
-
-  def rawProcessResults(self, moose_dir, options, output):
+  def processResults(self, moose_dir, options, output):
     missing = []
     for filename in self.check_files:
       if not os.path.exists(filename):

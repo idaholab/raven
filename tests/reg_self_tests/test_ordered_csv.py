@@ -16,6 +16,8 @@ base_dir = os.path.dirname(os.path.dirname(my_dir))
 test_system_dir = os.path.join(base_dir,"scripts","TestHarness","testers")
 print(test_system_dir)
 sys.path.append(test_system_dir)
+rook_system_dir = os.path.join(base_dir,"rook")
+sys.path.append(rook_system_dir)
 
 from OrderedCSVDiffer import OrderedCSVDiffer
 

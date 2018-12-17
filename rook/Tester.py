@@ -162,6 +162,7 @@ class Tester:
     params.addParam('method', False, 'Method is ignored, but kept for compatibility')
     params.addParam('heavy', False, 'If true, run only with heavy tests')
     params.addParam('output', '', 'Output of the test')
+    params.addParam('expected_fail', False, 'if true, then the test should fails, and if it passes, it fails.')
     return params
 
   def __init__(self, name, params):
@@ -199,9 +200,27 @@ class Tester:
     """
     self.__run_heavy = True
 
+
   def run(self, data):
     """
-    Runs this tester.
+    Runs the tester.
+    """
+    expectedFail = bool(self.specs['expected_fail'])
+    results = self.run_backend(data)
+    if not expectedFail:
+      return results
+    else:
+      if results.bucket == self.bucket_success:
+        results.bucket = self.bucket_fail
+        results.message = "Unexpected Success"
+      else:
+        results.bucket = self.bucket_success
+      return results
+
+  def run_backend(self, data):
+    """
+    Runs this tester.  This does the main work,
+    but is separate to allow run to invert the result if expected_fail
     """
     options = None
     if self.specs['skip'] is not False:

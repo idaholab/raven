@@ -27,6 +27,7 @@ scriptDir = os.path.dirname(os.path.abspath(__file__))
 ravenDir = os.path.dirname(os.path.dirname(os.path.dirname(scriptDir)))
 
 sys.path.append(os.path.join(ravenDir,"scripts","TestHarness","testers"))
+sys.path.append(os.path.join(ravenDir,"rook"))
 
 results = {"pass":0, "fail": 0}
 
