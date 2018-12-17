@@ -62,10 +62,10 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
     self._usingRomClustering   = False             # are we using ROM clustering?
     self._romClusterDivisions  = {}                # which parameters do we cluster, and how are they subdivided?
     self._romClusterLengths    = {}                # OR which parameters do we cluster, and how long should each be?
-    #
     self._romClusterFeatureTemplate = '{target}|{metric}|{id}' # standardized for consistency
     self._romClusterMetrics    = None              # list of requested metrics to apply (defaults to everything)
     self._romClusterInfo       = {}                # data that should persist across methods
+    self._romClusterPivotShift = None              # whether and how to normalize/shift subspaces
     self._romClusterMap        = None              # maps labels to the ROMs that are represented by it
 
     #the ROM is instanced and initialized
@@ -106,9 +106,16 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
             # can't give both)
             if len(self._romClusterDivisions):
               self.raiseAnError(IOError,'Cannot provide both \'pivotLength\' and \'divisions\' for subspace!')
-        # features: user-identified requested metrics to apply
+          if 'shift' in node.parameterValues:
+            self._romClusterPivotShift = node.parameterValues['shift'].lower()
+      # quality checking
+      ## either pivot lengths or divisions should have been provided
       if not len(self._romClusterDivisions) and not len(self._romClusterLengths):
-        self.raiseAnError(IOError,'Must provide either \'pivotLength\' or \'divisions\' for subspace!')
+        self.raiseAnError(IOError, 'Must provide either \'pivotLength\' or \'divisions\' for subspace!')
+      ## subspace shifting should be None, 'zero', or 'first'
+      shiftOK = ['zero', 'first']
+      if self._romClusterPivotShift not in [None] + shiftOK:
+        self.raiseAnError(IOError, 'If used, <subspace> "shift" must be one of {}; got "{}"'.format(shiftOK, self._romClusterPivotShift))
 
   def __getstate__(self):
     """
@@ -185,6 +192,7 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
       return
 
     # otherwise, traditional training
+    ## time-dependent or static ROM?
     if any(type(x).__name__ == 'list' for x in trainingSet.values()):
       # we need to build a "time-dependent" ROM
       self.isADynamicModel = True
@@ -195,6 +203,7 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
       self.historySteps = trainingSet.get(self.pivotParameterId)[-1]
       if len(self.historySteps) == 0:
         self.raiseAnError(IOError,"the training set is empty!")
+      # intrinsically time-dependent or does the Gate need to handle it?
       if self.canHandleDynamicData:
         # the ROM is able to manage the time dependency on its own
         self.supervisedContainer[0].train(trainingSet)
@@ -423,18 +432,32 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
       @ Out, clusterFeatureDict, dict, clustering information as {feature: [rom values]}
       @ Out, roms, np.array(SubpervisedLearning instances), trained ROMs for each subdomain
     """
+    # identify targets that ROM needs to train to
     targets = templateRom.target[:]
-    targets.remove(templateRom.pivotParameterID)
+    # clear indices from the training list, since they're independents
+    pivotID = templateRom.pivotParameterID
+    targets.remove(pivotID)
+    # stash the pivot parameter values, since we'll lose those while training segments
+    self.historySteps = trainingSet[pivotID][0]
+    # DEBUGG
+    if self.targetDatas is None: # DEBUGG only
+      self.targetDatas = [] # DEBUGG only
+    # loop over clusters and train data
     clusterFeatureDict = {}
     roms = []
-    if self.targetDatas is None:
-      self.targetDatas = [] # DEBUGG only
     for i,subdiv in enumerate(counter):
       # slicer for data selection
       picker = slice(subdiv[0], subdiv[-1]+1)
       ## TODO only consider one sample at 0? Should do more for non-ARMA ROMs!
       ##  -> for now, only ARMAs can be used with this method, so we can address this later
-      data = dict((var,[trainingSet[var][0][picker]]) for var in trainingSet)
+      data = dict((var,[copy.deepcopy(trainingSet[var][0][picker])]) for var in trainingSet)
+      # renormalize pivot -> usually by shifting values
+      # TODO unit test these features
+      if self._romClusterPivotShift == 'zero':
+        data[templateRom.pivotParameterID][0] -= data[templateRom.pivotParameterID][0][0]
+      elif self._romClusterPivotShift == 'first':
+        delta = data[templateRom.pivotParameterID][0][0] - trainingSet[var][0][0]
+        data[templateRom.pivotParameterID][0] -= delta
       targetData = dict((var,data[var][0]) for var in targets)
       self.targetDatas.append(targetData) # DEBUGG only
       # create a new ROM and train it
@@ -579,6 +602,7 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
     """
     # template, for when generic info is needed
     templateRom = self._romClusterMap.values()[0]
+    pivotID = templateRom.pivotParameterID
     # evaluation storage
     lastEntry = self._romClusterInfo['historyLength']
     result = None # because we don't know the targets yet, wait until we get the first evaluation back to set this up
@@ -590,14 +614,21 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
       rom = self._romClusterMap[label]
       # sample each ROM
       subResults = rom.evaluate(request)
+      # NOTE the pivotID values for the sub will be shifted if shifting is used here
+      #   however, we will set the pivotID all at once after the values are stored.
+      # construct results structure if it's not already in place; easier to make it once we have the first sample
       if result is None:
         result = dict((target,np.zeros(lastEntry)) for target in subResults.keys())
       # stitch them together
       # TODO assuming history set shape for data ... true for ARMA
       entries = len(subResults.values()[0])
       for target,values in subResults.items():
+        if target == pivotID:
+          # directly re-insert the pivot at the end
+          continue
         result[target][nextEntry:nextEntry+entries] = values
       nextEntry += entries
+    result[pivotID][:] = self.historySteps # [:] allows for a sizing sanity check, maybe should be removed for user's sake
     return result
 
   ##########################
