@@ -522,16 +522,17 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
       self._romClusterInfo['historyLength'] = dataLen
       # find where the data passes the requested length and make dividers
       floor = 0
-      next = length
+      nextOne = length
       counter = []
+      # FIXME this could potentially be slow since it's a loop
       while pivot[floor] < pivot[-1]:
-        cross = np.searchsorted(pivot,next)
+        cross = np.searchsorted(pivot,nextOne)
         if cross == len(pivot):
           unclustered.append((floor,cross-1))
           break
         counter.append((floor,cross-1))
         floor = cross
-        next += length
+        nextOne += length
     return counter, unclustered
 
 #  def _evaluateBasicMetrics(self,data):
@@ -703,7 +704,6 @@ def returnInstance(gateType, ROMclass, caller, **kwargs):
     @ In, kwargs, dict, a dictionary specifying the keywords and values needed to create the instance.
     @ Out, returnInstance, instance, an instance of a ROM
   """
-  return __interfaceDict[gateType](ROMclass, caller.messageHandler,**kwargs)
   try:
     return __interfaceDict[gateType](ROMclass, caller.messageHandler,**kwargs)
   except KeyError as e:

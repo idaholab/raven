@@ -615,7 +615,8 @@ class ARMA(supervisedLearning):
       @ In, None
       @ Out, params, list, clusterable parameters
     """
-    return ['Fourier', 'ARMA']
+    params = ['Fourier', 'ARMA']
+    return params
 
   def _interpolateDist(self,x,y,Xlow,Xhigh,Ylow,Yhigh,inMask):
     """
