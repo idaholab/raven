@@ -45,7 +45,8 @@ class PostProcessor(Assembler):
     self.type = self.__class__.__name__  # pp type
     self.name = self.__class__.__name__  # pp name
     self.messageHandler = messageHandler
-    self.metadataKeys = set()
+    self.metadataKeys = set()            # list of registered metadata keys to expected in this postprocessor
+    self.metadataParams = {}             # dictionary of registered metadata keys with respect to their indexes, i.e. {key:list(indexes)}
 
   @classmethod
   def getInputSpecification(cls):
@@ -99,18 +100,20 @@ class PostProcessor(Assembler):
   ## TODO FIXME ##
   # These two methods (addMetaKeys, provideExpectedMetaKeys) are made to be consistent with the BaseClasses.BaseType, and in
   # that glorious day when the PostProcessors inherit from the BaseType, these implementations should be removed.
-  def addMetaKeys(self,*args):
+  def addMetaKeys(self,args,params={}):
     """
       Adds keywords to a list of expected metadata keys.
       @ In, args, list(str), keywords to register
+      @ In, params, dict, var:[indexes] as str:list(str)
       @ Out, None
     """
     self.metadataKeys = self.metadataKeys.union(set(args))
+    self.metadataParams.update(params)
 
   def provideExpectedMetaKeys(self):
     """
       Provides the registered list of metadata keys for this entity.
       @ In, None
-      @ Out, meta, list(str), expected keys (empty if none)
+      @ Out, meta,tuple, (list(str),dict), expected keys (empty if none) and expected indexes related to expected keys
     """
-    return self.metadataKeys
+    return self.metadataKeys,self.metadataParams

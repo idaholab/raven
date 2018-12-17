@@ -200,13 +200,17 @@ class hdf5Database(MessageHandler.MessageUser):
     """
       Provides the registered list of metadata keys for this entity.
       @ In, None
-      @ Out, meta, set(str), expected keys (empty if none)
+      @ Out, meta, tuple, (set(str),dict), expected keys (empty if none) and dictionary of expected keys corresponding to their indexes
+        i.e. {keys, [indexes]}
     """
     meta = set()
     gotMeta = self.h5FileW.attrs.get('expectedMetadata',None)
     if gotMeta is not None:
       meta = set(_loads(gotMeta))
-    return meta
+    # FIXME, I'm not sure how to enable the HDF5 to store the time-dependent metadata,
+    # or how to store the time dependent metadata in the HDF5, currently only empty dict of
+    # indexes information is returned
+    return meta,{}
 
   def addGroup(self,rlz):
     """

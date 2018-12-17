@@ -107,10 +107,11 @@ class DataSet(DataObject):
 
   ### EXTERNAL API ###
   # These are the methods that RAVEN entities should call to interact with the data object
-  def addExpectedMeta(self,keys):
+  def addExpectedMeta(self,keys, params={}):
     """
       Registers meta to look for in realizations.
       @ In, keys, set(str), keys to register
+      @ In, params, dict, var:[params] as str:list(str)
       @ Out, None
     """
     # TODO add option to skip parts of meta if user wants to
@@ -124,6 +125,7 @@ class DataSet(DataObject):
     assert(self._collector is None or len(self._collector) == 0)
     self._metavars.extend(keys)
     self._orderedVars.extend(keys)
+    self.setPivotParams(params)
 
   def addMeta(self,tag,xmlDict):
     """
@@ -250,15 +252,17 @@ class DataSet(DataObject):
       self._inputs.append(varName)
     elif classify == 'output':
       self._outputs.append(varName)
-      if type(values[0]) == xr.DataArray:
-        indexes = values[0].sizes.keys()
-        for index in indexes:
-          if index in self._pivotParams.keys():
-            self._pivotParams[index].append(varName)
-          else:
-            self._pivotParams[index]=[varName]
     else:
       self._metavars.append(varName)
+    # move from the elif classify =='output', since the metavars can also contain the
+    # time-dependent meta data.
+    if type(values[0]) == xr.DataArray:
+      indexes = values[0].sizes.keys()
+      for index in indexes:
+        if index in self._pivotParams.keys():
+          self._pivotParams[index].append(varName)
+        else:
+          self._pivotParams[index]=[varName]
     self._orderedVars.append(varName)
 
   def asDataset(self, outType='xrDataset'):

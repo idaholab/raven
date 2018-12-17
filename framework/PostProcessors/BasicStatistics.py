@@ -336,7 +336,8 @@ class BasicStatistics(PostProcessor):
       else:
         self.raiseAWarning('Unrecognized node in BasicStatistics "',tag,'" has been ignored!')
 
-    self.addMetaKeys(*metaKeys)
+    metaParams = {key:[self.pivotParameter] for key in metaKeys} if self.pivotParameter is not None else {}
+    self.addMetaKeys(metaKeys,metaParams)
     assert (len(self.toDo)>0), self.raiseAnError(IOError, 'BasicStatistics needs parameters to work on! Please check input for PP: ' + self.name)
 
   def __computePower(self, p, dataset):
@@ -347,9 +348,13 @@ class BasicStatistics(PostProcessor):
       @ Out, pw, xarray.Dataset, the p-th power of weights
     """
     pw = {}
+    coords = dataset.coords
     for target, targValue in dataset.variables.items():
+      ##remove index variable
+      if target in coords:
+        continue
       pw[target] = np.power(targValue,p)
-    pw = xr.Dataset(data_vars=pw)
+    pw = xr.Dataset(data_vars=pw,coords=coords)
     return pw
 
   def __computeVp(self,p,weights):
@@ -765,7 +770,7 @@ class BasicStatistics(PostProcessor):
         en = calculations['equivalentSamples'][varList]
         factor = 6.*en*(en-1.)/((en-2.)*(en+1.)*(en+3.))
         factor = self.__computePower(0.5,factor)
-        calculations[metric+'_ste'] = factor
+        calculations[metric+'_ste'] = xr.full_like(calculations[metric],1.0) * factor
       else:
         en = float(self.sampleSize)
         factor = np.sqrt(6.*en*(en-1.)/((en-2.)*(en+1.)*(en+3.)))
@@ -780,7 +785,7 @@ class BasicStatistics(PostProcessor):
         factor1 = self.__computePower(0.5,6.*en*(en-1.)/((en-2.)*(en+1.)*(en+3.)))
         factor2 = self.__computePower(0.5,(en**2-1.)/((en-3.0)*(en+5.0)))
         factor = 2.0 * factor1 * factor2
-        calculations[metric+'_ste'] = factor
+        calculations[metric+'_ste'] = xr.full_like(calculations[metric],1.0) * factor
       else:
         en = float(self.sampleSize)
         factor = 2.0 * np.sqrt(6.*en*(en-1.)/((en-2.)*(en+1.)*(en+3.)))*np.sqrt((en**2-1.)/((en-3.0)*(en+5.0)))
