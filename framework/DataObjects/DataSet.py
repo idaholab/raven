@@ -1767,7 +1767,6 @@ class DataSet(DataObject):
       #header
       ofile.writelines('<DataObjectMetadata name="{}">\n'.format(self.name))
       for name,target in meta.items():
-        print('what is it?',name,type(target))
         xml = xmlUtils.prettify(target.getRoot(),startingTabs=1,addRavenNewlines=False)
         #target.writeFile(asString=True,startingTabs=1,addRavenNewlines=False)
         ofile.writelines('  '+xml+'\n')
