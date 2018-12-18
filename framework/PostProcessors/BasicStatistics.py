@@ -251,6 +251,24 @@ class BasicStatistics(PostProcessor):
     #for backward compatibility, compile the full list of parameters used in Basic Statistics calculations
     self.parameters['targets'] = list(self.allUsedParams)
     PostProcessor.initialize(self, runInfo, inputs, initDict)
+    inputObj = inputs[-1] if type(inputs) == list else inputs
+    if inputObj.type == 'HistorySet':
+      self.dynamic = True
+    metaKeys = []
+    for metric, infos in self.toDo.items():
+      steMetric = metric + '_ste'
+      if steMetric in self.steVals:
+        for info in infos:
+          prefix = info['prefix']
+          for target in info['targets']:
+            metaVar = prefix + '_ste_' + target if not self.outputDataset else metric + '_ste'
+            metaKeys.append(metaVar)
+    if not self.outputDataset:
+      metaParams = {key:[self.pivotParameter] for key in metaKeys} if self.dynamic else {}
+    else:
+      metaParams = {key:[self.pivotParameter,self.steMetaIndex] for key in metaKeys} if self.dynamic else {key:[self.steMetaIndex]}
+
+    self.addMetaKeys(metaKeys,metaParams)
 
   def _localReadMoreXML(self, xmlNode):
     """
@@ -330,22 +348,7 @@ class BasicStatistics(PostProcessor):
         self.multipleFeatures = child.value
       else:
         self.raiseAWarning('Unrecognized node in BasicStatistics "',tag,'" has been ignored!')
-
-    metaKeys = []
-    for metric, infos in self.toDo.items():
-      steMetric = metric + '_ste'
-      if steMetric in self.steVals:
-        for info in infos:
-          prefix = info['prefix']
-          for target in info['targets']:
-            metaVar = prefix + '_ste_' + target if not self.outputDataset else metric + '_ste'
-            metaKeys.append(metaVar)
-    if not self.outputDataset:
-      metaParams = {key:[self.pivotParameter] for key in metaKeys} if self.pivotParameter is not None else {}
-    else:
-      metaParams = {key:[self.pivotParameter,self.steMetaIndex] for key in metaKeys} if self.pivotParameter is not None else {key:[self.steMetaIndex]}
-
-    self.addMetaKeys(metaKeys,metaParams)
+      
     assert (len(self.toDo)>0), self.raiseAnError(IOError, 'BasicStatistics needs parameters to work on! Please check input for PP: ' + self.name)
 
   def __computePower(self, p, dataset):

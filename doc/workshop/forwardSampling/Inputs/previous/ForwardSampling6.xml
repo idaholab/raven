@@ -61,7 +61,6 @@
     </PointSet>
     <PointSet name="Stat_basicStatPP">
       <Output>Stat_vars</Output>
-      <what>input,output</what>
     </PointSet>
   </DataObjects>
 
@@ -82,6 +81,7 @@
     <Print name="Stat_basicStatPP_dump">
       <type>csv</type>
       <source>Stat_basicStatPP</source>
+      <what>input,output</what>
     </Print>
   </OutStreams>
 
