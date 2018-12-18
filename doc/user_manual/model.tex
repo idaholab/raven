@@ -994,8 +994,8 @@ to couple a new code.
   \begin{itemize}
     \item \xmlAttr{type} \xmlDesc{string, required field} specifies the type of
     command-line argument to add.  Options include \xmlString{input},
-    \xmlString{output}, \xmlString{prepend}, \xmlString{postpend}, and
-    \xmlString{text}.
+    \xmlString{output}, \xmlString{prepend}, \xmlString{postpend}, 
+    \xmlString{text}, and \xmlString{python}.
     %
     \item \xmlAttr{arg} \xmlDesc{string, optional field} specifies the flag to
     be used before the entry.  For example, \xmlAttr{arg=}\xmlString{-i} would
@@ -1013,9 +1013,9 @@ to couple a new code.
       \nb This is currently only used to link the \xmlAttr{arg} and input file. i.e.
       the \xmlAttr{type} should be \xmlString{input} in order to use this feature.
   \end{itemize}
-  The execution command is combined in the order \xmlString{prepend},
+  The execution command is combined in the order \xmlString{prepend}, \xmlNode{python}
   \xmlNode{executable}, \xmlString{input}, \xmlString{output}, \xmlString{text},
-  \xmlString{postpend}.
+  \xmlString{postpend}.  The \xmlString{python} is a special type that puts the name of the python command.
   %
   \item \xmlNode{fileargs} \xmlDesc{string, optional field} like \xmlNode{clargs},
   but allows editing of input files to specify the output filename and/or auxiliary

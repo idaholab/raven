@@ -63,6 +63,8 @@ class RavenFramework(Tester):
     params.addParam('expected_fail', False, 'if true, then the test should fails, and if it passes, it fails.')
     params.addParam('remove_unicode_identifier', False, 'if true, then remove u infront of a single quote')
     params.addParam('interactive', False, 'if true, then RAVEN will be run with interactivity enabled.')
+    params.addParam('python3_only', False, 'if true, then only use with Python3')
+    params.addParam('ignore_sign', False, 'if true, then only compare the absolute values')
     return params
 
   def getCommand(self, options):
@@ -140,6 +142,10 @@ class RavenFramework(Tester):
         self.setStatus('skipped (Unable to import library: "'+lib+'")',
                        self.bucket_skip)
         return False
+    if self.specs['python3_only'] and not RavenUtils.inPython3():
+      self.setStatus('Python 3 only',
+                     self.bucket_skip)
+      return False
 
     i = 0
     if len(self.minimum_libraries) % 2:
@@ -246,12 +252,12 @@ class RavenFramework(Tester):
                   self.ucsv_files,
                   relative_error = float(self.specs["rel_err"]),
                   absolute_check = checkAbsoluteValue,
-                  zeroThreshold = zeroThreshold)
+                  zeroThreshold = zeroThreshold, ignore_sign=self.specs["ignore_sign"])
     else:
       ucsv_diff = UnorderedCSVDiffer(self.specs['test_dir'],
                   self.ucsv_files,
                   absolute_check = checkAbsoluteValue,
-                  zeroThreshold = zeroThreshold)
+                  zeroThreshold = zeroThreshold, ignore_sign=self.specs["ignore_sign"])
 
     ucsv_same,ucsv_messages = ucsv_diff.diff()
     if not ucsv_same:

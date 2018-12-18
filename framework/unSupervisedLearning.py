@@ -638,7 +638,12 @@ class SciKitLearn(unSupervisedLearning):
           rowSigma = self.muAndSigmaFeatures[rowFeature][1]
           for col, colFeature in enumerate(self.features):
             colSigma = self.muAndSigmaFeatures[colFeature][1]
-            covariance[row,col] = covariance[row,col] * rowSigma * colSigma
+            #if covariance type == full, the shape is (n_components, n_features, n_features)
+            if len(covariance.shape) == 3:
+              covariance[:,row,col] = covariance[:,row,col] * rowSigma * colSigma
+            else:
+              #XXX if covariance type == diag, this will be wrong.
+              covariance[row,col] = covariance[row,col] * rowSigma * colSigma
         self.metaDict['covars'] = covariance
     elif 'decomposition' == self.SKLtype:
 
@@ -884,7 +889,7 @@ class temporalSciKitLearn(unSupervisedLearning):
 
     for t in range(self.numberOfHistoryStep):
       sklInput = {}
-      for feat in self.features.keys():
+      for feat in self.features:
         sklInput[feat] = self.inputDict[feat][:,t]
 
       self.SKLEngine.features = sklInput

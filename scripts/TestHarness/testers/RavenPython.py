@@ -41,7 +41,7 @@ class RavenPython(Tester):
     params.addParam('required_libraries','','Skip test if any of these libraries are not found')
     params.addParam('required_executable_check_flags','','Flags to add to the required executable to make sure it runs without fail when testing its existence on the machine')
     params.addParam('minimum_library_versions','','Skip test if the library listed is below the supplied version (e.g. minimum_library_versions = \"name1 version1 name2 version2\")')
-
+    params.addParam('python3_only', False, 'if true, then only use with Python3')
     return params
 
   def prepare(self, options = None):
@@ -122,6 +122,10 @@ class RavenPython(Tester):
         self.setStatus('skipped (Unable to import library: "'+lib+'")',
                        self.bucket_skip)
         return False
+    if self.specs['python3_only'] and not RavenUtils.inPython3():
+      self.setStatus('Python 3 only',
+                     self.bucket_skip)
+      return False
 
     return True
 
