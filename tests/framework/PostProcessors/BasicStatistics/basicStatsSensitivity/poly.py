@@ -20,4 +20,4 @@ def eval(Y):
   return np.dot(A,(Y+B))
 
 def run(self,Input):
-  self.ans = eval(list(Input.values()))
+  self.ans = eval([Input['x1'],Input['x2'],Input['x3'],Input['x4'],Input['x5']])

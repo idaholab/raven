@@ -144,7 +144,7 @@ class MELCORdata:
     header = ','.join(itertools.chain(getHeaders,CFHeaders))
     header = "time,"+header+"\n"
     IOcsvfile.write(header)
-    for time in self.timeParams.keys():
+    for time in sorted(self.timeParams.keys()):
       stringToWrite = str(time)
       for value in self.timeParams[time].values():
         stringToWrite+=","+str(value)

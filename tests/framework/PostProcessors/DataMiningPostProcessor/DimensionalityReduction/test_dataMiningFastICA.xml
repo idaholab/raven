@@ -26,6 +26,7 @@
         <SKLtype>decomposition|FastICA</SKLtype>
         <random_state>0</random_state>
         <n_components>2</n_components>
+        <tol>1.0E-7</tol>
       </KDD>
     </PostProcessor>
   </Models>

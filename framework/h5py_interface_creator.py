@@ -49,7 +49,7 @@ def _dumps(val):
     @ In, val, any, data to encode
     @ Out, _dumps, np.void, encoded data
   """
-  return np.void(pk.dumps(val))
+  return np.void(pk.dumps(val, protocol=0))
 
 def _loads(val):
   """
@@ -60,7 +60,10 @@ def _loads(val):
   if hasattr(val,'tostring'):
     return pk.loads(val.tostring())
   else:
-    return pk.loads(val)
+    try:
+      return pk.loads(val)
+    except UnicodeDecodeError:
+      return pk.loads(val,errors='backslashreplace')
 
 #
 #  *************************
