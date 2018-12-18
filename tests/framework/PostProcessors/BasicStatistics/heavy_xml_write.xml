@@ -78,7 +78,6 @@
         <pivotParameter>time</pivotParameter>
       </options>
       <Output>stats_vars</Output>
-      <what>input,output</what>
     </HistorySet>
   </DataObjects>
 
@@ -97,6 +96,7 @@
     <Print name="stats_basicStatPP_dump">
       <type>csv</type>
       <source>stats_basicStatPP</source>
+      <what>input,output</what>
     </Print>
   </OutStreams>
 
