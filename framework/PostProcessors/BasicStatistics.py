@@ -348,7 +348,7 @@ class BasicStatistics(PostProcessor):
         self.multipleFeatures = child.value
       else:
         self.raiseAWarning('Unrecognized node in BasicStatistics "',tag,'" has been ignored!')
-      
+
     assert (len(self.toDo)>0), self.raiseAnError(IOError, 'BasicStatistics needs parameters to work on! Please check input for PP: ' + self.name)
 
   def __computePower(self, p, dataset):
