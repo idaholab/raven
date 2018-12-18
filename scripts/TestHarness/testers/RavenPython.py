@@ -74,19 +74,20 @@ class RavenPython(Tester):
   def checkRunnable(self, option):
     i = 0
     if len(self.minimum_libraries) % 2:
-      self.setStatus('skipped (libraries are not matched to versions numbers: '+str(self.minimum_libraries)+')', self.bucket_skip)
+      self.addCaveats('skipped (libraries are not matched to versions numbers: '+str(self.minimum_libraries)+')')
+      self.setStatus(self.skip)
       return False
     while i < len(self.minimum_libraries):
       libraryName = self.minimum_libraries[i]
       libraryVersion = self.minimum_libraries[i+1]
       found, message, actualVersion = RavenUtils.moduleReport(libraryName,libraryName+'.__version__')
       if not found:
-        self.setStatus('skipped (Unable to import library: "'+libraryName+'")',
-                       self.bucket_skip)
+        self.addCaveats('skipped (Unable to import library: "'+libraryName+'")')
+        self.setStatus(self.skip)
         return False
       if distutils.version.LooseVersion(actualVersion) < distutils.version.LooseVersion(libraryVersion):
-        self.setStatus('skipped (Outdated library: "'+libraryName+'")',
-                       self.bucket_skip)
+        self.addCaveats('skipped (Outdated library: "'+libraryName+'")')
+        self.setStatus(self.skip)
         return False
       i+=2
 
@@ -96,38 +97,41 @@ class RavenPython(Tester):
         argsList.extend(self.required_executable_check_flags)
         retValue = subprocess.call(argsList,stdout=subprocess.PIPE)
         if retValue != 0:
-          self.setStatus('skipped (Failing executable: "'+self.required_executable+'")', self.bucket_skip)
+          self.addCaveats('skipped (Failing executable: "'+self.required_executable+'")')
+          self.setStatus(self.skip)
           return False
       except:
-        self.setStatus('skipped (Error when trying executable: "'+self.required_executable+'")', self.bucket_skip)
+        self.addCaveats('skipped (Error when trying executable: "'+self.required_executable+'")')
+        self.setStatus(self.skip)
         return False
 
     if self.specs['requires_swig2'] and not RavenPython.has_swig2:
-      self.setStatus('skipped (No swig 2.0 found)', self.bucket_skip)
+      self.addCaveats('skipped (No swig 2.0 found)')
+      self.setStatus(self.skip)
       return False
     missing,too_old, notQA = RavenUtils.checkForMissingModules()
     if len(missing) > 0:
-      self.setStatus('skipped (Missing python modules: '+" ".join(missing)+
-                     " PYTHONPATH="+os.environ.get("PYTHONPATH","")+')',
-                     self.bucket_skip)
+      self.addCaveats('skipped (Missing python modules: '+" ".join(missing)+
+                     " PYTHONPATH="+os.environ.get("PYTHONPATH","")+')')
+      self.setStatus(self.skip)
       return False
     if len(too_old) > 0 and RavenUtils.checkVersions():
-      self.setStatus('skipped (Old version python modules: '+" ".join(too_old)+
-                     " PYTHONPATH="+os.environ.get("PYTHONPATH","")+')',
-                     self.bucket_skip)
+      self.addCaveats('skipped (Old version python modules: '+" ".join(too_old)+
+                     " PYTHONPATH="+os.environ.get("PYTHONPATH","")+')')
+      self.setStatus(self.skip)
       return False
     for lib in self.required_libraries:
       found, message, version =  RavenUtils.moduleReport(lib,'')
       if not found:
-        self.setStatus('skipped (Unable to import library: "'+lib+'")',
-                       self.bucket_skip)
+        self.addCaveats('skipped (Unable to import library: "'+lib+'")')
+        self.setStatus(self.skip)
         return False
 
     return True
 
   def processResults(self, moose_dir, options, output):
     if self.exit_code != 0:
-      self.setStatus(str(self.exit_code), self.bucket_fail)
+      self.setStatus(self.fail, str(self.exit_code))
       return output
-    self.setStatus(self.success_message, self.bucket_success)
+    self.setStatus(self.success)
     return output
