@@ -289,7 +289,7 @@ class RAVENparser():
             raise IOError(self.printTag+' ERROR: at least the main XML node should be present in the RAVEN template input -> '+node.strip()+'. Please check the input!!')
           getFirstElement = returnElement.findall(allowAddNodes[indexFirstUnknownNode-1])[0]
           for i in range(indexFirstUnknownNode,len(allowAddNodes)):
-            nodeWithAttributeName = allowAddNodesPath.keys()[i]
+            nodeWithAttributeName = list(allowAddNodesPath.keys())[i]
             if not allowAddNodesPath[nodeWithAttributeName]:
               subElement =  ET.Element(nodeWithAttributeName)
             else:

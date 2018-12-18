@@ -100,7 +100,7 @@ class MOOSEparser():
           valueStr = repr(value)
         else:
           valueStr = toStrish(value)
-        IOfile.write(indent+key+' = '+valueStr+'\n')
+        IOfile.write(indent+toString(key)+' = '+valueStr+'\n')
     # 4 sub levels maximum
     def printSubLevels(xmlnode,IOfile,indentMultiplier):
       IOfile.write('  '*indentMultiplier+'[./'+xmlnode.tag+']\n')

@@ -1,8 +1,8 @@
 <DataObjectMetadata name="basicStat">
   <DataSet type="Static">
     <general>
-      <outputs>sen_ans_ans,sen_x1_ans,sen_x2_ans,sen_x3_ans,sen_x4_ans,sen_x5_ans,sen_ans_x1,sen_x1_x1,sen_x2_x1,sen_x3_x1,sen_x4_x1,sen_x5_x1,sen_ans_x2,sen_x1_x2,sen_x2_x2,sen_x3_x2,sen_x4_x2,sen_x5_x2,sen_ans_x3,sen_x1_x3,sen_x2_x3,sen_x3_x3,sen_x4_x3,sen_x5_x3,sen_ans_x4,sen_x1_x4,sen_x2_x4,sen_x3_x4,sen_x4_x4,sen_x5_x4,sen_ans_x5,sen_x1_x5,sen_x2_x5,sen_x3_x5,sen_x4_x5,sen_x5_x5</outputs>
       <sampleTag>RAVEN_sample_ID</sampleTag>
+      <outputs>sen_ans_x1,sen_x1_x1,sen_x2_x1,sen_x3_x1,sen_x4_x1,sen_x5_x1,sen_ans_x2,sen_x1_x2,sen_x2_x2,sen_x3_x2,sen_x4_x2,sen_x5_x2,sen_ans_x3,sen_x1_x3,sen_x2_x3,sen_x3_x3,sen_x4_x3,sen_x5_x3,sen_ans_x4,sen_x1_x4,sen_x2_x4,sen_x3_x4,sen_x4_x4,sen_x5_x4,sen_ans_x5,sen_x1_x5,sen_x2_x5,sen_x3_x5,sen_x4_x5,sen_x5_x5</outputs>
     </general>
   </DataSet>
   
