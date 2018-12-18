@@ -249,14 +249,15 @@ class HDF5(DateBase):
     self.database.addGroup(rlz)
     self.built = True
 
-  def addExpectedMeta(self,keys):
+  def addExpectedMeta(self,keys,params={}):
     """
       Registers meta to look for in realizations.
       @ In, keys, set(str), keys to register
+      @ In, params, dict, var:[params] as str:list(str)
       @ Out, None
     """
-    self.database.addExpectedMeta(keys)
-    self.addMetaKeys(*keys)
+    self.database.addExpectedMeta(keys,params)
+    self.addMetaKeys(keys, params)
 
   def provideExpectedMetaKeys(self):
     """

@@ -284,10 +284,11 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta,BaseType)):
   # DATA CONTAINER API #
   ######################
   @abc.abstractmethod
-  def addExpectedMeta(self,keys):
+  def addExpectedMeta(self,keys, params={}):
     """
       Registers meta to look for in realization
       @ In, keys, set(str), keys to register
+      @ In, params, dict, {key:[indexes]}, dictionary of keys with respect to their indexes
       @ Out, None
     """
     pass

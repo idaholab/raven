@@ -188,7 +188,7 @@ class hdf5Database(MessageHandler.MessageUser):
         self.raiseAWarning('not found attribute endGroup in group ' + name + '.Set True.')
     return
 
-  def addExpectedMeta(self, keys):
+  def addExpectedMeta(self, keys, params={}):
     """
       Store expected metadata
       @ In, keys, set(), the metadata list
