@@ -140,6 +140,24 @@ data objects, depending on the type of statistics the user wants to compute:
   one of these sampler/ROM combinations may not provide the information that the
   user expects.
   \\
+  In addition, RAVEN will automatically calculate the standard errors on the following scalar quantities:
+  \begin{itemize}
+    \item \textbf{expectedValue}
+    \item \textbf{median}
+    \item \textbf{variance}
+    \item \textbf{sigma}
+    \item \textbf{skewness}
+    \item \textbf{kurtosis}
+  \end{itemize}
+  RAVEN will define a variable with name defined as: ``prefix for given \textbf{metric}'' + ``\_ste\_'' + ``parameter name'' to
+  store standard error of given \textbf{metric} with respect to given parameter. This information will be stored in the DataObjects,
+  i.e. \textbf{PointSet} and \textbf{HistorySet}, and by default will be printed out in the ``CSV'' output files by the 
+  \textbf{OutStreams}. Option node \xmlNode{what} can be used in the \textbf{OutStreams} to select the information that 
+  the users want to print.
+  In the case when the users want to store all the calculations results in general \textbf{DataSets}, RAVEN will employ a variable
+  with name defined as: ``\textbf{metric}'' + ``\_ste'' to store standard error with respect to all target parameters. An additional
+  index ``target'' will added in the \textbf{DataSets} with respect to these variables. All these quantities will be automatically
+  computed and stored in the given \textbf{DataSet}, and the users do not need to specify these quantities in their RAVEN input files.
   %
    \item \xmlNode{pivotParameter}, \xmlDesc{string, optional field}, name of the parameter that needs
    to be used for the computation of the Dynamic BasicStatistics (e.g. time). This node needs to
