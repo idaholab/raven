@@ -16,7 +16,13 @@
         using Grid samples.
     </description>
     <revisions>
-      <revision author="wangc" date="2018-12-13">Create Test</revision>
+      <revision author="wangc" date="2018-12-13">
+          In PR #882, the standard errors on statistics moments are implemented, these quantities are stored in
+          the pointwised metadata, and will be printed out in the output csv files by default.
+          This test will test the grid-based weighted standard errors calculations. The equivalent sample size
+          will be computed first using the probability weights, and then standard errors will be computed with
+          unbiased standard deviations and/or the equivalent sample size.
+      </revision>
     </revisions>
   </TestInfo>
 

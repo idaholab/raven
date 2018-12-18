@@ -139,6 +139,7 @@ class BasicStatistics(PostProcessor):
     self.pbPresent      = False # True if the ProbabilityWeight is available
     self.realizationWeight = None # The joint probabilities
     self.outputDataset  = False # True if the user wants to dump the outputs to dataset
+    self.steMetaIndex   = 'targets' # when Dataset is requested as output, the default index of ste metadata is ['targets', self.pivotParameter]
     self.multipleFeatures = True # True if multiple features are employed in linear regression as feature inputs
     self.sampleSize     = None # number of sample size
 
@@ -269,7 +270,6 @@ class BasicStatistics(PostProcessor):
       @ Out, None
     """
     self.toDo = {}
-    metaKeys = []
     for child in paramInput.subparts:
       tag = child.getName()
       #because percentile is strange (has an attached parameter), we address it first
@@ -303,11 +303,6 @@ class BasicStatistics(PostProcessor):
           self.toDo[tag] = [] # list of {'targets':(), 'prefix':str}
         self.toDo[tag].append({'targets':set(child.value),
                                'prefix':prefix})
-        steMetric = tag + '_ste'
-        if steMetric in self.steVals:
-          for target in set(child.value):
-            metaVar = prefix + '_ste_' + target
-            metaKeys.append(metaVar)
 
       elif tag in self.vectorVals:
         if tag not in self.toDo.keys():
@@ -336,7 +331,20 @@ class BasicStatistics(PostProcessor):
       else:
         self.raiseAWarning('Unrecognized node in BasicStatistics "',tag,'" has been ignored!')
 
-    metaParams = {key:[self.pivotParameter] for key in metaKeys} if self.pivotParameter is not None else {}
+    metaKeys = []
+    for metric, infos in self.toDo.items():
+      steMetric = metric + '_ste'
+      if steMetric in self.steVals:
+        for info in infos:
+          prefix = info['prefix']
+          for target in info['targets']:
+            metaVar = prefix + '_ste_' + target if not self.outputDataset else metric + '_ste'
+            metaKeys.append(metaVar)
+    if not self.outputDataset:
+      metaParams = {key:[self.pivotParameter] for key in metaKeys} if self.pivotParameter is not None else {}
+    else:
+      metaParams = {key:[self.pivotParameter,self.steMetaIndex] for key in metaKeys} if self.pivotParameter is not None else {key:[self.steMetaIndex]}
+
     self.addMetaKeys(metaKeys,metaParams)
     assert (len(self.toDo)>0), self.raiseAnError(IOError, 'BasicStatistics needs parameters to work on! Please check input for PP: ' + self.name)
 
