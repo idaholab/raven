@@ -333,6 +333,7 @@ class ROM(Dummy):
       @ Out, None
     """
     # TODO handle statepoint ROMs (dynamic, but rom doesn't handle intrinsically)
+    ## should probably let the LearningGate handle this! It knows how to stitch together pieces, sort of.
     engines = self.supervisedEngine.supervisedContainer
     for engine in engines:
       engine.writePointwiseData(writeTo)
