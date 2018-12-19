@@ -452,7 +452,7 @@ class BasicStatistics(PostProcessor):
       else:
         result = -3.0 + (p4 * vp * unbiasCorr) / vr
     else:
-      unbiasCorr = self.__computeUnbiasedCorrection(4,arrayIn.sizes[dim]) if not self.biased else 1.0
+      unbiasCorr = self.__computeUnbiasedCorrection(4,int(arrayIn.sizes[dim])) if not self.biased else 1.0
       vp = 1.0 / arrayIn.sizes[dim]
       p4 = ((arrayIn - expValue)**4.0).sum(dim=dim)
       if not self.biased:
@@ -480,7 +480,7 @@ class BasicStatistics(PostProcessor):
       vp = 1.0/self.__computeVp(1,pbWeight)
       result = ((arrayIn - expValue)**3 * pbWeight).sum(dim=dim) * vp * unbiasCorr / vr
     else:
-      unbiasCorr = self.__computeUnbiasedCorrection(3,arrayIn.sizes[dim]) if not self.biased else 1.0
+      unbiasCorr = self.__computeUnbiasedCorrection(3,int(arrayIn.sizes[dim])) if not self.biased else 1.0
       vp = 1.0 / arrayIn.sizes[dim]
       result = ((arrayIn - expValue)**3).sum(dim=dim) * vp * unbiasCorr / vr
     return result
@@ -501,7 +501,7 @@ class BasicStatistics(PostProcessor):
       vp = 1.0/self.__computeVp(1,pbWeight)
       result = ((arrayIn-expValue)**2 * pbWeight).sum(dim=dim) * vp * unbiasCorr
     else:
-      unbiasCorr = self.__computeUnbiasedCorrection(2,arrayIn.sizes[dim]) if not self.biased else 1.0
+      unbiasCorr = self.__computeUnbiasedCorrection(2,int(arrayIn.sizes[dim])) if not self.biased else 1.0
       result =  (arrayIn-expValue).var(dim=dim) * unbiasCorr
     return result
 
