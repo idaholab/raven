@@ -18,7 +18,7 @@
     <revisions>
       <revision author="wangc" date="2018-12-13">
           In PR #882, the standard errors on statistics moments are implemented, these quantities are stored in
-          the pointwised metadata, and will be printed out in the output csv files by default.
+          the pointwise metadata, and will be printed out in the output csv files by default.
           This test will test the Monte Carlo-based weighted standard errors calculations. The equivalent sample size
           will be equal the number of samples in this case, and then standard errors will be computed with
           unbiased standard deviations and/or the equivalent sample size.

@@ -192,6 +192,8 @@ class hdf5Database(MessageHandler.MessageUser):
     """
       Store expected metadata
       @ In, keys, set(), the metadata list
+      @ In, params, dict, optional, {key:[indexes]}, keys of the dictionary are the variable names,
+        values of the dictionary are lists of the corresponding indexes/coordinates of given variable
       @ Out, None
     """
     self.h5FileW.attrs['expectedMetadata'] = _dumps(list(keys))

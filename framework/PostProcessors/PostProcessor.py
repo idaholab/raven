@@ -104,7 +104,8 @@ class PostProcessor(Assembler):
     """
       Adds keywords to a list of expected metadata keys.
       @ In, args, list(str), keywords to register
-      @ In, params, dict, var:[indexes] as str:list(str)
+      @ In, params, dict, optional, {key:[indexes]}, keys of the dictionary are the variable names,
+        values of the dictionary are lists of the corresponding indexes/coordinates of given variable
       @ Out, None
     """
     self.metadataKeys = self.metadataKeys.union(set(args))

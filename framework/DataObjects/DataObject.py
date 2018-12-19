@@ -288,7 +288,8 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     """
       Registers meta to look for in realization
       @ In, keys, set(str), keys to register
-      @ In, params, dict, {key:[indexes]}, dictionary of keys with respect to their indexes
+      @ In, params, dict, optional, {key:[indexes]}, keys of the dictionary are the variable names,
+        values of the dictionary are lists of the corresponding indexes/coordinates of given variable
       @ Out, None
     """
     pass

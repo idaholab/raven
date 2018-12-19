@@ -253,7 +253,8 @@ class HDF5(DateBase):
     """
       Registers meta to look for in realizations.
       @ In, keys, set(str), keys to register
-      @ In, params, dict, var:[params] as str:list(str)
+      @ In, params, dict, optional, {key:[indexes]}, keys of the dictionary are the variable names,
+        values of the dictionary are lists of the corresponding indexes/coordinates of given variable
       @ Out, None
     """
     self.database.addExpectedMeta(keys,params)
