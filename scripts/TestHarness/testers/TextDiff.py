@@ -20,18 +20,19 @@ from Tester import Differ
 class TextDiff:
   """ TextDiff is used for comparing a bunch of xml files.
   """
-  def __init__(self, testDir, outFile,**kwargs):
+  def __init__(self, out_files, gold_files,**kwargs):
     """ Create a TextDiff class
     testDir: the directory where the test takes place
-    outFile: the files to be compared.  They will be in testDir + outFile
-               and testDir + gold + outFile
+    out_files: the files to be compared.
+    gold_files: the gold files to compare to the outfiles
     args: other arguments that may be included:
           - 'comment': indicates the character or string that should be used to denote a comment line
     """
-    self.__outFile = outFile
+    assert len(out_files) == len(gold_files)
+    self.__out_files = out_files
+    self.__gold_files = gold_files
     self.__messages = ""
     self.__same = True
-    self.__testDir = testDir
     self.__options = kwargs
 
   def diff(self):
@@ -41,9 +42,7 @@ class TextDiff:
     """
     # read in files
     commentSymbol = self.__options['comment']
-    for outfile in self.__outFile:
-      testFilename = os.path.join(self.__testDir,outfile)
-      goldFilename = os.path.join(self.__testDir, 'gold', outfile)
+    for testFilename, goldFilename in zip(self.__out_files, self.__gold_files):
       if not os.path.exists(testFilename):
         self.__same = False
         self.__messages += 'Test file does not exist: '+testFilename
@@ -101,7 +100,7 @@ class Text(Differ):
     """
     Differ.__init__(self, name, params)
     self.__text_opts = {'comment': self.specs['comment']}
-    self.__text_files = self.specs['output'].split()
+    #self.__text_files = self.specs['output'].split()
 
   def check_output(self, test_dir):
     """
@@ -111,5 +110,7 @@ class Text(Differ):
     test passes, or false if the test failes.  message should
     gives a human readable explaination of the differences.
     """
-    text_diff =  TextDiff(test_dir, self.__text_files, **self.__text_opts)
+    text_files = self._get_test_files(test_dir)
+    gold_files = self._get_gold_files(test_dir)
+    text_diff =  TextDiff(text_files, gold_files, **self.__text_opts)
     return text_diff.diff()

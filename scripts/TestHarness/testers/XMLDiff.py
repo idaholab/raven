@@ -320,19 +320,21 @@ class XMLDiff:
   notMatchAttribute = 5
   notMatchText      = 6
 
-  def __init__(self, testDir, outFile,**kwargs):
+  def __init__(self, out_files, gold_files, **kwargs):
     """
       Create an XMLDiff class
       @ In, testDir, string, the directory where the test takes place
-      @ In, outFile, string, the files to be compared.  They will be in testDir + outFile and testDir + gold + outFile
+      @ In, out_files, List(string), the files to be compared.
+      @ In, gold_files, List(String), the gold files to be compared.
       @ In, kwargs, dict,  other arguments that may be included:
             - 'unordered': indicates unordered sorting
       @ Out, None
     """
-    self.__outFile = outFile
+    assert len(out_files) == len(gold_files)
+    self.__out_files = out_files
+    self.__gold_files = gold_files
     self.__messages = ""
     self.__same = True
-    self.__testDir = testDir
     self.__options = kwargs
 
   def diff(self):
@@ -342,9 +344,7 @@ class XMLDiff:
       @ Out, diff, (bool,string), (same,messages) where same is true if all the xml files are the same, and messages is a string with all the differences.
     """
     # read in files
-    for outfile in self.__outFile:
-      testFilename = os.path.join(self.__testDir,outfile)
-      goldFilename = os.path.join(self.__testDir, 'gold', outfile)
+    for testFilename, goldFilename in zip(self.__out_files, self.__gold_files):
       if not os.path.exists(testFilename):
         self.__same = False
         self.__messages += 'Test file does not exist: '+testFilename
@@ -409,7 +409,6 @@ class XML(Differ):
     self.__xmlopts['remove_unicode_identifier'] = self.specs['remove_unicode_identifier']
     if len(self.specs['xmlopts'])>0:
       self.__xmlopts['xmlopts'] = self.specs['xmlopts'].split(' ')
-    self.__xml_files = self.specs['output'].split()
 
   def check_output(self, test_dir):
     """
@@ -419,5 +418,7 @@ class XML(Differ):
     test passes, or false if the test failes.  message should
     gives a human readable explaination of the differences.
     """
-    xml_diff = XMLDiff(test_dir,self.__xml_files,**self.__xmlopts)
+    xml_files = self._get_test_files(test_dir)
+    gold_files = self._get_gold_files(test_dir)
+    xml_diff = XMLDiff(xml_files, gold_files, **self.__xmlopts)
     return xml_diff.diff()
