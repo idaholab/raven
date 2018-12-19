@@ -14,7 +14,7 @@
    type = 'RavenFramework'
    input = 'test_ARMA.xml'
    csv = 'ARMA/stats.csv'
-   rel_err = 1e-3
+   rel_err = 5e-2
   [../]
   [./ARMAparallel]
    type = 'RavenFramework'
@@ -39,7 +39,7 @@
    type = 'RavenFramework'
    input = 'single_fourier.xml'
    csv = 'SingleFourier/synthetic_0.csv'
-   rel_err = 5e-2
+   rel_err = 6e-1
   [../]
 
   [./MultipleArma]
@@ -74,4 +74,14 @@
     rel_err = 2e-1
     max_time = 300
   [../]
+
+  [./Segmented]
+    type = 'RavenFramework'
+    input = 'segmented.xml'
+    output = 'Segmented/synthetic.csv Segmented/synthetic_0.csv Segmented/synthetic.xml Segmented/stats.xml'
+    csv = 'Segmented/stats.csv'
+    rel_err = 1e-2
+    max_time = 500 # ONLY due to 2018 Windows VDI test machine
+  [../]
+
 []
