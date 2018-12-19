@@ -1,8 +1,21 @@
-
+# Copyright 2017 Battelle Energy Alliance, LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+"""
+This module is the main program for running tests.
+"""
 from __future__ import division, print_function, absolute_import
 import warnings
-warnings.simplefilter('default',DeprecationWarning)
-
 
 import os
 import sys
@@ -16,6 +29,8 @@ import pool
 import trees.TreeStructure
 from Tester import Tester, Differ
 
+warnings.simplefilter('default', DeprecationWarning)
+
 parser = argparse.ArgumentParser(description="Test Runner")
 parser.add_argument('-j', '--jobs', dest='number_jobs', type=int, default=1,
                     help='Specifies number of tests to run simultaneously (default: 1)')
@@ -28,15 +43,15 @@ parser.add_argument('--heavy', action='store_true',
 
 args = parser.parse_args()
 
-if args.load_average > 0 and hasattr(os,"getloadavg"):
-  #XXX it would probably be better to do this before starting each test
+if args.load_average > 0 and hasattr(os, "getloadavg"):
+  #Note that this is also done before starting each test
   while os.getloadavg()[0] > args.load_average:
-    print("Load Average too high, waiting ",os.getloadavg()[0])
+    print("Load Average too high, waiting ", os.getloadavg()[0])
     time.sleep(1.0)
 
-def load_average_adapter(func):
+def load_average_adapter(function):
   """
-  Adapts func to not start until load average is low enough
+  Adapts function to not start until load average is low enough
   """
   def new_func(data):
     """
@@ -44,7 +59,7 @@ def load_average_adapter(func):
     """
     while os.getloadavg()[0] > args.load_average:
       time.sleep(1.0)
-    return func(data)
+    return function(data)
   return new_func
 
 test_re = re.compile(args.test_re_raw)
@@ -55,18 +70,18 @@ this_dir = os.path.abspath(os.path.dirname(__file__))
 up_one_dir = os.path.dirname(this_dir)
 base_test_dir = os.path.join(up_one_dir, "tests")
 
-print(this_dir,base_test_dir)
+print(this_dir, base_test_dir)
 
 def get_test_lists(directory):
   """
   Returns a list of all the files named tests under the directory
   directory: the directory to start at
   """
-  test_list = []
-  for root, dirs, files in os.walk(directory):
+  dir_test_list = []
+  for root, _, files in os.walk(directory):
     if 'tests' in files:
-      test_list.append((root,os.path.join(root,'tests')))
-  return test_list
+      dir_test_list.append((root, os.path.join(root, 'tests')))
+  return dir_test_list
 
 test_list = get_test_lists(base_test_dir)
 
@@ -117,14 +132,15 @@ def get_testers_and_differs(directory):
   return tester_dict, differ_dict
 
 
-testers, differs = get_testers_and_differs(os.path.join(up_one_dir, "scripts", "TestHarness", "testers"))
-print("Testers:",testers)
-print("Differs:",differs)
+testers, differs = get_testers_and_differs(os.path.join(up_one_dir, "scripts",
+                                                        "TestHarness", "testers"))
+print("Testers:", testers)
+print("Differs:", differs)
 
 tester_params = {}
 for tester in testers:
   tester_params[tester] = testers[tester].validParams()
-print("Tester Params:",tester_params)
+print("Tester Params:", tester_params)
 
 function_list = [] #Store the data for the pool runner
 test_name_list = []
@@ -173,7 +189,7 @@ for test_dir, test_file in test_list:
       id_num = len(function_list)
       input_filename = node.attrib['input']
       func = tester.run
-      if args.load_average > 0 and hasattr(os,"getloadavg"):
+      if args.load_average > 0 and hasattr(os, "getloadavg"):
         func = load_average_adapter(func)
       function_list.append((func, (test_dir, input_filename)))
       test_name_list.append(test_name)
@@ -189,39 +205,49 @@ run_pool = pool.MultiRun(function_list, args.number_jobs, ready_to_run)
 
 run_pool.run()
 
-results = {"pass":0,"fail":0,"skipped":0}
+results = {"pass":0, "fail":0, "skipped":0}
 failed_list = []
 
 def sec_format(runtime):
-  if type(runtime) == type(0.0):
+  """
+  Formats the runtime into a string of the number seconds.
+  If runtime is none, format as None!
+  runtime: float or None, runtime to be formated.
+  return str of runtime.
+  """
+  if isinstance(runtime, float):
     return "{:6.2f}sec".format(runtime)
-  else:
-    return "  None!  "
+  return "  None!  "
 
-def process_result(index, input_data, output_data):
-  test_dir, input_filename = input_data
+def process_result(index, _input_data, output_data):
+  """
+  This is a callback function that Processes the result of a test.
+  index: int, Index into functions list.
+  _input_data: the input data passed to the function
+  output_data: the output data passed to the function
+  """
   bucket = output_data.bucket
-  test_name = test_name_list[index]
+  process_test_name = test_name_list[index]
   if bucket == Tester.bucket_success:
     results["pass"] += 1
-    for postreq in function_postreq.get(test_name,[]):
+    for postreq in function_postreq.get(process_test_name, []):
       if postreq in name_to_id:
         job_id = name_to_id[postreq]
-        print("Enabling",postreq,job_id)
+        print("Enabling", postreq, job_id)
         run_pool.enable_job(job_id)
   elif bucket == Tester.bucket_skip:
     results["skipped"] += 1
     print(output_data.message)
   else:
     results["fail"] += 1
-    failed_list.append(test_name)
+    failed_list.append(process_test_name)
     print(output_data.output)
     print(output_data.message)
   number_done = sum(results.values())
   print("({}/{}) {:7s} ({}) {}".format(number_done, len(function_list),
                                        Tester.get_bucket_name(bucket),
                                        sec_format(output_data.runtime),
-                                       test_name))
+                                       process_test_name))
 
 output_list = run_pool.process_results(process_result)
 run_pool.wait()
@@ -231,17 +257,17 @@ if results["fail"] > 0:
 for path in failed_list:
   print(path)
 
-csv_report = open("test_report.csv","w")
-csv_report.write(",".join(["name","passed","bucket","time"])+"\n")
-for result,test_name in zip(output_list,test_name_list):
+csv_report = open("test_report.csv", "w")
+csv_report.write(",".join(["name", "passed", "bucket", "time"])+"\n")
+for result, test_name in zip(output_list, test_name_list):
   if result is not None:
     bucket_name = Tester.get_bucket_name(result.bucket)
-    out_line = ",".join([test_name,str(result.bucket ==  Tester.bucket_success),
-                         bucket_name,str(result.runtime)])
+    out_line = ",".join([test_name, str(result.bucket == Tester.bucket_success),
+                         bucket_name, str(result.runtime)])
   else:
-    out_line = ",".join([test_name,str(False),"NO_PREREQ",str(0.0)])
+    out_line = ",".join([test_name, str(False), "NO_PREREQ", str(0.0)])
   csv_report.write(out_line+"\n")
 csv_report.close()
 
-print("PASSED:",results["pass"],"FAILED:",results["fail"],"SKIPPED",results["skipped"])
+print("PASSED:", results["pass"], "FAILED:", results["fail"], "SKIPPED", results["skipped"])
 sys.exit(results["fail"])
