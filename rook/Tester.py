@@ -8,6 +8,7 @@ import sys
 import os
 import time
 import threading
+from distutils import spawn
 
 class _Parameter:
 
@@ -147,7 +148,10 @@ class _TimeoutThread(threading.Thread):
         break
       if time.time() > end:
         #Time over
-        self.__process.kill()
+        if os.name == "nt" and spawn.find_executable("taskkill"):
+          subprocess.call(['taskkill', '/f', '/t', '/pid',str(self.__process.pid)])
+        else:
+          self.__process.kill()
         self.__killed = True
         break
       time.sleep(1.0)
