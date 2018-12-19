@@ -95,6 +95,14 @@ class Differ:
     self.specs = valid_params.get_filled_dict(params)
     self.__output_files = self.specs['output'].split()
 
+  def get_remove_files(self, test_dir):
+    """
+    Returns a list of files to remove before running test.
+    test_dir: string, the test directory
+    returns List(Strings)
+    """
+    return self._get_test_files(test_dir)
+
   def _get_test_files(self, test_dir):
     """
     returns a list of the full path of the test files
@@ -198,6 +206,16 @@ class Tester:
     self.results = TestResult()
     self.__differs = []
     self.__run_heavy = False
+
+  def get_differ_remove_files(self, test_dir):
+    """
+    Returns the files that need to be removed for testing.
+    returns List(String)
+    """
+    remove_files = []
+    for differ in self.__differs:
+      remove_files.extend(differ.get_remove_files(test_dir))
+    return remove_files
 
   def add_differ(self, differ):
     """

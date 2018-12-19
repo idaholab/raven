@@ -93,8 +93,6 @@ class RavenFramework(Tester):
     if len(self.specs[spec_name]) == 0:
       #No files, so quit
       return
-    files = self.specs[spec_name].split(" ")
-    self.all_files += files
     differ_params = dict(self.specs)
     differ_params["output"] = self.specs[spec_name]
     differ_params["type"] = differ_class.__name__
@@ -224,7 +222,8 @@ class RavenFramework(Tester):
       @ Out, createdFiles, [str], list of files created by the test.
     """
     runpath = self.get_test_dir()
-    return list(os.path.join(runpath,file) for file in self.all_files)
+    remove_files = self.get_differ_remove_files(runpath)
+    return remove_files+list(os.path.join(runpath,file) for file in self.all_files)
 
   def prepare(self, options = None):
     self.check_files = [os.path.join(self.specs['test_dir'],filename)  for filename in self.check_files]
