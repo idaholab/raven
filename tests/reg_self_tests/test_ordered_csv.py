@@ -32,7 +32,9 @@ for expected_same, filename in [(True,"same.csv"),
                                 (False,"diff_word.csv"),
                                 (False,"diff_col_word.csv"),
                                 (False,"diff_type.csv")]:
-  differ = OrderedCSVDiffer(my_dir, [filename])
+  orig = os.path.join(my_dir, filename)
+  gold = os.path.join(my_dir, "gold", filename)
+  differ = OrderedCSVDiffer([filename], [gold])
   same, message = differ.diff()
   print(message)
   if expected_same != same:
