@@ -39,7 +39,7 @@ class CrowPython(Tester):
     params.add_param('requires_swig2', False, "Requires swig2 for test")
     return params
 
-  def getCommand(self, options):
+  def get_command(self):
     """ Return the command this test will run. """
     return self.specs["python_command"]+" "+self.specs["input"]
 
@@ -61,14 +61,14 @@ class CrowPython(Tester):
     Tester.__init__(self, name, params)
     self.specs['scale_refine'] = False
 
-  def checkRunnable(self, option):
+  def check_runnable(self):
     """ Checks if a test case is capable of being run on the current system. """
     if self.specs['requires_swig2'] and not CrowPython.has_swig2:
-      self.setStatus('skipped (No swig 2.0 found)', self.bucket_skip)
+      self.set_status('skipped (No swig 2.0 found)', self.bucket_skip)
       return False
     return True
 
-  def processResults(self, moose_dir, options, output):
+  def process_results(self, output):
     """ Handle the results of test case.
         @ In, moose_dir: the root directory where MOOSE resides on the current
                          system.
@@ -77,7 +77,7 @@ class CrowPython(Tester):
         @ Out: a tuple with the error return code and the output passed in.
     """
     if self.results.exit_code != 0:
-      self.setStatus(str(self.results.exit_code), self.bucket_fail)
+      self.set_status(str(self.results.exit_code), self.bucket_fail)
       return output
     self.set_success()
     return output

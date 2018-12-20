@@ -296,7 +296,6 @@ class Tester:
     Runs this tester.  This does the main work,
     but is separate to allow run to invert the result if expected_fail
     """
-    options = None
     if self.specs['skip'] is not False:
       self.results.bucket = self.bucket_skip
       self.results.message = self.specs['skip']
@@ -309,12 +308,12 @@ class Tester:
       self.results.bucket = self.bucket_skip
       self.results.message = "SKIPPED (not Heavy)"
       return self.results
-    if not self.checkRunnable(options):
+    if not self.check_runnable():
       return self.results
 
     self.prepare()
 
-    command = self.getCommand(options)
+    command = self.get_command()
 
     timeout = int(self.specs['max_time'])
     directory = self.specs['test_dir']
@@ -353,7 +352,7 @@ class Tester:
       self.results.bucket = self.bucket_timed_out
       self.results.message = "Timed Out"
       return self.results
-    self.processResults(None, options, output)
+    self.process_results(output)
     for differ in self.__differs:
       same, message = differ.check_output()
       if not same:
@@ -373,7 +372,7 @@ class Tester:
       return names[bucket]
     return "UNKNOWN BUCKET"
 
-  def checkRunnable(self, options):
+  def check_runnable(self):
     """
     Checks if this test case can run
     """
@@ -386,29 +385,27 @@ class Tester:
     self.results.bucket = self.bucket_success
     self.results.message = Tester.get_bucket_name(self.results.bucket)
 
-  def setStatus(self, message, bucket):
+  def set_status(self, message, bucket):
     """
     Sets the message string and the bucket type
     """
     self.results.message = message
     self.results.bucket = bucket
 
-  def processResults(self, moose_dir, options, output):
+  def process_results(self, output):
     """
     Handle the results of the test case.
-    moose_dir: unused
-    options: unused
     output: the output of the test case.
     """
-    assert False, "processResults not implemented"
+    assert False, "process_results not implemented "+output
 
-  def getCommand(self, options):
+  def get_command(self):
     """
     returns the command used to run the test
     """
     assert False, "getCommand not implemented"
 
-  def prepare(self, options=None):
+  def prepare(self):
     """
     gets the test ready to run.
     """
