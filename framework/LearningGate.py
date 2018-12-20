@@ -447,7 +447,7 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
     if self.targetDatas is None: # DEBUGG only
       self.targetDatas = [] # DEBUGG only
     # loop over clusters and train data
-    clusterFeatureDict = {}
+    clusterFeatureDict = collections.defaultdict(list)
     roms = []
     for i,subdiv in enumerate(counter):
       # slicer for data selection
@@ -474,20 +474,13 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
         ## -> basic metrics (mean, variance, etc)
         basicData = self._evaluateBasicMetrics(targetData)
         for feature, val in basicData.items():
-          if i == 0:
-            clusterFeatureDict[feature] = [val]
-          else:
-            clusterFeatureDict[feature].append(val)
+          clusterFeatureDict[feature].append(val)
         ## -> user-provided metrics
         ### TODO self._evaluateMetrics()
         ## -> ROM metrics
         romData = newRom.getRomClusterValues(self._romClusterFeatureTemplate)
-        if i == 0:
-          for feature,val in romData.items():
-            clusterFeatureDict[feature] = [val]
-        else:
-          for feature,val in romData.items():
-            clusterFeatureDict[feature].append(val)
+        for feature,val in romData.items():
+          clusterFeatureDict[feature].append(val)
     # fix rom list type
     roms = np.array(roms)
     return clusterFeatureDict, roms
