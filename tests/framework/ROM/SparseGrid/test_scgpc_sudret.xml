@@ -1,10 +1,5 @@
 <?xml version="1.0" ?>
 <Simulation color="false" verbosity="debug">
-  <RunInfo>
-    <WorkingDir>SCgPCAnalyticSudret</WorkingDir>
-    <Sequence>make,train,meta,print</Sequence>
-    <batchSize>1</batchSize>
-  </RunInfo>
   <TestInfo>
     <name>framework/Samplers/ROM/Sobol/SparseGrid/scgpcSudretAnalytic</name>
     <author>talbpaul</author>
@@ -17,7 +12,16 @@
       dumprom.xml has analytic mean and variance, documented in the analytic tests documentation under
       "Global Sobol Sensitivity: Sudret".
     </analytic>
+    <revisions>
+      <revision author='talbpaul' date='2018-12-20'>moved ROM metadata writing from direct-to-file to direct-to-dataobject</revision>
+    </revisions>
   </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>SCgPCAnalyticSudret</WorkingDir>
+    <Sequence>make,train,meta,print</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
 
   <Steps>
     <MultiRun name="make" pauseAtEnd="False">

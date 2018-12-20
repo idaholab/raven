@@ -95,11 +95,13 @@ class HDMRRom(GaussPolynomialRom):
       self.raiseAnError(RuntimeError,'ROM is not yet trained!')
     self.mean=None
     canDo = ['mean','expectedValue','variance','samples','partialVariance','sobolIndices','sobolTotalIndices']
+    ## TODO allow picking variables to include
     #if 'what' in options.keys():
     #  requests = list(o.strip() for o in options['what'].split(','))
     #  if 'all' in requests:
     if requests is None:
       requests = canDo
+    ## TODO allow picking variables to include
     #  #protect against things SCgPC can do that HDMR can't
     #  if 'polyCoeffs' in requests:
     #    self.raiseAWarning('HDMRRom cannot currently print polynomial coefficients.  Skipping...')

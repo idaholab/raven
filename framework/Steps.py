@@ -954,18 +954,14 @@ class IOStep(Step):
       elif self.actionType[i] == 'ROM-dataObjects':
         #inDictionary['Input'][i] is a ROM, outputs[i] is dataObject
         ## print information from the ROM to the data set or associated XML.
-        # XXX TODO WORKING
         romModel = inDictionary['Input'][i]
         # get non-pointwise data (to place in XML metadata of data object)
         ## TODO how can user ask for particular information?
         xml = romModel.writeXML(what='all')
         self.raiseADebug('Adding meta "{}" to output "{}"'.format(xml.getRoot().tag,outputs[i].name))
         outputs[i].addMeta(romModel.name, node = xml)
-        # XXX working
         # get pointwise data (to place in main section of data object)
         romModel.writePointwiseData(outputs[i])
-        #for rlz in realizations:
-        #  outputs[i].addRealization(rlz)
 
       elif self.actionType[i] == 'ROM-FILES':
         #inDictionary['Input'][i] is a ROM, outputs[i] is Files

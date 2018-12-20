@@ -242,7 +242,7 @@ class DataSet(DataObject):
       @ In, varName, str, name of new variable
       @ In, values, np.array, new values (floats/str for scalars, xr.DataArray for hists)
       @ In, classify, str, optional, either 'input', 'output', or 'meta'
-      @ In, indices, list, optional, list of indexes this variable depends on # TODO how to send them in?
+      @ In, indices, list, optional, list of indexes this variable depends on
       @ Out, None
     """
     if indices is None:
@@ -1768,7 +1768,6 @@ class DataSet(DataObject):
       ofile.writelines('<DataObjectMetadata name="{}">\n'.format(self.name))
       for name,target in meta.items():
         xml = xmlUtils.prettify(target.getRoot(),startingTabs=1,addRavenNewlines=False)
-        #target.writeFile(asString=True,startingTabs=1,addRavenNewlines=False)
         ofile.writelines('  '+xml+'\n')
       ofile.writelines('</DataObjectMetadata>\n')
 

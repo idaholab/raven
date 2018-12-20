@@ -1,11 +1,5 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="all">
-  <RunInfo>
-    <WorkingDir>AdaptSobolParallel</WorkingDir>
-    <Sequence>make,train,meta,print</Sequence>
-    <batchSize>8</batchSize>
-    <internalParallel>True</internalParallel>
-  </RunInfo>
   <TestInfo>
     <name>framework/Samplers/ROM/Sobol/AdaptiveSobolParallel</name>
     <author>talbpaul</author>
@@ -14,7 +8,17 @@
     <description>
       This tests using the AdaptiveSobol sampler to construct HDMRRom ROMs, in parallel.
     </description>
+    <revisions>
+      <revision author='talbpaul' date='2018-12-20'>moved ROM metadata writing from direct-to-file to direct-to-dataobject</revision>
+    </revisions>
   </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>AdaptSobolParallel</WorkingDir>
+    <Sequence>make,train,meta,print</Sequence>
+    <batchSize>8</batchSize>
+    <internalParallel>True</internalParallel>
+  </RunInfo>
 
   <Steps>
     <MultiRun name="make" pauseAtEnd="False">

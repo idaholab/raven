@@ -1,10 +1,5 @@
 <?xml version="1.0" ?>
 <Simulation color="true" verbosity="debug">
-  <RunInfo>
-    <WorkingDir>SobolGFunc</WorkingDir>
-    <Sequence>make,train,meta,print</Sequence>
-    <batchSize>1</batchSize>
-  </RunInfo>
   <TestInfo>
     <name>framework/Samplers/ROM/Sobol/sobolGFunction</name>
     <author>talbpaul</author>
@@ -17,7 +12,16 @@
       dumprom.xml has analytic mean and variance, but is poorly converged for this model.  It is documented
       in the analytic test documentation under "Sobol G-Function"
     </analytic>
+    <revisions>
+      <revision author='talbpaul' date='2018-12-20'>moved ROM metadata writing from direct-to-file to direct-to-dataobject</revision>
+    </revisions>
   </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>SobolGFunc</WorkingDir>
+    <Sequence>make,train,meta,print</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
 
   <Steps>
     <MultiRun name="make" pauseAtEnd="False">

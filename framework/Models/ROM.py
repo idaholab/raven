@@ -375,8 +375,6 @@ class ROM(Dummy):
           subXML = xmlUtils.StaticXmlElement(target)
           rom.writeXML(subXML)
           xml.addScalarNode(subXML,pivotValue)
-          # XXX WORKING: get the right time-dependent structure written on dynamic XML
-      # XXX
     else:
       # directly accept the results from the engine
       xml = xmlUtils.StaticXmlElement(self.name)

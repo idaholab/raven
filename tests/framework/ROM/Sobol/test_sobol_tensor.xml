@@ -1,10 +1,5 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
-  <RunInfo>
-    <WorkingDir>SobolTensor</WorkingDir>
-    <Sequence>make,train,test,meta,print</Sequence>
-    <batchSize>1</batchSize>
-  </RunInfo>
   <TestInfo>
     <name>framework/Samplers/ROM/Sobol/staticSobolRomSmolyak</name>
     <author>talbpaul</author>
@@ -13,7 +8,16 @@
     <description>
       This test checks the operation of the sampler and model, using the tensor sparse grid.
     </description>
+    <revisions>
+      <revision author='talbpaul' date='2018-12-20'>moved ROM metadata writing from direct-to-file to direct-to-dataobject</revision>
+    </revisions>
   </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>SobolTensor</WorkingDir>
+    <Sequence>make,train,test,meta,print</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
 
   <Distributions>
     <Uniform name="xd">
