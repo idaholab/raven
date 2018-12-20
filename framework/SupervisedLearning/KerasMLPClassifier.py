@@ -40,7 +40,7 @@ from tensorflow.contrib.keras import utils as KerasUtils
 from .SupervisedLearning import supervisedLearning
 #Internal Modules End--------------------------------------------------------------------------------
 
-class KerasMLPClassifier(superVisedLearning):
+class KerasMLPClassifier(supervisedLearning):
   """
     Multi-layer perceptron classifier constructed using Keras API in TensorFlow
   """
@@ -62,7 +62,7 @@ class KerasMLPClassifier(superVisedLearning):
       @ In, kwargs, dict, an arbitrary dictionary of keywords and values
       @ Out, None
     """
-    superVisedLearning.__init__(self,messageHandler,**kwargs)
+    supervisedLearning.__init__(self,messageHandler,**kwargs)
     self.printTag = 'KerasMLPClassifier'
 
     self.__initLocal__()
