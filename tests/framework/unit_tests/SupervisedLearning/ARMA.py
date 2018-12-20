@@ -317,6 +317,9 @@ def plotPDF(edges, bins, ax, label, color, s='.', alpha=1.0):
   highs = edges[1:]
   ax.errorbar( mids, bins, xerr=[mids-lows, highs-mids], fmt=s+'-', color=color, label=label, alpha=alpha)
 
+# Enabling plotting will help visualize the signals that are tested
+#    in the event they fail tests. Plotting should not be enabled in
+#    the regression system as this point.
 plotting = False
 if plotting:
   import matplotlib.pyplot as plt
@@ -400,6 +403,9 @@ for n in range(nsamp):
   ev = arma.__evaluateLocal__(np.array([1.0]))
   samples[n,:] = ev['a']
 
+# Enabling plotting will help visualize the signals that are tested
+#    in the event they fail tests. Plotting should not be enabled in
+#    the regression system as this point.
 plotting = False
 if plotting:
   import matplotlib.pyplot as plt
@@ -427,75 +433,10 @@ if plotting:
   plt.show()
 
 
-#############
-# SEGMENTED #
-#############
-targets = ['x', 'y']
-pivot = 't'
-p = 0
-q = 0
-# nominal xml
-xml = createARMAXml(targets, pivot, p, q)
-cluster = createElement('Cluster')
-cluster.append(createElement('subspace', attrib={'pivotLength':10, 'shift':'zero'}, text='t'))
-xml.append(cluster)
-model, _ = createFromXML(xml)
-# generate some data
-N = 100
-training = {'x': [np.random.rand(N)],
-            'y': [np.random.rand(N)*10.],
-            'scaling': [np.array([1.0]*N)],
-            't': [np.arange(N)]}
-model.train(training)
-gate = model.supervisedEngine
-
-# recreate signals from each ROM
-import collections
-import functools
-signals = collections.defaultdict(functools.partial(np.zeros,N))
-labels = range(max(gate._romClusterMap.keys())+1)
-nextEntry = 0
-for label in labels:
-  rom = gate._romClusterMap[label]
-  pivotID = rom.pivotParameterID
-  pivotVals = rom.pivotParameterValues
-  entries = len(rom._signalStorage.values()[0].values()[0])
-  for target, tsignals in rom._signalStorage.items():
-    for name, signal in tsignals.items():
-      signals['{}_{}'.format(target,name)][nextEntry : nextEntry+entries] = signal
-  #subres = rom.evaluate({'scaling':np.atleat_1d(1.0)})
-  nextEntry += entries
-signals[pivotID][:] = training['t'][0]
-
-import matplotlib.pyplot as plt
-# figures
-figs = []
-axs = []
-targets = [x.split('_')[0] for x in signals.keys()]
-targets = list(set(targets))
-targets.remove(pivotID)
-for t in targets:
-  fig, ax = plt.subplots()
-  figs.append(fig)
-  axs.append(ax)
-for name, signal in signals.items():
-  if name == pivotID:
-    continue
-  target, sname = name.split('_',1)
-  ax = axs[targets.index(target)]
-  ax.plot(signals[pivotID], signal, label=sname)
-for a,ax in enumerate(axs):
-  ax.set_title(targets[a])
-  ax.legend(loc=0)
-  ax.set_xlabel('Time')
-  ax.set_ylabel('Magnitude')
-
-plt.show()
-
-
 #################
 # TODO UNTESTED #
 #################
+# - Segmented
 # - VARMA construction
 # - Analytic VARMA/ARMA variances
 # - Fourier analytic coefficients
