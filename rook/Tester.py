@@ -116,43 +116,44 @@ class Differ:
     params.add_param('gold_files', '', 'Gold filenames')
     return params
 
-  def __init__(self, name, params):
+  def __init__(self, name, params, test_dir):
     """
-    Initializer for the class.  Takes a String name and a dictionary params
+    Initializer for the class.
+    name: String name of class
+    params: dictionary of parameters
+    test_dir: String path to test directory
     """
     self.__name = name
+    self.__test_dir = test_dir
     valid_params = self.get_valid_params()
     self.specs = valid_params.get_filled_dict(params)
     self.__output_files = self.specs['output'].split()
 
-  def get_remove_files(self, test_dir):
+  def get_remove_files(self):
     """
     Returns a list of files to remove before running test.
-    test_dir: string, the test directory
     returns List(Strings)
     """
-    return self._get_test_files(test_dir)
+    return self._get_test_files()
 
-  def _get_test_files(self, test_dir):
+  def _get_test_files(self):
     """
     returns a list of the full path of the test files
     """
-    return [os.path.join(test_dir, f) for f in self.__output_files]
+    return [os.path.join(self.__test_dir, f) for f in self.__output_files]
 
-  def _get_gold_files(self, test_dir):
+  def _get_gold_files(self):
     """
     returns a list of the full path to the gold files
     """
     if len(self.specs['gold_files']) > 0:
       gold_files = self.specs['gold_files'].split()
-      return [os.path.join(test_dir, f) for f in gold_files]
-    else:
-      return [os.path.join(test_dir, "gold", f) for f in self.__output_files]
+      return [os.path.join(self.__test_dir, f) for f in gold_files]
+    return [os.path.join(self.__test_dir, "gold", f) for f in self.__output_files]
 
-  def check_output(self, test_dir):
+  def check_output(self):
     """
     Checks that the output matches the gold.
-    test_dir: the directory where the test is located.
     Should return (same, message) where same is true if the
     test passes, or false if the test failes.  message should
     give a human readable explaination of the differences.
@@ -251,7 +252,7 @@ class Tester:
     """
     remove_files = []
     for differ in self.__differs:
-      remove_files.extend(differ.get_remove_files(test_dir))
+      remove_files.extend(differ.get_remove_files())
     return remove_files
 
   def add_differ(self, differ):
@@ -260,6 +261,7 @@ class Tester:
     differ: A subclass of Differ that tests a file produced by the run.
     """
     self.__differs.append(differ)
+
   def get_test_dir(self):
     """
     Returns the test directory
@@ -359,7 +361,7 @@ class Tester:
       return self.results
     self.processResults(None, options, output)
     for differ in self.__differs:
-      same, message = differ.check_output(self.get_test_dir())
+      same, message = differ.check_output()
       if not same:
         if self.results.bucket == self.bucket_success:
           self.results.bucket = self.bucket_diff

@@ -395,11 +395,11 @@ class XML(Differ):
     params.add_param('rel_err','','Relative Error for csv files or floats in xml ones')
     return params
 
-  def __init__(self, name, params):
+  def __init__(self, name, params, test_dir):
     """
     Initializer for the class. Takes a String name and a dictionary params
     """
-    Differ.__init__(self, name, params)
+    Differ.__init__(self, name, params, test_dir)
     self.__xmlopts = {}
     if len(self.specs["rel_err"]) > 0:
       self.__xmlopts['rel_err'] = float(self.specs["rel_err"])
@@ -410,15 +410,14 @@ class XML(Differ):
     if len(self.specs['xmlopts'])>0:
       self.__xmlopts['xmlopts'] = self.specs['xmlopts'].split(' ')
 
-  def check_output(self, test_dir):
+  def check_output(self):
     """
     Checks that the output matches the gold.
-    test_dir: the directory where the test is located.
     returns (same, message) where same is true if the
     test passes, or false if the test failes.  message should
     gives a human readable explaination of the differences.
     """
-    xml_files = self._get_test_files(test_dir)
-    gold_files = self._get_gold_files(test_dir)
+    xml_files = self._get_test_files()
+    gold_files = self._get_gold_files()
     xml_diff = XMLDiff(xml_files, gold_files, **self.__xmlopts)
     return xml_diff.diff()

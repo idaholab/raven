@@ -94,23 +94,22 @@ class Text(Differ):
     params.add_param('comment','-20021986',"Character or string denoting comments, all text to the right of the symbol will be ignored in the diff of text files")
     return params
 
-  def __init__(self, name, params):
+  def __init__(self, name, params, test_dir):
     """
     Initializer for the class. Takes a String name and a dictionary params
     """
-    Differ.__init__(self, name, params)
+    Differ.__init__(self, name, params, test_dir)
     self.__text_opts = {'comment': self.specs['comment']}
     #self.__text_files = self.specs['output'].split()
 
-  def check_output(self, test_dir):
+  def check_output(self):
     """
     Checks that the output matches the gold.
-    test_dir: the directory where the test is located.
     returns (same, message) where same is true if the
     test passes, or false if the test failes.  message should
     gives a human readable explaination of the differences.
     """
-    text_files = self._get_test_files(test_dir)
-    gold_files = self._get_gold_files(test_dir)
+    text_files = self._get_test_files()
+    gold_files = self._get_gold_files()
     text_diff =  TextDiff(text_files, gold_files, **self.__text_opts)
     return text_diff.diff()

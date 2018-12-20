@@ -202,11 +202,11 @@ class OrderedCSV(Differ):
     params.add_param('check_absolute_value',False,'if true the values are compared to the tolerance directectly, instead of relatively.')
     return params
 
-  def __init__(self, name, params):
+  def __init__(self, name, params, test_dir):
     """
     Initializer for the class. Takes a String name and a dictionary params
     """
-    Differ.__init__(self, name, params)
+    Differ.__init__(self, name, params, test_dir)
     self.__zero_threshold = self.specs['zero_threshold']
     self.__ignore_sign = bool(self.specs['ignore_sign'])
     if len(self.specs['rel_err']) > 0:
@@ -215,16 +215,15 @@ class OrderedCSV(Differ):
       self.__rel_err = 1e-10
     self.__check_absolute_value = self.specs["check_absolute_value"]
 
-  def check_output(self, test_dir):
+  def check_output(self):
     """
     Checks that the output matches the gold.
-    test_dir: the directory where the test is located.
     returns (same, message) where same is true if the
     test passes, or false if the test failes.  message should
     gives a human readable explaination of the differences.
     """
-    csv_files = self._get_test_files(test_dir)
-    gold_files = self._get_gold_files(test_dir)
+    csv_files = self._get_test_files()
+    gold_files = self._get_gold_files()
     csv_diff = OrderedCSVDiffer(csv_files,
                                 gold_files,
                                 relative_error = self.__rel_err,

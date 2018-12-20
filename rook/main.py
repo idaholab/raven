@@ -184,7 +184,7 @@ for test_dir, test_file in test_list:
           print("Missing Parameters in:", child.tag, node.tag, test_file)
         if not child_param_handler.check_for_all_known(child.attrib):
           print("Unknown Parameters in:", child.tag, node.tag, test_file)
-        differ = differs[child_type](child.tag, dict(child.attrib))
+        differ = differs[child_type](child.tag, dict(child.attrib), test_dir)
         tester.add_differ(differ)
       id_num = len(function_list)
       input_filename = node.attrib['input']

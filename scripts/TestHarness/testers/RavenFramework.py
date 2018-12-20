@@ -98,7 +98,7 @@ class RavenFramework(Tester):
     differ_params["type"] = differ_class.__name__
     if extra is not None:
       differ_params.update(extra)
-    self.add_differ(differ_class(spec_name, differ_params))
+    self.add_differ(differ_class(spec_name, differ_params,self.get_test_dir()))
 
   def __init__(self, name, params):
     Tester.__init__(self, name, params)
