@@ -496,7 +496,7 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
     unclustered = [] # data ranges that didn't get clustered because they are particular
     if len(clusterParams):
       # segment by equal spacing
-      index, segments = clusterParams.items()[0]
+      index, segments = list(clusterParams.items())[0]
       dataLen = len(trainingSet[index][0])
       self._romClusterInfo['historyLength'] = dataLen
       ## TODO assumption: ARMA only trains on a single sample
@@ -506,7 +506,7 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
       # segment by value
       ## TODO assumption: ARMA only trains on a single sample
       pivot = trainingSet[pivotParam][0]
-      index, length = clusterLengths.items()[0]
+      index, length = list(clusterLengths.items())[0]
       dataLen = len(trainingSet[index][0])
       self._romClusterInfo['historyLength'] = dataLen
       # find where the data passes the requested length and make dividers
