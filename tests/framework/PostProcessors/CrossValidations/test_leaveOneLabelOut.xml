@@ -33,16 +33,16 @@
     <PostProcessor name="pp1" subType="CrossValidation">
       <SciKitLearn>
         <SKLtype>LeaveOneLabelOut</SKLtype>
-        <labels>[0,0,1,1,1,1,1,2,2,2]</labels>
+        <labels>0,0,1,1,1,1,1,2,2,2</labels>
       </SciKitLearn>
       <Metric class="Metrics" type="SKL">m1</Metric>
     </PostProcessor>
   </Models>
 
   <Metrics>
-    <SKL name="m1">
-      <metricType>mean_absolute_error</metricType>
-    </SKL>
+      <SKL name="m1">
+          <metricType>regression|mean_absolute_error</metricType>
+      </SKL>
   </Metrics>
 
   <Distributions>

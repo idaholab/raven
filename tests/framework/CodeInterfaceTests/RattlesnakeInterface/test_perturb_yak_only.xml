@@ -91,6 +91,7 @@
     <Print name="out_mc_yak_dump">
       <type>csv</type>
       <source>outMC</source>
+      <what>input, output</what>
     </Print>
   </OutStreams>
 

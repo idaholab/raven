@@ -21,7 +21,6 @@
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
-#if not 'xrange' in dir(__builtins__): xrange = range
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -107,15 +106,22 @@ class FiniteDifferenceGradientOptimizer(SPSA):
     """
     gradArray = {}
     optVars = self.getOptVars(traj=traj)
+    numRepeats = self.gradDict['numIterForAve']
     for var in optVars:
-      gradArray[var] = np.zeros(self.gradDict['numIterForAve'])
-
+      gradArray[var] = np.zeros(self.gradDict['numIterForAve'],dtype=object)
+    # optVarsValues:
+    #  - the first <numRepeats> entries are the opt point (from 0 to numRepeats-1)
+    #  - the next <numRepeats> entries are one each in each direction in turns (dx1, dy1, dx2, dy2, etc)
+    #      dx are [lastOpt +1, lastOpt +3, lastOpt +5, etc] -> [lastOpt + <#var>*<index repeat>+1]
+    #      dy are [lastOpt +2, lastOpt +4, lastOpt +6, etc]
     # Evaluate gradient at each point
-    for i in range(self.gradDict['numIterForAve']):
-      opt  = optVarsValues[i]                                  #the latest opt point
-      for j in range(self.paramDict['pertSingleGrad']):
+    for i in range(numRepeats):
+      opt  = optVarsValues[i] #the latest opt point
+      for j in range(self.paramDict['pertSingleGrad']): # AKA for each input variable
         # loop over the perturbation to construct the full gradient
-        pert = optVarsValues[self.gradDict['numIterForAve']+i+j] #the perturbed point
+        ## first numRepeats are all the opt point, not the perturbed point
+        ## then, need every Nth entry, where N is the number of variables
+        pert = optVarsValues[numRepeats + i*len(optVars) + j] #the perturbed point
         #calculate grad(F) wrt each input variable
         lossDiff = mathUtils.diffWithInfinites(pert['output'],opt['output'])
         #cover "max" problems
@@ -127,6 +133,7 @@ class FiniteDifferenceGradientOptimizer(SPSA):
         # gradient is calculated in normalized space
         dh = pert['inputs'][var] - opt['inputs'][var]
         if abs(dh) < 1e-15:
+          self.raiseADebug('Values:',pert['inputs'][var],opt['inputs'][var])
           self.raiseAnError(RuntimeError,'While calculating the gradArray a "dh" very close to zero was found for var:',var)
         gradArray[var][i] = lossDiff/dh
     gradient = {}

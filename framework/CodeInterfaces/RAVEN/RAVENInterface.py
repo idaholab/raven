@@ -21,13 +21,14 @@ import warnings
 warnings.simplefilter('default',DeprecationWarning)
 
 import os
-from  __builtin__ import any
 import copy
 import numpy as np
 from utils import utils
 from CodeInterfaceBaseClass import CodeInterfaceBase
 import DataObjects
 import csvUtilities
+
+from MessageHandler import MessageHandler
 
 class RAVEN(CodeInterfaceBase):
   """
@@ -50,6 +51,8 @@ class RAVEN(CodeInterfaceBase):
     self.innerWorkingDir = ''
     # linked DataObjects
     self.linkedDataObjectOutStreamsNames = None
+    # input manipulation module
+    self.inputManipulationModule = None
 
   def addDefaultExtension(self):
     """
@@ -80,6 +83,7 @@ class RAVEN(CodeInterfaceBase):
     if len(self.linkedDataObjectOutStreamsNames) > 2:
       raise IOError(self.printTag+' ERROR: outputExportOutStreams node. The maximum number of linked OutStreams are 2 (1 for PointSet and 1 for HistorySet)!')
 
+    # load conversion modules
     self.conversionDict = {} # {modulePath : {'variables': [], 'noScalar': 0, 'scalar': 0}, etc }
     child = xmlNode.find("conversion")
     if child is not None:
@@ -95,25 +99,31 @@ class RAVEN(CodeInterfaceBase):
         # check for existence
         if not os.path.exists(source):
           raise IOError(self.printTag+' ERROR: the conversionModule "{}" was not found!'
-                        .format(self.extModForVarsManipulationPath))
+                        .format(source))
         # check module is imported
         checkImport = utils.importFromPath(source)
         if checkImport is None:
           raise IOError(self.printTag+' ERROR: the conversionModule "{}" failed on import!'
-                        .format(self.extModForVarsManipulationPath))
-        # check methods are in place
-        noScalar = 'convertNotScalarSampledVariables' in checkImport.__dict__
-        scalar = 'manipulateScalarSampledVariables' in checkImport.__dict__
-        if not (noScalar or scalar):
-          raise IOError(self.printTag +' ERROR: the conversionModule "'+source
-                        +'" does not contain any of the usable methods! Expected at least '
-                        +'one of: "manipulateScalarSampledVariables" and/or "manipulateScalarSampledVariables"!')
-        # acquire the variables to be modified
-        varNode = moduleNode.find('variables')
-        if varNode is None:
-          raise IOError(self.printTag+' ERROR: no node "variables" listed in "conversion|module" subnode!')
-        variables = [x.strip() for x in varNode.text.split(',')]
-        self.conversionDict[source] = {'variables':variables, 'noScalar':noScalar, 'scalar':scalar}
+                        .format(source))
+        # variable conversion modules
+        if moduleNode.tag == 'module':
+          # check methods are in place
+          noScalar = 'convertNotScalarSampledVariables' in checkImport.__dict__
+          scalar = 'manipulateScalarSampledVariables' in checkImport.__dict__
+          if not (noScalar or scalar):
+            raise IOError(self.printTag +' ERROR: the conversionModule "'+source
+                          +'" does not contain any of the usable methods! Expected at least '
+                          +'one of: "manipulateScalarSampledVariables" and/or "manipulateScalarSampledVariables"!')
+          # acquire the variables to be modified
+          varNode = moduleNode.find('variables')
+          if varNode is None:
+            raise IOError(self.printTag+' ERROR: no node "variables" listed in "conversion|module" subnode!')
+          variables = [x.strip() for x in varNode.text.split(',')]
+          self.conversionDict[source] = {'variables':variables, 'noScalar':noScalar, 'scalar':scalar}
+
+        # custom input file manipulation
+        elif moduleNode.tag == 'input':
+          self.inputManipulationModule = source
 
   def __findInputFile(self,inputFiles):
     """
@@ -132,7 +142,7 @@ class RAVEN(CodeInterfaceBase):
       raise IOError(self.printTag+' ERROR: None of the input files are tagged with the "type" "raven" (e.g. <Input name="aName" type="raven">inputFileName.xml</Input>)')
     return inputFileIndex
 
-  def generateCommand(self,inputFiles,executable,clargs=None,fargs=None):
+  def generateCommand(self,inputFiles,executable,clargs=None,fargs=None, preExec=None):
     """
       See base class.  Collects all the clargs and the executable to produce the command-line call.
       Returns tuple of commands and base file name for run.
@@ -142,6 +152,7 @@ class RAVEN(CodeInterfaceBase):
       @ In, executable, string, executable name with absolute path (e.g. /home/path_to_executable/code.exe)
       @ In, clargs, dict, optional, dictionary containing the command-line flags the user can specify in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 i0extension =0 .inp0/ >< /Code >)
       @ In, fargs, dict, optional, a dictionary containing the axuiliary input file variables the user can specify in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 aux0extension =0 .aux0/ >< /Code >)
+      @ In, preExec, string, optional, a string the command that needs to be pre-executed before the actual command here defined
       @ Out, returnCommand, tuple, tuple containing the generated command. returnCommand[0] is the command to run the code (string), returnCommand[1] is the name of the output root
     """
     index = self.__findInputFile(inputFiles)
@@ -184,17 +195,8 @@ class RAVEN(CodeInterfaceBase):
                                  +' '.join(self.outStreamsNamesAndType.keys())+'"!')
     # get variable groups
     varGroupNames = parser.returnVarGroups()
-    if len(varGroupNames) > 0:
-      # check if they are not present in the linked outstreams
-      for outstream in self.linkedDataObjectOutStreamsNames:
-        inputNode = self.outStreamsNamesAndType[outstream][2].find("Input")
-        outputNode = self.outStreamsNamesAndType[outstream][2].find("Output")
-        inputVariables = inputNode.text.split(",") if inputNode is not None else []
-        outputVariables =  outputNode.text.split(",") if outputNode is not None else []
-        if any (varGroupName in inputVariables+outputVariables for varGroupName in varGroupNames):
-          raise IOError(self.printTag+' ERROR: The VariableGroup system is not supported in the current ' +
-                                      'implementation of the interface for the DataObjects specified in the '+
-                                      '<outputExportOutStreams> XML node!')
+    ## store globally
+    self.variableGroups = varGroupNames
     # get inner working dir
     self.innerWorkingDir = parser.workingDir
     # get sampled variables
@@ -233,9 +235,13 @@ class RAVEN(CodeInterfaceBase):
       # either we have an internal parallel or NumMPI > 1
       modifDict['RunInfo|batchSize'       ] = newBatchSize
     #modifDict['RunInfo|internalParallel'] = internalParallel
-    #make tree
+    # make tree
     modifiedRoot = parser.modifyOrAdd(modifDict,save=True,allowAdd = True)
-    #make input
+    # modify tree
+    if self.inputManipulationModule is not None:
+      module = utils.importFromPath(self.inputManipulationModule)
+      modifiedRoot = module.modifyInput(modifiedRoot,modifDict)
+    # write input file
     parser.printInput(modifiedRoot,currentInputFiles[index].getAbsFile())
     # copy slave files
     parser.copySlaveFiles(currentInputFiles[index].getPath())
@@ -253,16 +259,18 @@ class RAVEN(CodeInterfaceBase):
       @ Out, failure, bool, True if the job is failed, False otherwise
     """
     failure = False
+    # check for log file
     try:
       outputToRead = open(os.path.join(workingDir,output),"r")
     except IOError:
-      failure = True
       print(self.printTag+' ERROR: The RAVEN SLAVE log file  "'+str(os.path.join(workingDir,output))+'" does not exist!')
-    if not failure:
-      readLines = outputToRead.readlines()
-      if not any("Run complete" in x for x in readLines[-20:]):
-        failure = True
+      return True
+    # check for completed run
+    readLines = outputToRead.readlines()
+    if not any("Run complete" in x for x in readLines[-20:]):
       del readLines
+      return True
+    # check for output CSV (and data)
     if not failure:
       for filename in self.linkedDataObjectOutStreamsNames:
         outStreamFile = os.path.join(workingDir,self.innerWorkingDir,filename+".csv")
@@ -300,16 +308,16 @@ class RAVEN(CodeInterfaceBase):
     #####
     dataObjectsToReturn = {}
     numRlz = None
+    messageHandler = MessageHandler()
+    messageHandler.initialize({'verbosity':'quiet'})
     for filename in self.linkedDataObjectOutStreamsNames:
       # load the output CSV into a data object, so we can return that
       ## load the XML initialization information and type
       dataObjectInfo = self.outStreamsNamesAndType[filename]
       # create an instance of the correct data object type
       data = DataObjects.returnInstance(dataObjectInfo[1],None)
-      # dummy message handler to handle message parsing, TODO this stinks and should be fixed.
-      data.messageHandler = DataObjects.DataObject.MessageCourier()
       # initialize the data object by reading the XML
-      data._readMoreXML(dataObjectInfo[2])
+      data.readXML(dataObjectInfo[2], messageHandler, variableGroups=self.variableGroups)
       # set the name, then load the data
       data.name = filename
       data.load(os.path.join(workingDir,self.innerWorkingDir,filename),style='csv')

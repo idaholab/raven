@@ -2,7 +2,7 @@
 <Simulation>
   <TestInfo>
     <name>framework/CodeInterfaceTests/CobraTF.test1</name>
-    <author>jyoo</author>
+    <author>jyoo,alptezbasaran</author>
     <created>2018-04-03</created>
     <classesTested>Models.Code.CobraTF</classesTested>
     <description>
@@ -10,6 +10,7 @@
     </description>
     <revisions>
       <revision author="jyoo" date="2018-04-03">New CobraTF test case</revision>
+      <revision author="alptezbasaran" date="2018-08-15">Modification for new sampling method (generic)</revision>
     </revisions>
   </TestInfo>
   <RunInfo>
@@ -19,11 +20,11 @@
   </RunInfo>
 
   <Files>
-    <Input name="cobra_input" type="" >case5-15.inp</Input>
+    <Input name="cobra_input" type="ctf" >case5-15.inp</Input>
   </Files>
 
   <Models>
-    <Code name="MyCobraTF" subType="CobraTF">
+    <Code name="MyCobraTF" subType="CTF">
       <executable>
         <!--/path/to/cobratf/executable -->
         <!-- here we should put the executable. But since we want to test the interface only, it is going to be empty -->
@@ -51,10 +52,10 @@
       <samplerInit>
         <limit>2</limit>
       </samplerInit>
-      <variable name="570|8">
+      <variable name="BC">
         <distribution>dist_for_BC</distribution>
       </variable>
-      <variable name="363|1">
+      <variable name="GridLoss">
         <distribution>dist_for_GridLoss_2</distribution>
       </variable>
     </MonteCarlo>
@@ -80,7 +81,7 @@
 
   <DataObjects>
     <PointSet name="mc_ps">
-      <Input>570|8,363|1</Input>
+      <Input>BC,GridLoss</Input>
       <Output>AVG_ch_ax50_quality,AVG_ch_ax50_voidFractionLiquid,AVG_ch_ax50_voidFractionVapor,AVG_ch_ax50_volumeEntrainFraction,AVG_ch_ax50_massFlowRateLiquid</Output>
     </PointSet>
 

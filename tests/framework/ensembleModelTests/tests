@@ -75,7 +75,7 @@
  [./testEnsembleModelLinearExpectedFailure]
    type = 'RavenErrors'
    input = 'test_ensemble_model_linear_expected_failures.xml'
-   expect_err = 'IOError: There were failed runs; aborting RAVEN.'
+   expect_err = 'Error: There were failed runs; aborting RAVEN.'
  [../]
 
  [./testEnsembleModelFullyCorrVars]
@@ -91,5 +91,10 @@
    UnorderedCsv = 'IndexInputOutput/step_out.csv IndexInputOutput/step_out_2.csv IndexInputOutput/step_out_4.csv IndexInputOutput/step_out_6.csv IndexInputOutput/step_out_8.csv'
  [../]
 
+ [./testEMConnection]
+   type = 'RavenFramework'
+   input = 'test_em_connection.xml'
+   UnorderedCsv = 'checkConnection/printData.csv'
+ [../]
 
 []

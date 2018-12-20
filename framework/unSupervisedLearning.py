@@ -129,6 +129,16 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
     ## The normalized training data
     self.normValues = None
 
+  def updateFeatures(self, features):
+    """
+      Change the Features that this classifier targets. If this ROM is trained already, raises an error.
+      @ In, features, list(str), list of new features
+      @ Out, None
+    """
+    if self.amITrained:
+      self.raiseAnError(RuntimeError,'Trying to change the <Features> of an already-trained ROM!')
+    self.features = features
+
   def train(self, tdict, metric = None):
     """
       Method to perform the training of the unSuperVisedLearning algorithm
@@ -144,8 +154,8 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
       self.raiseAnError(IOError, ' method "train". The training set needs to be provided through a dictionary. Type of the in-object is ' + str(type(tdict)))
 
     featureCount = len(self.features)
-    if not isinstance(tdict[tdict.keys()[0]],dict):
-      realizationCount = tdict.values()[0].size
+    if not isinstance(tdict[utils.first(tdict.keys())],dict):
+      realizationCount = utils.first(tdict.values()).size
 
     ############################################################################
     ## Error-handling
@@ -164,8 +174,8 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
       self.raiseAnError(IOError, msg)
 
     ## Check that all of the values have the same length
-    if not isinstance(tdict.values()[0],dict):
-      for name,val in tdict.iteritems():
+    if not isinstance(utils.first(tdict.values()),dict):
+      for name,val in tdict.items():
         if name in self.features and realizationCount != val.size:
           self.raiseAnError(IOError, ' In training set, the number of realizations are inconsistent among the requested features.')
 
@@ -181,7 +191,7 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
 
     ## Not sure when this would ever happen, but check that the data you are
     ## given is a 1D array?
-    # for name,val in tdict.iteritems():
+    # for name,val in tdict.items():
     #   if name in self.features:
     #     resp = self.checkArrayConsistency(val)
     #     if not resp[0]:
@@ -202,7 +212,7 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
     else:
       # metric != None
       ## The dictionary represents a HistorySet
-      if isinstance(tdict.values()[0],dict):
+      if isinstance(utils.first(tdict.values()),dict):
         ## normalize data
 
         ## But why this way? This should be one of the options, this looks like
@@ -218,11 +228,27 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
 
         cardinality = len(tdictNorm.keys())
         self.normValues = np.zeros((cardinality,cardinality))
-        keys = tdictNorm.keys()
+        keys = list(tdictNorm.keys())
         for i in range(cardinality):
-          for j in range(i+1,cardinality):
-            self.normValues[i][j] = metric.distance(tdictNorm[keys[i]],tdictNorm[keys[j]])
-            self.normValues[j][i] = self.normValues[i][j]
+          for j in range(i,cardinality):
+            # process the input data for the metric, numpy.array is required
+            assert(list(tdictNorm[keys[i]].keys()) == list(tdictNorm[keys[j]].keys()))
+            numParamsI = len(tdictNorm[keys[i]].keys())
+            numStepsI = len(utils.first(tdictNorm[keys[i]].values()))
+            numStepsJ = len(utils.first(tdictNorm[keys[j]].values()))
+
+            inputI = np.empty((numParamsI, numStepsI))
+            inputJ = np.empty((numParamsI, numStepsJ))
+            for ind, params in enumerate(tdictNorm[keys[i]].keys()):
+              valueI = tdictNorm[keys[i]][params]
+              valueJ = tdictNorm[keys[j]][params]
+              inputI[ind] = valueI
+              inputJ[ind] = valueJ
+            pairedData = ((inputI,None), (inputJ,None))
+            # FIXME: Using loops can be very slow for large number of realizations
+            self.normValues[i][j] = metric.evaluate(pairedData)
+            if i != j:
+              self.normValues[j][i] = self.normValues[i][j]
       else:
         ## PointSet
         normValues = np.zeros(shape = (realizationCount, featureCount))
@@ -231,7 +257,8 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
           featureValues = tdict[feat]
           (mu,sigma) = mathUtils.normalizationFactors(featureValues)
           normValues[:, cnt] = (featureValues - mu) / sigma
-        self.normValues = metric.distance(normValues)
+        # compute the pairwised distance for given matrix
+        self.normValues = metric.evaluatePairwise((normValues,None))
 
     self.__trainLocal__()
     self.amITrained = True
@@ -253,7 +280,7 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
 
     names = edict.keys()
 
-    realizationCount = edict.values()[0].size
+    realizationCount = utils.first(edict.values()).size
     featureCount = len(self.features)
 
     ############################################################################
@@ -272,7 +299,7 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
         msg = 'The requested features: %s do not exist in the evaluate set.' % str(list(unidentifiedFeatures))
       self.raiseAnError(IOError, msg)
 
-    for name,values in edict.iteritems():
+    for name,values in edict.items():
       resp = self.checkArrayConsistency(values)
       if not resp[0]:
         self.raiseAnError(IOError, ' In evaluate request for feature ' + name + ':' + resp[1])
@@ -611,7 +638,12 @@ class SciKitLearn(unSupervisedLearning):
           rowSigma = self.muAndSigmaFeatures[rowFeature][1]
           for col, colFeature in enumerate(self.features):
             colSigma = self.muAndSigmaFeatures[colFeature][1]
-            covariance[row,col] = covariance[row,col] * rowSigma * colSigma
+            #if covariance type == full, the shape is (n_components, n_features, n_features)
+            if len(covariance.shape) == 3:
+              covariance[:,row,col] = covariance[:,row,col] * rowSigma * colSigma
+            else:
+              #XXX if covariance type == diag, this will be wrong.
+              covariance[row,col] = covariance[row,col] * rowSigma * colSigma
         self.metaDict['covars'] = covariance
     elif 'decomposition' == self.SKLtype:
 
@@ -857,7 +889,7 @@ class temporalSciKitLearn(unSupervisedLearning):
 
     for t in range(self.numberOfHistoryStep):
       sklInput = {}
-      for feat in self.features.keys():
+      for feat in self.features:
         sklInput[feat] = self.inputDict[feat][:,t]
 
       self.SKLEngine.features = sklInput
@@ -908,7 +940,7 @@ class temporalSciKitLearn(unSupervisedLearning):
         #   self.metaDict['clusterCentersIndices'][t] = range(noClusters)
         # else:
         #   self.metaDict['clusterCentersIndices'][t] = range(noClusters)  # use list(set(self.SKLEngine.Method.labels_)) to collect outliers
-        self.metaDict['clusterCentersIndices'][t] = range(noClusters)
+        self.metaDict['clusterCentersIndices'][t] = list(range(noClusters))
 
         # # collect optional output
         # if hasattr(self.SKLEngine.Method, 'inertia_'):
@@ -950,7 +982,7 @@ class temporalSciKitLearn(unSupervisedLearning):
           numComponents = self.metaDict['means'][t].shape[0]
 
         # # collect component indices
-        self.metaDict['componentMeanIndices'][t] = range(numComponents)
+        self.metaDict['componentMeanIndices'][t] = list(range(numComponents))
 
         # # collect optional output
         if hasattr(self.SKLEngine.Method, 'weights_'):
@@ -1151,7 +1183,7 @@ class temporalSciKitLearn(unSupervisedLearning):
     for n1 in range(N1):
       for n2 in range(N2):
         dMatrix[n1,n2] = self.__computeDist__(t,n1,n2,dataCenter,'DistanceWithDecay')
-    _, mapping = self.__localReMap__(dMatrix, (range(N1), range(N2)))
+    _, mapping = self.__localReMap__(dMatrix, (list(range(N1)), list(range(N2))))
 
     remap = {}
     f1, f2 = [False]*N1, [False]*N2

@@ -134,5 +134,19 @@
     output = 'timeDepOutCsv/fileOut.csv timeDepOutCsv/1-PlotStatsT2_scatter-scatter-scatter.png'
     max_time = 200
   [../]
+ 
+ [./timeDepDataset]
+  type = 'RavenFramework'
+  input = 'time_dep_dataset.xml'
+  UnorderedCsv = 'basicStatisticsTimeDependent/datasetPrint.csv'
+  rel_err = 1e-5
+  zero_threshold = 1e-14
+ [../]
 
+  [./nml]
+    type = 'RavenFramework'
+    input = 'test_not_multiple_linear.xml'
+    UnorderedCsv = 'notMultipleLinear/basicStatPP_dump.csv'
+    rel_err = 1e-6
+  [../]
 []

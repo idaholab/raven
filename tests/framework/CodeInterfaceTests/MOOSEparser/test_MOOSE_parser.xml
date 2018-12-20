@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Simulation verbosity='debug'>
+  <TestInfo>
+    <name>framework/CodeInterfaceTests.MOOSEparser</name>
+    <author>zabrax</author>
+    <created>2018-09-21</created>
+    <classesTested>Models.Code.MooseBasedApp</classesTested>
+    <description>
+      A check to make sure the Raven produced input file is the same as the original parsed MOOSE input file.
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>.</WorkingDir>
+    <batchSize>1</batchSize>
+    <Sequence>
+      parser_moose
+    </Sequence>
+  </RunInfo>
+
+  <Files>
+    <Input name='mam_input'>MOOSE_parser.i</Input>
+  </Files>
+
+  <Distributions>
+    <Exponential name='exp_D'>
+      <lowerBound>0.0</lowerBound>
+      <upperBound>2000.0</upperBound>
+      <lambda>0.0023</lambda>
+    </Exponential>
+  </Distributions>
+
+  <Samplers>
+    <Grid name='graph_x'>
+      <variable name='nsh'>
+        <grid type='CDF' construction='equal' steps='1'>0.0 0.95</grid>
+        <distribution>exp_D</distribution>
+      </variable>
+    </Grid>
+  </Samplers>
+
+  <DataObjects>
+    <PointSet name='mam_out'>
+      <options>
+        <operator>max</operator>
+      </options>
+      <Input>
+        nsh
+      </Input>
+      <Output>
+        delta_temp
+      </Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name='fix'>
+      <type>csv</type>
+      <source>mam_out</source>
+    </Print>
+  </OutStreams>
+
+  <Models>
+    <Code name='nope' subType='MooseBasedApp'>
+      <alias variable='nsh' type='input'>AuxVariables|nsh|initial_condition</alias>
+      <executable><!-- ~/projects/anamammoth/mammoth-opt --></executable>
+    </Code>
+  </Models>
+
+  <Steps>
+    <MultiRun name='parser_moose'>
+      <Input class='Files' type=''>mam_input</Input>
+      <Model class='Models' type='Code'>nope</Model>
+      <Sampler class='Samplers' type='Grid'>graph_x</Sampler>
+      <Output class='DataObjects' type='PointSet'>mam_out</Output>
+      <Output class='OutStreams' type='Print'>fix</Output>
+    </MultiRun>
+  </Steps>
+</Simulation>

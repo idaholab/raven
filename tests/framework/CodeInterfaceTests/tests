@@ -107,6 +107,8 @@
   csv = 'RELAP5interfaceTest/testDummyStep/1/out~snc01.csv RELAP5interfaceTest/testDummyStep/2/out~snc01.csv RELAP5interfaceTest/testDummyStep/3/out~snc01.csv RELAP5interfaceTest/testDummyStep/4/out~snc01.csv RELAP5interfaceTest/testDummyStep/5/out~snc01.csv'
   text = 'RELAP5interfaceTest/testDummyStep/1/snc01.i RELAP5interfaceTest/testDummyStep/2/snc01.i'
   test_interface_only = True
+  # Windows has a 1e-14 difference in the snc01.i that disqualifies it from matching.
+  skip_if_OS = windows
  [../]
 
  [./RELAP5interfaceTestSingleRunNoExecutable]
@@ -256,27 +258,24 @@
  [./MAAP5interfaceForwardSampling]
    type = 'RavenFramework'
    input = 'test_maap5_code_interface_forward.xml'
-   output = 'MAAP5_Forward_test/2-plotWWBBN_line.png MAAP5_Forward_test/3-plotWWBBN_line.png MAAP5_Forward_test/test_dataobject.csv'
+   output = 'MAAP5_Forward_test/2-plotWWBBN_line.png MAAP5_Forward_test/3-plotWWBBN_line.png MAAP5_Forward_test/test_dataobject.csv MAAP5_Forward_test/test_dataobject.xml'
    csv = 'MAAP5_Forward_test/test_dataobject_2.csv'
-   UnorderedXml = 'MAAP5_Forward_test/test_dataobject.xml'
    test_interface_only = True
    rel_err = 0.0001
  [../]
  [./MAAP5interfaceDETSampling]
    type = 'RavenFramework'
    input = 'test_maap5_code_interface_det.xml'
-   output = 'MAAP5_DET_test/2-plotAFW_line.png MAAP5_DET_test/3-plotAFW_line.png MAAP5_DET_test/test_dataobject.csv'
+   output = 'MAAP5_DET_test/2-plotAFW_line.png MAAP5_DET_test/3-plotAFW_line.png MAAP5_DET_test/test_dataobject.csv MAAP5_DET_test/test_dataobject.xml'
    csv = 'MAAP5_DET_test/test_dataobject_3.csv'
-   UnorderedXml = 'MAAP5_DET_test/test_dataobject.xml'
    test_interface_only = True
    rel_err = 0.0001
  [../]
  [./MAAP5interfaceHybridDETSampling]
    type = 'RavenFramework'
    input = 'test_maap5_code_interface_hybrid_det.xml'
-   output = 'MAAP5_HybridDET_test/7-plotAFW_line.png MAAP5_HybridDET_test/test_dataobject.csv'
+   output = 'MAAP5_HybridDET_test/7-plotAFW_line.png MAAP5_HybridDET_test/test_dataobject.csv MAAP5_HybridDET_test/test_dataobject.xml'
    csv = 'MAAP5_HybridDET_test/test_dataobject_3.csv'
-   UnorderedXml = 'MAAP5_HybridDET_test/test_dataobject.xml'
    test_interface_only = True
    rel_err = 0.0001
  [../]
@@ -320,19 +319,6 @@
    csv = 'MelcorInterface/dumpMelcorPointSet.csv'
    text = 'MelcorInterface/testMelcor/1/test.i'
    test_interface_only = True
-   rel_err = 0.0001
- [../]
-
- [./RAVENrunningRAVEN]
-   type = 'RavenFramework'
-   input = 'raven_running_raven_basic.xml'
-   UnorderedCsv = 'Raven_running_raven_basic/outer_out.csv'
- [../]
- [./RAVENrunningRAVEN_ROM]
-   type = 'RavenFramework'
-   input = 'test_raven_running_raven_int_models.xml'
-   output = 'raven_running_raven_internal_models/testPrintHistorySet_dump_11.csv'
-   UnorderedCsv = 'raven_running_raven_internal_models/testPointSet_dump.csv'
    rel_err = 0.0001
  [../]
 []

@@ -109,8 +109,8 @@
                  pdf_area_ans2_ans,
                  cdf_diff_dist2_dist1,
                  pdf_area_dist2_dist1,
-                 cdf_diff_outputDataMC-Output-ans2_dist1,
-                 pdf_area_outputDataMC-Output-ans2_dist1</Group>
+                 cdf_diff_outputDataMC_Output_ans2_dist1,
+                 pdf_area_outputDataMC_Output_ans2_dist1</Group>
   </VariableGroups>
 
 </Simulation>

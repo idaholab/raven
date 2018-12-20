@@ -35,16 +35,13 @@ from utils.utils import find_crow
 find_crow(frameworkDir)
 import MessageHandler
 
-# find location of data objects
-sys.path.append(os.path.join(frameworkDir,'DataObjects'))
-
-import PointSet
+import DataObjects
 
 mh = MessageHandler.MessageHandler()
 mh.initialize({'verbosity':'debug', 'callerLength':10, 'tagLength':10})
 
 print('Module undergoing testing:')
-print(PointSet)
+print(DataObjects.PointSet)
 print('')
 
 def createElement(tag,attrib=None,text=None):
@@ -136,7 +133,7 @@ def checkArray(comment,first,second,dtype,tol=1e-10,update=True):
     for i in range(len(first)):
       if dtype == float:
         pres = checkFloat('',first[i],second[i],tol,update=False)
-      elif dtype in (str,unicode):
+      elif dtype.__name__ in ('str','unicode'):
         pres = checkSame('',first[i],second[i],update=False)
       if not pres:
         print('checking array',comment,'|','entry "{}" does not match: {} != {}'.format(i,first[i],second[i]))
@@ -165,7 +162,7 @@ def checkRlz(comment,first,second,tol=1e-10,update=True):
     for key,val in first.items():
       if isinstance(val,float):
         pres = checkFloat('',val,second[key],tol,update=False)
-      elif isinstance(val,(str,unicode)):
+      elif type(val).__name__ in ('str','unicode','str_','unicode_'):
         pres = checkSame('',val,second[key][0],update=False)
       elif isinstance(val,xr.DataArray):
         if isinstance(val.item(0),(float,int)):
@@ -260,7 +257,7 @@ xml.append(createElement('Input',text='a,b'))
 xml.append(createElement('Output',text='x,z'))
 
 # check construction
-data = PointSet.PointSet()
+data = DataObjects.PointSet()
 # inputs, outputs
 checkSame('DataSet __init__ name',data.name,'PointSet')
 checkSame('DataSet __init__ print tag',data.printTag,'PointSet')
@@ -312,7 +309,7 @@ data.addRealization(rlz0)
 # get realization by index, from collector
 checkRlz('PointSet append 0',data.realization(index=0),rlz0)
 # try to access the inaccessible
-checkFails('PointSet inaccessible index check','Requested index \"1\" but only have 1 entries (zero-indexed)!',data.realization,kwargs={'index':1})
+checkFails('PointSet inaccessible index check','PointSet: Requested index "1" but only have 1 entries (zero-indexed)!',data.realization,kwargs={'index':1})
 # add more data
 data.addRealization(rlz1)
 data.addRealization(rlz2)
@@ -383,7 +380,7 @@ checkSame('Metadata TestPP',treePP.tag,'TestPP')
 first,second = (c for c in treePP) # TODO always same order?
 
 checkSame('Metadata TestPP/firstVar tag',first.tag,'firstVar')
-sm1,vm,sm2 = (c for c in first) # TODO always same order?
+sm1,sm2,vm = (c for c in first) # TODO always same order?
 checkSame('Metadata TestPP/firstVar/scalarMetric1 tag',sm1.tag,'scalarMetric1')
 checkSame('Metadata TestPP/firstVar/scalarMetric1 value',sm1.text,'10.0')
 checkSame('Metadata TestPP/firstVar/scalarMetric2 tag',sm2.tag,'scalarMetric2')
@@ -414,7 +411,7 @@ general = treeDS[:][0]
 print('general:',general)
 checkSame('Metadata DataSet/general tag',general.tag,'general')
 checkSame('Metadata DataSet/general entries',len(general),4)
-inputs,pointwise_meta,outputs,sampleTag = general[:]
+sampleTag,inputs,outputs,pointwise_meta = general[:]
 checkSame('Metadata DataSet/general/inputs tag',inputs.tag,'inputs')
 checkSame('Metadata DataSet/general/inputs value',inputs.text,'a,b')#,c')
 checkSame('Metadata DataSet/general/outputs tag',outputs.tag,'outputs')
@@ -428,9 +425,9 @@ checkSame('Metadata DataSet/general/sampleTag value',sampleTag.text,'RAVEN_sampl
 meta = data.getMeta(pointwise=True,general=True)
 checkArray('Metadata get keys',sorted(meta.keys()),['DataSet','TestPP','prefix'],str)
 # fail to find pointwise in general
-checkFails('Metadata get missing general','Some requested keys could not be found in the requested metadata: set([u\'prefix\'])',data.getMeta,kwargs=dict(keys=['prefix'],general=True))
+checkFails('Metadata get missing general','Some requested keys could not be found in the requested metadata: {\'prefix\'}',data.getMeta,kwargs=dict(keys=['prefix'],general=True))
 # fail to find general in pointwise
-checkFails('Metadata get missing general','Some requested keys could not be found in the requested metadata: set([u\'DataSet\'])',data.getMeta,kwargs=dict(keys=['DataSet'],pointwise=True))
+checkFails('Metadata get missing general','Some requested keys could not be found in the requested metadata: {\'DataSet\'}',data.getMeta,kwargs=dict(keys=['DataSet'],pointwise=True))
 # TODO more value testing, easier "getting" of specific values
 
 
@@ -438,13 +435,15 @@ checkFails('Metadata get missing general','Some requested keys could not be foun
 #        READ/WRITE FROM FILE        #
 ######################################
 # to netCDF
-netname = 'PointSetUnitTest.nc'
-data.write(netname,style='netcdf',format='NETCDF4') # WARNING this will fail if netCDF4 not installed
-checkTrue('Wrote to netcdf',os.path.isfile(netname))
+# NOTE: due to a cool little seg fault error in netCDF4 versions less than 1.3.1, we cannot test it currently.
+# Leaving implementation for the future.
+#netname = 'PointSetUnitTest.nc'
+#data.write(netname,style='netcdf',format='NETCDF4') # WARNING this will fail if netCDF4 not installed
+#checkTrue('Wrote to netcdf',os.path.isfile(netname))
 ## read fresh from netCDF
-dataNET = PointSet.PointSet()
-dataNET.messageHandler = mh
-dataNET.load(netname,style='netcdf')
+#dataNET = PointSet.PointSet()
+#dataNET.messageHandler = mh
+#dataNET.load(netname,style='netcdf')
 # validity of load is checked below, in ACCESS USING GETTERS section
 
 # to CSV
@@ -453,32 +452,32 @@ csvname = 'PointSetUnitTest'
 data.write(csvname,style='CSV',**{'what':'a,b,c,x,y,z,RAVEN_sample_ID,prefix'})
 ## test metadata written
 correct = ['<DataObjectMetadata name="PointSet">',
-'  <TestPP type="Static">',
-'    <firstVar>',
-'      <scalarMetric1>10.0</scalarMetric1>',
-'      <vectorMetric>',
-'        <a>1</a>',
-'        <c>3</c>',
-'        <b>2</b>',
-'        <d>4.0</d>',
-'      </vectorMetric>',
-'      <scalarMetric2>20</scalarMetric2>',
-'    </firstVar>',
-'    <secondVar>',
-'      <scalarMetric1>100.0</scalarMetric1>',
-'    </secondVar>',
-'  </TestPP>',
-'  ',
-'  <DataSet type="Static">',
-'    <general>',
-'      <inputs>a,b</inputs>',
-'      <pointwise_meta>prefix</pointwise_meta>',
-'      <outputs>x,z</outputs>',
-'      <sampleTag>RAVEN_sample_ID</sampleTag>',
-'    </general>',
-'  </DataSet>',
-'  ',
-'</DataObjectMetadata>']
+           '  <DataSet type="Static">',
+           '    <general>',
+           '      <sampleTag>RAVEN_sample_ID</sampleTag>',
+           '      <inputs>a,b</inputs>',
+           '      <outputs>x,z</outputs>',
+           '      <pointwise_meta>prefix</pointwise_meta>',
+           '    </general>',
+           '  </DataSet>',
+           '  ',
+           '  <TestPP type="Static">',
+           '    <firstVar>',
+           '      <scalarMetric1>10.0</scalarMetric1>',
+           '      <scalarMetric2>20</scalarMetric2>',
+           '      <vectorMetric>',
+           '        <a>1</a>',
+           '        <b>2</b>',
+           '        <c>3</c>',
+           '        <d>4.0</d>',
+           '      </vectorMetric>',
+           '    </firstVar>',
+           '    <secondVar>',
+           '      <scalarMetric1>100.0</scalarMetric1>',
+           '    </secondVar>',
+           '  </TestPP>',
+           '  ',
+           '</DataObjectMetadata>']
 # read in XML
 lines = open(csvname+'.xml','r').readlines()
 # remove line endings
@@ -491,7 +490,7 @@ checkArray('CSV XML',lines,correct,str)
 xml = createElement('PointSet',attrib={'name':'test'})
 xml.append(createElement('Input',text='a,b'))
 xml.append(createElement('Output',text='x,z'))
-dataCSV = PointSet.PointSet()
+dataCSV = DataObjects.PointSet()
 dataCSV.messageHandler = mh
 dataCSV._readMoreXML(xml)
 ### load the data (with both CSV, XML)
@@ -521,28 +520,28 @@ os.remove(csvname+'.csv')
 # test contents of data in parallel (base, netcdf, csv)
 # by index
 checkRlz('PointSet full origin idx 1',data.realization(index=1),rlz1)
-checkRlz('PointSet full netcdf idx 1',dataNET.realization(index=1),rlz1)
+#checkRlz('PointSet full netcdf idx 1',dataNET.realization(index=1),rlz1)
 checkRlz('PointSet full csvxml idx 1',dataCSV.realization(index=1),rlz1)
 # by match
 idx,rlz = data.realization(matchDict={'prefix':'third'})
 checkSame('PointSet full origin match idx',idx,2)
 checkRlz('PointSet full origin match',rlz,rlz2)
-idx,rlz = dataNET.realization(matchDict={'prefix':'third'})
-checkSame('PointSet full netcdf match idx',idx,2)
-checkRlz('PointSet full netCDF match',rlz,rlz2)
+#idx,rlz = dataNET.realization(matchDict={'prefix':'third'})
+#checkSame('PointSet full netcdf match idx',idx,2)
+#checkRlz('PointSet full netCDF match',rlz,rlz2)
 idx,rlz = dataCSV.realization(matchDict={'prefix':'third'})
 checkSame('PointSet full csvxml match idx',idx,2)
 checkRlz('PointSet full csvxml match',rlz,rlz2)
 # TODO metadata checks?
 
 ## remove files, for cleanliness (comment out to debug)
-dataNET._data.close()
-os.remove(netname) # if this is a problem because of lazy loading, force dataNET to load completely
+#dataNET._data.close()
+#os.remove(netname) # if this is a problem because of lazy loading, force dataNET to load completely
 
 ######################################
 #         SELECTIVE SAMPLING         #
 ######################################
-data = PointSet.PointSet()
+data = DataObjects.PointSet()
 xml = createElement('PointSet',attrib={'name':'test'})
 xml.append(createElement('Input',text='a'))
 xml.append(createElement('Output',text='x'))

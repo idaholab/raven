@@ -42,7 +42,10 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     it could as complex as a stand alone code, a reduced order model trained somehow or something
     externally build and imported by the user
   """
-  plugins = importlib.import_module("Models.ModelPlugInFactory")
+  try:
+    plugins = importlib.import_module("Models.ModelPlugInFactory")
+  except Exception as ae:
+    print("FAILED PLUGIN IMPORT",repr(ae))
 
   @classmethod
   def getInputSpecification(cls):
@@ -155,7 +158,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
     #counting successful matches
     if who not in cls.validateDict.keys():
-      raise IOError('The role '+str(who)+' does not exist in the class '+str(cls))
+      raise IOError('The role "{}" is not recognized for the entity "{}"'.format(who,cls))
     for myItemDict in cls.validateDict[who]:
       myItemDict['tempCounter'] = 0
     for anItem in what:
@@ -265,8 +268,9 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     for aliasTyp in listAliasType:
       for varFramework,varModel in self.alias[aliasTyp].items():
         whichVar =  varModel if fromModelToFramework else varFramework
-        found = sampledVars.pop(whichVar,[sys.maxint])
-        if not np.array_equal(np.asarray(found), [sys.maxint]):
+        notFound = 2**62
+        found = sampledVars.pop(whichVar,[notFound])
+        if not np.array_equal(np.asarray(found), [notFound]):
           if fromModelToFramework:
             sampledVars[varFramework] = originalVariables[varModel]
           else:
@@ -368,8 +372,9 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
            a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
         @ Out, None
     """
-    prefix = kwargs['prefix'] if 'prefix' in kwargs else None
-    uniqueHandler = kwargs['uniqueHandler'] if 'uniqueHandler' in kwargs.keys() else 'any'
+    prefix = kwargs.get("prefix")
+    uniqueHandler = kwargs.get("uniqueHandler",'any')
+    forceThreads = kwargs.get("forceThreads",False)
 
     ## These kwargs are updated by createNewInput, so the job either should not
     ## have access to the metadata, or it needs to be updated from within the
@@ -381,37 +386,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     ## works, we are unable to pass a member function as a job because the
     ## pp library loses track of what self is, so instead we call it from the
     ## class and pass self in as the first parameter
-    jobHandler.addJob((self, myInput, samplerType, kwargs), self.__class__.evaluateSample, prefix, metadata=metadata, modulesToImport=self.mods, uniqueHandler=uniqueHandler)
-
-  def submitAsClient(self, myInput, samplerType, jobHandler, **kwargs):
-    """
-        This will submit an individual sample to be evaluated by this model to a
-        specified jobHandler as a client job. Note, some parameters are needed
-        by createNewInput and thus descriptions are copied from there.
-        @ In, myInput, list, the inputs (list) to start from to generate the new
-          one
-        @ In, samplerType, string, is the type of sampler that is calling to
-          generate a new input
-        @ In,  jobHandler, JobHandler instance, the global job handler instance
-        @ In, **kwargs, dict,  is a dictionary that contains the information
-          coming from the sampler, a mandatory key is the sampledVars' that
-          contains a dictionary {'name variable':value}
-        @ Out, None
-    """
-    prefix = kwargs['prefix'] if 'prefix' in kwargs else None
-    uniqueHandler = kwargs['uniqueHandler'] if 'uniqueHandler' in kwargs.keys() else 'any'
-
-    ## These kwargs are updated by createNewInput, so the job either should not
-    ## have access to the metadata, or it needs to be updated from within the
-    ## evaluateSample function, which currently is not possible since that
-    ## function does not know about the job instance.
-    metadata = kwargs
-
-    ## This may look a little weird, but due to how the parallel python library
-    ## works, we are unable to pass a member function as a job because the
-    ## pp library loses track of what self is, so instead we call it from the
-    ## class and pass self in as the first parameter
-    jobHandler.addClientJob((self, myInput, samplerType, kwargs), self.__class__.evaluateSample, prefix, metadata=metadata, modulesToImport=self.mods, uniqueHandler=uniqueHandler)
+    jobHandler.addJob((self, myInput, samplerType, kwargs), self.__class__.evaluateSample, prefix, metadata=metadata, modulesToImport=self.mods, uniqueHandler=uniqueHandler, forceUseThreads=forceThreads)
 
   def addOutputFromExportDictionary(self,exportDict,output,options,jobIdentifier):
     """

@@ -8,11 +8,15 @@
     <classesTested>SupervisedLearning.DynamicModeDecomposition</classesTested>
     <description>
        This test is aimed to check the mechanics of the DMD ROM using the standard SVD-based
-       algorithm
+       algorithm.
+       In addition, it tests the capability for the user to export the ROM info in an XML output
+       file (requirement).
     </description>
     <revisions>
       <revision author="alfoa" date="2018-04-25">Adding this test description.</revision>
+      <revision author="alfoa" date="2018-10-01">This test is a requirement test now.</revision>
     </revisions>
+    <requirements>R-F-5</requirements>
   </TestInfo>
   
     <RunInfo>
@@ -58,9 +62,9 @@
 
 	<Models>
 		<ROM name='DMDrom' subType='DMD'>
-			<Target>time,decay_heat,decay_heat_pu</Target>
+			<Target>t,decay_heat,decay_heat_pu</Target>
 			<Features>enrichment,burnup</Features>
-			<pivotParameter>time</pivotParameter>
+			<pivotParameter>t</pivotParameter>
             <rankSVD>0</rankSVD>
             <rankTLSQ>7</rankTLSQ>
             <dmdType>dmd</dmdType>
@@ -111,10 +115,16 @@
       <HistorySet name="rawData">
         <Input>enrichment,burnup</Input>
         <Output>decay_heat,decay_heat_pu</Output>
+        <options>
+            <pivotParameter>t</pivotParameter>
+        </options>
       </HistorySet>
       <HistorySet name="synDataDMD" >
        <Input>enrichment,burnup</Input>
        <Output>decay_heat,decay_heat_pu</Output>
+       <options>
+           <pivotParameter>t</pivotParameter>
+       </options>
       </HistorySet>
     </DataObjects>
 </Simulation>

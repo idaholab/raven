@@ -412,31 +412,11 @@ class Simulation(MessageHandler.MessageUser):
     ### expand variable groups before continuing ###
     ## build variable groups ##
     varGroupNode = xmlNode.find('VariableGroups')
-    varGroups={}
     # init, read XML for variable groups
     if varGroupNode is not None:
-      for child in varGroupNode:
-        varGroup = VariableGroups.VariableGroup()
-        varGroup.readXML(child,self.messageHandler)
-        varGroups[varGroup.name]=varGroup
-    # initialize variable groups
-    while any(not vg.initialized for vg in varGroups.values()):
-      numInit = 0 #new vargroups initialized this pass
-      for vg in varGroups.values():
-        if vg.initialized:
-          continue
-        try:
-          deps = list(varGroups[dp] for dp in vg.getDependencies())
-        except KeyError as e:
-          self.raiseAnError(IOError,'Dependency %s listed but not found in varGroups!' %e)
-        if all(varGroups[dp].initialized for dp in vg.getDependencies()):
-          vg.initialize(varGroups.values())
-          numInit+=1
-      if numInit == 0:
-        self.raiseAWarning('variable group status:')
-        for name,vg in varGroups.items():
-          self.raiseAWarning('   ',name,':',vg.initialized)
-        self.raiseAnError(RuntimeError,'There was an infinite loop building variable groups!')
+      varGroups = xmlUtils.readVariableGroups(varGroupNode,self.messageHandler,self)
+    else:
+      varGroups={}
     # read other nodes
     for child in xmlNode:
       if child.tag=='VariableGroups':
@@ -492,7 +472,7 @@ class Simulation(MessageHandler.MessageUser):
               else:
                 self.whichDict[Class][subType][name].readXML(childChild, self.messageHandler, globalAttributes=globalAttributes)
             else:
-              self.raiseAnError(IOError,'not found name attribute for one '+Class)
+              self.raiseAnError(IOError,'not found name attribute for one "{}": {}'.format(Class,subType))
       else:
         #tag not in whichDict, check if it's a documentation tag
         if child.tag not in ['TestInfo']:
@@ -503,7 +483,7 @@ class Simulation(MessageHandler.MessageUser):
       fileName = os.path.join(self.runInfoDict['WorkingDir'],self.runInfoDict['printInput'])
       self.raiseAMessage('Writing duplicate input file:',fileName)
       outFile = open(fileName,'w')
-      outFile.writelines(TreeStructure.tostring(xmlNode)+'\n') #\n for no-end-of-line issue
+      outFile.writelines(utils.toString(TreeStructure.tostring(xmlNode))+'\n') #\n for no-end-of-line issue
       outFile.close()
     if not set(self.stepSequenceList).issubset(set(self.stepsDict.keys())):
       self.raiseAnError(IOError,'The step list: '+str(self.stepSequenceList)+' contains steps that have not been declared: '+str(list(self.stepsDict.keys())))
@@ -516,6 +496,7 @@ class Simulation(MessageHandler.MessageUser):
       @ Out, None
     """
     #move the full simulation environment in the working directory
+    self.raiseADebug('Moving to working directory:',self.runInfoDict['WorkingDir'])
     os.chdir(self.runInfoDict['WorkingDir'])
     #add also the new working dir to the path
     sys.path.append(os.getcwd())
@@ -608,6 +589,9 @@ class Simulation(MessageHandler.MessageUser):
         else:
           self.runInfoDict['printInput'] = text+'.xml'
       elif element.tag == 'WorkingDir':
+        # first store the cwd, the "CallDir"
+        self.runInfoDict['CallDir'] = os.getcwd()
+        # then get the requested "WorkingDir"
         tempName = element.text
         if '~' in tempName:
           tempName = os.path.expanduser(tempName)
@@ -618,8 +602,11 @@ class Simulation(MessageHandler.MessageUser):
         else:
           if xmlFilename == None:
             self.raiseAnError(IOError,'Relative working directory requested but xmlFilename is None.')
+          # store location of the input
           xmlDirectory = os.path.dirname(os.path.abspath(xmlFilename))
+          self.runInfoDict['InputDir'] = xmlDirectory
           rawRelativeWorkingDir = element.text.strip()
+          # working dir is file location + relative working dir
           self.runInfoDict['WorkingDir'] = os.path.join(xmlDirectory,rawRelativeWorkingDir)
         utils.makeDir(self.runInfoDict['WorkingDir'])
       elif element.tag == 'maxQueueSize':

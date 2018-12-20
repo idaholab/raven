@@ -17,7 +17,7 @@ Created on April 14, 2016
 @modified: picoco (The Ohio State University)
 '''
 
-from __future__ import division, print_function, unicode_literals, absolute_import
+from __future__ import division, print_function, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
 
@@ -214,7 +214,7 @@ class MAAP5(GenericCode):
           print('stopTimer =', self.stopTimer)
           stop=False
       for cont, var in enumerate(self.DETsampledVars):
-        var = var.encode('utf8')
+        var = var
         branchingMarker=str('C Branching '+var)
         if branchingMarker in line:
           #branching timer marker
@@ -415,7 +415,7 @@ class MAAP5(GenericCode):
 
     RAVENoutputFile=os.path.join(workingDir,output+".csv") #RAVEN will look for  output+'.csv'file but in the workingDir, so we need to append it to the filename
     outputCSVfile=open(RAVENoutputFile,"w+")
-    csvwriter=csv.writer(outputCSVfile,delimiter=b',')
+    csvwriter=csv.writer(outputCSVfile,delimiter=',')
     csvwriter.writerow(allVariableTags)
     for i in range(len(allVariableValues[0])):
       row=[]
@@ -451,10 +451,10 @@ class MAAP5(GenericCode):
       print('Events occur at: ', dictTimeHappened)
       #if any([dictTimeHappened.count(value) > 1 for value in dictTimer.values()]): raise IOError('Branch must occur at different times')
       key1 = max(dictTimer.values())
-      d1 = dict((v, k) for k, v in dictTimer.iteritems())
+      d1 = dict((v, k) for k, v in dictTimer.items())
       timerActivated = d1[key1]
       key2 = timerActivated.split('TIM')[-1]
-      d2 = dict((v, k) for k, v in self.timer.iteritems())
+      d2 = dict((v, k) for k, v in self.timer.items())
       varActivated = d2[key2]
       currentFolder = os.path.split(workingDir)[-1]
       for key, value in self.values[currentFolder].items():

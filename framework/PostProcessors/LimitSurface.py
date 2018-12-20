@@ -91,10 +91,11 @@ class LimitSurface(PostProcessor):
     self.tolerance         = 1.0e-4           #SubGrid tolerance
     self.gridFromOutside   = False            #The grid has been passed from outside (self._initFromDict)?
     self.lsSide            = "negative"       # Limit surface side to compute the LS for (negative,positive,both)
-    self.gridEntity        = None
-    self.bounds            = None
-    self.jobHandler        = None
-    self.transfMethods     = {}
+    self.gridEntity        = None             # the Grid object
+    self.bounds            = None             # the container for the domain of search
+    self.jobHandler        = None             # job handler pointer
+    self.transfMethods     = {}               # transformation methods container
+    self.crossedLimitSurf  = False            # Limit surface has been crossed?
     self.addAssemblerObject('ROM','-1', True)
     self.addAssemblerObject('Function','1')
     self.printTag = 'POSTPROCESSOR LIMITSURFACE'
@@ -135,7 +136,7 @@ class LimitSurface(PostProcessor):
     self.ROM.reset()
     self.indexes = -1
     for index, inp in enumerate(self.inputs):
-      if isinstance(inp, basestring)  or isinstance(inp, bytes):
+      if utils.isString(inp)  or isinstance(inp, bytes):
         self.raiseAnError(IOError, 'LimitSurface PostProcessor only accepts Data(s) as inputs. Got string type!')
       if inp.type == 'PointSet':
         self.indexes = index
@@ -204,7 +205,12 @@ class LimitSurface(PostProcessor):
       if type(inp).__name__ in ['dict','OrderedDict']:
         if self.externalFunction.name in inp:
           inp[self.externalFunction.name] = np.concatenate((inp[self.externalFunction.name],np.asarray(self.functionValue[self.externalFunction.name][myIndex])))
-    if np.sum(self.functionValue[self.externalFunction.name]) == float(len(self.functionValue[self.externalFunction.name])) or np.sum(self.functionValue[self.externalFunction.name]) == -float(len(self.functionValue[self.externalFunction.name])):
+    # check if the Limit Surface has been crossed
+    self.crossedLimitSurf = not (np.sum(self.functionValue[self.externalFunction.name]) ==
+                                 float(len(self.functionValue[self.externalFunction.name])) or
+                                 np.sum(self.functionValue[self.externalFunction.name]) ==
+                                 -float(len(self.functionValue[self.externalFunction.name])))
+    if not self.crossedLimitSurf:
       if raiseErrorIfNotFound:
         self.raiseAnError(ValueError, 'LimitSurface: all the Function evaluations brought to the same result (No Limit Surface has been crossed...). Increase or change the data set!')
       else:
@@ -388,7 +394,11 @@ class LimitSurface(PostProcessor):
       self.gridCoord[nodeName].shape      = self.gridEntity.returnParameter("gridCoorShape",nodeName) #bring back the grid structure
       self.raiseADebug('LimitSurface: Prediction performed')
       # here next the points that are close to any change are detected by a gradient (it is a pre-screener)
-      toBeTested = np.squeeze(np.dstack(np.nonzero(np.sum(np.abs(np.gradient(self.testMatrix[nodeName])), axis = 0))))
+      if self.nVar > 1:
+        toBeTested = np.squeeze(np.dstack(np.nonzero(np.sum(np.abs(np.gradient(self.testMatrix[nodeName])), axis = 0))))
+      else:
+        toBeTested = np.squeeze(np.dstack(np.nonzero(np.abs(np.gradient(self.testMatrix[nodeName])))))
+      toBeTested = np.atleast_2d(toBeTested).T if self.nVar == 1 else toBeTested
       #printing----------------------
       self.raiseADebug('LimitSurface:  Limit surface candidate points')
       if self.getLocalVerbosity() == 'debug':

@@ -22,7 +22,6 @@
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
-#if not 'xrange' in dir(__builtins__): xrange = range
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -477,7 +476,9 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
     """
     point = None
     avg = 0
-    for pt in self.expImpact.values()[0].keys():
+    #This finds a prototype of the samples from which the points can be found
+    prototype = self.expImpact[self.targets[0]]
+    for pt in sorted(prototype.keys()):
       new = sum(self.expImpact[t][pt] for t in self.targets)/len(self.targets)
       if avg < new:
         avg = new
@@ -574,7 +575,7 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
     for t in self.targets:
       f.writelines('  {:<16}'.format(t))
     f.writelines('\n')
-    for idx in self.expImpact.values()[0].keys():
+    for idx in utils.first(self.expImpact.values()).keys():
       f.writelines('    {:^{}}:'.format(idx,pl))
       for t in self.targets:
         f.writelines('  {:<9}'.format(self.expImpact[t][idx]))
@@ -650,4 +651,4 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
     rom = copy.deepcopy(self.ROM)
     self._finalizeROM(rom)
     rom.train(self.solns)
-    pickle.dump(rom,open(fname+'.pk','w'))
+    pickle.dump(rom,open(fname+'.pk','wb'))

@@ -23,7 +23,7 @@
   
   <Metrics>
       <SKL name="m1">
-          <metricType>mean_squared_error</metricType>
+          <metricType>regression|mean_squared_error</metricType>
       </SKL>
   </Metrics>
 
@@ -34,7 +34,6 @@
       <clargs arg="-i" extension=".one" type="input"/>
       <fileargs arg="aux" extension=".two" type="input"/>
       <fileargs arg="output" type="output"/>
-      <prepend>python</prepend>
     </Code>
     <ROM name="knr" subType="SciKitLearn">
       <SKLtype>neighbors|KNeighborsRegressor</SKLtype>
@@ -52,7 +51,6 @@
             <SKLtype>KFold</SKLtype>
             <n_splits>10</n_splits>
             <shuffle>False</shuffle>
-            <random_state>None</random_state>
         </SciKitLearn>
         <Metric class="Metrics" type="SKL">m1</Metric>
     </PostProcessor>

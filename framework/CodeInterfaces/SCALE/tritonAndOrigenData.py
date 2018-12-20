@@ -195,7 +195,7 @@ class origenAndTritonData:
     except StopIteration:
       return outputDict
     values = []
-    totals = []
+    totals = {}
     for cnt, indexConcTable in enumerate(indexHistOverview):
       splitted = self.lines[indexConcTable].split(",")
       if len(splitted) > 1:
@@ -204,6 +204,8 @@ class origenAndTritonData:
       else:
         uom = splitted[0].split("for case")[0].split()[-1].strip()
         isotopeType = None
+      if uom not in totals:
+        totals[uom] = []
       indexConcTable+=4
       timeUom = re.split('(\d+)', self.lines[indexConcTable].split()[0])[-1].strip()
       timeGrid = [float(elm.replace(timeUom.strip(),"")) for elm in  self.lines[indexConcTable].split()]
@@ -225,13 +227,14 @@ class origenAndTritonData:
             outputDict['info_ids'].append(nuclideName+"_"+uom.strip())
             values.append( [float(elm) if 'E' in elm else float(elm[:elm.index("-" if "-" in elm else "+")] + "E"+elm[elm.index("-" if "-" in elm else "+"):]) for elm in  components[1:] ])
             if nuclideName.startswith("subtotals"):
-              if len(totals) > 0:
-                totals = [subtot + values[-1][cnt] for cnt, subtot in enumerate(totals)]
+              if len(totals[uom]) > 0:
+                totals[uom] = [subtot + values[-1][cnt] for cnt, subtot in enumerate(totals[uom])]
               else:
-                totals = values[-1]
-    if len(totals)>0 and isotopeType is not None:
-      values.append(totals)
-      outputDict['info_ids'].append('totals'+"_"+uom.strip())
+                totals[uom] = values[-1]
+    for uom in totals:
+      if len(totals[uom])>0 and isotopeType is not None:
+        values.append(totals[uom])
+        outputDict['info_ids'].append('totals'+"_"+uom.strip())
 
     outputDict['values'] = np.atleast_2d(values)
     return outputDict
@@ -353,7 +356,7 @@ class origenAndTritonData:
       @ In, fileout, str, the output file name
       @ Out, None
     """
-    fileObject = open(fileout.strip()+".csv", mode='w+') if not fileout.endswith('csv') else open(fileout.strip(), mode='w+')
+    fileObject = open(fileout.strip()+".csv", mode='wb+') if not fileout.endswith('csv') else open(fileout.strip(), mode='wb+')
     headers = ['time']
     timeGrid = None
     nParams = np.sum([len(data['info_ids']) for data in self.data.values() if data is not None])+1

@@ -22,11 +22,14 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
 
+import sys
 import math
+import functools
 import copy
 import scipy
 from scipy import interpolate, stats, integrate
 import numpy as np
+import six
 from utils.utils import UreturnPrintTag,UreturnPrintPostTag
 
 def normal(x,mu=0.0,sigma=1.0):
@@ -178,7 +181,7 @@ def historySnapShoots(valueDict, numberOfTimeStep):
     @ Out, outDic, list, it contains the temporal slice of all histories
   """
   outDict = []
-  numberOfRealizations = len(valueDict.values()[-1])
+  numberOfRealizations = len(list(valueDict.values())[-1])
   outPortion, inPortion = {}, {}
   numberSteps = - 1
   # check consistency of the dictionary
@@ -189,11 +192,11 @@ def historySnapShoots(valueDict, numberOfTimeStep):
       # check the time-step size
       outPortion[variable] = np.asarray(value)
       if numberSteps == -1:
-        numberSteps = reduce(lambda x, y: x*y, list(outPortion.values()[-1].shape))/numberOfRealizations
+        numberSteps = functools.reduce(lambda x, y: x*y, list(list(outPortion.values())[-1].shape))/numberOfRealizations
       if len(list(outPortion[variable].shape)) != 2:
         return "historySnapShoots method: number of time steps are not consistent among the different histories for variable "+variable
-      if reduce(lambda x, y:
-        x*y, list(outPortion.values()[-1].shape))/numberOfRealizations != numberSteps :
+      if functools.reduce(lambda x, y:
+        x*y, list(list(outPortion.values())[-1].shape))/numberOfRealizations != numberSteps :
         return "historySnapShoots method: number of time steps are not consistent among the different histories for variable "+variable+". Expected "+str(numberSteps)+" /= "+ sum(list(outPortion[variable].shape))/numberOfRealizations
     else:
       inPortion [variable] = np.asarray(value)
@@ -561,8 +564,7 @@ def isAString(val):
     @ In, val, object, check
     @ Out, isAString, bool, result
   """
-  # str,unicode inherit from basestring
-  return isinstance(val,basestring)
+  return isinstance(val, six.string_types)
 
 def isAFloatOrInt(val,nanOk=True):
   """
@@ -572,7 +574,7 @@ def isAFloatOrInt(val,nanOk=True):
     @ In, nanOk, bool, optional, if True then NaN and inf are acceptable
     @ Out, isAFloatOrInt, bool, result
   """
-  if isinstance(val,(float,int,long,np.number)):
+  if isinstance(val,six.integer_types) or  isinstance(val,(float,np.number)):
     # bools are ints, unfortunately
     if isABoolean(val):
       return False
@@ -608,7 +610,7 @@ def isAnInteger(val,nanOk=False):
     @ In, nanOk, bool, optional, if True then NaN and inf are acceptable
     @ Out, isAnInteger, bool, result
   """
-  if isinstance(val,(int,np.integer,long)):
+  if isinstance(val,six.integer_types) or isinstance(val,np.integer):
     # exclude booleans
     if isABoolean(val):
       return False

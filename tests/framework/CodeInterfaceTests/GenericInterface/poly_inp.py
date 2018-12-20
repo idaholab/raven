@@ -41,7 +41,7 @@ def run(xin,yin,out):
   """
   inx = ET.parse(xin)
   root = inx.getroot()
-  iny = file(yin,'r')
+  iny = open(yin,'r')
   if not os.path.isfile('dummy.e'):
     raise IOError('Missing dummy exodus file "dummy.e"!')
   x = float(root.find('x').text)
@@ -52,7 +52,7 @@ def run(xin,yin,out):
 
   dat = eval(x,y,z)
 
-  outf = file(out+'.csv','w')
+  outf = open(out+'.csv','w')
   outf.writelines('step,i,j,x,y,z,poly\n')
   for e in dat:
     outf.writelines(','.join(str(i) for i in e)+'\n')

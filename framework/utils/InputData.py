@@ -42,6 +42,8 @@ class InputType(object):
 
     ## Rename the class to something understandable by a developer
     cls.__name__ = str(name+'Spec')
+    # register class name to module (necessary for pickling)
+    globals()[cls.__name__] = cls
 
     cls.name = name
     cls.xmlType = xmlType
@@ -132,6 +134,31 @@ class FloatType(InputType):
     return float(value)
 
 FloatType.createClass("float","xsd:double")
+
+#
+#
+#
+#
+class FloatOrIntType(InputType):
+  """
+    A type for floating point or integer data.
+  """
+
+  @classmethod
+  def convert(cls, value):
+    """
+      Converts value from string to a float or int.
+      @ In, value, string, the value to convert
+      @ Out, val, float or int, the converted value
+    """
+    try:
+      val = int(value)
+      return val
+    except ValueError:
+      val = float(value)
+      return val
+
+FloatOrIntType.createClass("stringtype","xsd:string")
 
 #
 #
@@ -252,6 +279,8 @@ class EnumBaseType(InputType):
 
     ## Rename the class to something understandable by a developer
     cls.__name__ = str(name+'Spec')
+    # register class name to module (necessary for pickling)
+    globals()[cls.__name__] = cls
 
     cls.name = name
     cls.xmlType = xmlType
@@ -290,7 +319,7 @@ class BoolType(EnumBaseType):
       @ In, value, string, the value to convert
       @ Out, convert, bool, the converted value
     """
-    if value in utils.stringsThatMeanTrue():
+    if value.lower() in utils.stringsThatMeanTrue():
       return True
     else:
       return False
@@ -350,6 +379,8 @@ class ParameterInput(object):
 
     ## Rename the class to something understandable by a developer
     cls.__name__ = str(name+'Spec')
+    # register class name to module (necessary for pickling)
+    globals()[cls.__name__] = cls
 
     cls.name = name
     cls.strictMode = strictMode

@@ -23,6 +23,7 @@ warnings.simplefilter('default',DeprecationWarning)
 #External Modules------------------------------------------------------------------------------------
 import copy
 import inspect
+import itertools
 import numpy as np
 #External Modules End--------------------------------------------------------------------------------
 
@@ -55,20 +56,29 @@ class ROM(Dummy):
     IndexSetInputType = InputData.makeEnumType("indexSet","indexSetType",["TensorProduct","TotalDegree","HyperbolicCross","Custom"])
     CriterionInputType = InputData.makeEnumType("criterion", "criterionType", ["bic","aic","gini","entropy","mse"])
 
-    InterpolationInput = InputData.parameterInputFactory('Interpolation', contentType=InputData.StringType)
-    InterpolationInput.addParam("quad", InputData.StringType, False)
-    InterpolationInput.addParam("poly", InputData.StringType, False)
-    InterpolationInput.addParam("weight", InputData.FloatType, False)
-
+    # general
     inputSpecification.addSub(InputData.parameterInputFactory('Features',contentType=InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory('Target',contentType=InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("IndexPoints", InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("IndexSet",IndexSetInputType))
-    inputSpecification.addSub(InputData.parameterInputFactory('pivotParameter',contentType=InputData.StringType))
-    inputSpecification.addSub(InterpolationInput)
-    inputSpecification.addSub(InputData.parameterInputFactory("PolynomialOrder", InputData.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("SobolOrder", InputData.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("SparseGrid", InputData.StringType))
+    # clustering
+    cluster = InputData.parameterInputFactory("Cluster", strictMode=True)
+    subspace = InputData.parameterInputFactory('subspace', InputData.StringType)
+    subspace.addParam('divisions', InputData.IntegerType, False)
+    subspace.addParam('pivotLength', InputData.FloatType, False)
+    subspace.addParam('shift', InputData.StringType, False)
+    cluster.addSub(subspace)
+    clsfr = InputData.parameterInputFactory('Classifier', strictMode=True, contentType=InputData.StringType)
+    clsfr.addParam('class', InputData.StringType, True)
+    clsfr.addParam('type', InputData.StringType, True)
+    cluster.addSub(clsfr)
+    metric = InputData.parameterInputFactory('Metric', strictMode=True, contentType=InputData.StringType)
+    metric.addParam('class', InputData.StringType, True)
+    metric.addParam('type', InputData.StringType, True)
+    cluster.addSub(metric)
+    feature = InputData.parameterInputFactory('feature', strictMode=True, contentType=InputData.StringType)
+    feature.addParam('weight', InputData.FloatType)
+    cluster.addSub(feature)
+    inputSpecification.addSub(cluster)
+    # unsorted
     inputSpecification.addSub(InputData.parameterInputFactory("persistence", InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("gradient", InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("simplification", InputData.FloatType))
@@ -161,15 +171,44 @@ class ROM(Dummy):
     inputSpecification.addSub(InputData.parameterInputFactory("nugget", InputData.FloatType))
     inputSpecification.addSub(InputData.parameterInputFactory("optimizer", InputData.StringType)) #enum
     inputSpecification.addSub(InputData.parameterInputFactory("random_start", InputData.IntegerType))
+    # GaussPolynomialROM and HDMRRom
+    inputSpecification.addSub(InputData.parameterInputFactory("IndexPoints", InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("IndexSet",IndexSetInputType))
+    inputSpecification.addSub(InputData.parameterInputFactory('pivotParameter',contentType=InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("PolynomialOrder", InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("SobolOrder", InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("SparseGrid", InputData.StringType))
+    InterpolationInput = InputData.parameterInputFactory('Interpolation', contentType=InputData.StringType)
+    InterpolationInput.addParam("quad", InputData.StringType, False)
+    InterpolationInput.addParam("poly", InputData.StringType, False)
+    InterpolationInput.addParam("weight", InputData.FloatType, False)
+    inputSpecification.addSub(InterpolationInput)
+    # ARMA
+    inputSpecification.addSub(InputData.parameterInputFactory('segments', InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory('correlate', InputData.StringListType))
     inputSpecification.addSub(InputData.parameterInputFactory("Pmax", InputData.IntegerType))
     inputSpecification.addSub(InputData.parameterInputFactory("Pmin", InputData.IntegerType))
     inputSpecification.addSub(InputData.parameterInputFactory("Qmax", InputData.IntegerType))
     inputSpecification.addSub(InputData.parameterInputFactory("Qmin", InputData.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("outTruncation", InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("Fourier", InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("FourierOrder", InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("seed", InputData.IntegerType))
     inputSpecification.addSub(InputData.parameterInputFactory("reseedCopies", InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("reseedValue", InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("Fourier", contentType=InputData.FloatListType))
+    inputSpecification.addSub(InputData.parameterInputFactory("FourierOrder", contentType=InputData.IntegerListType))
+    ### ARMA zero filter
+    zeroFilt = InputData.parameterInputFactory('ZeroFilter', contentType=InputData.StringType)
+    zeroFilt.addParam('tol', InputData.FloatType)
+    inputSpecification.addSub(zeroFilt)
+    ### ARMA out truncation
+    outTrunc = InputData.parameterInputFactory('outTruncation', contentType=InputData.StringListType)
+    domainEnumType = InputData.makeEnumType('domain','truncateDomainType',['positive','negative'])
+    outTrunc.addParam('domain', domainEnumType, True)
+    inputSpecification.addSub(outTrunc)
+    ### ARMA specific fourier
+    specFourier = InputData.parameterInputFactory('SpecificFourier', strictMode=True)
+    specFourier.addParam("variables", InputData.StringListType, True)
+    specFourier.addSub(InputData.parameterInputFactory('periods', contentType=InputData.FloatListType))
+    specFourier.addSub(InputData.parameterInputFactory('orders', contentType=InputData.IntegerListType))
+    inputSpecification.addSub(specFourier)
     # inputs for neural_network
     inputSpecification.addSub(InputData.parameterInputFactory("hidden_layer_sizes", InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("activation", InputData.StringType))
@@ -263,6 +302,10 @@ class ROM(Dummy):
     self.supervisedEngine          = None       # dict of ROM instances (== number of targets => keys are the targets)
     self.printTag = 'ROM MODEL'
 
+    # for Clustered ROM
+    self.addAssemblerObject('Classifier','-1',True)
+    self.addAssemblerObject('Metric','-n',True)
+
   def _readMoreXML(self,xmlNode):
     """
       Function to read the portion of the xml input that belongs to this specialized class
@@ -288,7 +331,9 @@ class ROM(Dummy):
           continue
         if child.getName() not in self.initializationOptionDict.keys():
           self.initializationOptionDict[child.getName()]={}
-        self.initializationOptionDict[child.getName()][child.value]=child.parameterValues
+        # "tuple" here allows values to be listed, probably not great but works
+        key = child.value if not isinstance(child.value,list) else tuple(child.value)
+        self.initializationOptionDict[child.getName()][key]=child.parameterValues
       else:
         if child.getName() in ['estimator', 'optimizerSetting']:
           self.initializationOptionDict[child.getName()] = {}
@@ -299,7 +344,7 @@ class ROM(Dummy):
     # if working with a pickled ROM, send along that information
     if self.subType == 'pickledROM':
       self.initializationOptionDict['pickled'] = True
-    self._initializeSupervisedGate(**self.initializationOptionDict)
+    self._initializeSupervisedGate(paramInput=paramInput, **self.initializationOptionDict)
     #the ROM is instanced and initialized
     self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(SupervisedLearning),True)) - set(self.mods))
     self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(LearningGate),True)) - set(self.mods))
@@ -310,7 +355,7 @@ class ROM(Dummy):
       @ In, initializationOptions, dict, the initialization options
       @ Out, None
     """
-    self.supervisedEngine = LearningGate.returnInstance('SupervisedGate', self.subType, self,**initializationOptions)
+    self.supervisedEngine = LearningGate.returnInstance('SupervisedGate', self.subType, self, **initializationOptions)
 
   def printXML(self,options={}):
     """
@@ -399,9 +444,17 @@ class ROM(Dummy):
       self.amITrained               = copy.deepcopy(trainingSet.amITrained)
       self.supervisedEngine         = copy.deepcopy(trainingSet.supervisedEngine)
     else:
+      # TODO: The following check may need to be moved to Dummy Class -- wangc 7/30/2018
+      if type(trainingSet).__name__ != 'dict' and trainingSet.type == 'HistorySet':
+        pivotParameterId = self.supervisedEngine.pivotParameterId
+        if not trainingSet.checkIndexAlignment(indexesToCheck=pivotParameterId):
+          self.raiseAnError(IOError, "The data provided by the data object", trainingSet.name, "is not synchonized!",
+                  "The time-dependent ROM requires all the histories are synchonized!")
       self.trainingSet = copy.copy(self._inputToInternal(trainingSet))
       self._replaceVariablesNamesWithAliasSystem(self.trainingSet, 'inout', False)
-      self.supervisedEngine.train(self.trainingSet)
+      # grab assembled stuff and pass it through
+      ## TODO this should be changed when the SupervisedLearning objects themselves can use the Assembler
+      self.supervisedEngine.train(self.trainingSet, self.assemblerDict)
       self.amITrained = self.supervisedEngine.amITrained
 
   def confidence(self,request,target = None):
@@ -462,7 +515,7 @@ class ROM(Dummy):
     self._replaceVariablesNamesWithAliasSystem(kwargs['SampledVars'] ,'input',True)
     rlz = dict((var,np.atleast_1d(kwargs[var])) for var in kwargs.keys())
     # update rlz with input space from inRun and output space from result
-    rlz.update(dict((var,np.atleast_1d(inRun[var] if var in kwargs['SampledVars'] else result[var])) for var in set(result.keys()+inRun.keys())))
+    rlz.update(dict((var,np.atleast_1d(inRun[var] if var in kwargs['SampledVars'] else result[var])) for var in set(itertools.chain(result.keys(),inRun.keys()))))
     return rlz
 
   def reseed(self,seed):

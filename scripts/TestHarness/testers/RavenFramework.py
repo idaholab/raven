@@ -22,6 +22,7 @@ import os
 import subprocess
 import sys
 import distutils.version
+import platform
 
 # Set this outside the class because the framework directory is constant for
 #  each instance of this Tester, and in addition, there is a problem with the
@@ -54,6 +55,7 @@ class RavenFramework(Tester):
     params.addParam('required_libraries','','Skip test if any of these libraries are not found')
     params.addParam('minimum_library_versions','','Skip test if the library listed is below the supplied version (e.g. minimum_library_versions = \"name1 version1 name2 version2\")')
     params.addParam('skip_if_env','','Skip test if this environmental variable is defined')
+    params.addParam('skip_if_OS','','Skip test if the operating system defined')
     params.addParam('test_interface_only',False,'Test the interface only (without running the driven code')
     params.addParam('check_absolute_value',False,'if true the values are compared in absolute value (abs(trueValue)-abs(testValue)')
     params.addParam('zero_threshold',sys.float_info.min*4.0,'it represents the value below which a float is considered zero (XML comparison only)')
@@ -61,6 +63,8 @@ class RavenFramework(Tester):
     params.addParam('expected_fail', False, 'if true, then the test should fails, and if it passes, it fails.')
     params.addParam('remove_unicode_identifier', False, 'if true, then remove u infront of a single quote')
     params.addParam('interactive', False, 'if true, then RAVEN will be run with interactivity enabled.')
+    params.addParam('python3_only', False, 'if true, then only use with Python3')
+    params.addParam('ignore_sign', False, 'if true, then only compare the absolute values')
     return params
 
   def getCommand(self, options):
@@ -98,21 +102,38 @@ class RavenFramework(Tester):
     self.driver = os.path.join(RAVEN_DIR,'Driver.py')
 
   def checkRunnable(self, option):
-    missing,too_old = _missing_modules, _too_old_modules
+    missing = _missing_modules
+    too_old = _too_old_modules
+    # remove tests based on skipping criteria
+    ## required module is missing
     if len(missing) > 0:
       self.setStatus('skipped (Missing python modules: '+" ".join(missing)+
                      " PYTHONPATH="+os.environ.get("PYTHONPATH","")+')',
                      self.bucket_skip)
       return False
+    ## required module is present, but too old
     if len(too_old) > 0  and RavenUtils.checkVersions():
       self.setStatus('skipped (Old version python modules: '+" ".join(too_old)+
                      " PYTHONPATH="+os.environ.get("PYTHONPATH","")+')',
                      self.bucket_skip)
       return False
+    ## an environment varible value causes a skip
     if len(self.specs['skip_if_env']) > 0:
       env_var = self.specs['skip_if_env']
       if env_var in os.environ:
         self.setStatus('skipped (found environmental variable "'+env_var+'")',
+                       self.bucket_skip)
+        return False
+    ## OS
+    if len(self.specs['skip_if_OS']) > 0:
+      skip_os = [x.strip().lower() for x in self.specs['skip_if_OS'].split(',')]
+      # get simple-name platform (options are Linux, Windows, Darwin, or SunOS that I've seen)
+      currentOS = platform.system().lower()
+      # replace Darwin with more expected "mac"
+      if currentOS == 'darwin':
+        currentOS = 'mac'
+      if currentOS in skip_os:
+        self.setStatus('skipped (OS is "{}")'.format(currentOS),
                        self.bucket_skip)
         return False
     for lib in self.required_libraries:
@@ -121,6 +142,10 @@ class RavenFramework(Tester):
         self.setStatus('skipped (Unable to import library: "'+lib+'")',
                        self.bucket_skip)
         return False
+    if self.specs['python3_only'] and not RavenUtils.inPython3():
+      self.setStatus('Python 3 only',
+                     self.bucket_skip)
+      return False
 
     i = 0
     if len(self.minimum_libraries) % 2:
@@ -227,12 +252,12 @@ class RavenFramework(Tester):
                   self.ucsv_files,
                   relative_error = float(self.specs["rel_err"]),
                   absolute_check = checkAbsoluteValue,
-                  zeroThreshold = zeroThreshold)
+                  zeroThreshold = zeroThreshold, ignore_sign=self.specs["ignore_sign"])
     else:
       ucsv_diff = UnorderedCSVDiffer(self.specs['test_dir'],
                   self.ucsv_files,
                   absolute_check = checkAbsoluteValue,
-                  zeroThreshold = zeroThreshold)
+                  zeroThreshold = zeroThreshold, ignore_sign=self.specs["ignore_sign"])
 
     ucsv_same,ucsv_messages = ucsv_diff.diff()
     if not ucsv_same:

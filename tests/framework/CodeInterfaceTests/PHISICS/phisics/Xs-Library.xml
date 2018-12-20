@@ -1,0 +1,28 @@
+<?xml version="1.0" ?>
+<XS-library n_library_sets="1" type="1">
+  <library_set_info ID="1">
+    <library_info N_lib="1">
+      <lib lib_name="matF1">1 11 </lib>
+    </library_info>
+    <tab_values N_tab="4">
+      <BURN-UP>0 </BURN-UP>
+      <tab name="T_fuel">1200 </tab>
+      <tab name="T_mod">1200 </tab>
+      <tab name="XE135">0  </tab>
+    </tab_values>
+  </library_set_info>
+  <library_set ID="1">
+    <BURNUP-STEP N="1" type="GWd">
+      <tabulation ID="0.0" P="1">
+        <POINT ID="1">
+          <filename>ft30f001</filename>
+          <tab name="T_fuel">1200 </tab>
+          <tab name="T_mod">1200 </tab>
+          <tab name="XE135">0 </tab>
+          <disadvantage_factors mix="1">1.0389826665 0.987065018019 0.989586569511 0.989427560496</disadvantage_factors>
+          <disadvantage_factors mix="11">0.99693892485 1.00101570661 1.00081770428 1.00083019031</disadvantage_factors>
+        </POINT>
+      </tabulation>
+    </BURNUP-STEP>
+  </library_set>
+</XS-library>

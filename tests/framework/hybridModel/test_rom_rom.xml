@@ -34,7 +34,7 @@
 
   <Metrics>
       <SKL name="m1">
-          <metricType>mean_absolute_error</metricType>
+          <metricType>regression|mean_absolute_error</metricType>
       </SKL>
   </Metrics>
 
@@ -73,7 +73,6 @@
             <SKLtype>KFold</SKLtype>
             <n_splits>10</n_splits>
             <shuffle>False</shuffle>
-            <random_state>None</random_state>
         </SciKitLearn>
         <Metric class="Metrics" type="SKL">m1</Metric>
     </PostProcessor>

@@ -19,8 +19,6 @@ Created on Oct 13, 2015
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
-if not 'xrange' in dir(__builtins__):
-  xrange = range
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
 #External Modules End--------------------------------------------------------------------------------
@@ -72,7 +70,7 @@ class ravenArrayIterator(object):
       if self.cnt >= self.maxCnt:
         self.finished = True
       else:
-        for i in xrange(len(self.iterator)-1, -1, -1):
+        for i in range(len(self.iterator)-1, -1, -1):
           if self.iterator[i] + 1 >= self.shape[i]:
             self.iterator[i] = 0
             continue

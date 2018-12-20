@@ -21,9 +21,11 @@
 % If you just want to change the text font, you should just \usepackage{times}.
 % \usepackage{pslatex}
 \usepackage{times}
+\usepackage{longtable}
 \usepackage[FIGBOTCAP,normal,bf,tight]{subfigure}
 \usepackage{amsmath}
 \usepackage{amssymb}
+\usepackage[labelfont=bf]{caption}
 \usepackage{pifont}
 \usepackage{enumerate}
 \usepackage{listings}
@@ -162,7 +164,6 @@ showstringspaces=false            %
 \newcommand{\default}[1]{~\\*\textit{Default: #1}}
 \newcommand{\nb} {\textcolor{deepgreen}{\textbf{~Note:}}~}
 
-
 %%%%%%%% End comands definition to input python code into document
 
 %\usepackage[dvips,light,first,bottomafter]{draftcopy}
@@ -204,6 +205,8 @@ showstringspaces=false            %
     linkcolor=black,
     urlcolor=black
 }
+
+\newcommand{\wiki}{\href{https://github.com/idaholab/raven/wiki}{RAVEN wiki}}
 
 % Compress lists of citations like [33,34,35,36,37] to [33-37]
 \usepackage{cite}
@@ -258,7 +261,7 @@ showstringspaces=false            %
 \\Robert Kinoshita\\
 \textbf{\textit{Former Developers:}} \\Sonat Sen
 \\Jun Chen\\
-\textbf{\textit{Contributors:}} 
+\textbf{\textit{Contributors:}}
 \\Alessandro Bandini (Post-Processor)
 \\Ivan Rinaldi (documentation)
 \\Claudia Picoco (new external code interface)
@@ -409,7 +412,7 @@ Robert Kinoshita, Sonat Sen, Congjian Wang, Paul W. Talbot, Daniel P. Maljovec, 
 
 \input{introduction.tex}
 \input{nomenclature.tex}
-\input{install.tex}
+\input{Installation/main.tex}
 \input{HowToRun.tex}
 \input{ravenStructure.tex}
 \input{runInfo.tex}

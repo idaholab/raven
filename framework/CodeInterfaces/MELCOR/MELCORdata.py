@@ -28,6 +28,7 @@ import warnings
 warnings.simplefilter('default',DeprecationWarning)
 import re
 import copy
+import itertools
 
 class MELCORdata:
   """
@@ -138,12 +139,12 @@ class MELCORdata:
       @ Out, None
     """
     IOcsvfile=open(filen,'w+')
-    getHeaders = self.timeParams.values()[0].keys()
-    CFHeaders = self.functions.values()[0].keys()
-    header = ','.join(getHeaders + CFHeaders)
+    getHeaders = list(self.timeParams.values())[0].keys()
+    CFHeaders = list(self.functions.values())[0].keys()
+    header = ','.join(itertools.chain(getHeaders,CFHeaders))
     header = "time,"+header+"\n"
     IOcsvfile.write(header)
-    for time in self.timeParams.keys():
+    for time in sorted(self.timeParams.keys()):
       stringToWrite = str(time)
       for value in self.timeParams[time].values():
         stringToWrite+=","+str(value)

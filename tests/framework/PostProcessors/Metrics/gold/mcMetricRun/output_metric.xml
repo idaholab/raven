@@ -1,0 +1,8 @@
+<MetricPostProcessor type="Static">
+  <ans-ans2>
+    <euclidean2_paired_distance_euclidean>8.15320610438</euclidean2_paired_distance_euclidean>
+    <cosine_paired_distance_cosine>1.29565233369</cosine_paired_distance_cosine>
+    <euclidean_paired_distance_euclidean>8.15320610438</euclidean_paired_distance_euclidean>
+    <manhattan_paired_distance_manhattan>18.6723477175</manhattan_paired_distance_manhattan>
+  </ans-ans2>
+</MetricPostProcessor>

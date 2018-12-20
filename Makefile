@@ -32,6 +32,11 @@ endif
 
 CURR_DIR    := $(CURDIR)
 
+# touch hit.cpp to make sure its time stamp is different than hit.pyx
+## this is not a clean solution, but hopefully it prevents asking to use cython
+CYTHON_AVOIDANCE_ACTION=$(shell touch $(MOOSE_DIR)/framework/contrib/hit/hit.cpp)
+
+
 # framework
 #include $(FRAMEWORK_DIR)/build.mk
 #include $(FRAMEWORK_DIR)/moose.mk
