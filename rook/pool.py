@@ -1,8 +1,21 @@
-
+# Copyright 2017 Battelle Energy Alliance, LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+"""
+This module implements a thread pool for running tasks.
+"""
 from __future__ import division, print_function, absolute_import
 import warnings
-warnings.simplefilter('default',DeprecationWarning)
-
 
 import threading
 try:
@@ -10,6 +23,8 @@ try:
 except ImportError:
   import Queue as queue
 import time
+
+warnings.simplefilter('default', DeprecationWarning)
 
 class RunnerThread(threading.Thread):
   """
@@ -53,7 +68,7 @@ class MultiRun:
   """
   This creates queues and runner threads to process the functions.
   """
-  def __init__(self, function_list, number_jobs, ready_to_run = None):
+  def __init__(self, function_list, number_jobs, ready_to_run=None):
     """
     Initializes the class
     function_list: list of functions and data to run
@@ -111,7 +126,7 @@ class MultiRun:
         runner_count += 1
     return runner_count
 
-  def process_results(self, process_function = None):
+  def process_results(self, process_function=None):
     """
     Process results and return the output in an array.
     If a process_function is passed in, it will be called with
@@ -122,7 +137,9 @@ class MultiRun:
     count_down = 10
     while output_count < len(return_array):
       while output_count + self.__not_ready < len(return_array):
-        #print("meditation numbers oc", output_count, "nr", self.__not_ready, "lra", len(return_array), "rc", self.__runner_count(), "ie", self.__input_queue.empty(), "oe", self.__output_queue.empty())
+        #print("meditation numbers oc", output_count, "nr", self.__not_ready,
+        # "lra", len(return_array), "rc", self.__runner_count(), "ie",
+        # self.__input_queue.empty(), "oe", self.__output_queue.empty())
         id_num, output = self.__output_queue.get()
         count_down = 10
         return_array[id_num] = output
@@ -137,7 +154,7 @@ class MultiRun:
         if runner_count == 0:
           break
       count_down -= 1
-    assert self.__output_queue.empty(),"Output queue not empty"
+    assert self.__output_queue.empty(), "Output queue not empty"
     return return_array
 
   def wait(self):

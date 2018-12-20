@@ -28,12 +28,12 @@ class RavenErrors(Tester):
   def validParams():
     """This method add defines the valid parameters for the tester. The expected error message shuld be unique..."""
     params = Tester.validParams()
-    params.addRequiredParam('input',"The input file to use for this test.")
-    params.addRequiredParam('expect_err',"All or part of the expected error message (unique keyword)")
-    params.addParam('required_executable','','Skip test if this executable is not found')
-    params.addParam('required_libraries','','Skip test if any of these libraries are not found')
-    params.addParam('skip_if_env','','Skip test if this environmental variable is defined')
-    params.addParam('test_interface_only','False','Test the interface only (without running the driven code')
+    params.add_required_param('input',"The input file to use for this test.")
+    params.add_required_param('expect_err',"All or part of the expected error message (unique keyword)")
+    params.add_param('required_executable','','Skip test if this executable is not found')
+    params.add_param('required_libraries','','Skip test if any of these libraries are not found')
+    params.add_param('skip_if_env','','Skip test if this environmental variable is defined')
+    params.add_param('test_interface_only','False','Test the interface only (without running the driven code')
     return params
 
   def getCommand(self, options):

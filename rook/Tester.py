@@ -1,7 +1,21 @@
-
+# Copyright 2017 Battelle Energy Alliance, LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+"""
+This module implements classes for running tests.
+"""
 from __future__ import division, print_function, absolute_import
 import warnings
-warnings.simplefilter('default',DeprecationWarning)
 
 import subprocess
 import sys
@@ -9,6 +23,8 @@ import os
 import time
 import threading
 from distutils import spawn
+
+warnings.simplefilter('default', DeprecationWarning)
 
 class _Parameter:
 
@@ -22,10 +38,10 @@ class _ValidParameters:
   def __init__(self):
     self.__parameters = {}
 
-  def addParam(self, name, default, help_text):
+  def add_param(self, name, default, help_text):
     self.__parameters[name] = _Parameter(name, help_text, default)
 
-  def addRequiredParam(self, name, help_text):
+  def add_required_param(self, name, help_text):
     self.__parameters[name] = _Parameter(name, help_text)
 
   def get_filled_dict(self, partial_dict):
@@ -81,9 +97,9 @@ class Differ:
   @staticmethod
   def validParams():
     params = _ValidParameters()
-    params.addRequiredParam('type', 'The type of this differ')
-    params.addRequiredParam('output', 'Output of to check')
-    params.addParam('gold_files', '', 'Gold filenames')
+    params.add_required_param('type', 'The type of this differ')
+    params.add_required_param('output', 'Output of to check')
+    params.add_param('gold_files', '', 'Gold filenames')
     return params
 
   def __init__(self, name, params):
@@ -157,7 +173,7 @@ class _TimeoutThread(threading.Thread):
       if time.time() > end:
         #Time over
         if os.name == "nt" and spawn.find_executable("taskkill"):
-          subprocess.call(['taskkill', '/f', '/t', '/pid',str(self.__process.pid)])
+          subprocess.call(['taskkill', '/f', '/t', '/pid', str(self.__process.pid)])
         else:
           self.__process.kill()
         self.__killed = True
@@ -186,14 +202,15 @@ class Tester:
   @staticmethod
   def validParams():
     params = _ValidParameters()
-    params.addRequiredParam('type', 'The type of this test')
-    params.addParam('skip', False, 'If true skip test')
-    params.addParam('prereq', '', 'list of tests to run before running this one')
-    params.addParam('max_time', 300, 'Maximum time that test is allowed to run')
-    params.addParam('method', False, 'Method is ignored, but kept for compatibility')
-    params.addParam('heavy', False, 'If true, run only with heavy tests')
-    params.addParam('output', '', 'Output of the test')
-    params.addParam('expected_fail', False, 'if true, then the test should fails, and if it passes, it fails.')
+    params.add_required_param('type', 'The type of this test')
+    params.add_param('skip', False, 'If true skip test')
+    params.add_param('prereq', '', 'list of tests to run before running this one')
+    params.add_param('max_time', 300, 'Maximum time that test is allowed to run')
+    params.add_param('method', False, 'Method is ignored, but kept for compatibility')
+    params.add_param('heavy', False, 'If true, run only with heavy tests')
+    params.add_param('output', '', 'Output of the test')
+    params.add_param('expected_fail', False,
+                     'if true, then the test should fails, and if it passes, it fails.')
     return params
 
   def __init__(self, name, params):
@@ -297,7 +314,7 @@ class Tester:
       self.results.message = "FAILED "+str(ioe)
       return self.results
     timed_out = False
-    if sys.version_info >= (3,3):
+    if sys.version_info >= (3, 3):
       #New timeout interface available starting in Python 3.3
       try:
         output = process.communicate(timeout=timeout)[0]
@@ -306,7 +323,7 @@ class Tester:
         output = process.communicate()[0]
         timed_out = True
     else:
-      timeout_killer = _TimeoutThread(process,timeout)
+      timeout_killer = _TimeoutThread(process, timeout)
       timeout_killer.start()
       output = process.communicate()[0]
       if timeout_killer.killed():
@@ -375,7 +392,7 @@ class Tester:
     """
     assert False, "getCommand not implemented"
 
-  def prepare(self, options = None):
+  def prepare(self, options=None):
     """
     gets the test ready to run.
     """

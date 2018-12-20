@@ -387,12 +387,12 @@ class XML(Differ):
   @staticmethod
   def validParams():
     params = Differ.validParams()
-    params.addParam('unordered', False, 'if true allow the tags in any order')
-    params.addParam('zero_threshold',sys.float_info.min*4.0,'it represents the value below which a float is considered zero (XML comparison only)')
-    params.addParam('remove_whitespace',False,'Removes whitespace before comparing xml node text if True')
-    params.addParam('remove_unicode_identifier', False, 'if true, then remove u infront of a single quote')
-    params.addParam('xmlopts','',"Options for xml checking")
-    params.addParam('rel_err','','Relative Error for csv files or floats in xml ones')
+    params.add_param('unordered', False, 'if true allow the tags in any order')
+    params.add_param('zero_threshold',sys.float_info.min*4.0,'it represents the value below which a float is considered zero (XML comparison only)')
+    params.add_param('remove_whitespace',False,'Removes whitespace before comparing xml node text if True')
+    params.add_param('remove_unicode_identifier', False, 'if true, then remove u infront of a single quote')
+    params.add_param('xmlopts','',"Options for xml checking")
+    params.add_param('rel_err','','Relative Error for csv files or floats in xml ones')
     return params
 
   def __init__(self, name, params):

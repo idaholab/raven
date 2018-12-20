@@ -91,7 +91,7 @@ class Text(Differ):
   @staticmethod
   def validParams():
     params = Differ.validParams()
-    params.addParam('comment','-20021986',"Character or string denoting comments, all text to the right of the symbol will be ignored in the diff of text files")
+    params.add_param('comment','-20021986',"Character or string denoting comments, all text to the right of the symbol will be ignored in the diff of text files")
     return params
 
   def __init__(self, name, params):

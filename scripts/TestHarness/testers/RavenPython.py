@@ -30,18 +30,18 @@ class RavenPython(Tester):
   @staticmethod
   def validParams():
     params = Tester.validParams()
-    params.addRequiredParam('input',"The python file to use for this test.")
-    params.addParam('output','',"List of output files that this input should create.")
+    params.add_required_param('input',"The python file to use for this test.")
+    params.add_param('output','',"List of output files that this input should create.")
     if os.environ.get("CHECK_PYTHON3","0") == "1":
-      params.addParam('python_command','python3','The command to use to run python')
+      params.add_param('python_command','python3','The command to use to run python')
     else:
-      params.addParam('python_command','python','The command to use to run python')
-    params.addParam('requires_swig2', False, "Requires swig2 for test")
-    params.addParam('required_executable','','Skip test if this executable is not found')
-    params.addParam('required_libraries','','Skip test if any of these libraries are not found')
-    params.addParam('required_executable_check_flags','','Flags to add to the required executable to make sure it runs without fail when testing its existence on the machine')
-    params.addParam('minimum_library_versions','','Skip test if the library listed is below the supplied version (e.g. minimum_library_versions = \"name1 version1 name2 version2\")')
-    params.addParam('python3_only', False, 'if true, then only use with Python3')
+      params.add_param('python_command','python','The command to use to run python')
+    params.add_param('requires_swig2', False, "Requires swig2 for test")
+    params.add_param('required_executable','','Skip test if this executable is not found')
+    params.add_param('required_libraries','','Skip test if any of these libraries are not found')
+    params.add_param('required_executable_check_flags','','Flags to add to the required executable to make sure it runs without fail when testing its existence on the machine')
+    params.add_param('minimum_library_versions','','Skip test if the library listed is below the supplied version (e.g. minimum_library_versions = \"name1 version1 name2 version2\")')
+    params.add_param('python3_only', False, 'if true, then only use with Python3')
     return params
 
   def prepare(self, options = None):

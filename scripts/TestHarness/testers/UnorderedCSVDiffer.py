@@ -270,10 +270,10 @@ class UnorderedCSV(Differ):
   @staticmethod
   def validParams():
     params = Differ.validParams()
-    params.addParam('rel_err','','Relative Error for csv files')
-    params.addParam('zero_threshold',sys.float_info.min*4.0,'it represents the value below which a float is considered zero (XML comparison only)')
-    params.addParam('ignore_sign', False, 'if true, then only compare the absolute values')
-    params.addParam('check_absolute_value',False,'if true the values are compared to the tolerance directectly, instead of relatively.')
+    params.add_param('rel_err','','Relative Error for csv files')
+    params.add_param('zero_threshold',sys.float_info.min*4.0,'it represents the value below which a float is considered zero (XML comparison only)')
+    params.add_param('ignore_sign', False, 'if true, then only compare the absolute values')
+    params.add_param('check_absolute_value',False,'if true the values are compared to the tolerance directectly, instead of relatively.')
     return params
 
   def __init__(self, name, params):
