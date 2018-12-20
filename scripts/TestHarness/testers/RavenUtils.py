@@ -39,24 +39,6 @@ modules_to_try = [("h5py"      ,'h5py.__version__'      ,'2.4.0' ,'2.7.1' ,None 
                   ("scipy"     ,'scipy.__version__'     ,"1.1.0" ,"1.1.0" ,None   ),
                   ("sklearn"   ,'sklearn.__version__'   ,"0.19.1","0.19.1",None   ),
                   ("pandas"    ,'pandas.__version__'    ,"0.20.0","0.20.3",None   ),
-<<<<<<< HEAD
-                  ("xarray"    ,'xarray.__version__'    ,"0.9.5" ,"0.9.5" ,"0.9.6"),
-                  ("netCDF4"   ,'netCDF4.__version__'   ,"1.2.3" ,"1.2.4" ,None   ),
-                  ("tensorflow",'tensorflow.__version__',"1.1","1.1.0",None       ),
-                  ("matplotlib",'matplotlib.__version__',"1.3.1" ,"1.5.3" ,None   )]
-
-## attempt at modernizing, mostly passing but a few parallel failures:
-#modules_to_try = [("h5py"      ,'h5py.__version__'      ,'2.4.0' ,'2.7.0' ,None   ),
-#                  ("numpy"     ,'numpy.__version__'     ,"1.8.0" ,"1.14.0",None   ),
-#                  ("scipy"     ,'scipy.__version__'     ,"0.14.0","0.19.1",None   ),
-#                  ("sklearn"   ,'sklearn.__version__'   ,"0.18"  ,"0.19.0",None   ),
-#                  ("pandas"    ,'pandas.__version__'    ,"0.20.0","0.20.3",None   ),
-#                  ("xarray"    ,'xarray.__version__'    ,"0.9.5" ,"0.9.6" ,"0.9.6"),
-#                  ("netCDF4"   ,'netCDF4.__version__'   ,"1.2.3" ,"1.3.1" ,None   ),
-#                  ("matplotlib",'matplotlib.__version__',"1.3.1" ,"2.1.0" ,None   )]
-
-def __lookUpPreferredVersion(name):
-=======
                   ("xarray"    ,'xarray.__version__'    ,"0.9.5" ,"0.10.3",None   ),
                   ("netCDF4"   ,'netCDF4.__version__'   ,"1.2.3" ,"1.4.0" ,None   ), # 1.2.4
                   ## NOTE there is a known bug in netCDF4 prior to 1.3.1 where having a path length
@@ -65,7 +47,7 @@ def __lookUpPreferredVersion(name):
                   # hdf5 of at least 1.10.1.  For now, we avoid using netCDF until we transition from
                   # HDF5 databases and drop them like hot rocks.
                   #
-                  #("tensorflow",'tensorflow.__version__',"1.1.0" ,"1.1.0" ,None   ),
+                  ("tensorflow",'tensorflow.__version__',"1.1.0" ,"1.1.0" ,None   ),
                   # On Windows conda, there are no Python 2.7-compatible versions of TensorFlow, although
                   ## these exist on Mac and Linux condas.  Darn.
                   ("statsmodels",'statsmodels.__version__',"0.8.0","0.8.0" ,None   ),
@@ -74,7 +56,6 @@ def __lookUpPreferredVersion(name):
 optional_test_libraries = [ ('pillow','PIL.__version__',"5.0.0","5.1.0",None) ]
 
 def __lookUpPreferredVersion(name,optional=False):
->>>>>>> upstream/devel
   """
     Look up the preferred version in the modules.
     @In, name, string, the name of the module
