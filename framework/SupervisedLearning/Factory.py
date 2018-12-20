@@ -37,6 +37,7 @@ from SupervisedLearning.SciKitLearn        import SciKitLearn
 from SupervisedLearning.pickledROM         import pickledROM
 from SupervisedLearning.PolyExponential    import PolyExponential
 from SupervisedLearning.DynamicModeDecomposition import DynamicModeDecomposition
+from SupervisedLearning.KerasMLPClassifier import KerasMLPClassifier
 
 ## [ Add new class here ]
 ################################################################################

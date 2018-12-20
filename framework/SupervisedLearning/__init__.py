@@ -37,9 +37,9 @@ from .SciKitLearn        import SciKitLearn
 from .pickledROM         import pickledROM
 from .PolyExponential    import PolyExponential
 from .DynamicModeDecomposition import DynamicModeDecomposition
+from .KerasMLPClassifier import KerasMLPClassifier
 
 # Factory methods
 from .Factory import knownTypes
 from .Factory import returnInstance
 from .Factory import returnClass
-
