@@ -158,7 +158,7 @@ class Differ:
     test passes, or false if the test failes.  message should
     give a human readable explaination of the differences.
     """
-    assert False, "Must override check_output"
+    assert False, "Must override check_output "+str(self)
 
 class _TimeoutThread(threading.Thread):
   """
@@ -245,7 +245,7 @@ class Tester:
     self.__differs = []
     self.__run_heavy = False
 
-  def get_differ_remove_files(self, test_dir):
+  def get_differ_remove_files(self):
     """
     Returns the files that need to be removed for testing.
     returns List(String)
@@ -268,12 +268,6 @@ class Tester:
     """
     return self.specs['test_dir']
 
-  def didPass(self):
-    """
-    Returns true if this test passed
-    """
-    return self.results.bucket == self.bucket_success
-
   def run_heavy(self):
     """
     If called, run the heavy tests and not the light
@@ -285,9 +279,9 @@ class Tester:
     """
     Runs the tester.
     """
-    expectedFail = bool(self.specs['expected_fail'])
+    expected_fail = bool(self.specs['expected_fail'])
     results = self.run_backend(data)
-    if not expectedFail:
+    if not expected_fail:
       return results
     else:
       if results.bucket == self.bucket_success:
@@ -297,7 +291,7 @@ class Tester:
         results.bucket = self.bucket_success
       return results
 
-  def run_backend(self, data):
+  def run_backend(self, _):
     """
     Runs this tester.  This does the main work,
     but is separate to allow run to invert the result if expected_fail

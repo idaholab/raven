@@ -222,7 +222,7 @@ class RavenFramework(Tester):
       @ Out, createdFiles, [str], list of files created by the test.
     """
     runpath = self.get_test_dir()
-    remove_files = self.get_differ_remove_files(runpath)
+    remove_files = self.get_differ_remove_files()
     return remove_files+list(os.path.join(runpath,file) for file in self.all_files)
 
   def prepare(self, options = None):
