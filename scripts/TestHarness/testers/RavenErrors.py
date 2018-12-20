@@ -25,9 +25,9 @@ class RavenErrors(Tester):
   This class tests if the expected error messages are generated or not.
   """
   @staticmethod
-  def validParams():
+  def get_valid_params():
     """This method add defines the valid parameters for the tester. The expected error message shuld be unique..."""
-    params = Tester.validParams()
+    params = Tester.get_valid_params()
     params.add_required_param('input',"The input file to use for this test.")
     params.add_required_param('expect_err',"All or part of the expected error message (unique keyword)")
     params.add_param('required_executable','','Skip test if this executable is not found')

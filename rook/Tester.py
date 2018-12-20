@@ -39,9 +39,20 @@ class _ValidParameters:
     self.__parameters = {}
 
   def add_param(self, name, default, help_text):
+    """
+    Adds an optional parameter.
+    name: string parameter name
+    default: string the default value for the parameter
+    help_text: Description of the parameter
+    """
     self.__parameters[name] = _Parameter(name, help_text, default)
 
   def add_required_param(self, name, help_text):
+    """
+    Adds a mandatory parameter.
+    name: string parameter name
+    help_text: Description of the parameter
+    """
     self.__parameters[name] = _Parameter(name, help_text)
 
   def get_filled_dict(self, partial_dict):
@@ -95,7 +106,10 @@ class Differ:
   """
 
   @staticmethod
-  def validParams():
+  def get_valid_params():
+    """
+    Generates the allowed parameters for this class.
+    """
     params = _ValidParameters()
     params.add_required_param('type', 'The type of this differ')
     params.add_required_param('output', 'Output of to check')
@@ -107,7 +121,7 @@ class Differ:
     Initializer for the class.  Takes a String name and a dictionary params
     """
     self.__name = name
-    valid_params = self.validParams()
+    valid_params = self.get_valid_params()
     self.specs = valid_params.get_filled_dict(params)
     self.__output_files = self.specs['output'].split()
 
@@ -188,6 +202,9 @@ class _TimeoutThread(threading.Thread):
     return self.__killed
 
 class Tester:
+  """
+  This is the base class for something that can run tests.
+  """
 
   #Various possible status buckets.
   bucket_skip = 0
@@ -200,7 +217,10 @@ class Tester:
   success_message = "SUCCESS"
 
   @staticmethod
-  def validParams():
+  def get_valid_params():
+    """
+    This generates the parameters for this class.
+    """
     params = _ValidParameters()
     params.add_required_param('type', 'The type of this test')
     params.add_param('skip', False, 'If true skip test')
@@ -218,7 +238,7 @@ class Tester:
     Initializer for the class.  Takes a String name and a dictionary params
     """
     self.__name = name
-    valid_params = self.validParams()
+    valid_params = self.get_valid_params()
     self.specs = valid_params.get_filled_dict(params)
     self.results = TestResult()
     self.__differs = []

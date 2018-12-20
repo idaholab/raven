@@ -139,7 +139,7 @@ print("Differs:", differs)
 
 tester_params = {}
 for tester in testers:
-  tester_params[tester] = testers[tester].validParams()
+  tester_params[tester] = testers[tester].get_valid_params()
 print("Tester Params:", tester_params)
 
 function_list = [] #Store the data for the pool runner
@@ -179,7 +179,7 @@ for test_dir, test_file in test_list:
       for child in node.children:
         #print(test_name,"child",child)
         child_type = child.attrib['type']
-        child_param_handler = differs[child_type].validParams()
+        child_param_handler = differs[child_type].get_valid_params()
         if not child_param_handler.check_for_required(child.attrib):
           print("Missing Parameters in:", child.tag, node.tag, test_file)
         if not child_param_handler.check_for_all_known(child.attrib):

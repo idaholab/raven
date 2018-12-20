@@ -28,8 +28,8 @@ class RavenPython(Tester):
 
 
   @staticmethod
-  def validParams():
-    params = Tester.validParams()
+  def get_valid_params():
+    params = Tester.get_valid_params()
     params.add_required_param('input',"The python file to use for this test.")
     params.add_param('output','',"List of output files that this input should create.")
     if os.environ.get("CHECK_PYTHON3","0") == "1":

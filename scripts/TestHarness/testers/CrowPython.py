@@ -26,11 +26,11 @@ class CrowPython(Tester):
   has_swig2 = "Version 2.0" in output_swig or "Version 3.0" in output_swig
 
   @staticmethod
-  def validParams():
+  def get_valid_params():
     """ Return a list of valid parameters and their descriptions for this type
         of test.
     """
-    params = Tester.validParams()
+    params = Tester.get_valid_params()
     params.add_required_param('input',"The python file to use for this test.")
     if os.environ.get("CHECK_PYTHON3","0") == "1":
       params.add_param('python_command','python3','The command to use to run python')

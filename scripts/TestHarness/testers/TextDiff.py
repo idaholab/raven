@@ -89,8 +89,8 @@ class Text(Differ):
   This is the class to use for handling the Text block.
   """
   @staticmethod
-  def validParams():
-    params = Differ.validParams()
+  def get_valid_params():
+    params = Differ.get_valid_params()
     params.add_param('comment','-20021986',"Character or string denoting comments, all text to the right of the symbol will be ignored in the diff of text files")
     return params
 

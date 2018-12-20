@@ -385,8 +385,8 @@ class XML(Differ):
   This is the class to use for handling the XML block.
   """
   @staticmethod
-  def validParams():
-    params = Differ.validParams()
+  def get_valid_params():
+    params = Differ.get_valid_params()
     params.add_param('unordered', False, 'if true allow the tags in any order')
     params.add_param('zero_threshold',sys.float_info.min*4.0,'it represents the value below which a float is considered zero (XML comparison only)')
     params.add_param('remove_whitespace',False,'Removes whitespace before comparing xml node text if True')

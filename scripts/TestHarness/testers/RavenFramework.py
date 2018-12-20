@@ -42,8 +42,8 @@ _missing_modules, _too_old_modules, _notQAModules = RavenUtils.checkForMissingMo
 class RavenFramework(Tester):
 
   @staticmethod
-  def validParams():
-    params = Tester.validParams()
+  def get_valid_params():
+    params = Tester.get_valid_params()
     params.add_required_param('input',"The input file to use for this test.")
     params.add_param('output','',"List of output files that the input should create.")
     params.add_param('csv','',"List of csv files to check")
