@@ -25,6 +25,9 @@
       <batch_size>4</batch_size>
       <epochs>4</epochs>
       <dropout>0, 0</dropout>
+      <num_classes>1</num_classes>
+      <plot_model>True</plot_model>
+      <validation_split>0.25</validation_split>
       <optimizerSetting>
         <beta_1>0.9</beta_1>
         <optimizer>Adam</optimizer>

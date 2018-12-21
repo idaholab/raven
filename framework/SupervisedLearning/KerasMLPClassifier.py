@@ -15,8 +15,7 @@
   Created on Dec. 20, 2018
 
   @author: wangc
-  modules for tensorflow and keras used for deep neural network
-  i.e. Multi-layer perceptron classifier
+  module for Multi-layer perceptron classifier
 """
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
@@ -30,7 +29,7 @@ import tensorflow as tf
 #from tensorflow import set_random_seed
 #set_random_seed(2017)
 ######
-import tensorflow.contrib.keras as keras
+import tensorflow.contrib.keras as Keras
 from tensorflow.contrib.keras import models as KerasModels
 from tensorflow.contrib.keras import layers as KerasLayers
 from tensorflow.contrib.keras import optimizers as KerasOptimizers
@@ -55,7 +54,21 @@ class KerasMLPClassifier(KerasClassifier):
     """
     KerasClassifier.__init__(self,messageHandler,**kwargs)
     self.printTag = 'KerasMLPClassifier'
-    self.__initLocal__()
+    # activation functions for all hidden layers of deep neural network
+    self.hiddenLayerActivation = [elem.strip() for elem in self.initOptionDict.pop('hidden_layer_activations', 'relu').split(',')]
+    # always required, dimensionalities of hidden layers of deep neural network
+    self.hiddenLayerSize = [int(elem) for elem in self.initOptionDict.pop('hidden_layer_sizes').split(',')]
+    # Broadcast hidden layer activation function to all hidden layers
+    if len(self.hiddenLayerActivation) == 1 and len(self.hiddenLayerActivation) < len(self.hiddenLayerSize):
+      self.hiddenLayerActivation = self.hiddenLayerActivation * len(self.hiddenLayerSize)
+    elif len(self.hiddenLayerActivation) != len(self.hiddenLayerSize):
+      self.raiseAnError(IOError, "The number of activation functions for the hidden layer should be equal the number of hidden layers!")
+    # fraction of the input units to drop, default 0
+    self.dropoutRate = [float(elem) for elem in self.initOptionDict.pop('dropout','0').split(',')]
+    if len(self.dropoutRate) == 1 and len(self.dropoutRate) < len(self.hiddenLayerSize):
+      self.dropoutRate = self.dropoutRate * len(self.hiddenLayerSize)
+    elif len(self.dropoutRate) != len(self.hiddenLayerSize):
+      self.raiseAnError(IOError, "The number of dropout rates should be equal the number of hidden layers!")
 
   def __addLayers__(self):
     """
@@ -75,4 +88,4 @@ class KerasMLPClassifier(KerasClassifier):
         self.ROM.add(KerasLayers.Dense(layerSize, activation=activation))
       self.ROM.add(KerasLayers.Dropout(rate))
     # output layer
-    self.ROM.add(KerasLayers.Dense(len(self.target), activation=self.outputLayerActivation))
+    self.ROM.add(KerasLayers.Dense(self.numClasses, activation=self.outputLayerActivation))

@@ -31,11 +31,12 @@ import tensorflow as tf
 #from tensorflow import set_random_seed
 #set_random_seed(2017)
 ######
-import tensorflow.contrib.keras as keras
+import tensorflow.contrib.keras as Keras
 from tensorflow.contrib.keras import models as KerasModels
 from tensorflow.contrib.keras import layers as KerasLayers
 from tensorflow.contrib.keras import optimizers as KerasOptimizers
 from tensorflow.contrib.keras import utils as KerasUtils
+import matplotlib.pyplot as plt
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -88,18 +89,16 @@ class KerasClassifier(supervisedLearning):
     self.targv = None
     # instance of KERAS deep neural network model
     self.ROM = None
-    self.initOptionDict.pop('name','')
+    modelName = self.initOptionDict.pop('name','')
+    # number of classes for classifier
+    self.numClasses = self.initOptionDict.pop('num_classes',2)
+    # validation split, default to 0.25
+    self.validationSplit = self.initOptionDict.pop('validation_split',0.25)
+    # options to plot deep neural network model, default False
+    self.plotModel = self.initOptionDict.pop('plot_model',False)
+    self.plotModelFilename = self.printTag + "_model.png" if not modelName else modelName + "_model.png"
     # activation function for output layer of deep neural network
     self.outputLayerActivation = self.initOptionDict.pop('output_layer_activation', 'softmax')
-    # activation functions for all hidden layers of deep neural network
-    self.hiddenLayerActivation = [elem.strip() for elem in self.initOptionDict.pop('hidden_layer_activations', 'relu').split(',')]
-    # always required, dimensionalities of hidden layers of deep neural network
-    self.hiddenLayerSize = [int(elem) for elem in self.initOptionDict.pop('hidden_layer_sizes').split(',')]
-    # Broadcast hidden layer activation function to all hidden layers
-    if len(self.hiddenLayerActivation) == 1 and len(self.hiddenLayerActivation) < len(self.hiddenLayerSize):
-      self.hiddenLayerActivation = self.hiddenLayerActivation * len(self.hiddenLayerSize)
-    elif len(self.hiddenLayerActivation) != len(self.hiddenLayerSize):
-      self.raiseAnError(IOError, "The number of activation functions for the hidden layer should be equal the number of hidden layers!")
     # A loss function that is always required to compile a KERAS model
     self.lossFunction = [elem.strip() for elem in self.initOptionDict.pop('loss','mean_squared_error').split(',')]
     # a metric is a function that is used to judge the performance of KERAS model
@@ -108,12 +107,6 @@ class KerasClassifier(supervisedLearning):
     self.batchSize = int(self.initOptionDict.pop('batch_size',20))
     # number of epochs to train the model. An epoch is an iteration over the entire training data, (default 20)
     self.epochs = int(self.initOptionDict.pop('epochs', 20))
-    # fraction of the input units to drop, default 0
-    self.dropoutRate = [float(elem) for elem in self.initOptionDict.pop('dropout','0').split(',')]
-    if len(self.dropoutRate) == 1 and len(self.dropoutRate) < len(self.hiddenLayerSize):
-      self.dropoutRate = self.dropoutRate * len(self.hiddenLayerSize)
-    elif len(self.dropoutRate) != len(self.hiddenLayerSize):
-      self.raiseAnError(IOError, "The number of dropout rates should be equal the number of hidden layers!")
     # extract settings for optimizer
     optimizerSetting = self.initOptionDict.pop('optimizerSetting', {'optimizer':'adam'})
     optimizerName = optimizerSetting.pop('optimizer')
@@ -160,7 +153,36 @@ class KerasClassifier(supervisedLearning):
     self.__addLayers__()
     self.ROM.compile(loss=self.lossFunction, optimizer=self.optimizer, metrics=self.metrics)
     self.ROM._make_predict_function() # have to initialize before threading
-    self.ROM.fit(featureVals, targetVals, epochs=self.epochs, batch_size=self.batchSize)
+    history = self.ROM.fit(featureVals, targetVals, epochs=self.epochs, batch_size=self.batchSize, validation_split=self.validationSplit)
+    # The following requires pydot-ng and graphviz to be installed
+    # https://github.com/keras-team/keras/issues/3210
+    if self.plotModel:
+      KerasUtils.plot_model(self.ROM,to_file=self.plotModelFilename,show_shapes=True)
+      self.__plotHistory__(history)
+
+  def __plotHistory__(self, history):
+    """
+      Plot training & validation accuracy and loss values
+      @ In, history, History object of Keras
+      @ Out, None
+    """
+    # Plot training & validation accuracy values
+    plt.plot(history.history['acc'])
+    plt.plot(history.history['val_acc'])
+    plt.title('Model accuracy')
+    plt.ylabel('Accuracy')
+    plt.xlabel('Epoch')
+    plt.legend(['Train', 'Test'], loc='upper left')
+    plt.show()
+
+    # Plot training & validation loss values
+    plt.plot(history.history['loss'])
+    plt.plot(history.history['val_loss'])
+    plt.title('Model loss')
+    plt.ylabel('Loss')
+    plt.xlabel('Epoch')
+    plt.legend(['Train', 'Test'], loc='upper left')
+    plt.show()
 
   def __confidenceLocal__(self,featureVals):
     """

@@ -244,6 +244,9 @@ class ROM(Dummy):
     inputSpecification.addSub(InputData.parameterInputFactory("batch_size", InputData.IntegerType))
     inputSpecification.addSub(InputData.parameterInputFactory("epochs", InputData.IntegerType))
     inputSpecification.addSub(InputData.parameterInputFactory("dropout", InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("plot_model", InputData.BoolType))
+    inputSpecification.addSub(InputData.parameterInputFactory("num_classes", InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("validation_split", InputData.FloatType))
 
     OptimizerSettingInput = InputData.parameterInputFactory('optimizerSetting', contentType=InputData.StringType)
     Beta1Input = InputData.parameterInputFactory('beta_1', contentType=InputData.FloatType)
@@ -525,4 +528,3 @@ class ROM(Dummy):
       @ Out, None
     """
     self.supervisedEngine.reseed(seed)
-
