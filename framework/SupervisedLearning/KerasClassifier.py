@@ -47,28 +47,143 @@ class KerasClassifier(supervisedLearning):
   """
     Multi-layer perceptron classifier constructed using Keras API in TensorFlow
   """
+  # some modules are commented out since they are not available in TensorFlow 1.1
+  # We need to install TensorFlow in a different way
   # available optimizers in Keras
   ROMType = 'KerasClassifier'
   # An optimizer is required for compiling a Keras model
   availOptimizer = {}
   # stochastic gradient descent optimizer, includes support for momentum,learning rate decay, and Nesterov momentum
-  availOptimizer['SGD'] = KerasOptimizers.SGD
+  availOptimizer['sgd'] = KerasOptimizers.SGD
   # RMSprop optimizer, usually a good choice for recurrent neural network
-  availOptimizer['RMSprop'] = KerasOptimizers.RMSprop
+  availOptimizer['rmsprop'] = KerasOptimizers.RMSprop
   # Adagrad is an optimzer with parameter-specific learning rates, which are adapted relative to
   # how frequently a parameter gets updated during training. The more updates  a parameter receives,
   # the smaller the updates.
-  availOptimizer['Adagrad'] = KerasOptimizers.Adagrad
+  availOptimizer['adagrad'] = KerasOptimizers.Adagrad
   # Adadelta is a more robust extension of Adagrad that adapts learning rates based on a moving
   # window of gradient updates, instead of accumulating all past gradients. This way, Adadelta
   # continues learning even when many updates have been done.
-  availOptimizer['Adadelta'] = KerasOptimizers.Adadelta
+  availOptimizer['adadelta'] = KerasOptimizers.Adadelta
   # Adam optimzer
-  availOptimizer['Adam'] = KerasOptimizers.Adam
+  availOptimizer['adam'] = KerasOptimizers.Adam
   # Adamax optimizer from Adam paper's section 7
-  availOptimizer['Adamax'] = KerasOptimizers.Adamax
+  availOptimizer['adamax'] = KerasOptimizers.Adamax
   # Nesterov Adam optimizer
-  availOptimizer['Nadam'] = KerasOptimizers.Nadam
+  availOptimizer['nadam'] = KerasOptimizers.Nadam
+
+  # available convolutional layers
+  availConvNet = {}
+  # 1D convolution layer (e.g. temporal convolution).
+  availConvNet['conv1d'] = KerasLayers.Conv1D
+  # 2D convolution layer (e.g. spatial convolution over images).
+  availConvNet['conv2D'] = KerasLayers.Conv2D
+  # Depthwise separable 1D convolution.
+  #availConvNet['separableconv1d'] = KerasLayers.SeparableConv1D
+  # Depthwise separable 2D convolution.
+  availConvNet['separableconv2d'] = KerasLayers.SeparableConv2D
+  # Depthwise separable 2D convolution.
+  #availConvNet['depthwiseconv2d'] = KerasLayers.DepthwiseConv2D
+  # Transposed convolution layer (sometimes called Deconvolution).
+  availConvNet['conv2dtranspose'] = KerasLayers.Conv2DTranspose
+  # 3D convolution layer (e.g. spatial convolution over volumes).
+  availConvNet['conv3d'] = KerasLayers.Conv3D
+  # ransposed convolution layer (sometimes called Deconvolution).
+  #availConvNet['conv3dtranspose'] = KerasLayers.Conv3DTranspose
+  # Cropping layer for 1D input (e.g. temporal sequence). It crops along the time dimension (axis 1).
+  availConvNet['cropping1d'] = KerasLayers.Cropping1D
+  # Cropping layer for 2D input (e.g. picture). It crops along spatial dimensions, i.e. height and width.
+  availConvNet['cropping2d'] = KerasLayers.Cropping2D
+  # Cropping layer for 3D data (e.g. spatial or spatio-temporal).
+  availConvNet['cropping3d'] = KerasLayers.Cropping3D
+  # Upsampling layer for 1D inputs
+  availConvNet['upsampling1d'] = KerasLayers.UpSampling1D
+  # Upsampling layer for 2D inputs.
+  availConvNet['upsampling2d'] = KerasLayers.UpSampling2D
+  # Upsampling layer for 3D inputs.
+  availConvNet['upsampling3d'] = KerasLayers.UpSampling3D
+  # Zero-padding layer for 1D input (e.g. temporal sequence).
+  availConvNet['zeropadding1d'] = KerasLayers.ZeroPadding1D
+  # Zero-padding layer for 2D input (e.g. picture).
+  # This layer can add rows and columns of zeros at the top, bottom, left and right side of an image tensor.
+  availConvNet['zeropadding2d'] = KerasLayers.ZeroPadding2D
+  # Zero-padding layer for 3D data (spatial or spatio-tempral)
+  availConvNet['zeropadding3d'] = KerasLayers.ZeroPadding3D
+  # Locally-connected layer for 1D inputs.
+  # The LocallyConnected1D layer works similarly to the Conv1D layer, except that weights are unshared,
+  # that is, a different set of filters is applied at each different patch of the input.
+  availConvNet['locallyconnected1d'] = KerasLayers.LocallyConnected1D
+  # Locally-connected layer for 2D inputs.
+  # The LocallyConnected1D layer works similarly to the Conv2D layer, except that weights are unshared,
+  # that is, a different set of filters is applied at each different patch of the input.
+  availConvNet['locallyconnected2d'] = KerasLayers.LocallyConnected2D
+
+  # available pooling layers
+  availPooling = {}
+  # Max pooling operation for temporal data.
+  availPooling['maxpooling1d'] = KerasLayers.MaxPooling1D
+  # Max pooling operation for spatial data.
+  availPooling['maxpooling2d'] = KerasLayers.MaxPooling2D
+  # Max pooling operation for 3D data (spatial or spatio-temporal).
+  availPooling['maxpooling3d'] = KerasLayers.MaxPooling3D
+  # Average pooling for temporal data.
+  availPooling['averagepooling1d'] = KerasLayers.AveragePooling1D
+  # Average pooling for spatial data.
+  availPooling['averagepooling2d'] = KerasLayers.AveragePooling2D
+  # Average pooling operation for 3D data (spatial or spatio-temporal).
+  availPooling['averagepooling3d'] = KerasLayers.AveragePooling3D
+  # Global max pooling operation for temporal data.
+  availPooling['globalmaxpooling1d'] = KerasLayers.GlobalMaxPooling1D
+  # Global average pooling operation for temporal data.
+  availPooling['globalaveragepooling1d'] = KerasLayers.GlobalAveragePooling1D
+  # Global max pooling operation for spatial data.
+  availPooling['globalmaxpooling2d'] = KerasLayers.GlobalMaxPooling2D
+  # Global average pooling operation for spatial data.
+  availPooling['globalaveragepooling2d'] = KerasLayers.GlobalAveragePooling2D
+  # Global Max pooling operation for 3D data.
+  availPooling['globalmaxpooling3d'] = KerasLayers.GlobalMaxPooling3D
+  # Global Average pooling operation for 3D data.
+  availPooling['globalaveragepooling3d'] = KerasLayers.GlobalAveragePooling3D
+
+  # available embedding layers
+  availEmbedding = {}
+  # turns positive integers (indexes) into dense vectors of fixed size
+  # This layer can only be used as the first layer in a model.
+  availEmbedding['embedding'] = KerasLayers.Embedding
+
+  # available recurrent layers
+  availRecurrent = {}
+  # Fully-connected RNN where the output is to be fed back to input.
+  availRecurrent['simplernn'] = KerasLayers.SimpleRNN
+  # Gated Recurrent Unit - Cho et al. 2014.
+  availRecurrent['gru'] = KerasLayers.GRU
+  # Long Short-Term Memory layer - Hochreiter 1997.
+  availRecurrent['lstm'] = KerasLayers.LSTM
+  # Convolutional LSTM.
+  # It is similar to an LSTM layer, but the input transformations and recurrent transformations are both convolutional.
+  availRecurrent['convlstm2d'] = KerasLayers.ConvLSTM2D
+  # Fast GRU implementation backed by CuDNN.
+  #availRecurrent['cudnngru'] = KerasLayers.CuDNNGRU
+  # Fast LSTM implementation with CuDNN.
+ # availRecurrent['cudnnlstm'] = KerasLayers.CuDNNLSTM
+
+  # available normalization layers
+  availNormalization = {}
+  availNormalization['batchnormalization'] = KerasLayers.BatchNormalization
+
+  # available noise layers
+  availNoise = {}
+  # Apply additive zero-centered Gaussian noise.
+  # This is useful to mitigate overfitting (you could see it as a form of random data augmentation).
+  # Gaussian Noise (GS) is a natural choice as corruption process for real valued inputs.
+  availNoise['gaussiannoise'] = KerasLayers.GaussianNoise
+  # Apply multiplicative 1-centered Gaussian noise. As it is a regularization layer, it is only active at training time.
+  availNoise['gaussiandropout'] = KerasLayers.GaussianDropout
+  # Applies Alpha Dropout to the input.
+  # Alpha Dropout is a Dropout that keeps mean and variance of inputs to their original values, in order to ensure
+  # the self-normalizing property even after this dropout. Alpha Dropout fits well to Scaled Exponential Linear Units
+  #  by randomly setting activations to the negative saturation value.
+  #availNoise['alphadropout'] = KerasLayers.AlphaDropout
 
   def __init__(self,messageHandler,**kwargs):
     """
@@ -109,8 +224,7 @@ class KerasClassifier(supervisedLearning):
     self.epochs = int(self.initOptionDict.pop('epochs', 20))
     # extract settings for optimizer
     optimizerSetting = self.initOptionDict.pop('optimizerSetting', {'optimizer':'adam'})
-    optimizerName = optimizerSetting.pop('optimizer')
-
+    optimizerName = optimizerSetting.pop('optimizer').lower()
     for key,value in optimizerSetting.items():
       try:
         optimizerSetting[key] = ast.literal_eval(value)
