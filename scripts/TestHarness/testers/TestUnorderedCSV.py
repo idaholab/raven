@@ -16,48 +16,54 @@
 """
 from __future__ import division, print_function, absolute_import
 import warnings
-warnings.simplefilter('default',DeprecationWarning)
 
 import sys
 from UnorderedCSVDiffer import UnorderedCSVDiffer as UCSV
 
-def checkSame(comment,first,second,msg,results=None):
-  if results is None:
-    results = {'pass':0,'fail':0}
-  if first == second:
-    results['pass'] += 1
-  else:
-    results['fail'] += 1
-    print('FAILED '+comment)
-    print(msg)
-    print('')
-  return results
+warnings.simplefilter('default', DeprecationWarning)
 
-def testAFile(fname):
-  differ = UCSV('.',[fname],zeroThreshold=5e-14)
+def check_same(comment, first, second, local_msg, local_results):
+  """
+  checks that the first and second are the same.
+  """
+  if first == second:
+    local_results['pass'] += 1
+  else:
+    local_results['fail'] += 1
+    print('FAILED '+comment)
+    print(local_msg)
+    print('')
+  return
+
+def test_a_file(fname):
+  """
+  Tests the file
+  """
+  differ = UCSV('.', [fname], zeroThreshold=5e-14)
   differ.diff()
-  return differ.__dict__['_UnorderedCSVDiffer__same'], differ.__dict__['_UnorderedCSVDiffer__message']
+  return differ.__dict__['_UnorderedCSVDiffer__same'],\
+    differ.__dict__['_UnorderedCSVDiffer__message']
 
 if __name__ == '__main__':
-  results = {'pass':0,'fail':0}
+  results = {'pass':0, 'fail':0}
   # passes
-  ok,msg = testAFile('okay.csv')
-  checkSame('Okay',ok,True,msg,results)
+  ok, msg = test_a_file('okay.csv')
+  check_same('Okay', ok, True, msg, results)
   # mismatch
-  ok,msg = testAFile('mismatch.csv')
-  checkSame('Mismatch',ok,False,msg,results)
+  ok, msg = test_a_file('mismatch.csv')
+  check_same('Mismatch', ok, False, msg, results)
   # matching with inf, nan
-  ok,msg = testAFile('inf.csv')
-  checkSame('Infinity',ok,True,msg,results)
+  ok, msg = test_a_file('inf.csv')
+  check_same('Infinity', ok, True, msg, results)
   # zero threshold
-  ok,msg = testAFile('nearzero.csv')
-  checkSame('Near zero',ok,True,msg,results)
+  ok, msg = test_a_file('nearzero.csv')
+  check_same('Near zero', ok, True, msg, results)
   # sorting
-  ok,msg = testAFile('sort.csv')
-  checkSame('sort',ok,True,msg,results)
+  ok, msg = test_a_file('sort.csv')
+  check_same('sort', ok, True, msg, results)
 
 
 
 
-  print('Passed:',results['pass'],'| Failed:',results['fail'])
+  print('Passed:', results['pass'], '| Failed:', results['fail'])
   sys.exit(results['fail'])

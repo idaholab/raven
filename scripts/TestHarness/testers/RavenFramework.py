@@ -41,7 +41,7 @@ os.environ["PYTHONPATH"] = os.path.join(RAVEN_DIR, 'contrib') +\
   os.pathsep + os.environ.get("PYTHONPATH", "")
 
 
-_missing_modules, _too_old_modules, _notQAModules = RavenUtils.checkForMissingModules()
+_missing_modules, _too_old_modules, _notQAModules = RavenUtils.check_for_missing_modules()
 
 class RavenFramework(Tester):
   """
@@ -103,7 +103,7 @@ class RavenFramework(Tester):
     if self.specs['interactive']:
       ravenflag += ' interactiveCheck '
 
-    if RavenUtils.inPython3():
+    if RavenUtils.in_python_3():
       return "python3 " + self.driver + " " + ravenflag + self.specs["input"]
     return "python " + self.driver + " " + ravenflag + self.specs["input"]
 
@@ -161,7 +161,7 @@ class RavenFramework(Tester):
                       self.bucket_skip)
       return False
     ## required module is present, but too old
-    if len(too_old) > 0  and RavenUtils.checkVersions():
+    if len(too_old) > 0  and RavenUtils.check_versions():
       self.set_status('skipped (Old version python modules: '+" ".join(too_old)+
                       " PYTHONPATH="+os.environ.get("PYTHONPATH", "")+')',
                       self.bucket_skip)
@@ -186,12 +186,12 @@ class RavenFramework(Tester):
                         self.bucket_skip)
         return False
     for lib in self.required_libraries:
-      found, _, _ = RavenUtils.moduleReport(lib, '')
+      found, _, _ = RavenUtils.module_report(lib, '')
       if not found:
         self.set_status('skipped (Unable to import library: "'+lib+'")',
                         self.bucket_skip)
         return False
-    if self.specs['python3_only'] and not RavenUtils.inPython3():
+    if self.specs['python3_only'] and not RavenUtils.in_python_3():
       self.set_status('Python 3 only',
                       self.bucket_skip)
       return False
@@ -205,7 +205,7 @@ class RavenFramework(Tester):
     while i < len(self.minimum_libraries):
       library_name = self.minimum_libraries[i]
       library_version = self.minimum_libraries[i+1]
-      found, _, actual_version = RavenUtils.moduleReport(library_name, library_name+'.__version__')
+      found, _, actual_version = RavenUtils.module_report(library_name, library_name+'.__version__')
       if not found:
         self.set_status('skipped (Unable to import library: "'+library_name+'")',
                         self.bucket_skip)
