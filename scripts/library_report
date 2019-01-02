@@ -42,8 +42,8 @@ sys.path.insert(0,os.path.join(RAVEN_DIR,"framework","utils"))
 import RavenUtils,utils
 #missing,too_old = RavenUtils.checkForMissingModules()
 #print(missing,too_old)
-report_list = RavenUtils.modulesReport()
-amsc_report = RavenUtils.moduleReport('AMSC')
+report_list = RavenUtils.modules_report()
+amsc_report = RavenUtils.module_report('AMSC')
 report_list.append(('AMSC',amsc_report[0],amsc_report[1],""))
 print("\nLibraries report:\n")
 for module, found, message, version in report_list:
