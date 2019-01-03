@@ -31,18 +31,18 @@ class ImageDiff:
     ImageDiff is used for comparing two image files.
   """
 
-  def __init__(self, testDir, outFile, **kwargs):
+  def __init__(self, test_dir, out_file, **kwargs):
     """
       Create an XMLDiff class
-      testDir: the directory where the test takes place
-      outFile: the files to be compared.  They will be in testDir + outFile
-               and testDir + gold + outFile
+      test_dir: the directory where the test takes place
+      out_file: the files to be compared.  They will be in test_dir + out_file
+               and test_dir + gold + out_file
       args: other arguments that may be included:
     """
-    self.__out_file = outFile
+    self.__out_file = out_file
     self.__messages = ""
     self.__same = True
-    self.__test_dir = testDir
+    self.__test_dir = test_dir
     self.__options = kwargs
 
   def diff(self):

@@ -39,7 +39,7 @@ class UnorderedCSVDiffer:
     Used for comparing two CSV files without regard for column, row orders
   """
   def __init__(self, out_files, gold_files, relative_error=1e-10,
-               absolute_check=False, zeroThreshold=None, ignore_sign=False):
+               absolute_check=False, zero_threshold=None, ignore_sign=False):
     """
       Create an UnorderedCSVDiffer class
       Note naming conventions are out of our control due to MOOSE test harness standards.
@@ -59,7 +59,7 @@ class UnorderedCSVDiffer:
     self.__same = True
     self.__check_absolute_values = absolute_check
     self.__rel_err = relative_error
-    self.__zero_threshold = float(zeroThreshold) if zeroThreshold is not None else 0.0
+    self.__zero_threshold = float(zero_threshold) if zero_threshold is not None else 0.0
     self.__ignore_sign = ignore_sign
     if debug or whoAmI:
       print('out files:', self.__out_files)
@@ -319,7 +319,7 @@ class UnorderedCSV(Differ):
     csv_diff = UnorderedCSVDiffer(csv_files,
                                   gold_files,
                                   relative_error=self.__rel_err,
-                                  zeroThreshold=self.__zero_threshold,
+                                  zero_threshold=self.__zero_threshold,
                                   ignore_sign=self.__ignore_sign,
                                   absolute_check=self.__check_absolute_value)
     return csv_diff.diff()
