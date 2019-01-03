@@ -57,14 +57,16 @@ class KerasMLPClassifier(KerasClassifier):
     # activation functions for all hidden layers of deep neural network
     self.hiddenLayerActivation = self.initOptionDict.pop('hidden_layer_activations', ['relu'])
     # always required, dimensionalities of hidden layers of deep neural network
-    self.hiddenLayerSize = self.initOptionDict.pop('hidden_layer_sizes')
+    self.hiddenLayerSize = self.initOptionDict.pop('hidden_layer_sizes',[20])
     # Broadcast hidden layer activation function to all hidden layers
     if len(self.hiddenLayerActivation) == 1 and len(self.hiddenLayerActivation) < len(self.hiddenLayerSize):
       self.hiddenLayerActivation = self.hiddenLayerActivation * len(self.hiddenLayerSize)
     elif len(self.hiddenLayerActivation) != len(self.hiddenLayerSize):
+      print(type(self.hiddenLayerSize))
+      print(self.hiddenLayerActivation)
       self.raiseAnError(IOError, "The number of activation functions for the hidden layer should be equal the number of hidden layers!")
     # fraction of the input units to drop, default 0
-    self.dropoutRate = [float(elem) for elem in self.initOptionDict.pop('dropout','0').split(',')]
+    self.dropoutRate = self.initOptionDict.pop('dropout',['0'])
     if len(self.dropoutRate) == 1 and len(self.dropoutRate) < len(self.hiddenLayerSize):
       self.dropoutRate = self.dropoutRate * len(self.hiddenLayerSize)
     elif len(self.dropoutRate) != len(self.hiddenLayerSize):

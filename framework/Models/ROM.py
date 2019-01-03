@@ -172,26 +172,26 @@ class ROM(Dummy):
     inputSpecification.addSub(InputData.parameterInputFactory("optimizer", InputData.StringType)) #enum
     inputSpecification.addSub(InputData.parameterInputFactory("random_start", InputData.IntegerType))
     # GaussPolynomialROM and HDMRRom
-    inputSpecification.addSub(InputData.parameterInputFactory("IndexPoints", InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("IndexSet",IndexSetInputType))
+    inputSpecification.addSub(InputData.parameterInputFactory("IndexPoints", contentType=InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("IndexSet",contentType=IndexSetInputType))
     inputSpecification.addSub(InputData.parameterInputFactory('pivotParameter',contentType=InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("PolynomialOrder", InputData.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("SobolOrder", InputData.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("SparseGrid", InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("PolynomialOrder", contentType=InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("SobolOrder", contentType=InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("SparseGrid", contentType=InputData.StringType))
     InterpolationInput = InputData.parameterInputFactory('Interpolation', contentType=InputData.StringType)
     InterpolationInput.addParam("quad", InputData.StringType, False)
     InterpolationInput.addParam("poly", InputData.StringType, False)
     InterpolationInput.addParam("weight", InputData.FloatType, False)
     inputSpecification.addSub(InterpolationInput)
     # ARMA
-    inputSpecification.addSub(InputData.parameterInputFactory('segments', InputData.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory('correlate', InputData.StringListType))
-    inputSpecification.addSub(InputData.parameterInputFactory("Pmax", InputData.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("Pmin", InputData.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("Qmax", InputData.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("Qmin", InputData.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("seed", InputData.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("reseedCopies", InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory('segments', contentType=InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory('correlate', contentType=InputData.StringListType))
+    inputSpecification.addSub(InputData.parameterInputFactory("Pmax", contentType=InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("Pmin", contentType=InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("Qmax", contentType=InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("Qmin", contentType=InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("seed", contentType=InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("reseedCopies", contentType=InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("Fourier", contentType=InputData.FloatListType))
     inputSpecification.addSub(InputData.parameterInputFactory("FourierOrder", contentType=InputData.IntegerListType))
     ### ARMA zero filter
@@ -210,42 +210,42 @@ class ROM(Dummy):
     specFourier.addSub(InputData.parameterInputFactory('orders', contentType=InputData.IntegerListType))
     inputSpecification.addSub(specFourier)
     # inputs for neural_network
-    inputSpecification.addSub(InputData.parameterInputFactory("activation", InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("batch_size", InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("learning_rate_init", InputData.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("momentum", InputData.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("nesterovs_momentum", InputData.StringType)) # bool
-    inputSpecification.addSub(InputData.parameterInputFactory("early_stopping", InputData.StringType)) # bool
-    inputSpecification.addSub(InputData.parameterInputFactory("validation_fraction", InputData.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("beta_1", InputData.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("beta_2", InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("activation", contentType=InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("batch_size", contentType=InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("learning_rate_init", contentType=InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("momentum", contentType=InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("nesterovs_momentum", contentType=InputData.StringType)) # bool
+    inputSpecification.addSub(InputData.parameterInputFactory("early_stopping", contentType=InputData.StringType)) # bool
+    inputSpecification.addSub(InputData.parameterInputFactory("validation_fraction", contentType=InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("beta_1", contentType=InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("beta_2", contentType=InputData.FloatType))
     # PolyExp
-    inputSpecification.addSub(InputData.parameterInputFactory("maxNumberExpTerms", InputData.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("numberExpTerms", InputData.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("maxPolyOrder", InputData.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("polyOrder", InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("maxNumberExpTerms", contentType=InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("numberExpTerms", contentType=InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("maxPolyOrder", contentType=InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("polyOrder", contentType=InputData.IntegerType))
     coeffRegressorEnumType = InputData.makeEnumType("coeffRegressor","coeffRegressorType",["poly","spline","nearest"])
     inputSpecification.addSub(InputData.parameterInputFactory("coeffRegressor", contentType=coeffRegressorEnumType))
     # DMD
-    inputSpecification.addSub(InputData.parameterInputFactory("rankSVD", InputData.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("energyRankSVD", InputData.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("rankTLSQ", InputData.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("exactModes", InputData.BoolType))
-    inputSpecification.addSub(InputData.parameterInputFactory("optimized", InputData.BoolType))
-    inputSpecification.addSub(InputData.parameterInputFactory("dmdType", InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("rankSVD", contentType=InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("energyRankSVD", contentType=InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("rankTLSQ", contentType=InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("exactModes", contentType=InputData.BoolType))
+    inputSpecification.addSub(InputData.parameterInputFactory("optimized", contentType=InputData.BoolType))
+    inputSpecification.addSub(InputData.parameterInputFactory("dmdType", contentType=InputData.StringType))
 
     # for deep learning neural network
     #inputSpecification.addSub(InputData.parameterInputFactory("DNN", InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("hidden_layer_sizes", InputData.IntegerListType)) # list of integer
-    inputSpecification.addSub(InputData.parameterInputFactory("hidden_layer_activations", InputData.StringListType))  #list of strings
-    inputSpecification.addSub(InputData.parameterInputFactory("output_layer_activation", InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("metrics", InputData.StringListType)) #list of metrics
-    inputSpecification.addSub(InputData.parameterInputFactory("batch_size", InputData.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("epochs", InputData.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("dropout", InputData.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("plot_model", InputData.BoolType))
-    inputSpecification.addSub(InputData.parameterInputFactory("num_classes", InputData.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("validation_split", InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("hidden_layer_sizes", contentType=InputData.IntegerListType)) # list of integer
+    inputSpecification.addSub(InputData.parameterInputFactory("hidden_layer_activations", contentType=InputData.StringListType))  #list of strings
+    inputSpecification.addSub(InputData.parameterInputFactory("output_layer_activation", contentType=InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("metrics", contentType=InputData.StringListType)) #list of metrics
+    inputSpecification.addSub(InputData.parameterInputFactory("batch_size", contentType=InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("epochs", contentType=InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("dropout", contentType=InputData.FloatListType))
+    inputSpecification.addSub(InputData.parameterInputFactory("plot_model", contentType=InputData.BoolType))
+    inputSpecification.addSub(InputData.parameterInputFactory("num_classes",contentType= InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("validation_split", contentType=InputData.FloatType))
 
     OptimizerSettingInput = InputData.parameterInputFactory('optimizerSetting', contentType=InputData.StringType)
     Beta1Input = InputData.parameterInputFactory('beta_1', contentType=InputData.FloatType)
@@ -272,7 +272,7 @@ class ROM(Dummy):
 
     layerInput = InputData.parameterInputFactory('layer',contentType=InputData.StringType)
     layerInput.addParam('name', InputData.StringType, True)
-    layerTypeInput = InputData.parameterInputFactory('type',contentType=InputData.StringType, True)
+    layerTypeInput = InputData.parameterInputFactory('type',contentType=InputData.StringType)
     layerActivationInput = InputData.parameterInputFactory('activation',contentType=InputData.StringType)
     layerStridesInput = InputData.parameterInputFactory('strides',contentType=InputData.IntegerOrIntegerTupleType)
     layerKernelSizeInput = InputData.parameterInputFactory('kernel_size',contentType=InputData.IntegerOrIntegerTupleType)
@@ -281,7 +281,6 @@ class ROM(Dummy):
     layerPaddingInput = InputData.parameterInputFactory('padding',contentType=InputData.StringType)
     layerDimOutInput = InputData.parameterInputFactory('dim_out',contentType=InputData.IntegerType)
 
-    layerInput.addSub(layerNameInput)
     layerInput.addSub(layerTypeInput)
     layerInput.addSub(layerActivationInput)
     layerInput.addSub(layerStridesInput)
@@ -366,14 +365,14 @@ class ROM(Dummy):
         if child.getName() in ['estimator', 'optimizerSetting']:
           self.initializationOptionDict[child.getName()] = {}
           for node in child.subparts:
-            self.initializationOptionDict[child.getName()][node.getName()] = tryStrParse(node.value)
+            self.initializationOptionDict[child.getName()][node.getName()] = node.value
         elif child.getName() in ['layer']:
           layerName = child.parameterValues["name"]
           self.initializationOptionDict[layerName] = {}
           for node in child.subparts:
-            self.initializationOptionDict[layerName][node.getName()] = tryStrParse(node.value)
+            self.initializationOptionDict[layerName][node.getName()] = node.value
         else:
-          self.initializationOptionDict[child.getName()] = tryStrParse(child.value)
+          self.initializationOptionDict[child.getName()] = child.value
     # if working with a pickled ROM, send along that information
     if self.subType == 'pickledROM':
       self.initializationOptionDict['pickled'] = True
