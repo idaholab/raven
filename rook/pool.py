@@ -137,9 +137,9 @@ class MultiRun:
     count_down = 10
     while output_count < len(return_array):
       while output_count + self.__not_ready < len(return_array):
-        #print("meditation numbers oc", output_count, "nr", self.__not_ready,
-        # "lra", len(return_array), "rc", self.__runner_count(), "ie",
-        # self.__input_queue.empty(), "oe", self.__output_queue.empty())
+        print("meditation numbers oc", output_count, "nr", self.__not_ready,
+              "lra", len(return_array), "rc", self.__runner_count(), "ie",
+              self.__input_queue.empty(), "oe", self.__output_queue.empty())
         id_num, output = self.__output_queue.get()
         count_down = 10
         return_array[id_num] = output
