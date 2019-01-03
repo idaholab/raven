@@ -70,6 +70,9 @@ class RavenPython(Tester):
         os.remove(filename)
 
   def get_command(self):
+    """
+      returns the command used by this tester.
+    """
     return self.specs["python_command"]+" "+self.specs["input"]
 
   def __init__(self, name, params):
@@ -90,6 +93,9 @@ class RavenPython(Tester):
       self.check_files = []
 
   def check_runnable(self):
+    """
+      Checks if this test can be run.
+    """
     i = 0
     if len(self.minimum_libraries) % 2:
       self.set_status('skipped (libraries are not matched to versions numbers: '
@@ -152,6 +158,9 @@ class RavenPython(Tester):
     return True
 
   def process_results(self, output):
+    """
+      Returns the result of this tester.
+    """
     if self.results.exit_code != 0:
       self.set_status(str(self.results.exit_code), self.bucket_fail)
       return output

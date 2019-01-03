@@ -174,7 +174,7 @@ if __name__ == "__main__":
 
   test_list = get_test_lists(base_test_dir)
 
-  base_testers, base_differs =  get_testers_and_differs(this_dir)
+  base_testers, base_differs = get_testers_and_differs(this_dir)
   testers, differs = get_testers_and_differs(os.path.join(up_one_dir, "scripts",
                                                           "TestHarness", "testers"))
   testers.update(base_testers)

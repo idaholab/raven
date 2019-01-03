@@ -15,8 +15,6 @@
 """
 Tests by running an executable.
 """
-import os
-import subprocess
 from Tester import Tester
 
 class GenericExecutable(Tester):
