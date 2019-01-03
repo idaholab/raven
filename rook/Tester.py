@@ -22,6 +22,7 @@ import sys
 import os
 import time
 import threading
+import platform
 from distutils import spawn
 
 warnings.simplefilter('default', DeprecationWarning)
@@ -227,6 +228,8 @@ class Tester:
     params.add_param('skip', False, 'If true skip test')
     params.add_param('prereq', '', 'list of tests to run before running this one')
     params.add_param('max_time', 300, 'Maximum time that test is allowed to run')
+    params.add_param('os_max_time', '', 'Maximum time by os. '+
+                     ' Example: Linux 20 Windows 300 OpenVMS 1000')
     params.add_param('method', False, 'Method is ignored, but kept for compatibility')
     params.add_param('heavy', False, 'If true, run only with heavy tests')
     params.add_param('output', '', 'Output of the test')
@@ -291,6 +294,18 @@ class Tester:
         results.bucket = self.bucket_success
       return results
 
+  def __get_timeout(self):
+    """
+    Returns the timeout
+    """
+    timeout = int(self.specs['max_time'])
+    if len(self.specs['os_max_time']) > 0:
+      time_list = self.specs['os_max_time'].lower().split()
+      system = platform.system().lower()
+      if system in time_list:
+        timeout = int(time_list[time_list.index(system)+1])
+    return timeout
+
   def run_backend(self, _):
     """
     Runs this tester.  This does the main work,
@@ -315,7 +330,7 @@ class Tester:
 
     command = self.get_command()
 
-    timeout = int(self.specs['max_time'])
+    timeout = self.__get_timeout()
     directory = self.specs['test_dir']
     start_time = time.time() #Change to monotonic when min python raised to 3.3
     try:
