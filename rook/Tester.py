@@ -286,13 +286,12 @@ class Tester:
     results = self.run_backend(data)
     if not expected_fail:
       return results
+    if results.bucket == self.bucket_success:
+      results.bucket = self.bucket_fail
+      results.message = "Unexpected Success"
     else:
-      if results.bucket == self.bucket_success:
-        results.bucket = self.bucket_fail
-        results.message = "Unexpected Success"
-      else:
-        results.bucket = self.bucket_success
-      return results
+      results.bucket = self.bucket_success
+    return results
 
   def __get_timeout(self):
     """
@@ -419,6 +418,7 @@ class Tester:
     returns the command used to run the test
     """
     assert False, "getCommand not implemented"
+    return "none"
 
   def prepare(self):
     """

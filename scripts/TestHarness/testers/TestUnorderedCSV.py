@@ -33,7 +33,6 @@ def check_same(comment, first, second, local_msg, local_results):
     print('FAILED '+comment)
     print(local_msg)
     print('')
-  return
 
 def test_a_file(fname):
   """
