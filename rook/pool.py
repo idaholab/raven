@@ -111,11 +111,18 @@ class MultiRun:
     self.__ready_to_run[id_num] = True
     function, data = self.__function_list[id_num]
     self.__input_queue.put((id_num, function, data))
+    self.__restart_runners()
+
+  def __restart_runners(self):
+    """
+    Restarts any dead runners
+    """
     for i in range(len(self.__runners)):
-      if self.__runners[i].is_done():
+      if self.__runners[i].is_done() or not self.__runners[i].is_alive():
         #Restart since it is done.  Otherwise might not be any runners still
         # running
         self.__runners[i] = RunnerThread(self.__input_queue, self.__output_queue)
+
   def __runner_count(self):
     """
     Returns how many runners are not done.
@@ -140,6 +147,9 @@ class MultiRun:
         print("meditation numbers oc", output_count, "nr", self.__not_ready,
               "lra", len(return_array), "rc", self.__runner_count(), "ie",
               self.__input_queue.empty(), "oe", self.__output_queue.empty())
+        if self.__runner_count() == 0 and not self.__input_queue.empty():
+          print("restarting runners")
+          self.__restart_runners()
         id_num, output = self.__output_queue.get()
         count_down = 10
         return_array[id_num] = output
