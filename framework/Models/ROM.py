@@ -122,7 +122,7 @@ class ROM(Dummy):
     inputSpecification.addSub(InputData.parameterInputFactory("random_state", InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("cv", InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("shuffle", InputData.StringType)) #bool
-    inputSpecification.addSub(InputData.parameterInputFactory("loss", InputData.StringType)) #enum
+    inputSpecification.addSub(InputData.parameterInputFactory("loss", InputData.StringListType)) #enum
     inputSpecification.addSub(InputData.parameterInputFactory("epsilon", InputData.FloatType))
     inputSpecification.addSub(InputData.parameterInputFactory("eta0", InputData.FloatType))
     inputSpecification.addSub(InputData.parameterInputFactory("solver", InputData.StringType)) #enum
@@ -210,7 +210,6 @@ class ROM(Dummy):
     specFourier.addSub(InputData.parameterInputFactory('orders', contentType=InputData.IntegerListType))
     inputSpecification.addSub(specFourier)
     # inputs for neural_network
-    inputSpecification.addSub(InputData.parameterInputFactory("hidden_layer_sizes", InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("activation", InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("batch_size", InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("learning_rate_init", InputData.FloatType))
@@ -237,10 +236,10 @@ class ROM(Dummy):
 
     # for deep learning neural network
     #inputSpecification.addSub(InputData.parameterInputFactory("DNN", InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("hidden_layer_sizes", InputData.StringType)) # list of integer
-    inputSpecification.addSub(InputData.parameterInputFactory("hidden_layer_activations", InputData.StringType))  #list of strings
+    inputSpecification.addSub(InputData.parameterInputFactory("hidden_layer_sizes", InputData.IntegerListType)) # list of integer
+    inputSpecification.addSub(InputData.parameterInputFactory("hidden_layer_activations", InputData.StringListType))  #list of strings
     inputSpecification.addSub(InputData.parameterInputFactory("output_layer_activation", InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("metrics", InputData.StringType)) #list of metrics
+    inputSpecification.addSub(InputData.parameterInputFactory("metrics", InputData.StringListType)) #list of metrics
     inputSpecification.addSub(InputData.parameterInputFactory("batch_size", InputData.IntegerType))
     inputSpecification.addSub(InputData.parameterInputFactory("epochs", InputData.IntegerType))
     inputSpecification.addSub(InputData.parameterInputFactory("dropout", InputData.FloatType))
@@ -269,6 +268,32 @@ class ROM(Dummy):
     OptimizerSettingInput.addSub(NesterovInput)
     OptimizerSettingInput.addSub(RhoInput)
     inputSpecification.addSub(OptimizerSettingInput)
+
+
+    layerInput = InputData.parameterInputFactory('layer',contentType=InputData.StringType)
+    layerInput.addParam('name', InputData.StringType, True)
+    layerTypeInput = InputData.parameterInputFactory('type',contentType=InputData.StringType, True)
+    layerActivationInput = InputData.parameterInputFactory('activation',contentType=InputData.StringType)
+    layerStridesInput = InputData.parameterInputFactory('strides',contentType=InputData.IntegerOrIntegerTupleType)
+    layerKernelSizeInput = InputData.parameterInputFactory('kernel_size',contentType=InputData.IntegerOrIntegerTupleType)
+    layerPoolSizeInput = InputData.parameterInputFactory('pool_size',contentType=InputData.IntegerOrIntegerTupleType)
+    layerDropoutRateInput = InputData.parameterInputFactory('rate',contentType=InputData.FloatType)
+    layerPaddingInput = InputData.parameterInputFactory('padding',contentType=InputData.StringType)
+    layerDimOutInput = InputData.parameterInputFactory('dim_out',contentType=InputData.IntegerType)
+
+    layerInput.addSub(layerNameInput)
+    layerInput.addSub(layerTypeInput)
+    layerInput.addSub(layerActivationInput)
+    layerInput.addSub(layerStridesInput)
+    layerInput.addSub(layerKernelSizeInput)
+    layerInput.addSub(layerPoolSizeInput)
+    layerInput.addSub(layerDropoutRateInput)
+    layerInput.addSub(layerPaddingInput)
+    layerInput.addSub(layerDimOutInput)
+    inputSpecification.addSub(layerInput,InputData.Quantity.one_to_infinity)
+
+    layerLayoutInput = InputData.parameterInputFactory('layer_layout',contentType=InputData.StringListType)
+    inputSpecification.addSub(layerLayoutInput)
 
     #Estimators can include ROMs, and so because baseNode does a copy, this
     #needs to be after the rest of ROMInput is defined.
@@ -342,6 +367,11 @@ class ROM(Dummy):
           self.initializationOptionDict[child.getName()] = {}
           for node in child.subparts:
             self.initializationOptionDict[child.getName()][node.getName()] = tryStrParse(node.value)
+        elif child.getName() in ['layer']:
+          layerName = child.parameterValues["name"]
+          self.initializationOptionDict[layerName] = {}
+          for node in child.subparts:
+            self.initializationOptionDict[layerName][node.getName()] = tryStrParse(node.value)
         else:
           self.initializationOptionDict[child.getName()] = tryStrParse(child.value)
     # if working with a pickled ROM, send along that information

@@ -256,6 +256,27 @@ class IntegerListType(InputType):
 #Note, XSD's list type is split by spaces, not commas, so using xsd:string
 IntegerListType.createClass("stringtype","xsd:string")
 
+#
+#
+#
+#
+class IntegerOrIntegerTupleType(InputType):
+  """
+    A type for integer tuples "1, 2, 3" -> (1,2,3)
+  """
+
+  @classmethod
+  def convert(cls, value):
+    """
+      Converts value from string to an integer tuple.
+      @ In, value, string, the value to convert
+      @ Out, convert, int or tuple, the converted value
+    """
+    convert = tuple(int(x.strip()) for x in value.split(","))
+    convert = convert[0] if len(convert) == 1 else convert
+    return convert
+
+IntegerOrIntegerTupleType.createClass("stringtype","xsd:string")
 
 #
 #

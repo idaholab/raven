@@ -73,95 +73,96 @@ class KerasClassifier(supervisedLearning):
   availOptimizer['nadam'] = KerasOptimizers.Nadam
 
   # available convolutional layers
-  availConvNet = {}
+  availLayer = {}
+  # dense layer
+  availLayer['dense'] = KerasLayers.Dense
+  # apply dropout to the input
+  availLayer['dropout'] = KerasLayers.Dropout
   # 1D convolution layer (e.g. temporal convolution).
-  availConvNet['conv1d'] = KerasLayers.Conv1D
+  availLayer['conv1d'] = KerasLayers.Conv1D
   # 2D convolution layer (e.g. spatial convolution over images).
-  availConvNet['conv2D'] = KerasLayers.Conv2D
+  availLayer['conv2d'] = KerasLayers.Conv2D
   # Depthwise separable 1D convolution.
   #availConvNet['separableconv1d'] = KerasLayers.SeparableConv1D
   # Depthwise separable 2D convolution.
-  availConvNet['separableconv2d'] = KerasLayers.SeparableConv2D
+  availLayer['separableconv2d'] = KerasLayers.SeparableConv2D
   # Depthwise separable 2D convolution.
   #availConvNet['depthwiseconv2d'] = KerasLayers.DepthwiseConv2D
   # Transposed convolution layer (sometimes called Deconvolution).
-  availConvNet['conv2dtranspose'] = KerasLayers.Conv2DTranspose
+  availLayer['conv2dtranspose'] = KerasLayers.Conv2DTranspose
   # 3D convolution layer (e.g. spatial convolution over volumes).
-  availConvNet['conv3d'] = KerasLayers.Conv3D
+  availLayer['conv3d'] = KerasLayers.Conv3D
   # ransposed convolution layer (sometimes called Deconvolution).
   #availConvNet['conv3dtranspose'] = KerasLayers.Conv3DTranspose
   # Cropping layer for 1D input (e.g. temporal sequence). It crops along the time dimension (axis 1).
-  availConvNet['cropping1d'] = KerasLayers.Cropping1D
+  availLayer['cropping1d'] = KerasLayers.Cropping1D
   # Cropping layer for 2D input (e.g. picture). It crops along spatial dimensions, i.e. height and width.
-  availConvNet['cropping2d'] = KerasLayers.Cropping2D
+  availLayer['cropping2d'] = KerasLayers.Cropping2D
   # Cropping layer for 3D data (e.g. spatial or spatio-temporal).
-  availConvNet['cropping3d'] = KerasLayers.Cropping3D
+  availLayer['cropping3d'] = KerasLayers.Cropping3D
   # Upsampling layer for 1D inputs
-  availConvNet['upsampling1d'] = KerasLayers.UpSampling1D
+  availLayer['upsampling1d'] = KerasLayers.UpSampling1D
   # Upsampling layer for 2D inputs.
-  availConvNet['upsampling2d'] = KerasLayers.UpSampling2D
+  availLayer['upsampling2d'] = KerasLayers.UpSampling2D
   # Upsampling layer for 3D inputs.
-  availConvNet['upsampling3d'] = KerasLayers.UpSampling3D
+  availLayer['upsampling3d'] = KerasLayers.UpSampling3D
   # Zero-padding layer for 1D input (e.g. temporal sequence).
-  availConvNet['zeropadding1d'] = KerasLayers.ZeroPadding1D
+  availLayer['zeropadding1d'] = KerasLayers.ZeroPadding1D
   # Zero-padding layer for 2D input (e.g. picture).
   # This layer can add rows and columns of zeros at the top, bottom, left and right side of an image tensor.
-  availConvNet['zeropadding2d'] = KerasLayers.ZeroPadding2D
+  availLayer['zeropadding2d'] = KerasLayers.ZeroPadding2D
   # Zero-padding layer for 3D data (spatial or spatio-tempral)
-  availConvNet['zeropadding3d'] = KerasLayers.ZeroPadding3D
+  availLayer['zeropadding3d'] = KerasLayers.ZeroPadding3D
   # Locally-connected layer for 1D inputs.
   # The LocallyConnected1D layer works similarly to the Conv1D layer, except that weights are unshared,
   # that is, a different set of filters is applied at each different patch of the input.
-  availConvNet['locallyconnected1d'] = KerasLayers.LocallyConnected1D
+  availLayer['locallyconnected1d'] = KerasLayers.LocallyConnected1D
   # Locally-connected layer for 2D inputs.
   # The LocallyConnected1D layer works similarly to the Conv2D layer, except that weights are unshared,
   # that is, a different set of filters is applied at each different patch of the input.
-  availConvNet['locallyconnected2d'] = KerasLayers.LocallyConnected2D
+  availLayer['locallyconnected2d'] = KerasLayers.LocallyConnected2D
 
   # available pooling layers
-  availPooling = {}
   # Max pooling operation for temporal data.
-  availPooling['maxpooling1d'] = KerasLayers.MaxPooling1D
+  availLayer['maxpooling1d'] = KerasLayers.MaxPooling1D
   # Max pooling operation for spatial data.
-  availPooling['maxpooling2d'] = KerasLayers.MaxPooling2D
+  availLayer['maxpooling2d'] = KerasLayers.MaxPooling2D
   # Max pooling operation for 3D data (spatial or spatio-temporal).
-  availPooling['maxpooling3d'] = KerasLayers.MaxPooling3D
+  availLayer['maxpooling3d'] = KerasLayers.MaxPooling3D
   # Average pooling for temporal data.
-  availPooling['averagepooling1d'] = KerasLayers.AveragePooling1D
+  availLayer['averagepooling1d'] = KerasLayers.AveragePooling1D
   # Average pooling for spatial data.
-  availPooling['averagepooling2d'] = KerasLayers.AveragePooling2D
+  availLayer['averagepooling2d'] = KerasLayers.AveragePooling2D
   # Average pooling operation for 3D data (spatial or spatio-temporal).
-  availPooling['averagepooling3d'] = KerasLayers.AveragePooling3D
+  availLayer['averagepooling3d'] = KerasLayers.AveragePooling3D
   # Global max pooling operation for temporal data.
-  availPooling['globalmaxpooling1d'] = KerasLayers.GlobalMaxPooling1D
+  availLayer['globalmaxpooling1d'] = KerasLayers.GlobalMaxPooling1D
   # Global average pooling operation for temporal data.
-  availPooling['globalaveragepooling1d'] = KerasLayers.GlobalAveragePooling1D
+  availLayer['globalaveragepooling1d'] = KerasLayers.GlobalAveragePooling1D
   # Global max pooling operation for spatial data.
-  availPooling['globalmaxpooling2d'] = KerasLayers.GlobalMaxPooling2D
+  availLayer['globalmaxpooling2d'] = KerasLayers.GlobalMaxPooling2D
   # Global average pooling operation for spatial data.
-  availPooling['globalaveragepooling2d'] = KerasLayers.GlobalAveragePooling2D
+  availLayer['globalaveragepooling2d'] = KerasLayers.GlobalAveragePooling2D
   # Global Max pooling operation for 3D data.
-  availPooling['globalmaxpooling3d'] = KerasLayers.GlobalMaxPooling3D
+  availLayer['globalmaxpooling3d'] = KerasLayers.GlobalMaxPooling3D
   # Global Average pooling operation for 3D data.
-  availPooling['globalaveragepooling3d'] = KerasLayers.GlobalAveragePooling3D
+  availLayer['globalaveragepooling3d'] = KerasLayers.GlobalAveragePooling3D
 
   # available embedding layers
-  availEmbedding = {}
   # turns positive integers (indexes) into dense vectors of fixed size
   # This layer can only be used as the first layer in a model.
-  availEmbedding['embedding'] = KerasLayers.Embedding
+  availLayer['embedding'] = KerasLayers.Embedding
 
   # available recurrent layers
-  availRecurrent = {}
   # Fully-connected RNN where the output is to be fed back to input.
-  availRecurrent['simplernn'] = KerasLayers.SimpleRNN
+  availLayer['simplernn'] = KerasLayers.SimpleRNN
   # Gated Recurrent Unit - Cho et al. 2014.
-  availRecurrent['gru'] = KerasLayers.GRU
+  availLayer['gru'] = KerasLayers.GRU
   # Long Short-Term Memory layer - Hochreiter 1997.
-  availRecurrent['lstm'] = KerasLayers.LSTM
+  availLayer['lstm'] = KerasLayers.LSTM
   # Convolutional LSTM.
   # It is similar to an LSTM layer, but the input transformations and recurrent transformations are both convolutional.
-  availRecurrent['convlstm2d'] = KerasLayers.ConvLSTM2D
+  availLayer['convlstm2d'] = KerasLayers.ConvLSTM2D
   # Fast GRU implementation backed by CuDNN.
   #availRecurrent['cudnngru'] = KerasLayers.CuDNNGRU
   # Fast LSTM implementation with CuDNN.
@@ -215,9 +216,9 @@ class KerasClassifier(supervisedLearning):
     # activation function for output layer of deep neural network
     self.outputLayerActivation = self.initOptionDict.pop('output_layer_activation', 'softmax')
     # A loss function that is always required to compile a KERAS model
-    self.lossFunction = [elem.strip() for elem in self.initOptionDict.pop('loss','mean_squared_error').split(',')]
+    self.lossFunction = self.initOptionDict.pop('loss',['mean_squared_error'])
     # a metric is a function that is used to judge the performance of KERAS model
-    self.metrics = [elem.strip() for elem in self.initOptionDict.pop('metrics','accuracy').split(',')]
+    self.metrics = self.initOptionDict.pop('metrics',['accuracy'])
     # number of samples per gradient update, default 20
     self.batchSize = int(self.initOptionDict.pop('batch_size',20))
     # number of epochs to train the model. An epoch is an iteration over the entire training data, (default 20)

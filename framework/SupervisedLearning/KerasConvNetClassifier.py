@@ -15,7 +15,7 @@
   Created on Dec. 20, 2018
 
   @author: wangc
-  module for Multi-layer perceptron classifier
+  module for Convolutional neural network (CNN)
 """
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
@@ -40,9 +40,9 @@ from tensorflow.contrib.keras import utils as KerasUtils
 from .KerasClassifier import KerasClassifier
 #Internal Modules End--------------------------------------------------------------------------------
 
-class KerasMLPClassifier(KerasClassifier):
+class KerasConvNetClassifier(KerasClassifier):
   """
-    Multi-layer perceptron classifier constructed using Keras API in TensorFlow
+    Convolutional neural network (CNN) classifier constructed using Keras API in TensorFlow
   """
 
   def __init__(self,messageHandler,**kwargs):
@@ -53,39 +53,44 @@ class KerasMLPClassifier(KerasClassifier):
       @ Out, None
     """
     KerasClassifier.__init__(self,messageHandler,**kwargs)
-    self.printTag = 'KerasMLPClassifier'
-    # activation functions for all hidden layers of deep neural network
-    self.hiddenLayerActivation = self.initOptionDict.pop('hidden_layer_activations', ['relu'])
-    # always required, dimensionalities of hidden layers of deep neural network
-    self.hiddenLayerSize = self.initOptionDict.pop('hidden_layer_sizes')
-    # Broadcast hidden layer activation function to all hidden layers
-    if len(self.hiddenLayerActivation) == 1 and len(self.hiddenLayerActivation) < len(self.hiddenLayerSize):
-      self.hiddenLayerActivation = self.hiddenLayerActivation * len(self.hiddenLayerSize)
-    elif len(self.hiddenLayerActivation) != len(self.hiddenLayerSize):
-      self.raiseAnError(IOError, "The number of activation functions for the hidden layer should be equal the number of hidden layers!")
-    # fraction of the input units to drop, default 0
-    self.dropoutRate = [float(elem) for elem in self.initOptionDict.pop('dropout','0').split(',')]
-    if len(self.dropoutRate) == 1 and len(self.dropoutRate) < len(self.hiddenLayerSize):
-      self.dropoutRate = self.dropoutRate * len(self.hiddenLayerSize)
-    elif len(self.dropoutRate) != len(self.hiddenLayerSize):
-      self.raiseAnError(IOError, "The number of dropout rates should be equal the number of hidden layers!")
+    self.printTag = 'KerasConvNetClassifier'
+    self.layerLayout = self.initOptionDict.pop('layer_layout',None)
+    if self.layerLayout is None:
+      self.raiseAnError(IOError,"XML node 'layer_layout' is required for ROM class", self.printTag)
+    elif not set(self.layerLayout).issubset(list(self.initOptionDict.keys())):
+      self.raiseAnError(IOError, "The following layers are not defined '{}'.".format(', '.join(set(self.layerLayout)-set(list(self.initOptionDict.keys())))))
 
   def __addLayers__(self):
     """
       Method used to add layers for KERAS model
+      The structure for Convolutional Neural Network is:
+      inputLayer -> [(ConvolutionLayer) * Mi -> ... ->MaxPoolingLayer] * Ni -> ...
+      -> Flatten -> ReLU layer/MLP layer -> OutputLayer
       @ In, None
       @ Out, None
     """
     # start to build the ROM
-    # hidden layers
     self.ROM = KerasModels.Sequential()
-    for index, layerSize in enumerate(self.hiddenLayerSize):
-      activation = self.hiddenLayerActivation[index]
-      rate = self.dropoutRate[index]
-      if index == 0:
-        self.ROM.add(KerasLayers.Dense(layerSize, activation=activation, input_shape=(len(self.features),)))
+    # loop over layers
+    for index, layerName in enumerate(self.layerLayout[:-1]):
+      layerDict = copy.deepcopy(self.initOptionDict[layerName])
+      layerType = layerDict.pop('type')
+      layerSize = layerDict.pop('dim_out',None)
+      layerInstant = self.__class__.availLayer[layerType]
+      dropoutRate = layerDict.pop('rate',0.25)
+      if layerSize is not None:
+        if index == 0:
+          self.ROM.add(layerInstant(layerSize,input_shape=(len(self.features),), **layerDict))
+        else:
+          self.ROM.add(layerInstant(layerSize,**layerDict))
       else:
-        self.ROM.add(KerasLayers.Dense(layerSize, activation=activation))
-      self.ROM.add(KerasLayers.Dropout(rate))
-    # output layer
-    self.ROM.add(KerasLayers.Dense(self.numClasses, activation=self.outputLayerActivation))
+        if layerType == 'dropout':
+          self.ROM.add(layerInstant(dropoutRate))
+        else:
+          self.ROM.add(layerInstant(**layerDict))
+    #output layer
+    layerName = self.layerLayout[-1]
+    layerDict = self.initOptionDict.pop(layerName)
+    layerType = layerDict.pop('type')
+    layerInstant = self.__class__.availLayer[layerType]
+    self.ROM.add(layerInstant(self.numClasses,**layerDict))
