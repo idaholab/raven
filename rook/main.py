@@ -62,16 +62,6 @@ def load_average_adapter(function):
     return function(data)
   return new_func
 
-test_re = re.compile(args.test_re_raw)
-
-#XXX fixme to find a better way to the tests directory
-
-this_dir = os.path.abspath(os.path.dirname(__file__))
-up_one_dir = os.path.dirname(this_dir)
-base_test_dir = os.path.join(up_one_dir, "tests")
-
-print(this_dir, base_test_dir)
-
 def get_test_lists(directory):
   """
   Returns a list of all the files named tests under the directory
@@ -82,8 +72,6 @@ def get_test_lists(directory):
     if 'tests' in files:
       dir_test_list.append((root, os.path.join(root, 'tests')))
   return dir_test_list
-
-test_list = get_test_lists(base_test_dir)
 
 def run_python_test(data):
   """
@@ -131,83 +119,6 @@ def get_testers_and_differs(directory):
 
   return tester_dict, differ_dict
 
-
-testers, differs = get_testers_and_differs(os.path.join(up_one_dir, "scripts",
-                                                        "TestHarness", "testers"))
-print("Testers:", testers)
-print("Differs:", differs)
-
-tester_params = {}
-for tester in testers:
-  tester_params[tester] = testers[tester].get_valid_params()
-print("Tester Params:", tester_params)
-
-function_list = [] #Store the data for the pool runner
-test_name_list = []
-ready_to_run = []
-function_postreq = {} #If this is non-empty for a key, enable the postreq's
-name_to_id = {}
-
-for test_dir, test_file in test_list:
-  #print(test_file)
-  tree = trees.TreeStructure.parse(test_file, 'getpot')
-  for node in tree.getroot():
-    #print(node.tag)
-    #print(node.attrib)
-    param_handler = tester_params[node.attrib['type']]
-    if not param_handler.check_for_required(node.attrib):
-      print("Missing Parameters in:", node.tag)
-    if not param_handler.check_for_all_known(node.attrib):
-      print("Unknown Parameters in:", node.tag, test_file)
-    rel_test_dir = test_dir[len(base_test_dir)+1:]
-    test_name = rel_test_dir+os.sep+node.tag
-    if "prereq" in node.attrib:
-      prereq = node.attrib['prereq']
-      prereq_name = rel_test_dir+os.sep+prereq
-      l = function_postreq.get(prereq_name, [])
-      l.append(test_name)
-      function_postreq[prereq_name] = l
-      has_prereq = True
-    else:
-      has_prereq = False
-    if test_re.search(test_name):
-      params = dict(node.attrib)
-      params['test_dir'] = test_dir
-      tester = testers[node.attrib['type']](test_name, params)
-      if args.heavy:
-        tester.run_heavy()
-      for child in node.children:
-        #print(test_name,"child",child)
-        child_type = child.attrib['type']
-        child_param_handler = differs[child_type].get_valid_params()
-        if not child_param_handler.check_for_required(child.attrib):
-          print("Missing Parameters in:", child.tag, node.tag, test_file)
-        if not child_param_handler.check_for_all_known(child.attrib):
-          print("Unknown Parameters in:", child.tag, node.tag, test_file)
-        differ = differs[child_type](child.tag, dict(child.attrib), test_dir)
-        tester.add_differ(differ)
-      id_num = len(function_list)
-      input_filename = node.attrib['input']
-      func = tester.run
-      if args.load_average > 0 and hasattr(os, "getloadavg"):
-        func = load_average_adapter(func)
-      function_list.append((func, (test_dir, input_filename)))
-      test_name_list.append(test_name)
-      ready_to_run.append(not has_prereq)
-      name_to_id[test_name] = id_num
-    #if node.attrib['type'] in ['RavenPython','CrowPython']:
-    #  input_filename = node.attrib['input']
-    #  if test_re.search(test_name):
-    #    function_list.append((run_python_test, (test_dir, input_filename)))
-
-#print(function_postreq, name_to_id)
-run_pool = pool.MultiRun(function_list, args.number_jobs, ready_to_run)
-
-run_pool.run()
-
-results = {"pass":0, "fail":0, "skipped":0}
-failed_list = []
-
 def sec_format(runtime):
   """
   Formats the runtime into a string of the number seconds.
@@ -248,26 +159,120 @@ def process_result(index, _input_data, output_data):
                                        Tester.get_bucket_name(bucket),
                                        sec_format(output_data.runtime),
                                        process_test_name))
+if __name__ == "__main__":
 
-output_list = run_pool.process_results(process_result)
-run_pool.wait()
+  test_re = re.compile(args.test_re_raw)
 
-if results["fail"] > 0:
-  print("FAILED:")
-for path in failed_list:
-  print(path)
+  #XXX fixme to find a better way to the tests directory
 
-csv_report = open("test_report.csv", "w")
-csv_report.write(",".join(["name", "passed", "bucket", "time"])+"\n")
-for result, test_name in zip(output_list, test_name_list):
-  if result is not None:
-    bucket_name = Tester.get_bucket_name(result.bucket)
-    out_line = ",".join([test_name, str(result.bucket == Tester.bucket_success),
-                         bucket_name, str(result.runtime)])
-  else:
-    out_line = ",".join([test_name, str(False), "NO_PREREQ", str(0.0)])
-  csv_report.write(out_line+"\n")
-csv_report.close()
+  this_dir = os.path.abspath(os.path.dirname(__file__))
+  up_one_dir = os.path.dirname(this_dir)
+  base_test_dir = os.path.join(up_one_dir, "tests")
 
-print("PASSED:", results["pass"], "FAILED:", results["fail"], "SKIPPED", results["skipped"])
-sys.exit(results["fail"])
+  print(this_dir, base_test_dir)
+
+
+  test_list = get_test_lists(base_test_dir)
+
+  base_testers, base_differs =  get_testers_and_differs(this_dir)
+  testers, differs = get_testers_and_differs(os.path.join(up_one_dir, "scripts",
+                                                          "TestHarness", "testers"))
+  testers.update(base_testers)
+  differs.update(base_differs)
+
+  print("Testers:", testers)
+  print("Differs:", differs)
+
+  tester_params = {}
+  for tester in testers:
+    tester_params[tester] = testers[tester].get_valid_params()
+  print("Tester Params:", tester_params)
+
+  function_list = [] #Store the data for the pool runner
+  test_name_list = []
+  ready_to_run = []
+  function_postreq = {} #If this is non-empty for a key, enable the postreq's
+  name_to_id = {}
+
+  for test_dir, test_file in test_list:
+    #print(test_file)
+    tree = trees.TreeStructure.parse(test_file, 'getpot')
+    for node in tree.getroot():
+      #print(node.tag)
+      #print(node.attrib)
+      param_handler = tester_params[node.attrib['type']]
+      if not param_handler.check_for_required(node.attrib):
+        print("Missing Parameters in:", node.tag)
+      if not param_handler.check_for_all_known(node.attrib):
+        print("Unknown Parameters in:", node.tag, test_file)
+      rel_test_dir = test_dir[len(base_test_dir)+1:]
+      test_name = rel_test_dir+os.sep+node.tag
+      if "prereq" in node.attrib:
+        prereq = node.attrib['prereq']
+        prereq_name = rel_test_dir+os.sep+prereq
+        l = function_postreq.get(prereq_name, [])
+        l.append(test_name)
+        function_postreq[prereq_name] = l
+        has_prereq = True
+      else:
+        has_prereq = False
+      if test_re.search(test_name):
+        params = dict(node.attrib)
+        params['test_dir'] = test_dir
+        tester = testers[node.attrib['type']](test_name, params)
+        if args.heavy:
+          tester.run_heavy()
+        for child in node.children:
+          #print(test_name,"child",child)
+          child_type = child.attrib['type']
+          child_param_handler = differs[child_type].get_valid_params()
+          if not child_param_handler.check_for_required(child.attrib):
+            print("Missing Parameters in:", child.tag, node.tag, test_file)
+          if not child_param_handler.check_for_all_known(child.attrib):
+            print("Unknown Parameters in:", child.tag, node.tag, test_file)
+          differ = differs[child_type](child.tag, dict(child.attrib), test_dir)
+          tester.add_differ(differ)
+        id_num = len(function_list)
+        #input_filename = node.attrib['input']
+        func = tester.run
+        if args.load_average > 0 and hasattr(os, "getloadavg"):
+          func = load_average_adapter(func)
+        function_list.append((func, (test_dir)))
+        test_name_list.append(test_name)
+        ready_to_run.append(not has_prereq)
+        name_to_id[test_name] = id_num
+      #if node.attrib['type'] in ['RavenPython','CrowPython']:
+      #  input_filename = node.attrib['input']
+      #  if test_re.search(test_name):
+      #    function_list.append((run_python_test, (test_dir, input_filename)))
+
+  #print(function_postreq, name_to_id)
+  run_pool = pool.MultiRun(function_list, args.number_jobs, ready_to_run)
+
+  run_pool.run()
+
+  results = {"pass":0, "fail":0, "skipped":0}
+  failed_list = []
+
+  output_list = run_pool.process_results(process_result)
+  run_pool.wait()
+
+  if results["fail"] > 0:
+    print("FAILED:")
+  for path in failed_list:
+    print(path)
+
+  csv_report = open("test_report.csv", "w")
+  csv_report.write(",".join(["name", "passed", "bucket", "time"])+"\n")
+  for result, test_name in zip(output_list, test_name_list):
+    if result is not None:
+      bucket_name = Tester.get_bucket_name(result.bucket)
+      out_line = ",".join([test_name, str(result.bucket == Tester.bucket_success),
+                           bucket_name, str(result.runtime)])
+    else:
+      out_line = ",".join([test_name, str(False), "NO_PREREQ", str(0.0)])
+    csv_report.write(out_line+"\n")
+  csv_report.close()
+
+  print("PASSED:", results["pass"], "FAILED:", results["fail"], "SKIPPED", results["skipped"])
+  sys.exit(results["fail"])
