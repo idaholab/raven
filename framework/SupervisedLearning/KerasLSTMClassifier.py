@@ -15,7 +15,7 @@
   Created on Dec. 20, 2018
 
   @author: wangc
-  module for Multi-layer perceptron classifier
+  module for recurrent neural network using short-term model network (LSTM)
 """
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
@@ -24,12 +24,14 @@ warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
+import copy
 import tensorflow as tf
 # test if we can reproduce th results
 #from tensorflow import set_random_seed
 #set_random_seed(2017)
+#numpy.random.seed(2017)
 ######
-import tensorflow.contrib.keras as Keras
+import tensorflow.contrib.keras as keras
 from tensorflow.contrib.keras import models as KerasModels
 from tensorflow.contrib.keras import layers as KerasLayers
 from tensorflow.contrib.keras import optimizers as KerasOptimizers
@@ -40,9 +42,10 @@ from tensorflow.contrib.keras import utils as KerasUtils
 from .KerasClassifier import KerasClassifier
 #Internal Modules End--------------------------------------------------------------------------------
 
-class KerasMLPClassifier(KerasClassifier):
+class KerasLSTMClassifier(KerasClassifier):
   """
-    Multi-layer perceptron classifier constructed using Keras API in TensorFlow
+    recurrent neural network using short-term model network (LSTM) classifier
+    constructed using Keras API in TensorFlow
   """
 
   def __init__(self,messageHandler,**kwargs):
@@ -53,23 +56,13 @@ class KerasMLPClassifier(KerasClassifier):
       @ Out, None
     """
     KerasClassifier.__init__(self,messageHandler,**kwargs)
+    self.printTag = 'KerasLSTMClassifier'
     self._dynamicHandling            = True                                 # This ROM is able to manage the time-series on its own. No need for special treatment outside
-    self.printTag = 'KerasMLPClassifier'
-    # activation functions for all hidden layers of deep neural network
-    self.hiddenLayerActivation = self.initOptionDict.pop('hidden_layer_activations', ['relu'])
-    # always required, dimensionalities of hidden layers of deep neural network
-    self.hiddenLayerSize = self.initOptionDict.pop('hidden_layer_sizes',[20])
-    # Broadcast hidden layer activation function to all hidden layers
-    if len(self.hiddenLayerActivation) == 1 and len(self.hiddenLayerActivation) < len(self.hiddenLayerSize):
-      self.hiddenLayerActivation = self.hiddenLayerActivation * len(self.hiddenLayerSize)
-    elif len(self.hiddenLayerActivation) != len(self.hiddenLayerSize):
-      self.raiseAnError(IOError, "The number of activation functions for the hidden layer should be equal the number of hidden layers!")
-    # fraction of the input units to drop, default 0
-    self.dropoutRate = self.initOptionDict.pop('dropout',['0'])
-    if len(self.dropoutRate) == 1 and len(self.dropoutRate) < len(self.hiddenLayerSize):
-      self.dropoutRate = self.dropoutRate * len(self.hiddenLayerSize)
-    elif len(self.dropoutRate) != len(self.hiddenLayerSize):
-      self.raiseAnError(IOError, "The number of dropout rates should be equal the number of hidden layers!")
+    self.layerLayout = self.initOptionDict.pop('layer_layout',None)
+    if self.layerLayout is None:
+      self.raiseAnError(IOError,"XML node 'layer_layout' is required for ROM class", self.printTag)
+    elif not set(self.layerLayout).issubset(list(self.initOptionDict.keys())):
+      self.raiseAnError(IOError, "The following layers are not defined '{}'.".format(', '.join(set(self.layerLayout)-set(list(self.initOptionDict.keys())))))
 
   def __addLayers__(self):
     """
@@ -78,15 +71,27 @@ class KerasMLPClassifier(KerasClassifier):
       @ Out, None
     """
     # start to build the ROM
-    # hidden layers
     self.ROM = KerasModels.Sequential()
-    for index, layerSize in enumerate(self.hiddenLayerSize):
-      activation = self.hiddenLayerActivation[index]
-      rate = self.dropoutRate[index]
-      if index == 0:
-        self.ROM.add(KerasLayers.Dense(layerSize, activation=activation, input_shape=(len(self.features),)))
+    # loop over layers
+    for index, layerName in enumerate(self.layerLayout[:-1]):
+      layerDict = copy.deepcopy(self.initOptionDict[layerName])
+      layerType = layerDict.pop('type').lower()
+      layerSize = layerDict.pop('dim_out',None)
+      layerInstant = self.__class__.availLayer[layerType]
+      dropoutRate = layerDict.pop('rate',0)
+      if layerSize is not None:
+        if index == 0:
+          self.ROM.add(layerInstant(layerSize,input_shape=self.featv.shape[1:], **layerDict))
+        else:
+          self.ROM.add(layerInstant(layerSize,**layerDict))
       else:
-        self.ROM.add(KerasLayers.Dense(layerSize, activation=activation))
-      self.ROM.add(KerasLayers.Dropout(rate))
-    # output layer
-    self.ROM.add(KerasLayers.Dense(self.numClasses, activation=self.outputLayerActivation))
+        if layerType == 'dropout':
+          self.ROM.add(layerInstant(dropoutRate))
+        else:
+          self.ROM.add(layerInstant(**layerDict))
+    #output layer
+    layerName = self.layerLayout[-1]
+    layerDict = self.initOptionDict.pop(layerName)
+    layerType = layerDict.pop('type')
+    layerInstant = self.__class__.availLayer[layerType]
+    self.ROM.add(layerInstant(self.numClasses,**layerDict))

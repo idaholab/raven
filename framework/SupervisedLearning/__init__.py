@@ -42,6 +42,7 @@ from .DynamicModeDecomposition import DynamicModeDecomposition
 from .KerasClassifier    import KerasClassifier
 from .KerasMLPClassifier import KerasMLPClassifier
 from .KerasConvNetClassifier import KerasConvNetClassifier
+from .KerasLSTMClassifier import KerasLSTMClassifier
 
 # Factory methods
 from .Factory import knownTypes
