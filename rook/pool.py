@@ -122,6 +122,7 @@ class MultiRun:
         #Restart since it is done.  Otherwise might not be any runners still
         # running
         self.__runners[i] = RunnerThread(self.__input_queue, self.__output_queue)
+        self.__runners[i].start()
 
   def __runner_count(self):
     """
