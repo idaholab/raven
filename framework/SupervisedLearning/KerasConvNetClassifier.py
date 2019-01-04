@@ -34,6 +34,7 @@ from tensorflow.contrib.keras import models as KerasModels
 from tensorflow.contrib.keras import layers as KerasLayers
 from tensorflow.contrib.keras import optimizers as KerasOptimizers
 from tensorflow.contrib.keras import utils as KerasUtils
+import copy
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -53,6 +54,7 @@ class KerasConvNetClassifier(KerasClassifier):
       @ Out, None
     """
     KerasClassifier.__init__(self,messageHandler,**kwargs)
+    self._dynamicHandling            = True                                 # This ROM is able to manage the time-series on its own. No need for special treatment outside
     self.printTag = 'KerasConvNetClassifier'
     self.layerLayout = self.initOptionDict.pop('layer_layout',None)
     if self.layerLayout is None:
@@ -74,13 +76,13 @@ class KerasConvNetClassifier(KerasClassifier):
     # loop over layers
     for index, layerName in enumerate(self.layerLayout[:-1]):
       layerDict = copy.deepcopy(self.initOptionDict[layerName])
-      layerType = layerDict.pop('type')
+      layerType = layerDict.pop('type').lower()
       layerSize = layerDict.pop('dim_out',None)
       layerInstant = self.__class__.availLayer[layerType]
       dropoutRate = layerDict.pop('rate',0.25)
       if layerSize is not None:
         if index == 0:
-          self.ROM.add(layerInstant(layerSize,input_shape=(len(self.features),), **layerDict))
+          self.ROM.add(layerInstant(layerSize,input_shape=self.featv.shape[1:], **layerDict))
         else:
           self.ROM.add(layerInstant(layerSize,**layerDict))
       else:

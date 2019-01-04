@@ -26,6 +26,7 @@ warnings.simplefilter('default',DeprecationWarning)
 
 #External Modules------------------------------------------------------------------------------------
 import copy
+import numpy as np
 import tensorflow as tf
 # test if we can reproduce th results
 #from tensorflow import set_random_seed
@@ -78,6 +79,8 @@ class KerasClassifier(supervisedLearning):
   availLayer['dense'] = KerasLayers.Dense
   # apply dropout to the input
   availLayer['dropout'] = KerasLayers.Dropout
+  # Flatten layer
+  availLayer['flatten'] = KerasLayers.Flatten
   # 1D convolution layer (e.g. temporal convolution).
   availLayer['conv1d'] = KerasLayers.Conv1D
   # 2D convolution layer (e.g. spatial convolution over images).
@@ -207,7 +210,7 @@ class KerasClassifier(supervisedLearning):
     self.ROM = None
     modelName = self.initOptionDict.pop('name','')
     # number of classes for classifier
-    self.numClasses = self.initOptionDict.pop('num_classes',2)
+    self.numClasses = self.initOptionDict.pop('num_classes',1)
     # validation split, default to 0.25
     self.validationSplit = self.initOptionDict.pop('validation_split',0.25)
     # options to plot deep neural network model, default False
@@ -216,7 +219,7 @@ class KerasClassifier(supervisedLearning):
     # activation function for output layer of deep neural network
     self.outputLayerActivation = self.initOptionDict.pop('output_layer_activation', 'softmax')
     # A loss function that is always required to compile a KERAS model
-    self.lossFunction = self.initOptionDict.pop('loss',['mean_squared_error'])
+    self.lossFunction = self.initOptionDict.pop('loss',['categorical_crossentropy'])
     # a metric is a function that is used to judge the performance of KERAS model
     self.metrics = self.initOptionDict.pop('metrics',['accuracy'])
     # number of samples per gradient update, default 20
@@ -253,6 +256,75 @@ class KerasClassifier(supervisedLearning):
       @ Out, None
     """
     pass
+
+  def train(self,tdict):
+    """
+      Method to perform the training of the deep neural network algorithm
+      NB.the KerasClassifier object is committed to convert the dictionary that is passed (in), into the local format
+      the interface with the kernels requires. So far the base class will do the translation into numpy
+      @ In, tdict, dict, training dictionary
+      @ Out, None
+    """
+    if type(tdict) != dict:
+      self.raiseAnError(TypeError,'In method "train", the training set needs to be provided through a dictionary. Type of the in-object is ' + str(type(tdict)))
+    names, values  = list(tdict.keys()), list(tdict.values())
+    # Currently, deep neural networks (DNNs) are only used for classification.
+    # Targets for deep neural network should be labels only (i.e. integers only)
+    # For both static  and time-dependent case, the targetValues are 2D arrays, i.e. [numSamples, numTargets]
+    # For time-dependent case, the time-dependency is removed from the targetValues
+    # TODO: currently we only accept single target, we may extend to multi-targets by looping over targets
+    if len(self.target) > 1:
+      self.raiseAnError(IOError, "Only single target is permitted by", self.printTag)
+    targetValues = []
+    for target in self.target:
+      if target in names:
+        tval = np.asarray(values[names.index(target)])
+        tval = list(val[-1] if len(tval.shape) > 1 else val for val in tval)
+        targetValues.append(tval)
+      else:
+        self.raiseAnError(IOError,'The target '+target+' is not in the training set')
+
+    #FIXME: when we do not support anymore numpy <1.10, remove this IF STATEMENT
+    if int(np.__version__.split('.')[1]) >= 10:
+      targetValues = np.stack(targetValues, axis=-1)
+    else:
+      sl = (slice(None),) * np.asarray(targetValues[0]).ndim + (np.newaxis,)
+      targetValues = np.concatenate([np.asarray(arr)[sl] for arr in targetValues], axis=np.asarray(targetValues[0]).ndim)
+
+    # We need to 'one-hot-encode' our target variable if multi-classes are requested
+    # This means that a column will be created for each output category and a binary variable is inputted for
+    # each category.
+    if self.numClasses > 1 and self.lossFunction in ['categorical_crossentropy']:
+      targetValues = KerasUtils.to_categorical(targetValues)
+
+    featureValues = []
+    featureValuesShape = None
+    for feat in self.features:
+      if feat in names:
+        fval = values[names.index(feat)]
+        resp = self.checkArrayConsistency(fval, self.isDynamic())
+        if not resp[0]:
+          self.raiseAnError(IOError,'In training set for feature '+feat+':'+resp[1])
+        fval = np.asarray(fval)
+        if featureValuesShape is None:
+          featureValuesShape = fval.shape
+        if featureValuesShape != fval.shape:
+          self.raiseAnError(IOError,'In training set, the number of values provided for feature '+feat+' are not consistent to other features!')
+        self._localNormalizeData(values,names,feat)
+        fval = (fval - self.muAndSigmaFeatures[feat][0])/self.muAndSigmaFeatures[feat][1]
+        featureValues.append(fval)
+      else:
+        self.raiseAnError(IOError,'The feature ',feat,' is not in the training set')
+
+    #FIXME: when we do not support anymore numpy <1.10, remove this IF STATEMENT
+    if int(np.__version__.split('.')[1]) >= 10:
+      featureValues = np.stack(featureValues, axis=-1)
+    else:
+      sl = (slice(None),) * np.asarray(featureValues[0]).ndim + (np.newaxis,)
+      featureValues = np.concatenate([np.asarray(arr)[sl] for arr in featureValues], axis=np.asarray(featureValues[0]).ndim)
+
+    self.__trainLocal__(featureValues,targetValues)
+    self.amITrained = True
 
   def __trainLocal__(self,featureVals,targetVals):
     """
@@ -310,15 +382,18 @@ class KerasClassifier(supervisedLearning):
   def __evaluateLocal__(self,featureVals):
     """
       Perform regression on samples in featureVals.
-      For an one-class model, +1 or -1 is returned.
-      @ In, featureVals, numpy.array 2-D, features
+      classification labels will be returned based on num_classes
+      @ In, featureVals, numpy.array, 2-D for static case and 3D for time-dependent case, values of features
       @ Out, prediction, dict, predicted values
     """
     prediction = {}
     with self.graph.as_default():
       outcome = self.ROM.predict(featureVals)
+    if self.numClasses > 1 and self.lossFunction in ['categorical_crossentropy']:
+      outcome = np.argmax(outcome,axis=1)
+    # TODO, extend to multi-targets, currently we only accept one target
     for index, target in enumerate(self.target):
-      prediction[target] = outcome[:,index]
+      prediction[target] = outcome
     return prediction
 
   def __resetLocal__(self):

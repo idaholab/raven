@@ -62,8 +62,6 @@ class KerasMLPClassifier(KerasClassifier):
     if len(self.hiddenLayerActivation) == 1 and len(self.hiddenLayerActivation) < len(self.hiddenLayerSize):
       self.hiddenLayerActivation = self.hiddenLayerActivation * len(self.hiddenLayerSize)
     elif len(self.hiddenLayerActivation) != len(self.hiddenLayerSize):
-      print(type(self.hiddenLayerSize))
-      print(self.hiddenLayerActivation)
       self.raiseAnError(IOError, "The number of activation functions for the hidden layer should be equal the number of hidden layers!")
     # fraction of the input units to drop, default 0
     self.dropoutRate = self.initOptionDict.pop('dropout',['0'])
