@@ -14,7 +14,9 @@
       <revision author="talbpaul" date="2016-01-04">Re-golded for updated external model variables</revision>
       <revision author="maljdan" date="2016-04-06">Updating test cases to reflect the changes to the user input.</revision>
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+      <revision author="alfoa" date="2018-10-01">This is a requirement test now.</revision>
     </revisions>
+    <requirements>R-IS-6</requirements>
   </TestInfo>
   <RunInfo>
     <JobName>testGenericCodeInterface</JobName>
@@ -26,6 +28,7 @@
   <Files>
     <Input name="one.xml" type="">one.xml</Input>
     <Input name="inp.two" type="">inp.two</Input>
+    <Input name="inp.three" type="">inp.three</Input>
     <Input name="mesh" type="">dummy.e</Input>
     <Input name="a_dummy_file_for_subdirectory" type="" subDirectory="testSubDirectory">dummy_file_for_subdirectory.dummy</Input>
   </Files>
@@ -36,6 +39,7 @@
       <clargs arg="python" type="prepend"/>
       <clargs arg="-i" extension=".xml" type="input"/>
       <clargs arg="-a" extension=".two" type="input"/>
+      <clargs arg="-a" extension=".three" type="input"/>
       <clargs arg="-o" type="output"/>
     </Code>
   </Models>
@@ -68,6 +72,7 @@
     <MultiRun name="sample">
       <Input class="Files" type="">inp.two</Input>
       <Input class="Files" type="">one.xml</Input>
+      <Input class="Files" type="">inp.three</Input>
       <Input class="Files" type="">mesh</Input>
       <Input class="Files" type="">a_dummy_file_for_subdirectory</Input>
       <Model class="Models" type="Code">poly</Model>

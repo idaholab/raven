@@ -23,6 +23,7 @@
       <KDD lib="SciKitLearn">
         <Features>x1,x2,x3,x4</Features>
         <SKLtype>decomposition|SparsePCA</SKLtype>
+        <random_state>0</random_state>
         <n_components>2</n_components>
       </KDD>
       <pivotParameter>Time</pivotParameter>

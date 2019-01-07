@@ -942,9 +942,10 @@ class DataSet(DataObject):
       self._data.attrs = self._meta # appears to NOT be a reference
       # determine dimensions for each variable
       dimsMeta = {}
-      # TODO potentially slow loop
-      for var in self._inputs + self._outputs:
-        dims = list(new[var].dims)
+      for name, var in new.variables.items():
+        if name not in self._inputs + self._outputs:
+          continue
+        dims = list(var.dims)
         # don't list if only entry is sampleTag
         if dims == [self.sampleTag]:
           continue
@@ -953,13 +954,13 @@ class DataSet(DataObject):
           dims.remove(self.sampleTag)
         except ValueError:
           pass #not there, so didn't need to remove
-        dimsMeta[var] = ','.join(dims)
+        dimsMeta[name] = ','.join(dims)
       # store sample tag, IO information, coordinates
       self.addMeta('DataSet',{'dims':dimsMeta})
       self.addMeta('DataSet',{'general':{'sampleTag':self.sampleTag,
                                          'inputs':','.join(self._inputs),
                                          'outputs':','.join(self._outputs),
-                                         'pointwise_meta':','.join(self._metavars),
+                                         'pointwise_meta':','.join(sorted(self._metavars)),
       }})
     elif action == 'extend':
       # TODO compatability check!
@@ -1627,20 +1628,16 @@ class DataSet(DataObject):
         pass
     # TODO someday make KDTree too!
     assert(self._data is not None) # TODO check against collector entries?
-    for var in varList:
-      ## commented code. We use a try now for speed. It probably needs to be modified for ND arrays
-      # if not a float or int, don't scale it
-      # TODO this check is pretty convoluted; there's probably a better way to figure out the type of the variable
-      #first = self._data.groupby(var).first()[var].item(0)
-      #if (not mathUtils.isAFloatOrInt(first)) or np.isnan(first):# or self._data[var].isnull().all():
-      #  continue
+    ds = self._data[varList] if var is not None else self._data
+    mean = ds.mean().variables
+    scale = ds.std().variables
+    for name in varList:
       try:
-        mean = float(self._data[var].mean())
-        scale = float(self._data[var].std())
-        self._scaleFactors[var] = (mean,scale)
+        m = mean[name].values[()]
+        s = scale[name].values[()]
+        self._scaleFactors[name] = (m,s)
       except Exception:
-        self.raiseADebug('Had an issue with setting scaling factors for variable "{}". No big deal.'.format(var))
-        pass
+        self.raiseADebug('Had an issue with setting scaling factors for variable "{}". No big deal.'.format(name))
 
   def _toCSV(self,fileName,start=0,**kwargs):
     """

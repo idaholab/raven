@@ -1,0 +1,264 @@
+\documentclass{article}
+\usepackage{hyperref}
+\newcommand{\requirement}[5]{\item[Requirement: #1] #2 \\Source: #3\\Explanation: #4\\Regression Test(s): #5}
+
+\newcommand{\futurerequirement}[6]{\item[Future Requirement: #1 #6] #2 \\Source: #3\\Explanation: #4\\Regression Test(s): #5}
+
+\title{RAVEN Requirements-DRAFT}
+
+\begin{document}
+\maketitle
+
+\section{Introduction}
+
+\subsection{System Purpose}
+
+The RAVEN code is a generic software framework to perform parametric
+and probabilistic analysis based on the response of complex system
+codes. RAVEN is capable of investigating the system response as well
+as the input space using Monte Carlo, Grid, or Latin Hyper Cube
+sampling schemes, but its strength is focused toward system feature
+discovery, such as limit surfaces, separating regions of the input
+space leading to system failure, using dynamic supervised learning
+techniques.
+
+The development of RAVEN started in 2012 to satisfy the need to
+provide a modern risk evaluation framework. RAVEN's principal
+assignment is to provide the necessary software and algorithms in
+order to employ the concept developed by the Risk Informed Safety
+Margin Characterization (RISMC) program. RISMC is one of the pathways
+defined within the Light Water Reactor Sustainability (LWRS)
+program. In the RISMC approach, the goal is not just specifically
+identifying the frequency of an event potentially leading to a system
+failure, but the closeness (or not) to key safety-related events. This
+approach may be used in identifying and increasing the safety margins
+related to those events. A safety margin is a numerical value
+quantifying the probability that a safety metric (e.g. as peak
+pressure in a pipe) is exceeded under certain conditions. The initial
+development of RAVEN has been focused on providing dynamic risk
+assessment capability to RELAP-7, currently under development at the
+INL and, the likely future replacement of the RELAP5-3D code. Most of
+the capabilities implemented using RELAP-7 are easily deployable for
+other system codes.
+
+\subsection{System Scope}
+
+The produced product is the RAVEN software.  It is a computer code
+designed for probabilistic analysis.  RAVEN is a statistical analysis
+tool that is used to estimate risk by computing real numbers to
+determine what can go wrong, how likely is it, and what are its
+consequences.  RAVEN takes in input (such as input files for
+subprograms, or CSV files of data) and then can run subprograms with
+perturbed input parameters to calculate the result of physical
+simulations with varying input parameters.  Then RAVEN takes the
+output of those program or the data provided and performs statistical
+analysis on the data.
+
+\subsection{System Overview}
+
+\subsubsection{User Characteristics}
+
+The users of the system are expected to be analysts performing
+analysis of simulations of systems.  The users will use the outputs
+for planning and design of the systems.  The system can be whatever
+system the subprograms are simulating.  This can be a nuclear power
+plant, but there is nothing specific in RAVEN that requires that.  The
+system should have a simulation program that takes inputs and returns
+output data that can be read and written by RAVEN.  The users will
+need to understand both RAVEN and the subprogram(s) that are used.
+
+\subsubsection{Assumptions and Dependencies}
+
+The software depends on the Python programming language being
+available.  The software uses C++ to compile some Python modules.  The
+software depends on other software:
+
+\begin{enumerate}
+\item MOOSE (libMesh is not required)
+\item numpy
+\item hdf5
+\item Cython
+\item h5py
+\item scipy
+\item scikit-learn
+\item matplotlib
+\item swig
+\end{enumerate}
+
+The software uses subprograms to run simulations.  RAVEN lets the user
+write interfaces for this purpose.  There are existing interfaces for
+RELAP-5, RELAP-7, and generic MOOSE based applications.
+
+The software runs on Linux, Mac OSX, and Windows.  The computer system
+needs to have the necessary Python libraries and be able to compile
+the RAVEN Python modules.
+
+For running on distributed memory machines, RAVEN uses PBSPro by
+default.  Otherwise a Custom Mode will need to be programmed.
+
+It is assumed that other methods will be used to provide security
+(such as running in a single user's account with the input and output
+of the program stored in that user's account).
+
+\section{References}
+
+\begin{flushleft}
+ASME NQA-1-2008 with the NQA-1a-2009 addenda, ``Quality Assurance
+Requirements for Nuclear Facility Applications,'' First Edition, August
+31, 2009.
+
+INL/EXT-15-34123, ``RAVEN User Manual,'' Rev 3, October 13, 2015
+
+LWP-13620, ``Managing Information Technology Assets,'' Rev. 16, December
+23, 2013.
+\end{flushleft}
+
+\section{Definitions and Acronyms}
+
+\begin{description}
+\item[CDF] cumulative distribution function
+\item[CSV] comma separated variable (a simple spreadsheet format)
+\item[RAVEN] Risk Analysis Virtual ENvironment
+\item[PDF] probability distribution function
+\end{description}
+
+\section{Risk Evaluation}
+
+\begin{description}
+
+\requirement{R-RE-1}{RAVEN shall support 1-Dimensional probability distributions including generating random numbers from them.}
+{INL/EXT-15-34123 Rev 3 RAVEN User Manual 8.1 1-Dimensional Probability Distributions}
+{RAVEN needs to create different input parameters for the simulations that it runs.  For the non-adaptive sampling, the value of those input parameters are generated according to their probability distributions functions (including uniform distributions).  In order to do this, the distributions need to be able to calculate things like PDFs and CDFs and inverse CDFs.}
+{test\_distributions}
+%tests/framework/tests
+
+\requirement{R-RE-2}{RAVEN shall support N-Dimensional probability distributions.  It shall support multivariate normal distributions and distributions defined by tabular data.}
+{INL/EXT-15-34123 Rev 3 RAVEN User Manual 8.2 N-Dimensional Probability Distributions}
+{The N-Dimensional probability distributions allow the user to model stochastic dependencies between input parameters.}
+{ND\_external\_MC}
+%tests/framework/tests
+
+\requirement{R-RE-3}{RAVEN shall support a variety of samplers that use probability distributions to sample the input space.}
+{INL/EXT-15-34123 Rev 3 RAVEN User Manual 9.1 Once-through Samplers}
+{Forward samplers allow sampling strategies such as Grid sampling, Monte Carlo and Latin Hypercube sampling.  These samplers allow the analyses to be performed.  The samplers are Python code that is included with RAVEN.}
+{testGrid}
+%tests/framework/tests
+
+\end{description}
+
+\section{Risk Analysis}
+
+\begin{description}
+
+\requirement{R-RA-1}{RAVEN shall support adaptive sampling that use already gathered samples to determine where to do new samples.}
+{INL/EXT-15-34123 Rev 3 RAVEN User Manual 9.3 Adaptive Samplers}
+{The adaptive samplers support sampling the input space, but in a more efficient manner.  Examples of these samplers is limit surface search and adaptive stochastic collocation polynomial chaos.}
+{testLimitSurfacePostProcessor}
+%tests/framework/tests
+
+\requirement{R-RA-2}{RAVEN shall support inputting/outputting data in CSV format.}
+{INL/EXT-15-34123 Rev 3 RAVEN User Manual 12.1 Printing system}
+{The user needs to be able to get the data from other programs or to analyze it in other software. The data will be read or written to disk space that RAVEN has access to. Inputting/Outputting the data in CSV files allows this use to be done.  The CSV files will be simple tables (header line, followed by numeric data for each column).}
+{test\_iostep\_load}
+%tests/framework/tests
+
+\requirement{R-RA-3}{RAVEN shall support generating plots from the data it generates.}
+{INL/EXT-15-34123 Rev 3 RAVEN User Manual 12.2 Plotting system}
+{The user needs to be able to see the progress of the algorithms, and what the results are graphically.  As well, plots to be used in documentation and reports need to be outputted.  The plotting capability of RAVEN is used for this.  Example plots include scatter plots or wireframe plots relating input parameters to output parameters.}
+{test\_output}
+%tests/framework/tests
+
+\requirement{R-RA-4}{RAVEN shall be able to generate Reduced Order Models from its data and use them to predict responses from a system.}
+{INL/EXT-15-34123 Rev 3 RAVEN User Manual 13.3 ROM}
+{Often the physical model is computationally expensive.  For some models the relevant output parameters can be captured by a much simpler model that can be quickly calculated.  This is the purpose for the Reduced order model.}
+{test\_rom\_trainer}
+%tests/framework/tests
+
+\requirement{R-RA-5}{RAVEN shall be able to perform basic statistical analysis of generated data.}
+{INL/EXT-15-34123 Rev 3 RAVEN User Manual 13.5}
+{One of the main tasks of the RAVEN code is to assess to how the probabilistic distribution of the input parameters reflects in the figure of merits characterizing the system response.}
+{framework/PostProcessors/BasicStatistics.testBasicStatisticsGeneral}
+%tests/framework/PostProcessors/BasicStatistics/tests
+
+\requirement{R-RA-6}{RAVEN shall be able to perform advanced post processing of generated data, using classical data mining methodologies}
+{INL/EXT-15-36632 Developing and Implementing tho Data Mining Algorithms in RAVEN Rev 0}
+{Often engineers need to understand the system response to the variation of several input and output parameters which mutually interacts. Such a scenario is of difficult interpretation and data mining algorithms help in this task.  Data mining methodologies include clustering, principal component analysis, etc.}
+{framework/PostProcessors/DataMiningPostProcessor\-/DimensionalityReduction.ExactPCA}
+
+
+\end{description}
+
+\section{Risk Mitigation}
+
+\begin{description}
+
+\requirement{R-RM-1}{RAVEN shall be able to choose the values of a set of input parameters that minimize/maximize a goal function that depends on system output figure of merits and input parameters.}
+{INL/EXT-15-34123 Rev 3 RAVEN User Manual Chapter 13}
+{Mitigation of risk is related to choose a set of operational or design parameters so that, in a probabilistic sense the risk driven goal function is minimized. In addition, parametric minimization (not risk/probability weighted) is essential for design activities.}
+{framework/Optimizers.Beale}
+\end{description}
+
+\section{Infrastructure Support}
+
+\begin{description}
+\requirement{R-IS-1}{RAVEN shall be able to parallelize running external codes.}
+{INL/EXT-15-34123 Rev 3 RAVEN User Manual 6.2 RunInfo: Input of Queue Modes}
+{RAVEN runs external codes, and sometimes they are not parallelized.  RAVEN will run faster if it can run multiple codes at the same time when multiple cores are available.  Even for parallelized codes it usually will be more efficient to run multiple instances in parallel than run one code parallelized.}
+{testLHSBisonParallel}
+%tests/framework/CodeInterfaceTests/tests
+
+\requirement{R-IS-2}{RAVEN shall be able to run external codes by supplying them with the needed input files and collecting the output data.}
+{INL/EXT-15-34123 Rev 3 RAVEN User Manual 7 Files}
+{RAVEN runs external codes, and each instance may need a different input file that needs to be generated from the sampler choices.  RAVEN also may need to read the output files in. (possibly with application specific code that is user provided.)  The output files will often be CSV files.  For MOOSE based application, there is code to generate MOOSE input files, and to read MOOSE output.  For other external codes, the user many need to provide interface code to create input files and read in the output files the external code uses.}
+{simple\_framework}
+%tests/framework/test
+
+\requirement{R-IS-3}{RAVEN shall support storing and retrieving data in a HDF5 database.}
+{INL/EXT-15-34123 Rev 3 RAVEN User Manual 11 Databases}
+{RAVEN uses HDF5 databases to store inputs and results for simulations, as well as other auxiliary information.  This allows using the data generated in sub-sequential steps.  This stores the input parameters used and the numeric output parameters that the simulation produces.}
+{2steps\_same\_db}
+%tests/framework/tests
+
+\requirement{R-IS-4}{RAVEN shall be able to provide data to a user provided python function, and retrieve the data from that.}
+{INL/EXT-15-34123 Rev 3 RAVEN User Manual 13.4 External Model}
+{Sometimes all that is needed for the simulation is a function that can be calculated in Python.  The external model allows this.  This executes a python function to determine the result.}
+{testExternalModel}
+%tests/framework/tests
+
+\requirement{R-IS-5}{RAVEN shall be able to perform various calculation tasks (simulation and post processing), and transfer data to the next task.}
+{INL/EXT-15-34123 Rev 3 RAVEN User Manual 15 Steps}
+{Sequences of calculation are one of the main uses of RAVEN.  For example, a initial calculation can be used to generate data to train a ROM, and then later calculations can use the ROM for faster calculation.  As well, steps allow various post processing to be done.}
+{calculate\_and\_transfer}
+%tests/framework/tests
+
+\requirement{R-IS-6}{RAVEN shall be able to run external codes in parallel on shared memory machines.}
+{INL/EXT-15-34123 Rev 3 RAVEN User Manual 6.1 batchSize}
+{RAVEN will run on shared memory machines, and should be able to run external codes in parallel on them.  This can be done by running multiple processes.}
+{test\_bison\_mc\_simple\_\&\_alias\_system}
+%tests/framework/tests
+
+\requirement{R-IS-7}{RAVEN shall be able to run external codes in parallel on distributed memory machines.}
+{INL/EXT-15-34123 Rev 3 RAVEN User Manual 6.1 batchSize}
+{RAVEN will run on distributed memory machines, and should be able to run external codes in parallel on them.  This can be done by running with mpiexec.}
+{cluster\_tests/test\_mpiqsub\_local.xml}
+%tests/cluster_tests/test_qsubs.sh
+
+\requirement{R-IS-8}{RAVEN shall be able to run internal models in parallel on shared memory machines.}
+{INL/EXT-15-34123 Rev 3 RAVEN User Manual 6.1 internalParallel}
+{RAVEN will run on shared memory machines, and it would be useful to run internal codes in parallel on them.}
+{cluster\_tests/InternalParallel/test\_internal\_parallel\_extModel.xml}
+%tests/cluster_tests/test_qsubs.sh
+
+\requirement{R-IS-9}{RAVEN shall be able to run internal models in parallel on distributed memory machines.}
+{INL/EXT-15-34123 Rev 3 RAVEN User Manual 6.1 internalParallel}
+{RAVEN will run on distributed memory machines, and it would be useful to run internal codes in parallel on them.}
+{cluster\_tests/InternalParallel/test\_internal\_parallel\_ROM\_scikit.xml}
+%tests/cluster_tests/test_qsubs.sh
+
+\end{description}
+
+\section*{Document Version Information}
+
+\input{../version.tex}
+
+\end{document}

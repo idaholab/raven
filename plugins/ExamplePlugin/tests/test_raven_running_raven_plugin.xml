@@ -9,6 +9,10 @@
        This test is aimed to check the functionality of the RAVEN code interface (RAVEN running RAVEN)
        executing an external plugin (ExternalModel) plugin
     </description>
+    <revisions>
+      <revision author="alfoa" date="2018-10-01">This is a requirement test now.</revision>
+    </revisions>
+    <requirements>R-SI-2</requirements>
   </TestInfo>
   <!-- RUNINFO -->
   <RunInfo>

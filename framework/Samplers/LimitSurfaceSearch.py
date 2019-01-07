@@ -623,7 +623,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
       if self.batchStrategy == 'none':
         self.__scoreCandidates()
         maxDistance, maxGridId, maxId =  0.0, "", 0
-        for key, value in self.invPointPersistence.items():
+        for key, value in sorted(self.invPointPersistence.items()):
           if key != self.exceptionGrid and self.surfPoint[key] is not None:
             localMax = np.max(self.scores[key])
             if localMax > maxDistance:
@@ -722,7 +722,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
 
     if not varSet:
       #here we are still generating the batch
-      for key in self.distDict.keys():
+      for key in sorted(self.distDict.keys()):
         if self.toleranceWeight=='cdf':
           self.values[key]                       = self.distDict[key].ppf(float(randomUtils.random()))
         else:

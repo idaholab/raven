@@ -1,0 +1,51 @@
+﻿Requirement: R1
+RAVEN must be able to parallelize running external codes.
+Regression Test: testLHSBisonParallel
+
+Requirement: R2
+RAVEN must be able to provide external codes the files that are needed for their running.
+Regression Test: simple_framework
+
+Requirement: R3
+RAVEN must support 1-Dimensional probability distributions including generating random numbers from them.
+Regression Test: test_distributions
+
+Requirement: R4
+RAVEN must support N-Dimensional probability distributions. It must support multivariate normal distributions and distributions defined by tabular data.
+Regression Test: ND_external_MC
+
+Requirement: R5
+RAVEN must support a variety of samplers that use probability distributions to sample the input space.
+Regression Test: testGridRaven
+
+Requirement: R6
+RAVEN must support adaptive sampling that use already gathered samples to determine where to do new samples.
+Regression Test: test_Adaptive_DynamicEventTreeRAVEN
+
+Requirement: R7
+RAVEN must support storing and retrieving data in a HDF5 database.
+Regression Test: test_merge_2_databases
+
+Requirement: R8
+RAVEN must support outputting data in CSV format.
+Regression Test: test_iostep_load
+
+Requirement: R9
+RAVEN must support generating plots from the data it generates.
+Regression Test: test_output
+
+Requirement: R10
+RAVEN must be able to provide data to MOOSE based applications, and retrieve data if the application successfully completes.
+Regression Test: testGridBison
+
+Requirement: R11
+RAVEN must be able to generate Reduced Order Models from its data and use them to predict responses from a system.
+Regression Test: test_rom_trainer
+
+Requirement: R12
+RAVEN must be able to provide data to a user provided python function, and retrieve the data from that.
+Regression Test: testExternalModel
+
+Requirement: R13
+RAVEN must be able to perform various calculation tasks, and transfer data to the next task.
+Regression Test: testLimitSurfacePostProcessor
