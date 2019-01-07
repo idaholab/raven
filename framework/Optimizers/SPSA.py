@@ -181,7 +181,7 @@ class SPSA(GradientBasedOptimizer):
     # find something to submit
     for _ in self.optTraj:
       # get next trajectory in line, which assures each gets fair treatment in submissions
-      traj = self.trajCycle.next()
+      traj = next(self.trajCycle)
       # if this trajectory has a run to submit, populate the submission dictionaries
       if len(self.submissionQueue[traj]):
         prefix, point = self.getQueuedPoint(traj)
