@@ -1,0 +1,73 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/Samplers/CustomSampler.ByIndex</name>
+    <author>talbpaul</author>
+    <created>2018-11-08</created>
+    <classesTested>Samplers.CustomSampler, DataObjects.PointSet</classesTested>
+    <description>
+       An example of using the Custom Sampler object. In this test
+       we take a single realization by index from a data object.
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>ByIndex</WorkingDir>
+    <Sequence>load,sample</Sequence>
+  </RunInfo>
+
+  <Steps>
+    <IOStep name="load">
+      <Input class="Files" type="">file_dataset</Input>
+      <Output class="DataObjects" type="PointSet">original</Output>
+    </IOStep>
+    <MultiRun name="sample">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="Dummy">MyDummy</Model>
+      <Sampler class="Samplers" type="CustomSampler">custom</Sampler>
+      <Output class="DataObjects" type="PointSet">samples</Output>
+      <Output class="OutStreams" type="Print">samples</Output>
+    </MultiRun>
+  </Steps>
+
+  <DataObjects>
+    <PointSet name="dummyIN">
+      <Input>x,y,ans</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="samples">
+      <Input>x,y</Input>
+      <Output>ans</Output>
+    </PointSet>
+    <PointSet name="original">
+      <Input>x,y</Input>
+      <Output>ans</Output>
+    </PointSet>
+  </DataObjects>
+
+  <Models>
+    <Dummy name="MyDummy" subType=""/>
+  </Models>
+
+  <Files>
+    <Input name="file_dataset">opt_out.csv</Input>
+  </Files>
+
+  <Samplers>
+    <CustomSampler name="custom">
+      <Source class="DataObjects" type="PointSet">original</Source>
+      <index>3</index>
+      <variable name="x"/>
+      <variable name="y"/>
+      <variable name="ans"/>
+    </CustomSampler>
+  </Samplers>
+
+  <OutStreams>
+    <Print name="samples">
+      <type>csv</type>
+      <source>samples</source>
+    </Print>
+  </OutStreams>
+
+</Simulation>

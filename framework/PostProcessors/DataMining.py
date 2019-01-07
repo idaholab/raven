@@ -423,7 +423,7 @@ class DataMining(PostProcessor):
           ## put all of the information and then to remove the ones we process.
           ## - dpm 6/8/16
           self.initializationOptionDict[child.getName()] = {}
-          for key,value in child.parameterValues.iteritems():
+          for key,value in child.parameterValues.items():
             if key == 'lib':
               self.type = value
             elif key == 'labelFeature':
@@ -566,6 +566,16 @@ class DataMining(PostProcessor):
     """
     pass
 
+  def __adjustFeatures(self, features):
+    """
+      If the features are the output, then they need to be listed
+      @ In, features, dict, dictionary of the features
+      @ Out, None
+    """
+    if self.unSupervisedEngine.features == ['output']:
+      self.unSupervisedEngine.features = sorted(features)
+    assert set(self.unSupervisedEngine.features) == set(features)
+
   def __runSciKitLearn(self, Input):
     """
       This method executes the postprocessor action. In this case it loads the
@@ -573,7 +583,7 @@ class DataMining(PostProcessor):
       @ In, Input, dict, dictionary of data to process
       @ Out, outputDict, dict, dictionary containing the post-processed results
     """
-    self.unSupervisedEngine.features = Input['Features']
+    self.__adjustFeatures(Input['Features'])
     if not self.unSupervisedEngine.amITrained:
       metric = None
       if self.metric is not None:
@@ -606,7 +616,7 @@ class DataMining(PostProcessor):
           rlzs = {}
           if self.PreProcessor is None:
             rlzs[self.labelFeature] = np.atleast_1d(indices)
-            for i, key in enumerate(self.unSupervisedEngine.features.keys()):
+            for i, key in enumerate(self.unSupervisedEngine.features):
               ## FIXME: Can I be sure of the order of dimensions in the features dict, is
               ## the same order as the data held in the UnSupervisedLearning object?
               rlzs[key] = np.atleast_1d(centers[:,i])
@@ -651,7 +661,7 @@ class DataMining(PostProcessor):
         rlzs = {}
         additionalOutput = {}
         rlzs[self.labelFeature] = np.atleast_1d(indices)
-        for i, key in enumerate(self.unSupervisedEngine.features.keys()):
+        for i, key in enumerate(self.unSupervisedEngine.features):
           ## Can I be sure of the order of dimensions in the features dict, is
           ## the same order as the data held in the UnSupervisedLearning
           ## object?
@@ -659,7 +669,7 @@ class DataMining(PostProcessor):
           ##FIXME: You may also want to output the covariances of each pair of
           ## dimensions as well, this is currently only accessible from the solution export metadata
           ## We should list the variables name the solution export in order to access this data
-          for joffset,col in enumerate(self.unSupervisedEngine.features.keys()[i:]):
+          for joffset,col in enumerate(list(self.unSupervisedEngine.features)[i:]):
             j = i+joffset
             covValues = mixtureCovars[:,i,j]
             covName = 'cov_'+str(key)+'_'+str(col)
@@ -679,7 +689,7 @@ class DataMining(PostProcessor):
           components = solutionExportDict['components']
           indices = list(range(1, len(components)+1))
           rlzs[self.labelFeature] = np.atleast_1d(indices)
-          for keyIndex, key in enumerate(self.unSupervisedEngine.features.keys()):
+          for keyIndex, key in enumerate(self.unSupervisedEngine.features):
             rlzs[key] = np.atleast_1d(components[:,keyIndex])
         self.solutionExport.load(rlzs, style='dict')
         # FIXME: I think the user need to specify the following word in the solution export data object
@@ -731,7 +741,7 @@ class DataMining(PostProcessor):
       outputDict['outputs'][self.labelFeature] = labels
     elif 'embeddingVectors' in outputDict['outputs']:
       transformedData = outputDict['outputs'].pop('embeddingVectors')
-      reducedDimensionality = transformedData.values()[0].shape[1]
+      reducedDimensionality = utils.first(transformedData.values()).shape[1]
 
       for i in range(reducedDimensionality):
         dimensionI = np.zeros(shape=(numberOfSample,numberOfHistoryStep))
@@ -820,7 +830,7 @@ class DataMining(PostProcessor):
         rlzDims = {}
         rlzs = {}
         ## First store the label as the input for this cluster
-        mixLabels = range(int(np.max(componentMeanIndices.values()))+1)
+        mixLabels = range(int(np.max(list(componentMeanIndices.values())))+1)
         rlzs[self.labelFeature] = np.atleast_1d(mixLabels)
         rlzs[self.pivotParameter] = self.pivotVariable
         for rlzIndex in mixLabels:
@@ -851,7 +861,7 @@ class DataMining(PostProcessor):
           ## dimensions as well
           if mixtureCovars is not None:
             for i,row in enumerate(self.unSupervisedEngine.features.keys()):
-              for joffset,col in enumerate(self.unSupervisedEngine.features.keys()[i:]):
+              for joffset,col in enumerate(list(self.unSupervisedEngine.features.keys())[i:]):
                 j = i+joffset
                 timeSeries = np.zeros(numberOfHistoryStep)
                 for timeIdx in range(numberOfHistoryStep):

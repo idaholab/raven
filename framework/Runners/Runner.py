@@ -18,8 +18,6 @@ Created on September 12, 2016
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
-if not 'xrange' in dir(__builtins__):
-  xrange = range
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -76,7 +74,7 @@ class Runner(MessageHandler.MessageUser):
     """
     if self.__printTimings:
       # print timing history
-      pairs = self.timings.items()
+      pairs = list(self.timings.items())
       pairs.sort(key=lambda x:x[1])
       prof = ""
       prof += 'TIMINGS for job "{}":'.format(self.identifier)

@@ -1,46 +1,55 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" ?>
 <Simulation verbosity="debug">
-	<RunInfo>
-		<WorkingDir>resultsPB</WorkingDir>
-		<Sequence>extract_data_adapt,integral</Sequence>
-		<batchSize>50</batchSize>
-	</RunInfo>
-	
-	<Files>
-    <Input   name="integral.csv"   type=""      >integral.csv</Input>
+  <TestInfo>
+    <name>doc/workshop/advancedReliability/inputs.runLS</name>
+    <author>wangc</author>
+    <created>2018-09-21</created>
+    <classesTested/>
+    <description>Workshop test: advanced reliability test with Limit surface integral postprocessor</description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>resultsPB</WorkingDir>
+    <Sequence>extract_data_adapt,integral</Sequence>
+    <batchSize>50</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name="integral.csv" type="">integral.csv</Input>
   </Files>
-	
+
   <Databases>
-    <HDF5 name="out_db_adaptive" readMode="read" directory="../resultsLS/DatabaseStorage"/>
+    <HDF5 directory="./" name="out_db_adaptive" readMode="read"/>
   </Databases>
-	
-	<Models>
-		<PostProcessor name="LS_Integral" subType="LimitSurfaceIntegral">
-		  <tolerance>0.001</tolerance>
-		  <integralType>MonteCarlo</integralType>
-		  <target>goalFunction</target>
-          <variable name="tREC">
-            <distribution>tREC_dist</distribution>
-          </variable>
-          <variable name="tSBO">
-            <distribution>tSBO_dist</distribution>
-          </variable>
-	 	</PostProcessor>
-	</Models>
-	
-	<Steps>
+
+  <Models>
+    <PostProcessor name="LS_Integral" subType="LimitSurfaceIntegral">
+      <tolerance>0.001</tolerance>
+      <integralType>MonteCarlo</integralType>
+      <target>goalFunction</target>
+      <variable name="tREC">
+        <distribution>tREC_dist</distribution>
+      </variable>
+      <variable name="tSBO">
+        <distribution>tSBO_dist</distribution>
+      </variable>
+      <outputName>EventProbability</outputName>
+    </PostProcessor>
+  </Models>
+
+  <Steps>
     <IOStep name="extract_data_adapt">
-      <Input    class="Databases"      type="HDF5"             >out_db_adaptive</Input>
-      <Output   class="DataObjects"    type="PointSet"         >outAdapt_failure</Output>
+      <Input class="Databases" type="HDF5">out_db_adaptive</Input>
+      <Output class="DataObjects" type="PointSet">outAdapt_failure</Output>
     </IOStep>
     <PostProcess name="integral">
-      <Input    class="DataObjects"    type="PointSet"         >outAdapt_failure</Input>
-      <Model    class="Models"         type="PostProcessor"    >LS_Integral</Model>
-      <Output   class="DataObjects"    type="PointSet"         >LSintegral_PS</Output>
-      <Output   class="Files"          type=""                 >integral.csv</Output>
+      <Input class="DataObjects" type="PointSet">outAdapt_failure</Input>
+      <Model class="Models" type="PostProcessor">LS_Integral</Model>
+      <Output class="DataObjects" type="PointSet">LSintegral_PS</Output>
+      <Output class="OutStreams" type="Print">integral</Output>
     </PostProcess>
-	</Steps>
-	
+  </Steps>
+
   <DataObjects>
     <PointSet name="outAdapt_failure">
       <Input>tREC,tSBO</Input>
@@ -48,10 +57,10 @@
     </PointSet>
     <PointSet name="LSintegral_PS">
       <Input>tREC,tSBO</Input>
-      <Output>goalFunction</Output>
+      <Output>goalFunction,EventProbability</Output>
     </PointSet>
   </DataObjects>
-	
+
   <Distributions>
     <Uniform name="tREC_dist">
       <lowerBound>300.0</lowerBound>
@@ -62,5 +71,12 @@
       <upperBound>300.0</upperBound>
     </Uniform>
   </Distributions>
-	
+
+  <OutStreams>
+    <Print name="integral">
+      <type>csv</type>
+      <source>LSintegral_PS</source>
+    </Print>
+  </OutStreams>
+
 </Simulation>

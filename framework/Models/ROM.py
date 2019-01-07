@@ -23,6 +23,7 @@ warnings.simplefilter('default',DeprecationWarning)
 #External Modules------------------------------------------------------------------------------------
 import copy
 import inspect
+import itertools
 import numpy as np
 #External Modules End--------------------------------------------------------------------------------
 
@@ -55,8 +56,29 @@ class ROM(Dummy):
     IndexSetInputType = InputData.makeEnumType("indexSet","indexSetType",["TensorProduct","TotalDegree","HyperbolicCross","Custom"])
     CriterionInputType = InputData.makeEnumType("criterion", "criterionType", ["bic","aic","gini","entropy","mse"])
 
+    # general
     inputSpecification.addSub(InputData.parameterInputFactory('Features',contentType=InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory('Target',contentType=InputData.StringType))
+    # clustering
+    cluster = InputData.parameterInputFactory("Cluster", strictMode=True)
+    subspace = InputData.parameterInputFactory('subspace', InputData.StringType)
+    subspace.addParam('divisions', InputData.IntegerType, False)
+    subspace.addParam('pivotLength', InputData.FloatType, False)
+    subspace.addParam('shift', InputData.StringType, False)
+    cluster.addSub(subspace)
+    clsfr = InputData.parameterInputFactory('Classifier', strictMode=True, contentType=InputData.StringType)
+    clsfr.addParam('class', InputData.StringType, True)
+    clsfr.addParam('type', InputData.StringType, True)
+    cluster.addSub(clsfr)
+    metric = InputData.parameterInputFactory('Metric', strictMode=True, contentType=InputData.StringType)
+    metric.addParam('class', InputData.StringType, True)
+    metric.addParam('type', InputData.StringType, True)
+    cluster.addSub(metric)
+    feature = InputData.parameterInputFactory('feature', strictMode=True, contentType=InputData.StringType)
+    feature.addParam('weight', InputData.FloatType)
+    cluster.addSub(feature)
+    inputSpecification.addSub(cluster)
+    # unsorted
     inputSpecification.addSub(InputData.parameterInputFactory("persistence", InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("gradient", InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("simplification", InputData.FloatType))
@@ -246,6 +268,10 @@ class ROM(Dummy):
     self.supervisedEngine          = None       # dict of ROM instances (== number of targets => keys are the targets)
     self.printTag = 'ROM MODEL'
 
+    # for Clustered ROM
+    self.addAssemblerObject('Classifier','-1',True)
+    self.addAssemblerObject('Metric','-n',True)
+
   def _readMoreXML(self,xmlNode):
     """
       Function to read the portion of the xml input that belongs to this specialized class
@@ -392,7 +418,9 @@ class ROM(Dummy):
                   "The time-dependent ROM requires all the histories are synchonized!")
       self.trainingSet = copy.copy(self._inputToInternal(trainingSet))
       self._replaceVariablesNamesWithAliasSystem(self.trainingSet, 'inout', False)
-      self.supervisedEngine.train(self.trainingSet)
+      # grab assembled stuff and pass it through
+      ## TODO this should be changed when the SupervisedLearning objects themselves can use the Assembler
+      self.supervisedEngine.train(self.trainingSet, self.assemblerDict)
       self.amITrained = self.supervisedEngine.amITrained
 
   def confidence(self,request,target = None):
@@ -453,7 +481,7 @@ class ROM(Dummy):
     self._replaceVariablesNamesWithAliasSystem(kwargs['SampledVars'] ,'input',True)
     rlz = dict((var,np.atleast_1d(kwargs[var])) for var in kwargs.keys())
     # update rlz with input space from inRun and output space from result
-    rlz.update(dict((var,np.atleast_1d(inRun[var] if var in kwargs['SampledVars'] else result[var])) for var in set(result.keys()+inRun.keys())))
+    rlz.update(dict((var,np.atleast_1d(inRun[var] if var in kwargs['SampledVars'] else result[var])) for var in set(itertools.chain(result.keys(),inRun.keys()))))
     return rlz
 
   def reseed(self,seed):

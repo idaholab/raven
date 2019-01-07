@@ -136,7 +136,7 @@ class LimitSurface(PostProcessor):
     self.ROM.reset()
     self.indexes = -1
     for index, inp in enumerate(self.inputs):
-      if isinstance(inp, basestring)  or isinstance(inp, bytes):
+      if utils.isString(inp)  or isinstance(inp, bytes):
         self.raiseAnError(IOError, 'LimitSurface PostProcessor only accepts Data(s) as inputs. Got string type!')
       if inp.type == 'PointSet':
         self.indexes = index
@@ -394,7 +394,11 @@ class LimitSurface(PostProcessor):
       self.gridCoord[nodeName].shape      = self.gridEntity.returnParameter("gridCoorShape",nodeName) #bring back the grid structure
       self.raiseADebug('LimitSurface: Prediction performed')
       # here next the points that are close to any change are detected by a gradient (it is a pre-screener)
-      toBeTested = np.squeeze(np.dstack(np.nonzero(np.sum(np.abs(np.gradient(self.testMatrix[nodeName])), axis = 0))))
+      if self.nVar > 1:
+        toBeTested = np.squeeze(np.dstack(np.nonzero(np.sum(np.abs(np.gradient(self.testMatrix[nodeName])), axis = 0))))
+      else:
+        toBeTested = np.squeeze(np.dstack(np.nonzero(np.abs(np.gradient(self.testMatrix[nodeName])))))
+      toBeTested = np.atleast_2d(toBeTested).T if self.nVar == 1 else toBeTested
       #printing----------------------
       self.raiseADebug('LimitSurface:  Limit surface candidate points')
       if self.getLocalVerbosity() == 'debug':

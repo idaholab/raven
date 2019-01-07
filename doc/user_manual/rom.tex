@@ -15,6 +15,43 @@
   constructing the \textit{#1} ROM.}
 }
 
+\newcommand{\romClusterOption}[0]
+{
+  \item \xmlNode{Cluster}, \xmlDesc{node, optional}, provides an alternative way to build the ROM. When
+    this mode is enabled, the subspace of the ROM (e.g. ``time'') will be divided into segments as
+    requested, then a distinct ROM will be trained on each of the segments. This is especially helpful if
+    during the subspace the ROM representation of the signal changes significantly. For example, if the signal
+    is different during summer and winter, then a signal can be divided and a distinct ROM trained on the
+    segments. By default, no segmentation occurs.  This node takes the following subnodes:
+    \begin{itemize}
+      \item \xmlNode{subspace}, \xmlDesc{string, required field} designates the subspace to divide. This
+        should be the pivot parameter (often ``time'') for the ROM. This node also requires an attribute
+        to determine how the subspace is divided, as well as other attributes, described below:
+        \begin{itemize}
+          \item \xmlAttr{pivotLength}, \xmlDesc{float, optional field}, provides the value in the subspace
+            that each cluster should attempt to represent, independently of how the data is stored. For
+            example, if the subspace has hourly resolution, is measured in seconds, and the desired
+            segmentation is daily, the \xmlAttr{pivotLength} would be 86400.
+            Either this option or \xmlAttr{divisions} must be provided.
+          \item \xmlAttr{divisions}, \xmlDesc{integer, optional field}, as an alternative to
+            \xmlAttr{pivotLength}, this attribute can be used to specify how many data points to include in
+            each subdivision, rather than use the pivot values. The algorithm will attempt to split the data
+            points as equally as possible.
+            Either this option or \xmlAttr{pivotLength} must be provided.
+          \item \xmlAttr{shift}, \xmlDesc{string, optional field}, governs the way in which the subspace is
+            treated in each cluster. By default, the subspace retains its actual values for each cluster; for
+            example, if each cluster is 4 hours long, the first cluster starts at time 0, the second at 4
+            hours, the third at 8 hours, and so forth. Options to change this behavior are \xmlString{zero}
+            and \xmlString{first}. In the case of \xmlString{zero}, each cluster restarts the pivot with the
+            subspace value as 0, shifting all other values similarly. In the example above, the first cluster
+            would start at 0, the second at 0, and the third at 0, with each ending at 4 hours. Note that the
+            pivot values are restored when the ROM is evaluated. Using \xmlString{first}, each cluster
+            subspace restarts at the value of the first cluster. This is useful in the event subspace 0 is not
+            a desirable value.
+        \end{itemize}
+    \end{itemize}
+}
+
 \subsection{ROM}
 \label{subsec:models_ROM}
 A Reduced Order Model (ROM) is a mathematical model consisting of a fast
@@ -3008,6 +3045,7 @@ below).
       \item \xmlNode{orders}, \xmlDesc{comma-separated integers, required field}, lists the highest integer
         subdivision desired for each period requested in \xmlNode{periods}, as \xmlNode{FourierOrder} above.
     \end{itemize}
+    \romClusterOption
 \end{itemize}
 
 \textbf{Example:}

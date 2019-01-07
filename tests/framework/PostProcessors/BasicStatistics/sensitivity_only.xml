@@ -29,7 +29,6 @@
     </PointSet>
     <PointSet name="basicStat">
         <Output>
-            sen_ans_ans, sen_x1_ans, sen_x2_ans, sen_x3_ans, sen_x4_ans, sen_x5_ans,
             sen_ans_x1, sen_x1_x1, sen_x2_x1, sen_x3_x1, sen_x4_x1, sen_x5_x1,
             sen_ans_x2, sen_x1_x2, sen_x2_x2, sen_x3_x2, sen_x4_x2, sen_x5_x2,
             sen_ans_x3, sen_x1_x3, sen_x2_x3, sen_x3_x3, sen_x4_x3, sen_x5_x3,
@@ -94,7 +93,7 @@
     <PostProcessor name="InputOutput" subType="BasicStatistics" verbosity="debug">
       <sensitivity prefix="sen">
         <targets>ans,x1,x2,x3,x4,x5</targets>
-        <features>ans,x1,x2,x3,x4,x5</features>
+        <features>x1,x2,x3,x4,x5</features>
       </sensitivity>
     </PostProcessor>
   </Models>

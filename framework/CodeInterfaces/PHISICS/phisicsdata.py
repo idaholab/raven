@@ -179,14 +179,14 @@ class phisicsdata():
     summedDict = lambda: defaultdict(summedDict)
     mySummedDict = summedDict()
     if not self.printSpatialRR:
-      for parameter, mpi in nestedDict.iteritems():
+      for parameter, mpi in nestedDict.items():
         sumString = '%.15E' % Decimal(
             sum([float(elm) for elm in mpi.values()]))
         mySummedDict[parameter] = sumString
     else:
-      for group, region in nestedDict.iteritems():
-        for region, parameter in region.iteritems():
-          for parameter, mpi in parameter.iteritems():
+      for group, region in nestedDict.items():
+        for region, parameter in region.items():
+          for parameter, mpi in parameter.items():
             sumString = '%.15E' % Decimal(
                 sum([float(elm) for elm in mpi.values()]))
             mySummedDict[group][region][parameter] = sumString
@@ -362,7 +362,7 @@ class phisicsdata():
           line = re.sub(r'TIME\s+\(days\)', r'', line)
           line = re.sub(r' ', r'', line)
           line = re.sub(r'\n', r'', line)
-          self.isotopeListMrtau = filter(None, line.split(','))
+          self.isotopeListMrtau = list(filter(None, line.split(',')))
           break
 
   def getInstantTimeSteps(self, input):
@@ -614,7 +614,7 @@ class phisicsdata():
             )  # removes the spaces, in order to have only comma-separated values
             line = line.rstrip(
             )  # removes the newline, in order to have only comma-separated values
-            for g in xrange(1, self.Ngroups + 1):
+            for g in range(1, self.Ngroups + 1):
               if countTimeStep == 1:  # the labels are the same for each time step
                 fluxLabelList.append('flux' + '|' + 'cell' +
                                      line.split(',')[0] + '|' + 'gr' + str(g))
@@ -624,7 +624,7 @@ class phisicsdata():
           if stringIsNumber:
             line = re.sub(r' ', r'', line)
             line = re.sub(r'\n', r'', line)
-            for g in xrange(1, self.Ngroups + 1):
+            for g in range(1, self.Ngroups + 1):
               if countTimeStep == 1:
                 matFluxLabelList.append('flux' + '|' + 'mat' + line.split(',')
                                         [0] + '|' + 'gr' + str(g))
@@ -676,7 +676,7 @@ class phisicsdata():
             )  # removes the spaces, in order to have only comma-separated values
             line = line.rstrip(
             )  # removes the newline, in order to have only comma-separated values
-            for g in xrange(1, self.Ngroups + 1):
+            for g in range(1, self.Ngroups + 1):
               if countTimeStep == 1:  # the labels are the same for each time step
                 labelList.append('flux' + '|' + 'cell' + line.split(',')[0] +
                                  '|' + 'gr' + str(g))
@@ -690,7 +690,7 @@ class phisicsdata():
             )  # removes the spaces, in order to have only comma-separated values
             line = line.rstrip(
             )  # removes the newline, in order to have only comma-separated values
-            for g in xrange(1, self.Ngroups + 1):
+            for g in range(1, self.Ngroups + 1):
               if countTimeStep == 1:
                 labelList.append('flux' + '|' + 'mat' + line.split(',')[0] +
                                  '|' + 'gr' + str(g))
@@ -826,7 +826,7 @@ class phisicsdata():
           for line in outfile:
             if re.search(r'Density spatial moment', line):
               count = count + 1
-              matLine = filter(None, line.split(' '))
+              matLine = list(filter(None, line.split(' ')))
               materialsDict['MPI-' + str(mpi)][count] = matLine[
                   matLine.index('Material') + 1]
               if count == mediaUsed:
@@ -870,7 +870,7 @@ class phisicsdata():
               breakFlag = 1
             if decayFlag == 1 and breakFlag == 0:
               line = line.rstrip()
-              decayLine = filter(None, line.split(' '))
+              decayLine = list(filter(None, line.split(' ')))
               if decayLine != []:
                 stringIsFloatNumber = self.isFloatNumber(decayLine)
               if stringIsFloatNumber and decayLine != []:
@@ -910,12 +910,12 @@ class phisicsdata():
           breakFlag = 1
         if decayFlag == 1 and breakFlag == 0:
           line = line.rstrip()
-          decayLine = filter(None, line.split(' '))
+          decayLine = list(filter(None, line.split(' ')))
           if decayLine != []:
             stringIsFloatNumber = self.isFloatNumber(decayLine)
           if stringIsFloatNumber and decayLine != []:
             if float(decayLine[0]) == float(matchedTimeSteps[timeStepIndex]):
-              for i in xrange(0, len(self.isotopeListMrtau)):
+              for i in range(0, len(self.isotopeListMrtau)):
                 self.numDensityLabelListMrtau.append(
                     'numDensity' + '|' + self.isotopeListMrtau[i])
                 self.decayLabelListMrtau.append(
@@ -952,7 +952,7 @@ class phisicsdata():
             breakFlag = 1
           if buFlag == 1 and breakFlag == 0:
             line = line.rstrip()
-            buLine = filter(None, line.split(' '))
+            buLine = list(filter(None, line.split(' ')))
             if buLine != []:
               stringIsFloatNumber = self.isFloatNumber(buLine)
             if stringIsFloatNumber and buLine != []:
@@ -1011,8 +1011,8 @@ class phisicsdata():
         with open(csvOutput, 'a+') as f:
           instantWriter = csv.writer(
               f,
-              delimiter=str(u',').encode('utf-8'),
-              quotechar=str(u',').encode('utf-8'),
+              delimiter=str(','),
+              quotechar=str(','),
               quoting=csv.QUOTE_MINIMAL)
           if timeStepIndex == 0:
             instantWriter.writerow(
@@ -1033,8 +1033,8 @@ class phisicsdata():
         with open(csvOutput, 'a+') as f:
           instantWriter = csv.writer(
               f,
-              delimiter=str(u',').encode('utf-8'),
-              quotechar=str(u',').encode('utf-8'),
+              delimiter=str(','),
+              quotechar=str(','),
               quoting=csv.QUOTE_MINIMAL)
           if timeStepIndex == 0:
             instantWriter.writerow(
@@ -1062,8 +1062,8 @@ class phisicsdata():
     with open(csvOutput, 'a+') as f:
       mrtauWriter = csv.writer(
           f,
-          delimiter=str(u',').encode('utf-8'),
-          quotechar=str(u',').encode('utf-8'),
+          delimiter=str(','),
+          quotechar=str(','),
           quoting=csv.QUOTE_MINIMAL)
       if mrtauDict.get('timeStepIndex') == 0:
         mrtauWriter.writerow(['timeMrTau'] + self.numDensityLabelListMrtau +

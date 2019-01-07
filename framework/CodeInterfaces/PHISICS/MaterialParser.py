@@ -23,7 +23,7 @@ class MaterialParser():
       @ Out, None
     """
     noDashDict = {}
-    for key, value in pertDict.iteritems():
+    for key, value in pertDict.items():
       noDashDict[self.noDash(key)] = value
     self.pertDict = self.scientificNotation(noDashDict) # Perturbed variables
     self.inputFiles = inputFiles                      # material inp file
@@ -38,7 +38,7 @@ class MaterialParser():
       @ In, pertDict, dictionary, perturbed variables
       @ Out, pertDict, dictionary, perturbed variables in scientific format
     """
-    for key, value in pertDict.iteritems():
+    for key, value in pertDict.items():
       pertDict[key] = '%.4E' % Decimal(str(value))
     return pertDict
 
@@ -72,9 +72,9 @@ class MaterialParser():
       @ Out, genericXMLdict, dictionary, under the format {DENSITY|FUEL1|U238|1.000}
     """
     genericXMLdict = {}
-    for paramXML in XMLdict.iterkeys():
-      for matXML in XMLdict.get(paramXML).iterkeys():
-        for isotopeXML, densityValue in XMLdict.get(paramXML).get(matXML).iteritems():
+    for paramXML in XMLdict.keys():
+      for matXML in XMLdict.get(paramXML).keys():
+        for isotopeXML, densityValue in XMLdict.get(paramXML).get(matXML).items():
           genericXMLdict[paramXML.upper()+'|'+matXML.upper()+'|'+self.noDash(isotopeXML.upper())] = densityValue
     return genericXMLdict
 
@@ -124,7 +124,7 @@ class MaterialParser():
     perturbedIsotopes = []
     perturbedMaterials = []
     perturbedPhysicalParameters = []
-    for key in deconstructedDict.iterkeys():
+    for key in deconstructedDict.keys():
       perturbedIsotopes.append(key.split('|')[2])
       perturbedMaterials.append(key.split('|')[1])
       perturbedPhysicalParameters.append(key.split('|')[0])
@@ -134,7 +134,7 @@ class MaterialParser():
         reconstructedDict[perturbedPhysicalParameters[i]][perturbedMaterials[j]] = {}
         for k in range (len(perturbedIsotopes)):
           reconstructedDict[perturbedPhysicalParameters[i]][perturbedMaterials[j]][perturbedIsotopes[k]] = {}
-    for typeKey, value in deconstructedDict.iteritems():
+    for typeKey, value in deconstructedDict.items():
       keyWords = typeKey.split('|')
       reconstructedDict[keyWords[0]][keyWords[1]][keyWords[2]] = value
     return reconstructedDict

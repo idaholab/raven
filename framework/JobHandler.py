@@ -20,8 +20,6 @@ Created on Mar 5, 2013
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
-if not 'xrange' in dir(__builtins__):
-  xrange = range
 #End compatibility block for Python 3-------------------------------------------
 
 #External Modules---------------------------------------------------------------
@@ -45,11 +43,8 @@ import MessageHandler
 import Runners
 import Models
 # for internal parallel
-if sys.version_info.major == 2:
-  import pp
-  import ppserver
-else:
-  print("pp does not support python3")
+import pp
+import ppserver
 # end internal parallel module
 #Internal Modules End-----------------------------------------------------------
 
@@ -158,7 +153,7 @@ class JobHandler(MessageHandler.MessageUser):
         metadataFailedRun = running.getMetadata()
         metadataToKeep = metadataFailedRun
         if metadataFailedRun is not None:
-          metadataKeys      = metadataFailedRun.keys()
+          metadataKeys      = list(metadataFailedRun.keys())
           if 'jobHandler' in metadataKeys:
             metadataKeys.pop(metadataKeys.index("jobHandler"))
             metadataToKeep = { keepKey: metadataFailedRun[keepKey] for keepKey in metadataKeys }
@@ -276,7 +271,12 @@ class JobHandler(MessageHandler.MessageUser):
         #subprocess.Popen(['ssh', nodeId, "python2.7", ppserverScript,"-w",str(ntasks),"-i",remoteHostName,"-p",str(newPort),"-t","1000","-g",localenv["PYTHONPATH"],"-d"],shell=False,stdout=outFile,stderr=outFile,env=localenv)
 
         ## Instead, let's build the command and then call the os-agnostic version
-        command=" ".join(["python",ppserverScript,"-w",str(ntasks),"-i",remoteHostName,"-p",str(newPort),"-t","50000","-g",localenv["PYTHONPATH"],"-d"])
+        if sys.version_info.major > 2:
+          pythonCommand = "python3"
+        else:
+          pythonCommand = "python2"
+
+        command=" ".join([pythonCommand,ppserverScript,"-w",str(ntasks),"-i",remoteHostName,"-p",str(newPort),"-t","50000","-g",localenv["PYTHONPATH"],"-d"])
         utils.pickleSafeSubprocessPopen(['ssh',nodeId,"COMMAND='"+command+"'",self.runInfoDict['RemoteRunCommand']],shell=False,stdout=outFile,stderr=outFile,env=localenv)
         ## e.g., ssh nodeId COMMAND='python ppserverScript -w stuff'
 

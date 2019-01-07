@@ -31,8 +31,10 @@
   [./SparsePCA]
     type   = 'RavenFramework'
     input  = 'test_dataMiningSparsePCA.xml'
-    csv    = 'SparsePCA/dummy.csv'
+    UnorderedCsv    = 'SparsePCA/dummy.csv'
     output = 'SparsePCA/1-PlotIris_dataMining.png'
+    ignore_sign = True
+    rel_err = 0.001
   [../]
   [./MiniBatchSparsePCA]
     type   = 'RavenFramework'
@@ -51,8 +53,10 @@
   [./FastICA]
     type   = 'RavenFramework'
     input  = 'test_dataMiningFastICA.xml'
-    csv    = 'FastICA/dummy.csv'
+    UnorderedCsv    = 'FastICA/dummy.csv'
     output = 'FastICA/1-PlotIris_dataMining.png'
+    ignore_sign = True
+    rel_err = 0.001
   [../]
   [./Isomap]
     type   = 'RavenFramework'

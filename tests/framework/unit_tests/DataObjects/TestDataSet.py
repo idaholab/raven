@@ -36,16 +36,13 @@ from utils.utils import find_crow
 find_crow(frameworkDir)
 import MessageHandler
 
-# find location of data objects
-sys.path.append(os.path.join(frameworkDir,'DataObjects'))
-
-import DataSet
+import DataObjects
 
 mh = MessageHandler.MessageHandler()
 mh.initialize({'verbosity':'debug', 'callerLength':10, 'tagLength':10})
 
 print('Module undergoing testing:')
-print(DataSet )
+print(DataObjects.DataSet )
 print('')
 
 def createElement(tag,attrib=None,text=None):
@@ -141,7 +138,7 @@ def checkArray(comment,first,second,dtype,tol=1e-10,update=True):
     for i in range(len(first)):
       if dtype == float:
         pres = checkFloat('',first[i],second[i],tol,update=False)
-      elif dtype in (str,unicode):
+      elif dtype.__name__ in ('str','unicode'):
         pres = checkSame('',first[i],second[i],update=False)
       if not pres:
         print('checking array',comment,'|','entry "{}" does not match: {} != {}'.format(i,first[i],second[i]))
@@ -174,9 +171,9 @@ def checkRlz(comment,first,second,tol=1e-10,update=True,skip=None):
     for key,val in first.items():
       if key in skip:
         continue
-      if isinstance(val,(float,int)):
+      if isinstance(val,(float,int,np.int64)):
         pres = checkFloat('',val,second[key][0],tol,update=False)
-      elif isinstance(val,(str,unicode)):
+      elif type(val).__name__ in ('str','unicode','str_','unicode_'):
         pres = checkSame('',val,second[key][0],update=False)
       elif isinstance(val,np.ndarray):
         if isinstance(val[0],(float,int)):
@@ -270,7 +267,7 @@ xml.append(createElement('Output',text='x,y,z'))
 xml.append(createElement('Index',attrib={'var':'time'},text='c,y'))
 
 # check construction
-data = DataSet.DataSet()
+data = DataObjects.DataSet()
 # inputs, outputs
 checkSame('DataSet __init__ name',data.name,'DataSet')
 checkSame('DataSet __init__ print tag',data.printTag,'DataSet')
@@ -482,7 +479,7 @@ checkSame('Metadata TestPP',treePP.tag,'TestPP')
 first,second = (c for c in treePP) # TODO always same order?
 
 checkSame('Metadata TestPP/firstVar tag',first.tag,'firstVar')
-sm1,vm,sm2 = (c for c in first) # TODO always same order?
+sm1,sm2,vm = (c for c in first) # TODO always same order?
 checkSame('Metadata TestPP/firstVar/scalarMetric1 tag',sm1.tag,'scalarMetric1')
 checkSame('Metadata TestPP/firstVar/scalarMetric1 value',sm1.text,'10.0')
 checkSame('Metadata TestPP/firstVar/scalarMetric2 tag',sm2.tag,'scalarMetric2')
@@ -512,14 +509,14 @@ checkSame('Metadata DataSet entries',len(treeDS),2)
 dims,general = treeDS[:]
 checkSame('Metadata DataSet/dims tag',dims.tag,'dims')
 checkSame('Metadata DataSet/dims entries',len(dims),2)
-y,c = dims[:]
+c,y = dims[:]
 checkSame('Metadata DataSet/dims/y tag',y.tag,'y')
 checkSame('Metadata DataSet/dims/y value',y.text,'time')
 checkSame('Metadata DataSet/dims/c tag',c.tag,'c')
 checkSame('Metadata DataSet/dims/c value',c.text,'time')
 checkSame('Metadata DataSet/general tag',general.tag,'general')
 checkSame('Metadata DataSet/general entries',len(general),4)
-inputs,pointwise_meta,outputs,sampleTag = general[:]
+sampleTag,inputs,outputs,pointwise_meta = general[:]
 checkSame('Metadata DataSet/general/inputs tag',inputs.tag,'inputs')
 checkSame('Metadata DataSet/general/inputs value',inputs.text,'a,b,c')
 checkSame('Metadata DataSet/general/outputs tag',outputs.tag,'outputs')
@@ -533,9 +530,9 @@ checkSame('Metadata DataSet/general/sampleTag value',sampleTag.text,'RAVEN_sampl
 meta = data.getMeta(pointwise=True,general=True)
 checkArray('Metadata get keys',sorted(meta.keys()),['DataSet','TestPP','prefix'],str)
 # fail to find pointwise in general
-checkFails('Metadata get missing general','Some requested keys could not be found in the requested metadata: set([u\'prefix\'])',data.getMeta,kwargs=dict(keys=['prefix'],general=True))
+checkFails('Metadata get missing general','Some requested keys could not be found in the requested metadata: {\'prefix\'}',data.getMeta,kwargs=dict(keys=['prefix'],general=True))
 # fail to find general in pointwise
-checkFails('Metadata get missing general','Some requested keys could not be found in the requested metadata: set([u\'DataSet\'])',data.getMeta,kwargs=dict(keys=['DataSet'],pointwise=True))
+checkFails('Metadata get missing general','Some requested keys could not be found in the requested metadata: {\'DataSet\'}',data.getMeta,kwargs=dict(keys=['DataSet'],pointwise=True))
 # check that poorly-aligned set checks out as such
 checkTrue('Check misaligned data is not aligned',not data.checkIndexAlignment())
 # check aligned data too
@@ -543,7 +540,7 @@ xml = createElement('DataSet',attrib={'name':'test'})
 xml.append(createElement('Input',text='a'))
 xml.append(createElement('Output',text='b'))
 xml.append(createElement('Index',attrib={'var':'t'},text='b'))
-dataAlign = DataSet.DataSet()
+dataAlign = DataObjects.DataSet()
 dataAlign.messageHandler = mh
 dataAlign._readMoreXML(xml)
 rlz = {'a':np.array([1.9]),
@@ -577,36 +574,36 @@ csvname = 'DataSetUnitTest'
 data.write(csvname,style='CSV',**{'what':'a,b,c,x,y,z,RAVEN_sample_ID,prefix'})
 ## test metadata written
 correct = ['<DataObjectMetadata name="DataSet">',
-'  <TestPP type="Static">',
-'    <firstVar>',
-'      <scalarMetric1>10.0</scalarMetric1>',
-'      <vectorMetric>',
-'        <a>1</a>',
-'        <c>3</c>',
-'        <b>2</b>',
-'        <d>4.0</d>',
-'      </vectorMetric>',
-'      <scalarMetric2>20</scalarMetric2>',
-'    </firstVar>',
-'    <secondVar>',
-'      <scalarMetric1>100.0</scalarMetric1>',
-'    </secondVar>',
-'  </TestPP>',
-'  ',
-'  <DataSet type="Static">',
-'    <dims>',
-'      <y>time</y>',
-'      <c>time</c>',
-'    </dims>',
-'    <general>',
-'      <inputs>a,b,c</inputs>',
-'      <pointwise_meta>prefix</pointwise_meta>',
-'      <outputs>x,y,z</outputs>',
-'      <sampleTag>RAVEN_sample_ID</sampleTag>',
-'    </general>',
-'  </DataSet>',
-'  ',
-'</DataObjectMetadata>']
+           '  <DataSet type="Static">',
+           '    <dims>',
+           '      <c>time</c>',
+           '      <y>time</y>',
+           '    </dims>',
+           '    <general>',
+           '      <sampleTag>RAVEN_sample_ID</sampleTag>',
+           '      <inputs>a,b,c</inputs>',
+           '      <outputs>x,y,z</outputs>',
+           '      <pointwise_meta>prefix</pointwise_meta>',
+           '    </general>',
+           '  </DataSet>',
+           '  ',
+           '  <TestPP type="Static">',
+           '    <firstVar>',
+           '      <scalarMetric1>10.0</scalarMetric1>',
+           '      <scalarMetric2>20</scalarMetric2>',
+           '      <vectorMetric>',
+           '        <a>1</a>',
+           '        <b>2</b>',
+           '        <c>3</c>',
+           '        <d>4.0</d>',
+           '      </vectorMetric>',
+           '    </firstVar>',
+           '    <secondVar>',
+           '      <scalarMetric1>100.0</scalarMetric1>',
+           '    </secondVar>',
+           '  </TestPP>',
+           '  ',
+           '</DataObjectMetadata>']
 # read in XML
 lines = open(csvname+'.xml','r').readlines()
 # remove line endings
@@ -620,7 +617,7 @@ xml = createElement('DataSet',attrib={'name':'csv'})
 xml.append(createElement('Input',text='a,x,y'))
 xml.append(createElement('Output',text='c,b'))
 xml.append(createElement('Index',attrib={'var':'t'},text='y,c'))
-dataCSV = DataSet.DataSet()
+dataCSV = DataObjects.DataSet()
 dataCSV.messageHandler = mh
 dataCSV._readMoreXML(xml)
 dataCSV.load(csvname,style='CSV')
@@ -685,7 +682,7 @@ checkArray('Index slicing "time" [2] "c"',slices[2]['c'].values,[3.2, np.nan, np
 
 slices = data.sliceByIndex('RAVEN_sample_ID')
 checkFloat('Index slicing sampleTag [3] sampleTag',slices[3]['RAVEN_sample_ID'].item(0),3)
-checkFloat('Index slicing sampleTag [3] "a"',slices[3]['a'].values,31.0,float)
+checkFloat('Index slicing sampleTag [3] "a"',slices[3]['a'].values,31.0)
 checkArray('Index slicing sampleTag [3] "c"',slices[3]['c'].values,[33.0,33.1,33.2,np.nan,np.nan,np.nan,np.nan,np.nan,np.nan],float)
 
 ######################################
@@ -720,7 +717,7 @@ xml = createElement('DataSet',attrib={'name':'test'})
 xml.append(createElement('Input',text='a'))
 xml.append(createElement('Output',text='b'))
 xml.append(createElement('Index',attrib={'var':'t'},text='b'))
-data = DataSet.DataSet()
+data = DataObjects.DataSet()
 data.messageHandler = mh
 data._readMoreXML(xml)
 # load with insufficient values
@@ -753,7 +750,7 @@ xml = createElement('DataSet',attrib={'name':'test'})
 xml.append(createElement('Input',text='a'))
 xml.append(createElement('Output',text='b'))
 xml.append(createElement('Index',attrib={'var':'t'},text='b'))
-dataRe = DataSet.DataSet()
+dataRe = DataObjects.DataSet()
 dataRe.messageHandler = mh
 dataRe._readMoreXML(xml)
 dataRe.load(convertedDict['data'],style='dict',dims=convertedDict['dims'])
@@ -780,7 +777,7 @@ xml = createElement('DataSet',attrib={'name':'test'})
 xml.append(createElement('Input',text='a'))
 xml.append(createElement('Output',text='b'))
 xml.append(createElement('Index',attrib={'var':'t'},text='b'))
-data = DataSet.DataSet()
+data = DataObjects.DataSet()
 data.messageHandler = mh
 data._readMoreXML(xml)
 # load
@@ -821,7 +818,7 @@ data.addRealization({'a':np.array([2.1]), 't':np.array([0])})
 xml = createElement('PointSet',attrib={'name':'test'})
 xml.append(createElement('Input',text='a,b'))
 xml.append(createElement('Output',text='x,y'))
-data = DataSet.DataSet()
+data = DataObjects.DataSet()
 data.messageHandler = mh
 data._readMoreXML(xml)
 # register "trajID" (cluster label) and "varsUpdate" (iteration number/monotonically increasing var) as meta
@@ -895,14 +892,13 @@ for l,line in enumerate(open(fname+'_2.csv','r')):
     line = list(float(x) for x in line.split(','))
     checkArray('Cluster CSV id2 [1]',line,[3,2.1,6.1,20.1,200.1,1],float)
 # load it as a history # TODO first, loading needs to be fixed to use DataObject params instead of XML params
-from HistorySet import HistorySet
 xml = createElement('HistorySet',attrib={'name':'test'})
 xml.append(createElement('Input',text='trajID'))
 xml.append(createElement('Output',text='a,b,x,y'))
 options = createElement('options')
 options.append(createElement('pivotParameter',text='varsUpdate'))
 xml.append(options)
-data2 = HistorySet()
+data2 = DataObjects.HistorySet()
 data2.messageHandler = mh
 data2._readMoreXML(xml)
 data2.load(fname,style='csv')
@@ -928,7 +924,7 @@ xml = createElement('DataSet',attrib={'name':'test'})
 xml.append(createElement('Input', text=' fl, in, st, un, bo'))
 xml.append(createElement('Output',text='dfl,din,dst,dun,dbo'))
 xml.append(createElement('Index',attrib={'var':'t'},text='dfl,din,dst,dun,dbo'))
-data = DataSet.DataSet()
+data = DataObjects.DataSet()
 data.messageHandler = mh
 data._readMoreXML(xml)
 
@@ -959,7 +955,7 @@ data.asDataset()
 # check types
 for var in rlz.keys():
   correct = rlz[var].dtype
-  if correct.type in [np.unicode_,np.string_,basestring]:
+  if correct.type in [np.unicode_,np.string_,str]:
     correct = object
   checkSame('dtype checking "{}"'.format(var),data.asDataset()[var].dtype,correct)
 
@@ -973,7 +969,7 @@ xml = createElement('DataSet',attrib={'name':'test'})
 xml.append(createElement('Input', text='a,b'))
 xml.append(createElement('Output',text='c,d'))
 xml.append(createElement('Index',attrib={'var':'t'},text='b,d'))
-data = DataSet.DataSet()
+data = DataObjects.DataSet()
 data.messageHandler = mh
 data._readMoreXML(xml)
 data.addExpectedMeta(['prefix'])

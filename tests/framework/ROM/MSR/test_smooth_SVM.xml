@@ -55,7 +55,7 @@
             training data to counteract the effects of the randomness imposed
             by the cross-validation of the SVM which generates the probability
             information that exhibits the non-deterministic behavior. -->
-        <limit>2500</limit>
+        <limit>800</limit>
         <initialSeed>888</initialSeed>
       </samplerInit>
       <variable name="X">
