@@ -22,6 +22,19 @@ warnings.simplefilter('default',DeprecationWarning)
 
 import os
 import sys
+import numpy as np
+from utils import mathUtils
+
+def _reprIfFloat(value):
+  """
+    Uses repr if the value is a float
+    @ In, value, any, the value to convert to a string
+    @ Out, _reprIfFloat, string, a string conversion of this
+  """
+  if mathUtils.isAFloat(value):
+    return repr(value)
+  else:
+    return str(value)
 
 class GenericParser():
   """
@@ -138,9 +151,9 @@ class GenericParser():
                   formatstringc = "{:"+self.formats[var][inputFile][0].strip()+"}"
                   self.segments[inputFile][place] = formatstringc.format(self.formats[var][inputFile][1](modDict[var]))
                 else:
-                  self.segments[inputFile][place] = str(modDict[var]).strip().rjust(self.formats[var][inputFile][1](self.formats[var][inputFile][0]))
+                  self.segments[inputFile][place] = _reprIfFloat(modDict[var]).strip().rjust(self.formats[var][inputFile][1](self.formats[var][inputFile][0]))
             else:
-              self.segments[inputFile][place] = str(modDict[var])
+              self.segments[inputFile][place] = _reprIfFloat(modDict[var])
           elif var in self.defaults.keys():
             if var in self.formats.keys():
               if inputFile in self.formats[var].keys():
@@ -148,7 +161,7 @@ class GenericParser():
                   formatstringc = "{:"+self.formats[var][inputFile][0].strip()+"}"
                   self.segments[inputFile][place] = formatstringc.format(self.formats[var][inputFile][1](self.defaults[var][inputFile]))
                 else:
-                  self.segments[inputFile][place] = str(self.defaults[var][inputFile]).strip().rjust(self.formats[var][inputFile][1](self.formats[var][inputFile][0]))
+                  self.segments[inputFile][place] = _reprIfFloat(self.defaults[var][inputFile]).strip().rjust(self.formats[var][inputFile][1](self.formats[var][inputFile][0]))
             else:
               self.segments[inputFile][place] = self.defaults[var][inputFile]
           elif var in ioVars:

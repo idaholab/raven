@@ -989,6 +989,8 @@ class BasicStatistics(PostProcessor):
           ind = list(featVars).index(targ) if targ in featVars else None
           if ind is not None:
             featMat = np.delete(featSamples,ind,axis=1)
+          else:
+            featMat = featSamples
           regCoeff = LinearRegression().fit(featMat, targSamples[:,p]).coef_
           if ind is not None:
             regCoeff = np.insert(regCoeff,ind,1.0)

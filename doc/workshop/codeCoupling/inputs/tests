@@ -3,12 +3,14 @@
     type = 'RavenFramework'
     input = 'example_using_generic_interface.xml'
     UnorderedCsv = 'exampleGenericInterface/outPointSet_dump.csv exampleGenericInterface/outPointSetAverage_dump.csv'
+    rel_err = 1.0e-5
     output = 'exampleGenericInterface/outputHistories_dump.csv'
   [../]
   [./batemanInterface]
     type = 'RavenFramework'
     input = 'example_using_new_interface.xml'
     UnorderedCsv = 'exampleTestInterface/outPointSet_dump.csv exampleTestInterface/outPointSetAverage_dump.csv'
+    rel_err = 1.0e-5
     output = 'exampleTestInterface/outputHistories_dump.csv'
   [../]
 []

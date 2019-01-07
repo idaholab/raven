@@ -244,7 +244,8 @@ class HDF5(DateBase):
     # realization must be a dictionary
     assert(type(rlz).__name__ == "dict")
     # prefix must be present
-    assert('prefix' in rlz)
+    if 'prefix' not in rlz:
+      rlz['prefix'] = len(self.database)
     self.database.addGroup(rlz)
     self.built = True
 

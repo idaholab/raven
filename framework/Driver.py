@@ -42,7 +42,10 @@ frameworkDir = os.path.dirname(os.path.abspath(__file__))
 from utils import utils
 import utils.TreeStructure as TS
 utils.find_crow(frameworkDir)
-utils.add_path_recursively(os.path.join(frameworkDir,'contrib','pp'))
+if sys.version_info.major == 2:
+  utils.add_path_recursively(os.path.join(frameworkDir,'contrib','pp'))
+else:
+  utils.add_path_recursively(os.path.join(frameworkDir,'contrib','pp3'))
 utils.add_path(os.path.join(frameworkDir,'contrib','AMSC'))
 utils.add_path(os.path.join(frameworkDir,'contrib'))
 #Internal Modules
