@@ -83,10 +83,8 @@
       <Target>Demand,Time</Target>
       <Features>scaling</Features>
       <pivotParameter>Time</pivotParameter>
-      <Pmax>0</Pmax>
-      <Pmin>0</Pmin>
-      <Qmax>0</Qmax>
-      <Qmin>0</Qmin>
+      <P>0</P>
+      <Q>0</Q>
       <Fourier>
         1e200,
         31556952,
