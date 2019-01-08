@@ -25,7 +25,9 @@ debug = False # enable to increase printing
 
 def to_float(s_val):
   """
-  Converts s to a float if possible.
+    Converts s to a float if possible.
+    @ In, s_val, any, value to convert
+    @ Out, s_val, float or any
   """
   try:
     return float(s_val)
@@ -202,7 +204,9 @@ class OrderedCSV(Differ):
   @staticmethod
   def get_valid_params():
     """
-    Returns the valid parameters for this class.
+      Returns the valid parameters for this class.
+      @ In, None
+      @ Out, params, _ValidParameters, return the parameters.
     """
     params = Differ.get_valid_params()
     params.add_param('rel_err', '', 'Relative Error for csv files')
@@ -215,7 +219,11 @@ class OrderedCSV(Differ):
 
   def __init__(self, name, params, test_dir):
     """
-    Initializer for the class. Takes a String name and a dictionary params
+      Initializer for the class. Takes a String name and a dictionary params
+      @ In, name, string, name of the test.
+      @ In, params, dictionary, parameters for the class
+      @ In, test_dir, string, path to the test.
+      @ Out, None.
     """
     Differ.__init__(self, name, params, test_dir)
     self.__zero_threshold = self.specs['zero_threshold']
@@ -228,10 +236,12 @@ class OrderedCSV(Differ):
 
   def check_output(self):
     """
-    Checks that the output matches the gold.
-    returns (same, message) where same is true if the
-    test passes, or false if the test failes.  message should
-    gives a human readable explaination of the differences.
+      Checks that the output matches the gold.
+      returns (same, message) where same is true if the
+      test passes, or false if the test failes.  message should
+      gives a human readable explaination of the differences.
+      @ In, None
+      @ Out, (same, message), same is true if the tests passes.
     """
     csv_files = self._get_test_files()
     gold_files = self._get_gold_files()

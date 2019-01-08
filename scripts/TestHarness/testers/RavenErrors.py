@@ -31,8 +31,10 @@ class RavenErrors(Tester):
   @staticmethod
   def get_valid_params():
     """
-    This method add defines the valid parameters for the tester.
-    The expected error message shuld be unique...
+      This method add defines the valid parameters for the tester.
+      The expected error message shuld be unique...
+      @ In, None
+      @ Out, params, _ValidParameters, return the parameters.
     """
     params = Tester.get_valid_params()
     params.add_required_param('input', "The input file to use for this test.")
@@ -48,6 +50,7 @@ class RavenErrors(Tester):
   def get_command(self):
     """
       This method returns the command to execute for the test
+      @ In, None
       @ Out, getCommand, string, the command to run
     """
     ravenflag = ''
@@ -59,6 +62,12 @@ class RavenErrors(Tester):
 
 
   def __init__(self, name, params):
+    """
+      Initializer for the class. Takes a String name and a dictionary params
+      @ In, name, string, name of the test.
+      @ In, params, dictionary, parameters for the class
+      @ Out, None.
+    """
     Tester.__init__(self, name, params)
     self.required_libraries = self.specs['required_libraries'].split(' ')  \
       if len(self.specs['required_libraries']) > 0 else []
@@ -68,7 +77,11 @@ class RavenErrors(Tester):
     self.specs['scale_refine'] = False
 
   def check_runnable(self):
-    """This method checks if the the test is runnable within the current settings"""
+    """
+      This method checks if the the test is runnable within the current settings
+      @ In, None
+      @ Out, check_runnable, boolean, If True this test can run.
+    """
     missing, too_old, _ = RavenUtils.check_for_missing_modules()
     if len(missing) > 0:
       self.set_status('skipped (Missing python modules: '+" ".join(missing)+
@@ -113,13 +126,14 @@ class RavenErrors(Tester):
 
   def process_results(self, output):
     """
-    This method processes results.
-    It checks if the expected error messgae keyword exists in the output stream.
+      This method processes results.
+      It checks if the expected error messgae keyword exists in the output stream.
+      @ In, output, string, output of the run.
+      @ Out, None
     """
     for line in output.split('\n'):
       if self.specs['expect_err'] in line:
         self.set_success()
-        return output
+        return
     self.set_status('The expected Error: ' +self.specs['expect_err']+
                     ' is not raised!', self.bucket_fail)
-    return output

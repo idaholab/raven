@@ -31,8 +31,11 @@ class CrowPython(Tester):
 
   @staticmethod
   def get_valid_params():
-    """ Return a list of valid parameters and their descriptions for this type
-        of test.
+    """
+      Return a list of valid parameters and their descriptions for this type
+      of test.
+      @ In, None
+      @ Out, params, _ValidParameters, return the parameters.
     """
     params = Tester.get_valid_params()
     params.add_required_param('input', "The python file to use for this test.")
@@ -44,7 +47,11 @@ class CrowPython(Tester):
     return params
 
   def get_command(self):
-    """ Return the command this test will run. """
+    """
+      Return the command this test will run.
+      @ In, None
+      @ Out, get_command, string, string command to use.
+    """
     return self.specs["python_command"]+" "+self.specs["input"]
 
   def __init__(self, name, params):
@@ -57,7 +64,11 @@ class CrowPython(Tester):
     self.specs['scale_refine'] = False
 
   def check_runnable(self):
-    """ Checks if a test case is capable of being run on the current system. """
+    """
+      Checks if a test case is capable of being run on the current system.
+      @ In, None
+      @ Out, check_runnable, boolean, True if this test can run.
+    """
     if self.specs['requires_swig2'] and not CrowPython.has_swig2:
       self.set_status('skipped (No swig 2.0 found)', self.bucket_skip)
       return False

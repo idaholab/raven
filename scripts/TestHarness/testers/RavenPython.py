@@ -37,7 +37,9 @@ class RavenPython(Tester):
   @staticmethod
   def get_valid_params():
     """
-    Returns the valid parameters.
+      Returns the valid parameters.
+      @ In, None
+      @ Out, params, _ValidParameters, return the parameters.
     """
     params = Tester.get_valid_params()
     params.add_required_param('input', "The python file to use for this test.")
@@ -64,6 +66,8 @@ class RavenPython(Tester):
       before running an external tester, though we will not test if they
       are created later (for now), so it may behoove us to not save
       check_files for later use.
+      @ In, None
+      @ Out, None
     """
     for filename in self.check_files:
       if os.path.exists(filename):
@@ -72,10 +76,18 @@ class RavenPython(Tester):
   def get_command(self):
     """
       returns the command used by this tester.
+      @ In, None
+      @ Out, get_command, string, command to run.
     """
     return self.specs["python_command"]+" "+self.specs["input"]
 
   def __init__(self, name, params):
+    """
+      Initializer for the class. Takes a String name and a dictionary params
+      @ In, name, string, name of the test.
+      @ In, params, dictionary, parameters for the class
+      @ Out, None.
+    """
     Tester.__init__(self, name, params)
     self.specs['scale_refine'] = False
     self.required_executable = self.specs['required_executable']
@@ -95,6 +107,8 @@ class RavenPython(Tester):
   def check_runnable(self):
     """
       Checks if this test can be run.
+      @ In, None
+      @ Out, check_runnable, boolean, If True can run this test.
     """
     i = 0
     if len(self.minimum_libraries) % 2:
@@ -159,10 +173,11 @@ class RavenPython(Tester):
 
   def process_results(self, output):
     """
-      Returns the result of this tester.
+      Sets the status of this test.
+      @ In, output, string, output of running the test.
+      @ Out, None
     """
     if self.results.exit_code != 0:
       self.set_status(str(self.results.exit_code), self.bucket_fail)
-      return output
+      return
     self.set_success()
-    return output

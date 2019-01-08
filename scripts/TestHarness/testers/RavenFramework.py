@@ -51,7 +51,9 @@ class RavenFramework(Tester):
   @staticmethod
   def get_valid_params():
     """
-    Returns the parameters that can be used for this class.
+      Returns the parameters that can be used for this class.
+      @ In, None
+      @ Out, params, _ValidParameters, return the parameters.
     """
     params = Tester.get_valid_params()
     params.add_required_param('input', "The input file to use for this test.")
@@ -94,7 +96,9 @@ class RavenFramework(Tester):
 
   def get_command(self):
     """
-    Gets the raven command to run this test.
+      Gets the raven command to run this test.
+      @ In, None
+      @ Out, get_command, string, command to run.
     """
     ravenflag = ''
     if self.specs['test_interface_only']:
@@ -109,10 +113,11 @@ class RavenFramework(Tester):
 
   def __make_differ(self, spec_name, differ_class, extra=None):
     """
-    This adds a differ if the spec_name has files.
-    spec_name: string of the list of files to use with the differ.
-    differ_class: subclass of Differ to use with the files.
-    extra: dictionary of extra parameters
+      This adds a differ if the spec_name has files.
+      @ In, spec_name, string of the list of files to use with the differ.
+      @ In, differ_class, subclass of Differ, for use with the files.
+      @ In, extra, dictionary, extra parameters
+      @ Out, None
     """
     if len(self.specs[spec_name]) == 0:
       #No files, so quit
@@ -149,7 +154,9 @@ class RavenFramework(Tester):
 
   def check_runnable(self):
     """
-    Checks if this test can run.
+      Checks if this test can run.
+      @ In, None
+      @ Out, check_runnable, boolean, if True can run this test.
     """
     missing = _missing_modules
     too_old = _too_old_modules
@@ -252,6 +259,7 @@ class RavenFramework(Tester):
       Returns all the files used by this test that need to be created
       by the test.  Note that they will be deleted at the start of running
       the test.
+      @ In, None
       @ Out, createdFiles, [str], list of files created by the test.
     """
     runpath = self.get_test_dir()
@@ -260,7 +268,9 @@ class RavenFramework(Tester):
 
   def prepare(self):
     """
-    Get the test ready to run by removing files that should be created.
+      Get the test ready to run by removing files that should be created.
+      @ In, None
+      @ Out, None
     """
     self.check_files = [os.path.join(self.specs['test_dir'], filename)
                         for filename in self.check_files]
@@ -270,7 +280,9 @@ class RavenFramework(Tester):
 
   def process_results(self, output):
     """
-    Check to see if the test has passed.
+      Check to see if the test has passed.
+      @ In, output, string, output of test.
+      @ Out, None
     """
     missing = []
     for filename in self.check_files:
@@ -282,7 +294,7 @@ class RavenFramework(Tester):
                       os.environ.get("METHOD", "?")+
                       ' Expected files not created '+" ".join(missing),
                       self.bucket_fail)
-      return output
+      return
 
     #image
     image_opts = {}
@@ -294,7 +306,6 @@ class RavenFramework(Tester):
     (img_same, img_messages) = img_diff.diff()
     if not img_same:
       self.set_status(img_messages, self.bucket_diff)
-      return output
+      return
 
     self.set_success()
-    return output

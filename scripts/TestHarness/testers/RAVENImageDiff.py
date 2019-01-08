@@ -33,11 +33,11 @@ class ImageDiff:
 
   def __init__(self, test_dir, out_file, **kwargs):
     """
-      Create an XMLDiff class
-      test_dir: the directory where the test takes place
-      out_file: the files to be compared.  They will be in test_dir + out_file
-               and test_dir + gold + out_file
-      args: other arguments that may be included:
+      Create an ImageDiff class
+      @ In, test_dir, string, the directory where the test takes place
+      @ In, out_file, the files to be compared.
+         They will be in test_dir + out_file and test_dir + gold + out_file
+      @ In, args, other arguments that may be included:
     """
     self.__out_file = out_file
     self.__messages = ""

@@ -23,13 +23,17 @@ import importlib
 
 def check_versions():
   """
-  Returns true if versions should be checked.
-  @Out, check_versions, bool, if true versions should be checked.
+    Returns true if versions should be checked.
+    @ In, None
+    @ Out, check_versions, bool, if true versions should be checked.
   """
   return os.environ.get("RAVEN_IGNORE_VERSIONS", "0") != "1"
 
 def in_python_3():
-  """returns true if raven should be using python3
+  """
+    returns true if raven should be using python3
+    @ In, None
+    @ Out, in_python_3, boolean, True if should be using python3.
   """
   return os.environ.get("CHECK_PYTHON3", "0") == "1"
 
@@ -110,11 +114,14 @@ __pipList = [("numpy", __lookup_preferred_version("numpy")),
              ("pandas", __lookup_preferred_version("pandas"))]
 
 def module_report(module, version=''):
-  """Checks if the module exists.
-  Returns (found_boolean,message,version)
-  The found_boolean is true if the module is found.
-  The message will be the result of print(module)
-  The version is the version number or "NA" if not known.
+  """
+    Checks if the module exists.
+    @ In, module, string, module name
+    @ In, version, string, optional, if here use this to get the version.
+    @ Out, (found_boolean,message,version)
+     The found_boolean is true if the module is found.
+     The message will be the result of print(module)
+     The version is the version number or "NA" if not known.
   """
   if in_python_3():
     python = 'python3'
@@ -138,11 +145,13 @@ def module_report(module, version=''):
     return (False, 'Failed to find module '+module, "NA")
 
 def __import_report(module):
-  """ Directly checks the module version.
-  Returns (found_boolean,message,version)
-  The found_boolean is true if the module is found.
-  The message will be the result of print(module)
-  The version is the version number or "NA" if not known.
+  """
+    Directly checks the module version.
+    @ In, module, string, the module name
+    @ Out,(found_boolean,message,version)
+     The found_boolean is true if the module is found.
+     The message will be the result of print(module)
+     The version is the version number or "NA" if not known.
   """
   try:
     loaded = importlib.import_module(module)
@@ -153,8 +162,10 @@ def __import_report(module):
     return (False, 'Failed to find module '+module, "NA")
 
 def modules_report():
-  """Return a report on the modules.
-  Returns a list of [(module_name,found_boolean,message,version)]
+  """
+    Return a report on the modules.
+    @ In, None
+    @ Out, modules_report, a list of [(module_name,found_boolean,message,version)]
   """
   report_list = []
   for mod_name, find_ver, min_ver, qa_ver, max_ver in modules_to_try:

@@ -24,12 +24,13 @@ class TextDiff:
   """ TextDiff is used for comparing a bunch of xml files.
   """
   def __init__(self, out_files, gold_files, **kwargs):
-    """ Create a TextDiff class
-    testDir: the directory where the test takes place
-    out_files: the files to be compared.
-    gold_files: the gold files to compare to the outfiles
-    args: other arguments that may be included:
+    """
+      Create a TextDiff class
+      @ In, out_files, string list, the files to be compared.
+      @ In, gold_files, string list, the gold files to compare to the outfiles
+      @ In, kwargs, dictionary, other arguments that may be included:
         - 'comment': indicates the character or string that should be used to denote a comment line
+      @ Out, None
     """
     assert len(out_files) == len(gold_files)
     self.__out_files = out_files
@@ -39,9 +40,12 @@ class TextDiff:
     self.__options = kwargs
 
   def diff(self):
-    """ Run the comparison.
-    returns (same,messages) where same is true if all the txt files are the
-    same, and messages is a string with all the differences.
+    """
+      Run the comparison.
+      @ In, None
+      @ Out, (same,messages), (boolean, string), where same is true if all
+          the txt files are the same, and messages is a string with all
+          the differences.
     """
     # read in files
     comment_symbol = self.__options['comment']
@@ -99,7 +103,9 @@ class Text(Differ):
   @staticmethod
   def get_valid_params():
     """
-    Returns the parameters that this class can use.
+      Returns the parameters that this class can use.
+      @ In, None
+      @ Out, params, _ValidParameters, return the parameters.
     """
     params = Differ.get_valid_params()
     params.add_param('comment', '-20021986', "Character or string denoting "+
@@ -109,7 +115,11 @@ class Text(Differ):
 
   def __init__(self, name, params, test_dir):
     """
-    Initializer for the class. Takes a String name and a dictionary params
+      Initializer for the class. Takes a String name and a dictionary params
+      @ In, name, string, name of the test.
+      @ In, params, dictionary, parameters for the class
+      @ In, test_dir, string, path to the test.
+      @ Out, None.
     """
     Differ.__init__(self, name, params, test_dir)
     self.__text_opts = {'comment': self.specs['comment']}
@@ -117,10 +127,12 @@ class Text(Differ):
 
   def check_output(self):
     """
-    Checks that the output matches the gold.
-    returns (same, message) where same is true if the
-    test passes, or false if the test failes.  message should
-    gives a human readable explaination of the differences.
+      Checks that the output matches the gold.
+      returns (same, message) where same is true if the
+      test passes, or false if the test failes.  message should
+      gives a human readable explaination of the differences.
+      @ In, None
+      @ Out, (same, message), same is true if the tests passes.
     """
     text_files = self._get_test_files()
     gold_files = self._get_gold_files()

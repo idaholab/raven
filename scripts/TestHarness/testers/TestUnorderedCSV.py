@@ -24,7 +24,12 @@ warnings.simplefilter('default', DeprecationWarning)
 
 def check_same(comment, first, second, local_msg, local_results):
   """
-  checks that the first and second are the same.
+    checks that the first and second are the same.
+    @ In, comment, string, comment if failed.
+    @ In, first, Any, first thing to compare
+    @ In, second, Any, second thing to compare
+    @ In, local_msg, printable, extra thing to print if failed
+    @ In, local_results, dictionary, dictionary of results
   """
   if first == second:
     local_results['pass'] += 1
@@ -36,7 +41,9 @@ def check_same(comment, first, second, local_msg, local_results):
 
 def test_a_file(fname):
   """
-  Tests the file
+    Tests the file
+    @ In, fname, string, filename string
+    @ Out, test_a_file, (same, message), (bool, str) result of test.
   """
   differ = UCSV('.', [fname], zeroThreshold=5e-14)
   differ.diff()

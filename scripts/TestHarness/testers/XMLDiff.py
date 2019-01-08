@@ -424,7 +424,9 @@ class XML(Differ):
   @staticmethod
   def get_valid_params():
     """
-    Return the valid parameters for this class.
+      Return the valid parameters for this class.
+      @ In, None
+      @ Out, params, _ValidParameters, return the parameters.
     """
     params = Differ.get_valid_params()
     params.add_param('unordered', False, 'if true allow the tags in any order')
@@ -440,7 +442,11 @@ class XML(Differ):
 
   def __init__(self, name, params, test_dir):
     """
-    Initializer for the class. Takes a String name and a dictionary params
+      Initializer for the class. Takes a String name and a dictionary params
+      @ In, name, string, name of the test.
+      @ In, params, dictionary, parameters for the class
+      @ In, test_dir, string, path to the test.
+      @ Out, None.
     """
     Differ.__init__(self, name, params, test_dir)
     self.__xmlopts = {}
@@ -455,10 +461,12 @@ class XML(Differ):
 
   def check_output(self):
     """
-    Checks that the output matches the gold.
-    returns (same, message) where same is true if the
-    test passes, or false if the test failes.  message should
-    gives a human readable explaination of the differences.
+      Checks that the output matches the gold.
+      returns (same, message) where same is true if the
+      test passes, or false if the test failes.  message should
+      gives a human readable explaination of the differences.
+      @ In, None
+      @ Out, (same, message), same is true if the tests passes.
     """
     xml_files = self._get_test_files()
     gold_files = self._get_gold_files()
