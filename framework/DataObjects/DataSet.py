@@ -160,7 +160,7 @@ class DataSet(DataObject):
       # check if tag already exists
       ## TODO potentially slow if MANY top level tags
       if tag not in self._meta.keys():
-        new = xmlUtils.StaticXmlElement(self.name)
+        new = xmlUtils.StaticXmlElement('DataSet')
         self._meta[tag] = new
       destination = self._meta[tag]
       for target in xmlDict.keys():
@@ -1846,7 +1846,8 @@ class DataSet(DataObject):
       # if only index was sampleTag and we don't want it, index = False takes care of that
       else:
         data.to_csv(fileName+'.csv',index=False,mode=mode,header=header)
-    #raw_input('Just wrote to CSV "{}.csv", press enter to continue ...'.format(fileName))
+    # DEBUGG tool for incremental writing, keep for future use
+    # raw_input('Just wrote to CSV "{}.csv", press enter to continue ...'.format(fileName))
 
   # _useNumpyWriteCSV (below) is a secondary method to write out POINT SET CSVs.  When benchmarked with Pandas, I tested using
   # different numbers of variables (M=5,25,100) and different numbers of realizations (R=4,100,1000).

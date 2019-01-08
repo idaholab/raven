@@ -158,7 +158,6 @@ class OutStreamPrint(OutStreamManager):
             self.raiseAWarning('Label clustering currently only works for PointSet data objects!  Skipping for',self.sourceData[index].name)
           else:
             dictOptions['clusterLabel'] = self.options['clusterLabel']
-        rlzIndex = self.sourceData[index].write(filename,style='CSV',**dictOptions)
         try:
           rlzIndex = self.sourceData[index].write(filename,style='CSV',**dictOptions)
         except AttributeError:

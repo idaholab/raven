@@ -361,7 +361,7 @@ class ROM(Dummy):
     #    on whether the engine is naturally dynamic or whether we need to handle that part.
     if dynamic and not handleDynamicData:
       # time-dependent, but we manage the output (chopped)
-      xml = xmlUtils.DynamicXmlElement(self.name, pivotParam = pivotParameterId)
+      xml = xmlUtils.DynamicXmlElement('ROM', pivotParam = pivotParameterId)
       ## pre-print printing
       engines[0].writeXMLPreamble(xml) #let the first engine write the preamble
       for s,rom in enumerate(engines):
