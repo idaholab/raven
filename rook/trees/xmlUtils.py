@@ -14,6 +14,7 @@
 """
 Tools used to format, edit, and print XML in a RAVEN-like way
 talbpaul, 2016-05
+This is copied from Raven framework/utils/xmlUtils.py
 """
 
 from __future__ import division, print_function, unicode_literals, absolute_import

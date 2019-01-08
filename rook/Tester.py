@@ -34,10 +34,22 @@ class _Parameter:
     self.help_text = help_text
     self.default = default
 
+  def __str__(self):
+    if self.default is None:
+      required = "Required"
+    else:
+      required = "Optional with default: "+str(self.default)
+    return self.name + " " +\
+      required + "\n" +\
+      self.help_text
+
 class _ValidParameters:
 
   def __init__(self):
     self.__parameters = {}
+
+  def __str__(self):
+    return "\n\n".join([str(x) for x in self.__parameters.values()])
 
   def add_param(self, name, default, help_text):
     """
@@ -71,21 +83,23 @@ class _ValidParameters:
     """
     Returns True if all the required parameters are present
     """
+    all_required = True
     for param in self.__parameters.values():
       if param.default is None and param.name not in check_dict:
         print("Missing:", param.name)
-        return False
-    return True
+        all_required = False
+    return all_required
 
   def check_for_all_known(self, check_dict):
     """
     Returns True if all the parameters are known
     """
+    no_unknown = True
     for param_name in check_dict:
       if param_name not in self.__parameters:
         print("Unknown:", param_name)
-        return False
-    return True
+        no_unknown = False
+    return no_unknown
 
 class TestResult:
   """
@@ -113,7 +127,7 @@ class Differ:
     """
     params = _ValidParameters()
     params.add_required_param('type', 'The type of this differ')
-    params.add_required_param('output', 'Output of to check')
+    params.add_required_param('output', 'Output files to check')
     params.add_param('gold_files', '', 'Gold filenames')
     return params
 
@@ -188,6 +202,8 @@ class _TimeoutThread(threading.Thread):
         break
       if time.time() > end:
         #Time over
+        #If we are on windows, process.kill() is insufficient, so using
+        # taskkill instead.
         if os.name == "nt" and spawn.find_executable("taskkill"):
           subprocess.call(['taskkill', '/f', '/t', '/pid', str(self.__process.pid)])
         else:

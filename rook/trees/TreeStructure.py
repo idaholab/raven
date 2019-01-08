@@ -14,6 +14,7 @@
 """
 Created on Jan 28, 2014
 @ author: alfoa
+This was copied from Raven framework/utils/TreeStructure.py
 """
 
 #for future compatibility with Python 3--------------------------------------------------------------

@@ -145,7 +145,9 @@ class MultiRun:
     count_down = 10
     while output_count < len(return_array):
       while output_count + self.__not_ready < len(return_array):
-        print("meditation numbers oc", output_count, "nr", self.__not_ready,
+        #This is debug information meant to help if the test system deadlocks
+        # It could be commented out, but probably should not be deleted.
+        print("debug numbers oc", output_count, "nr", self.__not_ready,
               "lra", len(return_array), "rc", self.__runner_count(), "ie",
               self.__input_queue.empty(), "oe", self.__output_queue.empty())
         if self.__runner_count() == 0 and not self.__input_queue.empty():

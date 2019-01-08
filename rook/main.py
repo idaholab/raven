@@ -41,6 +41,9 @@ parser.add_argument('-l', dest='load_average', type=float, default=-1.0,
 parser.add_argument('--heavy', action='store_true',
                     help='Run only heavy tests')
 
+parser.add_argument('--list-testers', action='store_true', dest='list_testers',
+                    help='Print out the possible testers')
+
 args = parser.parse_args()
 
 if args.load_average > 0 and hasattr(os, "getloadavg"):
@@ -169,8 +172,6 @@ if __name__ == "__main__":
   up_one_dir = os.path.dirname(this_dir)
   base_test_dir = os.path.join(up_one_dir, "tests")
 
-  print(this_dir, base_test_dir)
-
 
   test_list = get_test_lists(base_test_dir)
 
@@ -180,13 +181,21 @@ if __name__ == "__main__":
   testers.update(base_testers)
   differs.update(base_differs)
 
-  print("Testers:", testers)
-  print("Differs:", differs)
+  if args.list_testers:
+    print("Testers:")
+    for tester_name, tester in testers.items():
+      print("Tester:", tester_name)
+      print(tester.get_valid_params())
+      print()
+    print("Differs:")
+    for differ_name, differ in differs.items():
+      print("Differ:", differ_name)
+      print(differ.get_valid_params())
+      print()
 
   tester_params = {}
   for tester in testers:
     tester_params[tester] = testers[tester].get_valid_params()
-  print("Tester Params:", tester_params)
 
   function_list = [] #Store the data for the pool runner
   test_name_list = []
