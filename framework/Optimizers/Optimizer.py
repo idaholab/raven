@@ -657,6 +657,17 @@ class Optimizer(Sampler):
     #         subclass, but the subclass doesn't know when it needs to call this method.
     pass
 
+  @abc.abstractmethod
+  def _createEvaluationIdentifier(self, *args, **kwargs):
+    """
+      Creates a unique ID to identifiy particular realizations as they return from the JobHandler.
+      Inputs should be specific to the needs of individual optimizers.
+      @ In, args, list, list of arguments
+      @ In, kwargs, dict, dictionary of keyword arguments
+      @ Out, identifier, str, the evaluation identifier
+    """
+    pass
+
   def denormalizeData(self, optVars):
     """
       Method to normalize the data

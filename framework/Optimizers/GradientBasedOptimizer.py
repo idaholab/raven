@@ -826,7 +826,7 @@ class GradientBasedOptimizer(Optimizer):
         varUpdate = self.counter['solutionUpdate'][traj]
         # negative values wouldn't make sense
         varUpdate = max(0,varUpdate-1)
-        prefix = '{}_{}_{}'.format(traj,varUpdate,0) # TODO not generic to any prefix
+        prefix = self._createEvaluationIdentifier(traj, varUpdate, 0)
         _,match = self.mdlEvalHist.realization(matchDict = {'prefix':prefix})
         for index in indexes:
           rlz[index] = match[index]
