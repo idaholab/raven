@@ -374,7 +374,7 @@ class ROM(Dummy):
           self.raiseAMessage('Printing time-like',pivotValue,'target',target,'ROM XML')
           subXML = xmlUtils.StaticXmlElement(target)
           rom.writeXML(subXML)
-          xml.addScalarNode(subXML,pivotValue)
+          xml.addScalarNode(subXML.getRoot(), pivotValue)
     else:
       # directly accept the results from the engine
       xml = xmlUtils.StaticXmlElement(self.name)

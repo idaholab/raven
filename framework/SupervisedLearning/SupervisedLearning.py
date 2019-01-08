@@ -43,7 +43,7 @@ import copy
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import utils,mathUtils
+from utils import utils, mathUtils, xmlUtils
 import MessageHandler
 
 interpolationND = utils.findCrowModule('interpolationND')
@@ -267,16 +267,22 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     """
       Allows the SVE to put whatever it wants into an XML file only once (right before calling pringXML)
       Extend in subclasses.
-      @ In, writeTo, xmlUtils.StaticXmlElement, StaticXmlElement to write to
+      @ In, writeTo, xmlUtils.StaticXmlElement instance, Element to write to
       @ In, targets, list, list of targets for whom information should be written
       @ Out, None
     """
-    writeTo.addScalar('ROM',"type",self.printTag)
+    # different calls depending on if it's static or dynamic
+    print('DEBUGG whatis:',writeTo)
+    if isinstance(writeTo, xmlUtils.DynamicXmlElement):
+      writeTo.addScalar('ROM', "type", self.printTag, None, general = True)
+    else:
+      writeTo.addScalar('ROM', "type", self.printTag)
 
-  def writePointwiseData(self):
+  def writePointwiseData(self, *args):
     """
       Allows the SVE to add data to a DataObject
       Overload in subclasses.
+      @ In, args, list, unused arguments
       @ Out, None
     """
     # by default, nothing to write!

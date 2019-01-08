@@ -6,11 +6,14 @@
     <created>2018-09-21</created>
     <classesTested>Models.ROM</classesTested>
     <description>Workshop test: using sthochastic collocation sampler to train and evaluate a Gaussian Polynomial ROM</description>
+    <revisions>
+      <revision author='talbpaul' date='2019-01-08'>moved from ROM->XML to ROM->DataObject</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
     <WorkingDir>run</WorkingDir>
-    <Sequence>make3,train,serialize,print</Sequence>
+    <Sequence>make3,train,rom_out,serialize,print</Sequence>
     <batchSize>8</batchSize>
   </RunInfo>
 
@@ -30,8 +33,12 @@
       <Input class="DataObjects" type="PointSet">training_data</Input>
       <Output class="Models" type="ROM">scgpc_rom</Output>
     </RomTrainer>
-    <IOStep name="print">
+    <IOStep name='rom_out'>
       <Input class="Models" type="ROM">scgpc_rom</Input>
+      <Output class="DataObjects" type="PointSet">rom_stats_3</Output>
+    </IOStep>
+    <IOStep name="print">
+      <Input class="DataObjects" type="PointSet">rom_stats_3</Input>
       <Output class="OutStreams" type="Print">rom_stats_3</Output>
     </IOStep>
     <IOStep name="serialize">
@@ -80,6 +87,7 @@
   </Models>
 
   <DataObjects>
+    <PointSet name="rom_stats_3"/>
     <HistorySet name="training_data">
       <Input>v0,angle</Input>
       <Output>r,x,y,t</Output>
@@ -90,14 +98,9 @@
   </DataObjects>
 
   <OutStreams>
-    <Print name="training_data">
-      <type>csv</type>
-      <source>training_data</source>
-    </Print>
     <Print name="rom_stats_3">
-      <type>xml</type>
-      <source>scgpc_rom</source>
-      <what>mean,variance,sobolIndices</what>
+      <type>csv</type>
+      <source>rom_stats_3</source>
     </Print>
   </OutStreams>
 

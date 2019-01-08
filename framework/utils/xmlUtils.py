@@ -552,7 +552,7 @@ class DynamicXmlElement(StaticXmlElement):
     self.pivotNodes = []
     self.pivotVals = []
 
-  def addScalar(self, target, name, value, pivotVal, attrs = None):
+  def addScalar(self, target, name, value, pivotVal, attrs = None, general = False):
     """
       Adds a node entry named "name" with value "value" to "target" node, such as
       <root>
@@ -564,9 +564,15 @@ class DynamicXmlElement(StaticXmlElement):
       @ In, value, string/float/etc, value of characteristic
       @ In, pivotVal, float, value of the pivot parameter
       @ In, attrs, dict, optional, dictionary containing the attributes to be stored in the node
+      @ In, general, bool, optional, if True then use the "main" pivotless node, instead of the pivot.
       @ Out, None
     """
-    pivotNode = self._findPivotNode(pivotVal)
+    # if writing general (not time-specific data), then we write to a particular node
+    if general:
+      pivotNode = StaticXmlElement._findTarget(self,  self._root, 'general')
+    # otherwise, we write to the appropriate time-dependent node
+    else:
+      pivotNode = self._findPivotNode(pivotVal)
     StaticXmlElement.addScalar(self, target, name, value, root = pivotNode, attrs = attrs)
 
   def addScalarNode(self, node, pivotVal):
