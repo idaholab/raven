@@ -18,12 +18,17 @@ Tests by running an executable.
 from Tester import Tester
 
 class GenericExecutable(Tester):
-  """ A generic executable test interface. """
+  """
+  A generic executable test interface.
+  """
 
   @staticmethod
   def get_valid_params():
-    """ Return a list of valid parameters and their descriptions for this type
-        of test.
+    """
+      Return a list of valid parameters and their descriptions for this type
+      of test.
+      @ In, None
+      @ Out, params, _ValidParameters, the parameters for this class.
     """
     params = Tester.get_valid_params()
     params.add_required_param('executable', "The executable to use")
@@ -31,28 +36,28 @@ class GenericExecutable(Tester):
     return params
 
   def get_command(self):
-    """ Return the command this test will run. """
+    """
+      Return the command this test will run.
+      @ In, None
+      @ Out, get_command, string, command to run
+    """
     return self.specs["executable"]+" "+self.specs["parameters"]
 
   def __init__(self, name, params):
-    """ Constructor that will setup this test with a name and a list of
+    """
+        Constructor that will setup this test with a name and a list of
         parameters.
         @ In, name: the name of this test case.
         @ In, params, a dictionary of parameters and their values to use.
     """
     Tester.__init__(self, name, params)
 
-  def check_runnable(self):
-    """ Checks if a test case is capable of being run on the current system. """
-    return True
-
   def process_results(self, output):
     """ Handle the results of test case.
-        @ In, output: the output from the test case.
-        @ Out: a tuple with the error return code and the output passed in.
+        @ In, output, string, the output from the test case.
+        @ Out, None
     """
     if self.results.exit_code != 0:
       self.set_status(str(self.results.exit_code), self.bucket_fail)
-      return output
+      return
     self.set_success()
-    return output

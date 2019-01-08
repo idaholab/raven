@@ -34,9 +34,12 @@ class RunnerThread(threading.Thread):
 
   def __init__(self, input_queue, output_queue):
     """
-    Initializes with an input queue and an output queue
-    Functions and ids in the input_queue will be run and the output
-    put into the output queue
+      Initializes with an input queue and an output queue
+      Functions and ids in the input_queue will be run and the output
+      put into the output queue
+      @ In, input_queueo, queue.Queue, queue with the input data and functions to run
+      @ In, output_queue, queue.Queue, queue to put result data
+      @ Out, None
     """
     self.__input_queue = input_queue
     self.__output_queue = output_queue
@@ -45,7 +48,9 @@ class RunnerThread(threading.Thread):
 
   def run(self):
     """
-    Runs the functions until the queue is empty.
+      Runs the functions until the queue is empty.
+      @ In, None
+      @ Out, None
     """
     try:
       #Keep going as long as there are items in the queue
@@ -60,7 +65,10 @@ class RunnerThread(threading.Thread):
 
   def is_done(self):
     """
-    Returns true if this is done running.
+      Returns true if this is done running.  Also should check is_alive to
+      find out if it failed to successfully finish.
+      @ In, None
+      @ Out, __done, boolean, true if this successfully finished running.
     """
     return self.__done
 
@@ -70,10 +78,11 @@ class MultiRun:
   """
   def __init__(self, function_list, number_jobs, ready_to_run=None):
     """
-    Initializes the class
-    function_list: list of functions and data to run
-    number_jobs: number of functions to run simultaneously.
-    ready_to_run: list of if functions are ready to run
+      Initializes the class
+      @ In, function_list, list, list of functions and data to run
+      @ In, number_jobs, int, number of functions to run simultaneously.
+      @ In, ready_to_run, list, optional, list of if functions are ready to run
+      @ Out, None
     """
     self.__function_list = function_list
     self.__runners = [None]*number_jobs
@@ -89,7 +98,9 @@ class MultiRun:
 
   def run(self):
     """
-    Starts running all the tests
+      Starts running all the tests
+      @ In, None
+      @ Out, None
     """
     self.__not_ready = 0
     for id_num, (function, data) in enumerate(self.__function_list):
@@ -104,7 +115,9 @@ class MultiRun:
 
   def enable_job(self, id_num):
     """
-    Enables the previously not ready job
+      Enables the previously not ready job
+      @ In, id_num, int, id (index in function_list) to enable
+      @ Out, None
     """
     assert not self.__ready_to_run[id_num]
     self.__not_ready -= 1
@@ -115,7 +128,9 @@ class MultiRun:
 
   def __restart_runners(self):
     """
-    Restarts any dead runners
+      Restarts any dead runners
+      @ In, None
+      @ Out, None
     """
     for i in range(len(self.__runners)):
       if self.__runners[i].is_done() or not self.__runners[i].is_alive():
@@ -126,7 +141,9 @@ class MultiRun:
 
   def __runner_count(self):
     """
-    Returns how many runners are not done.
+      Returns how many runners are not done.
+      @ In, None
+      @ Out, runner_count, int, alive runners
     """
     runner_count = 0
     for i in range(len(self.__runners)):
@@ -136,9 +153,11 @@ class MultiRun:
 
   def process_results(self, process_function=None):
     """
-    Process results and return the output in an array.
-    If a process_function is passed in, it will be called with
-    process_function(index, input, output) after the output is created.
+      Process results and return the output in an array.
+      If a process_function is passed in, it will be called with
+      process_function(index, input, output) after the output is created.
+      @ In, process_function, function, optional, function called after each input finishes.
+      @ Out, return_array, list, includes the outputs of the functions.
     """
     return_array = [None]*len(self.__function_list)
     output_count = 0
@@ -172,6 +191,8 @@ class MultiRun:
 
   def wait(self):
     """
-    wait for all the tasks to be finished
+      wait for all the tasks to be finished
+      @ In, None
+      @ Out, None
     """
     self.__input_queue.join()

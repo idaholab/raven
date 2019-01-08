@@ -28,13 +28,28 @@ from distutils import spawn
 warnings.simplefilter('default', DeprecationWarning)
 
 class _Parameter:
+  """
+  Stores a single parameter for the input.
+  """
 
   def __init__(self, name, help_text, default=None):
+    """
+      Initializes the class
+      @ In, name, string, the name of the parameter
+      @ In, help_text, string, some help text for the user
+      @ In, default, optional, if not None this is the default value
+      @ Out, None
+    """
     self.name = name
     self.help_text = help_text
     self.default = default
 
   def __str__(self):
+    """
+      Converts the class to a string.
+      @ In, None
+      @ Out, str, string, the class as a string.
+    """
     if self.default is None:
       required = "Required"
     else:
@@ -44,34 +59,52 @@ class _Parameter:
       self.help_text
 
 class _ValidParameters:
+  """
+    Contains the valid parameters that a tester or a differ can use.
+  """
 
   def __init__(self):
+    """
+      Initializes the valid parameters class.
+      @ In, None
+      @ Out, None
+    """
     self.__parameters = {}
 
   def __str__(self):
+    """
+      Converts the class to a string.
+      @ In, None
+      @ Out, str, string, the class as a string.
+    """
     return "\n\n".join([str(x) for x in self.__parameters.values()])
 
   def add_param(self, name, default, help_text):
     """
-    Adds an optional parameter.
-    name: string parameter name
-    default: string the default value for the parameter
-    help_text: Description of the parameter
+      Adds an optional parameter.
+      @ In, name, string, parameter name
+      @ In, default, the default value for the parameter
+      @ In, help_text, string, Description of the parameter
+      @ Out, None
     """
     self.__parameters[name] = _Parameter(name, help_text, default)
 
   def add_required_param(self, name, help_text):
     """
-    Adds a mandatory parameter.
-    name: string parameter name
-    help_text: Description of the parameter
+      Adds a mandatory parameter.
+      @ In, name, string parameter name
+      @ In, help_text, string, Description of the parameter
+      @ Out, None
     """
     self.__parameters[name] = _Parameter(name, help_text)
 
   def get_filled_dict(self, partial_dict):
     """
-    Returns a dictionary where default values are filled in for everything
-    that is not in the partial_dict
+      Returns a dictionary where default values are filled in for everything
+      that is not in the partial_dict
+      @ In, partial_dict, dictionary, a dictionary with some parameters.
+      @ Out, ret_dict, dictionary, a dictionary where all the parameters that
+        are not in partial_dict but have default values have been added.
     """
     ret_dict = dict(partial_dict)
     for param in self.__parameters.values():
@@ -81,7 +114,10 @@ class _ValidParameters:
 
   def check_for_required(self, check_dict):
     """
-    Returns True if all the required parameters are present
+      Returns True if all the required parameters are present
+      @ In, check_dict, dictionary, dictionary to check
+      @ Out, all_required, boolean, True if all required parameters are in
+        check_dict.
     """
     all_required = True
     for param in self.__parameters.values():
@@ -92,7 +128,9 @@ class _ValidParameters:
 
   def check_for_all_known(self, check_dict):
     """
-    Returns True if all the parameters are known
+      Returns True if all the parameters are known
+      @ In, check_dict, dictionary, dictionary to check
+      @ Out, no_unknown, boolean, True if all the parameters are known.
     """
     no_unknown = True
     for param_name in check_dict:
@@ -107,6 +145,11 @@ class TestResult:
   """
 
   def __init__(self):
+    """
+      Initializes the class
+      @ In, None
+      @ Out, None
+    """
     self.bucket = Tester.bucket_not_set
     self.exit_code = None
     self.message = None
@@ -123,7 +166,9 @@ class Differ:
   @staticmethod
   def get_valid_params():
     """
-    Generates the allowed parameters for this class.
+      Generates the allowed parameters for this class.
+      @ In, None
+      @ Out, params, _ValidParameters, the allowed parameters for this class.
     """
     params = _ValidParameters()
     params.add_required_param('type', 'The type of this differ')
@@ -133,10 +178,11 @@ class Differ:
 
   def __init__(self, name, params, test_dir):
     """
-    Initializer for the class.
-    name: String name of class
-    params: dictionary of parameters
-    test_dir: String path to test directory
+      Initializer for the class.
+      @ In, name, string, name of class
+      @ In, params, dictionary, dictionary of parameters
+      @ In, test_dir, string, path to test directory
+      @ Out, None
     """
     self.__name = name
     self.__test_dir = test_dir
@@ -146,20 +192,25 @@ class Differ:
 
   def get_remove_files(self):
     """
-    Returns a list of files to remove before running test.
-    returns List(Strings)
+      Returns a list of files to remove before running test.
+      @ In, None
+      @ Out, get_remove_files, returns List(Strings)
     """
     return self._get_test_files()
 
   def _get_test_files(self):
     """
-    returns a list of the full path of the test files
+      returns a list of the full path of the test files
+      @ In, None
+      @ Out, _get_test_files, List(Strings), the path of the test files.
     """
     return [os.path.join(self.__test_dir, f) for f in self.__output_files]
 
   def _get_gold_files(self):
     """
-    returns a list of the full path to the gold files
+      returns a list of the full path to the gold files
+      @ In, None
+      @ Out, _get_gold_files, List(Strings), the path of the gold files.
     """
     if len(self.specs['gold_files']) > 0:
       gold_files = self.specs['gold_files'].split()
@@ -168,10 +219,12 @@ class Differ:
 
   def check_output(self):
     """
-    Checks that the output matches the gold.
-    Should return (same, message) where same is true if the
-    test passes, or false if the test failes.  message should
-    give a human readable explaination of the differences.
+      Checks that the output matches the gold.
+      Should return (same, message) where same is true if the
+      test passes, or false if the test failes.  message should
+      give a human readable explaination of the differences.
+      @ In, None
+      @ Out, check_output, (same, message), same is True if checks pass.
     """
     assert False, "Must override check_output "+str(self)
 
@@ -182,8 +235,10 @@ class _TimeoutThread(threading.Thread):
 
   def __init__(self, process, timeout):
     """
-    process: A process that can be killed
-    timeout: float time in seconds to wait before killing the process.
+      Initializes this class.
+      @ In, process, process, A process that can be killed
+      @ In, timeout, float, time in seconds to wait before killing the process.
+      @ Out, None
     """
     self.__process = process
     self.__timeout = timeout
@@ -192,7 +247,9 @@ class _TimeoutThread(threading.Thread):
 
   def run(self):
     """
-    Runs and waits for timeout, then kills process
+      Runs and waits for timeout, then kills process
+      @ In, None
+      @ Out, None
     """
     start = time.time()
     end = start + self.__timeout
@@ -214,8 +271,10 @@ class _TimeoutThread(threading.Thread):
 
   def killed(self):
     """
-    Returns if the process was killed.  Notice this will be false at the
-    start.
+      Returns if the process was killed.  Notice this will be false at the
+      start.
+      @ In, None
+      @ Out, __killed, boolean, true if process killed.
     """
     return self.__killed
 
@@ -237,7 +296,9 @@ class Tester:
   @staticmethod
   def get_valid_params():
     """
-    This generates the parameters for this class.
+      This generates the parameters for this class.
+      @ In, None
+      @ Out, params, _ValidParameters, the parameters for this class.
     """
     params = _ValidParameters()
     params.add_required_param('type', 'The type of this test')
@@ -255,7 +316,10 @@ class Tester:
 
   def __init__(self, name, params):
     """
-    Initializer for the class.  Takes a String name and a dictionary params
+      Initializer for the class.  Takes a String name and a dictionary params
+      @ In, name, string, name of the class
+      @ In, params, dictionary, the parameters for this class to use.
+      @ Out, None
     """
     self.__name = name
     valid_params = self.get_valid_params()
@@ -266,8 +330,9 @@ class Tester:
 
   def get_differ_remove_files(self):
     """
-    Returns the files that need to be removed for testing.
-    returns List(String)
+      Returns the files that need to be removed for testing.
+      @ In, None
+      @ Out, remove_files, List(String), files to be removed
     """
     remove_files = []
     for differ in self.__differs:
@@ -276,27 +341,35 @@ class Tester:
 
   def add_differ(self, differ):
     """
-    Adds a differ to run after the test completes.
-    differ: A subclass of Differ that tests a file produced by the run.
+      Adds a differ to run after the test completes.
+      @ In, differ, Differ, A subclass of Differ that tests a file produced by the run.
+      @ Out, None
     """
     self.__differs.append(differ)
 
   def get_test_dir(self):
     """
-    Returns the test directory
+      Returns the test directory
+      @ In, None
+      @ Out, test_dir, string, the path to the test directory.
     """
     return self.specs['test_dir']
 
   def run_heavy(self):
     """
-    If called, run the heavy tests and not the light
+      If called, run the heavy tests and not the light.  Note that
+      run still needs to be called.
+      @ In, None
+      @ Out, None
     """
     self.__run_heavy = True
 
 
   def run(self, data):
     """
-    Runs the tester.
+      Runs the tester.
+      @ In, data, ignored, but required by pool.MultiRun
+      @ Out, results, TestResult, the results of the test.
     """
     expected_fail = bool(self.specs['expected_fail'])
     results = self.run_backend(data)
@@ -311,7 +384,9 @@ class Tester:
 
   def __get_timeout(self):
     """
-    Returns the timeout
+      Returns the timeout
+      @ In, None
+      @ Out, timeout, int, The maximum time for the test.
     """
     timeout = int(self.specs['max_time'])
     if len(self.specs['os_max_time']) > 0:
@@ -323,8 +398,10 @@ class Tester:
 
   def run_backend(self, _):
     """
-    Runs this tester.  This does the main work,
-    but is separate to allow run to invert the result if expected_fail
+      Runs this tester.  This does the main work,
+      but is separate to allow run to invert the result if expected_fail
+      @ In, None
+      @ Out, results, TestResult, the results of the test.
     """
     if self.specs['skip'] is not False:
       self.results.bucket = self.bucket_skip
@@ -395,7 +472,9 @@ class Tester:
   @staticmethod
   def get_bucket_name(bucket):
     """
-    Returns the name of this bucket
+      Returns the name of this bucket
+      @ In, bucket, int, bucket constant
+      @ Out, get_bucket_name, string, name of bucket constant
     """
     names = ["Skipped", "Failed", "Diff", "Success", "Timeout", "NOT_SET"]
     if 0 <= bucket < len(names):
@@ -404,40 +483,52 @@ class Tester:
 
   def check_runnable(self):
     """
-    Checks if this test case can run
+      Checks if this test case can run
+      @ In, None
+      @ Out, check_runnable, boolean, True if this can run.
     """
     return True
 
   def set_success(self):
     """
-    Called by subclasses if this was a success.
+      Called by subclasses if this was a success.
+      @ In, None
+      @ Out, None
     """
     self.results.bucket = self.bucket_success
     self.results.message = Tester.get_bucket_name(self.results.bucket)
 
   def set_status(self, message, bucket):
     """
-    Sets the message string and the bucket type
+      Sets the message string and the bucket type
+      @ In, message, string, string description of the status.
+      @ In, bucket, int, bucket constant of the status
+      @ Out, None
     """
     self.results.message = message
     self.results.bucket = bucket
 
   def process_results(self, output):
     """
-    Handle the results of the test case.
-    output: the output of the test case.
+      Handle the results of the test case.
+      @ In, output, string, the output of the test case.
+      @ Out, None
     """
     assert False, "process_results not implemented "+output
 
   def get_command(self):
     """
-    returns the command used to run the test
+      returns the command used to run the test
+      @ In, None
+      @ Out, get_command, string, string command to run.
     """
     assert False, "getCommand not implemented"
     return "none"
 
   def prepare(self):
     """
-    gets the test ready to run.
+      gets the test ready to run.
+      @ In, None,
+      @ Out, None
     """
     return

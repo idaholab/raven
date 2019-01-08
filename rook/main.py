@@ -19,7 +19,6 @@ import warnings
 
 import os
 import sys
-import subprocess
 import argparse
 import re
 import inspect
@@ -54,11 +53,15 @@ if args.load_average > 0 and hasattr(os, "getloadavg"):
 
 def load_average_adapter(function):
   """
-  Adapts function to not start until load average is low enough
+    Adapts function to not start until load average is low enough
+    @ In, function, function, function to call
+    @ Out, new_func, function, function that checks load average before running
   """
   def new_func(data):
     """
-    function that waits until load average is lower.
+      function that waits until load average is lower.
+      @ In, data, Any, data to pass to function
+      @ Out, result, result of running function on data
     """
     while os.getloadavg()[0] > args.load_average:
       time.sleep(1.0)
@@ -67,8 +70,9 @@ def load_average_adapter(function):
 
 def get_test_lists(directory):
   """
-  Returns a list of all the files named tests under the directory
-  directory: the directory to start at
+    Returns a list of all the files named tests under the directory
+    @ In, directory, string, the directory to start at
+    @ Out, dir_test_list, list, the files named tests
   """
   dir_test_list = []
   for root, _, files in os.walk(directory):
@@ -76,34 +80,12 @@ def get_test_lists(directory):
       dir_test_list.append((root, os.path.join(root, 'tests')))
   return dir_test_list
 
-def run_python_test(data):
-  """
-  runs a python test and if the return code is 0, it passes
-  returns (passed,short_comment,long_comment) where pass is a boolean
-  that is True if the test passes, and short_comment and long comment are
-  comments on why it fails.
-  data: (directory, code.py) Runs code.py in directory
-  """
-  directory, code_filename = data
-  command = ["python3", code_filename]
-  process = subprocess.Popen(command, shell=False,
-                             stdout=subprocess.PIPE,
-                             stderr=subprocess.STDOUT,
-                             cwd=directory,
-                             universal_newlines=True)
-  output = process.communicate()[0]
-  retcode = process.returncode
-  passed = (retcode == 0)
-  if passed:
-    short = "Success"
-  else:
-    short = "Failed"
-  return (passed, short, output)
-
 def get_testers_and_differs(directory):
   """
-  imports all the testers and differs in a directory
-  returns a dictionary with all the subclasses of Tester.
+    imports all the testers and differs in a directory
+    @ In, directory, string, directory to search
+    @ Out, (tester_dict, differ_dict), tuple of dictionaries
+      returns dictionaries with all the subclasses of Tester and Differ.
   """
   tester_dict = {}
   differ_dict = {}
@@ -124,10 +106,10 @@ def get_testers_and_differs(directory):
 
 def sec_format(runtime):
   """
-  Formats the runtime into a string of the number seconds.
-  If runtime is none, format as None!
-  runtime: float or None, runtime to be formated.
-  return str of runtime.
+    Formats the runtime into a string of the number seconds.
+    If runtime is none, format as None!
+    @ In, runtime, float or None, runtime to be formated.
+    @ Out, sec_format, string of runtime.
   """
   if isinstance(runtime, float):
     return "{:6.2f}sec".format(runtime)
@@ -135,10 +117,11 @@ def sec_format(runtime):
 
 def process_result(index, _input_data, output_data):
   """
-  This is a callback function that Processes the result of a test.
-  index: int, Index into functions list.
-  _input_data: the input data passed to the function
-  output_data: the output data passed to the function
+    This is a callback function that Processes the result of a test.
+    @ In, index, int, Index into functions list.
+    @ In, _input_data, ignored, the input data passed to the function
+    @ In, output_data, Tester.TestResult the output data passed to the function
+    @ Out, None
   """
   bucket = output_data.bucket
   process_test_name = test_name_list[index]
@@ -250,12 +233,7 @@ if __name__ == "__main__":
         test_name_list.append(test_name)
         ready_to_run.append(not has_prereq)
         name_to_id[test_name] = id_num
-      #if node.attrib['type'] in ['RavenPython','CrowPython']:
-      #  input_filename = node.attrib['input']
-      #  if test_re.search(test_name):
-      #    function_list.append((run_python_test, (test_dir, input_filename)))
 
-  #print(function_postreq, name_to_id)
   run_pool = pool.MultiRun(function_list, args.number_jobs, ready_to_run)
 
   run_pool.run()
