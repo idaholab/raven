@@ -19,12 +19,12 @@
 
   <RunInfo>
     <WorkingDir>ARMAparallel</WorkingDir>
-    <Sequence>readIn,ARMATrain,writeOut</Sequence>
+    <Sequence>readIn,ARMATrain,dump,write</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
 
   <Files>
-    <Input name="rawDataFile">../ARMA/dataSet.csv</Input>
+    <Input name="rawDataFile">../Basic/dataSet.csv</Input>
     <Input name="pk">arma.pk</Input>
   </Files>
 
@@ -44,7 +44,7 @@
   </Models>
 
   <Steps>
-    <IOStep name="readIn" pauseAtEnd="True">
+    <IOStep name="readIn">
       <Input class="Files" type="">rawDataFile</Input>
       <Output class="DataObjects" type="HistorySet">rawData</Output>
     </IOStep>
@@ -52,10 +52,12 @@
       <Input class="DataObjects" type="HistorySet">rawData</Input>
       <Output class="Models" type="ROM">ARMA</Output>
     </RomTrainer>
-    <IOStep name="writeOut" pauseAtEnd="True">
-      <Input class="Models" type="ROM">ARMA</Input>
+    <IOStep name="dump">
       <Input class="Models" type="ROM">ARMA</Input>
       <Output class="Files" type="">pk</Output>
+    </IOStep>
+    <IOStep name="write">
+      <Input class="Models" type="ROM">ARMA</Input>
       <Output class="DataObjects" type="HistorySet">signals</Output>
     </IOStep>
   </Steps>
@@ -69,7 +71,6 @@
       </options>
     </HistorySet>
     <HistorySet name="signals">
-      <Output>Speed_Original, Speed_Fourier, Speed_Residual, Speed_Normalized</Output>
       <options>
         <pivotParameter>Time</pivotParameter>
       </options>

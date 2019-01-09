@@ -60,7 +60,6 @@
         <maxRuns>50</maxRuns>
         <maxSobolOrder>2</maxSobolOrder>
         <progressParam>1</progressParam>
-        <logFile>states.txt</logFile>
         <subsetVerbosity>silent</subsetVerbosity>
       </Convergence>
       <variable name="x1">
