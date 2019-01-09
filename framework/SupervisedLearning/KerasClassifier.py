@@ -294,7 +294,7 @@ class KerasClassifier(supervisedLearning):
     # We need to 'one-hot-encode' our target variable if multi-classes are requested
     # This means that a column will be created for each output category and a binary variable is inputted for
     # each category.
-    if self.numClasses > 1 and self.lossFunction in ['categorical_crossentropy']:
+    if self.numClasses > 1 and 'categorical_crossentropy' in self.lossFunction:
       targetValues = KerasUtils.to_categorical(targetValues)
 
     featureValues = []

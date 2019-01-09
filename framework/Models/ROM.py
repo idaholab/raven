@@ -280,6 +280,7 @@ class ROM(Dummy):
     layerDropoutRateInput = InputData.parameterInputFactory('rate',contentType=InputData.FloatType)
     layerPaddingInput = InputData.parameterInputFactory('padding',contentType=InputData.StringType)
     layerDimOutInput = InputData.parameterInputFactory('dim_out',contentType=InputData.IntegerType)
+    layerReturnSequences = InputData.parameterInputFactory('return_sequences',contentType=InputData.BoolType)
 
     layerInput.addSub(layerTypeInput)
     layerInput.addSub(layerActivationInput)
@@ -289,6 +290,7 @@ class ROM(Dummy):
     layerInput.addSub(layerDropoutRateInput)
     layerInput.addSub(layerPaddingInput)
     layerInput.addSub(layerDimOutInput)
+    layerInput.addSub(layerReturnSequences)
     inputSpecification.addSub(layerInput,InputData.Quantity.one_to_infinity)
 
     layerLayoutInput = InputData.parameterInputFactory('layer_layout',contentType=InputData.StringListType)

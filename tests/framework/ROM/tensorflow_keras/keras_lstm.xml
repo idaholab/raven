@@ -4,9 +4,7 @@
     <WorkingDir>lstm</WorkingDir>
     <Sequence>
       sample,
-      train,
-      resample,
-      print
+      train
     </Sequence>
   </RunInfo>
 
@@ -24,13 +22,13 @@
       <pivotParameter>time</pivotParameter>
       <Features>x</Features>
       <Target>y</Target>
-      <loss>mean_squared_error</loss>
+      <loss>categorical_crossentropy</loss>
       <metrics>accuracy</metrics>
-      <batch_size>4</batch_size>
-      <epochs>4</epochs>
+      <batch_size>1</batch_size>
+      <epochs>100</epochs>
       <plot_model>True</plot_model>
       <validation_split>0.25</validation_split>
-      <num_classes>1</num_classes>
+      <num_classes>26</num_classes>
       <optimizerSetting>
         <beta_1>0.9</beta_1>
         <optimizer>Adam</optimizer>
@@ -39,11 +37,13 @@
         <decay>0.0</decay>
         <lr>0.001</lr>
       </optimizerSetting>
-      <!-- Setups for CNN
+      <!-- Setups for LSTM 
            -->
       <layer name="lstm1">
           <type>lstm</type>
           <activation>tanh</activation>
+          <!-- the following is required if second lstm is provided -->
+          <!--return_sequences>True</return_sequences-->
           <dim_out>32</dim_out>
       </layer>
       <layer name="lstm2">
@@ -59,7 +59,7 @@
           <type>dense</type>
           <activation>softmax</activation>
       </layer>
-      <layer_layout>lstm1,lstm2,dropout,dense</layer_layout>
+      <layer_layout>lstm1,dropout,dense</layer_layout>
     </ROM>
   </Models>
   
