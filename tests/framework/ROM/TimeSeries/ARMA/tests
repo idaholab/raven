@@ -55,6 +55,7 @@
    input = 'multiple_fourier.xml'
    output = 'MultipleFourier/samples.csv'
    csv = 'MultipleFourier/samples_0.csv'
+   zero_threshold = 1.e-10
   [../]
 
   [./VARMA]
