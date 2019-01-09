@@ -994,12 +994,13 @@ class ARMA(supervisedLearning):
     # add realization
     writeTo.addRealization(rlz)
 
-  def writeXML(self, writeTo):
+  def writeXML(self, writeTo, targets = None, skip = None):
     """
       Allows the SVE to put whatever it wants into an XML to print to file.
       Overload in subclasses.
       @ In, writeTo, xmlUtils.StaticXmlElement, entity to write to
-      @ In, targets, list, list of targets for whom information should be written
+      @ In, targets, list, optional, unused (kept for compatability)
+      @ In, skip, list, optional, unused (kept for compatability)
       @ Out, None
     """
     if not self.amITrained:

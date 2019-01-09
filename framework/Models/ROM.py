@@ -366,15 +366,17 @@ class ROM(Dummy):
       engines[0].writeXMLPreamble(xml) #let the first engine write the preamble
       for s,rom in enumerate(engines):
         pivotValue = self.supervisedEngine.historySteps[s]
-        for target in targets:
-          #skip the pivot param
-          if target == pivotParameterId:
-            continue
-          #otherwise, call engine's print method
-          self.raiseAMessage('Printing time-like',pivotValue,'target',target,'ROM XML')
-          subXML = xmlUtils.StaticXmlElement(target)
-          rom.writeXML(subXML)
-          xml.addScalarNode(subXML.getRoot(), pivotValue)
+        #for target in targets: # should be handled by SVL engine or here??
+        #  #skip the pivot param
+        #  if target == pivotParameterId:
+        #    continue
+        #otherwise, call engine's print method
+        self.raiseAMessage('Printing time-like',pivotValue,'ROM XML')
+        subXML = xmlUtils.StaticXmlElement(self.supervisedEngine.supervisedContainer[0].printTag)
+        rom.writeXML(subXML, skip = [pivotParameterId])
+        for element in subXML.getRoot():
+          xml.addScalarNode(element, pivotValue)
+        #xml.addScalarNode(subXML.getRoot(), pivotValue)
     else:
       # directly accept the results from the engine
       xml = xmlUtils.StaticXmlElement(self.name)

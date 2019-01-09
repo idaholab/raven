@@ -83,13 +83,15 @@ class HDMRRom(GaussPolynomialRom):
       if key=='SobolOrder':
         self.sobolOrder = int(val)
 
-  def writeXML(self, writeTo, requests = None):
+  def writeXML(self, writeTo, requests = None, skip = None):
     """
       Adds requested entries to XML node.
       @ In, writeTo, xmlUtils.StaticXmlElement, StaticXmlElement to write to
-      @ In, requests, list, list of requests for whom to write
+      @ In, requests, list, optional, list of requests for whom to write
+      @ In, skip, list, optional, list of targets to skip
       @ Out, None
     """
+
     #inherit from GaussPolynomialRom
     if not self.amITrained:
       self.raiseAnError(RuntimeError,'ROM is not yet trained!')
@@ -109,7 +111,7 @@ class HDMRRom(GaussPolynomialRom):
     #  options['what'] = ','.join(requests)
     else:
       self.raiseAWarning('No "what" options for XML printing are recognized!  Skipping...')
-    GaussPolynomialRom.writeXML(self, writeTo, requests)
+    GaussPolynomialRom.writeXML(self, writeTo, requests=requests, skip=skip)
 
   def initialize(self,idict):
     """

@@ -431,6 +431,7 @@ class StaticXmlElement(object):
       Constructor.
       @ In, tag, string, name for root node ('root' in structure example in class docstrings)
       @ In, attrib, dict, optional, attributes for root node
+      @ In, rootType, str, optional, type as a string
       @ Out, None
     """
     # default attrib to empty dictionary
@@ -543,6 +544,7 @@ class DynamicXmlElement(StaticXmlElement):
       Constructor.
       @ In, tag, string, name for the root node
       @ In, attrib, dict, optional, attributes for root node
+      @ In, rootType, str, optional, type as a string
       @ Out, None
     """
     StaticXmlElement.__init__(self, tag, attrib, rootType)

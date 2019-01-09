@@ -272,7 +272,6 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
       @ Out, None
     """
     # different calls depending on if it's static or dynamic
-    print('DEBUGG whatis:',writeTo)
     if isinstance(writeTo, xmlUtils.DynamicXmlElement):
       writeTo.addScalar('ROM', "type", self.printTag, None, general = True)
     else:
@@ -288,12 +287,13 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     # by default, nothing to write!
     self.raiseAMessage('Writing ROM "{}", but no pointwise data found. Moving on ...')
 
-  def writeXML(self, writeTo, targets=None):
+  def writeXML(self, writeTo, targets = None, skip = None):
     """
       Allows the SVE to put whatever it wants into an XML to print to file.
       Overload in subclasses.
       @ In, writeTo, xmlUtils.StaticXmlElement, StaticXmlElement to write to
-      @ In, targets, list, list of targets for whom information should be written
+      @ In, targets, list, optional, list of targets for whom information should be written
+      @ In, skip, list, optional, list of targets to skip
       @ Out, None
     """
     writeTo.addScalar('ROM',"noInfo",'ROM has no special output options.')

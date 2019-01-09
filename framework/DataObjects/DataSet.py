@@ -1736,7 +1736,6 @@ class DataSet(DataObject):
     meta = copy.deepcopy(self._meta)
     # remove variables that aren't being "kept" from the meta record
     keep = self._getRequestedElements(kwargs)
-    print('DEBUGG keeping:', keep)
     if 'DataSet' in meta.keys():
       ## remove from "dims"
       dimsNode = xmlUtils.findPath(meta['DataSet'].getRoot(),'dims')
