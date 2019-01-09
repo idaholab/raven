@@ -141,8 +141,7 @@ class DistributedMemoryRunner(InternalRunner):
       @ In, None
       @ Out, None
     """
-    # Does this actually kill the run, or just terminate the Task (self.thread)? The Task has no methods
-    ## whereby to terminate the job; maybe if we got the Worker doing the task, THAT would have a way to terminate it.
+    self.thread.stop()
     del self.thread
     self.thread = None
     self.returnCode = -1
