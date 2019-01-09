@@ -99,6 +99,8 @@ class SPSA(GradientBasedOptimizer):
                          .format(self.paramDict['pertDist']))
 
     self.constraintHandlingPara['innerBisectionThreshold'] = float(self.paramDict.get('innerBisectionThreshold', 1e-2))
+    if not 0 < self.constraintHandlingPara['innerBisectionThreshold'] < 1:
+      self.raiseAnError(IOError,'innerBisectionThreshold must be between 0 and 1; got',self.constraintHandlingPara['innerBisectionThreshold'])
     self.constraintHandlingPara['innerLoopLimit'] = float(self.paramDict.get('innerLoopLimit', 1000))
 
     self.gradDict['pertNeeded'] = self.gradDict['numIterForAve'] * (self.paramDict['pertSingleGrad']+1)
@@ -235,8 +237,6 @@ class SPSA(GradientBasedOptimizer):
       gain = [ak]*self._numberOfSamples() #technically incorrect, but missing ones will be *0 anyway just below here
 
     innerBisectionThreshold = self.constraintHandlingPara['innerBisectionThreshold']
-    if innerBisectionThreshold <= 0 or innerBisectionThreshold >= 1: #FIXME REWORK this is an input check, not a runtime check
-      self.raiseAnError(ValueError, 'The innerBisectionThreshold should be greater than 0 and less than 1')
     bounds = [0, 1.0]
     tempVarNew = {}
     frac = 0.5
