@@ -94,7 +94,8 @@ __condaList = [("h5py", __lookup_preferred_version("h5py")),
                ("swig", ""),
                ("pylint", ""),
                ("coverage", ""),
-               ("lxml", "")]
+               ("lxml", ""),
+               ("psutil", "")]
 
 # libraries to install with conda-forge
 __condaForgeList = [("pyside", ""),]
