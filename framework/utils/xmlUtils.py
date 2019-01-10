@@ -25,7 +25,7 @@ import xml.etree.ElementTree as ET
 import xml.dom.minidom as pxml
 import re
 import os
-from .utils import isString, getRelativeSortedListEntry
+from .utils import isString, toString, getRelativeSortedListEntry
 from .graphStructure import graphObject
 import VariableGroups
 
@@ -96,10 +96,13 @@ def prettify(tree,doc=False,docLevel=0,startingTabs=0,addRavenNewlines=True):
   #end prettifyNode
   if isinstance(tree,ET.ElementTree):
     prettifyNode(tree.getroot(),tabs=startingTabs,ravenNewlines=addRavenNewlines)
-    return ET.tostring(tree.getroot())
+    # NOTE must use utils.toString because ET.tostring returns bytestring in python3
+    #  -- if ever we drop python2 support, can use ET.tostring(xml, encoding='unicode')
+    return toString(ET.tostring(tree.getroot()))
   else:
+    # NOTE must use utils.toString because ET.tostring returns bytestring in python3
     prettifyNode(tree,tabs=startingTabs,ravenNewlines=addRavenNewlines)
-    return ET.tostring(tree)
+    return toString(ET.tostring(tree))
 
 
   #### OLD WAY ####
