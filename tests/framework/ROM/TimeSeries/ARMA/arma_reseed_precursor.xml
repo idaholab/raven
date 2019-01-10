@@ -14,6 +14,7 @@
       <revision author="alfoa" date="2017-12-13">adapted for new DataObject structure</revision>
       <revision author="alfoa" date="2018-04-26">Modified location of the test (ARMA folder)</revision>
       <revision author="talbpaul" date="2018-12-20">ROM IO to data object added</revision>
+      <revision author="talbpaul" date="2018-09-13">changed Pmax and Pmin to P (same for Q)</revision>
     </revisions>
   </TestInfo>
 
@@ -33,10 +34,8 @@
       <Target>Speed,Time</Target>
       <Features>scaling</Features>
       <pivotParameter>Time</pivotParameter>
-      <Pmax>2</Pmax>
-      <Pmin>2</Pmin>
-      <Qmax>1</Qmax>
-      <Qmin>1</Qmin>
+      <P>2</P>
+      <Q>1</Q>
       <outTruncation domain="positive">Speed</outTruncation>
       <Fourier>604800,86400</Fourier>
       <FourierOrder>2,2</FourierOrder>

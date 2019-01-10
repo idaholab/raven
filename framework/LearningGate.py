@@ -77,7 +77,7 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
     self.pickled = self.initializationOptions.pop('pickled',False)
     if not self.pickled:
       # check how many targets
-      if not 'Target' in self.initializationOptions.keys():
+      if not 'Target' in list(self.initializationOptions.keys()):
         self.raiseAnError(IOError,'No Targets specified!!!')
     # check if pivotParameter is specified and in case store it
     self.pivotParameterId = self.initializationOptions.get("pivotParameter",'time')
@@ -182,7 +182,7 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
     """
     if type(trainingSet).__name__ not in  'dict':
       self.raiseAnError(IOError,"The training set is not a dictionary!")
-    if len(trainingSet.keys()) == 0:
+    if len(list(trainingSet.keys())) == 0:
       self.raiseAnError(IOError,"The training set is empty!")
     if assembledObjects is None:
       assembledObjects = {}
@@ -200,7 +200,7 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
     if any(type(x).__name__ == 'list' for x in trainingSet.values()):
       # we need to build a "time-dependent" ROM
       self.isADynamicModel = True
-      if self.pivotParameterId not in trainingSet.keys():
+      if self.pivotParameterId not in list(trainingSet.keys()):
         self.raiseAnError(IOError,"the pivot parameter "+ self.pivotParameterId +" is not present in the training set. A time-dependent-like ROM cannot be created!")
       if type(trainingSet[self.pivotParameterId]).__name__ != 'list':
         self.raiseAnError(IOError,"the pivot parameter "+ self.pivotParameterId +" is not a list. Are you sure it is part of the output space of the training set?")
@@ -500,7 +500,7 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
     unclustered = [] # data ranges that didn't get clustered because they are particular
     if len(clusterParams):
       # segment by equal spacing
-      index, segments = clusterParams.items()[0]
+      index, segments = list(clusterParams.items())[0]
       dataLen = len(trainingSet[index][0])
       self._romClusterInfo['historyLength'] = dataLen
       ## TODO assumption: ARMA only trains on a single sample
@@ -510,7 +510,7 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
       # segment by value
       ## TODO assumption: ARMA only trains on a single sample
       pivot = trainingSet[pivotParam][0]
-      index, length = clusterLengths.items()[0]
+      index, length = list(clusterLengths.items())[0]
       dataLen = len(trainingSet[index][0])
       self._romClusterInfo['historyLength'] = dataLen
       # find where the data passes the requested length and make dividers
@@ -599,14 +599,14 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
       @ Out, result, dict, dictionary of results ({target1:np.array,'target2':np.array}).
     """
     # template, for when generic info is needed
-    templateRom = self._romClusterMap.values()[0]
+    templateRom = list(self._romClusterMap.values())[0]
     pivotID = templateRom.pivotParameterID
     # evaluation storage
     lastEntry = self._romClusterInfo['historyLength']
     result = None # because we don't know the targets yet, wait until we get the first evaluation back to set this up
     nextEntry = 0 # index to fill next data set in
     # TODO looping directly over labels only works for "segment" strategy!
-    labels = range(max(self._romClusterMap.keys())+1)
+    labels = range(max(list(self._romClusterMap.keys()))+1)
     self.raiseADebug('sampling from {} clusters'.format(len(labels)))
     for label in labels:
       rom = self._romClusterMap[label]
@@ -619,7 +619,7 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
         result = dict((target,np.zeros(lastEntry)) for target in subResults.keys())
       # stitch them together
       # TODO assuming history set shape for data ... true for ARMA
-      entries = len(subResults.values()[0])
+      entries = len(list(subResults.values())[0])
       for target,values in subResults.items():
         if target == pivotID:
           # directly re-insert the pivot at the end
@@ -646,7 +646,7 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
     confidenceDict = {}
     for rom in self.supervisedContainer:
       sliceEvaluation = rom.confidence(request)
-      if len(confidenceDict.keys()) == 0:
+      if len(list(confidenceDict.keys())) == 0:
         confidenceDict.update(sliceEvaluation)
       else:
         for key in confidenceDict.keys():
@@ -669,7 +669,7 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
     else:
       for rom in self.supervisedContainer:
         sliceEvaluation = rom.evaluate(request)
-        if len(resultsDict.keys()) == 0:
+        if len(list(resultsDict.keys())) == 0:
           resultsDict.update(sliceEvaluation)
         else:
           for key in resultsDict.keys():

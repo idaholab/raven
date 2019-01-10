@@ -1,3 +1,4 @@
+<?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
     <name>framework/ROM/TimeSeries/ARMA.Basic</name>
@@ -14,6 +15,7 @@
       <revision author="alfoa" date="2018-04-26">Modified location of the test (ARMA folder)</revision>
       <revision author="talbpaul" date="2018-06-14">Now tests history statistics instead of points</revision>
       <revision author="talbpaul" date="2018-12-20">Renamed from ARMA to Basic and added rom printing</revision>
+      <revision author='talbpaul' date='2018-09-13'>changed Pmax and Pmin to P (same for Q)</revision>
     </revisions>
   </TestInfo>
 
@@ -52,13 +54,11 @@
       <Target>Speed,Time</Target>
       <Features>scaling</Features>
       <pivotParameter>Time</pivotParameter>
-      <Pmax>2</Pmax>
-      <Pmin>2</Pmin>
-      <Qmax>1</Qmax>
-      <Qmin>1</Qmin>
-      <outTruncation domain='positive'>Speed</outTruncation>
+      <outTruncation domain="positive">Speed</outTruncation>
       <Fourier>604800,86400</Fourier>
       <FourierOrder>2,2</FourierOrder>
+      <P>2</P>
+      <Q>1</Q>
     </ROM>
     <PostProcessor name="stats" subType="BasicStatistics">
       <expectedValue prefix="mean">Speed</expectedValue>
@@ -160,4 +160,5 @@
     </HistorySet>
     <DataSet name="romMeta"/>
   </DataObjects>
+
 </Simulation>

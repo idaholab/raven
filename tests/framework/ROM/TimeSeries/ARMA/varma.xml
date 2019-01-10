@@ -8,16 +8,17 @@
     <description>
        This test checks the possibility to train an correlated ARMA+Fourier model and its
        capability to generate intrinsically stochastic time series with correlated results.
-
        The correlation model used generated uniformly random data on [-0.5,0.5] for A, then
        set B = 0.9*A + 0.1*rand, with rand also on [-0.5,0.5], to ensure strong correlation.
-
-       The plot output "plot_input.png" shows the original training data, while "plot_VARMA.png"
+       The plot output &quot;plot_input.png&quot; shows the original training data, while &quot;plot_VARMA.png&quot;
        plots the sampled values.  B should only be slightly off from A at all points.  If this
        same calculation is done without correlation, both A and B independently range over the
        value space, and B can be far from A for each Time value.  This provides a quick view norm
        to see that the correlation is working correctly.
     </description>
+    <revisions>
+      <revision author='talbpaul' date='2018-09-13'>changed Pmax and Pmin to P (same for Q)</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
@@ -109,10 +110,8 @@
       <seed>84</seed>
       <correlate>A,B,C</correlate>
       <pivotParameter>Time</pivotParameter>
-      <Pmax>3</Pmax>
-      <Pmin>3</Pmin>
-      <Qmax>1</Qmax>
-      <Qmin>1</Qmin>
+      <P>3</P>
+      <Q>1</Q>
     </ROM>
     <PostProcessor name="stats" subType="BasicStatistics">
       <expectedValue prefix="mean">A,B,C,D</expectedValue>
