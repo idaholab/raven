@@ -1769,7 +1769,7 @@ class DataSet(DataObject):
       ofile.writelines('<DataObjectMetadata name="{}">\n'.format(self.name))
       for name,target in meta.items():
         xml = xmlUtils.prettify(target.getRoot(),startingTabs=1,addRavenNewlines=False)
-        ofile.writelines('  '+xml+'\n')
+        ofile.writelines('  {}\n'.format(xml))
       ofile.writelines('</DataObjectMetadata>\n')
 
   def _toNetCDF(self,fileName,**kwargs):
