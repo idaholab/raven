@@ -17,15 +17,14 @@
       <variables>x,y,time,index</variables>
     </ExternalModel>
     <ROM name="modelUnderTest" subType="KerasLSTMClassifier">
-      <!-- Common setups
-           -->
+      <!-- Common setups -->
       <pivotParameter>time</pivotParameter>
       <Features>x</Features>
       <Target>y</Target>
       <loss>categorical_crossentropy</loss>
       <metrics>accuracy</metrics>
       <batch_size>1</batch_size>
-      <epochs>100</epochs>
+      <epochs>20</epochs>
       <plot_model>True</plot_model>
       <validation_split>0.25</validation_split>
       <num_classes>26</num_classes>
@@ -37,29 +36,22 @@
         <decay>0.0</decay>
         <lr>0.001</lr>
       </optimizerSetting>
-      <!-- Setups for LSTM 
-           -->
-      <layer name="lstm1">
-          <type>lstm</type>
-          <activation>tanh</activation>
-          <!-- the following is required if second lstm is provided -->
-          <!--return_sequences>True</return_sequences-->
-          <dim_out>32</dim_out>
-      </layer>
-      <layer name="lstm2">
-          <type>lstm</type>
+      <!-- Setups for LSTM -->
+      <LSTM name="lstm1">
           <activation>tanh</activation>
           <dim_out>32</dim_out>
-      </layer>
-      <layer name="dropout">
-          <type>dropout</type>
+      </LSTM>
+      <LSTM name="lstm2">
+          <activation>tanh</activation>
+          <dim_out>16</dim_out>
+      </LSTM>
+      <Dropout name="dropout">
           <rate>0.25</rate>
-      </layer>
-      <layer name="dense">
-          <type>dense</type>
+      </Dropout>
+      <Dense name="dense">
           <activation>softmax</activation>
-      </layer>
-      <layer_layout>lstm1,dropout,dense</layer_layout>
+      </Dense>
+      <layer_layout>lstm1,lstm2,dropout,dense</layer_layout>
     </ROM>
   </Models>
   

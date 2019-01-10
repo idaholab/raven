@@ -21,7 +21,7 @@
       <loss>mean_squared_error</loss>
       <metrics>accuracy</metrics>
       <batch_size>1</batch_size>
-      <epochs>40</epochs>
+      <epochs>2</epochs>
       <plot_model>True</plot_model>
       <validation_split>0.25</validation_split>
       <num_classes>1</num_classes>

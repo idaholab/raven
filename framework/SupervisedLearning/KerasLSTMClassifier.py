@@ -57,6 +57,7 @@ class KerasLSTMClassifier(KerasClassifier):
     """
     KerasClassifier.__init__(self,messageHandler,**kwargs)
     self.printTag = 'KerasLSTMClassifier'
+    self.allowedLayers = self.basicLayers + self.__class__.kerasRcurrentLayersList
     self._dynamicHandling            = True                                 # This ROM is able to manage the time-series on its own. No need for special treatment outside
     self.layerLayout = self.initOptionDict.pop('layer_layout',None)
     if self.layerLayout is None:
@@ -76,8 +77,16 @@ class KerasLSTMClassifier(KerasClassifier):
     for index, layerName in enumerate(self.layerLayout[:-1]):
       layerDict = copy.deepcopy(self.initOptionDict[layerName])
       layerType = layerDict.pop('type').lower()
+      if layerType not in self.allowedLayers:
+        self.raiseAnError(IOError,'Layers',layerName,'with type',layerType,'is not allowed in',self.printTag)
       layerSize = layerDict.pop('dim_out',None)
       layerInstant = self.__class__.availLayer[layerType]
+      nextLayerName = self.layerLayout[index+1]
+      nextLayerType = self.initOptionDict[nextLayerName].get('type').lower()
+      if layerType in ['lstm'] and nextLayerType in ['lstm']:
+        if not layerDict.get('return_sequences'):
+          layerDict['return_sequences'] = True
+          self.raiseAWarning('return_sequences is resetted to True for layer',layerName)
       dropoutRate = layerDict.pop('rate',0)
       if layerSize is not None:
         if index == 0:
@@ -92,6 +101,8 @@ class KerasLSTMClassifier(KerasClassifier):
     #output layer
     layerName = self.layerLayout[-1]
     layerDict = self.initOptionDict.pop(layerName)
-    layerType = layerDict.pop('type')
+    layerType = layerDict.pop('type').lower()
+    if layerType not in ['dense']:
+      self.raiseAnError(IOError,'The last layer should always be Dense layer, but',layerType,'is provided!')
     layerInstant = self.__class__.availLayer[layerType]
     self.ROM.add(layerInstant(self.numClasses,**layerDict))
