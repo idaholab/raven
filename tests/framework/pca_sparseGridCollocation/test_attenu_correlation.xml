@@ -13,9 +13,9 @@
       This test is analytic in mean and variance using the "attenuation" analytic model
       documented in the analytic tests.
     </analytic>
-    <revision>
+    <revisions>
       <revision author='talbpaul' date='2019-01-09'>moving from ROM-files to ROM-dataobject</revision>
-    </revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
