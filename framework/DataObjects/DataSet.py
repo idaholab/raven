@@ -160,11 +160,11 @@ class DataSet(DataObject):
       # check if tag already exists
       ## TODO potentially slow if MANY top level tags
       if tag not in self._meta.keys():
-        new = xmlUtils.StaticXmlElement('DataSet')
+        new = xmlUtils.StaticXmlElement(tag)
         self._meta[tag] = new
       destination = self._meta[tag]
-      for target in xmlDict.keys():
-        for metric,value in xmlDict[target].items():
+      for target in sorted(list(xmlDict.keys())):
+        for metric,value in sorted(list(xmlDict[target].items())):
           # Two options: if a dict is given, means vectorMetric case
           if isinstance(value,dict):
             destination.addVector(target,metric,value)
@@ -382,9 +382,10 @@ class DataSet(DataObject):
     gKeys = set([]) if not general else set(self._meta.keys()).intersection(set(keys))
     pKeys = set([]) if not pointwise else set(self._metavars).intersection(set(keys))
     # get any left overs
-    missing = set(keys).difference(gKeys.union(pKeys))
+    missing = list(set(keys).difference(gKeys.union(pKeys)))
     if len(missing)>0:
-      self.raiseAnError(KeyError,'Some requested keys could not be found in the requested metadata:',missing)
+      missing = ', '.join(missing)
+      self.raiseAnError(KeyError,'Some requested keys could not be found in the requested metadata: ({})'.format(missing))
     meta = {}
     if pointwise:
       # TODO slow key crawl
@@ -1767,7 +1768,8 @@ class DataSet(DataObject):
     with open(fileName+'.xml','w') as ofile:
       #header
       ofile.writelines('<DataObjectMetadata name="{}">\n'.format(self.name))
-      for name,target in meta.items():
+      for name in sorted(list(meta.keys())):
+        target = meta[name]
         xml = xmlUtils.prettify(target.getRoot(),startingTabs=1,addRavenNewlines=False)
         ofile.writelines('  {}\n'.format(xml))
       ofile.writelines('</DataObjectMetadata>\n')

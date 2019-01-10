@@ -498,7 +498,7 @@ class StaticXmlElement(object):
       valueAttrsDict = {}
     targ = self._findTarget(root, target) if root.tag != target.strip() else root
     nameNode = newNode(name,attrib=attrs)
-    for key,value in valueDict.items():
+    for key,value in sorted(list(valueDict.items())):
       nameNode.append(newNode(key, text = value, attrib = valueAttrsDict.get(key, None)))
     targ.append(nameNode)
 
