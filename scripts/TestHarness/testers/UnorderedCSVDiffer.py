@@ -31,14 +31,15 @@ class UnorderedCSVDiffer:
   """
     Used for comparing two CSV files without regard for column, row orders
   """
-  def __init__(self, test_dir, out_files,relative_error=1e-10,absolute_check=False,zeroThreshold=None):
+  def __init__(self, test_dir, out_files,relative_error=1e-10,absolute_check=False,zeroThreshold=None,ignore_sign=False):
     """
       Create an UnorderedCSVDiffer class
       Note naming conventions are out of our control due to MOOSE test harness standards.
       @ In, test_dir, the directory where the test takes place
       @ In, out_files, the files to be compared.  They will be in test_dir + out_files
       @ In, relative_error, float, optional, relative error
-      @ In, absolute_check, bool, optional, if True then check absolute values instead of values
+      @ In, absolute_check, bool, optional, if True then check absolute differences in the values instead of relative differences
+      @ In, ignore_sign, bool, optional, if True then the sign will be ignored during the comparison
       @ Out, None.
     """
     self.__out_files = out_files
@@ -48,6 +49,7 @@ class UnorderedCSVDiffer:
     self.__check_absolute_values = absolute_check
     self.__rel_err = relative_error
     self.__zero_threshold = float(zeroThreshold) if zeroThreshold is not None else 0.0
+    self.__ignore_sign = ignore_sign
     if debug or whoAmI:
       print('test dir :',self.__test_dir)
       print('out files:',self.__out_files)
@@ -102,10 +104,12 @@ class UnorderedCSVDiffer:
       # find index of lowest and highest possible matches
       ## if values are floats, then matches could be as low as val(1-rel_err) and as high as val(1+rel_err)
       if matchIsNumber:
+        pval = abs(val) if self.__ignore_sign else val
+        pmatch = abs(match[idx].values) if self.__ignore_sign else match[idx].values
         # adjust for negative values
-        sign = np.sign(val)
-        lowest = np.searchsorted(match[idx].values,val*(1.0-sign*self.__rel_err))
-        highest = np.searchsorted(match[idx].values,val*(1.0+sign*self.__rel_err),side='right')-1
+        sign = np.sign(pval)
+        lowest = np.searchsorted(pmatch,pval*(1.0-sign*self.__rel_err))
+        highest = np.searchsorted(pmatch,pval*(1.0+sign*self.__rel_err),side='right')-1
       ## if not floats, then check exact matches
       else:
         lowest = np.searchsorted(match[idx].values,val)
@@ -139,6 +143,9 @@ class UnorderedCSVDiffer:
     """
     if not isNumber:
       return a == b
+    if self.__ignore_sign:
+      a = abs(a)
+      b = abs(b)
     if self.__check_absolute_values:
       return abs(a-b) < tol
     # otherwise, relative error

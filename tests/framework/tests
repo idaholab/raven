@@ -242,7 +242,7 @@
    input = 'test_iostep_load.xml'
    output = 'test_iostep_load/reprint_HistorySet.csv'
    csv = 'test_iostep_load/reprint_HistorySet_1.csv test_iostep_load/reprint_Pointset.csv'
-   xml = 'test_iostep_load/reprint_HistorySet.xml'
+   UnorderedXml = 'test_iostep_load/reprint_HistorySet.xml'
    prereq = test_output
    remove_unicode_identifier = true
    remove_whitespace = true

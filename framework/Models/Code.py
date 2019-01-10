@@ -22,6 +22,7 @@ warnings.simplefilter('default',DeprecationWarning)
 
 #External Modules------------------------------------------------------------------------------------
 import os
+import sys
 import copy
 import shutil
 import importlib
@@ -65,7 +66,7 @@ class Code(Model):
     ## Begin command line arguments tag
     ClargsInput = InputData.parameterInputFactory("clargs")
 
-    ClargsTypeInput = InputData.makeEnumType("clargsType","clargsTypeType",["text","input","output","prepend","postpend"])
+    ClargsTypeInput = InputData.makeEnumType("clargsType","clargsTypeType",["text","input","output","prepend","postpend","python"])
     ClargsInput.addParam("type", ClargsTypeInput, True)
 
     ClargsInput.addParam("arg", InputData.StringType, False)
@@ -178,7 +179,19 @@ class Code(Model):
             self.raiseAWarning('"prepend" nodes only accept "type" and "arg" attributes! Ignoring "extension"...')
           if arg == None:
             self.raiseAnError(IOError,'"arg" for clarg '+argtype+' not specified! Enter text to be used.')
-          self.clargs['pre'] = arg
+          if 'pre' in self.clargs:
+            self.clargs['pre'] = arg+' '+self.clargs['pre']
+          else:
+            self.clargs['pre'] = arg
+        elif argtype == 'python':
+          if sys.version_info.major > 2:
+            pythonName = "python3"
+          else:
+            pythonName = "python"
+          if 'pre' in self.clargs:
+            self.clargs['pre'] = self.clargs['pre']+' '+pythonName
+          else:
+            self.clargs['pre'] = pythonName
         elif argtype == 'postpend':
           if ext != None:
             self.raiseAWarning('"postpend" nodes only accept "type" and "arg" attributes! Ignoring "extension"...')
