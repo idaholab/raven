@@ -24,7 +24,7 @@
       <metrics>accuracy</metrics>
       <batch_size>1</batch_size>
       <epochs>100</epochs>
-      <dropout>0, 0</dropout>
+      <hidden_layer_dropouts>0,0</hidden_layer_dropouts>
       <num_classes>1</num_classes>
       <plot_model>True</plot_model>
       <validation_split>0.25</validation_split>

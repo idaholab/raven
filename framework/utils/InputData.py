@@ -282,6 +282,27 @@ IntegerOrIntegerTupleType.createClass("stringtype","xsd:string")
 #
 #
 #
+class IntegerTupleType(InputType):
+  """
+    A type for integer tuples "1, 2, 3" -> (1,2,3)
+  """
+
+  @classmethod
+  def convert(cls, value):
+    """
+      Converts value from string to an integer tuple.
+      @ In, value, string, the value to convert
+      @ Out, convert, tuple, the converted value
+    """
+    convert = tuple(int(x.strip()) for x in value.split(","))
+    return convert
+
+IntegerOrIntegerTupleType.createClass("stringtype","xsd:string")
+
+#
+#
+#
+#
 class EnumBaseType(InputType):
   """
     A type that allows a set list of strings
@@ -474,9 +495,10 @@ class ParameterInput(object):
     cls.subs.add(sub)
     if cls.subOrder is not None:
       cls.subOrder.append((sub,quantity))
-    elif quantity != Quantity.zero_to_infinity:
-      print("ERROR only zero to infinity is supported if Order==False ",
-            sub.getName()," in ",cls.getName())
+    # I did not see the value of the following check --- wangc
+    #elif quantity != Quantity.zero_to_infinity:
+    #  print("ERROR only zero to infinity is supported if Order==False ",
+    #        sub.getName()," in ",cls.getName())
 
   @classmethod
   def removeSub(cls, sub, quantity=Quantity.zero_to_infinity):

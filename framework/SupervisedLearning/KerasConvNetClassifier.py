@@ -79,7 +79,7 @@ class KerasConvNetClassifier(KerasClassifier):
       layerType = layerDict.pop('type').lower()
       layerSize = layerDict.pop('dim_out',None)
       layerInstant = self.__class__.availLayer[layerType]
-      dropoutRate = layerDict.pop('rate',0.25)
+      dropoutRate = layerDict.pop('rate',0.0)
       if layerSize is not None:
         if index == 0:
           self.ROM.add(layerInstant(layerSize,input_shape=self.featv.shape[1:], **layerDict))

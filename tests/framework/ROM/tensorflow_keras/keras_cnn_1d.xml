@@ -14,8 +14,7 @@
 
   <Models>
     <ROM name="modelUnderTest" subType="KerasConvNetClassifier">
-      <!-- Common setups
-           -->
+      <!-- Common setups -->
       <pivotParameter>Time</pivotParameter>
       <Features>x1,x2</Features>
       <Target>labels</Target>
@@ -34,55 +33,45 @@
         <decay>0.0</decay>
         <lr>0.001</lr>
       </optimizerSetting>
-      <!-- Setups for CNN
-           -->
-      <layer name="firstConv1D">
-          <type>conv1d</type>
+      <!-- Setups for CNN -->
+      <Conv1D name="firstConv1D">
           <activation>relu</activation>
           <strides>1</strides>
           <kernel_size>2</kernel_size>
           <padding>valid</padding>
           <dim_out>32</dim_out>
-      </layer>
-      <layer name="pooling1">
-          <type>MaxPooling1D</type>
+      </Conv1D>
+      <MaxPooling1D name="pooling1">
           <strides>2</strides>
           <pool_size>2</pool_size>
-      </layer>
-      <layer name="SecondConv1D">
-          <type>conv1d</type>
+      </MaxPooling1D>
+      <Conv1D name="SecondConv1D">
           <activation>relu</activation>
           <strides>1</strides>
           <kernel_size>2</kernel_size>
           <padding>valid</padding>
           <dim_out>32</dim_out>
-      </layer>
-      <layer name="pooling2">
-          <type>MaxPooling1D</type>
+      </Conv1D>
+      <MaxPooling1D name="pooling2">
           <strides>2</strides>
           <pool_size>2</pool_size>
-      </layer>
-      <layer name="flatten">
-          <type>Flatten</type>
-      </layer>
-      <layer name="dense1">
-          <type>dense</type>
+      </MaxPooling1D>
+      <Flatten name="flatten">
+      </Flatten>
+      <Dense name="dense1">
           <activation>relu</activation>
           <dim_out>10</dim_out>
-      </layer>
-      <layer name="dropout1">
-          <type>dropout</type>
+      </Dense>
+      <Dropout name="dropout1">
           <rate>0.25</rate>
-      </layer>
-      <layer name="dropout2">
-          <type>dropout</type>
+      </Dropout>
+      <Dropout name="dropout2">
           <rate>0.25</rate>
-      </layer>
-      <layer name="dense2">
-          <type>dense</type>
+      </Dropout>
+      <Dense name="dense2">
           <activation>softmax</activation>
-      </layer>
-      <layer_layout>firstConv1D, pooling1, dropout1, SecondConv1D, pooling2, dropout2,  flatten,dense1,dense2</layer_layout>
+      </Dense>
+      <layer_layout>firstConv1D, pooling1, dropout1, SecondConv1D, pooling2, dropout2, flatten, dense1, dense2</layer_layout>
     </ROM>
   </Models>
   
