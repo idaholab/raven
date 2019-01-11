@@ -14,11 +14,12 @@ $(CROW_DIR)/install/crow_modules/_distribution1Dpy2.so $(CROW_DIR)/install/crow_
 .INTERMEDIATE: setup_py2_intermediate
 
 setup_py2_intermediate : $(CROW_DIR)/crow_modules/distribution1Dpy2.i $(CROW_DIR)/crow_modules/interpolationNDpy2.i $(CROW_DIR)/crow_modules/randomENGpy2.i $(DISTRIBUTION_SOURCE) $(INTERPOLATION_SOURCE) $(RANDOM_CLASS_SOURCE)
-	(cd $(CROW_DIR) && unset CXX CC && CFLAGS="$$CFLAGS $(COVERAGE_COMPILE_EXTRA)" && LDFLAGS="$$LDFLAGS $(COVERAGE_LINK_EXTRA)" && export CFLAGS LDFLAGS &&if test `uname` = Darwin; then MACOSX_DEPLOYMENT_TARGET=10.9; export MACOSX_DEPLOYMENT_TARGET; fi && . ../scripts/establish_conda_env.sh --load && python ./setup.py build_ext build install --install-platlib=./install)
+	(cd $(CROW_DIR) && unset CXX CC && CFLAGS="$$CFLAGS $(COVERAGE_COMPILE_EXTRA)" && if test $NO_CONDA = 0; then . ../scripts/establish_conda_env.sh --load; fi && LDFLAGS="$$LDFLAGS $(COVERAGE_LINK_EXTRA)" && export CFLAGS LDFLAGS && python ./setup.py build_ext build install --install-platlib=./install)
 
 $(CROW_DIR)/install/crow_modules/_distribution1Dpy3.so $(CROW_DIR)/install/crow_modules/_interpolationNDpy3.so $(CROW_DIR)/install/crow_modules/_randomENGpy3.so : setup_py3_intermediate
 
 .INTERMEDIATE: setup_py3_intermediate
 
 setup_py3_intermediate : $(CROW_DIR)/crow_modules/distribution1Dpy3.i $(CROW_DIR)/crow_modules/interpolationNDpy3.i $(CROW_DIR)/crow_modules/randomENGpy3.i $(DISTRIBUTION_SOURCE) $(INTERPOLATION_SOURCE) $(RANDOM_CLASS_SOURCE)
-	(cd $(CROW_DIR) && unset CXX CC && if test `uname` = Darwin; then MACOSX_DEPLOYMENT_TARGET=10.9; export MACOSX_DEPLOYMENT_TARGET; fi && . ../scripts/establish_conda_env.sh --load && python3 ./setup3.py build_ext build install --install-platlib=./install)
+	(cd $(CROW_DIR) && unset CXX CC && if test $NO_CONDA = 0; then . ../scripts/establish_conda_env.sh --load; fi && python3 ./setup3.py build_ext build install --install-platlib=./install)
+
