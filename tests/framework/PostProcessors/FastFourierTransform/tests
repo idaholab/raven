@@ -1,0 +1,8 @@
+[Tests]
+  [./Basic]
+    type = 'RavenFramework'
+    input = 'basic.xml'
+    output = 'Basic/fft.xml'
+    UnorderedCsv = 'Basic/fft.csv Basic/fft_0.csv Basic/fft_1.csv'
+  [../]
+[]
