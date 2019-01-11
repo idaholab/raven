@@ -84,15 +84,31 @@ class KerasCustomClassifier(KerasClassifier):
         if not layerDict.get('return_sequences'):
           layerDict['return_sequences'] = True
           self.raiseAWarning('return_sequences is resetted to True for layer',layerName)
-      dropoutRate = layerDict.pop('rate',0)
       if layerSize is not None:
         if index == 0:
           self.ROM.add(layerInstant(layerSize,input_shape=self.featv.shape[1:], **layerDict))
         else:
           self.ROM.add(layerInstant(layerSize,**layerDict))
       else:
-        if layerType == 'dropout':
-          self.ROM.add(layerInstant(dropoutRate))
+        if layerType in ['dropout','spatialdropout1d','spatialdropout2d','spatialdropout3d']:
+          dropoutRate = layerDict.pop('rate',0)
+          self.ROM.add(layerInstant(dropoutRate,**layerDict))
+        elif layerType == 'activation':
+          activation = layerDict.pop('activation')
+          self.ROM.add(layerInstant(activation))
+        elif layerType == 'reshape':
+          targetShape = layerDict.pop('target_shape')
+          self.ROM.add(layerInstant(targetShape))
+        elif layerType == 'permute':
+          permutePattern = layerDict.pop('permute_pattern')
+          self.ROM.add(layerInstant(permutePattern,**layerDict))
+        elif layerType == 'repeatvector':
+          repetitionFactor = layerDict.pop('repetition_factor')
+          self.ROM.add(layerInstant(repetitionFactor))
+        # FIXME: we need to figure out how to pass functions here
+        elif layerType == 'lambda':
+          function = layerDict.pop('function')
+          self.ROM.add(layerInstant(function))
         else:
           self.ROM.add(layerInstant(**layerDict))
     #output layer
