@@ -38,6 +38,8 @@ from tensorflow.contrib.keras import layers as KerasLayers
 from tensorflow.contrib.keras import optimizers as KerasOptimizers
 from tensorflow.contrib.keras import utils as KerasUtils
 import matplotlib.pyplot as plt
+from scipy import stats
+from sklearn import preprocessing
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -280,6 +282,8 @@ class KerasClassifier(supervisedLearning):
     self.basicLayers = self.__class__.kerasCoreLayersList + self.__class__.kerasEmbeddingLayersList + \
                        self.__class__.kerasAdvancedActivationLayersList + self.__class__.kerasNormalizationLayersList + \
                        self.__class__.kerasNoiseLayersList
+    # LabelEncoder can be used to normalize labels
+    self.labelEncoder = preprocessing.LabelEncoder()
     # perform z-score normalization if True
     self.externalNorm = True
     # variale to store feature values, shape=[n_samples, n_features]
@@ -353,29 +357,30 @@ class KerasClassifier(supervisedLearning):
     # For both static  and time-dependent case, the targetValues are 2D arrays, i.e. [numSamples, numTargets]
     # For time-dependent case, the time-dependency is removed from the targetValues
     # TODO: currently we only accept single target, we may extend to multi-targets by looping over targets
+    # Another options is to use Keras Function APIs to directly build multi-targets models, two examples:
+    # https://keras.io/models/model/
+    # https://keras.io/getting-started/functional-api-guide/#multi-input-and-multi-output-models
     if len(self.target) > 1:
       self.raiseAnError(IOError, "Only single target is permitted by", self.printTag)
-    targetValues = []
-    for target in self.target:
-      if target in names:
-        tval = np.asarray(values[names.index(target)])
-        tval = list(val[-1] if len(tval.shape) > 1 else val for val in tval)
-        targetValues.append(tval)
-      else:
-        self.raiseAnError(IOError,'The target '+target+' is not in the training set')
-
-    #FIXME: when we do not support anymore numpy <1.10, remove this IF STATEMENT
-    if int(np.__version__.split('.')[1]) >= 10:
-      targetValues = np.stack(targetValues, axis=-1)
-    else:
-      sl = (slice(None),) * np.asarray(targetValues[0]).ndim + (np.newaxis,)
-      targetValues = np.concatenate([np.asarray(arr)[sl] for arr in targetValues], axis=np.asarray(targetValues[0]).ndim)
+    if self.target[0] not in names:
+      self.raiseAnError(IOError,'The target', self.target[0], 'is not in the training set')
+    tval = np.asarray(values[names.index(self.target[0])])
+    # FIXME: a better method may need to be added to process the labels
+    # retrieve the most often used label
+    targetValues = stats.mode(tval,axis=-1)[0] if len(tval.shape) > 1 else tval
+    #targetValues = list(val[-1] if len(tval.shape) > 1 else val for val in tval)
 
     # We need to 'one-hot-encode' our target variable if multi-classes are requested
     # This means that a column will be created for each output category and a binary variable is inputted for
     # each category.
     if self.numClasses > 1 and 'categorical_crossentropy' in self.lossFunction:
+      # Transform the labels (i.e. numerical or non-numerical) to normalized numerical labels
+      targetValues = self.labelEncoder.fit_transform(targetValues.ravel())
       targetValues = KerasUtils.to_categorical(targetValues)
+      if self.numClasses != targetValues.shape[-1]:
+        self.raiseAWarning('The num_classes specified by the user is not equal number of classes in the provided data!')
+        self.raiseAWarning('Reset the num_classes to be consistent with the data!')
+        self.numClasses = targetValues.shape[-1]
 
     featureValues = []
     featureValuesShape = None
@@ -471,6 +476,8 @@ class KerasClassifier(supervisedLearning):
       outcome = self.ROM.predict(featureVals)
     if self.numClasses > 1 and self.lossFunction in ['categorical_crossentropy']:
       outcome = np.argmax(outcome,axis=1)
+      # Transform labels back to original encoding
+      outcome = self.labelEncoder.inverse_transform(outcome)
     # TODO, extend to multi-targets, currently we only accept one target
     for index, target in enumerate(self.target):
       prediction[target] = outcome

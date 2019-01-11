@@ -24,7 +24,7 @@
       <loss>categorical_crossentropy</loss>
       <metrics>accuracy</metrics>
       <batch_size>1</batch_size>
-      <epochs>20</epochs>
+      <epochs>10</epochs>
       <plot_model>True</plot_model>
       <validation_split>0.25</validation_split>
       <num_classes>26</num_classes>
