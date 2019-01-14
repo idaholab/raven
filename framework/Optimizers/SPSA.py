@@ -108,7 +108,7 @@ class SPSA(GradientBasedOptimizer):
 
     self.gradDict['pertNeeded'] = self.gradDict['numIterForAve'] * (self.paramDict['pertSingleGrad']+1)
 
-    # determine the number of indpendent variables (scalar and vectors included)
+    # determine the number of independent variables (scalar and vectors included)
     stochDist = self.paramDict.get('stochasticDistribution', 'Hypersphere')
     if stochDist == 'Bernoulli':
       self.stochasticDistribution = Distributions.returnInstance('Bernoulli',self)

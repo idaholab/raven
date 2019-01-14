@@ -432,7 +432,7 @@ class GradientBasedOptimizer(Optimizer):
   def _removeRedundantTraj(self, trajToRemove, currentInput):
     """
       Local method to remove multiple trajectory
-      @ In, trajToRemove, int, identifier of the trajector to remove
+      @ In, trajToRemove, int, identifier of the trajectory to remove
       @ In, currentInput, dict, the last variable on trajectory traj
       @ Out, None
     """
