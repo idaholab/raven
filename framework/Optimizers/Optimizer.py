@@ -234,7 +234,7 @@ class Optimizer(Sampler):
     # Processes:
     #   "submitting grad eval points" - submitting new points so later we can evaluate a gradient and take an opt step
     #   "collecting grad eval points" - all the required gradient evaluation points are submitted, so we're just waiting to collect them
-    #   "submitting new opt points"   - a new optimal point has been postulated, and is being submitted for evaluationa (not actually used)
+    #   "submitting new opt points"   - a new optimal point has been postulated, and is being submitted for evaluation (not actually used)
     #   "collecting new opt points"   - the new  hypothetical optimal point has been submitted, and we're waiting on it to finish
     #   "evaluate gradient"           - localStillReady notes we have all the new grad eval points, and has flagged for gradient to be evaluated in localGenerateInput
     #   "following traj <#>"          - trajectory is following another one, given by the last word
@@ -322,7 +322,7 @@ class Optimizer(Sampler):
         # store variable name
         varName = child.parameterValues['name']
         self.optVarsInitialized[varName] = False
-        # store varible requested shape, if any
+        # store variable requested shape, if any
         if 'shape' in child.parameterValues:
           self.variableShapes[varName] = child.parameterValues['shape']
         self.fullOptVars.append(varName)
@@ -341,7 +341,7 @@ class Optimizer(Sampler):
                 self.optVarsInit['initial'][varName][trajInd] = float(initVal)
               except ValueError:
                 self.raiseAnError(ValueError,
-                    'Unable to convert to float the intial value for variable "{}" in trajectory "{}": {}'
+                    'Unable to convert to float the initial value for variable "{}" in trajectory "{}": {}'
                     .format(varName,trajInd,initVal))
             if self.optTraj == None:
               self.optTraj = list(range(len(self.optVarsInit['initial'][varName].keys())))
