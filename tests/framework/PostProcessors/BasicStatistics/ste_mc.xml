@@ -1,0 +1,121 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="all">
+  <RunInfo>
+    <WorkingDir>ste</WorkingDir>
+    <Sequence>SamplingMirrowModelMC,PP1mc</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <TestInfo>
+    <name>framework/PostProcessors/BasicStatistics.ste</name>
+    <author>wangc</author>
+    <created>2018-12-13</created>
+    <classesTested>PostProcessors.BasicStatistics</classesTested>
+    <description>
+        This test checks standard error calculations of statistics moments in basic statistics 
+        using Monte Carlo samples.
+    </description>
+    <revisions>
+      <revision author="wangc" date="2018-12-13">
+          In PR #882, the standard errors on statistics moments are implemented, these quantities are stored in
+          the pointwise metadata, and will be printed out in the output csv files by default.
+          This test will test the Monte Carlo-based weighted standard errors calculations. The equivalent sample size
+          will be equal the number of samples in this case, and then standard errors will be computed with
+          unbiased standard deviations and/or the equivalent sample size.
+      </revision>
+    </revisions>
+  </TestInfo>
+
+  <Models>
+    <ExternalModel ModuleToLoad="simpleMirrowModel" name="mirrowModel" subType="">
+      <variables>x,y,x1</variables>
+    </ExternalModel>
+    <PostProcessor name="stePP" subType="BasicStatistics" verbosity="debug">
+      <skewness prefix="skew">x,y</skewness>
+      <expectedValue prefix="mean">x,y</expectedValue>
+      <kurtosis prefix="kurt">x,y</kurtosis>
+      <median prefix="median">x,y</median>
+      <variance prefix="var">x,y</variance>
+      <sigma prefix="sigma">x,y</sigma>
+    </PostProcessor>
+  </Models>
+
+  <Distributions>
+    <Normal name="x0_distrib">
+      <mean>100</mean>
+      <sigma>50.0</sigma>
+    </Normal>
+    <Normal name="y0_distrib">
+      <mean>100</mean>
+      <sigma>50.0</sigma>
+    </Normal>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="MC_external">
+      <samplerInit>
+        <limit>1000</limit>
+      </samplerInit>
+      <variable name="x">
+        <distribution>x0_distrib</distribution>
+      </variable>
+      <variable name="y">
+        <distribution>y0_distrib</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="SamplingMirrowModelMC" re-seeding="20021986">
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder2</Input>
+      <Model class="Models" type="ExternalModel">mirrowModel</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
+      <Output class="DataObjects" type="PointSet">outputDataMC</Output>
+    </MultiRun>
+    <PostProcess name="PP1mc">
+      <Input class="DataObjects" type="PointSet">outputDataMC</Input>
+      <Model class="Models" type="PostProcessor">stePP</Model>
+      <Output class="DataObjects" type="PointSet">basicStatPP</Output>
+      <Output class="OutStreams" type="Print">basicStatPP_dump</Output>
+    </PostProcess>
+  </Steps>
+
+  <OutStreams>
+    <Print name="basicStatPP_dump">
+      <type>csv</type>
+      <source>basicStatPP</source>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="inputPlaceHolder2">
+      <Input>x,y</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="outputDataMC">
+      <Input>x,y</Input>
+      <Output>x1</Output>
+    </PointSet>
+    <PointSet name="basicStatPP">
+      <Output>vars</Output>
+    </PointSet>
+  </DataObjects>
+
+  <VariableGroups>
+    <Group name="vars">
+                 skew_x,
+                 skew_y,
+                 mean_x,
+                 mean_y,
+                 kurt_x,
+                 kurt_y,
+                 median_x,
+                 median_y,
+                 var_x,
+                 var_y,
+                 sigma_x,
+                 sigma_y
+    </Group>
+  </VariableGroups>
+
+</Simulation>

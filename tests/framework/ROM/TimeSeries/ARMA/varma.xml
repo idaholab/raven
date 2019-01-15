@@ -17,6 +17,12 @@
        to see that the correlation is working correctly.
     </description>
     <revisions>
+      <revision author="wangc" date="2018-12-18">
+          In PR #882, the standard errors on statistics moments are implemented, these quantities are stored in
+          the pointwise metadata, and will be printed out in the output csv files by default.
+          In order to avoid regolding this test, the optional node 'what' with text values 'input, output' is added.
+          In this case, only the user requested variables as specified in the DataObjects are printed out. 
+      </revision>
       <revision author='talbpaul' date='2018-09-13'>changed Pmax and Pmin to P (same for Q)</revision>
     </revisions>
   </TestInfo>
@@ -142,6 +148,7 @@
     <Print name="stats">
       <type>csv</type>
       <source>stats</source>
+      <what>input,output</what>
     </Print>
     <Plot name="plot_samples" overwrite="false">
       <filename>plot_VARMA</filename>

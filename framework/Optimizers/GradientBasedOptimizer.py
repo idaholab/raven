@@ -79,7 +79,7 @@ class GradientBasedOptimizer(Optimizer):
     self.perturbationIndices         = []              # in this list we store the indeces that correspond to the perturbation. It is not ideal but it is quick and dirty now
 
     # register metadata
-    self.addMetaKeys('trajID','varsUpdate','prefix')
+    self.addMetaKeys(['trajID','varsUpdate','prefix'])
 
   def localInputAndChecks(self, xmlNode):
     """
