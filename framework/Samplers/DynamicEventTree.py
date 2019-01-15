@@ -950,4 +950,4 @@ class DynamicEventTree(Grid):
       self.branchProbabilities[key] = [self.distDict[key].cdf(float(self.branchValues[key][index])) for index in range(len(self.branchValues[key]))]
     self.limit = sys.maxsize
     # add expected metadata
-    self.addMetaKeys(*['RAVEN_parentID','RAVEN_isEnding'])
+    self.addMetaKeys(['RAVEN_parentID','RAVEN_isEnding'])

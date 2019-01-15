@@ -1,0 +1,120 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="all">
+  <RunInfo>
+    <WorkingDir>steGrid</WorkingDir>
+    <Sequence>SamplingMirrowModelMC,PP1mc</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <TestInfo>
+    <name>framework/PostProcessors/BasicStatistics.steGrid</name>
+    <author>wangc</author>
+    <created>2018-12-13</created>
+    <classesTested>PostProcessors.BasicStatistics</classesTested>
+    <description>
+        This test checks standard error calculations of statistics moments in basic statistics 
+        using Grid samples.
+    </description>
+    <revisions>
+      <revision author="wangc" date="2018-12-13">
+          In PR #882, the standard errors on statistics moments are implemented, these quantities are stored in
+          the pointwise metadata, and will be printed out in the output csv files by default.
+          This test will test the grid-based weighted standard errors calculations. The equivalent sample size
+          will be computed first using the probability weights, and then standard errors will be computed with
+          unbiased standard deviations and/or the equivalent sample size.
+      </revision>
+    </revisions>
+  </TestInfo>
+
+  <Models>
+    <ExternalModel ModuleToLoad="simpleMirrowModel" name="mirrowModel" subType="">
+      <variables>x,y,x1,y1</variables>
+    </ExternalModel>
+    <PostProcessor name="stePP" subType="BasicStatistics" verbosity="debug">
+      <skewness prefix="skew">x1,y1</skewness>
+      <expectedValue prefix="mean">x1,y1</expectedValue>
+      <kurtosis prefix="kurt">x1,y1</kurtosis>
+      <median prefix="median">x1,y1</median>
+      <variance prefix="var">x1,y1</variance>
+      <sigma prefix="sigma">x1,y1</sigma>
+    </PostProcessor>
+  </Models>
+
+  <Distributions>
+    <Normal name="x0_distrib">
+      <mean>1.</mean>
+      <sigma>.5</sigma>
+    </Normal>
+    <Normal name="y0_distrib">
+      <mean>1.</mean>
+      <sigma>.5</sigma>
+    </Normal>
+  </Distributions>
+
+  <Samplers>
+    <Grid name="Grid_external">
+      <variable name="x">
+        <distribution>x0_distrib</distribution>
+        <grid construction="equal" steps="20" type="CDF">0.0013 0.998</grid>
+      </variable>
+      <variable name="y">
+        <distribution>y0_distrib</distribution>
+        <grid construction="equal" steps="20" type="value">-0.5 2.5</grid>
+      </variable>
+    </Grid>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="SamplingMirrowModelMC" re-seeding="20021986">
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder2</Input>
+      <Model class="Models" type="ExternalModel">mirrowModel</Model>
+      <Sampler class="Samplers" type="Grid">Grid_external</Sampler>
+      <Output class="DataObjects" type="PointSet">outputDataMC</Output>
+    </MultiRun>
+    <PostProcess name="PP1mc">
+      <Input class="DataObjects" type="PointSet">outputDataMC</Input>
+      <Model class="Models" type="PostProcessor">stePP</Model>
+      <Output class="DataObjects" type="PointSet">basicStatPP</Output>
+      <Output class="OutStreams" type="Print">basicStatPP_dump</Output>
+    </PostProcess>
+  </Steps>
+
+  <OutStreams>
+    <Print name="basicStatPP_dump">
+      <type>csv</type>
+      <source>basicStatPP</source>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="inputPlaceHolder2">
+      <Input>x,y</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="outputDataMC">
+      <Input>x,y</Input>
+      <Output>x1,y1</Output>
+    </PointSet>
+    <PointSet name="basicStatPP">
+      <Output>vars</Output>
+    </PointSet>
+  </DataObjects>
+
+  <VariableGroups>
+    <Group name="vars">
+                 skew_x1,
+                 skew_y1,
+                 mean_x1,
+                 mean_y1,
+                 kurt_x1,
+                 kurt_y1,
+                 median_x1,
+                 median_y1,
+                 var_x1,
+                 var_y1,
+                 sigma_x1,
+                 sigma_y1
+    </Group>
+  </VariableGroups>
+
+</Simulation>
