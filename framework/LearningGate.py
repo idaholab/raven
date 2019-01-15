@@ -574,7 +574,7 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta, BaseType), Mess
       self.raiseAnError(RuntimeError, "ROM "+self.initializationOptions['name']+" has not been trained yet and, consequentially, can not be evaluated!")
     resultsDict = {}
     if isinstance(self.supervisedContainer[0], SupervisedLearning.Collection):
-      resultsDict = self._evaluateByCluster(request)
+      resultsDict = self.supervisedContainer[0].evaluate(request)
     else:
       for rom in self.supervisedContainer:
         sliceEvaluation = rom.evaluate(request)

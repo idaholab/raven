@@ -94,7 +94,7 @@
       </Fourier>
       <FourierOrder>1,4,2,2,4</FourierOrder>
       <Segment>
-        <subspace pivotLength='604800'>Time</subspace>
+        <subspace pivotLength='604800' shift='zero'>Time</subspace>
       </Segment>
     </ROM>
     <PostProcessor name="stats" subType="BasicStatistics">
