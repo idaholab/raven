@@ -732,7 +732,7 @@ class GradientBasedOptimizer(Optimizer):
       Pops the first point off the submission queue (or errors if empty).  By default denormalized the point before returning.
       @ In, traj, int, the trajectory from whose queue we should obtain an entry
       @ In, denorm, bool, optional, if True the input data will be denormalized before returning
-      @ Out, prefix, #_#_#
+      @ Out, prefix, str, #_#_#
       @ Out, point, dict, {var:val}
     """
     try:
