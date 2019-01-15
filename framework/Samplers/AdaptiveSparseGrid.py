@@ -236,7 +236,7 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
     #if we're not ready elsewhere, just be not ready
     if ready==False:
       return ready
-    #if we still have a list of points to sample, just keep on trucking.
+    #if we still have a list of points to sample, just keep on tracking.
     if len(self.neededPoints)>0:
       return True
     #if points all submitted but not all done, not ready for now.
