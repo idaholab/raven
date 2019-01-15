@@ -35,7 +35,7 @@ def inPython3():
 
 ## working Conda 4.5.4, May 2018
 modules_to_try = [("h5py"      ,'h5py.__version__'      ,'2.4.0' ,'2.7.1' ,None   ), # 2.6.0
-                  ("numpy"     ,'numpy.__version__'     ,"1.8.0" ,"1.12.1",None   ),
+                  ("numpy"     ,'numpy.__version__'     ,"1.13.3" ,"1.15.4",None   ),
                   ("scipy"     ,'scipy.__version__'     ,"1.1.0" ,"1.1.0" ,None   ),
                   ("sklearn"   ,'sklearn.__version__'   ,"0.19.1","0.19.1",None   ),
                   ("pandas"    ,'pandas.__version__'    ,"0.20.0","0.20.3",None   ),
@@ -47,7 +47,7 @@ modules_to_try = [("h5py"      ,'h5py.__version__'      ,'2.4.0' ,'2.7.1' ,None 
                   # hdf5 of at least 1.10.1.  For now, we avoid using netCDF until we transition from
                   # HDF5 databases and drop them like hot rocks.
                   #
-                  ("tensorflow",'tensorflow.__version__',"1.1.0" ,"1.1.0" ,None   ),
+                  ("tensorflow",'tensorflow.__version__',"1.12.0" ,"1.12.0" ,None   ),
                   # On Windows conda, there are no Python 2.7-compatible versions of TensorFlow, although
                   ## these exist on Mac and Linux condas.  Darn.
                   ("statsmodels",'statsmodels.__version__',"0.8.0","0.8.0" ,None   ),
@@ -76,7 +76,7 @@ __condaList = [("h5py"        ,__lookUpPreferredVersion("h5py"      )),
                ("netcdf4"     ,__lookUpPreferredVersion("netCDF4"   )),
                ("matplotlib"  ,__lookUpPreferredVersion("matplotlib")),
                ("statsmodels" ,__lookUpPreferredVersion("statsmodels")),
-               #("tensorflow"  ,__lookUpPreferredVersion("tensorflow")),
+               ("tensorflow"  ,__lookUpPreferredVersion("tensorflow")),
                ("python"      ,"2.7"),
                ("hdf5"        ,"1.8.18"),
                ("swig"        ,""),
@@ -85,8 +85,10 @@ __condaList = [("h5py"        ,__lookUpPreferredVersion("h5py"      )),
                ("graphviz"      ,""),
                ("coverage"    ,""),
                ("lxml"        ,""),
-               ("tensorflow"  ,""),
-               #("nomkl"       ,""),
+               ("tensorflow"  ,"")
+               # nomkl is required for tensorflow
+               # https://github.com/openai/spinningup/issues/16
+               #("nomkl"       ,"")
                #("numexpr"     ,"")
                ]
 # libraries to install with conda-forge

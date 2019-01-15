@@ -40,11 +40,17 @@ from tensorflow.contrib.keras import utils as KerasUtils
 import matplotlib.pyplot as plt
 from scipy import stats
 from sklearn import preprocessing
+import os
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
 from .SupervisedLearning import supervisedLearning
 #Internal Modules End--------------------------------------------------------------------------------
+
+# This is needed when using conda to build tensorflow 1.12 with python 2.7
+# Check issue: https://github.com/tensorflow/tensorflow/issues/23999
+os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
+
 
 class KerasClassifier(supervisedLearning):
   """
