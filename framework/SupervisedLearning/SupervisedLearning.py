@@ -93,9 +93,10 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
       @ In, kwargs, dict, an arbitrary list of kwargs
       @ Out, None
     """
-    self.printTag          = 'Supervised'
-    self.messageHandler    = messageHandler
+    self.printTag = 'Supervised'
+    self.messageHandler = messageHandler
     self._dynamicHandling = False
+    self._assembledObjects = None           # objects assembled by the ROM Model, passed through.
     #booleanFlag that controls the normalization procedure. If true, the normalization is performed. Default = True
     if kwargs != None:
       self.initOptionDict = kwargs
@@ -124,6 +125,23 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
       @ Out, None
     """
     pass #Overloaded by (at least) GaussPolynomialRom
+
+  def setAssembledObjects(self, assembledObjects):
+    """
+      Allows providing entities from the Assembler to be used in supervised learning algorithms.
+      @ In, assembledObjects, dict, assembled objects that the ROM model requested as an Assembler.
+      @ Out, None
+    """
+    self._assembledObjects = assembledObjects
+
+  def readAssembledObjects(self):
+    """
+      Collects the entities from the Assembler as needed.
+      In general, SVL don't need any assembled objects.
+      @ In, None
+      @ Out, None
+    """
+    pass
 
   def train(self,tdict):
     """

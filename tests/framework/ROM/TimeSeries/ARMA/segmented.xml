@@ -93,9 +93,9 @@
            86400
       </Fourier>
       <FourierOrder>1,4,2,2,4</FourierOrder>
-      <Cluster>
-        <subspace pivotLength='604800' shift='zero'>Time</subspace>
-      </Cluster>
+      <Segment>
+        <subspace pivotLength='604800'>Time</subspace>
+      </Segment>
     </ROM>
     <PostProcessor name="stats" subType="BasicStatistics">
       <expectedValue prefix="mean">Demand</expectedValue>
