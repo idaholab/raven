@@ -44,6 +44,11 @@ parser.add_argument('--heavy', action='store_true',
 
 parser.add_argument('--list-testers', action='store_true', dest='list_testers',
                     help='Print out the possible testers')
+parser.add_argument('--test-dir', dest='test_dir',
+                    help='specify where the tests are located')
+
+parser.add_argument('--scripts-dir', dest='scripts_dir',
+                    help='specify where the scripts are located')
 
 args = parser.parse_args()
 
@@ -202,18 +207,24 @@ if __name__ == "__main__":
 
   test_re = re.compile(args.test_re_raw)
 
-  #XXX fixme to find a better way to the tests directory
-
   this_dir = os.path.abspath(os.path.dirname(__file__))
   up_one_dir = os.path.dirname(this_dir)
-  base_test_dir = os.path.join(up_one_dir, "tests")
+  if args.test_dir is None:
+    #XXX fixme to find a better way to the tests directory
+
+    base_test_dir = os.path.join(up_one_dir, "tests")
+  else:
+    base_test_dir = args.test_dir
 
 
   test_list = get_test_lists(base_test_dir)
 
   base_testers, base_differs = get_testers_and_differs(this_dir)
-  testers, differs = get_testers_and_differs(os.path.join(up_one_dir, "scripts",
-                                                          "TestHarness", "testers"))
+  if args.scripts_dir is None:
+    scripts_dir = os.path.join(up_one_dir, "scripts", "TestHarness", "testers")
+  else:
+    scripts_dir = args.scripts_dir
+  testers, differs = get_testers_and_differs(scripts_dir)
   testers.update(base_testers)
   differs.update(base_differs)
 
