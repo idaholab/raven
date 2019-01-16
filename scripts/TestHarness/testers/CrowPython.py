@@ -70,7 +70,7 @@ class CrowPython(Tester):
       @ Out, check_runnable, boolean, True if this test can run.
     """
     if self.specs['requires_swig2'] and not CrowPython.has_swig2:
-      self.set_status('skipped (No swig 2.0 found)', self.bucket_skip)
+      self.set_skip('skipped (No swig 2.0 found)')
       return False
     return True
 
@@ -83,7 +83,7 @@ class CrowPython(Tester):
         @ Out: a tuple with the error return code and the output passed in.
     """
     if self.results.exit_code != 0:
-      self.set_status(str(self.results.exit_code), self.bucket_fail)
+      self.set_fail(str(self.results.exit_code))
       return output
     self.set_success()
     return output

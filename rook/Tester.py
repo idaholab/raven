@@ -150,7 +150,7 @@ class TestResult:
       @ In, None
       @ Out, None
     """
-    self.bucket = Tester.bucket_not_set
+    self.group = Tester.group_not_set
     self.exit_code = None
     self.message = None
     self.output = None
@@ -283,13 +283,13 @@ class Tester:
   This is the base class for something that can run tests.
   """
 
-  #Various possible status buckets.
-  bucket_skip = 0
-  bucket_fail = 1
-  bucket_diff = 2
-  bucket_success = 3
-  bucket_timed_out = 4
-  bucket_not_set = 5
+  #Various possible status groups.
+  group_skip = 0
+  group_fail = 1
+  group_diff = 2
+  group_success = 3
+  group_timed_out = 4
+  group_not_set = 5
 
   success_message = "SUCCESS"
 
@@ -375,11 +375,11 @@ class Tester:
     results = self.run_backend(data)
     if not expected_fail:
       return results
-    if results.bucket == self.bucket_success:
-      results.bucket = self.bucket_fail
+    if results.group == self.group_success:
+      results.group = self.group_fail
       results.message = "Unexpected Success"
     else:
-      results.bucket = self.bucket_success
+      results.group = self.group_success
     return results
 
   def __get_timeout(self):
@@ -404,15 +404,15 @@ class Tester:
       @ Out, results, TestResult, the results of the test.
     """
     if self.specs['skip'] is not False:
-      self.results.bucket = self.bucket_skip
+      self.results.group = self.group_skip
       self.results.message = self.specs['skip']
       return self.results
     if self.specs['heavy'] is not False and not self.__run_heavy:
-      self.results.bucket = self.bucket_skip
+      self.results.group = self.group_skip
       self.results.message = "SKIPPED (Heavy)"
       return self.results
     if self.specs['heavy'] is False and self.__run_heavy:
-      self.results.bucket = self.bucket_skip
+      self.results.group = self.group_skip
       self.results.message = "SKIPPED (not Heavy)"
       return self.results
     if not self.check_runnable():
@@ -432,7 +432,7 @@ class Tester:
                                  cwd=directory,
                                  universal_newlines=True)
     except IOError as ioe:
-      self.results.bucket = self.bucket_fail
+      self.results.group = self.group_fail
       self.results.message = "FAILED "+str(ioe)
       return self.results
     timed_out = False
@@ -456,30 +456,30 @@ class Tester:
     self.results.runtime = process_time
     self.results.output = output
     if timed_out:
-      self.results.bucket = self.bucket_timed_out
+      self.results.group = self.group_timed_out
       self.results.message = "Timed Out"
       return self.results
     self.process_results(output)
     for differ in self.__differs:
       same, message = differ.check_output()
       if not same:
-        if self.results.bucket == self.bucket_success:
-          self.results.bucket = self.bucket_diff
+        if self.results.group == self.group_success:
+          self.results.group = self.group_diff
           self.results.message = "" #remove success message.
         self.results.message += "\n" + message
     return self.results
 
   @staticmethod
-  def get_bucket_name(bucket):
+  def get_group_name(group):
     """
-      Returns the name of this bucket
-      @ In, bucket, int, bucket constant
-      @ Out, get_bucket_name, string, name of bucket constant
+      Returns the name of this group
+      @ In, group, int, group constant
+      @ Out, get_group_name, string, name of group constant
     """
     names = ["Skipped", "Failed", "Diff", "Success", "Timeout", "NOT_SET"]
-    if 0 <= bucket < len(names):
-      return names[bucket]
-    return "UNKNOWN BUCKET"
+    if 0 <= group < len(names):
+      return names[group]
+    return "UNKNOWN GROUP"
 
   def check_runnable(self):
     """
@@ -495,18 +495,35 @@ class Tester:
       @ In, None
       @ Out, None
     """
-    self.results.bucket = self.bucket_success
-    self.results.message = Tester.get_bucket_name(self.results.bucket)
+    self.results.group = self.group_success
+    self.results.message = Tester.get_group_name(self.results.group)
 
-  def set_status(self, message, bucket):
+  def set_fail(self, message):
     """
-      Sets the message string and the bucket type
-      @ In, message, string, string description of the status.
-      @ In, bucket, int, bucket constant of the status
+      Sets the message string when failing
+      @ In, message, string, string description of the failure
       @ Out, None
     """
     self.results.message = message
-    self.results.bucket = bucket
+    self.results.group = self.group_fail
+
+  def set_skip(self, message):
+    """
+      Sets the message string when skipping
+      @ In, message, string, string description of the reason to skip
+      @ Out, None
+    """
+    self.results.message = message
+    self.results.group = self.group_skip
+
+  def set_diff(self, message):
+    """
+      Sets the message string when failing for a diff
+      @ In, message, string, string description of the difference
+      @ Out, None
+    """
+    self.results.message = message
+    self.results.group = self.group_diff
 
   def process_results(self, output):
     """

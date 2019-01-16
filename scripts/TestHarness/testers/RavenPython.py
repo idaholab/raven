@@ -112,21 +112,19 @@ class RavenPython(Tester):
     """
     i = 0
     if len(self.minimum_libraries) % 2:
-      self.set_status('skipped (libraries are not matched to versions numbers: '
-                      +str(self.minimum_libraries)+')', self.bucket_skip)
+      self.set_skip('skipped (libraries are not matched to versions numbers: '
+                    +str(self.minimum_libraries)+')')
       return False
     while i < len(self.minimum_libraries):
       library_name = self.minimum_libraries[i]
       library_version = self.minimum_libraries[i+1]
       found, _, actual_version = RavenUtils.module_report(library_name, library_name+'.__version__')
       if not found:
-        self.set_status('skipped (Unable to import library: "'+library_name+'")',
-                        self.bucket_skip)
+        self.set_skip('skipped (Unable to import library: "'+library_name+'")')
         return False
       if distutils.version.LooseVersion(actual_version) < \
          distutils.version.LooseVersion(library_version):
-        self.set_status('skipped (Outdated library: "'+library_name+'")',
-                        self.bucket_skip)
+        self.set_skip('skipped (Outdated library: "'+library_name+'")')
         return False
       i += 2
 
@@ -136,37 +134,33 @@ class RavenPython(Tester):
         args_list.extend(self.required_executable_check_flags)
         ret_value = subprocess.call(args_list, stdout=subprocess.PIPE)
         if ret_value != 0:
-          self.set_status('skipped (Failing executable: "'
-                          +self.required_executable+'")', self.bucket_skip)
+          self.set_skip('skipped (Failing executable: "'
+                        +self.required_executable+'")')
           return False
       except Exception:
-        self.set_status('skipped (Error when trying executable: "'
-                        +self.required_executable+'")', self.bucket_skip)
+        self.set_skip('skipped (Error when trying executable: "'
+                      +self.required_executable+'")')
         return False
 
     if self.specs['requires_swig2'] and not RavenPython.has_swig2:
-      self.set_status('skipped (No swig 2.0 found)', self.bucket_skip)
+      self.set_skip('skipped (No swig 2.0 found)')
       return False
     missing, too_old, _ = RavenUtils.check_for_missing_modules()
     if len(missing) > 0:
-      self.set_status('skipped (Missing python modules: '+" ".join(missing)+
-                      " PYTHONPATH="+os.environ.get("PYTHONPATH", "")+')',
-                      self.bucket_skip)
+      self.set_skip('skipped (Missing python modules: '+" ".join(missing)+
+                    " PYTHONPATH="+os.environ.get("PYTHONPATH", "")+')')
       return False
     if len(too_old) > 0 and RavenUtils.check_versions():
-      self.set_status('skipped (Old version python modules: '+" ".join(too_old)+
-                      " PYTHONPATH="+os.environ.get("PYTHONPATH", "")+')',
-                      self.bucket_skip)
+      self.set_skip('skipped (Old version python modules: '+" ".join(too_old)+
+                    " PYTHONPATH="+os.environ.get("PYTHONPATH", "")+')')
       return False
     for lib in self.required_libraries:
       found, _, _ = RavenUtils.module_report(lib, '')
       if not found:
-        self.set_status('skipped (Unable to import library: "'+lib+'")',
-                        self.bucket_skip)
+        self.set_skip('skipped (Unable to import library: "'+lib+'")')
         return False
     if self.specs['python3_only'] and not RavenUtils.in_python_3():
-      self.set_status('Python 3 only',
-                      self.bucket_skip)
+      self.set_skip('Python 3 only')
       return False
 
     return True
@@ -178,6 +172,6 @@ class RavenPython(Tester):
       @ Out, None
     """
     if self.results.exit_code != 0:
-      self.set_status(str(self.results.exit_code), self.bucket_fail)
+      self.set_fail(str(self.results.exit_code))
       return
     self.set_success()

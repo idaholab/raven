@@ -163,22 +163,19 @@ class RavenFramework(Tester):
     # remove tests based on skipping criteria
     ## required module is missing
     if len(missing) > 0:
-      self.set_status('skipped (Missing python modules: '+" ".join(missing)+
-                      " PYTHONPATH="+os.environ.get("PYTHONPATH", "")+')',
-                      self.bucket_skip)
+      self.set_skip('skipped (Missing python modules: '+" ".join(missing)+
+                    " PYTHONPATH="+os.environ.get("PYTHONPATH", "")+')')
       return False
     ## required module is present, but too old
     if len(too_old) > 0  and RavenUtils.check_versions():
-      self.set_status('skipped (Old version python modules: '+" ".join(too_old)+
-                      " PYTHONPATH="+os.environ.get("PYTHONPATH", "")+')',
-                      self.bucket_skip)
+      self.set_skip('skipped (Old version python modules: '+" ".join(too_old)+
+                    " PYTHONPATH="+os.environ.get("PYTHONPATH", "")+')')
       return False
     ## an environment varible value causes a skip
     if len(self.specs['skip_if_env']) > 0:
       env_var = self.specs['skip_if_env']
       if env_var in os.environ:
-        self.set_status('skipped (found environmental variable "'+env_var+'")',
-                        self.bucket_skip)
+        self.set_skip('skipped (found environmental variable "'+env_var+'")')
         return False
     ## OS
     if len(self.specs['skip_if_OS']) > 0:
@@ -189,56 +186,47 @@ class RavenFramework(Tester):
       if current_os == 'darwin':
         current_os = 'mac'
       if current_os in skip_os:
-        self.set_status('skipped (OS is "{}")'.format(current_os),
-                        self.bucket_skip)
+        self.set_skip('skipped (OS is "{}")'.format(current_os))
         return False
     for lib in self.required_libraries:
       found, _, _ = RavenUtils.module_report(lib, '')
       if not found:
-        self.set_status('skipped (Unable to import library: "'+lib+'")',
-                        self.bucket_skip)
+        self.set_skip('skipped (Unable to import library: "'+lib+'")')
         return False
     if self.specs['python3_only'] and not RavenUtils.in_python_3():
-      self.set_status('Python 3 only',
-                      self.bucket_skip)
+      self.set_skip('Python 3 only')
       return False
 
     i = 0
     if len(self.minimum_libraries) % 2:
-      self.set_status('skipped (libraries are not matched to versions numbers: '
-                      +str(self.minimum_libraries)+')',
-                      self.bucket_skip)
+      self.set_skip('skipped (libraries are not matched to versions numbers: '
+                    +str(self.minimum_libraries)+')')
       return False
     while i < len(self.minimum_libraries):
       library_name = self.minimum_libraries[i]
       library_version = self.minimum_libraries[i+1]
       found, _, actual_version = RavenUtils.module_report(library_name, library_name+'.__version__')
       if not found:
-        self.set_status('skipped (Unable to import library: "'+library_name+'")',
-                        self.bucket_skip)
+        self.set_skip('skipped (Unable to import library: "'+library_name+'")')
         return False
       if distutils.version.LooseVersion(actual_version) < \
          distutils.version.LooseVersion(library_version):
-        self.set_status('skipped (Outdated library: "'+library_name+'")',
-                        self.bucket_skip)
+        self.set_skip('skipped (Outdated library: "'+library_name+'")')
         return False
       i += 2
 
     if len(self.required_executable) > 0 and \
        not os.path.exists(self.required_executable):
-      self.set_status('skipped (Missing executable: "'+self.required_executable+'")',
-                      self.bucket_skip)
+      self.set_skip('skipped (Missing executable: "'+self.required_executable+'")')
       return False
     try:
       if len(self.required_executable) > 0 and \
          subprocess.call([self.required_executable], stdout=subprocess.PIPE) != 0:
-        self.set_status('skipped (Failing executable: "'+self.required_executable+'")',
-                        self.bucket_skip)
+        self.set_skip('skipped (Failing executable: "'+self.required_executable+'")')
         return False
     except Exception as exp:
-      self.set_status('skipped (Error when trying executable: "'
-                      +self.required_executable+'")'+str(exp),
-                      self.bucket_skip)
+      self.set_skip('skipped (Error when trying executable: "'
+                    +self.required_executable+'")'+str(exp))
       return False
     filename_set = set()
     duplicate_files = []
@@ -248,9 +236,8 @@ class RavenFramework(Tester):
       else:
         duplicate_files.append(filename)
     if len(duplicate_files) > 0:
-      self.set_status('[incorrect test] duplicated files specified: '+
-                      " ".join(duplicate_files),
-                      self.bucket_skip)
+      self.set_skip('[incorrect test] duplicated files specified: '+
+                    " ".join(duplicate_files))
       return False
     return True
 
@@ -290,10 +277,9 @@ class RavenFramework(Tester):
         missing.append(filename)
 
     if len(missing) > 0:
-      self.set_status('CWD '+os.getcwd()+' METHOD '+
-                      os.environ.get("METHOD", "?")+
-                      ' Expected files not created '+" ".join(missing),
-                      self.bucket_fail)
+      self.set_fail('CWD '+os.getcwd()+' METHOD '+
+                    os.environ.get("METHOD", "?")+
+                    ' Expected files not created '+" ".join(missing))
       return
 
     #image
@@ -305,7 +291,7 @@ class RavenFramework(Tester):
     img_diff = ImageDiff(self.specs['test_dir'], self.img_files, **image_opts)
     (img_same, img_messages) = img_diff.diff()
     if not img_same:
-      self.set_status(img_messages, self.bucket_diff)
+      self.set_diff(img_messages)
       return
 
     self.set_success()

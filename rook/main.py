@@ -123,16 +123,16 @@ def process_result(index, _input_data, output_data):
     @ In, output_data, Tester.TestResult the output data passed to the function
     @ Out, None
   """
-  bucket = output_data.bucket
+  group = output_data.group
   process_test_name = test_name_list[index]
-  if bucket == Tester.bucket_success:
+  if group == Tester.group_success:
     results["pass"] += 1
     for postreq in function_postreq.get(process_test_name, []):
       if postreq in name_to_id:
         job_id = name_to_id[postreq]
         print("Enabling", postreq, job_id)
         run_pool.enable_job(job_id)
-  elif bucket == Tester.bucket_skip:
+  elif group == Tester.group_skip:
     results["skipped"] += 1
     print(output_data.message)
   else:
@@ -142,7 +142,7 @@ def process_result(index, _input_data, output_data):
     print(output_data.message)
   number_done = sum(results.values())
   print("({}/{}) {:7s} ({}) {}".format(number_done, len(function_list),
-                                       Tester.get_bucket_name(bucket),
+                                       Tester.get_group_name(group),
                                        sec_format(output_data.runtime),
                                        process_test_name))
 if __name__ == "__main__":
@@ -250,12 +250,12 @@ if __name__ == "__main__":
     print(path)
 
   csv_report = open("test_report.csv", "w")
-  csv_report.write(",".join(["name", "passed", "bucket", "time"])+"\n")
+  csv_report.write(",".join(["name", "passed", "group", "time"])+"\n")
   for result, test_name in zip(output_list, test_name_list):
     if result is not None:
-      bucket_name = Tester.get_bucket_name(result.bucket)
-      out_line = ",".join([test_name, str(result.bucket == Tester.bucket_success),
-                           bucket_name, str(result.runtime)])
+      group_name = Tester.get_group_name(result.group)
+      out_line = ",".join([test_name, str(result.group == Tester.group_success),
+                           group_name, str(result.runtime)])
     else:
       out_line = ",".join([test_name, str(False), "NO_PREREQ", str(0.0)])
     csv_report.write(out_line+"\n")

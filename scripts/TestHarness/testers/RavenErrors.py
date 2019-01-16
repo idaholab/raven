@@ -84,14 +84,12 @@ class RavenErrors(Tester):
     """
     missing, too_old, _ = RavenUtils.check_for_missing_modules()
     if len(missing) > 0:
-      self.set_status('skipped (Missing python modules: '+" ".join(missing)+
-                      " PYTHONPATH="+os.environ.get("PYTHONPATH", "")+')',
-                      self.bucket_skip)
+      self.set_skip('skipped (Missing python modules: '+" ".join(missing)+
+                    " PYTHONPATH="+os.environ.get("PYTHONPATH", "")+')')
       return False
     if len(too_old) > 0:
-      self.set_status('skipped (Old version python modules: '+" ".join(too_old)+
-                      " PYTHONPATH="+os.environ.get("PYTHONPATH", "")+')',
-                      self.bucket_skip)
+      self.set_skip('skipped (Old version python modules: '+" ".join(too_old)+
+                    " PYTHONPATH="+os.environ.get("PYTHONPATH", "")+')')
       return False
     for lib in self.required_libraries:
       if platform.system() == 'Windows':
@@ -99,28 +97,24 @@ class RavenErrors(Tester):
       else:
         lib += '.so'
       if not os.path.exists(lib):
-        self.set_status('skipped (Missing library: "'+lib+'")', self.bucket_skip)
+        self.set_skip('skipped (Missing library: "'+lib+'")')
         return False
     if len(self.required_executable) > 0 and \
        not os.path.exists(self.required_executable):
-      self.set_status('skipped (Missing executable: "'+self.required_executable+'")',
-                      self.bucket_skip)
+      self.set_skip('skipped (Missing executable: "'+self.required_executable+'")')
       return False
     try:
       if len(self.required_executable) > 0 and \
          subprocess.call([self.required_executable], stdout=subprocess.PIPE) != 0:
-        self.set_status('skipped (Failing executable: "'+self.required_executable+'")',
-                        self.bucket_skip)
+        self.set_skip('skipped (Failing executable: "'+self.required_executable+'")')
         return False
     except Exception:
-      self.set_status('skipped (Error when trying executable: "'+self.required_executable+'")',
-                      self.bucket_skip)
+      self.set_skip('skipped (Error when trying executable: "'+self.required_executable+'")')
       return False
     if len(self.specs['skip_if_env']) > 0:
       env_var = self.specs['skip_if_env']
       if env_var in os.environ:
-        self.set_status('skipped (found environmental variable "'+env_var+'")',
-                        self.bucket_skip)
+        self.set_skip('skipped (found environmental variable "'+env_var+'")')
         return False
     return True
 
@@ -135,5 +129,4 @@ class RavenErrors(Tester):
       if self.specs['expect_err'] in line:
         self.set_success()
         return
-    self.set_status('The expected Error: ' +self.specs['expect_err']+
-                    ' is not raised!', self.bucket_fail)
+    self.set_fail('The expected Error: ' +self.specs['expect_err']+' is not raised!')

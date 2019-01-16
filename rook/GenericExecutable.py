@@ -58,6 +58,6 @@ class GenericExecutable(Tester):
         @ Out, None
     """
     if self.results.exit_code != 0:
-      self.set_status(str(self.results.exit_code), self.bucket_fail)
+      self.set_fail(str(self.results.exit_code))
       return
     self.set_success()
