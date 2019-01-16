@@ -188,8 +188,8 @@ if __name__ == "__main__":
 
   for test_dir, test_file in test_list:
     #print(test_file)
-    tree = trees.TreeStructure.parse(test_file, 'getpot')
-    for node in tree.getroot():
+    tree = trees.TreeStructure.getpot_to_input_node(open(test_file, 'r'))
+    for node in tree:
       #print(node.tag)
       #print(node.attrib)
       param_handler = tester_params[node.attrib['type']]
