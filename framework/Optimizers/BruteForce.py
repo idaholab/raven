@@ -61,6 +61,7 @@ class BruteForce(OptimizerBase):
     OptimizerBase.__init__(self)
     self.counter['varsUpdate'      ] = {}
     self.counter['solutionUpdate'  ] = {}
+    self.counter['recentOptHist'][traj]    = [{},{}]
     # register metadata
     self.addMetaKeys('prefix')
 
@@ -97,7 +98,7 @@ class BruteForce(OptimizerBase):
       @ In, oldInput, list, a list of the original needed inputs for the model (e.g. list of files, etc. etc)
       @ Out, None
     """
-    self.readyVarsUpdate = {traj:False for traj in self.optTrajLive}
+    pass
 
   def checkConvergence(self):
     """
@@ -163,10 +164,7 @@ class BruteForce(OptimizerBase):
               # this means we don't have an entry for this trajectory yet, so don't copy anything
               pass
             # store realization of most recent developments
-            rlz = {}
-            rlz.update(self.optVarsHist[traj][self.counter['varsUpdate'][traj]])
-            rlz.update(outputs)
-            self.counter['recentOptHist'][traj][0] = rlz
+            self.counter['recentOptHist'][traj][0] = outputs
             if traj not in self.counter['prefixHistory']:
               self.counter['prefixHistory'][traj] = []
             self.counter['prefixHistory'][traj].append(prefix)

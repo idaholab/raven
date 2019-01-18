@@ -109,6 +109,7 @@ class OptimizerBase(Sampler):
     self.counter['mdlEval']             = 0                         # Counter of the model evaluation performed (better the input generated!!!). It is reset by calling the function self.initialize
     self.counter['varsUpdate']          = 0                         # Counter of the optimization iteration.
     self.counter['recentOptHist']       = {}                        # as {traj: [pt0, pt1]} where each pt is {'inputs':{var:val}, 'output':val}, the two most recently-accepted points by value
+    self.counter['prefixHistory']       = {}                        # as {traj: [prefix1, prefix2]} where each prefix is the job identifier for each trajectory
     self.objVar                         = None                      # Objective variable to be optimized
     self.optVars                        = {}                        # By trajectory, current decision variables for optimization
     self.optType                        = None                      # Either max or min
@@ -121,6 +122,7 @@ class OptimizerBase(Sampler):
     self.optVarsInit['lowerBound']      = {}                        # Dict containing lower bounds of each decision variables
     self.optVarsInit['initial']         = {}                        # Dict containing initial values of each decision variables
     self.optVarsInit['ranges']          = {}                        # Dict of the ranges (min and max) of each variable's domain
+    self.optVarsHist                    = {}                        # History of decision variables for each iteration
     #limits
     ## while "limit" is scalar in Sampler, it's more complicated in Optimizer
     self.limit                          = {}                        # Dict containing limits for each counter
