@@ -263,20 +263,6 @@ class Optimizer(Sampler):
     """
     pass
 
-  def _localGenerateAssembler(self,initDict):
-    """
-      It is used for sending to the instanciated class, which is implementing the method, the objects that have been requested through "whatDoINeed" method
-      Overloads the base Sampler class since optimizer has different requirements
-      @ In, initDict, dict, dictionary ({'mainClassName(e.g., Databases):{specializedObjectName(e.g.,DatabaseForSystemCodeNamedWolf):ObjectInstance}'})
-      @ Out, None
-    """
-    self.assemblerDict['Functions'    ] = []
-    self.assemblerDict['Distributions'] = []
-    self.assemblerDict['DataObjects'  ] = []
-    for mainClass in ['Functions','Distributions','DataObjects']:
-      for funct in initDict[mainClass]:
-        self.assemblerDict[mainClass].append([mainClass,initDict[mainClass][funct].type,funct,initDict[mainClass][funct]])
-
   def _localWhatDoINeed(self):
     """
       Identifies needed distributions and functions.
@@ -481,20 +467,13 @@ class Optimizer(Sampler):
     """
       Returns the variables in the active optimization space
       @ In, full, bool, optional, if True will always give ALL the opt variables
+      @ In, traj, int, optional, if provided then only return variables in current trajectory
       @ Out, optVars, list(string), variables in the current optimization space
     """
     if full or not self.multilevel or traj is None:
       return self.fullOptVars
     else:
       return self.optVars[traj]
-
-  def endJobRunnable(self):
-    """
-      Returns the maximum number of inputs allowed to be created by the optimizer right after a job ends
-      @ In, None
-      @ Out, endJobRunnable, int, number of runnable jobs at the end of each job
-    """
-    return self._endJobRunnable
 
   def getInitParams(self):
     """
@@ -1076,4 +1055,3 @@ class Optimizer(Sampler):
       return a <= b
     elif self.optType == 'max':
       return a >= b
-

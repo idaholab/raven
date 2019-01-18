@@ -593,7 +593,6 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
                   self.raiseAnError(IOError,'Unknown tag '+childChildChildChild.getName()+' .Available are: initialGridDisc and tolerance!')
               self.NDSamplingParams[childChildChild.parameterValues['name']] = NDdistData
 
-
   #### GETTERS AND SETTERS ####
   def endJobRunnable(self):
     """
@@ -634,7 +633,6 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         and each parameter's initial value as the dictionary values
     """
     return {}
-
 
   #### SAMPLING METHODS ####
   def amIreadyToProvideAnInput(self): #inLastOutput=None):
@@ -883,7 +881,6 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     manifestVariablesDict = dict(zip(varsDict['manifestVariables'],manifestVariablesValues))
     self.values.update(manifestVariablesDict)
 
-
   ### FINALIZING METHODS ####
   def finalizeActualSampling(self,jobObject,model,myInput):
     """
@@ -960,3 +957,11 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
     if len(failedRuns)>0:
       self.raiseAnError(IOError,'There were failed runs; aborting RAVEN.')
+
+  def endJobRunnable(self):
+    """
+      Returns the maximum number of inputs allowed to be created by the optimizer right after a job ends
+      @ In, None
+      @ Out, endJobRunnable, int, number of runnable jobs at the end of each job
+    """
+    return self._endJobRunnable
