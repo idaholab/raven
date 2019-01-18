@@ -1,0 +1,82 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/Optimizers.brute_force</name>
+    <author>wangc</author>
+    <created>2019-01-17</created>
+    <classesTested>Optimizer</classesTested>
+    <description>
+        brute force method for knapsack 0-1 problem optimization
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>bruteForce</WorkingDir>
+    <Sequence>optimize,print</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+  
+  <Functions>
+    <External file="knapsack" name="knapsack">
+      <variable>y</variable>
+    </External>
+  </Functions>
+
+  <Steps>
+    <MultiRun name="optimize">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ExternalModel">knapsack</Model>
+      <Optimizer class="Optimizers" type="BruteForce">opter</Optimizer>
+      <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
+      <Output class="DataObjects" type="PointSet">optOut</Output>
+    </MultiRun>
+    <IOStep name="print" pauseAtEnd="True">
+      <Input class="DataObjects" type="PointSet">opt_export</Input>
+      <Output class="OutStreams" type="Print">opt_export</Output>
+    </IOStep>
+  </Steps>
+
+  <Optimizers>
+    <BruteForce name="opter">
+      <Function class="Functions" type="External">knapsack</Function>
+      <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
+      <variable name="y" shape="22">
+        <upperBound>1</upperBound>
+        <lowerBound>0</lowerBound>
+        <initial>0</initial>
+      </variable>
+      <objectVar>ans</objectVar>
+    </BruteForce>
+  </Optimizers>
+
+  <Models>
+    <ExternalModel ModuleToLoad="knapsack" name="knapsack" subType="">
+      <variables>y,ans,items</variables>
+    </ExternalModel>
+  </Models>
+
+  <DataObjects>
+    <PointSet name="dummyIN">
+      <Input>y</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <DataSet name="optOut">
+      <Input>y</Input>
+      <Output>ans</Output>
+      <Index var='items'>y</Index>
+    </DataSet>
+    <PointSet name="opt_export">
+      <Input>trajID</Input>
+      <Output>y,ans,varsUpdate</Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="opt_export">
+      <type>csv</type>
+      <source>opt_export</source>
+      <clusterLabel>trajID</clusterLabel>
+    </Print>
+  </OutStreams>
+
+</Simulation>
