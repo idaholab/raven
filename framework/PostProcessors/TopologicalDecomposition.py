@@ -152,7 +152,7 @@ class TopologicalDecomposition(PostProcessor):
     paramInput.parseNode(xmlNode)
     self._handleInput(paramInput)
     # register metadata
-    self.addMetaKeys('maxLabel','minLabel')
+    self.addMetaKeys(['maxLabel','minLabel'])
 
   def _handleInput(self, paramInput):
     """
