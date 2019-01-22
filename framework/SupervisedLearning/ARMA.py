@@ -34,6 +34,7 @@ import xarray as xr
 import statsmodels.api as sm # VARMAX is in sm.tsa
 from statsmodels.tsa.arima_model import ARMA as smARMA
 from scipy import optimize
+from scipy import stats
 from scipy.linalg import solve_discrete_lyapunov
 from sklearn import linear_model, neighbors
 #External Modules End--------------------------------------------------------------------------------
@@ -82,6 +83,8 @@ class ARMA(supervisedLearning):
     self.pivotParameterID  = kwargs['pivotParameter']
     self.pivotParameterValues = None  # In here we store the values of the pivot parameter (e.g. Time)
     self.seed              = kwargs.get('seed',None)
+    self.preserveInputCDF  = kwargs.get('preserveInputCDF', False) # if True, then CDF of the training data will be imposed on the final sampled signal
+    self._trainingCDF      = {} # if preserveInputCDF, these CDFs are scipy.stats.rv_histogram objects for the training data
     self.zeroFilterTarget  = None # target for whom zeros should be filtered out
     self.zeroFilterTol     = None # tolerance for zerofiltering to be considered zero, set below
     self.zeroFilterMask    = None # mask of places where zftarget is zero, or None if unused
@@ -259,6 +262,12 @@ class ARMA(supervisedLearning):
     for t,target in enumerate(self.target):
       timeSeriesData = targetVals[:,t]
       self._signalStorage[target]['original'] = copy.deepcopy(timeSeriesData)
+      # if we're enforcing the training CDF, we should store it now
+      if self.preserveInputCDF:
+        counts, edges = np.histogram(timeSeriesData, bins=self._computeNumberOfBins(timeSeriesData), density=False)
+        counts = np.asarray(counts) / float(len(timeSeriesData))
+        dist = stats.rv_histogram((counts, edges))
+        self._trainingCDF[target] = dist
       # if this target governs the zero filter, extract it now
       if target == self.zeroFilterTarget:
         self.notZeroFilterMask = self._trainZeroRemoval(timeSeriesData,tol=self.zeroFilterTol) # where zeros are not
@@ -446,6 +455,15 @@ class ARMA(supervisedLearning):
         #returnEvaluation[target+'_2fourier'] = copy.copy(signal)
         #debuggFile.writelines('signal_fourier,'+','.join(str(x) for x in self.fourierResults[target]['predict'])+'\n')
 
+      # if enforcing the training data CDF, apply that transform now
+      if self.preserveInputCDF:
+        # first build a histogram object of the sampled data
+        counts, edges = np.histogram(signal, bins=self._computeNumberOfBins(signal), density=False)
+        counts = np.asarray(counts) / float(len(signal))
+        dist = stats.rv_histogram((counts, edges))
+        # transform data through CDFs
+        signal = self._trainingCDF[target].ppf(dist.cdf(signal))
+
       # Re-zero out zero filter target's zero regions
       if target == self.zeroFilterTarget:
         # DEBUGG adding arbitrary variables
@@ -467,6 +485,7 @@ class ARMA(supervisedLearning):
       signal *= featureVals[0]
       # DEBUGG adding arbitrary variables
       #returnEvaluation[target+'_5scaled'] = copy.copy(signal)
+
       # sanity check on the signal
       assert(signal.size == returnEvaluation[self.pivotParameterID].size)
       #debuggFile.writelines('final,'+','.join(str(x) for x in signal)+'\n')
