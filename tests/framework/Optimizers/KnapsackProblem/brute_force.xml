@@ -28,7 +28,7 @@
       <Model class="Models" type="ExternalModel">knapsack</Model>
       <Optimizer class="Optimizers" type="BruteForce">opter</Optimizer>
       <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
-      <Output class="DataObjects" type="PointSet">optOut</Output>
+      <Output class="DataObjects" type="DataSet">optOut</Output>
     </MultiRun>
     <IOStep name="print" pauseAtEnd="True">
       <Input class="DataObjects" type="PointSet">opt_export</Input>
@@ -39,7 +39,7 @@
   <Optimizers>
     <BruteForce name="opter">
       <Function class="Functions" type="External">knapsack</Function>
-      <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
+      <TargetEvaluation class="DataObjects" type="DataSet">optOut</TargetEvaluation>
       <variable name="y" shape="22">
         <upperBound>1</upperBound>
         <lowerBound>0</lowerBound>

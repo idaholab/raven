@@ -75,7 +75,7 @@ class OptimizerBase(Sampler):
     variable.addParam("shape", InputData.IntegerListType, required=False)
     upperBound = InputData.parameterInputFactory('upperBound', contentType=InputData.FloatType, strictMode=True)
     lowerBound = InputData.parameterInputFactory('lowerBound', contentType=InputData.FloatType, strictMode=True)
-    initial = InputData.parameterInputFactory('initial',contentType=InputData.StringListType)
+    initial = InputData.parameterInputFactory('initial',contentType=InputData.FloatListType)
     variable.addSub(upperBound)
     variable.addSub(lowerBound)
     variable.addSub(initial)
@@ -88,6 +88,7 @@ class OptimizerBase(Sampler):
     # initialization
     init = InputData.parameterInputFactory('initialization', strictMode=True)
     limit      = InputData.parameterInputFactory('limit', contentType=InputData.IntegerType)
+    minmaxEnum = InputData.makeEnumType('MinMax','OptimizerTypeType',['min','max'])
     minmax     = InputData.parameterInputFactory('type', contentType=minmaxEnum)
     init.addSub(limit)
     init.addSub(minmax)
@@ -220,7 +221,7 @@ class OptimizerBase(Sampler):
     if self.fullOptVars is None:
       self.raiseAnError(IOError, 'Decision variable(s) not specified for optimizer!')
 
-    for var in self.getOptVars():
+    for var in self.getOptVars(full=True):
       if var not in self.variableShapes:
         self.variableShapes[var] = (1,)
       else:
@@ -335,7 +336,7 @@ class OptimizerBase(Sampler):
                               and each parameter's initial value as the dictionary values
     """
     paramDict = {}
-    for variable in self.getOptVars():
+    for variable in self.getOptVars(full=True):
       paramDict[variable] = 'is sampled as a decision variable'
     paramDict['limit_mdlEval' ]        = self.limit['mdlEval']
     paramDict['limit_optIter']         = self.limit['varsUpdate']
@@ -351,7 +352,7 @@ class OptimizerBase(Sampler):
       @ Out, paramDict, dict, dictionary containing the parameter names as keys
                               and each parameter's initial value as the dictionary values
     """
-    paramDict = Sampler.getCurrentSetting()
+    paramDict = Sampler.getCurrentSetting(self)
     paramDict.pop('counter', None)
     paramDict['counter_mdlEval'       ] = self.counter['mdlEval']
     paramDict['counter_varsUpdate'    ] = self.counter['varsUpdate']
@@ -394,7 +395,7 @@ class OptimizerBase(Sampler):
 
     # TODO a bunch of the gradient-level trajectory initializations should be moved here.
     for traj in self.optTraj:
-      self.optVars[traj]            = self.getOptVars() #initial as full space
+      self.optVars[traj]            = self.getOptVars(full=True) #initial as full space
       self.submissionQueue[traj]    = deque()
 
     #check initial point array consistency
@@ -404,21 +405,24 @@ class OptimizerBase(Sampler):
       if haveLen != rightLen:
         self.raiseAnError(RuntimeError,'The number of trajectories for variable "{}" is incorrect!  Got {} but expected {}!  Check the <initial> block.'.format(var,haveLen,rightLen))
 
-    # check the constraint here to check if the initial values violate it
-    varK = {}
-    for trajInd in self.optTraj:
-      for varName in self.getOptVars():
-        varK[varName] = self.optVarsInit['initial'][varName][trajInd]
-        self.checkConstraint(varK)
-
     # extend multivalue variables (aka vector variables, or variables with "shape")
     ## TODO someday take array of initial values from a DataSet
     for var,shape in self.variableShapes.items():
       if np.prod(shape) > 1:
         for traj in self.optTraj:
           baseVal = self.optVarsInit['initial'][var][traj]
-          newVal = np.ones(shape)*baseVal
-          self.optVarsInit['initial'][var][traj] = newVal
+          if len(baseVal) == 1:
+            newVal = np.ones(shape)*baseVal
+            self.optVarsInit['initial'][var][traj] = newVal
+          elif len(baseVal) != np.prod(shape):
+            self.raiseAnError(IOError, "The number of initial values provided for vector variable", var," is not equal the vector total size!" )
+
+    # check the constraint here to check if the initial values violate it
+    varK = {}
+    for trajInd in self.optTraj:
+      for varName in self.getOptVars():
+        varK[varName] = self.optVarsInit['initial'][varName][trajInd]
+        self.checkConstraint(varK)
 
     self.localInitialize(solutionExport=solutionExport)
 
@@ -442,7 +446,8 @@ class OptimizerBase(Sampler):
       @ In, None
       @ Out, None
     """
-    self.counter['mdlEval'] +=1 #since we are creating the input for the next run we increase the counter and global counter
+    #since we are creating the input for the next run we increase the counter and global counter
+    self.counter['mdlEval'] +=1
     self.inputInfo['prefix'] = str(self.counter['mdlEval'])
 
   def updateVariableHistory(self,data,traj=0):
@@ -462,7 +467,6 @@ class OptimizerBase(Sampler):
       @ Out, convergence, bool, variable indicating whether the convergence criteria has been met.
     """
 
-  @abc.abstractmethod
   def clearCurrentOptimizationEffort(self):
     """
       Used to inform the subclass optimization effor that it needs to forget whatever opt data it is using
@@ -483,7 +487,7 @@ class OptimizerBase(Sampler):
     """
     pass
 
-  def _checkModelFinish(self, traj=0, updateKey, evalID):
+  def _checkModelFinish(self, traj=0, updateKey=0, evalID='v'):
     """
       Determines if the Model has finished running an input and returned the output
       @ In, traj, int, traj on which the input is being checked
@@ -512,14 +516,6 @@ class OptimizerBase(Sampler):
     """
     identifier = str(trajID) + '_' + str(iterID) + '_' + str(evalType)
     return identifier
-
-  def _expandVectorVariables(self):
-    """
-      Normally used to extend variables; in the Optimizer, we do that in localGenerateInput
-      @ In, None
-      @ Out, None
-    """
-    pass
 
   @abc.abstractmethod
   def _getJobsByID(self):

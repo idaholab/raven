@@ -25,6 +25,8 @@ from __future__ import absolute_import
 from .Optimizer import Optimizer
 from .GradientBasedOptimizer import GradientBasedOptimizer
 from .SPSA import SPSA
+from .OptimizerBase import OptimizerBase
+from .BruteForce import BruteForce
 
 
 from .Factory import knownTypes

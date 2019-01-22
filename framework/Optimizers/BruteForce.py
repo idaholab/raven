@@ -29,6 +29,8 @@ import os
 import copy
 import abc
 import numpy as np
+from collections import deque
+import itertools
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -61,44 +63,8 @@ class BruteForce(OptimizerBase):
     OptimizerBase.__init__(self)
     self.counter['varsUpdate'      ] = {}
     self.counter['solutionUpdate'  ] = {}
-    self.counter['recentOptHist'][traj]    = [{},{}]
     # register metadata
     self.addMetaKeys('prefix')
-
-  def localInputAndChecks(self, xmlNode):
-    """
-      Local method for additional reading.
-      @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
-      @ Out, None
-    """
-    pass
-
-  def localInitialize(self,solutionExport):
-    """
-      Method to initialize settings that belongs to all gradient based optimizer
-      @ In, solutionExport, DataObject, a PointSet to hold the solution
-      @ Out, None
-    """
-    # end job runnable equal to number of trajectory
-    self._endJobRunnable = len(self.optTraj)
-
-  def localStillReady(self, ready, convergence = False):
-    """
-      Determines if optimizer is ready to provide another input.  If not, and if jobHandler is finished, this will end sampling.
-      @ In, ready, bool, variable indicating whether the caller is prepared for another input.
-      @ In, convergence, bool, optional, variable indicating whether the convergence criteria has been met.
-      @ Out, ready, bool, variable indicating whether the caller is prepared for another input.
-    """
-    return ready
-
-  def localGenerateInput(self,model,oldInput):
-    """
-      Method to generate input for model to run
-      @ In, model, model instance, it is the instance of a RAVEN model
-      @ In, oldInput, list, a list of the original needed inputs for the model (e.g. list of files, etc. etc)
-      @ Out, None
-    """
-    pass
 
   def checkConvergence(self):
     """
@@ -108,7 +74,49 @@ class BruteForce(OptimizerBase):
     """
     pass
 
-  def _getJobsByID(self,traj=0):
+  def localInitialize(self,solutionExport):
+    """
+      Method to initialize settings that belongs to all gradient based optimizer
+      @ In, solutionExport, DataObject, a PointSet to hold the solution
+      @ Out, None
+    """
+    for traj in self.optTraj:
+      self.counter['recentOptHist'][traj]    = [{},{}]
+      self.optVarsHist[traj]                 = {}
+    # Currently we only accept one vector of input
+    size = 0
+    for var in self.getOptVars(traj=0):
+      size += np.prod(self.variableShapes[var])
+    self._generateSubmissionQueue(size=size)
+    self.limit['mdlEval'] = size
+
+  def _generateSubmissionQueue(self,size=1):
+    """
+    """
+    values = map(list,list(itertools.product([0,1], repeat=size)))
+    #create identifier
+    values = deque([{'inputs':values[i],'prefix':self._createEvaluationIdentifier(trajID=0,iterID=0,evalType=i)} for i in range(len(values))])
+    #queue it up
+    self.submissionQueue[0] = values
+
+  def localGenerateInput(self,model,oldInput):
+    """
+      Method to generate input for model to run
+      @ In, model, model instance, it is the instance of a RAVEN model
+      @ In, oldInput, list, a list of the original needed inputs for the model (e.g. list of files, etc. etc)
+      @ Out, None
+    """
+    traj = 0
+    OptimizerBase.localGenerateInput(self,model,oldInput)
+    #"submit" the next queued point
+    prefix,point = self.getQueuedPoint(traj)
+    # TODO point here is just the values
+    # In Optimizer, point is a dict {var, value}, but for this case, we just use value for now
+    for var in self.getOptVars(traj=traj):
+      self.values[var] = point
+    self.inputInfo['prefix'] = prefix
+
+  def _getJobsByID(self,prefix):
     """
       Overwrite only if you need something special at the end of each run....
       This function is used by optimizers that need to collect information from the just ended run
@@ -116,8 +124,10 @@ class BruteForce(OptimizerBase):
       @ Out, solutionExportUpdatedFlag, bool, True if the solutionExport needs updating
       @ Out, solutionIndeces, list(int), location of updates within the full targetEvaluation data object
     """
+    jobInfo = prefix.split("_")
+    trajID, iterID, evalID = int(jobInfo[0]), int(jobInfo[1]), int(jobInfo[2])
     solutionIndeces = []
-    solutionExportUpdatedFlag, index = self._checkModelFinish(traj, self.counter['solutionUpdate'][traj], '0')
+    solutionExportUpdatedFlag, index = self._checkModelFinish(trajID, iterID, evalID)
     solutionIndeces.append(index)
     return solutionExportUpdatedFlag,solutionIndeces
 
@@ -144,7 +154,7 @@ class BruteForce(OptimizerBase):
       for traj in self.optTraj:
         if self.counter['solutionUpdate'][traj] <= self.counter['varsUpdate'][traj]:
           # check whether solution export needs updating, and get indices of entries that need to be added
-          solutionExportUpdatedFlag, indices = self._getJobsByID(traj)
+          solutionExportUpdatedFlag, indices = self._getJobsByID(prefix)
           if solutionExportUpdatedFlag:
             outputs = dict((var,np.zeros(len(self.optTraj), dtype=object)) for var in self.solutionExport.getVars('output')
                       if var in self.mdlEvalHist.getVars('output'))

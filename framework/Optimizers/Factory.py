@@ -26,6 +26,8 @@ from .Optimizer import Optimizer
 from .GradientBasedOptimizer import GradientBasedOptimizer
 from .SPSA import SPSA
 from .FiniteDifferenceGradientOptimizer import FiniteDifferenceGradientOptimizer
+from .OptimizerBase import OptimizerBase
+from .BruteForce import BruteForce
 ## [ Add new class here ]
 
 
@@ -39,6 +41,7 @@ __interFaceDict = {}
 __interFaceDict['GradientBasedOptimizer'           ] = GradientBasedOptimizer
 __interFaceDict['SPSA'                             ] = SPSA
 __interFaceDict['FiniteDifferenceGradientOptimizer'] = FiniteDifferenceGradientOptimizer
+__interFaceDict['BruteForce'                       ] = BruteForce
 __knownTypes = list(__interFaceDict.keys())
 
 def knownTypes():
