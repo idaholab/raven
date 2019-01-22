@@ -67,7 +67,7 @@
     </DataSet>
     <PointSet name="opt_export">
       <Input>trajID</Input>
-      <Output>y,ans,varsUpdate</Output>
+      <Output>ans,varsUpdate</Output>
     </PointSet>
   </DataObjects>
 

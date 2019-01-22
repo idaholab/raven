@@ -82,13 +82,14 @@ class BruteForce(OptimizerBase):
     """
     for traj in self.optTraj:
       self.counter['recentOptHist'][traj]    = [{},{}]
+      self.counter['solutionUpdate'][traj]   = 0
       self.optVarsHist[traj]                 = {}
     # Currently we only accept one vector of input
     size = 0
     for var in self.getOptVars(traj=0):
       size += np.prod(self.variableShapes[var])
     self._generateSubmissionQueue(size=size)
-    self.limit['mdlEval'] = size
+    self.limit['mdlEval'] = len(self.submissionQueue[0])
 
   def _generateSubmissionQueue(self,size=1):
     """
@@ -233,7 +234,7 @@ class BruteForce(OptimizerBase):
       @ In, failedRuns, list, list of JobHandler.ExternalRunner objects
       @ Out, None
     """
-    Sampler.handleFailedRuns(failedRuns)
+    OptimizerBase.handleFailedRuns(self, failedRuns)
     # if writing soln export only on final, now is the time to do it
     if self.writeSolnExportOn == 'final':
       # get the most optimal point among the trajectories
