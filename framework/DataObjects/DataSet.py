@@ -277,7 +277,6 @@ class DataSet(DataObject):
           self._pivotParams[index].append(varName)
         else:
           self._pivotParams[index]=[varName]
->>>>>>> devel
     self._orderedVars.append(varName)
 
   def asDataset(self, outType='xrDataset'):
