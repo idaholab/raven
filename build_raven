@@ -61,8 +61,6 @@ if [[ $LIBS_MODE == 0 ]]; then
   echo Cleaning old build ...
   make clean
 
-  # set up hit.cpp so that it has a newer timestamp than hit.pyx
-  touch moose/framework/contrib/hit/hit.cpp
 else
   echo Establishing Python libraries ...
   . scripts/establish_conda_env.sh --load ${ECE_ARGS}

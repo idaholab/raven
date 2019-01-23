@@ -11,7 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from __future__ import division, print_function, absolute_import
 import csv
+import sys
 import argparse
 
 # Build Parser
@@ -40,11 +42,14 @@ h = g + a * e
 
 # Print to csv file
 out_file_name = args.output_file + '.csv'
-print "Output will be printed to", out_file_name
-with open(out_file_name, 'wb') as wf:
-  writer = csv.writer(wf, delimiter=',')
-  var_name = ['a','b','c','d','e','f','g','h']
-  data = [a,b,c,d,e,f,g,h]
-  writer.writerow(var_name)
-  writer.writerow(data)
+print("Output will be printed to", out_file_name)
+if sys.version_info[0] > 2:
+  wf = open(out_file_name, 'w', newline='')
+else:
+  wf = open(out_file_name, 'wb')
+writer = csv.writer(wf, delimiter=',')
+var_name = ['a','b','c','d','e','f','g','h']
+data = [a,b,c,d,e,f,g,h]
+writer.writerow(var_name)
+writer.writerow(data)
 wf.close()

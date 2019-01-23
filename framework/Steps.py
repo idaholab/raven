@@ -271,18 +271,23 @@ class Step(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     """
     ## first collect them
     metaKeys = set()
+    metaParams = dict()
     for role,entities in inDictionary.items():
       if isinstance(entities,list):
         for entity in entities:
           if hasattr(entity,'provideExpectedMetaKeys'):
-            metaKeys = metaKeys.union(entity.provideExpectedMetaKeys())
+            keys, params = entity.provideExpectedMetaKeys()
+            metaKeys = metaKeys.union(keys)
+            metaParams.update(params)
       else:
         if hasattr(entities,'provideExpectedMetaKeys'):
-          metaKeys = metaKeys.union(entities.provideExpectedMetaKeys())
+          keys, params = entities.provideExpectedMetaKeys()
+          metaKeys = metaKeys.union(keys)
+          metaParams.update(params)
     ## then give them to the output data objects
     for out in inDictionary['Output']+(inDictionary['TargetEvaluation'] if 'TargetEvaluation' in inDictionary else []):
       if 'addExpectedMeta' in dir(out):
-        out.addExpectedMeta(metaKeys)
+        out.addExpectedMeta(metaKeys,metaParams)
 
   def _endStepActions(self,inDictionary):
     """
