@@ -96,7 +96,7 @@ class BruteForce(OptimizerBase):
     """
     values = map(list,list(itertools.product([0,1], repeat=size)))
     #create identifier
-    values = deque([{'inputs':values[i],'prefix':self._createEvaluationIdentifier(trajID=0,iterID=0,evalType=i)} for i in range(len(values))])
+    values = deque([{'inputs':values[i],'prefix':self._createEvaluationIdentifier(trajID=0,iterID=i,evalType=0)} for i in range(len(values))])
     #queue it up
     self.submissionQueue[0] = values
 

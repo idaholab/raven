@@ -28,7 +28,7 @@ def constraint(y,wt):
 ###
 
 def run(self,Inputs):
-  self.items = np.linspace(0,6,6)
+  self.items = np.linspace(0,5,6)
   self.val = np.asarray([505,352,458,220,354,545])
   self.wt = np.asarray([23,26,20,18,32,26])
   self.ans = evaluate(self.y, self.val)
