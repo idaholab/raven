@@ -23,7 +23,9 @@ import argparse
 import re
 import inspect
 import time
+import threading
 
+import psutil
 import pool
 import trees.TreeStructure
 from Tester import Tester, Differ
@@ -45,11 +47,47 @@ parser.add_argument('--list-testers', action='store_true', dest='list_testers',
 
 args = parser.parse_args()
 
-if args.load_average > 0 and hasattr(os, "getloadavg"):
-  #Note that this is also done before starting each test
-  while os.getloadavg()[0] > args.load_average:
-    print("Load Average too high, waiting ", os.getloadavg()[0])
-    time.sleep(1.0)
+class LoadClass(threading.Thread):
+  """
+    This class keeps track of the one second load average
+  """
+
+  def __init__(self):
+    """
+      Initialize this class
+      @ In, None
+      @ Out, None
+    """
+    threading.Thread.__init__(self)
+    self.__load_avg = psutil.cpu_percent(1.0)*psutil.cpu_count()/100.0
+    self.__load_lock = threading.Lock()
+    self.daemon = True #Exit even if this thread is running.
+
+  def run(self):
+    """
+      Run forever, grabbing the load average every second
+      @ In, None
+      @ Out, None
+    """
+    while True:
+      load_avg = psutil.cpu_percent(1.0)*psutil.cpu_count()/100.0
+      with self.__load_lock:
+        self.__load_avg = load_avg
+
+  def get_load_average(self):
+    """
+      Get the most recent load average
+      @ In, None,
+      @ Out, float value for load average (average number of processors running)
+    """
+    load_avg = -1
+    with self.__load_lock:
+      load_avg = self.__load_avg
+    return load_avg
+
+if args.load_average > 0:
+  load = LoadClass()
+  load.start()
 
 def load_average_adapter(function):
   """
@@ -63,7 +101,8 @@ def load_average_adapter(function):
       @ In, data, Any, data to pass to function
       @ Out, result, result of running function on data
     """
-    while os.getloadavg()[0] > args.load_average:
+    #basically get the load average for 0.1 seconds:
+    while load.get_load_average() > args.load_average:
       time.sleep(1.0)
     return function(data)
   return new_func
@@ -227,7 +266,7 @@ if __name__ == "__main__":
         id_num = len(function_list)
         #input_filename = node.attrib['input']
         func = tester.run
-        if args.load_average > 0 and hasattr(os, "getloadavg"):
+        if args.load_average > 0:
           func = load_average_adapter(func)
         function_list.append((func, (test_dir)))
         test_name_list.append(test_name)
