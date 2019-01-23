@@ -11,7 +11,7 @@
   </TestInfo>
 
   <RunInfo>
-    <WorkingDir>bruteForce</WorkingDir>
+    <WorkingDir>simple</WorkingDir>
     <Sequence>optimize,print</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
@@ -32,19 +32,21 @@
     </MultiRun>
     <IOStep name="print" pauseAtEnd="True">
       <Input class="DataObjects" type="PointSet">opt_export</Input>
+      <Input class="DataObjects" type="DataSet">optOut</Input>
       <Output class="OutStreams" type="Print">opt_export</Output>
+      <Output class="OutStreams" type="Print">optOut</Output>
     </IOStep>
   </Steps>
 
   <Optimizers>
     <BruteForce name="opter">
-        <initialization>
-            <type>max</type>
-            <writeSteps>final</writeSteps>
-        </initialization>
+      <initialization>
+        <type>max</type>
+        <writeSteps>every</writeSteps>
+      </initialization>
       <Function class="Functions" type="External">knapsack</Function>
       <TargetEvaluation class="DataObjects" type="DataSet">optOut</TargetEvaluation>
-      <variable name="y" shape="22">
+      <variable name="y" shape="6">
         <upperBound>1</upperBound>
         <lowerBound>0</lowerBound>
         <initial>0</initial>
@@ -79,6 +81,11 @@
     <Print name="opt_export">
       <type>csv</type>
       <source>opt_export</source>
+      <clusterLabel>trajID</clusterLabel>
+    </Print>
+    <Print name="optOut">
+      <type>csv</type>
+      <source>optOut</source>
       <clusterLabel>trajID</clusterLabel>
     </Print>
   </OutStreams>

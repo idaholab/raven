@@ -153,7 +153,7 @@ class BruteForce(OptimizerBase):
     # TODO REWORK move this whole piece to Optimizer base class as much as possible
     if len(self.mdlEvalHist) != 0:
       for traj in self.optTraj:
-        if self.counter['solutionUpdate'][traj] <= self.counter['varsUpdate'][traj]:
+        if self.counter['solutionUpdate'][traj] <= self.limit['mdlEval']:
           # check whether solution export needs updating, and get indices of entries that need to be added
           solutionExportUpdatedFlag, indices = self._getJobsByID(prefix)
           if solutionExportUpdatedFlag:
@@ -162,20 +162,30 @@ class BruteForce(OptimizerBase):
             for i, index in enumerate(indices):
               # get the realization from the targetEvaluation
               vals = self.mdlEvalHist.realization(index=index)
+              satisfied = self.checkConstraint(vals)
               # place values TODO this could be vectorized significantly!
               for var in outputs.keys():
+                if not satisfied and var == self.objVar:
+                  vals[var] *= 0.
                 if hasattr(vals[var],'__len__') and len(vals[var]) == 1:
-                  outputs[var][i] = float(vals[var])
+                    outputs[var][i] = float(vals[var])
                 else:
                   outputs[var][i] = vals[var]
-              currentObjectiveValue = outputs[self.objVar]
+            # assumed output value is the mean of sampled values
+            for var,vals in outputs.items():
+              outputs[var] = vals.mean()
+            currentObjectiveValue = outputs[self.objVar]
+            updateObjectiveValue = True
             try:
               self.counter['recentOptHist'][traj][1] = copy.deepcopy(self.counter['recentOptHist'][traj][0])
+              bestValue = self.counter['recentOptHist'][traj][0][self.objVar]
+              updateObjectiveValue = self.checkIfBetter(currentObjectiveValue,bestValue)
             except KeyError:
               # this means we don't have an entry for this trajectory yet, so don't copy anything
               pass
-            # store realization of most recent developments
-            self.counter['recentOptHist'][traj][0] = outputs
+              # store realization of most recent developments
+            if updateObjectiveValue:
+              self.counter['recentOptHist'][traj][0] = outputs
             if traj not in self.counter['prefixHistory']:
               self.counter['prefixHistory'][traj] = []
             self.counter['prefixHistory'][traj].append(prefix)

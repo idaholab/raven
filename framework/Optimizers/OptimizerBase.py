@@ -88,10 +88,13 @@ class OptimizerBase(Sampler):
     # initialization
     init = InputData.parameterInputFactory('initialization', strictMode=True)
     limit      = InputData.parameterInputFactory('limit', contentType=InputData.IntegerType)
+    whenWriteEnum = InputData.makeEnumType('whenWriteEnum','whenWriteType',['final','every'])
     minmaxEnum = InputData.makeEnumType('MinMax','OptimizerTypeType',['min','max'])
     minmax     = InputData.parameterInputFactory('type', contentType=minmaxEnum)
+    write      = InputData.parameterInputFactory('writeSteps',contentType=whenWriteEnum)
     init.addSub(limit)
     init.addSub(minmax)
+    init.addSub(write)
     inputSpecification.addSub(init)
 
     return inputSpecification
@@ -244,28 +247,13 @@ class OptimizerBase(Sampler):
       Method to check whether a set of decision variables satisfy the constraint or not in UNNORMALIZED input space
       @ In, optVars, dict, dictionary containing the value of decision variables to be checked, in form of
         {varName: varValue}
-      @ Out, violatedConstrains, dict, variable indicating the satisfaction of constraints at the point optVars,
-        masks for the under/over violations
+      @ Out, satisfied, bool, variable indicating the satisfaction of constraints at the point optVars
     """
-    violatedConstrains = {'internal':[],'external':[]}
     if self.constraintFunction == None:
       satisfied = True
     else:
       satisfied = True if self.constraintFunction.evaluate("constrain",optVars) == 1 else False
-      if not satisfied:
-        violatedConstrains['external'].append(self.constraintFunction.name)
-    for var in optVars:
-      varSatisfy=True
-      # this should work whether optVars is an array or a single value
-      check = np.atleast_1d(optVars[var])
-      overMask = check > self.optVarsInit['upperBound'][var]
-      underMask = check < self.optVarsInit['lowerBound'][var]
-      if np.sum(overMask)+np.sum(underMask) > 0:
-        self.raiseAWarning('A variable violated boundary constraints! Details below (enable DEBUG printing)')
-        self.raiseADebug('Violating values: "{}"={}'.format(var,optVars[var]))
-        satisfied = False
-        violatedConstrains['internal'].append( (var,underMask,overMask) )
-    return violatedConstrains
+    return satisfied
 
   def checkIfBetter(self,a,b):
     """
