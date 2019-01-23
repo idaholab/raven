@@ -158,7 +158,7 @@ class BruteForce(OptimizerBase):
           solutionExportUpdatedFlag, indices = self._getJobsByID(prefix)
           if solutionExportUpdatedFlag:
             outputs = dict((var,np.zeros(len(self.optTraj), dtype=object)) for var in self.solutionExport.getVars('output')
-                      if var in self.mdlEvalHist.getVars('output'))
+                      if var in self.mdlEvalHist.getVars())
             for i, index in enumerate(indices):
               # get the realization from the targetEvaluation
               vals = self.mdlEvalHist.realization(index=index)
