@@ -23,7 +23,7 @@ def eval(x,y):
   return dat
 
 def run(xin):
-  inx = file(xin,'r')
+  inx = open(xin,'r')
   for line in inx:
     if   line.startswith('x ='      ):
       x=float(line.split('=')[1])
@@ -31,14 +31,14 @@ def run(xin):
       case=line.split('=')[1].strip()
     elif line.startswith('auxfile ='):
       aux=line.split('=')[1].strip()
-  iny = file(aux,'r')
+  iny = open(aux,'r')
   for line in iny:
     if line.startswith('y ='):
       y=float(line.split('=')[1])
 
   dat = eval(x,y)
 
-  outf = file(case+'.csv','w')
+  outf = open(case+'.csv','w')
   outf.writelines('step,i,j,x,y,poly\n')
   for e in dat:
     outf.writelines(','.join(str(i) for i in e)+'\n')

@@ -2,9 +2,12 @@
  [./pcaResponseSurface]
   type = 'RavenFramework'
   input = 'test_pca_responseSurface.xml'
-  csv = 'responseSurfacePCA/BoxBehnkenRespDesign_dump.csv responseSurfacePCA/CentralCompositeRespDesign_dump.csv'
   max_time = 500
-  rel_err = 0.001
+  [./csv]
+   type = OrderedCSV
+   output = 'responseSurfacePCA/BoxBehnkenRespDesign_dump.csv responseSurfacePCA/CentralCompositeRespDesign_dump.csv'
+   rel_err = 0.001
+  [../]
  [../]
 
  [./simple_framework]
@@ -71,8 +74,11 @@
  [./test_merge_2_databases]
   type = 'RavenFramework'
   input = 'test_merge_2_databases.xml'
-  UnorderedCsv = 'test_merge_2_databases/Pointset_from_database_dump.csv test_merge_2_databases/Pointset_IN_database_dump.csv test_merge_2_databases/Historyset_from_database_dump_0.csv test_merge_2_databases/Historyset_from_database_dump_1.csv test_merge_2_databases/Historyset_IN_database_dump_0.csv test_merge_2_databases/Historyset_IN_database_dump_1.csv test_merge_2_databases/Historyset_IN_database_dump_2.csv test_merge_2_databases/Historyset_IN_database_dump_3.csv'
-  rel_err = 0.000001
+  [./csv]
+    type = UnorderedCSV
+    output = 'test_merge_2_databases/Pointset_from_database_dump.csv test_merge_2_databases/Pointset_IN_database_dump.csv test_merge_2_databases/Historyset_from_database_dump_0.csv test_merge_2_databases/Historyset_from_database_dump_1.csv test_merge_2_databases/Historyset_IN_database_dump_0.csv test_merge_2_databases/Historyset_IN_database_dump_1.csv test_merge_2_databases/Historyset_IN_database_dump_2.csv test_merge_2_databases/Historyset_IN_database_dump_3.csv'
+    rel_err = 0.000001
+  [../]
  [../]
 
  [./test_rom_trainer_raven]
@@ -173,7 +179,12 @@
   UnorderedXml = 'LHStest/outLHS_dump.xml LHStest/samples1D.xml'
   max_time = 500
   rel_err = 0.001
-  remove_unicode_identifier = true
+  [./xml_data]
+   type = XML
+   output = 'LHStest/outLHS_dump.xml LHStest/samples1D.xml'
+   unordered = true
+   remove_unicode_identifier = true
+  [../]
  [../]
 
  [./testLHS_RELAP7]

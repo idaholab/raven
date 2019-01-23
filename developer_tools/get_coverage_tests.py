@@ -54,7 +54,8 @@ def getRegressionTests(whichTests=1,skipExpectedFails=True):
         startReading = False
       if startReading:
         splitted = line.strip().split('=')
-        testSpecs[splitted[0].strip()] = splitted[1].replace("'","").replace('"','').strip()
+        if len(splitted) == 2:
+          testSpecs[splitted[0].strip()] = splitted[1].replace("'","").replace('"','').strip()
       if line.strip().startswith("[./"):
         startReading = True
         collectSpecs = False
@@ -69,6 +70,8 @@ def getRegressionTests(whichTests=1,skipExpectedFails=True):
     for spec in testFileList:
       # check if test is skipped or an executable is required
       if "required_executable" in spec or "skip" in spec:
+        continue
+      if "input" not in spec:
         continue
       testType = spec.get('type',"notfound").strip()
       newTest = spec['input'].strip()

@@ -8,6 +8,14 @@
     <description>
       This tests dumping time-dependent basic statistics into dataset
     </description>
+    <revisions>
+      <revision author="wangc" date="2018-12-13">avoid metadata output since metadata is added in basicStatistics</revision>
+      <revision author="wangc" date="2018-12-13">
+          In PR #882, the standard errors on statistics moments are implemented, these quantities are stored in
+          the pointwise metadata, and will be printed out in the output csv files by default.
+          In this case, the time dependent standard errors will be printed out. 
+      </revision>
+    </revisions>
   </TestInfo>
   <RunInfo>
     <WorkingDir>basicStatisticsTimeDependent</WorkingDir>

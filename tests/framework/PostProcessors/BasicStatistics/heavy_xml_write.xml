@@ -16,6 +16,12 @@
     </description>
     <revisions>
       <revision author="wangc" date="2017-12-05">convert test to use the new dataobjects</revision>
+      <revision author="wangc" date="2018-12-13">
+          In PR #882, the standard errors on statistics moments are implemented, these quantities are stored in
+          the pointwise metadata, and will be printed out in the output csv files by default.
+          In order to avoid regolding this test, the optional node 'what' with text values 'input, output' is added.
+          In this case, only the user requested variables as specified in the DataObjects are printed out. 
+      </revision>
     </revisions>
   </TestInfo>
 
@@ -90,6 +96,7 @@
     <Print name="stats_basicStatPP_dump">
       <type>csv</type>
       <source>stats_basicStatPP</source>
+      <what>input,output</what>
     </Print>
   </OutStreams>
 

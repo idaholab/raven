@@ -524,7 +524,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     meta = ['ProbabilityWeight','prefix','PointProbability']
     for var in self.toBeSampled.keys():
       meta +=  ['ProbabilityWeight-'+ key for key in var.split(",")]
-    self.addMetaKeys(*meta)
+    self.addMetaKeys(meta)
 
   def localGetInitParams(self):
     """
@@ -685,7 +685,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       # we consider that CDF of the constant variables is equal to 1 (same as its Pb Weight)
       self.inputInfo['SampledVarsPb'].update(dict.fromkeys(self.constants.keys(),1.0))
       pbKey = ['ProbabilityWeight-'+key for key in self.constants.keys()]
-      self.addMetaKeys(*pbKey)
+      self.addMetaKeys(pbKey)
       self.inputInfo.update(dict.fromkeys(['ProbabilityWeight-'+key for key in self.constants.keys()],1.0))
 
   def _expandVectorVariables(self):
