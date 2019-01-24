@@ -173,7 +173,7 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
       @ In, oriInputFiles, list, list of the original input files
       @ Out, None
     """
-    return
+    pass
 
   def finalizeCodeOutput(self,command,output,workingDir):
     """
