@@ -86,7 +86,7 @@ class GradientBasedOptimizer(Optimizer):
     self.realizations                = {}    # by trajectory, stores the results obtained from the jobs running, see setupNewStorage for structure
 
     # register metadata
-    self.addMetaKeys('trajID','varsUpdate','prefix')
+    self.addMetaKeys(['trajID','varsUpdate','prefix'])
 
   def localInputAndChecks(self, xmlNode):
     """

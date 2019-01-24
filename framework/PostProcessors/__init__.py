@@ -37,6 +37,7 @@ from .ImportanceRank import ImportanceRank
 from .CrossValidation import CrossValidation
 from .BasicStatistics import BasicStatistics
 from .LimitSurfaceIntegral import LimitSurfaceIntegral
+from .FastFourierTransform import FastFourierTransform
 from .ExternalPostProcessor import ExternalPostProcessor
 from .InterfacedPostProcessor import InterfacedPostProcessor
 from .TopologicalDecomposition import TopologicalDecomposition
@@ -80,6 +81,7 @@ __all__ = ['PostProcessor',
            'Metric',
            'CrossValidation',
            'ValueDuration',
+           'FastFourierTransform',
            'FTImporter',
            'DataClassifier',
            'SampleSelector',

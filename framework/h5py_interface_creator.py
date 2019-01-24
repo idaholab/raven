@@ -188,10 +188,12 @@ class hdf5Database(MessageHandler.MessageUser):
         self.raiseAWarning('not found attribute endGroup in group ' + name + '.Set True.')
     return
 
-  def addExpectedMeta(self, keys):
+  def addExpectedMeta(self, keys, params={}):
     """
       Store expected metadata
       @ In, keys, set(), the metadata list
+      @ In, params, dict, optional, {key:[indexes]}, keys of the dictionary are the variable names,
+        values of the dictionary are lists of the corresponding indexes/coordinates of given variable
       @ Out, None
     """
     self.h5FileW.attrs['expectedMetadata'] = _dumps(list(keys))
@@ -200,13 +202,17 @@ class hdf5Database(MessageHandler.MessageUser):
     """
       Provides the registered list of metadata keys for this entity.
       @ In, None
-      @ Out, meta, set(str), expected keys (empty if none)
+      @ Out, meta, tuple, (set(str),dict), expected keys (empty if none) and dictionary of expected keys corresponding to their indexes
+        i.e. {keys, [indexes]}
     """
     meta = set()
     gotMeta = self.h5FileW.attrs.get('expectedMetadata',None)
     if gotMeta is not None:
       meta = set(_loads(gotMeta))
-    return meta
+    # FIXME, I'm not sure how to enable the HDF5 to store the time-dependent metadata,
+    # or how to store the time dependent metadata in the HDF5, currently only empty dict of
+    # indexes information is returned
+    return meta,{}
 
   def addGroup(self,rlz):
     """
