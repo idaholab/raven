@@ -270,7 +270,7 @@ class DataSet(DataObject):
       self._metavars.append(varName)
     # move from the elif classify =='output', since the metavars can also contain the
     # time-dependent meta data.
-    if values and type(values[0]) == xr.DataArray:
+    if len(values) and type(values[0]) == xr.DataArray:
       indexes = values[0].sizes.keys()
       for index in indexes:
         if index in self._pivotParams.keys():
