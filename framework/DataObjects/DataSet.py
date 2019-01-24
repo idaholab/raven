@@ -277,6 +277,13 @@ class DataSet(DataObject):
           self._pivotParams[index].append(varName)
         else:
           self._pivotParams[index]=[varName]
+    # if provided, set the indices for this variable
+    for index in indices:
+      if index in self._pivotParams:
+        self._pivotParams[index].append(varName)
+      else:
+        self._pivotParams[index] = [varName]
+    # register variable in order
     self._orderedVars.append(varName)
 
   def asDataset(self, outType='xrDataset'):
