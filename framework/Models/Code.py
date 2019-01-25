@@ -332,6 +332,10 @@ class Code(Model):
       else:
         self.raiseAMessage('not found pre-executable '+self.executable,'ExceptedError')
 
+    if 'initialize' in dir(self.code):
+      # the deepcopy is needed to avoid the code interface
+      # developer to modify the content of the runInfoDict
+      self.code.initialize(copy.deepcopy(runInfoDict), self.oriInputFiles)
 
   def createNewInput(self,currentInput,samplerType,**kwargs):
     """
