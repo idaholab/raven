@@ -39,9 +39,10 @@ from Samplers import Sampler
 
 class OptimizerBase(Sampler):
   """
-    This is the base class for optimizers
-    Optimizer is a special type of "samplers" that own the optimization strategy (Type) and they generate the input values to optimize a loss function.
-    The most significant deviation from the Samplers is that they do not use distributions.
+    This is the base class for optimizers.
+    Optimizer is a special type of "samplers" that own the optimization strategy (Type) and they generate the input
+    values to optimize a loss function. The most significant deviation from the Samplers is that they do not use
+    distributions.
   """
   @classmethod
   def getInputSpecification(cls):
@@ -80,11 +81,9 @@ class OptimizerBase(Sampler):
     variable.addSub(lowerBound)
     variable.addSub(initial)
     inputSpecification.addSub(variable)
-
     # objectVar
     objectVar = InputData.parameterInputFactory('objectVar', contentType=InputData.StringType, strictMode=True)
     inputSpecification.addSub(objectVar)
-
     # initialization
     init = InputData.parameterInputFactory('initialization', strictMode=True)
     limit      = InputData.parameterInputFactory('limit', contentType=InputData.IntegerType)
@@ -153,7 +152,6 @@ class OptimizerBase(Sampler):
     """
     paramInput = self.getInputSpecification()()
     paramInput.parseNode(xmlNode)
-
     # TODO some merging with base sampler XML reading might be possible, but in general requires different entries
     # first read all XML nodes
     for child in paramInput.subparts:
@@ -205,19 +203,16 @@ class OptimizerBase(Sampler):
               self.raiseAnError(IOError,'Unexpected frequency for <writeSteps>: "{}". Expected "every" or "final".'.format(whenToWrite))
           else:
             self.raiseAnError(IOError,'Unknown tag: '+childChild.getName())
-
     # now that XML is read, do some checks and defaults
     # set defaults
     if self.writeSolnExportOn is None:
-      self.writeSolnExportOn = 'every'
+      self.writeSolnExportOn = 'final'
     self.raiseAMessage('Writing to solution export on "{}" optimizer iteration.'.format(self.writeSolnExportOn))
     if self.optType is None:
       self.optType = 'min'
-
     # NOTE: optTraj can be changed in "initialize" if the user provides a sampler for seeding
     if self.optTraj is None:
       self.optTraj = [0]
-
     # check required settings TODO this can probably be removed thanks to the input checking!
     if self.objVar is None:
       self.raiseAnError(IOError, 'Object variable is not specified for optimizer!')
@@ -244,7 +239,7 @@ class OptimizerBase(Sampler):
 
   def checkConstraint(self, optVars):
     """
-      Method to check whether a set of decision variables satisfy the constraint or not in UNNORMALIZED input space
+      Method to check whether a set of decision variables satisfy the constraint
       @ In, optVars, dict, dictionary containing the value of decision variables to be checked, in form of
         {varName: varValue}
       @ Out, satisfied, bool, variable indicating the satisfaction of constraints at the point optVars
@@ -271,16 +266,20 @@ class OptimizerBase(Sampler):
   def denormalizeData(self, optVars):
     """
       Method to normalize the data
-      @ In, optVars, dict, dictionary containing the value of decision variables to be deormalized, in form of {varName: varValue}
-      @ Out, optVarsDenorm, dict, dictionary containing the value of denormalized decision variables, in form of {varName: varValue}
+      @ In, optVars, dict, dictionary containing the value of decision variables to be deormalized,
+        in form of {varName: varValue}
+      @ Out, optVarsDenorm, dict, dictionary containing the value of denormalized decision variables,
+        in form of {varName: varValue}
     """
     pass
 
   def normalizeData(self, optVars):
     """
       Method to normalize the data
-      @ In, optVars, dict, dictionary containing the value of decision variables to be normalized, in form of {varName: varValue}
-      @ Out, optVarsNorm, dict, dictionary containing the value of normalized decision variables, in form of {varName: varValue}
+      @ In, optVars, dict, dictionary containing the value of decision variables to be normalized,
+        in form of {varName: varValue}
+      @ Out, optVarsNorm, dict, dictionary containing the value of normalized decision variables,
+        in form of {varName: varValue}
     """
     pass
 
@@ -317,11 +316,12 @@ class OptimizerBase(Sampler):
   def getInitParams(self):
     """
       This function is called from the base class to print some of the information inside the class.
-      Whatever is permanent in the class and not inherited from the parent class should be mentioned here
-      The information is passed back in the dictionary. No information about values that change during the simulation are allowed
+      Whatever is permanent in the class and not inherited from the parent class should be mentioned here.
+      The information is passed back in the dictionary. No information about values that change during the simulation
+      are allowed
       @ In, None
-      @ Out, paramDict, dict, dictionary containing the parameter names as keys
-                              and each parameter's initial value as the dictionary values
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys and each parameter's initial value as
+        the dictionary values
     """
     paramDict = {}
     for variable in self.getOptVars(full=True):
@@ -416,8 +416,8 @@ class OptimizerBase(Sampler):
 
   def amIreadyToProvideAnInput(self):
     """
-      This is a method that should be called from any user of the optimizer before requiring the generation of a new input.
-      This method act as a "traffic light" for generating a new input.
+      This is a method that should be called from any user of the optimizer before requiring the generation of a new
+      input. This method act as a "traffic light" for generating a new input.
       Reason for not being ready could be for example: exceeding number of model evaluation, convergence criteria met, etc.
       @ In, None
       @ Out, ready, bool, indicating the readiness of the optimizer to generate a new input.
@@ -435,7 +435,7 @@ class OptimizerBase(Sampler):
       @ Out, None
     """
     #since we are creating the input for the next run we increase the counter and global counter
-    self.counter['mdlEval'] +=1
+    self.counter['mdlEval'] += 1
     self.inputInfo['prefix'] = str(self.counter['mdlEval'])
 
   def updateVariableHistory(self,data,traj=0):
