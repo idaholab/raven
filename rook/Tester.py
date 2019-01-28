@@ -460,7 +460,8 @@ class Tester:
       return self.results
     if not self.__test_run_type.issubset(self.__base_current_run_type):
       self.results.group = self.group_skip
-      self.results.message = "SKIPPED ("+str(self.__test_run_type)+" is not a subset of "+str(self.__base_current_run_type)+")"
+      self.results.message = "SKIPPED ("+str(self.__test_run_type)+\
+        " is not a subset of "+str(self.__base_current_run_type)+")"
       return self.results
     if not self.check_runnable():
       return self.results
