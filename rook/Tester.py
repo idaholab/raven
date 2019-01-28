@@ -293,6 +293,31 @@ class Tester:
 
   success_message = "SUCCESS"
 
+  __default_run_type_set = set(["normal"])
+  __non_default_run_type_set = set()
+
+  @classmethod
+  def add_default_run_type(cls, run_type):
+    """
+      This adds a new default run type.  These are used to decide
+      which tests to run. These types run automatically.
+      @ In, run_type, string, the default run type to add
+      @ Out, None
+    """
+    cls.__default_run_type_set.add(run_type)
+    assert run_type not in cls.__non_default_run_type_set
+
+  @classmethod
+  def add_non_default_run_type(cls, run_type):
+    """
+      This adds a new non default run type.  These are used to decide
+      which tests to run. These types have to be requested to run.
+      @ In, run_type, string, the non default run type to add
+      @ Out, None
+    """
+    cls.__non_default_run_type_set.add(run_type)
+    assert run_type not in cls.__default_run_type_set
+
   @staticmethod
   def get_valid_params():
     """
@@ -312,6 +337,7 @@ class Tester:
     params.add_param('output', '', 'Output of the test')
     params.add_param('expected_fail', False,
                      'if true, then the test should fails, and if it passes, it fails.')
+    params.add_param('run_types', 'normal', 'The run types that this test is')
     return params
 
   def __init__(self, name, params):
@@ -326,7 +352,32 @@ class Tester:
     self.specs = valid_params.get_filled_dict(params)
     self.results = TestResult()
     self.__differs = []
-    self.__run_heavy = False
+    self.__base_current_run_type = self.__default_run_type_set
+    self.__test_run_type = set(self.specs['run_types'].split())
+    if self.specs['heavy'] is not False:
+      self.__test_run_type.add("heavy")
+      if "normal" in self.__test_run_type:
+        self.__test_run_type.remove("heavy")
+
+  def add_run_types(self, run_types):
+    """
+      Adds run types to be run.  In general these are non default run types.
+      @ In, run_types, set, run types to be added to the current run set.
+      @ Out, None
+    """
+    assert run_types.issubset(set.union(self.__default_run_type_set,
+                                        self.__non_default_run_type_set))
+    self.__base_current_run_type.update(run_types)
+
+  def set_only_run_types(self, run_types):
+    """
+      Sets the run types to only the provided ones.
+      @ In, run_types, set, run types to set the current set to.
+      @ Out, None
+    """
+    assert run_types.issubset(set.union(self.__default_run_type_set,
+                                        self.__non_default_run_type_set))
+    self.__base_current_run_type = set(run_types)
 
   def get_differ_remove_files(self):
     """
@@ -362,7 +413,7 @@ class Tester:
       @ In, None
       @ Out, None
     """
-    self.__run_heavy = True
+    self.set_only_run_types(set(["heavy"]))
 
 
   def run(self, data):
@@ -407,13 +458,9 @@ class Tester:
       self.results.group = self.group_skip
       self.results.message = self.specs['skip']
       return self.results
-    if self.specs['heavy'] is not False and not self.__run_heavy:
+    if not self.__test_run_type.issubset(self.__base_current_run_type):
       self.results.group = self.group_skip
-      self.results.message = "SKIPPED (Heavy)"
-      return self.results
-    if self.specs['heavy'] is False and self.__run_heavy:
-      self.results.group = self.group_skip
-      self.results.message = "SKIPPED (not Heavy)"
+      self.results.message = "SKIPPED ("+str(self.__test_run_type)+" is not a subset of "+str(self.__base_current_run_type)+")"
       return self.results
     if not self.check_runnable():
       return self.results

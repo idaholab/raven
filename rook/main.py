@@ -227,6 +227,7 @@ if __name__ == "__main__":
   testers, differs = get_testers_and_differs(scripts_dir)
   testers.update(base_testers)
   differs.update(base_differs)
+  Tester.add_non_default_run_type("heavy")
 
   if args.list_testers:
     print("Testers:")
@@ -242,6 +243,8 @@ if __name__ == "__main__":
 
   tester_params = {}
   for tester in testers:
+    #Note as a side effect, testers can add run types to
+    # the tester.
     tester_params[tester] = testers[tester].get_valid_params()
 
   function_list = [] #Store the data for the pool runner
