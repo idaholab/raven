@@ -328,5 +328,7 @@ if __name__ == "__main__":
     csv_report.write(out_line+"\n")
   csv_report.close()
 
-  print("PASSED:", results["pass"], "FAILED:", results["fail"], "SKIPPED", results["skipped"])
+  print("PASSED: ", results["pass"])
+  print("SKIPPED:", results["skipped"])
+  print("FAILED: ", results["fail"])
   sys.exit(results["fail"])
