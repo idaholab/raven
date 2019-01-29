@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework/ROM/TimeSeries/ARMA.ARMA</name>
+    <name>framework/ROM/TimeSeries/ARMA.Basic</name>
     <author>alfoa</author>
     <created>2017-02-02</created>
     <classesTested>SupervisedLearning.ARMA</classesTested>
@@ -14,19 +14,20 @@
       <revision author="alfoa" date="2017-12-13">adapted for new DataObject structure</revision>
       <revision author="alfoa" date="2018-04-26">Modified location of the test (ARMA folder)</revision>
       <revision author="talbpaul" date="2018-06-14">Now tests history statistics instead of points</revision>
+      <revision author="talbpaul" date="2018-12-20">Renamed from ARMA to Basic and added rom printing</revision>
       <revision author="wangc" date="2018-12-18">
           In PR #882, the standard errors on statistics moments are implemented, these quantities are stored in
           the pointwise metadata, and will be printed out in the output csv files by default.
           In order to avoid regolding this test, the optional node 'what' with text values 'input, output' is added.
-          In this case, only the user requested variables as specified in the DataObjects are printed out. 
+          In this case, only the user requested variables as specified in the DataObjects are printed out.
       </revision>
       <revision author='talbpaul' date='2018-09-13'>changed Pmax and Pmin to P (same for Q)</revision>
     </revisions>
   </TestInfo>
 
   <RunInfo>
-    <WorkingDir>ARMA</WorkingDir>
-    <Sequence>readIn,ARMATrain,runARMA,writeOut,loadSynthetic,stats</Sequence>
+    <WorkingDir>Basic</WorkingDir>
+    <Sequence>readIn, ARMATrain, printARMA, runARMA, writeOut, loadSynthetic, stats</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
 
@@ -80,6 +81,11 @@
       <Input class="DataObjects" type="HistorySet">rawData</Input>
       <Output class="Models" type="ROM">ARMA</Output>
     </RomTrainer>
+    <IOStep name="printARMA">
+      <Input class="Models" type="ROM">ARMA</Input>
+      <Output class="DataObjects" type="DataSet">romMeta</Output>
+      <Output class="OutStreams" type="Print">romMeta</Output>
+    </IOStep>
     <MultiRun name="runARMA">
       <Input class="DataObjects" type="PointSet">dataIn</Input>
       <Model class="Models" type="ROM">ARMA</Model>
@@ -113,6 +119,10 @@
       <type>csv</type>
       <source>stats</source>
       <what>input,output</what>
+    </Print>
+    <Print name="romMeta">
+      <type>csv</type>
+      <source>romMeta</source>
     </Print>
     <Plot name="plotSynData" overwrite="false">
       <plotSettings>
@@ -155,6 +165,7 @@
         <pivotParameter>Time</pivotParameter>
       </options>
     </HistorySet>
+    <DataSet name="romMeta"/>
   </DataObjects>
 
 </Simulation>

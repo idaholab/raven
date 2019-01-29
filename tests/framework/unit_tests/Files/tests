@@ -1,8 +1,0 @@
-[Tests]
-
- [./Files]
-  type = 'RavenPython'
-  input = 'TestFiles.py'
- [../]
-
-[]

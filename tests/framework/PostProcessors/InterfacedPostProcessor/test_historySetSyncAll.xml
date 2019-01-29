@@ -8,11 +8,14 @@
     <description>
       Tests of the HistorySetSync interfaced post-processor and in particular the all syncMethod
     </description>
+    <revisions>
+      <revision author='talbpaul' date='2019-01-09'>moving from ROM-file to ROM-dataobjects</revision>
+    </revisions>
   </TestInfo>
-  
+
   <RunInfo>
     <WorkingDir>hs_sync_all</WorkingDir>
-    <Sequence>make,sync,train,print</Sequence>
+    <Sequence>make,sync,train,stats,print</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
 
@@ -27,10 +30,14 @@
       <Sampler class="Samplers"    type="Sobol"      >samp</Sampler>
       <Output  class="DataObjects" type="HistorySet" >solns</Output>
     </MultiRun>
+    <IOStep name="stats">
+      <Input  class="Models"       type="ROM"        >rom</Input>
+      <Output  class="DataObjects" type="DataSet"    >rom_stats</Output>
+    </IOStep>
     <IOStep name="print">
       <Input  class="DataObjects"  type="HistorySet" >solns</Input>
       <Input  class="DataObjects"  type="HistorySet" >synced</Input>
-      <Input  class="Models"       type="ROM"        >rom</Input>
+      <Input  class="DataObjects"  type="DataSet"    >rom_stats</Input>
       <Output class="OutStreams"   type="Print"      >original</Output>
       <Output class="OutStreams"   type="Print"      >synced</Output>
       <Output class="OutStreams"   type="Print"      >rom</Output>
@@ -108,6 +115,7 @@
         <pivotParameter>t</pivotParameter>
       </options>
     </HistorySet>
+    <DataSet name="rom_stats"/>
   </DataObjects>
 
   <OutStreams>
@@ -121,9 +129,8 @@
       <source>synced</source>
     </Print>
     <Print name="rom">
-      <type>xml</type>
-      <source>rom</source>
-      <what>all</what>
+      <type>csv</type>
+      <source>rom_stats</source>
     </Print>
   </OutStreams>
 

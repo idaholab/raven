@@ -70,13 +70,6 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
 
     inputSpecification.addSub(convergenceInput)
 
-    convergenceStudyInput = InputData.parameterInputFactory("convergenceStudy")
-    convergenceStudyInput.addSub(InputData.parameterInputFactory("runStatePoints", contentType=InputData.StringType))
-    convergenceStudyInput.addSub(InputData.parameterInputFactory("baseFilename", contentType=InputData.StringType))
-    convergenceStudyInput.addSub(InputData.parameterInputFactory("pickle"))
-
-    inputSpecification.addSub(convergenceStudyInput)
-
     inputSpecification.addSub(InputData.parameterInputFactory("logFile"))
     inputSpecification.addSub(InputData.parameterInputFactory("maxRuns"))
 
@@ -84,7 +77,6 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
     targetEvaluationInput.addParam("type", InputData.StringType)
     targetEvaluationInput.addParam("class", InputData.StringType)
     inputSpecification.addSub(targetEvaluationInput)
-
 
     return inputSpecification
 
@@ -115,11 +107,11 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
     self.oldSG                   = None   #previously-accepted sparse grid
     self.error                   = 0      #estimate of percent of moment calculated so far
     self.logCounter              = 0      #when printing the log, tracks the number of prints
-    #convergence study
-    self.doingStudy              = False  #true if convergenceStudy node defined for sampler
-    self.studyFileBase           = 'out_' #can be replaced in input, not used if not doingStudy
-    self.studyPoints             = []     #list of ints, runs at which to record a state
-    self.studyPickle             = False  #if true, dumps ROM to pickle at each step
+    #convergence study -> currently suspended since it doesn't follow RAVEN I/O protocol.
+    #self.doingStudy              = False  #true if convergenceStudy node defined for sampler
+    #self.studyFileBase           = 'out_' #can be replaced in input, not used if not doingStudy
+    #self.studyPoints             = []     #list of ints, runs at which to record a state
+    #self.studyPickle             = False  #if true, dumps ROM to pickle at each step
     #solution storage
     self.neededPoints            = []     #queue of points to submit
     self.submittedNotCollected   = []     #list of points submitted but not yet collected and used
@@ -155,23 +147,26 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
       self.logFile = logNode.text
     if self.maxRuns is not None:
       self.maxRuns = int(self.maxRuns)
-    if studyNode is not None:
-      self.doingStudy = True
-      self.studyPoints = studyNode.find('runStatePoints').text
-      filebaseNode = studyNode.find('baseFilename')
-      self.studyPickle = studyNode.find('pickle') is not None
-      if filebaseNode is None:
-        self.raiseAWarning('No baseFilename specified in convergenceStudy node!  Using "%s"...' %self.studyFileBase)
-      else:
-        self.studyFileBase = studyNode.find('baseFilename').text
-      if self.studyPoints is None:
-        self.raiseAnError(IOError,'convergenceStudy node was included, but did not specify the runStatePoints node!')
-      else:
-        try:
-          self.studyPoints = list(int(i) for i in self.studyPoints.split(','))
-        except ValueError as e:
-          self.raiseAnError(IOError,'Convergence state point not recognizable as an integer!',e)
-        self.studyPoints.sort()
+    # studyNode for convergence study is removed for now, since it doesn't follow the RAVEN pattern of I/O
+    #   since it writes directy to a file. However, it could be configured to work in the future, so leaving
+    #   it for now.
+    #if studyNode is not None:
+    #  self.doingStudy = True
+    #  self.studyPoints = studyNode.find('runStatePoints').text
+    #  filebaseNode = studyNode.find('baseFilename')
+    #  self.studyPickle = studyNode.find('pickle') is not None
+    #  if filebaseNode is None:
+    #    self.raiseAWarning('No baseFilename specified in convergenceStudy node!  Using "%s"...' %self.studyFileBase)
+    #  else:
+    #    self.studyFileBase = studyNode.find('baseFilename').text
+    #  if self.studyPoints is None:
+    #    self.raiseAnError(IOError,'convergenceStudy node was included, but did not specify the runStatePoints node!')
+    #  else:
+    #    try:
+    #      self.studyPoints = list(int(i) for i in self.studyPoints.split(','))
+    #    except ValueError as e:
+    #      self.raiseAnError(IOError,'Convergence state point not recognizable as an integer!',e)
+    #    self.studyPoints.sort()
 
   def localInitialize(self):
     """
@@ -262,16 +257,17 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
       if self.logFile is not None:
         self._printToLog()
       #if doing a study and past a statepoint, record the statepoint
-      if self.doingStudy:
-        while len(self.studyPoints)>0 and len(self.pointsNeededToMakeROM) > self.studyPoints[0]:
-          self._writeConvergencePoint(self.studyPoints[0])
-          if self.studyPickle:
-            self._writePickle(self.studyPoints[0])
-          #remove the point
-          if len(self.studyPoints)>1:
-            self.studyPoints=self.studyPoints[1:]
-          else:
-            self.studyPoints = []
+      # discontinued temporarily, see notes above in localInputsAndChecks
+      #if self.doingStudy:
+      #  while len(self.studyPoints)>0 and len(self.pointsNeededToMakeROM) > self.studyPoints[0]:
+      #    self._writeConvergencePoint(self.studyPoints[0])
+      #    if self.studyPickle:
+      #      self._writePickle(self.studyPoints[0])
+      #    #remove the point
+      #    if len(self.studyPoints)>1:
+      #      self.studyPoints=self.studyPoints[1:]
+      #    else:
+      #      self.studyPoints = []
       #if error small enough, converged!
       if abs(self.error) < self.convValue:
         self.done = True
@@ -306,8 +302,9 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
       self.jobHandler.terminateAll()
       self.neededPoints=[]
       self.done = True
-      if self.doingStudy and len(self.studyPoints)>0:
-        self.raiseAWarning('In the convergence study, the following numbers of runs were not reached:',self.studyPoints)
+      # suspended, see notes above
+      #if self.doingStudy and len(self.studyPoints)>0:
+      #  self.raiseAWarning('In the convergence study, the following numbers of runs were not reached:',self.studyPoints)
       return False
     #if we got here, we still have points to run!
     #print a status update...
@@ -626,19 +623,20 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
         impact = self._convergence(poly,rom.supervisedEngine.supervisedContainer[0],t)
         self.actImpact[t][poly] = impact
 
-  def _writeConvergencePoint(self,runPoint):
-    """
-      Writes XML out for this ROM at this point in the run
-      @ In, runPoint, int, the target runs for this statepoint
-      @ Out, None
-    """
-    fname = self.studyFileBase+str(runPoint)
-    self.raiseAMessage('Preparing to write state %i to %s.xml...' %(runPoint,fname))
-    rom = copy.deepcopy(self.ROM)
-    self._finalizeROM(rom)
-    rom.train(self.solns)
-    options = {'filenameroot':fname, 'what':'all'}
-    rom.printXML(options)
+  # disabled until we determine a consistent way to do this without bypassing dataobjects
+  #def _writeConvergencePoint(self,runPoint):
+  #  """
+  #    Writes XML out for this ROM at this point in the run
+  #    @ In, runPoint, int, the target runs for this statepoint
+  #    @ Out, None
+  #  """
+  #  fname = self.studyFileBase+str(runPoint)
+  #  self.raiseAMessage('Preparing to write state %i to %s.xml...' %(runPoint,fname))
+  #  rom = copy.deepcopy(self.ROM)
+  #  self._finalizeROM(rom)
+  #  rom.train(self.solns)
+  #  options = {'filenameroot':fname, 'what':'all'}
+  #  rom.printXML(options)
 
   def _writePickle(self,runPoint):
     """

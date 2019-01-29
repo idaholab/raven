@@ -11,12 +11,13 @@
     </description>
     <revisions>
       <revision author="wangc" date="2018-08-09">Add pivotParameter for time dependent ROM</revision>
+      <revision author='talbpaul' date='2018-12-20'>moved ROM metadata writing from direct-to-file to direct-to-dataobject</revision>
     </revisions>
   </TestInfo>
 
   <RunInfo>
     <WorkingDir>SobolTime</WorkingDir>
-    <Sequence>sample,train,dump,print</Sequence>
+    <Sequence>sample,train,dump,meta,print</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
 
@@ -35,11 +36,13 @@
       <Input class="Models" type="ROM">rom</Input>
       <Output class="Files" type="">rom_pk</Output>
     </IOStep>
+    <IOStep name="meta">
+      <Input class="Models" type="ROM">rom</Input>
+      <Output class="DataObjects" type="HistorySet">trainset</Output>
+    </IOStep>
     <IOStep name="print">
       <Input class="DataObjects" type="HistorySet">trainset</Input>
-      <Input class="Models" type="ROM">rom</Input>
       <Output class="OutStreams" type="Print">train_data</Output>
-      <Output class="OutStreams" type="Print">trom_dump</Output>
     </IOStep>
     <RomTrainer name="train">
       <Input class="DataObjects" type="HistorySet">trainset</Input>
@@ -89,11 +92,6 @@
       <type>csv</type>
       <source>trainset</source>
       <what>input,output</what>
-    </Print>
-    <Print name="trom_dump">
-      <type>xml</type>
-      <source>rom</source>
-      <what>all</what>
     </Print>
   </OutStreams>
 

@@ -4,13 +4,13 @@
   input = 'test_scgpc_normal.xml'
   csv = 'scgpc/Ndump.csv'
  [../]
- 
+
  [./MVNUncorrelated]
   type = 'RavenFramework'
   input = 'test_scgpc_uncorrelatedMVN.xml'
   csv = 'scgpcMVNUncorrelated/Ndump.csv'
  [../]
- 
+
  [./MVNCorrelated]
   type = 'RavenFramework'
   input = 'test_scgpc_correlatedMVN.xml'
@@ -29,7 +29,7 @@
   input = 'test_attenu_correlation_mc.xml'
   csv = 'attenuCorrelationMC/csv_database.csv'
  [../]
- 
+
  [./polyCorrelation]
   type = 'RavenFramework'
   input = 'test_poly_correlation.xml'
@@ -47,14 +47,14 @@
   type = 'RavenFramework'
   input = 'test_poly.xml'
   csv = 'polynomial/csv_database.csv'
-  xml = 'polynomial/stats_td1.xml'         #analytic, "Tensor Polynomial (First Order) with Multivariate Normal Distribution"
+  UnorderedXml = 'polynomial/stats_td1.xml'         #analytic, "Tensor Polynomial (First Order) with Multivariate Normal Distribution"
  [../]
 
  [./attenuationTest]
   type = 'RavenFramework'
   input = 'test_attenuation.xml'
   csv = 'attenuation/csv_database.csv'
-  xml = 'attenuation/stats_td1.xml'       #analytic, "Attenuation with Multivariate Normal Distribution"
+  UnorderedXml = 'attenuation/stats_td1.xml'       #analytic, "Attenuation with Multivariate Normal Distribution"
  [../]
 
 []
