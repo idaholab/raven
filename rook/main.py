@@ -228,6 +228,7 @@ if __name__ == "__main__":
   testers.update(base_testers)
   differs.update(base_differs)
   Tester.add_non_default_run_type("heavy")
+  Tester.add_non_default_run_type("qsub")
 
   if args.list_testers:
     print("Testers:")

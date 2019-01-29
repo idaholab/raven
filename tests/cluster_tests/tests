@@ -10,8 +10,9 @@
    type = RavenFramework
  [../]
  [./test_mpiqsub]
-   input=test_mpiqsub_local.xml
-   skip = 'cluster only test'
+   input='test_mpiqsub_local.xml pbspro_mpi.xml cluster_runinfo_legacy.xml'
+   run_types = 'qsub'
+   output = 'FirstMQRun/1/out~simple_gp_test.csv FirstMQRun/6/out~simple_gp_test.csv'
    type = RavenFramework
  [../]
  [./test_mpiqsub_parameters]
