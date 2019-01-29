@@ -610,6 +610,51 @@ class ARMA(supervisedLearning):
     params = ['Fourier', 'ARMA']
     return params
 
+  def getRomClusterSettings(self, trainingDict, divisions):
+    """
+      Allows the ROM to perform some analysis before clustering.
+      @ In, trainingDict, dict, data for training
+      @ In, divisions, tuple, (division slice indices, unclustered spaces)
+      @ Out, settings, object, arbitrary information about ROM clustering settings
+      @ Out, trainingDict, dict, adjusted training data (possibly unchanged)
+    """
+    # do global Fourier analysis on all requested settings over the Nyquist limit
+    if self.fourierParams:
+      targets = [self.fourierParams.keys()]
+      # determine the Nyquist length for the clustered params
+      slicers = divisions[0]
+      pivotValues = trainingDict[self.pivotParameterID][0]
+      # use the first segment as typical of all of them, NOTE might be bad assumption
+      first = pivotValues[slicers[0][0]]
+      last = pivotValues[slicers[0][-1]]
+      nyquist = 0.5 * (last - first)
+      for target in targets:
+        fourierRequests = self.fourierParams.get(target, [])
+        long = {'periods': [], 'orders': []}
+        short = {'periods': [], 'orders': []}
+        if target in self.fourierParams:
+          periods = self.fourierParams[target]['periods']
+          subdivs = self.fourierParams[target]['orders']
+          for base in periods:
+            for subdiv in subdivs:
+              period = float(base) / float(subdiv)
+              if period > nyquist:
+                if base not in long['periods']:
+                  long. # TODO WORKING need to get rid of "periods" "orders" syntax.
+                long.append(self.fourierParams
+
+          self.fourierParams[v] = {'periods': periods,
+    return None, trainingDict
+
+  def setRomClusterSettings(self, settings):
+    """
+      Allows the ROM to apply general settings as obtained in getRomClusterSettings
+      @ In, settings, object, arbitrary information about ROM clustering settings
+      @ Out, None
+    """
+    # by default, do nothing
+    pass
+
   def _interpolateDist(self,x,y,Xlow,Xhigh,Ylow,Yhigh,inMask):
     """
       Interplotes values for samples "x" to get dependent values "y" given bins

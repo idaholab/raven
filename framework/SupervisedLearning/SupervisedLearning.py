@@ -352,6 +352,26 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     """
     self.raiseAnError(NotImplementedError, '<Cluster> capabilities not yet implemented for "{}" ROM!'.format(self.__class__.__name__))
 
+  def getRomClusterSettings(self, trainingDict, divisions):
+    """
+      Allows the ROM to perform some analysis before clustering.
+      @ In, trainingDict, dict, data for training
+      @ In, divisions, tuple, (division slice indices, unclustered spaces)
+      @ Out, settings, object, arbitrary information about ROM clustering settings
+      @ Out, trainingDict, dict, adjusted training data (possibly unchanged)
+    """
+    # by default, do nothing
+    return None, trainingDict
+
+  def setRomClusterSettings(self, settings):
+    """
+      Allows the ROM to apply general settings as obtained in getRomClusterSettings
+      @ In, settings, object, arbitrary information about ROM clustering settings
+      @ Out, None
+    """
+    # by default, do nothing
+    pass
+
   @abc.abstractmethod
   def __trainLocal__(self,featureVals,targetVals):
     """

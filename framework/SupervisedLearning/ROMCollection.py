@@ -173,7 +173,12 @@ class Segments(Collection):
       @ Out, None
     """
     self.readAssembledObjects()
-    self._trainBySegments(self._divisionInstructions, tdict)
+    # subdivide space
+    divisions = self._subdivideDomain(self._divisionInstructions, tdict)
+    # allow ROM to handle some global features
+    romGeneralAdjustments, newTrainingDict = self._templateROM.getRomClusterSettings(tdict, divisions)
+    # train segments
+    self._trainBySegments(divisions, newTrainingDict, romGeneralAdjustments)
     self.amITrained = True
 
   def evaluate(self, edict):
@@ -189,21 +194,20 @@ class Segments(Collection):
   ###################
   # UTILITY METHODS #
   ###################
-  def _trainBySegments(self, divisionInstructions, trainingSet):
+  def _trainBySegments(self, divisions, trainingSet, romGeneralAdjustments):
     """
       Train ROM by training many ROMs depending on the input/index space clustering.
-      @ In, divisionInstructions, dict, dictionary of inputs/indices to cluster on mapped to either
-               number of subdivisions to make or length of the pivot value segments to include
+      @ In, divisions, tuple, (division slice indices, unclustered spaces)
       @ In, trainingSet, dict or list, data used to train the ROM; if a list is provided a temporal ROM is generated.
+      @ In, romGeneralAdjustments, object, arbitrary container created by ROMs and passed to ROM training
       @ Out, None
     """
-    # subdivide the domain
-    counter, remainder = self._subdivideDomain(divisionInstructions, trainingSet)
     # train the subdomain ROMs
-    roms = self._trainSubdomainROMs(self._templateROM, counter, trainingSet)
+    counter, remainder = divisions
+    roms = self._trainSubdomainROMs(self._templateROM, counter, trainingSet, romGeneralAdjustments)
     # if there were leftover domain segments that didn't go with the rest, train those now
     if remainder:
-      unclusteredROMs = self._trainSubdomainROMs(self._templateROM, remainder, trainingSet)
+      unclusteredROMs = self._trainSubdomainROMs(self._templateROM, remainder, trainingSet, romGeneralAdjustments)
       roms = np.hstack([roms, unclusteredROMs])
     self._roms = roms
 
@@ -291,12 +295,13 @@ class Segments(Collection):
     # return the counter indicies as well as any odd-piece-out parts
     return counter, unclustered
 
-  def _trainSubdomainROMs(self, templateROM, counter, trainingSet):
+  def _trainSubdomainROMs(self, templateROM, counter, trainingSet, romGeneralAdjustments):
     """
       Trains the ROMs on each clusterable subdomain
       @ In, templateROM, SupervisedLEarning.supervisedLearning instance, template ROM
       @ In, counter, list(tuple), instructions for dividing subspace into subdomains
       @ In, trainingSet, dict, data on which ROMs should be trained
+      @ In, romGeneralAdjustments, object, arbitrary container created by ROMs and passed to ROM training
       @ Out, roms, np.array(supervisedLearning), trained ROMs for each subdomain
     """
     targets = templateROM.target[:]
@@ -332,6 +337,7 @@ class Segments(Collection):
       self.targetDatas.append(targetData) # DEBUGG
       # create a new ROM and train it!
       newROM = copy.deepcopy(templateROM)
+      newROM.setRomClusterSettings(romGeneralAdjustments)
       self.raiseADebug('Training segment', i, picker)
       newROM.train(data)
       roms.append(newROM)
@@ -377,17 +383,16 @@ class Clusters(Segments):
     self._metricClassifiers = self._assembledObjects.get('Metric', None)
 
   ## API ##
-  def _trainBySegments(self, divisionInstructions, trainingSet):
+  def _trainBySegments(self, divisions, trainingSet):
     """
       Train ROM by training many ROMs depending on the input/index space clustering.
-      @ In, divisionInstructions, dict, dictionary of inputs/indices to cluster on mapped to either
-               number of subdivisions to make or length of the pivot value segments to include
+      @ In, divisions, tuple, (division slice indices, unclustered spaces)
       @ In, trainingSet, dict or list, data used to train the ROM; if a list is provided a temporal ROM is generated.
       @ Out, None
     """
     # subdivide domain and train subdomain ROMs, as with the segmentation
     ## TODO can we increase the inheritance more here, or is this the minimum cutset?
-    counter, remainder = self._subdivideDomain(divisionInstructions, trainingSet)
+    counter, remainder = divisions
     if len(remainder):
       self.raiseADebug('"{}" division(s) are being excluded from clustering consideration.'.format(len(remainder)))
     ## train ROMs for each segment
@@ -429,7 +434,6 @@ class Clusters(Segments):
     #############
     # END DEBUG #
     #############
-    aaaa
 
   ## Utilities ##
   def _classifyROMs(self, classifier, features, clusterFeatures):
@@ -589,7 +593,7 @@ def _plotSignalsClustered(labels, clusterFeatures, slices, trainingSet):
   trainDF.to_csv('debug_clustering.csv')
   # plot
   import matplotlib.pyplot as plt
-  fig, ax = plt.subplots(figsize=(12, 10))
+  _, ax = plt.subplots(figsize=(12, 10))
   for l, label in enumerate(labels):
     picker = slice(slices[l][0], slices[l][-1]+1)
     data = dict((var, [trainingSet[var][0][picker]]) for var in trainingSet)
@@ -599,6 +603,8 @@ def _plotSignalsClustered(labels, clusterFeatures, slices, trainingSet):
   ax.set_xlabel('Time')
   ax.set_title('Clustered Training Data')
   ax.legend(loc=0)
+  print('')
+  print('DEBUGG showing plot (close to continue) ...')
   plt.show()
 
 
