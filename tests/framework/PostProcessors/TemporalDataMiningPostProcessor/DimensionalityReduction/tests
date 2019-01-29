@@ -73,6 +73,6 @@
     input  = 'test_tdmSKLearnMultiDimensionalScaling.xml'
     csv    = 'MultiDimensionalScaling/dummy_0.csv MultiDimensionalScaling/dummy_74.csv'
     output = 'MultiDimensionalScaling/dummy.csv'
-    os_max_time = Windows 500
+    skip = 'Unrealistic resource usage and timeout in Windows'
   [../]
 []
