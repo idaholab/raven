@@ -187,7 +187,6 @@ class ROM(Dummy):
     InterpolationInput.addParam("weight", InputData.FloatType, False)
     inputSpecification.addSub(InterpolationInput)
     # ARMA
-    inputSpecification.addSub(InputData.parameterInputFactory('segments', InputData.IntegerType))
     inputSpecification.addSub(InputData.parameterInputFactory('correlate', InputData.StringListType))
     inputSpecification.addSub(InputData.parameterInputFactory("P", InputData.IntegerType))
     inputSpecification.addSub(InputData.parameterInputFactory("Q", InputData.IntegerType))
