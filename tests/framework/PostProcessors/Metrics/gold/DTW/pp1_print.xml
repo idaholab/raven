@@ -1,0 +1,24 @@
+<DataObjectMetadata name="pp1_out">
+  <MetricPostProcessor type="Static">
+    <z2_z1>
+      <dtwI>77.1864340721</dtwI>
+      <dtwII>1.12465517723</dtwII>
+    </z2_z1>
+    <y2_y1>
+      <dtwII>0.610224551126</dtwII>
+      <dtwI>35.86143303</dtwI>
+    </y2_y1>
+    <x2_x1>
+      <dtwI>29.0149693756</dtwI>
+      <dtwII>0.706542609581</dtwII>
+    </x2_x1>
+  </MetricPostProcessor>
+  
+  <DataSet type="Static">
+    <general>
+      <outputs>dtwI_x2_x1,dtwI_y2_y1,dtwI_z2_z1,dtwII_x2_x1,dtwII_y2_y1,dtwII_z2_z1</outputs>
+      <sampleTag>RAVEN_sample_ID</sampleTag>
+    </general>
+  </DataSet>
+  
+</DataObjectMetadata>

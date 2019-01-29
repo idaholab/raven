@@ -441,12 +441,12 @@ data.addMeta('TestPP',{'firstVar':{'scalarMetric1':10.0,
                       })
 # directly test contents, without using API
 checkSame('Metadata top level entries',len(data._meta),2)
-treePP = data._meta['TestPP'].tree.getroot()
+treePP = data._meta['TestPP'].getRoot()
 checkSame('Metadata TestPP',treePP.tag,'TestPP')
-first,second = (c for c in treePP) # TODO always same order?
+first,second = (c for c in treePP)
 
 checkSame('Metadata TestPP/firstVar tag',first.tag,'firstVar')
-sm1,sm2,vm = (c for c in first) # TODO always same order?
+sm1,sm2,vm = (c for c in first) # Order not guaranteed?
 checkSame('Metadata TestPP/firstVar/scalarMetric1 tag',sm1.tag,'scalarMetric1')
 checkSame('Metadata TestPP/firstVar/scalarMetric1 value',sm1.text,'10.0')
 checkSame('Metadata TestPP/firstVar/scalarMetric2 tag',sm2.tag,'scalarMetric2')
@@ -470,7 +470,7 @@ child = second[0]
 checkSame('Metadata TestPP/secondVar/scalarMetric1 tag',child.tag,'scalarMetric1')
 checkSame('Metadata TestPP/secondVar/scalarMetric1 value',child.text,'100.0')
 
-treeDS = data._meta['DataSet'].tree.getroot()
+treeDS = data._meta['DataSet'].getRoot()
 checkSame('Metadata HistorySet',treeDS.tag,'DataSet')
 checkSame('Metadata HistorySet entries',len(treeDS),2)
 dims,general = treeDS[:]
@@ -483,7 +483,7 @@ checkSame('Metadata HistorySet/dims/y tag',y.tag,'y')
 checkSame('Metadata HistorySet/dims/y value',y.text,'Timelike')
 checkSame('Metadata HistorySet/general tag',general.tag,'general')
 checkSame('Metadata HistorySet/general entries',len(general),4)
-sampleTag,inputs,outputs,pointwise_meta = general[:]
+inputs,outputs,pointwise_meta,sampleTag = general[:]
 checkSame('Metadata HistorySet/general/inputs tag',inputs.tag,'inputs')
 checkSame('Metadata HistorySet/general/inputs value',inputs.text,'a,b')
 checkSame('Metadata HistorySet/general/outputs tag',outputs.tag,'outputs')
@@ -497,9 +497,9 @@ checkSame('Metadata HistorySet/general/sampleTag value',sampleTag.text,'RAVEN_sa
 meta = data.getMeta(pointwise=True,general=True)
 checkArray('Metadata get keys',sorted(meta.keys()),['DataSet','TestPP','prefix'],str)
 # fail to find pointwise in general
-checkFails('Metadata get missing general','Some requested keys could not be found in the requested metadata: {\'prefix\'}',data.getMeta,kwargs=dict(keys=['prefix'],general=True))
+checkFails('Metadata get missing general','Some requested keys could not be found in the requested metadata: (prefix)',data.getMeta,kwargs=dict(keys=['prefix'],general=True))
 # fail to find general in pointwise
-checkFails('Metadata get missing general','Some requested keys could not be found in the requested metadata: {\'HistorySet\'}',data.getMeta,kwargs=dict(keys=['HistorySet'],pointwise=True))
+checkFails('Metadata get missing general','Some requested keys could not be found in the requested metadata: (HistorySet)',data.getMeta,kwargs=dict(keys=['HistorySet'],pointwise=True))
 # TODO more value testing, easier "getting" of specific values
 
 
@@ -530,10 +530,10 @@ correct = ['<DataObjectMetadata name="HistorySet">',
            '      <y>Timelike</y>',
            '    </dims>',
            '    <general>',
-           '      <sampleTag>RAVEN_sample_ID</sampleTag>',
            '      <inputs>a,b</inputs>',
            '      <outputs>x,y</outputs>',
            '      <pointwise_meta>prefix</pointwise_meta>',
+           '      <sampleTag>RAVEN_sample_ID</sampleTag>',
            '    </general>',
            '  </DataSet>',
            '  ',

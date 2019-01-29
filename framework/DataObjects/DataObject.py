@@ -35,7 +35,6 @@ import pandas as pd
 import xarray as xr
 
 from BaseClasses import BaseType
-from Files import StaticXMLOutput
 from utils import utils, cached_ndarray, InputData, xmlUtils, mathUtils
 from MessageHandler import MessageHandler
 

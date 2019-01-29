@@ -1,10 +1,4 @@
-<?xml version="1.0" ?>
 <Simulation printTimeStamps="false">
-  <RunInfo>
-    <WorkingDir>scgpc</WorkingDir>
-    <Sequence>BNmake,BNtrain,BNtest,BNprint</Sequence>
-    <batchSize>1</batchSize>
-  </RunInfo>
   <TestInfo>
     <name>framework/Samplers/SparseGrid/betanorm</name>
     <author>talbpaul</author>
@@ -14,6 +8,12 @@
       This tests using SparseGridCollocation with truncated-normal-beta distributed inputs.
     </description>
   </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>scgpc</WorkingDir>
+    <Sequence>BNmake, BNtrain, BNtest, stats, BNprint</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
 
   <Distributions>
     <Beta name="BetaNorm">
@@ -65,7 +65,7 @@
     </MultiRun>
     <IOStep name="BNprint">
       <Input class="DataObjects" type="PointSet">BNtests</Input>
-      <Input class="Models" type="ROM">BNROM</Input>
+      <Input class="DataObjects" type="DataSet">rom_stats</Input>
       <Output class="OutStreams" type="Print">BNdump</Output>
       <Output class="OutStreams" type="Print">BNdumprom</Output>
     </IOStep>
@@ -73,6 +73,10 @@
       <Input class="DataObjects" type="PointSet">BNsolns</Input>
       <Output class="Models" type="ROM">BNROM</Output>
     </RomTrainer>
+    <IOStep name="stats">
+      <Input class="Models" type="ROM">BNROM</Input>
+      <Output class="DataObjects" type="DataSet">rom_stats</Output>
+    </IOStep>
   </Steps>
 
   <DataObjects>
@@ -88,6 +92,7 @@
       <Input>x1,x2</Input>
       <Output>ans</Output>
     </PointSet>
+    <DataSet name="rom_stats"/>
   </DataObjects>
 
   <OutStreams>
@@ -97,9 +102,8 @@
       <what>input,output</what>
     </Print>
     <Print name="BNdumprom">
-      <type>xml</type>
-      <source>BNROM</source>
-      <what>all</what>
+      <type>csv</type>
+      <source>rom_stats</source>
     </Print>
   </OutStreams>
 

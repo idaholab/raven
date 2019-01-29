@@ -160,4 +160,4 @@ class OutStreamManager(BaseType):
           self.sourceData.append(inDict['SolutionExport'])
           foundData = True
       if not foundData:
-        self.raiseAnError(IOError, 'the Data named ' + self.sourceName[agrosindex] + ' has not been found!!!!')
+        self.raiseAnError(IOError, 'the DataObject "{data}" was not found among the "<Input>" nodes for this step!'.format(data = self.sourceName[agrosindex]))
