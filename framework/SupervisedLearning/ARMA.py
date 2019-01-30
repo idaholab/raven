@@ -156,7 +156,6 @@ class ARMA(supervisedLearning):
       elif child.getName() == 'SpecificFourier':
         # clear old information
         periods = None
-        orders = None
         # what variables share this Fourier?
         variables = child.parameterValues['variables']
         # check for variables that aren't targets
@@ -164,16 +163,10 @@ class ARMA(supervisedLearning):
         if len(missing):
           self.raiseAnError(IOError,
                             'Requested SpecificFourier for variables {} but not found among targets!'.format(missing))
-        # record requested Fourier periods, orders
+        # record requested Fourier periods
         for cchild in child.subparts:
           if cchild.getName() == 'periods':
             periods = cchild.value
-          elif cchild.getName() == 'orders':
-            orders = cchild.value
-        # sanity check
-        if len(periods) != len(orders):
-          self.raiseADebug(IOError,'"periods" and "orders" need to have the same number of entries' +\
-                                   'for variable group "{}"!'.format(variables))
         # set these params for each variable
         for v in variables:
           self.raiseADebug('recording specific Fourier settings for "{}"'.format(v))
@@ -181,8 +174,7 @@ class ARMA(supervisedLearning):
             self.raiseAWarning('Fourier params for "{}" were specified multiple times! Using first values ...'
                                .format(v))
             continue
-          self.fourierParams[v] = {'periods': periods,
-                                   'orders': dict(zip(periods,orders))}
+          self.fourierParams[v] = periods
 
     # read GENERAL parameters for Fourier detrending
     ## these apply to everyone without SpecificFourier nodes
@@ -193,16 +185,10 @@ class ARMA(supervisedLearning):
       basePeriods = basePeriods.value
       if len(set(basePeriods)) != len(basePeriods):
         self.raiseAnError(IOError,'Some <Fourier> periods have been listed multiple times!')
-      # read orders
-      baseOrders = self.initOptionDict.get('FourierOrder', [1]*len(basePeriods))
-      if len(basePeriods) != len(baseOrders):
-        self.raiseAnError(IOError,'{} Fourier periods were requested, but {} Fourier order expansions were given!'
-                                   .format(len(basePeriods),len(baseOrders)))
       # set to any variable that doesn't already have a specific one
       for v in set(self.target) - set(self.fourierParams.keys()):
         self.raiseADebug('setting general Fourier settings for "{}"'.format(v))
-        self.fourierParams[v] = {'periods': basePeriods,
-                                 'orders': dict(zip(basePeriods,baseOrders))}
+        self.fourierParams[v] = basePeriods
 
   def __getstate__(self):
     """
@@ -267,8 +253,7 @@ class ARMA(supervisedLearning):
       if target in self.fourierParams:
         self.raiseADebug('... analyzing Fourier signal  for target "{}" ...'.format(target))
         self.fourierResults[target] = self._trainFourier(self.pivotParameterValues,
-                                                         self.fourierParams[target]['periods'],
-                                                         self.fourierParams[target]['orders'],
+                                                         self.fourierParams[target],
                                                          timeSeriesData,
                                                          zeroFilter = target == self.zeroFilterTarget)
         self._signalStorage[target]['fourier'] = copy.deepcopy(self.fourierResults[target]['predict'])
@@ -533,21 +518,18 @@ class ARMA(supervisedLearning):
                                        burnin = 2*max(self.P,self.Q)) # @epinas, 2018
     return hist
 
-  def _generateFourierSignal(self, pivots, basePeriod, fourierOrder):
+  def _generateFourierSignal(self, pivots, periods):
     """
       Generate fourier signal as specified by the input file
       @ In, pivots, np.array, pivot values (e.g. time)
-      @ In, basePeriod, list, list of base periods
-      @ In, fourierOrder, dict, order for each base period
+      @ In, periods, list, list of Fourier periods (1/frequency)
       @ Out, fourier, array, shape = [n_timeStep, n_basePeriod]
     """
-    fourier = {}
-    for base in basePeriod:
-      fourier[base] = np.zeros((pivots.size, 2*fourierOrder[base]))
-      for orderBp in range(fourierOrder[base]):
-        hist = 2. * np.pi * (orderBp + 1.0) / base * pivots
-        fourier[base][:, 2*orderBp]   = np.sin(hist)
-        fourier[base][:, 2*orderBp+1] = np.cos(hist)
+    fourier = np.zeros((pivots.size, 2*len(periods))) # sin, cos for each period
+    for p, period in enumerate(periods):
+      hist = 2. * np.pi / period * pivots
+      fourier[:, 2 * p] = np.sin(hist)
+      fourier[:, 2 * p + 1] = np.cos(hist)
     return fourier
 
   def _generateVARMASignal(self, model, numSamples=None, randEngine=None, rvsIndex=None):
@@ -716,10 +698,7 @@ class ARMA(supervisedLearning):
       @ In, data, np.array(float), data on which to train
       @ Out, results, statsmodels.tsa.arima_model.ARMAResults, fitted ARMA
     """
-    # input parameters
-    P = self.P
-    Q = self.Q
-    results = smARMA(data, order = (P, Q)).fit(disp = False)
+    results = smARMA(data, order = (self.P, self.Q)).fit(disp = False)
     return results
 
   def _trainCDF(self,data):
@@ -747,149 +726,61 @@ class ARMA(supervisedLearning):
               #'cdfSearch':neighbors.NearestNeighbors(n_neighbors=2).fit([[c] for c in cdf])}
     return params
 
-  def _trainFourier(self, pivotValues, basePeriod, order, values, zeroFilter=False):
+  def _trainFourier(self, pivotValues, periods, values, zeroFilter=False):
     """
       Perform fitting of Fourier series on self.timeSeriesDatabase
       @ In, pivotValues, np.array, list of values for the independent variable (e.g. time)
-      @ In, basePeriod, list, list of the base periods
-      @ In, order, dict, Fourier orders to extract for each base period
+      @ In, periods, list, list of the base periods
       @ In, values, np.array, list of values for the dependent variable (signal to take fourier from)
       @ In, zeroFilter, bool, optional, if True then apply zero-filtering for fourier fitting
       @ Out, fourierResult, dict, results of this training in keys 'residues', 'fourierSet', 'predict', 'regression'
     """
-    fourierSeriesOriginal = self._generateFourierSignal(pivotValues,
-                                                        basePeriod,
-                                                        order)
-    # fourierSeriesOriginal dimensions, for each key (base):
+    # XXX fix for no order
+    fourierSignalsFull = self._generateFourierSignal(pivotValues, periods)
+    # fourierSignals dimensions, for each key (base):
     #   0: length of history
     #   1: evaluations, in order and flattened:
-    #                 0:   sin(1*2pi*t/base),
-    #                 1:   cos(1*2pi*t/base),
-    #                 2:   sin(2*2pi*t/base),
-    #                 3:   cos(2*2pi*t/base),
-    #                    etc,
-    #                 N-1: sin(order*2pi*t/base),
-    #                 N:   cos(order*2pi*t/base)
+    #                 0:   sin(2pi*t/period[0]),
+    #                 1:   cos(2pi*t/period[0]),
+    #                 2:   sin(2pi*t/period[1]),
+    #                 3:   cos(2pi*t/period[1]), ...
     fourierEngine = linear_model.LinearRegression(normalize=False)
 
     # if using zero-filter, cut the parts of the Fourier and values that correspond to the zero-value portions
     if zeroFilter:
       values = values[self.zeroFilterMask]
-      fourierEvaluations = dict((period,vals[self.zeroFilterMask]) for period,vals in fourierSeriesOriginal.items())
+      # TODO is this right?
+      fourierSignals = fourierSignalsFull[self.zeroFilterMask, :]
+      # OLD fourierSignals = dict((period, vals[self.zeroFilterMask]) for period, vals in fourierSeriesOriginal.items())
     else:
-      fourierEvaluations = fourierSeriesOriginal
+      fourierSignals = fourierSignalsFull
 
-    # get the combinations of fourier signal orders to consider
+    # fit the signal
+    fourierEngine.fit(fourierSignals, values)
 
-    criterionBest = np.inf
-    bestSignal = []
-    fourierResult={'residues': 0,
-                   'fourierSet': []}
-
-    fourierBaseFrequencies = [range(1,order[bp]+1) for bp in order]
-    # for all combinations of Fourier periods and orders ...
-    # "values" shape is the length of the history (in this case, like 730 entries)
-    for fourierSet in list(itertools.product(*fourierBaseFrequencies)):
-      # generate container for Fourier series evaluation
-      fourierSignals = np.zeros(shape=(values.size, 2*sum(fourierSet))) # length of history by (sin,cos)(Fourier orders)
-      # dimensions:
-      #    0: length of history
-      #    1: evaluations of sine, cosine for each Fourier order in use
-      # running indices for orders and sine/cosine coefficients
-      runningIndex = 0
-      # for each base period requested ...
-      for index,bp in enumerate(order):
-        # store the series values for the given periods
-        ## TODO this may not be an ideally-indexed storage mechanism
-        ## dimensions are (history length, Fourier combination (sine and cosine))
-        fourierSignals[:, runningIndex:runningIndex+fourierSet[index]*2] = fourierEvaluations[bp][:, 0:fourierSet[index]*2]
-        # update the running index
-        runningIndex += fourierSet[index]*2
-      # find the correct magnitudes to best fit the data
-      ## note in the zero-filter case, this is fitting the truncated data
-      fourierEngine.fit(fourierSignals,values)
-      # determine the (normalized) residual/error associated with this best fit
-      r = (fourierEngine.predict(fourierSignals)-values)**2
-      if r.size > 1:
-        r = sum(r)
-      # TODO any reason to scale this error? values.size should be the same for every order, so all scales same
-      r = r/values.size
-      # TODO is anything gained by the copy and deepcopy for r?
-      criterionCurrent = copy.copy(r)
-      if  criterionCurrent < criterionBest:
-        # TODO this could be sped up by only keeping track of indexes for best, then deepcopying only those
-        fourierResult['fourierSet'] = copy.deepcopy(fourierSet)
-        bestSignal = copy.deepcopy(fourierSignals)
-        bestSet = fourierSet[:]
-        fourierResult['residues'] = copy.deepcopy(r)
-        criterionBest = copy.deepcopy(criterionCurrent)
-
-    self.raiseADebug('Best Fourier matching set:',bestSet,order)
-    # retrain the best-fitting set of orders
-    fourierEngine.fit(bestSignal,values)
-    # reproduce the best-fitting signal
-    fourierSignal = np.asarray(fourierEngine.predict(bestSignal))
-
-    # obtain the Fourier magnitude for each order, to store as reference
-    ## translate indices to headers
-    coefMap = [None for _ in range(len(bestSet))]
-    ## structure of coefMap:
-    ##   list(list(dict))
-    ##   outermost list is the base period in order from the input -> NOPE, it's from order.keys() which is arbitrary
-    ##   second list is the subdivision of the base in numerically-increasing order (1, 2, 3, etc)
-    ##   dictionary has the coefficients as {'sin':coeff, 'cos':coeff}
-    ## see the debug check with plots below for an example of how to use the regression terms.
-    for c,coef in enumerate(fourierEngine.coef_):
-      # which base?
-      floor = 0
-      for b,base in enumerate(bestSet):
-        # how many values correspond to this base?
-        band = base*2
-        # are we between the last boundary and the next?
-        if c < floor + band:
-          correctBase = base
-          correctB = b
-          break
-        else:
-          floor += band
-      if coefMap[correctB] is None:
-        coefMap[correctB] = [{} for _ in range(bestSet[correctB])]
-      # which subdivision?
-      ## reset index list
-      subIndex = c - floor
-      subdivision = subIndex // 2
-      # sin/cos
-      if c % 2 == 0:
-        waveform = 'sin'
-      else:
-        waveform = 'cos'
-      coefMap[correctB][subdivision][waveform] = coef
-    # fill in coefMap with any base subdivisions that were not used
-    for i,(base,subdivs) in enumerate(order.items()):
-      if bestSet[i] < subdivs:
-        for _ in range(bestSet[i]+1,subdivs+1):
-          coefMap[i].append({'sin': 0.0, 'cos':0.0})
-
+    # get Fourier superimposed signal
+    fitSignal = np.asarray(fourierEngine.predict(fourierSignals))
+    # get signal intercept
     intercept = fourierEngine.intercept_
-    fourierResult['regression'] = {'intercept':intercept,
-                                   'coeffs'   :coefMap,
-                                   'periods'  :[]}
+    # get coefficient map
+    coefMap = collections.defaultdict(dict) # {period: {sin:#, cos:#}}
+    for c, coef in enumerate(fourierEngine.coef_):
+      period = periods[c//2]
+      waveform = 'sin' if c % 2 == 0 else 'cos'
+      coefMap[period][waveform] = coef
 
-    # store evaluation periods (1 / freq) for Fourier evaluations
-    for b,base in enumerate(basePeriod):
-      new = []
-      for od in range(order[base]):
-        period = base / (od + 1.0)
-        new.append(period)
-      fourierResult['regression']['periods'].append(new)
-
-    # if zero-filtered, put zeroes back into the Fourier series
+    # re-add zero-filtered
     if zeroFilter:
       signal = np.zeros(pivotValues.size)
-      signal[self.zeroFilterMask] = fourierSignal
+      signal[self.zeroFilterMask] = fitSignal
     else:
-      signal = fourierSignal
-    fourierResult['predict'] = signal
+      signal = fitSignal
+
+    # store results
+    fourierResult = {'regression': {'intercept':intercept,
+                                    'coeffs'   :coefMap,
+                                    'periods'  :periods},
+                     'predict': signal}
     return fourierResult
 
   def _trainMultivariateNormal(self,dim,means,cov):
@@ -918,9 +809,7 @@ class ARMA(supervisedLearning):
       @ Out, stateDist, Distributions.MultivariateNormal, MVN from which VARMA noise is taken
       @ Out, initDist, Distributions.MultivariateNormal, MVN from which VARMA initial state is taken
     """
-    Pmax = self.P
-    Qmax = self.Q
-    model = sm.tsa.VARMAX(endog=data, order=(Pmax,Qmax))
+    model = sm.tsa.VARMAX(endog=data, order=(self.P, self.Q))
     self.raiseADebug('... ... ... fitting VARMA ...')
     results = model.fit(disp=False,maxiter=1000)
     lenHist,numVars = data.shape
@@ -986,7 +875,7 @@ class ARMA(supervisedLearning):
     # add realization
     writeTo.addRealization(rlz)
 
-  def writeXML(self, writeTo, targets = None, skip = None):
+  def writeXML(self, writeTo, targets=None, skip=None):
     """
       Allows the SVE to put whatever it wants into an XML to print to file.
       Overload in subclasses.
@@ -996,34 +885,32 @@ class ARMA(supervisedLearning):
       @ Out, None
     """
     if not self.amITrained:
-      self.raiseAnError(RuntimeError,'ROM is not yet trained! Cannot write to DataObject.')
+      self.raiseAnError(RuntimeError, 'ROM is not yet trained! Cannot write to DataObject.')
     root = writeTo.getRoot()
     # - Fourier coefficients (by period, waveform)
-    for target,fourier in self.fourierResults.items():
+    for target, fourier in self.fourierResults.items():
       targetNode = root.find(target)
       if targetNode is None:
         targetNode = xmlUtils.newNode(target)
         root.append(targetNode)
       fourierNode = xmlUtils.newNode('Fourier')
       targetNode.append(fourierNode)
-      fourierNode.append(xmlUtils.newNode('SignalIntercept', text = '{:1.9e}'.format(fourier['regression']['intercept'])))
-      for b,base in enumerate(fourier['regression']['coeffs']):
-        for s,subdivision in enumerate(base):
-          period = fourier['regression']['periods'][b][s]
-          periodNode = xmlUtils.newNode('period', text = '{:1.9e}'.format(period))
-          fourierNode.append(periodNode)
-          periodNode.append(xmlUtils.newNode('frequency', text = '{:1.9e}'.format(1.0/period)))
-          for waveform, coeff in subdivision.items():
-            periodNode.append(xmlUtils.newNode(waveform, text = '{:1.9e}'.format(coeff)))
+      fourierNode.append(xmlUtils.newNode('SignalIntercept', text='{:1.9e}'.format(fourier['regression']['intercept'])))
+      for period in fourier['regression']['periods']:
+        periodNode = xmlUtils.newNode('period', text='{:1.9e}'.format(period))
+        fourierNode.append(periodNode)
+        periodNode.append(xmlUtils.newNode('frequency', text='{:1.9e}'.format(1.0/period)))
+        for waveform, coeff in fourier['regression']['coeffs'][period].items():
+          periodNode.append(xmlUtils.newNode(waveform, text='{:1.9e}'.format(coeff)))
     # - ARMA std
-    for target,arma in self.armaResult.items():
+    for target, arma in self.armaResult.items():
       targetNode = root.find(target)
       if targetNode is None:
         targetNode = xmlUtils.newNode(target)
         root.append(targetNode)
       armaNode = xmlUtils.newNode('ARMA_params')
       targetNode.append(armaNode)
-      armaNode.append(xmlUtils.newNode('std', text = np.sqrt(arma.sigma2)))
+      armaNode.append(xmlUtils.newNode('std', text=np.sqrt(arma.sigma2)))
       # TODO covariances, P and Q, etc
 
 

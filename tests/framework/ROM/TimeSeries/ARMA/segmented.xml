@@ -1,3 +1,4 @@
+<?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
     <name>framework/ROM/TimeSeries/ARMA.Segmented</name>
@@ -5,14 +6,14 @@
     <created>2018-11-20</created>
     <classesTested>SupervisedLearning.ARMA</classesTested>
     <description>
-      Tests the mechanics of clusterering the "time" subspace of the ARMA ROM.
+      Tests the mechanics of clusterering the &quot;time&quot; subspace of the ARMA ROM.
     </description>
     <revisions>
       <revision author="wangc" date="2018-12-19">
           In PR #882, the standard errors on statistics moments are implemented, these quantities are stored in
           the pointwise metadata, and will be printed out in the output csv files by default.
           In order to avoid regolding this test, the optional node 'what' with text values 'input, output' is added.
-          In this case, only the user requested variables as specified in the DataObjects are printed out. 
+          In this case, only the user requested variables as specified in the DataObjects are printed out.
       </revision>
     </revisions>
   </TestInfo>
@@ -93,16 +94,9 @@
       <pivotParameter>Time</pivotParameter>
       <P>0</P>
       <Q>0</Q>
-      <Fourier>
-        1e200,
-        31556952,
-         2592000,
-          604800,
-           86400
-      </Fourier>
-      <FourierOrder>1,4,2,2,4</FourierOrder>
+      <Fourier>99999999999999996973312221251036165947450327545502362648241750950346848435554075534196338404706251868027512415973882408182135734368278484639385041047239877871023591066789981811181813306167128854888448.000000, 31556952.000000, 15778476.000000, 10518984.000000, 7889238.000000, 2592000.000000, 1296000.000000, 604800.000000, 302400.000000, 86400.000000, 43200.000000, 28800.000000, 21600.000000</Fourier>
       <Cluster>
-        <subspace pivotLength='604800' shift='zero'>Time</subspace>
+        <subspace pivotLength="604800" shift="zero">Time</subspace>
       </Cluster>
     </ROM>
     <PostProcessor name="stats" subType="BasicStatistics">
@@ -117,7 +111,7 @@
         <limit>1</limit>
         <initialSeed>20021986</initialSeed>
       </samplerInit>
-      <constant name='scaling'>1.0</constant>
+      <constant name="scaling">1.0</constant>
     </MonteCarlo>
   </Samplers>
 
@@ -133,4 +127,5 @@
       <what>input,output</what>
     </Print>
   </OutStreams>
+
 </Simulation>

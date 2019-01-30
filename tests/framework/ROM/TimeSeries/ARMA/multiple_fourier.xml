@@ -12,7 +12,7 @@
       exactly replicated by samples_0.csv.
     </description>
     <revisions>
-      <revision author='talbpaul' date='2018-09-13'>changed Pmax and Pmin to P (same for Q)</revision>
+      <revision author="talbpaul" date="2018-09-13">changed Pmax and Pmin to P (same for Q)</revision>
     </revisions>
   </TestInfo>
 
@@ -78,9 +78,8 @@
         <periods>20,100</periods>
         <orders>1,1</orders>
       </SpecificFourier>
-      <Fourier>10,50</Fourier>
+      <Fourier>50.000000, 10.000000</Fourier>
       <!-- will apply to the rest (C,D) -->
-      <FourierOrder>1,1</FourierOrder>
       <P>3</P>
       <Q>1</Q>
     </ROM>
