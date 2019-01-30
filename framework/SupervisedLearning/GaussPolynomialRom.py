@@ -151,25 +151,18 @@ class GaussPolynomialRom(supervisedLearning):
     if self.maxPolyOrder < 1:
       self.raiseAnError(IOError,'Polynomial order cannot be less than 1 currently.')
 
-  def _localPrintXML(self,outFile,pivotVal,options={}):
+  def writeXML(self, writeTo, requests = None, skip = None):
     """
       Adds requested entries to XML node.
-      @ In, outFile, Files.File, either StaticXMLOutput or DynamicXMLOutput file
-      @ In, pivotVal, float, value of pivot parameters to use in printing if dynamic
-      @ In, options, dict, optional, dict of string-based options to use, including filename, things to print, etc
-        May include:
-        'what': comma-separated string list, the qualities to print out
-        'pivotVal': float value of dynamic pivotParam value
+      @ In, writeTo, xmlUtils.StaticXmlElement, StaticXmlElement to write to
+      @ In, requests, list, optional, list of requests for whom to write
+      @ In, skip, list, optional, list of targets to skip (often a pivot parameter)
       @ Out, None
     """
     if not self.amITrained:
       self.raiseAnError(RuntimeError,'ROM is not yet trained!')
-    #reset stats so they're fresh for this calculation
-    self.mean=None
-    sobolIndices = None
-    partialVars = None
-    sobolTotals = None
-    variance = None
+    if skip is None:
+      skip = []
     #establish what we can handle, and how
     scalars = ['mean','expectedValue','variance','samples']
     vectors = ['polyCoeffs','partialVariance','sobolIndices','sobolTotalIndices']
@@ -177,71 +170,59 @@ class GaussPolynomialRom(supervisedLearning):
     #lowercase for convenience
     scalars = list(s.lower() for s in scalars)
     vectors = list(v.lower() for v in vectors)
-    #establish requests, defaulting to "all"
-    if 'what' in options.keys():
-      requests = list(o.strip() for o in options['what'].split(','))
-    else:
-      requests =['all']
-    # Target
-    target = options.get('Target',self.target[0])
-    #handle "all" option
-    if 'all' in requests:
-      requests = canDo
-    # loop over the requested items
-    for request in requests:
-      request=request.strip()
-      if request.lower() in scalars:
-        if request.lower() in ['mean','expectedvalue']:
-          #only calculate the mean once per printing
-          if self.mean is None:
-            self.mean = self.__mean__(target)
-          val = self.mean
-        elif request.lower() == 'variance':
-          if variance is None:
-            variance = self.__variance__(target)
-          val = variance
-        elif request.lower() == 'samples':
-          if self.numRuns!=None:
-            val = self.numRuns
-          else:
-            val = len(self.sparseGrid)
-        outFile.addScalar(target,request,val,pivotVal=pivotVal)
-      elif request.lower() in vectors:
-        if request.lower() == 'polycoeffs':
-          valueDict = OrderedDict()
-          valueDict['inputVariables'] = ','.join(self.features)
-          keys = list(self.polyCoeffDict[target].keys())
-          keys.sort()
-          for key in keys:
-            valueDict['_'+'_'.join(str(k) for k in key)+'_'] = self.polyCoeffDict[target][key]
-        elif request.lower() in ['partialvariance','sobolindices','soboltotalindices']:
-          if sobolIndices is None or partialVars is None:
-            sobolIndices,partialVars = self.getSensitivities(target)
-          if sobolTotals is None:
+    for target in self.target:
+      if target in skip:
+        continue
+      if requests is None:
+        requests = canDo
+      # loop over the requested items
+      for request in requests:
+        request=request.strip()
+        if request.lower() in scalars:
+          if request.lower() in ['mean','expectedvalue']:
+            val = self.__mean__(target)
+          elif request.lower() == 'variance':
+            val = self.__variance__(target)
+          elif request.lower() == 'samples':
+            if self.numRuns != None:
+              val = self.numRuns
+            else:
+              val = len(self.sparseGrid)
+          writeTo.addScalar(target,request,val)
+        elif request.lower() in vectors:
+          if request.lower() == 'polycoeffs':
+            valueDict = OrderedDict()
+            valueDict['inputVariables'] = ','.join(self.features)
+            keys = list(self.polyCoeffDict[target].keys())
+            keys.sort()
+            for key in keys:
+              valueDict['_'+'_'.join(str(k) for k in key)+'_'] = self.polyCoeffDict[target][key]
+          elif request.lower() in ['partialvariance', 'sobolindices', 'soboltotalindices']:
+            sobolIndices, partialVars = self.getSensitivities(target)
             sobolTotals = self.getTotalSensitivities(sobolIndices)
-          #sort by value
-          entries = []
-          if request.lower() in ['partialvariance','sobolindices']:
-            #these both will have same sort
-            for key in sobolIndices.keys():
-              entries.append( ('.'.join(key),partialVars[key],key) )
-          elif request.lower() in ['soboltotalindices']:
-            for key in sobolTotals.keys():
-              entries.append( ('.'.join(key),sobolTotals[key],key) )
-          entries.sort(key=lambda x: abs(x[1]),reverse=True)
-          #add entries to results list
-          valueDict=OrderedDict()
-          for entry in entries:
-            name,_,key = entry
-            if request.lower() == 'partialvariance':
-              valueDict[name] = partialVars[key]
-            elif request.lower() == 'sobolindices':
-              valueDict[name] = sobolIndices[key]
-            elif request.lower() == 'soboltotalindices':
-              valueDict[name] = sobolTotals[key]
-        outFile.addVector(target,request,valueDict,pivotVal=pivotVal)
-      else:
-        self.raiseAWarning('ROM does not know how to return "'+request+'".  Skipping...')
+            #sort by value
+            entries = []
+            if request.lower() in ['partialvariance','sobolindices']:
+              #these both will have same sort
+              for key in sobolIndices.keys():
+                entries.append( ('.'.join(key),partialVars[key],key) )
+            elif request.lower() in ['soboltotalindices']:
+              for key in sobolTotals.keys():
+                entries.append( ('.'.join(key),sobolTotals[key],key) )
+            entries.sort(key=lambda x: abs(x[1]),reverse=True)
+            #add entries to results list
+            valueDict=OrderedDict()
+            for entry in entries:
+              name,_,key = entry
+              if request.lower() == 'partialvariance':
+                valueDict[name] = partialVars[key]
+              elif request.lower() == 'sobolindices':
+                valueDict[name] = sobolIndices[key]
+              elif request.lower() == 'soboltotalindices':
+                valueDict[name] = sobolTotals[key]
+          writeTo.addVector(target,request,valueDict)
+        else:
+          self.raiseAWarning('ROM does not know how to return "'+request+'".  Skipping...')
 
   def _localNormalizeData(self,values,names,feat):
     """

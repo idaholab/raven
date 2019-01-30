@@ -230,12 +230,12 @@ class PolyExponential(supervisedLearning):
                                                                 evaluation[point][l:])
     return returnEvaluation
 
-  def _localPrintXMLSetup(self,outFile,options={}):
+  def writeXMLPreamble(self, writeTo, targets = None):
     """
       Specific local method for printing anything desired to xml file at the begin of the print.
       Overwrite in inheriting classes.
-      @ In, outFile, Files.File, either StaticXMLOutput or DynamicXMLOutput file
-      @ In, options, dict, optional, dict of string-based options to use, including filename, things to print, etc
+      @ In, writeTo, xmlUtils.StaticXmlElement instance, element to write to
+      @ In, targets, list, list of targets for whom information should be written.
       @ Out, None
     """
     # add description
@@ -245,54 +245,59 @@ class PolyExponential(supervisedLearning):
     description += " number of exponential terms (expTerms). If the Polynomial coefficients ``poly\_coefficients'' are"
     description += " dumped, the SM evaluation function is as follows:"
     description += " $SM(X,z) = \sum_{i=1}^{N} P_{i}(X)*exp^{-Q_{i}(X)*z}$, with ``P'' and ``Q'' the polynomial expressions of the exponential terms."
-    outFile.addScalar('ROM',"description",description)
+    writeTo.addScalar('ROM', "description", description)
 
-  def _localPrintXML(self,outFile,pivotVal,options={}):
+  def writeXML(self, writeTo, targets = None, skip = None):
     """
       Adds requested entries to XML node.
-      @ In, outFile, Files.File, either StaticXMLOutput or DynamicXMLOutput file
-      @ In, pivotVal, float, value of pivot parameters to use in printing if dynamic
-      @ In, options, dict, optional, dict of string-based options to use, including filename, things to print, etc
-        May include:
-        'what': comma-separated string list, the qualities to print out
-        'pivotVal': float value of dynamic pivotParam value
+      @ In, writeTo, xmlTuils.StaticXmlElement, element to write to
+      @ In, targets, list, optional, list of targets for whom information should be written
+      @ In, skip, list, optional, list of targets to skip
       @ Out, None
     """
     ##TODO retrieve coefficients from spline interpolator
     if not self.amITrained:
       self.raiseAnError(RuntimeError,'ROM is not yet trained!')
+    if skip is None:
+      skip = []
+
     # check what
     what = ['expTerms','coeffRegressor','features','timeScale','coefficients']
     if self.polyExpParams['coeffRegressor'].strip() == 'poly':
       what.append('polyOrder')
-    if 'what' in options:
-      readWhat = options['what'].split(",")
-      if readWhat[0].strip().lower() == 'all':
-        readWhat = what
-      if not set(readWhat) <= set(what):
-        self.raiseAnError(IOError, "The following variables in <what> node are not recognized: "
-                          + ",".join(np.setdiff1d(readWhat, what).tolist()) )
-      else:
-        what = readWhat
+    if targets is None:
+      readWhat = what
+    else:
+      readWhat = targets
+    for s in skip:
+      if s in readWhat:
+        readWhat.remove(s)
+    if not set(readWhat) <= set(what):
+      self.raiseAnError(IOError, "The following variables in <what> node are not recognized: "
+                        + ",".join(np.setdiff1d(readWhat, what).tolist()) )
+    else:
+      what = readWhat
+
     # Target
-    target = options.get('Target',self.target[-1])
-    toAdd = ['expTerms','coeffRegressor']
+    target = self.target[-1]
+    toAdd = ['expTerms', 'coeffRegressor']
     if self.polyExpParams['coeffRegressor'].strip() == 'poly':
       toAdd.append('polyOrder')
     for add in toAdd:
       if add in what:
-        outFile.addScalar(target,add,self.polyExpParams[add])
+        writeTo.addScalar(target,add,self.polyExpParams[add])
+    targNode = writeTo._findTarget(writeTo.getRoot(), target)
     if "features" in what:
-      outFile.addScalar(target,"features",' '.join(self.features))
+      writeTo.addScalar(target,"features",' '.join(self.features))
     if "timeScale" in what:
-      outFile.addScalar(target,"timeScale",' '.join([str(elm) for elm in self.pivotValues]))
+      writeTo.addScalar(target,"timeScale",' '.join([str(elm) for elm in self.pivotValues]))
     if "coefficients" in what:
       for smp in range(len(self.aij[target])):
         valDict = {'fi': ' '.join([ '%.6e' % elm for elm in self.aij[target][smp,:]]),
                    'taui':' '.join([ '%.6e' % elm for elm in self.bij[target][smp,:]]),
                    'predictionRelDiff' :' '.join([ '%.6e' % elm for elm in self.predictError[target][smp,:]])}
         attributeDict = {self.features[index]:'%.6e' % self.featureVals[smp,index] for index in range(len(self.features))}
-        outFile.addVector("coefficients","realization",valDict,root=target, attrs=attributeDict)
+        writeTo.addVector("coefficients", "realization", valDict, root=targNode, attrs=attributeDict)
 
   def __confidenceLocal__(self,featureVals):
     """
