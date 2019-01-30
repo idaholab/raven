@@ -16,9 +16,8 @@
   [./sklMetric]
     type = 'RavenFramework'
     input = 'test_metric_skl.xml'
-    output = 'sklMetrics/pp1_metric_dump.xml'
     UnorderedCsv = 'sklMetrics/pp1_metric_dump.csv'
-    UnorderedXml = 'sklMetrics/output_metric.xml'
+    UnorderedXml = 'sklMetrics/pp1_metric_dump.xml'
     rel_err = 0.00001
     zero_threshold = 1e-9
   [../]
@@ -48,9 +47,8 @@
   [./testMetricTD]
     type = 'RavenFramework'
     input = 'test_metric_td.xml'
-    UnorderedXml = 'metricTD/output_metric_td.xml'
     csv = 'metricTD/pp1_print_0.csv'
-    output = 'metricTD/pp1_print.csv'
+    UnorderedXml = 'metricTD/pp1_print.xml'
     rel_err = 0.00001
     zero_threshold = 1e-9
   [../]
@@ -71,8 +69,8 @@
   [./test_dtw]
     type = 'RavenFramework'
     input = 'test_dtw.xml'
-    UnorderedXml = 'DTW/output_metric.xml'
     csv = 'DTW/pp1_print.csv'
+    UnorderedXml = 'DTW/pp1_print.xml'
     rel_err = 0.00001
     zero_threshold = 1e-9
   [../]

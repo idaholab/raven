@@ -10,10 +10,12 @@
  # As we can observe, we at most can rely on 2 digits of similarity even on the first point.
  # A good alternative for non-correlated ARMAs is to run statistics on the results (mean, variance) and check those instead.
 
- [./ARMA]
+ [./Basic]
    type = 'RavenFramework'
-   input = 'test_ARMA.xml'
-   csv = 'ARMA/stats.csv'
+   input = 'basic.xml'
+   output = 'Basic/romMeta.csv'
+   csv = 'Basic/stats.csv'
+   UnorderedXml = 'Basic/romMeta.xml'
    rel_err = 5e-2
   [../]
   [./ARMAparallel]
