@@ -536,7 +536,7 @@ def numBinsDraconis(data, low=None, alternateOkay=True):
   if low is not None:
     numBins = max(numBins, low)
   # for convenience, find the edges of the bins as well
-  binEdges = np.linspace(start=min(data),stop=max(data),num=numBins+1)
+  binEdges = np.linspace(start=min(data), stop=max(data), num=numBins+1)
   return numBins, binEdges
 
 def diffWithInfinites(a,b):
