@@ -40,7 +40,7 @@ from sklearn import linear_model, neighbors
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import randomUtils, xmlUtils
+from utils import randomUtils, xmlUtils, mathUtils
 import Distributions
 from .SupervisedLearning import supervisedLearning
 #Internal Modules End--------------------------------------------------------------------------------
@@ -264,10 +264,7 @@ class ARMA(supervisedLearning):
       self._signalStorage[target]['original'] = copy.deepcopy(timeSeriesData)
       # if we're enforcing the training CDF, we should store it now
       if self.preserveInputCDF:
-        counts, edges = np.histogram(timeSeriesData, bins=self._computeNumberOfBins(timeSeriesData), density=False)
-        counts = np.asarray(counts) / float(len(timeSeriesData))
-        dist = stats.rv_histogram((counts, edges))
-        self._trainingCDF[target] = dist
+        self._trainingCDF[target] = mathUtils.trainEmpiricalFunction(timeSeriesData, minBins=20)
       # if this target governs the zero filter, extract it now
       if target == self.zeroFilterTarget:
         self.notZeroFilterMask = self._trainZeroRemoval(timeSeriesData,tol=self.zeroFilterTol) # where zeros are not
@@ -458,9 +455,7 @@ class ARMA(supervisedLearning):
       # if enforcing the training data CDF, apply that transform now
       if self.preserveInputCDF:
         # first build a histogram object of the sampled data
-        counts, edges = np.histogram(signal, bins=self._computeNumberOfBins(signal), density=False)
-        counts = np.asarray(counts) / float(len(signal))
-        dist = stats.rv_histogram((counts, edges))
+        dist = mathUtils.trainEmpiricalFunction(signal, minBins=20)
         # transform data through CDFs
         signal = self._trainingCDF[target].ppf(dist.cdf(signal))
 
@@ -509,18 +504,8 @@ class ARMA(supervisedLearning):
       @ In, data, np.array, data to bin
       @ Out, n, integer, number of bins
     """
-    # Freedman-Diaconis
-    iqr = np.percentile(data,75) - np.percentile(data,25)
-    # see if we can use Freedman-Diaconis
-    if iqr > 0.0:
-      size = 2.0 * iqr / np.cbrt(data.size)
-      # tend towards too many bins, not too few
-      # also don't use less than 20 bins, it makes some pretty sketchy CDFs otherwise
-      n = max(int(np.ceil((max(data) - min(data))/size)),20)
-    else:
-      self.raiseAWarning('While computing CDF, 25 and 75 percentile are the same number; using Root instead of Freedman-Diaconis.')
-      n = max(int(np.ceil(np.sqrt(data.size))),20)
-    self.raiseADebug('... ... bins for ARMA empirical CDF:',n)
+    # leverage the math utils implementation
+    n, _ = mathUtils.numBinsDraconis(data, low=20, alternateOkay=True)
     return n
 
   def _denormalizeThroughCDF(self, data, params):

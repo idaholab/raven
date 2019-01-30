@@ -174,7 +174,7 @@ class ROM(Dummy):
     inputSpecification.addSub(InputData.parameterInputFactory("random_start", InputData.IntegerType))
     # GaussPolynomialROM and HDMRRom
     inputSpecification.addSub(InputData.parameterInputFactory("IndexPoints", InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("IndexSet", IndexSetInputType))
+    inputSpecification.addSub(InputData.parameterInputFactory("IndexSet", contentType=IndexSetInputType))
     inputSpecification.addSub(InputData.parameterInputFactory('pivotParameter', contentType=InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("PolynomialOrder", InputData.IntegerType))
     inputSpecification.addSub(InputData.parameterInputFactory("SobolOrder", InputData.IntegerType))
