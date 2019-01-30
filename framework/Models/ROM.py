@@ -192,7 +192,6 @@ class ROM(Dummy):
     inputSpecification.addSub(InputData.parameterInputFactory("seed", InputData.IntegerType))
     inputSpecification.addSub(InputData.parameterInputFactory("reseedCopies", InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("Fourier", contentType=InputData.FloatListType))
-    inputSpecification.addSub(InputData.parameterInputFactory("FourierOrder", contentType=InputData.IntegerListType))
     ### ARMA zero filter
     zeroFilt = InputData.parameterInputFactory('ZeroFilter', contentType=InputData.StringType)
     zeroFilt.addParam('tol', InputData.FloatType)
@@ -206,7 +205,6 @@ class ROM(Dummy):
     specFourier = InputData.parameterInputFactory('SpecificFourier', strictMode=True)
     specFourier.addParam("variables", InputData.StringListType, True)
     specFourier.addSub(InputData.parameterInputFactory('periods', contentType=InputData.FloatListType))
-    specFourier.addSub(InputData.parameterInputFactory('orders', contentType=InputData.IntegerListType))
     inputSpecification.addSub(specFourier)
     # inputs for neural_network
     inputSpecification.addSub(InputData.parameterInputFactory("hidden_layer_sizes", InputData.StringType))

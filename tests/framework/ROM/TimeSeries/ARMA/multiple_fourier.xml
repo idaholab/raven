@@ -76,7 +76,6 @@
       <pivotParameter>Time</pivotParameter>
       <SpecificFourier variables="A,B">
         <periods>20,100</periods>
-        <orders>1,1</orders>
       </SpecificFourier>
       <Fourier>50.000000, 10.000000</Fourier>
       <!-- will apply to the rest (C,D) -->
