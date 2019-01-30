@@ -166,6 +166,15 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
     """
     self.addInputExtension(['i','inp','in'])
 
+  def initialize(self,runInfo, oriInputFiles):
+    """
+      Method to initialize the run of a new step
+      @ In, runInfo, dict,  dictionary of the info in the <RunInfo> XML block
+      @ In, oriInputFiles, list, list of the original input files
+      @ Out, None
+    """
+    pass
+
   def finalizeCodeOutput(self,command,output,workingDir):
     """
       this method is called by the RAVEN code at the end of each run (if the method is present).

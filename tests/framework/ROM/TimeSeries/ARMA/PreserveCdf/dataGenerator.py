@@ -13,6 +13,7 @@
 # limitations under the License.
 """
   Generates a synthetic signal for testing ARMA operations
+  Specific for this case, creates a time-dependent noise in addtion to Fourier signals
 """
 import numpy as np
 import pandas as pd
@@ -23,7 +24,7 @@ import matplotlib.pyplot as plt
 N = 100
 
 ## noise scale
-noise_scale = 10.0
+noiseScale = 10.0
 
 ## make plots?
 plot = True
@@ -34,7 +35,14 @@ A = (1, 2, 3)
 B = (2, 4, 6)
 
 def fourier(freq, a, b, x):
-  """ evaluates Fourier expression for a given frequency, amplitudes, and time series """
+  """
+    evaluates Fourier expression for a given frequency, amplitudes, and time series
+    @ In, freq, float, frequency to evaluate
+    @ In, a, float, sine coefficient
+    @ In, b, float, cosine coefficient
+    @ In, x, np.ndarray(float), independent parameter at which to evaluate
+    @ Out, fourier, Fourier signal given prescribed parameters
+  """
   sig = 2.0 * np.pi * freq * x
   return a * np.sin(sig) + b * np.cos(sig)
 
@@ -53,7 +61,7 @@ if plot:
 
 # add some random noise
 ## pure noise
-noise = np.random.rand(N) * noise_scale
+noise = np.random.rand(N) * noiseScale
 ## time-dependence
 noise *= fourier(0.01, 1.0, 0.0, t)**2
 signal += noise
