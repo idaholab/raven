@@ -6,7 +6,7 @@
     <created>2019-01-22</created>
     <classesTested>SupervisedLearning.ARMA</classesTested>
     <description>
-      Tests the feature to preserve the CDF of the input training data when producing synthetic histories.
+      Tests the feature (Models.ARMA.preserveInputCDF) to preserve the CDF of the input training data when producing synthetic histories.
       The standard is being able to identically match the original data's ValueDuration curve.
     </description>
     <revisions>

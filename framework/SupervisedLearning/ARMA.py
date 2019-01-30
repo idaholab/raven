@@ -88,6 +88,7 @@ class ARMA(supervisedLearning):
     self.zeroFilterTarget  = None # target for whom zeros should be filtered out
     self.zeroFilterTol     = None # tolerance for zerofiltering to be considered zero, set below
     self.zeroFilterMask    = None # mask of places where zftarget is zero, or None if unused
+    self._minBins          = 20   # min number of bins to use in determining distributions, eventually can be user option, for now developer's pick
     # signal storage
     self._signalStorage    = collections.defaultdict(dict) # various signals obtained in the training process
 
@@ -264,7 +265,7 @@ class ARMA(supervisedLearning):
       self._signalStorage[target]['original'] = copy.deepcopy(timeSeriesData)
       # if we're enforcing the training CDF, we should store it now
       if self.preserveInputCDF:
-        self._trainingCDF[target] = mathUtils.trainEmpiricalFunction(timeSeriesData, minBins=20)
+        self._trainingCDF[target] = mathUtils.trainEmpiricalFunction(timeSeriesData, minBins=self._minBins)
       # if this target governs the zero filter, extract it now
       if target == self.zeroFilterTarget:
         self.notZeroFilterMask = self._trainZeroRemoval(timeSeriesData,tol=self.zeroFilterTol) # where zeros are not
@@ -455,7 +456,7 @@ class ARMA(supervisedLearning):
       # if enforcing the training data CDF, apply that transform now
       if self.preserveInputCDF:
         # first build a histogram object of the sampled data
-        dist = mathUtils.trainEmpiricalFunction(signal, minBins=20)
+        dist = mathUtils.trainEmpiricalFunction(signal, minBins=self._minBins)
         # transform data through CDFs
         signal = self._trainingCDF[target].ppf(dist.cdf(signal))
 
@@ -505,7 +506,7 @@ class ARMA(supervisedLearning):
       @ Out, n, integer, number of bins
     """
     # leverage the math utils implementation
-    n, _ = mathUtils.numBinsDraconis(data, low=20, alternateOkay=True)
+    n, _ = mathUtils.numBinsDraconis(data, low=self._minBins, alternateOkay=True)
     return n
 
   def _denormalizeThroughCDF(self, data, params):
