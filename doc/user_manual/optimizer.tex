@@ -75,15 +75,11 @@ request for the output of a Gradient-Based Optimizer run.  They include the foll
 \begin{itemize}
   \item \xmlString{varsUpdate}, is the iteration number for each new optimal point;
   \item \xmlString{stepSize}, is the step size used to go from the previous optimal point to the current step;
-  \item \xmlString{gradient\_var}, where \emph{var} is replaced by an input variable name, provides the
-    gradient in the \emph{var} direction followed to arrive at the current optimal point (evaluated at the
-    previous optimal point);
+  \item \xmlString{accepted}, is whether the candidate optimal point was accepted (True) or rejected (False);
   \item \xmlString{convergenceRel}, the last-calculated relative convergence of the loss function value
     (see the description of the \xmlNode{convergence} node for more details);
   \item \xmlString{convergenceAbs}, the last-calculated absolute convergence of the loss function value
     (see the description of the \xmlNode{convergence} node for more details);
-  \item \xmlString{convergenceGrad}, the last-calculated norm of the gradient used to arrive at the
-    current point (see the description of the \xmlNode{convergence} node for more details).
 \end{itemize}
 Note that none of these additional parameters will be provided to the output DataObject by default; they must
 be specifically requested by listing them in the output space when defining the optimizing step's output data
@@ -103,7 +99,6 @@ Example:
       <iterationLimit>50</iterationLimit>
       <relativeThreshold>1e-3</relativeThreshold>
       <absoluteThreshold>1e-1</absoluteThreshold>
-      <gradientThreshold>1e-5</gradientThreshold>
       <persistence>1</persistence>
     </convergence>
     <parameter>
@@ -130,8 +125,7 @@ Example:
     <Input>trajID</Input>
     <Output>
       x,y,z,varsUpdate,stepSize,
-      gradient_x,gradient_y,
-      convergenceAbs,convergenceRel,convergenceGrad
+      convergenceAbs,convergenceRel, accepted
     </Output>
   </HistorySet>
   ...
@@ -144,7 +138,8 @@ Example:
 The \textbf{SPSA} optimization approach is one of the optimization strategies that are based on gradient estimation. The main
 idea is to simultaneously perturb all decision variables in order to estimate the gradient. Consequently a minimal number of two
 model evaluations are required in order to approximate the gradient. The theory behind SPSA can be found in
-\cite{spall1998implementation}.
+\cite{spall1998implementation}, although note a significant number of modifications have been made to
+accelerate this scheme within RAVEN.
 
 In addition to the algorithm in \cite{spall1998implementation}, current implementation of \textbf{SPSA} can also handles
 constrained optimization problem. This paragraph briefly describes how current implementation ensures the input satisfies the
@@ -325,9 +320,6 @@ convergence. This node accepts the following sub-nodes:
   in an ``absolute'' sense: when the absolute change of objective variable in two successive model evaluations is smaller
   than this specified threshold, the \xmlNode{SPSA} optimizer is in convergence and terminates the simulation.
       \default{0.0}
-  \item \xmlNode{gradientThreshold}, \xmlDesc{float, optional field}, specifies the convergence criteria to determine the optimality,
-   as function of the L2 norm of the gradient (useful for unconstrained problems): when the L2 norm od the gradient falls below this threshold, the \xmlNode{SPSA} optimizer is in convergence and terminates the simulation.
-      \default{1e-3}
   \item \xmlNode{minStepSize}, \xmlDesc{float, optional field}, specifies the minimum allowable step size in
     the normalized input space, ranging from 0 (no movement) to 1 (spans any dimension).
       \default{1e-9}
@@ -359,34 +351,19 @@ convergence. This node accepts the following sub-nodes:
         \end{itemize}
         \default{Hypersphere}
 
-  \item Optimizer Gradient Evaluation parameters:
-    \begin{itemize}
-      \item \xmlNode{gamma}, \xmlDesc{float, optional field} Inverse exponent for gradient evaluation distance. Increasing this
-        parameter will greatly decrease the distance between points sampled in evaluating the gradient
-        \cite{spall1998implementation}. A practical suggestion for $\gamma$ is 0.101 (paired with an
-        $\alpha$ value of 0.602); however, the asymptotic limit is $\gamma=1/6$ ($\alpha=1$). \default{0.101}
-      \item \xmlNode{c}, \xmlDesc{float, optional field} Step size coefficient.  This term determines the
-        nominal step size, and increasing it will directly increase the distance between points sampled in evaluating the gradient
-        \cite{spall1998implementation}. It is suggested this parameter be approximately equal to the standard
-        deviation of the measurement noise in the response for stochastic responses.  For regular responses,
-        it can be a small arbitrary value. \default{0.005}
-    \end{itemize}
-
-  \item Optimizer Step Size parameters:
-    \begin{itemize}
-      \item \xmlNode{a}, \xmlDesc{float, optional field} Nominal optimizer step size parameter.  Increasing
-        this parameter will directly increase the distance traversed in each optimizer step
-        \cite{spall1998implementation}. In contrast to $A$, this parameter will be unchanged by increasing
-        iterations, and so will be more impacting as the optimization algorithm iterates. \default{0.16}
-      \item \xmlNode{alpha}, \xmlDesc{float, optional field} Inverse exponent for optimizer step size.
-        Increasing this parameter will greatly decrease the distance traversed in each optimizer step
-        \cite{spall1998implementation}. Values less than 1 for $\alpha$ usually yield better performance by
-        keeping a large step size. See the description of $\gamma$ above for some suggested values. \default{0.602}
-      \item \xmlNode{A}, \xmlDesc{float, optional field} Nominal step damping stability parameter.  Increasing this
-        parameter will directly decrease the distance traversed in each optimizer step
-        \cite{spall1998implementation}. This parameter will have greater affect in reducing step size early in
-        the calculation, and reduced affect as iterations increase. \default{\xmlNode{limit} divided by 10}
-    \end{itemize}
+  \item \xmlNode{initialStepSize}, \xmlDesc{float, optional field} Measure of the optimizer's initial step
+    size, measured as a percent of the length of any one dimension. The actual step size in the normalized
+    unit hypercube is calculated as the hyperdiagonal of a hypercube with side lengths equal to the given
+    value. For example, for a two-dimensional problem and a \texttt{initialStepSize} of 0.10, the full initial
+    step size will be the diagonal of a two-dimensional square with side lengths of 0.10, or roughly 0.14
+    total. It is recommended this value be between 0.05 and 0.20, but is highly dependent on the problem.
+     \default{0.05}
+  \item \xmlNode{perturbationDistance}, \xmlDesc{float, optional field} Distance from a point at which the
+    response should be evaluated in order to determine the local gradient, measured as a percent of the
+    current step size. This distance should be near enough to the optimal point to avoid significant changes
+    in the response topology while far enough away to provide meaningful gradient information. It is
+    recommended this number be between 1E-7 and 1E-2, but is dependent on the problem.
+     \default{0.01}
   \item \xmlNode{innerBisectionThreshold}, \xmlDesc{float, optional field} a parameter specifying the convergence threshold of the
   bisection method used in constraint handling (See above). This parameter shall be in the open inverval $(0,1)$.
         \default{0.01}
@@ -412,7 +389,6 @@ Example:
       <iterationLimit>50</iterationLimit>
       <relativeThreshold>1e-3</relativeThreshold>
       <absoluteThreshold>1e-1</absoluteThreshold>
-      <gradientThreshold>1e-5</gradientThreshold>
       <persistence>1</persistence>
     </convergence>
     <parameter>
@@ -617,9 +593,6 @@ convergence. This node accepts the following sub-nodes:
   in an ``absolute'' sense: when the absolute change of objective variable in two successive model evaluations is smaller
   than this specified threshold, the \xmlNode{FiniteDifferenceGradientOptimizer} optimizer is in convergence and terminates the simulation.
       \default{0.0}
-  \item \xmlNode{gradientThreshold}, \xmlDesc{float, optional field}, specifies the convergence criteria to determine the optimality,
-   as function of the L2 norm of the gradient (useful for unconstrained problems): when the L2 norm od the gradient falls below this threshold, the \xmlNode{FiniteDifferenceGradientOptimizer} optimizer is in convergence and terminates the simulation.
-      \default{1e-3}
   \item \xmlNode{minStepSize}, \xmlDesc{float, optional field}, specifies the minimum allowable step size in
     the normalized input space, ranging from 0 (no movement) to 1 (spans any dimension).
       \default{1e-9}
@@ -642,34 +615,19 @@ convergence. This node accepts the following sub-nodes:
         converge in average.
         \default{1}
 
-  \item Optimizer Gradient Evaluation parameters:
-    \begin{itemize}
-      \item \xmlNode{gamma}, \xmlDesc{float, optional field} Inverse exponent for gradient evaluation distance. Increasing this
-        parameter will greatly decrease the distance between points sampled in evaluating the gradient
-        \cite{spall1998implementation}. A practical suggestion for $\gamma$ is 0.101 (paired with an
-        $\alpha$ value of 0.602); however, the asymptotic limit is $\gamma=1/6$ ($\alpha=1$). \default{0.101}
-      \item \xmlNode{c}, \xmlDesc{float, optional field} Step size coefficient.  This term determines the
-        nominal step size, and increasing it will directly increase the distance between points sampled in evaluating the gradient.
-        It is suggested this parameter be approximately equal to the standard
-        deviation of the measurement noise in the response for stochastic responses.  For regular responses,
-        it can be a small arbitrary value. \default{0.005}
-    \end{itemize}
-
-  \item Optimizer Step Size parameters:
-    \begin{itemize}
-      \item \xmlNode{a}, \xmlDesc{float, optional field} Nominal optimizer step size parameter.  Increasing
-        this parameter will directly increase the distance traversed in each optimizer step
-        \cite{spall1998implementation}. In contrast to $A$, this parameter will be unchanged by increasing
-        iterations, and so will be more impacting as the optimization algorithm iterates. \default{0.16}
-      \item \xmlNode{alpha}, \xmlDesc{float, optional field} Inverse exponent for optimizer step size.
-        Increasing this parameter will greatly decrease the distance traversed in each optimizer step
-        \cite{spall1998implementation}. Values less than 1 for $\alpha$ usually yield better performance by
-        keeping a large step size. See the description of $\gamma$ above for some suggested values. \default{0.602}
-      \item \xmlNode{A}, \xmlDesc{float, optional field} Nominal step damping stability parameter.  Increasing this
-        parameter will directly decrease the distance traversed in each optimizer step
-        \cite{spall1998implementation}. This parameter will have greater affect in reducing step size early in
-        the calculation, and reduced affect as iterations increase. \default{\xmlNode{limit} divided by 10}
-    \end{itemize}
+  \item \xmlNode{initialStepSize}, \xmlDesc{float, optional field} Measure of the optimizer's initial step
+    size, measured as a percent of the length of any one dimension. The actual step size in the normalized
+    unit hypercube is calculated as the hyperdiagonal of a hypercube with side lengths equal to the given
+    value. For example, for a two-dimensional problem and a \texttt{initialStepSize} of 0.10, the full initial
+    step size will be the diagonal of a two-dimensional square with side lengths of 0.10, or roughly 0.14
+    total. It is recommended this value be between 0.05 and 0.20, but is highly dependent on the problem.
+     \default{0.05}
+  \item \xmlNode{perturbationDistance}, \xmlDesc{float, optional field} Distance from a point at which the
+    response should be evaluated in order to determine the local gradient, measured as a percent of the
+    current step size. This distance should be near enough to the optimal point to avoid significant changes
+    in the response topology while far enough away to provide meaningful gradient information. It is
+    recommended this number be between 1E-7 and 1E-2, but is dependent on the problem.
+     \default{0.01}
   \item \xmlNode{innerBisectionThreshold}, \xmlDesc{float, optional field} a parameter specifying the convergence threshold of the
   bisection method used in constraint handling (See above). This parameter shall be in the open inverval $(0,1)$.
         \default{0.01}
@@ -695,7 +653,6 @@ Example:
       <iterationLimit>50</iterationLimit>
       <relativeThreshold>1e-3</relativeThreshold>
       <absoluteThreshold>1e-1</absoluteThreshold>
-      <gradientThreshold>1e-5</gradientThreshold>
       <persistence>1</persistence>
     </convergence>
     <parameter>
