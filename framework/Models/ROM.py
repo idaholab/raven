@@ -174,8 +174,8 @@ class ROM(Dummy):
     inputSpecification.addSub(InputData.parameterInputFactory("random_start", InputData.IntegerType))
     # GaussPolynomialROM and HDMRRom
     inputSpecification.addSub(InputData.parameterInputFactory("IndexPoints", InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("IndexSet",IndexSetInputType))
-    inputSpecification.addSub(InputData.parameterInputFactory('pivotParameter',contentType=InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("IndexSet", contentType=IndexSetInputType))
+    inputSpecification.addSub(InputData.parameterInputFactory('pivotParameter', contentType=InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("PolynomialOrder", InputData.IntegerType))
     inputSpecification.addSub(InputData.parameterInputFactory("SobolOrder", InputData.IntegerType))
     inputSpecification.addSub(InputData.parameterInputFactory("SparseGrid", InputData.StringType))
@@ -192,13 +192,14 @@ class ROM(Dummy):
     inputSpecification.addSub(InputData.parameterInputFactory("seed", InputData.IntegerType))
     inputSpecification.addSub(InputData.parameterInputFactory("reseedCopies", InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("Fourier", contentType=InputData.FloatListType))
+    inputSpecification.addSub(InputData.parameterInputFactory("preserveInputCDF", contentType=InputData.BoolType))
     ### ARMA zero filter
     zeroFilt = InputData.parameterInputFactory('ZeroFilter', contentType=InputData.StringType)
     zeroFilt.addParam('tol', InputData.FloatType)
     inputSpecification.addSub(zeroFilt)
     ### ARMA out truncation
     outTrunc = InputData.parameterInputFactory('outTruncation', contentType=InputData.StringListType)
-    domainEnumType = InputData.makeEnumType('domain','truncateDomainType',['positive','negative'])
+    domainEnumType = InputData.makeEnumType('domain', 'truncateDomainType', ['positive', 'negative'])
     outTrunc.addParam('domain', domainEnumType, True)
     inputSpecification.addSub(outTrunc)
     ### ARMA specific fourier

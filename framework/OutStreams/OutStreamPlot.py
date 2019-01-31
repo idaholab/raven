@@ -978,9 +978,9 @@ class OutStreamPlot(OutStreamManager):
       #  plt.hold(True)
       if 'gridSpace' in self.options['plotSettings'].keys():
         plt.locator_params(axis = 'y', nbins = 4)
-        plt.ticklabel_format(**{'style':'sci', 'scilimits':(0, 1), 'useOffset':False, 'axis':'both'})
+        plt.ticklabel_format(style='sci', scilimits=(0, 1), useOffset=False, axis='both')
         plt.locator_params(axis = 'x', nbins = 2)
-        plt.ticklabel_format(**{'style':'sci', 'scilimits':(0, 1), 'useOffset':False, 'axis':'both'})
+        plt.ticklabel_format(style='sci', scilimits=(0, 1), useOffset=False, axis='both')
         if 'range' in plotSettings.keys():
           axes_range = plotSettings['range']
           if self.dim == 2:
