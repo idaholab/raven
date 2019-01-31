@@ -2986,9 +2986,9 @@ train. The Fourier trend will be stored in the trained ARMA model for data gener
 describes the detrending
 process.
 \begin{equation*}
-x_t = y_t - \sum_m\left\{\sum_{k=1}^{K_m}a_k\sin(2\pi kf_mt)+\sum_{k=1}^{K_m}b_k\cos(2\pi kf_mt)\right\},
+x_t = y_t - \sum_m\left\{a_m\sin(2\pi f_mt)+b_m\cos(2\pi f_mt)\right\},
 \end{equation*}
-where $K_m$ and $f_m$ are user-defined parameters.
+where $1/f_m$ is defined by the user parameter \xmlNode{Fourier}.
 
 By default, each target in the training will be considered independent and have an unique ARMA for each
 target.  Correlated targets can be specified through the \xmlNode{correlate} node, at which point
@@ -3045,9 +3045,6 @@ below).
   \item \xmlNode{Fourier}, \xmlDesc{comma-separated integers, optional field}, must be positive integers. This defines the
     based period that will be used for Fourier detrending, i.e., this field defines $1/f_m$ in the above equation.
     When this filed is not specified, the ARMA considers no Fourier detrend.
-  \item \xmlNode{FourierOrder}, \xmlDesc{comma-separated integers, optional field}, must be positive integers. The number of integers specified
-    in this field should be exactly same as the number of base periods specified in the node \xmlNode{Fourier}.
-    This field defines $K_m$ in the above equation.
   \item \xmlNode{SpecificFourier}, \xmlDesc{node, optional}, provides a means to specify different Fourier
     decomposition for different target variables.  Values given in the subnodes of this node will supercede
     the defaults set by the  \xmlNode{Fourier} and \xmlNode{FourierOrder} nodes.  This node accepts the
@@ -3060,8 +3057,6 @@ below).
     \begin{itemize}
       \item \xmlNode{periods}, \xmlDesc{comma-separated integers, required field}, lists the (fundamental)
         periodic wavelength of the Fourier decomposition for these variables, as in the \xmlNode{Fourier} general node.
-      \item \xmlNode{orders}, \xmlDesc{comma-separated integers, required field}, lists the highest integer
-        subdivision desired for each period requested in \xmlNode{periods}, as \xmlNode{FourierOrder} above.
     \end{itemize}
     \romClusterOption
 \end{itemize}
