@@ -513,19 +513,31 @@ def NDInArray(findIn,val,tol=1e-12):
     return False,None,None
   return found,idx,looking
 
-def numBinsDraconis(data):
+def numBinsDraconis(data, low=None, alternateOkay=True):
   """
     Determine  Bin size and number of bins determined by Freedman Diaconis rule (https://en.wikipedia.org/wiki/Freedman%E2%80%93Diaconis_rule)
     @ In, data, np.array, data to be binned
+    @ In, low, int, minimum number of bins
+    @ In, alternateOkay, bool, if True then can use alternate method if Freeman Draconis won't work
     @ Out, numBins, int, optimal number of bins
     @ Out, binEdges, np.array, location of the bins
   """
-
-  IQR = np.percentile(data, 75) - np.percentile(data, 25)
-  binSize = 2.0*IQR*(data.size**(-1.0/3.0))
-  numBins = int((max(data)-min(data))/binSize)
-  binEdges = np.linspace(start=min(data),stop=max(data),num=numBins+1)
-  return numBins,binEdges
+  iqr = np.percentile(data, 75) - np.percentile(data, 25)
+  # Freedman Diaoconis assumes there's a difference between the 75th and 25th percentile (there usually is)
+  if iqr > 0.0:
+    size = 2.0 * iqr / np.cbrt(data.size)
+    numBins = int(np.ceil((max(data) - min(data))/size))
+  # if there's not, with approval we can use the sqrt of the number of entries instead
+  elif alternateOkay:
+    numBins = int(np.ceil(np.sqrt(data.size)))
+  else:
+    raise ValueError('When computing bins using Freedman-Diaconis the 25th and 75th percentiles are the same, and "alternate" is not enabled!')
+  # if a minimum number of bins have been suggested, check that we use enough
+  if low is not None:
+    numBins = max(numBins, low)
+  # for convenience, find the edges of the bins as well
+  binEdges = np.linspace(start=min(data), stop=max(data), num=numBins+1)
+  return numBins, binEdges
 
 def diffWithInfinites(a,b):
   """
@@ -707,3 +719,22 @@ def computeAmplitudeCoefficients(mods, Y, eigs, optmized):
   else:
     amplitudes = np.linalg.lstsq(mods, Y.T[0])[0]
   return amplitudes
+
+def trainEmpiricalFunction(signal, bins=None, minBins=None):
+  """
+    Creates a scipy empirical distribution object with all the associated methods (pdf, cdf, ppf, etc).
+    Note this is only partially covered (while extended to include weights) by methods in raven/framework/Metrics/MetricUtilities,
+    and ideally those methods can be generalized and extended to be included here, or in Distributions.  See issue #908.
+    @ In, signal, np.array(float), signal to create distribution for
+    @ In, bins, int, optional, number of bins to use
+    @ In, minBins, int, optional, minimum number of bins to use
+    @ Out, dist, scipy.stats.rv_histogram instance, distribution object instance based on input data
+  """
+  # determine the number of bins to use in the empirical distribution
+  if bins is None:
+    bins, _ = numBinsDraconis(signal, low=minBins)
+  counts, edges = np.histogram(signal, bins=bins, density=False)
+  counts = np.asarray(counts) / float(len(signal))
+  dist = stats.rv_histogram((counts, edges))
+  return dist
+
