@@ -601,7 +601,6 @@ def _plotSignalsClustered(labels, clusterFeatures, slices, trainingSet):
   for l, label in enumerate(labels):
     picker = slice(slices[l][0], slices[l][-1]+1)
     data = dict((var, [trainingSet[var][0][picker]]) for var in trainingSet)
-    #print('DEBUGG Time:', data['Time'][:3], '...', data['Time'][-3:])
     ax.plot(data['Time'][0], data['Demand'][0], '-', color='C{}'.format(label), label='C {}'.format(label))
   ax.set_ylabel('Demand')
   ax.set_xlabel('Time')

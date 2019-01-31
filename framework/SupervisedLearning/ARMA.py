@@ -423,18 +423,18 @@ class ARMA(supervisedLearning):
                                             randEngine = self.normEngine.rvs)
           signal = sample
       # END creating base signal
-      # DEBUGG adding arbitrary variables for debugging, TODO find a more elegant way, leaving these here as markers
+      # DEBUG adding arbitrary variables for debugging, TODO find a more elegant way, leaving these here as markers
       #returnEvaluation[target+'_0base'] = copy.copy(signal)
       # denoise
       signal = self._denormalizeThroughCDF(signal,self.cdfParams[target])
-      # DEBUGG adding arbitrary variables
+      # DEBUG adding arbitrary variables
       #returnEvaluation[target+'_1denorm'] = copy.copy(signal)
       #debuggFile.writelines('signal_arma,'+','.join(str(x) for x in signal)+'\n')
 
       # Add fourier trends
       if target in self.fourierParams:
         signal += self.fourierResults[target]['predict']
-        # DEBUGG adding arbitrary variables
+        # DEBUG adding arbitrary variables
         #returnEvaluation[target+'_2fourier'] = copy.copy(signal)
         #debuggFile.writelines('signal_fourier,'+','.join(str(x) for x in self.fourierResults[target]['predict'])+'\n')
 
@@ -444,7 +444,7 @@ class ARMA(supervisedLearning):
 
       # Re-zero out zero filter target's zero regions
       if target == self.zeroFilterTarget:
-        # DEBUGG adding arbitrary variables
+        # DEBUG adding arbitrary variables
         #returnEvaluation[target+'_3zerofilter'] = copy.copy(signal)
         signal[self.notZeroFilterMask] = 0.0
 
@@ -455,13 +455,13 @@ class ARMA(supervisedLearning):
             signal = np.absolute(signal)
           elif domain == 'negative':
             signal = -np.absolute(signal)
-        # DEBUGG adding arbitrary variables
+        # DEBUG adding arbitrary variables
         #returnEvaluation[target+'_4truncated'] = copy.copy(signal)
 
       # store results
       ## FIXME this is ASSUMING the input to ARMA is only ever a single scaling factor.
       signal *= featureVals[0]
-      # DEBUGG adding arbitrary variables
+      # DEBUG adding arbitrary variables
       #returnEvaluation[target+'_5scaled'] = copy.copy(signal)
 
       # sanity check on the signal
@@ -629,7 +629,6 @@ class ARMA(supervisedLearning):
       for target in targets:
         if target == self.pivotParameterID:
           continue
-        print('DEBUGG target:',target)
         # only do separation for targets for whom there's a Fourier request
         if target in self.fourierParams:
           # NOTE: assuming training on only one history!
@@ -667,7 +666,6 @@ class ARMA(supervisedLearning):
       @ Out, None
     """
     # some Fourier periods have already been handled, so reset the ones that actually are needed
-    print('DEBUGG set settings:',settings.keys())
     newFourier = settings.get('segment Fourier periods', None)
     if newFourier is not None:
       for target in self.fourierParams:
@@ -687,7 +685,6 @@ class ARMA(supervisedLearning):
     # add back in Fourier
     if 'long Fourier signal' in settings:
       for target, results in settings['long Fourier signal'].items():
-        print('DEBUGG target:',target)
         signal = results['predict']
         evaluation[target] += signal
     # last thing, backtransform signal
