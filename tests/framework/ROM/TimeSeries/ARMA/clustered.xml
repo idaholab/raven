@@ -85,14 +85,7 @@
       <pivotParameter>Time</pivotParameter>
       <P>0</P>
       <Q>0</Q>
-      <Fourier>
-        1e200,
-        31556952,
-         2592000,
-          604800,
-           86400
-      </Fourier>
-      <FourierOrder>1,4,2,2,4</FourierOrder>
+      <Fourier>1e200, 31556952, 15778476, 10518984, 7889238, 2592000, 1296000, 604800, 302400, 86400, 43200, 28800, 21600</Fourier>
       <Segment grouping='cluster'>
         <Classifier class='Models' type='PostProcessor'>affinity</Classifier>
         <subspace divisions='12' shift='zero'>Time</subspace>

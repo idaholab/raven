@@ -100,10 +100,10 @@
       <pivotParameter>Time</pivotParameter>
       <P>0</P>
       <Q>0</Q>
-      <Fourier>1e200, 31556952.000000, 15778476.000000, 10518984.000000, 7889238.000000, 2592000.000000, 1296000.000000, 604800.000000, 302400.000000, 86400.000000, 43200.000000, 28800.000000, 21600.000000</Fourier>
-      <Cluster>
+      <Fourier>1e200, 31556952, 15778476, 10518984, 7889238, 2592000, 1296000, 604800, 302400, 86400, 43200, 28800, 21600</Fourier>
+      <Segment>
         <subspace pivotLength="604800" shift="zero">Time</subspace>
-      </Cluster>
+      </Segment>
     </ROM>
     <PostProcessor name="stats" subType="BasicStatistics">
       <expectedValue prefix="mean">Demand</expectedValue>

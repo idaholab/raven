@@ -193,6 +193,7 @@ class Segments(Collection):
       @ Out, result, np.array, evaluated points
     """
     result = self._evaluateBySegments(edict)
+    result = self._templateROM.finalizeGlobalRomClusterSample(self._romGlobalAdjustments, result)
     return result
 
   ###################
@@ -340,7 +341,7 @@ class Segments(Collection):
       self.targetDatas.append(targetData) # DEBUGG
       # create a new ROM and train it!
       newROM = copy.deepcopy(templateROM)
-      newROM.setRomClusterSettings(romGeneralAdjustments)
+      newROM.setRomClusterSettings(self._romGlobalAdjustments)
       self.raiseADebug('Training segment', i, picker)
       newROM.train(data)
       roms.append(newROM)

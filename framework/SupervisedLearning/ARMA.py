@@ -440,10 +440,7 @@ class ARMA(supervisedLearning):
 
       # if enforcing the training data CDF, apply that transform now
       if self.preserveInputCDF:
-        # first build a histogram object of the sampled data
-        dist = mathUtils.trainEmpiricalFunction(signal, minBins=self._minBins)
-        # transform data through CDFs
-        signal = self._trainingCDF[target].ppf(dist.cdf(signal))
+        signal = self._transformThroughInputCDF(signal, self._trainingCDF[target])
 
       # Re-zero out zero filter target's zero regions
       if target == self.zeroFilterTarget:
@@ -606,10 +603,17 @@ class ARMA(supervisedLearning):
       @ Out, settings, object, arbitrary information about ROM clustering settings
       @ Out, trainingDict, dict, adjusted training data (possibly unchanged)
     """
-    # do global Fourier analysis on all requested settings over the Nyquist limit
     settings = {}
+    targets = list(self.fourierParams.keys())
+    # set up for input CDF preservation on a global scale
+    if self.preserveInputCDF:
+      inputDists = {}
+      for target in targets:
+        targetVals = trainingDict[target][0]
+        inputDists[target] = mathUtils.trainEmpiricalFunction(targetVals, minBins=self._minBins)
+      settings['input CDFs'] = inputDists
+    # do global Fourier analysis on combined signal for all periods longer than the segment
     if self.fourierParams:
-      targets = [self.fourierParams.keys()]
       # determine the Nyquist length for the clustered params
       slicers = divisions[0]
       pivotValues = trainingDict[self.pivotParameterID][0]
@@ -620,6 +624,7 @@ class ARMA(supervisedLearning):
       full = {}      # train these periods on the full series
       segment = {}   # train these periods on the segments individually
       for target in targets:
+        print('DEBUGG target:',target)
         # only do separation for targets for whom there's a Fourier request
         if target in self.fourierParams:
           # NOTE: assuming training on only one history!
@@ -661,6 +666,25 @@ class ARMA(supervisedLearning):
     if newFourier is not None:
       for target in self.fourierParams:
         self.fourierParams[target] = newFourier[target]
+    # disable CDF preservation on subclusters
+    ## Note that this might be a good candidate for a user option someday,
+    ## but right now we can't imagine a use case that would turn it off
+    self.preserveInputCDF = False
+
+  def finalizeGlobalRomClusterSample(self, settings, evaluation):
+    """
+      Allows any global settings to be applied to the signal collected by the ROMCollection instance.
+      Note this is called on the templateROM from the ROMcollection, NOT on the supspace segment ROMs!
+      @ In, evaluation, dict, {target: np.ndarray} evaluated full (global) signal from ROMCollection
+      @ Out, evaluation, dict, {target: np.ndarray} adjusted global evaluation
+    """
+    # last thing, backtransform signal
+    ## how nicely does this play with zerofiltering?
+    if self.preserveCDF:
+      for target, dist in settings['input CDFs'].items():
+        # TODO get right evaluation
+        evaluation[target] = self._transformThroughInputCDF(evaluation[target], dist)
+    return evaluation
 
   def _interpolateDist(self,x,y,Xlow,Xhigh,Ylow,Yhigh,inMask):
     """
@@ -983,6 +1007,18 @@ class ARMA(supervisedLearning):
       armaNode.append(xmlUtils.newNode('std', text=np.sqrt(arma.sigma2)))
       # TODO covariances, P and Q, etc
 
+  def _transformThroughInputCDF(self, signal, originalDist):
+    """
+      Transforms a signal through the original distribution
+      @ In, signal, np.array, signal to transform
+      @ In, originalDist, scipy.stats.rv_histogram, distribution to transform through
+      @ Out, new, np.array, new signal after transformation
+    """
+    # first build a histogram object of the sampled data
+    dist = mathUtils.trainEmpiricalFunction(signal, minBins=self._minBins)
+    # transform data through CDFs
+    new = originalDist.ppf(dist.cdf(signal))
+    return new
 
   ### ESSENTIALLY UNUSED ###
   def _localNormalizeData(self,values,names,feat):

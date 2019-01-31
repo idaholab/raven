@@ -234,7 +234,7 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
       NB.the supervisedLearning object is committed to convert the dictionary that is passed (in), into the local format
       the interface with the kernels requires.
       @ In, edict, dict, evaluation dictionary
-      @ Out, evaluate, numpy.array, evaluated points
+      @ Out, evaluate, dict, {target: evaluated points}
     """
     if type(edict) != dict:
       self.raiseAnError(IOError,'method "evaluate". The evaluate request/s need/s to be provided through a dictionary. Type of the in-object is ' + str(type(edict)))
@@ -253,16 +253,7 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
         if not resp[0]:
           self.raiseAnError(IOError,'In training set for feature '+feat+':'+resp[1])
         featureValues[:,cnt] = ((values[names.index(feat)] - self.muAndSigmaFeatures[feat][0]))/self.muAndSigmaFeatures[feat][1]
-    evaluation = self.__evaluateLocal__(featureValues)
-    return self.finalizeEvaluation(evaluation)
-
-  def finalizeEvaluation(self, evaluation):
-    """
-      Allows any last-touch evaluations distinct from the __evaluateLocal__ method. Generally should be a passthrough.
-      @ In, evaluation, np.ndarray, evaluated points
-      @ Out, evaluation, np.ndarray, evaluated points with final adjustments
-    """
-    return evaluation
+    return self.__evaluateLocal__(featureValues)
 
   def reset(self):
     """
