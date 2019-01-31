@@ -6,7 +6,7 @@
     <created>2018-11-20</created>
     <classesTested>SupervisedLearning.ARMA</classesTested>
     <description>
-      Tests the mechanics of clusterering the &quot;time&quot; subspace of the ARMA ROM.
+      Tests the mechanics of clusterering the ``time'' subspace of the ARMA ROM.
     </description>
     <revisions>
       <revision author="wangc" date="2018-12-19">
@@ -94,7 +94,7 @@
       <pivotParameter>Time</pivotParameter>
       <P>0</P>
       <Q>0</Q>
-      <Fourier>99999999999999996973312221251036165947450327545502362648241750950346848435554075534196338404706251868027512415973882408182135734368278484639385041047239877871023591066789981811181813306167128854888448.000000, 31556952.000000, 15778476.000000, 10518984.000000, 7889238.000000, 2592000.000000, 1296000.000000, 604800.000000, 302400.000000, 86400.000000, 43200.000000, 28800.000000, 21600.000000</Fourier>
+      <Fourier>1e200, 31556952.000000, 15778476.000000, 10518984.000000, 7889238.000000, 2592000.000000, 1296000.000000, 604800.000000, 302400.000000, 86400.000000, 43200.000000, 28800.000000, 21600.000000</Fourier>
       <Cluster>
         <subspace pivotLength="604800" shift="zero">Time</subspace>
       </Cluster>
