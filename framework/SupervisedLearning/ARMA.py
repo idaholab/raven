@@ -594,38 +594,51 @@ class ARMA(supervisedLearning):
 
   def getRomClusterSettings(self, trainingDict, divisions):
     """
-      Allows the ROM to perform some analysis before clustering.
-      @ In, trainingDict, dict, data for training
+      Allows the ROM to perform some analysis before segmenting.
+      @ In, trainingDict, dict, data for training, full and unsegmented
       @ In, divisions, tuple, (division slice indices, unclustered spaces)
       @ Out, settings, object, arbitrary information about ROM clustering settings
       @ Out, trainingDict, dict, adjusted training data (possibly unchanged)
     """
     # do global Fourier analysis on all requested settings over the Nyquist limit
+    settings = {}
     if self.fourierParams:
       targets = [self.fourierParams.keys()]
       # determine the Nyquist length for the clustered params
       slicers = divisions[0]
       pivotValues = trainingDict[self.pivotParameterID][0]
       # use the first segment as typical of all of them, NOTE might be bad assumption
-      first = pivotValues[slicers[0][0]]
-      last = pivotValues[slicers[0][-1]]
-      nyquist = 0.5 * (last - first)
+      delta = pivotValues[slicers[0][-1]] - pivotValues[slicers[0][0]]
+      # any Fourier longer than the delta should be trained a priori, leaving the reaminder
+      #    to be specific to individual ROMs
+      full = {}      # train these periods on the full series
+      segment = {}   # train these periods on the segments individually
       for target in targets:
-        fourierRequests = self.fourierParams.get(target, [])
-        long = {'periods': [], 'orders': []}
-        short = {'periods': [], 'orders': []}
+        # only do separation for targets for whom there's a Fourier request
         if target in self.fourierParams:
-          periods = self.fourierParams[target]['periods']
-          subdivs = self.fourierParams[target]['orders']
-          for base in periods:
-            for subdiv in subdivs:
-              period = float(base) / float(subdiv)
-              if period > nyquist:
-                if base not in long['periods']:
-                  long. # TODO WORKING need to get rid of "periods" "orders" syntax.
-                long.append(self.fourierParams
+          # NOTE: assuming training on only one history!
+          targetVals = trainingDict[target][0]
+          # if zero filtering in play, set the masks now
+          ## TODO I'm not particularly happy with having to remember to do this; can we automate it more?
+          zeroFiltering = target == self.zeroFilterTarget
+          if zeroFiltering:
+            self.notZeroFilterMask = self._trainZeroRemoval(targetVals, tol=self.zeroFilterTol) # where zeros are not
+            self.zeroFilterMask = np.logical_not(self.notZeroFilterMask) # where zeroes are
+          periods = np.asarray(self.fourierParams[target])
+          full = periods[periods > delta]
+          segment[target] = periods[np.logical_not(periods > delta)]
+          if len(full):
+            # train Fourier on longer periods
+            fourierDict = self._trainFourier(pivotValues,
+                                             full,
+                                             targetVals,
+                                             zeroFilter = zeroFiltering)
+            signal = fourierDict[
+          # XXX remove longer signal from training data
+      # store the segment-based periods in the settings to return
+      settings['segment Fourier periods'] = segment
 
-          self.fourierParams[v] = {'periods': periods,
+
     return None, trainingDict
 
   def setRomClusterSettings(self, settings):
