@@ -253,7 +253,16 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
         if not resp[0]:
           self.raiseAnError(IOError,'In training set for feature '+feat+':'+resp[1])
         featureValues[:,cnt] = ((values[names.index(feat)] - self.muAndSigmaFeatures[feat][0]))/self.muAndSigmaFeatures[feat][1]
-    return self.__evaluateLocal__(featureValues)
+    evaluation = self.__evaluateLocal__(featureValues)
+    return self.finalizeEvaluation(evaluation)
+
+  def finalizeEvaluation(self, evaluation):
+    """
+      Allows any last-touch evaluations distinct from the __evaluateLocal__ method. Generally should be a passthrough.
+      @ In, evaluation, np.ndarray, evaluated points
+      @ Out, evaluation, np.ndarray, evaluated points with final adjustments
+    """
+    return evaluation
 
   def reset(self):
     """

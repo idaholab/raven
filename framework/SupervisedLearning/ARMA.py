@@ -592,9 +592,10 @@ class ARMA(supervisedLearning):
     params = ['Fourier', 'ARMA']
     return params
 
-  def getRomClusterSettings(self, trainingDict, divisions):
+  def getGlobalRomClusterSettings(self, trainingDict, divisions):
     """
       Allows the ROM to perform some analysis before segmenting.
+      Note this is called on the templateROM from the ROMcollection, NOT on the supspace segment ROMs!
       @ In, trainingDict, dict, data for training, full and unsegmented
       @ In, divisions, tuple, (division slice indices, unclustered spaces)
       @ Out, settings, object, arbitrary information about ROM clustering settings
@@ -629,26 +630,32 @@ class ARMA(supervisedLearning):
           segment[target] = periods[np.logical_not(periods > delta)]
           if len(full):
             # train Fourier on longer periods
-            fourierDict = self._trainFourier(pivotValues,
-                                             full,
-                                             targetVals,
-                                             zeroFilter = zeroFiltering)
-            signal = fourierDict[
-          # XXX remove longer signal from training data
+            self.fourierResults[target] = self._trainFourier(pivotValues,
+                                                             full,
+                                                             targetVals,
+                                                             zeroFilter = zeroFiltering)
+            # remove longer signal from training data
+            signal = self.fourierResults[target]['predict']
+            targetVals -= signal
+            trainingDict[target][0] = targetVals
       # store the segment-based periods in the settings to return
       settings['segment Fourier periods'] = segment
+      settings['long Fourier signal'] = self.fourierResults
+    return settings, trainingDict
 
-
-    return None, trainingDict
-
-  def setRomClusterSettings(self, settings):
+  def setGlobalRomClusterSettings(self, settings):
     """
       Allows the ROM to apply general settings as obtained in getRomClusterSettings
-      @ In, settings, object, arbitrary information about ROM clustering settings
+      before training the subspace segment ROMs
+      Note this is called on the supspace segment ROMs, NOT on the templateROM from the ROMcollection!
+      @ In, settings, object, arbitrary information about ROM clustering settings from getRomClusterSettings
       @ Out, None
     """
-    # by default, do nothing
-    pass
+    # some Fourier periods have already been handled, so reset the ones that actually are needed
+    newFourier = settings.get('segment Fourier periods', None)
+    if newFourier is not None:
+      for target in self.fourierParams:
+        self.fourierParams[target] = newFourier[target]
 
   def _interpolateDist(self,x,y,Xlow,Xhigh,Ylow,Yhigh,inMask):
     """
