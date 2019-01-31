@@ -171,7 +171,6 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta, BaseType), Mess
 
     self.supervisedContainer[0].setAssembledObjects(assembledObjects)
 
-
     # if training using ROMCollection, special treatment
     if isinstance(self.supervisedContainer[0], SupervisedLearning.Collection):
       self.supervisedContainer[0].train(trainingSet)

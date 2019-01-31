@@ -15,12 +15,13 @@
           In order to avoid regolding this test, the optional node 'what' with text values 'input, output' is added.
           In this case, only the user requested variables as specified in the DataObjects are printed out.
       </revision>
+      <revision author="talbpaul" date="2019-01-30">Added a pickling step to check serialization of segmented ARMA.</revision>
     </revisions>
   </TestInfo>
 
   <RunInfo>
     <WorkingDir>Segmented</WorkingDir>
-    <Sequence>load,train,sample,print,reload,stats</Sequence>
+    <Sequence>load,train,dump,sample,print,reload,stats</Sequence>
   </RunInfo>
 
   <Steps>
@@ -38,6 +39,10 @@
       <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
       <Output class="DataObjects" type="HistorySet">synthetic</Output>
     </MultiRun>
+    <IOStep name="dump">
+      <Input class="Models" type="ROM">arma</Input>
+      <Output class="Files" type="">pk</Output>
+    </IOStep>
     <IOStep name="print">
       <Input class="DataObjects" type="HistorySet">synthetic</Input>
       <Output class="OutStreams" type="Print">synthetic</Output>
@@ -57,6 +62,7 @@
   <Files>
     <Input name="input">ercotNC_all_hourly.csv</Input>
     <Input name="sample">synthetic_0.csv</Input>
+    <Input name="pk">arma.pk</Input>
   </Files>
 
   <DataObjects>

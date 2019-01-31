@@ -34,12 +34,13 @@ import xarray as xr
 import statsmodels.api as sm # VARMAX is in sm.tsa
 from statsmodels.tsa.arima_model import ARMA as smARMA
 from scipy import optimize
+from scipy import stats
 from scipy.linalg import solve_discrete_lyapunov
 from sklearn import linear_model, neighbors
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import randomUtils, xmlUtils
+from utils import randomUtils, xmlUtils, mathUtils
 import Distributions
 from .SupervisedLearning import supervisedLearning
 #Internal Modules End--------------------------------------------------------------------------------
@@ -82,9 +83,12 @@ class ARMA(supervisedLearning):
     self.pivotParameterID  = kwargs['pivotParameter']
     self.pivotParameterValues = None  # In here we store the values of the pivot parameter (e.g. Time)
     self.seed              = kwargs.get('seed',None)
+    self.preserveInputCDF  = kwargs.get('preserveInputCDF', False) # if True, then CDF of the training data will be imposed on the final sampled signal
+    self._trainingCDF      = {} # if preserveInputCDF, these CDFs are scipy.stats.rv_histogram objects for the training data
     self.zeroFilterTarget  = None # target for whom zeros should be filtered out
     self.zeroFilterTol     = None # tolerance for zerofiltering to be considered zero, set below
     self.zeroFilterMask    = None # mask of places where zftarget is zero, or None if unused
+    self._minBins          = 20   # min number of bins to use in determining distributions, eventually can be user option, for now developer's pick
     # signal storage
     self._signalStorage    = collections.defaultdict(dict) # various signals obtained in the training process
 
@@ -245,6 +249,9 @@ class ARMA(supervisedLearning):
     for t,target in enumerate(self.target):
       timeSeriesData = targetVals[:,t]
       self._signalStorage[target]['original'] = copy.deepcopy(timeSeriesData)
+      # if we're enforcing the training CDF, we should store it now
+      if self.preserveInputCDF:
+        self._trainingCDF[target] = mathUtils.trainEmpiricalFunction(timeSeriesData, minBins=self._minBins)
       # if this target governs the zero filter, extract it now
       if target == self.zeroFilterTarget:
         self.notZeroFilterMask = self._trainZeroRemoval(timeSeriesData,tol=self.zeroFilterTol) # where zeros are not
@@ -431,6 +438,13 @@ class ARMA(supervisedLearning):
         #returnEvaluation[target+'_2fourier'] = copy.copy(signal)
         #debuggFile.writelines('signal_fourier,'+','.join(str(x) for x in self.fourierResults[target]['predict'])+'\n')
 
+      # if enforcing the training data CDF, apply that transform now
+      if self.preserveInputCDF:
+        # first build a histogram object of the sampled data
+        dist = mathUtils.trainEmpiricalFunction(signal, minBins=self._minBins)
+        # transform data through CDFs
+        signal = self._trainingCDF[target].ppf(dist.cdf(signal))
+
       # Re-zero out zero filter target's zero regions
       if target == self.zeroFilterTarget:
         # DEBUGG adding arbitrary variables
@@ -452,6 +466,7 @@ class ARMA(supervisedLearning):
       signal *= featureVals[0]
       # DEBUGG adding arbitrary variables
       #returnEvaluation[target+'_5scaled'] = copy.copy(signal)
+
       # sanity check on the signal
       assert(signal.size == returnEvaluation[self.pivotParameterID].size)
       #debuggFile.writelines('final,'+','.join(str(x) for x in signal)+'\n')
@@ -475,18 +490,8 @@ class ARMA(supervisedLearning):
       @ In, data, np.array, data to bin
       @ Out, n, integer, number of bins
     """
-    # Freedman-Diaconis
-    iqr = np.percentile(data,75) - np.percentile(data,25)
-    # see if we can use Freedman-Diaconis
-    if iqr > 0.0:
-      size = 2.0 * iqr / np.cbrt(data.size)
-      # tend towards too many bins, not too few
-      # also don't use less than 20 bins, it makes some pretty sketchy CDFs otherwise
-      n = max(int(np.ceil((max(data) - min(data))/size)),20)
-    else:
-      self.raiseAWarning('While computing CDF, 25 and 75 percentile are the same number; using Root instead of Freedman-Diaconis.')
-      n = max(int(np.ceil(np.sqrt(data.size))),20)
-    self.raiseADebug('... ... bins for ARMA empirical CDF:',n)
+    # leverage the math utils implementation
+    n, _ = mathUtils.numBinsDraconis(data, low=self._minBins, alternateOkay=True)
     return n
 
   def _denormalizeThroughCDF(self, data, params):
