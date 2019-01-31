@@ -25,6 +25,7 @@
   input = 'test_adaptive_sgc_poly_correlation.xml'
   UnorderedCsv = 'polyCorrelation/csv_database.csv'
   UnorderedXml = 'polyCorrelation/stats_td1.xml'
+  max_time = 500 # windows test box is slow, so very slow
  [../]
 
  [./test_adaptive_sgc_poly_pca_analytic]

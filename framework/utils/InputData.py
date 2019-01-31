@@ -458,11 +458,10 @@ class ParameterInput(object):
             sub.getName()," in ",cls.getName())
 
   @classmethod
-  def removeSub(cls, sub, quantity=Quantity.zero_to_infinity):
+  def removeSub(cls, sub):
     """
       Removes a subnode from this class.
       @ In, sub, subclass of ParameterInput, the subnode to allow
-      @ In, quantity, value in Quantity, the number of this subnode to allow.
       @ Out, None
     """
     for have in cls.subs:
