@@ -311,7 +311,7 @@ if __name__ == '__main__':
   if '--py3' in sys.argv:
     pythonIndex = __condaList.index(("python", "2.7"))
     __condaList[pythonIndex] = ("python", "3")
-    __condaForgeList.append(("matplotlib", ""))
+    __condaForgeList.append(("matplotlib", "2"))
 
   # check for environemnt definition of raven libs
   libName = os.getenv('RAVEN_LIBS_NAME', 'raven_libraries')
