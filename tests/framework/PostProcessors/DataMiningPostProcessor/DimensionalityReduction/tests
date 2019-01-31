@@ -20,12 +20,14 @@
     type   = 'RavenFramework'
     input  = 'test_dataMiningRandomizedPCA.xml'
     csv    = 'RandomizedPCA/dummy.csv'
+    rel_err = 1.0e-7
     output = 'RandomizedPCA/1-PlotIris_dataMining.png'
   [../]
   [./KernelPCA]
     type   = 'RavenFramework'
     input  = 'test_dataMiningKernelPCA.xml'
     csv    = 'KernelPCA/dummy.csv'
+    rel_err = 1.0e-7
     output = 'KernelPCA/1-PlotIris_dataMining.png'
   [../]
   [./SparsePCA]
@@ -48,6 +50,7 @@
     type   = 'RavenFramework'
     input  = 'test_dataMiningTruncatedSVD.xml'
     csv    = 'TruncatedSVD/dummy.csv'
+    rel_err = 1.0e-7
     output = 'TruncatedSVD/1-PlotIris_dataMining.png'
   [../]
   [./FastICA]

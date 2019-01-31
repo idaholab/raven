@@ -16,6 +16,7 @@
     </analytic>
     <revisions>
       <revision author="talbpaul" date="2018-01-04">switched from snapshot to writeSteps final</revision>
+      <revision author='talbpaul' date='2018-10-23'>limited outputs checked to just the solution</revision>
     </revisions>
   </TestInfo>
 
@@ -67,7 +68,6 @@
       </variable>
       <objectVar>ans</objectVar>
       <parameter>
-        <numGradAvgIterations>2</numGradAvgIterations>
         <stochasticDistribution>Bernoulli</stochasticDistribution>
       </parameter>
     </SPSA>
@@ -90,8 +90,7 @@
       <Output>ans</Output>
     </PointSet>
     <PointSet name="opt_export">
-      <Input>trajID</Input>
-      <Output>x,y,ans,varsUpdate</Output>
+      <Output>ans</Output>
     </PointSet>
   </DataObjects>
 

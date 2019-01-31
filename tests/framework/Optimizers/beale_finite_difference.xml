@@ -4,7 +4,7 @@
     <name>framework/Optimizers.BealeFiniteDifference</name>
     <author>alfoa</author>
     <created>2017-09-11</created>
-    <classesTested>Optimizer.FiniteDifferenceGradientOptimizer</classesTested>
+    <classesTested>Optimizer.FiniteDifference</classesTested>
     <description>
       This test runs the optimization (Finite difference forward) on Beale's function.  It tests analytic optimization values
       as well as the mechanical operation of the Finite Difference optimizer.     </description>
@@ -14,6 +14,7 @@
     </analytic>
     <revisions>
       <revision author="talbpaul" date="2018-01-04">switch from snapshot to writeSteps final</revision>
+      <revision author='talbpaul' date='2018-10-23'>limited outputs checked to just the solution</revision>
     </revisions>
   </TestInfo>
 
@@ -27,7 +28,7 @@
     <MultiRun name="optimize">
       <Input class="DataObjects" type="PointSet">dummyIN</Input>
       <Model class="Models" type="ExternalModel">beale</Model>
-      <Optimizer class="Optimizers" type="FiniteDifferenceGradientOptimizer">opter</Optimizer>
+      <Optimizer class="Optimizers" type="FiniteDifference">opter</Optimizer>
       <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
       <Output class="DataObjects" type="PointSet">optOut</Output>
     </MultiRun>
@@ -38,7 +39,7 @@
   </Steps>
 
   <Optimizers>
-    <FiniteDifferenceGradientOptimizer name="opter">
+    <FiniteDifference name="opter">
       <initialization>
         <limit>2000</limit>
         <initialSeed>42</initialSeed>
@@ -47,7 +48,7 @@
       </initialization>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
       <convergence>
-        <gradientThreshold>1e-1</gradientThreshold>
+        <minStepSize>1e-4</minStepSize>
         <gainGrowthFactor>1.5</gainGrowthFactor>
         <gainShrinkFactor>1.25</gainShrinkFactor>
       </convergence>
@@ -62,7 +63,7 @@
         <initial>0,0</initial>
       </variable>
       <objectVar>ans</objectVar>
-    </FiniteDifferenceGradientOptimizer>
+    </FiniteDifference>
   </Optimizers>
 
   <Models>
@@ -82,8 +83,7 @@
       <Output>ans</Output>
     </PointSet>
     <PointSet name="opt_export">
-      <Input>trajID</Input>
-      <Output>x,y,ans,varsUpdate</Output>
+      <Output>ans</Output>
     </PointSet>
   </DataObjects>
 

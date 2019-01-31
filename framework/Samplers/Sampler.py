@@ -143,6 +143,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.restartData                   = None                      # presampled points to restart from
     self.restartTolerance              = 1e-15                     # strictness with which to find matches in the restart data
     self.restartIsCompatible           = None                      # flags restart as compatible with the sampling scheme (used to speed up checking)
+    self._jobsToEnd                    = []                        # list of strings, containing job prefixes that should be cancelled.
 
     self.constantSourceData            = None                      # dictionary of data objects from which constants can take values
     self.constantSources               = {}                        # storage for the way to obtain constant information
@@ -524,7 +525,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     meta = ['ProbabilityWeight','prefix','PointProbability']
     for var in self.toBeSampled.keys():
       meta +=  ['ProbabilityWeight-'+ key for key in var.split(",")]
-    self.addMetaKeys(*meta)
+    self.addMetaKeys(meta)
 
   def localGetInitParams(self):
     """
@@ -625,6 +626,17 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     paramDict.update(self.localGetCurrentSetting())
     return paramDict
 
+  def getJobsToEnd(self, clear=False):
+    """
+      Provides a list of jobs that should be terminated.
+      @ In, clear, bool, optional, if True then clear list after returning.
+      @ Out, ret, list, jobs to terminate
+    """
+    ret = set(self._jobsToEnd[:])
+    if clear:
+      self._jobsToEnd = []
+    return ret
+
   def localGetCurrentSetting(self):
     """
       Returns a dictionary with class specific information regarding the
@@ -685,7 +697,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       # we consider that CDF of the constant variables is equal to 1 (same as its Pb Weight)
       self.inputInfo['SampledVarsPb'].update(dict.fromkeys(self.constants.keys(),1.0))
       pbKey = ['ProbabilityWeight-'+key for key in self.constants.keys()]
-      self.addMetaKeys(*pbKey)
+      self.addMetaKeys(pbKey)
       self.inputInfo.update(dict.fromkeys(['ProbabilityWeight-'+key for key in self.constants.keys()],1.0))
 
   def _expandVectorVariables(self):

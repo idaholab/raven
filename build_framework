@@ -9,16 +9,26 @@ else
 fi
 SCRIPT_DIR=`(cd $SCRIPT_DIRNAME; pwd)`
 
-source $SCRIPT_DIR/scripts/establish_conda_env.sh --quiet --load
+NO_CONDA=0
+# read arguments
+while test $# -gt 0
+do
+  case "$1" in
+     --skip-conda)
+      NO_CONDA=1
+  esac
+  shift
+done
+#### END FUTURE WORK
+# export no conda variable
+export NO_CONDA
 
+if [[ $NO_CONDA == 0 ]]; then
+  source $SCRIPT_DIR/scripts/establish_conda_env.sh --quiet --load
+fi
 #These don't always work for setup.py, so safer to unset them.
 unset CXX CC
 
-#Miniconda sets MACOSX_DEPLOYMENT_TARGET to too old a value, so this overrides.
-if test `uname` == Darwin; then
-    MACOSX_DEPLOYMENT_TARGET=10.9;
-    export MACOSX_DEPLOYMENT_TARGET;
-fi
 
 CROW_DIR=${CROW_DIR:=$SCRIPT_DIR/crow}
 if test ! -e $CROW_DIR/setup.py; then

@@ -5,8 +5,8 @@
     <!-- *********************************************************************** -->
     <xsd:complexType name="OptimizerData">
         <xsd:sequence>
-            <xsd:element name="SPSA"                              type="SPSAOptimizer"            minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element name="FiniteDifferenceGradientOptimizer" type="SPSAOptimizer"            minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="SPSA"             type="SPSAOptimizer"            minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="FiniteDifference" type="SPSAOptimizer"            minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
         <xsd:attribute name="verbosity" type="verbosityAttr" default="all"/>
     </xsd:complexType>
@@ -76,12 +76,8 @@
               <xsd:complexType mixed="true">
                 <xsd:sequence>
                  <xsd:element name="numGradAvgIterations"    type="xsd:integer" minOccurs="0" maxOccurs="1"/>
-                 <xsd:element name="alpha"                   type="xsd:float"   minOccurs="0" maxOccurs="1"/>
-                 <xsd:element name="A"                       type="xsd:float"   minOccurs="0" maxOccurs="1"/>
-                 <xsd:element name="a"                       type="xsd:float"   minOccurs="0" maxOccurs="1"/>
-                 <xsd:element name="gamma"                   type="xsd:float"   minOccurs="0" maxOccurs="1"/>
-                 <xsd:element name="c"                       type="xsd:float"   minOccurs="0" maxOccurs="1"/>
-                 <xsd:element name="normalize"               type="xsd:boolean" minOccurs="0" maxOccurs="1"/>
+                 <xsd:element name="initialStepSize"         type="xsd:float"   minOccurs="0" maxOccurs="1"/>
+                 <xsd:element name="perturbationDistance"    type="xsd:float"   minOccurs="0" maxOccurs="1"/>
                  <xsd:element name="innerBisectionThreshold" type="xsd:float"   minOccurs="0" maxOccurs="1"/>
                  <xsd:element name="innerLoopLimit"          type="xsd:float"   minOccurs="0" maxOccurs="1"/>
                  <xsd:element name="stochasticDistribution"  type="xsd:string"  minOccurs="0" maxOccurs="1"/>

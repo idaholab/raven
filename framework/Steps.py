@@ -271,18 +271,23 @@ class Step(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     """
     ## first collect them
     metaKeys = set()
+    metaParams = dict()
     for role,entities in inDictionary.items():
       if isinstance(entities,list):
         for entity in entities:
           if hasattr(entity,'provideExpectedMetaKeys'):
-            metaKeys = metaKeys.union(entity.provideExpectedMetaKeys())
+            keys, params = entity.provideExpectedMetaKeys()
+            metaKeys = metaKeys.union(keys)
+            metaParams.update(params)
       else:
         if hasattr(entities,'provideExpectedMetaKeys'):
-          metaKeys = metaKeys.union(entities.provideExpectedMetaKeys())
+          keys, params = entities.provideExpectedMetaKeys()
+          metaKeys = metaKeys.union(keys)
+          metaParams.update(params)
     ## then give them to the output data objects
     for out in inDictionary['Output']+(inDictionary['TargetEvaluation'] if 'TargetEvaluation' in inDictionary else []):
       if 'addExpectedMeta' in dir(out):
-        out.addExpectedMeta(metaKeys)
+        out.addExpectedMeta(metaKeys,metaParams)
 
   def _endStepActions(self,inDictionary):
     """
@@ -661,8 +666,8 @@ class MultiRun(SingleRun):
         # finalize actual sampler
         sampler.finalizeActualSampling(finishedJob,model,inputs)
         finishedJob.trackTime('step_finished')
-        # add new job
 
+        # add new jobs
         isEnsemble = isinstance(model, Models.EnsembleModel)
         # put back this loop (do not take it away again. it is NEEDED for NOT-POINT samplers(aka DET)). Andrea
         ## In order to ensure that the queue does not grow too large, we will
@@ -681,6 +686,9 @@ class MultiRun(SingleRun):
               break
           else:
             break
+      # terminate jobs as requested by the sampler, in case they're not needed anymore
+      num = len(sampler.getJobsToEnd(clear=False))
+      jobHandler.terminateJobs(sampler.getJobsToEnd(clear=True))
       ## If all of the jobs given to the job handler have finished, and the sampler
       ## has nothing else to provide, then we are done with this step.
       if jobHandler.isFinished() and not sampler.amIreadyToProvideAnInput():

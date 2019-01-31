@@ -94,7 +94,7 @@ class SafestPoint(PostProcessor):
     self.stat = BasicStatistics(self.messageHandler)  # instantiation of the 'BasicStatistics' processor, which is used to compute the expected value of the safest point through the coordinates and probability values collected in the 'run' function
     self.outputName = "Probability"
     self.addAssemblerObject('Distribution','n', True)
-    self.addMetaKeys(*["ProbabilityWeight"])
+    self.addMetaKeys(["ProbabilityWeight"])
     self.printTag = 'POSTPROCESSOR SAFESTPOINT'
 
   def _localGenerateAssembler(self, initDict):
