@@ -352,7 +352,7 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     """
     self.raiseAnError(NotImplementedError, '<Cluster> capabilities not yet implemented for "{}" ROM!'.format(self.__class__.__name__))
 
-  def getRomClusterSettings(self, trainingDict, divisions):
+  def getGlobalRomClusterSettings(self, trainingDict, divisions):
     """
       Allows the ROM to perform some analysis before clustering.
       @ In, trainingDict, dict, data for training
@@ -363,7 +363,7 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     # by default, do nothing
     return None, trainingDict
 
-  def setRomClusterSettings(self, settings):
+  def setGlobalRomClusterSettings(self, settings):
     """
       Allows the ROM to apply general settings as obtained in getRomClusterSettings
       @ In, settings, object, arbitrary information about ROM clustering settings
@@ -371,6 +371,16 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     """
     # by default, do nothing
     pass
+
+  def finalizeGlobalRomClusterSample(self, settings, evaluation):
+    """
+      Allows any global settings to be applied to the signal collected by the ROMCollection instance.
+      Note this is called on the templateROM from the ROMCollection, NOT on the subspace segment ROMs!
+      By default make no modification.
+      @ In, evaluation, dict, evaluation as from __evaluateLocal__
+      @ Out, evaluatoin, dict, modified evaluation
+    """
+    return evaluation
 
   @abc.abstractmethod
   def __trainLocal__(self,featureVals,targetVals):

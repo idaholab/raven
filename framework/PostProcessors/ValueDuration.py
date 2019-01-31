@@ -124,6 +124,7 @@ class ValueDuration(PostProcessor):
       # separate curve for each target
       for target in self.targets:
         data = sample[target]
+        print('DEBUGG stats data:',type(data),len(data),data.size,min(data),max(data),np.average(data),np.std(data))
         # bin values
         counts, edges = np.histogram(data,self.numBins)
         ## reverse order of histogram, edges to get load duration axes

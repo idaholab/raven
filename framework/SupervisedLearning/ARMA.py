@@ -603,12 +603,15 @@ class ARMA(supervisedLearning):
       @ Out, settings, object, arbitrary information about ROM clustering settings
       @ Out, trainingDict, dict, adjusted training data (possibly unchanged)
     """
+    trainingDict = copy.deepcopy(trainingDict) # otherwise we destructively tamper with the input data object
     settings = {}
     targets = list(self.fourierParams.keys())
     # set up for input CDF preservation on a global scale
     if self.preserveInputCDF:
       inputDists = {}
       for target in targets:
+        if target == self.pivotParameterID:
+          continue
         targetVals = trainingDict[target][0]
         inputDists[target] = mathUtils.trainEmpiricalFunction(targetVals, minBins=self._minBins)
       settings['input CDFs'] = inputDists
@@ -624,6 +627,8 @@ class ARMA(supervisedLearning):
       full = {}      # train these periods on the full series
       segment = {}   # train these periods on the segments individually
       for target in targets:
+        if target == self.pivotParameterID:
+          continue
         print('DEBUGG target:',target)
         # only do separation for targets for whom there's a Fourier request
         if target in self.fourierParams:
@@ -662,10 +667,11 @@ class ARMA(supervisedLearning):
       @ Out, None
     """
     # some Fourier periods have already been handled, so reset the ones that actually are needed
+    print('DEBUGG set settings:',settings.keys())
     newFourier = settings.get('segment Fourier periods', None)
     if newFourier is not None:
       for target in self.fourierParams:
-        self.fourierParams[target] = newFourier[target]
+        self.fourierParams[target] = newFourier.get(target, [])
     # disable CDF preservation on subclusters
     ## Note that this might be a good candidate for a user option someday,
     ## but right now we can't imagine a use case that would turn it off
@@ -678,11 +684,16 @@ class ARMA(supervisedLearning):
       @ In, evaluation, dict, {target: np.ndarray} evaluated full (global) signal from ROMCollection
       @ Out, evaluation, dict, {target: np.ndarray} adjusted global evaluation
     """
+    # add back in Fourier
+    if 'long Fourier signal' in settings:
+      for target, results in settings['long Fourier signal'].items():
+        print('DEBUGG target:',target)
+        signal = results['predict']
+        evaluation[target] += signal
     # last thing, backtransform signal
     ## how nicely does this play with zerofiltering?
-    if self.preserveCDF:
+    if self.preserveInputCDF:
       for target, dist in settings['input CDFs'].items():
-        # TODO get right evaluation
         evaluation[target] = self._transformThroughInputCDF(evaluation[target], dist)
     return evaluation
 

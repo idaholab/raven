@@ -102,7 +102,7 @@
       <Q>0</Q>
       <Fourier>1e200, 31556952, 15778476, 10518984, 7889238, 2592000, 1296000, 604800, 302400, 86400, 43200, 28800, 21600</Fourier>
       <Segment>
-        <subspace pivotLength="604800" shift="zero">Time</subspace>
+        <subspace pivotLength="604800" shift="first">Time</subspace>
       </Segment>
     </ROM>
     <PostProcessor name="stats" subType="BasicStatistics">

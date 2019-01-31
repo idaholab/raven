@@ -341,7 +341,7 @@ class Segments(Collection):
       self.targetDatas.append(targetData) # DEBUGG
       # create a new ROM and train it!
       newROM = copy.deepcopy(templateROM)
-      newROM.setRomClusterSettings(self._romGlobalAdjustments)
+      newROM.setGlobalRomClusterSettings(self._romGlobalAdjustments)
       self.raiseADebug('Training segment', i, picker)
       newROM.train(data)
       roms.append(newROM)
