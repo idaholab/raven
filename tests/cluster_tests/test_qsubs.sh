@@ -8,7 +8,7 @@ fails=''
 
 pushd ../../framework
 RAVEN_FRAMEWORK_DIR=$(pwd)
-source ../scripts/establish_conda_env.sh --load
+#source ../scripts/establish_conda_env.sh --load
 popd
 
 wait_lines ()
@@ -47,26 +47,13 @@ wait_lines ()
 
 echo Current directory: `pwd`
 
-echo Removing old databases...
-rm -Rf DatabaseStorage/
 
+#if test $num_fails -eq 0; then
+#    echo ALL PASSED
+#else
+#    echo FAILED: $num_fails $fails
+#fi
+#exit $num_fails
 
-
-rm -Rf FirstMRun/
-
-echo ''
-echo 'Running interactive MPI test ...'
-qsub -P moose -l select=6:ncpus=4:mpiprocs=1 -l walltime=10:00:00 -l place=free -W block=true ./run_mpi_test.sh
-wait_lines 'FirstMRun/[1-6]/*test.csv' 6 mpi
-echo ''
-
-
-
-
-
-if test $num_fails -eq 0; then
-    echo ALL PASSED
-else
-    echo FAILED: $num_fails $fails
-fi
-exit $num_fails
+cd ${RAVEN_FRAMEWORK_DIR}/..
+./run_tests -j6 --only-run-types="qsub" --re=cluster_tests
