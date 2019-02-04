@@ -109,7 +109,9 @@ def getpot_to_input_node(getpot):
     #attribute setting line
     elif '=' in line:
       #TODO FIXME add attribute comment!
-      attribute,value = list(i.strip() for i in line.split('='))
+      equal_index = line.find('=')
+      attribute = line[:equal_index].strip()
+      value = line[equal_index+1:].strip()
       value = value.strip("'")
       if attribute in currentNode.attrib.keys():
         raise IOError('Multiple attributes defined with same name! "'+attribute+'" = "'+value+'"')
