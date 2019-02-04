@@ -198,6 +198,18 @@ class Differ:
     """
     return self._get_test_files()
 
+  def check_if_test_files_exist(self):
+    """
+      Returns true if all the test files exist.
+      @ In, None
+      @ Out, all_test_files, bool, true if all the test files exist
+    """
+    all_test_files = True
+    for filename in self._get_test_files():
+      if not os.path.exists(filename):
+        all_test_files = False
+    return all_test_files
+
   def _get_test_files(self):
     """
       returns a list of the full path of the test files
@@ -338,6 +350,7 @@ class Tester:
     params.add_param('expected_fail', False,
                      'if true, then the test should fails, and if it passes, it fails.')
     params.add_param('run_types', 'normal', 'The run types that this test is')
+    params.add_param('output_wait_time', '-1', 'Number of seconds to wait for output')
     return params
 
   def __init__(self, name, params):
@@ -508,6 +521,7 @@ class Tester:
       self.results.message = "Timed Out"
       return self.results
     self.process_results(output)
+    self._wait_for_all_written()
     for differ in self.__differs:
       same, message = differ.check_output()
       if not same:
@@ -516,6 +530,22 @@ class Tester:
           self.results.message = "" #remove success message.
         self.results.message += "\n" + message
     return self.results
+
+  def _wait_for_all_written(self):
+    """
+      Waits until all the files for the differ have been written
+    """
+    start_wait = time.time()
+    wait_time = float(self.specs['output_wait_time'])
+    all_written = False
+    while start_wait + wait_time > time.time() and not all_written:
+      all_written = True
+      for differ in self.__differs:
+        if not differ.check_if_test_files_exist():
+          all_written = False
+      if not all_written:
+        time.sleep(5.0)
+        print("waiting for files...")
 
   @staticmethod
   def get_group_name(group):
