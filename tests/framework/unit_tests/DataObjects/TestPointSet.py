@@ -375,7 +375,7 @@ data.addMeta('TestPP',{'firstVar':{'scalarMetric1':10.0,
                       })
 # directly test contents, without using API
 checkSame('Metadata top level entries',len(data._meta),2)
-treePP = data._meta['TestPP'].tree.getroot()
+treePP = data._meta['TestPP'].getRoot()
 checkSame('Metadata TestPP',treePP.tag,'TestPP')
 first,second = (c for c in treePP) # TODO always same order?
 
@@ -404,14 +404,14 @@ child = second[0]
 checkSame('Metadata TestPP/secondVar/scalarMetric1 tag',child.tag,'scalarMetric1')
 checkSame('Metadata TestPP/secondVar/scalarMetric1 value',child.text,'100.0')
 
-treeDS = data._meta['DataSet'].tree.getroot()
+treeDS = data._meta['DataSet'].getRoot()
 checkSame('Metadata DataSet',treeDS.tag,'DataSet')
 checkSame('Metadata DataSet entries',len(treeDS),1) # 2
 general = treeDS[:][0]
 print('general:',general)
 checkSame('Metadata DataSet/general tag',general.tag,'general')
 checkSame('Metadata DataSet/general entries',len(general),4)
-sampleTag,inputs,outputs,pointwise_meta = general[:]
+inputs, outputs, pointwise_meta, sampleTag = general[:]
 checkSame('Metadata DataSet/general/inputs tag',inputs.tag,'inputs')
 checkSame('Metadata DataSet/general/inputs value',inputs.text,'a,b')#,c')
 checkSame('Metadata DataSet/general/outputs tag',outputs.tag,'outputs')
@@ -425,9 +425,9 @@ checkSame('Metadata DataSet/general/sampleTag value',sampleTag.text,'RAVEN_sampl
 meta = data.getMeta(pointwise=True,general=True)
 checkArray('Metadata get keys',sorted(meta.keys()),['DataSet','TestPP','prefix'],str)
 # fail to find pointwise in general
-checkFails('Metadata get missing general','Some requested keys could not be found in the requested metadata: {\'prefix\'}',data.getMeta,kwargs=dict(keys=['prefix'],general=True))
+checkFails('Metadata get missing general','Some requested keys could not be found in the requested metadata: (prefix)',data.getMeta,kwargs=dict(keys=['prefix'],general=True))
 # fail to find general in pointwise
-checkFails('Metadata get missing general','Some requested keys could not be found in the requested metadata: {\'DataSet\'}',data.getMeta,kwargs=dict(keys=['DataSet'],pointwise=True))
+checkFails('Metadata get missing general','Some requested keys could not be found in the requested metadata: (DataSet)',data.getMeta,kwargs=dict(keys=['DataSet'],pointwise=True))
 # TODO more value testing, easier "getting" of specific values
 
 
@@ -454,10 +454,10 @@ data.write(csvname,style='CSV',**{'what':'a,b,c,x,y,z,RAVEN_sample_ID,prefix'})
 correct = ['<DataObjectMetadata name="PointSet">',
            '  <DataSet type="Static">',
            '    <general>',
-           '      <sampleTag>RAVEN_sample_ID</sampleTag>',
            '      <inputs>a,b</inputs>',
            '      <outputs>x,z</outputs>',
            '      <pointwise_meta>prefix</pointwise_meta>',
+           '      <sampleTag>RAVEN_sample_ID</sampleTag>',
            '    </general>',
            '  </DataSet>',
            '  ',

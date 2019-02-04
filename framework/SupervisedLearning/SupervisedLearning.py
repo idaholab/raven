@@ -43,7 +43,7 @@ import copy
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import utils,mathUtils
+from utils import utils, mathUtils, xmlUtils
 import MessageHandler
 
 interpolationND = utils.findCrowModule('interpolationND')
@@ -263,44 +263,40 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     currParDict = dict({'Trained':self.amITrained}.items() + self.__CurrentSettingDictLocal__().items())
     return currParDict
 
-  def printXMLSetup(self,outFile,options={}):
+  def writeXMLPreamble(self, writeTo, targets=None):
     """
       Allows the SVE to put whatever it wants into an XML file only once (right before calling pringXML)
-      @ In, outFile, Files.File, either StaticXMLOutput or DynamicXMLOutput file
-      @ In, options, dict, optional, dict of string-based options to use, including filename, things to print, etc
+      Extend in subclasses.
+      @ In, writeTo, xmlUtils.StaticXmlElement instance, Element to write to
+      @ In, targets, list, list of targets for whom information should be written
       @ Out, None
     """
-    outFile.addScalar('ROM',"type",self.printTag)
-    self._localPrintXMLSetup(outFile,options)
+    # different calls depending on if it's static or dynamic
+    if isinstance(writeTo, xmlUtils.DynamicXmlElement):
+      writeTo.addScalar('ROM', "type", self.printTag, None, general = True)
+    else:
+      writeTo.addScalar('ROM', "type", self.printTag)
 
-  def _localPrintXMLSetup(self,outFile,pivotVal,options={}):
+  def writePointwiseData(self, *args):
     """
-      Specific local method for printing anything desired to xml file at the begin of the print.
-      Overwrite in inheriting classes.
-      @ In, outFile, Files.File, either StaticXMLOutput or DynamicXMLOutput file
-      @ In, options, dict, optional, dict of string-based options to use, including filename, things to print, etc
+      Allows the SVE to add data to a DataObject
+      Overload in subclasses.
+      @ In, args, list, unused arguments
       @ Out, None
     """
-    pass
+    # by default, nothing to write!
+    self.raiseAMessage('Writing ROM "{}", but no pointwise data found. Moving on ...')
 
-  def printXML(self,outFile,pivotVal,options={}):
+  def writeXML(self, writeTo, targets = None, skip = None):
     """
       Allows the SVE to put whatever it wants into an XML to print to file.
-      @ In, outFile, Files.File, either StaticXMLOutput or DynamicXMLOutput file
-      @ In, pivotVal, float, value of pivot parameters to use in printing if dynamic
-      @ In, options, dict, optional, dict of string-based options to use, including filename, things to print, etc
+      Overload in subclasses.
+      @ In, writeTo, xmlUtils.StaticXmlElement, StaticXmlElement to write to
+      @ In, targets, list, optional, list of targets for whom information should be written
+      @ In, skip, list, optional, list of targets to skip
       @ Out, None
     """
-    self._localPrintXML(outFile,pivotVal,options)
-
-  def _localPrintXML(self,node,options={}):
-    """
-      Specific local method for printing anything desired to xml file.  Overwrite in inheriting classes.
-      @ In, outFile, Files.File, either StaticXMLOutput or DynamicXMLOutput file
-      @ In, options, dict, optional, dict of string-based options to use, including filename, things to print, etc
-      @ Out, None
-    """
-    outFile.addScalar('ROM',"noInfo",'ROM of type '+str(self.printTag.strip())+' has no special output options.')
+    writeTo.addScalar('ROM',"noInfo",'ROM has no special output options.')
 
   def isDynamic(self):
     """

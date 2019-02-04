@@ -10,10 +10,12 @@
  # As we can observe, we at most can rely on 2 digits of similarity even on the first point.
  # A good alternative for non-correlated ARMAs is to run statistics on the results (mean, variance) and check those instead.
 
- [./ARMA]
+ [./Basic]
    type = 'RavenFramework'
-   input = 'test_ARMA.xml'
-   csv = 'ARMA/stats.csv'
+   input = 'basic.xml'
+   output = 'Basic/romMeta.csv'
+   csv = 'Basic/stats.csv'
+   UnorderedXml = 'Basic/romMeta.xml'
    rel_err = 5e-2
   [../]
   [./ARMAparallel]
@@ -55,6 +57,7 @@
    input = 'multiple_fourier.xml'
    output = 'MultipleFourier/samples.csv'
    csv = 'MultipleFourier/samples_0.csv'
+   zero_threshold = 1.e-10
   [../]
 
   [./VARMA]
@@ -81,7 +84,7 @@
     output = 'Segmented/synthetic.csv Segmented/synthetic_0.csv Segmented/synthetic.xml Segmented/stats.xml'
     csv = 'Segmented/stats.csv'
     rel_err = 1e-2
-    max_time = 500 # ONLY due to 2018 Windows VDI test machine
+    os_max_time = 'Windows 500' # ONLY due to 2018 Windows VDI test machine
   [../]
 
 []

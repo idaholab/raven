@@ -1,13 +1,16 @@
-<data name="train_data" type="HistorySet"><input>y0,x0</input><output>y,x,r,time</output><inputFilename>train_data.csv</inputFilename><metadata><SamplerType>array([u'Sparse Grid Collocation', u'Sparse Grid Collocation',
-       u'Sparse Grid Collocation', u'Sparse Grid Collocation',
-       u'Sparse Grid Collocation'], dtype=object)</SamplerType><crowDist>array([ {u'y0': '{"mu": 1.0, "sigma": 0.2, "type": "NormalDistribution"}', u'x0': '{"mu": 0.0, "sigma": 1.0, "type": "NormalDistribution"}'},
-       {u'y0': '{"mu": 1.0, "sigma": 0.2, "type": "NormalDistribution"}', u'x0': '{"mu": 0.0, "sigma": 1.0, "type": "NormalDistribution"}'},
-       {u'y0': '{"mu": 1.0, "sigma": 0.2, "type": "NormalDistribution"}', u'x0': '{"mu": 0.0, "sigma": 1.0, "type": "NormalDistribution"}'},
-       {u'y0': '{"mu": 1.0, "sigma": 0.2, "type": "NormalDistribution"}', u'x0': '{"mu": 0.0, "sigma": 1.0, "type": "NormalDistribution"}'},
-       {u'y0': '{"mu": 1.0, "sigma": 0.2, "type": "NormalDistribution"}', u'x0': '{"mu": 0.0, "sigma": 1.0, "type": "NormalDistribution"}'}], dtype=object)</crowDist><SampledVars>array([{u'y0': 1.0, u'x0': 0.0}, {u'y0': 0.80000000000000004, u'x0': 0.0},
-       {u'y0': 1.2, u'x0': 0.0}, {u'y0': 1.0, u'x0': -1.0},
-       {u'y0': 1.0, u'x0': 1.0}], dtype=object)</SampledVars><ProbabilityWeight-x0>array([ 0.39894228,  0.39894228,  0.39894228,  0.24197072,  0.24197072])</ProbabilityWeight-x0><ProbabilityWeight>array([-6.28318531,  3.14159265,  3.14159265,  3.14159265,  3.14159265])</ProbabilityWeight><prefix>array(['1', '2', '3', '4', '5'], dtype=object)</prefix><PointProbability>array([ 0.79577472,  0.48266176,  0.48266176,  0.48266176,  0.48266176])</PointProbability><SampledVarsPb>array([{u'y0': 1.9947114020071635, u'x0': 0.3989422804014327},
-       {u'y0': 1.2098536225957173, u'x0': 0.3989422804014327},
-       {u'y0': 1.2098536225957173, u'x0': 0.3989422804014327},
-       {u'y0': 1.9947114020071635, u'x0': 0.24197072451914337},
-       {u'y0': 1.9947114020071635, u'x0': 0.24197072451914337}], dtype=object)</SampledVarsPb><ProbabilityWeight-y0>array([ 1.9947114 ,  1.20985362,  1.20985362,  1.9947114 ,  1.9947114 ])</ProbabilityWeight-y0></metadata></data>
+<DataObjectMetadata name="trainset">
+  <DataSet type="Static">
+    <dims>
+      <y>t</y>
+      <x>t</x>
+      <r>t</r>
+    </dims>
+    <general>
+      <inputs>x0,y0</inputs>
+      <pointwise_meta>PointProbability,ProbabilityWeight,ProbabilityWeight-x0,ProbabilityWeight-y0,prefix</pointwise_meta>
+      <outputs>x,y,r</outputs>
+      <sampleTag>RAVEN_sample_ID</sampleTag>
+    </general>
+  </DataSet>
+  
+</DataObjectMetadata>

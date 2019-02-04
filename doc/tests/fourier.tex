@@ -1,0 +1,13 @@
+\section{Fourier}
+
+Some signal processing tests make use of Fourier-based signals for analytic tests.
+
+In constructing a Fourier signal, we use the formulation
+
+\begin{equation}
+  f(t) = \sum_{k} \sin\frac{2\pi}{k\in\Lambda}t + \cos\frac{2\pi}{k}t,\hspace{20pt}\Lambda\in\Bbb R^N,
+\end{equation}
+where the choice of periods $\Lambda$ is any arbitrary set of real numbers and can have any dimensionality.
+
+If the resulting signal is treated by a fast fourier transform, it should show peaks at the frequencies
+corresponding to the selected periods, where frequencies are simply the inverse of the periods.
