@@ -3365,7 +3365,7 @@ the following child:
   \item \xmlNode{epochs}, \xmlDesc{integer, optional field}, number of epochs to train the model. An epoch
     is an iteration over the entire training data.
   \default{20}
-  \item \xmlNode{dropout}, \xmlDesc{integer or comma separated integers, optional field}, applies dropout to the input.
+  \item \xmlNode{hidden\_layer\_dropout}, \xmlDesc{integer or comma separated integers, optional field}, applies dropout to the input.
     Dropout consists in randomly setting a fraction rate of input units to 0 at each update during training time,
     which helps prevent overfitting.
   \default{0}
@@ -3487,7 +3487,7 @@ the following child:
       <metrics>accuracy</metrics>
       <batch_size>4</batch_size>
       <epochs>4</epochs>
-      <dropout>0, 0</dropout>
+      <hidden_layer_dropout>0, 0</hidden_layer_dropout>
       <optimizerSetting>
         <beta_1>0.9</beta_1>
         <optimizer>Adam</optimizer>
