@@ -86,4 +86,10 @@
     os_max_time = 'Windows 500' # ONLY due to 2018 Windows VDI test machine
   [../]
 
+  [./PreserveCdf]
+    type = 'RavenFramework'
+    input = 'preserve_cdf.xml'
+    csv = 'PreserveCdf/stats.csv'
+    # XXX working TODO
+  [../]
 []
