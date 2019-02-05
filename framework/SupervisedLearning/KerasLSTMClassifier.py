@@ -58,14 +58,8 @@ class KerasLSTMClassifier(KerasClassifier):
     KerasClassifier.__init__(self,messageHandler,**kwargs)
     self.printTag = 'KerasLSTMClassifier'
     self.allowedLayers = self.basicLayers + self.__class__.kerasRcurrentLayersList
-    self._dynamicHandling            = True                                 # This ROM is able to manage the time-series on its own. No need for special treatment outside
-    self.layerLayout = self.initOptionDict.pop('layer_layout',None)
-    if self.layerLayout is None:
-      self.raiseAnError(IOError,"XML node 'layer_layout' is required for ROM class", self.printTag)
-    elif not set(self.layerLayout).issubset(list(self.initOptionDict.keys())):
-      self.raiseAnError(IOError, "The following layers are not defined '{}'.".format(', '.join(set(self.layerLayout)-set(list(self.initOptionDict.keys())))))
 
-  def __addLayers__(self):
+  def __addHiddenLayers__(self):
     """
       Method used to add layers for KERAS model
       @ In, None
@@ -98,11 +92,3 @@ class KerasLSTMClassifier(KerasClassifier):
           self.ROM.add(layerInstant(dropoutRate))
         else:
           self.ROM.add(layerInstant(**layerDict))
-    #output layer
-    layerName = self.layerLayout[-1]
-    layerDict = self.initOptionDict.pop(layerName)
-    layerType = layerDict.pop('type').lower()
-    if layerType not in ['dense']:
-      self.raiseAnError(IOError,'The last layer should always be Dense layer, but',layerType,'is provided!')
-    layerInstant = self.__class__.availLayer[layerType]
-    self.ROM.add(layerInstant(self.numClasses,**layerDict))

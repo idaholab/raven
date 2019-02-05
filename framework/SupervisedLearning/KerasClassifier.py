@@ -284,6 +284,8 @@ class KerasClassifier(supervisedLearning):
     # parameter dictionary at the initial stage
     self.initDict = copy.deepcopy(self.initOptionDict)
     self.printTag = 'KerasClassifier'
+    # This ROM is able to manage the time-series on its own. No need for special treatment outside
+    self._dynamicHandling            = True
     # Basic Layers
     self.basicLayers = self.__class__.kerasCoreLayersList + self.__class__.kerasEmbeddingLayersList + \
                        self.__class__.kerasAdvancedActivationLayersList + self.__class__.kerasNormalizationLayersList + \
@@ -326,6 +328,14 @@ class KerasClassifier(supervisedLearning):
         pass
     # set up optimizer
     self.optimizer = self.__class__.availOptimizer[optimizerName](**optimizerSetting)
+    # check layer layout, this is always required node, used to build the DNNs
+    self.layerLayout = self.initOptionDict.pop('layer_layout',None)
+    if self.layerLayout is None:
+      self.raiseAnError(IOError,"XML node 'layer_layout' is required for ROM class", self.printTag)
+    elif not set(self.layerLayout).issubset(list(self.initOptionDict.keys())):
+      self.raiseAnError(IOError, "The following layers are not defined '{}'.".format(', '.join(set(self.layerLayout)
+                        -set(list(self.initOptionDict.keys())))))
+
     self.__initLocal__()
 
   def __initLocal__(self):
@@ -339,13 +349,30 @@ class KerasClassifier(supervisedLearning):
     # https://github.com/fchollet/keras/issues/2397#issuecomment-306687500
     self.graph = tf.get_default_graph()
 
-  def __addLayers__(self):
+  def __addHiddenLayers__(self):
     """
       Method used to add layers for KERAS model
       @ In, None
       @ Out, None
     """
     pass
+
+  def __addOutputLayers__(self):
+    """
+      Method used to add layers for KERAS model
+      @ In, None
+      @ Out, None
+    """
+    layerName = self.layerLayout[-1]
+    layerDict = self.initOptionDict.pop(layerName)
+    layerType = layerDict.pop('type').lower()
+    layerSize = layerDict.pop('dim_out',None)
+    if layerSize is not None and layerSize != self.numClasses:
+      self.raiseAWarning('The "dim_out" of last output layer: ', layerName, 'will be resetted to values provided in "num_classes", i.e.', self.numClasses)
+    if layerType not in ['dense']:
+      self.raiseAnError(IOError,'The last layer should always be Dense layer, but',layerType,'is provided!')
+    layerInstant = self.__class__.availLayer[layerType]
+    self.ROM.add(layerInstant(self.numClasses,**layerDict))
 
   def train(self,tdict):
     """
@@ -428,7 +455,10 @@ class KerasClassifier(supervisedLearning):
     """
     self.featv = featureVals
     self.targv = targetVals
-    self.__addLayers__()
+    # hidden layers
+    self.__addHiddenLayers__()
+    #output layer
+    self.__addOutputLayers__()
     self.ROM.compile(loss=self.lossFunction, optimizer=self.optimizer, metrics=self.metrics)
     self.ROM._make_predict_function() # have to initialize before threading
     history = self.ROM.fit(featureVals, targetVals, epochs=self.epochs, batch_size=self.batchSize, validation_split=self.validationSplit)

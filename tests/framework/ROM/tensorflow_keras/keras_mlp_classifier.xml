@@ -17,9 +17,6 @@
     <ROM name="modelUnderTest" subType="KerasMLPClassifier">
       <Features>X,Y</Features>
       <Target>Z</Target>
-      <hidden_layer_sizes>15, 8</hidden_layer_sizes>
-      <hidden_layer_activations>relu, tanh</hidden_layer_activations>
-      <output_layer_activation>sigmoid</output_layer_activation>
       <loss>mean_squared_error</loss>
       <metrics>accuracy</metrics>
       <batch_size>1</batch_size>
@@ -28,6 +25,23 @@
       <num_classes>1</num_classes>
       <plot_model>True</plot_model>
       <validation_split>0.25</validation_split>
+      <Dense name="layer1">
+          <activation>relu</activation>
+          <dim_out>15</dim_out>
+      </Dense>
+      <Dropout name="dropout1">
+          <rate>0.2</rate>
+      </Dropout>
+      <Dense name="layer2">
+          <activation>tanh</activation>
+          <dim_out>8</dim_out>
+      </Dense>
+      <Dropout name="dropout2">
+          <rate>0.2</rate>
+      </Dropout>
+      <Dense name="outLayer">
+          <activation>sigmoid</activation>
+      </Dense>
       <optimizerSetting>
         <beta_1>0.9</beta_1>
         <optimizer>Adam</optimizer>
@@ -36,6 +50,7 @@
         <decay>0.0</decay>
         <lr>0.001</lr>
       </optimizerSetting>
+      <layer_layout>layer1, dropout1, layer2, dropout2, outLayer</layer_layout>
     </ROM>
   </Models>
 

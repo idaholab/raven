@@ -25,6 +25,7 @@ warnings.simplefilter('default',DeprecationWarning)
 
 #External Modules------------------------------------------------------------------------------------
 import tensorflow as tf
+import copy
 # test if we can reproduce th results
 #from tensorflow import set_random_seed
 #set_random_seed(2017)
@@ -53,40 +54,33 @@ class KerasMLPClassifier(KerasClassifier):
       @ Out, None
     """
     KerasClassifier.__init__(self,messageHandler,**kwargs)
-    self._dynamicHandling            = True                                 # This ROM is able to manage the time-series on its own. No need for special treatment outside
     self.printTag = 'KerasMLPClassifier'
-    # activation functions for all hidden layers of deep neural network
-    self.hiddenLayerActivation = self.initOptionDict.pop('hidden_layer_activations', ['relu'])
-    # always required, dimensionalities of hidden layers of deep neural network
-    self.hiddenLayerSize = self.initOptionDict.pop('hidden_layer_sizes',[20])
-    # Broadcast hidden layer activation function to all hidden layers
-    if len(self.hiddenLayerActivation) == 1 and len(self.hiddenLayerActivation) < len(self.hiddenLayerSize):
-      self.hiddenLayerActivation = self.hiddenLayerActivation * len(self.hiddenLayerSize)
-    elif len(self.hiddenLayerActivation) != len(self.hiddenLayerSize):
-      self.raiseAnError(IOError, "The number of activation functions for the hidden layer should be equal the number of hidden layers!")
-    # fraction of the input units to drop, default 0
-    self.dropoutRate = self.initOptionDict.pop('hidden_layer_dropouts',['0'])
-    if len(self.dropoutRate) == 1 and len(self.dropoutRate) < len(self.hiddenLayerSize):
-      self.dropoutRate = self.dropoutRate * len(self.hiddenLayerSize)
-    elif len(self.dropoutRate) != len(self.hiddenLayerSize):
-      self.raiseAnError(IOError, "The number of dropout rates should be equal the number of hidden layers!")
+    self.allowedLayers = self.basicLayers
 
-  def __addLayers__(self):
+  def __addHiddenLayers__(self):
     """
       Method used to add layers for KERAS model
       @ In, None
       @ Out, None
     """
     # start to build the ROM
-    # hidden layers
     self.ROM = KerasModels.Sequential()
-    for index, layerSize in enumerate(self.hiddenLayerSize):
-      activation = self.hiddenLayerActivation[index]
-      rate = self.dropoutRate[index]
-      if index == 0:
-        self.ROM.add(KerasLayers.Dense(layerSize, activation=activation, input_shape=(len(self.features),)))
+    # loop over layers
+    for index, layerName in enumerate(self.layerLayout[:-1]):
+      layerDict = copy.deepcopy(self.initOptionDict[layerName])
+      layerType = layerDict.pop('type').lower()
+      if layerType not in self.allowedLayers:
+        self.raiseAnError(IOError,'Layers',layerName,'with type',layerType,'is not allowed in',self.printTag)
+      layerSize = layerDict.pop('dim_out',None)
+      layerInstant = self.__class__.availLayer[layerType]
+      dropoutRate = layerDict.pop('rate',0.0)
+      if layerSize is not None:
+        if index == 0:
+          self.ROM.add(layerInstant(layerSize,input_shape=self.featv.shape[1:], **layerDict))
+        else:
+          self.ROM.add(layerInstant(layerSize,**layerDict))
       else:
-        self.ROM.add(KerasLayers.Dense(layerSize, activation=activation))
-      self.ROM.add(KerasLayers.Dropout(rate))
-    # output layer
-    self.ROM.add(KerasLayers.Dense(self.numClasses, activation=self.outputLayerActivation))
+        if layerType == 'dropout':
+          self.ROM.add(layerInstant(dropoutRate))
+        else:
+          self.ROM.add(layerInstant(**layerDict))
