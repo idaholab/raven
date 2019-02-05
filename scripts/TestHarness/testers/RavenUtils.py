@@ -43,7 +43,7 @@ def in_python_3():
 
 ## working Conda 4.5.4, May 2018
 modules_to_try = [("h5py", 'h5py.__version__', '2.4.0', '2.7.1', None), # 2.6.0
-                  ("numpy", 'numpy.__version__', "1.8.0", "1.12.1", None),
+                  ("numpy", 'numpy.__version__', "1.13.1", "1.15.4", None),
                   ("scipy", 'scipy.__version__', "1.1.0", "1.1.0", None),
                   ("sklearn", 'sklearn.__version__', "0.19.1", "0.19.1", None),
                   ("pandas", 'pandas.__version__', "0.20.0", "0.20.3", None),
@@ -95,6 +95,9 @@ __condaList = [("h5py", __lookup_preferred_version("h5py")),
                ("pylint", ""),
                ("coverage", ""),
                ("lxml", ""),
+               # optional for deep neural networks plots: pydot and graphviz
+               ("pydot",""),
+               ("graphviz",""),
                ("psutil", "")]
 
 # libraries to install with conda-forge

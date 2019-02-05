@@ -29,11 +29,11 @@ import tensorflow as tf
 #from tensorflow import set_random_seed
 #set_random_seed(2017)
 ######
-import tensorflow.contrib.keras as Keras
-from tensorflow.contrib.keras import models as KerasModels
-from tensorflow.contrib.keras import layers as KerasLayers
-from tensorflow.contrib.keras import optimizers as KerasOptimizers
-from tensorflow.contrib.keras import utils as KerasUtils
+import tensorflow.keras as Keras
+from tensorflow.keras import models as KerasModels
+from tensorflow.keras import layers as KerasLayers
+from tensorflow.keras import optimizers as KerasOptimizers
+from tensorflow.keras import utils as KerasUtils
 import copy
 #External Modules End--------------------------------------------------------------------------------
 

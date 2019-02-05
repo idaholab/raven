@@ -3303,9 +3303,36 @@ in \xmlNode{OutStream} of type \xmlAttr{Print}):
 </Simulation>
 \end{lstlisting}
 
+%%%%% ROM Model - TensorFlow-Keras Interface  %%%%%%%
+\subsubsection{TensorFlow-Keras Deep Neural Networks}
+\label{subsubsec:TFK_DNNs}
+
+\textbf{TensorFlow} is an open source software library for high performance numerical computation. Its flexible architecture
+allows easy deployment of computation across a variety of platforms (CPUs, GPUs, TPUs), and from desktops to clusters
+of servers to mobile and edge devices. Originally developed by researchers and engineers from the Google Brain team
+within Google’s AI organization, it comes with strong support for machine learning and deep learning and the flexible
+numerical computation core is used across many other scientific domains.
+
+\textbf{Keras} is a high-level API to build and train deep learning models. It's used for fast prototyping, advanced research,
+and production, with three key advantages:
+\begin{itemize}
+  \item \textit{User friendly}: Keras has a simple, consistent interface optimized for common use cases. 
+    It provides clear and actionable feedback for user errors.
+  \item \textit{Modular and composable}: Keras models are made by connecting configurable building blocks together,
+    with few restrictions.
+  \item \textit{Easy to extend}: Write custom building blocks to express new ideas for research. Create new layers,
+    loss functions, and develop state-of-the-art models.
+\end{itemize}
+
+\textbf{tf.keras} is TensorFlow's implementation of the Keras API specification. This is a high-level API to build and train
+models that include first-class support for TensorFlow-specific functionality, such as eager \textit{execution},
+\textit{tf.data} pipelines, and \textit{Estimators}. \textbf{tf.keras} makes TensorFlow easier to use without sacrificing
+flexibility and performance. RAVEN will utilize this high-level API to build and train deep neural networks (DNNs) as ROMs, and
+this ROMs can be employed by other RAVEN entities to perform uncertainty quantification, model opimization and data analysis.
+
 %%%%% ROM Model - KerasMLPClassifier  %%%%%%%
-\subsubsection{KerasMLPClassifier}
-\label{subsubsec:KerasMLPClassifier}
+\paragraph{KerasMLPClassifier}
+\label{KerasMLPClassifier}
 
 Multi-Layer Perceptron (MLP) (or Artificial Neural Network - ANN), a class of feedforward
 ANN, can be viewed as a logistic regression classifier where input is first transformed
