@@ -23,21 +23,6 @@ import warnings
 warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
-#External Modules------------------------------------------------------------------------------------
-import copy
-import tensorflow as tf
-# test if we can reproduce th results
-#from tensorflow import set_random_seed
-#set_random_seed(2017)
-#numpy.random.seed(2017)
-######
-import tensorflow.keras as keras
-from tensorflow.keras import models as KerasModels
-from tensorflow.keras import layers as KerasLayers
-from tensorflow.keras import optimizers as KerasOptimizers
-from tensorflow.keras import utils as KerasUtils
-#External Modules End--------------------------------------------------------------------------------
-
 #Internal Modules------------------------------------------------------------------------------------
 from .KerasClassifier import KerasClassifier
 #Internal Modules End--------------------------------------------------------------------------------
