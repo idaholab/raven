@@ -5,101 +5,78 @@
     type = 'RavenFramework'
     input = 'beale.xml'
     csv = 'Beale/opt_export.csv Beale/opt_export_1.csv Beale/opt_export_2.csv'
-    rel_err = 1.e-6
-  [../]
-  [./BealeFinal]
-    type = 'RavenFramework'
-    input = 'beale_final_only.xml'
-    csv = 'BealeFinal/opt_export.csv'
-    rel_err = 1.e-6
+    zero_threshold = 1.e-2
+    rel_err = 1.e-3
   [../]
   [./GoldsteinPrice]
     type = 'RavenFramework'
     input = 'goldsteinprice.xml'
     csv = 'GoldsteinPrice/opt_export.csv'
-    rel_err = 1.e-6
+    rel_err = 1.e-3
   [../]
   [./McCormick]
     type = 'RavenFramework'
     input = 'mccormick.xml'
     csv = 'McCormick/opt_export.csv'
-    rel_err = 1.e-6
+    rel_err = 1.e-3
   [../]
   # Nominal Options Tests
   [./Max]
     type = 'RavenFramework'
     input = 'max.xml'
     csv = 'Max/opt_export.csv'
-    rel_err = 1.e-6
+    rel_err = 1.e-1
+    zero_threshold = 1e-4
   [../]
   [./Verbose]
     type = 'RavenFramework'
     input = 'verbose.xml'
     csv = 'Verbose/opt_export.csv'
-    rel_err = 1.e-6
+    rel_err = 1.e-1 # only really needs to test headers
   [../]
   [./Stochastic]
     type = 'RavenFramework'
     input = 'stochastic.xml'
     csv = 'Stochastic/opt_export.csv'
-    rel_err = 1.e-6
+    rel_err = 5.e-1
   [../]
   [./Boundary]
     type = 'RavenFramework'
     input = 'boundary.xml'
     csv = 'Boundary/opt_export.csv'
-    rel_err = 1.e-6
+    rel_err = 1.e-3
   [../]
   [./Infinite]
     type = 'RavenFramework'
     input = 'infinite.xml'
-    UnorderedCsv = 'Infinite/opt_export_1.csv'
-    # The values of the CSV can't be tested, as "inf" is rejected in gold files currently
-  [../]
-  [./Preconditioner]
-    type = 'RavenFramework'
-    input = 'precondition.xml'
-    csv = 'Precondition/opt_export.csv'
+    UnorderedCsv = 'Infinite/opt_export.csv'
   [../]
   [./Constraint]
     type = 'RavenFramework'
     input = 'constrained.xml'
     csv = 'Constrained/opt_export.csv'
-    rel_err = 1.e-6
+    rel_err = 1.e-3
   [../]
   [./Persistence]
     type = 'RavenFramework'
     input = 'persistence.xml'
     csv = 'Persistence/opt_export.csv'
-    rel_err = 1.e-6
+    rel_err = 1.e-3
   [../]
   [./Vector]
     type = 'RavenFramework'
     input = 'vector.xml'
     csv = 'Vector/opt_out.csv'
-    rel_err = 1.e-5
+    rel_err = 1.e-3
   [../]
 
 
   # Mixed Options Tests
-  [./MultiLevelWithMultiTrajectory]
-    type = 'RavenFramework'
-    input = 'multilevel_with_multitraj.xml'
-    csv = 'MTML/opt_export.csv'
-  [../]
-  [./multitrajlevelWithModelHolding]
-    type = 'RavenFramework'
-    input = 'multilevel_with_multitraj_ensemble.xml'
-    csv = 'MTMLwithEnsembleAndModelHolding/opt_soln.csv'
-    rel_err = 1.e-3
-    heavy = true
-    skip = 'issue #763'
-  [../]
   [./CustomVectorInit]
     type = 'RavenFramework'
     input = 'custom_vector_init.xml'
     csv = 'CustomVectorInit/opt_export.csv'
-    rel_err = 1e-5
+    rel_err = 1e1 # only testing the length of entries and roughest value matching; some of the late-"t" y values truly don't matter
   [../]
   [./RosenbrockWithSamplerError]
     type = 'RavenErrors'
@@ -110,30 +87,32 @@
     type = 'RavenFramework'
     input = 'beale_with_sampler.xml'
     csv = 'BealeWithSampler/opt_export.csv'
+    zero_threshold = 1e-2
     rel_err = 1.e-6
   [../]
   [./TrajGrid]
     type = 'RavenFramework'
     input = 'traj_grid.xml'
     csv = 'TrajGrid/opt_export.csv'
-    rel_err = 1.e-6
+    rel_err = 1.e-3
   [../]
   [./BealeFiniteDifference]
     type = 'RavenFramework'
     input = 'beale_finite_difference.xml'
     csv = 'BealeFiniteDifference/opt_export.csv'
-    rel_err = 1.e-6
+    zero_threshold = 1.e-2
   [../]
   [./StochasticFiniteDifference]
     type = 'RavenFramework'
     input = 'stochastic_finite_difference.xml'
     csv = 'StochasticFiniteDifference/opt_export.csv'
-    rel_err = 1.e-6
+    rel_err = 1.e-2
   [../]
   [./BealeFailureRejection]
     type = 'RavenFramework'
     input = 'beale_failure_and_rejection.xml'
     csv = 'BealeFailureRejection/opt_export.csv'
+    zero_threshold = 3.e-1
     rel_err = 1.e-6
   [../]
 
@@ -141,7 +120,7 @@
     type = 'RavenFramework'
     input = 'raven_running_raven.xml'
     csv = 'RavenRunningRaven/outer.csv'
-    rel_err = 1.e-6
+    rel_err = 1.e-2
   [../]
 
 []

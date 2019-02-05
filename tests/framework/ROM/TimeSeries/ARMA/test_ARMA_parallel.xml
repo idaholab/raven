@@ -29,7 +29,7 @@
   </RunInfo>
 
   <Files>
-    <Input name="rawDataFile">../ARMA/dataSet.csv</Input>
+    <Input name="rawDataFile">../Basic/dataSet.csv</Input>
   </Files>
 
   <Distributions>
