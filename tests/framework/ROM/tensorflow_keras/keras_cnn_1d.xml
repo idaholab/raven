@@ -15,7 +15,6 @@
   <Models>
     <ROM name="modelUnderTest" subType="KerasConvNetClassifier">
       <!-- Common setups -->
-      <pivotParameter>Time</pivotParameter>
       <Features>x1,x2</Features>
       <Target>labels</Target>
       <loss>mean_squared_error</loss>

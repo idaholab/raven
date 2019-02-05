@@ -3330,50 +3330,45 @@ models that include first-class support for TensorFlow-specific functionality, s
 flexibility and performance. RAVEN will utilize this high-level API to build and train deep neural networks (DNNs) as ROMs, and
 this ROMs can be employed by other RAVEN entities to perform uncertainty quantification, model opimization and data analysis.
 
-%%%%% ROM Model - KerasMLPClassifier  %%%%%%%
-\paragraph{KerasMLPClassifier}
-\label{KerasMLPClassifier}
+Before analyzing each classifier in detail, it is important to mention that each type has a similar syntax. In the
+example below, the subnodes that can be included in the main XML node \xmlNode{ROM} are reported: 
+\textbf{Example:}
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <Models>
+    ...
+    <ROM name='aUserDefinedName' subType='whatever'>
+      <Features>X,Y</Features>
+      <Target>Z</Target>
+      <loss>mean_squared_error</loss>
+      <metrics>accuracy</metrics>
+      <batch_size>4</batch_size>
+      <epochs>4</epochs>
+      <num_classes>2</num_classes>
+      <validation_split>0.25</validation_split>
+      <optimizerSetting>
+        <optimizer>Adam</optimizer>
+        ...
+      </optimizerSetting>
+      <WhateverLayer1 name="layerName1">
+        ...
+      </WhateverLayer1>
+      ...
+      <WhateverLayerN name="layerNameN">
+        ...
+      </WhateverLayerN>
+      <layer_layout>layerName1, ..., layerNameN</layer_layout>
+    </ROM>
+    ...
+  </Models>
+  ...
+</Simulation>
+\end{lstlisting}
 
-Multi-Layer Perceptron (MLP) (or Artificial Neural Network - ANN), a class of feedforward
-ANN, can be viewed as a logistic regression classifier where input is first transformed
-using a non-linear transformation. This transformation probjects the input data into a
-space where it becomes linearly separable. This intermediate layer is referred to as a
-\textbf{hidden layer}. An MLP consists of at least three layers of nodes. Except for the
-input nodes, each node is a neuron that uses a nonlinear \textbf{activation function}. MLP
-utilizes a suppervised learning technique called \textbf{Backpropagation} for training.
-Generally, a single hidden layer is sufficient to make MLPs a universal approximator.
-However, many hidden layers, i.e. deep learning, can be used to model more complex nonlinear
-relationships. The extra layers enable composition of features from lower layers, potentially
-modeling complex data with fewer units than a similarly performing shallow network.
-
-In order to use this ROM, the \xmlNode{ROM} attribute \xmlAttr{subType} needs to
-be \xmlString{KerasMLPClassifier} (see the example below). This model can be initialized with
-the following child:
-
+As shown in above example, in addition to the common subnodes \xmlNode{Target} and \xmlNode{Features}, the \xmlNode{ROM} can be initialized with
+the following children:
 \begin{itemize}
-  \item \xmlNode{hidden\_layer\_sizes}, \xmlDesc{comma separated integers, required field}, the sizes for each
-    hidden layer, the ith element represents the number of neurons in the ith hidden layer.
-  \item \xmlNode{hidden\_layer\_activations}, \xmlDesc{comma separated strings, optional field}, 
-    {`relu', `tanh', `elu', `selu', `softplus', `softsign', `sigmoid', `hard\_sigmoid', `linear', `softmax'}.
-    Activation function for the hidden layer.
-    \begin{itemize}
-      \item \textit{relu}, the rectified linear unit function, returns $f(x) = max(0, x)$.
-      \item \textit{tanh}, the hyperbolic tan function, returns $f(x) = tanh(x)$.
-      \item \textit{elu}, exponential linear units try to make the mean activations closer to zero which speeds
-        up learning. $f(x) = x$ if $x \ge 0$, otherwise $(exp(x) - 1.)$.
-      \item \textit{selu}, scaled exponential linear unit.
-      \item \textit{softplus}, a smooth approximation to the rectifier linear unit function, return
-        $f(x) = log(1. + exp(x))$.
-      \item \textit{softsign}, return $f(x) = \frac{x}{1. + |x|}$.
-      \item \textit{sigmoid},return $f(x) = \frac{1.}{1. + exp(-x)}$.
-      \item \textit{hard\_sigmoid}
-      \item \textit{linear}
-      \item \textit{softmax}, softmax activation function.
-    \end{itemize}
-  \default{`relu'}
-  \item \xmlNode{output\_layer\_activation}, \xmlDesc{string, optional field}.
-    i.e. {`relu', `tanh', `elu', `selu', `softplus', `softsign', `sigmoid', `hard\_sigmoid', `linear', `softmax'}.
-  \default{softmax}
   \item \xmlNode{loss}, \xmlDesc{string or comma separated string, optional field}, if the model has multiple outputs, you can use a different
     loss on each output by passing a list of losses. The loss value that will be minimized by the model will then
     be the sum of all individual losses. Available loss functions include \textit{mean\_squared\_error},
@@ -3385,17 +3380,20 @@ the following child:
   \item \xmlNode{metrics}, \xmlDesc{string or comma separated string, optional field}, list of metrics to be evaluated by
     the model during training and testing. available metrics include
     \textit{binary\_accuracy}, \textit{categorical\_accuracy}, \textit{sparse\_categorical\_accuracy},
-    \textit{top\_k\_categorical\_accuracy}, \textit{sparse\_top\_k\_categorical\_accuracy}.
+    \textit{top\_k\_categorical\_accuracy}, 
+    %
+    \textit{sparse\_top\_k\_categorical\_accuracy}.
   \default{accuracy}
   \item \xmlNode{batch\_size}, \xmlDesc{integer, optional field}, number of samples per gradient update.
   \default{20}
   \item \xmlNode{epochs}, \xmlDesc{integer, optional field}, number of epochs to train the model. An epoch
     is an iteration over the entire training data.
   \default{20}
-  \item \xmlNode{hidden\_layer\_dropout}, \xmlDesc{integer or comma separated integers, optional field}, applies dropout to the input.
-    Dropout consists in randomly setting a fraction rate of input units to 0 at each update during training time,
-    which helps prevent overfitting.
-  \default{0}
+  \item \xmlNode{num\_classes}, \xmlDesc{positive integer, optional field}, dimensionality of the output space of given classifier.
+  \default{1}
+  \item \xmlNode{validation\_split}, \xmlDesc{float between 0 and 1, optional field}, fraction of the training data to
+    be used as validation data.
+  \default{0.25}
   \item \xmlNode{optimizerSetting}, \xmlDesc{optional field}, including several subnode depending on the type of
     optimizers.
     \begin{itemize}
@@ -3494,6 +3492,66 @@ the following child:
           \default{0.002}
         \end{itemize}
   \end{itemize}
+  \item \xmlNode{layer\_layout}, \xmlDesc{comma seperated string, required}, the layout/order of layers in the
+    deep neural networks. The values in the subnode should be the name of layers defined in layer node, such as
+    \xmlNode{Dense}, \xmlNode{Dropout}, and \xmlNode{Conv1D}.
+\end{itemize}
+
+\nb The descriptions regarding the \xmlNode{WhateverLayer} node will be introduced in following subsections.
+In addition, most core layers will accept the \xmlNode{activation} subnode, and the optional input for this
+subnode could be:
+\begin{itemize}
+  \item \textit{relu}, the rectified linear unit function, returns $f(x) = max(0, x)$.
+  \item \textit{tanh}, the hyperbolic tan function, returns $f(x) = tanh(x)$.
+  \item \textit{elu}, exponential linear units try to make the mean activations closer to zero which speeds
+    up learning. $f(x) = x$ if $x \ge 0$, otherwise $(exp(x) - 1.)$.
+  \item \textit{selu}, scaled exponential linear unit.
+  \item \textit{softplus}, a smooth approximation to the rectifier linear unit function, return
+    $f(x) = log(1. + exp(x))$.
+  \item \textit{softsign}, return $f(x) = \frac{x}{1. + |x|}$.
+  \item \textit{sigmoid},return $f(x) = \frac{1.}{1. + exp(-x)}$.
+  \item \textit{hard\_sigmoid}
+  \item \textit{linear}
+  \item \textit{softmax}, softmax activation function.
+\end{itemize}
+
+%%%%% ROM Model - KerasMLPClassifier  %%%%%%%
+\paragraph{KerasMLPClassifier}
+\label{KerasMLPClassifier}
+
+Multi-Layer Perceptron (MLP) (or Artificial Neural Network - ANN), a class of feedforward
+ANN, can be viewed as a logistic regression classifier where input is first transformed
+using a non-linear transformation. This transformation probjects the input data into a
+space where it becomes linearly separable. This intermediate layer is referred to as a
+\textbf{hidden layer}. An MLP consists of at least three layers of nodes. Except for the
+input nodes, each node is a neuron that uses a nonlinear \textbf{activation function}. MLP
+utilizes a suppervised learning technique called \textbf{Backpropagation} for training.
+Generally, a single hidden layer is sufficient to make MLPs a universal approximator.
+However, many hidden layers, i.e. deep learning, can be used to model more complex nonlinear
+relationships. The extra layers enable composition of features from lower layers, potentially
+modeling complex data with fewer units than a similarly performing shallow network.
+
+In order to use this ROM, the \xmlNode{ROM} attribute \xmlAttr{subType} needs to
+be \xmlString{KerasMLPClassifier} (see the example below). This model can be initialized with
+the following child:
+
+\begin{itemize}
+  \item \xmlNode{hidden\_layer\_sizes}, \xmlDesc{comma separated integers, required field}, the sizes for each
+    hidden layer, the ith element represents the number of neurons in the ith hidden layer.
+  \item \xmlNode{hidden\_layer\_activations}, \xmlDesc{comma separated strings, optional field}, 
+    {`relu', `tanh', `elu', `selu', `softplus', `softsign', `sigmoid', `hard\_sigmoid', `linear', `softmax'}.
+  \default{`relu'}
+  \item \xmlNode{output\_layer\_activation}, \xmlDesc{string, optional field}.
+    i.e. {`relu', `tanh', `elu', `selu', `softplus', `softsign', `sigmoid', `hard\_sigmoid', `linear', `softmax'}.
+  \default{softmax}
+  \item \xmlNode{hidden\_layer\_dropout}, \xmlDesc{integer or comma separated integers, optional field}, applies dropout to the input.
+    Dropout consists in randomly setting a fraction rate of input units to 0 at each update during training time,
+    which helps prevent overfitting.
+  \default{0}
+  \item \xmlNode{hidden\_layer\_dropout}, \xmlDesc{integer or comma separated integers, optional field}, applies dropout to the input.
+    Dropout consists in randomly setting a fraction rate of input units to 0 at each update during training time,
+    which helps prevent overfitting.
+  \default{0}
 \end{itemize}
 
 \zNormalizationPerformed{KerasMLPClassifier}
@@ -3507,14 +3565,10 @@ the following child:
     <ROM name='aUserDefinedName' subType='KerasMLPClassifier'>
       <Features>X,Y</Features>
       <Target>Z</Target>
-      <hidden_layer_sizes>15, 8</hidden_layer_sizes>
-      <hidden_layer_activations>relu, tanh</hidden_layer_activations>
-      <output_layer_activation>sigmoid</output_layer_activation>
       <loss>mean_squared_error</loss>
       <metrics>accuracy</metrics>
       <batch_size>4</batch_size>
       <epochs>4</epochs>
-      <hidden_layer_dropout>0, 0</hidden_layer_dropout>
       <optimizerSetting>
         <beta_1>0.9</beta_1>
         <optimizer>Adam</optimizer>

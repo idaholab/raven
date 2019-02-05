@@ -18,7 +18,6 @@
     </ExternalModel>
     <ROM name="modelUnderTest" subType="KerasLSTMClassifier">
       <!-- Common setups -->
-      <pivotParameter>time</pivotParameter>
       <Features>x</Features>
       <Target>y</Target>
       <loss>categorical_crossentropy</loss>
