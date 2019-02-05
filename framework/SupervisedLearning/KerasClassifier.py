@@ -26,6 +26,7 @@ warnings.simplefilter('default',DeprecationWarning)
 
 #External Modules------------------------------------------------------------------------------------
 import copy
+import abc
 import numpy as np
 import tensorflow as tf
 # test if we can reproduce th results
@@ -349,17 +350,45 @@ class KerasClassifier(supervisedLearning):
     # https://github.com/fchollet/keras/issues/2397#issuecomment-306687500
     self.graph = tf.get_default_graph()
 
-  def __addHiddenLayers__(self):
+  def __checkLayers__(self):
     """
-      Method used to add layers for KERAS model
+      Method used to check layers setups for KERAS model
       @ In, None
       @ Out, None
     """
     pass
 
+  def __addHiddenLayers__(self):
+    """
+      Method used to add hidden layers for KERAS model
+      @ In, None
+      @ Out, None
+    """
+    # start to build the ROM
+    self.ROM = KerasModels.Sequential()
+    # loop over layers
+    for index, layerName in enumerate(self.layerLayout[:-1]):
+      layerDict = copy.deepcopy(self.initOptionDict[layerName])
+      layerType = layerDict.pop('type').lower()
+      if layerType not in self.allowedLayers:
+        self.raiseAnError(IOError,'Layers',layerName,'with type',layerType,'is not allowed in',self.printTag)
+      layerSize = layerDict.pop('dim_out',None)
+      layerInstant = self.__class__.availLayer[layerType]
+      dropoutRate = layerDict.pop('rate',0.0)
+      if layerSize is not None:
+        if index == 0:
+          self.ROM.add(layerInstant(layerSize,input_shape=self.featv.shape[1:], **layerDict))
+        else:
+          self.ROM.add(layerInstant(layerSize,**layerDict))
+      else:
+        if layerType == 'dropout':
+          self.ROM.add(layerInstant(dropoutRate))
+        else:
+          self.ROM.add(layerInstant(**layerDict))
+
   def __addOutputLayers__(self):
     """
-      Method used to add layers for KERAS model
+      Method used to add last output layers for KERAS model
       @ In, None
       @ Out, None
     """
@@ -455,6 +484,8 @@ class KerasClassifier(supervisedLearning):
     """
     self.featv = featureVals
     self.targv = targetVals
+    # check layers
+    self.__checkLayers__()
     # hidden layers
     self.__addHiddenLayers__()
     #output layer

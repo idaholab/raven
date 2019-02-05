@@ -56,34 +56,3 @@ class KerasConvNetClassifier(KerasClassifier):
     KerasClassifier.__init__(self,messageHandler,**kwargs)
     self.printTag = 'KerasConvNetClassifier'
     self.allowedLayers = self.basicLayers + self.__class__.kerasConvNetLayersList + self.__class__.kerasPoolingLayersList
-
-  def __addHiddenLayers__(self):
-    """
-      Method used to add layers for KERAS model
-      The structure for Convolutional Neural Network is:
-      inputLayer -> [(ConvolutionLayer) * Mi -> ... ->MaxPoolingLayer] * Ni -> ...
-      -> Flatten -> ReLU layer/MLP layer -> OutputLayer
-      @ In, None
-      @ Out, None
-    """
-    # start to build the ROM
-    self.ROM = KerasModels.Sequential()
-    # loop over layers
-    for index, layerName in enumerate(self.layerLayout[:-1]):
-      layerDict = copy.deepcopy(self.initOptionDict[layerName])
-      layerType = layerDict.pop('type').lower()
-      if layerType not in self.allowedLayers:
-        self.raiseAnError(IOError,'Layers',layerName,'with type',layerType,'is not allowed in',self.printTag)
-      layerSize = layerDict.pop('dim_out',None)
-      layerInstant = self.__class__.availLayer[layerType]
-      dropoutRate = layerDict.pop('rate',0.0)
-      if layerSize is not None:
-        if index == 0:
-          self.ROM.add(layerInstant(layerSize,input_shape=self.featv.shape[1:], **layerDict))
-        else:
-          self.ROM.add(layerInstant(layerSize,**layerDict))
-      else:
-        if layerType == 'dropout':
-          self.ROM.add(layerInstant(dropoutRate))
-        else:
-          self.ROM.add(layerInstant(**layerDict))

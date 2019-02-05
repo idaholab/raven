@@ -59,36 +59,17 @@ class KerasLSTMClassifier(KerasClassifier):
     self.printTag = 'KerasLSTMClassifier'
     self.allowedLayers = self.basicLayers + self.__class__.kerasRcurrentLayersList
 
-  def __addHiddenLayers__(self):
+  def __checkLayers__(self):
     """
-      Method used to add layers for KERAS model
+      Method used to check layers setups for KERAS model
       @ In, None
       @ Out, None
     """
-    # start to build the ROM
-    self.ROM = KerasModels.Sequential()
-    # loop over layers
     for index, layerName in enumerate(self.layerLayout[:-1]):
-      layerDict = copy.deepcopy(self.initOptionDict[layerName])
-      layerType = layerDict.pop('type').lower()
-      if layerType not in self.allowedLayers:
-        self.raiseAnError(IOError,'Layers',layerName,'with type',layerType,'is not allowed in',self.printTag)
-      layerSize = layerDict.pop('dim_out',None)
-      layerInstant = self.__class__.availLayer[layerType]
+      layerType = self.initOptionDict[layerName].get('type').lower()
       nextLayerName = self.layerLayout[index+1]
       nextLayerType = self.initOptionDict[nextLayerName].get('type').lower()
       if layerType in ['lstm'] and nextLayerType in ['lstm']:
-        if not layerDict.get('return_sequences'):
-          layerDict['return_sequences'] = True
+        if not self.initOptionDict[layerName].get('return_sequences'):
+          self.initOptionDict[layerName]['return_sequences'] = True
           self.raiseAWarning('return_sequences is resetted to True for layer',layerName)
-      dropoutRate = layerDict.pop('rate',0)
-      if layerSize is not None:
-        if index == 0:
-          self.ROM.add(layerInstant(layerSize,input_shape=self.featv.shape[1:], **layerDict))
-        else:
-          self.ROM.add(layerInstant(layerSize,**layerDict))
-      else:
-        if layerType == 'dropout':
-          self.ROM.add(layerInstant(dropoutRate))
-        else:
-          self.ROM.add(layerInstant(**layerDict))
