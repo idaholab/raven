@@ -24,7 +24,7 @@ warnings.simplefilter('default', DeprecationWarning)
 import numpy as np
 import copy
 from collections import OrderedDict
-from scipy.spatial import ConvexHull
+from scipy.spatial import ConvexHull, Delaunay
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -62,10 +62,10 @@ class LimitSurface(PostProcessor):
 
     SideInput = InputData.parameterInputFactory("side", contentType=InputData.StringType)
     inputSpecification.addSub(SideInput)
-    
+
     estimateErrInput = InputData.parameterInputFactory("estimateErr", contentType=InputData.BoolType)
-    inputSpecification.addSub(estimateErrInput)    
-    
+    inputSpecification.addSub(estimateErrInput)
+
     ROMInput = InputData.parameterInputFactory("ROM", contentType=InputData.StringType)
     ROMInput.addParam("class", InputData.StringType)
     ROMInput.addParam("type", InputData.StringType)
@@ -163,23 +163,26 @@ class LimitSurface(PostProcessor):
     if self.bounds == None:
       dataSet = self.inputs[self.indexes].asDataset()
       self.bounds = {"lowerBounds":{},"upperBounds":{}}
-      for key in self.parameters['targets']:  
+      for key in self.parameters['targets']:
         self.bounds["lowerBounds"][key], self.bounds["upperBounds"][key] = min(dataSet[key].values), max(dataSet[key].values)
         #self.bounds["lowerBounds"][key], self.bounds["upperBounds"][key] = min(self.inputs[self.indexes].getParam(self.paramType[key],key,nodeId = 'RecontructEnding')), max(self.inputs[self.indexes].getParam(self.paramType[key],key,nodeId = 'RecontructEnding'))
         if utils.compare(round(self.bounds["lowerBounds"][key],14),round(self.bounds["upperBounds"][key],14)):
           self.bounds["upperBounds"][key]+= abs(self.bounds["upperBounds"][key]/1.e7)
         self.volume = self.volume*(self.bounds["upperBounds"][key]-self.bounds["lowerBounds"][key])
-    self.gridEntity.initialize(initDictionary={"rootName":self.name,'constructTensor':True, "computeCells":initDict['computeCells'] if 'computeCells' in initDict.keys() else False,
+    computeCells = initDict['computeCells'] if 'computeCells' in initDict.keys() else False
+    if self.errEstimation:
+      computeCells = True
+    self.gridEntity.initialize(initDictionary={"rootName":self.name,'constructTensor':True, "computeCells":computeCells,
                                                "dimensionNames":self.parameters['targets'], "lowerBounds":self.bounds["lowerBounds"],"upperBounds":self.bounds["upperBounds"],
                                                "volumetricRatio":self.tolerance   ,"transformationMethods":self.transfMethods})
     self.nVar                  = len(self.parameters['targets'])                                  # Total number of variables
     self.axisName              = self.gridEntity.returnParameter("dimensionNames",self.name)      # this list is the implicit mapping of the name of the variable with the grid axis ordering self.axisName[i] = name i-th coordinate
     self.testMatrix[self.name] = np.zeros(self.gridEntity.returnParameter("gridShape",self.name)) # grid where the values of the goalfunction are stored
-    
-    
-    
-    
-    
+
+
+
+
+
   def _initializeLSppROM(self, inp, raiseErrorIfNotFound = True):
     """
       Method to initialize the LS acceleration rom
@@ -249,6 +252,7 @@ class LimitSurface(PostProcessor):
       @ In, initDict, dict, dictionary with initialization options
       @ Out, None
     """
+
     self._initializeLSpp(runInfo, inputs, initDict)
     self._initializeLSppROM(self.inputs[self.indexes])
 
@@ -284,7 +288,7 @@ class LimitSurface(PostProcessor):
       self.errEstimation = dictIn["estimateErr"]
       if self.lsSide not in 'both' and self.errEstimation:
         self.raiseAnError(IOError, 'The error estimation can only be performed if the "side" node is equal to "both"!')
-        
+
   def getFunctionValue(self):
     """
     Method to get a pointer to the dictionary self.functionValue
@@ -447,12 +451,25 @@ class LimitSurface(PostProcessor):
           self.raiseADebug('LimitSurface: ' + myStr + '  value: ' + str(self.testMatrix[nodeName][tuple(coordinate)]))
       # if the number of point on the limit surface is > than zero than save it
       if len(listSurfPoint[nodeName]) > 0:
+        if self.errEstimation:
+          negCoordinates = np.ndarray((nNegPoints, self.nVar))
+          posCoordinates = np.ndarray((nPosPoints, self.nVar))
         self.surfPoint[nodeName] = np.ndarray((len(listSurfPoint[nodeName]), self.nVar))
         evaluations[nodeName] = np.concatenate((-np.ones(nNegPoints), np.ones(nPosPoints)), axis = 0)
         for pointID, coordinate in enumerate(listSurfPoint[nodeName]):
           self.surfPoint[nodeName][pointID, :] = self.gridCoord[nodeName][tuple(coordinate)]
-        if self.lsSide == 'both':
-          errorBound = ConvexHull(self.surfPoint[nodeName]).volume/self.volume
+          if self.errEstimation:
+            if pointID < nNegPoints:
+              negCoordinates[pointID, :] = self.gridCoord[nodeName][tuple(coordinate)]
+            else:
+              print(pointID-nNegPoints)
+              posCoordinates[pointID-nNegPoints, :] = self.gridCoord[nodeName][tuple(coordinate)]
+        if self.errEstimation:
+          hullNeg = ConvexHull(negCoordinates)
+          hullPos = ConvexHull(posCoordinates)
+          errorBound = abs(hullNeg.volume - hullPos.volume)/self.volume
+          #self.gridEntity.retrieveCellIds([self.listSurfPointNegative,self.listSurfPointPositive],self.name)
+
           self.raiseAMessage("Error Bound for Limit Surface Location is: " + str(errorBound))
     if self.name != exceptionGrid:
       self.listSurfPointNegative, self.listSurfPointPositive = listSurfPoint[self.name][:nNegPoints-1],listSurfPoint[self.name][nNegPoints:]
