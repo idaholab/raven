@@ -56,4 +56,4 @@ echo Current directory: `pwd`
 #exit $num_fails
 
 cd ${RAVEN_FRAMEWORK_DIR}/..
-./run_tests -j6 --only-run-types="qsub" --re=cluster_tests
+./run_tests --only-run-types="qsub" --re=cluster_tests
