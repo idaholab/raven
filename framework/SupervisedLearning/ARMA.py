@@ -572,15 +572,25 @@ class ARMA(supervisedLearning):
     # algorithm for providing Fourier series and ARMA white noise variance and #TODO covariance
     features = {}
     # include Fourier if available
-    for target in self.fourierResults:
-      for b,base in enumerate(self.fourierResults[target]['regression']['coeffs']):
-        for s,subdivision in enumerate(base):
-          for waveform, coeff in subdivision.items():
-            ID = '{}_{}_{}'.format(b,s+1,waveform)
-            feature = featureTemplate.format(target=target, metric='Fourier', id=ID)
-            features[feature] = coeff
+    for target, fourier in self.fourierResults.items():
+      for period in fourier['regression']['periods']:
+        ### NEW ###
+        # go from A*sin(ft) + B*cos(ft) to C*sin(ft + phase)
+        amp = fourier['regression']['coeffs'][period]['amplitude']
+        ## not great for clustering?
+        # phase = fourier['regression']['coeffs'][period]['phase']
+        ID = '{}_{}'.format(period, 'amp')
+        feature = featureTemplate.format(target=target, metric='Fourier', id=ID)
+        features[feature] = amp
+        ### END NEW ###
+        ### OLD ###
+        #for waveform, coeff in fourier['regression']['coeffs'][period].items():
+          #ID = '{}_{}'.format(period, waveform)
+          #feature = featureTemplate.format(target=target, metric='Fourier', id=ID)
+          #features[feature] = coeff
+        ### END OLD ###
     # signal variance, ARMA (not varma)
-    for target,arma in self.armaResult.items():
+    for target, arma in self.armaResult.items():
       feature = featureTemplate.format(target=target, metric='arma', id='std')
       features[feature] = np.sqrt(arma.sigma2)
     return features
@@ -864,12 +874,21 @@ class ARMA(supervisedLearning):
     fitSignal = np.asarray(fourierEngine.predict(fourierSignals))
     # get signal intercept
     intercept = fourierEngine.intercept_
-    # get coefficient map
-    coefMap = collections.defaultdict(dict) # {period: {sin:#, cos:#}}
+    # get coefficient map for A*sin(ft) + B*cos(ft)
+    waveCoefMap = collections.defaultdict(dict) # {period: {sin:#, cos:#}}
     for c, coef in enumerate(fourierEngine.coef_):
       period = periods[c//2]
       waveform = 'sin' if c % 2 == 0 else 'cos'
-      coefMap[period][waveform] = coef
+      waveCoefMap[period][waveform] = coef
+    # convert to C*sin(ft + s)
+    ## since we use fitting to get A and B, the magnitudes can be deceiving.
+    ## this conversion makes "C" a useful value to know the contribution from a period
+    coefMap = {}
+    for period, coefs in waveCoefMap.items():
+      A = coefs['sin']
+      B = coefs['cos']
+      C, s = mathUtils.convertSinCosToSinPhase(A, B)
+      coefMap[period] = {'amplitude': C, 'phase': s}
 
     # re-add zero-filtered
     if zeroFilter:
@@ -1002,8 +1021,8 @@ class ARMA(supervisedLearning):
         periodNode = xmlUtils.newNode('period', text='{:1.9e}'.format(period))
         fourierNode.append(periodNode)
         periodNode.append(xmlUtils.newNode('frequency', text='{:1.9e}'.format(1.0/period)))
-        for waveform, coeff in fourier['regression']['coeffs'][period].items():
-          periodNode.append(xmlUtils.newNode(waveform, text='{:1.9e}'.format(coeff)))
+        for stat, value in fourier['regression']['coeffs'][period].items():
+          periodNode.append(xmlUtils.newNode(stat, text='{:1.9e}'.format(value)))
     # - ARMA std
     for target, arma in self.armaResult.items():
       targetNode = root.find(target)

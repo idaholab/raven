@@ -211,13 +211,14 @@ def fixTagsInXpath(_path):
       mod = ''
     # tag could be wildcard
     if tag not in wildcards:
+      print('DEBUGG',tag)
       tag = fixXmlTag(tag.strip())
     found[i] = tag+mod
   #reconstruct path
   out = '/'.join(found)
   return out
 
-def findPath(root,path):
+def findPath(root, path):
   """
     Navigates path to find a particular element
     @ In, root, xml.etree.ElementTree.Element, the node to start searching along
@@ -429,7 +430,7 @@ class StaticXmlElement(object):
       <parameter>
     </root>
   """
-  def __init__(self, tag, attrib = None, rootType = 'Static'):
+  def __init__(self, tag, attrib=None, rootType='Static'):
     """
       Constructor.
       @ In, tag, string, name for root node ('root' in structure example in class docstrings)
@@ -444,7 +445,7 @@ class StaticXmlElement(object):
     if 'type' not in attrib:
       attrib['type'] = rootType
     # initialize class variables
-    self._tree = newTree(tag,attrib)    # base tree structure
+    self._tree = newTree(tag, attrib)    # base tree structure
     self._root = self._tree.getroot()   # root element of tree
 
   def addScalar(self, target, name, value, root = None, attrs = None):

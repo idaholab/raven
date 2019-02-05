@@ -26,7 +26,7 @@ from collections import defaultdict
 import abc
 import numpy as np
 # internal libraries
-from utils import mathUtils
+from utils import mathUtils, xmlUtils
 from .SupervisedLearning import supervisedLearning
 
 warnings.simplefilter('default', DeprecationWarning)
@@ -179,11 +179,14 @@ class Segments(Collection):
     self.readAssembledObjects()
     # subdivide space
     divisions = self._subdivideDomain(self._divisionInstructions, tdict)
+    # DEBUGG only
+    self._originalTrainingData = copy.deepcopy(tdict)
     # allow ROM to handle some global features
     self._romGlobalAdjustments, newTrainingDict = self._templateROM.getGlobalRomClusterSettings(tdict, divisions)
     # train segments
     self._trainBySegments(divisions, newTrainingDict)
     self.amITrained = True
+    self._templateROM.amITrained = True # TODO is this a safe thing to do??
 
   def evaluate(self, edict):
     """
@@ -195,6 +198,25 @@ class Segments(Collection):
     result = self._evaluateBySegments(edict)
     result = self._templateROM.finalizeGlobalRomClusterSample(self._romGlobalAdjustments, result)
     return result
+
+  def writeXML(self, writeTo, targets=None, skip=None):
+    """
+      Write out ARMA information
+      @ In, writeTo, xmlUtils.StaticXmlElement, entity to write to
+      @ In, targets, list, optional, unused
+      @ In, skip, list, optional, unused
+      @ Out, None
+    """
+    # TODO write global information
+    newNode = xmlUtils.StaticXmlElement('GlobalROM', attrib={'segment':'all'})
+    self._templateROM.writeXML(newNode, targets, skip)
+    writeTo.getRoot().append(newNode.getRoot())
+    # write subrom information
+    for i, rom in enumerate(self._roms):
+      newNode = xmlUtils.StaticXmlElement('SegmentROM', attrib={'segment':str(i)})
+      rom.writeXML(newNode, targets, skip)
+      writeTo.getRoot().append(newNode.getRoot())
+
 
   ###################
   # UTILITY METHODS #
@@ -341,6 +363,7 @@ class Segments(Collection):
       self.targetDatas.append(targetData) # DEBUGG
       # create a new ROM and train it!
       newROM = copy.deepcopy(templateROM)
+      newROM.name = '{}_seg{}'.format(self._romName, i)
       newROM.setGlobalRomClusterSettings(self._romGlobalAdjustments)
       self.raiseADebug('Training segment', i, picker)
       newROM.train(data)
@@ -371,7 +394,7 @@ class Clusters(Segments):
     self.printTag = 'Clustered ROM'
     self._divisionClassifier = None  # Classifier to cluster subdomain ROMs
     self._metricClassifiers = None   # Metrics for clustering subdomain ROMs
-    self._clusterMap = {}            # map of cluster labels to the roms in that cluster
+    self._clusterInfo = {}            # contains all the useful clustering results
     self._featureTemplate = '{target}|{metric}|{id}' # created feature ID template
 
   def readAssembledObjects(self):
@@ -400,7 +423,7 @@ class Clusters(Segments):
     if len(remainder):
       self.raiseADebug('"{}" division(s) are being excluded from clustering consideration.'.format(len(remainder)))
     ## train ROMs for each segment
-    roms = self._trainSubdomainROMs(self._templateROM, counter, trainingSet)
+    roms = self._trainSubdomainROMs(self._templateROM, counter, trainingSet, self._romGlobalAdjustments)
     # collect ROM features (basic stats, etc)
     clusterFeatures = self._gatherClusterFeatures(roms, counter, trainingSet)
     # future: requested metrics
@@ -423,21 +446,43 @@ class Clusters(Segments):
     self.raiseAMessage('Identified {} clusters while training clustered ROM "{}".'.format(len(uniqueLabels), self._romName))
     # if there were some segments that won't compare well (e.g. leftovers), handle those separately
     if len(remainder):
-      unclusteredROMs = self._trainSubdomainROMs(self._templateROM, remainder, trainingSet)
+      unclusteredROMs = self._trainSubdomainROMs(self._templateROM, remainder, trainingSet, self._romGlobalAdjustments)
     else:
       unclusteredROMs = []
-    # make map for all roms
+    # make cluster information dict
+    self._clusterInfo = {'labels':labels}
     ## clustered
-    self._clusterMap = dict((label, roms[labels == label]) for label in uniqueLabels)
+    self._clusterInfo['map'] = dict((label, roms[labels == label]) for label in uniqueLabels)
     ## unclustered
-    self._clusterMap['unclustered'] = unclusteredROMs
+    self._clusterInfo['map']['unclustered'] = unclusteredROMs
     #############
     #   DEBUG   #
     #############
-    _plotSignalsClustered(labels, clusterFeatures, counter, trainingSet)
+    # _plotSignalsClustered(labels, clusterFeatures, counter, self._originalTrainingData)
     #############
     # END DEBUG #
     #############
+    ## TODO self._roms needs to be populated by something ... is this it?
+    self._roms = list(self._clusterInfo['map'][label][0] for label in uniqueLabels)
+
+  def writeXML(self, writeTo, targets=None, skip=None):
+    """
+      Write out ARMA information
+      @ In, writeTo, xmlUtils.StaticXmlElement, entity to write to
+      @ In, targets, list, optional, unused
+      @ In, skip, list, optional, unused
+      @ Out, None
+    """
+    Segments.writeXML(self, writeTo, targets, skip)
+    main = writeTo.getRoot()
+    labels = self._clusterInfo['labels']
+    for i, repRom in enumerate(self._roms):
+      # find associated node
+      modify = xmlUtils.findPath(main, 'SegmentROM[@segment={}]'.format(i))
+      modify.tag = 'ClusterROM'
+      modify.attrib['cluster'] = modify.attrib.pop('segment')
+      modify.append(xmlUtils.newNode('segments_represented', text=', '.join(str(x) for x in np.arange(len(labels))[labels==i])))
+    # TODO add clustering information to existing nodes
 
   ## Utilities ##
   def _classifyROMs(self, classifier, features, clusterFeatures):
@@ -494,10 +539,11 @@ class Clusters(Segments):
       picker = slice(counter[r][0], counter[r][-1]+1)
       data = dict((var, [copy.deepcopy(trainingSet[var][0][picker])]) for var in trainingSet)
       targetData = dict((var, data[var][0]) for var in targets)
+      ## DEBUGG temporarily disable basic metrics ##
       # get general basic metrics (aka cluster features)
-      basicData = self._evaluateBasicMetrics(targetData)
-      for feature, val in basicData.items():
-        clusterFeatures[feature].append(val)
+      #basicData = self._evaluateBasicMetrics(targetData)
+      #for feature, val in basicData.items():
+      #  clusterFeatures[feature].append(val)
       # get ROM-specific metrics
       romData = rom.getRomClusterValues(self._featureTemplate)
       for feature, val in romData.items():
@@ -575,7 +621,7 @@ def _plotSignalsSegmented(labels, roms, targetDatas):
       rom = roms[mask][r]
       target = targetDatas[mask][r]
       x = rom.pivotParameterValues
-      y = target['Demand']
+      y = target['Signal']
       index = list(roms).index(rom)+1
       ax.plot(x, y, color=clr)
       ax.plot([x[0]]*2, [5000, 20000], 'k:')
@@ -601,7 +647,7 @@ def _plotSignalsClustered(labels, clusterFeatures, slices, trainingSet):
   for l, label in enumerate(labels):
     picker = slice(slices[l][0], slices[l][-1]+1)
     data = dict((var, [trainingSet[var][0][picker]]) for var in trainingSet)
-    ax.plot(data['Time'][0], data['Demand'][0], '-', color='C{}'.format(label), label='C {}'.format(label))
+    ax.plot(data['Time'][0], data['Signal'][0], '-', color='C{}'.format(label), label='C {}'.format(label))
   ax.set_ylabel('Demand')
   ax.set_xlabel('Time')
   ax.set_title('Clustered Training Data')

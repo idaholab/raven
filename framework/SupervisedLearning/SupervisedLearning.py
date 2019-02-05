@@ -305,7 +305,7 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     # by default, nothing to write!
     self.raiseAMessage('Writing ROM "{}", but no pointwise data found. Moving on ...')
 
-  def writeXML(self, writeTo, targets = None, skip = None):
+  def writeXML(self, writeTo, targets=None, skip=None):
     """
       Allows the SVE to put whatever it wants into an XML to print to file.
       Overload in subclasses.

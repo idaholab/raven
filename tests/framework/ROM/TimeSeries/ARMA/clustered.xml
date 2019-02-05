@@ -11,7 +11,7 @@
 
   <RunInfo>
     <WorkingDir>Clustered</WorkingDir>
-    <Sequence>load,train,sample,print,reload,stats</Sequence>
+    <Sequence>load,train,stats,sample,print</Sequence>
   </RunInfo>
 
   <Steps>
@@ -23,6 +23,11 @@
       <Input class="DataObjects" type="HistorySet">input</Input>
       <Output class="Models" type="ROM">arma</Output>
     </RomTrainer>
+    <IOStep name="stats">
+      <Input class="Models" type="ROM">arma</Input>
+      <Output class="DataObjects" type="DataSet">romMeta</Output>
+      <Output class="OutStreams" type="Print">romMeta</Output>
+    </IOStep>
     <MultiRun name="sample">
       <Input class="DataObjects" type="PointSet">placeholder</Input>
       <Model class="Models" type="ROM">arma</Model>
@@ -33,21 +38,10 @@
       <Input class="DataObjects" type="HistorySet">synthetic</Input>
       <Output class="OutStreams" type="Print">synthetic</Output>
     </IOStep>
-    <IOStep name="reload">
-      <Input class="Files" type="">sample</Input>
-      <Output class="DataObjects" type="PointSet">sample</Output>
-    </IOStep>
-    <PostProcess name="stats">
-      <Input class="DataObjects" type="PointSet">sample</Input>
-      <Model class="Models" type="PostProcessor">stats</Model>
-      <Output class="DataObjects" type="PointSet">stats</Output>
-      <Output class="OutStreams" type="Print">stats</Output>
-    </PostProcess>
   </Steps>
 
   <Files>
-    <Input name="input">ercotNC_all_hourly.csv</Input>
-    <Input name="sample">synthetic_0.csv</Input>
+    <Input name="input">head.csv</Input>
   </Files>
 
   <DataObjects>
@@ -55,51 +49,45 @@
       <Input>scaling</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
-    <PointSet name="sample">
-      <Input>Time</Input>
-      <Output>Demand</Output>
-    </PointSet>
-    <PointSet name="stats">
-      <Output>mean_Demand, var_Demand</Output>
-    </PointSet>
     <HistorySet name="input">
       <Input>scaling</Input>
-      <Output>Demand,Time</Output>
+      <Output>Signal, Time</Output>
       <options>
         <pivotParameter>Time</pivotParameter>
       </options>
     </HistorySet>
     <HistorySet name="synthetic">
       <Input>scaling</Input>
-      <Output>Demand,Time</Output>
+      <Output>Signal, Time</Output>
       <options>
         <pivotParameter>Time</pivotParameter>
       </options>
     </HistorySet>
+    <DataSet name="romMeta"/>
   </DataObjects>
 
   <Models>
     <ROM name="arma" subType="ARMA">
-      <Target>Demand,Time</Target>
+      <Target>Signal, Time</Target>
       <Features>scaling</Features>
       <pivotParameter>Time</pivotParameter>
       <P>0</P>
       <Q>0</Q>
-      <Fourier>1e200, 31556952, 15778476, 10518984, 7889238, 2592000, 1296000, 604800, 302400, 86400, 43200, 28800, 21600</Fourier>
+      <Fourier>100, 5, 3</Fourier>
       <Segment grouping='cluster'>
-        <Classifier class='Models' type='PostProcessor'>affinity</Classifier>
-        <subspace divisions='12' shift='zero'>Time</subspace>
+        <Classifier class='Models' type='PostProcessor'>classifier</Classifier>
+        <subspace divisions='10'>Time</subspace>
       </Segment>
     </ROM>
-    <PostProcessor name="affinity" subType="DataMining">
+    <PostProcessor name="classifier" subType="DataMining">
       <KDD labelFeature="labels" lib="SciKitLearn">
-        <Features>Demand</Features>
+        <Features>Signal</Features>
         <SKLtype>cluster|AffinityPropogation</SKLtype>
       </KDD>
     </PostProcessor>
     <PostProcessor name="stats" subType="BasicStatistics">
-      <expectedValue prefix="mean">Demand</expectedValue>
-      <variance prefix="var">Demand</variance>
+      <expectedValue prefix="mean">Signal</expectedValue>
+      <variance prefix="var">Signal</variance>
     </PostProcessor>
   </Models>
 
@@ -119,9 +107,9 @@
       <source>synthetic</source>
       <what>input, output</what>
     </Print>
-    <Print name="stats">
+    <Print name="romMeta">
       <type>csv</type>
-      <source>stats</source>
+      <source>romMeta</source>
     </Print>
   </OutStreams>
 </Simulation>

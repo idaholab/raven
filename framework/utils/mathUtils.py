@@ -738,3 +738,15 @@ def trainEmpiricalFunction(signal, bins=None, minBins=None):
   dist = stats.rv_histogram((counts, edges))
   return dist
 
+def convertSinCosToSinPhase(A, B):
+  """
+    Given coefficients A, B for the equation A*sin(kt) = B*cos(kt), returns
+    the equivalent values C, p for the equation C*sin(kt + p)
+    @ In, A, float, sine coefficient
+    @ In, B, float, cosine coefficient
+    @ Out, C, float, equivalent sine-only amplitude
+    @ Out, p, float, phase shift of sine-only waveform
+  """
+  p = np.arctan2(B, A)
+  C = A / np.cos(p)
+  return C, p
