@@ -41,7 +41,6 @@ try:
   from .DataObject import DataObject
 except ValueError:
   from DataObject import DataObject
-from Files import StaticXMLOutput
 from utils import utils, cached_ndarray, InputData, xmlUtils, mathUtils
 
 # for profiling with kernprof
@@ -107,10 +106,12 @@ class DataSet(DataObject):
 
   ### EXTERNAL API ###
   # These are the methods that RAVEN entities should call to interact with the data object
-  def addExpectedMeta(self,keys):
+  def addExpectedMeta(self,keys, params={}):
     """
       Registers meta to look for in realizations.
       @ In, keys, set(str), keys to register
+      @ In, params, dict, optional, {key:[indexes]}, keys of the dictionary are the variable names,
+        values of the dictionary are lists of the corresponding indexes/coordinates of given variable
       @ Out, None
     """
     # TODO add option to skip parts of meta if user wants to
@@ -124,12 +125,13 @@ class DataSet(DataObject):
     assert(self._collector is None or len(self._collector) == 0)
     self._metavars.extend(keys)
     self._orderedVars.extend(keys)
+    self.setPivotParams(params)
 
-  def addMeta(self,tag,xmlDict):
+  def addMeta(self, tag, xmlDict = None, node = None):
     """
       Adds general (not pointwise) metadata to this data object.  Can add several values at once, collected
-      as a dict keyed by target variables.
-      Data ends up being written as follows (see docstrings above for dict structure)
+      as a dict keyed by target variables. Alternatively, a node can be added directly.
+      Data ends up being written as follows (see docstrings below for dict structure)
        - A good default for 'target' is 'general' if there's not a specific target
       <tag>
         <target>
@@ -148,27 +150,37 @@ class DataSet(DataObject):
         </target>
       </tag>
       @ In, tag, str, section to add metadata to, usually the data submitter (BasicStatistics, DataObject, etc)
-      @ In, xmlDict, dict, data to change, of the form {target:{scalarMetric:value,scalarMetric:value,vectorMetric:{wrt:value,wrt:value}}}
+      @ In, xmlDict, dict, optional, data to change, of the form {target:{scalarMetric:value,scalarMetric:value,vectorMetric:{wrt:value,wrt:value}}}
+      @ In, node, xml.etree.ElementTree.Element, optional, already-filled node to add directly
       @ Out, None
     """
-    # TODO potentially slow if MANY top level tags
-    if tag not in self._meta.keys():
-      # TODO store elements as Files object XML, for now
-      new = StaticXMLOutput()
-      new.initialize(self.name,self.messageHandler) # TODO replace name when writing later
-      new.newTree(tag)
-      self._meta[tag] = new
-    destination = self._meta[tag]
-    for target in xmlDict.keys():
-      for metric,value in xmlDict[target].items():
-        # Two options: if a dict is given, means vectorMetric case
-        if isinstance(value,dict):
-          destination.addVector(target,metric,value)
-        # Otherwise, scalarMetric
-        else:
-          # sanity check to make sure suitable values are passed in
-          assert(mathUtils.isSingleValued(value))
-          destination.addScalar(target,metric,value)
+    # check either xmlDict OR node
+    ## this should not be user-facing, so check through assertion
+    assert(not (xmlDict is None and node is None))
+    assert(not (xmlDict is not None and node is not None))
+    # if an xmlDict was provided ....
+    if xmlDict is not None:
+      # check if tag already exists
+      ## TODO potentially slow if MANY top level tags
+      if tag not in self._meta.keys():
+        new = xmlUtils.StaticXmlElement(tag)
+        self._meta[tag] = new
+      destination = self._meta[tag]
+      for target in sorted(list(xmlDict.keys())):
+        for metric,value in sorted(list(xmlDict[target].items())):
+          # Two options: if a dict is given, means vectorMetric case
+          if isinstance(value,dict):
+            destination.addVector(target,metric,value)
+          # Otherwise, scalarMetric
+          else:
+            # sanity check to make sure suitable values are passed in
+            assert(mathUtils.isSingleValued(value))
+            destination.addScalar(target,metric,value)
+    # otherwise if a node was provided directly ...
+    else:
+      ## TODO check replacement?
+      ## TODO check structure?
+      self._meta[tag] = node
 
   def addRealization(self,rlz):
     """
@@ -227,38 +239,51 @@ class DataSet(DataObject):
     # reset scaling factors, kd tree
     self._resetScaling()
 
-  def addVariable(self,varName,values,classify='meta'):
+  def addVariable(self,varName,values,classify='meta',indices=None):
     """
       Adds a variable/column to the data.  "values" needs to be as long as self.size.
       @ In, varName, str, name of new variable
       @ In, values, np.array, new values (floats/str for scalars, xr.DataArray for hists)
       @ In, classify, str, optional, either 'input', 'output', or 'meta'
+      @ In, indices, list, optional, list of indexes this variable depends on
       @ Out, None
     """
+    if indices is None:
+      indices = []
     # TODO might be removable
     assert(isinstance(values,np.ndarray))
-    assert(len(values) == self.size)
+    assert(len(values) == self.size), 'Expected {} entries in new variable but got {}!'.format(self.size, len(values))
     assert(classify in ['input','output','meta'])
-    # first, collapse existing entries
-    self.asDataset()
-    # format as single data array
-    # TODO worry about sampleTag values?
-    column = self._collapseNDtoDataArray(values,varName,labels=self._data[self.sampleTag])
-    # add to the dataset
-    self._data = self._data.assign(**{varName:column})
+    # if we're currently empty of data, then no new data to store (IMPORTANT: don't remove the assertion that len(values) == self.size above!)
+    if self.size != 0:
+      # first, collapse existing entries
+      self.asDataset()
+      labels = self._data[self.sampleTag]
+      column = self._collapseNDtoDataArray(values, varName, labels=labels)
+      # add to the dataset
+      self._data = self._data.assign(**{varName:column})
     if classify == 'input':
       self._inputs.append(varName)
     elif classify == 'output':
       self._outputs.append(varName)
-      if type(values[0]) == xr.DataArray:
-        indexes = values[0].sizes.keys()
-        for index in indexes:
-          if index in self._pivotParams.keys():
-            self._pivotParams[index].append(varName)
-          else:
-            self._pivotParams[index]=[varName]
     else:
       self._metavars.append(varName)
+    # move from the elif classify =='output', since the metavars can also contain the
+    # time-dependent meta data.
+    if len(values) and type(values[0]) == xr.DataArray:
+      indexes = values[0].sizes.keys()
+      for index in indexes:
+        if index in self._pivotParams.keys():
+          self._pivotParams[index].append(varName)
+        else:
+          self._pivotParams[index]=[varName]
+    # if provided, set the indices for this variable
+    for index in indices:
+      if index in self._pivotParams:
+        self._pivotParams[index].append(varName)
+      else:
+        self._pivotParams[index] = [varName]
+    # register variable in order
     self._orderedVars.append(varName)
 
   def asDataset(self, outType='xrDataset'):
@@ -363,9 +388,10 @@ class DataSet(DataObject):
     gKeys = set([]) if not general else set(self._meta.keys()).intersection(set(keys))
     pKeys = set([]) if not pointwise else set(self._metavars).intersection(set(keys))
     # get any left overs
-    missing = set(keys).difference(gKeys.union(pKeys))
+    missing = list(set(keys).difference(gKeys.union(pKeys)))
     if len(missing)>0:
-      self.raiseAnError(KeyError,'Some requested keys could not be found in the requested metadata:',missing)
+      missing = ', '.join(missing)
+      self.raiseAnError(KeyError,'Some requested keys could not be found in the requested metadata: ({})'.format(missing))
     meta = {}
     if pointwise:
       # TODO slow key crawl
@@ -645,14 +671,14 @@ class DataSet(DataObject):
     if style.lower() == 'netcdf':
       self._toNetCDF(fileName,**kwargs)
     elif style.lower() == 'csv':
-      if len(self.asDataset().variables)==0: #TODO what if it's just metadata?
-        self.raiseAWarning('Nothing to write!')
-        return
-      #first write the CSV
-      firstIndex = kwargs.get('firstIndex',0)
-      self._toCSV(fileName,start=firstIndex,**kwargs)
+      if len(self)==0: #TODO what if it's just metadata?
+        self.raiseAWarning('Nothing to write to CSV! Checking metadata ...')
+      else:
+        #first write the CSV
+        firstIndex = kwargs.get('firstIndex',0)
+        self._toCSV(fileName,start=firstIndex,**kwargs)
       # then the metaxml
-      if 'DataSet' in self._meta.keys():
+      if len(self._meta):
         self._toCSVXML(fileName,**kwargs)
     # TODO dask?
     else:
@@ -702,7 +728,10 @@ class DataSet(DataObject):
     # from collector
     s += self._collector.size if self._collector is not None else 0
     # from data
-    s += len(self._data[self.sampleTag]) if self._data is not None else 0
+    try:
+      s += len(self._data[self.sampleTag]) if self._data is not None else 0
+    except KeyError: #sampleTag not found, so it _should_ be empty ...
+      s += 0
     return s
 
   @property
@@ -942,9 +971,10 @@ class DataSet(DataObject):
       self._data.attrs = self._meta # appears to NOT be a reference
       # determine dimensions for each variable
       dimsMeta = {}
-      # TODO potentially slow loop
-      for var in self._inputs + self._outputs:
-        dims = list(new[var].dims)
+      for name, var in new.variables.items():
+        if name not in self._inputs + self._outputs:
+          continue
+        dims = list(var.dims)
         # don't list if only entry is sampleTag
         if dims == [self.sampleTag]:
           continue
@@ -953,7 +983,7 @@ class DataSet(DataObject):
           dims.remove(self.sampleTag)
         except ValueError:
           pass #not there, so didn't need to remove
-        dimsMeta[var] = ','.join(dims)
+        dimsMeta[name] = ','.join(dims)
       # store sample tag, IO information, coordinates
       self.addMeta('DataSet',{'dims':dimsMeta})
       self.addMeta('DataSet',{'general':{'sampleTag':self.sampleTag,
@@ -1627,20 +1657,16 @@ class DataSet(DataObject):
         pass
     # TODO someday make KDTree too!
     assert(self._data is not None) # TODO check against collector entries?
-    for var in varList:
-      ## commented code. We use a try now for speed. It probably needs to be modified for ND arrays
-      # if not a float or int, don't scale it
-      # TODO this check is pretty convoluted; there's probably a better way to figure out the type of the variable
-      #first = self._data.groupby(var).first()[var].item(0)
-      #if (not mathUtils.isAFloatOrInt(first)) or np.isnan(first):# or self._data[var].isnull().all():
-      #  continue
+    ds = self._data[varList] if var is not None else self._data
+    mean = ds.mean().variables
+    scale = ds.std().variables
+    for name in varList:
       try:
-        mean = float(self._data[var].mean())
-        scale = float(self._data[var].std())
-        self._scaleFactors[var] = (mean,scale)
+        m = mean[name].values[()]
+        s = scale[name].values[()]
+        self._scaleFactors[name] = (m,s)
       except Exception:
-        self.raiseADebug('Had an issue with setting scaling factors for variable "{}". No big deal.'.format(var))
-        pass
+        self.raiseADebug('Had an issue with setting scaling factors for variable "{}". No big deal.'.format(name))
 
   def _toCSV(self,fileName,start=0,**kwargs):
     """
@@ -1671,7 +1697,7 @@ class DataSet(DataObject):
       mode = 'w'
 
     data = data.drop(toDrop)
-    self.raiseADebug('Printing data to CSV: "{}"'.format(filenameLocal+'.csv'))
+    self.raiseADebug('Printing data from "{}" to CSV: "{}"'.format(self.name,filenameLocal+'.csv'))
     # get the list of elements the user requested to write
     # order data according to user specs # TODO might be time-inefficient, allow user to skip?
     ordered = list(i for i in self._inputs if i in keep)
@@ -1717,38 +1743,41 @@ class DataSet(DataObject):
     meta = copy.deepcopy(self._meta)
     # remove variables that aren't being "kept" from the meta record
     keep = self._getRequestedElements(kwargs)
-    ## remove from "dims"
-    dimsNode = xmlUtils.findPath(meta['DataSet'].tree.getroot(),'dims')
-    if dimsNode is not None:
+    if 'DataSet' in meta.keys():
+      ## remove from "dims"
+      dimsNode = xmlUtils.findPath(meta['DataSet'].getRoot(),'dims')
+      if dimsNode is not None:
+        toRemove = []
+        for child in dimsNode:
+          if child.tag not in keep:
+            toRemove.append(child)
+        for r in toRemove:
+          dimsNode.remove(r)
+      ## remove from "inputs, outputs, pointwise"
       toRemove = []
-      for child in dimsNode:
-        if child.tag not in keep:
-          toRemove.append(child)
+      ## TODO doesn't work for time-dependent requests!
+      genNode =  xmlUtils.findPath(meta['DataSet'].getRoot(),'general')
+      for child in genNode:
+        if child.tag in ['inputs','outputs','pointwise_meta']:
+          vs = []
+          for var in child.text.split(','):
+            if var.strip() in keep:
+              vs.append(var)
+          if len(vs) == 0:
+            toRemove.append(child)
+          else:
+            child.text = ','.join(vs)
       for r in toRemove:
-        dimsNode.remove(r)
-    ## remove from "inputs, outputs, pointwise"
-    genNode =  xmlUtils.findPath(meta['DataSet'].tree.getroot(),'general')
-    toRemove = []
-    for child in genNode:
-      if child.tag in ['inputs','outputs','pointwise_meta']:
-        vs = []
-        for var in child.text.split(','):
-          if var.strip() in keep:
-            vs.append(var)
-        if len(vs) == 0:
-          toRemove.append(child)
-        else:
-          child.text = ','.join(vs)
-    for r in toRemove:
-      genNode.remove(r)
+        genNode.remove(r)
 
     self.raiseADebug('Printing metadata XML: "{}"'.format(fileName+'.xml'))
     with open(fileName+'.xml','w') as ofile:
       #header
       ofile.writelines('<DataObjectMetadata name="{}">\n'.format(self.name))
-      for name,target in meta.items():
-        xml = target.writeFile(asString=True,startingTabs=1,addRavenNewlines=False)
-        ofile.writelines('  '+xml+'\n')
+      for name in sorted(list(meta.keys())):
+        target = meta[name]
+        xml = xmlUtils.prettify(target.getRoot(),startingTabs=1,addRavenNewlines=False)
+        ofile.writelines('  {}\n'.format(xml))
       ofile.writelines('</DataObjectMetadata>\n')
 
   def _toNetCDF(self,fileName,**kwargs):
@@ -1824,7 +1853,8 @@ class DataSet(DataObject):
       # if only index was sampleTag and we don't want it, index = False takes care of that
       else:
         data.to_csv(fileName+'.csv',index=False,mode=mode,header=header)
-    #raw_input('Just wrote to CSV "{}.csv", press enter to continue ...'.format(fileName))
+    # DEBUGG tool for incremental writing, keep for future use
+    # raw_input('Just wrote to CSV "{}.csv", press enter to continue ...'.format(fileName))
 
   # _useNumpyWriteCSV (below) is a secondary method to write out POINT SET CSVs.  When benchmarked with Pandas, I tested using
   # different numbers of variables (M=5,25,100) and different numbers of realizations (R=4,100,1000).

@@ -971,4 +971,4 @@ class DynamicEventTree(Grid):
           self.branchValues[key].append(self.distDict[key].inverseMarginalDistribution(1.0,self.variables2distributionsMapping[key]['dim']-1) )
     self.limit = sys.maxsize
     # add expected metadata
-    self.addMetaKeys(*['RAVEN_parentID','RAVEN_isEnding','conditionalPb','triggeredVariable','happenedEvent'])
+    self.addMetaKeys(['RAVEN_parentID','RAVEN_isEnding','conditionalPb','triggeredVariable','happenedEvent'])

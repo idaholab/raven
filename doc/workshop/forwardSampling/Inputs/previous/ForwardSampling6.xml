@@ -10,6 +10,12 @@
       <revision author="wangc" data="2018-11-01">
         Clean up input files, remove duplication calculations in BasicStatistics, regold due to #PR777
       </revision>
+      <revision author="wangc" date="2018-12-18">
+          In PR #882, the standard errors on statistics moments are implemented, these quantities are stored in
+          the pointwised metadata, and will be printed out in the output csv files by default.
+          In order to avoid regolding this test, the optional node 'what' with text values 'input, output' is added.
+          In this case, only the user requested variables as specified in the DataObjects are printed out. 
+      </revision>
     </revisions>
   </TestInfo>
   <RunInfo>
@@ -75,6 +81,7 @@
     <Print name="Stat_basicStatPP_dump">
       <type>csv</type>
       <source>Stat_basicStatPP</source>
+      <what>input,output</what>
     </Print>
   </OutStreams>
 

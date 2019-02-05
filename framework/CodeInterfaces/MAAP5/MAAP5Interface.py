@@ -112,7 +112,7 @@ class MAAP5(GenericCode):
         if self.restartUseVar==True: self.restart(currentInputFiles, Kwargs['RAVEN_parentID'])
 #        self.includeUpdate(currentInputFiles)
 ###########
-        if len(self.multiBranchOccurred)>0: 
+        if len(self.multiBranchOccurred)>0:
 	  self.multiBranchMethod(currentInputFiles, Kwargs)
 	  if self.printDebug : print ('Calling multiBranchMethod, priting Kwargs',Kwargs)
 
@@ -671,7 +671,7 @@ class MAAP5(GenericCode):
       currentFolder=workingDir.split('/')[-1]
       for key, value in self.values[currentFolder].items():
         if key == varActivated: self.branch[currentFolder]=(key,value)
-      
+
       #lock=threading.RLock() #03.08.2018 Andrea suggestion to lock threads while accessing this dictionary
       #with lock:        #03.08.2018 Andrea suggestion to lock threads while accessing this dictionary
       DictAllVars=self.dictVariables(inp)
@@ -728,7 +728,7 @@ class MAAP5(GenericCode):
     variableBranch=self.branch[str(branchName)][0]
 
     if variableBranch in self.DETsampledVars and variableBranch not in self.multiBranch:
-      #DictName='Dict'+str(variableBranch)     
+      #DictName='Dict'+str(variableBranch)
       dict1=Dict
       variables = list(dict1.keys())
       for var in variables: #e.g. for TIMELOCA variables are ABBN(1), ABBN(2), ABBN(3)
@@ -758,19 +758,19 @@ class MAAP5(GenericCode):
       condProb=float(Kwargs['SampledVarsPb'][variableBranch]) # CP - 03/20/2018 - here we read the probability value of the branch from the kwargs file
       # print('condProb',condProb)
       # print('listDict',listDict)
-      for enum in range(len(listDict)): # CP - 03/20/2018 - there is one dictionary for each variable changed within the branch  
+      for enum in range(len(listDict)): # CP - 03/20/2018 - there is one dictionary for each variable changed within the branch
         prob=listDict[enum]['associated_pb'].split() # in each dictionary probabilities for each branh are contained in a string
         #print('##',prob)
         changedProbs=[]
-        
-        for pb in prob: 
+
+        for pb in prob:
           #print('--',pb)
           changedPb=str(float(pb)*condProb)
           changedProbs.append(changedPb)
         listDict[enum]['associated_pb']=' '.join(changedProbs) # CP - 03/20/2018 in the dictionary, multiple branches probabilities are updated to the conditional value
         #print('##----------listDict[enum][associated_pb]',listDict[enum]['associated_pb'])
         #print('##----------[.join(changedProbs)]',[' '.join(changedProbs)])
-      
+
       #print('listDict',listDict)
 
       detU.writeXmlForDET(filename,variableBranch,listDict,stopInfo) #this function writes the xml file for DET
@@ -984,8 +984,8 @@ class MAAP5(GenericCode):
       @ In, fargs, dict, optional, a dictionary containing the axuiliary input file variables the user can specify in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 aux0extension =0 .aux0/ >< /Code >)
       @ Out, returnCommand, tuple, tuple containing the generated command. returnCommand[0] is the command to run the code (string), returnCommand[1] is the name of the output root
     """
-    #02/08/2018 This modification is added to skip simulating MAAP5 run, if previousy run successfully     
-    caseNameM='' 
+    #02/08/2018 This modification is added to skip simulating MAAP5 run, if previousy run successfully
+    caseNameM=''
     finished=False
     workingDir=str('/'.join(str(inputFiles[0]).split('/')[1:-1]))
     caseNameM = str(inputFiles[0].getBase())
@@ -993,13 +993,13 @@ class MAAP5(GenericCode):
     print('--------------',workingDir,outFileM)
     print('---out file existing---',os.path.exists('/'+workingDir+'/'+outFileM))
     if os.path.exists('/'+workingDir+'/'+outFileM):
-      f=open('/'+workingDir+'/'+outFileM,'r')  
+      f=open('/'+workingDir+'/'+outFileM,'r')
       lines=f.readlines()
       for line in lines:
         if 'End Time:' in line: finished=True
 
     if finished:
-      if os.path.exists('/'+workingDir+'/out~'+caseNameM+'_actual_branch_info.xml'): 
+      if os.path.exists('/'+workingDir+'/out~'+caseNameM+'_actual_branch_info.xml'):
         os.remove('/'+workingDir+'/out~'+caseNameM+'_actual_branch_info.xml')
         print('removed ','/'+workingDir+'/out~'+caseNameM+'_actual_branch_info.xml')
       print('finished=',finished)
@@ -1013,11 +1013,11 @@ class MAAP5(GenericCode):
       todo=' echo ' + string + ' dummy.txt && sleep '+str(sleep_time)+'s' #VR 17.10.18
       returnCommand = [('parallel',todo)],outFileM
       #VR 17.10.18 sleep_time=random.randint(5,20) #VR 14.10.18
-      print('Execution Command: '+str(returnCommand[0]))      
+      print('Execution Command: '+str(returnCommand[0]))
       #VR 17.10.18 time.sleep(sleep_time) #VR 14.10.18
       return returnCommand
 
-    else:     #02/08/2018 generateCommand as GenericCodeInterface         
+    else:     #02/08/2018 generateCommand as GenericCodeInterface
       if clargs==None:
         raise IOError('No input file was specified in clargs!')
       #check for output either in clargs or fargs
@@ -1095,7 +1095,7 @@ class MAAP5(GenericCode):
       returnCommand = [('parallel',todo)],outFile
       print('Execution Command: '+str(returnCommand[0]))
       return returnCommand
-    
+
 
 
 

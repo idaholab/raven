@@ -1,34 +1,10 @@
-<data name="Gdump" type="Pointset"><input>x2,x1</input><output>ans</output><inputFilename>Gdump.csv</inputFilename><metadata><SamplerType>array([u'Sparse Grid Collocation', u'Sparse Grid Collocation',
-       u'Sparse Grid Collocation', u'Sparse Grid Collocation',
-       u'Sparse Grid Collocation', u'Sparse Grid Collocation',
-       u'Sparse Grid Collocation', u'Sparse Grid Collocation',
-       u'Sparse Grid Collocation'], 
-      dtype='&lt;U23')</SamplerType><crowDist>array([ {u'x2': '{"xMin": 0.0, "theta": 1.0, "k": 2.0, "type": "GammaDistribution", "low": 0.0}', u'x1': '{"xMin": 0.0, "theta": 1.0, "k": 2.0, "type": "GammaDistribution", "low": 0.0}'},
-       {u'x2': '{"xMin": 0.0, "theta": 1.0, "k": 2.0, "type": "GammaDistribution", "low": 0.0}', u'x1': '{"xMin": 0.0, "theta": 1.0, "k": 2.0, "type": "GammaDistribution", "low": 0.0}'},
-       {u'x2': '{"xMin": 0.0, "theta": 1.0, "k": 2.0, "type": "GammaDistribution", "low": 0.0}', u'x1': '{"xMin": 0.0, "theta": 1.0, "k": 2.0, "type": "GammaDistribution", "low": 0.0}'},
-       {u'x2': '{"xMin": 0.0, "theta": 1.0, "k": 2.0, "type": "GammaDistribution", "low": 0.0}', u'x1': '{"xMin": 0.0, "theta": 1.0, "k": 2.0, "type": "GammaDistribution", "low": 0.0}'},
-       {u'x2': '{"xMin": 0.0, "theta": 1.0, "k": 2.0, "type": "GammaDistribution", "low": 0.0}', u'x1': '{"xMin": 0.0, "theta": 1.0, "k": 2.0, "type": "GammaDistribution", "low": 0.0}'},
-       {u'x2': '{"xMin": 0.0, "theta": 1.0, "k": 2.0, "type": "GammaDistribution", "low": 0.0}', u'x1': '{"xMin": 0.0, "theta": 1.0, "k": 2.0, "type": "GammaDistribution", "low": 0.0}'},
-       {u'x2': '{"xMin": 0.0, "theta": 1.0, "k": 2.0, "type": "GammaDistribution", "low": 0.0}', u'x1': '{"xMin": 0.0, "theta": 1.0, "k": 2.0, "type": "GammaDistribution", "low": 0.0}'},
-       {u'x2': '{"xMin": 0.0, "theta": 1.0, "k": 2.0, "type": "GammaDistribution", "low": 0.0}', u'x1': '{"xMin": 0.0, "theta": 1.0, "k": 2.0, "type": "GammaDistribution", "low": 0.0}'},
-       {u'x2': '{"xMin": 0.0, "theta": 1.0, "k": 2.0, "type": "GammaDistribution", "low": 0.0}', u'x1': '{"xMin": 0.0, "theta": 1.0, "k": 2.0, "type": "GammaDistribution", "low": 0.0}'}], dtype=object)</crowDist><SampledVars>array([{u'x2': 7.7587704831436346, u'x1': 7.7587704831436346},
-       {u'x2': 7.7587704831436346, u'x1': 7.7587704831436346},
-       {u'x2': 7.7587704831436346, u'x1': 7.7587704831436346},
-       {u'x2': 7.7587704831436346, u'x1': 7.7587704831436346},
-       {u'x2': 7.7587704831436346, u'x1': 7.7587704831436346},
-       {u'x2': 7.7587704831436346, u'x1': 7.7587704831436346},
-       {u'x2': 7.7587704831436346, u'x1': 7.7587704831436346},
-       {u'x2': 7.7587704831436346, u'x1': 7.7587704831436346},
-       {u'x2': 7.7587704831436346, u'x1': 7.7587704831436346}], dtype=object)</SampledVars><ProbabilityWeight>array([ 0.34654589,  0.23030165,  0.01183395,  0.23030165,  0.15305   ,
-        0.00786441,  0.01183395,  0.00786441,  0.00040411])</ProbabilityWeight><prefix>array(['1', '2', '3', '4', '5', '6', '7', '8', '9'], 
-      dtype='|S1')</prefix><PointProbability>array([None, None, None, None, None, None, None, None, None], dtype=object)</PointProbability><SampledVarsPb>array([{u'x2': 0.003312849431774492, u'x1': 0.003312849431774492},
-       {u'x2': 0.003312849431774492, u'x1': 0.003312849431774492},
-       {u'x2': 0.003312849431774492, u'x1': 0.003312849431774492},
-       {u'x2': 0.003312849431774492, u'x1': 0.003312849431774492},
-       {u'x2': 0.003312849431774492, u'x1': 0.003312849431774492},
-       {u'x2': 0.003312849431774492, u'x1': 0.003312849431774492},
-       {u'x2': 0.003312849431774492, u'x1': 0.003312849431774492},
-       {u'x2': 0.003312849431774492, u'x1': 0.003312849431774492},
-       {u'x2': 0.003312849431774492, u'x1': 0.003312849431774492}], dtype=object)</SampledVarsPb><PointsProbability>array([  1.34754058e-01,   4.45118619e-02,   1.21610934e-03,
-         4.45118619e-02,   1.47031256e-02,   4.01704348e-04,
-         1.21610934e-03,   4.01704348e-04,   1.09749714e-05])</PointsProbability></metadata></data>
+<DataObjectMetadata name="Gtests">
+  <DataSet type="Static">
+    <general>
+      <inputs>x1,x2</inputs>
+      <outputs>ans</outputs>
+      <sampleTag>RAVEN_sample_ID</sampleTag>
+    </general>
+  </DataSet>
+  
+</DataObjectMetadata>

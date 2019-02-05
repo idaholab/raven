@@ -26,7 +26,7 @@
       </revision>
       <revision author="alfoa" date="2018-09-11"> Added an additional IOStep to check that the limit surface DataObject can be dumped into a Database of type HDF5</revision>
     </revisions>
-    <requirements>R-RA-1</requirements>
+    <requirements>R-RA-1 R-RA-7</requirements>
   </TestInfo>
   <RunInfo>
     <WorkingDir>limitSurface</WorkingDir>

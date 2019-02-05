@@ -1,29 +1,10 @@
-<data name="Udump" type="Pointset"><input>x2,x1</input><output>ans</output><inputFilename>Udump.csv</inputFilename><metadata><SamplerType>array([u'Sparse Grid Collocation', u'Sparse Grid Collocation',
-       u'Sparse Grid Collocation', u'Sparse Grid Collocation',
-       u'Sparse Grid Collocation', u'Sparse Grid Collocation',
-       u'Sparse Grid Collocation', u'Sparse Grid Collocation',
-       u'Sparse Grid Collocation'], 
-      dtype='&lt;U23')</SamplerType><crowDist>array([ {u'x2': '{"xMin": 1.0, "type": "UniformDistribution", "xMax": 5.0}', u'x1': '{"xMin": 1.0, "type": "UniformDistribution", "xMax": 5.0}'},
-       {u'x2': '{"xMin": 1.0, "type": "UniformDistribution", "xMax": 5.0}', u'x1': '{"xMin": 1.0, "type": "UniformDistribution", "xMax": 5.0}'},
-       {u'x2': '{"xMin": 1.0, "type": "UniformDistribution", "xMax": 5.0}', u'x1': '{"xMin": 1.0, "type": "UniformDistribution", "xMax": 5.0}'},
-       {u'x2': '{"xMin": 1.0, "type": "UniformDistribution", "xMax": 5.0}', u'x1': '{"xMin": 1.0, "type": "UniformDistribution", "xMax": 5.0}'},
-       {u'x2': '{"xMin": 1.0, "type": "UniformDistribution", "xMax": 5.0}', u'x1': '{"xMin": 1.0, "type": "UniformDistribution", "xMax": 5.0}'},
-       {u'x2': '{"xMin": 1.0, "type": "UniformDistribution", "xMax": 5.0}', u'x1': '{"xMin": 1.0, "type": "UniformDistribution", "xMax": 5.0}'},
-       {u'x2': '{"xMin": 1.0, "type": "UniformDistribution", "xMax": 5.0}', u'x1': '{"xMin": 1.0, "type": "UniformDistribution", "xMax": 5.0}'},
-       {u'x2': '{"xMin": 1.0, "type": "UniformDistribution", "xMax": 5.0}', u'x1': '{"xMin": 1.0, "type": "UniformDistribution", "xMax": 5.0}'},
-       {u'x2': '{"xMin": 1.0, "type": "UniformDistribution", "xMax": 5.0}', u'x1': '{"xMin": 1.0, "type": "UniformDistribution", "xMax": 5.0}'}], dtype=object)</crowDist><SampledVars>array([{u'x2': 4.5491933384829659, u'x1': 4.5491933384829659},
-       {u'x2': 4.5491933384829659, u'x1': 4.5491933384829659},
-       {u'x2': 4.5491933384829659, u'x1': 4.5491933384829659},
-       {u'x2': 4.5491933384829659, u'x1': 4.5491933384829659},
-       {u'x2': 4.5491933384829659, u'x1': 4.5491933384829659},
-       {u'x2': 4.5491933384829659, u'x1': 4.5491933384829659},
-       {u'x2': 4.5491933384829659, u'x1': 4.5491933384829659},
-       {u'x2': 4.5491933384829659, u'x1': 4.5491933384829659},
-       {u'x2': 4.5491933384829659, u'x1': 4.5491933384829659}], dtype=object)</SampledVars><ProbabilityWeight>array([ 0.30864198,  0.49382716,  0.30864198,  0.49382716,  0.79012346,
-        0.49382716,  0.30864198,  0.49382716,  0.30864198])</ProbabilityWeight><prefix>array(['1', '2', '3', '4', '5', '6', '7', '8', '9'], 
-      dtype='|S1')</prefix><PointProbability>array([None, None, None, None, None, None, None, None, None], dtype=object)</PointProbability><SampledVarsPb>array([{u'x2': 0.25, u'x1': 0.25}, {u'x2': 0.25, u'x1': 0.25},
-       {u'x2': 0.25, u'x1': 0.25}, {u'x2': 0.25, u'x1': 0.25},
-       {u'x2': 0.25, u'x1': 0.25}, {u'x2': 0.25, u'x1': 0.25},
-       {u'x2': 0.25, u'x1': 0.25}, {u'x2': 0.25, u'x1': 0.25},
-       {u'x2': 0.25, u'x1': 0.25}], dtype=object)</SampledVarsPb><PointsProbability>array([ 0.0625,  0.0625,  0.0625,  0.0625,  0.0625,  0.0625,  0.0625,
-        0.0625,  0.0625])</PointsProbability></metadata></data>
+<DataObjectMetadata name="Utests">
+  <DataSet type="Static">
+    <general>
+      <inputs>x1,x2</inputs>
+      <outputs>ans</outputs>
+      <sampleTag>RAVEN_sample_ID</sampleTag>
+    </general>
+  </DataSet>
+  
+</DataObjectMetadata>

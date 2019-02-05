@@ -123,16 +123,18 @@ class PostProcessor(Model):
     """
       Overrides the base class method to assure child postprocessor is also polled for its keys.
       @ In, None
-      @ Out, meta, set(str), expected keys (empty if none)
+      @ Out, meta, tuple, (set(str),dict), expected keys (empty if none) and the indexes related to expected keys
     """
     # get keys as per base class
-    keys = Model.provideExpectedMetaKeys(self)
+    metaKeys,metaParams = Model.provideExpectedMetaKeys(self)
     # add postprocessor keys
     try:
-      keys = keys.union(self.interface.provideExpectedMetaKeys())
+      keys, params = self.interface.provideExpectedMetaKeys()
+      metaKeys = metaKeys.union(keys)
+      metaParams.update(params)
     except AttributeError:
       pass # either "interface" has no method for returning meta keys, or "interface" is not established yet.
-    return keys
+    return metaKeys, metaParams
 
   def whatDoINeed(self):
     """
@@ -187,7 +189,7 @@ class PostProcessor(Model):
       @ In, inputs, list, it is a list containing whatever is passed with an input role in the step
       @ In, initDict, dict, optional, dictionary of all objects available in the step is using this model
     """
-    self.workingDir               = os.path.join(runInfo['WorkingDir'],runInfo['stepName']) #generate current working dir
+    self.workingDir = os.path.join(runInfo['WorkingDir'],runInfo['stepName']) #generate current working dir
     self.interface.initialize(runInfo, inputs, initDict)
     self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(PostProcessors),True)) - set(self.mods))
 

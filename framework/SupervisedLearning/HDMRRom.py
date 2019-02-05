@@ -83,34 +83,35 @@ class HDMRRom(GaussPolynomialRom):
       if key=='SobolOrder':
         self.sobolOrder = int(val)
 
-  def _localPrintXML(self,outFile,pivotVal,options={}):
+  def writeXML(self, writeTo, requests = None, skip = None):
     """
       Adds requested entries to XML node.
-      @ In, outFile, Files.File, either StaticXMLOutput or DynamicXMLOutput file
-      @ In, pivotVal, float, value of pivot parameters to use in printing if dynamic
-      @ In, options, dict, optional, dict of string-based options to use, including filename, things to print, etc
-        May include:
-        'what': comma-separated string list, the qualities to print out
-        'pivotVal': float value of dynamic pivotParam value
+      @ In, writeTo, xmlUtils.StaticXmlElement, StaticXmlElement to write to
+      @ In, requests, list, optional, list of requests for whom to write
+      @ In, skip, list, optional, list of targets to skip
       @ Out, None
     """
+
     #inherit from GaussPolynomialRom
     if not self.amITrained:
       self.raiseAnError(RuntimeError,'ROM is not yet trained!')
     self.mean=None
     canDo = ['mean','expectedValue','variance','samples','partialVariance','sobolIndices','sobolTotalIndices']
-    if 'what' in options.keys():
-      requests = list(o.strip() for o in options['what'].split(','))
-      if 'all' in requests:
-        requests = canDo
-      #protect against things SCgPC can do that HDMR can't
-      if 'polyCoeffs' in requests:
-        self.raiseAWarning('HDMRRom cannot currently print polynomial coefficients.  Skipping...')
-        requests.remove('polyCoeffs')
-      options['what'] = ','.join(requests)
+    ## TODO allow picking variables to include
+    #if 'what' in options.keys():
+    #  requests = list(o.strip() for o in options['what'].split(','))
+    #  if 'all' in requests:
+    if requests is None:
+      requests = canDo
+    ## TODO allow picking variables to include
+    #  #protect against things SCgPC can do that HDMR can't
+    #  if 'polyCoeffs' in requests:
+    #    self.raiseAWarning('HDMRRom cannot currently print polynomial coefficients.  Skipping...')
+    #    requests.remove('polyCoeffs')
+    #  options['what'] = ','.join(requests)
     else:
       self.raiseAWarning('No "what" options for XML printing are recognized!  Skipping...')
-    GaussPolynomialRom._localPrintXML(self,outFile,pivotVal,options)
+    GaussPolynomialRom.writeXML(self, writeTo, requests=requests, skip=skip)
 
   def initialize(self,idict):
     """

@@ -19,6 +19,7 @@
       <revision author="talbpaul" date="2017-07-11">changed model for simpler analytic checking</revision>
       <revision author="talbpaul" date="2017-07-18">added additional model output for testing mechanics</revision>
       <revision author="talbpaul" date="2018-01-04">siwtched from snapshot to writeSteps final</revision>
+      <revision author='talbpaul' date='2018-10-23'>limited outputs checked to just the solution</revision>
     </revisions>
   </TestInfo>
 
@@ -46,13 +47,12 @@
     <SPSA name="opter">
       <initialization>
         <limit>2000</limit>
-        <initialSeed>42</initialSeed>
+        <initialSeed>2</initialSeed>
         <type>max</type>
         <writeSteps>final</writeSteps>
       </initialization>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
       <convergence>
-        <gradientThreshold>1e-3</gradientThreshold>
         <gainGrowthFactor>1.5</gainGrowthFactor>
         <gainShrinkFactor>1.25</gainShrinkFactor>
       </convergence>
@@ -63,7 +63,7 @@
       </variable>
       <objectVar>ans</objectVar>
       <parameter>
-        <numGradAvgIterations>26</numGradAvgIterations>
+        <numGradAvgIterations>50</numGradAvgIterations>
       </parameter>
     </SPSA>
   </Optimizers>
@@ -85,8 +85,7 @@
       <Output>ans,reg</Output>
     </PointSet>
     <PointSet name="opt_export">
-      <Input>trajID</Input>
-      <Output>x,ans,reg,varsUpdate</Output>
+      <Output>ans,reg</Output>
     </PointSet>
   </DataObjects>
 

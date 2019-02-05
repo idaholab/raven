@@ -198,50 +198,53 @@ class DynamicModeDecomposition(supervisedLearning):
 
     return returnEvaluation
 
-  def _localPrintXMLSetup(self,outFile,options={}):
+  def writeXMLPreamble(self, writeTo, targets = None):
     """
       Specific local method for printing anything desired to xml file at the begin of the print.
-      @ In, outFile, Files.File, either StaticXMLOutput or DynamicXMLOutput file
-      @ In, options, dict, optional, dict of string-based options to use, including filename, things to print, etc
+      @ In, writeTo, xmlUtils.StaticXmlElement instance, element to write to
+      @ In, targets, list, list of targets for whom information should be written.
       @ Out, None
     """
     # add description
+    supervisedLearning.writeXMLPreamble(self, writeTo, targets)
     description  = ' This XML file contains the main information of the DMD ROM.'
     description += ' If "modes" (dynamic modes), "eigs" (eigenvalues), "amplitudes" (mode amplitudes)'
     description += ' and "dmdTimeScale" (internal dmd time scale) are dumped, the method'
     description += ' is explained in P.J. Schmid, Dynamic mode decomposition'
     description += ' of numerical and experimental data, Journal of Fluid Mechanics 656.1 (2010), 5-28'
-    outFile.addScalar('ROM',"description",description)
+    writeTo.addScalar('ROM',"description",description)
 
-  def _localPrintXML(self,outFile,pivotVal,options={}):
+  def writeXML(self, writeTo, targets = None, skip = None):
     """
       Adds requested entries to XML node.
-      @ In, outFile, Files.File, either StaticXMLOutput or DynamicXMLOutput file
-      @ In, pivotVal, float, value of pivot parameters to use in printing if dynamic
-      @ In, options, dict, optional, dict of string-based options to use, including filename, things to print, etc
-        May include:
-        'what': comma-separated string list, the qualities to print out
-        'pivotVal': float value of dynamic pivotParam value
+      @ In, writeTo, xmlTuils.StaticXmlElement, element to write to
+      @ In, targets, list, optional, list of targets for whom information should be written
+      @ In, skip, list, optional, list of targets to skip
       @ Out, None
     """
     if not self.amITrained:
       self.raiseAnError(RuntimeError,'ROM is not yet trained!')
+    if skip is None:
+      skip = []
 
     # check what
     what = ['exactModes','optimized','dmdType','features','timeScale','eigs','amplitudes','modes','dmdTimeScale']
     if self.dmdParams['rankTLSQ'] is not None:
       what.append('rankTLSQ')
     what.append('energyRankSVD' if self.dmdParams['energyRankSVD'] is not None else 'rankSVD')
-    if 'what' in options:
-      readWhat = options['what'].split(",")
-      if readWhat[0].strip().lower() == 'all':
-        readWhat = what
-      if not set(readWhat) <= set(what):
-        self.raiseAnError(IOError, "The following variables specified in <what> node are not recognized: "+ ",".join(np.setdiff1d(readWhat, what).tolist()) )
-      else:
-        what = readWhat
-    # Target
-    target = options.get('Target',self.target[-1])
+    if targets is None:
+      readWhat = what
+    else:
+      readWhat = targets
+    for s in skip:
+      if s in readWhat:
+        readWhat.remove(s)
+    if not set(readWhat) <= set(what):
+      self.raiseAnError(IOError, "The following variables specified in <what> node are not recognized: "+ ",".join(np.setdiff1d(readWhat, what).tolist()) )
+    else:
+      what = readWhat
+
+    target = self.target[-1]
     toAdd = ['exactModes','optimized','dmdType']
     if self.dmdParams['rankTLSQ'] is not None:
       toAdd.append('rankTLSQ')
@@ -250,33 +253,34 @@ class DynamicModeDecomposition(supervisedLearning):
 
     for add in toAdd:
       if add in what :
-        outFile.addScalar(target,add,self.dmdParams[add])
+        writeTo.addScalar(target,add,self.dmdParams[add])
+    targNode = writeTo._findTarget(writeTo.getRoot(), target)
     if "features" in what:
-      outFile.addScalar(target,"features",' '.join(self.features))
+      writeTo.addScalar(target,"features",' '.join(self.features))
     if "timeScale" in what:
-      outFile.addScalar(target,"timeScale",' '.join(['%.6e' % elm for elm in self.pivotValues.ravel()]))
+      writeTo.addScalar(target,"timeScale",' '.join(['%.6e' % elm for elm in self.pivotValues.ravel()]))
     if "dmdTimeScale" in what:
-      outFile.addScalar(target,"dmdTimeScale",' '.join(['%.6e' % elm for elm in self.__getTimeScale()]))
+      writeTo.addScalar(target,"dmdTimeScale",' '.join(['%.6e' % elm for elm in self.__getTimeScale()]))
     if "eigs" in what:
       eigsReal = " ".join(['%.6e' % self._eigs[target][indx].real for indx in
                        range(len(self._eigs[target]))])
-      outFile.addScalar("eigs","real", eigsReal,root=target)
+      writeTo.addScalar("eigs","real", eigsReal, root=targNode)
       eigsImag = " ".join(['%.6e' % self._eigs[target][indx].imag for indx in
                                range(len(self._eigs[target]))])
-      outFile.addScalar("eigs","imaginary", eigsImag,root=target)
+      writeTo.addScalar("eigs","imaginary", eigsImag, root=targNode)
     if "amplitudes" in what:
       ampsReal = " ".join(['%.6e' % self._amplitudes[target][indx].real for indx in
                        range(len(self._amplitudes[target]))])
-      outFile.addScalar("amplitudes","real", ampsReal,root=target)
+      writeTo.addScalar("amplitudes","real", ampsReal, root=targNode)
       ampsImag = " ".join(['%.6e' % self._amplitudes[target][indx].imag for indx in
                                range(len(self._amplitudes[target]))])
-      outFile.addScalar("amplitudes","imaginary", ampsImag,root=target)
+      writeTo.addScalar("amplitudes","imaginary", ampsImag, root=targNode)
     if "modes" in what:
       for smp in range(len(self._modes[target])):
         valDict = {'real': ' '.join([ '%.6e' % elm for elm in self._modes[target][smp,:].real]),
                    'imaginary':' '.join([ '%.6e' % elm for elm in self._modes[target][smp,:].imag])}
         attributeDict = {self.features[index]:'%.6e' % self.featureVals[smp,index] for index in range(len(self.features))}
-        outFile.addVector("modes","realization",valDict,root=target, attrs=attributeDict)
+        writeTo.addVector("modes","realization",valDict, root=targNode, attrs=attributeDict)
 
   def __confidenceLocal__(self,featureVals):
     """

@@ -4,13 +4,14 @@
     <name>framework/Optimizers.StochasticFiniteDifference</name>
     <author>alfoa</author>
     <created>2017-09-11</created>
-    <classesTested>Optimizer.FiniteDifferenceGradientOptimizer</classesTested>
+    <classesTested>Optimizer.FiniteDifference</classesTested>
     <description>
       This test runs the optimization (Finite difference forward) on a inverse parabola with signal-to-noise ratio close to 1.0 using
       multiple gradient evaluations to denoise the response space.  It tests stochastic optimization mechanics.
     </description>
     <revisions>
       <revision author="talbpaul" date="2018-01-04">switched from snapshot to writeSteps final</revision>
+      <revision author='talbpaul' date='2018-10-23'>limited outputs checked to just the solution</revision>
     </revisions>
     <analytic>
       This tests uses the inverse parabola as a basis for the noisy optimization. The inverse parabola is documented
@@ -39,7 +40,7 @@
   </Steps>
 
   <Optimizers>
-    <FiniteDifferenceGradientOptimizer name="opter">
+    <FiniteDifference name="opter">
       <initialization>
         <limit>2000</limit>
         <initialSeed>42</initialSeed>
@@ -48,9 +49,8 @@
       </initialization>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
       <convergence>
-        <gradientThreshold>1e-2</gradientThreshold>
-        <gainGrowthFactor>1.</gainGrowthFactor>
-        <gainShrinkFactor>1.25</gainShrinkFactor>
+        <gainGrowthFactor>2</gainGrowthFactor>
+        <gainShrinkFactor>1.5</gainShrinkFactor>
       </convergence>
       <variable name="x">
         <upperBound>1</upperBound>
@@ -59,9 +59,9 @@
       </variable>
       <objectVar>ans</objectVar>
       <parameter>
-        <numGradAvgIterations>26</numGradAvgIterations>
+        <numGradAvgIterations>50</numGradAvgIterations>
       </parameter>
-    </FiniteDifferenceGradientOptimizer>
+    </FiniteDifference>
   </Optimizers>
 
   <Models>
@@ -81,8 +81,7 @@
       <Output>ans,reg</Output>
     </PointSet>
     <PointSet name="opt_export">
-      <Input>trajID</Input>
-      <Output>x,ans,reg,varsUpdate</Output>
+      <Output>ans,reg</Output>
     </PointSet>
   </DataObjects>
 

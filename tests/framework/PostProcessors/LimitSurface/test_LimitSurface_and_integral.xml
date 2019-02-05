@@ -20,7 +20,11 @@
       <revision author="alfoa" date="2017-12-14">
           Moved LimitSurface Postprocessor tests in a specific directory (tests/framework/PostProcessors/LimitSurface) and updated for new DataObject structure
       </revision>
+      <revision author="alfoa" date="2018-09-20">
+          This test is now a requirement test.
+      </revision>
     </revisions>
+    <requirements>R-RA-7</requirements>
   </TestInfo>
   <RunInfo>
     <WorkingDir>limitSurface_integral</WorkingDir>

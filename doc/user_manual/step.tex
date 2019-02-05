@@ -103,8 +103,8 @@ this \textbf{Step}. \nb This name is used to reference this specific entity
 in the \xmlNode{RunInfo} block, under the \xmlNode{Sequence} node. If the name
 of this \textbf{Step} is not listed in the  \xmlNode{Sequence} block, its action is not
 going to be performed.
-\item \xmlAttr{repeatFailureRuns}, \xmlDesc{optional integer attribute}, this optional 
-attribute could be used to set a certain number of repetitions that need to be performed 
+\item \xmlAttr{repeatFailureRuns}, \xmlDesc{optional integer attribute}, this optional
+attribute could be used to set a certain number of repetitions that need to be performed
 when a realization (i.e. run) fails (e.g. \xmlAttr{repeatFailureRuns} = ``3'', 3 tries).
 \item \xmlAttr{pauseAtEnd}, \xmlDesc{optional boolean/string attribute (case insensitive)}, if True
 (True values = True, yes, y, t), the code will pause at the end of
@@ -218,13 +218,13 @@ this Step.
 in the \xmlNode{RunInfo} block, under the \xmlNode{Sequence} node. If the name
 of this \textbf{Step} is not listed in the  \xmlNode{Sequence} block, its action is not
 going to be performed.
-\item \xmlAttr{re-seeding}, \xmlDesc{optional integer/string attribute}, this optional 
-attribute could be used to control the seeding of the random number generator (RNG). 
+\item \xmlAttr{re-seeding}, \xmlDesc{optional integer/string attribute}, this optional
+attribute could be used to control the seeding of the random number generator (RNG).
 If inputted, the RNG can be reseeded. The value of this attribute
-can be: either 1) an integer value with the seed to be used (e.g. \xmlAttr{re-seeding} = 
+can be: either 1) an integer value with the seed to be used (e.g. \xmlAttr{re-seeding} =
 ``20021986''), or 2) string value named ``continue'' where the RNG is not re-initialized
-\item \xmlAttr{repeatFailureRuns}, \xmlDesc{optional integer attribute}, this optional 
-attribute could be used to set a certain number of repetitions that need to be performed 
+\item \xmlAttr{repeatFailureRuns}, \xmlDesc{optional integer attribute}, this optional
+attribute could be used to set a certain number of repetitions that need to be performed
 when a realization (i.e. run) fails (e.g. \xmlAttr{repeatFailureRuns} = ``3'', 3 tries).
 
 \item \xmlAttr{pauseAtEnd}, \xmlDesc{optional boolean/string attribute}, if True
@@ -497,10 +497,10 @@ used for the first \xmlNode{Output}, etc.).
 \nb This 1-to-1 mapping is not present when \xmlNode{Output} nodes are of
 \xmlAttr{class}\\\xmlString{OutStreams}, since  \textbf{OutStreams}
 objects are already linked to a Data object in the relative RAVEN input block.
-
+%
 In this case, the user needs to provide all of the
 ``DataObjects'' objects linked to the OutStreams objects (see the example
-below) in the \xmlNode{Input} nodes:
+below) in the \xmlNode{Input} nodes.
 \begin{lstlisting}[style=XML,morekeywords={class}]
 <Steps>
   ...
@@ -516,39 +516,40 @@ below) in the \xmlNode{Input} nodes:
     <Output class='OutStreams' type='Print'>print_tp
     </Output>
   </IOStep>
+  ...
   <IOStep name='PushDataObjectsIntoDatabase'>
     <Input  class='DataObjects'     type='HistorySet'>aHistorySet</Input>
     <Input  class='DataObjects'     type='PointSet'>aTPS</Input>
     <Output class='Databases' type='HDF5'>aDatabase</Output>
     <Output class='Databases' type='HDF5'>aDatabase</Output>
   </IOStep>
-  <IOStep name='ConstructDataObjectsFromCSV'>
-    <Input class='Files' type=''>aCSVFile</Input>
-    <Output class='DataObjects' type='PointSet'>aPS</Output>
-  </IOStep>
-  <IOStep name='ConstructDataObjectsFromDatabase'>
-    <Input class='Databases' type='HDF5'>aDatabase</Input>
-    <Input class='Databases' type='HDF5'>aDatabase</Input>
-    <Output class='DataObjects'    type='HistorySet'>aHistorySet</Output>
-    <Output class='DataObjects'    type='PointSet'>aTPS</Output>
-  </IOStep>
-  <IOStep name='PushROMIntoFile'>
-    <Input class='Models'  type='ROM'>aROM</Input>
-    <Output class='Files'  type=''>aFile</Output>
-  </IOStep>
-  <IOStep name='ImportROMFromFile'>
-    <Input class='Files'  type=''>zFile</Input>
-    <Output class='Models'  type='ROM'>zROM</Output>
-  </IOStep>
   ...
 </Steps>
 \end{lstlisting}
 %
-As already mentioned, the \xmlNode{IOStep} can be used to export (serialize) a ROM 
+
+A summary of the objects that can go from/to other objects is shown in Table \ref{tab:IOSTEP}:
+\begin{table}[h!]
+  \centering
+  \begin{tabular}{l|l|l}
+    \xmlNode{Input} & \xmlNode{Output} & Resulting behavior  \\ \hline
+    DataObject & HDF5       & Store to On-Disk Database      \\
+               & OutStream  & Print or Plot Data             \\ \hline
+    HDF5       & DataObject & Load from On-Disk Database     \\ \hline
+    File       & DataObject & Load from On-Disk CSV          \\
+               & ROM        & Load On-Disk Serialized ROM    \\ \hline
+    ROM        & DataObject & Print ROM Metadata to CSV, XML \\
+               & File       & Serialize ROM to Disk
+  \end{tabular}
+  \caption{Object options for \xmlNode{IOStep} operations}
+  \label{tab:IOSTEP}
+\end{table}
+
+As already mentioned, the \xmlNode{IOStep} can be used to export (serialize) a ROM
 in a binary file. To use the exported ROM in an external Python (or
 Python-compatible) code, the RAVEN framework must be present in end-user machine.
 The main reason for this is that the \textit{Pickle} module uses the class definitions to template
-the reconstruction of the serialized object in memory. 
+the reconstruction of the serialized object in memory.
 \\ In order to faciliate the usage of the serialized ROM in an external Python code, the RAVEN
 team provided a utility class contained in :
 \begin{lstlisting}[language=bash]
