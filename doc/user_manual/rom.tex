@@ -3366,8 +3366,8 @@ example below, the subnodes that can be included in the main XML node \xmlNode{R
 </Simulation>
 \end{lstlisting}
 
-As shown in above example, in addition to the common subnodes \xmlNode{Target} and \xmlNode{Features}, the \xmlNode{ROM} can be initialized with
-the following children:
+As shown in above example, in addition to the common subnodes \xmlNode{Target} and \xmlNode{Features}, the \xmlNode{ROM} of DNNs
+can be initialized with the following children:
 \begin{itemize}
   \item \xmlNode{loss}, \xmlDesc{string or comma separated string, optional field}, if the model has multiple outputs, you can use a different
     loss on each output by passing a list of losses. The loss value that will be minimized by the model will then
@@ -3498,6 +3498,7 @@ the following children:
 \end{itemize}
 
 \nb The descriptions regarding the \xmlNode{WhateverLayer} node will be introduced in following subsections.
+Basically, different classifiers will require different layers.
 In addition, most core layers will accept the \xmlNode{activation} subnode, and the optional input for this
 subnode could be:
 \begin{itemize}
@@ -3505,14 +3506,15 @@ subnode could be:
   \item \textit{tanh}, the hyperbolic tan function, returns $f(x) = tanh(x)$.
   \item \textit{elu}, exponential linear units try to make the mean activations closer to zero which speeds
     up learning. $f(x) = x$ if $x \ge 0$, otherwise $(exp(x) - 1.)$.
-  \item \textit{selu}, scaled exponential linear unit.
+  \item \textit{selu}, scaled exponential linear unit, i.e. $scale * elu(x, alpha)$, where $scale, alpha$
+    are pre-defined constants.
   \item \textit{softplus}, a smooth approximation to the rectifier linear unit function, return
     $f(x) = log(1. + exp(x))$.
   \item \textit{softsign}, return $f(x) = \frac{x}{1. + |x|}$.
   \item \textit{sigmoid},return $f(x) = \frac{1.}{1. + exp(-x)}$.
-  \item \textit{hard\_sigmoid}
-  \item \textit{linear}
-  \item \textit{softmax}, softmax activation function.
+  \item \textit{hard\_sigmoid}, hard sigmoid activation function.
+  \item \textit{linear}, i.e. identity.
+  \item \textit{softmax}, softmax activation function, return $f(x) = \frac{exp(x_i)}{\sum_i{exp(x_i)}}$
 \end{itemize}
 
 %%%%% ROM Model - KerasMLPClassifier  %%%%%%%
@@ -3531,30 +3533,42 @@ However, many hidden layers, i.e. deep learning, can be used to model more compl
 relationships. The extra layers enable composition of features from lower layers, potentially
 modeling complex data with fewer units than a similarly performing shallow network.
 
+\zNormalizationPerformed{KerasMLPClassifier}
+
 In order to use this ROM, the \xmlNode{ROM} attribute \xmlAttr{subType} needs to
 be \xmlString{KerasMLPClassifier} (see the example below). This model can be initialized with
-the following child:
+the following layers:
 
 \begin{itemize}
-  \item \xmlNode{hidden\_layer\_sizes}, \xmlDesc{comma separated integers, required field}, the sizes for each
-    hidden layer, the ith element represents the number of neurons in the ith hidden layer.
-  \item \xmlNode{hidden\_layer\_activations}, \xmlDesc{comma separated strings, optional field}, 
-    {`relu', `tanh', `elu', `selu', `softplus', `softsign', `sigmoid', `hard\_sigmoid', `linear', `softmax'}.
-  \default{`relu'}
-  \item \xmlNode{output\_layer\_activation}, \xmlDesc{string, optional field}.
-    i.e. {`relu', `tanh', `elu', `selu', `softplus', `softsign', `sigmoid', `hard\_sigmoid', `linear', `softmax'}.
-  \default{softmax}
-  \item \xmlNode{hidden\_layer\_dropout}, \xmlDesc{integer or comma separated integers, optional field}, applies dropout to the input.
-    Dropout consists in randomly setting a fraction rate of input units to 0 at each update during training time,
+  \item \xmlNode{Dense}, \xmlDesc{required field}, regular densely-connected neural network layer.
+    This node require the following attribute:
+    \begin{itemize}
+      \item \xmlAttr{name}, \xmlDesc{string, required field}, name of this layer. The value will be
+        used in \xmlNode{layer\_layout} to construct the fully connected neural network.
+    \end{itemize}
+    In addition, this node also accepts the following subnodes
+    \begin{itemize}
+      \item \xmlNode{activation}, \xmlDesc{string, optional field}, including
+        {`relu', `tanh', `elu', `selu', `softplus', `softsign', `sigmoid', `hard\_sigmoid', `linear', `softmax'}.
+        \default{linear}
+      \item \xmlNode{dim\_out}, \xmlDesc{positive integer, required except if this layer is used as the last output layer},
+        dimensionality of the output space of this layer
+    \end{itemize}
+  \item \xmlNode{Dropout}, \xmlDesc{optional field}, applies Dropout to the input. Dropout consists in
+    randomly setting a fraction \xmlNode{rate} of input units to 0 at each update during training time,
     which helps prevent overfitting.
-  \default{0}
-  \item \xmlNode{hidden\_layer\_dropout}, \xmlDesc{integer or comma separated integers, optional field}, applies dropout to the input.
-    Dropout consists in randomly setting a fraction rate of input units to 0 at each update during training time,
-    which helps prevent overfitting.
-  \default{0}
-\end{itemize}
+    This node require the following attribute:
+    \begin{itemize}
+      \item \xmlAttr{name}, \xmlDesc{string, required field}, name of this layer. The value will be
+        used in \xmlNode{layer\_layout} to construct the fully connected neural network.
+    \end{itemize}
+    In addition, this node also accepts the following subnode
+    \begin{itemize}
+      \item \xmlNode{rate}, \xmlDesc{float between 0 and 1, optional field}, fraction of the input units to drop.
+        \default{0}
+    \end{itemize}
 
-\zNormalizationPerformed{KerasMLPClassifier}
+\end{itemize}
 
 \textbf{Example:}
 \begin{lstlisting}[style=XML,morekeywords={name,subType}]
@@ -3577,6 +3591,24 @@ the following child:
         <decay>0.0</decay>
         <lr>0.001</lr>
       </optimizerSetting>
+      <Dense name="layer1">
+          <activation>relu</activation>
+          <dim_out>15</dim_out>
+      </Dense>
+      <Dropout name="dropout1">
+          <rate>0.2</rate>
+      </Dropout>
+      <Dense name="layer2">
+          <activation>tanh</activation>
+          <dim_out>8</dim_out>
+      </Dense>
+      <Dropout name="dropout2">
+          <rate>0.2</rate>
+      </Dropout>
+      <Dense name="outLayer">
+          <activation>sigmoid</activation>
+      </Dense>
+      <layer_layout>layer1, dropout1, layer2, dropout2, outLayer</layer_layout>
     </ROM>
     ...
   </Models>
