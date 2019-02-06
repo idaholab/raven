@@ -3567,7 +3567,6 @@ the following layers:
       \item \xmlNode{rate}, \xmlDesc{float between 0 and 1, optional field}, fraction of the input units to drop.
         \default{0}
     \end{itemize}
-
 \end{itemize}
 
 \textbf{Example:}
@@ -3615,3 +3614,326 @@ the following layers:
   ...
 </Simulation>
 \end{lstlisting}
+
+%%%%% ROM Model - KerasConvNetClassifier  %%%%%%%
+\paragraph{KerasConvNetClassifier}
+\label{KerasClassifier}
+
+Convolutional Neural Network (CNN) is a deep learning algorithm which can take in an input image, assign
+importance to various objects in the image and be able to differentiate one from the other. The
+architecture of a CNN is analogous to that of the connectivity pattern of Neurons in the Human Brain
+and was inspired by the organization of the Visual Cortex. Individual neurons respond to stimuli only
+in a restricted region of the visual field known as the Receptive Field. A collection of such fields
+overlap to cover the entire visual area. CNN is able to successfully capture the spatial and temporal
+dependencies in an image through the applicaiton of relevant filters. The architecture performs
+a better fitting to the image dataset due to the reduction in the number of parameters involved
+and reusability of weights. In other words, the network can be trained to understand the sophistication
+of the image better.
+
+\zNormalizationPerformed{KerasConvNetClassifier}
+
+In order to use this ROM, the \xmlNode{ROM} attribute \xmlAttr{subType} needs to
+be \xmlString{KerasConvNetClassifier} (see the example below). This model can be initialized with
+the following layers:
+
+\begin{itemize}
+  \item \xmlNode{Dense}, \xmlDesc{required field}, regular densely-connected neural network layer.
+    This node require the following attribute:
+    \begin{itemize}
+      \item \xmlAttr{name}, \xmlDesc{string, required field}, name of this layer. The value will be
+        used in \xmlNode{layer\_layout} to construct the fully connected neural network.
+    \end{itemize}
+    In addition, this node also accepts the following subnodes
+    \begin{itemize}
+      \item \xmlNode{activation}, \xmlDesc{string, optional field}, including
+        {`relu', `tanh', `elu', `selu', `softplus', `softsign', `sigmoid', `hard\_sigmoid', `linear', `softmax'}.
+        \default{linear}
+      \item \xmlNode{dim\_out}, \xmlDesc{positive integer, required except if this layer is used as the last output layer},
+        dimensionality of the output space of this layer
+    \end{itemize}
+
+  \item \xmlNode{Dropout}, \xmlDesc{optional field}, applies Dropout to the input. Dropout consists in
+    randomly setting a fraction \xmlNode{rate} of input units to 0 at each update during training time,
+    which helps prevent overfitting.
+    This node require the following attribute:
+    \begin{itemize}
+      \item \xmlAttr{name}, \xmlDesc{string, required field}, name of this layer. The value will be
+        used in \xmlNode{layer\_layout} to construct the fully connected neural network.
+    \end{itemize}
+    In addition, this node also accepts the following subnode
+    \begin{itemize}
+      \item \xmlNode{rate}, \xmlDesc{float between 0 and 1, optional field}, fraction of the input units to drop.
+        \default{0}
+    \end{itemize}
+  
+  \item \xmlNode{}, \xmlDesc{optional field}, 
+    This node require the following attribute:
+    \begin{itemize}
+      \item \xmlAttr{name}, \xmlDesc{string, required field}, name of this layer. The value will be
+        used in \xmlNode{layer\_layout} to construct the fully connected neural network.
+    \end{itemize}
+    In addition, this node also accepts the following subnodes
+    \begin{itemize}
+      \item \xmlNode{}, \xmlDesc{}
+        \default{}
+    \end{itemize}
+  
+  \item \xmlNode{}, \xmlDesc{optional field}, 
+    This node require the following attribute:
+    \begin{itemize}
+      \item \xmlAttr{name}, \xmlDesc{string, required field}, name of this layer. The value will be
+        used in \xmlNode{layer\_layout} to construct the fully connected neural network.
+    \end{itemize}
+    In addition, this node also accepts the following subnodes
+    \begin{itemize}
+      \item \xmlNode{}, \xmlDesc{}
+        \default{}
+    \end{itemize}
+  
+  \item \xmlNode{}, \xmlDesc{optional field}, 
+    This node require the following attribute:
+    \begin{itemize}
+      \item \xmlAttr{name}, \xmlDesc{string, required field}, name of this layer. The value will be
+        used in \xmlNode{layer\_layout} to construct the fully connected neural network.
+    \end{itemize}
+    In addition, this node also accepts the following subnodes
+    \begin{itemize}
+      \item \xmlNode{}, \xmlDesc{}
+        \default{}
+    \end{itemize}
+  
+  \item \xmlNode{}, \xmlDesc{optional field}, 
+    This node require the following attribute:
+    \begin{itemize}
+      \item \xmlAttr{name}, \xmlDesc{string, required field}, name of this layer. The value will be
+        used in \xmlNode{layer\_layout} to construct the fully connected neural network.
+    \end{itemize}
+    In addition, this node also accepts the following subnodes
+    \begin{itemize}
+      \item \xmlNode{}, \xmlDesc{}
+        \default{}
+    \end{itemize}
+  
+  \item \xmlNode{}, \xmlDesc{optional field}, 
+    This node require the following attribute:
+    \begin{itemize}
+      \item \xmlAttr{name}, \xmlDesc{string, required field}, name of this layer. The value will be
+        used in \xmlNode{layer\_layout} to construct the fully connected neural network.
+    \end{itemize}
+    In addition, this node also accepts the following subnodes
+    \begin{itemize}
+      \item \xmlNode{}, \xmlDesc{}
+        \default{}
+    \end{itemize}
+  
+  \item \xmlNode{}, \xmlDesc{optional field}, 
+    This node require the following attribute:
+    \begin{itemize}
+      \item \xmlAttr{name}, \xmlDesc{string, required field}, name of this layer. The value will be
+        used in \xmlNode{layer\_layout} to construct the fully connected neural network.
+    \end{itemize}
+    In addition, this node also accepts the following subnodes
+    \begin{itemize}
+      \item \xmlNode{}, \xmlDesc{}
+        \default{}
+    \end{itemize}
+  
+  \item \xmlNode{}, \xmlDesc{optional field}, 
+    This node require the following attribute:
+    \begin{itemize}
+      \item \xmlAttr{name}, \xmlDesc{string, required field}, name of this layer. The value will be
+        used in \xmlNode{layer\_layout} to construct the fully connected neural network.
+    \end{itemize}
+    In addition, this node also accepts the following subnodes
+    \begin{itemize}
+      \item \xmlNode{}, \xmlDesc{}
+        \default{}
+    \end{itemize}
+  
+  \item \xmlNode{}, \xmlDesc{optional field}, 
+    This node require the following attribute:
+    \begin{itemize}
+      \item \xmlAttr{name}, \xmlDesc{string, required field}, name of this layer. The value will be
+        used in \xmlNode{layer\_layout} to construct the fully connected neural network.
+    \end{itemize}
+    In addition, this node also accepts the following subnodes
+    \begin{itemize}
+      \item \xmlNode{}, \xmlDesc{}
+        \default{}
+    \end{itemize}
+\end{itemize}
+
+\textbf{Example:}
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <Models>
+    ...
+    <ROM name='aUserDefinedName' subType='KerasConvNetClassifier'>
+      <Features>x1,x2</Features>
+      <Target>labels</Target>
+      <loss>mean_squared_error</loss>
+      <metrics>accuracy</metrics>
+      <batch_size>1</batch_size>
+      <epochs>2</epochs>
+      <plot_model>True</plot_model>
+      <validation_split>0.25</validation_split>
+      <num_classes>1</num_classes>
+      <optimizerSetting>
+        <beta_1>0.9</beta_1>
+        <optimizer>Adam</optimizer>
+        <beta_2>0.999</beta_2>
+        <epsilon>1e-8</epsilon>
+        <decay>0.0</decay>
+        <lr>0.001</lr>
+      </optimizerSetting>
+      <Conv1D name="firstConv1D">
+          <activation>relu</activation>
+          <strides>1</strides>
+          <kernel_size>2</kernel_size>
+          <padding>valid</padding>
+          <dim_out>32</dim_out>
+      </Conv1D>
+      <MaxPooling1D name="pooling1">
+          <strides>2</strides>
+          <pool_size>2</pool_size>
+      </MaxPooling1D>
+      <Conv1D name="SecondConv1D">
+          <activation>relu</activation>
+          <strides>1</strides>
+          <kernel_size>2</kernel_size>
+          <padding>valid</padding>
+          <dim_out>32</dim_out>
+      </Conv1D>
+      <MaxPooling1D name="pooling2">
+          <strides>2</strides>
+          <pool_size>2</pool_size>
+      </MaxPooling1D>
+      <Flatten name="flatten">
+      </Flatten>
+      <Dense name="dense1">
+          <activation>relu</activation>
+          <dim_out>10</dim_out>
+      </Dense>
+      <Dropout name="dropout1">
+          <rate>0.25</rate>
+      </Dropout>
+      <Dropout name="dropout2">
+          <rate>0.25</rate>
+      </Dropout>
+      <Dense name="dense2">
+          <activation>softmax</activation>
+      </Dense>
+      <layer_layout>firstConv1D, pooling1, dropout1, SecondConv1D, pooling2, dropout2, flatten, dense1, dense2</layer_layout>
+    </ROM>
+    ...
+  </Models>
+  ...
+</Simulation>
+\end{lstlisting}
+
+%%%%% ROM Model - KerasLSTMClassifier  %%%%%%%
+\paragraph{KerasLSTMClassifier}
+\label{KerasClassifier}
+
+Long Short Term Memory networks (LSTM) are a special kind of recurrent neural network, capable
+of learning long-term dependencies. They work tremendously well on a large variety of problems, and
+are now widely used. LSTMs are explicity designed to avoid the long-term dependency problem. Remembering
+information for long periods of time is practically their default behavior, not something that they 
+struggle to learn.
+
+\zNormalizationPerformed{KerasLSTMClassifier}
+
+In order to use this ROM, the \xmlNode{ROM} attribute \xmlAttr{subType} needs to
+be \xmlString{KerasLSTMClassifier} (see the example below). This model can be initialized with
+the following layers:
+
+\begin{itemize}
+  \item \xmlNode{Dense}, \xmlDesc{required field}, regular densely-connected neural network layer.
+    This node require the following attribute:
+    \begin{itemize}
+      \item \xmlAttr{name}, \xmlDesc{string, required field}, name of this layer. The value will be
+        used in \xmlNode{layer\_layout} to construct the fully connected neural network.
+    \end{itemize}
+    In addition, this node also accepts the following subnodes
+    \begin{itemize}
+      \item \xmlNode{activation}, \xmlDesc{string, optional field}, including
+        {`relu', `tanh', `elu', `selu', `softplus', `softsign', `sigmoid', `hard\_sigmoid', `linear', `softmax'}.
+        \default{linear}
+      \item \xmlNode{dim\_out}, \xmlDesc{positive integer, required except if this layer is used as the last output layer},
+        dimensionality of the output space of this layer
+    \end{itemize}
+ 
+  \item \xmlNode{Dropout}, \xmlDesc{optional field}, applies Dropout to the input. Dropout consists in
+    randomly setting a fraction \xmlNode{rate} of input units to 0 at each update during training time,
+    which helps prevent overfitting.
+    This node require the following attribute:
+    \begin{itemize}
+      \item \xmlAttr{name}, \xmlDesc{string, required field}, name of this layer. The value will be
+        used in \xmlNode{layer\_layout} to construct the fully connected neural network.
+    \end{itemize}
+    In addition, this node also accepts the following subnode
+    \begin{itemize}
+      \item \xmlNode{rate}, \xmlDesc{float between 0 and 1, optional field}, fraction of the input units to drop.
+        \default{0}
+    \end{itemize}
+
+  \item \xmlNode{LSTM}, \xmlDesc{required field}, 
+    This node require the following attribute:
+    \begin{itemize}
+      \item \xmlAttr{name}, \xmlDesc{string, required field}, name of this layer. The value will be
+        used in \xmlNode{layer\_layout} to construct the fully connected neural network.
+    \end{itemize}
+    In addition, this node also accepts the following subnodes
+    \begin{itemize}
+      \item \xmlNode{}, \xmlDesc{}
+        \default{}
+    \end{itemize}
+\end{itemize}
+
+\textbf{Example:}
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <Models>
+    ...
+    <ROM name='aUserDefinedName' subType='KerasLSTMClassifier'>
+      <Features>x</Features>
+      <Target>y</Target>
+      <loss>categorical_crossentropy</loss>
+      <metrics>accuracy</metrics>
+      <batch_size>1</batch_size>
+      <epochs>10</epochs>
+      <validation_split>0.25</validation_split>
+      <num_classes>26</num_classes>
+      <optimizerSetting>
+        <beta_1>0.9</beta_1>
+        <optimizer>Adam</optimizer>
+        <beta_2>0.999</beta_2>
+        <epsilon>1e-8</epsilon>
+        <decay>0.0</decay>
+        <lr>0.001</lr>
+      </optimizerSetting>
+      <LSTM name="lstm1">
+          <activation>tanh</activation>
+          <dim_out>32</dim_out>
+      </LSTM>
+      <LSTM name="lstm2">
+          <activation>tanh</activation>
+          <dim_out>16</dim_out>
+      </LSTM>
+      <Dropout name="dropout">
+          <rate>0.25</rate>
+      </Dropout>
+      <Dense name="dense">
+          <activation>softmax</activation>
+      </Dense>
+      <layer_layout>lstm1,lstm2,dropout,dense</layer_layout>
+    </ROM>
+    ...
+  </Models>
+  ...
+</Simulation>
+\end{lstlisting}
+
+
