@@ -121,16 +121,53 @@
     (see ~\ref{constraintsDNN})
     \default{None}
 }
+%%% Arguments for Dropout Layer %%%
 \newcommand{\rate}[0]
 {
       \item \xmlNode{rate}, \xmlDesc{float between 0 and 1, optional field}, fraction of the input units to drop.
         \default{0}
 }
+\newcommand{\noiseShape}[0]
+{
+      \item \xmlNode{noise\_shape}, \xmlDesc{list of integers, optional field}, 1D integer tensor representing the shape
+        of the binary dropout mask that will be multiplied with the input.
+        \default{None}
+}
+\newcommand{\seed}[0]
+{
+      \item \xmlNode{seed}, \xmlDesc{integer, optional field}, a integer to use as random seed.
+        \default{None}
+}
+%%% Arguments for LSTM Layer %%%
 \newcommand{\recurrentActivation}[0]
 {
       \item \xmlNode{recurrent\_activation}, \xmlDesc{string, optional field}, activation function to use for the recurrent
         step, including {`relu', `tanh', `elu', `selu', `softplus', `softsign', `sigmoid', `hard\_sigmoid', `linear', `softmax'}.
         \default{hard\_sigmoid}
+}
+\newcommand{\recurrentInitializer}[0]
+{
+      \item \xmlNode{recurrent\_initializer}, \xmlDesc{string, optional field}, used for the linear transformation of
+        the recurrent state (see ~\ref{initializersDNN}).
+        \default{orthogonal}
+}
+\newcommand{\unitForgetBias}[0]
+{
+      \item \xmlNode{unit\_forget\_bias}, \xmlDesc{boolean, optional field}, add 1 to the bias of the forget gate at
+        initialization if True.
+        \default{True}
+}
+\newcommand{\recurrentRegularizer}[0]
+{
+      \item \xmlNode{recurrent\_regularizer}, \xmlDesc{string, optional field}, regularizer function applied to the
+        \textit{recurrent\_kernel} weights matrix (see ~\ref{regularizersDNN}).
+        \default{None}
+}
+\newcommand{\recurrentConstraint}[0]
+{
+      \item \xmlNode{recurrent\_constraint}, \xmlDesc{string, optional field}, constraint function applied to the
+        \textit{recurrent\_kernel} weights matrix (see ~\ref{constraints}).
+        \default{None}
 }
 \newcommand{\dropout}[0]
 {
@@ -150,6 +187,81 @@
         full sequence.
         \default{False}
 }
+\newcommand{\implementation}[0]
+{
+      \item \xmlNode{implementation}, \xmlDesc{integer, optional field},
+        implementation mode, either 1 or 2. Mode 1 will structure its operations as a larger number of smaller dot products and additions,
+        whereas mode 2 will batch them into fewer, larger operations. These modes will have different performance profiles on different
+        hardware and for different applications.
+        \default{1}
+}
+\newcommand{\returnState}[0]
+{
+      \item \xmlNode{return\_state}, \xmlDesc{boolean, optional field},
+        whether to return the last output in the output sequence, or the full sequence.
+        \default{False}
+}
+\newcommand{\goBackwards}[0]
+{
+      \item \xmlNode{go\_backwards}, \xmlDesc{boolean, optional field},
+        if True, process the input sequence backwards and return the reversed sequence.
+        \default{False}
+}
+\newcommand{\stateful}[0]
+{
+      \item \xmlNode{stateful}, \xmlDesc{boolean, optional field},
+        if True, the last state for each sample at index i in a batch will be used as initial state for the sample
+        of index i in the following batch.
+        \default{False}
+}
+\newcommand{\unroll}[0]
+{
+      \item \xmlNode{unroll}, \xmlDesc{boolean, optional field},
+        if True, the network will be unrolled, else a symbolic loop will be used. Unrolling can speed-up a RNN, 
+        although it tends to be more memory-intensive. Unrolling is only suitable for short sequences.
+        \default{False}
+}
+
+%%% Arguments for Conv1D Layer %%%
+
+\newcommand{\kernelSize}[0]
+{
+      \item \xmlNode{kernel\_size}, \xmlDesc{integer or list of integers, required field}, specifying the length
+        of the 1D convolution window.
+}
+\newcommand{\strides}[0]
+{
+      \item \xmlNode{strides}, \xmlDesc{integer or list of integers, optional field}, pecifying the stride 
+        length of the convolution. Specifying any stride value != 1 is incompatible with specifying any 
+        dilation_rate value != 1.
+        \default{1}
+}
+\newcommand{\padding}[0]
+{
+      \item \xmlNode{padding}, \xmlDesc{string, optional field},
+        one of "valid", "causal" or "same" (case-insensitive).  "valid" means "no padding". 
+        "same" results in padding the input such that the output has the same length as the original input.  
+        "causal" results in causal (dilated) convolutions, e.g. output[t] does not depend on input[t + 1:]. 
+        A zero padding is used such that the output has the same length as the original input. Useful when 
+        modeling temporal data where the model should not violate the temporal order.
+        \default{valid}
+}
+\newcommand{\dataFormat}[0]
+{
+      \item \xmlNode{data\_format}, \xmlDesc{string, optional field},
+        A string, one of "channels_last" (default) or "channels_first". The ordering of the dimensions in the inputs.
+        "channels_last" corresponds to inputs with shape  (batch, steps, channels) (default format for temporal data 
+        in Keras) while "channels_first" corresponds to inputs with shape (batch, channels, steps).
+        \default{channels\_last}
+}
+\newcommand{\dilationRate}[0]
+{
+      \item \xmlNode{dilation\_rate}, \xmlDesc{integer or list of integers, optional field},
+        specifying the dilation rate to use for dilated convolution. Currently, specifying any dilation_rate value != 1
+        is incompatible with specifying any strides value != 1.
+        \default{1}
+}
+
 \newcommand{\DenseLayer}[0]
 {
   \item \xmlNode{Dense}, \xmlDesc{required field}, regular densely-connected neural network layer.
@@ -177,9 +289,32 @@
     In addition, this node also accepts the following subnode
     \begin{itemize}
         \rate
+        \noiseShape
+        \seed
     \end{itemize}
 }
 
+\newcommand{\PoolingLayer}[1]
+{
+
+  \item \xmlNode{#1}, \xmlDesc{optional field}, 
+    In addition, this node also accepts the following subnodes
+    \begin{itemize}
+        \poolSize
+        \strides
+        \padding
+        \dataFormat
+    \end{itemize}
+}
+\newcommand{\GlobalPoolingLayer}[1]
+{
+
+  \item \xmlNode{#1}, \xmlDesc{optional field}, 
+    In addition, this node also accepts the following subnodes
+    \begin{itemize}
+        \dataFormat
+    \end{itemize}
+}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -3630,8 +3765,14 @@ can be initialized with the following children:
 
 \nb The descriptions regarding the \xmlNode{WhateverLayer} node will be introduced in following subsections.
 Basically, different classifiers will require different layers.
-In addition, most core layers will accept the \xmlNode{activation} subnode, and the optional input for this
-subnode could be:
+In addition, most core layers will accept the \xmlNode{activation} subnode (see ~\ref{activationsDNN}).
+
+%%%%% Activation Functions  %%%%%%%
+\paragraph{Activation Functions}
+\label{activationsDNN}
+Activations can either be used through an \xmlNode{Activation} layer, or through the
+\xmlNode{activation} argument supported by all forward layers.
+Available activations include:
 \begin{itemize}
   \item \textit{relu}, the rectified linear unit function, returns $f(x) = max(0, x)$.
   \item \textit{tanh}, the hyperbolic tan function, returns $f(x) = tanh(x)$.
@@ -3648,22 +3789,73 @@ subnode could be:
   \item \textit{softmax}, softmax activation function, return $f(x) = \frac{exp(x_i)}{\sum_i{exp(x_i)}}$
 \end{itemize}
 
-%%%%% Activation Functions  %%%%%%%
-\paragraph{Activation Functions}
-\label{activationsDNN}
-
 %%%%% Initializer Functions  %%%%%%%
 \paragraph{Initializer Functions}
 \label{initializersDNN}
+Initializations define the way to set the initial random weights of TensorFlow-Keras layers. The keyword
+arguments used to passing initializers to layers will depend on the layer. Usually it is simply
+\xmlNode{kernel\_initializer} and \xmlNode{bias\_initializer}.
+Available initializers include:
+\begin{itemize}
+  \item \textit{Zeros}, generates tensors initialized to 0.
+  \item \textit{Ones}, generates tensors initialized to 1.
+  \item \textit{Constant}, generates tensors initialized to a constant value.
+  \item \textit{RandomNormal}, generates tensors with a normal distribution.
+  \item \textit{RandomUniform}, generates tensors with a uniform distribution.
+  \item \textit{TruncatedNormal}, generates a truncated normal distribution.
+  \item \textit{VarianceScaling}, initializer capable of adapting its scale to the shape of weights.
+  \item \textit{Orthogonal}, generates a random orthogonal matrix.
+  \item \textit{Identity}, generates the identity matrix.
+  \item \textit{lecun\_uniform}, LeCun uniform initializer.
+    It draws samples from a uniform distribution within
+    $[-limit, limit]$ where \textit{limit} is $sqrt(3/fanIn)$ where \textit{fanIn} is the number of input dimensions
+    in the weight tensor.
+  \item \textit{glorot\_normal}, Glorot normal initializer. 
+    It draws samples from a truncated normal distribution
+    centered on 0 with $stddev = sqrt(2/(fanIn + fanOut))$ where \textit{fanIn} is the number of input dimensions
+    in the weight tensor and \textit{fanOut} is the number of output dimensions in the weight tensors.
+  \item \textit{glorot\_uniform}, Glorot uniform initializer.
+    It draws samples from a uniform distribution within
+    $[-limit, limit]$ where \textit{limit} is $sqrt(6/(fanIn+fanOut))$. 
+  \item \textit{he\_normal}, He normal initializer.
+    It draws samples from a truncated normal distribution
+    centered on 0 with $stddev = sqrt(2/fanIn)$.
+  \item \textit{lecun\_normal}, LeCun normal initializer.
+    It draws samples from a truncated normal distribution
+    centered on 0 with $stddev = sqrt(1/fanIn)$.
+  \item \textit{he\_uniform}, He uniform variance scaling initializer.
+    It draws samples from a uniform distribution within
+    $[-limit, limit]$ where \textit{limit} is $sqrt(6/fanIn)$ where \textit{fanIn} is the number of input dimensions
+    in the weight tensor.
+\end{itemize}
 
 %%%%% Rgularizer Functions  %%%%%%%
 \paragraph{Regularizer Functions}
 \label{regularizersDNN}
+Regularizers allow to apply penalities on layer parameters or layer activity during optimization.
+These penalties are incorporated in the loss function that the network optimizes. The exact API
+will depend on the layer, but the layers \xmlNode{Dense, Conv1D, Conv2D, and Conv3D} have a
+unified API.
+Available regularizers include:
+\begin{itemize}
+  \item \textit{l1}, l1 regularization
+  \item \textit{l2}, l2 regularization
+  \item \textit{l1\_l2}, l1 and l2 regularization
+\end{itemize}
 
 %%%%% Constraint Functions  %%%%%%%
 \paragraph{Constraint Functions}
 \label{constraintsDNN}
-
+Functions from the \textit{constraint} module allow setting constraints on network parameters during optimization.
+Available constraints include:
+\begin{itemize}
+  \item \textit{MaxNorm}, constrains the weights incident to each hidden unit to have a norm less than or equal to
+    a desired value.
+  \item \textit{NonNeg}, constrains the weights to be non-negative
+  \item \textit{UnitNorm}, constrains the weights incident to each hidden unit to have unit norm.
+  \item \textit{MinMaxNorm}, constrains the weights incident to each hidden unit to have the norm between a lower bound
+    and an upper bound.
+\end{itemize}
 
 %%%%% ROM Model - KerasMLPClassifier  %%%%%%%
 \paragraph{KerasMLPClassifier}
@@ -3762,62 +3954,85 @@ the following layers:
 \begin{itemize}
   \DenseLayer
   \DropoutLayer
-  \item \xmlNode{}, \xmlDesc{optional field}, 
+  \item \xmlNode{Conv1D}, \xmlDesc{optional field}, 
     \layerNameAttr
     In addition, this node also accepts the following subnodes
     \begin{itemize}
-      \item \xmlNode{}, \xmlDesc{}
-        \default{}
+        \activation
+        \dimOut
+        \useBias
+        \kernelSize
+        \strides
+        \padding
+        \dataFormat
+        \dilationRate
+        \kernelInitializer
+        \biasInitializer
+        \kernelRegularizer
+        \biasRegularizer
+        \activityRegularizer
+        \kernelConstraint
+        \biasConstraint
     \end{itemize}
   
-  \item \xmlNode{}, \xmlDesc{optional field}, 
+  \item \xmlNode{Conv2D}, \xmlDesc{optional field}, 
     In addition, this node also accepts the following subnodes
     \begin{itemize}
-      \item \xmlNode{}, \xmlDesc{}
-        \default{}
+        \activation
+        \dimOut
+        \useBias
+        \kernelSize
+        \strides
+        \padding
+        \dataFormat
+        \dilationRate
+        \kernelInitializer
+        \biasInitializer
+        \kernelRegularizer
+        \biasRegularizer
+        \activityRegularizer
+        \kernelConstraint
+        \biasConstraint
     \end{itemize}
   
-  \item \xmlNode{}, \xmlDesc{optional field}, 
+  \item \xmlNode{Conv3D}, \xmlDesc{optional field}, 
     In addition, this node also accepts the following subnodes
     \begin{itemize}
-      \item \xmlNode{}, \xmlDesc{}
-        \default{}
+        \activation
+        \dimOut
+        \useBias
+        \kernelSize
+        \strides
+        \padding
+        \dataFormat
+        \dilationRate
+        \kernelInitializer
+        \biasInitializer
+        \kernelRegularizer
+        \biasRegularizer
+        \activityRegularizer
+        \kernelConstraint
+        \biasConstraint
     \end{itemize}
   
-  \item \xmlNode{}, \xmlDesc{optional field}, 
+  \item \xmlNode{Flatten}, \xmlDesc{optional field}, 
     In addition, this node also accepts the following subnodes
     \begin{itemize}
-      \item \xmlNode{}, \xmlDesc{}
-        \default{}
+        \dataFormat
     \end{itemize}
-  
-  \item \xmlNode{}, \xmlDesc{optional field}, 
-    In addition, this node also accepts the following subnodes
-    \begin{itemize}
-      \item \xmlNode{}, \xmlDesc{}
-        \default{}
-    \end{itemize}
-  
-  \item \xmlNode{}, \xmlDesc{optional field}, 
-    In addition, this node also accepts the following subnodes
-    \begin{itemize}
-      \item \xmlNode{}, \xmlDesc{}
-        \default{}
-    \end{itemize}
-  
-  \item \xmlNode{}, \xmlDesc{optional field}, 
-    In addition, this node also accepts the following subnodes
-    \begin{itemize}
-      \item \xmlNode{}, \xmlDesc{}
-        \default{}
-    \end{itemize}
-  
-  \item \xmlNode{}, \xmlDesc{optional field}, 
-    In addition, this node also accepts the following subnodes
-    \begin{itemize}
-      \item \xmlNode{}, \xmlDesc{}
-        \default{}
-    \end{itemize}
+ 
+  \PoolingLayer{MaxPooling1D}
+  \PoolingLayer{MaxPooling2D}
+  \PoolingLayer{MaxPooling3D}
+  \PoolingLayer{AveragePooling1D}
+  \PoolingLayer{AveragePooling2D}
+  \PoolingLayer{AveragePooling3D}
+  \GlobalPoolingLayer{GlobalMaxPooling1D}
+  \GlobalPoolingLayer{GlobalMaxPooling2D}
+  \GlobalPoolingLayer{GlobalMaxPooling3D}
+  \GlobalPoolingLayer{GlobalAveragePooling1D}
+  \GlobalPoolingLayer{GlobalAveragePooling2D}
+  \GlobalPoolingLayer{GlobalAveragePooling3D}
 \end{itemize}
 
 \textbf{Example:}
@@ -3918,6 +4133,23 @@ the following layers:
         \dropout
         \recurrentDropout
         \returnSequence
+        \useBias
+        \kernelInitializer
+        \recurrentInitializer
+        \biasInitializer
+        \unitForgetBias
+        \kernelRegularizer
+        \recurrentRegularizer
+        \biasRegularizer
+        \activityRegularizer
+        \kernelConstraint
+        \recurrentConstraint
+        \biasConstraint
+        \implementation
+        \returnState
+        \goBackwards
+        \stateful
+        \unroll
     \end{itemize}
 \end{itemize}
 
