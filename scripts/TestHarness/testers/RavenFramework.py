@@ -265,10 +265,10 @@ class RavenFramework(Tester):
       if os.path.exists(filename):
         os.remove(filename)
 
-  def process_results(self, output):
+  def process_results(self, _):
     """
       Check to see if the test has passed.
-      @ In, output, string, output of test.
+      @ In, ignored, string, output of test.
       @ Out, None
     """
     missing = []

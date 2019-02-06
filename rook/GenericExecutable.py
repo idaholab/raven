@@ -52,9 +52,9 @@ class GenericExecutable(Tester):
     """
     Tester.__init__(self, name, params)
 
-  def process_results(self, output):
+  def process_results(self, _):
     """ Handle the results of test case.
-        @ In, output, string, the output from the test case.
+        @ In, ignored, string, the output from the test case.
         @ Out, None
     """
     if self.results.exit_code != 0:
