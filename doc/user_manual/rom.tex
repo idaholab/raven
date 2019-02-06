@@ -52,6 +52,137 @@
     \end{itemize}
 }
 
+%%%%%% command used for TensorFlow-Keras Deep neural networks %%%%%%%%%%%%%%%%%
+\newcommand{\layerNameAttr}[0]
+{
+    This node require the following attribute:
+    \begin{itemize}
+      \item \xmlAttr{name}, \xmlDesc{string, required field}, name of this layer. The value will be
+        used in \xmlNode{layer\_layout} to construct the fully connected neural network.
+    \end{itemize}
+}
+%%% Arguments for Dense Layer %%%
+\newcommand{\activation}[0]
+{
+      \item \xmlNode{activation}, \xmlDesc{string, optional field}, including
+        {`relu', `tanh', `elu', `selu', `softplus', `softsign', `sigmoid', `hard\_sigmoid', `linear', `softmax'}.
+        (see~\ref{activationsDNN})
+        \default{linear}
+}
+\newcommand{\dimOut}[0]
+{
+      \item \xmlNode{dim\_out}, \xmlDesc{positive integer, required except if this layer is used as the last output layer},
+        dimensionality of the output space of this layer
+}
+\newcommand{\useBias}[0]
+{
+  \item \xmlNode{use\_bias}, \xmlDesc{boolean, optional field}, whether the layer uses a bias vector.
+    \default{True}
+}
+\newcommand{\kernelInitializer}[0]
+{
+  \item \xmlNode{kernel\_initializer}, \xmlDesc{string, optional field}, initializer for the kernel weights matrix
+    (see~\ref{initializersDNN}).
+    \default{glorot\_uniform}
+}
+\newcommand{\biasInitializer}[0]
+{
+  \item \xmlNode{bias\_initializer}, \xmlDesc{string, optional field}, intializer for the bias vector
+    (see ~\ref{initializersDNN}).
+    \default{zeros}
+}
+\newcommand{\kernelRegularizer}[0]
+{
+  \item \xmlNode{kernel\_regularizer}, \xmlDesc{string, optional field}, regularizer function applied to
+    the kernel weights matrix (see ~\ref{regularizersDNN}).
+    \default{None}
+}
+\newcommand{\biasRegularizer}[0]
+{
+  \item \xmlNode{bias\_regularizer}, \xmlDesc{string, optional field}, regularizer function applied to the bias vector
+    (see~\ref{regularizersDNN}).
+    \default{None}
+}
+\newcommand{\activityRegularizer}[0]
+{
+  \item \xmlNode{activity\_regularizer}, \xmlDesc{string, optional field}, regularizer function applied to the output
+    of the layer (its "activation"). (see~\ref{regularizersDNN})
+    \default{None}
+}
+\newcommand{\kernelConstraint}[0]
+{
+  \item \xmlNode{kernel\_constraint}, \xmlDesc{string, optional field}, constraint function applied to the kernel weights
+    matrix (see~\ref{constraintsDNN}).
+    \default{None}
+}
+\newcommand{\biasConstraint}[0]
+{
+  \item \xmlNode{bias\_constraint}, \xmlDesc{string, optional field}, constraint function applied to the bias vector
+    (see ~\ref{constraintsDNN})
+    \default{None}
+}
+\newcommand{\rate}[0]
+{
+      \item \xmlNode{rate}, \xmlDesc{float between 0 and 1, optional field}, fraction of the input units to drop.
+        \default{0}
+}
+\newcommand{\recurrentActivation}[0]
+{
+      \item \xmlNode{recurrent\_activation}, \xmlDesc{string, optional field}, activation function to use for the recurrent
+        step, including {`relu', `tanh', `elu', `selu', `softplus', `softsign', `sigmoid', `hard\_sigmoid', `linear', `softmax'}.
+        \default{hard\_sigmoid}
+}
+\newcommand{\dropout}[0]
+{
+      \item \xmlNode{dropout}, \xmlDesc{float between 0 and 1, optional field}, fraction of the units to drop for the linear
+        transformation of the inputs
+        \default{0}
+}
+\newcommand{\recurrentDropout}[0]
+{
+      \item \xmlNode{recurrent\_dropout}, \xmlDesc{float between 0 and 1, optional field}, fraction of the units to drop for the linear
+        transformation of the recurrent state.
+        \default{0}
+}
+\newcommand{\returnSequence}[0]
+{
+      \item \xmlNode{return\_sequence}, \xmlDesc{boolean, optional field}, whether to return the last output in the output sequence, or
+        full sequence.
+        \default{False}
+}
+\newcommand{\DenseLayer}[0]
+{
+  \item \xmlNode{Dense}, \xmlDesc{required field}, regular densely-connected neural network layer.
+    \layerNameAttr
+    In addition, this node also accepts the following subnodes
+    \begin{itemize}
+        \activation
+        \dimOut
+        \useBias
+        \kernelInitializer
+        \biasInitializer
+        \kernelRegularizer
+        \biasRegularizer
+        \activityRegularizer
+        \kernelConstraint
+        \biasConstraint
+    \end{itemize}
+}
+\newcommand{\DropoutLayer}[0]
+{
+  \item \xmlNode{Dropout}, \xmlDesc{optional field}, applies Dropout to the input. Dropout consists in
+    randomly setting a fraction \xmlNode{rate} of input units to 0 at each update during training time,
+    which helps prevent overfitting.
+    \layerNameAttr
+    In addition, this node also accepts the following subnode
+    \begin{itemize}
+        \rate
+    \end{itemize}
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 \subsection{ROM}
 \label{subsec:models_ROM}
 A Reduced Order Model (ROM) is a mathematical model consisting of a fast
@@ -3517,6 +3648,23 @@ subnode could be:
   \item \textit{softmax}, softmax activation function, return $f(x) = \frac{exp(x_i)}{\sum_i{exp(x_i)}}$
 \end{itemize}
 
+%%%%% Activation Functions  %%%%%%%
+\paragraph{Activation Functions}
+\label{activationsDNN}
+
+%%%%% Initializer Functions  %%%%%%%
+\paragraph{Initializer Functions}
+\label{initializersDNN}
+
+%%%%% Rgularizer Functions  %%%%%%%
+\paragraph{Regularizer Functions}
+\label{regularizersDNN}
+
+%%%%% Constraint Functions  %%%%%%%
+\paragraph{Constraint Functions}
+\label{constraintsDNN}
+
+
 %%%%% ROM Model - KerasMLPClassifier  %%%%%%%
 \paragraph{KerasMLPClassifier}
 \label{KerasMLPClassifier}
@@ -3540,33 +3688,8 @@ be \xmlString{KerasMLPClassifier} (see the example below). This model can be ini
 the following layers:
 
 \begin{itemize}
-  \item \xmlNode{Dense}, \xmlDesc{required field}, regular densely-connected neural network layer.
-    This node require the following attribute:
-    \begin{itemize}
-      \item \xmlAttr{name}, \xmlDesc{string, required field}, name of this layer. The value will be
-        used in \xmlNode{layer\_layout} to construct the fully connected neural network.
-    \end{itemize}
-    In addition, this node also accepts the following subnodes
-    \begin{itemize}
-      \item \xmlNode{activation}, \xmlDesc{string, optional field}, including
-        {`relu', `tanh', `elu', `selu', `softplus', `softsign', `sigmoid', `hard\_sigmoid', `linear', `softmax'}.
-        \default{linear}
-      \item \xmlNode{dim\_out}, \xmlDesc{positive integer, required except if this layer is used as the last output layer},
-        dimensionality of the output space of this layer
-    \end{itemize}
-  \item \xmlNode{Dropout}, \xmlDesc{optional field}, applies Dropout to the input. Dropout consists in
-    randomly setting a fraction \xmlNode{rate} of input units to 0 at each update during training time,
-    which helps prevent overfitting.
-    This node require the following attribute:
-    \begin{itemize}
-      \item \xmlAttr{name}, \xmlDesc{string, required field}, name of this layer. The value will be
-        used in \xmlNode{layer\_layout} to construct the fully connected neural network.
-    \end{itemize}
-    In addition, this node also accepts the following subnode
-    \begin{itemize}
-      \item \xmlNode{rate}, \xmlDesc{float between 0 and 1, optional field}, fraction of the input units to drop.
-        \default{0}
-    \end{itemize}
+  \DenseLayer
+  \DropoutLayer
 \end{itemize}
 
 \textbf{Example:}
@@ -3637,41 +3760,10 @@ be \xmlString{KerasConvNetClassifier} (see the example below). This model can be
 the following layers:
 
 \begin{itemize}
-  \item \xmlNode{Dense}, \xmlDesc{required field}, regular densely-connected neural network layer.
-    This node require the following attribute:
-    \begin{itemize}
-      \item \xmlAttr{name}, \xmlDesc{string, required field}, name of this layer. The value will be
-        used in \xmlNode{layer\_layout} to construct the fully connected neural network.
-    \end{itemize}
-    In addition, this node also accepts the following subnodes
-    \begin{itemize}
-      \item \xmlNode{activation}, \xmlDesc{string, optional field}, including
-        {`relu', `tanh', `elu', `selu', `softplus', `softsign', `sigmoid', `hard\_sigmoid', `linear', `softmax'}.
-        \default{linear}
-      \item \xmlNode{dim\_out}, \xmlDesc{positive integer, required except if this layer is used as the last output layer},
-        dimensionality of the output space of this layer
-    \end{itemize}
-
-  \item \xmlNode{Dropout}, \xmlDesc{optional field}, applies Dropout to the input. Dropout consists in
-    randomly setting a fraction \xmlNode{rate} of input units to 0 at each update during training time,
-    which helps prevent overfitting.
-    This node require the following attribute:
-    \begin{itemize}
-      \item \xmlAttr{name}, \xmlDesc{string, required field}, name of this layer. The value will be
-        used in \xmlNode{layer\_layout} to construct the fully connected neural network.
-    \end{itemize}
-    In addition, this node also accepts the following subnode
-    \begin{itemize}
-      \item \xmlNode{rate}, \xmlDesc{float between 0 and 1, optional field}, fraction of the input units to drop.
-        \default{0}
-    \end{itemize}
-  
+  \DenseLayer
+  \DropoutLayer
   \item \xmlNode{}, \xmlDesc{optional field}, 
-    This node require the following attribute:
-    \begin{itemize}
-      \item \xmlAttr{name}, \xmlDesc{string, required field}, name of this layer. The value will be
-        used in \xmlNode{layer\_layout} to construct the fully connected neural network.
-    \end{itemize}
+    \layerNameAttr
     In addition, this node also accepts the following subnodes
     \begin{itemize}
       \item \xmlNode{}, \xmlDesc{}
@@ -3679,11 +3771,6 @@ the following layers:
     \end{itemize}
   
   \item \xmlNode{}, \xmlDesc{optional field}, 
-    This node require the following attribute:
-    \begin{itemize}
-      \item \xmlAttr{name}, \xmlDesc{string, required field}, name of this layer. The value will be
-        used in \xmlNode{layer\_layout} to construct the fully connected neural network.
-    \end{itemize}
     In addition, this node also accepts the following subnodes
     \begin{itemize}
       \item \xmlNode{}, \xmlDesc{}
@@ -3691,11 +3778,6 @@ the following layers:
     \end{itemize}
   
   \item \xmlNode{}, \xmlDesc{optional field}, 
-    This node require the following attribute:
-    \begin{itemize}
-      \item \xmlAttr{name}, \xmlDesc{string, required field}, name of this layer. The value will be
-        used in \xmlNode{layer\_layout} to construct the fully connected neural network.
-    \end{itemize}
     In addition, this node also accepts the following subnodes
     \begin{itemize}
       \item \xmlNode{}, \xmlDesc{}
@@ -3703,11 +3785,6 @@ the following layers:
     \end{itemize}
   
   \item \xmlNode{}, \xmlDesc{optional field}, 
-    This node require the following attribute:
-    \begin{itemize}
-      \item \xmlAttr{name}, \xmlDesc{string, required field}, name of this layer. The value will be
-        used in \xmlNode{layer\_layout} to construct the fully connected neural network.
-    \end{itemize}
     In addition, this node also accepts the following subnodes
     \begin{itemize}
       \item \xmlNode{}, \xmlDesc{}
@@ -3715,11 +3792,6 @@ the following layers:
     \end{itemize}
   
   \item \xmlNode{}, \xmlDesc{optional field}, 
-    This node require the following attribute:
-    \begin{itemize}
-      \item \xmlAttr{name}, \xmlDesc{string, required field}, name of this layer. The value will be
-        used in \xmlNode{layer\_layout} to construct the fully connected neural network.
-    \end{itemize}
     In addition, this node also accepts the following subnodes
     \begin{itemize}
       \item \xmlNode{}, \xmlDesc{}
@@ -3727,11 +3799,6 @@ the following layers:
     \end{itemize}
   
   \item \xmlNode{}, \xmlDesc{optional field}, 
-    This node require the following attribute:
-    \begin{itemize}
-      \item \xmlAttr{name}, \xmlDesc{string, required field}, name of this layer. The value will be
-        used in \xmlNode{layer\_layout} to construct the fully connected neural network.
-    \end{itemize}
     In addition, this node also accepts the following subnodes
     \begin{itemize}
       \item \xmlNode{}, \xmlDesc{}
@@ -3739,11 +3806,6 @@ the following layers:
     \end{itemize}
   
   \item \xmlNode{}, \xmlDesc{optional field}, 
-    This node require the following attribute:
-    \begin{itemize}
-      \item \xmlAttr{name}, \xmlDesc{string, required field}, name of this layer. The value will be
-        used in \xmlNode{layer\_layout} to construct the fully connected neural network.
-    \end{itemize}
     In addition, this node also accepts the following subnodes
     \begin{itemize}
       \item \xmlNode{}, \xmlDesc{}
@@ -3751,11 +3813,6 @@ the following layers:
     \end{itemize}
   
   \item \xmlNode{}, \xmlDesc{optional field}, 
-    This node require the following attribute:
-    \begin{itemize}
-      \item \xmlAttr{name}, \xmlDesc{string, required field}, name of this layer. The value will be
-        used in \xmlNode{layer\_layout} to construct the fully connected neural network.
-    \end{itemize}
     In addition, this node also accepts the following subnodes
     \begin{itemize}
       \item \xmlNode{}, \xmlDesc{}
@@ -3849,45 +3906,18 @@ be \xmlString{KerasLSTMClassifier} (see the example below). This model can be in
 the following layers:
 
 \begin{itemize}
-  \item \xmlNode{Dense}, \xmlDesc{required field}, regular densely-connected neural network layer.
-    This node require the following attribute:
-    \begin{itemize}
-      \item \xmlAttr{name}, \xmlDesc{string, required field}, name of this layer. The value will be
-        used in \xmlNode{layer\_layout} to construct the fully connected neural network.
-    \end{itemize}
+  \DenseLayer
+  \DropoutLayer
+  \item \xmlNode{LSTM}, \xmlDesc{required field}, long short-term memory layer. 
+    \layerNameAttr
     In addition, this node also accepts the following subnodes
     \begin{itemize}
-      \item \xmlNode{activation}, \xmlDesc{string, optional field}, including
-        {`relu', `tanh', `elu', `selu', `softplus', `softsign', `sigmoid', `hard\_sigmoid', `linear', `softmax'}.
-        \default{linear}
-      \item \xmlNode{dim\_out}, \xmlDesc{positive integer, required except if this layer is used as the last output layer},
-        dimensionality of the output space of this layer
-    \end{itemize}
- 
-  \item \xmlNode{Dropout}, \xmlDesc{optional field}, applies Dropout to the input. Dropout consists in
-    randomly setting a fraction \xmlNode{rate} of input units to 0 at each update during training time,
-    which helps prevent overfitting.
-    This node require the following attribute:
-    \begin{itemize}
-      \item \xmlAttr{name}, \xmlDesc{string, required field}, name of this layer. The value will be
-        used in \xmlNode{layer\_layout} to construct the fully connected neural network.
-    \end{itemize}
-    In addition, this node also accepts the following subnode
-    \begin{itemize}
-      \item \xmlNode{rate}, \xmlDesc{float between 0 and 1, optional field}, fraction of the input units to drop.
-        \default{0}
-    \end{itemize}
-
-  \item \xmlNode{LSTM}, \xmlDesc{required field}, 
-    This node require the following attribute:
-    \begin{itemize}
-      \item \xmlAttr{name}, \xmlDesc{string, required field}, name of this layer. The value will be
-        used in \xmlNode{layer\_layout} to construct the fully connected neural network.
-    \end{itemize}
-    In addition, this node also accepts the following subnodes
-    \begin{itemize}
-      \item \xmlNode{}, \xmlDesc{}
-        \default{}
+        \activation
+        \dimOut
+        \recurrentActivation
+        \dropout
+        \recurrentDropout
+        \returnSequence
     \end{itemize}
 \end{itemize}
 
