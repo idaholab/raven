@@ -1929,10 +1929,10 @@ class DataSet(DataObject):
     for e,ending in enumerate(endings):
       # reconstruct path that leads to this ending
       path = [ending['prefix']]
-      while ending['RAVEN_parentID'] != "None" and not pd.isnull(ending['RAVEN_parentID']) or ending is not None:
+      while ending['RAVEN_parentID'] != "None" and not pd.isnull(ending['RAVEN_parentID']):
         _,ending = self.realization(matchDict={'prefix':ending['RAVEN_parentID']})
-        if ending is not None:
-          path.append(ending['prefix'])
+        if ending is None: break
+        path.append(ending['prefix'])
       # sort it in order by progression
       path.reverse()
       # add it to the path list

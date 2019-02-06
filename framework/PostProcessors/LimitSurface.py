@@ -63,9 +63,6 @@ class LimitSurface(PostProcessor):
     SideInput = InputData.parameterInputFactory("side", contentType=InputData.StringType)
     inputSpecification.addSub(SideInput)
 
-    estimateErrInput = InputData.parameterInputFactory("estimateErr", contentType=InputData.BoolType)
-    inputSpecification.addSub(estimateErrInput)
-
     ROMInput = InputData.parameterInputFactory("ROM", contentType=InputData.StringType)
     ROMInput.addParam("class", InputData.StringType)
     ROMInput.addParam("type", InputData.StringType)
@@ -95,7 +92,6 @@ class LimitSurface(PostProcessor):
     self.tolerance         = 1.0e-4           #SubGrid tolerance
     self.gridFromOutside   = False            #The grid has been passed from outside (self._initFromDict)?
     self.lsSide            = "negative"       # Limit surface side to compute the LS for (negative,positive,both)
-    self.errEstimation     = False            # Estimate the upper bound of the error?
     self.gridEntity        = None             # the Grid object
     self.bounds            = None             # the container for the domain of search
     self.jobHandler        = None             # job handler pointer
@@ -170,8 +166,6 @@ class LimitSurface(PostProcessor):
           self.bounds["upperBounds"][key]+= abs(self.bounds["upperBounds"][key]/1.e7)
         self.volume = self.volume*(self.bounds["upperBounds"][key]-self.bounds["lowerBounds"][key])
     computeCells = initDict['computeCells'] if 'computeCells' in initDict.keys() else False
-    if self.errEstimation:
-      computeCells = True
     self.gridEntity.initialize(initDictionary={"rootName":self.name,'constructTensor':True, "computeCells":computeCells,
                                                "dimensionNames":self.parameters['targets'], "lowerBounds":self.bounds["lowerBounds"],"upperBounds":self.bounds["upperBounds"],
                                                "volumetricRatio":self.tolerance   ,"transformationMethods":self.transfMethods})
@@ -284,10 +278,6 @@ class LimitSurface(PostProcessor):
       self.tolerance = float(dictIn["tolerance"])
     if self.lsSide not in ["negative", "positive", "both"]:
       self.raiseAnError(IOError, 'Computation side can be positive, negative, both only !!!!')
-    if "estimateErr" in dictIn.keys():
-      self.errEstimation = dictIn["estimateErr"]
-      if self.lsSide not in 'both' and self.errEstimation:
-        self.raiseAnError(IOError, 'The error estimation can only be performed if the "side" node is equal to "both"!')
 
   def getFunctionValue(self):
     """
@@ -451,26 +441,10 @@ class LimitSurface(PostProcessor):
           self.raiseADebug('LimitSurface: ' + myStr + '  value: ' + str(self.testMatrix[nodeName][tuple(coordinate)]))
       # if the number of point on the limit surface is > than zero than save it
       if len(listSurfPoint[nodeName]) > 0:
-        if self.errEstimation:
-          negCoordinates = np.ndarray((nNegPoints, self.nVar))
-          posCoordinates = np.ndarray((nPosPoints, self.nVar))
         self.surfPoint[nodeName] = np.ndarray((len(listSurfPoint[nodeName]), self.nVar))
         evaluations[nodeName] = np.concatenate((-np.ones(nNegPoints), np.ones(nPosPoints)), axis = 0)
         for pointID, coordinate in enumerate(listSurfPoint[nodeName]):
           self.surfPoint[nodeName][pointID, :] = self.gridCoord[nodeName][tuple(coordinate)]
-          if self.errEstimation:
-            if pointID < nNegPoints:
-              negCoordinates[pointID, :] = self.gridCoord[nodeName][tuple(coordinate)]
-            else:
-              print(pointID-nNegPoints)
-              posCoordinates[pointID-nNegPoints, :] = self.gridCoord[nodeName][tuple(coordinate)]
-        if self.errEstimation:
-          hullNeg = ConvexHull(negCoordinates)
-          hullPos = ConvexHull(posCoordinates)
-          errorBound = abs(hullNeg.volume - hullPos.volume)/self.volume
-          #self.gridEntity.retrieveCellIds([self.listSurfPointNegative,self.listSurfPointPositive],self.name)
-
-          self.raiseAMessage("Error Bound for Limit Surface Location is: " + str(errorBound))
     if self.name != exceptionGrid:
       self.listSurfPointNegative, self.listSurfPointPositive = listSurfPoint[self.name][:nNegPoints-1],listSurfPoint[self.name][nNegPoints:]
     if merge == True:

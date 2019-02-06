@@ -250,7 +250,7 @@ class LimitSurfaceIntegral(PostProcessor):
       dataSet = item.asDataset()
       self.matrixDictNeg = {varName: dataSet[varName].values for varName in self.variableDist}
       self.matrixDictPos = copy.deepcopy(self.matrixDictNeg)
-      responseArray = dataSet[self.target].values
+      responseArray = copy.copy(dataSet[self.target].values)
       if len(np.unique(responseArray)) != 2:
         self.raiseAnError(IOError, 'The target ' + self.target + ' needs to be a classifier output (-1 +1 or 0 +1)!')
       responseArray[responseArray == -1] = 0.0
@@ -281,9 +281,10 @@ class LimitSurfaceIntegral(PostProcessor):
         tempDict[varName] = randomMatrix[:, index]
       pbNeg = self.stat.run({'targets':{self.target:xarray.DataArray(self.functionSNeg.evaluate(tempDict)[self.target])}})[self.computationPrefix +"_"+self.target]
       pbPos = self.stat.run({'targets':{self.target:xarray.DataArray(self.functionSPos.evaluate(tempDict)[self.target])}})[self.computationPrefix +"_"+self.target]
+      # we assume the limit surface is in the middle between the -1 and +1 boundaries
       pb = (pbNeg + pbPos) / 2.
       errorBound = abs( pbNeg - pbPos )
-      self.raiseAMessage("Error Bound for Limit Surface Location is: "+str(errorBound))
+      self.raiseAMessage("Error Bound for Limit Surface Location is: "+str(float(errorBound)))
     else:
       self.raiseAnError(NotImplemented, "quadrature not yet implemented")
     return pb
