@@ -189,7 +189,7 @@ def process_result(index, _input_data, output_data):
     okaycolor = skip_color
   else:
     results["fail"] += 1
-    failed_list.append(process_test_name)
+    failed_list.append(Tester.get_group_name(group)+" "+process_test_name)
     print(output_data.output)
     print(output_data.message)
     okaycolor = fail_color
