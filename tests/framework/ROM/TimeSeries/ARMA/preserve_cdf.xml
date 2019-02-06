@@ -63,7 +63,7 @@
     <PostProcess name="vdc_metric">
       <Input class="DataObjects" type="HistorySet">gold_durs</Input>
       <Input class="DataObjects" type="HistorySet">sample_durs</Input>
-      <Model class="Models" type="PostProcessor">dtw</Model>
+      <Model class="Models" type="PostProcessor">metric_pp</Model>
       <Output class="DataObjects" type="PointSet">metric</Output>
     </PostProcess>
     <IOStep name="out">
@@ -116,7 +116,7 @@
       </options>
     </HistorySet>
     <PointSet name="metric">
-      <Output>dtw_counts_Gold_counts_Signal</Output>
+      <Output>metric_counts_Gold_counts_Signal</Output>
     </PointSet>
     <DataSet name="rom"/>
   </DataObjects>
@@ -135,18 +135,18 @@
       <target>Signal</target>
       <bins>10</bins>
     </PostProcessor>
-    <PostProcessor name="dtw" subType="Metric">
+    <PostProcessor name="metric_pp" subType="Metric">
       <Features type="variable">counts_Signal</Features>
       <Targets type="variable">counts_Gold</Targets>
-      <Metric class="Metrics" type="DTW">dtw</Metric>
+      <pivotParameter>bins_Signal</pivotParameter>
+      <Metric class="Metrics" type="SKL">metric</Metric>
     </PostProcessor>
   </Models>
 
   <Metrics>
-    <DTW name="dtw">
-      <order>0</order>
-      <localDistance>euclidean</localDistance>
-    </DTW>
+    <SKL name="metric">
+      <metricType>regression|r2_score</metricType>
+    </SKL>
   </Metrics>
 
   <OutStreams>
