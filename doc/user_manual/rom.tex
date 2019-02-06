@@ -232,8 +232,8 @@
 \newcommand{\strides}[0]
 {
       \item \xmlNode{strides}, \xmlDesc{integer or list of integers, optional field}, pecifying the stride 
-        length of the convolution. Specifying any stride value != 1 is incompatible with specifying any 
-        dilation_rate value != 1.
+        length of the convolution. Specifying any stride value not equal 1 is incompatible with specifying any 
+        dilation\_rate value not equal 1.
         \default{1}
 }
 \newcommand{\padding}[0]
@@ -249,17 +249,25 @@
 \newcommand{\dataFormat}[0]
 {
       \item \xmlNode{data\_format}, \xmlDesc{string, optional field},
-        A string, one of "channels_last" (default) or "channels_first". The ordering of the dimensions in the inputs.
-        "channels_last" corresponds to inputs with shape  (batch, steps, channels) (default format for temporal data 
-        in Keras) while "channels_first" corresponds to inputs with shape (batch, channels, steps).
+        A string, one of "channels\_last" (default) or "channels\_first". The ordering of the dimensions in the inputs.
+        "channels\_last" corresponds to inputs with shape  (batch, steps, channels) (default format for temporal data 
+        in Keras) while "channels\_first" corresponds to inputs with shape (batch, channels, steps).
         \default{channels\_last}
 }
 \newcommand{\dilationRate}[0]
 {
       \item \xmlNode{dilation\_rate}, \xmlDesc{integer or list of integers, optional field},
-        specifying the dilation rate to use for dilated convolution. Currently, specifying any dilation_rate value != 1
-        is incompatible with specifying any strides value != 1.
+        specifying the dilation rate to use for dilated convolution. Currently, specifying any dilation\_rate value
+        not equal 1 is incompatible with specifying any strides value not equal 1.
         \default{1}
+}
+
+%%% Arguments for Pooling Layer %%%
+
+\newcommand{\poolSize}[0]
+{
+      \item \xmlNode{pool\_size}, \xmlDesc{integer, required field}, size of the max pooling windows.
+        \default{2}
 }
 
 \newcommand{\DenseLayer}[0]
