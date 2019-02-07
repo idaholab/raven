@@ -50,6 +50,11 @@ parser.add_argument('--test-dir', dest='test_dir',
 parser.add_argument('--scripts-dir', dest='scripts_dir',
                     help='specify where the scripts are located')
 
+parser.add_argument('--run-types', dest='add_run_types',
+                    help='add run types to the ones to be run')
+parser.add_argument('--only-run-types', dest='only_run_types',
+                    help='only run the listed types')
+
 args = parser.parse_args()
 
 class LoadClass(threading.Thread):
@@ -260,6 +265,13 @@ if __name__ == "__main__":
     #Note as a side effect, testers can add run types to
     # the tester.
     tester_params[tester] = testers[tester].get_valid_params()
+
+  Tester.initialize_current_run_type()
+  if args.add_run_types is not None:
+    Tester.add_run_types(set(args.add_run_types.split(",")))
+
+  if args.only_run_types is not None:
+    Tester.set_only_run_types(set(args.only_run_types.split(",")))
 
   function_list = [] #Store the data for the pool runner
   test_name_list = []

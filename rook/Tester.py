@@ -307,6 +307,7 @@ class Tester:
 
   __default_run_type_set = set(["normal"])
   __non_default_run_type_set = set()
+  __base_current_run_type = None
 
   @classmethod
   def add_default_run_type(cls, run_type):
@@ -329,6 +330,18 @@ class Tester:
     """
     cls.__non_default_run_type_set.add(run_type)
     assert run_type not in cls.__default_run_type_set
+
+  @classmethod
+  def initialize_current_run_type(cls):
+    """
+      This initializes the current run type from the default run type.
+      It should be called after the last call to add_default_run_type and
+      add_non_default_run_type.  This will be automatically called the
+      first time Tester is initialized.
+      @ In, None
+      @ Out, None
+    """
+    cls.__base_current_run_type = cls.__default_run_type_set
 
   @staticmethod
   def get_valid_params():
@@ -365,32 +378,35 @@ class Tester:
     self.specs = valid_params.get_filled_dict(params)
     self.results = TestResult()
     self.__differs = []
-    self.__base_current_run_type = self.__default_run_type_set
+    if self.__base_current_run_type is None:
+      self.initialize_current_run_type()
     self.__test_run_type = set(self.specs['run_types'].split())
     if self.specs['heavy'] is not False:
       self.__test_run_type.add("heavy")
       if "normal" in self.__test_run_type:
         self.__test_run_type.remove("heavy")
 
-  def add_run_types(self, run_types):
+  @classmethod
+  def add_run_types(cls, run_types):
     """
       Adds run types to be run.  In general these are non default run types.
       @ In, run_types, set, run types to be added to the current run set.
       @ Out, None
     """
-    assert run_types.issubset(set.union(self.__default_run_type_set,
-                                        self.__non_default_run_type_set))
-    self.__base_current_run_type.update(run_types)
+    assert run_types.issubset(set.union(cls.__default_run_type_set,
+                                        cls.__non_default_run_type_set))
+    cls.__base_current_run_type.update(run_types)
 
-  def set_only_run_types(self, run_types):
+  @classmethod
+  def set_only_run_types(cls, run_types):
     """
       Sets the run types to only the provided ones.
       @ In, run_types, set, run types to set the current set to.
       @ Out, None
     """
-    assert run_types.issubset(set.union(self.__default_run_type_set,
-                                        self.__non_default_run_type_set))
-    self.__base_current_run_type = set(run_types)
+    assert run_types.issubset(set.union(cls.__default_run_type_set,
+                                        cls.__non_default_run_type_set))
+    cls.__base_current_run_type = set(run_types)
 
   def get_differ_remove_files(self):
     """
