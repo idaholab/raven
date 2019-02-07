@@ -165,10 +165,10 @@ class RavenPython(Tester):
 
     return True
 
-  def process_results(self, output):
+  def process_results(self, _):
     """
       Sets the status of this test.
-      @ In, output, string, output of running the test.
+      @ In, ignored, string, output of running the test.
       @ Out, None
     """
     if self.results.exit_code != 0:
