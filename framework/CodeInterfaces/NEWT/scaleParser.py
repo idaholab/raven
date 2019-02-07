@@ -3,15 +3,17 @@ Created on October 23rd 2017
 @author: rouxpn
 """
 
-import re 
+import os
 import sys
-import fileinput
+import re 
 from shutil import copyfile 
+import fileinput 
 from decimal import Decimal 
+import time
 import xml.etree.ElementTree as ET
+from random import *
 from xml.etree.ElementTree import Element, SubElement, Comment
 from xml.dom import minidom
-
 
 class scaleParser():
   """
@@ -19,24 +21,26 @@ class scaleParser():
     and the mixture scalar fluxes. It then prints those values in the Xs-Library.xml, which is 
     one of the PHISICS input. 
   """
-  
-  def __init__(self,inputFile):
+  def __init__(self):
     """
       Parse the scale.out data to get the disadvantage factor and mixture
       scalar fluxes
-      @ In, inputFile, list, list of scale input file name (newt.out)
-      @ In, numberOfLattices, string, integer under string format, indicates how many lattices are used
+      @ In, None 
       @ Out, None 
     """
     disadvantageFactorDict = {}
-    self.outputFile = 'Xs-Library.xml'
-
+    # input flag 
+    inputFile 
+    # lib flag 
+    self.outputFile
+    
     for inp in xrange (0, len(inputFile)):
       disadvantageFactorDict[inputFile[inp]] = {}
       self.numberOfGroups         = self.getNumberOfGroups(inputFile[inp])
       isItDoubleHet, doubleHetMix,txsecInp = self.isTheSystemDoubleHetIfYesGiveMeMixNumber(inputFile[inp])
       if isItDoubleHet is True and txsecInp is False: 
         doubleHetMixList = self.doubleHetMixtures(doubleHetMix, inputFile[inp])
+        print doubleHetMixList
       if isItDoubleHet is True and txsecInp is not False:  # if txsecInp is not false, it is equal to txsec file name
         doubleHetMixList = self.doubleHetMixtures(doubleHetMix, txsecInp)
       if isItDoubleHet is False: 
@@ -47,7 +51,7 @@ class scaleParser():
       mixScalarFluxDict           = self.getMixScalarFlux(inputFile[inp]) 
       disadvantageFactorsDict     = self.calculateDisadvantageFactors(homogenizedMixtures, mixtureVolumesDict, mixScalarFluxDict, volumeOfHomMix, inputFile[inp], disadvantageFactorDict)
     self.generateXML(disadvantageFactorsDict, mixScalarFluxDict, isItDoubleHet, doubleHetMix, doubleHetMixList, inputFile)
-
+    
   def getTotalVolume(self, mixtureVolumesDict):
     """
       calculate the total volume of the mixtures utilized in the homogenized mixture
@@ -213,7 +217,7 @@ class scaleParser():
             return True, line.split()[-2].split('=')[1], txsecInp
         if re.search(r'end\s+celldata',line, re.IGNORECASE): 
           return False, None, None 
-
+  
   def isNumber(self, line):
     """
       check if a string is an integer
@@ -226,7 +230,7 @@ class scaleParser():
   
   def readGroupNumbersOfMixFluxes(self,line):
     """
-      In the cell averaged fluxe line, this mehtod reads which groups are being parsed. 
+      in the cell averaged fluxe line, this mehtod reads which groups are being parsed. 
       @ In, line, string, string looking like 'Mixture  Group  9      Group 10      Group 11'
       @ Out, groupsInLine, list, list of integers relative to the group numbers of interest
     """
@@ -317,7 +321,6 @@ class scaleParser():
       @ In, mixScalarFluxDict, dictionary  
       @ In, isItDoubleHet, boolean, Tells if the NEWT system has double het self shielding treatment 
       @ In, doubleMix, if the system is double het, it give the fuel mix (integer), if not, gives None 
-      @ In, inputFile, string, NEWT input file name
       @ Out, mixture.xml (xml file) 
     """ 
     copyOut = 'lib_copy.xml'
@@ -372,3 +375,5 @@ class scaleParser():
         for line in infile:
           if not line.strip(): continue  
           outfile.write(line)  
+
+scaleParser = scaleParser()
