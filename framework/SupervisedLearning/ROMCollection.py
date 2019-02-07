@@ -221,22 +221,6 @@ class Segments(Collection):
   ###################
   # UTILITY METHODS #
   ###################
-  def _trainBySegments(self, divisions, trainingSet):
-    """
-      Train ROM by training many ROMs depending on the input/index space clustering.
-      @ In, divisions, tuple, (division slice indices, unclustered spaces)
-      @ In, trainingSet, dict or list, data used to train the ROM; if a list is provided a temporal ROM is generated.
-      @ Out, None
-    """
-    # train the subdomain ROMs
-    counter, remainder = divisions
-    roms = self._trainSubdomainROMs(self._templateROM, counter, trainingSet, self._romGlobalAdjustments)
-    # if there were leftover domain segments that didn't go with the rest, train those now
-    if remainder:
-      unclusteredROMs = self._trainSubdomainROMs(self._templateROM, remainder, trainingSet, self._romGlobalAdjustments)
-      roms = np.hstack([roms, unclusteredROMs])
-    self._roms = roms
-
   def _evaluateBySegments(self, evaluationDict):
     """
       Evaluate ROM by evaluating its segments
@@ -249,7 +233,8 @@ class Segments(Collection):
     result = None  # we don't know the targets yet, so wait until we get the first evaluation to set this up
     nextEntry = 0  # index to fill next data set into
     self.raiseADebug('Sampling from {} segments ...'.format(len(self._roms)))
-    for r, rom in enumerate(self._roms):
+    roms = self._getSequentialRoms()
+    for r, rom in enumerate(roms):
       self.raiseADebug('Evaluating ROM segment', r)
       subResults = rom.evaluate(evaluationDict)
       # NOTE the pivot values for subResults will be wrong (shifted) if shifting is used in training
@@ -268,8 +253,16 @@ class Segments(Collection):
       # update next subdomain storage location
       nextEntry += entries
     # place pivot values
-    result[pivotID][:] = self._indexValues[pivotID] # [:] allows for sizing sanity check (maybe should be an assertion?)
+    result[pivotID] = self._indexValues[pivotID]
     return result
+
+  def _getSequentialRoms(self):
+    """
+      Returns ROMs in sequential order. Trivial for Segmented.
+      @ In, None
+      @ Out, list, list of ROMs in order (pointer, not copy)
+    """
+    return self._roms
 
   def _subdivideDomain(self, divisionInstructions, trainingSet):
     """
@@ -320,6 +313,22 @@ class Segments(Collection):
       self.raiseADebug('Dividing {:^20s} into {:^5d} divisions for training ...'.format(subspace, len(counter) + len(unclustered)))
     # return the counter indicies as well as any odd-piece-out parts
     return counter, unclustered
+
+  def _trainBySegments(self, divisions, trainingSet):
+    """
+      Train ROM by training many ROMs depending on the input/index space clustering.
+      @ In, divisions, tuple, (division slice indices, unclustered spaces)
+      @ In, trainingSet, dict or list, data used to train the ROM; if a list is provided a temporal ROM is generated.
+      @ Out, None
+    """
+    # train the subdomain ROMs
+    counter, remainder = divisions
+    roms = self._trainSubdomainROMs(self._templateROM, counter, trainingSet, self._romGlobalAdjustments)
+    # if there were leftover domain segments that didn't go with the rest, train those now
+    if remainder:
+      unclusteredROMs = self._trainSubdomainROMs(self._templateROM, remainder, trainingSet, self._romGlobalAdjustments)
+      roms = np.hstack([roms, unclusteredROMs])
+    self._roms = roms
 
   def _trainSubdomainROMs(self, templateROM, counter, trainingSet, romGlobalAdjustments):
     """
@@ -458,7 +467,7 @@ class Clusters(Segments):
     #############
     #   DEBUG   #
     #############
-    # _plotSignalsClustered(labels, clusterFeatures, counter, self._originalTrainingData)
+    _plotSignalsClustered(labels, clusterFeatures, counter, self._originalTrainingData)
     #############
     # END DEBUG #
     #############
@@ -485,6 +494,23 @@ class Clusters(Segments):
     # TODO add clustering information to existing nodes
 
   ## Utilities ##
+  def _calculateBasicMetrics(self, data):
+    """
+      Evaluates basic statistical data for clustering.
+      Someday should probably leverage BasicStatistics!
+      @ In, data, dict, data to compute metrics on
+      @ Out, metrics, dict, {feature:value} for features like "target_mean" and etc
+    """
+    metrics = {}
+    for target, values in data.items():
+      # mean
+      feature = self._featureTemplate.format(target=target, metric='Basic', id='mean')
+      metrics[feature] = np.average(values)
+      # std dev
+      feature = self._featureTemplate.format(target=target, metric='Basic', id='std')
+      metrics[feature] = np.std(values)
+    return metrics
+
   def _classifyROMs(self, classifier, features, clusterFeatures):
     """
       Classifies the subdomain ROMs.
@@ -503,23 +529,6 @@ class Clusters(Segments):
     # label the training data
     labels = classifier.evaluate(clusterFeatures)
     return labels
-
-  def _evaluateBasicMetrics(self, data):
-    """
-      Evaluates basic statistical data for clustering.
-      Someday should probably leverage BasicStatistics!
-      @ In, data, dict, data to compute metrics on
-      @ Out, metrics, dict, {feature:value} for features like "target_mean" and etc
-    """
-    metrics = {}
-    for target, values in data.items():
-      # mean
-      feature = self._featureTemplate.format(target=target, metric='Basic', id='mean')
-      metrics[feature] = np.average(values)
-      # std dev
-      feature = self._featureTemplate.format(target=target, metric='Basic', id='std')
-      metrics[feature] = np.std(values)
-    return metrics
 
   def _gatherClusterFeatures(self, roms, counter, trainingSet):
     """
@@ -541,7 +550,7 @@ class Clusters(Segments):
       targetData = dict((var, data[var][0]) for var in targets)
       ## DEBUGG temporarily disable basic metrics ##
       # get general basic metrics (aka cluster features)
-      #basicData = self._evaluateBasicMetrics(targetData)
+      #basicData = self._calculateBasicMetrics(targetData)
       #for feature, val in basicData.items():
       #  clusterFeatures[feature].append(val)
       # get ROM-specific metrics
@@ -549,6 +558,14 @@ class Clusters(Segments):
       for feature, val in romData.items():
         clusterFeatures[feature].append(val)
     return clusterFeatures
+
+  def _getSequentialRoms(self):
+    """
+      Returns ROMs in sequential order.
+      @ In, None
+      @ Out, _getSequentialRoms, list of ROMs in order (pointer, not copy)
+    """
+    return list(self._roms[l] for l in self._clusterInfo['labels'])
 
   def _weightAndScaleClusters(self, features, featureGroups, clusterFeatures, weightingStrategy):
     """

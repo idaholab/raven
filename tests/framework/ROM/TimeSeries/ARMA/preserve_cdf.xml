@@ -145,7 +145,7 @@
 
   <Metrics>
     <SKL name="metric">
-      <metricType>regression|r2_score</metricType>
+      <metricType>regression|mean_squared_error</metricType>
     </SKL>
   </Metrics>
 

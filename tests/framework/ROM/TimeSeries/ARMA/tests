@@ -83,7 +83,24 @@
     output = 'Segmented/synthetic.csv Segmented/synthetic_0.csv Segmented/synthetic.xml Segmented/stats.xml'
     csv = 'Segmented/stats.csv'
     rel_err = 1e-2
-    os_max_time = 'Windows 500' # ONLY due to 2018 Windows VDI test machine
+  [../]
+  [./Clustered]
+    type = 'RavenFramework'
+    input = 'clustered.xml'
+    [./input_ldc]
+      # this is primarily to test that sample_ldc will be a valid test.
+      # If this fails, then either there's an error, or the gold_dur*.csv need regolding.
+      # This is done by copying input_durs_0.csv 10 times to compare against the sample ldcs.
+      # Hopefully we get a compare-samples-to-gold metric figured out so we can use that later.
+      type = OrderedCSV
+      output = 'Clustered/input_durs_0.csv'
+      rel_err = 1e-5
+    [../]
+    [./sample_ldc]
+      type = OrderedCSV
+      output = 'Clustered/metric.csv'
+      rel_err = 1e-6
+    [../]
   [../]
 
   [./PreserveCdf]
@@ -102,7 +119,6 @@
       type = OrderedCSV
       output = 'PreserveCdf/metric.csv'
       rel_err = 1e-6
-      zero_threshold = 1e-10
     [../]
   [../]
 []

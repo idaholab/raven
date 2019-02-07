@@ -11,7 +11,10 @@
 
   <RunInfo>
     <WorkingDir>Clustered</WorkingDir>
-    <Sequence>load,train,stats,sample,print</Sequence>
+    <Sequence>
+      load, train, stats, sample, valdur_orig, valdur_samples,
+      load_gold, vdc_metric, print
+    </Sequence>
   </RunInfo>
 
   <Steps>
@@ -34,14 +37,37 @@
       <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
       <Output class="DataObjects" type="HistorySet">synthetic</Output>
     </MultiRun>
-    <IOStep name="print">
+    <PostProcess name="valdur_orig">
+      <Input class="DataObjects" type="HistorySet">input</Input>
+      <Model class="Models" type="PostProcessor">val_dur</Model>
+      <Output class="DataObjects" type="HistorySet">input_durs</Output>
+    </PostProcess>
+    <PostProcess name="valdur_samples">
       <Input class="DataObjects" type="HistorySet">synthetic</Input>
-      <Output class="OutStreams" type="Print">synthetic</Output>
+      <Model class="Models" type="PostProcessor">val_dur</Model>
+      <Output class="DataObjects" type="HistorySet">sample_durs</Output>
+    </PostProcess>
+    <IOStep name="load_gold">
+      <Input class="Files" type="">gold_dur</Input>
+      <Output class="DataObjects" type="HistorySet">gold_durs</Output>
+    </IOStep>
+    <PostProcess name="vdc_metric">
+      <Input class="DataObjects" type="HistorySet">gold_durs</Input>
+      <Input class="DataObjects" type="HistorySet">sample_durs</Input>
+      <Model class="Models" type="PostProcessor">metric</Model>
+      <Output class="DataObjects" type="PointSet">metric</Output>
+    </PostProcess>
+    <IOStep name="print">
+      <Input class="DataObjects" type="HistorySet">input_durs</Input>
+      <Input class="DataObjects" type="PointSet">metric</Input>
+      <Output class="OutStreams" type="Print">input_durs</Output>
+      <Output class="OutStreams" type="Print">metric</Output>
     </IOStep>
   </Steps>
 
   <Files>
     <Input name="input">head.csv</Input>
+    <Input name="gold_dur">gold_durs.csv</Input>
   </Files>
 
   <DataObjects>
@@ -63,6 +89,27 @@
         <pivotParameter>Time</pivotParameter>
       </options>
     </HistorySet>
+    <HistorySet name="input_durs">
+      <Output>counts_Signal</Output>
+      <options>
+        <pivotParameter>bins_Signal</pivotParameter>
+      </options>
+    </HistorySet>
+    <HistorySet name="sample_durs">
+      <Output>counts_Signal</Output>
+      <options>
+        <pivotParameter>bins_Signal</pivotParameter>
+      </options>
+    </HistorySet>
+    <HistorySet name="gold_durs">
+      <Output>counts_Gold</Output>
+      <options>
+        <pivotParameter>bins_Signal</pivotParameter>
+      </options>
+    </HistorySet>
+    <PointSet name="metric">
+      <Output>metric_counts_Gold_counts_Signal</Output>
+    </PointSet>
     <DataSet name="romMeta"/>
   </DataObjects>
 
@@ -74,9 +121,10 @@
       <P>0</P>
       <Q>0</Q>
       <Fourier>100, 5, 3</Fourier>
+      <preserveInputCDF>True</preserveInputCDF>
       <Segment grouping='cluster'>
         <Classifier class='Models' type='PostProcessor'>classifier</Classifier>
-        <subspace divisions='10'>Time</subspace>
+        <subspace divisions='10' shift='first'>Time</subspace>
       </Segment>
     </ROM>
     <PostProcessor name="classifier" subType="DataMining">
@@ -85,27 +133,42 @@
         <SKLtype>cluster|AffinityPropogation</SKLtype>
       </KDD>
     </PostProcessor>
-    <PostProcessor name="stats" subType="BasicStatistics">
-      <expectedValue prefix="mean">Signal</expectedValue>
-      <variance prefix="var">Signal</variance>
+    <PostProcessor name="val_dur" subType="ValueDuration">
+      <target>Signal</target>
+      <bins>10</bins>
+    </PostProcessor>
+    <PostProcessor name="metric" subType="Metric">
+      <Features type="variable">counts_Signal</Features>
+      <Targets type="variable">counts_Gold</Targets>
+      <pivotParameter>bins_Signal</pivotParameter>
+      <Metric class="Metrics" type="SKL">metric</Metric>
     </PostProcessor>
   </Models>
+
+  <Metrics>
+    <SKL name="metric">
+      <metricType>regression|mean_squared_error</metricType>
+    </SKL>
+  </Metrics>
 
   <Samplers>
     <MonteCarlo name="mc">
       <samplerInit>
-        <limit>1</limit>
-        <initialSeed>20021986</initialSeed>
+        <limit>10</limit>
+        <initialSeed>42</initialSeed>
       </samplerInit>
       <constant name='scaling'>1.0</constant>
     </MonteCarlo>
   </Samplers>
 
   <OutStreams>
-    <Print name="synthetic">
+    <Print name="input_durs">
       <type>csv</type>
-      <source>synthetic</source>
-      <what>input, output</what>
+      <source>input_durs</source>
+    </Print>
+    <Print name="metric">
+      <type>csv</type>
+      <source>metric</source>
     </Print>
     <Print name="romMeta">
       <type>csv</type>

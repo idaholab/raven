@@ -25,18 +25,13 @@ warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
-import sys
 import copy
-import itertools
 import collections
 import numpy as np
-import xarray as xr
 import statsmodels.api as sm # VARMAX is in sm.tsa
 from statsmodels.tsa.arima_model import ARMA as smARMA
-from scipy import optimize
-from scipy import stats
 from scipy.linalg import solve_discrete_lyapunov
-from sklearn import linear_model, neighbors
+from sklearn import linear_model
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -63,8 +58,8 @@ class ARMA(supervisedLearning):
       @ In, kwargs: an arbitrary dictionary of keywords and values
     """
     # general infrastructure
-    supervisedLearning.__init__(self,messageHandler,**kwargs)
-    self.printTag          = 'ARMA'
+    supervisedLearning.__init__(self, messageHandler, **kwargs)
+    self.printTag = 'ARMA'
     self._dynamicHandling  = True # This ROM is able to manage the time-series on its own.
     # training storage
     self.trainingData      = {} # holds normalized ('norm') and original ('raw') training data, by target
@@ -88,6 +83,7 @@ class ARMA(supervisedLearning):
     self.zeroFilterTarget  = None # target for whom zeros should be filtered out
     self.zeroFilterTol     = None # tolerance for zerofiltering to be considered zero, set below
     self.zeroFilterMask    = None # mask of places where zftarget is zero, or None if unused
+    self.notZeroFilterMask = None # mask of places where zftarget is NOT zero, or None if unused
     self._minBins          = 20   # min number of bins to use in determining distributions, eventually can be user option, for now developer's pick
     # signal storage
     self._signalStorage    = collections.defaultdict(dict) # various signals obtained in the training process
@@ -576,19 +572,18 @@ class ARMA(supervisedLearning):
       for period in fourier['regression']['periods']:
         ### NEW ###
         # go from A*sin(ft) + B*cos(ft) to C*sin(ft + phase)
+        ## amp
         amp = fourier['regression']['coeffs'][period]['amplitude']
-        ## not great for clustering?
-        # phase = fourier['regression']['coeffs'][period]['phase']
         ID = '{}_{}'.format(period, 'amp')
         feature = featureTemplate.format(target=target, metric='Fourier', id=ID)
         features[feature] = amp
+        ## phase
+        # not great for clustering
+        # phase = fourier['regression']['coeffs'][period]['phase']
+        # ID = '{}_{}'.format(period, 'phase')
+        # feature = featureTemplate.format(target=target, metric='Fourier', id=ID)
+        # features[feature] = phase
         ### END NEW ###
-        ### OLD ###
-        #for waveform, coeff in fourier['regression']['coeffs'][period].items():
-          #ID = '{}_{}'.format(period, waveform)
-          #feature = featureTemplate.format(target=target, metric='Fourier', id=ID)
-          #features[feature] = coeff
-        ### END OLD ###
     # signal variance, ARMA (not varma)
     for target, arma in self.armaResult.items():
       feature = featureTemplate.format(target=target, metric='arma', id='std')
@@ -657,7 +652,7 @@ class ARMA(supervisedLearning):
             self.fourierResults[target] = self._trainFourier(pivotValues,
                                                              full,
                                                              targetVals,
-                                                             zeroFilter = zeroFiltering)
+                                                             zeroFilter=zeroFiltering)
             # remove longer signal from training data
             signal = self.fourierResults[target]['predict']
             targetVals -= signal
