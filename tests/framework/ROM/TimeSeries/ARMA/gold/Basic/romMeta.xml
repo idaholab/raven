@@ -5,7 +5,7 @@
       <sampleTag>RAVEN_sample_ID</sampleTag>
     </general>
   </DataSet>
-
+  
   <arma type="Static">
     <ROM>
       <type>ARMA</type>
@@ -39,5 +39,5 @@
       </ARMA_params>
     </Speed>
   </arma>
-
+  
 </DataObjectMetadata>
