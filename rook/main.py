@@ -65,6 +65,7 @@ class LoadClass(threading.Thread):
     """
     threading.Thread.__init__(self)
     self.__load_avg = psutil.cpu_percent(1.0)*psutil.cpu_count()/100.0
+    self.__smooth_avg = self.__load_avg
     self.__load_lock = threading.Lock()
     self.daemon = True #Exit even if this thread is running.
 
@@ -78,6 +79,7 @@ class LoadClass(threading.Thread):
       load_avg = psutil.cpu_percent(1.0)*psutil.cpu_count()/100.0
       with self.__load_lock:
         self.__load_avg = load_avg
+        self.__smooth_avg = 0.9*self.__smooth_avg + 0.1*load_avg
 
   def get_load_average(self):
     """
@@ -89,6 +91,17 @@ class LoadClass(threading.Thread):
     with self.__load_lock:
       load_avg = self.__load_avg
     return load_avg
+
+  def get_smooth_average(self):
+    """
+      Get the most recent smooth average
+      @ In, None,
+      @ Out, float value for smooth average (average number of processors running) but smoothed
+    """
+    smooth_avg = -1
+    with self.__load_lock:
+      smooth_avg = self.__smooth_avg
+    return smooth_avg
 
 if args.load_average > 0:
   load = LoadClass()
@@ -107,7 +120,7 @@ def load_average_adapter(function):
       @ Out, result, result of running function on data
     """
     #basically get the load average for 0.1 seconds:
-    while load.get_load_average() > args.load_average:
+    while load.get_smooth_average() > args.load_average:
       time.sleep(1.0)
     return function(data)
   return new_func
