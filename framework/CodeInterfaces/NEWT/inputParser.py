@@ -1,6 +1,7 @@
 """
 Created on September 19th, 2017
-@author: rouxpn
+Modif Jan 2019
+@author: rouxpn (Pascal Rouxelin)
 """
 
 import os
@@ -16,11 +17,11 @@ import collections
 
 class inputParser():
   """
-    takes the RAVEN variables (group structure) parses them and implement the group structure into the newt input 
+    Pre-processes the variables to convert them into group structures. Implements the group structure into the newt input 
   """
   def getNumberOfGroups(self):
     """
-      finds out what is the desired broad group structure desired by the user-input
+      Finds out what is the desired broad group structure desired by the user-input
       @ In, None
       @ Out, numberOfGroups, integer, number of broad groups, 
     """
@@ -29,16 +30,19 @@ class inputParser():
       numberOfGroups = numberOfGroups + 1 
     return numberOfGroups  
   
-  def __init__(self, workingDir, inputFiles, numberOfLattice, **pertDict):
+  def __init__(self, nFineGroups, workingDir, inputFiles, numberOfLattice, **pertDict):
     """
-      Parses the newt.inp data file 
-      @ In, workingDir, string, path to working dir
-      @ In, inputFiles, list, list of strings containing the input file names to be parsed (scale/NEWT input)
+      Parses the newt.inp data file(s) 
+      @ In, nFineGroups, integer, number of collapsed groups to collaspe from
+      @ In, workingDir, string, path to working directory
+      @ In, inputFiles, list, list of strings containing the input file names to be parsed
       @ In, numberOfLattice, string, number of lattice cells (in string format) considered. default 1 
       @ In, pertDict, dictionary, dictionary of perturbed variables
+      @ Out, None
     """
+    self.nFineGroups = nFineGroups
     self.inputFiles = inputFiles
-    self.fineGroupStructure = 252  
+    self.fineGroupStructure = nFineGroups  
     self.pertDict = pertDict
     numberOfGroups = self.getNumberOfGroups()
     normalizedWeights, sumOfWeights_iter1 = self.generateWeights(numberOfGroups)
@@ -50,11 +54,12 @@ class inputParser():
 
   def generateWeights(self, numberOfGroups):
     """
-      Take the variable value as an input, and turn into a weight function, in order to build the group structure. 
+      Takes the variable value as an input, and turn it into a weight function, in order to build the group structure. 
       The format is group|1: 105 group|2: 12 etc... for each group of the collapsed structure. 
-      The goal of this function is to turn the intger value of each group into proper N broad group strucutre collapsed from 252 groups
       @ In, numberOfGroups, interger, number of groups user-input
-      @ Out, collapsedStructure, list, list of floats. The intergers correspond to the number of energy bins in each broad group that have to be collapsed from the 252 groups 
+      @ Out, normalizedWeights, list, list of floating numbers. The intergers correspond to the number of energy bins in each broad 
+        group that have to be collapsed from the 252 groups 
+      @ Out, sumOfWeights, float, sum of the weights contained in the variable normalizedWeights 
     """
     sumOfWeights = 0
     normalizedWeights = []
@@ -70,16 +75,18 @@ class inputParser():
     
   def fixFirstEnergyGroup(self,normalizedWeights,sumOfWeights_iter1):
     """
-      in case the bin of the first collasped group is < 3, it may end up resulting in 0 zero XS values. 
-      This method fixes the float values lower than 3 in order to make a collasping group having at least three groups (the three fastest groups). 
-      This methods calculates the minimum weight necessary to result in a float value equal to 3. It requires an iteration 
+      If the first collapsed group includes less than 8 fine groups (if a 252 or 238 structure is used), the flux may be equal to 0. 
+      This methods calculates the minimum weight necessary to result in a float value equal to 8. It requires an iteration 
       over the weights, and a renormalization of the weigths after the iteration.
       @ In, normalizedWeights, list of float values representing the weight of each energy bin 
       @ In, sumOfWeights_iter1, float, sum of the weights on the first iteration 
-      @ Out, normalizedWeights, lost of float values, representing the weight of each energy bin but no zeros allowed
+      @ Out, normalizedWeights, list, list of float values representing the weight of each energy bin (no zeros allowed)
     """
     rebalancedNormalizeWeights = []
-    self.minimumCollapsedGroup = 8
+    if self.nFineGroups == 252 or self.nFineGroups == 238:
+      self.minimumCollapsedGroup = 8
+    else: 
+      self.minimumCollapsedGroup = 1
     if normalizedWeights[0] < self.minimumCollapsedGroup:
       sumOfWeights_iter2,minimumWeightGr1 = self.minimumWeight(normalizedWeights,sumOfWeights_iter1)
       rebalancedNormalizeWeights.append(minimumWeightGr1/sumOfWeights_iter2 * self.fineGroupStructure)
@@ -91,9 +98,13 @@ class inputParser():
   
   def minimumWeight(self,normalizedWeights,sumOfWeights_iter1):
     """
-      calculates the minimum weights a group 1 has to have in order to be at least equal to 3. 
+      Calculates the minimum weight that the broad group 1 must have to absorb at least 8 fine groups. 
       @ In, normalizedWeights, list of float values representing the weight of each energy bin 
-      @ In, sumOfWeights, float, sum of the weights on the first iteration 
+      @ In, sumOfWeights_iter1, float, sum of the weights on the first iteration 
+      @ Out, sumOfWeights_iter2, float, sum of the weights on the second iteration
+      @ Out, minimumWeightGr1, float, minimum value the weight corresponding to group 1 must have to satisfy the condition 
+        "the first eight fine groups must be collapsed if the number of fine groups is 252 or 238"
+      
     """
     minimumWeightGr1 = self.minimumCollapsedGroup * sumOfWeights_iter1 / self.fineGroupStructure
     sumOfWeights_iter2 = minimumWeightGr1 
@@ -103,10 +114,10 @@ class inputParser():
   
   def fixZeros(self,normalizedWeights):
     """
-      This methods ensures no group collapsed into 0 broad group. 
-      Pragmatically, it avoids in a a string 4r1, 0r5, 4r3 etc...
-      @ In, normalizedWeights, list of floats 
-      @ Out, normalizedWeights, list of float, all floats greater than 1 
+      This methods ensures the routine does not collapse 0 broad group. 
+      Pragmatically, it avoids in a string 4r1, 0r5, 4r3 etc...
+      @ In, normalizedWeights, list, list of floats 
+      @ Out, normalizedWeights, list, list of float > 1 
     """
     for i in xrange (0,len(normalizedWeights)):
       if normalizedWeights[i] < 1.00:
@@ -116,24 +127,20 @@ class inputParser():
   def roundBinValues(self,normalizedWeights):
     """
       Currently, the energy bins come as a floating number. This method turns the number of bins into integer numbers, and 
-      ensures the number of groups is equal to 252. 
+      ensures the number of groups is equal to N (N = 252 or 238 or 56). 
       @ In, normalizedWeights, float, number of energy bins 
-      @ Out, int(normalizedWeights), list, list of integer giving the broad group structure 
+      @ Out, energyBins, list, list of integer containing the broad group structure 
     """
     energyBins = []
-    isIt252 = True
-    residualList, sumOfIntegerValues = self.getResidualPart(normalizedWeights)
-    copyResidualList = residualList
-    
-    
+    isItN = True
+    residualList, sumOfIntegerValues = self.getDecimalPart(normalizedWeights)
+    copyResidualList = residualList    
     if sumOfIntegerValues != self.fineGroupStructure:
       sumOfIntegerValues = self.pickTheLargestValue(copyResidualList,normalizedWeights,sumOfIntegerValues)
-      isIt252 = self.verifyStructure(sumOfIntegerValues)
-      print isIt252 
+      isItN = self.verifyStructure(sumOfIntegerValues)
       for i in range (len(normalizedWeights)):
         energyBins.append(int(normalizedWeights[i]))
-      if isIt252 is False: # if the round up ends up to 253, reduces the largest bin by 1
-        print 'second False'
+      if isItN is False: # in 252 for example, if the round up ends up to 253, reduces the largest bin by 1
         maxE = max(energyBins)
         sumEB = sum(energyBins)
         exceeding = sumEB - self.fineGroupStructure
@@ -141,37 +148,31 @@ class inputParser():
           if energyBins[i] == maxE:
             energyBins[i] = maxE - exceeding
             break 
-        print 'verif 1'
-        print isIt252
-        print 'current sum'
-        print sumEB
-        isIt252 = self.verifyStructure(sum(energyBins))
-        print 'verif 2'
-        print isIt252
+        isItN = self.verifyStructure(sum(energyBins))
     else:
       for i in range (len(normalizedWeights)):
         energyBins.append(int(normalizedWeights[i]))
-    
     return energyBins    
   
-  def getResidualPart(self,normalizedWeights):
+  def getDecimalPart(self,normalizedWeights):
     """
-      get the residual value of the floating number. For example: 1.2536 will give 0.2536. 
+      Gets the decimal value of the floating number. For example: 1.2536 will return 0.2536. 
       @ In, normalizedWeights, list, list of energy bin weighting values
-      @ Out, ResidualList, list, list containing the resuduals of the weighting values. 
+      @ Out, decimalList, list, list containing the resuduals of the weighting values
+      @ Out, sumOfIntegerValues, integer, sum of the integer part of the weights
     """
-    residualList = []
+    decimalList = []
     sumOfIntegerValues = 0 
     for i in xrange (0,len(normalizedWeights)):
-      residualList.append(normalizedWeights[i] - int(normalizedWeights[i]))
+      decimalList.append(normalizedWeights[i] - int(normalizedWeights[i]))
       sumOfIntegerValues = int(normalizedWeights[i]) + sumOfIntegerValues
-    return residualList, sumOfIntegerValues
+    return decimalList, sumOfIntegerValues
   
   def modifyDuplicateValues(self,variableList):
     """
-      finds the duplicate in the floating part of the weighting functions. 
-      If a duplicate is detected, a randomValue (positive or negative) is added arbitrarly to one of the values. 
-      @ In, variableList, list, list of floating values of the group weighting functions
+      Finds the potential duplicate(s) in the decimal part of the weighting functions. 
+      If a duplicate is detected, a random value (positive or negative) is added arbitrarly to one of the values. 
+      @ In, variableList, list, list of floating values from the weighting functions
       @ Out, variableList, list, list modified in case there were duplicates
     """
     valueSeen = set() 
@@ -194,18 +195,18 @@ class inputParser():
       if n == (len(variableList)-1): 
         return variableList
   
-  def pickTheLargestValue(self,copyResidualList,normalizedWeights,sumOfIntegerValues):
+  def pickTheLargestValue(self,copyDecimalList,normalizedWeights,sumOfIntegerValues):
     """
-      picks the largest residual value, and rounds up the value corresponding to it. 
+      Picks the largest decimal value, and rounds up the value corresponding to it. 
       Example: if there are three bins with the weights: 1.17; 256.25; 47.88, the largest 
-      floating number is 0.88, so 47 is rounded up to 48
-      @ In, copyResidualList, list, list of residual values of the bin weights
-      @ Out, 
+      decimal is 0.88, so 47.88 is rounded up to 48.
+      @ In, copyDecimalList, list, list of residual values of the bin weights
+      @ Out, sumOfIntegerValues, integer, sum of the integer values of the weights
     """
     while sumOfIntegerValues < self.fineGroupStructure:
       sumOfIntegerValues = 0
-      largestFloat = max(copyResidualList)
-      copyResidualList.remove(largestFloat)
+      largestFloat = max(copyDecimalList)
+      copyDecimalList.remove(largestFloat)
       for i in xrange(0,len(normalizedWeights)):
         if normalizedWeights[i] == int(normalizedWeights[i]) + largestFloat:
           normalizedWeights[i] = int(normalizedWeights[i]) + 1
@@ -214,23 +215,21 @@ class inputParser():
           
   def verifyStructure(self,sumOfIntegerValues):
     """
-      verifies that the final structure has collapsed 252 groups. Raises an error if not. 
+      Verifies that the final structure has collapsed N groups. Raises an error if not. 
       @ In, sumOfIntegerValues, interger, number of groups collapsed
-      @ Out, None
+      @ Out, Boolean
     """
     if sumOfIntegerValues != self.fineGroupStructure: 
-      print sumOfIntegerValues
       print ('WARNING ! the number of groups of the collapsed structure is not equal to 252')
       return False
-      #raise ValueError('ERROR ! the number of groups of the collapsed structure is not equal to 252')
     return True
       
   def formatIntoNewtFriendlyGroupStructure(self,energyBins):
     """
-      turns the energy strcuture into a NEWT-friendly energy bins
-      so from [20,10,58,150] to [20r1, 10r2, 58r3,150r4]
+      Turns the energy strcuture into a NEWT-friendly energy bins.
+      Example: [20,10,58,150] becomes [20r1, 10r2, 58r3,150r4].
       @ In, energyBins, list, list of integers containing the energy bins 
-      @ Out, newtEnergyBins, string, string of integers containing the energy bins in a newt-friendly format 
+      @ Out, newtEnergyBins, string, energy bins in a newt-friendly format 
     """
     groupNumber = 0
     newtEnergyBinsList = [] 
@@ -238,24 +237,7 @@ class inputParser():
       groupNumber = groupNumber + 1 
       newtEnergyBinsList.append(str(energyBins[i])+'r'+str(groupNumber))
     newtEnergyBins = ' '.join(newtEnergyBinsList)
-    #print newtEnergyBins
     return newtEnergyBins
-   
-  def removeRandomlyNamedFiles(self, modifiedFile):
-    """
-      Remove the temporary file with a random name in the working directory
-      In, modifiedFile, string
-      Out, None 
-    """
-    os.remove(modifiedFile)    
-       
-  def generateRandomName(self):
-    """
-      generate a random file name for the modified file
-      @ in, None
-      @ Out, string
-    """
-    return str(randint(1,1000000000000))+'.xml'
     
   def printInput(self,workingDir,newtEnergyBins,numberOfLattice):
     """
@@ -267,13 +249,9 @@ class inputParser():
     """
     for i in range(int(numberOfLattice)):
       inFile = 'template'+str(i)+'.inp'
-      modifiedFile = self.generateRandomName() 
-      copyfile(inFile, modifiedFile)
+      copyfile(inFile, self.inputFiles[i])
       with open(inFile, "rt") as lin:
-        with open(modifiedFile, "wt") as lout:
+        with open(self.inputFiles[i], "wt") as lout:
           for line in lin:
             lout.write(line.replace('read collapse','read collapse'+"\n"+newtEnergyBins)) 
-      copyfile(modifiedFile, os.path.join(workingDir,self.inputFiles[i]))  
-      
-      self.removeRandomlyNamedFiles(modifiedFile)
-
+      copyfile(self.inputFiles[i], os.path.join(workingDir,self.inputFiles[i]))
