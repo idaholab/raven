@@ -1,20 +1,22 @@
 <?xml version="1.0" ?>
 <Simulation>
   <TestInfo>
-    <name>framework/CodeInterfaceTests.RELAP5interfaceTestAliasAliasNoExecutable</name>
+    <name>framework/CodeInterfaceTests/RELAP5.RELAP5interfaceTestAliasAndMetadataTransfer</name>
     <author>alfoa</author>
-    <created>2016-11-28</created>
+    <created>2017-02-19</created>
     <classesTested>Models.Code.RELAP5</classesTested>
     <description>
        An example of using the RELAP5 code interface. This test is aimed to test the mechanics of the interface (no executable),
-       when the RAVEN alias system is used.
+       when the RAVEN alias system is used and some metadata (i.e. restart prefix) needs to be passed in. This test
+       executes 2 relap5 runs for each realization: the first one establishes the steady state, the second one restarts the
+       calculation and runs a transient.
     </description>
     <revisions>
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
     </revisions>
   </TestInfo>
   <RunInfo>
-    <WorkingDir>/Users/alfoa/projects/raven/tests/framework/CodeInterfaceTests/RELAP5ensemble2relaps</WorkingDir>
+    <WorkingDir>RELAP5ensemble2relaps</WorkingDir>
     <Sequence>testEnsemble2Relaps</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
@@ -28,18 +30,18 @@
   <Models>
     <Code name="MyRELAP" subType="Relap5">
       <executable>
-        ~/Phisics_and_Relap_Repos/RELAP5_Src_for_PHISICS/r3d403is/relap/relap5.x 
+        .
         <!-- here we should put the executable. Since we want to test the interface only, it is going to be empty -->
       </executable>
       <alias variable="heat_capacity_155_variable"    type="input">20100155:2</alias>
       <alias variable="heat_capacity_154_variable"    type="input">20100154:2</alias>
-      <alias variable="massFlowRateAliasOutput" type="output">mflowj_505000000</alias>
-      <alias variable="pressureAliasOutput"     type="output">p_280010000</alias>
-      <alias variable="timeMyRelap"             type="output">time</alias>
+      <alias variable="massFlowRateAliasOutput"       type="output">mflowj_505000000</alias>
+      <alias variable="pressureAliasOutput"           type="output">p_280010000</alias>
+      <alias variable="timeMyRelap"                   type="output">time</alias>
     </Code>
     <Code name="MyRELAP_restart" subType="Relap5">
         <executable>
-           ~/Phisics_and_Relap_Repos/RELAP5_Src_for_PHISICS/r3d403is/relap/relap5.x
+           .
             <!-- here we should put the executable. Since we want to test the interface only, it is going to be empty -->
         </executable>
         <alias variable="heat_capacity_155_variable"    type="input">20100155:2</alias>
@@ -51,6 +53,7 @@
       <Model class="Models" type="Code">
         MyRELAP
         <Input class="Files" type="">snc01.i</Input>
+        <Input class="Files" type="">tpfh2o</Input>
         <TargetEvaluation class="DataObjects" type="PointSet">MyRELAPPS</TargetEvaluation>
       </Model>
       <Model class="Models" type="Code">

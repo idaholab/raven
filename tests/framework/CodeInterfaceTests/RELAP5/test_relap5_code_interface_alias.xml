@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation>
   <TestInfo>
-    <name>framework/CodeInterfaceTests.RELAP5interfaceTestAliasAliasNoExecutable</name>
+    <name>framework/CodeInterfaceTests/RELAP5.RELAP5interfaceTestAliasAliasNoExecutable</name>
     <author>alfoa</author>
     <created>2016-11-28</created>
     <classesTested>Models.Code.RELAP5</classesTested>
