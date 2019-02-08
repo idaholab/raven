@@ -37,8 +37,7 @@
       <P>2</P>
       <Q>1</Q>
       <outTruncation domain="positive">Speed</outTruncation>
-      <Fourier>604800,86400</Fourier>
-      <FourierOrder>2,2</FourierOrder>
+      <Fourier>604800.000000, 302400.000000, 86400.000000, 43200.000000</Fourier>
     </ROM>
   </Models>
 

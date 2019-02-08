@@ -1,5 +1,12 @@
 <DataObjectMetadata name="romMeta">
-  <ARMA type="Static">
+  <DataSet type="Static">
+    <general>
+      <pointwise_meta>Speed_fourier,Speed_gaussianed,Speed_nofourier,Speed_original</pointwise_meta>
+      <sampleTag>RAVEN_sample_ID</sampleTag>
+    </general>
+  </DataSet>
+
+  <arma type="Static">
     <ROM>
       <type>ARMA</type>
     </ROM>
@@ -31,13 +38,6 @@
         <std>0.258397941757</std>
       </ARMA_params>
     </Speed>
-  </ARMA>
-  
-  <DataSet type="Static">
-    <general>
-      <pointwise_meta>Speed_fourier,Speed_gaussianed,Speed_nofourier,Speed_original</pointwise_meta>
-      <sampleTag>RAVEN_sample_ID</sampleTag>
-    </general>
-  </DataSet>
-  
+  </arma>
+
 </DataObjectMetadata>
