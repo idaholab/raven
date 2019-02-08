@@ -433,6 +433,8 @@ class KerasClassifier(supervisedLearning):
     # Targets for deep neural network should be labels only (i.e. integers only)
     # For both static  and time-dependent case, the targetValues are 2D arrays, i.e. [numSamples, numTargets]
     # For time-dependent case, the time-dependency is removed from the targetValues
+    # Features can be 2D array, i.e. [numSamples, numFeatures], or 3D array,
+    # i.e. [numSamples, numTimeSteps, numFeatures]
     # TODO: currently we only accept single target, we may extend to multi-targets by looping over targets
     # Another options is to use Keras Function APIs to directly build multi-targets models, two examples:
     # https://keras.io/models/model/
@@ -493,7 +495,7 @@ class KerasClassifier(supervisedLearning):
       Perform training on samples in featureVals with responses y.
       For an one-class model, +1 or -1 is returned.
       @ In, featureVals, {array-like, sparse matrix}, shape=[n_samples, n_features],
-        an array of input feature
+        an array of input feature or shape=[numSamples, numTimeSteps, numFeatures]
       @ Out, targetVals, array, shape = [n_samples], an array of output target
         associated with the corresponding points in featureVals
     """
@@ -541,7 +543,8 @@ class KerasClassifier(supervisedLearning):
   def __confidenceLocal__(self,featureVals):
     """
       This should return an estimation of the quality of the prediction.
-      @ In, featureVals, 2-D numpy array, [n_samples,n_features]
+      @ In, featureVals,numpy.array, 2-D or 3-D numpy array, [n_samples,n_features]
+        or shape=[numSamples, numTimeSteps, numFeatures]
       @ Out, confidence, float, the confidence
     """
     self.raiseAnError(NotImplementedError,'KerasClassifier   : __confidenceLocal__ method must be implemented!')
@@ -553,6 +556,7 @@ class KerasClassifier(supervisedLearning):
       @ In, featureVals, numpy.array, 2-D for static case and 3D for time-dependent case, values of features
       @ Out, prediction, dict, predicted values
     """
+    featureVals = self._preprocessInputs(featureVals)
     prediction = {}
     with self.graph.as_default():
       outcome = self.ROM.predict(featureVals)
@@ -564,6 +568,14 @@ class KerasClassifier(supervisedLearning):
     for index, target in enumerate(self.target):
       prediction[target] = [round(val[0]) for val in outcome]
     return prediction
+
+  def _preprocessInputs(self,featureVals):
+    """
+      Perform input feature values before sending to ROM prediction
+      @ In, featureVals, numpy.array, 2-D for static case and 3D for time-dependent case, values of features
+      @ Out, featureVals, numpy.array, predicted values
+    """
+    return featureVals
 
   def __resetLocal__(self):
     """

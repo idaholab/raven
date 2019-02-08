@@ -42,3 +42,14 @@ class KerasConvNetClassifier(KerasClassifier):
     KerasClassifier.__init__(self,messageHandler,**kwargs)
     self.printTag = 'KerasConvNetClassifier'
     self.allowedLayers = self.basicLayers + self.__class__.kerasConvNetLayersList + self.__class__.kerasPoolingLayersList
+
+  def _preprocessInputs(self,featureVals):
+    """
+      Perform input feature values before sending to ROM prediction
+      @ In, featureVals, numpy.array, i.e. [shapeFeatureValue,numFeatures], values of features
+      @ Out, featureVals, numpy.array, predicted values
+    """
+    shape = featureVals.shape
+    if len(shape) == 2:
+      featureVals = np.reshape(featureVals,(1, shape[0], shape[1]))
+    return featureVals

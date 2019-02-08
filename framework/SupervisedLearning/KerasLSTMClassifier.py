@@ -22,7 +22,9 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
-
+#External Modules------------------------------------------------------------------------------------
+import numpy as np
+######
 #Internal Modules------------------------------------------------------------------------------------
 from .KerasClassifier import KerasClassifier
 #Internal Modules End--------------------------------------------------------------------------------
@@ -58,3 +60,14 @@ class KerasLSTMClassifier(KerasClassifier):
         if not self.initOptionDict[layerName].get('return_sequences'):
           self.initOptionDict[layerName]['return_sequences'] = True
           self.raiseAWarning('return_sequences is resetted to True for layer',layerName)
+
+  def _preprocessInputs(self,featureVals):
+    """
+      Perform input feature values before sending to ROM prediction
+      @ In, featureVals, numpy.array, i.e. [shapeFeatureValue,numFeatures], values of features
+      @ Out, featureVals, numpy.array, predicted values
+    """
+    shape = featureVals.shape
+    if len(shape) == 2:
+      featureVals = np.reshape(featureVals,(1, shape[0], shape[1]))
+    return featureVals

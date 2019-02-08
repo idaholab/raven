@@ -4,9 +4,7 @@
     <WorkingDir>lstm</WorkingDir>
     <Sequence>
       sample,
-      train,
-      resample,
-      print
+      train
     </Sequence>
   </RunInfo>
 
