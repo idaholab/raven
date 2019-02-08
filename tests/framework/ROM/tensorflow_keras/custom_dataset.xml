@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework/Samplers/ROM/tensorflow_keras.mlpc</name>
+    <name>framework/Samplers/ROM/tensorflow_keras.tf_mlpc</name>
     <author>wangc</author>
     <created>2019-02-07</created>
     <classesTested>Models.ROM</classesTested>

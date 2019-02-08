@@ -22,7 +22,9 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
-
+#External Modules------------------------------------------------------------------------------------
+import numpy as np
+######
 #Internal Modules------------------------------------------------------------------------------------
 from .KerasClassifier import KerasClassifier
 #Internal Modules End--------------------------------------------------------------------------------

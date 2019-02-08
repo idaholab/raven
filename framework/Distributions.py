@@ -1649,9 +1649,15 @@ class Categorical(Distribution):
     """
     totPsum = 0.0
     for element in self.mapping:
+      if self.mapping[element] < 0:
+        self.raiseAnError(IOError,'Categorical distribution cannot be initialized with negative probabilities')
       totPsum += self.mapping[element]
     if not mathUtils.compareFloats(totPsum,1.0):
-      self.raiseAnError(IOError,'Categorical distribution cannot be initialized: sum of probabilities is '+repr(totPsum)+', not 1.0')
+      for element in self.mapping:
+        self.mapping[element] = self.mapping[element]/totPsum
+      self.raiseAWarning('Categorical distribution cannot be initialized: sum of probabilities is ',
+                         repr(totPsum), ', not 1.0!', 'Renomlize to 1!')
+
 
     self.lowerBound = min(self.mapping.keys())
     self.upperBound = max(self.mapping.keys())

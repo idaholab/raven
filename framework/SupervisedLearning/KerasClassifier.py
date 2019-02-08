@@ -457,7 +457,8 @@ class KerasClassifier(supervisedLearning):
       targetValues = self.labelEncoder.fit_transform(targetValues.ravel())
       targetValues = KerasUtils.to_categorical(targetValues)
       if self.numClasses != targetValues.shape[-1]:
-        self.raiseAWarning('The num_classes specified by the user is not equal number of classes in the provided data!')
+        self.raiseAWarning('The num_classes:',self.numClasses, 'specified by the user is not equal number of classes',
+                           targetValues.shape[-1], ' in the provided data!')
         self.raiseAWarning('Reset the num_classes to be consistent with the data!')
         self.numClasses = targetValues.shape[-1]
 

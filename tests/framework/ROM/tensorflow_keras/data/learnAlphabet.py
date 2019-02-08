@@ -18,13 +18,9 @@ Created on 01/04/19
 '''
 import numpy as np
 
-def initialize(self, runInfoDict, inputFiles):
-  """
-  """
-  self.seqLength = 3
-  return
-
 def run(self,Input):
+  """
+  """
   # define the raw dataset
   alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
   # create mapping of characters to integers (0-25) and the reverse
@@ -34,6 +30,7 @@ def run(self,Input):
   tStep = maxTime/float(self.seqLength)
 
   self.index = int(Input['index']) # 0 ~ len(alphabet) - self.seqLength
+  self.seqLength = int(Input['seqLength'])
   # prepare the dataset of input to output pairs encoded as integers
   self.x = np.zeros(self.seqLength)
   self.y = np.zeros(self.seqLength)

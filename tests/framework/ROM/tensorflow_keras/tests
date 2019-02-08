@@ -1,17 +1,22 @@
 [Tests]
-  [./KerasMLPClassifier]
+  [./tf_mlpc]
     type  = 'RavenFramework'
     input = 'custom_dataset.xml'
-    output = 'data/outMLPClassifier.csv'
+    csv = 'diabetes/outMLPClassifier.csv'
   [../]
-  [./KerasCNNClassifier]
+  [./tf_cnn_dump]
     type  = 'RavenFramework'
     input = 'keras_cnn_1d.xml'
-    output = 'data/ '
+    output = 'data/cnn1d.pk'
   [../]
-  [./KerasLSTMClassifier]
+  [./tf_cnn1d]
+    type  = 'RavenFramework'
+    input = 'cnn1d.xml'
+    csv = 'data/outCon1DClassifier.csv'
+  [../]
+  [./tf_lstm]
     type  = 'RavenFramework'
     input = 'lstm.xml'
-    output = 'lstm/outLSTMClassifier.csv'
+    csv = 'data/outLSTMClassifier.csv'
   [../]
 []
