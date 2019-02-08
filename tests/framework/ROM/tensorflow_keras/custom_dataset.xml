@@ -7,7 +7,7 @@
     <classesTested>Models.ROM</classesTested>
     <description>
       Test the capability of multilayer perceptron classifier (mlpc) using TensorFlow/Keras
-      The train (row 1-718) and test (row 719-768) data are generated from  "Pima Indians Diabetes Database".
+      The train (row 1-728) and test (row 729-768) data are generated from  "Pima Indians Diabetes Database".
       CustomSampler is used to convert the csv format data into PointSet, and it is also used to test the trained
       mlpc with the test data.
     </description>

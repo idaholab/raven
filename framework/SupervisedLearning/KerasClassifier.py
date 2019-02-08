@@ -327,7 +327,7 @@ class KerasClassifier(supervisedLearning):
     # activation function for output layer of deep neural network
     self.outputLayerActivation = self.initOptionDict.pop('output_layer_activation', 'softmax')
     # A loss function that is always required to compile a KERAS model
-    self.lossFunction = self.initOptionDict.pop('loss',['categorical_crossentropy'])
+    self.lossFunction = self.initOptionDict.pop('loss','categorical_crossentropy')
     # a metric is a function that is used to judge the performance of KERAS model
     self.metrics = self.initOptionDict.pop('metrics',['accuracy'])
     # number of samples per gradient update, default 20
@@ -564,9 +564,10 @@ class KerasClassifier(supervisedLearning):
       outcome = np.argmax(outcome,axis=1)
       # Transform labels back to original encoding
       outcome = self.labelEncoder.inverse_transform(outcome)
-    # TODO, extend to multi-targets, currently we only accept one target
-    for index, target in enumerate(self.target):
-      prediction[target] = [round(val[0]) for val in outcome]
+      # TODO, extend to multi-targets, currently we only accept one target
+      prediction[self.target[0]] = outcome
+    else:
+      prediction[self.target[0]] = [round(val[0]) for val in outcome]
     return prediction
 
   def _preprocessInputs(self,featureVals):

@@ -11,7 +11,7 @@
   [../]
   [./KerasLSTMClassifier]
     type  = 'RavenFramework'
-    input = 'keras_lstm.xml'
-    output = 'lstm/'
+    input = 'lstm.xml'
+    output = 'lstm/outLSTMClassifier.csv'
   [../]
 []

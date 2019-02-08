@@ -123,7 +123,7 @@ class ROM(Dummy):
     inputSpecification.addSub(InputData.parameterInputFactory("random_state", contentType=InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("cv", contentType=InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("shuffle", contentType=InputData.StringType)) #bool
-    inputSpecification.addSub(InputData.parameterInputFactory("loss", contentType=InputData.StringListType)) #enum
+    inputSpecification.addSub(InputData.parameterInputFactory("loss", contentType=InputData.StringType)) #enum
     inputSpecification.addSub(InputData.parameterInputFactory("epsilon", contentType=InputData.FloatType))
     inputSpecification.addSub(InputData.parameterInputFactory("eta0", contentType=InputData.FloatType))
     inputSpecification.addSub(InputData.parameterInputFactory("solver", contentType=InputData.StringType)) #enum

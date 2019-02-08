@@ -26,7 +26,7 @@
       <metrics>accuracy</metrics>
       <batch_size>1</batch_size>
       <epochs>10</epochs>
-      <plot_model>True</plot_model>
+      <!--plot_model>True</plot_model-->
       <validation_split>0.25</validation_split>
       <num_classes>26</num_classes>
       <random_seed>1986</random_seed>
@@ -72,7 +72,7 @@
   <Samplers>
     <MonteCarlo name="mcSampler">
       <samplerInit>
-        <limit>100</limit>
+        <limit>200</limit>
         <initialSeed>888</initialSeed>
       </samplerInit>
       <variable name="index">
@@ -81,7 +81,7 @@
     </MonteCarlo>
     <MonteCarlo name="mcTest">
       <samplerInit>
-        <limit>20</limit>
+        <limit>10</limit>
         <initialSeed>111</initialSeed>
       </samplerInit>
       <variable name="index">
