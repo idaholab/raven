@@ -46,7 +46,7 @@ class RELAPparser():
         prevDeckLineNum = lineNum + 1
     if self.maxNumberOfDecks < 1:
       raise IOError(self.printTag+ "ERROR: the file "+inputFile+" does not contain a end case fullstop '.'!")
-
+  
   def printInput(self,outfile=None):
     """
       Method to print out the new input
@@ -60,7 +60,18 @@ class RELAPparser():
       for i in self.deckLines[deckNum]:
         outfile.write('%s' %(i))
     outfile.close()
-
+  
+  
+  def retrieveCardValues(self, listOfCards):
+    """
+      This method is to retrieve the card values contained in the list
+      @ In, listOfCards, list, list of cards
+      @ Out, cardValues, dict, dictionary containing the card and the value
+    """
+    
+    
+    
+  
   def modifyOrAdd(self,dictionaryList,save=True):
     """
       dictionaryList is a list of dictionaries of the required addition or modification

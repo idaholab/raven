@@ -30,7 +30,7 @@
         <!-- here we should put the executable. Since we want to test the interface only, it is going to be empty -->
       </executable>
       <operator variables="mult1,mult2,div1">
-          <expression> %card%*mult1*2.*mult2/div1</expression>
+          <expression> $card$*mult1*2.*mult2/div1</expression>
           <cards>1180801:2,1180802:2,1180901:3</cards>
       </operator>
       

@@ -715,7 +715,6 @@ class Code(Model):
       outputEval[key] = np.atleast_1d(value)
 
     for key, value in sampledVars.items():
-      # FIXME this is a bad check.  The two should be different enough in value to matter before we print.
       if key in outputEval.keys():
         if not utils.compare(value,np.atleast_1d(outputEval[key])[-1],relTolerance = 1e-8):
           self.raiseAWarning('The model '+self.type+' reported a different value (%f) for %s than raven\'s suggested sample (%f). Using the value reported by the raven (%f).' % (outputEval[key][0], key, value, value))
