@@ -4,7 +4,9 @@
     <WorkingDir>lstm</WorkingDir>
     <Sequence>
       sample,
-      train
+      train,
+      resample,
+      print
     </Sequence>
   </RunInfo>
 
@@ -27,6 +29,7 @@
       <plot_model>True</plot_model>
       <validation_split>0.25</validation_split>
       <num_classes>26</num_classes>
+      <random_seed>1986</random_seed>
       <optimizerSetting>
         <beta_1>0.9</beta_1>
         <optimizer>Adam</optimizer>

@@ -1,8 +1,8 @@
 [Tests]
   [./KerasMLPClassifier]
     type  = 'RavenFramework'
-    input = 'keras_mlp_classifier.xml'
-    output = 'data/outMLPClassifier.csv data/trainDump.csv'
+    input = 'custom_dataset.xml'
+    output = 'data/outMLPClassifier.csv'
   [../]
   [./KerasCNNClassifier]
     type  = 'RavenFramework'
