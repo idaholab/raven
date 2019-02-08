@@ -9,7 +9,7 @@
   <MultiRun name="resample" sleepTime="1e-5">
     <Input class="DataObjects" type="PointSet">dummyIN</Input>
     <Model class="Models" type="ROM">modelUnderTest</Model>
-    <Sampler class="Samplers" type="Grid">gridSampler</Sampler>
+    <Sampler class="Samplers" type="MonteCarlo">mcSamplerII</Sampler>
     <Output class="DataObjects" type="PointSet">outData</Output>
   </MultiRun>
   <IOStep name="print">

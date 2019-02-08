@@ -237,12 +237,10 @@ class ROM(Dummy):
     # for deep learning neural network
     #inputSpecification.addSub(InputData.parameterInputFactory("DNN", InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("hidden_layer_sizes", contentType=InputData.IntegerListType)) # list of integer
-    inputSpecification.addSub(InputData.parameterInputFactory("hidden_layer_activations", contentType=InputData.StringListType))  #list of strings
-    inputSpecification.addSub(InputData.parameterInputFactory("output_layer_activation", contentType=InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("metrics", contentType=InputData.StringListType)) #list of metrics
     inputSpecification.addSub(InputData.parameterInputFactory("batch_size", contentType=InputData.IntegerType))
     inputSpecification.addSub(InputData.parameterInputFactory("epochs", contentType=InputData.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("hidden_layer_dropouts", contentType=InputData.FloatListType))
+    inputSpecification.addSub(InputData.parameterInputFactory("random_seed", contentType=InputData.IntegerType))
     inputSpecification.addSub(InputData.parameterInputFactory("plot_model", contentType=InputData.BoolType))
     inputSpecification.addSub(InputData.parameterInputFactory("num_classes",contentType= InputData.IntegerType))
     inputSpecification.addSub(InputData.parameterInputFactory("validation_split", contentType=InputData.FloatType))

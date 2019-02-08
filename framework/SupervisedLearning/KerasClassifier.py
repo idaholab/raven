@@ -28,10 +28,10 @@ warnings.simplefilter('default',DeprecationWarning)
 import copy
 import abc
 import numpy as np
+import random as rn
 import tensorflow as tf
-# test if we can reproduce th results
-#from tensorflow import set_random_seed
-#set_random_seed(2017)
+from tensorflow import set_random_seed
+
 ######
 import tensorflow.keras as Keras
 from tensorflow.keras import models as KerasModels
@@ -301,6 +301,21 @@ class KerasClassifier(supervisedLearning):
     self.targv = None
     # instance of KERAS deep neural network model
     self.ROM = None
+    randomSeed = self.initOptionDict.pop('random_seed',None)
+    # Set the seed for random number generation to obtain reproducible results
+    # https://keras.io/getting-started/faq/#how-can-i-obtain-reproducible-results-using-keras-during-development
+    if randomSeed is not None:
+      # The below is necessary for starting Numpy generated random numbers
+      # in a well-defined initial state.
+      np.random.seed(randomSeed)
+      # The below is necessary for starting core Python generated random numbers
+      # in a well-defined state.
+      rn.seed(randomSeed)
+      # The below tf.set_random_seed() will make random number generation
+      # in the TensorFlow backend have a well-defined initial state.
+      # For further details, see:
+      # https://www.tensorflow.org/api_docs/python/tf/set_random_seed
+      set_random_seed(randomSeed)
     modelName = self.initOptionDict.pop('name','')
     # number of classes for classifier
     self.numClasses = self.initOptionDict.pop('num_classes',1)
@@ -547,7 +562,7 @@ class KerasClassifier(supervisedLearning):
       outcome = self.labelEncoder.inverse_transform(outcome)
     # TODO, extend to multi-targets, currently we only accept one target
     for index, target in enumerate(self.target):
-      prediction[target] = outcome
+      prediction[target] = [round(val[0]) for val in outcome]
     return prediction
 
   def __resetLocal__(self):

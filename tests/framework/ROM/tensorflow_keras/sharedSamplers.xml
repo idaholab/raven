@@ -2,7 +2,19 @@
   <Samplers>
     <MonteCarlo name="mcSampler">
       <samplerInit>
-        <limit>40</limit>
+        <limit>400</limit>
+        <initialSeed>888</initialSeed>
+      </samplerInit>
+      <variable name="X">
+        <distribution>smallUniformDist</distribution>
+      </variable>
+      <variable name="Y">
+        <distribution>largeUniformDist</distribution>
+      </variable>
+    </MonteCarlo>
+    <MonteCarlo name="mcSamplerII">
+      <samplerInit>
+        <limit>20</limit>
         <initialSeed>888</initialSeed>
       </samplerInit>
       <variable name="X">

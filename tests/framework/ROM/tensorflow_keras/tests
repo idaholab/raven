@@ -1,9 +1,17 @@
 [Tests]
-
   [./KerasMLPClassifier]
     type  = 'RavenFramework'
     input = 'keras_mlp_classifier.xml'
     output = 'data/outMLPClassifier.csv data/trainDump.csv'
   [../]
-
+  [./KerasCNNClassifier]
+    type  = 'RavenFramework'
+    input = 'keras_cnn_1d.xml'
+    output = 'data/ '
+  [../]
+  [./KerasLSTMClassifier]
+    type  = 'RavenFramework'
+    input = 'keras_lstm.xml'
+    output = 'lstm/'
+  [../]
 []

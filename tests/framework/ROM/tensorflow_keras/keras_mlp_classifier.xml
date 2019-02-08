@@ -17,24 +17,25 @@
     <ROM name="modelUnderTest" subType="KerasMLPClassifier">
       <Features>X,Y</Features>
       <Target>Z</Target>
-      <loss>mean_squared_error</loss>
+      <loss>binary_crossentropy</loss>
+      <!--loss>categorical_crossentropy</loss-->
       <metrics>accuracy</metrics>
-      <batch_size>1</batch_size>
-      <epochs>100</epochs>
+      <batch_size>20</batch_size>
+      <epochs>20</epochs>
       <hidden_layer_dropouts>0,0</hidden_layer_dropouts>
       <num_classes>1</num_classes>
       <plot_model>True</plot_model>
       <validation_split>0.25</validation_split>
       <Dense name="layer1">
           <activation>relu</activation>
-          <dim_out>15</dim_out>
+          <dim_out>2</dim_out>
       </Dense>
       <Dropout name="dropout1">
           <rate>0.2</rate>
       </Dropout>
       <Dense name="layer2">
-          <activation>tanh</activation>
-          <dim_out>8</dim_out>
+          <activation>relu</activation>
+          <dim_out>2</dim_out>
       </Dense>
       <Dropout name="dropout2">
           <rate>0.2</rate>
@@ -63,11 +64,13 @@
       <type>csv</type>
       <source>outData</source>
       <filename>outMLPClassifier</filename>
+      <what>input,output</what>
     </Print>
     <Print name="trainPrint">
       <type>csv</type>
       <source>trainingData</source>
       <filename>trainDump</filename>
+      <what>input,output</what>
     </Print>
   </OutStreams>
 

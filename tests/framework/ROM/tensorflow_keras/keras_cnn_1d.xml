@@ -18,6 +18,7 @@
       <Features>x1,x2</Features>
       <Target>labels</Target>
       <loss>mean_squared_error</loss>
+      <pivotParameter>Time</pivotParameter>
       <metrics>accuracy</metrics>
       <batch_size>1</batch_size>
       <epochs>2</epochs>
