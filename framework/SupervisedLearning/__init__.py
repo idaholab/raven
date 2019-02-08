@@ -43,7 +43,6 @@ from .KerasClassifier    import KerasClassifier
 from .KerasMLPClassifier import KerasMLPClassifier
 from .KerasConvNetClassifier import KerasConvNetClassifier
 from .KerasLSTMClassifier import KerasLSTMClassifier
-from .KerasCustomClassifier import KerasCustomClassifier
 
 # Factory methods
 from .Factory import knownTypes

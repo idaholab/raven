@@ -40,7 +40,6 @@ from SupervisedLearning.DynamicModeDecomposition import DynamicModeDecomposition
 from SupervisedLearning.KerasMLPClassifier import KerasMLPClassifier
 from SupervisedLearning.KerasConvNetClassifier import KerasConvNetClassifier
 from SupervisedLearning.KerasLSTMClassifier import KerasLSTMClassifier
-from SupervisedLearning.KerasCustomClassifier import KerasCustomClassifier
 
 ## [ Add new class here ]
 ################################################################################
@@ -67,7 +66,6 @@ __interfaceDict['DMD'                   ] = DynamicModeDecomposition
 __interfaceDict['KerasMLPClassifier'    ] = KerasMLPClassifier
 __interfaceDict['KerasConvNetClassifier'] = KerasConvNetClassifier
 __interfaceDict['KerasLSTMClassifier'   ] = KerasLSTMClassifier
-__interfaceDict['KerasCustomClassifier' ] = KerasCustomClassifier
 
 def knownTypes():
   """
