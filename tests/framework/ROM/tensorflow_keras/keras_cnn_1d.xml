@@ -35,7 +35,7 @@
       <metrics>accuracy</metrics>
       <batch_size>1</batch_size>
       <epochs>15</epochs>
-      <plot_model>True</plot_model>
+      <plot_model>False</plot_model>
       <validation_split>0.1</validation_split>
       <num_classes>1</num_classes>
       <optimizerSetting>

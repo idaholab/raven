@@ -36,9 +36,10 @@
       <metrics>accuracy</metrics>
       <batch_size>10</batch_size>
       <epochs>100</epochs>
-      <plot_model>True</plot_model>
+      <plot_model>False</plot_model>
       <validation_split>0.25</validation_split>
       <num_classes>18</num_classes>
+      <random_seed>1986</random_seed>
       <optimizerSetting>
         <beta_1>0.9</beta_1>
         <optimizer>Adam</optimizer>

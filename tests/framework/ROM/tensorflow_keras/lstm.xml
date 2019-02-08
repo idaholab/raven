@@ -35,7 +35,7 @@
       <metrics>accuracy</metrics>
       <batch_size>1</batch_size>
       <epochs>10</epochs>
-      <!--plot_model>True</plot_model-->
+      <plot_model>False</plot_model>
       <validation_split>0.25</validation_split>
       <num_classes>23</num_classes>
       <random_seed>1986</random_seed>

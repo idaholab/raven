@@ -105,7 +105,7 @@
       <batch_size>10</batch_size>
       <epochs>60</epochs>
       <num_classes>1</num_classes>
-      <plot_model>True</plot_model>
+      <plot_model>False</plot_model>
       <validation_split>0.25</validation_split>
       <random_seed>1986</random_seed>
       <Dense name="layer1">
