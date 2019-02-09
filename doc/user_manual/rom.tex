@@ -3668,6 +3668,10 @@ can be initialized with the following children:
   \item \xmlNode{validation\_split}, \xmlDesc{float between 0 and 1, optional field}, fraction of the training data to
     be used as validation data.
   \default{0.25}
+  \item \xmlNode{plot\_model}, \xmlDesc{boolean, optional field}, if true the DNN model constructed by RAVEN will be
+    plotted and stored in the working directory. The file name will be \textit{"ROM name" + "\_" + "model.png"}.
+    \nb This capability requires the following libraries, i.e. pydot-ng and graphviz to be installed.
+  \default{False}
   \item \xmlNode{optimizerSetting}, \xmlDesc{optional field}, including several subnode depending on the type of
     optimizers.
     \begin{itemize}

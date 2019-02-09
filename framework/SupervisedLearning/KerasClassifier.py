@@ -511,7 +511,7 @@ class KerasClassifier(supervisedLearning):
     self.ROM.compile(loss=self.lossFunction, optimizer=self.optimizer, metrics=self.metrics)
     self.ROM._make_predict_function() # have to initialize before threading
     history = self.ROM.fit(featureVals, targetVals, epochs=self.epochs, batch_size=self.batchSize, validation_split=self.validationSplit)
-    # The following requires pydot-ng and graphviz to be installed
+    # The following requires pydot-ng and graphviz to be installed (See the manual)
     # https://github.com/keras-team/keras/issues/3210
     if self.plotModel:
       KerasUtils.plot_model(self.ROM,to_file=self.plotModelFilename,show_shapes=True)
