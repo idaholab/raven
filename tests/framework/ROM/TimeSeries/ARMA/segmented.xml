@@ -21,7 +21,7 @@
 
   <RunInfo>
     <WorkingDir>Segmented</WorkingDir>
-    <Sequence>load,train,dump,sample,print,reload,stats</Sequence>
+    <Sequence>load,train,dump,unpickle,sample,print,reload,stats</Sequence>
   </RunInfo>
 
   <Steps>
@@ -42,6 +42,10 @@
     <IOStep name="dump">
       <Input class="Models" type="ROM">arma</Input>
       <Output class="Files" type="">pk</Output>
+    </IOStep>
+    <IOStep name="unpickle">
+      <Input class="Files" type="">pk</Input>
+      <Output class="Models" type="ROM">unpk</Output>
     </IOStep>
     <IOStep name="print">
       <Input class="DataObjects" type="HistorySet">synthetic</Input>
@@ -94,6 +98,7 @@
   </DataObjects>
 
   <Models>
+    <ROM name="unpk" subType="pickledROM"/>
     <ROM name="arma" subType="ARMA">
       <Target>Demand,Time</Target>
       <Features>scaling</Features>

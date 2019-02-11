@@ -126,7 +126,7 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta, BaseType), Mess
       @ Out, None
     """
     self.__dict__.update(newstate)
-    if not self.amITrained:
+    if not newstate['amITrained']:
       # NOTE this will fail if the ROM requires the paramInput spec! Fortunately, you shouldn't pickle untrained.
       modelInstance             = SupervisedLearning.returnInstance(self.ROMclass,self,**self.initializationOptions)
       self.supervisedContainer  = [modelInstance]

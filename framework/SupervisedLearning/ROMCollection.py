@@ -54,6 +54,15 @@ class Collection(supervisedLearning):
     self._roms = []                               # ROMs that belong to this grouping.
     # TODO dynamicHandling? depends on sub-ROMs
 
+  def __getstate__(self):
+    nope = ['_divisionClassifier', '_assembledObjects']
+    print('DEBUGG candidates:')
+    for k in self.__dict__:
+      if k not in nope:
+        print('. ', k)
+    d = dict((key, val) for key, val in self.__dict__.items() if key not in nope) # deepcopy needed
+    return d
+
   @abc.abstractmethod
   def train(self, tdict):
     """
@@ -245,11 +254,17 @@ class Segments(Collection):
         result = dict((target, np.zeros(lastEntry)) for target in subResults.keys())
       # place subresult into overall result # TODO this assumes consistent history length! True for ARMA at least.
       entries = len(list(subResults.values())[0])
+      # There's a problem here, if using Clustering; the residual shorter-length element at the end might be represented
+      #   by a ROM that expects to deliver the full signal.  TODO this should be handled in a better way,
+      #   but for now we can truncate the signal to the length needed
       for target, values in subResults.items():
         # skip the pivotID
         if target == pivotID:
           continue
-        result[target][nextEntry:nextEntry + entries] = values
+        if len(result[target][nextEntry:]) < len(values):
+          result[target][nextEntry:] = values[:len(result[target][nextEntry:])]
+        else:
+          result[target][nextEntry:nextEntry + entries] = values
       # update next subdomain storage location
       nextEntry += entries
     # place pivot values
@@ -581,7 +596,11 @@ class Clusters(Segments):
     for f, feature in enumerate(features):
       # scale the data
       data = np.asarray(clusterFeatures[feature])
-      loc, scale = mathUtils.normalizationFactors(data, mode='scale')
+      # using Z normalization allows the data that is truly far apart to be streched,
+      ## while data that is close together remains clustered.
+      ## This does not work well if SMALL relative differences SHOULD make a big difference in clustering,
+      ##    or if LARGE relative distances should NOT make a big difference in clustering!
+      loc, scale = mathUtils.normalizationFactors(data, mode='z')
       clusterFeatures[feature] = (data - loc)/scale
       # weight the data --> NOTE doesn't really work like we think it does!
       _, metric, ID = feature.split('|', 2)
@@ -660,17 +679,40 @@ def _plotSignalsClustered(labels, clusterFeatures, slices, trainingSet):
   trainDF.to_csv('debug_clustering.csv')
   # plot
   import matplotlib.pyplot as plt
-  _, ax = plt.subplots(figsize=(12, 10))
-  for l, label in enumerate(labels):
-    picker = slice(slices[l][0], slices[l][-1]+1)
-    data = dict((var, [trainingSet[var][0][picker]]) for var in trainingSet)
-    ax.plot(data['Time'][0], data['Signal'][0], '-', color='C{}'.format(label), label='C {}'.format(label))
-  ax.set_ylabel('Demand')
-  ax.set_xlabel('Time')
-  ax.set_title('Clustered Training Data')
-  ax.legend(loc=0)
-  print('')
-  print('DEBUGG showing plot (close to continue) ...')
-  plt.show()
+  for target in trainingSet:
+    if target in ['Time', 'scaling']:
+      continue
+    print('')
+    print('DEBUGG plotting target "{}"'.format(target))
+    fig, ax = plt.subplots(figsize=(12, 10))
+    cluster_hist = list(np.zeros(len(trainingSet['Time'][0])) for _ in range(max(labels)+1))
+    for l, label in enumerate(labels):
+      picker = slice(slices[l][0], slices[l][-1]+1)
+      data = dict((var, [trainingSet[var][0][picker]]) for var in trainingSet)
+      ax.plot(data['Time'][0], data[target][0], '-', color='C{}'.format(label), label='C {}'.format(label))
+      cluster_hist[label][picker] = data[target][0]
+    ax.set_ylabel(target)
+    ax.set_xlabel('Time (s)')
+    ax.set_title('{} Clustered Training Data'.format(target))
+    ylims = ax.get_ylim()
+    ax.legend(loc=0)
+    fig.savefig('{}_all_clusters.png'.format(target))
+
+    # plot cluster histories, by cluster
+    for l in range(max(labels)):
+      fig, ax = plt.subplots(figsize=(12, 10))
+      ax.plot(trainingSet['Time'][0], cluster_hist[l], color='C{}'.format(l), label=str(l))
+      ax.legend(loc=0)
+      ax.set_ylim(ylims)
+      ax.set_xlabel('Time (s)')
+      ax.set_ylabel(target)
+      ax.set_title('{} cluster {}'.format(target, l))
+      fig.savefig('{}_cluster_{}.png'.format(target, l))
+
+
+    print('DEBUGG showing plot (close to continue) ...')
+    plt.show()
+
+
 
 

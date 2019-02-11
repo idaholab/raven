@@ -273,6 +273,13 @@ class ROM(Dummy):
     self.addAssemblerObject('Classifier','-1',True)
     self.addAssemblerObject('Metric','-n',True)
 
+  def __getstate__(self):
+    d = copy.copy(self.__dict__)
+    # TODO this isn't needed if trained, but it can create an infinite recursion
+    ## for the ROMCollection if left in.
+    del d['assemblerDict']
+    return d
+
   def _readMoreXML(self,xmlNode):
     """
       Function to read the portion of the xml input that belongs to this specialized class
