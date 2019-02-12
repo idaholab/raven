@@ -444,7 +444,7 @@ class Clusters(Segments):
       @ In, edict, dict, evaluation dictionary
       @ Out, result, np.array, evaluated points
     """
-    if self.evaluationMode == 'full':
+    if self._evaluationMode == 'full':
       # architected to work just like Segmented does
       result = Segments._evaluateBySegments(self, edict)
     elif self._evaluationMode == 'truncated':
@@ -452,8 +452,7 @@ class Clusters(Segments):
       result, clusterLengths = self._evaluateTruncated(edict)
       settings = dict(self._romGlobalAdjustments['clusterInfo']) # TODO deepcopy? Shallow copy? No copy?
       settings['clusterLengths'] = clusterLengths
-      self._romGlobalAdjustments()
-      # add globals back in, our own way
+       # add globals back in, our own way
       result = self._templateROM.applyClusterGroups(result, settings)
     return result
 
@@ -638,7 +637,7 @@ class Clusters(Segments):
     #############
     #   DEBUG   #
     #############
-    #_plotSignalsClustered(labels, clusterFeatures, counter, self._originalTrainingData)
+    _plotSignalsClustered(labels, clusterFeatures, counter, self._originalTrainingData)
     #############
     # END DEBUG #
     #############
@@ -752,10 +751,18 @@ def _plotSignalsClustered(labels, clusterFeatures, slices, trainingSet):
     print('')
     print('DEBUGG plotting target "{}"'.format(target))
     fig, ax = plt.subplots(figsize=(12, 10))
+    ymin = trainingSet[target][0].min()
+    ymax = trainingSet[target][0].max()
+    lim = (ymin, ymax)
     cluster_hist = list(np.zeros(len(trainingSet['Time'][0]))*np.nan for _ in range(max(labels)+1))
     for l, label in enumerate(labels):
       picker = slice(slices[l][0], slices[l][-1]+1)
       data = dict((var, [trainingSet[var][0][picker]]) for var in trainingSet)
+      end = data['Time'][0][1]
+      ax.plot([end, end], lim, 'k:', alpha=0.2)
+      if l == 0:
+        start = data['Time'][0][0]
+        ax.plot([start, start], lim, 'k:', alpha=0.2)
       ax.plot(data['Time'][0], data[target][0], '-', color='C{}'.format(label%10), label='C {}'.format(label))
       cluster_hist[label][picker] = data[target][0]
     ax.set_ylabel(target)
@@ -779,8 +786,8 @@ def _plotSignalsClustered(labels, clusterFeatures, slices, trainingSet):
       fig.savefig('{}_cluster_{}.png'.format(target, l))
 
 
-    print('DEBUGG showing plot (close to continue) ...')
-    plt.show()
+    #print('DEBUGG showing plot (close to continue) ...')
+    #plt.show()
 
 
 

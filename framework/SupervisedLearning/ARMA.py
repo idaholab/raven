@@ -916,11 +916,25 @@ class ARMA(supervisedLearning):
     clusterLengths = settings['clusterLengths'] # list of number of entries for each cluster
     clusters = sorted(list(signals.keys()))
     for cluster in clusters:
-      index = np.random.choice(range(len(signals[cluster].values)[0]))
+      index = np.random.choice(range(len(signals[cluster].values()[0])))
+      print('DEBUGG cluster {} picked form {}'.format(cluster, index))
       for target in signals[cluster]:
         start = sum(clusterLengths[:cluster])
         end = sum(clusterLengths[:cluster+1])
-        results[cluster][target][start:end] += signals[cluster][target][index]
+        toAdd = signals[cluster][target][index]
+        # TODO is this a good fix?
+        ## sometimes the length of the global signal is 1 more or less than the length of the cluster
+        ## because of how divisions are made. If signal is longer, chop it.
+        if len(toAdd) > end - start:
+          toAdd = toAdd[:end - start]
+        elif len(toAdd) < end - start:
+          ## if, on the other hand, the global signal is shorter, now what?
+          ## For now, just extend it by copying the last point
+          new = np.zeros(end-start)
+          new[:-1] = toAdd
+          new[-1] = new[-2]
+          toAdd = new
+        results[target][start:end] += toAdd
     return results
 
   def createClusterGroups(self, labels, delimiters, settings):
@@ -935,6 +949,7 @@ class ARMA(supervisedLearning):
                                      For example: {label: np.ones(len(cluster))*42.} to add 42 to the whole signal.
     """
     numLabels = max(labels) + 1 # zero-based
+    delimiters = np.asarray(delimiters) # allows numpy masking
     # enable vector operations
     labels = np.asarray(labels)
     # collect the global Fourier signals
@@ -956,7 +971,7 @@ class ARMA(supervisedLearning):
       for target in targets:
         signals[cluster][target] = []
         for d, dlm in enumerate(delimiters[mask]):
-          signal = globalFourier[target][dlm[0]:dlm[-1]]
+          signal = globalFourier[target][dlm[0]:dlm[-1] + 1]
           signals[cluster][target].append(signal)
     clusterGroupInfo = {'global signals': signals}
 
