@@ -22,134 +22,75 @@
           In this case, only the user requested variables as specified in the DataObjects are printed out.
       </revision>
       <revision author='talbpaul' date='2018-09-13'>changed Pmax and Pmin to P (same for Q)</revision>
+      <revision author='talbpaul' date='2019-01-30'>reduced test to match what is tested, removed stat printing in favor of rom meta XML</revision>
     </revisions>
   </TestInfo>
 
   <RunInfo>
     <WorkingDir>Basic</WorkingDir>
-    <Sequence>readIn, ARMATrain, printARMA, runARMA, writeOut, loadSynthetic, stats</Sequence>
+    <Sequence>read, train, print, sample</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
 
+  <Steps>
+    <IOStep name="read">
+      <Input class="Files" type="">rawDataFile</Input>
+      <Output class="DataObjects" type="HistorySet">rawData</Output>
+    </IOStep>
+    <RomTrainer name="train">
+      <Input class="DataObjects" type="HistorySet">rawData</Input>
+      <Output class="Models" type="ROM">arma</Output>
+    </RomTrainer>
+    <IOStep name="print">
+      <Input class="Models" type="ROM">arma</Input>
+      <Output class="DataObjects" type="DataSet">romMeta</Output>
+      <Output class="OutStreams" type="Print">romMeta</Output>
+    </IOStep>
+    <MultiRun name="sample">
+      <Input class="DataObjects" type="PointSet">dataIn</Input>
+      <Model class="Models" type="ROM">arma</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mcSampler</Sampler>
+      <Output class="DataObjects" type="HistorySet">synData</Output>
+    </MultiRun>
+  </Steps>
+
   <Files>
     <Input name="rawDataFile">dataSet.csv</Input>
-    <Input name="synDataFile">writeSynDataOut_0.csv</Input>
   </Files>
-
-  <Distributions>
-    <Uniform name="uniDist">
-      <lowerBound>1</lowerBound>
-      <upperBound>1.00001</upperBound>
-    </Uniform>
-  </Distributions>
 
   <Samplers>
     <MonteCarlo name="mcSampler">
       <samplerInit>
         <limit>1</limit>
-        <initialSeed>20021986</initialSeed>
+        <initialSeed>42</initialSeed>
       </samplerInit>
-      <variable name="scaling">
-        <distribution>uniDist</distribution>
-      </variable>
+      <constant name="scaling">1.0</constant>
     </MonteCarlo>
   </Samplers>
 
   <Models>
-    <ROM name="ARMA" subType="ARMA">
+    <ROM name="arma" subType="ARMA">
       <Target>Speed,Time</Target>
       <Features>scaling</Features>
       <pivotParameter>Time</pivotParameter>
       <outTruncation domain="positive">Speed</outTruncation>
-      <Fourier>604800,86400</Fourier>
-      <FourierOrder>2,2</FourierOrder>
+      <Fourier>604800, 302400, 86400, 43200</Fourier>
       <P>2</P>
       <Q>1</Q>
     </ROM>
-    <PostProcessor name="stats" subType="BasicStatistics">
-      <expectedValue prefix="mean">Speed</expectedValue>
-      <variance prefix="var">Speed</variance>
-    </PostProcessor>
   </Models>
 
-  <Steps>
-    <IOStep name="readIn">
-      <Input class="Files" type="">rawDataFile</Input>
-      <Output class="DataObjects" type="HistorySet">rawData</Output>
-    </IOStep>
-    <RomTrainer name="ARMATrain">
-      <Input class="DataObjects" type="HistorySet">rawData</Input>
-      <Output class="Models" type="ROM">ARMA</Output>
-    </RomTrainer>
-    <IOStep name="printARMA">
-      <Input class="Models" type="ROM">ARMA</Input>
-      <Output class="DataObjects" type="DataSet">romMeta</Output>
-      <Output class="OutStreams" type="Print">romMeta</Output>
-    </IOStep>
-    <MultiRun name="runARMA">
-      <Input class="DataObjects" type="PointSet">dataIn</Input>
-      <Model class="Models" type="ROM">ARMA</Model>
-      <Sampler class="Samplers" type="MonteCarlo">mcSampler</Sampler>
-      <Output class="DataObjects" type="HistorySet">synData</Output>
-    </MultiRun>
-    <IOStep name="writeOut" pauseAtEnd="True">
-      <Input class="DataObjects" type="HistorySet">synData</Input>
-      <Output class="OutStreams" type="Print">writeSynDataOut</Output>
-      <Output class="OutStreams" type="Plot">plotSynData</Output>
-    </IOStep>
-    <IOStep name="loadSynthetic">
-      <Input class="Files" type="">synDataFile</Input>
-      <Output class="DataObjects" type="PointSet">asPoints</Output>
-    </IOStep>
-    <PostProcess name="stats">
-      <Input class="DataObjects" type="PointSet">asPoints</Input>
-      <Model class="Models" type="PostProcessor">stats</Model>
-      <Output class="DataObjects" type="PointSet">stats</Output>
-      <Output class="OutStreams" type="Print">stats</Output>
-    </PostProcess>
-  </Steps>
-
   <OutStreams>
-    <Print name="writeSynDataOut">
-      <type>csv</type>
-      <source>synData</source>
-      <what>input, output</what>
-    </Print>
-    <Print name="stats">
-      <type>csv</type>
-      <source>stats</source>
-      <what>input,output</what>
-    </Print>
     <Print name="romMeta">
       <type>csv</type>
       <source>romMeta</source>
     </Print>
-    <Plot name="plotSynData" overwrite="false">
-      <plotSettings>
-        <plot>
-          <type>line</type>
-          <x>synData|Output|Time</x>
-          <y>synData|Output|Speed</y>
-          <interpPointsX>52560</interpPointsX>
-        </plot>
-      </plotSettings>
-      <actions>
-        <how>png</how>
-      </actions>
-    </Plot>
   </OutStreams>
 
   <DataObjects>
     <PointSet name="dataIn">
       <Input>scaling</Input>
       <Output>OutputPlaceHolder</Output>
-    </PointSet>
-    <PointSet name="asPoints">
-      <Input>Time</Input>
-      <Output>Speed</Output>
-    </PointSet>
-    <PointSet name="stats">
-      <Output>mean_Speed,var_Speed</Output>
     </PointSet>
     <HistorySet name="rawData">
       <Input>scaling</Input>
