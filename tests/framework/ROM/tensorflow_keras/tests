@@ -3,20 +3,24 @@
     type  = 'RavenFramework'
     input = 'custom_dataset.xml'
     csv = 'diabetes/outMLPClassifier.csv'
+    python3_only = true
   [../]
   [./tf_cnn_dump]
     type  = 'RavenFramework'
     input = 'keras_cnn_1d.xml'
     output = 'data/cnn1d.pk'
+    python3_only = true
   [../]
   [./tf_cnn1d]
     type  = 'RavenFramework'
     input = 'cnn1d.xml'
     csv = 'data/outCon1DClassifier.csv'
+    python3_only = true
   [../]
   [./tf_lstm]
     type  = 'RavenFramework'
     input = 'lstm.xml'
     csv = 'data/outLSTMClassifier.csv'
+    python3_only = true
   [../]
 []

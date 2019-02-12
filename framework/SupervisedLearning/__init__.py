@@ -39,10 +39,12 @@ from .PolyExponential    import PolyExponential
 from .DynamicModeDecomposition import DynamicModeDecomposition
 
 # KERAS classifiers
-from .KerasClassifier    import KerasClassifier
-from .KerasMLPClassifier import KerasMLPClassifier
-from .KerasConvNetClassifier import KerasConvNetClassifier
-from .KerasLSTMClassifier import KerasLSTMClassifier
+from .KerasClassifier import __tensorflowAvailable
+if __tensorflowAvailable:
+  from .KerasClassifier import KerasClassifier
+  from .KerasMLPClassifier import KerasMLPClassifier
+  from .KerasConvNetClassifier import KerasConvNetClassifier
+  from .KerasLSTMClassifier import KerasLSTMClassifier
 
 # Factory methods
 from .Factory import knownTypes
