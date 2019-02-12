@@ -382,6 +382,28 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     """
     return evaluation
 
+  def createClusterGroups(self, labelMap, delimiters, settings):
+    """
+      Allows ROM to expand clusters into a more representative set of ROMs based on global information (aka mean? TODO std?)
+      TODO should allow user to determine what conditions they want -> maybe on evaluate side?
+      Note that if nothing is provided, then will default to not changing the cluster signal at all.
+      @ In, labelMap, list(str), list of cluster labels in order of appearance in the history
+      @ In, delimiters, list(tuple), list of delimiters for start/stop points of each ROM (indices, not values)
+      @ In, settings, object, arbitrary information about ROM clustering settings (as from getGlobalRomClusterSettings)
+      @ Out, clusterGroupInfo, dict, ways to expand each cluster. Keys are clusters, values are np.arrays of signals to add to a given cluster.
+                                     For example: {label: np.ones(len(cluster))*42.} to add 42 to the whole signal.
+    """
+    return {}
+
+  def applyClusterGroups(self, results, settings):
+    """
+      Expands clusters as desired based on settings from createClusterGroups
+      @ In, results, dict, evaluation results by target
+      @ In, settings, dict, settings as from createClusterGroups
+      @ Out, results, modified results
+    """
+    return results
+
   @abc.abstractmethod
   def __trainLocal__(self,featureVals,targetVals):
     """
