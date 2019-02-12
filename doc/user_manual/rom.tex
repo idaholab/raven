@@ -3027,9 +3027,6 @@ below).
   \item \xmlNode{Fourier}, \xmlDesc{comma-separated integers, optional field}, must be positive integers. This defines the
     based period that will be used for Fourier detrending, i.e., this field defines $1/f_m$ in the above equation.
     When this filed is not specified, the ARMA considers no Fourier detrend.
-  \item \xmlNode{FourierOrder}, \xmlDesc{comma-separated integers, optional field}, must be positive integers. The number of integers specified
-    in this field should be exactly same as the number of base periods specified in the node \xmlNode{Fourier}.
-    This field defines $K_m$ in the above equation.
   \item \xmlNode{outTruncation}, \xmlDesc{comma-separated string, optional}, defines whether and how output
     time series are limited in domain. This node has one attribute, \xmlAttr{domain}, whose value can be
     \xmlString{positive} or \xmlString{negative}. The value of this node contains the list of targets to whom

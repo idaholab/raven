@@ -716,9 +716,7 @@ class ARMA(supervisedLearning):
     # if using zero-filter, cut the parts of the Fourier and values that correspond to the zero-value portions
     if zeroFilter:
       values = values[self.zeroFilterMask]
-      # TODO is this right?
       fourierSignals = fourierSignalsFull[self.zeroFilterMask, :]
-      # OLD fourierSignals = dict((period, vals[self.zeroFilterMask]) for period, vals in fourierSeriesOriginal.items())
     else:
       fourierSignals = fourierSignalsFull
 
