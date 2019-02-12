@@ -42,29 +42,46 @@ def in_python_3():
 # Deep learning requires Scikit-Learn version at least 0.18
 
 ## working Conda 4.5.4, May 2018
-modules_to_try = [("h5py", 'h5py.__version__', '2.4.0', '2.7.1', None), # 2.6.0
-                  ("numpy", 'numpy.__version__', "1.13.3", "1.13.3", None),
-                  ("scipy", 'scipy.__version__', "1.1.0", "1.1.0", None),
-                  ("sklearn", 'sklearn.__version__', "0.19.1", "0.19.1", None),
-                  ("pandas", 'pandas.__version__', "0.20.0", "0.20.3", None),
-                  ("xarray", 'xarray.__version__', "0.9.5", "0.10.3", None),
-                  ("netCDF4", 'netCDF4.__version__', "1.2.3", "1.4.0", None), # 1.2.4
-                  ## NOTE there is a known bug in netCDF4 prior to 1.3.1 where
-                  # having a path length of exactly 88 characters can create a
-                  # seg fault.  However, h5py has no new libraries
-                  # after 2.7 and is not compatible with hdf5 greater than
-                  # 1.8.17, while netCDF4 requires hdf5 of at least 1.10.1.
-                  # For now, we avoid using netCDF
-                  # until we transition from
-                  # HDF5 databases and drop them like hot rocks.
-                  ("statsmodels", 'statsmodels.__version__', "0.8.0", "0.8.0", None),
-                  ("matplotlib", 'matplotlib.__version__', "1.3.1", "2.1.1", None)]
-if in_python_3():
-  # On Windows conda, there are no Python 2.7-compatible
-  ## versions of TensorFlow, although
-  ## these exist on Mac and Linux condas.  Darn.
-  modules_to_try.append(("tensorflow",'tensorflow.__version__',"1.12.0" ,"1.12.0" ,None   ))
-
+if not in_python_3():
+  modules_to_try = [("h5py", 'h5py.__version__', '2.4.0', '2.7.1', None), # 2.6.0
+                    ("numpy", 'numpy.__version__', "1.13.3", "1.13.3", None),
+                    ("scipy", 'scipy.__version__', "1.1.0", "1.1.0", None),
+                    ("sklearn", 'sklearn.__version__', "0.19.1", "0.19.1", None),
+                    ("pandas", 'pandas.__version__', "0.20.0", "0.20.3", None),
+                    ("xarray", 'xarray.__version__', "0.9.5", "0.10.3", None),
+                    ("netCDF4", 'netCDF4.__version__', "1.2.3", "1.4.0", None), # 1.2.4
+                    ## NOTE there is a known bug in netCDF4 prior to 1.3.1 where
+                    # having a path length of exactly 88 characters can create a
+                    # seg fault.  However, h5py has no new libraries
+                    # after 2.7 and is not compatible with hdf5 greater than
+                    # 1.8.17, while netCDF4 requires hdf5 of at least 1.10.1.
+                    # For now, we avoid using netCDF
+                    # until we transition from
+                    # HDF5 databases and drop them like hot rocks.
+                    ("statsmodels", 'statsmodels.__version__', "0.8.0", "0.8.0", None),
+                    ("matplotlib", 'matplotlib.__version__', "1.3.1", "2.1.1", None)]
+else:
+  modules_to_try = [("h5py", 'h5py.__version__', '2.4.0', '2.7.1', None), # 2.6.0
+                    ("numpy", 'numpy.__version__', "1.13.3", "1.13.3", None),
+                    ("scipy", 'scipy.__version__', "1.1.0", "1.1.0", None),
+                    ("sklearn", 'sklearn.__version__', "0.19.1", "0.19.1", None),
+                    ("pandas", 'pandas.__version__', "0.20.0", "0.20.3", None),
+                    ("xarray", 'xarray.__version__', "0.9.5", "0.10.3", None),
+                    ("netCDF4", 'netCDF4.__version__', "1.2.3", "1.4.0", None), # 1.2.4
+                    # On Windows conda, there are no Python 2.7-compatible
+                    ## versions of TensorFlow, although
+                    ## these exist on Mac and Linux condas.  Darn.
+                    ("tensorflow",'tensorflow.__version__',"1.12.0" ,"1.12.0" ,None   ),
+                    ## NOTE there is a known bug in netCDF4 prior to 1.3.1 where
+                    # having a path length of exactly 88 characters can create a
+                    # seg fault.  However, h5py has no new libraries
+                    # after 2.7 and is not compatible with hdf5 greater than
+                    # 1.8.17, while netCDF4 requires hdf5 of at least 1.10.1.
+                    # For now, we avoid using netCDF
+                    # until we transition from
+                    # HDF5 databases and drop them like hot rocks.
+                    ("statsmodels", 'statsmodels.__version__', "0.8.0", "0.8.0", None),
+                    ("matplotlib", 'matplotlib.__version__', "1.3.1", "2.1.1", None)]
 
 optional_test_libraries = [('pillow', 'PIL.__version__', "5.0.0", "5.1.0", None)]
 
@@ -80,44 +97,78 @@ def __lookup_preferred_version(name, optional=False):
       return qa_ver
   return ""
 # libraries to install with Conda
-__condaList = [("h5py", __lookup_preferred_version("h5py")),
-               ("numpy", __lookup_preferred_version("numpy")),
-               ("scipy", __lookup_preferred_version("scipy")),
-               ("scikit-learn", __lookup_preferred_version("sklearn")),
-               ("pandas", __lookup_preferred_version("pandas")),
-               ("xarray", __lookup_preferred_version("xarray")),
-               ("netcdf4", __lookup_preferred_version("netCDF4")),
-               ("matplotlib", __lookup_preferred_version("matplotlib")),
-               ("statsmodels", __lookup_preferred_version("statsmodels")),
-               ("python", "2.7"),
-               ("hdf5", "1.8.18"),
-               ("swig", ""),
-               ("pylint", ""),
-               ("coverage", ""),
-               ("lxml", ""),
-               # optional for deep neural networks plots: pydot and graphviz
-               ("pydot",""),
-               ("graphviz",""),
-               ("psutil", "")]
+if not in_python_3():
+  __condaList = [("h5py", __lookup_preferred_version("h5py")),
+                 ("numpy", __lookup_preferred_version("numpy")),
+                 ("scipy", __lookup_preferred_version("scipy")),
+                 ("scikit-learn", __lookup_preferred_version("sklearn")),
+                 ("pandas", __lookup_preferred_version("pandas")),
+                 ("xarray", __lookup_preferred_version("xarray")),
+                 ("netcdf4", __lookup_preferred_version("netCDF4")),
+                 ("matplotlib", __lookup_preferred_version("matplotlib")),
+                 ("statsmodels", __lookup_preferred_version("statsmodels")),
+                 ("python", "2.7"),
+                 ("hdf5", "1.8.18"),
+                 ("swig", ""),
+                 ("pylint", ""),
+                 ("coverage", ""),
+                 ("lxml", ""),
+                 # optional for deep neural networks plots: pydot and graphviz
+                 ("pydot",""),
+                 ("graphviz",""),
+                 ("psutil", "")]
 
-# libraries to install with conda-forge
-__condaForgeList = [("pyside", ""),]
-# optional conda libraries
-__condaOptional = [('pillow', __lookup_preferred_version("pillow"))]
+  # libraries to install with conda-forge
+  __condaForgeList = [("pyside", ""),]
+  # optional conda libraries
+  __condaOptional = [('pillow', __lookup_preferred_version("pillow"))]
 
-__pipList = [("numpy", __lookup_preferred_version("numpy")),
-             ("h5py", __lookup_preferred_version("h5py")),
-             ("scipy", __lookup_preferred_version("scipy")),
-             ("scikit-learn", __lookup_preferred_version("sklearn")),
-             ("matplotlib", __lookup_preferred_version("matplotlib")),
-             ("xarray", __lookup_preferred_version("xarray")),
-             ("netCDF4", __lookup_preferred_version("netCDF4")),
-             ("statsmodels", __lookup_preferred_version("statsmodels")),
-             ("pandas", __lookup_preferred_version("pandas"))]
+  __pipList = [ ("numpy", __lookup_preferred_version("numpy")),
+                ("h5py", __lookup_preferred_version("h5py")),
+                ("scipy", __lookup_preferred_version("scipy")),
+                ("scikit-learn", __lookup_preferred_version("sklearn")),
+                ("matplotlib", __lookup_preferred_version("matplotlib")),
+                ("xarray", __lookup_preferred_version("xarray")),
+                ("netCDF4", __lookup_preferred_version("netCDF4")),
+                ("statsmodels", __lookup_preferred_version("statsmodels")),
+                ("pandas", __lookup_preferred_version("pandas"))]
+else:
+  __condaList = [ ("h5py", __lookup_preferred_version("h5py")),
+                  ("numpy", __lookup_preferred_version("numpy")),
+                  ("scipy", __lookup_preferred_version("scipy")),
+                  ("scikit-learn", __lookup_preferred_version("sklearn")),
+                  ("pandas", __lookup_preferred_version("pandas")),
+                  ("xarray", __lookup_preferred_version("xarray")),
+                  ("netcdf4", __lookup_preferred_version("netCDF4")),
+                  ("matplotlib", ""),
+                  ("statsmodels", __lookup_preferred_version("statsmodels")),
+                  ("tensorflow", __lookup_preferred_version("tensorflow")),
+                  ("python", "2.7"),
+                  ("hdf5", "1.8.18"),
+                  ("swig", ""),
+                  ("pylint", ""),
+                  ("coverage", ""),
+                  ("lxml", ""),
+                  # optional for deep neural networks plots: pydot and graphviz
+                  ("pydot",""),
+                  ("graphviz",""),
+                  ("psutil", "")]
 
-if in_python_3():
-  __condaList.append(("tensorflow", __lookup_preferred_version("tensorflow")))
-  __pipList.append(("tensorflow", __lookup_preferred_version("tensorflow")))
+  # libraries to install with conda-forge
+  __condaForgeList = [("pyside", "")]
+  # optional conda libraries
+  __condaOptional = [('pillow', __lookup_preferred_version("pillow"))]
+
+  __pipList = [ ("numpy", __lookup_preferred_version("numpy")),
+                ("h5py", __lookup_preferred_version("h5py")),
+                ("scipy", __lookup_preferred_version("scipy")),
+                ("scikit-learn", __lookup_preferred_version("sklearn")),
+                ("matplotlib", __lookup_preferred_version("matplotlib")),
+                ("xarray", __lookup_preferred_version("xarray")),
+                ("netCDF4", __lookup_preferred_version("netCDF4")),
+                ("statsmodels", __lookup_preferred_version("statsmodels")),
+                ("tensorflow", __lookup_preferred_version("tensorflow")),
+                ("pandas", __lookup_preferred_version("pandas"))]
 
 def module_report(module, version=''):
   """
@@ -316,7 +367,7 @@ if __name__ == '__main__':
   if '--py3' in sys.argv:
     pythonIndex = __condaList.index(("python", "2.7"))
     __condaList[pythonIndex] = ("python", "3")
-    __condaForgeList.append(("matplotlib", "2.1.1"))
+   # __condaForgeList.append(("matplotlib", "2.1.1"))
 
   # check for environemnt definition of raven libs
   libName = os.getenv('RAVEN_LIBS_NAME', 'raven_libraries')
