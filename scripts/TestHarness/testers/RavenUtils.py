@@ -57,13 +57,14 @@ modules_to_try = [("h5py", 'h5py.__version__', '2.4.0', '2.7.1', None), # 2.6.0
                   # For now, we avoid using netCDF
                   # until we transition from
                   # HDF5 databases and drop them like hot rocks.
-                  #
-                  ("tensorflow",'tensorflow.__version__',"1.12.0" ,"1.12.0" ,None   ),
-                  # On Windows conda, there are no Python 2.7-compatible
-                  ## versions of TensorFlow, although
-                  ## these exist on Mac and Linux condas.  Darn.
                   ("statsmodels", 'statsmodels.__version__', "0.8.0", "0.8.0", None),
                   ("matplotlib", 'matplotlib.__version__', "1.3.1", "2.1.1", None)]
+if in_python_3():
+  # On Windows conda, there are no Python 2.7-compatible
+  ## versions of TensorFlow, although
+  ## these exist on Mac and Linux condas.  Darn.
+  modules_to_try.append(("tensorflow",'tensorflow.__version__',"1.12.0" ,"1.12.0" ,None   ))
+
 
 optional_test_libraries = [('pillow', 'PIL.__version__', "5.0.0", "5.1.0", None)]
 
@@ -88,7 +89,6 @@ __condaList = [("h5py", __lookup_preferred_version("h5py")),
                ("netcdf4", __lookup_preferred_version("netCDF4")),
                ("matplotlib", __lookup_preferred_version("matplotlib")),
                ("statsmodels", __lookup_preferred_version("statsmodels")),
-               ("tensorflow", __lookup_preferred_version("tensorflow")),
                ("python", "2.7"),
                ("hdf5", "1.8.18"),
                ("swig", ""),
@@ -113,8 +113,11 @@ __pipList = [("numpy", __lookup_preferred_version("numpy")),
              ("xarray", __lookup_preferred_version("xarray")),
              ("netCDF4", __lookup_preferred_version("netCDF4")),
              ("statsmodels", __lookup_preferred_version("statsmodels")),
-             ("tensorflow", __lookup_preferred_version("tensorflow")),
              ("pandas", __lookup_preferred_version("pandas"))]
+
+if in_python_3():
+  __condaList.append(("tensorflow", __lookup_preferred_version("tensorflow")))
+  __pipList.append(("tensorflow", __lookup_preferred_version("tensorflow")))
 
 def module_report(module, version=''):
   """
