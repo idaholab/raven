@@ -153,7 +153,7 @@ else:
                 ("pandas", __lookup_preferred_version("pandas"))]
 
 # libraries to install with conda-forge
-__condaForgeList = [("pyside", ""),]
+__condaForgeList = [("pyside", "")]
 # optional conda libraries
 __condaOptional = [('pillow', __lookup_preferred_version("pillow")),
                    ('pydot', __lookup_preferred_version('pydot')),
@@ -354,10 +354,6 @@ if __name__ == '__main__':
   if '--conda-forge' in sys.argv:
     # just install command is generated
     condaForge = True
-  #if '--py3' in sys.argv:
-  #  pythonIndex = __condaList.index(("python", "2.7"))
-  #  __condaList[pythonIndex] = ("python", "3")
-   #__condaForgeList.append(("matplotlib", "2.1.1"))
 
   # check for environemnt definition of raven libs
   libName = os.getenv('RAVEN_LIBS_NAME', 'raven_libraries')
