@@ -29,8 +29,8 @@
         <!--  /path/to/relap/executable/relap5.x -->
         <!-- here we should put the executable. Since we want to test the interface only, it is going to be empty -->
       </executable>
-      <operator variables="mult1,mult2,div1">
-          <expression> $card$*mult1*2.*mult2/div1</expression>
+      <operator variables="20100154:2,20100155:2">
+          <expression> %card%*20100155:2*2./20100155:2</expression>
           <cards>1180801:2,1180802:2,1180901:3</cards>
       </operator>
       
@@ -73,7 +73,7 @@
   <Samplers>
     <MonteCarlo name="MC_samp">
       <samplerInit>
-        <limit>5</limit>
+        <limit>2</limit>
       </samplerInit>
       <variable name="20100154:2">
         <distribution>heat_capacity_154</distribution>

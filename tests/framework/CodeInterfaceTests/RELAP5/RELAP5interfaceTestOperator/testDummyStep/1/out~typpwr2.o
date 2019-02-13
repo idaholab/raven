@@ -178,13 +178,16 @@
  detectr  on          hstccsv  on          hscpcsv  on 
  Listing of input data for case  1                                                                                      
                                                                                                                         
-     1    *RAVEN INPUT VALUES                                                                                           
-     2    * card: 20100157 word: 2 value: 36.8797161831                                                                                
-     3    * card: 20100156 word: 2 value: 40.1157177297                                                                                
-     4    * card: 20100155 word: 2 value: 45.2080971338                                                                                
-     5    * card: 20100154 word: 2 value: 44.6047589284
-     6    * card: 13550801 word: 6 value: 0.350489014047                                                                                 
-     6    *RAVEN INPUT VALUES                                                                                           
+     1    *RAVEN INPUT VALUES
+     2    * card: 1180801 word: 2 value: 4.584
+     3    * card: 1180802 word: 2 value: 4.584
+     4    * card: 1180901 word: 3 value: 4.584
+     5    * card: 13550801 word: 6 value: 0.520951773483
+     6    * card: 20100154 word: 2 value: 43.1157177297
+     7    * card: 20100155 word: 2 value: 45.2080971338
+     8    * card: 20100156 word: 2 value: 40.7524441199
+     9    * card: 20100157 word: 2 value: 36.9999948425
+    10    *RAVEN INPUT VALUES                                                                                         
      7    =typical pwr model -- 4 inch cold leg break 36.05 check case                                                  
      8    *                    Configuration Control Problem                                                            
      9    *       This problem is a simulation of a four loop presurized reactor                                        
