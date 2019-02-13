@@ -56,7 +56,6 @@ class Collection(supervisedLearning):
 
   def __getstate__(self):
     nope = ['_divisionClassifier', '_assembledObjects']
-    print('DEBUGG candidates:')
     for k in self.__dict__:
       if k not in nope:
         print('. ', k)
@@ -125,16 +124,12 @@ class Segments(Collection):
     self._divisionInfo = {}            # data that should persist across methods
     self._divisionPivotShift = {}      # whether and how to normalize/shift subspaces
     self._indexValues = {}             # original index values, by index
+    self._originalTrainingData = {}    # stores the data on which this ROM was originally trained; TODO redundance with indexValues?
     # allow some ROM training to happen globally, seperate from individual segment training
-    ## we accomplish this by calling getGlobalRomClusterSettings on the templateROM, then passing these
-    ## settigns to the subspace segment ROMs before training, and finally again after? XXX evaluating them.
+    ## see design note for Clusters
     self._romGlobalAdjustments = None  # global ROM settings, provided by the templateROM before clustering
 
-    self.targetDatas = None            # DEBUGG only!
-
     # set up segmentation
-    ## check if ROM has methods to cluster on (errors out if not)
-    self._templateROM.getRomClusterParams()
     # get input specifications from inputParams
     inputSpecs = kwargs['paramInput'].findFirst('Segment')
     # initialize settings
@@ -188,10 +183,11 @@ class Segments(Collection):
     self.readAssembledObjects()
     # subdivide space
     divisions = self._subdivideDomain(self._divisionInstructions, tdict)
+    self._divisionInfo['delimiters'] = divisions[0] + divisions[1]
     # DEBUGG only
     self._originalTrainingData = copy.deepcopy(tdict)
     # allow ROM to handle some global features
-    self._romGlobalAdjustments, newTrainingDict = self._templateROM.getGlobalRomClusterSettings(tdict, divisions)
+    self._romGlobalAdjustments, newTrainingDict = self._templateROM.getGlobalRomSegmentSettings(tdict, divisions)
     # train segments
     self._trainBySegments(divisions, newTrainingDict)
     self.amITrained = True
@@ -205,7 +201,12 @@ class Segments(Collection):
       @ Out, result, np.array, evaluated points
     """
     result = self._evaluateBySegments(edict)
-    result = self._templateROM.finalizeGlobalRomClusterSample(self._romGlobalAdjustments, result)
+    # allow each segment ROM to modify signal based on global training settings
+    for s, segment in enumerate(self._getSequentialRoms()):
+      delim = self._divisionInfo['delimiters'][s]
+      picker = slice(delim[0], delim[-1] + 1)
+      result = segment.finalizeLocalRomSegmentEvaluation(self._romGlobalAdjustments, result, picker)
+    result = self._templateROM.finalizeGlobalRomSegmentEvaluation(self._romGlobalAdjustments, result)
     return result
 
   def writeXML(self, writeTo, targets=None, skip=None):
@@ -363,9 +364,6 @@ class Segments(Collection):
     # TODO assumes only pivot param
     if pivotID not in self._indexValues:
       self._indexValues[pivotID] = trainingSet[pivotID][0]
-    # DEBUGG
-    if self.targetDatas is None: # DEBUGG
-      self.targetDatas = []      # DEBUGG
     # loop over clusters and train data
     roms = []
     for i, subdiv in enumerate(counter):
@@ -383,12 +381,10 @@ class Segments(Collection):
           # left-shift so that first entry is equal to pivot's first value (maybe not zero)
           delta = data[pivotID][0][0] - trainingSet[pivotID][0][0]
         data[pivotID][0] -= delta
-      targetData = dict((var, data[var][0]) for var in targets)
-      self.targetDatas.append(targetData) # DEBUGG
       # create a new ROM and train it!
       newROM = copy.deepcopy(templateROM)
       newROM.name = '{}_seg{}'.format(self._romName, i)
-      newROM.setGlobalRomClusterSettings(self._romGlobalAdjustments)
+      newROM.adjustLocalRomSegment(self._romGlobalAdjustments)
       self.raiseADebug('Training segment', i, picker)
       newROM.train(data)
       roms.append(newROM)
@@ -405,6 +401,27 @@ class Segments(Collection):
 class Clusters(Segments):
   """
     A container that handles ROMs that use clustering to subdivide their space
+
+    Some design notes:
+    The individual SupervisedLearning algorithms need to be able to contribute to how a ROM
+    collection gets trained, clustered, and evaluated. As such, there's communication between
+    three entities: the Collection (this class), the templateROM (a single instance of the SVL), and
+    the segment ROMs (the group of SVLs).  
+
+    The templateROM is allowed to perform arbitrary global modifications to the training signal before
+    the signal is subdivided and sent to individual ROMs. For instance, some global training may not
+    apply at a local level. The method "getGlocalRomSegmentSettings" is called on the templateROM to
+    get both the modified training data as well as the "settings", which won't ever be read by the
+    Collection but will be provided to the segment ROMs at several times.
+
+    Before training, the "settings" from the global training may need to make modifications in the
+    input parameters of the segment ROMs, so these settings are passed to "adjustLocalRomSegment" on
+    each segment ROM so it can update its state to reflect the global settings.
+
+    Upon evaluating the collection, first the individual segment ROMs are evaluated, and then first
+    local then global finalizing modifications are allowed based on the global training "setings". These
+    are managed by calling finalizeLocalRomSegmentEvaluation on each segment ROM, and
+    finalizeGlovalRomSegmentEvaluation on the templateROM.
   """
   ## Constructors ##
   def __init__(self, messageHandler, **kwargs):
@@ -422,6 +439,11 @@ class Clusters(Segments):
     self._clusterGroupExpansionInfo = {} # dict of global expansions for local clusters
     self._evaluationMode = 'truncated'   # TODO make user option, whether returning full histories or truncated ones
     self._featureTemplate = '{target}|{metric}|{id}' # created feature ID template
+
+    ## check if ROM has methods to cluster on (errors out if not)
+    # TODO find a better way
+    if not callable(getattr(self._templateROM, "getLocalRomClusterFeatures", None)):
+      self.raiseAnError(NotImplementedError, 'Requested ROM "{}" does not yet have methods for clustering!'.format(self._romName))
 
   def readAssembledObjects(self):
     """
@@ -445,17 +467,19 @@ class Clusters(Segments):
       @ Out, result, np.array, evaluated points
     """
     if self._evaluationMode == 'full':
-      # architected to work just like Segmented does
-      result = Segments._evaluateBySegments(self, edict)
-    elif self._evaluationMode == 'truncated':
-      # can't follow the same pattern as the Segmented, so we deviate
-      result, clusterLengths = self._evaluateTruncated(edict)
-      settings = dict(self._romGlobalAdjustments['clusterInfo']) # TODO deepcopy? Shallow copy? No copy?
-      settings['clusterLengths'] = clusterLengths
-       # add globals back in, our own way
-      result = self._templateROM.applyClusterGroups(result, settings)
+      # TODO there's no input-based way to request this mode right now, so it's not tested as much
+      result = Segments.evaluate(self, edict)
+    if self._evaluationMode == 'truncated':
+      result, weights = self._createTruncatedEvaluation(edict)
+      for r, rom in enumerate(self._roms):
+        # "r" is the cluster
+        clusterIndex = list(self._clusterInfo['map'][r]).index(rom)
+        segmentIndex = self._getSegmentIndexFromClusterIndex(r, self._clusterInfo['labels'], clusterIndex=clusterIndex)
+        delim = self._divisionInfo['delimiters'][r]
+        picker = slice(delim[0], delim[-1] + 1)
+        result = rom.finalizeLocalRomSegmentEvaluation(self._romGlobalAdjustments, result, picker)
+      result = self._templateROM.finalizeGlobalRomSegmentEvaluation(self._romGlobalAdjustments, result, weights=weights)
     return result
-
 
   def writeXML(self, writeTo, targets=None, skip=None):
     """
@@ -513,44 +537,73 @@ class Clusters(Segments):
     labels = classifier.evaluate(clusterFeatures)
     return labels
 
-  def _evaluateTruncated(self, evaluationDict):
+  def _createTruncatedEvaluation(self, evaluationDict):
     """
       Evaluates truncated representation of ROM
       @ In, evaluationDict, dict, realization to evaluate
       @ Out, result, dict, dictionary of results
-      @ Out, clusterLengths, list, length (number of entries) from each cluster
+      @ Out, sampleWeights, np.array, array of cluster weights (normalized)
     """
     pivotID = self._templateROM.pivotParameterID
-    result = None # fill in structure after the first sample
-    historyLen = None # fill in after first sample
-    clusterLengths = []
-    # sample ROMs in no particular order (they're representative, after all)
-    for r, rom in enumerate(self._roms):
-      self.raiseADebug('Evaluating ROM cluster', r)
-      # sample the rom
-      subResults = rom.evaluate(evaluationDict)
-      # structure the results, if not present yet
+    result = None # populate on first sample -> could use defaultdict, but that's more lenient
+    sampleWeights = [] # importance of each cluster
+    # sample signal, one piece for each segment
+    labelMap = self._clusterInfo['labels']
+    clusters = sorted(list(set(labelMap)))
+    for cluster in clusters:
+      # choose a ROM
+      chooseRomMode = 'first' # TODO user option? alternative is random
+      if chooseRomMode == 'first':
+        ## option 1: just take the first one
+        segmentIndex, clusterIndex = self._getSegmentIndexFromClusterIndex(cluster, labelMap, clusterIndex=0)
+      elif chooseRomMode == 'random':
+        ## option 2: choose randomly
+        segmentIndex, clusterIndex = self._getSegmentIndexFromClusterIndex(cluster, labelMap, chooseRandom=True)
+      # grab the Chosen ROM to represent this cluster
+      rom = self._clusterInfo['map'][cluster][clusterIndex] # the Chosen ROM
+      # get the slice opject that picks out the history range associated to the Chosen Segment
+      delimiter = self._divisionInfo['delimiters'][segmentIndex]
+      picker = slice(delimiter[0], delimiter[-1] + 1)
+      # evaluate the ROM
+      subResults = rom.evaluate(evaluationDict) # TODO assumes only scalar inputs. That's a RAVEN truth right now though.
       if result is None:
-        # store list of ROM evaluations for each target, then paste them together later
-        result = dict((target, []) for target in subResults.keys())
+        result = dict((target, []) for target in subResults)
+      # populate weights
+      sampleWeights.append(np.ones(len(subResults[pivotID])) * len(self._clusterInfo['map'][cluster]))
       for target, values in subResults.items():
         result[target].append(values)
-    # track cluster lengths
-    clusterLengths = list(len(x) for x in result.values()[0])
-    # connect pieces
-    for target, valueList in result.items():
-      if target == pivotID:
-        # handle pivot last
-        continue
-      else:
-        # TODO hstack may not be desirable for ND data!
-        result[target] = np.hstack(valueList)
-        if historyLen is None:
-          historyLen = len(result[target])
-    # handle pivot
-    # TODO assuming equally-spaced pivot throughout, just use the first X amount of the full history
-    result[pivotID] = self._indexValues[pivotID][:historyLen]
-    return result, clusterLengths
+    # combine histories (we stored each one as a distinct array during collecting)
+    for target, values in result.items():
+      result[target] = np.hstack(values)
+    result[pivotID] = self._indexValues[pivotID][:len(result[pivotID])]
+    sampleWeights = np.hstack(sampleWeights)
+    sampleWeights /= sum(sampleWeights)
+    return result, sampleWeights
+
+  def _getSegmentIndexFromClusterIndex(self, cluster, labelMap, clusterIndex=None, chooseRandom=False):
+    """
+      Given the index of a rom WITHIN a cluster, get the index of that rom's segment in the full history
+      @ In, cluster, int, label of cluster that ROM is within
+      @ In, labelMap, list(int), map of where clusters appear in order of full history
+      @ In, clusterIndex, int, optional, index of ROM within the cluster
+      @ In, chooseRandom, bool, optional, if True then choose randomly from eligible indices
+      @ Out, segmentIndex, int, position of rom's segment in full history
+      @ Out, clusterIndex, int, position of rom within cluster (returned in event of random)
+    """
+    # Need to either provide the index, or let it be random, but not both
+    ## TODO modify to use internal RNG from randUtils
+    assert not (clusterIndex is None and chooseRandom is False)
+    assert not (clusterIndex is not None and chooseRandom is True)
+    # indices of all segments
+    indices = np.arange(len(labelMap))
+    # indices who belong to this cluster
+    eligible = indices[labelMap == cluster]
+    # if random, choose now
+    if chooseRandom:
+      clusterIndex = np.random.choice(range(len(eligible)))
+    # global index
+    segmentIndex = eligible[clusterIndex]
+    return segmentIndex, clusterIndex
 
   def _gatherClusterFeatures(self, roms, counter, trainingSet):
     """
@@ -568,15 +621,14 @@ class Clusters(Segments):
       # select pertinent data
       ## NOTE assuming only "leftover" roms are at the end, so the rest are sequential and match "counters"
       picker = slice(counter[r][0], counter[r][-1]+1)
-      data = dict((var, [copy.deepcopy(trainingSet[var][0][picker])]) for var in trainingSet)
-      targetData = dict((var, data[var][0]) for var in targets)
-      ## DEBUGG temporarily disable basic metrics ##
+      # OLD data = dict((var, [copy.deepcopy(trainingSet[var][0][picker])]) for var in trainingSet)
+      ## DEBUGG temporarily? disable basic metrics ##
       # get general basic metrics (aka cluster features)
       #basicData = self._calculateBasicMetrics(targetData)
       #for feature, val in basicData.items():
       #  clusterFeatures[feature].append(val)
       # get ROM-specific metrics
-      romData = rom.getRomClusterValues(self._featureTemplate)
+      romData = rom.getLocalRomClusterFeatures(self._featureTemplate, self._romGlobalAdjustments, picker=picker)
       for feature, val in romData.items():
         clusterFeatures[feature].append(val)
     return clusterFeatures
@@ -587,6 +639,7 @@ class Clusters(Segments):
       @ In, None
       @ Out, _getSequentialRoms, list of ROMs in order (pointer, not copy)
     """
+    # TODO always returns the first cluster currently. Should be different?
     return list(self._roms[l] for l in self._clusterInfo['labels'])
 
   def _trainBySegments(self, divisions, trainingSet):
@@ -599,6 +652,7 @@ class Clusters(Segments):
     # subdivide domain and train subdomain ROMs, as with the segmentation
     ## TODO can we increase the inheritance more here, or is this the minimum cutset?
     counter, remainder = divisions
+    # store delimiters
     if len(remainder):
       self.raiseADebug('"{}" division(s) are being excluded from clustering consideration.'.format(len(remainder)))
     ## train ROMs for each segment
@@ -621,7 +675,7 @@ class Clusters(Segments):
     clusterFeatures = self._weightAndScaleClusters(features, hierarchFeatures, clusterFeatures, weightingStrategy)
     # perform clustering
     labels = self._classifyROMs(self._divisionClassifier, features, clusterFeatures)
-    uniqueLabels = sorted(list(set(labels)))
+    uniqueLabels = sorted(list(set(labels))) # note: keep these ordered!
     self.raiseAMessage('Identified {} clusters while training clustered ROM "{}".'.format(len(uniqueLabels), self._romName))
     # if there were some segments that won't compare well (e.g. leftovers), handle those separately
     if len(remainder):
@@ -641,12 +695,8 @@ class Clusters(Segments):
     #############
     # END DEBUG #
     #############
-    # gather some additional cluster information based on the clustering
-    clusterGroupExpansionInfo = self._templateROM.createClusterGroups(labels, counter, self._romGlobalAdjustments)
-    # add to the global adjustments, along with a trigger flag for the mode
-    self._romGlobalAdjustments['clusterInfo'] = clusterGroupExpansionInfo
     # TODO what about the unclustered ones? Do we throw them out in truncated representation?
-    self._roms = list(self._clusterInfo['map'][label][0] for label in uniqueLabels) # TODO what about unclustered???
+    self._roms = list(self._clusterInfo['map'][label][0] for label in uniqueLabels)
 
   def _weightAndScaleClusters(self, features, featureGroups, clusterFeatures, weightingStrategy):
     """
@@ -694,49 +744,6 @@ class Clusters(Segments):
 #
 #
 # DEBUGGING TOOLS
-def _plotSignalsSegmented(labels, roms, targetDatas):
-  """
-    Debug tool. Should be removed or relocated when clustered ROMs are fully implemented.
-    Plots the original data, colored by ROM clusters.
-    @ In, labels, list(str), cluster labels corresponding to ROM order
-    @ In, roms, list(SupervisedLearning), trained subset ROMs in the same order as labels
-    @ In, targetDatas, dict, debugging tool
-    @ Out, None
-  """
-  # TODO remove
-  ## TODO doesn't work with shifted roms well.
-  ## TODO can we make this a tool the user can use?
-  targetDatas = np.array(targetDatas)
-  import matplotlib.pyplot as plt
-  from matplotlib.lines import Line2D
-  fig, ax = plt.subplots()
-  ax.set_title('Clustered (Fourier)')
-  legends = []
-  for label in set(labels):
-    # legend
-    clr = ('C'+str(label % 10)) if label >= 0 else 'k'
-    legends.append(Line2D([0], [0], color=clr))
-    #figS,axS = plt.subplots()
-    #axS.set_title('Compared: Cluster {}'.format(label))
-    mask = labels == label
-    for r in range(sum(mask)):
-      rom = roms[mask][r]
-      target = targetDatas[mask][r]
-      x = rom.pivotParameterValues
-      y = target['Signal']
-      index = list(roms).index(rom)+1
-      ax.plot(x, y, color=clr)
-      ax.plot([x[0]]*2, [5000, 20000], 'k:')
-      ax.plot([x[-1]]*2, [5000, 20000], 'k:')
-      if (index - 1) % 4 == 0:
-        ax.plot([x[0]]*2, [5000, 20000], 'k-')
-      ax.text(np.average(x), 6000, str(index), ha='center')
-      #axS.plot(x - x[0], y, label=str(list(roms).index(rom)+1))
-    #axS.legend(loc=0)
-  ax.legend(legends, list(set(labels)))
-  fig.savefig('clusters.png')
-  plt.show()
-
 def _plotSignalsClustered(labels, clusterFeatures, slices, trainingSet):
   # dump training parameters
   import pandas as pd

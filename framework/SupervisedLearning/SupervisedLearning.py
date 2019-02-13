@@ -333,28 +333,24 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     """
     return
 
-  def getRomClusterParams(self):
+  ### ROM Clustering (see ROMCollection.py) ###
+  def getLocalRomClusterFeatures(self, *args, **kwargs):
     """
-      Method to indicate what parameters can be used to cluster this ROM.
-      By default, raises NotImplementedError.
-      @ In, None
-      @ Out, params, list, list of clusterable parameters
-    """
-    self.raiseAnError(NotImplementedError, '<Cluster> capabilities not yet implemented for "{}" ROM!'.format(self.__class__.__name__))
-
-  def getRomClusterValues(self, *args, **kwargs):
-    """
-      Method to indicate what parameters can be used to cluster this ROM.
-      By default, raises NotImplementedError.
-      @ In, args, list, arbitrary arguments
+      Provides metrics aka features on which clustering compatibility can be measured.
+      This is called on LOCAL subsegment ROMs, not on the GLOBAL template ROM
+      @ In, featureTemplate, str, format for feature inclusion
+      @ In, settings, dict, as per getGlobalRomSegmentSettings
+      @ In, picker, slice, indexer for segmenting data
       @ In, kwargs, dict, arbitrary keyword arguments
-      @ Out, value, float, value of parameter
+      @ Out, features, dict, {target_metric: np.array(floats)} features to cluster on
     """
-    self.raiseAnError(NotImplementedError, '<Cluster> capabilities not yet implemented for "{}" ROM!'.format(self.__class__.__name__))
+    # TODO can we do a generic basic statistics clustering on mean, std for all roms?
+    self.raiseAnError(NotImplementedError, 'Clustering capabilities not yet implemented for "{}" ROM!'.format(self.__class__.__name__))
 
-  def getGlobalRomClusterSettings(self, trainingDict, divisions):
+  def getGlobalRomSegmentSettings(self, trainingDict, divisions):
     """
-      Allows the ROM to perform some analysis before clustering.
+      Allows the ROM to perform some analysis before segmenting.
+      Note this is called on the GLOBAL templateROM from the ROMcollection, NOT on the LOCAL subsegment ROMs!
       @ In, trainingDict, dict, data for training
       @ In, divisions, tuple, (division slice indices, unclustered spaces)
       @ Out, settings, object, arbitrary information about ROM clustering settings
@@ -363,46 +359,38 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     # by default, do nothing
     return None, trainingDict
 
-  def setGlobalRomClusterSettings(self, settings):
+  def adjustLocalRomSegment(self, settings):
     """
-      Allows the ROM to apply general settings as obtained in getRomClusterSettings
-      @ In, settings, object, arbitrary information about ROM clustering settings
+      Adjusts this ROM to account for it being a segment as a part of a larger ROM collection.
+      Call this before training the subspace segment ROMs
+      Note this is called on the LOCAL subsegment ROMs, NOT on the GLOBAL templateROM from the ROMcollection!
+      @ In, settings, dict, as from getGlobalRomSegmentSettings
       @ Out, None
     """
     # by default, do nothing
     pass
 
-  def finalizeGlobalRomClusterSample(self, settings, evaluation):
+  def finalizeLocalRomSegmentEvaluation(self, settings, evaluation, picker):
     """
-      Allows any global settings to be applied to the signal collected by the ROMCollection instance.
-      Note this is called on the templateROM from the ROMCollection, NOT on the subspace segment ROMs!
-      By default make no modification.
-      @ In, evaluation, dict, evaluation as from __evaluateLocal__
-      @ Out, evaluatoin, dict, modified evaluation
+      Allows global settings in "settings" to affect a LOCAL evaluation of a LOCAL ROM
+      Note this is called on the LOCAL subsegment ROM and not the GLOBAL templateROM.
+      @ In, settings, dict, as from getGlobalRomSegmentSettings
+      @ In, evaluation, dict, preliminary evaluation from the local segment ROM as {target: [values]}
+      @ In, picker, slice, indexer for data range of this segment
+      @ Out, evaluation, dict, {target: np.ndarray} adjusted global evaluation
     """
     return evaluation
 
-  def createClusterGroups(self, labelMap, delimiters, settings):
+  def finalizeGlobalRomSegmentEvaluation(self, settings, evaluation):
     """
-      Allows ROM to expand clusters into a more representative set of ROMs based on global information (aka mean? TODO std?)
-      TODO should allow user to determine what conditions they want -> maybe on evaluate side?
-      Note that if nothing is provided, then will default to not changing the cluster signal at all.
-      @ In, labelMap, list(str), list of cluster labels in order of appearance in the history
-      @ In, delimiters, list(tuple), list of delimiters for start/stop points of each ROM (indices, not values)
-      @ In, settings, object, arbitrary information about ROM clustering settings (as from getGlobalRomClusterSettings)
-      @ Out, clusterGroupInfo, dict, ways to expand each cluster. Keys are clusters, values are np.arrays of signals to add to a given cluster.
-                                     For example: {label: np.ones(len(cluster))*42.} to add 42 to the whole signal.
+      Allows any global settings to be applied to the signal collected by the ROMCollection instance.
+      Note this is called on the GLOBAL templateROM from the ROMcollection, NOT on the LOCAL supspace segment ROMs!
+      @ In, evaluation, dict, {target: np.ndarray} evaluated full (global) signal from ROMCollection
+      TODO finish docs
+      @ Out, evaluation, dict, {target: np.ndarray} adjusted global evaluation
     """
-    return {}
-
-  def applyClusterGroups(self, results, settings):
-    """
-      Expands clusters as desired based on settings from createClusterGroups
-      @ In, results, dict, evaluation results by target
-      @ In, settings, dict, settings as from createClusterGroups
-      @ Out, results, modified results
-    """
-    return results
+    return evaluation
+  ### END ROM Clustering ###
 
   @abc.abstractmethod
   def __trainLocal__(self,featureVals,targetVals):
