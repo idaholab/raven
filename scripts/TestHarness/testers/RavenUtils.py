@@ -58,8 +58,7 @@ modules_to_try_py2 = [("h5py", 'h5py.__version__', '2.4.0', '2.7.1', None), # 2.
                     # HDF5 databases and drop them like hot rocks.
                     ("netCDF4", 'netCDF4.__version__', "1.2.3", "1.4.0", None), # 1.2.4
                     ("statsmodels", 'statsmodels.__version__', "0.8.0", "0.8.0", None),
-                    ("matplotlib", 'matplotlib.__version__', "1.3.1", "2.1.1", None),
-                    ('pillow', 'PIL.__version__', "5.0.0", "5.1.0", None)]
+                    ("matplotlib", 'matplotlib.__version__', "1.3.1", "2.1.1", None)]
 
 modules_to_try_py3 = [("h5py", 'h5py.__version__', '2.4.0', '2.7.1', None), # 2.6.0
                     ("pandas", 'pandas.__version__', "0.20.0", "0.20.3", None),
