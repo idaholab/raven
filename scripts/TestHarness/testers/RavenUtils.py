@@ -63,6 +63,7 @@ modules_to_try_py2 = [("h5py", 'h5py.__version__', '2.4.0', '2.7.1', None), # 2.
 modules_to_try_py3 = [("h5py", 'h5py.__version__', '2.4.0', '2.7.1', None), # 2.6.0
                     ("pandas", 'pandas.__version__', "0.20.0", "0.20.3", None),
                     ("xarray", 'xarray.__version__', "0.9.5", "0.10.3", None),
+                    ("sklearn", 'sklearn.__version__', "0.19.1", "0.19.1", None),
                     ## NOTE there is a known bug in netCDF4 prior to 1.3.1 where
                     # having a path length of exactly 88 characters can create a
                     # seg fault.  However, h5py has no new libraries
