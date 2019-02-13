@@ -1219,7 +1219,7 @@ class ROM(Dummy):
                            self.kerasAdvancedActivationLayersList + \
                            self.kerasNormalizationLayersList + \
                            self.kerasNoiseLayersList
-    
+
     self.kerasROMsList = ['KerasMLPClassifier', 'KerasConvNetClassifier', 'KerasLSTMClassifier']
     # for Clustered ROM
     self.addAssemblerObject('Classifier','-1',True)
