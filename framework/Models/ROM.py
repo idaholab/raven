@@ -234,7 +234,7 @@ class ROM(Dummy):
 
     # for deep learning neural network
     #inputSpecification.addSub(InputData.parameterInputFactory("DNN", InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("hidden_layer_sizes", contentType=InputData.IntegerListType)) # list of integer
+    inputSpecification.addSub(InputData.parameterInputFactory("hidden_layer_sizes", contentType=InputData.IntegerTupleType)) # list of integer
     inputSpecification.addSub(InputData.parameterInputFactory("metrics", contentType=InputData.StringListType)) #list of metrics
     inputSpecification.addSub(InputData.parameterInputFactory("batch_size", contentType=InputData.IntegerType))
     inputSpecification.addSub(InputData.parameterInputFactory("epochs", contentType=InputData.IntegerType))

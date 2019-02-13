@@ -35,7 +35,7 @@
       <SKLtype>neural_network|MLPRegressor</SKLtype>
       <Features>X,Y</Features>
       <Target>Z</Target>
-      <hidden_layer_sizes>(5,2)</hidden_layer_sizes>
+      <hidden_layer_sizes>5,2</hidden_layer_sizes>
       <activation>tanh</activation>
       <solver>lbfgs</solver>
       <alpha>0.0001</alpha>

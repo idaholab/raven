@@ -29,7 +29,7 @@ import copy
 import abc
 import numpy as np
 import random as rn
-import matplotlib.pyplot as plt
+import matplotlib
 from scipy import stats
 from sklearn import preprocessing
 import os
@@ -46,6 +46,23 @@ try:
   __tensorflowAvailable = True
 except ImportError as e:
   __tensorflowAvailable = False
+
+## Set a global variable for backend default setting of whether a display is
+## available or not. For instance, if we are running on the HPC without an X11
+## instance, then we don't have the ability to display the plot, only to save it
+## to a file
+if platform.system() == 'Windows':
+  displayAvailable = True
+else:
+  if os.getenv('DISPLAY'):
+    displayAvailable = True
+  else:
+    displayAvailable = False
+
+if not displayAvailable:
+  matplotlib.use('Agg')
+
+import matplotlib.pyplot as plt
 
 #External Modules End--------------------------------------------------------------------------------
 

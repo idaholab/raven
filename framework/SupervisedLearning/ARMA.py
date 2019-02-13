@@ -121,12 +121,11 @@ class ARMA(supervisedLearning):
       self.raiseADebug('Setting Numpy seed to',self.seed)
       np.random.seed(self.seed)
       # store correlated targets
-      corVars = [x.strip() for x in correlated.split(',')]
-      for var in corVars:
+      for var in correlated:
         if var not in self.target:
           self.raiseAnError(IOError,'Variable "{}" requested in "correlate" but not found among the targets!'.format(var))
       # NOTE: someday, this could be expanded to include multiple sets of correlated variables.
-      self.correlations = corVars
+      self.correlations = correlated
 
     # check if the pivotParameter is among the targetValues
     if self.pivotParameterID not in self.target:
