@@ -1219,6 +1219,8 @@ class ROM(Dummy):
                            self.kerasAdvancedActivationLayersList + \
                            self.kerasNormalizationLayersList + \
                            self.kerasNoiseLayersList
+    
+    self.kerasROMsList = ['KerasMLPClassifier', 'KerasConvNetClassifier', 'KerasLSTMClassifier']
     # for Clustered ROM
     self.addAssemblerObject('Classifier','-1',True)
     self.addAssemblerObject('Metric','-n',True)
@@ -1249,7 +1251,7 @@ class ROM(Dummy):
           self.initializationOptionDict[child.getName()] = {}
           for node in child.subparts:
             self.initializationOptionDict[child.getName()][node.getName()] = node.value
-        elif child.getName().lower() in self.kerasLayersList:
+        elif child.getName().lower() in self.kerasLayersList and self.subType in self.kerasROMsList:
           layerName = child.parameterValues['name']
           self.initializationOptionDict[layerName] = {}
           self.initializationOptionDict[layerName]['type'] = child.getName().lower()

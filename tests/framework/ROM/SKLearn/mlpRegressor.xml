@@ -39,7 +39,7 @@
       <activation>tanh</activation>
       <solver>lbfgs</solver>
       <alpha>0.0001</alpha>
-      <batch_size>auto</batch_size>
+      <batch_size>100</batch_size>
       <learning_rate>constant</learning_rate>
       <learning_rate_init>0.001</learning_rate_init>
       <power_t>0.5</power_t>

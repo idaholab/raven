@@ -705,9 +705,9 @@
 
 \newcommand{\batchSizeMLPDescription}[1]
 {
-  \xmlNode{batch\_size}, \xmlDesc{int or `auto', optional field}, Size of minibatches for stochastic
-  optimizers. If the solver is \textit{lbfgs}, the classifier will not use minibatch. When
-  set to \textit{auto}, batch\_size = min(200, n\_samples)
+  \xmlNode{batch\_size}, \xmlDesc{int, optional field}, Size of minibatches for stochastic
+  optimizers. If the solver is \textit{lbfgs}, the classifier will not use minibatch. If unspecified,
+  batch\_size = min(200, n\_samples)
   %
   \ifthenelse{\equal{#1}{}}{}{\default{#1}}
 }
