@@ -43,7 +43,7 @@ def in_python_3():
 
 ## working Conda 4.5.4, May 2018
 modules_to_try_py2 = [("h5py", 'h5py.__version__', '2.4.0', '2.7.1', None), # 2.6.0
-                    ("numpy", 'numpy.__version__', "1.13.3", "1.13.3", None),
+                    ("numpy", 'numpy.__version__', "1.8.0", "1.12.1", None),
                     ("scipy", 'scipy.__version__', "1.1.0", "1.1.0", None),
                     ("sklearn", 'sklearn.__version__', "0.19.1", "0.19.1", None),
                     ("pandas", 'pandas.__version__', "0.20.0", "0.20.3", None),
