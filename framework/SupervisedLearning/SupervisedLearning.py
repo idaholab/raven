@@ -334,6 +334,15 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     return
 
   ### ROM Clustering (see ROMCollection.py) ###
+  def isClusterable(self):
+    """
+      Allows ROM to declare whether it has methods for clustring. Default is no.
+      @ In, None
+      @ Out, isClusterable, bool, if True then has clustering mechanics.
+    """
+    # only true if overridden.
+    return False
+
   def getLocalRomClusterFeatures(self, *args, **kwargs):
     """
       Provides metrics aka features on which clustering compatibility can be measured.

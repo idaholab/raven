@@ -87,19 +87,10 @@
   [./Clustered]
     type = 'RavenFramework'
     input = 'clustered.xml'
-    [./input_ldc]
-      # this is primarily to test that sample_ldc will be a valid test.
-      # If this fails, then either there's an error, or the gold_dur*.csv need regolding.
-      # This is done by copying input_durs_0.csv 10 times to compare against the sample ldcs.
-      # Hopefully we get a compare-samples-to-gold metric figured out so we can use that later.
-      type = OrderedCSV
-      output = 'Clustered/input_durs_0.csv'
+    [./rom_meta]
+      type = UnorderedXML
+      output = 'Clustered/romMeta.xml'
       rel_err = 1e-5
-    [../]
-    [./sample_ldc]
-      type = OrderedCSV
-      output = 'Clustered/metric.csv'
-      rel_err = 1e-6
     [../]
   [../]
 

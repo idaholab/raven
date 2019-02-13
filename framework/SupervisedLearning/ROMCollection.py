@@ -26,7 +26,7 @@ from collections import defaultdict
 import abc
 import numpy as np
 # internal libraries
-from utils import mathUtils, xmlUtils
+from utils import mathUtils, xmlUtils, randomUtils
 from .SupervisedLearning import supervisedLearning
 
 warnings.simplefilter('default', DeprecationWarning)
@@ -52,13 +52,15 @@ class Collection(supervisedLearning):
     self._romName = kwargs.get('name', 'unnamed') # name of the requested ROM
     self._templateROM = kwargs['modelInstance']   # example of a ROM that will be used in this grouping, set by setTemplateROM
     self._roms = []                               # ROMs that belong to this grouping.
-    # TODO dynamicHandling? depends on sub-ROMs
 
   def __getstate__(self):
+    """
+      Customizes the serialization of this class.
+      @ In, None
+      @ Out, d, dict, dictionary with class members
+    """
+    # construct a list of unpicklable entties and exclude them from pickling
     nope = ['_divisionClassifier', '_assembledObjects']
-    for k in self.__dict__:
-      if k not in nope:
-        print('. ', k)
     d = dict((key, val) for key, val in self.__dict__.items() if key not in nope) # deepcopy needed
     return d
 
@@ -69,7 +71,7 @@ class Collection(supervisedLearning):
       @ In, trainDict, dict, dicitonary with training data
       @ Out, None
     """
-    # TODO can we get away without overwriting method?
+    pass
 
   @abc.abstractmethod
   def evaluate(self, edict):
@@ -79,24 +81,59 @@ class Collection(supervisedLearning):
       @ In, edict, dict, evaluation dictionary
       @ Out, evaluate, np.array, evaluated points
     """
-    # TODO can we get away without overwriting method?
-
-  def reseed(self, seed):
-    pass # XXX
+    pass
 
   # dummy methods that are required by SVL and not generally used
   def __confidenceLocal__(self, featureVals):
+    """
+      This should return an estimation of the quality of the prediction.
+      This could be distance or probability or anything else, the type needs to be declared in the variable cls.qualityEstType
+      @ In, featureVals, 2-D numpy array , [n_samples,n_features]
+      @ Out, __confidenceLocal__, float, the confidence
+    """
     pass
+
   def __resetLocal__(self):
+    """
+      Reset ROM. After this method the ROM should be described only by the initial parameter settings
+      @ In, None
+      @ Out, None
+    """
     pass
+    
   def __returnCurrentSettingLocal__(self):
+    """
+      Returns a dictionary with the parameters and their current values
+      @ In, None
+      @ Out, params, dict, dictionary of parameter names and current values
+    """
     return {}
+
   def __returnInitialParametersLocal__(self):
+    """
+      Returns a dictionary with the parameters and their initial values
+      @ In, None
+      @ Out, params, dict,  dictionary of parameter names and initial values
+    """
     return {}
-  # TODO find a way to use these like other SVL?
+
+  # Are private-ish so should not be called directly, so we don't implement them, as they don't fit the collection.
   def __evaluateLocal__(self, featureVals):
+    """
+      @ In,  featureVals, np.array, 2-D numpy array [n_samples,n_features]
+      @ Out, targetVals , np.array, 1-D numpy array [n_samples]
+    """
     pass
+
   def __trainLocal__(self, featureVals, targetVals):
+    """
+      Perform training on samples in featureVals with responses y.
+      For an one-class model, +1 or -1 is returned.
+      @ In, featureVals, {array-like, sparse matrix}, shape=[n_samples, n_features],
+        an array of input feature values
+      @ Out, targetVals, array, shape = [n_samples], an array of output target
+        associated with the corresponding points in featureVals
+    """
     pass
 
 #
@@ -124,7 +161,6 @@ class Segments(Collection):
     self._divisionInfo = {}            # data that should persist across methods
     self._divisionPivotShift = {}      # whether and how to normalize/shift subspaces
     self._indexValues = {}             # original index values, by index
-    self._originalTrainingData = {}    # stores the data on which this ROM was originally trained; TODO redundance with indexValues?
     # allow some ROM training to happen globally, seperate from individual segment training
     ## see design note for Clusters
     self._romGlobalAdjustments = None  # global ROM settings, provided by the templateROM before clustering
@@ -170,28 +206,26 @@ class Segments(Collection):
     if len(self._divisionInstructions) > 1:
       self.raiseAnError(NotImplementedError, 'Segmented ROMs do not yet handle multiple subspaces!')
 
-
   ###############
   # RUN METHODS #
   ###############
-  def train(self, tdict): #featureVals, targetVals):
+  def train(self, tdict):
     """
       Trains the SVL and its supporting SVLs. Overwrites base class behavior due to special clustering needs.
       @ In, trainDict, dict, dicitonary with training data
       @ Out, None
     """
+    # read in assembled objects, if any
     self.readAssembledObjects()
     # subdivide space
     divisions = self._subdivideDomain(self._divisionInstructions, tdict)
     self._divisionInfo['delimiters'] = divisions[0] + divisions[1]
-    # DEBUGG only
-    self._originalTrainingData = copy.deepcopy(tdict)
-    # allow ROM to handle some global features
+    # allow ROM to handle some global training
     self._romGlobalAdjustments, newTrainingDict = self._templateROM.getGlobalRomSegmentSettings(tdict, divisions)
     # train segments
     self._trainBySegments(divisions, newTrainingDict)
     self.amITrained = True
-    self._templateROM.amITrained = True # TODO is this a safe thing to do??
+    self._templateROM.amITrained = True
 
   def evaluate(self, edict):
     """
@@ -209,6 +243,15 @@ class Segments(Collection):
     result = self._templateROM.finalizeGlobalRomSegmentEvaluation(self._romGlobalAdjustments, result)
     return result
 
+  def writePointwiseData(self, writeTo):
+    """
+      Writes pointwise data about this ROM to the data object.
+      @ In, writeTo, DataObject, data structure into which data should be written
+      @ Out, None
+    """
+    rlz = self._writeSegmentsRealization(writeTo)
+    writeTo.addRealization(rlz)
+
   def writeXML(self, writeTo, targets=None, skip=None):
     """
       Write out ARMA information
@@ -217,7 +260,7 @@ class Segments(Collection):
       @ In, skip, list, optional, unused
       @ Out, None
     """
-    # TODO write global information
+    # write global information
     newNode = xmlUtils.StaticXmlElement('GlobalROM', attrib={'segment':'all'})
     self._templateROM.writeXML(newNode, targets, skip)
     writeTo.getRoot().append(newNode.getRoot())
@@ -226,7 +269,6 @@ class Segments(Collection):
       newNode = xmlUtils.StaticXmlElement('SegmentROM', attrib={'segment':str(i)})
       rom.writeXML(newNode, targets, skip)
       writeTo.getRoot().append(newNode.getRoot())
-
 
   ###################
   # UTILITY METHODS #
@@ -302,7 +344,8 @@ class Segments(Collection):
         numSegments = value # renamed for clarity
         # divide the subspace into equally-sized segments, store the indexes for each segment
         counter = np.array_split(np.arange(dataLen), numSegments)
-        # TODO don't over-store data; only store the first and last index in "counter"!
+        # only store bounds, not all indices in between -> note that this is INCLUSIVE!
+        counter = list((c[0], c[-1]) for c in counter)
         # Note that "segmented" doesn't have "unclustered" since chunks are evenly sized
       elif mode == 'value':
         segmentValue = value # renamed for clarity
@@ -312,7 +355,7 @@ class Segments(Collection):
         floor = 0                # where does this pivot segment start?
         nextOne = segmentValue   # how high should this pivot segment go?
         counter = []
-        # FIXME can we do this without looping?
+        # TODO speedup; can we do this without looping?
         while pivot[floor] < pivot[-1]:
           cross = np.searchsorted(pivot, nextOne)
           # if the next crossing point is past the end, put the remainder piece
@@ -322,7 +365,7 @@ class Segments(Collection):
             unclustered.append((floor, cross - 1))
             break
           # add this segment, only really need to know the first and last index (inclusive)
-          counter.append((floor, cross - 1))
+          counter.append((floor, cross - 1)) # Note: indices are INCLUSIVE
           # update search parameters
           floor = cross
           nextOne += segmentValue
@@ -367,7 +410,7 @@ class Segments(Collection):
     # loop over clusters and train data
     roms = []
     for i, subdiv in enumerate(counter):
-      # slicer for data selection # TODO extract as a small utility method?
+      # slicer for data selection
       picker = slice(subdiv[0], subdiv[-1] + 1)
       ## TODO we need to be slicing all the data, not just one realization, once we support non-ARMA segmentation.
       data = dict((var, [copy.deepcopy(trainingSet[var][0][picker])]) for var in trainingSet)
@@ -392,7 +435,37 @@ class Segments(Collection):
     roms = np.array(roms)
     return roms
 
-
+  def _writeSegmentsRealization(self, writeTo):
+    """
+      Writes pointwise data about segmentation to a realization. Won't actually add rlz to D.O.,
+      but will register names to it.
+      @ In, writeTo, DataObject, data structure into which data should be written
+      @ Out, None
+    """
+    pivotID = self._templateROM.pivotParameterID
+    pivot = self._indexValues[pivotID]
+    # realization to add eventually
+    rlz = {}
+    segmentNames = range(len(self._divisionInfo['delimiters']))
+    # pivot for all this stuff is the segment number
+    rlz['segment_number'] = np.asarray(segmentNames)
+    # start indices
+    varName = 'seg_index_start'
+    writeTo.addVariable(varName, np.array([]), classify='meta', indices=['segment_number'])
+    rlz[varName] = np.asarray(list(d[0] for d in self._divisionInfo['delimiters']))
+    # end indices
+    varName = 'seg_index_end'
+    writeTo.addVariable(varName, np.array([]), classify='meta', indices=['segment_number'])
+    rlz[varName] = np.asarray(list(d[-1] for d in self._divisionInfo['delimiters']))
+    # pivot start values
+    varName = 'seg_{}_start'.format(self._templateROM.pivotParameterID)
+    writeTo.addVariable(varName, np.array([]), classify='meta', indices=['segment_number'])
+    rlz[varName] = np.asarray(list(pivot[d[0]] for d in self._divisionInfo['delimiters']))
+    # pivot end values
+    varName = 'seg_{}_end'.format(self._templateROM.pivotParameterID)
+    writeTo.addVariable(varName, np.array([]), classify='meta', indices=['segment_number'])
+    rlz[varName] = np.asarray(list(pivot[d[-1]] for d in self._divisionInfo['delimiters']))
+    return rlz
 
 #
 #
@@ -436,13 +509,11 @@ class Clusters(Segments):
     self._divisionClassifier = None      # Classifier to cluster subdomain ROMs
     self._metricClassifiers = None       # Metrics for clustering subdomain ROMs
     self._clusterInfo = {}               # contains all the useful clustering results
-    self._clusterGroupExpansionInfo = {} # dict of global expansions for local clusters
     self._evaluationMode = 'truncated'   # TODO make user option, whether returning full histories or truncated ones
     self._featureTemplate = '{target}|{metric}|{id}' # created feature ID template
 
-    ## check if ROM has methods to cluster on (errors out if not)
-    # TODO find a better way
-    if not callable(getattr(self._templateROM, "getLocalRomClusterFeatures", None)):
+    # check if ROM has methods to cluster on (errors out if not)
+    if not self._templateROM.isClusterable():
       self.raiseAnError(NotImplementedError, 'Requested ROM "{}" does not yet have methods for clustering!'.format(self._romName))
 
   def readAssembledObjects(self):
@@ -458,7 +529,6 @@ class Clusters(Segments):
     self._metricClassifiers = self._assembledObjects.get('Metric', None)
 
   ## API ##
-
   def evaluate(self, edict):
     """
       Method to evaluate a point or set of points via surrogate.
@@ -467,19 +537,46 @@ class Clusters(Segments):
       @ Out, result, np.array, evaluated points
     """
     if self._evaluationMode == 'full':
-      # TODO there's no input-based way to request this mode right now, so it's not tested as much
+      # TODO there's no input-based way to request this mode right now. 
+      ## It has been manually tested, but needs a regression tests once this is opened up.
+      ## Right now consider it as if it wasn't an available feature, cuz it kinda isn't.
       result = Segments.evaluate(self, edict)
-    if self._evaluationMode == 'truncated':
+    elif self._evaluationMode == 'truncated':
       result, weights = self._createTruncatedEvaluation(edict)
       for r, rom in enumerate(self._roms):
-        # "r" is the cluster
+        # "r" is the cluster label
+        # find ROM in cluster
         clusterIndex = list(self._clusterInfo['map'][r]).index(rom)
+        # find ROM in full history
         segmentIndex = self._getSegmentIndexFromClusterIndex(r, self._clusterInfo['labels'], clusterIndex=clusterIndex)
+        # make local modifications based on global settings
         delim = self._divisionInfo['delimiters'][r]
         picker = slice(delim[0], delim[-1] + 1)
         result = rom.finalizeLocalRomSegmentEvaluation(self._romGlobalAdjustments, result, picker)
+      # make global modifications based on global settings
       result = self._templateROM.finalizeGlobalRomSegmentEvaluation(self._romGlobalAdjustments, result, weights=weights)
     return result
+
+  def writePointwiseData(self, writeTo):
+    """
+      Writes pointwise data about this ROM to the data object.
+      @ In, writeTo, DataObject, data structure into which data should be written
+      @ Out, None
+    """
+    rlz = self._writeSegmentsRealization(writeTo)
+    # add some cluster stuff
+    # cluster features
+    ## both scaled and unscaled
+    featureNames = sorted(list(self._clusterInfo['features']['unscaled'].keys()))
+    for scaling in ['unscaled','scaled']:
+      for name in featureNames:
+        varName = 'ClusterFeature|{}|{}'.format(name, scaling)
+        writeTo.addVariable(varName, np.array([]), classify='meta', indices=['segment_number'])
+        rlz[varName] = np.asarray(self._clusterInfo['features'][scaling][name])
+    varName = 'ClusterLabels'
+    writeTo.addVariable(varName, np.array([]), classify='meta', indices=['segment_number'])
+    rlz[varName] = np.asarray(self._clusterInfo['labels'])
+    writeTo.addRealization(rlz)
 
   def writeXML(self, writeTo, targets=None, skip=None):
     """
@@ -489,35 +586,22 @@ class Clusters(Segments):
       @ In, skip, list, optional, unused
       @ Out, None
     """
+    # do everything that Segments do
     Segments.writeXML(self, writeTo, targets, skip)
+    # add some stuff specific to clustering
     main = writeTo.getRoot()
     labels = self._clusterInfo['labels']
     for i, repRom in enumerate(self._roms):
       # find associated node
       modify = xmlUtils.findPath(main, 'SegmentROM[@segment={}]'.format(i))
+      # make changes to reflect being a cluster
       modify.tag = 'ClusterROM'
       modify.attrib['cluster'] = modify.attrib.pop('segment')
-      modify.append(xmlUtils.newNode('segments_represented', text=', '.join(str(x) for x in np.arange(len(labels))[labels==i])))
-    # TODO add clustering information to existing nodes
+      modify.append(xmlUtils.newNode('segments_represented', 
+                                     text=', '.join(str(x) for x in np.arange(len(labels))[labels==i])))
+      # TODO pivot values, index delimiters as well?
 
-  ## Utilities ##
-  def _calculateBasicMetrics(self, data):
-    """
-      Evaluates basic statistical data for clustering.
-      Someday should probably leverage BasicStatistics!
-      @ In, data, dict, data to compute metrics on
-      @ Out, metrics, dict, {feature:value} for features like "target_mean" and etc
-    """
-    metrics = {}
-    for target, values in data.items():
-      # mean
-      feature = self._featureTemplate.format(target=target, metric='Basic', id='mean')
-      metrics[feature] = np.average(values)
-      # std dev
-      feature = self._featureTemplate.format(target=target, metric='Basic', id='std')
-      metrics[feature] = np.std(values)
-    return metrics
-
+  ## Utilities ## 
   def _classifyROMs(self, classifier, features, clusterFeatures):
     """
       Classifies the subdomain ROMs.
@@ -544,9 +628,9 @@ class Clusters(Segments):
       @ Out, result, dict, dictionary of results
       @ Out, sampleWeights, np.array, array of cluster weights (normalized)
     """
+    result = None       # populate on first sample -> could use defaultdict, but that's more lenient
+    sampleWeights = []  # importance of each cluster
     pivotID = self._templateROM.pivotParameterID
-    result = None # populate on first sample -> could use defaultdict, but that's more lenient
-    sampleWeights = [] # importance of each cluster
     # sample signal, one piece for each segment
     labelMap = self._clusterInfo['labels']
     clusters = sorted(list(set(labelMap)))
@@ -565,7 +649,7 @@ class Clusters(Segments):
       delimiter = self._divisionInfo['delimiters'][segmentIndex]
       picker = slice(delimiter[0], delimiter[-1] + 1)
       # evaluate the ROM
-      subResults = rom.evaluate(evaluationDict) # TODO assumes only scalar inputs. That's a RAVEN truth right now though.
+      subResults = rom.evaluate(evaluationDict)
       if result is None:
         result = dict((target, []) for target in subResults)
       # populate weights
@@ -576,6 +660,7 @@ class Clusters(Segments):
     for target, values in result.items():
       result[target] = np.hstack(values)
     result[pivotID] = self._indexValues[pivotID][:len(result[pivotID])]
+    # combine history weights
     sampleWeights = np.hstack(sampleWeights)
     sampleWeights /= sum(sampleWeights)
     return result, sampleWeights
@@ -600,7 +685,8 @@ class Clusters(Segments):
     eligible = indices[labelMap == cluster]
     # if random, choose now
     if chooseRandom:
-      clusterIndex = np.random.choice(range(len(eligible)))
+      i = randomUtils.randomIntegers(0, len(eligible) - 1, self)
+      clusterIndex = eligible[i]
     # global index
     segmentIndex = eligible[clusterIndex]
     return segmentIndex, clusterIndex
@@ -621,12 +707,6 @@ class Clusters(Segments):
       # select pertinent data
       ## NOTE assuming only "leftover" roms are at the end, so the rest are sequential and match "counters"
       picker = slice(counter[r][0], counter[r][-1]+1)
-      # OLD data = dict((var, [copy.deepcopy(trainingSet[var][0][picker])]) for var in trainingSet)
-      ## DEBUGG temporarily? disable basic metrics ##
-      # get general basic metrics (aka cluster features)
-      #basicData = self._calculateBasicMetrics(targetData)
-      #for feature, val in basicData.items():
-      #  clusterFeatures[feature].append(val)
       # get ROM-specific metrics
       romData = rom.getLocalRomClusterFeatures(self._featureTemplate, self._romGlobalAdjustments, picker=picker)
       for feature, val in romData.items():
@@ -639,7 +719,7 @@ class Clusters(Segments):
       @ In, None
       @ Out, _getSequentialRoms, list of ROMs in order (pointer, not copy)
     """
-    # TODO always returns the first cluster currently. Should be different?
+    # Always returns the first cluster currently. Could be done differently.
     return list(self._roms[l] for l in self._clusterInfo['labels'])
 
   def _trainBySegments(self, divisions, trainingSet):
@@ -661,6 +741,8 @@ class Clusters(Segments):
     clusterFeatures = self._gatherClusterFeatures(roms, counter, trainingSet)
     # future: requested metrics
     ## TODO someday
+    # store clustering info, unweighted
+    self._clusterInfo['features'] = {'unscaled': copy.deepcopy(clusterFeatures)}
     # weight and scale data
     ## create hierarchy for cluster params
     features = sorted(clusterFeatures.keys())
@@ -673,9 +755,10 @@ class Clusters(Segments):
     ## weighting strategy, TODO make optional for the user
     weightingStrategy = 'uniform'
     clusterFeatures = self._weightAndScaleClusters(features, hierarchFeatures, clusterFeatures, weightingStrategy)
+    self._clusterInfo['features']['scaled'] = copy.deepcopy(clusterFeatures)
     # perform clustering
     labels = self._classifyROMs(self._divisionClassifier, features, clusterFeatures)
-    uniqueLabels = sorted(list(set(labels))) # note: keep these ordered!
+    uniqueLabels = sorted(list(set(labels))) # note: keep these ordered! Many things hinge on this.
     self.raiseAMessage('Identified {} clusters while training clustered ROM "{}".'.format(len(uniqueLabels), self._romName))
     # if there were some segments that won't compare well (e.g. leftovers), handle those separately
     if len(remainder):
@@ -683,19 +766,12 @@ class Clusters(Segments):
     else:
       unclusteredROMs = []
     # make cluster information dict
-    self._clusterInfo = {'labels':labels}
+    self._clusterInfo['labels'] = labels
     ## clustered
     self._clusterInfo['map'] = dict((label, roms[labels == label]) for label in uniqueLabels)
     ## unclustered
     self._clusterInfo['map']['unclustered'] = unclusteredROMs
-    #############
-    #   DEBUG   #
-    #############
-    _plotSignalsClustered(labels, clusterFeatures, counter, self._originalTrainingData)
-    #############
-    # END DEBUG #
-    #############
-    # TODO what about the unclustered ones? Do we throw them out in truncated representation?
+    # TODO what about the unclustered ones? We throw them out in truncated representation, of necessity.
     self._roms = list(self._clusterInfo['map'][label][0] for label in uniqueLabels)
 
   def _weightAndScaleClusters(self, features, featureGroups, clusterFeatures, weightingStrategy):
@@ -727,14 +803,6 @@ class Clusters(Segments):
         ## for now, though, it's the only option.
         self.raiseAnError(RuntimeError, 'Unrecognized weighting strategy: "{}"!'.format(weightingStrategy))
       weights[f] = weight
-    # TODO? make sum of the weights unity
-    ##weights /= np.sum(weights)
-    ## alternative weighting that didn't show much promise so far: by volume
-    # vol = np.product(list(np.max(v) for v in clusterFeatures.values()))
-    # newVolume = np.product(weights)
-    # oldVolume = 1.0
-    # scale = (oldVolume / newVolume)**(1.0 / float(len(features)))
-    ## END scale by volume
     for f, feature in enumerate(features):
       clusterFeatures[feature] = clusterFeatures[feature] * weights[f]
     return clusterFeatures

@@ -902,6 +902,15 @@ class ARMA(supervisedLearning):
     return new
 
   ### Segmenting and Clustering ###
+  def  isClusterable(self):
+    """
+      Allows ROM to declare whether it has methods for clustring. Default is no.
+      @ In, None
+      @ Out, isClusterable, bool, if True then has clustering mechanics.
+    """
+    # clustering methods have been added
+    return True
+
   def _getMeanFromGlobal(self, settings, pickers, targets=None):
     """
       Derives segment means from global trends
@@ -954,8 +963,7 @@ class ARMA(supervisedLearning):
       feature = featureTemplate.format(target=target, metric='arma', id='std')
       features[feature] = np.sqrt(arma.sigma2)
     # segment means
-    # since we've already detrended globally, get the means from that
-    ## TODO this _really_ assumes you took some long Fourier modes, otherwise not sure what you'd get here
+    # since we've already detrended globally, get the means from that (if present)
     if 'long Fourier signal' in settings:
       assert picker is not None
       results = self._getMeanFromGlobal(settings, picker)
@@ -1048,7 +1056,7 @@ class ARMA(supervisedLearning):
           self.fourierParams.pop(target,None)
     # disable CDF preservation on subclusters
     ## Note that this might be a good candidate for a user option someday,
-    ## but right now we can't imagine a use case that would turn it off
+    ## but right now we can't imagine a use case that would turn it on
     self.preserveInputCDF = False
 
   def finalizeLocalRomSegmentEvaluation(self, settings, evaluation, picker):
@@ -1060,7 +1068,6 @@ class ARMA(supervisedLearning):
       @ In, picker, slice, indexer for data range of this segment
       @ Out, evaluation, dict, {target: np.ndarray} adjusted global evaluation
     """
-    # are we working with cluster or segment? If we have
     # add back in Fourier
     if 'long Fourier signal' in settings:
       for target, signal in settings['long Fourier signal'].items():

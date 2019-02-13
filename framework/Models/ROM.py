@@ -275,8 +275,8 @@ class ROM(Dummy):
 
   def __getstate__(self):
     d = copy.copy(self.__dict__)
-    # TODO this isn't needed if trained, but it can create an infinite recursion
-    ## for the ROMCollection if left in.
+    # NOTE assemblerDict isn't needed if ROM already trained, but it can create an infinite recursion
+    ## for the ROMCollection if left in, so remove it on getstate.
     del d['assemblerDict']
     return d
 
