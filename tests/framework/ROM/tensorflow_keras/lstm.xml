@@ -159,18 +159,6 @@
       <Input>index,seqLength</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
-    <HistorySet name="trainingData">
-      <Input>index</Input>
-      <Output>x,y</Output>
-      <options>
-        <pivotParameter>time</pivotParameter>
-      </options>
-    </HistorySet>
-    <DataSet name="outputDS">
-      <Output>x</Output>
-      <Output>y</Output>
-      <Index var="time">x</Index>
-    </DataSet>
     <PointSet name="inputHolder">
       <Input>index,seqLength</Input>
       <Output>OutputPlaceHolder</Output>
@@ -179,6 +167,13 @@
       <Input>x</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
+    <HistorySet name="trainingData">
+      <Input>index</Input>
+      <Output>x,y</Output>
+      <options>
+        <pivotParameter>time</pivotParameter>
+      </options>
+    </HistorySet>
     <HistorySet name="learnAlphabetDS">
       <Input>index, seqLength</Input>
       <Output>x</Output>
@@ -186,6 +181,10 @@
         <pivotParameter>time</pivotParameter>
       </options>
     </HistorySet>
+    <DataSet name="outputDS">
+      <Output>x,y</Output>
+      <Index var="time">x</Index>
+    </DataSet>
     <DataSet name="lstmDS">
       <Input>x</Input>
       <Output>y</Output>

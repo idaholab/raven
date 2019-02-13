@@ -19,10 +19,6 @@
     <batchSize>1</batchSize>
   </RunInfo>
 
-  <Models>
-    <Dummy name="MyDummy" subType=""/>
-  </Models>
-
   <Files>
     <Input name="train.csv" type="">train.csv</Input>
     <Input name="test.csv" type="">test.csv</Input>
@@ -97,6 +93,7 @@
   </Steps>
   
   <Models>
+    <Dummy name="MyDummy" subType=""/>
     <ROM name="modelUnderTest" subType="KerasMLPClassifier">
       <Features>x1,x2,x3,x4,x5,x6,x7,x8</Features>
       <Target>y</Target>
