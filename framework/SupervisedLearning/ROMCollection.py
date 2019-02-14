@@ -100,7 +100,7 @@ class Collection(supervisedLearning):
       @ Out, None
     """
     pass
-    
+
   def __returnCurrentSettingLocal__(self):
     """
       Returns a dictionary with the parameters and their current values
@@ -479,7 +479,7 @@ class Clusters(Segments):
     The individual SupervisedLearning algorithms need to be able to contribute to how a ROM
     collection gets trained, clustered, and evaluated. As such, there's communication between
     three entities: the Collection (this class), the templateROM (a single instance of the SVL), and
-    the segment ROMs (the group of SVLs).  
+    the segment ROMs (the group of SVLs).
 
     The templateROM is allowed to perform arbitrary global modifications to the training signal before
     the signal is subdivided and sent to individual ROMs. For instance, some global training may not
@@ -537,7 +537,7 @@ class Clusters(Segments):
       @ Out, result, np.array, evaluated points
     """
     if self._evaluationMode == 'full':
-      # TODO there's no input-based way to request this mode right now. 
+      # TODO there's no input-based way to request this mode right now.
       ## It has been manually tested, but needs a regression tests once this is opened up.
       ## Right now consider it as if it wasn't an available feature, cuz it kinda isn't.
       result = Segments.evaluate(self, edict)
@@ -597,11 +597,11 @@ class Clusters(Segments):
       # make changes to reflect being a cluster
       modify.tag = 'ClusterROM'
       modify.attrib['cluster'] = modify.attrib.pop('segment')
-      modify.append(xmlUtils.newNode('segments_represented', 
+      modify.append(xmlUtils.newNode('segments_represented',
                                      text=', '.join(str(x) for x in np.arange(len(labels))[labels==i])))
       # TODO pivot values, index delimiters as well?
 
-  ## Utilities ## 
+  ## Utilities ##
   def _classifyROMs(self, classifier, features, clusterFeatures):
     """
       Classifies the subdomain ROMs.
