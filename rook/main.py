@@ -187,16 +187,17 @@ def process_result(index, _input_data, output_data):
     failed_list.append(process_test_name)
     print(output_data.output)
     print(output_data.message)
-    okaycolor=fail_color
+    okaycolor = fail_color
   number_done = sum(results.values())
-  print("({done}/{togo}) {statcolor}{status:7s}{normcolor} ({time}) {namecolor}{test}{normcolor}".format(done=number_done,
-                                                             togo=len(function_list),
-                                                             statcolor=okaycolor,
-                                                             normcolor=norm_color,
-                                                             namecolor=name_color,
-                                                             status=Tester.get_group_name(group),
-                                                             time=sec_format(output_data.runtime),
-                                                             test=process_test_name))
+  print("({done}/{togo}) {statcolor}{status:7s}{normcolor} ({time}) {namecolor}{test}{normcolor}"
+        .format(done=number_done,
+                togo=len(function_list),
+                statcolor=okaycolor,
+                normcolor=norm_color,
+                namecolor=name_color,
+                status=Tester.get_group_name(group),
+                time=sec_format(output_data.runtime),
+                test=process_test_name))
 if __name__ == "__main__":
 
   test_re = re.compile(args.test_re_raw)
