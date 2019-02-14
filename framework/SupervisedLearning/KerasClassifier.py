@@ -38,7 +38,6 @@ import os
 # TensorFlow is optional and Python3 is required in order to use tensorflow for DNNs
 try:
   import tensorflow as tf
-  from tensorflow import set_random_seed
   import tensorflow.keras as Keras
   from tensorflow.keras import models as KerasModels
   from tensorflow.keras import layers as KerasLayers
@@ -334,11 +333,18 @@ if __tensorflowAvailable:
         # The below is necessary for starting core Python generated random numbers
         # in a well-defined state.
         rn.seed(randomSeed)
+        # Force TensorFlow to use single thread.
+        # Multiple threads are a potential source of non-reproducible results.
+        # For further details, see: https://stackoverflow.com/questions/42022950/
+        session_conf = tf.ConfigProto(intra_op_parallelism_threads=1,
+                                      inter_op_parallelism_threads=1)
         # The below tf.set_random_seed() will make random number generation
         # in the TensorFlow backend have a well-defined initial state.
         # For further details, see:
         # https://www.tensorflow.org/api_docs/python/tf/set_random_seed
-        set_random_seed(randomSeed)
+        tf.set_random_seed(randomSeed)
+        tf.Session(graph=tf.get_default_graph(), config=session_conf)
+
       modelName = self.initOptionDict.pop('name','')
       # number of classes for classifier
       self.numClasses = self.initOptionDict.pop('num_classes',1)

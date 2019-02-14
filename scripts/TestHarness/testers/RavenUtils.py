@@ -78,7 +78,8 @@ modules_to_try_py3 = [("h5py", 'h5py.__version__', '2.4.0', '2.7.1', None), # 2.
                       # On Windows conda, there are no Python 2.7-compatible
                       ## versions of TensorFlow, although
                       ## these exist on Mac and Linux condas.  Darn.
-                      ("tensorflow", 'tensorflow.__version__', "1.12.0" , "1.12.0" , None),
+                      ("tensorflow", 'tensorflow.__version__', "1.12.0", "1.12.0", None),
+                      ("matplotlib", 'matplotlib.__version__', "1.3.1", "2", None),
                       ("statsmodels", 'statsmodels.__version__', "0.8.0", "0.8.0", None)]
 
 if in_python_3():
