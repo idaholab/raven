@@ -11,10 +11,7 @@
 
   <RunInfo>
     <WorkingDir>Clustered</WorkingDir>
-    <Sequence>
-      load, train, stats, sample, valdur_orig, valdur_samples,
-      load_gold, vdc_metric, print
-    </Sequence>
+    <Sequence>load, train, stats</Sequence>
   </RunInfo>
 
   <Steps>
@@ -31,43 +28,10 @@
       <Output class="DataObjects" type="DataSet">romMeta</Output>
       <Output class="OutStreams" type="Print">romMeta</Output>
     </IOStep>
-    <MultiRun name="sample">
-      <Input class="DataObjects" type="PointSet">placeholder</Input>
-      <Model class="Models" type="ROM">arma</Model>
-      <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
-      <Output class="DataObjects" type="HistorySet">synthetic</Output>
-    </MultiRun>
-    <PostProcess name="valdur_orig">
-      <Input class="DataObjects" type="HistorySet">input</Input>
-      <Model class="Models" type="PostProcessor">val_dur</Model>
-      <Output class="DataObjects" type="HistorySet">input_durs</Output>
-    </PostProcess>
-    <PostProcess name="valdur_samples">
-      <Input class="DataObjects" type="HistorySet">synthetic</Input>
-      <Model class="Models" type="PostProcessor">val_dur</Model>
-      <Output class="DataObjects" type="HistorySet">sample_durs</Output>
-    </PostProcess>
-    <IOStep name="load_gold">
-      <Input class="Files" type="">gold_dur</Input>
-      <Output class="DataObjects" type="HistorySet">gold_durs</Output>
-    </IOStep>
-    <PostProcess name="vdc_metric">
-      <Input class="DataObjects" type="HistorySet">gold_durs</Input>
-      <Input class="DataObjects" type="HistorySet">sample_durs</Input>
-      <Model class="Models" type="PostProcessor">metric</Model>
-      <Output class="DataObjects" type="PointSet">metric</Output>
-    </PostProcess>
-    <IOStep name="print">
-      <Input class="DataObjects" type="HistorySet">input_durs</Input>
-      <Input class="DataObjects" type="PointSet">metric</Input>
-      <Output class="OutStreams" type="Print">input_durs</Output>
-      <Output class="OutStreams" type="Print">metric</Output>
-    </IOStep>
   </Steps>
 
   <Files>
     <Input name="input">head.csv</Input>
-    <Input name="gold_dur">gold_durs.csv</Input>
   </Files>
 
   <DataObjects>
@@ -82,34 +46,6 @@
         <pivotParameter>Time</pivotParameter>
       </options>
     </HistorySet>
-    <HistorySet name="synthetic">
-      <Input>scaling</Input>
-      <Output>Signal, Time</Output>
-      <options>
-        <pivotParameter>Time</pivotParameter>
-      </options>
-    </HistorySet>
-    <HistorySet name="input_durs">
-      <Output>counts_Signal</Output>
-      <options>
-        <pivotParameter>bins_Signal</pivotParameter>
-      </options>
-    </HistorySet>
-    <HistorySet name="sample_durs">
-      <Output>counts_Signal</Output>
-      <options>
-        <pivotParameter>bins_Signal</pivotParameter>
-      </options>
-    </HistorySet>
-    <HistorySet name="gold_durs">
-      <Output>counts_Gold</Output>
-      <options>
-        <pivotParameter>bins_Signal</pivotParameter>
-      </options>
-    </HistorySet>
-    <PointSet name="metric">
-      <Output>metric_counts_Gold_counts_Signal</Output>
-    </PointSet>
     <DataSet name="romMeta"/>
   </DataObjects>
 
@@ -133,16 +69,6 @@
         <SKLtype>cluster|AffinityPropogation</SKLtype>
       </KDD>
     </PostProcessor>
-    <PostProcessor name="val_dur" subType="ValueDuration">
-      <target>Signal</target>
-      <bins>10</bins>
-    </PostProcessor>
-    <PostProcessor name="metric" subType="Metric">
-      <Features type="variable">counts_Signal</Features>
-      <Targets type="variable">counts_Gold</Targets>
-      <pivotParameter>bins_Signal</pivotParameter>
-      <Metric class="Metrics" type="SKL">metric</Metric>
-    </PostProcessor>
   </Models>
 
   <Metrics>
@@ -151,25 +77,7 @@
     </SKL>
   </Metrics>
 
-  <Samplers>
-    <MonteCarlo name="mc">
-      <samplerInit>
-        <limit>10</limit>
-        <initialSeed>42</initialSeed>
-      </samplerInit>
-      <constant name='scaling'>1.0</constant>
-    </MonteCarlo>
-  </Samplers>
-
   <OutStreams>
-    <Print name="input_durs">
-      <type>csv</type>
-      <source>input_durs</source>
-    </Print>
-    <Print name="metric">
-      <type>csv</type>
-      <source>metric</source>
-    </Print>
     <Print name="romMeta">
       <type>csv</type>
       <source>romMeta</source>

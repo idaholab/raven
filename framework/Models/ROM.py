@@ -274,11 +274,27 @@ class ROM(Dummy):
     self.addAssemblerObject('Metric','-n',True)
 
   def __getstate__(self):
+    """
+      Method for choosing what gets serialized in this class
+      @ In, None
+      @ Out, d, dict, things to serialize
+    """
     d = copy.copy(self.__dict__)
     # NOTE assemblerDict isn't needed if ROM already trained, but it can create an infinite recursion
     ## for the ROMCollection if left in, so remove it on getstate.
     del d['assemblerDict']
     return d
+
+  def __setstate__(self, d):
+    """
+      Method for unserializing.
+      @ In, d, dict, things to unserialize
+      @ Out, None
+    """
+    # default setstate behavior
+    self.__dict__ = d
+    # since we pop this out during saving state, initialize it here
+    self.assemblerDict = {}
 
   def _readMoreXML(self,xmlNode):
     """

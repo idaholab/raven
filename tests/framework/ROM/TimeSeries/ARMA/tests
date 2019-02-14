@@ -88,7 +88,7 @@
     type = 'RavenFramework'
     input = 'clustered.xml'
     [./rom_meta]
-      type = UnorderedXML
+      type = XML
       output = 'Clustered/romMeta.xml'
       rel_err = 1e-5
     [../]

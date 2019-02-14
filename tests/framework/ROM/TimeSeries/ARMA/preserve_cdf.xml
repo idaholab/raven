@@ -83,6 +83,9 @@
     <PointSet name="placeholder">
       <Input>scaling</Input>
     </PointSet>
+    <PointSet name="metric">
+      <Output>metric_counts_Gold_counts_Signal</Output>
+    </PointSet>
     <HistorySet name="input">
       <Input>scaling</Input>
       <Output>Signal,Time</Output>
@@ -115,9 +118,7 @@
         <pivotParameter>bins_Signal</pivotParameter>
       </options>
     </HistorySet>
-    <PointSet name="metric">
-      <Output>metric_counts_Gold_counts_Signal</Output>
-    </PointSet>
+
     <DataSet name="rom"/>
   </DataObjects>
 
