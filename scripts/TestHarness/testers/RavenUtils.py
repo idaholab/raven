@@ -148,7 +148,7 @@ else:
                  ("psutil", "")]
   # libraries to install with conda-forge
   __condaForgeList = [("pyside", ""),
-                      ("matplotlib", "2"]
+                      ("matplotlib", "2")]
 
   __pipList = [("numpy", __lookup_preferred_version("numpy")),
                ("h5py", __lookup_preferred_version("h5py")),
