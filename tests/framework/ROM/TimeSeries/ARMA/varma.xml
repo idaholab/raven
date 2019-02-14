@@ -29,7 +29,8 @@
 
   <RunInfo>
     <WorkingDir>VARMA</WorkingDir>
-    <Sequence>read,train,dump,unpickle,sample,write,load,stats</Sequence>
+    <Sequence>read,train,sample,write,load,stats</Sequence>
+    <!-- NOTE: the dump, unpickle steps have been removed until statsmodel 0.9 is in RAVEN's library set. See issue #916. -->
     <batchSize>1</batchSize>
   </RunInfo>
 
