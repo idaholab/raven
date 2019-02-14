@@ -147,8 +147,8 @@ else:
                  ("lxml", ""),
                  ("psutil", "")]
   # libraries to install with conda-forge
-  __condaForgeList = [("pyside", ""),
-                      ("matplotlib", __lookup_preferred_version("matplotlib"))]
+  __condaForgeList = [("pyside2", ""),
+                      ("matplotlib", "2")]
 
   __pipList = [("numpy", __lookup_preferred_version("numpy")),
                ("h5py", __lookup_preferred_version("h5py")),
@@ -340,9 +340,7 @@ def parse_conda_for_os(libs, op_sys):
   if op_sys == 'windows':
     pass # nothing special to do currently
   elif op_sys == 'mac':
-    libs.append(('nomkl', ''))
-    libs.append(('numexpr', ''))
-    #pass # nothing special to do currently
+    pass # nothing special to do currently
   elif op_sys == 'linux':
     # add noMKL libraries to prevent Intel crash errors
     libs.append(('nomkl', ''))
