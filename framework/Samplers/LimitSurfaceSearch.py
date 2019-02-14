@@ -214,6 +214,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
       self.tolerance=float(convergenceNode.text)
     except:
       self.raiseAnError(IOError,'Failed to convert '+convergenceNode.text+' to a meaningful number for the convergence')
+    self.errorTolerance = self.tolerance
     attribList = list(convergenceNode.attrib.keys())
     if 'limit'          in convergenceNode.attrib.keys():
       attribList.pop(attribList.index('limit'))
@@ -424,6 +425,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
       if len(self.lastOutput) == 0 and not self.limitSurfacePP.ROM.amITrained:
         return ready
     #first evaluate the goal function on the newly sampled points and store them in mapping description self.functionValue RecontructEnding
+    oldSizeLsFunctionValue = 0 if len(self.limitSurfacePP.getFunctionValue()) == 0 else len(self.limitSurfacePP.getFunctionValue()[self.goalFunction.name])
     if type(self.lastOutput) == dict:
       self.limitSurfacePP._initializeLSppROM(self.lastOutput,False)
     else:
@@ -434,6 +436,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
     # evaluate the Limit Surface coordinates (return input space coordinates, evaluation vector and grid indexing)
     self.surfPoint, evaluations, self.listSurfPoint = self.limitSurfacePP.run(returnListSurfCoord = True, exceptionGrid=self.exceptionGrid, merge=False)
     self.raiseADebug('Limit Surface has been computed!')
+    newSizeLsFunctionValue = len(self.limitSurfacePP.getFunctionValue()[self.goalFunction.name])  if self.goalFunction.name in self.limitSurfacePP.getFunctionValue().keys() else 0
     # check hanging points
     if self.goalFunction.name in self.limitSurfacePP.getFunctionValue().keys():
       indexLast = len(self.limitSurfacePP.getFunctionValue()[self.goalFunction.name])-1
@@ -463,8 +466,12 @@ class LimitSurfaceSearch(AdaptiveSampler):
     testError = np.sum(np.abs(np.subtract(coarseGridTestMatix,coarseGridOldTestMatix)))
     if len(testMatrixDict) > 0:
       # compute the error
-      testError += np.sum(np.abs(np.subtract(testMatrixDict,oldTestMatrixDict)))
-    if (testError > self.errorTolerance):
+      sizeGrid = float(coarseGridTestMatix.size)
+      testError += np.sum(np.abs(np.subtract(testMatrixDict,oldTestMatrixDict)))/(sizeGrid+float(testMatrixDict.size))
+    else:
+      testError/= float(coarseGridTestMatix.size)
+
+    if (testError > self.errorTolerance) or newSizeLsFunctionValue == oldSizeLsFunctionValue:
       # we still have error
       ready, self.repetition = True, 0
     else:
@@ -486,8 +493,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
         self.converged = True
         if not self.limitSurfacePP.crossedLimitSurf:
           self.raiseAWarning("THE LIMIT SURFACE has NOT been crossed. The search FAILED!!!")
-
-    self.raiseAMessage('counter: '+str(self.counter)+'       Error: ' +str(testError)+' Repetition: '+str(self.repetition))
+    self.raiseAMessage('counter: '+str(self.counter)+'       Error: {:9.6E} Repetition: {:5d}'.format(testError,self.repetition) )
     #if the number of point on the limit surface is > than compute persistence
     realAxisNames, cnt = [key.replace('<distribution>','') for key in self.axisName], 0
     if self.solutionExport is not None:

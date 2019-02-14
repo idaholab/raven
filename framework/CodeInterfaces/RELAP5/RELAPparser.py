@@ -118,12 +118,6 @@ class RELAPparser():
         raise IOError("RELAP5 Interface: The following cards have not been found in the original input files: "+cardsNotFound)
     return cardValues
 
-
-
-
-
-
-
   def modifyOrAdd(self,dictionaryList,save=True):
     """
       dictionaryList is a list of dictionaries of the required addition or modification
