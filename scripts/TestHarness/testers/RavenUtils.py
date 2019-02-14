@@ -80,7 +80,7 @@ modules_to_try_py3 = [("h5py", 'h5py.__version__', '2.4.0', '2.7.1', None), # 2.
                       ## versions of TensorFlow, although
                       ## these exist on Mac and Linux condas.  Darn.
                       ("tensorflow", 'tensorflow.__version__', "1.12.0", "1.12.0", None),
-                      ("statsmodels", 'statsmodels.__version__', "0.8.0", "0.8.0", None)]
+                      ("statsmodels", 'statsmodels.__version__', "0.8.0", "0.9.0", None)]
 
 if in_python_3():
   modules_to_try = modules_to_try_py3
