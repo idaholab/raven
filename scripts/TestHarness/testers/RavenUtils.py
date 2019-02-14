@@ -64,7 +64,8 @@ modules_to_try_py3 = [("h5py", 'h5py.__version__', '2.4.0', '2.7.1', None), # 2.
                       ("pandas", 'pandas.__version__', "0.20.0", "0.20.3", None),
                       ("xarray", 'xarray.__version__', "0.9.5", "0.10.3", None),
                       ("sklearn", 'sklearn.__version__', "0.19.1", "0.19.1", None),
-                      ("numpy", 'numpy.__version__', "1.13.3", "1.14.5", None),
+                      ("scipy", 'scipy.__version__', "1.1.0", "1.1.0", None),
+                      ("numpy", 'numpy.__version__', "1.13.3", "1.13.3", None),
                       ## NOTE there is a known bug in netCDF4 prior to 1.3.1 where
                       # having a path length of exactly 88 characters can create a
                       # seg fault.  However, h5py has no new libraries
@@ -77,7 +78,7 @@ modules_to_try_py3 = [("h5py", 'h5py.__version__', '2.4.0', '2.7.1', None), # 2.
                       # On Windows conda, there are no Python 2.7-compatible
                       ## versions of TensorFlow, although
                       ## these exist on Mac and Linux condas.  Darn.
-                      ("tensorflow",'tensorflow.__version__',"1.12.0" ,"1.12.0" ,None),
+                      ("tensorflow", 'tensorflow.__version__', "1.12.0" , "1.12.0" , None),
                       ("statsmodels", 'statsmodels.__version__', "0.8.0", "0.8.0", None)]
 
 if in_python_3():
@@ -115,44 +116,44 @@ if not in_python_3():
                  ("lxml", ""),
                  ("psutil", "")]
 
-  __pipList = [ ("numpy", __lookup_preferred_version("numpy")),
-                ("h5py", __lookup_preferred_version("h5py")),
-                ("scipy", __lookup_preferred_version("scipy")),
-                ("scikit-learn", __lookup_preferred_version("sklearn")),
-                ("matplotlib", __lookup_preferred_version("matplotlib")),
-                ("xarray", __lookup_preferred_version("xarray")),
-                ("netCDF4", __lookup_preferred_version("netCDF4")),
-                ("statsmodels", __lookup_preferred_version("statsmodels")),
-                ("pandas", __lookup_preferred_version("pandas"))]
+  __pipList = [("numpy", __lookup_preferred_version("numpy")),
+               ("h5py", __lookup_preferred_version("h5py")),
+               ("scipy", __lookup_preferred_version("scipy")),
+               ("scikit-learn", __lookup_preferred_version("sklearn")),
+               ("matplotlib", __lookup_preferred_version("matplotlib")),
+               ("xarray", __lookup_preferred_version("xarray")),
+               ("netCDF4", __lookup_preferred_version("netCDF4")),
+               ("statsmodels", __lookup_preferred_version("statsmodels")),
+               ("pandas", __lookup_preferred_version("pandas"))]
 else:
-  __condaList = [ ("h5py", __lookup_preferred_version("h5py")),
-                  ("numpy", __lookup_preferred_version("numpy")),
-                  ("scipy", __lookup_preferred_version("scipy")),
-                  ("scikit-learn", __lookup_preferred_version("sklearn")),
-                  ("pandas", __lookup_preferred_version("pandas")),
-                  ("xarray", __lookup_preferred_version("xarray")),
-                  ("netcdf4", __lookup_preferred_version("netCDF4")),
-                  ("matplotlib", __lookup_preferred_version("matplotlib")),
-                  ("statsmodels", __lookup_preferred_version("statsmodels")),
-                  ("tensorflow", __lookup_preferred_version("tensorflow")),
-                  ("python", "3.6"),
-                  ("hdf5", "1.8.18"),
-                  ("swig", ""),
-                  ("pylint", ""),
-                  ("coverage", ""),
-                  ("lxml", ""),
-                  ("psutil", "")]
+  __condaList = [("h5py", __lookup_preferred_version("h5py")),
+                 ("numpy", __lookup_preferred_version("numpy")),
+                 ("scipy", __lookup_preferred_version("scipy")),
+                 ("scikit-learn", __lookup_preferred_version("sklearn")),
+                 ("pandas", __lookup_preferred_version("pandas")),
+                 ("xarray", __lookup_preferred_version("xarray")),
+                 ("netcdf4", __lookup_preferred_version("netCDF4")),
+                 ("matplotlib", __lookup_preferred_version("matplotlib")),
+                 ("statsmodels", __lookup_preferred_version("statsmodels")),
+                 ("tensorflow", __lookup_preferred_version("tensorflow")),
+                 ("python", "3.6"),
+                 ("hdf5", "1.8.18"),
+                 ("swig", ""),
+                 ("pylint", ""),
+                 ("coverage", ""),
+                 ("lxml", ""),
+                 ("psutil", "")]
 
-  __pipList = [ ("numpy", __lookup_preferred_version("numpy")),
-                ("h5py", __lookup_preferred_version("h5py")),
-                ("scipy", __lookup_preferred_version("scipy")),
-                ("scikit-learn", __lookup_preferred_version("sklearn")),
-                ("matplotlib", __lookup_preferred_version("matplotlib")),
-                ("xarray", __lookup_preferred_version("xarray")),
-                ("netCDF4", __lookup_preferred_version("netCDF4")),
-                ("statsmodels", __lookup_preferred_version("statsmodels")),
-                ("tensorflow", __lookup_preferred_version("tensorflow")),
-                ("pandas", __lookup_preferred_version("pandas"))]
+  __pipList = [("numpy", __lookup_preferred_version("numpy")),
+               ("h5py", __lookup_preferred_version("h5py")),
+               ("scipy", __lookup_preferred_version("scipy")),
+               ("scikit-learn", __lookup_preferred_version("sklearn")),
+               ("matplotlib", __lookup_preferred_version("matplotlib")),
+               ("xarray", __lookup_preferred_version("xarray")),
+               ("netCDF4", __lookup_preferred_version("netCDF4")),
+               ("statsmodels", __lookup_preferred_version("statsmodels")),
+               ("tensorflow", __lookup_preferred_version("tensorflow")),
+               ("pandas", __lookup_preferred_version("pandas"))]
 
 # libraries to install with conda-forge
 __condaForgeList = [("pyside", "")]
