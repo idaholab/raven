@@ -31,6 +31,7 @@ import numpy as np
 from .Dummy import Dummy
 import SupervisedLearning
 from utils import utils
+from utils import xmlUtils
 from utils import InputData
 import Files
 import LearningGate
@@ -173,8 +174,8 @@ class ROM(Dummy):
     inputSpecification.addSub(InputData.parameterInputFactory("random_start", InputData.IntegerType))
     # GaussPolynomialROM and HDMRRom
     inputSpecification.addSub(InputData.parameterInputFactory("IndexPoints", InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("IndexSet",IndexSetInputType))
-    inputSpecification.addSub(InputData.parameterInputFactory('pivotParameter',contentType=InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("IndexSet", contentType=IndexSetInputType))
+    inputSpecification.addSub(InputData.parameterInputFactory('pivotParameter', contentType=InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("PolynomialOrder", InputData.IntegerType))
     inputSpecification.addSub(InputData.parameterInputFactory("SobolOrder", InputData.IntegerType))
     inputSpecification.addSub(InputData.parameterInputFactory("SparseGrid", InputData.StringType))
@@ -191,21 +192,20 @@ class ROM(Dummy):
     inputSpecification.addSub(InputData.parameterInputFactory("seed", InputData.IntegerType))
     inputSpecification.addSub(InputData.parameterInputFactory("reseedCopies", InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("Fourier", contentType=InputData.FloatListType))
-    inputSpecification.addSub(InputData.parameterInputFactory("FourierOrder", contentType=InputData.IntegerListType))
+    inputSpecification.addSub(InputData.parameterInputFactory("preserveInputCDF", contentType=InputData.BoolType))
     ### ARMA zero filter
     zeroFilt = InputData.parameterInputFactory('ZeroFilter', contentType=InputData.StringType)
     zeroFilt.addParam('tol', InputData.FloatType)
     inputSpecification.addSub(zeroFilt)
     ### ARMA out truncation
     outTrunc = InputData.parameterInputFactory('outTruncation', contentType=InputData.StringListType)
-    domainEnumType = InputData.makeEnumType('domain','truncateDomainType',['positive','negative'])
+    domainEnumType = InputData.makeEnumType('domain', 'truncateDomainType', ['positive', 'negative'])
     outTrunc.addParam('domain', domainEnumType, True)
     inputSpecification.addSub(outTrunc)
     ### ARMA specific fourier
     specFourier = InputData.parameterInputFactory('SpecificFourier', strictMode=True)
     specFourier.addParam("variables", InputData.StringListType, True)
     specFourier.addSub(InputData.parameterInputFactory('periods', contentType=InputData.FloatListType))
-    specFourier.addSub(InputData.parameterInputFactory('orders', contentType=InputData.IntegerListType))
     inputSpecification.addSub(specFourier)
     # inputs for neural_network
     inputSpecification.addSub(InputData.parameterInputFactory("hidden_layer_sizes", InputData.StringType))
@@ -323,11 +323,23 @@ class ROM(Dummy):
     """
     self.supervisedEngine = LearningGate.returnInstance('SupervisedGate', self.subType, self, **initializationOptions)
 
-  def printXML(self,options={}):
+  def writePointwiseData(self, writeTo):
     """
-      Called by the OutStreamPrint object to cause the ROM to print itself to file.
-      @ In, options, dict, optional, the options to use in printing, including filename, things to print, etc.
+      Called by the OutStreamPrint object to cause the ROM to print information about itself
+      @ In, writeTo, DataObject, data structure to add data to
       @ Out, None
+    """
+    # TODO handle statepoint ROMs (dynamic, but rom doesn't handle intrinsically)
+    ## should probably let the LearningGate handle this! It knows how to stitch together pieces, sort of.
+    engines = self.supervisedEngine.supervisedContainer
+    for engine in engines:
+      engine.writePointwiseData(writeTo)
+
+  def writeXML(self, what='all'):
+    """
+      Called by the OutStreamPrint object to cause the ROM to print itself
+      @ In, what, string, optional, keyword requesting what should be printed
+      @ Out, xml, xmlUtils.StaticXmlElement, written meta
     """
     #determine dynamic or static
     dynamic = self.supervisedEngine.isADynamicModel
@@ -335,47 +347,40 @@ class ROM(Dummy):
     handleDynamicData = self.supervisedEngine.canHandleDynamicData
     # get pivot parameter
     pivotParameterId = self.supervisedEngine.pivotParameterId
-    # establish file
-    if 'filenameroot' in options.keys():
-      filenameLocal = options['filenameroot']
-    else:
-      filenameLocal = self.name + '_dump'
-    if dynamic and not handleDynamicData:
-      outFile = Files.returnInstance('DynamicXMLOutput',self)
-    else:
-      outFile = Files.returnInstance('StaticXMLOutput',self)
-    outFile.initialize(filenameLocal+'.xml',self.messageHandler)
-    outFile.newTree('ROM',pivotParam=pivotParameterId)
-    #get all the targets the ROMs have
+    # find some general settings needed for either dynamic or static handling
+    ## get all the targets the ROMs have
     ROMtargets = self.supervisedEngine.initializationOptions['Target'].split(",")
-    #establish targets
-    targets = options['target'].split(',') if 'target' in options.keys() else ROMtargets
-    #establish sets of engines to work from
+    ## establish requested targets
+    targets = ROMtargets if what=='all' else what.split(',')
+    ## establish sets of engines to work from
     engines = self.supervisedEngine.supervisedContainer
-    #handle 'all' case
-    if 'all' in targets:
-      targets = ROMtargets
-    # setup print
-    engines[0].printXMLSetup(outFile,options)
-    #this loop is only 1 entry long if not dynamic
-    for s,rom in enumerate(engines):
-      if dynamic and not handleDynamicData:
+    # if the ROM is "dynamic" (e.g. time-dependent targets), then how we print depends
+    #    on whether the engine is naturally dynamic or whether we need to handle that part.
+    if dynamic and not handleDynamicData:
+      # time-dependent, but we manage the output (chopped)
+      xml = xmlUtils.DynamicXmlElement('ROM', pivotParam = pivotParameterId)
+      ## pre-print printing
+      engines[0].writeXMLPreamble(xml) #let the first engine write the preamble
+      for s,rom in enumerate(engines):
         pivotValue = self.supervisedEngine.historySteps[s]
-      else:
-        pivotValue = 0
-      for target in targets:
-        #for key,target in step.items():
-        #skip the pivot param
-        if target == pivotParameterId:
-          continue
-        #otherwise, if this is one of the requested keys, call engine's print method
-        if target in ROMtargets:
-          options['Target'] = target
-          self.raiseAMessage('Printing time-like',pivotValue,'target',target,'ROM XML')
-          rom.printXML(outFile,pivotValue,options)
-    self.raiseADebug('Writing to XML file...')
-    outFile.writeFile()
-    self.raiseAMessage('ROM XML printed to "'+filenameLocal+'.xml"')
+        #for target in targets: # should be handled by SVL engine or here??
+        #  #skip the pivot param
+        #  if target == pivotParameterId:
+        #    continue
+        #otherwise, call engine's print method
+        self.raiseAMessage('Printing time-like',pivotValue,'ROM XML')
+        subXML = xmlUtils.StaticXmlElement(self.supervisedEngine.supervisedContainer[0].printTag)
+        rom.writeXML(subXML, skip = [pivotParameterId])
+        for element in subXML.getRoot():
+          xml.addScalarNode(element, pivotValue)
+        #xml.addScalarNode(subXML.getRoot(), pivotValue)
+    else:
+      # directly accept the results from the engine
+      xml = xmlUtils.StaticXmlElement(self.name)
+      ## pre-print printing
+      engines[0].writeXMLPreamble(xml)
+      engines[0].writeXML(xml)
+    return xml
 
   def reset(self):
     """

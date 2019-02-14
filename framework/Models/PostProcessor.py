@@ -123,16 +123,18 @@ class PostProcessor(Model):
     """
       Overrides the base class method to assure child postprocessor is also polled for its keys.
       @ In, None
-      @ Out, meta, set(str), expected keys (empty if none)
+      @ Out, meta, tuple, (set(str),dict), expected keys (empty if none) and the indexes related to expected keys
     """
     # get keys as per base class
-    keys = Model.provideExpectedMetaKeys(self)
+    metaKeys,metaParams = Model.provideExpectedMetaKeys(self)
     # add postprocessor keys
     try:
-      keys = keys.union(self.interface.provideExpectedMetaKeys())
+      keys, params = self.interface.provideExpectedMetaKeys()
+      metaKeys = metaKeys.union(keys)
+      metaParams.update(params)
     except AttributeError:
       pass # either "interface" has no method for returning meta keys, or "interface" is not established yet.
-    return keys
+    return metaKeys, metaParams
 
   def whatDoINeed(self):
     """

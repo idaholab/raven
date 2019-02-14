@@ -162,21 +162,16 @@ class RAVEN(CodeInterfaceBase):
     returnCommand = executeCommand, outputfile
     return returnCommand
 
-  def createNewInput(self,currentInputFiles,oriInputFiles,samplerType,**Kwargs):
+  def initialize(self, runInfo, oriInputFiles):
     """
-      this generates a new input file depending on which sampler has been chosen
-      @ In, currentInputFiles, list,  list of current input files (input files from last this method call)
+      Method to initialize the run of a new step
+      @ In, runInfo, dict,  dictionary of the info in the <RunInfo> XML block
       @ In, oriInputFiles, list, list of the original input files
-      @ In, samplerType, string, Sampler type (e.g. MonteCarlo, Adaptive, etc. see manual Samplers section)
-      @ In, Kwargs, dictionary, kwarded dictionary of parameters. In this dictionary there is another dictionary called "SampledVars"
-             where RAVEN stores the variables that got sampled (e.g. Kwargs['SampledVars'] => {'var1':10,'var2':40})
-      @ Out, newInputFiles, list, list of newer input files, list of the new input files (modified and not)
+      @ Out, None
     """
     import RAVENparser
-    if 'dynamiceventtree' in str(samplerType).strip().lower():
-      raise IOError(self.printTag+' ERROR: DynamicEventTree-based sampling not supported!')
-    index = self.__findInputFile(currentInputFiles)
-    parser = RAVENparser.RAVENparser(currentInputFiles[index].getAbsFile())
+    index = self.__findInputFile(oriInputFiles)
+    parser = RAVENparser.RAVENparser(oriInputFiles[index].getAbsFile())
     # get the OutStreams names
     self.outStreamsNamesAndType = parser.returnOutstreamsNamesAnType()
     # check if the linked DataObjects are among the Outstreams
@@ -199,6 +194,22 @@ class RAVEN(CodeInterfaceBase):
     self.variableGroups = varGroupNames
     # get inner working dir
     self.innerWorkingDir = parser.workingDir
+
+  def createNewInput(self,currentInputFiles,oriInputFiles,samplerType,**Kwargs):
+    """
+      this generates a new input file depending on which sampler has been chosen
+      @ In, currentInputFiles, list,  list of current input files (input files from last this method call)
+      @ In, oriInputFiles, list, list of the original input files
+      @ In, samplerType, string, Sampler type (e.g. MonteCarlo, Adaptive, etc. see manual Samplers section)
+      @ In, Kwargs, dictionary, kwarded dictionary of parameters. In this dictionary there is another dictionary called "SampledVars"
+             where RAVEN stores the variables that got sampled (e.g. Kwargs['SampledVars'] => {'var1':10,'var2':40})
+      @ Out, newInputFiles, list, list of newer input files, list of the new input files (modified and not)
+    """
+    import RAVENparser
+    if 'dynamiceventtree' in str(samplerType).strip().lower():
+      raise IOError(self.printTag+' ERROR: DynamicEventTree-based sampling not supported!')
+    index = self.__findInputFile(currentInputFiles)
+    parser = RAVENparser.RAVENparser(currentInputFiles[index].getAbsFile())
     # get sampled variables
     modifDict = Kwargs['SampledVars']
 

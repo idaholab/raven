@@ -1,3 +1,4 @@
+<?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
     <name>framework/ROM/TimeSeries/ARMA.Segmented</name>
@@ -5,13 +6,22 @@
     <created>2018-11-20</created>
     <classesTested>SupervisedLearning.ARMA</classesTested>
     <description>
-      Tests the mechanics of clusterering the "time" subspace of the ARMA ROM.
+      Tests the mechanics of clusterering the ``time'' subspace of the ARMA ROM.
     </description>
+    <revisions>
+      <revision author="wangc" date="2018-12-19">
+          In PR #882, the standard errors on statistics moments are implemented, these quantities are stored in
+          the pointwise metadata, and will be printed out in the output csv files by default.
+          In order to avoid regolding this test, the optional node 'what' with text values 'input, output' is added.
+          In this case, only the user requested variables as specified in the DataObjects are printed out.
+      </revision>
+      <revision author="talbpaul" date="2019-01-30">Added a pickling step to check serialization of segmented ARMA.</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
     <WorkingDir>Segmented</WorkingDir>
-    <Sequence>load,train,sample,print,reload,stats</Sequence>
+    <Sequence>load,train,dump,sample,print,reload,stats</Sequence>
   </RunInfo>
 
   <Steps>
@@ -29,6 +39,10 @@
       <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
       <Output class="DataObjects" type="HistorySet">synthetic</Output>
     </MultiRun>
+    <IOStep name="dump">
+      <Input class="Models" type="ROM">arma</Input>
+      <Output class="Files" type="">pk</Output>
+    </IOStep>
     <IOStep name="print">
       <Input class="DataObjects" type="HistorySet">synthetic</Input>
       <Output class="OutStreams" type="Print">synthetic</Output>
@@ -48,6 +62,7 @@
   <Files>
     <Input name="input">ercotNC_all_hourly.csv</Input>
     <Input name="sample">synthetic_0.csv</Input>
+    <Input name="pk">arma.pk</Input>
   </Files>
 
   <DataObjects>
@@ -85,16 +100,9 @@
       <pivotParameter>Time</pivotParameter>
       <P>0</P>
       <Q>0</Q>
-      <Fourier>
-        1e200,
-        31556952,
-         2592000,
-          604800,
-           86400
-      </Fourier>
-      <FourierOrder>1,4,2,2,4</FourierOrder>
+      <Fourier>1e200, 31556952.000000, 15778476.000000, 10518984.000000, 7889238.000000, 2592000.000000, 1296000.000000, 604800.000000, 302400.000000, 86400.000000, 43200.000000, 28800.000000, 21600.000000</Fourier>
       <Cluster>
-        <subspace pivotLength='604800' shift='zero'>Time</subspace>
+        <subspace pivotLength="604800" shift="zero">Time</subspace>
       </Cluster>
     </ROM>
     <PostProcessor name="stats" subType="BasicStatistics">
@@ -109,7 +117,7 @@
         <limit>1</limit>
         <initialSeed>20021986</initialSeed>
       </samplerInit>
-      <constant name='scaling'>1.0</constant>
+      <constant name="scaling">1.0</constant>
     </MonteCarlo>
   </Samplers>
 
@@ -122,6 +130,8 @@
     <Print name="stats">
       <type>csv</type>
       <source>stats</source>
+      <what>input,output</what>
     </Print>
   </OutStreams>
+
 </Simulation>

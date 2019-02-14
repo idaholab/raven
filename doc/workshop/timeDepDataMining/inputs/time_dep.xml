@@ -6,6 +6,14 @@
     <created>2018-09-21</created>
     <classesTested>PostProcessors.BasicStatistics</classesTested>
     <description>Workshop test: Time dependent basic statistics analysis</description>
+    <revisions>
+      <revision author="wangc" date="2018-12-18">
+          In PR #882, the standard errors on statistics moments are implemented, these quantities are stored in
+          the pointwised metadata, and will be printed out in the output csv files by default.
+          In order to avoid regolding this test, the optional node 'what' with text values 'input, output' is added.
+          In this case, only the user requested variables as specified in the DataObjects are printed out. 
+      </revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
@@ -70,6 +78,7 @@
     <Print name="ExtractedStats_dump">
       <type>csv</type>
       <source>stats</source>
+      <what>input,output</what>
     </Print>
     <Plot name="Plotdata" overwrite="false" verbosity="debug">
       <plotSettings>

@@ -8,6 +8,9 @@
     <description>
       This test is aimed to check if the errors using a Initialization Sampler are handled.
     </description>
+    <revisions>
+      <revision author='talbpaul' date='2018-10-23'>limited outputs checked to just the solution</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
@@ -128,8 +131,7 @@
       <Output>x,y,z,ans,varsUpdate</Output>
     </PointSet>
     <PointSet name="opt_export">
-      <Input>trajID</Input>
-      <Output>x,y,z,ans,varsUpdate</Output>
+      <Output>ans</Output>
     </PointSet>
   </DataObjects>
 
@@ -137,7 +139,6 @@
     <Print name="opt_export">
       <type>csv</type>
       <source>opt_export</source>
-      <clusterLabel>trajID</clusterLabel>
     </Print>
     <Print name="opt_soln">
       <type>csv</type>

@@ -271,18 +271,23 @@ class Step(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     """
     ## first collect them
     metaKeys = set()
+    metaParams = dict()
     for role,entities in inDictionary.items():
       if isinstance(entities,list):
         for entity in entities:
           if hasattr(entity,'provideExpectedMetaKeys'):
-            metaKeys = metaKeys.union(entity.provideExpectedMetaKeys())
+            keys, params = entity.provideExpectedMetaKeys()
+            metaKeys = metaKeys.union(keys)
+            metaParams.update(params)
       else:
         if hasattr(entities,'provideExpectedMetaKeys'):
-          metaKeys = metaKeys.union(entities.provideExpectedMetaKeys())
+          keys, params = entities.provideExpectedMetaKeys()
+          metaKeys = metaKeys.union(keys)
+          metaParams.update(params)
     ## then give them to the output data objects
     for out in inDictionary['Output']+(inDictionary['TargetEvaluation'] if 'TargetEvaluation' in inDictionary else []):
       if 'addExpectedMeta' in dir(out):
-        out.addExpectedMeta(metaKeys)
+        out.addExpectedMeta(metaKeys,metaParams)
 
   def _endStepActions(self,inDictionary):
     """
@@ -661,8 +666,8 @@ class MultiRun(SingleRun):
         # finalize actual sampler
         sampler.finalizeActualSampling(finishedJob,model,inputs)
         finishedJob.trackTime('step_finished')
-        # add new job
 
+        # add new jobs
         isEnsemble = isinstance(model, Models.EnsembleModel)
         # put back this loop (do not take it away again. it is NEEDED for NOT-POINT samplers(aka DET)). Andrea
         ## In order to ensure that the queue does not grow too large, we will
@@ -681,6 +686,9 @@ class MultiRun(SingleRun):
               break
           else:
             break
+      # terminate jobs as requested by the sampler, in case they're not needed anymore
+      num = len(sampler.getJobsToEnd(clear=False))
+      jobHandler.terminateJobs(sampler.getJobsToEnd(clear=True))
       ## If all of the jobs given to the job handler have finished, and the sampler
       ## has nothing else to provide, then we are done with this step.
       if jobHandler.isFinished() and not sampler.amIreadyToProvideAnInput():
@@ -833,6 +841,8 @@ class IOStep(Step):
     outputs         = self.__getOutputs(inDictionary)
     databases       = set()
     self.actionType = []
+    errTemplate = 'In Step "{name}": When the Input is {inp}, this step accepts only {okay} as Outputs, ' +\
+                  'but received "{received}" instead!'
     if len(inDictionary['Input']) != len(outputs) and len(outputs) > 0:
       self.raiseAnError(IOError,'In Step named ' + self.name + \
           ', the number of Inputs != number of Outputs, and there are Outputs. '+\
@@ -840,30 +850,64 @@ class IOStep(Step):
     #determine if this is a DATAS->HDF5, HDF5->DATAS or both.
     # also determine if this is an invalid combination
     for i in range(len(outputs)):
+      # from HDF5 to ...
       if inDictionary['Input'][i].type == 'HDF5':
-        if isinstance(outputs[i],DataObject.DataObject):
+        ## ... dataobject
+        if isinstance(outputs[i], DataObject.DataObject):
           self.actionType.append('HDF5-dataObjects')
+        ## ... anything else
         else:
-          self.raiseAnError(IOError,'In Step named ' + self.name + '. This step accepts A DataObjects as Output only, when the Input is an HDF5. Got ' + inDictionary['Output'][i].type)
-      elif  isinstance(inDictionary['Input'][i],DataObject.DataObject):
+          self.raiseAnError(IOError,errTemplate.format(name = self.name,
+                                                       inp = 'HDF5',
+                                                       okay = 'DataObjects',
+                                                       received = inDictionary['Output'][i].type))
+      # from DataObject to ...
+      elif  isinstance(inDictionary['Input'][i], DataObject.DataObject):
+        ## ... HDF5
         if outputs[i].type == 'HDF5':
           self.actionType.append('dataObjects-HDF5')
+        ## ... anything else
         else:
-          self.raiseAnError(IOError,'In Step named ' + self.name + '. This step accepts ' + 'HDF5' + ' as Output only, when the Input is a DataObjects. Got ' + inDictionary['Output'][i].type)
-      elif isinstance(inDictionary['Input'][i],Models.ROM):
+          self.raiseAnError(IOError,errTemplate.format(name = self.name,
+                                                       inp = 'DataObjects',
+                                                       okay = 'HDF5',
+                                                       received = inDictionary['Output'][i].type))
+      # from ROM model to ...
+      elif isinstance(inDictionary['Input'][i], Models.ROM):
+        # ... file
         if isinstance(outputs[i],Files.File):
           self.actionType.append('ROM-FILES')
+        # ... data object
+        elif isinstance(outputs[i], DataObject.DataObject):
+          self.actionType.append('ROM-dataObjects')
+        # ... anything else
         else:
-          self.raiseAnError(IOError,'In Step named ' + self.name + '. This step accepts A Files as Output only, when the Input is a ROM. Got ' + inDictionary['Output'][i].type)
+          self.raiseAnError(IOError,errTemplate.format(name = self.name,
+                                                       inp = 'ROM',
+                                                       okay = 'Files or DataObjects',
+                                                       received = inDictionary['Output'][i].type))
+      # from File to ...
       elif isinstance(inDictionary['Input'][i],Files.File):
-        if   isinstance(outputs[i],Models.ROM):
+        # ... ROM
+        if isinstance(outputs[i],Models.ROM):
           self.actionType.append('FILES-ROM')
+        # ... dataobject
         elif isinstance(outputs[i],DataObject.DataObject):
           self.actionType.append('FILES-dataObjects')
+        # ... anything else
         else:
-          self.raiseAnError(IOError,'In Step named ' + self.name + '. This step accepts A ROM as Output only, when the Input is a Files. Got ' + inDictionary['Output'][i].type)
+          self.raiseAnError(IOError,errTemplate.format(name = self.name,
+                                                       inp = 'Files',
+                                                       okay = 'ROM',
+                                                       received = inDictionary['Output'][i].type))
+      # from anything else to anything else
       else:
-        self.raiseAnError(IOError,'In Step named ' + self.name + '. This step accepts DataObjects, HDF5, ROM and Files as Input only. Got ' + inDictionary['Input'][i].type)
+        self.raiseAnError(IOError,
+                          'In Step "{name}": This step accepts only {okay} as Input. Received "{received}" instead!'
+                          .format(name = self.name,
+                                  okay = 'HDF5, DataObjects, ROM, or Files',
+                                  received = inDictionary['Input'][i].type))
+    # check actionType for fromDirectory
     if self.fromDirectory and len(self.actionType) == 0:
       self.raiseAnError(IOError,'In Step named ' + self.name + '. "fromDirectory" attribute provided but not conversion action is found (remove this atttribute for OutStream actions only"')
     #Initialize all the HDF5 outputs.
@@ -901,20 +945,35 @@ class IOStep(Step):
     for i in range(len(outputs)):
       if self.actionType[i] == 'HDF5-dataObjects':
         #inDictionary['Input'][i] is HDF5, outputs[i] is a DataObjects
+        ## read the HDF5 into a data object
         allRealizations = inDictionary['Input'][i].allRealizations()
         ## TODO convert to load function when it can handle unstructured multiple realizations
         for rlz in allRealizations:
           outputs[i].addRealization(rlz)
       elif self.actionType[i] == 'dataObjects-HDF5':
         #inDictionary['Input'][i] is a dataObjects, outputs[i] is HDF5
+        ## write the data object into a HDF5
         ## TODO convert to load function when it can handle unstructured multiple realizations
         for rlzNo in range(len(inDictionary['Input'][i])):
           rlz = inDictionary['Input'][i].realization(rlzNo, unpackXArray=True)
           rlz = dict((var,np.atleast_1d(val)) for var, val in rlz.items())
           outputs[i].addRealization(rlz)
 
+      elif self.actionType[i] == 'ROM-dataObjects':
+        #inDictionary['Input'][i] is a ROM, outputs[i] is dataObject
+        ## print information from the ROM to the data set or associated XML.
+        romModel = inDictionary['Input'][i]
+        # get non-pointwise data (to place in XML metadata of data object)
+        ## TODO how can user ask for particular information?
+        xml = romModel.writeXML(what='all')
+        self.raiseADebug('Adding meta "{}" to output "{}"'.format(xml.getRoot().tag,outputs[i].name))
+        outputs[i].addMeta(romModel.name, node = xml)
+        # get pointwise data (to place in main section of data object)
+        romModel.writePointwiseData(outputs[i])
+
       elif self.actionType[i] == 'ROM-FILES':
         #inDictionary['Input'][i] is a ROM, outputs[i] is Files
+        ## pickle the ROM
         #check the ROM is trained first
         if not inDictionary['Input'][i].amITrained:
           self.raiseAnError(RuntimeError,'Pickled rom "%s" was not trained!  Train it before pickling and unpickling using a RomTrainer step.' %inDictionary['Input'][i].name)
@@ -925,6 +984,7 @@ class IOStep(Step):
         fileobj.close()
       elif self.actionType[i] == 'FILES-ROM':
         #inDictionary['Input'][i] is a Files, outputs[i] is ROM
+        ## unpickle the ROM
         fileobj = inDictionary['Input'][i]
         unpickledObj = pickle.load(open(fileobj.getAbsFile(),'rb+'))
         if not isinstance(unpickledObj,Models.ROM):
@@ -941,11 +1001,15 @@ class IOStep(Step):
 
       elif self.actionType[i] == 'FILES-dataObjects':
         #inDictionary['Input'][i] is a Files, outputs[i] is PointSet
+        ## load a CSV from file
         infile = inDictionary['Input'][i]
         options = {'fileToLoad':infile}
         outputs[i].load(inDictionary['Input'][i].getPath(),'csv',**options)
+
       else:
+        # unrecognized, and somehow not caught by the step reader.
         self.raiseAnError(IOError,"Unknown action type "+self.actionType[i])
+
     for output in inDictionary['Output']:
       if output.type in ['OutStreamPrint','OutStreamPlot']:
         output.addOutput()

@@ -1,12 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
-  <RunInfo>
-    <WorkingDir>polyCorrelation</WorkingDir>
-    <batchSize>4</batchSize>
-    <Sequence>sample,train,print,stats</Sequence>
-  </RunInfo>
   <TestInfo>
-    <name>framework/pca_adaptive_sgc.test_adaptive_sgc_poly_analytic</name>
+    <name>framework/pca_adaptive_sgc.test_adaptive_sgc_poly_correlation</name>
     <author>wangc</author>
     <created>2015-11-20</created>
     <classesTested>Distributions.MultivariateNormal,Samplers.AdaptiveSparseGrid,SupervisedLearning.GaussPolynomialROM</classesTested>
@@ -14,7 +9,16 @@
       Tests use of the PCA method for adaptive sparse grids on polynomial models.
     </description>
     <analytic>"Tensor Polynomial (First-Order) with Multivariate Normal Distribution"</analytic>
+    <revisions>
+      <revision author='talbpaul' date='2019-01-09'>moving from ROM-file to ROM-dataobject</revision>
+    </revisions>
   </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>polyCorrelation</WorkingDir>
+    <batchSize>4</batchSize>
+    <Sequence>sample,train,stats,print</Sequence>
+  </RunInfo>
 
   <DataObjects>
     <PointSet name="dummyIN">
@@ -25,6 +29,7 @@
       <Input>x1,x2,x3,x4,x5,y1,y2,y3,y4,y5</Input>
       <Output>ans</Output>
     </PointSet>
+    <DataSet name="rom_stats"/>
   </DataObjects>
 
   <Distributions>
@@ -92,11 +97,13 @@
     </MultiRun>
     <IOStep name="print">
       <Input class="DataObjects" type="PointSet">collset</Input>
+      <Input class="DataObjects" type="DataSet">rom_stats</Input>
       <Output class="OutStreams" type="Print">csv_database</Output>
+      <Output class="OutStreams" type="Print">stats_td1</Output>
     </IOStep>
     <IOStep name="stats">
       <Input class="Models" type="ROM">rom</Input>
-      <Output class="OutStreams" type="Print">stats_td1</Output>
+      <Output class="DataObjects" type="DataSet">rom_stats</Output>
     </IOStep>
     <RomTrainer name="train">
       <Input class="DataObjects" type="PointSet">collset</Input>
@@ -111,9 +118,8 @@
       <what>Input|x1,Input|x2,Input|x3,Input|x4,Input|x5,Output</what>
     </Print>
     <Print name="stats_td1">
-      <type>xml</type>
-      <source>rom</source>
-      <what>all</what>
+      <type>csv</type>
+      <source>rom_stats</source>
     </Print>
   </OutStreams>
 

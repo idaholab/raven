@@ -179,6 +179,7 @@ In addition, the following optional methods can be specified:
 from CodeInterfaceBaseClass import CodeInterfaceBase
 class NewCode(CodeInterfaceBase):
   ...
+  def initialize(self, runInfoDict, oriInputFiles) 
   def finalizeCodeOutput(self, command, output, workingDir)
   def getInputExtension(self)
   def checkForOutputFailure(self, output, workingDir)
@@ -310,6 +311,20 @@ For the example referred in the previous section, this method would implemented 
 def getInputExtension(self):
     return (".i",".input")
 \end{lstlisting}
+
+\subsubsection{Method: \texttt{initialize}}
+\label{subsubsec:codeInterfaceinitialize}
+\begin{lstlisting}[language=python]
+def initialize(self, runInfoDict, oriInputFiles)
+\end{lstlisting}
+The \textbf{initialize} function is an optional method. If present, it is called
+by RAVEN code at the begin of each Step (once per step) involving the particular Code Interface. 
+This method is generally indicated to retrieve information from the RunInfo and/or the Input files.
+\\RAVEN is going to call this function passing in the following arguments:
+\begin{itemize}
+  \item \textbf{\texttt{runInfoDict}}, data type = dictionary: dictionary of the info stored in the run info XML block;
+  \item \textbf{\texttt{oriInputFiles}}, data type = list, list of the original input files.
+\end{itemize}
 
 
 \subsubsection{Method: \texttt{finalizeCodeOutput}}

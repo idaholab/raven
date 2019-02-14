@@ -1,4 +1,0 @@
-x,y,ans,varsUpdate,stepSize,gradient_x
-0.2,0.5,2.5,0.0,-1.0,-1
-0.0,1.0,inf,1.0,-1.0,0.0
-0.0,1.0,inf,2.0,-1.0,

@@ -1,10 +1,5 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="all">
-  <RunInfo>
-    <WorkingDir>DTW</WorkingDir>
-    <Sequence>mcRun1, mcRun2, PP1</Sequence>
-    <batchSize>1</batchSize>
-  </RunInfo>
   <TestInfo>
     <name>framework/PostProcessors/Metric/test_dtw</name>
     <author>wangc</author>
@@ -13,12 +8,16 @@
     <description>
       This test checks the Metric PostProcessor with DTW metric
     </description>
+    <revisions>
+      <revision author='talbpaul' date='2019-01-09'>no writing directly to files from postprocessors</revision>
+    </revisions>
   </TestInfo>
 
-  <Files>
-    <Input name="output_metric" type="">output_metric.xml</Input>
-    <Input name="output_metric.csv" type="">output_metric.csv</Input>
-  </Files>
+  <RunInfo>
+    <WorkingDir>DTW</WorkingDir>
+    <Sequence>mcRun1, mcRun2, PP1</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
 
   <Models>
     <ExternalModel ModuleToLoad="lorentzAttractor_timeScale_I" name="PythonModule1" subType="">
@@ -34,7 +33,7 @@
       <Metric class="Metrics" type="DTW">dtwII</Metric>
     </PostProcessor>
   </Models>
-  
+
   <Metrics>
       <DTW name="dtwI">
           <order>0</order>
@@ -92,7 +91,7 @@
       <sigma>1</sigma>
     </Normal>
   </Distributions>
-  
+
   <Samplers>
     <MonteCarlo name="MC_external">
       <samplerInit>
@@ -130,8 +129,6 @@
       <Model class="Models" type="PostProcessor">pp1</Model>
       <Output class="DataObjects" type="PointSet">pp1_out</Output>
       <Output class="OutStreams" type="Print">pp1_print</Output>
-      <Output class="Files" type="">output_metric</Output>
-      <Output class="Files" type="">output_metric.csv</Output>
     </PostProcess>
   </Steps>
 

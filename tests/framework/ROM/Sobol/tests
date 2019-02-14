@@ -3,15 +3,13 @@
    [./staticSobolRomSmolyak]
      type = 'RavenFramework'
      input = 'test_sobol_rom.xml'
-     output = 'SobolSmolyak/dump.xml'
-     UnorderedXml = 'SobolSmolyak/dumprom.xml'
+     UnorderedXml = 'SobolSmolyak/dump.xml'
      UnorderedCsv = 'SobolSmolyak/dump.csv'
    [../]
    [./staticSobolRomTensor]
      type = 'RavenFramework'
      input = 'test_sobol_tensor.xml'
-     output = 'SobolTensor/dump.xml'
-     UnorderedXml = 'SobolTensor/dumprom.xml'
+     UnorderedXml = 'SobolTensor/dump.xml'
      UnorderedCsv = 'SobolTensor/dump.csv'
    [../]
 
@@ -19,27 +17,24 @@
   [./sobolSudretAnalytic]
     type = 'RavenFramework'
     input = 'test_sobol_sudret.xml'
-    output = 'SobolAnalyticSudret/dump.xml'
     # dumprom is analytic test in mean, variance, and sensitivity indices
-    UnorderedXml = 'SobolAnalyticSudret/dumprom.xml' #analytic, "Global Sobol Sensitivity: Sudret"
+    UnorderedXml = 'SobolAnalyticSudret/dump.xml' #analytic, "Global Sobol Sensitivity: Sudret"
     # csv is consistency test
     UnorderedCsv = 'SobolAnalyticSudret/dump.csv'
   [../]
   [./sobolIshigamiAnalytic]
     type = 'RavenFramework'
     input = 'test_sobol_ishigami.xml'
-    output = 'SobolIshigami/dump.xml'
     # dumprom is analytic, but does not converge well on the true solution until poly order 9
-    UnorderedXml = 'SobolIshigami/dumprom.xml' #analytic, "Global Sobol Sensitivity: Ishigami"
+    UnorderedXml = 'SobolIshigami/dump.xml' #analytic, "Global Sobol Sensitivity: Ishigami"
     # csv is consistency test
     UnorderedCsv = 'SobolIshigami/dump.csv'
   [../]
   [./sobolGFunction]
     type = 'RavenFramework'
     input = 'test_sobol_gfunc.xml'
-    output = 'SobolGFunc/dump.xml'
     # dumprom is analytic, but does not converge well on the true solution until at least poly order 4
-    UnorderedXml = 'SobolGFunc/dumprom.xml' #analytic, "Sobol G-Function"
+    UnorderedXml = 'SobolGFunc/dump.xml' #analytic, "Sobol G-Function"
     # csv is consistency test
     UnorderedCsv = 'SobolGFunc/dump.csv'
   [../]
@@ -47,27 +42,26 @@
     type = 'RavenFramework'
     input = 'test_anova_cut.xml'
     # mean, variance, Sobol sensitivity indices are all analytic in dumprom.xml
-    UnorderedXml = 'AnovaCut/dumprom.xml' #analytic, "Second-Order ANOVA of Second-Order Cut-HDMR Expansion of Sudret"
+    UnorderedXml = 'AnovaCut/dump.xml' #analytic, "Second-Order ANOVA of Second-Order Cut-HDMR Expansion of Sudret"
   [../]
 
   # adaptive tests
   [./AdaptiveSobol]
    type = 'RavenFramework'
    input = 'test_adapt_sobol.xml'
-   output = 'AdaptSobol/out_10.pk AdaptSobol/out_20.pk AdaptSobol/out_30.pk AdaptSobol/out_20.xml AdaptSobol/out_30.xml'
-   UnorderedXml = 'AdaptSobol/dumprom.xml AdaptSobol/out_10.xml'  # dumprom.xml is analytic test for mean, variance, "Attenuation" case # out*xml are consistency checks for convergence process
-   UnorderedCsv = 'AdaptSobol/dump.csv'                      #consistency, quadrature points and solns
+   UnorderedXml = 'AdaptSobol/dump.xml'  # dump.xml is analytic test for mean, variance, "Attenuation" case
+   UnorderedCsv = 'AdaptSobol/dump.csv'  #consistency, quadrature points and solns
   [../]
   [./AdaptiveSobolMaxRuns]
    type = 'RavenFramework'
    input = 'test_adapt_sobol_maxruns.xml'
-   UnorderedXml = 'AdaptSobolMax/maxruns_dumprom.xml'       #analytic, "Attenuation"
+   UnorderedXml = 'AdaptSobolMax/maxruns_dump.xml'       #analytic, "Attenuation"
    UnorderedCsv = 'AdaptSobolMax/maxruns_dump.csv' #consistency
   [../]
   [./AdaptiveSobolParallel]
    type = 'RavenFramework'
    input = 'test_adapt_sobol_parallel.xml'
-   UnorderedXml = 'AdaptSobolParallel/par_dumprom.xml'           #analytic, "Attenuation"
+   UnorderedXml = 'AdaptSobolParallel/par_dump.xml'           #analytic, "Attenuation"
    UnorderedCsv = 'AdaptSobolParallel/par_dump.csv'     #consistency
    skip = 'Occasionally times out; work in progress'
    [../]
@@ -75,9 +69,8 @@
   [./TimeDependent]
     type  = 'RavenFramework'
     input = 'test_time_dep_sobol.xml'
-    output = 'SobolTime/train_data.xml'
     UnorderedCsv = 'SobolTime/train_data_0.csv SobolTime/train_data_1.csv SobolTime/train_data_2.csv SobolTime/train_data_3.csv SobolTime/train_data_4.csv'
-    UnorderedXml = 'SobolTime/trom_dump.xml'
+    UnorderedXml = 'SobolTime/train_data.xml'
     rel_err = 1e-6
   [../]
 

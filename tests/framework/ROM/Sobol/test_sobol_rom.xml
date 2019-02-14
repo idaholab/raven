@@ -1,10 +1,5 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
-  <RunInfo>
-    <WorkingDir>SobolSmolyak</WorkingDir>
-    <Sequence>make,train,test,print</Sequence>
-    <batchSize>1</batchSize>
-  </RunInfo>
   <TestInfo>
     <name>framework/Samplers/ROM/Sobol/staticSobolRomSmolyak</name>
     <author>talbpaul</author>
@@ -13,7 +8,16 @@
     <description>
       This test checks the operation of the sampler and ROM together.
     </description>
+    <revisions>
+      <revision author='talbpaul' date='2018-12-20'>moved ROM metadata writing from direct-to-file to direct-to-dataobject</revision>
+    </revisions>
   </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>SobolSmolyak</WorkingDir>
+    <Sequence>make,train,test,meta,print</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
 
   <Distributions>
     <Uniform name="xd">
@@ -89,11 +93,13 @@
       <Sampler class="Samplers" type="Grid">grid</Sampler>
       <Output class="DataObjects" type="PointSet">tests</Output>
     </MultiRun>
+    <IOStep name="meta">
+      <Input class="Models" type="ROM">rom</Input>
+      <Output class="DataObjects" type="PointSet">solns</Output>
+    </IOStep>
     <IOStep name="print">
       <Input class="DataObjects" type="PointSet">tests</Input>
-      <Input class="Models" type="ROM">rom</Input>
       <Output class="OutStreams" type="Print">dump</Output>
-      <Output class="OutStreams" type="Print">dumprom</Output>
     </IOStep>
     <RomTrainer name="train">
       <Input class="DataObjects" type="PointSet">solns</Input>
@@ -121,11 +127,6 @@
       <type>csv</type>
       <source>tests</source>
       <what>input,output</what>
-    </Print>
-    <Print name="dumprom">
-      <type>xml</type>
-      <source>rom</source>
-      <what>all </what>
     </Print>
   </OutStreams>
 

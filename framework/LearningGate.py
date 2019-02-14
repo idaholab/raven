@@ -39,6 +39,10 @@ import Metrics
 import MessageHandler
 #Internal Modules End--------------------------------------------------------------------------------
 
+#
+#
+#
+#
 class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),MessageHandler.MessageUser):
   """
     This class represents an interface with all the supervised learning algorithms
@@ -456,7 +460,7 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
       if self._romClusterPivotShift == 'zero':
         data[templateRom.pivotParameterID][0] -= data[templateRom.pivotParameterID][0][0]
       elif self._romClusterPivotShift == 'first':
-        delta = data[templateRom.pivotParameterID][0][0] - trainingSet[var][0][0]
+        delta = data[templateRom.pivotParameterID][0][0] - trainingSet[templateRom.pivotParameterID][0][0]
         data[templateRom.pivotParameterID][0] -= delta
       targetData = dict((var,data[var][0]) for var in targets)
       self.targetDatas.append(targetData) # DEBUGG only
