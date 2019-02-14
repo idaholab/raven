@@ -1046,7 +1046,7 @@ class ARMA(supervisedLearning):
     # some Fourier periods have already been handled, so reset the ones that actually are needed
     newFourier = settings.get('segment Fourier periods', None)
     if newFourier is not None:
-      for target in self.fourierParams.keys():
+      for target in list(self.fourierParams.keys()):
         periods = newFourier.get(target, [])
         # if any sub-segment Fourier remaining, send it through
         if len(periods):
