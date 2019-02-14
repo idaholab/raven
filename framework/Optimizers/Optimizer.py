@@ -231,9 +231,25 @@ class Optimizer(Sampler):
     #
     ### END explanation
     self.addAssemblerObject('TargetEvaluation','1')
-    self.addAssemblerObject('Function','-1')
+    self.addAssemblerObject('Function','-n')
     self.addAssemblerObject('Preconditioner','-n')
     self.addAssemblerObject('Sampler','-1')   #This Sampler can be used to initialize the optimization initial points (e.g. partially replace the <initial> blocks for some variables)
+    self.addAssemblerObject('Distributions','-n')
+    self.addAssemblerObject('DataObjects','-n')
+
+  def _localGenerateAssembler(self,initDict):
+	    """
+	      It is used for sending to the instanciated class, which is implementing the method, the objects that have been requested through "whatDoINeed" method
+	      Overloads the base Sampler class since optimizer has different requirements
+	      @ In, initDict, dict, dictionary ({'mainClassName(e.g., Databases):{specializedObjectName(e.g.,DatabaseForSystemCodeNamedWolf):ObjectInstance}'})
+	      @ Out, None
+	    """
+	    self.assemblerDict['Functions'    ] = []
+	    self.assemblerDict['Distributions'] = []
+	    self.assemblerDict['DataObjects'  ] = []
+	    for mainClass in ['Functions','Distributions','DataObjects']:
+	      for funct in initDict[mainClass]:
+	        self.assemblerDict[mainClass].append([mainClass,initDict[mainClass][funct].type,funct,initDict[mainClass][funct]])
 
   def _localWhatDoINeed(self):
     """
