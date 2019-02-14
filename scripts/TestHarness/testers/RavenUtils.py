@@ -66,7 +66,7 @@ modules_to_try_py3 = [("h5py", 'h5py.__version__', '2.4.0', '2.7.1', None), # 2.
                       ("sklearn", 'sklearn.__version__', "0.19.1", "0.19.1", None),
                       ("scipy", 'scipy.__version__', "1.1.0", "1.1.0", None),
                       ("numpy", 'numpy.__version__', "1.13.3", "1.13.3", None),
-                      ("matplotlib", 'matplotlib.__version__', "1.3.1", "2.1.1", None),
+                      #("matplotlib", 'matplotlib.__version__', "1.3.1", "2.1.1", None),
                       ## NOTE there is a known bug in netCDF4 prior to 1.3.1 where
                       # having a path length of exactly 88 characters can create a
                       # seg fault.  However, h5py has no new libraries
@@ -116,6 +116,8 @@ if not in_python_3():
                  ("coverage", ""),
                  ("lxml", ""),
                  ("psutil", "")]
+  # libraries to install with conda-forge
+  __condaForgeList = [("pyside", "")]
 
   __pipList = [("numpy", __lookup_preferred_version("numpy")),
                ("h5py", __lookup_preferred_version("h5py")),
@@ -144,6 +146,9 @@ else:
                  ("coverage", ""),
                  ("lxml", ""),
                  ("psutil", "")]
+  # libraries to install with conda-forge
+  __condaForgeList = [("pyside", ""),
+                      ("matplotlib", __lookup_preferred_version("matplotlib"))]
 
   __pipList = [("numpy", __lookup_preferred_version("numpy")),
                ("h5py", __lookup_preferred_version("h5py")),
@@ -156,8 +161,6 @@ else:
                ("tensorflow", __lookup_preferred_version("tensorflow")),
                ("pandas", __lookup_preferred_version("pandas"))]
 
-# libraries to install with conda-forge
-__condaForgeList = [("pyside", "")]
 # optional conda libraries
 __condaOptional = [('pillow', __lookup_preferred_version("pillow")),
                    ('pydot', __lookup_preferred_version('pydot')),
