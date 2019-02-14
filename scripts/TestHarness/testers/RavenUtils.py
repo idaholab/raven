@@ -65,7 +65,7 @@ modules_to_try_py3 = [("h5py", 'h5py.__version__', '2.4.0', '2.7.1', None), # 2.
                       ("xarray", 'xarray.__version__', "0.9.5", "0.10.3", None),
                       ("sklearn", 'sklearn.__version__', "0.19.1", "0.19.1", None),
                       ("scipy", 'scipy.__version__', "1.1.0", "1.1.0", None),
-                      ("numpy", 'numpy.__version__', "1.13.3", "1.13.3", None),
+                      ("numpy", 'numpy.__version__', "1.13.3", "1.14.0", None),
                       ("matplotlib", 'matplotlib.__version__', "1.3.1", "2.2.3", None),
                       ## NOTE there is a known bug in netCDF4 prior to 1.3.1 where
                       # having a path length of exactly 88 characters can create a
@@ -148,7 +148,7 @@ else:
                  ("psutil", "")]
   # libraries to install with conda-forge
   __condaForgeList = [("pyside", ""),
-                      ("matplotlib", "2")]
+                      ("matplotlib", __lookup_preferred_version("matplotlib"))]
 
   __pipList = [("numpy", __lookup_preferred_version("numpy")),
                ("h5py", __lookup_preferred_version("h5py")),
@@ -340,7 +340,9 @@ def parse_conda_for_os(libs, op_sys):
   if op_sys == 'windows':
     pass # nothing special to do currently
   elif op_sys == 'mac':
-    pass # nothing special to do currently
+    libs.append(('nomkl', ''))
+    libs.append(('numexpr', ''))
+    #pass # nothing special to do currently
   elif op_sys == 'linux':
     # add noMKL libraries to prevent Intel crash errors
     libs.append(('nomkl', ''))
