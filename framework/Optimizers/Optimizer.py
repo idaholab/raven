@@ -237,20 +237,6 @@ class Optimizer(Sampler):
     self.addAssemblerObject('Distributions','-n')
     self.addAssemblerObject('DataObjects','-n')
 
-  def _localGenerateAssembler(self,initDict):
-	    """
-	      It is used for sending to the instanciated class, which is implementing the method, the objects that have been requested through "whatDoINeed" method
-	      Overloads the base Sampler class since optimizer has different requirements
-	      @ In, initDict, dict, dictionary ({'mainClassName(e.g., Databases):{specializedObjectName(e.g.,DatabaseForSystemCodeNamedWolf):ObjectInstance}'})
-	      @ Out, None
-	    """
-	    self.assemblerDict['Functions'    ] = []
-	    self.assemblerDict['Distributions'] = []
-	    self.assemblerDict['DataObjects'  ] = []
-	    for mainClass in ['Functions','Distributions','DataObjects']:
-	      for funct in initDict[mainClass]:
-	        self.assemblerDict[mainClass].append([mainClass,initDict[mainClass][funct].type,funct,initDict[mainClass][funct]])
-
   def _localWhatDoINeed(self):
     """
       Identifies needed distributions and functions.
@@ -435,10 +421,6 @@ class Optimizer(Sampler):
       if not forwardSampler:
         self.raiseAnError(IOError,'Only "ForwardSampler"s (e.g. MonteCarlo, Grid, etc.) can be used for initializing the trajectories in the Optimizer! Got "{}.{}" for "{}".'.format(cls,typ,name))
       self.initializationSampler = sampler
-      initDict = {}
-      for entity in ['Distributions','Functions','DataObjects']:
-        initDict[entity] = dict((entry[2],entry[3]) for entry in self.assemblerDict.get(entity,[]))
-      self.initializationSampler._localGenerateAssembler(initDict)
       for key in self.initializationSampler.getInitParams().keys():
         if key.startswith("sampled variable:"):
           var = key.replace("sampled variable:","").strip()
