@@ -64,7 +64,7 @@ class BruteForce(OptimizerBase):
     self.counter['varsUpdate'      ] = {}
     self.counter['solutionUpdate'  ] = {}
     # register metadata
-    self.addMetaKeys('prefix')
+    self.addMetaKeys(['prefix'])
 
   def checkConvergence(self):
     """
@@ -94,7 +94,7 @@ class BruteForce(OptimizerBase):
   def _generateSubmissionQueue(self,size=1):
     """
     """
-    values = map(list,list(itertools.product([0,1], repeat=size)))
+    values = list(map(list,list(itertools.product([0,1], repeat=size))))
     #create identifier
     values = deque([{'inputs':values[i],'prefix':self._createEvaluationIdentifier(trajID=0,iterID=i,evalType=0)} for i in range(len(values))])
     #queue it up

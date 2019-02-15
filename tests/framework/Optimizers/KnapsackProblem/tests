@@ -1,0 +1,13 @@
+[Tests]
+  [./bf_ds]
+    type = 'RavenFramework'
+    input = 'simple_bf_ds.xml'
+    output = 'simple/optOut_ds.csv simple/opt_export_ds.csv'
+  [../]
+
+  [./bf]
+    type = 'RavenFramework'
+    input = 'simple_brute_force.xml'
+    output = 'simple/optOut.csv simple/opt_export.csv'
+  [../]
+[]

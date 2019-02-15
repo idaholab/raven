@@ -33,8 +33,8 @@
     <IOStep name="print" pauseAtEnd="True">
       <Input class="DataObjects" type="DataSet">opt_export</Input>
       <Input class="DataObjects" type="DataSet">optOut</Input>
-      <Output class="OutStreams" type="Print">opt_export</Output>
-      <Output class="OutStreams" type="Print">optOut</Output>
+      <Output class="OutStreams" type="Print">opt_export_ds</Output>
+      <Output class="OutStreams" type="Print">optOut_ds</Output>
     </IOStep>
   </Steps>
 
@@ -79,15 +79,13 @@
   </DataObjects>
 
   <OutStreams>
-    <Print name="opt_export">
+    <Print name="opt_export_ds">
       <type>csv</type>
       <source>opt_export</source>
-      <clusterLabel>trajID</clusterLabel>
     </Print>
-    <Print name="optOut">
+    <Print name="optOut_ds">
       <type>csv</type>
       <source>optOut</source>
-      <clusterLabel>trajID</clusterLabel>
     </Print>
   </OutStreams>
 

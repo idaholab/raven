@@ -81,12 +81,10 @@
     <Print name="opt_export">
       <type>csv</type>
       <source>opt_export</source>
-      <clusterLabel>trajID</clusterLabel>
     </Print>
     <Print name="optOut">
       <type>csv</type>
       <source>optOut</source>
-      <clusterLabel>trajID</clusterLabel>
     </Print>
   </OutStreams>
 
