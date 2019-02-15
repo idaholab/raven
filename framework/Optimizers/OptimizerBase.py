@@ -142,6 +142,8 @@ class OptimizerBase(Sampler):
 
     self.addAssemblerObject('TargetEvaluation','1')
     self.addAssemblerObject('Function','-1')
+    self.addAssemblerObject('Preconditioner','-n')
+    self.addAssemblerObject('Sampler','-1')   #This Sampler can be used to initialize the optimization initial points (e.g. partially replace the <initial> blocks for some variables)
 
   def _readMoreXMLbase(self,xmlNode):
     """

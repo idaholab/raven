@@ -234,8 +234,6 @@ class Optimizer(Sampler):
     self.addAssemblerObject('Function','-n')
     self.addAssemblerObject('Preconditioner','-n')
     self.addAssemblerObject('Sampler','-1')   #This Sampler can be used to initialize the optimization initial points (e.g. partially replace the <initial> blocks for some variables)
-    self.addAssemblerObject('Distributions','-n')
-    self.addAssemblerObject('DataObjects','-n')
 
   def _localWhatDoINeed(self):
     """
