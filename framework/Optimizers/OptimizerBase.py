@@ -34,10 +34,10 @@ from collections import deque
 #Internal Modules------------------------------------------------------------------------------------
 from utils import utils, randomUtils, InputData
 from Assembler import Assembler
-from Samplers import Sampler
+from Samplers import AdaptiveSampler
 #Internal Modules End--------------------------------------------------------------------------------
 
-class OptimizerBase(Sampler):
+class OptimizerBase(AdaptiveSampler):
   """
     This is the base class for optimizers.
     Optimizer is a special type of "samplers" that own the optimization strategy (Type) and they generate the input
@@ -105,11 +105,11 @@ class OptimizerBase(Sampler):
       @ In, None
       @ Out, None
     """
-    Sampler.__init__(self)
+    AdaptiveSampler.__init__(self)
     #counters
     ## while "counter" is scalar in Sampler, it's more complicated in Optimizer
     self.counter                        = {}                        # Dict containing counters used for based and derived class
-    self.counter['modelEvaluations']             = 0                         # Counter of the model evaluation performed (better the input generated!!!). It is reset by calling the function self.initialize
+    self.counter['modelEvaluations']    = 0                         # Counter of the model evaluation performed (better the input generated!!!). It is reset by calling the function self.initialize
     self.counter['varsUpdate']          = 0                         # Counter of the optimization iteration.
     self.counter['recentOptHist']       = {}                        # as {traj: [pt0, pt1]} where each pt is {'inputs':{var:val}, 'output':val}, the two most recently-accepted points by value
     self.counter['prefixHistory']       = {}                        # as {traj: [prefix1, prefix2]} where each prefix is the job identifier for each trajectory
@@ -341,7 +341,7 @@ class OptimizerBase(Sampler):
       @ Out, paramDict, dict, dictionary containing the parameter names as keys
                               and each parameter's initial value as the dictionary values
     """
-    paramDict = Sampler.getCurrentSetting(self)
+    paramDict = AdaptiveSampler.getCurrentSetting(self)
     paramDict.pop('counter', None)
     paramDict['counter_modelEvaluations'       ] = self.counter['modelEvaluations']
     paramDict['counter_varsUpdate'    ] = self.counter['varsUpdate']
