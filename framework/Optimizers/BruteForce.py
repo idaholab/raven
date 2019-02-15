@@ -61,8 +61,8 @@ class BruteForce(OptimizerBase):
       @ Out, None
     """
     OptimizerBase.__init__(self)
-    self.counter['varsUpdate'      ] = {}
-    self.counter['solutionUpdate'  ] = {}
+    self.varsUpdate = {}
+    self.solutionUpdate = {}
     # register metadata
     self.addMetaKeys(['prefix'])
 
@@ -81,15 +81,15 @@ class BruteForce(OptimizerBase):
       @ Out, None
     """
     for traj in self.optTraj:
-      self.counter['recentOptHist'][traj]    = [{},{}]
-      self.counter['solutionUpdate'][traj]   = 0
+      self.recentOptHist[traj]    = [{},{}]
+      self.solutionUpdate[traj]   = 0
       self.optVarsHist[traj]                 = {}
     # Currently we only accept one vector of input
     size = 0
-    for var in self.getOptVars(traj=0):
+    for var in self.toBeOptimized:
       size += np.prod(self.variableShapes[var])
     self._generateSubmissionQueue(size=size)
-    self.limit['modelEvaluations'] = len(self.submissionQueue[0])
+    self.limit = len(self.submissionQueue[0])
 
   def _generateSubmissionQueue(self,size=1):
     """
@@ -113,7 +113,7 @@ class BruteForce(OptimizerBase):
     prefix,point = self.getQueuedPoint(traj)
     # TODO point here is just the values
     # In Optimizer, point is a dict {var, value}, but for this case, we just use value for now
-    for var in self.getOptVars(traj=traj):
+    for var in self.toBeOptimized:
       self.values[var] = point
     self.inputInfo['prefix'] = prefix
 
@@ -153,7 +153,7 @@ class BruteForce(OptimizerBase):
     # TODO REWORK move this whole piece to Optimizer base class as much as possible
     if len(self.modelEvaluationsHist) != 0:
       for traj in self.optTraj:
-        if self.counter['solutionUpdate'][traj] <= self.limit['modelEvaluations']:
+        if self.solutionUpdate[traj] <= self.limit:
           # check whether solution export needs updating, and get indices of entries that need to be added
           solutionExportUpdatedFlag, indices = self._getJobsByID(prefix)
           if solutionExportUpdatedFlag:
@@ -177,23 +177,23 @@ class BruteForce(OptimizerBase):
             currentObjectiveValue = outputs[self.objVar]
             updateObjectiveValue = True
             try:
-              self.counter['recentOptHist'][traj][1] = copy.deepcopy(self.counter['recentOptHist'][traj][0])
-              bestValue = self.counter['recentOptHist'][traj][0][self.objVar]
+              self.recentOptHist[traj][1] = copy.deepcopy(self.recentOptHist[traj][0])
+              bestValue = self.recentOptHist[traj][0][self.objVar]
               updateObjectiveValue = self.checkIfBetter(currentObjectiveValue,bestValue)
             except KeyError:
               # this means we don't have an entry for this trajectory yet, so don't copy anything
               pass
               # store realization of most recent developments
             if updateObjectiveValue:
-              self.counter['recentOptHist'][traj][0] = outputs
-            if traj not in self.counter['prefixHistory']:
-              self.counter['prefixHistory'][traj] = []
-            self.counter['prefixHistory'][traj].append(prefix)
+              self.recentOptHist[traj][0] = outputs
+            if traj not in self.prefixHistory:
+              self.prefixHistory[traj] = []
+            self.prefixHistory[traj].append(prefix)
             # only write here if we want to write on EVERY optimizer iteration (each new optimal point)
             if self.writeSolnExportOn == 'every':
               self.writeToSolutionExport(traj)
             # whether we wrote to solution export or not, update the counter
-            self.counter['solutionUpdate'][traj] += 1
+            self.solutionUpdate[traj] += 1
           else: #not ready to update solutionExport
             break
 
@@ -207,14 +207,14 @@ class BruteForce(OptimizerBase):
     # create realization to add to data object
     rlz = {}
     badValue = -1 #value to use if we don't have a value # TODO make this accessible to user?
-    recent = self.counter['recentOptHist'][traj][0]
+    recent = self.recentOptHist[traj][0]
     for var in self.solutionExport.getVars():
       # if this variable has indices, add them to the realization
       indexes = self.solutionExport.getDimensions(var)[var]
       if len(indexes):
         # use the prefix to find the right realization
         ## NOTE there will be a problem with unsynchronized histories!
-        varUpdate = self.counter['solutionUpdate'][traj]
+        varUpdate = self.solutionUpdate[traj]
         # negative values wouldn't make sense
         varUpdate = max(0,varUpdate-1)
         prefix = '{}_{}_{}'.format(traj,varUpdate,0)
@@ -229,7 +229,7 @@ class BruteForce(OptimizerBase):
         new = self.constants[var]
       # custom counters: varsUpdate, trajID, stepSize
       elif var == 'varsUpdate':
-        new = self.counter['solutionUpdate'][traj]
+        new = self.solutionUpdate[traj]
       elif var == 'trajID':
         new = traj+1 # +1 is for historical reasons, when histories were indexed on 1 instead of 0
       else:
@@ -250,8 +250,8 @@ class BruteForce(OptimizerBase):
       # get the most optimal point among the trajectories
       bestValue = None
       bestTraj = None
-      for traj in self.counter['recentOptHist'].keys():
-        value = self.counter['recentOptHist'][traj][0][self.objVar]
+      for traj in self.recentOptHist.keys():
+        value = self.recentOptHist[traj][0][self.objVar]
         self.raiseADebug('For trajectory "{}" the best value was'.format(traj),value)
         if bestTraj is None:
           bestTraj = traj

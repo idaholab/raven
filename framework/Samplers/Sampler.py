@@ -124,6 +124,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.auxcnt                        = 0                         # Aux counter of samples performed (for its usage check initialize method)
     self.limit                         = sys.maxsize               # maximum number of Samples (for example, Monte Carlo = Number of HistorySet to run, DET = Unlimited)
     self.toBeSampled                   = {}                        # Sampling mapping dictionary {'Variable Name':'name of the distribution'}
+    self.toBeOptimized                 = []                        # list of 'Variable Name'
     self.dependentSample               = {}                        # Sampling mapping dictionary for dependent variables {'Variable Name':'name of the external function'}
     self.distDict                      = {}                        # Contains the instance of the distribution to be used, it is created every time the sampler is initialized. keys are the variable names
     self.funcDict                      = {}                        # Contains the instance of the function     to be used, it is created every time the sampler is initialized. keys are the variable names
@@ -440,8 +441,10 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         and each parameter's initial value as the dictionary values
     """
     paramDict = {}
-    for variable in self.toBeSampled.items():
-      paramDict["sampled variable: "+variable[0]] = 'is sampled using the distribution ' +variable[1]
+    for variable, distribution in self.toBeSampled.items():
+      paramDict[variable] = 'is sampled by ' + self.type + ' using the distribution ' + distribution
+    for variable in self.toBeOptimized:
+      paramDict[variable] = 'is sampled by ' + self.type + ' as a decision variable'
     paramDict['limit' ]        = self.limit
     paramDict['initial seed' ] = self.initSeed
     paramDict.update(self.localGetInitParams())
@@ -621,7 +624,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         paramDict[key] = self.inputInfo[key]
       else:
         for var in self.inputInfo['SampledVars'].keys():
-          paramDict['Variable: '+var+' has value'] = paramDict[key][var]
+          paramDict['Variable: '+var+' has value'] = self.inputInfo['SampledVars'][var]
     paramDict.update(self.localGetCurrentSetting())
     return paramDict
 
@@ -656,6 +659,8 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ Out, ready, bool, is this sampler ready to generate another sample?
     """
     ready = True if self.counter < self.limit else False
+    if not ready:
+      self.raiseAMessage('Reached limit for number of model evaluations!')
     ready = self.localStillReady(ready)
     return ready
 

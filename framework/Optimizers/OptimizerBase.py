@@ -106,17 +106,12 @@ class OptimizerBase(AdaptiveSampler):
       @ Out, None
     """
     AdaptiveSampler.__init__(self)
-    #counters
-    ## while "counter" is scalar in Sampler, it's more complicated in Optimizer
-    self.counter                        = {}                        # Dict containing counters used for based and derived class
-    self.counter['modelEvaluations']    = 0                         # Counter of the model evaluation performed (better the input generated!!!). It is reset by calling the function self.initialize
-    self.counter['varsUpdate']          = 0                         # Counter of the optimization iteration.
-    self.counter['recentOptHist']       = {}                        # as {traj: [pt0, pt1]} where each pt is {'inputs':{var:val}, 'output':val}, the two most recently-accepted points by value
-    self.counter['prefixHistory']       = {}                        # as {traj: [prefix1, prefix2]} where each prefix is the job identifier for each trajectory
+    self.varsUpdate                     = 0                         # Counter of the optimization iteration.
+    self.recentOptHist       = {}                        # as {traj: [pt0, pt1]} where each pt is {'inputs':{var:val}, 'output':val}, the two most recently-accepted points by value
+    self.prefixHistory      = {}                        # as {traj: [prefix1, prefix2]} where each prefix is the job identifier for each trajectory
     self.objVar                         = None                      # Objective variable to be optimized
     self.optVars                        = {}                        # By trajectory, current decision variables for optimization
     self.optType                        = None                      # Either max or min
-    self.fullOptVars                    = None                      # Decision variables for optimization, full space
     self.optTraj                        = None                      # Identifiers of parallel optimization trajectories
     self.optVarsInitialized             = {}                        # Dict {var1:<initial> present?,var2:<initial> present?}
     #initialization parameters
@@ -126,10 +121,6 @@ class OptimizerBase(AdaptiveSampler):
     self.optVarsInit['initial']         = {}                        # Dict containing initial values of each decision variables
     self.optVarsInit['ranges']          = {}                        # Dict of the ranges (min and max) of each variable's domain
     self.optVarsHist                    = {}                        # History of decision variables for each iteration
-    ## while "limit" is scalar in Sampler, it's more complicated in Optimizer
-    self.limit                          = {}                        # Dict containing limits for each counter
-    self.limit['modelEvaluations']               = 2000                      # Maximum number of the loss function evaluation
-    self.limit['varsUpdate']            = 650                       # Maximum number of the optimization iteration.
     self.writeSolnExportOn              = None                      # Determines when we write to solution export (every step or final solution)
     self.paramDict                      = {}                        # Dict containing additional parameters for derived class
     #sampler-step communication
@@ -158,15 +149,12 @@ class OptimizerBase(AdaptiveSampler):
     for child in paramInput.subparts:
       #FIXME: the common variable reading should be wrapped up in a method to reduce the code redundancy
       if child.getName() == "variable":
-        if self.fullOptVars is None:
-          self.fullOptVars = []
-        # store variable name
         varName = child.parameterValues['name']
         self.optVarsInitialized[varName] = False
         # store variable requested shape, if any
         if 'shape' in child.parameterValues:
           self.variableShapes[varName] = child.parameterValues['shape']
-        self.fullOptVars.append(varName)
+        self.toBeOptimized.append(varName)
         self.optVarsInit['initial'][varName] = {}
         for childChild in child.subparts:
           if childChild.getName() == "upperBound":
@@ -188,7 +176,7 @@ class OptimizerBase(AdaptiveSampler):
       elif child.getName() == "initialization":
         for childChild in child.subparts:
           if childChild.getName() == "limit":
-            self.limit['modelEvaluations'] = childChild.value
+            self.limit = childChild.value
             #the manual once claimed that "A" defaults to iterationLimit/10, but it's actually this number/10.
           elif childChild.getName() == "type":
             self.optType = childChild.value
@@ -217,17 +205,17 @@ class OptimizerBase(AdaptiveSampler):
     # check required settings TODO this can probably be removed thanks to the input checking!
     if self.objVar is None:
       self.raiseAnError(IOError, 'Object variable is not specified for optimizer!')
-    if self.fullOptVars is None:
+    if len(self.toBeOptimized) == 0:
       self.raiseAnError(IOError, 'Decision variable(s) not specified for optimizer!')
 
-    for var in self.getOptVars(full=True):
+    for var in self.toBeOptimized:
       if var not in self.variableShapes:
         self.variableShapes[var] = (1,)
       else:
         if len(self.variableShapes[var]) > 1:
           self.raiseAnError(NotImplementedError,'Matrices as inputs are not yet supported in the Optimizer. For variable "{}" received shape "{}"!'.format(var,self.variableShapes[var]))
 
-    for varName in self.fullOptVars:
+    for varName in self.toBeOptimized:
       if varName not in self.optVarsInit['upperBound'].keys():
         self.raiseAnError(IOError, 'Upper bound for '+varName+' is not provided' )
       if varName not in self.optVarsInit['lowerBound'].keys():
@@ -284,18 +272,6 @@ class OptimizerBase(AdaptiveSampler):
     """
     pass
 
-  def getOptVars(self, traj=0, full=False):
-    """
-      Returns the variables in the active optimization space
-      @ In, traj, int, optional, if provided then only return variables in current trajectory
-      @ In, full, bool, optional, if True will always give ALL the opt variables
-      @ Out, optVars, list(string), variables in the current optimization space
-    """
-    if full:
-      return self.fullOptVars
-    else:
-      return self.optVars[traj]
-
   def getQueuedPoint(self, traj=0, denorm=False):
     """
       Pops the first point off the submission queue (or errors if empty).
@@ -314,24 +290,6 @@ class OptimizerBase(AdaptiveSampler):
       point = self.denormalizeData(point)
     return prefix,point
 
-  def getInitParams(self):
-    """
-      This function is called from the base class to print some of the information inside the class.
-      Whatever is permanent in the class and not inherited from the parent class should be mentioned here.
-      The information is passed back in the dictionary. No information about values that change during the simulation
-      are allowed
-      @ In, None
-      @ Out, paramDict, dict, dictionary containing the parameter names as keys and each parameter's initial value as
-        the dictionary values
-    """
-    paramDict = {}
-    for variable in self.getOptVars(full=True):
-      paramDict[variable] = 'is sampled as a decision variable'
-    paramDict['limit_modelEvaluations' ]        = self.limit['modelEvaluations']
-    paramDict['limit_optIter']         = self.limit['varsUpdate']
-    paramDict.update(self.localGetInitParams())
-    return paramDict
-
   def getCurrentSetting(self):
     """
       This function is called from the base class to print some of the information inside the class.
@@ -342,10 +300,7 @@ class OptimizerBase(AdaptiveSampler):
                               and each parameter's initial value as the dictionary values
     """
     paramDict = AdaptiveSampler.getCurrentSetting(self)
-    paramDict.pop('counter', None)
-    paramDict['counter_modelEvaluations'       ] = self.counter['modelEvaluations']
-    paramDict['counter_varsUpdate'    ] = self.counter['varsUpdate']
-    paramDict.update(self.localGetCurrentSetting())
+    paramDict['counter_varsUpdate'    ] = self.varsUpdate
     return paramDict
 
   def initialize(self,externalSeeding=None,solutionExport=None):
@@ -355,16 +310,16 @@ class OptimizerBase(AdaptiveSampler):
       @ In, solutionExport, DataObject, optional, a PointSet to hold the solution
       @ Out, None
     """
-    # NOTE: counter['varsUpdate'] needs to be set AFTER self.optTraj length is set by the sampler (if used exclusively)
-    self.counter['modelEvaluations'] = 0
-    self.counter['varsUpdate'] = [0]*len(self.optTraj)
+    # NOTE: 'varsUpdate' needs to be set AFTER self.optTraj length is set by the sampler (if used exclusively)
+    self.counter = 0
+    self.varsUpdate = [0]*len(self.optTraj)
     self.optTrajLive = copy.deepcopy(self.optTraj)
     # TODO: We should use retrieveObjectFromAssemblerDict to get the Instance
     self.modelEvaluationsHist = self.assemblerDict['TargetEvaluation'][0][3]
     # check if the TargetEvaluation feature and target spaces are consistent
     ins  = self.modelEvaluationsHist.getVars("input")
     outs = self.modelEvaluationsHist.getVars("output")
-    for varName in self.fullOptVars:
+    for varName in self.toBeOptimized:
       if varName not in ins:
         self.raiseAnError(RuntimeError,"the optimization variable "+varName+" is not contained in the TargetEvaluation object "+self.modelEvaluationsHist.name)
     if self.objVar not in outs:
@@ -384,12 +339,12 @@ class OptimizerBase(AdaptiveSampler):
 
     # TODO a bunch of the gradient-level trajectory initializations should be moved here.
     for traj in self.optTraj:
-      self.optVars[traj]            = self.getOptVars(full=True) #initial as full space
+      self.optVars[traj]            = self.toBeOptimized #initial as full space
       self.submissionQueue[traj]    = deque()
 
     #check initial point array consistency
     rightLen = len(self.optTraj) #the hypothetical correct length
-    for var in self.getOptVars(full=True):
+    for var in self.toBeOptimized:
       haveLen = len(self.optVarsInit['initial'][var])
       if haveLen != rightLen:
         self.raiseAnError(RuntimeError,'The number of trajectories for variable "{}" is incorrect!  Got {} but expected {}!  Check the <initial> block.'.format(var,haveLen,rightLen))
@@ -409,25 +364,11 @@ class OptimizerBase(AdaptiveSampler):
     # check the constraint here to check if the initial values violate it
     varK = {}
     for trajInd in self.optTraj:
-      for varName in self.getOptVars():
+      for varName in self.toBeOptimized:
         varK[varName] = self.optVarsInit['initial'][varName][trajInd]
         self.checkConstraint(varK)
 
     self.localInitialize(solutionExport=solutionExport)
-
-  def amIreadyToProvideAnInput(self):
-    """
-      This is a method that should be called from any user of the optimizer before requiring the generation of a new
-      input. This method act as a "traffic light" for generating a new input.
-      Reason for not being ready could be for example: exceeding number of model evaluation, convergence criteria met, etc.
-      @ In, None
-      @ Out, ready, bool, indicating the readiness of the optimizer to generate a new input.
-    """
-    ready = True if self.counter['modelEvaluations'] < self.limit['modelEvaluations'] else False
-    if not ready:
-      self.raiseAMessage('Reached limit for number of model evaluations!')
-    ready = self.localStillReady(ready)
-    return ready
 
   def _incrementCounter(self):
     """
@@ -436,8 +377,8 @@ class OptimizerBase(AdaptiveSampler):
       @ Out, None
     """
     #since we are creating the input for the next run we increase the counter and global counter
-    self.counter['modelEvaluations'] += 1
-    self.inputInfo['prefix'] = str(self.counter['modelEvaluations'])
+    self.counter += 1
+    self.inputInfo['prefix'] = str(self.counter)
 
   def updateVariableHistory(self,data,traj=0):
     """
@@ -446,7 +387,7 @@ class OptimizerBase(AdaptiveSampler):
       @ In, traj, int, integer label of the current trajectory of interest
       @ Out, None
     """
-    self.optVarsHist[traj][self.counter['varsUpdate'][traj]] = copy.deepcopy(data)
+    self.optVarsHist[traj][self.varsUpdate][traj] = copy.deepcopy(data)
 
   @abc.abstractmethod
   def checkConvergence(self):
