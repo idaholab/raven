@@ -225,98 +225,32 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
     #TODO remove using xmlNode
     Assembler._readMoreXML(self,xmlNode)
-    paramInput = self._readMoreXMLbase(xmlNode)
+    self._readMoreXMLbase(xmlNode)
+    paramInput = self.getInputSpecification()()
+    paramInput.parseNode(xmlNode)
     self.localInputAndChecks(xmlNode, paramInput)
 
-  def _readMoreXMLbase(self,xmlNode):
+  def _readMoreXMLbase(self, xmlNode):
     """
-      Function to read the portion of the xml input that belongs to the base sampler only
+      Function to read the portion of the parsed xml input that belongs to the base sampler only
       and initialize some stuff based on the inputs got
       The text is supposed to contain the info where and which variable to change.
       In case of a code the syntax is specified by the code interface itself
-      @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node1
+      @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
       @ Out, paramInput, InputData.ParameterInput the parsed paramInput
     """
     paramInput = self.getInputSpecification()()
     paramInput.parseNode(xmlNode)
-
     for child in paramInput.subparts:
-      prefix = ""
-
       if child.getName() == 'Distribution':
-        for childChild in child.subparts:
-          if childChild.getName() =='distribution':
-            prefix = "<distribution>"
-            toBeSampled = childChild.value
-        self.toBeSampled[prefix+child.parameterValues['name']] = toBeSampled
-
+        self._readDistribution(child)
       elif child.getName() == 'variable':
-        # variable for tracking if distributions or functions have been declared
-        foundDistOrFunc = False
-        # store variable name for re-use
-        varName = child.parameterValues['name']
-        # set shape if present
-        if 'shape' in child.parameterValues:
-          self.variableShapes[varName] = child.parameterValues['shape']
-        # read subnodes
-        for childChild in child.subparts:
-          if childChild.getName() =='distribution':
-            # can only have a distribution if doesn't already have a distribution or function
-            if not foundDistOrFunc:
-              foundDistOrFunc = True
-            else:
-              self.raiseAnError(IOError,'A sampled variable cannot have both a distribution and a function, or more than one of either!')
-            # name of the distribution to sample
-            toBeSampled = childChild.value
-            varData={}
-            varData['name']=childChild.value
-            # variable dimensionality
-            if 'dim' not in childChild.parameterValues:
-              dim=1
-            else:
-              dim=childChild.parameterValues['dim']
-            varData['dim']=dim
-            # set up mapping for variable to distribution
-            self.variables2distributionsMapping[varName] = varData
-            # flag distribution as needing to be sampled
-            self.toBeSampled[prefix+varName] = toBeSampled
-          elif childChild.getName() == 'function':
-            # can only have a function if doesn't already have a distribution or function
-            if not foundDistOrFunc:
-              foundDistOrFunc = True
-            else:
-              self.raiseAnError(IOError,'A sampled variable cannot have both a distribution and a function!')
-            # function name
-            toBeSampled = childChild.value
-            # track variable as a functional sample
-            self.dependentSample[prefix+varName] = toBeSampled
-
-        if not foundDistOrFunc:
-          self.raiseAnError(IOError,'Sampled variable',varName,'has neither a <distribution> nor <function> node specified!')
-
+        self._readVariable(child)
       elif child.getName() == "variablesTransformation":
-        transformationDict = {}
-        listIndex = None
-        for childChild in child.subparts:
-          if childChild.getName() == "latentVariables":
-            transformationDict[childChild.getName()] = list(childChild.value)
-          elif childChild.getName() == "manifestVariables":
-            transformationDict[childChild.getName()] = list(childChild.value)
-          elif childChild.getName() == "manifestVariablesIndex":
-            # the index provided by the input file starts from 1, but the index used by the code starts from 0.
-            listIndex = list(int(inp) - 1  for inp in childChild.value)
-          elif childChild.getName() == "method":
-            self.transformationMethod[child.parameterValues['distribution']] = childChild.value
-        if listIndex == None:
-          self.raiseAWarning('Index is not provided for manifestVariables, default index will be used instead!')
-          listIndex = range(len(transformationDict["manifestVariables"]))
-        transformationDict["manifestVariablesIndex"] = listIndex
-        self.variablesTransformationDict[child.parameterValues['distribution']] = transformationDict
-
+        self._readVariablesTransformation(child)
       elif child.getName() == "constant":
         name,value = self._readInConstant(child)
         self.constants[name] = value
-
       elif child.getName() == "restartTolerance":
         self.restartTolerance = child.value
       elif child.getName() == "Restart":
@@ -399,6 +333,92 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         # update the index for latentVariables according to the 'dim' assigned for given var defined in Sampler
         self.variablesTransformationDict[dist]['latentVariablesIndex'] = listIndex
     return paramInput
+
+  def _readDistribution(self, inp):
+    """
+      This function used to
+      @ In, inp, utils.InputParameter.ParameterInput, input parameter node to read from
+      @ Out, None
+    """
+    prefix = ""
+    for childChild in inp.subparts:
+      if childChild.getName() =='distribution':
+        prefix = "<distribution>"
+        toBeSampled = childChild.value
+    self.toBeSampled[prefix+inp.parameterValues['name']] = toBeSampled
+
+  def _readVariable(self, inp):
+    """
+      This function used to
+      @ In, inp, utils.InputParameter.ParameterInput, input parameter node to read from
+      @ Out, None
+    """
+    # variable for tracking if distributions or functions have been declared
+    foundDistOrFunc = False
+    # store variable name for re-use
+    varName = inp.parameterValues['name']
+    # set shape if present
+    if 'shape' in inp.parameterValues:
+      self.variableShapes[varName] = inp.parameterValues['shape']
+    # read subnodes
+    for childChild in inp.subparts:
+      if childChild.getName() =='distribution':
+        # can only have a distribution if doesn't already have a distribution or function
+        if not foundDistOrFunc:
+          foundDistOrFunc = True
+        else:
+          self.raiseAnError(IOError,'A sampled variable cannot have both a distribution and a function, or more than one of either!')
+        # name of the distribution to sample
+        toBeSampled = childChild.value
+        varData={}
+        varData['name']=childChild.value
+        # variable dimensionality
+        if 'dim' not in childChild.parameterValues:
+          dim=1
+        else:
+          dim=childChild.parameterValues['dim']
+        varData['dim']=dim
+        # set up mapping for variable to distribution
+        self.variables2distributionsMapping[varName] = varData
+        # flag distribution as needing to be sampled
+        self.toBeSampled[varName] = toBeSampled
+      elif childChild.getName() == 'function':
+        # can only have a function if doesn't already have a distribution or function
+        if not foundDistOrFunc:
+          foundDistOrFunc = True
+        else:
+          self.raiseAnError(IOError,'A sampled variable cannot have both a distribution and a function!')
+        # function name
+        toBeSampled = childChild.value
+        # track variable as a functional sample
+        self.dependentSample[varName] = toBeSampled
+
+    if not foundDistOrFunc:
+      self.raiseAnError(IOError,'Sampled variable',varName,'has neither a <distribution> nor <function> node specified!')
+
+  def _readVariablesTransformation(self, inp):
+    """
+      This function used to
+      @ In, inp, utils.InputParameter.ParameterInput, input parameter node to read from
+      @ Out, None
+    """
+    transformationDict = {}
+    listIndex = None
+    for childChild in inp.subparts:
+      if childChild.getName() == "latentVariables":
+        transformationDict[childChild.getName()] = list(childChild.value)
+      elif childChild.getName() == "manifestVariables":
+        transformationDict[childChild.getName()] = list(childChild.value)
+      elif childChild.getName() == "manifestVariablesIndex":
+        # the index provided by the input file starts from 1, but the index used by the code starts from 0.
+        listIndex = list(int(val) - 1  for val in childChild.value)
+      elif childChild.getName() == "method":
+        self.transformationMethod[child.parameterValues['distribution']] = childChild.value
+    if listIndex == None:
+      self.raiseAWarning('Index is not provided for manifestVariables, default index will be used instead!')
+      listIndex = range(len(transformationDict["manifestVariables"]))
+    transformationDict["manifestVariablesIndex"] = listIndex
+    self.variablesTransformationDict[child.parameterValues['distribution']] = transformationDict
 
   def _readInConstant(self,inp):
     """

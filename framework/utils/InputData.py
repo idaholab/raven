@@ -575,6 +575,18 @@ class ParameterInput(object):
         return sub
     return None
 
+  def findAll(self, name):
+    """
+      Finds all subpart with name.
+      @ In, name, string, the name of the node to search for
+      @ Out, subAll, list, list of ParameterInput, empty list if none found.
+    """
+    subAll = []
+    for sub in self.subparts:
+      if sub.getName() == name:
+        subAll.append(sub)
+    return subAll
+
   @classmethod
   def generateXSD(cls, xsdNode, definedDict):
     """
