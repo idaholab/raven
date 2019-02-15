@@ -107,8 +107,8 @@ class OptimizerBase(AdaptiveSampler):
     """
     AdaptiveSampler.__init__(self)
     self.varsUpdate                     = 0                         # Counter of the optimization iteration.
-    self.recentOptHist       = {}                        # as {traj: [pt0, pt1]} where each pt is {'inputs':{var:val}, 'output':val}, the two most recently-accepted points by value
-    self.prefixHistory      = {}                        # as {traj: [prefix1, prefix2]} where each prefix is the job identifier for each trajectory
+    self.recentOptHist                  = {}                        # as {traj: [pt0, pt1]} where each pt is {'inputs':{var:val}, 'output':val}, the two most recently-accepted points by value
+    self.prefixHistory                  = {}                        # as {traj: [prefix1, prefix2]} where each prefix is the job identifier for each trajectory
     self.objVar                         = None                      # Objective variable to be optimized
     self.optVars                        = {}                        # By trajectory, current decision variables for optimization
     self.optType                        = None                      # Either max or min
@@ -128,7 +128,7 @@ class OptimizerBase(AdaptiveSampler):
     self.constraintFunction             = None                      # External constraint function, could be not present
     self.solutionExport                 = None                      # This is the data used to export the solution
     self.nextActionNeeded               = (None,None)               # tool for localStillReady to inform localGenerateInput on the next action needed
-    self.modelEvaluationsHist                    = None                      # Containing information of all model evaluation
+    self.modelEvaluationsHist           = None                      # Containing information of all model evaluation
 
     self.addAssemblerObject('TargetEvaluation','1')
     self.addAssemblerObject('Function','-1')
@@ -369,16 +369,6 @@ class OptimizerBase(AdaptiveSampler):
         self.checkConstraint(varK)
 
     self.localInitialize(solutionExport=solutionExport)
-
-  def _incrementCounter(self):
-    """
-      Increments counter and sets up prefix.
-      @ In, None
-      @ Out, None
-    """
-    #since we are creating the input for the next run we increase the counter and global counter
-    self.counter += 1
-    self.inputInfo['prefix'] = str(self.counter)
 
   def updateVariableHistory(self,data,traj=0):
     """

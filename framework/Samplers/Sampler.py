@@ -35,6 +35,7 @@ import numpy as np
 from utils import utils,randomUtils,InputData
 from BaseClasses import BaseType
 from Assembler import Assembler
+import DataObjects
 #Internal Modules End--------------------------------------------------------------------------------
 
 class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
@@ -146,7 +147,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.restartIsCompatible           = None                      # flags restart as compatible with the sampling scheme (used to speed up checking)
     self._jobsToEnd                    = []                        # list of strings, containing job prefixes that should be cancelled.
 
-    self.constantSourceData            = None                      # dictionary of data objects from which constants can take values
+    self.constantSourceData            = {}                      # dictionary of data objects from which constants can take values
     self.constantSources               = {}                        # storage for the way to obtain constant information
 
     self._endJobRunnable               = sys.maxsize               # max number of inputs creatable by the sampler right after a job ends (e.g., infinite for MC, 1 for Adaptive, etc)
@@ -318,6 +319,10 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
 
       elif child.getName() == "restartTolerance":
         self.restartTolerance = child.value
+      elif child.getName() == "Restart":
+        self.restartData = child.value
+      elif child.getName() == 'ConstantSource':
+        self.constantSourceData[child.value] = None
 
     if len(self.constants) > 0:
       # check if constant variables are also part of the sampled space. In case, error out
@@ -450,16 +455,14 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     paramDict.update(self.localGetInitParams())
     return paramDict
 
-  def initialize(self,externalSeeding=None,solutionExport=None):
+  def initializeSeed(self,externalSeeding=None):
     """
-      This function should be called every time a clean sampler is needed. Called before takeAstep in <Step>
+      This function used to initialize random seed
       @ In, externalSeeding, int, optional, external seed
-      @ In, solutionExport, DataObject, optional, in goal oriented sampling (a.k.a. adaptive sampling this is where the space/point satisfying the constrains)
       @ Out, None
     """
     if self.initSeed == None:
       self.initSeed = randomUtils.randomIntegers(0,2**31,self)
-    self.counter = 0
     if not externalSeeding:
       randomUtils.randomSeed(self.initSeed)       #use the sampler initialization seed
       self.auxcnt = self.initSeed
@@ -468,40 +471,49 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     else                              :
       randomUtils.randomSeed(externalSeeding)     #the external seeding is used
       self.auxcnt = externalSeeding
-    #grab restart dataobject if it's available, then in localInitialize the sampler can deal with it.
-    if 'Restart' in self.assemblerDict.keys():
-      self.raiseADebug('Restart object: '+str(self.assemblerDict['Restart']))
-      self.restartData = self.assemblerDict['Restart'][0][3]
-      # check the right variables are in the restart
-      need = set(itertools.chain(self.toBeSampled.keys(),self.dependentSample.keys()))
-      if not need.issubset(set(self.restartData.getVars())):
-        missing = need - set(self.restartData.getVars())
-        #TODO this could be a warning, instead, but user wouldn't see it until the run was deep in
-        self.raiseAnError(KeyError,'Restart data object "{}" is missing the following variables: "{}". No restart can be performed.'.format(self.restartData.name,', '.join(missing)))
-      else:
-        self.raiseAMessage('Restarting from '+self.restartData.name)
-      # we used to check distribution consistency here, but we want to give more flexibility to using
-      #   restart data, so do NOT check distributions of restart data.
+
+  def checkResart(self):
+    """
+      This function used to grad restart dataobject
+      @ In, None
+      @ Out, None
+    """
+    if type(self.restartData) is not str and isinstance(self.restartData, DataObjects.DataObject):
+      self.raiseAMessage('Clean Existing Restart Information Before Loading')
+      self.restartData = self.restartData.name
+    self.raiseADebug('Restart object: '+str(self.assemblerDict['Restart']))
+    self.restartData = self.retrieveObjectFromAssemblerDict('Restart', self.restartData)
+    # check the right variables are in the restart
+    need = set(itertools.chain(self.toBeSampled.keys(),self.dependentSample.keys()))
+    if not need.issubset(set(self.restartData.getVars())):
+      missing = need - set(self.restartData.getVars())
+      #TODO this could be a warning, instead, but user wouldn't see it until the run was deep in
+      self.raiseAnError(KeyError,'Restart data object "{}" is missing the following variables: "{}". No restart can be performed.'.format(self.restartData.name,', '.join(missing)))
     else:
-      self.raiseAMessage('No restart for '+self.printTag)
+      self.raiseAMessage('Restarting from '+self.restartData.name)
 
-    if 'ConstantSource' in self.assemblerDict.keys():
-      # find all the sources requested in the sampler, map data objects to their requested names
-      self.constantSourceData = dict((a[2],a[3]) for a in self.assemblerDict['ConstantSource'])
-      for var,data in self.constantSources.items():
-        source = self.constantSourceData[data['source']]
-        rlz = source.realization(index=data['index'])
-        if data['sourceVar'] not in rlz:
-          self.raiseAnError(IOError,'Requested variable "{}" from DataObject "{}" to set constant "{}",'.format(data['sourceVar'], source.name, var) +\
-                                    ' but "{}" is not a variable in "{}"!'.format(data['sourceVar'], source.name))
-        self.constants[var] = rlz[data['sourceVar']]
+  def checkConstantSource(self):
+    """
+      This function used to grad the constant source dataobject
+      @ In, None
+      @ Out, None
+    """
 
-    #specializing the self.localInitialize() to account for adaptive sampling
-    if solutionExport != None:
-      self.localInitialize(solutionExport=solutionExport)
-    else:
-      self.localInitialize()
+    self.constantSourceData = dict((a, self.retrieveObjectFromAssemblerDict('ConstantSource', a)) for a in self.constantSourceData.keys())
+    for var,data in self.constantSources.items():
+      source = self.constantSourceData[data['source']]
+      rlz = source.realization(index=data['index'])
+      if data['sourceVar'] not in rlz:
+        self.raiseAnError(IOError,'Requested variable "{}" from DataObject "{}" to set constant "{}",'.format(data['sourceVar'], source.name, var) +\
+                                  ' but "{}" is not a variable in "{}"!'.format(data['sourceVar'], source.name))
+      self.constants[var] = rlz[data['sourceVar']]
 
+  def checkNDDistribution(self):
+    """
+      This function used to check the provided ND distributions
+      @ In, None
+      @ Out, None
+    """
     for distrib in self.NDSamplingParams:
       if distrib in self.distributions2variablesMapping:
         params = self.NDSamplingParams[distrib]
@@ -510,25 +522,68 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       else:
         self.raiseAnError(IOError,'Distribution "%s" specified in distInit block of sampler "%s" does not exist!' %(distrib,self.name))
 
-    # Store the transformation matrix in the metadata
-    if self.variablesTransformationDict:
-      self.entitiesToRemove = []
-      for variable in self.variables2distributionsMapping.keys():
-        distName = self.variables2distributionsMapping[variable]['name']
-        dim      = self.variables2distributionsMapping[variable]['dim']
-        totDim   = self.variables2distributionsMapping[variable]['totDim']
-        if totDim > 1 and dim  == 1:
-          transformDict = {}
-          transformDict['type'] = self.distDict[variable.strip()].type
-          transformDict['transformationMatrix'] = self.distDict[variable.strip()].transformationMatrix()
-          self.inputInfo['transformation-'+distName] = transformDict
-          self.entitiesToRemove.append('transformation-'+distName)
+  def storeTransformationMatrix(self):
+    """
+      This function used to store the transformation matrix into the "inputInfo"
+      @ In, None
+      @ Out, None
+    """
+    self.entitiesToRemove = []
+    for variable in self.variables2distributionsMapping.keys():
+      distName = self.variables2distributionsMapping[variable]['name']
+      dim      = self.variables2distributionsMapping[variable]['dim']
+      totDim   = self.variables2distributionsMapping[variable]['totDim']
+      if totDim > 1 and dim  == 1:
+        transformDict = {}
+        transformDict['type'] = self.distDict[variable.strip()].type
+        transformDict['transformationMatrix'] = self.distDict[variable.strip()].transformationMatrix()
+        self.inputInfo['transformation-'+distName] = transformDict
+        self.entitiesToRemove.append('transformation-'+distName)
 
+  def updateMeta(self):
+    """
+      This function used to register the metadata
+      @ In, None
+      @ Out, None
+    """
     # Register expected metadata
     meta = ['ProbabilityWeight','prefix','PointProbability']
     for var in self.toBeSampled.keys():
       meta +=  ['ProbabilityWeight-'+ key for key in var.split(",")]
     self.addMetaKeys(meta)
+
+  def initialize(self,externalSeeding=None,solutionExport=None):
+    """
+      This function should be called every time a clean sampler is needed. Called before takeAstep in <Step>
+      @ In, externalSeeding, int, optional, external seed
+      @ In, solutionExport, DataObject, optional, in goal oriented sampling (a.k.a. adaptive sampling this is where the space/point satisfying the constrains)
+      @ Out, None
+    """
+    self.counter = 0
+    # set up the initialized random seed
+    self.initializeSeed(externalSeeding)
+    # grab restart dataobject if it's available, then in localInitialize the sampler can deal with it.
+    if 'Restart' in self.assemblerDict.keys():
+      self.checkResart()
+      # we used to check distribution consistency here, but we want to give more flexibility to using
+      #   restart data, so do NOT check distributions of restart data.
+    else:
+      self.raiseAMessage('No restart for '+self.printTag)
+    # grab ConstantSource dataobjects if they are available
+    if 'ConstantSource' in self.assemblerDict.keys():
+      self.checkConstantSource()
+    # Check ND distributions
+    self.checkNDDistribution()
+    # Store the transformation matrix in the metadata
+    if self.variablesTransformationDict:
+      self.storeTransformationMatrix()
+    # Register metadatas
+    self.updateMeta()
+    #specializing the self.localInitialize() to account for adaptive sampling
+    if solutionExport != None:
+      self.localInitialize(solutionExport=solutionExport)
+    else:
+      self.localInitialize()
 
   def localGetInitParams(self):
     """
