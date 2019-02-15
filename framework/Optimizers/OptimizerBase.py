@@ -109,7 +109,7 @@ class OptimizerBase(Sampler):
     #counters
     ## while "counter" is scalar in Sampler, it's more complicated in Optimizer
     self.counter                        = {}                        # Dict containing counters used for based and derived class
-    self.counter['mdlEval']             = 0                         # Counter of the model evaluation performed (better the input generated!!!). It is reset by calling the function self.initialize
+    self.counter['modelEvaluations']             = 0                         # Counter of the model evaluation performed (better the input generated!!!). It is reset by calling the function self.initialize
     self.counter['varsUpdate']          = 0                         # Counter of the optimization iteration.
     self.counter['recentOptHist']       = {}                        # as {traj: [pt0, pt1]} where each pt is {'inputs':{var:val}, 'output':val}, the two most recently-accepted points by value
     self.counter['prefixHistory']       = {}                        # as {traj: [prefix1, prefix2]} where each prefix is the job identifier for each trajectory
@@ -126,10 +126,9 @@ class OptimizerBase(Sampler):
     self.optVarsInit['initial']         = {}                        # Dict containing initial values of each decision variables
     self.optVarsInit['ranges']          = {}                        # Dict of the ranges (min and max) of each variable's domain
     self.optVarsHist                    = {}                        # History of decision variables for each iteration
-    #limits
     ## while "limit" is scalar in Sampler, it's more complicated in Optimizer
     self.limit                          = {}                        # Dict containing limits for each counter
-    self.limit['mdlEval']               = 2000                      # Maximum number of the loss function evaluation
+    self.limit['modelEvaluations']               = 2000                      # Maximum number of the loss function evaluation
     self.limit['varsUpdate']            = 650                       # Maximum number of the optimization iteration.
     self.writeSolnExportOn              = None                      # Determines when we write to solution export (every step or final solution)
     self.paramDict                      = {}                        # Dict containing additional parameters for derived class
@@ -138,7 +137,7 @@ class OptimizerBase(Sampler):
     self.constraintFunction             = None                      # External constraint function, could be not present
     self.solutionExport                 = None                      # This is the data used to export the solution
     self.nextActionNeeded               = (None,None)               # tool for localStillReady to inform localGenerateInput on the next action needed
-    self.mdlEvalHist                    = None                      # Containing information of all model evaluation
+    self.modelEvaluationsHist                    = None                      # Containing information of all model evaluation
 
     self.addAssemblerObject('TargetEvaluation','1')
     self.addAssemblerObject('Function','-1')
@@ -189,7 +188,7 @@ class OptimizerBase(Sampler):
       elif child.getName() == "initialization":
         for childChild in child.subparts:
           if childChild.getName() == "limit":
-            self.limit['mdlEval'] = childChild.value
+            self.limit['modelEvaluations'] = childChild.value
             #the manual once claimed that "A" defaults to iterationLimit/10, but it's actually this number/10.
           elif childChild.getName() == "type":
             self.optType = childChild.value
@@ -328,7 +327,7 @@ class OptimizerBase(Sampler):
     paramDict = {}
     for variable in self.getOptVars(full=True):
       paramDict[variable] = 'is sampled as a decision variable'
-    paramDict['limit_mdlEval' ]        = self.limit['mdlEval']
+    paramDict['limit_modelEvaluations' ]        = self.limit['modelEvaluations']
     paramDict['limit_optIter']         = self.limit['varsUpdate']
     paramDict.update(self.localGetInitParams())
     return paramDict
@@ -344,7 +343,7 @@ class OptimizerBase(Sampler):
     """
     paramDict = Sampler.getCurrentSetting(self)
     paramDict.pop('counter', None)
-    paramDict['counter_mdlEval'       ] = self.counter['mdlEval']
+    paramDict['counter_modelEvaluations'       ] = self.counter['modelEvaluations']
     paramDict['counter_varsUpdate'    ] = self.counter['varsUpdate']
     paramDict.update(self.localGetCurrentSetting())
     return paramDict
@@ -357,19 +356,19 @@ class OptimizerBase(Sampler):
       @ Out, None
     """
     # NOTE: counter['varsUpdate'] needs to be set AFTER self.optTraj length is set by the sampler (if used exclusively)
-    self.counter['mdlEval'] = 0
+    self.counter['modelEvaluations'] = 0
     self.counter['varsUpdate'] = [0]*len(self.optTraj)
     self.optTrajLive = copy.deepcopy(self.optTraj)
     # TODO: We should use retrieveObjectFromAssemblerDict to get the Instance
-    self.mdlEvalHist = self.assemblerDict['TargetEvaluation'][0][3]
+    self.modelEvaluationsHist = self.assemblerDict['TargetEvaluation'][0][3]
     # check if the TargetEvaluation feature and target spaces are consistent
-    ins  = self.mdlEvalHist.getVars("input")
-    outs = self.mdlEvalHist.getVars("output")
+    ins  = self.modelEvaluationsHist.getVars("input")
+    outs = self.modelEvaluationsHist.getVars("output")
     for varName in self.fullOptVars:
       if varName not in ins:
-        self.raiseAnError(RuntimeError,"the optimization variable "+varName+" is not contained in the TargetEvaluation object "+self.mdlEvalHist.name)
+        self.raiseAnError(RuntimeError,"the optimization variable "+varName+" is not contained in the TargetEvaluation object "+self.modelEvaluationsHist.name)
     if self.objVar not in outs:
-      self.raiseAnError(RuntimeError,"the optimization objective variable "+self.objVar+" is not contained in the TargetEvaluation object "+self.mdlEvalHist.name)
+      self.raiseAnError(RuntimeError,"the optimization objective variable "+self.objVar+" is not contained in the TargetEvaluation object "+self.modelEvaluationsHist.name)
     self.solutionExport = solutionExport
     if self.solutionExport is None:
       self.raiseAnError(IOError,'The results of optimization cannot be obtained without a SolutionExport defined in the Step!')
@@ -424,7 +423,7 @@ class OptimizerBase(Sampler):
       @ In, None
       @ Out, ready, bool, indicating the readiness of the optimizer to generate a new input.
     """
-    ready = True if self.counter['mdlEval'] < self.limit['mdlEval'] else False
+    ready = True if self.counter['modelEvaluations'] < self.limit['modelEvaluations'] else False
     if not ready:
       self.raiseAMessage('Reached limit for number of model evaluations!')
     ready = self.localStillReady(ready)
@@ -437,8 +436,8 @@ class OptimizerBase(Sampler):
       @ Out, None
     """
     #since we are creating the input for the next run we increase the counter and global counter
-    self.counter['mdlEval'] += 1
-    self.inputInfo['prefix'] = str(self.counter['mdlEval'])
+    self.counter['modelEvaluations'] += 1
+    self.inputInfo['prefix'] = str(self.counter['modelEvaluations'])
 
   def updateVariableHistory(self,data,traj=0):
     """
@@ -486,10 +485,10 @@ class OptimizerBase(Sampler):
       @ Out, _checkModelFinish, tuple(bool, int), indicating whether the Model has finished the evaluation over input
              identified by traj+updateKey+evalID, the index of the location of the input in dataobject
     """
-    if len(self.mdlEvalHist) == 0:
+    if len(self.modelEvaluationsHist) == 0:
       return (False,-1)
     lookFor = '{}_{}_{}'.format(traj,updateKey,evalID)
-    index,match = self.mdlEvalHist.realization(matchDict = {'prefix':lookFor})
+    index,match = self.modelEvaluationsHist.realization(matchDict = {'prefix':lookFor})
     # if no match, return False
     if match is None:
       return False,-1

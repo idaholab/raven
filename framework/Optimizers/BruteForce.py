@@ -89,7 +89,7 @@ class BruteForce(OptimizerBase):
     for var in self.getOptVars(traj=0):
       size += np.prod(self.variableShapes[var])
     self._generateSubmissionQueue(size=size)
-    self.limit['mdlEval'] = len(self.submissionQueue[0])
+    self.limit['modelEvaluations'] = len(self.submissionQueue[0])
 
   def _generateSubmissionQueue(self,size=1):
     """
@@ -151,17 +151,17 @@ class BruteForce(OptimizerBase):
       failedTrajectory = int(prefix.split("_")[0])
       self.raiseAnError(IOError, 'Failed runs, aborting RAVEN')
     # TODO REWORK move this whole piece to Optimizer base class as much as possible
-    if len(self.mdlEvalHist) != 0:
+    if len(self.modelEvaluationsHist) != 0:
       for traj in self.optTraj:
-        if self.counter['solutionUpdate'][traj] <= self.limit['mdlEval']:
+        if self.counter['solutionUpdate'][traj] <= self.limit['modelEvaluations']:
           # check whether solution export needs updating, and get indices of entries that need to be added
           solutionExportUpdatedFlag, indices = self._getJobsByID(prefix)
           if solutionExportUpdatedFlag:
             outputs = dict((var,np.zeros(len(self.optTraj), dtype=object)) for var in self.solutionExport.getVars('output')
-                      if var in self.mdlEvalHist.getVars())
+                      if var in self.modelEvaluationsHist.getVars())
             for i, index in enumerate(indices):
               # get the realization from the targetEvaluation
-              vals = self.mdlEvalHist.realization(index=index)
+              vals = self.modelEvaluationsHist.realization(index=index)
               satisfied = self.checkConstraint(vals)
               # place values TODO this could be vectorized significantly!
               for var in outputs.keys():
@@ -218,7 +218,7 @@ class BruteForce(OptimizerBase):
         # negative values wouldn't make sense
         varUpdate = max(0,varUpdate-1)
         prefix = '{}_{}_{}'.format(traj,varUpdate,0)
-        _,match = self.mdlEvalHist.realization(matchDict = {'prefix':prefix})
+        _,match = self.modelEvaluationsHist.realization(matchDict = {'prefix':prefix})
         for index in indexes:
           rlz[index] = match[index]
       # CASE: what variable is asked for:
