@@ -44,7 +44,7 @@ class DiscreteOptimizer(Optimizer):
     self.localLocalInitialize(self, solutionExport)
     self.localLocalGenerateInput(self,model,oldInput)
   """
-  
+
   def __init__(self):
     """
       Default Constructor that will initialize member variables with reasonable
@@ -53,7 +53,7 @@ class DiscreteOptimizer(Optimizer):
       @ Out, None
     """
     Optimizer.__init__(self)
-    
+
   def localInputAndChecks(self, xmlNode):
     """
       Method to read the portion of the xml input that belongs to all gradient based optimizer only
@@ -62,7 +62,7 @@ class DiscreteOptimizer(Optimizer):
       @ Out, None
     """
     pass
-    
+
   def localInitialize(self):
     """
       Method to initialize settings that belongs to all gradient based optimizer
@@ -70,7 +70,7 @@ class DiscreteOptimizer(Optimizer):
       @ Out, None
     """
     pass
-    
+
   def localGenerateInput(self,model,oldInput):
     """
       Method to generate input for model to run
