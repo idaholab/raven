@@ -135,65 +135,60 @@ class OptimizerBase(AdaptiveSampler):
     self.addAssemblerObject('Preconditioner','-n')
     self.addAssemblerObject('Sampler','-1')   #This Sampler can be used to initialize the optimization initial points (e.g. partially replace the <initial> blocks for some variables)
 
-  def _readMoreXMLbase(self,xmlNode):
+  def _readVariable(self, inp):
     """
-      Function to read the portion of the xml input that belongs to the base optimizer only
-      and initialize some stuff based on the inputs got
-      @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node1
+      This function used to process the variable
+      @ In, inp, utils.InputParameter.ParameterInput, input parameter node to read from
       @ Out, None
     """
-    paramInput = self.getInputSpecification()()
-    paramInput.parseNode(xmlNode)
-    # TODO some merging with base sampler XML reading might be possible, but in general requires different entries
-    # first read all XML nodes
-    for child in paramInput.subparts:
-      #FIXME: the common variable reading should be wrapped up in a method to reduce the code redundancy
-      if child.getName() == "variable":
-        varName = child.parameterValues['name']
-        self.optVarsInitialized[varName] = False
-        # store variable requested shape, if any
-        if 'shape' in child.parameterValues:
-          self.variableShapes[varName] = child.parameterValues['shape']
-        self.toBeOptimized.append(varName)
-        self.optVarsInit['initial'][varName] = {}
-        for childChild in child.subparts:
-          if childChild.getName() == "upperBound":
-            self.optVarsInit['upperBound'][varName] = childChild.value
-          elif childChild.getName() == "lowerBound":
-            self.optVarsInit['lowerBound'][varName] = childChild.value
-          elif childChild.getName() == "initial":
-            # for consistent with multi trajectory, we initialize with only one trajectory with index '0'
-            self.optVarsInit['initial'][varName][0] = childChild.value
-            self.optVarsInitialized[varName] = True
-            initPoints = childChild.value
-      elif child.getName() == "constant":
-        name,value = self._readInConstant(child)
-        self.constants[child.parameterValues['name']] = value
-      elif child.getName() == "objectVar":
-        self.objVar = child.value.strip()
-      elif child.getName() == "restartTolerance":
-        self.restartTolerance = child.value
-      elif child.getName() == "initialization":
-        for childChild in child.subparts:
-          if childChild.getName() == "limit":
-            self.limit = childChild.value
-            #the manual once claimed that "A" defaults to iterationLimit/10, but it's actually this number/10.
-          elif childChild.getName() == "type":
-            self.optType = childChild.value
-            if self.optType not in ['min', 'max']:
-              self.raiseAnError(IOError, 'Unknown optimization type "{}". Available: "min" or "max"'.format(childChild.value))
-          elif childChild.getName() == 'writeSteps':
-            whenToWrite = childChild.value.strip().lower()
-            if whenToWrite == 'every':
-              self.writeSolnExportOn = 'every'
-            elif whenToWrite == 'final':
-              self.writeSolnExportOn = 'final'
-            else:
-              self.raiseAnError(IOError,'Unexpected frequency for <writeSteps>: "{}". Expected "every" or "final".'.format(whenToWrite))
-          else:
-            self.raiseAnError(IOError,'Unknown tag: '+childChild.getName())
-    # now that XML is read, do some checks and defaults
-    # set defaults
+    varName = inp.parameterValues['name']
+    self.optVarsInitialized[varName] = False
+    # store variable requested shape, if any
+    if 'shape' in inp.parameterValues:
+      self.variableShapes[varName] = inp.parameterValues['shape']
+    self.toBeOptimized.append(varName)
+    self.optVarsInit['initial'][varName] = {}
+    for child in inp.subparts:
+      if child.getName() == "upperBound":
+        self.optVarsInit['upperBound'][varName] = child.value
+      elif child.getName() == "lowerBound":
+        self.optVarsInit['lowerBound'][varName] = child.value
+      elif child.getName() == "initial":
+        # for consistent with multi trajectory, we initialize with only one trajectory with index '0'
+        self.optVarsInit['initial'][varName][0] = child.value
+        self.optVarsInitialized[varName] = True
+
+  def _readIntialization(self, inp):
+    """
+      This function used to process the variable
+      @ In, inp, utils.InputParameter.ParameterInput, input parameter node to read from
+      @ Out, None
+    """
+    for child in inp.subparts:
+      if child.getName() == "limit":
+        self.limit = child.value
+        #the manual once claimed that "A" defaults to iterationLimit/10, but it's actually this number/10.
+      elif child.getName() == "type":
+        self.optType = child.value
+        if self.optType not in ['min', 'max']:
+          self.raiseAnError(IOError, 'Unknown optimization type "{}". Available: "min" or "max"'.format(child.value))
+      elif child.getName() == 'writeSteps':
+        whenToWrite = child.value.strip().lower()
+        if whenToWrite == 'every':
+          self.writeSolnExportOn = 'every'
+        elif whenToWrite == 'final':
+          self.writeSolnExportOn = 'final'
+        else:
+          self.raiseAnError(IOError,'Unexpected frequency for <writeSteps>: "{}". Expected "every" or "final".'.format(whenToWrite))
+      else:
+        self.raiseAnError(IOError,'Unknown tag: '+child.getName())
+
+  def _additionalSetupAndChecks(self):
+    """
+      This function used to create mapping between distirubitons and variables, and some additional checks
+      @ In, inp, None
+      @ Out, None
+    """
     if self.writeSolnExportOn is None:
       self.writeSolnExportOn = 'final'
     self.raiseAMessage('Writing to solution export on "{}" optimizer iteration.'.format(self.writeSolnExportOn))
@@ -225,6 +220,37 @@ class OptimizerBase(AdaptiveSampler):
       if len(self.optVarsInit['initial'][varName]) == 0:
         for traj in self.optTraj:
           self.optVarsInit['initial'][varName][traj] = None
+
+  def _readMoreXMLbase(self,xmlNode):
+    """
+      Function to read the portion of the xml input that belongs to the base optimizer only
+      and initialize some stuff based on the inputs got
+      @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node1
+      @ Out, None
+    """
+    paramInput = self.getInputSpecification()()
+    paramInput.parseNode(xmlNode)
+    # TODO some merging with base sampler XML reading might be possible, but in general requires different entries
+    # first read all XML nodes
+    for child in paramInput.subparts:
+      if child.getName() == "variable":
+        self._readVariable(child)
+      elif child.getName() == "constant":
+        name,value = self._readInConstant(child)
+        self.constants[name] = value
+      elif child.getName() == "objectVar":
+        self.objVar = child.value.strip()
+      elif child.getName() == "restartTolerance":
+        self.restartTolerance = child.value
+      elif child.getName() == "initialization":
+        self._readIntialization(child)
+      elif child.getName() == "TargetEvaluation":
+        self.modelEvaluationsHist = child.value
+      elif child.getName() == "Function":
+        self.constraintFunction = child.value
+    # now that XML is read, do some checks and defaults
+    # set defaults
+    self._additionalSetupAndChecks()
 
   def checkConstraint(self, optVars):
     """
@@ -303,19 +329,13 @@ class OptimizerBase(AdaptiveSampler):
     paramDict['counter_varsUpdate'    ] = self.varsUpdate
     return paramDict
 
-  def initialize(self,externalSeeding=None,solutionExport=None):
+  def checkTargetEvaluation(self):
     """
-      This function should be called every time a clean optimizer is needed. Called before takeAstep in <Step>
-      @ In, externalSeeding, int, optional, external seed
-      @ In, solutionExport, DataObject, optional, a PointSet to hold the solution
+      This function used to grab TargetEvaluation dataobject
+      @ In, None
       @ Out, None
     """
-    # NOTE: 'varsUpdate' needs to be set AFTER self.optTraj length is set by the sampler (if used exclusively)
-    self.counter = 0
-    self.varsUpdate = [0]*len(self.optTraj)
-    self.optTrajLive = copy.deepcopy(self.optTraj)
-    # TODO: We should use retrieveObjectFromAssemblerDict to get the Instance
-    self.modelEvaluationsHist = self.assemblerDict['TargetEvaluation'][0][3]
+    self.modelEvaluationsHist = self.retrieveObjectFromAssemblerDict('TargetEvaluation', self.modelEvaluationsHist)
     # check if the TargetEvaluation feature and target spaces are consistent
     ins  = self.modelEvaluationsHist.getVars("input")
     outs = self.modelEvaluationsHist.getVars("output")
@@ -324,6 +344,34 @@ class OptimizerBase(AdaptiveSampler):
         self.raiseAnError(RuntimeError,"the optimization variable "+varName+" is not contained in the TargetEvaluation object "+self.modelEvaluationsHist.name)
     if self.objVar not in outs:
       self.raiseAnError(RuntimeError,"the optimization objective variable "+self.objVar+" is not contained in the TargetEvaluation object "+self.modelEvaluationsHist.name)
+
+  def checkFunction(self):
+    """
+      This function used to grab Function Instance
+      @ In, None
+      @ Out, None
+    """
+    self.constraintFunction = self.retrieveObjectFromAssemblerDict('Function', self.constraintFunction)
+    if 'constrain' not in self.constraintFunction.availableMethods():
+      self.raiseAnError(IOError,'the function provided to define the constraints must have an implemented method called "constrain"')
+
+  def initialize(self,externalSeeding=None,solutionExport=None):
+    """
+      This function should be called every time a clean optimizer is needed. Called before takeAstep in <Step>
+      @ In, externalSeeding, int, optional, external seed
+      @ In, solutionExport, DataObject, optional, a PointSet to hold the solution
+      @ Out, None
+    """
+    # NOTE: 'varsUpdate' needs to be set AFTER self.optTraj length is set by the sampler (if used exclusively)
+    self.varsUpdate = [0]*len(self.optTraj)
+    self.optTrajLive = copy.deepcopy(self.optTraj)
+
+    if 'TargetEvaluation' in self.assemblerDict.keys():
+      self.checkTargetEvaluation()
+
+    if 'Function' in self.assemblerDict.keys():
+      self.checkFunction()
+
     self.solutionExport = solutionExport
     if self.solutionExport is None:
       self.raiseAnError(IOError,'The results of optimization cannot be obtained without a SolutionExport defined in the Step!')
@@ -331,11 +379,6 @@ class OptimizerBase(AdaptiveSampler):
     if type(solutionExport).__name__ not in ["PointSet","DataSet"]:
       self.raiseAnError(IOError,'solutionExport type must be a PointSet or DataSet. Got '+\
                                  type(solutionExport).__name__+ '!')
-    # TODO: We should use retrieveObjectFromAssemblerDict to get the Instance
-    if 'Function' in self.assemblerDict.keys():
-      self.constraintFunction = self.assemblerDict['Function'][0][3]
-      if 'constrain' not in self.constraintFunction.availableMethods():
-        self.raiseAnError(IOError,'the function provided to define the constraints must have an implemented method called "constrain"')
 
     # TODO a bunch of the gradient-level trajectory initializations should be moved here.
     for traj in self.optTraj:

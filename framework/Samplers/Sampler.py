@@ -265,12 +265,12 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
                                   ' '.join([i if i in self.toBeSampled.keys() else "" for i in self.constants.keys()]))
     if self.initSeed == None:
       self.initSeed = randomUtils.randomIntegers(0,2**31,self)
-    # creation of mapping between distirubitons and variables, and some additional checks
-    self._distributionsVariablesMappingAndChecks()
+
+    self._additionalSetupAndChecks()
 
   def _readDistribution(self, inp):
     """
-      This function used to
+      This function used to process the distribution node
       @ In, inp, utils.InputParameter.ParameterInput, input parameter node to read from
       @ Out, None
     """
@@ -283,7 +283,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
 
   def _readVariable(self, inp):
     """
-      This function used to
+      This function used to process the variable
       @ In, inp, utils.InputParameter.ParameterInput, input parameter node to read from
       @ Out, None
     """
@@ -332,7 +332,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
 
   def _readVariablesTransformation(self, inp):
     """
-      This function used to
+      This function used to process variable transformation node
       @ In, inp, utils.InputParameter.ParameterInput, input parameter node to read from
       @ Out, None
     """
@@ -390,9 +390,9 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
                                       'sourceVar': value[0]} # generally, constants are a list, but in this case just take the only entry
     return name, value
 
-  def _distributionsVariablesMappingAndChecks(self):
+  def _additionalSetupAndChecks(self):
     """
-      This function used to
+      This function used to create mapping between distirubitons and variables, and some additional checks
       @ In, inp, None
       @ Out, None
     """
@@ -501,7 +501,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
 
   def checkResart(self):
     """
-      This function used to grad restart dataobject
+      This function used to grab restart dataobject
       @ In, None
       @ Out, None
     """
