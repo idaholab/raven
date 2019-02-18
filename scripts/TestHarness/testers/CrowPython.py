@@ -40,7 +40,7 @@ class CrowPython(Tester):
     params = Tester.get_valid_params()
     params.add_required_param('input', "The python file to use for this test.")
     if os.environ.get("CHECK_PYTHON3", "0") == "1":
-      params.add_param('python_command', ' python3', 'The command to use to run python')
+      params.add_param('python_command', 'python3', 'The command to use to run python')
     else:
       params.add_param('python_command', 'python', 'The command to use to run python')
     params.add_param('requires_swig2', False, "Requires swig2 for test")
