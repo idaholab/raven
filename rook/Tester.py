@@ -377,6 +377,11 @@ class Tester:
     valid_params = self.get_valid_params()
     self.specs = valid_params.get_filled_dict(params)
     self.results = TestResult()
+    self.__command_prefix = ""
+    if sys.version_info > (3, ):
+      self.__python_command = "python3"
+    else:
+      self.__python_command = "python"
     self.__differs = []
     if self.__base_current_run_type is None:
       self.initialize_current_run_type()
@@ -444,6 +449,23 @@ class Tester:
     """
     self.set_only_run_types(set(["heavy"]))
 
+  def set_command_prefix(self, command_prefix):
+    """
+      Sets the command prefix.  This is prefixed to the front of the test
+      command.
+      @ In, command_prefix, string, the prefix for the command
+      @ Out, None
+    """
+    self.__command_prefix = command_prefix
+
+  def set_python_command(self, python_command):
+    """
+      Sets the python command.  This is used to run python commands.
+      See alse _get_python_command
+      @ In, python_command, string, the python command (including arguments)
+      @ Out, None.
+    """
+    self.__python_command = python_command
 
   def run(self, data):
     """
@@ -452,7 +474,7 @@ class Tester:
       @ Out, results, TestResult, the results of the test.
     """
     expected_fail = bool(self.specs['expected_fail'])
-    results = self.run_backend(data)
+    results = self._run_backend(data)
     if not expected_fail:
       return results
     if results.group == self.group_success:
@@ -476,7 +498,7 @@ class Tester:
         timeout = int(time_list[time_list.index(system)+1])
     return timeout
 
-  def run_backend(self, _):
+  def _run_backend(self, _):
     """
       Runs this tester.  This does the main work,
       but is separate to allow run to invert the result if expected_fail
@@ -497,7 +519,7 @@ class Tester:
 
     self.prepare()
 
-    command = self.get_command()
+    command = self.__command_prefix + self.get_command()
 
     timeout = self.__get_timeout()
     directory = self.specs['test_dir']
@@ -626,6 +648,15 @@ class Tester:
       @ Out, None
     """
     assert False, "process_results not implemented "+output
+
+  def _get_python_command(self):
+    """
+      returns a command that can run a python program.  So a possible return
+      would be "python".  Another possibility is "coverage --append"
+      @ In, None
+      @ Out, __python_command, string, string command to run a python program
+    """
+    return self.__python_command
 
   def get_command(self):
     """

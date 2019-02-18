@@ -107,9 +107,7 @@ class RavenFramework(Tester):
     if self.specs['interactive']:
       ravenflag += ' interactiveCheck '
 
-    if RavenUtils.in_python_3():
-      return "python3 " + self.driver + " " + ravenflag + self.specs["input"]
-    return "python " + self.driver + " " + ravenflag + self.specs["input"]
+    return self._get_python_command() + " " + self.driver + " " + ravenflag + self.specs["input"]
 
   def __make_differ(self, spec_name, differ_class, extra=None):
     """

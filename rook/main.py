@@ -55,6 +55,12 @@ parser.add_argument('--run-types', dest='add_run_types',
 parser.add_argument('--only-run-types', dest='only_run_types',
                     help='only run the listed types')
 
+parser.add_argument('--command-prefix', dest='command_prefix',
+                    help='prefix for the test commands')
+
+parser.add_argument('--python-command', dest='python_command',
+                    help='command to run python')
+
 args = parser.parse_args()
 
 class LoadClass(threading.Thread):
@@ -305,6 +311,10 @@ if __name__ == "__main__":
         params = dict(node.attrib)
         params['test_dir'] = test_dir
         tester = testers[node.attrib['type']](test_name, params)
+        if args.command_prefix is not None:
+          tester.set_command_prefix(args.command_prefix)
+        if args.python_command is not None:
+          tester.set_python_command(args.python_command)
         if args.heavy:
           tester.run_heavy()
         for child in node.children:
