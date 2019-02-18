@@ -237,7 +237,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       The text is supposed to contain the info where and which variable to change.
       In case of a code the syntax is specified by the code interface itself
       @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
-      @ Out, paramInput, InputData.ParameterInput the parsed paramInput
+      @ Out, None
     """
     paramInput = self.getInputSpecification()()
     paramInput.parseNode(xmlNode)
@@ -262,77 +262,11 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       # check if constant variables are also part of the sampled space. In case, error out
       if not set(self.toBeSampled.keys()).isdisjoint(self.constants.keys()):
         self.raiseAnError(IOError,"Some constant variables are also in the sampling space:" +
-                                  ' '.join([i if i in self.toBeSampled.keys() else "" for i in self.constants.keys()])  )
-
+                                  ' '.join([i if i in self.toBeSampled.keys() else "" for i in self.constants.keys()]))
     if self.initSeed == None:
       self.initSeed = randomUtils.randomIntegers(0,2**31,self)
-    # Creation of the self.distributions2variablesMapping dictionary: {'distName': [{'variable_name1': dim1}, {'variable_name2': dim2}]}
-    for variable in self.variables2distributionsMapping.keys():
-      distName = self.variables2distributionsMapping[variable]['name']
-      dim      = self.variables2distributionsMapping[variable]['dim']
-      listElement={}
-      listElement[variable] = dim
-      if (distName in self.distributions2variablesMapping.keys()):
-        self.distributions2variablesMapping[distName].append(listElement)
-      else:
-        self.distributions2variablesMapping[distName]=[listElement]
-
-    # creation of the self.distributions2variablesIndexList dictionary:{'distName':[dim1,dim2,...,dimN]}
-    self.distributions2variablesIndexList = {}
-    for distName in self.distributions2variablesMapping.keys():
-      positionList = []
-      for var in self.distributions2variablesMapping[distName]:
-        position = utils.first(var.values())
-        positionList.append(position)
-      if sum(set(positionList)) > 1 and len(positionList) != len(set(positionList)):
-        dups = set(str(var) for var in positionList if positionList.count(var) > 1)
-        self.raiseAnError(IOError,'Each of the following dimensions are assigned to multiple variables in Samplers: "{}"'.format(', '.join(dups)),
-                ' associated to ND distribution ', distName, '. This is currently not allowed!')
-      positionList = list(set(positionList))
-      positionList.sort()
-      self.distributions2variablesIndexList[distName] = positionList
-
-    for key in self.variables2distributionsMapping.keys():
-      distName = self.variables2distributionsMapping[key]['name']
-      dim      = self.variables2distributionsMapping[key]['dim']
-      reducedDim = self.distributions2variablesIndexList[distName].index(dim) + 1
-      self.variables2distributionsMapping[key]['reducedDim'] = reducedDim  # the dimension of variable in the transformed space
-      self.variables2distributionsMapping[key]['totDim'] = max(self.distributions2variablesIndexList[distName]) # We will reset the value if the node <variablesTransformation> exist in the raven input file
-      if not self.variablesTransformationDict and self.variables2distributionsMapping[key]['totDim'] > 1:
-        if self.variables2distributionsMapping[key]['totDim'] != len(self.distributions2variablesIndexList[distName]):
-          self.raiseAnError(IOError,'The "dim" assigned to the variables insider Sampler are not correct! the "dim" should start from 1, and end with the full dimension of given distribution')
-
-    #Checking the variables transformation
-    if self.variablesTransformationDict:
-      for dist,varsDict in self.variablesTransformationDict.items():
-        maxDim = len(varsDict['manifestVariables'])
-        listLatentElement = varsDict['latentVariables']
-        if len(set(listLatentElement)) != len(listLatentElement):
-          dups = set(var for var in listLatentElement if listLatentElement.count(var) > 1)
-          self.raiseAnError(IOError,'The following are duplicated variables listed in the latentVariables: ' + str(dups))
-        if len(set(varsDict['manifestVariables'])) != len(varsDict['manifestVariables']):
-          dups = set(var for var in varsDict['manifestVariables'] if varsDict['manifestVariables'].count(var) > 1)
-          self.raiseAnError(IOError,'The following are duplicated variables listed in the manifestVariables: ' + str(dups))
-        if len(set(varsDict['manifestVariablesIndex'])) != len(varsDict['manifestVariablesIndex']):
-          dups = set(var+1 for var in varsDict['manifestVariablesIndex'] if varsDict['manifestVariablesIndex'].count(var) > 1)
-          self.raiseAnError(IOError,'The following are duplicated variables indices listed in the manifestVariablesIndex: ' + str(dups))
-        listElement = self.distributions2variablesMapping[dist]
-        for var in listElement:
-          self.variables2distributionsMapping[utils.first(var.keys())]['totDim'] = maxDim #reset the totDim to reflect the totDim of original input space
-        tempListElement = {k.strip():v for x in listElement for ks,v in x.items() for k in list(ks.strip().split(','))}
-        listIndex = []
-        for var in listLatentElement:
-          if var not in set(tempListElement.keys()):
-            self.raiseAnError(IOError, 'The variable listed in latentVariables ' + var + ' is not listed in the given distribution: ' + dist)
-          listIndex.append(tempListElement[var]-1)
-        if max(listIndex) > maxDim:
-          self.raiseAnError(IOError,'The maximum dim = ' + str(max(listIndex)) + ' defined for latent variables is exceeded the dimension of the problem ' + str(maxDim))
-        if len(set(listIndex)) != len(listIndex):
-          dups = set(var+1 for var in listIndex if listIndex.count(var) > 1)
-          self.raiseAnError(IOError,'Each of the following dimensions are assigned to multiple latent variables in Samplers: ' + str(dups))
-        # update the index for latentVariables according to the 'dim' assigned for given var defined in Sampler
-        self.variablesTransformationDict[dist]['latentVariablesIndex'] = listIndex
-    return paramInput
+    # creation of mapping between distirubitons and variables, and some additional checks
+    self._distributionsVariablesMappingAndChecks()
 
   def _readDistribution(self, inp):
     """
@@ -455,6 +389,79 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
                                       'index'    : inp.parameterValues.get('index',-1),
                                       'sourceVar': value[0]} # generally, constants are a list, but in this case just take the only entry
     return name, value
+
+  def _distributionsVariablesMappingAndChecks(self):
+    """
+      This function used to
+      @ In, inp, None
+      @ Out, None
+    """
+    # Creation of the self.distributions2variablesMapping dictionary: {'distName': [{'variable_name1': dim1}, {'variable_name2': dim2}]}
+    for variable in self.variables2distributionsMapping.keys():
+      distName = self.variables2distributionsMapping[variable]['name']
+      dim      = self.variables2distributionsMapping[variable]['dim']
+      listElement={}
+      listElement[variable] = dim
+      if (distName in self.distributions2variablesMapping.keys()):
+        self.distributions2variablesMapping[distName].append(listElement)
+      else:
+        self.distributions2variablesMapping[distName]=[listElement]
+
+    # creation of the self.distributions2variablesIndexList dictionary:{'distName':[dim1,dim2,...,dimN]}
+    self.distributions2variablesIndexList = {}
+    for distName in self.distributions2variablesMapping.keys():
+      positionList = []
+      for var in self.distributions2variablesMapping[distName]:
+        position = utils.first(var.values())
+        positionList.append(position)
+      if sum(set(positionList)) > 1 and len(positionList) != len(set(positionList)):
+        dups = set(str(var) for var in positionList if positionList.count(var) > 1)
+        self.raiseAnError(IOError,'Each of the following dimensions are assigned to multiple variables in Samplers: "{}"'.format(', '.join(dups)),
+                ' associated to ND distribution ', distName, '. This is currently not allowed!')
+      positionList = list(set(positionList))
+      positionList.sort()
+      self.distributions2variablesIndexList[distName] = positionList
+
+    for key in self.variables2distributionsMapping.keys():
+      distName = self.variables2distributionsMapping[key]['name']
+      dim      = self.variables2distributionsMapping[key]['dim']
+      reducedDim = self.distributions2variablesIndexList[distName].index(dim) + 1
+      self.variables2distributionsMapping[key]['reducedDim'] = reducedDim  # the dimension of variable in the transformed space
+      self.variables2distributionsMapping[key]['totDim'] = max(self.distributions2variablesIndexList[distName]) # We will reset the value if the node <variablesTransformation> exist in the raven input file
+      if not self.variablesTransformationDict and self.variables2distributionsMapping[key]['totDim'] > 1:
+        if self.variables2distributionsMapping[key]['totDim'] != len(self.distributions2variablesIndexList[distName]):
+          self.raiseAnError(IOError,'The "dim" assigned to the variables insider Sampler are not correct! the "dim" should start from 1, and end with the full dimension of given distribution')
+
+    #Checking the variables transformation
+    if self.variablesTransformationDict:
+      for dist,varsDict in self.variablesTransformationDict.items():
+        maxDim = len(varsDict['manifestVariables'])
+        listLatentElement = varsDict['latentVariables']
+        if len(set(listLatentElement)) != len(listLatentElement):
+          dups = set(var for var in listLatentElement if listLatentElement.count(var) > 1)
+          self.raiseAnError(IOError,'The following are duplicated variables listed in the latentVariables: ' + str(dups))
+        if len(set(varsDict['manifestVariables'])) != len(varsDict['manifestVariables']):
+          dups = set(var for var in varsDict['manifestVariables'] if varsDict['manifestVariables'].count(var) > 1)
+          self.raiseAnError(IOError,'The following are duplicated variables listed in the manifestVariables: ' + str(dups))
+        if len(set(varsDict['manifestVariablesIndex'])) != len(varsDict['manifestVariablesIndex']):
+          dups = set(var+1 for var in varsDict['manifestVariablesIndex'] if varsDict['manifestVariablesIndex'].count(var) > 1)
+          self.raiseAnError(IOError,'The following are duplicated variables indices listed in the manifestVariablesIndex: ' + str(dups))
+        listElement = self.distributions2variablesMapping[dist]
+        for var in listElement:
+          self.variables2distributionsMapping[utils.first(var.keys())]['totDim'] = maxDim #reset the totDim to reflect the totDim of original input space
+        tempListElement = {k.strip():v for x in listElement for ks,v in x.items() for k in list(ks.strip().split(','))}
+        listIndex = []
+        for var in listLatentElement:
+          if var not in set(tempListElement.keys()):
+            self.raiseAnError(IOError, 'The variable listed in latentVariables ' + var + ' is not listed in the given distribution: ' + dist)
+          listIndex.append(tempListElement[var]-1)
+        if max(listIndex) > maxDim:
+          self.raiseAnError(IOError,'The maximum dim = ' + str(max(listIndex)) + ' defined for latent variables is exceeded the dimension of the problem ' + str(maxDim))
+        if len(set(listIndex)) != len(listIndex):
+          dups = set(var+1 for var in listIndex if listIndex.count(var) > 1)
+          self.raiseAnError(IOError,'Each of the following dimensions are assigned to multiple latent variables in Samplers: ' + str(dups))
+        # update the index for latentVariables according to the 'dim' assigned for given var defined in Sampler
+        self.variablesTransformationDict[dist]['latentVariablesIndex'] = listIndex
 
   def getInitParams(self):
     """
