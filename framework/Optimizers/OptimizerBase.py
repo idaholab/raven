@@ -167,21 +167,10 @@ class OptimizerBase(AdaptiveSampler):
     for child in inp.subparts:
       if child.getName() == "limit":
         self.limit = child.value
-        #the manual once claimed that "A" defaults to iterationLimit/10, but it's actually this number/10.
       elif child.getName() == "type":
         self.optType = child.value
-        if self.optType not in ['min', 'max']:
-          self.raiseAnError(IOError, 'Unknown optimization type "{}". Available: "min" or "max"'.format(child.value))
       elif child.getName() == 'writeSteps':
-        whenToWrite = child.value.strip().lower()
-        if whenToWrite == 'every':
-          self.writeSolnExportOn = 'every'
-        elif whenToWrite == 'final':
-          self.writeSolnExportOn = 'final'
-        else:
-          self.raiseAnError(IOError,'Unexpected frequency for <writeSteps>: "{}". Expected "every" or "final".'.format(whenToWrite))
-      else:
-        self.raiseAnError(IOError,'Unknown tag: '+child.getName())
+        self.writeSolnExportOn = child.value.lower()
 
   def _additionalSetupAndChecks(self):
     """
