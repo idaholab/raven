@@ -1,0 +1,135 @@
+\section{Advanced Users: How and When to create a RAVEN Template}
+\label{sec:newTemplate}
+
+One of the great strengths of the RAVEN input is its flexibility; an enormous number of different types of workflows can be constructed with the components outlined in this manual. Sometimes, however, this flexibility can be a daunting roadblock to RAVEN users when first starting out, particularly when sometimes using RAVEN means copying an old input file, making a few small changes, and running the new case.
+\\
+
+As a tool to focus RAVEN on particular workflows, we introduce the RAVEN Templated Input Files. The intention of this system is to allow a single user to develop a template RAVEN input file along with a template interface, thereby simplifying inputs for any number of users that only need to make minor changes to the templated workflow in order to perform their analysis.
+\\
+
+Note that a RAVEN Template is a wrapper for creating RAVEN input files; it is not part of the RAVEN core code and is usually specific to a particular application.
+
+\subsection{When to use a RAVEN Template}
+By design, a RAVEN Template simplifies the user experience at the cost of flexibility. The amount of streamlining is adjustable and specific to each template. At one extreme, a Template takes no modifications at all and always produces the same workflow; at the other extreme the Template duplicates entirely the RAVEN input syntax. Neither of those options is desirable; Templates should find ground in-between.
+\\
+
+There are some times where using a RAVEN Template can be highly beneficial:
+\begin{itemize}
+  \item The workflow in question is highly complex, involving some advanced RAVEN usage to perform unorthodox calculations,
+  \item The workflow is mostly the same for each user, requiring only a small number of changes to use repeatedly.
+\end{itemize}
+
+There are some times when using a RAVEN Template is unlikely to be useful:
+\begin{itemize}
+  \item The workflow needs to be flexible enough to accommodate many unpredictable changes,
+  \item The workflow has few entries and can be changed manually quite easily.
+\end{itemize}
+
+\subsection{How to create a RAVEN Template}
+A RAVEN Template consists of three main pieces: a Templated Workflow, a Template Class, and a Template Interface.
+
+\subsubsection{Templated Workflows}
+A Templated Workflow begins with a traditional RAVEN input file that is run to do a particular analysis. It is highly recommended that this workflow is run with RAVEN and the inputs and outputs are well-understood before beginning templating. Keep a copy of the original workflow before modifying the Templated Workflow.
+\\
+
+Next, consider the parts of the workflow that are common to anyone who will want to perform this workflow, and which are specific to individual runs. For example, perhaps the \xmlNode{Sequence} and \xmlNode{Steps} are always the same, but the \xmlNode{Model} and sampled \xmlNode{variable} nodes may change for each analysis. Note those parts of the original workflow that need to be flexible, and remove them from the Templated Workflow. These will be filled in by the Template Class for this workflow when the Template Interface is run.
+
+\subsubsection{Template Class}
+The Template Class is a bridge between the user and the Templated Workflow. The Template Class knows every detail about the Template Workflow and knows how to modify it to get a working RAVEN input.  It does so through a set of standardized calls from the Template Interface.
+
+A Template Base Class is provided in the RAVEN repository to be inherited by your new Template Class. It is located in
+\begin{lstlisting}[language=bash]
+ raven/framework/InputTemplates/TemplateBaseClass.py
+\end{lstlisting}
+We recommend you locate your new Template Class near your project where the workflows are run, and not in the RAVEN repository.
+
+There are several required methods in the API of the Template Base Class that are important.
+\begin{lstlisting}[language=python]
+ loadTemplate(self, filename, path)
+\end{lstlisting}
+The \texttt{loadTemplate} method is how the Template Class knows how to load the Template Workflow. The default implementation in the Template Base Class is probably sufficient for most Template Classes, where given the filename and path to the file, the template is loaded into \texttt{self.\_template}. Of course, this behavior can be modified however suits a project by overloading this method in the Template Class.
+
+\begin{lstlisting}[language=python]
+ createWorkflow(self, **kwargs)
+\end{lstlisting}
+The \texttt{createWorkflow} method is the main method of the Template Class. The Template Interface calls this method when it wants to use a series of modifications to write a new RAVEN input file. Note the Template Base Class implementation of \texttt{createWorkflow} accepts arbitrary keyword arguments as \texttt{**kwargs}. This allows the inheriting Template Class to define its own required arguments necessary to write a new input file. These may be list, dictionaries, or any other Python object. All of the necessary information for the Template Class to convert a Template Workflow into a valid RAVEN input file should be passed through these arguments.
+\\
+
+The rest of \texttt{createWorkflow} is open to do any operations necessary to modify the XML in the Template Workflow until it becomes a valid RAVEN input that performs the desired analysis. RAVEN offers a plethora of handy XML tools in
+\texttt{raven/framework/xmlUtils}, which is imported in the base class and can be imported in your Template Class as well. In addition, the Python standard library has an excellent \texttt{xml.etree.ElementTree} package for manipulating XML.  Note that any \texttt{createWorkflow} should start by deepcopying the template XML, to assure a clean copy is available each time it is called. The \texttt{createWorkflow} ends by returning the modified XML element.
+
+\begin{lstlisting}[language=python]
+ writeWorkflow(self, template, destination, run=False)
+\end{lstlisting}
+Once \texttt{createWorkflow} is run, the resulting XML element can be supplied to the \texttt{writeWorkflow} method, which writes the XML to a file. The Template Base Class implementation will likely cover the needs of most Template Classes, and shouldn't require significant modification. Note that an optional argument \texttt{run} instructs the Template Class to attempt to run the workflow in RAVEN once it is written to file.
+\\
+
+Other optional methods also exist in the Template Base Class and may be of use to individual templates.
+\begin{lstlisting}[language=python]
+ addNamingTemplates(cls, templates)
+\end{lstlisting}
+Note that the Template Base Class has a class-level dictionary member called \texttt{namingTemplates}. The intention of this method is to store common ways to name items in the RAVEN input in a format method so that later they are always consistent. To extend this method, call \texttt{BaseClass.addNamingTemplates} at the class level in the inheriting Template Class.
+\\
+
+Finally, commonly-used shortcuts are included at the end of the Template Base Class to perform actions that are repetitively used in modifying RAVEN inputs. We recommend you add your own to your Template Class to help keep
+\texttt{createWorkflow} clean and easily maintainable.
+
+\subsubsection{Template Interface}
+The Template Interface is the code that actually gets called by your users once the Template Class and Template Workflow are complete. In its simplest form, the Template Interface is a Python script that creates the data needed for the \texttt{createWorkflow} method and calls the methods on the Template Class in order:
+\begin{enumerate}
+  \item \texttt{loadTemplate}
+  \item \texttt{createWorkflow}
+  \item \texttt{writeWorkflow}
+\end{enumerate}
+More complex Template Interfaces may read a simplified input file so that users can provide their changes in an easy manner. Whatever enables the use of the RAVEN workflow with minimal effort on the part of the analysts is ideal for the Template Interface.
+
+\subsection{Example}
+For testing and as an example of implementation, a simple Template was created to perform basic uncertainty quantification (UQ) analysis on external models. The example can be found in
+\begin{lstlisting}[language=bash]
+ raven/tests/framework/TemplateInputs
+\end{lstlisting}
+The following files are part of this template under the directory given above:
+\begin{itemize}
+  \item Template Workflow: \texttt{TemplateInputs/UQTemplate/uq\_template.xml}
+  \item Template Class: \texttt{TemplateInputs/UQTemplate/UQTemplate.py}
+  \item Template Interface: \texttt{TemplateInputs/uq\_maker.py}
+\end{itemize}
+We will consider the contents one at time.
+\subsubsection{Example Template Workflow}
+The file \texttt{uq\_maker.py} looks much like a typical RAVEN input file with some key pieces missing. The \xmlNode{Sequence} shows that the two steps are \xmlString{sample} and \xmlString{stats}, which are for sampling a model using Monte Carlo sampling and then performing some statistics on the results. Note however the missing contents in the \xmlNode{WorkingDir}, the empty nodes in the \xmlNode{DataObjects}, the lack of any \xmlNode{Distributions}, and the missing variable lists in the xmlNode{PostProcessor}. All the missing contents are filled in by the Template Class. For the results of the filled-in workflow, see in
+\begin{lstlisting}[language=bash]
+ raven/tests/framework/TemplateInputs/gold/UQTemplate/new_uq.xml
+\end{lstlisting}
+
+
+\subsubsection{Example Template Class}
+The file \texttt{UQTemplate.py} demonstrates basic inheritance of the Template Base Class and customization for the logic to fill in the Template Workflow.
+\\
+
+Note that the Template Class adds three formatted strings to the class-level name templates, one each for step names, distributions, and metric variables. These are called later in the code to assure the naming conventions are always the same.
+\\
+
+Since there was no need to overload the Template Base Class implementations of \texttt{loadWorfklow} and \texttt{writeWorkflows}, the only main method changed in the Template Class is the essential \texttt{createWorkflow} method. note that we've added several keywords to the argument list:
+\begin{lstlisting}[language=python]
+  def createWorkflow(self, model=None, variables=None, samples=None, case=None, **kwargs):
+\end{lstlisting}
+In order to correctly modify the Template Workflow, the Template Class needs to know about the model, the variables, how many samples to take, and the name of the case being run. It requires all of these to be provided through the Template Interface in order to write a new RAVEN input. In this case, the model and variables are dictionaries, while the samples are an integer and the case is a string.
+\\
+
+Note that the workflow creation calls the Template Base Class's implementation first in order to preserve inheritance. Since the deepcopy happens in the base class, we don't perform it again in the Template Class.
+\\
+
+Throughout the remainder of the workflow creation, a series of XML manipulations are performed based on the inputs provided from the Template Interface. For example, the module to load for the Model is changed, the working directory is set, and the input and output variables are propagated throughout the input file. Note also that several input construction shortcut methods have been added for this particular template to simplify maintenance of the template.
+
+
+\subsubsection{Example Template Interface}
+The file \texttt{uq\_maker.py} contains the basic logic needed to load the Template Class and generate new inputs. It follows the sequence of events outlined above, first instructing the Template Class to load the template, then constructing the data needed for manipulation, then instructing the Template Class to create the workflow, then to write and run the workflow.
+\\
+
+Note that we chose to provide the information to the Template Class mostly through dictionaries, where the essential pieces of information can be provided. In particular note that the variables provide only a mean and standard deviation; one reduction in flexibility is that we assume the variables are normally distributed, disallowing other distributions.
+\\
+
+The Template can be run with Python from the command line, and runs the RAVEN input after creating it:
+\begin{lstlisting}[language=bash]
+ python uq_maker.py
+\end{lstlisting}
