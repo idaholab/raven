@@ -28,7 +28,7 @@ import sys
 frameworkDir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..', '..', 'framework'))
 sys.path.append(frameworkDir)
 from utils import xmlUtils
-from input_templates.TemplateBaseClass import Template
+from InputTemplates.TemplateBaseClass import Template
 
 
 

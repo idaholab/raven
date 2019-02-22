@@ -62,7 +62,7 @@ class Template(object):
       @ In, None
       @ Out, None
     """
-    self._template = None
+    self._template = None     # XML element with the root Simulation node of a RAVEN input
     # assure that the template path gives the location of the inheriting template, not the base class
     self._templatePath = os.path.dirname(os.path.abspath(sys.modules[self.__class__.__module__].__file__))
 
@@ -102,6 +102,11 @@ class Template(object):
       self.runWorkflow(destination)
 
   def runWorkflow(self, destination):
+    """
+      Runs the workflow at the destination.
+      @ In, destination, str, path and filename of RAVEN input file
+      @ Out, None
+    """
     # where are we putting the file?
     destDir = os.path.dirname(os.path.abspath(destination))
     workflow = os.path.basename(destination)
