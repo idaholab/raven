@@ -112,8 +112,9 @@ class Template(object):
     workflow = os.path.basename(destination)
     cwd = os.getcwd()
     os.chdir(destDir)
-    command = '{rpath}/raven_framework {workflow}'.format(rpath=os.path.abspath(os.path.join(frameworkDir, '..')),
-                                                          workflow=workflow)
+    raven = os.path.join(os.path.abspath(os.path.join(frameworkDir, '..')), 'raven_framework')
+    command = '{command} {workflow}'.format(command=raven,
+                                            workflow=workflow)
     os.system(command)
     os.chdir(cwd)
 
