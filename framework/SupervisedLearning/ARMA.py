@@ -874,7 +874,7 @@ class ARMA(supervisedLearning):
         periodNode = xmlUtils.newNode('period', text='{:1.9e}'.format(period))
         fourierNode.append(periodNode)
         periodNode.append(xmlUtils.newNode('frequency', text='{:1.9e}'.format(1.0/period)))
-        for stat, value in fourier['regression']['coeffs'][period].items():
+        for stat, value in sorted(list(fourier['regression']['coeffs'][period].items()), key=lambda x:x[0]):
           periodNode.append(xmlUtils.newNode(stat, text='{:1.9e}'.format(value)))
     # - ARMA std
     for target, arma in self.armaResult.items():
