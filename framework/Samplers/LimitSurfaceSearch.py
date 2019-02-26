@@ -160,6 +160,8 @@ class LimitSurfaceSearch(AdaptiveSampler):
                                                 #  (% of range space)
     self.threshold      = 0                     # Post-rank function value
                                                 #  cutoff (%  of range space)
+    self.sizeGrid       = None                  # size of grid
+    self.sizeSubGrid    = None                  # size of subgrid
     self.printTag            = 'SAMPLER ADAPTIVE'
 
     self.acceptedScoringParam = ['distance','distancePersistence']
@@ -464,12 +466,15 @@ class LimitSurfaceSearch(AdaptiveSampler):
     coarseGridTestMatix, coarseGridOldTestMatix = testMatrixDict.pop(0), oldTestMatrixDict.pop(0)
     # compute the Linf norm with respect the location of the LS
     testError = np.sum(np.abs(np.subtract(coarseGridTestMatix,coarseGridOldTestMatix)))
+    if self.sizeGrid is None:
+      self.sizeGrid = float(coarseGridTestMatix.size)
     if len(testMatrixDict) > 0:
       # compute the error
-      sizeGrid = float(coarseGridTestMatix.size)
-      testError += np.sum(np.abs(np.subtract(testMatrixDict,oldTestMatrixDict)))/(sizeGrid+float(testMatrixDict.size))
+      if self.sizeSubGrid is None:
+        self.sizeSubGrid = float(np.asarray(testMatrixDict).size)
+      testError += np.sum(np.abs(np.subtract(testMatrixDict,oldTestMatrixDict)))/(self.sizeGrid+self.sizeSubGrid)
     else:
-      testError/= float(coarseGridTestMatix.size)
+      testError/= self.sizeGrid
 
     if (testError > self.errorTolerance) or newSizeLsFunctionValue == oldSizeLsFunctionValue:
       # we still have error
