@@ -1,28 +1,27 @@
 <?xml version="1.0" ?>
 <Simulation>
   <TestInfo>
-    <name>framework/CodeInterfaceTests.RELAP5interfaceMultDeckTestChoosingDeckNoExecutable</name>
+    <name>framework/CodeInterfaceTests/RELAP5.RELAP5interfaceTestAliasAliasNoExecutable</name>
     <author>alfoa</author>
-    <created>2016-07-07</created>
-    <classesTested>Models.Code.Relap5</classesTested>
+    <created>2016-11-28</created>
+    <classesTested>Models.Code.RELAP5</classesTested>
     <description>
-       An example of using the RELAP5 code interface. This test is aimed to test the mechanics of the interface (no executable), when
-       a multi deck input is used (and needs to be perturbed).
+       An example of using the RELAP5 code interface. This test is aimed to test the mechanics of the interface (no executable),
+       when the RAVEN alias system is used.
     </description>
     <revisions>
-      <revision author="talbpaul" date="2016-09-15">Test updates</revision>
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
     </revisions>
   </TestInfo>
   <RunInfo>
-    <WorkingDir>RELAP5interfaceTestMultiDeckChoosingDeck</WorkingDir>
+    <WorkingDir>RELAP5interfaceTestAlias</WorkingDir>
     <Sequence>testDummyStep</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
 
   <Files>
-    <Input name="snc01.i" type="">snc01.i</Input>
-    <Input name="tpfh2o" type="">tpfh2o</Input>
+    <Input name="snc01.i" type="" >snc01.i</Input>
+    <Input name="tpfh2o"  type="" >tpfh2o</Input>
   </Files>
 
   <Models>
@@ -31,7 +30,10 @@
         <!--  /path/to/relap/executable/relap5.x -->
         <!-- here we should put the executable. Since we want to test the interface only, it is going to be empty -->
       </executable>
-      <outputDeckNumber>2</outputDeckNumber>
+      <alias variable="heat_capacity_155_variable"    type="input">20100155:2</alias>
+      <alias variable="heat_capacity_154_variable"    type="input">20100154:2</alias>
+      <alias variable="massFlowRateAliasOutput" type="output">mflowj_505000000</alias>
+      <alias variable="pressureAliasOutput"     type="output">p_280010000</alias>
     </Code>
   </Models>
 
@@ -60,6 +62,12 @@
       <upperBound>28</upperBound>
       <lowerBound>37</lowerBound>
     </Normal>
+    <Normal name="testMultiLine">
+      <mean>0.5</mean>
+      <sigma>0.1</sigma>
+      <upperBound>0</upperBound>
+      <lowerBound>1</lowerBound>
+    </Normal>
   </Distributions>
 
   <Samplers>
@@ -67,29 +75,20 @@
       <samplerInit>
         <limit>5</limit>
       </samplerInit>
-      <variable name="1|20100154:2">
+      <variable name="heat_capacity_154_variable">
         <distribution>heat_capacity_154</distribution>
       </variable>
-      <variable name="1|20100155:2">
+      <variable name="heat_capacity_155_variable">
         <distribution>heat_capacity_155</distribution>
       </variable>
-      <variable name="1|20100156:2">
+      <variable name="20100156:2">
         <distribution>heat_capacity_156</distribution>
       </variable>
-      <variable name="1|20100157:2">
+      <variable name="20100157:2">
         <distribution>heat_capacity_157</distribution>
       </variable>
-      <variable name="2|20100154:2">
-        <distribution>heat_capacity_154</distribution>
-      </variable>
-      <variable name="2|20100155:2">
-        <distribution>heat_capacity_155</distribution>
-      </variable>
-      <variable name="2|20100156:2">
-        <distribution>heat_capacity_156</distribution>
-      </variable>
-      <variable name="2|20100157:2">
-        <distribution>heat_capacity_157</distribution>
+      <variable name="13550801:6">
+        <distribution>testMultiLine</distribution>
       </variable>
     </MonteCarlo>
   </Samplers>

@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework/CodeInterfaceTests.INSSrelap5JapanInterfaceSampling</name>
+    <name>framework/CodeInterfaceTests/RELAP5.INSSrelap5JapanInterfaceSampling</name>
     <author>alfoa</author>
     <created>2016-07-21</created>
     <classesTested>Models.Code.Relap5inssJp</classesTested>
