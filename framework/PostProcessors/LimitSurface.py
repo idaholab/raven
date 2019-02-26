@@ -411,7 +411,6 @@ class LimitSurface(PostProcessor):
       # check which one of the preselected points is really on the limit surface
       nNegPoints, nPosPoints                       =  0, 0
       listSurfPointNegative, listSurfPointPositive = [], []
-
       if self.lsSide in ["negative", "both"]:
         # it returns the list of points belonging to the limit state surface and resulting in a negative response by the ROM
         listSurfPointNegative = self.__localLimitStateSearch__(toBeTested, -1, nodeName)
