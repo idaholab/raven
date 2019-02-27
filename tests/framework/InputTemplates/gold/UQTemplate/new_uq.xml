@@ -58,7 +58,7 @@
   </Samplers>
 
   <Models>
-    <ExternalModel ModuleToLoad="../../PostProcessors/BasicStatistics/simpleMirrowModel" name="model" subType="">
+    <ExternalModel ModuleToLoad="../../../PostProcessors/BasicStatistics/simpleMirrowModel" name="model" subType="">
       <variables>x, y, x1</variables>
     </ExternalModel>
     <PostProcessor name="stats" subType="BasicStatistics">
