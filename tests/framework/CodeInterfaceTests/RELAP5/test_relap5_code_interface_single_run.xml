@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation>
   <TestInfo>
-    <name>framework/CodeInterfaceTests.RELAP5interfaceTestSingleRunNoExecutable</name>
+    <name>framework/CodeInterfaceTests/RELAP5.RELAP5interfaceTestSingleRunNoExecutable</name>
     <author>alfoa</author>
     <created>2017-04-01</created>
     <classesTested>Models.Code.RELAP5</classesTested>

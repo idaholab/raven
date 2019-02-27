@@ -1,7 +1,21 @@
 <?xml version="1.0" ?>
 <Simulation>
+  <TestInfo>
+    <name>framework/CodeInterfaceTests/RELAP5.RELAP5interfaceMultDeckTestNoExecutable</name>
+    <author>alfoa</author>
+    <created>2016-05-03</created>
+    <classesTested>Models.Code.Relap5</classesTested>
+    <description>
+       An example of using the Relap5 code interface. This test is aimed to test the mechanics of the interface (no executable) 
+       when a multi-deck type of input needs to be perturbed.
+    </description>
+    <revisions>
+      <revision author="talbpaul" date="2016-09-15">Test updates</revision>
+      <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+    </revisions>
+  </TestInfo>
   <RunInfo>
-    <WorkingDir>RELAP5interfaceTestMultipleCards</WorkingDir>
+    <WorkingDir>RELAP5interfaceTestMultiDeck</WorkingDir>
     <Sequence>testDummyStep</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
@@ -52,16 +66,28 @@
       <samplerInit>
         <limit>5</limit>
       </samplerInit>
-      <variable name="20100154:2">
+      <variable name="1|20100154:2">
         <distribution>heat_capacity_154</distribution>
       </variable>
-      <variable name="20100155:2">
+      <variable name="1|20100155:2">
         <distribution>heat_capacity_155</distribution>
       </variable>
-      <variable name="20100156:2">
+      <variable name="1|20100156:2">
         <distribution>heat_capacity_156</distribution>
       </variable>
-      <variable name="20100157:1,20100157:2">
+      <variable name="1|20100157:2">
+        <distribution>heat_capacity_157</distribution>
+      </variable>
+      <variable name="2|20100154:2">
+        <distribution>heat_capacity_154</distribution>
+      </variable>
+      <variable name="2|20100155:2">
+        <distribution>heat_capacity_155</distribution>
+      </variable>
+      <variable name="2|20100156:2">
+        <distribution>heat_capacity_156</distribution>
+      </variable>
+      <variable name="2|20100157:2">
         <distribution>heat_capacity_157</distribution>
       </variable>
     </MonteCarlo>
