@@ -112,7 +112,7 @@ class Template(object):
     workflow = os.path.basename(destination)
     cwd = os.getcwd()
     os.chdir(destDir)
-    raven = os.path.join(os.path.abspath(os.path.join(frameworkDir, '..')), 'raven_framework')
+    raven = self._getRavenLocation(which='exec')
     command = '{command} {workflow}'.format(command=raven,
                                             workflow=workflow)
     os.system(command)
@@ -167,4 +167,20 @@ class Template(object):
       entries.append(new)
     node.text = ', '.join(entries)
 
-
+  ################################
+  # OTHER UTILITIES              #
+  ################################
+  def _getRavenLocation(self, which='framework'):
+    """
+      Returns the (string) path to RAVEN
+      @ In, framework, bool, optional, if True then give location of "raven/framework" else "raven/"
+      @ Out, path, str, path to raven
+    """
+    assert which in ['framework', 'exec', 'head']
+    if which == 'framework':
+      path = frameworkDir
+    elif which == 'exec':
+      path = os.path.abspath(os.path.join(frameworkDir, '..', 'raven_framework'))
+    else:
+      path = os.path.abspath(os.path.join(frameworkDir, '..'))
+    return path

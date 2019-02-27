@@ -18,6 +18,7 @@ Created on February 22 2019
 Template interface for the test UQ template input.
 """
 import os
+import configparser
 from collections import OrderedDict
 from UQTemplate.UQTemplate import UQTemplate
 
@@ -26,19 +27,26 @@ temp = UQTemplate()
 temp.loadTemplate('uq_template.xml', os.path.dirname(__file__))
 
 # information needed by UQTemplate to make run file
-model = {'file': '../../PostProcessors/BasicStatistics/simpleMirrowModel',
-         'output': ['x1'],
-        }
-variables = OrderedDict()
-variables['x']= {'mean':100,
-                  'std':50}
-variables['y'] = {'mean':100,
-                   'std':50}
+config = configparser.ConfigParser()
+config.read('UQTemplate/uq_template_input.i')
 
-case = 'sample_mirrow'
-numSamples = 100
-workflow = 'UQTemplate/new_uq.xml'
+
+model = {'file': config.get('model', 'file'),
+         'output': list(x.strip() for x in config.get('model', 'output').split(','))
+        }
+
+variables = OrderedDict()
+for var in config['variables'].keys():
+  mean, std = list(float(x) for x in config.get('variables', 'x').split(','))
+  variables[var] = {'mean': mean,
+                    'std': std}
+
+case = config.get('settings', 'case')
+numSamples = config.getint('settings', 'samples')
+workflow = os.path.join('UQTemplate', config.get('settings', 'workflow'))
 
 template = temp.createWorkflow(model=model, variables=variables, samples=numSamples, case=case)
 temp.writeWorkflow(template, workflow, run=True)
-# cleanup?
+
+# finish up
+print('\n\nSuccessfully performed uncertainty quantification. See results in UQTemplate/{}/stats.csv\n'.format(case))
