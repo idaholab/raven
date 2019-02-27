@@ -41,6 +41,8 @@ class CustomBuild(build):
 include_dirs=[RAVEN_INCLUDE_DIR,BOOST_INCLUDE_DIR]
 swig_opts=['-c++','-I'+RAVEN_INCLUDE_DIR, '-I'+BOOST_INCLUDE_DIR]
 extra_compile_args=['-std=c++11']
+#extra_compile_args=['-std=c++11','-std=libc++']
+#extra_compile_args=['-std=c++11','-nostdinc++','-nodefaultlibs','-lc++','-lc++abi']
 setup(name='amsc',
       version='0.0',
       description='A library for computing the Approximate Morse-Smale Complex (AMSC)',
