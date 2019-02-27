@@ -141,8 +141,7 @@ class hdf5Database(MessageHandler.MessageUser):
       self.firstRootGroup = False
       # The root name is / . it can be changed if addGroupInit is called
       self.parentGroupName = b'/'
-      self.h5FileW.create_dataset("allGroupPaths", shape=(1,), dtype=h5.special_dtype(vlen=str), data=self.allGroupPaths, maxshape=(None,))
-      self.h5FileW.create_dataset("allGroupEnds", shape=(1,), dtype=bool, data=self.allGroupEnds, maxshape=(None,))
+      self.__createFileLevelInfoDatasets()
 
   def __len__(self):
     """
@@ -151,6 +150,16 @@ class hdf5Database(MessageHandler.MessageUser):
       @ Out, __len__, length
     """
     return len(self.allGroupPaths)
+
+  def __createFileLevelInfoDatasets(self):
+    """
+      Method to create datasets that are at the File Level and contains general info
+      to recontruct HDF5 in loading mode
+      @ In, None
+      @ Out, None
+    """
+    self.h5FileW.create_dataset("allGroupPaths", shape=(len(self.allGroupPaths),), dtype=h5.special_dtype(vlen=str), data=self.allGroupPaths, maxshape=(None,))
+    self.h5FileW.create_dataset("allGroupEnds", shape=(len(self.allGroupEnds),), dtype=bool, data=self.allGroupEnds, maxshape=(None,))
 
   def __createObjFromFile(self):
     """
@@ -169,8 +178,7 @@ class hdf5Database(MessageHandler.MessageUser):
       self.allGroupEnds = self.h5FileW["allGroupEnds"][...]
     else:
       self.h5FileW.visititems(self.__isGroup)
-      self.h5FileW.create_dataset("allGroupPaths", shape=(len(self.allGroupPaths),), dtype=h5.special_dtype(vlen=str), data=self.allGroupPaths, maxshape=(None,))
-      self.h5FileW.create_dataset("allGroupEnds", shape=(len(self.allGroupEnds),), dtype=bool, data=self.allGroupEnds, maxshape=(None,))
+      self.__createFileLevelInfoDatasets()
     self.raiseAMessage('TOTAL NUMBER OF GROUPS = ' + str(len(self.allGroupPaths)))
 
   def __isGroup(self,name,obj):
