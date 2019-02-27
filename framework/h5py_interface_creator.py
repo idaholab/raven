@@ -113,7 +113,7 @@ class hdf5Database(MessageHandler.MessageUser):
     self.fileOpen       = False
     # List of the paths of all the groups that are stored in the database
     self.allGroupPaths = []
-    # Dictonary of boolean variables, true if the corresponding group in self.allGroupPaths
+    # List of boolean variables, true if the corresponding group in self.allGroupPaths
     # is an ending group (no sub-groups appended), false otherwise
     self.allGroupEnds = []
     # We can create a base empty database or we open an existing one
@@ -125,7 +125,7 @@ class hdf5Database(MessageHandler.MessageUser):
       # Open file
       self.h5FileW = self.openDatabaseW(self.filenameAndPath,'r+')
       # Call the private method __createObjFromFile, that constructs the list of the paths "self.allGroupPaths"
-      # and the dictionary "self.allGroupEnds" based on the database that already exists
+      # and the list "self.allGroupEnds" based on the database that already exists
       self.parentGroupName = b'/'
       self.__createObjFromFile()
       # "self.firstRootGroup", true if the root group is present (or added), false otherwise
