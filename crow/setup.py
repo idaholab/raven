@@ -22,7 +22,6 @@ if eigen_flags.startswith("-I"):
   include_dirs.append(eigen_flags[2:].rstrip())
 swig_opts=['-c++','-Iinclude/distributions','-Iinclude/utilities']
 extra_compile_args=['-std=c++11']
-# extra_compile_args=['-std=c++14']#, '-std=libc++']
 ext = 'py2'
 setup(name='crow',
       version='0.8',
