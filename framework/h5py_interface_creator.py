@@ -43,6 +43,8 @@ import MessageHandler
 import Files
 #Internal Modules End--------------------------------------------------------------------------------
 
+variableLengthStr = h5.special_dtype(vlen=str)
+
 def _dumps(val):
   """
     Method to convert an arbitary value to something h5py can store
@@ -115,7 +117,7 @@ class hdf5Database(MessageHandler.MessageUser):
     self.allGroupPaths = []
     # Dictonary of boolean variables, true if the corresponding group in self.allGroupPaths
     # is an ending group (no sub-groups appended), false otherwise
-    self.allGroupEnds = {}
+    self.allGroupEnds = []
     # We can create a base empty database or we open an existing one
     if self.fileExist:
       # self.h5FileW is the HDF5 object. Open the database in "update" mode
@@ -134,13 +136,15 @@ class hdf5Database(MessageHandler.MessageUser):
       # self.h5FileW is the HDF5 object. Open the database in "write only" mode
       self.h5FileW = self.openDatabaseW(self.filenameAndPath,'w')
       # Add the root as first group
-      self.allGroupPaths.append("/")
+      self.allGroupPaths.append(b"/")
       # The root group is not an end group
-      self.allGroupEnds["/"] = False
+      self.allGroupEnds.append(False)
       # The first root group has not been added yet
       self.firstRootGroup = False
       # The root name is / . it can be changed if addGroupInit is called
       self.parentGroupName = b'/'
+      self.h5FileW.create_dataset("allGroupPaths", shape=(1,), dtype=variableLengthStr, data=self.allGroupPaths, maxshape=(None,))
+      self.h5FileW.create_dataset("allGroupEnds", shape=(1,), dtype=bool, data=self.allGroupEnds, maxshape=(None,))
 
   def __len__(self):
     """
@@ -159,14 +163,16 @@ class hdf5Database(MessageHandler.MessageUser):
       @ Out, None
     """
     self.allGroupPaths = []
-    self.allGroupEnds  = {}
+    self.allGroupEnds  = []
     if not self.fileOpen:
       self.h5FileW = self.openDatabaseW(self.filenameAndPath,'a')
-    if 'allGroupPaths' in self.h5FileW.attrs and 'allGroupEnds' in self.h5FileW.attrs:
-      self.allGroupPaths = _loads(self.h5FileW.attrs['allGroupPaths'])
-      self.allGroupEnds  = _loads(self.h5FileW.attrs['allGroupEnds'])
+    if 'allGroupPaths' in self.h5FileW and 'allGroupEnds' in self.h5FileW:
+      self.allGroupPaths = self.h5FileW["allGroupPaths"][...]
+      self.allGroupEnds = self.h5FileW["allGroupEnds"][...]
     else:
       self.h5FileW.visititems(self.__isGroup)
+      self.h5FileW.create_dataset("allGroupPaths", shape=(len(self.allGroupPaths),), dtype=variableLengthStr, data=self.allGroupPaths, maxshape=(None,))
+      self.h5FileW.create_dataset("allGroupEnds", shape=(len(self.allGroupEnds),), dtype=bool, data=self.allGroupEnds, maxshape=(None,))
     self.raiseAMessage('TOTAL NUMBER OF GROUPS = ' + str(len(self.allGroupPaths)))
 
   def __isGroup(self,name,obj):
@@ -178,11 +184,11 @@ class hdf5Database(MessageHandler.MessageUser):
       @ Out, None
     """
     if isinstance(obj,h5.Group):
-      self.allGroupPaths.append(name)
+      self.allGroupPaths.append(utils.toBytes(name))
       try:
-        self.allGroupEnds[name]  = obj.attrs["endGroup"]
+        self.allGroupEnds.append(obj.attrs["endGroup"])
       except KeyError:
-        self.allGroupEnds[name]  = True
+        self.allGroupEnds.append(True)
       if "rootname" in obj.attrs:
         self.parentGroupName = name
         self.raiseAWarning('not found attribute endGroup in group ' + name + '.Set True.')
@@ -239,8 +245,11 @@ class hdf5Database(MessageHandler.MessageUser):
       self.__addGroupRootLevel(groupName,rlz)
       self.firstRootGroup = True
       self.type = 'MC'
-    self.h5FileW.attrs['allGroupPaths'] = _dumps(self.allGroupPaths)
-    self.h5FileW.attrs['allGroupEnds'] = _dumps(self.allGroupEnds)
+
+    self.h5FileW["allGroupPaths"].resize((len(self.allGroupPaths),))
+    self.h5FileW["allGroupEnds"].resize( (len(self.allGroupEnds),) )
+    self.h5FileW["allGroupPaths"][...] = self.allGroupPaths
+    self.h5FileW["allGroupEnds"][...] = self.allGroupEnds
     self.h5FileW.flush()
 
 
@@ -283,9 +292,11 @@ class hdf5Database(MessageHandler.MessageUser):
     grp.attrs['endGroup'  ] = False
     grp.attrs[b'groupName'] = groupNameInit
     self.allGroupPaths.append("/" + groupNameInit)
-    self.allGroupEnds["/" + groupNameInit] = False
-    self.h5FileW.attrs['allGroupPaths'] = _dumps(self.allGroupPaths)
-    self.h5FileW.attrs['allGroupEnds'] = _dumps(self.allGroupEnds)
+    self.allGroupEnds.append(False)
+    self.h5FileW["allGroupPaths"].resize((len(self.allGroupPaths),))
+    self.h5FileW["allGroupEnds"].resize( (len(self.allGroupEnds),) )
+    self.h5FileW["allGroupPaths"][...] = self.allGroupPaths
+    self.h5FileW["allGroupEnds"][...] = self.allGroupEnds
     self.h5FileW.flush()
 
   def __checkTypeHDF5(self, value, neg):
@@ -447,11 +458,11 @@ class hdf5Database(MessageHandler.MessageUser):
       @ Out, None
     """
     if parentName != "/":
-      self.allGroupPaths.append(parentName + "/" + groupName)
-      self.allGroupEnds[parentName + "/" + groupName] = True
+      self.allGroupPaths.append(utils.toBytes(parentName + "/" + groupName))
+      self.allGroupEnds.append(True)
     else:
-      self.allGroupPaths.append("/" + groupName)
-      self.allGroupEnds["/" + groupName] = True
+      self.allGroupPaths.append(utils.toBytes("/" + groupName))
+      self.allGroupEnds.append(True)
 
   def retrieveAllHistoryPaths(self,rootName=None):
     """
@@ -490,9 +501,9 @@ class hdf5Database(MessageHandler.MessageUser):
     if not self.fileOpen:
       self.__createObjFromFile() # Create the "self.allGroupPaths" list from the existing database
     if not rootName:
-      workingList = [k.split('/')[-1] for k, v in self.allGroupEnds.items() if v ]
+      workingList = [k.split('/')[-1] for k, v in zip(self.allGroupPaths,self.allGroupEnds) if v ]
     else:
-      workingList = [k.split('/')[-1] for k, v in self.allGroupEnds.items() if v and k.endswith(rname)]
+      workingList = [k.split('/')[-1] for k, v in zip(self.allGroupPaths,self.allGroupEnds) if v and k.endswith(rname)]
 
     return workingList
 
