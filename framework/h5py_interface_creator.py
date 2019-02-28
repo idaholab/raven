@@ -275,7 +275,7 @@ class hdf5Database(MessageHandler.MessageUser):
     groupNameInit = groupName+"_"+datetime.now().strftime("%m-%d-%Y-%H-%S")
     for index in range(len(self.allGroupPaths)):
       comparisonName = self.allGroupPaths[index]
-      splittedPath=comparisonName.split('/')
+      splittedPath=comparisonName.split(b'/')
       if len(splittedPath) > 0:
         if groupNameInit in splittedPath[0]:
           alphabetCounter, movingCounter = 0, 0
@@ -300,7 +300,7 @@ class hdf5Database(MessageHandler.MessageUser):
     grp.attrs['rootname'  ] = True
     grp.attrs['endGroup'  ] = False
     grp.attrs[b'groupName'] = groupNameInit
-    self.allGroupPaths.append("/" + groupNameInit)
+    self.allGroupPaths.append(b"/" + groupNameInit)
     self.allGroupEnds.append(False)
     self.h5FileW["allGroupPaths"].resize((len(self.allGroupPaths),))
     self.h5FileW["allGroupEnds"].resize( (len(self.allGroupEnds),) )
@@ -467,10 +467,10 @@ class hdf5Database(MessageHandler.MessageUser):
       @ Out, None
     """
     if parentName != "/":
-      self.allGroupPaths.append(utils.toBytes(parentName + "/" + groupName))
+      self.allGroupPaths.append(utils.toBytes(parentName + b"/" + groupName))
       self.allGroupEnds.append(True)
     else:
-      self.allGroupPaths.append(utils.toBytes("/" + groupName))
+      self.allGroupPaths.append(utils.toBytes(b"/" + groupName))
       self.allGroupEnds.append(True)
 
   def retrieveAllHistoryPaths(self,rootName=None):
@@ -510,9 +510,9 @@ class hdf5Database(MessageHandler.MessageUser):
     if not self.fileOpen:
       self.__createObjFromFile() # Create the "self.allGroupPaths" list from the existing database
     if not rootName:
-      workingList = [k.split('/')[-1] for k, v in zip(self.allGroupPaths,self.allGroupEnds) if v ]
+      workingList = [k.split(b'/')[-1] for k, v in zip(self.allGroupPaths,self.allGroupEnds) if v ]
     else:
-      workingList = [k.split('/')[-1] for k, v in zip(self.allGroupPaths,self.allGroupEnds) if v and k.endswith(rname)]
+      workingList = [k.split(b'/')[-1] for k, v in zip(self.allGroupPaths,self.allGroupEnds) if v and k.endswith(rname)]
 
     return workingList
 
