@@ -40,7 +40,7 @@ class Template(object):
     and create a new set of input files.
   """
   # generic class members
-  namingTemplates = {} # TODO will this work? Can I call addNamingTemplates in inheritors?
+  namingTemplates = {} # Updated in inheriting classes by calling cls.addNamingTemplates
 
 
   @classmethod
@@ -140,6 +140,7 @@ class Template(object):
   def _updateCommaSeperatedList(self, node, new, position=None, before=None, after=None):
     """
       Statefully adds an entry to the given node's comma-seperated text
+      If the node's text is empty, will insert "new" as the sole text (no commas).
       @ In, node, xml.etree.ElementTree.Element, node whose text is a comma-seperated string list
       @ In, new, str, name of entry to add
       @ In, position, int, optional, index where new should be inserted in sequence
