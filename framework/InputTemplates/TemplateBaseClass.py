@@ -28,7 +28,7 @@ import sys
 import copy
 # external libraries
 # RAVEN libraries
-frameworkDir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+frameworkDir = os.path.normpath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.append(frameworkDir)
 from utils import xmlUtils
 
@@ -64,7 +64,7 @@ class Template(object):
     """
     self._template = None     # XML element with the root Simulation node of a RAVEN input
     # assure that the template path gives the location of the inheriting template, not the base class
-    self._templatePath = os.path.dirname(os.path.abspath(sys.modules[self.__class__.__module__].__file__))
+    self._templatePath = os.path.dirname(os.path.normpath(sys.modules[self.__class__.__module__].__file__))
 
   def createWorkflow(self, **kwargs):
     """
@@ -85,7 +85,7 @@ class Template(object):
     """
     # TODO what should "path" be relative to? I vote the Template file.
     relPath = os.path.join(self._templatePath, path)
-    templateFile = os.path.join(os.path.abspath(relPath), filename)
+    templateFile = os.path.join(os.path.normpath(relPath), filename)
     self._template, _ = xmlUtils.loadToTree(templateFile)
 
   def writeWorkflow(self, template, destination, run=False):
@@ -108,7 +108,7 @@ class Template(object):
       @ Out, None
     """
     # where are we putting the file?
-    destDir = os.path.dirname(os.path.abspath(destination))
+    destDir = os.path.dirname(os.path.normpath(destination))
     workflow = os.path.basename(destination)
     cwd = os.getcwd()
     os.chdir(destDir)
@@ -173,6 +173,7 @@ class Template(object):
   def _getRavenLocation(self, which='framework'):
     """
       Returns the (string) path to RAVEN
+      NOTE this is problematic in mingw windows, since using abspath includes e.g. C:\msys64\home\etc.
       @ In, framework, bool, optional, if True then give location of "raven/framework" else "raven/"
       @ Out, path, str, path to raven
     """
@@ -180,7 +181,7 @@ class Template(object):
     if which == 'framework':
       path = frameworkDir
     elif which == 'exec':
-      path = os.path.abspath(os.path.join(frameworkDir, '..', 'raven_framework'))
+      path = os.path.normpath(os.path.join(frameworkDir, '..', 'raven_framework'))
     else:
-      path = os.path.abspath(os.path.join(frameworkDir, '..'))
+      path = os.path.normpath(os.path.join(frameworkDir, '..'))
     return path
