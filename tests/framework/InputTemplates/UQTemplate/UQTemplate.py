@@ -25,7 +25,8 @@ import os
 import sys
 # external libraries
 # RAVEN libraries
-frameworkDir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..', '..', 'framework'))
+## caution: using abspath here does not do desirable things on Windows Mingw.
+frameworkDir = os.path.normpath(os.path.join(os.path.dirname(__file__), '..', '..', '..', '..', 'framework'))
 sys.path.append(frameworkDir)
 from utils import xmlUtils
 from InputTemplates.TemplateBaseClass import Template
