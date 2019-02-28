@@ -151,8 +151,7 @@ Throughout the remainder of the workflow creation, a series of XML manipulations
 The file \texttt{uq\_maker.py} contains the basic logic needed to read a user input file, load the Template Class, and generate new inputs. It follows the sequence of events outlined above, first instructing the Template Class to load the template, then reading in the user input, then instructing the Template Class to create the workflow, then to write and run the workflow.
 \\
 
-Beause the input needs for this Template are simple, we use Python's standard library \texttt{configparser} to read in the user input file, \texttt{uq_template_input.i}. This simple input structure uses sections (model, variables, and settings) with keyword and value pairs in each section. In order to change the RAVEN workflow created, the user only needs to make changes to the existing input file and run the interface.
-
+Beause the input needs for this Template are simple, we use Python's standard library \texttt{configparser} to read in the user input file, \texttt{uq\_template\_input.i}. This simple input structure uses sections (model, variables, and settings) with keyword and value pairs in each section. In order to change the RAVEN workflow created, the user only needs to make changes to the existing input file and run the interface.
 \\
 
 Note that we chose to provide the information to the Template Class mostly through dictionaries, where the essential pieces of information can be provided. In particular note that the variables provide only a mean and standard deviation; one reduction in flexibility is that we assume the variables are normally distributed, disallowing other distributions.
