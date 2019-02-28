@@ -171,11 +171,14 @@ class hdf5Database(MessageHandler.MessageUser):
     """
     self.allGroupPaths = []
     self.allGroupEnds  = []
+    if len(self.h5FileW) == 0:
+      # the database is empty. An error must be raised
+      self.raiseAnError(IOError, 'The database '+str(self.name) + ' is empty but "readMode" has been set to "read"!')
     if not self.fileOpen:
       self.h5FileW = self.openDatabaseW(self.filenameAndPath,'a')
     if 'allGroupPaths' in self.h5FileW and 'allGroupEnds' in self.h5FileW:
-      self.allGroupPaths = self.h5FileW["allGroupPaths"][...]
-      self.allGroupEnds = self.h5FileW["allGroupEnds"][...]
+      self.allGroupPaths = self.h5FileW["allGroupPaths"][...].tolist()
+      self.allGroupEnds = self.h5FileW["allGroupEnds"][...].tolist()
     else:
       self.h5FileW.visititems(self.__isGroup)
       self.__createFileLevelInfoDatasets()
