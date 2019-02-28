@@ -6,7 +6,7 @@
     <batchSize>1</batchSize>
   </RunInfo>
   <TestInfo>
-    <name>framework/Samplers/Restart/StochPoly</name>
+    <name>framework/Samplers/Restart.StochPoly</name>
     <author>talbpaul</author>
     <created>2015-07-07</created>
     <classesTested>Samplers.SparseGridCollocation</classesTested>

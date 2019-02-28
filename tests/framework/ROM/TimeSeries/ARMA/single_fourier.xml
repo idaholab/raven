@@ -8,6 +8,9 @@
     <description>
       Tests that an ARMA can be trained with only a single Fourier base component
     </description>
+    <revisions>
+      <revision author="talbpaul" date="2018-09-13">changed Pmax and Pmin to P (same for Q)</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
@@ -44,13 +47,10 @@
       <Target>Speed,Time</Target>
       <Features>scaling</Features>
       <pivotParameter>Time</pivotParameter>
-      <Pmax>2</Pmax>
-      <Pmin>2</Pmin>
-      <Qmax>1</Qmax>
-      <Qmin>1</Qmin>
       <outTruncation domain="positive">Speed,Time</outTruncation>
-      <Fourier>86400</Fourier>
-      <FourierOrder>2</FourierOrder>
+      <Fourier>86400.000000, 43200.000000</Fourier>
+      <P>2</P>
+      <Q>1</Q>
     </ROM>
   </Models>
 

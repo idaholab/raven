@@ -420,6 +420,8 @@ class GridEntity(GridBase):
       self.gridContainer['transformationMethods'] = initDict["transformationMethods"]
     self.nVar                            = len(self.gridInitDict["dimensionNames"]) if "dimensionNames" in self.gridInitDict.keys() else len(initDict["dimensionNames"])
     self.gridContainer['dimensionNames'] = self.gridInitDict["dimensionNames"] if "dimensionNames" in self.gridInitDict.keys() else initDict["dimensionNames"]
+    #expand iterator with list()
+    self.gridContainer['dimensionNames'] = list(self.gridContainer['dimensionNames'])
     upperkeys                            = list(self.gridInitDict["upperBounds"].keys() if "upperBounds" in self.gridInitDict.keys() else initDict["upperBounds"  ].keys())
     lowerkeys                            = list(self.gridInitDict["lowerBounds"].keys() if "lowerBounds" in self.gridInitDict.keys() else initDict["lowerBounds"  ].keys())
     self.gridContainer['dimensionNames'].sort()

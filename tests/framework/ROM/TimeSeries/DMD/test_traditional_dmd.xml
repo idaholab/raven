@@ -1,6 +1,5 @@
-<?xml version="1.0" ?>
+<?xml version="1.0"?>
 <Simulation verbosity="debug">
-    
   <TestInfo>
     <name>framework/ROM/TimeSeries/DMD.traditionalDMD</name>
     <author>alfoa</author>
@@ -8,123 +7,136 @@
     <classesTested>SupervisedLearning.DynamicModeDecomposition</classesTested>
     <description>
        This test is aimed to check the mechanics of the DMD ROM using the standard SVD-based
-       algorithm
+       algorithm.
+       In addition, it tests the capability for the user to export the ROM info in an XML output
+       file (requirement).
     </description>
     <revisions>
       <revision author="alfoa" date="2018-04-25">Adding this test description.</revision>
+      <revision author="alfoa" date="2018-10-01">This test is a requirement test now.</revision>
+      <revision author="talbpaul" date="2019-01-09">moving from ROM-files to ROM-dataobjects</revision>
     </revisions>
+    <requirements>R-F-5</requirements>
   </TestInfo>
-  
-    <RunInfo>
-        <WorkingDir>TraditionalDMD</WorkingDir>
-	    <Sequence>
+
+  <RunInfo>
+    <WorkingDir>TraditionalDMD</WorkingDir>
+    <Sequence>
              readIn,
              DMDTrain,
              pickleRom,
+             stats,
              runDMD,
-             writeOut</Sequence>
-        <batchSize>1</batchSize>
-    </RunInfo>
-    <Files>
-        <!--  we load the data from the PolyExponential database -->
-        <Input name="rawDataFile">../../PolyExponential/data/decay_heat.csv</Input>
-        <Input name="ROMpk" type="">ROMpk</Input>
-    </Files>
-    <Distributions>
-		<Uniform name="enrichmentDist">
-			<lowerBound>3.4</lowerBound>
-			<upperBound>9.9</upperBound>
-		</Uniform>
-        <Uniform name="burnupDist">
-            <lowerBound>16.501</lowerBound>
-            <upperBound>26.402</upperBound>
-        </Uniform>
-	</Distributions>
+             writeOut
+    </Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
 
-	<Samplers>
-		<MonteCarlo name="mcSampler">
-			<samplerInit>
-                <limit>4</limit>
-                <initialSeed>20021986</initialSeed>
-			</samplerInit>
-			<variable name="enrichment">
-				<distribution>enrichmentDist</distribution>
-			</variable>
-            <variable name="burnup">
-                <distribution>burnupDist</distribution>
-            </variable>
-        </MonteCarlo>
-	</Samplers>
+  <Files>
+    <!--  we load the data from the PolyExponential database -->
+    <Input name="rawDataFile">../../PolyExponential/data/decay_heat.csv</Input>
+    <Input name="ROMpk" type="">ROMpk</Input>
+  </Files>
 
-	<Models>
-		<ROM name='DMDrom' subType='DMD'>
-			<Target>t,decay_heat,decay_heat_pu</Target>
-			<Features>enrichment,burnup</Features>
-			<pivotParameter>t</pivotParameter>
-            <rankSVD>0</rankSVD>
-            <rankTLSQ>7</rankTLSQ>
-            <dmdType>dmd</dmdType>
-		</ROM>
-    </Models>
-    <Steps>
-        <IOStep name='readIn'>
-         <Input       class = 'Files'       type = ''              >rawDataFile</Input>
-         <Output      class = 'DataObjects' type = 'HistorySet'    >rawData</Output>
-        </IOStep>
-		<RomTrainer name='DMDTrain'>
-			<Input    class = 'DataObjects' type = 'HistorySet'    >rawData</Input>
-			<Output   class='Models'        type ='ROM'  	       >DMDrom</Output>
-		</RomTrainer>
-        <IOStep name='pickleRom'>
-            <Input    class = 'Models'      type = 'ROM'           >DMDrom</Input>
-            <Output   class="Files"         type=""                >ROMpk</Output>
-            <Output   class='OutStreams'    type ='Print'          >ROMCoefficientsXML</Output>
-        </IOStep>
-		<MultiRun name='runDMD'>
-			<Input    class = 'DataObjects' type = 'PointSet'      >dataIn</Input>
-			<Model    class='Models'        type = 'ROM'           >DMDrom</Model>
-            <Sampler  class="Samplers"      type="MonteCarlo"      >mcSampler</Sampler>
-			<Output   class = 'DataObjects' type = 'HistorySet'    >synDataDMD</Output>
-		</MultiRun>
-        <IOStep name='writeOut' pauseAtEnd = 'True'>
-			<Input    class = 'DataObjects'  type = 'HistorySet'   >synDataDMD</Input>
-            <Output   class = 'OutStreams'   type = 'Print'        >outputDMDtraditional</Output>
-		</IOStep>
-    </Steps>
-    <OutStreams>
-        <Print name = 'outputDMDtraditional' dir="outputDMD">
-            <type>csv</type>
-            <source>synDataDMD</source>
-        </Print>
-        <Print name = 'ROMCoefficientsXML'>
-            <type>xml</type>
-            <source>DMDrom</source>
-            <what>eigs,amplitudes,modes,dmdTimeScale,timeScale</what>
-        </Print>
-    </OutStreams>
-	
-    <DataObjects>
-      <PointSet name="dataIn">
-        <Input>enrichment,burnup</Input>
-        <Output>OutputPlaceHolder</Output>
-      </PointSet>
-      <HistorySet name="rawData">
-        <Input>enrichment,burnup</Input>
-        <Output>decay_heat,decay_heat_pu</Output>
-        <options>
-            <pivotParameter>t</pivotParameter>
-        </options>
-      </HistorySet>
-      <HistorySet name="synDataDMD" >
-       <Input>enrichment,burnup</Input>
-       <Output>decay_heat,decay_heat_pu</Output>
-       <options>
-           <pivotParameter>t</pivotParameter>
-       </options>
-      </HistorySet>
-    </DataObjects>
+  <Distributions>
+    <Uniform name="enrichmentDist">
+      <lowerBound>3.4</lowerBound>
+      <upperBound>9.9</upperBound>
+    </Uniform>
+    <Uniform name="burnupDist">
+      <lowerBound>16.501</lowerBound>
+      <upperBound>26.402</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="mcSampler">
+      <samplerInit>
+        <limit>4</limit>
+        <initialSeed>20021986</initialSeed>
+      </samplerInit>
+      <variable name="enrichment">
+        <distribution>enrichmentDist</distribution>
+      </variable>
+      <variable name="burnup">
+        <distribution>burnupDist</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <Models>
+    <ROM name="DMDrom" subType="DMD">
+      <Target>t,decay_heat,decay_heat_pu</Target>
+      <Features>enrichment,burnup</Features>
+      <pivotParameter>t</pivotParameter>
+      <rankSVD>0</rankSVD>
+      <rankTLSQ>7</rankTLSQ>
+      <dmdType>dmd</dmdType>
+    </ROM>
+  </Models>
+
+  <Steps>
+    <IOStep name="readIn">
+      <Input class="Files" type="">rawDataFile</Input>
+      <Output class="DataObjects" type="HistorySet">rawData</Output>
+    </IOStep>
+    <RomTrainer name="DMDTrain">
+      <Input class="DataObjects" type="HistorySet">rawData</Input>
+      <Output class="Models" type="ROM">DMDrom</Output>
+    </RomTrainer>
+    <IOStep name="pickleRom">
+      <Input class="Models" type="ROM">DMDrom</Input>
+      <Output class="Files" type="">ROMpk</Output>
+    </IOStep>
+    <IOStep name="stats">
+      <Input class="Models" type="ROM">DMDrom</Input>
+      <Output class="DataObjects" type="DataSet">rom_stats</Output>
+    </IOStep>
+    <MultiRun name="runDMD">
+      <Input class="DataObjects" type="PointSet">dataIn</Input>
+      <Model class="Models" type="ROM">DMDrom</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mcSampler</Sampler>
+      <Output class="DataObjects" type="HistorySet">synDataDMD</Output>
+    </MultiRun>
+    <IOStep name="writeOut" pauseAtEnd="True">
+      <Input class="DataObjects" type="HistorySet">synDataDMD</Input>
+      <Input class="DataObjects" type="DataSet">rom_stats</Input>
+      <Output class="OutStreams" type="Print">outputDMDtraditional</Output>
+      <Output class="OutStreams" type="Print">ROMCoefficientsXML</Output>
+    </IOStep>
+  </Steps>
+
+  <OutStreams>
+    <Print name="outputDMDtraditional" dir="outputDMD">
+      <type>csv</type>
+      <source>synDataDMD</source>
+    </Print>
+    <Print name="ROMCoefficientsXML">
+      <type>csv</type>
+      <source>rom_stats</source>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="dataIn">
+      <Input>enrichment,burnup</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <HistorySet name="rawData">
+      <Input>enrichment,burnup</Input>
+      <Output>decay_heat,decay_heat_pu</Output>
+      <options>
+        <pivotParameter>t</pivotParameter>
+      </options>
+    </HistorySet>
+    <HistorySet name="synDataDMD">
+      <Input>enrichment,burnup</Input>
+      <Output>decay_heat,decay_heat_pu</Output>
+      <options>
+        <pivotParameter>t</pivotParameter>
+      </options>
+    </HistorySet>
+    <DataSet name="rom_stats"/>
+  </DataObjects>
+
 </Simulation>
-
-
-
-

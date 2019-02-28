@@ -27,10 +27,7 @@ import numpy as np
 import sklearn
 import ast
 from utils import utils
-# Modules of cross_validation will be deprecated in SciKit Learn version 0.18 and will be removed in 0.20
-# Currently, I think this is fine, but in the future we will use sklearn.model_selection instead.
-# from sklearn import model_selection as cross_validation
-from sklearn import cross_validation
+from sklearn import model_selection as cross_validation
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -41,8 +38,7 @@ class SciKitLearn(CrossValidation):
   """
     SciKitLearn inteface for Cross validation methods
   """
-  # The following methods will be deprecated since 0.18 of SciKitLearn, and will be removed in 0.20 of SciKitLearn
-  # FIXME: Swith to sklearn.model_selection instead.
+  # Minimum requirement for SciKit-Learn is 0.18
   # dictionary of available cross validation methods {mainClass:(classPointer, output Type (float))}
   availImpl = {}
   availImpl['KFold'                  ] = (cross_validation.KFold,                  'float')
@@ -51,10 +47,16 @@ class SciKitLearn(CrossValidation):
   availImpl['LeavePOut'              ] = (cross_validation.LeavePOut,              'float')
   availImpl['ShuffleSplit'           ] = (cross_validation.ShuffleSplit,           'float')
   availImpl['StratifiedShuffleSplit' ] = (cross_validation.StratifiedShuffleSplit, 'float')
-  availImpl['LabelKFold'             ] = (cross_validation.LabelKFold,             'float')
-  availImpl['LabelShuffleSplit'      ] = (cross_validation.LabelShuffleSplit,      'float')
-  availImpl['LeaveOneLabelOut'       ] = (cross_validation.LeaveOneLabelOut,       'float')
-  availImpl['LeavePLabelOut'         ] = (cross_validation.LeavePLabelOut,         'float')
+  availImpl['LabelKFold'             ] = (cross_validation.GroupKFold,             'float')
+  availImpl['LabelShuffleSplit'      ] = (cross_validation.GroupShuffleSplit,      'float')
+  availImpl['LeaveOneLabelOut'       ] = (cross_validation.LeaveOneGroupOut,       'float')
+  availImpl['LeavePLabelOut'         ] = (cross_validation.LeavePGroupsOut,         'float')
+  # Method may needed
+  #availImpl['PredefinedSplit'         ] = (cross_validation.PredefinedSplit,        'float')
+  #availImpl['TimeSeriesSplit'         ] = (cross_validation.TimeSeriesSplit,        'float')
+  # Methods available for SciKit-Learn version >= 0.19
+  #availImpl['RepeatedKFold'           ] = (cross_validation.RepeatedKFold,          'float')
+  #availImpl['RepeatedStratifiedKFold' ] = (cross_validation.RepeatedStratifiedKFold,'float')
 
   def __init__(self, messageHandler, **kwargs):
     """
@@ -75,25 +77,6 @@ class SciKitLearn(CrossValidation):
       self.raiseAnError(IOError, 'Unknow SKLtype ', self.SKLType, ' from cross validation ', self.name)
 
     self.__class__.returnType = self.__class__.availImpl[self.SKLType][1]
-
-    for key, value in self.initOptionDict.items():
-      try:
-        newValue = ast.literal_eval(value)
-        if type(newValue) == list:
-          newValue = np.asarray(newValue)
-        if key == 'n_splits':
-          self.initOptionDict['n_folds'] = newValue
-        else:
-          self.initOptionDict[key] = newValue
-      except:
-        if key == 'n_splits':
-          self.initOptionDict['n_folds'] = value
-        else:
-          self.initOptionDict[key] = value
-
-    if 'n_splits' in self.initOptionDict.keys():
-      self.initOptionDict.pop('n_splits')
-
     self.__CVInstance = self.__class__.availImpl[self.SKLType][0](**self.initOptionDict)
     self.outputDict = {}
 
@@ -113,11 +96,15 @@ class SciKitLearn(CrossValidation):
     """
     return self.SKLType
 
-  def generateTrainTestIndices(self):
+  def generateTrainTestIndices(self, X, y=None, groups=None):
     """
       generate train/test indices
       @ In, None
+      @ In, X, array_like, shape (n_samples,n_features), trainning data
+      @ In, y, array_like, shape (n_samples,), the target variable
+      @ In, groups, array_like, shape (n_samples,), group labels for samples used while splitting the dataset into
+        train/test set.
       @ Out, Object, instance of cross validation
     """
-    return self.__CVInstance
+    return self.__CVInstance.split(X, y, groups)
 

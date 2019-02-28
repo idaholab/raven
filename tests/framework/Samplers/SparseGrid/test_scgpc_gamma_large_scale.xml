@@ -1,10 +1,10 @@
-<?xml version="1.0" ?>
 <Simulation printTimeStamps="false">
   <RunInfo>
     <WorkingDir>scgpc</WorkingDir>
-    <Sequence>makeG,trainG,testG,printG,printRomG</Sequence>
+    <Sequence>makeG, trainG, testG, stats, printG, printRomG</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+
   <TestInfo>
     <name>framework/Samplers/SparseGrid.gamma_large_scale</name>
     <author>wangc</author>
@@ -77,7 +77,7 @@
     </MultiRun>
     <IOStep name="printRomG">
       <Input class="DataObjects" type="PointSet">Gtests</Input>
-      <Input class="Models" type="ROM">GROM</Input>
+      <Input class="DataObjects" type="DataSet">rom_stats</Input>
       <Output class="OutStreams" type="Print">dumpromGamma</Output>
       <Output class="OutStreams" type="Print">dumpromGammaXml</Output>
     </IOStep>
@@ -89,6 +89,10 @@
       <Input class="DataObjects" type="PointSet">Gsolns</Input>
       <Output class="Models" type="ROM">GROM</Output>
     </RomTrainer>
+    <IOStep name="stats">
+      <Input class="Models" type="ROM">GROM</Input>
+      <Output class="DataObjects" type="DataSet">rom_stats</Output>
+    </IOStep>
   </Steps>
 
   <DataObjects>
@@ -104,6 +108,7 @@
       <Input>x1,x2</Input>
       <Output>ans,ans2</Output>
     </PointSet>
+    <DataSet name="rom_stats"/>
   </DataObjects>
 
   <OutStreams>
@@ -118,9 +123,8 @@
       <what>input,output</what>
     </Print>
     <Print name="dumpromGammaXml">
-      <type>xml</type>
-      <source>GROM</source>
-      <what>all</what>
+      <type>csv</type>
+      <source>rom_stats</source>
     </Print>
   </OutStreams>
 

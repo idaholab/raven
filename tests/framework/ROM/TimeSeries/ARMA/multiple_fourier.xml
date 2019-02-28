@@ -8,10 +8,12 @@
     <description>
       Tests the feature of having independent Fourier modes for each training target.
       Original data is pure Fourier modes made with dataGenerator.
-
       This test is not analytic, but the input training set corralated_0.csv should be very nearly
       exactly replicated by samples_0.csv.
     </description>
+    <revisions>
+      <revision author="talbpaul" date="2018-09-13">changed Pmax and Pmin to P (same for Q)</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
@@ -72,16 +74,13 @@
       <Features>scaling</Features>
       <seed>84</seed>
       <pivotParameter>Time</pivotParameter>
-      <Pmax>3</Pmax>
-      <Pmin>3</Pmin>
-      <Qmax>1</Qmax>
-      <Qmin>1</Qmin>
       <SpecificFourier variables="A,B">
         <periods>20,100</periods>
-        <orders>1,1</orders>
       </SpecificFourier>
-      <Fourier>10,50</Fourier> <!-- will apply to the rest (C,D) -->
-      <FourierOrder>1,1</FourierOrder>
+      <Fourier>50.000000, 10.000000</Fourier>
+      <!-- will apply to the rest (C,D) -->
+      <P>3</P>
+      <Q>1</Q>
     </ROM>
     <PostProcessor name="stats" subType="BasicStatistics">
       <expectedValue prefix="mean">A,B</expectedValue>

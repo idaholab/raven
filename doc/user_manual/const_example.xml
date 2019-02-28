@@ -1,0 +1,6 @@
+    <Samplers>
+      <WhatEverSampler name='whatever'>
+        <ConstantSource class='DataObjects' type='PointSet'>MyConstants</ConstantSource>
+        <constant name='C' source='MyConstants' index='3'>A</constant>
+      </WhatEverSampler>
+    </Samplers>

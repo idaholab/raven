@@ -1,0 +1,73 @@
+#!/usr/bin/env python3
+from __future__ import print_function
+import sys, os, subprocess, re
+
+# Set the current working directory to the directory where this script is located
+os.chdir(os.path.abspath(os.path.dirname(os.path.dirname(sys.argv[0]))))
+
+#add framework contrib path
+RAVEN_DIR = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+os.environ["PYTHONPATH"] = os.path.join(RAVEN_DIR,'framework','contrib') + os.pathsep + os.environ.get("PYTHONPATH","")
+
+print("PYTHONPATH="+os.environ.get("PYTHONPATH",""))
+path = os.environ.get("PATH","")
+print("PATH="+path)
+print("Python Executable: ",sys.executable)
+print("Possible Python Executables on System:")
+for pathPart in path.split(os.pathsep):
+  if os.path.isdir(pathPart):
+    for directoryEntry in os.listdir(pathPart):
+      lower = directoryEntry.lower()
+      #match things like python, python2, python2.7, python.exe
+      if re.match("python(\\d*(\\.\\d+)?)(\\.exe)?$",lower):
+        print(pathPart+os.sep+directoryEntry)
+import platform
+print("OS:",platform.platform())
+print("Python:",sys.version)
+try:
+  if os.path.exists(".git"):
+    print("Git information:")
+    os.system('git log -1 --format="%H %aD"')
+    os.system('git describe')
+    os.system('git submodule')
+  elif os.path.exists("Version.txt"):
+    print("Version.txt:")
+    print(open("Version.txt","r").read())
+  else:
+    print("Could not find RAVEN version info")
+except:
+  print("Failed to find git version")
+sys.path.append(os.path.join(RAVEN_DIR,"scripts","TestHarness","testers"))
+sys.path.insert(0,os.path.join(RAVEN_DIR,"framework","utils"))
+import RavenUtils,utils
+#missing,too_old = RavenUtils.checkForMissingModules()
+#print(missing,too_old)
+report_list = RavenUtils.modules_report()
+amsc_report = RavenUtils.module_report('AMSC')
+report_list.append(('AMSC',amsc_report[0],amsc_report[1],""))
+print("\nLibraries report:\n")
+for module, found, message, version in report_list:
+  if found:
+    print(module,version,"\n",message,"\n")
+  else:
+    print(module+' not found\n')
+framework_dir = os.path.abspath(os.path.join(os.path.dirname(sys.argv[0]),"framework"))
+utils.find_crow(framework_dir)
+try:
+  distribution1D = utils.findCrowModule('distribution1D')
+  print("distribution1D","\n",distribution1D)
+  print()
+except ImportError:
+  print("distribution1D not found\n")
+try:
+  interpolationND = utils.findCrowModule('interpolationND')
+  print("interpolationND","\n",interpolationND)
+except ImportError:
+  print("interpolationND not found\n")
+try:
+  randomENG = utils.findCrowModule('randomENG')
+  print("randomENG","\n",randomENG)
+except ImportError:
+  print("randomENG not found\n")
+
+

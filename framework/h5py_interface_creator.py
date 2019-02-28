@@ -49,7 +49,7 @@ def _dumps(val):
     @ In, val, any, data to encode
     @ Out, _dumps, np.void, encoded data
   """
-  return np.void(pk.dumps(val))
+  return np.void(pk.dumps(val, protocol=0))
 
 def _loads(val):
   """
@@ -60,7 +60,10 @@ def _loads(val):
   if hasattr(val,'tostring'):
     return pk.loads(val.tostring())
   else:
-    return pk.loads(val)
+    try:
+      return pk.loads(val)
+    except UnicodeDecodeError:
+      return pk.loads(val,errors='backslashreplace')
 
 #
 #  *************************
@@ -139,6 +142,14 @@ class hdf5Database(MessageHandler.MessageUser):
       # The root name is / . it can be changed if addGroupInit is called
       self.parentGroupName = b'/'
 
+  def __len__(self):
+    """
+      Overload len method
+      @ In, None
+      @ Out, __len__, length
+    """
+    return len(self.allGroupPaths)
+
   def __createObjFromFile(self):
     """
       Function to create the list "self.allGroupPaths" and the dictionary "self.allGroupEnds"
@@ -177,10 +188,12 @@ class hdf5Database(MessageHandler.MessageUser):
         self.raiseAWarning('not found attribute endGroup in group ' + name + '.Set True.')
     return
 
-  def addExpectedMeta(self, keys):
+  def addExpectedMeta(self, keys, params={}):
     """
       Store expected metadata
       @ In, keys, set(), the metadata list
+      @ In, params, dict, optional, {key:[indexes]}, keys of the dictionary are the variable names,
+        values of the dictionary are lists of the corresponding indexes/coordinates of given variable
       @ Out, None
     """
     self.h5FileW.attrs['expectedMetadata'] = _dumps(list(keys))
@@ -189,13 +202,17 @@ class hdf5Database(MessageHandler.MessageUser):
     """
       Provides the registered list of metadata keys for this entity.
       @ In, None
-      @ Out, meta, set(str), expected keys (empty if none)
+      @ Out, meta, tuple, (set(str),dict), expected keys (empty if none) and dictionary of expected keys corresponding to their indexes
+        i.e. {keys, [indexes]}
     """
     meta = set()
     gotMeta = self.h5FileW.attrs.get('expectedMetadata',None)
     if gotMeta is not None:
       meta = set(_loads(gotMeta))
-    return meta
+    # FIXME, I'm not sure how to enable the HDF5 to store the time-dependent metadata,
+    # or how to store the time dependent metadata in the HDF5, currently only empty dict of
+    # indexes information is returned
+    return meta,{}
 
   def addGroup(self,rlz):
     """
@@ -207,11 +224,7 @@ class hdf5Database(MessageHandler.MessageUser):
     """
     parentID  = rlz.get("RAVEN_parentID",[None])[0]
     prefix    = rlz.get("prefix")
-    if prefix is not None:
-      groupName = str(prefix[0] if not utils.isString(prefix) else prefix)
-    else:
-      # this can happen when we want to add sampler generated data (e.g. LimitSurface) in the database
-      groupName = str(len(self.allGroupPaths))
+    groupName = str(prefix[0] if not utils.isString(prefix) else prefix)
     if parentID:
       #If Hierarchical structure, firstly add the root group
       if not self.firstRootGroup or parentID == "None":

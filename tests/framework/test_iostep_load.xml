@@ -24,7 +24,7 @@
       <revision author="maljdan" date="2016-06-27">Adjusting the inputs and outputs of two test cases to match what the loaded files read.</revision>
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
     </revisions>
-    <requirements>R-RA-2</requirements>
+    <requirements>R-RA-2 R-F-6</requirements>
   </TestInfo>
   <RunInfo>
     <WorkingDir runRelative="True">test_iostep_load</WorkingDir>

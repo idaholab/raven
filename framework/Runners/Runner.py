@@ -74,7 +74,7 @@ class Runner(MessageHandler.MessageUser):
     """
     if self.__printTimings:
       # print timing history
-      pairs = self.timings.items()
+      pairs = list(self.timings.items())
       pairs.sort(key=lambda x:x[1])
       prof = ""
       prof += 'TIMINGS for job "{}":'.format(self.identifier)

@@ -104,7 +104,7 @@ function install_libraries()
   ${COMMAND}
   # conda-forge
   if [[ $ECE_VERBOSE == 0 ]]; then echo ... Installing libraries from conda-forge ...; fi
-  local COMMAND=`echo $(python ${RAVEN_UTILS} --conda-forge --conda-install ${OSOPTION})`
+  local COMMAND=`echo $(python ${RAVEN_UTILS} --conda-forge --conda-install ${INSTALL_OPTIONAL} ${OSOPTION})`
   if [[ $ECE_VERBOSE == 0 ]]; then echo ... conda-forge command: ${COMMAND}; fi
   ${COMMAND}
 }
@@ -117,7 +117,7 @@ function create_libraries()
   ${COMMAND}
   # conda-forge
   if [[ $ECE_VERBOSE == 0 ]]; then echo ... Installing libraries from conda-forge ...; fi
-  local COMMAND=`echo $(python ${RAVEN_UTILS} --conda-forge --conda-install ${OSOPTION})`
+  local COMMAND=`echo $(python ${RAVEN_UTILS} --conda-forge --conda-install ${INSTALL_OPTIONAL} ${OSOPTION})`
   if [[ $ECE_VERBOSE == 0 ]]; then echo ... conda-forge command: ${COMMAND}; fi
   ${COMMAND}
 }
@@ -152,6 +152,9 @@ function display_usage()
 	echo ''
 	echo '    --optional'
 	echo '      Additionally installs optional libraries used in some RAVEN workflows.  Requires --install.'
+	echo ''
+	echo '    --py3'
+	echo '    When installing, make raven_libraries use Python 3'
 	echo ''
 	echo '    --quiet'
 	echo '      Runs script with minimal output'
@@ -197,7 +200,11 @@ do
       ;;
     --optional)
       echo ... Including optional libraries ...
-      INSTALL_OPTIONAL="--optional"
+      INSTALL_OPTIONAL="--optional $INSTALL_OPTIONAL"
+      ;;
+    --py3)
+      echo ... Creating Python 3 libraries ...
+      INSTALL_OPTIONAL="--py3 $INSTALL_OPTIONAL"
       ;;
     --quiet)
       ECE_VERBOSE=1

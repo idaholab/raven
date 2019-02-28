@@ -25,7 +25,7 @@ import xml.etree.ElementTree as ET
 import xml.dom.minidom as pxml
 import re
 import os
-from .utils import isString
+from .utils import isString, toString, getRelativeSortedListEntry
 from .graphStructure import graphObject
 import VariableGroups
 
@@ -96,10 +96,13 @@ def prettify(tree,doc=False,docLevel=0,startingTabs=0,addRavenNewlines=True):
   #end prettifyNode
   if isinstance(tree,ET.ElementTree):
     prettifyNode(tree.getroot(),tabs=startingTabs,ravenNewlines=addRavenNewlines)
-    return ET.tostring(tree.getroot())
+    # NOTE must use utils.toString because ET.tostring returns bytestring in python3
+    #  -- if ever we drop python2 support, can use ET.tostring(xml, encoding='unicode')
+    return toString(ET.tostring(tree.getroot()))
   else:
+    # NOTE must use utils.toString because ET.tostring returns bytestring in python3
     prettifyNode(tree,tabs=startingTabs,ravenNewlines=addRavenNewlines)
-    return ET.tostring(tree)
+    return toString(ET.tostring(tree))
 
 
   #### OLD WAY ####
@@ -405,3 +408,202 @@ def readVariableGroups(xmlNode,messageHandler,caller):
       varGroups[name] = varGroup
 
   return varGroups
+
+
+
+#
+# Classes for standardized RAVEN XML writing (outputs of DataObjects, ROMs, etc)
+#
+#
+class StaticXmlElement(object):
+  """
+    Standardized RAVEN output XML structure for values who do not depend on any index (scalars)
+    Example:
+    <root type='Static'>
+      <parameter>
+        <single-value properties> value </single-value properties>
+        <multi-value properties>
+          <w.r.t. parameter2> value </w.r.t. paramter2>
+          <w.r.t. parameter2> value </w.r.t. paramter2>
+        </multi-value properties>
+      <parameter>
+    </root>
+  """
+  def __init__(self, tag, attrib = None, rootType = 'Static'):
+    """
+      Constructor.
+      @ In, tag, string, name for root node ('root' in structure example in class docstrings)
+      @ In, attrib, dict, optional, attributes for root node
+      @ In, rootType, str, optional, type as a string
+      @ Out, None
+    """
+    # default attrib to empty dictionary
+    if attrib is None:
+      attrib = {}
+    # for future reading with RAVEN, mark as a static node
+    if 'type' not in attrib:
+      attrib['type'] = rootType
+    # initialize class variables
+    self._tree = newTree(tag,attrib)    # base tree structure
+    self._root = self._tree.getroot()   # root element of tree
+
+  def addScalar(self, target, name, value, root = None, attrs = None):
+    """
+      Adds a node entry named "name" with value/text "value" to a node "target". For example:
+      <root>
+        <target>
+          <name>value</name>
+        </target>
+      </root>
+      @ In, target, string, name of existing or new node to be added
+      @ In, name, string, name of new subnode to be added to node
+      @ In, value, string, text of new subnode
+      @ In, root, xml.etree.ElementTree.Element, optional, root to append to
+      @ In, attrs, dict, optional, attributes for new subnode
+      @ Out, None
+    """
+    if root is None:
+      root = self.getRoot()
+    # find target node (if it exists, otherwise create it)
+    targ = self._findTarget(root, target) if root.tag != target.strip() else root
+    targ.append(newNode(name, text=value, attrib=attrs))
+
+  def addVector(self, target, name, valueDict, root = None, attrs = None, valueAttrsDict = None):
+    """
+      Adds a node entry named "name" with value "value" to "target" node, such as
+      <root>
+        <target>
+          <name>
+            <with_respect_to_name1> value 1 </with_respect_to_name1>
+            <with_respect_to_name2> value 2 </with_respect_to_name2>
+            <with_respect_to_name3> value 3 </with_respect_to_name3>
+          </name>
+        </target>
+      </root>
+      The valueDict should be as {with_respect_to_name1: value1, with_respect_to_name2: value2, etc}
+      For example, if the "name" is sensitivity_coefs, each entry would be the sensitivity of the "target"
+        to "with_respect_to_name1" and etc.
+      @ In, target, string, target parameter to add node value to
+      @ In, name, string, name of characteristic of target to add
+      @ In, valueDict, dict, name:value dictionary of metric values
+      @ In, root, xml.etree.ElementTree.Element, optional, node to append to
+      @ In, attrs, dict, optional, dictionary of attributes to be stored in the node (name)
+      @ In, valueAttrsDict, dict, optional, dictionary of attributes to be stored along the subnodes
+            identified by the valueDict dictionary
+      @ Out, None
+    """
+    if root is None:
+      root = self.getRoot()
+    if valueAttrsDict is None:
+      valueAttrsDict = {}
+    targ = self._findTarget(root, target) if root.tag != target.strip() else root
+    nameNode = newNode(name,attrib=attrs)
+    for key,value in sorted(list(valueDict.items())):
+      nameNode.append(newNode(key, text = value, attrib = valueAttrsDict.get(key, None)))
+    targ.append(nameNode)
+
+  def getRoot(self):
+    """
+      Getter for root node.
+      @ In, None
+      @ Out, xml.etree.ElementTree.Element, root node
+    """
+    return self._root
+
+  def _findTarget(self, root, target):
+    """
+      Searches "root" for "target" node and makes it if not found
+      @ In, root, xml.etree.ElementTree.Element, node to search under
+      @ In, target, string, name of target to find
+      @ Out, targ, xml.etree.ElementTree.Element, desired taret node
+    """
+    # find target node
+    targ = findPath(root,target)
+    # if it doesn't exist, create it
+    if targ is None:
+      targ = newNode(target)
+      root.append(targ)
+    return targ
+
+#
+# Dynamic version
+#
+#
+class DynamicXmlElement(StaticXmlElement):
+  """
+    <root type='Static'>
+      <pivot value="value">
+        <parameter>
+          <single-value properties>value</single-value properties>
+          <multi-value properties>
+            <w.r.t. parameter2>value</w.r.t. paramter2>
+            <w.r.t. parameter2>value</w.r.t. paramter2>
+          </multi-value properties>
+        <parameter>
+    </root>
+  """
+  def __init__(self, tag, attrib = None, rootType='Dynamic', pivotParam = None):
+    """
+      Constructor.
+      @ In, tag, string, name for the root node
+      @ In, attrib, dict, optional, attributes for root node
+      @ In, rootType, str, optional, type as a string
+      @ Out, None
+    """
+    StaticXmlElement.__init__(self, tag, attrib, rootType)
+    if pivotParam is None:
+      raise IOError('Initializing xmlUtils.DynamicXmlElement, and no pivotParam was provided!')
+    self.pivotParam = pivotParam
+    self.pivotNodes = []
+    self.pivotVals = []
+
+  def addScalar(self, target, name, value, pivotVal, attrs = None, general = False):
+    """
+      Adds a node entry named "name" with value "value" to "target" node, such as
+      <root>
+        <pivotParam value=pivotVal>
+          <target>
+            <name>value<name>
+      @ In, target, string, target parameter to add node value to
+      @ In, name, string, name of characteristic of target to add
+      @ In, value, string/float/etc, value of characteristic
+      @ In, pivotVal, float, value of the pivot parameter
+      @ In, attrs, dict, optional, dictionary containing the attributes to be stored in the node
+      @ In, general, bool, optional, if True then use the "main" pivotless node, instead of the pivot.
+      @ Out, None
+    """
+    # if writing general (not time-specific data), then we write to a particular node
+    if general:
+      pivotNode = StaticXmlElement._findTarget(self,  self._root, 'general')
+    # otherwise, we write to the appropriate time-dependent node
+    else:
+      pivotNode = self._findPivotNode(pivotVal)
+    StaticXmlElement.addScalar(self, target, name, value, root = pivotNode, attrs = attrs)
+
+  def addScalarNode(self, node, pivotVal):
+    """
+      Places an already-constructed XML node under a pivot value node.
+      @ In, node, xml.etree.ElementTree.Element, node to add under pivot node
+      @ In, pivotVal, float, value of pivot where node should be placed
+      @ Out, None
+    """
+    pivot = self._findPivotNode(pivotVal)
+    # TODO merge existing nodes if present? Future work.
+    pivot.append(node)
+
+  def _findPivotNode(self,pivotVal):
+    """
+      Searches pivot node for node with value pivotVal, or adds it if it doesn't exist
+      @ In, pivotVal, float, value of pivot to find
+      @ Out, pivotNode, xml.etree.ElementTree.Element, node desired
+    """
+    pivotVals, pivotIndex, pivotVal = getRelativeSortedListEntry(self.pivotVals,pivotVal,tol=1e-10)
+    # check if insertion needs to be performed
+    if len(self.pivotVals) > len(self.pivotNodes):
+      # create new node
+      pivotNode = newNode(self.pivotParam, attrib={'value':pivotVal})
+      self.pivotNodes.insert(pivotIndex, pivotNode)
+      self._root.append(pivotNode)
+    else:
+      pivotNode = self.pivotNodes[pivotIndex]
+    return pivotNode

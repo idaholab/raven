@@ -1,10 +1,4 @@
-<?xml version="1.0" ?>
 <Simulation printTimeStamps="false">
-  <RunInfo>
-    <WorkingDir>scgpc</WorkingDir>
-    <Sequence>Bmake,Btrain,Btest,Bprint</Sequence>
-    <batchSize>1</batchSize>
-  </RunInfo>
   <TestInfo>
     <name>framework/Samplers/SparseGrid/beta</name>
     <author>talbpaul</author>
@@ -14,6 +8,12 @@
       This tests using SparseGridCollocation with beta-distributed inputs.
     </description>
   </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>scgpc</WorkingDir>
+    <Sequence>Bmake, Btrain, Btest, stats, Bprint</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
 
   <Distributions>
     <Beta name="BetaDist">
@@ -66,7 +66,7 @@
     </MultiRun>
     <IOStep name="Bprint">
       <Input class="DataObjects" type="PointSet">Btests</Input>
-      <Input class="Models" type="ROM">BROM</Input>
+      <Input class="DataObjects" type="DataSet">rom_stats</Input>
       <Output class="OutStreams" type="Print">Bdump</Output>
       <Output class="OutStreams" type="Print">Bdumprom</Output>
     </IOStep>
@@ -74,6 +74,10 @@
       <Input class="DataObjects" type="PointSet">Bsolns</Input>
       <Output class="Models" type="ROM">BROM</Output>
     </RomTrainer>
+    <IOStep name="stats">
+      <Input class="Models" type="ROM">BROM</Input>
+      <Output class="DataObjects" type="DataSet">rom_stats</Output>
+    </IOStep>
   </Steps>
 
   <DataObjects>
@@ -89,6 +93,7 @@
       <Input>x1,x2</Input>
       <Output>ans</Output>
     </PointSet>
+    <DataSet name="rom_stats"/>
   </DataObjects>
 
   <OutStreams>
@@ -98,9 +103,8 @@
       <what>input,output</what>
     </Print>
     <Print name="Bdumprom">
-      <type>xml</type>
-      <source>BROM</source>
-      <what>all</what>
+      <type>csv</type>
+      <source>rom_stats</source>
     </Print>
   </OutStreams>
 

@@ -128,6 +128,10 @@ class DistributedMemoryRunner(InternalRunner):
       self.trackTime('runner_started')
       self.started = True
     except Exception as ae:
+      #Uncomment if you need the traceback
+      #exc_type, exc_value, exc_traceback = sys.exc_info()
+      #import traceback
+      #traceback.print_exception(exc_type, exc_value, exc_traceback)
       self.raiseAWarning(self.__class__.__name__ + " job "+self.identifier+" failed with error:"+ str(ae) +" !",'ExceptedError')
       self.returnCode = -1
 
@@ -137,6 +141,8 @@ class DistributedMemoryRunner(InternalRunner):
       @ In, None
       @ Out, None
     """
-    self.raiseAWarning("Terminating " + self.thread.tid + " Identifier " + self.identifier)
-    os.kill(self.thread.tid, signal.SIGTERM)
+    self.thread.stop()
+    del self.thread
+    self.thread = None
+    self.returnCode = -1
     self.trackTime('runner_killed')

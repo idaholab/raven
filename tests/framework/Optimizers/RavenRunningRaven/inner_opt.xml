@@ -36,7 +36,7 @@
       <variable name="x">
         <upperBound>2</upperBound>
         <lowerBound>-2</lowerBound>
-        <initial>-0.75</initial>
+        <initial>0.25</initial>
       </variable>
       <constant name="center">1</constant>
       <constant name="vectorConst">1</constant>

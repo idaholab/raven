@@ -25,7 +25,9 @@
 #       (x,y) - vector positions of projectile in time
 #       t - corresponding time steps
 #
+from __future__ import division, print_function, unicode_literals, absolute_import
 import numpy as np
+
 
 def prange(v,th,y0=0,g=9.8):
   """
@@ -106,9 +108,9 @@ def run(self,Input):
 #can be used as a code as well
 if __name__=="__main__":
   import sys
-  print 'Welcome to RAVEN\'s Simple Projectile Motion Simulator!'
+  print('Welcome to RAVEN\'s Simple Projectile Motion Simulator!')
   inFile = sys.argv[sys.argv.index('-i')+1]
-  print 'Reading input from',inFile,'...'
+  print('Reading input from',inFile,'...')
   outFile = sys.argv[sys.argv.index('-o')+1]
   #construct the input
   Input = {}
@@ -125,10 +127,10 @@ if __name__=="__main__":
     pass
   io = IO()
   #run the code
-  print 'Simulating ...'
+  print('Simulating ...')
   run(io,Input)
   #write output
-  print 'Writing output to',outFile+'.txt','...'
+  print('Writing output to',outFile+'.txt','...')
   outFile = open(outFile+'.txt','w')
   header = ' '.join("{:8s}".format(i) for i in ('x0','y0','v0','ang','r','x','y','t'))+ '\n'
   outFile.writelines(header.strip()+'\n')
@@ -138,5 +140,5 @@ if __name__=="__main__":
   outFile.writelines('-'*(8*8+4)+'\n')
   outFile.writelines('SUCCESS'+'\n')
   outFile.close()
-  print 'Done!'
-  print ''
+  print('Done!')
+  print('')

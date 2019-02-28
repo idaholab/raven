@@ -27,7 +27,7 @@ import xml.etree.ElementTree as ET
 
 frameworkDir = os.path.normpath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir,os.pardir,os.pardir,'framework'))
 sys.path.append(frameworkDir)
-from utils import xmlUtils
+from utils import xmlUtils, utils
 
 from MessageHandler import MessageHandler
 mh = MessageHandler()
@@ -125,7 +125,7 @@ xmlTree = ET.parse(inFileName)
 toRemove = attemptFileClear(inFileName,toRemove)
 
 # test prettify
-pretty = xmlUtils.prettify(xmlTree)
+pretty = utils.toString(xmlUtils.prettify(xmlTree))
 prettyFileName = 'xml/testXMLPretty.xml'
 open(prettyFileName,'w').writelines(pretty)
 gold = ''.join(line.rstrip('\n\r') for line in open(os.path.join(os.path.dirname(__file__),'gold',prettyFileName),'r'))
@@ -303,7 +303,7 @@ strNode = """<testMainNode att=\"attrib1\">
     <secondFirstSubNode>secondFirstSubText</secondFirstSubNode>
   </secondSubNode>
 </testMainNode>"""
-if strNode != ET.tostring(node):
+if strNode != utils.toString(ET.tostring(node)):
   print('ERROR: loaded XML node:')
   print(ET.tostring(node))
   print(' ----- does not match expected:')
@@ -342,7 +342,7 @@ correct = """<root>
   </secondSubNode>
 </testMainNode></rootsub>
 </root>"""
-if correct != ET.tostring(root):
+if correct != utils.toString(ET.tostring(root)):
   print('ERROR: expanded XML node:')
   print(ET.tostring(root))
   print(' ----- does not match expected:')
@@ -352,6 +352,86 @@ else:
   results['pass']+=1
 
 
+# test StaticXmlElement
+print('')
+static = xmlUtils.StaticXmlElement('testRoot')
+static.addScalar('newTarget','newMetric',42)
+# check new structure was added
+try:
+  val = int(static.getRoot().find('newTarget').find('newMetric').text)
+  if val == 42:
+    results['pass']+=1
+  else:
+    print('ERROR: StaticXmlElement value failure: "newTarget.newMetric = {}"'.format(val))
+    results['fail']+=1
+except AttributeError:
+  print('ERROR: StaticXmlElement could not find newTarget.newMetric!')
+  results['fail']+=1
+
+newTarget = static.getRoot().find('newTarget')
+if newTarget is None:
+  print('ERROR: StaticXmlElement new node missing: "newTarget"')
+  results['fail']+=1
+else:
+  newMetric = newTarget.find('newMetric')
+  if newMetric is None:
+    print('ERROR: StaticXmlElement new node missing: "newTarget.newMetric"')
+    results['fail']+=1
+  else:
+    val = int(newMetric.text)
+    if val == 42:
+      results['pass'] +=1
+    else:
+      print('ERROR: StaticXmlElement value failure: "newTarget.newMetric = {}"'.format(val))
+      results['fail']+=1
+
+static.addVector('newTarget','newVectorMetric',{'A':1,'B':2})
+try:
+  A = int(static.getRoot().find('newTarget').find('newVectorMetric').find('A').text)
+  if A == 1:
+    results['pass']+=1
+  else:
+    print('ERROR: StaticXmlElement value failure: "newTarget.newVectorMetric.A = {}"'.format(A))
+    results['fail']+=1
+except AttributeError:
+  print('ERROR: StaticXmlElement could not find newTarget.newVectorMetric.A!')
+  results['fail']+=1
+
+try:
+  B = int(static.getRoot().find('newTarget').find('newVectorMetric').find('B').text)
+  if B == 2:
+    results['pass']+=1
+  else:
+    print('ERROR: StaticXmlElement value failure: "newTarget.newVectorMetric.B = {}"'.format(B))
+    results['fail']+=1
+except AttributeError:
+  print('ERROR: StaticXmlElement could not find newTarget.newVectorMetric.A!')
+  results['fail']+=1
+
+
+# test DynamicXmlElement
+print('')
+dynamic = xmlUtils.DynamicXmlElement('testRoot',pivotParam='Time')
+values = {0.1: 1, 0.2:1, 0.3:2}
+for t,v in values.items():
+  dynamic.addScalar('newTarget', 'newMetric', v, t)
+
+try:
+  times = dynamic.getRoot().findall('Time')
+  for node in times:
+    t = float(node.attrib['value'])
+    v = float(node.find('newTarget').find('newMetric').text)
+    if v == values[t]:
+      results['pass']+=1
+    else:
+      print('ERROR: DynamicXmlElement value failure: "Time {} newTarget.newMetric = {}"'.format(t,v))
+      results['fail']+=1
+except AttributeError:
+  print('ERROR: DynamicXmlElement has missing elements!')
+  results['fail']+=1
+
+# for debugging:
+#print(xmlUtils.prettify(dynamic._tree,addRavenNewlines=False))
 ###################
 # Variable Groups #
 ###################

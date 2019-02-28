@@ -14,7 +14,9 @@
     </description>
     <revisions>
       <revision author="alfoa" date="2018-01-24">Adding this test description.</revision>
+      <revision author="alfoa" date="2018-10-01">This is a requirement test now.</revision>
     </revisions>
+    <requirements>R-IS-6</requirements>
   </TestInfo>
   <RunInfo>
     <JobName>GenericInterfaceIOCustomOutput</JobName>
@@ -36,7 +38,6 @@
       <fileargs arg="aux" extension=".two" type="input"/>
       <!-- THIS outputFile xml node is used to specify a fixed output file (ONLY CSV) from which RAVEN will collect the results -->
       <outputFile>fixed_output.csv</outputFile>
-      <prepend>python</prepend>
     </Code>
   </Models>
 

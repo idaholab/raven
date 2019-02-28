@@ -64,6 +64,20 @@ The two-dimensional canyon offers a low region surrounded by higher walls.
 
 
 
+
+\subsubsection{Time-Parabola}
+This model features the sum of a parabola in both $x$ and $y$; however, the parabola in $y$ moves in time and
+has a reduced magnitude as time increases. As such, the minimum is always found at $x=0$ and at $(t-y)=0$, with
+$y$ values at low $t$ being more impactful than at later $t$, and $x$ as impactful as $y(t=0)$.
+
+\begin{itemize}
+  \item Function: $f(x,y,t) = x^2 + \sum_{t} (t-y)^2 \exp{-t}$
+  \item Domain: $-10 \leq x,y,t \leq 10$
+  \item Global Minimum: $f(0,y=t,t) = 0$
+\end{itemize}
+
+
+
 \subsection{Constrained}
 \subsubsection{Mishra's Bird Function}
 The Mishra bird function offers a constrained problem with multiple peaks, local minima, and one steep global

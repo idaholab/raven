@@ -1,0 +1,137 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+
+  <RunInfo>
+    <WorkingDir>test_rom_trainer</WorkingDir>
+    <Sequence>
+      MC_for_rom_trainer,
+      test_extract_for_rom_trainer,
+      test_rom_trainer,
+      test_rom_trainerHS,
+      rom_MC,
+      rom_MCHS
+    </Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <VariableGroups>
+    <Group name="GRO_targets">DeltaTimeScramToAux,DG1recoveryTime</Group>
+  </VariableGroups>
+
+  <Files>
+    <Input name="TMI_fake">TMI_fake.py</Input>
+  </Files>
+
+  <Distributions>
+    <Uniform name="auxbackup">
+      <lowerBound>0</lowerBound>
+      <upperBound>2000</upperBound>
+    </Uniform>
+    <Uniform name="DG1backup">
+      <lowerBound>0</lowerBound>
+      <upperBound>1000</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Models>
+    <!-- add this node using the input modification function
+    <ExternalModel ModuleToLoad="TMI_fake" name="PythonModule" subType="">
+      <variables>GRO_targets,time,CladTempThreshold</variables>
+    </ExternalModel>
+    -->
+    <ROM name="ROM1" subType="SciKitLearn">
+      <Features>GRO_targets</Features>
+      <Target>CladTempThreshold</Target>
+      <SKLtype>svm|SVR</SKLtype>
+      <kernel>linear</kernel>
+      <C>10.0</C>
+      <tol>0.0001</tol>
+      <coef0>0.0</coef0>
+    </ROM>
+    <ROM name="ROMHS" subType="SciKitLearn">
+      <Features>GRO_targets</Features>
+      <Target>CladTempThreshold,time</Target>
+      <SKLtype>svm|SVR</SKLtype>
+      <kernel>linear</kernel>
+      <C>10.0</C>
+      <tol>0.0001</tol>
+      <coef0>0.0</coef0>
+    </ROM>
+  </Models>
+
+  <Samplers>
+    <Grid name="gridRom">
+        <variable name="DeltaTimeScramToAux">
+            <distribution>auxbackup</distribution>
+            <grid construction="custom" type="CDF">0.5 1.0 0.0</grid>
+        </variable>
+        <constant name="DG1recoveryTime">500</constant>
+    </Grid>
+    <MonteCarlo name="RAVENmcCode3">
+      <samplerInit>
+        <limit>5</limit>
+      </samplerInit>
+      <variable name="DeltaTimeScramToAux">
+        <distribution>auxbackup</distribution>
+      </variable>
+      <variable name="DG1recoveryTime">
+        <distribution>DG1backup</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <Steps verbosity="debug">
+    <MultiRun name="MC_for_rom_trainer">
+      <Input class="DataObjects" type="PointSet">inputHolder</Input>
+      <Model class="Models" type="ExternalModel">PythonModule</Model>
+      <Sampler class="Samplers" type="MonteCarlo">RAVENmcCode3</Sampler>
+      <Output class="Databases" type="HDF5">MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER</Output>
+    </MultiRun>
+    <IOStep name="test_extract_for_rom_trainer">
+      <Input class="Databases" type="HDF5">MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER</Input>
+      <Input class="Databases" type="HDF5">MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER</Input>
+      <Output class="DataObjects" type="PointSet">Pointset_from_database_for_rom_trainer</Output>
+      <Output class="DataObjects" type="HistorySet">Historyset_from_database_for_rom_trainer</Output>
+    </IOStep>
+    <RomTrainer name="test_rom_trainer">
+      <Input class="DataObjects" type="PointSet">Pointset_from_database_for_rom_trainer</Input>
+      <Output class="Models" type="ROM">ROM1</Output>
+    </RomTrainer>
+    <RomTrainer name="test_rom_trainerHS">
+      <Input class="DataObjects" type="HistorySet">Historyset_from_database_for_rom_trainer</Input>
+      <Output class="Models" type="ROM">ROMHS</Output>
+    </RomTrainer>
+    <MultiRun name="rom_MC" re-seeding="200286">
+      <Input class="DataObjects" type="PointSet">data_for_sampling_empty_at_begin</Input>
+      <Model class="Models" type="ROM">ROM1</Model>
+      <Sampler class="Samplers" type="Grid">gridRom</Sampler>
+      <Output class="DataObjects" type="PointSet">outputMontecarloRom</Output>
+      <Output class="OutStreams" type="Print">outputMontecarloRom_dump</Output>
+    </MultiRun>
+    <MultiRun name="rom_MCHS" re-seeding="200286">
+      <Input class="DataObjects" type="PointSet">data_for_sampling_empty_at_begin</Input>
+      <Model class="Models" type="ROM">ROMHS</Model>
+      <Sampler class="Samplers" type="Grid">gridRom</Sampler>
+      <Output class="DataObjects" type="HistorySet">outputMontecarloRomHS</Output>
+      <Output class="OutStreams" type="Print">outputMontecarloRomHS_dump</Output>
+    </MultiRun>
+  </Steps>
+
+  <OutStreams>
+    <Print name="outputMontecarloRom_dump">
+      <type>csv</type>
+      <source>outputMontecarloRom</source>
+    </Print>
+    <Print name="outputMontecarloRomHS_dump">
+        <type>csv</type>
+        <source>outputMontecarloRomHS</source>
+    </Print>
+  </OutStreams>
+
+  <Databases>
+    <HDF5 name="MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER" readMode="overwrite"/>
+  </Databases>
+
+  <ExternalXML node="DataObjects" xmlToLoad="../ext_dataobjects.xml"/>
+
+</Simulation>
