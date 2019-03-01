@@ -126,7 +126,7 @@ class hdf5Database(MessageHandler.MessageUser):
       self.h5FileW = self.openDatabaseW(self.filenameAndPath,'r+')
       # Call the private method __createObjFromFile, that constructs the list of the paths "self.allGroupPaths"
       # and the list "self.allGroupEnds" based on the database that already exists
-      self.parentGroupName = b'/'
+      self.parentGroupName = '/'
       self.__createObjFromFile()
       # "self.firstRootGroup", true if the root group is present (or added), false otherwise
       self.firstRootGroup = True
@@ -140,7 +140,7 @@ class hdf5Database(MessageHandler.MessageUser):
       # The first root group has not been added yet
       self.firstRootGroup = False
       # The root name is / . it can be changed if addGroupInit is called
-      self.parentGroupName = b'/'
+      self.parentGroupName = '/'
       self.__createFileLevelInfoDatasets()
 
   def __len__(self):
@@ -173,11 +173,11 @@ class hdf5Database(MessageHandler.MessageUser):
     self.allGroupEnds  = []
     if len(self.h5FileW) == 0:
       # the database is empty. An error must be raised
-      self.raiseAnError(IOError, 'The database '+str(self.name) + ' is empty but "readMode" has been set to "read"!')
+      self.raiseAnError(IOError, 'The database '+str(self.name) + ' is empty but "readMode" is "read"!')
     if not self.fileOpen:
       self.h5FileW = self.openDatabaseW(self.filenameAndPath,'a')
     if 'allGroupPaths' in self.h5FileW and 'allGroupEnds' in self.h5FileW:
-      self.allGroupPaths = self.h5FileW["allGroupPaths"][...].tolist()
+      self.allGroupPaths = utils.toBytesIterative(self.h5FileW["allGroupPaths"][...].tolist())
       self.allGroupEnds = self.h5FileW["allGroupEnds"][...].tolist()
     else:
       self.h5FileW.visititems(self.__isGroup)
@@ -274,8 +274,8 @@ class hdf5Database(MessageHandler.MessageUser):
     attribs = {} if attributes is None else attributes
     groupNameInit = groupName+"_"+datetime.now().strftime("%m-%d-%Y-%H-%S")
     for index in range(len(self.allGroupPaths)):
-      comparisonName = self.allGroupPaths[index]
-      splittedPath=comparisonName.split(b'/')
+      comparisonName = utils.toString(self.allGroupPaths[index])
+      splittedPath=comparisonName.split('/')
       if len(splittedPath) > 0:
         if groupNameInit in splittedPath[0]:
           alphabetCounter, movingCounter = 0, 0
@@ -284,7 +284,7 @@ class hdf5Database(MessageHandler.MessageUser):
           while True:
             testGroup = groupNameInit +"_"+prefixLetter+asciiAlphabet[alphabetCounter]
             if testGroup not in self.allGroupPaths:
-              groupNameInit = testGroup
+              groupNameInit = utils.toString(testGroup)
               break
             alphabetCounter+=1
             if alphabetCounter >= len(asciiAlphabet):
@@ -300,7 +300,7 @@ class hdf5Database(MessageHandler.MessageUser):
     grp.attrs['rootname'  ] = True
     grp.attrs['endGroup'  ] = False
     grp.attrs[b'groupName'] = groupNameInit
-    self.allGroupPaths.append(b"/" + groupNameInit)
+    self.allGroupPaths.append(utils.toBytes("/" + groupNameInit))
     self.allGroupEnds.append(False)
     self.h5FileW["allGroupPaths"].resize((len(self.allGroupPaths),))
     self.h5FileW["allGroupEnds"].resize( (len(self.allGroupEnds),) )
@@ -467,37 +467,11 @@ class hdf5Database(MessageHandler.MessageUser):
       @ Out, None
     """
     if parentName != "/":
-      self.allGroupPaths.append(utils.toBytes(parentName + b"/" + groupName))
+      self.allGroupPaths.append(utils.toBytes(parentName) + b"/" + utils.toBytes(groupName))
       self.allGroupEnds.append(True)
     else:
-      self.allGroupPaths.append(utils.toBytes(b"/" + groupName))
+      self.allGroupPaths.append(b"/" + utils.toBytes(groupName))
       self.allGroupEnds.append(True)
-
-  def retrieveAllHistoryPaths(self,rootName=None):
-    """
-      Function to create a list of all the HistorySet paths present in an existing database
-      @ In,  rootName, string, optional, It's the root name, if present, only the groups that have this root are going to be returned
-      @ Out, allHistoryPaths, list, List of the HistorySet paths
-    """
-    if rootName:
-      rname = rootName
-    # Create the "self.allGroupPaths" list from the existing database
-    if not self.fileOpen:
-      self.__createObjFromFile()
-    # Check database type
-    if self.type == 'MC':
-      # Parallel structure => "self.allGroupPaths" already contains the HistorySet' paths
-      if not rootName:
-        allHistoryPaths = self.allGroupPaths
-      else:
-        allHistoryPaths = [k for k in self.allGroupPaths.keys() if k.endswith(rname)]
-    else:
-      # Tree structure => construct the HistorySet' paths
-      if not rootName:
-        allHistoryPaths = [k for k, v in self.allGroupPaths.items() if v ]
-      else:
-        allHistoryPaths = [k for k, v in self.allGroupPaths.items() if v and k.endswith(rname)]
-    return allHistoryPaths
 
   def retrieveAllHistoryNames(self,rootName=None):
     """
@@ -506,13 +480,14 @@ class hdf5Database(MessageHandler.MessageUser):
       @ Out, workingList, list, List of the HistorySet names
     """
     if rootName:
-      rname = rootName
+      rname = utils.toString(rootName)
     if not self.fileOpen:
       self.__createObjFromFile() # Create the "self.allGroupPaths" list from the existing database
+    print(self.allGroupPaths)
     if not rootName:
-      workingList = [k.split(b'/')[-1] for k, v in zip(self.allGroupPaths,self.allGroupEnds) if v ]
+      workingList = [utils.toString(k).split('/')[-1] for k, v in zip(self.allGroupPaths,self.allGroupEnds) if v ]
     else:
-      workingList = [k.split(b'/')[-1] for k, v in zip(self.allGroupPaths,self.allGroupEnds) if v and k.endswith(rname)]
+      workingList = [utils.toString(k).split('/')[-1] for k, v in zip(self.allGroupPaths,self.allGroupEnds) if v and utils.toString(k).endswith(rname)]
 
     return workingList
 
@@ -635,7 +610,7 @@ class hdf5Database(MessageHandler.MessageUser):
     if parentName != '/':
       # this loops takes ~.2 seconds on a 100 milion list (it is accetable)
       for s in self.allGroupPaths:
-        if s.endswith("/"+parentName.strip()):
+        if utils.toString(s).endswith("/"+parentName.strip()):
           parentGroupName = s
           break
     else:
