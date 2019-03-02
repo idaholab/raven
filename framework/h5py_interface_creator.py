@@ -483,7 +483,6 @@ class hdf5Database(MessageHandler.MessageUser):
       rname = utils.toString(rootName)
     if not self.fileOpen:
       self.__createObjFromFile() # Create the "self.allGroupPaths" list from the existing database
-    print(self.allGroupPaths)
     if not rootName:
       workingList = [utils.toString(k).split('/')[-1] for k, v in zip(self.allGroupPaths,self.allGroupEnds) if v ]
     else:
