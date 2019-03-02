@@ -21,7 +21,7 @@
           In PR #882, the standard errors on statistics moments are implemented, these quantities are stored in
           the pointwise metadata, and will be printed out in the output csv files by default.
           In order to avoid regolding this test, the optional node 'what' with text values 'input, output' is added.
-          In this case, only the user requested variables as specified in the DataObjects are printed out. 
+          In this case, only the user requested variables as specified in the DataObjects are printed out.
       </revision>
       <revision author='talbpaul' date='2018-09-13'>changed Pmax and Pmin to P (same for Q)</revision>
     </revisions>
@@ -30,6 +30,7 @@
   <RunInfo>
     <WorkingDir>VARMA</WorkingDir>
     <Sequence>read,train,sample,write,load,stats</Sequence>
+    <!-- NOTE: the dump, unpickle steps have been removed until statsmodel 0.9 is in RAVEN's library set. See issue #916. -->
     <batchSize>1</batchSize>
   </RunInfo>
 
@@ -42,6 +43,14 @@
       <Input class="DataObjects" type="HistorySet">training</Input>
       <Output class="Models" type="ROM">VARMA</Output>
     </RomTrainer>
+    <IOStep name="dump">
+      <Input class="Models" type="ROM">VARMA</Input>
+      <Output class="Files" type="">pk</Output>
+    </IOStep>
+    <IOStep name="unpickle">
+      <Input class="Files" type="">pk</Input>
+      <Output class="Models" type="ROM">VARMA</Output>
+    </IOStep>
     <MultiRun name="sample">
       <Input class="DataObjects" type="PointSet">placeholder</Input>
       <Model class="Models" type="ROM">VARMA</Model>
@@ -68,6 +77,7 @@
   </Steps>
 
   <Files>
+    <Input name="pk">varma.pk</Input>
     <Input name="source">correlated.csv</Input>
     <Input name="synthetic">samples_0.csv</Input>
   </Files>
@@ -110,6 +120,7 @@
   </DataObjects>
 
   <Models>
+    <ROM name="unpk" subType="pickledROM"/>
     <ROM name="VARMA" subType="ARMA">
       <Target>A,B,C,D,Time</Target>
       <Features>scaling</Features>

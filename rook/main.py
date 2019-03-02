@@ -164,6 +164,12 @@ def process_result(index, _input_data, output_data):
   """
   group = output_data.group
   process_test_name = test_name_list[index]
+  # TODO add feature to turn coloring on and off
+  norm_color = '\033[0m'  #reset color
+  skip_color = '\033[90m' #dark grey
+  fail_color = '\033[91m' #red
+  pass_color = '\033[92m' #green
+  name_color = '\033[93m' #yellow
   if group == Tester.group_success:
     results["pass"] += 1
     for postreq in function_postreq.get(process_test_name, []):
@@ -171,19 +177,27 @@ def process_result(index, _input_data, output_data):
         job_id = name_to_id[postreq]
         print("Enabling", postreq, job_id)
         run_pool.enable_job(job_id)
+    okaycolor = pass_color
   elif group == Tester.group_skip:
     results["skipped"] += 1
     print(output_data.message)
+    okaycolor = skip_color
   else:
     results["fail"] += 1
     failed_list.append(process_test_name)
     print(output_data.output)
     print(output_data.message)
+    okaycolor = fail_color
   number_done = sum(results.values())
-  print("({}/{}) {:7s} ({}) {}".format(number_done, len(function_list),
-                                       Tester.get_group_name(group),
-                                       sec_format(output_data.runtime),
-                                       process_test_name))
+  print("({done}/{togo}) {statcolor}{status:7s}{normcolor} ({time}) {namecolor}{test}{normcolor}"
+        .format(done=number_done,
+                togo=len(function_list),
+                statcolor=okaycolor,
+                normcolor=norm_color,
+                namecolor=name_color,
+                status=Tester.get_group_name(group),
+                time=sec_format(output_data.runtime),
+                test=process_test_name))
 if __name__ == "__main__":
 
   test_re = re.compile(args.test_re_raw)
