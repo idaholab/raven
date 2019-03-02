@@ -1,0 +1,52 @@
+1       $ Number of calculation timesteps per printed timesteps skipped in order to produce output
+1       $ Number of Transmutation and Partitioning Loops
+1       $ Number of BU Intervals
+0       $ User Defined BOL Transuranic Enrichment (w/o)
+0.0     $ Time Designating Beginning of Life (d)
+365.0   $ Time Designating End of Life (d)
+1       $ Apply Separation Efficiencies at Lower Bound of the BU Interval (1) / Apply Separation Efficiencies for Entire BU Interval (2)
+2       $ Use initialized U vector every cycle (1) / Use reprocessed U vector only (2)
+2       $ Use blended TRU approach every cycle (1) / Use reprocessed TRU vector only (2)
+Number of Time Step for each Burn-up Step
+TS_N    1      
+LBND    Lower Time Step Boundary (d)
+        xxxxxE+00
+UBND    Upper Time Step Boundary (d)
+        xxxxxE+00
+Max Energy Group Number       1          $Maximum(ActinideEnergyGroups,FissionProductEnergyGroups)
+FLUX    Total Flux (cm^-2*s^-1)
+        xxxxxE+00 
+PHIST   Manually Provided Power History (p.u.)
+        1.000E+00
+SEPARATION EFFICIENCY BLOCK
+ISOT    Separation Efficiencies (%)
+ Np237  1.000E+00
+ END    Separation Efficiency  
+ ALPHA  1.000E+00
+ END    Uranium    Transurnaic$Extern    al Feed Vectors (Used if BlendingOption Inv oked)  
+ Np237  0.000E+00  0.000E+00
+ END    BURN UP DEPENDENT CROSS SECTION BLOCK  
+Actinides          React Modes = 3
+Reaction Names     ngammaXS   N,FISS     n2nXS
+Reaction Code      1111       1116       1113
+Energy groups      1
+ISOT    ngammaXS   XSEC (b)
+ NP237  xxxxxE+00 
+ END    N,FISS     XSEC (b)  
+ NP237  xxxxxE-00 
+ END    n2nXS      XSEC (b)  
+ Np237  0.000E+00 
+ END      
+Fission Products   React Modes = 4
+Reaction Names     ngammaXS   n2nXS      nalphaXS   npXS
+Reaction Code      1111       1113       1114       1115
+Energy groups      1
+ISOT    ngammaXS
+ ALPHA  xxxxxE+00 
+ END    n2nXS  
+ ALPHA  xxxxxE+00 
+ END    nalphaXS  
+ ALPHA  xxxxxE+00  
+ END    npXS  
+ ALPHA  xxxxxE+00 
+ END      

@@ -21,25 +21,29 @@ Created on July 10, 2013
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
-if not 'xrange' in dir(__builtins__):
-  xrange = range
 #End compatibility block for Python 3-------------------------------------------
 
 ################################################################################
 from utils import utils
 from .PostProcessor import PostProcessor
-from .BasicStatistics import BasicStatistics
-from .ComparisonStatistics import ComparisonStatistics
-from .ExternalPostProcessor import ExternalPostProcessor
-from .ImportanceRank import ImportanceRank
-from .InterfacedPostProcessor import InterfacedPostProcessor
-from .LimitSurface import LimitSurface
-from .LimitSurfaceIntegral import LimitSurfaceIntegral
-from .RavenOutput import RavenOutput
-from .SafestPoint import SafestPoint
 
-from .TopologicalDecomposition import TopologicalDecomposition
+from .Metric import Metric
 from .DataMining import DataMining
+from .ETImporter import ETImporter
+from .SafestPoint import SafestPoint
+from .LimitSurface import LimitSurface
+from .ValueDuration import ValueDuration
+from .SampleSelector import SampleSelector
+from .ImportanceRank import ImportanceRank
+from .BasicStatistics import BasicStatistics
+from .CrossValidation import CrossValidation
+from .FastFourierTransform import FastFourierTransform
+from .LimitSurfaceIntegral import LimitSurfaceIntegral
+from .ExternalPostProcessor import ExternalPostProcessor
+from .InterfacedPostProcessor import InterfacedPostProcessor
+from .TopologicalDecomposition import TopologicalDecomposition
+from .ComparisonStatisticsModule import ComparisonStatistics
+# from .RavenOutput import RavenOutput # deprecated for now
 
 ## These utilize the optional prequisite library PySide, so don't error if they
 ## do not import appropriately.

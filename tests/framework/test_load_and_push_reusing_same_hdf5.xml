@@ -11,11 +11,13 @@
     <revisions>
       <revision author="alfoa" date="2016-12-12">Added test</revision>
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+      <revision author="alfoa" date="2017-12-14">Modified input since new structure of DataObject</revision>
     </revisions>
+    <requirements>R-F-6</requirements>
   </TestInfo>
   <RunInfo>
     <WorkingDir>GridTestSameHDF5</WorkingDir>
-    <Sequence>test_extract,MonteCarloRestarted,test_push</Sequence>
+    <Sequence>test_extract,GridRestarted,test_push</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
 
@@ -71,12 +73,11 @@
   </Samplers>
 
   <Steps>
-    <MultiRun name="MonteCarloRestarted">
+    <MultiRun name="GridRestarted">
       <Input class="Files" type="">massflowrate_fake.i</Input>
       <Model class="Models" type="Code">MyRAVEN</Model>
       <Sampler class="Samplers" type="Grid">myGrid</Sampler>
       <Output class="Databases" type="HDF5">test_DummyModel_db</Output>
-      <Output class="DataObjects" type="HistorySet">stories</Output>
       <Output class="DataObjects" type="PointSet">outGrid</Output>
       <Output class="DataObjects" type="PointSet">outGridMax</Output>
       <Output class="DataObjects" type="PointSet">outGridMin</Output>
@@ -87,8 +88,6 @@
       <Input class="Databases" type="HDF5">test_DummyModel_db</Input>
       <Input class="Databases" type="HDF5">test_DummyModel_db</Input>
       <Input class="Databases" type="HDF5">test_DummyModel_db</Input>
-      <Input class="Databases" type="HDF5">test_DummyModel_db</Input>
-      <Output class="DataObjects" type="HistorySet">stories</Output>
       <Output class="DataObjects" type="PointSet">outGrid</Output>
       <Output class="DataObjects" type="PointSet">outGridMax</Output>
       <Output class="DataObjects" type="PointSet">outGridMin</Output>
@@ -100,8 +99,8 @@
     </IOStep>
     <IOStep name="test_push">
         <Input class="Databases" type="HDF5">test_DummyModel_db</Input>
-        <Output class="DataObjects" type="HistorySet">stories2</Output>
-        <Output class="OutStreams" type="Print">stories2_dump</Output>
+        <Output class="DataObjects" type="PointSet">reloadedPointSet</Output>
+        <Output class="OutStreams" type="Print">reloadedPointSet_dump</Output>
     </IOStep>
   </Steps>
 
@@ -138,10 +137,11 @@
       <type>csv</type>
       <source>outGridAverageFromHDF5</source>
     </Print>
-    <Print name="stories2_dump">
+    <Print name="reloadedPointSet_dump">
         <type>csv</type>
-        <source>stories2</source>
+        <source>reloadedPointSet</source>
     </Print>
+    
   </OutStreams>
 
   <DataObjects>
@@ -191,16 +191,13 @@
         <operator>average</operator>
       </options>
     </PointSet>
-    <HistorySet name="stories">
-      <Input>VarGauss1,VarGauss2,VarTri1</Input>
-      <Output>OutputPlaceHolder</Output>
-    </HistorySet>
-    <HistorySet name="stories2">
+    <PointSet name="reloadedPointSet">
         <Input>VarGauss1,VarGauss2,VarTri1</Input>
         <Output>OutputPlaceHolder</Output>
-    </HistorySet>
-
-
+        <options>
+            <operator>average</operator>
+        </options>
+    </PointSet>
   </DataObjects>
 
 </Simulation>

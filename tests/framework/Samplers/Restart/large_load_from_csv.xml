@@ -6,7 +6,7 @@
     <batchSize>1</batchSize>
   </RunInfo>
   <TestInfo>
-    <name>framework/Samplers/Restart/LoadFromLargeCSV</name>
+    <name>framework/Samplers/Restart.LoadFromLargeCSV</name>
     <author>talbpaul</author>
     <created>2016-06-30</created>
     <classesTested>Samplers.Grid</classesTested>
@@ -94,10 +94,12 @@
     <Print name="large">
       <type>csv</type>
       <source>solns</source>
+      <what>input,output</what>
     </Print>
     <Print name="large_restart">
       <type>csv</type>
       <source>restart</source>
+      <what>input,output</what>
     </Print>
   </OutStreams>
 

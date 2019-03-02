@@ -19,7 +19,7 @@ Created on Apr 30, 2015
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
-warnings.simplefilter('default',DeprecationWarning)
+warnings.simplefilter('default', DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -46,13 +46,13 @@ class File(BaseType):
       @ Out, None
     """
     BaseType.__init__(self)
-    self.__file             = None  # when open, refers to open file, else None
-    self.__path             = ''    # file path
-    self.__base             = ''    # file base
-    self.__ext              = None  # file extension
-    self.__linkedModel      = None  # hard link to a certain Code subtype (e.g. RELAP-7, MooseBasedApp, etc,)
-    self.type               = None  # type ("type" in the input) to label a file to any particular subcode in the code interface
-    self.perturbable        = False # is this file perturbable by a sampling strategy?
+    self.__file = None              # when open, refers to open file, else None
+    self.__path = ''                # file path
+    self.__base = ''                # file base
+    self.__ext = None               # file extension
+    self.__linkedModel = None       # hard link to a certain Code subtype (e.g. RELAP-7, MooseBasedApp, etc,)
+    self.type = None                # type ("type" in the input) to label a file to any particular subcode in the code interface
+    self.perturbable = False        # is this file perturbable by a sampling strategy?
 
   def __del__(self):
     """
@@ -94,25 +94,27 @@ class File(BaseType):
     """
       Pickle dump method hook.
       @ In, None
-      @ Out, statedict, dict, dict of objets needed to restore instance
+      @ Out, stateDict, dict, dict of objets needed to restore instance
     """
-    statedict={'path':self.__path,
+    stateDict={'path':self.__path,
                'base':self.__base,
                'ext' :self.__ext,
-               'type':self.type}
-    return statedict
+               'type':self.type,
+               'linkedModel':self.__linkedModel}
+    return stateDict
 
-  def __setstate__(self,statedict):
+  def __setstate__(self,stateDict):
     """
       Pickle load method hook.
-      @ In, statedict, dict, of objets needed to restore instance
+      @ In, stateDict, dict, of objets needed to restore instance
       @ Out, None
     """
-    self.__path  = statedict['path']
-    self.__base  = statedict['base']
-    self.__ext   = statedict['ext' ]
-    self.type    = statedict['type' ]
-    self.updateFilename()
+    self.__file  = None
+    self.__path  = stateDict['path']
+    self.__base  = stateDict['base']
+    self.__ext   = stateDict['ext' ]
+    self.type    = stateDict['type' ]
+    self.__linkedModel = stateDict['linkedModel' ]
 
   def __repr__(self):
     """
@@ -505,222 +507,6 @@ class RAVENGenerated(File):
 #
 #
 #
-#   Form for StaticXMLOutput
-#    Static form:
-#    <root type='Static'>
-#      <parameter>
-#        <single-value properties>value</single-value properties>
-#        <multi-value properties>
-#          <w.r.t. parameter2>value</w.r.t. paramter2>
-#          <w.r.t. parameter2>value</w.r.t. paramter2>
-#        </multi-value properties>
-#      <parameter>
-#    </root>
-#
-class StaticXMLOutput(RAVENGenerated):
-  """
-    Specialized class for consistent RAVEN XML outputs.  See forms in comments above.
-  """
-  def newTree(self,root,pivotParam=None):
-    """
-      Sets up a new internal tree.
-      @ In, root, string, name of root node
-      @ In, pivotParam, string, unused (for consistency with dynamic method)
-      @ Out, None
-    """
-    self.tree = xmlUtils.newTree(root,attrib={'type':'Static'})
-
-  def addScalar(self,target,name,value,root=None,pivotVal=None):
-    """
-      Adds a node entry named "name" with value "value" to "target" node, such as
-      <root>
-        <target>
-          <name>value<name>
-      @ In, target, string, target parameter to add node value to
-      @ In, name, string, name of characteristic of target to add
-      @ In, value, string/float/etc, value of characteristic
-      @ In, root, xml.etree.ElementTree.Element, optional, root to add to
-      @ In, pivotVal, float, optional, unused (for consistency with dynamic mode)
-      @ Out, None
-    """
-    if root is None:
-      root = self.tree.getroot()
-    #note: illegal unicode characters are checked for in xmlUtils methods
-    targ = self._findTarg(root,target)
-    targ.append(xmlUtils.newNode(name,text=value))
-
-  def addVector(self,target,name,valueDict,root=None,pivotVal=None):
-    """
-      Adds a node entry named "name" with value "value" to "target" node, such as
-      <root>
-        <target>
-          <name>
-            <with_respect_to_name1>value1
-            <with_respect_to_name2>value2
-            <with_respect_to_name3>value3
-      The valueDict should be as {with_respect_to_name1:value1, with_respect_to_name2:value2}
-      For example, if the "name" is sensitivity_coefficients, each entry would be the
-          sensitivity of "target" to "with_respect_to" parameters.
-      @ In, target, string, target parameter to add node value to
-      @ In, name, string, name of characteristic of target to add
-      @ In, valueDict, dict, name:value
-      @ In, root, xml.etree.ElementTree.Element, optional, root to add to
-      @ In, pivotVal, float, optional, unused (for consistency with dynamic mode)
-      @ Out, None
-    """
-    if root is None:
-      root = self.tree.getroot()
-    targ = self._findTarg(root,target)
-    nameNode = xmlUtils.newNode(name)
-    for key,value in valueDict.items():
-      nameNode.append(xmlUtils.newNode(key,text=value))
-    targ.append(nameNode)
-
-  def _findTarg(self,root,target):
-    """
-      Searches "root" for "target" node and makes it if not found
-      @ In, root, xml.etree.ElementTree.Element, node to search under
-      @ In, target, string, name of target to find
-      @ Out, targ, xml.etree.ElementTree.Element, desired target node
-    """
-    #find target node
-    targ = xmlUtils.findPath(root,target)
-    #if it doesn't exist, make it and add it
-    if targ is None:
-      targ = xmlUtils.newNode(target)
-      root.append(targ)
-    return targ
-
-  def writeFile(self):
-    """
-      Writes the input file to disk.
-      @ In, None
-      @ Out, None
-    """
-    #prettify tree
-    pretty = xmlUtils.prettify(self.tree)
-    #make sure file is written cleanly and anew
-    if self.isOpen():
-      self.close()
-    self.writelines(pretty,overwrite=True)
-    self.close()
-
-#    Form for DynamicXMLOutput
-#    <root type='Static'>
-#      <pivot value="value">
-#        <parameter>
-#          <single-value properties>value</single-value properties>
-#          <multi-value properties>
-#            <w.r.t. parameter2>value</w.r.t. paramter2>
-#            <w.r.t. parameter2>value</w.r.t. paramter2>
-#          </multi-value properties>
-#        <parameter>
-#    </root>
-class DynamicXMLOutput(StaticXMLOutput):
-  """
-    Specialized class for consistent RAVEN XML outputs.  See forms in comments above.
-  """
-  def __init__(self):
-    StaticXMLOutput.__init__(self)
-    # while maintaining two parallel lists is not very pythonic, it's much faster for searching for large lists.
-    self.pivotNodes = [] #list of pivot nodes, maintained in the order of pivotVals below
-    self.pivotVals = [] #RBTree (self maintained) of unique pivot values
-    #we don't save the root name, so make a variable for saving it
-    self.rootName = 'DynamicTree'
-
-  def newTree(self,root,pivotParam=None):
-    """
-      Sets up a new internal tree.
-      @ In, root, string, name of root node
-      @ In, pivotParam, string, name of time-like parameter
-      @ Out, None
-    """
-    if pivotParam is None:
-      self.raiseAnError(RuntimeError,'newTree argument pivotParam is None but output is in dynamic mode!')
-    self.pivotParam = pivotParam
-    self.pivotNodes = []
-    self.rootName = root
-
-  def addScalar(self,target,name,value,pivotVal=None):
-    """
-      Adds a node entry named "name" with value "value" to "target" node, such as
-      <root>
-        <pivotParam value=pivotVal>
-          <target>
-            <name>value<name>
-      @ In, pivotVal, float, value of the pivot parameter
-      @ In, target, string, target parameter to add node value to
-      @ In, name, string, name of characteristic of target to add
-      @ In, value, string/float/etc, value of characteristic
-      @ Out, None
-    """
-    if pivotVal is None:
-      self.raiseAnError(RuntimeError,'In addScalar no pivotVal specificied, but in dynamic mode!')
-    pivotNode = self.findPivotNode(pivotVal)
-    #use addScalar methods to add parameters
-    StaticXMLOutput.addScalar(self,target,name,value,root=pivotNode)
-
-  def addVector(self,target,name,valueDict,pivotVal=None):
-    """
-      Adds a node entry named "name" with value "value" to "target" node, such as
-      <root>
-        <target>
-          <name>
-            <with_respect_to_name1>value1
-            <with_respect_to_name2>value2
-            <with_respect_to_name3>value3
-      The valueDict should be as {with_respect_to_name1:value1, with_respect_to_name2:value2}
-      For example, if the "name" is sensitivity_coefficients, each entry would be the
-          sensitivity of "target" to "with_respect_to" parameters.
-      @ In, target, string, target parameter to add node value to
-      @ In, name, string, name of characteristic of target to add
-      @ In, valueDict, dict, name:value
-      @ Out, None
-    """
-    if pivotVal is None:
-      self.raiseAnError(RuntimeError,'In addScalar no pivotVal specificied, but in dynamic mode!')
-
-    pivotNode = self.findPivotNode(pivotVal)
-    StaticXMLOutput.addVector(self,target,name,valueDict,root=pivotNode)
-
-  def findPivotNode(self,pivotVal):
-    """
-      Searches pivot nodes for node with value pivotVal, or adds it if it doesn't exist
-      @ In, pivotVal, float, value of pivot to find
-      @ Out, pivotNode, xml.etree.ElementTree.Element, node desired
-    """
-    #find the right dynamic node
-    self.pivotVals,pivotIndex,pivotVal = utils.getRelativeSortedListEntry(self.pivotVals,pivotVal,tol=1e-10)
-    #check if an insertion was performed
-    if len(self.pivotVals) > len(self.pivotNodes):
-      #create new node
-      pivotNode = xmlUtils.newNode(self.pivotParam, attrib={'value':pivotVal})
-      self.pivotNodes.insert(pivotIndex,pivotNode)
-    else:
-      pivotNode = self.pivotNodes[pivotIndex]
-    return pivotNode
-
-  def writeFile(self):
-    """
-      Writes the input file to disk.  Because we store a list of dynamic nodes
-      instead of a full tree, requires some special treatment
-      @ In, None
-      @ Out, None
-    """
-    if self.isOpen():
-      self.close()
-    #write the root node manually
-    self.writelines('<'+self.rootName+' type="Dynamic">\n',overwrite=True)
-    #write out each time step node
-    for node in self.pivotNodes:
-      pretty = xmlUtils.prettify(node,startingTabs=1,addRavenNewlines=False)
-      self.writelines(pretty)
-    self.writelines('</'+self.rootName+'>\n')
-    self.close()
-#
-#
-#
-#
 class CSV(RAVENGenerated):
   """
     Specialized class specific to CSVs.  Was useful, may not be now, might be again.
@@ -761,6 +547,30 @@ class UserGenerated(File):
     self.setAbsFile(os.path.join(self.subDirectory,node.text.strip()))
     self.alias         = node.attrib.get('name'       ,self.getFilename())
 
+  def __getstate__(self):
+    """
+      Pickle dump method hook.
+      @ In, None
+      @ Out, stateDict, dict, dict of objets needed to restore instance
+    """
+    stateDict = File.__getstate__(self)
+    stateDict['perturbed'   ] = self.perturbed
+    stateDict['subDirectory'] = self.subDirectory
+    stateDict['alias'       ] = self.alias
+    return stateDict
+
+  def __setstate__(self,stateDict):
+    """
+      Pickle load method hook.
+      @ In, stateDict, dict, of objets needed to restore instance
+      @ Out, None
+    """
+    File.__setstate__(self,stateDict)
+    self.perturbed     = stateDict['perturbed'   ]
+    self.subDirectory  = stateDict['subDirectory']
+    self.alias         = stateDict['alias'       ]
+
+
 #
 #
 #
@@ -773,8 +583,6 @@ __interFaceDict               = {}
 __interFaceDict['RAVEN']      = RAVENGenerated
 __interFaceDict['CSV']        = CSV
 __interFaceDict['Input']      = UserGenerated
-__interFaceDict['StaticXMLOutput']  = StaticXMLOutput
-__interFaceDict['DynamicXMLOutput'] = DynamicXMLOutput
 __knownTypes                  = __interFaceDict.keys()
 
 def knownTypes():

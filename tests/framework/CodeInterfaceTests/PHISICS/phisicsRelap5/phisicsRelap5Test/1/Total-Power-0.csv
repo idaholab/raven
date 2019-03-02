@@ -1,0 +1,20 @@
+  Total Power (MW) with Time (days)
+
+Material:,matF1_kn_1,Gaussian Point,  1
+  
+ TIME (days),Power(TH)
+ 0.000000000E+000, 0.000000000E+000
+ 5.000000000E+000, 2.419531007E+001
+ 
+Material:,matF1_kn_2,Gaussian Point,  1
+  
+ TIME (days),Power(TH)
+ 0.000000000E+000, 0.000000000E+000
+ 5.000000000E+000, 6.096861371E+001
+ 
+Material:,matF1_kn_3,Gaussian Point,  1
+  
+ TIME (days),Power(TH)
+ 0.000000000E+000, 0.000000000E+000
+ 5.000000000E+000, 2.419530956E+001
+ 

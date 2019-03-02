@@ -19,6 +19,7 @@ Created on July 11, 2013
 import os
 import fileinput
 import re
+from collections import defaultdict
 
 def _splitRecordAndRemoveComments(line, delimiter=None):
   """
@@ -79,10 +80,10 @@ class RELAPparser():
       self.getTripsMinorEditsAndControlVars()
       self.addTripsVarsInMinorEdits()
       toAdd = {}
-      for deckNum in self.inputTrips.keys(): 
+      for deckNum in self.inputTrips.keys():
         toAdd[deckNum] = self.inputTrips[deckNum]['variableTrips'].keys()
       self.addControlVariablesForStoppingCoditions(toAdd)
-  
+
   def addControlVariablesForStoppingCoditions(self, monitoredTrips):
     """
       Method to add the control variables to make any trip in the input list to cause a stop of the code
@@ -94,8 +95,8 @@ class RELAPparser():
       #if self.controlVarType[deckNum] == 1: rangeLow, rangeUp, fill = 1,999,3
       #else                                : rangeLow, rangeUp, fill = 1,9999,4
       availableControlVars  = [str(y).zfill(fill) for y in range(rangeLow,rangeUp) if y not in [int(x) for x in self.inputControlVars[deckNum].keys()]]
-      if len(availableControlVars) < len(monitoredTrips)+1: raise IOError("Not enough control variables' slots are available. We need at least "+str(len(monitoredTrips)+1)+" free slots!") 
-      
+      if len(availableControlVars) < len(monitoredTrips)+1: raise IOError("Not enough control variables' slots are available. We need at least "+str(len(monitoredTrips)+1)+" free slots!")
+
       presentTrips, cnt = self.inputTrips[deckNum]['variableTrips'].keys(), 501
       while str(cnt) in presentTrips and cnt < 600: cnt+=1
       if cnt == 600: raise IOError("All the Trip slots are used! We need at least " +str(len(monitoredTrips)+1)+" slots to specify the stop conditions!!!!")
@@ -124,7 +125,7 @@ class RELAPparser():
             tripCnt+=1
         toWrite += " \n"
         self.deckLines[deckNum].append(toWrite)
-      self.deckLines[deckNum].append("* END -- CONTROL VARIABLES ADDED BY RAVEN *\n")  
+      self.deckLines[deckNum].append("* END -- CONTROL VARIABLES ADDED BY RAVEN *\n")
 
   def addTripsVarsInMinorEdits(self):
     """
@@ -146,7 +147,7 @@ class RELAPparser():
           addedVars.append(trip['variable']+"_"+trip['component'])
           if len(availableMinorEditsCards) == 0: raise IOError("Number of minor edits reached already the upper bound of RELAP5. There are no available cards to monitor the trips!")
           self.deckLines[deckNum].append(str(availableMinorEditsCards.pop()) + " "+trip['variable']+" "+trip['component'] +"\n")
-      self.deckLines[deckNum].append("* END --  MINOR EDITS ADDED BY RAVEN *\n")   
+      self.deckLines[deckNum].append("* END --  MINOR EDITS ADDED BY RAVEN *\n")
 
   def getTripsMinorEditsAndControlVars(self):
     """
@@ -156,16 +157,16 @@ class RELAPparser():
     """
     for deckNum in self.deckLines.keys():
       for lineNum, line in enumerate(self.deckLines[deckNum]):
-        splitted = _splitRecordAndRemoveComments(line)      
+        splitted = _splitRecordAndRemoveComments(line)
         if len(splitted) > 0 and splitted[0].strip().isdigit():
           isMinor = self.storeMinorEdit(deckNum,splitted)
           isTrip  = self.storeTrip(deckNum,splitted)
           isCntr  = self.storeControlVars(deckNum,splitted)
-          if isMinor: 
+          if isMinor:
             self.lastMinorEditLine[deckNum] = lineNum+1
-          if isTrip : 
+          if isTrip :
             self.lastTripLine[deckNum]      = lineNum+1
-          if isCntr : 
+          if isCntr :
             self.lastCntrLine[deckNum]      = lineNum+1
 
   def getMinorEditsInfo(self):
@@ -185,7 +186,7 @@ class RELAPparser():
     if int(splitted[0]) == 20500000:
       self.controlVarType[deckNum] = 1 if splitted[1].strip() == '999' else 2
       return isCntr
-    if deckNum not in self.inputControlVars.keys(): 
+    if deckNum not in self.inputControlVars.keys():
       self.inputControlVars[deckNum] = {}
     if 20500010 <= int(splitted[0]) <= 20599990:
       isCntr = True
@@ -199,11 +200,11 @@ class RELAPparser():
     """
     """
     isMinor = False
-    if deckNum not in self.inputMinorEdits.keys(): 
+    if deckNum not in self.inputMinorEdits.keys():
       self.inputMinorEdits[deckNum] = {}
     if 301 <= int(splitted[0]) <= 399:
-      
-      if not len(splitted) == 3: 
+
+      if not len(splitted) == 3:
         raise IOError(self.printTag+ "ERROR: in RELAP5 input file the number of words in minor edits section needs to be 2. Edit= "+splitted[0])
       self.inputMinorEdits[deckNum][splitted[0].strip()], isMinor = {'variable':splitted[1].strip(),'component':splitted[2].strip()}, True
     return isMinor
@@ -214,7 +215,7 @@ class RELAPparser():
     """
     isTrip = False
     if (401 <= int(splitted[0]) <= 599) or (20600010 <= int(splitted[0]) <= 20610000):
-      if  not (8 <= len(splitted)<= 9): 
+      if  not (8 <= len(splitted)<= 9):
         raise IOError(self.printTag+ "ERROR: in RELAP5 input file the number of words in variable trip section needs to be 7 or 8 . Trip= "+splitted[0])
       tripNumber = splitted[0].strip()
       isTrip     = True
@@ -227,10 +228,10 @@ class RELAPparser():
       self.inputTrips[deckNum]['variableTrips'][tripNumber]['additiveConstant'] = splitted[6].strip()
       self.inputTrips[deckNum]['variableTrips'][tripNumber]['latch'] = splitted[7].strip()
       self.hasVariableTrips = True
-      if len(splitted) == 9: 
+      if len(splitted) == 9:
         self.inputTrips[deckNum]['variableTrips'][tripNumber]['timeOf'] =  splitted[8].strip()
     if (601 <= int(splitted[0]) <= 799) or (20610010 <= int(splitted[0]) <= 20620000):
-      if  not (5 <= len(splitted)<= 6): 
+      if  not (5 <= len(splitted)<= 6):
         raise IOError(self.printTag+ "ERROR: in RELAP5 input file the number of words in logical trip section needs to be 4 or 5 . Trip= "+splitted[0])
       tripNumber = splitted[0].strip()
       isTrip     = True
@@ -239,7 +240,7 @@ class RELAPparser():
       self.inputTrips[deckNum]['logicalTrips'][tripNumber]['operator'] = splitted[2].strip()
       self.inputTrips[deckNum]['logicalTrips'][tripNumber]['tripNumber2'] = splitted[3].strip()
       self.inputTrips[deckNum]['logicalTrips'][tripNumber]['latch'] = splitted[4].strip()
-      if len(splitted) == 6: 
+      if len(splitted) == 6:
         self.inputTrips[deckNum]['logicalTrips'][tripNumber]['timeOf'] =  splitted[5].strip()
       self.hasLogicalTrips = True
     if int(splitted[0]) == 600:
@@ -271,6 +272,62 @@ class RELAPparser():
         outfile.write('%s' %(i))
     outfile.close()
 
+
+  def retrieveCardValues(self, listOfCards):
+    """
+      This method is to retrieve the card values contained in the list
+      @ In, listOfCards, list, list of cards ([deck,card,word])
+      @ Out, cardValues, dict, dictionary containing the card and the value
+    """
+    foundAllCards = {}
+    deckCards     = {}
+    cardValues    = {}
+    # check all the decks
+    for deck,card,word in listOfCards:
+      if deck not in self.deckLines:
+        raise IOError("RELAP5 Interface: The number of deck found in the original input file is "+str(self.maxNumberOfDecks)+" while the user requested to modify the deck number "+str(deck))
+      if deck not in foundAllCards:
+        foundAllCards[deck] = {}
+        deckCards[deck] = defaultdict(list)
+      foundAllCards[deck][card] = False
+      deckCards[deck][card].append(word)
+    for deck in deckCards:
+      for lineNum, line in enumerate(self.deckLines[deck]):
+        if all(foundAllCards[deck].values()):
+          break
+        if not re.match('^\s*\n',line):
+          readCard = line.split()[0].strip()
+          if readCard in deckCards[deck].keys():
+            foundWord = False
+            foundAllCards[deck][readCard] = True
+            numberOfWords = self.countNumberOfWords(line)
+            for word in deckCards[deck][readCard]:
+              if int(word) <= numberOfWords:
+                cardValues[(deck,readCard,word)] = line.split()[word]
+                foundWord = True
+              else:
+                moveToNextLine            = True
+                cnt                       = 1
+                while moveToNextLine:
+                  if self.deckLines[deck][lineNum+cnt].strip().startswith("+"):
+                    currentNumberWords = self.countNumberOfWords(self.deckLines[deck][lineNum+cnt])
+                    if int(word) <= numberOfWords+currentNumberWords:
+                      cardValues[(deck,readCard,word)] = line.split()[word-currentNumberWords]
+                      foundWord = True
+                      moveToNextLine = False
+                    numberOfWords+=currentNumberWords
+                  else:
+                    moveToNextLine=False
+              if not foundWord:
+                raise IOError("RELAP5 Interface: The number of words found for card "+str(readCard)+" is "+str(numberOfWords)+"while the user requested to modify the word number "+str(word))
+      # check if all cards have been found
+      if not all(foundAllCards[deck].values()):
+        cardsNotFound = ""
+        for card,found in foundAllCards[deck].items():
+          if not found: cardsNotFound+= card +" "
+        raise IOError("RELAP5 Interface: The following cards have not been found in the original input files: "+cardsNotFound)
+    return cardValues
+
   def modifyOrAdd(self,dictionaryList,save=True):
     """
       dictionaryList is a list of dictionaries of the required addition or modification
@@ -288,7 +345,6 @@ class RELAPparser():
       else:
         decks.update(i['decks'])
     for deckNum in decks.keys():
-      a = self.deckLines.keys()
       if deckNum not in self.deckLines.keys():
         raise IOError("RELAP5 Interface: The number of deck found in the original input file is "+str(self.maxNumberOfDecks)+" while the user requested to modify the deck number "+str(deckNum))
       temp               = []
@@ -296,8 +352,8 @@ class RELAPparser():
       temp.append('*RAVEN INPUT VALUES\n')
       if self.maxNumberOfDecks > 1:
         temp.append('*'+' deckNum: '+str(deckNum)+'\n')
-      for j in modiDictionaryList:
-        for var in modiDictionaryList[j]:
+      for j in sorted(modiDictionaryList):
+        for var in sorted(modiDictionaryList[j]):
           temp.append('* card: '+j+' word: '+str(var['position'])+' value: '+str(var['value'])+'\n')
       temp.append('*RAVEN INPUT VALUES\n')
 

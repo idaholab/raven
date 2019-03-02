@@ -20,8 +20,6 @@
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
-if not 'xrange' in dir(__builtins__):
-  xrange = range
 #End compatibility block for Python 3-------------------------------------------
 
 ################################################################################
@@ -35,7 +33,7 @@ from Samplers.FactorialDesign import FactorialDesign
 from Samplers.ResponseSurfaceDesign import ResponseSurfaceDesign
 from Samplers.Sobol import Sobol
 from Samplers.SparseGridCollocation import SparseGridCollocation
-from Samplers.EnsembleForward import EnsembleForwardSampler
+from Samplers.EnsembleForward import EnsembleForward
 from Samplers.CustomSampler import CustomSampler
 
 # Adaptive samplers
@@ -45,7 +43,7 @@ from Samplers.AdaptiveSobol import AdaptiveSobol
 from Samplers.AdaptiveSparseGrid import AdaptiveSparseGrid
 # Dynamic Event Tree-based Samplers
 from Samplers.DynamicEventTree import DynamicEventTree
-from Samplers.AdaptiveDynamicEventTree import AdaptiveDET
+from Samplers.AdaptiveDynamicEventTree import AdaptiveDynamicEventTree
 ## [ Add new class here ]
 ################################################################################
 ## Alternatively, to fully automate this file:
@@ -67,12 +65,12 @@ __interFaceDict['ResponseSurfaceDesign'   ] = ResponseSurfaceDesign
 __interFaceDict['Sobol'                   ] = Sobol
 __interFaceDict['SparseGridCollocation'   ] = SparseGridCollocation
 __interFaceDict['CustomSampler'           ] = CustomSampler
-__interFaceDict['EnsembleForward'         ] = EnsembleForwardSampler
+__interFaceDict['EnsembleForward'         ] = EnsembleForward
 __interFaceDict['LimitSurfaceSearch'      ] = LimitSurfaceSearch
 __interFaceDict['AdaptiveSobol'           ] = AdaptiveSobol
 __interFaceDict['AdaptiveSparseGrid'      ] = AdaptiveSparseGrid
 __interFaceDict['DynamicEventTree'        ] = DynamicEventTree
-__interFaceDict['AdaptiveDynamicEventTree'] = AdaptiveDET
+__interFaceDict['AdaptiveDynamicEventTree'] = AdaptiveDynamicEventTree
 
 def knownTypes():
   """

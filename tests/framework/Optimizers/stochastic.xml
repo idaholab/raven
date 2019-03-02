@@ -18,11 +18,14 @@
       <revision author="talbpaul" date="2017-05-14">creation</revision>
       <revision author="talbpaul" date="2017-07-11">changed model for simpler analytic checking</revision>
       <revision author="talbpaul" date="2017-07-18">added additional model output for testing mechanics</revision>
+      <revision author="talbpaul" date="2018-01-04">siwtched from snapshot to writeSteps final</revision>
+      <revision author='talbpaul' date='2018-10-23'>limited outputs checked to just the solution</revision>
     </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>Stochastic</WorkingDir>
-    <Sequence>optimize,getOptPoint,print</Sequence>
+    <Sequence>optimize,print</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
 
@@ -31,44 +34,36 @@
       <Input class="DataObjects" type="PointSet">dummyIN</Input>
       <Model class="Models" type="ExternalModel">parabola</Model>
       <Optimizer class="Optimizers" type="SPSA">opter</Optimizer>
-      <SolutionExport class="DataObjects" type="HistorySet">opt_export</SolutionExport>
+      <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
       <Output class="DataObjects" type="PointSet">optOut</Output>
     </MultiRun>
     <IOStep name="print" pauseAtEnd="True">
-      <Input class="DataObjects" type="PointSet">opt_soln</Input>
       <Input class="DataObjects" type="HistorySet">opt_export</Input>
-      <Output class="OutStreams" type="Print">opt_soln</Output>
       <Output class="OutStreams" type="Print">opt_export</Output>
     </IOStep>
-    <PostProcess name="getOptPoint">
-      <Input class="DataObjects" type="HistorySet">opt_export</Input>
-      <Model class="Models" type="PostProcessor">snapshot</Model>
-      <Output class="DataObjects" type="PointSet">opt_soln</Output>
-      <Output class="OutStreams" type="Print">opt_soln</Output>
-    </PostProcess>
   </Steps>
 
   <Optimizers>
     <SPSA name="opter">
       <initialization>
         <limit>2000</limit>
-        <initialSeed>42</initialSeed>
+        <initialSeed>2</initialSeed>
         <type>max</type>
+        <writeSteps>final</writeSteps>
       </initialization>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
       <convergence>
-          <gradientThreshold>1e-3</gradientThreshold>
-          <gainGrowthFactor>1.5</gainGrowthFactor>
-          <gainShrinkFactor>1.25</gainShrinkFactor>
+        <gainGrowthFactor>1.5</gainGrowthFactor>
+        <gainShrinkFactor>1.25</gainShrinkFactor>
       </convergence>
-      <variable name='x'>
+      <variable name="x">
         <upperBound>1</upperBound>
         <lowerBound>-1</lowerBound>
         <initial>-0.75</initial>
       </variable>
       <objectVar>ans</objectVar>
       <parameter>
-        <numGradAvgIterations>26</numGradAvgIterations>
+        <numGradAvgIterations>50</numGradAvgIterations>
       </parameter>
     </SPSA>
   </Optimizers>
@@ -78,11 +73,6 @@
     <ExternalModel ModuleToLoad="stoch_parabola" name="parabola" subType="">
       <variables>x,ans,reg</variables>
     </ExternalModel>
-    <PostProcessor name="snapshot" subType="InterfacedPostProcessor">
-      <method>HistorySetSnapShot</method>
-      <type>max</type>
-      <pivotVar>varsUpdate</pivotVar>
-    </PostProcessor>
   </Models>
 
   <DataObjects>
@@ -94,24 +84,15 @@
       <Input>x</Input>
       <Output>ans,reg</Output>
     </PointSet>
-    <PointSet name="opt_soln">
-      <Input>trajID</Input>
-      <Output>x,ans,reg,varsUpdate</Output>
+    <PointSet name="opt_export">
+      <Output>ans,reg</Output>
     </PointSet>
-    <HistorySet name="opt_export">
-      <Input>trajID</Input>
-      <Output>x,ans,reg,varsUpdate</Output>
-    </HistorySet>
   </DataObjects>
 
   <OutStreams>
     <Print name="opt_export">
       <type>csv</type>
       <source>opt_export</source>
-    </Print>
-    <Print name="opt_soln">
-      <type>csv</type>
-      <source>opt_soln</source>
     </Print>
   </OutStreams>
 

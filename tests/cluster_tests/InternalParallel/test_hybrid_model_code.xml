@@ -1,0 +1,125 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <RunInfo>
+    <JobName>testHybridModelCode</JobName>
+    <Sequence>hybridModelCode</Sequence>
+    <WorkingDir>hybridModelCode</WorkingDir>
+    <batchSize>3</batchSize>
+    <internalParallel>True</internalParallel>
+    <expectedTime>00:10:00</expectedTime>
+  </RunInfo>
+
+  <Files>
+    <Input name="gen.one" type="">gen.one</Input>
+    <Input name="gen.two" type="">gen.two</Input>
+  </Files>
+  
+  <Metrics>
+      <SKL name="m1">
+          <metricType>regression|mean_absolute_error</metricType>
+      </SKL>
+  </Metrics>
+
+  <Models>
+    <Code name="poly" subType="GenericCode">
+      <executable>%BASE_WORKING_DIR%/poly_inp_io.py</executable>
+      <clargs type="python"/>
+      <clargs arg="-i" extension=".one" type="input"/>
+      <fileargs arg="aux" extension=".two" type="input"/>
+      <fileargs arg="output" type="output"/>
+    </Code>
+    <ROM name="svr" subType="SciKitLearn">
+      <SKLtype>svm|SVR</SKLtype>
+      <Features>x,y</Features>
+      <Target>poly</Target>
+      <C>1.0</C>
+      <epsilon>0.1</epsilon>
+      <kernel>rbf</kernel>
+      <degree>3</degree>
+      <coef0>0.0</coef0>
+      <shrinking>True</shrinking>
+      <tol>1e-3</tol>
+      <cache_size>200</cache_size>
+      <verbose>False</verbose>
+      <max_iter>-1</max_iter>
+    </ROM>
+    <PostProcessor name="pp1" subType="CrossValidation">
+        <SciKitLearn>
+            <SKLtype>KFold</SKLtype>
+            <n_splits>10</n_splits>
+            <shuffle>False</shuffle>
+            <scores>average</scores>
+        </SciKitLearn>
+        <Metric class="Metrics" type="SKL">m1</Metric>
+    </PostProcessor>
+    <HybridModel name="hybrid" subType="">
+        <Model class="Models" type="Code">poly</Model>
+        <ROM class="Models" type="ROM">svr</ROM>
+        <TargetEvaluation class="DataObjects" type="PointSet">samples</TargetEvaluation>
+        <CV class="Models" type="PostProcessor">pp1</CV>
+        <settings>
+            <tolerance>0.06</tolerance>
+            <maxTrainSize>1000</maxTrainSize>
+            <minInitialTrainSize>10</minInitialTrainSize>
+        </settings>
+        <validationMethod name="CrowdingDistance">
+            <threshold>0.5</threshold>
+        </validationMethod>
+    </HybridModel>
+  </Models>
+
+  <Distributions>
+    <Uniform name="xd">
+      <lowerBound>0.0</lowerBound>
+      <upperBound>1.0</upperBound>
+    </Uniform>
+    <Uniform name="yd">
+      <lowerBound>1.0</lowerBound>
+      <upperBound>2.0</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Samplers>
+    <Stratified name="LHS">
+      <variable name="x">
+        <distribution>xd</distribution>
+        <grid construction="equal" steps="50" type="CDF">0.3 0.7</grid>
+      </variable>
+      <variable name="y">
+        <distribution>yd</distribution>
+        <grid construction="equal" steps="50" type="CDF">0.3 0.7</grid>
+      </variable>
+    </Stratified>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="hybridModelCode">
+      <Input class="Files" type="">gen.one</Input>
+      <Input class="Files" type="">gen.two</Input>
+      <Input class="DataObjects" type="PointSet">inputHolder</Input>
+      <Model class="Models" type="HybridModel">hybrid</Model>
+      <Sampler class="Samplers" type="Stratified">LHS</Sampler>
+      <Output class="DataObjects" type="PointSet">samples</Output>
+      <Output class="OutStreams" type="Print">samples</Output>
+    </MultiRun>
+  </Steps>
+
+  <DataObjects>
+    <PointSet name="inputHolder">
+      <Input>x,y</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="samples">
+      <Input>x,y</Input>
+      <Output>poly</Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="samples">
+      <type>csv</type>
+      <source>samples</source>
+    </Print>
+  </OutStreams>
+
+</Simulation>

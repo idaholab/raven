@@ -22,7 +22,6 @@
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
-#if not 'xrange' in dir(__builtins__): xrange = range
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -33,14 +32,49 @@ from functools import reduce
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from .ForwardSampler import ForwardSampler
+from utils import InputData
+from .ForwardSampler        import ForwardSampler
+from .MonteCarlo            import MonteCarlo
+from .Grid                  import Grid
+from .Stratified            import Stratified
+from .FactorialDesign       import FactorialDesign
+from .ResponseSurfaceDesign import ResponseSurfaceDesign
+from .CustomSampler         import CustomSampler
 import GridEntities
 #Internal Modules End--------------------------------------------------------------------------------
 
-class EnsembleForwardSampler(ForwardSampler):
+class EnsembleForward(ForwardSampler):
   """
     Ensemble Forward sampler. This sampler is aimed to combine Forward Sampling strategies
   """
+
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    inputSpecification = super(EnsembleForward, cls).getInputSpecification()
+
+    #It would be nice if Factory.knownTypes could be used to do that,
+    # but that seems to cause recursive problems
+    inputSpecification.addSub(MonteCarlo.getInputSpecification())
+    inputSpecification.addSub(Grid.getInputSpecification())
+    inputSpecification.addSub(Stratified.getInputSpecification())
+    inputSpecification.addSub(FactorialDesign.getInputSpecification())
+    inputSpecification.addSub(ResponseSurfaceDesign.getInputSpecification())
+    inputSpecification.addSub(CustomSampler.getInputSpecification())
+
+    samplerInitInput = InputData.parameterInputFactory("samplerInit")
+
+    samplerInitInput.addSub(InputData.parameterInputFactory("initialSeed", contentType=InputData.IntegerType))
+
+    inputSpecification.addSub(samplerInitInput)
+    return inputSpecification
+
   def __init__(self):
     """
       Default Constructor that will initialize member variables with reasonable
@@ -55,30 +89,42 @@ class EnsembleForwardSampler(ForwardSampler):
     self.samplersCombinations = {}
     self.dependentSample      = {}
 
-  def localInputAndChecks(self,xmlNode):
+  def localInputAndChecks(self,xmlNode, paramInput):
     """
       Class specific xml inputs will be read here and checked for validity.
       @ In, xmlNode, xml.etree.ElementTree.Element, The xml element node that will be checked against the available options specific to this Sampler.
+      @ In, paramInput, InputData.ParameterInput, the parsed parameters
       @ Out, None
     """
-    ForwardSampler.readSamplerInit(self,xmlNode)
-    from .Factory import returnInstance
+    #TODO remove using xmlNode
+    # this import happens here because a recursive call is made if we attempt it in the header
+    from .Factory import returnInstance,knownTypes
     for child in xmlNode:
-      if child.tag in self.acceptableSamplers:
+      #sampler initialization
+      if child.tag == 'samplerInit':
+        ForwardSampler.readSamplerInit(self,xmlNode)
+      # read in samplers
+      elif child.tag in self.acceptableSamplers:
         child.attrib['name'] = child.tag
         self.instanciatedSamplers[child.tag] = returnInstance(child.tag,self)
         #FIXME the variableGroups needs to be fixed
         self.instanciatedSamplers[child.tag].readXML(child,self.messageHandler,variableGroups={},globalAttributes=self.globalAttributes)
+      # function variables are defined outside the individual samplers
       elif child.tag=='variable':
         for childChild in child:
           if childChild.tag == 'function':
             self.dependentSample[child.attrib['name']] = childChild.text
           else:
             self.raiseAnError(IOError,"Variable " + str(child.attrib['name']) + " must be defined by a function since it is located outside the samplers block")
+      # constants are handled in the base class
+      elif child.tag == 'constant':
+        pass
+      # some samplers aren't eligible for ensembling
       elif child.tag in knownTypes():
-        self.raiseAnError(IOError,"Sampling strategy "+child.tag+" is not usable in "+self.type+" Sampler. Available are "+",".join(self.acceptableSamplers))
+        self.raiseAnError(IOError,'Sampling strategy "{}" is not usable in "{}".  Available options include: {}.'.format(child.tag,self.type,", ".join(self.acceptableSamplers)))
+      # catch-all for bad inputs
       else:
-        self.raiseAnError(IOError,"XML node "+ child.tag + " unknown. Check the Manual!")
+        self.raiseAnError(IOError,'Unrecognized sampling strategy: "{}". Available options include: {}.'.format(child.tag,", ".join(self.acceptableSamplers)))
 
   def _localWhatDoINeed(self):
     """
@@ -122,7 +168,7 @@ class EnsembleForwardSampler(ForwardSampler):
 
   def localInitialize(self):
     """
-      Initialize the EnsembleForwardSampler sampler. It calls the localInitialize method of all the Samplers defined in this input
+      Initialize the EnsembleForward sampler. It calls the localInitialize method of all the Samplers defined in this input
       @ In, None
       @ Out, None
     """

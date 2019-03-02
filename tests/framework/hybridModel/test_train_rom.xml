@@ -1,0 +1,135 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/hybridModel.romTrain</name>
+    <author>wangc</author>
+    <created>2017-09-20</created>
+    <classesTested>Models.HybridModel, Models.ExternalModel, Models.ROM</classesTested>
+    <description>
+       This test is intended to check the rom train capability of the Hybrid Model.
+    </description>
+  </TestInfo>
+  <RunInfo>
+    <WorkingDir>reuseData</WorkingDir>
+    <Sequence>runModel, runHybridModel</Sequence>
+    <batchSize>1</batchSize>
+    <internalParallel>False</internalParallel>
+  </RunInfo>
+
+  <Distributions>
+    <Uniform name="leftTemperatureDist">
+      <lowerBound>500</lowerBound>
+      <upperBound>1700</upperBound>
+    </Uniform>
+    <Uniform name="rightTemperatureDist">
+      <lowerBound>500</lowerBound>
+      <upperBound>1700</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Metrics>
+      <SKL name="m1">
+          <metricType>regression|explained_variance_score</metricType>
+      </SKL>
+  </Metrics>
+
+  <Models>
+    <ExternalModel ModuleToLoad="EM2linear" name="thermalConductivityComputation" subType="">
+      <variables>leftTemperature,rightTemperature,k,averageTemperature</variables>
+    </ExternalModel>
+    <ROM name="knr" subType="SciKitLearn">
+      <SKLtype>neighbors|KNeighborsRegressor</SKLtype>
+      <Features>leftTemperature, rightTemperature</Features>
+      <Target>k</Target>
+      <n_neighbors>5</n_neighbors>
+      <weights>uniform</weights>
+      <algorithm>auto</algorithm>
+      <leaf_size>30</leaf_size>
+      <metric>minkowski</metric>
+      <p>2</p>
+    </ROM>
+    <PostProcessor name="pp1" subType="CrossValidation">
+        <SciKitLearn>
+            <SKLtype>KFold</SKLtype>
+            <n_splits>10</n_splits>
+            <shuffle>False</shuffle>
+            <scores>average</scores>
+        </SciKitLearn>
+        <Metric class="Metrics" type="SKL">m1</Metric>
+    </PostProcessor>
+    <HybridModel name="hybrid" subType="">
+        <Model class="Models" type="ExternalModel">thermalConductivityComputation</Model>
+        <ROM class="Models" type="ROM">knr</ROM>
+        <TargetEvaluation class="DataObjects" type="PointSet">thermalConductivityComputationContainer</TargetEvaluation>
+        <CV class="Models" type="PostProcessor">pp1</CV>
+        <settings>
+            <tolerance>0.1</tolerance>
+            <maxTrainSize>1000</maxTrainSize>
+            <minInitialTrainSize>10</minInitialTrainSize>
+        </settings>
+        <validationMethod name="CrowdingDistance">
+            <threshold>0.2</threshold>
+        </validationMethod>
+    </HybridModel>
+  </Models>
+
+  <Samplers>
+    <MonteCarlo name="MonteCarloTemperature">
+      <samplerInit>
+        <limit>20</limit>
+      </samplerInit>
+      <variable name="leftTemperature">
+        <distribution>leftTemperatureDist</distribution>
+      </variable>
+      <variable name="rightTemperature">
+        <distribution>rightTemperatureDist</distribution>
+      </variable>
+    </MonteCarlo>
+    <Stratified name="LHS">
+      <variable name="leftTemperature">
+          <distribution>leftTemperatureDist</distribution>
+          <grid type='CDF' construction='equal' steps='30'>0.05 0.95</grid>
+      </variable>
+      <variable name="rightTemperature">
+        <distribution>rightTemperatureDist</distribution>
+          <grid type='CDF' construction='equal' steps='30'>0.05 0.95</grid>
+      </variable>
+    </Stratified>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="runModel">
+      <Input class="DataObjects" type="PointSet">inputHolder</Input>
+      <Model class="Models" type="ExternalModel">thermalConductivityComputation</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MonteCarloTemperature</Sampler>
+      <Output class="DataObjects" type="PointSet">thermalConductivityComputationContainer</Output>
+    </MultiRun>
+    <MultiRun name="runHybridModel">
+      <Input class="DataObjects" type="PointSet">inputHolder</Input>
+      <Model class="Models" type="HybridModel">hybrid</Model>
+      <Sampler class="Samplers" type="Stratified">LHS</Sampler>
+      <Output class="DataObjects" type="PointSet">thermalConductivityComputationContainer</Output>
+      <Output class="OutStreams" type="Print">hybridModelOutput</Output>
+    </MultiRun>
+  </Steps>
+
+  <OutStreams>
+    <Print name="hybridModelOutput">
+      <type>csv</type>
+      <source>thermalConductivityComputationContainer</source>
+      <what>input, output</what>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="inputHolder">
+      <Input>leftTemperature,rightTemperature</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="thermalConductivityComputationContainer">
+      <Input>leftTemperature,rightTemperature</Input>
+      <Output>k</Output>
+    </PointSet>
+  </DataObjects>
+
+</Simulation>

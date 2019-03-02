@@ -34,7 +34,7 @@
   </RunInfo>
 
   <Models>
-    <ExternalModel ModuleToLoad="./testFunction" name="foo" subType="">
+    <ExternalModel ModuleToLoad="../testFunction" name="foo" subType="">
       <variables>X,Y,Z</variables>
     </ExternalModel>
     <ROM name="modelUnderTest" subType="MSR">
@@ -55,7 +55,7 @@
             training data to counteract the effects of the randomness imposed
             by the cross-validation of the SVM which generates the probability
             information that exhibits the non-deterministic behavior. -->
-        <limit>2500</limit>
+        <limit>800</limit>
         <initialSeed>888</initialSeed>
       </samplerInit>
       <variable name="X">
@@ -85,6 +85,7 @@
     <Print name="outData">
       <type>csv</type>
       <source>outData</source>
+      <what>input,output</what>
       <filename>outDataSmoothSVM</filename>
     </Print>
   </OutStreams>

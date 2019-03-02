@@ -1,55 +1,11 @@
-<data name="testPrintPointSet_dump" type="Pointset"><input>x1,y1,z1,x0,y0,z0,PointProbability,ProbabilityWeight</input><output>x,y,z</output><inputFilename>testPrintPointSet_dump.csv</inputFilename><metadata><upper>array([{u'y1': -2.2000000000000002, u'x1': -3.5, u'z1': 0.0},
-       {u'y1': 4.0, u'x1': 2.8999999999999999, u'z1': -3.5},
-       {u'y1': 0.0, u'x1': -1.7000000000000002, u'z1': 3.7000000000000002},
-       {u'y1': -3.5, u'x1': 1.2, u'z1': -1.7000000000000002},
-       {u'y1': -1.7000000000000002, u'x1': 4.0, u'z1': 4.0},
-       {u'y1': 1.2, u'x1': -2.2000000000000002, u'z1': -2.2000000000000002},
-       {u'y1': 3.7000000000000002, u'x1': 0.0, u'z1': 1.2},
-       {u'y1': 2.8999999999999999, u'x1': 3.7000000000000002, u'z1': 2.8999999999999999}], dtype=object)</upper><lower>array([{u'y1': -3.5, u'x1': -4.0, u'z1': -1.7000000000000002},
-       {u'y1': 3.7000000000000002, u'x1': 1.2, u'z1': -4.0},
-       {u'y1': -1.7000000000000002, u'x1': -2.2000000000000002, u'z1': 2.8999999999999999},
-       {u'y1': -4.0, u'x1': 0.0, u'z1': -2.2000000000000002},
-       {u'y1': -2.2000000000000002, u'x1': 3.7000000000000002, u'z1': 3.7000000000000002},
-       {u'y1': 0.0, u'x1': -3.5, u'z1': -3.5},
-       {u'y1': 2.8999999999999999, u'x1': -1.7000000000000002, u'z1': 0.0},
-       {u'y1': 1.2, u'x1': 2.8999999999999999, u'z1': 1.2}], dtype=object)</lower><SamplerType>array([u'Stratified', u'Stratified', u'Stratified', u'Stratified',
-       u'Stratified', u'Stratified', u'Stratified', u'Stratified'], dtype=object)</SamplerType><crowDist>array([ {u'y1': '{"type": "MultivariateNormalDistribution"}', u'x1': '{"type": "MultivariateNormalDistribution"}', u'z1': '{"type": "MultivariateNormalDistribution"}'},
-       {u'y1': '{"type": "MultivariateNormalDistribution"}', u'x1': '{"type": "MultivariateNormalDistribution"}', u'z1': '{"type": "MultivariateNormalDistribution"}'},
-       {u'y1': '{"type": "MultivariateNormalDistribution"}', u'x1': '{"type": "MultivariateNormalDistribution"}', u'z1': '{"type": "MultivariateNormalDistribution"}'},
-       {u'y1': '{"type": "MultivariateNormalDistribution"}', u'x1': '{"type": "MultivariateNormalDistribution"}', u'z1': '{"type": "MultivariateNormalDistribution"}'},
-       {u'y1': '{"type": "MultivariateNormalDistribution"}', u'x1': '{"type": "MultivariateNormalDistribution"}', u'z1': '{"type": "MultivariateNormalDistribution"}'},
-       {u'y1': '{"type": "MultivariateNormalDistribution"}', u'x1': '{"type": "MultivariateNormalDistribution"}', u'z1': '{"type": "MultivariateNormalDistribution"}'},
-       {u'y1': '{"type": "MultivariateNormalDistribution"}', u'x1': '{"type": "MultivariateNormalDistribution"}', u'z1': '{"type": "MultivariateNormalDistribution"}'},
-       {u'y1': '{"type": "MultivariateNormalDistribution"}', u'x1': '{"type": "MultivariateNormalDistribution"}', u'z1': '{"type": "MultivariateNormalDistribution"}'}], dtype=object)</crowDist><SampledVars>array([ {u'y1': -2.336754899807055, u'y0': -3.252544251190294, u'x0': -2.624191234748869, u'x1': -3.5112096823707875, u'z0': 1.0721903802139114, u'z1': -0.5987018826810906},
-       {u'y1': 3.8798798321108694, u'y0': 3.625228601113653, u'x0': 1.4205194898787266, u'x1': 1.5777907929659714, u'z0': 5.56430846658739, u'z1': -3.813094901738663},
-       {u'y1': -0.18184602723007118, u'y0': 0.12322368775446879, u'x0': -2.272841143355503, u'x1': -1.7089237765866314, u'z0': 1.6880473044526179, u'z1': 3.1233253826403473},
-       {u'y1': -3.50559698449266, u'y0': -0.6277239272878039, u'x0': 1.9733243975427286, u'x1': 0.7651061343325937, u'z0': -0.7686674199657579, u'z1': -1.8380723834259522},
-       {u'y1': -1.8271126179317827, u'y0': 4.057255958534043, u'x0': 3.290536310678346, u'x1': 3.9698584599698665, u'z0': -1.3177105143125258, u'z1': 3.988033820779594},
-       {u'y1': 0.8961314905888693, u'y0': -0.9374488842850113, u'x0': -1.9801788876045907, u'x1': -2.407723180989117, u'z0': 3.80519647350673, u'z1': -2.2624897219986924},
-       {u'y1': 3.1606751015253085, u'y0': 2.5529213336272005, u'x0': -1.227043374403296, u'x1': -0.34313004143858455, u'z0': 4.5992090650322615, u'z1': 0.6577624162024877},
-       {u'y1': 1.8206571846361157, u'y0': 4.723217384596126, u'x0': 2.1174024660482664, u'x1': 3.022532525757038, u'z0': 2.479016478395184, u'z1': 1.3482292370170916}], dtype=object)</SampledVars><transformation-MVNDist>array([ {u'transformationMatrix': array([[ 0.94468309, -0.23889767, -0.22472598],
-       [ 0.81864619,  0.53887447,  0.19857675],
-       [-0.25822618,  0.83440392, -0.19258593]]), u'type': u'MultivariateNormal'}], dtype=object)</transformation-MVNDist><ProbabilityWeight>array([  1.25119622e-06,   1.73186245e-09,   2.45498520e-05,
-         2.37185303e-06,   1.77703158e-10,   7.19401208e-05,
-         3.08198355e-04,   2.25291429e-05])</ProbabilityWeight><prefix>array(['1', '2', '3', '4', '5', '6', '7', '8'], dtype=object)</prefix><ProbabilityWeight-x1>array([  1.25119622e-06,   1.73186245e-09,   2.45498520e-05,
-         2.37185303e-06,   1.77703158e-10,   7.19401208e-05,
-         3.08198355e-04,   2.25291429e-05])</ProbabilityWeight-x1><distributionType>array([ {u'y1': u'MultivariateNormal', u'x1': u'MultivariateNormal', u'z1': u'MultivariateNormal'},
-       {u'y1': u'MultivariateNormal', u'x1': u'MultivariateNormal', u'z1': u'MultivariateNormal'},
-       {u'y1': u'MultivariateNormal', u'x1': u'MultivariateNormal', u'z1': u'MultivariateNormal'},
-       {u'y1': u'MultivariateNormal', u'x1': u'MultivariateNormal', u'z1': u'MultivariateNormal'},
-       {u'y1': u'MultivariateNormal', u'x1': u'MultivariateNormal', u'z1': u'MultivariateNormal'},
-       {u'y1': u'MultivariateNormal', u'x1': u'MultivariateNormal', u'z1': u'MultivariateNormal'},
-       {u'y1': u'MultivariateNormal', u'x1': u'MultivariateNormal', u'z1': u'MultivariateNormal'},
-       {u'y1': u'MultivariateNormal', u'x1': u'MultivariateNormal', u'z1': u'MultivariateNormal'}], dtype=object)</distributionType><distributionName>array([{u'y1': 'MVNDist', u'x1': 'MVNDist', u'z1': 'MVNDist'},
-       {u'y1': 'MVNDist', u'x1': 'MVNDist', u'z1': 'MVNDist'},
-       {u'y1': 'MVNDist', u'x1': 'MVNDist', u'z1': 'MVNDist'},
-       {u'y1': 'MVNDist', u'x1': 'MVNDist', u'z1': 'MVNDist'},
-       {u'y1': 'MVNDist', u'x1': 'MVNDist', u'z1': 'MVNDist'},
-       {u'y1': 'MVNDist', u'x1': 'MVNDist', u'z1': 'MVNDist'},
-       {u'y1': 'MVNDist', u'x1': 'MVNDist', u'z1': 'MVNDist'},
-       {u'y1': 'MVNDist', u'x1': 'MVNDist', u'z1': 'MVNDist'}], dtype=object)</distributionName><SampledVarsPb>array([{'x1': 7.2787892641931105e-06}, {'x1': 6.856233397363008e-09},
-       {'x1': 0.00011042869400371041}, {'x1': 1.876777132915061e-05},
-       {'x1': 1.5923087452720386e-09}, {'x1': 0.00018112253749301614},
-       {'x1': 0.00032654461933221313}, {'x1': 5.063212184556065e-05}], dtype=object)</SampledVarsPb><PointProbability>array([  7.27878926e-06,   6.85623340e-09,   1.10428694e-04,
-         1.87677713e-05,   1.59230875e-09,   1.81122537e-04,
-         3.26544619e-04,   5.06321218e-05])</PointProbability></metadata></data>
+<DataObjectMetadata name="testPrintPointSet">
+  <DataSet type="Static">
+    <general>
+      <inputs>x0,y0,z0,x1,y1,z1</inputs>
+      <pointwise_meta>PointProbability,ProbabilityWeight</pointwise_meta>
+      <outputs>x,y,z</outputs>
+      <sampleTag>RAVEN_sample_ID</sampleTag>
+    </general>
+  </DataSet>
+  
+</DataObjectMetadata>

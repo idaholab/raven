@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <VariableGroups>
-      <Group name="x_odd"                                     >x1,x3,x5</Group>
-      <Group name="x_even"     dependencies=""                >x2,x4,x6</Group>
-      <Group name="y_group"    dependencies=""                >y1,y2</Group>
-      <Group name="union"      dependencies="x_odd,x_even"    base="x_odd">+x_even</Group>
+      <Group name="x_odd"  >x1,x3,x5</Group>
+      <Group name="x_even" >x2,x4,x6</Group>
+      <Group name="y_group">y1,y2</Group>
+      <Group name="union"  >x_odd, x_even</Group>
 </VariableGroups>

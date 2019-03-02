@@ -1,0 +1,33 @@
+[Tests]
+ [./hybridModel]
+  type = 'RavenFramework'
+  input = 'test_hybrid_model.xml'
+  csv = 'simpleRomAdaptive/metaModelOutputTestDump.csv'
+  rel_err = 0.00001
+  remove_unicode_identifier = true
+ [../]
+
+ [./romTrain]
+  type = 'RavenFramework'
+  input = 'test_train_rom.xml'
+  csv = 'reuseData/hybridModelOutput.csv'
+  rel_err = 0.00001
+  remove_unicode_identifier = true
+ [../]
+
+ [./runCode]
+  type = 'RavenFramework'
+  input = 'test_code.xml'
+  csv = 'runCode/samples.csv'
+  rel_err = 0.00001
+  remove_unicode_identifier = true
+ [../]
+ 
+ [./romTrainRom]
+  type = 'RavenFramework'
+  input = 'test_rom_rom.xml'
+  csv = 'romTrainRom/metaModelOutputTestDump.csv'
+  rel_err = 0.00001
+  remove_unicode_identifier = true
+ [../]
+[]

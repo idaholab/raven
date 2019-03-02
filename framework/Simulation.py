@@ -47,8 +47,7 @@ import OutStreams
 from JobHandler import JobHandler
 import MessageHandler
 import VariableGroups
-from utils import utils
-from utils import TreeStructure
+from utils import utils,TreeStructure,xmlUtils
 from Application import __QtAvailable
 from Interaction import Interaction
 if __QtAvailable:
@@ -251,6 +250,7 @@ class Simulation(MessageHandler.MessageUser):
     self.runInfoDict['expectedTime'      ] = '10:00:00'   # How long the complete input is expected to run.
     self.runInfoDict['logfileBuffer'     ] = int(io.DEFAULT_BUFFER_SIZE)*50 # logfile buffer size in bytes
     self.runInfoDict['clusterParameters' ] = []           # Extra parameters to use with the qsub command.
+    self.runInfoDict['maxQueueSize'      ] = None
 
     #Following a set of dictionaries that, in a manner consistent with their names, collect the instance of all objects needed in the simulation
     #Theirs keywords in the dictionaries are the the user given names of data, sampler, etc.
@@ -369,49 +369,14 @@ class Simulation(MessageHandler.MessageUser):
     path = os.path.normpath(self.runInfoDict['WorkingDir'])
     curfile.prependPath(path) #this respects existing path from the user input, if any
 
-  def ExternalXMLread(self,externalXMLFile,externalXMLNode,xmlFileName=None):
-    """
-      parses the external xml input file
-      @ In, externalXMLFile, string, the filename for the external xml file that will be loaded
-      @ In, externalXMLNode, string, decribes which node will be loaded to raven input file
-      @ In, xmlFileName, string, optional, the raven input file name
-      @ Out, externalElemment, xml.etree.ElementTree.Element, object that will be added to the current tree of raven input
-    """
-    #TODO make one for getpot too
-    if '~' in externalXMLFile:
-      externalXMLFile = os.path.expanduser(externalXMLFile)
-    if not os.path.isabs(externalXMLFile):
-      if xmlFileName == None:
-        self.raiseAnError(IOError,'Relative working directory requested but input xmlFileName is None.')
-      xmlDirectory = os.path.dirname(os.path.abspath(xmlFileName))
-      externalXMLFile = os.path.join(xmlDirectory,externalXMLFile)
-    if os.path.exists(externalXMLFile):
-      externalTree = TreeStructure.parse(externalXMLFile)
-      externalElement = externalTree.getroot()
-      if externalElement.tag != externalXMLNode:
-        self.raiseAnError(IOError,'The required node is: ' + externalXMLNode + 'is different from the provided external xml type: ' + externalElement.tag)
-    else:
-      self.raiseAnError(IOError,'The external xml input file ' + externalXMLFile + ' does not exist!')
-    return externalElement
-
-  def XMLpreprocess(self,node,inputFileName=None):
+  def XMLpreprocess(self,node,cwd):
     """
       Preprocess the input file, load external xml files into the main ET
       @ In, node, TreeStructure.InputNode, element of RAVEN input file
-      @ In, inputFileName, string, optional, the raven input file name
+      @ In, cwd, string, current working directory (for relative path searches)
       @ Out, None
     """
-    self.verbosity = node.attrib.get('verbosity','all').lower()
-    for element in node.iter():
-      for subElement in element:
-        if subElement.tag == 'ExternalXML':
-          self.raiseADebug('-'*2+' Loading external xml within block '+ element.tag+ ' for: {0:15}'.format(str(subElement.attrib['node']))+2*'-')
-          nodeName = subElement.attrib['node']
-          xmlToLoad = subElement.attrib['xmlToLoad'].strip()
-          newElement = self.ExternalXMLread(xmlToLoad,nodeName,inputFileName)
-          element.append(newElement)
-          element.remove(subElement)
-          self.XMLpreprocess(node,inputFileName)
+    xmlUtils.expandExternalXML(node,cwd)
 
   def XMLread(self,xmlNode,runInfoSkip = set(),xmlFilename=None):
     """
@@ -422,7 +387,7 @@ class Simulation(MessageHandler.MessageUser):
       @ Out, None
     """
     #TODO update syntax to note that we read InputTrees not XmlTrees
-    unknownAttribs = utils.checkIfUnknowElementsinList(['printTimeStamps','verbosity','color'],list(xmlNode.attrib.keys()))
+    unknownAttribs = utils.checkIfUnknowElementsinList(['printTimeStamps','verbosity','color','profile'],list(xmlNode.attrib.keys()))
     if len(unknownAttribs) > 0:
       errorMsg = 'The following attributes are unknown:'
       for element in unknownAttribs:
@@ -435,6 +400,10 @@ class Simulation(MessageHandler.MessageUser):
     if 'color' in xmlNode.attrib.keys():
       self.raiseADebug('Setting color output mode to',xmlNode.attrib['color'])
       self.messageHandler.setColor(xmlNode.attrib['color'])
+    if 'profile' in xmlNode.attrib.keys():
+      thingsToProfile = list(p.strip().lower() for p in xmlNode.attrib['profile'].split(','))
+      if 'jobs' in thingsToProfile:
+        self.jobHandler.setProfileJobs(True)
     self.messageHandler.verbosity = self.verbosity
     runInfoNode = xmlNode.find('RunInfo')
     if runInfoNode is None:
@@ -443,31 +412,11 @@ class Simulation(MessageHandler.MessageUser):
     ### expand variable groups before continuing ###
     ## build variable groups ##
     varGroupNode = xmlNode.find('VariableGroups')
-    varGroups={}
     # init, read XML for variable groups
     if varGroupNode is not None:
-      for child in varGroupNode:
-        varGroup = VariableGroups.VariableGroup()
-        varGroup.readXML(child,self.messageHandler)
-        varGroups[varGroup.name]=varGroup
-    # initialize variable groups
-    while any(not vg.initialized for vg in varGroups.values()):
-      numInit = 0 #new vargroups initialized this pass
-      for vg in varGroups.values():
-        if vg.initialized:
-          continue
-        try:
-          deps = list(varGroups[dp] for dp in vg.getDependencies())
-        except KeyError as e:
-          self.raiseAnError(IOError,'Dependency %s listed but not found in varGroups!' %e)
-        if all(varGroups[dp].initialized for dp in vg.getDependencies()):
-          vg.initialize(varGroups.values())
-          numInit+=1
-      if numInit == 0:
-        self.raiseAWarning('variable group status:')
-        for name,vg in varGroups.items():
-          self.raiseAWarning('   ',name,':',vg.initialized)
-        self.raiseAnError(RuntimeError,'There was an infinite loop building variable groups!')
+      varGroups = xmlUtils.readVariableGroups(varGroupNode,self.messageHandler,self)
+    else:
+      varGroups={}
     # read other nodes
     for child in xmlNode:
       if child.tag=='VariableGroups':
@@ -488,7 +437,10 @@ class Simulation(MessageHandler.MessageUser):
             if "name" not in childChild.parameterValues:
               self.raiseAnError(IOError,'not found name attribute for '+childName +' in '+Class)
             name = childChild.parameterValues["name"]
-            self.whichDict[Class][name] = self.addWhatDict[Class].returnInstance(childName,self)
+            if "needsRunInfo" in self.addWhatDict[Class].__dict__:
+              self.whichDict[Class][name] = self.addWhatDict[Class].returnInstance(childName,self.runInfoDict,self)
+            else:
+              self.whichDict[Class][name] = self.addWhatDict[Class].returnInstance(childName,self)
             self.whichDict[Class][name].handleInput(childChild, self.messageHandler, varGroups, globalAttributes=globalAttributes)
         elif Class != 'RunInfo':
           for childChild in child:
@@ -520,7 +472,7 @@ class Simulation(MessageHandler.MessageUser):
               else:
                 self.whichDict[Class][subType][name].readXML(childChild, self.messageHandler, globalAttributes=globalAttributes)
             else:
-              self.raiseAnError(IOError,'not found name attribute for one '+Class)
+              self.raiseAnError(IOError,'not found name attribute for one "{}": {}'.format(Class,subType))
       else:
         #tag not in whichDict, check if it's a documentation tag
         if child.tag not in ['TestInfo']:
@@ -531,7 +483,7 @@ class Simulation(MessageHandler.MessageUser):
       fileName = os.path.join(self.runInfoDict['WorkingDir'],self.runInfoDict['printInput'])
       self.raiseAMessage('Writing duplicate input file:',fileName)
       outFile = open(fileName,'w')
-      outFile.writelines(TreeStructure.tostring(xmlNode)+'\n') #\n for no-end-of-line issue
+      outFile.writelines(utils.toString(TreeStructure.tostring(xmlNode))+'\n') #\n for no-end-of-line issue
       outFile.close()
     if not set(self.stepSequenceList).issubset(set(self.stepsDict.keys())):
       self.raiseAnError(IOError,'The step list: '+str(self.stepSequenceList)+' contains steps that have not been declared: '+str(list(self.stepsDict.keys())))
@@ -544,6 +496,7 @@ class Simulation(MessageHandler.MessageUser):
       @ Out, None
     """
     #move the full simulation environment in the working directory
+    self.raiseADebug('Moving to working directory:',self.runInfoDict['WorkingDir'])
     os.chdir(self.runInfoDict['WorkingDir'])
     #add also the new working dir to the path
     sys.path.append(os.getcwd())
@@ -589,7 +542,9 @@ class Simulation(MessageHandler.MessageUser):
           self.raiseADebug('whichDict[myClass]',self.whichDict[myClass])
           self.raiseAnError(IOError,'In step '+stepName+' the class '+myClass+' named '+name+' supposed to be used for the role '+role+' has not been found')
       else:
-        if name not in list(self.whichDict[myClass][objectType].keys()):
+        if objectType not in self.whichDict[myClass].keys():
+          self.raiseAnError(IOError,'In step "{}" class "{}" the type "{}" is not recognized!'.format(stepName,myClass,objectType))
+        if name not in self.whichDict[myClass][objectType].keys():
           self.raiseADebug('name: '+name)
           self.raiseADebug('list: '+str(list(self.whichDict[myClass][objectType].keys())))
           self.raiseADebug(str(self.whichDict[myClass][objectType]))
@@ -634,6 +589,9 @@ class Simulation(MessageHandler.MessageUser):
         else:
           self.runInfoDict['printInput'] = text+'.xml'
       elif element.tag == 'WorkingDir':
+        # first store the cwd, the "CallDir"
+        self.runInfoDict['CallDir'] = os.getcwd()
+        # then get the requested "WorkingDir"
         tempName = element.text
         if '~' in tempName:
           tempName = os.path.expanduser(tempName)
@@ -644,10 +602,18 @@ class Simulation(MessageHandler.MessageUser):
         else:
           if xmlFilename == None:
             self.raiseAnError(IOError,'Relative working directory requested but xmlFilename is None.')
+          # store location of the input
           xmlDirectory = os.path.dirname(os.path.abspath(xmlFilename))
+          self.runInfoDict['InputDir'] = xmlDirectory
           rawRelativeWorkingDir = element.text.strip()
+          # working dir is file location + relative working dir
           self.runInfoDict['WorkingDir'] = os.path.join(xmlDirectory,rawRelativeWorkingDir)
         utils.makeDir(self.runInfoDict['WorkingDir'])
+      elif element.tag == 'maxQueueSize':
+        try:
+          self.runInfoDict['maxQueueSize'] = int(element.text)
+        except ValueError:
+          self.raiseAnError('Value give for RunInfo.maxQueueSize could not be converted to integer: {}'.format(element.text))
       elif element.tag == 'RemoteRunCommand':
         tempName = element.text
         if '~' in tempName:
@@ -678,6 +644,8 @@ class Simulation(MessageHandler.MessageUser):
         self.runInfoDict['internalParallel'  ] = utils.interpretBoolean(element.text)
       elif element.tag == 'batchSize':
         self.runInfoDict['batchSize'         ] = int(element.text)
+      elif element.tag.lower() == 'maxqueuesize':
+        self.runInfoDict['maxQueueSize'      ] = int(element.text)
       elif element.tag == 'MaxLogFileSize':
         self.runInfoDict['MaxLogFileSize'    ] = int(element.text)
       elif element.tag == 'precommand':
@@ -804,24 +772,7 @@ class Simulation(MessageHandler.MessageUser):
         # check assembler. NB. If the assembler refers to an internal object the relative dictionary
         # needs to have the format {'internal':[(None,'variableName'),(None,'variable name')]}
         for stp in stepindict:
-          if "whatDoINeed" in dir(stp):
-            neededobjs    = {}
-            neededObjects = stp.whatDoINeed()
-            for mainClassStr in neededObjects.keys():
-              if mainClassStr not in self.whichDict.keys() and mainClassStr != 'internal':
-                self.raiseAnError(IOError,'Main Class '+mainClassStr+' needed by '+stp.name + ' unknown!')
-              neededobjs[mainClassStr] = {}
-              for obj in neededObjects[mainClassStr]:
-                if obj[1] in vars(self):
-                  neededobjs[mainClassStr][obj[1]] = vars(self)[obj[1]]
-                elif obj[1] in self.whichDict[mainClassStr].keys():
-                  if obj[0]:
-                    if obj[0] not in self.whichDict[mainClassStr][obj[1]].type:
-                      self.raiseAnError(IOError,'Type of requested object '+obj[1]+' does not match the actual type!'+ obj[0] + ' != ' + self.whichDict[mainClassStr][obj[1]].type)
-                  neededobjs[mainClassStr][obj[1]] = self.whichDict[mainClassStr][obj[1]]
-                else:
-                  self.raiseAnError(IOError,'Requested object '+obj[1]+' is not part of the Main Class '+mainClassStr + '!')
-            stp.generateAssembler(neededobjs)
+          self.generateAllAssemblers(stp)
       #if 'Sampler' in stepInputDict.keys(): stepInputDict['Sampler'].generateDistributions(self.distributionsDict)
       #running a step
       stepInstance.takeAstep(stepInputDict)
@@ -833,5 +784,35 @@ class Simulation(MessageHandler.MessageUser):
           output.finalize()
       self.raiseAMessage('-'*2+' End step {0:50} '.format(stepName+' of type: '+stepInstance.type)+2*'-'+'\n')#,color='green')
     self.jobHandler.shutdown()
-    self.raiseAMessage('Run complete!')
     self.messageHandler.printWarnings()
+    self.raiseAMessage('Run complete!',forcePrint=True)
+
+  def generateAllAssemblers(self, objectInstance):
+    """
+      This method is used to generate all assembler objects at the Step construction stage
+      @ In, objectInstance, Instance, Instance of RAVEN entity, i.e. Input, Sampler, Model
+      @ Out, None
+    """
+    if "whatDoINeed" in dir(objectInstance):
+      neededobjs    = {}
+      neededObjects = objectInstance.whatDoINeed()
+      for mainClassStr in neededObjects.keys():
+        if mainClassStr not in self.whichDict.keys() and mainClassStr != 'internal':
+          self.raiseAnError(IOError,'Main Class '+mainClassStr+' needed by '+stp.name + ' unknown!')
+        neededobjs[mainClassStr] = {}
+        for obj in neededObjects[mainClassStr]:
+          if obj[1] in vars(self):
+            neededobjs[mainClassStr][obj[1]] = vars(self)[obj[1]]
+          elif obj[1] in self.whichDict[mainClassStr].keys():
+            if obj[0]:
+              if obj[0] not in self.whichDict[mainClassStr][obj[1]].type:
+                self.raiseAnError(IOError,'Type of requested object '+obj[1]+' does not match the actual type!'+ obj[0] + ' != ' + self.whichDict[mainClassStr][obj[1]].type)
+            neededobjs[mainClassStr][obj[1]] = self.whichDict[mainClassStr][obj[1]]
+            self.generateAllAssemblers(neededobjs[mainClassStr][obj[1]])
+          elif obj[1] in 'all':
+            # if 'all' we get all the objects of a certain 'mainClassStr'
+            for allObject in self.whichDict[mainClassStr]:
+              neededobjs[mainClassStr][allObject] = self.whichDict[mainClassStr][allObject]
+          else:
+            self.raiseAnError(IOError,'Requested object '+obj[1]+' is not part of the Main Class '+mainClassStr + '!')
+      objectInstance.generateAssembler(neededobjs)

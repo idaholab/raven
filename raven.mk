@@ -2,12 +2,10 @@ RAVEN_DIR := $(CURR_DIR)
 #Conda doesn't work with anything but bash and zsh
 SHELL := /bin/bash
 
-
-
 ################################################################################
 ## Build system for Approximate Morse-Smale Complex (AMSC)
 include $(RAVEN_DIR)/amsc.mk
-################################################################################
+###############################################################################
 
 framework_modules:: amsc python_crow_modules
 
@@ -32,8 +30,10 @@ clean::
           $(RAVEN_objects) \
           $(RAVEN_app_objects) \
           $(RAVEN_APP) \
-          $(RAVEN_plugins)
-	@rm -Rf $(RAVEN_DIR)/build
+          $(RAVEN_plugins) \
+	  $(MOOSE_DIR)/python/hit.so \
+	  $(MOOSE_DIR)/python/hit.pyd
+	@rm -Rf $(RAVEN_DIR)/build $(FRAMEWORK_DIR)/contrib/hit/build
 	@find $(RAVEN_DIR)/framework  -name '*.pyc' -exec rm '{}' \;
 
 cleanall::

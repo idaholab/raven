@@ -33,6 +33,7 @@ from utils import utils
 import LearningGate
 import GridEntities
 import Files
+import Runners
 #Internal Modules End--------------------------------------------------------------------------------
 
 class LimitSurface(PostProcessor):
@@ -61,6 +62,16 @@ class LimitSurface(PostProcessor):
     SideInput = InputData.parameterInputFactory("side", contentType=InputData.StringType)
     inputSpecification.addSub(SideInput)
 
+    ROMInput = InputData.parameterInputFactory("ROM", contentType=InputData.StringType)
+    ROMInput.addParam("class", InputData.StringType)
+    ROMInput.addParam("type", InputData.StringType)
+    inputSpecification.addSub(ROMInput)
+
+    FunctionInput = InputData.parameterInputFactory("Function", contentType=InputData.StringType)
+    FunctionInput.addParam("class", InputData.StringType)
+    FunctionInput.addParam("type", InputData.StringType)
+    inputSpecification.addSub(FunctionInput)
+
     return inputSpecification
 
   def __init__(self, messageHandler):
@@ -80,10 +91,11 @@ class LimitSurface(PostProcessor):
     self.tolerance         = 1.0e-4           #SubGrid tolerance
     self.gridFromOutside   = False            #The grid has been passed from outside (self._initFromDict)?
     self.lsSide            = "negative"       # Limit surface side to compute the LS for (negative,positive,both)
-    self.gridEntity        = None
-    self.bounds            = None
-    self.jobHandler        = None
-    self.transfMethods     = {}
+    self.gridEntity        = None             # the Grid object
+    self.bounds            = None             # the container for the domain of search
+    self.jobHandler        = None             # job handler pointer
+    self.transfMethods     = {}               # transformation methods container
+    self.crossedLimitSurf  = False            # Limit surface has been crossed?
     self.addAssemblerObject('ROM','-1', True)
     self.addAssemblerObject('Function','1')
     self.printTag = 'POSTPROCESSOR LIMITSURFACE'
@@ -106,43 +118,6 @@ class LimitSurface(PostProcessor):
     """
     self.jobHandler = initDict['internal']['jobHandler']
 
-  def inputToInternal(self, currentInp):
-    """
-      Method to convert an input object into the internal format that is
-      understandable by this pp.
-      @ In, currentInput, object, an object that needs to be converted
-      @ Out, inputDict, dict, the resulting dictionary containing features and response
-    """
-    # each post processor knows how to handle the coming inputs. The BasicStatistics postprocessor accept all the input type (files (csv only), hdf5 and dataobjects
-    if type(currentInp) == list:
-      currentInput = currentInp[-1]
-    else:
-      currentInput = currentInp
-    if type(currentInp) == dict:
-      if 'targets' in currentInput.keys():
-        return
-    inputDict = {'targets':{}, 'metadata':{}}
-    #FIXME I don't think this is checking for files, HDF5 and dataobjects
-    if hasattr(currentInput,'type'):
-      inType = currentInput.type
-    else:
-      self.raiseAnError(IOError, self, 'LimitSurface postprocessor accepts files,HDF5,Data(s) only! Got ' + str(type(currentInput)))
-    if isinstance(currentInp,Files.File):
-      if currentInput.subtype == 'csv':
-        pass
-      #FIXME else?  This seems like hollow code right now.
-    if inType == 'HDF5':
-      pass  # to be implemented
-    if inType in ['PointSet']:
-      for targetP in self.parameters['targets']:
-        if   targetP in currentInput.getParaKeys('input'):
-          inputDict['targets'][targetP] = currentInput.getParam('input' , targetP)
-        elif targetP in currentInput.getParaKeys('output'):
-          inputDict['targets'][targetP] = currentInput.getParam('output', targetP)
-      inputDict['metadata'] = currentInput.getAllMetadata()
-    # to be added
-    return inputDict
-
   def _initializeLSpp(self, runInfo, inputs, initDict):
     """
       Method to initialize the LS post processor (create grid, etc.)
@@ -153,7 +128,6 @@ class LimitSurface(PostProcessor):
     """
     PostProcessor.initialize(self, runInfo, inputs, initDict)
     self.gridEntity = GridEntities.returnInstance("MultiGridEntity",self,self.messageHandler)
-    self.__workingDir     = runInfo['WorkingDir']
     self.externalFunction = self.assemblerDict['Function'][0][3]
     if 'ROM' not in self.assemblerDict.keys():
       self.ROM = LearningGate.returnInstance('SupervisedGate','SciKitLearn', self, **{'SKLtype':'neighbors|KNeighborsClassifier',"n_neighbors":1, 'Features':','.join(list(self.parameters['targets'])), 'Target':[self.externalFunction.name]})
@@ -162,28 +136,30 @@ class LimitSurface(PostProcessor):
     self.ROM.reset()
     self.indexes = -1
     for index, inp in enumerate(self.inputs):
-      if type(inp).__name__ in ['str', 'bytes', 'unicode']:
-        self.raiseAnError(IOError, 'LimitSurface PostProcessor only accepts Data(s) as inputs!')
+      if utils.isString(inp)  or isinstance(inp, bytes):
+        self.raiseAnError(IOError, 'LimitSurface PostProcessor only accepts Data(s) as inputs. Got string type!')
       if inp.type == 'PointSet':
         self.indexes = index
     if self.indexes == -1:
       self.raiseAnError(IOError, 'LimitSurface PostProcessor needs a PointSet as INPUT!!!!!!')
-    else:
-      # check if parameters are contained in the data
-      inpKeys = self.inputs[self.indexes].getParaKeys("inputs")
-      outKeys = self.inputs[self.indexes].getParaKeys("outputs")
-      self.paramType = {}
-      for param in self.parameters['targets']:
-        if param not in inpKeys + outKeys:
-          self.raiseAnError(IOError, 'LimitSurface PostProcessor: The param ' + param + ' not contained in Data ' + self.inputs[self.indexes].name + ' !')
-        if param in inpKeys:
-          self.paramType[param] = 'inputs'
-        else:
-          self.paramType[param] = 'outputs'
+    #else:
+    #  # check if parameters are contained in the data
+    #  inpKeys = self.inputs[self.indexes].getParaKeys("inputs")
+    #  outKeys = self.inputs[self.indexes].getParaKeys("outputs")
+    #  self.paramType = {}
+    #  for param in self.parameters['targets']:
+    #    if param not in inpKeys + outKeys:
+    #      self.raiseAnError(IOError, 'LimitSurface PostProcessor: The param ' + param + ' not contained in Data ' + self.inputs[self.indexes].name + ' !')
+    #    if param in inpKeys:
+    #      self.paramType[param] = 'inputs'
+    #    else:
+    #      self.paramType[param] = 'outputs'
     if self.bounds == None:
+      dataSet = self.inputs[self.indexes].asDataset()
       self.bounds = {"lowerBounds":{},"upperBounds":{}}
       for key in self.parameters['targets']:
-        self.bounds["lowerBounds"][key], self.bounds["upperBounds"][key] = min(self.inputs[self.indexes].getParam(self.paramType[key],key,nodeId = 'RecontructEnding')), max(self.inputs[self.indexes].getParam(self.paramType[key],key,nodeId = 'RecontructEnding'))
+        self.bounds["lowerBounds"][key], self.bounds["upperBounds"][key] = min(dataSet[key].values), max(dataSet[key].values)
+        #self.bounds["lowerBounds"][key], self.bounds["upperBounds"][key] = min(self.inputs[self.indexes].getParam(self.paramType[key],key,nodeId = 'RecontructEnding')), max(self.inputs[self.indexes].getParam(self.paramType[key],key,nodeId = 'RecontructEnding'))
         if utils.compare(round(self.bounds["lowerBounds"][key],14),round(self.bounds["upperBounds"][key],14)):
           self.bounds["upperBounds"][key]+= abs(self.bounds["upperBounds"][key]/1.e7)
     self.gridEntity.initialize(initDictionary={"rootName":self.name,'constructTensor':True, "computeCells":initDict['computeCells'] if 'computeCells' in initDict.keys() else False,
@@ -202,11 +178,11 @@ class LimitSurface(PostProcessor):
     """
     self.raiseADebug('Initiate training')
     if type(inp) == dict:
-      self.functionValue.update(inp['inputs' ])
-      self.functionValue.update(inp['outputs'])
+      self.functionValue.update(inp)
     else:
-      self.functionValue.update(inp.getParametersValues('inputs', nodeId = 'RecontructEnding'))
-      self.functionValue.update(inp.getParametersValues('outputs', nodeId = 'RecontructEnding'))
+      dataSet = inp.asDataset("dict")
+      self.functionValue.update(dataSet['data'])
+      #self.functionValue.update(inp.getParametersValues('outputs', nodeId = 'RecontructEnding'))
     # recovery the index of the last function evaluation performed
     if self.externalFunction.name in self.functionValue.keys():
       indexLast = len(self.functionValue[self.externalFunction.name]) - 1
@@ -226,17 +202,15 @@ class LimitSurface(PostProcessor):
       self.functionValue[self.externalFunction.name][myIndex] = self.externalFunction.evaluate('residuumSign', tempDict)
       if abs(self.functionValue[self.externalFunction.name][myIndex]) != 1.0:
         self.raiseAnError(IOError, 'LimitSurface: the function evaluation of the residuumSign method needs to return a 1 or -1!')
-      if type(inp) != dict:
-        if self.externalFunction.name in inp.getParaKeys('inputs'):
-          inp.self.updateInputValue (self.externalFunction.name, self.functionValue[self.externalFunction.name][myIndex])
-        if self.externalFunction.name in inp.getParaKeys('output'):
-          inp.self.updateOutputValue(self.externalFunction.name, self.functionValue[self.externalFunction.name][myIndex])
-      else:
-        if self.externalFunction.name in inp['inputs' ].keys():
-          inp['inputs' ][self.externalFunction.name] = np.concatenate((inp['inputs'][self.externalFunction.name],np.asarray(self.functionValue[self.externalFunction.name][myIndex])))
-        if self.externalFunction.name in inp['outputs'].keys():
-          inp['outputs'][self.externalFunction.name] = np.concatenate((inp['outputs'][self.externalFunction.name],np.asarray(self.functionValue[self.externalFunction.name][myIndex])))
-    if np.sum(self.functionValue[self.externalFunction.name]) == float(len(self.functionValue[self.externalFunction.name])) or np.sum(self.functionValue[self.externalFunction.name]) == -float(len(self.functionValue[self.externalFunction.name])):
+      if type(inp).__name__ in ['dict','OrderedDict']:
+        if self.externalFunction.name in inp:
+          inp[self.externalFunction.name] = np.concatenate((inp[self.externalFunction.name],np.asarray(self.functionValue[self.externalFunction.name][myIndex])))
+    # check if the Limit Surface has been crossed
+    self.crossedLimitSurf = not (np.sum(self.functionValue[self.externalFunction.name]) ==
+                                 float(len(self.functionValue[self.externalFunction.name])) or
+                                 np.sum(self.functionValue[self.externalFunction.name]) ==
+                                 -float(len(self.functionValue[self.externalFunction.name])))
+    if not self.crossedLimitSurf:
       if raiseErrorIfNotFound:
         self.raiseAnError(ValueError, 'LimitSurface: all the Function evaluations brought to the same result (No Limit Surface has been crossed...). Increase or change the data set!')
       else:
@@ -255,7 +229,6 @@ class LimitSurface(PostProcessor):
     tempDict[self.externalFunction.name] = self.functionValue[self.externalFunction.name]
     self.ROM.train(tempDict)
     self.raiseADebug('LimitSurface: Training performed')
-    self.raiseADebug('LimitSurface: Training finished')
 
   def initialize(self, runInfo, inputs, initDict):
     """
@@ -337,6 +310,14 @@ class LimitSurface(PostProcessor):
     """
     paramInput = LimitSurface.getInputSpecification()()
     paramInput.parseNode(xmlNode)
+    self._handleInput(paramInput)
+
+  def _handleInput(self, paramInput):
+    """
+      Function to handle the parsed paramInput for this class.
+      @ In, paramInput, ParameterInput, the already parsed input.
+      @ Out, None
+    """
     initDict = {}
     for child in paramInput.subparts:
       initDict[child.getName()] = child.value
@@ -350,20 +331,22 @@ class LimitSurface(PostProcessor):
       @ In, output, dataObjects, The object where we want to place our computed results
       @ Out, None
     """
-    if finishedJob.getEvaluation() == -1:
-      self.raiseAnError(RuntimeError, 'No available Output to collect (Run probably is not finished yet)')
-    self.raiseADebug(str(finishedJob.getEvaluation()))
-    limitSurf = finishedJob.getEvaluation()[1]
+    evaluation = finishedJob.getEvaluation()
+    if isinstance(evaluation, Runners.Error):
+      self.raiseAnError(RuntimeError, "No available output to collect (run possibly not finished yet)")
+
+    self.raiseADebug(str(evaluation))
+    limitSurf = evaluation[1]
     if limitSurf[0] is not None:
-      for varName in output.getParaKeys('inputs'):
-        for varIndex in range(len(self.axisName)):
-          if varName == self.axisName[varIndex]:
-            output.removeInputValue(varName)
-            for value in limitSurf[0][:,varIndex]:
-              output.updateInputValue(varName, copy.copy(value))
-      output.removeOutputValue(self.externalFunction.name)
-      for value in limitSurf[1]:
-        output.updateOutputValue(self.externalFunction.name, copy.copy(value))
+      # reset the output
+      if len(output) > 0:
+        self.raiseAnError(RuntimeError, 'The output DataObject "'+output.name+'" is not empty! Chose another one!')
+        #output.reset()
+      # construct the realizations dict
+      rlz = {varName: limitSurf[0][:,varIndex] for varIndex,varName in enumerate(self.axisName) }
+      rlz[self.externalFunction.name] = limitSurf[1]
+      # add the full realizations
+      output.load(rlz,style='dict')
 
   def refineGrid(self,refinementSteps=2):
     """
@@ -411,7 +394,11 @@ class LimitSurface(PostProcessor):
       self.gridCoord[nodeName].shape      = self.gridEntity.returnParameter("gridCoorShape",nodeName) #bring back the grid structure
       self.raiseADebug('LimitSurface: Prediction performed')
       # here next the points that are close to any change are detected by a gradient (it is a pre-screener)
-      toBeTested = np.squeeze(np.dstack(np.nonzero(np.sum(np.abs(np.gradient(self.testMatrix[nodeName])), axis = 0))))
+      if self.nVar > 1:
+        toBeTested = np.squeeze(np.dstack(np.nonzero(np.sum(np.abs(np.gradient(self.testMatrix[nodeName])), axis = 0))))
+      else:
+        toBeTested = np.squeeze(np.dstack(np.nonzero(np.abs(np.gradient(self.testMatrix[nodeName])))))
+      toBeTested = np.atleast_2d(toBeTested).T if self.nVar == 1 else toBeTested
       #printing----------------------
       self.raiseADebug('LimitSurface:  Limit surface candidate points')
       if self.getLocalVerbosity() == 'debug':
@@ -424,7 +411,6 @@ class LimitSurface(PostProcessor):
       # check which one of the preselected points is really on the limit surface
       nNegPoints, nPosPoints                       =  0, 0
       listSurfPointNegative, listSurfPointPositive = [], []
-
       if self.lsSide in ["negative", "both"]:
         # it returns the list of points belonging to the limit state surface and resulting in a negative response by the ROM
         listSurfPointNegative = self.__localLimitStateSearch__(toBeTested, -1, nodeName)
@@ -470,6 +456,7 @@ class LimitSurface(PostProcessor):
       @ In, nodeName, string, the sub-grid name
       @ Out, listSurfPoint, list, the list of limit surface coordinates
     """
+    #TODO: This approach might be extremely slow. It must be replaced with matrix operations
     listSurfPoint = []
     gridShape = self.gridEntity.returnParameter("gridShape",nodeName)
     myIdList = np.zeros(self.nVar,dtype=int)

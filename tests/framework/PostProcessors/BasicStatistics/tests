@@ -2,9 +2,8 @@
   [./grid_analytic]
     type = 'RavenFramework'
     input = 'grid_analytic.xml'
-    UnorderedCsv = 'basicStatsGridAnalytic/outputDatagrid_dump.csv'
-    UnorderedXml = 'basicStatsGridAnalytic/output_basicStatistics_PP1grid.xml'
-    output = 'basicStatsGridAnalytic/outputDatagrid_dump.xml'
+    UnorderedCsv = 'basicStatsGridAnalytic/analyticalTest_basicStatPP_dump.csv'
+    UnorderedXml = 'basicStatsGridAnalytic/analyticalTest_basicStatPP_dump.xml'
     rel_err = 0.00001
     zero_threshold = 1e-9
     remove_whitespace = True
@@ -12,8 +11,8 @@
   [./grid_inValue]
     type = 'RavenFramework'
     input = 'grid_inValue.xml'
-    UnorderedXml = 'basicStatsGridInValueAnalytic/output_basicStatistics_PP1grid.xml'
-    output = 'basicStatsGridInValueAnalytic/outputDatagrid_dump.csv basicStatsGridInValueAnalytic/outputDatagrid_dump.xml'
+    UnorderedXml = 'basicStatsGridInValueAnalytic/analyticalTest_basicStatPP_dump.xml'
+    UnorderedCsv = 'basicStatsGridInValueAnalytic/analyticalTest_basicStatPP_dump.csv'
     rel_err = 0.00001
     zero_threshold = 1e-14
     remove_whitespace = True
@@ -21,42 +20,38 @@
   [./mc]
     type = 'RavenFramework'
     input = 'mc.xml'
-    UnorderedCsv = 'basicStatsMonteCarloAnalytic/outputDataMC_dump.csv'
-    UnorderedXml = 'basicStatsMonteCarloAnalytic/output_basicStatistics_PP1mc.xml'
-    output = 'basicStatsMonteCarloAnalytic/outputDataMC_dump.xml'
+    UnorderedCsv = 'basicStatsMonteCarloAnalytic/analyticalTest_basicStatPP_dump.csv'
+    UnorderedXml = 'basicStatsMonteCarloAnalytic/analyticalTest_basicStatPP_dump.xml'
     rel_err = 1e-6
   [../]
   [./mcFloatPercentile]
     type = 'RavenFramework'
     input = 'mc_float_percentile.xml'
-    UnorderedCsv = 'basicStatsMonteCarloPercentileFloat/output_basicStatistics_PP1mc.csv'
-    UnorderedXml = 'basicStatsMonteCarloPercentileFloat/output_basicStatistics_PP1mc.xml'
+    UnorderedCsv = 'basicStatsMonteCarloPercentileFloat/analyticalTest_basicStatPP_dump.csv'
+    UnorderedXml = 'basicStatsMonteCarloPercentileFloat/analyticalTest_basicStatPP_dump.xml'
     rel_err = 1e-6
   [../]
   [./stratified]
     type = 'RavenFramework'
     input = 'stratified_analytic.xml'
-    UnorderedCsv = 'basicStatsStratifiedAnalytic/outputDataStratified_dump.csv'
-    UnorderedXml = 'basicStatsStratifiedAnalytic/output_basicStatistics_PP1Stratified.xml'
-    output = 'basicStatsStratifiedAnalytic/outputDataStratified_dump.xml'
+    UnorderedCsv = 'basicStatsStratifiedAnalytic/analyticalTest_basicStatPP_dump.csv'
+    UnorderedXml = 'basicStatsStratifiedAnalytic/analyticalTest_basicStatPP_dump.xml'
     rel_err = 1e-6
     zero_threshold = 1e-14
   [../]
   [./factorial]
     type = 'RavenFramework'
     input = 'factorial_analytic.xml'
-    UnorderedCsv = 'basicStatsFactorialAnalytic/outputData2levelFractFactorial_dump.csv basicStatsFactorialAnalytic/outputDatapbFactorial_dump.csv'
-    UnorderedXml = 'basicStatsFactorialAnalytic/output_basicStatistics_PP12levelFractFactorial.xml basicStatsFactorialAnalytic/output_basicStatistics_PP1pbFactorial.xml'
-    output = 'basicStatsFactorialAnalytic/outputData2levelFractFactorial_dump.xml'
+    UnorderedCsv = 'basicStatsFactorialAnalytic/analyticalTest_basicStatPP_dump.csv basicStatsFactorialAnalytic/analyticalTest_basicStatPP_dump_pb.csv'
+    UnorderedXml = 'basicStatsFactorialAnalytic/analyticalTest_basicStatPP_dump.xml basicStatsFactorialAnalytic/analyticalTest_basicStatPP_dump_pb.xml'
     rel_err = 0.00001
     zero_threshold = 1e-14
   [../]
   [./responseSurfaceDoE]
     type = 'RavenFramework'
     input = 'responseSurfaceDoE_analytic.xml'
-    UnorderedCsv = 'basicStatsResponseSurfaceDoEAnalytic/outputDataBoxBehnkenRespDesign_dump.csv basicStatsResponseSurfaceDoEAnalytic/outputDataCentralCompositeRespDesign_dump.csv'
-    UnorderedXml = 'basicStatsResponseSurfaceDoEAnalytic/boxBehnkenRespDesign.xml basicStatsResponseSurfaceDoEAnalytic/centralCompositeRespDesign.xml'
-    output = 'basicStatsResponseSurfaceDoEAnalytic/outputDataBoxBehnkenRespDesign_dump.xml basicStatsResponseSurfaceDoEAnalytic/outputDataCentralCompositeRespDesign_dump.xml'
+    UnorderedCsv = 'basicStatsResponseSurfaceDoEAnalytic/analyticalTest_basicStatPP_comp_dump.csv basicStatsResponseSurfaceDoEAnalytic/analyticalTest_basicStatPP_dump.csv'
+    UnorderedXml = 'basicStatsResponseSurfaceDoEAnalytic/analyticalTest_basicStatPP_comp_dump.xml basicStatsResponseSurfaceDoEAnalytic/analyticalTest_basicStatPP_dump.xml'
     rel_err = 0.00001
     zero_threshold = 1e-14
   [../]
@@ -64,71 +59,72 @@
   #REQUIREMENT_TEST R-RA-5
   type = 'RavenFramework'
   input = 'test_BasicStatistics.xml'
-  output = 'basicStatisticsGeneral/PointSetPostProcTest_dump.xml'
-  UnorderedXml = 'basicStatisticsGeneral/autoCorrelated.xml basicStatisticsGeneral/unCorrelated.xml basicStatisticsGeneral/inverseCorrelated.xml basicStatisticsGeneral/inputOutput.xml basicStatisticsGeneral/infinite.xml basicStatisticsGeneral/matrixComputable.xml'
-  csv = 'basicStatisticsGeneral/PointSetPostProcTest_dump.csv'
+  output = 'basicStatisticsGeneral/PointSetPostProcTest_dump.xml basicStatisticsGeneral/CreateInfinity_basicStatPP_dump.xml basicStatisticsGeneral/InputOutput_basicStatPP_dump.xml basicStatisticsGeneral/InverseCorrelatedTest_basicStatPP_dump.xml basicStatisticsGeneral/NotCorrellatedTest_basicStatPP_dump.xml basicStatisticsGeneral/autoCorrelationTest_basicStatPP_dump.xml basicStatisticsGeneral/checkIfMatrixCanBeComputed_basicStatPP_dump.xml'
+  UnorderedCsv = 'basicStatisticsGeneral/CreateInfinity_basicStatPP_dump.csv basicStatisticsGeneral/InputOutput_basicStatPP_dump.csv basicStatisticsGeneral/InverseCorrelatedTest_basicStatPP_dump.csv basicStatisticsGeneral/NotCorrellatedTest_basicStatPP_dump.csv basicStatisticsGeneral/autoCorrelationTest_basicStatPP_dump.csv basicStatisticsGeneral/PointSetPostProcTest_dump.csv basicStatisticsGeneral/checkIfMatrixCanBeComputed_basicStatPP_dump.csv'
   max_time = 500
   rel_err = 0.00001
+  zero_threshold = 1e-14
  [../]
  [./printXml]
   type = 'RavenFramework'
   input = 'print_xml.xml'
-  UnorderedXml = 'basicStatisticsXml/output_basicStatistics.xml'
+  UnorderedXml = 'basicStatisticsXml/InputOutput_basicStatPP_dump.xml'
+  UnorderedCsv = 'basicStatisticsXml/InputOutput_basicStatPP_dump.csv'
+  rel_err = 1e-6
+  zero_threshold = 1e-14
  [../]
  [./sensitivity]
   type = 'RavenFramework'
   input = 'sensitivity.xml'
-  output = 'basicStatsSensitivity/csv_database.xml basicStatsSensitivity/output_basicStatistics.csv'
-  csv = 'basicStatsSensitivity/csv_database.csv'
-  UnorderedXml = 'basicStatsSensitivity/stats.xml'
+  csv = 'basicStatsSensitivity/InputOutput_basicStatPP_dump.csv'
+  UnorderedXml = 'basicStatsSensitivity/InputOutput_basicStatPP_dump.xml'
   rel_err = 0.0000001
  [../]
  [./sensitivityOnly]
   type = 'RavenFramework'
   input = 'sensitivity_only.xml'
-  output = 'basicStatsSensitivityOnly/csv_database.xml basicStatsSensitivityOnly/output_basicStatistics.csv'
   csv = 'basicStatsSensitivityOnly/csv_database.csv'
-  UnorderedXml = 'basicStatsSensitivityOnly/stats.xml'
+  UnorderedXml = 'basicStatsSensitivityOnly/csv_database.xml'
   rel_err = 0.0000001
  [../]
  [./timeDependent]
   type = 'RavenFramework'
   input = 'time_dep.xml'
-  output = 'basicStatisticsTimeDependent/output_basicStatistics_timedep_PP1.csv basicStatisticsTimeDependent/HistorySetPostProcTest_dump.xml'
-  UnorderedCsv = 'basicStatisticsTimeDependent/HistorySetPostProcTest_dump_3.csv basicStatisticsTimeDependent/ExtractedStats_dump.csv'
-  UnorderedXml = 'basicStatisticsTimeDependent/output_basicStatistics_timedep_PP1.xml'
+  output = 'basicStatisticsTimeDependent/HistorySetPostProcTest_dump.csv'
+  UnorderedCsv = 'basicStatisticsTimeDependent/HistorySetPostProcTest_dump_0.csv'
+  UnorderedXml = 'basicStatisticsTimeDependent/HistorySetPostProcTest_dump.xml'
   rel_err = 1e-5
   zero_threshold = 1e-14
  [../]
  [./timeDependentAsyncHistories]
   type = 'RavenFramework'
   input = 'time_dep_asyncHists.xml'
-  output = 'basicStatisticsTimeDependentAsynchronousHistories/output_basicStatistics_timedep_PP1.csv'
-  UnorderedCsv = 'basicStatisticsTimeDependentAsynchronousHistories/HistorySetPostProcTest_dump_3.csv basicStatisticsTimeDependentAsynchronousHistories/HistorySetPostProcTestSyncronized_dump_3.csv'
-   UnorderedXml = 'basicStatisticsTimeDependentAsynchronousHistories/HistorySetPostProcTest_dump.xml basicStatisticsTimeDependentAsynchronousHistories/output_basicStatistics_timedep_PP1.xml'
-   rel_err = 1e-5
-   zero_threshold = 1e-14
+  output = 'basicStatisticsTimeDependentAsynchronousHistories/timeDepBasicStat_basicStatPP_dump.csv'
+  UnorderedCsv = 'basicStatisticsTimeDependentAsynchronousHistories/HistorySetPostProcTest_dump_3.csv basicStatisticsTimeDependentAsynchronousHistories/HistorySetPostProcTestSyncronized_dump_3.csv basicStatisticsTimeDependentAsynchronousHistories/timeDepBasicStat_basicStatPP_dump_0.csv basicStatisticsTimeDependentAsynchronousHistories/timeDepBasicStat_basicStatPP_dump_1.csv'
+  rel_err = 1e-5
+  zero_threshold = 1e-14
  [../]
  [./variationCoefficient]
   type = 'RavenFramework'
   input = 'variationCoefficient.xml'
-  output = 'basicStatisticsGeneral/output_variation_coefficient.csv'
-  xml = 'basicStatisticsGeneral/output_variation_coefficient.xml'
+  output = 'basicStatisticsGeneral/variationCoefficient_basicStatPP_dump.xml'
+  UnorderedCsv = 'basicStatisticsGeneral/variationCoefficient_basicStatPP_dump.csv'
   max_time = 500
   rel_err = 0.00001
  [../]
   [./mc_uniform]
     type = 'RavenFramework'
     input = 'mcUnif.xml'
-    UnorderedCsv = 'basicStatsMonteCarloUniformAnalytic/outputDataMC_dump.csv'
-    UnorderedXml = 'basicStatsMonteCarloUniformAnalytic/output_basicStatistics_PP.xml'
-    output = 'basicStatsMonteCarloUniformAnalytic/outputDataMC_dump.xml'
+    UnorderedCsv = 'basicStatsMonteCarloUniformAnalytic/analyticalTest_basicStatPP_dump.csv'
+    UnorderedXml = 'basicStatsMonteCarloUniformAnalytic/analyticalTest_basicStatPP_dump.xml'
     rel_err = 1e-6
   [../]
   [./writeHeavyXml]
     type = 'RavenFramework'
     input = 'heavy_xml_write.xml'
-    UnorderedCsv = 'HeavyXmlWrite/stats_dump.csv'
+    UnorderedCsv = 'HeavyXmlWrite/stats_basicStatPP_dump_0.csv'
+    UnorderedXml = 'HeavyXmlWrite/stats_basicStatPP_dump.xml'
+    output = 'HeavyXmlWrite/stats_basicStatPP_dump.csv'
     heavy = true
     max_time = 200
   [../]
@@ -138,5 +134,31 @@
     output = 'timeDepOutCsv/fileOut.csv timeDepOutCsv/1-PlotStatsT2_scatter-scatter-scatter.png'
     max_time = 200
   [../]
+ 
+ [./timeDepDataset]
+  type = 'RavenFramework'
+  input = 'time_dep_dataset.xml'
+  UnorderedCsv = 'basicStatisticsTimeDependent/datasetPrint.csv'
+  rel_err = 1e-5
+  zero_threshold = 1e-14
+ [../]
 
+ [./nml]
+   type = 'RavenFramework'
+   input = 'test_not_multiple_linear.xml'
+   UnorderedCsv = 'notMultipleLinear/basicStatPP_dump.csv'
+   rel_err = 1e-6
+ [../]
+ [./ste]
+   type = 'RavenFramework'
+   input = 'ste_mc.xml'
+   UnorderedCsv = 'ste/basicStatPP_dump.csv'
+   rel_err = 1e-6
+ [../]
+ [./steGrid]
+   type = 'RavenFramework'
+   input = 'ste_grid.xml'
+   UnorderedCsv = 'steGrid/basicStatPP_dump.csv'
+   rel_err = 1e-6
+ [../]
 []

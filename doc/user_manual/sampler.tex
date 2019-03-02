@@ -13,6 +13,29 @@
   \nb As with other objects, this identifier can be used to reference this
   specific entity from other input blocks in the XML.
 }
+\newcommand{\shapeVariableDescription}
+{
+  \xmlAttr{shape},
+  \xmlDesc{comma-separated integers, optional field},
+  determines the number of samples and shape of samples
+  to be taken.  For example, \xmlAttr{shape}=``2,3'' will provide a 2 by 3
+  matrix of values, while \xmlAttr{shape}=``10'' will produce a vector of 10 values.
+  Omitting this optional attribute will result in a single scalar value instead.
+  Each of the values in the matrix or vector will be the same as the single sampled value.
+  \nb A model interface must be prepared to handle non-scalar inputs to use this option.
+}
+\newcommand{\shapeConstantDescription}
+{
+  \xmlAttr{shape},
+  \xmlDesc{comma-separated integers, optional field},
+  determines the shape of samples of the constant value.
+  For example, \xmlAttr{shape}=``2,3'' will shape the values into a 2 by 3
+  matrix, while \xmlAttr{shape}=``10'' will shape into a vector of 10 values.
+  Unlike the \xmlNode{variable}, the constant requires each value be entered; the number
+  of required values is equal to the product of the \xmlAttr{shape}.
+  \nb A model interface must be prepared to handle non-scalar inputs to use this option.
+}
+
 \renewcommand{\specBlock}[2]
 {
   The specifications of this sampler must be defined within #1 \xmlNode{#2} XML
@@ -97,22 +120,50 @@ XML node and the requirements for other attributes change:
 }
 \newcommand{\variableDescription}
 {
-  \xmlNode{variable}, \xmlDesc{XML node,
-  required parameter} will specify one attribute:
+  \xmlNode{variable}, \xmlDesc{XML node, required parameter} can specify the following attribute:
   \begin{itemize}
     \item \xmlAttr{name}, \xmlDesc{required string attribute}, user-defined name
       of this variable.
+    \item \shapeVariableDescription
   \end{itemize}
 }
 
 \newcommand{\constantVariablesDescription}
 {
-  \xmlNode{constant}, \xmlDesc{XML node,
-  optional parameter} the user is able to input variables that need to be 
-  kept constant.    
-  For doing this, as many \xmlNode{constant} nodes as needed can be 
-  input, where the body of the node contains the constant value that is 
-  going to be injected as an additional variable
+  \xmlNode{constant}, \xmlDesc{XML node, optional parameter} the user is able to input variables that need to be
+  kept constant.
+  For doing this, as many \xmlNode{constant} nodes as needed can be
+  input.
+  %
+  There are options for setting a constant. To simply set the constant's value,
+  the body of the node contains the constant value, and the \xmlNode{constant}
+  node has the following attributes:
+  \begin{itemize}
+    \item \xmlAttr{name}, \xmlDesc{required string attribute}, user-defined name
+      of this constant.
+    \item \shapeConstantDescription
+  \end{itemize}
+
+  Alternatively, the constant value can
+  be read from a DataObject that has been identified as a \xmlNode{ConstantSource} for
+  this Sampler. In this case, the body of the \xmlNode{constant} node is the name of the
+  variable that needs to be read from the \xmlNode{ConstantSource}, and the \xmlNode{constant}
+  node has the following additional attributes in addition to the those above:
+  \begin{itemize}
+    \item \xmlAttr{source}, \xmlDesc{required string attribute}, the name of the DataObject
+      containing the value to be used for this constant. This must be the name of one of
+      the \xmlNode{ConstantSource} DataObjects.
+    \item \xmlAttr{index}, \xmlDesc{optional integer attribute}, the index of the realization
+      in the source DataObject that contains the value to use for the constant. \default{the last entry}
+  \end{itemize}
+
+  By way of example, consider the following Sampler definition. The constant will be named
+  \xmlString{C} in the Sampler, and its value is taken from the DataObject \xmlString{MyConstant},
+  which is identified in the \xmlNode{ConstantSource} node. To find the value of the constant in
+  \xmlString{MyConstant}, the Sampler will look at the realization with index \xmlString{3} for the
+  value of variable \xmlString{A} to use as the constant value.
+  \lstinputlisting[style=XML]{const_example.xml}
+
 }
 
 \newcommand{\distributionDescription}
@@ -239,7 +290,7 @@ XML node and the requirements for other attributes change:
     to control this sampler's convergence criterion.
 }
 
-\newcommand{\assemblerDescription}[1] %%NOTE this only applies to the adaptive sampler.  Why is it a newcommand? %%
+\newcommand{\assemblerDescription}[1]
 {
   \textbf{Assembler Objects} These objects are either required or optional
     depending on the functionality of the #1 Sampler.
@@ -276,7 +327,7 @@ XML node and the requirements for other attributes change:
 {
     \begin{itemize}
       \item \xmlNode{Restart}, \xmlDesc{string, optional field}, the
-        body of this XML node must contain the name of an appropriate \textbf{PointSet} defined in the
+        body of this XML node must contain the name of an appropriate \textbf{DataObject} defined in the
         \xmlNode{DataObjects} block (see Section~\ref{sec:DataObjects}).  It is used as a
         ``restart'' tool, where it accepts pre-existing solutions in the PointSet instead
         of recalculating solutions.
@@ -290,8 +341,17 @@ XML node and the requirements for other attributes change:
         body of this XML node must contain a valid floating point value.  If a \xmlNode{Restart} node is
         supplied for this \xmlNode{Sampler}, this node offers a way to determine how strictly matching points
         are determined.  Given a point in the input space, if that point is within a relative Euclidean
-        distance (equal to the tolerance) of a restart point, the nearest restart point will be used instead.
+        distance (equal to the tolerance) of a restart point, the nearest restart point will be used.
         \default{1e-15}
+    \end{itemize}
+}
+\newcommand{\constantSourceDescription}[1]
+{
+    \begin{itemize}
+      \item \xmlNode{ConstantSource}, \xmlDesc{string, optional field}, the
+        body of this XML node must contain the name of an appropriate \textbf{DataObject} defined in the
+        \xmlNode{DataObjects} block (see Section~\ref{sec:DataObjects}).  It is used as a
+        source from which constants can take values.
     \end{itemize}
 }
 
@@ -555,10 +615,10 @@ In the \textbf{MonteCarlo} input block, the user needs to specify the variables 
     \item \xmlNode{initialSeed}, \textit{\textbf{integer, optional field}}, initial seeding of random number generator
     \item \xmlNode{reseedEachIteration},  \textit{\textbf{boolean/string(case insensitive), optional field}}, perform a re-seeding for each sample generated (True values = True, yes, y, t). \default{False};
     \item \xmlNode{distInit},  \textit{\textbf{integer, optional field}}, in this node the user specifies the initialization of the random number generator function for each N-Dimensional Probability Distributions (see Section~\ref{subsec:NdDist}).
-    \item \xmlNode{samplingType}, \textit{\textbf{string, optional field}}, sub-type of sampling \default{None}. the user can choose to perform a Monte-Carlo sampling where the location of the samples in 
-the input space is uniformly distributed and not generated accordingly to the specific set of distributions. This can be specificed 
-in the \xmlNode{samplingType} with the kewyword ``uniform''. This option works only if all the distributions have an upper and lower 
-bound specified (i.e., \xmlNode{lowerBound} and \xmlNode{upperBound}). Allowed fields for this node are ``None'' and ``uniform''. 
+    \item \xmlNode{samplingType}, \textit{\textbf{string, optional field}}, sub-type of sampling \default{None}. the user can choose to perform a Monte-Carlo sampling where the location of the samples in
+the input space is uniformly distributed and not generated accordingly to the specific set of distributions. This can be specificed
+in the \xmlNode{samplingType} with the kewyword ``uniform''. This option works only if all the distributions have an upper and lower
+bound specified (i.e., \xmlNode{lowerBound} and \xmlNode{upperBound}). Allowed fields for this node are ``None'' and ``uniform''.
   \end{itemize}
 \end{itemize}
 \begin{itemize}
@@ -586,6 +646,7 @@ listed in \xmlNode{manifestVariables} are used by the \xmlNode{Models}.
 \variablesTransformationDescription{MonteCarlo}
 \assemblerDescription{MonteCarlo}
 \restartDescription{MonteCarlo}
+\constantSourceDescription{MonteCarlo}
 
 Example:
 \begin{lstlisting}[style=XML]
@@ -676,6 +737,7 @@ are used by the \xmlNode{Models}.
 
 \assemblerDescription{Grid}
 \restartDescription{Grid}
+\constantSourceDescription{Grid}
 
 Example:
 \begin{lstlisting}[style=XML,morekeywords={construction,steps,lowerBound,upperBound}]
@@ -752,7 +814,7 @@ which use reduced combinations of polynomial orders to reduce the necessary samp
  \begin{itemize}
     \item \distributionDescription
     \item \functionDescription
- \end{itemize} 
+ \end{itemize}
  \item \constantVariablesDescription
 \end{itemize}
 Because of the tight coupling between the Sampler and the ROM in stochastic collocation for generalized polynomial chaos, the Sampler needs access to the ROM via the assembler do determine the polynomials, quadratures, and importance weights to use in each dimension (see \ref{subsubsec:GaussPolynomialRom}).
@@ -761,6 +823,7 @@ Because of the tight coupling between the Sampler and the ROM in stochastic coll
   \assemblerDescription{SparseGridCollocation}
   \ROMDescription{SparseGridCollocation}
   \restartDescription{SparseGridCollocation}
+  \constantSourceDescription{SparseGridCollocation}
 
 \footnotesize
 \begin{lstlisting}[style=XML]
@@ -891,7 +954,7 @@ multivariate normal distribution objects. The \xmlNode{Sobol} node supports the 
  \begin{itemize}
     \item \distributionDescription
     \item \functionDescription
- \end{itemize} 
+ \end{itemize}
 \item \constantVariablesDescription
 \end{itemize}
 
@@ -904,6 +967,7 @@ Because of the tight coupling between the Sobol sampler and the HDMRRom, the Sam
   \assemblerDescription{Sobol}
   \ROMDescription{Sobol}
   \restartDescription{Sobol}
+  \constantSourceDescription{Sobol}
 
 \footnotesize
 \begin{lstlisting}[style=XML]
@@ -988,6 +1052,7 @@ randomly selected, is picked and not all the nodal combinations (like in the
 
 \assemblerDescription{Stratified}
 \restartDescription{Stratified}
+\constantSourceDescription{Stratified}
 
 Example:
 \begin{lstlisting}[style=XML,morekeywords={construction,steps,lowerBound,upperBound}]
@@ -1564,8 +1629,28 @@ Example:
 </Samplers>
 \end{lstlisting}
 
-Note that variables that are defined from functions need to be defined outside the samplers of the ensemble sampler. An example is shown below.
-  
+Care should be used when using deterministic random seeds for EnsembleForward sampling.  The EnsembleForward
+sample will ignore any seeds set in any of its subset samplers; however, the global random seed can be set by
+adding a \xmlNode{samplerInit} block with the \xmlNode{initialSeed} block therein, with an integer value
+providing the seed.  For example,
+\begin{lstlisting}[style=XML]
+  <Samplers>
+    ...
+    <EnsembleForward name='testEnsembleForward'>
+      <samplerInit>
+        <initialSeed>42</initialSeed>
+      </samplerInit>
+    ...
+     </EnsembleForward>
+    ...
+  </Samplers>
+\end{lstlisting}
+Because RAVEN has a single global random number generator, this will set the seed for the full calculation
+when the Step containing a run using this ForwardSampler is begun.
+
+Note also variables that are defined from functions, as well as constants, need to be defined outside the
+samplers of the ensemble sampler. An example is shown below.
+
 Example:
 \begin{lstlisting}[style=XML]
   <Samplers>
@@ -1576,6 +1661,7 @@ Example:
       <variable name='x4,x5'>
           <function>funct2</function>
       </variable>
+      <constant name='pi'>3.14159</constant>
       <MonteCarlo name='notNeeded'>
         <samplerInit>
           <limit>3</limit>
@@ -1597,8 +1683,8 @@ Example:
 In this example note that:
 \begin{itemize}
   \item variables $x1$ and $x2$ are generated by the two samplers (Monte-Carlo and Grid respectively)
-  \item variable $x3$ is generated from the function $funct1$ 
-  \item variables $x4$ and $x5$ are generated from the function $funct2$ 
+  \item variable $x3$ is generated from the function $funct1$
+  \item variables $x4$ and $x5$ are generated from the function $funct2$
   \item variables $x3$, $x4$ and $x5$ are defined outside the Monte-Carlo and Grid
 \end{itemize}
 
@@ -1616,23 +1702,39 @@ The \textbf{Custom} sampling approach allows the user to specify a predefined se
 \end{itemize}
 \vspace{-5mm}
 
-In the \textbf{CustomSampler} input block, the user needs to specify the variables need to be sampled. As already mentioned, these variables are inputted within consecutive XML blocks called \xmlNode{variable}.  In addition, the \xmlNode{Source} from which the samples need to be retrieved needs to be specified as well:
+In the \textbf{CustomSampler} input block, the user needs to specify the variables need to be sampled. As
+already mentioned, these variables are inputted within consecutive XML blocks called \xmlNode{variable}.  Note
+that if any variables are dependent on other dimensions (e.g. ``time''), the dependent dimensions need to be
+listed as variables as well.
+
+In addition, the \xmlNode{Source} from which the samples need to be retrieved needs to be specified:
 \begin{itemize}
-\item \variableDescription
+  \item \xmlNode{variable}, \xmlDesc{XML node,
+    required parameter} can specify the following attribute:
+    \begin{itemize}
+      \item \xmlAttr{name}, \xmlDesc{required string attribute}, user-defined name of this variable.
+      \item \xmlAttr{nameInSource}, \xmlDesc{optional string attribute}, name of the variable to read from in
+        \xmlNode{Source}.  \default Same as \xmlAttr{name}.
+      \item \shapeVariableDescription
+    \end{itemize}
  \item \xmlNode{Source}, \xmlDesc{XML node,
   required parameter} will specify the following attributes:
   \begin{itemize}
     \item \xmlAttr{class}, \xmlDesc{required string attribute}, class entity of the source where the samples need to be retrieved from.
      It can be either \textbf{Files} or \textbf{DataObjects}.
      \item \xmlAttr{type}, \xmlDesc{required string attribute}, type of the source withing the previously explained ``class''.
-      If \xmlAttr{class} is  \textbf{Files}, this attribute needs to be kept empty; otherwise it must be  \textbf{PointSet} (the only allowed
-      DataObjects usable as source in this sampler).
+      If \xmlAttr{class} is  \textbf{Files}, this attribute needs to be kept empty; otherwise it must be one
+      of the \textbf{DataSet} objects: PointSet, HistorySet, or DataSet.
       \\ \nb If the \xmlNode{Source} \xmlAttr{class} is  \textbf{Files}, the File needs to be a standard CSV file, specified in the
       \xmlNode{Files} XML block in the RAVEN input.
       \\ In addition, it is important to notice that if in the \xmlNode{Source}  the \textbf{PointProbability} and
       \textbf{ProbabilityWeight} quantities are not found, the samples are assumed to come from a MonteCarlo (from a  statistical
       post-processing prospective).
   \end{itemize}
+ \item \xmlNode{index}, \xmlDesc{comma-separated integer, optional parameter} indexes to use from the
+   \xmlNode{Source}. If provided, then only the listed indexes will be used. Indexes are zero-based; that is,
+   the first realization is indexed at 0, the second at 1, and so forth. Default is for all indices in the
+   source to be used.
  \item \constantVariablesDescription
 \end{itemize}
 
@@ -2149,7 +2251,7 @@ In addition to the \xmlNode{variable} nodes, the main XML node
         Section~\ref{sec:DataObjects}). The object here specified must be
         input as  \xmlNode{Output} in the Steps that employ this sampling strategy.
         %
-        The Limit Surface Search sampling accepts ``DataObjects'' of type ``Point'' and
+        The Limit Surface Search sampling accepts ``DataObjects'' of type
         ``PointSet'' only.
     \end{itemize}
 \end{itemize}
@@ -2324,7 +2426,7 @@ sub-nodes:
         a data object defined in the \xmlNode{DataObjects} block (see
         Section~\ref{sec:DataObjects}).
         %
-        The adaptive sampling accepts ``DataObjects'' of type ``Point'' and
+        The adaptive sampling accepts ``DataObjects'' of type
         ``PointSet'' only.
     \end{itemize}
 \end{itemize}
@@ -2478,7 +2580,7 @@ sub-nodes:
         a data object defined in the \xmlNode{DataObjects} block (see
         Section~\ref{sec:DataObjects}).
         %
-        The adaptive sampling accepts ``DataObjects'' of type ``Point'' and
+        The adaptive sampling accepts ``DataObjects'' of type
         ``PointSet'' only.
     \end{itemize}
 \end{itemize}
@@ -2664,7 +2766,7 @@ In addition to the \xmlNode{variable} nodes, the main XML node
         a data object defined in the \xmlNode{DataObjects} block (see
         Section~\ref{sec:DataObjects}).
         %
-        The Adaptive Sparse Grid sampling accepts ``DataObjects'' of type ``Point'' and
+        The Adaptive Sparse Grid sampling accepts ``DataObjects'' of type
         ``PointSet'' only.
    % \end{itemize}
 \end{itemize}
@@ -2844,7 +2946,7 @@ In addition to the \xmlNode{variable} nodes, the main XML node
         a data object defined in the \xmlNode{DataObjects} block (see
         Section~\ref{sec:DataObjects}).
         %
-        The Adaptive Sobol sampling accepts ``DataObjects'' of type ``Point'' and
+        The Adaptive Sobol sampling accepts ``DataObjects'' of type
         ``PointSet'' only.
    % \end{itemize}
 \end{itemize}

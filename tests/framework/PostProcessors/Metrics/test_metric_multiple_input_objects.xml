@@ -1,0 +1,111 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="all">
+  <RunInfo>
+    <WorkingDir>multipleInputObjects</WorkingDir>
+    <Sequence>mcRun, PP1</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <TestInfo>
+    <name>framework/PostProcessors/Metric/test_multiple_input_objects</name>
+    <author>wangc</author>
+    <created>2017-08-30</created>
+    <classesTested>PostProcessors.Metric</classesTested>
+    <description>
+      This test checks the Metric PostProcessor to accept multiple input data objects
+    </description>
+    <revisions>
+      <revision author="wangc" date="2017-12-06">convert to using new data objects</revision>
+      <revision author="wangc" date="2017-11-20">restructure metric system, add time-dependent capability</revision>
+    </revisions>
+  </TestInfo>
+
+  <Models>
+    <ExternalModel ModuleToLoad="../../../AnalyticModels/atten_and_poly.py" name="poly" subType="">
+      <variables>x1,x2,ans,ans2</variables>
+    </ExternalModel>
+    <PostProcessor name="pp1" subType="Metric">
+      <Features type="variable">ans</Features>
+      <Targets type="variable">ans2</Targets>
+      <Metric class="Metrics" type="SKL">mean_squared_error</Metric>
+    </PostProcessor>
+  </Models>
+
+  <Metrics>
+    <SKL name="mean_squared_error">
+        <metricType>regression|mean_squared_error</metricType>
+    </SKL>
+  </Metrics>
+
+  <Distributions>
+    <Normal name="dist1">
+      <mean>1</mean>
+      <sigma>0.5</sigma>
+    </Normal>
+    <Normal name="dist2">
+      <mean>-1</mean>
+      <sigma>1</sigma>
+    </Normal>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="MC_external">
+      <samplerInit>
+        <limit>10</limit>
+      </samplerInit>
+      <variable name="x1">
+        <distribution>dist1</distribution>
+      </variable>
+      <variable name="x2">
+        <distribution>dist2</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="mcRun" re-seeding="20021986">
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder2</Input>
+      <Model class="Models" type="ExternalModel">poly</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
+      <Output class="DataObjects" type="PointSet">outputDataMC1</Output>
+      <Output class="DataObjects" type="PointSet">outputDataMC2</Output>
+    </MultiRun>
+    <PostProcess name="PP1">
+      <Input class="DataObjects" type="PointSet">outputDataMC1</Input>
+      <Input class="DataObjects" type="PointSet">outputDataMC2</Input>
+      <Model class="Models" type="PostProcessor">pp1</Model>
+      <Output class="DataObjects" type="PointSet">pp1_metric</Output>
+      <Output class="OutStreams" type="Print">pp1_metric_dump</Output>
+    </PostProcess>
+  </Steps>
+
+  <DataObjects>
+    <PointSet name="inputPlaceHolder2">
+      <Input>x1,x2</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="outputDataMC1">
+      <Input>x1,x2</Input>
+      <Output>ans</Output>
+    </PointSet>
+    <PointSet name="outputDataMC2">
+      <Input>x1,x2</Input>
+      <Output>ans2</Output>
+    </PointSet>
+    <PointSet name="pp1_metric">
+      <Output>pp1_vars</Output>
+    </PointSet>
+  </DataObjects>
+
+  <VariableGroups>
+    <Group name="pp1_vars">mean_squared_error_ans2_ans</Group>
+  </VariableGroups>
+
+  <OutStreams>
+    <Print name="pp1_metric_dump">
+      <type>csv</type>
+      <source>pp1_metric</source>
+    </Print>
+  </OutStreams>
+
+</Simulation>

@@ -46,6 +46,7 @@
         <fit_intercept>True</fit_intercept>
         <normalize>True</normalize>
       </estimator>
+      <random_state>0</random_state>
     </ROM>
   </Models>
 
@@ -57,6 +58,7 @@
     <Print name="outData">
       <type>csv</type>
       <source>outData</source>
+      <what>input,output, metadata|ProbabilityWeight</what>
       <filename>outOCC</filename>
     </Print>
   </OutStreams>

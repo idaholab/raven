@@ -20,8 +20,6 @@ Created on Mar 5, 2013
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
-if not 'xrange' in dir(__builtins__):
-  xrange = range
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -44,7 +42,7 @@ class InternalRunner(Runner):
   """
     Generic base Class for running internal objects
   """
-  def __init__(self, messageHandler, args, functionToRun, identifier=None, metadata=None, uniqueHandler = "any"):
+  def __init__(self, messageHandler, args, functionToRun, identifier=None, metadata=None, uniqueHandler = "any", profile = False):
     """
       Init method
       @ In, messageHandler, MessageHandler object, the global RAVEN message
@@ -60,13 +58,15 @@ class InternalRunner(Runner):
         this runner. For example, if present, to retrieve this runner using the
         method jobHandler.getFinished, the uniqueHandler needs to be provided.
         If uniqueHandler == 'any', every "client" can get this runner
+      @ In, profile, bool, optional, if True then during deconstruction timing
+        summaries will be printed.
       @ Out, None
     """
 
     ## First, allow the base class to handle the commonalities
     ##   We keep the command here, in order to have the hook for running exec
     ##   code into internal models
-    super(InternalRunner, self).__init__(messageHandler, identifier, metadata, uniqueHandler)
+    super(InternalRunner, self).__init__(messageHandler, identifier, metadata, uniqueHandler, profile)
 
     ## Other parameters passed at initialization
     self.args          = copy.copy(args)

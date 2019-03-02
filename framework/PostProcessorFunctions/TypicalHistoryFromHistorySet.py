@@ -24,7 +24,7 @@ import numpy as np
 import copy
 from collections import defaultdict
 from functools import partial
-from utils import mathUtils
+from utils import mathUtils, utils
 
 class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
   """
@@ -43,8 +43,8 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
     PostProcessorInterfaceBase.initialize(self)
     self.inputFormat  = 'HistorySet'
     self.outputFormat = 'HistorySet'
-    if not hasattr(self, 'pivotParameter'):
-      self.pivotParameter = 'Time' #FIXME this assumes the ARMA model!  Dangerous assumption.
+    #if not hasattr(self, 'pivotParameter'):
+    #  self.pivotParameter = 'Time' #FIXME this assumes the ARMA model!  Dangerous assumption.
     if not hasattr(self, 'outputLen'):
       self.outputLen = None
 
@@ -57,11 +57,28 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
     self.name = xmlNode.attrib['name']
     for child in xmlNode:
       if child.tag == 'subseqLen':
-        self.subseqLen = map(int, child.text.split(','))
+        self.subseqLen = list(map(int, child.text.split(',')))
       elif child.tag == 'pivotParameter':
         self.pivotParameter = child.text
       elif child.tag == 'outputLen':
         self.outputLen = float(child.text)
+
+    # checks
+    if not hasattr(self, 'pivotParameter'):
+      self.raiseAnError(IOError,'"pivotParameter" was not specified for "{}" PostProcessor!'.format(self.name))
+
+
+  def retrieveHistory(self,dictIn,N):
+    """
+      Function that returns a dictionary containing the data of history N
+      @ In, dictIn, dict, dictionary containing the full historySet
+      @ In, N, int, numerical ID of the history to be retrieved
+      @ Out, outputDict, dict, dictionary containing all data of history N
+    """
+    outputDict = {}
+    for var in dictIn.keys():
+      outputDict[var]=dictIn[var][N]
+    return outputDict
 
   def run(self,inputDic):
     """
@@ -74,36 +91,35 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
     #get actual data
     inputDict = inputDic[0]['data']
     #identify features
-    self.features = inputDict['output'][inputDict['output'].keys()[0]].keys()
+    self.features = inputDic[0]['outVars']
     #don't keep the pivot parameter in the feature space
     if self.pivotParameter in self.features:
       self.features.remove(self.pivotParameter)
 
     #if output length (size of desired output history) not set, set it now
     if self.outputLen is None:
-      self.outputLen = np.asarray(inputDict['output'][inputDict['output'].keys()[0]][self.pivotParameter])[-1]
+      self.outputLen = np.asarray(inputDict['output'][utils.first(inputDict['output'].keys())][self.pivotParameter])[-1]
 
     ## Check if data is synchronized
-    referenceHistory = inputDict['output'].keys()[0]
-    referenceTimeAxis = inputDict['output'][referenceHistory][self.pivotParameter]
-    for hist in inputDict['output']:
-      if (str(inputDict['output'][hist][self.pivotParameter]) != str(referenceTimeAxis)):
+    referenceHistory = 0
+    referenceTimeAxis = inputDict[self.pivotParameter][referenceHistory]
+    for hist in range(inputDic[0]['numberRealizations']):
+      if str(inputDict[self.pivotParameter][hist]) != str(referenceTimeAxis):
         errorMessage = '{} Interfaced Post-Processor "{}": one or more histories in the historySet have different time scales (e.g., reference points: {} and {})'.format(self.__class__.__name__, self.name,referenceHistory, hist)
         self.raiseAnError(IOError, errorMessage)
 
     # task: reshape the data into histories with the size of the output I'm looking for
     #data dictionaries have form {historyNumber:{VarName:[data], VarName:[data]}}
     reshapedData = {}
-    #keyNewH = 0
     newHistoryCounter = 0 #new history tracking labels
-    for historyNumber in inputDict['output'].keys():
+    for historyNumber in range(inputDic[0]['numberRealizations']):
       #array of the pivot values provided in the history
-      pivotValues = np.asarray(inputDict['output'][historyNumber][self.pivotParameter])
+      pivotValues = np.asarray(inputDict[self.pivotParameter][historyNumber])
       #if the desired output pivot value length is (equal to or) longer than the provided history ...
       #   -> (i.e. I have a year and I want output of a year)
       if self.outputLen >= pivotValues[-1]:
         #don't change the shape of this history; it's fine as is
-        reshapedData[newHistoryCounter] = inputDict['output'][historyNumber]
+        reshapedData[newHistoryCounter] = self.retrieveHistory(inputDict,historyNumber)
         newHistoryCounter += 1
       #if the provided history is longer than the requested output period
       #   -> (i.e., I have a year of data and I only want output of 1 year)
@@ -122,7 +138,7 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
           # for each feature...
           for feature in self.features:
             # extract applicable information from the feature set
-            reshapedData[newHistoryCounter][feature] = np.extract(extractCondition, inputDict['output'][historyNumber][feature])
+            reshapedData[newHistoryCounter][feature] = np.extract(extractCondition, inputDict[feature][historyNumber])
           #increment history counter
           newHistoryCounter += 1
           #update new start/end points for grabbing the next history
@@ -132,7 +148,7 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
     inputDict['output'] = reshapedData
     self.numHistory = len(inputDict['output'].keys()) #should be same as newHistoryCounter - 1, if that's faster
     #update the set of pivot parameter values to match the first of the reshaped histories
-    self.pivotValues = np.asarray(inputDict['output'][inputDict['output'].keys()[0]][self.pivotParameter])
+    self.pivotValues = np.asarray(inputDict['output'][utils.first(inputDict['output'].keys())][self.pivotParameter])
 
     # task: split the history into multiple subsequences so that the typical history can be constructed
     #  -> i.e., split the year history into multiple months, so we get a typical January, February, ..., hence a typical year
@@ -212,33 +228,37 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
       typicalDataHistories[index][self.pivotParameter] = subseqData[index][self.pivotParameter]
       smallestDeltaCDF = np.inf
       smallestDeltaIndex = numParallelSubsequences + 1 #initialized as bogus index to preserve errors
-      for h, historyNumber in enumerate(inputDict['output'].keys()):
+      for h in range(self.numHistory):# for h, historyNumber in enumerate(inputDict['output'].keys()):
         delta = sum(self.__computeDist(cdfData['all'][feature],cdfData[index][feature][h,:]) for feature in self.features)
         if delta < smallestDeltaCDF:
           smallestDeltaCDF = delta
           smallestDeltaIndex = h
       for feature in self.features:
         typicalDataHistories[index][feature] = subseqData[index][feature][smallestDeltaIndex,:]
-
     # now collapse the data into the typical history
     typicalData = {}
     typicalData[self.pivotParameter] = np.concatenate(list(typicalDataHistories[index][self.pivotParameter] for index in range(numParallelSubsequences)))
     for feature in self.features:
       typicalData[feature] = np.concatenate(list(typicalDataHistories[index][feature] for index in range(numParallelSubsequences)))
-
     # sanity check, should probably be skipped for efficiency, as it looks like a debugging tool
     # preserved for now in case it was important for an undiscovered reason
-    #for t in range(1,len(typicalData[self.pivotParameter])):
-    #  if typicalData[self.pivotParameter][t] < typicalData[self.pivotParameter][t-1]:
-    #    self.raiseAnError(RuntimeError,'Something went wrong with the TypicalHistorySet!  Expected calculated data is missing.')
+    #   for t in range(1,len(typicalData[self.pivotParameter])):
+    #      if typicalData[self.pivotParameter][t] < typicalData[self.pivotParameter][t-1]:
+    #        self.raiseAnError(RuntimeError,'Something went wrong with the TypicalHistorySet!  Expected calculated data is missing.')
 
-    # task: collect data as expcted by RAVEN
-    outputDict ={'data':{'input':{},'output':{}}, 'metadata':{}}
+    # task: collect data as expected by RAVEN
+    outputDict ={'data':{}}
     # typical history
-    outputDict['data']['output'][1] = typicalData
+    for var in typicalData.keys():
+      outputDict['data'][var] = np.zeros(1, dtype=object)
+      outputDict['data'][var][0] = typicalData[var]
     # preserve input data
-    outputDict['data']['input'][1] = dict((keyIn,np.array(inputDict['input'].values()[0][keyIn][0])) for keyIn in inputDict['input'].values()[0].keys())
-
+    for var in inputDic[0]['inpVars']:
+      outputDict['data'][var] = np.zeros(1, dtype=object)
+      outputDict['data'][var][0] = inputDict[var][0]
+    outputDict['dims']={}
+    for var in self.features:
+      outputDict['dims'][var]=[self.pivotParameter]
     return outputDict
 
   def __computeECDF(self, data, binEdgesIn):

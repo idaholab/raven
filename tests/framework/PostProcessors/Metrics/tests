@@ -1,0 +1,77 @@
+[Tests]
+  [./simpleMetric]
+    type = 'RavenFramework'
+    input = 'test_metric.xml'
+    UnorderedCsv = 'mcMetricRun/dumpMC.csv mcMetricRun/pp1_metric_dump.csv'
+    rel_err = 0.00001
+    zero_threshold = 1e-9
+  [../]
+  [./multipleInputs]
+    type = 'RavenFramework'
+    input = 'test_metric_multiple_input_objects.xml'
+    UnorderedCsv = 'multipleInputObjects/pp1_metric_dump.csv'
+    rel_err = 0.00001
+    zero_threshold = 1e-9
+  [../]
+  [./sklMetric]
+    type = 'RavenFramework'
+    input = 'test_metric_skl.xml'
+    UnorderedCsv = 'sklMetrics/pp1_metric_dump.csv'
+    UnorderedXml = 'sklMetrics/pp1_metric_dump.xml'
+    rel_err = 0.00001
+    zero_threshold = 1e-9
+  [../]
+  [./test_comparison_statistics_metrics]
+    type = 'RavenFramework'
+    input = 'test_comparison_stats_metrics.xml'
+    UnorderedCsv = 'compStats/pp2_metric_dump.csv compStats/pp1_metric_dump.csv'
+    output = 'compStats/pp2_metric_dump.xml compStats/pp1_metric_dump.xml'
+  [../]
+  [./test_comparison_statistics_metrics_grid]
+    type = 'RavenFramework'
+    input = 'test_comparison_stats_metrics_grid.xml'
+    output = 'compStatsGrid/pp1_metric_dump.xml compStatsGrid/pp2_metric_dump.xml'
+    UnorderedCsv = 'compStatsGrid/pp2_metric_dump.csv compStatsGrid/pp1_metric_dump.csv'
+  [../]
+  [./test_comparison_statistics_metrics_dists]
+    type = 'RavenFramework'
+    input = 'test_comparison_stats_metrics_dists.xml'
+    output = 'compStatsDists/pp1_metric_dump.xml'
+    UnorderedCsv = 'compStatsDists/pp1_metric_dump.csv'
+  [../]
+  [./test_comparison_statistics_unit]
+    type = 'RavenPython'
+    input = 'unit_test_comparison_statistics.py'
+    requires_swig2 = True
+  [../]
+  [./testMetricTD]
+    type = 'RavenFramework'
+    input = 'test_metric_td.xml'
+    csv = 'metricTD/pp1_print_0.csv'
+    UnorderedXml = 'metricTD/pp1_print.xml'
+    rel_err = 0.00001
+    zero_threshold = 1e-9
+  [../]
+  [./testScipyMetric]
+    type = 'RavenFramework'
+    input = 'test_metric_scipy.xml'
+    csv = 'scipyMetrics/pp1_print.csv'
+    rel_err = 0.00001
+    zero_threshold = 1e-9
+  [../]
+  [./testScipyMetricBoolean]
+    type = 'RavenFramework'
+    input = 'test_metric_scipy_boolean.xml'
+    csv = 'scipyMetricsBoolean/pp1_print.csv'
+    rel_err = 0.00001
+    zero_threshold = 1e-9
+  [../]
+  [./test_dtw]
+    type = 'RavenFramework'
+    input = 'test_dtw.xml'
+    csv = 'DTW/pp1_print.csv'
+    UnorderedXml = 'DTW/pp1_print.xml'
+    rel_err = 0.00001
+    zero_threshold = 1e-9
+  [../]
+[]

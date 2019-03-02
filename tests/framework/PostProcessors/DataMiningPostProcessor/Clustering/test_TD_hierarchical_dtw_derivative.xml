@@ -54,7 +54,6 @@
   <Metrics>
     <DTW name="example">
       <order>1</order>
-      <pivotParameter>time</pivotParameter>
       <localDistance>euclidean</localDistance>
     </DTW>
   </Metrics>

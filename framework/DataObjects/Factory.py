@@ -20,13 +20,11 @@ extracted from alfoa (2/16/2013) DataObjects.py
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
-if not 'xrange' in dir(__builtins__):
-  xrange = range
 #End compatibility block for Python 3-------------------------------------------
 
 ################################################################################
-from utils import utils
-from DataObjects.Data import Data
+from DataObjects.DataObject import DataObject
+from DataObjects.DataSet import DataSet
 from DataObjects.PointSet import PointSet
 from DataObjects.HistorySet import HistorySet
 ## [ Add new class here ]
@@ -38,13 +36,11 @@ from DataObjects.HistorySet import HistorySet
 """
  Interface Dictionary (factory) (private)
 """
-# This machinery will automatically populate the "knownTypes" given the
-# imports defined above.
-__base = 'Data'
 __interFaceDict = {}
+__interFaceDict['DataSet'   ] = DataSet
+__interFaceDict['PointSet'  ] = PointSet
+__interFaceDict['HistorySet'] = HistorySet
 
-for classObj in utils.getAllSubclasses(eval(__base)):
-  __interFaceDict[classObj.__name__] = classObj
 
 def knownTypes():
   """
@@ -64,10 +60,7 @@ def returnInstance(Type,caller):
                   (used for error/debug messaging).
     @ Out, returnInstance, instance, subclass object constructed with no arguments
   """
-  try:
-    return __interFaceDict[Type]()
-  except KeyError:
-    caller.raiseAnError(NameError,__name__+': unknown '+__base+' type '+Type)
+  return returnClass(Type,caller)()
 
 def returnClass(Type,caller):
   """

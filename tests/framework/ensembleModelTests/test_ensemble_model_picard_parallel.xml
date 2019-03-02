@@ -47,9 +47,9 @@
     <EnsembleModel name="heatTransferEnsembleModel" subType="">
       <settings>
         <initialConditions>
-          <k>10.0</k>
           <averageTemperature>1000.0</averageTemperature>
         </initialConditions>
+        <initialStartModels>thermalConductivityComputation</initialStartModels>
       </settings>
       <Model class="Models" type="ExternalModel">
         thermalConductivityComputation
@@ -104,14 +104,17 @@
     <Print name="thermalConductivityComputationContainerDump">
       <type>csv</type>
       <source>thermalConductivityComputationContainer</source>
+      <what>input,output</what>
     </Print>
     <Print name="heatTransferContainerDump">
       <type>csv</type>
       <source>heatTransferContainer</source>
+      <what>input,output</what>
     </Print>
     <Print name="metaModelOutputTestDump">
       <type>csv</type>
       <source>metaModelOutputTest</source>
+      <what>input,output</what>
     </Print>
     <Plot   name="metaModelOutputTestSolution" overwrite="false" verbosity="debug">
       <plotSettings>

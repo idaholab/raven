@@ -66,6 +66,7 @@ class MPISimulationMode(Simulation.SimulationMode):
         nodefile = os.environ["PBS_NODEFILE"]
       else:
         nodefile = self.__nodefile
+      self.raiseADebug('Setting up remote nodes based on "{}"'.format(nodefile))
       lines = open(nodefile,"r").readlines()
       #XXX This is an undocumented way to pass information back
       newRunInfo['Nodes'] = list(lines)
@@ -79,6 +80,7 @@ class MPISimulationMode(Simulation.SimulationMode):
         newRunInfo['batchSize'] = maxBatchsize
         self.raiseAWarning("changing batchsize from "+str(oldBatchsize)+" to "+str(maxBatchsize)+" to fit on "+str(len(lines))+" processors")
       newBatchsize = newRunInfo['batchSize']
+      self.raiseADebug('Batch size is "{}"'.format(newBatchsize))
       if newBatchsize > 1:
         #need to split node lines so that numMPI nodes are available per run
         workingDir = runInfoDict['WorkingDir']
@@ -121,20 +123,23 @@ class MPISimulationMode(Simulation.SimulationMode):
       @ Out, remoteRunCommand, dict, dictionary of command.
     """
     # Check if the simulation has been run in PBS mode and, in case, construct the proper command
-    #while true, this is not the number that we want to select
+    # determine the cores needed for the job
     if self.__coresNeeded is not None:
       coresNeeded = self.__coresNeeded
     else:
       coresNeeded = runInfoDict['batchSize']*runInfoDict['NumMPI']
+    # get the requested memory, if any
     if self.__memNeeded is not None:
       memString = ":mem="+self.__memNeeded
     else:
       memString = ""
-    #batchSize = runInfoDict['batchSize']
+    # raven/framework location
     frameworkDir = runInfoDict["FrameworkDir"]
+    # number of "threads"
     ncpus = runInfoDict['NumThreads']
+    # job title
     jobName = runInfoDict['JobName'] if 'JobName' in runInfoDict.keys() else 'raven_qsub'
-    #check invalid characters
+    ## fix up job title
     validChars = set(string.ascii_letters).union(set(string.digits)).union(set('-_'))
     if any(char not in validChars for char in jobName):
       raise IOError('JobName can only contain alphanumeric and "_", "-" characters! Received'+jobName)
@@ -142,20 +147,26 @@ class MPISimulationMode(Simulation.SimulationMode):
     if len(jobName) > 15:
       jobName = jobName[:10]+'-'+jobName[-4:]
       print('JobName is limited to 15 characters; truncating to '+jobName)
-    #Generate the qsub command needed to run input
+    # Generate the qsub command needed to run input
+    ## raven_framework location
+    raven = os.path.abspath(os.path.join(frameworkDir,'..','raven_framework'))
+    ## generate the command, which will be passed into "args" of subprocess.call
     command = ["qsub","-N",jobName]+\
               runInfoDict["clusterParameters"]+\
               ["-l",
-               "select="+str(coresNeeded)+":ncpus="+str(ncpus)+":mpiprocs=1"+memString,
+                  "select={}:ncpus={}:mpiprocs=1{}".format(coresNeeded,ncpus,memString),
                "-l","walltime="+runInfoDict["expectedTime"],
                "-l","place="+self.__place,"-v",
-               'COMMAND="../raven_framework '+
+               'COMMAND="{} '.format(raven)+
                " ".join(runInfoDict["SimulationFiles"])+'"',
                runInfoDict['RemoteRunCommand']]
-    #Change to frameworkDir so we find raven_qsub_command.sh
+    # Set parameters for the run command
     remoteRunCommand = {}
-    remoteRunCommand["cwd"] = frameworkDir
+    ## directory to start in, where the input file is
+    remoteRunCommand["cwd"] = runInfoDict['InputDir']
+    ## command to run in that directory
     remoteRunCommand["args"] = command
+    ## print out for debugging
     print("remoteRunCommand",remoteRunCommand)
     return remoteRunCommand
 

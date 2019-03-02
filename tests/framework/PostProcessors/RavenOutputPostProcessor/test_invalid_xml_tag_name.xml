@@ -4,21 +4,23 @@
     <WorkingDir>invalidXMLtagName</WorkingDir>
     <Sequence>load_existing_database,stats,statsStatic,read,print</Sequence>
   </RunInfo>
+
   <TestInfo>
-      <name>framework/PostProcessors/RavenOutputPostProcessor.invalidXMLtag</name>
-      <author>alfoa</author>
-      <created>2017-03-13</created>
-      <classesTested>PostProcessors.RavenOutput, PostProcessors.BasicStatistics</classesTested>
-      <description>
+    <name>framework/PostProcessors/RavenOutputPostProcessor.invalidXMLtag</name>
+    <author>alfoa</author>
+    <created>2017-03-13</created>
+    <classesTested>PostProcessors.RavenOutput, PostProcessors.BasicStatistics</classesTested>
+    <description>
           This test checks using the RavenOutput postprocessor to read multiple RAVEN XML output files (static and dynamic)
           for a set of variables with invalid tag names (e.g. variables created by RELAP5).
           This is just a mechanic test.
       </description>
   </TestInfo>
-<Databases>
-     <!-- Path and file name of the HDF5 -->
-     <HDF5 directory="../invalidXMLtagName" filename="DataB_REL5_1.h5" name="EXISTING_DATABASE" readMode="read"/>
-</Databases>
+
+  <Databases>
+    <!-- Path and file name of the HDF5 -->
+    <HDF5 directory="../invalidXMLtagName" filename="DataB_REL5_1.h5" name="EXISTING_DATABASE" readMode="read"/>
+  </Databases>
 
   <Files>
     <Input name="statsfile" type="">stats.xml</Input>
@@ -29,30 +31,29 @@
   <Models>
     <PostProcessor name="stats" subType="BasicStatistics">
       <pivotParameter>time</pivotParameter>
-      <percentile_95>9890201:2,20290000:4,mflowj_635000000,tempf_201020000</percentile_95>
-      <percentile_5>9890201:2,20290000:4,mflowj_635000000,tempf_201020000</percentile_5>
       <expectedValue>9890201:2,20290000:4,mflowj_635000000,tempf_201020000</expectedValue>
       <variance>9890201:2,20290000:4,mflowj_635000000,tempf_201020000</variance>
+      <percentile percent="95">9890201:2,20290000:4,mflowj_635000000,tempf_201020000</percentile>
+      <percentile percent="5">9890201:2,20290000:4,mflowj_635000000,tempf_201020000</percentile>
     </PostProcessor>
     <PostProcessor name="statsReader" subType="RavenOutput">
       <dynamic/>
       <File name="statsfile">
-        <output name="mean"    > mflowj_635000000 | expectedValue </output>
-        <output name="variance"> mflowj_635000000 | variance </output>
-        <output name="high"    > mflowj_635000000 | percentile_5 </output>
-        <output name="low"     > mflowj_635000000 | percentile_95 </output>
+        <output name="mean"    > mflowj_635000000 / expectedValue </output>
+        <output name="variance"> mflowj_635000000 / variance </output>
+        <output name="high"    > mflowj_635000000 / percentile_5 </output>
+        <output name="low"     > mflowj_635000000 / percentile_95 </output>
       </File>
     </PostProcessor>
   </Models>
 
   <Steps>
-
     <IOStep name="load_existing_database">
-        <Input class="Databases" type="HDF5">EXISTING_DATABASE</Input>
-        <Input class="Databases" type="HDF5">EXISTING_DATABASE</Input>
-        <Output class="DataObjects" type="PointSet">PointSets</Output>
-        <Output class="DataObjects" type="HistorySet">stories</Output>
-        <Output class="OutStreams" type="Print">PointSets_dump</Output>
+      <Input class="Databases" type="HDF5">EXISTING_DATABASE</Input>
+      <Input class="Databases" type="HDF5">EXISTING_DATABASE</Input>
+      <Output class="DataObjects" type="PointSet">PointSets</Output>
+      <Output class="DataObjects" type="HistorySet">stories</Output>
+      <Output class="OutStreams" type="Print">PointSets_dump</Output>
     </IOStep>
     <PostProcess name="stats">
       <Input class="DataObjects" type="HistorySet">stories</Input>
@@ -60,9 +61,9 @@
       <Output class="Files" type="">statsfile</Output>
     </PostProcess>
     <PostProcess name="statsStatic">
-        <Input class="DataObjects" type="PointSet">PointSets</Input>
-        <Model class="Models" type="PostProcessor">stats</Model>
-        <Output class="Files" type="">statsfileStatic</Output>
+      <Input class="DataObjects" type="PointSet">PointSets</Input>
+      <Model class="Models" type="PostProcessor">stats</Model>
+      <Output class="Files" type="">statsfileStatic</Output>
     </PostProcess>
     <PostProcess name="read">
       <Input class="Files" type="">statsfile</Input>
@@ -70,8 +71,8 @@
       <Output class="DataObjects" type="PointSet">points</Output>
     </PostProcess>
     <IOStep name="print">
-        <Input class="DataObjects" type="PointSet">points</Input>
-        <Output class="OutStreams" type="Print">point_dump</Output>
+      <Input class="DataObjects" type="PointSet">points</Input>
+      <Output class="OutStreams" type="Print">point_dump</Output>
     </IOStep>
   </Steps>
 
@@ -81,8 +82,8 @@
       <source>points</source>
     </Print>
     <Print name="PointSets_dump">
-        <type>csv</type>
-        <source>PointSets</source>
+      <type>csv</type>
+      <source>PointSets</source>
     </Print>
   </OutStreams>
 
@@ -92,8 +93,8 @@
       <Output>mean,high,low</Output>
     </PointSet>
     <PointSet name="PointSets">
-        <Input>9890201:2,20290000:4</Input>
-        <Output>time,mflowj_635000000,tempf_201020000</Output>
+      <Input>9890201:2,20290000:4</Input>
+      <Output>time,mflowj_635000000,tempf_201020000</Output>
     </PointSet>
     <HistorySet name="stories">
       <Input>9890201:2,20290000:4</Input>

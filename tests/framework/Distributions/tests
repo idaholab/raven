@@ -2,8 +2,7 @@
  [./categorical]
    type   = 'RavenFramework'
    input  = 'test_distributionsCategorical.xml'
-   output = 'test_categorical/output_basicStatistics_Grid.csv test_categorical/output_basicStatistics_MC.csv'
-   csv    = 'test_categorical/Grid_dump.csv test_categorical/MC_dump.csv'
+   csv    = 'test_categorical/Grid_dump.csv test_categorical/MC_dump.csv test_categorical/BS_basicStatPP_grid_dump.csv test_categorical/BS_basicStatPP_dump.csv'
  [../]
 
  [./laplace]
@@ -18,4 +17,22 @@
    csv    = 'test_geometric/MC_dump.csv'
  [../]
 
+ [./MarkovCategorical]
+   type   = 'RavenFramework'
+   input  = 'test_distributionsMarkov.xml'
+   csv    = 'test_markov/Grid_dump.csv test_markov/MC_dump.csv'
+ [../]
+
+ [./logUniform]
+   type   = 'RavenFramework'
+   input  = 'test_distributionsLogUniform.xml'
+   csv    = 'test_logUniform/MC_dump.csv'
+ [../]
+
+ [./log10Uniform]
+   type   = 'RavenFramework'
+   input  = 'test_distributionsLog10Uniform.xml'
+   csv    = 'test_log10Uniform/MC_dump.csv'
+ [../]
+ 
 []

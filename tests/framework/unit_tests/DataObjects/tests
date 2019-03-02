@@ -1,0 +1,21 @@
+[Tests]
+  [./DataSets]
+    type = 'RavenPython'
+    input = 'TestDataSet.py'
+    python3_only = true
+  [../]
+  [./HistorySets]
+    type = 'RavenPython'
+    input = 'TestHistorySet.py'
+    python3_only = true
+  [../]
+  [./PointSets]
+    type = 'RavenPython'
+    input = 'TestPointSet.py'
+    python3_only = true
+  [../]
+  [./HierachicalDataObject]
+    type = 'RavenPython'
+    input = 'TestHierarchal.py'
+  [../]
+[]

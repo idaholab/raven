@@ -93,18 +93,22 @@
     <Print name="Pointset_from_database_dump">
       <type>csv</type>
       <source>Pointset_from_database</source>
+      <what>input, output</what>
     </Print>
     <Print name="Pointset_IN_database_dump">
       <type>csv</type>
       <source>Pointset_IN_database</source>
+      <what>input, output</what>
     </Print>
     <Print name="HistorySet_IN_database_dump">
       <type>csv</type>
       <source>HistorySet_IN_database</source>
+      <what>input, output</what>
     </Print>
     <Print name="HistorySet_from_database_dump">
       <type>csv</type>
       <source>HistorySet_from_database</source>
+      <what>input, output</what>
     </Print>
   </OutStreams>
 
@@ -118,28 +122,28 @@
         <inputRow>-1</inputRow>
       </options>
       <Input>zeroToOne</Input>
-      <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
+      <Output>pump_mass_flow_rate, time, pipe1_Hw</Output>
     </PointSet>
     <PointSet name="Pointset_IN_database">
       <options>
         <inputRow>-1</inputRow>
       </options>
       <Input>zeroToOne</Input>
-      <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
+      <Output>pump_mass_flow_rate, time, pipe1_Hw</Output>
     </PointSet>
     <HistorySet name="HistorySet_from_database">
       <options>
         <inputRow>-1</inputRow>
       </options>
       <Input>zeroToOne</Input>
-      <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
+      <Output>pump_mass_flow_rate, time, pipe1_Hw</Output>
     </HistorySet>
     <HistorySet name="HistorySet_IN_database">
       <options>
         <inputRow>-1</inputRow>
       </options>
       <Input>zeroToOne</Input>
-      <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
+      <Output>pump_mass_flow_rate, time, pipe1_Hw</Output>
     </HistorySet>
   </DataObjects>
 

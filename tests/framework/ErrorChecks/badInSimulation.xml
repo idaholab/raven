@@ -1,5 +1,19 @@
 <?xml version="1.0"?>
 <Simulation>
+  <TestInfo>
+    <name>framework/ErrorChecks.badInSimulation</name>
+    <author>maljovec</author>
+    <created>2017-07-21</created>
+    <classesTested>Simulation</classesTested>
+    <description>
+       This test is aimed to check the functionality of RAVEN to error out in case some input inconsistencies are found.
+       In this case, the input is malformed.
+    </description>
+    <revisions>
+      <revision author="alfoa" date="2018-05-15">Adding this test description.</revision>
+    </revisions>
+  </TestInfo>
+  
   <RunInfo>
     <WorkingDir>.</WorkingDir>
     <Sequence>nothere</Sequence>

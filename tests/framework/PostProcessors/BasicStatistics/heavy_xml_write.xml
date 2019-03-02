@@ -2,9 +2,10 @@
 <Simulation verbosity="debug">
   <RunInfo>
     <WorkingDir>HeavyXmlWrite</WorkingDir>
-    <Sequence>sample,stats,readStats,print</Sequence>
+    <Sequence>sample,stats</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+
   <TestInfo>
     <name>framework/PostProcessors/BasicStatistics/writeHeavyXml</name>
     <author>talbpaul</author>
@@ -13,10 +14,18 @@
     <description>
       This tests time-dependent basic statistics writing a large number of entries to ensure good speed.
     </description>
+    <revisions>
+      <revision author="wangc" date="2017-12-05">convert test to use the new dataobjects</revision>
+      <revision author="wangc" date="2018-12-13">
+          In PR #882, the standard errors on statistics moments are implemented, these quantities are stored in
+          the pointwise metadata, and will be printed out in the output csv files by default.
+          In order to avoid regolding this test, the optional node 'what' with text values 'input, output' is added.
+          In this case, only the user requested variables as specified in the DataObjects are printed out. 
+      </revision>
+    </revisions>
   </TestInfo>
 
   <Files>
-    <Input name="stats.xml" type="">stats.xml</Input>
     <Input name="samples.csv" type="">samples.csv</Input>
   </Files>
 
@@ -26,18 +35,9 @@
     </ExternalModel>
     <PostProcessor name="stats" subType="BasicStatistics" verbosity="debug">
       <pivotParameter>time</pivotParameter>
-      <expectedValue>single,square</expectedValue>
-      <sigma>single,square</sigma>
-      <percentile>single,square</percentile>
-    </PostProcessor>
-    <PostProcessor name="readStats" subType="RavenOutput">
-      <dynamic/>
-      <File ID="0" name="stats.xml">
-        <output name="mean">single | expectedValue </output>
-        <output name="percentile_5"> single | percentile_5 </output>
-        <output name="percentile_95"> single | percentile_95 </output>
-        <output name="sigma"> single | sigma </output>
-      </File>
+      <expectedValue prefix="mean">single,square</expectedValue>
+      <sigma prefix="sigma">single,square</sigma>
+      <percentile prefix="percentile">single,square</percentile>
     </PostProcessor>
   </Models>
 
@@ -59,31 +59,12 @@
     <PostProcess name="stats">
       <Input class="DataObjects" type="HistorySet">samples</Input>
       <Model class="Models" type="PostProcessor">stats</Model>
-      <Output class="Files" type="">stats.xml</Output>
+      <Output class="DataObjects" type="HistorySet">stats_basicStatPP</Output>
+      <Output class="OutStreams" type="Print">stats_basicStatPP_dump</Output>
     </PostProcess>
-    <PostProcess name="readStats">
-      <Input class="Files" type="">stats.xml</Input>
-      <Model class="Models" type="PostProcessor">readStats</Model>
-      <Output class="DataObjects" type="PointSet">stats</Output>
-    </PostProcess>
-    <IOStep name="print">
-      <Input class="DataObjects" type="PointSet">stats</Input>
-      <Output class="OutStreams" type="Print">stats_dump</Output>
-    </IOStep>
   </Steps>
 
-  <OutStreams>
-    <Print name="stats_dump">
-      <type>csv</type>
-      <source>stats</source>
-    </Print>
-  </OutStreams>
-
   <DataObjects>
-    <PointSet name="stats">
-      <Input>time</Input>
-      <Output>mean,percentile_5,percentile_95,sigma</Output>
-    </PointSet>
     <PointSet name="dummyIn">
       <Input>frequency,magnitude</Input>
       <Output>OutputPlaceHolder</Output>
@@ -92,6 +73,31 @@
       <Input>frequency,magnitude</Input>
       <Output>time,single,square</Output>
     </HistorySet>
+    <HistorySet name="stats_basicStatPP">
+      <options>
+        <pivotParameter>time</pivotParameter>
+      </options>
+      <Output>stats_vars</Output>
+    </HistorySet>
   </DataObjects>
+
+  <VariableGroups>
+    <Group name="stats_vars">mean_single,
+                 mean_square,
+                 sigma_single,
+                 sigma_square,
+                 percentile_5_single,
+                 percentile_95_single,
+                 percentile_5_square,
+                 percentile_95_square</Group>
+  </VariableGroups>
+
+  <OutStreams>
+    <Print name="stats_basicStatPP_dump">
+      <type>csv</type>
+      <source>stats_basicStatPP</source>
+      <what>input,output</what>
+    </Print>
+  </OutStreams>
 
 </Simulation>

@@ -20,8 +20,6 @@ Created on November 2016
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
-if not 'xrange' in dir(__builtins__):
-  xrange = range
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -32,8 +30,9 @@ import copy
 from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase
 
 class riskMeasuresDiscrete(PostProcessorInterfaceBase):
-  """ This class implements the four basic risk-importance measures
-      This class inherits form the base class PostProcessorInterfaceBase and it contains three methods:
+  """
+    This class implements the four basic risk-importance measures
+    This class inherits form the base class PostProcessorInterfaceBase and it contains three methods:
       - initialize
       - run
       - readMoreXML
@@ -42,8 +41,8 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
 
   def availableMeasures(cls):
     """
-        A class level constant that tells developers what measures are available from this class
-        @ In, cls, the RiskMeasureDiscrete class of which this object will be a type
+      A class level constant that tells developers what measures are available from this class
+      @ In, cls, the RiskMeasureDiscrete class of which this object will be a type
     """
     return cls._availableMeasures
 
@@ -52,10 +51,9 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
       Method to initialize the Interfaced Post-processor
       @ In, None
       @ Out, None
-
     """
     PostProcessorInterfaceBase.initialize(self)
-    self.inputFormat  = 'PointSet'
+    self.inputFormat  = 'PointSet|HistorySet'
     self.outputFormat = 'PointSet'
 
   def readMoreXML(self,xmlNode):
@@ -67,7 +65,7 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
     self.variables = {}
     self.target    = {}
 
-    self.IEdata = {}
+    self.IEData = {}
 
     self.temporalID = None
 
@@ -133,7 +131,7 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
                             ' : attribute node values is not present for XML node: ' + str(child) )
 
       elif child.tag == 'data':
-        self.IEdata[child.text] = float(child.attrib['freq'])
+        self.IEData[child.text] = float(child.attrib['freq'])
 
       elif child.tag == 'temporalID':
         self.temporalID = child.text
@@ -141,7 +139,6 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
       elif child.tag !='method':
         self.raiseAnError(IOError, 'RiskMeasuresDiscrete Interfaced Post-Processor ' + str(self.name) +
                           ' : XML node ' + str(child) + ' is not recognized')
-
 
   def run(self,inputDic):
     """
@@ -160,24 +157,35 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
     if checkHSs == 0:
       # if no HistorySet has been provided run the static form of this PP
       outputDic = self.runStatic(inputDic)
+      outputDic['dims'] = {}
+      for key in outputDic['data'].keys():
+        outputDic['dims'][key] = []
     elif checkHSs == 1:
        # if one HistorySet has been provided run the dynamic form of this PP
       self.outputFormat = 'HistorySet'
       outputDic = self.runDynamic(inputDic,timeDepData)
-      for var in timeDepData['data']['output'][1]:
+      outputDic['dims'] = {}
+      for key in outputDic['data'].keys():
+        outputDic['dims'][key] = [self.temporalID]
+      for var in timeDepData['data'].keys():
         if var != self.temporalID:
           ## Are there any values in timeDepData['data']['output'][1][var] that are not 0 or 1?
-          if len(np.setdiff1d(timeDepData['data']['output'][1][var], [0,1])):
+          if len(np.setdiff1d(timeDepData['data'][var][0], [0,1])):
             self.raiseAnError(IOError, 'RiskMeasuresDiscrete Interfaced Post-Processor ' + str(self.name) +
                               ' : the provided HistorySet contains the variable ' + str(var) + ' which has elements different than 0 or 1')
-      outputDic['data']['output'][1][self.temporalID] = copy.deepcopy(timeDepData['data']['output'][1][self.temporalID])
-      outputDic['data']['input'] = copy.deepcopy(timeDepData['data']['input'])
+      outputDic['data'][self.temporalID] = np.zeros(1, dtype=object)
+      outputDic['data'][self.temporalID][0] = copy.deepcopy(timeDepData['data'][self.temporalID][0])
+
+      for var in timeDepData['inpVars']:
+        outputDic['data'][var] = copy.deepcopy(timeDepData['data'][var])
     else: # checkHSs >= 2:
       # only one HistorySet should be provided
       self.raiseAnError(IOError, 'RiskMeasuresDiscrete Interfaced Post-Processor ' + str(self.name) +
                         ' : more than one HistorySet has been provided')
-    return outputDic
 
+    outputDic['data']['ProbabilityWeight'] = np.asanyarray(1.0)
+    outputDic['data']['prefix'] = np.asanyarray(1.0)
+    return outputDic
 
   def runStatic(self,inputDic, componentConfig=None):
     """
@@ -206,18 +214,20 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
         ## of this function.
         if componentConfig is None:
           inputName     = inp['name']
-          inputDataIn   = inp['data']['input']
-          inputDataOut  = inp['data']['output']
-          targetVar     = np.asarray(inputDataOut[self.target['targetID']])
-          inputMetadata = inp['metadata'] if 'metadata' in inp else None
+          inputDataIn   = {key: inp['data'][key] for key in inp['inpVars']}
+          inputDataOut  = {key: inp['data'][key] for key in inp['outVars']}
+          targetVar     = np.asarray(inp['data'][self.target['targetID']])
+          inputMetadata = {}
+          inputMetadata['ProbabilityWeight'] = inp['data']['ProbabilityWeight']
         else:
           # if componentConfig is provided, then only a subset of the original data must be considered
           # only the data points that contains componentConfig are in fact considered
           # indexUpdatedData contains the indexes of those data points
           indexUpdatedData = None
+
           for var in componentConfig.keys():
             if componentConfig[var] == 0:
-              inputVar = np.asarray(inp['data']['input'][var])
+              inputVar = np.asarray(inp['data'][var])
               indexCompOut = np.where(inputVar==1)
               if indexUpdatedData is None:
                 indexUpdatedData = copy.deepcopy(indexCompOut)
@@ -228,37 +238,38 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
             inputName    = inp['name']
             inputDataIn  = {}
             inputDataOut = {}
-            for var in inp['data']['input']:
-              inputDataIn[var]  = inp['data']['input'][var][indexUpdatedData]
-            for var in inp['data']['output']:
-              inputDataOut[var] = inp['data']['output'][var][indexUpdatedData]
+            for var in inp['inpVars']:
+              inputDataIn[var]  = inp['data'][var][indexUpdatedData]
+            for var in inp['outVars']:
+              inputDataOut[var] = inp['data'][var][indexUpdatedData]
             targetVar = np.asarray(inputDataOut[self.target['targetID']])
             inputMetadata = {}
-            inputMetadata['ProbabilityWeight'] = inp['metadata']['ProbabilityWeight'][indexUpdatedData]
+            inputMetadata['ProbabilityWeight'] = inp['data']['ProbabilityWeight'][indexUpdatedData]
           else:
             inputName     = inp['name']
-            inputDataIn   = inp['data']['input']
-            inputDataOut  = inp['data']['output']
+            inputDataIn   = {key: inp['data'][key] for key in inp['inpVars']} #inp['data']['input']
+            inputDataOut  = {key: inp['data'][key] for key in inp['outVars']} #inp['data']['output']
             targetVar     = np.asarray(inputDataOut[self.target['targetID']])
-            inputMetadata = inp['metadata'] if 'metadata' in inp else None
+            inputMetadata = {}
+            inputMetadata['ProbabilityWeight'] = inp['data']['ProbabilityWeight']
 
         if inputMetadata is not None and 'ProbabilityWeight' in inputMetadata:
-          inputWeights = np.asarray(inputMetadata['ProbabilityWeight'])
+          inputWeights = copy.deepcopy(inputMetadata['ProbabilityWeight'])
           pbWeights = inputWeights/np.sum(inputWeights)
         else:
           ## Any variable will do, so just count the first input. We could also have count the outputs, but this could
           ## be tricky if the data is a HistorySet and thus multidimensional.
-          pointCount = len(inputDataIn.values()[0])
+          pointCount = inp['numberRealizations']
           pbWeights  = np.ones(pointCount)/float(pointCount)
 
-        if inputName in self.IEdata.keys():
-          multiplier = self.IEdata[inputName]
+        if inputName in self.IEData.keys():
+          multiplier = self.IEData[inputName]
         else:
           multiplier = 1.0
           self.raiseAWarning('RiskMeasuresDiscrete Interfaced Post-Processor: the dataObject '
                              + str (inputName) + ' does not have the frequency of the IE specified. It is assumed that the frequency of the IE is 1.0')
 
-        ## Calculate R0, Rminus, Rplus
+        ## Calculate R0, RMinus, RPlus
 
         ## Step 1: Retrieve points that contain system failure
         indexSystemFailure = np.where(np.logical_and(targetVar >= self.target['low'], targetVar <= self.target['high']))[0]
@@ -281,29 +292,29 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
             # Coordinate BE2
             ## R0 = pb of system failure
             R0     = np.sum(pbWeights[indexSystemFailure])
-            Rminus = np.sum(pbWeights[indexFailureMinus]) / np.sum(pbWeights[indexComponentMinus])
-            Rplus  = np.sum(pbWeights[indexFailurePlus]) / np.sum(pbWeights[indexComponentPlus])
+            RMinus = np.sum(pbWeights[indexFailureMinus]) / np.sum(pbWeights[indexComponentMinus])
+            RPlus  = np.sum(pbWeights[indexFailurePlus]) / np.sum(pbWeights[indexComponentPlus])
           else:
             # Coordinate BE3
             R0 = np.sum(pbWeights[indexSystemFailure])
             if   componentConfig[variable] == 0:
-              Rminus = Rplus = np.sum(pbWeights[indexFailurePlus]) / np.sum(pbWeights[indexComponentPlus])
+              RMinus = RPlus = np.sum(pbWeights[indexFailurePlus]) / np.sum(pbWeights[indexComponentPlus])
             elif componentConfig[variable] == 1:
               if indexFailureMinus.size:
-                Rminus = np.sum(pbWeights[indexFailureMinus]) / np.sum(pbWeights[indexComponentMinus])
+                RMinus = np.sum(pbWeights[indexFailureMinus]) / np.sum(pbWeights[indexComponentMinus])
               else:
-                Rminus = R0
+                RMinus = R0
               if indexComponentPlus.size:
-                Rplus  = np.sum(pbWeights[indexFailurePlus]) / np.sum(pbWeights[indexComponentPlus])
+                RPlus  = np.sum(pbWeights[indexFailurePlus]) / np.sum(pbWeights[indexComponentPlus])
               else:
-                Rplus = R0
+                RPlus = R0
         else:
           # Coordinate BE1
-          R0 = Rminus = Rplus = np.sum(pbWeights[indexSystemFailure])
+          R0 = RMinus = RPlus = np.sum(pbWeights[indexSystemFailure])
 
         macroR0     += multiplier * R0
-        macroRMinus += multiplier * Rminus
-        macroRPlus  += multiplier * Rplus
+        macroRMinus += multiplier * RMinus
+        macroRPlus  += multiplier * RPlus
 
       if 'RRW' in self.measures:
         RRW = riskImportanceMeasures[variable + '_RRW'] = np.asanyarray([macroR0/macroRMinus])
@@ -325,13 +336,8 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
         riskImportanceMeasures['R0']   = np.asanyarray([macroR0])
         self.raiseADebug(' R0  = ' + str(macroR0))
 
-    outputDic = {
-                  'data': {
-                           'input': {},
-                           'output': riskImportanceMeasures
-                          },
-                  'metadata': {}
-                }
+    outputDic = {'data': riskImportanceMeasures}
+
     ## If for whatever reason passing an empty input back causes errors, then you may want to add some sort of dummy
     ## value.
     # outputDic['data']['input'] = {} # {'dummy' : np.asanyarray(0)}
@@ -341,6 +347,8 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
   def runDynamic(self,inputDic,timeHistory):
     """
      This method performs the dynamic calculation of the risk measures
+     FIXME - Note for new development: clean this part so that the [0] index is removed from the timeHistory
+     RECALL - The gold files for this PP are theoretical values and hence they should be part of the analytical tests
      @ In, inputDic, list, list of dictionaries which contains the data inside the input DataObjects
      @ In, timeHistory, dict, dictionary containing  boolean temporal profiles (0 or 1) of a sub set of the input variables. Note that this
                               history must contain a single history
@@ -353,45 +361,36 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
     if self.temporalID is None:
       self.raiseAnError(IOError, 'RiskMeasuresDiscrete Interfaced Post-Processor: an HistorySet is provided but no temporalID variable is specified')
 
-    if self.temporalID not in timeHistory['data']['output'][1].keys():
+    if self.temporalID not in timeHistory['data'].keys():
       self.raiseAnError(IOError, 'RiskMeasuresDiscrete Interfaced Post-Processor: the specified temporalID variable '
                         + str(self.temporalID) + ' is not part of the HistorySet variables')
 
-    outputDic = {
-                  'data': {
-                           'input' : {},
-                           'output': {}
-                          },
-                  'metadata': {}
-                }
-    outputDic['data']['output'][1] = {}
+    outputDic = {}
+    outputDic['data'] = {}
 
     for measure in self.measures:
       if measure=='R0':
-        outputDic['data']['output'][1][measure] = np.zeros(len(timeHistory['data']['output'][1][self.temporalID]))
+        outputDic['data'][measure] = np.zeros(1, dtype=object)
+        outputDic['data'][measure][0] = np.zeros(len(timeHistory['data'][self.temporalID][0]))
       else:
         for var in self.variables:
-          outputDic['data']['output'][1][var + '_' + measure] = np.zeros(len(timeHistory['data']['output'][1][self.temporalID]))
+          outputDic['data'][var + '_' + measure]    = np.zeros(1, dtype=object)
+          outputDic['data'][var + '_' + measure][0] = np.zeros(len(timeHistory['data'][self.temporalID][0]))
 
     previousSystemConfig = {}
-
-    for index,value in enumerate(timeHistory['data']['output'][1][self.temporalID]):
+    for index,value in enumerate(timeHistory['data'][self.temporalID][0]):
       systemConfig={}
-
       # Retrieve the system configuration at time instant "index"
-      for var in timeHistory['data']['output'][1].keys():
+      for var in timeHistory['outVars']:
         if var != self.temporalID:
-          systemConfig[var] = timeHistory['data']['output'][1][var][index]
-
+          systemConfig[var] = timeHistory['data'][var][0][index]
       # Do not repeat the calculation if the system configuration is identical to the one of previous time instant
       if systemConfig == previousSystemConfig:
-        for key in outputDic['data']['output'][1].keys():
-          outputDic['data']['output'][1][key][index] = outputDic['data']['output'][1][key][index-1]
+        for key in outputDic['data'].keys():
+          outputDic['data'][key][0][index] = outputDic['data'][key][0][index-1]
       else:
         staticOutputDic = self.runStatic(inputDic,systemConfig)
-        for key in outputDic['data']['output'][1].keys():
-          outputDic['data']['output'][1][key][index] = staticOutputDic['data']['output'][key]
+        for key in outputDic['data'].keys():
+          outputDic['data'][key][0][index] = staticOutputDic['data'][key][0]
       previousSystemConfig = copy.deepcopy(systemConfig)
-
     return outputDic
-

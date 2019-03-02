@@ -22,7 +22,6 @@
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
-#if not 'xrange' in dir(__builtins__): xrange = range
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -33,12 +32,35 @@ from scipy.interpolate import InterpolatedUnivariateSpline
 #Internal Modules------------------------------------------------------------------------------------
 from .Grid import Grid
 import pyDOE as doe
+from utils import InputData
 #Internal Modules End--------------------------------------------------------------------------------
 
 class ResponseSurfaceDesign(Grid):
   """
     Samples the model on a given (by input) set of points
   """
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    inputSpecification = super(ResponseSurfaceDesign, cls).getInputSpecification()
+    responseSurfaceDesignSettingsInput = InputData.parameterInputFactory("ResponseSurfaceDesignSettings")
+
+    responseSurfaceDesignSettingsInput.addSub(InputData.parameterInputFactory("algorithmType", contentType=InputData.StringType))
+    responseSurfaceDesignSettingsInput.addSub(InputData.parameterInputFactory("ncenters", contentType=InputData.IntegerType))
+    responseSurfaceDesignSettingsInput.addSub(InputData.parameterInputFactory("centers", contentType=InputData.StringListType))
+    responseSurfaceDesignSettingsInput.addSub(InputData.parameterInputFactory("alpha", contentType=InputData.StringType))
+    responseSurfaceDesignSettingsInput.addSub(InputData.parameterInputFactory("face", contentType=InputData.StringType))
+
+    inputSpecification.addSub(responseSurfaceDesignSettingsInput)
+
+    return inputSpecification
+
   def __init__(self):
     """
       Default Constructor that will initialize member variables with reasonable
@@ -57,13 +79,15 @@ class ResponseSurfaceDesign(Grid):
     # dictionary of accepted types and options (required True, optional False)
     self.acceptedOptions = {'boxbehnken':['ncenters'], 'centralcomposite':['centers','alpha','face']}
 
-  def localInputAndChecks(self,xmlNode):
+  def localInputAndChecks(self,xmlNode, paramInput):
     """
       Class specific xml inputs will be read here and checked for validity.
       @ In, xmlNode, xml.etree.ElementTree.Element, The xml element node that will be checked against the available options specific to this Sampler.
+      @ In, paramInput, InputData.ParameterInput, the parsed parameters
       @ Out, None
     """
-    Grid.localInputAndChecks(self,xmlNode)
+    #TODO remove using xmlNode
+    Grid.localInputAndChecks(self,xmlNode, paramInput)
     factsettings = xmlNode.find("ResponseSurfaceDesignSettings")
     if factsettings == None:
       self.raiseAnError(IOError,'ResponseSurfaceDesignSettings xml node not found!')

@@ -32,7 +32,7 @@
   </RunInfo>
 
   <Models>
-    <ExternalModel ModuleToLoad="./testFunction" name="foo" subType="">
+    <ExternalModel ModuleToLoad="../testFunction" name="foo" subType="">
       <variables>X,Y,Z</variables>
     </ExternalModel>
     <ROM name="modelUnderTest" subType="MSR">
@@ -53,6 +53,7 @@
     <Print name="outData">
       <type>csv</type>
       <source>outData</source>
+      <what>input,output</what>
       <filename>outDataSilverman</filename>
     </Print>
     <Print name="trainingData">

@@ -8,6 +8,9 @@
     <description>
       Tests of the HistorySetSampling interfaced post-processor and all its sampling types
     </description>
+    <revisions>
+      <revision author="wangc" date="2018-08-08">Test the defect issue #739</revision>
+    </revisions>
   </TestInfo>
   
   <RunInfo>
@@ -26,7 +29,6 @@
       <Model   class="Models"       type="ExternalModel" >PythonModule</Model>
       <Sampler class="Samplers"     type="MonteCarlo"    >MC_external</Sampler>
       <Output  class="DataObjects"  type="PointSet"      >outMC</Output>
-      <Output  class="Databases"    type="HDF5"          >out_db</Output>
       <Output  class="OutStreams"   type="Print"         >PrintHistorySet_dump</Output>
     </MultiRun>
     <IOStep name="plot1">
@@ -143,7 +145,7 @@
   <Samplers>
     <MonteCarlo name="MC_external">
       <samplerInit>
-        <limit>1</limit>
+        <limit>2</limit>
       </samplerInit>
       <variable name="x0">
         <distribution>x0_distrib</distribution>
@@ -156,10 +158,6 @@
       </variable>
     </MonteCarlo>
   </Samplers>
-
-  <Databases>
-    <HDF5 name="out_db" readMode="overwrite"/>
-  </Databases>
 
   <OutStreams>
     <Print name="PrintHistorySet_dump">

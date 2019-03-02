@@ -5,6 +5,8 @@
     csv = 'data/myDump1.csv data/myDump2.csv data/myDump3.csv data/myDump4.csv'
     output = 'data/myDump1.xml data/myDump2.xml data/myDump3.xml data/myDump4.xml'
     required_libraries = 'AMSC'
+    rel_err = 1.0e-5
+    python3_only = true
   [../]
 
   [./persistence_count]
@@ -13,6 +15,7 @@
     csv = 'data/segCount.csv'
     output = 'data/segCount.xml'
     required_libraries = 'AMSC'
+    python3_only = true
   [../]
 
   [./persistence_prob]
@@ -21,6 +24,7 @@
     csv = 'data/segProb.csv'
     output = 'data/segProb.xml'
     required_libraries = 'AMSC'
+    python3_only = true
   [../]
 
   [./persistence_value]
@@ -29,6 +33,7 @@
     csv = 'data/segValue.csv'
     output = 'data/segValue.xml'
     required_libraries = 'AMSC'
+    python3_only = true
   [../]
 
   [./persistence_full]
@@ -37,6 +42,7 @@
     csv = 'data/segFull.csv'
     output = 'data/segFull.xml'
     required_libraries = 'AMSC'
+    python3_only = true
   [../]
 
   [./knn]
@@ -45,6 +51,7 @@
     csv = 'data/segNN.csv'
     output = 'data/segNN.xml'
     required_libraries = 'AMSC'
+    python3_only = true
   [../]
 
   [./beta_skeleton]
@@ -53,6 +60,7 @@
     csv = 'data/segBS.csv'
     output = 'data/segBS.xml'
     required_libraries = 'AMSC'
+    python3_only = true
   [../]
 
   [./relaxed_beta_skeleton]
@@ -61,6 +69,7 @@
     csv = 'data/segRBS.csv'
     output = 'data/segRBS.xml'
     required_libraries = 'AMSC'
+    python3_only = true
   [../]
 
   [./interactive_UI]

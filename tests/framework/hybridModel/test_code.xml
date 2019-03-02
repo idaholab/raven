@@ -1,0 +1,128 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/hybridModel.runCode</name>
+    <author>wangc</author>
+    <created>2017-09-21</created>
+    <classesTested>Models.HybridModel, Models.Code.GenericCode</classesTested>
+    <description>
+       This test is aimed to test the HybridModel system with the generic code system.
+    </description>
+  </TestInfo>
+  <RunInfo>
+    <JobName>testGenericCode</JobName>
+    <Sequence>hybridModelCode</Sequence>
+    <WorkingDir>runCode</WorkingDir>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name="gen.one" type="">gen.one</Input>
+    <Input name="gen.two" type="">gen.two</Input>
+  </Files>
+  
+  <Metrics>
+      <SKL name="m1">
+          <metricType>regression|mean_squared_error</metricType>
+      </SKL>
+  </Metrics>
+
+  <Models>
+    <Code name="poly" subType="GenericCode">
+      <executable>runCode/poly_inp_io.py</executable>
+      <clargs arg="python" type="prepend"/>
+      <clargs arg="-i" extension=".one" type="input"/>
+      <fileargs arg="aux" extension=".two" type="input"/>
+      <fileargs arg="output" type="output"/>
+    </Code>
+    <ROM name="knr" subType="SciKitLearn">
+      <SKLtype>neighbors|KNeighborsRegressor</SKLtype>
+      <Features>x, y</Features>
+      <Target>poly</Target>
+      <n_neighbors>5</n_neighbors>
+      <weights>uniform</weights>
+      <algorithm>auto</algorithm>
+      <leaf_size>30</leaf_size>
+      <metric>minkowski</metric>
+      <p>2</p>
+    </ROM>
+    <PostProcessor name="pp1" subType="CrossValidation">
+        <SciKitLearn>
+            <SKLtype>KFold</SKLtype>
+            <n_splits>10</n_splits>
+            <shuffle>False</shuffle>
+        </SciKitLearn>
+        <Metric class="Metrics" type="SKL">m1</Metric>
+    </PostProcessor>
+    <HybridModel name="hybrid" subType="">
+        <Model class="Models" type="Code">poly</Model>
+        <ROM class="Models" type="ROM">knr</ROM>
+        <TargetEvaluation class="DataObjects" type="PointSet">samples</TargetEvaluation>
+        <CV class="Models" type="PostProcessor">pp1</CV>
+        <settings>
+            <tolerance>0.02</tolerance>
+            <maxTrainSize>1000</maxTrainSize>
+            <minInitialTrainSize>10</minInitialTrainSize>
+        </settings>
+        <validationMethod name="CrowdingDistance">
+            <threshold>0.2</threshold>
+        </validationMethod>
+    </HybridModel>
+  </Models>
+
+  <Distributions>
+    <Uniform name="xd">
+      <lowerBound>0.0</lowerBound>
+      <upperBound>1.0</upperBound>
+    </Uniform>
+    <Uniform name="yd">
+      <lowerBound>1.0</lowerBound>
+      <upperBound>2.0</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Samplers>
+    <Stratified name="LHS">
+      <variable name="x">
+        <distribution>xd</distribution>
+        <grid construction="equal" steps="25" type="CDF">0.3 0.7</grid>
+      </variable>
+      <variable name="y">
+        <distribution>yd</distribution>
+        <grid construction="equal" steps="25" type="CDF">0.3 0.7</grid>
+      </variable>
+    </Stratified>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="hybridModelCode">
+      <Input class="Files" type="">gen.one</Input>
+      <Input class="Files" type="">gen.two</Input>
+      <Input class="DataObjects" type="PointSet">inputHolder</Input>
+      <Model class="Models" type="HybridModel">hybrid</Model>
+      <Sampler class="Samplers" type="Stratified">LHS</Sampler>
+      <Output class="DataObjects" type="PointSet">samples</Output>
+      <Output class="OutStreams" type="Print">samples</Output>
+    </MultiRun>
+  </Steps>
+
+  <DataObjects>
+    <PointSet name="inputHolder">
+      <Input>x,y</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="samples">
+      <Input>x,y</Input>
+      <Output>poly</Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="samples">
+      <type>csv</type>
+      <source>samples</source>
+      <what>input, output</what>
+    </Print>
+  </OutStreams>
+
+</Simulation>

@@ -1,0 +1,120 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/Optimizers.TrajGrid</name>
+    <author>talbpaul</author>
+    <created>2017-09-07</created>
+    <classesTested>Optimizer.SPSA,Samplers.Grid</classesTested>
+    <description>
+      This tests using the Grid sampler as a seeding chooser for the GradientBasedOptimizer class.
+    </description>
+    <revisions>
+      <revision author="talbpaul" date="2018-01-04">switched from snapshot to writeSteps final</revision>
+      <revision author='talbpaul' date='2018-10-23'>limited outputs checked to just the solution</revision>
+    </revisions>
+    <analytic>
+      This test uses an inverted 2-dimensional parabola with maximum at (0,0) of 1.0.
+    </analytic>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>TrajGrid</WorkingDir>
+    <Sequence>optimize,print</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="optimize">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ExternalModel">mod</Model>
+      <Optimizer class="Optimizers" type="SPSA">opter</Optimizer>
+      <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
+      <Output class="DataObjects" type="PointSet">optOut</Output>
+    </MultiRun>
+    <IOStep name="print" pauseAtEnd="True">
+      <Input class="DataObjects" type="PointSet">opt_export</Input>
+      <Output class="OutStreams" type="Print">opt_export</Output>
+    </IOStep>
+  </Steps>
+
+  <Optimizers>
+    <SPSA name="opter">
+      <initialization>
+        <limit>2000</limit>
+        <initialSeed>42</initialSeed>
+        <thresholdTrajRemoval>1e-5</thresholdTrajRemoval>
+        <type>max</type>
+        <writeSteps>final</writeSteps>
+      </initialization>
+      <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
+      <!-- Initialization Sampler -->
+      <Sampler class="Samplers" type="Grid">initialPointsSampler</Sampler>
+      <convergence>
+        <relativeThreshold>1e-4</relativeThreshold>
+        <gainGrowthFactor>1.5</gainGrowthFactor>
+        <gainShrinkFactor>1.25</gainShrinkFactor>
+      </convergence>
+      <variable name="x">
+        <upperBound>1</upperBound>
+        <lowerBound>-1</lowerBound>
+      </variable>
+      <variable name="y">
+        <upperBound>1</upperBound>
+        <lowerBound>-1</lowerBound>
+      </variable>
+      <objectVar>ans</objectVar>
+    </SPSA>
+  </Optimizers>
+
+  <Distributions>
+    <Uniform name="xdist">
+      <lowerBound>-1</lowerBound>
+      <upperBound>0</upperBound>
+    </Uniform>
+    <Uniform name="ydist">
+      <lowerBound>0</lowerBound>
+      <upperBound>1</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Samplers>
+    <Grid name="initialPointsSampler">
+      <variable name="x">
+        <distribution>xdist</distribution>
+        <grid construction="equal" steps="1" type="CDF">0.01 0.99</grid>
+      </variable>
+      <variable name="y">
+        <distribution>ydist</distribution>
+        <grid construction="equal" steps="1" type="CDF">0.01 0.99</grid>
+      </variable>
+    </Grid>
+  </Samplers>
+
+  <Models>
+    <ExternalModel ModuleToLoad="../Persistence/parabola" name="mod" subType="">
+      <variables>x,y,ans</variables>
+    </ExternalModel>
+  </Models>
+
+  <DataObjects>
+    <PointSet name="dummyIN">
+      <Input>x,y</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="optOut">
+      <Input>x,y</Input>
+      <Output>ans</Output>
+    </PointSet>
+    <PointSet name="opt_export">
+      <Output>ans</Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="opt_export">
+      <type>csv</type>
+      <source>opt_export</source>
+    </Print>
+  </OutStreams>
+
+</Simulation>

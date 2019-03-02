@@ -1,0 +1,114 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/Optimizers.Vector</name>
+    <author>talbpaul</author>
+    <created>2018-04-24</created>
+    <classesTested>Optimizer</classesTested>
+    <description>
+      Tests sampling a vector of variables, treating each element in the vector as an independent sample.
+
+      To compare, originally an identical test but using all scalar variables for "y" instead of the vector variable,
+      and it was assured that both workflows followed the same optimization path, before golding the output csv for this
+      test.
+
+      As a result, before any regolding is performed on this test, a similar test and comparison should be made.
+    </description>
+    <analytic>
+      This test uses the "time parabola" $f(x,y,t) = x^2 + (t-y)^2 e^(-t)$, which has a minimum at x=0 and y=t for each value of t,
+      with greater impact coming from early values of y (y[0], y[1], etc).
+    </analytic>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>Vector</WorkingDir>
+    <Sequence>optimize,print</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="optimize">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ExternalModel">parabola</Model>
+      <Optimizer class="Optimizers" type="SPSA">opter</Optimizer>
+      <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
+      <Output class="DataObjects" type="DataSet">optOut</Output>
+    </MultiRun>
+    <IOStep name="print" pauseAtEnd="True">
+      <Input class="DataObjects" type="PointSet">opt_export</Input>
+      <Input class="DataObjects" type="DataSet">optOut</Input>
+      <Output class="OutStreams" type="Print">opt_export</Output>
+      <Output class="OutStreams" type="Print">opt_out</Output>
+    </IOStep>
+  </Steps>
+
+  <Optimizers>
+    <SPSA name="opter">
+      <initialization>
+        <limit>2000</limit>
+        <initialSeed>42</initialSeed>
+        <thresholdTrajRemoval>1e-5</thresholdTrajRemoval>
+        <writeSteps>final</writeSteps>
+      </initialization>
+      <TargetEvaluation class="DataObjects" type="DataSet">optOut</TargetEvaluation>
+      <convergence>
+        <gradientThreshold>1e-3</gradientThreshold>
+        <relativeThreshold>1e-5</relativeThreshold>
+        <gainGrowthFactor>3</gainGrowthFactor>
+        <gainShrinkFactor>1.2</gainShrinkFactor>
+      </convergence>
+      <variable name="x">
+        <upperBound>6</upperBound>
+        <lowerBound>-6</lowerBound>
+        <!--<initial>-2, -2, 2, 2</initial>-->
+        <initial>-2</initial>
+      </variable>
+      <variable name="y" shape="11">
+        <upperBound>6</upperBound>
+        <lowerBound>-6</lowerBound>
+        <!--<initial>-2, 2, -2, 2</initial>-->
+        <initial>0</initial>
+      </variable>
+      <objectVar>ans</objectVar>
+      <parameter>
+        <initialStepSize>0.01</initialStepSize>
+        <perturbationDistance>0.001</perturbationDistance>
+      </parameter>
+    </SPSA>
+  </Optimizers>
+
+  <Models>
+    <ExternalModel ModuleToLoad="../../../framework/AnalyticModels/optimizing/time_parabola" name="parabola" subType="">
+      <variables>x,y,t,ans</variables>
+    </ExternalModel>
+  </Models>
+
+  <DataObjects>
+    <PointSet name="dummyIN">
+      <Input>x,y</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="opt_export">
+      <Input>trajID</Input>
+      <Output>x,y,ans,varsUpdate</Output>
+    </PointSet>
+    <DataSet name="optOut">
+      <Input>x,y</Input>
+      <Output>ans</Output>
+      <Index var='t'>y</Index>
+    </DataSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="opt_export">
+      <type>csv</type>
+      <source>opt_export</source>
+      <clusterLabel>trajID</clusterLabel>
+    </Print>
+    <Print name="opt_out">
+      <type>csv</type>
+      <source>optOut</source>
+    </Print>
+  </OutStreams>
+
+</Simulation>

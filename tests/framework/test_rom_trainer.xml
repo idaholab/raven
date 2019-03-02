@@ -22,7 +22,7 @@
       <revision author="maljdan" date="2016-05-20">Updating the test cases to remove references to Point or History.</revision>
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
     </revisions>
-    <requirements>R-RA-4</requirements>
+    <requirements>R-RA-4 R-F-1</requirements>
   </TestInfo>
   <RunInfo>
     <WorkingDir>test_rom_trainer</WorkingDir>
@@ -143,14 +143,17 @@
     <Print name="outputMontecarloRom_dump">
       <type>csv</type>
       <source>outputMontecarloRom</source>
+      <what>input,output</what>
     </Print>
     <Print name="outputMontecarloRomND_dump">
       <type>csv</type>
       <source>outputMontecarloRomND</source>
+      <what>input,output</what>
     </Print>
     <Print name="ciccio">
       <type>csv</type>
       <source>Pointset_from_database_for_rom_trainer</source>
+      <what>input,output</what>
     </Print>
   </OutStreams>
 
@@ -163,23 +166,23 @@
       <Input>DeltaTimeScramToAux,DG1recoveryTime</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
-    <PointSet inputTs="2" name="Pointset_from_database_for_rom_trainer">
+    <PointSet name="Pointset_from_database_for_rom_trainer">
       <Input>DeltaTimeScramToAux,DG1recoveryTime</Input>
       <Output>CladTempThreshold</Output>
     </PointSet>
-    <PointSet historyName="1" inputTs="2" name="data_for_sampling_empty_at_begin">
+    <PointSet name="data_for_sampling_empty_at_begin">
       <Input>DeltaTimeScramToAux,DG1recoveryTime</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
-    <PointSet historyName="1" inputTs="2" name="data_for_sampling_empty_at_begin_nd">
+    <PointSet name="data_for_sampling_empty_at_begin_nd">
       <Input>DeltaTimeScramToAux,DG1recoveryTime</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
-    <PointSet inputTs="2" name="outputMontecarloRom">
+    <PointSet name="outputMontecarloRom">
       <Input>DeltaTimeScramToAux,DG1recoveryTime</Input>
       <Output>CladTempThreshold</Output>
     </PointSet>
-    <PointSet inputTs="2" name="outputMontecarloRomND">
+    <PointSet name="outputMontecarloRomND">
       <Input>DeltaTimeScramToAux,DG1recoveryTime</Input>
       <Output>CladTempThreshold</Output>
     </PointSet>

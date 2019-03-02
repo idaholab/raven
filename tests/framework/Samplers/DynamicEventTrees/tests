@@ -2,15 +2,16 @@
  [./testClassicDETshortRAVEN]
   type = 'RavenFramework'
   input = 'testDETshort.xml'
-  output = 'DETshort/DETrunTest/DET_test_1-1-2/out~simple_det_test DETshort/testprint_tpset_hier_variables.csv DETshort/3-2DHistoryPlot_tps_scatter.pdf'
+  output = 'DETshort/DETrunTest/DET_test_1-1-2/out~simple_det_test DETshort/output_collapsed/1-2DHistoryPlot_tpsCollapsed_scatter.pdf'
+  UnorderedCsv = 'DETshort/output_collapsed/testprint_tpset_collapsed.csv DETshort/output_collapsed/testprint_hist_collapsed.csv' 
  [../]
 
  [./testHybridDETshortRAVEN]
   type = 'RavenFramework'
   input = 'testHybridDET.xml'
-  output = 'HybridDynamicEventTree/HybridDETrunTest/HybridDET_test_5-1-2/out~pump_fake HybridDynamicEventTree/testprint_hist_hier_HybridDET_test_5-2-1.csv HybridDynamicEventTree/testprint_hist_hier_variables_HybridDET_test_1-1-2-2.csv HybridDynamicEventTree/2DHistoryPlot_line.pdf'
-  csv = 'HybridDynamicEventTree/HybridDETrunTest/HybridDET_test_5-1-2/out~pump_fake.csv'
-  skip = 'Did not consistently run Windows'
+  output = 'HybridDynamicEventTree/HybridDETrunTest/HybridDET_test_5-1-2/out~pump_fake HybridDynamicEventTree/print_and_plot_outputs/testprint_hist_hier_28.csv HybridDynamicEventTree/print_and_plot_outputs/2DHistoryPlot_line.pdf'
+  UnorderedCsv = 'HybridDynamicEventTree/print_and_plot_outputs/testprint_tpset_hier.csv'
+  python3_only = true
  [../]
 
  [./testAdaptiveDynamicEventTreeRAVEN]

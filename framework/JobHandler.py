@@ -20,8 +20,6 @@ Created on Mar 5, 2013
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
-if not 'xrange' in dir(__builtins__):
-  xrange = range
 #End compatibility block for Python 3-------------------------------------------
 
 #External Modules---------------------------------------------------------------
@@ -33,10 +31,10 @@ import os
 import copy
 import sys
 import abc
-#import logging, logging.handlers
 import threading
 import random
 import socket
+import time
 #External Modules End-----------------------------------------------------------
 
 #Internal Modules---------------------------------------------------------------
@@ -46,11 +44,8 @@ import MessageHandler
 import Runners
 import Models
 # for internal parallel
-if sys.version_info.major == 2:
-  import pp
-  import ppserver
-else:
-  print("pp does not support python3")
+import pp
+import ppserver
 # end internal parallel module
 #Internal Modules End-----------------------------------------------------------
 
@@ -74,12 +69,16 @@ class JobHandler(MessageHandler.MessageUser):
 
     self.isParallelPythonInitialized = False
 
-    self.sleepTime  = 0.005
+    self.sleepTime  = 1e-4 #0.005
     self.completed = False
 
-    ## Stops the pending queue from getting too big. TODO: expose this to the
-    ## user
-    self.maxQueueSize = 1000
+    ## Determines whether to collect and print job timing summaries at the end of job runs.
+    self.__profileJobs = False
+
+    ## Prevents the pending queue from growing indefinitely, but also allowing
+    ## extra jobs to be queued to prevent starving parallelized environments of
+    ## jobs.
+    self.maxQueueSize = None
 
     ############################################################################
     ## The following variables are protected by the __queueLock
@@ -117,7 +116,7 @@ class JobHandler(MessageHandler.MessageUser):
 
     #self.__noResourcesJobs = []
 
-  def initialize(self,runInfoDict,messageHandler):
+  def initialize(self, runInfoDict, messageHandler):
     """
       Method to initialize the JobHandler
       @ In, runInfoDict, dict, dictionary of run info settings
@@ -127,6 +126,16 @@ class JobHandler(MessageHandler.MessageUser):
     """
     self.runInfoDict = runInfoDict
     self.messageHandler = messageHandler
+    # set the maximum queue size (number of jobs to queue past the running number)
+    self.maxQueueSize = runInfoDict['maxQueueSize']
+    # defaults to None; if None, then use batchSize instead
+    if self.maxQueueSize is None:
+      self.maxQueueSize = runInfoDict['batchSize']
+    # if requsted max size less than 1, we can't do that, so take 1 instead
+    if self.maxQueueSize < 1:
+      self.raiseAWarning('maxQueueSize was set to be less than 1!  Setting to 1...')
+      self.maxQueueSize = 1
+    self.raiseADebug('Setting maxQueueSize to',self.maxQueueSize)
 
     #initialize PBS
     with self.__queueLock:
@@ -142,10 +151,17 @@ class JobHandler(MessageHandler.MessageUser):
     with self.__queueLock:
       returnCode = running.getReturnCode()
       if returnCode != 0:
+        metadataFailedRun = running.getMetadata()
+        metadataToKeep = metadataFailedRun
+        if metadataFailedRun is not None:
+          metadataKeys      = list(metadataFailedRun.keys())
+          if 'jobHandler' in metadataKeys:
+            metadataKeys.pop(metadataKeys.index("jobHandler"))
+            metadataToKeep = { keepKey: metadataFailedRun[keepKey] for keepKey in metadataKeys }
         ## FIXME: The running.command was always internal now, so I removed it.
         ## We should probably find a way to give more pertinent information.
         self.raiseAMessage(" Process Failed " + str(running) + " internal returnCode " + str(returnCode))
-        self.__failedJobs[running.identifier]=(returnCode,copy.deepcopy(running.getMetadata()))
+        self.__failedJobs[running.identifier]=(returnCode,copy.deepcopy(metadataToKeep))
 
   def __initializeParallelPython(self):
     """
@@ -256,7 +272,12 @@ class JobHandler(MessageHandler.MessageUser):
         #subprocess.Popen(['ssh', nodeId, "python2.7", ppserverScript,"-w",str(ntasks),"-i",remoteHostName,"-p",str(newPort),"-t","1000","-g",localenv["PYTHONPATH"],"-d"],shell=False,stdout=outFile,stderr=outFile,env=localenv)
 
         ## Instead, let's build the command and then call the os-agnostic version
-        command=" ".join(["python",ppserverScript,"-w",str(ntasks),"-i",remoteHostName,"-p",str(newPort),"-t","1000","-g",localenv["PYTHONPATH"],"-d"])
+        if sys.version_info.major > 2:
+          pythonCommand = "python3"
+        else:
+          pythonCommand = "python2"
+
+        command=" ".join([pythonCommand,ppserverScript,"-w",str(ntasks),"-i",remoteHostName,"-p",str(newPort),"-t","50000","-g",localenv["PYTHONPATH"],"-d"])
         utils.pickleSafeSubprocessPopen(['ssh',nodeId,"COMMAND='"+command+"'",self.runInfoDict['RemoteRunCommand']],shell=False,stdout=outFile,stderr=outFile,env=localenv)
         ## e.g., ssh nodeId COMMAND='python ppserverScript -w stuff'
 
@@ -276,6 +297,7 @@ class JobHandler(MessageHandler.MessageUser):
       self.cleanJobQueue()
       ## TODO May want to revisit this:
       ## http://stackoverflow.com/questions/29082268/python-time-sleep-vs-event-wait
+      ## probably when we move to Python 3.
       time.sleep(self.sleepTime)
 
   def addJob(self, args, functionToRun, identifier, metadata=None, modulesToImport = [], forceUseThreads = False, uniqueHandler="any", clientQueue = False):
@@ -310,7 +332,8 @@ class JobHandler(MessageHandler.MessageUser):
       internalJob = Runners.SharedMemoryRunner(self.messageHandler, args,
                                                functionToRun,
                                                identifier, metadata,
-                                               uniqueHandler)
+                                               uniqueHandler,
+                                               profile=self.__profileJobs)
     else:
       skipFunctions = [utils.metaclass_insert(abc.ABCMeta,BaseType)]
       internalJob = Runners.DistributedMemoryRunner(self.messageHandler,
@@ -318,7 +341,8 @@ class JobHandler(MessageHandler.MessageUser):
                                                     functionToRun,
                                                     modulesToImport, identifier,
                                                     metadata, skipFunctions,
-                                                    uniqueHandler)
+                                                    uniqueHandler,
+                                                    profile=self.__profileJobs)
 
     # set the client info
     internalJob.clientRunner = clientQueue
@@ -336,6 +360,8 @@ class JobHandler(MessageHandler.MessageUser):
         self.__queue.append(runner)
       else:
         self.__clientQueue.append(runner)
+      if self.__profileJobs:
+        runner.trackTime('queue')
       self.__submittedJobs.append(runner.identifier)
 
   def addClientJob(self, args, functionToRun, identifier, metadata=None, modulesToImport = [], uniqueHandler="any"):
@@ -401,10 +427,20 @@ class JobHandler(MessageHandler.MessageUser):
     ## that list within a reasonable amount of time. The issue on the main thread
     ## should also be addressed, but at least we can prevent it on this end since
     ## the main thread's issue may be legitimate.
+
+    maxCount = self.maxQueueSize
+    finishedCount = len(self.__finished)
+
     if client:
-      availability = self.maxQueueSize - len(self.__clientQueue) - len(self.__finished)
+      if maxCount is None:
+        maxCount = self.__clientRunning.count(None)
+      queueCount = len(self.__clientQueue)
     else:
-      availability = self.maxQueueSize - len(self.__queue) - len(self.__finished)
+      if maxCount is None:
+        maxCount = self.__running.count(None)
+      queueCount = len(self.__queue)
+
+    availability = maxCount - queueCount - finishedCount
     return availability
 
   def isThisJobFinished(self, identifier):
@@ -438,6 +474,34 @@ class JobHandler(MessageHandler.MessageUser):
     ##  If you made it here and we still have not found anything, we have got
     ## problems.
     self.raiseAnError(RuntimeError,"Job "+identifier+" is unknown!")
+
+  def areTheseJobsFinished(self, uniqueHandler="any"):
+    """
+      Method to check if all the runs in the queue are finished
+      @ In, uniqueHandler, string, optional, it is a special keyword attached to
+        each runner. If provided, just the jobs that have the uniqueIdentifier
+        will be retrieved. By default uniqueHandler = 'any' => all the jobs for
+        which no uniqueIdentifier has been set up are going to be retrieved
+      @ Out, isFinished, bool, True all the runs in the queue are finished
+    """
+    uniqueHandler = uniqueHandler.strip()
+    with self.__queueLock:
+      for run in self.__finished:
+        if run.uniqueHandler == uniqueHandler:
+          return False
+
+      for queue in [self.__queue, self.__clientQueue]:
+        for run in queue:
+          if run.uniqueHandler == uniqueHandler:
+            return False
+
+      for run in self.__running + self.__clientRunning:
+        if run is not None and run.uniqueHandler == uniqueHandler:
+          return False
+
+    self.raiseADebug("The jobs with uniqueHandler ", uniqueHandler, "are finished")
+
+    return True
 
   def getFailedJobs(self):
     """
@@ -487,6 +551,7 @@ class JobHandler(MessageHandler.MessageUser):
       ## delete something it will not shift anything to the left (lower index)
       ## than it.
       for i in reversed(runsToBeRemoved):
+        self.__finished[i].trackTime('collected')
         del self.__finished[i]
     ## end with self.__queueLock
 
@@ -584,8 +649,8 @@ class JobHandler(MessageHandler.MessageUser):
               item.args[3].update(kwargs)
 
             self.__running[i] = item
-            ##FIXME this call is really expensive; can it be reduced?
             self.__running[i].start()
+            self.__running[i].trackTime('started')
             self.__nextId += 1
           else:
             break
@@ -598,6 +663,7 @@ class JobHandler(MessageHandler.MessageUser):
           if len(self.__clientQueue) > 0:
             self.__clientRunning[i] = self.__clientQueue.popleft()
             self.__clientRunning[i].start()
+            self.__clientRunning[i].trackTime('jobHandler_started')
             self.__nextId += 1
           else:
             break
@@ -621,7 +687,16 @@ class JobHandler(MessageHandler.MessageUser):
           ## it by calling numRunning.
           with self.__queueLock:
             self.__finished.append(run)
+            self.__finished[-1].trackTime('jobHandler_finished')
             runList[i] = None
+
+  def setProfileJobs(self,profile=False):
+    """
+      Sets whether profiles for jobs are printed or not.
+      @ In, profile, bool, optional, if True then print timings for jobs when they are garbage collected
+      @ Out, None
+    """
+    self.__profileJobs = profile
 
   def startingNewStep(self):
     """
@@ -655,3 +730,31 @@ class JobHandler(MessageHandler.MessageUser):
         unfinishedRuns = [run for run in runList if run is not None]
         for run in unfinishedRuns:
           run.kill()
+
+  def terminateJobs(self, ids):
+    """
+      Kills running jobs that match the given ids.
+      @ In, ids, list(str), job prefixes to terminate
+      @ Out, None
+    """
+    queues = [self.__queue, self.__clientQueue, self.__running, self.__clientRunning]
+    with self.__queueLock:
+      for q,queue in enumerate(queues):
+        toRemove = []
+        for job in queue:
+          if job is not None and job.identifier in ids:
+            # this assumes that each uniqueHandle only exists once in any queue anywhere
+            ids.remove(job.identifier)
+            toRemove.append(job)
+        for job in toRemove:
+          # for fixed-spot queues, need to replace job with None not remove
+          if isinstance(queue,list):
+            job.kill()
+            queue[queue.index(job)] = None
+          # for variable queues, can just remove the job
+          else:
+            queue.remove(job)
+          self.raiseADebug('Terminated job "{}" by request.'.format(job.identifier))
+    if len(ids):
+      self.raiseADebug('Tried to remove some jobs but not found in any queues:',', '.join(ids))
+

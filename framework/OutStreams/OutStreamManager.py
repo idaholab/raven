@@ -20,11 +20,10 @@ Created on Nov 14, 2013
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
-if not 'xrange' in dir(__builtins__):
-  xrange = range
 #End compatibility block for Python 3-------------------------------------------
 
 #External Modules---------------------------------------------------------------
+import os
 #External Modules End-----------------------------------------------------------
 
 #Internal Modules---------------------------------------------------------------
@@ -65,6 +64,8 @@ class OutStreamManager(BaseType):
     self.availableOutStreamType = []
     # number of agregated outstreams
     self.numberAggregatedOS = 1
+    # optional sub directory for printing and plotting
+    self.subDirectory = None
     self.printTag = 'OUTSTREAM MANAGER'
     self.filename = ''
 
@@ -82,7 +83,13 @@ class OutStreamManager(BaseType):
         self.overwrite = True
       else:
         self.overwrite = False
+    if 'dir' in xmlNode.attrib:
+      self.subDirectory =  xmlNode.attrib['dir']
+      if '~' in self.subDirectory:
+        self.subDirectory= os.path.expanduser(self.subDirectory)
+
     self.localReadXML(xmlNode)
+
 
   def getInitParams(self):
     """
@@ -124,6 +131,10 @@ class OutStreamManager(BaseType):
       current step. The sources are searched into this.
       @ Out, None
     """
+    if self.subDirectory is not None:
+      if not os.path.exists(self.subDirectory):
+        os.makedirs(self.subDirectory)
+
     self.sourceData = []
     for agrosindex in range(self.numberAggregatedOS):
       foundData = False
@@ -149,4 +160,4 @@ class OutStreamManager(BaseType):
           self.sourceData.append(inDict['SolutionExport'])
           foundData = True
       if not foundData:
-        self.raiseAnError(IOError, 'the Data named ' + self.sourceName[agrosindex] + ' has not been found!!!!')
+        self.raiseAnError(IOError, 'the DataObject "{data}" was not found among the "<Input>" nodes for this step!'.format(data = self.sourceName[agrosindex]))

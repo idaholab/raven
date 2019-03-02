@@ -42,6 +42,8 @@ In order to accomplish these tasks, the following procedures are needed:
        \item  \textit{ExternalModel}, represents a physical or mathematical model that is directly implemented by
          the user in a Python module
        \item \textit{ROM}, represents the Reduced Order Model, interfaced with several algorithms
+        \item \textit{HybridModel}, automatic/smart Entity to automatically choose between a ROM (or a set of them) 
+        and an High-Fidelity Model (e.g. ExternalModel, Code)
        \item \textit{PostProcessor}, is used to perform action on data, such as computation of statistical moments,
          correlation matrices, etc.
      \end{itemize}
@@ -65,15 +67,22 @@ In order to accomplish these tasks, the following procedures are needed:
      \begin{itemize}
         \item \textit{PointSet} is a collection of individual objects, each describing the state of the system at
                                 a certain point (e.g. in time). It can be considered a mapping between multiple
-                                            sets of parameters in the input space and the resulting sets of outcomes in the output space
-                                            at a particular point (e.g., in time).
+                                            sets of parameters in the input space and the resulting sets of outcomes in the output 
+                                            space  at a particular point (e.g., in time).
         \item \textit{HistorySet} is a collection of individual objects, each describing the temporal evolution of the
                                   state of the system within a certain input domain. It can be considered a mapping between
-                                               multiple sets of parameters in the input space and the resulting sets of temporal evolution
-                                               in the output space.
+                                               multiple sets of parameters in the input space and the resulting sets of temporal 
+                                               evolution in the output space.
+        \item \textit{DataSet} is a collection of individual objects and a generalization of the previously described 
+                                         DataObjects, aimed to contain a mixture of data (scalars, arrays, etc.). The variables here 
+                                         stored can be independent (i.e. scalars) or dependent (arrays) on certain dimensions (e.g. 
+                                         time, coordinates, etc.). It can be considered a mapping between multiple sets of 
+                                         parameters in the input space (both dependent and/or independent) and the resulting sets 
+                                         of evolution in the output space (bothdependentand/orindependent).                                      
      \end{itemize}
-     The DataObjects represent the preferred way to transfer the information coming from a Model (e.g., the
-     driven code) to all the other RAVEN systems (e.g., Out-Stream system, Reduced Order Modeling component, etc.).
+     The DataObjects represent the designeted way to transfer the information coming from a Model (e.g., the
+     driven code) to all the other RAVEN systems (e.g., Out-Stream system, Reduced Order Modeling 
+     component, etc.).
      For the simple case, the \xmlNode{DataObjects} block of RAVEN input is:
      \xmlExample{framework/user_guide/ravenTutorial/singleRun.xml}{DataObjects}
      \xmlNode{HistorySet} with a user-defined identifier (e.g. ``history'') is used to collect the mass evolutions

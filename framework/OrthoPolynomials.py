@@ -233,15 +233,7 @@ class Legendre(OrthogonalPolynomial):
       @ In, None
       @ Out, None
     """
-    uniformElement = ET.Element("Uniform")
-    element = ET.Element("lowerBound",{})
-    element.text = "-1"
-    uniformElement.append(element)
-    element = ET.Element("upperBound",{})
-    element.text = "1"
-    uniformElement.append(element)
-    uniform = Distributions.Uniform()
-    uniform._readMoreXML(uniformElement)
+    uniform = Distributions.Uniform(-1.0, 1.0)
     uniform.initializeDistribution()
     return uniform
 
@@ -385,7 +377,7 @@ class Laguerre(OrthogonalPolynomial):
       @ In, order, int, polynomial order to get norm of
       @ Out, norm, float, value of poly norm
     """
-    return np.sqrt(gamma(1.0+order)/gamma(1.0+order+self.params[0]))
+    return np.sqrt(gamma(1.0+order)*gamma(1.0+self.params[0])/gamma(1.0+order+self.params[0]))
 
 
 

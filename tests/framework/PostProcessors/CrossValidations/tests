@@ -1,0 +1,92 @@
+[Tests]
+  [./simpleCrossValidation]
+    type = 'RavenFramework'
+    input = 'test_cross_validation.xml'
+    UnorderedXml = 'simpleCrossValidation/pp1_cv_dump.xml'
+    UnorderedCsv = 'simpleCrossValidation/dumpMC.csv simpleCrossValidation/pp1_cv_dump.csv'
+    rel_err = 0.00001
+    zero_threshold = 1e-9
+    remove_whitespace = True
+  [../]
+  [./labelKFold]
+    type = 'RavenFramework'
+    input = 'test_LabelKFold.xml'
+    UnorderedXml = 'labelKFold/pp1_cv_dump.xml'
+    csv= 'labelKFold/pp1_cv_dump.csv'
+    rel_err = 0.00001
+    zero_threshold = 1e-9
+    remove_whitespace = True
+  [../]
+  [./labelShuffleSplit]
+    type = 'RavenFramework'
+    input = 'test_labelShuffleSplit.xml'
+    UnorderedXml = 'labelShuffleSplit/pp1_cv_dump.xml'
+    csv = 'labelShuffleSplit/pp1_cv_dump.csv'
+    rel_err = 0.00001
+    zero_threshold = 1e-9
+    remove_whitespace = True
+  [../]
+  [./leaveOneOut]
+    type = 'RavenFramework'
+    input = 'test_leaveOneOut.xml'
+    UnorderedXml = 'leaveOneOut/pp1_cv_dump.xml'
+    csv = 'leaveOneOut/pp1_cv_dump.csv'
+    rel_err = 0.00001
+    zero_threshold = 1e-9
+    remove_whitespace = True
+  [../]
+  [./leavePLabelOut]
+    type = 'RavenFramework'
+    input = 'test_leavePLabelOut.xml'
+    UnorderedXml = 'leavePLabelOut/pp1_cv_dump.xml'
+    csv = 'leavePLabelOut/pp1_cv_dump.csv'
+    rel_err = 0.00001
+    zero_threshold = 1e-9
+    remove_whitespace = True
+  [../]
+  [./leavePOut]
+    type = 'RavenFramework'
+    input = 'test_leavePOut.xml'
+    UnorderedXml = 'leavePOut/pp1_cv_dump.xml'
+    csv = 'leavePOut/pp1_cv_dump.csv'
+    rel_err = 0.00001
+    zero_threshold = 1e-9
+    remove_whitespace = True
+  [../]
+  [./shuffleSplit]
+    type = 'RavenFramework'
+    input = 'test_shuffleSplit.xml'
+    UnorderedXml = 'shuffleSplit/pp1_cv_dump.xml'
+    csv = 'shuffleSplit/pp1_cv_dump.csv'
+    rel_err = 0.00001
+    zero_threshold = 1e-9
+    remove_whitespace = True
+  [../]
+  [./stratifiedKFold]
+    type = 'RavenFramework'
+    input = 'test_stratifiedKFold.xml'
+    csv = 'stratifiedKFold/pp1_cv_dump.csv'
+    UnorderedXml = 'stratifiedKFold/pp1_cv_dump.xml'
+    rel_err = 0.00001
+    zero_threshold = 1e-9
+    remove_whitespace = True
+  [../]
+  [./stratifiedShuffleSplit]
+    type = 'RavenFramework'
+    input = 'test_stratifiedShuffleSplit.xml'
+    UnorderedXml = 'stratifiedShuffleSplit/pp1_cv_dump.xml'
+    csv = 'stratifiedShuffleSplit/pp1_cv_dump.csv'
+    rel_err = 0.00001
+    zero_threshold = 1e-9
+    remove_whitespace = True
+  [../]
+  [./leaveOneLabelOut]
+    type = 'RavenFramework'
+    input = 'test_leaveOneLabelOut.xml'
+    UnorderedXml = 'leaveOneLabelOut/pp1_cv_dump.xml'
+    csv = 'leaveOneLabelOut/pp1_cv_dump.csv'
+    rel_err = 0.00001
+    zero_threshold = 1e-9
+    remove_whitespace = True
+  [../]
+[]

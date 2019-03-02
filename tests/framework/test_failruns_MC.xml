@@ -79,7 +79,7 @@
       <executable>RunFailures/codeFailer.py</executable>
       <inputExtensions>inp</inputExtensions>
       <clargs arg="python" type="prepend"/>
-      <clargs args="" extension=".inp" type="input"/>
+      <clargs arg="" extension=".inp" type="input"/>
       <fileargs arg="out" type="output"/>
       <prepend>python</prepend>
     </Code>
@@ -104,10 +104,12 @@
     <Print name="MCdump">
       <type>csv</type>
       <source>solns</source>
+      <what>input,output,metadata|ProbabilityWeight,metadata|prefix</what>
     </Print>
     <Print name="MCdumpC">
       <type>csv</type>
       <source>csolns</source>
+      <what>input,output,metadata|ProbabilityWeight,metadata|prefix</what>
     </Print>
   </OutStreams>
 

@@ -22,10 +22,14 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
 
+import sys
 import math
+import functools
 import copy
+import scipy
 from scipy import interpolate, stats, integrate
 import numpy as np
+import six
 from utils.utils import UreturnPrintTag,UreturnPrintPostTag
 
 def normal(x,mu=0.0,sigma=1.0):
@@ -70,8 +74,11 @@ def createInterp(x, y, lowFill, highFill, kind='linear'):
      @ In, kind, string, optional, interpolation type (default=linear)
      @ Out, interp, function(float) returns float, an interpolation function that takes a single float value and return its interpolated value using lowFill or highFill when the input value is outside of the interpolation range.
   """
+  sv = str(scipy.__version__).split('.')
+  if int(sv[0])> 0 or int(sv[1]) >= 17:
+    interp = interpolate.interp1d(x, y, kind, bounds_error=False, fill_value=([lowFill], [highFill]))
+    return interp
   interp = interpolate.interp1d(x, y, kind)
-  # interp = interpolate.interp1d(x, y, kind, bounds_error=False, fill_value=lowFill)
   low = x[0]
   def myInterp(value):
     """
@@ -107,104 +114,6 @@ def simpson(f, a, b, n):
     x[i] = a + i*h
     y[i] = f(x[i])
   return integrate.simps(y, x)
-
-def getGraphs(functions, fZStats = False):
-  """
-    Returns the graphs of the functions.
-    The functions are a list of (dataStats, cdf_function, pdf_function,name)
-    It returns a dictionary with the graphs and other statistics calculated.
-    @ In, functions, list, list of functions (data_stats_dict, cdf_function, pdf_function,name)
-    @ In, fZStats, bool, optional, true if the F(z) (cdf) needs to be computed
-    @ Out, retDict, dict, the return dictionary
-  """
-  retDict = {}
-  dataStats = [x[0] for x in functions]
-  means = [x["mean"] for x in dataStats]
-  stddevs = [x["stdev"] for x in dataStats]
-  cdfs = [x[1] for x in functions]
-  pdfs = [x[2] for x in functions]
-  names = [x[3] for x in functions]
-  low = min([m - 3.0*s for m,s in zip(means,stddevs)])
-  high = max([m + 3.0*s for m,s in zip(means,stddevs)])
-  lowLow = min([m - 5.0*s for m,s in zip(means,stddevs)])
-  highHigh = max([m + 5.0*s for m,s in zip(means,stddevs)])
-  minBinSize = min([x["minBinSize"] for x in dataStats])
-  print("Graph from ",low,"to",high)
-  n = int(math.ceil((high-low)/minBinSize))
-  interval = (high - low)/n
-
-  #Print the cdfs and pdfs of the data to be compared.
-  origCdfAndPdfArray = []
-  origCdfAndPdfArray.append(["x"])
-  for name in names:
-    origCdfAndPdfArray.append([name+'_cdf'])
-    origCdfAndPdfArray.append([name+'_pdf'])
-
-  for i in range(n):
-    x = low+interval*i
-    origCdfAndPdfArray[0].append(x)
-    k = 1
-    for stats, cdf, pdf, name in functions:
-      origCdfAndPdfArray[k].append(cdf(x))
-      origCdfAndPdfArray[k+1].append(pdf(x))
-      k += 2
-  retDict["cdf_and_pdf_arrays"] = origCdfAndPdfArray
-
-  def fZ(z):
-    """
-      Compute f(z) with a simpson rule
-      @ In, z, float, the coordinate
-      @ Out, fZ, the f(z)
-    """
-    return simpson(lambda x: pdfs[0](x)*pdfs[1](x-z), lowLow, highHigh, 1000)
-
-  if len(means) < 2:
-    return
-  midZ = means[0]-means[1]
-  lowZ = midZ - 3.0*max(stddevs[0],stddevs[1])
-  highZ = midZ + 3.0*max(stddevs[0],stddevs[1])
-
-  #print the difference function table.
-  fZTable = [["z"],["f_z(z)"]]
-  zN = 20
-  intervalZ = (highZ - lowZ)/zN
-  for i in range(zN):
-    z = lowZ + intervalZ*i
-    fZTable[0].append(z)
-    fZTable[1].append(fZ(z))
-  cdfAreaDifference = simpson(lambda x:abs(cdfs[1](x)-cdfs[0](x)),lowLow,highHigh,100000)
-  retDict["f_z_table"] = fZTable
-
-  def firstMomentSimpson(f, a, b, n):
-    """
-      Compute the first simpson method
-      @ In, f, method, the function f(x)
-      @ In, a, float, lower bound
-      @ In, b, float, upper bound
-      @ In, n, int, the number of discretizations
-      @ Out, firstMomentSimpson, float, the moment
-    """
-    return simpson(lambda x:x*f(x), a, b, n)
-
-  #print a bunch of comparison statistics
-  pdfCommonArea = simpson(lambda x:min(pdfs[0](x),pdfs[1](x)),
-                            lowLow,highHigh,100000)
-  for i in range(len(pdfs)):
-    pdfArea = simpson(pdfs[i],lowLow,highHigh,100000)
-    retDict['pdf_area_'+names[i]] = pdfArea
-    dataStats[i]["pdf_area"] = pdfArea
-  retDict['cdf_area_difference'] = cdfAreaDifference
-  retDict['pdf_common_area'] = pdfCommonArea
-  dataStats[0]["cdf_area_difference"] = cdfAreaDifference
-  dataStats[0]["pdf_common_area"] = pdfCommonArea
-  if fZStats:
-    sumFunctionDiff = simpson(fZ, lowZ, highZ, 1000)
-    firstMomentFunctionDiff = firstMomentSimpson(fZ, lowZ,highZ, 1000)
-    varianceFunctionDiff = simpson(lambda x:((x-firstMomentFunctionDiff)**2)*fZ(x),lowZ,highZ, 1000)
-    retDict['sum_function_diff'] = sumFunctionDiff
-    retDict['first_moment_function_diff'] = firstMomentFunctionDiff
-    retDict['variance_function_diff'] = varianceFunctionDiff
-  return retDict
 
 def countBins(sortedData, binBoundaries):
   """
@@ -272,7 +181,7 @@ def historySnapShoots(valueDict, numberOfTimeStep):
     @ Out, outDic, list, it contains the temporal slice of all histories
   """
   outDict = []
-  numberOfRealizations = len(valueDict.values()[-1])
+  numberOfRealizations = len(list(valueDict.values())[-1])
   outPortion, inPortion = {}, {}
   numberSteps = - 1
   # check consistency of the dictionary
@@ -283,11 +192,11 @@ def historySnapShoots(valueDict, numberOfTimeStep):
       # check the time-step size
       outPortion[variable] = np.asarray(value)
       if numberSteps == -1:
-        numberSteps = reduce(lambda x, y: x*y, list(outPortion.values()[-1].shape))/numberOfRealizations
+        numberSteps = functools.reduce(lambda x, y: x*y, list(list(outPortion.values())[-1].shape))/numberOfRealizations
       if len(list(outPortion[variable].shape)) != 2:
         return "historySnapShoots method: number of time steps are not consistent among the different histories for variable "+variable
-      if reduce(lambda x, y:
-        x*y, list(outPortion.values()[-1].shape))/numberOfRealizations != numberSteps :
+      if functools.reduce(lambda x, y:
+        x*y, list(list(outPortion.values())[-1].shape))/numberOfRealizations != numberSteps :
         return "historySnapShoots method: number of time steps are not consistent among the different histories for variable "+variable+". Expected "+str(numberSteps)+" /= "+ sum(list(outPortion[variable].shape))/numberOfRealizations
     else:
       inPortion [variable] = np.asarray(value)
@@ -543,7 +452,7 @@ def relativeDiff(f1,f2):
       f2 = float(f2)
     except ValueError:
       raise RuntimeError('Provided argument to compareFloats could not be cast as a float!  Second argument is %s type %s' %(str(f2),type(f2)))
-  diff = abs(f1-f2)
+  diff = abs(diffWithInfinites(f1,f2))
   #"scale" is the relative scaling factor
   scale = f2
   #protect against div 0
@@ -554,6 +463,12 @@ def relativeDiff(f1,f2):
     #at this point, they're both equal to zero, so just divide by 1.0
     else:
       scale = 1.0
+  if abs(scale) == np.inf:
+    #no mathematical rigor here, but typical algorithmic use cases
+    if diff == np.inf:
+      return np.inf # assumption: inf/inf = 1
+    else:
+      return 0.0 # assumption: x/inf = 0 for all finite x
   return diff/abs(scale)
 
 def compareFloats(f1,f2,tol=1e-6):
@@ -598,16 +513,241 @@ def NDInArray(findIn,val,tol=1e-12):
     return False,None,None
   return found,idx,looking
 
-def numBinsDraconis(data):
+def numBinsDraconis(data, low=None, alternateOkay=True):
   """
     Determine  Bin size and number of bins determined by Freedman Diaconis rule (https://en.wikipedia.org/wiki/Freedman%E2%80%93Diaconis_rule)
     @ In, data, np.array, data to be binned
+    @ In, low, int, minimum number of bins
+    @ In, alternateOkay, bool, if True then can use alternate method if Freeman Draconis won't work
     @ Out, numBins, int, optimal number of bins
     @ Out, binEdges, np.array, location of the bins
   """
+  iqr = np.percentile(data, 75) - np.percentile(data, 25)
+  # Freedman Diaoconis assumes there's a difference between the 75th and 25th percentile (there usually is)
+  if iqr > 0.0:
+    size = 2.0 * iqr / np.cbrt(data.size)
+    numBins = int(np.ceil((max(data) - min(data))/size))
+  # if there's not, with approval we can use the sqrt of the number of entries instead
+  elif alternateOkay:
+    numBins = int(np.ceil(np.sqrt(data.size)))
+  else:
+    raise ValueError('When computing bins using Freedman-Diaconis the 25th and 75th percentiles are the same, and "alternate" is not enabled!')
+  # if a minimum number of bins have been suggested, check that we use enough
+  if low is not None:
+    numBins = max(numBins, low)
+  # for convenience, find the edges of the bins as well
+  binEdges = np.linspace(start=min(data), stop=max(data), num=numBins+1)
+  return numBins, binEdges
 
-  IQR = np.percentile(data, 75) - np.percentile(data, 25)
-  binSize = 2.0*IQR*(data.size**(-1.0/3.0))
-  numBins = int((max(data)-min(data))/binSize)
-  binEdges = np.linspace(start=min(data),stop=max(data),num=numBins+1)
-  return numBins,binEdges
+def diffWithInfinites(a,b):
+  """
+    Calculates the difference a-b and treats infinites.  We consider infinites to have equal values, but
+    inf - (- inf) = inf.
+    @ In, a, float, first value (could be infinite)
+    @ In, b, float, second value (could be infinite)
+    @ Out, res, float, b-a (could be infinite)
+  """
+  if abs(a) == np.inf or abs(b) == np.inf:
+    if a == b:
+      res = 0 #not mathematically rigorous, but useful algorithmically
+    elif a > b:
+      res = np.inf
+    else: # b > a
+      res = -np.inf
+  else:
+    res = a-b
+  return res
+
+def isSingleValued(val,nanOk=True):
+  """
+    Determine if a single-entry value (by traditional standards).
+    Single entries include strings, numbers, NaN, inf, None
+    NOTE that Python usually considers strings as arrays of characters.  Raven doesn't benefit from this definition.
+    @ In, val, object, check
+    @ In, nanOk, bool, optional, if True then NaN and inf are acceptable
+    @ Out, isAScalar, bool, result
+  """
+  # TODO most efficient order for checking?
+  return isAFloatOrInt(val,nanOk=nanOk) or isABoolean(val) or isAString(val) or (val is None)
+
+def isAString(val):
+  """
+    Determine if a string value (by traditional standards).
+    @ In, val, object, check
+    @ Out, isAString, bool, result
+  """
+  return isinstance(val, six.string_types)
+
+def isAFloatOrInt(val,nanOk=True):
+  """
+    Determine if a float or integer value
+    Should be faster than checking (isAFloat || isAnInteger) due to checking against np.number
+    @ In, val, object, check
+    @ In, nanOk, bool, optional, if True then NaN and inf are acceptable
+    @ Out, isAFloatOrInt, bool, result
+  """
+  if isinstance(val,six.integer_types) or  isinstance(val,(float,np.number)):
+    # bools are ints, unfortunately
+    if isABoolean(val):
+      return False
+    # nan and inf are floats
+    if nanOk:
+      return True
+    elif val not in [np.inf,np.nan]:
+      return True
+  return False
+
+def isAFloat(val,nanOk=True):
+  """
+    Determine if a float value (by traditional standards).
+    @ In, val, object, check
+    @ In, nanOk, bool, optional, if True then NaN and inf are acceptable
+    @ Out, isAFloat, bool, result
+  """
+  if isinstance(val,(float,np.number)):
+    # exclude ints, which are np.number
+    if isAnInteger(val):
+      return False
+    # np.float32 (or 16) is niether a float nor a np.float (it is a np.number)
+    if nanOk:
+      return True
+    elif val not in [np.nan,np.inf]:
+      return True
+  return False
+
+def isAnInteger(val,nanOk=False):
+  """
+    Determine if an integer value (by traditional standards).
+    @ In, val, object, check
+    @ In, nanOk, bool, optional, if True then NaN and inf are acceptable
+    @ Out, isAnInteger, bool, result
+  """
+  if isinstance(val,six.integer_types) or isinstance(val,np.integer):
+    # exclude booleans
+    if isABoolean(val):
+      return False
+    return True
+  # also include inf and nan, if requested
+  if nanOk and val in [np.nan,np.inf]:
+    return True
+  return False
+
+def isABoolean(val):
+  """
+    Determine if a boolean value (by traditional standards).
+    @ In, val, object, check
+    @ Out, isABoolean, bool, result
+  """
+  return isinstance(val,(bool,np.bool_))
+
+def computeTruncatedTotalLeastSquare(X, Y, truncationRank):
+  """
+    Compute Total Least Square and truncate it till a rank = truncationRank
+    @ In, X, numpy.ndarray, the first 2D matrix
+    @ In, Y, numpy.ndarray, the second 2D matrix
+    @ In, truncationRank, int, optional, the truncation rank
+    @ Out, (dX,dy), tuple, the Leasted squared matrices X and Y
+  """
+  V = np.linalg.svd(np.append(X, Y, axis=0), full_matrices=False)[-1]
+  rank = min(int(truncationRank), V.shape[0])
+  VV = V[:rank, :].conj().T.dot(V[:rank, :])
+  dX = X.dot(VV)
+  dY = Y.dot(VV)
+  return dX, dY
+
+def computeTruncatedSingularValueDecomposition(X, truncationRank):
+  """
+    Compute Singular Value Decomposition and truncate it till a rank = truncationRank
+    @ In, X, numpy.ndarray, the 2D matrix on which the SVD needs to be performed
+    @ In, truncationRank, int or float, optional, the truncation rank:
+                                                  * -1 = no truncation
+                                                  *  0 = optimal rank is computed
+                                                  *  >1  user-defined truncation rank
+                                                  *  >0. and < 1. computed rank is the number of the biggest sv needed to reach
+                                                                  the energy identified by truncationRank
+    @ Out, (U, s, V), tuple of numpy.ndarray, (left-singular vectors matrix, singular values, right-singular vectors matrix)
+  """
+  U, s, V = np.linalg.svd(X, full_matrices=False)
+  V = V.conj().T
+
+  if truncationRank is 0:
+    omeg = lambda x: 0.56 * x**3 - 0.95 * x**2 + 1.82 * x + 1.43
+    rank = np.sum(s > np.median(s) * omeg(np.divide(*sorted(X.shape))))
+  elif truncationRank > 0 and truncationRank < 1:
+    rank = np.searchsorted(np.cumsum(s / s.sum()), truncationRank) + 1
+  elif truncationRank >= 1 and isinstance(truncationRank, int):
+    rank = min(truncationRank, U.shape[1])
+  else:
+    rank = X.shape[1]
+  U = U[:, :rank]
+  V = V[:, :rank]
+  s = s[:rank]
+  return U, s, V
+
+def computeEigenvaluesAndVectorsFromLowRankOperator(lowOperator, Y, U, s, V, exactModes=True):
+  """
+    Compute the eigenvalues and eigenvectors of the high-dim operator
+    from the low-dim operator and the matrix Y.
+    The lowe-dim operator can be computed with the following numpy-based
+    expression: U.T.conj().dot(Y).dot(V) * np.reciprocal(s)
+    @ In, lowOperator, numpy.ndarray, the lower rank operator (a tilde)
+    @ In, Y, numpy.ndarray, the input matrix Y
+    @ In, U, numpy.ndarray,  2D matrix that contains the left-singular vectors of X, stored by column
+    @ In, s, numpy.ndarray,  1D array  that contains the singular values of X
+    @ In, V, numpy.ndarray,  2D matrix that contains the right-singular vectors of X, stored by column
+    @ In, exactModes, bool, optional, if True the exact modes get computed otherwise the projected ones are (Default = True)
+    @ Out, (eigvals,eigvects), tuple (numpy.ndarray,numpy.ndarray), eigenvalues and eigenvectors
+  """
+  lowrankEigenvals, lowrankEigenvects = np.linalg.eig(lowOperator)
+  # Compute the eigvects and eigvals of the high-dimensional operator
+  eigvects = ((Y.dot(V) * np.reciprocal(s)).dot(lowrankEigenvects)) if exactModes else U.dot(lowrankEigenvects)
+  eigvals  = lowrankEigenvals.astype(complex)
+  return eigvals, eigvects
+
+def computeAmplitudeCoefficients(mods, Y, eigs, optmized):
+  """
+    @ In, mods, numpy.ndarray, 2D matrix that contains the modes (by column)
+    @ In, Y, numpy.ndarray, 2D matrix that contains the input matrix (by column)
+    @ In, eigs, numpy.ndarray, 1D array that contains the eigenvalues
+    @ In, optmized, bool, if True  the amplitudes are computed minimizing the error between the mods and all entries (columns) in Y
+                          if False the amplitudes are computed minimizing the error between the mods and the 1st entry (columns) in Y (faster)
+    @ Out, amplitudes, numpy.ndarray, 1D array containing the amplitude coefficients
+  """
+  if optmized:
+    L = np.concatenate([mods.dot(np.diag(eigs**i)) for i in range(Y.shape[1])], axis=0)
+    amplitudes = np.linalg.lstsq(L, np.reshape(Y, (-1, ), order='F'))[0]
+  else:
+    amplitudes = np.linalg.lstsq(mods, Y.T[0])[0]
+  return amplitudes
+
+def trainEmpiricalFunction(signal, bins=None, minBins=None, weights=None):
+  """
+    Creates a scipy empirical distribution object with all the associated methods (pdf, cdf, ppf, etc).
+    Note this is only partially covered (while extended to include weights) by methods in raven/framework/Metrics/MetricUtilities,
+    and ideally those methods can be generalized and extended to be included here, or in Distributions.  See issue #908.
+    @ In, signal, np.array(float), signal to create distribution for
+    @ In, bins, int, optional, number of bins to use
+    @ In, minBins, int, optional, minimum number of bins to use
+    @ In, weights, np.array(float), optional, weights for each sample within the distribution
+    @ Out, dist, scipy.stats.rv_histogram instance, distribution object instance based on input data
+  """
+  # determine the number of bins to use in the empirical distribution
+  if bins is None:
+    bins, _ = numBinsDraconis(signal, low=minBins)
+  counts, edges = np.histogram(signal, bins=bins, density=False, weights=weights)
+  counts = np.asarray(counts) / float(len(signal))
+  dist = stats.rv_histogram((counts, edges))
+  return dist
+
+def convertSinCosToSinPhase(A, B):
+  """
+    Given coefficients A, B for the equation A*sin(kt) = B*cos(kt), returns
+    the equivalent values C, p for the equation C*sin(kt + p)
+    @ In, A, float, sine coefficient
+    @ In, B, float, cosine coefficient
+    @ Out, C, float, equivalent sine-only amplitude
+    @ Out, p, float, phase shift of sine-only waveform
+  """
+  p = np.arctan2(B, A)
+  C = A / np.cos(p)
+  return C, p

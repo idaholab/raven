@@ -1,0 +1,96 @@
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/Optimizers.RrR</name>
+    <author>talbpaul</author>
+    <created>2018-04-09</created>
+    <classesTested>Optimizer</classesTested>
+    <description>
+      Tests the Raven-running-Raven interface to assure correct operation with optimizer pass-back.
+    </description>
+    <revisions>
+      <revision author='talbpaul' date='2018-10-23'>limited outputs checked to just the solution</revision>
+    </revisions>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>RavenRunningRaven</WorkingDir>
+    <Sequence>sample,print</Sequence>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="sample">
+      <Input class="Files" type="raven">template</Input>
+      <Model class="Models" type="Code">rrr</Model>
+      <Optimizer class="Optimizers" type="SPSA">opter</Optimizer>
+      <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
+      <Output class="DataObjects" type="PointSet">optOut</Output>
+    </MultiRun>
+    <IOStep name="print">
+      <Input class="DataObjects" type="PointSet">opt_export</Input>
+      <Output class="OutStreams" type="Print">outer</Output>
+    </IOStep>
+  </Steps>
+
+  <Files>
+    <Input name="template" type="raven">inner_opt.xml</Input>
+  </Files>
+
+  <Distributions>
+    <Uniform name="uni">
+      <lowerBound>-1</lowerBound>
+      <upperBound>1</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Optimizers>
+    <SPSA name="opter">
+      <initialization>
+        <limit>100</limit>
+        <initialSeed>42</initialSeed>
+        <type>max</type>
+        <writeSteps>final</writeSteps>
+      </initialization>
+      <TargetEvaluation class='DataObjects' type='PointSet'>optOut</TargetEvaluation>
+      <variable name="center">
+        <lowerBound>-1</lowerBound>
+        <upperBound>1</upperBound>
+        <initial>0</initial>
+      </variable>
+      <constant name="vectorConst">2,4,6,8,10</constant>
+      <constant name="vectorIndex">1,2,3,4,5</constant>
+      <objectVar>reg</objectVar>
+    </SPSA>
+  </Optimizers>
+
+  <Models>
+    <Code name='rrr' subType='RAVEN'>
+      <executable>../../../raven_framework</executable>
+      <outputExportOutStreams>opt_export</outputExportOutStreams>
+      <alias variable="center" type="input">Optimizers|SPSA|constant@name:center</alias>
+      <alias variable="vectorConst" type="input">Optimizers|SPSA|constant@name:vectorConst</alias>
+      <alias variable="vectorIndex" type="input">Optimizers|SPSA|constant@name:vectorIndex</alias>
+    </Code>
+  </Models>
+
+  <DataObjects>
+    <PointSet name="dummyIN">
+      <Input>center</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="optOut">
+      <Input>center,x</Input>
+      <Output>reg</Output>
+    </PointSet>
+    <PointSet name="opt_export">
+      <Output>reg</Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="outer">
+      <type>csv</type>
+      <source>opt_export</source>
+    </Print>
+  </OutStreams>
+
+</Simulation>

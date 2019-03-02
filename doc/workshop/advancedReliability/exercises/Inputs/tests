@@ -1,0 +1,13 @@
+[Tests]
+  [./Adapt]
+    type = 'RavenFramework'
+    input = '1_adaptive_sampling.xml'
+    output = 'Results/to_plot_scatter.png'
+  [../]
+  [./LS]
+    type = 'RavenFramework'
+    input = '2_ls_probability_computation.xml'
+    output = 'Results/to_plot_ls_scatter.png'
+    prereq = Adapt
+  [../]
+[]

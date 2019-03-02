@@ -5,8 +5,10 @@
     <!-- *********************************************************************** -->
     <xsd:complexType name="OptimizerData">
         <xsd:sequence>
-            <xsd:element name="SPSA"                  type="SPSAOptimizer"            minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="SPSA"             type="SPSAOptimizer"            minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="FiniteDifference" type="SPSAOptimizer"            minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
+        <xsd:attribute name="verbosity" type="verbosityAttr" default="all"/>
     </xsd:complexType>
 
     <xsd:complexType name="optInitType">
@@ -15,6 +17,7 @@
             <xsd:element name="initialSeed" type="xsd:integer"       minOccurs="0"/>
             <xsd:element name="type"        type="xsd:string"        minOccurs="0"/>
             <xsd:element name="thresholdTrajRemoval" type="xsd:float" minOccurs="0"/>
+            <xsd:element name="writeSteps" type="xsd:string" minOccurs="0"/>
         </xsd:all>
     </xsd:complexType>
 
@@ -23,8 +26,11 @@
           <xsd:element name="upperBound"   type="xsd:float"    minOccurs="0"/>
           <xsd:element name="lowerBound"   type="xsd:float"    minOccurs="0"/>
           <xsd:element name="initial"      type="xsd:string"   minOccurs="0"/>
+          <xsd:element name="shape"        type="xsd:string"   minOccurs="0"/>
         </xsd:all>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
+        <xsd:attribute name="shape" type="xsd:string"/>
+        <xsd:attribute name="verbosity" type="verbosityAttr" default="all"/>
     </xsd:complexType>
 
     <xsd:complexType name="optSubspaceType">
@@ -46,6 +52,7 @@
             <xsd:element name="gainGrowthFactor"  type="xsd:float"   minOccurs="0" maxOccurs="1"/>
             <xsd:element name="gainShrinkFactor"  type="xsd:float"   minOccurs="0" maxOccurs="1"/>
             <xsd:element name="minStepSize"  type="xsd:float"   minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="persistence"  type="xsd:float"   minOccurs="0" maxOccurs="1"/>
          </xsd:all>
     </xsd:complexType>
 
@@ -54,12 +61,14 @@
             <xsd:element name="initialization"   type="optInitType"          minOccurs="0"/>
             <xsd:element name="Function"         type="AssemblerObjectType"  minOccurs="0" maxOccurs="1"/>
             <xsd:element name="TargetEvaluation" type="AssemblerObjectType"  minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="Sampler"          type="AssemblerObjectType"  minOccurs="0" maxOccurs="1"/>
             <xsd:element name="Preconditioner"   type="AssemblerObjectType"  minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="convergence"      type="optConvergenceType"   minOccurs="0" maxOccurs="1"/>
             <xsd:element name="variable"         type="optVarType"           minOccurs="1" maxOccurs='unbounded'/>
             <xsd:element name="constant"         minOccurs="0" maxOccurs='unbounded'>
                 <xsd:complexType mixed="true">
                     <xsd:attribute name="name" type="xsd:string" use="required"/>
+                    <xsd:attribute name="shape" type="xsd:string"/>
                 </xsd:complexType>
             </xsd:element>
             <xsd:element name="objectVar"        type="xsd:string"           minOccurs="1" maxOccurs="1"/>
@@ -67,12 +76,8 @@
               <xsd:complexType mixed="true">
                 <xsd:sequence>
                  <xsd:element name="numGradAvgIterations"    type="xsd:integer" minOccurs="0" maxOccurs="1"/>
-                 <xsd:element name="alpha"                   type="xsd:float"   minOccurs="0" maxOccurs="1"/>
-                 <xsd:element name="A"                       type="xsd:float"   minOccurs="0" maxOccurs="1"/>
-                 <xsd:element name="a"                       type="xsd:float"   minOccurs="0" maxOccurs="1"/>
-                 <xsd:element name="gamma"                   type="xsd:float"   minOccurs="0" maxOccurs="1"/>
-                 <xsd:element name="c"                       type="xsd:float"   minOccurs="0" maxOccurs="1"/>
-                 <xsd:element name="normalize"               type="xsd:boolean" minOccurs="0" maxOccurs="1"/>
+                 <xsd:element name="initialStepSize"         type="xsd:float"   minOccurs="0" maxOccurs="1"/>
+                 <xsd:element name="perturbationDistance"    type="xsd:float"   minOccurs="0" maxOccurs="1"/>
                  <xsd:element name="innerBisectionThreshold" type="xsd:float"   minOccurs="0" maxOccurs="1"/>
                  <xsd:element name="innerLoopLimit"          type="xsd:float"   minOccurs="0" maxOccurs="1"/>
                  <xsd:element name="stochasticDistribution"  type="xsd:string"  minOccurs="0" maxOccurs="1"/>

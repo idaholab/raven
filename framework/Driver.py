@@ -19,6 +19,7 @@ Created on Feb 20, 2013
 
 This is the Driver of RAVEN
 """
+
 #For future compatibility with Python 3
 from __future__ import division, print_function, absolute_import
 import warnings
@@ -37,11 +38,14 @@ import traceback
 #warning: this needs to be before importing h5py
 os.environ["MV2_ENABLE_AFFINITY"]="0"
 
-frameworkDir = os.path.dirname(os.path.abspath(sys.argv[0]))
+frameworkDir = os.path.dirname(os.path.abspath(__file__))
 from utils import utils
 import utils.TreeStructure as TS
 utils.find_crow(frameworkDir)
-utils.add_path_recursively(os.path.join(frameworkDir,'contrib','pp'))
+if sys.version_info.major == 2:
+  utils.add_path_recursively(os.path.join(frameworkDir,'contrib','pp'))
+else:
+  utils.add_path_recursively(os.path.join(frameworkDir,'contrib','pp3'))
 utils.add_path(os.path.join(frameworkDir,'contrib','AMSC'))
 utils.add_path(os.path.join(frameworkDir,'contrib'))
 #Internal Modules
@@ -104,8 +108,8 @@ def checkVersions():
   sys.path.append(os.path.join(os.path.dirname(frameworkDir),"scripts","TestHarness","testers"))
   import RavenUtils
   sys.path.pop() #remove testers path
-  missing,outOfRange,notQA = RavenUtils.checkForMissingModules(False)
-  if len(missing) + len(outOfRange) > 0 and RavenUtils.checkVersions():
+  missing,outOfRange,notQA = RavenUtils.check_for_missing_modules(False)
+  if len(missing) + len(outOfRange) > 0 and RavenUtils.check_versions():
     print("ERROR: too old, too new, or missing raven libraries, not running:")
     for error in missing + outOfRange + notQA:
       print(error)
@@ -136,6 +140,7 @@ if __name__ == '__main__':
 
   itemsToRemove = []
   for item in sys.argv:
+    # I don't think these do anything.  - talbpaul, 2017-10
     if item.lower() in ['silent','quiet','all']:
       verbosity = item.lower()
       itemsToRemove.append(item)
@@ -162,6 +167,7 @@ if __name__ == '__main__':
 
   if interfaceCheck:
     os.environ['RAVENinterfaceCheck'] = 'True'
+    print('Interface CHECK activated!\n')
   else:
     os.environ['RAVENinterfaceCheck'] = 'False'
 
@@ -216,7 +222,8 @@ if __name__ == '__main__':
       sys.exit(1)
 
     # call the function to load the external xml files into the input tree
-    simulation.XMLpreprocess(root,inputFileName=inputFile)
+    cwd = os.path.dirname(os.path.abspath(inputFile))
+    simulation.XMLpreprocess(root,cwd)
     #generate all the components of the simulation
     #Call the function to read and construct each single module of the simulation
     simulation.XMLread(root,runInfoSkip=set(["DefaultInputFile"]),xmlFilename=inputFile)

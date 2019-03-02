@@ -20,8 +20,6 @@ Created on Apr 20, 2015
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
-if not 'xrange' in dir(__builtins__):
-  xrange = range
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -124,11 +122,12 @@ class MessageUser(object):
                             tag, the message label (default 'Message')
       @ Out, None
     """
-    verbosity = kwargs.get('verbosity','all'    )
-    tag       = kwargs.get('tag'      ,'Message')
-    color     = kwargs.get('color'    ,None     )
+    verbosity  = kwargs.get('verbosity' ,'all'    )
+    tag        = kwargs.get('tag'       ,'Message')
+    color      = kwargs.get('color'     ,None     )
+    forcePrint = kwargs.get('forcePrint',False     )
     msg = ' '.join(str(a) for a in args)
-    self.messageHandler.message(self,msg,str(tag),verbosity,color)
+    self.messageHandler.message(self,msg,str(tag),verbosity,color,forcePrint=forcePrint)
 
   def raiseADebug(self,*args,**kwargs):
     """
@@ -227,7 +226,7 @@ class MessageHandler(object):
       @ Out, paint, string, formatted string
     """
     if color.lower() not in self.colors.keys():
-      self.messaage(self,'Requested color %s not recognized!  Skipping...' %color,'Warning','quiet')
+      self.message(self,'Requested color %s not recognized!  Skipping...' %color,'Warning','quiet')
       return str
     return self.colors[color.lower()]+str+self.colors['neutral']
 
@@ -313,7 +312,7 @@ class MessageHandler(object):
         sys.tracebacklimit=0
       raise etype(message)
 
-  def message(self,caller,message,tag,verbosity,color=None,writeTo=sys.stdout):
+  def message(self,caller,message,tag,verbosity,color=None,writeTo=sys.stdout, forcePrint=False):
     """
       Print a message
       @ In, caller, object, the entity desiring to print a message
@@ -321,10 +320,11 @@ class MessageHandler(object):
       @ In, tag, string, the printed message type (usually Message, Debug, or Warning, and sometimes FIXME)
       @ In, verbosity, string, the print priority of the message
       @ In, color, string, optional, color to apply to message
+      @ In, forcePrint, bool, optional, force the print independetly on the verbosity level? Defaul False
       @ Out, None
     """
     verbval = self.checkVerbosity(verbosity)
-    okay,msg = self._printMessage(caller,message,tag,verbval,color)
+    okay,msg = self._printMessage(caller,message,tag,verbval,color,forcePrint)
     if tag.lower().strip() == 'warning':
       self.addWarning(message)
     if okay:
@@ -344,7 +344,7 @@ class MessageHandler(object):
     else:
       self.warningCount[index] += 1
 
-  def _printMessage(self,caller,message,tag,verbval,color=None):
+  def _printMessage(self,caller,message,tag,verbval,color=None,forcePrint=False):
     """
       Checks verbosity to determine whether something should be printed, and formats message
       @ In, caller , object, the entity desiring to print a message
@@ -352,13 +352,14 @@ class MessageHandler(object):
       @ In, tag    , string, the printed message type (usually Message, Debug, or Warning, and sometimes FIXME)
       @ In, verbval, int   , the print priority of the message
       @ In, color, string, optional, color to apply to message
+      @ In, forcePrint, bool, optional, force the print independetly on the verbosity level? Defaul False
       @ Out, (shouldIPrint,msg), tuple, shouldIPrint -> bool, indication if the print should be allowed
                                         msg          -> string, the formatted message
     """
     #allows raising standardized messages
     shouldIPrint = False
     desired = self.getDesiredVerbosity(caller)
-    if verbval <= desired:
+    if verbval <= desired or forcePrint:
       shouldIPrint=True
     if not shouldIPrint:
       return False,''

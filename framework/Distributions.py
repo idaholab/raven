@@ -33,14 +33,19 @@ import operator
 from collections import OrderedDict
 import csv
 from scipy.interpolate import UnivariateSpline
+from numpy import linalg as LA
+import copy
+import math as math
+
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
 from BaseClasses import BaseType
 from utils import utils
 from utils.randomUtils import random
-distribution1D = utils.find_distribution1D()
+distribution1D = utils.findCrowModule('distribution1D')
 from utils import InputData
+from utils import mathUtils
 #Internal Modules End--------------------------------------------------------------------------------
 
 def factorial(x):
@@ -51,8 +56,6 @@ def factorial(x):
   """
   fact = gamma(x+1)
   return fact
-
-stochasticEnv = distribution1D.DistributionContainer.instance()
 
 """
   Mapping between internal framework and Crow distribution name
@@ -69,6 +72,7 @@ _FrameworkToCrowDistNames = { 'Uniform':'UniformDistribution',
                               'Custom1D':'Custom1DDistribution',
                               'Exponential':'ExponentialDistribution',
                               'Categorical':'Categorical',
+                              'MarkovCategorical':'MarkovCategorical',
                               'LogNormal':'LogNormalDistribution',
                               'Weibull':'WeibullDistribution',
                               'NDInverseWeight': 'NDInverseWeightDistribution',
@@ -76,6 +80,7 @@ _FrameworkToCrowDistNames = { 'Uniform':'UniformDistribution',
                               'MultivariateNormal' : 'MultivariateNormalDistribution',
                               'Laplace' : 'LaplaceDistribution',
                               'Geometric' : 'GeometricDistribution',
+                              'LogUniform' : 'LogUniformDistribution',
 }
 
 class DistributionsCollection(InputData.ParameterInput):
@@ -116,8 +121,8 @@ class Distribution(BaseType):
     self.upperBoundUsed       = False  # True if the distribution is right truncated
     self.lowerBoundUsed       = False  # True if the distribution is left truncated
     self.hasInfiniteBound     = False  # True if the untruncated distribution has bounds of +- system max
-    self.upperBound           = 0.0  # Right bound
-    self.lowerBound           = 0.0  # Left bound
+    self.upperBound           = None  # Right bound
+    self.lowerBound           = None  # Left bound
     self.__adjustmentType     = '' # this describe how the re-normalization to preserve the probability should be done for truncated distributions
     self.dimensionality       = None # Dimensionality of the distribution (1D or ND)
     self.disttype             = None # distribution type (continuous or discrete)
@@ -164,23 +169,14 @@ class Distribution(BaseType):
     self._localSetState(pdict)
     self.initializeDistribution()
 
-  def _readMoreXML(self,xmlNode):
+  def _localSetState(self,pdict):
     """
-      Function to read the portion of the xml input that belongs to this specialized class
-      and initialize some variables based on the inputs received.
-      @ In, xmlNode, xml.etree.ElementTree.Element, XML element node that represents the portion of the input that belongs to this class
+      Set the pickling state (local)
+      Default implementation, do nothing special
+      @ In, pdict, dict, the namespace state
       @ Out, None
     """
-    if xmlNode.find('upperBound') is not None:
-      self.upperBound = float(xmlNode.find('upperBound').text)
-      self.upperBoundUsed = True
-    if xmlNode.find('lowerBound') is not None:
-      self.lowerBound = float(xmlNode.find('lowerBound').text)
-      self.lowerBoundUsed = True
-    if xmlNode.find('adjustment') is not None:
-      self.__adjustment = xmlNode.find('adjustment').text
-    else:
-      self.__adjustment = 'scaling'
+    pass
 
   def _handleInput(self, paramInput):
     """
@@ -385,8 +381,11 @@ class BoostDistribution(Distribution):
       @ In, x, float, value to get the cdf at
       @ Out, retunrCdf, float, requested cdf
     """
-    retunrCdf = self._distribution.cdf(x)
-    return retunrCdf
+    if hasattr(x,'__len__'):
+      returnCdf = np.array([self.cdf(i) for i in x])
+    else:
+      returnCdf = self._distribution.cdf(x)
+    return returnCdf
 
   def ppf(self,x):
     """
@@ -394,8 +393,12 @@ class BoostDistribution(Distribution):
       @ In, x, float, value to get the inverse cdf at
       @ Out, retunrPpf, float, requested inverse cdf
     """
-    retunrPpf = self._distribution.inverseCdf(x)
-    return retunrPpf
+    # TODO speed this up by doing it in Crow, not in python
+    if hasattr(x,'__len__'):
+      returnPpf = np.array([self.ppf(i) for i in x])
+    else:
+      returnPpf = self._distribution.inverseCdf(x)
+    return returnPpf
 
   def pdf(self,x):
     """
@@ -456,16 +459,17 @@ class BoostDistribution(Distribution):
     return untrMode
 
 
-  def rvs(self,*args):
+  def rvs(self, size=None):
     """
       Function to get random numbers
-      @ In, args, dict, args
+      @ In, size, int, optional, number of entries to return (one if None)
       @ Out, rvsValue, float or list, requested random number or numbers
     """
-    if len(args) == 0:
+    if size is None:
       rvsValue = self.ppf(random())
     else:
-      rvsValue = [self.rvs() for _ in range(args[0])]
+      # TODO to speed up, do this on the C side instead of in python
+      rvsValue = np.array([self.rvs() for _ in range(size)])
     return rvsValue
 
 class Uniform(BoostDistribution):
@@ -473,7 +477,7 @@ class Uniform(BoostDistribution):
     Uniform univariate distribution
   """
 
-  def __init__(self):
+  def __init__(self, lowerBound = None, upperBound = None):
     """
       Constructor
       @ In, None
@@ -488,6 +492,17 @@ class Uniform(BoostDistribution):
     self.compatibleQuadrature.append('CDF')
     self.preferredQuadrature = 'Legendre'
     self.preferredPolynomials = 'Legendre'
+    if upperBound is not None:
+      self.upperBound = upperBound
+      self.upperBoundUsed = True
+      print("upperBound", self.upperBound)
+    if lowerBound is not None:
+      self.lowerBound = lowerBound
+      self.lowerBoundUsed = True
+      print("lowerBound", self.lowerBound)
+    if self.lowerBoundUsed and self.upperBoundUsed:
+      self.range = self.upperBound - self.lowerBound
+
 
   def _localSetState(self,pdict):
     """
@@ -510,16 +525,6 @@ class Uniform(BoostDistribution):
     retDict['xMin'] = self.lowerBound
     retDict['xMax'] = self.upperBound
     return retDict
-
-  def _readMoreXML(self,xmlNode):
-    """
-      Read the the xml node of the MultivariateNormal distribution
-      @ In, xmlNode, xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
-      @ Out, None
-    """
-    paramInput = Uniform.getInputSpecification()()
-    paramInput.parseNode(xmlNode)
-    self._handleInput(paramInput)
 
   def _handleInput(self, paramInput):
     """
@@ -569,15 +574,15 @@ class Uniform(BoostDistribution):
 
   def convertUniformToLegendre(self,y):
     """Converts from distribution domain to standard Legendre [-1,1].
-    @ In, y, float/array of floats, points to convert
-    @ Out float/array of floats, converted points
+      @ In, y, float/array of floats, points to convert
+      @ Out float/array of floats, converted points
     """
     return (y-self.untruncatedMean())/(self.range/2.)
 
   def convertLegendreToUniform(self,x):
     """Converts from standard Legendre [-1,1] to distribution domain.
-    @ In, y, float/array of floats, points to convert
-    @ Out float/array of floats, converted points
+      @ In, y, float/array of floats, points to convert
+      @ Out float/array of floats, converted points
     """
     return self.range/2.*x+self.untruncatedMean()
 
@@ -602,15 +607,15 @@ class Normal(BoostDistribution):
 
     return inputSpecification
 
-  def __init__(self):
+  def __init__(self, mean=0.0, sigma=1.0):
     """
       Constructor
       @ In, None
       @ Out, None
     """
     BoostDistribution.__init__(self)
-    self.mean  = 0.0
-    self.sigma = 0.0
+    self.mean  = mean
+    self.sigma = sigma
     self.hasInfiniteBound = True
     self.type = 'Normal'
     self.disttype = 'Continuous'
@@ -640,16 +645,6 @@ class Normal(BoostDistribution):
     retDict['mu'] = self.mean
     retDict['sigma'] = self.sigma
     return retDict
-
-  def _readMoreXML(self,xmlNode):
-    """
-      Read the the xml node of the MultivariateNormal distribution
-      @ In, xmlNode, xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
-      @ Out, None
-    """
-    paramInput = Normal.getInputSpecification()()
-    paramInput.parseNode(xmlNode)
-    self._handleInput(paramInput)
 
   def _handleInput(self, paramInput):
     """
@@ -807,16 +802,6 @@ class Gamma(BoostDistribution):
     retDict['low'] = self.low
     return retDict
 
-  def _readMoreXML(self,xmlNode):
-    """
-      Read the the xml node of the MultivariateNormal distribution
-      @ In, xmlNode, xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
-      @ Out, None
-    """
-    paramInput = Gamma.getInputSpecification()()
-    paramInput.parseNode(xmlNode)
-    self._handleInput(paramInput)
-
   def _handleInput(self, paramInput):
     """
       Function to handle the common parts of the distribution parameter input.
@@ -905,7 +890,6 @@ class Gamma(BoostDistribution):
     @ In, None, None
     @ Out float, norm
     """
-    #return self.beta**self.alpha/factorial(self.alpha-1.)
     return 1./factorial(self.alpha-1)
 
 DistributionsCollection.addSub(Gamma.getInputSpecification())
@@ -976,16 +960,6 @@ class Beta(BoostDistribution):
     retDict['scale'] = self.high-self.low
     retDict['low'] = self.low
     return retDict
-
-  def _readMoreXML(self,xmlNode):
-    """
-      Read the the xml node of the MultivariateNormal distribution
-      @ In, xmlNode, xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
-      @ Out, None
-    """
-    paramInput = Beta.getInputSpecification()()
-    paramInput.parseNode(xmlNode)
-    self._handleInput(paramInput)
 
   def _handleInput(self, paramInput):
     """
@@ -1125,9 +1099,9 @@ class Triangular(BoostDistribution):
       @ Out, None
     """
     BoostDistribution.__init__(self)
-    self.apex = 0.0
-    self.min  = 0.0
-    self.max  = 0.0
+    self.apex = 0.0   # peak location
+    self.min  = None  # domain lower boundary
+    self.max  = None  # domain upper boundary
     self.type = 'Triangular'
     self.disttype = 'Continuous'
     self.compatibleQuadrature.append('CDF')
@@ -1157,16 +1131,6 @@ class Triangular(BoostDistribution):
     retDict['upperBound'] = self.max
     return retDict
 
-  def _readMoreXML(self,xmlNode):
-    """
-      Read the the xml node of the MultivariateNormal distribution
-      @ In, xmlNode, xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
-      @ Out, None
-    """
-    paramInput = Triangular.getInputSpecification()()
-    paramInput.parseNode(xmlNode)
-    self._handleInput(paramInput)
-
   def _handleInput(self, paramInput):
     """
       Function to handle the common parts of the distribution parameter input.
@@ -1178,17 +1142,17 @@ class Triangular(BoostDistribution):
     if apexFind != None:
       self.apex = apexFind.value
     else:
-      self.raiseAnError(IOError,'apex value needed for normal distribution')
+      self.raiseAnError(IOError,'apex value needed for Triangular  distribution')
     minFind = paramInput.findFirst('min')
     if minFind != None:
       self.min = minFind.value
     else:
-      self.raiseAnError(IOError,'min value needed for normal distribution')
+      self.raiseAnError(IOError,'min value needed for Triangular distribution')
     maxFind = paramInput.findFirst('max')
     if maxFind != None:
       self.max = maxFind.value
     else:
-      self.raiseAnError(IOError,'max value needed for normal distribution')
+      self.raiseAnError(IOError,'max value needed for Triangular distribution')
     # check if lower or upper bounds are set, otherwise default
     if not self.upperBoundUsed:
       self.upperBoundUsed = True
@@ -1277,16 +1241,6 @@ class Poisson(BoostDistribution):
     retDict = Distribution.getCrowDistDict(self)
     retDict['mu'] = self.mu
     return retDict
-
-  def _readMoreXML(self,xmlNode):
-    """
-      Read the the xml node of the MultivariateNormal distribution
-      @ In, xmlNode, xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
-      @ Out, None
-    """
-    paramInput = Poisson.getInputSpecification()()
-    paramInput.parseNode(xmlNode)
-    self._handleInput(paramInput)
 
   def _handleInput(self, paramInput):
     """
@@ -1385,16 +1339,6 @@ class Binomial(BoostDistribution):
     retDict['n'] = self.n
     retDict['p'] = self.p
     return retDict
-
-  def _readMoreXML(self,xmlNode):
-    """
-      Read the the xml node of the MultivariateNormal distribution
-      @ In, xmlNode, xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
-      @ Out, None
-    """
-    paramInput = Binomial.getInputSpecification()()
-    paramInput.parseNode(xmlNode)
-    self._handleInput(paramInput)
 
   def _handleInput(self, paramInput):
     """
@@ -1495,16 +1439,6 @@ class Bernoulli(BoostDistribution):
     retDict['p'] = self.p
     return retDict
 
-  def _readMoreXML(self,xmlNode):
-    """
-      Read the the xml node of the MultivariateNormal distribution
-      @ In, xmlNode, xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
-      @ Out, None
-    """
-    paramInput = Bernoulli.getInputSpecification()()
-    paramInput.parseNode(xmlNode)
-    self._handleInput(paramInput)
-
   def _handleInput(self, paramInput):
     """
       Function to handle the common parts of the distribution parameter input.
@@ -1598,16 +1532,6 @@ class Geometric(BoostDistribution):
     retDict['p'] = self.p
     return retDict
 
-  def _readMoreXML(self,xmlNode):
-    """
-      Read the the xml node of the MultivariateNormal distribution
-      @ In, xmlNode, xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
-      @ Out, None
-    """
-    paramInput = Geometric.getInputSpecification()()
-    paramInput.parseNode(xmlNode)
-    self._handleInput(paramInput)
-
   def _handleInput(self, paramInput):
     """
       Function to handle the common parts of the distribution parameter input.
@@ -1685,18 +1609,6 @@ class Categorical(Distribution):
     self.dimensionality = 1
     self.disttype       = 'Discrete'
 
-  def _readMoreXML(self,xmlNode):
-    """
-      Function that retrieves data to initialize the categorical distribution from the xmlNode
-      @ In, None
-      @ Out, None
-    """
-    #Distribution._readMoreXML(self, xmlNode)
-
-    paramInput = Categorical.getInputSpecification()()
-    paramInput.parseNode(xmlNode)
-    self._handleInput(paramInput)
-
   def _handleInput(self, paramInput):
     """
       Function to handle the common parts of the distribution parameter input.
@@ -1738,8 +1650,11 @@ class Categorical(Distribution):
     totPsum = 0.0
     for element in self.mapping:
       totPsum += self.mapping[element]
-    if totPsum!=1.0:
-      self.raiseAnError(IOError,'Categorical distribution cannot be initialized: sum of probabilities is not 1.0')
+    if not mathUtils.compareFloats(totPsum,1.0):
+      self.raiseAnError(IOError,'Categorical distribution cannot be initialized: sum of probabilities is '+repr(totPsum)+', not 1.0')
+
+    self.lowerBound = min(self.mapping.keys())
+    self.upperBound = max(self.mapping.keys())
 
   def pdf(self,x):
     """
@@ -1792,6 +1707,133 @@ class Categorical(Distribution):
     return rvsValue
 
 DistributionsCollection.addSub(Categorical.getInputSpecification())
+
+class MarkovCategorical(Categorical):
+  """
+    Class for the Markov categorical distribution based on "Markov Model"
+    Note: this distribution can have only numerical (float) outcome; in the future we might want to include also the possibility to give symbolic outcome
+  """
+
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    inputSpecification = InputData.parameterInputFactory(cls.__name__, ordered=True, baseNode=None)
+
+    StatePartInput = InputData.parameterInputFactory("state", contentType=InputData.StringType)
+    StatePartInput.addParam("outcome", InputData.FloatType, True)
+    StatePartInput.addParam("index", InputData.IntegerType, True)
+    TransitionInput = InputData.parameterInputFactory("transition", contentType=InputData.StringType)
+    inputSpecification.addSub(StatePartInput, InputData.Quantity.one_to_infinity)
+    inputSpecification.addSub(TransitionInput, InputData.Quantity.zero_to_one)
+    inputSpecification.addSub(InputData.parameterInputFactory("workingDir", contentType=InputData.StringType))
+    ## Because we do not inherit from the base class, we need to manually
+    ## add the name back in.
+    inputSpecification.addParam("name", InputData.StringType, True)
+
+    return inputSpecification
+
+  def __init__(self):
+    """
+      Function that initializes the categorical distribution
+      @ In, None
+      @ Out, none
+    """
+    Categorical.__init__(self)
+    self.dimensionality = 1
+    self.disttype       = 'Discrete'
+    self.type           = 'MarkovCategorical'
+    self.steadyStatePb  = None # variable containing the steady state probabilities of the Markov Model
+    self.transition     = None # transition matrix of a continuous time Markov Model
+
+  def _handleInput(self, paramInput):
+    """
+      Function to handle the common parts of the distribution parameter input.
+      @ In, paramInput, ParameterInput, the already parsed input.
+      @ Out, None
+    """
+    workingDir = paramInput.findFirst('workingDir')
+    if workingDir is not None:
+      self.workingDir = workingDir.value
+    else:
+      self.workingDir = os.getcwd()
+
+    for child in paramInput.subparts:
+      if child.getName() == "state":
+        outcome = child.parameterValues["outcome"]
+        markovIndex = child.parameterValues["index"]
+        self.mapping[outcome] = markovIndex
+        if outcome in self.values:
+          self.raiseAnError(IOError,'Markov Categorical distribution has identical outcomes')
+        else:
+          self.values.add(outcome)
+      elif child.getName() == "transition":
+        transition = [float(value) for value in child.value.split()]
+        dim = int(np.sqrt(len(transition)))
+        if dim == 1:
+          self.raiseAnError(IOError, "The dimension of transition matrix should be greater than 1!")
+        elif dim**2 != len(transition):
+          self.raiseAnError(IOError, "The transition matrix is not a square matrix!")
+        self.transition = np.asarray(transition).reshape((-1,dim))
+    #Check the correctness of user inputs
+    invalid = self.transition is None
+    if invalid:
+      self.raiseAnError(IOError, "Transition matrix is not provided, please use 'transition' node to provide the transition matrix!")
+    if len(self.mapping.values()) != len(set(self.mapping.values())):
+      self.raiseAnError(IOError, "The states of Markov Categorical distribution have identifcal indices!")
+
+    self.initializeDistribution()
+
+  def getInitParams(self):
+    """
+      Function to get the initial values of the input parameters that belong to
+      this class
+      @ In, None
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
+        and each parameter's initial value as the dictionary values
+    """
+    paramDict = Distribution.getInitParams(self)
+    paramDict['mapping'] = self.mapping
+    paramDict['values'] = self.values
+    paramDict['transition'] = self.transition
+    paramDict['steadyStatePb'] = self.steadyStatePb
+    return paramDict
+
+  def initializeDistribution(self):
+    """
+      Function that initializes the distribution and checks that the sum of all state probabilities is equal to 1
+      @ In, None
+      @ Out, None
+    """
+    self.steadyStatePb = self.computeSteadyStatePb(self.transition)
+    for key, value in self.mapping.items():
+      try:
+        self.mapping[key] = self.steadyStatePb[value - 1]
+      except IndexError:
+        self.raiseAnError(IOError, "Index ",value, " for outcome ", key, " is out of bounds! Maximum index should be ", len(self.steadyStatePb))
+    Categorical.initializeDistribution(self)
+
+  def computeSteadyStatePb(self, transition):
+    """
+      Function that compute the steady state probabilities for given transition matrix
+      @ In, transition, numpy.array, transition matrix for Markov model
+      @ Out, steadyStatePb, numpy.array, 1-D array of steady state probabilities
+    """
+    dim = transition.shape[0]
+    perturbTransition = copy.copy(transition)
+    perturbTransition[0] = 1
+    q = np.zeros(dim)
+    q[0] = 1
+    steadyStatePb = np.dot(LA.inv(perturbTransition),q)
+
+    return steadyStatePb
+
+DistributionsCollection.addSub(MarkovCategorical.getInputSpecification())
 
 class Logistic(BoostDistribution):
   """
@@ -1849,16 +1891,6 @@ class Logistic(BoostDistribution):
     retDict['scale'] = self.scale
     retDict['location'] = self.location
     return retDict
-
-  def _readMoreXML(self,xmlNode):
-    """
-      Read the the xml node of the MultivariateNormal distribution
-      @ In, xmlNode, xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
-      @ Out, None
-    """
-    paramInput = Logistic.getInputSpecification()()
-    paramInput.parseNode(xmlNode)
-    self._handleInput(paramInput)
 
   def _handleInput(self, paramInput):
     """
@@ -1970,16 +2002,6 @@ class Laplace(BoostDistribution):
     retDict['location'] = self.location
     return retDict
 
-  def _readMoreXML(self,xmlNode):
-    """
-      Read the the xml node of the MultivariateNormal distribution
-      @ In, xmlNode, xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
-      @ Out, None
-    """
-    paramInput = Laplace.getInputSpecification()()
-    paramInput.parseNode(xmlNode)
-    self._handleInput(paramInput)
-
   def _handleInput(self, paramInput):
     """
       Function to handle the common parts of the distribution parameter input.
@@ -2019,14 +2041,10 @@ class Laplace(BoostDistribution):
       @ Out, None
     """
     if self.lowerBoundUsed == False:
-      a = -sys.float_info.max
-    else:
-      a = self.lowerBound
+      self.lowerBound = -sys.float_info.max
     if self.upperBoundUsed == False:
-      b = sys.float_info.max
-    else:
-      b = self.upperBound
-    self._distribution = distribution1D.BasicLaplaceDistribution(self.location,self.scale,a,b)
+      self.upperBound = sys.float_info.max
+    self._distribution = distribution1D.BasicLaplaceDistribution(self.location,self.scale,self.lowerBound,self.upperBound)
 
 DistributionsCollection.addSub(Laplace.getInputSpecification())
 
@@ -2087,16 +2105,6 @@ class Exponential(BoostDistribution):
     retDict['low'] = self.low
     return retDict
 
-  def _readMoreXML(self,xmlNode):
-    """
-      Read the the xml node of the MultivariateNormal distribution
-      @ In, xmlNode, xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
-      @ Out, None
-    """
-    paramInput = Exponential.getInputSpecification()()
-    paramInput.parseNode(xmlNode)
-    self._handleInput(paramInput)
-
   def _handleInput(self, paramInput):
     """
       Function to handle the common parts of the distribution parameter input.
@@ -2129,8 +2137,8 @@ class Exponential(BoostDistribution):
         and each parameter's initial value as the dictionary values
     """
     paramDict = BoostDistribution.getInitParams(self)
-    paramDict['lambda'] = self.lambdaVar
-    paramDict['low'   ] = self.low
+    paramDict['lambda'] = self.lambdaVar  # rate parameter
+    paramDict['low'   ] = self.low        # lower domain boundary
     return paramDict
 
   def initializeDistribution(self):
@@ -2141,20 +2149,14 @@ class Exponential(BoostDistribution):
     """
     if (self.lowerBoundUsed == False and self.upperBoundUsed == False):
       self._distribution = distribution1D.BasicExponentialDistribution(self.lambdaVar,self.low)
-      self.lowerBound = 0.0
+      self.lowerBound = self.low
       self.upperBound = sys.float_info.max
     else:
       if self.lowerBoundUsed == False:
-        a = self.low
-        self.lowerBound = a
-      else:
-        a = self.lowerBound
+        self.lowerBound = self.low
       if self.upperBoundUsed == False:
-        b = sys.float_info.max
-        self.upperBound = b
-      else:
-        b = self.upperBound
-      self._distribution = distribution1D.BasicExponentialDistribution(self.lambdaVar,a,b,self.low)
+        self.upperBound = sys.float_info.max
+      self._distribution = distribution1D.BasicExponentialDistribution(self.lambdaVar,self.lowerBound,self.upperBound,self.low)
 
   def convertDistrPointsToStd(self,y):
     """
@@ -2244,16 +2246,6 @@ class LogNormal(BoostDistribution):
     retDict['low'] = self.low
     return retDict
 
-  def _readMoreXML(self,xmlNode):
-    """
-      Read the the xml node of the MultivariateNormal distribution
-      @ In, xmlNode, xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
-      @ Out, None
-    """
-    paramInput = LogNormal.getInputSpecification()()
-    paramInput.parseNode(xmlNode)
-    self._handleInput(paramInput)
-
   def _handleInput(self, paramInput):
     """
       Function to handle the common parts of the distribution parameter input.
@@ -2304,16 +2296,10 @@ class LogNormal(BoostDistribution):
       self.upperBound =  sys.float_info.max
     else:
       if self.lowerBoundUsed == False:
-        a = self.low #-sys.float_info.max
-        self.lowerBound = a
-      else:
-        a = self.lowerBound
+        self.lowerBound = self.low
       if self.upperBoundUsed == False:
-        b = sys.float_info.max
-        self.upperBound = b
-      else:
-        b = self.upperBound
-      self._distribution = distribution1D.BasicLogNormalDistribution(self.mean,self.sigma,self.low,a,b)
+        self.upperBound = sys.float_info.max
+      self._distribution = distribution1D.BasicLogNormalDistribution(self.mean,self.sigma,self.low,self.lowerBound,self.upperBound)
 
 DistributionsCollection.addSub(LogNormal.getInputSpecification())
 
@@ -2377,16 +2363,6 @@ class Weibull(BoostDistribution):
     retDict['low'] = self.low
     return retDict
 
-  def _readMoreXML(self,xmlNode):
-    """
-      Read the the xml node of the MultivariateNormal distribution
-      @ In, xmlNode, xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
-      @ Out, None
-    """
-    paramInput = Weibull.getInputSpecification()()
-    paramInput.parseNode(xmlNode)
-    self._handleInput(paramInput)
-
   def _handleInput(self, paramInput):
     """
       Function to handle the common parts of the distribution parameter input.
@@ -2409,11 +2385,6 @@ class Weibull(BoostDistribution):
       self.low = lowFind.value
     else:
       self.low = 0.0
-    # check if lower  bound is set, otherwise default
-    #if not self.lowerBoundUsed:
-    #  self.lowerBoundUsed = True
-    #  # lower bound = 0 since no location parameter available
-    #  self.lowerBound     = 0.0
     self.initializeDistribution()
 
   def getInitParams(self):
@@ -2437,20 +2408,15 @@ class Weibull(BoostDistribution):
       @ Out, None
     """
     if (self.lowerBoundUsed == False and self.upperBoundUsed == False):
-      # or self.lowerBound == 0.0:
       self._distribution = distribution1D.BasicWeibullDistribution(self.k,self.lambdaVar,self.low)
+      self.lowerBound = self.low
+      self.upperBound = sys.float_info.max
     else:
       if self.lowerBoundUsed == False:
-        a = self.low
-        self.lowerBound = a
-      else:
-        a = self.lowerBound
+        self.lowerBound = self.low
       if self.upperBoundUsed == False:
-        b = sys.float_info.max
-        self.upperBound = b
-      else:
-        b = self.upperBound
-      self._distribution = distribution1D.BasicWeibullDistribution(self.k,self.lambdaVar,a,b,self.low)
+        self.upperBound = sys.float_info.max
+      self._distribution = distribution1D.BasicWeibullDistribution(self.k,self.lambdaVar,self.lowerBound,self.upperBound,self.low)
 
 DistributionsCollection.addSub(Weibull.getInputSpecification())
 
@@ -2491,16 +2457,10 @@ class Custom1D(Distribution):
     self.variableID      = None
     self.dimensionality  = 1
     self.disttype        = 'Continuous'
-
-  def _readMoreXML(self,xmlNode):
-    """
-      Read the the xml node of the Custom1D distribution
-      @ In, xmlNode, xml.etree.ElementTree.Element, the contents of Custom1D node.
-      @ Out, None
-    """
-    paramInput = Custom1D.getInputSpecification()()
-    paramInput.parseNode(xmlNode)
-    self._handleInput(paramInput)
+    # Scipy.interpolate.UnivariateSpline is used
+    self.k               = 4 # Degree of the smoothing spline, Must be <=5
+    self.s               = 0 # Positive smoothing factor used to choose the number of knots
+                             # Default 0, indicates spline will interpolate through all data points
 
   def _handleInput(self, paramInput):
     """
@@ -2543,27 +2503,28 @@ class Custom1D(Distribution):
       @ Out, None
     """
 
-    f = open(self.dataFilename, 'rb')
+    f = open(self.dataFilename, 'r')
     reader = csv.reader(f)
-    headers = reader.next()
+    headers = next(reader)
     indexFunctionID = headers.index(self.functionID)
     indexVariableID = headers.index(self.variableID)
     f.close()
     rawData = np.genfromtxt(self.dataFilename, delimiter="," , skip_header=1, usecols=(indexVariableID,indexFunctionID))
 
     self.data = rawData[rawData[:,0].argsort()]
+    self.lowerBound = self.data[0,0]
+    self.upperBound = self.data[-1,0]
 
     if self.functionType == 'cdf':
-      self.cdfFunc = UnivariateSpline(self.data[:,0], self.data[:,1], k=4, s=0)
+      self.cdfFunc = UnivariateSpline(self.data[:,0], self.data[:,1], k=self.k, s=self.s)
       self.pdfFunc = self.cdfFunc.derivative()
-      self.invCDF  = UnivariateSpline(self.data[:,1], self.data[:,0], k=4, s=0)
+      self.invCDF  = UnivariateSpline(self.data[:,1], self.data[:,0], k=self.k, s=self.s)
     else:
-      # self.functionType == 'pdf'
-      self.pdfFunc = UnivariateSpline(self.data[:,0], self.data[:,1], k=4, s=0)
+      self.pdfFunc = UnivariateSpline(self.data[:,0], self.data[:,1], k=self.k, s=self.s)
       cdfValues = np.zeros(self.data[:,0].size)
       for i in range(self.data[:,0].size):
         cdfValues[i] = self.pdfFunc.integral(self.data[0][0],self.data[i,0])
-      self.invCDF = UnivariateSpline(cdfValues, self.data[:,0] , k=4, s=0)
+      self.invCDF = UnivariateSpline(cdfValues, self.data[:,0] , k=self.k, s=self.s)
 
     # Note that self.invCDF is creating a new spline where I switch its term.
     # Instead of doing spline(x,f(x)) I am creating its inverse spline(f(x),x)
@@ -2608,6 +2569,117 @@ class Custom1D(Distribution):
     return rvsValue
 
 DistributionsCollection.addSub(Custom1D.getInputSpecification())
+
+class LogUniform(Distribution):
+  """
+    Log Uniform univariate distribution
+    If x~LogUnif(a,b) then log(x)~Unif(log(a),log(b))
+  """
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    inputSpecification = super(LogUniform, cls).getInputSpecification()
+
+    BaseInputType = InputData.makeEnumType("base", "baseType", ["natural","decimal"])
+
+    inputSpecification.addSub(InputData.parameterInputFactory("lowerBound", contentType=InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("upperBound", contentType=InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("base"      , BaseInputType))
+
+    return inputSpecification
+
+  def __init__(self):
+    """
+      Constructor
+      @ In, None
+      @ Out, None
+    """
+    Distribution.__init__(self)
+    self.base       = None
+
+  def initializeDistribution(self):
+    """
+      Method to initialize the distribution
+      @ In, None
+      @ Out, None
+    """
+    self.minVal = min(math.exp(self.upperBound),math.exp(self.lowerBound))
+    self.maxVal = max(math.exp(self.upperBound),math.exp(self.lowerBound))
+
+  def _handleInput(self, paramInput):
+    """
+      Function to handle the common parts of the distribution parameter input.
+      @ In, paramInput, ParameterInput, the already parsed input.
+      @ Out, None
+    """
+    self.lowerBound = paramInput.findFirst('lowerBound').value
+    if self.lowerBound is None:
+      self.raiseAnError(IOError,' lowerBound parameter is needed for LogUniform distribution')
+
+    self.upperBound = paramInput.findFirst('upperBound').value
+    if self.upperBound is None:
+      self.raiseAnError(IOError,' upperBound parameter is needed for LogUniform distribution')
+
+    if self.upperBound < self.lowerBound:
+      self.raiseAnError(IOError,' LogUniform distribution: the upperBound parameter is lower than the lowerBound parameter')
+
+    self.base = paramInput.findFirst('base').value
+    if self.base not in ['natural','decimal']:
+      self.raiseAnError(IOError,' base parameter is needed for LogUniform distribution (either natural or decimal)')
+
+  def pdf(self,x):
+    """
+      Function that calculates the pdf value of x
+      @ In, x, float , coordinates to get the pdf at
+      @ Out, pdfValue, float, requested pdf
+    """
+    if self.base == 'natural':
+      pdfValue = 1./(self.upperBound-self.lowerBound) * 1./x
+    else:
+      pdfValue = 1./(self.upperBound-self.lowerBound) * 1./x * 1./math.log(10.)
+      print(x,pdfValue)
+    return pdfValue
+
+  def cdf(self,x):
+    """
+      Function that calculates the cdf value of x
+      @ In, x, float , coordinates to get the cdf at
+      @ Out, pdfValue, float, requested pdf
+    """
+    if self.base == 'natural':
+      cdfValue = (math.log(x)-self.lowerBound)/(self.upperBound-self.lowerBound)
+    else:
+      cdfValue = (math.log10(x)-self.lowerBound)/(self.upperBound-self.lowerBound)
+    return cdfValue
+
+  def ppf(self,x):
+    """
+      Return the ppf of given coordinate
+      @ In, x, float, the x coordinates
+      @ Out, ppfValue, float, ppf values
+    """
+    if self.base == 'natural':
+      ppfValue = math.exp((self.upperBound-self.lowerBound)*x + self.lowerBound)
+    else:
+      ppfValue = 10.**((self.upperBound-self.lowerBound)*x + self.lowerBound)
+    return ppfValue
+
+  def rvs(self):
+    """
+      Return a random value
+      @ In, None
+      @ Out, rvsValue, float, the random value
+    """
+    rvsValue = self.ppf(random())
+    return rvsValue
+
+DistributionsCollection.addSub(LogUniform.getInputSpecification())
 
 class NDimensionalDistributions(Distribution):
   """
@@ -2654,16 +2726,6 @@ class NDimensionalDistributions(Distribution):
     if workingDir != None:
       self.workingDir = workingDir.value
 
-
-  def _readMoreXML(self,xmlNode):
-    """
-      Read the the xml node of the MultivariateNormal distribution
-      @ In, xmlNode, xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
-      @ Out, None
-    """
-    paramInput = NDimensionalDistributions.getInputSpecification()()
-    paramInput.parseNode(xmlNode)
-    self._handleInput(paramInput)
 
   def getInitParams(self):
     """
@@ -2720,6 +2782,15 @@ class NDimensionalDistributions(Distribution):
     value = self._distribution.returnUpperBound(dimension)
     return value
 
+  def marginalDistribution(self, x, variable):
+    """
+      Compute the cdf marginal distribution
+      @ In, x, float, the coordinate for at which the inverse marginal distribution needs to be computed
+      @ In, variable, int, the variable id dimension coordinate (e.g. 0 => 1st coordinate, 1 => 2nd coordinate)
+      @ Out, marginalDistribution, float, the marginal cdf value at coordinate x
+    """
+    return self._distribution.marginal(x, variable)
+
 DistributionsCollection.addSub(NDimensionalDistributions.getInputSpecification())
 
 class NDInverseWeight(NDimensionalDistributions):
@@ -2756,16 +2827,6 @@ class NDInverseWeight(NDimensionalDistributions):
     NDimensionalDistributions.__init__(self)
     self.p  = None
     self.type = 'NDInverseWeight'
-
-  def _readMoreXML(self,xmlNode):
-    """
-      Read the the xml node of the MultivariateNormal distribution
-      @ In, xmlNode, xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
-      @ Out, None
-    """
-    paramInput = NDInverseWeight.getInputSpecification()()
-    paramInput.parseNode(xmlNode)
-    self._handleInput(paramInput)
 
   def _handleInput(self, paramInput):
     """
@@ -2816,6 +2877,9 @@ class NDInverseWeight(NDimensionalDistributions):
       self._distribution = distribution1D.BasicMultiDimensionalInverseWeight(str(self.dataFilename), self.p,True)
     else:
       self._distribution = distribution1D.BasicMultiDimensionalInverseWeight(str(self.dataFilename), self.p,False)
+    self.dimensionality = self._distribution.returnDimensionality()
+    self.lowerBound = [self.returnLowerBound(dim) for dim in range(self.dimensionality)]
+    self.upperBound = [self.returnUpperBound(dim) for dim in range(self.dimensionality)]
 
   def cdf(self,x):
     """
@@ -2867,13 +2931,15 @@ class NDInverseWeight(NDimensionalDistributions):
 
   def inverseMarginalDistribution(self, x, variable):
     """
-      Compute the inverse of the Margina distribution
-      @ In, x, float, the coordinate for at which the inverse marginal distribution needs to be computed
-      @ In, variable, string, the variable id
-      @ Out, inverseMarginal, float, the marginal cdf value at coordinate x
+      Compute the inverse of the Marginal distribution
+      @ In, x, float, the cdf for at which the inverse marginal distribution needs to be computed
+      @ In, variable, int, the variable id dimension coordinate (e.g. 0 => 1st coordinate, 1 => 2nd coordinate)
+      @ Out, inverseMarginal, float, the marginal inverse cdf value at coordinate x
     """
-    if (x>0.0) and (x<1.0):
-      inverseMarginal = self._distribution.inverseMarginal(x, variable)
+    if (x>=0.0) and (x<=1.0):
+      inverseMarginal = self._distribution.inverseMarginal(min(1.-sys.float_info.epsilon,
+                                                           max(sys.float_info.epsilon,x)),
+                                                           variable)
     else:
       self.raiseAnError(ValueError,'NDInverseWeight: inverseMarginalDistribution(x) with x outside [0.0,1.0]')
     return inverseMarginal
@@ -2960,16 +3026,6 @@ class NDCartesianSpline(NDimensionalDistributions):
     NDimensionalDistributions.__init__(self)
     self.type = 'NDCartesianSpline'
 
-  def _readMoreXML(self,xmlNode):
-    """
-      Read the the xml node of the MultivariateNormal distribution
-      @ In, xmlNode, xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
-      @ Out, None
-    """
-    paramInput = NDCartesianSpline.getInputSpecification()()
-    paramInput.parseNode(xmlNode)
-    self._handleInput(paramInput)
-
   def _handleInput(self, paramInput):
     """
       Function to handle the common parts of the distribution parameter input.
@@ -3013,6 +3069,9 @@ class NDCartesianSpline(NDimensionalDistributions):
       self._distribution = distribution1D.BasicMultiDimensionalCartesianSpline(str(self.dataFilename),True)
     else:
       self._distribution = distribution1D.BasicMultiDimensionalCartesianSpline(str(self.dataFilename),False)
+    self.dimensionality = self._distribution.returnDimensionality()
+    self.lowerBound = [self.returnLowerBound(dim) for dim in range(self.dimensionality)]
+    self.upperBound = [self.returnUpperBound(dim) for dim in range(self.dimensionality)]
 
   def cdf(self,x):
     """
@@ -3066,11 +3125,13 @@ class NDCartesianSpline(NDimensionalDistributions):
     """
       Compute the inverse of the Margina distribution
       @ In, x, float, the coordinate for at which the inverse marginal distribution needs to be computed
-      @ In, variable, string, the variable id
+      @ In, variable, int, the variable id dimension coordinate (e.g. 0 => 1st coordinate, 1 => 2nd coordinate)
       @ Out, inverseMarginal, float, the marginal cdf value at coordinate x
     """
     if (x>=0.0) and (x<=1.0):
-      inverseMarginal = self._distribution.inverseMarginal(x, variable)
+      inverseMarginal = self._distribution.inverseMarginal(min(1.-sys.float_info.epsilon,
+                                                           max(sys.float_info.epsilon,x)),
+                                                           variable)
     else:
       self.raiseAnError(ValueError,'NDCartesianSpline: inverseMarginalDistribution(x) with x ' +str(x)+' outside [0.0,1.0]')
     return inverseMarginal
@@ -3176,17 +3237,6 @@ class MultivariateNormal(NDimensionalDistributions):
     self.rank = None             # the effective rank for the PCA analysis
     self.transformation = False       # flag for input reduction analysis
 
-  def _readMoreXML(self,xmlNode):
-    """
-      Read the the xml node of the MultivariateNormal distribution
-      @ In, xmlNode, xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
-      @ Out, None
-    """
-    #NDimensionalDistributions._readMoreXML(self, xmlNode)
-    paramInput = MultivariateNormal.getInputSpecification()()
-    paramInput.parseNode(xmlNode)
-    self._handleInput(paramInput)
-
   def _handleInput(self, paramInput):
     """
       Function to handle the common parts of the distribution parameter input.
@@ -3227,6 +3277,18 @@ class MultivariateNormal(NDimensionalDistributions):
       self.raiseAnError(IOError,'Invalid dimensions! Covariance has %i entries (%i x %i), but mu has %i entries!' %(len(self.covariance),covDim,covDim,len(self.mu)))
     self.initializeDistribution()
 
+  def _localSetState(self,pdict):
+    """
+      Set the pickling state (local)
+      @ In, pdict, dict, the namespace state
+      @ Out, None
+    """
+    self.method = pdict.pop('method')
+    self.dimension = pdict.pop('dimension')
+    self.rank = pdict.pop('rank')
+    self.mu = pdict.pop('mu')
+    self.covariance = pdict.pop('covariance')
+
   def getInitParams(self):
     """
       Function to get the initial values of the input parameters that belong to
@@ -3236,6 +3298,11 @@ class MultivariateNormal(NDimensionalDistributions):
         and each parameter's initial value as the dictionary values
     """
     paramDict = NDimensionalDistributions.getInitParams(self)
+    paramDict['method'] = self.method
+    paramDict['dimension'] = self.dimension
+    paramDict['rank'] = self.rank
+    paramDict['mu'] = self.mu
+    paramDict['covariance'] = self.covariance
     return paramDict
 
   def initializeDistribution(self):
@@ -3257,6 +3324,12 @@ class MultivariateNormal(NDimensionalDistributions):
       self._distribution = distribution1D.BasicMultivariateNormal(covariance, mu)
     elif self.method == 'pca':
       self._distribution = distribution1D.BasicMultivariateNormal(covariance, mu, str(self.covarianceType), self.rank)
+    if self.transformation:
+      self.lowerBound = [-sys.float_info.max]*self.rank
+      self.upperBound = [sys.float_info.max]*self.rank
+    else:
+      self.lowerBound = [self.returnLowerBound(dim) for dim in range(self.dimension)]
+      self.upperBound = [self.returnUpperBound(dim) for dim in range(self.dimension)]
 
   def cdf(self,x):
     """
@@ -3462,14 +3535,18 @@ class MultivariateNormal(NDimensionalDistributions):
     """
       Compute the inverse of the Margina distribution
       @ In, x, float, the coordinate for at which the inverse marginal distribution needs to be computed
-      @ In, variable, string, the variable id
+      @ In, variable, int, the variable id dimension coordinate (e.g. 0 => 1st coordinate, 1 => 2nd coordinate)
       @ Out, inverseMarginal, float, the marginal cdf value at coordinate x
     """
-    if (x > 0.0) and (x < 1.0):
+    if (x >= 0.0) and (x <= 1.0):
       if self.method == 'pca':
-        inverseMarginal = self._distribution.inverseMarginalForPCA(x)
+        inverseMarginal = self._distribution.inverseMarginalForPCA(min(1.-sys.float_info.epsilon,
+                                                                   max(sys.float_info.epsilon,
+                                                                   x)))
       elif self.method == 'spline':
-        inverseMarginal=  self._distribution.inverseMarginal(x, variable)
+        inverseMarginal=  self._distribution.inverseMarginal(min(1.-sys.float_info.epsilon,
+                                                             max(sys.float_info.epsilon,x)),
+                                                             variable)
     else:
       self.raiseAnError(ValueError,'NDInverseWeight: inverseMarginalDistribution(x) with x ' +str(x)+' outside [0.0,1.0]')
     return inverseMarginal
@@ -3547,6 +3624,7 @@ __interFaceDict['Poisson'           ] = Poisson
 __interFaceDict['Binomial'          ] = Binomial
 __interFaceDict['Bernoulli'         ] = Bernoulli
 __interFaceDict['Categorical'       ] = Categorical
+__interFaceDict['MarkovCategorical' ] = MarkovCategorical
 __interFaceDict['Logistic'          ] = Logistic
 __interFaceDict['Exponential'       ] = Exponential
 __interFaceDict['LogNormal'         ] = LogNormal
@@ -3557,6 +3635,7 @@ __interFaceDict['NDCartesianSpline' ] = NDCartesianSpline
 __interFaceDict['MultivariateNormal'] = MultivariateNormal
 __interFaceDict['Laplace'           ] = Laplace
 __interFaceDict['Geometric'         ] = Geometric
+__interFaceDict['LogUniform'        ] = LogUniform
 __knownTypes                          = __interFaceDict.keys()
 
 def knownTypes():

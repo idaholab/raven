@@ -60,13 +60,25 @@ class PostProcessor(Model):
     #cls.validateDict['Input'  ][3]['type'        ] = ['']
     cls.validateDict['Input'  ][3]['required'    ] = False
     cls.validateDict['Input'  ][3]['multiplicity'] = 'n'
+    # Cross validations will accept Model.ROM
+    cls.validateDict['Input'].append(cls.testDict.copy())
+    cls.validateDict['Input'  ][4]['class'       ] = 'Models'
+    cls.validateDict['Input'  ][4]['type'        ] = ['ROM']
+    cls.validateDict['Input'  ][4]['required'    ] = False
+    cls.validateDict['Input'  ][4]['multiplicity'] = 'n'
+    #Some metrics can handle distributions
+    cls.validateDict['Input'].append(cls.testDict.copy())
+    cls.validateDict['Input'  ][5]['class'       ] = 'Distributions'
+    cls.validateDict['Input'  ][5]['type'        ] = ['']
+    cls.validateDict['Input'  ][5]['required'    ] = False
+    cls.validateDict['Input'  ][5]['multiplicity'] = 'n'
     cls.validateDict['Output'].append(cls.testDict.copy())
     cls.validateDict['Output' ][0]['class'       ] = 'Files'
     cls.validateDict['Output' ][0]['type'        ] = ['']
     cls.validateDict['Output' ][0]['required'    ] = False
     cls.validateDict['Output' ][0]['multiplicity'] = 'n'
     cls.validateDict['Output' ][1]['class'       ] = 'DataObjects'
-    cls.validateDict['Output' ][1]['type'        ] = ['PointSet','HistorySet']
+    cls.validateDict['Output' ][1]['type'        ] = ['PointSet','HistorySet','DataSet']
     cls.validateDict['Output' ][1]['required'    ] = False
     cls.validateDict['Output' ][1]['multiplicity'] = 'n'
     cls.validateDict['Output'].append(cls.testDict.copy())
@@ -106,6 +118,23 @@ class PostProcessor(Model):
     self.action = None   # action
     self.workingDir = ''
     self.printTag = 'POSTPROCESSOR MODEL'
+
+  def provideExpectedMetaKeys(self):
+    """
+      Overrides the base class method to assure child postprocessor is also polled for its keys.
+      @ In, None
+      @ Out, meta, tuple, (set(str),dict), expected keys (empty if none) and the indexes related to expected keys
+    """
+    # get keys as per base class
+    metaKeys,metaParams = Model.provideExpectedMetaKeys(self)
+    # add postprocessor keys
+    try:
+      keys, params = self.interface.provideExpectedMetaKeys()
+      metaKeys = metaKeys.union(keys)
+      metaParams.update(params)
+    except AttributeError:
+      pass # either "interface" has no method for returning meta keys, or "interface" is not established yet.
+    return metaKeys, metaParams
 
   def whatDoINeed(self):
     """
@@ -160,7 +189,7 @@ class PostProcessor(Model):
       @ In, inputs, list, it is a list containing whatever is passed with an input role in the step
       @ In, initDict, dict, optional, dictionary of all objects available in the step is using this model
     """
-    self.workingDir               = os.path.join(runInfo['WorkingDir'],runInfo['stepName']) #generate current working dir
+    self.workingDir = os.path.join(runInfo['WorkingDir'],runInfo['stepName']) #generate current working dir
     self.interface.initialize(runInfo, inputs, initDict)
     self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(PostProcessors),True)) - set(self.mods))
 
@@ -176,12 +205,8 @@ class PostProcessor(Model):
            a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
         @ Out, None
     """
-
-    ## This may look a little weird, but due to how the parallel python library
-    ## works, we are unable to pass a member function as a job because the
-    ## pp library loses track of what self is, so instead we call it from the
-    ## class and pass self in as the first parameter
-    jobHandler.addJob((self, myInput, samplerType, kwargs), self.__class__.evaluateSample, str(0), modulesToImport=self.mods, forceUseThreads=True)
+    kwargs['forceThreads'] = True
+    Model.submit(self,myInput, samplerType, jobHandler,**kwargs)
 
   def evaluateSample(self, myInput, samplerType, kwargs):
     """

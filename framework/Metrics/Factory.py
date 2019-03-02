@@ -20,16 +20,17 @@ Created on Jul 18 2016
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
-if not 'xrange' in dir(__builtins__):
-  xrange = range
 #End compatibility block for Python 3-------------------------------------------
 
 ################################################################################
 from utils import utils
 from .Metric import Metric
-from .Minkowski import Minkowski
 from .DTW import DTW
 from .SklMetric import SKL
+from .PairwiseMetric import PairwiseMetric
+from .CDFAreaDifference import CDFAreaDifference
+from .PDFCommonArea import PDFCommonArea
+from .ScipyMetric import ScipyMetric
 ## [ Add new class here ]
 ################################################################################
 ## Alternatively, to fully automate this file:

@@ -26,6 +26,7 @@ warnings.simplefilter('default',DeprecationWarning)
 import inspect
 import abc
 import copy
+import collections
 import numpy as np
 #External Modules End--------------------------------------------------------------------------------
 
@@ -34,9 +35,15 @@ from BaseClasses import BaseType
 from utils import mathUtils
 from utils import utils
 import SupervisedLearning
+import Metrics
 import MessageHandler
 #Internal Modules End--------------------------------------------------------------------------------
-class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),MessageHandler.MessageUser):
+
+#
+#
+#
+#
+class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta, BaseType), MessageHandler.MessageUser):
   """
     This class represents an interface with all the supervised learning algorithms
     It is a utility class needed to hide the discernment between time-dependent and static
@@ -50,30 +57,49 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
       @ In, kwargs, dict, an arbitrary list of kwargs
       @ Out, None
     """
-    self.printTag                = 'SupervisedGate'
-    self.messageHandler          = messageHandler
-    self.initializationOptions   = kwargs
-    self.amITrained              = False
-    self.ROMclass                = ROMclass
+    self.printTag = 'SupervisedGate'
+    self.messageHandler = messageHandler
+    self.initializationOptions = kwargs
+    self.amITrained = False
+    self.ROMclass = ROMclass
+    # members for clustered roms
+    ### OLD ###
+    #self._usingRomClustering = False    # are we using ROM clustering?
+    #self._romClusterDivisions = {}      # which parameters do we cluster, and how are they subdivided?
+    #self._romClusterLengths = {}        # OR which parameters do we cluster, and how long should each be?
+    #self._romClusterMetrics = None      # list of requested metrics to apply (defaults to everything)
+    #self._romClusterInfo = {}           # data that should persist across methods
+    #self._romClusterPivotShift = None   # whether and how to normalize/shift subspaces
+    #self._romClusterMap = None          # maps labels to the ROMs that are represented by it
+    #self._romClusterFeatureTemplate = '{target}|{metric}|{id}' # standardized for consistency
+
     #the ROM is instanced and initialized
     #if ROM comes from a pickled rom, this gate is just a placeholder and the Targets check doesn't apply
-    self.pickled = self.initializationOptions.pop('pickled',False)
-    if not self.pickled:
-      # check how many targets
-      if not 'Target' in self.initializationOptions.keys():
-        self.raiseAnError(IOError,'No Targets specified!!!')
+    self.pickled = self.initializationOptions.pop('pickled', False)
+    # check if pivotParameter is specified and in case store it
+    self.pivotParameterId = self.initializationOptions.get("pivotParameter", 'time')
     # return instance of the ROMclass
-    modelInstance = SupervisedLearning.returnInstance(ROMclass,self,**self.initializationOptions)
-    # check if the model can autonomously handle the time-dependency (if not and time-dep data are passed in, a list of ROMs are constructed)
+    modelInstance = SupervisedLearning.returnInstance(ROMclass, self, **self.initializationOptions)
+    # check if the model can autonomously handle the time-dependency
+    # (if not and time-dep data are passed in, a list of ROMs are constructed)
     self.canHandleDynamicData = modelInstance.isDynamic()
     # is this ROM  time-dependent ?
-    self.isADynamicModel      = False
+    self.isADynamicModel = False
     # if it is dynamic and time series are passed in, self.supervisedContainer is not going to be expanded, else it is going to
-    self.supervisedContainer     = [modelInstance]
-    # check if pivotParameter is specified and in case store it
-    self.pivotParameterId     = self.initializationOptions.pop("pivotParameter",'time')
-    #
-    self.historySteps         = []
+    self.supervisedContainer = [modelInstance]
+    self.historySteps = []
+
+    nameToClass = {'segment': 'Segments', 'cluster': 'Clusters'}
+    ### ClusteredRom ###
+    # if the ROM targeted by this gate is a cluster, create the cluster now!
+    if 'Segment' in self.initializationOptions:
+      # read from specs directly
+      segSpecs = self.initializationOptions['paramInput'].findFirst('Segment')
+      # determine type of segment to load -> limited by InputData to specific options
+      segType = segSpecs.parameterValues.get('grouping', 'segment')
+      self.initializationOptions['modelInstance'] = modelInstance
+      SVL = SupervisedLearning.returnInstance(nameToClass[segType], self, **self.initializationOptions)
+      self.supervisedContainer = [SVL]
 
   def __getstate__(self):
     """
@@ -81,6 +107,11 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
       @ In, None
       @ Out, state, dict, it contains all the information needed by the ROM to be initialized
     """
+    # clear input specs, as they should all be read in by now
+    ## this isn't a great implementation; we should make paramInput picklable instead!
+    self.initializationOptions.pop('paramInput',None)
+    for eng in self.supervisedContainer:
+      eng.initOptionDict.pop('paramInput',None)
     # capture what is normally pickled
     state = self.__dict__.copy()
     if not self.amITrained:
@@ -95,7 +126,8 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
       @ Out, None
     """
     self.__dict__.update(newstate)
-    if not self.amITrained:
+    if not newstate['amITrained']:
+      # NOTE this will fail if the ROM requires the paramInput spec! Fortunately, you shouldn't pickle untrained.
       modelInstance             = SupervisedLearning.returnInstance(self.ROMclass,self,**self.initializationOptions)
       self.supervisedContainer  = [modelInstance]
 
@@ -121,48 +153,66 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
     paramDict = self.supervisedContainer[-1].returnInitialParameters()
     return paramDict
 
-  def train(self,trainingSet):
+  def train(self, trainingSet, assembledObjects=None):
     """
       This function train the ROM this gate is linked to. This method is aimed to agnostically understand if a "time-dependent-like" ROM needs to be constructed.
       @ In, trainingSet, dict or list, data used to train the ROM; if a list is provided a temporal ROM is generated.
+      @ In, assembledObjects, dict, optional, objects that the ROM Model has assembled via the Assembler
       @ Out, None
     """
     if type(trainingSet).__name__ not in  'dict':
-      self.raiseAnError(IOError,"The training set is not a dictionary!")
-    if len(trainingSet.keys()) == 0:
-      self.raiseAnError(IOError,"The training set is empty!")
+      self.raiseAnError(IOError, "The training set is not a dictionary!")
+    if not list(trainingSet.keys()):
+      self.raiseAnError(IOError, "The training set is empty!")
 
-    if any(type(x).__name__ == 'list' for x in trainingSet.values()):
-      # we need to build a "time-dependent" ROM
-      self.isADynamicModel = True
-      if self.pivotParameterId not in trainingSet.keys():
-        self.raiseAnError(IOError,"the pivot parameter "+ self.pivotParameterId +" is not present in the training set. A time-dependent-like ROM cannot be created!")
-      if type(trainingSet[self.pivotParameterId]).__name__ != 'list':
-        self.raiseAnError(IOError,"the pivot parameter "+ self.pivotParameterId +" is not a list. Are you sure it is part of the output space of the training set?")
-      self.historySteps = trainingSet.get(self.pivotParameterId)[-1]
-      if len(self.historySteps) == 0:
-        self.raiseAnError(IOError,"the training set is empty!")
-      if self.canHandleDynamicData:
-        # the ROM is able to manage the time dependency on its own
-        self.supervisedContainer[0].train(trainingSet)
-      else:
-        # we need to construct a chain of ROMs
-        # the check on the number of time steps (consistency) is performed inside the historySnapShoots method
-        # get the time slices
-        newTrainingSet = mathUtils.historySnapShoots(trainingSet, len(self.historySteps))
-        if type(newTrainingSet).__name__ != 'list':
-          self.raiseAnError(IOError,newTrainingSet)
-        # copy the original ROM
-        originalROM = copy.deepcopy(self.supervisedContainer[0])
-        # start creating and training the time-dep ROMs
-        self.supervisedContainer = [] # [copy.deepcopy(originalROM) for _ in range(len(self.historySteps))]
-        # train
-        for ts in range(len(self.historySteps)):
-          self.supervisedContainer.append(copy.deepcopy(originalROM))
-          self.supervisedContainer[-1].train(newTrainingSet[ts])
-    else:
-      #self._replaceVariablesNamesWithAliasSystem(self.trainingSet, 'inout', False)
+    # provide assembled objects to supervised container
+    if assembledObjects is None:
+      assembledObjects = {}
+
+    self.supervisedContainer[0].setAssembledObjects(assembledObjects)
+
+    # if training using ROMCollection, special treatment
+    if isinstance(self.supervisedContainer[0], SupervisedLearning.Collection):
       self.supervisedContainer[0].train(trainingSet)
+    else:
+      # not a collection # TODO move time-dependent snapshots to collection!
+      ## time-dependent or static ROM?
+      if any(type(x).__name__ == 'list' for x in trainingSet.values()):
+        # we need to build a "time-dependent" ROM
+        self.isADynamicModel = True
+        if self.pivotParameterId not in list(trainingSet.keys()):
+          self.raiseAnError(IOError, 'The pivot parameter "{}" is not present in the training set.'.format(self.pivotParameterId),
+                            'A time-dependent-like ROM cannot be created!')
+        if type(trainingSet[self.pivotParameterId]).__name__ != 'list':
+          self.raiseAnError(IOError, 'The pivot parameter "{}" is not a list.'.format(self.pivotParameterId),
+                            " Are you sure it is part of the output space of the training set?")
+        self.historySteps = trainingSet.get(self.pivotParameterId)[-1]
+        if not len(self.historySteps):
+          self.raiseAnError(IOError, "the training set is empty!")
+        # intrinsically time-dependent or does the Gate need to handle it?
+        if self.canHandleDynamicData:
+          # the ROM is able to manage the time dependency on its own
+          self.supervisedContainer[0].train(trainingSet)
+        else:
+          # TODO we can probably migrate this time-dependent handling to a type of ROMCollection!
+          # we need to construct a chain of ROMs
+          # the check on the number of time steps (consistency) is performed inside the historySnapShoots method
+          # get the time slices
+          newTrainingSet = mathUtils.historySnapShoots(trainingSet, len(self.historySteps))
+          assert type(newTrainingSet).__name__ == 'list'
+          # copy the original ROM
+          originalROM = self.supervisedContainer[0]
+          # start creating and training the time-dep ROMs
+          self.supervisedContainer = [] # [copy.deepcopy(originalROM) for _ in range(len(self.historySteps))]
+          # train
+          for ts in range(len(self.historySteps)):
+            self.supervisedContainer.append(copy.deepcopy(originalROM))
+            self.supervisedContainer[-1].train(newTrainingSet[ts])
+      # if a static ROM ...
+      else:
+        #self._replaceVariablesNamesWithAliasSystem(self.trainingSet, 'inout', False)
+        self.supervisedContainer[0].train(trainingSet)
+    # END if ROMCollection
     self.amITrained = True
 
   def confidence(self, request):
@@ -178,7 +228,7 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
     confidenceDict = {}
     for rom in self.supervisedContainer:
       sliceEvaluation = rom.confidence(request)
-      if len(confidenceDict.keys()) == 0:
+      if len(list(confidenceDict.keys())) == 0:
         confidenceDict.update(sliceEvaluation)
       else:
         for key in confidenceDict.keys():
@@ -196,15 +246,26 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
     if not self.amITrained:
       self.raiseAnError(RuntimeError, "ROM "+self.initializationOptions['name']+" has not been trained yet and, consequentially, can not be evaluated!")
     resultsDict = {}
-    for rom in self.supervisedContainer:
-      sliceEvaluation = rom.evaluate(request)
-      if len(resultsDict.keys()) == 0:
-        resultsDict.update(sliceEvaluation)
-      else:
-        for key in resultsDict.keys():
-          resultsDict[key] = np.append(resultsDict[key],sliceEvaluation[key])
+    if isinstance(self.supervisedContainer[0], SupervisedLearning.Collection):
+      resultsDict = self.supervisedContainer[0].evaluate(request)
+    else:
+      for rom in self.supervisedContainer:
+        sliceEvaluation = rom.evaluate(request)
+        if len(list(resultsDict.keys())) == 0:
+          resultsDict.update(sliceEvaluation)
+        else:
+          for key in resultsDict.keys():
+            resultsDict[key] = np.append(resultsDict[key],sliceEvaluation[key])
     return resultsDict
 
+  def reseed(self,seed):
+    """
+      Used to reset the seed of the underlying ROMs.
+      @ In, seed, int, new seed to use
+      @ Out, None
+    """
+    for rom in self.supervisedContainer:
+      rom.reseed(seed)
 
 __interfaceDict                         = {}
 __interfaceDict['SupervisedGate'      ] = supervisedLearningGate
@@ -220,8 +281,11 @@ def returnInstance(gateType, ROMclass, caller, **kwargs):
   """
   try:
     return __interfaceDict[gateType](ROMclass, caller.messageHandler,**kwargs)
-  except KeyError as ae:
-    caller.raiseAnError(NameError,'not known '+__base+' type '+str(gateType))
+  except KeyError as e:
+    if gateType not in __interfaceDict:
+      caller.raiseAnError(NameError,'not known '+__base+' type '+str(gateType))
+    else:
+      raise e
 
 def returnClass(ROMclass,caller):
   """

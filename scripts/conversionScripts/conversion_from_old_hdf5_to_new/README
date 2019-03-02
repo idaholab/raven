@@ -1,0 +1,9 @@
+This folder contains the script needed
+for converting the OLD HDF5 data format into the new one (Feb 2018).
+In order to execute the conversion, the following command needs to be launched:
+
+python conversionFromOldToNewDatabase.py OLD_DATABASE.h5 NEW_DATABASE_FILENAME.h5
+
+where - OLD_DATABASE.h5 is the path to the OLD database that needs to be converted
+      - NEW_DATABASE_FILENAME.h5 is the path (And filename) of the new database that will 
+        be created

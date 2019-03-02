@@ -15,6 +15,61 @@
   constructing the \textit{#1} ROM.}
 }
 
+\newcommand{\romClusterOption}[0]
+{
+  \item \xmlNode{Segment}, \xmlDesc{node, optional}, provides an alternative way to build the ROM. When
+    this mode is enabled, the subspace of the ROM (e.g. ``time'') will be divided into segments as
+    requested, then a distinct ROM will be trained on each of the segments. This is especially helpful if
+    during the subspace the ROM representation of the signal changes significantly. For example, if the signal
+    is different during summer and winter, then a signal can be divided and a distinct ROM trained on the
+    segments. By default, no segmentation occurs.
+
+    To futher enable clustering of the segments, the \xmlNode{Segment} has the following attributes:
+    \begin{itemize}
+      \item \xmlAttr{grouping}, \xmlDesc{string, optional field} enables the use of ROM subspace clustering in
+        addition to segmenting if set to \xmlString{cluster}. If set to \xmlString{segment}, then performs
+        segmentation without clustering. If clustering, then an additional node needs to be included in the
+        \xmlNode{Segment} node, as described below.
+        \default{segment}
+    \end{itemize}
+
+    This node takes the following subnodes:
+    \begin{itemize}
+      \item \xmlNode{subspace}, \xmlDesc{string, required field} designates the subspace to divide. This
+        should be the pivot parameter (often ``time'') for the ROM. This node also requires an attribute
+        to determine how the subspace is divided, as well as other attributes, described below:
+        \begin{itemize}
+          \item \xmlAttr{pivotLength}, \xmlDesc{float, optional field}, provides the value in the subspace
+            that each segment should attempt to represent, independently of how the data is stored. For
+            example, if the subspace has hourly resolution, is measured in seconds, and the desired
+            segmentation is daily, the \xmlAttr{pivotLength} would be 86400.
+            Either this option or \xmlAttr{divisions} must be provided.
+          \item \xmlAttr{divisions}, \xmlDesc{integer, optional field}, as an alternative to
+            \xmlAttr{pivotLength}, this attribute can be used to specify how many data points to include in
+            each subdivision, rather than use the pivot values. The algorithm will attempt to split the data
+            points as equally as possible.
+            Either this option or \xmlAttr{pivotLength} must be provided.
+          \item \xmlAttr{shift}, \xmlDesc{string, optional field}, governs the way in which the subspace is
+            treated in each segment. By default, the subspace retains its actual values for each segment; for
+            example, if each segment is 4 hours long, the first segment starts at time 0, the second at 4
+            hours, the third at 8 hours, and so forth. Options to change this behavior are \xmlString{zero}
+            and \xmlString{first}. In the case of \xmlString{zero}, each segment restarts the pivot with the
+            subspace value as 0, shifting all other values similarly. In the example above, the first segment
+            would start at 0, the second at 0, and the third at 0, with each ending at 4 hours. Note that the
+            pivot values are restored when the ROM is evaluated. Using \xmlString{first}, each segment
+            subspace restarts at the value of the first segment. This is useful in the event subspace 0 is not
+            a desirable value.
+        \end{itemize}
+      \item \xmlNode{Classifier}, \xmlDesc{string, optional field} associates a \xmlNode{PostProcessor}
+        defined in the \xmlNode{Models} block to this segmentation. If clustering is enabled (see
+        \xmlAttr{grouping} above), then this associated Classifier will be used to cluster the segmented ROM
+        subspaces. The attributes \xmlAttr{class}=\xmlString{Models} and
+        \xmlAttr{type}=\xmlString{PostProcessor} must be set, and the text of this node is the \xmlAttr{name}
+        of the requested Classifier. Note this Classifier must be a valid Classifier; not all PostProcessors
+        are suitable. For example, see the DataMining PostProcessor subtype Clustering.
+    \end{itemize}
+}
+
 \subsection{ROM}
 \label{subsec:models_ROM}
 A Reduced Order Model (ROM) is a mathematical model consisting of a fast
@@ -36,13 +91,15 @@ provide access to several different algorithms.
 These sub-types are specified in the \xmlAttr{subType} attribute and should be
 one of the following:
 \begin{itemize}
-  \item \xmlString{NDspline}
-  \item \xmlString{GaussPolynomialRom}
-  \item \xmlString{HDMRRom}
-  \item \xmlString{NDinvDistWeight}
-  \item \xmlString{SciKitLearn}
-  \item \xmlString{MSR}
-  \item \xmlString{ARMA}
+  \item \xmlString{GaussPolynomialRom}, for both static and time-dependent regression
+  \item \xmlString{HDMRRom}, for both static and time-dependent regression
+  \item \xmlString{NDinvDistWeight}, for both static and time-dependent regression
+  \item \xmlString{NDSpline}, for both static and time-dependent regression
+  \item \xmlString{SciKitLearn}, for both static and time-dependent regression and classification
+  \item \xmlString{MSR}, for both static and time-dependent regression
+  \item \xmlString{ARMA}, for time-dependent stochastic regression (time series generator)
+  \item \xmlString{PolyExponential}, for time-dependent regression
+  \item \xmlString{DMD}, for time-dependent regression
 \end{itemize}
 
 \specBlock{a}{ROM}
@@ -67,28 +124,28 @@ In the \xmlNode{ROM} input block, the following XML sub-nodes are required,
 independent of the \xmlAttr{subType} specified:
 %
 \begin{itemize}
-%  \item \xmlNode{Features}, \xmlDesc{comma separated string, required field},
-%  specifies the names of the features of this ROM.
-%  %
-%  \nb These parameters will be requested for the training of this object (see
-%  Section~\ref{subsec:stepRomTrainer}).
-%  \item \xmlNode{Target}, \xmlDesc{comma separated string, required field},
-%  contains a comma separated list of the targets of this ROM.
-%  %
-%  The parameters listed here represent the figures of merit this ROM is supposed
-%  to predict.
-%  %
-%  \nb These parameters are going to be requested for the training of this object
-%  (see Section~\ref{subsec:stepRomTrainer}).
   %
-   \item \xmlNode{Features}, \xmlDesc{comma separated string, required field}, specifies the names of the features of this ROM.
-   \nb These parameters are going to be requested for the training of this object (see Section~\ref{subsec:stepRomTrainer});
-    \item \xmlNode{Target}, \xmlDesc{comma separated string, required field}, contains a comma separated list of the targets of this ROM. These parameters are the Figures of Merit (FOMs) this ROM is supposed to predict.
+   \item \xmlNode{Features}, \xmlDesc{comma separated string, required field},
+     specifies the names of the features of this ROM.
+   \nb These parameters are going to be requested for the training of this object
+    (see Section~\ref{subsec:stepRomTrainer});
+    \item \xmlNode{Target}, \xmlDesc{comma separated string, required field},
+      contains a comma separated list of the targets of this ROM. These parameters
+      are the Figures of Merit (FOMs) this ROM is supposed to predict.
     \nb These parameters are going to be requested for the training of this
     object (see Section \ref{subsec:stepRomTrainer}).
-
 \end{itemize}
 
+If a time-dependent ROM is requested, a \textbf{HistorySet} should be provided.
+The temporal vairable specified in the \textbf{HistorySet} should be also listed
+as sub-nodes inside \xmlNode{ROM}
+%
+\begin{itemize}
+  \item \xmlNode{pivotParameter}, \xmlDesc{string, optional parameter}, specifies the pivot
+    variable (e.g. time, etc) used in the input HistorySet.
+    \default{time}
+\end{itemize}
+%
 In addition, if the user wants to use the alias system, the following XML block can be inputted:
 \begin{itemize}
   \item \aliasSystemDescription{ROM}
@@ -115,8 +172,8 @@ Reduced Order Models (e.g. most of the SciKitLearn-based ROMs):}}
 The NDspline sub-type contains a single ROM type, based on an $N$-dimensional
 spline interpolation/extrapolation scheme.
 %
-In spline interpolation, the interpolant is a special type of piecewise
-polynomial called a spline.
+In spline interpolation, the regressor is a special type of piece-wise
+polynomial called tensor spline.
 %
 The interpolation error can be made small even when using low degree polynomials
 for the spline.
@@ -637,6 +694,11 @@ by the following sub-node within the main \xmlNode{ROM} XML node:
 \end{itemize}
 Based on the \xmlNode{SKLtype} several different algorithms are available.
 %
+\nb for HistorySet's \xmlString{SciKitLearn} performs the task given in \xmlNode{SKLtype} for
+each time step, and only synchronized HistorySet can be used as input to this ROM. For
+unsynchronized HistorySet, use \xmlString{HistorySetSync} method in \xmlString{Interfaced}
+post-processor to synchronize the input data before using \xmlString{SciKitLearn}.
+
 In the following paragraphs a brief explanation and the input requirements are
 reported for each of them.
 %
@@ -2804,22 +2866,137 @@ The disadvantages of Gaussian Processes for Machine Learning include:
 </Simulation>
 \end{lstlisting}
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ %%%%% ROM Model - SciKitLearn: Neural Network Models %%%%%%%
+\paragraph{Neural Network Models}
+\label{DNN}
+It has been more than 70 years since Warren McCulloch and Water Pitts modeled the first
+artificial neural network (ANN) that mimicked the way brains work. These days, deep learning
+based on ANN is showing outstanding results for solving a wide variety of robotic tasks in
+the areas of perception, planning, localization, and control.
+%
+\textbf{Multi-layer Perceptron (MLP)} is a supervised learning algorithm that can learn
+a non-linear function approximator for either classifcation or regression. It is different
+from logistic regression, in that between the input and output layer, there can be one
+or more non-linear layers, called hidden layers.
+%
+The advantages of Multi-layer Perceptron are:
+\begin{itemize}
+  \item Capability to learn non-linear models
+  \item Capability to learn models in real-time (online learning)
+\end{itemize}
+The disadvantages of Multi-layer Perceptron include:
+\begin{itemize}
+  \item MLP with hidden layers have a non-convex loss function where there exists more than
+    one local minimum. Therefore different random weight initializations can lead to different
+    validation accuracy.
+  \item MLP requires tuning a number of hyperparameters such as the number of hidden neurons, layers
+    and iterations.
+  \item MLP is sensitive to feature scaling
+\end{itemize}
+
+\zNormalizationPerformed{Multi-layer Perceptron}
+
+In the following, Multi-layer perceptron classification and regression algorithms available in RAVEN are reported.
+
+%%%%%%%%%%%%%%%
+\subparagraph{MLPClassifier}
+\mbox{}
+\\The \textit{MLPClassifier} implements a multi-layer perceptron algorithm that trains using \textbf{Backpropagation}
+More precisely, it trains using some form of gradient descent and the gradients are calculated using Backpropagation.
+For classification, it minimizes the Cross-Entropy loss function, and it supports multi-class classification.
+
+\skltype{MLPClassifier}{neural\_network|MLPClassifier}
+\begin{itemize}
+  \item \hiddenLayerSizesMLPDescription{(100,)}
+  \item \activationMLPDescription{`relu'}
+  \item \solverMLPDescription{`adam'}
+  \item \alphaMLPDescription{0.0001}
+  \item \batchSizeMLPDescription{`auto'}
+  \item \learningRateMLPDescription{`constant'}
+  \item \learningRateInitMLPDescription{0.001}
+  \item \powerTMLPDescription{0.5}
+  \item \maxIterMLPDescription{200}
+  \item \shuffleMLPDescription{True}
+  \item \randomStateMLPDescription{None}
+  \item \tolMLPDescription{1e-4}
+  \item \verboseMLPDescription{False}
+  \item \warmStartMLPDescription{False}
+  \item \momentumMLPDescription{0.9}
+  \item \nesterovsMomentumMLPDescription{True}
+  \item \earlyStoppingMLPDescription{False}
+  \item \validationFractionMLPDescription{0.1}
+  \item \betaAMLPDescription{0.9}
+  \item \betaBMLPDescription{0.999}
+  \item \epsilonMLPDescription{1e-8}
+\end{itemize}
+
+%%%%%%%%%%%%%%%
+\subparagraph{MLPRegressor}
+\mbox{}
+\\The \textit{MLPRegressor} implements a multi-layer perceptron algorithm that trains using \textbf{Backpropagation} with
+no activation function in the output layer, which can also be seen as using the identity function as activation function.
+Therefore, it uses the square error as the loss function, and the output is a set of continuous values.
+\textit{MLPRegressor} also supports multi-output regression, in which a sample can have more than one target.
+
+\skltype{MLPRegressor}{neural\_network|MLPRegressor}
+\begin{itemize}
+  \item \hiddenLayerSizesMLPDescription{(100,)}
+  \item \activationMLPDescription{`relu'}
+  \item \solverMLPDescription{`adam'}
+  \item \alphaMLPDescription{0.0001}
+  \item \batchSizeMLPDescription{`auto'}
+  \item \learningRateMLPDescription{`constant'}
+  \item \learningRateInitMLPDescription{0.001}
+  \item \powerTMLPDescription{0.5}
+  \item \maxIterMLPDescription{200}
+  \item \shuffleMLPDescription{True}
+  \item \randomStateMLPDescription{None}
+  \item \tolMLPDescription{1e-4}
+  \item \verboseMLPDescription{False}
+  \item \warmStartMLPDescription{False}
+  \item \momentumMLPDescription{0.9}
+  \item \nesterovsMomentumMLPDescription{True}
+  \item \earlyStoppingMLPDescription{False}
+  \item \validationFractionMLPDescription{0.1}
+  \item \betaAMLPDescription{0.9}
+  \item \betaBMLPDescription{0.999}
+  \item \epsilonMLPDescription{1e-8}
+\end{itemize}
+
 %%%% ROM Model - ARMA  %%%%%%%
 \subsubsection{ARMA}
 \label{subsubsec:arma}
-The ARMA sub-type contains a single ROM type, based on an autoregressive moving average time series model.
+The ARMA sub-type contains a single ROM type, based on an autoregressive moving average time series model with
+Fourier signal processing, sometimes referred to as a FARMA.
 %
 ARMA is a type of time dependent model that characterizes the autocorrelation between time series data. The mathematic description of ARMA is given as
 \begin{equation*}
 x_t = \sum_{i=1}^p\phi_ix_{t-i}+\alpha_t+\sum_{j=1}^q\theta_j\alpha_{t-j},
 \end{equation*}
-where $x$ is a vector of dimension $n$, and $\phi_i$ and $\theta_j$ are both $n$ by $n$ matrices. When $q=0$, the above is autoregressive (AR); when $p=0$, the above is moving average (MA). The user is allowed to provide upper and lower limits for $p$ and $q$ (see below), and the training process will choose the optimal $p$ and $q$ that fall into the user-specified range. When training ARMA, the input needs to be a synchronized HistorySet. For unsynchronized data, use PostProcessor methods to synchronize the data before training ARMA.
+where $x$ is a vector of dimension $n$, and $\phi_i$ and $\theta_j$ are both $n$ by $n$ matrices. When $q=0$, the above is
+autoregressive (AR); when $p=0$, the above is moving average (MA).
+When
+training an ARMA, the input needs to be a synchronized HistorySet. For unsynchronized data, use PostProcessor methods to
+synchronize the data before training an ARMA.
 
-The ARMA model implemented allows an option to use Fourier series to detrend the time series before fitting to ARMA model to train. The Fourier trend will be stored in the trained ARMA model for data generation. The following equation describes the detrend process.
+The ARMA model implemented allows an option to use Fourier series to detrend the time series before fitting to ARMA model to
+train. The Fourier trend will be stored in the trained ARMA model for data generation. The following equation
+describes the detrending
+process.
 \begin{equation*}
-x_t = y_t - \sum_m\left\{\sum_{k=1}^{K_m}a_k\sin(2\pi kf_mt)+\sum_{k=1}^{K_m}b_k\cos(2\pi kf_mt)\right\},
+x_t = y_t - \sum_m\left\{a_m\sin(2\pi f_mt)+b_m\cos(2\pi f_mt)\right\},
 \end{equation*}
-where $K_m$ and $f_m$ are user-defined parameters.
+where $1/f_m$ is defined by the user parameter \xmlNode{Fourier}.
+
+By default, each target in the training will be considered independent and have an unique ARMA for each
+target.  Correlated targets can be specified through the \xmlNode{correlate} node, at which point
+the correlated targets will be trained together using a vector ARMA (or VARMA). Due to limitations in
+the VARMA, in order to seed samples the VARMA must be trained with the node \xmlNode{seed}, which acts
+independently from the global random seed used by other RAVEN entities.
+
+Both the ARMA and VARMA make use of the \texttt{statsmodels} python package.
 
 %
 In order to use this Reduced Order Model, the \xmlNode{ROM} attribute
@@ -2829,25 +3006,66 @@ below).
 \subnodeIntro
 
 \begin{itemize}
-  \item \xmlNode{pivotParameter}, \xmlDesc{string, optional field}, defines the pivot variable (e.g., time) that is non-decreasing in the input HistorySet.
-  \default{Time}
-  \item \xmlNode{Features}, \xmlDesc{string, required field}, defines the features (e.g., scaling). Note that only one feature is allowed for \xmlString{ARMA} and in current implementation this is used for evaluation only.
-  \item \xmlNode{Target}, \xmlDesc{string, required field}, defines the variables of the time series.
+  \item \xmlNode{pivotParameter}, \xmlDesc{string, required field}, defines the pivot variable (e.g., time) that is non-decreasing in
+  the input HistorySet.
+  \item \xmlNode{Features}, \xmlDesc{comma separated string, required field}, defines the features (e.g., scaling). Note that only
+  one feature is allowed for \xmlString{ARMA} and in current implementation this is used for evaluation only.
+  \item \xmlNode{Target}, \xmlDesc{comma separated string, required field}, defines the variable(s) of the
+    time series.  Should include the pivot parameter (or Index).
+  \item \xmlNode{correlate}, \xmlDesc{comma separated string, optional field}, indicates the listed variables
+    should be considered as influencing each other, and trained together instead of independently.  This node
+    can only be listed once, so all variables that are desired for correlation should be included.  \nb The
+    correlated VARMA takes notably longer to train than the independent ARMAs for the same number of targets.
+  \item \xmlNode{seed}, \xmlDesc{integer, optional field}, provides seed for ONLY the VARMA sampling.  Has no
+    effect on ARMA single-target sampling or other RAVEN entities.  Must be provided before training; it cannot
+    be changed once trained.
+  \default{True}
+  \item \xmlNode{P}, \xmlDesc{integer, optional field}, defines the value of $p$.
+  \default{3}
+  \item \xmlNode{Q}, \xmlDesc{integer, optional field}, defines the value of $q$.
+  \default{3}
+  \item \xmlNode{Fourier}, \xmlDesc{comma-separated integers, optional field}, must be positive integers. This defines the
+    based period that will be used for Fourier detrending, i.e., this field defines $1/f_m$ in the above equation.
+    When this filed is not specified, the ARMA considers no Fourier detrend.
+  \item \xmlNode{outTruncation}, \xmlDesc{comma-separated string, optional}, defines whether and how output
+    time series are limited in domain. This node has one attribute, \xmlAttr{domain}, whose value can be
+    \xmlString{positive} or \xmlString{negative}. The value of this node contains the list of targets to whom
+    this domain limitation should be applied. In the event a negative value is discovered in a target whose
+    domain is strictly positive, the absolute value of the original negative value will be used instead, and
+    similarly for the negative domain.
+  \default{None}
+  \item \xmlNode{preserveInputCDF}, \xmlDesc{boolean, optional field}, enables a final transform on sampled
+    data coercing it to have the same distribution as the original data. If \xmlString{True}, then every
+    sample generated by this ARMA after training will have a distribution of values that conforms within
+    numerical accuracy to the original data. This is especially useful when variance is desired not to stretch
+    the most extreme events (high or low signal values), but instead the sequence of events throughout this
+    history. For example, this transform can preserve the load duration curve for a load signal.
+    \default{False}
+  \item \xmlNode{ZeroFilter}, \xmlDesc{comma-separated string, optional field}, turns on \emph{zero filtering}
+    for the listed targets. Zero filtering is a very specific algorithm, and should not be used without
+    understanding its application.  When zero filtering is enabled, the ARMA will remove all the values from
+    the training data equal to zero for the target, then train on the remaining data (including Fourier detrending
+    if applicable). If the target is set as correlated to another target, the second target will be treated as
+    two distinct series: one containing times in which the original target is zero, and one in the remaining
+    times. The results from separated ARMAs are recombined after sampling. This can be a methodology for
+    treating histories with long zero-value segments punctuated periodically by peaks.
   \item \xmlNode{reseedCopies}, \xmlDesc{boolean, optional field}, if True then whenever the ARMA is copied, a
     random reseeding will be performed to ensure different histories.
   \default{True}
-  \item \xmlNode{Pmax}, \xmlDesc{integer, optional field}, defines the maximum value of $p$.
-  \default{3}
-  \item \xmlNode{Pmin}, \xmlDesc{integer, optional field}, defines the minimum value of $p$.
-  \default{0}
-  \item \xmlNode{Qmax}, \xmlDesc{integer, optional field}, defines the maximum value of $q$.
-  \default{3}
-  \item \xmlNode{Qmin}, \xmlDesc{integer, optional field}, defines the minimum value of $q$.
-  \default{0}
-  \item \xmlNode{Fourier}, \xmlDesc{integers, optional field}, must be positive integers. This defines the based period (with unit of second) that would be used for Fourier detrending, i.e., this field defines $1/f_m$ in the above equation. When this filed is not specified, the ARMA considers no Fourier detrend.
-  \item \xmlNode{FourierOrder}, \xmlDesc{integers, optional field}, must be positive integers. The number of integers specified in this field should be exactly same as the number of base periods specified in the node \xmlNode{Fourier}. This field defines $K_m$ in the above equation.
-  \item \xmlNode{outTruncation}, \xmlDesc{string, optional field}, defines whether and how the output time series is truncated. Currently available options are: positive, negative.
-  \default{None}
+  \item \xmlNode{SpecificFourier}, \xmlDesc{node, optional}, provides a means to specify different Fourier
+    decomposition for different target variables.  Values given in the subnodes of this node will supercede
+    the defaults set by the  \xmlNode{Fourier} and \xmlNode{FourierOrder} nodes.  This node accepts the
+    requires the following attribute:
+    \begin{itemize}
+      \item \xmlAttr{variables}, \xmlDesc{comma-separated list, required field}, lists the variables to whom
+        the \xmlNode{SpecificFourier} parameters will apply.
+    \end{itemize}
+    Additionally, the \xmlNode{SpecificFourier} node takes the following subnodes:
+    \begin{itemize}
+      \item \xmlNode{periods}, \xmlDesc{comma-separated integers, required field}, lists the (fundamental)
+        periodic wavelength of the Fourier decomposition for these variables, as in the \xmlNode{Fourier} general node.
+    \end{itemize}
+    \romClusterOption
 \end{itemize}
 
 \textbf{Example:}
@@ -2869,6 +3087,229 @@ below).
      </ROM>
     ...
   </Models>
+  ...
+</Simulation>
+\end{lstlisting}
+
+%%%% ROM Model - PolyExponential  %%%%%%%
+\subsubsection{PolyExponential}
+\label{subsubsec:polyexponential}
+The PolyExponential sub-type contains a single ROM type, aimed to construct a time-dependent (or any other monotonic
+variable) surrogate model based on polynomial sum of exponential term. This surrogate have the form:
+%
+\begin{equation}
+  SM(X,z) = \sum_{i=1}^{N} P_{i}(X) \times \exp ( - Q_{i}(X) \times z )
+\end{equation}
+where:
+\begin{itemize}
+  \item $\mathbf{z}$ is the independent  monotonic variable (e.g. time)
+  \item $\mathbf{X}$  is the vector of the other independent (parametric) variables  (Features)
+  \item $\mathbf{P_{i}}(X)$ is a polynomial of rank M function of the parametric space X
+  \item  $\mathbf{Q_{i}}(X)$ is a polynomial of rank M function of the parametric space X
+  \item  $\mathbf{N}$ is the number of requested exponential terms.
+\end{itemize}
+It is crucial to notice that this model is quite suitable for FOMs whose drivers are characterized by an exponential-like behavior.
+In addition, it is important to notice that the exponential terms' coefficients are computed running a genetic-algorithm optimization
+problem, which is quite slow in case of increasing number of ``numberExpTerms''.
+%
+In order to use this Reduced Order Model, the \xmlNode{ROM} attribute
+\xmlAttr{subType} needs to be set equal to \xmlString{PolyExponential} (see the example
+below).
+%
+\subnodeIntro
+
+\begin{itemize}
+  \item \xmlNode{pivotParameter}, \xmlDesc{string, optional field}, defines the pivot variable (e.g., time) that represents the
+  independent monotonic variable
+  \default{time}
+  \item \xmlNode{Features}, \xmlDesc{comma separated string, required field}, defines the features (i.e. input parameters) of this
+  model
+  \item \xmlNode{Target}, \xmlDesc{comma separated string, required field}, defines output FOMs that are going to be predicted
+  \item \xmlNode{numberExpTerms}, \xmlDesc{integer, optional field}, the number of exponential terms to be used ($N$ above)
+   \default{3}
+  \item \xmlNode{coeffRegressor}, \xmlDesc{string, optional field}, defines which regressor to use for interpolating the
+   exponential coefficient. Available are ``spline'',``poly'' and ``nearest''.
+    \default{spline}
+  \item \xmlNode{polyOrder}, \xmlDesc{integer, optional field}, the polynomial order to be used for interpolating the exponential
+  coefficients. Only valid in case of  \xmlNode{coeffRegressor} set to ``poly''.
+   \default{2}
+  \item \xmlNode{tol}, \xmlDesc{float, optional field}, relative tolerance of the optimization problem (differential evolution optimizer)
+   \default{1e-3}
+  \item \xmlNode{maxNumberIter}, \xmlDesc{integer, optional field}, maximum number of iterations (generations) for the
+  optimization problem  (differential evolution optimizer)
+   \default{5000}
+\end{itemize}
+
+\textbf{Example:}
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <Models>
+    ...
+   <ROM name='PolyExp' subType='PolyExponential'>
+     <Target>time,decay_heat, xe135_dens</Target>
+     <Features>enrichment,bu</Features>
+     <pivotParameter>time</pivotParameter>
+     <numberExpTerms>5</numberExpTerms>
+     <max_iter>1000000</max_iter>
+     <tol>0.000001</tol>
+  </ROM>
+    ...
+  </Models>
+  ...
+</Simulation>
+\end{lstlisting}
+Once the ROM is trained (\textbf{Step} \xmlNode{RomTrainer}), its coefficients can be exported into an XML file
+via an \xmlNode{OutStream} of type \xmlAttr{Print}. The following variable/parameters can be exported (i.e. \xmlNode{what} node
+in \xmlNode{OutStream} of type \xmlAttr{Print}):
+\begin{itemize}
+  \item \xmlNode{expTerms}, see XML input specifications above, inquired pre-pending the keyword ``output|'' (e.g. output| expTerms)
+  \item \xmlNode{coeffRegressor}, see XML input specifications above
+  \item \xmlNode{polyOrder}, see XML input specifications above
+  \item \xmlNode{features}, see XML input specifications above
+  \item \xmlNode{timeScale}, XML node containing the array of the training time steps values
+  \item \xmlNode{coefficients}, XML node containing the exponential terms' coefficients for each realization
+\end{itemize}
+
+
+ See the following example:
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <OutStreams>
+    ...
+    <Print name = 'dumpAllCoefficients'>
+      <type>xml</type>
+      <source>PolyExp</source>
+      <!--
+        here the <what> node is omitted. All the available params/coefficients
+        are going to be printed out
+      -->
+    </Print>
+    <Print name = 'dumpSomeCoefficients'>
+      <type>xml</type>
+      <source>PolyExp</source>
+      <what>coefficients,timeScale</what>
+    </Print>
+    ...
+  </OutStreams>
+  ...
+</Simulation>
+\end{lstlisting}
+
+%%%% ROM Model - DMD  %%%%%%%
+\subsubsection{DMD}
+\label{subsubsec:polyexponential}
+The DMD sub-type contains a single ROM type, aimed to construct a time-dependent (or any other monotonic
+variable) surrogate model based on Dynamic Mode Decomposition (ref. \cite{Schmid2010DMD} and \cite{Vega2017HODMD}).
+This surrogate is aimed to perform a ``dimensionality reduction regression'', where, given time series (or any monotonic-dependent
+variable) of data, a set of modes each of which is associated with a fixed oscillation frequency and decay/growth rate is computed
+in order to represent the data-set.
+%
+In order to use this Reduced Order Model, the \xmlNode{ROM} attribute
+\xmlAttr{subType} needs to be set equal to \xmlString{DMD} (see the example
+below).
+%
+\subnodeIntro
+
+\begin{itemize}
+  \item \xmlNode{dmdType}, \xmlDesc{string, optional field}, the type of Dynamic Mode Decomposition to apply. Available are:
+   \begin{itemize}
+     \item \textit{dmd}, for classical DMD
+     \item \textit{hodmd}, for high order DMD.
+   \end{itemize}
+   \default{dmd}
+  \item \xmlNode{pivotParameter}, \xmlDesc{string, optional field}, defines the pivot variable (e.g., time) that represents the
+  independent monotonic variable
+  \default{time}
+  \item \xmlNode{Features}, \xmlDesc{comma separated string, required field}, defines the features (i.e. input parameters) of this
+  model
+  \item \xmlNode{Target}, \xmlDesc{comma separated string, required field}, defines output FOMs that are going to be predicted
+  \item \xmlNode{rankSVD}, \xmlDesc{integer, optional field}, defines the truncation rank to be used for the SVD.
+     Available options are:
+     \begin{itemize}
+     \item \textit{-1}, no truncation is performed
+     \item \textit{0}, optimal rank is internally computed
+     \item \textit{>1}, this rank is going to be used for the truncation
+   \end{itemize}
+   \default{-1}
+  \item \xmlNode{energyRankSVD}, \xmlDesc{float, optional field},  energy level ($0.0 < float < 1.0$) used to compute the rank such
+    as computed rank is the number of the biggest singular values needed to reach the energy identified by
+    \xmlNode{energyRankSVD}. This node has always priority over  \xmlNode{rankSVD}
+    \default{None}
+  \item \xmlNode{rankTLSQ}, \xmlDesc{integer, optional field}, $int > 0$ that defines the truncation rank to be used for the total
+   least square problem. If not inputted, no truncation is applied
+   \default{None}
+   \item \xmlNode{exactModes}, \xmlDesc{bool, optional field}, True if the exact modes need to be computed (eigenvalues and
+   eigenvectors),   otherwise the projected ones (using the left-singular matrix after SVD).
+  \default{True}
+  \item \xmlNode{optimized}, \xmlDesc{float, optional field}, True if the amplitudes need to be computed minimizing the error
+   between the modes and all the time-steps or False, if only the 1st timestep only needs to be considered
+   \default{True}
+
+\end{itemize}
+
+\textbf{Example:}
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <Models>
+    ...
+   <ROM name='DMD' subType='DMD'>
+      <Target>time,totals_watts, xe135_dens</Target>
+      <Features>enrichment,bu</Features>
+      <dmdType>dmd</dmdType>
+      <pivotParameter>time</pivotParameter>
+      <rankSVD>0</rankSVD>
+      <rankTLSQ>5</rankTLSQ>
+      <exactModes>False</exactModes>
+      <optimized>True</optimized>
+    </ROM
+    ...
+  </Models>
+  ...
+</Simulation>
+\end{lstlisting}
+Once the ROM  is trained (\textbf{Step} \xmlNode{RomTrainer}), its parameters/coefficients can be exported into an XML file
+via an \xmlNode{OutStream} of type \xmlAttr{Print}. The following variable/parameters can be exported (i.e. \xmlNode{what} node
+in \xmlNode{OutStream} of type \xmlAttr{Print}):
+\begin{itemize}
+  \item \xmlNode{rankSVD}, see XML input specifications above
+  \item \xmlNode{energyRankSVD}, see XML input specifications above
+  \item \xmlNode{rankTLSQ}, see XML input specifications above
+  \item \xmlNode{exactModes}, see XML input specifications above
+  \item \xmlNode{optimized}, see XML input specifications above
+  \item \xmlNode{features}, see XML input specifications above
+  \item \xmlNode{timeScale}, XML node containing the array of the training time steps values
+  \item \xmlNode{dmdTimeScale}, XML node containing the array of time scale in the DMD space (can be used as mapping
+  between the  \xmlNode{timeScale} and \xmlNode{dmdTimeScale})
+  \item \xmlNode{eigs}, XML node containing the eigenvalues (imaginary and real part)
+  \item \xmlNode{amplitudes}, XML node containing the amplitudes (imaginary and real part)
+  \item \xmlNode{modes}, XML node containing the dynamic modes (imaginary and real part)
+\end{itemize}
+
+
+ See the following example:
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <OutStreams>
+    ...
+    <Print name = 'dumpAllCoefficients'>
+      <type>xml</type>
+      <source>DMD</source>
+      <!--
+        here the <what> node is omitted. All the available params/coefficients
+        are going to be printed out
+      -->
+    </Print>
+    <Print name = 'dumpSomeCoefficients'>
+      <type>xml</type>
+      <source>PolyExp</source>
+      <what>eigs,amplitudes,modes</what>
+    </Print>
+    ...
+  </OutStreams>
   ...
 </Simulation>
 \end{lstlisting}

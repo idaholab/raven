@@ -5,6 +5,7 @@
     <Sequence>FirstMRun,syncronizeHistorySetStep,timeDepBasicStatPP,FirstMRunEnsemble,syncronizeHistorySetStepEnsemble,timeDepBasicStatPPEnsemble</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+
   <TestInfo>
     <name>framework/PostProcessors/BasicStatistics/timeDependentAsyncHistories</name>
     <author>alfoa</author>
@@ -13,13 +14,21 @@
     <description>
       This test checks time-dependent basic statistics with histories that are not synchronized a priori.
     </description>
+    <revisions>
+      <revision author="wangc" date="2017-12-05">convert test to use the new dataobjects</revision>
+      <revision author="wangc" date="2017-12-20">convert test to use the new DataObjects with the new structure of basic statistic</revision>
+      <revision author="wangc" date="2018-12-13">
+          In PR #882, the standard errors on statistics moments are implemented, these quantities are stored in
+          the pointwise metadata, and will be printed out in the output csv files by default.
+          In order to avoid regolding this test, the optional node 'what' with text values 'input, output' is added.
+          In this case, only the user requested variables as specified in the DataObjects are printed out. 
+      </revision>
+    </revisions>
   </TestInfo>
 
   <Files>
     <Input name="basicStatisticsExternalModelTest.py" type="">basicStatisticsExternalModelTest.py</Input>
-    <Input name="output_basicStatistics_timedep_PP1.csv" type="">output_basicStatistics_timedep_PP1.csv</Input>
     <Input name="output_basicStatistics_timedep_PP1.xml" type="">output_basicStatistics_timedep_PP1.xml</Input>
-    <Input name="output_basicStatistics_timedep_Ensemble_PP1.csv" type="">output_basicStatistics_timedep_PP1.csv</Input>
     <Input name="output_basicStatistics_timedep_Ensemble_PP1.xml" type="">output_basicStatistics_timedep_PP1.xml</Input>
     <Input name="samples.csv" type="">samples.csv</Input>
   </Files>
@@ -43,23 +52,23 @@
     </ExternalModel>
     <PostProcessor name="timeDepBasicStat" subType="BasicStatistics" verbosity="debug">
       <pivotParameter>time</pivotParameter>
-      <covariance>
+      <covariance prefix="cov">
         <targets>x0,y0,z0,x,y,z</targets>
         <features>x0,y0,z0,x,y,z</features>
       </covariance>
-      <pearson>
+      <pearson prefix="pear">
         <targets>x0,y0,z0,x,y,z</targets>
         <features>x0,y0,z0,x,y,z</features>
       </pearson>
-      <expectedValue>x0,y0,z0,x,y,z</expectedValue>
-      <sigma>x0,y0,z0,x,y,z</sigma>
-      <variationCoefficient>x0,y0,z0,x,y,z</variationCoefficient>
-      <variance>x0,y0,z0,x,y,z</variance>
-      <skewness>x0,y0,z0,x,y,z</skewness>
-      <kurtosis>x0,y0,z0,x,y,z</kurtosis>
-      <median>x0,y0,z0,x,y,z</median>
-      <percentile>x0,y0,z0,x,y,z</percentile>
-      <samples>x0,y0,z0,x,y,z</samples>
+      <expectedValue prefix="mean">x0,y0,z0,x,y,z</expectedValue>
+      <sigma prefix="sigma">x0,y0,z0,x,y,z</sigma>
+      <variationCoefficient prefix="vc">x0,y0,z0,x,y,z</variationCoefficient>
+      <variance prefix="var">x0,y0,z0,x,y,z</variance>
+      <skewness prefix="skew">x0,y0,z0,x,y,z</skewness>
+      <kurtosis prefix="kurt">x0,y0,z0,x,y,z</kurtosis>
+      <median prefix="median">x0,y0,z0,x,y,z</median>
+      <percentile prefix="percentile">x0,y0,z0,x,y,z</percentile>
+      <samples prefix="samp">x0,y0,z0,x,y,z</samples>
     </PostProcessor>
     <PostProcessor name="syncronizeHistorySet" subType="InterfacedPostProcessor">
       <method>HistorySetSync</method>
@@ -111,9 +120,8 @@
     <PostProcess name="timeDepBasicStatPP">
       <Input class="DataObjects" type="HistorySet">HistorySetPostProcTestSyncronized</Input>
       <Model class="Models" type="PostProcessor">timeDepBasicStat</Model>
-      <Output class="Files" type="">output_basicStatistics_timedep_PP1.csv</Output>
-      <Output class="Files" type="">output_basicStatistics_timedep_PP1.xml</Output>
-      <Output class="DataObjects" type="HistorySet">HistorySetPostProcTestSyncronized</Output>
+      <Output class="DataObjects" type="HistorySet">timeDepBasicStat_basicStatPP</Output>
+      <Output class="OutStreams" type="Print">timeDepBasicStat_basicStatPP_dump</Output>
     </PostProcess>
     <MultiRun name="FirstMRunEnsemble">
       <Input class="Files" type="">basicStatisticsExternalModelTest.py</Input>
@@ -131,9 +139,8 @@
     <PostProcess name="timeDepBasicStatPPEnsemble">
       <Input class="DataObjects" type="HistorySet">HistorySetPostProcTestSyncronized</Input>
       <Model class="Models" type="PostProcessor">timeDepBasicStat</Model>
-      <Output class="Files" type="">output_basicStatistics_timedep_Ensemble_PP1.csv</Output>
-      <Output class="Files" type="">output_basicStatistics_timedep_Ensemble_PP1.xml</Output>
-      <Output class="DataObjects" type="HistorySet">HistorySetPostProcTestSyncronizedEnsemble</Output>
+      <Output class="DataObjects" type="HistorySet">timeDepBasicStat_basicStatPP</Output>
+      <Output class="OutStreams" type="Print">timeDepBasicStat_basicStatPP_dump</Output>
     </PostProcess>
   </Steps>
 
@@ -141,18 +148,27 @@
     <Print name="HistorySetPostProcTest_dump">
       <type>csv</type>
       <source>HistorySetPostProcTest</source>
+      <what>input,output</what>
     </Print>
     <Print name="HistorySetPostProcTestSyncronized_dump">
       <type>csv</type>
       <source>HistorySetPostProcTestSyncronized</source>
+      <what>input,output</what>
     </Print>
     <Print name="HistorySetPostProcTestEnsemble_dump">
       <type>csv</type>
       <source>HistorySetPostProcTestEnsemble</source>
+      <what>input,output</what>
     </Print>
     <Print name="HistorySetPostProcTestSyncronizedEnsemble_dump">
       <type>csv</type>
       <source>HistorySetPostProcTestSyncronizedEnsemble</source>
+      <what>input,output</what>
+    </Print>
+    <Print name="timeDepBasicStat_basicStatPP_dump">
+      <type>csv</type>
+      <source>timeDepBasicStat_basicStatPP</source>
+      <what>input,output</what>
     </Print>
   </OutStreams>
 
@@ -173,6 +189,147 @@
       <Input>x0,y0,z0</Input>
       <Output>time,x,y,z</Output>
     </HistorySet>
+    <HistorySet name="timeDepBasicStat_basicStatPP">
+      <options>
+        <pivotParameter>time</pivotParameter>
+      </options>
+      <Output>timeDepBasicStat_vars</Output>
+    </HistorySet>
   </DataObjects>
+
+  <VariableGroups>
+    <Group name="timeDepBasicStat_vars">cov_x0_x0,
+                 cov_x0_y0,
+                 cov_x0_z0,
+                 cov_x0_x,
+                 cov_x0_y,
+                 cov_x0_z,
+                 cov_y0_x0,
+                 cov_y0_y0,
+                 cov_y0_z0,
+                 cov_y0_x,
+                 cov_y0_y,
+                 cov_y0_z,
+                 cov_z0_x0,
+                 cov_z0_y0,
+                 cov_z0_z0,
+                 cov_z0_x,
+                 cov_z0_y,
+                 cov_z0_z,
+                 cov_x_x0,
+                 cov_x_y0,
+                 cov_x_z0,
+                 cov_x_x,
+                 cov_x_y,
+                 cov_x_z,
+                 cov_y_x0,
+                 cov_y_y0,
+                 cov_y_z0,
+                 cov_y_x,
+                 cov_y_y,
+                 cov_y_z,
+                 cov_z_x0,
+                 cov_z_y0,
+                 cov_z_z0,
+                 cov_z_x,
+                 cov_z_y,
+                 cov_z_z,
+                 pear_x0_x0,
+                 pear_x0_y0,
+                 pear_x0_z0,
+                 pear_x0_x,
+                 pear_x0_y,
+                 pear_x0_z,
+                 pear_y0_x0,
+                 pear_y0_y0,
+                 pear_y0_z0,
+                 pear_y0_x,
+                 pear_y0_y,
+                 pear_y0_z,
+                 pear_z0_x0,
+                 pear_z0_y0,
+                 pear_z0_z0,
+                 pear_z0_x,
+                 pear_z0_y,
+                 pear_z0_z,
+                 pear_x_x0,
+                 pear_x_y0,
+                 pear_x_z0,
+                 pear_x_x,
+                 pear_x_y,
+                 pear_x_z,
+                 pear_y_x0,
+                 pear_y_y0,
+                 pear_y_z0,
+                 pear_y_x,
+                 pear_y_y,
+                 pear_y_z,
+                 pear_z_x0,
+                 pear_z_y0,
+                 pear_z_z0,
+                 pear_z_x,
+                 pear_z_y,
+                 pear_z_z,
+                 mean_x0,
+                 mean_y0,
+                 mean_z0,
+                 mean_x,
+                 mean_y,
+                 mean_z,
+                 sigma_x0,
+                 sigma_y0,
+                 sigma_z0,
+                 sigma_x,
+                 sigma_y,
+                 sigma_z,
+                 vc_x0,
+                 vc_y0,
+                 vc_z0,
+                 vc_x,
+                 vc_y,
+                 vc_z,
+                 var_x0,
+                 var_y0,
+                 var_z0,
+                 var_x,
+                 var_y,
+                 var_z,
+                 skew_x0,
+                 skew_y0,
+                 skew_z0,
+                 skew_x,
+                 skew_y,
+                 skew_z,
+                 kurt_x0,
+                 kurt_y0,
+                 kurt_z0,
+                 kurt_x,
+                 kurt_y,
+                 kurt_z,
+                 median_x0,
+                 median_y0,
+                 median_z0,
+                 median_x,
+                 median_y,
+                 median_z,
+                 percentile_5_x0,
+                 percentile_95_x0,
+                 percentile_5_y0,
+                 percentile_95_y0,
+                 percentile_5_z0,
+                 percentile_95_z0,
+                 percentile_5_x,
+                 percentile_95_x,
+                 percentile_5_y,
+                 percentile_95_y,
+                 percentile_5_z,
+                 percentile_95_z,
+                 samp_x0,
+                 samp_y0,
+                 samp_z0,
+                 samp_x,
+                 samp_y,
+                 samp_z</Group>
+  </VariableGroups>
 
 </Simulation>

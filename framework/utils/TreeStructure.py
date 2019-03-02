@@ -435,6 +435,16 @@ class InputNode:
     """
     return self.children[index]
 
+  def __setitem__(self,index,value):
+    """
+      Sets a specific child node.
+      @ In, index, int, the index for the child
+      @ In, value, Node, the child itself
+      @ Out, None
+    """
+    value = self.assureIsNode(value)
+    self.children[index] = value
+
   def __repr__(self):
     """
       String representation.
@@ -468,7 +478,7 @@ class InputNode:
       @ In, node, Node, node to append to children
       @ Out, None
     """
-    assert isinstance(node,InputNode)
+    node = self.assureIsNode(node)
     self.children.append(node)
 
   def find(self,nodeName):
@@ -523,6 +533,21 @@ class InputNode:
     for e in self.children:
       for e in e.iter(name):
         yield e
+
+  def assureIsNode(self,node):
+    """
+      Takes care of translating XML to Node on demand.
+      @ In, node, Node or ET.Element, node to fix up
+      @ Out, node, fixed node
+    """
+    if not isinstance(node,InputNode):
+      # if XML, convert to InputNode
+      if isinstance(node,ET.Element):
+        tree = ET.ElementTree(node)
+        node = xmlToInputTree(tree).getroot()
+      else:
+        raise TypeError('TREE-STRUCTURE ERROR: When trying to use node "{}", unrecognized type "{}"!'.format(node,type(node)))
+    return node
 
   def printXML(self):
     """
@@ -889,8 +914,8 @@ class HierarchicalNode(MessageHandler.MessageUser):
       dumpFileObj.write(' '+'  '*self.depth +'  </attributes>\n')
     for e in self._branches:
       e.writeNode(dumpFileObj)
-    if self.numberBranches()>0:
-      dumpFileObj.write(' '+'  '*self.depth + '</branch>\n')
+    #if self.numberBranches()>0: # it's unclear why this conditional was here.  It results in the "branch" tag not closing itself. - talbpaul, 2017-10
+    dumpFileObj.write(' '+'  '*self.depth + '</branch>\n')
 
   def stringNode(self,msg=''):
     """

@@ -6,7 +6,7 @@
     <batchSize>1</batchSize>
   </RunInfo>
   <TestInfo>
-    <name>framework/Samplers/Restart/StochPoly</name>
+    <name>framework/Samplers/Restart.StochPoly</name>
     <author>talbpaul</author>
     <created>2015-07-07</created>
     <classesTested>Samplers.SparseGridCollocation</classesTested>
@@ -158,14 +158,17 @@
     <Print name="coarse">
       <type>csv</type>
       <source>solns</source>
+      <what>input,output</what>
     </Print>
     <Print name="restart">
       <type>csv</type>
       <source>solnsRestart</source>
+      <what>input,output</what>
     </Print>
     <Print name="fine">
       <type>csv</type>
       <source>solnsFine</source>
+      <what>input,output</what>
     </Print>
     <Print name="romRestart">
       <type>xml</type>

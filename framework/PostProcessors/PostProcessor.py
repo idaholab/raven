@@ -45,6 +45,8 @@ class PostProcessor(Assembler):
     self.type = self.__class__.__name__  # pp type
     self.name = self.__class__.__name__  # pp name
     self.messageHandler = messageHandler
+    self.metadataKeys = set()            # list of registered metadata keys to expected in this postprocessor
+    self.metadataParams = {}             # dictionary of registered metadata keys with respect to their indexes, i.e. {key:list(indexes)}
 
   @classmethod
   def getInputSpecification(cls):
@@ -56,7 +58,7 @@ class PostProcessor(Assembler):
         specifying input of cls.
     """
     ######## Temporary until this class inherits from the BaseType
-    inputSpecification = InputData.parameterInputFactory('PostProcessor', ordered=False, baseNode=None)
+    inputSpecification = InputData.parameterInputFactory('PostProcessor', ordered=False, baseNode=InputData.RavenBase)
     inputSpecification.addParam("name", InputData.StringType, True)
     ######## End Temporary until this class inherits from the BaseType
 
@@ -66,7 +68,7 @@ class PostProcessor(Assembler):
 
     return inputSpecification
 
-  def initialize(self, runInfo, inputs, initDict) :
+  def initialize(self, runInfo, inputs, initDict=None) :
     """
       Method to initialize the pp.
       @ In, runInfo, dict, dictionary of run info (e.g. working dir, etc)
@@ -76,6 +78,7 @@ class PostProcessor(Assembler):
     """
     # if 'externalFunction' in initDict.keys(): self.externalFunction = initDict['externalFunction']
     self.inputs = inputs
+    self._workingDir = runInfo['WorkingDir']
 
   def inputToInternal(self, currentInput):
     """
@@ -93,3 +96,25 @@ class PostProcessor(Assembler):
       @ Out, None
     """
     pass
+
+  ## TODO FIXME ##
+  # These two methods (addMetaKeys, provideExpectedMetaKeys) are made to be consistent with the BaseClasses.BaseType, and in
+  # that glorious day when the PostProcessors inherit from the BaseType, these implementations should be removed.
+  def addMetaKeys(self,args,params={}):
+    """
+      Adds keywords to a list of expected metadata keys.
+      @ In, args, list(str), keywords to register
+      @ In, params, dict, optional, {key:[indexes]}, keys of the dictionary are the variable names,
+        values of the dictionary are lists of the corresponding indexes/coordinates of given variable
+      @ Out, None
+    """
+    self.metadataKeys = self.metadataKeys.union(set(args))
+    self.metadataParams.update(params)
+
+  def provideExpectedMetaKeys(self):
+    """
+      Provides the registered list of metadata keys for this entity.
+      @ In, None
+      @ Out, meta,tuple, (list(str),dict), expected keys (empty if none) and expected indexes related to expected keys
+    """
+    return self.metadataKeys,self.metadataParams

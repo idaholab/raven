@@ -5,6 +5,7 @@
     <Sequence>SamplingMirrowModelGrid,PP1grid</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+
   <TestInfo>
     <name>framework/PostProcessors/BasicStatistics/grid_analytic</name>
     <author>alfoa</author>
@@ -14,22 +15,53 @@
       This test checks all the basic statistics on analytic values using a grid sampling; however, the analytic models are not
       yet documented.
     </description>
+    <revisions>
+      <revision author="wangc" date="2017-12-05">convert test to use the new dataobjects</revision>
+      <revision author="wangc" date="2018-12-13">
+          In PR #882, the standard errors on statistics moments are implemented, these quantities are stored in
+          the pointwise metadata, and will be printed out in the output csv files by default.
+          In order to avoid regolding this test, the optional node 'what' with text values 'input, output' is added.
+          In this case, only the user requested variables as specified in the DataObjects are printed out. 
+      </revision>
+    </revisions>
   </TestInfo>
 
-  <Files>
-    <Input name="output_basicStatistics_PP1grid.csv" type="">output_basicStatistics_PP1grid.csv</Input>
-    <Input name="output_basicStatistics_PP1grid.xml" type="">output_basicStatistics_PP1grid.xml</Input>
-  </Files>
-
   <Models>
-    <ExternalModel ModuleToLoad="simpleMirrowModel" name="mirrowModel" subType="">
+    <ExternalModel ModuleToLoad="../simpleMirrowModel" name="mirrowModel" subType="">
       <variables>x,y,x1,y1</variables>
     </ExternalModel>
     <PostProcessor name="analyticalTest" subType="BasicStatistics" verbosity="debug">
-      <all>
+      <skewness prefix="skew">x1,y1</skewness>
+      <variationCoefficient prefix="vc">x1,y1</variationCoefficient>
+      <percentile prefix="percentile">x1,y1</percentile>
+      <expectedValue prefix="mean">x1,y1</expectedValue>
+      <kurtosis prefix="kurt">x1,y1</kurtosis>
+      <median prefix="median">x1,y1</median>
+      <maximum prefix="max">x1,y1</maximum>
+      <minimum prefix="min">x1,y1</minimum>
+      <samples prefix="samp">x1,y1</samples>
+      <variance prefix="var">x1,y1</variance>
+      <sigma prefix="sigma">x1,y1</sigma>
+      <NormalizedSensitivity prefix="nsen">
         <targets>x1,y1</targets>
         <features>x1,y1</features>
-      </all>
+      </NormalizedSensitivity>
+      <sensitivity prefix="sen">
+        <targets>x1,y1</targets>
+        <features>x1,y1</features>
+      </sensitivity>
+      <pearson prefix="pear">
+        <targets>x1,y1</targets>
+        <features>x1,y1</features>
+      </pearson>
+      <covariance prefix="cov">
+        <targets>x1,y1</targets>
+        <features>x1,y1</features>
+      </covariance>
+      <VarianceDependentSensitivity prefix="vsen">
+        <targets>x1,y1</targets>
+        <features>x1,y1</features>
+      </VarianceDependentSensitivity>
     </PostProcessor>
   </Models>
 
@@ -67,10 +99,8 @@
     <PostProcess name="PP1grid">
       <Input class="DataObjects" type="PointSet">outputDataGrid</Input>
       <Model class="Models" type="PostProcessor">analyticalTest</Model>
-      <Output class="Files" type="">output_basicStatistics_PP1grid.csv</Output>
-      <Output class="Files" type="">output_basicStatistics_PP1grid.xml</Output>
-      <Output class="DataObjects" type="PointSet">outputDataGrid</Output>
-      <Output class="OutStreams" type="Print">outputDatagrid_dump</Output>
+      <Output class="DataObjects" type="PointSet">analyticalTest_basicStatPP</Output>
+      <Output class="OutStreams" type="Print">analyticalTest_basicStatPP_dump</Output>
     </PostProcess>
   </Steps>
 
@@ -78,6 +108,11 @@
     <Print name="outputDatagrid_dump">
       <type>csv</type>
       <source>outputDataGrid</source>
+    </Print>
+    <Print name="analyticalTest_basicStatPP_dump">
+      <type>csv</type>
+      <source>analyticalTest_basicStatPP</source>
+      <what>input,output</what>
     </Print>
   </OutStreams>
 
@@ -90,6 +125,56 @@
       <Input>x,y</Input>
       <Output>x1,y1</Output>
     </PointSet>
+    <PointSet name="analyticalTest_basicStatPP">
+      <Output>analyticalTest_vars</Output>
+    </PointSet>
   </DataObjects>
+
+  <VariableGroups>
+    <Group name="analyticalTest_vars">skew_x1,
+                 skew_y1,
+                 vc_x1,
+                 vc_y1,
+                 percentile_5_x1,
+                 percentile_95_x1,
+                 percentile_5_y1,
+                 percentile_95_y1,
+                 mean_x1,
+                 mean_y1,
+                 kurt_x1,
+                 kurt_y1,
+                 median_x1,
+                 median_y1,
+                 max_x1,
+                 max_y1,
+                 min_x1,
+                 min_y1,
+                 samp_x1,
+                 samp_y1,
+                 var_x1,
+                 var_y1,
+                 sigma_x1,
+                 sigma_y1,
+                 nsen_x1_x1,
+                 nsen_x1_y1,
+                 nsen_y1_x1,
+                 nsen_y1_y1,
+                 sen_x1_x1,
+                 sen_x1_y1,
+                 sen_y1_x1,
+                 sen_y1_y1,
+                 pear_x1_x1,
+                 pear_x1_y1,
+                 pear_y1_x1,
+                 pear_y1_y1,
+                 cov_x1_x1,
+                 cov_x1_y1,
+                 cov_y1_x1,
+                 cov_y1_y1,
+                 vsen_x1_x1,
+                 vsen_x1_y1,
+                 vsen_y1_x1,
+                 vsen_y1_y1</Group>
+  </VariableGroups>
 
 </Simulation>

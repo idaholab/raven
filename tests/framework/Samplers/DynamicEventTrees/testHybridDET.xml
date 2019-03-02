@@ -6,7 +6,7 @@
     <created>2015-10-05</created>
     <classesTested>Samplers.DynamicEventTree, Models.Code</classesTested>
     <description>
-       An example of using the Dynamic Event Tree Methodology (Hybrid Dynamic Event Tree) with an external Code (RELAP7 in this case).
+       An example of using the Dynamic Event Tree Methodology (Hybrid Dynamic Event Tree) with an external Code (RELAP7-like in this case).
        This test is a fast executing one that is aimed to check the mechanics of the DET methodology, when epistemic uncertanties 
        need to be modeled.
     </description>
@@ -23,7 +23,7 @@
   <RunInfo>
     <WorkingDir>HybridDynamicEventTree</WorkingDir>
     <Sequence>HybridDETrunTest,testOutstreamStep</Sequence>
-    <batchSize>4</batchSize>
+    <batchSize>1</batchSize>
   </RunInfo>
 
   <Files>
@@ -108,25 +108,15 @@
   </Samplers>
 
   <OutStreams>
-    <Print name="testprint_hist_hier">
+    <Print name="testprint_hist_hier" dir="print_and_plot_outputs">
       <type>csv</type>
       <source>stories</source>
     </Print>
-    <Print name="testprint_tpset_hier">
+    <Print name="testprint_tpset_hier" dir="print_and_plot_outputs">
       <type>csv</type>
       <source>Pointset</source>
     </Print>
-    <Print name="testprint_hist_hier_variables">
-      <type>csv</type>
-      <source>stories</source>
-      <what>Output,Input|dummy_for_branch</what>
-    </Print>
-    <Print name="testprint_tpset_hier_variables">
-      <type>csv</type>
-      <source>Pointset</source>
-      <what>Output,Input|dummy_for_branch</what>
-    </Print>
-    <Plot  interactive="false" name="2DHistoryPlot" overwrite="true">
+    <Plot  interactive="false" name="2DHistoryPlot" overwrite="true" dir="print_and_plot_outputs">
       <plotSettings>
         <plot>
           <type>line</type>
@@ -135,6 +125,7 @@
           <kwargs>
             <color>green</color>
           </kwargs>
+          <interpPointsX>100</interpPointsX>
           <xlabel>time [s]</xlabel>
           <ylabel>evolution</ylabel>
         </plot>
@@ -146,7 +137,7 @@
         </title>
       </actions>
     </Plot>
-    <Plot  interactive="false" name="2DHistoryPlot_tps" overwrite="true">
+    <Plot  interactive="false" name="2DHistoryPlot_tps" overwrite="true" dir="print_and_plot_outputs">
       <plotSettings>
         <plot>
           <type>scatter</type>
@@ -182,8 +173,6 @@
       <Input class="DataObjects" type="PointSet">Pointset</Input>
       <Output class="OutStreams" type="Print">testprint_hist_hier</Output>
       <Output class="OutStreams" type="Print">testprint_tpset_hier</Output>
-      <Output class="OutStreams" type="Print">testprint_hist_hier_variables</Output>
-      <Output class="OutStreams" type="Print">testprint_tpset_hier_variables</Output>
       <Output class="OutStreams" type="Plot">2DHistoryPlot</Output>
       <Output class="OutStreams" type="Plot">2DHistoryPlot_tps</Output>
     </IOStep>

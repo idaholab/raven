@@ -1,0 +1,102 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/Optimizers.Max</name>
+    <author>talbpaul</author>
+    <created>2017-06-13</created>
+    <classesTested>Optimizer</classesTested>
+    <description>
+      This test runs the optimization on 1/x, returning "inf" at x=0.
+      It primarily tests that gradients can be obtained when infinite solutions are provided.
+    </description>
+    <revisions>
+      <revision author='talbpaul' date='2018-10-23'>limited outputs checked to just the solution</revision>
+    </revisions>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>Infinite</WorkingDir>
+    <Sequence>optimize,print</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="optimize">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ExternalModel">inf</Model>
+      <Optimizer class="Optimizers" type="SPSA">opter</Optimizer>
+      <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
+      <Output class="DataObjects" type="PointSet">optOut</Output>
+    </MultiRun>
+    <IOStep name="print" pauseAtEnd="True">
+      <Input class="DataObjects" type="PointSet">opt_export</Input>
+      <Output class="OutStreams" type="Print">opt_export</Output>
+    </IOStep>
+  </Steps>
+
+  <Optimizers>
+    <SPSA name="opter">
+      <initialization>
+        <limit>20</limit>
+        <initialSeed>42</initialSeed>
+        <type>max</type>
+        <writeSteps>final</writeSteps>
+      </initialization>
+      <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
+      <convergence>
+        <gradientThreshold>1e-4</gradientThreshold>
+        <gainGrowthFactor>1.5</gainGrowthFactor>
+        <gainShrinkFactor>1.25</gainShrinkFactor>
+        <relativeThreshold>1e-8</relativeThreshold>
+      </convergence>
+      <variable name="x">
+        <upperBound>1.0</upperBound>
+        <lowerBound>0.0</lowerBound>
+        <initial>0.2</initial>
+      </variable>
+      <variable name="y">
+        <upperBound>1.0</upperBound>
+        <lowerBound>0.0</lowerBound>
+        <initial>0.5</initial>
+      </variable>
+      <objectVar>ans</objectVar>
+    </SPSA>
+  </Optimizers>
+
+  <Models>
+    <Dummy name="MyDummy" subType=""/>
+    <ExternalModel ModuleToLoad="infinite" name="inf" subType="">
+      <variables>x,y,ans</variables>
+    </ExternalModel>
+  </Models>
+
+  <DataObjects>
+    <PointSet name="dummyIN">
+      <Input>x,y</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="optOut">
+      <Input>x,y</Input>
+      <Output>ans</Output>
+    </PointSet>
+    <PointSet name="opt_soln">
+      <Input>trajID</Input>
+      <Output>x,y,ans,varsUpdate</Output>
+    </PointSet>
+    <PointSet name="opt_export">
+      <Output>ans</Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="opt_export">
+      <type>csv</type>
+      <source>opt_export</source>
+    </Print>
+    <Print name="opt_soln">
+      <type>csv</type>
+      <source>opt_soln</source>
+    </Print>
+  </OutStreams>
+
+</Simulation>

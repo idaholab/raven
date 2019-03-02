@@ -11,90 +11,122 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from Tester import Tester
-from CSVDiffer import CSVDiffer
-import RavenUtils
+"""
+This tests for expected errors in a program
+"""
 import os
 import subprocess
 import platform
+from Tester import Tester
+import RavenUtils
 
 fileDir = os.path.dirname(os.path.realpath(__file__))
-raven = os.path.abspath(os.path.join(fileDir,'..','..','..','framework','Driver.py'))
+raven = os.path.abspath(os.path.join(fileDir, '..', '..', '..', 'framework',
+                                     'Driver.py'))
 
 class RavenErrors(Tester):
   """
   This class tests if the expected error messages are generated or not.
   """
   @staticmethod
-  def validParams():
-    """This method add defines the valid parameters for the tester. The expected error message shuld be unique..."""
-    params = Tester.validParams()
-    params.addRequiredParam('input',"The input file to use for this test.")
-    params.addRequiredParam('expect_err',"All or part of the expected error message (unique keyword)")
-    params.addParam('required_executable','','Skip test if this executable is not found')
-    params.addParam('required_libraries','','Skip test if any of these libraries are not found')
-    params.addParam('skip_if_env','','Skip test if this environmental variable is defined')
-    params.addParam('test_interface_only','False','Test the interface only (without running the driven code')
+  def get_valid_params():
+    """
+      This method add defines the valid parameters for the tester.
+      The expected error message shuld be unique...
+      @ In, None
+      @ Out, params, _ValidParameters, return the parameters.
+    """
+    params = Tester.get_valid_params()
+    params.add_required_param('input', "The input file to use for this test.")
+    params.add_required_param('expect_err',
+                              "All or part of the expected error message (unique keyword)")
+    params.add_param('required_executable', '', 'Skip test if this executable is not found')
+    params.add_param('required_libraries', '', 'Skip test if any of these libraries are not found')
+    params.add_param('skip_if_env', '', 'Skip test if this environmental variable is defined')
+    params.add_param('test_interface_only', 'False',
+                     'Test the interface only (without running the driven code')
     return params
 
-  def getCommand(self, options):
+  def get_command(self):
     """
       This method returns the command to execute for the test
-      @ In, options, argparse.Namespace, functionally a dictionary of options from the input
+      @ In, None
       @ Out, getCommand, string, the command to run
     """
     ravenflag = ''
-    if self.specs['test_interface_only'].lower() == 'true': ravenflag = 'interfaceCheck '
-    if RavenUtils.inPython3():
-      return ' '.join(["python3",raven,ravenflag,self.specs["input"]])
-    else:
-      return ' '.join(["python",raven,ravenflag,self.specs["input"]])
+    if self.specs['test_interface_only'].lower() == 'true':
+      ravenflag = 'interfaceCheck '
+    if RavenUtils.in_python_3():
+      return ' '.join(["python3", raven, ravenflag, self.specs["input"]])
+    return ' '.join(["python", raven, ravenflag, self.specs["input"]])
 
 
   def __init__(self, name, params):
+    """
+      Initializer for the class. Takes a String name and a dictionary params
+      @ In, name, string, name of the test.
+      @ In, params, dictionary, parameters for the class
+      @ Out, None.
+    """
     Tester.__init__(self, name, params)
-    self.required_libraries = self.specs['required_libraries'].split(' ')  if len(self.specs['required_libraries']) > 0 else []
+    self.required_libraries = self.specs['required_libraries'].split(' ')  \
+      if len(self.specs['required_libraries']) > 0 else []
     self.required_executable = self.specs['required_executable']
-    self.required_executable = self.required_executable.replace("%METHOD%",os.environ.get("METHOD","opt"))
+    self.required_executable = self.required_executable.replace("%METHOD%",
+                                                                os.environ.get("METHOD", "opt"))
     self.specs['scale_refine'] = False
 
-  def checkRunnable(self, option):
-    """This method checks if the the test is runnable within the current settings"""
-    missing,too_old,notQA = RavenUtils.checkForMissingModules()
+  def check_runnable(self):
+    """
+      This method checks if the the test is runnable within the current settings
+      @ In, None
+      @ Out, check_runnable, boolean, If True this test can run.
+    """
+    missing, too_old, _ = RavenUtils.check_for_missing_modules()
     if len(missing) > 0:
-      return (False,'skipped (Missing python modules: '+" ".join(missing)+
-              " PYTHONPATH="+os.environ.get("PYTHONPATH","")+')')
+      self.set_skip('skipped (Missing python modules: '+" ".join(missing)+
+                    " PYTHONPATH="+os.environ.get("PYTHONPATH", "")+')')
+      return False
     if len(too_old) > 0:
-      return (False,'skipped (Old version python modules: '+" ".join(too_old)+
-              " PYTHONPATH="+os.environ.get("PYTHONPATH","")+')')
+      self.set_skip('skipped (Old version python modules: '+" ".join(too_old)+
+                    " PYTHONPATH="+os.environ.get("PYTHONPATH", "")+')')
+      return False
     for lib in self.required_libraries:
       if platform.system() == 'Windows':
         lib += '.pyd'
       else:
         lib += '.so'
       if not os.path.exists(lib):
-        return (False,'skipped (Missing library: "'+lib+'")')
+        self.set_skip('skipped (Missing library: "'+lib+'")')
+        return False
     if len(self.required_executable) > 0 and \
        not os.path.exists(self.required_executable):
-      return (False,'skipped (Missing executable: "'+self.required_executable+'")')
+      self.set_skip('skipped (Missing executable: "'+self.required_executable+'")')
+      return False
     try:
       if len(self.required_executable) > 0 and \
-         subprocess.call([self.required_executable],stdout=subprocess.PIPE) != 0:
-        return (False,'skipped (Failing executable: "'+self.required_executable+'")')
-    except:
-      return (False,'skipped (Error when trying executable: "'+self.required_executable+'")')
+         subprocess.call([self.required_executable], stdout=subprocess.PIPE) != 0:
+        self.set_skip('skipped (Failing executable: "'+self.required_executable+'")')
+        return False
+    except Exception:
+      self.set_skip('skipped (Error when trying executable: "'+self.required_executable+'")')
+      return False
     if len(self.specs['skip_if_env']) > 0:
       env_var = self.specs['skip_if_env']
       if env_var in os.environ:
-        return (False,'skipped (found environmental variable "'+env_var+'")')
-    return (True, '')
+        self.set_skip('skipped (found environmental variable "'+env_var+'")')
+        return False
+    return True
 
-  def processResults(self, moose_dir,retcode, options, output):
-    """This method processes results. It checks if the expected error messgae keyword exists in the output stream."""
+  def process_results(self, output):
+    """
+      This method processes results.
+      It checks if the expected error messgae keyword exists in the output stream.
+      @ In, output, string, output of the run.
+      @ Out, None
+    """
     for line in output.split('\n'):
       if self.specs['expect_err'] in line:
-        self.setStatus(self.success_message, self.bucket_success)
-        return output
-    self.setStatus('The expected Error: ' +self.specs['expect_err']+' is not raised!', self.bucket_fail)
-    return output
-
+        self.set_success()
+        return
+    self.set_fail('The expected Error: ' +self.specs['expect_err']+' is not raised!')

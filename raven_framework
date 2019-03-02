@@ -3,13 +3,110 @@
 SCRIPT_NAME=`readlink $0`
 if test -x "$SCRIPT_NAME";
 then
-    SCRIPT_DIRNAME=`dirname $SCRIPT_NAME`
+    RAVEN_DIRNAME=`dirname $SCRIPT_NAME`
 else
-    SCRIPT_DIRNAME=`dirname $0`
+    RAVEN_DIRNAME=`dirname $0`
 fi
-SCRIPT_DIR=`(cd $SCRIPT_DIRNAME; pwd)`
+RAVEN_DIR=`(cd $RAVEN_DIRNAME; pwd)`
 
-source $SCRIPT_DIR/scripts/setup_raven_libs
+# DEFAULTS
+SKIP_CONDA=1 # 0 for skipping conda, 1 for not skipping
 
-python $SCRIPT_DIR/framework/Driver.py "$@"
+# set up run keywords
+# "ARGS" stores command line arguments not treated in this file (passed through)
+declare -a ARGS
+# by default run in "opt" mode
+MODE='opt'
+
+# loop through arguments and look for those that are handled before Python is called
+while test $# -gt 0
+do
+  case "$1" in
+    -D)
+      # run in development mode (assertions not stripped)
+      MODE='dev'
+      ;;
+    --help)
+      # display "help" print
+      MODE='help'
+      ;;
+    --skip-conda)
+      SKIP_CONDA=0
+      ;;
+    *)
+      # otherwise, pass through arguments to Driver.py
+      ARGS[${#ARGS[@]}]="$1"
+  esac
+  shift
+done
+
+if [[ ! $SKIP_CONDA == 0 ]]; then
+  source $RAVEN_DIR/scripts/establish_conda_env.sh --quiet
+fi
+
+# if there's no file to run after parsing arguments, run "help" after warning of the problem.
+if [ ${#ARGS[@]} -eq 0 ]; then
+  echo ''
+  echo 'ERROR: No input file specified! See options below.'
+  MODE='help'
+fi
+
+# run Driver.py based on the mode chosen
+case $MODE in
+  'opt' )
+    echo 'Running RAVEN in "opt" mode.'
+    if test -n "$CHECK_PYTHON3"; then
+        python3 -O $RAVEN_DIR/framework/Driver.py "${ARGS[@]}"
+    else
+        python -O $RAVEN_DIR/framework/Driver.py "${ARGS[@]}"
+    fi
+    ;;
+  'dev' )
+    echo 'Running RAVEN in "dev" mode.'
+    if test -n "$CHECK_PYTHON3"; then
+        python3 $RAVEN_DIR/framework/Driver.py "${ARGS[@]}"
+    else
+        python $RAVEN_DIR/framework/Driver.py "${ARGS[@]}"
+    fi
+    ;;
+  'help' )
+    echo ''
+    echo '  ------------------------------------------'
+    echo '  Default usage:'
+    echo '    raven_framework filename.xml'
+    echo ''
+    echo '  Description:'
+    echo '      This will run RAVEN in "opt" mode using "filename.xml" as the input.  This should be'
+    echo '      sufficient for the majority of RAVEN calculations.  For more options, see below.'
+    echo '  ------------------------------------------'
+    echo ''
+    echo '  Advanced usage:'
+    echo '    raven_framework filename [-D] [--skip-conda] [interfaceCheck] [interactive] [interactiveCheck]'
+    echo ''
+    echo '  Description:'
+    echo '    Runs RAVEN using the input file given by "filename".'
+    echo ''
+    echo '  Options:'
+    echo '    -D'
+    echo '      Development mode.  Turns Python "assert" statements on.'
+    echo ''
+    echo '    --skip-conda'
+    echo '      Skip CONDA activation.  This assumes the correct python libraries are already in place.'
+    echo ''
+    echo '    --help'
+    echo '      Shows this description and exits.'
+    echo ''
+    echo '    interfaceCheck'
+    echo '      Do not attempt to run the model executable, but read from existing output files.'
+    echo ''
+    echo '    interactive'
+    echo '      Run RAVEN in GUI mode if possible.'
+    echo ''
+    echo '    interactiveCheck'
+    echo '      Run tests on interactive GUI.'
+    echo ''
+    ;;
+  *)
+    echo 'Unrecognized MODE "'${MODE}'" in raven_framework! Exiting ...'
+esac
 

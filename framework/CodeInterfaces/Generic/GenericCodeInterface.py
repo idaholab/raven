@@ -45,6 +45,22 @@ class GenericCode(CodeInterfaceBase):
     self.execPrefix       = ''       # executioner command prefix (e.g., 'python ')
     self.execPostfix      = ''       # executioner command postfix (e.g. -zcvf)
     self.caseName         = None     # base label for outgoing files, should default to inputFileName
+    self.fixedOutFileName = None     # CSV output filename of the run code (in case it is hardcoded in the driven code)
+
+  def _readMoreXML(self,xmlNode):
+    """
+      Function to read the portion of the xml input that belongs to this class and
+      initialize some members based on inputs.
+      @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
+      @ Out, None
+    """
+    outFileName = xmlNode.find("outputFile")
+    self.fixedOutFileName = outFileName.text if outFileName is not None else None
+    if self.fixedOutFileName is not None:
+      if '.' in self.fixedOutFileName and self.fixedOutFileName.split(".")[-1] != 'csv':
+        raise IOError('user defined output extension "'+userExt+'" is not a "csv"!')
+      else:
+        self.fixedOutFileName = '.'.join(self.fixedOutFileName.split(".")[:-1])
 
   def addDefaultExtension(self):
     """
@@ -54,15 +70,16 @@ class GenericCode(CodeInterfaceBase):
     """
     pass
 
-  def generateCommand(self,inputFiles,executable,clargs=None, fargs=None):
+  def generateCommand(self,inputFiles,executable,clargs=None, fargs=None, preExec=None):
     """
       See base class.  Collects all the clargs and the executable to produce the command-line call.
       Returns tuple of commands and base file name for run.
       Commands are a list of tuples, indicating parallel/serial and the execution command to use.
-      @ In, inputFiles, list, List of input files (lenght of the list depends on the number of inputs have been added in the Step is running this code)
+      @ In, inputFiles, list, List of input files (length of the list depends on the number of inputs have been added in the Step is running this code)
       @ In, executable, string, executable name with absolute path (e.g. /home/path_to_executable/code.exe)
       @ In, clargs, dict, optional, dictionary containing the command-line flags the user can specify in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 i0extension =0 .inp0/ >< /Code >)
-      @ In, fargs, dict, optional, a dictionary containing the axuiliary input file variables the user can specify in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 aux0extension =0 .aux0/ >< /Code >)
+      @ In, fargs, dict, optional, a dictionary containing the axuiliary input file variables the user can specify in the input (e.g. under the node < Code >< fileargstype =0 input0arg =0 aux0extension =0 .aux0/ >< /Code >)
+      @ In, preExec, string, optional, a string the command that needs to be pre-executed before the actual command here defined
       @ Out, returnCommand, tuple, tuple containing the generated command. returnCommand[0] is the command to run the code (string), returnCommand[1] is the name of the output root
     """
     if clargs==None:
@@ -70,26 +87,23 @@ class GenericCode(CodeInterfaceBase):
     #check for output either in clargs or fargs
     #if len(fargs['output'])<1 and 'output' not in clargs.keys():
     #  raise IOError('No output file was specified, either in clargs or fileargs!')
-    #check for duplicate extension use
-    usedExt=[]
-    for ext in list(clargs['input'][flag] for flag in clargs['input'].keys()) + list(fargs['input'][var] for var in fargs['input'].keys()):
-      if ext not in usedExt:
-        usedExt.append(ext)
-      else:
-        raise IOError('GenericCodeInterface cannot handle multiple input files with the same extension.  You may need to write your own interface.')
-
     #check all required input files are there
     inFiles=inputFiles[:]
-    for exts in list(clargs['input'][flag] for flag in clargs['input'].keys()) + list(fargs['input'][var] for var in fargs['input'].keys()):
-      for ext in exts:
-        found=False
-        for inf in inputFiles:
-          if '.'+inf.getExt() == ext:
-            found=True
-            inFiles.remove(inf)
-            break
-        if not found:
-          raise IOError('input extension "'+ext+'" listed in input but not in inputFiles!')
+    #check for duplicate extension use
+    extsClargs = list(ext[0][0] for ext in clargs['input'].values() if len(ext) != 0)
+    extsFargs  = list(ext[0] for ext in fargs['input'].values())
+    usedExts = extsClargs + extsFargs
+    if len(usedExts) != len(set(usedExts)):
+      raise IOError('GenericCodeInterface cannot handle multiple input files with the same extension.  You may need to write your own interface.')
+    for inf in inputFiles:
+      ext = '.' + inf.getExt() if inf.getExt() is not None else ''
+      try:
+        usedExts.remove(ext)
+      except ValueError:
+        pass
+    if len(usedExts) != 0:
+      raise IOError('Input extension',','.join(usedExts),'listed in XML node Code, but not found in the list of Input of <Files>')
+
     #TODO if any remaining, check them against valid inputs
 
     #PROBLEM this is limited, since we can't figure out which .xml goes to -i and which to -d, for example.
@@ -114,31 +128,34 @@ class GenericCode(CodeInterfaceBase):
     todo += executable
     index=None
     #inputs
-    for flag,exts in clargs['input'].items():
+    for flag,elems in clargs['input'].items():
       if flag == 'noarg':
-        for ext in exts:
+        for elem in elems:
+          ext, delimiter = elem[0], elem[1]
           idx,fname = getFileWithExtension(inputFiles,ext.strip('.'))
-          todo+=' '+fname.getFilename()
+          todo += delimiter + fname.getFilename()
           if index == None:
             index = idx
         continue
       todo += ' '+flag
-      for ext in exts:
+      for elem in elems:
+        ext, delimiter = elem[0], elem[1]
         idx,fname = getFileWithExtension(inputFiles,ext.strip('.'))
-        todo+=' '+fname.getFilename()
+        todo += delimiter + fname.getFilename()
         if index == None:
           index = idx
     #outputs
     #FIXME I think if you give multiple output flags this could result in overwriting
     self.caseName = inputFiles[index].getBase()
-    outfile = 'out~'+self.caseName
-    if 'output' in clargs.keys():
-      todo+=' '+clargs['output']+' '+outfile
-    #text flags
+    outFile = 'out~'+self.caseName
+    if 'output' in clargs:
+      todo+=' '+clargs['output']+' '+outFile
+    if self.fixedOutFileName is not None:
+      outFile = self.fixedOutFileName
     todo+=' '+clargs['text']
     #postpend
     todo+=' '+clargs['post']
-    returnCommand = [('parallel',todo)],outfile
+    returnCommand = [('parallel',todo)],outFile
     print('Execution Command: '+str(returnCommand[0]))
     return returnCommand
 
@@ -165,5 +182,5 @@ class GenericCode(CodeInterfaceBase):
         origfiles.append(inputFile)
     parser = GenericParser.GenericParser(infiles)
     parser.modifyInternalDictionary(**Kwargs)
-    parser.writeNewInput(currentInputFiles,origfiles)
+    parser.writeNewInput(infiles,origfiles)
     return currentInputFiles

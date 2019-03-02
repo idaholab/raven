@@ -24,4 +24,11 @@
     prereq = timeDepGaussPoly
   [../]
 
+  [./SKL_time]
+    # NOTE when in conflict with dataobject-rework branch, accept ALL dataobject-rework instead and delete this comment.
+    type  = 'RavenFramework'
+    input = 'skl_timedep.xml'
+    csv = 'TimeDepSKL/innerHS_0.csv TimeDepSKL/innerHS_1.csv TimeDepSKL/innerHS_2.csv'
+  [../]
+
 []

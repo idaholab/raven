@@ -1,4 +1,6 @@
 #!/bin/bash
+echo 'Running RAVEN tests ...'
+
 SCRIPT_NAME=`readlink $0`
 if test -x "$SCRIPT_NAME";
 then
@@ -8,6 +10,33 @@ else
 fi
 SCRIPT_DIR=`(cd $SCRIPT_DIRNAME; pwd)`
 
-source $SCRIPT_DIR/scripts/setup_raven_libs
+echo 'Loading libraries ...'
+source $SCRIPT_DIR/scripts/establish_conda_env.sh --load
 
-./backend_run_tests --skip-config-check "$@"
+if test -n "$CHECK_PYTHON3"; then
+    PYTHON=python3
+else
+    PYTHON=python
+fi
+
+for A in "$@"; do
+    case $A in
+        --library_report | --library-report)
+            $PYTHON $SCRIPT_DIR/scripts/library_report
+            exit
+            ;;
+    esac
+done
+
+# this copy the plugins tests into raven tests
+echo 'Loading plugin tests ...'
+$PYTHON $SCRIPT_DIR/scripts/copy_plugins_tests.py
+# run the tests
+echo 'Running tests ...'
+$PYTHON $SCRIPT_DIR/rook/main.py "$@"
+# grep return code
+rc=$?
+# this copy back the plugins and remove them from the source folder
+$PYTHON $SCRIPT_DIR/scripts/copy_back_plugins_results.py
+# return code
+if [[ $rc != 0 ]]; then exit $rc; fi

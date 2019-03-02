@@ -1,0 +1,107 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/ROM/TimeSeries/ARMA.SingleFourier</name>
+    <author>alfoa</author>
+    <created>2018-05-21</created>
+    <classesTested>SupervisedLearning.ARMA</classesTested>
+    <description>
+      Tests that an ARMA can be trained with only a single Fourier base component
+    </description>
+    <revisions>
+      <revision author="talbpaul" date="2018-09-13">changed Pmax and Pmin to P (same for Q)</revision>
+    </revisions>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>SingleFourier</WorkingDir>
+    <Sequence>readIn,ARMATrain,runARMA,writeOut</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name="rawDataFile">./dataSet.csv</Input>
+  </Files>
+
+  <Distributions>
+    <Uniform name="uniDist">
+      <lowerBound>1</lowerBound>
+      <upperBound>1.00001</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="mcSampler">
+      <samplerInit>
+        <limit>1</limit>
+        <initialSeed>20021986</initialSeed>
+      </samplerInit>
+      <variable name="scaling">
+        <distribution>uniDist</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <Models>
+    <ROM name="ARMA" subType="ARMA">
+      <Target>Speed,Time</Target>
+      <Features>scaling</Features>
+      <pivotParameter>Time</pivotParameter>
+      <outTruncation domain="positive">Speed,Time</outTruncation>
+      <Fourier>86400.000000, 43200.000000</Fourier>
+      <P>2</P>
+      <Q>1</Q>
+    </ROM>
+  </Models>
+
+  <Steps>
+    <IOStep name="readIn" pauseAtEnd="True">
+      <Input class="Files" type="">rawDataFile</Input>
+      <Output class="DataObjects" type="HistorySet">rawData</Output>
+    </IOStep>
+    <RomTrainer name="ARMATrain">
+      <Input class="DataObjects" type="HistorySet">rawData</Input>
+      <Output class="Models" type="ROM">ARMA</Output>
+    </RomTrainer>
+    <MultiRun name="runARMA">
+      <Input class="DataObjects" type="PointSet">dataIn</Input>
+      <Model class="Models" type="ROM">ARMA</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mcSampler</Sampler>
+      <Output class="DataObjects" type="HistorySet">synData</Output>
+    </MultiRun>
+    <IOStep name="writeOut" pauseAtEnd="True">
+      <Input class="DataObjects" type="HistorySet">synData</Input>
+      <Output class="OutStreams" type="Print">synthetic</Output>
+    </IOStep>
+  </Steps>
+
+  <OutStreams>
+    <Print name="synthetic">
+      <type>csv</type>
+      <source>synData</source>
+      <what>input, output</what>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="dataIn">
+      <Input>scaling</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <HistorySet name="rawData">
+      <Input>scaling</Input>
+      <Output>Speed,Time</Output>
+      <options>
+        <pivotParameter>Time</pivotParameter>
+      </options>
+    </HistorySet>
+    <HistorySet name="synData">
+      <Input>scaling</Input>
+      <Output>Speed,Time</Output>
+      <options>
+        <pivotParameter>Time</pivotParameter>
+      </options>
+    </HistorySet>
+  </DataObjects>
+
+</Simulation>

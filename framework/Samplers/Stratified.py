@@ -22,8 +22,6 @@
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
-if not 'xrange' in dir(__builtins__):
-  xrange = range
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -35,7 +33,7 @@ from functools import reduce
 #Internal Modules------------------------------------------------------------------------------------
 from .Grid import Grid
 from .Sampler import Sampler
-from utils import utils,randomUtils
+from utils import utils,randomUtils,InputData
 #Internal Modules End--------------------------------------------------------------------------------
 
 
@@ -44,6 +42,39 @@ class Stratified(Grid):
     Stratified sampler, also known as Latin Hypercube Sampling (LHS). Currently no
     special filling methods are implemented
   """
+
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    inputSpecification = super(Stratified, cls).getInputSpecification()
+
+    samplerInitInput = InputData.parameterInputFactory("samplerInit")
+    samplerInitInput.addSub(InputData.parameterInputFactory("initialSeed", contentType=InputData.IntegerType))
+    samplerInitInput.addSub(InputData.parameterInputFactory("distInit", contentType=InputData.IntegerType))
+
+    inputSpecification.addSub(samplerInitInput)
+
+    globalGridInput = InputData.parameterInputFactory("globalGrid", contentType=InputData.StringType)
+
+    gridInput = InputData.parameterInputFactory("grid", contentType=InputData.StringType)
+    gridInput.addParam("name", InputData.StringType)
+    gridInput.addParam("type", InputData.StringType)
+    gridInput.addParam("construction", InputData.StringType)
+    gridInput.addParam("steps", InputData.IntegerType)
+
+    globalGridInput.addSub(gridInput)
+
+    inputSpecification.addSub(globalGridInput)
+
+
+    return inputSpecification
+
   def __init__(self):
     """
       Default Constructor that will initialize member variables with reasonable
@@ -56,14 +87,16 @@ class Stratified(Grid):
     self.printTag = 'SAMPLER Stratified'
     self.globalGrid          = {}    # Dictionary for the globalGrid. These grids are used only for Stratified for ND distributions.
 
-  def localInputAndChecks(self,xmlNode):
+  def localInputAndChecks(self,xmlNode, paramInput):
     """
       Class specific xml inputs will be read here and checked for validity.
       @ In, xmlNode, xml.etree.ElementTree.Element, The xml element node that will be checked against the available options specific to this Sampler.
+      @ In, paramInput, InputData.ParameterInput, the parsed parameters
       @ Out, None
     """
+    #TODO Remove using xmlNode
     Sampler.readSamplerInit(self,xmlNode)
-    Grid.localInputAndChecks(self,xmlNode)
+    Grid.localInputAndChecks(self,xmlNode, paramInput)
     pointByVar  = [len(self.gridEntity.returnParameter("gridInfo")[variable][2]) for variable in self.gridInfo.keys()]
     if len(set(pointByVar))!=1:
       self.raiseAnError(IOError,'the latin Hyper Cube requires the same number of point in each dimension')
@@ -139,20 +172,22 @@ class Stratified(Grid):
       if not "<distribution>" in varName:
         if self.variables2distributionsMapping[varName]['totDim']>1 and self.variables2distributionsMapping[varName]['reducedDim'] == 1:
           # to avoid double count of weight for ND distribution; I need to count only one variable instaed of N
+          distName = self.variables2distributionsMapping[varName]['name']
           if self.variablesTransformationDict:
-            distName = self.variables2distributionsMapping[varName]['name']
             for distVarName in self.distributions2variablesMapping[distName]:
-              for kkey in utils.first(distVarName.keys()).strip().split(','):
-                self.inputInfo['distributionName'][kkey] = self.toBeSampled[varName]
-                self.inputInfo['distributionType'][kkey] = self.distDict[varName].type
+              for subVar in utils.first(distVarName.keys()).strip().split(','):
+                self.inputInfo['distributionName'][subVar] = self.toBeSampled[varName]
+                self.inputInfo['distributionType'][subVar] = self.distDict[varName].type
             ndCoordinate = np.zeros(len(self.distributions2variablesMapping[distName]))
             dxs = np.zeros(len(self.distributions2variablesMapping[distName]))
             centerCoordinate = np.zeros(len(self.distributions2variablesMapping[distName]))
             positionList = self.distributions2variablesIndexList[distName]
-            for var in self.distributions2variablesMapping[distName]:
+            sorted_mapping = sorted([(utils.first(var.keys()).strip(),
+                                      utils.first(var.values())) for var in
+                                     self.distributions2variablesMapping[distName]])
+            for var in sorted_mapping:
               # if the varName is a comma separated list of strings the user wants to sample the comma separated variables with the same sampled value => link the value to all comma separated variables
-              variable = utils.first(var.keys()).strip()
-              position = utils.first(var.values())
+              variable, position = var
               upper = self.gridEntity.returnShiftedCoordinate(self.gridEntity.returnIteratorIndexes(),{variable:self.sampledCoordinate[self.counter-1][varCount]+1})[variable]
               lower = self.gridEntity.returnShiftedCoordinate(self.gridEntity.returnIteratorIndexes(),{variable:self.sampledCoordinate[self.counter-1][varCount]})[variable]
               varCount += 1
@@ -161,22 +196,21 @@ class Stratified(Grid):
                 ndCoordinate[positionList.index(position)] = self.distDict[variable].inverseMarginalDistribution(coordinate,variable)
                 dxs[positionList.index(position)] = self.distDict[variable].inverseMarginalDistribution(max(upper,lower),variable)-self.distDict[variable].inverseMarginalDistribution(min(upper,lower),variable)
                 centerCoordinate[positionList.index(position)] = (self.distDict[variable].inverseMarginalDistribution(upper,variable)+self.distDict[variable].inverseMarginalDistribution(lower,variable))/2.0
-                for kkey in variable.strip().split(','):
-                  self.values[kkey] = ndCoordinate[positionList.index(position)]
-                  self.inputInfo['upper'][kkey] = self.distDict[variable].inverseMarginalDistribution(max(upper,lower),variable)
-                  self.inputInfo['lower'][kkey] = self.distDict[variable].inverseMarginalDistribution(min(upper,lower),variable)
+                for subVar in variable.strip().split(','):
+                  self.values[subVar] = ndCoordinate[positionList.index(position)]
+                  self.inputInfo['upper'][subVar] = self.distDict[variable].inverseMarginalDistribution(max(upper,lower),variable)
+                  self.inputInfo['lower'][subVar] = self.distDict[variable].inverseMarginalDistribution(min(upper,lower),variable)
               elif self.gridInfo[variable] == 'value':
                 dxs[positionList.index(position)] = max(upper,lower) - min(upper,lower)
                 centerCoordinate[positionList.index(position)] = (upper + lower)/2.0
                 coordinateCdf = self.distDict[variable].marginalCdf(lower) + (self.distDict[variable].marginalCdf(upper) - self.distDict[variable].marginalCdf(lower))*randomUtils.random()
                 coordinate = self.distDict[variable].inverseMarginalDistribution(coordinateCdf,variable)
                 ndCoordinate[positionList.index(position)] = coordinate
-                for kkey in variable.strip().split(','):
-                  self.values[kkey] = coordinate
-                  self.inputInfo['upper'][kkey] = max(upper,lower)
-                  self.inputInfo['lower'][kkey] = min(upper,lower)
-            self.inputInfo['ProbabilityWeight-'+varName.replace(",","!")] = self.distDict[varName].cellIntegral(centerCoordinate,dxs)
-            weight *= self.inputInfo['ProbabilityWeight-'+varName.replace(",","!")]
+                for subVar in variable.strip().split(','):
+                  self.values[subVar] = coordinate
+                  self.inputInfo['upper'][subVar] = max(upper,lower)
+                  self.inputInfo['lower'][subVar] = min(upper,lower)
+            gridsWeight = self.distDict[varName].cellIntegral(centerCoordinate,dxs)
             self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(ndCoordinate)
           else:
             if self.gridInfo[varName] == 'CDF':
@@ -186,14 +220,15 @@ class Stratified(Grid):
               coordinate = lower + (upper-lower)*randomUtils.random()
               gridCoordinate, distName =  self.distDict[varName].ppf(coordinate), self.variables2distributionsMapping[varName]['name']
               for distVarName in self.distributions2variablesMapping[distName]:
-                for kkey in utils.first(distVarName.keys()).strip().split(','):
-                  self.inputInfo['distributionName'][kkey], self.inputInfo['distributionType'][kkey], self.values[kkey] = self.toBeSampled[varName], self.distDict[varName].type, np.atleast_1d(gridCoordinate)[distVarName.values()[0]-1]
+                for subVar in utils.first(distVarName.keys()).strip().split(','):
+                  self.inputInfo['distributionName'][subVar], self.inputInfo['distributionType'][subVar], self.values[subVar] = self.toBeSampled[varName], self.distDict[varName].type, np.atleast_1d(gridCoordinate)[utils.first(distVarName.values())-1]
               # coordinate stores the cdf values, we need to compute the pdf for SampledVarsPb
               self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(np.atleast_1d(gridCoordinate).tolist())
-              weight *= max(upper,lower) - min(upper,lower)
-              self.inputInfo['ProbabilityWeight-'+varName.replace(",","!")] = max(upper,lower) - min(upper,lower)
+              gridsWeight = max(upper,lower) - min(upper,lower)
             else:
               self.raiseAnError(IOError,"Since the globalGrid is defined, the Stratified Sampler is only working when the sampling is performed on a grid on a CDF. However, the user specifies the grid on " + self.gridInfo[varName])
+          weight *= gridsWeight
+          self.inputInfo['ProbabilityWeight-'+distName] = gridsWeight
       if ("<distribution>" in varName) or self.variables2distributionsMapping[varName]['totDim']==1:
         # 1D variable
         # if the varName is a comma separated list of strings the user wants to sample the comma separated variables with the same sampled value => link the value to all comma separated variables
@@ -205,28 +240,29 @@ class Stratified(Grid):
           ppfValue = self.distDict[varName].ppf(coordinate)
           ppfLower = self.distDict[varName].ppf(min(upper,lower))
           ppfUpper = self.distDict[varName].ppf(max(upper,lower))
-          weight *= self.distDict[varName].cdf(ppfUpper) - self.distDict[varName].cdf(ppfLower)
-          self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = self.distDict[varName].cdf(ppfUpper) - self.distDict[varName].cdf(ppfLower)
+          gridWeight = self.distDict[varName].cdf(ppfUpper) - self.distDict[varName].cdf(ppfLower)
           self.inputInfo['SampledVarsPb'][varName]  = self.distDict[varName].pdf(ppfValue)
         elif self.gridInfo[varName] == 'value':
           coordinateCdf = self.distDict[varName].cdf(min(upper,lower)) + (self.distDict[varName].cdf(max(upper,lower))-self.distDict[varName].cdf(min(upper,lower)))*randomUtils.random()
           if coordinateCdf == 0.0:
             self.raiseAWarning(IOError,"The grid lower bound and upper bound in value will generate ZERO cdf value!!!")
           coordinate = self.distDict[varName].ppf(coordinateCdf)
-          weight *= self.distDict[varName].cdf(max(upper,lower)) - self.distDict[varName].cdf(min(upper,lower))
-          self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = self.distDict[varName].cdf(max(upper,lower)) - self.distDict[varName].cdf(min(upper,lower))
+          gridWeight = self.distDict[varName].cdf(max(upper,lower)) - self.distDict[varName].cdf(min(upper,lower))
           self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(coordinate)
-        for kkey in varName.strip().split(','):
-          self.inputInfo['distributionName'][kkey] = self.toBeSampled[varName]
-          self.inputInfo['distributionType'][kkey] = self.distDict[varName].type
+        # compute the weight and ProbabilityWeight-varName
+        weight *= gridWeight
+        self.inputInfo['ProbabilityWeight-'+varName] = gridWeight
+        for subVar in varName.strip().split(','):
+          self.inputInfo['distributionName'][subVar] = self.toBeSampled[varName]
+          self.inputInfo['distributionType'][subVar] = self.distDict[varName].type
           if self.gridInfo[varName] =='CDF':
-            self.values[kkey] = ppfValue
-            self.inputInfo['upper'][kkey] = ppfUpper
-            self.inputInfo['lower'][kkey] = ppfLower
+            self.values[subVar] = ppfValue
+            self.inputInfo['upper'][subVar] = ppfUpper
+            self.inputInfo['lower'][subVar] = ppfLower
           elif self.gridInfo[varName] =='value':
-            self.values[kkey] = coordinate
-            self.inputInfo['upper'][kkey] = max(upper,lower)
-            self.inputInfo['lower'][kkey] = min(upper,lower)
+            self.values[subVar] = coordinate
+            self.inputInfo['upper'][subVar] = max(upper,lower)
+            self.inputInfo['lower'][subVar] = min(upper,lower)
 
     self.inputInfo['PointProbability'] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
     self.inputInfo['ProbabilityWeight' ] = weight

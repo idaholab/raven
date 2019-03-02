@@ -1,0 +1,131 @@
+<Simulation printTimeStamps="false">
+  <RunInfo>
+    <WorkingDir>scgpc</WorkingDir>
+    <Sequence>makeG, trainG, testG, stats, printG, printRomG</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <TestInfo>
+    <name>framework/Samplers/SparseGrid.gamma_large_scale</name>
+    <author>wangc</author>
+    <created>2018-07-26</created>
+    <classesTested>Samplers.SparseGridCollocation</classesTested>
+    <description>
+        This tests using SparseGridCollocation with gamma-distributed inputs with large scale parameters
+        to test the fix for issue #693
+    </description>
+    <analytic>
+        This test is analytic in mean and variance documented in the analytic tests.
+        Two models are used:
+        ans = x1 + x2 with analytic mean = 4.7, variance = 3.565
+        ans = x1**2 + x2**2 with analytic mean = 14.655, variance = 215.638125
+    </analytic>
+  </TestInfo>
+
+  <Distributions>
+    <Gamma name="GammaDist1">
+      <low>0</low>
+      <alpha>11</alpha>
+      <beta>5</beta>
+    </Gamma>
+    <Gamma name="GammaDist2">
+      <low>0</low>
+      <alpha>2</alpha>
+      <beta>0.8</beta>
+    </Gamma>
+  </Distributions>
+
+  <Samplers>
+    <SparseGridCollocation name="GSG" parallel="1">
+      <variable name="x1">
+        <distribution>GammaDist1</distribution>
+      </variable>
+      <variable name="x2">
+        <distribution>GammaDist2</distribution>
+      </variable>
+      <ROM class="Models" type="ROM">GROM</ROM>
+    </SparseGridCollocation>
+  </Samplers>
+
+  <Models>
+    <Dummy name="MyDummy" subType=""/>
+    <ExternalModel ModuleToLoad="../../../AnalyticModels/poly_scgpc_gamma" name="polynomial" subType="">
+      <variables>x1,x2,ans,ans2</variables>
+    </ExternalModel>
+    <ROM name="GROM" subType="GaussPolynomialRom">
+      <Target>ans,ans2</Target>
+      <Features>x1,x2</Features>
+      <IndexSet>TensorProduct</IndexSet>
+      <PolynomialOrder>2</PolynomialOrder>
+      <Interpolation poly="Laguerre" quad="Laguerre">x1</Interpolation>
+      <Interpolation poly="Laguerre" quad="Laguerre" weight="1">x2</Interpolation>
+    </ROM>
+  </Models>
+
+  <Steps>
+    <MultiRun name="makeG" pauseAtEnd="false">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ExternalModel">polynomial</Model>
+      <Sampler class="Samplers" type="SparseGridCollocation">GSG</Sampler>
+      <Output class="DataObjects" type="PointSet">Gsolns</Output>
+    </MultiRun>
+    <MultiRun name="testG" pauseAtEnd="false">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ROM">GROM</Model>
+      <Sampler class="Samplers" type="SparseGridCollocation">GSG</Sampler>
+      <Output class="DataObjects" type="PointSet">Gtests</Output>
+    </MultiRun>
+    <IOStep name="printRomG">
+      <Input class="DataObjects" type="PointSet">Gtests</Input>
+      <Input class="DataObjects" type="DataSet">rom_stats</Input>
+      <Output class="OutStreams" type="Print">dumpromGamma</Output>
+      <Output class="OutStreams" type="Print">dumpromGammaXml</Output>
+    </IOStep>
+    <IOStep name="printG">
+      <Input class="DataObjects" type="PointSet">Gsolns</Input>
+      <Output class="OutStreams" type="Print">dumpGamma</Output>
+    </IOStep>
+    <RomTrainer name="trainG">
+      <Input class="DataObjects" type="PointSet">Gsolns</Input>
+      <Output class="Models" type="ROM">GROM</Output>
+    </RomTrainer>
+    <IOStep name="stats">
+      <Input class="Models" type="ROM">GROM</Input>
+      <Output class="DataObjects" type="DataSet">rom_stats</Output>
+    </IOStep>
+  </Steps>
+
+  <DataObjects>
+    <PointSet name="dummyIN">
+      <Input>x1,x2</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="Gtests">
+      <Input>x1,x2</Input>
+      <Output>ans,ans2</Output>
+    </PointSet>
+    <PointSet name="Gsolns">
+      <Input>x1,x2</Input>
+      <Output>ans,ans2</Output>
+    </PointSet>
+    <DataSet name="rom_stats"/>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="dumpromGamma">
+      <type>csv</type>
+      <source>Gtests</source>
+      <what>input,output</what>
+    </Print>
+    <Print name="dumpGamma">
+      <type>csv</type>
+      <source>Gsolns</source>
+      <what>input,output</what>
+    </Print>
+    <Print name="dumpromGammaXml">
+      <type>csv</type>
+      <source>rom_stats</source>
+    </Print>
+  </OutStreams>
+
+</Simulation>

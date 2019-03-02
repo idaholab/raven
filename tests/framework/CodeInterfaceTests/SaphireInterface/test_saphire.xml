@@ -1,0 +1,103 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>saphire</name>
+    <author>wangc</author>
+    <created>2018-07-03</created>
+    <classesTested>CodeInterface</classesTested>
+    <description>
+       This test is aimed to show the extension of the GenericCode interface for SAPHIRE
+    </description>
+  </TestInfo>
+  <RunInfo>
+    <JobName>saphire</JobName>
+    <Sequence>sample</Sequence>
+    <WorkingDir>testSaphire</WorkingDir>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name="macro" type="">Class_Chg_DEMO.mac</Input>
+    <Input name="demo" type="">demo.zip</Input>
+  </Files>
+
+  <Models>
+    <Code name="saphire" subType="Saphire">
+      <shell>False</shell>
+      <executable>"C:\Saphire 8\tools\SAPHIRE.exe"</executable>
+      <clargs arg="macro" extension=".mac" type="input" delimiter="="/>
+      <clargs arg="project" extension=".zip" type="input" delimiter="="/>
+      <outputFile>fixed_output.csv</outputFile>
+      <codeOutput type="uncertainty">et_uq.csv</codeOutput>
+      <codeOutput type="uncertainty">ft_uq.csv</codeOutput>
+    </Code>
+  </Models>
+
+  <Distributions>
+    <Normal name="allEvents">
+        <mean>0.1</mean>
+        <sigma>0.025</sigma>
+        <lowerBound>0.05</lowerBound>
+        <upperBound>0.15</upperBound>
+    </Normal>
+    <Normal name="mov1Event">
+        <mean>0.5</mean>
+        <sigma>0.1</sigma>
+        <lowerBound>0.3</lowerBound>
+        <upperBound>0.8</upperBound>
+    </Normal>
+    <Normal name="single1">
+        <mean>0.2</mean>
+        <sigma>0.05</sigma>
+          <lowerBound>0.1</lowerBound>
+          <upperBound>0.3</upperBound>
+    </Normal>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="mcSaphire">
+        <samplerInit>
+            <limit>2</limit>
+        </samplerInit>
+        <variable name="allEventsPb">
+            <distribution>allEvents</distribution>
+        </variable>
+        <variable name="mov1EventPb">
+            <distribution>mov1Event</distribution>
+        </variable>
+        <variable name="single1Pb">
+            <distribution>single1</distribution>
+        </variable>
+    </MonteCarlo>
+
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="sample">
+      <Input class="Files" type="">macro</Input>
+      <Input class="Files" type="">demo</Input>
+      <Model class="Models" type="Code">saphire</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mcSaphire</Sampler>
+      <Output class="DataObjects" type="PointSet">saphireDump</Output>
+      <Output class="OutStreams" type="Print">saphirePrint</Output>
+    </MultiRun>
+  </Steps>
+
+  <DataObjects>
+    <PointSet name="saphireDump">
+      <Input>allEventsPb, mov1EventPb, single1Pb</Input>
+      <Output>LOSP:3_Mean,LOSP:2_Standard~Dev.,CCS_Mean, ECS_Mean, CCS_Standard~Dev., ECS_Standard~Dev., CCS_Skewness,
+	      ECS_Skewness, CCS_Kurtosis, ECS_Kurtosis, CCS_5th, CCS_95th, ECS_5th, ECS_95th
+      </Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="saphirePrint">
+      <type>csv</type>
+      <source>saphireDump</source>
+      <what>input,output</what>
+    </Print>
+  </OutStreams>
+
+</Simulation>

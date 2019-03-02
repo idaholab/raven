@@ -5,6 +5,7 @@
     <printInput/>
     <Sequence>sample,print</Sequence>
   </RunInfo>
+
   <TestInfo>
     <name>framework/VariableGroups/OrderedVariables</name>
     <author>talbpaul</author>
@@ -18,7 +19,7 @@
   <VariableGroups>
     <Group name="x_odd">x1,x3,x5</Group>
     <Group name="x_even">x2,x4,x6</Group>
-    <Group base="x_odd" dependencies="x_odd,x_even" name="union">+x_even</Group>
+    <Group name="union">x_odd,+x_even</Group>
   </VariableGroups>
 
   <Distributions>
@@ -101,14 +102,17 @@
     <Print name="dump_uni">
       <type>csv</type>
       <source>uni</source>
+      <what>input, output</what>
     </Print>
     <Print name="dump_odd">
       <type>csv</type>
       <source>odd</source>
+      <what>input, output</what>
     </Print>
     <Print name="dump_even">
       <type>csv</type>
       <source>even</source>
+      <what>input, output</what>
     </Print>
   </OutStreams>
 

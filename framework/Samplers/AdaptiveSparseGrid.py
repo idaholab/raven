@@ -22,7 +22,6 @@
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
-#if not 'xrange' in dir(__builtins__): xrange = range
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -42,6 +41,7 @@ else:
 from .SparseGridCollocation import SparseGridCollocation
 from .AdaptiveSampler import AdaptiveSampler
 from utils import utils
+from utils import InputData
 import Quadratures
 import IndexSets
 import MessageHandler
@@ -51,6 +51,35 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
   """
    Adaptive Sparse Grid Collocation sampling strategy
   """
+
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    inputSpecification = super(AdaptiveSparseGrid, cls).getInputSpecification()
+
+    convergenceInput = InputData.parameterInputFactory("Convergence", contentType=InputData.StringType)
+    convergenceInput.addParam("target", InputData.StringType, True)
+    convergenceInput.addParam("maxPolyOrder", InputData.IntegerType)
+    convergenceInput.addParam("persistence", InputData.IntegerType)
+
+    inputSpecification.addSub(convergenceInput)
+
+    inputSpecification.addSub(InputData.parameterInputFactory("logFile"))
+    inputSpecification.addSub(InputData.parameterInputFactory("maxRuns"))
+
+    targetEvaluationInput = InputData.parameterInputFactory("TargetEvaluation", contentType=InputData.StringType)
+    targetEvaluationInput.addParam("type", InputData.StringType)
+    targetEvaluationInput.addParam("class", InputData.StringType)
+    inputSpecification.addSub(targetEvaluationInput)
+
+    return inputSpecification
+
   def __init__(self):
     """
       Default Constructor that will initialize member variables with reasonable
@@ -78,11 +107,11 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
     self.oldSG                   = None   #previously-accepted sparse grid
     self.error                   = 0      #estimate of percent of moment calculated so far
     self.logCounter              = 0      #when printing the log, tracks the number of prints
-    #convergence study
-    self.doingStudy              = False  #true if convergenceStudy node defined for sampler
-    self.studyFileBase           = 'out_' #can be replaced in input, not used if not doingStudy
-    self.studyPoints             = []     #list of ints, runs at which to record a state
-    self.studyPickle             = False  #if true, dumps ROM to pickle at each step
+    #convergence study -> currently suspended since it doesn't follow RAVEN I/O protocol.
+    #self.doingStudy              = False  #true if convergenceStudy node defined for sampler
+    #self.studyFileBase           = 'out_' #can be replaced in input, not used if not doingStudy
+    #self.studyPoints             = []     #list of ints, runs at which to record a state
+    #self.studyPickle             = False  #if true, dumps ROM to pickle at each step
     #solution storage
     self.neededPoints            = []     #queue of points to submit
     self.submittedNotCollected   = []     #list of points submitted but not yet collected and used
@@ -95,13 +124,15 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
 
     self.addAssemblerObject('TargetEvaluation','1')
 
-  def localInputAndChecks(self,xmlNode):
+  def localInputAndChecks(self,xmlNode, paramInput):
     """
       Class specific xml inputs will be read here and checked for validity.
       @ In, xmlNode, xml.etree.ElementTree.Element, The xml element node that will be checked against the available options specific to this Sampler.
+      @ In, paramInput, InputData.ParameterInput, the parsed parameters
       @ Out, None
     """
-    SparseGridCollocation.localInputAndChecks(self,xmlNode)
+    #TODO remove using xmlNode
+    SparseGridCollocation.localInputAndChecks(self,xmlNode, paramInput)
     if 'Convergence' not in list(c.tag for c in xmlNode):
       self.raiseAnError(IOError,'Convergence node not found in input!')
     convnode  = xmlNode.find('Convergence')
@@ -116,23 +147,26 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
       self.logFile = logNode.text
     if self.maxRuns is not None:
       self.maxRuns = int(self.maxRuns)
-    if studyNode is not None:
-      self.doingStudy = True
-      self.studyPoints = studyNode.find('runStatePoints').text
-      filebaseNode = studyNode.find('baseFilename')
-      self.studyPickle = studyNode.find('pickle') is not None
-      if filebaseNode is None:
-        self.raiseAWarning('No baseFilename specified in convergenceStudy node!  Using "%s"...' %self.studyFileBase)
-      else:
-        self.studyFileBase = studyNode.find('baseFilename').text
-      if self.studyPoints is None:
-        self.raiseAnError(IOError,'convergenceStudy node was included, but did not specify the runStatePoints node!')
-      else:
-        try:
-          self.studyPoints = list(int(i) for i in self.studyPoints.split(','))
-        except ValueError as e:
-          self.raiseAnError(IOError,'Convergence state point not recognizable as an integer!',e)
-        self.studyPoints.sort()
+    # studyNode for convergence study is removed for now, since it doesn't follow the RAVEN pattern of I/O
+    #   since it writes directy to a file. However, it could be configured to work in the future, so leaving
+    #   it for now.
+    #if studyNode is not None:
+    #  self.doingStudy = True
+    #  self.studyPoints = studyNode.find('runStatePoints').text
+    #  filebaseNode = studyNode.find('baseFilename')
+    #  self.studyPickle = studyNode.find('pickle') is not None
+    #  if filebaseNode is None:
+    #    self.raiseAWarning('No baseFilename specified in convergenceStudy node!  Using "%s"...' %self.studyFileBase)
+    #  else:
+    #    self.studyFileBase = studyNode.find('baseFilename').text
+    #  if self.studyPoints is None:
+    #    self.raiseAnError(IOError,'convergenceStudy node was included, but did not specify the runStatePoints node!')
+    #  else:
+    #    try:
+    #      self.studyPoints = list(int(i) for i in self.studyPoints.split(','))
+    #    except ValueError as e:
+    #      self.raiseAnError(IOError,'Convergence state point not recognizable as an integer!',e)
+    #    self.studyPoints.sort()
 
   def localInitialize(self):
     """
@@ -223,16 +257,17 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
       if self.logFile is not None:
         self._printToLog()
       #if doing a study and past a statepoint, record the statepoint
-      if self.doingStudy:
-        while len(self.studyPoints)>0 and len(self.pointsNeededToMakeROM) > self.studyPoints[0]:
-          self._writeConvergencePoint(self.studyPoints[0])
-          if self.studyPickle:
-            self._writePickle(self.studyPoints[0])
-          #remove the point
-          if len(self.studyPoints)>1:
-            self.studyPoints=self.studyPoints[1:]
-          else:
-            self.studyPoints = []
+      # discontinued temporarily, see notes above in localInputsAndChecks
+      #if self.doingStudy:
+      #  while len(self.studyPoints)>0 and len(self.pointsNeededToMakeROM) > self.studyPoints[0]:
+      #    self._writeConvergencePoint(self.studyPoints[0])
+      #    if self.studyPickle:
+      #      self._writePickle(self.studyPoints[0])
+      #    #remove the point
+      #    if len(self.studyPoints)>1:
+      #      self.studyPoints=self.studyPoints[1:]
+      #    else:
+      #      self.studyPoints = []
       #if error small enough, converged!
       if abs(self.error) < self.convValue:
         self.done = True
@@ -267,8 +302,9 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
       self.jobHandler.terminateAll()
       self.neededPoints=[]
       self.done = True
-      if self.doingStudy and len(self.studyPoints)>0:
-        self.raiseAWarning('In the convergence study, the following numbers of runs were not reached:',self.studyPoints)
+      # suspended, see notes above
+      #if self.doingStudy and len(self.studyPoints)>0:
+      #  self.raiseAWarning('In the convergence study, the following numbers of runs were not reached:',self.studyPoints)
       return False
     #if we got here, we still have points to run!
     #print a status update...
@@ -284,6 +320,7 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
       @ In, myInput, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
       @ Out, None
     """
+    self.inputInfo['ProbabilityWeight'] = 1.0
     pt = self.neededPoints.pop()
     self.submittedNotCollected.append(pt)
     for v,varName in enumerate(self.sparseGrid.varNames):
@@ -292,7 +329,7 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
         for key in varName.strip().split(','):
           self.values[key] = pt[v]
         self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(pt[v])
-        self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = self.inputInfo['SampledVarsPb'][varName]
+        self.inputInfo['ProbabilityWeight-'+varName] = self.inputInfo['SampledVarsPb'][varName]
         # compute the SampledVarsPb for N-D distribution
       elif self.variables2distributionsMapping[varName]['totDim'] > 1 and self.variables2distributionsMapping[varName]['reducedDim'] ==1:
         dist = self.variables2distributionsMapping[varName]['name']
@@ -313,8 +350,8 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
           for key in var.strip().split(','):
             self.values[key] = pt[location]
         self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(ndCoordinates)
-        self.inputInfo['ProbabilityWeight-'+varName.replace(",","!")] = self.inputInfo['SampledVarsPb'][varName]
-
+        self.inputInfo['ProbabilityWeight-'+dist] = self.inputInfo['SampledVarsPb'][varName]
+        self.inputInfo['ProbabilityWeight']*=self.inputInfo['ProbabilityWeight-'+dist]
     self.inputInfo['PointProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
     self.inputInfo['SamplerType'] = self.type
 
@@ -347,7 +384,7 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
       ]:
       self.pointsNeededToMakeROM.add(pt) #sets won't store redundancies
       #if pt isn't already in needed, and it hasn't already been solved, add it to the queue
-      if pt not in self.neededPoints and self.solns.getMatchingRealization(self._tupleToDict(pt)) is None:
+      if pt not in self.neededPoints and self.solns.realization(matchDict=self._tupleToDict(pt))[1] is None:
         self.newSolutionSizeShouldBe+=1
         self.neededPoints.append(pt)
 
@@ -436,7 +473,9 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
     """
     point = None
     avg = 0
-    for pt in self.expImpact.values()[0].keys():
+    #This finds a prototype of the samples from which the points can be found
+    prototype = self.expImpact[self.targets[0]]
+    for pt in sorted(prototype.keys()):
       new = sum(self.expImpact[t][pt] for t in self.targets)/len(self.targets)
       if avg < new:
         avg = new
@@ -458,7 +497,7 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
     tot=0
     for n in range(len(sg)):
       pt,wt = sg[n]
-      inExisting = self.solns.getMatchingRealization(self._tupleToDict(pt))
+      _,inExisting = self.solns.realization(matchDict=self._tupleToDict(pt))
       if inExisting is None:
         self.raiseAnError(RuntimeError,'Trying to integrate with point',pt,'but it is not in the solutions!')
       tot+=inExisting['outputs'][self.targets[i]]**r*wt
@@ -533,7 +572,7 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
     for t in self.targets:
       f.writelines('  {:<16}'.format(t))
     f.writelines('\n')
-    for idx in self.expImpact.values()[0].keys():
+    for idx in utils.first(self.expImpact.values()).keys():
       f.writelines('    {:^{}}:'.format(idx,pl))
       for t in self.targets:
         f.writelines('  {:<9}'.format(self.expImpact[t][idx]))
@@ -584,19 +623,20 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
         impact = self._convergence(poly,rom.supervisedEngine.supervisedContainer[0],t)
         self.actImpact[t][poly] = impact
 
-  def _writeConvergencePoint(self,runPoint):
-    """
-      Writes XML out for this ROM at this point in the run
-      @ In, runPoint, int, the target runs for this statepoint
-      @ Out, None
-    """
-    fname = self.studyFileBase+str(runPoint)
-    self.raiseAMessage('Preparing to write state %i to %s.xml...' %(runPoint,fname))
-    rom = copy.deepcopy(self.ROM)
-    self._finalizeROM(rom)
-    rom.train(self.solns)
-    options = {'filenameroot':fname, 'what':'all'}
-    rom.printXML(options)
+  # disabled until we determine a consistent way to do this without bypassing dataobjects
+  #def _writeConvergencePoint(self,runPoint):
+  #  """
+  #    Writes XML out for this ROM at this point in the run
+  #    @ In, runPoint, int, the target runs for this statepoint
+  #    @ Out, None
+  #  """
+  #  fname = self.studyFileBase+str(runPoint)
+  #  self.raiseAMessage('Preparing to write state %i to %s.xml...' %(runPoint,fname))
+  #  rom = copy.deepcopy(self.ROM)
+  #  self._finalizeROM(rom)
+  #  rom.train(self.solns)
+  #  options = {'filenameroot':fname, 'what':'all'}
+  #  rom.printXML(options)
 
   def _writePickle(self,runPoint):
     """
@@ -609,4 +649,4 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
     rom = copy.deepcopy(self.ROM)
     self._finalizeROM(rom)
     rom.train(self.solns)
-    pickle.dump(rom,open(fname+'.pk','w'))
+    pickle.dump(rom,open(fname+'.pk','wb'))

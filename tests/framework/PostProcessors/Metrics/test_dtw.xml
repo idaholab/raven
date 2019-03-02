@@ -1,0 +1,135 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="all">
+  <TestInfo>
+    <name>framework/PostProcessors/Metric/test_dtw</name>
+    <author>wangc</author>
+    <created>2018-02-20</created>
+    <classesTested>PostProcessors.Metric</classesTested>
+    <description>
+      This test checks the Metric PostProcessor with DTW metric
+    </description>
+    <revisions>
+      <revision author='talbpaul' date='2019-01-09'>no writing directly to files from postprocessors</revision>
+    </revisions>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>DTW</WorkingDir>
+    <Sequence>mcRun1, mcRun2, PP1</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Models>
+    <ExternalModel ModuleToLoad="lorentzAttractor_timeScale_I" name="PythonModule1" subType="">
+      <variables>sigma,rho,beta,x1,y1,z1,time,x0,y0,z0</variables>
+    </ExternalModel>
+    <ExternalModel ModuleToLoad="lorentzAttractor_timeScale_II" name="PythonModule2" subType="">
+      <variables>sigma,rho,beta,x2,y2,z2,time,x0,y0,z0</variables>
+    </ExternalModel>
+    <PostProcessor name="pp1" subType="Metric">
+      <Features type="variable">x1,y1,z1</Features>
+      <Targets type="variable">x2,y2,z2</Targets>
+      <Metric class="Metrics" type="DTW">dtwI</Metric>
+      <Metric class="Metrics" type="DTW">dtwII</Metric>
+    </PostProcessor>
+  </Models>
+
+  <Metrics>
+      <DTW name="dtwI">
+          <order>0</order>
+          <localDistance>euclidean</localDistance>
+      </DTW>
+      <DTW name="dtwII">
+          <order>1</order>
+          <localDistance>euclidean</localDistance>
+      </DTW>
+  </Metrics>
+
+  <DataObjects>
+    <PointSet name="inputPlaceHolder">
+      <Input>x0,y0,z0</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="pp1_out">
+        <Output>
+            dtwI_x2_x1,
+            dtwI_y2_y1,
+            dtwI_z2_z1,
+            dtwII_x2_x1,
+            dtwII_y2_y1,
+            dtwII_z2_z1
+        </Output>
+    </PointSet>
+    <HistorySet name="outMC1">
+      <Input>x0,y0,z0</Input>
+      <Output>time,x1,y1,z1</Output>
+    </HistorySet>
+    <HistorySet name="outMC2">
+      <Input>x0,y0,z0</Input>
+      <Output>time,x2,y2,z2</Output>
+    </HistorySet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="pp1_print">
+      <type>csv</type>
+      <source>pp1_out</source>
+    </Print>
+  </OutStreams>
+
+  <Distributions>
+    <Normal name="x0_distrib">
+      <mean>4</mean>
+      <sigma>1</sigma>
+    </Normal>
+    <Normal name="y0_distrib">
+      <mean>4</mean>
+      <sigma>1</sigma>
+    </Normal>
+    <Normal name="z0_distrib">
+      <mean>4</mean>
+      <sigma>1</sigma>
+    </Normal>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="MC_external">
+      <samplerInit>
+        <limit>10</limit>
+        <initialSeed>1</initialSeed>
+      </samplerInit>
+      <variable name="x0">
+        <distribution>x0_distrib</distribution>
+      </variable>
+      <variable name="y0">
+        <distribution>y0_distrib</distribution>
+      </variable>
+      <variable name="z0">
+        <distribution>z0_distrib</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="mcRun1" re-seeding="20021986">
+      <Input     class="DataObjects"      type="PointSet"       >inputPlaceHolder</Input>
+      <Model     class="Models"           type="ExternalModel"  >PythonModule1</Model>
+      <Sampler   class="Samplers"         type="MonteCarlo"     >MC_external</Sampler>
+      <Output    class="DataObjects"      type="HistorySet"     >outMC1</Output>
+    </MultiRun>
+    <MultiRun name="mcRun2" re-seeding="13010405">
+      <Input     class="DataObjects"      type="PointSet"       >inputPlaceHolder</Input>
+      <Model     class="Models"           type="ExternalModel"  >PythonModule2</Model>
+      <Sampler   class="Samplers"         type="MonteCarlo"     >MC_external</Sampler>
+      <Output    class="DataObjects"      type="HistorySet"     >outMC2</Output>
+    </MultiRun>
+    <PostProcess name="PP1">
+      <Input class="DataObjects" type="HistorySet">outMC1</Input>
+      <Input class="DataObjects" type="HistorySet">outMC2</Input>
+      <Model class="Models" type="PostProcessor">pp1</Model>
+      <Output class="DataObjects" type="PointSet">pp1_out</Output>
+      <Output class="OutStreams" type="Print">pp1_print</Output>
+    </PostProcess>
+  </Steps>
+
+</Simulation>

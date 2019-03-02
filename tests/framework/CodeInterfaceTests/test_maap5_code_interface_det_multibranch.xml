@@ -68,9 +68,12 @@
   </Steps>
 
   <DataObjects>
-    <HistorySet name='Temporal_Evolution'>
+    <HistorySet name='Temporal_Evolution' hierarchical="true">
       <Input>TIMELOCA</Input>
       <Output>TIME, PPS, PSGGEN(1), ZWDC2SG(1), WWBBN(1), WWTOTFW(1)</Output>
+      <options>
+          <pivotParameter>TIME</pivotParameter>
+      </options>
     </HistorySet>
   </DataObjects>
 
@@ -78,6 +81,7 @@
     <Print name='test_dataobject'>
       <type>csv</type>
       <source>Temporal_Evolution</source>
+      <what>input,output</what>
     </Print>
     <Plot name='plotWWBBN' overwrite='False'>
       <plotSettings>

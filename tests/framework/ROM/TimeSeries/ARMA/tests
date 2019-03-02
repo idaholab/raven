@@ -1,0 +1,115 @@
+[Tests]
+ # NOTE the ARMA training optimization sequence is often very, very dependent on small changes in values.
+ # As a result, it is very difficult to get the same results on slightly different systems, such as different operating systems.
+ # By way of comparison, running the test_ARMA.xml input and comparing the first entry in the first sampled history, the following
+ # operating system results are obtained, each with identical python library installations, with both crow and numpy seeded identically::
+ # MAC OSX (10.12.6): 9.457661108
+ # Windows 7 Test   : 9.457661214
+ # Ubuntu 16.04 LTS : 9.457659911
+ # Ubuntu 18.04 LTS : 9.466078333
+ # As we can observe, we at most can rely on 2 digits of similarity even on the first point.
+ # A good alternative for non-correlated ARMAs is to run statistics on the results (mean, variance) and check those instead.
+
+ [./Basic]
+   type = 'RavenFramework'
+   input = 'basic.xml'
+   output = 'Basic/romMeta.csv'
+   UnorderedXml = 'Basic/romMeta.xml'
+   rel_err = 1e-6
+  [../]
+  [./ARMAparallel]
+   type = 'RavenFramework'
+   input = 'test_ARMA_parallel.xml'
+   output = 'ARMAparallel/writeSynDataOut.csv ARMAparallel/writeSynDataOut.xml'
+  [../]
+  [./ARMAreseedPrecursor]
+   type = 'RavenFramework'
+   input = 'arma_reseed_precursor.xml'
+   output = 'ARMAparallel/arma.pk'
+  [../]
+  [./ARMAreseedTest]
+   type = 'RavenFramework'
+   input = 'arma_reseed_test.xml'
+   csv = 'ARMAparallel/results_0.csv'
+   expected_fail = true
+   prereq = ARMAreseedPrecursor
+   skip = 'needs the new RNG entity'
+  [../]
+
+ [./SingleFourier]
+   type = 'RavenFramework'
+   input = 'single_fourier.xml'
+   csv = 'SingleFourier/synthetic_0.csv'
+   rel_err = 6e-1
+  [../]
+
+  [./MultipleArma]
+   type = 'RavenFramework'
+   input = 'multiple_arma.xml'
+   output = 'MultipleArma/samples.csv MultipleArma/samples_0.csv MultipleArma/samples_1.csv MultipleArma/stats.xml'
+   csv = 'MultipleArma/stats.csv'
+   rel_err = 1e-1
+  [../]
+
+  [./MultipleFourier]
+   type = 'RavenFramework'
+   input = 'multiple_fourier.xml'
+   output = 'MultipleFourier/samples.csv'
+   csv = 'MultipleFourier/samples_0.csv'
+   zero_threshold = 1.e-10
+  [../]
+
+  [./VARMA]
+   type = 'RavenFramework'
+   input = 'varma.xml'
+   output = 'VARMA/plot_VARMA.png VARMA/plot_input.png VARMA/samples.csv VARMA/samples_0.csv VARMA/stats.xml'
+   csv = 'VARMA/stats.csv'
+   rel_err = 1e-1
+   max_time = 500
+  [../]
+
+  [./ZeroFilter]
+    type = 'RavenFramework'
+    input = 'zero_filter.xml'
+    output = 'ZeroFilter/synthetic.csv ZeroFilter/synthetic_0.csv ZeroFilter/synthetic.xml ZeroFilter/stats.xml'
+    csv = 'ZeroFilter/stats.csv'
+    rel_err = 2e-1
+    max_time = 300
+  [../]
+
+  [./Segmented]
+    type = 'RavenFramework'
+    input = 'segmented.xml'
+    output = 'Segmented/synthetic.csv Segmented/synthetic_0.csv Segmented/synthetic.xml Segmented/stats.xml'
+    csv = 'Segmented/stats.csv'
+    rel_err = 1e-2
+  [../]
+  [./Clustered]
+    type = 'RavenFramework'
+    input = 'clustered.xml'
+    [./rom_meta]
+      type = XML
+      output = 'Clustered/romMeta.xml'
+      rel_err = 1e-5
+    [../]
+  [../]
+
+  [./PreserveCdf]
+    type = 'RavenFramework'
+    input = 'preserve_cdf.xml'
+    [./input_ldc]
+      # this is primarily to test that sample_ldc will be a valid test.
+      # If this fails, then either there's an error, or the gold_dur*.csv need regolding.
+      # This is done by copying input_durs_0.csv 10 times to compare against the sample ldcs.
+      # Hopefully we get a compare-samples-to-gold metric figured out so we can use that later.
+      type = OrderedCSV
+      output = 'PreserveCdf/input_durs_0.csv'
+      rel_err = 1e-5
+    [../]
+    [./sample_ldc]
+      type = OrderedCSV
+      output = 'PreserveCdf/metric.csv'
+      rel_err = 1e-6
+    [../]
+  [../]
+[]

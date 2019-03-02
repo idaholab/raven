@@ -17,12 +17,16 @@ import sys
 ravenDir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 testDir = os.path.join(ravenDir,'tests')
 
-def getRegressionTests(skipThese=[],skipExpectedFails=True):
+def getRegressionTests(whichTests=1,skipExpectedFails=True):
   """
     Collects all the RAVEN regression tests into a dictionary keyed by directory.
     Must be run from this directory or another that is two directories below RAVEN.
-    @ In, skipThese, list(str), filenames to skip in check
-    @ In, skipExpectedFails, bool, if True skips framework/ErrorCheck directory
+    @ In, whichTests, integer, optional, the test type:
+                                       - 1 => xml test files,
+                                       - 2 => python tests,
+                                       - 3 => interfaceCheck tests
+                                       default 1 => xml test files
+    @ In, skipExpectedFails, optional, bool, if True skips framework/ErrorCheck directory
     @ Out, dict, dict[dir] = list(filenames)
   """
   testsFilenames = []
@@ -32,40 +36,76 @@ def getRegressionTests(skipThese=[],skipExpectedFails=True):
       continue
     if 'tests' in files:
       testsFilenames.append((root,os.path.join(root, 'tests')))
+  suffix = ".xml" if whichTests in [1,3] else ".py"
   #read all "input" node files from "tests" files
   doTests = {}
   for root,testFilename in testsFilenames:
     testsFile = file(testFilename,'r')
+    # collect the test specs in a dictionary
+    testFileList = []
+    testSpecs = {}
+    startReading = False
+    collectSpecs = False
     for line in testsFile:
-      if line.strip().startswith('input'):
-        newtest = line.split('=')[1].strip().strip("'")
-        if newtest not in skipThese and newtest.endswith('.xml'):
-          if root not in doTests.keys(): doTests[root]=[]
-          doTests[root].append(newtest)
+      if line.strip().startswith("#"):
+        continue
+      if line.strip().startswith("[../]"):
+        collectSpecs = True
+        startReading = False
+      if startReading:
+        splitted = line.strip().split('=')
+        if len(splitted) == 2:
+          testSpecs[splitted[0].strip()] = splitted[1].replace("'","").replace('"','').strip()
+      if line.strip().startswith("[./"):
+        startReading = True
+        collectSpecs = False
+      if collectSpecs:
+        # collect specs
+        testFileList.append(testSpecs)
+        collectSpecs = False
+        testSpecs = {}
+    if root not in doTests.keys():
+      doTests[root] = []
+    # now we have all the specs collected
+    for spec in testFileList:
+      # check if test is skipped or an executable is required
+      if "required_executable" in spec or "skip" in spec:
+        continue
+      if "input" not in spec:
+        continue
+      testType = spec.get('type',"notfound").strip()
+      newTest = spec['input'].strip()
+      testInterfaceOnly = False
+      if 'test_interface_only' in spec:
+        testInterfaceOnly = True if spec['test_interface_only'].lower() == 'true' else False
+      if whichTests in [1,3]:
+        if newTest.endswith(suffix) and testType.lower() not in 'ravenpython':
+          if whichTests == 3 and testInterfaceOnly:
+            doTests[root].append(newTest)
+          elif whichTests == 1 and not testInterfaceOnly:
+            doTests[root].append(newTest)
+      else:
+        if newTest.endswith(suffix) and testType.lower() in 'ravenpython':
+          doTests[root].append(newTest)
   return doTests
 
-def getRegressionList(skipThese=[],skipExpectedFails=True):
-  """
-    Collects all the RAVEN regression tests into a list
-    Must be run from this directory or another that is two directories below RAVEN.
-    @ In, skipThese, list(str), filenames to skip in check
-    @ In, skipExpectedFails, bool, if True skips framework/ErrorCheck directory
-    @ Out, list(str), list of full paths to files
-  """
-  fileDict = getRegressionTests()
-  filelist = []
-  for dir,files in fileDict.items():
-    for f in files:
-      filelist.append(os.path.join(dir,f))
-  return filelist
-
 if __name__ == '__main__':
-  if '--skip-fails' in sys.argv: skipFails = True
-  else: skipFails = False
-  skipThese = ['test_rom_trainer.xml','../../framework/TestDistributions.py']
-  doTests = getRegressionTests(skipThese,skipExpectedFails = skipFails)
+  # skip the expected failed tests
+  skipFails = False
+  if '--skip-fails' in sys.argv:
+    skipFails = True
+  else:
+    skipFails = False
+  which = 1
+  if '--get-python-tests' in sys.argv:
+    # unit tests flag has priority over interface check
+    which = 2
+  elif '--get-interface-check-tests' in sys.argv:
+    which = 3
+
+  doTests = getRegressionTests(which,skipExpectedFails = skipFails)
   #print doTests
-  xmlTests = []
+  testFiles = []
   for key in doTests:
-    xmlTests.extend([os.path.join(key,l) for l in doTests[key]])
-  print ' '.join(xmlTests)
+    testFiles.extend([os.path.join(key,l) for l in doTests[key]])
+  print ' '.join(testFiles)

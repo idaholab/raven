@@ -2,14 +2,29 @@
 <Simulation>
   <RunInfo>
     <WorkingDir>timeDepOutCsv</WorkingDir>
-    <Sequence>GenerateData,PP,readStatistics,Plot</Sequence>
+    <Sequence>GenerateData,PP, Plot</Sequence>
     <batchSize>8</batchSize>
   </RunInfo>
 
-  <Files>
-    <Input name="stat_csv" type="">output_TD_BS2.csv</Input>
-    <Input name="stat_xml" type="">output_TD_BS2.xml</Input>
-  </Files>
+  <TestInfo>
+    <name>framework/PostProcessors/BasicStatistics/timeDepOutCsv</name>
+    <author>alfoa</author>
+    <created>2017-03-29</created>
+    <classesTested>PostProcessors.BasicStatistics</classesTested>
+    <description>
+      This test checks basic statistics for csv ouptut
+    </description>
+    <revisions>
+      <revision author="wangc" date="2017-12-20">convert test to use the new DataObjects with the new structure of basic statistic</revision>
+      <revision author="wangc" date="2018-05-15">remove unecessary plots</revision>
+      <revision author="wangc" date="2018-12-13">
+          In PR #882, the standard errors on statistics moments are implemented, these quantities are stored in
+          the pointwise metadata, and will be printed out in the output csv files by default.
+          In order to avoid regolding this test, the optional node 'what' with text values 'input, output' is added.
+          In this case, only the user requested variables as specified in the DataObjects are printed out. 
+      </revision>
+    </revisions>
+  </TestInfo>
 
   <Distributions>
     <Normal name="Normal">
@@ -53,8 +68,8 @@
 
   <DataObjects>
     <PointSet name="stats">
-        <Input>time</Input>
-        <Output>mean_T1,percentile_5_T1,percentile_95_T1,mean_T2,percentile_5_T2,percentile_95_T2</Output>
+      <Input>time</Input>
+      <Output>mean_T1,percentile_5_T1,percentile_95_T1,mean_T2,percentile_5_T2,percentile_95_T2</Output>
     </PointSet>
     <PointSet name="DummyIN">
       <Input>X1,X2</Input>
@@ -68,6 +83,12 @@
       <Input>X1,X2</Input>
       <Output>T1,T2,time</Output>
     </HistorySet>
+    <HistorySet name="timeDepBasicStat_basicStatPP">
+      <options>
+        <pivotParameter>time</pivotParameter>
+      </options>
+      <Output>timeDepBasicStat_vars</Output>
+    </HistorySet>
   </DataObjects>
 
   <Models>
@@ -75,144 +96,96 @@
       <variables>X1,X2,Y1,Y2,T1,T2,time</variables>
     </ExternalModel>
     <PostProcessor name="timeDepBasicStat" subType="BasicStatistics">
-        <pivotParameter>time</pivotParameter>
-        <expectedValue>T1,T2</expectedValue>
-        <percentile_5>T1,T2</percentile_5>
-        <percentile_95>T1,T2</percentile_95>
-        <variance>X1,X2,T1,T2</variance>
-        <covariance>
-            <targets>X1,X2</targets>
-            <features>T1,T2</features>
-        </covariance>
-        <pearson>
-            <targets>X1,X2,T1,T2</targets>
-            <features>X1,X2,T1,T2</features>
-        </pearson>
-        <sensitivity>
-            <targets>X1,X2,T1,T2</targets>
-            <features>X1,X2,T1,T2</features>
-        </sensitivity>
-    </PostProcessor>
-    <PostProcessor name="readStats" subType="RavenOutput">
-        <dynamic>true</dynamic>
-        <File ID="0" name="stat_xml">
-            <output name="mean_T1"          >T1 | expectedValue </output>
-            <output name="percentile_5_T1"  >T1 | percentile_5 </output>
-            <output name="percentile_95_T1" >T1 | percentile_95 </output>
-            <output name="mean_T2"          >T2 | expectedValue </output>
-            <output name="percentile_5_T2"  >T2 | percentile_5 </output>
-            <output name="percentile_95_T2" >T2 | percentile_95 </output>
-        </File>
+      <pivotParameter>time</pivotParameter>
+      <expectedValue prefix="mean">T1,T2</expectedValue>
+      <variance prefix="var">X1,X2,T1,T2</variance>
+      <covariance prefix="cov">
+        <targets>X1,X2</targets>
+        <features>T1,T2</features>
+      </covariance>
+      <pearson prefix="pear">
+        <targets>X1,X2,T1,T2</targets>
+        <features>X1,X2,T1,T2</features>
+      </pearson>
+      <sensitivity prefix="sen">
+        <targets>X1,X2,T1,T2</targets>
+        <features>X1,X2,T1,T2</features>
+      </sensitivity>
+      <percentile percent="5" prefix="percentile">T1,T2</percentile>
+      <percentile percent="95" prefix="percentile">T1,T2</percentile>
     </PostProcessor>
   </Models>
 
   <Steps>
     <MultiRun name="GenerateData">
-      <!--<Sampler class="Samplers"    type="MonteCarlo">myMC</Sampler>-->
-      <!--<Sampler class="Samplers" type="Stratified">myLHS</Sampler>-->
-      <Input   class="DataObjects" type="PointSet" >DummyIN</Input>
-      <Model   class="Models"      type="ExternalModel">PythonModule</Model>
-      <Sampler class="Samplers"    type="EnsembleForward">myEnse</Sampler>
-      <Output  class="DataObjects" type="PointSet" >Out</Output>
-      <Output  class="DataObjects" type="HistorySet">OutTime</Output>
+      <Input class="DataObjects" type="PointSet">DummyIN</Input>
+      <Model class="Models" type="ExternalModel">PythonModule</Model>
+      <Sampler class="Samplers" type="EnsembleForward">myEnse</Sampler>
+      <Output class="DataObjects" type="PointSet">Out</Output>
+      <Output class="DataObjects" type="HistorySet">OutTime</Output>
     </MultiRun>
     <IOStep name="Plot" pauseAtEnd="True">
-      <Input  class="DataObjects" type="PointSet" >Out</Input>
-      <Input  class="DataObjects" type="HistorySet">OutTime</Input>
-      <Input  class="DataObjects" type="PointSet">stats</Input>
-      <Output class="OutStreams"  type="Print"    >fileOut</Output>
-      <Output class="OutStreams"  type="Plot"     >myPlot</Output>
-      <Output class="OutStreams"  type="Plot"     >myPlotTime1</Output>
-      <Output class="OutStreams"  type="Plot"     >myPlotTime2</Output>
-      <Output class="OutStreams"  type="Plot"     >PlotStatsT1</Output>
-      <Output class="OutStreams"  type="Plot"     >PlotStatsT2</Output>
+      <Input class="DataObjects" type="PointSet">Out</Input>
+      <Input class="DataObjects" type="HistorySet">OutTime</Input>
+      <Input class="DataObjects" type="HistorySet">timeDepBasicStat_basicStatPP</Input>
+      <Output class="OutStreams" type="Print">fileOut</Output>
+      <Output class="OutStreams" type="Plot">PlotStatsT2</Output>
     </IOStep>
     <PostProcess name="PP">
       <Input class="DataObjects" type="HistorySet">OutTime</Input>
       <Model class="Models" type="PostProcessor">timeDepBasicStat</Model>
-      <Output class="Files" type="">stat_xml</Output>
-      <Output class="Files" type="">stat_csv</Output>
-    </PostProcess>
-    <PostProcess name="readStatistics">
-        <Input    class="Files"         type=""                >stat_xml</Input>
-        <Model    class="Models"        type="PostProcessor"   >readStats</Model>
-        <Output   class="DataObjects"   type="PointSet"        >stats</Output>
+      <Output class="DataObjects" type="HistorySet">timeDepBasicStat_basicStatPP</Output>
+      <Output class="OutStreams" type="Print">timeDepBasicStat_basicStatPP_dump</Output>
     </PostProcess>
   </Steps>
-
 
   <OutStreams>
     <Print name="fileOut">
       <type>csv</type>
       <source>Out</source>
     </Print>
-    <Plot name="PlotStatsT1" overwrite="false" verbosity="debug">
-        <plotSettings>
-            <plot>
-                <type>scatter</type>
-                <x>stats|Input|time</x>
-                <y>stats|Output|percentile_5_T1</y>
-                <marker>.</marker>
-            </plot>
-            <plot>
-                <type>scatter</type>
-                <x>stats|Input|time</x>
-                <y>stats|Output|percentile_95_T1</y>
-                <marker>.</marker>
-            </plot>
-            <plot>
-                <type>scatter</type>
-                <x>stats|Input|time</x>
-                <y>stats|Output|mean_T1</y>
-                <marker>.</marker>
-            </plot>
-            <xlabel>time</xlabel>
-            <ylabel>T1</ylabel>
-        </plotSettings>
-        <actions>
-            <how>png</how>
-            <!-- <range>
-                <xmin>0.0</xmin>
-                <xmax>1.0</xmax>
-                <ymin>-15.0</ymin>
-                <ymax>20.0</ymax>
-            </range> -->
-        </actions>
-    </Plot>
+    <Print name="timeDepBasicStat_basicStatPP_dump">
+      <type>csv</type>
+      <source>timeDepBasicStat_basicStatPP</source>
+      <what>input,output</what>
+    </Print>
     <Plot name="PlotStatsT2" overwrite="false" verbosity="debug">
-        <plotSettings>
-            <plot>
-                <type>scatter</type>
-                <x>stats|Input|time</x>
-                <y>stats|Output|percentile_5_T2</y>
-                <marker>.</marker>
-            </plot>
-            <plot>
-                <type>scatter</type>
-                <x>stats|Input|time</x>
-                <y>stats|Output|percentile_95_T2</y>
-                <marker>.</marker>
-            </plot>
-            <plot>
-                <type>scatter</type>
-                <x>stats|Input|time</x>
-                <y>stats|Output|mean_T2</y>
-                <marker>.</marker>
-            </plot>
-            <xlabel>time</xlabel>
-            <ylabel>T2</ylabel>
-        </plotSettings>
-        <actions>
-            <how>png</how>
-            <!-- <range>
-             <xmin>0.0</xmin>
-             <xmax>1.0</xmax>
-             <ymin>-15.0</ymin>
-             <ymax>20.0</ymax>
-             </range> -->
-        </actions>
+      <plotSettings>
+        <plot>
+          <type>scatter</type>
+          <x>timeDepBasicStat_basicStatPP|Output|time</x>
+          <y>timeDepBasicStat_basicStatPP|Output|percentile_5_T2</y>
+          <marker>.</marker>
+        </plot>
+        <plot>
+          <type>scatter</type>
+          <x>timeDepBasicStat_basicStatPP|Output|time</x>
+          <y>timeDepBasicStat_basicStatPP|Output|percentile_95_T2</y>
+          <marker>.</marker>
+        </plot>
+        <plot>
+          <type>scatter</type>
+          <x>timeDepBasicStat_basicStatPP|Output|time</x>
+          <y>timeDepBasicStat_basicStatPP|Output|mean_T2</y>
+          <marker>.</marker>
+        </plot>
+        <xlabel>time</xlabel>
+        <ylabel>T2</ylabel>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+        <!--
+          <range>
+            <xmin>0.0</xmin>
+            <xmax>1.0</xmax>
+            <ymin>-15.0</ymin>
+            <ymax>20.0</ymax>
+          </range>
+        -->
+      </actions>
     </Plot>
-    <Plot  name="myPlot">
+    <!--
+    <Plot name="myPlot">
       <plotSettings>
         <plot>
           <type>scatter</type>
@@ -232,7 +205,7 @@
         </title>
       </actions>
     </Plot>
-    <Plot  name="myPlotTime1">
+    <Plot name="myPlotTime1">
       <plotSettings>
         <plot>
           <type>scatter</type>
@@ -249,7 +222,7 @@
         </title>
       </actions>
     </Plot>
-    <Plot  name="myPlotTime2">
+    <Plot name="myPlotTime2">
       <plotSettings>
         <plot>
           <type>scatter</type>
@@ -265,6 +238,56 @@
           <text>My Plot Time</text>
         </title>
       </actions>
-    </Plot>
+    </Plot> -->
   </OutStreams>
+
+  <VariableGroups>
+    <Group name="timeDepBasicStat_vars">mean_T1,
+                 mean_T2,
+                 var_X1,
+                 var_X2,
+                 var_T1,
+                 var_T2,
+                 cov_X1_T1,
+                 cov_X1_T2,
+                 cov_X2_T1,
+                 cov_X2_T2,
+                 pear_X1_X1,
+                 pear_X1_X2,
+                 pear_X1_T1,
+                 pear_X1_T2,
+                 pear_X2_X1,
+                 pear_X2_X2,
+                 pear_X2_T1,
+                 pear_X2_T2,
+                 pear_T1_X1,
+                 pear_T1_X2,
+                 pear_T1_T1,
+                 pear_T1_T2,
+                 pear_T2_X1,
+                 pear_T2_X2,
+                 pear_T2_T1,
+                 pear_T2_T2,
+                 sen_X1_X1,
+                 sen_X1_X2,
+                 sen_X1_T1,
+                 sen_X1_T2,
+                 sen_X2_X1,
+                 sen_X2_X2,
+                 sen_X2_T1,
+                 sen_X2_T2,
+                 sen_T1_X1,
+                 sen_T1_X2,
+                 sen_T1_T1,
+                 sen_T1_T2,
+                 sen_T2_X1,
+                 sen_T2_X2,
+                 sen_T2_T1,
+                 sen_T2_T2,
+                 percentile_5_T1,
+                 percentile_5_T2,
+                 percentile_95_T1,
+                 percentile_95_T2</Group>
+  </VariableGroups>
+
 </Simulation>

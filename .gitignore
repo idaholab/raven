@@ -13,6 +13,7 @@
 *.csv
 *.so
 *~
+*.ctf
 tests/core_example/PWR_CoreChannel_controlled_var_restart_test_out_restart_0020.ravenaux
 tests/core_example/PWR_CoreChannel_controlled_var_test_out_restart_0020.ravenaux
 *.ravencntr
@@ -55,8 +56,11 @@ tests/framework/CUBIT_MOOSE_test/grid_run/
 tests/framework/BISON_and_MESH_test/grid_run/
 tests/framework/RedundantInputs/sim_py_MC/
 tests/framework/RedundantInputs/sim_py_grid/
+tests/plugins
+plugins/ExamplePlugin/doc/version.tex
 build/
 .failed_tests
+.ravenrc
 
 # eclipse
 .project
@@ -67,7 +71,11 @@ build/
 
 # python
 *.pyc
+*.pyo
+
+# vim
 *~
+*.swp
 
 #coverage
 tests/framework/.coverage
