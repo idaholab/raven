@@ -408,7 +408,7 @@ def toBytesIterative(s):
   if type(s) == list:
     return [toBytes(x) for x in s]
   elif type(s) == dict:
-    if len(s.keys()) == 0:
+    if len(s) == 0:
       return None
     tempdict = {}
     for key,value in s.items():
