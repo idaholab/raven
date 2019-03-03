@@ -212,15 +212,6 @@ class HDF5(DateBase):
     paramDict['exist'] = self.exist
     return paramDict
 
-  def getEndingGroupPaths(self):
-    """
-      Function to retrieve all the groups' paths of the ending groups
-      @ In, None
-      @ Out, histories, list, List of the ending groups' paths
-    """
-    histories = self.database.retrieveAllHistoryPaths()
-    return histories
-
   def getEndingGroupNames(self):
     """
     Function to retrieve all the groups' names of the ending groups
