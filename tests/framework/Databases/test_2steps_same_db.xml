@@ -2,11 +2,12 @@
 <Simulation verbosity="debug">
   <!-- TestInfo -->
   <TestInfo>
-    <name>framework/2steps_same_db</name>
+    <name>framework/Databases.2steps_same_db</name>
     <author>@alfoa</author>
     <created>2015-05-01</created>
     <revisions>
         <revision date="2016-05-20" author="@maljdan">Updating the test cases to remove references to Point or History</revision>
+        <revision author="alfoa" date="2019-03-01">Modified test location</revision>
     </revisions>
     <classesTested>Databases.HDF5</classesTested>
     <description>

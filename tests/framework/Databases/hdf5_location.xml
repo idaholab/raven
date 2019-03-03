@@ -1,13 +1,16 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework.HDF5location</name>
+    <name>framework/Databases.HDF5location</name>
     <author>talbpaul</author>
     <created>2017-07-10</created>
     <classesTested>Databases.HDF5</classesTested>
     <description>
       Tests that the location specified for the HDF5 is relative to the working dir, not to the run dir.
     </description>
+    <revisions>
+        <revision author="alfoa" date="2019-03-01">Modified test location</revision>
+    </revisions>
   </TestInfo>
   <RunInfo>
     <WorkingDir>HDF5_location</WorkingDir>
