@@ -1114,7 +1114,7 @@ class BasicStatistics(PostProcessor):
       if not intersectionSet:
         condNumber = np.linalg.cond(featSamples)
         if condNumber > 30.:
-          self.raiseAWarning("Condition Number: {:10.4f} > 30.0. Detected SEVERE collinearity problem. Sensitivity might be incorrect!".format(condNumber))
+          self.raiseAWarning("Condition Number: {:10.4f} > 30.0. Detected SEVERE multicollinearity problem. Sensitivity might be incorrect!".format(condNumber))
         senMatrix = LinearRegression().fit(featSamples,targSamples).coef_
       else:
         # Target variables are in feature variables list, multi-target linear regression can not be used
@@ -1130,7 +1130,7 @@ class BasicStatistics(PostProcessor):
           regCoeff = LinearRegression().fit(featMat, targSamples[:,p]).coef_
           condNumber = np.linalg.cond(featMat)
           if condNumber > 30.:
-            self.raiseAWarning("Condition Number: {:10.4f} > 30.0. Detected SEVERE collinearity problem. Sensitivity might be incorrect!".format(condNumber))
+            self.raiseAWarning("Condition Number: {:10.4f} > 30.0. Detected SEVERE multicollinearity problem. Sensitivity might be incorrect!".format(condNumber))
           if ind is not None:
             regCoeff = np.insert(regCoeff,ind,1.0)
           senMatrix[p,:] = regCoeff
@@ -1139,7 +1139,7 @@ class BasicStatistics(PostProcessor):
       for p, feat in enumerate(featVars):
         condNumber = np.linalg.cond(featSamples[:,p])
         if condNumber > 30.:
-          self.raiseAWarning("Condition Number: {:10.4f} > 30.0. Detected SEVERE collinearity problem. Sensitivity might be incorrect!".format(condNumber))
+          self.raiseAWarning("Condition Number: {:10.4f} > 30.0. Detected SEVERE multicollinearity problem. Sensitivity might be incorrect!".format(condNumber))
         regCoeff = LinearRegression().fit(featSamples[:,p].reshape(-1,1),targSamples).coef_
         senMatrix[:,p] = regCoeff[:,0]
     da = xr.DataArray(senMatrix, dims=('targets','features'), coords={'targets':targVars,'features':featVars})
