@@ -1110,7 +1110,11 @@ class BasicStatistics(PostProcessor):
       # If False, which means there is no overlap between the target set and feature set.
       # mutivariate linear regression can be used. However, for both cases, co-linearity check should be
       # added for the feature set. ~ wangc
+
       if not intersectionSet:
+        condNumber = np.linalg.cond(featSamples)
+        if condNumber > 30.:
+          self.raiseAWarning("Condition Number: {:10.4f} > 30.0. Detected SEVERE collinearity problem. Sensitivity might be incorrect!".format(condNumber))
         senMatrix = LinearRegression().fit(featSamples,targSamples).coef_
       else:
         # Target variables are in feature variables list, multi-target linear regression can not be used
@@ -1124,12 +1128,18 @@ class BasicStatistics(PostProcessor):
           else:
             featMat = featSamples
           regCoeff = LinearRegression().fit(featMat, targSamples[:,p]).coef_
+          condNumber = np.linalg.cond(featMat)
+          if condNumber > 30.:
+            self.raiseAWarning("Condition Number: {:10.4f} > 30.0. Detected SEVERE collinearity problem. Sensitivity might be incorrect!".format(condNumber))
           if ind is not None:
             regCoeff = np.insert(regCoeff,ind,1.0)
           senMatrix[p,:] = regCoeff
     else:
       senMatrix = np.zeros((len(targVars), len(featVars)))
       for p, feat in enumerate(featVars):
+        condNumber = np.linalg.cond(featSamples[:,p])
+        if condNumber > 30.:
+          self.raiseAWarning("Condition Number: {:10.4f} > 30.0. Detected SEVERE collinearity problem. Sensitivity might be incorrect!".format(condNumber))
         regCoeff = LinearRegression().fit(featSamples[:,p].reshape(-1,1),targSamples).coef_
         senMatrix[:,p] = regCoeff[:,0]
     da = xr.DataArray(senMatrix, dims=('targets','features'), coords={'targets':targVars,'features':featVars})
