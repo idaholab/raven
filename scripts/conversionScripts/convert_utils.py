@@ -17,10 +17,6 @@ import xml.etree.ElementTree as ET
 import os
 import sys
 import shutil
-# line endings are preserved with "newlines" arg in "open", but this isn't compatible with py2,
-#   so replace that open with one that does it as 3 does
-if sys.version_info[0] == 2:
-  from io import open
 
 def createBackup(filename):
   """
