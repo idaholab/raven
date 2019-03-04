@@ -17,18 +17,22 @@ Created on February 22 2019
 
 Template interface for the test UQ template input.
 """
+from __future__ import print_function, unicode_literals
 import os
 import configparser
 from collections import OrderedDict
 from UQTemplate.UQTemplate import UQTemplate
 
+print('Loading template ...')
 temp = UQTemplate()
-
 temp.loadTemplate('uq_template.xml', os.path.dirname(__file__))
+print(' ... template loaded')
 
 # information needed by UQTemplate to make run file
+print('Loading input file ...')
 config = configparser.ConfigParser()
 config.read('UQTemplate/uq_template_input.i')
+print(' ... input file loaded')
 
 
 model = {'file': config.get('model', 'file'),
@@ -45,11 +49,12 @@ case = config.get('settings', 'case')
 numSamples = config.getint('settings', 'samples')
 workflow = os.path.join('UQTemplate', config.get('settings', 'workflow'))
 
+print('Writing RAVEN file ...')
 template = temp.createWorkflow(model=model, variables=variables, samples=numSamples, case=case)
-errors = temp.writeWorkflow(template, workflow, run=True)
+errors = temp.writeWorkflow(template, workflow, run=False)
 
 # finish up
 if errors == 0:
-  print('\n\nSuccessfully performed uncertainty quantification. See results in UQTemplate/{}/stats.csv\n'.format(case))
+  print('\n\nSuccessfully wrote input "{}". Run it with RAVEN!\n'.format(workflow))
 else:
   print('\n\nProblems occurred while running the code. See above.\n')

@@ -35,7 +35,7 @@ A RAVEN Template consists of three main pieces: a Templated Workflow, a Template
  \label{fig:raven template workflow}
 \end{figure}
 
-Refer to Figure \ref{fig:raven template workflow}. Each box represents a file in a RAVEN template system. The three boxes in blue (Templated Workflow, Template Class, and Template Interface) are developed collectively as the Template  by a designer familiar with RAVEN input files and Python. The development of this template only needs to occur once. The orange box (Input File) is in a format determined by the Template Interface, and is the only portion of the Template that a user will interact with repeatedly for any given workflow. The green box (New RAVEN Input) is the result of reading a particular input file with the Template and is written by the Template. This new input can either be run automatically with RAVEN or left to run at the user's convenience, based on what the Template Interface is designed to do.
+Refer to Figure \ref{fig:raven template workflow}. Each box represents a file in a RAVEN template system. The three boxes in blue (Templated Workflow, Template Class, and Template Interface) are developed collectively as the Template  by a designer familiar with RAVEN input files and Python. The development of this template only needs to occur once. The orange box (Input File) is in a format determined by the Template Interface, and is the only portion of the Template that a user will interact with repeatedly for any given workflow. The green box (New RAVEN Input) is the result of reading a particular input file with the Template and is written by the Template. This new input can either be run automatically with RAVEN or left to run at the user's convenience, based on what the Template Interface is designed to do. Note that running RAVEN from within a python script on Windows within MinGW is particularly tricky.
 \\
 
 The three portions of the Template are discussed individually in the following sections.
@@ -75,7 +75,8 @@ The rest of \texttt{createWorkflow} is open to do any operations necessary to mo
 \begin{lstlisting}[language=python]
  writeWorkflow(self, template, destination, run=False)
 \end{lstlisting}
-Once \texttt{createWorkflow} is run, the resulting XML element can be supplied to the \texttt{writeWorkflow} method, which writes the XML to a file. The Template Base Class implementation will likely cover the needs of most Template Classes, and shouldn't require significant modification. Note that an optional argument \texttt{run} instructs the Template Class to attempt to run the workflow in RAVEN once it is written to file.
+Once \texttt{createWorkflow} is called, the resulting XML element can be supplied to the \texttt{writeWorkflow} method, which writes the XML to a file. The Template Base Class implementation will likely cover the needs of most Template Classes, and shouldn't require significant modification. Note that an optional argument \texttt{run} instructs the Template Class to attempt to run the workflow in RAVEN once it is written to file. Note this currently works on Mac
+and Linux systems, but is not yet consistent on Windows.
 \\
 
 Other optional methods also exist in the Template Base Class and may be of use to individual templates.
@@ -134,7 +135,7 @@ The file \texttt{UQTemplate.py} demonstrates inheritance of the Template Base Cl
 Note that the Template Class adds three formatted strings to the class-level name templates, one each for step names, distributions, and metric variables. These are called later in the code to assure the naming conventions are always the same. These formatted strings employ Python's inherent string formatting tools.
 \\
 
-The Template Base Clas implementation of \texttt{loadWorfklow} does everything this Template needs to load the Templated Workflow, so there is no need to modify it in the custom Template Class. Similarly, the \texttt{writeWorkflows} does everything this Template needs to write and run a newly-created input, so there is no need to modify it in the custom Template Class.  Since there was no need to overload the Template Base Class implementations of \texttt{loadWorfklow} and \texttt{writeWorkflows}, the only main method changed in the Template Class is the essential \texttt{createWorkflow} method. Note that we've added several keywords to the argument list:
+The Template Base Clas implementation of \texttt{loadWorfklow} does everything this Template needs to load the Templated Workflow, so there is no need to modify it in the custom Template Class. Similarly, the \texttt{writeWorkflows} does everything this Template needs to write a newly-created input, so there is no need to modify it in the custom Template Class.  Since there was no need to overload the Template Base Class implementations of \texttt{loadWorfklow} and \texttt{writeWorkflows}, the only main method changed in the Template Class is the essential \texttt{createWorkflow} method. Note that we've added several keywords to the argument list:
 \begin{lstlisting}[language=python]
   def createWorkflow(self, model=None, variables=None, samples=None, case=None, **kwargs):
 \end{lstlisting}
@@ -148,17 +149,19 @@ Throughout the remainder of the workflow creation, a series of XML manipulations
 
 
 \subsubsection{Example Template Interface}
-The file \texttt{uq\_maker.py} contains the basic logic needed to read a user input file, load the Template Class, and generate new inputs. It follows the sequence of events outlined above, first instructing the Template Class to load the template, then reading in the user input, then instructing the Template Class to create the workflow, then to write and run the workflow.
+The file \texttt{uq\_maker.py} contains the basic logic needed to read a user input file, load the Template Class, and generate new inputs. It follows the sequence of events outlined above, first instructing the Template Class to load the template, then reading in the user input, then instructing the Template Class to create the workflow, then to write the workflow.
 \\
 
-Beause the input needs for this Template are simple, we use Python's standard library \texttt{configparser} to read in the user input file, \texttt{uq\_template\_input.i}. This simple input structure uses sections (model, variables, and settings) with keyword and value pairs in each section. In order to change the RAVEN workflow created, the user only needs to make changes to the existing input file and run the interface.
+Beause the input needs for this Template are simple, we use Python's standard library \texttt{configparser} to read in the user input file, \texttt{uq\_template\_input.i}. This simple input structure uses sections (model, variables, and settings) with keyword and value pairs in each section. In order to change the RAVEN workflow created, the user only needs to make changes to the existing input file and run the interface, then run RAVEN on the new input.
 \\
 
 Note that we chose to provide the information to the Template Class mostly through dictionaries, where the essential pieces of information can be provided. In particular note that the variables provide only a mean and standard deviation; one reduction in flexibility is that we assume the variables are normally distributed, disallowing other distributions.
 \\
 
-The Template can be run with Python from the command line, and it runs the RAVEN input after creating it:
+The Template can be run with Python from the command line:
 \begin{lstlisting}[language=bash]
- python uq_maker.py
+ > python uq_maker.py
+ > cd UQTemplate
+ > ~/projects/raven/raven_framework new_uq.xml
 \end{lstlisting}
-It reads in the user input, modifies the template, writes the new input file, and finally runs RAVEN. Note that, if desired, the interface can be extended to perform additional operations after RAVEN has finished running the workflow.
+It reads in the user input, modifies the template, writes the new input file, and finally runs RAVEN. Note that, if desired, the interface can be extended to perform additional operations after RAVEN has finished creating the workflow.
