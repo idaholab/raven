@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from __future__ import unicode_literals
 import os,sys,subprocess
 import tempfile
 import get_coverage_tests
@@ -29,29 +30,33 @@ def validateTests():
   """
   print 'Beginning test validation...'
   tests = get_coverage_tests.getRegressionTests(skipExpectedFails=True)
-  res=[0,0,0] #run, pass, fail
-  failed={}
+  res = [0, 0, 0] #run, pass, fail
+  failed = {}
   devnull = open(os.devnull, "wb")
-  for dir,files in tests.items():
+  for dir, files in tests.items():
     #print directory being checked'
-    checkmsg = ' Directory: '+dir
-    print colors.neutral+checkmsg.rjust(maxlen,'-')
+    checkmsg = ' Directory: ' + dir
+    print colors.neutral + checkmsg.rjust(maxlen, '-')
     #check files in directory
     for f in files:
-      fullpath = os.path.join(dir,f)
-      res[0]+=1
-      startmsg =  'Validating '+f
+      fullpath = os.path.join(dir, f)
+      # check if input exists; if not, it probably gets created by something else, and can't get checked here
+      if not os.path.isfile(fullpath):
+        print 'File "{}" does not exist; skipping validation test ...'
+        continue
+      res[0] += 1
+      startmsg = 'Validating ' + f
       #expand external XML nodes
       # - first, though, check if the backup file already exists
-      if os.path.isfile(fullpath+'.bak'):
-        print colors.neutral+'Could not check for ExternalXML since a backup file exists! Please remove it to validate.'
+      if os.path.isfile(fullpath + '.bak'):
+        print colors.neutral + 'Could not check for ExternalXML since a backup file exists! Please remove it to validate.'
       # Since directing output of shell commands to file /dev/null is problematic on Windows, this equivalent form is used
       #   which is better supported on all platforms.
       cmd = 'python '+os.path.join(conversionDir,'externalXMLNode.py')+' '+fullpath
       result = subprocess.call(cmd, shell = True, stdout=devnull)
       err = 'Error running ' + cmd
 
-      print colors.neutral+startmsg,
+      print colors.neutral + startmsg,
       if result == 0:
         #run xmllint
         cmd = 'xmllint --noout --schema '+os.path.join(scriptDir,'XSDSchemas','raven.xsd')+' '+fullpath
