@@ -46,7 +46,10 @@ numSamples = config.getint('settings', 'samples')
 workflow = os.path.join('UQTemplate', config.get('settings', 'workflow'))
 
 template = temp.createWorkflow(model=model, variables=variables, samples=numSamples, case=case)
-temp.writeWorkflow(template, workflow, run=True)
+errors = temp.writeWorkflow(template, workflow, run=True)
 
 # finish up
-print('\n\nSuccessfully performed uncertainty quantification. See results in UQTemplate/{}/stats.csv\n'.format(case))
+if errors == 0:
+  print('\n\nSuccessfully performed uncertainty quantification. See results in UQTemplate/{}/stats.csv\n'.format(case))
+else:
+  print('\n\nProblems occurred while running the code. See above.\n')

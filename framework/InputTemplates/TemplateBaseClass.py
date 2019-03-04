@@ -94,18 +94,23 @@ class Template(object):
       @ In, template, xml.etree.ElementTree.Element, file to write
       @ In, destination, str, path and filename to write to
       @ In, run, bool, optional, if True then run the workflow after writing? good idea?
+      @ Out, errors, int, 0 if successfully wrote [and run] and nonzero if there was a problem
     """
     pretty = xmlUtils.prettify(template)
     with open(destination, 'w') as f:
       f.write(pretty)
     if run:
-      self.runWorkflow(destination)
+      errors = self.runWorkflow(destination)
+    else:
+      # 0 meaning successfully wrote file
+      errors = 0
+    return errors
 
   def runWorkflow(self, destination):
     """
       Runs the workflow at the destination.
       @ In, destination, str, path and filename of RAVEN input file
-      @ Out, None
+      @ Out, res, int, system results of running the code
     """
     # where are we putting the file?
     destDir = os.path.dirname(os.path.normpath(destination))
@@ -115,8 +120,9 @@ class Template(object):
     raven = self._getRavenLocation(which='exec')
     command = '{command} {workflow}'.format(command=raven,
                                             workflow=workflow)
-    os.system(command)
+    res = os.system(command)
     os.chdir(cwd)
+    return res
 
 
 
