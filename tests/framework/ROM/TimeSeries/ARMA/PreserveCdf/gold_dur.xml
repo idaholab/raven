@@ -1,0 +1,12 @@
+<DataObjectMetadata name="gold_dur">
+  <DataSet type="Static">
+    <dims>
+      <counts_Signal>bins_Signal</counts_Signal>
+    </dims>
+    <general>
+      <outputs>counts_Gold</outputs>
+      <sampleTag>RAVEN_sample_ID</sampleTag>
+    </general>
+  </DataSet>
+
+</DataObjectMetadata>

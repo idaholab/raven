@@ -19,7 +19,7 @@
 #for future compatibility with Python 3-----------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
-warnings.simplefilter('default',DeprecationWarning)
+warnings.simplefilter('default', DeprecationWarning)
 #End compatibility block for Python 3-------------------------------------------
 
 ################################################################################
@@ -37,6 +37,7 @@ from SupervisedLearning.SciKitLearn        import SciKitLearn
 from SupervisedLearning.pickledROM         import pickledROM
 from SupervisedLearning.PolyExponential    import PolyExponential
 from SupervisedLearning.DynamicModeDecomposition import DynamicModeDecomposition
+from SupervisedLearning.ROMCollection      import Collection, Segments, Clusters
 
 ## [ Add new class here ]
 ################################################################################
@@ -60,6 +61,8 @@ __interfaceDict['ARMA'                ] = ARMA
 __interfaceDict['pickledROM'          ] = pickledROM
 __interfaceDict['PolyExponential'     ] = PolyExponential
 __interfaceDict['DMD'                 ] = DynamicModeDecomposition
+__interfaceDict['Segments'            ] = Segments
+__interfaceDict['Clusters'            ] = Clusters
 
 def knownTypes():
   """

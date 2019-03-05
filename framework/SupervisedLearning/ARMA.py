@@ -25,18 +25,13 @@ warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
-import sys
 import copy
-import itertools
 import collections
 import numpy as np
-import xarray as xr
 import statsmodels.api as sm # VARMAX is in sm.tsa
 from statsmodels.tsa.arima_model import ARMA as smARMA
-from scipy import optimize
-from scipy import stats
 from scipy.linalg import solve_discrete_lyapunov
-from sklearn import linear_model, neighbors
+from sklearn import linear_model
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -63,8 +58,8 @@ class ARMA(supervisedLearning):
       @ In, kwargs: an arbitrary dictionary of keywords and values
     """
     # general infrastructure
-    supervisedLearning.__init__(self,messageHandler,**kwargs)
-    self.printTag          = 'ARMA'
+    supervisedLearning.__init__(self, messageHandler, **kwargs)
+    self.printTag = 'ARMA'
     self._dynamicHandling  = True # This ROM is able to manage the time-series on its own.
     # training storage
     self.trainingData      = {} # holds normalized ('norm') and original ('raw') training data, by target
@@ -88,6 +83,7 @@ class ARMA(supervisedLearning):
     self.zeroFilterTarget  = None # target for whom zeros should be filtered out
     self.zeroFilterTol     = None # tolerance for zerofiltering to be considered zero, set below
     self.zeroFilterMask    = None # mask of places where zftarget is zero, or None if unused
+    self.notZeroFilterMask = None # mask of places where zftarget is NOT zero, or None if unused
     self._minBins          = 20   # min number of bins to use in determining distributions, eventually can be user option, for now developer's pick
     # signal storage
     self._signalStorage    = collections.defaultdict(dict) # various signals obtained in the training process
@@ -423,31 +419,28 @@ class ARMA(supervisedLearning):
                                             randEngine = self.normEngine.rvs)
           signal = sample
       # END creating base signal
-      # DEBUGG adding arbitrary variables for debugging, TODO find a more elegant way, leaving these here as markers
+      # DEBUG adding arbitrary variables for debugging, TODO find a more elegant way, leaving these here as markers
       #returnEvaluation[target+'_0base'] = copy.copy(signal)
       # denoise
       signal = self._denormalizeThroughCDF(signal,self.cdfParams[target])
-      # DEBUGG adding arbitrary variables
+      # DEBUG adding arbitrary variables
       #returnEvaluation[target+'_1denorm'] = copy.copy(signal)
       #debuggFile.writelines('signal_arma,'+','.join(str(x) for x in signal)+'\n')
 
       # Add fourier trends
       if target in self.fourierParams:
         signal += self.fourierResults[target]['predict']
-        # DEBUGG adding arbitrary variables
+        # DEBUG adding arbitrary variables
         #returnEvaluation[target+'_2fourier'] = copy.copy(signal)
         #debuggFile.writelines('signal_fourier,'+','.join(str(x) for x in self.fourierResults[target]['predict'])+'\n')
 
       # if enforcing the training data CDF, apply that transform now
       if self.preserveInputCDF:
-        # first build a histogram object of the sampled data
-        dist = mathUtils.trainEmpiricalFunction(signal, minBins=self._minBins)
-        # transform data through CDFs
-        signal = self._trainingCDF[target].ppf(dist.cdf(signal))
+        signal = self._transformThroughInputCDF(signal, self._trainingCDF[target])
 
       # Re-zero out zero filter target's zero regions
       if target == self.zeroFilterTarget:
-        # DEBUGG adding arbitrary variables
+        # DEBUG adding arbitrary variables
         #returnEvaluation[target+'_3zerofilter'] = copy.copy(signal)
         signal[self.notZeroFilterMask] = 0.0
 
@@ -458,13 +451,13 @@ class ARMA(supervisedLearning):
             signal = np.absolute(signal)
           elif domain == 'negative':
             signal = -np.absolute(signal)
-        # DEBUGG adding arbitrary variables
+        # DEBUG adding arbitrary variables
         #returnEvaluation[target+'_4truncated'] = copy.copy(signal)
 
       # store results
       ## FIXME this is ASSUMING the input to ARMA is only ever a single scaling factor.
       signal *= featureVals[0]
-      # DEBUGG adding arbitrary variables
+      # DEBUG adding arbitrary variables
       #returnEvaluation[target+'_5scaled'] = copy.copy(signal)
 
       # sanity check on the signal
@@ -565,37 +558,6 @@ class ARMA(supervisedLearning):
                                      measurement_shocks = measureShocks,
                                      state_shocks = stateShocks)
     return obs
-
-  def getRomClusterValues(self, featureTemplate, *args, **kwargs):
-    """
-      Indicates the parameters on which this ROM can cluster.
-      @ In, featureTemplate, str, format for feature space names (takes target, separator, metric, and id)
-      @ Out, features, dict, cluster feature values
-    """
-    # algorithm for providing Fourier series and ARMA white noise variance and #TODO covariance
-    features = {}
-    # include Fourier if available
-    for target in self.fourierResults:
-      for b,base in enumerate(self.fourierResults[target]['regression']['coeffs']):
-        for s,subdivision in enumerate(base):
-          for waveform, coeff in subdivision.items():
-            ID = '{}_{}_{}'.format(b,s+1,waveform)
-            feature = featureTemplate.format(target=target, metric='Fourier', id=ID)
-            features[feature] = coeff
-    # signal variance, ARMA (not varma)
-    for target,arma in self.armaResult.items():
-      feature = featureTemplate.format(target=target, metric='arma', id='std')
-      features[feature] = np.sqrt(arma.sigma2)
-    return features
-
-  def getRomClusterParams(self):
-    """
-      Indicates the parameters on which this ROM can cluster.
-      @ In, None
-      @ Out, params, list, clusterable parameters
-    """
-    params = ['Fourier', 'ARMA']
-    return params
 
   def _interpolateDist(self,x,y,Xlow,Xhigh,Ylow,Yhigh,inMask):
     """
@@ -765,12 +727,21 @@ class ARMA(supervisedLearning):
     fitSignal = np.asarray(fourierEngine.predict(fourierSignals))
     # get signal intercept
     intercept = fourierEngine.intercept_
-    # get coefficient map
-    coefMap = collections.defaultdict(dict) # {period: {sin:#, cos:#}}
+    # get coefficient map for A*sin(ft) + B*cos(ft)
+    waveCoefMap = collections.defaultdict(dict) # {period: {sin:#, cos:#}}
     for c, coef in enumerate(fourierEngine.coef_):
       period = periods[c//2]
       waveform = 'sin' if c % 2 == 0 else 'cos'
-      coefMap[period][waveform] = coef
+      waveCoefMap[period][waveform] = coef
+    # convert to C*sin(ft + s)
+    ## since we use fitting to get A and B, the magnitudes can be deceiving.
+    ## this conversion makes "C" a useful value to know the contribution from a period
+    coefMap = {}
+    for period, coefs in waveCoefMap.items():
+      A = coefs['sin']
+      B = coefs['cos']
+      C, s = mathUtils.convertSinCosToSinPhase(A, B)
+      coefMap[period] = {'amplitude': C, 'phase': s}
 
     # re-add zero-filtered
     if zeroFilter:
@@ -903,8 +874,8 @@ class ARMA(supervisedLearning):
         periodNode = xmlUtils.newNode('period', text='{:1.9e}'.format(period))
         fourierNode.append(periodNode)
         periodNode.append(xmlUtils.newNode('frequency', text='{:1.9e}'.format(1.0/period)))
-        for waveform, coeff in fourier['regression']['coeffs'][period].items():
-          periodNode.append(xmlUtils.newNode(waveform, text='{:1.9e}'.format(coeff)))
+        for stat, value in sorted(list(fourier['regression']['coeffs'][period].items()), key=lambda x:x[0]):
+          periodNode.append(xmlUtils.newNode(stat, text='{:1.9e}'.format(value)))
     # - ARMA std
     for target, arma in self.armaResult.items():
       targetNode = root.find(target)
@@ -916,6 +887,209 @@ class ARMA(supervisedLearning):
       armaNode.append(xmlUtils.newNode('std', text=np.sqrt(arma.sigma2)))
       # TODO covariances, P and Q, etc
 
+  def _transformThroughInputCDF(self, signal, originalDist, weights=None):
+    """
+      Transforms a signal through the original distribution
+      @ In, signal, np.array(float), signal to transform
+      @ In, originalDist, scipy.stats.rv_histogram, distribution to transform through
+      @ In, weights, np.array(float), weighting for samples (assumed uniform if not given)
+      @ Out, new, np.array, new signal after transformation
+    """
+    # first build a histogram object of the sampled data
+    dist = mathUtils.trainEmpiricalFunction(signal, minBins=self._minBins, weights=weights)
+    # transform data through CDFs
+    new = originalDist.ppf(dist.cdf(signal))
+    return new
+
+  ### Segmenting and Clustering ###
+  def  isClusterable(self):
+    """
+      Allows ROM to declare whether it has methods for clustring. Default is no.
+      @ In, None
+      @ Out, isClusterable, bool, if True then has clustering mechanics.
+    """
+    # clustering methods have been added
+    return True
+
+  def _getMeanFromGlobal(self, settings, pickers, targets=None):
+    """
+      Derives segment means from global trends
+      @ In, settings, dict, as per getGlobalRomSegmentSettings
+      @ In, pickers, list(slice), picks portion of signal of interest
+      @ In, targets, list, optional, targets to include (default is all)
+      @ Out, results, list(dict), mean for each target per picker
+    """
+    if 'long Fourier signal' not in settings:
+      return []
+    if isinstance(pickers, slice):
+      pickers = [pickers]
+    if targets == None:
+      targets = settings['long Fourier signal'].keys()
+    results = [] # one per "pickers"
+    for picker in pickers:
+      res = dict((target, signal['predict'][picker].mean()) for target, signal in settings['long Fourier signal'].items())
+      results.append(res)
+    return results
+
+  def getLocalRomClusterFeatures(self, featureTemplate, settings, picker=None, **kwargs):
+    """
+      Provides metrics aka features on which clustering compatibility can be measured.
+      This is called on LOCAL subsegment ROMs, not on the GLOBAL template ROM
+      @ In, featureTemplate, str, format for feature inclusion
+      @ In, settings, dict, as per getGlobalRomSegmentSettings
+      @ In, picker, slice, indexer for segmenting data
+      @ In, kwargs, dict, arbitrary keyword arguments
+      @ Out, features, dict, {target_metric: np.array(floats)} features to cluster on
+    """
+    # algorithm for providing Fourier series and ARMA white noise variance and #TODO covariance
+    features = {}
+    # include Fourier if available
+    for target, fourier in self.fourierResults.items():
+      for period in fourier['regression']['periods']:
+        # amp
+        amp = fourier['regression']['coeffs'][period]['amplitude']
+        ID = '{}_{}'.format(period, 'amp')
+        feature = featureTemplate.format(target=target, metric='Fourier', id=ID)
+        features[feature] = amp
+        # phase
+        ## not great for clustering, but sure, why not
+        phase = fourier['regression']['coeffs'][period]['phase']
+        ID = '{}_{}'.format(period, 'phase')
+        feature = featureTemplate.format(target=target, metric='Fourier', id=ID)
+        features[feature] = phase
+
+    # signal variance, ARMA (not varma)
+    for target, arma in self.armaResult.items():
+      feature = featureTemplate.format(target=target, metric='arma', id='std')
+      features[feature] = np.sqrt(arma.sigma2)
+    # segment means
+    # since we've already detrended globally, get the means from that (if present)
+    if 'long Fourier signal' in settings:
+      assert picker is not None
+      results = self._getMeanFromGlobal(settings, picker)
+      for target, mean in results[0].items():
+        feature = featureTemplate.format(target=target, metric="global", id="mean")
+        features[feature] = mean
+    return features
+
+  def getGlobalRomSegmentSettings(self, trainingDict, divisions):
+    """
+      Allows the ROM to perform some analysis before segmenting.
+      Note this is called on the GLOBAL templateROM from the ROMcollection, NOT on the LOCAL subsegment ROMs!
+      @ In, trainingDict, dict, data for training, full and unsegmented
+      @ In, divisions, tuple, (division slice indices, unclustered spaces)
+      @ Out, settings, object, arbitrary information about ROM clustering settings
+      @ Out, trainingDict, dict, adjusted training data (possibly unchanged)
+    """
+    trainingDict = copy.deepcopy(trainingDict) # otherwise we destructively tamper with the input data object
+    settings = {}
+    targets = list(self.fourierParams.keys())
+    # set up for input CDF preservation on a global scale
+    if self.preserveInputCDF:
+      inputDists = {}
+      for target in targets:
+        if target == self.pivotParameterID:
+          continue
+        targetVals = trainingDict[target][0]
+        inputDists[target] = mathUtils.trainEmpiricalFunction(targetVals, minBins=self._minBins)
+      settings['input CDFs'] = inputDists
+    # do global Fourier analysis on combined signal for all periods longer than the segment
+    if self.fourierParams:
+      # determine the Nyquist length for the clustered params
+      slicers = divisions[0]
+      pivotValues = trainingDict[self.pivotParameterID][0]
+      # use the first segment as typical of all of them, NOTE might be bad assumption
+      delta = pivotValues[slicers[0][-1]] - pivotValues[slicers[0][0]]
+      # any Fourier longer than the delta should be trained a priori, leaving the reaminder
+      #    to be specific to individual ROMs
+      full = {}      # train these periods on the full series
+      segment = {}   # train these periods on the segments individually
+      for target in targets:
+        if target == self.pivotParameterID:
+          continue
+        # only do separation for targets for whom there's a Fourier request
+        if target in self.fourierParams:
+          # NOTE: assuming training on only one history!
+          targetVals = trainingDict[target][0]
+          # if zero filtering in play, set the masks now
+          ## TODO I'm not particularly happy with having to remember to do this; can we automate it more?
+          zeroFiltering = target == self.zeroFilterTarget
+          if zeroFiltering:
+            self.notZeroFilterMask = self._trainZeroRemoval(targetVals, tol=self.zeroFilterTol) # where zeros are not
+            self.zeroFilterMask = np.logical_not(self.notZeroFilterMask) # where zeroes are
+          periods = np.asarray(self.fourierParams[target])
+          full = periods[periods > delta]
+          segment[target] = periods[np.logical_not(periods > delta)]
+          if len(full):
+            # train Fourier on longer periods
+            self.fourierResults[target] = self._trainFourier(pivotValues,
+                                                             full,
+                                                             targetVals,
+                                                             zeroFilter=zeroFiltering)
+            # remove longer signal from training data
+            signal = self.fourierResults[target]['predict']
+            targetVals -= signal
+            trainingDict[target][0] = targetVals
+      # store the segment-based periods in the settings to return
+      settings['segment Fourier periods'] = segment
+      settings['long Fourier signal'] = self.fourierResults
+    return settings, trainingDict
+
+  def adjustLocalRomSegment(self, settings):
+    """
+      Adjusts this ROM to account for it being a segment as a part of a larger ROM collection.
+      Call this before training the subspace segment ROMs
+      Note this is called on the LOCAL subsegment ROMs, NOT on the GLOBAL templateROM from the ROMcollection!
+      @ In, settings, object, arbitrary information about ROM clustering settings from getGlobalRomSegmentSettings
+      @ Out, None
+    """
+    # some Fourier periods have already been handled, so reset the ones that actually are needed
+    newFourier = settings.get('segment Fourier periods', None)
+    if newFourier is not None:
+      for target in list(self.fourierParams.keys()):
+        periods = newFourier.get(target, [])
+        # if any sub-segment Fourier remaining, send it through
+        if len(periods):
+          self.fourierParams[target] = periods
+        else:
+          # otherwise, remove target from fourierParams so no Fourier is applied
+          self.fourierParams.pop(target,None)
+    # disable CDF preservation on subclusters
+    ## Note that this might be a good candidate for a user option someday,
+    ## but right now we can't imagine a use case that would turn it on
+    self.preserveInputCDF = False
+
+  def finalizeLocalRomSegmentEvaluation(self, settings, evaluation, picker):
+    """
+      Allows global settings in "settings" to affect a LOCAL evaluation of a LOCAL ROM
+      Note this is called on the LOCAL subsegment ROM and not the GLOBAL templateROM.
+      @ In, settings, dict, as from getGlobalRomSegmentSettings
+      @ In, evaluation, dict, preliminary evaluation from the local segment ROM as {target: [values]}
+      @ In, picker, slice, indexer for data range of this segment
+      @ Out, evaluation, dict, {target: np.ndarray} adjusted global evaluation
+    """
+    # add back in Fourier
+    if 'long Fourier signal' in settings:
+      for target, signal in settings['long Fourier signal'].items():
+        sig = signal['predict'][picker]
+        evaluation[target][picker] += sig
+    return evaluation
+
+  def finalizeGlobalRomSegmentEvaluation(self, settings, evaluation, weights=None):
+    """
+      Allows any global settings to be applied to the signal collected by the ROMCollection instance.
+      Note this is called on the GLOBAL templateROM from the ROMcollection, NOT on the LOCAL supspace segment ROMs!
+      @ In, settings, dict, as from getGlobalRomSegmentSettings
+      @ In, evaluation, dict, {target: np.ndarray} evaluated full (global) signal from ROMCollection
+      @ In, weights, np.array(float), optional, if included then gives weight to histories for CDF preservation
+      @ Out, evaluation, dict, {target: np.ndarray} adjusted global evaluation
+    """
+    # backtransform signal
+    ## how nicely does this play with zerofiltering?
+    if self.preserveInputCDF:
+      for target, dist in settings['input CDFs'].items():
+        evaluation[target] = self._transformThroughInputCDF(evaluation[target], dist, weights)
+    return evaluation
 
   ### ESSENTIALLY UNUSED ###
   def _localNormalizeData(self,values,names,feat):
