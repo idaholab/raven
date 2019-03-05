@@ -23,7 +23,7 @@ warnings.simplefilter('default',DeprecationWarning)
 import os
 import sys
 import numpy as np
-from utils import mathUtils
+from utils import utils
 
 def _reprIfFloat(value):
   """
@@ -31,7 +31,7 @@ def _reprIfFloat(value):
     @ In, value, any, the value to convert to a string
     @ Out, _reprIfFloat, string, a string conversion of this
   """
-  if mathUtils.isAFloat(value):
+  if utils.isAFloat(value):
     return repr(value)
   else:
     return str(value)
