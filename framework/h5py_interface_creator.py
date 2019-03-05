@@ -163,6 +163,20 @@ class hdf5Database(MessageHandler.MessageUser):
     self.h5FileW.create_dataset("allGroupEnds", shape=(len(self.allGroupEnds),), dtype=bool, data=self.allGroupEnds, maxshape=(None,))
     self.h5FileW["allGroupEnds"].resize((max(len(self.allGroupPaths)*2,2000),))
 
+  def __updateFileLevelInfoDatasets(self):
+    """
+      Method to create datasets that are at the File Level and contains general info
+      to recontruct HDF5 in loading mode
+      @ In, None
+      @ Out, None
+    """
+    if len(self.allGroupPaths) > len(self.h5FileW["allGroupPaths"]):
+      self.h5FileW["allGroupPaths"].resize((len(self.allGroupPaths)*2,))
+      self.h5FileW["allGroupEnds"].resize( (len(self.allGroupPaths)*2,) )
+    self.h5FileW["allGroupPaths"][len( self.allGroupPaths) - 1] = self.allGroupPaths[-1]
+    self.h5FileW["allGroupEnds"][len(self.allGroupPaths) - 1] = self.allGroupEnds[-1]
+    self.h5FileW.attrs["nGroups"] = len(self.allGroupPaths)
+
   def __createObjFromFile(self):
     """
       Function to create the list "self.allGroupPaths" and the dictionary "self.allGroupEnds"
@@ -259,12 +273,7 @@ class hdf5Database(MessageHandler.MessageUser):
       self.__addGroupRootLevel(groupName,rlz)
       self.firstRootGroup = True
       self.type = 'MC'
-    if len(self.allGroupPaths) > len(self.h5FileW["allGroupPaths"]):
-      self.h5FileW["allGroupPaths"].resize((len(self.allGroupPaths)*2,))
-      self.h5FileW["allGroupEnds"].resize( (len(self.allGroupPaths)*2,) )
-    self.h5FileW["allGroupPaths"][len( self.allGroupPaths) - 1] = self.allGroupPaths[-1]
-    self.h5FileW["allGroupEnds"][len(self.allGroupPaths) - 1] = self.allGroupEnds[-1]
-    self.h5FileW.attrs["nGroups"] = len(self.allGroupPaths)
+    self.__updateFileLevelInfoDatasets()
     self.h5FileW.flush()
 
 
@@ -308,12 +317,7 @@ class hdf5Database(MessageHandler.MessageUser):
     grp.attrs[b'groupName'] = groupNameInit
     self.allGroupPaths.append(utils.toBytes("/" + groupNameInit))
     self.allGroupEnds.append(False)
-    if len(self.allGroupPaths) > len(self.h5FileW["allGroupPaths"]):
-      self.h5FileW["allGroupPaths"].resize((len(self.allGroupPaths)*2,))
-      self.h5FileW["allGroupEnds"].resize( (len(self.allGroupPaths)*2,) )
-    self.h5FileW["allGroupPaths"][len( self.allGroupPaths) - 1] = self.allGroupPaths[-1]
-    self.h5FileW["allGroupEnds"][len(self.allGroupPaths) - 1] = self.allGroupEnds[-1]
-    self.h5FileW.attrs["nGroups"] = len(self.allGroupPaths)
+    self.__updateFileLevelInfoDatasets()
     self.h5FileW.flush()
 
   def __checkTypeHDF5(self, value, neg):
