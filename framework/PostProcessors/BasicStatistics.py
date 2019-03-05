@@ -1137,9 +1137,6 @@ class BasicStatistics(PostProcessor):
     else:
       senMatrix = np.zeros((len(targVars), len(featVars)))
       for p, feat in enumerate(featVars):
-        condNumber = np.linalg.cond(featSamples[:,p])
-        if condNumber > 30.:
-          self.raiseAWarning("Condition Number: {:10.4f} > 30.0. Detected SEVERE multicollinearity problem. Sensitivity might be incorrect!".format(condNumber))
         regCoeff = LinearRegression().fit(featSamples[:,p].reshape(-1,1),targSamples).coef_
         senMatrix[:,p] = regCoeff[:,0]
     da = xr.DataArray(senMatrix, dims=('targets','features'), coords={'targets':targVars,'features':featVars})
