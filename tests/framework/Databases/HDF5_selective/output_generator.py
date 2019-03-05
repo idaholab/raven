@@ -15,13 +15,18 @@ import math
 import numpy
 
 def run(self, Input):
-  number_of_steps = 16
-  self.time = numpy.zeros(number_of_steps)
+  """
+    Simple mode to generate some data for testing Databases
+    @ In, Input, dict, dict of inputs coming from RAVEN
+    @ Out, None (results stored in self)
+  """
+  numberOfSteps = 16
+  self.time = numpy.zeros(numberOfSteps)
   var1 = Input["var1"]
   var2 = Input["var2"]
-  self.sine = numpy.zeros(number_of_steps)
-  self.cosine = numpy.zeros(number_of_steps)
-  self.square = numpy.zeros(number_of_steps)
+  self.sine = numpy.zeros(numberOfSteps)
+  self.cosine = numpy.zeros(numberOfSteps)
+  self.square = numpy.zeros(numberOfSteps)
   for i in range(len(self.time)):
     self.time[i] = 0.25*i
     time = self.time[i]

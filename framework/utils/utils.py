@@ -397,7 +397,7 @@ def isSingleValued(val,nanOk=True):
     NOTE that Python usually considers strings as arrays of characters.  Raven doesn't benefit from this definition.
     @ In, val, object, check
     @ In, nanOk, bool, optional, if True then NaN and inf are acceptable
-    @ Out, isAScalar, bool, result
+    @ Out, isSingleValued, bool, result
   """
   # TODO most efficient order for checking?
   return isAFloatOrInt(val,nanOk=nanOk) or isABoolean(val) or isAString(val) or (val is None)
@@ -418,16 +418,7 @@ def isAFloatOrInt(val,nanOk=True):
     @ In, nanOk, bool, optional, if True then NaN and inf are acceptable
     @ Out, isAFloatOrInt, bool, result
   """
-  if isinstance(val,six.integer_types) or  isinstance(val,(float,numpy.number)):
-    # bools are ints, unfortunately
-    if isABoolean(val):
-      return False
-    # nan and inf are floats
-    if nanOk:
-      return True
-    elif val not in [numpy.inf,numpy.nan]:
-      return True
-  return False
+  return isAnInteger(val) or  isAFloat(val)
 
 def isAFloat(val,nanOk=True):
   """
