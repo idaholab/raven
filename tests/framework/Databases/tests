@@ -56,6 +56,7 @@
     type = 'RavenFramework'
     input = 'test_large_database.xml'
     output = 'large_database/ps2_dump.csv'
+    heavy = true
   [../]
 
 
