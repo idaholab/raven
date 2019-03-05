@@ -187,7 +187,7 @@ class HistorySet(DataSet):
       if var in self.protectedTags:
         continue
       # only modify it if it is not already scalar
-      if not mathUtils.isSingleValued(val):
+      if not utils.isSingleValued(val):
         # treat inputs, outputs differently TODO this should extend to per-variable someday
         ## inputs
         if var in self._inputs:
