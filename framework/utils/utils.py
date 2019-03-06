@@ -418,7 +418,7 @@ def isAFloatOrInt(val,nanOk=True):
     @ In, nanOk, bool, optional, if True then NaN and inf are acceptable
     @ Out, isAFloatOrInt, bool, result
   """
-  return isAnInteger(val) or  isAFloat(val)
+  return isAnInteger(val,nanOk) or  isAFloat(val,nanOk)
 
 def isAFloat(val,nanOk=True):
   """

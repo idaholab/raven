@@ -361,6 +361,7 @@ sys.exit(results["fail"])
     <revisions>
       <revision author="talbpaul" date="2016-11-08">Relocated utils tests</revision>
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+      <revision author="alfoa" date="2019-03-04">Moved methods isAString, isAFloat, isAInteger, isABoolean from mathUtils to utils</revision>
     </revisions>
   </TestInfo>
 """
