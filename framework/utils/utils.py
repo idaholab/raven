@@ -450,9 +450,9 @@ def isAnInteger(val,nanOk=False):
     if isABoolean(val):
       return False
     return True
-  # also include inf and nan, if requested
-  if nanOk and val in [numpy.nan,numpy.inf]:
-    return True
+    # also include inf and nan, if requested
+    if nanOk and val in [numpy.nan,numpy.inf]:
+      return True
   return False
 
 def isABoolean(val):
