@@ -390,13 +390,78 @@ def toBytes(s):
   else:
     return s
 
-def isString(s):
+def isSingleValued(val,nanOk=True):
   """
-    Method to figure out if a variable is a string.
-    @ In, s, object, variable for which we need to assess if it is a string
-    @ Out, isString, bool, true if variable is a str or unicode.
+    Determine if a single-entry value (by traditional standards).
+    Single entries include strings, numbers, NaN, inf, None
+    NOTE that Python usually considers strings as arrays of characters.  Raven doesn't benefit from this definition.
+    @ In, val, object, check
+    @ In, nanOk, bool, optional, if True then NaN and inf are acceptable
+    @ Out, isSingleValued, bool, result
   """
-  return isinstance(s, six.string_types)
+  # TODO most efficient order for checking?
+  return isAFloatOrInt(val,nanOk=nanOk) or isABoolean(val) or isAString(val) or (val is None)
+
+def isAString(val):
+  """
+    Determine if a string value (by traditional standards).
+    @ In, val, object, check
+    @ Out, isAString, bool, result
+  """
+  return isinstance(val, six.string_types)
+
+def isAFloatOrInt(val,nanOk=True):
+  """
+    Determine if a float or integer value
+    Should be faster than checking (isAFloat || isAnInteger) due to checking against numpy.number
+    @ In, val, object, check
+    @ In, nanOk, bool, optional, if True then NaN and inf are acceptable
+    @ Out, isAFloatOrInt, bool, result
+  """
+  return isAnInteger(val,nanOk) or  isAFloat(val,nanOk)
+
+def isAFloat(val,nanOk=True):
+  """
+    Determine if a float value (by traditional standards).
+    @ In, val, object, check
+    @ In, nanOk, bool, optional, if True then NaN and inf are acceptable
+    @ Out, isAFloat, bool, result
+  """
+  if isinstance(val,(float,numpy.number)):
+    # exclude ints, which are numpy.number
+    if isAnInteger(val):
+      return False
+    # numpy.float32 (or 16) is niether a float nor a numpy.float (it is a numpy.number)
+    if nanOk:
+      return True
+    elif val not in [numpy.nan,numpy.inf]:
+      return True
+  return False
+
+def isAnInteger(val,nanOk=False):
+  """
+    Determine if an integer value (by traditional standards).
+    @ In, val, object, check
+    @ In, nanOk, bool, optional, if True then NaN and inf are acceptable
+    @ Out, isAnInteger, bool, result
+  """
+  if isinstance(val,six.integer_types) or isinstance(val,numpy.integer):
+    # exclude booleans
+    if isABoolean(val):
+      return False
+    return True
+    # also include inf and nan, if requested
+    if nanOk and val in [numpy.nan,numpy.inf]:
+      return True
+  return False
+
+def isABoolean(val):
+  """
+    Determine if a boolean value (by traditional standards).
+    @ In, val, object, check
+    @ Out, isABoolean, bool, result
+  """
+  return isinstance(val,(bool,numpy.bool_))
 
 def toBytesIterative(s):
   """
@@ -671,69 +736,6 @@ def metaclass_insert(metaclass,*baseClasses):
   namespace={}
   return metaclass("NewMiddleClass",baseClasses,namespace)
 
-def interpolateFunction(x,y,option,z=None,returnCoordinate=False):
-  """
-    Method to interpolate 2D/3D points
-    @ In, x, ndarray or cached_ndarray, the array of x coordinates
-    @ In, y, ndarray or cached_ndarray, the array of y coordinates
-    @ In, z, ndarray or cached_ndarray, optional, the array of z coordinates
-    @ In, returnCoordinate, boolean, optional, true if the new coordinates need to be returned
-    @ Out, i, ndarray or cached_ndarray or tuple, the interpolated values
-  """
-  options = copy.copy(option)
-  if x.size <= 2:
-    xi = x
-  else:
-    xi = np.linspace(x.min(),x.max(),int(options['interpPointsX']))
-  if z != None:
-    if y.size <= 2:
-      yi = y
-    else:
-      yi = np.linspace(y.min(),y.max(),int(options['interpPointsY']))
-    xig, yig = np.meshgrid(xi, yi)
-    try:
-      if ['nearest','linear','cubic'].count(options['interpolationType']) > 0 or z.size <= 3:
-        if options['interpolationType'] != 'nearest' and z.size > 3:
-          zi = griddata((x,y), z, (xi[None,:], yi[:,None]), method=options['interpolationType'])
-        else:
-          zi = griddata((x,y), z, (xi[None,:], yi[:,None]), method='nearest')
-      else:
-        rbf = Rbf(x,y,z,function=str(str(options['interpolationType']).replace('Rbf', '')), epsilon=int(options.pop('epsilon',2)), smooth=float(options.pop('smooth',0.0)))
-        zi  = rbf(xig, yig)
-    except Exception as ae:
-      if 'interpolationTypeBackUp' in options.keys():
-        print(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag('Warning') + '->   The interpolation process failed with error : ' + str(ae) + '.The STREAM MANAGER will try to use the BackUp interpolation type '+ options['interpolationTypeBackUp'])
-        options['interpolationTypeBackUp'] = options.pop('interpolationTypeBackUp')
-        zi = interpolateFunction(x,y,z,options)
-      else:
-        raise Exception(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag('ERROR') + '-> Interpolation failed with error: ' +  str(ae))
-    if returnCoordinate:
-      return xig,yig,zi
-    else:
-      return zi
-  else:
-    try:
-      if ['nearest','linear','cubic'].count(options['interpolationType']) > 0 or y.size <= 3:
-        if options['interpolationType'] != 'nearest' and y.size > 3:
-          yi = griddata((x), y, (xi[:]), method=options['interpolationType'])
-        else:
-          yi = griddata((x), y, (xi[:]), method='nearest')
-      else:
-        xig, yig = np.meshgrid(xi, yi)
-        rbf = Rbf(x, y,function=str(str(options['interpolationType']).replace('Rbf', '')),epsilon=int(options.pop('epsilon',2)), smooth=float(options.pop('smooth',0.0)))
-        yi  = rbf(xi)
-    except Exception as ae:
-      if 'interpolationTypeBackUp' in options.keys():
-        print(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag('Warning') + '->   The interpolation process failed with error : ' + str(ae) + '.The STREAM MANAGER will try to use the BackUp interpolation type '+ options['interpolationTypeBackUp'])
-        options['interpolationTypeBackUp'] = options.pop('interpolationTypeBackUp')
-        yi = interpolateFunction(x,y,options)
-      else:
-        raise Exception(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag('ERROR') + '-> Interpolation failed with error: ' +  str(ae))
-    if returnCoordinate:
-      return xi,yi
-    else:
-      return yi
-
 def line3DInterpolation(x,y,z,nPoints):
   """
     Method to interpolate 3D points on a line
@@ -744,9 +746,9 @@ def line3DInterpolation(x,y,z,nPoints):
     @ Out, i, ndarray or cached_ndarray or tuple, the interpolated values
   """
   options = copy.copy(option)
-  data = np.vstack((x,y,z))
+  data = numpy.vstack((x,y,z))
   tck , u= interpolate.splprep(data, s=1e-6, k=3)
-  new = interpolate.splev(np.linspace(0,1,nPoints), tck)
+  new = interpolate.splev(numpy.linspace(0,1,nPoints), tck)
   return new[0], new[1], new[2]
 
 class abstractstatic(staticmethod):

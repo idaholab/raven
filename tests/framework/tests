@@ -19,14 +19,6 @@
   required_executable = '../../RAVEN-%METHOD%'
  [../]
 
- [./2steps_same_db]
-   #REQUIREMENT_TEST R-IS-3
-   type = 'RavenFramework'
-   input = 'test_2steps_same_db.xml'
-   csv = 'test_2steps/fullprint_HistorySet_3.csv'
-   UnorderedXml = 'test_2steps/fullprint_HistorySet.xml'
- [../]
-
  [./external_xml]
    type = 'RavenFramework'
    input = 'test_External_XML.xml'
@@ -61,24 +53,6 @@
   UnorderedXml = 'output_check/fullprint_HistorySet.xml output_check/fullprint_Pointset.xml'
   remove_unicode_identifier = true
    rel_err = 0.00002
- [../]
-
- [./test_push_into_hdf5]
-  type = 'RavenFramework'
-  input = 'test_push_into_hdf5.xml'
-  UnorderedCsv = 'test_extract_data_s_from_hdf5/Pointset_from_database_dump.csv test_extract_data_s_from_hdf5/Pointset_IN_database_dump.csv test_extract_data_s_from_hdf5/HistorySet_from_database_dump_0.csv test_extract_data_s_from_hdf5/HistorySet_IN_database_dump_0.csv'
-  max_time = 500
-  rel_err = 0.0001
- [../]
-
- [./test_merge_2_databases]
-  type = 'RavenFramework'
-  input = 'test_merge_2_databases.xml'
-  [./csv]
-    type = UnorderedCSV
-    output = 'test_merge_2_databases/Pointset_from_database_dump.csv test_merge_2_databases/Pointset_IN_database_dump.csv test_merge_2_databases/Historyset_from_database_dump_0.csv test_merge_2_databases/Historyset_from_database_dump_1.csv test_merge_2_databases/Historyset_IN_database_dump_0.csv test_merge_2_databases/Historyset_IN_database_dump_1.csv test_merge_2_databases/Historyset_IN_database_dump_2.csv test_merge_2_databases/Historyset_IN_database_dump_3.csv'
-    rel_err = 0.000001
-  [../]
  [../]
 
  [./test_rom_trainer_raven]
@@ -260,15 +234,6 @@
    rel_err = 9.0E-4
  [../]
 
- [./load_and_push_reusing_same_hdf5]
-   type = 'RavenFramework'
-   input = 'test_load_and_push_reusing_same_hdf5.xml'
-   output = 'GridTestSameHDF5/GridRestarted/1/out~massflowrate_fake GridTestSameHDF5/outGrid_dump.csv GridTestSameHDF5/outGridMax_dump.csv GridTestSameHDF5/outGridMin_dump.csv GridTestSameHDF5/outGridAverage_dump.csv'
-   prereq = testGrid
-   method = 'devel opt'
- [../]
-
-
  [./safest_point_pp]
   type = 'RavenFramework'
   input = 'test_safest_point.xml'
@@ -424,24 +389,7 @@
    csv    = 'custom1D/PointSet2_dump.csv custom1D/PointSet3_dump.csv'
  [../]
 
- [./newerDatabaseWithFilename]
-   type   = 'RavenFramework'
-   input  = 'test_new_database_with_filename.xml'
-   output = 'GridTestHDF5WithFileName/DatabaseStorage/userSpecifiedFileName.h5'
- [../]
 
-  [./HDF5selective]
-    type = 'RavenErrors'
-    input = 'hdf5_selective.xml'
-    expect_err = 'Provided realization does not have all requisite values for object'
-  [../]
-
-  [./HDF5location]
-    type = 'RavenFramework'
-    input = 'hdf5_location.xml'
-    output = 'HDF5_location/hasSquare_0.csv'
-    prereq = HDF5selective
-  [../]
 []
 
 

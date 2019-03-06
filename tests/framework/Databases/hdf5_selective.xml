@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework.HDF5selective</name>
+    <name>framework/Databases.HDF5selective</name>
     <author>talbpaul</author>
     <created>2017-07-06</created>
     <classesTested>Databases.HDF5</classesTested>
@@ -10,6 +10,9 @@
        Without the selectivity, the resulting HDF5 is 220 KB (all.hdf5).
        With selectivity, the resulting HDF5 is 187 KB (sine.hdf5).
     </description>
+    <revisions>
+        <revision author="alfoa" date="2019-03-01">Modified test location</revision>
+    </revisions>
     <!--We should find a better way to test the contents of the HDF5, as loading back into a CSV filters through
          the DataObject as well, but we currently don't have a way to test the file sizes against each other.
 

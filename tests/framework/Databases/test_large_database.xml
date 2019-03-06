@@ -2,30 +2,29 @@
 <Simulation verbosity="debug">
   <!-- TestInfo -->
   <TestInfo>
-    <name>framework/2steps_same_db</name>
+    <name>framework/Databases.large_HDF5</name>
     <author>@alfoa</author>
-    <created>2015-05-01</created>
+    <created>2019-03-01</created>
     <revisions>
-        <revision date="2016-05-20" author="@maljdan">Updating the test cases to remove references to Point or History</revision>
+        <revision author="alfoa" date="2019-03-01">Added test for testing new way to handle group names</revision>
     </revisions>
     <classesTested>Databases.HDF5</classesTested>
     <description>
-        This  test is aimed to test the capability of the RAVEN database strucuture to use the same database (HDF5) for
-        subsequential analyses in order to collect all the results in the same HDF5 container
+        This  test is aimed to test the capability of the RAVEN database strucuture to handle large databases (#926)
+        in terms of group names.
     </description>
-    <requirements>R-IS-3</requirements>
   </TestInfo>
     
   <!-- RunInfo. 2 Steps are performed in this case -->
   <RunInfo>
-    <WorkingDir>test_2steps</WorkingDir>
-    <Sequence>FirstStep,SecondStep</Sequence>
-    <batchSize>1</batchSize>
+    <WorkingDir>large_database</WorkingDir>
+    <Sequence>largeDataset,push,dump</Sequence>
+    <batchSize>8</batchSize>
   </RunInfo>
   
   <!-- Models. One single external model -->
   <Models>
-    <ExternalModel ModuleToLoad="two_steps" name="TwoStep" subType="">
+    <ExternalModel ModuleToLoad="../test_2steps/two_steps" name="TwoStep" subType="">
       <variables>Gauss1,auxBackupTimeDist,Gauss2,CladFailureDist,time,out1,out2,time</variables>
     </ExternalModel>
   </Models>
@@ -59,26 +58,9 @@
   
   <!-- Samplers. 2 different samplers since we want to test the possibility to add different data in the same HDF5 -->
   <Samplers>
-    <MonteCarlo name="RAVENmc6">
+    <MonteCarlo name="RAVEN7500">
       <samplerInit>
-        <limit>6</limit>
-      </samplerInit>
-      <variable name="Gauss1">
-        <distribution>Gauss1</distribution>
-      </variable>
-      <variable name="auxBackupTimeDist">
-        <distribution>auxBackupTimeDist</distribution>
-      </variable>
-      <variable name="Gauss2">
-        <distribution>Gauss2</distribution>
-      </variable>
-      <variable name="CladFailureDist">
-        <distribution>CladFailureDist</distribution>
-      </variable>
-    </MonteCarlo>
-    <MonteCarlo name="RAVENmc2">
-      <samplerInit>
-        <limit>2</limit>
+        <limit>7500</limit>
       </samplerInit>
       <variable name="Gauss1">
         <distribution>Gauss1</distribution>
@@ -97,26 +79,27 @@
   
   <!-- Steps. 2 steps that dump the results in the same HDF5 -->
   <Steps>
-    <MultiRun name="FirstStep" re-seeding="200286">
+    <MultiRun name="largeDataset" re-seeding="200286" sleepTime="1e-4">
       <Input class="DataObjects" type="PointSet">inputHolder</Input>
       <Model class="Models" type="ExternalModel">TwoStep</Model>
-      <Sampler class="Samplers" type="MonteCarlo">RAVENmc6</Sampler>
-      <Output class="Databases" type="HDF5">test2StepsDatabase</Output>
-      <Output class="DataObjects" type="HistorySet">stories</Output>
+      <Sampler class="Samplers" type="MonteCarlo">RAVEN7500</Sampler>
+      <Output class="DataObjects" type="PointSet">ps</Output>
+      <!-- <Output class="Databases" type="HDF5">testLargeDatabase</Output> -->
     </MultiRun>
-    <MultiRun name="SecondStep" re-seeding="200286">
-      <Input class="DataObjects" type="PointSet">inputHolder</Input>
-      <Model class="Models" type="ExternalModel">TwoStep</Model>
-      <Sampler class="Samplers" type="MonteCarlo">RAVENmc2</Sampler>
-      <Output class="Databases" type="HDF5">test2StepsDatabase</Output>
-      <Output class="DataObjects" type="HistorySet">stories</Output>
-      <Output class="OutStreams" type="Print">fullprint_HistorySet</Output>
-    </MultiRun>
+    <IOStep name="push" >
+        <Input class="DataObjects" type="PointSet">ps</Input>
+        <Output class="Databases" type="HDF5">testLargeDatabase</Output>
+    </IOStep>
+    <IOStep name="dump" >
+        <Input class="Databases" type="HDF5">testLargeDatabase</Input>
+        <Output class="DataObjects" type="PointSet">ps2</Output>
+        <Output class="OutStreams" type="Print">ps2_dump</Output>
+    </IOStep>
   </Steps>
   
   <!-- Databases. 1 database used as dumper -->
   <Databases>
-    <HDF5 name="test2StepsDatabase" readMode="overwrite"/>
+    <HDF5 name="testLargeDatabase" readMode="overwrite"/>
   </Databases>
   
   <!-- DataObjects. 1 input data object and 1 output dataobject -->
@@ -125,17 +108,22 @@
       <Input>Gauss1,auxBackupTimeDist,Gauss2,CladFailureDist</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
-    <HistorySet name="stories">
+    <PointSet name="ps">
       <Input>Gauss1,auxBackupTimeDist,Gauss2,CladFailureDist</Input>
-      <Output>out1,out2,time</Output>
-    </HistorySet>
+      <Output>out1,out2</Output>
+    </PointSet>
+    <PointSet name="ps2">
+        <Input>Gauss1,auxBackupTimeDist,Gauss2,CladFailureDist</Input>
+        <Output>out1,out2</Output>
+    </PointSet>
+    
   </DataObjects>
   
   <!-- OutStreams. Print object (dataobject dumping) -->
   <OutStreams>
-    <Print name="fullprint_HistorySet">
+    <Print name="ps2_dump">
       <type>csv</type>
-      <source>stories</source>
+      <source>ps2</source>
     </Print>
   </OutStreams>
 

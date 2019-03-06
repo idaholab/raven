@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework.newerDatabaseWithFilename</name>
+    <name>framework/Databases.newerDatabaseWithFilename</name>
     <author>alfoa</author>
     <created>2016-12-12</created>
     <classesTested>Databases.HDF5</classesTested>
@@ -10,6 +10,7 @@
     </description>
     <revisions>
       <revision author="alfoa" date="2017-05-19">Added test</revision>
+      <revision author="alfoa" date="2019-03-01">Modified test location</revision>
     </revisions>
   </TestInfo>
   <RunInfo>
