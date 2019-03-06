@@ -155,8 +155,10 @@ class Template(object):
       @ Out, None
     """
     entries = list(x.strip() for x in node.text.split(',')) if node.text is not None else []
+    # remove empty strings
+    entries = list(filter(None, entries))
     if position is not None:
-      if position < len(entries)-1:
+      if position < len(entries):
         entries.insert(position, new)
       else:
         entries.append(new)
