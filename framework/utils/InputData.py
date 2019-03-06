@@ -179,9 +179,9 @@ class InterpretedListType(InputType):
     values = value.split(",")
     base = utils.partialEval(values[0].strip())
     # three possibilities: string, integer, or float
-    if mathUtils.isAString(base):
+    if utils.isAString(base):
       conv = str
-    elif mathUtils.isAnInteger(base):
+    elif utils.isAnInteger(base):
       conv = int
     else: #float
       conv = float

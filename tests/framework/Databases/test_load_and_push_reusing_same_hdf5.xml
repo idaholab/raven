@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework.load_and_push_reusing_same_hdf5</name>
+    <name>framework/Databases.load_and_push_reusing_same_hdf5</name>
     <author>alfoa</author>
     <created>2016-12-12</created>
     <classesTested>Databases.HDF5</classesTested>
@@ -12,6 +12,7 @@
       <revision author="alfoa" date="2016-12-12">Added test</revision>
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
       <revision author="alfoa" date="2017-12-14">Modified input since new structure of DataObject</revision>
+      <revision author="alfoa" date="2019-03-01">Modified test location</revision>
     </revisions>
     <requirements>R-F-6</requirements>
   </TestInfo>
