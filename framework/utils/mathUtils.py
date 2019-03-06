@@ -720,7 +720,7 @@ def computeAmplitudeCoefficients(mods, Y, eigs, optmized):
     amplitudes = np.linalg.lstsq(mods, Y.T[0])[0]
   return amplitudes
 
-def trainEmpiricalFunction(signal, bins=None, minBins=None):
+def trainEmpiricalFunction(signal, bins=None, minBins=None, weights=None):
   """
     Creates a scipy empirical distribution object with all the associated methods (pdf, cdf, ppf, etc).
     Note this is only partially covered (while extended to include weights) by methods in raven/framework/Metrics/MetricUtilities,
@@ -728,13 +728,26 @@ def trainEmpiricalFunction(signal, bins=None, minBins=None):
     @ In, signal, np.array(float), signal to create distribution for
     @ In, bins, int, optional, number of bins to use
     @ In, minBins, int, optional, minimum number of bins to use
+    @ In, weights, np.array(float), optional, weights for each sample within the distribution
     @ Out, dist, scipy.stats.rv_histogram instance, distribution object instance based on input data
   """
   # determine the number of bins to use in the empirical distribution
   if bins is None:
     bins, _ = numBinsDraconis(signal, low=minBins)
-  counts, edges = np.histogram(signal, bins=bins, density=False)
+  counts, edges = np.histogram(signal, bins=bins, density=False, weights=weights)
   counts = np.asarray(counts) / float(len(signal))
   dist = stats.rv_histogram((counts, edges))
   return dist
 
+def convertSinCosToSinPhase(A, B):
+  """
+    Given coefficients A, B for the equation A*sin(kt) = B*cos(kt), returns
+    the equivalent values C, p for the equation C*sin(kt + p)
+    @ In, A, float, sine coefficient
+    @ In, B, float, cosine coefficient
+    @ Out, C, float, equivalent sine-only amplitude
+    @ Out, p, float, phase shift of sine-only waveform
+  """
+  p = np.arctan2(B, A)
+  C = A / np.cos(p)
+  return C, p

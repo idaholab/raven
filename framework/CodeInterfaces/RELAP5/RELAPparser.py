@@ -19,6 +19,7 @@ Created on July 11, 2013
 import os
 import fileinput
 import re
+from collections import defaultdict
 
 class RELAPparser():
   """
@@ -61,6 +62,62 @@ class RELAPparser():
         outfile.write('%s' %(i))
     outfile.close()
 
+
+  def retrieveCardValues(self, listOfCards):
+    """
+      This method is to retrieve the card values contained in the list
+      @ In, listOfCards, list, list of cards ([deck,card,word])
+      @ Out, cardValues, dict, dictionary containing the card and the value
+    """
+    foundAllCards = {}
+    deckCards     = {}
+    cardValues    = {}
+    # check all the decks
+    for deck,card,word in listOfCards:
+      if deck not in self.deckLines:
+        raise IOError("RELAP5 Interface: The number of deck found in the original input file is "+str(self.maxNumberOfDecks)+" while the user requested to modify the deck number "+str(deck))
+      if deck not in foundAllCards:
+        foundAllCards[deck] = {}
+        deckCards[deck] = defaultdict(list)
+      foundAllCards[deck][card] = False
+      deckCards[deck][card].append(word)
+    for deck in deckCards:
+      for lineNum, line in enumerate(self.deckLines[deck]):
+        if all(foundAllCards[deck].values()):
+          break
+        if not re.match('^\s*\n',line):
+          readCard = line.split()[0].strip()
+          if readCard in deckCards[deck].keys():
+            foundWord = False
+            foundAllCards[deck][readCard] = True
+            numberOfWords = self.countNumberOfWords(line)
+            for word in deckCards[deck][readCard]:
+              if int(word) <= numberOfWords:
+                cardValues[(deck,readCard,word)] = line.split()[word]
+                foundWord = True
+              else:
+                moveToNextLine            = True
+                cnt                       = 1
+                while moveToNextLine:
+                  if self.deckLines[deck][lineNum+cnt].strip().startswith("+"):
+                    currentNumberWords = self.countNumberOfWords(self.deckLines[deck][lineNum+cnt])
+                    if int(word) <= numberOfWords+currentNumberWords:
+                      cardValues[(deck,readCard,word)] = line.split()[word-currentNumberWords]
+                      foundWord = True
+                      moveToNextLine = False
+                    numberOfWords+=currentNumberWords
+                  else:
+                    moveToNextLine=False
+              if not foundWord:
+                raise IOError("RELAP5 Interface: The number of words found for card "+str(readCard)+" is "+str(numberOfWords)+"while the user requested to modify the word number "+str(word))
+      # check if all cards have been found
+      if not all(foundAllCards[deck].values()):
+        cardsNotFound = ""
+        for card,found in foundAllCards[deck].items():
+          if not found: cardsNotFound+= card +" "
+        raise IOError("RELAP5 Interface: The following cards have not been found in the original input files: "+cardsNotFound)
+    return cardValues
+
   def modifyOrAdd(self,dictionaryList,save=True):
     """
       dictionaryList is a list of dictionaries of the required addition or modification
@@ -78,7 +135,6 @@ class RELAPparser():
       else:
         decks.update(i['decks'])
     for deckNum in decks.keys():
-      a = self.deckLines.keys()
       if deckNum not in self.deckLines.keys():
         raise IOError("RELAP5 Interface: The number of deck found in the original input file is "+str(self.maxNumberOfDecks)+" while the user requested to modify the deck number "+str(deckNum))
       temp               = []

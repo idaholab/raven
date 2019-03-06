@@ -587,9 +587,13 @@ class EnsembleModel(Dummy):
           metadataToTransfer = {}
         for metadataToGet, source, alias in self.modelsDictionary[modelIn]['metadataToTransfer']:
           if metadataToGet in returnDict[source]['general_metadata']:
-            metadataToTransfer[metadataToGet if alias is None else alias] = returnDict[source]['general_metadata'][metadataToGet]
-          elif metadataToGet in returnDict[source]['general_metadata']:
-            metadataToTransfer[metadataToGet if alias is None else alias] = returnDict[source]['response'][metadataToGet]
+            metaDataValue = returnDict[source]['general_metadata'][metadataToGet]
+            metaDataValue = metaDataValue[0] if len(metaDataValue) == 1 else metaDataValue
+            metadataToTransfer[metadataToGet if alias is None else alias] = metaDataValue
+          elif metadataToGet in returnDict[source]['response']:
+            metaDataValue = returnDict[source]['response'][metadataToGet]
+            metaDataValue = metaDataValue[0] if len(metaDataValue) == 1 else metaDataValue
+            metadataToTransfer[metadataToGet if alias is None else alias] = metaDataValue
           else:
             self.raiseAnError(RuntimeError,'metadata "'+metadataToGet+'" is not present among the ones available in source "'+source+'"!')
         # get dependent outputs
