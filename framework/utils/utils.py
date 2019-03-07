@@ -20,10 +20,11 @@ from __future__ import division, print_function, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
 
-
-#Do not import numpy or scipy or other libraries that are not
-# built into python.  Otherwise the import can fail, and since utils
-# are used by --library-report, this can cause diagnostic messages to fail.
+# *************************** NOTE FOR DEVELOPERS ***************************
+# Do not import numpy or scipy or other libraries that are not              *
+# built into python.  Otherwise the import can fail, and since utils        *
+# are used by --library-report, this can cause diagnostic messages to fail. *
+# ***************************************************************************
 import bisect
 import sys, os, errno
 import inspect
