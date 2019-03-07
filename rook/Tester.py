@@ -560,6 +560,8 @@ class Tester:
       self.results.group = self.group_timed_out
       self.results.message = "Timed Out"
       return self.results
+    if not self.check_exit_code(self.results.exit_code):
+      return self.results
     self.process_results(output)
     self._wait_for_all_written()
     for differ in self.__differs:
@@ -644,6 +646,19 @@ class Tester:
     """
     self.results.message = message
     self.results.group = self.group_diff
+
+  def check_exit_code(self, exit_code):
+    """
+      Lets the subclasses decide if the exit code fails the test.
+      @ In, exit_code, int, the exit code of the test command.
+      @ Out, check_exit_code, bool, if true the exit code is acceptable.
+      If false the tester should use set_fail or other methods to set the
+      status and message.
+    """
+    if exit_code != 0:
+      self.set_fail("Running test failed with exit code "+str(exit_code))
+      return False
+    return True
 
   def process_results(self, output):
     """
