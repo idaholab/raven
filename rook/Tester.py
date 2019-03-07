@@ -388,8 +388,9 @@ class Tester:
     self.__test_run_type = set(self.specs['run_types'].split())
     if self.specs['heavy'] is not False:
       self.__test_run_type.add("heavy")
+      #--heavy makes the run type set(["heavy"]) so "normal" needs to be removed
       if "normal" in self.__test_run_type:
-        self.__test_run_type.remove("heavy")
+        self.__test_run_type.remove("normal")
 
   @classmethod
   def add_run_types(cls, run_types):
