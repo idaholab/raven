@@ -9,6 +9,9 @@
     <description>
         This  test is aimed to test the capability of RAVEN to employ the Adaptive Dynamic Event Tree Sampling strategy (using RELAP7 as system code) in a larger case
     </description>
+    <revisions>
+        <revision author="alfoa" date="2019-03-07">Modified syntax in Functions as for issue #934</revision>
+    </revisions>
   </TestInfo>
   <!-- RunInfo. 1 Step is performed in this case -->
   <RunInfo>

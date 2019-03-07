@@ -1,6 +1,5 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="silent">
-
   <TestInfo>
     <name>framework/Samplers/AdaptiveBatch.PreRankingSimplification</name>
     <author>maljdan</author>
@@ -14,7 +13,6 @@
        example, the value is 0.5, so any persistence value less than 0.5 of the
        scoring function's range of values is removed and thus we may end up with
        very few local maxima candidates.
-
        Note, all of the tests in AdaptiveBatch operate on a 2D input domain with
        the goal of extracting a circular limit surface with radius 0.5 and
        centered at the origin, (0,0).
@@ -24,6 +22,7 @@
       <revision author="talbpaul" date="2016-02-08">First update, looking for more failing tests to add.</revision>
       <revision author="maljdan" date="2016-04-06">Updating test cases to reflect the changes to the user input.</revision>
       <revision author="maljdan" date="2017-01-18">Adding test description.</revision>
+      <revision author="alfoa" date="2019-03-07">Modified syntax in Functions as for issue #934</revision>
     </revisions>
   </TestInfo>
 
@@ -134,7 +133,7 @@
 
   <Functions>
     <External file="goal" name="label">
-      <variable>y</variable>
+      <variables>y</variables>
     </External>
   </Functions>
 

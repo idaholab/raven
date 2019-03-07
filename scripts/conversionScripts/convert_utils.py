@@ -75,6 +75,7 @@ def standardMain(argv,convert):
   else: keep_comments = True
   always_rewrite = True
   if '--no-rewrite' in argv:
+
     always_rewrite = False
     argv.remove('--no-rewrite')
   #offer option to apply to all framework tests
@@ -110,10 +111,10 @@ def standardMain(argv,convert):
 
       tree = ET.ElementTree(ET.fromstring(strfile))
       if not always_rewrite:
-        tree_copy = ET.tostring(tree.getroot())
+        tree_copy = prettify(tree)
       convert(tree,fileName=fname)
       if not always_rewrite:
-        if ET.tostring(tree.getroot()) == tree_copy:
+        if prettify(tree) == tree_copy:
           print('File '+fname+ ' not converted since no syntax modifications have been detected')
           not_converted_files+=1
           continue

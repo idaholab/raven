@@ -17,6 +17,9 @@
       for using the LimitSurface capabilities of RAVEN (both the LimitSurfaceSearch sampler and the
       LimitSurfaceIntegral postprocessor.
     </description>
+    <revisions>
+      <revision author="alfoa" date="2019-03-07">Modified syntax in Functions as for issue #934</revision>
+    </revisions>
   </TestInfo>
 
   <Files>
@@ -81,7 +84,7 @@
 
   <Functions>
     <External file="goalFunction" name="goalFunction">
-      <variable>A</variable>
+      <variables>A</variables>
     </External>
   </Functions>
 
@@ -118,8 +121,8 @@
       <Output>goalFunction</Output>
     </PointSet>
     <PointSet name="limitSurfaceIntegral">
-        <Input>sigma-A,decay-A</Input>
-        <Output>goalFunction,EventProbability</Output>
+      <Input>sigma-A,decay-A</Input>
+      <Output>goalFunction,EventProbability</Output>
     </PointSet>
     <PointSet name="samples">
       <Input>sigma-A,decay-A</Input>
