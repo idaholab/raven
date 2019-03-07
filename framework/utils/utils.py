@@ -452,7 +452,7 @@ def isAnInteger(val,nanOk=False):
       return False
     return True
   # also include inf and nan, if requested
-  if nanOk and val in [numpy.nan,numpy.inf]:
+  if nanOk and isinstance(val,float) and val in [numpy.nan,numpy.inf]:
     return True
   return False
 
