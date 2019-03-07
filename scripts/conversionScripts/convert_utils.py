@@ -75,7 +75,6 @@ def standardMain(argv,convert):
   else: keep_comments = True
   always_rewrite = True
   if '--no-rewrite' in argv:
-
     always_rewrite = False
     argv.remove('--no-rewrite')
   #offer option to apply to all framework tests
