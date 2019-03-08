@@ -1,6 +1,5 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="silent">
-
   <TestInfo>
     <name>framework/Samplers/AdaptiveBatch.MaxPDistancePersistence</name>
     <author>maljdan</author>
@@ -15,7 +14,6 @@
        point (points with more volatility are preferred). This differs from the
        maximum value maxima as this looks at points with the highest topological
        persistence.
-
        Note, all of the tests in AdaptiveBatch operate on a 2D input domain with
        the goal of extracting a circular limit surface with radius 0.5 and
        centered at the origin, (0,0).
@@ -25,6 +23,7 @@
       <revision author="talbpaul" date="2016-02-08">First update, looking for more failing tests to add.</revision>
       <revision author="maljdan" date="2016-04-06">Updating test cases to reflect the changes to the user input.</revision>
       <revision author="maljdan" date="2017-01-18">Adding test description.</revision>
+      <revision author="alfoa" date="2019-03-07">Modified syntax in Functions as for issue #934</revision>
     </revisions>
   </TestInfo>
 
@@ -66,8 +65,8 @@
       <Output>y</Output>
     </PointSet>
     <PointSet name="inputHolder">
-        <Input>x2,x1</Input>
-        <Output>OutputPlaceHolder</Output>
+      <Input>x2,x1</Input>
+      <Output>OutputPlaceHolder</Output>
     </PointSet>
     <PointSet name="limit_surface">
       <Input>x2,x1</Input>
@@ -134,7 +133,7 @@
 
   <Functions>
     <External file="goal" name="label">
-      <variable>y</variable>
+      <variables>y</variables>
     </External>
   </Functions>
 
