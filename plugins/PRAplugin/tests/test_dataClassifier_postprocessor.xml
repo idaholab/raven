@@ -46,10 +46,10 @@
       <variables>ACC_status,time_LPI,time_LPR</variables>
     </External>
     <External file="func_LPI.py" name="func_LPI">
-      <variables>ACC_status,time_LPI,time_LPR</variables>
+      <variables>LPI_status,time_LPI,time_LPR</variables>
     </External>
     <External file="func_LPR.py" name="func_LPR">
-      <variables>ACC_status,time_LPI,time_LPR</variables>
+      <variables>LPR_status,time_LPI,time_LPR</variables>
     </External>
   </Functions>
   
