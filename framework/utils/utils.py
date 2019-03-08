@@ -20,10 +20,11 @@ from __future__ import division, print_function, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
 
-
-#Do not import numpy or scipy or other libraries that are not
-# built into python.  Otherwise the import can fail, and since utils
-# are used by --library-report, this can cause diagnostic messages to fail.
+# *************************** NOTE FOR DEVELOPERS ***************************
+# Do not import numpy or scipy or other libraries that are not              *
+# built into python.  Otherwise the import can fail, and since utils        *
+# are used by --library-report, this can cause diagnostic messages to fail. *
+# ***************************************************************************
 import bisect
 import sys, os, errno
 import inspect
@@ -450,9 +451,9 @@ def isAnInteger(val,nanOk=False):
     if isABoolean(val):
       return False
     return True
-    # also include inf and nan, if requested
-    if nanOk and val in [numpy.nan,numpy.inf]:
-      return True
+  # also include inf and nan, if requested
+  if nanOk and isinstance(val,float) and val in [numpy.nan,numpy.inf]:
+    return True
   return False
 
 def isABoolean(val):
@@ -735,21 +736,6 @@ def metaclass_insert(metaclass,*baseClasses):
   """
   namespace={}
   return metaclass("NewMiddleClass",baseClasses,namespace)
-
-def line3DInterpolation(x,y,z,nPoints):
-  """
-    Method to interpolate 3D points on a line
-    @ In, x, ndarray or cached_ndarray, the array of x coordinates
-    @ In, y, ndarray or cached_ndarray, the array of y coordinates
-    @ In, z, ndarray or cached_ndarray, the array of z coordinates
-    @ In, nPoints, int, number of desired inteporlation points
-    @ Out, i, ndarray or cached_ndarray or tuple, the interpolated values
-  """
-  options = copy.copy(option)
-  data = numpy.vstack((x,y,z))
-  tck , u= interpolate.splprep(data, s=1e-6, k=3)
-  new = interpolate.splev(numpy.linspace(0,1,nPoints), tck)
-  return new[0], new[1], new[2]
 
 class abstractstatic(staticmethod):
   """

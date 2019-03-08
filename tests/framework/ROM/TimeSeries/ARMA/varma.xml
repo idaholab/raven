@@ -10,7 +10,7 @@
        capability to generate intrinsically stochastic time series with correlated results.
        The correlation model used generated uniformly random data on [-0.5,0.5] for A, then
        set B = 0.9*A + 0.1*rand, with rand also on [-0.5,0.5], to ensure strong correlation.
-       The plot output &quot;plot_input.png&quot; shows the original training data, while &quot;plot_VARMA.png&quot;
+       The plot output ``plot_input.png'' shows the original training data, while ``plot_VARMA.png''
        plots the sampled values.  B should only be slightly off from A at all points.  If this
        same calculation is done without correlation, both A and B independently range over the
        value space, and B can be far from A for each Time value.  This provides a quick view norm

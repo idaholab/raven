@@ -1,13 +1,16 @@
 <?xml version="1.0" ?>
 <Simulation verbosity='debug'>
   <TestInfo>
-    <name>framework/user_guide/Constrain</name>
+    <name>framework/user_guide.Constrain</name>
     <author>talbpaul</author>
     <created>2017-06-30</created>
     <classesTested>Optimizer</classesTested>
     <description>
       Provides a user case of the "constraints" function in action for the user guide.
     </description>
+    <revisions>
+        <revision author="alfoa" date="2019-03-07">Modified syntax in Functions as for issue #934</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
@@ -31,8 +34,7 @@
 
   <Functions>
     <External file='./constraint' name='constraint'>
-      <variable>x</variable>
-      <variable>y</variable>
+      <variables>x,y</variables>
     </External>
   </Functions>
 
