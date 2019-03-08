@@ -5,7 +5,7 @@
     <name>framework.testAdaptiveDynamicEventTreeRAVEN</name>
     <author>@alfoa</author>
     <created>2015-05-01</created>
-    <classesTested>Samplers.AdaptiveDynamitEventTree</classesTested>
+    <classesTested>Samplers.AdaptiveDynamicEventTree</classesTested>
     <description>
         This  test is aimed to test the capability of RAVEN to employ the Adaptive Dynamic Event Tree Sampling strategy (using RELAP7 as system code) in a larger case
     </description>
