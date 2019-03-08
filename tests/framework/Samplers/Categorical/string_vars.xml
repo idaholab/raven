@@ -8,8 +8,8 @@
     <description>
       Tests the ability to use the Categorical distribution along with Functions to
       essentially sample strings for variables.  The model run is a simple projectile
-      motion problem that can be run in either &quot;stepper&quot; or &quot;analytic&quot; mode.  The output
-      of the model is &quot;height&quot; as a time-dependent variable.  The analytic mode is exact,
+      motion problem that can be run in either ``stepper''; or ``analytic'' mode.  The output
+      of the model is ``height''; as a time-dependent variable.  The analytic mode is exact,
       but the stepper mode is intentionally chosen to be a poor approximation (too few steps
       taken).
     </description>

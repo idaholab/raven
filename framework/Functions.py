@@ -42,7 +42,7 @@ class FunctionCollection(InputData.ParameterInput):
 
 FunctionCollection.createClass("Functions")
 
-class External(utils.metaclass_insert(abc.ABCMeta,BaseType)):
+class External(BaseType):
   """
     This class is the base class for different wrappers for external functions
     providing the tools to solve F(x)=0 where at least one of the components of
@@ -55,7 +55,7 @@ class External(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     """
       Method to get a reference to a class that specifies the input data for
       class cls.
-      @ In, cls, the class for which we are retrieving the specification
+      @ In, cls, class, the class for which we are retrieving the specification
       @ Out, inputSpecification, InputData.ParameterInput, class to use for
         specifying input of cls.
     """
@@ -85,7 +85,7 @@ class External(utils.metaclass_insert(abc.ABCMeta,BaseType)):
   def _handleInput(self, paramInput):
     """
       Method to handle the External Function parameter input.
-      @ In, paramInput, ParameterInput, the already parsed input.
+      @ In, paramInput, InputData.ParameterInput, the already parsed input.
       @ Out, None
     """
     self.functionFile = paramInput.parameterValues["file"]
@@ -96,30 +96,26 @@ class External(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     if not importedModule:
       self.raiseAnError(IOError,'Failed to import the module '+moduleToLoadString+' supposed to contain the function: '+self.name)
     #here the methods in the imported file are brought inside the class
-    for method in importedModule.__dict__.keys():
+    for method, action in importedModule.__dict__.items():
       if method in ['__residuumSign__','__residuumSign','residuumSign',
                     '__supportBoundingTest__','__supportBoundingTest',
                     'supportBoundingTest', '__residuum__','__residuum',
                     'residuum','__gradient__','__gradient','gradient']:
         if method in ['__residuumSign__','__residuumSign','residuumSign']:
-          self.__residuumSign =  importedModule.__dict__[method]
-          self.__actionDictionary['residuumSign' ] = self.__residuumSign
+          self.__actionDictionary['residuumSign' ] = action
           self.__actionImplemented['residuumSign'] = True
         if method in ['__supportBoundingTest__','__supportBoundingTest','supportBoundingTest']:
-          self.__supportBoundingTest =  importedModule.__dict__[method]
-          self.__actionDictionary['supportBoundingTest' ] = self.__supportBoundingTest
+          self.__actionDictionary['supportBoundingTest' ] = action
           self.__actionImplemented['supportBoundingTest'] = True
         if method in ['__residuum__','__residuum','residuum']:
-          self.__residuum =  importedModule.__dict__[method]
-          self.__actionDictionary['residuum' ] = self.__residuum
+          self.__actionDictionary['residuum' ] = action
           self.__actionImplemented['residuum'] = True
         if method in ['__gradient__','__gradient','gradient']:
-          self.__gradient =  importedModule.__dict__[method]
-          self.__actionDictionary['gradient'] = self.__gradient
+          self.__actionDictionary['gradient'] = action
           self.__actionImplemented['gradient'] = True
       else:
         #custom
-        self.__actionDictionary[method] = importedModule.__dict__[method]
+        self.__actionDictionary[method] = action
         self.__actionImplemented[method] = True
     # get variables
     self.__inputVariables = paramInput.findFirst("variables").value

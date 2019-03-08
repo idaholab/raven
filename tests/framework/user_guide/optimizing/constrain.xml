@@ -34,8 +34,7 @@
 
   <Functions>
     <External file='./constraint' name='constraint'>
-      <variable>x</variable>
-      <variable>y</variable>
+      <variables>x,y</variables>
     </External>
   </Functions>
 

@@ -43,19 +43,13 @@
 
   <Functions>
     <External file="func_ACC.py" name="func_ACC">
-      <variable>ACC_status</variable>
-      <variable>time_LPI</variable>
-      <variable>time_LPR</variable>
+      <variables>ACC_status,time_LPI,time_LPR</variables>
     </External>
     <External file="func_LPI.py" name="func_LPI">
-      <variable>LPI_status</variable>
-      <variable>time_LPI</variable>
-      <variable>time_LPR</variable>
+      <variables>ACC_status,time_LPI,time_LPR</variables>
     </External>
     <External file="func_LPR.py" name="func_LPR">
-      <variable>LPR_status</variable>
-      <variable>time_LPI</variable>
-      <variable>time_LPR</variable>
+      <variables>ACC_status,time_LPI,time_LPR</variables>
     </External>
   </Functions>
   
