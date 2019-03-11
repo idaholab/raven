@@ -28,7 +28,7 @@ import copy
 import numpy as np
 from collections import OrderedDict
 
-from utils import xmlUtils, mathUtils
+from utils import xmlUtils, utils
 import MessageHandler # to give VariableGroups a messageHandler and handle messages
 
 class RAVENparser():
@@ -109,11 +109,8 @@ class RAVENparser():
     filesNode = self.tree.find('.//Files')
     if filesNode is not None:
       for child in self.tree.find('.//Files'):
-        subDirectory = child.attrib['subDirectory'] if 'subDirectory' in child.attrib else None
-        if subDirectory:
-          self.slaveInputFiles.append(os.path.expanduser(os.path.join(subDirectory,child.text.strip())))
-        else:
-          self.slaveInputFiles.append(os.path.expanduser(child.text.strip()))
+        subDirectory = child.attrib.get('subDirectory','')
+        self.slaveInputFiles.append(os.path.expanduser(os.path.join(self.workingDir,subDirectory,child.text.strip())))
 
     externalModels = self.tree.findall('.//Models/ExternalModel')
     if len(externalModels) > 0:
@@ -292,7 +289,7 @@ class RAVENparser():
             raise IOError(self.printTag+' ERROR: at least the main XML node should be present in the RAVEN template input -> '+node.strip()+'. Please check the input!!')
           getFirstElement = returnElement.findall(allowAddNodes[indexFirstUnknownNode-1])[0]
           for i in range(indexFirstUnknownNode,len(allowAddNodes)):
-            nodeWithAttributeName = allowAddNodesPath.keys()[i]
+            nodeWithAttributeName = list(allowAddNodesPath.keys())[i]
             if not allowAddNodesPath[nodeWithAttributeName]:
               subElement =  ET.Element(nodeWithAttributeName)
             else:
@@ -300,7 +297,7 @@ class RAVENparser():
             getFirstElement.append(subElement)
             getFirstElement = subElement
           # in the event of vector entries, handle those here
-          if mathUtils.isSingleValued(val):
+          if utils.isSingleValued(val):
             val = str(val).strip()
           else:
             if len(val.shape) > 1:
@@ -315,7 +312,7 @@ class RAVENparser():
           nodeToChange = foundNodes[0]
           pathNode     = './/'
           # in the event of vector entries, handle those here
-          if mathUtils.isSingleValued(val):
+          if utils.isSingleValued(val):
             val = str(val).strip()
           else:
             if len(val.shape) > 1:

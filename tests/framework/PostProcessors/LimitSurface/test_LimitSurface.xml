@@ -15,7 +15,7 @@
       <revision author="alfoa" date="2014-11-17">restructuring Steps (removed Adaptive and PostProcessor), adding Assembler capability, removed datatype input for Functions and External models, modified all the inputs, added SafestPoint postprocessor and relative regression test, fixed Sampling for descrete distributions, added check for the distributions consistency between framework and RELAP7. SVN r30411</revision>
       <revision author="alfoa" date="2015-06-18">Changed Name of all DataObjects</revision>
       <revision author="talbpaul" date="2015-07-06">standardization of tests</revision>
-      <revision author="talbpaul" date="2015-07-06">Revert "standardization of tests"        This reverts commit 68099325e8daba0f756179a20b5c75ba651cb62d.</revision>
+      <revision author="talbpaul" date="2015-07-06">Revert ``standardization of tests''. This reverts commit 68099325e8daba0f756179a20b5c75ba651cb62d.</revision>
       <revision author="talbpaul" date="2015-07-06">updated tests, added script</revision>
       <revision author="talbpaul" date="2015-07-07">updated to restrict partial-node comments</revision>
       <revision author="cogljj" date="2015-09-29">Modifing external modules to use relative to working directory.</revision>
@@ -25,9 +25,11 @@
           Moved LimitSurface Postprocessor tests in a specific directory (tests/framework/PostProcessors/LimitSurface) and updated for new DataObject structure
       </revision>
       <revision author="alfoa" date="2018-09-11"> Added an additional IOStep to check that the limit surface DataObject can be dumped into a Database of type HDF5</revision>
+      <revision author="alfoa" date="2019-03-07">Modified syntax in Functions as for issue #934</revision>
     </revisions>
-    <requirements>R-RA-1</requirements>
+    <requirements>R-RA-1 R-RA-7</requirements>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>limitSurface</WorkingDir>
     <Sequence>
@@ -82,7 +84,7 @@
 
   <Functions>
     <External file="limitSurface/goalFunctionTest" name="goalFunctionForLimitSurface">
-      <variable>z</variable>
+      <variables>z</variables>
     </External>
   </Functions>
 
@@ -142,15 +144,15 @@
       <Output class="OutStreams" type="Print">LimitSurfacePositiveNegative_dump</Output>
     </PostProcess>
     <IOStep name="dumpLimitSurfacePositiveNegativeInHDF5">
-       <Input class="DataObjects" type="PointSet">LimitSurfacePositiveNegative</Input>
-       <Output class="Databases" type="HDF5">test_db_database</Output>
+      <Input class="DataObjects" type="PointSet">LimitSurfacePositiveNegative</Input>
+      <Output class="Databases" type="HDF5">test_db_database</Output>
     </IOStep>
   </Steps>
-  
+
   <Databases>
-      <HDF5 name="test_db_database" readMode="overwrite"/>
+    <HDF5 name="test_db_database" readMode="overwrite"/>
   </Databases>
-  
+
   <OutStreams>
     <Print name="PointSetPostProcTest_dump">
       <type>csv</type>

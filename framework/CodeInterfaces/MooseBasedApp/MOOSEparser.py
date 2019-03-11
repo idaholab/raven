@@ -86,13 +86,27 @@ class MOOSEparser():
       @ In, outfile, string, optional, output file root
       @ Out, None
     """
+    def write(IOfile, indent, xmlnode):
+      """
+        Method to print out the key and value pairs
+       @ In, IOfile, file, the file to write to
+       @ In, indent, string, the string to print before the key
+       @ In, xmlnode, ElementNode, the node with the attributes
+       @ Out, None
+      """
+      for key in sorted(xmlnode.attrib.keys()):
+        value = xmlnode.attrib[key]
+        if type(value) == float:
+          valueStr = repr(value)
+        else:
+          valueStr = toStrish(value)
+        IOfile.write(indent+toString(key)+' = '+valueStr+'\n')
     # 4 sub levels maximum
     def printSubLevels(xmlnode,IOfile,indentMultiplier):
       IOfile.write('  '*indentMultiplier+'[./'+xmlnode.tag+']\n')
       for string in xmlnode.tail if xmlnode.tail else []:
         IOfile.write('    '*indentMultiplier+string+'\n')
-      for key in xmlnode.attrib.keys():
-        IOfile.write('    '*indentMultiplier+key+' = '+toStrish(xmlnode.attrib[key])+'\n')
+      write(IOfile, '    '*indentMultiplier, xmlnode)
     if outfile==None:
       outfile =self.inputfile
     IOfile = open(outfile,'w')
@@ -101,8 +115,7 @@ class MOOSEparser():
       if child.tail:
         for string in child.tail:
           IOfile.write('  '+string+'\n')
-      for key in child.attrib.keys():
-        IOfile.write('  '+toString(key)+' = '+toString(toStrish(child.attrib[key]))+'\n')
+      write(IOfile, '  ', child)
       for childChild in child:
         printSubLevels(childChild,IOfile,1)
         for childChildChild in childChild:

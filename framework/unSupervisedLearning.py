@@ -129,6 +129,16 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
     ## The normalized training data
     self.normValues = None
 
+  def updateFeatures(self, features):
+    """
+      Change the Features that this classifier targets. If this ROM is trained already, raises an error.
+      @ In, features, list(str), list of new features
+      @ Out, None
+    """
+    if self.amITrained:
+      self.raiseAnError(RuntimeError,'Trying to change the <Features> of an already-trained ROM!')
+    self.features = features
+
   def train(self, tdict, metric = None):
     """
       Method to perform the training of the unSuperVisedLearning algorithm
@@ -140,7 +150,7 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
     """
 
     self.metric = metric
-    if type(tdict) != dict:
+    if not isinstance(tdict, dict):
       self.raiseAnError(IOError, ' method "train". The training set needs to be provided through a dictionary. Type of the in-object is ' + str(type(tdict)))
 
     featureCount = len(self.features)
@@ -255,6 +265,7 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
 
   ## I'd be willing to bet this never gets called, and if it did it would crash
   ## under specific settings, namely using a history set.
+  ## -> for the record, I call it to get the labels in the ROMCollection.Clusters - talbpaul
   def evaluate(self, edict):
     """
       Method to perform the evaluation of a point or a set of points through
@@ -265,7 +276,7 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
       @ In, edict, dict, evaluation dictionary
       @ Out, evaluation, numpy.array, array of evaluated points
     """
-    if type(edict) != dict:
+    if not isinstance(edict, dict):
       self.raiseAnError(IOError, ' Method "evaluate". The evaluate request/s need/s to be provided through a dictionary. Type of the in-object is ' + str(type(edict)))
 
     names = edict.keys()
@@ -628,7 +639,12 @@ class SciKitLearn(unSupervisedLearning):
           rowSigma = self.muAndSigmaFeatures[rowFeature][1]
           for col, colFeature in enumerate(self.features):
             colSigma = self.muAndSigmaFeatures[colFeature][1]
-            covariance[row,col] = covariance[row,col] * rowSigma * colSigma
+            #if covariance type == full, the shape is (n_components, n_features, n_features)
+            if len(covariance.shape) == 3:
+              covariance[:,row,col] = covariance[:,row,col] * rowSigma * colSigma
+            else:
+              #XXX if covariance type == diag, this will be wrong.
+              covariance[row,col] = covariance[row,col] * rowSigma * colSigma
         self.metaDict['covars'] = covariance
     elif 'decomposition' == self.SKLtype:
 
@@ -874,7 +890,7 @@ class temporalSciKitLearn(unSupervisedLearning):
 
     for t in range(self.numberOfHistoryStep):
       sklInput = {}
-      for feat in self.features.keys():
+      for feat in self.features:
         sklInput[feat] = self.inputDict[feat][:,t]
 
       self.SKLEngine.features = sklInput

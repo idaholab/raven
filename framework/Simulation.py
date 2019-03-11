@@ -472,7 +472,7 @@ class Simulation(MessageHandler.MessageUser):
               else:
                 self.whichDict[Class][subType][name].readXML(childChild, self.messageHandler, globalAttributes=globalAttributes)
             else:
-              self.raiseAnError(IOError,'not found name attribute for one '+Class)
+              self.raiseAnError(IOError,'not found name attribute for one "{}": {}'.format(Class,subType))
       else:
         #tag not in whichDict, check if it's a documentation tag
         if child.tag not in ['TestInfo']:
@@ -593,6 +593,8 @@ class Simulation(MessageHandler.MessageUser):
         self.runInfoDict['CallDir'] = os.getcwd()
         # then get the requested "WorkingDir"
         tempName = element.text
+        if element.text is None:
+          self.raiseAnError(IOError, 'RunInfo.WorkingDir is empty! Use "." to signify "work here" or specify a directory.')
         if '~' in tempName:
           tempName = os.path.expanduser(tempName)
         if os.path.isabs(tempName):

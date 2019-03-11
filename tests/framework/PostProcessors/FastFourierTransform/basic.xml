@@ -1,0 +1,68 @@
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/PostProcessors/FastFourierTransform.Basic</name>
+    <author>talbpaul</author>
+    <created>2018-09-11</created>
+    <classesTested>PostProcessors.FastFourierTransform</classesTested>
+    <description>
+      Tests the basic functionality of the FastFourierTransform postprocessor to
+      create a frequency-amplitude Fourier analysis of a signal.
+
+      The signals are created using Basic/dataGenerator.py, and use analytic Fourier-based signals.
+      The first realization uses periods of 4, 8 and 20, and in the second realization the periods
+      are 3.333, 13, and 50. At the corresponding periods (in the "fft_*csv" files, under "signal_fft_period"),
+      there should be a peak in the "signal_fft_amplitude" values.
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>Basic</WorkingDir>
+    <Sequence>read,process</Sequence>
+  </RunInfo>
+
+  <Files>
+    <Input name="inFile">signal.csv</Input>
+  </Files>
+
+  <Models>
+    <PostProcessor name="fft" subType="FastFourierTransform">
+      <target>signal</target>
+    </PostProcessor>
+  </Models>
+
+  <Steps>
+    <IOStep name="read">
+      <Input class="Files" type="">inFile</Input>
+      <Output class="DataObjects" type="HistorySet">inData</Output>
+    </IOStep>
+    <PostProcess name="process" pauseAtEnd="True">
+      <Input class="DataObjects" type="HistorySet">inData</Input>
+      <Model class="Models" type="PostProcessor">fft</Model>
+      <Output class="DataObjects" type="HistorySet">fft_out</Output>
+      <Output class="OutStreams" type="Print">fft</Output>
+    </PostProcess>
+  </Steps>
+
+  <OutStreams>
+    <Print name="fft">
+      <type>csv</type>
+      <source>fft_out</source>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <HistorySet name="inData">
+      <Input>placeholder</Input>
+      <Output>signal</Output>
+      <options>
+        <pivotParameter>t</pivotParameter>
+      </options>
+    </HistorySet>
+    <HistorySet name="fft_out">
+      <Output>signal_fft_period,signal_fft_amplitude</Output>
+      <options>
+        <pivotParameter>signal_fft_frequency</pivotParameter>
+      </options>
+    </HistorySet>
+  </DataObjects>
+</Simulation>

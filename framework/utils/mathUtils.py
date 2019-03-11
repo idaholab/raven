@@ -513,19 +513,31 @@ def NDInArray(findIn,val,tol=1e-12):
     return False,None,None
   return found,idx,looking
 
-def numBinsDraconis(data):
+def numBinsDraconis(data, low=None, alternateOkay=True):
   """
     Determine  Bin size and number of bins determined by Freedman Diaconis rule (https://en.wikipedia.org/wiki/Freedman%E2%80%93Diaconis_rule)
     @ In, data, np.array, data to be binned
+    @ In, low, int, minimum number of bins
+    @ In, alternateOkay, bool, if True then can use alternate method if Freeman Draconis won't work
     @ Out, numBins, int, optimal number of bins
     @ Out, binEdges, np.array, location of the bins
   """
-
-  IQR = np.percentile(data, 75) - np.percentile(data, 25)
-  binSize = 2.0*IQR*(data.size**(-1.0/3.0))
-  numBins = int((max(data)-min(data))/binSize)
-  binEdges = np.linspace(start=min(data),stop=max(data),num=numBins+1)
-  return numBins,binEdges
+  iqr = np.percentile(data, 75) - np.percentile(data, 25)
+  # Freedman Diaoconis assumes there's a difference between the 75th and 25th percentile (there usually is)
+  if iqr > 0.0:
+    size = 2.0 * iqr / np.cbrt(data.size)
+    numBins = int(np.ceil((max(data) - min(data))/size))
+  # if there's not, with approval we can use the sqrt of the number of entries instead
+  elif alternateOkay:
+    numBins = int(np.ceil(np.sqrt(data.size)))
+  else:
+    raise ValueError('When computing bins using Freedman-Diaconis the 25th and 75th percentiles are the same, and "alternate" is not enabled!')
+  # if a minimum number of bins have been suggested, check that we use enough
+  if low is not None:
+    numBins = max(numBins, low)
+  # for convenience, find the edges of the bins as well
+  binEdges = np.linspace(start=min(data), stop=max(data), num=numBins+1)
+  return numBins, binEdges
 
 def diffWithInfinites(a,b):
   """
@@ -545,88 +557,6 @@ def diffWithInfinites(a,b):
   else:
     res = a-b
   return res
-
-def isSingleValued(val,nanOk=True):
-  """
-    Determine if a single-entry value (by traditional standards).
-    Single entries include strings, numbers, NaN, inf, None
-    NOTE that Python usually considers strings as arrays of characters.  Raven doesn't benefit from this definition.
-    @ In, val, object, check
-    @ In, nanOk, bool, optional, if True then NaN and inf are acceptable
-    @ Out, isAScalar, bool, result
-  """
-  # TODO most efficient order for checking?
-  return isAFloatOrInt(val,nanOk=nanOk) or isABoolean(val) or isAString(val) or (val is None)
-
-def isAString(val):
-  """
-    Determine if a string value (by traditional standards).
-    @ In, val, object, check
-    @ Out, isAString, bool, result
-  """
-  return isinstance(val, six.string_types)
-
-def isAFloatOrInt(val,nanOk=True):
-  """
-    Determine if a float or integer value
-    Should be faster than checking (isAFloat || isAnInteger) due to checking against np.number
-    @ In, val, object, check
-    @ In, nanOk, bool, optional, if True then NaN and inf are acceptable
-    @ Out, isAFloatOrInt, bool, result
-  """
-  if isinstance(val,six.integer_types) or  isinstance(val,(float,np.number)):
-    # bools are ints, unfortunately
-    if isABoolean(val):
-      return False
-    # nan and inf are floats
-    if nanOk:
-      return True
-    elif val not in [np.inf,np.nan]:
-      return True
-  return False
-
-def isAFloat(val,nanOk=True):
-  """
-    Determine if a float value (by traditional standards).
-    @ In, val, object, check
-    @ In, nanOk, bool, optional, if True then NaN and inf are acceptable
-    @ Out, isAFloat, bool, result
-  """
-  if isinstance(val,(float,np.number)):
-    # exclude ints, which are np.number
-    if isAnInteger(val):
-      return False
-    # np.float32 (or 16) is niether a float nor a np.float (it is a np.number)
-    if nanOk:
-      return True
-    elif val not in [np.nan,np.inf]:
-      return True
-  return False
-
-def isAnInteger(val,nanOk=False):
-  """
-    Determine if an integer value (by traditional standards).
-    @ In, val, object, check
-    @ In, nanOk, bool, optional, if True then NaN and inf are acceptable
-    @ Out, isAnInteger, bool, result
-  """
-  if isinstance(val,six.integer_types) or isinstance(val,np.integer):
-    # exclude booleans
-    if isABoolean(val):
-      return False
-    return True
-  # also include inf and nan, if requested
-  if nanOk and val in [np.nan,np.inf]:
-    return True
-  return False
-
-def isABoolean(val):
-  """
-    Determine if a boolean value (by traditional standards).
-    @ In, val, object, check
-    @ Out, isABoolean, bool, result
-  """
-  return isinstance(val,(bool,np.bool_))
 
 def computeTruncatedTotalLeastSquare(X, Y, truncationRank):
   """
@@ -707,3 +637,35 @@ def computeAmplitudeCoefficients(mods, Y, eigs, optmized):
   else:
     amplitudes = np.linalg.lstsq(mods, Y.T[0])[0]
   return amplitudes
+
+def trainEmpiricalFunction(signal, bins=None, minBins=None, weights=None):
+  """
+    Creates a scipy empirical distribution object with all the associated methods (pdf, cdf, ppf, etc).
+    Note this is only partially covered (while extended to include weights) by methods in raven/framework/Metrics/MetricUtilities,
+    and ideally those methods can be generalized and extended to be included here, or in Distributions.  See issue #908.
+    @ In, signal, np.array(float), signal to create distribution for
+    @ In, bins, int, optional, number of bins to use
+    @ In, minBins, int, optional, minimum number of bins to use
+    @ In, weights, np.array(float), optional, weights for each sample within the distribution
+    @ Out, dist, scipy.stats.rv_histogram instance, distribution object instance based on input data
+  """
+  # determine the number of bins to use in the empirical distribution
+  if bins is None:
+    bins, _ = numBinsDraconis(signal, low=minBins)
+  counts, edges = np.histogram(signal, bins=bins, density=False, weights=weights)
+  counts = np.asarray(counts) / float(len(signal))
+  dist = stats.rv_histogram((counts, edges))
+  return dist
+
+def convertSinCosToSinPhase(A, B):
+  """
+    Given coefficients A, B for the equation A*sin(kt) = B*cos(kt), returns
+    the equivalent values C, p for the equation C*sin(kt + p)
+    @ In, A, float, sine coefficient
+    @ In, B, float, cosine coefficient
+    @ Out, C, float, equivalent sine-only amplitude
+    @ Out, p, float, phase shift of sine-only waveform
+  """
+  p = np.arctan2(B, A)
+  C = A / np.cos(p)
+  return C, p

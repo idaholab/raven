@@ -25,6 +25,7 @@ Currently, the following types are available in RAVEN:
   \item \textbf{CrossValidation}
   \item \textbf{DataClassifier}
   \item \textbf{ValueDuration}
+  \item \textbf{FastFourierTransform}
   \item \textbf{SampleSelector}
   %\item \textbf{PrintCSV}
   %\item \textbf{LoadCsvIntoInternalObject}
@@ -110,7 +111,9 @@ data objects, depending on the type of statistics the user wants to compute:
   \end{itemize}
   The matrix quantities available for request are:
   \begin{itemize}
-    \item \textbf{sensitivity}: matrix of sensitivity coefficients, computed via linear regression method.
+    \item \textbf{sensitivity}: matrix of sensitivity coefficients, computed via linear regression method. (\nb The condition number is computed every time this quantity is requsted. If it results
+    to be greater then $30$, a multicollinearity problem exists and the sensitivity coefficients 
+    might be incorrect and a Warning is spooned by the code)
     \item \textbf{covariance}: covariance matrix
     \item \textbf{pearson}: matrix of correlation coefficients
     \item \textbf{NormalizedSensitivity}: matrix of normalized sensitivity
@@ -140,6 +143,24 @@ data objects, depending on the type of statistics the user wants to compute:
   one of these sampler/ROM combinations may not provide the information that the
   user expects.
   \\
+  In addition, RAVEN will automatically calculate the standard errors on the following scalar quantities:
+  \begin{itemize}
+    \item \textbf{expectedValue}
+    \item \textbf{median}
+    \item \textbf{variance}
+    \item \textbf{sigma}
+    \item \textbf{skewness}
+    \item \textbf{kurtosis}
+  \end{itemize}
+  RAVEN will define a variable with name defined as: ``prefix for given \textbf{metric}'' + ``\_ste\_'' + ``parameter name'' to
+  store standard error of given \textbf{metric} with respect to given parameter. This information will be stored in the DataObjects,
+  i.e. \textbf{PointSet} and \textbf{HistorySet}, and by default will be printed out in the ``CSV'' output files by the 
+  \textbf{OutStreams}. Option node \xmlNode{what} can be used in the \textbf{OutStreams} to select the information that 
+  the users want to print.
+  In the case when the users want to store all the calculations results in general \textbf{DataSets}, RAVEN will employ a variable
+  with name defined as: ``\textbf{metric}'' + ``\_ste'' to store standard error with respect to all target parameters. An additional
+  index ``target'' will added in the \textbf{DataSets} with respect to these variables. All these quantities will be automatically
+  computed and stored in the given \textbf{DataSet}, and the users do not need to specify these quantities in their RAVEN input files.
   %
    \item \xmlNode{pivotParameter}, \xmlDesc{string, optional field}, name of the parameter that needs
    to be used for the computation of the Dynamic BasicStatistics (e.g. time). This node needs to
@@ -160,10 +181,10 @@ data objects, depending on the type of statistics the user wants to compute:
     variable names, i.e. variable names listed in \xmlNode{Input} or \xmlNode{Output} in the defined \xmlString{DataSet}.
     In addition, the extra node \xmlNode{Index} is required, and the value for \xmlAttr{var} can be found in the following:
     \begin{itemize}
-      \item scalar metrics, such as \xmlNode{expectedValue} and \xmlNode{variance}, 
+      \item scalar metrics, such as \xmlNode{expectedValue} and \xmlNode{variance},
         are requested, the index variable \xmlString{targets} will be required.
       \item vector metrics, such as \xmlNode{covariance} and \xmlNode{sensitivity}, are requested, the index variables
-        \xmlString{targets} and \xmlString{features} will be required. 
+        \xmlString{targets} and \xmlString{features} will be required.
       \item If \xmlNode{percentile} is requested, an additional index variable \xmlString{percent} should be added.
       \item when dynamic BasicStatistics (e.g. time) is requested, the index variable \xmlString{time}  will be required.
     \end{itemize}
@@ -171,7 +192,7 @@ data objects, depending on the type of statistics the user wants to compute:
   %
 \item \xmlNode{multipleFeatures}, \xmlDesc(boolean, optional field), if \textbf{False}, this node can be used when
     the users want to compute sensitivities based on one target variable with respect to one feature variable,
-    i.e. the sensitivity calculations are directly computed using the \textbf{Linear Regression} or 
+    i.e. the sensitivity calculations are directly computed using the \textbf{Linear Regression} or
     \textbf{Best Linear Predictor} method with single feature. This method can be useful when the input features
     depend on each other. The default value is \textbf{True}, which means the sensitivity calculations are performed
     using \textbf{Linear Regression} or \textbf{Best Linear Predictor} method with multiple features. If the input
@@ -1808,7 +1829,7 @@ the OpenPSA format ET is shown below:
         </fork>
     </initial-state>
 </define-event-tree>
-\end{lstlisting} 
+\end{lstlisting}
 
 This is performed by saving the structure of the ET (from file) as a \textbf{PointSet}
 (only \textbf{PointSet} are allowed), since an ET is a static Boolean logic structure. Each realization in the
@@ -1826,38 +1847,38 @@ This is performed by saving the structure of the ET (from file) as a \textbf{Poi
 \nb that the 0 or 1 values are specified in the \xmlNode{path state="0"} or \xmlNode{path state="1"} nodes in the ET OpenPSA file.
 
 Provided this definition, the ET described in Listing~\ref{lst:ETModel} will be converted to \textbf{PointSet} that is characterized
-by the following variables: 
+by the following variables:
 \begin{itemize}
 	\item Input variables: statusACC, statusLPI, statusLPR
 	\item Output variable: sequence
 \end{itemize}
-and the corresponding \textbf{PointSet} if the \xmlNode{expand} node is set to False is shown in Table~\ref{PointSetETExpandFalse}. 
+and the corresponding \textbf{PointSet} if the \xmlNode{expand} node is set to False is shown in Table~\ref{PointSetETExpandFalse}.
 If \xmlNode{expand} set to True, the corresponding \textbf{PointSet} is shown in Table~\ref{PointSetETExpandTrue}.
 \begin{table}[h]
     \centering
-    \caption{PointSet generated by RAVEN by employing the ET Importer Post-Processor with \xmlNode{expand} 
+    \caption{PointSet generated by RAVEN by employing the ET Importer Post-Processor with \xmlNode{expand}
              set to False for the ET of Listing~\ref{lst:ETModel}.}
     \label{PointSetETExpandFalse}
-	\begin{tabular}{c | c | c | c} 
-		\hline 
-		ACC & LPI & LPR & sequence \\ 
-		\hline 
+	\begin{tabular}{c | c | c | c}
+		\hline
+		ACC & LPI & LPR & sequence \\
+		\hline
 		0.  &  0. &  0. & 1. \\
 		0.  &  0. &  1. & 2. \\
 		0.  &  1. & -1. & 3. \\
 		1.  & -1. & -1. & 4. \\
-		\hline 
+		\hline
 	\end{tabular}
 \end{table}
 \begin{table}[h]
     \centering
-    \caption{PointSet generated by RAVEN by employing the ET Importer Post-Processor with \xmlNode{expand} 
+    \caption{PointSet generated by RAVEN by employing the ET Importer Post-Processor with \xmlNode{expand}
              set to True for the ET of Listing~\ref{lst:ETModel}.}
     \label{PointSetETExpandTrue}
-	\begin{tabular}{c | c | c | c} 
-		\hline 
-		ACC & LPI & LPR & sequence \\ 
-		\hline 
+	\begin{tabular}{c | c | c | c}
+		\hline
+		ACC & LPI & LPR & sequence \\
+		\hline
 		0.  &  0. &  0. & 1. \\
 		0.  &  0. &  1. & 2. \\
 		0.  &  1. &  0. & 3. \\
@@ -1866,20 +1887,20 @@ If \xmlNode{expand} set to True, the corresponding \textbf{PointSet} is shown in
 		1.  &  0. &  1. & 4. \\
 		1.  &  1. &  0. & 4. \\
 		1.  &  1. &  1. & 4. \\
-		\hline 
+		\hline
 	\end{tabular}
 \end{table}
 
 The ETImporter PP supports also:
 \begin{itemize}
   \item links to sub-trees
-	      \nb If the ET is split in two or more ETs (and thus one file for each ET), then it is only required to list 
+	      \nb If the ET is split in two or more ETs (and thus one file for each ET), then it is only required to list
 	      all files in the Step. RAVEN automatically detect links among ETs and merge all of them into a single PointSet.
   \item by-pass branches
   \item symbolic definition of outcomes: typically outcomes are defined as either 0 (upper branch) or 1 (lower branch). If instead the ET uses the
     \textbf{success/failure} labels, then they are converted into 0/1 labels
-    \nb If the branching condition is not binary or \textbf{success/failure}, then the ET Importer Post-Processor just follows 
-	   the numerical value of the \xmlNode{state} attribute of the \xmlNode{<path>} node in the ET OpenPSA file. 
+    \nb If the branching condition is not binary or \textbf{success/failure}, then the ET Importer Post-Processor just follows
+	   the numerical value of the \xmlNode{state} attribute of the \xmlNode{<path>} node in the ET OpenPSA file.
   \item symbolic/numerical definition of sequences: if the ET contains a symbolic sequence then a .xml file is generated.  This file contains
         the mapping between the sequences defined in the ET and the numerical IDs created by RAVEN. The file name is the concatenation of the ET name
         and "\_mapping". As an example the file "eventTree\_mapping.xml" generated by RAVEN:
@@ -1893,8 +1914,8 @@ The ETImporter PP supports also:
         \end{lstlisting}
         contains the mapping of four sequences defined in the ET (seq\_1,seq\_2,seq\_3,seq\_4) with the IDs generated by RAVEN (0,1,2,3).
         Note that if the sequences defined in the ET are both numerical and symbolic then they are all mapped.
-  \item The ET can contain a branch that is defined as a separate block in the \xmlNode{define-branch} node and it is 
-        replicated in the ET; in such case RAVEN automatically replicate such branch when generating the PointSet. 
+  \item The ET can contain a branch that is defined as a separate block in the \xmlNode{define-branch} node and it is
+        replicated in the ET; in such case RAVEN automatically replicate such branch when generating the PointSet.
 \end{itemize}
 The \xmlNode{collect-formula} are not considered since this node is used to connect the Boolean formulae generated by the
 Fault-Trees to the branch (i.e., fork) point.
@@ -1912,14 +1933,14 @@ Fault-Trees to the branch (i.e., fork) point.
   <Files>
     <Input name="eventTreeTest" type="">eventTree.xml</Input>
   </Files>
-  
+
   <Models>
     ...
     <PostProcessor name="ETimporter" subType="ETImporter">
       <fileFormat>OpenPSA</fileFormat>
       <expand>False</expand>
-    </PostProcessor> 
-    ...  
+    </PostProcessor>
+    ...
   </Models>
 
   <Steps>
@@ -2000,10 +2021,10 @@ the FT in OpenPSA format is shown in Listing~\ref{lst:FTModel}.
         </define-component>
     </define-fault-tree>
 </opsa-mef>
-\end{lstlisting} 
+\end{lstlisting}
 
 This is performed by saving the structure of the FT (from file) as a \textbf{PointSet}
-(only \textbf{PointSet} are allowed). 
+(only \textbf{PointSet} are allowed).
 
 Each Point in the PointSet represents a unique combination of the basic events.
 The PointSet is structured as follows: input variables are the basic events, output variable is the top event of the FT.
@@ -2025,10 +2046,10 @@ and it is structured is shown in Table~\ref{PointSetFT}.
     \centering
     \caption{PointSet generated by RAVEN by employing the FT Importer Post-Processor for the FT of Listing~\ref{lst:FTModel}.}
     \label{PointSetFT}
-	\begin{tabular}{c | c | c | c | c} 
-		\hline 
-		BE1 & BE2 & BE3 & BE4 & TOP \\ 
-		\hline 
+	\begin{tabular}{c | c | c | c | c}
+		\hline
+		BE1 & BE2 & BE3 & BE4 & TOP \\
+		\hline
 		 0. &  0. &  0. &  0. &  0. \\
 		 0. &  0. &  0. &  1. &  0. \\
 		 0. &  0. &  1. &  0. &  0. \\
@@ -2045,7 +2066,7 @@ and it is structured is shown in Table~\ref{PointSetFT}.
 		 1. &  1. &  0. &  1. &  1. \\
 		 1. &  1. &  1. &  0. &  1. \\
 		 1. &  1. &  1. &  1. &  1. \\
-		\hline 
+		\hline
 	\end{tabular}
 \end{table}
 
@@ -2063,14 +2084,14 @@ The example of FTImporter PostProcessor is shown in Listing~\ref{lst:FT_PP_Input
   <Files>
     <Input name="faultTreeTest" type="">FTimporter_not.xml</Input>
   </Files>
-  
+
   <Models>
     ...
     <PostProcessor name="FTimporter" subType="FTImporter">
       <fileFormat>OpenPSA</fileFormat>
       <topEventID>TOP</topEventID>
-    </PostProcessor> 
-    ...  
+    </PostProcessor>
+    ...
   </Models>
 
   <Steps>
@@ -2095,7 +2116,7 @@ The example of FTImporter PostProcessor is shown in Listing~\ref{lst:FT_PP_Input
 
 Important notes and capabilities:
 \begin{itemize}
-	\item If the FT is split in two or more FTs (and thus one file for each FT), then it is only required to list 
+	\item If the FT is split in two or more FTs (and thus one file for each FT), then it is only required to list
 	      all files in the Step. RAVEN automatically detect links among FTs and merge all of them into a single PointSet.
 	\item Allowed gates: AND, OR, NOT, ATLEAST, CARDINALITY, IFF, imply, NAND, NOR, XOR
 	\item If an house-event is defined in the FT:
@@ -2249,7 +2270,6 @@ only accept \textbf{PointSet} data object.
             <SKLtype>KFold</SKLtype>
             <n_splits>3</n_splits>
             <shuffle>False</shuffle>
-            <random_state>None</random_state>
         </SciKitLearn>
         <Metric class="Metrics" type="SKL">m1</Metric>
     </PostProcessor>
@@ -2307,8 +2327,8 @@ In addition to this XML node, several others are available:
   \item \xmlNode{n\_splits}, \xmlDesc{integer, optional field}, number of folds, must be at least 2. \default{3}
   \item \xmlNode{shuffle}, \xmlDesc{boolean, optional field}, whether to shuffle the data before splitting into
     batches.
-  \item \xmlNode{random\_state}, \xmlDesc{None, integer or RandomState, optional field}, when shuffle=True,
-    pseudo-random number generator state used for shuffling. If None, use default numpy RNG for shuffling.
+  \item \xmlNode{random\_state}, \xmlDesc{integer, optional field}, when shuffle=True,
+    pseudo-random number generator state used for shuffling. If not present, use default numpy RNG for shuffling.
 \end{itemize}
 
 \paragraph{Stratified k-fold}
@@ -2320,12 +2340,12 @@ In order to use this algorithm, the user needs to set the subnode:
 
 In addition to this XML node, several others are available:
 \begin{itemize}
-  \item \xmlNode{y}, \xmlDesc{array-like, [n\_samples], required field}, samples to split in K folds.
+  \item \xmlNode{labels}, \xmlDesc{list of integers, (n\_samples), required field}, contains a label for each sample.
   \item \xmlNode{n\_splits}, \xmlDesc{integer, optional field}, number of folds, must be at least 2. \default{3}
   \item \xmlNode{shuffle}, \xmlDesc{boolean, optional field}, whether to shuffle the data before splitting into
     batches.
-  \item \xmlNode{random\_state}, \xmlDesc{None, integer or RandomState, optional field}, when shuffle=True,
-    pseudo-random number generator state used for shuffling. If None, use default numpy RNG for shuffling.
+  \item \xmlNode{random\_state}, \xmlDesc{integer, optional field}, when shuffle=True,
+    pseudo-random number generator state used for shuffling. If not present, use default numpy RNG for shuffling.
 \end{itemize}
 
 \paragraph{Label k-fold}
@@ -2338,7 +2358,7 @@ In order to use this algorithm, the user needs to set the subnode:
 
 In addition to this XML node, several others are available:
 \begin{itemize}
-  \item \xmlNode{labels}, \xmlDesc{array-like with shape (n\_samples, ), required field}, contains a label for
+  \item \xmlNode{labels}, \xmlDesc{list of integers with length (n\_samples, ), required field}, contains a label for
     each sample. The folds are built so that the same label does not appear in two different folds.
   \item \xmlNode{n\_splits}, \xmlDesc{integer, optional field}, number of folds, must be at least 2. \default{3}
 \end{itemize}
@@ -2376,7 +2396,7 @@ In order to use this algorithm, the user needs to set the subnode:
 
 In addition to this XML node, several others are available:
 \begin{itemize}
-  \item \xmlNode{labels}, \xmlDesc{array-like of integer with shape (n\_samples,), required field}, arbitrary
+  \item \xmlNode{labels}, \xmlDesc{list of integers, (n\_samples,), required field}, arbitrary
     domain-specific stratificatioin of the data to be used to draw the splits.
 \end{itemize}
 
@@ -2389,9 +2409,9 @@ In order to use this algorithm, the user needs to set the subnode:
 
 In addition to this XML node, several others are available:
 \begin{itemize}
-  \item \xmlNode{labels}, \xmlDesc{array-like of integer with shape (n\_samples,), required field}, arbitrary
+  \item \xmlNode{labels}, \xmlDesc{list of integers, (n\_samples,), required field}, arbitrary
     domain-specific stratificatioin of the data to be used to draw the splits.
-  \item \xmlNode{p}, \xmlDesc{integer, optional field}, number of samples to leave out in the test split.
+  \item \xmlNode{n\_groups}, \xmlDesc{integer, optional field}, number of samples to leave out in the test split.
 \end{itemize}
 
 \paragraph{ShuffleSplit}
@@ -2404,17 +2424,17 @@ In order to use this algorithm, the user needs to set the subnode:
 
 In addition to this XML node, several others are available:
 \begin{itemize}
-  \item \xmlNode{n\_iter}, \xmlDesc{integer, optional field}, number of re-shuffling and splitting iterations
+  \item \xmlNode{n\_splits}, \xmlDesc{integer, optional field}, number of re-shuffling and splitting iterations
     \default{10}.
-  \item \xmlNode{test\_size}, \xmlDesc{float, integer or None}, if float, should be between 0.0 and 1.0 and
+  \item \xmlNode{test\_size}, \xmlDesc{float or integer, optional field}, if float, should be between 0.0 and 1.0 and
     represent the proportion of the dataset to include in the test split. \default{0.1}
-    If integer, represents the absolute number of test samples. If None, the value is automatically set to
+    If integer, represents the absolute number of test samples. If not present, the value is automatically set to
     the complement of the train size.
-  \item \xmlNode{train\_size}, \xmlDesc{float, integer or None}, if float, should be between 0.0 and 1.0 and represent
+  \item \xmlNode{train\_size}, \xmlDesc{float or integer, optional field}, if float, should be between 0.0 and 1.0 and represent
     the proportion of the dataset to include in the train split. If integer, represents the absolute number of train
-    samples. If None, the value is automatically set to the complement of the test size. \default{None}
-  \item \xmlNode{random\_state}, \xmlDesc{None, integer or RandomState, optional field}, when shuffle=True,
-    pseudo-random number generator state used for shuffling. If None, use default numpy RNG for shuffling.
+    samples. If not present, the value is automatically set to the complement of the test size.
+  \item \xmlNode{random\_state}, \xmlDesc{integer, optional field}, when shuffle=True,
+    pseudo-random number generator state used for shuffling. If not present, use default numpy RNG for shuffling.
 \end{itemize}
 
 \paragraph{Label-Shuffle-Split}
@@ -2426,18 +2446,18 @@ In order to use this algorithm, the user needs to set the subnode:
 
 In addition to this XML node, several others are available:
 \begin{itemize}
-  \item \xmlNode{labels}, \xmlDesc{array, [n\_samples]}, labels of samples.
-  \item \xmlNode{n\_iter}, \xmlDesc{integer, optional field}, number of re-shuffling and splitting iterations
+  \item \xmlNode{labels}, \xmlDesc{list of integers, (n\_samples)}, labels of samples.
+  \item \xmlNode{n\_splits}, \xmlDesc{integer, optional field}, number of re-shuffling and splitting iterations
     \default{10}.
-  \item \xmlNode{test\_size}, \xmlDesc{float, integer or None}, if float, should be between 0.0 and 1.0 and
+  \item \xmlNode{test\_size}, \xmlDesc{float or integer, optional field}, if float, should be between 0.0 and 1.0 and
     represent the proportion of the dataset to include in the test split. \default{0.1}
-    If integer, represents the absolute number of test samples. If None, the value is automatically set to
+    If integer, represents the absolute number of test samples. If not present, the value is automatically set to
     the complement of the train size.
-  \item \xmlNode{train\_size}, \xmlDesc{float, integer or None}, if float, should be between 0.0 and 1.0 and represent
+  \item \xmlNode{train\_size}, \xmlDesc{float or integer, optional field}, if float, should be between 0.0 and 1.0 and represent
     the proportion of the dataset to include in the train split. If integer, represents the absolute number of train
-    samples. If None, the value is automatically set to the complement of the test size. \default{None}
-  \item \xmlNode{random\_state}, \xmlDesc{None, integer or RandomState, optional field}, when shuffle=True,
-    pseudo-random number generator state used for shuffling. If None, use default numpy RNG for shuffling.
+    samples. If not present, the value is automatically set to the complement of the test size.
+  \item \xmlNode{random\_state}, \xmlDesc{integer, optional field}, when shuffle=True,
+    pseudo-random number generator state used for shuffling. If not present, use default numpy RNG for shuffling.
 \end{itemize}
 
 
@@ -2447,7 +2467,7 @@ In addition to this XML node, several others are available:
 \label{DataClassifierPP}
 The \textbf{DataClassifier} post-processor is specifically used to classify the data stored in the DataObjects. It
 accepts two DataObjects, one is used as the classifier which must be a \textbf{PointSet}, the other one,
-i.e. \textbf{PointSet} or \textbf{HistorySet}, is used as the input DataObject to be classified. 
+i.e. \textbf{PointSet} or \textbf{HistorySet}, is used as the input DataObject to be classified.
 %
 \ppType{DataClassifier}{DataClassifier}
 %
@@ -2455,7 +2475,7 @@ i.e. \textbf{PointSet} or \textbf{HistorySet}, is used as the input DataObject t
   \item \xmlNode{label}, \xmlDesc{string, required field}, the name of the label that are used for the classifier. This
     label must exist in the DataObject that is used as the classifer. This name will also be used as
     the label name for the DataObject that is classified.
-  \item \xmlNode{variable}, \xmlDesc{required, xml node}. In this node, the following attribute should be specified: 
+  \item \xmlNode{variable}, \xmlDesc{required, xml node}. In this node, the following attribute should be specified:
     \begin{itemize}
       \item \xmlAttr{name}, \xmlDesc{required, string attribute}, the variable name, which should be exist in
         the DataObject that is used as classifier.
@@ -2518,7 +2538,7 @@ def evaluate(self):
 
 The \textbf{DataClassifier} post-processor is specifically used to classify the data stored in the DataObjects. It
 accepts two DataObjects, one is used as the classifier which should be always \textbf{PointSet}, the other one, i.e.
-either \textbf{PointSet} or \textbf{HistorySet} is used as the input DataObject to be classified. 
+either \textbf{PointSet} or \textbf{HistorySet} is used as the input DataObject to be classified.
 
 The \textbf{DataClassifier} is provided below:
 \begin{lstlisting}[style=XML]
@@ -2595,21 +2615,72 @@ the counts variable.
 </Simulation>
 \end{lstlisting}
 
+%%%%%%%%%%%%%% FastFourierTransform %%%%%%%%%%%%%%%%%%%
+\subsubsection{FastFourierTransform}
+\label{FastFourierTransformPP}
+The \xmlNode{FastFourierTransform} postprocessor provides access to the Numpy fast fourier transform function
+\texttt{numpy.fft.fft}
+and provides the frequencies, periods, and amplitudes from performing the transform. The periods are simply
+the inverse of the frequencies, and the frequency units are the deltas between pivot values in the provided
+input. For example, if data is collected every 3600 seconds, the units of frequency are per-hour.  This
+postrpocessor expects uniformly-spaced pivot values. Note that for each realization in the input data object,
+a separate fft will be created for each target.
 
+The \xmlNode{FastFourierTransform} postprocessor can act on any target in a DataObject that depends on a
+single index, and generates three histories per sample per target: an independent variable
+\xmlString{target\_fft\_frequency}, and two dependent values \xmlString{target\_fft\_period} and
+\xmlString{target\_fft\_amplitude}, which both depend on the frequency by default. In all three outputs,
+\emph{target} is replaced by the name of the target for which the fft was requested.
+
+\ppType{FastFourierTransform}{FastFourierTransform}
+%
+\begin{itemize}
+  \item \xmlNode{target}, \xmlDesc{comma separated strings, required field}, specifies the names of the
+    target(s) for which the fast Fourier transform should be calculated.
+ \end{itemize}   
+\textbf{Example:}
+
+\begin{lstlisting}[style=XML]
+<Simulation>
+ ...
+  <Models>
+    ...
+    <PostProcessor name="pp" subType="FastFourierTransform">
+      <target>x, y</target>
+    </PostProcessor>
+    ...
+  </Models>
+ ...
+</Simulation>
+\end{lstlisting}
 %%%%%%%%%%%%%% SampleSelector %%%%%%%%%%%%%%%%%%%
 \subsubsection{SampleSelector}
 \label{SampleSelectorPP}
-The \xmlNode{SampleSelector} postprocessor is a tool to select the row in which the minimum or the maximum of a target is found.
+The \xmlNode{SampleSelector} postprocessor is a tool to select a row from a dataset, depending on different
+criteria. The different criteria that can be used are listed below.
 
-The \xmlNode{SampleSelector} postprocessor can  act on \xmlNode{DataObjects}, and generates a
-\xmlNode{DataObject} in return.
+The \xmlNode{SampleSelector} postprocessor can  act on any \xmlNode{DataObjects}, and generates a
+\xmlNode{DataObject} with a single realization in return.
 
 \ppType{SampleSelector}{SampleSelector}
 %
 \begin{itemize}
-  \item \xmlNode{target}, \xmlDesc{string, required field}, specifies the name of the
-    target for which the minimum or maximum should be found.
-  \item \xmlNode{criterion}, \xmlDesc{string, required field}, specifies whether the minimum or maximum should be found.
+  \item \xmlNode{criterion}, \xmlDesc{string, required field}, specifies the criterion to select the
+    realization from the input DataObject. Options are as follows:
+    \begin{itemize}
+      \item \xmlString{min}, choose the realization that has the lowest value of the \xmlNode{target}
+        variable. The target must be scalar.
+      \item \xmlString{max}, choose the realization that has the highest value of the \xmlNode{target}
+        variable. The target must be scalar.
+      \item \xmlString{index}, choose the realization that has the provided index. The index must be an
+        integer and is zero-based, meaning the first entry is at index 0, the second entry is at index 1, etc.
+        The realization order is taken from the order in which they were entered originally into the input
+        DataObject. If this option is used, the \xmlNode{criterion} node must have an \xmlAttr{value}
+        attribute that gives the index.
+    \end{itemize}
+  \item \xmlNode{target}, \xmlDesc{string, optional field}, required if the criterion targets a particular
+    variable (such as the minimum and maximum criteria). Specifies the name of the
+    target for which the criterion should be evaluated.
 \end{itemize}
 
 \textbf{Example:}
@@ -2619,13 +2690,16 @@ The \xmlNode{SampleSelector} postprocessor can  act on \xmlNode{DataObjects}, an
  ...
   <Models>
     ...
-    <PostProcessor name="pp" subType="SampleSelector">
+    <PostProcessor name="select_min" subType="SampleSelector">
       <target>x</target>
       <criterion>min</criterion>
+    </PostProcessor>
+    ...
+    <PostProcessor name="select_index" subType="SampleSelector">
+      <criterion value='3'>index</criterion>
     </PostProcessor>
     ...
   </Models>
  ...
 </Simulation>
 \end{lstlisting}
-

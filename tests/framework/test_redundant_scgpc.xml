@@ -15,8 +15,10 @@
       <revision author="talbpaul" date="2016-01-07">Tests updated</revision>
       <revision author="maljdan" date="2016-04-06">Updating test cases to reflect the changes to the user input.</revision>
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+      <revision author="alfoa" date="2019-03-07">Modified syntax in Functions as for issue #934</revision>
     </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>RedundantInputs</WorkingDir>
     <Sequence>sim_py_SC</Sequence>
@@ -93,12 +95,10 @@
 
   <Functions>
     <External file="RedundantInputs/d_calc.py" name="raven_d_calc">
-      <variable>a</variable>
-      <variable>c</variable>
+      <variables>a,c</variables>
     </External>
     <External file="RedundantInputs/e_calc.py" name="raven_e_calc">
-      <variable>b</variable>
-      <variable>c</variable>
+      <variables>b,c</variables>
     </External>
   </Functions>
 

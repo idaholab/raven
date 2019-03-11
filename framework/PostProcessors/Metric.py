@@ -31,6 +31,7 @@ import copy
 #Internal Modules------------------------------------------------------------------------------------
 from .PostProcessor import PostProcessor
 from utils import utils
+from utils import xmlUtils
 from utils import InputData
 from utils.cached_ndarray import c1darray
 import Files
@@ -133,7 +134,12 @@ class Metric(PostProcessor):
               requestData = requestData.reshape(-1,1)
             # If requested data are from input space, the shape will be (nSamples, 1)
             # If requested data are from history output space, the shape will be (nSamples, nTimeSteps)
-            metricData = (requestData, metadata['ProbabilityWeight'].values)
+            if 'ProbabilityWeight' in metadata:
+              weights = metadata['ProbabilityWeight'].values
+            else:
+              # TODO is this correct sizing generally?
+              weights = np.ones(requestData.shape[0])
+            metricData = (requestData, weights)
       elif isinstance(currentInput, Distributions.Distribution):
         if currentInput.name == metricDataName and dataName is None:
           if metricData is not None:
@@ -263,16 +269,17 @@ class Metric(PostProcessor):
     if isinstance(evaluation, Runners.Error):
       self.raiseAnError(RuntimeError, "Job ", finishedJob.identifier, "failed!")
     outputDict = evaluation[1]
-    if isinstance(output, Files.File):
-      availExtens = ['xml']
-      outputExtension = output.getExt().lower()
-      if outputExtension not in availExtens:
-        self.raiseAMessage('Metric postprocessor did not recognize extension ".', str(outputExtension), '". The output will be dumped to a text file')
-      output.setPath(self._workingDir)
-      self.raiseADebug('Write Metric prostprocessor output in file with name: ', output.getAbsFile())
-      self._writeXML(output, outputDict)
-    elif output.type in ['PointSet', 'HistorySet']:
-      self.raiseADebug('Dumping output in data object named', output.name)
+    # FIXED: writing directly to file is no longer an option!
+    #if isinstance(output, Files.File):
+    #  availExtens = ['xml']
+    #  outputExtension = output.getExt().lower()
+    #  if outputExtension not in availExtens:
+    #    self.raiseAMessage('Metric postprocessor did not recognize extension ".', str(outputExtension), '". The output will be dumped to a text file')
+    #  output.setPath(self._workingDir)
+    #  self.raiseADebug('Write Metric prostprocessor output in file with name: ', output.getAbsFile())
+    #  self._writeXML(output, outputDict)
+    if output.type in ['PointSet', 'HistorySet']:
+      self.raiseADebug('Adding output in data object named', output.name)
       rlz = {}
       for key, val in outputDict.items():
         newKey = key.replace("|","_")
@@ -280,6 +287,9 @@ class Metric(PostProcessor):
       if self.dynamic:
         rlz[self.pivotParameter] = np.atleast_1d(self.pivotValues)
       output.addRealization(rlz)
+      # add metadata
+      xml = self._writeXML(output, outputDict)
+      output._meta['MetricPP'] = xml
     elif output.type == 'HDF5':
       self.raiseAnError(IOError, 'Output type', str(output.type), 'is not yet implemented. Skip it')
     else:
@@ -287,19 +297,15 @@ class Metric(PostProcessor):
 
   def _writeXML(self,output,outputDictionary):
     """
-      Defines the method for writing the post-processor to a .xml file
-      @ In, output, File object, file to write to
+      Defines the method for writing the post-processor to the metadata within a data object
+      @ In, output, DataObject, instance to write to
       @ In, outputDictionary, dict, dictionary stores importance ranking outputs
-      @ Out, None
+      @ Out, xml, xmlUtils.StaticXmlElement instance, written data in XML format
     """
-    if output.isOpen():
-      output.close()
     if self.dynamic:
-      outputInstance = Files.returnInstance('DynamicXMLOutput', self)
+      outputInstance = xmlUtils.DynamicXmlElement('MetricPostProcessor', pivotParam=self.pivotParameter)
     else:
-      outputInstance = Files.returnInstance('StaticXMLOutput', self)
-    outputInstance.initialize(output.getFilename(), self.messageHandler, path=output.getPath())
-    outputInstance.newTree('MetricPostProcessor', pivotParam=self.pivotParameter)
+      outputInstance = xmlUtils.StaticXmlElement('MetricPostProcessor')
     if self.dynamic:
       for key, values in outputDictionary.items():
         assert("|" in key)
@@ -317,7 +323,7 @@ class Metric(PostProcessor):
           outputInstance.addScalar(nodeName, metricName, values[0])
         else:
           self.raiseAnError(IOError, "Multiple values are returned from metric '", metricName, "', this is currently not allowed")
-    outputInstance.writeFile()
+    return outputInstance
 
   def run(self, inputIn):
     """

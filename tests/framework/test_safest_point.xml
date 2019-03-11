@@ -7,7 +7,7 @@
     <classesTested>Samplers.LimitSurfaceSearch, Models.PostProcessor.SafestPoint, Steps.MultiRun</classesTested>
     <description>
        This test is about the identification of the Safest Point in a set of controllable and un-controllable parameter.
-       In order to do that, a LimitSurfaceSearch sampling is employed and sub-sequentially the PostProcessor 
+       In order to do that, a LimitSurfaceSearch sampling is employed and sub-sequentially the PostProcessor
        of type SafestPoint is used.
     </description>
     <revisions>
@@ -18,8 +18,10 @@
       <revision author="cogljj" date="2015-09-29">Modifing external modules to use relative to working directory.</revision>
       <revision author="maljdan" date="2016-04-06">Updating test cases to reflect the changes to the user input.</revision>
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+      <revision author="alfoa" date="2019-03-07">Modified syntax in Functions as for issue #934</revision>
     </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>SafestPointPP</WorkingDir>
     <Sequence>pth1,pth2,pth3,pth4</Sequence>
@@ -75,7 +77,7 @@
       <Output>p</Output>
     </PointSet>
   </DataObjects>
-  
+
   <Distributions>
     <Normal name="x1_dst">
       <upperBound>10</upperBound>
@@ -168,7 +170,7 @@
 
   <Functions>
     <External file="SafestPointPP/safest_point_test_g_zr.py" name="g_zr">
-      <variable>g</variable>
+      <variables>g</variables>
     </External>
   </Functions>
 

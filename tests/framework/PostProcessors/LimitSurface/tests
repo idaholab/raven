@@ -6,7 +6,7 @@
   csv = 'limitSurface/LimitSurfaceNegative_dump.csv limitSurface/LimitSurfacePositiveNegative_dump.csv limitSurface/LimitSurfacePositive_dump.csv'
   max_time = 300
   rel_err = 0.0001
-  #skip = ‘need to be fixed’
+  #skip = 'need to be fixed'
  [../]
 
  [./testLimitSurfaceIntegralPP]
@@ -15,8 +15,8 @@
   output = 'limitSurface_integral/LimitSurfaceUnWeightedPb_dump.xml limitSurface_integral/LimitSurfaceWeightedPb_dump.xml'
   csv = 'limitSurface_integral/LimitSurfaceWeightedPb_dump.csv limitSurface_integral/LimitSurfaceUnWeightedPb_dump.csv'
   max_time = 300
-  rel_err = 0.0001
-  #skip = ‘need to be fixed’
+  rel_err = 0.001
+  #skip = 'need to be fixed'
  [../]
 
  [./testLimitSurfacePostProcessorWithRegressor]

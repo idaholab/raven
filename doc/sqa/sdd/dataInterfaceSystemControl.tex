@@ -1,0 +1,23 @@
+\subsection{Data Design and Control}
+The data transfer in the RAVEN software is fully standardized:
+\begin{itemize}
+  \item  \textbf{\textit{Input}}: API deployed by Code Interfaces and/or Model APIs;
+  \item \textbf{\textit{Output}}: API deployed by the \textbf{DataObjects}  and \textbf{Databases}.
+\end{itemize}
+The documentation of these APIs is reported in the RAVEN user manual (\cite{RAVENuserManual})
+
+\subsection{Human-Machine Interface Design} 
+ There are no human system integration requirements associated with this software.
+ \subsection{System Interface Design} 
+RAVEN does not own any physical model. For this reason, it needs to be interfaced with external
+or user input-defined
+software representing the engine for simulating physical models (systems). 
+The interface with external systems in the RAVEN software is fully standardized via clear APIs deployed by
+ the \textbf{Models} entities.
+The documentation of these APIs is reported in the RAVEN user manual (\cite{RAVENuserManual})
+
+ \subsection{Security Structure} 
+The software is accessible to the open-source community (Apache License, Version 2.0). No restrictions for downloading or redistributing is applicable.
+
+ \section{REQUIREMENTS CROSS-REFERENCE} 
+The requirements are detailed in SPC-2366, ``RAVEN Software Requirements Specification (SRS) and Traceability Matrix''.

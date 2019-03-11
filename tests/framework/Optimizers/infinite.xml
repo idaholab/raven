@@ -9,6 +9,9 @@
       This test runs the optimization on 1/x, returning "inf" at x=0.
       It primarily tests that gradients can be obtained when infinite solutions are provided.
     </description>
+    <revisions>
+      <revision author='talbpaul' date='2018-10-23'>limited outputs checked to just the solution</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
@@ -37,6 +40,7 @@
         <limit>20</limit>
         <initialSeed>42</initialSeed>
         <type>max</type>
+        <writeSteps>final</writeSteps>
       </initialization>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
       <convergence>
@@ -80,8 +84,7 @@
       <Output>x,y,ans,varsUpdate</Output>
     </PointSet>
     <PointSet name="opt_export">
-      <Input>trajID</Input>
-      <Output>x,y,ans,varsUpdate,stepSize,gradient_x</Output>
+      <Output>ans</Output>
     </PointSet>
   </DataObjects>
 
@@ -89,7 +92,6 @@
     <Print name="opt_export">
       <type>csv</type>
       <source>opt_export</source>
-      <clusterLabel>trajID</clusterLabel>
     </Print>
     <Print name="opt_soln">
       <type>csv</type>

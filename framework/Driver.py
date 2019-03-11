@@ -108,8 +108,8 @@ def checkVersions():
   sys.path.append(os.path.join(os.path.dirname(frameworkDir),"scripts","TestHarness","testers"))
   import RavenUtils
   sys.path.pop() #remove testers path
-  missing,outOfRange,notQA = RavenUtils.checkForMissingModules(False)
-  if len(missing) + len(outOfRange) > 0 and RavenUtils.checkVersions():
+  missing,outOfRange,notQA = RavenUtils.check_for_missing_modules(False)
+  if len(missing) + len(outOfRange) > 0 and RavenUtils.check_versions():
     print("ERROR: too old, too new, or missing raven libraries, not running:")
     for error in missing + outOfRange + notQA:
       print(error)
@@ -167,6 +167,7 @@ if __name__ == '__main__':
 
   if interfaceCheck:
     os.environ['RAVENinterfaceCheck'] = 'True'
+    print('Interface CHECK activated!\n')
   else:
     os.environ['RAVENinterfaceCheck'] = 'False'
 

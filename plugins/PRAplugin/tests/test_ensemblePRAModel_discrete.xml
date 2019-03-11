@@ -154,7 +154,7 @@
     </PointSet>
     <PointSet name="sim_PS">
       <Input>A,B,C,beta,gamma,initialState,initEvent</Input>
-      <Output>sequence</Output>
+      <Output>sequence,statusLPI,statusACC,LPR</Output>
     </PointSet>
     <PointSet name="ET_PS">
       <Input>initEvent,statusACC,statusLPI,LPR</Input>

@@ -212,15 +212,6 @@ class HDF5(DateBase):
     paramDict['exist'] = self.exist
     return paramDict
 
-  def getEndingGroupPaths(self):
-    """
-      Function to retrieve all the groups' paths of the ending groups
-      @ In, None
-      @ Out, histories, list, List of the ending groups' paths
-    """
-    histories = self.database.retrieveAllHistoryPaths()
-    return histories
-
   def getEndingGroupNames(self):
     """
     Function to retrieve all the groups' names of the ending groups
@@ -244,24 +235,27 @@ class HDF5(DateBase):
     # realization must be a dictionary
     assert(type(rlz).__name__ == "dict")
     # prefix must be present
-    assert('prefix' in rlz)
+    if 'prefix' not in rlz:
+      rlz['prefix'] = len(self.database)
     self.database.addGroup(rlz)
     self.built = True
 
-  def addExpectedMeta(self,keys):
+  def addExpectedMeta(self,keys,params={}):
     """
       Registers meta to look for in realizations.
       @ In, keys, set(str), keys to register
+      @ In, params, dict, optional, {key:[indexes]}, keys of the dictionary are the variable names,
+        values of the dictionary are lists of the corresponding indexes/coordinates of given variable
       @ Out, None
     """
-    self.database.addExpectedMeta(keys)
-    self.addMetaKeys(*keys)
+    self.database.addExpectedMeta(keys,params)
+    self.addMetaKeys(keys, params)
 
   def provideExpectedMetaKeys(self):
     """
       Provides the registered list of metadata keys for this entity.
       @ In, None
-      @ Out, meta, set(str), expected keys (empty if none)
+      @ Out, meta, tuple, (set(str),dict), expected keys (empty if none) and dictionary of expected keys with respect to their indexes, i.e. {keys:[indexes]}
     """
     return self.database.provideExpectedMetaKeys()
 

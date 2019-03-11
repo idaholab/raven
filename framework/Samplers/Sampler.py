@@ -90,6 +90,8 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     constantInput = InputData.parameterInputFactory("constant", contentType=InputData.InterpretedListType)
     constantInput.addParam("name", InputData.StringType, True)
     constantInput.addParam("shape", InputData.IntegerListType, required=False)
+    constantInput.addParam("source", InputData.StringType, required=False)
+    constantInput.addParam("index", InputData.IntegerType, required=False)
 
     inputSpecification.addSub(constantInput)
 
@@ -100,6 +102,11 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     restartInput.addParam("type", InputData.StringType)
     restartInput.addParam("class", InputData.StringType)
     inputSpecification.addSub(restartInput)
+
+    sourceInput = InputData.parameterInputFactory("ConstantSource", contentType=InputData.StringType)
+    sourceInput.addParam("type", InputData.StringType)
+    sourceInput.addParam("class", InputData.StringType)
+    inputSpecification.addSub(sourceInput)
 
     return inputSpecification
 
@@ -132,9 +139,14 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.reseedAtEachIteration         = False                     # Logical flag. True if every newer evaluation is performed after a new reseeding
     self.FIXME                         = False                     # FIXME flag
     self.printTag                      = self.type                 # prefix for all prints (sampler type)
+
     self.restartData                   = None                      # presampled points to restart from
     self.restartTolerance              = 1e-15                     # strictness with which to find matches in the restart data
     self.restartIsCompatible           = None                      # flags restart as compatible with the sampling scheme (used to speed up checking)
+    self._jobsToEnd                    = []                        # list of strings, containing job prefixes that should be cancelled.
+
+    self.constantSourceData            = None                      # dictionary of data objects from which constants can take values
+    self.constantSources               = {}                        # storage for the way to obtain constant information
 
     self._endJobRunnable               = sys.maxsize               # max number of inputs creatable by the sampler right after a job ends (e.g., infinite for MC, 1 for Adaptive, etc)
 
@@ -144,6 +156,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.NDSamplingParams               = {}                       # this dictionary contains a dictionary for each ND distribution (key). This latter dictionary contains the initialization parameters of the ND inverseCDF ('initialGridDisc' and 'tolerance')
     ######
     self.addAssemblerObject('Restart' ,'-n',True)
+    self.addAssemblerObject('ConstantSource' ,'-n',True)
 
     #used for PCA analysis
     self.variablesTransformationDict    = {}                       # for each variable 'modelName', the following informations are included: {'modelName': {latentVariables:[latentVar1, latentVar2, ...], manifestVariables:[manifestVar1,manifestVar2,...]}}
@@ -388,23 +401,33 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ Out, name, string, name of constant
       @ Out, value, float or np.array,
     """
+    # constantSources
     value = inp.value
     name = inp.parameterValues['name']
     shape = inp.parameterValues.get('shape',None)
-    # if single entry, remove array structure; if multiple entries, cast them as numpy array
-    if len(value) == 1:
-      value = value[0]
+    source = inp.parameterValues.get('source',None)
+    # if constant's value is provided directly by value ...
+    if source is None:
+      # if single entry, remove array structure; if multiple entries, cast them as numpy array
+      if len(value) == 1:
+        value = value[0]
+      else:
+        value = np.asarray(value)
+      # if specific shape requested, then reshape it
+      if shape is not None:
+        try:
+          value = value.reshape(shape)
+        except ValueError:
+          self.raiseAnError(IOError,
+              ('Requested shape "{}" ({} entries) for constant "{}"' +\
+              ' is not consistent with the provided values ({} entries)!')
+              .format(shape,np.prod(shape),name,len(value)))
+    # else if constant's value is provided from a DataObject ...
     else:
-      value = np.asarray(value)
-    # if specific shape requested, then reshape it
-    if shape is not None:
-      try:
-        value = value.reshape(shape)
-      except ValueError:
-        self.raiseAnError(IOError,
-            ('Requested shape "{}" ({} entries) for constant "{}"' +\
-            ' is not consistent with the provided values ({} entries)!')
-            .format(shape,np.prod(shape),name,len(value)))
+      self.constantSources[name] = {'shape'    : shape,
+                                      'source'   : source,
+                                      'index'    : inp.parameterValues.get('index',-1),
+                                      'sourceVar': value[0]} # generally, constants are a list, but in this case just take the only entry
     return name, value
 
   def getInitParams(self):
@@ -459,17 +482,16 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     else:
       self.raiseAMessage('No restart for '+self.printTag)
 
-    #load restart data into existing points
-    # TODO do not copy data!  Read directly from restart.
-    #if self.restartData is not None:
-    #  if len(self.restartData) > 0:
-    #    inps = self.restartData.getInpParametersValues()
-    #    outs = self.restartData.getOutParametersValues()
-    #    #FIXME there is no guarantee ordering is accurate between restart data and sampler
-    #    inputs = list(v for v in inps.values())
-    #    existingInps = zip(*inputs)
-    #    outVals = zip(*list(v for v in outs.values()))
-    #    self.existing = dict(zip(existingInps,outVals))
+    if 'ConstantSource' in self.assemblerDict.keys():
+      # find all the sources requested in the sampler, map data objects to their requested names
+      self.constantSourceData = dict((a[2],a[3]) for a in self.assemblerDict['ConstantSource'])
+      for var,data in self.constantSources.items():
+        source = self.constantSourceData[data['source']]
+        rlz = source.realization(index=data['index'])
+        if data['sourceVar'] not in rlz:
+          self.raiseAnError(IOError,'Requested variable "{}" from DataObject "{}" to set constant "{}",'.format(data['sourceVar'], source.name, var) +\
+                                    ' but "{}" is not a variable in "{}"!'.format(data['sourceVar'], source.name))
+        self.constants[var] = rlz[data['sourceVar']]
 
     #specializing the self.localInitialize() to account for adaptive sampling
     if solutionExport != None:
@@ -503,7 +525,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     meta = ['ProbabilityWeight','prefix','PointProbability']
     for var in self.toBeSampled.keys():
       meta +=  ['ProbabilityWeight-'+ key for key in var.split(",")]
-    self.addMetaKeys(*meta)
+    self.addMetaKeys(meta)
 
   def localGetInitParams(self):
     """
@@ -604,6 +626,17 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     paramDict.update(self.localGetCurrentSetting())
     return paramDict
 
+  def getJobsToEnd(self, clear=False):
+    """
+      Provides a list of jobs that should be terminated.
+      @ In, clear, bool, optional, if True then clear list after returning.
+      @ Out, ret, list, jobs to terminate
+    """
+    ret = set(self._jobsToEnd[:])
+    if clear:
+      self._jobsToEnd = []
+    return ret
+
   def localGetCurrentSetting(self):
     """
       Returns a dictionary with class specific information regarding the
@@ -664,7 +697,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       # we consider that CDF of the constant variables is equal to 1 (same as its Pb Weight)
       self.inputInfo['SampledVarsPb'].update(dict.fromkeys(self.constants.keys(),1.0))
       pbKey = ['ProbabilityWeight-'+key for key in self.constants.keys()]
-      self.addMetaKeys(*pbKey)
+      self.addMetaKeys(pbKey)
       self.inputInfo.update(dict.fromkeys(['ProbabilityWeight-'+key for key in self.constants.keys()],1.0))
 
   def _expandVectorVariables(self):

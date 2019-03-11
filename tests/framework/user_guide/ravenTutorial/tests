@@ -4,6 +4,7 @@
     input = 'singleRun.xml'
     csv = 'singleRunAnalysis/print_history_0.csv'
     rel_err = 0.000001
+    python3_only = true
   [../]
   
   [./singleRunPlot]
@@ -38,6 +39,7 @@
     input = 'RomTrain.xml'
     csv = 'ROM/histories_0.csv'
     rel_err = 0.000001
+    python3_only = true
   [../]
   
   [./RomLoad]
@@ -53,5 +55,6 @@
     type = 'RavenFramework'
     input = 'PostProcess.xml'
     UnorderedCsv = 'stat/statisticalAnalysis_basicStatPP_dump.csv stat/statisticalAnalysis_basicStatPP_time_dump_0.csv'
+    python3_only = true
   [../]
 []
