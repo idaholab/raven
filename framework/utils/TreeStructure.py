@@ -48,7 +48,7 @@ def dump(node):
 
 def parse(inFile,dType=None):
   """
-    Given a file (GetPot or XML), process it into a node.
+    Given a file (XML), process it into a node.
     @ In, inFile, file, file to process, or string acceptable
     @ In, dType, string, optional, type of processing to use (xml or getpot)
     @ Out, tree, InputTree, structured input
@@ -60,10 +60,9 @@ def parse(inFile,dType=None):
     extension = inFile.name.split('.')[-1].lower()
     if extension == 'xml':
       dType = 'xml'
-    elif extension in ['i','inp','in']:
-      dType = 'getpot'
     else:
-      raise InputParsingError('Unrecognized file type for:',inFile,' | Expected .xml, .i, .in, or .inp')
+      #Possibly we should just try parsing the file instead of checking?
+      raise InputParsingError('Unrecognized file type for:',inFile,' | Expected .xml')
   if dType.lower()=='xml':
     #try:
     parser = ET.XMLParser(target=CommentedTreeBuilder())
@@ -72,12 +71,6 @@ def parse(inFile,dType=None):
     #except Exception as e:
     #  print('ERROR: Input parsing error!')
     #  raise e
-  elif dType.lower()=='getpot':
-    try:
-      tree = getpotToInputTree(inFile)
-    except:
-      e = sys.exc_info()[0]
-      raise InputParsingError(e)
   else:
     raise InputParsingError('Unrecognized file type for:',inFile)
   return tree
@@ -147,79 +140,6 @@ def xmlToInputTree(xml):
     commentsToAdd = readChild(tsRoot,child,commentsToAdd)
   return InputTree(tsRoot)
 
-def getpotToInputTree(getpot):
-  """
-    Converts a getpot file into an InputTree object.
-    @ In, getpot, file, file object with getpot syntax
-    @ Out, tree, NodeTree, tree with sorted information
-  """
-  #root = Node()
-  parentNodes = []#root]
-  currentNode = None
-  global comment
-  comment = None
-  def addComment(node):
-    """
-      If comment is not None, adds it to node
-      @ In, node, Node, node
-      @ Out, None
-    """
-    global comment
-    if comment is not None:
-      node.addComment(comment)
-      comment = None
-  #end addComment
-  for line in getpot:
-    line = line.strip()
-    #if comment in line, store it for now
-    if '#' in line:
-      if comment is not None:
-        raise NotImplementedError('need to handle comments better!')
-        #need to stash comments, attributes for node
-      comment = '#'.join(line.split('#')[1:])
-      line = line.split('#')[0].strip()
-    #if starting new node
-    if line.startswith('[./') and line.endswith(']'):
-      #if child node, stash the parent for now
-      if currentNode is not None:
-        parentNodes.append(currentNode)
-      currentNode = InputNode(tag=line[3:-1])#,attrib={})
-      addComment(currentNode)
-    #if at end of node
-    elif line == '[../]':
-      #FIXME what if parentNodes is empty, i.e., back to the beginning?  Simulation node wrapper?
-      #add currently-building node to its parent
-      if len(parentNodes)>0:
-        parentNodes[-1].append(currentNode)
-        #make parent the active node
-        currentNode = parentNodes.pop()
-      else:
-        #this is the root
-        root = currentNode
-      addComment(currentNode) #FIXME should belong to next child? Hard to say.
-    #empty line
-    elif line == '':
-      currentNode.addComment(comment)
-    #attribute setting line
-    elif '=' in line:
-      #TODO FIXME add attribute comment!
-      attribute,value = list(i.strip() for i in line.split('='))
-      value = value.strip("'")
-      if attribute in currentNode.attrib.keys():
-        raise IOError('Multiple attributes defined with same name! "'+attribute+'" = "'+value+'"')
-      #special keywords: "name" and "value"
-      elif attribute == 'value':
-        currentNode.text = value
-        #TODO default lists: spaces, commas, or ??? (might just work anyway?)
-        # -> getpot uses spaces surrounded by apostrophes, '1 2 3'
-        # -> raven sometimes does spaces <a>1 2 3</> and sometimes commas <a>1,2,3</a>
-      else:
-        currentNode.attrib[attribute] = value
-    else:
-      addComment(currentNode)
-      raise IOError('Unrecognized line syntax:',line)
-  return InputTree(root)
-
 def inputTreeToXml(ts,fromNode=False):
   """
     Converts InputTree into XML
@@ -256,68 +176,6 @@ def inputTreeToXml(ts,fromNode=False):
     return xRoot
   else:
     return ET.ElementTree(element=xRoot)
-
-def inputTreeToGetpot(ts,fromNode=False):
-  """
-    Converts InputTree into XML
-    @ In, ts, InputTree, tree to convert
-    @ In, fromNode, bool, if True means input is a node instead of a tree
-    @ Out, gTree, string, getpot-formatted string
-  """
-  if fromNode:
-    tRoot = ts
-  else:
-    tRoot = ts.getroot()
-  def addChild(gNode,tNode,depth=0):
-    """
-      Adds tnode to gnode, translating
-      @ In, gNode, string, getpot-style string format
-      @ In, tNode, Node, tree structure node
-      @ Out, None
-    """
-    #start the block
-    if depth == 0:
-      newlines = ''
-    elif depth == 1:
-      newlines = '\n\n'
-    else:
-      newlines = '\n'
-    gNode += newlines + '  '*depth + '[./' + tNode.tag + ']'
-    #add a comment if it's not about an attribute
-    for comment in tNode.comments:
-      if comment.split(':')[0] not in tNode.attrib.keys():
-        gNode += ' #'+comment
-    #write out the attributes - sort them for consistency
-    sortedAttr = sorted(tNode.attrib.keys())
-    for attr in sortedAttr:
-      val = tNode.attrib[attr]
-      gNode += '\n'+'  '*(depth+1) + attr + ' = '
-      if ' ' in val:
-        gNode += "'" + val + "'"
-      else:
-        gNode += val
-      for comment in tNode.comments:
-        if comment.split(':')[0] == attr:
-          gNode += '#'+comment
-    #write out the value
-    if tNode.text is not None and len(tNode.text) > 0:
-      attr = 'value'
-      val = tNode.text
-      gNode += '\n'+'  '*(depth+1) + attr + ' = '
-      if ' ' in val:
-        gNode += "'" + val + "'"
-      else:
-        gNode += val
-    #add child blocks
-    for child in tNode:
-      gNode = addChild(gNode,child,depth+1)
-    #close the block
-    gNode += '\n'+'  '*depth+'[../]'
-    return gNode
-  #end addChild method
-  gRoot = addChild('',tRoot)
-  gRoot += '\n'
-  return gRoot
 
 ###########
 # PARSERS #
@@ -557,14 +415,6 @@ class InputNode:
     """
     xml = inputTreeToXml(self,fromNode=True)
     return xmlUtils.prettify(xml)
-
-  def printGetPot(self):
-    """
-      Returns tree in getpot string.
-      @ In, None
-      @ Out, printGetPot, string, formatted input in getpot style
-    """
-    return inputTreeToGetpot(self,fromNode=True)
 
   def remove(self,node):
     """
@@ -971,14 +821,6 @@ class InputTree:
       @ Out, rootNode, Node, root of tree
     """
     return self.rootNode
-
-  def printGetPot(self):
-    """
-      Returns tree in getpot string.
-      @ In, None
-      @ Out, printGetPot, string, formatted input in getpot style
-    """
-    return self.rootNode.printGetPot()
 
   def printXML(self):
     """
