@@ -53,7 +53,8 @@ class Exists(Differ):
       test passes, or false if the test failes.  message should
       gives a human readable explaination of the differences.
       @ In, None
-      @ Out, (same, message), same is true if the tests passes.
+      @ Out, (same, message), same is bool, message is str,
+         same is true if the tests passes.
     """
     exists_files = self._get_test_files()
     all_exist = True

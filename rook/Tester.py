@@ -236,7 +236,8 @@ class Differ:
       test passes, or false if the test failes.  message should
       give a human readable explaination of the differences.
       @ In, None
-      @ Out, check_output, (same, message), same is True if checks pass.
+      @ Out, check_output, (same, message),  same is bool, message is str,
+         same is True if checks pass.
     """
     assert False, "Must override check_output "+str(self)
 
@@ -573,6 +574,8 @@ class Tester:
   def _wait_for_all_written(self):
     """
       Waits until all the files for the differ have been written
+      @ In, None
+      @ Out, None
     """
     start_wait = time.time()
     wait_time = float(self.specs['output_wait_time'])

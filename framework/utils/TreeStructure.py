@@ -61,6 +61,7 @@ def parse(inFile,dType=None):
     if extension == 'xml':
       dType = 'xml'
     else:
+      #Possibly we should just try parsing the file instead of checking?
       raise InputParsingError('Unrecognized file type for:',inFile,' | Expected .xml')
   if dType.lower()=='xml':
     #try:

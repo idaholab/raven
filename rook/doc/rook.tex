@@ -16,15 +16,15 @@ in the test input.
 These are the features that are common to all testers.
 
 \begin{description}
-  \item[type] The type of this test
+  \item[type] The type of this test. Example: 'GenericExecutable'
   \item[skip] If true skip test
   \item[prereq] list of tests to run before running this one
   \item[max\_time] Maximum time that test is allowed to run in seconds
-  \item[os\_max\_time] Maximum time by os. Example: Linux 20 Windows 300 OpenVMS 1000
+  \item[os\_max\_time] Maximum time by os. Example: 'Linux 20 Windows 300 OpenVMS 1000'
   \item[heavy] If true, run only with heavy tests
   \item[output] Output of the test
   \item[expected\_fail] if true, then the test should fails, and if it passes, it fails
-  \item[run\_types] The run types that this test is
+  \item[run\_types] The run types that this test is separated by spaces Example: 'heavy qsub' The default in 'normal'
   \item[output\_wait\_time] Number of seconds to wait for output
 \end{description}
 
@@ -63,7 +63,7 @@ This can compare two XML files to see if they are the same.
   \item[zero\_threshold] it represents the value below which a float is considered zero
   \item[remove\_whitespace] Removes whitespace before comparing xml node text if True
   \item[remove\_unicode\_identifier] if true, then remove u infront of a single quote
-  \item[xmlopts] Options for xml checking
+  \item[xmlopts] Options for xml checking. Deprecated, the options should be used directly instead of using this (as in use the unordered tag instead of putting it in xmlopts)
   \item[rel\_err] Relative Error for floating point numbers
 \end{description}
 

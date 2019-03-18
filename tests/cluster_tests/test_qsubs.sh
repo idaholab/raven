@@ -8,7 +8,6 @@ fails=''
 
 pushd ../../framework
 RAVEN_FRAMEWORK_DIR=$(pwd)
-#source ../scripts/establish_conda_env.sh --load
 popd
 
 wait_lines ()
@@ -46,14 +45,6 @@ wait_lines ()
 }
 
 echo Current directory: `pwd`
-
-
-#if test $num_fails -eq 0; then
-#    echo ALL PASSED
-#else
-#    echo FAILED: $num_fails $fails
-#fi
-#exit $num_fails
 
 cd ${RAVEN_FRAMEWORK_DIR}/..
 ./run_tests --only-run-types="qsub" --re=cluster_tests

@@ -74,7 +74,7 @@ def getRegressionTests(whichTests=1,skipExpectedFails=True):
       if "input" not in spec:
         continue
       testType = spec.get('type',"notfound").strip()
-      newTest = spec['input'].strip().split()[0]
+      newTest = spec['input'].split()[0]
       testInterfaceOnly = False
       if 'test_interface_only' in spec:
         testInterfaceOnly = True if spec['test_interface_only'].lower() == 'true' else False
