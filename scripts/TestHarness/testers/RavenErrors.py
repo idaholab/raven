@@ -56,9 +56,8 @@ class RavenErrors(Tester):
     ravenflag = ''
     if self.specs['test_interface_only'].lower() == 'true':
       ravenflag = 'interfaceCheck '
-    if RavenUtils.in_python_3():
-      return ' '.join(["python3", raven, ravenflag, self.specs["input"]])
-    return ' '.join(["python", raven, ravenflag, self.specs["input"]])
+    return ' '.join([self._get_python_command(), raven, ravenflag,
+                     self.specs["input"]])
 
 
   def __init__(self, name, params):
