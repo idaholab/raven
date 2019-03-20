@@ -211,10 +211,11 @@ class LimitSurface(PostProcessor):
                                  np.sum(self.functionValue[self.externalFunction.name]) ==
                                  -float(len(self.functionValue[self.externalFunction.name])))
     if not self.crossedLimitSurf:
+      errorMsg = 'LimitSurface: all the Function evaluations led to the same result (No Limit Surface crossed...). Increase or change the data set!'
       if raiseErrorIfNotFound:
-        self.raiseAnError(ValueError, 'LimitSurface: all the Function evaluations brought to the same result (No Limit Surface has been crossed...). Increase or change the data set!')
+        self.raiseAnError(ValueError, errorMsg)
       else:
-        self.raiseAWarning('LimitSurface: all the Function evaluations brought to the same result (No Limit Surface has been crossed...)!')
+        self.raiseAWarning(errorMsg)
     #printing----------------------
     self.raiseADebug('LimitSurface: Mapping of the goal function evaluation performed')
     self.raiseADebug('LimitSurface: Already evaluated points and function values:')
@@ -354,7 +355,7 @@ class LimitSurface(PostProcessor):
       @ In, refinementSteps, int, optional, number of refinement steps
       @ Out, None
     """
-    cellIds = self.gridEntity.retrieveCellIds([self.listSurfPointNegative,self.listSurfPointPositive],self.name)
+    cellIds = self.gridEntity.retrieveCellIds([self.listSurfPointNegative,self.listSurfPointPositive],self.name,containedOnly=False)
     if self.getLocalVerbosity() == 'debug':
       self.raiseADebug("Limit Surface cell IDs are: \n"+ " \n".join([str(cellID) for cellID in cellIds]))
     self.raiseAMessage("Number of cells to be refined are "+str(len(cellIds))+". RefinementSteps = "+str(max([refinementSteps,2]))+"!")
@@ -465,20 +466,33 @@ class LimitSurface(PostProcessor):
       myIdList[:] = coordinate
       putIt[:]    = False
       if self.testMatrix[nodeName][tuple(coordinate)] * sign > 0:
-        for iVar in range(self.nVar):
-          if coordinate[iVar] + 1 < gridShape[iVar]:
-            myIdList[iVar] += 1
-            if self.testMatrix[nodeName][tuple(myIdList)] * sign <= 0:
-              putIt[iVar] = True
-              listSurfPoint.append(copy.copy(coordinate))
-              break
-            myIdList[iVar] -= 1
-            if coordinate[iVar] > 0:
-              myIdList[iVar] -= 1
-              if self.testMatrix[nodeName][tuple(myIdList)] * sign <= 0:
-                putIt[iVar] = True
-                listSurfPoint.append(copy.copy(coordinate))
-                break
-              myIdList[iVar] += 1
+        listSurfPoint.append(copy.copy(coordinate))
+        #for iVar in range(self.nVar):
+          #if coordinate[iVar] + 1 < gridShape[iVar]:
+            #myIdList[iVar] += 1
+            #if self.testMatrix[nodeName][tuple(myIdList)] * sign <= 0:
+              #putIt[iVar] = True
+              #listSurfPoint.append(copy.copy(coordinate))
+              #break
+            #myIdList[iVar] -= 1
+            #if coordinate[iVar] > 0:
+              #myIdList[iVar] -= 1
+              #if self.testMatrix[nodeName][tuple(myIdList)] * sign <= 0:
+                #putIt[iVar] = True
+                #listSurfPoint.append(copy.copy(coordinate))
+                #break
+              #myIdList[iVar] += 1
+          #if coordinate[iVar] +1 == gridShape[iVar]:
+            #myIdList[iVar] -= 1
+            #if self.testMatrix[nodeName][tuple(myIdList)] * sign <= 0:
+              #putIt[iVar] = True
+              #listSurfPoint.append(copy.copy(coordinate))
+              #break
+            #if coordinate[iVar] > 0:
+              #myIdList[iVar] += 1
+              #if self.testMatrix[nodeName][tuple(myIdList)] * sign <= 0:
+                #putIt[iVar] = True
+                #listSurfPoint.append(copy.copy(coordinate))
+                #break
       #if len(set(putIt)) == 1 and  list(set(putIt))[0] == True: listSurfPoint.append(copy.copy(coordinate))
     return listSurfPoint

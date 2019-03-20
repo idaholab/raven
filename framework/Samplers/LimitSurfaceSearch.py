@@ -502,11 +502,12 @@ class LimitSurfaceSearch(AdaptiveSampler):
     #if the number of point on the limit surface is > than compute persistence
     realAxisNames, cnt = [key.replace('<distribution>','') for key in self.axisName], 0
     if self.solutionExport is not None:
-      rlz = {}
+      rlzNeg = {}
+      rlzPos = {}
       # reset solution export
       self.solutionExport.reset()
     for gridID,listsurfPoint in self.listSurfPoint.items():
-      if len(listsurfPoint)>0:
+      if len(listsurfPoint)>0: 
         self.invPointPersistence[gridID] = np.ones(len(listsurfPoint))
         if self.firstSurface == False:
           for pointID, coordinate in enumerate(listsurfPoint):
@@ -517,13 +518,19 @@ class LimitSurfaceSearch(AdaptiveSampler):
         else:
           self.firstSurface = False
         if self.solutionExport is not None:
+          indexes = np.where(evaluations[gridID] == -1)[0]
           # construct the realizations dict
-          localRlz = {varName: (self.surfPoint[gridID][:,varIndex] if varName not in rlz else np.concatenate(( rlz[varName],self.surfPoint[gridID][:,varIndex] )) ) for varIndex,varName in enumerate(realAxisNames) }
-          localRlz[self.goalFunction.name] = evaluations[gridID] if self.goalFunction.name not in rlz else np.concatenate( (rlz[self.goalFunction.name],evaluations[gridID])  )
-          rlz.update(localRlz)
+          localRlz = {varName: (self.surfPoint[gridID][indexes,varIndex] if varName not in rlzNeg else np.concatenate(( rlzNeg[varName],self.surfPoint[gridID][indexes,varIndex] )) ) for varIndex,varName in enumerate(realAxisNames) }
+          localRlz[self.goalFunction.name] = evaluations[gridID][indexes] if self.goalFunction.name not in rlzNeg else np.concatenate( (rlzNeg[self.goalFunction.name],evaluations[gridID][indexes])  )
+          rlzNeg.update(localRlz)
+          indexes = np.where(evaluations[gridID] == 1)[0]
+          localRlz = {varName: (self.surfPoint[gridID][indexes,varIndex] if varName not in rlzPos else np.concatenate(( rlzPos[varName],self.surfPoint[gridID][indexes,varIndex] )) ) for varIndex,varName in enumerate(realAxisNames) }
+          localRlz[self.goalFunction.name] = evaluations[gridID][indexes] if self.goalFunction.name not in rlzPos else np.concatenate( (rlzPos[self.goalFunction.name],evaluations[gridID][indexes])  )
+          rlzPos.update(localRlz)          
     # add the full realizations
     if self.solutionExport is not None:
-      if len(rlz):
+      if len(rlzNeg):
+        rlz = {varName: np.concatenate(( rlzNeg[varName], rlzPos[varName] )) for varName in rlzNeg}
         self.solutionExport.load(rlz,style='dict')
 
     # Keep track of some extra points that we will add to thicken the limit
