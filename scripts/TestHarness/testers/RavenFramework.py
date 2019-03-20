@@ -24,6 +24,7 @@ import OrderedCSVDiffer
 import UnorderedCSVDiffer
 import XMLDiff
 import TextDiff
+import ExistsDiff
 from RAVENImageDiff import ImageDiff
 import RavenUtils
 
@@ -107,9 +108,7 @@ class RavenFramework(Tester):
     if self.specs['interactive']:
       ravenflag += ' interactiveCheck '
 
-    if RavenUtils.in_python_3():
-      return "python3 " + self.driver + " " + ravenflag + self.specs["input"]
-    return "python " + self.driver + " " + ravenflag + self.specs["input"]
+    return self._get_python_command() + " " + self.driver + " " + ravenflag + self.specs["input"]
 
   def __make_differ(self, spec_name, differ_class, extra=None):
     """
@@ -131,9 +130,9 @@ class RavenFramework(Tester):
 
   def __init__(self, name, params):
     Tester.__init__(self, name, params)
-    self.check_files = self.specs['output'].split(" ") if len(self.specs['output']) > 0 else []
     self.img_files = self.specs['image'].split(" ") if len(self.specs['image']) > 0 else []
-    self.all_files = self.check_files + self.img_files
+    self.all_files = self.img_files
+    self.__make_differ('output', ExistsDiff.Exists)
     self.__make_differ('csv', OrderedCSVDiffer.OrderedCSV)
     self.__make_differ('UnorderedCsv', UnorderedCSVDiffer.UnorderedCSV)
     self.__make_differ('xml', XMLDiff.XML, {"unordered":False})
@@ -259,8 +258,6 @@ class RavenFramework(Tester):
       @ In, None
       @ Out, None
     """
-    self.check_files = [os.path.join(self.specs['test_dir'], filename)
-                        for filename in self.check_files]
     for filename in self.__get_created_files():
       if os.path.exists(filename):
         os.remove(filename)
@@ -271,16 +268,6 @@ class RavenFramework(Tester):
       @ In, ignored, string, output of test.
       @ Out, None
     """
-    missing = []
-    for filename in self.check_files:
-      if not os.path.exists(filename):
-        missing.append(filename)
-
-    if len(missing) > 0:
-      self.set_fail('CWD '+os.getcwd()+' METHOD '+
-                    os.environ.get("METHOD", "?")+
-                    ' Expected files not created '+" ".join(missing))
-      return
 
     #image
     image_opts = {}

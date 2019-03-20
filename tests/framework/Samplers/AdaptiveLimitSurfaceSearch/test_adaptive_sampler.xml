@@ -12,6 +12,7 @@
     </description>
     <revisions>
       <revision author="alfoa" date="2017-12-12">Adapted for new DataObject structure</revision>
+      <revision author="alfoa" date="2019-03-07">Modified syntax in Functions as for issue #934</revision>
     </revisions>
   </TestInfo>
 
@@ -108,8 +109,7 @@
 
   <Functions>
     <External file="Adapt/adaptive_test_goal" name="decision">
-      <variable>y1</variable>
-      <variable>y2</variable>
+      <variables>y1,y2</variables>
     </External>
   </Functions>
 

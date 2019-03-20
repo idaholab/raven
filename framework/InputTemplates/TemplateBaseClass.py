@@ -39,7 +39,14 @@ class Template(object):
     Intended to be used to read a template, be given instructions on how to fill it,
     and create a new set of input files.
   """
-  # generic class members
+  # naming templates
+  ## this dictionary of templates can be used to standardize naming throughout a template.
+  ## for example, variables in a template might always have the form source_contents, e.g.
+  ## "model_samples" or "rom_meta". In this case, a standardized naming format might look
+  ## like '{source}_{content}', so that the variables can be consistently named as
+  ## self.namingTemplates['variable'].format(source='model', content='samples'). Register
+  ## new templates by calling (for example) self.addNamingTemplate({'variable':'{source}_{content}'})
+  ## This is an optional tool, and in no way needs to be used to build templates.
   namingTemplates = {} # Updated in inheriting classes by calling cls.addNamingTemplates
 
 
@@ -158,7 +165,7 @@ class Template(object):
     # remove empty strings
     entries = list(filter(None, entries))
     if position is not None:
-      if position < len(entries):
+      if position < len(entries) - 1:
         entries.insert(position, new)
       else:
         entries.append(new)

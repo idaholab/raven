@@ -22,7 +22,7 @@ import xml.etree.ElementTree as ET
 import re
 import os
 import VariableGroups
-from .utils import isString, toString, getRelativeSortedListEntry
+from .utils import isAString, toString, getRelativeSortedListEntry
 from .graphStructure import graphObject
 warnings.simplefilter('default', DeprecationWarning)
 
@@ -264,7 +264,7 @@ def fixXmlText(msg):
     @ Out, msg, string, fixed string
   """
   #if not a string, pass it back through
-  if not isString(msg):
+  if not isAString(msg):
     return msg
   #otherwise, replace illegal characters with "?"
   # from http://boodebr.org/main/python/all-about-python-and-unicode#UNI_XML
@@ -284,7 +284,7 @@ def fixXmlTag(msg):
     @ Out, msg, string, fixed string
   """
   #if not a string, pass it back through
-  if not isString(msg):
+  if not isAString(msg):
     return msg
   #define some presets
   letters = u'([a-zA-Z])'

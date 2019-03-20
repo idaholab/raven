@@ -1,0 +1,10 @@
+[Tests]
+ [./test_raven_running_raven]
+   input = 'test_raven_running_raven_int_models.xml ../pbspro_mpi.xml ../cluster_runinfo_legacy.xml'
+   output = 'raven_running_raven_internal_models/testPointSet_dump.csv raven_running_raven_internal_models/testPrintHistorySet_dump_0.csv raven_running_raven_internal_models/testPrintHistorySet_dump_14.csv raven_running_raven_internal_models/testPrintHistorySet_dump.csv'
+   run_types = 'qsub'
+   output_wait_time = 60
+   type = RavenFramework
+   max_time = 3600
+ [../]
+[]
