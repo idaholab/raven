@@ -76,7 +76,7 @@
         <plot>
           <type>line</type>
           <x>mData|Output|Time</x>
-          <y>mData|Output|PCAEmbeddingVector1</y>
+          <y>mData|Output|x1</y>
           <interpPointsX>300</interpPointsX>
           <gridLocation>
             <x>0</x>
@@ -86,7 +86,7 @@
         <plot>
           <type>line</type>
           <x>mData|Output|Time</x>
-          <y>mData|Output|PCAEmbeddingVector2</y>
+          <y>mData|Output|x2</y>
           <interpPointsX>300</interpPointsX>
           <gridLocation>
             <x>1</x>
