@@ -558,9 +558,18 @@ class ParameterInput(object):
         subInstance.parseNode(subNode, errorList)
         self.subparts.append(subInstance)
     if self.strictMode:
-      for child in node:
-        if child.tag not in subNames:
-          handleError('Child "{}" not allowed as sub-element of "{}"'.format(child.tag,node.tag))
+      nodeNames = set([child.tag for child in node])
+      if nodeNames != subNames:
+        # there are mismatches
+        unknownChilds = list(nodeNames - subNames)
+        if unknownChilds:
+          handleError('Childs "[{}]" not allowed as sub-elements of "{}"'.format(",".join(unknownChilds),node.tag))
+        #TODO: keep this for the future. We need to implement in the InputData a way to set some nodes to be required
+        #missingChilds =  list(subNames - nodeNames)
+        #if missingChilds:
+        #  handleError('Not found Childs "[{}]" as sub-elements of "{}"'.format(",".join(missingChilds),node.tag))
+
+
 
   def findFirst(self, name):
     """

@@ -11,6 +11,7 @@
     </description>
     <revisions>
       <revision author="alfoa" date="2018-04-04">Test created</revision>
+      <revision author="alfoa" date="2019-03-07">Modified syntax in Functions as for issue #934</revision>
     </revisions>
   </TestInfo>
   <RunInfo>
@@ -34,13 +35,13 @@
 
   <Functions>
     <External file="u235_density_computation.py" name="u235density">
-        <variable>enrichment</variable>
+        <variables>enrichment</variables>
     </External>
     <External file="u238_density_computation.py" name="u238density">
-        <variable>enrichment</variable>
+        <variables>enrichment</variables>
     </External>
     <External file="burning_time_computation.py" name="computeBurningTime">
-        <variable>burnup</variable>
+        <variables>burnup</variables>
     </External>
   </Functions>
 

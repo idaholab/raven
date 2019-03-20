@@ -55,49 +55,11 @@ DISPLAY_VAR=`(echo $DISPLAY)`
 # reset it
 export DISPLAY=
 
-EXTRA="--rcfile=$FRAMEWORK_DIR/../tests/framework/.coveragerc --source=$FRAMEWORK_DIR -a --omit=$FRAMEWORK_DIR/contrib/*"
+EXTRA="--rcfile=$FRAMEWORK_DIR/../tests/framework/.coveragerc --source=$FRAMEWORK_DIR --parallel-mode --omit=$FRAMEWORK_DIR/contrib/*"
 export COVERAGE_FILE=`pwd`/.coverage
 
 coverage erase
-#skip test_rom_trainer.xml
-DRIVER=$FRAMEWORK_DIR/Driver.py
-echo ...Running Code Interface tests...
-# get the tests runnable by RAVEN (interface check)
-for I in $(python ${SCRIPT_DIR}/developer_tools/get_coverage_tests.py --get-interface-check-tests --skip-fails)
-do
-    DIR=`dirname $I`
-    BASE=`basename $I`
-    #echo Running $DIR $BASE
-    cd $DIR
-    echo coverage run $EXTRA $DRIVER $I interfaceCheck
-    coverage run $EXTRA $DRIVER $I interfaceCheck
-done
-
-echo ...Running Unit tests...
-# get the tests runnable by RAVEN (python tests (unit-tests))
-for I in $(python ${SCRIPT_DIR}/developer_tools/get_coverage_tests.py --get-python-tests --skip-fails)
-do
-    DIR=`dirname $I`
-    BASE=`basename $I`
-    #echo Running $DIR $BASE
-    cd $DIR
-    echo coverage run $EXTRA $I
-    coverage run $EXTRA $I
-done
-
-echo ...Running Verification tests...
-# get the tests runnable by RAVEN (not interface check)
-for I in $(python ${SCRIPT_DIR}/developer_tools/get_coverage_tests.py)
-do
-    DIR=`dirname $I`
-    BASE=`basename $I`
-    #echo Running $DIR $BASE
-    if [ -d "$DIR" ]; then
-        cd $DIR
-        echo coverage run $EXTRA $DRIVER $I
-        coverage run $EXTRA $DRIVER $I || true
-    fi
-done
+($FRAMEWORK_DIR/../run_tests "$@" --python-command="coverage run $EXTRA " || echo run_test done but some tests failed)
 
 #get DISPLAY BACK
 DISPLAY=$DISPLAY_VAR
@@ -124,7 +86,10 @@ else
 fi
 
 ## Go to the final directory and generate the html documents
-cd $SCRIPT_DIR/tests/framework
+cd $SCRIPT_DIR/tests/
 pwd
+rm -f .cov_dirs
+for FILE in `find . -name '.coverage.*'`; do dirname $FILE; done | sort | uniq > .cov_dirs
+coverage combine `cat .cov_dirs`
 coverage html
 
