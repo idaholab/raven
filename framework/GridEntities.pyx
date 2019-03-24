@@ -578,6 +578,7 @@ class GridEntity(GridBase):
       else:
         previousSet.update(cellIds[cntb])
     return list(set(previousSet))
+  
 
   def returnGridAsArrayOfCoordinates(self):
     """

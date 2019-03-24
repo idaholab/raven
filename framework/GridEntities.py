@@ -323,6 +323,24 @@ class GridEntity(GridBase):
     self.gridContainer['gridInfo'               ]      = gridInfo
     self.gridContainer['dimInfo'] = dimInfo
 
+
+  def getAdjiacentCellCoordinates(self, coordinate):
+    """
+      This method is aimed to get the coordinates of all the adjiacent cells
+      given a coordinate
+      @ In, coordinate, tuple, tuple of coordinate
+      @ Out, cellCoordinates, list, the list of list of coordinates 
+    """
+    
+    
+    #for x,y in [(x_coord+i,y_coord+j) for i in (-1,0,1) for j in (-1,0,1) if i != 0 or j != 0]:
+    
+    
+    
+    
+    
+
+
   def _readGridStructure(self,child,parent):
     """
       This method is aimed to read the grid structure in the xml node
@@ -528,6 +546,34 @@ class GridEntity(GridBase):
     self.uniqueCellNumber                               = np.prod ([element-1 for element in pointByVar]) # number of unique cells
     #filling the coordinate on the grid
     self.gridIterator = ravenArrayIterator(arrayIn=self.gridContainer['gridCoord']) if self.constructTensor else ravenArrayIterator(shape=self.gridContainer['gridShape'])
+    
+    numberOfCells = int(np.prod(self.gridContainer['gridShape'])/(2**len(self.gridContainer['gridShape'])))
+    
+    #gridIterCells =  ravenArrayIterator(arrayIn=np.zeros(shape=(3,)*self.nVar,dtype=int))
+    if computeCells:
+      # precompute the ``adjiacent'' cell coordinates
+      adjiacentCellGrid = ravenArrayIterator(arrayIn= np.zeros(tuple([3]*self.nVar+[self.nVar])))
+      gridIterCells =  ravenArrayIterator(arrayIn=np.zeros(shape=(2,)*self.nVar,dtype=int))
+      cellsCoordinates = [None]*(2**self.nVar)
+      origin = [-1]*self.nVar
+      pp     = [element - 1 for element in [3]*self.nVar]
+      while not adjiacentCellGrid.finished:
+        if all(np.greater(pp,list(adjiacentCellGrid.multiIndex[:
+          -1]))) and list(adjiacentCellGrid.multiIndex[:-1]) != origin:
+          self.gridContainer['cellIDs'][cellID] = []
+          origin = list(adjiacentCellGrid.multiIndex[:-1])
+          while not gridIterCells.finished:
+            vertex = tuple(np.array(origin)+gridIterCells.multiIndex)
+            self.gridContainer['cellIDs'][cellID].append(vertex)
+            if vertex in self.gridContainer['vertexToCellIds'].keys():
+              self.gridContainer['vertexToCellIds'][vertex].append(cellID)
+            else:
+              self.gridContainer['vertexToCellIds'][vertex] = [cellID]
+            gridIterCells.iternext()
+          gridIterCells.reset()
+          cellID+=1
+      adjiacentCellGrid.iternext()        
+    
     if computeCells:
       gridIterCells =  ravenArrayIterator(arrayIn=np.zeros(shape=(2,)*self.nVar,dtype=int))
       origin = [-1]*self.nVar
@@ -560,7 +606,7 @@ class GridEntity(GridBase):
         self.raiseAnError(IOError, "number of cells detected != than the number of actual cells!")
       self.resetIterator()
 
-    self.raiseAMessage("Grid "+"initialized...")
+    self.raiseAMessage("Grid initialized...")
 
   def retrieveCellIds(self,listOfPoints,containedOnly=False):
     """
@@ -569,18 +615,50 @@ class GridEntity(GridBase):
       @ In, containedOnly, bool, optional, flag to ask for cells contained in the listOfPoints or just cells that touch the listOfPoints, default False
       @ Out, previousSet, list, list of cell ids
     """
-    cellIds = []
+    from collections import defaultdict
+    gridIterCells =  ravenArrayIterator(arrayIn=np.zeros(shape=(2,)*self.nVar,dtype=int))
+    cellID = 0
+    cellIDs = {}
+    vertexToCellIds =  defaultdict(list)
+    verteces1 = []
+    verteces2 = []
     for cntb, bound in enumerate(listOfPoints):
-      cellIds.append([])
-      for point in bound:
-        cellIds[cntb].extend(self.gridContainer['vertexToCellIds'][tuple(point)])
-      if cntb == 0:
-        previousSet = set(cellIds[cntb])
-      if containedOnly:
-        previousSet = set(previousSet).intersection(cellIds[cntb])
-      else:
-        previousSet.update(cellIds[cntb])
-    return list(set(previousSet))
+      for origin in bound:
+        #verteces = []
+        # compute cell on the fly
+        verteces1 = []
+        verteces2 = []
+        while not gridIterCells.finished:
+          vertex1 = tuple(np.array(origin)+gridIterCells.multiIndex)
+          #vertex2 = tuple(np.array(origin)-gridIterCells.multiIndex)
+          verteces1.append(vertex1)
+          #verteces2.append(vertex2)
+          gridIterCells.iternext()
+        if str(sorted(verteces1)) not in cellIDs:
+          cellIDs[str(sorted(verteces1))] = verteces1
+        #if str(sorted(verteces2)) not in cellIDs:
+        #  cellIDs[str(sorted(verteces2))] = verteces2  
+        #cellIDs[cellID].append(vertex1)
+        #cellIDs[-cellID].append(vertex2) 
+        #vertexToCellIds[vertex1].append(cellID)
+        #vertexToCellIds[vertex2].append(-cellID)          
+          
+        gridIterCells.reset()
+        #cellID+=1        
+    #set(cellIDs[0]) == set(cellIDs[1])
+    #cellIds = []
+    #containedOnly =True
+    #for cntb, bound in enumerate(listOfPoints):
+      #cellIds.append([])
+      #for point in bound:
+        #cellIds[cntb].extend(self.gridContainer['vertexToCellIds'][tuple(point)])
+      #if cntb == 0:
+        #previousSet = set(cellIds[cntb])
+      #if containedOnly:
+        #previousSet = set(previousSet).intersection(cellIds[cntb])
+      #else:
+        #previousSet.update(cellIds[cntb])
+    return cellIDs.values()
 
   def returnGridAsArrayOfCoordinates(self):
     """
@@ -778,12 +856,17 @@ class MultiGridEntity(GridBase):
 
   def retrieveCellIds(self,listOfPoints,nodeName=None, containedOnly = True):
     """
-      This method is aimed to retrieve the cell IDs that are contained in certain bounaried provided as list of points
+      This method is aimed to retrieve the cell IDs that are contained in certain boundaries provided as list of points
       @ In, listOfPoints, list, list of points that represent the boundaries ([listOfFirstBound, listOfSecondBound])
       @ In, nodeName, string, optional, node from which the cell IDs needs to be retrieved. If not present, all the cells are going to be retrieved
       @ In, containedOnly, bool, optional, flag to ask for cells contained in the listOfPoints or just cells that touch the listOfPoints, default True
       @ Out, setOfCells, list, list of cells ids
     """
+    
+    
+    
+    
+    
     setOfCells = []
     if nodeName == None:
       for node in self.grid.iter():
@@ -855,6 +938,59 @@ class MultiGridEntity(GridBase):
     """
     if "refiningNumSteps" not in refineDict.keys() and "volumetricRatio" not in refineDict.keys():
       self.raiseAnError(IOError, "the refining Number of steps or the volumetricRatio has not been provided!!!")
+    cellIdsToRefine, didWeFoundCells = refineDict['cellIDs'], dict.fromkeys(refineDict['cellIDs'], False)
+    maxCellId = self._getMaxCellIds()
+    for node in self.grid.iter():
+      parentNodeCellIds  = node.get("grid").returnParameter('cellIDs')
+      level, nodeCellIds = node.get("level"), parentNodeCellIds.keys()
+      foundCells = set(nodeCellIds).intersection(cellIdsToRefine)
+      if len(foundCells) > 0:
+        parentGrid = node.get("grid")
+        initDict   = parentGrid.returnParameter("initDictionary")
+        if "transformationMethods" in initDict.keys():
+          initDict.pop("transformationMethods")
+        for idcnt, fcellId in enumerate(foundCells):
+          didWeFoundCells[fcellId] = True
+          newGrid                  = returnInstance("GridEntity", self, self.messageHandler)
+          verteces                 = parentNodeCellIds[fcellId]
+          lowerBounds,upperBounds  = dict.fromkeys(parentGrid.returnParameter('dimensionNames'), sys.float_info.max), dict.fromkeys(parentGrid.returnParameter('dimensionNames'), -sys.float_info.max)
+          for vertex in verteces:
+            coordinates = parentGrid.returnCoordinateFromIndex(vertex, True, recastMethods=initDict["transformationMethods"] if "transformationMethods" in initDict.keys() else {})
+            for key in lowerBounds.keys():
+              lowerBounds[key], upperBounds[key] = min(lowerBounds[key],coordinates[key]), max(upperBounds[key],coordinates[key])
+          initDict["lowerBounds"], initDict["upperBounds"] = lowerBounds, upperBounds
+          if "volumetricRatio" in refineDict.keys():
+            initDict["volumetricRatio"] = refineDict["volumetricRatio"]
+          else:
+            if "volumetricRatio" in initDict.keys():
+              initDict.pop("volumetricRatio")
+            initDict["stepLength"] = {}
+            for key in lowerBounds.keys():
+              initDict["stepLength"][key] = [(upperBounds[key] - lowerBounds[key])/float(refineDict["refiningNumSteps"])]
+          initDict["startingCellId"] = maxCellId+1
+          newGrid.initialize(initDict)
+          maxCellId   = max(newGrid.returnParameter('cellIDs').keys())
+          refinedNode = self.__createNewNode(node.name+"_cell:"+str(fcellId),{"grid":newGrid,"level":level+"."+str(idcnt)})
+          self.mappingLevelName[level+"."+str(idcnt)] = node.name+"_cell:"+str(fcellId)
+          node.appendBranch(refinedNode)
+      foundAll = all(item == True for item in set(didWeFoundCells.values()))
+      if foundAll:
+        break
+    if not foundAll:
+      self.raiseAnError(Exception,"the following cell IDs have not been found: " + ' '.join([cellId for cellId, value in didWeFoundCells.items() if value == True]))
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
     cellIdsToRefine, didWeFoundCells = refineDict['cellIDs'], dict.fromkeys(refineDict['cellIDs'], False)
     maxCellId = self._getMaxCellIds()
     for node in self.grid.iter():

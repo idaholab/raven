@@ -356,7 +356,7 @@ class LimitSurface(PostProcessor):
       @ Out, None
     """
     cellIds = self.gridEntity.retrieveCellIds([self.listSurfPointNegative,self.listSurfPointPositive],self.name,containedOnly=False)
-    if self.getLocalVerbosity() == 'debug':
+    if self.getLocalVerbosity() == 'debug': 
       self.raiseADebug("Limit Surface cell IDs are: \n"+ " \n".join([str(cellID) for cellID in cellIds]))
     self.raiseAMessage("Number of cells to be refined are "+str(len(cellIds))+". RefinementSteps = "+str(max([refinementSteps,2]))+"!")
     self.gridEntity.refineGrid({"cellIDs":cellIds,"refiningNumSteps":int(max([refinementSteps,2]))})
