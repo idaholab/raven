@@ -546,66 +546,58 @@ class GridEntity(GridBase):
     self.uniqueCellNumber                               = np.prod ([element-1 for element in pointByVar]) # number of unique cells
     #filling the coordinate on the grid
     self.gridIterator = ravenArrayIterator(arrayIn=self.gridContainer['gridCoord']) if self.constructTensor else ravenArrayIterator(shape=self.gridContainer['gridShape'])
-    
-    numberOfCells = int(np.prod(self.gridContainer['gridShape'])/(2**len(self.gridContainer['gridShape'])))
-    
-    #gridIterCells =  ravenArrayIterator(arrayIn=np.zeros(shape=(3,)*self.nVar,dtype=int))
     if computeCells:
-      # precompute the ``adjiacent'' cell coordinates
+      # precompute the ``adjiacent'' cell coordinates (and just those)
       adjiacentCellGrid = ravenArrayIterator(arrayIn= np.zeros(tuple([3]*self.nVar+[self.nVar])))
       gridIterCells =  ravenArrayIterator(arrayIn=np.zeros(shape=(2,)*self.nVar,dtype=int))
-      cellsCoordinates = [None]*(2**self.nVar)
+      cellsCoordinates = [[] for _ in range(2**self.nVar)]
       origin = [-1]*self.nVar
       pp     = [element - 1 for element in [3]*self.nVar]
+      cellID = 0
       while not adjiacentCellGrid.finished:
         if all(np.greater(pp,list(adjiacentCellGrid.multiIndex[:
           -1]))) and list(adjiacentCellGrid.multiIndex[:-1]) != origin:
-          self.gridContainer['cellIDs'][cellID] = []
           origin = list(adjiacentCellGrid.multiIndex[:-1])
           while not gridIterCells.finished:
             vertex = tuple(np.array(origin)+gridIterCells.multiIndex)
-            self.gridContainer['cellIDs'][cellID].append(vertex)
-            if vertex in self.gridContainer['vertexToCellIds'].keys():
-              self.gridContainer['vertexToCellIds'][vertex].append(cellID)
-            else:
-              self.gridContainer['vertexToCellIds'][vertex] = [cellID]
+            cellsCoordinates[cellID].append(vertex)
             gridIterCells.iternext()
           gridIterCells.reset()
           cellID+=1
-      adjiacentCellGrid.iternext()        
-    
-    if computeCells:
-      gridIterCells =  ravenArrayIterator(arrayIn=np.zeros(shape=(2,)*self.nVar,dtype=int))
-      origin = [-1]*self.nVar
-      pp     = [element - 1 for element in pointByVar]
-      cellID = int(initDict['startingCellId']) if 'startingCellId' in  initDict.keys() else 1
-    if self.constructTensor or computeCells:
-      while not self.gridIterator.finished:
-        if self.constructTensor:
-          coordinateID                          = self.gridIterator.multiIndex[-1]
-          dimName                               = self.gridContainer['dimensionNames'][coordinateID]
-          valuePosition                         = self.gridIterator.multiIndex[coordinateID]
-          self.gridContainer['gridCoord'][self.gridIterator.multiIndex] = self.gridContainer['gridVectors'][dimName][valuePosition]
-        if computeCells:
-          if all(np.greater(pp,list(self.gridIterator.multiIndex[:
-            -1]))) and list(self.gridIterator.multiIndex[:-1]) != origin:
-            self.gridContainer['cellIDs'][cellID] = []
-            origin = list(self.gridIterator.multiIndex[:-1])
-            while not gridIterCells.finished:
-              vertex = tuple(np.array(origin)+gridIterCells.multiIndex)
-              self.gridContainer['cellIDs'][cellID].append(vertex)
-              if vertex in self.gridContainer['vertexToCellIds'].keys():
-                self.gridContainer['vertexToCellIds'][vertex].append(cellID)
-              else:
-                self.gridContainer['vertexToCellIds'][vertex] = [cellID]
-              gridIterCells.iternext()
-            gridIterCells.reset()
-            cellID+=1
-        self.gridIterator.iternext()
-      if len(self.gridContainer['cellIDs'].keys()) != self.uniqueCellNumber and computeCells:
-        self.raiseAnError(IOError, "number of cells detected != than the number of actual cells!")
-      self.resetIterator()
+        adjiacentCellGrid.iternext()        
+    # convert as numpy array. Each cell verteces are accessable as self.adjiacentCellsCoordinates[:,index]
+    self.adjiacentCellsCoordinates = np.asarray([-1]*self.nVar) + np.asarray(cellsCoordinates)
+    #self.raiseAMessage("aaaaaaaaaaaaa initialization of grid ")
+    #if computeCells:
+      #gridIterCells =  ravenArrayIterator(arrayIn=np.zeros(shape=(2,)*self.nVar,dtype=int))
+      #origin = [-1]*self.nVar
+      #pp     = [element - 1 for element in pointByVar]
+      #cellID = int(initDict['startingCellId']) if 'startingCellId' in  initDict.keys() else 1
+    #if self.constructTensor or computeCells:
+      #while not self.gridIterator.finished:
+        #if self.constructTensor:
+          #coordinateID                          = self.gridIterator.multiIndex[-1]
+          #dimName                               = self.gridContainer['dimensionNames'][coordinateID]
+          #valuePosition                         = self.gridIterator.multiIndex[coordinateID]
+          #self.gridContainer['gridCoord'][self.gridIterator.multiIndex] = self.gridContainer['gridVectors'][dimName][valuePosition]
+        #if computeCells:
+          #if all(np.greater(pp,list(self.gridIterator.multiIndex[:
+            #-1]))) and list(self.gridIterator.multiIndex[:-1]) != origin:
+            #self.gridContainer['cellIDs'][cellID] = []
+            #origin = list(self.gridIterator.multiIndex[:-1])
+            #while not gridIterCells.finished:
+              #vertex = tuple(np.array(origin)+gridIterCells.multiIndex)
+              #self.gridContainer['cellIDs'][cellID].append(vertex)
+              #if vertex in self.gridContainer['vertexToCellIds'].keys():
+                #self.gridContainer['vertexToCellIds'][vertex].append(cellID)
+              #else:
+                #self.gridContainer['vertexToCellIds'][vertex] = [cellID]
+              #gridIterCells.iternext()
+            #gridIterCells.reset()
+            #cellID+=1
+        #self.gridIterator.iternext()
 
+    self.resetIterator()
     self.raiseAMessage("Grid initialized...")
 
   def retrieveCellIds(self,listOfPoints,containedOnly=False):
@@ -615,39 +607,51 @@ class GridEntity(GridBase):
       @ In, containedOnly, bool, optional, flag to ask for cells contained in the listOfPoints or just cells that touch the listOfPoints, default False
       @ Out, previousSet, list, list of cell ids
     """
-    from collections import defaultdict
-    gridIterCells =  ravenArrayIterator(arrayIn=np.zeros(shape=(2,)*self.nVar,dtype=int))
-    cellID = 0
-    cellIDs = {}
-    vertexToCellIds =  defaultdict(list)
-    verteces1 = []
-    verteces2 = []
-    for cntb, bound in enumerate(listOfPoints):
-      for origin in bound:
-        #verteces = []
-        # compute cell on the fly
-        verteces1 = []
-        verteces2 = []
-        while not gridIterCells.finished:
-          vertex1 = tuple(np.array(origin)+gridIterCells.multiIndex)
-          #vertex2 = tuple(np.array(origin)-gridIterCells.multiIndex)
-          verteces1.append(vertex1)
-          #verteces2.append(vertex2)
-          gridIterCells.iternext()
-        if str(sorted(verteces1)) not in cellIDs:
-          cellIDs[str(sorted(verteces1))] = verteces1
-        #if str(sorted(verteces2)) not in cellIDs:
-        #  cellIDs[str(sorted(verteces2))] = verteces2  
-        #cellIDs[cellID].append(vertex1)
-        #cellIDs[-cellID].append(vertex2) 
-        #vertexToCellIds[vertex1].append(cellID)
-        #vertexToCellIds[vertex2].append(-cellID)          
+    #from collections import defaultdict
+    #gridIterCells =  ravenArrayIterator(arrayIn=np.zeros(shape=(2,)*self.nVar,dtype=int))
+    #cellID = 0
+    #cellIDs = {}
+    #vertexToCellIds =  defaultdict(list)
+    #verteces1 = []
+    #verteces2 = []
+    #for cntb, bound in enumerate(listOfPoints):
+      #for origin in bound:
+        ##verteces = []
+        ## compute cell on the fly
+        #verteces1 = []
+        #verteces2 = []
+        #while not gridIterCells.finished:
+          #vertex1 = tuple(np.array(origin)+gridIterCells.multiIndex)
+          ##vertex2 = tuple(np.array(origin)-gridIterCells.multiIndex)
+          #verteces1.append(vertex1)
+          ##verteces2.append(vertex2)
+          #gridIterCells.iternext()
+        #if str(sorted(verteces1)) not in cellIDs:
+          #cellIDs[str(sorted(verteces1))] = verteces1
+        ##if str(sorted(verteces2)) not in cellIDs:
+        ##  cellIDs[str(sorted(verteces2))] = verteces2  
+        ##cellIDs[cellID].append(vertex1)
+        ##cellIDs[-cellID].append(vertex2) 
+        ##vertexToCellIds[vertex1].append(cellID)
+        ##vertexToCellIds[vertex2].append(-cellID)          
           
-        gridIterCells.reset()
+        #gridIterCells.reset()
         #cellID+=1        
     #set(cellIDs[0]) == set(cellIDs[1])
     #cellIds = []
     #containedOnly =True
+    for cntb, bound in enumerate(listOfPoints):
+      cellIds.append([])
+      for point in bound:
+        cellIds[cntb].extend(self.gridContainer['vertexToCellIds'][tuple(point)])
+      if cntb == 0:
+        previousSet = set(cellIds[cntb])
+      if containedOnly:
+        previousSet = set(previousSet).intersection(cellIds[cntb])
+      else:
+        previousSet.update(cellIds[cntb])
+
+
     #for cntb, bound in enumerate(listOfPoints):
       #cellIds.append([])
       #for point in bound:
