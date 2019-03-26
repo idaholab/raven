@@ -38,36 +38,36 @@
   </Models>
 
   <Distributions>
-    <Normal name="heat_capacity_154">
-      <mean>44.5</mean>
-      <sigma>0.5</sigma>
-      <upperBound>40</upperBound>
-      <lowerBound>49</lowerBound>
-    </Normal>
-    <Normal name="heat_capacity_155">
-      <mean>45.5</mean>
-      <sigma>0.5</sigma>
-      <upperBound>41</upperBound>
-      <lowerBound>50</lowerBound>
-    </Normal>
-    <Normal name="heat_capacity_156">
-      <mean>41.5</mean>
-      <sigma>0.5</sigma>
-      <upperBound>37</upperBound>
-      <lowerBound>46</lowerBound>
-    </Normal>
-    <Normal name="heat_capacity_157">
-      <mean>42.5</mean>
-      <sigma>0.5</sigma>
-      <upperBound>28</upperBound>
-      <lowerBound>37</lowerBound>
-    </Normal>
-    <Normal name="testMultiLine">
-      <mean>0.5</mean>
-      <sigma>0.1</sigma>
-      <upperBound>0</upperBound>
-      <lowerBound>1</lowerBound>
-    </Normal>
+      <Normal name="heat_capacity_154">
+          <mean>44.5</mean>
+          <sigma>0.5</sigma>
+          <lowerBound>40</lowerBound>
+          <upperBound>49</upperBound>
+      </Normal>
+      <Normal name="heat_capacity_155">
+          <mean>45.5</mean>
+          <sigma>0.5</sigma>
+          <lowerBound>41</lowerBound>
+          <upperBound>50</upperBound>
+      </Normal>
+      <Normal name="heat_capacity_156">
+          <mean>41.5</mean>
+          <sigma>0.5</sigma>
+          <lowerBound>37</lowerBound>
+          <upperBound>46</upperBound>
+      </Normal>
+      <Normal name="heat_capacity_157">
+          <mean>42.5</mean>
+          <sigma>0.5</sigma>
+          <lowerBound>28</lowerBound>
+          <upperBound>37</upperBound>
+      </Normal>
+      <Normal name="testMultiLine">
+          <mean>0.5</mean>
+          <sigma>0.1</sigma>
+          <upperBound>1</upperBound>
+          <lowerBound>0</lowerBound>
+      </Normal>
   </Distributions>
 
   <Samplers>
