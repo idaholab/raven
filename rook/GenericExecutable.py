@@ -57,7 +57,5 @@ class GenericExecutable(Tester):
         @ In, ignored, string, the output from the test case.
         @ Out, None
     """
-    if self.results.exit_code != 0:
-      self.set_fail(str(self.results.exit_code))
-      return
+    #If the exit code != 0 then check_exit_code will fail the test.
     self.set_success()

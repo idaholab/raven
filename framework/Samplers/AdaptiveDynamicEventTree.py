@@ -218,7 +218,7 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
     if nntrain is not None:
       neigh = neighbors.NearestNeighbors(n_neighbors=len(mapping.keys()))
       neigh.fit(nntrain)
-      valBranch = self._checkValidityOfBranch(neigh.kneighbors([lowerCdfValues.values()]),mapping)
+      valBranch = self._checkValidityOfBranch(neigh.kneighbors([list(lowerCdfValues.values())]),mapping)
       if self.hybridDETstrategy is not None:
         returnTuple = valBranch,cdfValues,treer
       else:
@@ -331,7 +331,7 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
     # The probability Thresholds are stored here in the cdfValues dictionary... We are sure that they are whitin the ones defined in the grid
     # check is not needed
     self.inputInfo['initiatorDistribution' ] = [self.toBeSampled[key] for key in cdfValues.keys()]
-    self.inputInfo['PbThreshold'           ] = cdfValues.values()
+    self.inputInfo['PbThreshold'           ] = list(cdfValues.values())
     self.inputInfo['ValueThreshold'        ] = [self.distDict[key].ppf(value) for key,value in cdfValues.items()]
     self.inputInfo['SampledVars'           ] = {}
     self.inputInfo['SampledVarsPb'         ] = {}

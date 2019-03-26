@@ -2,7 +2,7 @@
 <Simulation printTimeStamps="false" verbosity="debug">
   <RunInfo>
     <WorkingDir>scgpcMVNCorrelated</WorkingDir>
-    <Sequence>Nmake,Nprint1,Ntrain,Ntest,Nprint2</Sequence>
+    <Sequence>Nmake,Nprint1,Ntrain,Ntest</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
   <TestInfo>
@@ -75,12 +75,6 @@
     <IOStep name="Nprint1">
       <Input class="DataObjects" type="PointSet">Nsolns</Input>
       <Output class="OutStreams" type="Print">Ndump</Output>
-    </IOStep>
-    <IOStep name="Nprint2">
-      <Input class="DataObjects" type="PointSet">Ntests</Input>
-      <Input class="Models" type="ROM">NROM</Input>
-      <Output class="OutStreams" type="Print">ROMdump1</Output>
-      <Output class="OutStreams" type="Print">ROMdump2</Output>
     </IOStep>
     <RomTrainer name="Ntrain">
       <Input class="DataObjects" type="PointSet">Nsolns</Input>
