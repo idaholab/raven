@@ -289,7 +289,7 @@ class LimitSurface(PostProcessor):
     if nodeName == None:
       testMatrix = self.testMatrix[self.name]
     elif nodeName =="all":
-      if exceptionGrid == None:
+      if exceptionGrid is None:
         testMatrix = self.testMatrix
       else:
         returnDict = OrderedDict()
@@ -355,9 +355,9 @@ class LimitSurface(PostProcessor):
       @ In, refinementSteps, int, optional, number of refinement steps
       @ Out, None
     """
-    cellIds = self.gridEntity.retrieveCellIds([self.listSurfPointNegative,self.listSurfPointPositive],self.name,containedOnly=False)
+    cellIds = self.gridEntity.retrieveCellIds([self.listSurfPointNegative,self.listSurfPointPositive],self.name,containedOnly=True)
     if self.getLocalVerbosity() == 'debug': 
-      self.raiseADebug("Limit Surface cell IDs are: \n"+ " \n".join([str(cellID) for cellID in cellIds]))
+      self.raiseADebug("Limit Surface cell IDs are: \n"+ " \n".join([str(cellID).strip() for cellID in cellIds]))
     self.raiseAMessage("Number of cells to be refined are "+str(len(cellIds))+". RefinementSteps = "+str(max([refinementSteps,2]))+"!")
     self.gridEntity.refineGrid({"cellIDs":cellIds,"refiningNumSteps":int(max([refinementSteps,2]))})
     for nodeName in self.gridEntity.getAllNodesNames(self.name):
