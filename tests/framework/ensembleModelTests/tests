@@ -42,12 +42,13 @@
    output = 'metaModelWithCode/sampleMC/testModel++71/out~referenceInput.csv metaModelWithCode/printFinalResults.xml'
    UnorderedCsv = 'metaModelWithCode/printFinalResults.csv'
    rel_err=1.e-4
+   python3_only = true
  [../]
  [./testEnsembleModelLinearParallelWithOptimizer]
    type = 'RavenFramework'
    input = 'test_ensemble_model_linear_internal_parallel_with_optimizer.xml'
-   output = 'metaModelLinearParallelWithOptimizer/1-metaModelOutputTestK_scatter.png metaModelLinearParallelWithOptimizer/1-metaModelOutputTestSolution_scatter.png metaModelLinearParallelWithOptimizer/heatTransferContainerDump.csv metaModelLinearParallelWithOptimizer/heatTransferContainerDump.xml metaModelLinearParallelWithOptimizer/metaModelOutputTestDump.csv metaModelLinearParallelWithOptimizer/metaModelOutputTestDump.xml metaModelLinearParallelWithOptimizer/thermalConductivityComputationContainerDump.csv metaModelLinearParallelWithOptimizer/thermalConductivityComputationContainerDump.xml metaModelLinearParallelWithOptimizer/optimizationHistoryDump.csv'
-   csv = 'metaModelLinearParallelWithOptimizer/mdlDataDump.csv metaModelLinearParallelWithOptimizer/optimizationHistoryDump_1.csv'
+   output = 'metaModelLinearParallelWithOptimizer/1-metaModelOutputTestK_scatter.png metaModelLinearParallelWithOptimizer/1-metaModelOutputTestSolution_scatter.png metaModelLinearParallelWithOptimizer/heatTransferContainerDump.csv metaModelLinearParallelWithOptimizer/heatTransferContainerDump.xml metaModelLinearParallelWithOptimizer/metaModelOutputTestDump.csv metaModelLinearParallelWithOptimizer/metaModelOutputTestDump.xml metaModelLinearParallelWithOptimizer/thermalConductivityComputationContainerDump.csv metaModelLinearParallelWithOptimizer/thermalConductivityComputationContainerDump.xml metaModelLinearParallelWithOptimizer/optimizationHistoryDump.csv metaModelLinearParallelWithOptimizer/optimizationHistoryDump_1.csv'
+   csv = 'metaModelLinearParallelWithOptimizer/optSolution.csv'
    rel_err=1.e-4
  [../]
 
@@ -62,6 +63,7 @@
    output = 'metaModelWith2Codes/printFinalResults.xml'
    UnorderedCsv = 'metaModelWith2Codes/printFinalResults.csv'
    rel_err=1.e-4
+   python3_only = true
  [../]
 
  [./testEnsembleModelWith2CodesAndAliasAndOptionalOutputs]
@@ -70,6 +72,7 @@
    output = 'metaModelWith2CodesAndSelectiveOutputs/printResponseModel2.csv'
    UnorderedCsv = 'metaModelWith2CodesAndSelectiveOutputs/printResponseModel1.csv metaModelWith2CodesAndSelectiveOutputs/printResponseModel2HS_2.csv metaModelWith2CodesAndSelectiveOutputs/printResponseModel1HS_2.csv metaModelWith2CodesAndSelectiveOutputs/printResponseModel2_from_hdf5.csv metaModelWith2CodesAndSelectiveOutputs/printResponseModel1_from_hdf5.csv'
    rel_err=1.e-4
+   python3_only = true
  [../]
 
  [./testEnsembleModelLinearExpectedFailure]
@@ -83,6 +86,7 @@
    input = 'test_ensemble_model_fully_correlated_vars.xml'
    UnorderedCsv = 'ensembleModelFullyCorrVars/printFinalResults.csv'
    rel_err=1.e-4
+   python3_only = true
  [../]
 
  [./IndexInputOutput]

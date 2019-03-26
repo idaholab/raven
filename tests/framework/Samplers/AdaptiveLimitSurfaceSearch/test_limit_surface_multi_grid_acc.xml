@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<Simulation verbosity="debug">
+<Simulation verbosity="all">
   <TestInfo>
     <name>framework/Samplers/AdaptiveLimitSurfaceSearch.testLimitSurfaceMultiGridSampling</name>
     <author>alfoa</author>
@@ -16,8 +16,10 @@
       <revision author="maljdan" date="2016-11-08">Serializing the adaptive tests and regolding the multigrid case since I can validate the results look good. I am still trying to understand what the correct results for the 3D case are.</revision>
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
       <revision author="alfoa" date="2017-12-12">Adapted for new DataObject structure</revision>
+      <revision author="alfoa" date="2019-03-07">Modified syntax in Functions as for issue #934</revision>
     </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>limitSurfaceMultiGrid</WorkingDir>
     <Sequence>GoalOrientedStep,dumpLSout</Sequence>
@@ -100,10 +102,7 @@
 
   <Functions>
     <External file="goalFunctionTwoIslands" name="goalFunction">
-      <variable>x1</variable>
-      <variable>x2</variable>
-      <variable>y4</variable>
-      <variable>failure</variable>
+      <variables>x1,x2,y4,failure</variables>
     </External>
   </Functions>
 

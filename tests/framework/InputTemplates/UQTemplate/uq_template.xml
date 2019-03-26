@@ -1,0 +1,66 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <RunInfo>
+    <WorkingDir></WorkingDir>
+    <Sequence>sample, stats</Sequence>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="sample" re-seeding="42">
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Model class="Models" type="ExternalModel">model</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
+      <Output class="DataObjects" type="PointSet">samples</Output>
+    </MultiRun>
+    <PostProcess name="stats">
+      <Input class="DataObjects" type="PointSet">samples</Input>
+      <Model class="Models" type="PostProcessor">stats</Model>
+      <Output class="DataObjects" type="PointSet">stats</Output>
+      <Output class="OutStreams" type="Print">stats</Output>
+    </PostProcess>
+  </Steps>
+
+  <DataObjects>
+    <PointSet name="placeholder">
+      <Input></Input>
+    </PointSet>
+    <PointSet name="samples">
+      <Input></Input>
+      <Output></Output>
+    </PointSet>
+    <PointSet name="stats">
+      <Output></Output>
+    </PointSet>
+  </DataObjects>
+
+  <Distributions>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="mc">
+      <samplerInit>
+        <limit></limit>
+      </samplerInit>
+    </MonteCarlo>
+  </Samplers>
+
+  <Models>
+    <ExternalModel ModuleToLoad="" name="model" subType="">
+      <variables></variables>
+    </ExternalModel>
+    <PostProcessor name="stats" subType="BasicStatistics">
+      <expectedValue prefix="expectedValue"></expectedValue>
+      <sigma prefix="sigma"></sigma>
+      <skewness prefix="skewness"></skewness>
+      <kurtosis prefix="kurtosis"></kurtosis>
+    </PostProcessor>
+  </Models>
+
+  <OutStreams>
+    <Print name="stats">
+      <type>csv</type>
+      <source>stats</source>
+    </Print>
+  </OutStreams>
+
+</Simulation>

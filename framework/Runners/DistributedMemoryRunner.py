@@ -141,6 +141,8 @@ class DistributedMemoryRunner(InternalRunner):
       @ In, None
       @ Out, None
     """
-    self.raiseAWarning("Terminating " + self.thread.tid + " Identifier " + self.identifier)
-    os.kill(self.thread.tid, signal.SIGTERM)
+    self.thread.stop()
+    del self.thread
+    self.thread = None
+    self.returnCode = -1
     self.trackTime('runner_killed')

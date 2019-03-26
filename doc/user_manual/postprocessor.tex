@@ -111,7 +111,9 @@ data objects, depending on the type of statistics the user wants to compute:
   \end{itemize}
   The matrix quantities available for request are:
   \begin{itemize}
-    \item \textbf{sensitivity}: matrix of sensitivity coefficients, computed via linear regression method.
+    \item \textbf{sensitivity}: matrix of sensitivity coefficients, computed via linear regression method. (\nb The condition number is computed every time this quantity is requsted. If it results
+    to be greater then $30$, a multicollinearity problem exists and the sensitivity coefficients 
+    might be incorrect and a Warning is spooned by the code)
     \item \textbf{covariance}: covariance matrix
     \item \textbf{pearson}: matrix of correlation coefficients
     \item \textbf{NormalizedSensitivity}: matrix of normalized sensitivity

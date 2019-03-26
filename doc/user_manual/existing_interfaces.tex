@@ -195,7 +195,7 @@ def modifyInput(root, modDict):
                    \end{lstlisting}
               \end{itemize} % end functions for module
         \end{itemize} % end attributes for module
-                
+
       \item \xmlNode{module}, \xmlDesc{Node, optional parameter} contains the information about a specific
         conversion module (python file).  This node can be repeated multiple times.
         This node has the following attribute:
@@ -422,7 +422,7 @@ EDITS block and those variables are the only one the INTERFACE will read and mak
 \end{itemize}
 }
 
-Remeber also that a RELAP5 simulation run is considered successful (i.e., the simulation did not crash) if it terminates with the following
+Remember also that a RELAP5 simulation run is considered successful (i.e., the simulation did not crash) if it terminates with the following
 message:
 \textcolor{red}{Transient terminated by end of time step cards}
 or
@@ -463,6 +463,45 @@ $\: restartFileWithCustomName.r$''), the user might use (optionally) the \xmlNod
   </Code>
 </Models>
 \end{lstlisting}
+
+An additional feature of the RELAP5 Code interface is the possibility to specify operation based on the value of user-inputted
+cards. For example, let's assume the values in cards 1180801:2 and 1180802:2 must come from a calculation based on sampled variables (e.g. 20100154:2 and 20100155:2), the user can specify the following XML node:
+
+\begin{itemize}
+   \item \xmlNode{operator}, \xmlDesc{XML node, optional parameter}, The operator block. 
+    This XML node must contain the following attribute:
+     \begin{itemize}
+      \item \textit{variables}, \xmlDesc{comma separated list, required parameter}, The list of variables
+       (coming from a Sampler) that will be used in the  \xmlNode{expression} XML node.
+      \end{itemize}   
+     Within the  \xmlNode{operator} the following XML sub-nodes must be specified:
+     \begin{itemize}
+        \item \xmlNode{expression}, \xmlDesc{string, required parameter}, The string representing the expression to be 
+        performed. The ``card'' (if needed to be used) must be identified with the token \%card\% and it
+         will be replaced with the values of the cards 
+        (specified in the XML node \xmlNode{cards} ) from the original input file. In this expression, all the functions available in 
+        the Python $math$ module can be used (e.g. $sqrt$, $exp$, $sin$, etc.).
+         \item \xmlNode{cards}, \xmlDesc{comma separated list, required parameter},
+          The list of cards in the original input file whose values need to be replaced by the value resulting from the expression
+          contained in \xmlNode{expression}. 
+     \end{itemize}
+    \nb the user can specify as many \xmlNode{operator} nodes as needed.
+\end{itemize}
+An example is reported below:
+\begin{lstlisting}[style=XML]
+<Models>
+  <Code name='MyRELAP' subType='Relap5'>
+    <executable>~/path_to_the_executable</executable>
+    ...
+    <operator variables="20100154:2,20100155:2">
+      <expression> %card%*20100155:2*2./20100155:2</expression>
+      <cards>1180801:2,1180802:2,1180901:3</cards>
+    </operator>
+    ...
+  </Code>
+</Models>
+\end{lstlisting}
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Distributions}

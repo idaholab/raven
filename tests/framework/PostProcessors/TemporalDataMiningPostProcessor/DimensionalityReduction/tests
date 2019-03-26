@@ -6,7 +6,7 @@
   ## get meaningful dimensionality reduction results, you typically need a large
   ## amount of data. Possibly, we should look into storing these sets as HDF5s
   ## and doing comparison on them?
-  
+
   ## Now we used the iris dataset stored in sklearn to generate input date
   ## And we do not check all the output file, but only a few of them
 
@@ -73,5 +73,6 @@
     input  = 'test_tdmSKLearnMultiDimensionalScaling.xml'
     csv    = 'MultiDimensionalScaling/dummy_0.csv MultiDimensionalScaling/dummy_74.csv'
     output = 'MultiDimensionalScaling/dummy.csv'
+    skip = 'Unrealistic resource usage and timeout in Windows'
   [../]
 []

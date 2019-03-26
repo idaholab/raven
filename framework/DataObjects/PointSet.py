@@ -34,7 +34,6 @@ import pandas as pd
 import xarray as xr
 
 from BaseClasses import BaseType
-from Files import StaticXMLOutput
 from utils import utils, cached_ndarray, InputData, xmlUtils, mathUtils
 try:
   from .DataSet import DataSet
@@ -125,7 +124,7 @@ class PointSet(DataSet):
       if var in self.protectedTags:
         continue
       # only modify it if it is not already scalar
-      if not mathUtils.isSingleValued(val):
+      if not utils.isSingleValued(val):
         # treat inputs, outputs differently TODO this should extend to per-variable someday
         ## inputs
         if var in self._inputs:

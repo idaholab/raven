@@ -10,11 +10,12 @@
  # As we can observe, we at most can rely on 2 digits of similarity even on the first point.
  # A good alternative for non-correlated ARMAs is to run statistics on the results (mean, variance) and check those instead.
 
- [./ARMA]
+ [./Basic]
    type = 'RavenFramework'
-   input = 'test_ARMA.xml'
-   csv = 'ARMA/stats.csv'
-   rel_err = 5e-2
+   input = 'basic.xml'
+   output = 'Basic/romMeta.csv'
+   UnorderedXml = 'Basic/romMeta.xml'
+   rel_err = 1e-6
   [../]
   [./ARMAparallel]
    type = 'RavenFramework'
@@ -55,7 +56,7 @@
    input = 'multiple_fourier.xml'
    output = 'MultipleFourier/samples.csv'
    csv = 'MultipleFourier/samples_0.csv'
-   zero_threshold = 1.0e-11
+   zero_threshold = 1.e-10
   [../]
 
   [./VARMA]
@@ -82,7 +83,33 @@
     output = 'Segmented/synthetic.csv Segmented/synthetic_0.csv Segmented/synthetic.xml Segmented/stats.xml'
     csv = 'Segmented/stats.csv'
     rel_err = 1e-2
-    os_max_time = 'Windows 500' # ONLY due to 2018 Windows VDI test machine
+  [../]
+  [./Clustered]
+    type = 'RavenFramework'
+    input = 'clustered.xml'
+    [./rom_meta]
+      type = XML
+      output = 'Clustered/romMeta.xml'
+      rel_err = 1e-5
+    [../]
   [../]
 
+  [./PreserveCdf]
+    type = 'RavenFramework'
+    input = 'preserve_cdf.xml'
+    [./input_ldc]
+      # this is primarily to test that sample_ldc will be a valid test.
+      # If this fails, then either there's an error, or the gold_dur*.csv need regolding.
+      # This is done by copying input_durs_0.csv 10 times to compare against the sample ldcs.
+      # Hopefully we get a compare-samples-to-gold metric figured out so we can use that later.
+      type = OrderedCSV
+      output = 'PreserveCdf/input_durs_0.csv'
+      rel_err = 1e-5
+    [../]
+    [./sample_ldc]
+      type = OrderedCSV
+      output = 'PreserveCdf/metric.csv'
+      rel_err = 1e-6
+    [../]
+  [../]
 []
