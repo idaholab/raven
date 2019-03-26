@@ -195,9 +195,9 @@ class Distribution(BaseType):
     if self.lowerBoundUsed and self.upperBoundUsed:
       equal, errMsg = self.lowerBound == self.upperBound, "is equal to"
       inverted, errMsg = self.lowerBound > self.upperBound, "is greater than"
-      if equal or inverted: 
-        self.raiseAMessage(IOError, 'Lower bound for Distribution "'+self.name+'" is '+errMsg+' upper bound!')
-    
+      if equal or inverted:
+        self.raiseAnError(IOError, 'Lower bound for Distribution "'+self.name+'" '+errMsg+' upper bound!')
+
   def getCrowDistDict(self):
     """
       Returns a dictionary of the keys and values that would be
