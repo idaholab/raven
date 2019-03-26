@@ -746,11 +746,12 @@ class MultiGridEntity(GridBase):
     self.multiGridActivated     = False                                # boolean flag to check if the multigrid approach has been activated
     self.subGridVolumetricRatio = None                                 # initial subgrid volumetric ratio
     self.grid                   = ETS.HierarchicalTree(self.messageHandler,
-                                  self.__createNewNode("InitialGrid",
+                                  self.__createNewNode("root",
                                   {"grid":returnInstance("GridEntity",self,
                                    self.messageHandler),"level":"1"})) # grid hierarchical Container
     self.multiGridIterator      = ["1", None]                          # multi grid iterator [first position is the level ID, the second it the multi-index]
     self.mappingLevelName       = {'1':None}                           # mapping between grid level and node name
+    self.numberLevels           = 1
 
   def __len__(self):
     """
