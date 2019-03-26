@@ -193,10 +193,10 @@ class Distribution(BaseType):
       self.lowerBound = lowerBound.value
       self.lowerBoundUsed = True
     if self.lowerBoundUsed and self.upperBoundUsed:
-      equal, errMsg = self.lowerBound == self.upperBound, "is equal to"
-      inverted, errMsg = self.lowerBound > self.upperBound, "is greater than"
-      if equal or inverted:
-        self.raiseAnError(IOError, 'Lower bound for Distribution "'+self.name+'" '+errMsg+' upper bound!')
+      if self.lowerBound == self.upperBound:
+        self.raiseAnError(IOError, 'Lower bound for Distribution "'+self.name+'" is equal to the upper bound!')
+      if self.lowerBound > self.upperBound:
+        self.raiseAnError(IOError, 'Lower bound for Distribution "'+self.name+'" is greater than the upper bound!')  
 
   def getCrowDistDict(self):
     """
