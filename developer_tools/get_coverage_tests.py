@@ -11,13 +11,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from __future__ import print_function, unicode_literals
 import os
 import sys
 
 ravenDir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-testDir = os.path.join(ravenDir,'tests')
+testDir = os.path.join(ravenDir, 'tests')
 
-def getRegressionTests(whichTests=1,skipExpectedFails=True):
+def getRegressionTests(whichTests=1, skipExpectedFails=True):
   """
     Collects all the RAVEN regression tests into a dictionary keyed by directory.
     Must be run from this directory or another that is two directories below RAVEN.
@@ -31,16 +32,16 @@ def getRegressionTests(whichTests=1,skipExpectedFails=True):
   """
   testsFilenames = []
   #search for all the 'tests' files
-  for root, dirs, files in os.walk(testDir):
+  for root, _, files in os.walk(testDir):
     if skipExpectedFails and 'ErrorChecks' in root.split(os.sep):
       continue
     if 'tests' in files:
-      testsFilenames.append((root,os.path.join(root, 'tests')))
-  suffix = ".xml" if whichTests in [1,3] else ".py"
+      testsFilenames.append((root, os.path.join(root, 'tests')))
+  suffix = ".xml" if whichTests in [1, 3] else ".py"
   #read all "input" node files from "tests" files
   doTests = {}
-  for root,testFilename in testsFilenames:
-    testsFile = file(testFilename,'r')
+  for root, testFilename in testsFilenames:
+    testsFile = open(testFilename, 'r')
     # collect the test specs in a dictionary
     testFileList = []
     testSpecs = {}
@@ -55,7 +56,7 @@ def getRegressionTests(whichTests=1,skipExpectedFails=True):
       if startReading:
         splitted = line.strip().split('=')
         if len(splitted) == 2:
-          testSpecs[splitted[0].strip()] = splitted[1].replace("'","").replace('"','').strip()
+          testSpecs[splitted[0].strip()] = splitted[1].replace("'", "").replace('"', '').strip()
       if line.strip().startswith("[./"):
         startReading = True
         collectSpecs = False
@@ -73,12 +74,12 @@ def getRegressionTests(whichTests=1,skipExpectedFails=True):
         continue
       if "input" not in spec:
         continue
-      testType = spec.get('type',"notfound").strip()
+      testType = spec.get('type', "notfound").strip()
       newTest = spec['input'].split()[0]
       testInterfaceOnly = False
       if 'test_interface_only' in spec:
         testInterfaceOnly = True if spec['test_interface_only'].lower() == 'true' else False
-      if whichTests in [1,3]:
+      if whichTests in [1, 3]:
         if newTest.endswith(suffix) and testType.lower() not in 'ravenpython':
           if whichTests == 3 and testInterfaceOnly:
             doTests[root].append(newTest)
@@ -91,21 +92,16 @@ def getRegressionTests(whichTests=1,skipExpectedFails=True):
 
 if __name__ == '__main__':
   # skip the expected failed tests
-  skipFails = False
-  if '--skip-fails' in sys.argv:
-    skipFails = True
-  else:
-    skipFails = False
-  which = 1
+  skipFails = True if '--skip-fails' in sys.argv else  False
   if '--get-python-tests' in sys.argv:
     # unit tests flag has priority over interface check
     which = 2
   elif '--get-interface-check-tests' in sys.argv:
     which = 3
 
-  doTests = getRegressionTests(which,skipExpectedFails = skipFails)
+  tests = getRegressionTests(which, skipExpectedFails=skipFails)
   #print doTests
   testFiles = []
-  for key in doTests:
-    testFiles.extend([os.path.join(key,l) for l in doTests[key]])
-  print ' '.join(testFiles)
+  for key in tests:
+    testFiles.extend([os.path.join(key, l) for l in tests[key]])
+  print(' '.join(testFiles))
