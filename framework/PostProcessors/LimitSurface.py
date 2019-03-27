@@ -136,7 +136,7 @@ class LimitSurface(PostProcessor):
     self.ROM.reset()
     self.indexes = -1
     for index, inp in enumerate(self.inputs):
-      if utils.isString(inp)  or isinstance(inp, bytes):
+      if utils.isAString(inp)  or isinstance(inp, bytes):
         self.raiseAnError(IOError, 'LimitSurface PostProcessor only accepts Data(s) as inputs. Got string type!')
       if inp.type == 'PointSet':
         self.indexes = index

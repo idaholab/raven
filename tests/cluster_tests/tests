@@ -1,33 +1,62 @@
 [Tests]
+ #Note that max time is set high because qsub already has a timelimit.
  [./test_mpi]
-   input=test_mpi.xml
-   skip = 'cluster only test'
-   type = RavenFramework
+   executable = 'qsub'
+   parameters = '-P moose -l select=6:ncpus=4:mpiprocs=1 -l walltime=10:00:00 -l place=free -W block=true ./run_mpi_test.sh'
+   #input=test_mpi.xml
+   run_types = 'qsub'
+   type = GenericExecutable
+   output_wait_time = 60
+   max_time = 3600
  [../]
  [./test_pbsdsh]
-   input=test_pbs.xml
-   skip = 'cluster only test'
+   input='test_pbs.xml cluster_runinfo_legacy.xml'
+   run_types = 'qsub'
+   output = 'FirstPRun/1/out~simple_gp_test.csv FirstPRun/6/out~simple_gp_test.csv'
+   output_wait_time = 60
    type = RavenFramework
+   max_time = 3600
  [../]
  [./test_mpiqsub]
-   input=test_mpiqsub_local.xml
-   skip = 'cluster only test'
+   #REQUIREMENT_TEST R-IS-7
+   input='test_mpiqsub_local.xml pbspro_mpi.xml cluster_runinfo_legacy.xml'
+   run_types = 'qsub'
+   output = 'FirstMQRun/1/out~simple_gp_test.csv FirstMQRun/6/out~simple_gp_test.csv'
+   output_wait_time = 60
    type = RavenFramework
+   max_time = 3600
  [../]
  [./test_mpiqsub_parameters]
-   input=test_mpiqsub_flex.xml
-   skip = 'cluster only test'
+   input='test_mpiqsub_flex.xml cluster_runinfo_legacy.xml'
+   run_types = 'qsub'
+   output = 'FirstMFRun/1/out~simple_gp_test.csv FirstMFRun/6/out~simple_gp_test.csv'
+   output_wait_time = 60
    type = RavenFramework
+   max_time = 3600
  [../]
  [./test_mpiqsub_limitnode]
-   input=test_mpiqsub_limitnode.xml
-   skip = 'cluster only test'
+   input='test_mpiqsub_limitnode.xml cluster_runinfo_legacy.xml'
+   run_types = 'qsub'
+   output = 'FirstMLRun/1/out~simple_gp_test.csv FirstMLRun/6/out~simple_gp_test.csv'
+   output_wait_time = 60
    type = RavenFramework
+   max_time = 3600
  [../]
  [./test_mpiqsub_nosplit]
-   input=test_mpiqsub_nosplit.xml
-   skip = 'cluster only test'
+   input='test_mpiqsub_nosplit.xml cluster_runinfo_legacy.xml'
+   run_types = 'qsub'
+   output = 'FirstMNRun/1/out~simple_gp_test.csv FirstMNRun/6/out~simple_gp_test.csv'
+   output_wait_time = 60
    type = RavenFramework
+   max_time = 3600
+ [../]
+ [./test_mpi_forced]
+   input='test_mpiqsub_forced.xml cluster_runinfo_legacy.xml'
+   run_types = 'qsub'
+   output = 'FirstMForcedRun/1/out~simple_gp_test.csv FirstMForcedRun/6/out~simple_gp_test.csv'
+   output_wait_time = 60
+   type = RavenFramework
+   max_time = 3600
  [../]
  [./test_mpi_fake]
    input=test_mpi.xmll

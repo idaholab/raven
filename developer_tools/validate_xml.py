@@ -15,6 +15,7 @@ from __future__ import print_function, unicode_literals
 import os
 import sys
 import subprocess
+import tempfile
 import get_coverage_tests
 
 scriptDir = os.path.dirname(os.path.abspath(__file__))
@@ -34,13 +35,17 @@ def validateTests():
   res = [0, 0, 0] #run, pass, fail
   failed = {}
   devnull = open(os.devnull, "wb")
-  for dr, files in tests.items():
+  for dir, files in tests.items():
     #print directory being checked'
-    checkmsg = ' Directory: '+ dr
+    checkmsg = ' Directory: ' + dir
     print(colors.neutral + checkmsg.rjust(maxlen, '-'))
     #check files in directory
     for f in files:
-      fullpath = os.path.join(dr, f)
+      fullpath = os.path.join(dir, f)
+      # check if input exists; if not, it probably gets created by something else, and can't get checked here
+      if not os.path.isfile(fullpath):
+        print 'File "{}" does not exist; skipping validation test ...'
+        continue
       res[0] += 1
       startmsg = 'Validating ' + f
       #expand external XML nodes

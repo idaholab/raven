@@ -10,7 +10,11 @@
       inside RAVEN. Here we are testing whether using the same external
       processor on multiple data objects does not cause naming issues.
     </description>
+    <revisions>
+        <revision author="alfoa" date="2019-03-07">Modified syntax in Functions as for issue #934</revision>
+    </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>externalPostProcessor</WorkingDir>
     <Sequence>
@@ -35,8 +39,7 @@
      guys -->
   <Functions>
     <External file="externalPostProcessor/BasicOperators" name="basicOps">
-      <variable>X</variable>
-      <variable>Y</variable>
+      <variables>X,Y</variables>
     </External>
   </Functions>
 

@@ -16,7 +16,8 @@
     </analytic>
     <revisions>
       <revision author="talbpaul" date="2018-01-04">switch from snapshot to writeSteps final</revision>
-      <revision author='talbpaul' date='2018-10-23'>limited outputs checked to just the solution</revision>
+      <revision author="talbpaul" date="2018-10-23">limited outputs checked to just the solution</revision>
+      <revision author="alfoa" date="2019-03-07">Modified syntax in Functions as for issue #934</revision>
     </revisions>
   </TestInfo>
 
@@ -42,8 +43,7 @@
 
   <Functions>
     <External file="../../../framework/AnalyticModels/optimizing/mishra_bird" name="mishra">
-      <variable>x</variable>
-      <variable>y</variable>
+      <variables>x,y</variables>
     </External>
   </Functions>
 

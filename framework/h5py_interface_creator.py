@@ -159,7 +159,23 @@ class hdf5Database(MessageHandler.MessageUser):
       @ Out, None
     """
     self.h5FileW.create_dataset("allGroupPaths", shape=(len(self.allGroupPaths),), dtype=h5.special_dtype(vlen=str), data=self.allGroupPaths, maxshape=(None,))
+    self.h5FileW["allGroupPaths"].resize((max(len(self.allGroupPaths)*2,2000),))
     self.h5FileW.create_dataset("allGroupEnds", shape=(len(self.allGroupEnds),), dtype=bool, data=self.allGroupEnds, maxshape=(None,))
+    self.h5FileW["allGroupEnds"].resize((max(len(self.allGroupPaths)*2,2000),))
+
+  def __updateFileLevelInfoDatasets(self):
+    """
+      Method to create datasets that are at the File Level and contains general info
+      to recontruct HDF5 in loading mode
+      @ In, None
+      @ Out, None
+    """
+    if len(self.allGroupPaths) > len(self.h5FileW["allGroupPaths"]):
+      self.h5FileW["allGroupPaths"].resize((len(self.allGroupPaths)*2,))
+      self.h5FileW["allGroupEnds"].resize( (len(self.allGroupPaths)*2,) )
+    self.h5FileW["allGroupPaths"][len( self.allGroupPaths) - 1] = self.allGroupPaths[-1]
+    self.h5FileW["allGroupEnds"][len(self.allGroupPaths) - 1] = self.allGroupEnds[-1]
+    self.h5FileW.attrs["nGroups"] = len(self.allGroupPaths)
 
   def __createObjFromFile(self):
     """
@@ -177,11 +193,13 @@ class hdf5Database(MessageHandler.MessageUser):
     if not self.fileOpen:
       self.h5FileW = self.openDatabaseW(self.filenameAndPath,'a')
     if 'allGroupPaths' in self.h5FileW and 'allGroupEnds' in self.h5FileW:
-      self.allGroupPaths = utils.toBytesIterative(self.h5FileW["allGroupPaths"][...].tolist())
-      self.allGroupEnds = self.h5FileW["allGroupEnds"][...].tolist()
+      nGroups = self.h5FileW.attrs.get("nGroups",None)
+      self.allGroupPaths = utils.toBytesIterative(self.h5FileW["allGroupPaths"][:nGroups].tolist())
+      self.allGroupEnds = self.h5FileW["allGroupEnds"][:nGroups].tolist()
     else:
       self.h5FileW.visititems(self.__isGroup)
       self.__createFileLevelInfoDatasets()
+    self.h5FileW.attrs["nGroups"] = len(self.allGroupPaths)
     self.raiseAMessage('TOTAL NUMBER OF GROUPS = ' + str(len(self.allGroupPaths)))
 
   def __isGroup(self,name,obj):
@@ -239,7 +257,8 @@ class hdf5Database(MessageHandler.MessageUser):
     """
     parentID  = rlz.get("RAVEN_parentID",[None])[0]
     prefix    = rlz.get("prefix")
-    groupName = str(prefix[0] if not utils.isString(prefix) else prefix)
+
+    groupName = str(prefix if utils.isSingleValued(prefix) else prefix[0])
     if parentID:
       #If Hierarchical structure, firstly add the root group
       if not self.firstRootGroup or parentID == "None":
@@ -254,11 +273,7 @@ class hdf5Database(MessageHandler.MessageUser):
       self.__addGroupRootLevel(groupName,rlz)
       self.firstRootGroup = True
       self.type = 'MC'
-
-    self.h5FileW["allGroupPaths"].resize((len(self.allGroupPaths),))
-    self.h5FileW["allGroupEnds"].resize( (len(self.allGroupEnds),) )
-    self.h5FileW["allGroupPaths"][...] = self.allGroupPaths
-    self.h5FileW["allGroupEnds"][...] = self.allGroupEnds
+    self.__updateFileLevelInfoDatasets()
     self.h5FileW.flush()
 
 
@@ -302,10 +317,7 @@ class hdf5Database(MessageHandler.MessageUser):
     grp.attrs[b'groupName'] = groupNameInit
     self.allGroupPaths.append(utils.toBytes("/" + groupNameInit))
     self.allGroupEnds.append(False)
-    self.h5FileW["allGroupPaths"].resize((len(self.allGroupPaths),))
-    self.h5FileW["allGroupEnds"].resize( (len(self.allGroupEnds),) )
-    self.h5FileW["allGroupPaths"][...] = self.allGroupPaths
-    self.h5FileW["allGroupEnds"][...] = self.allGroupEnds
+    self.__updateFileLevelInfoDatasets()
     self.h5FileW.flush()
 
   def __checkTypeHDF5(self, value, neg):

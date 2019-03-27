@@ -15,7 +15,6 @@
 """
 Tests by running a python program.
 """
-import os
 import subprocess
 from Tester import Tester
 
@@ -39,10 +38,7 @@ class CrowPython(Tester):
     """
     params = Tester.get_valid_params()
     params.add_required_param('input', "The python file to use for this test.")
-    if os.environ.get("CHECK_PYTHON3", "0") == "1":
-      params.add_param('python_command', ' python3', 'The command to use to run python')
-    else:
-      params.add_param('python_command', 'python', 'The command to use to run python')
+    params.add_param('python_command', '', 'The command to use to run python')
     params.add_param('requires_swig2', False, "Requires swig2 for test")
     return params
 
@@ -52,7 +48,11 @@ class CrowPython(Tester):
       @ In, None
       @ Out, get_command, string, string command to use.
     """
-    return self.specs["python_command"]+" "+self.specs["input"]
+    if len(self.specs["python_command"]) == 0:
+      python_command = self._get_python_command()
+    else:
+      python_command = self.specs["python_command"]
+    return python_command+" "+self.specs["input"]
 
   def __init__(self, name, params):
     """ Constructor that will setup this test with a name and a list of
@@ -82,8 +82,6 @@ class CrowPython(Tester):
         @ In, output: the output from the test case.
         @ Out: a tuple with the error return code and the output passed in.
     """
-    if self.results.exit_code != 0:
-      self.set_fail(str(self.results.exit_code))
-      return output
+    #check_exit_code fails test if != 0 so passes
     self.set_success()
     return output
