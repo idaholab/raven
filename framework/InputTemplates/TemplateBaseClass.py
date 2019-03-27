@@ -165,7 +165,7 @@ class Template(object):
     # remove empty strings
     entries = list(filter(None, entries))
     if position is not None:
-      if position < len(entries) - 1:
+      if position < len(entries):
         entries.insert(position, new)
       else:
         entries.append(new)
