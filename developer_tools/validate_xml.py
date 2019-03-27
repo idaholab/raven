@@ -44,7 +44,7 @@ def validateTests():
       fullpath = os.path.join(dir, f)
       # check if input exists; if not, it probably gets created by something else, and can't get checked here
       if not os.path.isfile(fullpath):
-        print 'File "{}" does not exist; skipping validation test ...'
+        print('File "{}" does not exist; skipping validation test ...'.format(fullpath))
         continue
       res[0] += 1
       startmsg = 'Validating ' + f
