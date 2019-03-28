@@ -99,12 +99,12 @@ function find_conda_defs ()
 function install_libraries()
 {
   if [[ $ECE_VERBOSE == 0 ]]; then echo Installing libraries ...; fi
-  local COMMAND=`echo $(python ${RAVEN_UTILS} --conda-install ${INSTALL_OPTIONAL} ${OSOPTION})`
+  local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_UTILS} --conda-install ${INSTALL_OPTIONAL} ${OSOPTION})`
   echo ... conda command: ${COMMAND}
   ${COMMAND}
   # conda-forge
   if [[ $ECE_VERBOSE == 0 ]]; then echo ... Installing libraries from conda-forge ...; fi
-  local COMMAND=`echo $(python ${RAVEN_UTILS} --conda-forge --conda-install ${INSTALL_OPTIONAL} ${OSOPTION})`
+  local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_UTILS} --conda-forge --conda-install ${INSTALL_OPTIONAL} ${OSOPTION})`
   if [[ $ECE_VERBOSE == 0 ]]; then echo ... conda-forge command: ${COMMAND}; fi
   ${COMMAND}
 }
@@ -112,12 +112,12 @@ function install_libraries()
 function create_libraries()
 {
   if [[ $ECE_VERBOSE == 0 ]]; then echo ... Installing libraries ...; fi
-  local COMMAND=`echo $(python ${RAVEN_UTILS} --conda-create ${INSTALL_OPTIONAL} ${OSOPTION})`
+  local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_UTILS} --conda-create ${INSTALL_OPTIONAL} ${OSOPTION})`
   if [[ $ECE_VERBOSE == 0 ]]; then echo ... conda command: ${COMMAND}; fi
   ${COMMAND}
   # conda-forge
   if [[ $ECE_VERBOSE == 0 ]]; then echo ... Installing libraries from conda-forge ...; fi
-  local COMMAND=`echo $(python ${RAVEN_UTILS} --conda-forge --conda-install ${INSTALL_OPTIONAL} ${OSOPTION})`
+  local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_UTILS} --conda-forge --conda-install ${INSTALL_OPTIONAL} ${OSOPTION})`
   if [[ $ECE_VERBOSE == 0 ]]; then echo ... conda-forge command: ${COMMAND}; fi
   ${COMMAND}
 }
@@ -175,7 +175,7 @@ function activate_env()
 function set_install_settings()
 {
   if [[ $ECE_VERBOSE == 0 ]]; then echo ... Setting install variables ...; fi
-  local COMMAND="python $ECE_SCRIPT_DIR/update_install_data.py --write --conda-defs ${CONDA_DEFS} --RAVEN_LIBS_NAME ${RAVEN_LIBS_NAME}"
+  local COMMAND="$PYTHON_COMMAND $ECE_SCRIPT_DIR/update_install_data.py --write --conda-defs ${CONDA_DEFS} --RAVEN_LIBS_NAME ${RAVEN_LIBS_NAME}"
   if [[ $ECE_VERBOSE == 0 ]]; then echo ... ${COMMAND}; fi
   ${COMMAND}
 }
@@ -248,6 +248,19 @@ fi
 # determine operating system
 establish_OS
 if [[ $ECE_VERBOSE == 0 ]]; then echo ... Detected OS as ${OSOPTION} ...; fi
+
+if [ -z $PYTHON_COMMAND ];
+then
+    # check the RC file first
+    PYTHON_COMMAND=$(read_ravenrc "PYTHON_COMMAND")
+    #If not found through the RC file, will be empty string, so default python
+    PYTHON_COMMAND=${PYTHON_COMMAND:=python}
+fi
+export PYTHON_COMMAND
+if [[ $ECE_VERBOSE == 0 ]];
+then
+    echo ... Using Python command ${PYTHON_COMMAND}
+fi
 
 # set raven libraries environment name, if not set
 if [ -z $RAVEN_LIBS_NAME ];
