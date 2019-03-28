@@ -53,7 +53,7 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
      \xmlExample{framework/user_guide/ForwardSamplingStrategies/forwardSamplingMontecarlo.xml}{RunInfo}
      As discussed in Section~\ref{sub:singleRun}, the \textit{RunInfo} \textbf{Entity} sets up the analysis
      that the user wants to perform. In this specific case, two steps (\xmlNode{Sequence}) are sequentially run
-     using 1 processor (\xmlNode{batchSize}). If this number change into 12, this means that
+     using 1 processor (\xmlNode{batchSize}). If this number were changed into 12, this means that
      12 instances of the driven code are run simultaneously. 
      Note that the \xmlNode{JobName} is not required, but is useful in identifying the input file.
    \item \textbf{\textit{Files}}:
@@ -315,8 +315,8 @@ To accomplish these tasks, the following RAVEN \textbf{Entities} (XML blocks in 
      \xmlExample{framework/user_guide/ForwardSamplingStrategies/forwardSamplingStratified.xml}{RunInfo}
    As reported in Section~\ref{sub:singleRun}, the \textit{RunInfo} \textbf{Entity} is intended to set up the analysis
    that the user wants to perform. In this specific case, two steps (\xmlNode{Sequence}) are  run
-   using 1 processor (\xmlNode{batchSize}). This means that
-   1 instance of the driven code are run simultaneously.
+   using 1 processor (\xmlNode{batchSize}). This means that 
+   a single instance of the driven code is run at a time.
    \item \textbf{\textit{Files}}:
      \xmlExample{framework/user_guide/ForwardSamplingStrategies/forwardSamplingStratified.xml}{Files}
    Since the considered code uses a single input file, in this section the original input is placed.
