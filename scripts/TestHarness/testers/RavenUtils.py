@@ -35,7 +35,9 @@ def in_python_3():
     @ In, None
     @ Out, in_python_3, boolean, True if should be using python3.
   """
-  return os.environ.get("CHECK_PYTHON3", "0") == "1"
+  if sys.version_info.major > 2:
+    return True
+  return False
 
 #This list is made of (module, how to check the version, minimum version,
 # quality assurance module version, maximum version)
