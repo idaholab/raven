@@ -14,6 +14,7 @@
 from distutils.core import setup, Extension
 from distutils.command.build import build
 import os
+import sys
 
 # Replicating the methods used in the RAVEN Makefile to find CROW_DIR,
 # If the Makefile changes to be more robust, so should this
@@ -39,7 +40,10 @@ class CustomBuild(build):
                     ('build_scripts', build.has_scripts)]
 
 include_dirs=[RAVEN_INCLUDE_DIR,BOOST_INCLUDE_DIR]
-swig_opts=['-c++','-I'+RAVEN_INCLUDE_DIR, '-I'+BOOST_INCLUDE_DIR]
+if sys.version_info.major > 2:
+  swig_opts=['-c++','-I'+RAVEN_INCLUDE_DIR, '-I'+BOOST_INCLUDE_DIR,'-py3']
+else:
+  swig_opts=['-c++','-I'+RAVEN_INCLUDE_DIR, '-I'+BOOST_INCLUDE_DIR]
 extra_compile_args=['-std=c++11']
 setup(name='amsc',
       version='0.0',
