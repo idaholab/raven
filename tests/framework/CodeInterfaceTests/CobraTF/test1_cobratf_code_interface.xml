@@ -36,8 +36,8 @@
     <Normal name="dist_for_BC">
       <mean>1496.8</mean>
       <sigma>5.0</sigma>
-      <upperBound>1490.0</upperBound>
-      <lowerBound>1505.0</lowerBound>
+      <upperBound>1505.0</upperBound>
+      <lowerBound>1490.0</lowerBound>
     </Normal>
     <Normal name="dist_for_GridLoss_2">
       <mean>0.907</mean>

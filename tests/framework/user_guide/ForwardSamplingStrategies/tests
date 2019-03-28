@@ -5,6 +5,7 @@
     csv = 'RunDir/MonteCarlo/histories_0.csv'
     image = 'RunDir/MonteCarlo/1-historyPlot_line-line-line-line.png RunDir/MonteCarlo/1-samplesPlot3D_scatter-scatter-scatter-scatter.png'
     required_libraries = 'PIL'
+    python3_only = true
     rel_err = 0.01
   [../]
 
@@ -14,6 +15,7 @@
     UnorderedCsv = 'RunDir/Grid/histories_0.csv'
     image = 'RunDir/Grid/1-historyPlot_line-line-line-line.png RunDir/Grid/1-samplesPlot3D_scatter-scatter-scatter-scatter.png'
     required_libraries = 'PIL'
+    python3_only = true
     rel_err = 0.01
   [../]
 
@@ -23,6 +25,7 @@
     csv = 'RunDir/Stratified/histories_0.csv'
     image = 'RunDir/Stratified/1-historyPlot_line-line-line-line.png RunDir/Stratified/1-samplesPlot3D_scatter-scatter-scatter-scatter.png'
     required_libraries = 'PIL'
+    python3_only = true
     rel_err = 0.01
   [../]
 
