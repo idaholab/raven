@@ -9,34 +9,7 @@ else
 fi
 SCRIPT_DIR=`(cd $SCRIPT_DIRNAME; pwd)`
 
-NO_CONDA=0
-# read arguments
-while test $# -gt 0
-do
-  case "$1" in
-     --skip-conda)
-      NO_CONDA=1
-  esac
-  shift
-done
-#### END FUTURE WORK
-# export no conda variable
-export NO_CONDA
+${SCRIPT_DIR}/build_raven
 
-if [[ $NO_CONDA == 0 ]]; then
-  source $SCRIPT_DIR/scripts/establish_conda_env.sh --quiet --load
-fi
-#These don't always work for setup.py, so safer to unset them.
-unset CXX CC
-
-
-CROW_DIR=${CROW_DIR:=$SCRIPT_DIR/crow}
-if test ! -e $CROW_DIR/setup.py; then
-    CROW_DIR=$SCRIPT_DIR/../crow
-fi
-
-(cd $CROW_DIR && python ./setup.py build_ext build install --install-platlib=./install)
-
-(cd $SCRIPT_DIR && python ./setup.py build_ext build install --install-platlib=./framework/contrib/AMSC)
 
 
