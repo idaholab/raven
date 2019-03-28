@@ -80,7 +80,7 @@ function find_conda_defs ()
       then
         CONDA_DEFS="/c/ProgramData/Miniconda2/etc/profile.d/conda.sh";
       else
-        CONDA_DEFS="$HOME/miniconda2/etc/profile.d/conda.sh";
+        CONDA_DEFS="$HOME/miniconda3/etc/profile.d/conda.sh";
       fi
     # if found in RC, just use that.
     else
