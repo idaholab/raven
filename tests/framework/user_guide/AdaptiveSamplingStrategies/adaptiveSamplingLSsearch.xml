@@ -24,7 +24,6 @@
 
   <Files>
     <Input name="referenceInput.xml" type="input">referenceInput.xml</Input>
-    <Input name="LSintegral.csv" type="">LSintegral.csv</Input>
   </Files>
 
   <Models>
@@ -266,9 +265,6 @@
           <ylabel>sigma-A</ylabel>
           <zlabel>final B</zlabel>
         </plot>
-        <xlabel>decay</xlabel>
-        <ylabel>sigma</ylabel>
-        <zlabel>final response</zlabel>
       </plotSettings>
       <actions>
         <how>png</how>
