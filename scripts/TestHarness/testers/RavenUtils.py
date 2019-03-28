@@ -127,7 +127,11 @@ def module_report(module, version=''):
      The version is the version number or "NA" if not known.
   """
   if in_python_3():
-    python = 'python3'
+    if os.name == "nt":
+      #Command is python on windows in conda and Python.org install
+      python = 'python'
+    else:
+      python = 'python3'
   else:
     python = 'python'
   try:

@@ -380,7 +380,11 @@ class Tester:
     self.results = TestResult()
     self.__command_prefix = ""
     if sys.version_info > (3, ):
-      self.__python_command = "python3"
+      if os.name == "nt":
+        #Command is python on windows in conda and Python.org install
+        self.__python_command = "python"
+      else:
+        self.__python_command = "python3"
     else:
       self.__python_command = "python"
     self.__differs = []
