@@ -308,7 +308,7 @@ if __name__ == '__main__':
   if '--conda-forge' in sys.argv:
     # just install command is generated
     condaForge = True
-  if '--py3' in sys.argv:
+  if '--py3' in sys.argv or '--py2' not in sys.argv:
     pythonIndex = __condaList.index(("python", "2.7"))
     __condaList[pythonIndex] = ("python", "3")
     __condaForgeList.append(("matplotlib", "2"))

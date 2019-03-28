@@ -156,6 +156,11 @@ function display_usage()
 	echo '    --py3'
 	echo '    When installing, make raven_libraries use Python 3'
 	echo ''
+        echo ''
+        echo '    --py2'
+        echo '    When installing, make raven_libraries use Python 2'
+        echo ''
+        echo ''
 	echo '    --quiet'
 	echo '      Runs script with minimal output'
 	echo ''
@@ -205,6 +210,10 @@ do
     --py3)
       echo ... Creating Python 3 libraries ...
       INSTALL_OPTIONAL="--py3 $INSTALL_OPTIONAL"
+      ;;
+    --py3)
+      echo ... Creating Python 2 libraries ...
+      INSTALL_OPTIONAL="--py2 $INSTALL_OPTIONAL"
       ;;
     --quiet)
       ECE_VERBOSE=1
