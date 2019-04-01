@@ -287,6 +287,7 @@ class LimitSurfaceIntegral(PostProcessor):
       self.raiseAMessage("Error Bound for Limit Surface Location is: "+str(float(errorBound)))
     else:
       self.raiseAnError(NotImplemented, "quadrature not yet implemented")
+    print(pbNeg, pbPos)
     return pbNeg
 
   def collectOutput(self, finishedJob, output):
