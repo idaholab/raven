@@ -498,7 +498,7 @@ class ARMA(supervisedLearning):
     denormed = self._sampleICDF(denormed, params)
     return denormed
 
-  def _generateARMASignal(self, model, numSamples=None, randEngine=None):
+  def _generateARMASignal(self, model, numSamples=None, randEngine=None): 
     """
       Generates a synthetic history from fitted parameters.
       @ In, model, statsmodels.tsa.arima_model.ARMAResults, fitted ARMA such as otained from _trainARMA
@@ -508,7 +508,7 @@ class ARMA(supervisedLearning):
     """
     if numSamples is None:
       numSamples =  len(self.pivotParameterValues)
-    hist = sm.tsa.arma_generate_sample(ar = np.append(1., -model.arparams),
+    hist = sm.tsa.arma_generate_sample(ar = np.append(1., -model.arparams), #wip597
                                        ma = np.append(1., model.maparams),
                                        nsample = numSamples,
                                        distrvs = randEngine,
