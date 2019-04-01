@@ -123,7 +123,9 @@
                 <type>line</type>
                 <x>histories|Output|time</x>
                 <y>histories|Output|A</y>
-                <color>blue</color>
+                <kwargs>
+                    <color>blue</color>
+                </kwargs>
                 <gridLocation>
                     <x>0</x>
                     <y>0</y>
@@ -135,7 +137,9 @@
                 <type>line</type>
                 <x>histories|Output|time</x>
                 <y>histories|Output|B</y>
-                <color>red</color>
+                <kwargs>
+                    <color>orange</color>
+                </kwargs>               
                 <gridLocation>
                     <x>1</x>
                     <y>0</y>
@@ -147,7 +151,9 @@
                 <type>line</type>
                 <x>histories|Output|time</x>
                 <y>histories|Output|C</y>
-                <color>yellow</color>
+                <kwargs>
+                    <color>green</color>
+                </kwargs>
                 <gridLocation>
                     <x>0</x>
                     <y>1</y>
@@ -159,7 +165,9 @@
                 <type>line</type>
                 <x>histories|Output|time</x>
                 <y>histories|Output|D</y>
-                <color>black</color>
+                <kwargs>
+                    <color>red</color>
+                </kwargs>
                 <gridLocation>
                     <x>1</x>
                     <y>1</y>
@@ -184,7 +192,7 @@
                 <x>samples|Input|sigma-A</x>
                 <y>samples|Input|decay-A</y>
                 <z>samples|Output|A</z>
-                <color>blue</color>
+                <c>blue</c>
                 <gridLocation>
                     <x>0</x>
                     <y>0</y>
@@ -198,7 +206,7 @@
                 <x>samples|Input|sigma-B</x>
                 <y>samples|Input|decay-B</y>
                 <z>samples|Output|B</z>
-                <color>red</color>
+                <c>orange</c>
                 <gridLocation>
                     <x>1</x>
                     <y>0</y>
@@ -212,7 +220,7 @@
                 <x>samples|Input|sigma-C</x>
                 <y>samples|Input|decay-C</y>
                 <z>samples|Output|C</z>
-                <color>yellow</color>
+                <c>green</c>
                 <gridLocation>
                     <x>0</x>
                     <y>1</y>
@@ -226,7 +234,7 @@
                 <x>samples|Input|sigma-D</x>
                 <y>samples|Input|decay-D</y>
                 <z>samples|Output|D</z>
-                <color>black</color>
+                <c>red</c>
                 <gridLocation>
                     <x>1</x>
                     <y>1</y>

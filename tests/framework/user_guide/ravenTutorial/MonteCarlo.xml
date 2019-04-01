@@ -99,7 +99,9 @@
           <type>line</type>
           <x>histories|Output|time</x>
           <y>histories|Output|A</y>
-          <color>blue</color>
+          <kwargs>
+            <color>blue</color>
+          </kwargs>        
         </plot>
         <xlabel>time (s)</xlabel>
         <ylabel>evolution A(kg)</ylabel>
@@ -118,7 +120,9 @@
                 <x>samples|Input|sigma-A</x>
                 <y>samples|Input|decay-A</y>
                 <z>samples|Output|A</z>
-                <color>blue</color>
+                <kwargs>
+                  <color>blue</color>
+                </kwargs>
             </plot>
             <xlabel>sigma</xlabel>
             <ylabel>decay</ylabel>
