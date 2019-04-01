@@ -329,16 +329,16 @@ class GridEntity(GridBase):
       This method is aimed to get the coordinates of all the adjiacent cells
       given a coordinate
       @ In, coordinate, tuple, tuple of coordinate
-      @ Out, cellCoordinates, list, the list of list of coordinates 
+      @ Out, cellCoordinates, list, the list of list of coordinates
     """
-    
-    
+
+
     #for x,y in [(x_coord+i,y_coord+j) for i in (-1,0,1) for j in (-1,0,1) if i != 0 or j != 0]:
-    
-    
-    
-    
-    
+
+
+
+
+
 
 
   def _readGridStructure(self,child,parent):
@@ -564,9 +564,10 @@ class GridEntity(GridBase):
             gridIterCells.iternext()
           gridIterCells.reset()
           cellID+=1
-        adjiacentCellGrid.iternext()        
+        adjiacentCellGrid.iternext()
     # convert as numpy array. Each cell verteces are accessable as self.adjiacentCellsCoordinates[:,index]
-    self.adjiacentCellsCoordinates = np.asarray([-1]*self.nVar) + np.asarray(cellsCoordinates)
+    if computeCells:
+      self.adjiacentCellsCoordinates = np.asarray([-1]*self.nVar) + np.asarray(cellsCoordinates)
     if self.constructTensor or computeCells:
       while not self.gridIterator.finished:
         if self.constructTensor:
@@ -600,7 +601,7 @@ class GridEntity(GridBase):
       if containedOnly:
         previousSet = set(previousSet).intersection(cellIds[cntb])
         cellToVerteces = {key: cellToVerteces[key] for key in previousSet}
-        
+
     return cellToVerteces
 
   def returnGridAsArrayOfCoordinates(self):
@@ -871,7 +872,7 @@ class MultiGridEntity(GridBase):
       initDict   = parentGrid.returnParameter("initDictionary")
       if "transformationMethods" in initDict.keys():
         initDict.pop("transformationMethods")
-      idcnt = 0  
+      idcnt = 0
       numCellsToRefine = len(refineDict['cellIDs'])
       for cellId, verteces in refineDict['cellIDs'].items():
         idcnt+=1
@@ -1020,7 +1021,7 @@ class MultiGridEntity(GridBase):
                                          ex. {'dimName1':[methodToTransformCoordinate,*args]}
       @ Out, coordinate, tuple or dict, tuple (if returnDict=False) or dict (if returnDict=True) containing the coordinates
     """
-    
+
     if isinstance(multiDimNDIndex[0], Number):
       level, multiDimIndex = self.multiGridIterator[0], multiDimNDIndex
     else:

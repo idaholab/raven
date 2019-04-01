@@ -507,7 +507,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
       # reset solution export
       self.solutionExport.reset()
     for gridID,listsurfPoint in self.listSurfPoint.items():
-      if len(listsurfPoint)>0: 
+      if len(listsurfPoint)>0:
         self.invPointPersistence[gridID] = np.ones(len(listsurfPoint))
         if self.firstSurface == False:
           for pointID, coordinate in enumerate(listsurfPoint):
@@ -526,7 +526,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
           indexes = np.where(evaluations[gridID] == 1)[0]
           localRlz = {varName: (self.surfPoint[gridID][indexes,varIndex] if varName not in rlzPos else np.concatenate(( rlzPos[varName],self.surfPoint[gridID][indexes,varIndex] )) ) for varIndex,varName in enumerate(realAxisNames) }
           localRlz[self.goalFunction.name] = evaluations[gridID][indexes] if self.goalFunction.name not in rlzPos else np.concatenate( (rlzPos[self.goalFunction.name],evaluations[gridID][indexes])  )
-          rlzPos.update(localRlz)          
+          rlzPos.update(localRlz)
     # add the full realizations
     if self.solutionExport is not None:
       if len(rlzNeg):

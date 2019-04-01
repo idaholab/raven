@@ -133,7 +133,8 @@ class InterfacedPostProcessor(PostProcessor):
       @ In, inputIn, dict, dictionary of data to process
       @ Out, outputDic, dict, dict containing the post-processed results
     """
-    inputTypes = set([inp.type for inp in inputIn])
+
+    inputTypes = set([inp['type'] if isinstance(inp, dict) else inp.type for inp in inputIn])
     for inp in inputIn:
       if not inputTypes <= set(self.returnFormat("input").split("|")):
         self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor named "'+ self.name +
