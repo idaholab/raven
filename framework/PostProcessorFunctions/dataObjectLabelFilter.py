@@ -81,6 +81,8 @@ class dataObjectLabelFilter(PostProcessorInterfaceBase):
       self.raiseAnError(IOError, 'HistorySetSync Interfaced Post-Processor ' + str(self.name) + ' accepts only one dataObject')
     else:
       inputDict = inputDic[0]
+      if self.label not in inputDict['data']:
+        self.raiseAnError(IOError, 'Not found label ' + str(self.label) + ' in input dataObject!')
       outputDict = {}
       outputDict['data'] ={}
       outputDict['dims'] = {}

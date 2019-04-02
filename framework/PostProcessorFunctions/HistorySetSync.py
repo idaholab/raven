@@ -41,11 +41,11 @@ class HistorySetSync(PostProcessorInterfaceBase):
   def initialize(self, numberOfSamples=None, pivotParameter=None, extension=None, syncMethod=None):
     """
       Method to initialize the Interfaced Post-processor
-      @ In, numberOfSamples, int, (default None)
-      @ In, pivotParameter, str, ID of the pivot paramter (e.g., time)
-      @ In, extension, type of extension to be employed
-      @ In, syncMethod, type of syncrhonization method
-      @ Out, None,
+      @ In, numberOfSamples, int, number of samples (default None)
+      @ In, pivotParameter, string, ID of the pivot paramter (e.g., time)
+      @ In, extension, string, type of extension to be employed
+      @ In, syncMethod, string, type of syncrhonization method
+      @ Out, None
     """
 
     PostProcessorInterfaceBase.initialize(self)
@@ -59,11 +59,11 @@ class HistorySetSync(PostProcessorInterfaceBase):
 
 
   def readMoreXML(self,xmlNode):
-    '''
+    """
       Function that reads elements this post-processor will use
       @ In, xmlNode, ElementTree, Xml element node
       @ Out, None
-    '''
+    """
     for child in xmlNode:
       if child.tag == 'numberOfSamples':
         self.numberOfSamples = int(child.text)
@@ -88,11 +88,11 @@ class HistorySetSync(PostProcessorInterfaceBase):
 
 
   def run(self,inputDic):
-    '''
+    """
       Method to post-process the dataObjects
       @ In, inputDic, list, list of dictionaries which contains the data inside the input DataObjects
       @ Out, outputPSDic, dict, output dictionary
-    '''
+    """
     if len(inputDic)>1:
       self.raiseAnError(IOError, 'HistorySetSync Interfaced Post-Processor ' + str(self.name) + ' accepts only one dataObject')
     else:
@@ -143,18 +143,22 @@ class HistorySetSync(PostProcessorInterfaceBase):
 
       outputDic['data']['ProbabilityWeight'] = inputDic['data']['ProbabilityWeight']
       outputDic['data']['prefix'] = inputDic['data']['prefix']
+      if 'triggeredVariable' in inputDic['data']:
+        outputDic['data']['triggeredVariable'] = inputDic['data']['triggeredVariable']
+      if 'conditionalPb' in inputDic['data']:
+        outputDic['data']['conditionalPb'] = inputDic['data']['conditionalPb']
       outputDic['dims'] = copy.deepcopy(inputDic['dims'])
 
       return outputDic
 
   def resampleHist(self, variable, oldTime, newTime):
-    '''
+    """
       Method the re-sample on "newTime" the "variable" originally sampled on "oldTime"
       @ In, variable, np.array, array containing the sampled values of the dependent variable
       @ In, oldTime,  np.array, array containing the sampled values of the temporal variable
       @ In, newTime,  np.array, array containing the sampled values of the new temporal variable
       @ Out, variable, np.array, array containing the sampled values of the dependent variable re-sampled on oldTime
-    '''
+    """
     newVar=np.zeros(newTime.size)
     pos=0
     for newT in newTime:
