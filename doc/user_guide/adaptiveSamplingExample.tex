@@ -31,9 +31,9 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
 \begin{enumerate}
    \item \textbf{\textit{RunInfo}}:
      \xmlExample[arg,extension,pauseAtEnd,overwrite]{framework/user_guide/AdaptiveSamplingStrategies/adaptiveSamplingLSsearch.xml}{RunInfo}
-   As shown in Section~\ref{sub:EntitiesAndFlow}, the \textit{RunInfo} \textbf{Entity} is intended to set up the analysis
+   As shown in Section~\ref{sub:singleRun}, the \textit{RunInfo} \textbf{Entity} is intended to set up the analysis
    that the user wants to perform. In this specific case, three steps (\xmlNode{Sequence}) are  sequentially run
-   using eight processors (\xmlNode{batchSize}).
+   using 1 processor (\xmlNode{batchSize}).
    \item \textbf{\textit{Files}}:
      \xmlExample[arg,extension,pauseAtEnd,overwrite]{framework/user_guide/AdaptiveSamplingStrategies/adaptiveSamplingLSsearch.xml}{Files}
    Since the driven code uses a single input file, in this Section the original input is placed. As detailed in the user manual
@@ -53,7 +53,7 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
  used in the adaptive sampling strategy \textit{LimitSurfaceSearch} in
  order to accelerate the convergence of the method. As it can be seen,
  a nearest neighbor classifier is used, targeting only two uncertainties
- $sigma-A and decay-A$.
+ $sigma-A$ and $decay-A$.
  \\ For the computation of the probability of failure (see the following), a
  Post-Processor (PP) of type \textit{LimitSurfaceIntegral} is here
  specified.This PP performs an integral of the LS
@@ -90,11 +90,11 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
  a goal function in order to identify the regions of the uncertain space
  that are more informative. The \textit{goalFunction} used for this
  example is reported below. As it can be seen, if the final response $A$
- is $<=$ of $0.3$ , the system is considered to be in a ``safe'' condition.
+ is $<=$ of $0.1$ , the system is considered to be in a ``safe'' condition.
 \begin{lstlisting}[language=python]
 def __residuumSign(self):
   returnValue = 1.0
-  if self.A  <= 0.3:
+  if self.A  <= 0.1:
     returnValue = -1.0
   return returnValue
 \end{lstlisting}
@@ -163,13 +163,13 @@ def __residuumSign(self):
 \end{enumerate}
  Figure~\ref{fig:LS_histories}
  shows the evolution of the outputs $A,B,C,D$ under uncertainties.
- Figure~\ref{fig:LS_pointsets} shows the final responses  of $A and B$
+ Figure~\ref{fig:LS_pointsets} shows the final responses  of $A$ and $B$
  of the sampling employed using the driven code.
  Figure~\ref{fig:LSplot}  shows the limit surface for this particular
- example. Only $367$ samples were needed in order to reach the full
+ example. Only $399$ samples were needed in order to reach the full
  convergence.
  \\The integration of the LS determines a probability of failure of
- $~3.45e-2$.
+ $~1.79e-1$.
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  %figure samples
  \begin{figure}[h!]
