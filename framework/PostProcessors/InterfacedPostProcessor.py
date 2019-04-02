@@ -197,9 +197,14 @@ class InterfacedPostProcessor(PostProcessor):
       @ In, output, dataObjects, The object where we want to place our computed results
       @ Out, None
     """
-    output.addExpectedMeta(['prefix', 'ProbabilityWeight'])
+    metaKeys =  ['prefix', 'ProbabilityWeight']
     evaluations = finishedJob.getEvaluation()
     if isinstance(evaluations, Runners.Error):
       self.raiseAnError(RuntimeError, "No available output to collect (run possibly not finished yet)")
     evaluation = evaluations[1]
+    if 'conditionalPb' in evaluation['data']:
+      metaKeys.append('conditionalPb')
+    if 'triggeredVariable' in evaluation['data']:
+      metaKeys.append('triggeredVariable')
+    output.addExpectedMeta(metaKeys)
     output.load(evaluation['data'], style='dict', dims=evaluation['dims'])

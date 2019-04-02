@@ -1279,22 +1279,22 @@ class OutStreamPlot(OutStreamManager):
           data={}
           data['x']=np.empty(0)
           data['y']=np.empty(0)
-          for index in range(len(self.outStreamTypes)):
-            for key in self.xValues[index].keys():
-              data['x'] = np.append(data['x'],self.xValues[index][key][0][-1])
-              if self.dim == 3:
-                data['y'] = np.append(data['y'],self.yValues[index][key][0][-1])
-            del(self.xValues[index])
-            self.xValues={}
-            self.xValues[index]={}
-            self.xValues[index][0]=[]
-            self.xValues[index][0].append(copy.deepcopy(data['x']))
+          #for index in range(len(self.outStreamTypes)):
+          for key in self.xValues[pltIndex].keys():
+            data['x'] = np.append(data['x'],self.xValues[pltIndex][key][0][-1])
             if self.dim == 3:
-              del(self.yValues[index])
-              self.yValues={}
-              self.yValues[index]={}
-              self.yValues[index][0]=[]
-              self.yValues[index][0].append(copy.deepcopy(data['y']))
+              data['y'] = np.append(data['y'],self.yValues[pltIndex][key][0][-1])
+          #self.xValues[index]
+          #self.xValues={}
+          self.xValues[pltIndex]={}
+          self.xValues[pltIndex][0]=[]
+          self.xValues[pltIndex][0].append(copy.deepcopy(data['x']))
+          if self.dim == 3:
+            del(self.yValues[pltIndex])
+            self.yValues={}
+            self.yValues[pltIndex]={}
+            self.yValues[pltIndex][0]=[]
+            self.yValues[pltIndex][0].append(copy.deepcopy(data['y']))
 
         for key in self.xValues[pltIndex].keys():
           for xIndex in range(len(self.xValues[pltIndex][key])):
