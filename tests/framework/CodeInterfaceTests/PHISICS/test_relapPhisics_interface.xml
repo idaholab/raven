@@ -72,8 +72,8 @@
     <Normal name="temperature_initial_tmdpvol">
       <mean>532.15</mean>
       <sigma>1.0</sigma>
-      <upperBound>500.</upperBound>
-      <lowerBound>560.</lowerBound>
+      <upperBound>560.</upperBound>
+      <lowerBound>500.</lowerBound>
     </Normal>
   </Distributions>
 

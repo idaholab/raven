@@ -82,8 +82,6 @@ class CrowPython(Tester):
         @ In, output: the output from the test case.
         @ Out: a tuple with the error return code and the output passed in.
     """
-    if self.results.exit_code != 0:
-      self.set_fail(str(self.results.exit_code))
-      return output
+    #check_exit_code fails test if != 0 so passes
     self.set_success()
     return output
