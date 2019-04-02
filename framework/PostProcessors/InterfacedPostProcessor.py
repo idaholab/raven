@@ -197,6 +197,7 @@ class InterfacedPostProcessor(PostProcessor):
       @ In, output, dataObjects, The object where we want to place our computed results
       @ Out, None
     """
+    output.addExpectedMeta(['prefix', 'ProbabilityWeight'])
     evaluations = finishedJob.getEvaluation()
     if isinstance(evaluations, Runners.Error):
       self.raiseAnError(RuntimeError, "No available output to collect (run possibly not finished yet)")

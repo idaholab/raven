@@ -647,7 +647,7 @@ class DataSet(DataObject):
     """
     data = self.asDataset()
     # if empty, nothing to do
-    if self._data is None or len(self._data) == 0:
+    if self._data is None or len(self._data.variables) == 0:
       self.raiseAWarning('Tried to return sliced data, but DataObject is empty!')
       return []
     # assert that index is indeed an index

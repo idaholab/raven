@@ -32,21 +32,22 @@ from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase
 
 
 class HistorySetSync(PostProcessorInterfaceBase):
-  '''
+  """
     This Post-Processor performs the conversion from HistorySet to HistorySet
     The conversion is made so that all histories are syncronized in time.
     It can be used to allow the histories to be sampled at the same time instant.
-  '''
+  """
 
   def initialize(self, numberOfSamples=None, pivotParameter=None, extension=None, syncMethod=None):
-    '''
+    """
       Method to initialize the Interfaced Post-processor
       @ In, numberOfSamples, int, (default None)
       @ In, pivotParameter, str, ID of the pivot paramter (e.g., time)
       @ In, extension, type of extension to be employed
       @ In, syncMethod, type of syncrhonization method
       @ Out, None,
-    '''
+    """
+
     PostProcessorInterfaceBase.initialize(self)
     self.inputFormat  = 'HistorySet'
     self.outputFormat = 'HistorySet'

@@ -499,7 +499,7 @@ class hdf5Database(MessageHandler.MessageUser):
     #  workingList = [utils.toString(k).split('/')[-1] for k, v in zip(self.allGroupPaths,self.allGroupEnds) if v ]
     #else:
     #  workingList = [utils.toString(k).split('/')[-1] for k, v in zip(self.allGroupPaths,self.allGroupEnds) if v and utils.toString(k).endswith(rname)]
-    if not rootName: 
+    if not rootName:
       workingList = [utils.toString(k).split('/')[-1] for k in self.allGroupPaths if '/' in k]
     else:
       workingList = [utils.toString(k).split('/')[-1] for k in self.allGroupPaths if '/' in k and utils.toString(k).endswith(rname)]
