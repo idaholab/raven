@@ -43,9 +43,12 @@ class dataObjectLabelFilter(PostProcessorInterfaceBase):
     PostProcessorInterfaceBase.initialize(self)
     self.inputFormat  = None
     self.outputFormat = None
-
     self.label        = None
-    self.clusterIDs   = []
+    self.clusterIDs   = None
+    self.clusteringMethod = 'extended'  # if extended, the cluster label will be used to cluster over time
+                                        # (=> only the portion of the history that matches the cluster IDs will be retrived),
+                                        # otherwise it will be used to cluster the history based on
+                                        # last values of the clusterIDs. Note: IT HAS MEANING FOR HISTORY SET ONLY!
 
   def readMoreXML(self,xmlNode):
     """
@@ -61,15 +64,22 @@ class dataObjectLabelFilter(PostProcessorInterfaceBase):
           self.inputFormat  = dataType
           self.outputFormat = dataType
         else:
-          self.raiseAnError(IOError, 'dataObjectLabelFilter Interfaced Post-Processor ' + str(self.name) + ' : dataType ' + str(dataType) + ' is not recognized (available are HistorySet, PointSet)')
+          self.raiseAnError(IOError, 'dataObjectLabelFilter Interfaced Post-Processor ' +
+                            str(self.name) + ' : dataType ' + str(dataType) +
+                            ' is not recognized (available are HistorySet, PointSet)')
       elif child.tag == 'label':
-        self.label = child.text
+        self.label = child.text.strip()
       elif child.tag == 'clusterIDs':
-        for clusterID in child.text.split(','):
-          clusterID = clusterID.strip()
-          self.clusterIDs.append(int(clusterID))
+        self.clusterIDs = [int(clusterID.strip()) for clusterID in child.text.split(',')]
+      elif child.tag =='clusteringMethod':
+        self.clusteringMethod = child.text.strip()
+        if self.clusteringMethod not in ['point', 'extended']:
+          self.raiseAnError(IOError, '"clusteringMethod" must be one of :' +
+                            ', '.join(['point', 'extended']) + '. Got: ' +
+                            str(self.clusteringMethod) + '!')
       elif child.tag !='method':
-        self.raiseAnError(IOError, 'dataObjectLabelFilter Interfaced Post-Processor ' + str(self.name) + ' : XML node ' + str(child) + ' is not recognized')
+        self.raiseAnError(IOError, 'dataObjectLabelFilter Interfaced Post-Processor ' +
+                          str(self.name) + ' : XML node ' + str(child) + ' is not recognized')
 
   def run(self,inputDic):
     """
@@ -100,7 +110,10 @@ class dataObjectLabelFilter(PostProcessorInterfaceBase):
             for cnt in range(len(inputDict['data'][self.label])):
               indexes = np.where(np.in1d(inputDict['data'][self.label][cnt],self.clusterIDs))[0]
               if len(indexes) > 0:
-                temp.append(copy.deepcopy(inputDict['data'][key][cnt][indexes]))
+                if self.clusteringMethod == 'extended':
+                  temp.append(copy.deepcopy(inputDict['data'][key][cnt][indexes]))
+                else:
+                  temp.append(copy.deepcopy(inputDict['data'][key][cnt]))
             outputDict['data'][key] = np.asanyarray(temp)
             outputDict['dims'][key] = []
           else:

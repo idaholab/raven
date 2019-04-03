@@ -115,7 +115,7 @@ class ExternalPostProcessor(PostProcessor):
       indexes = currentInput.indexes
       for param in currentInput.getVars('output'):
         inputDict[param] =  [sliceData[param].dropna(indexes[-1]).values for sliceData in sliceList]
-      for param in currentInput.getVars('input'):
+      for param in currentInput.getVars('input') + currentInput.getVars('meta'):
         inputDict[param] =  [sliceData[param].values for sliceData in sliceList]
       for param in indexes:
         inputDict[param] =  [sliceData[param].dropna(indexes[-1]).values for sliceData in sliceList]

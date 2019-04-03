@@ -1284,6 +1284,7 @@ class OutStreamPlot(OutStreamManager):
             data['x'] = np.append(data['x'],self.xValues[pltIndex][key][0][-1])
             if self.dim == 3:
               data['y'] = np.append(data['y'],self.yValues[pltIndex][key][0][-1])
+          # Why??????????? alfoa
           #self.xValues[index]
           #self.xValues={}
           self.xValues[pltIndex]={}

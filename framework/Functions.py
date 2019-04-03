@@ -119,8 +119,14 @@ class External(BaseType):
     # get variables
     self.__inputVariables = paramInput.findFirst("variables").value
     # initialize variables
+    self.specialVars = {}
     for var in self.__inputVariables:
-      execCommand('self.'+var+' = None',self=self)
+      try:
+        execCommand('self.'+var+' = None',self=self)
+      except SyntaxError:
+        execCommand('self.specialVars["'+var+'"] = None',self=self)
+        self.raiseAWarning("the variable "+var+" can not be assigned to self in the Function. It will be stored in the dict self.specialVars")
+
 
   def getInitParams(self):
     """
@@ -154,7 +160,10 @@ class External(BaseType):
     """
     paramDict = {}
     for key in self.__inputVariables:
-      execCommand("object['variable "+str(key)+" has value']=self."+key,self=self,object=paramDict)
+      if key in self.specialVars:
+        execCommand("object['variable "+str(key)+" has value']=self.specialVars['"+key+"']",self=self,object=paramDict)
+      else:
+        execCommand("object['variable "+str(key)+" has value']=self."+key,self=self,object=paramDict)
     return paramDict
 
   def __importValues(self,myInput):
@@ -182,7 +191,10 @@ class External(BaseType):
       inDict = myInputDict
     for name in self.__inputVariables:
       if name in inDict.keys():
-        execCommand('self.'+name+'=object["'+name+'"]',self=self,object=inDict)
+        if name in self.specialVars:
+          execCommand('self.specialVars["'+name+'"]=object["'+name+'"]',self=self,object=inDict)
+        else:
+          execCommand('self.'+name+'=object["'+name+'"]',self=self,object=inDict)
       else:
         self.raiseAnError(IOError,'The input variable '+name+' in external function seems not to be passed in')
 
