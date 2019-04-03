@@ -1449,8 +1449,19 @@ In the \xmlNode{PostProcessor} input block, the following XML sub-nodes are requ
 independently of the \xmlAttr{subType} specified:
 
 \begin{itemize}
+   \item \xmlNode{dataType}, \xmlDesc{string, required field}, type of dataObject (HistorySet or PointSet)
    \item \xmlNode{label}, \xmlDesc{string, required field}, name of the clustering label
    \item \xmlNode{clusterIDs}, \xmlDesc{integers, required field}, ID of the selected clusters. Note that more than one ID can be provided as input
+    \item \xmlNode{clusteringType}, \xmlDesc{string, optional field}, the type of clustering to be
+    performed.  Two options are available:
+    \begin{enumerate}
+      \item \textbf{extended}, the cluster label will be used to cluster over time. This means that
+       only the portion of the history that matches the cluster IDs will be retrived
+      \item \textbf{point}, if any of the clusterIDs are contained in the history, the full history is
+      retrieved
+    \end{enumerate}
+     \default(extended)
+    \nb THIS HAS a meaning for HistorySet ONLY.
 \end{itemize}
 
 \paragraph{Method: HSPS}
