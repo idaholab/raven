@@ -323,24 +323,6 @@ class GridEntity(GridBase):
     self.gridContainer['gridInfo'               ]      = gridInfo
     self.gridContainer['dimInfo'] = dimInfo
 
-
-  def getAdjiacentCellCoordinates(self, coordinate):
-    """
-      This method is aimed to get the coordinates of all the adjiacent cells
-      given a coordinate
-      @ In, coordinate, tuple, tuple of coordinate
-      @ Out, cellCoordinates, list, the list of list of coordinates
-    """
-
-
-    #for x,y in [(x_coord+i,y_coord+j) for i in (-1,0,1) for j in (-1,0,1) if i != 0 or j != 0]:
-
-
-
-
-
-
-
   def _readGridStructure(self,child,parent):
     """
       This method is aimed to read the grid structure in the xml node
@@ -576,8 +558,8 @@ class GridEntity(GridBase):
           valuePosition                         = self.gridIterator.multiIndex[coordinateID]
           self.gridContainer['gridCoord'][self.gridIterator.multiIndex] = self.gridContainer['gridVectors'][dimName][valuePosition]
         self.gridIterator.iternext()
-
-    self.resetIterator()
+      # reset the iterator
+      self.resetIterator()
     self.raiseAMessage("Grid initialized...")
 
   def retrieveCellIds(self,listOfPoints,containedOnly=False):
