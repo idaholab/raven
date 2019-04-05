@@ -508,7 +508,7 @@ class ARMA(supervisedLearning):
     """
     if numSamples is None:
       numSamples =  len(self.pivotParameterValues)
-    hist = sm.tsa.arma_generate_sample(ar = np.append(1., -model.arparams), #wip597
+    hist = sm.tsa.arma_generate_sample(ar = np.append(1., -model.arparams),
                                        ma = np.append(1., model.maparams),
                                        nsample = numSamples,
                                        distrvs = randEngine,
