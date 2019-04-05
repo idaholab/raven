@@ -365,7 +365,7 @@ checkArray('Independent RNG, seeded',sampled,correct)
 
 print(results)
 
-#sys.exit(results["fail"])
+sys.exit(results["fail"])
 """
   <TestInfo>
     <name>framework.randomUtils</name>
