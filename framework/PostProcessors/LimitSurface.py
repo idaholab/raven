@@ -466,33 +466,33 @@ class LimitSurface(PostProcessor):
       myIdList[:] = coordinate
       putIt[:]    = False
       if self.testMatrix[nodeName][tuple(coordinate)] * sign > 0:
-        listSurfPoint.append(copy.copy(coordinate))
-        #for iVar in range(self.nVar):
-          #if coordinate[iVar] + 1 < gridShape[iVar]:
-            #myIdList[iVar] += 1
-            #if self.testMatrix[nodeName][tuple(myIdList)] * sign <= 0:
-              #putIt[iVar] = True
-              #listSurfPoint.append(copy.copy(coordinate))
-              #break
-            #myIdList[iVar] -= 1
-            #if coordinate[iVar] > 0:
-              #myIdList[iVar] -= 1
-              #if self.testMatrix[nodeName][tuple(myIdList)] * sign <= 0:
-                #putIt[iVar] = True
-                #listSurfPoint.append(copy.copy(coordinate))
-                #break
-              #myIdList[iVar] += 1
-          #if coordinate[iVar] +1 == gridShape[iVar]:
-            #myIdList[iVar] -= 1
-            #if self.testMatrix[nodeName][tuple(myIdList)] * sign <= 0:
-              #putIt[iVar] = True
-              #listSurfPoint.append(copy.copy(coordinate))
-              #break
-            #if coordinate[iVar] > 0:
-              #myIdList[iVar] += 1
-              #if self.testMatrix[nodeName][tuple(myIdList)] * sign <= 0:
-                #putIt[iVar] = True
-                #listSurfPoint.append(copy.copy(coordinate))
-                #break
-      #if len(set(putIt)) == 1 and  list(set(putIt))[0] == True: listSurfPoint.append(copy.copy(coordinate))
+        #listSurfPoint.append(copy.copy(coordinate))
+        for iVar in range(self.nVar):
+          if coordinate[iVar] + 1 < gridShape[iVar]:
+            myIdList[iVar] += 1
+            if self.testMatrix[nodeName][tuple(myIdList)] * sign <= 0:
+              putIt[iVar] = True
+              listSurfPoint.append(copy.copy(coordinate))
+              break
+            myIdList[iVar] -= 1
+            if coordinate[iVar] > 0:
+              myIdList[iVar] -= 1
+              if self.testMatrix[nodeName][tuple(myIdList)] * sign <= 0:
+                putIt[iVar] = True
+                listSurfPoint.append(copy.copy(coordinate))
+                break
+              myIdList[iVar] += 1
+          if coordinate[iVar] +1 == gridShape[iVar]:
+            myIdList[iVar] -= 1
+            if self.testMatrix[nodeName][tuple(myIdList)] * sign <= 0:
+              putIt[iVar] = True
+              listSurfPoint.append(copy.copy(coordinate))
+              break
+            if coordinate[iVar] > 0:
+              myIdList[iVar] += 1
+              if self.testMatrix[nodeName][tuple(myIdList)] * sign <= 0:
+                putIt[iVar] = True
+                listSurfPoint.append(copy.copy(coordinate))
+                break
+      if len(set(putIt)) == 1 and  list(set(putIt))[0] == True: listSurfPoint.append(copy.copy(coordinate))
     return listSurfPoint

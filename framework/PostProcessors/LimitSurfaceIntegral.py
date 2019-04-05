@@ -214,7 +214,7 @@ class LimitSurfaceIntegral(PostProcessor):
     if self.integralType in ['montecarlo']:
       self.stat.toDo = {'expectedValue':[{'targets':set([self.target]), 'prefix':self.computationPrefix}]}
       self.stat.initialize(runInfo, inputs, initDict)
-    self.functionSPos = LearningGate.returnInstance('SupervisedGate','SciKitLearn',
+    self.functionTricked = LearningGate.returnInstance('SupervisedGate','SciKitLearn',
                                                  self, **{'SKLtype':'neighbors|KNeighborsClassifier',
                                                           'Features':','.join(list(self.variableDist.keys())),
                                                           'Target':self.target})
@@ -222,7 +222,6 @@ class LimitSurfaceIntegral(PostProcessor):
                                                    self, **{'SKLtype':'neighbors|KNeighborsClassifier',
                                                             'Features':','.join(list(self.variableDist.keys())),
                                                             'Target':self.target})
-    self.functionSPos.train(self.matrixDictPos)
     self.functionSNeg.train(self.matrixDictNeg)
     self.raiseADebug('DATA SET MATRIX:')
     self.raiseADebug(self.matrixDictNeg)
@@ -279,16 +278,28 @@ class LimitSurfaceIntegral(PostProcessor):
           f = np.vectorize(self.variableDist[varName].ppf, otypes=[np.float])
           randomMatrix[:, index] = f(randomMatrix[:, index])
         tempDict[varName] = randomMatrix[:, index]
-      pbNeg = self.stat.run({'targets':{self.target:xarray.DataArray(self.functionSNeg.evaluate(tempDict)[self.target])}})[self.computationPrefix +"_"+self.target]
-      pbPos = self.stat.run({'targets':{self.target:xarray.DataArray(self.functionSPos.evaluate(tempDict)[self.target])}})[self.computationPrefix +"_"+self.target]
+      #{'targets':{self.target:xarray.DataArray(self.functionSPos.evaluate(tempDict)[self.target])}}
+      targetOutput =  xarray.DataArray(self.functionSNeg.evaluate(tempDict)[self.target])
+      targetDict =  {self.target:targetOutput.values}
+      tempDict.update(targetDict)
+      pbNeg =  len(np.where(targetOutput.values ==1.)[0] ) / len(targetOutput.values)
+      #pbNeg = self.stat.run({'targets':{self.target:targetOutput}})[self.computationPrefix +"_"+self.target]
+      # the computation of the error bound is done using
+      self.raiseAMessage("Starting training form error bound")
+      self.functionTricked.train(tempDict)
+      self.raiseAMessage("Error bound training done!")
+      pbPos =  len(np.where(self.functionTricked.evaluate(tempDict)[self.target] ==1.)[0] ) / len(randomMatrix)
+      self.raiseAMessage("Compute bounds!")
+      #pbPos = self.stat.run({'targets':{self.target:xarray.DataArray(self.functionTricked.evaluate(tempDict)[self.target])}})[self.computationPrefix +"_"+self.target]
+      pb = pbNeg
       # we assume the limit surface is in the middle between the -1 and +1 boundaries
-      pb = (pbNeg + pbPos) / 2.
-      errorBound = abs( pbNeg - pbPos )
+      #pb = (pbNeg + pbPos) / 2.
+      errorBound = 2 * abs( pbNeg - pbPos )
       self.raiseAMessage("Error Bound for Limit Surface Location is: "+str(float(errorBound)))
     else:
       self.raiseAnError(NotImplemented, "quadrature not yet implemented")
-    print(pbNeg, pbPos)
-    return pbNeg
+
+    return pb
 
   def collectOutput(self, finishedJob, output):
     """
