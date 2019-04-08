@@ -214,7 +214,7 @@ do
       echo ... Creating Python 3 libraries ...
       INSTALL_OPTIONAL="--py3 $INSTALL_OPTIONAL"
       ;;
-    --py3)
+    --py2)
       echo ... Creating Python 2 libraries ...
       INSTALL_OPTIONAL="--py2 $INSTALL_OPTIONAL"
       ;;
