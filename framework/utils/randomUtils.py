@@ -128,7 +128,7 @@ def random(dim=1,samples=1,keepMatrix=False,engine=None):
     @ In, engine, instance, optional, random number generator
     @ Out, vals, float, random normal number (or np.array with size [n] if n>1, or np.array with size [n,samples] if sampels>1)
   """
-  engine=getengine(engine)
+  engine=getEngine(engine)
   dim = int(dim)
   samples = int(samples)
   if isinstance(engine, np.random.RandomState):
@@ -138,8 +138,6 @@ def random(dim=1,samples=1,keepMatrix=False,engine=None):
     for i in range(len(vals)):
       for j in range(len(vals[0])):
         vals[i][j] = engine.random()
-  else:
-    raise TypeError('Engine type not recognized! {}'.format(type(engine)))
   # regardless of stoch env
   if keepMatrix:
     return vals
@@ -155,7 +153,7 @@ def randomNormal(dim=1,samples=1,keepMatrix=False,engine=None):
     @ In, engine, instance, optional, random number generator
     @ Out, vals, float, random normal number (or np.array with size [n] if n>1, or np.array with size [n,samples] if sampels>1)
   """
-  engine=getengine(engine)
+  engine=getEngine(engine)
   dim = int(dim)
   samples = int(samples)
   if isinstance(engine, np.random.RandomState):
@@ -165,8 +163,6 @@ def randomNormal(dim=1,samples=1,keepMatrix=False,engine=None):
     for i in range(len(vals)):
       for j in range(len(vals[0])):
         vals[i,j] = boxMullerGen.generate(engine=engine)
-  else:
-    raise TypeError('Engine type not recognized! {}'.format(type(engine)))
   if keepMatrix:
     return vals
   else:
@@ -181,7 +177,7 @@ def randomIntegers(low,high,caller,engine=None):
     @ In, engine, instance, optional, random number generator
     @ Out, rawInt, int, random int
   """
-  engine=getengine(engine)
+  engine=getEngine(engine)
   if isinstance(engine, np.random.RandomState):
     return engine.randint(low,high=high+1)
   elif isinstance(engine, findCrowModule('randomENG').RandomClass):
@@ -203,7 +199,7 @@ def randomPermutation(l,caller,engine=None):
     @ In, engine, instance, optional, random number generator
     @ Out, newList, list, randomly permuted list
   """
-  engine=getengine(engine)
+  engine=getEngine(engine)
   if isinstance(engine, np.random.RandomState):
     return engine.permutation(l)
   elif isinstance(engine, findCrowModule('randomENG').RandomClass):
@@ -212,8 +208,6 @@ def randomPermutation(l,caller,engine=None):
     while len(oldList) > 0:
       newList.append(oldList.pop(randomIntegers(0,len(oldList)-1,caller,engine=engine)))
     return newList
-  else:
-    raise TypeError('Engine type not recognized! {}'.format(type(engine)))
 
 def randPointsOnHypersphere(dim,samples=1,r=1,keepMatrix=False,engine=None):
   """
@@ -227,7 +221,7 @@ def randPointsOnHypersphere(dim,samples=1,r=1,keepMatrix=False,engine=None):
     @ In, engine, instance, optional, random number generator
     @ Out, pts, np.array(np.array(float)), random points on the surface of the hypersphere [sample#][pt]
   """
-  engine=getengine(engine)
+  engine=getEngine(engine)
   ## first fill random samples
   pts = randomNormal(dim,samples=samples,keepMatrix=True,engine=engine)
   ## extend radius, place inside sphere through normalization
@@ -253,7 +247,7 @@ def randPointsInHypersphere(dim,samples=1,r=1,keepMatrix=False,engine=None):
     @ In, engine, instance, optional, random number generator
     @ Out, pt, np.array(float), a random point on the surface of the hypersphere
   """
-  engine=getengine(engine)
+  engine=getEngine(engine)
   #sample on surface of n+2-sphere and discard the last two dimensions
   pts = randPointsOnHypersphere(dim+2,samples=samples,r=r,keepMatrix=True,engine=engine)[:,:-2]
   if keepMatrix:
@@ -274,8 +268,6 @@ def newRNG(env=None):
     engine = findCrowModule('randomENG').RandomClass()
   elif env == 'numpy':
     engine = np.random.RandomState()
-  else:
-    raise TypeError('Unrecognized environment requested:',env)
   return engine
 
 ### internal utilities ###
@@ -300,10 +292,10 @@ def _reduceRedundantListing(data,dim,samples):
   else:
     return data
 
-def getengine(eng):
+def getEngine(eng):
   """
-   Choose an engine if it is none
-   @ In, engine, instance, optional, random number generator
+   Choose an engine if it is none and raise error if engine type not recognized
+   @ In, engine, instance, random number generator
    @ Out, engine, instance, random number generator
   """
   if eng is None:
@@ -311,4 +303,6 @@ def getengine(eng):
       eng = npStochEnv
     elif stochasticEnv == 'crow':
       eng = crowStochEnv
+  if not isinstance(eng, np.random.RandomState) and not isinstance(eng, findCrowModule('randomENG').RandomClass):
+    raise TypeError('Engine type not recognized! {}'.format(type(eng)))
   return eng
