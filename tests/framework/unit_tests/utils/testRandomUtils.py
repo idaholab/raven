@@ -196,7 +196,6 @@ vals = randomUtils.randomNormal(engine=eng)
 checkAnswer('random normal single value',vals,1.90167449657)
 ## test single point
 right = [1.11130480322, 0.698326166056, 2.82788725018]
-#right=[0.698326166056, -0.0655372549287, -1.596534632]
 vals = randomUtils.randomNormal(3,engine=None)
 checkArray('random normal single point',vals,right)
 vals = randomUtils.randomNormal(3,engine=eng)
@@ -365,7 +364,7 @@ checkArray('Independent RNG, seeded',sampled,correct)
 
 print(results)
 
-#sys.exit(results["fail"])
+sys.exit(results["fail"])
 """
   <TestInfo>
     <name>framework.randomUtils</name>
