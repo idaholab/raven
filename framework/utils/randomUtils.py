@@ -27,6 +27,7 @@ from collections import deque, defaultdict
 from utils.utils import findCrowModule
 
 # in general, we will use Crow for now, but let's make it easy to switch just in case it is helpfull eventually.
+# Numoy stochastic environment can not pass the test as this point
 stochasticEnv = 'crow'
 #stochasticEnv = 'numpy'
 
@@ -34,14 +35,13 @@ class BoxMullerGenerator:
   """
     Iterator class for the Box-Muller transform
   """
-  def __init__(self,engine=None):
+  def __init__(self):
     """
       Constructor.
       @ In, engine, instance, optional, random number generator
       @ Out, None
     """
     self.queue = defaultdict(deque)
-    self.engine = engine
 
   def generate(self,engine=None):
     """
@@ -86,7 +86,6 @@ else:
   # this is needed for now since we need to split the stoch enviroments
   distStochEnv = findCrowModule('distribution1D').DistributionContainer.instance()
   boxMullerGen = BoxMullerGenerator()
-  # not sure if this boxMullerGen still needed, will be test this line after first commit
 
 def randomSeed(value,seedBoth=False,engine=None):
   """
@@ -96,6 +95,7 @@ def randomSeed(value,seedBoth=False,engine=None):
     @ In, seedBoth, bool, optional, if True then seed both random environments
     @ Out, None
   """
+  # we need a flag to tell us  if the global numpy stochastic environment is needed to be changed
   replaceGlobalEnv=False
   ## choose an engine if it is none
   if engine is None:
@@ -105,6 +105,8 @@ def randomSeed(value,seedBoth=False,engine=None):
     elif stochasticEnv == 'numpy':
       replaceGlobalEnv=True
       global npStochEnv
+      # global npStochEvn is needed in numpy environment here
+      # to prevent referenced before assignment in local loop
       engine = npStochEnv
 
   if isinstance(engine, np.random.RandomState):
@@ -113,9 +115,7 @@ def randomSeed(value,seedBoth=False,engine=None):
     engine.seed(value)
     if seedBoth:
       np.random.seed(value+1) # +1 just to prevent identical seed sets
-      # not sure if this loop shold one level up
   if stochasticEnv== 'numpy' and replaceGlobalEnv:
-    #global npStochEnv
     npStochEnv= engine
   print('randomUtils: Global random number seed has been changed to',value)
 
@@ -128,12 +128,7 @@ def random(dim=1,samples=1,keepMatrix=False,engine=None):
     @ In, engine, instance, optional, random number generator
     @ Out, vals, float, random normal number (or np.array with size [n] if n>1, or np.array with size [n,samples] if sampels>1)
   """
-  ## choose an engine if it is none
-  if engine is None:
-    if stochasticEnv == 'numpy':
-      engine = npStochEnv
-    elif stochasticEnv == 'crow':
-      engine = crowStochEnv
+  engine=getengine(engine)
   dim = int(dim)
   samples = int(samples)
   if isinstance(engine, np.random.RandomState):
@@ -144,7 +139,7 @@ def random(dim=1,samples=1,keepMatrix=False,engine=None):
       for j in range(len(vals[0])):
         vals[i][j] = engine.random()
   else:
-    raise TypeError('Engine type not recognized! {}'.format(type(eng)))
+    raise TypeError('Engine type not recognized! {}'.format(type(engine)))
   # regardless of stoch env
   if keepMatrix:
     return vals
@@ -160,12 +155,7 @@ def randomNormal(dim=1,samples=1,keepMatrix=False,engine=None):
     @ In, engine, instance, optional, random number generator
     @ Out, vals, float, random normal number (or np.array with size [n] if n>1, or np.array with size [n,samples] if sampels>1)
   """
-  ## choose an engine if it is none
-  if engine is None:
-    if stochasticEnv == 'numpy':
-      engine = npStochEnv
-    elif stochasticEnv == 'crow':
-      engine = crowStochEnv
+  engine=getengine(engine)
   dim = int(dim)
   samples = int(samples)
   if isinstance(engine, np.random.RandomState):
@@ -191,12 +181,7 @@ def randomIntegers(low,high,caller,engine=None):
     @ In, engine, instance, optional, random number generator
     @ Out, rawInt, int, random int
   """
-  ## choose an engine if it is none
-  if engine is None:
-    if stochasticEnv == 'numpy':
-      engine = npStochEnv
-    elif stochasticEnv == 'crow':
-      engine = crowStochEnv
+  engine=getengine(engine)
   if isinstance(engine, np.random.RandomState):
     return engine.randint(low,high=high+1)
   elif isinstance(engine, findCrowModule('randomENG').RandomClass):
@@ -218,12 +203,7 @@ def randomPermutation(l,caller,engine=None):
     @ In, engine, instance, optional, random number generator
     @ Out, newList, list, randomly permuted list
   """
-  ## choose an engine if it is none
-  if engine is None:
-    if stochasticEnv == 'numpy':
-      engine = npStochEnv
-    elif stochasticEnv == 'crow':
-      engine = crowStochEnv
+  engine=getengine(engine)
   if isinstance(engine, np.random.RandomState):
     return engine.permutation(l)
   elif isinstance(engine, findCrowModule('randomENG').RandomClass):
@@ -247,12 +227,7 @@ def randPointsOnHypersphere(dim,samples=1,r=1,keepMatrix=False,engine=None):
     @ In, engine, instance, optional, random number generator
     @ Out, pts, np.array(np.array(float)), random points on the surface of the hypersphere [sample#][pt]
   """
-  ## choose an engine if it is none
-  if engine is None:
-    if stochasticEnv == 'numpy':
-      engine = npStochEnv
-    elif stochasticEnv == 'crow':
-      engine = crowStochEnv
+  engine=getengine(engine)
   ## first fill random samples
   pts = randomNormal(dim,samples=samples,keepMatrix=True,engine=engine)
   ## extend radius, place inside sphere through normalization
@@ -278,12 +253,7 @@ def randPointsInHypersphere(dim,samples=1,r=1,keepMatrix=False,engine=None):
     @ In, engine, instance, optional, random number generator
     @ Out, pt, np.array(float), a random point on the surface of the hypersphere
   """
-  ## choose an engine if it is none
-  if engine is None:
-    if stochasticEnv == 'numpy':
-      engine = npStochEnv
-    elif stochasticEnv == 'crow':
-      engine = crowStochEnv
+  engine=getengine(engine)
   #sample on surface of n+2-sphere and discard the last two dimensions
   pts = randPointsOnHypersphere(dim+2,samples=samples,r=r,keepMatrix=True,engine=engine)[:,:-2]
   if keepMatrix:
@@ -330,3 +300,15 @@ def _reduceRedundantListing(data,dim,samples):
   else:
     return data
 
+def getengine(eng):
+  """
+   Choose an engine if it is none
+   @ In, engine, instance, optional, random number generator
+   @ Out, engine, instance, random number generator
+  """
+  if eng is None:
+    if stochasticEnv == 'numpy':
+      eng = npStochEnv
+    elif stochasticEnv == 'crow':
+      eng = crowStochEnv
+  return eng
