@@ -78,9 +78,9 @@ function find_conda_defs ()
       # default location of conda definitions, windows is unsurprisingly an exception
       if [[ "$OSOPTION" = "--windows" ]];
       then
-        CONDA_DEFS="/c/ProgramData/Miniconda2/etc/profile.d/conda.sh";
+        CONDA_DEFS="/c/ProgramData/Miniconda3/etc/profile.d/conda.sh";
       else
-        CONDA_DEFS="$HOME/miniconda2/etc/profile.d/conda.sh";
+        CONDA_DEFS="$HOME/miniconda3/etc/profile.d/conda.sh";
       fi
     # if found in RC, just use that.
     else
@@ -136,7 +136,7 @@ function display_usage()
 	echo ''
 	echo '  Options:'
 	echo '    --conda-defs'
-	echo '      Defines location of conda definitions (often miniconda2/etc/profile.d/conda.sh). If not provided, guesses based on OS.'
+	echo '      Defines location of conda definitions (often miniconda3/etc/profile.d/conda.sh). If not provided, guesses based on OS.'
 	echo ''
 	echo '    --help'
 	echo '      Displays this text and exits'
@@ -297,7 +297,7 @@ then
   source ${CONDA_DEFS}
 else
   echo ... Conda definitions not found at \"${CONDA_DEFS}\"!
-  echo ... \>\> Specify the location of miniconda2/etc/profile.d/conda.sh through the --conda-defs option.
+  echo ... \>\> Specify the location of miniconda3/etc/profile.d/conda.sh through the --conda-defs option.
   return 1
 fi
 
