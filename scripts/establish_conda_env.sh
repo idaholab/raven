@@ -79,8 +79,11 @@ function find_conda_defs ()
       if [[ "$OSOPTION" = "--windows" ]];
       then
         CONDA_DEFS="/c/ProgramData/Miniconda3/etc/profile.d/conda.sh";
-      else
+      elif test -e "$HOME/miniconda3/etc/profile.d/conda.sh";
+      then
         CONDA_DEFS="$HOME/miniconda3/etc/profile.d/conda.sh";
+      else
+        CONDA_DEFS="$HOME/miniconda2/etc/profile.d/conda.sh";
       fi
     # if found in RC, just use that.
     else
