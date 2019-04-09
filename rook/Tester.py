@@ -541,8 +541,9 @@ class Tester:
       self.results.message = "FAILED "+str(ioe)
       return self.results
     timed_out = False
-    if sys.version_info >= (3, 3):
+    if sys.version_info >= (3, 3) and os.name != "nt":
       #New timeout interface available starting in Python 3.3
+      # But doesn't seem to fully work in Windows.
       try:
         output = process.communicate(timeout=timeout)[0]
       except subprocess.TimeoutExpired:
