@@ -174,7 +174,7 @@ class MessageHandler(object):
     self.suppressErrs = False
     self.printTime    = True
     self.inColor      = False
-    self.verbCode     = {'silent':0, 'quiet':1, 'all':2, 'debug':3}
+    self.verbCode     = {'silent':0, 'quiet':1, 'all':2, 'debug':3, 'none':2}
     self.colorDict    = {'debug':'yellow', 'message':'neutral', 'warning':'magenta', 'error':'red'}
     self.colors={
       'neutral' : '\033[0m',
@@ -287,7 +287,7 @@ class MessageHandler(object):
       @ Out, currentVerb, int, integer equivalent to verbosity level
     """
     if str(verb).strip().lower() not in self.verbCode.keys():
-      raise IOError('Verbosity key '+str(verb)+' not recognized!  Options are '+str(list(self.verbCode.keys())+[None]),'ERROR','silent')
+      raise IOError('Verbosity key '+str(verb)+' not recognized!  Options are '+str(list(self.verbCode.keys())+[None]))
     currentVerb = self.verbCode[str(verb).strip().lower()]
     return currentVerb
 
