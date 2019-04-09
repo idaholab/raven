@@ -10,8 +10,25 @@ else
 fi
 SCRIPT_DIR=`(cd $SCRIPT_DIRNAME; pwd)`
 
-echo 'Loading libraries ...'
-source $SCRIPT_DIR/scripts/establish_conda_env.sh --load
+SKIP_CONDA=1 # 0 for skipping conda, 1 for not skipping
+ARGS=()
+for A in "$@"; do
+    case $A in
+        --skip-conda)
+            SKIP_CONDA=0
+            ;;
+        *)
+            ARGS+=("$A")
+            ;;
+    esac
+done
+
+if [[ ! $SKIP_CONDA == 0 ]]; then
+    echo 'Loading libraries ...'
+    source $SCRIPT_DIR/scripts/establish_conda_env.sh --load
+else
+    PYTHON_COMMAND=${PYTHON_COMMAND:=python}
+fi
 
 for A in "$@"; do
     case $A in
@@ -27,7 +44,7 @@ echo 'Loading plugin tests ...'
 $PYTHON_COMMAND $SCRIPT_DIR/scripts/copy_plugins_tests.py
 # run the tests
 echo 'Running tests ...'
-$PYTHON_COMMAND $SCRIPT_DIR/rook/main.py "$@"
+$PYTHON_COMMAND $SCRIPT_DIR/rook/main.py "${ARGS[@]}"
 # grep return code
 rc=$?
 # this copy back the plugins and remove them from the source folder
