@@ -259,18 +259,16 @@ def checkFails(comment,errstr,function,update=True,args=None,kwargs=None):
 ######################################
 def createARMAXml(targets, pivot, p, q, fourier=None):
   if fourier is None:
-    fourier = {}
+    fourier = []
   xml = createElement('ROM',attrib={'name':'test', 'subType':'ARMA'})
   xml.append(createElement('Target',text=','.join(targets+[pivot])))
   xml.append(createElement('Features',text='scaling'))
   xml.append(createElement('pivotParameter',text=pivot))
-  xml.append(createElement('Pmin',text=str(p)))
-  xml.append(createElement('Pmax',text=str(p)))
-  xml.append(createElement('Qmin',text=str(q)))
-  xml.append(createElement('Qmax',text=str(q)))
+  xml.append(createElement('P',text=str(p)))
+  xml.append(createElement('Q',text=str(q)))
   if len(fourier):
-    xml.append(createElement('Fourier',text=','.join(str(f) for f in fourier.keys())))
-    xml.append(createElement('FourierOrder',text=','.join(str(f) for f in fourier.values())))
+    xml.append(createElement('Fourier',text=','.join(str(f) for f in fourier)))
+    #xml.append(createElement('FourierOrder',text=','.join(str(f) for f in fourier.values())))
   return xml
 
 def createFromXML(xml):
@@ -286,7 +284,7 @@ def createARMA(targets, pivot, p, q, fourier=None):
   rom, arma = createFromXML(xml)
   return rom, arma
 
-rom, arma = createARMA(['a','b'], 't', 6, 3, {86400: 2})
+rom, arma = createARMA(['a','b'], 't', 6, 3, [86400,43200])
 
 # TODO confirmation testing for correct construction
 
@@ -388,7 +386,7 @@ if plotting:
   plt.show()
 
 # train ARMA on data and check CDFs of results
-rom, arma = createARMA(['a'], 't', 0, 0, {})
+rom, arma = createARMA(['a'], 't', 0, 0, [])
 featureVals = np.zeros(1)
 targetVals = np.zeros([1,len(data),2])
 # "a"
