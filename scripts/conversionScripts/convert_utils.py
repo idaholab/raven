@@ -11,10 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from __future__ import print_function, unicode_literals
 import xml.dom.minidom as pxml
 import xml.etree.ElementTree as ET
 import os
 import sys
+import shutil
 
 def createBackup(filename):
   """
@@ -24,21 +26,18 @@ def createBackup(filename):
   """
   bakname = filename+'.bak'
   if not os.path.isfile(bakname):
-    bak = file(bakname,'wb')  # Use 'wb' to preserve whatever line endings the original file had
-    for line in file(filename,'r'):
-      bak.writelines(line)
-    bak.close()
+    shutil.copyfile(filename, bakname)
     return False
   else:
-    print 'ERROR! Backup file already exists:',bakname
-    print '    If you wish to continue, remove the backup and rerun the script.'
+    print('ERROR! Backup file already exists:', bakname)
+    print('    If you wish to continue, remove the backup and rerun the script.')
     return True
 
 
 def prettify(tree):
   """
     Script for turning XML tree into something mostly RAVEN-preferred.  Does not align attributes as some devs like (yet).
-    The output can be written directly to a file, as file('whatever.who','w').writelines(prettify(mytree))
+    The output can be written directly to a file, as open('whatever.who','w').writelines(prettify(mytree))
     @ In, tree, xml.etree.ElementTree object, the tree form of an input file
     @Out, towrite, string, the entire contents of the desired file to write, including newlines
   """
@@ -100,7 +99,7 @@ def standardMain(argv,convert):
   for fname in filelist:
     if not os.path.isfile(fname):
       #file doesn't exist, but do continue on to others
-      print 'ERROR!  File not found:',fname
+      print('ERROR!  File not found:', fname)
       failures+=1
       continue
     if createBackup(fname)==False: #sucessful operation
@@ -117,16 +116,19 @@ def standardMain(argv,convert):
           print('File '+fname+ ' not converted since no syntax modifications have been detected')
           not_converted_files+=1
           continue
-      print ('Converting '+fname+'...').ljust(14+maxname,'.'),
+      convMessage = ('Converting '+fname+'...').ljust(14+maxname,'.')
       towrite = prettify(tree)
       if keep_comments: towrite = convertFromRavenComment(towrite)
-      file(fname,'w').writelines(towrite)
-      print ('converted.')
+      open(fname,'w').writelines(towrite)
+      convMessage += 'converted.'
+      print(convMessage)
     else:
       #backup was not successfully created
       failures+=1
-  if failures>0: print ('\n%i files converted, but there were %i failures.  See messages above.' %(len(filelist)-not_converted_files-failures,failures))
-  else: print ('\nConversion script completed successfully.  %i files converted.' %(len(filelist)-not_converted_files))
+  if failures>0:
+    print('\n%i files converted, but there were %i failures.  See messages above.' %(len(filelist)-not_converted_files-failures,failures))
+  else:
+    print('\nConversion script completed successfully.  %i files converted.' %(len(filelist)-not_converted_files))
   return failures
 
 def convertFromRavenComment(msg):

@@ -13,7 +13,7 @@ without exploiting, through learning approaches,
 the information made available from the outcomes of evaluation previously performed (adaptive sampling) and the
 common system evolution (patterns) that different sampled calculations can generate in the phase space (Dynamic Event Tree).
 
-As mentioned in Section~\ref{susub:OverviewSamplers}, RAVEN has
+As mentioned in Section~\ref{sub:tutorialMultiRun}, RAVEN has
 several different \textit{\textbf{Forward}} samplers:
 \begin{itemize}
   \item \textit{Monte-Carlo}
@@ -51,10 +51,10 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
 \begin{enumerate}
    \item \textbf{\textit{RunInfo}}:
      \xmlExample{framework/user_guide/ForwardSamplingStrategies/forwardSamplingMontecarlo.xml}{RunInfo}
-     As discussed in Section~\ref{sub:EntitiesAndFlow}, the \textit{RunInfo} \textbf{Entity} sets up the analysis
+     As discussed in Section~\ref{sub:singleRun}, the \textit{RunInfo} \textbf{Entity} sets up the analysis
      that the user wants to perform. In this specific case, two steps (\xmlNode{Sequence}) are sequentially run
-     using 12 processors (\xmlNode{batchSize}). This means that
-     12 instances of the driven code are run simultaneously. Every time a simulation ends, a new one is launched.
+     using 1 processor (\xmlNode{batchSize}). If this number were changed into 12, this means that
+     12 instances of the driven code are run simultaneously. 
      Note that the \xmlNode{JobName} is not required, but is useful in identifying the input file.
    \item \textbf{\textit{Files}}:
      \xmlExample{framework/user_guide/ForwardSamplingStrategies/forwardSamplingMontecarlo.xml}{Files}
@@ -180,11 +180,10 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
 \begin{enumerate}
    \item \textbf{\textit{RunInfo}}:
      \xmlExample{framework/user_guide/ForwardSamplingStrategies/forwardSamplingGrid.xml}{RunInfo}
-   As shown in Section~\ref{sub:EntitiesAndFlow}, the \textit{RunInfo} \textbf{Entity} is intended to set up the desired analysis.
+   As shown in Section~\ref{sub:singleRun}, the \textit{RunInfo} \textbf{Entity} is intended to set up the desired analysis.
    In this specific case, two steps (\xmlNode{Sequence}) are sequentially run
-   using 12 processors (\xmlNode{batchSize}). This means that
-   12 instances of the driven code are  run simultaneously.
-   Every time a simulation ends, a new one is launched.
+   using 2 processors (\xmlNode{batchSize}). This means that
+   2 instances of the driven code are  run simultaneously.
    \item \textbf{\textit{Files}}:
      \xmlExample{framework/user_guide/ForwardSamplingStrategies/forwardSamplingGrid.xml}{Files}
    Since the driven code uses a single input file, in this section the original input is placed. As described in the user manual~\cite{RAVENuserManual}
@@ -211,7 +210,7 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
      \xmlExample{framework/user_guide/ForwardSamplingStrategies/forwardSamplingGrid.xml}{Samplers}
   To employ the Grid sampling strategy, a
   \xmlNode{Grid} node needs to be specified. As shown above, in each variable section, the  \xmlNode{grid} is defined.
-  The number of samples finally requested are equal to $n_{samples} = \prod_{i=1}^{n} n_{steps_{i}+1} = 256$.
+  The number of samples finally requested are equal to $n_{samples} = \prod_{i=1}^{n} (n_{steps_{i}} +1)= 256$.
   Note that, for each variable, can be defined either in probability (CDF) or in absolute value.
    \item \textbf{\textit{DataObjects}}:
      \xmlExample{framework/user_guide/ForwardSamplingStrategies/forwardSamplingGrid.xml}{DataObjects}
@@ -279,7 +278,7 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
      be perturbed through the Grid sampling
      \item  \xmlNode{IOStep} named ``writeHistories'', used to 1) dump
      the ``histories'' and ``samples'' \textit{DataObjects}
-     \textbf{Entity} in a CSV file and 2) plot the data in the EPS file and
+     \textbf{Entity} in a CSV file and 2) plot the data in the PNG file and
      on the screen.
    \end{itemize}
 \end{enumerate}
@@ -314,11 +313,10 @@ To accomplish these tasks, the following RAVEN \textbf{Entities} (XML blocks in 
 \begin{enumerate}
    \item \textbf{\textit{RunInfo}}:
      \xmlExample{framework/user_guide/ForwardSamplingStrategies/forwardSamplingStratified.xml}{RunInfo}
-   As reported in Section~\ref{sub:EntitiesAndFlow}, the \textit{RunInfo} \textbf{Entity} is intended to set up the analysis
+   As reported in Section~\ref{sub:singleRun}, the \textit{RunInfo} \textbf{Entity} is intended to set up the analysis
    that the user wants to perform. In this specific case, two steps (\xmlNode{Sequence}) are  run
-   using 12 processors (\xmlNode{batchSize}). This means that
-   12 instances of the driven code are run simultaneously.
-   Every time a simulation ends, a new one is launched.
+   using 1 processor (\xmlNode{batchSize}). This means that 
+   a single instance of the driven code is run at a time.
    \item \textbf{\textit{Files}}:
      \xmlExample{framework/user_guide/ForwardSamplingStrategies/forwardSamplingStratified.xml}{Files}
    Since the considered code uses a single input file, in this section the original input is placed.
@@ -416,7 +414,7 @@ To accomplish these tasks, the following RAVEN \textbf{Entities} (XML blocks in 
      be perturbed through the Stratified sampling.
      \item  \xmlNode{IOStep} named ``writeHistories'', used to 1) dump
      the ``histories'' and ``samples'' \textit{DataObjects}
-     \textbf{Entity} in a CSV file and 2) plot the data in the EPS file and
+     \textbf{Entity} in a CSV file and 2) plot the data in the PNG file and
      on the screen.
    \end{itemize}
 \end{enumerate}
@@ -439,7 +437,7 @@ To accomplish these tasks, the following RAVEN \textbf{Entities} (XML blocks in 
 \begin{enumerate}
    \item \textbf{\textit{RunInfo}}:
      \xmlExample{framework/user_guide/ForwardSamplingStrategies/forwardSamplingSparseGrid.xml}{RunInfo}
-   As reported in section~\ref{sub:EntitiesAndFlow}, the \textit{RunInfo} \textbf{Entity} is intended to set up the analysis
+   As reported in section~\ref{sub:singleRun}, the \textit{RunInfo} \textbf{Entity} is intended to set up the analysis
    that the user wants to perform. In this specific case, six steps (\xmlNode{Sequence}) are going to be sequentially run
    using twelve processors (\xmlNode{batchSize}).  The first two steps build the ROM
    (\xmlString{sample}, \xmlString{train}), the next two validate
@@ -593,7 +591,7 @@ To accomplish these tasks, the following RAVEN \textbf{Entities} (XML blocks in 
  As previously mentioned, Figure~\ref{fig:historiesSparseGridPlotLine}
  shows the evolution of the outputs $A,B,C,D$ under uncertainties.
  Figures~\ref{fig:samplesSparseGridPlotModel} and
- \ref{fig:samplesROMSparseGridPlotROM} show the final responses
+ \ref{fig:samplesROMSparseGridPlot} show the final responses
  of the sampling employed using the driven code and the ROM,
  respectively. As it can be seen, the constructed ROM can accurately
  represent the response of the driven code. This example shows the

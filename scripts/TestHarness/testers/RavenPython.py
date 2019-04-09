@@ -172,7 +172,5 @@ class RavenPython(Tester):
       @ In, ignored, string, output of running the test.
       @ Out, None
     """
-    if self.results.exit_code != 0:
-      self.set_fail(str(self.results.exit_code))
-      return
+    #check_exit_code fails test if != 0, so pass.
     self.set_success()

@@ -181,17 +181,21 @@
       <Sampler class="Samplers" type="SparseGridCollocation">SG</Sampler>
       <Output class="DataObjects" type="HistorySet">histories</Output>
     </MultiRun>
+    <RomTrainer name="train">
+      <Input class="DataObjects" type="HistorySet">histories</Input>
+      <Output class="Models" type="ROM">rom</Output>
+    </RomTrainer>
     <MultiRun name="validateModel">
       <Input class="Files" type="input">referenceInput.xml</Input>
       <Model class="Models" type="Code">testModel</Model>
       <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
-      <Output class="DataObjects" type="PointSet">samplesROM</Output>
+      <Output class="DataObjects" type="PointSet">samplesModel</Output>
     </MultiRun>
     <MultiRun name="validateROM">
       <Input class="DataObjects" type="PointSet">inputPlaceholder</Input>
       <Model class="Models" type="ROM">rom</Model>
       <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
-      <Output class="DataObjects" type="PointSet">samplesModel</Output>
+      <Output class="DataObjects" type="PointSet">samplesROM</Output>
     </MultiRun>
     <IOStep name="output_print">
       <Input class="DataObjects" type="HistorySet">histories</Input>
@@ -211,10 +215,6 @@
       <Output class="OutStreams" type="Plot">samplesModelPlot3D</Output>
       <Output class="OutStreams" type="Plot">samplesROMPlot3D</Output>
     </IOStep>
-    <RomTrainer name="train">
-      <Input class="DataObjects" type="HistorySet">histories</Input>
-      <Output class="Models" type="ROM">rom</Output>
-    </RomTrainer>
   </Steps>
 
   <OutStreams>
@@ -242,7 +242,9 @@
                 <type>line</type>
                 <x>histories|Output|time</x>
                 <y>histories|Output|A</y>
-                <color>blue</color>
+                <kwargs>
+                    <color>blue</color>
+                </kwargs>
                 <gridLocation>
                   <x>0</x>
                   <y>0</y>
@@ -254,7 +256,9 @@
                 <type>line</type>
                 <x>histories|Output|time</x>
                 <y>histories|Output|B</y>
-                <color>red</color>
+                <kwargs>
+                    <color>orange</color>
+                </kwargs>
                 <gridLocation>
                     <x>1</x>
                     <y>0</y>
@@ -266,7 +270,9 @@
                 <type>line</type>
                 <x>histories|Output|time</x>
                 <y>histories|Output|C</y>
-                <color>yellow</color>
+                <kwargs>
+                    <color>green</color>
+                </kwargs>
                 <gridLocation>
                     <x>0</x>
                     <y>1</y>
@@ -278,7 +284,9 @@
                 <type>line</type>
                 <x>histories|Output|time</x>
                 <y>histories|Output|D</y>
-                <color>black</color>
+                <kwargs>
+                    <color>red</color>
+                </kwargs>
                 <gridLocation>
                     <x>1</x>
                     <y>1</y>
@@ -303,7 +311,7 @@
           <x>samplesModel|Input|sigma-A</x>
           <y>samplesModel|Input|decay-A</y>
           <z>samplesModel|Output|A</z>
-          <color>blue</color>
+          <c>blue</c>
           <gridLocation>
             <x>0</x>
             <y>0</y>
@@ -317,7 +325,7 @@
           <x>samplesModel|Input|sigma-B</x>
           <y>samplesModel|Input|decay-B</y>
           <z>samplesModel|Output|B</z>
-          <color>red</color>
+          <c>orange</c>
           <gridLocation>
             <x>1</x>
             <y>0</y>
@@ -331,7 +339,7 @@
           <x>samplesModel|Input|sigma-C</x>
           <y>samplesModel|Input|decay-C</y>
           <z>samplesModel|Output|C</z>
-          <color>yellow</color>
+          <c>green</c>
           <gridLocation>
             <x>0</x>
             <y>1</y>
@@ -345,7 +353,7 @@
           <x>samplesModel|Input|sigma-D</x>
           <y>samplesModel|Input|decay-D</y>
           <z>samplesModel|Output|D</z>
-          <color>black</color>
+          <c>red</c>
           <gridLocation>
             <x>1</x>
             <y>1</y>
@@ -373,7 +381,7 @@
           <x>samplesROM|Input|sigma-A</x>
           <y>samplesROM|Input|decay-A</y>
           <z>samplesROM|Output|A</z>
-          <color>blue</color>
+          <c>blue</c>
           <gridLocation>
             <x>0</x>
             <y>0</y>
@@ -387,7 +395,7 @@
           <x>samplesROM|Input|sigma-B</x>
           <y>samplesROM|Input|decay-B</y>
           <z>samplesROM|Output|B</z>
-          <color>red</color>
+          <c>orange</c>
           <gridLocation>
               <x>1</x>
               <y>0</y>
@@ -401,7 +409,7 @@
           <x>samplesROM|Input|sigma-C</x>
           <y>samplesROM|Input|decay-C</y>
           <z>samplesROM|Output|C</z>
-          <color>yellow</color>
+          <c>green</c>
           <gridLocation>
             <x>0</x>
             <y>1</y>
@@ -415,7 +423,7 @@
           <x>samplesROM|Input|sigma-D</x>
           <y>samplesROM|Input|decay-D</y>
           <z>samplesROM|Output|D</z>
-          <color>black</color>
+          <c>red</c>
           <gridLocation>
             <x>1</x>
             <y>1</y>
