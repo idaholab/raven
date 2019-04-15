@@ -184,7 +184,7 @@ class Code(Model):
           else:
             self.clargs['pre'] = arg
         elif argtype == 'python':
-          pythonName = utils.getPythonCommand()
+          pythonName = sys.executable #utils.getPythonCommand()
           if 'pre' in self.clargs:
             self.clargs['pre'] = self.clargs['pre']+' '+pythonName
           else:
