@@ -118,6 +118,29 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     #these need to be declared in the child classes!!!!
     self.amITrained         = False
 
+  def __getstate__(self):
+    """
+      This function return the state of the ROM
+      @ In, None
+      @ Out, state, dict, it contains all the information needed by the ROM to be initialized
+    """
+    #for eng in self.supervisedContainer:
+    state = copy.copy(self.__dict__)
+    state['initOptionDict'].pop('paramInput',None)
+    ## capture what is normally pickled
+    if not self.amITrained:
+      supervisedEngineObj = state.pop("supervisedContainer")
+      del supervisedEngineObj
+    return state
+
+  def __setstate__(self, d):
+    """
+      Initialize the ROM with the data contained in newstate
+      @ In, newstate, dict, it contains all the information needed by the ROM to be initialized
+      @ Out, None
+    """
+    self.__dict__.update(d)
+
   def initialize(self,idict):
     """
       Initialization method
