@@ -51,7 +51,7 @@ cd ${RAVEN_FRAMEWORK_DIR}/..
 EXIT=$?
 for FILE in `find . -name 'test_qsub.*' -print; find . -name 'testHybrid-*' -print; find . -name '*_server_out.log' -print`; do
     echo FILE $FILE
-    cat $FILE
+    cat $FILE | tr -d '\0'
     echo
 done
 
