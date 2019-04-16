@@ -49,10 +49,12 @@ echo Current directory: `pwd`
 cd ${RAVEN_FRAMEWORK_DIR}/..
 ./run_tests --only-run-types="qsub" --re=cluster_tests
 EXIT=$?
-for FILE in `find . -name 'test_qsub.*' -print; find . -name 'testHybrid-*' -print; find . -name '*_server_out.log' -print`; do
-    echo FILE $FILE
-    cat $FILE | tr -d '\0'
-    echo
-done
+
+## Find output files and print them
+#for FILE in `find . -name 'test_qsub.*' -print; find . -name 'testHybrid-*' -print; find . -name '*_server_out.log' -print`; do
+#    echo FILE $FILE
+#    cat $FILE | tr -d '\0'
+#    echo
+#done
 
 exit $EXIT
