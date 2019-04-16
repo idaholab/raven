@@ -824,6 +824,31 @@ def findCrowModule(name):
     module = importlib.import_module("{}{}".format(name,ext))
   return module
 
+def getPythonCommand():
+  """
+    Method to get the prefered python command.
+    @ In, None
+    @ Out, pythonCommand, str, the name of the command to use.
+  """
+  if os.name == "nt":
+    pythonCommand = "python"
+  else:
+    pythonCommand = sys.executable
+  ## Alternative method.  However, if called by run_tests or raven_framework
+  ## sys.executable is already taken into account PYTHON_COMMAND and this
+  ## logic
+  #if sys.version_info.major > 2:
+  #  if os.name == "nt":
+  #    #Command is python on windows in conda and Python.org install
+  #    pythonCommand = "python"
+  #  else:
+  #    pythonCommand = "python3"
+  #else:
+  #  pythonCommand = "python"
+  #pythonCommand = os.environ.get("PYTHON_COMMAND", pythonCommand)
+  return pythonCommand
+
+
 def printCsv(csv,*args):
   """
     Writes the values contained in args to a csv file specified by csv
