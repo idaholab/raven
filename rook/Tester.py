@@ -379,13 +379,9 @@ class Tester:
     self.specs = valid_params.get_filled_dict(params)
     self.results = TestResult()
     self.__command_prefix = ""
-    if sys.version_info > (3, ):
-      if os.name == "nt":
-        #Command is python on windows in conda and Python.org install
-        self.__python_command = "python"
-      else:
-        self.__python_command = "python3"
-    else:
+    self.__python_command = sys.executable
+    if os.name == "nt":
+      #Command is python on windows in conda and Python.org install
       self.__python_command = "python"
     self.__differs = []
     if self.__base_current_run_type is None:
