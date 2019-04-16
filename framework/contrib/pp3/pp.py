@@ -42,6 +42,9 @@ try:
     import user
 except ImportError:
     user = types  # using as a stub
+#Add directory for cload pickle
+_pp_dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.dirname(_pp_dir))
 #RAVEN CHANGE: switching to cloudpickle
 import cloudpickle as pickle
 def importable(func): # the original code

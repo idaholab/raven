@@ -184,10 +184,7 @@ class Code(Model):
           else:
             self.clargs['pre'] = arg
         elif argtype == 'python':
-          if sys.version_info.major > 2:
-            pythonName = "python3"
-          else:
-            pythonName = "python"
+          pythonName = utils.getPythonCommand()
           if 'pre' in self.clargs:
             self.clargs['pre'] = self.clargs['pre']+' '+pythonName
           else:
