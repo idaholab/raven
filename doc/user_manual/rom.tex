@@ -3595,7 +3595,7 @@ in \xmlNode{OutStream} of type \xmlAttr{Print}):
 \label{subsubsec:TFK_DNNs}
 
 \textcolor{red}{\\It is important to NOTE that Python3 is required in order to use these deep neural networks.
-If python2 is install, these ROMs will not be imported by RAVEN, and an error will be raised if the users try
+If python2 is installed, these ROMs will not be imported by RAVEN, and an error will be raised if the user tries
 to use these capabilities.}
 
 \textbf{TensorFlow} is an open source software library for high performance numerical computation. Its flexible architecture
@@ -3619,7 +3619,7 @@ and production, with three key advantages:
 models that include first-class support for TensorFlow-specific functionality, such as eager \textit{execution},
 \textit{tf.data} pipelines, and \textit{Estimators}. \textbf{tf.keras} makes TensorFlow easier to use without sacrificing
 flexibility and performance. RAVEN will utilize this high-level API to build and train deep neural networks (DNNs) as ROMs, and
-this ROMs can be employed by other RAVEN entities to perform uncertainty quantification, model opimization and data analysis.
+these ROMs can be employed by other RAVEN entities to perform uncertainty quantification, model opimization and data analysis.
 
 Before analyzing each classifier in detail, it is important to mention that each type has a similar syntax. In the
 example below, the subnodes that can be included in the main XML node \xmlNode{ROM} are reported: 
@@ -3661,8 +3661,8 @@ As shown in above example, in addition to the common subnodes \xmlNode{Target} a
 can be initialized with the following children:
 \begin{itemize}
   \item \xmlNode{loss}, \xmlDesc{string or comma separated string, optional field}, if the model has multiple outputs, you can use a different
-    loss on each output by passing a list of losses. The loss value that will be minimized by the model will then
-    be the sum of all individual losses. Available loss functions include \textit{mean\_squared\_error},
+    loss metric on each output by passing a list of loss metrics. The value that will be minimized by the model will then
+    be the sum of all individual value from each loss metric. Available loss functions include \textit{mean\_squared\_error},
     \textit{mean\_absolute\_error}, \textit{mean\_absolute\_percentage\_error}, \textit{mean\_squared\_logarithmic\_error},
     \textit{squared\_hinge}, \textit{hinge}, \textit{categorical\_hinge}, \textit{logcosh}, \textit{categorical\_crossentropy},
     \textit{sparse\_categorical\_crossentropy}, \textit{binary\_crossentropy}, \textit{kullback\_leibler\_divergence},
@@ -3671,9 +3671,7 @@ can be initialized with the following children:
   \item \xmlNode{metrics}, \xmlDesc{string or comma separated string, optional field}, list of metrics to be evaluated by
     the model during training and testing. available metrics include
     \textit{binary\_accuracy}, \textit{categorical\_accuracy}, \textit{sparse\_categorical\_accuracy},
-    \textit{top\_k\_categorical\_accuracy}, 
-    %
-    \textit{sparse\_top\_k\_categorical\_accuracy}.
+    \textit{top\_k\_categorical\_accuracy}, \textit{sparse\_top\_k\_categorical\_accuracy}.
   \default{accuracy}
   \item \xmlNode{batch\_size}, \xmlDesc{integer, optional field}, number of samples per gradient update.
   \default{20}
