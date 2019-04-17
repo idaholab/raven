@@ -1,6 +1,5 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="quiet">
-
   <TestInfo>
     <name>framework/Samplers/AdaptiveBatch.InvalidPreRankingSimplification</name>
     <author>maljdan</author>
@@ -11,7 +10,6 @@
        simplification value. This should degrade gracefully by defaulting to a
        simplification of 0 and warning the user of the change made to the
        execution.
-
        Note, all of the tests in AdaptiveBatch operate on a 2D input domain with
        the goal of extracting a circular limit surface with radius 0.5 and
        centered at the origin, (0,0).
@@ -21,6 +19,7 @@
       <revision author="talbpaul" date="2016-02-08">First update, looking for more failing tests to add.</revision>
       <revision author="maljdan" date="2016-04-06">Updating test cases to reflect the changes to the user input.</revision>
       <revision author="maljdan" date="2017-01-18">Adding test description.</revision>
+      <revision author="alfoa" date="2019-03-07">Modified syntax in Functions as for issue #934</revision>
     </revisions>
   </TestInfo>
 
@@ -131,7 +130,7 @@
 
   <Functions>
     <External file="goal" name="label">
-      <variable>y</variable>
+      <variables>y</variables>
     </External>
   </Functions>
 

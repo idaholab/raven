@@ -134,7 +134,12 @@ class Metric(PostProcessor):
               requestData = requestData.reshape(-1,1)
             # If requested data are from input space, the shape will be (nSamples, 1)
             # If requested data are from history output space, the shape will be (nSamples, nTimeSteps)
-            metricData = (requestData, metadata['ProbabilityWeight'].values)
+            if 'ProbabilityWeight' in metadata:
+              weights = metadata['ProbabilityWeight'].values
+            else:
+              # TODO is this correct sizing generally?
+              weights = np.ones(requestData.shape[0])
+            metricData = (requestData, weights)
       elif isinstance(currentInput, Distributions.Distribution):
         if currentInput.name == metricDataName and dataName is None:
           if metricData is not None:

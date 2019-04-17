@@ -248,7 +248,10 @@ class JobHandler(MessageHandler.MessageUser):
       ## There are remote nodes that need to be activated
 
       ## Locate the ppserver script to be executed
-      ppserverScript = os.path.join(self.runInfoDict['FrameworkDir'],"contrib","pp","ppserver.py")
+      if sys.version_info.major == 2:
+        ppserverScript = os.path.join(self.runInfoDict['FrameworkDir'],"contrib","pp","ppserver.py")
+      else:
+        ppserverScript = os.path.join(self.runInfoDict['FrameworkDir'],"contrib","pp3","ppserver.py")
 
       ## Modify the python path used by the local environment
       localenv = os.environ.copy()
@@ -272,10 +275,7 @@ class JobHandler(MessageHandler.MessageUser):
         #subprocess.Popen(['ssh', nodeId, "python2.7", ppserverScript,"-w",str(ntasks),"-i",remoteHostName,"-p",str(newPort),"-t","1000","-g",localenv["PYTHONPATH"],"-d"],shell=False,stdout=outFile,stderr=outFile,env=localenv)
 
         ## Instead, let's build the command and then call the os-agnostic version
-        if sys.version_info.major > 2:
-          pythonCommand = "python3"
-        else:
-          pythonCommand = "python2"
+        pythonCommand = utils.getPythonCommand()
 
         command=" ".join([pythonCommand,ppserverScript,"-w",str(ntasks),"-i",remoteHostName,"-p",str(newPort),"-t","50000","-g",localenv["PYTHONPATH"],"-d"])
         utils.pickleSafeSubprocessPopen(['ssh',nodeId,"COMMAND='"+command+"'",self.runInfoDict['RemoteRunCommand']],shell=False,stdout=outFile,stderr=outFile,env=localenv)

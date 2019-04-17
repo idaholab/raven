@@ -64,7 +64,7 @@ if [[ $LIBS_MODE == 0 ]]; then
 
   # clean up to assure library matching
   echo Cleaning old build ...
-  make clean
+  ${RAVEN_BUILD_DIR}/clean_raven
 elif  [[ $LIBS_MODE == 1 ]]; then
   echo Establishing Python libraries ...
   . scripts/establish_conda_env.sh --load ${ECE_ARGS}
@@ -75,6 +75,25 @@ fi
 
 echo Making ...
 # make
-make ${MAKE_ARGS}
+
+PYTHON_COMMAND=${PYTHON_COMMAND:=python}
+
+CROW_DIR=${CROW_DIR:=$RAVEN_BUILD_DIR/crow}
+if test ! -e $CROW_DIR/setup.py; then
+    CROW_DIR=$RAVEN_BUILD_DIR/../crow
+fi
+
+unset CXX CC
+
+#Conda sets too old of a MACOSX_DEPLOYMENT_TARGET
+if test `uname` = Darwin; then
+    MACOSX_DEPLOYMENT_TARGET=10.12;
+    export MACOSX_DEPLOYMENT_TARGET;
+fi
+
+(cd $CROW_DIR && ${PYTHON_COMMAND} ./setup.py build_ext build install --install-platlib=./install)
+
+(cd $RAVEN_BUILD_DIR && ${PYTHON_COMMAND} ./setup.py build_ext build install --install-platlib=./framework/contrib/AMSC)
+
 
 echo ... done!

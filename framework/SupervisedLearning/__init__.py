@@ -37,6 +37,7 @@ from .SciKitLearn        import SciKitLearn
 from .pickledROM         import pickledROM
 from .PolyExponential    import PolyExponential
 from .DynamicModeDecomposition import DynamicModeDecomposition
+from .ROMCollection      import Collection, Segments, Clusters
 
 # KERAS classifiers
 from .KerasClassifier import __tensorflowAvailable

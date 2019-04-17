@@ -19,7 +19,7 @@
 #for future compatibility with Python 3-----------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
-warnings.simplefilter('default',DeprecationWarning)
+warnings.simplefilter('default', DeprecationWarning)
 #End compatibility block for Python 3-------------------------------------------
 
 ################################################################################
@@ -43,6 +43,7 @@ if __tensorflowAvailable:
   from SupervisedLearning.KerasMLPClassifier import KerasMLPClassifier
   from SupervisedLearning.KerasConvNetClassifier import KerasConvNetClassifier
   from SupervisedLearning.KerasLSTMClassifier import KerasLSTMClassifier
+from SupervisedLearning.ROMCollection      import Collection, Segments, Clusters
 
 ## [ Add new class here ]
 ################################################################################
@@ -54,18 +55,20 @@ if __tensorflowAvailable:
 # This machinery will automatically populate the "knownTypes" given the
 # imports defined above.
 __base = 'supervisedLearning'
-__interfaceDict                           = {}
-__interfaceDict['NDspline'              ] = NDsplineRom
-__interfaceDict['NDinvDistWeight'       ] = NDinvDistWeight
-__interfaceDict['NDsplineRom'           ] = NDsplineRom
-__interfaceDict['SciKitLearn'           ] = SciKitLearn
-__interfaceDict['GaussPolynomialRom'    ] = GaussPolynomialRom
-__interfaceDict['HDMRRom'               ] = HDMRRom
-__interfaceDict['MSR'                   ] = MSR
-__interfaceDict['ARMA'                  ] = ARMA
-__interfaceDict['pickledROM'            ] = pickledROM
-__interfaceDict['PolyExponential'       ] = PolyExponential
-__interfaceDict['DMD'                   ] = DynamicModeDecomposition
+__interfaceDict                         = {}
+__interfaceDict['NDspline'            ] = NDsplineRom
+__interfaceDict['NDinvDistWeight'     ] = NDinvDistWeight
+__interfaceDict['NDsplineRom'         ] = NDsplineRom
+__interfaceDict['SciKitLearn'         ] = SciKitLearn
+__interfaceDict['GaussPolynomialRom'  ] = GaussPolynomialRom
+__interfaceDict['HDMRRom'             ] = HDMRRom
+__interfaceDict['MSR'                 ] = MSR
+__interfaceDict['ARMA'                ] = ARMA
+__interfaceDict['pickledROM'          ] = pickledROM
+__interfaceDict['PolyExponential'     ] = PolyExponential
+__interfaceDict['DMD'                 ] = DynamicModeDecomposition
+__interfaceDict['Segments'            ] = Segments
+__interfaceDict['Clusters'            ] = Clusters
 if __tensorflowAvailable:
   __interfaceDict['KerasMLPClassifier'    ] = KerasMLPClassifier
   __interfaceDict['KerasConvNetClassifier'] = KerasConvNetClassifier

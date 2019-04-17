@@ -75,6 +75,9 @@
             <xsd:element name="mode" minOccurs="0">
                 <xsd:complexType mixed="true">
                     <xsd:choice maxOccurs="unbounded">
+                        <xsd:element name="place"        type="xsd:string" minOccurs="0"/>
+                        <xsd:element name="memory"       type="xsd:string" minOccurs="0"/>
+                        <xsd:element name="coresneeded"  type="xsd:string" minOccurs="0"/>
                         <xsd:element name="runQSUB"                        minOccurs="0"/>
                         <xsd:element name="nodefile"     type="xsd:string" minOccurs="0"/>
                         <xsd:element name="nodefileenv"  type="xsd:string" minOccurs="0"/>

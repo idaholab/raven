@@ -593,6 +593,8 @@ class Simulation(MessageHandler.MessageUser):
         self.runInfoDict['CallDir'] = os.getcwd()
         # then get the requested "WorkingDir"
         tempName = element.text
+        if element.text is None:
+          self.raiseAnError(IOError, 'RunInfo.WorkingDir is empty! Use "." to signify "work here" or specify a directory.')
         if '~' in tempName:
           tempName = os.path.expanduser(tempName)
         if os.path.isabs(tempName):

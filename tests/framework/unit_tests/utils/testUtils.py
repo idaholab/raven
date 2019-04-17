@@ -102,6 +102,84 @@ for x in toPopulate:
   sortedList,index,match = utils.getRelativeSortedListEntry(sortedList,x,tol=1e-6)
 checkArray('Maintaining sorted list',sortedList,desired)
 
+##########################
+#      TYPE CHECKING     #
+##########################
+# isSingleValued
+checkAnswer('isSingleValued -1'      ,utils.isSingleValued(-1      ),True)
+checkAnswer('isSingleValued 0'       ,utils.isSingleValued(0       ),True)
+checkAnswer('isSingleValued 1'       ,utils.isSingleValued(1       ),True)
+checkAnswer('isSingleValued 1e200'   ,utils.isSingleValued(1e200   ),True)
+checkAnswer('isSingleValued 1e-200'  ,utils.isSingleValued(1e-200  ),True)
+checkAnswer('isSingleValued -1e200'  ,utils.isSingleValued(-1e200  ),True)
+checkAnswer('isSingleValued 3.14'    ,utils.isSingleValued(3.14    ),True)
+checkAnswer('isSingleValued "hombre"',utils.isSingleValued('hombre'),True)
+checkAnswer('isSingleValued None'    ,utils.isSingleValued(None    ),True)
+checkAnswer('isSingleValued True'    ,utils.isSingleValued(True    ),True)
+checkAnswer('isSingleValued False'   ,utils.isSingleValued(False   ),True)
+checkAnswer('isSingleValued long',utils.isSingleValued(123456789012345678901234567890),True)
+
+checkAnswer('isSingleValued inf notok',utils.isSingleValued(np.inf,nanOk=False),False)
+checkAnswer('isSingleValued nan notok',utils.isSingleValued(np.nan,nanOk=False),False)
+checkAnswer('isSingleValued inf ok'   ,utils.isSingleValued(np.inf,nanOk=True ),True)
+checkAnswer('isSingleValued nan ok'   ,utils.isSingleValued(np.nan,nanOk=True ),True)
+
+checkAnswer('isSingleValued array'  ,utils.isSingleValued([1]          ),False)
+checkAnswer('isSingleValued set'    ,utils.isSingleValued((1,)         ),False)
+checkAnswer('isSingleValued nparray',utils.isSingleValued(np.array([1])),False)
+checkAnswer('isSingleValued dict'   ,utils.isSingleValued({1:2}        ),False)
+
+# isAString
+# TODO how to get a string (not unicode) after import unicode literals?
+#checkAnswer('isAString string',utils.isAString(bytes_to_native_str(b'alpha')),True)
+checkAnswer('isAString strish' ,utils.isAString('alpha'),True)
+checkAnswer('isAString unicode',utils.isAString(u'beta'),True)
+checkAnswer('isAString float'  ,utils.isAString(1.0    ),False)
+checkAnswer('isAString int'    ,utils.isAString(1      ),False)
+checkAnswer('isAString bool'   ,utils.isAString(True   ),False)
+
+# isAFloatOrInt
+checkAnswer('isAFloatOrInt 0'   ,utils.isAFloatOrInt(0      ),True)
+checkAnswer('isAFloatOrInt 1'   ,utils.isAFloatOrInt(1      ),True)
+checkAnswer('isAFloatOrInt 3.14',utils.isAFloatOrInt(3.14   ),True)
+checkAnswer('isAFloatOrInt str' ,utils.isAFloatOrInt('gamma'),False)
+checkAnswer('isAFloatOrInt bool',utils.isAFloatOrInt(True   ),False)
+
+checkAnswer('isAFloatOrInt nan ok' ,utils.isAFloatOrInt(np.nan),True)
+checkAnswer('isAFloatOrInt inf ok' ,utils.isAFloatOrInt(np.inf),True)
+checkAnswer('isAFloatOrInt nan not ok',utils.isAFloatOrInt(np.nan, nanOk=False),False)
+checkAnswer('isAFloatOrInt inf not ok',utils.isAFloatOrInt(np.inf, nanOk=False),False)
+checkAnswer('isAFloatOrInt long',utils.isAFloatOrInt(123456789012345678901234567890),True)
+
+# isAFloat
+checkAnswer('isAFloat 3.14'  ,utils.isAFloat(3.14  ),True)
+checkAnswer('isAFloat 1e200' ,utils.isAFloat(1e200 ),True)
+checkAnswer('isAFloat 1e-200',utils.isAFloat(1e-200),True)
+checkAnswer('isAFloat -1e200',utils.isAFloat(-1e200),True)
+checkAnswer('isAFloat 1'     ,utils.isAFloat(1     ),False)
+checkAnswer('isAFloat str'   ,utils.isAFloat('eps' ),False)
+checkAnswer('isAFloat bool'  ,utils.isAFloat(True  ),False)
+
+# isAnInteger
+checkAnswer('isAnInteger 1'   ,utils.isAnInteger(1      ),True)
+checkAnswer('isAnInteger 0'   ,utils.isAnInteger(0      ),True)
+checkAnswer('isAnInteger -1'  ,utils.isAnInteger(-1     ),True)
+checkAnswer('isAnInteger 3.14',utils.isAnInteger(3.14   ),False)
+checkAnswer('isAnInteger 1e1' ,utils.isAnInteger(1e1    ),False)
+checkAnswer('isAnInteger str' ,utils.isAnInteger('delta'),False)
+checkAnswer('isAnInteger bool',utils.isAnInteger(True   ),False)
+checkAnswer('isAnInteger long',utils.isAnInteger(123456789012345678901234567890),True)
+
+# isABoolean
+checkAnswer('isABoolean False',utils.isABoolean(False ),True)
+checkAnswer('isABoolean True' ,utils.isABoolean(True  ),True)
+checkAnswer('isABoolean 0'    ,utils.isABoolean(0     ),False)
+checkAnswer('isABoolean 1'    ,utils.isABoolean(1     ),False)
+checkAnswer('isABoolean -1'   ,utils.isABoolean(-1    ),False)
+checkAnswer('isABoolean str'  ,utils.isABoolean("True"),False)
+checkAnswer('isABoolean 3.14' ,utils.isABoolean(3.14  ),False)
+checkAnswer('isABoolean long' ,utils.isABoolean(123456789012345678901234567890),False)
+
 print(results)
 
 sys.exit(results["fail"])
@@ -118,6 +196,7 @@ sys.exit(results["fail"])
     </description>
     <revisions>
       <revision author="alfoa" date="2018-05-15">Adding this test description.</revision>
+      <revision author="alfoa" date="2019-03-04">Moved methods isAString, isAFloat, isAInteger, isABoolean from mathUtils to utils</revision>
     </revisions>
   </TestInfo>
 """

@@ -198,6 +198,18 @@ class Differ:
     """
     return self._get_test_files()
 
+  def check_if_test_files_exist(self):
+    """
+      Returns true if all the test files exist.
+      @ In, None
+      @ Out, all_test_files, bool, true if all the test files exist
+    """
+    all_test_files = True
+    for filename in self._get_test_files():
+      if not os.path.exists(filename):
+        all_test_files = False
+    return all_test_files
+
   def _get_test_files(self):
     """
       returns a list of the full path of the test files
@@ -224,7 +236,8 @@ class Differ:
       test passes, or false if the test failes.  message should
       give a human readable explaination of the differences.
       @ In, None
-      @ Out, check_output, (same, message), same is True if checks pass.
+      @ Out, check_output, (same, message),  same is bool, message is str,
+         same is True if checks pass.
     """
     assert False, "Must override check_output "+str(self)
 
@@ -293,6 +306,44 @@ class Tester:
 
   success_message = "SUCCESS"
 
+  __default_run_type_set = set(["normal"])
+  __non_default_run_type_set = set()
+  __base_current_run_type = None
+
+  @classmethod
+  def add_default_run_type(cls, run_type):
+    """
+      This adds a new default run type.  These are used to decide
+      which tests to run. These types run automatically.
+      @ In, run_type, string, the default run type to add
+      @ Out, None
+    """
+    cls.__default_run_type_set.add(run_type)
+    assert run_type not in cls.__non_default_run_type_set
+
+  @classmethod
+  def add_non_default_run_type(cls, run_type):
+    """
+      This adds a new non default run type.  These are used to decide
+      which tests to run. These types have to be requested to run.
+      @ In, run_type, string, the non default run type to add
+      @ Out, None
+    """
+    cls.__non_default_run_type_set.add(run_type)
+    assert run_type not in cls.__default_run_type_set
+
+  @classmethod
+  def initialize_current_run_type(cls):
+    """
+      This initializes the current run type from the default run type.
+      It should be called after the last call to add_default_run_type and
+      add_non_default_run_type.  This will be automatically called the
+      first time Tester is initialized.
+      @ In, None
+      @ Out, None
+    """
+    cls.__base_current_run_type = cls.__default_run_type_set
+
   @staticmethod
   def get_valid_params():
     """
@@ -312,6 +363,8 @@ class Tester:
     params.add_param('output', '', 'Output of the test')
     params.add_param('expected_fail', False,
                      'if true, then the test should fails, and if it passes, it fails.')
+    params.add_param('run_types', 'normal', 'The run types that this test is')
+    params.add_param('output_wait_time', '-1', 'Number of seconds to wait for output')
     return params
 
   def __init__(self, name, params):
@@ -325,8 +378,42 @@ class Tester:
     valid_params = self.get_valid_params()
     self.specs = valid_params.get_filled_dict(params)
     self.results = TestResult()
+    self.__command_prefix = ""
+    self.__python_command = sys.executable
+    if os.name == "nt":
+      #Command is python on windows in conda and Python.org install
+      self.__python_command = "python"
     self.__differs = []
-    self.__run_heavy = False
+    if self.__base_current_run_type is None:
+      self.initialize_current_run_type()
+    self.__test_run_type = set(self.specs['run_types'].split())
+    if self.specs['heavy'] is not False:
+      self.__test_run_type.add("heavy")
+      #--heavy makes the run type set(["heavy"]) so "normal" needs to be removed
+      if "normal" in self.__test_run_type:
+        self.__test_run_type.remove("normal")
+
+  @classmethod
+  def add_run_types(cls, run_types):
+    """
+      Adds run types to be run.  In general these are non default run types.
+      @ In, run_types, set, run types to be added to the current run set.
+      @ Out, None
+    """
+    assert run_types.issubset(set.union(cls.__default_run_type_set,
+                                        cls.__non_default_run_type_set))
+    cls.__base_current_run_type.update(run_types)
+
+  @classmethod
+  def set_only_run_types(cls, run_types):
+    """
+      Sets the run types to only the provided ones.
+      @ In, run_types, set, run types to set the current set to.
+      @ Out, None
+    """
+    assert run_types.issubset(set.union(cls.__default_run_type_set,
+                                        cls.__non_default_run_type_set))
+    cls.__base_current_run_type = set(run_types)
 
   def get_differ_remove_files(self):
     """
@@ -362,8 +449,25 @@ class Tester:
       @ In, None
       @ Out, None
     """
-    self.__run_heavy = True
+    self.set_only_run_types(set(["heavy"]))
 
+  def set_command_prefix(self, command_prefix):
+    """
+      Sets the command prefix.  This is prefixed to the front of the test
+      command.
+      @ In, command_prefix, string, the prefix for the command
+      @ Out, None
+    """
+    self.__command_prefix = command_prefix
+
+  def set_python_command(self, python_command):
+    """
+      Sets the python command.  This is used to run python commands.
+      See alse _get_python_command
+      @ In, python_command, string, the python command (including arguments)
+      @ Out, None.
+    """
+    self.__python_command = python_command
 
   def run(self, data):
     """
@@ -372,7 +476,7 @@ class Tester:
       @ Out, results, TestResult, the results of the test.
     """
     expected_fail = bool(self.specs['expected_fail'])
-    results = self.run_backend(data)
+    results = self._run_backend(data)
     if not expected_fail:
       return results
     if results.group == self.group_success:
@@ -396,7 +500,7 @@ class Tester:
         timeout = int(time_list[time_list.index(system)+1])
     return timeout
 
-  def run_backend(self, _):
+  def _run_backend(self, _):
     """
       Runs this tester.  This does the main work,
       but is separate to allow run to invert the result if expected_fail
@@ -407,20 +511,17 @@ class Tester:
       self.results.group = self.group_skip
       self.results.message = self.specs['skip']
       return self.results
-    if self.specs['heavy'] is not False and not self.__run_heavy:
+    if not self.__test_run_type.issubset(self.__base_current_run_type):
       self.results.group = self.group_skip
-      self.results.message = "SKIPPED (Heavy)"
-      return self.results
-    if self.specs['heavy'] is False and self.__run_heavy:
-      self.results.group = self.group_skip
-      self.results.message = "SKIPPED (not Heavy)"
+      self.results.message = "SKIPPED ("+str(self.__test_run_type)+\
+        " is not a subset of "+str(self.__base_current_run_type)+")"
       return self.results
     if not self.check_runnable():
       return self.results
 
     self.prepare()
 
-    command = self.get_command()
+    command = self.__command_prefix + self.get_command()
 
     timeout = self.__get_timeout()
     directory = self.specs['test_dir']
@@ -436,8 +537,9 @@ class Tester:
       self.results.message = "FAILED "+str(ioe)
       return self.results
     timed_out = False
-    if sys.version_info >= (3, 3):
+    if sys.version_info >= (3, 3) and os.name != "nt":
       #New timeout interface available starting in Python 3.3
+      # But doesn't seem to fully work in Windows.
       try:
         output = process.communicate(timeout=timeout)[0]
       except subprocess.TimeoutExpired:
@@ -459,7 +561,10 @@ class Tester:
       self.results.group = self.group_timed_out
       self.results.message = "Timed Out"
       return self.results
+    if not self.check_exit_code(self.results.exit_code):
+      return self.results
     self.process_results(output)
+    self._wait_for_all_written()
     for differ in self.__differs:
       same, message = differ.check_output()
       if not same:
@@ -468,6 +573,24 @@ class Tester:
           self.results.message = "" #remove success message.
         self.results.message += "\n" + message
     return self.results
+
+  def _wait_for_all_written(self):
+    """
+      Waits until all the files for the differ have been written
+      @ In, None
+      @ Out, None
+    """
+    start_wait = time.time()
+    wait_time = float(self.specs['output_wait_time'])
+    all_written = False
+    while start_wait + wait_time > time.time() and not all_written:
+      all_written = True
+      for differ in self.__differs:
+        if not differ.check_if_test_files_exist():
+          all_written = False
+      if not all_written:
+        time.sleep(5.0)
+        print("waiting for files...")
 
   @staticmethod
   def get_group_name(group):
@@ -525,6 +648,19 @@ class Tester:
     self.results.message = message
     self.results.group = self.group_diff
 
+  def check_exit_code(self, exit_code):
+    """
+      Lets the subclasses decide if the exit code fails the test.
+      @ In, exit_code, int, the exit code of the test command.
+      @ Out, check_exit_code, bool, if true the exit code is acceptable.
+      If false the tester should use set_fail or other methods to set the
+      status and message.
+    """
+    if exit_code != 0:
+      self.set_fail("Running test failed with exit code "+str(exit_code))
+      return False
+    return True
+
   def process_results(self, output):
     """
       Handle the results of the test case.
@@ -532,6 +668,15 @@ class Tester:
       @ Out, None
     """
     assert False, "process_results not implemented "+output
+
+  def _get_python_command(self):
+    """
+      returns a command that can run a python program.  So a possible return
+      would be "python".  Another possibility is "coverage --append"
+      @ In, None
+      @ Out, __python_command, string, string command to run a python program
+    """
+    return self.__python_command
 
   def get_command(self):
     """

@@ -1,6 +1,5 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="quiet">
-
   <TestInfo>
     <name>framework/Samplers/AdaptiveBatch.InvalidBatchStrategy</name>
     <author>maljdan</author>
@@ -9,7 +8,6 @@
     <description>
        An example of using the limit surface post-processor with an invalid
        batch strategy which will fail with an error message.
-
        Note, all of the tests in AdaptiveBatch operate on a 2D input domain with
        the goal of extracting a circular limit surface with radius 0.5 and
        centered at the origin, (0,0).
@@ -18,6 +16,7 @@
       <revision author="maljdan" date="2015-11-20">Collapsing the batch sampling into the limit surface class, updating documentation, XSD, and the test cases to reflect this change.</revision>
       <revision author="talbpaul" date="2016-02-08">First update, looking for more failing tests to add.</revision>
       <revision author="maljdan" date="2017-01-18">Adding test description.</revision>
+      <revision author="alfoa" date="2019-03-07">Modified syntax in Functions as for issue #934</revision>
     </revisions>
   </TestInfo>
 
@@ -118,7 +117,7 @@
 
   <Functions>
     <External file="goal" name="label">
-      <variable>y</variable>
+      <variables>y</variables>
     </External>
   </Functions>
 

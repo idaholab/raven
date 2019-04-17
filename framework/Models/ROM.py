@@ -60,25 +60,27 @@ class ROM(Dummy):
     # general
     inputSpecification.addSub(InputData.parameterInputFactory('Features',contentType=InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory('Target',contentType=InputData.StringType))
-    # clustering
-    cluster = InputData.parameterInputFactory("Cluster", strictMode=True)
+    # segmenting and clustering
+    segment = InputData.parameterInputFactory("Segment", strictMode=True)
+    segmentGroups = InputData.makeEnumType('segmentGroup', 'sesgmentGroupType', ['segment', 'cluster'])
+    segment.addParam('grouping', segmentGroups)
     subspace = InputData.parameterInputFactory('subspace', contentType=InputData.StringType)
     subspace.addParam('divisions', InputData.IntegerType, False)
     subspace.addParam('pivotLength', InputData.FloatType, False)
     subspace.addParam('shift', InputData.StringType, False)
-    cluster.addSub(subspace)
+    segment.addSub(subspace)
     clsfr = InputData.parameterInputFactory('Classifier', strictMode=True, contentType=InputData.StringType)
     clsfr.addParam('class', InputData.StringType, True)
     clsfr.addParam('type', InputData.StringType, True)
-    cluster.addSub(clsfr)
+    segment.addSub(clsfr)
     metric = InputData.parameterInputFactory('Metric', strictMode=True, contentType=InputData.StringType)
     metric.addParam('class', InputData.StringType, True)
     metric.addParam('type', InputData.StringType, True)
-    cluster.addSub(metric)
+    segment.addSub(metric)
     feature = InputData.parameterInputFactory('feature', strictMode=True, contentType=InputData.StringType)
     feature.addParam('weight', InputData.FloatType)
-    cluster.addSub(feature)
-    inputSpecification.addSub(cluster)
+    segment.addSub(feature)
+    inputSpecification.addSub(segment)
     # unsorted
     inputSpecification.addSub(InputData.parameterInputFactory("persistence", contentType=InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("gradient", contentType=InputData.StringType))
@@ -185,7 +187,6 @@ class ROM(Dummy):
     InterpolationInput.addParam("weight", InputData.FloatType, False)
     inputSpecification.addSub(InterpolationInput)
     # ARMA
-    inputSpecification.addSub(InputData.parameterInputFactory('segments', contentType=InputData.IntegerType))
     inputSpecification.addSub(InputData.parameterInputFactory('correlate', contentType=InputData.StringListType))
     inputSpecification.addSub(InputData.parameterInputFactory("P", contentType=InputData.IntegerType))
     inputSpecification.addSub(InputData.parameterInputFactory("Q", contentType=InputData.IntegerType))
@@ -1224,6 +1225,29 @@ class ROM(Dummy):
     # for Clustered ROM
     self.addAssemblerObject('Classifier','-1',True)
     self.addAssemblerObject('Metric','-n',True)
+
+  def __getstate__(self):
+    """
+      Method for choosing what gets serialized in this class
+      @ In, None
+      @ Out, d, dict, things to serialize
+    """
+    d = copy.copy(self.__dict__)
+    # NOTE assemblerDict isn't needed if ROM already trained, but it can create an infinite recursion
+    ## for the ROMCollection if left in, so remove it on getstate.
+    del d['assemblerDict']
+    return d
+
+  def __setstate__(self, d):
+    """
+      Method for unserializing.
+      @ In, d, dict, things to unserialize
+      @ Out, None
+    """
+    # default setstate behavior
+    self.__dict__ = d
+    # since we pop this out during saving state, initialize it here
+    self.assemblerDict = {}
 
   def _readMoreXML(self,xmlNode):
     """
