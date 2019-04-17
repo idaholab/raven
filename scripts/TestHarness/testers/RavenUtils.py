@@ -63,7 +63,7 @@ modules_to_try = [("h5py", 'h5py.__version__', '2.4.0', '2.7.1', None), # 2.6.0
                   # On Windows conda, there are no Python 2.7-compatible
                   ## versions of TensorFlow, although
                   ## these exist on Mac and Linux condas.  Darn.
-                  ("tensorflow",'tensorflow.__version__',"1.12.0" ,"1.12.0" , None),
+                  ("tensorflow", 'tensorflow.__version__', "1.12.0", "1.12.0", None),
                   ("statsmodels", 'statsmodels.__version__', "0.8.0", "0.8.0", None),
                   ("matplotlib", 'matplotlib.__version__', "1.3.1", "2.1.1", None)]
 
@@ -319,7 +319,7 @@ if __name__ == '__main__':
     __condaList[pythonIndex] = ("python", "3")
     __condaForgeList = [("pyside2", ""),]
   if '--py2' in sys.argv and '--windows' in sys.argv:
-    __condaList.remove(("tensorflow",__lookup_preferred_version("tensorflow")))
+    __condaList.remove(("tensorflow", __lookup_preferred_version("tensorflow")))
 
   # check for environemnt definition of raven libs
   libName = os.getenv('RAVEN_LIBS_NAME', 'raven_libraries')
