@@ -318,7 +318,7 @@ if __name__ == '__main__':
     pythonIndex = __condaList.index(("python", "2.7"))
     __condaList[pythonIndex] = ("python", "3")
     __condaForgeList = [("pyside2", ""),]
-  if '--py2' in sys.argv and '--windows' in sys.argv:
+  else:
     __condaList.remove(("tensorflow", __lookup_preferred_version("tensorflow")))
 
   # check for environemnt definition of raven libs
