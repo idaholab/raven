@@ -117,6 +117,7 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     self.muAndSigmaFeatures = {}
     #these need to be declared in the child classes!!!!
     self.amITrained         = False
+    self.kerasROMDict = self.initOptionDict.pop('KerasROMDict', None) # dictionary for ROM builded by Keras
 
   def initialize(self,idict):
     """

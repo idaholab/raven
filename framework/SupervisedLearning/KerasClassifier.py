@@ -218,82 +218,6 @@ if isTensorflowAvailable():
     # the self-normalizing property even after this dropout. Alpha Dropout fits well to Scaled Exponential Linear Units
     #  by randomly setting activations to the negative saturation value.
     #availNoise['alphadropout'] = KerasLayers.AlphaDropout
-    # list of Keras Neural Network Core layers
-    kerasCoreLayersList = ['dense',
-                          'activation',
-                          'dropout',
-                          'flatten',
-                          'input',
-                          'reshape',
-                          'permute',
-                          'repeatvector',
-                          'lambda',
-                          'activityregularization',
-                          'masking',
-                          'spatialdropout1d',
-                          'spatialdropout2d',
-                          'spatialdropout3d']
-    # list of Keras Neural Network Convolutional layers
-    kerasConvNetLayersList =    ['conv1d',
-                                 'conv2d',
-                                 'conv3d',
-                                 'separableconv1d',
-                                 'separableconv2d',
-                                 'depthwiseconv2d',
-                                 'conv2dtranspose',
-                                 'conv3dtranspose',
-                                 'cropping1d',
-                                 'cropping2d',
-                                 'cropping3d',
-                                 'upsampling1d',
-                                 'upsampling2d',
-                                 'upsampling3d',
-                                 'zeropadding1d',
-                                 'zeropadding2d',
-                                 'zeropadding3d']
-    # list of Keras Neural Network Pooling layers
-    kerasPoolingLayersList =    ['maxpooling1d',
-                                 'maxpooling2d',
-                                 'maxpooling3d',
-                                 'averagepooling1d',
-                                 'averagepooling2d',
-                                 'averagepooling3d',
-                                 'globalmaxpooling1d',
-                                 'globalmaxpooling2d',
-                                 'globalmaxpooling3d',
-                                 'globalaveragepooling1d',
-                                 'globalaveragepooling2d',
-                                 'globalaveragepooling3d']
-    # list of Keras Neural Network Recurrent layers
-    kerasRcurrentLayersList =    ['rnn',
-                                  'simplernn',
-                                  'gru',
-                                  'lstm',
-                                  'convlstm2d',
-                                  'simplernncell',
-                                  'grucell',
-                                  'lstmcell',
-                                  'cudnngru',
-                                  'cudnnlstm']
-    # list of Keras Neural Network Locally-connected layers
-    kerasLocallyConnectedLayersList =    ['locallyconnected1d',
-                                          'locallyconnected2d']
-    # list of Keras Neural Network Embedding layers
-    kerasEmbeddingLayersList = ['embedding']
-    # list of Keras Neural Network Advanced Activation layers
-    kerasAdvancedActivationLayersList =    ['leakyrelu',
-                                            'prelu',
-                                            'elu',
-                                            'thresholdedrelu',
-                                            'softmax',
-                                            'relu']
-    # list of Keras Neural Network Normalization layers
-    kerasNormalizationLayersList = ['batchnormalization']
-    # list of Keras Neural Network Noise layers
-    kerasNoiseLayersList =    ['gaussiannoise',
-                               'gaussiandropout',
-                               'alphadropout']
-
 
     def __init__(self,messageHandler,**kwargs):
       """
@@ -303,15 +227,16 @@ if isTensorflowAvailable():
         @ Out, None
       """
       supervisedLearning.__init__(self,messageHandler,**kwargs)
+
       # parameter dictionary at the initial stage
       self.initDict = copy.deepcopy(self.initOptionDict)
       self.printTag = 'KerasClassifier'
       # This ROM is able to manage the time-series on its own. No need for special treatment outside
       self._dynamicHandling = True
       # Basic Layers
-      self.basicLayers = self.__class__.kerasCoreLayersList + self.__class__.kerasEmbeddingLayersList + \
-                         self.__class__.kerasAdvancedActivationLayersList + self.__class__.kerasNormalizationLayersList + \
-                         self.__class__.kerasNoiseLayersList
+      self.basicLayers = self.kerasROMDict['kerasCoreLayersList'] + self.kerasROMDict['kerasEmbeddingLayersList'] + \
+                         self.kerasROMDict['kerasAdvancedActivationLayersList'] + self.kerasROMDict['kerasNormalizationLayersList'] + \
+                         self.kerasROMDict['kerasNoiseLayersList']
       # LabelEncoder can be used to normalize labels
       self.labelEncoder = preprocessing.LabelEncoder()
       # perform z-score normalization if True

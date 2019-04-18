@@ -47,7 +47,7 @@ if isTensorflowAvailable():
       """
       KerasClassifier.__init__(self,messageHandler,**kwargs)
       self.printTag = 'KerasLSTMClassifier'
-      self.allowedLayers = self.basicLayers + self.__class__.kerasRcurrentLayersList
+      self.allowedLayers = self.basicLayers + self.kerasROMDict['kerasRcurrentLayersList']
 
     def _checkLayers(self):
       """

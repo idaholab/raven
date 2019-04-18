@@ -46,7 +46,7 @@ if isTensorflowAvailable():
       """
       KerasClassifier.__init__(self,messageHandler,**kwargs)
       self.printTag = 'KerasConvNetClassifier'
-      self.allowedLayers = self.basicLayers + self.__class__.kerasConvNetLayersList + self.__class__.kerasPoolingLayersList
+      self.allowedLayers = self.basicLayers + self.kerasROMDict['kerasConvNetLayersList'] + self.kerasROMDict['kerasPoolingLayersList']
 
     def _preprocessInputs(self,featureVals):
       """

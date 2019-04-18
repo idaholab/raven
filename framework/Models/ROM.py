@@ -25,6 +25,7 @@ import copy
 import inspect
 import itertools
 import numpy as np
+import functools
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -1140,8 +1141,9 @@ class ROM(Dummy):
     #   self.kerasCoreLayersList = SupervisedLearning.KerasClassifier.KerasClassifier.kerasCoreLayersList
     # else:
     #   self.kerasCoreLayersList = []
+    self.kerasDict = {}
 
-    self.kerasCoreLayersList = ['dense',
+    self.kerasDict['kerasCoreLayersList'] = ['dense',
                             'activation',
                             'dropout',
                             'flatten',
@@ -1156,7 +1158,7 @@ class ROM(Dummy):
                             'spatialdropout2d',
                             'spatialdropout3d']
     # list of Keras Neural Network Convolutional layers
-    self.kerasConvNetLayersList = ['conv1d',
+    self.kerasDict['kerasConvNetLayersList'] = ['conv1d',
                                    'conv2d',
                                    'conv3d',
                                    'separableconv1d',
@@ -1174,7 +1176,7 @@ class ROM(Dummy):
                                    'zeropadding2d',
                                    'zeropadding3d']
     # list of Keras Neural Network Pooling layers
-    self.kerasPoolingLayersList = ['maxpooling1d',
+    self.kerasDict['kerasPoolingLayersList'] = ['maxpooling1d',
                                    'maxpooling2d',
                                    'maxpooling3d',
                                    'averagepooling1d',
@@ -1187,7 +1189,7 @@ class ROM(Dummy):
                                    'globalaveragepooling2d',
                                    'globalaveragepooling3d']
     # list of Keras Neural Network Recurrent layers
-    self.kerasRcurrentLayersList = ['rnn',
+    self.kerasDict['kerasRcurrentLayersList'] = ['rnn',
                                     'simplernn',
                                     'gru',
                                     'lstm',
@@ -1198,33 +1200,26 @@ class ROM(Dummy):
                                     'cudnngru',
                                     'cudnnlstm']
     # list of Keras Neural Network Locally-connected layers
-    self.kerasLocallyConnectedLayersList = ['locallyconnected1d',
+    self.kerasDict['kerasLocallyConnectedLayersList'] = ['locallyconnected1d',
                                             'locallyconnected2d']
     # list of Keras Neural Network Embedding layers
-    self.kerasEmbeddingLayersList = ['embedding']
+    self.kerasDict['kerasEmbeddingLayersList'] = ['embedding']
     # list of Keras Neural Network Advanced Activation layers
-    self.kerasAdvancedActivationLayersList = ['leakyrelu',
+    self.kerasDict['kerasAdvancedActivationLayersList'] = ['leakyrelu',
                                               'prelu',
                                               'elu',
                                               'thresholdedrelu',
                                               'softmax',
                                               'relu']
     # list of Keras Neural Network Normalization layers
-    self.kerasNormalizationLayersList = ['batchnormalization']
+    self.kerasDict['kerasNormalizationLayersList'] = ['batchnormalization']
     # list of Keras Neural Network Noise layers
-    self.kerasNoiseLayersList = ['gaussiannoise',
+    self.kerasDict['kerasNoiseLayersList'] = ['gaussiannoise',
                                  'gaussiandropout',
                                  'alphadropout']
+    self.initializationOptionDict['KerasROMDict'] = self.kerasDict
 
-    self.kerasLayersList = self.kerasCoreLayersList + \
-                           self.kerasConvNetLayersList + \
-                           self.kerasPoolingLayersList + \
-                           self.kerasRcurrentLayersList + \
-                           self.kerasLocallyConnectedLayersList + \
-                           self.kerasEmbeddingLayersList + \
-                           self.kerasAdvancedActivationLayersList + \
-                           self.kerasNormalizationLayersList + \
-                           self.kerasNoiseLayersList
+    self.kerasLayersList = functools.reduce(lambda x,y: x+y, list(self.kerasDict.values()))
 
     self.kerasROMsList = ['KerasMLPClassifier', 'KerasConvNetClassifier', 'KerasLSTMClassifier']
     # for Clustered ROM
