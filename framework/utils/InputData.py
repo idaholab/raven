@@ -496,10 +496,9 @@ class ParameterInput(object):
     cls.subs.add(sub)
     if cls.subOrder is not None:
       cls.subOrder.append((sub,quantity))
-    # I did not see the value of the following check --- wangc
-    #elif quantity != Quantity.zero_to_infinity:
-    #  print("ERROR only zero to infinity is supported if Order==False ",
-    #        sub.getName()," in ",cls.getName())
+    elif quantity != Quantity.zero_to_infinity:
+     print("ERROR only zero to infinity is supported if Order==False ",
+           sub.getName()," in ",cls.getName())
 
   @classmethod
   def removeSub(cls, sub):
