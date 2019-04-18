@@ -13,23 +13,22 @@
 # limitations under the License.
 """
   Created on April 18, 2017
-  @author: Matteo D'Onorio (University of Rome La Sapienza),
+  @author: Matteo Donorio (University of Rome La Sapienza),
            Fabio Gianneti (University of Rome La Sapienza),
            Andrea Alfonsi (INL)
 """
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
-
+from utils import utils                    
 from CodeInterfaceBaseClass import CodeInterfaceBase
-from melcorInterface   import MelcorApp
+from melcorInterface import MelcorApp
 from melgenInterface import MelgenApp
 
 class Melcor(CodeInterfaceBase):
   """
     this class is used a part of a code dictionary to specialize Model.Code for MELCOR 2. Version
   """
-
   def __init__(self):
     """
       Constructor.
@@ -39,6 +38,7 @@ class Melcor(CodeInterfaceBase):
     CodeInterfaceBase.__init__(self)
     self.melcorInterface = MelcorApp()
     self.melgenInterface = MelgenApp()
+    self.inputExtensions = ['i','inp']                                  
 
   def findInps(self,inputFiles):
     """
@@ -56,6 +56,29 @@ class Melcor(CodeInterfaceBase):
       raise IOError("Unknown input extensions. Expected input file extensions are "+ ",".join(self.getInputExtension())+" No input file has been found!")
     return melgIn,melcIn
 
+  def _readMoreXML(self,xmlNode):
+    """
+      Function to read the portion of the xml input that belongs to this specialized class and initialize
+      some members based on inputs. This can be overloaded in specialize code interface in order to
+      read specific flags.
+      Only one option is possible. You can choose here, if multi-deck mode is activated, from which deck you want to load the results
+      @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
+      @ Out, None.
+    """
+    self.variables = []
+    self.plotfile = []
+    varNode = xmlNode.find('variables')
+    plotNode = xmlNode.find('CodePlotFile')
+    if varNode is None:
+      raise IOError("Melcor variables not found")
+    if plotNode is None:
+	  raise IOError("Please define the name of the MELCOR plot file in the CodePlotFile xml node")
+    MelcorApp.VarList=[var.strip() for var in varNode.text.split(",")]
+    MelcorApp.MelcorPlotFile=[var.strip() for var in plotNode.text.split(",")][0]
+    print(MelcorApp.VarList)
+    raise IOError("daje")
+    
+    
   def generateCommand(self, inputFiles, executable, clargs=None, fargs=None, preExec=None):
     """
       Generate a command to run MELCOR (combined MELGEN AND MELCOR)
@@ -91,7 +114,7 @@ class Melcor(CodeInterfaceBase):
       @ Out, newInputFiles, list, list of newer input files, list of the new input files (modified and not)
     """
     return self.melcorInterface.createNewInput(currentInputFiles,origInputFiles,samplerType,**Kwargs)
-
+  
   def finalizeCodeOutput(self, command, output, workingDir):
     """
       This method is called by the RAVEN code at the end of each run (if the method is present, since it is optional).
@@ -101,7 +124,7 @@ class Melcor(CodeInterfaceBase):
       @ In, workingDir, string, current working dir
       @ Out, output, string, optional, present in case the root of the output file gets changed in this method.
     """
-    output = self.melcorInterface.finalizeCodeOutput(command,output, workingDir)
+    output = self.melcorInterface.finalizeCodeOutput(command,output,workingDir)
     return output
 
   def checkForOutputFailure(self,output,workingDir):
@@ -117,5 +140,3 @@ class Melcor(CodeInterfaceBase):
     """
     failure = self.melcorInterface.checkForOutputFailure(output, workingDir)
     return failure
-
-

@@ -13,62 +13,54 @@
 # limitations under the License.
 """
   Created on April 18, 2017
-  @author: Matteo D'Onorio (University of Rome La Sapienza),
+  @author: Matteo Donorio (University of Rome La Sapienza),
            Fabio Gianneti (University of Rome La Sapienza),
            Andrea Alfonsi (INL)
-
-  Modified on January 24, 2018
-  @author: Violet Olson
-           Thomas Riley (Oregon State University)
-           Robert Shannon (Oregon State University)
-  Change Summary: Added Control Function parsing
-
-  Modified on July 4, 2018
-  @author: Matteo D'Onorio (University of Rome La Sapienza)
-  Change Summary: Added Function to write CSV file from PTF
-                  All the functions for the parsing have been removed
-  
 """
 from __future__ import division, print_function, unicode_literals, absolute_import
 from melcor_tools import MCR_bin
+from utils import utils
 import pandas as pd
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
+import os
 import re
 import copy
+import fileinput
+from BaseClasses import BaseType
 
-class MELCORdata:
+class MELCORdata():
   """
-    class that parses output of MELCOR 2.1 output file and reads in trip, minor block and write a csv file
-    For now, Only the data associated to control volumes and control functions are parsed and output
+    This class is the CodeInterface for MELGEN (a sub-module of Melcor)
   """
-  def __init__(self,filen):
+  
+  def __init__(self,origInputFiles):
     """
       Constructor
-      @ In, filen, FileObject, the file to parse
+      @ In, None
       @ Out, None
     """
-    self.lines      = open(filen,"r").readlines()
-    timeBlocks      = self.getTimeBlocks()
-    self.timeParams = {}
-    volForEachTime  = self.returnVolumeHybro(timeBlocks)
-    self.timeParams.update(volForEachTime)
-    self.functions  = self.returnControlFunctions(timeBlocks)
-
-  def writeCsv(self,filen,filen2):
+    self.printTag = "MELCOR PARSER"
+    os.chdir(self.runInfoDict['WorkingDir'])
+    #self.inputFiles = inputFiles
+    workingDir = os.path.join(os.path.dirname(__file__), '..')
+    Input = os.path.join(workingDir,'prova.i')
+    f = open(Input)
+    self.VarSrch = MelcorApp.VarList
+    self.MELCORPlotFile = MelcorApp.MelcorPlotFile
+    
+    
+  def writeCsv(self,filen,workDir):   
     """
       Output the parsed results into a CSV file
       @ In, filen, str, the file name of the CSV file
+      @ In, workDir, str, current working directory
       @ Out, None
-    """
+    """        
     IOcsvfile=open(filen,'w+')
-    file_dir = filen2
-    Var_srch=['CVH-P_1','CVH-P_132','CVH-P_136','CVH-P_137','CVH-P_138','CVH-PPART.3_132','CVH-PPART.4_132','CVH-PPART.5_132','CVH-PPART.6_132','CVH-PPART.7_132','CVH-PPART.8_132','CVH-PPART.9_132','CVH-TLIQ_136','CVH-TVAP_136','CVH-TVAP_137', \
- 'CFVALU_25','COR-TPN_1','COR-TPN_2','COR-TPN_3','COR-TPN_4','COR-TPN_5','COR-TCL_115','COR-TCL_116','COR-TCL_117','COR-TCL_118','COR-TCL_119','COR-TCL_120','COR-TCL_121','COR-TCL_122','COR-TCL_123','COR-TFU_115','COR-TFU_116','COR-TFU_117', \
- 'COR-TFU_118','COR-TFU_119','COR-TFU_120','COR-TFU_121','COR-TFU_122', 'COR-DMH2-B4C','COR-DMH2-SS','COR-DMH2-TOT','COR-DMH2-ZIRC','COR-MCRP-TOT','COR-MSS-TOT','COR-MSSOX-TOT','COR-MUO2-TOT','COR-MZR-TOT','COR-MZRO2-TOT'] # !!!! Each element must be unique
-
-    Time,Data,Var_Udm = MCR_bin(file_dir,Var_srch)
-    df_time = pd.DataFrame(Time, columns= ["Time"])
-    df_data = pd.DataFrame(Data, columns = Var_srch)
-    df = pd.concat([df_time, df_data], axis=1, join='inner')
+    fileDir = os.path.join(workDir,self.MELCORPlotFile)
+    Time,Data,VarUdm = MCRBin(fileDir,self.VarSrch)                                            
+    dfTime = pd.DataFrame(Time, columns= ["Time"])
+    dfData = pd.DataFrame(Data, columns = self.VarSrch)
+    df = pd.concat([dfTime, dfData], axis=1, join='inner')
     df.to_csv(IOcsvfile,index=False, header=True)
