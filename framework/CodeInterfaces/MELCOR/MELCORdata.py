@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """
   Created on April 18, 2017
   @author: Matteo Donorio (University of Rome La Sapienza),
@@ -18,8 +19,7 @@
            Andrea Alfonsi (INL)
 """
 from __future__ import division, print_function, unicode_literals, absolute_import
-from melcor_tools import MCR_bin
-from utils import utils
+from melcorTools import MCRBin
 import pandas as pd
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
@@ -28,6 +28,8 @@ import re
 import copy
 import fileinput
 from BaseClasses import BaseType
+from CodeInterfaceBaseClass import CodeInterfaceBase                                      
+import melcorCombinedInterface                                     
 
 class MELCORdata():
   """
@@ -40,14 +42,9 @@ class MELCORdata():
       @ In, None
       @ Out, None
     """
-    self.printTag = "MELCOR PARSER"
-    os.chdir(self.runInfoDict['WorkingDir'])
-    #self.inputFiles = inputFiles
-    workingDir = os.path.join(os.path.dirname(__file__), '..')
-    Input = os.path.join(workingDir,'prova.i')
-    f = open(Input)
-    self.VarSrch = MelcorApp.VarList
-    self.MELCORPlotFile = MelcorApp.MelcorPlotFile
+#    self.melcorInterface = MelcorApp()
+    self.VarSrch = melcorCombinedInterface.MelcorApp.VarList
+    self.MELCORPlotFile = melcorCombinedInterface.MelcorApp.MelcorPlotFile
     
     
   def writeCsv(self,filen,workDir):   
@@ -56,7 +53,7 @@ class MELCORdata():
       @ In, filen, str, the file name of the CSV file
       @ In, workDir, str, current working directory
       @ Out, None
-    """        
+    """
     IOcsvfile=open(filen,'w+')
     fileDir = os.path.join(workDir,self.MELCORPlotFile)
     Time,Data,VarUdm = MCRBin(fileDir,self.VarSrch)                                            

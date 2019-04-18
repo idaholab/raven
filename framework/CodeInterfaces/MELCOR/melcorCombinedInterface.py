@@ -38,7 +38,7 @@ class Melcor(CodeInterfaceBase):
     CodeInterfaceBase.__init__(self)
     self.melcorInterface = MelcorApp()
     self.melgenInterface = MelgenApp()
-    self.inputExtensions = ['i','inp']                                  
+    self.inputExtensions = ['i','inp']                               
 
   def findInps(self,inputFiles):
     """
@@ -75,9 +75,7 @@ class Melcor(CodeInterfaceBase):
 	  raise IOError("Please define the name of the MELCOR plot file in the CodePlotFile xml node")
     MelcorApp.VarList=[var.strip() for var in varNode.text.split(",")]
     MelcorApp.MelcorPlotFile=[var.strip() for var in plotNode.text.split(",")][0]
-    print(MelcorApp.VarList)
-    raise IOError("daje")
-    
+    return MelcorApp.VarList, MelcorApp.MelcorPlotFile      
     
   def generateCommand(self, inputFiles, executable, clargs=None, fargs=None, preExec=None):
     """

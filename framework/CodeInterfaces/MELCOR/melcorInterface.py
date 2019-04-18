@@ -36,6 +36,7 @@ class MelcorApp(MelgenApp):
       @ In, None
       @ Out, None
     """
+    self.melgenApp = MelgenApp()
     MelgenApp.__init__(self)
 
   def generateCommand(self, inputFiles, executable, clargs=None, fargs=None):
@@ -90,5 +91,5 @@ class MelcorApp(MelgenApp):
       @ Out, output, string, optional, present in case the root of the output file gets changed in this method.
     """     
     outfile = os.path.join(workingDir,output+'.out')
-    outputobj=MELCORdata.MELCORdata(outfile)
-    outputobj.writeCsv(os.path.join(workingDir,output+'.csv'),os.path.join(workingDir,'MELCOR_H2O_EX.PTF'))
+    outputobj=MELCORdata.MELCORdata(output)
+    outputobj.writeCsv(os.path.join(workingDir,output+'.csv'),workingDir)  # self.MELCORPlotFile
