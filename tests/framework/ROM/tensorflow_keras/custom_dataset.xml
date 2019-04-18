@@ -15,7 +15,7 @@
 
   <RunInfo>
     <WorkingDir>diabetes</WorkingDir>
-    <Sequence>CustomSampler,train,resample,print</Sequence>
+    <Sequence>CustomSampler,train,stats,resample,print</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
 
@@ -67,6 +67,7 @@
       <Input>x1,x2,x3,x4,x5,x6,x7,x8</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
+    <DataSet name="rom_stats"/>
   </DataObjects>
 
   <Steps>
@@ -82,16 +83,22 @@
       <Sampler class="Samplers" type="CustomSampler">customSamplerFileTest</Sampler>
       <Output class="DataObjects" type="PointSet">outData</Output>
     </MultiRun>
+    <IOStep name="stats">
+      <Input class="Models" type="ROM">modelUnderTest</Input>
+      <Output class="DataObjects" type="DataSet">rom_stats</Output>
+    </IOStep>
     <IOStep name="print">
       <Input class="DataObjects" type="PointSet">outData</Input>
+      <Input class="DataObjects" type="DataSet">rom_stats</Input>
       <Output class="OutStreams" type="Print">outPrint</Output>
+      <Output class="OutStreams" type="Print">romXML</Output>
     </IOStep>
     <RomTrainer name="train">
       <Input class="DataObjects" type="PointSet">trainingData</Input>
       <Output class="Models" type="ROM">modelUnderTest</Output>
     </RomTrainer>
   </Steps>
-  
+
   <Models>
     <Dummy name="MyDummy" subType=""/>
     <ROM name="modelUnderTest" subType="KerasMLPClassifier">
@@ -140,6 +147,10 @@
       <source>outData</source>
       <filename>outMLPClassifier</filename>
       <what>input,output</what>
+    </Print>
+    <Print name="romXML">
+      <type>csv</type>
+      <source>rom_stats</source>
     </Print>
   </OutStreams>
 </Simulation>

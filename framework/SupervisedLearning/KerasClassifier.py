@@ -247,6 +247,8 @@ if isTensorflowAvailable():
       self.targv = None
       # instance of KERAS deep neural network model
       self._ROM = None
+      # the training/testing history of ROM
+      self._romHistory = None
       randomSeed = self.initOptionDict.pop('random_seed',None)
       # Set the seed for random number generation to obtain reproducible results
       # https://keras.io/getting-started/faq/#how-can-i-obtain-reproducible-results-using-keras-during-development
@@ -463,36 +465,28 @@ if isTensorflowAvailable():
       self._addOutputLayers()
       self._ROM.compile(loss=self.lossFunction, optimizer=self.optimizer, metrics=self.metrics)
       self._ROM._make_predict_function() # have to initialize before threading
-      history = self._ROM.fit(featureVals, targetVals, epochs=self.epochs, batch_size=self.batchSize, validation_split=self.validationSplit)
+      self._romHistory = self._ROM.fit(featureVals, targetVals, epochs=self.epochs, batch_size=self.batchSize, validation_split=self.validationSplit)
       # The following requires pydot-ng and graphviz to be installed (See the manual)
       # https://github.com/keras-team/keras/issues/3210
       if self.plotModel:
         KerasUtils.plot_model(self._ROM,to_file=self.plotModelFilename,show_shapes=True)
-        self._plotHistory(history)
 
-    def _plotHistory(self, history):
+    def writeXML(self, writeTo, targets=None, skip=None):
       """
-        Plot training & validation accuracy and loss values
-        @ In, history, History object of Keras
+        Allows the SVE to put whatever it wants into an XML to print to file.
+        Overload in subclasses.
+        @ In, writeTo, xmlUtils.StaticXmlElement, StaticXmlElement to write to
+        @ In, targets, list, optional, list of targets for whom information should be written
+        @ In, skip, list, optional, list of targets to skip
         @ Out, None
       """
-      # Plot training & validation accuracy values
-      plt.plot(history.history['acc'])
-      plt.plot(history.history['val_acc'])
-      plt.title('Model accuracy')
-      plt.ylabel('Accuracy')
-      plt.xlabel('Epoch')
-      plt.legend(['Train', 'Test'], loc='upper left')
-      plt.show()
-
-      # Plot training & validation loss values
-      plt.plot(history.history['loss'])
-      plt.plot(history.history['val_loss'])
-      plt.title('Model loss')
-      plt.ylabel('Loss')
-      plt.xlabel('Epoch')
-      plt.legend(['Train', 'Test'], loc='upper left')
-      plt.show()
+      if not self.amITrained:
+        self.raiseAnError(RuntimeError, 'ROM is not yet trained! Cannot write to DataObject.')
+      root = writeTo.getRoot()
+      writeTo.addScalar('Accuracy',"Training",' '.join([str(elm) for elm in self._romHistory.history['acc']]))
+      writeTo.addScalar('Accuracy',"Testing",' '.join([str(elm) for elm in self._romHistory.history['val_acc']]))
+      writeTo.addScalar('Loss',"Training",' '.join([str(elm) for elm in self._romHistory.history['loss']]))
+      writeTo.addScalar('Loss',"Testing",' '.join([str(elm) for elm in self._romHistory.history['val_loss']]))
 
     def __confidenceLocal__(self,featureVals):
       """

@@ -2,6 +2,7 @@
   [./tf_mlpc]
     type  = 'RavenFramework'
     input = 'custom_dataset.xml'
+    output = 'diabetes/romXML.xml'
     csv = 'diabetes/outMLPClassifier.csv'
   [../]
   [./tf_cnn_dump]
