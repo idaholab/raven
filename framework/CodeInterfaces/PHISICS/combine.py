@@ -42,8 +42,8 @@ class combine():
     paramDict['timeList'] = self.selectPhisicsTime(depTimeDict,phisicsCSV)
     paramDict['phiDict'] = phiDict = self.putCSVinDict(phisicsCSV,phisicsCSV)
     paramDict['relDict'] = self.putCSVinDict(relapCSV,phisicsCSV)
-    paramDict['numOfRelapLines'] = self.getNumOfLines(relapCSV)
-    paramDict['numOfPhisicsLines'] = self.getNumOfLines(phisicsCSV)
+    paramDict['numOfRelapLines'] = len(paramDict['relDict'])
+    paramDict['numOfPhisicsLines'] = len(paramDict['phiDict'])
     paramDict['depTimeDict'] = depTimeDict
     paramDict['inpTimeDict'] = inpTimeDict
     paramDict['relapPhisicsCsv'] = relapPhisicsCsv
@@ -91,19 +91,16 @@ class combine():
     """
     csvDict = {}
     with open(csvFile, 'r') as inFile:
-      for countLine,line in enumerate(inFile):
+      countLine = 0
+      for line in inFile:
         if countLine == 0 and csvFile == phisicsCSV:
           self.numOfParameters = len(line.split(','))
-        csvDict[countLine] = line
+        if re.match(r'^\s*$', line):
+          pass
+        else:
+          csvDict[countLine] = line
+          countLine += 1
     return csvDict
-
-  def getNumOfLines(self,csvFile):
-    """
-      Counts the number of lines in the PHISICS or RELAP csv.
-      @ In, csvFile, string, csv file name
-      @ Out, getNumOfLines, integer, total number of lines
-    """
-    return len(open(csvFile, 'r').readlines())
 
   def joinLine(self,phisicsList,relapList):
     """

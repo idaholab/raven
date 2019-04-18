@@ -57,7 +57,7 @@ def prettify(tree, doc=False, docLevel=0, startingTabs=0, addRavenNewlines=True)
       @ In, addRavenNewlines, bool, optional, if True then adds newline space between each main-level entity
       @ Out, None
     """
-    linesep = os.linesep
+    linesep = "\n" #os.linesep
     child = None #putting it in namespace
     space = ' '*2*tabs
     newlineAndTab = linesep+space
