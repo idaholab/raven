@@ -40,8 +40,8 @@ from .DynamicModeDecomposition import DynamicModeDecomposition
 from .ROMCollection      import Collection, Segments, Clusters
 
 # KERAS classifiers
-from .KerasClassifier import __tensorflowAvailable
-if __tensorflowAvailable:
+from .KerasClassifier import isTensorflowAvailable
+if isTensorflowAvailable():
   from .KerasClassifier import KerasClassifier
   from .KerasMLPClassifier import KerasMLPClassifier
   from .KerasConvNetClassifier import KerasConvNetClassifier

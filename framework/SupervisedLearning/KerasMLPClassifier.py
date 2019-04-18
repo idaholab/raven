@@ -24,12 +24,12 @@ warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from .KerasClassifier import __tensorflowAvailable
-if __tensorflowAvailable:
+from .KerasClassifier import isTensorflowAvailable
+if isTensorflowAvailable():
   from .KerasClassifier import KerasClassifier
 #Internal Modules End--------------------------------------------------------------------------------
 
-if __tensorflowAvailable:
+if isTensorflowAvailable():
   class KerasMLPClassifier(KerasClassifier):
     """
       Multi-layer perceptron classifier constructed using Keras API in TensorFlow

@@ -1136,6 +1136,11 @@ class ROM(Dummy):
     self.supervisedEngine          = None       # dict of ROM instances (== number of targets => keys are the targets)
     self.printTag = 'ROM MODEL'
     # list of Keras Neural Network Core layers
+    # if SupervisedLearning.KerasClassifier.isTensorflowAvailable():
+    #   self.kerasCoreLayersList = SupervisedLearning.KerasClassifier.KerasClassifier.kerasCoreLayersList
+    # else:
+    #   self.kerasCoreLayersList = []
+
     self.kerasCoreLayersList = ['dense',
                             'activation',
                             'dropout',

@@ -26,12 +26,12 @@ warnings.simplefilter('default',DeprecationWarning)
 import numpy as np
 ######
 #Internal Modules------------------------------------------------------------------------------------
-from .KerasClassifier import __tensorflowAvailable
-if __tensorflowAvailable:
+from .KerasClassifier import isTensorflowAvailable
+if isTensorflowAvailable():
   from .KerasClassifier import KerasClassifier
 #Internal Modules End--------------------------------------------------------------------------------
 
-if __tensorflowAvailable:
+if isTensorflowAvailable():
   class KerasLSTMClassifier(KerasClassifier):
     """
       recurrent neural network using short-term model network (LSTM) classifier
@@ -49,7 +49,7 @@ if __tensorflowAvailable:
       self.printTag = 'KerasLSTMClassifier'
       self.allowedLayers = self.basicLayers + self.__class__.kerasRcurrentLayersList
 
-    def __checkLayers__(self):
+    def _checkLayers(self):
       """
         Method used to check layers setups for KERAS model
         @ In, None

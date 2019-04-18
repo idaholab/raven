@@ -262,7 +262,8 @@ IntegerListType.createClass("stringtype","xsd:string")
 #
 class IntegerOrIntegerTupleType(InputType):
   """
-    A type for integer tuples "1, 2, 3" -> (1,2,3)
+    A type for integer "1" -> 1
+    or integer tuples "1, 2, 3" -> (1,2,3)
   """
 
   @classmethod
@@ -270,11 +271,11 @@ class IntegerOrIntegerTupleType(InputType):
     """
       Converts value from string to an integer tuple.
       @ In, value, string, the value to convert
-      @ Out, convert, int or tuple, the converted value
+      @ Out, convertedValue, int or tuple, the converted value
     """
-    convert = tuple(int(x.strip()) for x in value.split(","))
-    convert = convert[0] if len(convert) == 1 else convert
-    return convert
+    convertedValue = tuple(int(x.strip()) for x in value.split(","))
+    convertedValue = convertedValue[0] if len(convertedValue) == 1 else convertedValue
+    return convertedValue
 
 IntegerOrIntegerTupleType.createClass("stringtype","xsd:string")
 
@@ -292,12 +293,12 @@ class IntegerTupleType(InputType):
     """
       Converts value from string to an integer tuple.
       @ In, value, string, the value to convert
-      @ Out, convert, tuple, the converted value
+      @ Out, convertedValue, tuple, the converted value
     """
-    convert = tuple(int(x.strip()) for x in value.split(","))
-    return convert
+    convertedValue = tuple(int(x.strip()) for x in value.split(","))
+    return convertedValue
 
-IntegerOrIntegerTupleType.createClass("stringtype","xsd:string")
+IntegerTupleType.createClass("stringtype","xsd:string")
 
 #
 #

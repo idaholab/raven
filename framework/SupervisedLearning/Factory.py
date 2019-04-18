@@ -37,8 +37,8 @@ from SupervisedLearning.SciKitLearn        import SciKitLearn
 from SupervisedLearning.pickledROM         import pickledROM
 from SupervisedLearning.PolyExponential    import PolyExponential
 from SupervisedLearning.DynamicModeDecomposition import DynamicModeDecomposition
-from .KerasClassifier import __tensorflowAvailable
-if __tensorflowAvailable:
+from .KerasClassifier import isTensorflowAvailable
+if isTensorflowAvailable():
   from .KerasClassifier import KerasClassifier
   from SupervisedLearning.KerasMLPClassifier import KerasMLPClassifier
   from SupervisedLearning.KerasConvNetClassifier import KerasConvNetClassifier
@@ -69,7 +69,7 @@ __interfaceDict['PolyExponential'     ] = PolyExponential
 __interfaceDict['DMD'                 ] = DynamicModeDecomposition
 __interfaceDict['Segments'            ] = Segments
 __interfaceDict['Clusters'            ] = Clusters
-if __tensorflowAvailable:
+if isTensorflowAvailable():
   __interfaceDict['KerasMLPClassifier'    ] = KerasMLPClassifier
   __interfaceDict['KerasConvNetClassifier'] = KerasConvNetClassifier
   __interfaceDict['KerasLSTMClassifier'   ] = KerasLSTMClassifier

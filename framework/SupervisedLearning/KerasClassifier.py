@@ -35,6 +35,7 @@ from scipy import stats
 from sklearn import preprocessing
 import os
 
+_tensorflowAvailable = False
 # TensorFlow is optional and Python3 is required in order to use tensorflow for DNNs
 try:
   import tensorflow as tf
@@ -43,23 +44,13 @@ try:
   from tensorflow.keras import layers as KerasLayers
   from tensorflow.keras import optimizers as KerasOptimizers
   from tensorflow.keras import utils as KerasUtils
-  __tensorflowAvailable = True
+  _tensorflowAvailable = True
 except ImportError as e:
-  __tensorflowAvailable = False
+  _tensorflowAvailable = False
 
-## Set a global variable for backend default setting of whether a display is
-## available or not. For instance, if we are running on the HPC without an X11
-## instance, then we don't have the ability to display the plot, only to save it
-## to a file
-if platform.system() == 'Windows':
-  displayAvailable = True
-else:
-  if os.getenv('DISPLAY'):
-    displayAvailable = True
-  else:
-    displayAvailable = False
-
-if not displayAvailable:
+from utils import utils
+display = utils.displayAvailable()
+if not display:
   matplotlib.use('Agg')
 
 import matplotlib.pyplot as plt
@@ -70,11 +61,19 @@ import matplotlib.pyplot as plt
 from .SupervisedLearning import supervisedLearning
 #Internal Modules End--------------------------------------------------------------------------------
 
+def isTensorflowAvailable():
+  """
+    Return True if tensorflow library is correctly loaded
+    @ In, None
+    @ Out, _tensorflowAvailable, bool, True if tensorflow library is correctly loaded otherwise False
+  """
+  return _tensorflowAvailable
+
 # This is needed when using conda to build tensorflow 1.12 with python 2.7
 # Check issue: https://github.com/tensorflow/tensorflow/issues/23999
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
 
-if __tensorflowAvailable:
+if isTensorflowAvailable():
   class KerasClassifier(supervisedLearning):
     """
       Multi-layer perceptron classifier constructed using Keras API in TensorFlow
@@ -308,7 +307,7 @@ if __tensorflowAvailable:
       self.initDict = copy.deepcopy(self.initOptionDict)
       self.printTag = 'KerasClassifier'
       # This ROM is able to manage the time-series on its own. No need for special treatment outside
-      self._dynamicHandling            = True
+      self._dynamicHandling = True
       # Basic Layers
       self.basicLayers = self.__class__.kerasCoreLayersList + self.__class__.kerasEmbeddingLayersList + \
                          self.__class__.kerasAdvancedActivationLayersList + self.__class__.kerasNormalizationLayersList + \
@@ -322,7 +321,7 @@ if __tensorflowAvailable:
       # variable to store target values, shape = [n_samples]
       self.targv = None
       # instance of KERAS deep neural network model
-      self.ROM = None
+      self._ROM = None
       randomSeed = self.initOptionDict.pop('random_seed',None)
       # Set the seed for random number generation to obtain reproducible results
       # https://keras.io/getting-started/faq/#how-can-i-obtain-reproducible-results-using-keras-during-development
@@ -381,20 +380,20 @@ if __tensorflowAvailable:
         self.raiseAnError(IOError, "The following layers are not defined '{}'.".format(', '.join(set(self.layerLayout)
                           -set(list(self.initOptionDict.keys())))))
 
-      self.__initLocal__()
+      self._initGraph()
 
-    def __initLocal__(self):
+    def _initGraph(self):
       """
         Method used to add additional initialization features
         Such as complile KERAS model
         @ In, None
         @ Out, None
       """
-      # This is needed to solve the thread issue in self.ROM.predict()
+      # This is needed to solve the thread issue in self._ROM.predict()
       # https://github.com/fchollet/keras/issues/2397#issuecomment-306687500
       self.graph = tf.get_default_graph()
 
-    def __checkLayers__(self):
+    def _checkLayers(self):
       """
         Method used to check layers setups for KERAS model
         @ In, None
@@ -402,14 +401,14 @@ if __tensorflowAvailable:
       """
       pass
 
-    def __addHiddenLayers__(self):
+    def _addHiddenLayers(self):
       """
         Method used to add hidden layers for KERAS model
         @ In, None
         @ Out, None
       """
       # start to build the ROM
-      self.ROM = KerasModels.Sequential()
+      self._ROM = KerasModels.Sequential()
       # loop over layers
       for index, layerName in enumerate(self.layerLayout[:-1]):
         layerDict = copy.deepcopy(self.initOptionDict[layerName])
@@ -421,16 +420,16 @@ if __tensorflowAvailable:
         dropoutRate = layerDict.pop('rate',0.0)
         if layerSize is not None:
           if index == 0:
-            self.ROM.add(layerInstant(layerSize,input_shape=self.featv.shape[1:], **layerDict))
+            self._ROM.add(layerInstant(layerSize,input_shape=self.featv.shape[1:], **layerDict))
           else:
-            self.ROM.add(layerInstant(layerSize,**layerDict))
+            self._ROM.add(layerInstant(layerSize,**layerDict))
         else:
           if layerType == 'dropout':
-            self.ROM.add(layerInstant(dropoutRate))
+            self._ROM.add(layerInstant(dropoutRate))
           else:
-            self.ROM.add(layerInstant(**layerDict))
+            self._ROM.add(layerInstant(**layerDict))
 
-    def __addOutputLayers__(self):
+    def _addOutputLayers(self):
       """
         Method used to add last output layers for KERAS model
         @ In, None
@@ -445,7 +444,7 @@ if __tensorflowAvailable:
       if layerType not in ['dense']:
         self.raiseAnError(IOError,'The last layer should always be Dense layer, but',layerType,'is provided!')
       layerInstant = self.__class__.availLayer[layerType]
-      self.ROM.add(layerInstant(self.numClasses,**layerDict))
+      self._ROM.add(layerInstant(self.numClasses,**layerDict))
 
     def train(self,tdict):
       """
@@ -457,7 +456,7 @@ if __tensorflowAvailable:
       """
       if type(tdict) != dict:
         self.raiseAnError(TypeError,'In method "train", the training set needs to be provided through a dictionary. Type of the in-object is ' + str(type(tdict)))
-      names, values  = list(tdict.keys()), list(tdict.values())
+      names, values  = zip(*tdict.items())
       # Currently, deep neural networks (DNNs) are only used for classification.
       # Targets for deep neural network should be labels only (i.e. integers only)
       # For both static  and time-dependent case, the targetValues are 2D arrays, i.e. [numSamples, numTargets]
@@ -532,21 +531,21 @@ if __tensorflowAvailable:
       self.featv = featureVals
       self.targv = targetVals
       # check layers
-      self.__checkLayers__()
+      self._checkLayers()
       # hidden layers
-      self.__addHiddenLayers__()
+      self._addHiddenLayers()
       #output layer
-      self.__addOutputLayers__()
-      self.ROM.compile(loss=self.lossFunction, optimizer=self.optimizer, metrics=self.metrics)
-      self.ROM._make_predict_function() # have to initialize before threading
-      history = self.ROM.fit(featureVals, targetVals, epochs=self.epochs, batch_size=self.batchSize, validation_split=self.validationSplit)
+      self._addOutputLayers()
+      self._ROM.compile(loss=self.lossFunction, optimizer=self.optimizer, metrics=self.metrics)
+      self._ROM._make_predict_function() # have to initialize before threading
+      history = self._ROM.fit(featureVals, targetVals, epochs=self.epochs, batch_size=self.batchSize, validation_split=self.validationSplit)
       # The following requires pydot-ng and graphviz to be installed (See the manual)
       # https://github.com/keras-team/keras/issues/3210
       if self.plotModel:
-        KerasUtils.plot_model(self.ROM,to_file=self.plotModelFilename,show_shapes=True)
-        self.__plotHistory__(history)
+        KerasUtils.plot_model(self._ROM,to_file=self.plotModelFilename,show_shapes=True)
+        self._plotHistory(history)
 
-    def __plotHistory__(self, history):
+    def _plotHistory(self, history):
       """
         Plot training & validation accuracy and loss values
         @ In, history, History object of Keras
@@ -589,7 +588,7 @@ if __tensorflowAvailable:
       featureVals = self._preprocessInputs(featureVals)
       prediction = {}
       with self.graph.as_default():
-        outcome = self.ROM.predict(featureVals)
+        outcome = self._ROM.predict(featureVals)
       if self.numClasses > 1 and self.lossFunction in ['categorical_crossentropy']:
         outcome = np.argmax(outcome,axis=1)
         # Transform labels back to original encoding
@@ -614,8 +613,8 @@ if __tensorflowAvailable:
         @ In, None
         @ Out, None
       """
-      self.__initLocal__()
-      self.ROM = None
+      self._initGraph()
+      self._ROM = None
       self.featv = None
       self.targv = None
 
@@ -633,11 +632,11 @@ if __tensorflowAvailable:
         Returns a dictionary with the parameters and their current values
         The model can be reinstantiated from its config via:
         config = model.get_config()
-        self.ROM = KerasModels.Sequential.from_config(config)
+        self._ROM = KerasModels.Sequential.from_config(config)
         @ In, None
         @ Out, params, dict, dictionary of parameter names and current values
       """
-      params = self.ROM.get_config()
+      params = self._ROM.get_config()
       return params
 
     def _localNormalizeData(self,values,names,feat):

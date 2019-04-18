@@ -26,12 +26,12 @@ warnings.simplefilter('default',DeprecationWarning)
 import numpy as np
 ######
 #Internal Modules------------------------------------------------------------------------------------
-from .KerasClassifier import __tensorflowAvailable
-if __tensorflowAvailable:
+from .KerasClassifier import isTensorflowAvailable
+if isTensorflowAvailable():
   from .KerasClassifier import KerasClassifier
 #Internal Modules End--------------------------------------------------------------------------------
 
-if __tensorflowAvailable:
+if isTensorflowAvailable():
   class KerasConvNetClassifier(KerasClassifier):
     """
       Convolutional neural network (CNN) classifier constructed using Keras API in TensorFlow
