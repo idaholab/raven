@@ -72,7 +72,7 @@ class Melcor(CodeInterfaceBase):
     if varNode is None:
       raise IOError("Melcor variables not found")
     if plotNode is None:
-	  raise IOError("Please define the name of the MELCOR plot file in the CodePlotFile xml node")
+      raise IOError("Please define the name of the MELCOR plot file in the CodePlotFile xml node")
     MelcorApp.VarList=[var.strip() for var in varNode.text.split(",")]
     MelcorApp.MelcorPlotFile=[var.strip() for var in plotNode.text.split(",")][0]
     return MelcorApp.VarList, MelcorApp.MelcorPlotFile
