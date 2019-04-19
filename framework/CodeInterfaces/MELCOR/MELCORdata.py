@@ -29,14 +29,14 @@ import copy
 import itertools
 import fileinput
 from BaseClasses import BaseType
-from CodeInterfaceBaseClass import CodeInterfaceBase                                      
+from CodeInterfaceBaseClass import CodeInterfaceBase
 import melcorCombinedInterface
 
 class MELCORdata():
   """
     This class is the CodeInterface for MELGEN (a sub-module of Melcor)
   """
-  
+
   def __init__(self,origInputFiles):
     """
       Constructor
@@ -46,9 +46,9 @@ class MELCORdata():
 #    self.melcorInterface = MelcorApp()
     self.VarSrch = melcorCombinedInterface.MelcorApp.VarList
     self.MELCORPlotFile = melcorCombinedInterface.MelcorApp.MelcorPlotFile
-    
-    
-  def writeCsv(self,filen,workDir):   
+
+
+  def writeCsv(self,filen,workDir):
     """
       Output the parsed results into a CSV file
       @ In, filen, str, the file name of the CSV file
@@ -57,7 +57,7 @@ class MELCORdata():
     """
     IOcsvfile=open(filen,'w+')
     fileDir = os.path.join(workDir,self.MELCORPlotFile)
-    Time,Data,VarUdm = MCRBin(fileDir,self.VarSrch)                                            
+    Time,Data,VarUdm = MCRBin(fileDir,self.VarSrch)
     dfTime = pd.DataFrame(Time, columns= ["Time"])
     dfData = pd.DataFrame(Data, columns = self.VarSrch)
     df = pd.concat([dfTime, dfData], axis=1, join='inner')

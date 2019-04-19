@@ -57,7 +57,7 @@ class MelcorApp(MelgenApp):
     outputfile = 'GEN_OUTPUT'
     returnCommand = subReturnCommand[0],outputfile
     return returnCommand
-  
+
   def checkForOutputFailure(self,output,workingDir):
     """
       This method is called by the RAVEN code at the end of each run  if the return code is == 0.
@@ -90,7 +90,7 @@ class MelcorApp(MelgenApp):
       @ In, output, string, the Output name root
       @ In, workingDir, string, current working dir
       @ Out, output, string, optional, present in case the root of the output file gets changed in this method.
-    """     
+    """
     outfile = os.path.join(workingDir,output+'.out')
     outputobj=MELCORdata.MELCORdata(output)
     outputobj.writeCsv(os.path.join(workingDir,output+'.csv'),workingDir)  # self.MELCORPlotFile

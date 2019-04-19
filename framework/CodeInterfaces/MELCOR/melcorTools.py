@@ -15,7 +15,7 @@
 """
   MELCOR FORMAT SUPPORT MODULE
   Created on March 28, 2017
-  @authors: 
+  @authors:
            Paolo Balestra (University of Rome La Sapienza)
            Matteo D'Onorio (University of Rome La Sapienza)
 """
@@ -29,13 +29,13 @@ def MCRBin(fileDir, VarSrch):
   """
   from struct import unpack
   import numpy as np
-  
+
   HdrList = []
   BlkLenBef = []
   BlkLenAft = []
-  DataPos=[] 
+  DataPos=[]
   cntr = 0
-  
+
   with open(fileDir, 'rb') as bf:
     while True:
       BlkLenBefSlave = bf.read(4)
@@ -97,7 +97,7 @@ def MCRBin(fileDir, VarSrch):
         HdrList.append([])
       BlkLenAft.append(unpack('I', bf.read(4))[0])
       cntr +=1
-  
+
   data=np.empty([len(DataPos), len(VarSrch)+1])*np.nan
   with open(fileDir, 'rb') as bf:
     for i,Pos in enumerate(DataPos):

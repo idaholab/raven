@@ -20,7 +20,7 @@
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
-from utils import utils                    
+from utils import utils
 from CodeInterfaceBaseClass import CodeInterfaceBase
 from melcorInterface import MelcorApp
 from melgenInterface import MelgenApp
@@ -38,7 +38,7 @@ class Melcor(CodeInterfaceBase):
     CodeInterfaceBase.__init__(self)
     self.melcorInterface = MelcorApp()
     self.melgenInterface = MelgenApp()
-    self.inputExtensions = ['i','inp']                               
+    self.inputExtensions = ['i','inp']
 
   def findInps(self,inputFiles):
     """
@@ -75,8 +75,8 @@ class Melcor(CodeInterfaceBase):
 	  raise IOError("Please define the name of the MELCOR plot file in the CodePlotFile xml node")
     MelcorApp.VarList=[var.strip() for var in varNode.text.split(",")]
     MelcorApp.MelcorPlotFile=[var.strip() for var in plotNode.text.split(",")][0]
-    return MelcorApp.VarList, MelcorApp.MelcorPlotFile      
-    
+    return MelcorApp.VarList, MelcorApp.MelcorPlotFile
+
   def generateCommand(self, inputFiles, executable, clargs=None, fargs=None, preExec=None):
     """
       Generate a command to run MELCOR (combined MELGEN AND MELCOR)
@@ -113,7 +113,7 @@ class Melcor(CodeInterfaceBase):
       @ Out, newInputFiles, list, list of newer input files, list of the new input files (modified and not)
     """
     return self.melcorInterface.createNewInput(currentInputFiles,origInputFiles,samplerType,**Kwargs)
-  
+
   def finalizeCodeOutput(self, command, output, workingDir):
     """
       This method is called by the RAVEN code at the end of each run (if the method is present, since it is optional).

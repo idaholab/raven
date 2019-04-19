@@ -81,7 +81,7 @@ class MelgenApp(CodeInterfaceBase):
              where RAVEN stores the variables that got sampled (e.g. Kwargs['SampledVars'] => {'var1':10,'var2':40})
       @ Out, newInputFiles, list, list of newer input files, list of the new input files (modified and not)
     """
-        
+
     if "dynamicevent" in samplerType.lower():
       raise IOError("Dynamic Event Tree-based samplers not implemented for MELCOR yet!")
     indexes  = []
