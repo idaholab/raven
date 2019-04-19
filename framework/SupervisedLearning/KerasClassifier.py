@@ -71,7 +71,7 @@ def isTensorflowAvailable():
 
 # This is needed when using conda to build tensorflow 1.12 with python 2.7
 # Check issue: https://github.com/tensorflow/tensorflow/issues/23999
-os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
+# os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
 
 if isTensorflowAvailable():
   class KerasClassifier(supervisedLearning):
@@ -306,7 +306,6 @@ if isTensorflowAvailable():
       elif not set(self.layerLayout).issubset(list(self.initOptionDict.keys())):
         self.raiseAnError(IOError, "The following layers are not defined '{}'.".format(', '.join(set(self.layerLayout)
                           -set(list(self.initOptionDict.keys())))))
-
       self._initGraph()
 
     def _initGraph(self):
