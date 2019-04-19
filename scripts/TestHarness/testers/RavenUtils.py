@@ -64,7 +64,7 @@ modules_to_try = [("h5py", 'h5py.__version__', '2.4.0', '2.7.1', None), # 2.6.0
                   # On Windows conda, there are no Python 2.7-compatible
                   ## versions of TensorFlow, although
                   ## these exist on Mac and Linux condas.  Darn.
-                  ("tensorflow", 'tensorflow.__version__', "1.12.0", "1.12.0", None),
+                  #("tensorflow", 'tensorflow.__version__', "1.12.0", "1.12.0", None),
                   ("statsmodels", 'statsmodels.__version__', "0.8.0", "0.8.0", None),
                   ("matplotlib", 'matplotlib.__version__', "1.3.1", "2.1.1", None)]
 
@@ -91,7 +91,7 @@ __condaList = [("h5py", __lookup_preferred_version("h5py")),
                ("netcdf4", __lookup_preferred_version("netCDF4")),
                ("matplotlib", __lookup_preferred_version("matplotlib")),
                ("statsmodels", __lookup_preferred_version("statsmodels")),
-               ("tensorflow", __lookup_preferred_version("tensorflow")),
+               ("tensorflow", "1.12.0"),
                ("python", "2.7"),
                ("hdf5", "1.8.18"),
                ("swig", ""),
