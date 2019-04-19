@@ -14,18 +14,14 @@
 from distutils.core import setup, Extension
 from distutils.command.build import build
 import os
+import sys
 
 # Replicating the methods used in the RAVEN Makefile to find CROW_DIR,
 # If the Makefile changes to be more robust, so should this
 # We should be doing a search for CROW, I would think, we should not force a
 # directory structure
 CURR_DIR = os.path.dirname(os.path.realpath(__file__))
-HERD_TRUNK_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)),'..')
-CROW_SUBMODULE = os.path.join(CURR_DIR,'crow')
-if os.path.isfile(os.path.join(CROW_SUBMODULE,'Makefile')):
-  CROW_DIR = CROW_SUBMODULE
-else:
-  CROW_DIR = os.path.join(HERD_TRUNK_DIR,'crow')
+CROW_DIR = os.path.join(CURR_DIR,'crow')
 
 BOOST_INCLUDE_DIR = os.path.join(CROW_DIR,'contrib','include')
 RAVEN_INCLUDE_DIR = os.path.join('include','contrib')
@@ -39,7 +35,10 @@ class CustomBuild(build):
                     ('build_scripts', build.has_scripts)]
 
 include_dirs=[RAVEN_INCLUDE_DIR,BOOST_INCLUDE_DIR]
-swig_opts=['-c++','-I'+RAVEN_INCLUDE_DIR, '-I'+BOOST_INCLUDE_DIR]
+if sys.version_info.major > 2:
+  swig_opts=['-c++','-I'+RAVEN_INCLUDE_DIR, '-I'+BOOST_INCLUDE_DIR,'-py3']
+else:
+  swig_opts=['-c++','-I'+RAVEN_INCLUDE_DIR, '-I'+BOOST_INCLUDE_DIR]
 extra_compile_args=['-std=c++11']
 setup(name='amsc',
       version='0.0',
