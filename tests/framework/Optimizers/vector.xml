@@ -48,7 +48,7 @@
         <limit>2000</limit>
         <initialSeed>42</initialSeed>
         <thresholdTrajRemoval>1e-5</thresholdTrajRemoval>
-        <writeSteps>every</writeSteps>
+        <writeSteps>final</writeSteps>
       </initialization>
       <TargetEvaluation class="DataObjects" type="DataSet">optOut</TargetEvaluation>
       <convergence>
@@ -71,8 +71,8 @@
       </variable>
       <objectVar>ans</objectVar>
       <parameter>
-        <A>50</A>
-        <a>3</a>
+        <initialStepSize>0.01</initialStepSize>
+        <perturbationDistance>0.001</perturbationDistance>
       </parameter>
     </SPSA>
   </Optimizers>

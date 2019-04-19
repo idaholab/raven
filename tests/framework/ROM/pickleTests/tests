@@ -2,7 +2,7 @@
   [./stochPolyPickleTest]
     type  = 'RavenFramework'
     input = 'stochpoly_pickle.xml'
-    xml = 'StochasticPolyPickleTest/Udump.xml StochasticPolyPickleTest/pdump.xml'
+    UnorderedXml = 'StochasticPolyPickleTest/Udump.xml StochasticPolyPickleTest/pdump.xml'
     UnorderedCsv = 'StochasticPolyPickleTest/Udump.csv StochasticPolyPickleTest/pdump.csv'
     remove_unicode_identifier = true
   [../]
@@ -25,6 +25,7 @@
   [./test_external_pickled]
     type = 'RavenPython'
     input = '../../../../scripts/externalROMloader.py load_ROM_externally.xml'
-    output = 'output_load_ROM_externally.xml' 
+    output = 'output_load_ROM_externally.xml'
+    prereq = stochPolyPickleTest
   [../]
 []

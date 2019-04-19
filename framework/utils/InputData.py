@@ -42,6 +42,8 @@ class InputType(object):
 
     ## Rename the class to something understandable by a developer
     cls.__name__ = str(name+'Spec')
+    # register class name to module (necessary for pickling)
+    globals()[cls.__name__] = cls
 
     cls.name = name
     cls.xmlType = xmlType
@@ -137,6 +139,31 @@ FloatType.createClass("float","xsd:double")
 #
 #
 #
+class FloatOrIntType(InputType):
+  """
+    A type for floating point or integer data.
+  """
+
+  @classmethod
+  def convert(cls, value):
+    """
+      Converts value from string to a float or int.
+      @ In, value, string, the value to convert
+      @ Out, val, float or int, the converted value
+    """
+    try:
+      val = int(value)
+      return val
+    except ValueError:
+      val = float(value)
+      return val
+
+FloatOrIntType.createClass("stringtype","xsd:string")
+
+#
+#
+#
+#
 class InterpretedListType(InputType):
   """
     A type for lists with unknown (but consistent) type; could be string, float, etc
@@ -152,9 +179,9 @@ class InterpretedListType(InputType):
     values = value.split(",")
     base = utils.partialEval(values[0].strip())
     # three possibilities: string, integer, or float
-    if mathUtils.isAString(base):
+    if utils.isAString(base):
       conv = str
-    elif mathUtils.isAnInteger(base):
+    elif utils.isAnInteger(base):
       conv = int
     else: #float
       conv = float
@@ -252,6 +279,8 @@ class EnumBaseType(InputType):
 
     ## Rename the class to something understandable by a developer
     cls.__name__ = str(name+'Spec')
+    # register class name to module (necessary for pickling)
+    globals()[cls.__name__] = cls
 
     cls.name = name
     cls.xmlType = xmlType
@@ -290,7 +319,7 @@ class BoolType(EnumBaseType):
       @ In, value, string, the value to convert
       @ Out, convert, bool, the converted value
     """
-    if value in utils.stringsThatMeanTrue():
+    if value.lower() in utils.stringsThatMeanTrue():
       return True
     else:
       return False
@@ -350,6 +379,8 @@ class ParameterInput(object):
 
     ## Rename the class to something understandable by a developer
     cls.__name__ = str(name+'Spec')
+    # register class name to module (necessary for pickling)
+    globals()[cls.__name__] = cls
 
     cls.name = name
     cls.strictMode = strictMode
@@ -427,11 +458,10 @@ class ParameterInput(object):
             sub.getName()," in ",cls.getName())
 
   @classmethod
-  def removeSub(cls, sub, quantity=Quantity.zero_to_infinity):
+  def removeSub(cls, sub):
     """
       Removes a subnode from this class.
       @ In, sub, subclass of ParameterInput, the subnode to allow
-      @ In, quantity, value in Quantity, the number of this subnode to allow.
       @ Out, None
     """
     for have in cls.subs:
@@ -528,9 +558,18 @@ class ParameterInput(object):
         subInstance.parseNode(subNode, errorList)
         self.subparts.append(subInstance)
     if self.strictMode:
-      for child in node:
-        if child.tag not in subNames:
-          handleError('Child "{}" not allowed as sub-element of "{}"'.format(child.tag,node.tag))
+      nodeNames = set([child.tag for child in node])
+      if nodeNames != subNames:
+        # there are mismatches
+        unknownChilds = list(nodeNames - subNames)
+        if unknownChilds:
+          handleError('Childs "[{}]" not allowed as sub-elements of "{}"'.format(",".join(unknownChilds),node.tag))
+        #TODO: keep this for the future. We need to implement in the InputData a way to set some nodes to be required
+        #missingChilds =  list(subNames - nodeNames)
+        #if missingChilds:
+        #  handleError('Not found Childs "[{}]" as sub-elements of "{}"'.format(",".join(missingChilds),node.tag))
+
+
 
   def findFirst(self, name):
     """

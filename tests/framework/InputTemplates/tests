@@ -1,0 +1,22 @@
+[Tests]
+  [./UQTemplate_create]
+    type = RavenPython
+    input = uq_maker.py
+    [./createInput]
+      type = XML
+      output = 'UQTemplate/new_uq.xml'
+    [../]
+  [../]
+  [./UQTemplate_run]
+    type = RavenFramework
+    input = UQTemplate/new_uq.xml
+    prereq = UQTemplate_create
+    [./ranRaven]
+      type = UnorderedCSV
+      output = 'UQTemplate/sample_mirrow/stats.csv'
+      rel_err = 1.0 # not really a numerical check, just checking completion
+    [../]
+  [../]
+[]
+
+

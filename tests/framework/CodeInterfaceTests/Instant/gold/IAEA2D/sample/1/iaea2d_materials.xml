@@ -1,59 +1,125 @@
 <?xml version="1.0" ?>
 <Materials>
+  
+     
   <Macros NG="  2  ">
+    
+        
     <material ID="  1  " NA="  0  " fissile="true">
+      
+          
       <name>Assembly type 1</name>
-      <TotalXS>2.27712e-01  8.33333e-01</TotalXS>
+      
+          
+      <TotalXS>2.26236e-01  8.33333e-01</TotalXS>
+      
+          
       <NuFissionXS>0.00000e+00  1.35000e-01</NuFissionXS>
+      
+          
       <ChiXS>1.00000e+00  0.00000e+00</ChiXS>
+      
+          
       <Profile>
              1 1
              1 2
           </Profile>
+      
+          
       <ScatteringXS>
-            1.97709e-01
-            2.05837e-02 7.48301e-01
+            1.95580e-01
+            2.03620e-02 7.48301e-01
 </ScatteringXS>
+      
+        
     </material>
+    
+        
     <material ID="2" NA="0" fissile="true">
+      
+          
       <name>Assembly type 2</name>
-      <TotalXS>2.22222e-01  8.18259e-01</TotalXS>
-      <NuFissionXS>0.00000e+00  1.30990e-01</NuFissionXS>
+      
+          
+      <TotalXS>2.22222e-01  8.37355e-01</TotalXS>
+      
+          
+      <NuFissionXS>0.00000e+00  1.54343e-01</NuFissionXS>
+      
+          
       <ChiXS>1.00000e+00  0.00000e+00</ChiXS>
+      
+          
       <Profile>
              1 1
              1 2
           </Profile>
+      
+          
       <ScatteringXS>
             1.92102e-01
-            2.00000e-02 7.38749e-01
+            2.00000e-02 7.55317e-01
 </ScatteringXS>
+      
+        
     </material>
+    
+        
     <material ID="3" NA="0" fissile="true">
+      
+          
       <name>Assembly type 3</name>
-      <TotalXS>2.27712e-01  8.33333e-01</TotalXS>
+      
+          
+      <TotalXS>2.26236e-01  8.33333e-01</TotalXS>
+      
+          
       <NuFissionXS>0.00000e+00  1.35000e-01</NuFissionXS>
+      
+          
       <ChiXS>1.00000e+00  0.00000e+00</ChiXS>
+      
+          
       <Profile>
              1 1
              1 2
           </Profile>
+      
+          
       <ScatteringXS>
-            1.97709e-01
-            2.05837e-02 7.03301e-01
+            1.95580e-01
+            2.03620e-02 7.03301e-01
 </ScatteringXS>
+      
+        
     </material>
+    
+        
     <material ID="4" NA="0" fissile="false">
+      
+          
       <name>Reflector</name>
+      
+          
       <TotalXS>0.16666666666666666666666666666667   1.1111111111111111111111111111111</TotalXS>
+      
+          
       <Profile>
              1 1
              1 2
           </Profile>
+      
+          
       <ScatteringXS>
              0.126506666666667
              0.040               1.101087111111111
           </ScatteringXS>
+      
+        
     </material>
+    
+     
   </Macros>
+  
+  
 </Materials>

@@ -1,0 +1,8 @@
+[Tests]
+  [./optimizer]
+    type = 'RavenFramework'
+    input = '1_optimize.xml'
+    csv = 'results/to_file_1.csv'
+    output = 'results/to_file.csv'
+  [../]
+[]

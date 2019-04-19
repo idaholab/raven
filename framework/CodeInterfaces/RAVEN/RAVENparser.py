@@ -19,8 +19,6 @@ Created on Sept 10, 2017
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
-if not 'xrange' in dir(__builtins__):
-  xrange = range
 
 import xml.etree.ElementTree as ET
 import xml.dom.minidom
@@ -30,7 +28,8 @@ import copy
 import numpy as np
 from collections import OrderedDict
 
-from utils import xmlUtils, mathUtils
+from utils import xmlUtils, utils
+import MessageHandler # to give VariableGroups a messageHandler and handle messages
 
 class RAVENparser():
   """
@@ -45,11 +44,11 @@ class RAVENparser():
     self.printTag  = 'RAVEN_PARSER' # print tag
     self.inputFile = inputFile      # input file name
     self.outStreamsNames = {}       # {'outStreamName':[DataObjectName,DataObjectType]}
-    self.varGroups = []             # variable groups' name (for now it is just used to check that in the linked objects there are none)
+    self.varGroups = {}             # variable groups, names and values
     if not os.path.exists(inputFile):
       raise IOError(self.printTag+' ERROR: Not found RAVEN input file')
     try:
-      tree = ET.parse(file(inputFile,'r'))
+      tree = ET.parse(open(inputFile,'r'))
     except IOError as e:
       raise IOError(self.printTag+' ERROR: Input Parsing error!\n' +str(e)+'\n')
     self.tree = tree.getroot()
@@ -58,11 +57,15 @@ class RAVENparser():
     cwd = os.path.dirname(inputFile)
     xmlUtils.expandExternalXML(self.tree,cwd)
 
-    # get the variable groups
-    variableGroup = self.tree.find('VariableGroups')
-    if variableGroup is not None:
-      for child in variableGroup:
-        self.varGroups.append(child.attrib['name'])
+    # get the NAMES of the variable groups
+    variableGroupNode = self.tree.find('VariableGroups')
+    if variableGroupNode is not None:
+      # make a messageHandler and messageUsesr to handle variable group creation
+      ## if made generally available to this parser, this can be relocated and used generally
+      messageHandler = MessageHandler.MessageHandler()
+      messageHandler.initialize({'verbosity':'quiet'})
+      messageUser = MessageHandler.MessageUser()
+      self.varGroups = xmlUtils.readVariableGroups(variableGroupNode,messageHandler,messageUser)
 
     # do some sanity checks
     sequence = [step.strip() for step in self.tree.find('.//RunInfo/Sequence').text.split(",")]
@@ -106,11 +109,8 @@ class RAVENparser():
     filesNode = self.tree.find('.//Files')
     if filesNode is not None:
       for child in self.tree.find('.//Files'):
-        subDirectory = child.attrib['subDirectory'] if 'subDirectory' in child.attrib else None
-        if subDirectory:
-          self.slaveInputFiles.append(os.path.expanduser(os.path.join(subDirectory,child.text.strip())))
-        else:
-          self.slaveInputFiles.append(os.path.expanduser(child.text.strip()))
+        subDirectory = child.attrib.get('subDirectory','')
+        self.slaveInputFiles.append(os.path.expanduser(os.path.join(self.workingDir,subDirectory,child.text.strip())))
 
     externalModels = self.tree.findall('.//Models/ExternalModel')
     if len(externalModels) > 0:
@@ -260,7 +260,7 @@ class RAVENparser():
               else:
                 allowAddNodes.append(None)
               allowAddNodesPath[component.strip()] = attribConstruct
-          if pathNode.endswith("]") and attribConstruct.values()[-1] is None:
+          if pathNode.endswith("]") and list(attribConstruct.values())[-1] is None:
             changeTheNode = False
           else:
             changeTheNode = True
@@ -289,7 +289,7 @@ class RAVENparser():
             raise IOError(self.printTag+' ERROR: at least the main XML node should be present in the RAVEN template input -> '+node.strip()+'. Please check the input!!')
           getFirstElement = returnElement.findall(allowAddNodes[indexFirstUnknownNode-1])[0]
           for i in range(indexFirstUnknownNode,len(allowAddNodes)):
-            nodeWithAttributeName = allowAddNodesPath.keys()[i]
+            nodeWithAttributeName = list(allowAddNodesPath.keys())[i]
             if not allowAddNodesPath[nodeWithAttributeName]:
               subElement =  ET.Element(nodeWithAttributeName)
             else:
@@ -297,7 +297,7 @@ class RAVENparser():
             getFirstElement.append(subElement)
             getFirstElement = subElement
           # in the event of vector entries, handle those here
-          if mathUtils.isSingleValued(val):
+          if utils.isSingleValued(val):
             val = str(val).strip()
           else:
             if len(val.shape) > 1:
@@ -312,7 +312,7 @@ class RAVENparser():
           nodeToChange = foundNodes[0]
           pathNode     = './/'
           # in the event of vector entries, handle those here
-          if mathUtils.isSingleValued(val):
+          if utils.isSingleValued(val):
             val = str(val).strip()
           else:
             if len(val.shape) > 1:

@@ -24,7 +24,7 @@ import xml.etree.ElementTree as ET
 import sys, os
 
 ravenDir = os.path.dirname(os.path.dirname(os.getcwd()))
-frameworkDir = os.path.join(ravenDir,"framework")
+frameworkDir = os.path.join(ravenDir,"../framework")
 sys.path.append(frameworkDir)
 
 from utils import InputData
@@ -33,8 +33,8 @@ import test_classes
 
 outerInput = test_classes.OuterInput()
 
-testMoreFilename = os.path.join("TestXSD","test_more.xml")
-testMoreXSDFilename = os.path.join("TestXSD","test_more.xsd")
+testMoreFilename = "test_more.xml"
+testMoreXSDFilename = "test_more.xsd"
 
 parser = ET.parse(testMoreFilename)
 

@@ -1,0 +1,99 @@
+#!/bin/bash
+
+# fail if anything here fails
+set -e
+
+RAVEN_BUILD_DIR="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+echo Making RAVEN ...
+
+# defaults
+MAKE_ARGS=" "
+LIBS_MODE=0 # 0 is "create", 1 is "load"
+#### FUTURE WORK:
+####   combine "make" and "establish_conda_env.sh" into one installation command
+ECE_ARGS=" "
+NO_CONDA=0
+# read arguments
+while test $# -gt 0
+do
+  case "$1" in
+     --coverage)
+       MAKE_ARGS="${MAKE_ARGS} coverage=true graceful=true"
+       LIBS_MODE=1
+       ;;
+     --jobs) MAKE_ARGS="-j $1 ${MAKE_ARGS}"; ;;
+--skip-conda)
+      NO_CONDA=1
+      LIBS_MODE=2
+#    --help)     ECE_ARGS="${ECE_ARGS} --help"; ;;
+#    --optional) ECE_ARGS="${ECE_ARGS} --optional"; ;;
+#    --no-clean) ECE_ARGS="${ECE_ARGS} --no-clean"; ;;
+#    --conda-defs)
+#      shift
+#      ECE_ARGS="${ECE_ARGS} --conda-defs $1"
+#      ;;
+#    --raven-libs-name)
+#      shift
+#      export RAVEN_LIBS_NAME="$1"
+#      ;;
+  esac
+  shift
+done
+#### END FUTURE WORK
+# export no conda variable
+export NO_CONDA
+
+if [[ $LIBS_MODE == 0 ]]; then
+  #### FUTURE WORK:
+  # clear .ravenrc
+  #if [[ -f "$RAVEN_BUILD_DIR/.ravenrc" ]]; then
+  #  rm "$RAVEN_BUILD_DIR/.ravenrc"
+  #fi
+
+  # combining install script for python libs and make?
+  #echo Establishing Python libraries ...
+  #. scripts/establish_conda_env.sh --install ${ECE_ARGS}
+
+  # identify python
+  #echo python: `which python`
+  #### END FUTURE WORK
+  ## remove when FUTURE WORK is in place
+  echo Establishing Python libraries ...
+  . scripts/establish_conda_env.sh --load ${ECE_ARGS}
+
+  # clean up to assure library matching
+  echo Cleaning old build ...
+  ${RAVEN_BUILD_DIR}/clean_raven
+elif  [[ $LIBS_MODE == 1 ]]; then
+  echo Establishing Python libraries ...
+  . scripts/establish_conda_env.sh --load ${ECE_ARGS}
+else
+  echo No Conda Python libraries ...
+fi
+
+
+echo Making ...
+# make
+
+PYTHON_COMMAND=${PYTHON_COMMAND:=python}
+
+CROW_DIR=${CROW_DIR:=$RAVEN_BUILD_DIR/crow}
+if test ! -e $CROW_DIR/setup.py; then
+    CROW_DIR=$RAVEN_BUILD_DIR/../crow
+fi
+
+unset CXX CC
+
+#Conda sets too old of a MACOSX_DEPLOYMENT_TARGET
+if test `uname` = Darwin; then
+    MACOSX_DEPLOYMENT_TARGET=10.12;
+    export MACOSX_DEPLOYMENT_TARGET;
+fi
+
+(cd $CROW_DIR && ${PYTHON_COMMAND} ./setup.py build_ext build install --install-platlib=./install)
+
+(cd $RAVEN_BUILD_DIR && ${PYTHON_COMMAND} ./setup.py build_ext build install --install-platlib=./framework/contrib/AMSC)
+
+
+echo ... done!

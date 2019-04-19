@@ -35,16 +35,13 @@ from utils.utils import find_crow
 find_crow(frameworkDir)
 import MessageHandler
 
-# find location of data objects
-sys.path.append(os.path.join(frameworkDir,'DataObjects'))
-
-import HistorySet
+import DataObjects
 
 mh = MessageHandler.MessageHandler()
 mh.initialize({'verbosity':'debug', 'callerLength':10, 'tagLength':10})
 
 print('Module undergoing testing:')
-print(HistorySet )
+print(DataObjects.HistorySet )
 print('')
 
 def createElement(tag,attrib=None,text=None):
@@ -140,7 +137,7 @@ def checkArray(comment,first,second,dtype,tol=1e-10,update=True):
     for i in range(len(first)):
       if dtype == float:
         pres = checkFloat('',first[i],second[i],tol,update=False)
-      elif dtype in (str,unicode):
+      elif dtype.__name__ in ('str','unicode'):
         pres = checkSame('',first[i],second[i],update=False)
       if not pres:
         print('checking array',comment,'|','entry "{}" does not match: {} != {}'.format(i,first[i],second[i]))
@@ -175,13 +172,13 @@ def checkRlz(comment,first,second,tol=1e-10,update=True,skip=None):
         continue
       if isinstance(val,(float,int)):
         pres = checkFloat('',val,second[key][0],tol,update=False)
-      elif isinstance(val,(str,unicode)):
+      elif type(val).__name__ in ('str','unicode','str_','unicode_'):
         pres = checkSame('',val,second[key][0],update=False)
       elif isinstance(val,np.ndarray):
         if isinstance(val[0],(float,int)):
           pres = (val - second[key]).sum()<1e-20 #necessary due to roundoff
         else:
-          pres = val == second[key]
+          pres = (val == second[key]).all()
       elif isinstance(val,xr.DataArray):
         if isinstance(val.item(0),(float,int)):
           pres = (val - second[key]).sum()<1e-20 #necessary due to roundoff
@@ -271,7 +268,7 @@ options.append(createElement('pivotParameter',text='Timelike'))
 xml.append(options)
 
 # check construction
-data = HistorySet.HistorySet()
+data = DataObjects.HistorySet()
 # inputs, outputs
 checkSame('HistorySet __init__ name',data.name,'HistorySet')
 checkSame('HistorySet __init__ print tag',data.printTag,'HistorySet')
@@ -334,7 +331,7 @@ data.addRealization(dict(rlz0))
 # get realization by index, from collector
 checkRlz('HistorySet append 0',data.realization(index=0),rlz0,skip=['Timelike'])
 # try to access the inaccessible
-checkFails('HistorySet get nonexistant realization by index','Requested index \"1\" but only have 1 entries (zero-indexed)!',data.realization,kwargs={'index':1})
+checkFails('HistorySet get nonexistant realization by index','HistorySet: Requested index "1" but only have 1 entries (zero-indexed)!',data.realization,kwargs={'index':1})
 # add more data
 data.addRealization(dict(rlz1))
 data.addRealization(dict(rlz2))
@@ -444,12 +441,12 @@ data.addMeta('TestPP',{'firstVar':{'scalarMetric1':10.0,
                       })
 # directly test contents, without using API
 checkSame('Metadata top level entries',len(data._meta),2)
-treePP = data._meta['TestPP'].tree.getroot()
+treePP = data._meta['TestPP'].getRoot()
 checkSame('Metadata TestPP',treePP.tag,'TestPP')
-first,second = (c for c in treePP) # TODO always same order?
+first,second = (c for c in treePP)
 
 checkSame('Metadata TestPP/firstVar tag',first.tag,'firstVar')
-sm1,vm,sm2 = (c for c in first) # TODO always same order?
+sm1,sm2,vm = (c for c in first) # Order not guaranteed?
 checkSame('Metadata TestPP/firstVar/scalarMetric1 tag',sm1.tag,'scalarMetric1')
 checkSame('Metadata TestPP/firstVar/scalarMetric1 value',sm1.text,'10.0')
 checkSame('Metadata TestPP/firstVar/scalarMetric2 tag',sm2.tag,'scalarMetric2')
@@ -473,20 +470,20 @@ child = second[0]
 checkSame('Metadata TestPP/secondVar/scalarMetric1 tag',child.tag,'scalarMetric1')
 checkSame('Metadata TestPP/secondVar/scalarMetric1 value',child.text,'100.0')
 
-treeDS = data._meta['DataSet'].tree.getroot()
+treeDS = data._meta['DataSet'].getRoot()
 checkSame('Metadata HistorySet',treeDS.tag,'DataSet')
 checkSame('Metadata HistorySet entries',len(treeDS),2)
 dims,general = treeDS[:]
 checkSame('Metadata HistorySet/dims tag',dims.tag,'dims')
 checkSame('Metadata HistorySet/dims entries',len(dims),2)
-y,x = dims[:]
+x,y = dims[:]
 checkSame('Metadata HistorySet/dims/x tag',x.tag,'x')
 checkSame('Metadata HistorySet/dims/x value',x.text,'Timelike')
 checkSame('Metadata HistorySet/dims/y tag',y.tag,'y')
 checkSame('Metadata HistorySet/dims/y value',y.text,'Timelike')
 checkSame('Metadata HistorySet/general tag',general.tag,'general')
 checkSame('Metadata HistorySet/general entries',len(general),4)
-inputs,pointwise_meta,outputs,sampleTag = general[:]
+inputs,outputs,pointwise_meta,sampleTag = general[:]
 checkSame('Metadata HistorySet/general/inputs tag',inputs.tag,'inputs')
 checkSame('Metadata HistorySet/general/inputs value',inputs.text,'a,b')
 checkSame('Metadata HistorySet/general/outputs tag',outputs.tag,'outputs')
@@ -500,9 +497,9 @@ checkSame('Metadata HistorySet/general/sampleTag value',sampleTag.text,'RAVEN_sa
 meta = data.getMeta(pointwise=True,general=True)
 checkArray('Metadata get keys',sorted(meta.keys()),['DataSet','TestPP','prefix'],str)
 # fail to find pointwise in general
-checkFails('Metadata get missing general','Some requested keys could not be found in the requested metadata: set([u\'prefix\'])',data.getMeta,kwargs=dict(keys=['prefix'],general=True))
+checkFails('Metadata get missing general','Some requested keys could not be found in the requested metadata: (prefix)',data.getMeta,kwargs=dict(keys=['prefix'],general=True))
 # fail to find general in pointwise
-checkFails('Metadata get missing general','Some requested keys could not be found in the requested metadata: set([u\'HistorySet\'])',data.getMeta,kwargs=dict(keys=['HistorySet'],pointwise=True))
+checkFails('Metadata get missing general','Some requested keys could not be found in the requested metadata: (HistorySet)',data.getMeta,kwargs=dict(keys=['HistorySet'],pointwise=True))
 # TODO more value testing, easier "getting" of specific values
 
 
@@ -510,13 +507,15 @@ checkFails('Metadata get missing general','Some requested keys could not be foun
 #        READ/WRITE FROM FILE        #
 ######################################
 # to netCDF
-netname = 'HistorySetUnitTest.nc'
-data.write(netname,style='netcdf',format='NETCDF4') # WARNING this will fail if netCDF4 not installed
-checkTrue('Wrote to netcdf',os.path.isfile(netname))
+# NOTE: due to a cool little seg fault error in netCDF4 versions less than 1.3.1, we cannot test it currently.
+# Leaving implementation for the future.
+#netname = 'HistorySetUnitTest.nc'
+#data.write(netname,style='netcdf',format='NETCDF4') # WARNING this will fail if netCDF4 not installed
+#checkTrue('Wrote to netcdf',os.path.isfile(netname))
 ## read fresh from netCDF
-dataNET = HistorySet.HistorySet()
-dataNET.messageHandler = mh
-dataNET.load(netname,style='netcdf')
+#dataNET = HistorySet.HistorySet()
+#dataNET.messageHandler = mh
+#dataNET.load(netname,style='netcdf')
 # validity of load is checked below, in ACCESS USING GETTERS section
 
 # to CSV
@@ -525,36 +524,36 @@ csvname = 'HistorySetUnitTest'
 data.write(csvname,style='CSV',**{'what':'a,b,c,x,y,z,RAVEN_sample_ID,prefix'})
 ## test metadata written
 correct = ['<DataObjectMetadata name="HistorySet">',
-'  <TestPP type="Static">',
-'    <firstVar>',
-'      <scalarMetric1>10.0</scalarMetric1>',
-'      <vectorMetric>',
-'        <a>1</a>',
-'        <c>3</c>',
-'        <b>2</b>',
-'        <d>4.0</d>',
-'      </vectorMetric>',
-'      <scalarMetric2>20</scalarMetric2>',
-'    </firstVar>',
-'    <secondVar>',
-'      <scalarMetric1>100.0</scalarMetric1>',
-'    </secondVar>',
-'  </TestPP>',
-'  ',
-'  <DataSet type="Static">',
-'    <dims>',
-'      <y>Timelike</y>',
-'      <x>Timelike</x>',
-'    </dims>',
-'    <general>',
-'      <inputs>a,b</inputs>',
-'      <pointwise_meta>prefix</pointwise_meta>',
-'      <outputs>x,y</outputs>',
-'      <sampleTag>RAVEN_sample_ID</sampleTag>',
-'    </general>',
-'  </DataSet>',
-'  ',
-'</DataObjectMetadata>']
+           '  <DataSet type="Static">',
+           '    <dims>',
+           '      <x>Timelike</x>',
+           '      <y>Timelike</y>',
+           '    </dims>',
+           '    <general>',
+           '      <inputs>a,b</inputs>',
+           '      <outputs>x,y</outputs>',
+           '      <pointwise_meta>prefix</pointwise_meta>',
+           '      <sampleTag>RAVEN_sample_ID</sampleTag>',
+           '    </general>',
+           '  </DataSet>',
+           '  ',
+           '  <TestPP type="Static">',
+           '    <firstVar>',
+           '      <scalarMetric1>10.0</scalarMetric1>',
+           '      <scalarMetric2>20</scalarMetric2>',
+           '      <vectorMetric>',
+           '        <a>1</a>',
+           '        <b>2</b>',
+           '        <c>3</c>',
+           '        <d>4.0</d>',
+           '      </vectorMetric>',
+           '    </firstVar>',
+           '    <secondVar>',
+           '      <scalarMetric1>100.0</scalarMetric1>',
+           '    </secondVar>',
+           '  </TestPP>',
+           '  ',
+           '</DataObjectMetadata>']
 # read in XML
 lines = open(csvname+'.xml','r').readlines()
 # remove line endings
@@ -570,7 +569,7 @@ xml.append(createElement('Output',text='x,y'))
 options = createElement('options')
 options.append(createElement('pivotParameter',text='Timelike'))
 xml.append(options)
-dataCSV = HistorySet.HistorySet()
+dataCSV = DataObjects.HistorySet()
 dataCSV.messageHandler = mh
 dataCSV._readMoreXML(xml)
 ### load the data (with both CSV, XML)
@@ -606,23 +605,23 @@ os.remove(csvname+'_3.csv')
 # test contents of data in parallel
 # by index
 checkRlz('HistorySet full origin idx 1',data.realization(index=1),rlz1,skip=['Timelike'])
-checkRlz('HistorySet full netcdf idx 1',dataNET.realization(index=1),rlz1,skip=['Timelike'])
+#checkRlz('HistorySet full netcdf idx 1',dataNET.realization(index=1),rlz1,skip=['Timelike'])
 checkRlz('HistorySet full csvxml idx 1',dataCSV.realization(index=1),rlz1,skip=['Timelike'])
 # by match
 idx,rlz = data.realization(matchDict={'prefix':'third'})
 checkSame('HistorySet full origin match idx',idx,2)
 checkRlz('HistorySet full origin match',rlz,rlz2,skip=['Timelike'])
-idx,rlz = dataNET.realization(matchDict={'prefix':'third'})
-checkSame('HistorySet full netcdf match idx',idx,2)
-checkRlz('HistorySet full netCDF match',rlz,rlz2,skip=['Timelike'])
+#idx,rlz = dataNET.realization(matchDict={'prefix':'third'})
+#checkSame('HistorySet full netcdf match idx',idx,2)
+#checkRlz('HistorySet full netCDF match',rlz,rlz2,skip=['Timelike'])
 idx,rlz = dataCSV.realization(matchDict={'prefix':'third'})
 checkSame('HistorySet full csvxml match idx',idx,2)
 checkRlz('HistorySet full csvxml match',rlz,rlz2,skip=['Timelike'])
 # TODO metadata checks?
 
 ## remove files, for cleanliness (comment out to debug)
-dataNET._data.close()
-os.remove(netname) # if this is a problem because of lazy loading, force dataNET to load completely
+#dataNET._data.close()
+#os.remove(netname) # if this is a problem because of lazy loading, force dataNET to load completely
 
 ######################################
 #        NO INPUT SPACE CASE         #
@@ -637,7 +636,7 @@ options = createElement('options')
 options.append(createElement('pivotParameter',text='Timelike'))
 xml.append(options)
 
-data = HistorySet.HistorySet()
+data = DataObjects.HistorySet()
 data.messageHandler = mh
 data._readMoreXML(xml)
 rlz = {'x': np.array([1, 2, 3]),
@@ -656,7 +655,7 @@ checkRlz('No input space',rlz0,rlz,skip='Timelike')
 xml = createElement('HistorySet',attrib={'name':'test'})
 xml.append(createElement('Input',text='a,b'))
 xml.append(createElement('Output',text='x,y'))
-data = HistorySet.HistorySet()
+data = DataObjects.HistorySet()
 data.messageHandler = mh
 data._readMoreXML(xml)
 rlz1 = {'a': np.array([1.0]),

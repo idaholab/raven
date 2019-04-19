@@ -22,7 +22,6 @@
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
-#if not 'xrange' in dir(__builtins__): xrange = range
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -33,8 +32,7 @@ from functools import reduce
 
 #Internal Modules------------------------------------------------------------------------------------
 from .Grid import Grid
-from utils import utils
-from utils import InputData
+from utils import utils,InputData,mathUtils
 import Distributions
 import Quadratures
 import OrthoPolynomials
@@ -231,7 +229,7 @@ class SparseGridCollocation(Grid):
       self.raiseAnError(IOError,'variables '+str(romVars)+' specified in ROM but not sampler! Collocation requires all vars in both.')
     for v in ROMdata.keys():
       if v not in self.axisName:
-        self.raiseAnError(IOError,'variable '+v+' given interpolation rules but '+v+' not in sampler!')
+        self.raiseAnError(IOError,'variable "{}" given interpolation rules but variable not in sampler!'.format(v))
       else:
         self.gridInfo[v] = ROMdata[v] #quad, poly, weight
     #set defaults, then replace them if they're asked for

@@ -65,16 +65,16 @@ class CrossValidation(PostProcessor):
 
     sciKitLearnInput.addSub(sklTypeInput)
 
-    for name, inputType in [("n",InputData.IntegerType),
-                            ("p",InputData.IntegerType),
+    for name, inputType in [("p",InputData.IntegerType),
                             ("n_splits",InputData.IntegerType),
-                            ("shuffle",InputData.StringType),
-                            ("random_state",InputData.StringType),
-                            ("y",InputData.StringType),
-                            ("labels",InputData.StringType),
-                            ("n_iter",InputData.IntegerType),
-                            ("test_size",InputData.StringType),
-                            ("train_size",InputData.StringType),
+                            ("shuffle",InputData.BoolType),
+                            ("random_state",InputData.IntegerType),
+                            ('max_train_size',InputData.IntegerType),
+                            ('test_fold', InputData.FloatListType),
+                            ("test_size",InputData.FloatOrIntType),
+                            ("train_size",InputData.FloatOrIntType),
+                            ('n_groups',InputData.IntegerType),
+                            ("labels",InputData.FloatListType),
                             ("scores",InputData.StringType)]:
       dataType = InputData.parameterInputFactory(name, contentType=inputType)
       sciKitLearnInput.addSub(dataType)
@@ -97,10 +97,6 @@ class CrossValidation(PostProcessor):
     self.cvScore        = None
     # assembler objects to be requested
     self.addAssemblerObject('Metric', 'n', True)
-    # The list of cross validation engine that require the parameter 'n'
-    # This will be removed if we updated the scikit-learn to version 0.20
-    # We will rely on the code to decide the value for the parameter 'n'
-    self.CVList = ['KFold', 'LeaveOneOut', 'LeavePOut', 'ShuffleSplit']
     #self.validMetrics = ['mean_absolute_error', 'explained_variance_score', 'r2_score', 'mean_squared_error', 'median_absolute_error']
     # 'median_absolute_error' is removed, the reasons for that are:
     # 1. this metric can not accept multiple ouptuts
@@ -122,7 +118,7 @@ class CrossValidation(PostProcessor):
       if metricIn[2] in self.metricsDict.keys():
         self.metricsDict[metricIn[2]] = metricIn[3]
 
-    if self.metricsDict.values().count(None) != 0:
+    if list(self.metricsDict.values()).count(None) != 0:
       metricName = self.metricsDict.keys()[list(self.metricsDict.values()).index(None)]
       self.raiseAnError(IOError, "Missing definition for Metric: ", metricName)
 
@@ -179,7 +175,7 @@ class CrossValidation(PostProcessor):
       if len(child.parameterValues) > 0:
         initDict[child.getName()] = dict(child.parameterValues)
       else:
-        initDict[child.getName()] = utils.tryParse(child.value)
+        initDict[child.getName()] = child.value
     return initDict
 
   def inputToInternal(self, currentInp, full = False):
@@ -300,17 +296,23 @@ class CrossValidation(PostProcessor):
       self.raiseAnError(IOError, "Not implemented yet")
     initDict = copy.deepcopy(self.initializationOptionDict)
     cvEngine = None
+    groups = None
     for key, value in initDict.items():
       if key == "SciKitLearn":
-        if value['SKLtype'] in self.CVList:
-          dataSize = np.asarray(inputDict.values()[0]).size
-          value['n'] = dataSize
+        groups = value.pop("labels",None)
         cvEngine = CrossValidations.returnInstance(key, self, **value)
         break
     if cvEngine is None:
       self.raiseAnError(IOError, "No cross validation engine is provided!")
     outputDict = {}
-    for trainIndex, testIndex in cvEngine.generateTrainTestIndices():
+    # In SciKit-Learn (version > 0.18), module model_selection is used to perform cross validation
+    # A wrapper in RAVEN is created, and the method .split is replaced with generateTrainTestIndices
+    # In the old version, 'labels' is used for the label-related cross validation. In the new versions
+    # Both keywords 'y' and 'groups' can be used to specify the labels. The keyword 'y' is mainly used by
+    # SciKit-Learn supervised learning problems, and 'groups' become additional option to specify the group
+    # labels that can be used while splitting the dataset into train/test set. For our purpose, only one
+    # label option is needed. ~ wangc
+    for trainIndex, testIndex in cvEngine.generateTrainTestIndices(list(inputDict.values())[0], y=groups, groups=groups):
       trainDict, testDict = self.__generateTrainTestInputs(inputDict, trainIndex, testIndex)
       ## Train the rom
       cvEstimator.train(trainDict)
@@ -319,10 +321,12 @@ class CrossValidation(PostProcessor):
       ## Compute the distance between ROM and given data using Metric system
       for targetName, targetValue in outputEvaluation.items():
         for metricInstance in self.metricsDict.values():
-          metricValue = metricInstance.distance(targetValue, testDict[targetName])
+          metricValue = metricInstance.evaluate(targetValue, testDict[targetName])
           if hasattr(metricInstance, 'metricType'):
-            if metricInstance.metricType not in self.validMetrics:
-              self.raiseAnError(IOError, "The metric type: ", metricInstance.metricType, " can not be used, the accepted metric types are: ", str(self.validMetrics))
+            if metricInstance.metricType[1] not in self.validMetrics:
+              self.raiseAnError(IOError, "The metric type: ", metricInstance.metricType[1], " can not be used, \
+                      the accepted metric types are: ", ",".join(self.validMetrics))
+            metricName = metricInstance.metricType[1]
           else:
             self.raiseAnError(IOError, "The metric: ", metricInstance.name, " can not be used, the accepted metric types are: ", str(self.validMetrics))
           varName = 'cv' + '_' + metricInstance.name + '_' + targetName
@@ -356,6 +360,6 @@ class CrossValidation(PostProcessor):
     if self.cvScore is not None:
       output.addRealization(outputDict)
     else:
-      cvIDs = {self.cvID: np.atleast_1d(range(len(outputDict.values()[0])))}
+      cvIDs = {self.cvID: np.atleast_1d(range(len(utils.first(outputDict.values()))))}
       outputDict.update(cvIDs)
       output.load(outputDict, style='dict')

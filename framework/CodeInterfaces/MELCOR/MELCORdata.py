@@ -26,10 +26,11 @@ warnings.simplefilter('default',DeprecationWarning)
 import os
 import re
 import copy
+import itertools
 import fileinput
 from BaseClasses import BaseType
 from CodeInterfaceBaseClass import CodeInterfaceBase                                      
-import melcorCombinedInterface                                     
+import melcorCombinedInterface
 
 class MELCORdata():
   """

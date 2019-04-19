@@ -7,6 +7,9 @@
     <description>
       Tests the Raven-running-Raven interface to assure correct operation with optimizer pass-back.
     </description>
+    <revisions>
+      <revision author='talbpaul' date='2018-10-23'>limited outputs checked to just the solution</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
@@ -79,8 +82,7 @@
       <Output>reg</Output>
     </PointSet>
     <PointSet name="opt_export">
-      <Input>trajID</Input>
-      <Output>center,reg,varsUpdate</Output>
+      <Output>reg</Output>
     </PointSet>
   </DataObjects>
 

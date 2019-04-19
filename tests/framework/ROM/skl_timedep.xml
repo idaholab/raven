@@ -26,7 +26,7 @@
     </MultiRun>
     <MultiRun name="resample">
       <Input class="DataObjects" type="PointSet">placeholder</Input>
-      <Model class="Models" type="ExternalModel">knn</Model>
+      <Model class="Models" type="ROM">knn</Model>
       <Sampler class="Samplers" type="Grid">grid</Sampler>
       <Output class="DataObjects" type="PointSet">innerPS</Output>
       <Output class="DataObjects" type="HistorySet">innerHS</Output>
@@ -77,12 +77,14 @@
     <ROM name="knn" subType="SciKitLearn">
       <Features>v0,y0,ang</Features>
       <Target>x,y,time</Target>
+      <pivotParameter>time</pivotParameter>
       <SKLtype>neighbors|KNeighborsRegressor</SKLtype>
       <n_neighbors>1</n_neighbors>
     </ROM>
     <ROM name="rom" subType="SciKitLearn">
       <Features>v0,y0,ang</Features>
       <Target>x,y,time</Target>
+      <pivotParameter>time</pivotParameter>
       <SKLtype>svm|SVR</SKLtype>
       <kernel>linear</kernel>
       <C>10.0</C>

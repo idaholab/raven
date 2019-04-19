@@ -1,0 +1,101 @@
+\subsection{Installing RAVEN}
+\label{sec:clone raven}
+
+Once the RAVEN dependencies have been installed  and conda is present
+(see section \ref{sec:install overview}), the rest of RAVEN can be installed.
+
+The installation of RAVEN involves the following steps:
+\begin{itemize}
+  \item Obtain the source code,
+  \item Install the prerequisite Python libraries using conda,
+  \item Compile
+\end{itemize}
+
+
+
+
+\subsubsection{Obtaining RAVEN Source Code}
+RAVEN is hosted publicly as a \texttt{Git} repo on \texttt{GitHub}
+and can be viewed at \url{https://github.com/idaholab/raven/wiki}.
+In the event that access to \texttt{GitHub} is impossible, contact the user list and other arrangements may be
+possible.  In general, however, using the git repository assures the most consistent usage and update process.
+
+To clone RAVEN, navigate in a terminal to the desired destination, for example \texttt{~/projects}.  Then run
+the commands
+\begin{lstlisting}[language=bash]
+git clone https://github.com/idaholab/raven.git
+cd raven
+git submodule update --init
+\end{lstlisting}
+This will obtain RAVEN as well as other submodules that RAVEN uses.  In the future, whenever we declare a path
+starting with \texttt{raven/}, we refer to the cloned directory.
+
+
+
+
+\subsubsection{Installing Python Libraries}
+RAVEN depends heavily on Python, and uses conda to maintain a separate environment to prevent conflicts with
+other Python library installations.  This separate environment is called \texttt{raven\_libraries}.
+
+In order to establish this environment, navigate to \texttt{raven}, then
+\begin{lstlisting}[language=bash]
+cd scripts
+./establish_conda_env.sh --install
+\end{lstlisting}
+Assure that there are no errors in this process, then continue to compiling RAVEN.
+
+\nb If \texttt{conda} is not installed in the default location, then the path to the conda definitions
+needs to be provided, for example
+\begin{lstlisting}[language=bash]
+cd scripts
+./establish_conda_env.sh --install --conda-defs /path/to/miniconda3/etc/profile.d/conda.sh
+\end{lstlisting}
+replacing \texttt{/path/to} with the install path for \texttt{conda}.
+
+
+
+
+\subsubsection{Compiling RAVEN}
+Once Python libraries are established and the source code present, navigate to \texttt{raven} and run
+\begin{lstlisting}[language=bash]
+./build_raven
+\end{lstlisting}
+This will compile several dependent libraries.  This step has the highest potential for revealing problems in
+the operating system setup, particularly for Windows.  See troubleshooting on the \wiki for help sorting out
+difficulties.
+
+
+
+
+\subsubsection{Testing RAVEN}
+\label{sec:testing raven}
+To test the installation of RAVEN, navigate to \texttt{raven}, then run the command
+\begin{lstlisting}[language=bash]
+./run_tests -j2
+\end{lstlisting}
+where \texttt{-j2} signifies running with 2 processors.  If more processors are available, this can be
+increased, but using all or more than all of the available processes can slow down the testing dramatically.
+This command runs RAVEN's regression tests, analytic tests, and unit tests.  The number of tests changes
+frequently as the code's needs change, and the time taken to run the tests depends strongly on the number of
+processors and processor speed.
+
+At the end of the tests, a number passed, skipped, and failing will be reported.  Having some skipped tests is
+expected; RAVEN has many tests that apply only to particular configurations or codes that are not present on
+all machines.  However, no tests should fail; if there are problems, consult the troubleshooting section on
+the \wiki.
+
+
+\subsubsection{Updating RAVEN}
+RAVEN updates frequently, and new features are added while bugs are fixed on a regular basis.  To update
+RAVEN, navigate to \texttt{raven}, then run the commands
+\begin{lstlisting}[language=bash]
+git pull
+./scripts/establish_conda_env.sh --install
+./build_raven
+\end{lstlisting}
+
+
+\subsubsection{In-use Testing}
+
+At any time, tests can be checked by re-running the installation tests as
+described in Section \ref{sec:testing raven}.

@@ -1,0 +1,18 @@
+[Tests]
+ [./ordered_csv]
+  type = 'RavenPython'
+  input = 'test_ordered_csv.py'
+ [../]
+
+ [./simple_exec]
+  type = 'GenericExecutable'
+  executable = 'python'
+  parameters = '-c "print(1)"'
+ [../]
+
+ [./lots_of_useless_output]
+  type = 'GenericExecutable'
+  executable = 'python'
+  parameters = 'lots_of_output.py'
+ [../]
+[]

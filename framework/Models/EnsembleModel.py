@@ -24,6 +24,7 @@ warnings.simplefilter('default',DeprecationWarning)
 import copy
 import numpy as np
 import time
+import itertools
 from collections import OrderedDict
 #External Modules End--------------------------------------------------------------------------------
 
@@ -119,7 +120,7 @@ class EnsembleModel(Dummy):
               self.modelsDictionary[modelName][childChild.tag] = childChild.text.strip()
             except KeyError:
               self.raiseAnError(IOError, 'The role '+str(childChild.tag) +" can not be used in the EnsebleModel. Check the manual for allowable nodes!")
-        if self.modelsDictionary[modelName].values().count(None) != 1:
+        if list(self.modelsDictionary[modelName].values()).count(None) != 1:
           self.raiseAnError(IOError, "TargetEvaluation xml block needs to be inputted!")
         if len(self.modelsDictionary[modelName]['Input']) == 0:
           self.raiseAnError(IOError, "Input XML node for Model" + modelName +" has not been inputted!")
@@ -300,13 +301,6 @@ class EnsembleModel(Dummy):
     # construct the ensemble model directed graph
     self.ensembleModelGraph = graphStructure.graphObject(modelsToOutputModels)
     # make some checks
-    # FIXME: the following check is too tight, even if the models are connected, the
-    # code may still raise an error. I think in really, we do not need to raise an error,
-    # maybe a warning is enough. For example:
-    #   a -> b -> c
-    #        ^
-    #        |
-    #   e -> d -> f
     if not self.ensembleModelGraph.isConnectedNet():
       isolatedModels = self.ensembleModelGraph.findIsolatedVertices()
       self.raiseAnError(IOError, "Some models are not connected. Possible candidates are: "+' '.join(isolatedModels))
@@ -399,7 +393,7 @@ class EnsembleModel(Dummy):
     """
     # check if all the inputs of the submodule are covered by the sampled vars and Outputs of the other sub-models
     if self.needToCheckInputs:
-      allCoveredVariables = list(set(self.allOutputs + kwargs['SampledVars'].keys()))
+      allCoveredVariables = list(set(itertools.chain(self.allOutputs,kwargs['SampledVars'].keys())))
 
     identifier = kwargs['prefix']
     # global prefix
@@ -486,7 +480,7 @@ class EnsembleModel(Dummy):
         a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
       @ Out, returnValue, dict, This holds the output information of the evaluated sample.
     """
-    kwargsKeys = kwargs.keys()
+    kwargsKeys = list(kwargs.keys())
     kwargsKeys.pop(kwargsKeys.index("jobHandler"))
     kwargsToKeep = { keepKey: kwargs[keepKey] for keepKey in kwargsKeys}
     jobHandler = kwargs['jobHandler']
@@ -561,7 +555,8 @@ class EnsembleModel(Dummy):
     for modelIn in self.orderList:
       # reset the DataObject for the projection
       self.localTargetEvaluations[modelIn].reset()
-      inRunTargetEvaluations[modelIn] = copy.copy(self.localTargetEvaluations[modelIn])
+      # deepcopy assures distinct copies
+      inRunTargetEvaluations[modelIn] = copy.deepcopy(self.localTargetEvaluations[modelIn])
     residueContainer = dict.fromkeys(self.modelsDictionary.keys())
     gotOutputs       = [{}]*len(self.orderList)
     typeOutputs      = ['']*len(self.orderList)
@@ -592,9 +587,13 @@ class EnsembleModel(Dummy):
           metadataToTransfer = {}
         for metadataToGet, source, alias in self.modelsDictionary[modelIn]['metadataToTransfer']:
           if metadataToGet in returnDict[source]['general_metadata']:
-            metadataToTransfer[metadataToGet if alias is None else alias] = returnDict[source]['general_metadata'][metadataToGet]
-          elif metadataToGet in returnDict[source]['general_metadata']:
-            metadataToTransfer[metadataToGet if alias is None else alias] = returnDict[source]['response'][metadataToGet]
+            metaDataValue = returnDict[source]['general_metadata'][metadataToGet]
+            metaDataValue = metaDataValue[0] if len(metaDataValue) == 1 else metaDataValue
+            metadataToTransfer[metadataToGet if alias is None else alias] = metaDataValue
+          elif metadataToGet in returnDict[source]['response']:
+            metaDataValue = returnDict[source]['response'][metadataToGet]
+            metaDataValue = metaDataValue[0] if len(metaDataValue) == 1 else metaDataValue
+            metadataToTransfer[metadataToGet if alias is None else alias] = metaDataValue
           else:
             self.raiseAnError(RuntimeError,'metadata "'+metadataToGet+'" is not present among the ones available in source "'+source+'"!')
         # get dependent outputs
@@ -602,7 +601,7 @@ class EnsembleModel(Dummy):
         # if nonlinear system, check for initial coditions
         if iterationCount == 1  and self.activatePicard:
           sampledVars = inputKwargs[modelIn]['SampledVars'].keys()
-          conditionsToCheck = set(self.modelsDictionary[modelIn]['Input']) - set(dependentOutput.keys()+sampledVars)
+          conditionsToCheck = set(self.modelsDictionary[modelIn]['Input']) - set(itertools.chain(dependentOutput.keys(),sampledVars))
           for initialConditionToSet in conditionsToCheck:
             if initialConditionToSet in self.initialConditions.keys():
               dependentOutput[initialConditionToSet] = self.initialConditions[initialConditionToSet]
@@ -681,7 +680,7 @@ class EnsembleModel(Dummy):
                 residueContainer[modelIn]['iterValues'][1][out] = np.zeros(len(residueContainer[modelIn]['iterValues'][0][out]))
             for out in gotOutputs[modelCnt].keys():
               residueContainer[modelIn]['residue'][out] = abs(np.asarray(residueContainer[modelIn]['iterValues'][0][out]) - np.asarray(residueContainer[modelIn]['iterValues'][1][out]))
-            residueContainer[modelIn]['Norm'] =  np.linalg.norm(np.asarray(residueContainer[modelIn]['iterValues'][1].values())-np.asarray(residueContainer[modelIn]['iterValues'][0].values()))
+            residueContainer[modelIn]['Norm'] =  np.linalg.norm(np.asarray(list(residueContainer[modelIn]['iterValues'][1].values()))-np.asarray(list(residueContainer[modelIn]['iterValues'][0].values())))
 
       # if nonlinear system, check the total residue and convergence
       if self.activatePicard:

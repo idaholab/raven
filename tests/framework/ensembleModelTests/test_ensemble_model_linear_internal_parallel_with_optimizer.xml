@@ -65,6 +65,7 @@
         <limit>100</limit>
         <type>min</type>
         <initialSeed>30</initialSeed>
+        <writeSteps>final</writeSteps>
       </initialization>
       <TargetEvaluation class="DataObjects" type="PointSet">optOutput</TargetEvaluation>
       <convergence>
@@ -111,9 +112,8 @@
       <Output class="OutStreams" type="Plot">metaModelOutputTestSolution</Output>
       <Output class="OutStreams" type="Plot">metaModelOutputTestK</Output>
       <Output class="OutStreams" type="Print">optimizationHistoryDump</Output>
-      <Output class="OutStreams" type="Print">mdlDataDump</Output>
+      <Output class="OutStreams" type="Print">optSolution</Output>
       <Output class="OutStreams" type="Plot">optPath</Output>
-      <Output class="OutStreams" type="Plot">plotIteration</Output>
     </IOStep>
   </Steps>
 
@@ -138,10 +138,9 @@
       <source>optData</source>
       <clusterLabel>trajID</clusterLabel>
     </Print>
-    <Print name="mdlDataDump">
+    <Print name="optSolution">
       <type>csv</type>
-      <source>optOutput</source>
-      <what>input,output</what>
+      <source>optData</source>
     </Print>
     <Plot name="optPath" overwrite="false" verbosity="debug">
       <actions>
@@ -157,47 +156,6 @@
         <xlabel>leftTemperature</xlabel>
         <ylabel>rightTemperature</ylabel>
         <zlabel>Loss Function</zlabel>
-      </plotSettings>
-    </Plot>
-    <Plot name="plotIteration" overwrite="false" verbosity="debug">
-      <actions>
-        <how>pdf</how>
-      </actions>
-      <plotSettings>
-        <gridSpace>3 1</gridSpace>
-        <plot>
-          <type>line</type>
-          <x>optData|Output|varsUpdate</x>
-          <y>optData|Output|leftTemperature</y>
-          <interpPointsX>300</interpPointsX>
-          <gridLocation>
-            <x>0</x>
-            <y>0</y>
-          </gridLocation>
-          <ylabel>x1</ylabel>
-        </plot>
-        <plot>
-          <type>line</type>
-          <x>optData|Output|varsUpdate</x>
-          <y>optData|Output|rightTemperature</y>
-          <interpPointsX>300</interpPointsX>
-          <gridLocation>
-            <x>1</x>
-            <y>0</y>
-          </gridLocation>
-          <ylabel>2</ylabel>
-        </plot>
-        <plot>
-          <type>line</type>
-          <x>optData|Output|varsUpdate</x>
-          <y>optData|Output|solution</y>
-          <interpPointsX>300</interpPointsX>
-          <gridLocation>
-            <x>2</x>
-            <y>0</y>
-          </gridLocation>
-          <ylabel>c</ylabel>
-        </plot>
       </plotSettings>
     </Plot>
     <Plot name="metaModelOutputTestSolution" overwrite="false" verbosity="debug">
@@ -281,7 +239,7 @@
     </PointSet>
     <PointSet name="optData">
       <Input>trajID</Input>
-      <Output>solution,rightTemperature,leftTemperature,varsUpdate</Output>
+      <Output>solution,leftTemperature,rightTemperature</Output>
     </PointSet>
   </DataObjects>
 

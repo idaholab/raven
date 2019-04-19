@@ -24,8 +24,10 @@ import sys
 import copy
 import functools
 import itertools
-import __builtin__
-import cPickle as pk
+try:
+  import cPickle as pk
+except ImportError:
+  import pickle as pk
 import xml.etree.ElementTree as ET
 
 import abc
@@ -34,7 +36,6 @@ import pandas as pd
 import xarray as xr
 
 from BaseClasses import BaseType
-from Files import StaticXMLOutput
 from utils import utils, cached_ndarray, InputData, xmlUtils, mathUtils
 try:
   from .DataSet import DataSet
@@ -43,8 +44,9 @@ except ValueError: #attempted relative import in non-package
 
 # for profiling with kernprof
 try:
+  import __builtin__
   profile = __builtin__.profile
-except AttributeError:
+except (AttributeError,ImportError):
   # profiler not preset, so pass through
   def profile(func):
     """
@@ -185,7 +187,7 @@ class HistorySet(DataSet):
       if var in self.protectedTags:
         continue
       # only modify it if it is not already scalar
-      if not mathUtils.isSingleValued(val):
+      if not utils.isSingleValued(val):
         # treat inputs, outputs differently TODO this should extend to per-variable someday
         ## inputs
         if var in self._inputs:

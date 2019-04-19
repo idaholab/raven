@@ -20,8 +20,6 @@ Created on Nov 14, 2013
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
-if not 'xrange' in dir(__builtins__):
-  xrange = range
 #End compatibility block for Python 3-------------------------------------------
 
 #External Modules---------------------------------------------------------------
@@ -162,4 +160,4 @@ class OutStreamManager(BaseType):
           self.sourceData.append(inDict['SolutionExport'])
           foundData = True
       if not foundData:
-        self.raiseAnError(IOError, 'the Data named ' + self.sourceName[agrosindex] + ' has not been found!!!!')
+        self.raiseAnError(IOError, 'the DataObject "{data}" was not found among the "<Input>" nodes for this step!'.format(data = self.sourceName[agrosindex]))

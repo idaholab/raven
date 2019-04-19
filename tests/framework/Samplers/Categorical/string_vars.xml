@@ -1,3 +1,4 @@
+<?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
     <name>framework/Samplers/Categorical.Strings</name>
@@ -7,11 +8,14 @@
     <description>
       Tests the ability to use the Categorical distribution along with Functions to
       essentially sample strings for variables.  The model run is a simple projectile
-      motion problem that can be run in either "stepper" or "analytic" mode.  The output
-      of the model is "height" as a time-dependent variable.  The analytic mode is exact,
+      motion problem that can be run in either ``stepper''; or ``analytic'' mode.  The output
+      of the model is ``height''; as a time-dependent variable.  The analytic mode is exact,
       but the stepper mode is intentionally chosen to be a poor approximation (too few steps
       taken).
     </description>
+    <revisions>
+        <revision author="alfoa" date="2019-03-07">Modified syntax in Functions as for issue #934</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
@@ -50,15 +54,15 @@
     <Grid name="grid">
       <variable name="v0">
         <distribution>v0_dist</distribution>
-        <grid construction="equal" type="CDF" steps="1">0 1</grid>
+        <grid construction="equal" steps="1" type="CDF">0 1</grid>
       </variable>
       <variable name="y0">
         <distribution>y0_dist</distribution>
-        <grid construction="equal" type="CDF" steps="1">0 1</grid>
+        <grid construction="equal" steps="1" type="CDF">0 1</grid>
       </variable>
       <variable name="modeID">
         <distribution>mode_dist</distribution>
-        <grid construction="equal" type="CDF" steps="1">0 1</grid>
+        <grid construction="equal" steps="1" type="CDF">0 1</grid>
       </variable>
       <variable name="mode">
         <function>modeFunc</function>
@@ -75,20 +79,20 @@
       <lowerBound>0</lowerBound>
       <upperBound>2</upperBound>
     </Uniform>
-    <Categorical name='mode_dist'>
-      <state outcome='0'>0.5</state>
-      <state outcome='1'>0.5</state>
+    <Categorical name="mode_dist">
+      <state outcome="0">0.5</state>
+      <state outcome="1">0.5</state>
     </Categorical>
   </Distributions>
 
   <Functions>
     <External file="mode_picker.py" name="modeFunc">
-      <variable>modeID</variable>
+      <variables>modeID</variables>
     </External>
   </Functions>
 
   <Models>
-    <ExternalModel name="projectile" ModuleToLoad="proj_first" subType="">
+    <ExternalModel ModuleToLoad="proj_first" name="projectile" subType="">
       <variables>v0,y0,mode,y,t,restartID</variables>
     </ExternalModel>
   </Models>
@@ -100,4 +104,5 @@
       <what>input,output</what>
     </Print>
   </OutStreams>
+
 </Simulation>

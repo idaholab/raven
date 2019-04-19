@@ -1,0 +1,21 @@
+\subsection{Linux Ubuntu Installation}
+\label{sec:install ubunutu}
+The following instructions are for installing RAVEN on a Linux machine running Ubuntu 16.04 or greater.  Some
+explanations of alternatives for other Linux distributions may be provided on the \wiki.
+
+To install the prerequisite packages, the following terminal command should be executed (note this requires
+administrative privileges):
+
+\begin{lstlisting}[language=bash]
+ sudo apt-get install libtool git python3-dev swig g++
+\end{lstlisting}
+
+\paragraph{Optional LateX installation}
+Optionally, if you want to be able to edit and rebuild the manuals, you can
+install \TeX~Live and its related packages:
+\begin{lstlisting}[language=bash]
+  sudo apt-get install texlive-latex-base \
+  texlive-extra-utils texlive-latex-extra texlive-math-extra
+\end{lstlisting}
+
+Once the above are installed, proceed with installing conda (see section \ref{sec:install conda}).

@@ -19,14 +19,20 @@
       data taken from the analytic bateman model, and demonstrates a typical workflow for using
       the PostProcess step.
     </description>
+    <revisions>
+      <revision author="wangc" date="2018-12-18">
+          In PR #882, the standard errors on statistics moments are implemented, these quantities are stored in
+          the pointwise metadata, and will be printed out in the output csv files by default.
+          In order to avoid regolding this test, the optional node 'what' with text values 'input, output' is added.
+          In this case, only the user requested variables as specified in the DataObjects are printed out. 
+      </revision>
+    </revisions>
   </TestInfo>
 
   <Files>
     <Input name="referenceInput.xml" type="input">
         ../commonFiles/referenceInput_generic_CI.xml
     </Input>
-    <Input name="output_1" type="">static.xml</Input>
-    <Input name="output_2" type="">time.xml</Input>
   </Files>
 
   <Models>
@@ -169,10 +175,12 @@
     <Print name="statisticalAnalysis_basicStatPP_dump">
       <type>csv</type>
       <source>statisticalAnalysis_basicStatPP</source>
+      <what>input,output</what>
     </Print>
     <Print name="statisticalAnalysis_basicStatPP_time_dump">
       <type>csv</type>
       <source>statisticalAnalysis_basicStatPP_time</source>
+      <what>input,output</what>
     </Print>
   </OutStreams>
 

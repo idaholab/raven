@@ -1,4 +1,4 @@
-decay_heat,time,decay_heat_pu
+decay_heat,t,decay_heat_pu
 2461.203,0,0.00820401
 786.907,0.01,0.002623023
 653.188,0.02,0.002177293
