@@ -320,7 +320,7 @@ if __name__ == '__main__':
     __condaList[pythonIndex] = ("python", "3")
     __condaForgeList = [("pyside2", ""),]
   else:
-    __condaList.remove(("tensorflow", __lookup_preferred_version("tensorflow")))
+    __condaList.remove(("tensorflow", "1.12.0"))
 
   # check for environemnt definition of raven libs
   libName = os.getenv('RAVEN_LIBS_NAME', 'raven_libraries')
