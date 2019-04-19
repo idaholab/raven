@@ -32,7 +32,7 @@ import pandas as pd
 # find location of crow, message handler
 frameworkDir = os.path.abspath(os.path.join(*([os.path.dirname(__file__)]+[os.pardir]*4+['framework'])))
 sys.path.append(frameworkDir)
-
+from utils import randomUtils
 from utils.utils import find_crow
 find_crow(frameworkDir)
 import MessageHandler
@@ -451,22 +451,43 @@ arma.amITrained=True
 #print(testval.sigma2)
 signal=arma._generateARMASignal(testval, randEngine=None)
 print(signal)
+signal=arma._generateARMASignal(testval, randEngine=None)
+print(signal)
+signal=arma._generateARMASignal(testval, randEngine=None)
+print(signal)
+signal=arma._generateARMASignal(testval, randEngine=None)
+print(signal)
+signal=arma._generateARMASignal(testval, randEngine=None)
+print(signal)
 
 print(results)
 ##
 #seedp=pk.dumps(arma)
-
+#arma.reseedCopies=True
 
 ###reseed
-arma.reseedCopies=False
+signal=arma._generateARMASignal(testval, randEngine=None)
+print(signal)
+signal=arma._generateARMASignal(testval, randEngine=None)
+print(signal)
+signal=arma._generateARMASignal(testval, randEngine=None)
+print(signal)
+signal=arma._generateARMASignal(testval, randEngine=None)
+print(signal)
+signal=arma._generateARMASignal(testval, randEngine=None)
+print(signal)
+
+
+
+#pk.dumps(randomUtils.newRNG())
 dd=arma.__getstate__()
 aa=arma.__setstate__(dd)
 #print(dd)
 
 #dd=SupervisedLearning.supervisedLearning().__dict__()
-print(dd)
+#print(dd)
 
-seedp=pk.dumps(arma)
+#seedp=pk.dumps(arma)
 
 #print(dd)
 

@@ -108,7 +108,7 @@ class ARMA(supervisedLearning):
     self.normEngine.lowerBoundUsed = False
     self.normEngine.initializeDistribution()
     self.randomEng=randomUtils.newRNG()
-
+    #self.randomEng=self.randomEngine()
     # FIXME set the numpy seed
       ## we have to do this because VARMA.simulate does not accept a random number generator,
       ## but instead uses numpy directly.  As a result, for now, we have to seed numpy.
@@ -201,6 +201,11 @@ class ARMA(supervisedLearning):
       @ Out, d, dict, stateful dictionary
     """
     d = supervisedLearning.__getstate__(self)
+    """
+    if self.reseedCopies:
+      rand = d.pop("randomEng",None)
+      d['random eng'] = rand
+    """
     #d = copy.copy(self.__dict__)
     # set up a seed for the next pickled iteration
     return d
@@ -1143,4 +1148,5 @@ class ARMA(supervisedLearning):
       Currently not implemented for ARMA
     """
     pass
-
+  #def randomEngine(self):
+  #  randomUtils.newRNG()

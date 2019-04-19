@@ -129,7 +129,7 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     state['initOptionDict'].pop('paramInput',None)
     ## capture what is normally pickled
     if not self.amITrained:
-      supervisedEngineObj = state.pop("supervisedContainer")
+      supervisedEngineObj = state.pop("supervisedContainer",None)
       del supervisedEngineObj
     return state
 
