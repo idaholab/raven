@@ -43,7 +43,6 @@ class MELCORdata():
       @ In, None
       @ Out, None
     """
-#    self.melcorInterface = MelcorApp()
     self.VarSrch = melcorCombinedInterface.MelcorApp.VarList
     self.MELCORPlotFile = melcorCombinedInterface.MelcorApp.MelcorPlotFile
 
