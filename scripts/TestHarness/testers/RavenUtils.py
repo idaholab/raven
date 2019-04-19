@@ -47,7 +47,7 @@ def in_python_3():
 modules_to_try = [("h5py", 'h5py.__version__', '2.4.0', '2.7.1', None), # 2.6.0
                   # numpy >=1.13.3 is required for tensorflow
                   # FIXME: numpy=1.13.3 with tensorflow library with cause a lot of tests timeout
-                  ("numpy", 'numpy.__version__', "1.14.0", "1.15.4", None),
+                  ("numpy", 'numpy.__version__', "1.14.0", "1.14.0", None),
                   ("scipy", 'scipy.__version__', "1.1.0", "1.1.0", None),
                   ("sklearn", 'sklearn.__version__', "0.19.1", "0.19.1", None),
                   ("pandas", 'pandas.__version__', "0.20.0", "0.20.3", None),
