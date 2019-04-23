@@ -201,23 +201,42 @@ class ARMA(supervisedLearning):
       @ Out, d, dict, stateful dictionary
     """
     d = supervisedLearning.__getstate__(self)
+    #d = copy.copy(self.__dict__)
+    eng=d.pop("randomEng")
+    seed = eng.get_rng_seed()
+    counts = eng.get_rng_state()
+    d['crow_rng_seed'] = seed
+    d['crow_rng_counts'] = counts
+    return d
     """
     if self.reseedCopies:
       rand = d.pop("randomEng",None)
       d['random eng'] = rand
-    """
+
     #d = copy.copy(self.__dict__)
     # set up a seed for the next pickled iteration
     return d
-
+ """
   def __setstate__(self,d):
     """
       Sets state of object from pickling.
       @ In, d, dict, stateful dictionary
       @ Out, None
     """
-    supervisedLearning.__setstate__(self, d)
+    #supervisedLearning.__setstate__(self, d)
+    seed = d.pop('crow_rng_seed')
 
+    counts = d.pop('crow_rng_counts')
+    self.randomEng = randomUtils.newRNG()
+    self.__dict__.update(d)
+    if self.reseedCopies:
+      seed = np.random.randint(1,200000000)
+      randomUtils.seed(seed, engine=self.randomEng)
+    else:
+      randomUtils.seed(seed, self.randomEng)
+      self.randomEng.forward_seed(counts)
+
+    '''
     #seed = d.pop('random seed',None)
     if self.reseedCopies:
       rand = np.random.randint(1,2**20)
@@ -230,7 +249,7 @@ class ARMA(supervisedLearning):
     self.raiseADebug('Setting ARMA seed to',self.seed)
     #np.random.seed(self.seed)
     randomUtils.randomSeed(self.seed,engine=self.randomEng)
-
+'''
   def __trainLocal__(self,featureVals,targetVals):
     """
       Perform training on input database stored in featureVals.

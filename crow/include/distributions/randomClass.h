@@ -26,11 +26,16 @@ class RandomClassImpl;
 class RandomClass {
   RandomClassImpl *_rng;
   const double _range;
+  unsigned int _counter;
+  unsigned int _seed;
 public:
   RandomClass();
   ~RandomClass();
   void seed(unsigned int seed);
   double random();
+  int get_rng_state();
+  int forward_seed(unsigned int counts);
+  int get_rng_seed();
 };
 
 #endif /* RANDOMCLASS_H */
