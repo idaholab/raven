@@ -203,20 +203,12 @@ class ARMA(supervisedLearning):
     d = supervisedLearning.__getstate__(self)
     #d = copy.copy(self.__dict__)
     eng=d.pop("randomEng")
-    seed = eng.get_rng_seed()
-    counts = eng.get_rng_state()
-    d['crow_rng_seed'] = seed
-    d['crow_rng_counts'] = counts
+    randseed = eng.get_rng_seed()
+    randcounts = eng.get_rng_state()
+    d['crow_rng_seed'] = randseed
+    d['crow_rng_counts'] = randcounts
     return d
-    """
-    if self.reseedCopies:
-      rand = d.pop("randomEng",None)
-      d['random eng'] = rand
 
-    #d = copy.copy(self.__dict__)
-    # set up a seed for the next pickled iteration
-    return d
- """
   def __setstate__(self,d):
     """
       Sets state of object from pickling.
@@ -224,32 +216,18 @@ class ARMA(supervisedLearning):
       @ Out, None
     """
     #supervisedLearning.__setstate__(self, d)
-    seed = d.pop('crow_rng_seed')
+    rngseed = d.pop('crow_rng_seed')
 
-    counts = d.pop('crow_rng_counts')
+    rngcounts = d.pop('crow_rng_counts')
     self.randomEng = randomUtils.newRNG()
     self.__dict__.update(d)
     if self.reseedCopies:
-      seed = np.random.randint(1,200000000)
-      randomUtils.seed(seed, engine=self.randomEng)
+      randd = np.random.randint(1,200000000)
+      self.reseed(randd)
     else:
-      randomUtils.seed(seed, self.randomEng)
-      self.randomEng.forward_seed(counts)
+      randomUtils.randomSeed(rngseed, engine=self.randomEng)
+      self.randomEng.forward_seed(rngcounts)
 
-    '''
-    #seed = d.pop('random seed',None)
-    if self.reseedCopies:
-      rand = np.random.randint(1,2**20)
-      #d['random seed'] = rand
-      self.reseed(rand)
-    #if seed is not None:
-
-    #self.__dict__ = d
-    # set VARMA numpy seed
-    self.raiseADebug('Setting ARMA seed to',self.seed)
-    #np.random.seed(self.seed)
-    randomUtils.randomSeed(self.seed,engine=self.randomEng)
-'''
   def __trainLocal__(self,featureVals,targetVals):
     """
       Perform training on input database stored in featureVals.
@@ -512,7 +490,8 @@ class ARMA(supervisedLearning):
       @ In, seed, int, new seed to use
       @ Out, None
     """
-    randomUtils.randomSeed(seed)
+    print(randomUtils.randomSeed)
+    randomUtils.randomSeed(seed,engine=self.randomEng)
 
   ### UTILITY METHODS ###
   def _computeNumberOfBins(self,data):
