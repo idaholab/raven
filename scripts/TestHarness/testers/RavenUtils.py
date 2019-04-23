@@ -61,14 +61,14 @@ modules_to_try = [("h5py", 'h5py.__version__', '2.4.0', '2.7.1', None), # 2.6.0
                   # until we transition from
                   # HDF5 databases and drop them like hot rocks.
                   ("netCDF4", 'netCDF4.__version__', "1.2.3", "1.4.0", None), # 1.2.4
-                  # On Windows conda, there are no Python 2.7-compatible
-                  ## versions of TensorFlow, although
-                  ## these exist on Mac and Linux condas.  Darn.
-                  ("tensorflow", 'tensorflow.__version__', "1.12.0", "1.12.0", None),
                   ("statsmodels", 'statsmodels.__version__', "0.8.0", "0.8.0", None),
                   ("matplotlib", 'matplotlib.__version__', "1.3.1", "2.1.1", None)]
 
-optional_test_libraries = [('pillow', 'PIL.__version__', "5.0.0", "5.1.0", None)]
+optional_test_libraries = [('pillow', 'PIL.__version__', "5.0.0", "5.1.0", None),
+                           # On Windows conda, there are no Python 2.7-compatible
+                           ## versions of TensorFlow, although
+                           ## these exist on Mac and Linux condas.  Darn.
+                           ("tensorflow", 'tensorflow.__version__', "1.12.0", "1.12.0", None)]
 
 def __lookup_preferred_version(name, optional=False):
   """
@@ -91,7 +91,7 @@ __condaList = [("h5py", __lookup_preferred_version("h5py")),
                ("netcdf4", __lookup_preferred_version("netCDF4")),
                ("matplotlib", __lookup_preferred_version("matplotlib")),
                ("statsmodels", __lookup_preferred_version("statsmodels")),
-               ("tensorflow", __lookup_preferred_version("tensorflow")),
+               ("tensorflow", __lookup_preferred_version("tensorflow", optional=True)),
                ("python", "2.7"),
                ("hdf5", "1.8.18"),
                ("swig", ""),
@@ -297,9 +297,8 @@ def parse_conda_for_os(libs, op_sys):
     pass # nothing special to do currently
   elif op_sys == 'linux':
     # add noMKL libraries to prevent Intel crash errors
-    #libs.append(('nomkl', ''))
-    #libs.append(('numexpr', ''))
-    pass
+    libs.append(('nomkl', ''))
+    libs.append(('numexpr', ''))
   return libs
 
 
@@ -321,10 +320,7 @@ if __name__ == '__main__':
     __condaList[pythonIndex] = ("python", "3")
     __condaForgeList = [("pyside2", ""),]
   else:
-    __condaList.remove(("tensorflow", __lookup_preferred_version("tensorflow")))
-    if op_sys_arg == 'linux':
-      __condaList.append(("nomkl", ''))
-      __condaList.append(("numexpr", ''))
+    __condaList.remove(("tensorflow", __lookup_preferred_version("tensorflow", optional=True)))
 
   # check for environemnt definition of raven libs
   libName = os.getenv('RAVEN_LIBS_NAME', 'raven_libraries')
