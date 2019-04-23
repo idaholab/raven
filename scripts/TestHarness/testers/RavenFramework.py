@@ -162,12 +162,12 @@ class RavenFramework(Tester):
     # remove tests based on skipping criteria
     ## required module is missing
     if len(missing) > 0:
-      self.set_skip('skipped (Missing python modules: '+" ".join(missing)+
+      self.set_fail('skipped (Missing python modules: '+" ".join(missing)+
                     " PYTHONPATH="+os.environ.get("PYTHONPATH", "")+')')
       return False
     ## required module is present, but too old
     if len(too_old) > 0  and RavenUtils.check_versions():
-      self.set_skip('skipped (Old version python modules: '+" ".join(too_old)+
+      self.set_fail('skipped (Old version python modules: '+" ".join(too_old)+
                     " PYTHONPATH="+os.environ.get("PYTHONPATH", "")+')')
       return False
     ## an environment varible value causes a skip
