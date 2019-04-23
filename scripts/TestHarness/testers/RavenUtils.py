@@ -297,8 +297,9 @@ def parse_conda_for_os(libs, op_sys):
     pass # nothing special to do currently
   elif op_sys == 'linux':
     # add noMKL libraries to prevent Intel crash errors
-    libs.append(('nomkl', ''))
-    libs.append(('numexpr', ''))
+    #libs.append(('nomkl', ''))
+    #libs.append(('numexpr', ''))
+    pass
   return libs
 
 
@@ -321,6 +322,9 @@ if __name__ == '__main__':
     __condaForgeList = [("pyside2", ""),]
   else:
     __condaList.remove(("tensorflow", __lookup_preferred_version("tensorflow")))
+    if op_sys_arg == 'linux':
+      __condaList.append(("nomkl", ''))
+      __condaList.append(("numexpr", ''))
 
   # check for environemnt definition of raven libs
   libName = os.getenv('RAVEN_LIBS_NAME', 'raven_libraries')
