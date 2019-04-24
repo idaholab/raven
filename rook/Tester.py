@@ -379,13 +379,9 @@ class Tester:
     self.specs = valid_params.get_filled_dict(params)
     self.results = TestResult()
     self.__command_prefix = ""
-    if sys.version_info > (3, ):
-      if os.name == "nt":
-        #Command is python on windows in conda and Python.org install
-        self.__python_command = "python"
-      else:
-        self.__python_command = "python3"
-    else:
+    self.__python_command = sys.executable
+    if os.name == "nt":
+      #Command is python on windows in conda and Python.org install
       self.__python_command = "python"
     self.__differs = []
     if self.__base_current_run_type is None:
@@ -541,8 +537,9 @@ class Tester:
       self.results.message = "FAILED "+str(ioe)
       return self.results
     timed_out = False
-    if sys.version_info >= (3, 3):
+    if sys.version_info >= (3, 3) and os.name != "nt":
       #New timeout interface available starting in Python 3.3
+      # But doesn't seem to fully work in Windows.
       try:
         output = process.communicate(timeout=timeout)[0]
       except subprocess.TimeoutExpired:

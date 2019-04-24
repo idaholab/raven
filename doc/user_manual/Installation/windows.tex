@@ -51,7 +51,7 @@ $ pacman -S git winpty make
 
 \subsubsection{Install Python Language and Package Support}
 \begin{enumerate}
-	\item Download the latest 64-bit installer for Windows Python 2.7 from
+	\item Download the latest 64-bit installer for Windows Python 3 from
 		\url{https://conda.io/miniconda.html} and install it.  \item The installer
 		will ask whether Python should be installed for only the logged in user or
 		for all users.  Either option will work for RAVEN.
@@ -61,7 +61,7 @@ $ pacman -S git winpty make
 
     \begin{lstlisting}[language=bash, basicstyle=\small]
     C:\Users\USERID> where python
-    C:\Users\USERID\AppData\Local\Continuum\Miniconda2\python.exe
+    C:\Users\USERID\AppData\Local\Continuum\Miniconda3\python.exe
     \end{lstlisting}
 
 	\item Setup MSYS2 to find Python.  MSYS2 has its own separate PATH which must also be adjusted
@@ -77,11 +77,11 @@ $ pacman -S git winpty make
 		For example:
 
 \begin{lstlisting}[language=bash]
-C:\Users\USERID\AppData\Local\Continuum\Miniconda2
+C:\Users\USERID\AppData\Local\Continuum\Miniconda3
 \end{lstlisting}
 		becomes
 \begin{lstlisting}[language=bash]
-/c/Users/USERID/AppData/Local/Continuum/Miniconda2
+/c/Users/USERID/AppData/Local/Continuum/Miniconda3
 \end{lstlisting}
 		for MSYS2. Here is an example with spaces that need to be escaped:
 \begin{lstlisting}[language=bash]
@@ -109,9 +109,9 @@ C:\Program Files\Common Files
 		variable without overwriting it.  These commands take the following form:
 
 \begin{lstlisting}[language=bash, basicstyle=\tiny]
-export PATH=/c/Users/USERID/AppData/Local/Continuum/Miniconda2:$PATH
-export PATH=/c/Users/USERID/AppData/Local/Continuum/Miniconda2/Scripts:$PATH
-export PATH=/c/Users/USERID/AppData/Local/Continuum/Miniconda2/Library/bin:$PATH
+export PATH=/c/Users/USERID/AppData/Local/Continuum/Miniconda3:$PATH
+export PATH=/c/Users/USERID/AppData/Local/Continuum/Miniconda3/Scripts:$PATH
+export PATH=/c/Users/USERID/AppData/Local/Continuum/Miniconda3/Library/bin:$PATH
 \end{lstlisting}
 
 		To configure these needed paths in MSYS2 so that they persist, file "~/.bashrc" will need
@@ -133,7 +133,7 @@ export PATH=/c/Users/USERID/AppData/Local/Continuum/Miniconda2/Library/bin:$PATH
 \begin{lstlisting}[language=bash, basicstyle=\tiny]
 USER@HOSTNAME MINGW64 ~
 $ winpty python
-Python 2.7.13 |Anaconda 4.0.0 (64-bit)| (default, Dec 19 2016, 13:29:36) [MSC v.1500 64 bit (AMD64)] on win32
+Python 3.6.7 |Anaconda 4.0.0 (64-bit)| (default, Dec 19 2016, 13:29:36) [MSC v.1500 64 bit (AMD64)] on win32
 Type "help", "copyright", "credits" or "license" for more information.
 Anaconda is brought to you by Continuum Analytics.
 Please check out: http://continuum.io/thanks and https://anaconda.org
@@ -142,17 +142,18 @@ Please check out: http://continuum.io/thanks and https://anaconda.org
 
 \end{lstlisting}
 
-	\item Install needed Python packages.  RAVEN requires several Python packages to function properly.
-		Now the {\it conda} command will be used to download and install them in an automated manner. The
-		following asks {\it conda} to obtain the specified versions of the listed packages, as well as all
-		of their dependencies.
-		\smallskip
-
-    \begin{lstlisting}[language=bash]
-    conda install numpy=1.11.0 h5py=2.6.0 scipy=0.17.1 \
-      scikit-learn=0.17.1 matplotlib=1.5.1 python=2.7 \
-      hdf5 swig pylint lxml
-    \end{lstlisting}
+% Windows should use establish_conda_env.sh like everyone else
+%	\item Install needed Python packages.  RAVEN requires several Python packages to function properly.
+%		Now the {\it conda} command will be used to download and install them in an automated manner. The
+%		following asks {\it conda} to obtain the specified versions of the listed packages, as well as all
+%		of their dependencies.
+%		\smallskip
+%
+%    \begin{lstlisting}[language=bash]
+%    conda install numpy=1.11.0 h5py=2.6.0 scipy=0.17.1 \
+%      scikit-learn=0.17.1 matplotlib=1.5.1 python=3 \
+%      hdf5 swig pylint lxml
+%    \end{lstlisting}
 
 \end{enumerate}
 

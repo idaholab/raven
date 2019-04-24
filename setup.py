@@ -21,12 +21,7 @@ import sys
 # We should be doing a search for CROW, I would think, we should not force a
 # directory structure
 CURR_DIR = os.path.dirname(os.path.realpath(__file__))
-HERD_TRUNK_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)),'..')
-CROW_SUBMODULE = os.path.join(CURR_DIR,'crow')
-if os.path.isfile(os.path.join(CROW_SUBMODULE,'Makefile')):
-  CROW_DIR = CROW_SUBMODULE
-else:
-  CROW_DIR = os.path.join(HERD_TRUNK_DIR,'crow')
+CROW_DIR = os.path.join(CURR_DIR,'crow')
 
 BOOST_INCLUDE_DIR = os.path.join(CROW_DIR,'contrib','include')
 RAVEN_INCLUDE_DIR = os.path.join('include','contrib')

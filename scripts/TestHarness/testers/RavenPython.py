@@ -148,11 +148,11 @@ class RavenPython(Tester):
       return False
     missing, too_old, _ = RavenUtils.check_for_missing_modules()
     if len(missing) > 0:
-      self.set_skip('skipped (Missing python modules: '+" ".join(missing)+
+      self.set_fail('skipped (Missing python modules: '+" ".join(missing)+
                     " PYTHONPATH="+os.environ.get("PYTHONPATH", "")+')')
       return False
     if len(too_old) > 0 and RavenUtils.check_versions():
-      self.set_skip('skipped (Old version python modules: '+" ".join(too_old)+
+      self.set_fail('skipped (Old version python modules: '+" ".join(too_old)+
                     " PYTHONPATH="+os.environ.get("PYTHONPATH", "")+')')
       return False
     for lib in self.required_libraries:

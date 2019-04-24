@@ -248,7 +248,10 @@ class JobHandler(MessageHandler.MessageUser):
       ## There are remote nodes that need to be activated
 
       ## Locate the ppserver script to be executed
-      ppserverScript = os.path.join(self.runInfoDict['FrameworkDir'],"contrib","pp","ppserver.py")
+      if sys.version_info.major == 2:
+        ppserverScript = os.path.join(self.runInfoDict['FrameworkDir'],"contrib","pp","ppserver.py")
+      else:
+        ppserverScript = os.path.join(self.runInfoDict['FrameworkDir'],"contrib","pp3","ppserver.py")
 
       ## Modify the python path used by the local environment
       localenv = os.environ.copy()

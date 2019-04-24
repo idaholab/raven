@@ -64,7 +64,7 @@ if [[ $LIBS_MODE == 0 ]]; then
 
   # clean up to assure library matching
   echo Cleaning old build ...
-  make clean
+  ${RAVEN_BUILD_DIR}/clean_raven
 elif  [[ $LIBS_MODE == 1 ]]; then
   echo Establishing Python libraries ...
   . scripts/establish_conda_env.sh --load ${ECE_ARGS}
