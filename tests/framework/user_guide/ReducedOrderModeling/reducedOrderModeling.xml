@@ -8,8 +8,9 @@
         sampleROMInverse,sampleROMsvm,writeHistories
     </Sequence>
     <WorkingDir>ROMConstruction</WorkingDir>
-    <batchSize>8</batchSize>
+    <batchSize>3</batchSize>
   </RunInfo>
+
   <TestInfo>
     <name>framework/user_guide/ReducedOrderModelling/ROMConstruction</name>
     <author>talbpw</author>
@@ -19,97 +20,92 @@
       This test is an example for the user guide to draw from.  It demonstrates the workflow for
       obtaining samples, then constructing both ScitKitLearn and NDinvDistWeight reduced-order models.
     </description>
+    <revisions>
+      <revision author="burlip" date="2019-04-18">modified file to replaced the Analyticalbateman example with the projectile example</revision>
+    </revisions>
   </TestInfo>
 
-  <Files>
-    <Input name="referenceInput.xml" type="input">referenceInput.xml</Input>
-  </Files>
-
   <Models>
-    <Code name="testModel" subType="GenericCode">
-      <executable>../physicalCode/analyticalbateman/AnalyticalDplMain.py</executable>
-      <clargs arg="python" type="prepend"/>
-      <clargs arg="" extension=".xml" type="input"/>
-      <clargs arg=" " extension=".csv" type="output"/>
-    </Code>
+    <ExternalModel ModuleToLoad="../../../AnalyticModels/projectile.py" name="projectile" subType="">
+      <variables>v0,angle,r,t,x,y,timeOption</variables>
+    </ExternalModel>
     <ROM name="ROMGaussianProcess" subType="SciKitLearn">
-      <Features>sigma-A,sigma-B,decay-A,decay-B</Features>
-      <Target>A,B</Target>
+      <Features>v0,angle</Features>
+      <Target>r,t</Target>
       <SKLtype>GaussianProcess|GaussianProcess</SKLtype>
       <regr>quadratic</regr>
       <theta0>10</theta0>
     </ROM>
     <ROM name="ROMsvm" subType="SciKitLearn">
-      <Features>sigma-A,sigma-B,decay-A,decay-B</Features>
-      <Target>A,B</Target>
+      <Features>v0,angle</Features>
+      <Target>r,t</Target>
       <SKLtype>svm|SVR</SKLtype>
       <kernel>rbf</kernel>
       <C>50.0</C>
       <tol>0.000001</tol>
     </ROM>
     <ROM name="ROMinverse" subType="NDinvDistWeight">
-      <Features>sigma-A,sigma-B,decay-A,decay-B</Features>
-      <Target>A,B</Target>
+      <Features>v0,angle</Features>
+      <Target>r,t</Target>
       <p>3</p>
     </ROM>
   </Models>
 
   <Distributions>
-      <Uniform name="sigma">
-          <lowerBound>0</lowerBound>
-          <upperBound>1000</upperBound>
-      </Uniform>
-      <Uniform name="decayConstant">
-          <lowerBound>0.00000001</lowerBound>
-          <upperBound>0.0000001</upperBound>
-      </Uniform>
+    <Normal name="vel_dist">
+      <mean>30</mean>
+      <sigma>5</sigma>
+      <lowerBound>1</lowerBound>
+      <upperBound>60</upperBound>
+    </Normal>
+    <Uniform name="angle_dist">
+      <lowerBound>5</lowerBound>
+      <upperBound>85</upperBound>
+    </Uniform>
   </Distributions>
 
   <Samplers>
-    <Grid name="grid">
-      <variable name="sigma-A">
-        <distribution>sigma</distribution>
-        <grid construction="equal" steps="5" type="CDF">0.01 0.99</grid>
+    <MonteCarlo name="my_mc">
+      <samplerInit>
+        <limit>1000</limit>
+        <initialSeed>42</initialSeed>
+      </samplerInit>
+      <variable name="v0">
+        <distribution>vel_dist</distribution>
       </variable>
-      <variable name="decay-A">
-        <distribution>decayConstant</distribution>
-        <grid construction="equal" steps="5" type="CDF">0.01 0.99</grid>
+      <variable name="angle">
+        <distribution>angle_dist</distribution>
       </variable>
-      <variable name="sigma-B">
-          <distribution>sigma</distribution>
-          <grid construction="equal" steps="5" type="CDF">0.01 0.99</grid>
-      </variable>
-      <variable name="decay-B">
-          <distribution>decayConstant</distribution>
-          <grid construction="equal" steps="5" type="CDF">0.01 0.99</grid>
-      </variable>
-    </Grid>
+      <constant name="x0">0</constant>
+      <constant name="y0">0</constant>
+      <constant name="timeOption">1</constant>
+    </MonteCarlo>
   </Samplers>
 
   <Steps>
     <MultiRun name="sample">
-      <Input class="Files" type="input">referenceInput.xml</Input>
-      <Model class="Models" type="Code">testModel</Model>
-      <Sampler class="Samplers" type="Grid">grid</Sampler>
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
+      <Model class="Models" type="ExternalModel">projectile</Model>
+      <Sampler class="Samplers" type="MonteCarlo">my_mc</Sampler>
       <Output class="DataObjects" type="PointSet">samples</Output>
       <Output class="DataObjects" type="HistorySet">histories</Output>
     </MultiRun>
     <MultiRun name="sampleROMGaussianProcess">
       <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
       <Model class="Models" type="ROM">ROMGaussianProcess</Model>
-      <Sampler class="Samplers" type="Grid">grid</Sampler>
+      <Sampler class="Samplers" type="MonteCarlo">my_mc</Sampler>
       <Output class="DataObjects" type="PointSet">samplesGP</Output>
     </MultiRun>
     <MultiRun name="sampleROMInverse">
       <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
       <Model class="Models" type="ROM">ROMinverse</Model>
-      <Sampler class="Samplers" type="Grid">grid</Sampler>
+      <Sampler class="Samplers" type="MonteCarlo">my_mc</Sampler>
       <Output class="DataObjects" type="PointSet">samplesInverse</Output>
     </MultiRun>
     <MultiRun name="sampleROMsvm">
       <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
       <Model class="Models" type="ROM">ROMsvm</Model>
-      <Sampler class="Samplers" type="Grid">grid</Sampler>
+      <Sampler class="Samplers" type="MonteCarlo">my_mc</Sampler>
       <Output class="DataObjects" type="PointSet">samplesSVM</Output>
     </MultiRun>
     <RomTrainer name="trainROMGaussianProcess">
@@ -130,11 +126,11 @@
         <Input  class="DataObjects"      type="PointSet">samplesGP</Input>
         <Input  class="DataObjects"      type="PointSet">samplesInverse</Input>
         <Input  class="DataObjects"      type="PointSet">samplesSVM</Input>
-        <Output class="OutStreams" type="Plot">samplesPlot3D</Output>
+<!--         <Output class="OutStreams" type="Plot">samplesPlot3D</Output>
         <Output class="OutStreams" type="Plot">samplesPlot3DROMgp</Output>
         <Output class="OutStreams" type="Plot">samplesPlot3DROMsvm</Output>
         <Output class="OutStreams" type="Plot">samplesPlot3DROMinverse</Output>
-        <Output class="OutStreams" type="Plot">historyPlot</Output>
+        <Output class="OutStreams" type="Plot">historyPlot</Output> -->
         <Output class="OutStreams" type="Print">samples</Output>
         <Output class="OutStreams" type="Print">histories</Output>
     </IOStep>
@@ -142,28 +138,31 @@
 
   <DataObjects>
     <PointSet name="inputPlaceHolder">
-      <Input>sigma-A,sigma-B,decay-A,decay-B</Input>
+      <Input>v0,angle</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
     <PointSet name="samples">
-      <Input>sigma-A,sigma-B,decay-A,decay-B</Input>
-      <Output>A,B,C,D</Output>
+      <Input>v0,angle</Input>
+      <Output>r,t</Output>
     </PointSet>
     <PointSet name="samplesGP">
-      <Input>sigma-A,sigma-B,decay-A,decay-B</Input>
-      <Output>A,B</Output>
+      <Input>v0,angle</Input>
+      <Output>r,t</Output>
     </PointSet>
     <PointSet name="samplesInverse">
-      <Input>sigma-A,sigma-B,decay-A,decay-B</Input>
-      <Output>A,B</Output>
+      <Input>v0,angle</Input>
+      <Output>r,t</Output>
     </PointSet>
     <PointSet name="samplesSVM">
-      <Input>sigma-A,sigma-B,decay-A,decay-B</Input>
-      <Output>A,B</Output>
+      <Input>v0,angle</Input>
+      <Output>r,t</Output>
     </PointSet>
     <HistorySet name="histories">
-        <Input>sigma-A,sigma-B,decay-A,decay-B</Input>
-        <Output>A,B,C,D,time</Output>
+      <Input>v0,angle</Input>
+      <Output>x,y,t</Output>
+      <options> 
+        <pivotParameter>t</pivotParameter>
+      </options>
     </HistorySet>
   </DataObjects>
 
@@ -176,7 +175,7 @@
         <type>csv</type>
         <source>histories</source>
     </Print>
-    <Plot   name="historyPlot" overwrite="false" verbosity="debug">
+    <!-- <Plot   name="historyPlot" overwrite="false" verbosity="debug">
         <plotSettings>
             <gridSpace>2 2</gridSpace>
             <plot>
@@ -399,7 +398,7 @@
                 <text> </text>
             </title>
         </actions>
-    </Plot>
+    </Plot> -->
 </OutStreams>
 
 </Simulation>
