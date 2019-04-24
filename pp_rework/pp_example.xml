@@ -1,0 +1,259 @@
+<!-- ETImporter/FTImporter-->
+<Models>
+  <PostProcessor name="ETimporter" subType="ETImporter">
+    <fileFormat>OpenPSA</fileFormat>
+    <expand>False</expand>
+  </PostProcessor>
+</Models>
+
+<PostProcessors>
+  <ETImporter name="ETImporter">
+    <fileFormat>OpenPSA</fileFormat>
+    <expand>False</expand>
+  </ETImporter>
+</PostProcessors>
+
+<!-- DataMining -->
+<Models>
+  <PostProcessor name="kMeans" subType="DataMining" verbosity="quiet">
+    <KDD lib="SciKitLearn">
+      <Features>x1,x2</Features>
+      <SKLtype>cluster|KMeans</SKLtype>
+      <n_clusters>3</n_clusters>
+      <tol>1E-10</tol>
+      <random_state>1</random_state>
+      <init>k-means++</init>
+      <precompute_distances>True</precompute_distances>
+    </KDD>
+  </PostProcessor>
+</Models>
+
+<PostProcessors>
+  <DataMining name="kmeans" subType="KMeans">
+    <Features>x1,x2</Features>
+    <settings>
+      <n_clusters>3</n_clusters>
+      <tol>1E-10</tol>
+      <random_state>1</random_state>
+      <init>k-means++</init>
+      <precompute_distances>True</precompute_distances>
+    </settings>
+  </DataMining>
+</PostProcessors>
+
+<!-- TimeDep DataMining -->
+<Models>
+  <PostProcessor name='KMeans1' subType='DataMining'>
+    <KDD lib='SciKitLearn'  labelFeature='labels'>
+      <SKLtype>cluster|KMeans</SKLtype>
+      <Features>x1,x2</Features>
+      <n_clusters>3</n_clusters>
+      <max_iter>1000</max_iter>
+      <random_state>1</random_state>
+      <init>k-means++</init>
+    </KDD>
+    <pivotParameter>Time</pivotParameter>
+  </PostProcessor>
+</Models>
+
+<PostProcessors>
+  <DataMining name="KMeans1" subType="KMeans">
+    <Features>x1,x2</Features>
+    <pivotParameter>Time</pivotParameter>
+    <labelFeature>lables</labelFeature>
+    <settings>
+      <n_clusters>3</n_clusters>
+      <max_iter>1000</max_iter>
+      <random_state>1</random_state>
+      <init>k-means++</init>
+    </settings>
+  </DataMining>
+</PostProcessors>
+
+<!-- CrossValidation -->
+<Models>
+  <PostProcessor name="pp1" subType="CrossValidation">
+    <SciKitLearn>
+      <SKLtype>LabelKFold</SKLtype>
+      <labels>0,0,0,1,1,1,1,2,2,2</labels>
+      <n_splits>3</n_splits>
+    </SciKitLearn>
+    <Metric class="Metrics" type="SKL">m1</Metric>
+  </PostProcessor>
+</Models>
+
+<PostProcessors>
+  <CrossValidation name="cv" subType="LabelKFold">
+    <settings>
+      <SKLtype>LabelKFold</SKLtype>
+      <labels>0,0,0,1,1,1,1,2,2,2</labels>
+      <n_splits>3</n_splits>
+    </settings>
+    <Metric class="Metrics" type="SKL">m1</Metric>
+  </CrossValidation>
+</PostProcessors>
+
+<!-- BasicStatistics -->
+<Models>
+  <PostProcessor name="analyticalTest" subType="BasicStatistics" verbosity="debug">
+    <skewness prefix="skew">x,y</skewness>
+    <variationCoefficient prefix="vc">x,y</variationCoefficient>
+    <percentile prefix="percentile">x,y</percentile>
+    <expectedValue prefix="mean">x,y</expectedValue>
+    <kurtosis prefix="kurt">x,y</kurtosis>
+  </PostProcessor>
+</Models>
+
+<PostProcessors>
+  <BasicStatistics name="analyticalTest">
+    <skewness prefix="skew">x,y</skewness>
+    <variationCoefficient prefix="vc">x,y</variationCoefficient>
+    <percentile prefix="percentile">x,y</percentile>
+    <expectedValue prefix="mean">x,y</expectedValue>
+    <kurtosis prefix="kurt">x,y</kurtosis>
+  </BasicStatistics>
+</PostProcessors>
+
+<!-- External PostProcessor -->
+<Models>
+  <PostProcessor name="functionPP" subType="External" verbosity="debug">
+    <method>Delta,Sum,Product</method>
+    <Function class="Functions" type="External">basicOps</Function>
+  </PostProcessor>
+</Models>
+
+<PostProcessors>
+  <External name="functionPP">
+    <method>Delta,Sum,Product</method>
+    <Function class="Functions" type="External">basicOps</Function>
+  </External>
+</PostProcessors>
+
+<!-- FastFourierTransform -->
+<Models>
+  <PostProcessor name="fft" subType="FastFourierTransform">
+    <target>signal</target>
+  </PostProcessor>
+</Models>
+
+<PostProcessors>
+  <FastFourierTransform name="fft">
+    <target>signal</target>
+  </FastFourierTransform>
+</PostProcessors>
+
+<!-- InterfacedPostProcessor -->
+<Models>
+  <PostProcessor name="interfacedPP1" subType="InterfacedPostProcessor">
+    <method>testInterfacedPP</method>
+    <xmlNodeExample>9</xmlNodeExample>
+  </PostProcessor>
+</Models>
+
+<PostProcessors>
+  <InterfacedPostProcessor name="interfacedPP1" subType="testInterfacedPP">
+    <xmlNodeExample>9</xmlNodeExample>
+  </InterfacedPostProcessor>
+</PostProcessors>
+
+<!-- LimitSurface -->
+<Models>
+  <PostProcessor name="computeLimitSurfacePositiveNegative" subType="LimitSurface">
+    <parameters>x0,y0</parameters>
+    <side>both</side>
+    <ROM class="Models" type="ROM">Acc</ROM>
+    <!--You can add here a ROM defined in Models block.If not Present, a nearest algorithm is going to be used-->
+    <Function class="Functions" type="External">goalFunctionForLimitSurface</Function>
+  </PostProcessor>
+</Models>
+
+<PostProcessors>
+  <LimitSurface name="computeLimitSurfacePositiveNegative">
+    <parameters>x0,y0</parameters>
+    <side>both</side>
+    <ROM class="Models" type="ROM">Acc</ROM>
+    <!--You can add here a ROM defined in Models block.If not Present, a nearest algorithm is going to be used-->
+    <Function class="Functions" type="External">goalFunctionForLimitSurface</Function>
+  </LimitSurface>
+</PostProcessors>
+
+<!-- Metrics -->
+<Models>
+  <PostProcessor name="pp1" subType="Metric">
+    <Features type="variable">ans</Features>
+    <Targets type="variable">ans2</Targets>
+    <Metric class="Metrics" type="SKL">euclidean</Metric>
+    <Metric class="Metrics" type="SKL">euclidean2</Metric>
+    <Metric class="Metrics" type="SKL">cosine</Metric>
+    <Metric class="Metrics" type="SKL">manhattan</Metric>
+  </PostProcessor>
+</Models>
+
+<PostProcessors>
+  <EnsembleMerics name="pp1">
+    <Features type="variable">ans</Features>
+    <Targets type="variable">ans2</Targets>
+    <Metric class="Metrics" type="SKL">euclidean</Metric>
+    <Metric class="Metrics" type="SKL">euclidean2</Metric>
+    <Metric class="Metrics" type="SKL">cosine</Metric>
+    <Metric class="Metrics" type="SKL">manhattan</Metric>
+  </EnsembleMetrics>
+</PostProcessors>
+
+<!-- SampleSelector -->
+<Models>
+  <PostProcessor name="PPmax" subType="SampleSelector" verbosity="debug">
+    <target> y1 </target>
+    <criterion> max </criterion>
+  </PostProcessor>
+</Models>
+
+<PostProcessors>
+  <SampleSelector name="PPmax">
+    <target> y1 </target>
+    <criterion> max </criterion>
+  </SampleSelector>
+</PostProcessors>
+
+<!-- TopologicalDecomposition -->
+<Models>
+  <!-- Nearest neighbor -->
+  <PostProcessor name="AMSC_NN" subType="TopologicalDecomposition">
+    <graph>Approximate KNN</graph>
+    <gradient>steepest</gradient>
+    <knn>9</knn>
+    <normalization>None</normalization>
+    <parameters>X,Y</parameters>
+    <response>Z</response>
+    <simplification>0.2</simplification>
+    <persistence>difference</persistence>
+  </PostProcessor>
+</Models>
+<!-- More work need to be done!!! -->
+<PostProcessors>
+  <TopologicalDecomposition name="AMSC_NN">
+    <graph>Approximate KNN</graph>
+    <gradient>steepest</gradient>
+    <knn>9</knn>
+    <normalization>None</normalization>
+    <parameters>X,Y</parameters>
+    <response>Z</response>
+    <simplification>0.2</simplification>
+    <persistence>difference</persistence>
+  </TopologicalDecomposition>
+</PostProcessors>
+
+<!-- ValueDuration -->
+<Models>
+  <PostProcessor name="val_dur" subType="ValueDuration">
+    <target>Speed</target>
+    <bins>100</bins>
+  </PostProcessor>
+</Models>
+
+<PostProcessors>
+  <ValueDuration name="val_dur">
+    <target>Speed</target>
+    <bins>100</bins>
+  </ValueDuration>
+</PostProcessors>
