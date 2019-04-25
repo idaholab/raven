@@ -97,22 +97,6 @@ class SafestPoint(PostProcessor):
     self.addMetaKeys(["ProbabilityWeight"])
     self.printTag = 'POSTPROCESSOR SAFESTPOINT'
 
-  def _localGenerateAssembler(self, initDict):
-    """
-      This method  is used for sending to the instanciated class, which is implementing the method, the objects that have been requested through "whatDoINeed" method
-      It is an abstract method -> It must be implemented in the derived class!
-      @ In, initDict, dict, dictionary ({'mainClassName(e.g., Databases):{specializedObjectName(e.g.,DatabaseForSystemCodeNamedWolf):ObjectInstance}'})
-      @ Out, None
-    """
-    for varName, distName in self.controllableDist.items():
-      if distName not in initDict['Distributions'].keys():
-        self.raiseAnError(IOError, 'distribution ' + distName + ' not found.')
-      self.controllableDist[varName] = initDict['Distributions'][distName]
-    for varName, distName in self.nonControllableDist.items():
-      if distName not in initDict['Distributions'].keys():
-        self.raiseAnError(IOError, 'distribution ' + distName + ' not found.')
-      self.nonControllableDist[varName] = initDict['Distributions'][distName]
-
   def _localReadMoreXML(self, xmlNode):
     """
       Function to read the portion of the xml input that belongs to this specialized class
@@ -130,7 +114,6 @@ class SafestPoint(PostProcessor):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-
     for child in paramInput.subparts:
       if child.getName() == 'outputName':
         self.outputName = child.value
@@ -141,9 +124,9 @@ class SafestPoint(PostProcessor):
             for childChildChild in childChild.subparts:
               if childChildChild.getName() == 'distribution':
                 if child.getName() == 'controllable':
-                  self.controllableDist[varName] = childChildChild.value
+                  self.controllableDist[varName] = self.retrieveObjectFromAssemblerDict('Distributions', childChildChild.value)
                 elif child.getName() == 'non-controllable':
-                  self.nonControllableDist[varName] = childChildChild.value
+                  self.nonControllableDist[varName] = self.retrieveObjectFromAssemblerDict('Distributions', childChildChild.value)
               elif childChildChild.getName() == 'grid':
                 if 'type' in childChildChild.parameterValues:
                   if 'steps' in childChildChild.parameterValues:
@@ -391,4 +374,3 @@ class SafestPoint(PostProcessor):
     output.load(dataCollector,'dict')
     # add general metadata
     output.addMeta(self.type,{'safest_point':{'coordinate':safestPoint}})
-

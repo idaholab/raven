@@ -114,26 +114,8 @@ class ImportanceRank(PostProcessor):
     self.reconstructSen = False
     self.pivotParameter = None # time-dependent pivot parameter
     self.dynamic        = False # is it time-dependent?
-
-  def _localWhatDoINeed(self):
-    """
-      This method is local mirror of the general whatDoINeed method
-      It is implemented by this postprocessor that need to request special objects
-      @ In, None
-      @ Out, needDict, dict, list of objects needed
-    """
-    needDict = {'Distributions':[]}
-    needDict['Distributions'].append((None,self.mvnDistribution))
-    return needDict
-
-  def _localGenerateAssembler(self,initDict):
-    """
-      see generateAssembler method in Assembler
-      @ In, initDict, dict, dictionary ({'mainClassName':{'specializedObjectName':ObjectInstance}})
-      @ Out, None
-    """
-    distName = self.mvnDistribution
-    self.mvnDistribution = initDict['Distributions'][distName]
+    # assembler objects to be requested
+    self.addAssemblerObject('Distribution', '1', True)
 
   def _localReadMoreXML(self,xmlNode):
     """
@@ -195,7 +177,7 @@ class ImportanceRank(PostProcessor):
               else:
                 self.raiseAnError(IOError, 'Unrecognized xml node name:',subSubNode.getName(),'in',self.printTag)
       elif child.getName() == 'mvnDistribution':
-        self.mvnDistribution = child.value.strip()
+        self.mvnDistribution = self.retrieveObjectFromAssemblerDict('Distributions', child.value.strip())
       elif child.getName() == "pivotParameter":
         self.pivotParameter = child.value
       else:
