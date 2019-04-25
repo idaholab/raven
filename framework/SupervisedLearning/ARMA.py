@@ -107,7 +107,12 @@ class ARMA(supervisedLearning):
     self.normEngine.upperBoundUsed = False
     self.normEngine.lowerBoundUsed = False
     self.normEngine.initializeDistribution()
+
+    #self.randomEng              = kwargs.get('randomEng',None)
+
     self.randomEng=randomUtils.newRNG()
+    #self.randomEng=None
+
     #self.randomEng=self.randomEngine()
     # FIXME set the numpy seed
       ## we have to do this because VARMA.simulate does not accept a random number generator,
@@ -201,9 +206,11 @@ class ARMA(supervisedLearning):
       @ Out, d, dict, stateful dictionary
     """
     d = supervisedLearning.__getstate__(self)
-    #d = copy.copy(self.__dict__)
+    #d=copy.copy(self.__dict__)
     eng=d.pop("randomEng")
-    randseed = eng.get_rng_seed()
+    #randseed = eng.get_rng_seed()
+    randseed = self.seed
+
     randcounts = eng.get_rng_state()
     d['crow_rng_seed'] = randseed
     d['crow_rng_counts'] = randcounts
@@ -219,8 +226,10 @@ class ARMA(supervisedLearning):
     rngseed = d.pop('crow_rng_seed')
 
     rngcounts = d.pop('crow_rng_counts')
+    #print('setstate',rngseed, rngcounts)
     self.randomEng = randomUtils.newRNG()
     self.__dict__.update(d)
+    print('reseedcopy',self.reseedCopies)
     if self.reseedCopies:
       randd = np.random.randint(1,200000000)
       self.reseed(randd)
@@ -526,6 +535,8 @@ class ARMA(supervisedLearning):
     """
     if numSamples is None:
       numSamples =  len(self.pivotParameterValues)
+    if randEngine  is None:
+      randEngine= self.randomEng
     hist = sm.tsa.arma_generate_sample(ar = np.append(1., -model.arparams),
                                        ma = np.append(1., model.maparams),
                                        nsample = numSamples,

@@ -410,6 +410,11 @@ targetVals[0,:,1] = t
 arma.__trainLocal__(featureVals,targetVals)
 nsamp = 10
 samples = np.zeros([nsamp,len(data)])
+
+eng=randomUtils.newRNG()
+eng2=randomUtils.newRNG()
+arma.randomEng=eng
+
 for n in range(nsamp):
   ev = arma.__evaluateLocal__(np.array([1.0]))
   samples[n,:] = ev['a']
@@ -455,50 +460,35 @@ if plotting:
 
 testval=arma._trainARMA(data)
 arma.amITrained=True
-print(arma.seed)
-#print(testval.sigma2)
-#dd=arma.__getstate__()
-#print(dd)
+dd=arma.__getstate__()
+print('before generate' ,dd['crow_rng_counts'])
+print('before generate' ,dd['crow_rng_seed'])
 
-signal=arma._generateARMASignal(testval, randEngine=None)
-print('1',signal)
-signal=arma._generateARMASignal(testval, randEngine=None)
-print('1',signal)
-signal=arma._generateARMASignal(testval, randEngine=None)
-print('1',signal)
-eng=randomUtils.newRNG()
-print(arma.seed)
-signal=arma._generateARMASignal(testval, randEngine=eng)
-print('seed 85642',signal)
-print(arma.seed)
-signal=arma._generateARMASignal(testval, randEngine=eng)
-print('seed 99999',signal)
+signal1=arma._generateARMASignal(testval, numSamples=20)#, randEngine=arma.randomEng)#,randEngine=eng)
+dd=arma.__getstate__()
+print('generate 20',dd['crow_rng_counts'])
+print('generate 10000', dd['crow_rng_seed'])
 
+signal2=arma._generateARMASignal(testval)
+dd=arma.__getstate__()
+print('generate 10000', dd['crow_rng_counts'])
+print('generate 10000', dd['crow_rng_seed'])
+arma.reseedCopies=False
+pkl=pk.dumps(arma)
+unpk=pk.loads(pkl)
+dd=unpk.__getstate__()
+unpk.randomEng=eng2
+print('upk', dd['crow_rng_counts'])
+print('upk', dd['crow_rng_seed'])
 
-seeded=pk.dumps(arma)
-arma.reseedCopies=True
-unseeded=pk.dumps(arma)
+signal3=arma._generateARMASignal(testval)
 
-armaseed=pk.loads(seeded)
-armaunseed=pk.loads(unseeded)
+signal4=unpk._generateARMASignal(testval,randEngine=eng2)
 
-
-seeded=pk.dumps(arma)
-arma.reseedCopies=True
-unseeded=pk.dumps(arma)
-
-armaseed=pk.loads(seeded)
-armaunseed=pk.loads(unseeded)
-
-signal=armaseed._generateARMASignal(armaseed._trainARMA(data), randEngine=randomUtils.newRNG())
-print('2',signal)
-signal=armaunseed._generateARMASignal(armaunseed._trainARMA(data), randEngine=randomUtils.newRNG())
-print('3',signal)
-
-#print(randomUtils.newRNG())
-#dd=arma.__getstate__()
-#aa=arma.__setstate__(dd)
-#print(dd)
+print('1 20',signal1)
+print('2 10000',signal2)
+print('3 10000',signal4)
+print('4 10000 up',signal3)
 
 #dd=SupervisedLearning.supervisedLearning().__dict__()
 #print(dd)

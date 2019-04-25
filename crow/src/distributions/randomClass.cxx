@@ -29,6 +29,7 @@ RandomClass::RandomClass() : _rng(new RandomClassImpl()), _range(_rng->_backend.
 }
 
 void RandomClass::seed(unsigned int seed) {
+
     _counter = 0;
     _seed = seed;
     _rng->_backend.seed(seed);
@@ -45,7 +46,7 @@ int RandomClass::get_rng_state() {
 
 int RandomClass::forward_seed(unsigned int counts){
     _counter = counts;
-    _rng->_backend.discard(_counter);
+    _rng->_backend.discard(counts);
 }
 
 int RandomClass::get_rng_seed(){
