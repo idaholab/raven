@@ -455,7 +455,7 @@ class ComparisonStatistics(PostProcessor):
       graphData = []
       if "name" in reference:
         distributionName = reference["name"]
-        distribution = self.retrieveObjectFromAssemblerDict('Distributions', distributionName)
+        distribution = self.retrieveObjectFromAssemblerDict('Distribution', distributionName)
         if distribution is None:
           self.raiseAnError(IOError, 'Did not find Distribution with name ' + distributionName)
         refDataStats = {"mean":distribution.untruncatedMean(),

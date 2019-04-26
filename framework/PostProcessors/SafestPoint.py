@@ -124,9 +124,9 @@ class SafestPoint(PostProcessor):
             for childChildChild in childChild.subparts:
               if childChildChild.getName() == 'distribution':
                 if child.getName() == 'controllable':
-                  self.controllableDist[varName] = self.retrieveObjectFromAssemblerDict('Distribution', childChildChild.value)
+                  self.controllableDist[varName] = childChildChild.value
                 elif child.getName() == 'non-controllable':
-                  self.nonControllableDist[varName] = self.retrieveObjectFromAssemblerDict('Distribution', childChildChild.value)
+                  self.nonControllableDist[varName] = childChildChild.value
               elif childChildChild.getName() == 'grid':
                 if 'type' in childChildChild.parameterValues:
                   if 'steps' in childChildChild.parameterValues:
@@ -161,6 +161,10 @@ class SafestPoint(PostProcessor):
       @ In, initDict, dict, dictionary with initialization options
       @ Out, None
     """
+    for varName, distName in self.controllableDist.items():
+      self.controllableDist[varName] = self.retrieveObjectFromAssemblerDict('Distribution', distName)
+    for varName, distName in self.nonControllableDist.items():
+      self.nonControllableDist[varName] = self.retrieveObjectFromAssemblerDict('Distribution', distName)
     self.__gridSetting__()
     self.__gridGeneration__()
     self.inputToInternal(inputs)
