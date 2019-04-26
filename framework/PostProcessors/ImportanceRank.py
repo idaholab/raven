@@ -108,7 +108,6 @@ class ImportanceRank(PostProcessor):
     self.statAcceptedMetric = ['pcaindex','transformation','inversetransformation']
     self.what = self.acceptedMetric # what needs to be computed, default is all
     self.printTag = 'POSTPROCESSOR IMPORTANTANCE RANK'
-    self.requiredAssObject = (True,(['Distributions'],[-1]))
     self.transformation = False
     self.latentSen = False
     self.reconstructSen = False
@@ -177,7 +176,7 @@ class ImportanceRank(PostProcessor):
               else:
                 self.raiseAnError(IOError, 'Unrecognized xml node name:',subSubNode.getName(),'in',self.printTag)
       elif child.getName() == 'mvnDistribution':
-        self.mvnDistribution = self.retrieveObjectFromAssemblerDict('Distributions', child.value.strip())
+        self.mvnDistribution = self.retrieveObjectFromAssemblerDict('Distribution', child.value.strip())
       elif child.getName() == "pivotParameter":
         self.pivotParameter = child.value
       else:
