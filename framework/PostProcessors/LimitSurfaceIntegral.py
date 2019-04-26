@@ -57,6 +57,8 @@ class LimitSurfaceIntegral(PostProcessor):
     LSIVariableInput = InputData.parameterInputFactory("variable")
     LSIVariableInput.addParam("name", InputData.StringType)
     LSIDistributionInput = InputData.parameterInputFactory("distribution", contentType=InputData.StringType)
+    LSIDistributionInput.addParam("class", InputData.StringType, True)
+    LSIDistributionInput.addParam("type", InputData.StringType, True)
     LSIVariableInput.addSub(LSIDistributionInput)
     LSILowerBoundInput = InputData.parameterInputFactory("lowerBound", contentType=InputData.FloatType)
     LSIVariableInput.addSub(LSILowerBoundInput)
@@ -99,36 +101,8 @@ class LimitSurfaceIntegral(PostProcessor):
     self.computationPrefix = None
     self.stat = BasicStatistics(self.messageHandler)  # instantiation of the 'BasicStatistics' processor, which is used to compute the pb given montecarlo evaluations
     self.stat.what = ['expectedValue']
-    self.addAssemblerObject('Distribution','n', newXmlFlg = False)
+    self.addAssemblerObject('distribution','-n', newXmlFlg = True)
     self.printTag = 'POSTPROCESSOR INTEGRAL'
-
-  def _localWhatDoINeed(self):
-    """
-      This method is a local mirror of the general whatDoINeed method.
-      It is implemented by this postprocessor that need to request special objects
-      @ In, None
-      @ Out, needDict, dict, list of objects needed
-    """
-    needDict = {'Distributions':[]}
-    for distName in self.variableDist.values():
-      if distName != None:
-        needDict['Distributions'].append((None, distName))
-    return needDict
-
-  def _localGenerateAssembler(self, initDict):
-    """
-      This method  is used for sending to the instanciated class, which is implementing the method, the objects that have been requested through "whatDoINeed" method
-      It is an abstract method -> It must be implemented in the derived class!
-      @ In, initDict, dict, dictionary ({'mainClassName(e.g., Databases):{specializedObjectName(e.g.,DatabaseForSystemCodeNamedWolf):ObjectInstance}'})
-      @ Out, None
-    """
-    for varName, distName in self.variableDist.items():
-      if distName != None:
-        if distName not in initDict['Distributions'].keys():
-          self.raiseAnError(IOError, 'distribution ' + distName + ' not found.')
-        self.variableDist[varName] = initDict['Distributions'][distName]
-        self.lowerUpperDict[varName]['lowerBound'] = self.variableDist[varName].lowerBound
-        self.lowerUpperDict[varName]['upperBound'] = self.variableDist[varName].upperBound
 
   def _localReadMoreXML(self, xmlNode):
     """
@@ -216,6 +190,11 @@ class LimitSurfaceIntegral(PostProcessor):
     self.functionS.train(self.matrixDict)
     self.raiseADebug('DATA SET MATRIX:')
     self.raiseADebug(self.matrixDict)
+    for varName, distName in self.variableDist.items():
+      if distName != None:
+        self.variableDist[varName] = self.retrieveObjectFromAssemblerDict('distribution', distName)
+        self.lowerUpperDict[varName]['lowerBound'] = self.variableDist[varName].lowerBound
+        self.lowerUpperDict[varName]['upperBound'] = self.variableDist[varName].upperBound
 
   def inputToInternal(self, currentInput):
     """
