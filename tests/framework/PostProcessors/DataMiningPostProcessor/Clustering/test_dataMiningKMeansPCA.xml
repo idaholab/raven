@@ -55,7 +55,7 @@
     </PointSet>
     <PointSet name="bisonDataM">
       <Input>power_scalef,thermal_expansion,grainradius_scalef</Input>
-      <Output>midplane_hoop_stress_clad,fis_gas_released,midplane_hoop_strain_clad,max_hoop_stress,ave_temp_interior,avg_clad_temp,max_stress,centerline_temp,midplane_vonmises_stress,max_vonmises_stress,rod_input_power,rod_total_power,midplane_hoop_strain_fuel,PCA1Dimension1,PCA1Dimension2</Output>
+      <Output>midplane_hoop_stress_clad,fis_gas_released,midplane_hoop_strain_clad,max_hoop_stress,ave_temp_interior,avg_clad_temp,max_stress,centerline_temp,midplane_vonmises_stress,max_vonmises_stress,rod_input_power,rod_total_power,midplane_hoop_strain_fuel,PCA1Dimension1,PCA1Dimension2,labels</Output>
     </PointSet>
     <PointSet name="bisonDataRaw">
       <Input>power_scalef,thermal_expansion,grainradius_scalef</Input>
@@ -122,7 +122,7 @@
           <x>bisonDataM|Output|PCA1Dimension1</x>
           <y>bisonDataM|Output|PCA1Dimension2</y>
           <noClusters>3</noClusters>
-          <clusterLabels>bisonDataM|Output|PCA1Dimension</clusterLabels>
+          <clusterLabels>bisonDataM|Output|labels</clusterLabels>
           <kwargs/>
         </plot>
         <xlabel>PCAComponent1</xlabel>

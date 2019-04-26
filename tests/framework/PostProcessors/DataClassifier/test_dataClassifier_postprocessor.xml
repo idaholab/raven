@@ -91,14 +91,14 @@
       <Input   class="DataObjects"  type="PointSet"        >ET_PS</Input>
       <Input   class="DataObjects"  type="PointSet"        >sim_PS</Input>
       <Model   class="Models"       type="PostProcessor"   >ET_Classifier</Model>
-      <Output  class="DataObjects"  type="PointSet"        >sim_PS</Output>
+      <Output  class="DataObjects"  type="PointSet"        >sim_PS_out</Output>
     </PostProcess>
     <IOStep name="printOnFile_ET_PS">
       <Input   class="DataObjects"  type="PointSet"        >ET_PS</Input>
       <Output  class="OutStreams"   type="Print"           >Print_ET_PS</Output>
     </IOStep>
     <IOStep name="printOnFile_sim_PS">
-      <Input   class="DataObjects"  type="PointSet"        >sim_PS</Input>
+      <Input   class="DataObjects"  type="PointSet"        >sim_PS_out</Input>
       <Output  class="OutStreams"   type="Print"           >Print_sim_PS</Output>
     </IOStep>
   </Steps>
@@ -111,7 +111,7 @@
     </Print>
     <Print name="Print_sim_PS">
       <type>csv</type>
-      <source>sim_PS</source>
+      <source>sim_PS_out</source>
       <what>input,output</what>
     </Print>
   </OutStreams>
@@ -126,6 +126,10 @@
       <Output>OutputPlaceHolder</Output>
     </PointSet>
     <PointSet name="sim_PS">
+      <Input>ACC_status,time_LPI,time_LPR</Input>
+      <Output>out, LPI_status, LPR_status</Output>
+    </PointSet>
+    <PointSet name="sim_PS_out">
       <Input>ACC_status,time_LPI,time_LPR</Input>
       <Output>out, LPI_status, LPR_status</Output>
     </PointSet>
