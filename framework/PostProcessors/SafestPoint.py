@@ -124,9 +124,9 @@ class SafestPoint(PostProcessor):
             for childChildChild in childChild.subparts:
               if childChildChild.getName() == 'distribution':
                 if child.getName() == 'controllable':
-                  self.controllableDist[varName] = self.retrieveObjectFromAssemblerDict('Distributions', childChildChild.value)
+                  self.controllableDist[varName] = self.retrieveObjectFromAssemblerDict('Distribution', childChildChild.value)
                 elif child.getName() == 'non-controllable':
-                  self.nonControllableDist[varName] = self.retrieveObjectFromAssemblerDict('Distributions', childChildChild.value)
+                  self.nonControllableDist[varName] = self.retrieveObjectFromAssemblerDict('Distribution', childChildChild.value)
               elif childChildChild.getName() == 'grid':
                 if 'type' in childChildChild.parameterValues:
                   if 'steps' in childChildChild.parameterValues:

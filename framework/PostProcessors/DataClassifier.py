@@ -89,7 +89,7 @@ class DataClassifier(PostProcessor):
     """
     PostProcessor.initialize(self, runInfo, inputs, initDict)
     for key, val in self.mapping.items():
-     self.funcDict[key] = self.retrieveObjectFromAssemblerDict('Functions',val)
+     self.funcDict[key] = self.retrieveObjectFromAssemblerDict('Function',val)
 
   def _localReadMoreXML(self, xmlNode):
     """
