@@ -41,7 +41,7 @@
       <Output class="OutStreams" type="Print">dump1</Output>
     </PostProcess>
     <PostProcess name="pp2" pauseAtEnd="True">
-      <Input class="DataObjects" type="PointSet">bisonDataRaw</Input>
+      <Input class="DataObjects" type="PointSet">bisonData</Input>
       <Model class="Models" type="PostProcessor">PCA1</Model>
       <Output class="DataObjects" type="PointSet">bisonDataM</Output>
       <Output class="OutStreams" type="Plot">PlotPCA1</Output>
