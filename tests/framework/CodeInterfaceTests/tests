@@ -240,6 +240,7 @@
    input = 'test_maap5_code_interface_adaptive_det.xml'
    UnorderedCsv = 'MAAP5_adaptiveDET_test/limitSurfDump.csv'
    test_interface_only = True
+   skip = 'Missing file needed to run'
    rel_err = 0.0001
  [../]
  [./MAAP5interfaceAHDETSampling]

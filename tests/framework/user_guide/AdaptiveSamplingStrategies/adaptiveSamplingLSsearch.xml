@@ -24,7 +24,6 @@
 
   <Files>
     <Input name="referenceInput.xml" type="input">referenceInput.xml</Input>
-    <Input name="LSintegral.csv" type="">LSintegral.csv</Input>
   </Files>
 
   <Models>
@@ -154,7 +153,9 @@
           <type>line</type>
           <x>histories|Output|time</x>
           <y>histories|Output|A</y>
-          <color>blue</color>
+          <kwargs>
+            <color>blue</color>
+          </kwargs>
           <gridLocation>
             <x>0</x>
             <y>0</y>
@@ -166,7 +167,9 @@
           <type>line</type>
           <x>histories|Output|time</x>
           <y>histories|Output|B</y>
-          <color>red</color>
+          <kwargs>
+            <color>orange</color>
+          </kwargs>
           <gridLocation>
             <x>1</x>
             <y>0</y>
@@ -178,7 +181,9 @@
           <type>line</type>
           <x>histories|Output|time</x>
           <y>histories|Output|C</y>
-          <color>yellow</color>
+          <kwargs>
+            <color>green</color>
+          </kwargs>
           <gridLocation>
             <x>0</x>
             <y>1</y>
@@ -190,7 +195,9 @@
           <type>line</type>
           <x>histories|Output|time</x>
           <y>histories|Output|D</y>
-          <color>black</color>
+          <kwargs>
+            <color>red</color>
+          </kwargs>
           <gridLocation>
             <x>1</x>
             <y>1</y>
@@ -235,7 +242,7 @@
           <x>samples|Input|decay-A</x>
           <y>samples|Input|sigma-A</y>
           <z>samples|Output|A</z>
-          <color>blue</color>
+          <c>blue</c>
           <gridLocation>
             <x>0</x>
             <y>0</y>
@@ -249,7 +256,7 @@
           <x>samples|Input|decay-A</x>
           <y>samples|Input|sigma-A</y>
           <z>samples|Output|B</z>
-          <color>blue</color>
+          <c>blue</c>
           <gridLocation>
             <x>1</x>
             <y>0</y>
@@ -258,9 +265,6 @@
           <ylabel>sigma-A</ylabel>
           <zlabel>final B</zlabel>
         </plot>
-        <xlabel>decay</xlabel>
-        <ylabel>sigma</ylabel>
-        <zlabel>final response</zlabel>
       </plotSettings>
       <actions>
         <how>png</how>

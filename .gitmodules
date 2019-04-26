@@ -1,6 +1,3 @@
-[submodule "moose"]
-	path = moose
-	url = https://github.com/idaholab/moose.git
 [submodule "plugins/CashFlow"]
 	path = plugins/CashFlow
 	url = git@hpcgitlab.inl.gov:epinas/CashFlow.git

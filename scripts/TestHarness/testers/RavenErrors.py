@@ -56,9 +56,8 @@ class RavenErrors(Tester):
     ravenflag = ''
     if self.specs['test_interface_only'].lower() == 'true':
       ravenflag = 'interfaceCheck '
-    if RavenUtils.in_python_3():
-      return ' '.join(["python3", raven, ravenflag, self.specs["input"]])
-    return ' '.join(["python", raven, ravenflag, self.specs["input"]])
+    return ' '.join([self._get_python_command(), raven, ravenflag,
+                     self.specs["input"]])
 
 
   def __init__(self, name, params):
@@ -130,3 +129,12 @@ class RavenErrors(Tester):
         self.set_success()
         return
     self.set_fail('The expected Error: ' +self.specs['expect_err']+' is not raised!')
+
+  def check_exit_code(self, _):
+    """
+      Allow any exit code (but this could be extended to have an expected exit
+      code in the parameters at some point)
+      @ In, exit_code, int, the exit code of the test command.
+      @ Out, check_exit_code, bool, always True since errors are expected
+    """
+    return True

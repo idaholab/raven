@@ -117,7 +117,7 @@ class ScipyMetric(Metric):
       @ Out, value, float, metric result
     """
     if isinstance(x,np.ndarray) and isinstance(y,np.ndarray):
-      assert(x.shape == y.shape, "Input data x, y should have the same shape!")
+      assert x.shape == y.shape, "Input data x, y should have the same shape!"
       # TODO: weights are supported in scipy.spatial.distance for many distance metrics in v1.0.0
       # when we switch to scipy 1.0.0, we can enable weights in our metrics calculations
       sv = str(scipy.__version__).split('.')
