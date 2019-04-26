@@ -81,6 +81,8 @@ class ImportanceRank(PostProcessor):
     #inputSpecification.addSub(DimensionsInput)
 
     MVNDistributionInput = InputData.parameterInputFactory("mvnDistribution", contentType=InputData.StringType)
+    MVNDistributionInput.addParam("class", InputData.StringType, True)
+    MVNDistributionInput.addParam("type", InputData.StringType, True)
     inputSpecification.addSub(MVNDistributionInput)
 
     PivotParameterInput = InputData.parameterInputFactory("pivotParameter", contentType=InputData.StringType)
@@ -114,7 +116,7 @@ class ImportanceRank(PostProcessor):
     self.pivotParameter = None # time-dependent pivot parameter
     self.dynamic        = False # is it time-dependent?
     # assembler objects to be requested
-    self.addAssemblerObject('Distribution', '1', True)
+    self.addAssemblerObject('mvnDistribution', '1', True)
 
   def _localReadMoreXML(self,xmlNode):
     """
@@ -176,7 +178,7 @@ class ImportanceRank(PostProcessor):
               else:
                 self.raiseAnError(IOError, 'Unrecognized xml node name:',subSubNode.getName(),'in',self.printTag)
       elif child.getName() == 'mvnDistribution':
-        self.mvnDistribution = self.retrieveObjectFromAssemblerDict('Distribution', child.value.strip())
+        self.mvnDistribution = child.value.strip()
       elif child.getName() == "pivotParameter":
         self.pivotParameter = child.value
       else:
@@ -223,7 +225,7 @@ class ImportanceRank(PostProcessor):
       @ In, initDict, dict, dictionary with initialization options
     """
     PostProcessor.initialize(self, runInfo, inputs, initDict)
-
+    self.mvnDistribution = self.retrieveObjectFromAssemblerDict('mvnDistribution', self.mvnDistribution)
   def inputToInternal(self, currentInp):
     """
       Method to convert an input object into the internal format that is understandable by this pp.

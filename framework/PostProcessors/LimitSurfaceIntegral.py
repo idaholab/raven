@@ -56,7 +56,7 @@ class LimitSurfaceIntegral(PostProcessor):
 
     LSIVariableInput = InputData.parameterInputFactory("variable")
     LSIVariableInput.addParam("name", InputData.StringType)
-    LSIDistributionInput = InputData.parameterInputFactory("Distribution", contentType=InputData.StringType)
+    LSIDistributionInput = InputData.parameterInputFactory("distribution", contentType=InputData.StringType)
     LSIDistributionInput.addParam("class", InputData.StringType, True)
     LSIDistributionInput.addParam("type", InputData.StringType, True)
     LSIVariableInput.addSub(LSIDistributionInput)
@@ -101,7 +101,7 @@ class LimitSurfaceIntegral(PostProcessor):
     self.computationPrefix = None
     self.stat = BasicStatistics(self.messageHandler)  # instantiation of the 'BasicStatistics' processor, which is used to compute the pb given montecarlo evaluations
     self.stat.what = ['expectedValue']
-    self.addAssemblerObject('Distribution','-n', newXmlFlg = True)
+    self.addAssemblerObject('distribution','-n', newXmlFlg = True)
     self.printTag = 'POSTPROCESSOR INTEGRAL'
 
   def _localReadMoreXML(self, xmlNode):
@@ -128,7 +128,7 @@ class LimitSurfaceIntegral(PostProcessor):
         self.lowerUpperDict[varName] = {}
         self.variableDist[varName] = None
         for childChild in child.subparts:
-          if childChild.getName() == 'Distribution':
+          if childChild.getName() == 'distribution':
             self.variableDist[varName] = childChild.value
           elif childChild.getName() == 'lowerBound':
             if self.variableDist[varName] != None:
@@ -192,7 +192,7 @@ class LimitSurfaceIntegral(PostProcessor):
     self.raiseADebug(self.matrixDict)
     for varName, distName in self.variableDist.items():
       if distName != None:
-        self.variableDist[varName] = self.retrieveObjectFromAssemblerDict('Distribution', distName)
+        self.variableDist[varName] = self.retrieveObjectFromAssemblerDict('distribution', distName)
         self.lowerUpperDict[varName]['lowerBound'] = self.variableDist[varName].lowerBound
         self.lowerUpperDict[varName]['upperBound'] = self.variableDist[varName].upperBound
 

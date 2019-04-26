@@ -56,10 +56,10 @@
       <target>goalFunctionForLimitSurface</target>
       <outputName>EventProbability</outputName>
       <variable name="x0">
-        <Distribution class="Distributions" type="Normal">x0_distrib</Distribution>
+        <distribution class="Distributions" type="Normal">x0_distrib</distribution>
       </variable>
       <variable name="y0">
-        <Distribution class="Distributions" type="Normal">y0_distrib</Distribution>
+        <distribution class="Distributions" type="Normal">y0_distrib</distribution>
       </variable>
     </PostProcessor>
     <PostProcessor name="LimitSurfaceIntegralUnWeightedWithBounds" subType="LimitSurfaceIntegral">
