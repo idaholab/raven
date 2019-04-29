@@ -44,7 +44,7 @@ int RandomClass::get_rng_state() {
     return _counter;
 }
 
-int RandomClass::forward_seed(unsigned int counts){
+void RandomClass::forward_seed(unsigned int counts){
     _counter = counts;
     _rng->_backend.discard(counts);
 }

@@ -34,7 +34,7 @@ public:
   void seed(unsigned int seed);
   double random();
   int get_rng_state();
-  int forward_seed(unsigned int counts);
+  void forward_seed(unsigned int counts);
   int get_rng_seed();
 };
 
