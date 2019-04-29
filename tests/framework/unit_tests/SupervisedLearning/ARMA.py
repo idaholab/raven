@@ -36,6 +36,7 @@ sys.path.append(frameworkDir)
 
 from utils.utils import find_crow
 find_crow(frameworkDir)
+from utils import randomUtils
 
 import MessageHandler
 
@@ -446,6 +447,7 @@ signal1=arma._generateARMASignal(testval)#, randEngine=arma.randomEng)#,randEngi
 signal2=arma._generateARMASignal(testval)
 
 #Test the reseed = False
+
 armaref=arma
 armaref.reseedCopies=False
 pklref=pk.dumps(armaref)
@@ -457,6 +459,7 @@ for n in range(len(data)):
   checkFloat('singal 3, signal 4 ind{}'.format(n), signal3[n], signal4[n], tol=1e-5)
 
 #Test the reseed = True
+
 arma.reseedCopies=True
 pklret=pk.dumps(arma)
 unpkret=pk.loads(pklret)
@@ -465,6 +468,17 @@ signal5=arma._generateARMASignal(testval)
 signal6=unpkret._generateARMASignal(testval)
 for n in range(len(data)):
   checkTrue('singal 5, signal 6 ind{}'.format(n),signal5[n]!=signal6[n])
+
+# Test the engine with seed
+
+eng=randomUtils.newRNG()
+arma.setEngine(eng,seed=901017,count=0)
+signal7=arma._generateARMASignal(testval)
+
+sig7=[0.43788428,-0.15917632,0.14392189,-0.61961007,0.06594526,
+      0.66547498,-0.31849763,-1.28801007, 0.45029959, -0.06282485]
+for n in range(10):
+  checkFloat('singal 7, evaluation ind{}'.format(n), signal7[n], sig7[n], tol=1e-7)
 
 #################
 # TODO UNTESTED #
