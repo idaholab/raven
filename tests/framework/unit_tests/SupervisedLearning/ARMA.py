@@ -420,8 +420,8 @@ if plotting:
 ostats = (np.average(data), np.std(data))
 for n in range(nsamp):
   stats = (np.average(samples[n,:]), np.std(samples[n,:]))
-  checkFloat('Mean, sample {}'.format(n), ostats[0], stats[0], tol=1e-1)
-  checkFloat('Std, sample {}'.format(n), ostats[1], stats[1], tol=1e-1)
+  checkFloat('Mean, sample {}'.format(n), ostats[0], stats[0], tol=3e-1)
+  checkFloat('Std, sample {}'.format(n), ostats[1], stats[1], tol=6e-1)
   if plotting:
     ax.plot(t, samples[n,:], '-', color='C1', label='sample', alpha=0.2)
     pdf,cdf = makeCDF(samples[n,:])
@@ -475,8 +475,8 @@ eng=randomUtils.newRNG()
 arma.setEngine(eng,seed=901017,count=0)
 signal7=arma._generateARMASignal(testval)
 
-sig7=[0.43788428,-0.15917632,0.14392189,-0.61961007,0.06594526,
-      0.66547498,-0.31849763,-1.28801007, 0.45029959, -0.06282485]
+sig7=[0.39975177, -0.14531468,  0.13138866, -0.56565224,  0.06020252,
+      0.60752306, -0.29076173, -1.1758456,   0.41108591, -0.05735384]
 for n in range(10):
   checkFloat('singal 7, evaluation ind{}'.format(n), signal7[n], sig7[n], tol=1e-7)
 
@@ -488,7 +488,6 @@ for n in range(10):
 # - Analytic VARMA/ARMA variances
 # - Fourier analytic coefficients
 # - Signal Reconstruction
-
 
 
 print(results)
