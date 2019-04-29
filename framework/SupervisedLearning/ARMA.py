@@ -108,12 +108,8 @@ class ARMA(supervisedLearning):
     self.normEngine.lowerBoundUsed = False
     self.normEngine.initializeDistribution()
 
-    #self.randomEng              = kwargs.get('randomEng',None)
+    self.setEngine(randomUtils.newRNG(),seed=self.seed,count=0)
 
-    self.randomEng=randomUtils.newRNG()
-    #self.randomEng=None
-
-    #self.randomEng=self.randomEngine()
     # FIXME set the numpy seed
       ## we have to do this because VARMA.simulate does not accept a random number generator,
       ## but instead uses numpy directly.  As a result, for now, we have to seed numpy.
@@ -206,11 +202,8 @@ class ARMA(supervisedLearning):
       @ Out, d, dict, stateful dictionary
     """
     d = supervisedLearning.__getstate__(self)
-    #d=copy.copy(self.__dict__)
     eng=d.pop("randomEng")
-    #randseed = eng.get_rng_seed()
-    randseed = self.seed
-
+    randseed = eng.get_rng_seed()
     randcounts = eng.get_rng_state()
     d['crow_rng_seed'] = randseed
     d['crow_rng_counts'] = randcounts
@@ -222,20 +215,13 @@ class ARMA(supervisedLearning):
       @ In, d, dict, stateful dictionary
       @ Out, None
     """
-    #supervisedLearning.__setstate__(self, d)
     rngseed = d.pop('crow_rng_seed')
-
     rngcounts = d.pop('crow_rng_counts')
-    #print('setstate',rngseed, rngcounts)
-    self.randomEng = randomUtils.newRNG()
+    self.setEngine(randomUtils.newRNG(),seed=rngseed,count=rngcounts)
     self.__dict__.update(d)
-    print('reseedcopy',self.reseedCopies)
     if self.reseedCopies:
-      randd = np.random.randint(1,200000000)
-      self.reseed(randd)
-    else:
-      randomUtils.randomSeed(rngseed, engine=self.randomEng)
-      self.randomEng.forward_seed(rngcounts)
+      randd = np.random.randint(1,2e9)
+      randomUtils.randomSeed(randd, engine=self.randomEng)
 
   def __trainLocal__(self,featureVals,targetVals):
     """
@@ -434,6 +420,7 @@ class ARMA(supervisedLearning):
                                             numSamples = self.zeroFilterMask.sum(),
                                             #randEngine = self.normEngine.rvs
                                             randEngine = self.randomEng)
+
           ## if so, then expand result into signal space (functionally, put back in all the zeros)
           signal = np.zeros(len(self.pivotParameterValues))
           signal[self.zeroFilterMask] = sample
@@ -443,6 +430,7 @@ class ARMA(supervisedLearning):
                                             numSamples = len(self.pivotParameterValues),
                                             #randEngine = self.normEngine.rvs
                                             randEngine = self.randomEng)
+
           signal = sample
       # END creating base signal
       # DEBUG adding arbitrary variables for debugging, TODO find a more elegant way, leaving these here as markers
@@ -525,7 +513,7 @@ class ARMA(supervisedLearning):
     denormed = self._sampleICDF(denormed, params)
     return denormed
 
-  def _generateARMASignal(self, model, numSamples=None, randEngine=None):
+  def _generateARMASignal(self, model, numSamples=None,randEngine=None):
     """
       Generates a synthetic history from fitted parameters.
       @ In, model, statsmodels.tsa.arima_model.ARMAResults, fitted ARMA such as otained from _trainARMA
@@ -535,8 +523,8 @@ class ARMA(supervisedLearning):
     """
     if numSamples is None:
       numSamples =  len(self.pivotParameterValues)
-    if randEngine  is None:
-      randEngine= self.randomEng
+    if randEngine is None:
+      randEngine=self.randomEng
     hist = sm.tsa.arma_generate_sample(ar = np.append(1., -model.arparams),
                                        ma = np.append(1., model.maparams),
                                        nsample = numSamples,
@@ -1157,5 +1145,12 @@ class ARMA(supervisedLearning):
       Currently not implemented for ARMA
     """
     pass
-  #def randomEngine(self):
-  #  randomUtils.newRNG()
+
+  def setEngine(self,eng,seed=None,count=None):
+    if seed is None:
+      seed=self.seed
+    eng.seed(seed)
+    if count is None:
+      count=self.randomEng.get_rng_state()
+    eng.forward_seed(count)
+    self.randomEng=eng

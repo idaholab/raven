@@ -346,7 +346,6 @@ if plotting:
   ax2.plot(x,pdf,'k-',label='true beta', lw=3)
 
 # random samples
-#data = dist.rvs(N)
 data=pd.read_csv("signal.csv")
 data=data.e_demand.values
 
@@ -411,10 +410,6 @@ arma.__trainLocal__(featureVals,targetVals)
 nsamp = 10
 samples = np.zeros([nsamp,len(data)])
 
-eng=randomUtils.newRNG()
-eng2=randomUtils.newRNG()
-arma.randomEng=eng
-
 for n in range(nsamp):
   ev = arma.__evaluateLocal__(np.array([1.0]))
   samples[n,:] = ev['a']
@@ -432,8 +427,8 @@ if plotting:
 ostats = (np.average(data), np.std(data))
 for n in range(nsamp):
   stats = (np.average(samples[n,:]), np.std(samples[n,:]))
-  #checkFloat('Mean, sample {}'.format(n), ostats[0], stats[0], tol=1e-2)
-  #checkFloat('Std, sample {}'.format(n), ostats[1], stats[1], tol=1e-2)
+  checkFloat('Mean, sample {}'.format(n), ostats[0], stats[0], tol=1e-1)
+  checkFloat('Std, sample {}'.format(n), ostats[1], stats[1], tol=1e-1)
   if plotting:
     ax.plot(t, samples[n,:], '-', color='C1', label='sample', alpha=0.2)
     pdf,cdf = makeCDF(samples[n,:])
@@ -449,6 +444,36 @@ if plotting:
   plt.show()
 
 
+#############################################
+#            RESEEDCOPIES, ENGINE           #
+#############################################
+
+testval=arma._trainARMA(data)
+arma.amITrained=True
+signal1=arma._generateARMASignal(testval)#, randEngine=arma.randomEng)#,randEngine=eng)
+signal2=arma._generateARMASignal(testval)
+
+#Test the reseed= False
+armaref=arma
+armaref.reseedCopies=False
+pklref=pk.dumps(armaref)
+unpkref=pk.loads(pklref)
+#signal 3 and 4 should be the same
+signal3=armaref._generateARMASignal(testval)
+signal4=unpkref._generateARMASignal(testval)
+for n in range(len(data)):
+  checkFloat('singal 3, signal 4 ind{}'.format(n), signal3[n], signal4[n], tol=1e-5)
+
+#Test the reseed= True
+arma.reseedCopies=True
+pklret=pk.dumps(arma)
+unpkret=pk.loads(pklret)
+#signal 5 and 6 should not be the same
+signal5=arma._generateARMASignal(testval)
+signal6=unpkret._generateARMASignal(testval)
+for n in range(len(data)):
+  checkTrue('singal 5, signal 6 ind{}'.format(n),signal5[n]!=signal6[n])
+
 #################
 # TODO UNTESTED #
 #################
@@ -458,46 +483,7 @@ if plotting:
 # - Fourier analytic coefficients
 # - Signal Reconstruction
 
-testval=arma._trainARMA(data)
-arma.amITrained=True
-dd=arma.__getstate__()
-print('before generate' ,dd['crow_rng_counts'])
-print('before generate' ,dd['crow_rng_seed'])
-
-signal1=arma._generateARMASignal(testval, numSamples=20)#, randEngine=arma.randomEng)#,randEngine=eng)
-dd=arma.__getstate__()
-print('generate 20',dd['crow_rng_counts'])
-print('generate 10000', dd['crow_rng_seed'])
-
-signal2=arma._generateARMASignal(testval)
-dd=arma.__getstate__()
-print('generate 10000', dd['crow_rng_counts'])
-print('generate 10000', dd['crow_rng_seed'])
-arma.reseedCopies=False
-pkl=pk.dumps(arma)
-unpk=pk.loads(pkl)
-dd=unpk.__getstate__()
-unpk.randomEng=eng2
-print('upk', dd['crow_rng_counts'])
-print('upk', dd['crow_rng_seed'])
-
-signal3=arma._generateARMASignal(testval)
-
-signal4=unpk._generateARMASignal(testval,randEngine=eng2)
-
-print('1 20',signal1)
-print('2 10000',signal2)
-print('3 10000',signal4)
-print('4 10000 up',signal3)
-
-#dd=SupervisedLearning.supervisedLearning().__dict__()
-#print(dd)
-
-seedp=pk.dumps(arma)
-
-#print(dd)
-
-#print(aa)
+print(results)
 
 sys.exit(results["fail"])
 """
