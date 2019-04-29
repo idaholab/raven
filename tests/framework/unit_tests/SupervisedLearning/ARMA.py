@@ -34,13 +34,8 @@ frameworkDir = os.path.abspath(os.path.join(*([os.path.dirname(__file__)]+[os.pa
 
 sys.path.append(frameworkDir)
 
-#print(sys.path)
-#import randomUtils
-#from utils import randomUtils
 from utils.utils import find_crow
-
 find_crow(frameworkDir)
-from utils import randomUtils
 
 import MessageHandler
 
@@ -54,7 +49,6 @@ from Models import ROM
 # find location of ARMA
 sys.path.append(os.path.join(frameworkDir,'SupervisedLearning'))
 import ARMA
-import SupervisedLearning
 
 print('Module undergoing testing:')
 print(ARMA)
@@ -409,7 +403,6 @@ targetVals[0,:,1] = t
 arma.__trainLocal__(featureVals,targetVals)
 nsamp = 10
 samples = np.zeros([nsamp,len(data)])
-
 for n in range(nsamp):
   ev = arma.__evaluateLocal__(np.array([1.0]))
   samples[n,:] = ev['a']
@@ -423,7 +416,6 @@ if plotting:
   figC, (axC1,axC2) = plt.subplots(1,2)
   # samples
   ax.plot(t, data, 'k-', label='original')
-
 ostats = (np.average(data), np.std(data))
 for n in range(nsamp):
   stats = (np.average(samples[n,:]), np.std(samples[n,:]))
@@ -453,7 +445,7 @@ arma.amITrained=True
 signal1=arma._generateARMASignal(testval)#, randEngine=arma.randomEng)#,randEngine=eng)
 signal2=arma._generateARMASignal(testval)
 
-#Test the reseed= False
+#Test the reseed = False
 armaref=arma
 armaref.reseedCopies=False
 pklref=pk.dumps(armaref)
@@ -464,7 +456,7 @@ signal4=unpkref._generateARMASignal(testval)
 for n in range(len(data)):
   checkFloat('singal 3, signal 4 ind{}'.format(n), signal3[n], signal4[n], tol=1e-5)
 
-#Test the reseed= True
+#Test the reseed = True
 arma.reseedCopies=True
 pklret=pk.dumps(arma)
 unpkret=pk.loads(pklret)
@@ -482,6 +474,8 @@ for n in range(len(data)):
 # - Analytic VARMA/ARMA variances
 # - Fourier analytic coefficients
 # - Signal Reconstruction
+
+
 
 print(results)
 

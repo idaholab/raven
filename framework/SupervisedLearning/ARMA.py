@@ -115,7 +115,6 @@ class ARMA(supervisedLearning):
       ## but instead uses numpy directly.  As a result, for now, we have to seed numpy.
       ## Because we use our RNG to set the seed, though, it should follow the global seed still.
     self.raiseADebug('Setting ARMA seed to',self.seed)
-      #np.random.seed(self.seed)
     randomUtils.randomSeed(self.seed,engine=self.randomEng)
 
     # check for correlation
@@ -369,21 +368,18 @@ class ARMA(supervisedLearning):
             # if not, take the samples now
             unzeroedSample = self._generateVARMASignal(self.varmaResult[0],
                                                  numSamples = self.zeroFilterMask.sum(),
-                                                 #randEngine = self.normEngine.rvs,
-                                                 randEngine = self.randomEng,
+                                                 randEngine = self.normEngine.rvs,
                                                  rvsIndex = 0)
             ## zero sampling is dependent on whether the trained model is a VARMA or ARMA
             if self.varmaNoise[1] is not None:
               zeroedSample = self._generateVARMASignal(self.varmaResult[1],
                                                    numSamples = self.notZeroFilterMask.sum(),
-                                                   #randEngine = self.normEngine.rvs,
-                                                   randEngine = self.randomEng,
+                                                   randEngine = self.normEngine.rvs,
                                                    rvsIndex = 1)
             else:
               result = self.varmaResult[1]
               sample = self._generateARMASignal(result,
                                                 numSamples = self.notZeroFilterMask.sum(),
-                                                #randEngine = self.normEngine.rvs
                                                 randEngine = self.randomEng)
               zeroedSample = np.zeros((self.notZeroFilterMask.sum(),1))
               zeroedSample[:,0] = sample
@@ -405,8 +401,7 @@ class ARMA(supervisedLearning):
             ## if not, do so now
             correlatedSample = self._generateVARMASignal(self.varmaResult[0],
                                                          numSamples = len(self.pivotParameterValues),
-                                                         #randEngine = self.normEngine.rvs,
-                                                         randEngine = self.randomEng,
+                                                         randEngine = self.normEngine.rvs,
                                                          rvsIndex = 0)
           # take base signal from sample
           signal = correlatedSample[:,self.correlations.index(target)]
@@ -418,7 +413,6 @@ class ARMA(supervisedLearning):
         if target == self.zeroFilterTarget:
           sample = self._generateARMASignal(result,
                                             numSamples = self.zeroFilterMask.sum(),
-                                            #randEngine = self.normEngine.rvs
                                             randEngine = self.randomEng)
 
           ## if so, then expand result into signal space (functionally, put back in all the zeros)
@@ -428,7 +422,6 @@ class ARMA(supervisedLearning):
           ## if not, no extra work to be done here!
           sample = self._generateARMASignal(result,
                                             numSamples = len(self.pivotParameterValues),
-                                            #randEngine = self.normEngine.rvs
                                             randEngine = self.randomEng)
 
           signal = sample
@@ -487,7 +480,6 @@ class ARMA(supervisedLearning):
       @ In, seed, int, new seed to use
       @ Out, None
     """
-    print(randomUtils.randomSeed)
     randomUtils.randomSeed(seed,engine=self.randomEng)
 
   ### UTILITY METHODS ###
