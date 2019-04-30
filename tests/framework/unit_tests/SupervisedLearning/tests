@@ -2,6 +2,5 @@
   [./ARMA]
     type = 'RavenPython'
     input = 'ARMA.py'
-    python3_only = true
   [../]
 []

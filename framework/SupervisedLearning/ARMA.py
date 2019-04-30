@@ -202,10 +202,10 @@ class ARMA(supervisedLearning):
     """
     d = supervisedLearning.__getstate__(self)
     eng=d.pop("randomEng")
-    randseed = eng.get_rng_seed()
-    randcounts = eng.get_rng_state()
-    d['crow_rng_seed'] = randseed
-    d['crow_rng_counts'] = randcounts
+    randSeed = eng.get_rng_seed()
+    randCounts = eng.get_rng_state()
+    d['crow_rng_seed'] = randSeed
+    d['crow_rng_counts'] = randCounts
     return d
 
   def __setstate__(self,d):
@@ -214,9 +214,9 @@ class ARMA(supervisedLearning):
       @ In, d, dict, stateful dictionary
       @ Out, None
     """
-    rngseed = d.pop('crow_rng_seed')
-    rngcounts = d.pop('crow_rng_counts')
-    self.setEngine(randomUtils.newRNG(),seed=rngseed,count=rngcounts)
+    rngSeed = d.pop('crow_rng_seed')
+    rngCounts = d.pop('crow_rng_counts')
+    self.setEngine(randomUtils.newRNG(),seed=rngSeed,count=rngCounts)
     self.__dict__.update(d)
     if self.reseedCopies:
       randd = np.random.randint(1,2e9)
@@ -521,6 +521,8 @@ class ARMA(supervisedLearning):
                                        ma = np.append(1., model.maparams),
                                        nsample = numSamples,
                                        distrvs = functools.partial(randomUtils.randomNormal,engine=randEngine),
+                                       # functool.partial provide the random number generator as a function
+                                       # with normal distribution and take engine as the positional arguments keywords.
                                        sigma = np.sqrt(model.sigma2),
                                        burnin = 2*max(self.P,self.Q)) # @epinas, 2018
     return hist
@@ -1139,8 +1141,16 @@ class ARMA(supervisedLearning):
     pass
 
   def setEngine(self,eng,seed=None,count=None):
+    """
+     Set up the random engine for arma
+     @ In, engine, instance, random number generator
+     @ In, seed, int, optional, the seed, if None then use the global seed from ARMA
+     @ In, count, int, optional, advances the state of the generator, if None then use the current ARMA.randomEng count
+     @ Out, engine, instance, random number generator
+    """
     if seed is None:
       seed=self.seed
+    seed=abs(seed)
     eng.seed(seed)
     if count is None:
       count=self.randomEng.get_rng_state()

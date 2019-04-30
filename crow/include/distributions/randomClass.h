@@ -31,7 +31,7 @@ class RandomClass {
 public:
   RandomClass();
   ~RandomClass();
-  void seed(unsigned int seed);
+  void seed(unsigned long int seed);
   double random();
   int get_rng_state();
   void forward_seed(unsigned int counts);

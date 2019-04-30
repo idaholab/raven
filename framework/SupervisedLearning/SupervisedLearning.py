@@ -124,7 +124,6 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
       @ In, None
       @ Out, state, dict, it contains all the information needed by the ROM to be initialized
     """
-    #for eng in self.supervisedContainer:
     state = copy.copy(self.__dict__)
     state['initOptionDict'].pop('paramInput',None)
     ## capture what is normally pickled
@@ -136,7 +135,7 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
   def __setstate__(self, d):
     """
       Initialize the ROM with the data contained in newstate
-      @ In, newstate, dict, it contains all the information needed by the ROM to be initialized
+      @ In, d, dict, it contains all the information needed by the ROM to be initialized
       @ Out, None
     """
     self.__dict__.update(d)

@@ -28,7 +28,7 @@ RandomClass::RandomClass() : _rng(new RandomClassImpl()), _range(_rng->_backend.
     _seed=0;
 }
 
-void RandomClass::seed(unsigned int seed) {
+void RandomClass::seed(unsigned long int seed) {
 
     _counter = 0;
     _seed = seed;
