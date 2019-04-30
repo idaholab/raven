@@ -120,6 +120,7 @@ class ARMA(supervisedLearning):
     # check for correlation
     correlated = kwargs.get('correlate',None)
     if correlated is not None:
+      np.random.seed(self.seed)
       # store correlated targets
       corVars = [x.strip() for x in correlated.split(',')]
       for var in corVars:
@@ -1143,10 +1144,10 @@ class ARMA(supervisedLearning):
   def setEngine(self,eng,seed=None,count=None):
     """
      Set up the random engine for arma
-     @ In, engine, instance, random number generator
+     @ In, eng, instance, random number generator
      @ In, seed, int, optional, the seed, if None then use the global seed from ARMA
      @ In, count, int, optional, advances the state of the generator, if None then use the current ARMA.randomEng count
-     @ Out, engine, instance, random number generator
+     @ Out, None
     """
     if seed is None:
       seed=self.seed
