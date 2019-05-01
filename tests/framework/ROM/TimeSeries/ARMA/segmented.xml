@@ -21,13 +21,18 @@
 
   <RunInfo>
     <WorkingDir>Segmented</WorkingDir>
-    <Sequence>load,train,dump,unpickle,sample,print,reload,stats</Sequence>
+    <Sequence>load,train,rommeta,dump,unpickle,sample,print,reload,stats</Sequence>
   </RunInfo>
 
   <Steps>
     <IOStep name="load">
       <Input class="Files" type="">input</Input>
       <Output class="DataObjects" type="HistorySet">input</Output>
+    </IOStep>
+    <IOStep name="rommeta">
+      <Input class="Models" type="ROM">arma</Input>
+      <Output class="DataObjects" type="DataSet">rommeta</Output>
+      <Output class="OutStreams" type="Print">rommeta</Output>
     </IOStep>
     <RomTrainer name="train">
       <Input class="DataObjects" type="HistorySet">input</Input>
@@ -95,6 +100,7 @@
         <pivotParameter>Time</pivotParameter>
       </options>
     </HistorySet>
+    <DataSet name="rommeta"/>
   </DataObjects>
 
   <Models>
@@ -103,8 +109,10 @@
       <Target>Demand,Time</Target>
       <Features>scaling</Features>
       <pivotParameter>Time</pivotParameter>
+      <seed>34524</seed>
       <P>0</P>
       <Q>0</Q>
+      <reseedCopies>False</reseedCopies>
       <Fourier>1e200, 31556952, 15778476, 10518984, 7889238, 2592000, 1296000, 604800, 302400, 86400, 43200, 28800, 21600</Fourier>
       <Segment>
         <subspace pivotLength="604800" shift="first">Time</subspace>
@@ -131,6 +139,10 @@
       <type>csv</type>
       <source>synthetic</source>
       <what>input, output</what>
+    </Print>
+    <Print name="rommeta">
+      <type>csv</type>
+      <source>rommeta</source>
     </Print>
     <Print name="stats">
       <type>csv</type>

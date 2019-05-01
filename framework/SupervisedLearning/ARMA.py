@@ -36,7 +36,7 @@ from sklearn import linear_model
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import randomUtils, xmlUtils, mathUtils
+from utils import randomUtils, xmlUtils, mathUtils,utils
 import Distributions
 from .SupervisedLearning import supervisedLearning
 #Internal Modules End--------------------------------------------------------------------------------
@@ -74,7 +74,8 @@ class ARMA(supervisedLearning):
     self.Q                 = kwargs.get('Q', 3) # moving average lag
     self.segments          = kwargs.get('segments', 1)
     # data manipulation
-    self.reseedCopies      = kwargs.get('reseedCopies',True)
+    reseed=kwargs.get('reseedCopies',str(True)).lower()
+    self.reseedCopies      = reseed not in utils.stringsThatMeanFalse()
     self.outTruncation = {'positive':set(),'negative':set()} # store truncation requests
     self.pivotParameterID  = kwargs['pivotParameter']
     self.pivotParameterValues = None  # In here we store the values of the pivot parameter (e.g. Time)
@@ -203,9 +204,7 @@ class ARMA(supervisedLearning):
     """
     d = supervisedLearning.__getstate__(self)
     eng=d.pop("randomEng")
-    randSeed = eng.get_rng_seed()
     randCounts = eng.get_rng_state()
-    d['crow_rng_seed'] = randSeed
     d['crow_rng_counts'] = randCounts
     return d
 
@@ -215,13 +214,12 @@ class ARMA(supervisedLearning):
       @ In, d, dict, stateful dictionary
       @ Out, None
     """
-    rngSeed = d.pop('crow_rng_seed')
     rngCounts = d.pop('crow_rng_counts')
-    self.setEngine(randomUtils.newRNG(),seed=rngSeed,count=rngCounts)
     self.__dict__.update(d)
+    self.setEngine(randomUtils.newRNG(),seed=None,count=rngCounts)
     if self.reseedCopies:
       randd = np.random.randint(1,2e9)
-      randomUtils.randomSeed(randd, engine=self.randomEng)
+      self.reseed(randd)
 
   def __trainLocal__(self,featureVals,targetVals):
     """
@@ -482,6 +480,7 @@ class ARMA(supervisedLearning):
       @ Out, None
     """
     randomUtils.randomSeed(seed,engine=self.randomEng)
+    self.seed=seed
 
   ### UTILITY METHODS ###
   def _computeNumberOfBins(self,data):

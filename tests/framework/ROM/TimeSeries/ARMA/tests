@@ -63,9 +63,21 @@
    type = 'RavenFramework'
    input = 'varma.xml'
    output = 'VARMA/plot_VARMA.png VARMA/plot_input.png VARMA/samples.csv VARMA/samples_0.csv VARMA/stats.xml'
-   csv = 'VARMA/stats.csv'
-   rel_err = 1e-1
-   max_time = 500
+    [./rom_meta]
+      type = XML
+      output = 'VARMA/rommeta.xml'
+      rel_err = 1e-5
+    [../]
+    [./stats]
+      type = OrderedCSV
+      output = 'VARMA/stats.csv'
+      rel_err = 1e-2
+    [../]
+    [./romcsv]
+      type = OrderedCSV
+      output = 'VARMA/rommeta.csv'
+      rel_err = 1e-5
+    [../]
   [../]
 
   [./ZeroFilter]
@@ -80,9 +92,22 @@
   [./Segmented]
     type = 'RavenFramework'
     input = 'segmented.xml'
-    output = 'Segmented/synthetic.csv Segmented/synthetic_0.csv Segmented/synthetic.xml Segmented/stats.xml'
-    csv = 'Segmented/stats.csv'
-    rel_err = 1e-2
+    output = 'Segmented/synthetic.csv Segmented/synthetic.xml Segmented/stats.xml'
+    [./rom_meta]
+      type = XML
+      output = 'Segmented/romMeta.xml'
+      rel_err = 1e-5
+    [../]
+    [./stats]
+      type = OrderedCSV
+      output = 'Segmented/stats.csv'
+      rel_err = 1e-2
+    [../]
+    [./syntheticcsv]
+      type = OrderedCSV
+      output = 'Segmented/synthetic_0.csv'
+      rel_err = 1e-5
+    [../]
   [../]
   [./Clustered]
     type = 'RavenFramework'
