@@ -71,7 +71,7 @@
     [./stats]
       type = OrderedCSV
       output = 'VARMA/stats.csv'
-      rel_err = 1e-2
+      rel_err = 2e-2
     [../]
     [./romcsv]
       type = OrderedCSV
