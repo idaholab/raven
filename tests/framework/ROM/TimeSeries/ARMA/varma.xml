@@ -130,9 +130,10 @@
     <ROM name="VARMA" subType="ARMA">
       <Target>A,B,C,D,Time</Target>
       <Features>scaling</Features>
-      <seed>84</seed>
+      <seed>901017</seed>
       <correlate>A,B,C</correlate>
       <pivotParameter>Time</pivotParameter>
+      <reseedCopies>False</reseedCopies>
       <P>3</P>
       <Q>1</Q>
     </ROM>
