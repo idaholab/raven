@@ -62,7 +62,7 @@
   [./VARMA]
    type = 'RavenFramework'
    input = 'varma.xml'
-   output = 'VARMA/plot_VARMA.png VARMA/plot_input.png VARMA/samples.csv VARMA/samples_0.csv VARMA/stats.xml '
+   output = 'VARMA/plot_VARMA.png VARMA/plot_input.png VARMA/stats.xml '
     [./rom_meta]
       type = XML
       output = 'VARMA/rommeta.xml'
@@ -76,6 +76,11 @@
     [./rommetacsv]
       type = OrderedCSV
       output = 'VARMA/rommeta.csv'
+      rel_err = 1e-5
+    [../]
+    [./samplecsv]
+      type = OrderedCSV
+      output = 'VARMA/samples_0.csv'
       rel_err = 1e-5
     [../]
   [../]
@@ -92,7 +97,7 @@
   [./Segmented]
     type = 'RavenFramework'
     input = 'segmented.xml'
-    output = 'Segmented/synthetic.csv Segmented/synthetic.xml Segmented/stats.xml Segmented/rommeta.csv'
+    output = 'Segmented/synthetic.csv Segmented/synthetic.xml Segmented/stats.xml '
     [./rom_meta]
       type = XML
       unordered = true
@@ -107,6 +112,11 @@
     [./syntheticcsv]
       type = OrderedCSV
       output = 'Segmented/synthetic_0.csv'
+      rel_err = 1e-5
+    [../]
+    [./rommetacsv]
+      type = OrderedCSV
+      output = 'Segmented/rommeta.csv'
       rel_err = 1e-5
     [../]
   [../]
