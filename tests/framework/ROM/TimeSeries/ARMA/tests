@@ -95,7 +95,7 @@
     output = 'Segmented/synthetic.csv Segmented/synthetic.xml Segmented/stats.xml'
     [./rom_meta]
       type = XML
-      output = 'Segmented/romMeta.xml'
+      output = 'Segmented/rommeta.xml'
       rel_err = 1e-5
     [../]
     [./stats]
