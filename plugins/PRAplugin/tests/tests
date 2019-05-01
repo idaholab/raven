@@ -77,17 +77,4 @@
   input = 'test_ensemblePRAModel_mixed.xml'
   UnorderedCsv   = 'ensembleMixed/Print_sim_PS.csv'
  [../]
-
- [./TestDataClassifierPS]
-  type = 'RavenFramework'
-  input = 'test_dataClassifier_postprocessor.xml'
-  UnorderedCsv = 'dataClassifier/Print_sim_PS.csv dataClassifier/Print_ET_PS.csv'
- [../]
-
- [./TestDataClassifierHS]
-  type = 'RavenFramework'
-  input = 'test_dataClassifier_postprocessor_HS.xml'
-  UnorderedCsv = 'dataClassifierHS/Print_sim_PS_0.csv dataClassifierHS/Print_sim_PS_3.csv dataClassifierHS/Print_sim_PS_7.csv dataClassifierHS/Print_sim_PS_9.csv'
- [../]
 []
-

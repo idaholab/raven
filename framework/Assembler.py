@@ -183,4 +183,6 @@ class Assembler(MessageHandler.MessageUser):
           break
       if pop and assemblerObject is not None:
         self.assemblerDict[objectMainClass].remove(assemblerObj)
+    if assemblerObject is None:
+      self.raiseAnError(IOError, 'Required Object: ', objectName, 'is not found among', objectMainClass)
     return assemblerObject
