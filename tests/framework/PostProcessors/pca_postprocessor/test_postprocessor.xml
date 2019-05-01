@@ -32,7 +32,7 @@
           <dimensions>1,2,3,4,5</dimensions>
         </manifest>
       </features>
-      <mvnDistribution>MVN</mvnDistribution>
+      <mvnDistribution class="Distributions" type="MultivariateNormal">MVN</mvnDistribution>
     </PostProcessor>
   </Models>
 
