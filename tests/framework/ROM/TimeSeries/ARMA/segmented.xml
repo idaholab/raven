@@ -16,6 +16,10 @@
           In this case, only the user requested variables as specified in the DataObjects are printed out.
       </revision>
       <revision author="talbpaul" date="2019-01-30">Added a pickling step to check serialization of segmented ARMA.</revision>
+      <revision author="JiaZhouPU" date="2019-05-02">
+          Deleted the longest Fourier period for this test, because the phase of this period would have results between
+          PI and negative PI( a result of arctan(infinity) ), and cannnot be detected from the xml check.
+      </revision>
     </revisions>
   </TestInfo>
 
@@ -113,7 +117,7 @@
       <P>0</P>
       <Q>0</Q>
       <reseedCopies>False</reseedCopies>
-      <Fourier>1e200, 31556952, 15778476, 10518984, 7889238, 2592000, 1296000, 604800, 302400, 86400, 43200, 28800, 21600</Fourier>
+      <Fourier> 31556952, 15778476, 10518984, 7889238, 2592000, 1296000, 604800, 302400, 86400, 43200, 28800, 21600</Fourier>
       <Segment>
         <subspace pivotLength="604800" shift="first">Time</subspace>
       </Segment>

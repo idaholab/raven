@@ -14,11 +14,6 @@
       <Demand>
         <Fourier>
           <SignalIntercept>1.163033697e+04</SignalIntercept>
-          <period>1.000000000e+200
-            <frequency>1.000000000e-200</frequency>
-            <amplitude>3.930397051e-174</amplitude>
-            <phase>1.570796327e+00</phase>
-          </period>
           <period>3.155695200e+07
             <frequency>3.168873851e-08</frequency>
             <amplitude>1.612674572e+03</amplitude>
