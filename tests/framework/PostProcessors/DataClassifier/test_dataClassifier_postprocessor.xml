@@ -1,4 +1,23 @@
 <Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/PostProcessors/DataClassifier/Clustering/</name>
+    <author>wangc</author>
+    <created>2018-10-18</created>
+    <classesTested>DataClassifier</classesTested>
+    <description>
+      Test DataClassifier PostProcessor with PointSet input
+    </description>
+    <revisions>
+      <revision author="wangc" date="2019-04-26">
+        Move the test from PRAPlugin to RAVEN tests/framework/PostProcessors/DataClassifier, this is because
+        the DataClassifier PostProcessor is currently in RAVEN main repository.
+      </revision>
+      <revision author="wangc" date="2019-05-02">
+        As reported in issue #805, RAVEN will not allow input DataObject of PostProcessor to be output DataObject,
+        the output data object will be renamed, and the variable name of labels will be explicitly defined.
+      </revision>
+    </revisions>
+  </TestInfo>
 
   <RunInfo>
     <WorkingDir>dataClassifier</WorkingDir>
