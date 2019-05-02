@@ -2,11 +2,9 @@
 <Simulation verbosity="debug">
   <RunInfo>
     <JobName>StatisticalAnalysis</JobName>
-    <Sequence>
-        sampleMC,statisticalAnalysisMC
-    </Sequence>
+    <Sequence>sampleMC,statisticalAnalysisMC</Sequence>
     <WorkingDir>StatisticalAnalysis</WorkingDir>
-    <batchSize>40</batchSize>
+    <batchSize>3</batchSize>
   </RunInfo>
 
   <TestInfo>
@@ -21,97 +19,91 @@
     </description>
     <revisions>
       <revision author="wangc" date="2017-12-20">convert test to use the new DataObjects with the new structure of basic statistic</revision>
+      <revision author="burlip" date="2019-04-18">modified file to replaced the Analyticalbateman example with the projectile example</revision>
     </revisions>
   </TestInfo>
 
-  <Files>
-    <Input name="referenceInput.xml" type="input">referenceInput.xml</Input>
-  </Files>
 
   <Models>
-    <Code name="testModel" subType="GenericCode">
-      <executable>../physicalCode/analyticalbateman/AnalyticalDplMain.py</executable>
-      <clargs arg="python" type="prepend"/>
-      <clargs arg="" extension=".xml" type="input"/>
-      <clargs arg=" " extension=".csv" type="output"/>
-    </Code>
-    <PostProcessor name="statisticalAnalysis" subType="BasicStatistics">
-      <skewness prefix="skew">A,B,C,D</skewness>
-      <variationCoefficient prefix="vc">A,B,C,D</variationCoefficient>
-      <percentile prefix="percentile">A,B,C,D</percentile>
-      <expectedValue prefix="mean">A,B,C,D</expectedValue>
-      <kurtosis prefix="kurt">A,B,C,D</kurtosis>
-      <median prefix="median">A,B,C,D</median>
-      <maximum prefix="max">A,B,C,D</maximum>
-      <minimum prefix="min">A,B,C,D</minimum>
-      <samples prefix="samp">A,B,C,D</samples>
-      <variance prefix="var">A,B,C,D</variance>
-      <sigma prefix="sigma">A,B,C,D</sigma>
+    <ExternalModel ModuleToLoad="../../../AnalyticModels/projectile.py" name="projectile" subType="">
+      <variables>v0,angle,r,t,x,y,timeOption</variables>
+    </ExternalModel>
+    <PostProcessor name="statisticalAnalysis" subType="BasicStatistics" verbosity ='debug'>
+      <skewness prefix="skew">r,t</skewness>
+      <variationCoefficient prefix="vc">r,t</variationCoefficient>
+      <percentile prefix="percentile">r,t</percentile>
+      <expectedValue prefix="mean">r,t</expectedValue>
+      <kurtosis prefix="kurt">r,t</kurtosis>
+      <median prefix="median">r,t</median>
+      <maximum prefix="max">r,t</maximum>
+      <minimum prefix="min">r,t</minimum>
+      <samples prefix="samp">r,t</samples>
+      <variance prefix="var">r,t</variance>
+      <sigma prefix="sigma">r,t</sigma>
       <NormalizedSensitivity prefix="nsen">
-        <targets>A,B,C,D</targets>
-        <features>sigma-A,sigma-B,decay-A,decay-B</features>
+        <targets>r,t</targets>
+        <features>v0,angle</features>
       </NormalizedSensitivity>
       <sensitivity prefix="sen">
-        <targets>A,B,C,D</targets>
-        <features>sigma-A,sigma-B,decay-A,decay-B</features>
+        <targets>r,t</targets>
+        <features>v0,angle</features>
       </sensitivity>
       <pearson prefix="pear">
-        <targets>A,B,C,D</targets>
-        <features>sigma-A,sigma-B,decay-A,decay-B</features>
+        <targets>r,t</targets>
+        <features>v0,angle</features>
       </pearson>
       <covariance prefix="cov">
-        <targets>A,B,C,D</targets>
-        <features>sigma-A,sigma-B,decay-A,decay-B</features>
+        <targets>r,t</targets>
+        <features>v0,angle</features>
       </covariance>
       <VarianceDependentSensitivity prefix="vsen">
-        <targets>A,B,C,D</targets>
-        <features>sigma-A,sigma-B,decay-A,decay-B</features>
+        <targets>r,t</targets>
+        <features>v0,angle</features>
       </VarianceDependentSensitivity>
     </PostProcessor>
   </Models>
 
   <Distributions>
-    <Uniform name="sigma">
-      <lowerBound>0</lowerBound>
-      <upperBound>1000</upperBound>
-    </Uniform>
-    <Uniform name="decayConstant">
-      <lowerBound>0.00000001</lowerBound>
-      <upperBound>0.0000001</upperBound>
+    <Normal name="vel_dist">
+      <mean>30</mean>
+      <sigma>5</sigma>
+      <lowerBound>1</lowerBound>
+      <upperBound>60</upperBound>
+    </Normal>
+    <Uniform name="angle_dist">
+      <lowerBound>5</lowerBound>
+      <upperBound>85</upperBound>
     </Uniform>
   </Distributions>
 
   <Samplers>
-    <MonteCarlo name="mc">
+    <MonteCarlo name="my_mc">
       <samplerInit>
-        <limit>1200</limit>
+        <limit>1000</limit>
         <initialSeed>42</initialSeed>
       </samplerInit>
-      <variable name="sigma-A">
-        <distribution>sigma</distribution>
+      <variable name="v0">
+        <distribution>vel_dist</distribution>
       </variable>
-      <variable name="decay-A">
-        <distribution>decayConstant</distribution>
+      <variable name="angle">
+        <distribution>angle_dist</distribution>
       </variable>
-      <variable name="sigma-B">
-        <distribution>sigma</distribution>
-      </variable>
-      <variable name="decay-B">
-        <distribution>decayConstant</distribution>
-      </variable>
+      <constant name="x0">0</constant>
+      <constant name="y0">0</constant>
+      <constant name="timeOption">1</constant>
     </MonteCarlo>
   </Samplers>
 
   <Steps>
     <MultiRun name="sampleMC">
-      <Input class="Files" type="input">referenceInput.xml</Input>
-      <Model class="Models" type="Code">testModel</Model>
-      <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
-      <Output class="DataObjects" type="PointSet">samplesMC</Output>
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ExternalModel">projectile</Model>
+      <Sampler class="Samplers" type="MonteCarlo">my_mc</Sampler>
+      <Output class="DataObjects" type="PointSet">samples</Output>
       <Output class="DataObjects" type="HistorySet">histories</Output>
     </MultiRun>
     <PostProcess name="statisticalAnalysisMC">
-      <Input class="DataObjects" type="PointSet">samplesMC</Input>
+      <Input class="DataObjects" type="PointSet">samples</Input>
       <Model class="Models" type="PostProcessor">statisticalAnalysis</Model>
       <Output class="DataObjects" type="PointSet">statisticalAnalysis_basicStatPP</Output>
       <Output class="OutStreams" type="Print">statisticalAnalysis_basicStatPP_dump</Output>
@@ -119,148 +111,71 @@
   </Steps>
 
   <DataObjects>
-    <PointSet name="samplesMC">
-      <Input>sigma-A,sigma-B,decay-A,decay-B</Input>
-      <Output>A,B,C,D</Output>
+    <PointSet name="samples">
+      <Input>v0,angle</Input>
+      <Output>r,t</Output>
+    </PointSet>
+    <PointSet name="dummyIN">
+      <Input>v0,angle</Input>
+      <Output>OutputPlaceHolder</Output>
     </PointSet>
     <PointSet name="statisticalAnalysis_basicStatPP">
         <Output>statisticalAnalysis_vars</Output>
     </PointSet>
     <HistorySet name="histories">
-      <Input>sigma-A,sigma-B,decay-A,decay-B</Input>
-      <Output>A,B,C,D,time</Output>
+      <Input>v0,angle</Input>
+      <Output>x,y,t</Output>
+      <options> 
+        <pivotParameter>t</pivotParameter>
+      </options>
     </HistorySet>
   </DataObjects>
 
   <VariableGroups>
-    <Group name="statisticalAnalysis_vars">skew_A,
-                 skew_B,
-                 skew_C,
-                 skew_D,
-                 vc_A,
-                 vc_B,
-                 vc_C,
-                 vc_D,
-                 percentile_5_A,
-                 percentile_95_A,
-                 percentile_5_B,
-                 percentile_95_B,
-                 percentile_5_C,
-                 percentile_95_C,
-                 percentile_5_D,
-                 percentile_95_D,
-                 mean_A,
-                 mean_B,
-                 mean_C,
-                 mean_D,
-                 kurt_A,
-                 kurt_B,
-                 kurt_C,
-                 kurt_D,
-                 median_A,
-                 median_B,
-                 median_C,
-                 median_D,
-                 max_A,
-                 max_B,
-                 max_C,
-                 max_D,
-                 min_A,
-                 min_B,
-                 min_C,
-                 min_D,
-                 samp_A,
-                 samp_B,
-                 samp_C,
-                 samp_D,
-                 var_A,
-                 var_B,
-                 var_C,
-                 var_D,
-                 sigma_A,
-                 sigma_B,
-                 sigma_C,
-                 sigma_D,
-                 nsen_A_sigma-A,
-                 nsen_A_sigma-B,
-                 nsen_A_decay-A,
-                 nsen_A_decay-B,
-                 nsen_B_sigma-A,
-                 nsen_B_sigma-B,
-                 nsen_B_decay-A,
-                 nsen_B_decay-B,
-                 nsen_C_sigma-A,
-                 nsen_C_sigma-B,
-                 nsen_C_decay-A,
-                 nsen_C_decay-B,
-                 nsen_D_sigma-A,
-                 nsen_D_sigma-B,
-                 nsen_D_decay-A,
-                 nsen_D_decay-B,
-                 sen_A_sigma-A,
-                 sen_A_sigma-B,
-                 sen_A_decay-A,
-                 sen_A_decay-B,
-                 sen_B_sigma-A,
-                 sen_B_sigma-B,
-                 sen_B_decay-A,
-                 sen_B_decay-B,
-                 sen_C_sigma-A,
-                 sen_C_sigma-B,
-                 sen_C_decay-A,
-                 sen_C_decay-B,
-                 sen_D_sigma-A,
-                 sen_D_sigma-B,
-                 sen_D_decay-A,
-                 sen_D_decay-B,
-                 pear_A_sigma-A,
-                 pear_A_sigma-B,
-                 pear_A_decay-A,
-                 pear_A_decay-B,
-                 pear_B_sigma-A,
-                 pear_B_sigma-B,
-                 pear_B_decay-A,
-                 pear_B_decay-B,
-                 pear_C_sigma-A,
-                 pear_C_sigma-B,
-                 pear_C_decay-A,
-                 pear_C_decay-B,
-                 pear_D_sigma-A,
-                 pear_D_sigma-B,
-                 pear_D_decay-A,
-                 pear_D_decay-B,
-                 cov_A_sigma-A,
-                 cov_A_sigma-B,
-                 cov_A_decay-A,
-                 cov_A_decay-B,
-                 cov_B_sigma-A,
-                 cov_B_sigma-B,
-                 cov_B_decay-A,
-                 cov_B_decay-B,
-                 cov_C_sigma-A,
-                 cov_C_sigma-B,
-                 cov_C_decay-A,
-                 cov_C_decay-B,
-                 cov_D_sigma-A,
-                 cov_D_sigma-B,
-                 cov_D_decay-A,
-                 cov_D_decay-B,
-                 vsen_A_sigma-A,
-                 vsen_A_sigma-B,
-                 vsen_A_decay-A,
-                 vsen_A_decay-B,
-                 vsen_B_sigma-A,
-                 vsen_B_sigma-B,
-                 vsen_B_decay-A,
-                 vsen_B_decay-B,
-                 vsen_C_sigma-A,
-                 vsen_C_sigma-B,
-                 vsen_C_decay-A,
-                 vsen_C_decay-B,
-                 vsen_D_sigma-A,
-                 vsen_D_sigma-B,
-                 vsen_D_decay-A,
-                 vsen_D_decay-B</Group>
+    <Group name="statisticalAnalysis_vars">skew_r,
+                 skew_t,
+                 vc_r,
+                 vc_t,
+                 percentile_5_r,
+                 percentile_95_r,
+                 percentile_5_t,
+                 percentile_95_t,
+                 mean_r,
+                 mean_t,
+                 kurt_r,
+                 kurt_t,
+                 median_r,
+                 median_t,
+                 max_r,
+                 max_t,
+                 min_r,
+                 min_t,
+                 samp_r,
+                 samp_t,
+                 var_r,
+                 var_t,
+                 sigma_r,
+                 sigma_t,
+                 nsen_r_v0,
+                 nsen_r_angle,
+                 nsen_t_v0,
+                 nsen_t_angle,
+                 sen_r_v0,
+                 sen_r_angle,
+                 sen_t_v0,
+                 sen_t_angle,
+                 pear_r_v0,
+                 pear_r_angle,
+                 pear_t_v0,
+                 pear_t_angle,
+                 cov_r_v0,
+                 cov_r_angle,
+                 cov_t_v0,
+                 cov_t_angle,
+                 vsen_r_v0,
+                 vsen_r_angle,
+                 vsen_t_v0,
+                 vsen_t_angle</Group>
   </VariableGroups>
 
   <OutStreams>
