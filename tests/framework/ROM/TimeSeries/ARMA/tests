@@ -83,11 +83,22 @@
   [./Segmented]
     type = 'RavenFramework'
     input = 'segmented.xml'
-    output = 'Segmented/synthetic.csv Segmented/synthetic.xml Segmented/stats.xml Segmented/rommeta.xml Segmented/synthetic_0.csv Segmented/rommeta.csv'
+    output = 'Segmented/synthetic.csv Segmented/synthetic.xml Segmented/synthetic_0.csv'
     [./stats]
       type = OrderedCSV
       output = 'Segmented/stats.csv'
       rel_err = 1e-2
+    [../]
+    [./romcsv]
+      type = OrderedCSV
+      output = 'Segmented/rommeta.csv'
+      rel_err = 1e-5
+    [../]
+    [./romxml]
+      type = XML
+      unordered = true
+      output = 'Segmented/rommeta.xml'
+      rel_err = 1e-5
     [../]
   [../]
   [./Clustered]
