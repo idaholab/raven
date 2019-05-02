@@ -15,13 +15,13 @@
   [./MiniBatchKMeans]
     type   = 'RavenFramework'
     input  = 'test_dataMiningMiniBatchKMeans.xml'
-    csv    = 'MiniBatchKMeans/dummy.csv'
+    csv    = 'MiniBatchKMeans/dummy.csv MiniBatchKMeans/dummyII.csv MiniBatchKMeans/dummyIII.csv'
     output = 'MiniBatchKMeans/blobs.png MiniBatchKMeans/circles.png MiniBatchKMeans/moons.png'
   [../]
   [./MeanShift]
     type   = 'RavenFramework'
     input  = 'test_dataMiningMeanShift.xml'
-    csv    = 'MeanShift/dummy.csv'
+    csv    = 'MeanShift/dummy.csv MeanShift/dummyII.csv MeanShift/dummyIII.csv'
     output = 'MeanShift/scatter.png'
   [../]
   [./AffinityPropogation]

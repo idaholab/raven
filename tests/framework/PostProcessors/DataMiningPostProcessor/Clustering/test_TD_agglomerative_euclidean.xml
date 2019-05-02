@@ -10,8 +10,13 @@
     </description>
     <revisions>
       <revision author="maljdan" date="2017-08-07">Modifying this test case to exercise putting the data into a new data object different than the input of to the clustering algorithm</revision>
+      <revision author="wangc" date="2018-09-27">
+        As reported in issue #805, RAVEN will not allow input DataObject of PostProcessor to be output DataObject,
+        the output data object will be renamed, and the variable name of labels will be explicitly defined.
+      </revision>
     </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>agglomerative_euclidean</WorkingDir>
     <Sequence>FirstMRun,plotAllHists,clustering,filter0,filter1</Sequence>
@@ -24,7 +29,7 @@
     </ExternalModel>
     <PostProcessor name="agglomerative" subType="DataMining" verbosity="quiet">
       <Metric class="Metrics" type="ScipyMetric">example</Metric>
-      <KDD lib="SciKitLearn" labelFeature='labels'>
+      <KDD labelFeature="labels" lib="SciKitLearn">
         <Features>output</Features>
         <SKLtype>cluster|Agglomerative</SKLtype>
         <n_clusters>2</n_clusters>
@@ -32,54 +37,54 @@
       </KDD>
     </PostProcessor>
     <PostProcessor name="filter0" subType="InterfacedPostProcessor">
-       <method>dataObjectLabelFilter</method>
-       <dataType>HistorySet</dataType>
-       <label>labels</label>
-       <clusterIDs>0</clusterIDs>
+      <method>dataObjectLabelFilter</method>
+      <dataType>HistorySet</dataType>
+      <label>labels</label>
+      <clusterIDs>0</clusterIDs>
     </PostProcessor>
     <PostProcessor name="filter1" subType="InterfacedPostProcessor">
-       <method>dataObjectLabelFilter</method>
-       <dataType>HistorySet</dataType>
-       <label>labels</label>
-       <clusterIDs>1</clusterIDs>
+      <method>dataObjectLabelFilter</method>
+      <dataType>HistorySet</dataType>
+      <label>labels</label>
+      <clusterIDs>1</clusterIDs>
     </PostProcessor>
   </Models>
 
   <Metrics>
-      <ScipyMetric name="example">
-          <metricType>paired_distance|minkowski</metricType>
-          <p>2</p>
-      </ScipyMetric>
+    <ScipyMetric name="example">
+      <metricType>paired_distance|minkowski</metricType>
+      <p>2</p>
+    </ScipyMetric>
   </Metrics>
 
   <Steps>
     <MultiRun name="FirstMRun">
-      <Input    class="DataObjects"      type="PointSet"       >inputPlaceHolder</Input>
-      <Model    class="Models"           type="ExternalModel"  >PythonModule</Model>
-      <Sampler  class="Samplers"         type="MonteCarlo"     >MC_external</Sampler>
-      <Output   class="DataObjects"      type="HistorySet"     >dataIn</Output>
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
+      <Model class="Models" type="ExternalModel">PythonModule</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
+      <Output class="DataObjects" type="HistorySet">dataIn</Output>
     </MultiRun>
     <IOStep name="plotAllHists">
-      <Input    class="DataObjects"      type="HistorySet"     >dataOut</Input>
-      <Output   class="OutStreams"       type="Plot"           >plot1</Output>
+      <Input class="DataObjects" type="HistorySet">dataIn</Input>
+      <Output class="OutStreams" type="Plot">plot1</Output>
     </IOStep>
     <PostProcess name="clustering">
-      <Input    class="DataObjects"      type="HistorySet"     >dataIn</Input>
-      <Model    class="Models"           type="PostProcessor"  >agglomerative</Model>
-      <Output   class="DataObjects"      type="HistorySet"     >dataOut</Output>
-      <Output   class="OutStreams"       type="Print"          >printAll</Output>
+      <Input class="DataObjects" type="HistorySet">dataIn</Input>
+      <Model class="Models" type="PostProcessor">agglomerative</Model>
+      <Output class="DataObjects" type="HistorySet">dataOut</Output>
+      <Output class="OutStreams" type="Print">printAll</Output>
     </PostProcess>
     <PostProcess name="filter0">
-      <Input    class="DataObjects"      type="HistorySet"     >dataOut</Input>
-      <Model    class="Models"           type="PostProcessor"  >filter0</Model>
-      <Output   class="DataObjects"      type="HistorySet"     >cluster0</Output>
-      <Output   class="OutStreams"       type="Plot"           >Cluster_0</Output>
+      <Input class="DataObjects" type="HistorySet">dataOut</Input>
+      <Model class="Models" type="PostProcessor">filter0</Model>
+      <Output class="DataObjects" type="HistorySet">cluster0</Output>
+      <Output class="OutStreams" type="Plot">Cluster_0</Output>
     </PostProcess>
     <PostProcess name="filter1">
-      <Input    class="DataObjects"      type="HistorySet"     >dataOut</Input>
-      <Model    class="Models"           type="PostProcessor"  >filter1</Model>
-      <Output   class="DataObjects"      type="HistorySet"     >cluster1</Output>
-      <Output   class="OutStreams"       type="Plot"           >Cluster_1</Output>
+      <Input class="DataObjects" type="HistorySet">dataOut</Input>
+      <Model class="Models" type="PostProcessor">filter1</Model>
+      <Output class="DataObjects" type="HistorySet">cluster1</Output>
+      <Output class="OutStreams" type="Plot">Cluster_1</Output>
     </PostProcess>
   </Steps>
 
@@ -94,9 +99,9 @@
           <type>line</type>
           <interpolationType>cubic</interpolationType>
           <interpPointsX>100</interpPointsX>
-          <x>dataOut|Output|time</x>
-          <y>dataOut|Output|y</y>
-          <z>dataOut|Output|z</z>
+          <x>dataIn|Output|time</x>
+          <y>dataIn|Output|y</y>
+          <z>dataIn|Output|z</z>
         </plot>
         <xlabel>time</xlabel>
         <ylabel>x</ylabel>
@@ -158,7 +163,6 @@
         </range>
       </actions>
     </Plot>
-
     <Plot name="Cluster_1" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
@@ -185,7 +189,6 @@
         </range>
       </actions>
     </Plot>
-
   </OutStreams>
 
   <DataObjects>
@@ -199,7 +202,7 @@
     </HistorySet>
     <HistorySet name="dataOut">
       <Input>x0,y0,z0</Input>
-      <Output>x,y,z</Output>
+      <Output>x,y,z,labels,time</Output>
     </HistorySet>
     <HistorySet name="cluster0">
       <Input>x0,y0,z0</Input>
