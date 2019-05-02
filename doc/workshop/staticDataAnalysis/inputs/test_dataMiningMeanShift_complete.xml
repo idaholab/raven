@@ -6,6 +6,12 @@
     <created>2018-09-21</created>
     <classesTested>PostProcessors.DataMining</classesTested>
     <description>Workshop test: DataMining with MeanShift method</description>
+    <revisions>
+      <revision author="wangc" date="2018-09-27">
+        As reported in issue #805, RAVEN will not allow input DataObject of PostProcessor to be output DataObject,
+        the output data object will be renamed, and the variable name of labels will be explicitly defined.
+      </revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
@@ -50,7 +56,7 @@
     </PointSet>
     <PointSet name="DataSetsCL">
       <Input>x1,x2,y1,y2</Input>
-      <Output>z1,z2,Output</Output>
+      <Output>z1,z2,Output,MeanShiftLabels</Output>
     </PointSet>
   </DataObjects>
 

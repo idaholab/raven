@@ -82,9 +82,9 @@ class PostProcessor(Model):
       @ Out, None
     """
     Model.__init__(self,runInfoDict)
-    self.input  = {}     # input source
-    self.action = None   # action
-    self.workingDir = ''
+    self.inputCheckInfo  = []     # List of tuple, i.e input objects info [('name','type')]
+    self.action = None            # action
+    self.workingDir = ''          # path for working directory
     self.printTag = 'POSTPROCESSOR MODEL'
 
   def provideExpectedMetaKeys(self):
@@ -148,6 +148,7 @@ class PostProcessor(Model):
     self.workingDir = os.path.join(runInfo['WorkingDir'],runInfo['stepName']) #generate current working dir
     self.interface.initialize(runInfo, inputs, initDict)
     self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(PostProcessors),True)) - set(self.mods))
+    self.inputCheckInfo = [(inp.name, inp.type) for inp in inputs]
 
   def submit(self,myInput,samplerType,jobHandler,**kwargs):
     """
@@ -191,6 +192,10 @@ class PostProcessor(Model):
       @ In, options, dict, optional, dictionary of options that can be passed in when the collect of the output is performed by another model (e.g. EnsembleModel)
       @ Out, None
     """
+    outputCheckInfo = (output.name, output.type)
+    if outputCheckInfo in self.inputCheckInfo:
+      self.raiseAnError(IOError, 'DataObject',output.name,'is used as both input and output of', \
+              self.interface.printTag, 'This is not allowed! Please use different DataObjet as output')
     self.interface.collectOutput(finishedjob,output)
 
   def createNewInput(self,myInput,samplerType,**kwargs):

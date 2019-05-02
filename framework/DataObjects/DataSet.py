@@ -1363,7 +1363,7 @@ class DataSet(DataObject):
         self.raiseAnError(KeyError,'Dimensions of variable',var,'from "source"', ",".join(providedDims),
                 'is not consistent with the required dimensions for data object "',
                 self.name.strip(),'":',",".join(requiredDims))
-    self._orderedVars = self.vars + self.indexes
+    self._orderedVars = self.vars
     self._data = datasetSub
     for key, val in self._data.attrs.items():
       self._meta[key] = val
