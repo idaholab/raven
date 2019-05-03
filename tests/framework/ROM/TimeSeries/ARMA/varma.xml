@@ -29,7 +29,7 @@
 
   <RunInfo>
     <WorkingDir>VARMA</WorkingDir>
-    <Sequence>read,train,sample,write,load,stats</Sequence>
+    <Sequence>read,train,rommeta,sample,write,load,stats</Sequence>
     <!-- NOTE: the dump, unpickle steps have been removed until statsmodel 0.9 is in RAVEN's library set. See issue #916. -->
     <batchSize>1</batchSize>
   </RunInfo>
@@ -43,6 +43,11 @@
       <Input class="DataObjects" type="HistorySet">training</Input>
       <Output class="Models" type="ROM">VARMA</Output>
     </RomTrainer>
+    <IOStep name="rommeta">
+      <Input class="Models" type="ROM">VARMA</Input>
+      <Output class="DataObjects" type="DataSet">rommeta</Output>
+      <Output class="OutStreams" type="Print">rommeta</Output>
+    </IOStep>
     <IOStep name="dump">
       <Input class="Models" type="ROM">VARMA</Input>
       <Output class="Files" type="">pk</Output>
@@ -117,6 +122,7 @@
         <pivotParameter>Time</pivotParameter>
       </options>
     </HistorySet>
+    <DataSet name="rommeta"/>
   </DataObjects>
 
   <Models>
@@ -124,9 +130,10 @@
     <ROM name="VARMA" subType="ARMA">
       <Target>A,B,C,D,Time</Target>
       <Features>scaling</Features>
-      <seed>84</seed>
+      <seed>901017</seed>
       <correlate>A,B,C</correlate>
       <pivotParameter>Time</pivotParameter>
+      <reseedCopies>False</reseedCopies>
       <P>3</P>
       <Q>1</Q>
     </ROM>
@@ -151,6 +158,10 @@
   </Samplers>
 
   <OutStreams>
+    <Print name="rommeta">
+      <type>csv</type>
+      <source>rommeta</source>
+    </Print>
     <Print name="samples">
       <type>csv</type>
       <source>samples</source>
