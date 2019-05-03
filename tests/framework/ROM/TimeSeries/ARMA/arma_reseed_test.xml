@@ -19,7 +19,7 @@
   </TestInfo>
 
   <RunInfo>
-    <WorkingDir>ARMAparallel</WorkingDir>
+    <WorkingDir>ARMAreseed</WorkingDir>
     <Sequence>read,run,write</Sequence>
     <batchSize>4</batchSize>
     <internalParallel>True</internalParallel>
@@ -56,7 +56,7 @@
       <Output class="Models" type="ROM">ARMA</Output>
     </IOStep>
     <MultiRun name="run">
-      <Input class="DataObjects" type="HistorySet">dataIn</Input>
+      <Input class="DataObjects" type="PointSet">dataIn</Input>
       <Model class="Models" type="ROM">ARMA</Model>
       <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
       <Output class="DataObjects" type="HistorySet">results</Output>
@@ -71,7 +71,6 @@
     <Print name="results">
       <type>csv</type>
       <source>results</source>
-      <what>input, output</what>
     </Print>
   </OutStreams>
 

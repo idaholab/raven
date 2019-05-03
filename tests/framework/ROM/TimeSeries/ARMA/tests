@@ -25,15 +25,36 @@
   [./ARMAreseedPrecursor]
    type = 'RavenFramework'
    input = 'arma_reseed_precursor.xml'
-   output = 'ARMAparallel/arma.pk'
+   output = 'ARMAreseed/arma.pk'
+    [./romcsv]
+      type = OrderedCSV
+      output = 'ARMAreseed/rommeta.csv'
+      rel_err = 1e-5
+    [../]
+    [./romxml]
+      type = XML
+      unordered = true
+      output = 'ARMAreseed/rommeta.xml'
+      rel_err = 1e-5
+    [../]
+    [./signalexist]
+      type = Exists
+      output = 'ARMAreseed/signals_0.csv ARMAreseed/signals_1.csv ARMAreseed/signals_2.csv ARMAreseed/signals_3.csv ARMAreseed/signals.csv '
+    [../]
   [../]
   [./ARMAreseedTest]
    type = 'RavenFramework'
    input = 'arma_reseed_test.xml'
-   csv = 'ARMAparallel/results_0.csv'
-   expected_fail = true
+   output = 'ARMAreseed/results.csv ARMAreseed/results_1.csv ARMAreseed/results_2.csv ARMAreseed/results_3.csv'
+
    prereq = ARMAreseedPrecursor
-   skip = 'needs the new RNG entity'
+    [./romcsv0]
+      type = OrderedCSV
+      output = 'ARMAreseed/results_0.csv'
+      gold_files = 'ARMAreseed/signals_0.csv'
+      rel_err = 1e-5
+    [../]
+
   [../]
 
  [./SingleFourier]

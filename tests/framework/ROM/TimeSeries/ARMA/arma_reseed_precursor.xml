@@ -19,8 +19,8 @@
   </TestInfo>
 
   <RunInfo>
-    <WorkingDir>ARMAparallel</WorkingDir>
-    <Sequence>readIn,ARMATrain,dump,write</Sequence>
+    <WorkingDir>ARMAreseed</WorkingDir>
+    <Sequence>readIn,ARMATrain,rommeta,dump,run,write</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
 
@@ -36,6 +36,7 @@
       <pivotParameter>Time</pivotParameter>
       <P>2</P>
       <Q>1</Q>
+      <seed>901017</seed>
       <outTruncation domain="positive">Speed</outTruncation>
       <Fourier>604800.000000, 302400.000000, 86400.000000, 43200.000000</Fourier>
     </ROM>
@@ -50,15 +51,36 @@
       <Input class="DataObjects" type="HistorySet">rawData</Input>
       <Output class="Models" type="ROM">ARMA</Output>
     </RomTrainer>
+    <IOStep name="rommeta">
+      <Input class="Models" type="ROM">ARMA</Input>
+      <Output class="DataObjects" type="DataSet">rommeta</Output>
+      <Output class="OutStreams" type="Print">rommeta</Output>
+    </IOStep>
     <IOStep name="dump">
       <Input class="Models" type="ROM">ARMA</Input>
       <Output class="Files" type="">pk</Output>
     </IOStep>
-    <IOStep name="write">
-      <Input class="Models" type="ROM">ARMA</Input>
+    <MultiRun name="run">
+      <Input class="DataObjects" type="PointSet">dataIn</Input>
+      <Model class="Models" type="ROM">ARMA</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
       <Output class="DataObjects" type="HistorySet">signals</Output>
+    </MultiRun>
+    <IOStep name="write">
+      <Input class="DataObjects" type="HistorySet">signals</Input>
+      <Output class="OutStreams" type="Print">signals</Output>
     </IOStep>
   </Steps>
+
+  <Samplers>
+    <MonteCarlo name="mc">
+      <samplerInit>
+        <limit>4</limit>
+        <initialSeed>20021986</initialSeed>
+      </samplerInit>
+      <constant name="scaling">1</constant>
+    </MonteCarlo>
+  </Samplers>
 
   <DataObjects>
     <HistorySet name="rawData">
@@ -68,11 +90,29 @@
         <pivotParameter>Time</pivotParameter>
       </options>
     </HistorySet>
+    <PointSet name="dataIn">
+      <Input>scaling</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
     <HistorySet name="signals">
+      <Input>scaling</Input>
+      <Output>Speed,Time</Output>
       <options>
         <pivotParameter>Time</pivotParameter>
       </options>
     </HistorySet>
+    <DataSet name="rommeta"/>
   </DataObjects>
+
+<OutStreams>
+    <Print name="rommeta">
+      <type>csv</type>
+      <source>rommeta</source>
+    </Print>
+    <Print name="signals">
+      <type>csv</type>
+      <source>signals</source>
+    </Print>
+</OutStreams>
 
 </Simulation>
