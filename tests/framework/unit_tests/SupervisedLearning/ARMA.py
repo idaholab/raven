@@ -27,13 +27,17 @@ from scipy import stats
 import pickle as pk
 import numpy as np
 import copy
+import pandas as pd
 
 # find location of crow, message handler
 frameworkDir = os.path.abspath(os.path.join(*([os.path.dirname(__file__)]+[os.pardir]*4+['framework'])))
+
 sys.path.append(frameworkDir)
 
 from utils.utils import find_crow
 find_crow(frameworkDir)
+from utils import randomUtils
+
 import MessageHandler
 
 # message handler
@@ -46,6 +50,7 @@ from Models import ROM
 # find location of ARMA
 sys.path.append(os.path.join(frameworkDir,'SupervisedLearning'))
 import ARMA
+
 print('Module undergoing testing:')
 print(ARMA)
 print('')
@@ -259,18 +264,15 @@ def checkFails(comment,errstr,function,update=True,args=None,kwargs=None):
 ######################################
 def createARMAXml(targets, pivot, p, q, fourier=None):
   if fourier is None:
-    fourier = {}
+    fourier = []
   xml = createElement('ROM',attrib={'name':'test', 'subType':'ARMA'})
   xml.append(createElement('Target',text=','.join(targets+[pivot])))
   xml.append(createElement('Features',text='scaling'))
   xml.append(createElement('pivotParameter',text=pivot))
-  xml.append(createElement('Pmin',text=str(p)))
-  xml.append(createElement('Pmax',text=str(p)))
-  xml.append(createElement('Qmin',text=str(q)))
-  xml.append(createElement('Qmax',text=str(q)))
+  xml.append(createElement('P',text=str(p)))
+  xml.append(createElement('Q',text=str(q)))
   if len(fourier):
-    xml.append(createElement('Fourier',text=','.join(str(f) for f in fourier.keys())))
-    xml.append(createElement('FourierOrder',text=','.join(str(f) for f in fourier.values())))
+    xml.append(createElement('Fourier',text=','.join(str(f) for f in fourier)))
   return xml
 
 def createFromXML(xml):
@@ -286,7 +288,7 @@ def createARMA(targets, pivot, p, q, fourier=None):
   rom, arma = createFromXML(xml)
   return rom, arma
 
-rom, arma = createARMA(['a','b'], 't', 6, 3, {86400: 2})
+rom, arma = createARMA(['a','b'], 't', 6, 3, [86400,43200])
 
 # TODO confirmation testing for correct construction
 
@@ -339,7 +341,9 @@ if plotting:
   ax2.plot(x,pdf,'k-',label='true beta', lw=3)
 
 # random samples
-data = dist.rvs(N)
+data=pd.read_csv("signal.csv")
+data=data.e_demand.values
+
 if plotting:
   opdf, ocdf = makeCDF(data)
   plotCDF(ocdf[0], ocdf[1], ax, 'data', 'C0')
@@ -348,6 +352,7 @@ if plotting:
 # characterize
 params = arma._trainCDF(data)
 if plotting:
+  ebins = params['bins']
   ecdf = params['cdf']
   epdf = params['pdf']
   plotCDF(ebins, ecdf, ax, 'empirical', 'C1')
@@ -388,7 +393,7 @@ if plotting:
   plt.show()
 
 # train ARMA on data and check CDFs of results
-rom, arma = createARMA(['a'], 't', 0, 0, {})
+rom, arma = createARMA(['a'], 't', 0, 0, [])
 featureVals = np.zeros(1)
 targetVals = np.zeros([1,len(data),2])
 # "a"
@@ -402,7 +407,6 @@ samples = np.zeros([nsamp,len(data)])
 for n in range(nsamp):
   ev = arma.__evaluateLocal__(np.array([1.0]))
   samples[n,:] = ev['a']
-
 # Enabling plotting will help visualize the signals that are tested
 #    in the event they fail tests. Plotting should not be enabled in
 #    the regression system as this point.
@@ -416,8 +420,8 @@ if plotting:
 ostats = (np.average(data), np.std(data))
 for n in range(nsamp):
   stats = (np.average(samples[n,:]), np.std(samples[n,:]))
-  checkFloat('Mean, sample {}'.format(n), ostats[0], stats[0], tol=1e-2)
-  checkFloat('Std, sample {}'.format(n), ostats[1], stats[1], tol=1e-2)
+  checkFloat('Mean, sample {}'.format(n), ostats[0], stats[0], tol=3e-1)
+  checkFloat('Std, sample {}'.format(n), ostats[1], stats[1], tol=6e-1)
   if plotting:
     ax.plot(t, samples[n,:], '-', color='C1', label='sample', alpha=0.2)
     pdf,cdf = makeCDF(samples[n,:])
@@ -433,6 +437,49 @@ if plotting:
   plt.show()
 
 
+#############################################
+#            RESEEDCOPIES, ENGINE           #
+#############################################
+
+testVal=arma._trainARMA(data)
+arma.amITrained=True
+signal1=arma._generateARMASignal(testVal)
+signal2=arma._generateARMASignal(testVal)
+
+#Test the reseed = False
+
+armaReF=arma
+armaReF.reseedCopies=False
+pklReF=pk.dumps(armaReF)
+unpkReF=pk.loads(pklReF)
+#signal 3 and 4 should be the same
+signal3=armaReF._generateARMASignal(testVal)
+signal4=unpkReF._generateARMASignal(testVal)
+for n in range(len(data)):
+  checkFloat('signal 3, signal 4 ind{}'.format(n), signal3[n], signal4[n], tol=1e-5)
+
+#Test the reseed = True
+
+arma.reseedCopies=True
+pklReT=pk.dumps(arma)
+unpkReT=pk.loads(pklReT)
+#signal 5 and 6 should not be the same
+signal5=arma._generateARMASignal(testVal)
+signal6=unpkReT._generateARMASignal(testVal)
+for n in range(len(data)):
+  checkTrue('signal 5, signal 6 ind{}'.format(n),signal5[n]!=signal6[n])
+
+# Test the engine with seed
+
+eng=randomUtils.newRNG()
+arma.setEngine(eng,seed=901017,count=0)
+signal7=arma._generateARMASignal(testVal)
+
+sig7=[0.39975177, -0.14531468,  0.13138866, -0.56565224,  0.06020252,
+      0.60752306, -0.29076173, -1.1758456,   0.41108591, -0.05735384]
+for n in range(10):
+  checkFloat('signal 7, evaluation ind{}'.format(n), signal7[n], sig7[n], tol=1e-7)
+
 #################
 # TODO UNTESTED #
 #################
@@ -441,7 +488,6 @@ if plotting:
 # - Analytic VARMA/ARMA variances
 # - Fourier analytic coefficients
 # - Signal Reconstruction
-
 
 
 print(results)
