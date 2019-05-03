@@ -89,7 +89,6 @@ class ARMA(supervisedLearning):
     self._minBins          = 20   # min number of bins to use in determining distributions, eventually can be user option, for now developer's pick
     # signal storage
     self._signalStorage    = collections.defaultdict(dict) # various signals obtained in the training process
-    self._debugcounter     = 0
     # check zeroFilterTarget is one of the targets given
     if self.zeroFilterTarget is not None and self.zeroFilterTarget not in self.target:
       self.raiseAnError('Requested ZeroFilter on "{}" but this target was not found among the ROM targets!'.format(self.zeroFilterTarget))
@@ -349,9 +348,8 @@ class ARMA(supervisedLearning):
 
     # TODO when we have output printing for ROMs, the distinct signals here could be outputs!
     # leaving "debuggFile" as examples of this, in comments
-    self._debugcounter +=1
-    debuggFile = open('signal_bases{}.csv'.format(self._debugcounter),'w')
-    debuggFile.writelines('Time,'+','.join(str(x) for x in self.pivotParameterValues)+'\n')
+    #debuggFile = open('signal_bases.csv','w')
+    #debuggFile.writelines('Time,'+','.join(str(x) for x in self.pivotParameterValues)+'\n')
     correlatedSample = None
     for tIdx,target in enumerate(self.target):
       # start with the random gaussian signal
@@ -432,14 +430,14 @@ class ARMA(supervisedLearning):
       signal = self._denormalizeThroughCDF(signal,self.cdfParams[target])
       # DEBUG adding arbitrary variables
       #returnEvaluation[target+'_1denorm'] = copy.copy(signal)
-      debuggFile.writelines('signal_arma,'+','.join(str(x) for x in signal)+'\n')
+      #debuggFile.writelines('signal_arma,'+','.join(str(x) for x in signal)+'\n')
 
       # Add fourier trends
       if target in self.fourierParams:
         signal += self.fourierResults[target]['predict']
         # DEBUG adding arbitrary variables
         #returnEvaluation[target+'_2fourier'] = copy.copy(signal)
-        debuggFile.writelines('signal_fourier,'+','.join(str(x) for x in self.fourierResults[target]['predict'])+'\n')
+        #debuggFile.writelines('signal_fourier,'+','.join(str(x) for x in self.fourierResults[target]['predict'])+'\n')
 
       # if enforcing the training data CDF, apply that transform now
       if self.preserveInputCDF:
@@ -469,7 +467,7 @@ class ARMA(supervisedLearning):
 
       # sanity check on the signal
       assert(signal.size == returnEvaluation[self.pivotParameterID].size)
-      debuggFile.writelines('final,'+','.join(str(x) for x in signal)+'\n')
+      #debuggFile.writelines('final,'+','.join(str(x) for x in signal)+'\n')
       returnEvaluation[target] = signal
     # END for target in targets
     return returnEvaluation

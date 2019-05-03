@@ -45,7 +45,7 @@
   [./ARMAreseedTest]
    type = 'RavenFramework'
    input = 'arma_reseed_test.xml'
-   output = 'ARMAreseed/results.csv ARMAreseed/results_1.csv ARMAreseed/results_2.csv ARMAreseed/results_3.csv'
+   output = 'ARMAreseed/results.csv '
 
    prereq = ARMAreseedPrecursor
     [./romcsv0]
@@ -54,7 +54,24 @@
       gold_files = 'ARMAreseed/signals_0.csv'
       rel_err = 1e-5
     [../]
-
+    [./romcsv1]
+      type = OrderedCSV
+      output = 'ARMAreseed/results_1.csv'
+      gold_files = 'ARMAreseed/signals_1.csv'
+      rel_err = 1e-5
+    [../]
+    [./romcsv2]
+      type = OrderedCSV
+      output = 'ARMAreseed/results_2.csv'
+      gold_files = 'ARMAreseed/signals_2.csv'
+      rel_err = 1e-5
+    [../]
+    [./romcsv3]
+      type = OrderedCSV
+      output = 'ARMAreseed/results_3.csv'
+      gold_files = 'ARMAreseed/signals_3.csv'
+      rel_err = 1e-5
+    [../]
   [../]
 
  [./SingleFourier]

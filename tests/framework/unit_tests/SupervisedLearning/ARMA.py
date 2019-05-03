@@ -458,16 +458,7 @@ signal4=unpkReF._generateARMASignal(testVal)
 for n in range(len(data)):
   checkFloat('signal 3, signal 4 ind{}'.format(n), signal3[n], signal4[n], tol=1e-5)
 
-
 #Test the reseed = True
-signal7=armaReF._generateARMASignal(testVal)
-signal8=unpkReF._generateARMASignal(testVal)
-print('s7',signal7)
-print('s8',signal8)
-signal9=armaReF._generateARMASignal(testVal)
-signal10=unpkReF._generateARMASignal(testVal)
-print('s9',signal9)
-print('s10',signal10)
 
 arma.reseedCopies=True
 pklReT=pk.dumps(arma)
