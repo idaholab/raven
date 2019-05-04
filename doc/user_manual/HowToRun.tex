@@ -13,12 +13,26 @@ The \texttt{raven\_framework} script is in the raven folder.
 %
 To run RAVEN, open a terminal and use the following command (replace \texttt{<inputFileName.xml>} with your RAVEN input file):
 
+\begin{itemize}
+
+  \item \textbf{Any unix-based systems (e.g. Macintosh, Linux, etc.)}:
 \begin{lstlisting}[language=bash]
 raven_framework <inputFileName.xml>
 \end{lstlisting}
+  \item \textbf{Windows}:
+  \begin{lstlisting}[language=bash]
+bash.exe raven_framework <inputFileName.xml>
+\end{lstlisting}
+  
+\end{itemize}
 
 Using \texttt{raven\_framework} is the recommended way to run RAVEN.  In the event bypassing the typical
 environment loading and checks is desired, it can also be run via
 the \texttt{Driver.py} script using python, with the input file as argument.  However, this is not
 recommended, as it will use whatever default versions of Python and other libraries are discovered, rather
 than the matching libraries set up during installation.
+
+\nb For Windows systems, we provided a convienient Batch script ( \texttt{raven\_framework.bat} ) for running RAVEN 
+avoiding to interact with the Windows command line terminal. More info on how to use it can be found in the RAVEN
+\wiki , section \textit{Running RAVEN} (\url{https://github.com/idaholab/raven/wiki/runningRAVEN}).
+
