@@ -1,7 +1,7 @@
 #!/bin/bash
 # Local variable definition ----------------------------------------------------
 # list of files to run.
-declare -a files=(raven_user_guide)
+declare -a files=(raven_software_requirements_specifications_and_traceability)
 # extension to be removed.
 declare -a exts=(txt ps ds)
 
@@ -20,23 +20,17 @@ clean_files () {
 
 # Subroutine to generate files.
 gen_files () { 
-
-        if [ "$(expr substr $(uname -s) 1 5)" == "MINGW" ]  || [  "$(expr substr $(uname -s) 1 4)" == "MSYS" ]
-        then
-          export TEXINPUTS=.\;`cygpath -w ../tex_inputs`\;$TEXINPUTS
-        else
-          export TEXINPUTS=../tex_inputs/:$TEXINPUTS
-        fi
-
-        git log -1 --format="%H %an %aD" .. > ../version.tex
-        python ../../scripts/TestHarness/testers/RavenUtils.py --manual-list > libraries.tex
+        git log -1 --format="%H %an %aD" .. > ../../version.tex
+        python ../../../scripts/TestHarness/testers/RavenUtils.py --manual-list > dependencies.tex
+	python ../../../developer_tools/readRequirementsAndCreateLatex.py -i ../srs/requirements_list.xml -o ../srs/requirements.tex 
+	python ../../../developer_tools/createSQAtracebilityMatrix.py -i ../srs/requirements_list.xml -o ../rtr/traceability_matrix.tex 
 	for file in "${files[@]}"
 	do
 		# Generate files.
-        pdflatex -shell-escape $file.tex
+        pdflatex -interaction=nonstopmode $file.tex
         bibtex $file.tex
-	pdflatex -shell-escape $file.tex
-	pdflatex -shell-escape $file.tex
+	pdflatex -interaction=nonstopmode $file.tex
+	pdflatex -interaction=nonstopmode $file.tex
 
 	done
 }
