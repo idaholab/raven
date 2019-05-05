@@ -21,11 +21,10 @@
 % If you just want to change the text font, you should just \usepackage{times}.
 % \usepackage{pslatex}
 \usepackage{times}
-\usepackage{longtable}
 \usepackage[FIGBOTCAP,normal,bf,tight]{subfigure}
 \usepackage{amsmath}
 \usepackage{amssymb}
-\usepackage[labelfont=bf]{caption}
+\usepackage{soul}
 \usepackage{pifont}
 \usepackage{enumerate}
 \usepackage{listings}
@@ -33,6 +32,15 @@
 \usepackage{xcolor}          % Using xcolor for more robust color specification
 \usepackage{ifthen}          % For simple checking in newcommand blocks
 \usepackage{textcomp}
+\usepackage{mathtools}
+\usepackage{relsize}
+\usepackage{lscape}
+\usepackage[toc,page]{appendix}
+%\usepackage{RAVEN}
+
+\newtheorem{mydef}{Definition}
+\newcommand{\norm}[1]{\lVert#1\rVert}
+%\usepackage[table,xcdraw]{xcolor}
 %\usepackage{authblk}         % For making the author list look prettier
 %\renewcommand\Authsep{,~\,}
 
@@ -49,6 +57,7 @@
   basicstyle=\ttfamily,
   frame=single
 }
+
 
 \setcounter{secnumdepth}{5}
 \lstdefinestyle{XML} {
@@ -164,6 +173,7 @@ showstringspaces=false            %
 \newcommand{\default}[1]{~\\*\textit{Default: #1}}
 \newcommand{\nb} {\textcolor{deepgreen}{\textbf{~Note:}}~}
 
+
 %%%%%%%% End comands definition to input python code into document
 
 %\usepackage[dvips,light,first,bottomafter]{draftcopy}
@@ -175,6 +185,7 @@ showstringspaces=false            %
 % obsolete.  Also, \boldsymbol doesn't even seem to work with
 % the fonts used in this particular document...
 \usepackage{bm}
+
 
 % Define tensors to be in bold math font.
 \newcommand{\tensor}[1]{{\bm{#1}}}
@@ -206,8 +217,6 @@ showstringspaces=false            %
     urlcolor=black
 }
 
-\newcommand{\wiki}{\href{https://github.com/idaholab/raven/wiki}{RAVEN wiki}}
-
 % Compress lists of citations like [33,34,35,36,37] to [33-37]
 \usepackage{cite}
 
@@ -237,7 +246,7 @@ showstringspaces=false            %
 %
 % Set the title, author, and date
 %
-\title{RAVEN User Manual}
+\title{RAVEN regression tests' description}
 %\author{%
 %\begin{tabular}{c} Author 1 \\ University1 \\ Mail1 \\ \\
 %Author 3 \\ University3 \\ Mail3 \end{tabular} \and
@@ -247,43 +256,13 @@ showstringspaces=false            %
 
 
 \author{
-\textbf{\textit{Project Manager:}}
- \\Cristian Rabiti\\
- \textbf{\textit{Principal Investigator and Technical Leader:}}
- \\Andrea Alfonsi\\
-\textbf{\textit{Main Developers:}}
 \\Andrea Alfonsi
-\\Diego Mandelli
-\\Joshua Cogliati
-\\Congjian Wang
 \\Paul W. Talbot
-\\Daniel P. Maljovec
-\\Robert Kinoshita\\
-\textbf{\textit{Former Developers:}} \\Sonat Sen
-\\Jun Chen\\
-\textbf{\textit{Contributors:}}
-\\Alessandro Bandini (Post-Processor)
-\\Ivan Rinaldi (documentation)
-\\Claudia Picoco (new external code interface)
-\\James B. Tompkins (new external code interface)
-\\Matteo Donorio (new external code interface)
-\\Fabio Giannetti (new external code interface)
+\\Diego Mandelli
+\\Congjian Wang
+\\Joshua Cogliati
+\\Cristian Rabiti
 }
-% \\James B. Tompkins}   Just people who actually ``developed'' a significant capability in the code should be placed here. Andrea
-%\author{\textbf{\textit{Main Developers:}}  \\Andrea Alfonsi}
-%\author{\\Joshua Cogliati}
-%\author{\\Diego Mandelli}
-%\author{\\Robert Kinoshita}
-%\author{\\Sonat Sen}
-%
-%\author{Cristian Rabiti}
-%\author{Andrea Alfonsi}
-%\author{Joshua Cogliati}
-%\author{Diego Mandelli}
-%\author{Robert Kinoshita}
-%\author{Sonat Sen}
-%\affil{Idaho National Laboratory, Idaho Falls, ID 83402}
-%\\\{cristian.rabiti, andrea.alfonsi, joshua.cogliati, diego.mandelli, robert.kinoshita, ramazan.sen\}@inl.gov}
 
 % There is a "Printed" date on the title page of a SAND report, so
 % the generic \date should [WorkingDir:]generally be empty.
@@ -293,25 +272,15 @@ showstringspaces=false            %
 % ---------------------------------------------------------------------------- %
 % Set some things we need for SAND reports. These are mandatory
 %
-\SANDnum{INL/EXT-15-34123}
+\SANDnum{INL/EXT-19-53844}
 \SANDprintDate{\today}
-\SANDauthor{Cristian Rabiti, Andrea Alfonsi, Joshua Cogliati, Diego Mandelli,
-Robert Kinoshita, Sonat Sen, Congjian Wang, Paul W. Talbot, Daniel P. Maljovec}
-\SANDreleaseType{Revision 7}
-
-% ---------------------------------------------------------------------------- %
-% Include the markings required for your SAND report. The default is "Unlimited
-% Release". You may have to edit the file included here, or create your own
-% (see the examples provided).
-%
-% \include{MarkOUO} % Not needed for unlimted release reports
-
+\SANDauthor{Andrea Alfonsi, Paul W. Talbot, Diego Mandelli, Congjian Wang, Joshua Cogliati, Cristian Rabiti}
+\SANDreleaseType{Revision 0}
 \def\component#1{\texttt{#1}}
 
 % ---------------------------------------------------------------------------- %
 \newcommand{\systemtau}{\tensor{\tau}_{\!\text{SUPG}}}
 
-% Added by Sonat
 \usepackage{placeins}
 \usepackage{array}
 
@@ -319,141 +288,13 @@ Robert Kinoshita, Sonat Sen, Congjian Wang, Paul W. Talbot, Daniel P. Maljovec}
 \newcolumntype{C}[1]{>{\centering\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
 \newcolumntype{R}[1]{>{\raggedleft\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
 
-% end added by Sonat
 % ---------------------------------------------------------------------------- %
 %
 % Start the document
 %
-
-\begin{document}
-    \maketitle
-
-    % ------------------------------------------------------------------------ %
-    % An Abstract is required for SAND reports
-    %
-%    \begin{abstract}
-%    \input abstract
-%    \end{abstract}
-
-
-    % ------------------------------------------------------------------------ %
-    % An Acknowledgement section is optional but important, if someone made
-    % contributions or helped beyond the normal part of a work assignment.
-    % Use \section* since we don't want it in the table of context
-    %
-%    \clearpage
-%    \section*{Acknowledgment}
-
-
-
-%	The format of this report is based on information found
-%	in~\cite{Sand98-0730}.
-
-
-    % ------------------------------------------------------------------------ %
-    % The table of contents and list of figures and tables
-    % Comment out \listoffigures and \listoftables if there are no
-    % figures or tables. Make sure this starts on an odd numbered page
-    %
-    \cleardoublepage		% TOC needs to start on an odd page
-    \tableofcontents
-    %\listoffigures
-    %\listoftables
-
-
-    % ---------------------------------------------------------------------- %
-    % An optional preface or Foreword
-%    \clearpage
-%    \section*{Preface}
-%    \addcontentsline{toc}{section}{Preface}
-%	Although muggles usually have only limited experience with
-%	magic, and many even dispute its existence, it is worthwhile
-%	to be open minded and explore the possibilities.
-
-
-    % ---------------------------------------------------------------------- %
-    % An optional executive summary
-    %\clearpage
-    %\section*{Summary}
-    %\addcontentsline{toc}{section}{Summary}
-    %\input{Summary.tex}
-%	Once a certain level of mistrust and skepticism has
-%	been overcome, magic finds many uses in todays science
-
-
-
-%	and engineering. In this report we explain some of the
-%	fundamental spells and instruments of magic and wizardry. We
-%	then conclude with a few examples on how they can be used
-%	in daily activities at national Laboratories.
-
-
-    % ---------------------------------------------------------------------- %
-    % An optional glossary. We don't want it to be numbered
-%    \clearpage
-%    \section*{Nomenclature}
-%    \addcontentsline{toc}{section}{Nomenclature}
-%    \begin{description}
-%          \item[alohomoral]
-%           spell to open locked doors and containers
-%          \item[leviosa]
-%           spell to levitate objects
-%    \item[remembrall]
-%           device to alert you that you have forgotten something
-%    \item[wand]
-%           device to execute spells
-%    \end{description}
-
-
-    % ---------------------------------------------------------------------- %
-    % This is where the body of the report begins; usually with an Introduction
-    %
-    \SANDmain		% Start the main part of the report
-
-\input{introduction.tex}
-\input{nomenclature.tex}
-\input{Installation/main.tex}
-\input{HowToRun.tex}
-\input{ravenStructure.tex}
-\input{runInfo.tex}
-\input{files.tex}
-\input{variablegroups.tex}
-\input{ProbabilityDistributions.tex}
-\input{sampler.tex}
-\input{optimizer.tex}
-\input{database_data.tex}
-\input{OutStreamSystem.tex}
-\input{model.tex}
-\input{functions.tex}
-\input{metrics.tex}
-\input{step.tex}
-\input{existing_interfaces.tex}
-\input{couplingAcode.tex}
-\input{advanced_users_plugins.tex}
-\input{advanced_users_templates.tex}
-\input{examplesPrimer.tex}
-\section*{Document Version Information}
-\input{../version.tex}
-
-
-    % ---------------------------------------------------------------------- %
-    % References
-    %
-    \clearpage
-    % If hyperref is included, then \phantomsection is already defined.
-    % If not, we need to define it.
-    \providecommand*{\phantomsection}{}
-    \phantomsection
-    \addcontentsline{toc}{section}{References}
-    \bibliographystyle{ieeetr}
-    \bibliography{raven_user_manual}
-
-
-    % ---------------------------------------------------------------------- %
-    %
-
-    % \printindex
-
-    %\include{distribution}
-
-\end{document}
+\SANDmain 
+ \input{regression_tests_documentation_body.tex}
+% ---------------------------------------------------------------------------- %
+%
+% End the document
+%
