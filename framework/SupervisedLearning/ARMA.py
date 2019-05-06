@@ -43,7 +43,7 @@ from .SupervisedLearning import supervisedLearning
 
 
 class ARMA(supervisedLearning):
-  """
+  r"""
     Autoregressive Moving Average model for time series analysis. First train then evaluate.
     Specify a Fourier node in input file if detrending by Fourier series is needed.
 
@@ -89,6 +89,7 @@ class ARMA(supervisedLearning):
     self._minBins          = 20   # min number of bins to use in determining distributions, eventually can be user option, for now developer's pick
     # signal storage
     self._signalStorage    = collections.defaultdict(dict) # various signals obtained in the training process
+
     # check zeroFilterTarget is one of the targets given
     if self.zeroFilterTarget is not None and self.zeroFilterTarget not in self.target:
       self.raiseAnError('Requested ZeroFilter on "{}" but this target was not found among the ROM targets!'.format(self.zeroFilterTarget))
@@ -670,7 +671,7 @@ class ARMA(supervisedLearning):
     return y
 
   def _trainARMA(self,data):
-    """
+    r"""
       Fit ARMA model: x_t = \sum_{i=1}^P \phi_i*x_{t-i} + \alpha_t + \sum_{j=1}^Q \theta_j*\alpha_{t-j}
       @ In, data, np.array(float), data on which to train
       @ Out, results, statsmodels.tsa.arima_model.ARMAResults, fitted ARMA

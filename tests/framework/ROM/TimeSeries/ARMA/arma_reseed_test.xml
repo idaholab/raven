@@ -21,7 +21,9 @@
   <RunInfo>
     <WorkingDir>ARMAreseed</WorkingDir>
     <Sequence>read,run,write</Sequence>
-    <batchSize>4</batchSize>
+    <batchSize>1</batchSize>
+    <!--internalParallel>True</internalParallel-->
+
   </RunInfo>
 
   <Files>
