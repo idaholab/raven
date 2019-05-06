@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<Simulation verbosity="debug">
+<Simulation verbosity="silent">
   <RunInfo>
     <JobName>LSsearch</JobName>
     <Sequence>sample,computeLSintegral,writeHistories</Sequence>
