@@ -128,7 +128,7 @@
   <OutStreams>
     <Print name="samplesDump">
         <type>csv</type>
-        <source>pcaSamples</source>
+        <source>kmeansSamples</source>
         <what>input,output,metadata|klabels</what>
     </Print>
     <Plot name="PlotKMeans1" overwrite="false">
