@@ -79,6 +79,14 @@
       <Input>v0,angle</Input>
       <Output>r,t</Output>
     </PointSet>
+    <PointSet name="kmeansSamples">
+      <Input>v0,angle</Input>
+      <Output>r,t,klabels</Output>
+    </PointSet>
+    <PointSet name="pcaSamples">
+      <Input>v0,angle</Input>
+      <Output>r,t,klabels,PCA1Dimension1,PCA1Dimension2</Output>
+    </PointSet>
     <PointSet name="dummyIN">
       <Input>v0,angle</Input>
       <Output>OutputPlaceHolder</Output>
@@ -104,15 +112,15 @@
     <PostProcess name="kmeans" pauseAtEnd="True">
       <Input class="DataObjects" type="PointSet">samples</Input>
       <Model class="Models" type="PostProcessor">KMeans1</Model>
-      <Output class="DataObjects" type="PointSet">samples</Output>
+      <Output class="DataObjects" type="PointSet">kmeansSamples</Output>
       <Output class="OutStreams" type="Plot">PlotKMeans1</Output>
       <Output class="OutStreams" type="Plot">PlotLabels</Output>
     </PostProcess>
     <PostProcess name="pca" pauseAtEnd="True">
-      <Input class="DataObjects" type="PointSet">samples</Input>
+      <Input class="DataObjects" type="PointSet">kmeansSamples</Input>
       <Model class="Models" type="PostProcessor">PCA1</Model>
       <Output class="OutStreams" type="Print">samplesDump</Output>
-      <Output class="DataObjects" type="PointSet">samples</Output>
+      <Output class="DataObjects" type="PointSet">pcaSamples</Output>
       <Output class="OutStreams" type="Plot">PlotPCA1</Output>
     </PostProcess>
   </Steps>
@@ -120,7 +128,7 @@
   <OutStreams>
     <Print name="samplesDump">
         <type>csv</type>
-        <source>samples</source>
+        <source>pcaSamples</source>
         <what>input,output,metadata|klabels</what>
     </Print>
     <Plot name="PlotKMeans1" overwrite="false">
@@ -129,10 +137,10 @@
             <plot>
                 <type>dataMining</type>
                 <SKLtype>cluster</SKLtype>
-                <clusterLabels>samples|Output|klabels</clusterLabels>
+                <clusterLabels>kmeansSamples|Output|klabels</clusterLabels>
                 <noClusters>3</noClusters>
-                <x>samples|Input|angle</x>
-                <y>samples|Output|r</y>
+                <x>kmeansSamples|Input|angle</x>
+                <y>kmeansSamples|Output|r</y>
                 <xlabel>angle</xlabel>
                 <ylabel>range</ylabel>
                 <gridLocation>
@@ -148,10 +156,10 @@
             </plot>            <plot>
                 <type>dataMining</type>
                 <SKLtype>cluster</SKLtype>
-                <clusterLabels>samples|Output|klabels</clusterLabels>
+                <clusterLabels>kmeansSamples|Output|klabels</clusterLabels>
                 <noClusters>3</noClusters>
-                <x>samples|Input|v0</x>
-                <y>samples|Output|r</y>
+                <x>kmeansSamples|Input|v0</x>
+                <y>kmeansSamples|Output|r</y>
                 <xlabel>velocity</xlabel>
                 <ylabel>range</ylabel>
                 <gridLocation>
@@ -178,11 +186,11 @@
         <plot>
           <type>dataMining</type>
           <SKLtype>cluster</SKLtype>
-          <clusterLabels>samples|Output|klabels</clusterLabels>
+          <clusterLabels>kmeansSamples|Output|klabels</clusterLabels>
           <noClusters>3</noClusters>
-          <x>samples|Input|v0</x>
-          <y>samples|Input|angle</y>
-          <z>samples|Output|r</z>
+          <x>kmeansSamples|Input|v0</x>
+          <y>kmeansSamples|Input|angle</y>
+          <z>kmeansSamples|Output|r</z>
           <xlabel>velocity</xlabel>
           <ylabel>angle</ylabel>
           <zlabel>range</zlabel>
@@ -208,10 +216,10 @@
         <plot>
           <type>dataMining</type>
           <SKLtype>cluster</SKLtype>
-          <clusterLabels>samples|Output|klabels</clusterLabels>
+          <clusterLabels>pcaSamples|Output|klabels</clusterLabels>
           <noClusters>3</noClusters>
-          <x>samples|Output|PCA1Dimension1</x>
-          <y>samples|Output|PCA1Dimension2</y>
+          <x>pcaSamples|Output|PCA1Dimension1</x>
+          <y>pcaSamples|Output|PCA1Dimension2</y>
         </plot>
       </plotSettings>
         <actions>
