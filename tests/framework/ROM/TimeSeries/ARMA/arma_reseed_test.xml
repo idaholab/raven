@@ -10,7 +10,7 @@
       identical (by setting the batch size to 1 and internalparelle to False in precursor and
       reseed test). Note that the gold fileis created by run the arma_ressed_precurssor test,
       signals_0 signals_1 signals_2 signals_3 are gold files. results_0 results_1 results_2
-      results_3 are the generated unpickled historiesby test,then we compare they are the same.
+      results_3 are the generated unpickled histories by test,then we compare they are the same.
     </description>
     <revisions>
       <revision author="talbpaul" date="2017-07-12">created</revision>
