@@ -112,6 +112,7 @@
     <Print name="analyticalTest_basicStatPP_dump">
       <type>csv</type>
       <source>analyticalTest_basicStatPP</source>
+      <what>input, output</what>
     </Print>
   </OutStreams>
 
