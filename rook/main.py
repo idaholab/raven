@@ -223,7 +223,10 @@ def process_result(index, _input_data, output_data):
     print(output_data.message)
     okaycolor = fail_color
   number_done = sum(results.values())
-  print("({done}/{togo}) {statcolor}{status:7s}{normcolor} ({timecolor}{time}{normcolor}) {namecolor}{test}{normcolor}"
+  print(' '.join(["({done}/{togo})",
+                  "{statcolor}{status:7s}{normcolor}"
+                  "({timecolor}{time}{normcolor})"
+                  "{namecolor}{test}{normcolor}"])
         .format(done=number_done,
                 togo=len(function_list),
                 statcolor=okaycolor,
