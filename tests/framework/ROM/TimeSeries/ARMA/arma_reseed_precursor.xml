@@ -15,6 +15,7 @@
       <revision author="alfoa" date="2018-04-26">Modified location of the test (ARMA folder)</revision>
       <revision author="talbpaul" date="2018-12-20">ROM IO to data object added</revision>
       <revision author="talbpaul" date="2018-09-13">changed Pmax and Pmin to P (same for Q)</revision>
+      <revision author="zhouj" date="2019-05-06">Modified location of the test to arma reseed </revision>
     </revisions>
   </TestInfo>
 
