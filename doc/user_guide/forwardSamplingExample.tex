@@ -442,6 +442,7 @@ To accomplish these tasks, the following RAVEN \textbf{Entities} (XML blocks in 
    using twelve processors (\xmlNode{batchSize}).  The first two steps build the ROM
    (\xmlString{sample}, \xmlString{train}), the next two validate
    the ROM against the original Code Model (\xmlString{validateModel}, \xmlString{validateROM}),
+   \xmlString{rom\_stats} stores ROM-related information into DataObject,
    and the last two produce plots and print data (\xmlString{output\_print}, \xmlString{output\_plot}).
    \item \textbf{\textit{Files}}:
      \xmlExample{framework/user_guide/ForwardSamplingStrategies/forwardSamplingSparseGrid.xml}{Files}
@@ -580,6 +581,7 @@ To accomplish these tasks, the following RAVEN \textbf{Entities} (XML blocks in 
      \item \xmlNode{MultiRun} named ``sampleROM'', used to run the
      Monte Carlo perturbed samples of the previously constructed ROM for use in verificaiton.  The results are
      collected in the \textit{samplesROM} \textit{DataObjects}.
+     \item \xmlNode{IOStep} named ``rom\_stas'', used to dump rom-related information into \textit{DataObject },
      \item  \xmlNode{IOStep} named ``output\_print'', used to dump
      the ``histories'', ``samplesModel'' and ``samplesROM'' \textit{DataObjects}
      \textbf{Entity} in a CSV file,
