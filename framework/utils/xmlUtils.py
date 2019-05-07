@@ -414,11 +414,6 @@ class CommentedTreeBuilder(ET.TreeBuilder):
     # self._parser.CommentHandler = self.comment
 
   def comment(self, data):
-    """
-      Typifies comments in the XML tree
-      @ In, data, instance, internal ElementTree data structure
-      @ Out, None
-    """
     self.start(ET.Comment, {})
     self.data(data)
     self.end(ET.Comment)
