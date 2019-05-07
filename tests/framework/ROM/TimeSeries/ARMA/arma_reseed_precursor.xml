@@ -7,7 +7,7 @@
     <classesTested>SupervisedLearning.ARMA</classesTested>
     <description>
       Builds a reseeding copy of the ARMA to test multiple evaluations return different values;
-      this run only creates the arma and pickles it.
+      this run creates the arma and pickles it, also generates gold files for the reseed test.
     </description>
     <revisions>
       <revision author="talbpaul" date="2017-07-12">created</revision>
