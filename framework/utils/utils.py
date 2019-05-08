@@ -1109,3 +1109,41 @@ def getAllSubclasses(cls):
     @ Out, getAllSubclasses, list of class objects for each subclass of cls.
   """
   return cls.__subclasses__() + [g for s in cls.__subclasses__() for g in getAllSubclasses(s)]
+  
+  
+def which(cmd):
+  """
+    Emulate the which method in shutil
+    @ In, cmd, str, the exe to check
+    @ Out, which, str, the full path or None if not found
+  """
+  mode=os.F_OK | os.X_OK
+  def _access_check(fn, mode): 
+    return (os.path.exists(fn) and os.access(fn, mode) and not os.path.isdir(fn))
+  if os.path.dirname(cmd):
+    if _access_check(cmd, mode): return cmd
+    return None
+  path = os.environ.get("PATH", os.defpath)
+  if not path: 
+    return None
+  path = path.split(os.pathsep)
+  if sys.platform == "win32":
+    if not os.curdir in path: 
+      path.insert(0, os.curdir)
+    pathext = os.environ.get("PATHEXT", "").split(os.pathsep)
+    if any(cmd.lower().endswith(ext.lower()) for ext in pathext):
+      files = [cmd]
+    else:
+      files = [cmd + ext for ext in pathext]
+  else:
+    files = [cmd]
+  seen = set()
+  for dir in path:
+    normdir = os.path.normcase(dir)
+    if not normdir in seen:
+      seen.add(normdir)
+      for thefile in files:
+        name = os.path.join(dir, thefile)
+        if _access_check(name, mode):
+          return name
+  return None
