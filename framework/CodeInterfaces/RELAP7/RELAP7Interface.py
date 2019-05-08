@@ -56,6 +56,11 @@ class RELAP7(CodeInterfaceBase):
       precommand = executable + clargs['text']
     else:
       precommand = executable
+    
+    if executable.strip().endswith("py"):
+      # for testing
+      precommand = "python "+ precommand 
+    
     executeCommand = [('parallel',precommand + ' -i '+inputFiles[index].getFilename() + ' Outputs/file_base='+ outputfile +
                       ' Outputs/csv=false' + ' Outputs/checkpoint=true'+ ' Outputs/tail/type=ControlLogicBranchingInfo'+
                       ' Outputs/ravenCSV/type=CSVRaven')]
