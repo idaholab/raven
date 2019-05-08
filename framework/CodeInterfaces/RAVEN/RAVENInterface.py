@@ -158,14 +158,14 @@ class RAVEN(CodeInterfaceBase):
       @ In, preExec, string, optional, a string the command that needs to be pre-executed before the actual command here defined
       @ Out, returnCommand, tuple, tuple containing the generated command. returnCommand[0] is the command to run the code (string), returnCommand[1] is the name of the output root
     """
-    
+
     index = self.__findInputFile(inputFiles)
     outputfile = self.outputPrefix+inputFiles[index].getBase()
     # we set the command type to serial since the SLAVE RAVEN handles the parallel on its own
     pre = ""
     if "python" not in executable.lower() or executable.endswith(".py"):
       pre = self.preCommand.strip() + " "
-    executeCommand = [('serial',pre+executable+ ' '+inputFiles[index].getFilename())]
+    executeCommand = [('serial',pre + executable+ ' '+inputFiles[index].getFilename())]
     returnCommand = executeCommand, outputfile
     return returnCommand
 
