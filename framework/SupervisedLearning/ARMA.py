@@ -43,7 +43,7 @@ from .SupervisedLearning import supervisedLearning
 
 
 class ARMA(supervisedLearning):
-  """
+  r"""
     Autoregressive Moving Average model for time series analysis. First train then evaluate.
     Specify a Fourier node in input file if detrending by Fourier series is needed.
 
@@ -671,7 +671,7 @@ class ARMA(supervisedLearning):
     return y
 
   def _trainARMA(self,data):
-    """
+    r"""
       Fit ARMA model: x_t = \sum_{i=1}^P \phi_i*x_{t-i} + \alpha_t + \sum_{j=1}^Q \theta_j*\alpha_{t-j}
       @ In, data, np.array(float), data on which to train
       @ Out, results, statsmodels.tsa.arima_model.ARMAResults, fitted ARMA
