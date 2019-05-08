@@ -1119,7 +1119,7 @@ def which(cmd):
   def _access_check(fn):
     return (os.path.exists(fn) and os.access(fn, os.X_OK) and not os.path.isdir(fn))
   if os.path.dirname(cmd):
-    if _access_check(cmd): 
+    if _access_check(cmd):
       return cmd
     return None
   path = os.environ.get("PATH", os.defpath)
