@@ -85,6 +85,10 @@
   </Samplers>
 
   <DataObjects>
+    <PointSet name="dataIn">
+      <Input>scaling</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
     <HistorySet name="rawData">
       <Input>scaling</Input>
       <Output>Speed,Time</Output>
@@ -92,10 +96,6 @@
         <pivotParameter>Time</pivotParameter>
       </options>
     </HistorySet>
-    <PointSet name="dataIn">
-      <Input>scaling</Input>
-      <Output>OutputPlaceHolder</Output>
-    </PointSet>
     <HistorySet name="signals">
       <Input>scaling</Input>
       <Output>Speed,Time</Output>
