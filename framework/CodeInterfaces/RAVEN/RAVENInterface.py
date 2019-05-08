@@ -29,7 +29,6 @@ from utils import utils
 from CodeInterfaceBaseClass import CodeInterfaceBase
 import DataObjects
 import csvUtilities
-from utils import utils
 from MessageHandler import MessageHandler
 
 class RAVEN(CodeInterfaceBase):
