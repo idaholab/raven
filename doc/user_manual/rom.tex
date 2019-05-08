@@ -2992,7 +2992,7 @@ x_t &= y_t - \sum_m\left\{a_m\sin(2\pi f_mt)+b_m\cos(2\pi f_mt)\right\}  \\
 \end{aligned}
 \end{equation*}
 
-where $1/f_m$ is defined by the user parameter \xmlNode{Fourier}. \nb $a_m$ and $b_m$ will be calculated then transform to 
+where $1/f_m$ is defined by the user parameter \xmlNode{Fourier}. \nb $a_m$ and $b_m$ will be calculated then transformed to 
 $c_m$ and $\phi$. The $c_m$ will be stored as \xmlString{amplitude}, and $\phi$ will be stored as \xmlString{phase}.
 
 By default, each target in the training will be considered independent and have an unique ARMA for each
@@ -3022,16 +3022,18 @@ below).
     can only be listed once, so all variables that are desired for correlation should be included.  \nb The
     correlated VARMA takes notably longer to train than the independent ARMAs for the same number of targets.
   \item \xmlNode{seed}, \xmlDesc{integer, optional field}, provides seed for VARMA and ARMA sampling. 
-   Must be provided before training; it cannot be changed once trained. If no seed is assigned, 
-   then use random number instead.
+   Must be provided before training. If no seed is assigned, 
+   then a random number will be used.
    
-   \item \xmlNode{reseedCopies}, \xmlDesc{boolean, optional field}, if \xmlString{True} then whenever the ARMA is copied, a
-    random reseeding will be performed to ensure different histories. \nb If same histories are expected for an unpickled arma,
-    user should set the \xmlNode{reseedCopies} to \xmlString{False}, also needs to make sure the \xmlNode{batchSize} is 1 and  
-    \xmlNode{internalParallel} is \xmlString{False} in \xmlNode{RunInfo} block for both the arma before pickled and after unpickled.
-    When \xmlNode{internalParallel} is \xmlString{True}, arma can only generate one set of history, regardless of how many sets of
-    histories are expected. While \xmlNode{batchSize} is larger than 1 will cause the genrated values out of order.
-        \default{True}
+   \item \xmlNode{reseedCopies}, \xmlDesc{boolean, optional field}, if \xmlString{True} then whenever the ARMA is loaded from file, a
+    random reseeding will be performed to ensure different histories. \nb If reproducible histories are desired for an ARMA loaded from file,
+    \xmlNode{reseedCopies} should be set to \xmlString{False}, and in the \xmlNode{RunInfo} block \xmlNode{batchSize} needs to be 1 
+    and \xmlNode{internalParallel} should be
+     \xmlString{False} for RAVEN runs sampling the trained ARMA model.
+
+If \xmlNode{InternalParallel} is \xmlString{True} and the ARMA has \xmlNode{reseedCopies} as \xmlString{False}, an identical ARMA history will always be provided regardless of how many samples are taken.
+
+If \xmlNode{InternalParallel} is \xmlString{False} and \xmlNode{batchSize} is more than 1, it is not possible to guarantee the order of RNG usage by the separate processes, so it is not possible to guarantee reproducible histories are generated.        \default{True}
   
   \item \xmlNode{P}, \xmlDesc{integer, optional field}, defines the value of $p$.
   \default{3}

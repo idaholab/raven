@@ -8,6 +8,7 @@
     <description>
       Builds a reseeding copy of the ARMA to test multiple evaluations return different values;
       this run creates the arma and pickles it, also generates gold files for the reseed test.
+      And added sampling for the gold file as well as rommeta.
     </description>
     <revisions>
       <revision author="talbpaul" date="2017-07-12">created</revision>

@@ -6,11 +6,11 @@
     <created>2017-07-12</created>
     <classesTested>SupervisedLearning.ARMA</classesTested>
     <description>
-      Runs an unpickled ARMA ROM in internal parallel and assures the histories generated are
-      identical (by setting the batch size to 1 and internalparelle to False in precursor and
-      reseed test). Note that the gold fileis created by run the arma_ressed_precurssor test,
-      signals_0 signals_1 signals_2 signals_3 are gold files. results_0 results_1 results_2
-      results_3 are the generated unpickled histories by test,then we compare they are the same.
+      Runs an unpickled ARMA ROM and assures the histories generated are  identical (by setting
+      the batch size to 1 and internalparelle to False in precursor and reseed test). Note that
+      the gold file is created by runing the arma_ressed_precurssor test, signals_0 signals_1
+      signals_2 signals_3 are gold files. results_0 results_1 results_2 results_3 are the generated
+      unpickled histories by test,then we compare they are the same.
     </description>
     <revisions>
       <revision author="talbpaul" date="2017-07-12">created</revision>
