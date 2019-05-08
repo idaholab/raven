@@ -1110,18 +1110,17 @@ def getAllSubclasses(cls):
   """
   return cls.__subclasses__() + [g for s in cls.__subclasses__() for g in getAllSubclasses(s)]
 
-
 def which(cmd):
   """
     Emulate the which method in shutil
     @ In, cmd, str, the exe to check
     @ Out, which, str, the full path or None if not found
   """
-  mode=os.F_OK | os.X_OK
-  def _access_check(fn, mode):
-    return (os.path.exists(fn) and os.access(fn, mode) and not os.path.isdir(fn))
+  def _access_check(fn):
+    return (os.path.exists(fn) and os.access(fn, os.X_OK) and not os.path.isdir(fn))
   if os.path.dirname(cmd):
-    if _access_check(cmd, mode): return cmd
+    if _access_check(cmd): 
+      return cmd
     return None
   path = os.environ.get("PATH", os.defpath)
   if not path:
@@ -1144,6 +1143,6 @@ def which(cmd):
       seen.add(normdir)
       for thefile in files:
         name = os.path.join(dir, thefile)
-        if _access_check(name, mode):
+        if _access_check(name):
           return name
   return None
