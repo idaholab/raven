@@ -8,7 +8,14 @@
     <description>
       Tests clustering with the KMeans model and preprocessing.
     </description>
+    <revisions>
+      <revision author="wangc" date="2018-09-27">
+        As reported in issue #805, RAVEN will not allow input DataObject of PostProcessor to be output DataObject,
+        the output data object will be renamed, and the variable name of labels will be explicitly defined.
+      </revision>
+    </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>time_dep_clustering_filtered</WorkingDir>
     <Sequence>FirstMRun,pp1,plotAllHists,filter0,filter1</Sequence>
@@ -20,14 +27,14 @@
       <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
       <Model class="Models" type="ExternalModel">PythonModule</Model>
       <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
-      <Output class="DataObjects" type="HistorySet">outMC</Output>
+      <Output class="DataObjects" type="HistorySet">outMCRaw</Output>
     </MultiRun>
     <IOStep name="plotAllHists" pauseAtEnd="false">
       <Input class="DataObjects" type="HistorySet">outMC</Input>
       <Output class="OutStreams" type="Plot">plot1</Output>
     </IOStep>
     <PostProcess name="pp1" pauseAtEnd="True">
-      <Input class="DataObjects" type="HistorySet">outMC</Input>
+      <Input class="DataObjects" type="HistorySet">outMCRaw</Input>
       <Model class="Models" type="PostProcessor">KMeans1</Model>
       <SolutionExport class="DataObjects" type="HistorySet">clusterInfo</SolutionExport>
       <Output class="DataObjects" type="HistorySet">outMC</Output>
@@ -110,8 +117,8 @@
       </KDD>
     </PostProcessor>
     <PostProcessor name="dataPreProc" subType="InterfacedPostProcessor">
-       <method>HS2PS</method>
-       <pivotParameter>time</pivotParameter>
+      <method>HS2PS</method>
+      <pivotParameter>time</pivotParameter>
     </PostProcessor>
     <ExternalModel ModuleToLoad="../../../../AnalyticModels/lorentzAttractor_disc" name="PythonModule" subType="">
       <variables>sigma,rho,beta,x,y,z,time,x0,y0,z0</variables>
@@ -137,7 +144,7 @@
     </PointSet>
     <HistorySet name="outMC">
       <Input>x0,y0,z0</Input>
-      <Output>time,x,y,z</Output>
+      <Output>time,x,y,z,KMeans1Labels</Output>
     </HistorySet>
     <HistorySet name="outMC0">
       <Input>x0,y0,z0</Input>
@@ -159,6 +166,10 @@
       <Input>KMeans1Labels</Input>
       <Output>time,x,y,z</Output>
     </HistorySet>
+    <HistorySet name="outMCRaw">
+      <Input>x0,y0,z0</Input>
+      <Output>time,x,y,z</Output>
+    </HistorySet>
   </DataObjects>
 
   <OutStreams>
@@ -174,12 +185,11 @@
       <type>csv</type>
       <source>clusterInfo</source>
     </Print>
-	  <Print name="PrintHistorySet_dump">
-	    <type>csv</type>
-	    <source>outMC</source>
-	  </Print>
-
-    <Plot   name="plot1" overwrite="false" verbosity="debug">
+    <Print name="PrintHistorySet_dump">
+      <type>csv</type>
+      <source>outMC</source>
+    </Print>
+    <Plot name="plot1" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>line</type>
@@ -196,8 +206,7 @@
         <how>png</how>
       </actions>
     </Plot>
-    
-    <Plot   name="clusterCenters" overwrite="false" verbosity="debug">
+    <Plot name="clusterCenters" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>line</type>
@@ -215,8 +224,7 @@
         <how>png</how>
       </actions>
     </Plot>
-	  
-    <Plot  name="plot3" overwrite="false" verbosity="debug">
+    <Plot name="plot3" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>line</type>
@@ -236,8 +244,7 @@
         <how>png</how>
       </actions>
     </Plot>
-
-    <Plot   name="Clustered_HS" overwrite="false" verbosity="debug">
+    <Plot name="Clustered_HS" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>line</type>
@@ -267,8 +274,7 @@
         </range>
       </actions>
     </Plot>
-
-    <Plot   name="Cluster_0" overwrite="false" verbosity="debug">
+    <Plot name="Cluster_0" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>line</type>
@@ -294,8 +300,7 @@
         </range>
       </actions>
     </Plot>
-
-    <Plot   name="Cluster_1" overwrite="false" verbosity="debug">
+    <Plot name="Cluster_1" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>line</type>
@@ -321,8 +326,7 @@
         </range>
       </actions>
     </Plot>
-    
-    <Plot   name="Cluster_2" overwrite="false" verbosity="debug">
+    <Plot name="Cluster_2" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>line</type>
@@ -348,8 +352,7 @@
         </range>
       </actions>
     </Plot>
-    
-    <Plot   name="Cluster_3" overwrite="false" verbosity="debug">
+    <Plot name="Cluster_3" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>line</type>
@@ -374,9 +377,8 @@
           <zmax>60.0</zmax>
         </range>
       </actions>
-    </Plot>  
-    
-		<Plot  name="hist0x" overwrite="false" verbosity="debug">
+    </Plot>
+    <Plot name="hist0x" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>histogram</type>
@@ -388,8 +390,7 @@
         <how>png</how>
       </actions>
     </Plot>
-    
-    <Plot  name="hist0y" overwrite="false" verbosity="debug">
+    <Plot name="hist0y" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>histogram</type>
@@ -401,8 +402,7 @@
         <how>png</how>
       </actions>
     </Plot>
- 
-    <Plot  name="hist0z" overwrite="false" verbosity="debug">
+    <Plot name="hist0z" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>histogram</type>
@@ -414,8 +414,7 @@
         <how>png</how>
       </actions>
     </Plot>
-    
-    <Plot  name="hist1x" overwrite="false" verbosity="debug">
+    <Plot name="hist1x" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>histogram</type>
@@ -427,8 +426,7 @@
         <how>png</how>
       </actions>
     </Plot>
-    
-    <Plot  name="hist1y" overwrite="false" verbosity="debug">
+    <Plot name="hist1y" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>histogram</type>
@@ -440,8 +438,7 @@
         <how>png</how>
       </actions>
     </Plot>
- 
-    <Plot  name="hist1z" overwrite="false" verbosity="debug">
+    <Plot name="hist1z" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>histogram</type>
@@ -453,8 +450,7 @@
         <how>png</how>
       </actions>
     </Plot>
-    
-    <Plot  name="hist2x" overwrite="false" verbosity="debug">
+    <Plot name="hist2x" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>histogram</type>
@@ -466,8 +462,7 @@
         <how>png</how>
       </actions>
     </Plot>
-    
-    <Plot  name="hist2y" overwrite="false" verbosity="debug">
+    <Plot name="hist2y" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>histogram</type>
@@ -479,8 +474,7 @@
         <how>png</how>
       </actions>
     </Plot>
- 
-    <Plot  name="hist2z" overwrite="false" verbosity="debug">
+    <Plot name="hist2z" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>histogram</type>
@@ -492,8 +486,7 @@
         <how>png</how>
       </actions>
     </Plot>
-
-    <Plot  name="hist3x" overwrite="false" verbosity="debug">
+    <Plot name="hist3x" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>histogram</type>
@@ -505,8 +498,7 @@
         <how>png</how>
       </actions>
     </Plot>
-    
-    <Plot  name="hist3y" overwrite="false" verbosity="debug">
+    <Plot name="hist3y" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>histogram</type>
@@ -518,8 +510,7 @@
         <how>png</how>
       </actions>
     </Plot>
- 
-    <Plot  name="hist3z" overwrite="false" verbosity="debug">
+    <Plot name="hist3z" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>histogram</type>
@@ -530,9 +521,8 @@
       <actions>
         <how>png</how>
       </actions>
-    </Plot>    
-    
-    <Plot   name="plot5" overwrite="false" verbosity="debug">
+    </Plot>
+    <Plot name="plot5" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>histogram</type>
@@ -545,8 +535,7 @@
         <how>png</how>
       </actions>
     </Plot>
-
-    <Plot  name="plot6" overwrite="false" verbosity="debug">
+    <Plot name="plot6" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>histogram</type>
@@ -558,8 +547,7 @@
         <how>png</how>
       </actions>
     </Plot>
-    
-    <Plot   name="plot7" overwrite="false" verbosity="debug">
+    <Plot name="plot7" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>histogram</type>

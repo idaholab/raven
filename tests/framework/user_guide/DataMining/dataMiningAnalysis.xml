@@ -3,7 +3,7 @@
     <JobName>dataMiningAnalysis</JobName>
     <WorkingDir>dataMiningAnalysis</WorkingDir>
     <Sequence>sampleMC,kmeans,pca</Sequence>
-    <batchSize>8</batchSize>
+    <batchSize>3</batchSize>
   </RunInfo>
   <TestInfo>
     <name>framework/user_guide/DataMining/dataMiningAnalysis</name>
@@ -14,24 +14,20 @@
       This test is an example for the user guide to draw from.  It demonstrates a typical workflow for sampling
       then making use of the DataMining postprocessor.
     </description>
+    <revisions>
+      <revision author="burlip" date="2019-04-17">modified file to replace the Analyticalbateman example with the projectile example</revision>
+    </revisions>
   </TestInfo>
 
-  <Files>
-    <Input name="referenceInput.xml" type="input">referenceInput.xml</Input>
-  </Files>
-
   <Models>
-    <Code name="testModel" subType="GenericCode">
-      <executable>../physicalCode/analyticalbateman/AnalyticalDplMain.py</executable>
-      <clargs arg="python" type="prepend"/>
-      <clargs arg="" extension=".xml" type="input"/>
-      <clargs arg=" " extension=".csv" type="output"/>
-    </Code>
+    <ExternalModel ModuleToLoad="../../AnalyticModels/projectile.py" name="projectile" subType="">
+      <variables>x,y,v0,angle,r,t,timeOption</variables>
+    </ExternalModel>
     <PostProcessor name="KMeans1" subType="DataMining">
       <KDD labelFeature="klabels" lib="SciKitLearn">
         <SKLtype>cluster|KMeans</SKLtype>
-        <Features>A,B,C,D</Features>
-        <n_clusters>2</n_clusters>
+        <Features>r,t</Features>
+        <n_clusters>3</n_clusters>
         <tol>1e-10</tol>
         <random_state>1</random_state>
         <init>k-means++</init>
@@ -40,7 +36,7 @@
     </PostProcessor>
     <PostProcessor name="PCA1" subType="DataMining">
       <KDD lib="SciKitLearn">
-        <Features>A,B,C,D</Features>
+        <Features>r,t</Features>
         <SKLtype>decomposition|PCA</SKLtype>
         <n_components>2</n_components>
       </KDD>
@@ -48,65 +44,83 @@
   </Models>
 
   <Distributions>
-    <Uniform name="sigma">
-      <lowerBound>0</lowerBound>
-      <upperBound>1000</upperBound>
-    </Uniform>
-    <Uniform name="decayConstant">
-      <lowerBound>1e-8</lowerBound>
-      <upperBound>1e-7</upperBound>
+    <Normal name="vel_dist">
+      <mean>30</mean>
+      <sigma>5</sigma>
+      <lowerBound>1</lowerBound>
+      <upperBound>60</upperBound>
+    </Normal>
+    <Uniform name="angle_dist">
+      <lowerBound>5</lowerBound>
+      <upperBound>85</upperBound>
     </Uniform>
   </Distributions>
 
   <Samplers>
-    <Grid name="grid">
-      <variable name="sigma-A">
-        <distribution>sigma</distribution>
-        <grid construction="equal" steps="9" type="CDF">0.01 0.99</grid>
+    <MonteCarlo name="my_mc">
+      <samplerInit>
+        <limit>1000</limit>
+        <initialSeed>42</initialSeed>
+      </samplerInit>
+      <variable name="v0">
+        <distribution>vel_dist</distribution>
       </variable>
-      <variable name="sigma-B">
-        <distribution>sigma</distribution>
-        <grid construction="equal" steps="9" type="CDF">0.01 0.99</grid>
+      <variable name="angle">
+        <distribution>angle_dist</distribution>
       </variable>
-      <variable name="decay-A">
-        <distribution>decayConstant</distribution>
-        <grid construction="equal" steps="9" type="CDF">0.01 0.99</grid>
-      </variable>
-    </Grid>
+      <constant name="x0">0</constant>
+      <constant name="y0">0</constant>
+      <constant name="timeOption">1</constant>
+    </MonteCarlo>
   </Samplers>
 
   <DataObjects>
     <PointSet name="samples">
-      <Input>decay-A,sigma-A,sigma-B</Input>
-      <Output>A,B,C,D</Output>
+      <Input>v0,angle</Input>
+      <Output>r,t</Output>
+    </PointSet>
+    <PointSet name="kmeansSamples">
+      <Input>v0,angle</Input>
+      <Output>r,t,klabels</Output>
+    </PointSet>
+    <PointSet name="pcaSamples">
+      <Input>v0,angle</Input>
+      <Output>r,t,klabels,PCA1Dimension1,PCA1Dimension2</Output>
+    </PointSet>
+    <PointSet name="dummyIN">
+      <Input>v0,angle</Input>
+      <Output>OutputPlaceHolder</Output>
     </PointSet>
     <HistorySet name="histories">
-      <Input>sigma-A,sigma-B,decay-A</Input>
-      <Output>A,B,C,D,time</Output>
+      <Input>v0,angle</Input>
+      <Output>x,y,t</Output>
+      <options> 
+        <pivotParameter>t</pivotParameter>
+      </options>
     </HistorySet>
   </DataObjects>
 
 
   <Steps>
     <MultiRun name="sampleMC">
-      <Input class="Files" type="input">referenceInput.xml</Input>
-      <Model class="Models" type="Code">testModel</Model>
-      <Sampler class="Samplers" type="Grid">grid</Sampler>
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ExternalModel">projectile</Model>
+      <Sampler class="Samplers" type="MonteCarlo">my_mc</Sampler>
       <Output class="DataObjects" type="PointSet">samples</Output>
       <Output class="DataObjects" type="HistorySet">histories</Output>
     </MultiRun>
     <PostProcess name="kmeans" pauseAtEnd="True">
       <Input class="DataObjects" type="PointSet">samples</Input>
       <Model class="Models" type="PostProcessor">KMeans1</Model>
-      <Output class="DataObjects" type="PointSet">samples</Output>
+      <Output class="DataObjects" type="PointSet">kmeansSamples</Output>
       <Output class="OutStreams" type="Plot">PlotKMeans1</Output>
       <Output class="OutStreams" type="Plot">PlotLabels</Output>
     </PostProcess>
     <PostProcess name="pca" pauseAtEnd="True">
-      <Input class="DataObjects" type="PointSet">samples</Input>
+      <Input class="DataObjects" type="PointSet">kmeansSamples</Input>
       <Model class="Models" type="PostProcessor">PCA1</Model>
       <Output class="OutStreams" type="Print">samplesDump</Output>
-      <Output class="DataObjects" type="PointSet">samples</Output>
+      <Output class="DataObjects" type="PointSet">pcaSamples</Output>
       <Output class="OutStreams" type="Plot">PlotPCA1</Output>
     </PostProcess>
   </Steps>
@@ -114,62 +128,49 @@
   <OutStreams>
     <Print name="samplesDump">
         <type>csv</type>
-        <source>samples</source>
+        <source>kmeansSamples</source>
         <what>input,output,metadata|klabels</what>
     </Print>
     <Plot name="PlotKMeans1" overwrite="false">
-        <plotSettings>
-            <gridSpace>3 1</gridSpace>
+<plotSettings>
+            <gridSpace>2 1</gridSpace>
             <plot>
                 <type>dataMining</type>
                 <SKLtype>cluster</SKLtype>
-                <clusterLabels>samples|Output|klabels</clusterLabels>
-                <noClusters>2</noClusters>
-                <x>samples|Input|sigma-A</x>
-                <y>samples|Output|A</y>
+                <clusterLabels>kmeansSamples|Output|klabels</clusterLabels>
+                <noClusters>3</noClusters>
+                <x>kmeansSamples|Input|angle</x>
+                <y>kmeansSamples|Output|r</y>
+                <xlabel>angle</xlabel>
+                <ylabel>range</ylabel>
                 <gridLocation>
                     <x>0</x>
                     <y>0</y>
                 </gridLocation>
                 <range>
                   <xmin>0</xmin>
-                  <xmax>1000</xmax>
+                  <xmax>100</xmax>
                   <ymin>0</ymin>
-                  <ymax>1</ymax>
+                  <ymax>200</ymax>
                 </range>
-            </plot>
-            <plot>
+            </plot>            <plot>
                 <type>dataMining</type>
                 <SKLtype>cluster</SKLtype>
-                <clusterLabels>samples|Output|klabels</clusterLabels>
-                <noClusters>2</noClusters>
-                <x>samples|Input|decay-A</x>
-                <y>samples|Output|A</y>
+                <clusterLabels>kmeansSamples|Output|klabels</clusterLabels>
+                <noClusters>3</noClusters>
+                <x>kmeansSamples|Input|v0</x>
+                <y>kmeansSamples|Output|r</y>
+                <xlabel>velocity</xlabel>
+                <ylabel>range</ylabel>
                 <gridLocation>
                     <x>1</x>
                     <y>0</y>
                 </gridLocation>
                 <range>
-                  <xmin>1e-8</xmin>
-                  <xmax>1e-7</xmax>
-                  <ymin>0</ymin>
-                  <ymax>1</ymax>
-                </range>
-            </plot>
-            <plot>
-                <type>dataMining</type>
-                <SKLtype>cluster</SKLtype>
-                <clusterLabels>samples|Output|klabels</clusterLabels>
-                <noClusters>2</noClusters>
-                <x>samples|Input|sigma-B</x>
-                <y>samples|Output|B</y>
-                <gridLocation>
-                    <x>2</x>
-                    <y>0</y>
-                </gridLocation>
-                <range>
                   <xmin>0</xmin>
-                  <xmax>1000</xmax>
+                  <xmax>60</xmax>
+                  <ymin>0</ymin>
+                  <ymax>200</ymax>
                 </range>
             </plot>
         </plotSettings>
@@ -185,11 +186,22 @@
         <plot>
           <type>dataMining</type>
           <SKLtype>cluster</SKLtype>
-          <clusterLabels>samples|Output|klabels</clusterLabels>
-          <noClusters>2</noClusters>
-          <x>samples|Input|sigma-A</x>
-          <y>samples|Input|sigma-B</y>
-          <z>samples|Input|decay-A</z>
+          <clusterLabels>kmeansSamples|Output|klabels</clusterLabels>
+          <noClusters>3</noClusters>
+          <x>kmeansSamples|Input|v0</x>
+          <y>kmeansSamples|Input|angle</y>
+          <z>kmeansSamples|Output|r</z>
+          <xlabel>velocity</xlabel>
+          <ylabel>angle</ylabel>
+          <zlabel>range</zlabel>
+                <range>
+                  <xmin>0</xmin>
+                  <xmax>60</xmax>
+                  <ymin>0</ymin>
+                  <ymax>100</ymax>
+                  <zmin>0</zmin>
+                  <zmax>200</zmax>
+                </range>
         </plot>
       </plotSettings>
         <actions>
@@ -204,10 +216,10 @@
         <plot>
           <type>dataMining</type>
           <SKLtype>cluster</SKLtype>
-          <clusterLabels>samples|Output|klabels</clusterLabels>
-          <noClusters>2</noClusters>
-          <x>samples|Output|PCA1Dimension1</x>
-          <y>samples|Output|PCA1Dimension2</y>
+          <clusterLabels>pcaSamples|Output|klabels</clusterLabels>
+          <noClusters>3</noClusters>
+          <x>pcaSamples|Output|PCA1Dimension1</x>
+          <y>pcaSamples|Output|PCA1Dimension2</y>
         </plot>
       </plotSettings>
         <actions>

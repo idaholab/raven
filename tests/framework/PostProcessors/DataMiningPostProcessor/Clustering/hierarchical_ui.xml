@@ -11,7 +11,14 @@
        HierarchicalScipy except this adds the ability to test the loading,
        running, and tear down of the UI associated to that class.
     </description>
+    <revisions>
+      <revision author="wangc" date="2018-09-27">
+        As reported in issue #805, RAVEN will not allow input DataObject of PostProcessor to be output DataObject,
+        the output data object will be renamed, and the variable name of labels will be explicitly defined.
+      </revision>
+    </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>Hierarchical</WorkingDir>
     <Sequence>readIn,Hierarchical</Sequence>
@@ -23,28 +30,28 @@
 
   <Models>
     <PostProcessor name="hierarchical" subType="DataMining" verbosity="quiet">
-      <KDD lib="Scipy" labelFeature='labels'>
+      <KDD labelFeature="labels" lib="Scipy">
         <Features>x1,x2</Features>
         <SCIPYtype>cluster|Hierarchical</SCIPYtype>
         <method>single</method>
         <metric>euclidean</metric>
         <level>0.3</level>
         <criterion>distance</criterion>
-        <interactive />
+        <interactive/>
       </KDD>
     </PostProcessor>
   </Models>
 
   <Steps>
     <IOStep name="readIn" pauseAtEnd="True">
-      <Input    class="Files"         type=""               >DataSetsFile</Input>
-      <Output   class="DataObjects"   type="PointSet"       >DataSets</Output>
+      <Input class="Files" type="">DataSetsFile</Input>
+      <Output class="DataObjects" type="PointSet">DataSetsRaw</Output>
     </IOStep>
     <PostProcess name="Hierarchical" pauseAtEnd="True">
-      <Input    class="DataObjects"   type="PointSet"       >DataSets</Input>
-      <Model    class="Models"        type="PostProcessor"  >hierarchical</Model>
-      <Output   class="DataObjects"   type="PointSet"       >DataSets</Output>
-      <Output   class="OutStreams"    type="Print"          >dummy</Output>
+      <Input class="DataObjects" type="PointSet">DataSetsRaw</Input>
+      <Model class="Models" type="PostProcessor">hierarchical</Model>
+      <Output class="DataObjects" type="PointSet">DataSets</Output>
+      <Output class="OutStreams" type="Print">dummy</Output>
     </PostProcess>
   </Steps>
 
@@ -58,6 +65,10 @@
 
   <DataObjects>
     <PointSet name="DataSets">
+      <Input>x1,x2,y1,y2,z1,z2</Input>
+      <Output>Output,labels</Output>
+    </PointSet>
+    <PointSet name="DataSetsRaw">
       <Input>x1,x2,y1,y2,z1,z2</Input>
       <Output>Output</Output>
     </PointSet>

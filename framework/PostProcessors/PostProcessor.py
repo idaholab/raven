@@ -68,6 +68,16 @@ class PostProcessor(Assembler):
 
     return inputSpecification
 
+  def _localReadMoreXML(self, xmlNode):
+    """
+      Function to read the portion of the xml input that belongs to this specialized class
+      and initialize some stuff based on the inputs
+      @ In, xmlNode, xml.etree.ElementTree Element Objects, the xml element node that will be checked against
+        the available options specific to this Sampler
+      @ Out, None
+    """
+    pass
+
   def initialize(self, runInfo, inputs, initDict=None) :
     """
       Method to initialize the pp.

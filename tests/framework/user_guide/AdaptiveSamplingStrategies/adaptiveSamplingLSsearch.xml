@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<Simulation verbosity="debug">
+<Simulation verbosity="silent">
   <RunInfo>
     <JobName>LSsearch</JobName>
     <Sequence>sample,computeLSintegral,writeHistories</Sequence>
@@ -46,10 +46,10 @@
       <seed>20021986</seed>
       <target>goalFunction</target>
       <variable name="sigma-A">
-        <distribution>sigmaA</distribution>
+        <distribution class="Distributions" type="Uniform">sigmaA</distribution>
       </variable>
       <variable name="decay-A">
-        <distribution>decayConstantA</distribution>
+        <distribution class="Distributions" type="Uniform">decayConstantA</distribution>
       </variable>
       <outputName>EventProbability</outputName>
     </PostProcessor>

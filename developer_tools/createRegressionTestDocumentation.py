@@ -267,31 +267,34 @@ class testDescription(object):
     tupleOut = verificationDict, analyticalDict, requirementDict
     return tupleOut
 
-  def createLatexFile(self, fileName, documentClass = "article", latexPackages=['']):
+  def createLatexFile(self, fileName, documentClass = "article", latexPackages=[''], bodyOnly=False):
     """
       This method is aimed to create a latex file containing all the information
       found in the described tests
       @ In, fileName, string, filename (absolute path)
+      @ In, documentClass, string, latex class document
+      @ In, latexPackages, list, list of latex packages
+      @ In, bodyOnly, bool, create a full document or just the document body (\begin{document} to \end{document})
       @ Out, None
     """
     fileObject = open(fileName,"w+")
-    fileObject.write(" \\documentclass{"+documentClass+"}\n")
-    for packageLatex in latexPackages: fileObject.write(" \\usepackage{"+packageLatex.strip()+"} \n")
-    fileObject.write(" \\usepackage{hyperref} \n \\usepackage[automark,nouppercase]{scrpage2} \n")
-    fileObject.write(" \\usepackage[obeyspaces,dvipsnames,svgnames,x11names,table,hyperref]{xcolor} \n")
-    fileObject.write(" \\usepackage{times} \n \\usepackage[FIGBOTCAP,normal,bf,tight]{subfigure} \n")
-    fileObject.write(" \\usepackage{amsmath} \n \\usepackage{amssymb} \n")
-    fileObject.write(" \\usepackage{soul} \n \\usepackage{pifont} \n \\usepackage{enumerate} \n")
-    fileObject.write(" \\usepackage{listings}  \n \\usepackage{fullpage} \n \\usepackage{xcolor} \n")
-    fileObject.write(" \\usepackage{ifthen}  \n \\usepackage{textcomp}  \n  \\usepackage{mathtools} \n")
-    fileObject.write(" \\usepackage{relsize}  \n \\usepackage{lscape}  \n \\usepackage[toc,page]{appendix} \n")
-    fileObject.write("\n")
-    fileObject.write(' \\lstdefinestyle{XML} {\n language=XML, \n extendedchars=true, \n breaklines=true, \n breakatwhitespace=true, \n')
-    fileObject.write(' emphstyle=\color{red}, \n basicstyle=\\ttfamily, \n commentstyle=\\color{gray}\\upshape, \n ')
-    fileObject.write(' morestring=[b]", \n morecomment=[s]{<?}{?>}, \n morecomment=[s][\color{forestgreen}]{<!--}{-->},')
-    fileObject.write(' keywordstyle=\\color{cyan}, \n stringstyle=\\ttfamily\color{black}, tagstyle=\color{blue}\\bf \\ttfamily \n }')
-
-    fileObject.write(" \\title{RAVEN regression tests' description}\n")
+    if not bodyOnly:
+      fileObject.write(" \\documentclass{"+documentClass+"}\n")
+      for packageLatex in latexPackages: fileObject.write(" \\usepackage{"+packageLatex.strip()+"} \n")
+      fileObject.write(" \\usepackage{hyperref} \n \\usepackage[automark,nouppercase]{scrpage2} \n")
+      fileObject.write(" \\usepackage[obeyspaces,dvipsnames,svgnames,x11names,table,hyperref]{xcolor} \n")
+      fileObject.write(" \\usepackage{times} \n \\usepackage[FIGBOTCAP,normal,bf,tight]{subfigure} \n")
+      fileObject.write(" \\usepackage{amsmath} \n \\usepackage{amssymb} \n")
+      fileObject.write(" \\usepackage{soul} \n \\usepackage{pifont} \n \\usepackage{enumerate} \n")
+      fileObject.write(" \\usepackage{listings}  \n \\usepackage{fullpage} \n \\usepackage{xcolor} \n")
+      fileObject.write(" \\usepackage{ifthen}  \n \\usepackage{textcomp}  \n  \\usepackage{mathtools} \n")
+      fileObject.write(" \\usepackage{relsize}  \n \\usepackage{lscape}  \n \\usepackage[toc,page]{appendix} \n")
+      fileObject.write("\n")
+      fileObject.write(' \\lstdefinestyle{XML} {\n language=XML, \n extendedchars=true, \n breaklines=true, \n breakatwhitespace=true, \n')
+      fileObject.write(' emphstyle=\color{red}, \n basicstyle=\\ttfamily, \n commentstyle=\\color{gray}\\upshape, \n ')
+      fileObject.write(' morestring=[b]", \n morecomment=[s]{<?}{?>}, \n morecomment=[s][\color{forestgreen}]{<!--}{-->},')
+      fileObject.write(' keywordstyle=\\color{cyan}, \n stringstyle=\\ttfamily\color{black}, tagstyle=\color{blue}\\bf \\ttfamily \n }')
+      fileObject.write(" \\title{RAVEN regression tests' description}\n")
     fileObject.write(" \\begin{document} \n \\maketitle \n")
     # Introduction
     fileObject.write(" \\section{Introduction} \n")
@@ -415,7 +418,7 @@ if __name__ == '__main__':
   print("\n% of tests that got commented is : "+str(descriptionClass.getDescriptionCoverage())+" %")
   print("\nFolders that contain undocumented tests are:\n")
   for folderName in descriptionClass.getFoldersOfUndocumentedTests(): print(folderName)
-  descriptionClass.createLatexFile("regression_tests_documentation.tex")
+  descriptionClass.createLatexFile("regression_tests_documentation_body.tex",bodyOnly=True)
 
 
 

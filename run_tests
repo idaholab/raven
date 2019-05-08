@@ -44,7 +44,9 @@ echo 'Loading plugin tests ...'
 $PYTHON_COMMAND $SCRIPT_DIR/scripts/copy_plugins_tests.py
 # run the tests
 echo 'Running tests ...'
+
 $PYTHON_COMMAND $SCRIPT_DIR/rook/main.py "${ARGS[@]}"
+
 # grep return code
 rc=$?
 # this copy back the plugins and remove them from the source folder

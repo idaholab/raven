@@ -6,6 +6,12 @@
     <created>2018-09-21</created>
     <classesTested>PostProcessors.DataMining</classesTested>
     <description>Workshop test: DataMining with ICA method</description>
+    <revisions>
+      <revision author="wangc" date="2018-09-27">
+        As reported in issue #805, RAVEN will not allow input DataObject of PostProcessor to be output DataObject,
+        the output data object will be renamed, and the variable name of labels will be explicitly defined.
+      </revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
@@ -40,23 +46,22 @@
   <Steps>
     <IOStep name="readIn" pauseAtEnd="True">
       <Input class="Files" type="">DataSetsFile</Input>
-      <Output class="DataObjects" type="PointSet">DataSets</Output>
+      <Output class="DataObjects" type="PointSet">DataSetsRaw</Output>
     </IOStep>
     <IOStep name="output" pauseAtEnd="True">
-      <Input class="DataObjects" type="PointSet">DataSets</Input>
+      <Input class="DataObjects" type="PointSet">DataSetsII</Input>
       <Output class="OutStreams" type="Plot">PlotIris</Output>
     </IOStep>
     <PostProcess name="KMeans" pauseAtEnd="True">
-      <Input class="DataObjects" type="PointSet">DataSets</Input>
+      <Input class="DataObjects" type="PointSet">DataSetsRaw</Input>
       <Model class="Models" type="PostProcessor">KMeans</Model>
       <Output class="DataObjects" type="PointSet">DataSets</Output>
       <Output class="OutStreams" type="Print">Plotdata</Output>
     </PostProcess>
     <PostProcess name="PCAIris" pauseAtEnd="True">
-      <Input class="DataObjects" type="PointSet">DataSets</Input>
+      <Input class="DataObjects" type="PointSet">DataSetsRaw</Input>
       <Model class="Models" type="PostProcessor">PCA</Model>
-      <Output class="DataObjects" type="PointSet">DataSets</Output>
-      <Output class="OutStreams" type="Print">Plotdata</Output>
+      <Output class="DataObjects" type="PointSet">DataSetsII</Output>
     </PostProcess>
   </Steps>
 
@@ -70,9 +75,9 @@
         <plot>
           <type>dataMining</type>
           <SKLtype>cluster</SKLtype>
-          <x>DataSets|Output|PCADimension1</x>
-          <y>DataSets|Output|PCADimension2</y>
-          <clusterLabels>DataSets|Input|labels</clusterLabels>
+          <x>DataSetsII|Output|PCADimension1</x>
+          <y>DataSetsII|Output|PCADimension2</y>
+          <clusterLabels>DataSetsII|Input|labels</clusterLabels>
           <kwargs>
                     </kwargs>
         </plot>
@@ -87,9 +92,17 @@
   </OutStreams>
 
   <DataObjects>
-    <PointSet name="DataSets">
+    <PointSet name="DataSetsII">
+      <Input>x1,x2,x3,x4,labels</Input>
+      <Output>Output,PCADimension1,PCADimension2</Output>
+    </PointSet>
+    <PointSet name="DataSetsRaw">
       <Input>x1,x2,x3,x4,labels</Input>
       <Output>Output</Output>
+    </PointSet>
+    <PointSet name="DataSets">
+      <Input>x1,x2,x3,x4,labels</Input>
+      <Output>Output,KMeansLabels</Output>
     </PointSet>
   </DataObjects>
 

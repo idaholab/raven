@@ -32,7 +32,7 @@ source ../scripts/establish_conda_env.sh --load --quiet
 #   (not the Unix-style ones used on other platforms).  This also means semi-colons need to be used
 #   to separate terms instead of the Unix colon.
 #
-if [ "$(expr substr $(uname -s) 1 5)" == "MINGW" ]
+if [ "$(expr substr $(uname -s) 1 5)" == "MINGW" ]  || [  "$(expr substr $(uname -s) 1 4)" == "MSYS" ]
 then
   export TEXINPUTS=.\;`cygpath -w $SCRIPT_DIR/tex_inputs`\;$TEXINPUTS
 else
@@ -56,11 +56,21 @@ fi
 for DIR in  user_manual user_guide theory_manual tests; do
     cd $DIR
     echo Building in $DIR...
-    if [[ 1 -eq $VERB ]]
-    then
-      make; MADE=$?
-    else
-      make > /dev/null; MADE=$?
+    if [ "$(expr substr $(uname -s) 1 5)" == "MINGW" ]  || [  "$(expr substr $(uname -s) 1 4)" == "MSYS" ]
+    then  
+      if [[ 1 -eq $VERB ]]
+      then
+        bash.exe make_win.sh; MADE=$?
+      else
+        bash.exe make_win.sh > /dev/null; MADE=$?
+      fi
+    else  
+      if [[ 1 -eq $VERB ]]
+      then
+        make; MADE=$?
+      else
+        make > /dev/null; MADE=$?
+      fi    
     fi
     if [[ 0 -eq $MADE ]]; then
         echo ...Successfully made docs in $DIR
@@ -71,9 +81,9 @@ for DIR in  user_manual user_guide theory_manual tests; do
     cd $SCRIPT_DIR
 done
 
-cd sqa 
+cd sqa
 ./make_docs.sh
-cd .. 
+cd ..
 mkdir pdfs
 for DOC in user_guide/raven_user_guide.pdf theory_manual/raven_theory_manual.pdf sqa/sdd/raven_software_design_description.pdf sqa/rtr/raven_requirements_traceability_matrix.pdf sqa/srs/raven_software_requirements_specifications.pdf user_manual/raven_user_manual.pdf tests/analytic_tests.pdf; do
     cp $DOC pdfs/

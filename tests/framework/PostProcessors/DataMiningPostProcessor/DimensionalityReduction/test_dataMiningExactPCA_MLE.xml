@@ -10,7 +10,14 @@
       This test exercises our ability to accept a string for n_components
       See Issue #649
     </description>
+    <revisions>
+      <revision author="wangc" date="2018-09-27">
+        As reported in issue #805, RAVEN will not allow input DataObject of PostProcessor to be output DataObject,
+        the output data object will be renamed, and the variable name of labels will be explicitly defined.
+      </revision>
+    </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>ExactPCA</WorkingDir>
     <Sequence>readIn,PCAIris,output</Sequence>
@@ -23,7 +30,7 @@
 
   <Models>
     <PostProcessor name="PCA" subType="DataMining" verbosity="quiet">
-      <KDD lib="SciKitLearn" labelFeature='component'>
+      <KDD labelFeature="component" lib="SciKitLearn">
         <Features>x1,x2,x3,x4</Features>
         <SKLtype>decomposition|PCA</SKLtype>
         <n_components>mle</n_components>
@@ -34,7 +41,7 @@
   <Steps>
     <IOStep name="readIn" pauseAtEnd="True">
       <Input class="Files" type="">DataSetsFile</Input>
-      <Output class="DataObjects" type="PointSet">DataSets</Output>
+      <Output class="DataObjects" type="PointSet">DataSetsRaw</Output>
     </IOStep>
     <IOStep name="output" pauseAtEnd="True">
       <Input class="DataObjects" type="PointSet">DataSets</Input>
@@ -43,7 +50,7 @@
       <Output class="OutStreams" type="Print">info</Output>
     </IOStep>
     <PostProcess name="PCAIris" pauseAtEnd="True">
-      <Input class="DataObjects" type="PointSet">DataSets</Input>
+      <Input class="DataObjects" type="PointSet">DataSetsRaw</Input>
       <Model class="Models" type="PostProcessor">PCA</Model>
       <SolutionExport class="DataObjects" type="PointSet">drInfo</SolutionExport>
       <Output class="DataObjects" type="PointSet">DataSets</Output>
@@ -72,7 +79,7 @@
           <y>DataSets|Output|component2</y>
           <z>DataSets|Output|component3</z>
           <colorMap>DataSets|Input|labels</colorMap>
-          <kwargs></kwargs>
+          <kwargs/>
         </plot>
         <xlabel>Principal Component 1</xlabel>
         <ylabel>Principal Component 2</ylabel>
@@ -88,10 +95,14 @@
   <DataObjects>
     <PointSet name="DataSets">
       <Input>x2,x3,labels,x1, x4</Input>
-      <Output>Output</Output>
+      <Output>Output,component1,component2,component3</Output>
     </PointSet>
     <PointSet name="drInfo">
       <Input>x1,x2,x3,x4,component</Input>
+    </PointSet>
+    <PointSet name="DataSetsRaw">
+      <Input>x2,x3,labels,x1, x4</Input>
+      <Output>Output</Output>
     </PointSet>
   </DataObjects>
 

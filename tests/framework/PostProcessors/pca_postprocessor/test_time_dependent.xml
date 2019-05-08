@@ -41,7 +41,7 @@
           <dimensions>2,1</dimensions>
         </latent>
       </features>
-      <mvnDistribution>MVN</mvnDistribution>
+      <mvnDistribution class="Distributions" type="MultivariateNormal">MVN</mvnDistribution>
     </PostProcessor>
   </Models>
 

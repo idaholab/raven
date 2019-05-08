@@ -117,7 +117,8 @@ def randomSeed(value,seedBoth=False,engine=None):
       np.random.seed(value+1) # +1 just to prevent identical seed sets
   if stochasticEnv== 'numpy' and replaceGlobalEnv:
     npStochEnv= engine
-  print('randomUtils: Global random number seed has been changed to',value)
+  if replaceGlobalEnv:
+    print('randomUtils: Global random number seed has been changed to',value)
 
 def random(dim=1,samples=1,keepMatrix=False,engine=None):
   """

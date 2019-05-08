@@ -3,8 +3,8 @@
   <RunInfo>
     <JobName>RunDir/SparseGrid</JobName>
     <WorkingDir>RunDir/SparseGrid</WorkingDir>
-    <Sequence>sample,train,validateModel,validateROM,output_print,output_plot</Sequence>
-    <batchSize>3</batchSize>
+    <Sequence>sample,train,validateModel,validateROM,rom_stats,output_print,output_plot</Sequence>
+    <batchSize>8</batchSize>
   </RunInfo>
   <TestInfo>
     <name>framework/user_guide/ForwardSamplingStrategies/SparseGrid</name>
@@ -103,6 +103,7 @@
       <pivotParameter> t </pivotParameter>
       </options>
     </HistorySet>
+    <DataSet name="rom_stats"/>
   </DataObjects>
 
   <Steps>
@@ -128,11 +129,15 @@
       <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
       <Output class="DataObjects" type="PointSet">samplesROM</Output>
     </MultiRun>
+    <IOStep name="rom_stats">
+      <Input class="Models" type="ROM">rom</Input>
+      <Output class="DataObjects" type="DataSet">rom_stats</Output>
+    </IOStep>
     <IOStep name="output_print">
       <Input class="DataObjects" type="HistorySet">histories</Input>
       <Input class="DataObjects" type="PointSet">samplesModel</Input>
       <Input class="DataObjects" type="PointSet">samplesROM</Input>
-      <Input class="Models" type="ROM">rom</Input>
+      <Input class="DataObjects" type="DataSet">rom_stats</Input>
       <Output class="OutStreams" type="Print">samplesModel</Output>
       <Output class="OutStreams" type="Print">samplesROM</Output>
       <Output class="OutStreams" type="Print">histories</Output>
@@ -163,8 +168,8 @@
     </Print>
     <Print name="rom_output">
       <type>csv</type>
-      <source>rom</source>
-      </Print>
+      <source>rom_stats</source>
+    </Print>
     <Plot name="historyPlot" overwrite="false" verbosity="debug">
         <plotSettings>
         <gridSpace>2 1</gridSpace>

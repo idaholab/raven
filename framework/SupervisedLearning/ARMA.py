@@ -29,20 +29,21 @@ import copy
 import collections
 import numpy as np
 import statsmodels.api as sm # VARMAX is in sm.tsa
+import functools
 from statsmodels.tsa.arima_model import ARMA as smARMA
 from scipy.linalg import solve_discrete_lyapunov
 from sklearn import linear_model
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import randomUtils, xmlUtils, mathUtils
+from utils import randomUtils, xmlUtils, mathUtils,utils
 import Distributions
 from .SupervisedLearning import supervisedLearning
 #Internal Modules End--------------------------------------------------------------------------------
 
 
 class ARMA(supervisedLearning):
-  """
+  r"""
     Autoregressive Moving Average model for time series analysis. First train then evaluate.
     Specify a Fourier node in input file if detrending by Fourier series is needed.
 
@@ -73,7 +74,8 @@ class ARMA(supervisedLearning):
     self.Q                 = kwargs.get('Q', 3) # moving average lag
     self.segments          = kwargs.get('segments', 1)
     # data manipulation
-    self.reseedCopies      = kwargs.get('reseedCopies',True)
+    reseed=kwargs.get('reseedCopies',str(True)).lower()
+    self.reseedCopies      = reseed not in utils.stringsThatMeanFalse()
     self.outTruncation = {'positive':set(),'negative':set()} # store truncation requests
     self.pivotParameterID  = kwargs['pivotParameter']
     self.pivotParameterValues = None  # In here we store the values of the pivot parameter (e.g. Time)
@@ -107,14 +109,18 @@ class ARMA(supervisedLearning):
     self.normEngine.lowerBoundUsed = False
     self.normEngine.initializeDistribution()
 
-    # check for correlation
-    correlated = kwargs.get('correlate',None)
-    if correlated is not None:
-      # FIXME set the numpy seed
+    self.setEngine(randomUtils.newRNG(),seed=self.seed,count=0)
+
+    # FIXME set the numpy seed
       ## we have to do this because VARMA.simulate does not accept a random number generator,
       ## but instead uses numpy directly.  As a result, for now, we have to seed numpy.
       ## Because we use our RNG to set the seed, though, it should follow the global seed still.
-      self.raiseADebug('Setting Numpy seed to',self.seed)
+    self.raiseADebug('Setting ARMA seed to',self.seed)
+    randomUtils.randomSeed(self.seed,engine=self.randomEng)
+
+    # check for correlation
+    correlated = kwargs.get('correlate',None)
+    if correlated is not None:
       np.random.seed(self.seed)
       # store correlated targets
       corVars = [x.strip() for x in correlated.split(',')]
@@ -196,11 +202,10 @@ class ARMA(supervisedLearning):
       @ In, None
       @ Out, d, dict, stateful dictionary
     """
-    d = copy.copy(self.__dict__)
-    # set up a seed for the next pickled iteration
-    if self.reseedCopies:
-      rand = randomUtils.randomIntegers(1,int(2**20),self)
-      d['random seed'] = rand
+    d = supervisedLearning.__getstate__(self)
+    eng=d.pop("randomEng")
+    randCounts = eng.get_rng_state()
+    d['crow_rng_counts'] = randCounts
     return d
 
   def __setstate__(self,d):
@@ -209,13 +214,12 @@ class ARMA(supervisedLearning):
       @ In, d, dict, stateful dictionary
       @ Out, None
     """
-    seed = d.pop('random seed',None)
-    if seed is not None:
-      self.reseed(seed)
-    self.__dict__ = d
-    # set VARMA numpy seed
-    self.raiseADebug('Setting Numpy seed to',self.seed)
-    np.random.seed(self.seed)
+    rngCounts = d.pop('crow_rng_counts')
+    self.__dict__.update(d)
+    self.setEngine(randomUtils.newRNG(),seed=None,count=rngCounts)
+    if self.reseedCopies:
+      randd = np.random.randint(1,2e9)
+      self.reseed(randd)
 
   def __trainLocal__(self,featureVals,targetVals):
     """
@@ -375,7 +379,7 @@ class ARMA(supervisedLearning):
               result = self.varmaResult[1]
               sample = self._generateARMASignal(result,
                                                 numSamples = self.notZeroFilterMask.sum(),
-                                                randEngine = self.normEngine.rvs)
+                                                randEngine = self.randomEng)
               zeroedSample = np.zeros((self.notZeroFilterMask.sum(),1))
               zeroedSample[:,0] = sample
             correlatedSample = True # placeholder, signifies we've sampled the correlated distribution
@@ -408,7 +412,8 @@ class ARMA(supervisedLearning):
         if target == self.zeroFilterTarget:
           sample = self._generateARMASignal(result,
                                             numSamples = self.zeroFilterMask.sum(),
-                                            randEngine = self.normEngine.rvs)
+                                            randEngine = self.randomEng)
+
           ## if so, then expand result into signal space (functionally, put back in all the zeros)
           signal = np.zeros(len(self.pivotParameterValues))
           signal[self.zeroFilterMask] = sample
@@ -416,7 +421,8 @@ class ARMA(supervisedLearning):
           ## if not, no extra work to be done here!
           sample = self._generateARMASignal(result,
                                             numSamples = len(self.pivotParameterValues),
-                                            randEngine = self.normEngine.rvs)
+                                            randEngine = self.randomEng)
+
           signal = sample
       # END creating base signal
       # DEBUG adding arbitrary variables for debugging, TODO find a more elegant way, leaving these here as markers
@@ -473,7 +479,8 @@ class ARMA(supervisedLearning):
       @ In, seed, int, new seed to use
       @ Out, None
     """
-    randomUtils.randomSeed(seed)
+    randomUtils.randomSeed(seed,engine=self.randomEng)
+    self.seed=seed
 
   ### UTILITY METHODS ###
   def _computeNumberOfBins(self,data):
@@ -498,7 +505,7 @@ class ARMA(supervisedLearning):
     denormed = self._sampleICDF(denormed, params)
     return denormed
 
-  def _generateARMASignal(self, model, numSamples=None, randEngine=None):
+  def _generateARMASignal(self, model, numSamples=None,randEngine=None):
     """
       Generates a synthetic history from fitted parameters.
       @ In, model, statsmodels.tsa.arima_model.ARMAResults, fitted ARMA such as otained from _trainARMA
@@ -508,10 +515,14 @@ class ARMA(supervisedLearning):
     """
     if numSamples is None:
       numSamples =  len(self.pivotParameterValues)
+    if randEngine is None:
+      randEngine=self.randomEng
     hist = sm.tsa.arma_generate_sample(ar = np.append(1., -model.arparams),
                                        ma = np.append(1., model.maparams),
                                        nsample = numSamples,
-                                       distrvs = randEngine,
+                                       distrvs = functools.partial(randomUtils.randomNormal,engine=randEngine),
+                                       # functool.partial provide the random number generator as a function
+                                       # with normal distribution and take engine as the positional arguments keywords.
                                        sigma = np.sqrt(model.sigma2),
                                        burnin = 2*max(self.P,self.Q)) # @epinas, 2018
     return hist
@@ -660,7 +671,7 @@ class ARMA(supervisedLearning):
     return y
 
   def _trainARMA(self,data):
-    """
+    r"""
       Fit ARMA model: x_t = \sum_{i=1}^P \phi_i*x_{t-i} + \alpha_t + \sum_{j=1}^Q \theta_j*\alpha_{t-j}
       @ In, data, np.array(float), data on which to train
       @ Out, results, statsmodels.tsa.arima_model.ARMAResults, fitted ARMA
@@ -1129,3 +1140,19 @@ class ARMA(supervisedLearning):
     """
     pass
 
+  def setEngine(self,eng,seed=None,count=None):
+    """
+     Set up the random engine for arma
+     @ In, eng, instance, random number generator
+     @ In, seed, int, optional, the seed, if None then use the global seed from ARMA
+     @ In, count, int, optional, advances the state of the generator, if None then use the current ARMA.randomEng count
+     @ Out, None
+    """
+    if seed is None:
+      seed=self.seed
+    seed=abs(seed)
+    eng.seed(seed)
+    if count is None:
+      count=self.randomEng.get_rng_state()
+    eng.forward_seed(count)
+    self.randomEng=eng

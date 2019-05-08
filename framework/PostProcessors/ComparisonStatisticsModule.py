@@ -339,8 +339,8 @@ class ComparisonStatistics(PostProcessor):
     self.methodInfo = {}  # Information on what stuff to do.
     self.fZStats = False
     self.interpolation = "quadratic"
-    self.requiredAssObject = (True, (['Distribution'], ['-n']))
-    self.distributions = {}
+    # assembler objects to be requested
+    self.addAssemblerObject('Distribution', '-n', True)
 
   def inputToInternal(self, currentInput):
     """
@@ -413,15 +413,6 @@ class ComparisonStatistics(PostProcessor):
           self.raiseADebug('unexpected interpolation method ' + interpolation)
           self.interpolation = interpolation
 
-  def _localGenerateAssembler(self, initDict):
-    """
-      This method  is used for sending to the instanciated class, which is implementing the method, the objects that have been requested through "whatDoINeed" method
-      It is an abstract method -> It must be implemented in the derived class!
-      @ In, initDict, dict, dictionary ({'mainClassName(e.g., Databases):{specializedObjectName(e.g.,DatabaseForSystemCodeNamedWolf):ObjectInstance}'})
-      @ Out, None
-    """
-    self.distributions = initDict.get('Distributions', {})
-
   def run(self, input):  # inObj,workingDir=None):
     """
       This method executes the postprocessor action. In this case, it just returns the inputs
@@ -464,11 +455,9 @@ class ComparisonStatistics(PostProcessor):
       graphData = []
       if "name" in reference:
         distributionName = reference["name"]
-        if not distributionName in self.distributions:
-          self.raiseAnError(IOError, 'Did not find ' + distributionName +
-                             ' in ' + str(self.distributions.keys()))
-        else:
-          distribution = self.distributions[distributionName]
+        distribution = self.retrieveObjectFromAssemblerDict('Distribution', distributionName)
+        if distribution is None:
+          self.raiseAnError(IOError, 'Did not find Distribution with name ' + distributionName)
         refDataStats = {"mean":distribution.untruncatedMean(),
                         "stdev":distribution.untruncatedStdDev()}
         refDataStats["minBinSize"] = refDataStats["stdev"] / 2.0
@@ -523,4 +512,3 @@ class ComparisonStatistics(PostProcessor):
         extraCsv.write("\n")
         extraCsv.close()
       utils.printCsv(output)
-
