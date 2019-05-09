@@ -16,6 +16,8 @@
     </analytic>
     <revisions>
       <revision author="talbpaul" date="2018-01-04">switch from snapshot to writeSteps final</revision>
+      <revision author="talbpaul" date="2018-10-23">limited outputs checked to just the solution</revision>
+      <revision author="alfoa" date="2019-03-07">Modified syntax in Functions as for issue #934</revision>
     </revisions>
   </TestInfo>
 
@@ -41,8 +43,7 @@
 
   <Functions>
     <External file="../../../framework/AnalyticModels/optimizing/mishra_bird" name="mishra">
-      <variable>x</variable>
-      <variable>y</variable>
+      <variables>x,y</variables>
     </External>
   </Functions>
 
@@ -55,9 +56,9 @@
       <Function class="Functions" type="External">mishra</Function>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
       <convergence>
-        <gradientThreshold>1e-2</gradientThreshold>
         <gainGrowthFactor>2</gainGrowthFactor>
         <gainShrinkFactor>1.25</gainShrinkFactor>
+        <relativeThreshold>1e-5</relativeThreshold>
       </convergence>
       <variable name="x">
         <upperBound>0</upperBound>
@@ -90,8 +91,7 @@
       <Output>ans</Output>
     </PointSet>
     <PointSet name="opt_export">
-      <Input>trajID</Input>
-      <Output>x,y,ans,varsUpdate</Output>
+      <Output>ans</Output>
     </PointSet>
   </DataObjects>
 

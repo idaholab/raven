@@ -1,0 +1,16 @@
+[Tests]
+ [./Basic]
+   type = 'RavenFramework'
+   input = 'basic.xml'
+   UnorderedCsv = 'Basic/outer_out.csv'
+   max_time = 500
+ [../]
+ [./ROM]
+   type = 'RavenFramework'
+   input = 'rom.xml'
+   output = 'ROM/testPrintHistorySet_dump_11.csv'
+   UnorderedCsv = 'ROM/testPointSet_dump.csv'
+   rel_err = 0.0001
+ [../]
+
+[]

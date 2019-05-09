@@ -173,7 +173,6 @@ linked to \textbf{DataObjects} in the relative RAVEN input block.
 The \textbf{IOStep} can be used to:
 \begin{itemize}
   \item construct/update a \textit{Database} from a \textit{DataObjects} object, and vice versa;
-  \item construct/update a \textit{DataObject} from a \textit{CSV} file contained in a directory;
   \item construct/update a \textit{Database} or a \textit{DataObjects} object from
     \textit{CSV} files contained in a directory;
   \item stream the content of a \textit{Database} or a \textit{DataObjects} out through an \textbf{OutStream} object;
@@ -246,7 +245,7 @@ follows:
    be noticed that an additional node has been added: \xmlNode{what}. The \textit{Print} \textbf{Entity}
    ``pointValues'' is going to extract and dump only the variables that are part of the Output space
    ($A,B,C,D$ and not $InputPlaceHolder$).  The \textit{Print} \textbf{Entity} ``history'' is instead going to print
-   the Output space variables $A$ and $D$.
+   the Output space variables $A$ and $D$ along with time.
 
    \item \textbf{\textit{Plot}}:
  Note that the  \textit{Plot} \textbf{Entity} does not differ much with respect to the one in

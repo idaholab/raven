@@ -1,9 +1,23 @@
 <?xml version="1.0" ?>
-<Simulation verbosity="silent">
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>doc/workshop/staticDataAnalysis/inputs.dmGM2</name>
+    <author>wangc</author>
+    <created>2018-09-21</created>
+    <classesTested>PostProcessors.DataMining</classesTested>
+    <description>Workshop test: DataMining with Gaussian Mixture method</description>
+    <revisions>
+      <revision author="wangc" date="2018-09-27">
+        As reported in issue #805, RAVEN will not allow input DataObject of PostProcessor to be output DataObject,
+        the output data object will be renamed, and the variable name of labels will be explicitly defined.
+      </revision>
+    </revisions>
+  </TestInfo>
+
   <RunInfo>
     <WorkingDir>GaussianMixture</WorkingDir>
     <Sequence>readIn,GaussianMixtureBlobs,output</Sequence>
-    <batchSize>100</batchSize>
+    <batchSize>1</batchSize>
   </RunInfo>
 
   <Files>
@@ -27,14 +41,14 @@
   <Steps>
     <IOStep name="readIn" pauseAtEnd="True">
       <Input class="Files" type="">DataSetsFile</Input>
-      <Output class="DataObjects" type="PointSet">DataSets</Output>
+      <Output class="DataObjects" type="PointSet">DataSetsRaw</Output>
     </IOStep>
     <IOStep name="output" pauseAtEnd="True">
       <Input class="DataObjects" type="PointSet">DataSets</Input>
       <Output class="OutStreams" type="Plot">PlotGaussianMixtureBlobs</Output>
     </IOStep>
     <PostProcess name="GaussianMixtureBlobs" pauseAtEnd="True">
-      <Input class="DataObjects" type="PointSet">DataSets</Input>
+      <Input class="DataObjects" type="PointSet">DataSetsRaw</Input>
       <Model class="Models" type="PostProcessor">GaussianMixtureBlobs</Model>
       <Output class="DataObjects" type="PointSet">DataSets</Output>
       <Output class="OutStreams" type="Print">Plotdata</Output>
@@ -49,11 +63,11 @@
     <Plot name="PlotGaussianMixtureBlobs" overwrite="false">
       <plotSettings>
         <plot>
-          <type>dataMining</type>
-          <SKLtype>cluster</SKLtype>
+          <type>scatter</type>
           <x>DataSets|input|x1</x>
           <y>DataSets|input|x2</y>
-          <clusterLabels>DataSets|Output|GaussianMixtureBlobsLabels</clusterLabels>
+          <cmap>Set1</cmap>
+          <colorMap>DataSets|Output|GaussianMixtureBlobsLabels</colorMap>
           <kwargs>
             <edgecolor>None</edgecolor>
           </kwargs>
@@ -62,11 +76,16 @@
       <actions>
         <how>png</how>
       </actions>
+      <filename>scatter</filename>
     </Plot>
   </OutStreams>
 
   <DataObjects>
     <PointSet name="DataSets">
+      <Input>x1,x2,y1,y2,z1,z2</Input>
+      <Output>Output,GaussianMixtureBlobsLabels</Output>
+    </PointSet>
+    <PointSet name="DataSetsRaw">
       <Input>x1,x2,y1,y2,z1,z2</Input>
       <Output>Output</Output>
     </PointSet>

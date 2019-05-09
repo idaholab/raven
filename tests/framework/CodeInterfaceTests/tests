@@ -100,50 +100,6 @@
   skip = "Has not been updated for new ferret"
  [../]
 
- [./RELAP5interfaceTestNoExecutable]
-  type = 'RavenFramework'
-  input = 'test_relap5_code_interface.xml'
-  output = 'RELAP5interfaceTest/testDummyStep/3/snc01.i RELAP5interfaceTest/testDummyStep/4/snc01.i RELAP5interfaceTest/testDummyStep/5/snc01.i'
-  csv = 'RELAP5interfaceTest/testDummyStep/1/out~snc01.csv RELAP5interfaceTest/testDummyStep/2/out~snc01.csv RELAP5interfaceTest/testDummyStep/3/out~snc01.csv RELAP5interfaceTest/testDummyStep/4/out~snc01.csv RELAP5interfaceTest/testDummyStep/5/out~snc01.csv'
-  text = 'RELAP5interfaceTest/testDummyStep/1/snc01.i RELAP5interfaceTest/testDummyStep/2/snc01.i'
-  test_interface_only = True
-  # Windows has a 1e-14 difference in the snc01.i that disqualifies it from matching.
-  skip_if_OS = windows
- [../]
-
- [./RELAP5interfaceTestSingleRunNoExecutable]
-  type = 'RavenFramework'
-  input = 'test_relap5_code_interface_single_run.xml'
-  output = 'RELAP5interfaceTestSingleRun/testDummyStep/1/snc01.i RELAP5interfaceTestSingleRun/testDummyStep/1/out~snc01.csv'
-  test_interface_only = True
- [../]
-
- [./RELAP5interfaceTestAliasAliasNoExecutable]
-  type = 'RavenFramework'
-  input = 'test_relap5_code_interface_alias.xml'
-  output = 'RELAP5interfaceTestAlias/testDummyStep/3/snc01.i RELAP5interfaceTestAlias/testDummyStep/4/snc01.i RELAP5interfaceTestAlias/testDummyStep/5/snc01.i'
-  csv = 'RELAP5interfaceTestAlias/testDummyStep/1/out~snc01.csv RELAP5interfaceTestAlias/testDummyStep/2/out~snc01.csv RELAP5interfaceTestAlias/testDummyStep/3/out~snc01.csv RELAP5interfaceTestAlias/testDummyStep/4/out~snc01.csv RELAP5interfaceTestAlias/testDummyStep/5/out~snc01.csv'
-  text = 'RELAP5interfaceTestAlias/testDummyStep/1/snc01.i RELAP5interfaceTestAlias/testDummyStep/2/snc01.i'
-  test_interface_only = True
- [../]
-
-
- [./RELAP5interfaceMultDeckTestNoExecutable]
-  type = 'RavenFramework'
-  input = 'test_relap5_code_interface_multideck.xml'
-  output = 'RELAP5interfaceTestMultiDeck/testDummyStep/1/snc01.i RELAP5interfaceTestMultiDeck/testDummyStep/2/snc01.i RELAP5interfaceTestMultiDeck/testDummyStep/3/snc01.i RELAP5interfaceTestMultiDeck/testDummyStep/4/snc01.i RELAP5interfaceTestMultiDeck/testDummyStep/5/snc01.i RELAP5interfaceTestMultiDeck/testDummyStep/3/out~snc01.csv RELAP5interfaceTestMultiDeck/testDummyStep/4/out~snc01.csv RELAP5interfaceTestMultiDeck/testDummyStep/5/out~snc01.csv'
-  csv = 'RELAP5interfaceTestMultiDeck/testDummyStep/1/out~snc01.csv RELAP5interfaceTestMultiDeck/testDummyStep/2/out~snc01.csv'
-  test_interface_only = True
- [../]
-
- [./RELAP5interfaceMultDeckTestChoosingDeckNoExecutable]
-  type = 'RavenFramework'
-  input = 'test_relap5_code_interface_multideck_choosing_deck_output.xml'
-  output = 'RELAP5interfaceTestMultiDeckChoosingDeck/testDummyStep/1/snc01.i RELAP5interfaceTestMultiDeckChoosingDeck/testDummyStep/2/snc01.i RELAP5interfaceTestMultiDeckChoosingDeck/testDummyStep/3/snc01.i RELAP5interfaceTestMultiDeckChoosingDeck/testDummyStep/4/snc01.i RELAP5interfaceTestMultiDeckChoosingDeck/testDummyStep/5/snc01.i RELAP5interfaceTestMultiDeckChoosingDeck/testDummyStep/3/out~snc01.csv RELAP5interfaceTestMultiDeckChoosingDeck/testDummyStep/4/out~snc01.csv RELAP5interfaceTestMultiDeckChoosingDeck/testDummyStep/5/out~snc01.csv'
-  csv = 'RELAP5interfaceTestMultiDeckChoosingDeck/testDummyStep/1/out~snc01.csv RELAP5interfaceTestMultiDeckChoosingDeck/testDummyStep/2/out~snc01.csv'
-  test_interface_only = True
- [../]
-
  [./testMC]
    type = 'RavenFramework'
    input = 'test_mc_rattlesnake.xml'
@@ -258,27 +214,24 @@
  [./MAAP5interfaceForwardSampling]
    type = 'RavenFramework'
    input = 'test_maap5_code_interface_forward.xml'
-   output = 'MAAP5_Forward_test/2-plotWWBBN_line.png MAAP5_Forward_test/3-plotWWBBN_line.png MAAP5_Forward_test/test_dataobject.csv'
+   output = 'MAAP5_Forward_test/2-plotWWBBN_line.png MAAP5_Forward_test/3-plotWWBBN_line.png MAAP5_Forward_test/test_dataobject.csv MAAP5_Forward_test/test_dataobject.xml'
    csv = 'MAAP5_Forward_test/test_dataobject_2.csv'
-   UnorderedXml = 'MAAP5_Forward_test/test_dataobject.xml'
    test_interface_only = True
    rel_err = 0.0001
  [../]
  [./MAAP5interfaceDETSampling]
    type = 'RavenFramework'
    input = 'test_maap5_code_interface_det.xml'
-   output = 'MAAP5_DET_test/2-plotAFW_line.png MAAP5_DET_test/3-plotAFW_line.png MAAP5_DET_test/test_dataobject.csv'
+   output = 'MAAP5_DET_test/2-plotAFW_line.png MAAP5_DET_test/3-plotAFW_line.png MAAP5_DET_test/test_dataobject.csv MAAP5_DET_test/test_dataobject.xml'
    csv = 'MAAP5_DET_test/test_dataobject_3.csv'
-   UnorderedXml = 'MAAP5_DET_test/test_dataobject.xml'
    test_interface_only = True
    rel_err = 0.0001
  [../]
  [./MAAP5interfaceHybridDETSampling]
    type = 'RavenFramework'
    input = 'test_maap5_code_interface_hybrid_det.xml'
-   output = 'MAAP5_HybridDET_test/7-plotAFW_line.png MAAP5_HybridDET_test/test_dataobject.csv'
+   output = 'MAAP5_HybridDET_test/7-plotAFW_line.png MAAP5_HybridDET_test/test_dataobject.csv MAAP5_HybridDET_test/test_dataobject.xml'
    csv = 'MAAP5_HybridDET_test/test_dataobject_3.csv'
-   UnorderedXml = 'MAAP5_HybridDET_test/test_dataobject.xml'
    test_interface_only = True
    rel_err = 0.0001
  [../]
@@ -287,6 +240,7 @@
    input = 'test_maap5_code_interface_adaptive_det.xml'
    UnorderedCsv = 'MAAP5_adaptiveDET_test/limitSurfDump.csv'
    test_interface_only = True
+   skip = 'Missing file needed to run'
    rel_err = 0.0001
  [../]
  [./MAAP5interfaceAHDETSampling]
@@ -305,15 +259,6 @@
    test_interface_only = True
    rel_err = 0.0001
  [../]
- [./INSSrelap5JapanInterfaceSampling]
-   type = 'RavenFramework'
-   input = 'test_relap5_code_inss.xml'
-   output = 'RELAP5interfaceTestModifiedVersionINSS/1-historyPlot_line-line-line-line.png RELAP5interfaceTestModifiedVersionINSS/1-samplePlot_scatter-scatter-scatter-scatter-scatter.png RELAP5interfaceTestModifiedVersionINSS/histories.xml RELAP5interfaceTestModifiedVersionINSS/histories.csv'
-   csv = 'RELAP5interfaceTestModifiedVersionINSS/histories_1.csv'
-   text = 'RELAP5interfaceTestModifiedVersionINSS/INSS_RELAP5_step/1/modelpar.inp'
-   test_interface_only = True
-   rel_err = 0.0001
- [../]
 
  [./melcorInterfaceForwardSamplingNoExe]
    type = 'RavenFramework'
@@ -322,19 +267,6 @@
    csv = 'MelcorInterface/dumpMelcorPointSet.csv'
    text = 'MelcorInterface/testMelcor/1/test.i'
    test_interface_only = True
-   rel_err = 0.0001
- [../]
-
- [./RAVENrunningRAVEN]
-   type = 'RavenFramework'
-   input = 'raven_running_raven_basic.xml'
-   UnorderedCsv = 'Raven_running_raven_basic/outer_out.csv'
- [../]
- [./RAVENrunningRAVEN_ROM]
-   type = 'RavenFramework'
-   input = 'test_raven_running_raven_int_models.xml'
-   output = 'raven_running_raven_internal_models/testPrintHistorySet_dump_11.csv'
-   UnorderedCsv = 'raven_running_raven_internal_models/testPointSet_dump.csv'
    rel_err = 0.0001
  [../]
 []

@@ -1,0 +1,238 @@
+** Author: Bob Salko
+** Date: 4/14/2016
+** Description:
+**   This is a model of the 2x2 air/water facility that is documented in the report
+**   NUREG-CR-3373, which can be found in the COBRA-TF/doc/theory_manual/references/
+**   directory.  This model is for Case 8.  This also acts as a regression test on the
+**   ISPEC=6 boundary condition in CTF, which allows the user to specify the inlet void
+**   and slip ratio (a useful feature for trying to match experimental avearge void in air/
+**   water experiments).  This model has companion files, NUREG_08.vuq_mult.txt and
+**   NUREG_08.vuq_param.txt.  These files turn off the evaporation/condensation and specify
+**   constant liquid and vapor densities to better mimick air/water experiments.
+***********************************************************************************************
+*MAIN CONTROL DATA                                                                             
+***********************************************************************************************
+*ICOBRA                                                                                        
+1
+*INITIAL   DUMPF                                                                               
+1   0
+**    EPSO    OITMAX    IITMAX   COURANT                                                       
+0.001000   5   40   0.6
+*TITLE                                                                                         
+NUREG_08
+***********************************************************************************************
+*GROUP 1 - Calculation Variables and Initial Conditions                         *
+***********************************************************************************************
+**NGR                                                                                          
+1
+**NGAS IRFC EDMD IMIX ISOL          GINIT NOTRN MESH MAPS IPRP MFLX NM12  PPV NM14             
+     1    2    2    3    0            0.0     1    1    0    0    1   0   2   0
+*Card 1.2                                                                                      
+**         GTOT          AFLUX         DHFRAC          MFLUX                                   
+0.0   0.0   0.0   903.25
+*Card 1.3                                                                                      
+**         PREF                HIN           HGIN         VFRAC1         VFRAC2                    
+2.806   604.0   20.0   0.473   0.9999
+*Card 1.4                                                                                      
+**GTP(1)   VFRAC(3)  GTP(2) VFRAC(4)  GTP(3) VFRAC(5)  GTP(4) VFRAC(6)                         
+air   0.0001
+***********************************************************************************************
+*GROUP 2 - Channel Description                                                                *
+***********************************************************************************************
+**NGR                                                                                          
+2
+*Card 2.1                                                                                      
+**  NCH NDM2 NDM3 NDM4 NDM5 NDM6 NDM7 NDM8 NDM9 NM10 NM11 NM12 NM13 NM14                       
+9   0   0   0   0   0   0   0   0   0   0   0   0   0
+*Card 2.2                                                                                      
+**   I          AN          PW ABOT ATOP NMGP           X           Y        XSIZ        YSIZ  
+*
+* Corner
+1   2.08E-04   5.2327E-02   0   0   0   1.031875E-02   6.588125E-02   2.063750   2.063750
+3   2.08E-04   5.2327E-02   0   0   0   6.588125E-02   6.588125E-02   2.063750   2.063750
+7   2.08E-04   5.2327E-02   0   0   0   1.031875E-02   1.031875E-02   2.063750   2.063750
+9   2.08E-04   5.2327E-02   0   0   0   6.588125E-02   1.031875E-02   2.063750   2.063750
+* Side
+2   4.68E-04   7.488E-02   0   0   0   3.810000E-02   6.588125E-02   3.492500   2.063750
+4   4.68E-04   7.488E-02   0   0   0   1.031875E-02   3.810000E-02   2.063750   3.492500
+6   4.68E-04   7.488E-02   0   0   0   6.588125E-02   3.810000E-02   2.063750   3.492500
+8   4.68E-04   7.488E-02   0   0   0   3.810000E-02   1.031875E-02   3.492500   2.063750
+* Center
+5   7.13E-04   7.9888E-02   0   0   0   3.810000E-02   3.810000E-02   3.492500   3.492500
+*     
+***********************************************************************************************
+*GROUP 3 - Transverse Channel Connection (Gap) Data                                            
+***********************************************************************************************
+**NGR                                                                                          
+3
+*Card 3.1                                                                                      
+**  NK NDM2 NDM3 NDM4 NDM5 NDM6 NDM7 NDM8 NDM9 NM10 NM11 NM12 NM13 NM14                        
+12   0   0   0   0   0   0   0   0   0   0   0   0   0
+*Card 3.2                                                                                      
+**   K    IK    JK        GAP       LNGT  WKR FWAL IGPB IGPA FACT IGAP JGAP IGAP JGAP IGAP JGAP
+*Card 3.3                                                                                      
+**GMULT   ETNR                                                                                 
+1   1   4   0.790E-02   2.780E-02   0.5   0.0   0   0   1.0   0   0   0   0   0   0
+1   0.0
+2   1   2   0.790E-02   2.780E-02   0.5   0.0   0   0   1.0   0   0   0   0   0   0
+1   0.0
+3   2   5   0.960E-02   2.780E-02   0.0   0.0   0   0   1.0   0   0   0   0   0   0
+1   0.0
+4   2   3   0.790E-02   2.780E-02   0.5   0.0   0   0   1.0   0   0   0   0   0   0
+1   0.0
+5   3   6   0.790E-02   2.780E-02   0.5   0.0   0   0   1.0   0   0   0   0   0   0
+1   0.0
+6   4   7   0.790E-02   2.780E-02   0.5   0.0   0   0   1.0   0   0   0   0   0   0
+1   0.0
+7   4   5   0.960E-02   2.780E-02   0.0   0.0   0   0   1.0   0   0   0   0   0   0
+1   0.0
+8   5   8   0.960E-02   2.780E-02   0.0   0.0   0   0   1.0   0   0   0   0   0   0
+1   0.0
+9   5   6   0.960E-02   2.780E-02   0.0   0.0   0   0   1.0   0   0   0   0   0   0
+1   0.0
+10   6   9   0.790E-02   2.780E-02   0.5   0.0   0   0   1.0   0   0   0   0   0   0
+1   0.0
+11   7   8   0.790E-02   2.780E-02   0.5   0.0   0   0   1.0   0   0   0   0   0   0
+1   0.0
+12   8   9   0.790E-02   2.780E-02   0.5   0.0   0   0   1.0   0   0   0   0   0   0
+1   0.0
+* Card 3.3.5
+* K        X             Y            NORM
+1   1.031875E-02   5.556250E-02   y
+2   2.063750E-02   6.588125E-02   x
+3   3.810000E-02   5.556250E-02   y
+4   5.556250E-02   6.588125E-02   x
+5   6.588125E-02   5.556250E-02   y
+6   1.031875E-02   2.063750E-02   y
+7   2.063750E-02   3.810000E-02   x
+8   3.810000E-02   2.063750E-02   y
+9   5.556250E-02   3.810000E-02   x
+10   6.588125E-02   2.063750E-02   y
+11   2.063750E-02   1.031875E-02   x
+12   5.556250E-02   1.031875E-02   x
+*Card 3.4                                                                                      
+**NLGP                                                                                         
+0
+***********************************************************************************************
+*GROUP 4 - Vertical Channel Connection Data                                                   *
+***********************************************************************************************
+**NGR                                                                                          
+4
+*Card 4.1                                                                                      
+**NSEC NSIM IREB NDM4 NDM5 NDM6 NDM7 NDM8 NDM9 NM10 NM11 NM12 NM13 NM14                        
+1   1   0   0   0   0   0   0   0   0   0   0   0   0
+*Card 4.2                                                                                      
+**ISEC    NCHN  NONO         DXS     IVAR                                                      
+1   9   36   0.0254   0
+*Card 4.4                                                                                      
+**    I   KCHA  KCHA  KCHA  KCHA  KCHA  KCHA   KCHB  KCHB  KCHB  KCHB  KCHB  KCHB              
+1   1   0   0   0   0   0   1   0   0   0   0   0
+2   2   0   0   0   0   0   2   0   0   0   0   0
+3   3   0   0   0   0   0   3   0   0   0   0   0
+4   4   0   0   0   0   0   4   0   0   0   0   0
+5   5   0   0   0   0   0   5   0   0   0   0   0
+6   6   0   0   0   0   0   6   0   0   0   0   0
+7   7   0   0   0   0   0   7   0   0   0   0   0
+8   8   0   0   0   0   0   8   0   0   0   0   0
+9   9   0   0   0   0   0   9   0   0   0   0   0
+*Card4.5                                                                                       
+**  IWDE                                                                                       
+9
+*Card 4.6                                                                                      
+**  MSIM                                                                                       
+324
+***********************************************************************************************
+*GROUP 12 - Turbulent Mixing and Void Drift Data                                               
+***********************************************************************************************
+**NGR                                                                                          
+12
+*Card 12.2                                                                                     
+**    AAAK      BETA  THETM                                                                          
+       1.4     0.007    5.0
+***********************************************************************************************
+*GROUP 13 -  Boundary Condition Data                                                          *
+***********************************************************************************************
+**NGR                                                                                          
+13
+*Card 13.1                                                                                     
+** NBND   NKBD NFUN NGBD NDM5 NDM6 NDM7 NDM8 NDM9 NM10 NM11 NM12 NM13 NM14                     
+18   0   0   0   0   0   0   0   0   0   0   0   0   0
+*Card 13.4                                                                                     
+**Inlet b.c. -------------------------------------------------------------                     
+** IBD1   IBD2 ISPC N1FN N2FN N3FN     BCVALUE1     BCVALUE2     BCVALUE3 INITGAS              
+1   1   6   0   0   0   0.0   0.527   1.35   1
+2   1   6   0   0   0   0.0   0.527   1.35   1
+3   1   6   0   0   0   0.0   0.527   1.35   1
+4   1   6   0   0   0   0.0   0.527   1.35   1
+5   1   6   0   0   0   0.0   0.527   1.35   1
+6   1   6   0   0   0   0.0   0.527   1.35   1
+7   1   6   0   0   0   0.0   0.527   1.35   1
+8   1   6   0   0   0   0.0   0.527   1.35   1
+9   1   6   0   0   0   0.0   0.527   1.35   1
+**outlet b.c. ----------------------------------
+1   38   1   0   0   0   0.0   496.53   2.806   1
+2   38   1   0   0   0   0.0   496.53   2.806   1
+3   38   1   0   0   0   0.0   496.53   2.806   1
+4   38   1   0   0   0   0.0   514.12542541500989   2.806   1
+5   38   1   0   0   0   0.0   496.53   2.806   1
+6   38   1   0   0   0   0.0   496.53   2.806   1
+7   38   1   0   0   0   0.0   496.53   2.806   1
+8   38   1   0   0   0   0.0   496.53   2.806   1
+9   38   1   0   0   0   0.0   496.53   2.806   1
+***********************************************************************************************
+*GROUP 14 - Output Options                                                                     
+***********************************************************************************************
+**NGR                                                                                          
+-14
+**      KEY     VALUE                                                                          
+hdf5   0
+rod_vtk   0
+chan_edits   1
+rod_edits   1
+gap_edits   0
+fluid_vtk   1
+dnb_edits   0
+convergence   1
+end   14
+***********************************************************************************************
+*GROUP 15 - Time Domain Data                                                                   
+***********************************************************************************************
+**NGR                                                                                          
+15
+*Card 15.1                                                                                     
+**     DTMIN       DTMAX        TEND       EDINT      DMPINT       RTWFP     MAXITS            
+0.1000E-09   0.1000E-02   2.1000E+00   0.5000E+00   0.5000E+00   1.0          30000
+***********************************************************************************************
+*GROUP 19 - Convergence Criteria for Steady State Solve                                        
+***********************************************************************************************
+**NGR                                                                                          
+   19                                                                                          
+** Normalized l-infinity of checked solution terms must go below these tolerances for the case 
+** to be considered steady state.  The code converges if the following is true for each checked
+** solution term:                                                                              
+**                                                                                             
+**   abs((X-Xn))<=max(rtol*abs(Xn),atol)                                                       
+**                                                                                             
+** In this equation, "X" is a vector of the checked solution terms from the current checkpoint 
+** and "Xn" is the vector of the same solution terms, but from the previous checkpoint.  Checks
+** are made every 0.05 seconds in the transient.  The relative tolerances are defined on Card  
+** 19.1 and the absolute tolerances are defined on Card 19.2.  This check is done for pressure,
+** fluid temperature, solid temperature, and the three components of axial velocity.  There is 
+** also a check on void, but it does not invole the relative check because void is a           
+** dimensionless value; only the absolute check is done.                                       
+**                                                                                             
+** The final check involves checking that the mass and energy balance over the system is below 
+** a tolerance as well.                                                                        
+** Balance of mass ((mass_in-mass_out)/mass_in) and balance of energy ((energy_in-energy_out)/ 
+** energy_in) must go below tolerance values defined on Card 19.3 for case to be considered    
+** steady state.                                                                               
+*Card 19.1 - relative stopping criteria [unitless]                                             
+** LIPRESS   LITCOOL  LITSOLID      LIVL      LIVV      LIVD                                   
+ 1.000E-05 1.000E-05 1.000E-05 1.000E-05 1.000E-05 1.000E-05
+*Card 19.2 - absolute stopping criteria [pressure in psia|bar, velocity in ft/s|m/s,           
+** and temperature in F|C]                                                                     
+** LIAVOID  LIAPRESS  LIATCOOL LIATSOLID     LIAVL     LIAVV     LIAVD                         
+ 1.000E-05 1.000E-05 1.000E-05 1.000E-05 1.000E-05 1.000E-05 1.000E-05
+*Card 19.2   [%]                                                                               
+** ENERGYBAL     MASSBAL                                                                       
+   1.000E-02   1.000E-02

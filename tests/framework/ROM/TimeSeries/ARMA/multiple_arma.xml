@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+<?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
     <name>framework/ROM/TimeSeries/ARMA.MultipleArma</name>
@@ -7,18 +7,26 @@
     <classesTested>SupervisedLearning.ARMA</classesTested>
     <description>
       Tests creation of multiple INDEPENDENT target ARMA ROMs from a single training run.
-
-      While it uses the first 100 entries from the correlated ARMA training data, it does not consider the variables correlated.
+      While it uses the entries from the correlated ARMA (VARMA) training data, it does not consider the variables correlated.
     </description>
+    <revisions>
+      <revision author="wangc" date="2018-12-18">
+          In PR #882, the standard errors on statistics moments are implemented, these quantities are stored in
+          the pointwise metadata, and will be printed out in the output csv files by default.
+          In order to avoid regolding this test, the optional node 'what' with text values 'input, output' is added.
+          In this case, only the user requested variables as specified in the DataObjects are printed out.
+      </revision>
+      <revision author="talbpaul" date="2018-09-13">changed Pmax and Pmin to P (same for Q)</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
     <WorkingDir>MultipleArma</WorkingDir>
-    <Sequence>load,train,sample,print</Sequence>
+    <Sequence>read,train,sample,write,load,stats</Sequence>
   </RunInfo>
 
   <Steps>
-    <IOStep name="load">
+    <IOStep name="read">
       <Input class="Files" type="">training</Input>
       <Output class="DataObjects" type="HistorySet">training</Output>
     </IOStep>
@@ -32,15 +40,25 @@
       <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
       <Output class="DataObjects" type="HistorySet">samples</Output>
     </MultiRun>
-    <IOStep name="print">
+    <IOStep name="write">
       <Input class="DataObjects" type="HistorySet">samples</Input>
       <Output class="OutStreams" type="Print">samples</Output>
-      <Output class="OutStreams" type="Plot">samples</Output>
     </IOStep>
+    <IOStep name="load">
+      <Input class="Files" type="">synthetic</Input>
+      <Output class="DataObjects" type="PointSet">asPoints</Output>
+    </IOStep>
+    <PostProcess name="stats">
+      <Input class="DataObjects" type="PointSet">asPoints</Input>
+      <Model class="Models" type="PostProcessor">stats</Model>
+      <Output class="DataObjects" type="PointSet">stats</Output>
+      <Output class="OutStreams" type="Print">stats</Output>
+    </PostProcess>
   </Steps>
 
   <Files>
     <Input name="training">correlated.csv</Input>
+    <Input name="synthetic">samples_0.csv</Input>
   </Files>
 
   <Samplers>
@@ -58,14 +76,15 @@
       <Target>A,B,Time</Target>
       <Features>scaling</Features>
       <pivotParameter>Time</pivotParameter>
-      <Pmax>2</Pmax>
-      <Pmin>2</Pmin>
-      <Qmax>1</Qmax>
-      <Qmin>1</Qmin>
-      <outTruncation>positive</outTruncation>
-      <Fourier>10,20</Fourier>
-      <FourierOrder>2,2</FourierOrder>
+      <P>2</P>
+      <Q>1</Q>
+      <outTruncation domain="positive">A,B,Time</outTruncation>
+      <Fourier>20.000000, 10.000000, 5.000000</Fourier>
     </ROM>
+    <PostProcessor name="stats" subType="BasicStatistics">
+      <expectedValue prefix="mean">A,B</expectedValue>
+      <variance prefix="var">A,B</variance>
+    </PostProcessor>
   </Models>
 
   <OutStreams>
@@ -74,31 +93,27 @@
       <source>samples</source>
       <what>input, output</what>
     </Print>
-    <Plot name="samples" overwrite="false">
-      <plotSettings>
-        <plot>
-          <type>line</type>
-          <x>samples|Output|Time</x>
-          <y>samples|Output|A</y>
-          <interpPointsX>100</interpPointsX>
-        </plot>
-        <plot>
-          <type>line</type>
-          <x>samples|Output|Time</x>
-          <y>samples|Output|B</y>
-          <interpPointsX>100</interpPointsX>
-        </plot>
-      </plotSettings>
-      <actions>
-        <how>png</how>
-      </actions>
-    </Plot>
+    <Print name="stats">
+      <type>csv</type>
+      <source>stats</source>
+      <what>input,output</what>
+    </Print>
   </OutStreams>
 
   <DataObjects>
     <PointSet name="placeholder">
       <Input>scaling</Input>
       <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="asPoints">
+      <Input>Time</Input>
+      <Output>A,B</Output>
+    </PointSet>
+    <PointSet name="stats">
+      <Output>
+        mean_A,mean_B,
+        var_A,var_B
+      </Output>
     </PointSet>
     <HistorySet name="training">
       <Input>scaling</Input>

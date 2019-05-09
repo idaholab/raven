@@ -22,6 +22,7 @@ warnings.simplefilter('default',DeprecationWarning)
 
 #External Modules------------------------------------------------------------------------------------
 import copy
+import itertools
 import numpy as np
 #External Modules End--------------------------------------------------------------------------------
 
@@ -171,7 +172,7 @@ class Dummy(Model):
     self._replaceVariablesNamesWithAliasSystem(inRun,'input',True)
     self._replaceVariablesNamesWithAliasSystem(kwargs['SampledVars'],'input',True)
     # build realization using input space from inRun and metadata from kwargs
-    rlz = dict((var,np.atleast_1d(inRun[var] if var in kwargs['SampledVars'] else kwargs[var])) for var in set(kwargs.keys()+inRun.keys()))
+    rlz = dict((var,np.atleast_1d(inRun[var] if var in kwargs['SampledVars'] else kwargs[var])) for var in set(itertools.chain(kwargs.keys(),inRun.keys())))
     # add dummy output space
     rlz['OutputPlaceHolder'] = np.atleast_1d(float(Input[1]['prefix']))
     return rlz

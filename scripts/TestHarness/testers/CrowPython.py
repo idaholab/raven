@@ -11,36 +11,48 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from util import *
+#from util import *
+"""
+Tests by running a python program.
+"""
+import subprocess
 from Tester import Tester
-import os, subprocess
 
 class CrowPython(Tester):
   """ A python test interface for Crow """
   try:
-    output_swig = subprocess.Popen(["swig","-version"],stdout=subprocess.PIPE).communicate()[0]
+    output_swig = subprocess.Popen(["swig", "-version"], stdout=subprocess.PIPE,
+                                   universal_newlines=True).communicate()[0]
   except OSError:
     output_swig = "Failed"
 
   has_swig2 = "Version 2.0" in output_swig or "Version 3.0" in output_swig
 
   @staticmethod
-  def validParams():
-    """ Return a list of valid parameters and their descriptions for this type
-        of test.
+  def get_valid_params():
     """
-    params = Tester.validParams()
-    params.addRequiredParam('input',"The python file to use for this test.")
-    if os.environ.get("CHECK_PYTHON3","0") == "1":
-      params.addParam('python_command','python3','The command to use to run python')
-    else:
-      params.addParam('python_command','python','The command to use to run python')
-    params.addParam('requires_swig2', False, "Requires swig2 for test")
+      Return a list of valid parameters and their descriptions for this type
+      of test.
+      @ In, None
+      @ Out, params, _ValidParameters, return the parameters.
+    """
+    params = Tester.get_valid_params()
+    params.add_required_param('input', "The python file to use for this test.")
+    params.add_param('python_command', '', 'The command to use to run python')
+    params.add_param('requires_swig2', False, "Requires swig2 for test")
     return params
 
-  def getCommand(self, options):
-    """ Return the command this test will run. """
-    return self.specs["python_command"]+" "+self.specs["input"]
+  def get_command(self):
+    """
+      Return the command this test will run.
+      @ In, None
+      @ Out, get_command, string, string command to use.
+    """
+    if len(self.specs["python_command"]) == 0:
+      python_command = self._get_python_command()
+    else:
+      python_command = self.specs["python_command"]
+    return python_command+" "+self.specs["input"]
 
   def __init__(self, name, params):
     """ Constructor that will setup this test with a name and a list of
@@ -51,23 +63,18 @@ class CrowPython(Tester):
     Tester.__init__(self, name, params)
     self.specs['scale_refine'] = False
 
-  def __init__(self, name, params):
-    """ Constructor that will setup this test with a name and a list of
-        parameters.
-        @ In, name: the name of this test case.
-        @ In, params, a dictionary of parameters and their values to use.
+  def check_runnable(self):
     """
-    Tester.__init__(self, name, params)
-    self.specs['scale_refine'] = False
-
-  def checkRunnable(self, option):
-    """ Checks if a test case is capable of being run on the current system. """
+      Checks if a test case is capable of being run on the current system.
+      @ In, None
+      @ Out, check_runnable, boolean, True if this test can run.
+    """
     if self.specs['requires_swig2'] and not CrowPython.has_swig2:
-      self.setStatus('skipped (No swig 2.0 found)', self.bucket_skip)
+      self.set_skip('skipped (No swig 2.0 found)')
       return False
     return True
 
-  def processResults(self, moose_dir, options, output):
+  def process_results(self, output):
     """ Handle the results of test case.
         @ In, moose_dir: the root directory where MOOSE resides on the current
                          system.
@@ -75,8 +82,6 @@ class CrowPython(Tester):
         @ In, output: the output from the test case.
         @ Out: a tuple with the error return code and the output passed in.
     """
-    if self.exit_code != 0:
-      self.setStatus(str(self.exit_code), self.bucket_fail)
-      return output
-    self.setStatus(self.success_message, self.bucket_success)
+    #check_exit_code fails test if != 0 so passes
+    self.set_success()
     return output

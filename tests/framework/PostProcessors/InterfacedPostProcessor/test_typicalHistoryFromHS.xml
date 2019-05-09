@@ -1,4 +1,4 @@
-<?xml version="1.0" ?>
+<?xml version="1.0"?>
 <Simulation verbosity="debug">
   <TestInfo>
     <name>framework/PostProcessors/InterfacedPostProcessor/TypicalHistoryFromHS</name>
@@ -8,95 +8,98 @@
     <description>
       Tests of the TypicalHistoryFromHistorySet interfaced post-processor
     </description>
+    <revisions>
+      <revision author="talbpaul" date="2019-01-30">regolded using central binning system for empirical distributions, also formatted test to raven standard xml</revision>
+    </revisions>
   </TestInfo>
 
-    <RunInfo>
-        <WorkingDir>TypicalHistoryFromHS</WorkingDir>
-		<Sequence>readIn,pp,writeOut</Sequence> 
-        <batchSize>1</batchSize>
-    </RunInfo>
-    <Files>
-        <Input name="windRawDataFile">./SITE_03247_H.csv</Input>
-		<Input name="ghostDataFile">./ghostData.csv</Input>
-    </Files>
+  <RunInfo>
+    <WorkingDir>TypicalHistoryFromHS</WorkingDir>
+    <Sequence>readIn,pp,writeOut</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
 
-	<Models>
-		<PostProcessor name = 'TypicalHistory' subType = 'InterfacedPostProcessor'>
-			<method>TypicalHistoryFromHistorySet</method>
-			<subseqLen>3600</subseqLen>
-			<outputLen>21600</outputLen>
-			<pivotParameter>Time</pivotParameter>
-		</PostProcessor>			
-    </Models>
-    <Steps>
-        <IOStep name='readIn' pauseAtEnd = 'True'>
-            <Input    class = 'Files'             type = ''              >windRawDataFile</Input>
-            <Output   class = 'DataObjects'       type = 'HistorySet'    >windRawData</Output>
-		</IOStep>
-		<PostProcess name='pp' pauseAtEnd = 'True'>
-			<Input    class = 'DataObjects'       type = 'HistorySet'    >windRawData</Input>
-			<Model    class = 'Models' 	      type = 'PostProcessor' >TypicalHistory</Model>
-			<Output   class = 'DataObjects'       type = 'HistorySet'    >windTypicalData</Output>
-		</PostProcess>
-        <IOStep name='writeOut' pauseAtEnd = 'True'>
-			<Input    class = 'DataObjects'       type = 'HistorySet'    >windRawData</Input>
-			<Input    class = 'DataObjects'       type = 'HistorySet'    >windTypicalData</Input>
-			<Output   class = 'OutStreams'        type = 'Print'         >writeTypDataOut</Output>
-			<Output   class = 'OutStreams'        type = 'Plot'          >plotWindTypData</Output>
-		</IOStep>	
-    </Steps>
-	
-    <OutStreams>			
-        <Print name = 'writeTypDataOut'>
-            <type>csv</type>
-            <source>windTypicalData</source>
-        </Print>
-			
-		<Plot name="plotWindTypData" overwrite="false" >
-			<plotSettings>
-			<gridSpace>2 1</gridSpace>
-				<plot>
-					<type>line</type>
-					<x>windRawData|Output|Time</x>
-					<y>windRawData|Output|Speed</y>
-					<gridLocation>
-						<x>0</x>
-						<y>0</y>
-					</gridLocation>
-					<interpPointsX>500000</interpPointsX>
-				</plot>
-				<plot>
-					<type>line</type>
-					<x>windTypicalData|Output|Time</x>
-					<y>windTypicalData|Output|Speed</y>
-					<interpPointsX>500000</interpPointsX>
-					<gridLocation>
-						<x>1</x>
-						<y>0</y>
-					</gridLocation>
-				</plot>
-			</plotSettings>
-			<actions>
-				<how>png</how>
-			</actions>
-	    </Plot>
-	</OutStreams>
-	
-    <DataObjects>
-        <HistorySet name="windRawData">
-            <Input>x</Input>
-            <Output>Time,Speed</Output>
-	    <options>
-	 	<pivotParameter>Time</pivotParameter>
-	    </options>
-        </HistorySet>
-		<HistorySet name="windTypicalData">
-            <Input>x</Input>
-            <Output>Time,Speed</Output>
-	    <options>
-		<pivotParameter>Time</pivotParameter>
-	    </options>
-        </HistorySet>
-    </DataObjects>
+  <Files>
+    <Input name="windRawDataFile">./SITE_03247_H.csv</Input>
+    <Input name="ghostDataFile">./ghostData.csv</Input>
+  </Files>
+
+  <Models>
+    <PostProcessor name="TypicalHistory" subType="InterfacedPostProcessor">
+      <method>TypicalHistoryFromHistorySet</method>
+      <subseqLen>3600</subseqLen>
+      <outputLen>21600</outputLen>
+      <pivotParameter>Time</pivotParameter>
+    </PostProcessor>
+  </Models>
+
+  <Steps>
+    <IOStep name="readIn" pauseAtEnd="True">
+      <Input class="Files" type="">windRawDataFile</Input>
+      <Output class="DataObjects" type="HistorySet">windRawData</Output>
+    </IOStep>
+    <PostProcess name="pp" pauseAtEnd="True">
+      <Input class="DataObjects" type="HistorySet">windRawData</Input>
+      <Model class="Models" type="PostProcessor">TypicalHistory</Model>
+      <Output class="DataObjects" type="HistorySet">windTypicalData</Output>
+    </PostProcess>
+    <IOStep name="writeOut" pauseAtEnd="True">
+      <Input class="DataObjects" type="HistorySet">windRawData</Input>
+      <Input class="DataObjects" type="HistorySet">windTypicalData</Input>
+      <Output class="OutStreams" type="Print">writeTypDataOut</Output>
+      <Output class="OutStreams" type="Plot">plotWindTypData</Output>
+    </IOStep>
+  </Steps>
+
+  <OutStreams>
+    <Print name="writeTypDataOut">
+      <type>csv</type>
+      <source>windTypicalData</source>
+    </Print>
+    <Plot name="plotWindTypData" overwrite="false">
+      <plotSettings>
+        <gridSpace>2 1</gridSpace>
+        <plot>
+          <type>line</type>
+          <x>windRawData|Output|Time</x>
+          <y>windRawData|Output|Speed</y>
+          <gridLocation>
+            <x>0</x>
+            <y>0</y>
+          </gridLocation>
+          <interpPointsX>500000</interpPointsX>
+        </plot>
+        <plot>
+          <type>line</type>
+          <x>windTypicalData|Output|Time</x>
+          <y>windTypicalData|Output|Speed</y>
+          <interpPointsX>500000</interpPointsX>
+          <gridLocation>
+            <x>1</x>
+            <y>0</y>
+          </gridLocation>
+        </plot>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+      </actions>
+    </Plot>
+  </OutStreams>
+
+  <DataObjects>
+    <HistorySet name="windRawData">
+      <Input>x</Input>
+      <Output>Time,Speed</Output>
+      <options>
+        <pivotParameter>Time</pivotParameter>
+      </options>
+    </HistorySet>
+    <HistorySet name="windTypicalData">
+      <Input>x</Input>
+      <Output>Time,Speed</Output>
+      <options>
+        <pivotParameter>Time</pivotParameter>
+      </options>
+    </HistorySet>
+  </DataObjects>
 </Simulation>
-

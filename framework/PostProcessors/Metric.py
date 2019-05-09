@@ -31,11 +31,14 @@ import copy
 #Internal Modules------------------------------------------------------------------------------------
 from .PostProcessor import PostProcessor
 from utils import utils
+from utils import xmlUtils
 from utils import InputData
+from utils.cached_ndarray import c1darray
 import Files
 import Metrics
 import Runners
 import Distributions
+import MetricDistributor
 #Internal Modules End--------------------------------------------------------------------------------
 
 class Metric(PostProcessor):
@@ -53,16 +56,25 @@ class Metric(PostProcessor):
         specifying input of cls.
     """
     inputSpecification = super(Metric, cls).getInputSpecification()
-    FeaturesInput = InputData.parameterInputFactory("Features", contentType=InputData.StringType)
-    FeaturesInput.addParam("type", InputData.StringType)
-    inputSpecification.addSub(FeaturesInput)
-    TargetsInput = InputData.parameterInputFactory("Targets", contentType=InputData.StringType)
-    TargetsInput.addParam("type", InputData.StringType)
-    inputSpecification.addSub(TargetsInput)
-    MetricInput = InputData.parameterInputFactory("Metric", contentType=InputData.StringType)
-    MetricInput.addParam("class", InputData.StringType, True)
-    MetricInput.addParam("type", InputData.StringType, True)
-    inputSpecification.addSub(MetricInput)
+    featuresInput = InputData.parameterInputFactory("Features", contentType=InputData.StringListType)
+    featuresInput.addParam("type", InputData.StringType)
+    inputSpecification.addSub(featuresInput)
+    targetsInput = InputData.parameterInputFactory("Targets", contentType=InputData.StringListType)
+    targetsInput.addParam("type", InputData.StringType)
+    inputSpecification.addSub(targetsInput)
+    multiOutputInput = InputData.parameterInputFactory("multiOutput", contentType=InputData.StringType)
+    inputSpecification.addSub(multiOutputInput)
+    multiOutput = InputData.makeEnumType('MultiOutput', 'MultiOutputType', ['mean','max','min','raw_values'])
+    multiOutputInput = InputData.parameterInputFactory("multiOutput", contentType=multiOutput)
+    inputSpecification.addSub(multiOutputInput)
+    weightInput = InputData.parameterInputFactory("weight", contentType=InputData.FloatListType)
+    inputSpecification.addSub(weightInput)
+    pivotParameterInput = InputData.parameterInputFactory("pivotParameter", contentType=InputData.StringType)
+    inputSpecification.addSub(pivotParameterInput)
+    metricInput = InputData.parameterInputFactory("Metric", contentType=InputData.StringType)
+    metricInput.addParam("class", InputData.StringType, True)
+    metricInput.addParam("type", InputData.StringType, True)
+    inputSpecification.addSub(metricInput)
 
     return inputSpecification
 
@@ -78,7 +90,12 @@ class Metric(PostProcessor):
     self.features       = None  # list of feature variables
     self.targets        = None  # list of target variables
     self.metricsDict    = {}    # dictionary of metrics that are going to be assembled
+    self.multiOutput    = 'mean'# defines aggregating of multiple outputs for HistorySet
+                                # currently allow mean, max, min, raw_values
+    self.weight         = None  # 'mean' is provided for self.multiOutput, weights can be used
+                                # for each individual output when all outputs are averaged
     self.pivotParameter = None
+    self.pivotValues    = []
     # assembler objects to be requested
     self.addAssemblerObject('Metric', 'n', True)
 
@@ -102,12 +119,9 @@ class Metric(PostProcessor):
       inputType = None
       if hasattr(currentInput, 'type'):
         inputType = currentInput.type
-
-
-      if inputType == 'PointSet':
-        if dataName is not None and dataName != currentInput.name:
-          #The dataname is not a match
-          continue
+      if dataName is not None and dataName != currentInput.name:
+        continue
+      if inputType in ['PointSet', 'HistorySet']:
         dataSet = currentInput.asDataset()
         metadata = currentInput.getMeta(pointwise=True)
         for ioType in inputOrOutput:
@@ -115,15 +129,26 @@ class Metric(PostProcessor):
             if metricData is not None:
               self.raiseAnError(IOError, "Same feature or target variable " + metricDataName + "is found in multiple input objects")
             #Found the data, now put it in the return value.
-            metricData = (copy.copy(dataSet[metricDataName].values), metadata['ProbabilityWeight'].values)
+            requestData = copy.copy(dataSet[metricDataName].values)
+            if len(requestData.shape) == 1:
+              requestData = requestData.reshape(-1,1)
+            # If requested data are from input space, the shape will be (nSamples, 1)
+            # If requested data are from history output space, the shape will be (nSamples, nTimeSteps)
+            if 'ProbabilityWeight' in metadata:
+              weights = metadata['ProbabilityWeight'].values
+            else:
+              # TODO is this correct sizing generally?
+              weights = np.ones(requestData.shape[0])
+            metricData = (requestData, weights)
       elif isinstance(currentInput, Distributions.Distribution):
         if currentInput.name == metricDataName and dataName is None:
           if metricData is not None:
             self.raiseAnError(IOError, "Same feature or target variable " + metricDataName + "is found in multiple input objects")
           #Found the distribution, now put it in the return value
           metricData = currentInput
+
     if metricData is None:
-      self.raiseAnError(IOError, "Feature or target variable " + origMetricDataName + "is not found")
+      self.raiseAnError(IOError, "Feature or target variable " + origMetricDataName + " is not found")
     return metricData
 
   def inputToInternal(self, currentInputs):
@@ -133,12 +158,10 @@ class Metric(PostProcessor):
       @ In, currentInputs, list or DataObject, data object or a list of data objects
       @ Out, measureList, list of (feature, target), the list of the features and targets to measure the distance between
     """
-    if type(currentInputs) == dict and 'features' in currentInputs.keys():
-      return currentInputs
-
     if type(currentInputs) != list:
       currentInputs = [currentInputs]
-
+    hasPointSet = False
+    hasHistorySet = False
     #Check for invalid types
     for currentInput in currentInputs:
       inputType = None
@@ -152,24 +175,34 @@ class Metric(PostProcessor):
       elif inputType == 'HDF5':
         self.raiseAnError(IOError, "Input type '", inputType, "' can not be accepted")
       elif inputType == 'PointSet':
-        pass #Allowed type
+        hasPointSet = True
       elif inputType == 'HistorySet':
-        self.dynamic = True
-        self.raiseAnError(IOError, "Metric can not process HistorySet, because this capability is not implemented yet")
+        hasHistorySet = True
+        if self.multiOutput == 'raw_values':
+          self.dynamic = True
+          if self.pivotParameter not in currentInput.getVars('indexes'):
+            self.raiseAnError(IOError, self, 'Pivot parameter', self.pivotParameter,'has not been found in DataObject', currentInput.name)
+          if not currentInput.checkIndexAlignment(indexesToCheck=self.pivotParameter):
+            self.raiseAnError(IOError, "HistorySet", currentInput.name," is not syncronized, please use Interfaced PostProcessor HistorySetSync to pre-process it")
+          pivotValues = currentInput.asDataset()[self.pivotParameter].values
+          if len(self.pivotValues) == 0:
+            self.pivotValues = pivotValues
+          elif set(self.pivotValues) != set(pivotValues):
+            self.raiseAnError(IOError, "Pivot values for pivot parameter",self.pivotParameter, "in provided HistorySets are not the same")
       else:
         self.raiseAnError(IOError, "Metric cannot process "+inputType+ " of type "+str(type(currentInput)))
+    if self.multiOutput == 'raw_values' and hasPointSet and hasHistorySet:
+        self.multiOutput = 'mean'
+        self.raiseAWarning("Reset 'multiOutput' to 'mean', since both PointSet and HistorySet are provided as Inputs. Calculation outputs will be aggregated by averaging")
 
     measureList = []
 
-    if not self.dynamic:
-      for cnt in range(len(self.features)):
-        feature = self.features[cnt]
-        target = self.targets[cnt]
-        featureData =  self.__getMetricSide(feature, currentInputs)
-        targetData = self.__getMetricSide(target, currentInputs)
-        measureList.append((featureData, targetData))
-    else:
-      self.raiseAnError(IOError, "Dynamic not implemented yet")
+    for cnt in range(len(self.features)):
+      feature = self.features[cnt]
+      target = self.targets[cnt]
+      featureData =  self.__getMetricSide(feature, currentInputs)
+      targetData = self.__getMetricSide(target, currentInputs)
+      measureList.append((featureData, targetData))
 
     return measureList
 
@@ -206,11 +239,17 @@ class Metric(PostProcessor):
         if 'type' not in child.parameterValues.keys() or 'class' not in child.parameterValues.keys():
           self.raiseAnError(IOError, 'Tag Metric must have attributes "class" and "type"')
       elif child.getName() == 'Features':
-        self.features = list(var.strip() for var in child.value.split(','))
+        self.features = child.value
         self.featuresType = child.parameterValues['type']
       elif child.getName() == 'Targets':
-        self.targets = list(var.strip() for var in child.value.split(','))
+        self.targets = child.value
         self.TargetsType = child.parameterValues['type']
+      elif child.getName() == 'multiOutput':
+        self.multiOutput = child.value
+      elif child.getName() == 'weight':
+        self.weight = np.asarray(child.value)
+      elif child.getName() == 'pivotParameter':
+        self.pivotParameter = child.value
       else:
         self.raiseAnError(IOError, "Unknown xml node ", child.getName(), " is provided for metric system")
 
@@ -230,7 +269,61 @@ class Metric(PostProcessor):
     if isinstance(evaluation, Runners.Error):
       self.raiseAnError(RuntimeError, "Job ", finishedJob.identifier, "failed!")
     outputDict = evaluation[1]
-    output.addRealization(outputDict)
+    # FIXED: writing directly to file is no longer an option!
+    #if isinstance(output, Files.File):
+    #  availExtens = ['xml']
+    #  outputExtension = output.getExt().lower()
+    #  if outputExtension not in availExtens:
+    #    self.raiseAMessage('Metric postprocessor did not recognize extension ".', str(outputExtension), '". The output will be dumped to a text file')
+    #  output.setPath(self._workingDir)
+    #  self.raiseADebug('Write Metric prostprocessor output in file with name: ', output.getAbsFile())
+    #  self._writeXML(output, outputDict)
+    if output.type in ['PointSet', 'HistorySet']:
+      self.raiseADebug('Adding output in data object named', output.name)
+      rlz = {}
+      for key, val in outputDict.items():
+        newKey = key.replace("|","_")
+        rlz[newKey] = val
+      if self.dynamic:
+        rlz[self.pivotParameter] = np.atleast_1d(self.pivotValues)
+      output.addRealization(rlz)
+      # add metadata
+      xml = self._writeXML(output, outputDict)
+      output._meta['MetricPP'] = xml
+    elif output.type == 'HDF5':
+      self.raiseAnError(IOError, 'Output type', str(output.type), 'is not yet implemented. Skip it')
+    else:
+      self.raiseAnError(IOError, 'Output type ', str(output.type), ' can not be used for postprocessor', self.name)
+
+  def _writeXML(self,output,outputDictionary):
+    """
+      Defines the method for writing the post-processor to the metadata within a data object
+      @ In, output, DataObject, instance to write to
+      @ In, outputDictionary, dict, dictionary stores importance ranking outputs
+      @ Out, xml, xmlUtils.StaticXmlElement instance, written data in XML format
+    """
+    if self.dynamic:
+      outputInstance = xmlUtils.DynamicXmlElement('MetricPostProcessor', pivotParam=self.pivotParameter)
+    else:
+      outputInstance = xmlUtils.StaticXmlElement('MetricPostProcessor')
+    if self.dynamic:
+      for key, values in outputDictionary.items():
+        assert("|" in key)
+        metricName, nodeName = key.split('|')
+        for ts, pivotVal in enumerate(self.pivotValues):
+          if values.shape[0] == 1:
+            outputInstance.addScalar(nodeName, metricName,values[0], pivotVal=pivotVal)
+          else:
+            outputInstance.addScalar(nodeName, metricName,values[ts], pivotVal=pivotVal)
+    else:
+      for key, values in outputDictionary.items():
+        assert("|" in key)
+        metricName, nodeName = key.split('|')
+        if len(list(values)) == 1:
+          outputInstance.addScalar(nodeName, metricName, values[0])
+        else:
+          self.raiseAnError(IOError, "Multiple values are returned from metric '", metricName, "', this is currently not allowed")
+    return outputInstance
 
   def run(self, inputIn):
     """
@@ -240,25 +333,12 @@ class Metric(PostProcessor):
     """
     measureList = self.inputToInternal(inputIn)
     outputDict = {}
-
-    if not self.dynamic:
-      assert len(self.features) == len(measureList)
+    assert(len(self.features) == len(measureList))
+    for metricInstance in self.metricsDict.values():
+      metricEngine = MetricDistributor.returnInstance('MetricDistributor',metricInstance,self)
       for cnt in range(len(self.targets)):
-        nodeName = (str(self.targets[cnt]) + '_' + str(self.features[cnt])).replace("|","-")
-        for metricInstance in self.metricsDict.values():
-          inData = list(measureList[cnt])
-          metricCanHandleData = True
-          varName = metricInstance.name + '_' + nodeName
-          for i in range(len(inData)):
-            if not metricInstance.acceptsProbability and type(inData[i]) == tuple:
-              #Strip off the probability data if it can't be used
-              inData[i] = inData[i][0]
-            elif not metricInstance.acceptsDistribution and isinstance(inData[i], Distributions.Distribution):
-              metricCanHandleData = False
-              self.raiseAWarning('Cannot handle '+ varName +' because it contains a distribution')
-          if metricCanHandleData:
-            output = metricInstance.distance(inData[0], inData[1])
-            outputDict[varName] = np.atleast_1d(output)
-    else:
-      self.raiseAnError(IOError, "Not implemented yet")
+        nodeName = (str(self.targets[cnt]) + '_' + str(self.features[cnt])).replace("|","_")
+        varName = metricInstance.name + '|' + nodeName
+        output = metricEngine.evaluate(measureList[cnt], weights=self.weight, multiOutput=self.multiOutput)
+        outputDict[varName] = np.atleast_1d(output)
     return outputDict

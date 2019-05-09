@@ -43,6 +43,7 @@ done
 if [[ ! $SKIP_CONDA == 0 ]]; then
   source $RAVEN_DIR/scripts/establish_conda_env.sh --quiet
 fi
+PYTHON_COMMAND=${PYTHON_COMMAND:=python}
 
 # if there's no file to run after parsing arguments, run "help" after warning of the problem.
 if [ ${#ARGS[@]} -eq 0 ]; then
@@ -55,11 +56,11 @@ fi
 case $MODE in
   'opt' )
     echo 'Running RAVEN in "opt" mode.'
-    python -O $RAVEN_DIR/framework/Driver.py "${ARGS[@]}"
+    $PYTHON_COMMAND -O $RAVEN_DIR/framework/Driver.py "${ARGS[@]}"
     ;;
   'dev' )
     echo 'Running RAVEN in "dev" mode.'
-    python $RAVEN_DIR/framework/Driver.py "${ARGS[@]}"
+    $PYTHON_COMMAND $RAVEN_DIR/framework/Driver.py "${ARGS[@]}"
     ;;
   'help' )
     echo ''

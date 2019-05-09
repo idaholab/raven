@@ -177,6 +177,18 @@ class SparseGrid(MessageHandler.MessageUser):
         return False
     return True
 
+  def __hash__(self):
+    """
+      Returns a hash for this quadrature
+      @ Out, __hash__, int, hash value
+    """
+    hashes = 0
+    for var in self.varNames:
+      hashes += hash(var)
+    for pt,wt in self.SG.items():
+      hashes += hash(pt)+hash(wt)
+    return hashes
+
   def __ne__(self,other):
     """
       Checks inequivalency between sparsequads
@@ -193,7 +205,7 @@ class SparseGrid(MessageHandler.MessageUser):
       @ In, wts, array(float), weights for grid
       @ Out, None
     """
-    newSG={}
+    newSG=collections.OrderedDict()
     for p,pt in enumerate(pts):
       newSG[pt]=wts[p]
     self.SG=newSG
@@ -316,8 +328,8 @@ class SparseGrid(MessageHandler.MessageUser):
       @ In, n, string, splice instruction
       @ Out, points, tuple(float) or tuple(tuple(float)), requested points
     """
-    if n==None:
-      return self.SG.keys()
+    if n is None:
+      return list(self.SG.keys())
     else:
       return list(self.SG.keys())[n]
 
@@ -328,7 +340,7 @@ class SparseGrid(MessageHandler.MessageUser):
       @ Out, weights, float or tuple(float), requested weights
     """
     if n==None:
-      return self.SG.values()
+      return list(self.SG.values())
     else:
       try:
         return self.SG[tuple(n)]

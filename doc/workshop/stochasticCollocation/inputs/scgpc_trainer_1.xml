@@ -1,12 +1,24 @@
+<?xml version="1.0" ?>
 <Simulation color="true" verbosity="debug">
+  <TestInfo>
+    <name>doc/workshop/stochasticCollocation/inputs.scTrain1</name>
+    <author>wangc</author>
+    <created>2018-09-21</created>
+    <classesTested>Models.ROM</classesTested>
+    <description>Workshop test: using sthochastic collocation sampler to train and evaluate a Gaussian Polynomial ROM</description>
+    <revisions>
+      <revision author='talbpaul' date='2019-01-08'>moved from ROM->XML to ROM->DataObject</revision>
+    </revisions>
+  </TestInfo>
+
   <RunInfo>
     <WorkingDir>run</WorkingDir>
-    <Sequence>make,train,serialize,print</Sequence>
+    <Sequence>make,train,rom_out,serialize,print</Sequence>
     <batchSize>8</batchSize>
   </RunInfo>
 
   <Files>
-    <Input name="ballistic_in">projectile_input.i</Input>
+    <Input name="ballistic_in">../../../ExternalModels/input.i</Input>
     <Input name="pkfile">scgpc_1.pk</Input>
   </Files>
 
@@ -21,10 +33,14 @@
       <Input class="DataObjects" type="PointSet">training_data</Input>
       <Output class="Models" type="ROM">scgpc_rom</Output>
     </RomTrainer>
+    <IOStep name='rom_out'>
+      <Input class="Models" type="ROM">scgpc_rom</Input>
+      <Output class="DataObjects" type="PointSet">rom_stats_1</Output>
+    </IOStep>
     <IOStep name="print">
       <Input class="DataObjects" type="PointSet">training_data</Input>
+      <Input class="DataObjects" type="PointSet">rom_stats_1</Input>
       <Output class="OutStreams" type="Print">training_data</Output>
-      <Input class="Models" type="ROM">scgpc_rom</Input>
       <Output class="OutStreams" type="Print">rom_stats_1</Output>
     </IOStep>
     <IOStep name="serialize">
@@ -38,7 +54,7 @@
       <lowerBound>25</lowerBound>
       <upperBound>65</upperBound>
     </Uniform>
-    <Uniform name="velocity_dist">
+    <Uniform name="v0_dist">
       <lowerBound>15</lowerBound>
       <upperBound>40</upperBound>
     </Uniform>
@@ -49,32 +65,37 @@
       <variable name="angle">
         <distribution>angle_dist</distribution>
       </variable>
-      <variable name="velocity">
-        <distribution>velocity_dist</distribution>
+      <variable name="v0">
+        <distribution>v0_dist</distribution>
       </variable>
       <ROM class="Models" type="ROM">scgpc_rom</ROM>
     </SparseGridCollocation>
   </Samplers>
 
   <Models>
-    <Code name="ballistic" subType="GenericCode">
-      <executable>./projectile.py</executable>
-      <clargs arg="python" type="prepend"></clargs>
-      <clargs arg="-i" extension=".i" type="input"></clargs>
-      <clargs arg="-o" type="output"></clargs>
+    <Code name="ballistic" subType="Projectile">
+      <executable>../../ExternalModels/projectile.py</executable>
+      <clargs arg="python" type="prepend"/>
+      <clargs arg="-i" extension=".i" type="input"/>
+      <clargs arg="-o" type="output"/>
     </Code>
     <ROM name="scgpc_rom" subType="GaussPolynomialRom">
       <Target>r,x,y</Target>
-      <Features>velocity,angle</Features>
+      <Features>v0,angle</Features>
       <IndexSet>TotalDegree</IndexSet>
       <PolynomialOrder>1</PolynomialOrder>
+      <pivotParameter>t</pivotParameter>
     </ROM>
   </Models>
 
   <DataObjects>
+    <PointSet name="rom_stats_1"/>
     <HistorySet name="training_data">
-      <Input>velocity,angle</Input>
-      <Output>r,x,y,time</Output>
+      <Input>v0,angle</Input>
+      <Output>r,x,y,t</Output>
+      <options>
+        <pivotParameter>t</pivotParameter>
+      </options>
     </HistorySet>
   </DataObjects>
 
@@ -84,9 +105,8 @@
       <source>training_data</source>
     </Print>
     <Print name="rom_stats_1">
-      <type>xml</type>
-      <source>scgpc_rom</source>
-      <what>mean,variance,sobolIndices</what>
+      <type>csv</type>
+      <source>rom_stats_1</source>
     </Print>
   </OutStreams>
 

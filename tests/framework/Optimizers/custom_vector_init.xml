@@ -59,8 +59,7 @@
       <TargetEvaluation class="DataObjects" type="DataSet">optOut</TargetEvaluation>
       <Sampler class="Samplers" type="CustomSampler">init</Sampler>
       <convergence>
-        <gradientThreshold>1e-3</gradientThreshold>
-        <relativeThreshold>1e-3</relativeThreshold>
+        <relativeThreshold>1e-5</relativeThreshold>
         <gainGrowthFactor>1.5</gainGrowthFactor>
         <gainShrinkFactor>1.25</gainShrinkFactor>
       </convergence>
@@ -73,9 +72,6 @@
         <lowerBound>-6</lowerBound>
       </variable>
       <objectVar>ans</objectVar>
-      <!--<parameter>
-        <a>1</a>
-      </parameter>-->
     </SPSA>
   </Optimizers>
 
@@ -100,7 +96,7 @@
     </PointSet>
     <DataSet name="opt_export">
       <Input>trajID</Input>
-      <Output>x,y,ans,varsUpdate</Output>
+      <Output>x,y,ans</Output>
       <Index var="t">y</Index>
     </DataSet>
     <DataSet name="initial_points">
@@ -119,7 +115,6 @@
     <Print name="opt_export">
       <type>csv</type>
       <source>opt_export</source>
-      <clusterLabel>trajID</clusterLabel>
     </Print>
     <Print name="opt_out">
       <type>csv</type>

@@ -33,7 +33,7 @@
   </RunInfo>
 
   <Models>
-    <ExternalModel ModuleToLoad="./testFunction" name="foo" subType="">
+    <ExternalModel ModuleToLoad="../testFunction" name="foo" subType="">
       <variables>X,Y,Z</variables>
     </ExternalModel>
     <ROM name="modelUnderTest" subType="MSR">
@@ -53,7 +53,7 @@
             training data to counteract the effects of the randomness imposed
             by the cross-validation of the SVM which generates the probability
             information that exhibits the non-deterministic behavior. -->
-        <limit>300</limit>
+        <limit>800</limit>
         <initialSeed>888</initialSeed>
       </samplerInit>
       <variable name="X">
@@ -68,7 +68,7 @@
            reduce the chance of misclassification for this test case -->
       <variable name="X">
         <distribution>smallUniformDist</distribution>
-        <grid construction="equal" steps="10" type="value">2 3</grid>
+        <grid construction="equal" steps="9" type="value">2 2.9</grid>
       </variable>
       <variable name="Y">
         <distribution>largeUniformDist</distribution>

@@ -41,19 +41,47 @@ function establish_OS ()
 	esac
 }
 
+function read_ravenrc ()
+{
+  # $1 should be the keyword we're looking for
+  # returns keyword argument through echo
+  ## note that "| xargs" trims leading and trailing whitespace
+  local TARGET=`echo $1 | xargs`
+  # location of the RC file
+  local RCNAME="${ECE_SCRIPT_DIR}/../.ravenrc"
+  # if the RC file exists, loop through it and read keyword arguments split by "="
+  if [ -f "$RCNAME" ]; then
+    while IFS='=' read -r KEY ARG || [[ -n "$keyarg" ]]; do
+      # trim whitespace
+      KEY=`echo $KEY | xargs`
+      ARG=`echo $ARG | xargs`
+      # check for key match
+      if [ "$KEY" = "$TARGET" ]; then
+        echo "$ARG"
+        return 0
+      fi
+    done < ${RCNAME}
+  fi
+  # if not found, return empty
+  echo ''
+}
+
 function find_conda_defs ()
 {
 	if [ -z ${CONDA_DEFS} ];
 	then
     # first check the RAVEN RC file for the key
-    CONDA_DEFS=`echo $(python ${ECE_SCRIPT_DIR}/update_install_data.py --read CONDA_DEFS)`
-    # if not setin RC, then will be empty string; next try defaults
+    CONDA_DEFS=$(read_ravenrc "CONDA_DEFS")
+    # if not set in RC, then will be empty string; next try defaults
     if [[ ${#CONDA_DEFS} == 0 ]];
     then
       # default location of conda definitions, windows is unsurprisingly an exception
       if [[ "$OSOPTION" = "--windows" ]];
       then
-        CONDA_DEFS="/c/ProgramData/Miniconda2/etc/profile.d/conda.sh";
+        CONDA_DEFS="/c/ProgramData/Miniconda3/etc/profile.d/conda.sh";
+      elif test -e "$HOME/miniconda3/etc/profile.d/conda.sh";
+      then
+        CONDA_DEFS="$HOME/miniconda3/etc/profile.d/conda.sh";
       else
         CONDA_DEFS="$HOME/miniconda2/etc/profile.d/conda.sh";
       fi
@@ -66,17 +94,20 @@ function find_conda_defs ()
       fi
     fi
 	fi
+
+  # fix Windows backslashes to be forward, compatible with all *nix including mingw
+  CONDA_DEFS="${CONDA_DEFS//\\//}"
 }
 
 function install_libraries()
 {
   if [[ $ECE_VERBOSE == 0 ]]; then echo Installing libraries ...; fi
-  local COMMAND=`echo $(python ${RAVEN_UTILS} --conda-install ${INSTALL_OPTIONAL} ${OSOPTION})`
+  local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_UTILS} --conda-install ${INSTALL_OPTIONAL} ${OSOPTION})`
   echo ... conda command: ${COMMAND}
   ${COMMAND}
   # conda-forge
   if [[ $ECE_VERBOSE == 0 ]]; then echo ... Installing libraries from conda-forge ...; fi
-  local COMMAND=`echo $(python ${RAVEN_UTILS} --conda-forge --conda-install ${OSOPTION})`
+  local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_UTILS} --conda-forge --conda-install ${INSTALL_OPTIONAL} ${OSOPTION})`
   if [[ $ECE_VERBOSE == 0 ]]; then echo ... conda-forge command: ${COMMAND}; fi
   ${COMMAND}
 }
@@ -84,12 +115,12 @@ function install_libraries()
 function create_libraries()
 {
   if [[ $ECE_VERBOSE == 0 ]]; then echo ... Installing libraries ...; fi
-  local COMMAND=`echo $(python ${RAVEN_UTILS} --conda-create ${INSTALL_OPTIONAL} ${OSOPTION})`
+  local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_UTILS} --conda-create ${INSTALL_OPTIONAL} ${OSOPTION})`
   if [[ $ECE_VERBOSE == 0 ]]; then echo ... conda command: ${COMMAND}; fi
   ${COMMAND}
   # conda-forge
   if [[ $ECE_VERBOSE == 0 ]]; then echo ... Installing libraries from conda-forge ...; fi
-  local COMMAND=`echo $(python ${RAVEN_UTILS} --conda-forge --conda-install ${OSOPTION})`
+  local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_UTILS} --conda-forge --conda-install ${INSTALL_OPTIONAL} ${OSOPTION})`
   if [[ $ECE_VERBOSE == 0 ]]; then echo ... conda-forge command: ${COMMAND}; fi
   ${COMMAND}
 }
@@ -108,7 +139,7 @@ function display_usage()
 	echo ''
 	echo '  Options:'
 	echo '    --conda-defs'
-	echo '      Defines location of conda definitions (often miniconda2/etc/profile.d/conda.sh). If not provided, guesses based on OS.'
+	echo '      Defines location of conda definitions (often miniconda3/etc/profile.d/conda.sh). If not provided, guesses based on OS.'
 	echo ''
 	echo '    --help'
 	echo '      Displays this text and exits'
@@ -125,6 +156,14 @@ function display_usage()
 	echo '    --optional'
 	echo '      Additionally installs optional libraries used in some RAVEN workflows.  Requires --install.'
 	echo ''
+	echo '    --py3'
+	echo '    When installing, make raven_libraries use Python 3'
+	echo ''
+        echo ''
+        echo '    --py2'
+        echo '    When installing, make raven_libraries use Python 2'
+        echo ''
+        echo ''
 	echo '    --quiet'
 	echo '      Runs script with minimal output'
 	echo ''
@@ -139,10 +178,11 @@ function activate_env()
 function set_install_settings()
 {
   if [[ $ECE_VERBOSE == 0 ]]; then echo ... Setting install variables ...; fi
-  local COMMAND="python $ECE_SCRIPT_DIR/update_install_data.py --write --conda-defs ${CONDA_DEFS} --RAVEN_LIBS_NAME ${RAVEN_LIBS_NAME}"
+  local COMMAND="$PYTHON_COMMAND $ECE_SCRIPT_DIR/update_install_data.py --write --conda-defs ${CONDA_DEFS} --RAVEN_LIBS_NAME ${RAVEN_LIBS_NAME} --python-command ${PYTHON_COMMAND}"
   if [[ $ECE_VERBOSE == 0 ]]; then echo ... ${COMMAND}; fi
   ${COMMAND}
 }
+
 
 # main
 
@@ -168,7 +208,15 @@ do
       ;;
     --optional)
       echo ... Including optional libraries ...
-      INSTALL_OPTIONAL="--optional"
+      INSTALL_OPTIONAL="--optional $INSTALL_OPTIONAL"
+      ;;
+    --py3)
+      echo ... Creating Python 3 libraries ...
+      INSTALL_OPTIONAL="--py3 $INSTALL_OPTIONAL"
+      ;;
+    --py2)
+      echo ... Creating Python 2 libraries ...
+      INSTALL_OPTIONAL="--py2 $INSTALL_OPTIONAL"
       ;;
     --quiet)
       ECE_VERBOSE=1
@@ -204,11 +252,24 @@ fi
 establish_OS
 if [[ $ECE_VERBOSE == 0 ]]; then echo ... Detected OS as ${OSOPTION} ...; fi
 
+if [ -z $PYTHON_COMMAND ];
+then
+    # check the RC file first
+    PYTHON_COMMAND=$(read_ravenrc "PYTHON_COMMAND")
+    #If not found through the RC file, will be empty string, so default python
+    PYTHON_COMMAND=${PYTHON_COMMAND:=python}
+fi
+export PYTHON_COMMAND
+if [[ $ECE_VERBOSE == 0 ]];
+then
+    echo ... Using Python command ${PYTHON_COMMAND}
+fi
+
 # set raven libraries environment name, if not set
 if [ -z $RAVEN_LIBS_NAME ];
 then
   # check the RC file first
-  RAVEN_LIBS_NAME=`echo $(python ${ECE_SCRIPT_DIR}/update_install_data.py --read RAVEN_LIBS_NAME)`
+  RAVEN_LIBS_NAME=$(read_ravenrc "RAVEN_LIBS_NAME")
   # if not found through the RC file, will be empty string, so default to raven_libraries
   if [[ ${#RAVEN_LIBS_NAME} == 0 ]];
   then
@@ -239,7 +300,7 @@ then
   source ${CONDA_DEFS}
 else
   echo ... Conda definitions not found at \"${CONDA_DEFS}\"!
-  echo ... \>\> Specify the location of miniconda2/etc/profile.d/conda.sh through the --conda-defs option.
+  echo ... \>\> Specify the location of miniconda3/etc/profile.d/conda.sh through the --conda-defs option.
   return 1
 fi
 
@@ -293,12 +354,13 @@ then
   else
     create_libraries
   fi
+  # since installation successful, write changed settings
+  ## store information about this creation in raven/.ravenrc text file
+  if [[ $ECE_VERBOSE == 0 ]]; then echo  ... writing settings to raven/.ravenrc ...; fi
+  set_install_settings
 fi
 
 # activate environment and write settings if successful
 activate_env
-# store information about this creation in raven/.ravenrc text file
-if [[ $ECE_VERBOSE == 0 ]]; then echo  ... writing settings to raven/.ravenrc ...; fi
-set_install_settings
 
 if [[ $ECE_VERBOSE == 0 ]]; then echo  ... done!; fi

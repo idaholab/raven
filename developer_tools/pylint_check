@@ -11,4 +11,8 @@ cd $SCRIPT_DIR/..
 # activate raven libraries
 source $SCRIPT_DIR/../scripts/establish_conda_env.sh --load --quiet
 
+echo Framework
 pylint --disable=all --enable=missing-docstring --enable=no-absolute-import --enable=old-division --enable=print-statement --enable=file-builtin --enable=multiple-statements framework/
+
+echo Rook
+pylint --disable=fixme,too-few-public-methods,len-as-condition,too-many-locals,too-many-return-statements,too-many-branches,too-many-statements,too-many-instance-attributes,too-many-arguments,no-self-use,similarities,broad-except,consider-using-enumerate,no-member,import-error,old-style-class,not-an-iterable,unexpected-keyword-arg,relative-import,too-many-public-methods --const-rgx '(([A-Za-z_][A-Za-z0-9_]*)|(__.*__))$' --module-rgx '(([a-z_][a-z0-9_]*)|([A-Z][a-zA-Z0-9]+))$' --indent-string "  " rook/*.py scripts/TestHarness/testers/*.py

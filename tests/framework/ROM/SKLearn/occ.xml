@@ -46,6 +46,7 @@
         <fit_intercept>True</fit_intercept>
         <normalize>True</normalize>
       </estimator>
+      <random_state>0</random_state>
     </ROM>
   </Models>
 

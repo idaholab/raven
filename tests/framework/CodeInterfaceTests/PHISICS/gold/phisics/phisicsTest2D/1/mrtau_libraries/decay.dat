@@ -1,0 +1,8 @@
+Actinides          Decay Modes = 3                             
+        BETA       BETA+      ALPHA      Kr Yield   Xe Yield
+ FUEL   0.000E+00  0.00000    0.0000     0.000      0.0000     
+ PU241  1.525E-09  0.000E+00  0.000E+00  4.234E-02  1.988E-01  
+ end    FProducts  Decay Modes = 6
+        BETA       BETA*      BETA+      BETA+*     ALPHA      INTER_TRAN  
+ ZN68   5.857E-10  0.000E+00  0.000E+00  0.000E+00  0.000E+00  0.000E+00  
+ end

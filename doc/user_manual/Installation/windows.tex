@@ -9,9 +9,9 @@ systems; however, it is straightforward.  First, RAVEN has the following prerequ
         has been verified on Windows 7, 10, and Windows Server 2012 R2 Standard.
     \item At least 9 Gigabytes of available disk space:
     \begin{itemize}
-        \item 0.5 GB for MSYS2, including supporting tools and git source code control
+        \item 0.5 GB for GIT SCM, including supporting tools and git source code control
         \item 1.5 GB for Python language and supporting packages
-        \item 1.5 GB for RAVEN and the MOOSE framework
+        \item 1 GB for RAVEN framework
         \item 5.0 GB for the Visual Studio compiler needed to build RAVEN
     \end{itemize}
 \end{itemize}
@@ -19,142 +19,38 @@ systems; however, it is straightforward.  First, RAVEN has the following prerequ
 \subsubsection{A Visual Guide}
 Note: An illustrated version of this procedure may be found on the \wiki.
 
-\subsubsection{MSYS2 environment}
-Since RAVEN requires a UNIX-like shell to function, the freely-available software package called MSYS2 is
-used to
-provide this functionality.  More information about MSYS2 is available at
-\url{https://sourceforge.net/p/msys2/wiki/MSYS2%20introduction/}.
-\nb While there is also a 32-bit version of MSYS2 available, the RAVEN installation described here will not work with it.
-
+\subsubsection{GIT SCM for Windows}
+RAVEN currently works on Windows using basic tools freely available online. 
+The first software to be downloaded and installed is \textbf{Git SCM} available at \url{https://gitforwindows.org/}.
 \begin{enumerate}
-    \item Obtain and run the latest basic 64-bit MSYS2 installer from \url{ https://msys2.github.io/} (As of this writing it is named
-	msys2-x86\_64-20161025.exe and is approximately 67 Megabytes in size).
-    \item The page with the download also contains installation instructions. Perform the steps described there up to
-	step 6 to install a minimal MSYS2 system and bring it up to date. Make sure that you install to path
-        C:\textbackslash{}msys64.  This installation will create shortcuts in the Windows start menu that may be used
-        to start UNIX-Like shells:
-		\begin{itemize}
-	    		\item MSYS2 Shell
-	    		\item MinGW-w64 Win32 Shell
-	    		\item MinGW-w64 Win64 Shell
-		\end{itemize}
-        When working with RAVEN, it is recommended to use "MinGW-w64 Win64 Shell", although any of them should work.
-    \item Use the MSYS2 package manager {\it pacman} to install a few tools that will be needed later.  Enter the following command in an MSYS shell window:
-
-\begin{lstlisting}[language=bash]
-USER@HOSTNAME MINGW64 ~
-$ pacman -S git winpty make
-\end{lstlisting}
-	The package manager will then download and install those packages (and their dependencies) from the MSYS2
-	repository.
+    \item Obtain the latest Git SCM for Windows installer from  \url{https://gitforwindows.org/} and install it. 
+    Install Git Bash and have 
+    the installer add Git Bash to your Windows \textit{PATH} environment variables. 
+    The \textit{PATH} can be updated either automatically (allowing the Git SCM installer to update it for you) or manually 
+    (Systems Properties - Environment Variables - Edit Environment Variables).
 \end{enumerate}
 
 \subsubsection{Install Python Language and Package Support}
 \begin{enumerate}
-	\item Download the latest 64-bit installer for Windows Python 2.7 from
+	\item Download the latest 64-bit installer for Windows Python 3 from
 		\url{https://conda.io/miniconda.html} and install it.  \item The installer
 		will ask whether Python should be installed for only the logged in user or
 		for all users.  Either option will work for RAVEN.
-	\item Locate and test the Python installation.   Open a Windows command prompt and enter the
+	\item 	have  the installer add \textit{conda} to your Windows \textit{PATH} environment variables.   
+	The \textit{PATH} can be updated either automatically (allowing the  \textit{conda} installer to update it for you) 
+	or manually (Systems Properties - Environment Variables - Edit Environment Variables).
+	\item Check the installation of Python and coda locating and testing the Python installation.   
+	Open a Windows command prompt and enter the
 		command "{\it where python}", which attempts to locate a the Python language interpreter
 		in the current system path.  This looks like:
 
     \begin{lstlisting}[language=bash, basicstyle=\small]
     C:\Users\USERID> where python
-    C:\Users\USERID\AppData\Local\Continuum\Miniconda2\python.exe
-    \end{lstlisting}
-
-	\item Setup MSYS2 to find Python.  MSYS2 has its own separate PATH which must also be adjusted
-		so that Python and its associated tools may be found. This is done by converting the
-		file system location of Python determined in the previous step to its MSYS2-compatible
-		equivalent and using the result to setup MSYS2 so that it too can find it in the future.
-		\newline \newline
-		This is done by turning all backslashes ('\textbackslash') in the path to be converted to
-		forward slashes ('/'), and changing the drive letter from its '\textless letter\textgreater:'
-		form to '/ \textless letter\textgreater'. In addition, any spaces in the path must
-		be escaped using a backslash ('\textbackslash') when converted.
-		\newline \newline
-		For example:
-
-\begin{lstlisting}[language=bash]
-C:\Users\USERID\AppData\Local\Continuum\Miniconda2
-\end{lstlisting}
-		becomes
-\begin{lstlisting}[language=bash]
-/c/Users/USERID/AppData/Local/Continuum/Miniconda2
-\end{lstlisting}
-		for MSYS2. Here is an example with spaces that need to be escaped:
-\begin{lstlisting}[language=bash]
-C:\Program Files\Common Files
-\end{lstlisting}
-		converted to MSYS2 form would become
-\begin{lstlisting}[language=bash]
-/c/Program\ Files/Common\ Files
-\end{lstlisting}
-		\medskip
-		Three separate paths must be added to MSYS2 to enable all of the Python tools needed
-		to be found.  These are:
-
-		\smallskip
-\begin{tabular}{| l | l |}
-	\hline
-	{\bf Path} & {\bf Purpose} \\\hline
-	\textless Converted path from above\textgreater	& Python executable \\\hline
-	\textless Converted path from above\textgreater /Scripts &	Conda (Needed to manage Python packages) \\\hline
-	\textless Converted path from above\textgreater /Library/bin &	Swig (Needed to build RAVEN) \\\hline
-\end{tabular}
-
-		\medskip
-		These paths are added using shell commands that append new entries to the existing PATH
-		variable without overwriting it.  These commands take the following form:
-
-\begin{lstlisting}[language=bash, basicstyle=\tiny]
-export PATH=/c/Users/USERID/AppData/Local/Continuum/Miniconda2:$PATH
-export PATH=/c/Users/USERID/AppData/Local/Continuum/Miniconda2/Scripts:$PATH
-export PATH=/c/Users/USERID/AppData/Local/Continuum/Miniconda2/Library/bin:$PATH
-\end{lstlisting}
-
-		To configure these needed paths in MSYS2 so that they persist, file "~/.bashrc" will need
-		to be edited.  This may be done either using an MSYS2-based editor such as {\it vim}
-		(VI-iMproved, which is included in the installation) or a Windows-based editor like
-		{\it Wordpad} (included with Windows).  Another excellent open source editor for
-		Windows is {\it Notepad++} \url{https://notepad-plus-plus.org/}, which is also good
-		for editing RAVEN input files.
-
-	\item Test Python in MSYS2.  At this point open a new MSYS2 shell window and see if Python is
-		now found in the PATH:
-		\newline
-		Note: Due to the way that Python interacts with the MSYS2 shell, when using Python by
-		itself in MSYS2 the {\it winpty} utility is provided. (If Python is run without winpty,
-		it may appear to sit there and do nothing. Pressing \textless Ctrl\textgreater -C will
-		interrupt it.)
-
-
-\begin{lstlisting}[language=bash, basicstyle=\tiny]
-USER@HOSTNAME MINGW64 ~
-$ winpty python
-Python 2.7.13 |Anaconda 4.0.0 (64-bit)| (default, Dec 19 2016, 13:29:36) [MSC v.1500 64 bit (AMD64)] on win32
-Type "help", "copyright", "credits" or "license" for more information.
-Anaconda is brought to you by Continuum Analytics.
-Please check out: http://continuum.io/thanks and https://anaconda.org
->>>
->>> quit()
-
-\end{lstlisting}
-
-	\item Install needed Python packages.  RAVEN requires several Python packages to function properly.
-		Now the {\it conda} command will be used to download and install them in an automated manner. The
-		following asks {\it conda} to obtain the specified versions of the listed packages, as well as all
-		of their dependencies.
-		\smallskip
-
-    \begin{lstlisting}[language=bash]
-    conda install numpy=1.11.0 h5py=2.6.0 scipy=0.17.1 \
-      scikit-learn=0.17.1 matplotlib=1.5.1 python=2.7 \
-      hdf5 swig pylint lxml
+    C:\Users\USERID\AppData\Local\Continuum\Miniconda3\python.exe
     \end{lstlisting}
 
 \end{enumerate}
+
 
 \subsubsection{Compiler Installation and Configuration}
 \begin{enumerate}
@@ -166,114 +62,13 @@ Please check out: http://continuum.io/thanks and https://anaconda.org
 		successfully used to build RAVEN. Professional and Enterprise versions of these will
 		also work. If one of these is already present on your system, it is not necessary to
 		obtain another one. Note that because C++11 language features are required, the
-		"Microsoft Visual C++ Compiler for Python 2.7" often used for building Python
+		"Microsoft Visual C++ Compiler for Python 2.7 or 3.x" often used for building Python
 		add-ons will {\bf not} work.
 
 		After downloading and running the Visual Studio installer, it will ask what features
 		to install. For building RAVEN, "Desktop development with C++" is needed at a minimum.
 		Installation of other Visual Studio features should be fine.
-
-	\item Let the build system know where to find the compiler.  When the build system attempts
-		to search for an installed compiler, this process often fails with the error message
-		"Unable to find vcvarsall.bat".  This happens because Python version 2.7 has not been
-		updated to automatically locate modern Visual Studio installations. To solve this it
-		is necessary to help the Python build system find the C++ compiler on the system.
-		The easiest way to do this is create a Windows batch (.BAT) file that will redirect
-		the build system to the information it needs. First, locate the file VCVARSALL.BAT
-		file installed as part of Visual Studio on your system. This location will usually
-		be something like the following:
-		\smallskip
-
-\begin{tabular}{| l | l |}
-	\hline
-	{\bf Visual Studio Version} & {\bf Directory containing VCVARSALL.BAT} \\\hline
-	2015 & C:\textbackslash Program Files (x86)\textbackslash Microsoft Visual Studio 14.0\textbackslash VC \\\hline
-	2017 & C:\textbackslash Program Files (x86)\textbackslash Microsoft Visual \\
-               & Studio\textbackslash 2017\textbackslash Community\textbackslash VC\textbackslash
-                Auxiliary\textbackslash Build \\\hline
-\end{tabular}
-
-		\medskip
-		Once the target file has been located it is necessary to create a couple of directories
-		and one file. The first directory created must be named "VC" and should be created
-		somewhere outside of the RAVEN source tree (such as your MinGW home directory):
-
-\begin{lstlisting}[language=bash]
-USER@HOSTNAME MINGW64 ~
-$ mkdir VC
-\end{lstlisting}
-
-		The next directory to be created must be inside the one just created. It is suggested
-		to name it "target", because it is there that we will point the Python build system:
-
-\begin{lstlisting}[language=bash]
-USER@HOSTNAME MINGW64 ~
-$ cd VC
-
-USER@HOSTNAME MINGW64 ~/VC
-$ mkdir target
-
-USER@HOSTNAME MINGW64 ~/VC
-$ ls
-target
-
-\end{lstlisting}
-
-		The file to be created is named "VCVARSALL.BAT", and it must be written in the VC
-		directory that was just made. The Python build system will be configured to find this
-		file, which then redirects it to the actual file. Use a text editor (such as
-		{\it vim} or {\it notepad} as described above) to create the file VCVARSALL.BAT:
-
-\begin{lstlisting}[language=bash]
-USER@HOSTNAME MINGW64 ~/VC
-$ vim VCVARSALL.BAT
-\end{lstlisting}
-
-		or
-
-\begin{lstlisting}[language=bash]
-USER@HOSTNAME MINGW64 ~/VC
-$ notepad VCVARSALL.BAT
-\end{lstlisting}
-
-		One line will need to be added to the new file VCVARSALL.BAT:
-
-\begin{lstlisting}[language=bash, basicstyle=\tiny]
-CALL "<Full Path To VCVARSALL.BAT File Installed by Visual Studio>" %1 %2 %3 %4 %5
-\end{lstlisting}
-
-		For example, in the case of Visual Studio 2017 Community installed in the default
-		location this would be:
-
-\begin{lstlisting}[language=bash, basicstyle=\tiny]
-CALL "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\VCVARSALL.BAT" %1 %2 %3 %4 %5
-\end{lstlisting}
-
-		Note the double quotes around the path and file name. These are necessary because
-		there are spaces in some of the directory names that make up the full location of
-		VCVARSALL.BAT.
-
-		After creating the new {\it VCVARSALL.BAT} in the directory {\it VC}, one more thing
-		needs to be done to inform the Python build system where this file just created is.
-		During the build process, an {\it environment variable} "VS90COMNTOOLS" will be checked.
-		The value of VS90COMNTOOLS will need to be set to the {\it target} directory just below
-		the location of VCVARSALL.BAT file just created.
-
-		For example, if VCVARSALL.BAT was created in directory VC under your MinGW home
-		directory, the variable VS90COMNTOOLS should point to \textasciitilde /VC/target.
-
-\begin{lstlisting}[language=bash]
-USER@HOSTNAME MINGW64 ~
-$ export VS90COMNTOOLS=~/VC/target
-
-USER@HOSTNAME MINGW64 ~
-$ echo $VS90COMNTOOLS
-/home/user/VC/target
-\end{lstlisting}
-
 \end{enumerate}
-
-
 
 Once the compiler installation and configuration is complete, you are prepared to install the RAVEN libraries
 (see section \ref{sec:install conda}).

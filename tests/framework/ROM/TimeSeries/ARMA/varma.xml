@@ -8,21 +8,29 @@
     <description>
        This test checks the possibility to train an correlated ARMA+Fourier model and its
        capability to generate intrinsically stochastic time series with correlated results.
-
        The correlation model used generated uniformly random data on [-0.5,0.5] for A, then
        set B = 0.9*A + 0.1*rand, with rand also on [-0.5,0.5], to ensure strong correlation.
-
-       The plot output "plot_input.png" shows the original training data, while "plot_VARMA.png"
+       The plot output ``plot_input.png'' shows the original training data, while ``plot_VARMA.png''
        plots the sampled values.  B should only be slightly off from A at all points.  If this
        same calculation is done without correlation, both A and B independently range over the
        value space, and B can be far from A for each Time value.  This provides a quick view norm
        to see that the correlation is working correctly.
     </description>
+    <revisions>
+      <revision author="wangc" date="2018-12-18">
+          In PR #882, the standard errors on statistics moments are implemented, these quantities are stored in
+          the pointwise metadata, and will be printed out in the output csv files by default.
+          In order to avoid regolding this test, the optional node 'what' with text values 'input, output' is added.
+          In this case, only the user requested variables as specified in the DataObjects are printed out.
+      </revision>
+      <revision author='talbpaul' date='2018-09-13'>changed Pmax and Pmin to P (same for Q)</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
     <WorkingDir>VARMA</WorkingDir>
-    <Sequence>read,train,sample,write,load,stats</Sequence>
+    <Sequence>read,train,rommeta,sample,write,load,stats</Sequence>
+    <!-- NOTE: the dump, unpickle steps have been removed until statsmodel 0.9 is in RAVEN's library set. See issue #916. -->
     <batchSize>1</batchSize>
   </RunInfo>
 
@@ -35,6 +43,19 @@
       <Input class="DataObjects" type="HistorySet">training</Input>
       <Output class="Models" type="ROM">VARMA</Output>
     </RomTrainer>
+    <IOStep name="rommeta">
+      <Input class="Models" type="ROM">VARMA</Input>
+      <Output class="DataObjects" type="DataSet">rommeta</Output>
+      <Output class="OutStreams" type="Print">rommeta</Output>
+    </IOStep>
+    <IOStep name="dump">
+      <Input class="Models" type="ROM">VARMA</Input>
+      <Output class="Files" type="">pk</Output>
+    </IOStep>
+    <IOStep name="unpickle">
+      <Input class="Files" type="">pk</Input>
+      <Output class="Models" type="ROM">VARMA</Output>
+    </IOStep>
     <MultiRun name="sample">
       <Input class="DataObjects" type="PointSet">placeholder</Input>
       <Model class="Models" type="ROM">VARMA</Model>
@@ -61,6 +82,7 @@
   </Steps>
 
   <Files>
+    <Input name="pk">varma.pk</Input>
     <Input name="source">correlated.csv</Input>
     <Input name="synthetic">samples_0.csv</Input>
   </Files>
@@ -72,48 +94,55 @@
     </PointSet>
     <PointSet name="asPoints">
       <Input>Time</Input>
-      <Output>A,B</Output>
+      <Output>A,B,C,D</Output>
     </PointSet>
     <PointSet name="stats">
       <Output>
         mean_A, var_A,
         mean_B, var_B,
-        covar_A_B, covar_B_A</Output>
+        mean_C, var_C,
+        mean_D, var_D,
+                   covar_A_B, covar_A_C, covar_A_D,
+        covar_B_A,            covar_B_C, covar_B_D,
+        covar_C_A, covar_C_B,            covar_C_D,
+        covar_D_A, covar_D_B, covar_D_C
+      </Output>
     </PointSet>
     <HistorySet name="training">
       <Input>scaling</Input>
-      <Output>A,B</Output>
+      <Output>A,B,C,D</Output>
       <options>
         <pivotParameter>Time</pivotParameter>
       </options>
     </HistorySet>
     <HistorySet name="samples">
       <Input>scaling</Input>
-      <Output>A,B</Output>
+      <Output>A,B,C,D</Output>
       <options>
         <pivotParameter>Time</pivotParameter>
       </options>
     </HistorySet>
+    <DataSet name="rommeta"/>
   </DataObjects>
 
   <Models>
+    <ROM name="unpk" subType="pickledROM"/>
     <ROM name="VARMA" subType="ARMA">
-      <Target>A,B,Time</Target>
+      <Target>A,B,C,D,Time</Target>
       <Features>scaling</Features>
-      <seed>84</seed>
-      <correlate>A,B</correlate>
+      <seed>901017</seed>
+      <correlate>A,B,C</correlate>
       <pivotParameter>Time</pivotParameter>
-      <Pmax>3</Pmax>
-      <Pmin>3</Pmin>
-      <Qmax>1</Qmax>
-      <Qmin>1</Qmin>
+      <reseedCopies>False</reseedCopies>
+      <P>3</P>
+      <Q>1</Q>
     </ROM>
     <PostProcessor name="stats" subType="BasicStatistics">
-      <expectedValue prefix="mean">A,B</expectedValue>
-      <variance prefix="var">A,B</variance>
+      <expectedValue prefix="mean">A,B,C,D</expectedValue>
+      <variance prefix="var">A,B,C,D</variance>
       <covariance prefix="covar">
-        <targets>A,B</targets>
-        <features>A,B</features>
+        <targets>A,B,C,D</targets>
+        <features>A,B,C,D</features>
       </covariance>
     </PostProcessor>
   </Models>
@@ -129,6 +158,10 @@
   </Samplers>
 
   <OutStreams>
+    <Print name="rommeta">
+      <type>csv</type>
+      <source>rommeta</source>
+    </Print>
     <Print name="samples">
       <type>csv</type>
       <source>samples</source>
@@ -137,6 +170,7 @@
     <Print name="stats">
       <type>csv</type>
       <source>stats</source>
+      <what>input,output</what>
     </Print>
     <Plot name="plot_samples" overwrite="false">
       <filename>plot_VARMA</filename>
@@ -153,10 +187,16 @@
           <y>samples|Output|B</y>
           <interpPointsX>100</interpPointsX>
         </plot>
+        <plot>
+          <type>line</type>
+          <x>samples|Output|Time</x>
+          <y>samples|Output|C</y>
+          <interpPointsX>100</interpPointsX>
+        </plot>
       </plotSettings>
       <actions>
         <title>
-          <text>A,B VARMA</text>
+          <text>A,B,C VARMA</text>
         </title>
         <how>png</how>
       </actions>
@@ -176,10 +216,16 @@
           <y>training|Output|B</y>
           <interpPointsX>100</interpPointsX>
         </plot>
+        <plot>
+          <type>line</type>
+          <x>training|Output|Time</x>
+          <y>training|Output|C</y>
+          <interpPointsX>100</interpPointsX>
+        </plot>
       </plotSettings>
       <actions>
         <title>
-          <text>A,B Original</text>
+          <text>A,B,C Original</text>
         </title>
         <how>png</how>
       </actions>

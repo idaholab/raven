@@ -1,0 +1,16 @@
+[Tests]
+ [./safest_point_pp]
+  type = 'RavenFramework'
+  input = 'test_safest_point.xml'
+  csv = 'SafestPointPP/sfs_pnt_dmp.csv SafestPointPP/lmt_srf_dmp.csv'
+ [../]
+
+
+ [./safest_point_cdf_pp]
+  type = 'RavenFramework'
+  input = 'test_safest_point_cdf.xml'
+  csv = 'SafestPointPP_cdf/sfs_pnt_cdf_dmp.csv SafestPointPP_cdf/lmt_srf_dmp.csv'
+ [../]
+[]
+
+

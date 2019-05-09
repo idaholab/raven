@@ -1,0 +1,15 @@
+<DataObjectMetadata name="stories">
+  <DataSet type="Static">
+    <dims>
+      <out1>time</out1>
+      <out2>time</out2>
+    </dims>
+    <general>
+      <inputs>Gauss1,auxBackupTimeDist,Gauss2,CladFailureDist</inputs>
+      <pointwise_meta>PointProbability,ProbabilityWeight,ProbabilityWeight-CladFailureDist,ProbabilityWeight-Gauss1,ProbabilityWeight-Gauss2,ProbabilityWeight-auxBackupTimeDist,prefix</pointwise_meta>
+      <outputs>out1,out2</outputs>
+      <sampleTag>RAVEN_sample_ID</sampleTag>
+    </general>
+  </DataSet>
+  
+</DataObjectMetadata>

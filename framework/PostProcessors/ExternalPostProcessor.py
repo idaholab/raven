@@ -27,7 +27,7 @@ import copy
 
 #Internal Modules---------------------------------------------------------------
 from .PostProcessor import PostProcessor
-from utils import InputData
+from utils import InputData, utils
 import Files
 import Runners
 #Internal Modules End-----------------------------------------------------------
@@ -97,7 +97,7 @@ class ExternalPostProcessor(PostProcessor):
               + " but multiple inputs are provided!")
       else:
         currentInput = currentInput[-1]
-    assert(hasattr(currentInput, 'type'), "The type is missing for input object! We should always associate a type with it.")
+    assert(hasattr(currentInput, 'type')), "The type is missing for input object! We should always associate a type with it."
     inType = currentInput.type
     if inType in ['PointSet', 'HistorySet']:
       dataSet = currentInput.asDataset()
@@ -230,7 +230,7 @@ class ExternalPostProcessor(PostProcessor):
     ## Evaluate the method and add it to the outputDict, also if the method
     ## adjusts the input data, then you should update it as well.
     warningMessages = []
-    for methodName, (interface, method) in methodMap.iteritems():
+    for methodName, (interface, method) in methodMap.items():
       # The deep copy is needed since the interface postprocesor will change the values of inputDict
       tempInputDict = copy.deepcopy(inputDict)
       outputDict[methodName] = np.atleast_1d(copy.copy(interface.evaluate(method, tempInputDict)))
@@ -257,7 +257,7 @@ class ExternalPostProcessor(PostProcessor):
     # TODO: We assume the structure of input to the external pp is the same as the struture of output to this external pp
     # An interface pp should be used if the user wants to merge two data objects, or change the structures of input data
     # objects.
-    numRlz = len(outputDict.values()[0])
+    numRlz = len(utils.first(outputDict.values()))
     for val in outputDict.values():
       if len(val) != numRlz:
         self.raiseAnError(IOError, "The return results from the external functions have different number of realizations!"

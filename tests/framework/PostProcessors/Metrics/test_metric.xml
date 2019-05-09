@@ -14,7 +14,8 @@
       This test checks the Metric PostProcessor
     </description>
     <revisions>
-      <revision author="wangc" date="2017-12-06">convert to using new data objects</revision>
+        <revision author="wangc" date="2017-12-06">convert to using new data objects</revision>
+        <revision author="wangc" date="2017-11-20">restructure metric system, add time-dependent capability</revision>
     </revisions>
   </TestInfo>
 
@@ -27,15 +28,23 @@
       <Targets type="variable">ans2</Targets>
       <Metric class="Metrics" type="SKL">euclidean</Metric>
       <Metric class="Metrics" type="SKL">euclidean2</Metric>
+      <Metric class="Metrics" type="SKL">cosine</Metric>
+      <Metric class="Metrics" type="SKL">manhattan</Metric>
     </PostProcessor>
   </Models>
   
   <Metrics>
+    <SKL name="cosine">
+        <metricType>paired_distance|cosine</metricType>
+    </SKL>
+    <SKL name="manhattan">
+        <metricType>paired_distance|manhattan</metricType>
+    </SKL>
     <SKL name="euclidean">
-      <metricType>euclidean</metricType>
+      <metricType>paired_distance|euclidean</metricType>
     </SKL>
     <SKL name="euclidean2">
-      <metricType>euclidean</metricType>
+      <metricType>paired_distance|euclidean</metricType>
     </SKL>
   </Metrics>
 

@@ -38,41 +38,83 @@ RAVEN depends heavily on Python, and uses conda to maintain a separate environme
 other Python library installations.  This separate environment is called \texttt{raven\_libraries}.
 
 In order to establish this environment, navigate to \texttt{raven}, then
+\begin{itemize}
+
+  \item \textbf{Any unix-based systems (e.g. Macintosh, Linux, etc.)}:
 \begin{lstlisting}[language=bash]
 cd scripts
-./establish\_conda\_env.sh --install
+./establish_conda_env.sh --install
 \end{lstlisting}
+  \item \textbf{Windows}:
+  \begin{lstlisting}[language=bash]
+cd scripts
+bash.exe establish_conda_env.sh --install
+\end{lstlisting}
+  
+\end{itemize}
 Assure that there are no errors in this process, then continue to compiling RAVEN.
 
 \nb If \texttt{conda} is not installed in the default location, then the path to the conda definitions
 needs to be provided, for example
+
+\begin{itemize}
+
+  \item \textbf{Any unix-based systems (e.g. Macintosh, Linux, etc.)}:
 \begin{lstlisting}[language=bash]
 cd scripts
-./establish\_conda\_env.sh --install --conda-defs /path/to/miniconda2/etc/profile.d/conda.sh
+./establish_conda_env.sh --install
+   --conda-defs /path/to/miniconda3/etc/profile.d/conda.sh
 \end{lstlisting}
+  \item \textbf{Windows}:
+  \begin{lstlisting}[language=bash]
+cd scripts
+bash.exe establish_conda_env.sh --install
+  --conda-defs \path/\to\miniconda3\etc\profile.d\conda.sh
+\end{lstlisting}
+  
+\end{itemize}
+
 replacing \texttt{/path/to} with the install path for \texttt{conda}.
-
-
-
 
 \subsubsection{Compiling RAVEN}
 Once Python libraries are established and the source code present, navigate to \texttt{raven} and run
+
+
+\begin{itemize}
+
+  \item \textbf{Any unix-based systems (e.g. Macintosh, Linux, etc.)}:
 \begin{lstlisting}[language=bash]
 ./build_raven
 \end{lstlisting}
+  \item \textbf{Windows}:
+  \begin{lstlisting}[language=bash]
+bash.exe build_raven
+\end{lstlisting}
+  
+\end{itemize}
+
 This will compile several dependent libraries.  This step has the highest potential for revealing problems in
 the operating system setup, particularly for Windows.  See troubleshooting on the \wiki for help sorting out
 difficulties.
 
 
-
-
 \subsubsection{Testing RAVEN}
 \label{sec:testing raven}
 To test the installation of RAVEN, navigate to \texttt{raven}, then run the command
+
+\begin{itemize}
+
+  \item \textbf{Any unix-based systems (e.g. Macintosh, Linux, etc.)}:
 \begin{lstlisting}[language=bash]
-./run_tests -j2
+../run_tests -j2
 \end{lstlisting}
+  \item \textbf{Windows}:
+  \begin{lstlisting}[language=bash]
+bash.exe ./run_tests -j2
+\end{lstlisting}
+  
+\end{itemize}
+
 where \texttt{-j2} signifies running with 2 processors.  If more processors are available, this can be
 increased, but using all or more than all of the available processes can slow down the testing dramatically.
 This command runs RAVEN's regression tests, analytic tests, and unit tests.  The number of tests changes
@@ -88,12 +130,22 @@ the \wiki.
 \subsubsection{Updating RAVEN}
 RAVEN updates frequently, and new features are added while bugs are fixed on a regular basis.  To update
 RAVEN, navigate to \texttt{raven}, then run the commands
+\begin{itemize}
+
+  \item \textbf{Any unix-based systems (e.g. Macintosh, Linux, etc.)}:
 \begin{lstlisting}[language=bash]
 git pull
 ./scripts/establish_conda_env.sh --install
 ./build_raven
 \end{lstlisting}
-
+  \item \textbf{Windows}:
+  \begin{lstlisting}[language=bash]
+git pull
+bash.exe scripts/establish_conda_env.sh --install
+bash.exe build_raven
+\end{lstlisting}
+  
+\end{itemize}
 
 \subsubsection{In-use Testing}
 

@@ -1,15 +1,29 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
+  <TestInfo>
+    <name>doc/workshop/timeDepDataMining/inputs.KMeansT</name>
+    <author>wangc</author>
+    <created>2018-09-21</created>
+    <classesTested>PostProcessors.DataMining</classesTested>
+    <description>Workshop test: Time dependent data mining with KMeans analysis</description>
+    <revisions>
+      <revision author="wangc" date="2018-09-27">
+        As reported in issue #805, RAVEN will not allow input DataObject of PostProcessor to be output DataObject,
+        the output data object will be renamed, and the variable name of labels will be explicitly defined.
+      </revision>
+    </revisions>
+  </TestInfo>
+
   <RunInfo>
     <WorkingDir>timeSliceKMeans</WorkingDir>
     <Sequence>MCrun,clustering,plot</Sequence>
     <batchSize>100</batchSize>
   </RunInfo>
-  
+
   <Files>
     <Input name="rawDataFile">../SKLearnData/BB_dump.csv</Input>
   </Files>
-  
+
   <Distributions>
     <Normal name="distrib">
       <mean>4</mean>
@@ -34,10 +48,10 @@
       </variable>
     </MonteCarlo>
   </Samplers>
-  
+
   <Models>
     <PostProcessor name="KMeans1" subType="DataMining">
-      <KDD lib="SciKitLearn"  labelFeature="labels">
+      <KDD labelFeature="labels" lib="SciKitLearn">
         <SKLtype>cluster|KMeans</SKLtype>
         <Features>x,y,z</Features>
         <n_clusters>2</n_clusters>
@@ -54,37 +68,37 @@
 
   <Steps>
     <MultiRun name="MCrun" pauseAtEnd="True">
-      <Input          class="DataObjects"   type="PointSet"        >inputPlaceHolder</Input>
-      <Model          class="Models"        type="ExternalModel"   >PythonModule</Model>
-      <Sampler        class="Samplers"      type="MonteCarlo"      >MC_external</Sampler>
-      <Output         class="DataObjects"   type="HistorySet"      >outMC</Output>
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
+      <Model class="Models" type="ExternalModel">PythonModule</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
+      <Output class="DataObjects" type="HistorySet">outMCRaw</Output>
     </MultiRun>
-    <PostProcess name="clustering" pauseAtEnd = "True">
-      <Input          class="DataObjects"   type="HistorySet"      >outMC</Input>
-      <Model          class="Models"        type="PostProcessor"   >KMeans1</Model>
-      <SolutionExport class="DataObjects"   type="HistorySet"      >clusterInfo</SolutionExport>
-      <Output         class="DataObjects"   type="HistorySet"      >outMC</Output>
+    <PostProcess name="clustering" pauseAtEnd="True">
+      <Input class="DataObjects" type="HistorySet">outMCRaw</Input>
+      <Model class="Models" type="PostProcessor">KMeans1</Model>
+      <SolutionExport class="DataObjects" type="HistorySet">clusterInfo</SolutionExport>
+      <Output class="DataObjects" type="HistorySet">outMC</Output>
     </PostProcess>
-    <IOStep name="plot" pauseAtEnd = "True">
-      <Input          class="DataObjects"   type="HistorySet"      >outMC</Input>
-      <Input          class="DataObjects"   type="HistorySet"      >clusterInfo</Input>
-      <Output         class='OutStreams'    type='Print'           >centroid</Output>
-      <Output         class="OutStreams"    type="Plot"            >plotRawData</Output>
-      <Output         class="OutStreams"    type="Plot"            >plotPPDataCentroid</Output>
-      <Output         class="OutStreams"    type="Plot"            >plotRawDataWithLabels</Output>
+    <IOStep name="plot" pauseAtEnd="True">
+      <Input class="DataObjects" type="HistorySet">outMC</Input>
+      <Input class="DataObjects" type="HistorySet">clusterInfo</Input>
+      <Output class="OutStreams" type="Print">centroid</Output>
+      <Output class="OutStreams" type="Plot">plotRawData</Output>
+      <Output class="OutStreams" type="Plot">plotPPDataCentroid</Output>
+      <Output class="OutStreams" type="Plot">plotRawDataWithLabels</Output>
     </IOStep>
   </Steps>
-  
+
   <OutStreams>
-    <Print name='print_outMC'>
+    <Print name="print_outMC">
       <type>csv</type>
       <source>outMC</source>
     </Print>
-    <Print name='centroid'>
+    <Print name="centroid">
       <type>csv</type>
       <source>clusterInfo</source>
     </Print>
-    <Plot  name="plotRawData" overwrite="True" >
+    <Plot name="plotRawData" overwrite="True">
       <plotSettings>
         <plot>
           <type>line</type>
@@ -101,7 +115,7 @@
         <how>png</how>
       </actions>
     </Plot>
-    <Plot  name="plotPPDataLabel" overwrite="True" >
+    <Plot name="plotPPDataLabel" overwrite="True">
       <plotSettings>
         <plot>
           <type>line</type>
@@ -116,7 +130,7 @@
         <how>png</how>
       </actions>
     </Plot>
-    <Plot  name="plotPPDataCentroid" overwrite="True" >
+    <Plot name="plotPPDataCentroid" overwrite="True">
       <plotSettings>
         <plot>
           <type>line</type>
@@ -134,7 +148,7 @@
         <how>png</how>
       </actions>
     </Plot>
-    <Plot  name="plotRawDataWithLabels" overwrite="True" >
+    <Plot name="plotRawDataWithLabels" overwrite="True">
       <plotSettings>
         <plot>
           <type>line</type>
@@ -164,6 +178,10 @@
       <Output>time,x,y,z</Output>
     </HistorySet>
     <HistorySet name="outMC">
+      <Input>x0,y0,z0</Input>
+      <Output>time,x,y,z,labels</Output>
+    </HistorySet>
+    <HistorySet name="outMCRaw">
       <Input>x0,y0,z0</Input>
       <Output>time,x,y,z</Output>
     </HistorySet>

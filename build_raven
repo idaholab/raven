@@ -13,7 +13,7 @@ LIBS_MODE=0 # 0 is "create", 1 is "load"
 #### FUTURE WORK:
 ####   combine "make" and "establish_conda_env.sh" into one installation command
 ECE_ARGS=" "
-
+NO_CONDA=0
 # read arguments
 while test $# -gt 0
 do
@@ -22,7 +22,10 @@ do
        MAKE_ARGS="${MAKE_ARGS} coverage=true graceful=true"
        LIBS_MODE=1
        ;;
-     --jobs) MAKE_ARGS="-j $1 ${MAKE_ARGS}"
+     --jobs) MAKE_ARGS="-j $1 ${MAKE_ARGS}"; ;;
+--skip-conda)
+      NO_CONDA=1
+      LIBS_MODE=2
 #    --help)     ECE_ARGS="${ECE_ARGS} --help"; ;;
 #    --optional) ECE_ARGS="${ECE_ARGS} --optional"; ;;
 #    --no-clean) ECE_ARGS="${ECE_ARGS} --no-clean"; ;;
@@ -38,6 +41,8 @@ do
   shift
 done
 #### END FUTURE WORK
+# export no conda variable
+export NO_CONDA
 
 if [[ $LIBS_MODE == 0 ]]; then
   #### FUTURE WORK:
@@ -59,18 +64,36 @@ if [[ $LIBS_MODE == 0 ]]; then
 
   # clean up to assure library matching
   echo Cleaning old build ...
-  make clean
-
-  # set up hit.cpp so that it has a newer timestamp than hit.pyx
-  touch moose/framework/contrib/hit/hit.cpp
-else
+  ${RAVEN_BUILD_DIR}/clean_raven
+elif  [[ $LIBS_MODE == 1 ]]; then
   echo Establishing Python libraries ...
   . scripts/establish_conda_env.sh --load ${ECE_ARGS}
+else
+  echo No Conda Python libraries ...
 fi
 
 
 echo Making ...
 # make
-make ${MAKE_ARGS}
+
+PYTHON_COMMAND=${PYTHON_COMMAND:=python}
+
+CROW_DIR=${CROW_DIR:=$RAVEN_BUILD_DIR/crow}
+if test ! -e $CROW_DIR/setup.py; then
+    CROW_DIR=$RAVEN_BUILD_DIR/../crow
+fi
+
+unset CXX CC
+
+#Conda sets too old of a MACOSX_DEPLOYMENT_TARGET
+if test `uname` = Darwin; then
+    MACOSX_DEPLOYMENT_TARGET=10.12;
+    export MACOSX_DEPLOYMENT_TARGET;
+fi
+
+(cd $CROW_DIR && ${PYTHON_COMMAND} ./setup.py build_ext build install --install-platlib=./install)
+
+(cd $RAVEN_BUILD_DIR && ${PYTHON_COMMAND} ./setup.py build_ext build install --install-platlib=./framework/contrib/AMSC)
+
 
 echo ... done!

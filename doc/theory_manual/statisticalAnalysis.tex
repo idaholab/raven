@@ -235,3 +235,26 @@ where:
   input space.
 \end{itemize}
 
+\subsection{Normalized Sensitivity Matrix}
+The normalized sensitivity matrix is the matrix of the sensitivity
+coefficients normalized with respect their expected values. This means that this matrix
+represents, in a linear formulation, the p.u. sensitivity coefficients.
+\\ Formally:
+\begin{equation}
+\boldsymbol{\Lambda}= \left ( \boldsymbol{\Sigma}(\boldsymbol{X},\boldsymbol{Y})  vc^{-1}(\boldsymbol{Y}) \right ) \times \frac{\mathbb{E}(\boldsymbol{Y}) }{\mathbb{E}(\boldsymbol{X}) } 
+\end{equation}
+
+where:
+\begin{itemize}
+  \item $vc^{-1}(\boldsymbol{Y})$ is the inverse of the covariance of the
+  input space.
+  \item $\mathbb{E}(\boldsymbol{Y})$ is the expected value of the input space
+  \item $\mathbb{E}(\boldsymbol{X})$ is the expected value of the output space
+\end{itemize}
+
+
+
+
+
+
+

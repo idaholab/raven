@@ -1,33 +1,10 @@
-<data name="Bdump" type="Pointset"><input>x2,x1</input><output>ans</output><inputFilename>Bdump.csv</inputFilename><metadata><SamplerType>array([u'Sparse Grid Collocation', u'Sparse Grid Collocation',
-       u'Sparse Grid Collocation', u'Sparse Grid Collocation',
-       u'Sparse Grid Collocation', u'Sparse Grid Collocation',
-       u'Sparse Grid Collocation', u'Sparse Grid Collocation',
-       u'Sparse Grid Collocation'], 
-      dtype='&lt;U23')</SamplerType><crowDist>array([ {u'x2': '{"scale": 1.0, "beta": 5.0, "low": 0.0, "xMax": 1.0, "xMin": 0.0, "alpha": 2.0, "type": "BetaDistribution"}', u'x1': '{"scale": 1.0, "beta": 5.0, "low": 0.0, "xMax": 1.0, "xMin": 0.0, "alpha": 2.0, "type": "BetaDistribution"}'},
-       {u'x2': '{"scale": 1.0, "beta": 5.0, "low": 0.0, "xMax": 1.0, "xMin": 0.0, "alpha": 2.0, "type": "BetaDistribution"}', u'x1': '{"scale": 1.0, "beta": 5.0, "low": 0.0, "xMax": 1.0, "xMin": 0.0, "alpha": 2.0, "type": "BetaDistribution"}'},
-       {u'x2': '{"scale": 1.0, "beta": 5.0, "low": 0.0, "xMax": 1.0, "xMin": 0.0, "alpha": 2.0, "type": "BetaDistribution"}', u'x1': '{"scale": 1.0, "beta": 5.0, "low": 0.0, "xMax": 1.0, "xMin": 0.0, "alpha": 2.0, "type": "BetaDistribution"}'},
-       {u'x2': '{"scale": 1.0, "beta": 5.0, "low": 0.0, "xMax": 1.0, "xMin": 0.0, "alpha": 2.0, "type": "BetaDistribution"}', u'x1': '{"scale": 1.0, "beta": 5.0, "low": 0.0, "xMax": 1.0, "xMin": 0.0, "alpha": 2.0, "type": "BetaDistribution"}'},
-       {u'x2': '{"scale": 1.0, "beta": 5.0, "low": 0.0, "xMax": 1.0, "xMin": 0.0, "alpha": 2.0, "type": "BetaDistribution"}', u'x1': '{"scale": 1.0, "beta": 5.0, "low": 0.0, "xMax": 1.0, "xMin": 0.0, "alpha": 2.0, "type": "BetaDistribution"}'},
-       {u'x2': '{"scale": 1.0, "beta": 5.0, "low": 0.0, "xMax": 1.0, "xMin": 0.0, "alpha": 2.0, "type": "BetaDistribution"}', u'x1': '{"scale": 1.0, "beta": 5.0, "low": 0.0, "xMax": 1.0, "xMin": 0.0, "alpha": 2.0, "type": "BetaDistribution"}'},
-       {u'x2': '{"scale": 1.0, "beta": 5.0, "low": 0.0, "xMax": 1.0, "xMin": 0.0, "alpha": 2.0, "type": "BetaDistribution"}', u'x1': '{"scale": 1.0, "beta": 5.0, "low": 0.0, "xMax": 1.0, "xMin": 0.0, "alpha": 2.0, "type": "BetaDistribution"}'},
-       {u'x2': '{"scale": 1.0, "beta": 5.0, "low": 0.0, "xMax": 1.0, "xMin": 0.0, "alpha": 2.0, "type": "BetaDistribution"}', u'x1': '{"scale": 1.0, "beta": 5.0, "low": 0.0, "xMax": 1.0, "xMin": 0.0, "alpha": 2.0, "type": "BetaDistribution"}'},
-       {u'x2': '{"scale": 1.0, "beta": 5.0, "low": 0.0, "xMax": 1.0, "xMin": 0.0, "alpha": 2.0, "type": "BetaDistribution"}', u'x1': '{"scale": 1.0, "beta": 5.0, "low": 0.0, "xMax": 1.0, "xMin": 0.0, "alpha": 2.0, "type": "BetaDistribution"}'}], dtype=object)</crowDist><SampledVars>array([{u'x2': 0.63668891202358702, u'x1': 0.63668891202358702},
-       {u'x2': 0.63668891202358702, u'x1': 0.63668891202358702},
-       {u'x2': 0.63668891202358702, u'x1': 0.63668891202358702},
-       {u'x2': 0.63668891202358702, u'x1': 0.63668891202358702},
-       {u'x2': 0.63668891202358702, u'x1': 0.63668891202358702},
-       {u'x2': 0.63668891202358702, u'x1': 0.63668891202358702},
-       {u'x2': 0.63668891202358702, u'x1': 0.63668891202358702},
-       {u'x2': 0.63668891202358702, u'x1': 0.63668891202358702},
-       {u'x2': 0.63668891202358702, u'x1': 0.63668891202358702}], dtype=object)</SampledVars><ProbabilityWeight>array([ 0.637288  ,  0.89527441,  0.17048442,  0.89527441,  1.25769866,
-        0.23949978,  0.17048442,  0.23949978,  0.04560723])</ProbabilityWeight><prefix>array(['1', '2', '3', '4', '5', '6', '7', '8', '9'], 
-      dtype='|S1')</prefix><PointProbability>array([None, None, None, None, None, None, None, None, None], dtype=object)</PointProbability><SampledVarsPb>array([{u'x2': 0.33278454666125573, u'x1': 0.33278454666125573},
-       {u'x2': 0.33278454666125573, u'x1': 0.33278454666125573},
-       {u'x2': 0.33278454666125573, u'x1': 0.33278454666125573},
-       {u'x2': 0.33278454666125573, u'x1': 0.33278454666125573},
-       {u'x2': 0.33278454666125573, u'x1': 0.33278454666125573},
-       {u'x2': 0.33278454666125573, u'x1': 0.33278454666125573},
-       {u'x2': 0.33278454666125573, u'x1': 0.33278454666125573},
-       {u'x2': 0.33278454666125573, u'x1': 0.33278454666125573},
-       {u'x2': 0.33278454666125573, u'x1': 0.33278454666125573}], dtype=object)</SampledVarsPb><PointsProbability>array([ 4.32251946,  3.98210824,  0.69188136,  3.98210824,  3.66850541,
-        0.63739365,  0.69188136,  0.63739365,  0.11074555])</PointsProbability></metadata></data>
+<DataObjectMetadata name="Btests">
+  <DataSet type="Static">
+    <general>
+      <inputs>x1,x2</inputs>
+      <outputs>ans</outputs>
+      <sampleTag>RAVEN_sample_ID</sampleTag>
+    </general>
+  </DataSet>
+  
+</DataObjectMetadata>

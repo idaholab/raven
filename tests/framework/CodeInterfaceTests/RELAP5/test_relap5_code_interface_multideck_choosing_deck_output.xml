@@ -1,0 +1,111 @@
+<?xml version="1.0" ?>
+<Simulation>
+  <TestInfo>
+    <name>framework/CodeInterfaceTests/RELAP5.RELAP5interfaceMultDeckTestChoosingDeckNoExecutable</name>
+    <author>alfoa</author>
+    <created>2016-07-07</created>
+    <classesTested>Models.Code.Relap5</classesTested>
+    <description>
+       An example of using the RELAP5 code interface. This test is aimed to test the mechanics of the interface (no executable), when
+       a multi deck input is used (and needs to be perturbed).
+    </description>
+    <revisions>
+      <revision author="talbpaul" date="2016-09-15">Test updates</revision>
+      <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+    </revisions>
+  </TestInfo>
+  <RunInfo>
+    <WorkingDir>RELAP5interfaceTestMultiDeckChoosingDeck</WorkingDir>
+    <Sequence>testDummyStep</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name="snc01.i" type="">snc01.i</Input>
+    <Input name="tpfh2o" type="">tpfh2o</Input>
+  </Files>
+
+  <Models>
+    <Code name="MyRELAP" subType="Relap5">
+      <executable>
+        <!--  /path/to/relap/executable/relap5.x -->
+        <!-- here we should put the executable. Since we want to test the interface only, it is going to be empty -->
+      </executable>
+      <outputDeckNumber>2</outputDeckNumber>
+    </Code>
+  </Models>
+
+  <Distributions>
+      <Normal name="heat_capacity_154">
+          <mean>44.5</mean>
+          <sigma>0.5</sigma>
+          <lowerBound>40</lowerBound>
+          <upperBound>49</upperBound>
+      </Normal>
+      <Normal name="heat_capacity_155">
+          <mean>45.5</mean>
+          <sigma>0.5</sigma>
+          <lowerBound>41</lowerBound>
+          <upperBound>50</upperBound>
+      </Normal>
+      <Normal name="heat_capacity_156">
+          <mean>41.5</mean>
+          <sigma>0.5</sigma>
+          <lowerBound>37</lowerBound>
+          <upperBound>46</upperBound>
+      </Normal>
+      <Normal name="heat_capacity_157">
+          <mean>42.5</mean>
+          <sigma>0.5</sigma>
+          <lowerBound>28</lowerBound>
+          <upperBound>37</upperBound>
+      </Normal>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="MC_samp">
+      <samplerInit>
+        <limit>5</limit>
+      </samplerInit>
+      <variable name="1|20100154:2">
+        <distribution>heat_capacity_154</distribution>
+      </variable>
+      <variable name="1|20100155:2">
+        <distribution>heat_capacity_155</distribution>
+      </variable>
+      <variable name="1|20100156:2">
+        <distribution>heat_capacity_156</distribution>
+      </variable>
+      <variable name="1|20100157:2">
+        <distribution>heat_capacity_157</distribution>
+      </variable>
+      <variable name="2|20100154:2">
+        <distribution>heat_capacity_154</distribution>
+      </variable>
+      <variable name="2|20100155:2">
+        <distribution>heat_capacity_155</distribution>
+      </variable>
+      <variable name="2|20100156:2">
+        <distribution>heat_capacity_156</distribution>
+      </variable>
+      <variable name="2|20100157:2">
+        <distribution>heat_capacity_157</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="testDummyStep" re-seeding="1">
+      <Input class="Files" type="">snc01.i</Input>
+      <Input class="Files" type="">tpfh2o</Input>
+      <Model class="Models" type="Code">MyRELAP</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MC_samp</Sampler>
+      <Output class="Databases" type="HDF5">DataB_REL5_1</Output>
+    </MultiRun>
+  </Steps>
+
+  <Databases>
+    <HDF5 name="DataB_REL5_1" readMode="overwrite"/>
+  </Databases>
+
+</Simulation>

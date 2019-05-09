@@ -33,6 +33,7 @@ from utils import InputData
 import Files
 import unSupervisedLearning
 import Runners
+import MetricDistributor
 #Internal Modules End-----------------------------------------------------------
 
 class DataMining(PostProcessor):
@@ -84,7 +85,8 @@ class DataMining(PostProcessor):
     sciPyTypeInput = InputData.parameterInputFactory("SCIPYtype", contentType=InputData.StringType)
     kddInput.addSub(sciPyTypeInput)
 
-    for name, inputType in [("Features",InputData.StringType),
+    for name, inputType in [("interactive",InputData.StringType),
+                            ("Features",InputData.StringType),
                             ("n_components",InputData.StringType),
                             ("covariance_type",InputData.StringType),
                             ("random_state",InputData.StringType),
@@ -179,24 +181,15 @@ class DataMining(PostProcessor):
 
     self.requiredAssObject = (True, (['PreProcessor','Metric'], ['-1','-1']))
 
-    self.solutionExport = None                            ## A data object to
-                                                          ## hold derived info
-                                                          ## about the algorithm
-                                                          ## being performed,
-                                                          ## e.g., cluster
-                                                          ## centers or a
-                                                          ## projection matrix
-                                                          ## for dimensionality
-                                                          ## reduction methods
+    self.solutionExport = None  ## A data object to hold derived info about the algorithm being performed,
+                                ## e.g., cluster centers or a projection matrix for dimensionality reduction methods
 
-    self.labelFeature = None                              ## User customizable
-                                                          ## column name for the
-                                                          ## labels associated
-                                                          ## to a clustering or
-                                                          ## a DR algorithm
+    self.labelFeature = None    ## User customizable column name for the labels associated to a clustering or
+                                ## a DR algorithm
 
-    self.PreProcessor = None
-    self.metric = None
+    self.PreProcessor = None    ## Instance of PreProcessor, default is None
+    self.metric = None          ## Instance of Metric, default is None
+    self.pivotParameter = None  ## default pivotParameter for HistorySet
 
   def _localWhatDoINeed(self):
     """
@@ -223,10 +216,8 @@ class DataMining(PostProcessor):
     """
     dataSet = currentInput.asDataset()
     inputDict = {'Features': {}, 'parameters': {}, 'Labels': {}, 'metadata': {}}
-    if self.pivotParameter is None and self.metric is not None:
-      if not hasattr(self.metric, 'pivotParameter'):
-        self.raiseAnError(IOError, 'HistorySet is provided as input, but this post-processor ', self.name, ' can not handle it!')
-      self.pivotParameter = self.metric.pivotParameter
+    if self.pivotParameter is None:
+      self.pivotParameter = currentInput.indexes[-1]
     if self.PreProcessor is None and self.metric is None:
       if not currentInput.checkIndexAlignment(indexesToCheck=self.pivotParameter):
         self.raiseAnError(IOError, "The data provided by the DataObject ", currentInput.name, " is not synchronized!")
@@ -432,7 +423,7 @@ class DataMining(PostProcessor):
           ## put all of the information and then to remove the ones we process.
           ## - dpm 6/8/16
           self.initializationOptionDict[child.getName()] = {}
-          for key,value in child.parameterValues.iteritems():
+          for key,value in child.parameterValues.items():
             if key == 'lib':
               self.type = value
             elif key == 'labelFeature':
@@ -480,6 +471,10 @@ class DataMining(PostProcessor):
       @ InOut, outputObject, dataObjects, A reference to an object where we want
         to place our computed results
     """
+    if len(outputObject) !=0:
+      self.raiseAnError(IOError,"There is some information already stored in the DataObject",outputObject.name, \
+              "the calculations from PostProcessor",self.name, " can not be stored in this DataObject!", \
+              "Please provide a new empty DataObject for this PostProcessor!")
     ## When does this actually happen?
     evaluation = finishedJob.getEvaluation()
     if isinstance(evaluation, Runners.Error):
@@ -490,64 +485,45 @@ class DataMining(PostProcessor):
     inputObject = inputObject[0]
     ## Store everything we cannot wrangle from the input data object and the
     ## result of the dataMineDict
-    missingKeys = []
+    ## We will explicitly copy everything from the input data object to the output data object.
     ############################################################################
-    ## If the input data object is different from the output data object, we
-    ## need to explicitly copy everything over that the user requests from the
-    ## input object
-    if inputObject != outputObject:
-      if inputObject.type != outputObject.type:
-        self.raiseAnError(IOError, 'The type of output data object ', outputObject.name, ' is not consistent with the type of input data object ', self.inputObject, '! Please check your input file')
-      rlzs = {}
-      inputData = inputObject.asDataset()
-      ## First copy any data you need from the input object
-      ## before adding new data
-      for key in outputObject.getVars('Input')+outputObject.getVars('Output'):
-        if key in inputObject.getVars('Input') + inputObject.getVars('Output'):
-          rlzs[key] = copy.deepcopy(inputObject.getVarValues(key).values)
-        else:
-          missingKeys.append(key)
-      if outputObject.type == 'PointSet':
-        outputObject.load(rlzs, style='dict')
-      elif outputObject.type == 'HistorySet':
-        rlzs[self.pivotParameter] = np.atleast_1d(self.pivotVariable)
-        outputObject.load(rlzs, style='dict', dims=inputObject.getDimensions())
-      else:
-        self.raiseAnError(IOError, 'Unrecognized type for output data object ', outputObject.name, '! Available type are HistorySet or PointSet!')
-    ## End data copy
-    ############################################################################
+    if inputObject.type != outputObject.type:
+      self.raiseAnError(IOError,"The type of output DataObject",outputObject.name,"is not consistent with input",\
+              "DataObject type, i.e. ",outputObject.type,"!=",inputObject.type)
+    rlzs = {}
+    # first create a new dataset from copying input data object
+    dataset = inputObject.asDataset().copy(deep=True)
+    sampleTag = inputObject.sampleTag
+    sampleCoord = dataset[sampleTag].values
+    availVars = dataset.data_vars.keys()
+    # update variable values if the values in the dataset are different from the values in the dataMineDict
+    # dataMineDict stores all the information generated by the datamining algorithm
+    if outputObject.type == 'PointSet':
+      for key,value in dataMineDict['outputs'].items():
+        if key in availVars and not np.array_equal(value,dataset[key].values):
+          newDA = xr.DataArray(value,dims=(sampleTag),coords={sampleTag:sampleCoord})
+          dataset = dataset.drop(key)
+          dataset[key] = newDA
+        elif key not in availVars:
+          newDA = xr.DataArray(value,dims=(sampleTag),coords={sampleTag:sampleCoord})
+          dataset[key] = newDA
+    elif outputObject.type == 'HistorySet':
+      for key,values in dataMineDict['outputs'].items():
+        if key not in availVars:
+          expDict = {}
+          for index, value in enumerate(values):
+            timeLength = len(self.pivotVariable[index])
+            arrayBase = value * np.ones(timeLength)
+            xrArray = xr.DataArray(arrayBase,dims=(self.pivotParameter), coords=[self.pivotVariable[index]])
+            expDict[sampleCoord[index]] = xrArray
+          ds = xr.Dataset(data_vars=expDict)
+          ds = ds.to_array().rename({'variable':sampleTag})
+          dataset[key] = ds
+    else:
+      self.raiseAnError(IOError, 'Unrecognized type for output data object ', outputObject.name, \
+              '! Available type are HistorySet or PointSet!')
 
-    ############################################################################
-    ## Now augment the DataObject by adding the computed labels and/or
-    ## transformed coordinates aka the new columns added to the DataObject
-    for key in dataMineDict['outputs']:
-      if key in missingKeys:
-        missingKeys.remove(key)
-      for param in outputObject.getVars('output'):
-        if key == param:
-          outputObject.remove(variable=key)
-      if outputObject.type == 'PointSet':
-        outputObject.addVariable(key, copy.copy(dataMineDict['outputs'][key]),classify='output')
-      elif outputObject.type == 'HistorySet':
-        expValues = np.zeros(len(outputObject), dtype=object)
-        values = dataMineDict['outputs'][key]
-        for index, value in enumerate(values):
-          timeLength = len(self.pivotVariable[index])
-          arrayBase = value * np.ones(timeLength)
-          xrArray = xr.DataArray(arrayBase,dims=(self.pivotParameter), coords=[self.pivotVariable[index]])
-          expValues[index] = xrArray
-        outputObject.addVariable(key, expValues,classify='output')
-    ## End data augmentation
-    ############################################################################
-
-    if len(missingKeys) > 0:
-      missingKeys = ','.join(missingKeys)
-      self.raiseAWarning("The {} \"{}\" used as an output specifies the "
-                           "following inputs/outputs that could not be resolved "
-                           "by the \"{}\" {}: {}".format(outputObject.type,
-                                                         outputObject.name,
-                                                         self.name, "Model",
-                                                         missingKeys))
+    outputObject.load(dataset,style='dataset')
 
   def run(self, inputIn):
     """
@@ -575,6 +551,16 @@ class DataMining(PostProcessor):
     """
     pass
 
+  def __adjustFeatures(self, features):
+    """
+      If the features are the output, then they need to be listed
+      @ In, features, dict, dictionary of the features
+      @ Out, None
+    """
+    if self.unSupervisedEngine.features == ['output']:
+      self.unSupervisedEngine.features = sorted(features)
+    assert set(self.unSupervisedEngine.features) == set(features)
+
   def __runSciKitLearn(self, Input):
     """
       This method executes the postprocessor action. In this case it loads the
@@ -582,9 +568,12 @@ class DataMining(PostProcessor):
       @ In, Input, dict, dictionary of data to process
       @ Out, outputDict, dict, dictionary containing the post-processed results
     """
-    self.unSupervisedEngine.features = Input['Features']
+    self.__adjustFeatures(Input['Features'])
     if not self.unSupervisedEngine.amITrained:
-      self.unSupervisedEngine.train(Input['Features'], self.metric)
+      metric = None
+      if self.metric is not None:
+        metric = MetricDistributor.returnInstance('MetricDistributor', self.metric, self)
+      self.unSupervisedEngine.train(Input['Features'], metric)
     self.unSupervisedEngine.confidence()
     self.userInteraction()
     outputDict = self.unSupervisedEngine.outputDict
@@ -612,7 +601,7 @@ class DataMining(PostProcessor):
           rlzs = {}
           if self.PreProcessor is None:
             rlzs[self.labelFeature] = np.atleast_1d(indices)
-            for i, key in enumerate(self.unSupervisedEngine.features.keys()):
+            for i, key in enumerate(self.unSupervisedEngine.features):
               ## FIXME: Can I be sure of the order of dimensions in the features dict, is
               ## the same order as the data held in the UnSupervisedLearning object?
               rlzs[key] = np.atleast_1d(centers[:,i])
@@ -657,7 +646,7 @@ class DataMining(PostProcessor):
         rlzs = {}
         additionalOutput = {}
         rlzs[self.labelFeature] = np.atleast_1d(indices)
-        for i, key in enumerate(self.unSupervisedEngine.features.keys()):
+        for i, key in enumerate(self.unSupervisedEngine.features):
           ## Can I be sure of the order of dimensions in the features dict, is
           ## the same order as the data held in the UnSupervisedLearning
           ## object?
@@ -665,7 +654,7 @@ class DataMining(PostProcessor):
           ##FIXME: You may also want to output the covariances of each pair of
           ## dimensions as well, this is currently only accessible from the solution export metadata
           ## We should list the variables name the solution export in order to access this data
-          for joffset,col in enumerate(self.unSupervisedEngine.features.keys()[i:]):
+          for joffset,col in enumerate(list(self.unSupervisedEngine.features)[i:]):
             j = i+joffset
             covValues = mixtureCovars[:,i,j]
             covName = 'cov_'+str(key)+'_'+str(col)
@@ -685,7 +674,7 @@ class DataMining(PostProcessor):
           components = solutionExportDict['components']
           indices = list(range(1, len(components)+1))
           rlzs[self.labelFeature] = np.atleast_1d(indices)
-          for keyIndex, key in enumerate(self.unSupervisedEngine.features.keys()):
+          for keyIndex, key in enumerate(self.unSupervisedEngine.features):
             rlzs[key] = np.atleast_1d(components[:,keyIndex])
         self.solutionExport.load(rlzs, style='dict')
         # FIXME: I think the user need to specify the following word in the solution export data object
@@ -720,15 +709,6 @@ class DataMining(PostProcessor):
       self.raiseAnError(RuntimeError, 'Bicluster has not yet been implemented.')
 
     ## Rename the algorithm output to point to the user-defined label feature
-    # if 'labels' in outputDict:
-    #   outputDict['outputs'][self.labelFeature] = outputDict['outputs'].pop('labels')
-    # elif 'embeddingVectors' in outputDict['outputs']:
-    #   transformedData = outputDict['outputs'].pop('embeddingVectors')
-    #   reducedDimensionality = transformedData.shape[1]
-
-    #   for i in range(reducedDimensionality):
-    #     newColumnName = self.labelFeature + str(i + 1)
-    #     outputDict['outputs'][newColumnName] =  transformedData[:, i]
 
     if 'labels' in self.unSupervisedEngine.outputDict['outputs'].keys():
       labels = np.zeros(shape=(numberOfSample,numberOfHistoryStep))
@@ -737,7 +717,7 @@ class DataMining(PostProcessor):
       outputDict['outputs'][self.labelFeature] = labels
     elif 'embeddingVectors' in outputDict['outputs']:
       transformedData = outputDict['outputs'].pop('embeddingVectors')
-      reducedDimensionality = transformedData.values()[0].shape[1]
+      reducedDimensionality = utils.first(transformedData.values()).shape[1]
 
       for i in range(reducedDimensionality):
         dimensionI = np.zeros(shape=(numberOfSample,numberOfHistoryStep))
@@ -826,7 +806,7 @@ class DataMining(PostProcessor):
         rlzDims = {}
         rlzs = {}
         ## First store the label as the input for this cluster
-        mixLabels = range(int(np.max(componentMeanIndices.values()))+1)
+        mixLabels = range(int(np.max(list(componentMeanIndices.values())))+1)
         rlzs[self.labelFeature] = np.atleast_1d(mixLabels)
         rlzs[self.pivotParameter] = self.pivotVariable
         for rlzIndex in mixLabels:
@@ -857,7 +837,7 @@ class DataMining(PostProcessor):
           ## dimensions as well
           if mixtureCovars is not None:
             for i,row in enumerate(self.unSupervisedEngine.features.keys()):
-              for joffset,col in enumerate(self.unSupervisedEngine.features.keys()[i:]):
+              for joffset,col in enumerate(list(self.unSupervisedEngine.features.keys())[i:]):
                 j = i+joffset
                 timeSeries = np.zeros(numberOfHistoryStep)
                 for timeIdx in range(numberOfHistoryStep):

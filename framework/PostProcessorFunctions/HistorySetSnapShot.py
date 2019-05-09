@@ -34,7 +34,8 @@ class HistorySetSnapShot(PostProcessorInterfaceBase):
   """
     This Post-Processor performs the conversion from HistorySet to PointSet
     The conversion is made so that each history H is converted to a single point P.
-    Assume that each history H is a dict of n output variables x_1=[...],x_n=[...], then the resulting point P can be as follows accordingly to the specified type:
+    Assume that each history H is a dict of n output variables x_1=[...],x_n=[...],
+    then the resulting point P can be as follows accordingly to the specified type:
      - type = timeSlice: at time instant t: P=[x_1[t],...,x_n[t]]
      - type = min, max, average, value
   """

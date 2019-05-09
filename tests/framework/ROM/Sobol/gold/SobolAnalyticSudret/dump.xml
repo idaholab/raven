@@ -1,99 +1,49 @@
-<data name="dump" type="Pointset"><input>x2,x3,x1</input><output>ans</output><inputFilename>dump.csv</inputFilename><metadata><SamplerType>array([u'Sparse Grids for Sobol', u'Sparse Grids for Sobol',
-       u'Sparse Grids for Sobol', u'Sparse Grids for Sobol',
-       u'Sparse Grids for Sobol', u'Sparse Grids for Sobol',
-       u'Sparse Grids for Sobol', u'Sparse Grids for Sobol',
-       u'Sparse Grids for Sobol', u'Sparse Grids for Sobol',
-       u'Sparse Grids for Sobol', u'Sparse Grids for Sobol',
-       u'Sparse Grids for Sobol', u'Sparse Grids for Sobol',
-       u'Sparse Grids for Sobol', u'Sparse Grids for Sobol',
-       u'Sparse Grids for Sobol', u'Sparse Grids for Sobol',
-       u'Sparse Grids for Sobol', u'Sparse Grids for Sobol',
-       u'Sparse Grids for Sobol', u'Sparse Grids for Sobol',
-       u'Sparse Grids for Sobol', u'Sparse Grids for Sobol',
-       u'Sparse Grids for Sobol', u'Sparse Grids for Sobol',
-       u'Sparse Grids for Sobol'], 
-      dtype='&lt;U22')</SamplerType><crowDist>array([ {u'x2': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}', u'x3': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}', u'x1': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}'},
-       {u'x2': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}', u'x3': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}', u'x1': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}'},
-       {u'x2': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}', u'x3': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}', u'x1': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}'},
-       {u'x2': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}', u'x3': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}', u'x1': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}'},
-       {u'x2': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}', u'x3': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}', u'x1': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}'},
-       {u'x2': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}', u'x3': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}', u'x1': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}'},
-       {u'x2': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}', u'x3': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}', u'x1': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}'},
-       {u'x2': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}', u'x3': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}', u'x1': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}'},
-       {u'x2': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}', u'x3': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}', u'x1': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}'},
-       {u'x2': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}', u'x3': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}', u'x1': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}'},
-       {u'x2': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}', u'x3': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}', u'x1': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}'},
-       {u'x2': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}', u'x3': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}', u'x1': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}'},
-       {u'x2': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}', u'x3': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}', u'x1': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}'},
-       {u'x2': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}', u'x3': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}', u'x1': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}'},
-       {u'x2': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}', u'x3': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}', u'x1': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}'},
-       {u'x2': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}', u'x3': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}', u'x1': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}'},
-       {u'x2': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}', u'x3': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}', u'x1': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}'},
-       {u'x2': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}', u'x3': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}', u'x1': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}'},
-       {u'x2': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}', u'x3': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}', u'x1': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}'},
-       {u'x2': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}', u'x3': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}', u'x1': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}'},
-       {u'x2': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}', u'x3': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}', u'x1': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}'},
-       {u'x2': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}', u'x3': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}', u'x1': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}'},
-       {u'x2': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}', u'x3': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}', u'x1': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}'},
-       {u'x2': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}', u'x3': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}', u'x1': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}'},
-       {u'x2': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}', u'x3': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}', u'x1': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}'},
-       {u'x2': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}', u'x3': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}', u'x1': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}'},
-       {u'x2': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}', u'x3': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}', u'x1': '{"xMin": 0.0, "type": "UniformDistribution", "xMax": 1.0}'}], dtype=object)</crowDist><SampledVars>array([{u'x2': 0.5, u'x3': 0.5, u'x1': 0.5},
-       {u'x2': 0.11270166537925852, u'x3': 0.11270166537925852, u'x1': 0.11270166537925852},
-       {u'x2': 0.11270166537925852, u'x3': 0.5, u'x1': 0.11270166537925852},
-       {u'x2': 0.11270166537925852, u'x3': 0.88729833462074148, u'x1': 0.11270166537925852},
-       {u'x2': 0.5, u'x3': 0.11270166537925852, u'x1': 0.11270166537925852},
-       {u'x2': 0.5, u'x3': 0.5, u'x1': 0.11270166537925852},
-       {u'x2': 0.5, u'x3': 0.88729833462074148, u'x1': 0.11270166537925852},
-       {u'x2': 0.88729833462074148, u'x3': 0.11270166537925852, u'x1': 0.11270166537925852},
-       {u'x2': 0.88729833462074148, u'x3': 0.5, u'x1': 0.11270166537925852},
-       {u'x2': 0.88729833462074148, u'x3': 0.88729833462074148, u'x1': 0.11270166537925852},
-       {u'x2': 0.11270166537925852, u'x3': 0.11270166537925852, u'x1': 0.5},
-       {u'x2': 0.11270166537925852, u'x3': 0.5, u'x1': 0.5},
-       {u'x2': 0.11270166537925852, u'x3': 0.88729833462074148, u'x1': 0.5},
-       {u'x2': 0.5, u'x3': 0.11270166537925852, u'x1': 0.5},
-       {u'x2': 0.5, u'x3': 0.88729833462074148, u'x1': 0.5},
-       {u'x2': 0.88729833462074148, u'x3': 0.11270166537925852, u'x1': 0.5},
-       {u'x2': 0.88729833462074148, u'x3': 0.5, u'x1': 0.5},
-       {u'x2': 0.88729833462074148, u'x3': 0.88729833462074148, u'x1': 0.5},
-       {u'x2': 0.11270166537925852, u'x3': 0.11270166537925852, u'x1': 0.88729833462074148},
-       {u'x2': 0.11270166537925852, u'x3': 0.5, u'x1': 0.88729833462074148},
-       {u'x2': 0.11270166537925852, u'x3': 0.88729833462074148, u'x1': 0.88729833462074148},
-       {u'x2': 0.5, u'x3': 0.11270166537925852, u'x1': 0.88729833462074148},
-       {u'x2': 0.5, u'x3': 0.5, u'x1': 0.88729833462074148},
-       {u'x2': 0.5, u'x3': 0.88729833462074148, u'x1': 0.88729833462074148},
-       {u'x2': 0.88729833462074148, u'x3': 0.11270166537925852, u'x1': 0.88729833462074148},
-       {u'x2': 0.88729833462074148, u'x3': 0.5, u'x1': 0.88729833462074148},
-       {u'x2': 0.88729833462074148, u'x3': 0.88729833462074148, u'x1': 0.88729833462074148}], dtype=object)</SampledVars><ProbabilityWeight-x2>array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,
-        1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.])</ProbabilityWeight-x2><ProbabilityWeight-x3>array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,
-        1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.])</ProbabilityWeight-x3><prefix>array(['1', '2', '3', '4', '5', '6', '7', '8', '9', '1', '1', '1', '1',
-       '1', '1', '1', '1', '1', '1', '2', '2', '2', '2', '2', '2', '2', '2'], 
-      dtype='|S1')</prefix><ProbabilityWeight-x1>array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,
-        1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.])</ProbabilityWeight-x1><SampledVarsPb>array([{u'x2': 1.0, u'x3': 1.0, u'x1': 1.0},
-       {u'x2': 1.0, u'x3': 1.0, u'x1': 1.0},
-       {u'x2': 1.0, u'x3': 1.0, u'x1': 1.0},
-       {u'x2': 1.0, u'x3': 1.0, u'x1': 1.0},
-       {u'x2': 1.0, u'x3': 1.0, u'x1': 1.0},
-       {u'x2': 1.0, u'x3': 1.0, u'x1': 1.0},
-       {u'x2': 1.0, u'x3': 1.0, u'x1': 1.0},
-       {u'x2': 1.0, u'x3': 1.0, u'x1': 1.0},
-       {u'x2': 1.0, u'x3': 1.0, u'x1': 1.0},
-       {u'x2': 1.0, u'x3': 1.0, u'x1': 1.0},
-       {u'x2': 1.0, u'x3': 1.0, u'x1': 1.0},
-       {u'x2': 1.0, u'x3': 1.0, u'x1': 1.0},
-       {u'x2': 1.0, u'x3': 1.0, u'x1': 1.0},
-       {u'x2': 1.0, u'x3': 1.0, u'x1': 1.0},
-       {u'x2': 1.0, u'x3': 1.0, u'x1': 1.0},
-       {u'x2': 1.0, u'x3': 1.0, u'x1': 1.0},
-       {u'x2': 1.0, u'x3': 1.0, u'x1': 1.0},
-       {u'x2': 1.0, u'x3': 1.0, u'x1': 1.0},
-       {u'x2': 1.0, u'x3': 1.0, u'x1': 1.0},
-       {u'x2': 1.0, u'x3': 1.0, u'x1': 1.0},
-       {u'x2': 1.0, u'x3': 1.0, u'x1': 1.0},
-       {u'x2': 1.0, u'x3': 1.0, u'x1': 1.0},
-       {u'x2': 1.0, u'x3': 1.0, u'x1': 1.0},
-       {u'x2': 1.0, u'x3': 1.0, u'x1': 1.0},
-       {u'x2': 1.0, u'x3': 1.0, u'x1': 1.0},
-       {u'x2': 1.0, u'x3': 1.0, u'x1': 1.0},
-       {u'x2': 1.0, u'x3': 1.0, u'x1': 1.0}], dtype=object)</SampledVarsPb><PointProbability>array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,
-        1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.])</PointProbability></metadata></data>
+<DataObjectMetadata name="solns">
+  <rom type="Static">
+    <ROM>
+      <type>HDMR_ROM(ans)</type>
+    </ROM>
+    <ans>
+      <mean>1.0</mean>
+      <expectedValue>1.0</expectedValue>
+      <variance>0.728</variance>
+      <samples>27</samples>
+      <partialVariance>
+        <x1>0.2</x1>
+        <x2>0.2</x2>
+        <x3>0.2</x3>
+        <x1.x2>0.04</x1.x2>
+        <x1.x3>0.04</x1.x3>
+        <x2.x3>0.04</x2.x3>
+        <x1.x2.x3>0.008</x1.x2.x3>
+      </partialVariance>
+      <sobolIndices>
+        <x1>0.274725274725</x1>
+        <x2>0.274725274725</x2>
+        <x3>0.274725274725</x3>
+        <x1.x2>0.0549450549451</x1.x2>
+        <x1.x3>0.0549450549451</x1.x3>
+        <x2.x3>0.0549450549451</x2.x3>
+        <x1.x2.x3>0.010989010989</x1.x2.x3>
+      </sobolIndices>
+      <sobolTotalIndices>
+        <x1>0.395604395604</x1>
+        <x2>0.395604395604</x2>
+        <x3>0.395604395604</x3>
+        <x1.x2>0.0659340659341</x1.x2>
+        <x1.x3>0.0659340659341</x1.x3>
+        <x2.x3>0.0659340659341</x2.x3>
+        <x1.x2.x3>0.010989010989</x1.x2.x3>
+      </sobolTotalIndices>
+    </ans>
+  </rom>
+  
+  <DataSet type="Static">
+    <general>
+      <inputs>x1,x2,x3</inputs>
+      <outputs>ans</outputs>
+      <sampleTag>RAVEN_sample_ID</sampleTag>
+    </general>
+  </DataSet>
+  
+</DataObjectMetadata>

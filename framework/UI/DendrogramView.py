@@ -376,7 +376,7 @@ class DendrogramView(ZoomableGraphicsView,BaseHierarchicalView):
       @ Out, None
     """
     selectedKeys = []
-    for key,graphic in self.nodes.iteritems():
+    for key,graphic in self.nodes.items():
       if graphic in self.scene().selectedItems():
         selectedKeys.append(key)
     # self.tree.SetSelection(selectedKeys)
@@ -421,7 +421,7 @@ class DendrogramView(ZoomableGraphicsView,BaseHierarchicalView):
     # self.scene().selectionChanged.disconnect(self.select)
 
     # selectedKeys = self.segmentation.selectedSegments
-    # for key,graphic in self.nodes.iteritems():
+    # for key,graphic in self.nodes.items():
     #   if key in selectedKeys:
     #     graphic.setSelected(True)
     #   else:

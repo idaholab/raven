@@ -1,10 +1,5 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
-  <RunInfo>
-    <WorkingDir>Adaptive</WorkingDir>
-    <Sequence>make,train,print,print2</Sequence>
-    <batchSize>1</batchSize>
-  </RunInfo>
   <TestInfo>
     <name>framework/pca_adaptive_sgc/test_adaptive_sgc_pca_analytic</name>
     <author>wangc</author>
@@ -13,8 +8,16 @@
     <description>
       Tests use of the PCA method for adaptive sparse grids on polynomial models.
     </description>
+    <revisions>
+      <revision author="talbpaul" date="2019-01-08">moved from ROM-File to ROM-DataObject</revision>
+    </revisions>
   </TestInfo>
 
+  <RunInfo>
+    <WorkingDir>Adaptive</WorkingDir>
+    <Sequence>make,train,rom_data,print</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
   <Steps>
     <MultiRun name="make" sleepTime="1e-4" verbosity="silent">
       <Input class="DataObjects" type="PointSet">dummyIN</Input>
@@ -22,13 +25,15 @@
       <Sampler class="Samplers" type="AdaptiveSparseGrid">SG</Sampler>
       <Output class="DataObjects" type="PointSet">solns</Output>
     </MultiRun>
-    <IOStep name="print" verbosity="silent">
+    <IOStep name="rom_data" verbosity="silent">
       <Input class="Models" type="ROM">rom</Input>
-      <Output class="OutStreams" type="Print">dump</Output>
+      <Output class="DataObjects" type="DataSet">rom_data</Output>
     </IOStep>
-    <IOStep name="print2" verbosity="silent">
+    <IOStep name="print" verbosity="silent">
       <Input class="DataObjects" type="PointSet">solns</Input>
+      <Input class="DataObjects" type="DataSet">rom_data</Input>
       <Output class="OutStreams" type="Print">data</Output>
+      <Output class="OutStreams" type="Print">dump</Output>
     </IOStep>
     <RomTrainer name="train" verbosity="silent">
       <Input class="DataObjects" type="PointSet">solns</Input>
@@ -90,14 +95,13 @@
       <Input>x1,x2,y1,y2</Input>
       <Output>ans,ans2</Output>
     </PointSet>
+    <DataSet name="rom_data"/>
   </DataObjects>
 
   <OutStreams>
     <Print name="dump" verbosity="silent">
-      <type>xml</type>
-      <source>rom</source>
-      <what>all</what>
-      <target>all</target>
+      <type>csv</type>
+      <source>rom_data</source>
     </Print>
     <Print name="data" verbosity="silent">
       <type>csv</type>
