@@ -287,7 +287,6 @@ class EnsembleModel(Dummy):
       for inFile, used in checkDictInputsUsage.items():
         if not used:
           unusedFiles+= " "+inFile.name
-      # Why is this an error? It breaks runs for the sake of a placeholder.
       self.raiseAnError(IOError, "The following inputs specified in the Step are not used in the EnsembleModel: "+unusedFiles)
     # construct chain connections
     modelsToOutputModels  = dict.fromkeys(self.modelsDictionary.keys(),None)
