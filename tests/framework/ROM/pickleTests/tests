@@ -16,12 +16,12 @@
     type = 'RavenErrors'
     input = 'untrained_error.xml'
     expect_err = 'RuntimeError: Pickled rom "UROM" was not trained!'
-    python3_only = true 
   [../]
   [./loadNotROMError]
     type = 'RavenErrors'
     input = 'not_a_rom_error.xml'
     expect_err = 'RuntimeError: Pickled object in'
+    python3_only = true
   [../]
   [./test_external_pickled]
     type = 'RavenPython'
