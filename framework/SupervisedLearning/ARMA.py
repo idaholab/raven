@@ -51,7 +51,7 @@ class ARMA(supervisedLearning):
     ARMA series X: x_t = \sum_{i=1}^P \phi_i*x_{t-i} + \alpha_t + \sum_{j=1}^Q \theta_j*\alpha_{t-j}
   """
   ### INHERITED METHODS ###
-  def __init__(self,messageHandler,**kwargs):
+  def __init__(self, messageHandler, **kwargs):
     """
       A constructor that will appropriately intialize a supervised learning object
       @ In, messageHandler: a MessageHandler object in charge of raising errors,
