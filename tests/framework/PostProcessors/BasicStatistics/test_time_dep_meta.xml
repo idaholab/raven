@@ -142,7 +142,6 @@
       <Output class="DataObjects" type="HistorySet">SET_Back_to_MASTER</Output>
     </PostProcess>
 
-
     <IOStep name="Back_to_MASTER">
       <Input class="DataObjects" type="HistorySet">SET_Back_to_MASTER</Input>
       <Output class="OutStreams" type="Print">Back_to_MASTER</Output>

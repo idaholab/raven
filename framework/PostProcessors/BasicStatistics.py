@@ -274,9 +274,9 @@ class BasicStatistics(PostProcessor):
         metaParams = {key:[self.pivotParameter] for key in outputMetaKeys}
     else:
       if len(outputMetaKeys) > 0:
-        params = {key:[self.pivotParameter,self.steMetaIndex] for key in outputMetaKeys}
+        params = {key:[self.pivotParameter,self.steMetaIndex] for key in outputMetaKeys + inputMetaKeys}
         metaParams.update(params)
-      if len(inputMetaKeys) > 0:
+      elif len(inputMetaKeys) > 0:
         params = {key:[self.steMetaIndex] for key in inputMetaKeys}
         metaParams.update(params)
     metaKeys = inputMetaKeys + outputMetaKeys
