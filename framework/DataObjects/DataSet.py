@@ -112,20 +112,21 @@ class DataSet(DataObject):
       @ In, keys, set(str), keys to register
       @ In, params, dict, optional, {key:[indexes]}, keys of the dictionary are the variable names,
         values of the dictionary are lists of the corresponding indexes/coordinates of given variable
-      @ Out, None
+      @ Out, keys, list(str), extra keys that has been registered
     """
     # TODO add option to skip parts of meta if user wants to
     # remove already existing keys
     keys = list(key for key in keys if key not in self.getVars()+self.indexes)
     # if no new meta, move along
     if len(keys) == 0:
-      return
+      return keys
     # CANNOT add expected meta after samples are started
     assert(self._data is None)
     assert(self._collector is None or len(self._collector) == 0)
     self._metavars.extend(keys)
     self._orderedVars.extend(keys)
     self.setPivotParams(params)
+    return keys
 
   def addMeta(self, tag, xmlDict = None, node = None):
     """
@@ -972,7 +973,7 @@ class DataSet(DataObject):
       # determine dimensions for each variable
       dimsMeta = {}
       for name, var in new.variables.items():
-        if name not in self._inputs + self._outputs:
+        if name not in self._inputs + self._outputs + self._metavars:
           continue
         dims = list(var.dims)
         # don't list if only entry is sampleTag
@@ -1554,8 +1555,12 @@ class DataSet(DataObject):
       dims = meta.get('pivotParams',{})
       if len(dims)>0:
         self.setPivotParams(dims)
+      # vector metavars is also stored in 'DataSet/dims' node
+      metavars = meta.get('metavars',[])
+      # get dict of vector metavars
+      params = {key:val for key, val in dims.items() if key in metavars}
       # add metadata, so we get probability weights and etc
-      self.addExpectedMeta(meta.get('metavars',[]))
+      self.addExpectedMeta(metavars,params)
       # check all variables desired are available
       provided = set(meta.get('inputs',[])+meta.get('outputs',[])+meta.get('metavars',[]))
     # otherwise, if we have no meta XML to load from, infer what we can from the CSV, which is only the available variables.

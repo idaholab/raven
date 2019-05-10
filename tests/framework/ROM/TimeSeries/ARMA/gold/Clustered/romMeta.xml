@@ -1,5 +1,12 @@
 <DataObjectMetadata name="romMeta">
   <DataSet type="Static">
+    <dims>
+      <ClusterLabels>segment_number</ClusterLabels>
+      <seg_Time_end>segment_number</seg_Time_end>
+      <seg_Time_start>segment_number</seg_Time_start>
+      <seg_index_end>segment_number</seg_index_end>
+      <seg_index_start>segment_number</seg_index_start>
+    </dims>
     <general>
       <pointwise_meta>ClusterFeature|Signal|Fourier|3.0_amp|scaled,ClusterFeature|Signal|Fourier|3.0_amp|unscaled,ClusterFeature|Signal|Fourier|3.0_phase|scaled,ClusterFeature|Signal|Fourier|3.0_phase|unscaled,ClusterFeature|Signal|Fourier|5.0_amp|scaled,ClusterFeature|Signal|Fourier|5.0_amp|unscaled,ClusterFeature|Signal|Fourier|5.0_phase|scaled,ClusterFeature|Signal|Fourier|5.0_phase|unscaled,ClusterFeature|Signal|arma|std|scaled,ClusterFeature|Signal|arma|std|unscaled,ClusterFeature|Signal|global|mean|scaled,ClusterFeature|Signal|global|mean|unscaled,ClusterLabels,seg_Time_end,seg_Time_start,seg_index_end,seg_index_start</pointwise_meta>
       <sampleTag>RAVEN_sample_ID</sampleTag>
