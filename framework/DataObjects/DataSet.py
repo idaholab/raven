@@ -973,7 +973,7 @@ class DataSet(DataObject):
       # determine dimensions for each variable
       dimsMeta = {}
       for name, var in new.variables.items():
-        if name not in self._inputs + self._outputs:
+        if name not in self._inputs + self._outputs + self._metavars:
           continue
         dims = list(var.dims)
         # don't list if only entry is sampleTag
@@ -1555,8 +1555,12 @@ class DataSet(DataObject):
       dims = meta.get('pivotParams',{})
       if len(dims)>0:
         self.setPivotParams(dims)
+      # vector metavars is also stored in 'DataSet/dims' node
+      metavars = meta.get('metavars')
+      # get dict of vector metavars
+      params = {key:val for key, val in dims.items() if key in metavars}
       # add metadata, so we get probability weights and etc
-      self.addExpectedMeta(meta.get('metavars',[]))
+      self.addExpectedMeta(meta.get('metavars',params))
       # check all variables desired are available
       provided = set(meta.get('inputs',[])+meta.get('outputs',[])+meta.get('metavars',[]))
     # otherwise, if we have no meta XML to load from, infer what we can from the CSV, which is only the available variables.
