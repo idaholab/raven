@@ -130,19 +130,17 @@ def findDeptime(inputFile):
     @ In, inputFile, string, input file path
     @ Out, deptime, string, depletion time in days
   """
-  deptime = None
+  deptime = -1
   hit = False
   with open(inputFile, 'r') as file:
     for line in file:
-      if line.split(' ')[0] == 'dep':
-        if line.split(' ')[1] != 'daystep':
-          raise ValueError('Currently can only take daystep')
-        else:
-          hit = True
       if hit:
         deptime = line.split(' ')[0]
         break
-
+      if line.split()[0] == 'dep' and line.split()[1] != 'daystep':
+        raise ValueError('Currently can only take daystep')
+      else:
+        hit = True
   return deptime
 
 
