@@ -1556,12 +1556,9 @@ class DataSet(DataObject):
       if len(dims)>0:
         self.setPivotParams(dims)
       # vector metavars is also stored in 'DataSet/dims' node
-      metavars = meta.get('metavars')
+      metavars = meta.get('metavars',[])
       # get dict of vector metavars
-      if metavars is not None:
-        params = {key:val for key, val in dims.items() if key in metavars}
-      else:
-        params = {}
+      params = {key:val for key, val in dims.items() if key in metavars}
       # add metadata, so we get probability weights and etc
       self.addExpectedMeta(metavars,params)
       # check all variables desired are available
