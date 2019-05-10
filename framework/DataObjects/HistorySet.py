@@ -128,7 +128,7 @@ class HistorySet(DataSet):
     main = self._readPandasCSV(fileName+'.csv')
     nSamples = len(main.index)
     ## collect input space data
-    for inp in self._inputs + self._metavars:
+    for inp in self._inputs + self._inputMetaVars:
       data[inp] = main[inp].values
     ## get the sampleTag values if they're present, in case it's not just range
     if self.sampleTag in main:
@@ -138,7 +138,7 @@ class HistorySet(DataSet):
     # load subfiles for output spaces
     subFiles = main['filename'].values
     # pre-build realization spots
-    for out in self._outputs + self.indexes:
+    for out in self._outputs + self.indexes + self._outputMetaVars:
       data[out] = np.zeros(nSamples,dtype=object)
     # read in secondary CSVs
     for i,sub in enumerate(subFiles):
@@ -152,7 +152,7 @@ class HistorySet(DataSet):
       if len(set(subDat.keys()).intersection(self.indexes)) != len(self.indexes):
         self.raiseAnError(IOError,'Importing HistorySet from .csv: the pivot parameters "'+', '.join(self.indexes)+'" have not been found in the .csv file. Check that the '
                                   'correct <pivotParameter> has been specified in the dataObject or make sure the <pivotParameter> is included in the .csv files')
-      for out in self._outputs+self.indexes:
+      for out in self._outputs + self.indexes + self._outputMetaVars:
         data[out][i] = subDat[out].values
     # construct final data object
     self.load(data,style='dict',dims=self.getDimensions())

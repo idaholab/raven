@@ -1563,7 +1563,7 @@ class DataSet(DataObject):
       else:
         params = {}
       # add metadata, so we get probability weights and etc
-      self.addExpectedMeta(meta.get('metavars',params))
+      self.addExpectedMeta(metavars,params)
       # check all variables desired are available
       provided = set(meta.get('inputs',[])+meta.get('outputs',[])+meta.get('metavars',[]))
     # otherwise, if we have no meta XML to load from, infer what we can from the CSV, which is only the available variables.
