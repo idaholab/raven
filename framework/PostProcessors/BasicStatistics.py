@@ -254,7 +254,8 @@ class BasicStatistics(PostProcessor):
     inputObj = inputs[-1] if type(inputs) == list else inputs
     if inputObj.type == 'HistorySet':
       self.dynamic = True
-    metaKeys = []
+    inputMetaKeys = []
+    outputMetaKeys = []
     for metric, infos in self.toDo.items():
       steMetric = metric + '_ste'
       if steMetric in self.steVals:
@@ -262,12 +263,23 @@ class BasicStatistics(PostProcessor):
           prefix = info['prefix']
           for target in info['targets']:
             metaVar = prefix + '_ste_' + target if not self.outputDataset else metric + '_ste'
-            metaKeys.append(metaVar)
+            metaDim = inputObj.getDimensions(target)
+            if len(metaDim[target]) == 0:
+              inputMetaKeys.append(metaVar)
+            else:
+              outputMetaKeys.append(metaVar)
+    metaParams = {}
     if not self.outputDataset:
-      metaParams = {key:[self.pivotParameter] for key in metaKeys} if self.dynamic else {}
+      if len(outputMetaKeys) > 0:
+        metaParams = {key:[self.pivotParameter] for key in outputMetaKeys}
     else:
-      metaParams = {key:[self.pivotParameter,self.steMetaIndex] for key in metaKeys} if self.dynamic else {key:[self.steMetaIndex]}
-
+      if len(outputMetaKeys) > 0:
+        params = {key:[self.pivotParameter,self.steMetaIndex] for key in outputMetaKeys}
+        metaParams.update(params)
+      if len(inputMetaKeys) > 0:
+        params = {key:[self.steMetaIndex] for key in inputMetaKeys}
+        metaParams.update(params)
+    metaKeys = inputMetaKeys + outputMetaKeys
     self.addMetaKeys(metaKeys,metaParams)
 
   def _localReadMoreXML(self, xmlNode):

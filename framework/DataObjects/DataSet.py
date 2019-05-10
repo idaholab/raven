@@ -112,20 +112,21 @@ class DataSet(DataObject):
       @ In, keys, set(str), keys to register
       @ In, params, dict, optional, {key:[indexes]}, keys of the dictionary are the variable names,
         values of the dictionary are lists of the corresponding indexes/coordinates of given variable
-      @ Out, None
+      @ Out, keys, list(str), extra keys that has been registered
     """
     # TODO add option to skip parts of meta if user wants to
     # remove already existing keys
     keys = list(key for key in keys if key not in self.getVars()+self.indexes)
     # if no new meta, move along
     if len(keys) == 0:
-      return
+      return keys
     # CANNOT add expected meta after samples are started
     assert(self._data is None)
     assert(self._collector is None or len(self._collector) == 0)
     self._metavars.extend(keys)
     self._orderedVars.extend(keys)
     self.setPivotParams(params)
+    return keys
 
   def addMeta(self, tag, xmlDict = None, node = None):
     """
