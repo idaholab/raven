@@ -1558,7 +1558,10 @@ class DataSet(DataObject):
       # vector metavars is also stored in 'DataSet/dims' node
       metavars = meta.get('metavars')
       # get dict of vector metavars
-      params = {key:val for key, val in dims.items() if key in metavars}
+      if metavars is not None:
+        params = {key:val for key, val in dims.items() if key in metavars}
+      else:
+        params = {}
       # add metadata, so we get probability weights and etc
       self.addExpectedMeta(meta.get('metavars',params))
       # check all variables desired are available

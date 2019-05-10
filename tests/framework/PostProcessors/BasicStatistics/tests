@@ -163,6 +163,7 @@
     type = 'RavenFramework'
     input = 'test_time_dep_meta.xml'
     UnorderedCsv = 'timeDepMeta/Back_to_MASTER_0.csv'
+    UnorderedXml = 'timeDepMeta/Back_to_MASTER.xml'
     output = 'timeDepMeta/Back_to_MASTER.csv'
     rel_err = 1e-5
     zero_threshold = 1e-14
