@@ -312,7 +312,7 @@ class HistorySet(DataSet):
       @ Out, None
     """
     extraKeys = DataSet.addExpectedMeta(self, keys, params)
-    if params == {}:
-      return extraKeys
     self._inputMetaVars.extend(list(key for key in extraKeys if key not in params))
-    self._outputMetaVars.extend(list(key for key in extraKeys if key in params))
+    if params:
+      self._outputMetaVars.extend(list(key for key in extraKeys if key in params))
+    return extraKeys
