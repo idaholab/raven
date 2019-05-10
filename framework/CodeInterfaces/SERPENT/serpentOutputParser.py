@@ -1,13 +1,37 @@
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+"""
+Created May 9th, 2019
+
+@author: alfoa
+"""
+#For future compatibility with Python 3
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
+#End compatibility block for Python 3
+
+#External Modules--------------------begin
 import numpy as np
 import csv
 from pathlib import Path
+#External Modules--------------------end
+
+#Internal Modules--------------------begin
+#Internal Modules--------------------end
 
 def parseLine(line):
   """
-  Parse composition line by deleting whitespace and separating the isotope and atomic density.
+    Parse composition line by deleting whitespace and separating the isotope and atomic density.
     @ In, line, string, line of isotope and composition
     @ Out, result, tuple, (isotope, atomic density)
   """
@@ -42,10 +66,7 @@ def filterTrace(compDict, percentCutoff):
   # delete the isotopes with less than percentCutoff
   for isotope in deleteList:
     del compDict[isotope]
-
   return compDict
-
-
 
 def bumatRead(bumatFile, percentCutoff):
   """
@@ -55,13 +76,12 @@ def bumatRead(bumatFile, percentCutoff):
     @ Out, compDict, dictionary, key=isotope
                                 value=atomic density
   """
-  with open(bumatFile) as f:
-    compLines = f.readlines()[5:]
+  compLines = open(bumatFile,"r").readlines()[5:]
 
   compDict = {}
-  header = compLines[0]
-  for i in range(1, len(compLines)):
-    parsed = parseLine(compLines[i])
+  header = compLines.pop(0)
+  for line in compLines:
+    parsed = parseLine(line)
     # isotope as key, atomic density as value
     compDict[parsed[0]] = parsed[1]
 
@@ -73,73 +93,36 @@ def searchKeff(resFile):
   """
     Searches and returns the mean keff value in the .res file.
     @ In, resFile, string, path to .res file
-    @ Out, keffDict, dictionary, key = keff or sd
+    @ Out, keffDict, dict, key = keff or sd
                                  value = list of keff or sd
   """
-  with open(resFile) as f:
-    lines = f.readlines()
+  lines = open(resFile,"r").readlines()
 
   keffList = []
   sdList = []
-
-  for i in range(0, len(lines)):
-    if 'IMP_KEFF' in lines[i]:
-      keffList.append(keffLineParse(lines[i])[0])
-      sdList.append(keffLineParse(lines[i])[1])
-
   keffDict = {}
+
+  for line in lines:
+    if 'IMP_KEFF' in line:
+      keffList.append(keffLineParse(line)[0])
+      sdList.append(keffLineParse(line)[1])
+
   keffDict['keff'] = keffList
   keffDict['sd'] = sdList
   return keffDict
-
 
 def keffLineParse(keffLine):
   """
     Parses through the anaKeff line in .res file.
     @ In, keffLine, string, string from .res file listing IMPKEFF
-    @ Out, keffTuple, tuple, (mean IMPKEFF, sd of IMPKEFF)
+    @ Out, keffTuple, list, (mean IMPKEFF, sd of IMPKEFF)
   """
-  start = keffLine.find('=')
-  newKeffLine = keffLine[start:]
+  newKeffLine = keffLine[keffLine.find('='):]
   start = newKeffLine.find('[')
   end = newKeffLine.find(']')
-
-  # +3 and -1 is to get rid of leading and trailing whitespace
-  keffSd = newKeffLine[start + 3:end - 1]
-  (keff, sd) = keffSd.split(' ')
-  keffTuple = (keff, sd)
+  keffSd = newKeffLine[start + 1:end].strip()
+  keffTuple = keffSd.split()
   return keffTuple
-
-
-def csvRenderDict(csvFilename, dictionary, header):
-  """
-    Renders csv given the dictionary column 1 = key, column 2 = value.
-    @ In, csvFilename, string, path of csv file to be created
-    @ In, dictionary, dictionary, dictionary to be rendered into csv file
-    @ In, header, list, list of length 2 of header strings
-    @ Out, csvRenderDict
-  """
-  with open(csvFilename, 'w') as csvFile:
-    writer = csv.writer(csvFile)
-    # write header
-    writer.writerow(header)
-    for key, value in dictionary.items():
-      writer.writerow([key, value])
-  return True
-
-def readFileIntoList(target):
-  """
-    Reads target file into list, every line as element.
-    @ In, target, string, name of file
-    @ Out, listFromFile, list, contents in the target file as list
-  """
-  read = open(target, 'r')
-  lines = read.readlines()
-  listFromFile = []
-  for line in lines:
-    listFromFile.append(line.strip())
-  read.close()
-  return listFromFile
 
 def findDeptime(inputFile):
   """
@@ -147,6 +130,7 @@ def findDeptime(inputFile):
     @ In, inputFile, string, input file path
     @ Out, deptime, string, depletion time in days
   """
+  deptime = None
   hit = False
   with open(inputFile, 'r') as file:
     for line in file:

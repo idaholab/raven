@@ -1,4 +1,15 @@
 <Simulation verbosity="all">
+  <TestInfo>
+    <name>framework/CodeInterfaceTests/Serpent.inputTest</name>
+    <author>jbae11</author>
+    <created>2018-04-12</created>
+    <classesTested>Serpent</classesTested>
+    <description>
+        The input parsing method, where the sampled distribution is plugged into the
+        input placeholder, is tested for SERPENT input files.
+    </description>
+  </TestInfo>
+  
   <RunInfo>
     <WorkingDir>SerpentTest1</WorkingDir>
     <!-- ordered list of step names that RAVEN will run -->
@@ -8,14 +19,25 @@
   </RunInfo>
 
   <Files>
-    <Input name="originalInput" type="">testInput.serpent</Input>
+    <Input name="originalInput" type="serpent">testInput.serpent</Input>
   </Files>
 
   <Models>
-    <Code name="SERPENT" subType="Serpent">
-      <executable>/projects/sciteam/bahg/serpent/src/sss2 -omp 32 </executable>
-      <clargs arg="aprun -n 9 -d 32 " type="prepend"/>
+    <Code name="SERPENT" subType="SERPENT">
+      <executable>/projects/sciteam/bahg/serpent/src/sss2</executable>
+      <!-- here the isotope list can be either a CSV or TXT file name (relative to the workingDir) or a
+       comma separated list directly inputted in here
+       For example,
+       <isotope_list>1001,290750,34078,38089,411090,451121,481191,501281,531390,571450,611570,671661,882280</isotope_list>
+       or
+       <isotope_list>iso_list.csv</isotope_list>
+       -->
+      <isotope_list>iso_list.csv</isotope_list>
+      <!--<executable>/projects/sciteam/bahg/serpent/src/sss2 -omp 32 </executable>
+       <clargs arg="aprun -n 9 -d 32 " type="prepend"/>
       <clargs arg="" extension=".serpent" type="input"/>
+      -->
+      
     </Code>
   </Models>
 
@@ -65,15 +87,6 @@
     </PointSet>
   </DataObjects>
 
-  <TestInfo>
-    <name>framework/CodeInterfaceTests/Serpent.inputTest</name>
-    <author>jbae11</author>
-    <created>2018-04-12</created>
-    <classesTested>Serpent</classesTested>
-    <description>
-        The input parsing method, where the sampled distribution is plugged into the 
-        input placeholder, is tested for SERPENT input files.
-    </description>
-  </TestInfo>
+
 
 </Simulation>
