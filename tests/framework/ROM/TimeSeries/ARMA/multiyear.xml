@@ -1,0 +1,107 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/ROM/TimeSeries/ARMA.Multiyear</name>
+    <author>talbpaul</author>
+    <created>2019-05-14</created>
+    <classesTested>SupervisedLearning.ARMA</classesTested>
+    <description>
+       Tests sampling the ARMA with multiple years in each sample.
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>Multiyear</WorkingDir>
+    <Sequence>read, train, print, sample, dump</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Steps>
+    <IOStep name="read">
+      <Input class="Files" type="">rawDataFile</Input>
+      <Output class="DataObjects" type="HistorySet">rawData</Output>
+    </IOStep>
+    <RomTrainer name="train">
+      <Input class="DataObjects" type="HistorySet">rawData</Input>
+      <Output class="Models" type="ROM">arma</Output>
+    </RomTrainer>
+    <IOStep name="print">
+      <Input class="Models" type="ROM">arma</Input>
+      <Output class="DataObjects" type="DataSet">romMeta</Output>
+      <Output class="OutStreams" type="Print">romMeta</Output>
+    </IOStep>
+    <IOStep name='dump'>
+      <Input class="DataObjects" type="DataSet">synData</Input>
+      <Output class="OutStreams" type="Print">synData</Output>
+    </IOStep>
+    <MultiRun name="sample">
+      <Input class="DataObjects" type="PointSet">dataIn</Input>
+      <Model class="Models" type="ROM">arma</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mcSampler</Sampler>
+      <Output class="DataObjects" type="DataSet">synData</Output>
+    </MultiRun>
+  </Steps>
+
+  <Files>
+    <Input name="rawDataFile">dataSet.csv</Input>
+  </Files>
+
+  <Samplers>
+    <MonteCarlo name="mcSampler">
+      <samplerInit>
+        <limit>3</limit>
+        <initialSeed>42</initialSeed>
+      </samplerInit>
+      <constant name="scaling">1.0</constant>
+    </MonteCarlo>
+  </Samplers>
+
+  <Models>
+    <ROM name="arma" subType="ARMA">
+      <Target>Speed,Time</Target>
+      <Features>scaling</Features>
+      <pivotParameter>Time</pivotParameter>
+      <outTruncation domain="positive">Speed</outTruncation>
+      <Fourier>604800, 302400, 86400, 43200</Fourier>
+      <P>2</P>
+      <Q>1</Q>
+      <Multiyear>
+        <years>3</years>
+        <growth>1.5</growth>
+      </Multiyear>
+    </ROM>
+  </Models>
+
+  <OutStreams>
+    <Print name="romMeta">
+      <type>csv</type>
+      <source>romMeta</source>
+    </Print>
+    <Print name="synData">
+      <type>csv</type>
+      <source>synData</source>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="dataIn">
+      <Input>scaling</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <HistorySet name="rawData">
+      <Input>scaling</Input>
+      <Output>Speed,Time</Output>
+      <options>
+        <pivotParameter>Time</pivotParameter>
+      </options>
+    </HistorySet>
+    <DataSet name="synData">
+      <Input>scaling</Input>
+      <Output>Speed</Output>
+      <Index var="Time">Speed</Index>
+      <Index var="Year">Speed</Index>
+    </DataSet>
+    <DataSet name="romMeta"/>
+  </DataObjects>
+
+</Simulation>

@@ -89,6 +89,22 @@ class ARMA(supervisedLearning):
     self._minBins          = 20   # min number of bins to use in determining distributions, eventually can be user option, for now developer's pick
     # signal storage
     self._signalStorage    = collections.defaultdict(dict) # various signals obtained in the training process
+    # multiyear
+    self.multiyear = False # if True, then multiple years per sample are going to be taken
+    self.numYears = None # if self.multiyear, this is the number of years per sample
+    self.growthFactors = {} # by target, this is how to scale the signal over successive years
+
+    if "Multiyear" in kwargs:
+      multiyearNode = kwargs['paramInput'].findFirst('Multiyear')
+      self.multiyear = True
+      numYearsNode = multiyearNode.findFirst('years')
+      if numYearsNode is None:
+        raise IOError('The number of ARMA sample years was not specified in <Multiyear><years> node!')
+      self.numYears = numYearsNode.value
+      growthNode = multiyearNode.findFirst('growth')
+      if growthNode is not None:
+        # TODO how to do specific by target?
+        self.growthFactors['_default'] = growthNode.value
 
     # check zeroFilterTarget is one of the targets given
     if self.zeroFilterTarget is not None and self.zeroFilterTarget not in self.target:
@@ -333,10 +349,43 @@ class ARMA(supervisedLearning):
         self.varmaNoise = (noiseDist,)
         self.varmaInit = (initDist,)
 
-  def __evaluateLocal__(self,featureVals):
+  def __evaluateLocal__(self, featureVals):
     """
       @ In, featureVals, float, a scalar feature value is passed as scaling factor
       @ Out, returnEvaluation , dict, dictionary of values for each target (and pivot parameter)
+    """
+    if self.multiyear:
+      # year by year are collected in pandas multi-index, then are concatenated
+      ## create storage for the sampled result
+      finalResult = dict((target, np.zeros((self.numYears, len(self.pivotParameterValues)))) for target in self.target if target != self.pivotParameterID)
+      finalResult[self.pivotParameterID] = self.pivotParameterValues
+      years = np.arange(self.numYears)
+      finalResult['Year'] = years
+      for y in years:
+        # prepare multiindex
+        # apply growth factor
+        vals = featureVals[:]
+        for t, target in enumerate(self.target):
+          if target == self.pivotParameterID:
+            continue
+          growth = self.growthFactors.get(target, self.growthFactors['_default'])
+          growth = growth ** y
+          vals[t] *= growth
+        result = self._evaluateYear(vals)
+        for target, value in result.items():
+          if target == self.pivotParameterID:
+            continue
+          finalResult[target][y][:] = value # [:] is a size checker
+      # TODO is there more indexing information that needs to be given?
+      finalResult['_indexMap'] = dict((target, ['Year', self.pivotParameterID]) for target in self.target if target != self.pivotParameterID)
+      return finalResult
+    else:
+      return self._evaluateYear(featureVals)
+
+  def _evaluateYear(self, featureVals):
+    """
+      @ In, featureVals, float, a scalar feature value is passed as scaling factor
+      @ Out, returnEvaluation, dict, dictionary of values for each target (and pivot parameter)
     """
     if featureVals.size > 1:
       self.raiseAnError(ValueError, 'The input feature for ARMA for evaluation cannot have size greater than 1. ')
@@ -352,7 +401,7 @@ class ARMA(supervisedLearning):
     #debuggFile = open('signal_bases.csv','w')
     #debuggFile.writelines('Time,'+','.join(str(x) for x in self.pivotParameterValues)+'\n')
     correlatedSample = None
-    for tIdx,target in enumerate(self.target):
+    for target in self.target:
       # start with the random gaussian signal
       if target in self.correlations:
         # where is target in correlated data
@@ -366,22 +415,22 @@ class ARMA(supervisedLearning):
           if correlatedSample is None:
             # if not, take the samples now
             unzeroedSample = self._generateVARMASignal(self.varmaResult[0],
-                                                 numSamples = self.zeroFilterMask.sum(),
-                                                 randEngine = self.normEngine.rvs,
-                                                 rvsIndex = 0)
+                                                       numSamples = self.zeroFilterMask.sum(),
+                                                       randEngine = self.normEngine.rvs,
+                                                       rvsIndex = 0)
             ## zero sampling is dependent on whether the trained model is a VARMA or ARMA
             if self.varmaNoise[1] is not None:
               zeroedSample = self._generateVARMASignal(self.varmaResult[1],
-                                                   numSamples = self.notZeroFilterMask.sum(),
-                                                   randEngine = self.normEngine.rvs,
-                                                   rvsIndex = 1)
+                                                       numSamples = self.notZeroFilterMask.sum(),
+                                                       randEngine = self.normEngine.rvs,
+                                                       rvsIndex = 1)
             else:
               result = self.varmaResult[1]
               sample = self._generateARMASignal(result,
                                                 numSamples = self.notZeroFilterMask.sum(),
                                                 randEngine = self.randomEng)
               zeroedSample = np.zeros((self.notZeroFilterMask.sum(),1))
-              zeroedSample[:,0] = sample
+              zeroedSample[:, 0] = sample
             correlatedSample = True # placeholder, signifies we've sampled the correlated distribution
           # reconstruct base signal from samples
           ## initialize
@@ -872,6 +921,11 @@ class ARMA(supervisedLearning):
     if not self.amITrained:
       self.raiseAnError(RuntimeError, 'ROM is not yet trained! Cannot write to DataObject.')
     root = writeTo.getRoot()
+    if self.multiyear:
+      myNode = xmlUtils.newNode('Multiyear')
+      myNode.append(xmlUtils.newNode('num_years', text=self.numYears))
+      myNode.append(xmlUtils.newNode('growth_factor', text=self.growthFactors['_default'])) # TODO expand
+      root.append(myNode)
     # - Fourier coefficients (by period, waveform)
     for target, fourier in self.fourierResults.items():
       targetNode = root.find(target)
@@ -897,6 +951,8 @@ class ARMA(supervisedLearning):
       targetNode.append(armaNode)
       armaNode.append(xmlUtils.newNode('std', text=np.sqrt(arma.sigma2)))
       # TODO covariances, P and Q, etc
+    # - multiyear, if any
+
 
   def _transformThroughInputCDF(self, signal, originalDist, weights=None):
     """

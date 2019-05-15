@@ -208,6 +208,11 @@ class ROM(Dummy):
     specFourier.addParam("variables", InputData.StringListType, True)
     specFourier.addSub(InputData.parameterInputFactory('periods', contentType=InputData.FloatListType))
     inputSpecification.addSub(specFourier)
+    ### ARMA multiyear
+    multiYear = InputData.parameterInputFactory('Multiyear')
+    multiYear.addSub(InputData.parameterInputFactory('years', contentType=InputData.IntegerType))
+    multiYear.addSub(InputData.parameterInputFactory('growth', contentType=InputData.FloatType))
+    inputSpecification.addSub(multiYear)
     # inputs for neural_network
     inputSpecification.addSub(InputData.parameterInputFactory("hidden_layer_sizes", InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("activation", InputData.StringType))
@@ -255,7 +260,7 @@ class ROM(Dummy):
     cls.validateDict['Input' ]                    = [cls.validateDict['Input' ][0]]
     cls.validateDict['Input' ][0]['required'    ] = True
     cls.validateDict['Input' ][0]['multiplicity'] = 1
-    cls.validateDict['Output'][0]['type'        ] = ['PointSet','HistorySet']
+    cls.validateDict['Output'][0]['type'        ] = ['PointSet', 'HistorySet', 'DataSet']
 
   def __init__(self,runInfoDict):
     """

@@ -568,7 +568,7 @@ class ParameterInput(object):
         # there are mismatches
         unknownChilds = list(nodeNames - subNames)
         if unknownChilds:
-          handleError('Childs "[{}]" not allowed as sub-elements of "{}"'.format(",".join(unknownChilds),node.tag))
+          handleError('Childs "[{}]" not allowed as sub-elements of "{}"'.format(", ".join(unknownChilds),node.tag))
         #TODO: keep this for the future. We need to implement in the InputData a way to set some nodes to be required
         #missingChilds =  list(subNames - nodeNames)
         #if missingChilds:

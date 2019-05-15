@@ -217,9 +217,10 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta,BaseType)):
 
     # create dict var to index
     # FIXME: this dict will not work in case of variables depending on multiple indexes. When this need comes, we will change this check(alfoa)
-    if self.indexes:
-      for ind in self.indexes:
-        self._fromVarToIndex.update(dict.fromkeys( self._pivotParams[ind], ind))
+    ## We already have a "getDimensions" method in dataSet; is this useful?
+    # if self.indexes:
+    #  for ind in self.indexes:
+    #    self._fromVarToIndex.update(dict.fromkeys( self._pivotParams[ind], ind))
 
     if self.messageHandler is None:
       self.messageHandler = MessageHandler()
