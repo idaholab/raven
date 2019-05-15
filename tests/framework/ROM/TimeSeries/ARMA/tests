@@ -167,4 +167,20 @@
       rel_err = 1e-6
     [../]
   [../]
+
+  [./Multiyear]
+    type = 'RavenFramework'
+    input = 'multiyear.xml'
+    [./meta]
+      type = XML
+      unordered = true
+      output = 'Multiyear/romMeta.xml'
+      rel_err = 1e-7
+    [../]
+    [./samples]
+      type = OrderedCSV
+      output = 'Multiyear/synData.csv'
+      rel_err = 1e-3
+    [../]
+  [../]
 []

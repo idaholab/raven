@@ -63,6 +63,7 @@
       <pivotParameter>Time</pivotParameter>
       <outTruncation domain="positive">Speed</outTruncation>
       <Fourier>604800, 302400, 86400, 43200</Fourier>
+      <seed>42</seed>
       <P>2</P>
       <Q>1</Q>
       <Multiyear>
