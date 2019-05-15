@@ -876,6 +876,7 @@ class DataSet(DataObject):
           if indexMap is None:
             self.raiseAWarning('No variable index map "_indexMap" was provided in model realization, but ' +
                                'a multidimensional variable ("{}") is expected!'.format(var))
+            return False
           try:
             rlzDimOrder = list(indexMap[var]) # want a list for the equality comparison below
           # if the realization order wasn't provided, return a useful error describing the problem
@@ -1151,9 +1152,6 @@ class DataSet(DataObject):
           dims = self.getDimensions(var)[var]
           # make sure "dims" isn't polluted
           assert(self.sampleTag not in dims)
-          # TODO not ready for ND; this only uses single-dependency cases, but should be easily extensible
-          # if len(dims) > 1:
-          #   self.raiseAnError(NotImplementedError,'Currently cannot handle more than 1 pivot per variable')
           # loop over indexes (just one for now?) and create data
           ## SPECIAL CASE: if only histories/scalars, and histories are aligned, we can shortcut this
           if len(dims) == 1 and dims[0] in self._alignedIndexes:
@@ -1167,7 +1165,6 @@ class DataSet(DataObject):
               values = self._collector[r, v]
               dtype = self._getCompatibleType(values[0])
               values = np.array(values,dtype=dtype)
-              #coords = dict((idx, self._collector[r, self._orderedVars.index(idx)]) for idx in dims)
               coords = {}
               for idx in dims:
                 val = self._alignedIndexes.get(idx, None)
@@ -1177,22 +1174,6 @@ class DataSet(DataObject):
               self._collector[r][v] = self.constructNDSample(values, dims, coords, name=str(r))
             # then collapse these entries into a single datarray
             arrays[var] = self._collapseNDtoDataArray(self._collector[:,v], var, dtype=dtype)
-            #coords = dict((idx, self._collector[r, self._orderedVars.index(idx)]) for idx in dims)
-
-
-
-            ######### OLD #########
-            # FIXME it appears vstack won't handle all the dimensions at once!
-            #else:
-            #  # first make a datarray out of each realization value
-            #  for r in range(len(self._collector)):
-            #    values = self._collector[r, v]
-            #    dtype = self._getCompatibleType(values[0])
-            #    values = np.array(values,dtype=dtype)
-            #    coords = dict((idx,self._collector[r,self._orderedVars.index(idx)]) for idx in dims)
-            #    self._collector[r][v] = self.constructNDSample(values,dims,coords,name=str(r))
-            #  # then collapse these entries into a single datarray
-            #  arrays[var] = self._collapseNDtoDataArray(self._collector[:,v],var,dtype=dtype)
         # if it's a dataarray, then that's old-style histories, no-can do right now
         elif isinstance(self._collector[0,v],xr.DataArray):
           self.raiseAnError(NotImplementedError,'History entries should be numpy arrays, not data arrays!')
@@ -1241,7 +1222,6 @@ class DataSet(DataObject):
     if self._collector is None or len(self._collector) == 0:
       for var in self._pivotParams.keys():
         dtype = self._getCompatibleType(rlz[var][0])
-        # current = rlz[var].dtype
         # Note, I don't like this action happening here, but I don't have an alternative way to assure
         # indexes have the correct dtype.  In the first pass, they aren't going into the collector, but into alignedIndexes.
         rlz[var] = np.array(rlz[var],dtype=dtype)
@@ -1288,7 +1268,6 @@ class DataSet(DataObject):
             dtype = self._getCompatibleType(sample)
           places = data.index.get_loc(sample)
           vals = data[places].dropna().set_index(dims[var])
-          #vals.drop('dim_1')
           # TODO this needs to be improved before ND will work; we need the individual sub-indices (time, space, etc)
           ndat[s] = xr.DataArray(vals.values[:,0],
                                  dims=dims[var],

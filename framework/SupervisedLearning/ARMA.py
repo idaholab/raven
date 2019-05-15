@@ -355,14 +355,12 @@ class ARMA(supervisedLearning):
       @ Out, returnEvaluation , dict, dictionary of values for each target (and pivot parameter)
     """
     if self.multiyear:
-      # year by year are collected in pandas multi-index, then are concatenated
       ## create storage for the sampled result
       finalResult = dict((target, np.zeros((self.numYears, len(self.pivotParameterValues)))) for target in self.target if target != self.pivotParameterID)
       finalResult[self.pivotParameterID] = self.pivotParameterValues
       years = np.arange(self.numYears)
       finalResult['Year'] = years
       for y in years:
-        # prepare multiindex
         # apply growth factor
         vals = featureVals[:]
         for t, target in enumerate(self.target):
@@ -376,7 +374,7 @@ class ARMA(supervisedLearning):
           if target == self.pivotParameterID:
             continue
           finalResult[target][y][:] = value # [:] is a size checker
-      # TODO is there more indexing information that needs to be given?
+      # high-dimensional indexing information
       finalResult['_indexMap'] = dict((target, ['Year', self.pivotParameterID]) for target in self.target if target != self.pivotParameterID)
       return finalResult
     else:
@@ -921,6 +919,7 @@ class ARMA(supervisedLearning):
     if not self.amITrained:
       self.raiseAnError(RuntimeError, 'ROM is not yet trained! Cannot write to DataObject.')
     root = writeTo.getRoot()
+    # - multiyear, if any
     if self.multiyear:
       myNode = xmlUtils.newNode('Multiyear')
       myNode.append(xmlUtils.newNode('num_years', text=self.numYears))
@@ -951,7 +950,6 @@ class ARMA(supervisedLearning):
       targetNode.append(armaNode)
       armaNode.append(xmlUtils.newNode('std', text=np.sqrt(arma.sigma2)))
       # TODO covariances, P and Q, etc
-    # - multiyear, if any
 
 
   def _transformThroughInputCDF(self, signal, originalDist, weights=None):
