@@ -179,7 +179,7 @@ class DataSet(DataObject):
       ## TODO check structure?
       self._meta[tag] = node
 
-  def addRealization(self,rlz):
+  def addRealization(self, rlz):
     """
       Adds a "row" (or "sample") to this data object.
       This is the method to add data to this data object.
@@ -190,6 +190,30 @@ class DataSet(DataObject):
                          "val" is a np.ndarray of values.
       @ Out, None
     """
+    #########
+    # A note about what we're expecting in "rlz":
+    #
+    # Each entry in "rlz" should be a variable name, with exceptions described below.
+    # For each entry, the contents should be a numpy nd array:
+    #   - For a scalar, it's a length-one array with a single value as {'pi': np.array([3.14])}
+    #   - For a history, it's a single-dimensional array with the history values {'fib': np.array([0,1,1,2,3,5])}
+    #   - For a high-dimensional object, it's a numpy ndarray with each dimension depending on a different index
+    #          for example {'fibgrow': np.array([[0,1,1,2,3,5], [0,2,2,4,6,10]])}
+    #       IN THIS CASE (for high-dimensional objects), a unique special node needs to be passed with the
+    #         realization "_indexMap" that describes what order the numpy array dimensions show up in.
+    #
+    #       For example, if my realization has one high-dimensional variable H(X, Y) depending on
+    #         indices X and Y, and say that X has 3 values (0, 1, 2) and Y has 2 values (0.5, 1.5), then
+    #         "rlz" should be as follows (with all [] as np.array([])):
+    #         rlz = {'H': [[0.1, 0.2, 0.3], [0.2, 0.3, 0.4]],
+    #                'X': [0, 1, 2],
+    #                'Y': [0.5, 1.5],
+    #                '_indexMap': ['Y', 'X']}
+    #         Note the order, H has shape (2, 3) so the first index is Y and the second is X.
+    #         A sanity check is that H.shape == tuple(var.size for var in rlz['_indexMap'])
+    #
+    #  Yours truly, talbpw, May 2019
+    #########
     # protect against back-changing realization
     rlz = copy.deepcopy(rlz)
     # if index map was included, remove that now before checking variables
