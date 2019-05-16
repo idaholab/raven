@@ -15,8 +15,7 @@
 This implements a text differ that can process the numbers inside the text.
 """
 
-from __future__ import division, print_function,  absolute_import
-import os
+from __future__ import division, print_function, absolute_import
 import sys
 
 from Tester import Differ
@@ -49,6 +48,8 @@ class NumericText(Differ):
       @ In, test_dir, string, path to the test.
       @ Out, None.
     """
+    self.__same = True
+    self.__message = ""
     Differ.__init__(self, name, params, test_dir)
     self.__text_opts = {}
     if len(self.specs["rel_err"]) > 0:
@@ -69,8 +70,6 @@ class NumericText(Differ):
     """
     test_files = self._get_test_files()
     gold_files = self._get_gold_files()
-    self.__same = True
-    self.__message = ""
     for test_filename, gold_filename in zip(test_files, gold_files):
       # local "same" and message list
       same = True
