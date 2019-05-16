@@ -288,6 +288,8 @@ class ROM(Dummy):
     # NOTE assemblerDict isn't needed if ROM already trained, but it can create an infinite recursion
     ## for the ROMCollection if left in, so remove it on getstate.
     del d['assemblerDict']
+    # input params isn't picklable (right now)
+    d['initializationOptionDict'].pop('paramInput', None)
     return d
 
   def __setstate__(self, d):
@@ -341,7 +343,6 @@ class ROM(Dummy):
       self.initializationOptionDict['pickled'] = True
     self.initializationOptionDict['paramInput'] = paramInput
     self._initializeSupervisedGate(**self.initializationOptionDict)
-    #self._initializeSupervisedGate(paramInput=paramInput, **self.initializationOptionDict)
     #the ROM is instanced and initialized
     self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(SupervisedLearning),True)) - set(self.mods))
     self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(LearningGate),True)) - set(self.mods))

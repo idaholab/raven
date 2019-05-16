@@ -109,7 +109,7 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta, BaseType), Mess
     """
     # clear input specs, as they should all be read in by now
     ## this isn't a great implementation; we should make paramInput picklable instead!
-    self.initializationOptions.pop('paramInput',None)
+    self.initializationOptions.pop('paramInput', None)
     for eng in self.supervisedContainer:
       eng.initOptionDict.pop('paramInput',None)
     # capture what is normally pickled

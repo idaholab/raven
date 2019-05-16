@@ -124,7 +124,7 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
       @ Out, state, dict, it contains all the information needed by the ROM to be initialized
     """
     state = copy.copy(self.__dict__)
-    state['initOptionDict'].pop('paramInput',None)
+    state['initOptionDict'].pop('paramInput', None)
     ## capture what is normally pickled
     if not self.amITrained:
       supervisedEngineObj = state.pop("supervisedContainer",None)

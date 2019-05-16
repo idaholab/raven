@@ -238,7 +238,7 @@ class ARMA(supervisedLearning):
     self.multiyear = True
     numYearsNode = node.findFirst('years')
     if numYearsNode is None:
-      raise IOError('The number of ARMA sample years was not specified in <Multiyear><years> node!')
+      self.raiseAnError(IOError, 'The number of ARMA sample years was not specified in <Multiyear><years> node!')
     self.numYears = numYearsNode.value
     growthNode = node.findFirst('growth')
     if growthNode is not None:
@@ -541,9 +541,6 @@ class ARMA(supervisedLearning):
       returnEvaluation[target] = signal
     # END for target in targets
     return returnEvaluation
-
-
-
 
   def reseed(self,seed):
     """
