@@ -73,6 +73,7 @@
     UnorderedCsv = 'SobolTime/train_data_0.csv SobolTime/train_data_1.csv SobolTime/train_data_2.csv SobolTime/train_data_3.csv SobolTime/train_data_4.csv'
     UnorderedXml = 'SobolTime/train_data.xml'
     rel_err = 1e-6
+    zero_threshold = 1e-20
   [../]
 
   #verification
