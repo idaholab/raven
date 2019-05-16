@@ -212,7 +212,7 @@ def compare_unordered_element(a_element, b_element, **kwargs):
     #print the tree of the nearest match
     note += '  Nearest unused match: '
     close = sorted(list(close.items()), key=lambda x: x[1], reverse=True)
-    if len(close) > 1:
+    if close:
       closest = '/'.join(list(c.tag for c in close[0][0]))
     else:
       closest = '-none found-'
