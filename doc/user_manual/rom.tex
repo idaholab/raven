@@ -2992,7 +2992,7 @@ x_t &= y_t - \sum_m\left\{a_m\sin(2\pi f_mt)+b_m\cos(2\pi f_mt)\right\}  \\
 \end{aligned}
 \end{equation*}
 
-where $1/f_m$ is defined by the user parameter \xmlNode{Fourier}. \nb $a_m$ and $b_m$ will be calculated then transformed to 
+where $1/f_m$ is defined by the user parameter \xmlNode{Fourier}. \nb $a_m$ and $b_m$ will be calculated then transformed to
 $c_m$ and $\phi$. The $c_m$ will be stored as \xmlString{amplitude}, and $\phi$ will be stored as \xmlString{phase}.
 
 By default, each target in the training will be considered independent and have an unique ARMA for each
@@ -3021,20 +3021,20 @@ below).
     should be considered as influencing each other, and trained together instead of independently.  This node
     can only be listed once, so all variables that are desired for correlation should be included.  \nb The
     correlated VARMA takes notably longer to train than the independent ARMAs for the same number of targets.
-  \item \xmlNode{seed}, \xmlDesc{integer, optional field}, provides seed for VARMA and ARMA sampling. 
-   Must be provided before training. If no seed is assigned, 
+  \item \xmlNode{seed}, \xmlDesc{integer, optional field}, provides seed for VARMA and ARMA sampling.
+   Must be provided before training. If no seed is assigned,
    then a random number will be used.
-   
+
    \item \xmlNode{reseedCopies}, \xmlDesc{boolean, optional field}, if \xmlString{True} then whenever the ARMA is loaded from file, a
     random reseeding will be performed to ensure different histories. \nb If reproducible histories are desired for an ARMA loaded from file,
-    \xmlNode{reseedCopies} should be set to \xmlString{False}, and in the \xmlNode{RunInfo} block \xmlNode{batchSize} needs to be 1 
+    \xmlNode{reseedCopies} should be set to \xmlString{False}, and in the \xmlNode{RunInfo} block \xmlNode{batchSize} needs to be 1
     and \xmlNode{internalParallel} should be
      \xmlString{False} for RAVEN runs sampling the trained ARMA model.
 
 If \xmlNode{InternalParallel} is \xmlString{True} and the ARMA has \xmlNode{reseedCopies} as \xmlString{False}, an identical ARMA history will always be provided regardless of how many samples are taken.
 
 If \xmlNode{InternalParallel} is \xmlString{False} and \xmlNode{batchSize} is more than 1, it is not possible to guarantee the order of RNG usage by the separate processes, so it is not possible to guarantee reproducible histories are generated.        \default{True}
-  
+
   \item \xmlNode{P}, \xmlDesc{integer, optional field}, defines the value of $p$.
   \default{3}
   \item \xmlNode{Q}, \xmlDesc{integer, optional field}, defines the value of $q$.
@@ -3066,7 +3066,7 @@ If \xmlNode{InternalParallel} is \xmlString{False} and \xmlNode{batchSize} is mo
     treating histories with long zero-value segments punctuated periodically by peaks.
   \item \xmlNode{SpecificFourier}, \xmlDesc{node, optional}, provides a means to specify different Fourier
     decomposition for different target variables.  Values given in the subnodes of this node will supercede
-    the defaults set by the  \xmlNode{Fourier} and \xmlNode{FourierOrder} nodes.  This node accepts the
+    the defaults set by the  \xmlNode{Fourier} and \xmlNode{FourierOrder} nodes.  This node
     requires the following attribute:
     \begin{itemize}
       \item \xmlAttr{variables}, \xmlDesc{comma-separated list, required field}, lists the variables to whom
@@ -3077,8 +3077,30 @@ If \xmlNode{InternalParallel} is \xmlString{False} and \xmlNode{batchSize} is mo
       \item \xmlNode{periods}, \xmlDesc{comma-separated integers, required field}, lists the (fundamental)
         periodic wavelength of the Fourier decomposition for these variables, as in the \xmlNode{Fourier} general node.
     \end{itemize}
+  \item \xmlNode{Multiyear}, \xmlDesc{node, optional}, indicates that each sample of the ARMA should yield
+    multiple sequential samples. For example, if an ARMA model is trained to produce a year's worth of data,
+    enabling \xmlNode{Multiyear} causes it to produce several successive years of data. Multiyear sampling
+    is independent of ROM training, and only changes how samples of the ARMA are created.
+
+    \nb The output of a multiyear ARMA must be stored in a \xmlNode{DataSet}, as the targets will depend
+      on both the \xmlNode{pivotParameter} as well as the year, \xmlString{Year}. The year is a second
+      \xmlNode{Index} that all targets should depend on, with variable name \xmlString{Year}.
+
+    The \xmlNode{Multiyear} node accepts the following subnodes:
+    \begin{itemize}
+      \item \xmlNode{years}, \xmlDesc{integer, required field}, the number of years the ARMA should produce
+        each time it yields a sample.
+      \item \xmlNode{growth}, \xmlDesc{float, optional field}, if provided then the histories produced by
+        the ARMA will be multiplied by the growth factor for successive years; that is, the scaling factor
+        is the value given here raised to the power of the year. For example, with a growth factor of 1.5,
+        the first year would not be scaled, the second year would be multiplied by 1.5, the third year by 2.25,
+        and so forth. This simulates growth in the mean value and proportional signal fluctuations each year.
+    \end{itemize}
     \romClusterOption
 \end{itemize}
+
+Note that when loading the ARMA model from a serialized file as a \xmlNode{pickledROM}, the \xmlNode{seed}
+as well as the \xmlNode{Multiyear} nodes can be added to change the behavior of the ARMA ROM.
 
 \textbf{Example:}
 \begin{lstlisting}[style=XML,morekeywords={name,subType}]
