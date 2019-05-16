@@ -77,10 +77,10 @@ def compare_list_entry(a_list, b_list, **kwargs):
     b_item = b_list[i]
     #match tag
     same, _ = DU.compare_strings_with_floats(a_item.tag, b_item.tag,
-                                             options["rel_err"],
-                                             options["zero_threshold"],
-                                             options["remove_whitespace"],
-                                             options["remove_unicode_identifier"])
+                                             rel_err=options["rel_err"],
+                                             zero_threshold=options["zero_threshold"],
+                                             remove_whitespace=options["remove_whitespace"],
+                                             remove_unicode_identifier=options["remove_unicode_identifier"])
     total_matchable += 1
     if not same:
       match = False
@@ -91,10 +91,10 @@ def compare_list_entry(a_list, b_list, **kwargs):
     #if (a_item.text is None or len(a_item.text)>0) and (b_item.text is None or len(b_item.text)>0):
     same, _ = DU.compare_strings_with_floats(a_item.text,
                                              b_item.text,
-                                             options["rel_err"],
-                                             options["zero_threshold"],
-                                             options["remove_whitespace"],
-                                             options["remove_unicode_identifier"])
+                                             rel_err=options["rel_err"],
+                                             zero_threshold=options["zero_threshold"],
+                                             remove_whitespace=options["remove_whitespace"],
+                                             remove_unicode_identifier=options["remove_unicode_identifier"])
     if not same:
       match = False
       diff.append((b_item, XMLDiff.notMatchText, str(a_item.text), str(b_item.text)))
@@ -112,10 +112,10 @@ def compare_list_entry(a_list, b_list, **kwargs):
         continue
       same, _ = DU.compare_strings_with_floats(a_item.attrib[attrib],
                                                b_item.attrib[attrib],
-                                               options["rel_err"],
-                                               options["zero_threshold"],
-                                               options["remove_whitespace"],
-                                               options["remove_unicode_identifier"])
+                                               rel_err=options["rel_err"],
+                                               zero_threshold=options["zero_threshold"],
+                                               remove_whitespace=options["remove_whitespace"],
+                                               remove_unicode_identifier=options["remove_unicode_identifier"])
       if not same:
         match = False
         diff.append((b_item, XMLDiff.notMatchAttribute, (a_item, attrib), (b_item, attrib)))
@@ -170,10 +170,10 @@ def compare_unordered_element(a_element, b_element, **kwargs):
   if a_element.text != b_element.text:
     succeeded, note = DU.compare_strings_with_floats(a_element.text,
                                                      b_element.text,
-                                                     options["rel_err"],
-                                                     options["zero_threshold"],
-                                                     options["remove_whitespace"],
-                                                     options["remove_unicode_identifier"])
+                                                     rel_err=options["rel_err"],
+                                                     zero_threshold=options["zero_threshold"],
+                                                     remove_whitespace=options["remove_whitespace"],
+                                                     remove_unicode_identifier=options["remove_unicode_identifier"])
     if not succeeded:
       same = False
       fail_message(note)
@@ -292,10 +292,10 @@ def compare_ordered_element(a_element, b_element, *args, **kwargs):
   if a_element.text != b_element.text:
     succeeded, note = DU.compare_strings_with_floats(a_element.text,
                                                      b_element.text,
-                                                     options["rel_err"],
-                                                     options["zero_threshold"],
-                                                     options["remove_whitespace"],
-                                                     options["remove_unicode_identifier"])
+                                                     rel_err=options["rel_err"],
+                                                     zero_threshold=options["zero_threshold"],
+                                                     remove_whitespace=options["remove_whitespace"],
+                                                     remove_unicode_identifier=options["remove_unicode_identifier"])
     if not succeeded:
       same = False
       fail_message(note)

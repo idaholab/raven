@@ -34,6 +34,7 @@
     type = 'RavenFramework'
     input = 'test_sobol_gfunc.xml'
     # dumprom is analytic, but does not converge well on the true solution until at least poly order 4
+    zero_threshold = 1e-20
     UnorderedXml = 'SobolGFunc/dump.xml' #analytic, "Sobol G-Function"
     # csv is consistency test
     UnorderedCsv = 'SobolGFunc/dump.csv'
