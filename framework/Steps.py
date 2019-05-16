@@ -992,12 +992,12 @@ class IOStep(Step):
         if not unpickledObj.amITrained:
           self.raiseAnError(RuntimeError,'Pickled rom "%s" was not trained!  Train it before pickling and unpickling using a RomTrainer step.' %unpickledObj.name)
         # save reseeding parameter from pickledROM
-        reseedInt = outputs[i].initializationOptionDict.get('reseedValue',None)
+        loadSettings = outputs[i].initializationOptionDict #.get('reseedValue',None)
         # train the ROM from the unpickled object
         outputs[i].train(unpickledObj)
         # reseed as requested
-        if reseedInt is not None:
-          outputs[i].reseed(reseedInt)
+        if loadSettings:
+          outputs[i].setAdditionalParams(loadSettings)
 
       elif self.actionType[i] == 'FILES-dataObjects':
         #inDictionary['Input'][i] is a Files, outputs[i] is PointSet

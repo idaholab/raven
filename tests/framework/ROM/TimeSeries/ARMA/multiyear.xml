@@ -12,7 +12,7 @@
 
   <RunInfo>
     <WorkingDir>Multiyear</WorkingDir>
-    <Sequence>read, train, print, sample, dump</Sequence>
+    <Sequence>read, train, print, pickle, sample, dump</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
 
@@ -30,9 +30,9 @@
       <Output class="DataObjects" type="DataSet">romMeta</Output>
       <Output class="OutStreams" type="Print">romMeta</Output>
     </IOStep>
-    <IOStep name='dump'>
-      <Input class="DataObjects" type="DataSet">synData</Input>
-      <Output class="OutStreams" type="Print">synData</Output>
+    <IOStep name='pickle'>
+      <Input class="Models" type="ROM">arma</Input>
+      <Output class="Files" type="">pk</Output>
     </IOStep>
     <MultiRun name="sample">
       <Input class="DataObjects" type="PointSet">dataIn</Input>
@@ -40,10 +40,15 @@
       <Sampler class="Samplers" type="MonteCarlo">mcSampler</Sampler>
       <Output class="DataObjects" type="DataSet">synData</Output>
     </MultiRun>
+    <IOStep name='dump'>
+      <Input class="DataObjects" type="DataSet">synData</Input>
+      <Output class="OutStreams" type="Print">synData</Output>
+    </IOStep>
   </Steps>
 
   <Files>
     <Input name="rawDataFile">dataSet.csv</Input>
+    <Input name="pk">arma.pk</Input>
   </Files>
 
   <Samplers>
@@ -66,6 +71,7 @@
       <seed>42</seed>
       <P>2</P>
       <Q>1</Q>
+      <reseedCopies>False</reseedCopies>
       <Multiyear>
         <years>3</years>
         <growth>1.5</growth>

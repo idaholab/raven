@@ -183,4 +183,14 @@
       rel_err = 1e-3
     [../]
   [../]
+  [./MultiyearReseed]
+    type = 'RavenFramework'
+    input = 'multiyear_reseed.xml'
+    prereq = Multiyear
+    [./samples]
+      type = OrderedCSV
+      output = 'Multiyear/reseedData.csv'
+      rel_err = 1e-3
+    [../]
+  [../]
 []

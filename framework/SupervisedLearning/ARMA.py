@@ -94,17 +94,9 @@ class ARMA(supervisedLearning):
     self.numYears = None # if self.multiyear, this is the number of years per sample
     self.growthFactors = {} # by target, this is how to scale the signal over successive years
 
-    if "Multiyear" in kwargs:
-      multiyearNode = kwargs['paramInput'].findFirst('Multiyear')
-      self.multiyear = True
-      numYearsNode = multiyearNode.findFirst('years')
-      if numYearsNode is None:
-        raise IOError('The number of ARMA sample years was not specified in <Multiyear><years> node!')
-      self.numYears = numYearsNode.value
-      growthNode = multiyearNode.findFirst('growth')
-      if growthNode is not None:
-        # TODO how to do specific by target?
-        self.growthFactors['_default'] = growthNode.value
+    multiyearNode = kwargs['paramInput'].findFirst('Multiyear')
+    if multiyearNode is not None:
+      self.setMultiyearParams(multiyearNode)
 
     # check zeroFilterTarget is one of the targets given
     if self.zeroFilterTarget is not None and self.zeroFilterTarget not in self.target:
@@ -236,6 +228,36 @@ class ARMA(supervisedLearning):
     if self.reseedCopies:
       randd = np.random.randint(1,2e9)
       self.reseed(randd)
+
+  def setMultiyearParams(self, node):
+    """
+      Sets multiyear parameters in an object-oriented sense
+      @ In, node, InputData, input specs (starting with 'multiyear' node)
+      @ Out, None
+    """
+    self.multiyear = True
+    numYearsNode = node.findFirst('years')
+    if numYearsNode is None:
+      raise IOError('The number of ARMA sample years was not specified in <Multiyear><years> node!')
+    self.numYears = numYearsNode.value
+    growthNode = node.findFirst('growth')
+    if growthNode is not None:
+      # TODO how to do specific by target?
+      self.growthFactors['_default'] = growthNode.value
+
+  def setAdditionalParams(self, params):
+    """
+      Sets parameters aside from initialization, such as during deserialization.
+      @ In, params, dict, parameters to set (dependent on ROM)
+      @ Out, None
+    """
+    # reseeding is taken care of in the supervisedLearning base class of this method
+    supervisedLearning.setAdditionalParams(self, params)
+    paramInput = params['paramInput']
+    # multiyear; note that myNode is "multiyearNode" not a node that I own
+    myNode = paramInput.findFirst('Multiyear')
+    if myNode:
+      self.setMultiyearParams(myNode)
 
   def __trainLocal__(self,featureVals,targetVals):
     """
@@ -519,6 +541,9 @@ class ARMA(supervisedLearning):
       returnEvaluation[target] = signal
     # END for target in targets
     return returnEvaluation
+
+
+
 
   def reseed(self,seed):
     """

@@ -339,7 +339,9 @@ class ROM(Dummy):
     # if working with a pickled ROM, send along that information
     if self.subType == 'pickledROM':
       self.initializationOptionDict['pickled'] = True
-    self._initializeSupervisedGate(paramInput=paramInput, **self.initializationOptionDict)
+    self.initializationOptionDict['paramInput'] = paramInput
+    self._initializeSupervisedGate(**self.initializationOptionDict)
+    #self._initializeSupervisedGate(paramInput=paramInput, **self.initializationOptionDict)
     #the ROM is instanced and initialized
     self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(SupervisedLearning),True)) - set(self.mods))
     self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(LearningGate),True)) - set(self.mods))
@@ -518,11 +520,11 @@ class ROM(Dummy):
     rlz.update(dict((var,np.atleast_1d(inRun[var] if var in kwargs['SampledVars'] else result[var])) for var in set(itertools.chain(result.keys(),inRun.keys()))))
     return rlz
 
-  def reseed(self,seed):
+  def setAdditionalParams(self, params):
     """
-      Used to reset the seed of the underlying ROM.
-      @ In, seed, int, new seed to use
+      Used to set parameters at a time other than initialization (such as deserializing).
+      @ In, params, dict, new params to set (internals depend on ROM)
       @ Out, None
     """
-    self.supervisedEngine.reseed(seed)
+    self.supervisedEngine.setAdditionalParams(params)
 

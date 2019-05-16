@@ -29,7 +29,6 @@ import warnings
 warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
-from numpy import average
 import sys
 if sys.version_info.major > 2:
   from crow_modules.distribution1Dpy3 import CDF
@@ -354,6 +353,18 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
       @ Out, None
     """
     return
+
+  def setAdditionalParams(self, params):
+    """
+      Sets parameters aside from initialization, such as during deserialization.
+      @ In, params, dict, parameters to set (dependent on ROM)
+      @ Out, None
+    """
+    # reseeding is common to many
+    seed = params.pop('reseedValue', None)
+    if seed:
+      self.reseed(seed)
+    # overload this method in subclasses to load other parameters
 
   ### ROM Clustering (see ROMCollection.py) ###
   def isClusterable(self):
