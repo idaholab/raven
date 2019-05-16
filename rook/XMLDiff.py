@@ -218,7 +218,7 @@ def compare_unordered_element(a_element, b_element, **kwargs):
       closest = '-none found-'
     note += '    '+ closest +'\n'
     #print what was different between them
-    if len(close) > 1:
+    if len(close):
       diff = diffs[unmatched][close[0][0]]
       for b_diff, code, right, miss in diff:
         if b_diff is None:
