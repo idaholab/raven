@@ -18,7 +18,9 @@
     </ROM>
     <Multiyear>
       <num_years>3</num_years>
-      <growth_factor>1.5</growth_factor>
+      <growth_factors>
+        <Speed mode="exponential">0.5</Speed>
+      </growth_factors>
     </Multiyear>
     <Speed>
       <Fourier>

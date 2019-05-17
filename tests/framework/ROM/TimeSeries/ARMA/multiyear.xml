@@ -74,7 +74,7 @@
       <reseedCopies>False</reseedCopies>
       <Multiyear>
         <years>3</years>
-        <growth>1.5</growth>
+        <growth targets="Speed" mode="exponential">0.5</growth>
       </Multiyear>
     </ROM>
   </Models>

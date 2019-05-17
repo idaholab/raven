@@ -55,7 +55,7 @@
       <seed>42</seed>
       <Multiyear>
         <years>2</years>
-        <growth>2.5</growth>
+        <growth targets="Speed" mode="linear">1.5</growth>
       </Multiyear>
     </ROM>
   </Models>

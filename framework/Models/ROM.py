@@ -211,7 +211,11 @@ class ROM(Dummy):
     ### ARMA multiyear
     multiYear = InputData.parameterInputFactory('Multiyear')
     multiYear.addSub(InputData.parameterInputFactory('years', contentType=InputData.IntegerType))
-    multiYear.addSub(InputData.parameterInputFactory('growth', contentType=InputData.FloatType))
+    growth = InputData.parameterInputFactory('growth', contentType=InputData.FloatType)
+    growth.addParam('targets', InputData.StringListType, True)
+    growthEnumType = InputData.makeEnumType('growth', 'armaGrowthType', ['exponential', 'linear'])
+    growth.addParam('mode', growthEnumType, True)
+    multiYear.addSub(growth)
     inputSpecification.addSub(multiYear)
     # inputs for neural_network
     inputSpecification.addSub(InputData.parameterInputFactory("hidden_layer_sizes", InputData.StringType))

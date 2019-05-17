@@ -1,4 +1,4 @@
-RAVEN_sample_ID,Time,Year,scaling,Speed,prefix,PointProbability,ProbabilityWeight
+RAVEN_sample_ID,Time,Year,scaling,Speed,prefix,ProbabilityWeight,PointProbability
 0,0.0,0,1.0,1.596213740118861,1,1.0,1.0
 0,0.0,1,1.0,2.524219496474452,1,1.0,1.0
 0,0.0,2,1.0,6.645322012884166,1,1.0,1.0

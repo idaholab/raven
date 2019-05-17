@@ -240,10 +240,11 @@ class ARMA(supervisedLearning):
     if numYearsNode is None:
       self.raiseAnError(IOError, 'The number of ARMA sample years was not specified in <Multiyear><years> node!')
     self.numYears = numYearsNode.value
-    growthNode = node.findFirst('growth')
-    if growthNode is not None:
-      # TODO how to do specific by target?
-      self.growthFactors['_default'] = growthNode.value
+    growthNodes = node.findAll('growth')
+    for gNode in growthNodes:
+      settings = {'mode': gNode.parameterValues['mode'], 'value': gNode.value}
+      for target in gNode.parameterValues['targets']:
+        self.growthFactors[target] = settings
 
   def setAdditionalParams(self, params):
     """
@@ -385,12 +386,14 @@ class ARMA(supervisedLearning):
       for y in years:
         # apply growth factor
         vals = featureVals[:]
-        for t, target in enumerate(self.target):
-          if target == self.pivotParameterID:
-            continue
-          growth = self.growthFactors.get(target, self.growthFactors['_default'])
-          growth = growth ** y
-          vals[t] *= growth
+        for t, (target, growthInfo) in enumerate(self.growthFactors.items()):
+          growth = growthInfo['value']
+          mode = growthInfo['mode']
+          if mode == 'exponential':
+            scale = (1.0 + growth) ** y
+          else:
+            scale = (1.0 + growth) * y
+          vals[t] *= scale
         result = self._evaluateYear(vals)
         for target, value in result.items():
           if target == self.pivotParameterID:
@@ -945,7 +948,10 @@ class ARMA(supervisedLearning):
     if self.multiyear:
       myNode = xmlUtils.newNode('Multiyear')
       myNode.append(xmlUtils.newNode('num_years', text=self.numYears))
-      myNode.append(xmlUtils.newNode('growth_factor', text=self.growthFactors['_default'])) # TODO expand
+      gNode = xmlUtils.newNode('growth_factors')
+      for target, info in self.growthFactors.items():
+        gNode.append(xmlUtils.newNode(target, attrib={'mode': info['mode']}, text=info['value']))
+      myNode.append(gNode)
       root.append(myNode)
     # - Fourier coefficients (by period, waveform)
     for target, fourier in self.fourierResults.items():

@@ -3091,10 +3091,25 @@ If \xmlNode{InternalParallel} is \xmlString{False} and \xmlNode{batchSize} is mo
       \item \xmlNode{years}, \xmlDesc{integer, required field}, the number of years the ARMA should produce
         each time it yields a sample.
       \item \xmlNode{growth}, \xmlDesc{float, optional field}, if provided then the histories produced by
-        the ARMA will be multiplied by the growth factor for successive years; that is, the scaling factor
-        is the value given here raised to the power of the year. For example, with a growth factor of 1.5,
-        the first year would not be scaled, the second year would be multiplied by 1.5, the third year by 2.25,
-        and so forth. This simulates growth in the mean value and proportional signal fluctuations each year.
+        the ARMA will be increased by the growth factor for successive years. This node can be added
+        multiple times with different settings for different targets.
+        The text of this node is the growth factor. For example,
+        if the growth factor is 0.5, the scaling factor for the signal produced is 1.5, corresponding to a
+        50\% growth rate.
+
+        This node takes the following attributes as settings:
+        \begin{itemize}
+          \item \xmlAttr{targets}, \xmlDesc{comma-seperated list, required field}, lists the targets
+            in this ARMA that this growth factor should apply to.
+          \item \xmlAttr{mode}, \xmlDesc{string, required field}, either \xmlString{linear} or
+            \xmlString{exponential}, determines the manner in which the growth factor is applied.
+
+            If \xmlString{linear}, then the scaling factor is $y\cdot (1+g)$;
+
+            if \xmlString{exponential}, then the scaling factor is $(1+g)^y$;
+
+            where $y$ is the year after the first and $g$ is the provided scaling factor.
+        \end{itemize}
     \end{itemize}
     \romClusterOption
 \end{itemize}
