@@ -7,6 +7,8 @@
     <classesTested>SupervisedLearning.ARMA</classesTested>
     <description>
        Tests sampling the ARMA with multiple years in each sample.
+       As a check, assure that for each realization, the ratio between the mean of years 1 and 0
+       should be near 1.5, and the ratio between years 2 and 0 should be 2.25.
     </description>
   </TestInfo>
 
@@ -74,7 +76,7 @@
       <reseedCopies>False</reseedCopies>
       <Multiyear>
         <years>3</years>
-        <growth targets="Speed" mode="exponential">0.5</growth>
+        <growth targets="Speed" mode="exponential">50</growth>
       </Multiyear>
     </ROM>
   </Models>

@@ -3093,20 +3093,31 @@ If \xmlNode{InternalParallel} is \xmlString{False} and \xmlNode{batchSize} is mo
       \item \xmlNode{growth}, \xmlDesc{float, optional field}, if provided then the histories produced by
         the ARMA will be increased by the growth factor for successive years. This node can be added
         multiple times with different settings for different targets.
-        The text of this node is the growth factor. For example,
-        if the growth factor is 0.5, the scaling factor for the signal produced is 1.5, corresponding to a
-        50\% growth rate.
+        The text of this node is the growth factor in percentage. Some examples are in
+        Table~\ref{tab:arma multiyear growth}, where \emph{Growth factor} is the value used in the RAVEN
+        input and \emph{Scaling factor} is the value by which the history will be multiplied.
+        \begin{table}[h!]
+          \centering
+          \begin{tabular}{r c l}
+            Growth factor & Scaling factor & Description \\ \hline
+            50 & 1.5 & growing by 50\% each year \\
+            -50 & 0.5 & shrinking by 50\% each year \\
+            150 & 2.5 & growing by 150\% each year \\
+          \end{tabular}
+          \caption{ARMA Growth Factor Examples}
+          \label{tab:arma multiyear growth}
+        \end{table}
 
-        This node takes the following attributes as settings:
+        The \xmlNode{growth} node takes the following attributes as settings:
         \begin{itemize}
           \item \xmlAttr{targets}, \xmlDesc{comma-seperated list, required field}, lists the targets
             in this ARMA that this growth factor should apply to.
           \item \xmlAttr{mode}, \xmlDesc{string, required field}, either \xmlString{linear} or
             \xmlString{exponential}, determines the manner in which the growth factor is applied.
 
-            If \xmlString{linear}, then the scaling factor is $y\cdot (1+g)$;
+            If \xmlString{linear}, then the scaling factor is $(1+y\cdot g/100)$;
 
-            if \xmlString{exponential}, then the scaling factor is $(1+g)^y$;
+            if \xmlString{exponential}, then the scaling factor is $(1+g/100)^y$;
 
             where $y$ is the year after the first and $g$ is the provided scaling factor.
         \end{itemize}

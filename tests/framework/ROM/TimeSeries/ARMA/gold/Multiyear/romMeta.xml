@@ -19,7 +19,7 @@
     <Multiyear>
       <num_years>3</num_years>
       <growth_factors>
-        <Speed mode="exponential">0.5</Speed>
+        <Speed mode="exponential">50.0</Speed>
       </growth_factors>
     </Multiyear>
     <Speed>

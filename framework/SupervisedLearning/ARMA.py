@@ -385,14 +385,14 @@ class ARMA(supervisedLearning):
       finalResult['Year'] = years
       for y in years:
         # apply growth factor
-        vals = featureVals[:]
+        vals = copy.deepcopy(featureVals) # without deepcopy, the vals are modified in-place
         for t, (target, growthInfo) in enumerate(self.growthFactors.items()):
-          growth = growthInfo['value']
+          growth = growthInfo['value']/100. # given in percentage
           mode = growthInfo['mode']
           if mode == 'exponential':
             scale = (1.0 + growth) ** y
           else:
-            scale = (1.0 + growth) * y
+            scale = 1.0 + y * growth
           vals[t] *= scale
         result = self._evaluateYear(vals)
         for target, value in result.items():

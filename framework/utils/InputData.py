@@ -574,8 +574,6 @@ class ParameterInput(object):
         #if missingChilds:
         #  handleError('Not found Childs "[{}]" as sub-elements of "{}"'.format(",".join(missingChilds),node.tag))
 
-
-
   def findFirst(self, name):
     """
       Finds the first subpart with name.  Note that if this node is not ordered,

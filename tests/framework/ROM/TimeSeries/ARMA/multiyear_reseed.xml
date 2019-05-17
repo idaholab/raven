@@ -10,6 +10,7 @@
        It takes the pickled ARMA from ``multiyear'' and changes the number of years as well as
        the growth rate. The resulting DataSet CSV should have Years 0 and 1 only, and the values
        for Year 1 should be notably higher than Year 0 on average.
+       As a check, for each realization, the ratio between year 1 and year 0 should be near 2.5.
     </description>
   </TestInfo>
 
@@ -55,7 +56,7 @@
       <seed>42</seed>
       <Multiyear>
         <years>2</years>
-        <growth targets="Speed" mode="linear">1.5</growth>
+        <growth targets="Speed" mode="linear">150</growth>
       </Multiyear>
     </ROM>
   </Models>
