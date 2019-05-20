@@ -800,7 +800,7 @@ class Simulation(MessageHandler.MessageUser):
       neededObjects = objectInstance.whatDoINeed()
       for mainClassStr in neededObjects.keys():
         if mainClassStr not in self.whichDict.keys() and mainClassStr != 'internal':
-          self.raiseAnError(IOError,'Main Class '+mainClassStr+' needed by '+stp.name + ' unknown!')
+          self.raiseAnError(IOError,'Main Class', mainClassStr, 'needed by', objectInstance.name, 'unknown!')
         neededobjs[mainClassStr] = {}
         for obj in neededObjects[mainClassStr]:
           if obj[1] in vars(self):
