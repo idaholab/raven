@@ -100,7 +100,11 @@ __condaList = [("h5py", __lookup_preferred_version("h5py")),
                ("psutil", "")]
 
 # libraries to install with conda-forge
-__condaForgeList = [("pyside", ""),]
+__condaForgeList = [("pyside", ""),
+                    ("pyomo",""),
+                    ("coincbc",""),
+                    ("glpk",""),
+                    ("ipopt","")]
 # optional conda libraries
 __condaOptional = [('pillow', __lookup_preferred_version("pillow"))]
 
@@ -317,7 +321,11 @@ if __name__ == '__main__':
   if '--py3' in sys.argv or '--py2' not in sys.argv:
     pythonIndex = __condaList.index(("python", "2.7"))
     __condaList[pythonIndex] = ("python", "3")
-    __condaForgeList = [("pyside2", ""),]
+    __condaForgeList = [("pyside2", ""),
+                        ("pyomo",""),
+                        ("coincbc",""),
+                        ("glpk",""),
+                        ("ipopt","")]
 
   # check for environemnt definition of raven libs
   libName = os.getenv('RAVEN_LIBS_NAME', 'raven_libraries')
