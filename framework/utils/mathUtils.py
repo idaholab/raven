@@ -648,6 +648,7 @@ def trainEmpiricalFunction(signal, bins=None, minBins=None, weights=None):
     @ In, minBins, int, optional, minimum number of bins to use
     @ In, weights, np.array(float), optional, weights for each sample within the distribution
     @ Out, dist, scipy.stats.rv_histogram instance, distribution object instance based on input data
+    @ Out, histogram, tuple, (counts, edges) the frequency and bins of the histogram
   """
   # determine the number of bins to use in the empirical distribution
   if bins is None:
@@ -655,7 +656,7 @@ def trainEmpiricalFunction(signal, bins=None, minBins=None, weights=None):
   counts, edges = np.histogram(signal, bins=bins, density=False, weights=weights)
   counts = np.asarray(counts) / float(len(signal))
   dist = stats.rv_histogram((counts, edges))
-  return dist
+  return dist, (counts, edges)
 
 def convertSinCosToSinPhase(A, B):
   """

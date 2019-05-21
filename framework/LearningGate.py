@@ -89,8 +89,10 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta, BaseType), Mess
     self.supervisedContainer = [modelInstance]
     self.historySteps = []
 
-    nameToClass = {'segment': 'Segments', 'cluster': 'Clusters'}
-    ### ClusteredRom ###
+    nameToClass = {'segment': 'Segments',
+                   'cluster': 'Clusters',
+                   'interpolate': 'Interpolated'}
+    ### ROMCollection ###
     # if the ROM targeted by this gate is a cluster, create the cluster now!
     if 'Segment' in self.initializationOptions:
       # read from specs directly

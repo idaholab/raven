@@ -21,7 +21,7 @@
 from __future__ import division, print_function, absolute_import
 import copy
 import warnings
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 # external libraries
 import abc
 import numpy as np
@@ -437,35 +437,43 @@ class Segments(Collection):
 
   def _writeSegmentsRealization(self, writeTo):
     """
-      Writes pointwise data about segmentation to a realization. Won't actually add rlz to D.O.,
-      but will register names to it.
+      Writes pointwise data about segmentation to a realization.
       @ In, writeTo, DataObject, data structure into which data should be written
       @ Out, None
     """
-    pivotID = self._templateROM.pivotParameterID
-    pivot = self._indexValues[pivotID]
+
     # realization to add eventually
     rlz = {}
     segmentNames = range(len(self._divisionInfo['delimiters']))
     # pivot for all this stuff is the segment number
     rlz['segment_number'] = np.asarray(segmentNames)
+    iS, iE, pS, pE = self._getSegmentBounds() # (i)ndex | (p)ivot, (S)tarts | (E)nds
     # start indices
     varName = 'seg_index_start'
     writeTo.addVariable(varName, np.array([]), classify='meta', indices=['segment_number'])
-    rlz[varName] = np.asarray(list(d[0] for d in self._divisionInfo['delimiters']))
+    rlz[varName] = iS
     # end indices
     varName = 'seg_index_end'
     writeTo.addVariable(varName, np.array([]), classify='meta', indices=['segment_number'])
-    rlz[varName] = np.asarray(list(d[-1] for d in self._divisionInfo['delimiters']))
+    rlz[varName] = iE
     # pivot start values
     varName = 'seg_{}_start'.format(self._templateROM.pivotParameterID)
     writeTo.addVariable(varName, np.array([]), classify='meta', indices=['segment_number'])
-    rlz[varName] = np.asarray(list(pivot[d[0]] for d in self._divisionInfo['delimiters']))
+    rlz[varName] = pS
     # pivot end values
     varName = 'seg_{}_end'.format(self._templateROM.pivotParameterID)
     writeTo.addVariable(varName, np.array([]), classify='meta', indices=['segment_number'])
-    rlz[varName] = np.asarray(list(pivot[d[-1]] for d in self._divisionInfo['delimiters']))
+    rlz[varName] = pE
     return rlz
+
+  def _getSegmentData(self):
+    pivotID = self._templateROM.pivotParameterID
+    pivot = self._indexValues[pivotID]
+    indexStarts = np.asarray(list(d[0] for d in self._divisionInfo['delimiters']))
+    pivotStarts = np.asarray(list(pivot[i] for i in indexStarts))
+    indexEnds = np.asarray(list(d[-1] for d in self._divisionInfo['delimiters']))
+    pivotEnds = np.asarray(list(pivot[i] for i in indexEnds))
+    return indexStarts, indexEnds, pivotStarts, pivotEnds
 
 #
 #
@@ -546,9 +554,9 @@ class Clusters(Segments):
       for r, rom in enumerate(self._roms):
         # "r" is the cluster label
         # find ROM in cluster
-        clusterIndex = list(self._clusterInfo['map'][r]).index(rom)
+        #clusterIndex = list(self._clusterInfo['map'][r]).index(rom)
         # find ROM in full history
-        segmentIndex = self._getSegmentIndexFromClusterIndex(r, self._clusterInfo['labels'], clusterIndex=clusterIndex)
+        #segmentIndex = self._getSegmentIndexFromClusterIndex(r, self._clusterInfo['labels'], clusterIndex=clusterIndex)
         # make local modifications based on global settings
         delim = self._divisionInfo['delimiters'][r]
         picker = slice(delim[0], delim[-1] + 1)
@@ -806,6 +814,62 @@ class Clusters(Segments):
     for f, feature in enumerate(features):
       clusterFeatures[feature] = clusterFeatures[feature] * weights[f]
     return clusterFeatures
+
+#
+#
+#
+#
+class Interpolated(Clusters):
+  """ In addition to clusters for each history, interpolates between histories. """
+  def __init__(self, messageHandler, **kwargs):
+    self.printTag = 'Interp. Cluster ROM'
+    # notation: "pivotParameter" is for micro-steps (e.g. within-year, with a Clusters ROM representing each year)
+    #           "macroParameter" is for macro-steps (e.g. from year to year)
+    self._macroParameter = kwargs.pop('macroParameter')      # pivot parameter for macro steps (e.g. years)
+    self._macroTemplate = Clusters(messageHandler, **kwargs) # example "yearly" SVL engine collection
+    self._macroSteps = {}                                    # collection of macro steps (e.g. each year)
+    # I don't think we know how many steps we have until we go to training.
+
+  def readAssembledObjects(self):
+    for step in self._macroSteps.values():
+      step.readAssembledObjects()
+
+  def train(self, tdict):
+    """
+      Trains the SVL and its supporting SVLs etc. Overwrites base class behavior due to
+        special clustering and macro-step needs.
+      @ In, trainDict, dict, dicitonary with training data
+      @ Out, None
+    """
+    # tdict should have two parameters, the pivotParameter and the macroParameter -> one step per realization
+    ## TODO how to handle multiple realizations that aren't progressive, e.g. sites???
+    # create each progressive step
+    for macroID in tdict[self._macroParameter]:
+      self._macroSteps[macroID] = copy.deepcopy(self._macroTemplate)
+    self.readAssembledObjects()
+    # train the existing steps
+    for s, step in enumerate(self._macroSteps.values()):
+      trainingData = dict((var, tdict[var][s]) for var in tdict.keys())
+      step.train(trainingData)
+    # interpolate missing steps
+    self._interpolateSteps()
+
+  def _interpolateSteps(self):
+    """ Master method for interpolating missing ROMs for steps """
+    # acquire interpolatable information
+    for step, model in self._macroSteps.items():
+      new = self._acquireInterpolableData(model)
+    # create interpolators
+    # interpolate
+    # create new instances
+    # fill missing steps
+
+  def _acquireInterpolableData(self, model):
+    # the same features that were used to cluster (unscaled) should be the features that matter for the ROM
+    pass # TODO FIXME XXX WORKING
+
+
+
 
 #
 #

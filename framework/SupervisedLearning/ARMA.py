@@ -32,11 +32,12 @@ import statsmodels.api as sm # VARMAX is in sm.tsa
 import functools
 from statsmodels.tsa.arima_model import ARMA as smARMA
 from scipy.linalg import solve_discrete_lyapunov
+from scipy import stats
 from sklearn import linear_model
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import randomUtils, xmlUtils, mathUtils,utils
+from utils import randomUtils, xmlUtils, mathUtils, utils
 import Distributions
 from .SupervisedLearning import supervisedLearning
 #Internal Modules End--------------------------------------------------------------------------------
@@ -979,7 +980,6 @@ class ARMA(supervisedLearning):
       armaNode.append(xmlUtils.newNode('std', text=np.sqrt(arma.sigma2)))
       # TODO covariances, P and Q, etc
 
-
   def _transformThroughInputCDF(self, signal, originalDist, weights=None):
     """
       Transforms a signal through the original distribution
@@ -989,9 +989,9 @@ class ARMA(supervisedLearning):
       @ Out, new, np.array, new signal after transformation
     """
     # first build a histogram object of the sampled data
-    dist = mathUtils.trainEmpiricalFunction(signal, minBins=self._minBins, weights=weights)
+    dist, hist = mathUtils.trainEmpiricalFunction(signal, minBins=self._minBins, weights=weights)
     # transform data through CDFs
-    new = originalDist.ppf(dist.cdf(signal))
+    new = originalDist[0].ppf(dist.cdf(signal))
     return new
 
   ### Segmenting and Clustering ###
@@ -1035,26 +1035,8 @@ class ARMA(supervisedLearning):
       @ Out, features, dict, {target_metric: np.array(floats)} features to cluster on
     """
     # algorithm for providing Fourier series and ARMA white noise variance and #TODO covariance
-    features = {}
-    # include Fourier if available
-    for target, fourier in self.fourierResults.items():
-      for period in fourier['regression']['periods']:
-        # amp
-        amp = fourier['regression']['coeffs'][period]['amplitude']
-        ID = '{}_{}'.format(period, 'amp')
-        feature = featureTemplate.format(target=target, metric='Fourier', id=ID)
-        features[feature] = amp
-        # phase
-        ## not great for clustering, but sure, why not
-        phase = fourier['regression']['coeffs'][period]['phase']
-        ID = '{}_{}'.format(period, 'phase')
-        feature = featureTemplate.format(target=target, metric='Fourier', id=ID)
-        features[feature] = phase
+    features = self.getFundamentalFeatures(featureTemplate=featureTemplate)
 
-    # signal variance, ARMA (not varma)
-    for target, arma in self.armaResult.items():
-      feature = featureTemplate.format(target=target, metric='arma', id='std')
-      features[feature] = np.sqrt(arma.sigma2)
     # segment means
     # since we've already detrended globally, get the means from that (if present)
     if 'long Fourier signal' in settings:
@@ -1064,6 +1046,168 @@ class ARMA(supervisedLearning):
         feature = featureTemplate.format(target=target, metric="global", id="mean")
         features[feature] = mean
     return features
+
+  def getFundamentalFeatures(self, featureTemplate=None):
+    assert self.amITrained
+    if featureTemplate is None:
+      featureTemplate = '{target}|{metric}|{id}' # TODO this kind of has to be the format currently
+    features = {}
+    # include Fourier if available
+    for target, fourier in self.fourierResults.items():
+      feature = featureTemplate.format(target=target, metric='Fourier', id='fittingIntercept')
+      features[feature] = fourier['regression']['intercept']
+      for period in fourier['regression']['periods']:
+        # amp, phase
+        amp = fourier['regression']['coeffs'][period]['amplitude']
+        phase = fourier['regression']['coeffs'][period]['phase']
+        # rather than use amp, phase as properties, use sine and cosine coeffs
+        ## this mitigates the cyclic nature of the phase causing undesirable clustering
+        sinAmp = amp * np.cos(phase)
+        cosAmp = amp * np.sin(phase)
+        ID = '{}_{}'.format(period, 'sineAmp')
+        feature = featureTemplate.format(target=target, metric='Fourier', id=ID)
+        features[feature] = sinAmp
+        ID = '{}_{}'.format(period, 'cosineAmp')
+        feature = featureTemplate.format(target=target, metric='Fourier', id=ID)
+        features[feature] = cosAmp
+
+    # ARMA (not varma)
+    for target, arma in self.armaResult.items():
+      # sigma
+      feature = featureTemplate.format(target=target, metric='arma', id='std')
+      features[feature] = np.sqrt(arma.sigma2)
+      # autoregression
+      for p, val in enumerate(arma.arparams):
+        feature = featureTemplate.format(target=target, metric='arma', id='AR_{}'.format(p))
+        features[feature] = val
+      # moving average
+      for q, val in enumerate(arma.maparams):
+        feature = featureTemplate.format(target=target, metric='arma', id='MA_{}'.format(q))
+        features[feature] = val
+
+    # CDF preservation if available
+    for target, cdf in self._trainingCDF.items():
+      _, (counts, edges) = cdf
+      for c, count in enumerate(counts):
+        feature = featureTemplate.format(target=target, metric='cdf', id='counts_{}'.format(c))
+        features[feature] = count
+      for e, edge in enumerate(edges):
+        feature = featureTemplate.format(target=target, metric='cdf', id='edges_{}'.format(e))
+        features[feature] = edge
+    return features
+
+  def readFundamentalFeatures(self, features):
+    # collect all the data
+    fourier = collections.defaultdict(dict)
+    arma = collections.defaultdict(dict)
+    cdf = collections.defaultdict(dict)
+    for feature, val in features.items():
+      target, metric, ID = feature.split('|')
+
+      if metric == 'Fourier':
+        if ID == 'fittingIntercept':
+          fourier[target]['intercept'] = val
+        else:
+          period, wave = ID.split('_')
+          period = float(period)
+          if period not in fourier[target]:
+            fourier[target][period] = {}
+          fourier[target][period][wave] = val
+
+      elif metric == 'arma':
+        if ID == 'std':
+          arma[target]['std'] = val
+        elif ID.startswith('AR_'):
+          p = int(ID[3:])
+          if 'AR' not in arma[target]:
+            arma[target]['AR'] = {}
+          arma[target]['AR'][p] = val
+        elif ID.startswith('MA_'):
+          p = int(ID[3:])
+          if 'MA' not in arma[target]:
+            arma[target]['MA'] = {}
+          arma[target]['MA'][p] = val
+
+      elif metric == 'cdf':
+        if ID.startswith('counts_'):
+          c = int(ID.split('_')[1])
+          if 'counts' not in cdf[target]:
+            cdf[target]['counts'] = {}
+          cdf[target]['counts'][c] = val
+        elif ID.startswith('edges_'):
+          e = int(ID.split('_')[1])
+          if 'edges' not in cdf[target]:
+            cdf[target]['edges'] = {}
+          cdf[target]['edges'][e] = val
+
+      else:
+        raise KeyError('Unrecognized metric: "{}"'.format(metric))
+    return {'fourier': fourier,
+            'arma': arma,
+            'cdf': cdf}
+
+  def setFundamentalFeatures(self, features):
+    """opposite of getFundamentalFeatures, expects results as from readFundamentalFeatures"""
+    self._setFourierResults(features.get('fourier', {}))
+    self._setArmaResults(features.get('arma', {}))
+    self._setCDFResults(features.get('cdf', {}))
+
+
+  def _setFourierResults(self, paramDict):
+    for target, info in paramDict.items():
+      predict = np.ones(len(self.pivotParameterValues)) * info['intercept']
+      params = {'coeffs': {}}
+      for period, waves in info.items():
+        if period == 'intercept':
+          params[period] = waves
+        else:
+          # either A, B or C, p
+          if 'sineAmp' in waves:
+            A = waves['sineAmp']
+            B = waves['cosineAmp']
+            C, p = mathUtils.convertSinCosToSinPhase(A, B)
+          else:
+            C = waves['amplitude']
+            p = waves['phase']
+          params['coeffs'][period] = {}
+          params['coeffs'][period]['amplitude'] = C
+          params['coeffs'][period]['phase'] = p
+          predict += C * np.sin(2.*np.pi / period * self.pivotParameterValues + p)
+      params['periods'] = list(params['coeffs'].keys())
+      self.fourierResults[target] = {'regression': params,
+                                     'predict': predict}
+
+  def _setArmaResults(self, paramDict):
+    for target, info in paramDict.items():
+      AR_keys, AR_vals = zip(*list(info['AR'].items()))
+      AR_keys, AR_vals = zip(*sorted(zip(AR_keys, AR_vals), key=lambda x:x[0]))
+      MA_keys, MA_vals = zip(*list(info['MA'].items()))
+      MA_keys, MA_vals = zip(*sorted(zip(MA_keys, MA_vals), key=lambda x:x[0]))
+      sigma = info['std']
+      AR_vals = np.asarray(AR_vals)
+      MA_vals = np.asarray(MA_vals)
+      result = armaResultsProxy(AR_vals, MA_vals, sigma)
+      self.armaResult[target] = result
+
+  def _setCDFResults(self, paramDict):
+    for target, info in paramDict.items():
+      # counts
+      cs = list(info['counts'].items())
+      c_idx, c_vals = zip(*sorted(cs, key=lambda x: x[0]))
+      c_vals = np.asarray(c_vals)
+      ## renormalize counts
+      counts = c_vals / float(c_vals.sum())
+      # edges
+      es = list(info['edges'].items())
+      e_idx, e_vals = zip(*sorted(es, key=lambda x: x[0]))
+      histogram = (counts, e_vals)
+      dist = stats.rv_histogram(histogram)
+      self._trainingCDF[target] = (dist, histogram)
+
+
+
+
+
 
   def getGlobalRomSegmentSettings(self, trainingDict, divisions):
     """
@@ -1238,3 +1382,16 @@ class ARMA(supervisedLearning):
       count=self.randomEng.get_rng_state()
     eng.forward_seed(count)
     self.randomEng=eng
+
+
+
+#
+#
+#
+#
+# Dummy class for replacing a statsmodels ARMAResults with a surrogate.
+class armaResultsProxy:
+  def __init__(self, arparams, maparams, sigma):
+    self.arparams = np.atleast_1d(arparams)
+    self.maparams = np.atleast_1d(maparams)
+    self.sigma2 = sigma**2
