@@ -62,7 +62,7 @@ class ROM(Dummy):
     inputSpecification.addSub(InputData.parameterInputFactory('Target',contentType=InputData.StringType))
     # segmenting and clustering
     segment = InputData.parameterInputFactory("Segment", strictMode=True)
-    segmentGroups = InputData.makeEnumType('segmentGroup', 'sesgmentGroupType', ['segment', 'cluster'])
+    segmentGroups = InputData.makeEnumType('segmentGroup', 'sesgmentGroupType', ['segment', 'cluster', 'interpolate'])
     segment.addParam('grouping', segmentGroups)
     subspace = InputData.parameterInputFactory('subspace', InputData.StringType)
     subspace.addParam('divisions', InputData.IntegerType, False)
@@ -80,6 +80,7 @@ class ROM(Dummy):
     feature = InputData.parameterInputFactory('feature', strictMode=True, contentType=InputData.StringType)
     feature.addParam('weight', InputData.FloatType)
     segment.addSub(feature)
+    segment.addSub(InputData.parameterInputFactory('macroParameter', contentType=InputData.StringType))
     inputSpecification.addSub(segment)
     # unsorted
     inputSpecification.addSub(InputData.parameterInputFactory("persistence", InputData.StringType))

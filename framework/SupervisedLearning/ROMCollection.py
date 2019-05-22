@@ -25,6 +25,8 @@ from collections import defaultdict, OrderedDict
 # external libraries
 import abc
 import numpy as np
+import pandas as pd
+from scipy.interpolate import interp1d
 # internal libraries
 from utils import mathUtils, xmlUtils, randomUtils
 from .SupervisedLearning import supervisedLearning
@@ -60,7 +62,8 @@ class Collection(supervisedLearning):
       @ Out, d, dict, dictionary with class members
     """
     # construct a list of unpicklable entties and exclude them from pickling
-    nope = ['_divisionClassifier', '_assembledObjects']
+    # nope = ['_divisionClassifier', '_assembledObjects']
+    nope = ['_assembledObjects']
     d = dict((key, val) for key, val in self.__dict__.items() if key not in nope) # deepcopy needed
     return d
 
@@ -209,14 +212,16 @@ class Segments(Collection):
   ###############
   # RUN METHODS #
   ###############
-  def train(self, tdict):
+  def train(self, tdict, skipAssembly=False):
     """
       Trains the SVL and its supporting SVLs. Overwrites base class behavior due to special clustering needs.
       @ In, trainDict, dict, dicitonary with training data
+      @ In, skipAssembly, bool, optional, if True then don't assemble objects from assembler (was handled externally, probably)
       @ Out, None
     """
     # read in assembled objects, if any
-    self.readAssembledObjects()
+    if not skipAssembly:
+      self.readAssembledObjects()
     # subdivide space
     divisions = self._subdivideDomain(self._divisionInstructions, tdict)
     self._divisionInfo['delimiters'] = divisions[0] + divisions[1]
@@ -533,7 +538,10 @@ class Clusters(Segments):
     """
     # get the classifier to use, if any, from the Assembler
     ## this is used to cluster the ROM segments
-    self._divisionClassifier = self._assembledObjects.get('Classifier', [[None]*4])[0][3]
+    classifier = self._assembledObjects.get('Classifier', [[None]*4])[0][3]
+    if classifier is not None:
+      classifier = classifier.interface.unSupervisedEngine
+    self._divisionClassifier = classifier
     self._metricClassifiers = self._assembledObjects.get('Metric', None)
 
   ## API ##
@@ -618,9 +626,12 @@ class Clusters(Segments):
       @ In, clusterFeatures, dict, data on which to train classifier
       @ Out, labels, list(int), ordered list of labels corresponding to ROM subdomains
     """
-    # the actual classifying algorithms is the unSupervisedEnging of the QDataMining of the PP Model
+    # the actual classifying algorithms is the unSupervisedEngine of the QDataMining of the PP Model
     ## get the instance
-    classifier = classifier.interface.unSupervisedEngine
+    #print('DEBUGG classifier is:', classifier)
+    #print('DEBUGG              :', classifier.interface)
+    #print('DEBUGG              :', classifier.interface.unSupervisedEngine)
+    #classifier = classifier.interface.unSupervisedEngine
     # update classifier features
     classifier.updateFeatures(features)
     # make the clustering instance)
@@ -819,18 +830,24 @@ class Clusters(Segments):
 #
 #
 #
-class Interpolated(Clusters):
+class Interpolated(supervisedLearning):
   """ In addition to clusters for each history, interpolates between histories. """
   def __init__(self, messageHandler, **kwargs):
+    supervisedLearning.__init__(self, messageHandler, **kwargs)
     self.printTag = 'Interp. Cluster ROM'
     # notation: "pivotParameter" is for micro-steps (e.g. within-year, with a Clusters ROM representing each year)
     #           "macroParameter" is for macro-steps (e.g. from year to year)
-    self._macroParameter = kwargs.pop('macroParameter')      # pivot parameter for macro steps (e.g. years)
-    self._macroTemplate = Clusters(messageHandler, **kwargs) # example "yearly" SVL engine collection
-    self._macroSteps = {}                                    # collection of macro steps (e.g. each year)
-    # I don't think we know how many steps we have until we go to training.
+    inputSpecs = kwargs['paramInput'].findFirst('Segment')
+    self._macroParameter = inputSpecs.findFirst('macroParameter').value # pivot parameter for macro steps (e.g. years)
+    self._macroTemplate = Clusters(messageHandler, **kwargs)            # example "yearly" SVL engine collection
+    self._macroSteps = {}                                               # collection of macro steps (e.g. each year)
+
+  # passthrough to template
+  def setAssembledObjects(self, *args, **kwargs):
+    self._macroTemplate.setAssembledObjects(*args, **kwargs)
 
   def readAssembledObjects(self):
+    aaaaaaaaa # remove me
     for step in self._macroSteps.values():
       step.readAssembledObjects()
 
@@ -844,30 +861,101 @@ class Interpolated(Clusters):
     # tdict should have two parameters, the pivotParameter and the macroParameter -> one step per realization
     ## TODO how to handle multiple realizations that aren't progressive, e.g. sites???
     # create each progressive step
+    import pprint
+    pp = pprint.PrettyPrinter(indent=2)
+    pp.pprint(tdict)
+    self._macroTemplate.readAssembledObjects()
     for macroID in tdict[self._macroParameter]:
-      self._macroSteps[macroID] = copy.deepcopy(self._macroTemplate)
-    self.readAssembledObjects()
+      macroID = macroID[0]
+      new = copy.deepcopy(self._macroTemplate)
+      # because assembled objects are excluded from deepcopy, add them back here
+      # new.setAssembledObjects(copy.deepcopy(self._macroTemplate._assembledObjects))
+      new.setAssembledObjects({})
+      self._macroSteps[macroID] = new
+
     # train the existing steps
     for s, step in enumerate(self._macroSteps.values()):
-      trainingData = dict((var, tdict[var][s]) for var in tdict.keys())
-      step.train(trainingData)
+      self.raiseADebug('Training Statepoint Year {} ...'.format(s))
+      trainingData = dict((var, [tdict[var][s]]) for var in tdict.keys())
+      step.train(trainingData, skipAssembly=True)
     # interpolate missing steps
     self._interpolateSteps()
 
   def _interpolateSteps(self):
     """ Master method for interpolating missing ROMs for steps """
     # acquire interpolatable information
+    df = None
     for step, model in self._macroSteps.items():
-      new = self._acquireInterpolableData(model)
+      # TODO need to collect FOR EACH SEGMENT!
+      params = model.getFundamentalFeatures()
+      newDf = pd.DataFrame(params, index=[step])
+      if df is None:
+        df = newDf
+      else:
+        df = df.append(newDf, sort=True)
+    df.fillna(0.0) # FIXME is 0 really the best for all signals??
     # create interpolators
+    data = df.values
+    interp = interp1d(df.index.values, data) # TODO transpose ??
+    xxxxxxx
     # interpolate
     # create new instances
     # fill missing steps
 
-  def _acquireInterpolableData(self, model):
-    # the same features that were used to cluster (unscaled) should be the features that matter for the ROM
-    pass # TODO FIXME XXX WORKING
+  #
 
+  # dummy methods that are required by SVL and not generally used
+  def __confidenceLocal__(self, featureVals):
+    """
+      This should return an estimation of the quality of the prediction.
+      This could be distance or probability or anything else, the type needs to be declared in the variable cls.qualityEstType
+      @ In, featureVals, 2-D numpy array , [n_samples,n_features]
+      @ Out, __confidenceLocal__, float, the confidence
+    """
+    pass
+
+  def __resetLocal__(self):
+    """
+      Reset ROM. After this method the ROM should be described only by the initial parameter settings
+      @ In, None
+      @ Out, None
+    """
+    pass
+
+  def __returnCurrentSettingLocal__(self):
+    """
+      Returns a dictionary with the parameters and their current values
+      @ In, None
+      @ Out, params, dict, dictionary of parameter names and current values
+    """
+    return {}
+
+  def __returnInitialParametersLocal__(self):
+    """
+      Returns a dictionary with the parameters and their initial values
+      @ In, None
+      @ Out, params, dict,  dictionary of parameter names and initial values
+    """
+    return {}
+
+  # Are private-ish so should not be called directly, so we don't implement them, as they don't fit the collection.
+  def __evaluateLocal__(self, featureVals):
+    """
+      @ In,  featureVals, np.array, 2-D numpy array [n_samples,n_features]
+      @ Out, targetVals , np.array, 1-D numpy array [n_samples]
+    """
+    pass
+
+  def __trainLocal__(self, featureVals, targetVals):
+    """
+      Perform training on samples in featureVals with responses y.
+      For an one-class model, +1 or -1 is returned.
+      @ In, featureVals, {array-like, sparse matrix}, shape=[n_samples, n_features],
+        an array of input feature values
+      @ Out, targetVals, array, shape = [n_samples], an array of output target
+        associated with the corresponding points in featureVals
+    """
+    pass
 
 
 

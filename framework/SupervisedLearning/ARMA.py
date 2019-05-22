@@ -75,12 +75,12 @@ class ARMA(supervisedLearning):
     self.Q                 = kwargs.get('Q', 3) # moving average lag
     self.segments          = kwargs.get('segments', 1)
     # data manipulation
-    reseed=kwargs.get('reseedCopies',str(True)).lower()
+    reseed = kwargs.get('reseedCopies', str(True)).lower()
     self.reseedCopies      = reseed not in utils.stringsThatMeanFalse()
-    self.outTruncation = {'positive':set(),'negative':set()} # store truncation requests
+    self.outTruncation     = {'positive':set(), 'negative':set()} # store truncation requests
     self.pivotParameterID  = kwargs['pivotParameter']
     self.pivotParameterValues = None  # In here we store the values of the pivot parameter (e.g. Time)
-    self.seed              = kwargs.get('seed',None)
+    self.seed              = kwargs.get('seed', None)
     self.preserveInputCDF  = kwargs.get('preserveInputCDF', False) # if True, then CDF of the training data will be imposed on the final sampled signal
     self._trainingCDF      = {} # if preserveInputCDF, these CDFs are scipy.stats.rv_histogram objects for the training data
     self.zeroFilterTarget  = None # target for whom zeros should be filtered out
