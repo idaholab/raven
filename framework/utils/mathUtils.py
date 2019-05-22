@@ -669,3 +669,11 @@ def convertSinCosToSinPhase(A, B):
   p = np.arctan2(B, A)
   C = A / np.cos(p)
   return C, p
+
+def evalFourier(period,C,p,t):
+  """
+    eval fourier
+  """
+  fourier = C * np.sin(2. * np.pi * t / period + p)
+  return fourier
+

@@ -254,8 +254,8 @@ class ARMA(supervisedLearning):
         self._trainingCDF[target] = mathUtils.trainEmpiricalFunction(timeSeriesData, minBins=self._minBins)
       # if this target governs the zero filter, extract it now
       if target == self.zeroFilterTarget:
-        self.notZeroFilterMask = self._trainZeroRemoval(timeSeriesData,tol=self.zeroFilterTol) # where zeros are not
-        self.zeroFilterMask = np.logical_not(self.notZeroFilterMask) # where zeroes are
+        self.notZeroFilterMask = self._trainZeroRemoval(timeSeriesData,tol=self.zeroFilterTol) # where zeros or less than zeros are
+        self.zeroFilterMask = np.logical_not(self.notZeroFilterMask) # where data are
       # if we're removing Fourier signal, do that now.
       if target in self.fourierParams:
         self.raiseADebug('... analyzing Fourier signal  for target "{}" ...'.format(target))
@@ -704,7 +704,7 @@ class ARMA(supervisedLearning):
               #'cdfSearch':neighbors.NearestNeighbors(n_neighbors=2).fit([[c] for c in cdf])}
     return params
 
-  def _trainFourier(self, pivotValues, periods, values, zeroFilter=False):
+  def _trainFourier(self, pivotValues, periods, values, masks=None,zeroFilter=False):
     """
       Perform fitting of Fourier series on self.timeSeriesDatabase
       @ In, pivotValues, np.array, list of values for the independent variable (e.g. time)
@@ -714,6 +714,9 @@ class ARMA(supervisedLearning):
       @ Out, fourierResult, dict, results of this training in keys 'residues', 'fourierSet', 'predict', 'regression'
     """
     # XXX fix for no order
+    if masks == None:
+      masks = []
+
     fourierSignalsFull = self._generateFourierSignal(pivotValues, periods)
     # fourierSignals dimensions, for each key (base):
     #   0: length of history
@@ -723,6 +726,11 @@ class ARMA(supervisedLearning):
     #                 2:   sin(2pi*t/period[1]),
     #                 3:   cos(2pi*t/period[1]), ...
     fourierEngine = linear_model.LinearRegression(normalize=False)
+    for i in range(len(masks)):
+      mask=masks[i]
+      fourierSignalsFull = fourierSignalsFull[mask, :]
+      values = values[mask]
+
 
     # if using zero-filter, cut the parts of the Fourier and values that correspond to the zero-value portions
     if zeroFilter:
@@ -735,7 +743,7 @@ class ARMA(supervisedLearning):
     fourierEngine.fit(fourierSignals, values)
 
     # get Fourier superimposed signal
-    fitSignal = np.asarray(fourierEngine.predict(fourierSignals))
+    #fitSignal = np.asarray(fourierEngine.predict(fourierSignals))
     # get signal intercept
     intercept = fourierEngine.intercept_
     # get coefficient map for A*sin(ft) + B*cos(ft)
@@ -748,18 +756,17 @@ class ARMA(supervisedLearning):
     ## since we use fitting to get A and B, the magnitudes can be deceiving.
     ## this conversion makes "C" a useful value to know the contribution from a period
     coefMap = {}
+    signal=np.ones(len(pivotValues)) * intercept
     for period, coefs in waveCoefMap.items():
       A = coefs['sin']
       B = coefs['cos']
       C, s = mathUtils.convertSinCosToSinPhase(A, B)
       coefMap[period] = {'amplitude': C, 'phase': s}
-
+      signal+=mathUtils.evalFourier(period,C,s,pivotValues)
     # re-add zero-filtered
     if zeroFilter:
-      signal = np.zeros(pivotValues.size)
-      signal[self.zeroFilterMask] = fitSignal
-    else:
-      signal = fitSignal
+      signal[self.notZeroFilterMask] = 0.0
+
 
     # store results
     fourierResult = {'regression': {'intercept':intercept,
