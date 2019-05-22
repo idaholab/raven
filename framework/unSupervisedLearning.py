@@ -150,7 +150,7 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
     """
 
     self.metric = metric
-    if type(tdict) != dict:
+    if not isinstance(tdict, dict):
       self.raiseAnError(IOError, ' method "train". The training set needs to be provided through a dictionary. Type of the in-object is ' + str(type(tdict)))
 
     featureCount = len(self.features)
@@ -265,6 +265,7 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
 
   ## I'd be willing to bet this never gets called, and if it did it would crash
   ## under specific settings, namely using a history set.
+  ## -> for the record, I call it to get the labels in the ROMCollection.Clusters - talbpaul
   def evaluate(self, edict):
     """
       Method to perform the evaluation of a point or a set of points through
@@ -275,7 +276,7 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
       @ In, edict, dict, evaluation dictionary
       @ Out, evaluation, numpy.array, array of evaluated points
     """
-    if type(edict) != dict:
+    if not isinstance(edict, dict):
       self.raiseAnError(IOError, ' Method "evaluate". The evaluate request/s need/s to be provided through a dictionary. Type of the in-object is ' + str(type(edict)))
 
     names = edict.keys()
@@ -646,7 +647,6 @@ class SciKitLearn(unSupervisedLearning):
               covariance[row,col] = covariance[row,col] * rowSigma * colSigma
         self.metaDict['covars'] = covariance
     elif 'decomposition' == self.SKLtype:
-
       if 'embeddingVectors' not in self.outputDict['outputs']:
         if hasattr(self.Method, 'transform'):
           embeddingVectors = self.Method.transform(self.normValues)

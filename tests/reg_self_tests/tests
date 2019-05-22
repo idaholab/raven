@@ -9,4 +9,10 @@
   executable = 'python'
   parameters = '-c "print(1)"'
  [../]
+
+ [./lots_of_useless_output]
+  type = 'GenericExecutable'
+  executable = 'python'
+  parameters = 'lots_of_output.py'
+ [../]
 []

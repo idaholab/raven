@@ -81,6 +81,8 @@ class ImportanceRank(PostProcessor):
     #inputSpecification.addSub(DimensionsInput)
 
     MVNDistributionInput = InputData.parameterInputFactory("mvnDistribution", contentType=InputData.StringType)
+    MVNDistributionInput.addParam("class", InputData.StringType, True)
+    MVNDistributionInput.addParam("type", InputData.StringType, True)
     inputSpecification.addSub(MVNDistributionInput)
 
     PivotParameterInput = InputData.parameterInputFactory("pivotParameter", contentType=InputData.StringType)
@@ -108,32 +110,13 @@ class ImportanceRank(PostProcessor):
     self.statAcceptedMetric = ['pcaindex','transformation','inversetransformation']
     self.what = self.acceptedMetric # what needs to be computed, default is all
     self.printTag = 'POSTPROCESSOR IMPORTANTANCE RANK'
-    self.requiredAssObject = (True,(['Distributions'],[-1]))
     self.transformation = False
     self.latentSen = False
     self.reconstructSen = False
     self.pivotParameter = None # time-dependent pivot parameter
     self.dynamic        = False # is it time-dependent?
-
-  def _localWhatDoINeed(self):
-    """
-      This method is local mirror of the general whatDoINeed method
-      It is implemented by this postprocessor that need to request special objects
-      @ In, None
-      @ Out, needDict, dict, list of objects needed
-    """
-    needDict = {'Distributions':[]}
-    needDict['Distributions'].append((None,self.mvnDistribution))
-    return needDict
-
-  def _localGenerateAssembler(self,initDict):
-    """
-      see generateAssembler method in Assembler
-      @ In, initDict, dict, dictionary ({'mainClassName':{'specializedObjectName':ObjectInstance}})
-      @ Out, None
-    """
-    distName = self.mvnDistribution
-    self.mvnDistribution = initDict['Distributions'][distName]
+    # assembler objects to be requested
+    self.addAssemblerObject('mvnDistribution', '1', True)
 
   def _localReadMoreXML(self,xmlNode):
     """
@@ -242,7 +225,7 @@ class ImportanceRank(PostProcessor):
       @ In, initDict, dict, dictionary with initialization options
     """
     PostProcessor.initialize(self, runInfo, inputs, initDict)
-
+    self.mvnDistribution = self.retrieveObjectFromAssemblerDict('mvnDistribution', self.mvnDistribution)
   def inputToInternal(self, currentInp):
     """
       Method to convert an input object into the internal format that is understandable by this pp.

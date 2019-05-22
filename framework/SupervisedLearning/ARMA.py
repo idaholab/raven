@@ -25,29 +25,25 @@ warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
-import sys
 import copy
-import itertools
 import collections
 import numpy as np
-import xarray as xr
 import statsmodels.api as sm # VARMAX is in sm.tsa
+import functools
 from statsmodels.tsa.arima_model import ARMA as smARMA
-from scipy import optimize
-from scipy import stats
 from scipy.linalg import solve_discrete_lyapunov
-from sklearn import linear_model, neighbors
+from sklearn import linear_model
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import randomUtils, xmlUtils, mathUtils
+from utils import randomUtils, xmlUtils, mathUtils,utils
 import Distributions
 from .SupervisedLearning import supervisedLearning
 #Internal Modules End--------------------------------------------------------------------------------
 
 
 class ARMA(supervisedLearning):
-  """
+  r"""
     Autoregressive Moving Average model for time series analysis. First train then evaluate.
     Specify a Fourier node in input file if detrending by Fourier series is needed.
 
@@ -55,7 +51,7 @@ class ARMA(supervisedLearning):
     ARMA series X: x_t = \sum_{i=1}^P \phi_i*x_{t-i} + \alpha_t + \sum_{j=1}^Q \theta_j*\alpha_{t-j}
   """
   ### INHERITED METHODS ###
-  def __init__(self,messageHandler,**kwargs):
+  def __init__(self, messageHandler, **kwargs):
     """
       A constructor that will appropriately intialize a supervised learning object
       @ In, messageHandler: a MessageHandler object in charge of raising errors,
@@ -63,8 +59,8 @@ class ARMA(supervisedLearning):
       @ In, kwargs: an arbitrary dictionary of keywords and values
     """
     # general infrastructure
-    supervisedLearning.__init__(self,messageHandler,**kwargs)
-    self.printTag          = 'ARMA'
+    supervisedLearning.__init__(self, messageHandler, **kwargs)
+    self.printTag = 'ARMA'
     self._dynamicHandling  = True # This ROM is able to manage the time-series on its own.
     # training storage
     self.trainingData      = {} # holds normalized ('norm') and original ('raw') training data, by target
@@ -78,7 +74,8 @@ class ARMA(supervisedLearning):
     self.Q                 = kwargs.get('Q', 3) # moving average lag
     self.segments          = kwargs.get('segments', 1)
     # data manipulation
-    self.reseedCopies      = kwargs.get('reseedCopies',True)
+    reseed=kwargs.get('reseedCopies',str(True)).lower()
+    self.reseedCopies      = reseed not in utils.stringsThatMeanFalse()
     self.outTruncation = {'positive':set(),'negative':set()} # store truncation requests
     self.pivotParameterID  = kwargs['pivotParameter']
     self.pivotParameterValues = None  # In here we store the values of the pivot parameter (e.g. Time)
@@ -88,6 +85,7 @@ class ARMA(supervisedLearning):
     self.zeroFilterTarget  = None # target for whom zeros should be filtered out
     self.zeroFilterTol     = None # tolerance for zerofiltering to be considered zero, set below
     self.zeroFilterMask    = None # mask of places where zftarget is zero, or None if unused
+    self.notZeroFilterMask = None # mask of places where zftarget is NOT zero, or None if unused
     self._minBins          = 20   # min number of bins to use in determining distributions, eventually can be user option, for now developer's pick
     # signal storage
     self._signalStorage    = collections.defaultdict(dict) # various signals obtained in the training process
@@ -111,14 +109,18 @@ class ARMA(supervisedLearning):
     self.normEngine.lowerBoundUsed = False
     self.normEngine.initializeDistribution()
 
-    # check for correlation
-    correlated = kwargs.get('correlate',None)
-    if correlated is not None:
-      # FIXME set the numpy seed
+    self.setEngine(randomUtils.newRNG(),seed=self.seed,count=0)
+
+    # FIXME set the numpy seed
       ## we have to do this because VARMA.simulate does not accept a random number generator,
       ## but instead uses numpy directly.  As a result, for now, we have to seed numpy.
       ## Because we use our RNG to set the seed, though, it should follow the global seed still.
-      self.raiseADebug('Setting Numpy seed to',self.seed)
+    self.raiseADebug('Setting ARMA seed to',self.seed)
+    randomUtils.randomSeed(self.seed,engine=self.randomEng)
+
+    # check for correlation
+    correlated = kwargs.get('correlate',None)
+    if correlated is not None:
       np.random.seed(self.seed)
       # store correlated targets
       corVars = [x.strip() for x in correlated.split(',')]
@@ -200,11 +202,10 @@ class ARMA(supervisedLearning):
       @ In, None
       @ Out, d, dict, stateful dictionary
     """
-    d = copy.copy(self.__dict__)
-    # set up a seed for the next pickled iteration
-    if self.reseedCopies:
-      rand = randomUtils.randomIntegers(1,int(2**20),self)
-      d['random seed'] = rand
+    d = supervisedLearning.__getstate__(self)
+    eng=d.pop("randomEng")
+    randCounts = eng.get_rng_state()
+    d['crow_rng_counts'] = randCounts
     return d
 
   def __setstate__(self,d):
@@ -213,13 +214,12 @@ class ARMA(supervisedLearning):
       @ In, d, dict, stateful dictionary
       @ Out, None
     """
-    seed = d.pop('random seed',None)
-    if seed is not None:
-      self.reseed(seed)
-    self.__dict__ = d
-    # set VARMA numpy seed
-    self.raiseADebug('Setting Numpy seed to',self.seed)
-    np.random.seed(self.seed)
+    rngCounts = d.pop('crow_rng_counts')
+    self.__dict__.update(d)
+    self.setEngine(randomUtils.newRNG(),seed=None,count=rngCounts)
+    if self.reseedCopies:
+      randd = np.random.randint(1,2e9)
+      self.reseed(randd)
 
   def __trainLocal__(self,featureVals,targetVals):
     """
@@ -379,7 +379,7 @@ class ARMA(supervisedLearning):
               result = self.varmaResult[1]
               sample = self._generateARMASignal(result,
                                                 numSamples = self.notZeroFilterMask.sum(),
-                                                randEngine = self.normEngine.rvs)
+                                                randEngine = self.randomEng)
               zeroedSample = np.zeros((self.notZeroFilterMask.sum(),1))
               zeroedSample[:,0] = sample
             correlatedSample = True # placeholder, signifies we've sampled the correlated distribution
@@ -412,7 +412,8 @@ class ARMA(supervisedLearning):
         if target == self.zeroFilterTarget:
           sample = self._generateARMASignal(result,
                                             numSamples = self.zeroFilterMask.sum(),
-                                            randEngine = self.normEngine.rvs)
+                                            randEngine = self.randomEng)
+
           ## if so, then expand result into signal space (functionally, put back in all the zeros)
           signal = np.zeros(len(self.pivotParameterValues))
           signal[self.zeroFilterMask] = sample
@@ -420,34 +421,32 @@ class ARMA(supervisedLearning):
           ## if not, no extra work to be done here!
           sample = self._generateARMASignal(result,
                                             numSamples = len(self.pivotParameterValues),
-                                            randEngine = self.normEngine.rvs)
+                                            randEngine = self.randomEng)
+
           signal = sample
       # END creating base signal
-      # DEBUGG adding arbitrary variables for debugging, TODO find a more elegant way, leaving these here as markers
+      # DEBUG adding arbitrary variables for debugging, TODO find a more elegant way, leaving these here as markers
       #returnEvaluation[target+'_0base'] = copy.copy(signal)
       # denoise
       signal = self._denormalizeThroughCDF(signal,self.cdfParams[target])
-      # DEBUGG adding arbitrary variables
+      # DEBUG adding arbitrary variables
       #returnEvaluation[target+'_1denorm'] = copy.copy(signal)
       #debuggFile.writelines('signal_arma,'+','.join(str(x) for x in signal)+'\n')
 
       # Add fourier trends
       if target in self.fourierParams:
         signal += self.fourierResults[target]['predict']
-        # DEBUGG adding arbitrary variables
+        # DEBUG adding arbitrary variables
         #returnEvaluation[target+'_2fourier'] = copy.copy(signal)
         #debuggFile.writelines('signal_fourier,'+','.join(str(x) for x in self.fourierResults[target]['predict'])+'\n')
 
       # if enforcing the training data CDF, apply that transform now
       if self.preserveInputCDF:
-        # first build a histogram object of the sampled data
-        dist = mathUtils.trainEmpiricalFunction(signal, minBins=self._minBins)
-        # transform data through CDFs
-        signal = self._trainingCDF[target].ppf(dist.cdf(signal))
+        signal = self._transformThroughInputCDF(signal, self._trainingCDF[target])
 
       # Re-zero out zero filter target's zero regions
       if target == self.zeroFilterTarget:
-        # DEBUGG adding arbitrary variables
+        # DEBUG adding arbitrary variables
         #returnEvaluation[target+'_3zerofilter'] = copy.copy(signal)
         signal[self.notZeroFilterMask] = 0.0
 
@@ -458,13 +457,13 @@ class ARMA(supervisedLearning):
             signal = np.absolute(signal)
           elif domain == 'negative':
             signal = -np.absolute(signal)
-        # DEBUGG adding arbitrary variables
+        # DEBUG adding arbitrary variables
         #returnEvaluation[target+'_4truncated'] = copy.copy(signal)
 
       # store results
       ## FIXME this is ASSUMING the input to ARMA is only ever a single scaling factor.
       signal *= featureVals[0]
-      # DEBUGG adding arbitrary variables
+      # DEBUG adding arbitrary variables
       #returnEvaluation[target+'_5scaled'] = copy.copy(signal)
 
       # sanity check on the signal
@@ -480,7 +479,8 @@ class ARMA(supervisedLearning):
       @ In, seed, int, new seed to use
       @ Out, None
     """
-    randomUtils.randomSeed(seed)
+    randomUtils.randomSeed(seed,engine=self.randomEng)
+    self.seed=seed
 
   ### UTILITY METHODS ###
   def _computeNumberOfBins(self,data):
@@ -505,7 +505,7 @@ class ARMA(supervisedLearning):
     denormed = self._sampleICDF(denormed, params)
     return denormed
 
-  def _generateARMASignal(self, model, numSamples=None, randEngine=None):
+  def _generateARMASignal(self, model, numSamples=None,randEngine=None):
     """
       Generates a synthetic history from fitted parameters.
       @ In, model, statsmodels.tsa.arima_model.ARMAResults, fitted ARMA such as otained from _trainARMA
@@ -515,10 +515,14 @@ class ARMA(supervisedLearning):
     """
     if numSamples is None:
       numSamples =  len(self.pivotParameterValues)
+    if randEngine is None:
+      randEngine=self.randomEng
     hist = sm.tsa.arma_generate_sample(ar = np.append(1., -model.arparams),
                                        ma = np.append(1., model.maparams),
                                        nsample = numSamples,
-                                       distrvs = randEngine,
+                                       distrvs = functools.partial(randomUtils.randomNormal,engine=randEngine),
+                                       # functool.partial provide the random number generator as a function
+                                       # with normal distribution and take engine as the positional arguments keywords.
                                        sigma = np.sqrt(model.sigma2),
                                        burnin = 2*max(self.P,self.Q)) # @epinas, 2018
     return hist
@@ -565,37 +569,6 @@ class ARMA(supervisedLearning):
                                      measurement_shocks = measureShocks,
                                      state_shocks = stateShocks)
     return obs
-
-  def getRomClusterValues(self, featureTemplate, *args, **kwargs):
-    """
-      Indicates the parameters on which this ROM can cluster.
-      @ In, featureTemplate, str, format for feature space names (takes target, separator, metric, and id)
-      @ Out, features, dict, cluster feature values
-    """
-    # algorithm for providing Fourier series and ARMA white noise variance and #TODO covariance
-    features = {}
-    # include Fourier if available
-    for target in self.fourierResults:
-      for b,base in enumerate(self.fourierResults[target]['regression']['coeffs']):
-        for s,subdivision in enumerate(base):
-          for waveform, coeff in subdivision.items():
-            ID = '{}_{}_{}'.format(b,s+1,waveform)
-            feature = featureTemplate.format(target=target, metric='Fourier', id=ID)
-            features[feature] = coeff
-    # signal variance, ARMA (not varma)
-    for target,arma in self.armaResult.items():
-      feature = featureTemplate.format(target=target, metric='arma', id='std')
-      features[feature] = np.sqrt(arma.sigma2)
-    return features
-
-  def getRomClusterParams(self):
-    """
-      Indicates the parameters on which this ROM can cluster.
-      @ In, None
-      @ Out, params, list, clusterable parameters
-    """
-    params = ['Fourier', 'ARMA']
-    return params
 
   def _interpolateDist(self,x,y,Xlow,Xhigh,Ylow,Yhigh,inMask):
     """
@@ -698,7 +671,7 @@ class ARMA(supervisedLearning):
     return y
 
   def _trainARMA(self,data):
-    """
+    r"""
       Fit ARMA model: x_t = \sum_{i=1}^P \phi_i*x_{t-i} + \alpha_t + \sum_{j=1}^Q \theta_j*\alpha_{t-j}
       @ In, data, np.array(float), data on which to train
       @ Out, results, statsmodels.tsa.arima_model.ARMAResults, fitted ARMA
@@ -765,12 +738,21 @@ class ARMA(supervisedLearning):
     fitSignal = np.asarray(fourierEngine.predict(fourierSignals))
     # get signal intercept
     intercept = fourierEngine.intercept_
-    # get coefficient map
-    coefMap = collections.defaultdict(dict) # {period: {sin:#, cos:#}}
+    # get coefficient map for A*sin(ft) + B*cos(ft)
+    waveCoefMap = collections.defaultdict(dict) # {period: {sin:#, cos:#}}
     for c, coef in enumerate(fourierEngine.coef_):
       period = periods[c//2]
       waveform = 'sin' if c % 2 == 0 else 'cos'
-      coefMap[period][waveform] = coef
+      waveCoefMap[period][waveform] = coef
+    # convert to C*sin(ft + s)
+    ## since we use fitting to get A and B, the magnitudes can be deceiving.
+    ## this conversion makes "C" a useful value to know the contribution from a period
+    coefMap = {}
+    for period, coefs in waveCoefMap.items():
+      A = coefs['sin']
+      B = coefs['cos']
+      C, s = mathUtils.convertSinCosToSinPhase(A, B)
+      coefMap[period] = {'amplitude': C, 'phase': s}
 
     # re-add zero-filtered
     if zeroFilter:
@@ -903,8 +885,8 @@ class ARMA(supervisedLearning):
         periodNode = xmlUtils.newNode('period', text='{:1.9e}'.format(period))
         fourierNode.append(periodNode)
         periodNode.append(xmlUtils.newNode('frequency', text='{:1.9e}'.format(1.0/period)))
-        for waveform, coeff in fourier['regression']['coeffs'][period].items():
-          periodNode.append(xmlUtils.newNode(waveform, text='{:1.9e}'.format(coeff)))
+        for stat, value in sorted(list(fourier['regression']['coeffs'][period].items()), key=lambda x:x[0]):
+          periodNode.append(xmlUtils.newNode(stat, text='{:1.9e}'.format(value)))
     # - ARMA std
     for target, arma in self.armaResult.items():
       targetNode = root.find(target)
@@ -916,6 +898,209 @@ class ARMA(supervisedLearning):
       armaNode.append(xmlUtils.newNode('std', text=np.sqrt(arma.sigma2)))
       # TODO covariances, P and Q, etc
 
+  def _transformThroughInputCDF(self, signal, originalDist, weights=None):
+    """
+      Transforms a signal through the original distribution
+      @ In, signal, np.array(float), signal to transform
+      @ In, originalDist, scipy.stats.rv_histogram, distribution to transform through
+      @ In, weights, np.array(float), weighting for samples (assumed uniform if not given)
+      @ Out, new, np.array, new signal after transformation
+    """
+    # first build a histogram object of the sampled data
+    dist = mathUtils.trainEmpiricalFunction(signal, minBins=self._minBins, weights=weights)
+    # transform data through CDFs
+    new = originalDist.ppf(dist.cdf(signal))
+    return new
+
+  ### Segmenting and Clustering ###
+  def  isClusterable(self):
+    """
+      Allows ROM to declare whether it has methods for clustring. Default is no.
+      @ In, None
+      @ Out, isClusterable, bool, if True then has clustering mechanics.
+    """
+    # clustering methods have been added
+    return True
+
+  def _getMeanFromGlobal(self, settings, pickers, targets=None):
+    """
+      Derives segment means from global trends
+      @ In, settings, dict, as per getGlobalRomSegmentSettings
+      @ In, pickers, list(slice), picks portion of signal of interest
+      @ In, targets, list, optional, targets to include (default is all)
+      @ Out, results, list(dict), mean for each target per picker
+    """
+    if 'long Fourier signal' not in settings:
+      return []
+    if isinstance(pickers, slice):
+      pickers = [pickers]
+    if targets == None:
+      targets = settings['long Fourier signal'].keys()
+    results = [] # one per "pickers"
+    for picker in pickers:
+      res = dict((target, signal['predict'][picker].mean()) for target, signal in settings['long Fourier signal'].items())
+      results.append(res)
+    return results
+
+  def getLocalRomClusterFeatures(self, featureTemplate, settings, picker=None, **kwargs):
+    """
+      Provides metrics aka features on which clustering compatibility can be measured.
+      This is called on LOCAL subsegment ROMs, not on the GLOBAL template ROM
+      @ In, featureTemplate, str, format for feature inclusion
+      @ In, settings, dict, as per getGlobalRomSegmentSettings
+      @ In, picker, slice, indexer for segmenting data
+      @ In, kwargs, dict, arbitrary keyword arguments
+      @ Out, features, dict, {target_metric: np.array(floats)} features to cluster on
+    """
+    # algorithm for providing Fourier series and ARMA white noise variance and #TODO covariance
+    features = {}
+    # include Fourier if available
+    for target, fourier in self.fourierResults.items():
+      for period in fourier['regression']['periods']:
+        # amp
+        amp = fourier['regression']['coeffs'][period]['amplitude']
+        ID = '{}_{}'.format(period, 'amp')
+        feature = featureTemplate.format(target=target, metric='Fourier', id=ID)
+        features[feature] = amp
+        # phase
+        ## not great for clustering, but sure, why not
+        phase = fourier['regression']['coeffs'][period]['phase']
+        ID = '{}_{}'.format(period, 'phase')
+        feature = featureTemplate.format(target=target, metric='Fourier', id=ID)
+        features[feature] = phase
+
+    # signal variance, ARMA (not varma)
+    for target, arma in self.armaResult.items():
+      feature = featureTemplate.format(target=target, metric='arma', id='std')
+      features[feature] = np.sqrt(arma.sigma2)
+    # segment means
+    # since we've already detrended globally, get the means from that (if present)
+    if 'long Fourier signal' in settings:
+      assert picker is not None
+      results = self._getMeanFromGlobal(settings, picker)
+      for target, mean in results[0].items():
+        feature = featureTemplate.format(target=target, metric="global", id="mean")
+        features[feature] = mean
+    return features
+
+  def getGlobalRomSegmentSettings(self, trainingDict, divisions):
+    """
+      Allows the ROM to perform some analysis before segmenting.
+      Note this is called on the GLOBAL templateROM from the ROMcollection, NOT on the LOCAL subsegment ROMs!
+      @ In, trainingDict, dict, data for training, full and unsegmented
+      @ In, divisions, tuple, (division slice indices, unclustered spaces)
+      @ Out, settings, object, arbitrary information about ROM clustering settings
+      @ Out, trainingDict, dict, adjusted training data (possibly unchanged)
+    """
+    trainingDict = copy.deepcopy(trainingDict) # otherwise we destructively tamper with the input data object
+    settings = {}
+    targets = list(self.fourierParams.keys())
+    # set up for input CDF preservation on a global scale
+    if self.preserveInputCDF:
+      inputDists = {}
+      for target in targets:
+        if target == self.pivotParameterID:
+          continue
+        targetVals = trainingDict[target][0]
+        inputDists[target] = mathUtils.trainEmpiricalFunction(targetVals, minBins=self._minBins)
+      settings['input CDFs'] = inputDists
+    # do global Fourier analysis on combined signal for all periods longer than the segment
+    if self.fourierParams:
+      # determine the Nyquist length for the clustered params
+      slicers = divisions[0]
+      pivotValues = trainingDict[self.pivotParameterID][0]
+      # use the first segment as typical of all of them, NOTE might be bad assumption
+      delta = pivotValues[slicers[0][-1]] - pivotValues[slicers[0][0]]
+      # any Fourier longer than the delta should be trained a priori, leaving the reaminder
+      #    to be specific to individual ROMs
+      full = {}      # train these periods on the full series
+      segment = {}   # train these periods on the segments individually
+      for target in targets:
+        if target == self.pivotParameterID:
+          continue
+        # only do separation for targets for whom there's a Fourier request
+        if target in self.fourierParams:
+          # NOTE: assuming training on only one history!
+          targetVals = trainingDict[target][0]
+          # if zero filtering in play, set the masks now
+          ## TODO I'm not particularly happy with having to remember to do this; can we automate it more?
+          zeroFiltering = target == self.zeroFilterTarget
+          if zeroFiltering:
+            self.notZeroFilterMask = self._trainZeroRemoval(targetVals, tol=self.zeroFilterTol) # where zeros are not
+            self.zeroFilterMask = np.logical_not(self.notZeroFilterMask) # where zeroes are
+          periods = np.asarray(self.fourierParams[target])
+          full = periods[periods > delta]
+          segment[target] = periods[np.logical_not(periods > delta)]
+          if len(full):
+            # train Fourier on longer periods
+            self.fourierResults[target] = self._trainFourier(pivotValues,
+                                                             full,
+                                                             targetVals,
+                                                             zeroFilter=zeroFiltering)
+            # remove longer signal from training data
+            signal = self.fourierResults[target]['predict']
+            targetVals -= signal
+            trainingDict[target][0] = targetVals
+      # store the segment-based periods in the settings to return
+      settings['segment Fourier periods'] = segment
+      settings['long Fourier signal'] = self.fourierResults
+    return settings, trainingDict
+
+  def adjustLocalRomSegment(self, settings):
+    """
+      Adjusts this ROM to account for it being a segment as a part of a larger ROM collection.
+      Call this before training the subspace segment ROMs
+      Note this is called on the LOCAL subsegment ROMs, NOT on the GLOBAL templateROM from the ROMcollection!
+      @ In, settings, object, arbitrary information about ROM clustering settings from getGlobalRomSegmentSettings
+      @ Out, None
+    """
+    # some Fourier periods have already been handled, so reset the ones that actually are needed
+    newFourier = settings.get('segment Fourier periods', None)
+    if newFourier is not None:
+      for target in list(self.fourierParams.keys()):
+        periods = newFourier.get(target, [])
+        # if any sub-segment Fourier remaining, send it through
+        if len(periods):
+          self.fourierParams[target] = periods
+        else:
+          # otherwise, remove target from fourierParams so no Fourier is applied
+          self.fourierParams.pop(target,None)
+    # disable CDF preservation on subclusters
+    ## Note that this might be a good candidate for a user option someday,
+    ## but right now we can't imagine a use case that would turn it on
+    self.preserveInputCDF = False
+
+  def finalizeLocalRomSegmentEvaluation(self, settings, evaluation, picker):
+    """
+      Allows global settings in "settings" to affect a LOCAL evaluation of a LOCAL ROM
+      Note this is called on the LOCAL subsegment ROM and not the GLOBAL templateROM.
+      @ In, settings, dict, as from getGlobalRomSegmentSettings
+      @ In, evaluation, dict, preliminary evaluation from the local segment ROM as {target: [values]}
+      @ In, picker, slice, indexer for data range of this segment
+      @ Out, evaluation, dict, {target: np.ndarray} adjusted global evaluation
+    """
+    # add back in Fourier
+    if 'long Fourier signal' in settings:
+      for target, signal in settings['long Fourier signal'].items():
+        sig = signal['predict'][picker]
+        evaluation[target][picker] += sig
+    return evaluation
+
+  def finalizeGlobalRomSegmentEvaluation(self, settings, evaluation, weights=None):
+    """
+      Allows any global settings to be applied to the signal collected by the ROMCollection instance.
+      Note this is called on the GLOBAL templateROM from the ROMcollection, NOT on the LOCAL supspace segment ROMs!
+      @ In, settings, dict, as from getGlobalRomSegmentSettings
+      @ In, evaluation, dict, {target: np.ndarray} evaluated full (global) signal from ROMCollection
+      @ In, weights, np.array(float), optional, if included then gives weight to histories for CDF preservation
+      @ Out, evaluation, dict, {target: np.ndarray} adjusted global evaluation
+    """
+    # backtransform signal
+    ## how nicely does this play with zerofiltering?
+    if self.preserveInputCDF:
+      for target, dist in settings['input CDFs'].items():
+        evaluation[target] = self._transformThroughInputCDF(evaluation[target], dist, weights)
+    return evaluation
 
   ### ESSENTIALLY UNUSED ###
   def _localNormalizeData(self,values,names,feat):
@@ -955,3 +1140,19 @@ class ARMA(supervisedLearning):
     """
     pass
 
+  def setEngine(self,eng,seed=None,count=None):
+    """
+     Set up the random engine for arma
+     @ In, eng, instance, random number generator
+     @ In, seed, int, optional, the seed, if None then use the global seed from ARMA
+     @ In, count, int, optional, advances the state of the generator, if None then use the current ARMA.randomEng count
+     @ Out, None
+    """
+    if seed is None:
+      seed=self.seed
+    seed=abs(seed)
+    eng.seed(seed)
+    if count is None:
+      count=self.randomEng.get_rng_state()
+    eng.forward_seed(count)
+    self.randomEng=eng

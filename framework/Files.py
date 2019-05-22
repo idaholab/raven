@@ -19,7 +19,7 @@ Created on Apr 30, 2015
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
-warnings.simplefilter('default',DeprecationWarning)
+warnings.simplefilter('default', DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -46,13 +46,13 @@ class File(BaseType):
       @ Out, None
     """
     BaseType.__init__(self)
-    self.__file             = None  # when open, refers to open file, else None
-    self.__path             = ''    # file path
-    self.__base             = ''    # file base
-    self.__ext              = None  # file extension
-    self.__linkedModel      = None  # hard link to a certain Code subtype (e.g. RELAP-7, MooseBasedApp, etc,)
-    self.type               = None  # type ("type" in the input) to label a file to any particular subcode in the code interface
-    self.perturbable        = False # is this file perturbable by a sampling strategy?
+    self.__file = None              # when open, refers to open file, else None
+    self.__path = ''                # file path
+    self.__base = ''                # file base
+    self.__ext = None               # file extension
+    self.__linkedModel = None       # hard link to a certain Code subtype (e.g. RELAP-7, MooseBasedApp, etc,)
+    self.type = None                # type ("type" in the input) to label a file to any particular subcode in the code interface
+    self.perturbable = False        # is this file perturbable by a sampling strategy?
 
   def __del__(self):
     """

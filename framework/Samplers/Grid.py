@@ -179,8 +179,10 @@ class Grid(ForwardSampler):
           distLB = self.distDict[varName].lowerBound[dim]
           distUB = self.distDict[varName].upperBound[dim]
         if gridLB < distLB or gridUB > distUB:
-          self.raiseAnError(IOError, 'Grids defined for', varName, 'in range (', gridLB, gridUB,
-          ') is outside the range of given distribution', self.distDict[varName].type, '(',distLB, distUB,')!')
+          self.raiseAnError(IOError, ('Grids defined for "{var}" in range ({glow}, {ghi}) are outside the range' +\
+                                      'of the given distribution "{dist}" ({dlow}, {dhi})')
+                                      .format(var=varName, glow=gridLB, ghi=gridUB,
+                                              dist=self.distDict[varName].type, dlow=distLB, dhi=distLB))
       else:
         self.raiseAnError(IOError,self.gridInfo[varName]+' is not know as value keyword for type. Sampler: '+self.name)
     if self.externalgGridCoord:

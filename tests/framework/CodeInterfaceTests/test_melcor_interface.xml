@@ -37,8 +37,8 @@
 	<Normal name="temper">
       <mean>1.E+7</mean>
       <sigma>1.5</sigma>
-      <upperBound>9.E+6</upperBound>
-      <lowerBound>1.1E+7</lowerBound>
+      <upperBound>1.1E+7</upperBound>
+      <lowerBound>9.E+6</lowerBound>
     </Normal>
   </Distributions>
 

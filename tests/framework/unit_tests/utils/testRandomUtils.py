@@ -112,115 +112,205 @@ def checkType(comment,value,expected,updateResults=True):
 # Reseed at the beginning of sections and add new tests to the end of sections.
 
 # set the stochastic environment TODO check both someday?
+# cannot pass the numpy as the stochasticEnv
 randomUtils.stochasticEnv = 'crow'
 
+eng = randomUtils.newRNG()
 # randomSeed(), setting the random seed
-randomUtils.randomSeed(42)
+randomUtils.randomSeed(42,engine=None)
+randomUtils.randomSeed(42,engine=eng)
 # check that seed is set
-checkAnswer('First float from first seed',randomUtils.random(),0.374540118847)
+checkAnswer('First float from first seed for engine not provided',randomUtils.random(engine=None),0.374540118847)
+checkAnswer('First float from first seed for local engine provided',randomUtils.random(engine=eng),0.374540118847)
+
 # check resetting seed
-randomUtils.randomSeed(12345) #next float would be 0.95071430641 if seed didn't change
-checkAnswer('First float from second seed',randomUtils.random(),0.929616092817)
+randomUtils.randomSeed(12345,engine=None) #next float would be 0.95071430641 if seed didn't change
+randomUtils.randomSeed(12345,engine=eng) #next float would be 0.95071430641 if seed didn't change
+checkAnswer('First float from second seed for engine not provided',randomUtils.random(engine=None),0.929616092817)
+checkAnswer('First float from second seed for local engine provided',randomUtils.random(engine=eng),0.929616092817)
 
 ### random(), sampling on [0,1]
 ## single sampling
-randomUtils.randomSeed(42)
-vals = np.array([randomUtils.random() for _ in range(int(1e5))])
+randomUtils.randomSeed(42,engine=None)
+randomUtils.randomSeed(42,engine=eng)
+
+vals = np.array([randomUtils.random(engine=None) for _ in range(int(1e5))])
 mean = np.average(vals)
 stdv = np.std(vals)
-checkAnswer('mean of 1e5 single samples',mean,0.5, tol=1e-3)
-checkAnswer('stdv of 1e5 single samples',stdv,np.sqrt(1./12.), tol=1e-3)
+checkAnswer('mean of 1e5 single samples for engine not provided',mean,0.5, tol=1e-3)
+checkAnswer('stdv of 1e5 single samples for engine not provided',stdv,np.sqrt(1./12.), tol=1e-3)
+
+vals = np.array([randomUtils.random(engine=eng) for _ in range(int(1e5))])
+mean = np.average(vals)
+stdv = np.std(vals)
+checkAnswer('mean of 1e5 single samples for local engine provided',mean,0.5, tol=1e-3)
+checkAnswer('stdv of 1e5 single samples for local engine provided',stdv,np.sqrt(1./12.), tol=1e-3)
+
 ## 1d batch sampling
-randomUtils.randomSeed(42)
-vals = randomUtils.random(1e5)
+randomUtils.randomSeed(42,engine=None)
+randomUtils.randomSeed(42,engine=eng)
+
+vals = randomUtils.random(1e5,engine=None)
 mean = np.average(vals)
 stdv = np.std(vals)
-checkAnswer('mean of 1e5 batch samples',mean,0.5, tol=1e-3)
-checkAnswer('stdv of 1e5 batch samples',stdv,np.sqrt(1./12.), tol=1e-3)
+checkAnswer('mean of 1e5 batch samples for engine not provided',mean,0.5, tol=1e-3)
+checkAnswer('stdv of 1e5 batch samples for engine not provided',stdv,np.sqrt(1./12.), tol=1e-3)
+
+vals = randomUtils.random(1e5,engine=eng)
+mean = np.average(vals)
+stdv = np.std(vals)
+checkAnswer('mean of 1e5 batch samples for local engine provided',mean,0.5, tol=1e-3)
+checkAnswer('stdv of 1e5 batch samples for local engine provided',stdv,np.sqrt(1./12.), tol=1e-3)
+
 ## 2d batch sampling
-randomUtils.randomSeed(42)
-vals = randomUtils.random(10,1000)
+randomUtils.randomSeed(42,engine=None)
+randomUtils.randomSeed(42,engine=eng)
+
+vals = randomUtils.random(10,1000,engine=None)
 # check statistics
 mean = np.average(vals)
 stdv = np.std(vals)
-checkAnswer('mean of 10x100 batch samples',mean,0.5,tol=1e-3)
-checkAnswer('stdv of 10x100 batch samples',stdv,np.sqrt(1./12.),tol=1e-3)
+checkAnswer('mean of 10x100 batch samples for engine not provided',mean,0.5,tol=1e-3)
+checkAnswer('stdv of 10x100 batch samples for engine not provided',stdv,np.sqrt(1./12.),tol=1e-3)
+
+vals = randomUtils.random(10,1000,engine=eng)
+# check statistics
+mean = np.average(vals)
+stdv = np.std(vals)
+checkAnswer('mean of 10x100 batch samples for local engine provided',mean,0.5,tol=1e-3)
+checkAnswer('stdv of 10x100 batch samples for local engine provided',stdv,np.sqrt(1./12.),tol=1e-3)
 
 ### randomNormal
 ## first test box muller
-mean,stdev = randomUtils.BoxMullerGenerator().testSampling(1e5)
-checkAnswer('Box Muller generator mean',mean,0.0,tol=5e-3)
-checkAnswer('Box Muller generator stdv',stdev,1.0,tol=1e-3)
+mean,stdev = randomUtils.BoxMullerGenerator().testSampling(1e5,engine=None)
+checkAnswer('Box Muller generator mean for engine not provided',mean,0.0,tol=5e-3)
+checkAnswer('Box Muller generator stdv for engine not provided',stdev,1.0,tol=1e-3)
+mean,stdev = randomUtils.BoxMullerGenerator().testSampling(1e5,engine=eng)
+checkAnswer('Box Muller generator mean for local engine provided',mean,0.0,tol=5e-3)
+checkAnswer('Box Muller generator stdv for local engine provided',stdev,1.0,tol=1e-3)
+
 ## test single value
-vals = randomUtils.randomNormal()
-checkAnswer('random normal single value',vals,1.90167449657)
+vals = randomUtils.randomNormal(engine=None)
+checkAnswer('random normal single value for engine not provided',vals,1.90167449657)
+vals = randomUtils.randomNormal(engine=eng)
+checkAnswer('random normal single value for local engine provided',vals,1.90167449657)
 ## test single point
 right = [1.11130480322, 0.698326166056, 2.82788725018]
-vals = randomUtils.randomNormal(3)
-checkArray('random normal single point',vals,right)
+vals = randomUtils.randomNormal(3,engine=None)
+checkArray('random normal single point for engine not provided',vals,right)
+vals = randomUtils.randomNormal(3,engine=eng)
+checkArray('random normal single point for local engine provided',vals,right)
 ## test many points
-right = [0,0,0]
-vals = randomUtils.randomNormal(3,5)
-checkAnswer('randomNormal number of samples',len(vals),5)
-checkAnswer('randomNormal size of sample',len(vals[0]),3)
+
+vals = randomUtils.randomNormal(3,5,engine=None)
+checkAnswer('randomNormal number of samples for engine not provided',len(vals),5)
+checkAnswer('randomNormal size of sample for engine not provided',len(vals[0]),3)
+
+vals = randomUtils.randomNormal(3,5,engine=eng)
+checkAnswer('randomNormal number of samples for local engine provided',len(vals),5)
+checkAnswer('randomNormal size of sample for local engine provided',len(vals[0]),3)
 
 ### randomIntegers(), sampling integers in a range
-randomUtils.randomSeed(42)
+randomUtils.randomSeed(42,engine=None)
+randomUtils.randomSeed(42,engine=eng)
 right = [14,18,20,12,17]
 for i in range(5):
-  n = randomUtils.randomIntegers(10,20,None) #no message handler, error handling will error out
-  checkAnswer('random integer, {} sample'.format(i),n,right[i])
+  n = randomUtils.randomIntegers(10,20,None,engine=None) #no message handler, error handling will error out
+  checkAnswer('random integer, {} sample for engine not provided'.format(i),n,right[i])
 
+for i in range(5):
+  n = randomUtils.randomIntegers(10,20,None,engine=eng) #no message handler, error handling will error out
+  checkAnswer('random integer, {} sample for local engine provided'.format(i),n,right[i])
 ### randomPermutation(), rearranging lists
-randomUtils.randomSeed(42)
+randomUtils.randomSeed(42,engine=None)
+randomUtils.randomSeed(42,engine=eng)
 l = [1,2,3,4,5]
-l2 = randomUtils.randomPermutation(l,None)
-checkArray('random permutation',l2,[2,4,5,1,3])
-
+l2 = randomUtils.randomPermutation(l,None,engine=None)
+checkArray('random permutation for engine not provided',l2,[2,4,5,1,3])
+l2 = randomUtils.randomPermutation(l,None,engine=eng)
+checkArray('random permutation for local engine provided',l2,[2,4,5,1,3])
 ### randPointsOnHypersphere(), unit hypersphere surface sampling (aka random direction)
-randomUtils.randomSeed(42)
+randomUtils.randomSeed(42,engine=None)
+randomUtils.randomSeed(42,engine=eng)
 ## check the radius is always 1 (if not specified)
 for i in range(1,6):
-  pt = randomUtils.randPointsOnHypersphere(i)
-  checkAnswer('Random {}D hypersphere surface'.format(i),np.sum(pt*pt),1.0)
+  pt = randomUtils.randPointsOnHypersphere(i,engine=None)
+  checkAnswer('Random {}D hypersphere surface for engine not provided'.format(i),np.sum(pt*pt),1.0)
+for i in range(1,6):
+  pt = randomUtils.randPointsOnHypersphere(i,engine=eng)
+  checkAnswer('Random {}D hypersphere surface for local engine provided'.format(i),np.sum(pt*pt),1.0)
 ## check the sum of the squares is always the square of the radius
-randomUtils.randomSeed(42)
+randomUtils.randomSeed(42,engine=None)
+randomUtils.randomSeed(42,engine=eng)
 for i in [0.2,0.7,1.5,10.0, 100.0]:
-  pt = randomUtils.randPointsOnHypersphere(4,r=i)
-  checkAnswer('Random 4D hypersphere surface with {} radius'.format(i),np.sum(pt*pt),i*i)
+  pt = randomUtils.randPointsOnHypersphere(4,r=i,engine=None)
+  checkAnswer('Random 4D hypersphere surface with {} radius for engine not provided'.format(i),np.sum(pt*pt),i*i)
+for i in [0.2,0.7,1.5,10.0, 100.0]:
+  pt = randomUtils.randPointsOnHypersphere(4,r=i,engine=eng)
+  checkAnswer('Random 4D hypersphere surface with {} radius for local engine provided'.format(i),np.sum(pt*pt),i*i)
 ## check multiple sampling simultaneously
-randomUtils.randomSeed(42)
-samps = randomUtils.randPointsOnHypersphere(5,samples=100)
-checkAnswer('Simultaneous random 5D on hypersphere, 0 axis',samps.shape[0],100)
-checkAnswer('Simultaneous random 5D on hypersphere, 1 axis',samps.shape[1],5)
+randomUtils.randomSeed(42,engine=None)
+randomUtils.randomSeed(42,engine=eng)
+samps = randomUtils.randPointsOnHypersphere(5,samples=100,engine=None)
+checkAnswer('Simultaneous random 5D on hypersphere, 0 axis for engine not provided',samps.shape[0],100)
+checkAnswer('Simultaneous random 5D on hypersphere, 1 axis for engine not provided',samps.shape[1],5)
 for i,s in enumerate(samps):
-  checkAnswer('Entry {}, simultaneous random 5D hypersphere'.format(i),np.sum(s*s),1.0)
+  checkAnswer('Entry {}, simultaneous random 5D hypersphere for engine not provided'.format(i),np.sum(s*s),1.0)
 ## visual check; skipped generally but left for debugging
 if False:
   import matplotlib.pyplot as plt
-  samps = randomUtils.randPointsOnHypersphere(2,samples=1e4)
+  samps = randomUtils.randPointsOnHypersphere(2,samples=1e4,engine=None)
+  x = samps[:,0]
+  y = samps[:,1]
+  plt.plot(x,y,'.')
+  plt.show()
+
+samps = randomUtils.randPointsOnHypersphere(5,samples=100,engine=eng)
+checkAnswer('Simultaneous random 5D on hypersphere, 0 axis for local engine provided',samps.shape[0],100)
+checkAnswer('Simultaneous random 5D on hypersphere, 1 axis for local engine provided',samps.shape[1],5)
+for i,s in enumerate(samps):
+  checkAnswer('Entry {}, simultaneous random 5D hypersphere for local engine provided'.format(i),np.sum(s*s),1.0)
+## visual check; skipped generally but left for debugging
+if False:
+  import matplotlib.pyplot as plt
+  samps = randomUtils.randPointsOnHypersphere(2,samples=1e4,engine=eng)
   x = samps[:,0]
   y = samps[:,1]
   plt.plot(x,y,'.')
   plt.show()
 
 ### randPointsInHypersphere(), random point in hypersphere
-randomUtils.randomSeed(42)
+randomUtils.randomSeed(42,engine=None)
+randomUtils.randomSeed(42,engine=eng)
 ## check the radius is always 1 or less (if not specified)
 for i in range(1,6):
-  pt = randomUtils.randPointsInHypersphere(i)
-  checkTrue('Random {}D hypersphere interior'.format(i),np.sum(pt*pt)<=1.0,True)
+  pt = randomUtils.randPointsInHypersphere(i,engine=None)
+  checkTrue('Random {}D hypersphere interior for engine not provided'.format(i),np.sum(pt*pt)<=1.0,True)
+for i in range(1,6):
+  pt = randomUtils.randPointsInHypersphere(i,engine=eng)
+  checkTrue('Random {}D hypersphere interior for local engine provided'.format(i),np.sum(pt*pt)<=1.0,True)
 ## check the sum of the squares is always the square of the radius
 for i in [0.2,0.7,1.5,10.0, 100.0]:
-  pt = randomUtils.randPointsInHypersphere(4,r=i)
-  checkTrue('Random 4D hypersphere surface with {} radius'.format(i),np.sum(pt*pt)<=i*i,True)
+  pt = randomUtils.randPointsInHypersphere(4,r=i,engine=None)
+  checkTrue('Random 4D hypersphere surface with {} radius for engine not provided'.format(i),np.sum(pt*pt)<=i*i,True)
+for i in [0.2,0.7,1.5,10.0, 100.0]:
+  pt = randomUtils.randPointsInHypersphere(4,r=i,engine=eng)
+  checkTrue('Random 4D hypersphere surface with {} radius for local engine provided'.format(i),np.sum(pt*pt)<=i*i,True)
+
 ## check multiple sampling simultaneously
-samps = randomUtils.randPointsInHypersphere(5,samples=100)
-checkAnswer('Simultaneous random 5D in hypersphere, 0 axis',samps.shape[0],100)
-checkAnswer('Simultaneous random 5D in hypersphere, 1 axis',samps.shape[1],5)
+samps = randomUtils.randPointsInHypersphere(5,samples=100,engine=None)
+checkAnswer('Simultaneous random 5D in hypersphere, 0 axis for engine not provided',samps.shape[0],100)
+checkAnswer('Simultaneous random 5D in hypersphere, 1 axis for engine not provided',samps.shape[1],5)
 for i in range(samps.shape[1]):
   s = samps[i]
-  checkTrue('Entry {}, simultaneous random 5D hypersphere'.format(i),np.sum(s*s)<=1.0,True)
+  checkTrue('Entry {}, simultaneous random 5D hypersphere for engine not provided'.format(i),np.sum(s*s)<=1.0,True)
+
+samps = randomUtils.randPointsInHypersphere(5,samples=100,engine=eng)
+checkAnswer('Simultaneous random 5D in hypersphere, 0 axis for local engine provided',samps.shape[0],100)
+checkAnswer('Simultaneous random 5D in hypersphere, 1 axis for local engine provided',samps.shape[1],5)
+for i in range(samps.shape[1]):
+  s = samps[i]
+  checkTrue('Entry {}, simultaneous random 5D hypersphere for local engine provided'.format(i),np.sum(s*s)<=1.0,True)
 ## check if it is possible to instanciate multiple random number generators (isolated)
 ## this is more a test for the crow_modules.randomENGpy[2,3]
 firstRNG = randomENG.RandomClass()

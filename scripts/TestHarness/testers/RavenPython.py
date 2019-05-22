@@ -44,10 +44,7 @@ class RavenPython(Tester):
     params = Tester.get_valid_params()
     params.add_required_param('input', "The python file to use for this test.")
     params.add_param('output', '', "List of output files that this input should create.")
-    if os.environ.get("CHECK_PYTHON3", "0") == "1":
-      params.add_param('python_command', 'python3', 'The command to use to run python')
-    else:
-      params.add_param('python_command', 'python', 'The command to use to run python')
+    params.add_param('python_command', '', 'The command to use to run python')
     params.add_param('requires_swig2', False, "Requires swig2 for test")
     params.add_param('required_executable', '', 'Skip test if this executable is not found')
     params.add_param('required_libraries', '', 'Skip test if any of these libraries are not found')
@@ -79,7 +76,11 @@ class RavenPython(Tester):
       @ In, None
       @ Out, get_command, string, command to run.
     """
-    return self.specs["python_command"]+" "+self.specs["input"]
+    if len(self.specs["python_command"]) == 0:
+      python_command = self._get_python_command()
+    else:
+      python_command = self.specs["python_command"]
+    return python_command+" "+self.specs["input"]
 
   def __init__(self, name, params):
     """
@@ -147,11 +148,11 @@ class RavenPython(Tester):
       return False
     missing, too_old, _ = RavenUtils.check_for_missing_modules()
     if len(missing) > 0:
-      self.set_skip('skipped (Missing python modules: '+" ".join(missing)+
+      self.set_fail('skipped (Missing python modules: '+" ".join(missing)+
                     " PYTHONPATH="+os.environ.get("PYTHONPATH", "")+')')
       return False
     if len(too_old) > 0 and RavenUtils.check_versions():
-      self.set_skip('skipped (Old version python modules: '+" ".join(too_old)+
+      self.set_fail('skipped (Old version python modules: '+" ".join(too_old)+
                     " PYTHONPATH="+os.environ.get("PYTHONPATH", "")+')')
       return False
     for lib in self.required_libraries:
@@ -171,7 +172,5 @@ class RavenPython(Tester):
       @ In, ignored, string, output of running the test.
       @ Out, None
     """
-    if self.results.exit_code != 0:
-      self.set_fail(str(self.results.exit_code))
-      return
+    #check_exit_code fails test if != 0, so pass.
     self.set_success()

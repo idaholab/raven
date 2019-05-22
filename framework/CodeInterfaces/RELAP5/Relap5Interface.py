@@ -25,12 +25,39 @@ import copy
 import relapdata
 import shutil
 import re
+from math import *
 from CodeInterfaceBaseClass import CodeInterfaceBase
+import RELAPparser
+
 
 class Relap5(CodeInterfaceBase):
   """
     this class is used a part of a code dictionary to specialize Model.Code for RELAP5-3D Version 4.0.3
   """
+
+  def initialize(self, runInfo, oriInputFiles):
+    """
+      Method to initialize the run of a new step
+      @ In, runInfo, dict,  dictionary of the info in the <RunInfo> XML block
+      @ In, oriInputFiles, list, list of the original input files
+      @ Out, None
+    """
+    found = False
+    for index, inputFile in enumerate(oriInputFiles):
+      if inputFile.getExt() in self.getInputExtension():
+        found = True
+        break
+    if not found:
+      raise IOError('None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
+    parser = RELAPparser.RELAPparser(oriInputFiles[index].getAbsFile())
+    cards = []
+    for operator in self.operators:
+      cards += operator['cards']
+    if len(cards) > 0:
+      cardValues = parser.retrieveCardValues(list(set(cards)))
+      for cnt in range(len(self.operators)):
+        self.operators[cnt]['cardsValues'] = {card:cardValues[card] for card in self.operators[cnt]['cards']}
+
   def _readMoreXML(self,xmlNode):
     """
       Function to read the portion of the xml input that belongs to this specialized class and initialize
@@ -41,12 +68,39 @@ class Relap5(CodeInterfaceBase):
       @ Out, None.
     """
     self.outputDeck = -1 # default is the last deck!
+    self.operators  = []
     for child in xmlNode:
       if child.tag == 'outputDeckNumber':
         try:
           self.outputDeck = int(child.text)
         except ValueError:
           raise ValueError("can not convert outputDeckNumber to integer!!!! Got "+ child.text)
+      elif child.tag == 'operator':
+        operator = {}
+        if 'variables' not in child.attrib:
+          raise ValueError('ERROR in "RELAP5 Code Interface": "variables" attribute must be inputted in the <operator> XML node' )
+
+        operator['vars'] = [var.strip() for var in child.attrib['variables'].split(",")]
+
+        cards = child.find("cards")
+        expression = child.find("expression")
+        if cards is None or expression is None:
+          raise IOError('ERROR in "RELAP5 Code Interface": <' +'cards' if cards is None else 'expression'+  '> node must be inputted within the <operator> XML node' )
+        operator['cards'] = [self._convertVariablNameInInfo(card.strip()) for card in cards.text.split(",")]
+
+        expression = expression.text.strip()
+        operator['expression'] = copy.copy(expression)
+        # now we check if the inputted expression is a valid python expression
+        if '%card%' not in expression:
+          raise IOError('ERROR in "RELAP5 Code Interface": <expression> node must contain the token "%card%"!' )
+        expression = expression.replace("%card%","1.0")
+        for var in operator['vars']:
+          expression = expression.replace(var,"1.0")
+        try:
+          eval(expression)
+        except Exception as e:
+          raise IOError('ERROR in "RELAP5 Code Interface": inputted <expression> is not valid! Exception:'+str(e) )
+        self.operators.append(operator)
 
   def generateCommand(self,inputFiles,executable,clargs=None,fargs=None, preExec=None):
     """
@@ -120,6 +174,27 @@ class Relap5(CodeInterfaceBase):
         failure = False
     return failure
 
+  def _evaluateOperators(self,**Kwargs):
+    """
+      Method to evaluate the operators
+      @ In, Kwargs, dictionary, kwarded dictionary of parameters. In this dictionary there is another dictionary called "SampledVars"
+             where RAVEN stores the variables that got sampled (e.g. Kwargs['SampledVars'] => {'var1':10,'var2':40})
+      @ Out, None
+    """
+    for operator in self.operators:
+      expression = copy.copy(operator['expression'])
+      for var in operator['vars']:
+        if var not in Kwargs['SampledVars']:
+          raise ValueError('The variable "'+var+'" has not been found among the  SampledVars')
+        expression = expression.replace(var,str(Kwargs['SampledVars'][var]))
+      expr = copy.copy(expression)
+      for card in operator['cards']:
+        expr = expr.replace("%card%",operator['cardsValues'][card])
+        try:
+          Kwargs['SampledVars'][card] = eval(expr)
+        except Exception as e:
+          raise IOError('ERROR in "RELAP5 Code Interface": inputted <expression> is not valid! Exception:'+str(e) )
+
   def createNewInput(self,currentInputFiles,oriInputFiles,samplerType,**Kwargs):
     """
       this generate a new input file depending on which sampler is chosen
@@ -130,13 +205,13 @@ class Relap5(CodeInterfaceBase):
              where RAVEN stores the variables that got sampled (e.g. Kwargs['SampledVars'] => {'var1':10,'var2':40})
       @ Out, newInputFiles, list, list of newer input files, list of the new input files (modified and not)
     """
-    import RELAPparser
     self._samplersDictionary                = {}
     if 'dynamiceventtree' in str(samplerType).lower():
       self._samplersDictionary[samplerType] = self.DynamicEventTreeForRELAP5
     else:
       self._samplersDictionary[samplerType] = self.pointSamplerForRELAP5
-
+    if len(self.operators) > 0:
+      self._evaluateOperators(**Kwargs)
     found = False
     for index, inputFile in enumerate(currentInputFiles):
       if inputFile.getExt() in self.getInputExtension():
@@ -164,11 +239,39 @@ class Relap5(CodeInterfaceBase):
           raise IOError('not able to copy restart file from "'+sourceFile+'" to "'+currentInputFiles[index].getPath()+'"')
       else:
         raise IOError('the only metadtaToTransfer that is available in RELAP5 is "sourceID". Got instad: '+', '.join(metadataToTransfer.keys()))
+
     if 'None' not in str(samplerType):
       modifDict = self._samplersDictionary[samplerType](**Kwargs)
       parser.modifyOrAdd(modifDict,True)
+
     parser.printInput(currentInputFiles[index])
     return currentInputFiles
+
+  def _convertVariablNameInInfo(self, variableName):
+    """
+      @ In, variableName, string, the variable name to be converted
+      @ Out, (deck, card, word), tuple , the converted variable (deck #, card #, word #)
+    """
+    if type(variableName).__name__ == 'tuple':
+      return variableName
+
+    key = variableName.split(':')
+    multiDeck = key[0].split("|")
+    card, deck, word = key[0], 1, (key[-1] if len(key) >1 else 0)
+    if len(multiDeck) > 1:
+      card = multiDeck[1]
+      deck = multiDeck[0]
+    try:
+      deck = int(deck)
+    except ValueError:
+      raise IOError("RELAP5 interface: activated multi-deck/case approach but the deck number is not an integer (first word followed by '|' symbol). Got "+str(deck))
+    try:
+      word = int(word)
+    except ValueError:
+      raise IOError("RELAP5 interface: word number is not an integer (first word followed by '|' symbol). Got "+str(word))
+
+    return (deck, card, word)
+
 
   def pointSamplerForRELAP5(self,**Kwargs):
     """
@@ -183,32 +286,15 @@ class Relap5(CodeInterfaceBase):
     deckList = {1:{}}
     deckActivated = False
     for keys in Kwargs['SampledVars']:
-      deck = None
-      key = keys.split(':')
-      multiDeck = key[0].split("|")
-      if len(multiDeck) > 1:
-        card = multiDeck[1]
-        deck = multiDeck[0]
-        try:
-          deck = int(deck)
-        except:
-          raise IOError("RELAP5 interface: activated multi-deck/case approach but the deck number is not an integer (first word followed by '|' symbol). Got "+str(deck))
-        deckActivated = True
-        if deck not in deckList.keys():
-          deckList[deck] = {}
+      deck, card, word = self._convertVariablNameInInfo(keys)
+      deckActivated = deck > 1
+      if deck not in deckList:
+        deckList[deck] = {}
+      if card not in deckList[deck]:
+        deckList[deck][card] = [{'position':word,'value':Kwargs['SampledVars'][keys]}]
       else:
-        card = key[0]
-        deck = 1
-      if len(key) > 1:
-        if card not in deckList[deck].keys():
-          deckList[deck][card] = [{'position':int(key[1]),'value':Kwargs['SampledVars'][keys]}]
-        else:
-          deckList[deck][card].append({'position':int(key[1]),'value':Kwargs['SampledVars'][keys]})
-      else:
-        if card not in deckList[deck].keys():
-          deckList[deck][card] = [{'position':0,'value':Kwargs['SampledVars'][keys]}]
-        else:
-          deckList[deck][card].append({'position':0,'value':Kwargs['SampledVars'][keys]})
+        deckList[deck][card].append({'position':word,'value':Kwargs['SampledVars'][keys]})
+
       if deck is None:
         # check if other variables have been defined with a deck ID, in case...error out
         if deckActivated:

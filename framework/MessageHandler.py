@@ -287,7 +287,7 @@ class MessageHandler(object):
       @ Out, currentVerb, int, integer equivalent to verbosity level
     """
     if str(verb).strip().lower() not in self.verbCode.keys():
-      raise IOError('Verbosity key '+str(verb)+' not recognized!  Options are '+str(self.verbCode.keys()+[None]),'ERROR','silent')
+      raise IOError('Verbosity key '+str(verb)+' not recognized!  Options are '+str(list(self.verbCode.keys())+[None]))
     currentVerb = self.verbCode[str(verb).strip().lower()]
     return currentVerb
 

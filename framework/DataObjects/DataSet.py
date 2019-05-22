@@ -112,20 +112,21 @@ class DataSet(DataObject):
       @ In, keys, set(str), keys to register
       @ In, params, dict, optional, {key:[indexes]}, keys of the dictionary are the variable names,
         values of the dictionary are lists of the corresponding indexes/coordinates of given variable
-      @ Out, None
+      @ Out, keys, list(str), extra keys that has been registered
     """
     # TODO add option to skip parts of meta if user wants to
     # remove already existing keys
     keys = list(key for key in keys if key not in self.getVars()+self.indexes)
     # if no new meta, move along
     if len(keys) == 0:
-      return
+      return keys
     # CANNOT add expected meta after samples are started
     assert(self._data is None)
     assert(self._collector is None or len(self._collector) == 0)
     self._metavars.extend(keys)
     self._orderedVars.extend(keys)
     self.setPivotParams(params)
+    return keys
 
   def addMeta(self, tag, xmlDict = None, node = None):
     """
@@ -174,7 +175,7 @@ class DataSet(DataObject):
           # Otherwise, scalarMetric
           else:
             # sanity check to make sure suitable values are passed in
-            assert(mathUtils.isSingleValued(value))
+            assert(utils.isSingleValued(value))
             destination.addScalar(target,metric,value)
     # otherwise if a node was provided directly ...
     else:
@@ -311,7 +312,7 @@ class DataSet(DataObject):
       @ Out, same, bool, if True then alignment is good
     """
     # format request so that indexesToCheck is always a list
-    if mathUtils.isAString(indexesToCheck):
+    if utils.isAString(indexesToCheck):
       indexesToCheck = [indexesToCheck]
     elif indexesToCheck is None:
       indexesToCheck = self.indexes[:]
@@ -435,7 +436,7 @@ class DataSet(DataObject):
     # For faster access, consider using data.asDataset()['varName'] for one variable, or
     #                                   data.asDataset()[ ('var1','var2','var3') ] for multiple.
     self.asDataset()
-    if mathUtils.isAString(var):
+    if utils.isAString(var):
       val = self._data[var]
       #format as scalar
       if len(val.dims) == 0:
@@ -755,7 +756,7 @@ class DataSet(DataObject):
       @ Out, None
     """
     assert(var in self._orderedVars)
-    assert(mathUtils.isSingleValued(value)) #['float','str','int','unicode','bool'])
+    assert(utils.isSingleValued(value)) #['float','str','int','unicode','bool'])
     lenColl = len(self._collector) if self._collector is not None else 0
     lenData = len(self._data[self.sampleTag]) if self._data      is not None else 0
     # if it's in the data ...
@@ -785,7 +786,7 @@ class DataSet(DataObject):
           closeEnough = False
         else:
           # "close enough" if float/int, otherwise require exactness
-          if mathUtils.isAFloatOrInt(rlz[index][0]):
+          if utils.isAFloatOrInt(rlz[index][0]):
             closeEnough = all(np.isclose(rlz[index],self._alignedIndexes[index],rtol=tol))
           else:
             closeEnough = all(rlz[index] == self._alignedIndexes[index])
@@ -908,7 +909,7 @@ class DataSet(DataObject):
       dataType = dtype
     # method = 'once' # see below, parallelization is possible but not implemented
     # first case: single entry per node: floats, strings, ints, etc
-    if mathUtils.isSingleValued(data[i]):
+    if utils.isSingleValued(data[i]):
       data = np.array(data,dtype=dataType)
       array = xr.DataArray(data,
                            dims=[self.sampleTag],
@@ -972,7 +973,7 @@ class DataSet(DataObject):
       # determine dimensions for each variable
       dimsMeta = {}
       for name, var in new.variables.items():
-        if name not in self._inputs + self._outputs:
+        if name not in self._inputs + self._outputs + self._metavars:
           continue
         dims = list(var.dims)
         # don't list if only entry is sampleTag
@@ -1363,7 +1364,7 @@ class DataSet(DataObject):
         self.raiseAnError(KeyError,'Dimensions of variable',var,'from "source"', ",".join(providedDims),
                 'is not consistent with the required dimensions for data object "',
                 self.name.strip(),'":',",".join(requiredDims))
-    self._orderedVars = self.vars + self.indexes
+    self._orderedVars = self.vars
     self._data = datasetSub
     for key, val in self._data.attrs.items():
       self._meta[key] = val
@@ -1378,14 +1379,14 @@ class DataSet(DataObject):
     if isinstance(val,(xr.DataArray,np.ndarray)):
       val = val.item(0)
     # identify other scalars by instance
-    if mathUtils.isAFloat(val):
+    if utils.isAFloat(val):
       _type = float
-    elif mathUtils.isABoolean(val):
+    elif utils.isABoolean(val):
       _type = bool
-    elif mathUtils.isAnInteger(val):
+    elif utils.isAnInteger(val):
       _type = int
     # strings and unicode have to be stored as objects to prevent string sizing in numpy
-    elif mathUtils.isAString(val):
+    elif utils.isAString(val):
       _type = object
     # catchall
     else:
@@ -1422,7 +1423,7 @@ class DataSet(DataObject):
       match = True
       for e,element in enumerate(row):
         # check for matching based on if a number or not
-        if mathUtils.isAFloatOrInt(element):
+        if utils.isAFloatOrInt(element):
           match &= mathUtils.compareFloats(lookingFor[e],element,tol=tol)
         else:
           match &= lookingFor[e] == element
@@ -1464,7 +1465,7 @@ class DataSet(DataObject):
     mask = 1.0
     for var,val in match.items():
       # float instances are relative, others are absolute
-      if mathUtils.isAFloatOrInt(val):
+      if utils.isAFloatOrInt(val):
         # scale if we know how
         try:
           loc,scale = self._scaleFactors[var]
@@ -1554,8 +1555,12 @@ class DataSet(DataObject):
       dims = meta.get('pivotParams',{})
       if len(dims)>0:
         self.setPivotParams(dims)
+      # vector metavars is also stored in 'DataSet/dims' node
+      metavars = meta.get('metavars',[])
+      # get dict of vector metavars
+      params = {key:val for key, val in dims.items() if key in metavars}
       # add metadata, so we get probability weights and etc
-      self.addExpectedMeta(meta.get('metavars',[]))
+      self.addExpectedMeta(metavars,params)
       # check all variables desired are available
       provided = set(meta.get('inputs',[])+meta.get('outputs',[])+meta.get('metavars',[]))
     # otherwise, if we have no meta XML to load from, infer what we can from the CSV, which is only the available variables.

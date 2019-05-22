@@ -6,6 +6,12 @@
     <created>2018-09-21</created>
     <classesTested>PostProcessors.DataMining</classesTested>
     <description>Workshop test: DataMining with KMeans method</description>
+    <revisions>
+      <revision author="wangc" date="2018-09-27">
+        As reported in issue #805, RAVEN will not allow input DataObject of PostProcessor to be output DataObject,
+        the output data object will be renamed, and the variable name of labels will be explicitly defined.
+      </revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
@@ -22,10 +28,10 @@
   <Steps>
     <IOStep name="read_in_csv1">
       <Input class="Files" type="">bisonDBCSV</Input>
-      <Output class="DataObjects" type="PointSet">bisonData</Output>
+      <Output class="DataObjects" type="PointSet">bisonDataRaw</Output>
     </IOStep>
     <PostProcess name="pp1" pauseAtEnd="True">
-      <Input class="DataObjects" type="PointSet">bisonData</Input>
+      <Input class="DataObjects" type="PointSet">bisonDataRaw</Input>
       <Model class="Models" type="PostProcessor">KMeans1</Model>
       <Output class="DataObjects" type="PointSet">bisonData</Output>
       <Output class="OutStreams" type="Plot">PlotKMeans1</Output>
@@ -36,6 +42,10 @@
 
   <DataObjects>
     <PointSet name="bisonData">
+      <Input>power_scalef,thermal_expansion,grainradius_scalef</Input>
+      <Output>midplane_hoop_stress_clad,fis_gas_released,midplane_hoop_strain_clad,max_hoop_stress,ave_temp_interior,avg_clad_temp,max_stress,centerline_temp,midplane_vonmises_stress,max_vonmises_stress,rod_input_power,rod_total_power,midplane_hoop_strain_fuel,KMeans1Labels</Output>
+    </PointSet>
+    <PointSet name="bisonDataRaw">
       <Input>power_scalef,thermal_expansion,grainradius_scalef</Input>
       <Output>midplane_hoop_stress_clad,fis_gas_released,midplane_hoop_strain_clad,max_hoop_stress,ave_temp_interior,avg_clad_temp,max_stress,centerline_temp,midplane_vonmises_stress,max_vonmises_stress,rod_input_power,rod_total_power,midplane_hoop_strain_fuel</Output>
     </PointSet>
@@ -93,8 +103,7 @@
           <x>bisonData|Input|power_scalef</x>
           <y>bisonData|Output|midplane_vonmises_stress</y>
           <xlabel>Power Scaling Factor</xlabel>
-          <ylabel>Midplane Von Mises
-Stress</ylabel>
+          <ylabel>Midplane Von Mises Stress</ylabel>
           <noClusters>3</noClusters>
           <clusterLabels>bisonData|Output|KMeans1Labels</clusterLabels>
           <gridLocation>
@@ -111,8 +120,7 @@ Stress</ylabel>
           <x>bisonData|Input|grainradius_scalef</x>
           <y>bisonData|Output|midplane_vonmises_stress</y>
           <xlabel>Grain Radius Factor</xlabel>
-          <ylabel>Midplane Von Mises
-Stress</ylabel>
+          <ylabel>Midplane Von Mises Stress</ylabel>
           <noClusters>3</noClusters>
           <clusterLabels>bisonData|Output|KMeans1Labels</clusterLabels>
           <gridLocation>
@@ -129,8 +137,7 @@ Stress</ylabel>
           <x>bisonData|Input|thermal_expansion</x>
           <y>bisonData|Output|midplane_vonmises_stress</y>
           <xlabel>Thermal Expansion Factor</xlabel>
-          <ylabel>Midplane Von Mises
-Stress</ylabel>
+          <ylabel>Midplane Von Mises Stress</ylabel>
           <noClusters>3</noClusters>
           <clusterLabels>bisonData|Output|KMeans1Labels</clusterLabels>
           <gridLocation>

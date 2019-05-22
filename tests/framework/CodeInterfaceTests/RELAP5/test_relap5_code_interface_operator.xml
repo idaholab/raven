@@ -1,0 +1,110 @@
+<?xml version="1.0" ?>
+<Simulation>
+  <TestInfo>
+    <name>framework/CodeInterfaceTests/RELAP5.RELAP5interfaceOperatorXMLnode</name>
+    <author>alfoa</author>
+    <created>2019-02-04</created>
+    <classesTested>Models.Code.RELAP5</classesTested>
+    <description>
+       An example of using the RELAP5 code interface. This test is aimed to test the mechanics of the interface (no executable).
+    </description>
+    <revisions>
+      <revision author="alfoa" date="2019-02-04">Adding this test description.</revision>
+    </revisions>
+  </TestInfo>
+  <RunInfo>
+    <WorkingDir>RELAP5interfaceTestOperator</WorkingDir>
+    <Sequence>testDummyStep</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name="typpwr2.i" type="" >typpwr2.i</Input>
+    <Input name="tpfh2o"  type="" >tpfh2o</Input>
+  </Files>
+
+  <Models>
+    <Code name="MyRELAP" subType="Relap5">
+      <executable>
+        <!--  /path/to/relap/executable/relap5.x -->
+        <!-- here we should put the executable. Since we want to test the interface only, it is going to be empty -->
+      </executable>
+      <operator variables="20100154:2,20100155:2">
+          <expression> %card%*20100155:2*2./20100155:2</expression>
+          <cards>1180801:2,1180802:2,1180901:3</cards>
+      </operator>
+      
+    </Code>
+  </Models>
+
+  <Distributions>
+      <Normal name="heat_capacity_154">
+          <mean>44.5</mean>
+          <sigma>0.5</sigma>
+          <lowerBound>40</lowerBound>
+          <upperBound>49</upperBound>
+      </Normal>
+      <Normal name="heat_capacity_155">
+          <mean>45.5</mean>
+          <sigma>0.5</sigma>
+          <lowerBound>41</lowerBound>
+          <upperBound>50</upperBound>
+      </Normal>
+      <Normal name="heat_capacity_156">
+          <mean>41.5</mean>
+          <sigma>0.5</sigma>
+          <lowerBound>37</lowerBound>
+          <upperBound>46</upperBound>
+      </Normal>
+      <Normal name="heat_capacity_157">
+          <mean>42.5</mean>
+          <sigma>0.5</sigma>
+          <lowerBound>28</lowerBound>
+          <upperBound>37</upperBound>
+      </Normal>
+      <Normal name="testMultiLine">
+          <mean>0.5</mean>
+          <sigma>0.1</sigma>
+          <upperBound>1</upperBound>
+          <lowerBound>0</lowerBound>
+      </Normal>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="MC_samp">
+      <samplerInit>
+        <limit>2</limit>
+      </samplerInit>
+      <variable name="20100154:2">
+        <distribution>heat_capacity_154</distribution>
+      </variable>
+      <variable name="20100155:2">
+        <distribution>heat_capacity_155</distribution>
+      </variable>
+      <variable name="20100156:2">
+        <distribution>heat_capacity_156</distribution>
+      </variable>
+      <variable name="20100157:2">
+        <distribution>heat_capacity_157</distribution>
+      </variable>
+      <variable name="13550801:6">
+        <distribution>testMultiLine</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="testDummyStep" re-seeding="1">
+      <Input class="Files" type="">typpwr2.i</Input>
+      <Input class="Files" type="">tpfh2o</Input>
+      <Model class="Models" type="Code">MyRELAP</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MC_samp</Sampler>
+      <Output class="Databases" type="HDF5">DataB_REL5_1</Output>
+    </MultiRun>
+  </Steps>
+
+  <Databases>
+    <HDF5 name="DataB_REL5_1" readMode="overwrite"/>
+  </Databases>
+
+</Simulation>

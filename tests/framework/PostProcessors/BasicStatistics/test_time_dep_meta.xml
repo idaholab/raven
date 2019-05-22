@@ -1,0 +1,157 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+
+  <TestInfo>
+    <name>framework/PostProcessors/BasicStatistics.timeDepMeta</name>
+    <author>wangc</author>
+    <created>2019-05-10</created>
+    <classesTested>PostProcessors.BasicStatistics, DataObjects.HistorySet</classesTested>
+    <description>
+      This test checks the metadata printing of history set, the scalar meta data should be printed with
+      the input of HistorySet, while vector meta data should be printed with output of HistorySet. See issue #986.
+      With the fix of #986, The HistorySet will handle scalar and vector meta data separately.
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>timeDepMeta</WorkingDir>
+    <Sequence>Read_raw,  SensPost_1, Back_to_MASTER</Sequence>
+    <internalParallel>True</internalParallel>
+    <deleteOutExtension>o,plt,rst,csv,i</deleteOutExtension>
+  </RunInfo>
+
+  <Files>
+    <Input name="myinputfile" type="">RawData</Input>
+  </Files>
+
+  <VariableGroups>
+    <Group name="GRO_SensPost_in_features_scalar">
+      VCool,
+      TCool,
+      LinPow,
+      HTcoeff,
+      RodPitch
+    </Group>
+    <Group name="GRO_SensPost_in_targets_Timealigned">
+      EXP_PCT_a,
+      EXP_MaxCtoF_a,
+      EXP_P_a,
+      REP_PCT_a,
+      REP_MaxCtoF_a,
+      REP_P_a
+    </Group>
+    <Group name="GRO_SensPost_out_scalar">
+      avg_VCool,
+      avg_TCool,
+      avg_LinPow,
+      avg_HTcoeff,
+      avg_RodPitch,
+      var_VCool,
+      var_TCool,
+      var_LinPow,
+      var_HTcoeff,
+      var_RodPitch
+    </Group>
+    <Group name="GRO_SensPost_out_Timealigned">
+      sen_EXP_PCT_a_VCool,
+      sen_EXP_MaxCtoF_a_VCool,
+      sen_EXP_P_a_VCool,
+      sen_EXP_PCT_a_TCool,
+      sen_EXP_MaxCtoF_a_TCool,
+      sen_EXP_P_a_TCool,
+      sen_EXP_PCT_a_LinPow,
+      sen_EXP_MaxCtoF_a_LinPow,
+      sen_EXP_P_a_LinPow,
+      sen_EXP_PCT_a_HTcoeff,
+      sen_EXP_MaxCtoF_a_HTcoeff,
+      sen_EXP_P_a_HTcoeff,
+      sen_EXP_PCT_a_RodPitch,
+      sen_EXP_MaxCtoF_a_RodPitch,
+      sen_EXP_P_a_RodPitch,
+      sen_REP_PCT_a_VCool,
+      sen_REP_MaxCtoF_a_VCool,
+      sen_REP_P_a_VCool,
+      sen_REP_PCT_a_TCool,
+      sen_REP_MaxCtoF_a_TCool,
+      sen_REP_P_a_TCool,
+      sen_REP_PCT_a_LinPow,
+      sen_REP_MaxCtoF_a_LinPow,
+      sen_REP_P_a_LinPow,
+      sen_REP_PCT_a_HTcoeff,
+      sen_REP_MaxCtoF_a_HTcoeff,
+      sen_REP_P_a_HTcoeff,
+      sen_REP_PCT_a_RodPitch,
+      sen_REP_MaxCtoF_a_RodPitch,
+      sen_REP_P_a_HTcoeff,
+      avg_EXP_PCT_a,
+      avg_EXP_MaxCtoF_a,
+      avg_EXP_P_a,
+      avg_REP_PCT_a,
+      avg_REP_MaxCtoF_a,
+      avg_REP_P_a,
+      var_EXP_PCT_a,
+      var_EXP_MaxCtoF_a,
+      var_EXP_P_a,
+      var_REP_PCT_a,
+      var_REP_MaxCtoF_a,
+      var_REP_P_a
+    </Group>
+  </VariableGroups>
+  <Models>
+    <PostProcessor name="SensPost_1" subType="BasicStatistics" verbosity="debug">
+      <pivotParameter>Time_aligned</pivotParameter>
+      <sensitivity prefix="sen">
+        <targets>GRO_SensPost_in_targets_Timealigned</targets>
+        <features>GRO_SensPost_in_features_scalar</features>
+      </sensitivity>
+      <expectedValue prefix="avg">
+       GRO_SensPost_in_targets_Timealigned, GRO_SensPost_in_features_scalar
+    </expectedValue>
+      <variance prefix="var">
+       GRO_SensPost_in_targets_Timealigned, GRO_SensPost_in_features_scalar
+    </variance>
+    </PostProcessor>
+  </Models>
+
+  <DataObjects>
+    <HistorySet name="SET_SensPost_aligned">
+      <Input>GRO_SensPost_in_features_scalar</Input>
+      <Output>GRO_SensPost_in_targets_Timealigned</Output>
+      <options>
+        <pivotParameter>Time_aligned</pivotParameter>
+      </options>
+    </HistorySet>
+    <HistorySet name="SET_Back_to_MASTER">
+      <Input>GRO_SensPost_out_scalar</Input>
+      <Output>GRO_SensPost_out_Timealigned</Output>
+      <options>
+        <pivotParameter>Time_aligned</pivotParameter>
+      </options>
+    </HistorySet>
+  </DataObjects>
+
+  <Steps>
+    <IOStep name="Read_raw">
+      <Input class="Files" type="csv">myinputfile</Input>
+      <Output class="DataObjects" type="HiostorySet">SET_SensPost_aligned</Output>
+    </IOStep>
+
+    <PostProcess name="SensPost_1">
+      <Input class="DataObjects" type="HistorySet">SET_SensPost_aligned</Input>
+      <Model class="Models" type="PostProcessor">SensPost_1</Model>
+      <Output class="DataObjects" type="HistorySet">SET_Back_to_MASTER</Output>
+    </PostProcess>
+
+    <IOStep name="Back_to_MASTER">
+      <Input class="DataObjects" type="HistorySet">SET_Back_to_MASTER</Input>
+      <Output class="OutStreams" type="Print">Back_to_MASTER</Output>
+    </IOStep>
+  </Steps>
+
+  <OutStreams>
+    <Print name="Back_to_MASTER">
+      <type>csv</type>
+      <source>SET_Back_to_MASTER</source>
+    </Print>
+  </OutStreams>
+</Simulation>

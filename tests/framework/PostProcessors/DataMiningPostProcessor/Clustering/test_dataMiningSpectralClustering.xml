@@ -8,7 +8,14 @@
     <description>
       Tests clustering with SpectralClustering model.
     </description>
+    <revisions>
+      <revision author="wangc" date="2018-09-27">
+        As reported in issue #805, RAVEN will not allow input DataObject of PostProcessor to be output DataObject,
+        the output data object will be renamed, and the variable name of labels will be explicitly defined.
+      </revision>
+    </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>SpectralClustering</WorkingDir>
     <Sequence>readIn,SpectralCircles,output</Sequence>
@@ -35,14 +42,14 @@
   <Steps>
     <IOStep name="readIn" pauseAtEnd="True">
       <Input class="Files" type="">DataSetsFile</Input>
-      <Output class="DataObjects" type="PointSet">DataSets</Output>
+      <Output class="DataObjects" type="PointSet">DataSetsRaw</Output>
     </IOStep>
     <IOStep name="output" pauseAtEnd="True">
       <Input class="DataObjects" type="PointSet">DataSets</Input>
       <Output class="OutStreams" type="Plot">PlotSpectralCircles</Output>
     </IOStep>
     <PostProcess name="SpectralCircles" pauseAtEnd="True">
-      <Input class="DataObjects" type="PointSet">DataSets</Input>
+      <Input class="DataObjects" type="PointSet">DataSetsRaw</Input>
       <Model class="Models" type="PostProcessor">SpectralCircles</Model>
       <Output class="DataObjects" type="PointSet">DataSets</Output>
       <Output class="OutStreams" type="Print">dummy</Output>
@@ -55,7 +62,7 @@
       <source>DataSets</source>
       <what>Output|labels</what>
     </Print>
-    <Plot  name="PlotSpectralCircles" overwrite="false">
+    <Plot name="PlotSpectralCircles" overwrite="false">
       <plotSettings>
         <plot>
           <type>scatter</type>
@@ -77,6 +84,10 @@
 
   <DataObjects>
     <PointSet name="DataSets">
+      <Input>x1,x2,y1,y2,z1,z2</Input>
+      <Output>Output,labels</Output>
+    </PointSet>
+    <PointSet name="DataSetsRaw">
       <Input>x1,x2,y1,y2,z1,z2</Input>
       <Output>Output</Output>
     </PointSet>

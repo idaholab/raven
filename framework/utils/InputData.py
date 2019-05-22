@@ -176,12 +176,13 @@ class InterpretedListType(InputType):
       @ In, value, string, the value to convert
       @ Out, convert, list, the converted value
     """
-    values = value.split(",")
-    base = utils.partialEval(values[0].strip())
+    delim = ',' if ',' in value else None
+    values = list(x.strip() for x in value.split(delim) if x.strip())
+    base = utils.partialEval(values[0])
     # three possibilities: string, integer, or float
-    if mathUtils.isAString(base):
+    if utils.isAString(base):
       conv = str
-    elif mathUtils.isAnInteger(base):
+    elif utils.isAnInteger(base):
       conv = int
     else: #float
       conv = float
@@ -207,7 +208,8 @@ class StringListType(InputType):
       @ In, value, string, the value to convert
       @ Out, convert, list, the converted value
     """
-    return [x.strip() for x in value.split(",")]
+    delim = ',' if ',' in value else None
+    return [x.strip() for x in value.split(delim) if x.strip()]
 
 #Note, XSD's list type is split by spaces, not commas, so using xsd:string
 StringListType.createClass("stringtype","xsd:string")
@@ -229,7 +231,9 @@ class FloatListType(InputType):
       @ In, value, string, the value to convert
       @ Out, convert, list, the converted value
     """
-    return [float(x.strip()) for x in value.split(",")]
+    # prefer commas, but allow spaces, to divide
+    delim = ',' if ',' in value else None
+    return [float(x.strip()) for x in value.split(delim) if x.strip()]
 
 #Note, XSD's list type is split by spaces, not commas, so using xsd:string
 FloatListType.createClass("stringtype","xsd:string")
@@ -251,7 +255,8 @@ class IntegerListType(InputType):
       @ In, value, string, the value to convert
       @ Out, convert, list, the converted value
     """
-    return [int(x.strip()) for x in value.split(",")]
+    delim = ',' if ',' in value else None
+    return [int(x.strip()) for x in value.split(delim) if x.strip()]
 
 #Note, XSD's list type is split by spaces, not commas, so using xsd:string
 IntegerListType.createClass("stringtype","xsd:string")
@@ -558,9 +563,18 @@ class ParameterInput(object):
         subInstance.parseNode(subNode, errorList)
         self.subparts.append(subInstance)
     if self.strictMode:
-      for child in node:
-        if child.tag not in subNames:
-          handleError('Child "{}" not allowed as sub-element of "{}"'.format(child.tag,node.tag))
+      nodeNames = set([child.tag for child in node])
+      if nodeNames != subNames:
+        # there are mismatches
+        unknownChilds = list(nodeNames - subNames)
+        if unknownChilds:
+          handleError('Childs "[{}]" not allowed as sub-elements of "{}"'.format(",".join(unknownChilds),node.tag))
+        #TODO: keep this for the future. We need to implement in the InputData a way to set some nodes to be required
+        #missingChilds =  list(subNames - nodeNames)
+        #if missingChilds:
+        #  handleError('Not found Childs "[{}]" as sub-elements of "{}"'.format(",".join(missingChilds),node.tag))
+
+
 
   def findFirst(self, name):
     """

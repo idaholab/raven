@@ -32,6 +32,16 @@ from Tester import Tester, Differ
 
 warnings.simplefilter('default', DeprecationWarning)
 
+# set up colors
+# TODO add feature to turn coloring on and off
+norm_color = '\033[0m'  #reset color
+skip_color = '\033[90m' #dark grey
+fail_color = '\033[91m' #red
+pass_color = '\033[92m' #green
+name_color = '\033[93m' #yellow
+time_color = '\033[94m' #blue
+
+
 parser = argparse.ArgumentParser(description="Test Runner")
 parser.add_argument('-j', '--jobs', dest='number_jobs', type=int, default=1,
                     help='Specifies number of tests to run simultaneously (default: 1)')
@@ -44,6 +54,22 @@ parser.add_argument('--heavy', action='store_true',
 
 parser.add_argument('--list-testers', action='store_true', dest='list_testers',
                     help='Print out the possible testers')
+parser.add_argument('--test-dir', dest='test_dir',
+                    help='specify where the tests are located')
+
+parser.add_argument('--scripts-dir', dest='scripts_dir',
+                    help='specify where the scripts are located')
+
+parser.add_argument('--run-types', dest='add_run_types',
+                    help='add run types to the ones to be run')
+parser.add_argument('--only-run-types', dest='only_run_types',
+                    help='only run the listed types')
+
+parser.add_argument('--command-prefix', dest='command_prefix',
+                    help='prefix for the test commands')
+
+parser.add_argument('--python-command', dest='python_command',
+                    help='command to run python')
 
 args = parser.parse_args()
 
@@ -60,6 +86,7 @@ class LoadClass(threading.Thread):
     """
     threading.Thread.__init__(self)
     self.__load_avg = psutil.cpu_percent(1.0)*psutil.cpu_count()/100.0
+    self.__smooth_avg = self.__load_avg
     self.__load_lock = threading.Lock()
     self.daemon = True #Exit even if this thread is running.
 
@@ -73,6 +100,7 @@ class LoadClass(threading.Thread):
       load_avg = psutil.cpu_percent(1.0)*psutil.cpu_count()/100.0
       with self.__load_lock:
         self.__load_avg = load_avg
+        self.__smooth_avg = 0.9*self.__smooth_avg + 0.1*load_avg
 
   def get_load_average(self):
     """
@@ -84,6 +112,17 @@ class LoadClass(threading.Thread):
     with self.__load_lock:
       load_avg = self.__load_avg
     return load_avg
+
+  def get_smooth_average(self):
+    """
+      Get the most recent smooth average
+      @ In, None,
+      @ Out, float value for smooth average (average number of processors running) but smoothed
+    """
+    smooth_avg = -1
+    with self.__load_lock:
+      smooth_avg = self.__smooth_avg
+    return smooth_avg
 
 if args.load_average > 0:
   load = LoadClass()
@@ -102,7 +141,7 @@ def load_average_adapter(function):
       @ Out, result, result of running function on data
     """
     #basically get the load average for 0.1 seconds:
-    while load.get_load_average() > args.load_average:
+    while load.get_smooth_average() > args.load_average:
       time.sleep(1.0)
     return function(data)
   return new_func
@@ -171,37 +210,58 @@ def process_result(index, _input_data, output_data):
         job_id = name_to_id[postreq]
         print("Enabling", postreq, job_id)
         run_pool.enable_job(job_id)
+    okaycolor = pass_color
   elif group == Tester.group_skip:
     results["skipped"] += 1
     print(output_data.message)
+    okaycolor = skip_color
   else:
     results["fail"] += 1
-    failed_list.append(process_test_name)
+    failed_list.append(Tester.get_group_name(group)+" "+process_test_name)
+    print("Output of'"+process_test_name+"':")
     print(output_data.output)
     print(output_data.message)
+    okaycolor = fail_color
   number_done = sum(results.values())
-  print("({}/{}) {:7s} ({}) {}".format(number_done, len(function_list),
-                                       Tester.get_group_name(group),
-                                       sec_format(output_data.runtime),
-                                       process_test_name))
+  print(' '.join(["({done}/{togo})",
+                  "{statcolor}{status:7s}{normcolor}"
+                  "({timecolor}{time}{normcolor})"
+                  "{namecolor}{test}{normcolor}"])
+        .format(done=number_done,
+                togo=len(function_list),
+                statcolor=okaycolor,
+                normcolor=norm_color,
+                namecolor=name_color,
+                timecolor=time_color,
+                status=Tester.get_group_name(group),
+                time=sec_format(output_data.runtime),
+                test=process_test_name))
 if __name__ == "__main__":
 
   test_re = re.compile(args.test_re_raw)
 
-  #XXX fixme to find a better way to the tests directory
-
   this_dir = os.path.abspath(os.path.dirname(__file__))
   up_one_dir = os.path.dirname(this_dir)
-  base_test_dir = os.path.join(up_one_dir, "tests")
+  if args.test_dir is None:
+    #XXX fixme to find a better way to the tests directory
+
+    base_test_dir = os.path.join(up_one_dir, "tests")
+  else:
+    base_test_dir = args.test_dir
 
 
   test_list = get_test_lists(base_test_dir)
 
   base_testers, base_differs = get_testers_and_differs(this_dir)
-  testers, differs = get_testers_and_differs(os.path.join(up_one_dir, "scripts",
-                                                          "TestHarness", "testers"))
+  if args.scripts_dir is None:
+    scripts_dir = os.path.join(up_one_dir, "scripts", "TestHarness", "testers")
+  else:
+    scripts_dir = args.scripts_dir
+  testers, differs = get_testers_and_differs(scripts_dir)
   testers.update(base_testers)
   differs.update(base_differs)
+  Tester.add_non_default_run_type("heavy")
+  Tester.add_non_default_run_type("qsub")
 
   if args.list_testers:
     print("Testers:")
@@ -217,7 +277,16 @@ if __name__ == "__main__":
 
   tester_params = {}
   for tester in testers:
+    #Note as a side effect, testers can add run types to
+    # the tester.
     tester_params[tester] = testers[tester].get_valid_params()
+
+  Tester.initialize_current_run_type()
+  if args.add_run_types is not None:
+    Tester.add_run_types(set(args.add_run_types.split(",")))
+
+  if args.only_run_types is not None:
+    Tester.set_only_run_types(set(args.only_run_types.split(",")))
 
   function_list = [] #Store the data for the pool runner
   test_name_list = []
@@ -251,6 +320,10 @@ if __name__ == "__main__":
         params = dict(node.attrib)
         params['test_dir'] = test_dir
         tester = testers[node.attrib['type']](test_name, params)
+        if args.command_prefix is not None:
+          tester.set_command_prefix(args.command_prefix)
+        if args.python_command is not None:
+          tester.set_python_command(args.python_command)
         if args.heavy:
           tester.run_heavy()
         for child in node.children:
@@ -284,9 +357,10 @@ if __name__ == "__main__":
   run_pool.wait()
 
   if results["fail"] > 0:
-    print("FAILED:")
+    print("{}FAILED:".format(fail_color))
   for path in failed_list:
     print(path)
+  print(norm_color)
 
   csv_report = open("test_report.csv", "w")
   csv_report.write(",".join(["name", "passed", "group", "time"])+"\n")
@@ -300,5 +374,7 @@ if __name__ == "__main__":
     csv_report.write(out_line+"\n")
   csv_report.close()
 
-  print("PASSED:", results["pass"], "FAILED:", results["fail"], "SKIPPED", results["skipped"])
+  print("PASSED: {}{}{}".format(pass_color, results["pass"], norm_color))
+  print("SKIPPED: {}{}{}".format(skip_color, results["skipped"], norm_color))
+  print("FAILED: {}{}{}".format(fail_color, results["fail"], norm_color))
   sys.exit(results["fail"])
