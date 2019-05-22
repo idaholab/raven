@@ -164,6 +164,7 @@ class Segments(Collection):
     self._divisionInfo = {}            # data that should persist across methods
     self._divisionPivotShift = {}      # whether and how to normalize/shift subspaces
     self._indexValues = {}             # original index values, by index
+    self.divisions = None              # trained subdomain division information
     # allow some ROM training to happen globally, seperate from individual segment training
     ## see design note for Clusters
     self._romGlobalAdjustments = None  # global ROM settings, provided by the templateROM before clustering
@@ -224,6 +225,7 @@ class Segments(Collection):
       self.readAssembledObjects()
     # subdivide space
     divisions = self._subdivideDomain(self._divisionInstructions, tdict)
+    self.divisions = divisions
     self._divisionInfo['delimiters'] = divisions[0] + divisions[1]
     # allow ROM to handle some global training
     self._romGlobalAdjustments, newTrainingDict = self._templateROM.getGlobalRomSegmentSettings(tdict, divisions)
@@ -617,6 +619,12 @@ class Clusters(Segments):
                                      text=', '.join(str(x) for x in np.arange(len(labels))[labels==i])))
       # TODO pivot values, index delimiters as well?
 
+  def getSegmentRoms(self, full=False):
+    if full:
+      return list(self._roms[label] for label in self._clusterInfo['labels'])
+    else:
+      return self._roms
+
   ## Utilities ##
   def _classifyROMs(self, classifier, features, clusterFeatures):
     """
@@ -756,6 +764,9 @@ class Clusters(Segments):
       self.raiseADebug('"{}" division(s) are being excluded from clustering consideration.'.format(len(remainder)))
     ## train ROMs for each segment
     roms = self._trainSubdomainROMs(self._templateROM, counter, trainingSet, self._romGlobalAdjustments)
+    self._clusterSegments(roms, counter, trainingSet)
+
+  def _clusterSegments(self, roms, counter, trainingSet):
     # collect ROM features (basic stats, etc)
     clusterFeatures = self._gatherClusterFeatures(roms, counter, trainingSet)
     # future: requested metrics
@@ -861,16 +872,10 @@ class Interpolated(supervisedLearning):
     # tdict should have two parameters, the pivotParameter and the macroParameter -> one step per realization
     ## TODO how to handle multiple realizations that aren't progressive, e.g. sites???
     # create each progressive step
-    import pprint
-    pp = pprint.PrettyPrinter(indent=2)
-    pp.pprint(tdict)
     self._macroTemplate.readAssembledObjects()
     for macroID in tdict[self._macroParameter]:
       macroID = macroID[0]
-      new = copy.deepcopy(self._macroTemplate)
-      # because assembled objects are excluded from deepcopy, add them back here
-      # new.setAssembledObjects(copy.deepcopy(self._macroTemplate._assembledObjects))
-      new.setAssembledObjects({})
+      new = self._copyAssembledModel(self._macroTemplate)
       self._macroSteps[macroID] = new
 
     # train the existing steps
@@ -884,25 +889,93 @@ class Interpolated(supervisedLearning):
   def _interpolateSteps(self):
     """ Master method for interpolating missing ROMs for steps """
     # acquire interpolatable information
+    exampleModel = list(self._macroSteps.values())[0]
+    exampleRoms = exampleModel.getSegmentRoms(full=True)
+    numSegments = len(exampleModel._clusterInfo['labels'])
+    interps = [] # by segment, the interpreter to make new data
+    ## TODO can we reduce the number of unique transitions between clusters?
+    ## For example, if the clusters look like this for years 1 and 3:
+    ##   Year 1: A1 B1 A1 B1 A1 B1 A1 B1
+    ##   Year 2: A2 B2 C2 A2 B2 C2 A2 B2
+    ## the total transition combinations are: A1-A2, A1-B2, A1-C2, B1-A2, B1-B2, B1-C2
+    ## which is 6 interpolations, but doing all of them we do 8 (or more in a full example).
+    ## This could speed up the creation of the interpolated clustered ROMs possibly.
+    ## Then, whenever we interpolate, we inquire from whom to whom?
+    ## Wait, if you have more than 2 statepoints, this will probably not be worth it.
+    ##         - rambling thoughts, talbpw, 2019
+    # statepoint years
+    statepoints = list(self._macroSteps.keys())
+    # all years
+    allYears = list(range(min(statepoints), max(statepoints)))
+    # what years are missing?
+    missing = list(y for y in allYears if y not in statepoints)
+    # if any years are missing, make the interpolators for each segment of each statepoint ROM
+    if missing:
+      for segment in range(numSegments):
+        interp = self._createSVLInterpolater(self._macroSteps, index=segment)
+        # store interpolators, by segment
+        interps.append(interp)
+
+    # interpolate new data
+    ## now we have interpolators for every segment, so for each missing segment, we
+    ## need to make a new Cluster model and assign its subsequence ROMs (pre-clustering).
+    years = list(self._macroSteps.keys())
+    models = []
+    # TODO assuming integer years!
+    for y in range(min(years, max(years))):
+      # don't replace statepoint years
+      if y in years:
+        models.append(self._macroSteps[y])
+        continue
+      else:
+        newModel = self._interpolateSVL(exampleRoms, self._macroTemplate, numSegments, interps, y)
+        models.append(newModel)
+      # otherwise, create new instances
+    # fill missing steps
+    xxxxxxx
+    #
+
+  def _createSVLInterpolater(self, modelDict, index=None):
+    interp = {}
     df = None
-    for step, model in self._macroSteps.items():
-      # TODO need to collect FOR EACH SEGMENT!
-      params = model.getFundamentalFeatures()
+    for step, model in modelDict.items():
+      if index is None:
+        params = model.getFundamentalFeatures()
+      else:
+        params = model.getSegmentRoms(full=True)[index].getFundamentalFeatures()
       newDf = pd.DataFrame(params, index=[step])
       if df is None:
         df = newDf
       else:
-        df = df.append(newDf, sort=True)
+        df = df.append(newDf)
     df.fillna(0.0) # FIXME is 0 really the best for all signals??
     # create interpolators
     data = df.values
-    interp = interp1d(df.index.values, data) # TODO transpose ??
-    xxxxxxx
-    # interpolate
-    # create new instances
-    # fill missing steps
+    interp['headers'] = list(params.keys())
+    interp['method'] = interp1d(df.index.values, data.transpose())
+    return interp
 
-  #
+  def _interpolateSVL(self, exampleRoms, template, N, interpDicts, index):
+    newModel = copy.deepcopy(template)
+    segmentRoms = []
+    for segment in range(N):
+      data = interpDicts[segment]['method'](index)
+      data = data.transpose()
+      headers = interpDicts[segment]['headers']
+      params = dict((headers[d], data[d]) for d in range(len(data)))
+      newRom = copy.deepcopy(exampleRoms[segment])
+      inputs = newRom.readFundamentalFeatures(params)
+      newRom.setFundamentalFeatures(inputs)
+      segmentRoms.append(newRom)
+    newModel._clusterSegments(segmentRoms, )
+    return newModel
+
+  def _copyAssembledModel(self, model):
+    new = copy.deepcopy(model)
+    # because assembled objects are excluded from deepcopy, add them back here
+    # new.setAssembledObjects(copy.deepcopy(self._macroTemplate._assembledObjects))
+    new.setAssembledObjects({})
+    return new
 
   # dummy methods that are required by SVL and not generally used
   def __confidenceLocal__(self, featureVals):
