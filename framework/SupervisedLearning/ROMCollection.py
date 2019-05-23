@@ -22,6 +22,10 @@ from __future__ import division, print_function, absolute_import
 import copy
 import warnings
 from collections import defaultdict, OrderedDict
+
+import pprint
+pp = pprint.PrettyPrinter(indent=2)
+
 # external libraries
 import abc
 import numpy as np
@@ -718,12 +722,11 @@ class Clusters(Segments):
     segmentIndex = eligible[clusterIndex]
     return segmentIndex, clusterIndex
 
-  def _gatherClusterFeatures(self, roms, counter, trainingSet):
+  def _gatherClusterFeatures(self, roms, counter):
     """
       Collects features of the ROMs for clustering purposes
       @ In, roms, list, list of segmented SVL ROMs
       @ In, counter, list(tuple), instructions for dividing subspace into subdomains
-      @ In, trainingSet, dict, data on which ROMs should be trained
       @ Out, clusterFeatures, dict, clusterable parameters as {feature: [rom values]}
     """
     targets = self._templateROM.target[:]
@@ -759,16 +762,25 @@ class Clusters(Segments):
     # subdivide domain and train subdomain ROMs, as with the segmentation
     ## TODO can we increase the inheritance more here, or is this the minimum cutset?
     counter, remainder = divisions
+    #self.divisions = divisions
     # store delimiters
     if len(remainder):
       self.raiseADebug('"{}" division(s) are being excluded from clustering consideration.'.format(len(remainder)))
     ## train ROMs for each segment
     roms = self._trainSubdomainROMs(self._templateROM, counter, trainingSet, self._romGlobalAdjustments)
-    self._clusterSegments(roms, counter, trainingSet)
+    self._clusterSegments(roms, divisions)
+    # if there were some segments that won't compare well (e.g. leftovers), handle those separately
+    if len(remainder):
+      unclusteredROMs = self._trainSubdomainROMs(self._templateROM, remainder, trainingSet, self._romGlobalAdjustments)
+    else:
+      unclusteredROMs = []
+    ## unclustered
+    self._clusterInfo['map']['unclustered'] = unclusteredROMs
 
-  def _clusterSegments(self, roms, counter, trainingSet):
+  def _clusterSegments(self, roms, divisions):
+    counter, remainder = divisions
     # collect ROM features (basic stats, etc)
-    clusterFeatures = self._gatherClusterFeatures(roms, counter, trainingSet)
+    clusterFeatures = self._gatherClusterFeatures(roms, counter)
     # future: requested metrics
     ## TODO someday
     # store clustering info, unweighted
@@ -790,17 +802,10 @@ class Clusters(Segments):
     labels = self._classifyROMs(self._divisionClassifier, features, clusterFeatures)
     uniqueLabels = sorted(list(set(labels))) # note: keep these ordered! Many things hinge on this.
     self.raiseAMessage('Identified {} clusters while training clustered ROM "{}".'.format(len(uniqueLabels), self._romName))
-    # if there were some segments that won't compare well (e.g. leftovers), handle those separately
-    if len(remainder):
-      unclusteredROMs = self._trainSubdomainROMs(self._templateROM, remainder, trainingSet, self._romGlobalAdjustments)
-    else:
-      unclusteredROMs = []
     # make cluster information dict
     self._clusterInfo['labels'] = labels
     ## clustered
     self._clusterInfo['map'] = dict((label, roms[labels == label]) for label in uniqueLabels)
-    ## unclustered
-    self._clusterInfo['map']['unclustered'] = unclusteredROMs
     # TODO what about the unclustered ones? We throw them out in truncated representation, of necessity.
     self._roms = list(self._clusterInfo['map'][label][0] for label in uniqueLabels)
 
@@ -836,6 +841,12 @@ class Clusters(Segments):
     for f, feature in enumerate(features):
       clusterFeatures[feature] = clusterFeatures[feature] * weights[f]
     return clusterFeatures
+
+
+
+
+
+
 
 #
 #
@@ -892,7 +903,6 @@ class Interpolated(supervisedLearning):
     exampleModel = list(self._macroSteps.values())[0]
     exampleRoms = exampleModel.getSegmentRoms(full=True)
     numSegments = len(exampleModel._clusterInfo['labels'])
-    interps = [] # by segment, the interpreter to make new data
     ## TODO can we reduce the number of unique transitions between clusters?
     ## For example, if the clusters look like this for years 1 and 3:
     ##   Year 1: A1 B1 A1 B1 A1 B1 A1 B1
@@ -903,6 +913,8 @@ class Interpolated(supervisedLearning):
     ## Then, whenever we interpolate, we inquire from whom to whom?
     ## Wait, if you have more than 2 statepoints, this will probably not be worth it.
     ##         - rambling thoughts, talbpw, 2019
+    interps = [] # by segment, the interpreter to make new data
+    ## NOTE interps[0] is the GLOBAL PARAMS interpolator!!!
     # statepoint years
     statepoints = list(self._macroSteps.keys())
     # all years
@@ -911,6 +923,9 @@ class Interpolated(supervisedLearning):
     missing = list(y for y in allYears if y not in statepoints)
     # if any years are missing, make the interpolators for each segment of each statepoint ROM
     if missing:
+      # interpolate global features
+      globalInterp = self._createSVLInterpolater(self._macroSteps, index='global')
+      # interpolate each segment
       for segment in range(numSegments):
         interp = self._createSVLInterpolater(self._macroSteps, index=segment)
         # store interpolators, by segment
@@ -922,15 +937,15 @@ class Interpolated(supervisedLearning):
     years = list(self._macroSteps.keys())
     models = []
     # TODO assuming integer years!
-    for y in range(min(years, max(years))):
+    for y in range(min(years), max(years)):
       # don't replace statepoint years
       if y in years:
         models.append(self._macroSteps[y])
         continue
-      else:
-        newModel = self._interpolateSVL(exampleRoms, self._macroTemplate, numSegments, interps, y)
-        models.append(newModel)
       # otherwise, create new instances
+      else:
+        newModel = self._interpolateSVL(exampleRoms, exampleModel, self._macroTemplate, numSegments, globalInterp, interps, y)
+        models.append(newModel)
     # fill missing steps
     xxxxxxx
     #
@@ -940,7 +955,11 @@ class Interpolated(supervisedLearning):
     df = None
     for step, model in modelDict.items():
       if index is None:
-        params = model.getFundamentalFeatures()
+        raise NotImplementedError
+      # if the input model is not clustered (maybe impossible currently?), no segmenting consideration
+      elif index == 'global':
+        params = model._roms[0].parametrizeGlobalRomFeatures(model._romGlobalAdjustments)
+      # otherwise, need to capture segment information as well as the global information
       else:
         params = model.getSegmentRoms(full=True)[index].getFundamentalFeatures()
       newDf = pd.DataFrame(params, index=[step])
@@ -948,6 +967,7 @@ class Interpolated(supervisedLearning):
         df = newDf
       else:
         df = df.append(newDf)
+
     df.fillna(0.0) # FIXME is 0 really the best for all signals??
     # create interpolators
     data = df.values
@@ -955,19 +975,31 @@ class Interpolated(supervisedLearning):
     interp['method'] = interp1d(df.index.values, data.transpose())
     return interp
 
-  def _interpolateSVL(self, exampleRoms, template, N, interpDicts, index):
+  def _interpolateSVL(self, exampleRoms, exampleModel, template, N, globalInterp, segmentInterps, index):
     newModel = copy.deepcopy(template)
     segmentRoms = []
     for segment in range(N):
-      data = interpDicts[segment]['method'](index)
+      data = segmentInterps[segment]['method'](index)
       data = data.transpose()
-      headers = interpDicts[segment]['headers']
+      headers = segmentInterps[segment]['headers']
       params = dict((headers[d], data[d]) for d in range(len(data)))
       newRom = copy.deepcopy(exampleRoms[segment])
       inputs = newRom.readFundamentalFeatures(params)
       newRom.setFundamentalFeatures(inputs)
       segmentRoms.append(newRom)
-    newModel._clusterSegments(segmentRoms, )
+    # add global params
+    data = globalInterp['method'](index)
+    data = data.transpose()
+    headers = globalInterp['headers']
+    params = dict((headers[d], data[d]) for d in range(len(data)))
+    print('DEBUGG pivot??')
+    print(exampleModel._templateROM.pivotParameterID)
+    print(exampleModel._templateROM.pivotParameterValues)
+    pivotValues = trainingDict[exampleModel._templateROM.pivotParameterID][indexNOPE] # FIXME pass through everything??
+    params = exampleModel._roms[0].setGlobalRomFeatures(params, pivotValues)
+    newModel._romGlobalAdjustments = params
+    # finish training by clustering
+    newModel._clusterSegments(segmentRoms, exampleModel.divisions)
     return newModel
 
   def _copyAssembledModel(self, model):

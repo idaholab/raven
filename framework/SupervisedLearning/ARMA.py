@@ -149,6 +149,7 @@ class ARMA(supervisedLearning):
 
     # read off of paramInput for more detailed inputs # TODO someday everything should read off this!
     paramInput = kwargs['paramInput']
+
     for child in paramInput.subparts:
       # read truncation requests (really value limits, not truncation)
       if child.getName() == 'outTruncation':
@@ -166,7 +167,7 @@ class ARMA(supervisedLearning):
         self.zeroFilterTarget = child.value
         if self.zeroFilterTarget not in self.target:
           self.raiseAnError(IOError,'Requested zero filtering for "{}" but not found among targets!'.format(self.zeroFilterTarget))
-        self.zeroFilterTol = child.parameterValues.get('tol',1e-16)
+        self.zeroFilterTol = child.parameterValues.get('tol', 1e-16)
       # read SPECIFIC parameters for Fourier detrending
       elif child.getName() == 'SpecificFourier':
         # clear old information
@@ -190,7 +191,6 @@ class ARMA(supervisedLearning):
                                .format(v))
             continue
           self.fourierParams[v] = periods
-
     # read GENERAL parameters for Fourier detrending
     ## these apply to everyone without SpecificFourier nodes
     ## use basePeriods to check if Fourier node present
@@ -1047,6 +1047,9 @@ class ARMA(supervisedLearning):
         features[feature] = mean
     return features
 
+
+
+
   def getFundamentalFeatures(self, featureTemplate=None):
     assert self.amITrained
     if featureTemplate is None:
@@ -1151,6 +1154,7 @@ class ARMA(supervisedLearning):
     self._setFourierResults(features.get('fourier', {}))
     self._setArmaResults(features.get('arma', {}))
     self._setCDFResults(features.get('cdf', {}))
+    self.amITrained = True
 
 
   def _setFourierResults(self, paramDict):
@@ -1179,13 +1183,19 @@ class ARMA(supervisedLearning):
 
   def _setArmaResults(self, paramDict):
     for target, info in paramDict.items():
-      AR_keys, AR_vals = zip(*list(info['AR'].items()))
-      AR_keys, AR_vals = zip(*sorted(zip(AR_keys, AR_vals), key=lambda x:x[0]))
-      MA_keys, MA_vals = zip(*list(info['MA'].items()))
-      MA_keys, MA_vals = zip(*sorted(zip(MA_keys, MA_vals), key=lambda x:x[0]))
+      if 'AR' in info:
+        AR_keys, AR_vals = zip(*list(info['AR'].items()))
+        AR_keys, AR_vals = zip(*sorted(zip(AR_keys, AR_vals), key=lambda x:x[0]))
+        AR_vals = np.asarray(AR_vals)
+      else:
+        AR_vals = np.array([])
+      if 'MA' in info:
+        MA_keys, MA_vals = zip(*list(info['MA'].items()))
+        MA_keys, MA_vals = zip(*sorted(zip(MA_keys, MA_vals), key=lambda x:x[0]))
+        MA_vals = np.asarray(MA_vals)
+      else:
+        MA_vals = np.array([])
       sigma = info['std']
-      AR_vals = np.asarray(AR_vals)
-      MA_vals = np.asarray(MA_vals)
       result = armaResultsProxy(AR_vals, MA_vals, sigma)
       self.armaResult[target] = result
 
@@ -1203,11 +1213,6 @@ class ARMA(supervisedLearning):
       histogram = (counts, e_vals)
       dist = stats.rv_histogram(histogram)
       self._trainingCDF[target] = (dist, histogram)
-
-
-
-
-
 
   def getGlobalRomSegmentSettings(self, trainingDict, divisions):
     """
@@ -1271,6 +1276,116 @@ class ARMA(supervisedLearning):
       settings['segment Fourier periods'] = segment
       settings['long Fourier signal'] = self.fourierResults
     return settings, trainingDict
+
+  def parametrizeGlobalRomFeatures(self, featureDict):
+    t = 'GLOBAL_{target}|{metric}|{ID}'
+    params = {}
+    ## TODO FIXME duplicated code with getFundamentalFeatures! Extract for commonality!
+    # CDF
+    cdf = featureDict.get('input CDFs', None)
+    if cdf:
+      for target, (rvs, (counts, edges)) in cdf.items():
+        for c, count in enumerate(counts):
+          params[t.format(target=target, metric='cdf', ID='counts_{}'.format(c))] = count
+        for e, edge in enumerate(edges):
+          params[t.format(target=target, metric='cdf', ID='edges_{}'.format(e))] = edge
+    # long Fourier
+    fourier = featureDict.get('long Fourier signal', None)
+    if fourier:
+      for target, info in fourier.items():
+        feature = t.format(target=target, metric='Fourier', ID='fittingIntercept')
+        params[feature] = info['regression']['intercept']
+        coeffMap = info['regression']['coeffs']
+        for period, wave in coeffMap.items():
+          amp = wave['amplitude']
+          phase = wave['phase']
+          sinAmp = amp * np.cos(phase)
+          cosAmp = amp * np.sin(phase)
+          ID = '{}_{}'.format(period, 'sineAmp')
+          feature = t.format(target=target, metric='Fourier', ID=ID)
+          params[feature] = sinAmp
+          ID = '{}_{}'.format(period, 'cosineAmp')
+          feature = t.format(target=target, metric='Fourier', ID=ID)
+          params[feature] = cosAmp
+    return params
+
+  def setGlobalRomFeatures(self, params, pivotValues):
+    results = {}
+    # TODO FIXME duplicate algorithm with readFundamentalFeatures!!
+    cdf = collections.defaultdict(dict)
+    fourier = collections.defaultdict(dict)
+    for key, val in params.items():
+      assert key.startswith('GLOBAL_')
+      target, metric, ID = key[7:].split('|')
+
+      if metric == 'cdf':
+        if ID.startswith('counts_'):
+          c = int(ID.split('_')[1])
+          if 'counts' not in cdf[target]:
+            cdf[target]['counts'] = {}
+          cdf[target]['counts'][c] = val
+        elif ID.startswith('edges_'):
+          e = int(ID.split('_')[1])
+          if 'edges' not in cdf[target]:
+            cdf[target]['edges'] = {}
+          cdf[target]['edges'][e] = val
+
+      elif metric == 'Fourier':
+        if ID == 'fittingIntercept':
+          fourier[target]['intercept'] = val
+        else:
+          period, wave = ID.split('_')
+          period = float(period)
+          if period not in fourier[target]:
+            fourier[target][period] = {}
+          fourier[target][period][wave] = val
+
+    # TODO FIXME duplicate algorithm with setFundamentalFeatures!
+    # fourier
+    if fourier:
+      results['long Fourier signal'] = {}
+    for target, info in fourier.items():
+      predict = np.ones(len(pivotValues)) * info['intercept']
+      fparams = {'coeffs': {}}
+      for period, waves in info.items():
+        if period == 'intercept':
+          fparams[period] = waves
+        else:
+          # either A, B or C, p
+          if 'sineAmp' in waves:
+            A = waves['sineAmp']
+            B = waves['cosineAmp']
+            C, p = mathUtils.convertSinCosToSinPhase(A, B)
+          else:
+            C = waves['amplitude']
+            p = waves['phase']
+          fparams['coeffs'][period] = {}
+          fparams['coeffs'][period]['amplitude'] = C
+          fparams['coeffs'][period]['phase'] = p
+          predict += C * np.sin(2.*np.pi / period * pivotValues + p)
+      fparams['periods'] = list(fparams['coeffs'].keys())
+      results['long Fourier signal'][target] = {'regression': fparams,
+                                                'predict': predict}
+
+    # cdf
+    if cdf:
+      results['input CDFs'] = {}
+    for target, info in cdf.items():
+      # counts
+      cs = list(info['counts'].items())
+      c_idx, c_vals = zip(*sorted(cs, key=lambda x: x[0]))
+      c_vals = np.asarray(c_vals)
+      ## renormalize counts
+      counts = c_vals / float(c_vals.sum())
+      # edges
+      es = list(info['edges'].items())
+      e_idx, e_vals = zip(*sorted(es, key=lambda x: x[0]))
+      histogram = (counts, e_vals)
+      dist = stats.rv_histogram(histogram)
+      results['input CDFs'][target] = (dist, histogram)
+    return results
+
+
 
   def adjustLocalRomSegment(self, settings):
     """
