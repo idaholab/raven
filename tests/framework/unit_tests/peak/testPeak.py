@@ -12,6 +12,8 @@ sys.path.append(frameworkDir)
 from utils.utils import find_crow
 find_crow(frameworkDir)
 from utils import randomUtils
+from utils import mathUtils
+
 import MessageHandler
 
 # message handler
@@ -41,17 +43,17 @@ def smooth(x,window_len=11):
 
 
 ## user define
-expPeakTypes= 2
-bg_p=3000
-ed_p=4000
+# expPeakTypes= 2
+bg_p=4000
+ed_p=5000
 data    =   pd.read_csv("BW.node.prices.INL.2026_May10LP_solution_files.csv")
 time    =   data.ind.values[bg_p:ed_p]
 signal  =   data.signal.values[bg_p:ed_p]
 low     =   0
 
 
-maskRes=signal==signal
-width=5
+maskRes = signal == signal
+width = [5,5]
 # peaks_1, properties_1 = scipy.signal.find_peaks(signal, height=0)
 # heights = properties_1['peak_heights']
 #### window filter
@@ -74,9 +76,11 @@ for i in range(windowType):
   windowRange['bg']=bg_P_ind
   windowRange['end']=end_P_ind
   rangeWindow.append(windowRange)
-#print(rangeWindow)
 
+print(len(rangeWindow[0]['bg']))
+print(len(rangeWindow[0]['end']))
 #########
+
 groupWin=[]
 for i in range(windowType):
   bg  = rangeWindow[i]['bg']
@@ -84,21 +88,22 @@ for i in range(windowType):
   peakInfo   = {}
   indLocal   = []
   ampLocal   = []
-  for j in range(len(bg)):
+  for j in range(min(len(bg), len(end))):
+    ##FIXME this might ignore one window
     bg_local = bg[j]
     end_local = end[j]
     peak, height = zjpeak._peakPicker(signal[bg_local:end_local], low=low)
     if len(peak) ==1:
       indLocal.append(int(peak))
       ampLocal.append(float(height))
-      mask_bg=int(peak)+bg_local-int(np.floor(width/2))
-      mask_end=int(peak)+bg_local+int(np.ceil(width/2))
+      mask_bg=int(peak)+bg_local-int(np.floor(width[i]/2))
+      mask_end=int(peak)+bg_local+int(np.ceil(width[i]/2))
       maskRes[mask_bg:mask_end]=False
     elif len(peak) >1:
       indLocal.append(int(peak[np.argmax(height)]))
       ampLocal.append(float(height[np.argmax(height)]))
-      mask_bg=int(peak[np.argmax(height)])+bg_local-int(np.floor(width/2))
-      mask_end=int(peak[np.argmax(height)])+bg_local+int(np.ceil(width/2))
+      mask_bg=int(peak[np.argmax(height)])+bg_local-int(np.floor(width[i]/2))
+      mask_end=int(peak[np.argmax(height)])+bg_local+int(np.ceil(width[i]/2))
       maskRes[mask_bg:mask_end]=False
   peakInfo['Ind'] = indLocal
   peakInfo['Amp'] = ampLocal
@@ -108,7 +113,6 @@ for i in range(windowType):
 
 Res=signal[maskRes]
 
-print(maskRes[0:48])
 #### Fourier
 ###################
 ######################################
@@ -154,19 +158,71 @@ def createARMA(targets, pivot, p, q, fourier=None):
   return rom, arma
 
 
-rom, arma = createARMA(['a'], 't', 0, 0, [])
+rom, arma = createARMA(['a'], 't', 3, 3, [])
 arma.pivotParameterValues=time
+trainingCDF= mathUtils.trainEmpiricalFunction(signal, minBins=arma._minBins)
+
 fourierResults={}
 target='sgn'
 fourierResults[target]= arma._trainFourier(time,[720,48,24],signal,masks=[maskRes])
-signal_1 =signal- fourierResults[target]['predict']
+signal_after =signal- fourierResults[target]['predict']
+signal_arma_train=signal_after[maskRes]
+####ARMA regenerate
+testVal=arma._trainARMA(signal_arma_train)
+arma.amITrained=True
+
+signal1=arma._generateARMASignal(testVal,numSamples=len(signal))
+
+
+## FIXME generate more arma signals
+###put back Fourier
+signalBackFourier=signal1+fourierResults[target]['predict']
+### put back peaks
+
+for i in range(windowType):
+  prbExist = len(groupWin[i]['Ind'])/len(rangeWindow[i]['bg'])
+  histAmp = np.histogram(groupWin[i]['Amp'])
+  histInd = np.histogram(groupWin[i]['Ind'])
+  for j in range(min(len(rangeWindow[i]['bg']),len(rangeWindow[i]['end']))):
+    bg_local = rangeWindow[i]['bg'][j]
+    exist = np.random.choice(2, 1, p=[1-prbExist,prbExist])
+    if exist == 1:
+      Amp = rv_histogram(histAmp).rvs()
+      Ind = int(rv_histogram(histInd).rvs())
+      SigInd = bg_local+Ind
+      signalBackFourier[SigInd] = Amp
+      mask_bg = SigInd-int(np.floor(width[i]/2))
+      mask_end = SigInd+int(np.ceil(width[i]/2))
+      if mask_bg>0 and mask_end < len(signal)-1:
+        bgValue = signalBackFourier[mask_bg-1]
+        endVaue = signalBackFourier[mask_end+1]
+        valueBg=np.interp(range(mask_bg,SigInd), [mask_bg-1,SigInd], [bgValue,Amp])
+        signalBackFourier[mask_bg:SigInd]=valueBg
+        valueEnd=np.interp(range(SigInd+1,mask_end+1), [SigInd,mask_end+1], [Amp,endVaue])
+        signalBackFourier[SigInd+1:mask_end+1]=valueEnd
+      # bgValue = signalBackFourier[mask_bg-1]
+      # if mask_end < len(signal):
+      #   endVaue = signalBackFourier[mask_end+1]
+      # else:
+      #   endVaue=signalBackFourier[mask_end+1-]
+      # ##FIXME
+      # # print(Amp)
+      # # print(Ind)
+
+signalBackFourier = arma._transformThroughInputCDF(signalBackFourier, trainingCDF)
+
+# print(groupWin)
+# print(rangeWindow)
 
 plt.plot(signal)
 plt.plot(np.ones_like(signal)*low, "--", color="gray")
 plt.plot(fourierResults[target]['predict'])
-plt.plot(time[maskRes]-bg_p,signal_1[maskRes],'.-')
+#plt.plot(time[maskRes]-bg_p,signal_after[maskRes],'.')
+plt.plot(signalBackFourier,'-')
+# plt.plot(signalBackFourier,'-')
+
 #plt.plot(np.ones(len(signal))*maskRes*60,'-')
-plt.xlim(100,175)
+# plt.xlim(100,500)
 plt.show()
 
 

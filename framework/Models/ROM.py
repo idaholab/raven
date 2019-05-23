@@ -208,6 +208,16 @@ class ROM(Dummy):
     specFourier.addParam("variables", InputData.StringListType, True)
     specFourier.addSub(InputData.parameterInputFactory('periods', contentType=InputData.FloatListType))
     inputSpecification.addSub(specFourier)
+    ### ARMA peaks
+    peaks = InputData.parameterInputFactory('Peaks')
+    window = InputData.parameterInputFactory('window',contentType=InputData.FloatListType)
+    window.addParam('width', InputData.IntegerType, True)
+    threshold = InputData.parameterInputFactory('threshold', InputData.FloatType)
+    period = InputData.parameterInputFactory('period',InputData.IntegerType)
+    peaks.addSub(window)
+    peaks.addSub(threshold)
+    peaks.addSub(period)
+    inputSpecification.addSub(peaks)
     # inputs for neural_network
     inputSpecification.addSub(InputData.parameterInputFactory("hidden_layer_sizes", InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("activation", InputData.StringType))
