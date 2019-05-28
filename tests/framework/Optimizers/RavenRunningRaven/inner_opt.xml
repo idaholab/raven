@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<Simulation verbosity="debug">
+<Simulation verbosity="all">
   <RunInfo>
     <WorkingDir>innerRun</WorkingDir>
     <Sequence>optimize,print</Sequence>
