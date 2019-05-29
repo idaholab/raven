@@ -522,17 +522,21 @@ def numBinsDraconis(data, low=None, alternateOkay=True):
     @ Out, numBins, int, optimal number of bins
     @ Out, binEdges, np.array, location of the bins
   """
-  iqr = np.percentile(data, 75) - np.percentile(data, 25)
+  try:
+    iqr = np.percentile(data, 75) - np.percentile(data, 25)
   # Freedman Diaoconis assumes there's a difference between the 75th and 25th percentile (there usually is)
-  if iqr > 0.0:
-    size = 2.0 * iqr / np.cbrt(data.size)
-    numBins = int(np.ceil((max(data) - min(data))/size))
+    if iqr > 0.0:
+      size = 2.0 * iqr / np.cbrt(data.size)
+      numBins = int(np.ceil((max(data) - min(data))/size))
+    else:
+      raise TypeError
+  except:
   # if there's not, with approval we can use the sqrt of the number of entries instead
-  elif alternateOkay:
-    numBins = int(np.ceil(np.sqrt(data.size)))
-  else:
-    raise ValueError('When computing bins using Freedman-Diaconis the 25th and 75th percentiles are the same, and "alternate" is not enabled!')
-  # if a minimum number of bins have been suggested, check that we use enough
+    if alternateOkay:
+      numBins = int(np.ceil(np.sqrt(data.size)))
+    else:
+      raise ValueError('When computing bins using Freedman-Diaconis the 25th and 75th percentiles are the same, and "alternate" is not enabled!')
+    # if a minimum number of bins have been suggested, check that we use enough
   if low is not None:
     numBins = max(numBins, low)
   # for convenience, find the edges of the bins as well

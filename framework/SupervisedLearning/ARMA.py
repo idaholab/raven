@@ -34,6 +34,7 @@ from statsmodels.tsa.arima_model import ARMA as smARMA
 from scipy.linalg import solve_discrete_lyapunov
 from sklearn import linear_model
 from scipy.signal import find_peaks
+from scipy.stats import rv_histogram
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -208,10 +209,6 @@ class ARMA(supervisedLearning):
         target = child.parameterValues['target']
         self.peaks[target]=peak
 
-        print('cccccccccssssssssssscccccccccssssssssssscccccccccssssssssssscccccccccsssssssssss')
-        print(self.peaks)
-        # print(self.peaks['windows'][0]['width'])
-
     # read GENERAL parameters for Fourier detrending
     ## these apply to everyone without SpecificFourier nodes
     ## use basePeriods to check if Fourier node present
@@ -293,9 +290,6 @@ class ARMA(supervisedLearning):
         groupWin , maskRes=self._peakGroupWindow(timeSeriesData, windowDict=self.peaks[target] )
         self.peaks[target]['groupWin']=groupWin
         self.peaks[target]['mask']=maskRes
-        print('lololololollollllolololololllolllolololololololollollllolololololllolllololo')
-        print(target)
-        #print(self.peaks)
 
 
       if target in self.fourierParams:
@@ -485,7 +479,8 @@ class ARMA(supervisedLearning):
         # DEBUG adding arbitrary variables
         #returnEvaluation[target+'_2fourier'] = copy.copy(signal)
         #debuggFile.writelines('signal_fourier,'+','.join(str(x) for x in self.fourierResults[target]['predict'])+'\n')
-
+      if target in self.peaks:
+        signal = self._transformBackPeaks(signal,windowDict=self.peaks[target])
       # if enforcing the training data CDF, apply that transform now
       if self.preserveInputCDF:
         signal = self._transformThroughInputCDF(signal, self._trainingCDF[target])
@@ -1171,7 +1166,7 @@ class ARMA(supervisedLearning):
     heights = properties['peak_heights']
     return peaks,heights
 
-  def _rangeWindow(self,windowDict):
+  def rangeWindow(self,windowDict):
     """
     generate windows' range
     """
@@ -1194,16 +1189,7 @@ class ARMA(supervisedLearning):
       windowRange['bg']=bg_P_ind
       windowRange['end']=end_P_ind
       rangeWindow.append(windowRange)
-      return rangeWindow
-
-  # def _maskPeaksignal(self,signal):
-  #   """
-  #     mask the peaks and rest
-  #   """
-  #   # where should the data be truncated?
-  #   maskRes = signal == signal
-  #   return maskRes
-
+    return rangeWindow
 
   def _peakGroupWindow(self,signal,windowDict):
     """
@@ -1211,7 +1197,7 @@ class ARMA(supervisedLearning):
     """
     groupWin = []
     maskRes = signal == signal
-    rangeWindow = self._rangeWindow(windowDict)
+    rangeWindow = self.rangeWindow(windowDict)
     low = windowDict['threshold']
     windows = windowDict['windows']
     for i in range(len(windowDict['windows'])):
@@ -1240,7 +1226,36 @@ class ARMA(supervisedLearning):
       peakInfo['Ind'] = indLocal
       peakInfo['Amp'] = ampLocal
       groupWin.append(peakInfo)
-      return groupWin , maskRes
+    return groupWin , maskRes
+
+  def _transformBackPeaks(self,signal,windowDict):
+    groupWin=windowDict['groupWin']
+    windows = windowDict['windows']
+    rangeWindow=self.rangeWindow(windowDict)
+    for i in range(len(windowDict['windows'])):
+      prbExist = len(groupWin[i]['Ind'])/len(rangeWindow[i]['bg'])
+      histAmp = np.histogram(groupWin[i]['Amp'])
+      histInd = np.histogram(groupWin[i]['Ind'])
+      for j in range(min(len(rangeWindow[i]['bg']),len(rangeWindow[i]['end']))):
+        bg_local = rangeWindow[i]['bg'][j]
+        exist = np.random.choice(2, 1, p=[1-prbExist,prbExist])
+        if exist == 1:
+          Amp = rv_histogram(histAmp).rvs()
+          Ind = int(rv_histogram(histInd).rvs())
+          SigInd = bg_local+Ind
+          SigInd = int(SigInd%len(self.pivotParameterValues))
+          signal[SigInd] = Amp
+          mask_bg = SigInd-int(np.floor(windows[i]['width']/2))
+          mask_end = SigInd+int(np.ceil(windows[i]['width']/2))
+          if mask_bg>0 and mask_end < len(self.pivotParameterValues)-1:
+            bgValue = signal[mask_bg-1]
+            endVaue = signal[mask_end+1]
+            valueBg=np.interp(range(mask_bg,SigInd), [mask_bg-1,SigInd], [bgValue,  Amp])
+            signal[mask_bg:SigInd]=valueBg
+            valueEnd=np.interp(range(SigInd+1,mask_end+1), [SigInd,mask_end+1],   [Amp,endVaue])
+            signal[SigInd+1:mask_end+1]=valueEnd
+      return signal
+
 
   ### ESSENTIALLY UNUSED ###
   def _localNormalizeData(self,values,names,feat):
