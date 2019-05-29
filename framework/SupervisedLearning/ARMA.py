@@ -710,7 +710,7 @@ class ARMA(supervisedLearning):
     r"""
       Fit ARMA model: x_t = \sum_{i=1}^P \phi_i*x_{t-i} + \alpha_t + \sum_{j=1}^Q \theta_j*\alpha_{t-j}
       @ In, data, np.array(float), data on which to train
-      @ In, masks, np.array, boolean mask where is the signal should be train by ARMA
+      @ In, masks, np.array, optional, boolean mask where is the signal should be train by ARMA
       @ Out, results, statsmodels.tsa.arima_model.ARMAResults, fitted ARMA
     """
     if masks == None:
@@ -755,7 +755,7 @@ class ARMA(supervisedLearning):
       @ In, pivotValues, np.array, list of values for the independent variable (e.g. time)
       @ In, periods, list, list of the base periods
       @ In, values, np.array, list of values for the dependent variable (signal to take fourier from)
-      @ In, masks, np.array, boolean mask where is the signal should be train by Fourier
+      @ In, masks, np.array, optional, boolean mask where is the signal should be train by Fourier
       @ In, zeroFilter, bool, optional, if True then apply zero-filtering for fourier fitting
       @ Out, fourierResult, dict, results of this training in keys 'residues', 'fourierSet', 'predict', 'regression'
     """
@@ -1177,17 +1177,17 @@ class ARMA(supervisedLearning):
     period = windowDict['period']
     for i in range(windowType):
       windowRange={}
-      bg_P=(windows[i]['window'][0]-1)%period
-      end_P=(windows[i]['window'][1]+2)%period
+      bgP=(windows[i]['window'][0]-1)%period
+      endP=(windows[i]['window'][1]+2)%period
       timeInd=np.arange(len(self.pivotParameterValues))
-      bg_P_ind  = np.where(timeInd%period==bg_P )[0].tolist()
-      end_P_ind = np.where(timeInd%period==end_P)[0].tolist()
-      if bg_P_ind[0]>end_P_ind[0]:
-        tail=end_P_ind[0]
-        end_P_ind.pop(0)
-        end_P_ind.append(tail)
-      windowRange['bg']=bg_P_ind
-      windowRange['end']=end_P_ind
+      bgPInd  = np.where(timeInd%period==bgP )[0].tolist()
+      endPInd = np.where(timeInd%period==endP)[0].tolist()
+      if bgPInd[0]>endPInd[0]:
+        tail=endPInd[0]
+        endPInd.pop(0)
+        endPInd.append(tail)
+      windowRange['bg']=bgPInd
+      windowRange['end']=endPInd
       rangeWindow.append(windowRange)
     return rangeWindow
 
@@ -1200,7 +1200,7 @@ class ARMA(supervisedLearning):
       @ Out, maskRes, np.array, boolean mask where is the residual signal
     """
     groupWin = []
-    maskRes = signal == signal
+    maskRes = np.ones(len(signal), dtype=bool)
     rangeWindow = self.rangeWindow(windowDict)
     low = windowDict['threshold']
     windows = windowDict['windows']
@@ -1212,21 +1212,21 @@ class ARMA(supervisedLearning):
       ampLocal   = []
       for j in range(min(len(bg), len(end))):
         ##FIXME this might ignore one window
-        bg_local = bg[j]
-        end_local = end[j]
-        peak, height = self._peakPicker(signal[bg_local:end_local], low=low)
+        bgLocal = bg[j]
+        endLocal = end[j]
+        peak, height = self._peakPicker(signal[bgLocal:endLocal], low=low)
         if len(peak) ==1:
           indLocal.append(int(peak))
           ampLocal.append(float(height))
-          mask_bg=int(peak)+bg_local-int(np.floor(windows[i]['width']/2))
-          mask_end=int(peak)+bg_local+int(np.ceil(windows[i]['width']/2))
-          maskRes[mask_bg:mask_end]=False
+          maskBg=int(peak)+bgLocal-int(np.floor(windows[i]['width']/2))
+          maskEnd=int(peak)+bgLocal+int(np.ceil(windows[i]['width']/2))
+          maskRes[maskBg:maskEnd]=False
         elif len(peak) >1:
           indLocal.append(int(peak[np.argmax(height)]))
           ampLocal.append(float(height[np.argmax(height)]))
-          mask_bg=int(peak[np.argmax(height)])+bg_local-int(np.floor(windows[i]['width']/2))
-          mask_end=int(peak[np.argmax(height)])+bg_local+int(np.ceil(windows[i]['width']/2))
-          maskRes[mask_bg:mask_end]=False
+          maskBg=int(peak[np.argmax(height)])+bgLocal-int(np.floor(windows[i]['width']/2))
+          maskEnd=int(peak[np.argmax(height)])+bgLocal+int(np.ceil(windows[i]['width']/2))
+          maskRes[maskBg:maskEnd]=False
       peakInfo['Ind'] = indLocal
       peakInfo['Amp'] = ampLocal
       groupWin.append(peakInfo)
@@ -1247,12 +1247,12 @@ class ARMA(supervisedLearning):
       histAmp = np.histogram(groupWin[i]['Amp'])
       histInd = np.histogram(groupWin[i]['Ind'])
       for j in range(min(len(rangeWindow[i]['bg']),len(rangeWindow[i]['end']))):
-        bg_local = rangeWindow[i]['bg'][j]
+        bgLocal = rangeWindow[i]['bg'][j]
         exist = np.random.choice(2, 1, p=[1-prbExist,prbExist])
         if exist == 1:
           Amp = rv_histogram(histAmp).rvs()
           Ind = int(rv_histogram(histInd).rvs())
-          SigInd = bg_local+Ind
+          SigInd = bgLocal+Ind
           SigInd = int(SigInd%len(self.pivotParameterValues))
           signal[SigInd] = Amp
           mask_bg = SigInd-int(np.floor(windows[i]['width']/2))
