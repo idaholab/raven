@@ -90,7 +90,7 @@ class ARMA(supervisedLearning):
     self.notZeroFilterMask = None # mask of places where zftarget is NOT zero, or None if unused
     self._minBins          = 20   # min number of bins to use in determining distributions, eventually can be user option, for now developer's pick
     #peaks
-    self.peaks             = {}
+    self.peaks             = {} # dictionary of peaks information, by target
     # signal storage
     self._signalStorage    = collections.defaultdict(dict) # various signals obtained in the training process
 
@@ -205,7 +205,6 @@ class ARMA(supervisedLearning):
             windows.append(tempDict)
         peak['windows']=windows
 
-
         target = child.parameterValues['target']
         self.peaks[target]=peak
 
@@ -297,7 +296,6 @@ class ARMA(supervisedLearning):
         groupWin , maskRes=self._peakGroupWindow(timeSeriesData, windowDict=self.peaks[target] )
         self.peaks[target]['groupWin']=groupWin
         self.peaks[target]['mask']=maskRes
-
 
       if target in self.fourierParams:
         self.raiseADebug('... analyzing Fourier signal  for target "{}" ...'.format(target))
@@ -451,7 +449,6 @@ class ARMA(supervisedLearning):
         result = self.armaResult[target] # ARMAResults object
         # generate baseline ARMA + noise
         # are we zero-filtering?
-          ## if so, then expand result into signal space (functionally, put back in all the zeros)
         if target == self.zeroFilterTarget:
           sample = self._generateARMASignal(result,
                                             numSamples = self.zeroFilterMask.sum(),
@@ -717,6 +714,7 @@ class ARMA(supervisedLearning):
     r"""
       Fit ARMA model: x_t = \sum_{i=1}^P \phi_i*x_{t-i} + \alpha_t + \sum_{j=1}^Q \theta_j*\alpha_{t-j}
       @ In, data, np.array(float), data on which to train
+      @ In, masks, np.array, boolean mask where is the signal should be train by ARMA
       @ Out, results, statsmodels.tsa.arima_model.ARMAResults, fitted ARMA
     """
     if masks == None:
@@ -761,6 +759,7 @@ class ARMA(supervisedLearning):
       @ In, pivotValues, np.array, list of values for the independent variable (e.g. time)
       @ In, periods, list, list of the base periods
       @ In, values, np.array, list of values for the dependent variable (signal to take fourier from)
+      @ In, masks, np.array, boolean mask where is the signal should be train by Fourier
       @ In, zeroFilter, bool, optional, if True then apply zero-filtering for fourier fitting
       @ Out, fourierResult, dict, results of this training in keys 'residues', 'fourierSet', 'predict', 'regression'
     """
@@ -792,8 +791,6 @@ class ARMA(supervisedLearning):
     # fit the signal
     fourierEngine.fit(fourierSignals, values)
 
-    # get Fourier superimposed signal
-    #fitSignal = np.asarray(fourierEngine.predict(fourierSignals))
     # get signal intercept
     intercept = fourierEngine.intercept_
     # get coefficient map for A*sin(ft) + B*cos(ft)
@@ -1162,7 +1159,11 @@ class ARMA(supervisedLearning):
   ### Peak Picker ###
   def _peakPicker(self,signal,low):
     """
-    Peak picker
+      Peak picker
+      @ In, signal, np.array(float), signal to transform
+      @ In, low, float, required height of peaks.
+      @ Out, peaks, np.array, indices of peaks in x that satisfy all given conditions
+      @ Out, heights, np.array, boolean mask where is the residual signal
     """
     peaks, properties = find_peaks(signal, height=low)
     heights = properties['peak_heights']
@@ -1170,9 +1171,10 @@ class ARMA(supervisedLearning):
 
   def rangeWindow(self,windowDict):
     """
-    generate windows' range
+      Collect the window index in to groups
+      @ In, windowDict, dict, dictionary for specefic target peaks
+      @ Out, rangeWindow, list, list of dictionaries which store the window index for each target
     """
-    #windowDict=self.peaks[target]
     rangeWindow = []
     windowType = len(windowDict['windows'])
     windows = windowDict['windows']
@@ -1195,7 +1197,11 @@ class ARMA(supervisedLearning):
 
   def _peakGroupWindow(self,signal,windowDict):
     """
-    group the windows
+      Collect the peak information in to groups, define the residual signal
+      @ In, signal, np.array(float), signal to transform
+      @ In, windowDict, dict, dictionary for specefic target peaks
+      @ Out, groupWin, list, list of dictionaries which store the peak information
+      @ Out, maskRes, np.array, boolean mask where is the residual signal
     """
     groupWin = []
     maskRes = signal == signal
@@ -1232,9 +1238,13 @@ class ARMA(supervisedLearning):
 
   def _transformBackPeaks(self,signal,windowDict):
     """
+      Transforms a signal by regenerate the peaks signal
+      @ In, signal, np.array(float), signal to transform
+      @ In, windowDict, dict, dictionary for specefic target peaks
+      @ Out, signal, np.array(float), new signal after transformation
     """
-    groupWin=windowDict['groupWin']
-    windows = windowDict['windows']
+    groupWin = windowDict['groupWin']
+    windows  = windowDict['windows']
     rangeWindow=self.rangeWindow(windowDict)
     for i in range(len(windowDict['windows'])):
       prbExist = len(groupWin[i]['Ind'])/len(rangeWindow[i]['bg'])
@@ -1251,7 +1261,7 @@ class ARMA(supervisedLearning):
           signal[SigInd] = Amp
           mask_bg = SigInd-int(np.floor(windows[i]['width']/2))
           mask_end = SigInd+int(np.ceil(windows[i]['width']/2))
-          if mask_bg>0 and mask_end < len(self.pivotParameterValues)-1:
+          if mask_bg > 0 and mask_end < len(self.pivotParameterValues)-1:
             bgValue = signal[mask_bg-1]
             endVaue = signal[mask_end+1]
             valueBg=np.interp(range(mask_bg,SigInd), [mask_bg-1,SigInd], [bgValue,  Amp])
