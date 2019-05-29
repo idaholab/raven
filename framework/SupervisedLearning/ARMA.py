@@ -198,7 +198,7 @@ class ARMA(supervisedLearning):
         for cchild in child.subparts:
           if cchild.getName() == 'window':
             tempDict={}
-            window = tuple(cchild.value)
+            window = list(cchild.value)
             width = cchild.parameterValues['width']
             tempDict['window']=window
             tempDict['width']=width
@@ -287,6 +287,13 @@ class ARMA(supervisedLearning):
       maskRes = timeSeriesData == timeSeriesData
 
       if target in self.peaks:
+        deltaT=self.pivotParameterValues[-1]-self.pivotParameterValues[0]
+        deltaT=deltaT/(len(self.pivotParameterValues)-1)
+        self.peaks[target]['period']=int(self.peaks[target]['period']/deltaT)
+        for i in range(len(self.peaks[target]['windows'])):
+          self.peaks[target]['windows'][i]['window'][0]=int(self.peaks[target]['windows'][i]['window'][0]/deltaT)
+          self.peaks[target]['windows'][i]['window'][1]=int(self.peaks[target]['windows'][i]['window'][1]/deltaT)
+          self.peaks[target]['windows'][i]['width']=int(self.peaks[target]['windows'][i]['width']/deltaT)
         groupWin , maskRes=self._peakGroupWindow(timeSeriesData, windowDict=self.peaks[target] )
         self.peaks[target]['groupWin']=groupWin
         self.peaks[target]['mask']=maskRes
@@ -308,11 +315,6 @@ class ARMA(supervisedLearning):
         # artifically force signal to 0 post-fourier subtraction where it should be zero
         targetVals[:,t][self.notZeroFilterMask] = 0.0
         self._signalStorage[target]['zerofilter'] = copy.deepcopy(timeSeriesData)
-
-      # if target in self.peaks:
-      #   timeSeriesData[:,t] = timeSeriesData[:,t][maskRes]
-      #   self._signalStorage[target]['nopeak']=copy.deepcopy(timeSeriesData)
-
 
     # Transform data to obatain normal distrbuted series. See
     # J.M.Morales, R.Minguez, A.J.Conejo "A methodology to generate statistically dependent wind speed scenarios,"
@@ -1229,6 +1231,8 @@ class ARMA(supervisedLearning):
     return groupWin , maskRes
 
   def _transformBackPeaks(self,signal,windowDict):
+    """
+    """
     groupWin=windowDict['groupWin']
     windows = windowDict['windows']
     rangeWindow=self.rangeWindow(windowDict)
@@ -1255,7 +1259,6 @@ class ARMA(supervisedLearning):
             valueEnd=np.interp(range(SigInd+1,mask_end+1), [SigInd,mask_end+1],   [Amp,endVaue])
             signal[SigInd+1:mask_end+1]=valueEnd
       return signal
-
 
   ### ESSENTIALLY UNUSED ###
   def _localNormalizeData(self,values,names,feat):

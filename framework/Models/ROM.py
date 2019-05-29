@@ -211,11 +211,11 @@ class ROM(Dummy):
     ### ARMA peaks
     peaks = InputData.parameterInputFactory('Peaks')
     window = InputData.parameterInputFactory('window',contentType=InputData.FloatListType)
-    window.addParam('width', InputData.IntegerType, True)
+    window.addParam('width', InputData.FloatType, True)
     peaks.addSub(window)
     peaks.addParam('threshold', InputData.FloatType)
     peaks.addParam('target', InputData.StringType)
-    peaks.addParam('period', InputData.IntegerType)
+    peaks.addParam('period', InputData.FloatType)
     inputSpecification.addSub(peaks)
     # inputs for neural_network
     inputSpecification.addSub(InputData.parameterInputFactory("hidden_layer_sizes", InputData.StringType))
