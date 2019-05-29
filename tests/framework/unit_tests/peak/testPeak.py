@@ -110,7 +110,7 @@ for i in range(windowType):
 
   groupWin.append(peakInfo)
 
-
+print(groupWin)
 Res=signal[maskRes]
 
 #### Fourier
