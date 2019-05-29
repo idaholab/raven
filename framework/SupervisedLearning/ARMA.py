@@ -195,7 +195,7 @@ class ARMA(supervisedLearning):
         for cchild in child.subparts:
           if cchild.getName() == 'window':
             tempDict={}
-            window = list(cchild.value)
+            window = cchild.value
             width = cchild.parameterValues['width']
             tempDict['window']=window
             tempDict['width']=width
@@ -354,7 +354,7 @@ class ARMA(supervisedLearning):
         ## -> instead of a VARMA
         if zeroed.shape[1] == 1:
           # then actually train an ARMA instead
-          zVarma = self._trainARMA(zeroed,mask=None)
+          zVarma = self._trainARMA(zeroed,masks=None)
           zNoise = None # NOTE this is used to check whether an ARMA was trained later!
           zInit = None
         else:
