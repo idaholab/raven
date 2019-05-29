@@ -681,8 +681,6 @@ def evalFourier(period,C,p,t):
     @ In, p, float, phase shift of sine-only waveform
     @ In, t, np.array, list of values for the time
     @ Out fourier, np.array, results of the transfered signal
-
-
   """
   fourier = C * np.sin(2. * np.pi * t / period + p)
   return fourier

@@ -189,11 +189,8 @@ class ARMA(supervisedLearning):
         peak={}
         threshold = child.parameterValues['threshold']
         peak['threshold']=threshold
-
-
         period = child.parameterValues['period']
         peak['period']=period
-
         windows=[]
         for cchild in child.subparts:
           if cchild.getName() == 'window':
@@ -204,7 +201,6 @@ class ARMA(supervisedLearning):
             tempDict['width']=width
             windows.append(tempDict)
         peak['windows']=windows
-
         target = child.parameterValues['target']
         self.peaks[target]=peak
 
