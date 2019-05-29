@@ -676,7 +676,13 @@ def convertSinCosToSinPhase(A, B):
 
 def evalFourier(period,C,p,t):
   """
-    eval fourier
+    Evaluate Fourier Singal by coefficients C, p, t for the equation C*sin(kt + p)
+    @ In, C, float, equivalent sine-only amplitude
+    @ In, p, float, phase shift of sine-only waveform
+    @ In, t, np.array, list of values for the time
+    @ Out fourier, np.array, results of the transfered signal
+
+
   """
   fourier = C * np.sin(2. * np.pi * t / period + p)
   return fourier
