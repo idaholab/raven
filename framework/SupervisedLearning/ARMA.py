@@ -1244,26 +1244,37 @@ class ARMA(supervisedLearning):
     rangeWindow=self.rangeWindow(windowDict)
     for i in range(len(windowDict['windows'])):
       prbExist = len(groupWin[i]['Ind'])/len(rangeWindow[i]['bg'])
+      # (amount of peaks that collected in the windows)/(the amount of windows)
+      # this is the probability to check if we should add a peak in each type of window
       histAmp = np.histogram(groupWin[i]['Amp'])
+      # generate the distribution of the amplitude for this type of peak
       histInd = np.histogram(groupWin[i]['Ind'])
+      # generate the distribution of the position( relative index) in the window
       for j in range(min(len(rangeWindow[i]['bg']),len(rangeWindow[i]['end']))):
+        # the length of the starting points and ending points might be different
         bgLocal = rangeWindow[i]['bg'][j]
+        # choose the starting index for specific window
         exist = np.random.choice(2, 1, p=[1-prbExist,prbExist])
+        # generate 1 or 0 base on the prbExist
         if exist == 1:
           Amp = rv_histogram(histAmp).rvs()
           Ind = int(rv_histogram(histInd).rvs())
+          # generate the amplitude and the relative position base on the distribution
           SigInd = bgLocal+Ind
           SigInd = int(SigInd%len(self.pivotParameterValues))
           signal[SigInd] = Amp
-          mask_bg = SigInd-int(np.floor(windows[i]['width']/2))
-          mask_end = SigInd+int(np.ceil(windows[i]['width']/2))
-          if mask_bg > 0 and mask_end < len(self.pivotParameterValues)-1:
-            bgValue = signal[mask_bg-1]
-            endVaue = signal[mask_end+1]
-            valueBg=np.interp(range(mask_bg,SigInd), [mask_bg-1,SigInd], [bgValue,  Amp])
-            signal[mask_bg:SigInd]=valueBg
-            valueEnd=np.interp(range(SigInd+1,mask_end+1), [SigInd,mask_end+1],   [Amp,endVaue])
-            signal[SigInd+1:mask_end+1]=valueEnd
+          # replace the signal with peak in this window
+          maskBg = SigInd-int(np.floor(windows[i]['width']/2))
+          maskEnd = SigInd+int(np.ceil(windows[i]['width']/2))
+          # replace the signal inside the width of this peak by interpolation
+          if maskBg > 0 and maskEnd < len(self.pivotParameterValues)-1:
+            # make sure the window is inside the range of the signal
+            bgValue = signal[maskBg-1]
+            endVaue = signal[maskEnd+1]
+            valueBg=np.interp(range(maskBg,SigInd), [maskBg-1,SigInd], [bgValue,  Amp])
+            signal[maskBg:SigInd]=valueBg
+            valueEnd=np.interp(range(SigInd+1,maskEnd+1), [SigInd,maskEnd+1],   [Amp,endVaue])
+            signal[SigInd+1:maskEnd+1]=valueEnd
       return signal
 
   ### ESSENTIALLY UNUSED ###
