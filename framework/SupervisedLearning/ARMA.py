@@ -288,7 +288,7 @@ class ARMA(supervisedLearning):
         self.zeroFilterMask = np.logical_not(self.notZeroFilterMask) # where data are
       # if we're removing Fourier signal, do that now.
 
-      maskRes = np.ones(len(timeSeriesData), dtype=bool)
+      maskPeakRes = np.ones(len(timeSeriesData), dtype=bool)
       # Make a full mask
       if target in self.peaks:
         deltaT=self.pivotParameterValues[-1]-self.pivotParameterValues[0]
@@ -300,16 +300,16 @@ class ARMA(supervisedLearning):
           self.peaks[target]['windows'][i]['window'][0]=int(self.peaks[target]['windows'][i]['window'][0]/deltaT)
           self.peaks[target]['windows'][i]['window'][1]=int(self.peaks[target]['windows'][i]['window'][1]/deltaT)
           self.peaks[target]['windows'][i]['width']=int(self.peaks[target]['windows'][i]['width']/deltaT)
-        groupWin , maskRes=self._peakGroupWindow(timeSeriesData, windowDict=self.peaks[target] )
+        groupWin , maskPeakRes=self._peakGroupWindow(timeSeriesData, windowDict=self.peaks[target] )
         self.peaks[target]['groupWin']=groupWin
-        self.peaks[target]['mask']=maskRes
+        self.peaks[target]['mask']=maskPeakRes
 
       if target in self.fourierParams:
         self.raiseADebug('... analyzing Fourier signal  for target "{}" ...'.format(target))
         self.fourierResults[target] = self._trainFourier(self.pivotParameterValues,
                                                          self.fourierParams[target],
                                                          timeSeriesData,
-                                                         masks=[maskRes],  # In future, a consolidated masking system for multiple signal processors can be implemented.
+                                                         masks=[maskPeakRes],  # In future, a consolidated masking system for multiple signal processors can be implemented.
                                                          zeroFilter = target == self.zeroFilterTarget)
         self._signalStorage[target]['fourier'] = copy.deepcopy(self.fourierResults[target]['predict'])
         timeSeriesData -= self.fourierResults[target]['predict']
@@ -345,7 +345,7 @@ class ARMA(supervisedLearning):
           # just train the data portions
           normed = normed[self.zeroFilterMask]
         self.raiseADebug('... ... training "{}"...'.format(target))
-        self.armaResult[target] = self._trainARMA(normed,masks=[maskRes])
+        self.armaResult[target] = self._trainARMA(normed,masks=[maskPeakRes])
         self.raiseADebug('... ... finished training target "{}"'.format(target))
 
     # now handle the training of the correlated armas
@@ -1210,10 +1210,10 @@ class ARMA(supervisedLearning):
       @ In, signal, np.array(float), signal to transform
       @ In, windowDict, dict, dictionary for specefic target peaks
       @ Out, groupWin, list, list of dictionaries which store the peak information
-      @ Out, maskRes, np.array, boolean mask where is the residual signal
+      @ Out, maskPeakRes, np.array, boolean mask where is the residual signal
     """
     groupWin = []
-    maskRes = np.ones(len(signal), dtype=bool)
+    maskPeakRes = np.ones(len(signal), dtype=bool)
     rangeWindow = self.rangeWindow(windowDict)
     low = windowDict['threshold']
     windows = windowDict['windows']
@@ -1237,17 +1237,17 @@ class ARMA(supervisedLearning):
           ampLocal.append(float(height))
           maskBg=int(peak)+bgLocal-int(np.floor(windows[i]['width']/2))
           maskEnd=int(peak)+bgLocal+int(np.ceil(windows[i]['width']/2))
-          maskRes[maskBg:maskEnd]=False
+          maskPeakRes[maskBg:maskEnd]=False
         elif len(peak) >1:
           indLocal.append(int(peak[np.argmax(height)]))
           ampLocal.append(float(height[np.argmax(height)]))
           maskBg=int(peak[np.argmax(height)])+bgLocal-int(np.floor(windows[i]['width']/2))
           maskEnd=int(peak[np.argmax(height)])+bgLocal+int(np.ceil(windows[i]['width']/2))
-          maskRes[maskBg:maskEnd]=False
+          maskPeakRes[maskBg:maskEnd]=False
       peakInfo['Ind'] = indLocal
       peakInfo['Amp'] = ampLocal
       groupWin.append(peakInfo)
-    return groupWin , maskRes
+    return groupWin , maskPeakRes
 
   def _transformBackPeaks(self,signal,windowDict):
     """

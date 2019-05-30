@@ -3051,12 +3051,13 @@ If \xmlNode{InternalParallel} is \xmlString{False} and \xmlNode{batchSize} is mo
   \default{None}
   
   
-   \item \xmlNode{Peaks}, \xmlDesc{node, optional}, designed to estimate the peaks in signal who has fundamental frequency, usually a data. The \xmlNode{Peaks} node has the following attributes:  
+   \item \xmlNode{Peaks}, \xmlDesc{node, optional}, designed to estimate the peaks in signals that repeat with some frequency, 
+   often in periodic data. The \xmlNode{Peaks} node has the following attributes:  
   	\begin{itemize}
-    		\item \xmlAttr{target}, \xmlDesc{required string attribute}, defines the name of the target 
-		 (not pivot parameter) expected to have periodic peaks.
-    		\item \xmlAttr{threshold}, \xmlDesc{required float attribute}, user-defined minimal required 
-		height of peaks.
+    		\item \xmlAttr{target}, \xmlDesc{required string attribute}, defines the name of one target (besides the 
+		pivot parameter) expected to have periodic peaks.
+    		\item \xmlAttr{threshold}, \xmlDesc{required float attribute}, user-defined minimum required 
+		height of peaks (absolute value).
     		\item \xmlAttr{period}, \xmlDesc{required float attribute}, user-defined expected period for target variable.		
 	\end{itemize}
 
@@ -3064,18 +3065,22 @@ If \xmlNode{InternalParallel} is \xmlString{False} and \xmlNode{batchSize} is mo
 	\begin{lstlisting}[style=XML,morekeywords={target,threshold,period}]
 	<Peaks target='Speed' threshold='0' period='86400'>
 	\end{lstlisting}
-	This means the 'speed' signal is a daily signal, and the minimal height required to define a peak is 0.
+	This means the \xmlString{Speed} signal is a daily signal, and the minimal height required to define a peak is 0.
     Additionally, the \xmlNode{Peaks} requires the sub-node:
     	\begin{itemize}
-      		 \item \xmlNode{window}, \xmlDesc{comma-separated floats, required field}, lists the
-		 certain region in the periodic time for the peaks, user need to define the lower domain boundary and 
-		 upper domain boundary for the window in signal unit. The first element is interpreted as the lower bound
-		 and the second as the upper bound of the window. User can define the lower bound to be a negative
-		 number if the window occupation passes through one side of one period. For example, if the period is 24
+      		 \item \xmlNode{window}, \xmlDesc{comma-separated floats, required field}, 
+		 lists the window of time within each period in which a peak should be discovered. 
+		 The text of this node is the upper and lower boundary of this 
+		 window \emph{relative to} the start of the period, separated by a comma.
+		 User can define the lower bound to be a negative
+		 number if the window passes through one side of one period. For example, if the period is 24
 		 hours, the window can be -2,2 which is equivalent to 22, 2.
-		 This node has one attribute, \xmlAttr{width}, \xmlDesc{required float attribute} which is the 
+		 This node has one attribute:
+		 \begin{itemize}
+		  \item \xmlAttr{width}, \xmlDesc{required float attribute} which is the 
 		 user defined  width of peaks in that window. The width is in the unit of the signal as well.
-		 The number of \xmlNode{window} is unlimited 
+		 \end{itemize}
+		 The number of \xmlNode{window} is unlimited.
        	\end{itemize}
         
 
