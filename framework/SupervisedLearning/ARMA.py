@@ -186,12 +186,17 @@ class ARMA(supervisedLearning):
             continue
           self.fourierParams[v] = periods
       elif child.getName() == 'Peaks':
+        # read peaks information for each target
         peak={}
+        # creat an empty list for each target
         threshold = child.parameterValues['threshold']
         peak['threshold']=threshold
+        # read the threshold for the peaks and store it in the dict
         period = child.parameterValues['period']
         peak['period']=period
+        # read the period for the peaks and store it in the dict
         windows=[]
+        # creat an empty list to store the windows' information
         for cchild in child.subparts:
           if cchild.getName() == 'window':
             tempDict={}
@@ -199,9 +204,12 @@ class ARMA(supervisedLearning):
             width = cchild.parameterValues['width']
             tempDict['window']=window
             tempDict['width']=width
+            # for each window in the windows, we create a dictionary. Then store the
+            # peak's width, the index of stating point and ending point in time unit
             windows.append(tempDict)
         peak['windows']=windows
         target = child.parameterValues['target']
+        # target is the key to reach each peak information
         self.peaks[target]=peak
 
     # read GENERAL parameters for Fourier detrending
@@ -279,11 +287,14 @@ class ARMA(supervisedLearning):
         self.notZeroFilterMask = self._trainZeroRemoval(timeSeriesData,tol=self.zeroFilterTol) # where zeros or less than zeros are
         self.zeroFilterMask = np.logical_not(self.notZeroFilterMask) # where data are
       # if we're removing Fourier signal, do that now.
-      maskRes = timeSeriesData == timeSeriesData
 
+      maskRes = np.ones(len(timeSeriesData), dtype=bool)
+      # Make a full mask
       if target in self.peaks:
         deltaT=self.pivotParameterValues[-1]-self.pivotParameterValues[0]
         deltaT=deltaT/(len(self.pivotParameterValues)-1)
+        # change the peak information in self.peak from time unit into index by divided the timestep
+        # deltaT is the time step calculated by (ending point - stating point in time)/(len(time)-1)
         self.peaks[target]['period']=int(self.peaks[target]['period']/deltaT)
         for i in range(len(self.peaks[target]['windows'])):
           self.peaks[target]['windows'][i]['window'][0]=int(self.peaks[target]['windows'][i]['window'][0]/deltaT)
@@ -298,7 +309,7 @@ class ARMA(supervisedLearning):
         self.fourierResults[target] = self._trainFourier(self.pivotParameterValues,
                                                          self.fourierParams[target],
                                                          timeSeriesData,
-                                                         masks=[maskRes],
+                                                         masks=[maskRes],  # In future, a consolidated masking system for multiple signal processors can be implemented.
                                                          zeroFilter = target == self.zeroFilterTarget)
         self._signalStorage[target]['fourier'] = copy.deepcopy(self.fourierResults[target]['predict'])
         timeSeriesData -= self.fourierResults[target]['predict']
@@ -716,11 +727,11 @@ class ARMA(supervisedLearning):
     if masks == None:
       masks = []
     if len(masks)>1:
-      fullmask = np.logical_and.reduce(*masks)
-      data=data[fullmask]
+      fullMask = np.logical_and.reduce(*masks)
+      data=data[fullMask]
     elif len(masks)==1:
-      fullmask =masks[0]
-      data=data[fullmask]
+      fullMask =masks[0]
+      data=data[fullMask]
     results = smARMA(data, order = (self.P, self.Q)).fit(disp = False)
     return results
 
@@ -1155,7 +1166,8 @@ class ARMA(supervisedLearning):
   ### Peak Picker ###
   def _peakPicker(self,signal,low):
     """
-      Peak picker
+      Peak picker, this method find the local maxima index inside the signal by comparing the
+      neighboring values. Threshold of peaks is required to output the height of each peak.
       @ In, signal, np.array(float), signal to transform
       @ In, low, float, required height of peaks.
       @ Out, peaks, np.array, indices of peaks in x that satisfy all given conditions
@@ -1167,7 +1179,7 @@ class ARMA(supervisedLearning):
 
   def rangeWindow(self,windowDict):
     """
-      Collect the window index in to groups
+      Collect the window index in to groups and store the information in dictionariy for each target
       @ In, windowDict, dict, dictionary for specefic target peaks
       @ Out, rangeWindow, list, list of dictionaries which store the window index for each target
     """
@@ -1193,7 +1205,8 @@ class ARMA(supervisedLearning):
 
   def _peakGroupWindow(self,signal,windowDict):
     """
-      Collect the peak information in to groups, define the residual signal
+      Collect the peak information in to groups, define the residual signal.
+      Including the index and amplitude of each peak found in the window.
       @ In, signal, np.array(float), signal to transform
       @ In, windowDict, dict, dictionary for specefic target peaks
       @ Out, groupWin, list, list of dictionaries which store the peak information
@@ -1211,7 +1224,11 @@ class ARMA(supervisedLearning):
       indLocal   = []
       ampLocal   = []
       for j in range(min(len(bg), len(end))):
-        ##FIXME this might ignore one window
+        ##FIXME this might ignore one window, because the amount of the
+        # staring points and the ending points might be different here,
+        # we choose the shorter one to make sure each window is complete.
+        # Future developer can extend the head and tail of the signal to
+        # include all the posible windows
         bgLocal = bg[j]
         endLocal = end[j]
         peak, height = self._peakPicker(signal[bgLocal:endLocal], low=low)
