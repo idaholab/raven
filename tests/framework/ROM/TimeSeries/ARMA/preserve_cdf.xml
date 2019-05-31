@@ -68,11 +68,11 @@
     </PostProcess>
     <IOStep name="out">
       <Input class="DataObjects" type="HistorySet">input_durs</Input>
-      <Input class="DataObjects" type="HistorySet">sample_durs</Input>
+      <Input class="DataObjects" type="HistorySet">samples</Input>
 
       <Input class="DataObjects" type="PointSet">metric</Input>
       <Output class="OutStreams" type="Print">input_durs</Output>
-      <Output class="OutStreams" type="Print">sample_durs</Output>
+      <Output class="OutStreams" type="Print">samples</Output>
 
       <Output class="OutStreams" type="Print">metric</Output>
     </IOStep>
@@ -169,7 +169,7 @@
     </Print>
     <Print name="sample_durs">
       <type>csv</type>
-      <source>sample_durs</source>
+      <source>samples</source>
     </Print>
     <Print name="metric">
       <type>csv</type>
