@@ -9,6 +9,7 @@
        Tests sampling the ARMA with multiple years in each sample.
        As a check, assure that for each realization, the ratio between the mean of years 1 and 0
        should be near 1.5, and the ratio between years 2 and 0 should be 2.25.
+       Further, check that when ensembled the pass-through value is usable (mostly a check for ND data).
     </description>
   </TestInfo>
 
@@ -38,13 +39,13 @@
     </IOStep>
     <MultiRun name="sample">
       <Input class="DataObjects" type="PointSet">dataIn</Input>
-      <Model class="Models" type="ROM">arma</Model>
+      <Model class="Models" type="ROM">ens</Model>
       <Sampler class="Samplers" type="MonteCarlo">mcSampler</Sampler>
-      <Output class="DataObjects" type="DataSet">synData</Output>
+      <Output class="DataObjects" type="DataSet">final_out</Output>
     </MultiRun>
     <IOStep name='dump'>
-      <Input class="DataObjects" type="DataSet">synData</Input>
-      <Output class="OutStreams" type="Print">synData</Output>
+      <Input class="DataObjects" type="DataSet">final_out</Input>
+      <Output class="OutStreams" type="Print">final_out</Output>
     </IOStep>
   </Steps>
 
@@ -79,6 +80,19 @@
         <growth targets="Speed" mode="exponential">50</growth>
       </Multiyear>
     </ROM>
+    <ExternalModel name='after_arma' subType='' ModuleToLoad='after_arma'>
+      <variables>Speed, Time, Year, yearly_aggregate</variables>
+    </ExternalModel>
+    <EnsembleModel name='ens' subType=''>
+      <Model class='Models' type='ROM'>arma
+        <Input class='DataObjects' type='PointSet'>dataIn</Input>
+        <TargetEvaluation class='DataObjects' type='DataSet'>synData</TargetEvaluation>
+      </Model>
+      <Model class='Models' type='ExternalModel'>after_arma
+        <Input class='DataObjects' type='PointSet'>afterIn</Input>
+        <TargetEvaluation class='DataObjects' type='DataSet'>after_rom_data</TargetEvaluation>
+      </Model>
+    </EnsembleModel>
   </Models>
 
   <OutStreams>
@@ -86,15 +100,19 @@
       <type>csv</type>
       <source>romMeta</source>
     </Print>
-    <Print name="synData">
+    <Print name="final_out">
       <type>csv</type>
-      <source>synData</source>
+      <source>final_out</source>
     </Print>
   </OutStreams>
 
   <DataObjects>
     <PointSet name="dataIn">
       <Input>scaling</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="afterIn">
+      <Input>Speed</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
     <HistorySet name="rawData">
@@ -109,6 +127,18 @@
       <Output>Speed</Output>
       <Index var="Time">Speed</Index>
       <Index var="Year">Speed</Index>
+    </DataSet>
+    <DataSet name="after_rom_data">
+      <Input>Speed</Input>
+      <Output>yearly_aggregate</Output>
+      <Index var="Time">Speed</Index>
+      <Index var="Year">Speed, yearly_aggregate</Index>
+    </DataSet>
+    <DataSet name="final_out">
+      <Input>scaling, Speed</Input>
+      <Output>yearly_aggregate</Output>
+      <Index var="Time">Speed</Index>
+      <Index var="Year">Speed, yearly_aggregate</Index>
     </DataSet>
     <DataSet name="romMeta"/>
   </DataObjects>

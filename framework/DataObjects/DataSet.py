@@ -28,6 +28,10 @@ try:
 except ImportError:
   import pickle as pk
 
+import pprint
+pp = pprint.PrettyPrinter(indent=2)
+
+
 import numpy as np
 import pandas as pd
 import xarray as xr
@@ -504,7 +508,7 @@ class DataSet(DataObject):
     # after loading, set or reset scaling factors
     self._setScalingFactors()
 
-  def realization(self,index=None,matchDict=None,tol=1e-15, unpackXArray=False):
+  def realization(self, index=None, matchDict=None, tol=1e-15, unpackXArray=False):
     """
       Method to obtain a realization from the data, either by index or matching value.
       Either "index" or "matchDict" must be supplied.
@@ -551,6 +555,8 @@ class DataSet(DataObject):
         ## otherwise, grab the entry from the collector
         else:
           rlz = self._getRealizationFromCollectorByIndex(index)
+      # add index map where necessary
+      rlz = self._addIndexMapToRlz(rlz)
       return rlz
     ## END select by index
     ## START collect by matching realization
@@ -559,18 +565,20 @@ class DataSet(DataObject):
       if numInData == 0:
         # if nothing in data OR collector, we can't have a match
         if numInCollector == 0:
-          return 0,None
+          return 0, None
         # otherwise, get it from the collector
         else:
-          index,rlz = self._getRealizationFromCollectorByValue(matchDict,tol=tol)
+          index, rlz = self._getRealizationFromCollectorByValue(matchDict, tol=tol)
       # otherwise, first try to find it in the data
       else:
-        index,rlz = self._getRealizationFromDataByValue(matchDict,tol=tol, unpackXArray=unpackXArray)
+        index, rlz = self._getRealizationFromDataByValue(matchDict, tol=tol, unpackXArray=unpackXArray)
         # if no match found in data, try in the collector (if there's anything in it)
         if rlz is None:
           if numInCollector > 0:
-            index,rlz = self._getRealizationFromCollectorByValue(matchDict,tol=tol)
-      return index,rlz
+            index, rlz = self._getRealizationFromCollectorByValue(matchDict, tol=tol)
+      # add index map where necessary
+      rlz = self._addIndexMapToRlz(rlz)
+      return index, rlz
 
   def remove(self,variable):
     """
@@ -769,6 +777,24 @@ class DataSet(DataObject):
     return list(self._pivotParams.keys())
 
   ### INTERNAL USE FUNCTIONS ###
+  def _addIndexMapToRlz(self, rlz):
+    """
+      Adds the special key _indexMap along with index mapping
+      for any N-dimensional entries in "rlz", if N > 1.
+      @ In, rlz, dict, single-sample realization
+      @ Out, rlz, dict, same dict with _indexMap added if necessary
+    """
+    print('DEBUGG what are we starting with?', self.name)
+    pp.pprint(rlz)
+    need = any(len(val.shape) > 1 for val in rlz.values())
+    if need:
+      rlz['_indexMap'] = self.getDimensions()
+      print('DEBUGG added index map!')
+      zzzzzz
+    return rlz
+
+
+
   def _changeVariableValue(self,index,var,value):
     """
       Changes the value of a variable for a particular realization in the data object, in collector or data.
@@ -1459,7 +1485,7 @@ class DataSet(DataObject):
     """
     assert(self._collector is not None)
     assert(index < len(self._collector))
-    rlz = dict(zip(self._orderedVars,self._collector[index]))
+    rlz = dict(zip(self._orderedVars, self._collector[index]))
     # don't forget the aligned indices! If indexes stored there instead of in collector, retrieve them
     for var,vals in self._alignedIndexes.items():
       rlz[var] = vals

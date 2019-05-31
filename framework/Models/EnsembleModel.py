@@ -530,8 +530,10 @@ class EnsembleModel(Dummy):
     for previousOutputs, outputType in zip(listOfOutputs,typeOutputs):
       if len(previousOutputs.values()) > 0:
         for inKey in self.modelsDictionary[modelIn]['Input']:
+          print('DEBUGG looking for', inKey)
           if inKey in previousOutputs.keys():
-            dependentOutputs[inKey] =  previousOutputs[inKey] if len(previousOutputs[inKey]) > 1 else previousOutputs[inKey][0]
+            print('DEBUGG     found output key among', list(previousOutputs.keys()))
+            dependentOutputs[inKey] = previousOutputs[inKey] if len(previousOutputs[inKey]) > 1 else previousOutputs[inKey][0]
     return dependentOutputs
 
   def _externalRun(self,inRun, jobHandler):
@@ -663,6 +665,12 @@ class EnsembleModel(Dummy):
           responseSpace         = dataSet
           typeOutputs[modelCnt] = inRunTargetEvaluations[modelIn].type
           gotOutputs[modelCnt]  = {key: dataSet[key] for key in inRunTargetEvaluations[modelIn].getVars("output")+inRunTargetEvaluations[modelIn].getVars("indexes")}
+          if '_indexMap' in dataSet.keys():
+            print('DEBUGG GOT IT!')
+            print(dataSet['_indexMap'])
+            bbbbbbbb
+          else:
+            print('DEBUGG index map not found in', list(dataSet.keys()))
 
           #store the results in return dictionary
           # store the metadata
@@ -700,3 +708,7 @@ class EnsembleModel(Dummy):
           break
     returnEvaluation = returnDict, inRunTargetEvaluations, tempOutputs
     return returnEvaluation
+
+
+
+
