@@ -161,10 +161,30 @@
       output = 'PreserveCdf/input_durs_0.csv'
       rel_err = 1e-5
     [../]
-    [./sample_ldc]
+    [./sampledur0]
       type = OrderedCSV
-      output = 'PreserveCdf/metric.csv'
-      rel_err = 1e-6
+      output = 'PreserveCdf/sample_durs_0.csv'
+      rel_err = 1e-5
+    [../]
+    [./sampledur1]
+      type = OrderedCSV
+      output = 'PreserveCdf/sample_durs_1.csv'
+      rel_err = 1e-5
+    [../]
+    [./sampledur2]
+      type = OrderedCSV
+      output = 'PreserveCdf/sample_durs_2.csv'
+      rel_err = 1e-5
+    [../]
+    [./sampledur3]
+      type = OrderedCSV
+      output = 'PreserveCdf/sample_durs_3.csv'
+      rel_err = 1e-5
+    [../]
+    [./sampledur4]
+      type = OrderedCSV
+      output = 'PreserveCdf/sample_durs_4.csv'
+      rel_err = 1e-5
     [../]
   [../]
 []
