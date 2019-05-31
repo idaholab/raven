@@ -109,12 +109,12 @@ class ExternalModel(Dummy):
            a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
       @ Out, ([(inputDict)],copy.deepcopy(kwargs)), tuple, return the new input in a tuple form
     """
-    modelVariableValues ={}
+    modelVariableValues = {}
     if 'createNewInput' in dir(self.sim):
       if 'SampledVars' in kwargs.keys():
         sampledVars = self._replaceVariablesNamesWithAliasSystem(kwargs['SampledVars'],'input',False)
       extCreateNewInput = self.sim.createNewInput(self.initExtSelf,myInput,samplerType,**kwargs)
-      if extCreateNewInput== None:
+      if extCreateNewInput is None:
         self.raiseAnError(AttributeError,'in external Model '+self.ModuleToLoad+' the method createNewInput must return something. Got: None')
       if type(extCreateNewInput).__name__ != "dict":
         self.raiseAnError(AttributeError,'in external Model '+self.ModuleToLoad+ ' the method createNewInput must return a dictionary. Got type: ' +type(extCreateNewInput).__name__)
@@ -130,8 +130,10 @@ class ExternalModel(Dummy):
     else:
       newInput =  Dummy.createNewInput(self, myInput,samplerType,**kwargs)
     if 'SampledVars' in kwargs.keys():
-      for key in kwargs['SampledVars'].keys():
-        modelVariableValues[key] = kwargs['SampledVars'][key]
+      print('DEBUGG loading up vars', list(kwargs['SampledVars'].keys()))
+      modelVariableValues.update(kwargs['SampledVars'])
+      #for key, val in kwargs['SampledVars'].items():
+      #  modelVariableValues[key] = val
     return newInput, copy.copy(modelVariableValues)
 
   def localInputAndChecks(self,xmlNode):
@@ -189,7 +191,7 @@ class ExternalModel(Dummy):
     modelVariableValues = {}
     for key in self.modelVariableType.keys():
       modelVariableValues[key] = None
-    for key,value in self.initExtSelf.__dict__.items():
+    for key, value in self.initExtSelf.__dict__.items():
       CustomCommandExecuter.execCommand('self.'+ key +' = copy.copy(object)',self=externalSelf,object=value)  # exec('externalSelf.'+ key +' = copy.copy(value)')
       modelVariableValues[key] = copy.copy(value)
     for key in Input.keys():
@@ -201,9 +203,11 @@ class ExternalModel(Dummy):
       InputDict = Input
     #if 'createNewInput' not in dir(self.sim):
     for key in Input.keys():
-      if key in modelVariables.keys():
+      print('DEBUGG checking Input:', key)
+      if key in modelVariables.keys() or key in ['_indexMap']:
+        print('DEBUGG   -> added key:', key)
         modelVariableValues[key] = copy.copy(Input[key])
-    for key in self.modelVariableType.keys():
+    for key in list(self.modelVariableType.keys()) + ['_indexMap']:
       # add the variable as a member of "self"
       try:
         CustomCommandExecuter.execCommand('self.'+ key +' = copy.copy(object["'+key+'"])',self=externalSelf,object=modelVariableValues) #exec('externalSelf.'+ key +' = copy.copy(modelVariableValues[key])')  #self.__uploadSolution()
@@ -214,7 +218,7 @@ class ExternalModel(Dummy):
     #  InputDict = Input
     # only pass the variables and their values according to the model itself.
     for key in Input.keys():
-      if key in self.modelVariableType.keys():
+      if key in self.modelVariableType.keys() or key in ['_indexMap']:
         InputDict[key] = Input[key]
 
     self.sim.run(externalSelf, InputDict)

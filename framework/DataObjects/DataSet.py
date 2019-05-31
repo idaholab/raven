@@ -28,10 +28,6 @@ try:
 except ImportError:
   import pickle as pk
 
-import pprint
-pp = pprint.PrettyPrinter(indent=2)
-
-
 import numpy as np
 import pandas as pd
 import xarray as xr
@@ -784,13 +780,9 @@ class DataSet(DataObject):
       @ In, rlz, dict, single-sample realization
       @ Out, rlz, dict, same dict with _indexMap added if necessary
     """
-    print('DEBUGG what are we starting with?', self.name)
-    pp.pprint(rlz)
-    need = any(len(val.shape) > 1 for val in rlz.values())
+    need = any(len(val.shape) > 1 for val in rlz.values() if hasattr(val, 'shape'))
     if need:
       rlz['_indexMap'] = self.getDimensions()
-      print('DEBUGG added index map!')
-      zzzzzz
     return rlz
 
 
