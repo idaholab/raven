@@ -164,7 +164,7 @@
     [./sample_ldc]
       type = OrderedCSV
       output = 'PreserveCdf/metric.csv'
-      rel_err = 1e-6
+      rel_err = 5e-2
     [../]
   [../]
 []
