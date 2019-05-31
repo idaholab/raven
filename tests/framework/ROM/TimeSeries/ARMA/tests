@@ -167,4 +167,11 @@
       rel_err = 5e-2
     [../]
   [../]
+   [./Peaks]
+   type = 'RavenFramework'
+   input = 'peaks.xml'
+   output = 'Peaks/romMeta.csv'
+   UnorderedXml = 'Peaks/romMeta.xml'
+   rel_err = 1e-6
+  [../]
 []
