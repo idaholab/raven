@@ -164,27 +164,27 @@
     [./sampledur0]
       type = OrderedCSV
       output = 'PreserveCdf/samples_0.csv'
-      rel_err = 1e-5
+      rel_err = 2e-2
     [../]
     [./sampledur1]
       type = OrderedCSV
       output = 'PreserveCdf/samples_1.csv'
-      rel_err = 1e-5
+      rel_err = 2e-2
     [../]
     [./sampledur2]
       type = OrderedCSV
       output = 'PreserveCdf/samples_2.csv'
-      rel_err = 1e-5
+      rel_err = 2e-2
     [../]
     [./sampledur3]
       type = OrderedCSV
       output = 'PreserveCdf/samples_3.csv'
-      rel_err = 1e-5
+      rel_err = 2e-2
     [../]
     [./sampledur4]
       type = OrderedCSV
       output = 'PreserveCdf/samples_4.csv'
-      rel_err = 1e-5
+      rel_err = 2e-2
     [../]
   [../]
 []
