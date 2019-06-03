@@ -162,6 +162,17 @@
       rel_err = 1e-5
     [../]
     [./sample_ldc]
+      # Even with identical seeds and inputs, the Fourier linear regressor fit produces
+      # different coefficients and intercept values on different operating systems, even
+      # multiple linux-based systems. Windows seems to be the most different, and as a
+      # result the CDF bin metric can be sufficiently different on Windows as to not pass
+      # the test.
+      # This is exacerbated by the fact that manually performing the y=Ax+b calculation
+      # (where b is the intercept, x is the Fourier signal, and A is the amplitudes matrix)
+      # yields a slightly (1e-6 rel err) difference from using the linear engine's
+      # prediction for the same. That change in this PR resulted in a change in the "metric"
+      # between the expected and actual CDF bins on Windows from 0.63 to 0.65.
+
       type = OrderedCSV
       output = 'PreserveCdf/metric.csv'
       rel_err = 5e-2
