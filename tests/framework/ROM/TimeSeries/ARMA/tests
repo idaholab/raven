@@ -179,7 +179,7 @@
     [../]
     [./samples]
       type = OrderedCSV
-      output = 'Multiyear/synData.csv'
+      output = 'Multiyear/final_out_0.csv Multiyear/final_out_1.csv'
       rel_err = 1e-3
     [../]
   [../]
