@@ -1,4 +1,4 @@
-<Simulation verbosity="debug">
+<Simulation verbosity="silent">
   <TestInfo>
     <name>SumOfExponential_test</name>
     <author>alfoa</author>
