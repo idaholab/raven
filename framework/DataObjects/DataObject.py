@@ -210,9 +210,13 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta,BaseType)):
         self._inputs.remove(index)
       except ValueError:
         pass #not requested as input anyway
+    # check inputs and outputs, if there were duplicates, error out
+    dups = set(self._inputs).intersection(self._outputs)
+    if dups:
+      self.raiseAnError(IOError, 'Variables: "', ','.join(dups), '" are specified in both "Input" and "Output" Node of DataObject "', self.name,'"')
     self._orderedVars = self._inputs + self._outputs
     # check if protected vars have been violated
-    if set(self.protectedTags).issubset(set(self._orderedVars)):
+    if set(self.protectedTags).intersection(set(self._orderedVars)):
       self.raiseAnError(IOError, 'Input, Output and Index variables can not be part of RAVEN protected tags: '+','.join(self.protectedTags))
 
     # create dict var to index
