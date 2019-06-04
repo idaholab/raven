@@ -1,4 +1,4 @@
-<Simulation verbosity="debug">
+<Simulation verbosity="quiet">
   <TestInfo>
     <name>plugins/ExamplePlugin.TestPluginExample</name>
     <author>alfoa</author>

@@ -522,17 +522,21 @@ def numBinsDraconis(data, low=None, alternateOkay=True):
     @ Out, numBins, int, optimal number of bins
     @ Out, binEdges, np.array, location of the bins
   """
-  iqr = np.percentile(data, 75) - np.percentile(data, 25)
+  try:
+    iqr = np.percentile(data, 75) - np.percentile(data, 25)
   # Freedman Diaoconis assumes there's a difference between the 75th and 25th percentile (there usually is)
-  if iqr > 0.0:
-    size = 2.0 * iqr / np.cbrt(data.size)
-    numBins = int(np.ceil((max(data) - min(data))/size))
+    if iqr > 0.0:
+      size = 2.0 * iqr / np.cbrt(data.size)
+      numBins = int(np.ceil((max(data) - min(data))/size))
+    else:
+      raise TypeError
+  except:
   # if there's not, with approval we can use the sqrt of the number of entries instead
-  elif alternateOkay:
-    numBins = int(np.ceil(np.sqrt(data.size)))
-  else:
-    raise ValueError('When computing bins using Freedman-Diaconis the 25th and 75th percentiles are the same, and "alternate" is not enabled!')
-  # if a minimum number of bins have been suggested, check that we use enough
+    if alternateOkay:
+      numBins = int(np.ceil(np.sqrt(data.size)))
+    else:
+      raise ValueError('When computing bins using Freedman-Diaconis the 25th and 75th percentiles are the same, and "alternate" is not enabled!')
+    # if a minimum number of bins have been suggested, check that we use enough
   if low is not None:
     numBins = max(numBins, low)
   # for convenience, find the edges of the bins as well
@@ -670,3 +674,15 @@ def convertSinCosToSinPhase(A, B):
   p = np.arctan2(B, A)
   C = A / np.cos(p)
   return C, p
+
+def evalFourier(period,C,p,t):
+  """
+    Evaluate Fourier Singal by coefficients C, p, t for the equation C*sin(kt + p)
+    @ In, C, float, equivalent sine-only amplitude
+    @ In, p, float, phase shift of sine-only waveform
+    @ In, t, np.array, list of values for the time
+    @ Out fourier, np.array, results of the transfered signal
+  """
+  fourier = C * np.sin(2. * np.pi * t / period + p)
+  return fourier
+
