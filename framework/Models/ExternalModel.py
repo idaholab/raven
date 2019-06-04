@@ -202,12 +202,15 @@ class ExternalModel(Dummy):
     else:
       InputDict = Input
     #if 'createNewInput' not in dir(self.sim):
+    additionalKeys = []
+    if '_indexMap' in Input.keys():
+      additionalKeys.append('_indexMap')
     for key in Input.keys():
       print('DEBUGG checking Input:', key)
-      if key in modelVariables.keys() or key in ['_indexMap']:
+      if key in modelVariables.keys() or key in additionalKeys:
         print('DEBUGG   -> added key:', key)
         modelVariableValues[key] = copy.copy(Input[key])
-    for key in list(self.modelVariableType.keys()) + ['_indexMap']:
+    for key in list(self.modelVariableType.keys()) + additionalKeys:
       # add the variable as a member of "self"
       try:
         CustomCommandExecuter.execCommand('self.'+ key +' = copy.copy(object["'+key+'"])',self=externalSelf,object=modelVariableValues) #exec('externalSelf.'+ key +' = copy.copy(modelVariableValues[key])')  #self.__uploadSolution()
@@ -218,7 +221,7 @@ class ExternalModel(Dummy):
     #  InputDict = Input
     # only pass the variables and their values according to the model itself.
     for key in Input.keys():
-      if key in self.modelVariableType.keys() or key in ['_indexMap']:
+      if key in self.modelVariableType.keys() or key in additionalKeys:
         InputDict[key] = Input[key]
 
     self.sim.run(externalSelf, InputDict)
