@@ -996,6 +996,7 @@ class IOStep(Step):
         # train the ROM from the unpickled object
         outputs[i].train(unpickledObj)
         # reseed as requested
+        print('DEBUGG load settings??', loadSettings.keys())
         if loadSettings:
           outputs[i].setAdditionalParams(loadSettings)
 

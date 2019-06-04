@@ -58,6 +58,7 @@ class Collection(supervisedLearning):
     self._romName = kwargs.get('name', 'unnamed') # name of the requested ROM
     self._templateROM = kwargs['modelInstance']   # example of a ROM that will be used in this grouping, set by setTemplateROM
     self._roms = []                               # ROMs that belong to this grouping.
+    self._romInitAdditionalParams = {}            # used for deserialization, empty by default
 
   def __getstate__(self):
     """
@@ -217,6 +218,17 @@ class Segments(Collection):
   ###############
   # RUN METHODS #
   ###############
+  def setAdditionalParams(self, params):
+    """
+      Stores (and later passes through) additional parameters to the sub-roms
+      @ In, params, dict, parameters to set, dependent on ROM
+      @ Out, None
+    """
+    Collection.setAdditionalParams(self, params)
+    for rom in self._roms:
+      print('DEBUGG setting rom:', rom)
+      rom.setAdditionalParams(params)
+
   def train(self, tdict, skipAssembly=False):
     """
       Trains the SVL and its supporting SVLs. Overwrites base class behavior due to special clustering needs.
@@ -300,12 +312,32 @@ class Segments(Collection):
     for r, rom in enumerate(roms):
       self.raiseADebug('Evaluating ROM segment', r)
       subResults = rom.evaluate(evaluationDict)
+      print('DEBUGG subResults:', subResults.keys())
       # NOTE the pivot values for subResults will be wrong (shifted) if shifting is used in training
       ## however, we will set the pivotID values all at once after all results are gathered, so it's okay.
       # build "results" structure if not already done -> easier to do once we gather the first sample
       if result is None:
+        result = {}
+        indexMap = subResults.pop('_indexMap', {})
+        for target, values in subResults.items():
+          dims = indexMap.get(target, None)
+          if dims is None:
+            result[target] = np.zeros(lastEntry)
+          else:
+            lens = list(values.shape)
+            print('')
+            print('DEBUGG dims:', dims)
+            print('DEBUGG lengths:', lens)
+            pivotIndex = dims.index(pivotID)
+            print('DEBUGG index:', pivotIndex)
+            lens[pivotIndex] = lastEntry
+            print('DEBUGG lengths:', lens)
+            result[target] = np.zeros(lens) # reverse order of what you'd expect
+
+
+
         # TODO would this be better stored as a numpy array instead?
-        result = dict((target, np.zeros(lastEntry)) for target in subResults.keys())
+        #result = dict((target, np.zeros(lastEntry)) for target in subResults.keys())
       # place subresult into overall result # TODO this assumes consistent history length! True for ARMA at least.
       entries = len(list(subResults.values())[0])
       # There's a problem here, if using Clustering; the residual shorter-length element at the end might be represented
@@ -315,6 +347,11 @@ class Segments(Collection):
         # skip the pivotID
         if target == pivotID:
           continue
+        # TODO are we ND?? We need to make slices carefully to make sure ND targets are treated right
+        if '_indexMap' in subResults:
+          # TODO which index is which?? RomCollection should NOT know about years in the ARMA!!
+          # FIXME should not be specific to ARMA!
+          dim_map = subResults['_indexMap'][0][target]
         if len(result[target][nextEntry:]) < len(values):
           result[target][nextEntry:] = values[:len(result[target][nextEntry:])]
         else:

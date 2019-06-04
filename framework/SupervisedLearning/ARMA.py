@@ -378,6 +378,7 @@ class ARMA(supervisedLearning):
       @ In, featureVals, float, a scalar feature value is passed as scaling factor
       @ Out, returnEvaluation , dict, dictionary of values for each target (and pivot parameter)
     """
+    print('DEBUGG Multiyear?', self.multiyear)
     if self.multiyear:
       ## create storage for the sampled result
       finalResult = dict((target, np.zeros((self.numYears, len(self.pivotParameterValues)))) for target in self.target if target != self.pivotParameterID)
