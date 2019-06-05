@@ -109,7 +109,7 @@
   [./interactive_UI]
     type = 'RavenFramework'
     input = 'hierarchical_ui.xml'
-    skip = 'Requires windowing system'
+    #skip = 'Requires windowing system'
     csv = 'Hierarchical/ui_data.csv'
     output = 'Hierarchical/ui_data.xml'
     required_libraries = 'AMSC PySide'
