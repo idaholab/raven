@@ -302,7 +302,7 @@ class Segments(Collection):
       @ In, evaluationDict, dict, realization to evaluate
       @ Out, result, dict, dictionary of results
     """
-    # slicing tool
+    # slicing tool; this means grab everything in a dimension. We use it several times.
     allSlice = slice(None, None, None)
     # TODO assuming only subspace is pivot param
     pivotID = self._templateROM.pivotParameterID
@@ -341,35 +341,50 @@ class Segments(Collection):
             result[target] = np.zeros(lens)
 
       # place subresult into overall result # TODO this assumes consistent history length! True for ARMA at least.
-      entries = list(subResults.values())[0].shape(pivotIndex)
+      entries = len(subResults[pivotID])
       # There's a problem here, if using Clustering; the residual shorter-length element at the end might be represented
       #   by a ROM that expects to deliver the full signal.  TODO this should be handled in a better way,
       #   but for now we can truncate the signal to the length needed
       for target, values in subResults.items():
         # skip the pivotID
-        if target in indexMap: #== pivotID:
+        if target in dimensionVars or target in ['_indexMap']: #== pivotID:
           continue
         dims = indexMap.get(target, [pivotID])
+        pivotIndex = dims.index(pivotID)
         ### TODO are we ND?? We need to make slices carefully to make sure ND targets are treated right
         # check the amount of remaining history we need to collect to fill the history
         endSelector = tuple((slice(nextEntry, None, None) if dim == pivotID else allSlice) for dim in dims)
         distanceToEnd = result[target][endSelector].shape[pivotIndex]
-        # if there's more data coming from the ROM than we need to fill our history, take just what we need
+        # "full" refers to the full reconstructed history
+        #  -> fullSlice is where in the full history that the pivot values should be for this subrom
+        #  -> fullSelector is fullSlice, but expanded to include other non-ND variables
+        # Similarly, "sub" refers to the results coming from the subRom
+        ## if there's more data coming from the ROM than we need to fill our history, take just what we need
         if distanceToEnd < values.shape[pivotIndex]:
-          resultSlice = slice(nextEntry, None, None)
-          valueSlice = slice(None, distanceToEnd, None)
-        # otherwise, take all of the sub ROM's results
+          fullSlice = slice(nextEntry, None, None)
+          subSlice = slice(None, distanceToEnd, None)
+        ## otherwise, take all of the sub ROM's results
         else:
-          resultSlice = slice(nextEntry, nextEntry+entries, None)
-          valueSlice = allSlice
-        resultSelector = tuple((resultSlice if dim == pivotID else allSlice) for dim in dims)
-        valueSelector = tuple((valueSlice if dim == pivotID else allSlice) for dim in dims)
-        result[target][resultSelector] = values[valueSelector]
-
+          fullSlice = slice(nextEntry, nextEntry+entries, None)
+          subSlice = allSlice
+        ## create the data selectors
+        fullSelector = tuple((fullSlice if dim == pivotID else allSlice) for dim in dims)
+        subSelector = tuple((subSlice if dim == pivotID else allSlice) for dim in dims)
+        # insert the subrom results into the correct place in the final history
+        result[target][fullSelector] = values[subSelector]
+        # loop back to the next target
       # update next subdomain storage location
       nextEntry += entries
-    # place pivot values
-    result[pivotID] = self._indexValues[pivotID]
+    # place pivot, other index values
+    ## TODO this assumes other dimensions are completely synched!!!
+    for dim in dimensionVars:
+      if dim == pivotID:
+        result[pivotID] = self._indexValues[pivotID]
+      else:
+        result[dim] = subResults[dim]
+    # add the indexMap
+    if indexMap:
+      result['_indexMap'] = indexMap
     return result
 
   def _getSequentialRoms(self):
