@@ -302,60 +302,70 @@ class Segments(Collection):
       @ In, evaluationDict, dict, realization to evaluate
       @ Out, result, dict, dictionary of results
     """
+    # slicing tool
+    allSlice = slice(None, None, None)
     # TODO assuming only subspace is pivot param
     pivotID = self._templateROM.pivotParameterID
     lastEntry = self._divisionInfo['historyLength']
-    result = None  # we don't know the targets yet, so wait until we get the first evaluation to set this up
+    result = {}
     nextEntry = 0  # index to fill next data set into
     self.raiseADebug('Sampling from {} segments ...'.format(len(self._roms)))
     roms = self._getSequentialRoms()
     for r, rom in enumerate(roms):
       self.raiseADebug('Evaluating ROM segment', r)
       subResults = rom.evaluate(evaluationDict)
-      print('DEBUGG subResults:', subResults.keys())
       # NOTE the pivot values for subResults will be wrong (shifted) if shifting is used in training
       ## however, we will set the pivotID values all at once after all results are gathered, so it's okay.
       # build "results" structure if not already done -> easier to do once we gather the first sample
-      if result is None:
-        result = {}
+      if not result:
+        # check if we're working with any ND data
         indexMap = subResults.pop('_indexMap', {})
+        # build a list of the dimensional variables (the indexes)
+        dimensionVars = set([pivotID])
+        # construct a np zeros placeholder for each target, of the approprate shape
         for target, values in subResults.items():
           dims = indexMap.get(target, None)
+          # if no ND, then just use the history length
           if dims is None:
             result[target] = np.zeros(lastEntry)
+            pivotIndex = 0
           else:
+            dimensionVars.update(set(dims))
+            # build a tuple of dimensional lengths
             lens = list(values.shape)
-            print('')
-            print('DEBUGG dims:', dims)
-            print('DEBUGG lengths:', lens)
+            # record the location of the pivot index for future use
             pivotIndex = dims.index(pivotID)
-            print('DEBUGG index:', pivotIndex)
+            # final history dimensionality should be nominal ND dims EXCEPT for the
+            #    pivot parameter, along which we are concatenating
             lens[pivotIndex] = lastEntry
-            print('DEBUGG lengths:', lens)
-            result[target] = np.zeros(lens) # reverse order of what you'd expect
+            result[target] = np.zeros(lens)
 
-
-
-        # TODO would this be better stored as a numpy array instead?
-        #result = dict((target, np.zeros(lastEntry)) for target in subResults.keys())
       # place subresult into overall result # TODO this assumes consistent history length! True for ARMA at least.
-      entries = len(list(subResults.values())[0])
+      entries = list(subResults.values())[0].shape(pivotIndex)
       # There's a problem here, if using Clustering; the residual shorter-length element at the end might be represented
       #   by a ROM that expects to deliver the full signal.  TODO this should be handled in a better way,
       #   but for now we can truncate the signal to the length needed
       for target, values in subResults.items():
         # skip the pivotID
-        if target == pivotID:
+        if target in indexMap: #== pivotID:
           continue
-        # TODO are we ND?? We need to make slices carefully to make sure ND targets are treated right
-        if '_indexMap' in subResults:
-          # TODO which index is which?? RomCollection should NOT know about years in the ARMA!!
-          # FIXME should not be specific to ARMA!
-          dim_map = subResults['_indexMap'][0][target]
-        if len(result[target][nextEntry:]) < len(values):
-          result[target][nextEntry:] = values[:len(result[target][nextEntry:])]
+        dims = indexMap.get(target, [pivotID])
+        ### TODO are we ND?? We need to make slices carefully to make sure ND targets are treated right
+        # check the amount of remaining history we need to collect to fill the history
+        endSelector = tuple((slice(nextEntry, None, None) if dim == pivotID else allSlice) for dim in dims)
+        distanceToEnd = result[target][endSelector].shape[pivotIndex]
+        # if there's more data coming from the ROM than we need to fill our history, take just what we need
+        if distanceToEnd < values.shape[pivotIndex]:
+          resultSlice = slice(nextEntry, None, None)
+          valueSlice = slice(None, distanceToEnd, None)
+        # otherwise, take all of the sub ROM's results
         else:
-          result[target][nextEntry:nextEntry + entries] = values
+          resultSlice = slice(nextEntry, nextEntry+entries, None)
+          valueSlice = allSlice
+        resultSelector = tuple((resultSlice if dim == pivotID else allSlice) for dim in dims)
+        valueSelector = tuple((valueSlice if dim == pivotID else allSlice) for dim in dims)
+        result[target][resultSelector] = values[valueSelector]
+
       # update next subdomain storage location
       nextEntry += entries
     # place pivot values
