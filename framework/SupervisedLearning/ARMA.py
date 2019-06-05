@@ -1042,6 +1042,22 @@ class ARMA(supervisedLearning):
       targetNode.append(armaNode)
       armaNode.append(xmlUtils.newNode('std', text=np.sqrt(arma.sigma2)))
       # TODO covariances, P and Q, etc
+    for target,peakInfo in self.peaks.items():
+      targetNode = root.find(target)
+      if targetNode is None:
+        targetNode = xmlUtils.newNode(target)
+        root.append(targetNode)
+      peakNode = xmlUtils.newNode('Peak_params')
+      targetNode.append(peakNode)
+      if 'groupWin' in peakInfo.keys():
+        for group in peakInfo['groupWin']:
+          groupnode=xmlUtils.newNode('peak')
+          groupnode.append(xmlUtils.newNode('Amplitude', text='{}'.format(np.array(group['Amp']).mean())))
+          groupnode.append(xmlUtils.newNode('Index', text='{}'.format(np.array(group['Ind']).mean())))
+          peakNode.append(groupnode)
+
+
+
 
   def _transformThroughInputCDF(self, signal, originalDist, weights=None):
     """
