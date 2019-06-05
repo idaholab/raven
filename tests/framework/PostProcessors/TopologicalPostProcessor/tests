@@ -78,7 +78,8 @@
     skip = 'Requires windowing system'
     csv = 'data/interactive.csv'
     output = 'data/interactive.xml'
-    required_libraries = 'AMSC PySide'
+    required_libraries = 'AMSC PySide2’
     interactive = 'true'
+    python3_only = true
   [../]
 []
