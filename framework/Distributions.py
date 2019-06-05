@@ -387,9 +387,9 @@ class BoostDistribution(Distribution):
       @ Out, retunrCdf, float, requested cdf
     """
     if hasattr(x,'__len__'):
-      returnCdf = np.array([self.cdf(i) for i in x])
+      returnCdf = np.array([self.cdf(utils.floatConversion(i)) for i in x])
     else:
-      returnCdf = self._distribution.cdf(x)
+      returnCdf = self._distribution.cdf(utils.floatConversion(x))
     return returnCdf
 
   def ppf(self,x):
@@ -400,9 +400,9 @@ class BoostDistribution(Distribution):
     """
     # TODO speed this up by doing it in Crow, not in python
     if hasattr(x,'__len__'):
-      returnPpf = np.array([self.ppf(i) for i in x])
+      returnPpf = np.array([self.ppf(utils.floatConversion(i)) for i in x])
     else:
-      returnPpf = self._distribution.inverseCdf(x)
+      returnPpf = self._distribution.inverseCdf(utils.floatConversion(x))
     return returnPpf
 
   def pdf(self,x):
@@ -411,7 +411,7 @@ class BoostDistribution(Distribution):
       @ In, x, float, value to get the pdf at
       @ Out, returnPdf, float, requested pdf
     """
-    returnPdf = self._distribution.pdf(x)
+    returnPdf = self._distribution.pdf(utils.floatConversion(x))
     return returnPdf
 
   def untruncatedCdfComplement(self, x):
@@ -420,7 +420,7 @@ class BoostDistribution(Distribution):
       @ In, x, float, value to get the untruncated  cdf complement  at
       @ Out, float, requested untruncated  cdf complement
     """
-    return self._distribution.untrCdfComplement(x)
+    return self._distribution.untrCdfComplement(utils.floatConversion(x))
 
   def untruncatedHazard(self, x):
     """
@@ -428,7 +428,7 @@ class BoostDistribution(Distribution):
       @ In, x, float, value to get the untruncated  Hazard   at
       @ Out, float, requested untruncated  Hazard
     """
-    return self._distribution.untrHazard(x)
+    return self._distribution.untrHazard(utils.floatConversion(x))
 
   def untruncatedMean(self):
     """
