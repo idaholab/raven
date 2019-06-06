@@ -4,7 +4,7 @@
     <JobName>RunDir/SparseGrid</JobName>
     <WorkingDir>RunDir/SparseGrid</WorkingDir>
     <Sequence>sample,train,validateModel,validateROM,rom_stats,output_print,output_plot</Sequence>
-    <batchSize>8</batchSize>
+    <batchSize>3</batchSize>
   </RunInfo>
   <TestInfo>
     <name>framework/user_guide/ForwardSamplingStrategies/SparseGrid</name>
