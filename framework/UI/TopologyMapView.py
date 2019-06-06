@@ -30,10 +30,16 @@ import warnings
 warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3
 
-from PySide import QtCore as qtc
-from PySide import QtGui as qtg
-from PySide import QtGui as qtw
-from PySide import QtSvg as qts
+try:
+  from PySide import QtCore as qtc
+  from PySide import QtGui as qtg
+  from PySide import QtGui as qtw
+  from PySide import QtSvg as qts
+except ImportError as e:
+  from PySide2 import QtCore as qtc
+  from PySide2 import QtGui as qtg
+  from PySide2 import QtWidgets as qtw
+  from PySide2 import QtSvg as qts
 
 from .BaseTopologicalView import BaseTopologicalView
 

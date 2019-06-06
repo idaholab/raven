@@ -24,8 +24,12 @@ warnings.simplefilter('default',DeprecationWarning)
 
 import matplotlib
 
-from PySide import QtCore as qtc
-from PySide import QtGui as qtw
+try:
+  from PySide import QtCore as qtc
+  from PySide import QtGui as qtw
+except ImportError as e:
+  from PySide2 import QtCore as qtc
+  from PySide2 import QtWidgets as qtw
 
 from .BaseHierarchicalView import BaseHierarchicalView
 
