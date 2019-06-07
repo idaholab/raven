@@ -334,6 +334,7 @@ class ARMA(supervisedLearning):
       if target in self.peaks:
         deltaT=self.pivotParameterValues[-1]-self.pivotParameterValues[0]
         deltaT=deltaT/(len(self.pivotParameterValues)-1)
+        print(deltaT)
         # change the peak information in self.peak from time unit into index by divided the timestep
         # deltaT is the time step calculated by (ending point - stating point in time)/(len(time)-1)
         self.peaks[target]['period']=int(self.peaks[target]['period']/deltaT)
@@ -344,6 +345,8 @@ class ARMA(supervisedLearning):
         groupWin , maskPeakRes=self._peakGroupWindow(timeSeriesData, windowDict=self.peaks[target] )
         self.peaks[target]['groupWin']=groupWin
         self.peaks[target]['mask']=maskPeakRes
+        rangeWindow = self.rangeWindow(windowDict=self.peaks[target])
+        self.peaks[target]['rangeWindow']=rangeWindow
 
       if target in self.fourierParams:
         self.raiseADebug('... analyzing Fourier signal  for target "{}" ...'.format(target))
@@ -968,6 +971,10 @@ class ARMA(supervisedLearning):
     mask = data < tol
     return mask
 
+  # def _peakPreparer(self,data):
+
+
+  #   return maskPeakRes
   def writePointwiseData(self, writeTo):
     """
       Writes pointwise data about this ROM to the data object.
@@ -1056,9 +1063,6 @@ class ARMA(supervisedLearning):
           groupnode.append(xmlUtils.newNode('Index', text='{}'.format(np.array(group['Ind']).mean())))
           peakNode.append(groupnode)
 
-
-
-
   def _transformThroughInputCDF(self, signal, originalDist, weights=None):
     """
       Transforms a signal through the original distribution
@@ -1102,6 +1106,26 @@ class ARMA(supervisedLearning):
       res = dict((target, signal['predict'][picker].mean()) for target, signal in settings['long Fourier signal'].items())
       results.append(res)
     return results
+
+  def _getPeakAmpHistBin(self,trainingDict,windowDict):
+    """
+    """
+    nbins=[]
+    if self.amITrained:
+      for t,target in enumerate(self.target):
+        if target in self.peaks:
+          targetVals = trainingDict[target][0]
+          low = windowDict['threshold']
+          period = windowDict['period']
+          timeInd=np.arange(len(self.pivotParameterValues))
+          ####FIXME
+          peak, height = self._peakPicker(targetVals, low=low)
+          #### FIXME
+          pdCount=timeInd[-1]//period
+          bins=int(np.ceil(np.sqrt(len(peak)/pdCount)))
+          bins=max(bins,2)
+          nbins.append=bins
+    return nbins
 
   def getLocalRomClusterFeatures(self, featureTemplate, settings, picker=None, **kwargs):
     """
@@ -1176,6 +1200,37 @@ class ARMA(supervisedLearning):
       for e, edge in enumerate(edges):
         feature = featureTemplate.format(target=target, metric='cdf', id='edges_{}'.format(e))
         features[feature] = edge
+
+    for target, peak in self.peaks.items():
+      print('啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦 我是分界线1 啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦')
+      # print(peak)
+      if 'groupWin' in peak.keys() and 'rangeWindow' in peak.keys():
+        for g , group in enumerate(peak['groupWin']):
+          ## prbExit
+          # g is the group of the peaks probExist is the exist probability for this type of peak
+          lenWin=min(len(peak['rangeWindow'][g]['bg']),len(peak['rangeWindow'][g]['bg']))
+          prbExist = len(group['Ind'])/lenWin
+          ## most probabble index
+          modeInd= stats.mode(group['Ind'])[0][0]
+          ## amp
+          meanAmp=rv_histogram(np.histogram(group['Amp'])).mean()
+          stdAmp=rv_histogram(np.histogram(group['Amp'])).std()
+
+          # nBins = self._computeNumberOfBins(np.asarray(group['Amp']))
+          # self._getPeakAmpHistBin(signalfull,windowDict=self.peaks[target] )
+          # print(nBins)
+
+          ampCounts, ampEdges = np.histogram(group['Amp'], density = False)
+          print(g)
+          print(group['Ind'])
+          print(len(group['Ind']))
+          print(ampCounts)
+          print(ampEdges)
+
+      print('啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦 我是分界线2 啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦')
+
+
+    # print(features)
     return features
 
   def readFundamentalFeatures(self, features):
@@ -1293,6 +1348,31 @@ class ARMA(supervisedLearning):
       dist = stats.rv_histogram(histogram)
       self._trainingCDF[target] = (dist, histogram)
 
+
+  # def _setPeakResults(self, paramDict):
+  #   for target, info in paramDict.items():
+      # Amplitude
+
+      # probExit
+
+      # most probable index
+
+
+
+
+      # # counts
+      # cs = list(info['counts'].items())
+      # c_idx, c_vals = zip(*sorted(cs, key=lambda x: x[0]))
+      # c_vals = np.asarray(c_vals)
+      # ## renormalize counts
+      # counts = c_vals / float(c_vals.sum())
+      # # edges
+      # es = list(info['edges'].items())
+      # e_idx, e_vals = zip(*sorted(es, key=lambda x: x[0]))
+      # histogram = (counts, e_vals)
+      # dist = stats.rv_histogram(histogram)
+      # self._trainingCDF[target] = (dist, histogram)
+
   def getGlobalRomSegmentSettings(self, trainingDict, divisions):
     """
       Allows the ROM to perform some analysis before segmenting.
@@ -1305,6 +1385,7 @@ class ARMA(supervisedLearning):
     trainingDict = copy.deepcopy(trainingDict) # otherwise we destructively tamper with the input data object
     settings = {}
     targets = list(self.fourierParams.keys())
+
     # set up for input CDF preservation on a global scale
     if self.preserveInputCDF:
       inputDists = {}
@@ -1560,6 +1641,7 @@ class ARMA(supervisedLearning):
       windowRange['bg']=bgPInd
       windowRange['end']=endPInd
       rangeWindow.append(windowRange)
+    print(rangeWindow)
     return rangeWindow
 
   def _peakGroupWindow(self,signal,windowDict):
