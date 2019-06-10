@@ -923,7 +923,7 @@ class BasicStatistics(PostProcessor):
         # construct target and feature matrices
         dataSet = dataSet.to_array().transpose(self.sampleTag,'variable')
         featSet = dataSet.sel(**{'variable':features}).values
-        targSet = dataSet.sel(**{'variable':targets}).values
+        targSet = dataSet.sel(**{'variable':targets}).values 
         da = self.sensitivityCalculation(features,targets,featSet,targSet,intersectionSet)
       calculations[metric] = da
     #
@@ -990,7 +990,7 @@ class BasicStatistics(PostProcessor):
         pivotCoords = reducedCovar.coords[self.pivotParameter].values
         ds = None
         for label, group in reducedCovar.groupby(self.pivotParameter):
-          corrMatrix = self.corrCoeff(group.values)
+          corrMatrix = self.corrCoeff(group.values if len(group.values.shape) == 2 else group.values[0])
           da = xr.DataArray(corrMatrix, dims=('targets','features'), coords={'targets':targCoords,'features':targCoords})
           ds = da if ds is None else xr.concat([ds,da], dim=self.pivotParameter)
         ds.coords[self.pivotParameter] = pivotCoords
