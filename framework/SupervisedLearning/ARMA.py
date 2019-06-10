@@ -1328,7 +1328,6 @@ class ARMA(supervisedLearning):
     self._setCDFResults(features.get('cdf', {}))
     self.amITrained = True
 
-
   def _setFourierResults(self, paramDict):
     for target, info in paramDict.items():
       predict = np.ones(len(self.pivotParameterValues)) * info['intercept']
@@ -1582,8 +1581,6 @@ class ARMA(supervisedLearning):
       dist = stats.rv_histogram(histogram)
       results['input CDFs'][target] = (dist, histogram)
     return results
-
-
 
   def adjustLocalRomSegment(self, settings):
     """
