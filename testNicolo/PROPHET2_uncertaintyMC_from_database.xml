@@ -1,0 +1,294 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+
+	<TestInfo>
+	    <name>PROPHET2/PROHPET2_uncertaintyMC</name>
+	    <author>NicolòFalcone</author>
+	    <created>2019-05-17</created>
+	    <description>
+	      RAVEN script to perform a sensitivity analysis on PROPHET2 using uniform distribution for the following parameters:
+	      -power
+	      -volume of vol.170
+	      -kloc in the pool
+	      -kloc for the 90° curves
+	      -kloc of the orifice
+	      -thermal conductivity of the insulation layer
+	      -thermal capacity of the insulation layer
+	      -ambient temperature
+	      -heat transfer coefficient for the heat losses on bare tubes
+	      -heat transfer coefficient for the heat losses on the bayonet
+	      -heat transfer coefficient for the heat losses on insulated tubes
+	      -heat transfer coefficient for the heat losses on the pool shell
+	      -ambient pressure
+	      -fouling factor on the shess side of the condenser.
+	      Evaluation of the effect of these parameters on the pressure P4 (cntrlvar 223) by mean of the Pearson matrix.
+	      5% and 95% percentile computed for every output parameter.
+	    </description>
+  	</TestInfo>
+
+	<RunInfo>
+		<JobName>PROHPET2_sensitivity_uniformMC</JobName>
+		<Sequence>UncertaintyAnalysisMC,CorrelationMatrix,Percentile</Sequence>
+		<WorkingDir>PROPHET2_uncertaintyMC</WorkingDir>
+		<batchSize>4</batchSize>
+	</RunInfo>
+
+  	<Files>
+    	<Input name="indta" type="" >indta_prophet2_hf_2200W_pool1d.i</Input>
+    	<Input name="tpfh2o"  type="" >C:/r5/r3d434ie/fluids/tpfh2o</Input>
+  	</Files>
+
+  	<Models>
+    	<Code name="MyRELAP" subType="Relap5">
+      		<executable>C:/r5/r3d434ie/relap/relap5.exe</executable>
+    	</Code>
+    <PostProcessor name="CorrelationMatrix" subType="BasicStatistics">
+      	<pivotParameter>time</pivotParameter>
+      	<pearson prefix="pear">
+        	<targets>cntrlvar_223</targets>
+        	<features>
+            20212000:4,
+            1700101:3,
+            1300902:1,
+            1500904:1,
+            20100201:2,
+            20100251:2,
+            20220001:2,
+            20230000:5,
+            20240000:5,
+            20250000:5,
+            1800201:2
+          </features>
+      	</pearson>
+    </PostProcessor>
+    <PostProcessor name="Percentile" subType="BasicStatistics">
+        <pivotParameter>time</pivotParameter>
+        <percentile prefix="percentile">
+          cntrlvar_201,cntrlvar_202,cntrlvar_203,cntrlvar_204,cntrlvar_205,cntrlvar_206,cntrlvar_207,cntrlvar_208,cntrlvar_209,cntrlvar_210,cntrlvar_211,cntrlvar_212,cntrlvar_213,cntrlvar_214,cntrlvar_215,cntrlvar_216,cntrlvar_217,cntrlvar_218,cntrlvar_219,cntrlvar_220,cntrlvar_221,cntrlvar_222,cntrlvar_223,cntrlvar_224,cntrlvar_225,cntrlvar_226,cntrlvar_228,cntrlvar_229,cntrlvar_230,cntrlvar_231
+        </percentile>
+    </PostProcessor>
+  	</Models>
+
+  	<Distributions>
+      <!-- Thermal power [W] -->
+    	<Normal name="power">
+    		<mean>18153.0</mean>
+    		<sigma>605.1</sigma>
+    	</Normal>
+      <!-- Compressible Volume [m3] -->
+	    <Uniform name="vol_170">
+	      <lowerBound>0.0001615</lowerBound>
+	    	<upperBound>0.0002185</upperBound>
+	    </Uniform>
+      <!-- Loss coefficient bend 90 [-] -->
+	    <Normal name="kloc_90bend">
+	      <mean>0.156</mean>
+        <sigma>0.0104</sigma>
+	    </Normal>
+      <!-- Loss coefficient orifice [-] -->
+      <Uniform name="kloc_orifice">
+        <lowerBound>336.75</lowerBound>
+        <upperBound>561.25</upperBound>
+      </Uniform>
+      <!-- Thermal conductivity insulation [W/mK] -->
+	    <Normal name="therm_conductivity_ins">
+	      <mean>0.035</mean>
+        <sigma>0.001167</sigma>
+	    </Normal>
+      <!-- Thermal capacity insulation [W/m3K] -->
+      <Normal name="therm_capacity_ins">
+        <mean>118450</mean>
+        <sigma>789.667</sigma>
+      </Normal>
+      <!-- Ambient temperature [K] -->
+      <Triangular name="T_amb">
+        <apex>294.15</apex>
+        <min>293.15</min>
+        <max>295.15</max>
+      </Triangular>
+      <!-- Heat transfer coeff heat loss bare pipe [-] -->
+      <Uniform name="h_loss_bare">
+        <lowerBound>0.75</lowerBound>
+        <upperBound>1.25</upperBound>
+      </Uniform>
+      <!-- Heat transfer coeff heat loss insulated pipe [-] -->
+      <Uniform name="h_loss_ins">
+        <lowerBound>0.75</lowerBound>
+        <upperBound>1.25</upperBound>
+      </Uniform>
+      <!-- Heat transfer coeff heat loss pool [-] -->
+      <Uniform name="h_loss_pool">
+        <lowerBound>0.75</lowerBound>
+        <upperBound>1.25</upperBound>
+      </Uniform>
+      <!-- Ambient pressure [Pa] -->
+      <Uniform name="p_amb">
+        <lowerBound>97000</lowerBound>
+        <upperBound>99000</upperBound>
+      </Uniform>
+	</Distributions>
+
+  <Samplers>
+    <MonteCarlo name="MonteCarlo">
+      <samplerInit>
+        <limit>65</limit>
+      </samplerInit>
+      <!-- Thermal power -->
+      <variable name="20212000:4">
+        <distribution>power</distribution>
+      </variable>
+      <!-- compressible volume -->
+      <variable name="1700101:3">
+        <distribution>vol_170</distribution>
+      </variable>
+      <!-- loss coefficient bend 90° -->
+      <variable name="1300902:1,1300902:2,1300907:1,1300907:2,1300910:1,1300910:2">
+        <distribution>kloc_90bend</distribution>
+      </variable>
+      <!-- loss coefficient orifice -->
+      <variable name="1500904:1,1500904:2">
+        <distribution>kloc_orifice</distribution>
+      </variable>
+      <!-- Thermal conductivity insulation -->
+      <variable name="20100201:2,20100202:2">
+        <distribution>therm_conductivity_ins</distribution>
+      </variable>
+      <!-- Thermal capacity insulation -->
+      <variable name="20100251:2,20100252:2">
+        <distribution>therm_capacity_ins</distribution>
+      </variable>
+      <!-- ambient temperature -->
+      <variable name="20220001:2">
+        <distribution>T_amb</distribution>
+      </variable>
+      <!-- heat transfer coefficient heat losses bare pipe -->
+      <variable name="20230000:5">
+        <distribution>h_loss_bare</distribution>
+      </variable>
+      <!-- heat transfer coefficient heat losses insulated pipe -->
+      <variable name="20240000:5">
+        <distribution>h_loss_ins</distribution>
+      </variable>
+      <!-- heat transfer coefficient heat losses pool -->
+      <variable name="20250000:5">
+        <distribution>h_loss_pool</distribution>
+      </variable>
+      <!-- Ambient pressure-->
+      <variable name="1800201:2,2300201:2,3000201:2">
+        <distribution>p_amb</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <Steps verbosity="debug">
+    <MultiRun name="UncertaintyAnalysisMC">
+      <Input class="Files" type="">indta</Input>
+      <Input class="Files" type="">tpfh2o</Input>
+      <Model class="Models" type="Code">MyRELAP</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MonteCarlo</Sampler>
+      <Output class="DataObjects" type="HistorySet">histories</Output>
+      <Output class="OutStreams" type="Print">PROPHET2_results</Output>
+      <Output class="Databases" type="HDF5">DataB_REL5_1</Output>
+    </MultiRun>
+    <PostProcess name="CorrelationMatrix">
+      <Input class="DataObjects" type="HistorySet">histories</Input>
+      <Model class="Models" type="PostProcessor">CorrelationMatrix</Model>
+      <Output class="DataObjects" type="HistorySet">PROPHET2_Pearson</Output>
+      <Output class="OutStreams" type="Print">PROPHET2_Pearson_matrix</Output>
+    </PostProcess>
+    <PostProcess name="Percentile">
+      <Input class="DataObjects" type="HistorySet">histories</Input>
+      <Model class="Models" type="PostProcessor">Percentile</Model>
+      <Output class="DataObjects" type="HistorySet">PROPHET2_percentile</Output>
+      <Output class="OutStreams" type="Print">PROPHET2_percentile</Output>
+    </PostProcess>
+  </Steps>
+
+  <DataObjects>
+    <HistorySet name="histories">
+        <options>
+          <pivotParameter>time</pivotParameter>
+        </options>
+        <Input>20212000:4,1700101:3,1300902:1,1500904:1,20100201:2,20100251:2,20220001:2,20230000:5,20240000:5,20250000:5,1800201:2</Input>
+        <Output>cntrlvar_201,cntrlvar_202,cntrlvar_203,cntrlvar_204,cntrlvar_205,cntrlvar_206,cntrlvar_207,cntrlvar_208,cntrlvar_209,cntrlvar_210,cntrlvar_211,cntrlvar_212,cntrlvar_213,cntrlvar_214,cntrlvar_215,cntrlvar_216,cntrlvar_217,cntrlvar_218,cntrlvar_219,cntrlvar_220,cntrlvar_221,cntrlvar_222,cntrlvar_223,cntrlvar_224,cntrlvar_225,cntrlvar_226,cntrlvar_228,cntrlvar_229,cntrlvar_230,cntrlvar_231,time</Output>
+    </HistorySet>
+    <HistorySet name="PROPHET2_Pearson">
+        <options>
+          <pivotParameter>time</pivotParameter>
+        </options>
+        <Output>PROPHET_pear</Output>
+    </HistorySet>
+    <HistorySet name="PROPHET2_percentile">
+        <options>
+          <pivotParameter>time</pivotParameter>
+        </options>
+        <Output>PROPHET_perc</Output>
+    </HistorySet>
+  </DataObjects>
+
+<OutStreams>
+    <Print name="PROPHET2_Pearson_matrix">
+      <type>csv</type>
+      <source>PROPHET2_Pearson</source>
+    </Print>
+    <Print name="PROPHET2_percentile">
+      <type>csv</type>
+      <source>PROPHET2_percentile</source>
+    </Print>
+    <Print name="PROPHET2_results">
+      <type>csv</type>
+      <source>histories</source>
+    </Print>
+</OutStreams>
+
+<VariableGroups>
+  <Group name="PROPHET_pear">pear_cntrlvar_223_20212000:4,
+              pear_cntrlvar_223_1700101:3,
+              pear_cntrlvar_223_1300902:1,
+              pear_cntrlvar_223_1500904:1,
+              pear_cntrlvar_223_20100201:2,
+              pear_cntrlvar_223_20100251:2,
+              pear_cntrlvar_223_20220001:2,
+              pear_cntrlvar_223_20230000:5,
+              pear_cntrlvar_223_20240000:5,
+              pear_cntrlvar_223_20250000:5,
+              pear_cntrlvar_223_1800201:2
+               </Group>
+  <Group name="PROPHET_perc">percentile_5_cntrlvar_201,percentile_95_cntrlvar_201,
+                            percentile_5_cntrlvar_202,percentile_95_cntrlvar_202,
+                            percentile_5_cntrlvar_203,percentile_95_cntrlvar_203,
+                            percentile_5_cntrlvar_204,percentile_95_cntrlvar_204,
+                            percentile_5_cntrlvar_205,percentile_95_cntrlvar_205,
+                            percentile_5_cntrlvar_206,percentile_95_cntrlvar_206,
+                            percentile_5_cntrlvar_207,percentile_95_cntrlvar_207,
+                            percentile_5_cntrlvar_208,percentile_95_cntrlvar_208,
+                            percentile_5_cntrlvar_209,percentile_95_cntrlvar_209,
+                            percentile_5_cntrlvar_210,percentile_95_cntrlvar_210,
+                            percentile_5_cntrlvar_211,percentile_95_cntrlvar_211,
+                            percentile_5_cntrlvar_212,percentile_95_cntrlvar_212,
+                            percentile_5_cntrlvar_213,percentile_95_cntrlvar_213,
+                            percentile_5_cntrlvar_214,percentile_95_cntrlvar_214,
+                            percentile_5_cntrlvar_215,percentile_95_cntrlvar_215,
+                            percentile_5_cntrlvar_216,percentile_95_cntrlvar_216,
+                            percentile_5_cntrlvar_217,percentile_95_cntrlvar_217,
+                            percentile_5_cntrlvar_218,percentile_95_cntrlvar_218,
+                            percentile_5_cntrlvar_219,percentile_95_cntrlvar_219,
+                            percentile_5_cntrlvar_220,percentile_95_cntrlvar_220,
+                            percentile_5_cntrlvar_221,percentile_95_cntrlvar_221,
+                            percentile_5_cntrlvar_222,percentile_95_cntrlvar_222,
+                            percentile_5_cntrlvar_223,percentile_95_cntrlvar_223,
+                            percentile_5_cntrlvar_224,percentile_95_cntrlvar_224,
+                            percentile_5_cntrlvar_225,percentile_95_cntrlvar_225,
+                            percentile_5_cntrlvar_226,percentile_95_cntrlvar_226,
+                            percentile_5_cntrlvar_228,percentile_95_cntrlvar_228,
+                            percentile_5_cntrlvar_229,percentile_95_cntrlvar_229,
+                            percentile_5_cntrlvar_230,percentile_95_cntrlvar_230,
+                            percentile_5_cntrlvar_231,percentile_95_cntrlvar_231
+  			      </Group>
+</VariableGroups>
+
+  <Databases>
+    <HDF5 name="DataB_REL5_1" readMode="overwrite"/>
+  </Databases>
+
+</Simulation>

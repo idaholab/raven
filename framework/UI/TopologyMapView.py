@@ -96,7 +96,8 @@ class CustomPathItem(qtw.QGraphicsPathItem):
         @ In, data, a dictionary of data for this graphical item to display
           in its tooltip.
     """
-    super(CustomPathItem, self).__init__(path,parent,scene)
+    #super(CustomPathItem, self).__init__(path,parent,scene)
+    super(CustomPathItem, self).__init__(path,parent)
     self.graphics = []
     self.tipSize = qtc.QSize(0,0)
 
