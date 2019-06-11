@@ -220,9 +220,12 @@ class ROM(Dummy):
     inputSpecification.addSub(multiYear)
     ### ARMA peaks
     peaks = InputData.parameterInputFactory('Peaks')
+    nbin= InputData.parameterInputFactory('nbin',contentType=InputData.IntegerType)
     window = InputData.parameterInputFactory('window',contentType=InputData.FloatListType)
     window.addParam('width', InputData.FloatType, True)
     peaks.addSub(window)
+    peaks.addSub(nbin)
+
     peaks.addParam('threshold', InputData.FloatType)
     peaks.addParam('target', InputData.StringType)
     peaks.addParam('period', InputData.FloatType)

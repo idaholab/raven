@@ -208,6 +208,7 @@ class ARMA(supervisedLearning):
         windows=[]
         # creat an empty list to store the windows' information
         for cchild in child.subparts:
+
           if cchild.getName() == 'window':
             tempDict={}
             window = cchild.value
@@ -217,7 +218,12 @@ class ARMA(supervisedLearning):
             # for each window in the windows, we create a dictionary. Then store the
             # peak's width, the index of stating point and ending point in time unit
             windows.append(tempDict)
+          elif cchild.getName() == 'nbin':
+            nbin=cchild.value
+
         peak['windows']=windows
+        peak['nbin']=nbin
+
         target = child.parameterValues['target']
         # target is the key to reach each peak information
         self.peaks[target]=peak
@@ -332,8 +338,7 @@ class ARMA(supervisedLearning):
       maskPeakRes = np.ones(len(timeSeriesData), dtype=bool)
       # Make a full mask
       if target in self.peaks:
-        print(self.peaks[target])
-        # # print('dasfsdfsdgdfgdfhfghghdhdfhdhfghfghdhgdfhdfhdf')
+        print(self.peaks)
         # deltaT=self.pivotParameterValues[-1]-self.pivotParameterValues[0]
         # deltaT=deltaT/(len(self.pivotParameterValues)-1)
         # print(deltaT)
@@ -350,11 +355,10 @@ class ARMA(supervisedLearning):
 
         # rangeWindow = self.rangeWindow(windowDict=self.peaks[target])
         # self.peaks[target]['rangeWindow']=rangeWindow
-        peakResults=self._trainpeak(timeSeriesData,windowDict=self.peaks[target])
+        peakResults=self._trainPeak(timeSeriesData,windowDict=self.peaks[target])
         self.peaks[target].update(peakResults)
         maskPeakRes = peakResults['mask']
-        # print('lalalalallalalalalalaljajjajajajajajajajja')
-        # print(self.peaks[target])
+
 
         # print(peakResults)
       if target in self.fourierParams:
@@ -846,7 +850,7 @@ class ARMA(supervisedLearning):
               #'cdfSearch':neighbors.NearestNeighbors(n_neighbors=2).fit([[c] for c in cdf])}
     return params
 
-  def _trainpeak(self,timeSeriesData,windowDict):
+  def _trainPeak(self,timeSeriesData,windowDict):
     """
       Generate peaks results from each target data
       @ In, timeSeriesData, np.array, list of values for the dependent variable (signal to take fourier from)
@@ -869,11 +873,11 @@ class ARMA(supervisedLearning):
     groupWin , maskPeakRes=self._peakGroupWindow(timeSeriesData, windowDict = windowDict )
     peakResults['groupWin']=groupWin
     peakResults['mask']=maskPeakRes
-
+    peakResults['nbin']=windowDict['nbin']
     rangeWindow = self.rangeWindow(windowDict=windowDict)
     peakResults['rangeWindow']=rangeWindow
-    print('gW',groupWin)
-    print('rW',rangeWindow)
+    # print('gW',groupWin)
+    # print('rW',rangeWindow)
     return peakResults
 
   def _trainFourier(self, pivotValues, periods, values, masks=None,zeroFilter=False):
@@ -1240,32 +1244,61 @@ class ARMA(supervisedLearning):
         features[feature] = edge
 
     for target, peak in self.peaks.items():
-      print('啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦 我是分界线1 啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦')
-      # print(peak)
+      # print('啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦 我是分界线1 啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦')
+      nBin = self.peaks[target]['nbin']
       if 'groupWin' in peak.keys() and 'rangeWindow' in peak.keys():
         for g , group in enumerate(peak['groupWin']):
           ## prbExit
           # g is the group of the peaks probExist is the exist probability for this type of peak
-          lenWin=min(len(peak['rangeWindow'][g]['bg']),len(peak['rangeWindow'][g]['bg']))
+          lenWin=min(len(peak['rangeWindow'][g]['bg']),len(peak['rangeWindow'][g]['end']))
+          # ID = 'gp_{}_lenWin'.format(g)
+          # feature = featureTemplate.format(target=target, metric='peak', id=ID)
+          # features[feature] = lenWin
+
           prbExist = len(group['Ind'])/lenWin
+          ID = 'gp_{}_probExist'.format(g)
+          feature = featureTemplate.format(target=target, metric='peak', id=ID)
+          features[feature] = prbExist
           ## most probabble index
           modeInd= stats.mode(group['Ind'])[0][0]
-          ## amp
+          ID = 'gp_{}_modeInd'.format(g)
+          feature = featureTemplate.format(target=target, metric='peak', id=ID)
+          features[feature] = modeInd
+          ## AMP
+          #mean
           meanAmp=rv_histogram(np.histogram(group['Amp'])).mean()
+          feature = featureTemplate.format(target=target, metric='peak', id='gp_{}_meanAmp'.format(g))
+          features[feature] = meanAmp
+
+          ##std
           stdAmp=rv_histogram(np.histogram(group['Amp'])).std()
+          feature = featureTemplate.format(target=target, metric='peak', id='gp_{}_stdAmp'.format(g))
+          features[feature] = stdAmp
 
-          # nBins = self._computeNumberOfBins(np.asarray(group['Amp']))
-          # self._getPeakAmpHistBin(signalfull,windowDict=self.peaks[target] )
-          # print(nBins)
 
-          ampCounts, ampEdges = np.histogram(group['Amp'], density = False)
-          print(g)
-          print(group['Ind'])
-          print(len(group['Ind']))
-          print(ampCounts)
-          print(ampEdges)
+          maxAmp=max(group['Amp'])
+          feature = featureTemplate.format(target=target, metric='peak', id='gp_{}_maxAmp'.format(g))
+          features[feature] = maxAmp
+          minAmp=min(group['Amp'])
+          feature = featureTemplate.format(target=target, metric='peak', id='gp_{}_minAmp'.format(g))
+          features[feature] = minAmp
+          ## distribution on the Amp
+          ampCounts, _ = np.histogram(group['Amp'], bins = nBin,density = False)
+          #retn=np.linspace(minAmp, maxAmp, num=nBin+1)
+          for c, count in enumerate(ampCounts):
+            feature = featureTemplate.format(target=target, metric='peak', id='gp_{}_amp {}'.format(g,c))
+            features[feature] = count
 
-      print('啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦 我是分界线2 啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦')
+      #     print(g)
+      #     print(group['Ind'])
+      #     print(len(group['Ind']))
+      #     print(ampCounts)
+
+      #     print(maxAmp)
+      #     print(minAmp)
+      #     print(nBin)
+      # print(features)
+      # print('啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦 我是分界线2 啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦')
 
 
     # print(features)
@@ -1276,6 +1309,8 @@ class ARMA(supervisedLearning):
     fourier = collections.defaultdict(dict)
     arma = collections.defaultdict(dict)
     cdf = collections.defaultdict(dict)
+    peak = collections.defaultdict(dict)
+
     for feature, val in features.items():
       target, metric, ID = feature.split('|')
 
@@ -1315,17 +1350,32 @@ class ARMA(supervisedLearning):
             cdf[target]['edges'] = {}
           cdf[target]['edges'][e] = val
 
+      elif metric == 'peak':
+        _, group, realID = ID.split('_')
+        if group not in peak[target]:
+          peak[target][group] = {}
+        if realID.startswith('amp'):
+          c = int(realID.split(' ')[1])
+          if 'ampCounts' not in peak[target][group]:
+            peak[target][group]['ampCounts'] = {}
+          peak[target][group]['ampCounts'][c] = val
+        else:
+          peak[target][group][realID]=val
+
       else:
         raise KeyError('Unrecognized metric: "{}"'.format(metric))
     return {'fourier': fourier,
             'arma': arma,
-            'cdf': cdf}
+            'cdf': cdf,
+            'peak': peak}
 
   def setFundamentalFeatures(self, features):
     """opposite of getFundamentalFeatures, expects results as from readFundamentalFeatures"""
     self._setFourierResults(features.get('fourier', {}))
     self._setArmaResults(features.get('arma', {}))
     self._setCDFResults(features.get('cdf', {}))
+    self._setPeakResults(features.get('peak', {}))
+
     self.amITrained = True
 
   def _setFourierResults(self, paramDict):
@@ -1386,8 +1436,33 @@ class ARMA(supervisedLearning):
       self._trainingCDF[target] = (dist, histogram)
 
 
-  # def _setpeakResults(self, paramDict):
-  #   for target, info in paramDict.items():
+  def _setpeakResults(self, paramDict):
+    for target, info in paramDict.items():
+      groupWin=[]
+      for g, groupInfo in info.items():
+        lenWin=min(len(self.peak[target]['rangeWindow'][g]['bg']),len(self.peak[target]['rangeWindow'][g]['end']))
+        groupWin.append({})
+        g = int(g)
+        lsCs=list(groupInfo['ampCounts'].items())
+        hisInd, hisCs = zip(*sorted(lsCs, key=lambda x: x[0]))
+        ampHisCs = np.asarray(hisCs)
+        maxAmp=groupInfo['maxAmp']
+        minAmp=groupInfo['minAmp']
+        ampHisEg=np.linspace(minAmp, maxAmp, num=len(ampHisCs)+1)
+        histogram = (ampHisCs, ampHisEg)
+        dist = stats.rv_histogram(histogram)
+        probExist=groupInfo['probExist']
+
+        ampLocal=dist.rvs(size=int(probExist*lenWin)).tolist()
+        modeInd=groupInfo['modeInd']
+        indLocal=[modeInd]*int(probExist*lenWin)
+        # maxAmp=groupInfo['ampCounts'].items()
+        groupWin[g]['Ind']=indLocal
+        groupWin[g]['Amp']=ampLocal
+      self.peak[target]['groupWin']=groupWin
+      print('啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦 我是分界线2 啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦')
+      print(target)
+      print(info)
       # Amplitude
 
       # probExit
@@ -1710,8 +1785,9 @@ class ARMA(supervisedLearning):
         if bgLocal<endLocal:
           peak, height = self._peakPicker(signal[bgLocal:endLocal], low=low)
         else:
-          peak, height = self._peakPicker(np.concatenate([signal[endLocal:], signal[:bgLocal]]), low=low)
+          peak, height = self._peakPicker(np.concatenate([signal[bgLocal:], signal[:endLocal]]), low=low)
         if len(peak) ==1:
+          # print('test1',peak)
           indLocal.append(int(peak))
           ampLocal.append(float(height))
           maskBg=int((int(peak)+bgLocal-int(np.floor(windows[i]['width']/2)))%len(self.pivotParameterValues))
