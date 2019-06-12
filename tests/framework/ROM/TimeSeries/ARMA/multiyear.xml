@@ -15,7 +15,7 @@
 
   <RunInfo>
     <WorkingDir>Multiyear</WorkingDir>
-    <Sequence>read, train, print, pickle, sample, dump</Sequence>
+    <Sequence>read, train,  pickle, sample, dump</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
 
@@ -70,15 +70,25 @@
       <Features>scaling</Features>
       <pivotParameter>Time</pivotParameter>
       <outTruncation domain="positive">Speed</outTruncation>
-      <Fourier>604800, 302400, 86400, 43200</Fourier>
+      <Fourier>168, 84, 24, 12</Fourier>
       <seed>42</seed>
-      <P>2</P>
+      <P>0</P>
       <Q>1</Q>
       <reseedCopies>False</reseedCopies>
       <Multiyear>
         <years>3</years>
-        <growth targets="Speed" mode="exponential">50</growth>
+        <growth targets="Speed" mode="exponential">10</growth>
       </Multiyear>
+      <Segment>
+        <subspace pivotLength="120" shift="first">Time</subspace>
+      </Segment>
+      <preserveInputCDF>True</preserveInputCDF>
+      <!--Peaks target='Speed' threshold='2' period='24'>
+        <window width='4' >-2,3</window>
+        <window width='5' >18,21</window>
+        <nbin>5</nbin>
+
+      </Peaks-->
     </ROM>
     <ExternalModel name='after_arma' subType='' ModuleToLoad='after_arma'>
       <variables>Speed, Time, Year, yearly_aggregate</variables>

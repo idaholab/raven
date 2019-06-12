@@ -1694,6 +1694,10 @@ class ARMA(supervisedLearning):
     if 'long Fourier signal' in settings:
       for target, signal in settings['long Fourier signal'].items():
         sig = signal['predict'][picker]
+        print('ljsdlfjldjflsdjfglsjdgldjglsjdgljdsgklsjdgkljsdkg')
+        print(picker)
+        print('sig',np.shape(sig))
+        print('ev',np.shape(evaluation[target][:,picker]))
         evaluation[target][picker] += sig
     return evaluation
 
