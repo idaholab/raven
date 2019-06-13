@@ -376,6 +376,14 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     # only true if overridden.
     return False
 
+  def checkRequestedClusterFeatures(self, request):
+    """
+      Takes the user-requested features (sometimes "all") and interprets them for this ROM.
+      @ In, request, dict(list), as from ROMColletion.Cluster._extrapolateRequestedClusterFeatures
+      @ Out, interpreted, dict(list), interpreted features
+    """
+    self.raiseAnError(NotImplementedError, 'This ROM is not prepared to handle feature cluster requests!')
+
   def getLocalRomClusterFeatures(self, *args, **kwargs):
     """
       Provides metrics aka features on which clustering compatibility can be measured.
