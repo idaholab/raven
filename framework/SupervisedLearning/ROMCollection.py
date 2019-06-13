@@ -520,7 +520,7 @@ class Segments(Collection):
     segmentNames = range(len(self._divisionInfo['delimiters']))
     # pivot for all this stuff is the segment number
     rlz['segment_number'] = np.asarray(segmentNames)
-    iS, iE, pS, pE = self._getSegmentBounds() # (i)ndex | (p)ivot, (S)tarts | (E)nds
+    iS, iE, pS, pE = self._getSegmentData() # (i)ndex | (p)ivot, (S)tarts | (E)nds
     # start indices
     varName = 'seg_index_start'
     writeTo.addVariable(varName, np.array([]), classify='meta', indices=['segment_number'])
@@ -659,6 +659,7 @@ class Clusters(Segments):
         rlz[varName] = np.asarray(self._clusterInfo['features'][scaling][name])
     varName = 'ClusterLabels'
     writeTo.addVariable(varName, np.array([]), classify='meta', indices=['segment_number'])
+
     rlz[varName] = np.asarray(self._clusterInfo['labels'])
     writeTo.addRealization(rlz)
 

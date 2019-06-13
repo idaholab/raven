@@ -15,7 +15,7 @@
 
   <RunInfo>
     <WorkingDir>Multiyear</WorkingDir>
-    <Sequence>read, train,  pickle, sample, dump</Sequence>
+    <Sequence>read, train, print, pickle, sample, dump</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
 

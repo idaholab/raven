@@ -1102,6 +1102,7 @@ class ARMA(supervisedLearning):
         for group in peakInfo['groupWin']:
           groupnode=xmlUtils.newNode('peak')
           groupnode.append(xmlUtils.newNode('Amplitude', text='{}'.format(np.array(group['Amp']).mean())))
+          #FIXME
           groupnode.append(xmlUtils.newNode('Index', text='{}'.format(np.array(group['Ind']).mean())))
           peakNode.append(groupnode)
 
@@ -1694,10 +1695,10 @@ class ARMA(supervisedLearning):
     if 'long Fourier signal' in settings:
       for target, signal in settings['long Fourier signal'].items():
         sig = signal['predict'][picker]
-        print('ljsdlfjldjflsdjfglsjdgldjglsjdgljdsgklsjdgkljsdkg')
-        print(picker)
-        print('sig',np.shape(sig))
-        print('ev',np.shape(evaluation[target][:,picker]))
+        # print('ljsdlfjldjflsdjfglsjdgldjglsjdgljdsgklsjdgkljsdkg')
+        # print(picker)
+        # print('sig',np.shape(sig))
+        # print('ev',np.shape(evaluation[target][:,picker]))
         evaluation[target][picker] += sig
     return evaluation
 
