@@ -69,14 +69,19 @@ class ROM(Dummy):
     subspace.addParam('pivotLength', InputData.FloatType, False)
     subspace.addParam('shift', InputData.StringType, False)
     segment.addSub(subspace)
+    ## clusterFeatures
+    segment.addSub(InputData.parameterInputFactory('clusterFeatures', contentType=InputData.StringListType))
+    ## classifier
     clsfr = InputData.parameterInputFactory('Classifier', strictMode=True, contentType=InputData.StringType)
     clsfr.addParam('class', InputData.StringType, True)
     clsfr.addParam('type', InputData.StringType, True)
     segment.addSub(clsfr)
+    ## metric
     metric = InputData.parameterInputFactory('Metric', strictMode=True, contentType=InputData.StringType)
     metric.addParam('class', InputData.StringType, True)
     metric.addParam('type', InputData.StringType, True)
     segment.addSub(metric)
+    ## unused FIXME
     feature = InputData.parameterInputFactory('feature', strictMode=True, contentType=InputData.StringType)
     feature.addParam('weight', InputData.FloatType)
     segment.addSub(feature)
@@ -486,7 +491,7 @@ class ROM(Dummy):
     confidenceDict = self.supervisedEngine.confidence(inputToROM)
     return confidenceDict
 
-  def evaluate(self,request):
+  def evaluate(self, request):
     """
       When the ROM is used directly without need of having the sampler passing in the new values evaluate instead of run should be used
       @ In, request, datatype, feature coordinates (request)
@@ -494,9 +499,13 @@ class ROM(Dummy):
     """
     inputToROM       = self._inputToInternal(request)
     outputEvaluation = self.supervisedEngine.evaluate(inputToROM)
+    print('DEBUGG ROM pre 1d eval:', outputEvaluation.get('Year', None))
     # assure numpy array formatting # TODO can this be done in the supervised engine instead?
     for k,v in outputEvaluation.items():
       outputEvaluation[k] = np.atleast_1d(v)
+    print('DEBUGG ROM eval:', outputEvaluation.get('Year', None))
+    if len(outputEvaluation.get('Year', [])) > 3:
+      JZTopSingerNA
     return outputEvaluation
 
   def _externalRun(self,inRun):

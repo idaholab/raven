@@ -45,6 +45,9 @@ from .SupervisedLearning import supervisedLearning
 #Internal Modules End--------------------------------------------------------------------------------
 
 
+import pprint
+pp = pprint.PrettyPrinter(indent=2)
+
 class ARMA(supervisedLearning):
   r"""
     Autoregressive Moving Average model for time series analysis. First train then evaluate.
@@ -53,6 +56,14 @@ class ARMA(supervisedLearning):
     Time series Y: Y = X + \sum_{i}\sum_k [\delta_ki1*sin(2pi*k/basePeriod_i)+\delta_ki2*cos(2pi*k/basePeriod_i)]
     ARMA series X: x_t = \sum_{i=1}^P \phi_i*x_{t-i} + \alpha_t + \sum_{j=1}^Q \theta_j*\alpha_{t-j}
   """
+  # class attribute
+  ## define the clusterable features for this ROM.
+  _clusterableFeatures = {'fourier': ['sin', 'cos'],
+                         'arma': ['sigma', 'p', 'q'],
+                          # NO CDF
+                         'peaks': ['probability', 'mean', 'sigma', 'index'],
+                        }
+
   ### INHERITED METHODS ###
   def __init__(self, messageHandler, **kwargs):
     """
@@ -450,6 +461,10 @@ class ARMA(supervisedLearning):
           finalResult[target][y][:] = value # [:] is a size checker
       # high-dimensional indexing information
       finalResult['_indexMap'] = dict((target, ['Year', self.pivotParameterID]) for target in self.target if target != self.pivotParameterID)
+      print('DEBUGG finalResult for evaluate multiyear:')
+      pp.pprint(finalResult)
+      if len(finalResult['Year']) > 3:
+        JZTopSingerNA
       return finalResult
     else:
       return self._evaluateYear(featureVals)
@@ -1055,9 +1070,6 @@ class ARMA(supervisedLearning):
           groupnode.append(xmlUtils.newNode('Index', text='{}'.format(np.array(group['Ind']).mean())))
           peakNode.append(groupnode)
 
-
-
-
   def _transformThroughInputCDF(self, signal, originalDist, weights=None):
     """
       Transforms a signal through the original distribution
@@ -1073,6 +1085,49 @@ class ARMA(supervisedLearning):
     return new
 
   ### Segmenting and Clustering ###
+  def checkRequestedClusterFeatures(self, request):
+    """
+      Takes the user-requested features (sometimes "all") and interprets them for this ROM.
+      @ In, request, dict(list), as from ROMColletion.Cluster._extrapolateRequestedClusterFeatures
+      @ Out, interpreted, dict(list), interpreted features
+    """
+    if request is None:
+      # since no special requests were made, we cluster on EV ER Y THING
+      return self.clusterableFeaters
+    # otherwise we have to unpack the values as known to this ROM
+    interpreted = collections.defaultdict(list)
+    # create containers for unrecognized entries so we can report them all at once, bc WFFTU
+    unrecognizedSets = []
+    unrecognizedFeatures = collections.defaultdict(list)
+    for featureSet, featureList in request.items():
+      if featureSet not in self._clusterableFeatures:
+        unrecognizedSets.append(featureSet)
+        continue
+      subClusterable = self._clusterableFeatures[featureSet]
+      # if all the subfeatures of this featureSet were requested, take them now
+      if featureList == 'all':
+        interpreted[featureSet] = subClusterable
+        continue
+      # otherwise loop over the requests
+      for feature in featureList:
+        if feature not in subClusterable:
+          unrecognizedFeatures[featureSet].append(feature)
+        else:
+          interpreted[featureSet].append(feature)
+
+    # if anything wasn't recognized, print it so the user can fix it
+    ## print all of them because WE FIGHT FOR THE USERS
+    if unrecognizedSets or unrecognizedFeatures:
+      self.raiseAWarning('Problems in clusterFeatures!', verbosity='silent')
+      if unrecognizedSets:
+        self.raiseAWarning(' -> unrecognized clusterFeatures base feature requests: {}'.format(unrecognizedSets), verbosity='silent')
+      if unrecognizedFeatures:
+        for key, vals in unrecognizedFeatures.items():
+          self.raiseAWarning(' -> unrecognized clusterFeatures feature "{}" requests: {}'.format(key, vals), verbosity='silent')
+      self.raiseAnError(IOError, 'Invalid clusterFeatures input! See messages above for details.')
+
+    return interpreted
+
   def  isClusterable(self):
     """
       Allows ROM to declare whether it has methods for clustring. Default is no.
@@ -1102,18 +1157,19 @@ class ARMA(supervisedLearning):
       results.append(res)
     return results
 
-  def getLocalRomClusterFeatures(self, featureTemplate, settings, picker=None, **kwargs):
+  def getLocalRomClusterFeatures(self, featureTemplate, settings, request, picker=None, **kwargs):
     """
       Provides metrics aka features on which clustering compatibility can be measured.
       This is called on LOCAL subsegment ROMs, not on the GLOBAL template ROM
       @ In, featureTemplate, str, format for feature inclusion
       @ In, settings, dict, as per getGlobalRomSegmentSettings
+      @ In, request, dict(list) or None, requested features to cluster on (by featureSet)
       @ In, picker, slice, indexer for segmenting data
       @ In, kwargs, dict, arbitrary keyword arguments
       @ Out, features, dict, {target_metric: np.array(floats)} features to cluster on
     """
     # algorithm for providing Fourier series and ARMA white noise variance and #TODO covariance
-    features = self.getFundamentalFeatures(featureTemplate=featureTemplate)
+    features = self.getFundamentalFeatures(request, featureTemplate=featureTemplate)
 
     # segment means
     # since we've already detrended globally, get the means from that (if present)
@@ -1125,15 +1181,20 @@ class ARMA(supervisedLearning):
         features[feature] = mean
     return features
 
-
-
-
-  def getFundamentalFeatures(self, featureTemplate=None):
+  def getFundamentalFeatures(self, requestedFeatures, featureTemplate=None):
+    """
+      Collect the fundamental parameters for this ROM
+      Used for writing XML, interpolating, clustering, etc
+      @ In, requestedFeatures, dict(list), featureSet and features to collect (may be None)
+      @ In, featureTemplate, str, templated string for naming features (probably leave as None)
+      @ Out, features, dict,
+    """
     assert self.amITrained
     if featureTemplate is None:
       featureTemplate = '{target}|{metric}|{id}' # TODO this kind of has to be the format currently
     features = {}
     # include Fourier if available
+    # TODO if not requestedFeatures or 'Fourier' in requestedFeatures: # TODO propagate requestedFeatures throughout method
     for target, fourier in self.fourierResults.items():
       feature = featureTemplate.format(target=target, metric='Fourier', id='fittingIntercept')
       features[feature] = fourier['regression']['intercept']
