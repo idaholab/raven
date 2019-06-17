@@ -211,6 +211,10 @@ class BasicStatistics(PostProcessor):
         if not currentInput.checkIndexAlignment(indexesToCheck=self.pivotParameter):
           self.raiseAnError(IOError, "The data provided by the data objects", currentInput.name, "is not synchronized!")
         self.pivotValue = inputDataset[self.pivotParameter].values
+        if self.pivotValue.size != len(inputDataset.groupby(self.pivotParameter)):
+          msg = "Duplicated values were identified in pivot parameter, please use the 'HistorySetSync'" + \
+          " PostProcessor to syncronize your data before running 'BasicStatistics' PostProcessor."
+          self.raiseAnError(IOError, msg)
     # extract all required meta data
     metaVars = currentInput.getVars('meta')
     self.pbPresent = True if 'ProbabilityWeight' in metaVars else False
@@ -923,7 +927,7 @@ class BasicStatistics(PostProcessor):
         # construct target and feature matrices
         dataSet = dataSet.to_array().transpose(self.sampleTag,'variable')
         featSet = dataSet.sel(**{'variable':features}).values
-        targSet = dataSet.sel(**{'variable':targets}).values 
+        targSet = dataSet.sel(**{'variable':targets}).values
         da = self.sensitivityCalculation(features,targets,featSet,targSet,intersectionSet)
       calculations[metric] = da
     #
@@ -990,7 +994,7 @@ class BasicStatistics(PostProcessor):
         pivotCoords = reducedCovar.coords[self.pivotParameter].values
         ds = None
         for label, group in reducedCovar.groupby(self.pivotParameter):
-          corrMatrix = self.corrCoeff(group.values if len(group.values.shape) == 2 else group.values[0])
+          corrMatrix = self.corrCoeff(group.values)
           da = xr.DataArray(corrMatrix, dims=('targets','features'), coords={'targets':targCoords,'features':targCoords})
           ds = da if ds is None else xr.concat([ds,da], dim=self.pivotParameter)
         ds.coords[self.pivotParameter] = pivotCoords
