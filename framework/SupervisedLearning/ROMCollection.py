@@ -519,7 +519,7 @@ class Segments(Collection):
     segmentNames = range(len(self._divisionInfo['delimiters']))
     # pivot for all this stuff is the segment number
     rlz['segment_number'] = np.asarray(segmentNames)
-    iS, iE, pS, pE = self._getSegmentBounds() # (i)ndex | (p)ivot, (S)tarts | (E)nds
+    iS, iE, pS, pE = self._getSegmentData() # (i)ndex | (p)ivot, (S)tarts | (E)nds
     # start indices
     varName = 'seg_index_start'
     writeTo.addVariable(varName, np.array([]), classify='meta', indices=['segment_number'])
@@ -591,10 +591,20 @@ class Clusters(Segments):
     self._clusterInfo = {}               # contains all the useful clustering results
     self._evaluationMode = 'truncated'   # TODO make user option, whether returning full histories or truncated ones
     self._featureTemplate = '{target}|{metric}|{id}' # created feature ID template
+    self._clusterFeatures = None         # dict of lists, features to cluster on
 
     # check if ROM has methods to cluster on (errors out if not)
     if not self._templateROM.isClusterable():
       self.raiseAnError(NotImplementedError, 'Requested ROM "{}" does not yet have methods for clustering!'.format(self._romName))
+
+    # interpret clusterable parameter requests, if any
+    inputRequestsNode = kwargs['paramInput'].findFirst('Segment').findFirst('clusterFeatures')
+    if inputRequestsNode is None:
+      userRequests = None
+    else:
+      inputRequests = inputRequestsNode.value
+      userRequests = self._extrapolateRequestedClusterFeatures(inputRequests)
+    self._clusterFeatures = self._templateROM.checkRequestedClusterFeatures(userRequests)
 
   def readAssembledObjects(self):
     """
@@ -608,6 +618,8 @@ class Clusters(Segments):
     classifier = self._assembledObjects.get('Classifier', [[None]*4])[0][3]
     if classifier is not None:
       classifier = classifier.interface.unSupervisedEngine
+    else:
+      self.raiseAnError(IOError, 'Clustering was requested, but no <Classifier> provided!')
     self._divisionClassifier = classifier
     self._metricClassifiers = self._assembledObjects.get('Metric', None)
 
@@ -647,17 +659,23 @@ class Clusters(Segments):
       @ Out, None
     """
     rlz = self._writeSegmentsRealization(writeTo)
+    # modify the segment entries to have the correct length
+    ## this is because segmenting doesn't throw out excess bits, but clustering sure does
+    correctLength = len(self._clusterInfo['labels'])
+    for key, value in rlz.items():
+      rlz[key] = value[:correctLength]
     # add some cluster stuff
     # cluster features
     ## both scaled and unscaled
     featureNames = sorted(list(self._clusterInfo['features']['unscaled'].keys()))
-    for scaling in ['unscaled','scaled']:
+    for scaling in ['unscaled', 'scaled']:
       for name in featureNames:
         varName = 'ClusterFeature|{}|{}'.format(name, scaling)
         writeTo.addVariable(varName, np.array([]), classify='meta', indices=['segment_number'])
         rlz[varName] = np.asarray(self._clusterInfo['features'][scaling][name])
     varName = 'ClusterLabels'
     writeTo.addVariable(varName, np.array([]), classify='meta', indices=['segment_number'])
+    print('DEBUGG preprint cluster info:', len(self._clusterInfo['labels']))
     rlz[varName] = np.asarray(self._clusterInfo['labels'])
     writeTo.addRealization(rlz)
 
@@ -726,6 +744,7 @@ class Clusters(Segments):
     # sample signal, one piece for each segment
     labelMap = self._clusterInfo['labels']
     clusters = sorted(list(set(labelMap)))
+    pivotLen = 0
     for cluster in clusters:
       # choose a ROM
       chooseRomMode = 'first' # TODO user option? alternative is random
@@ -738,24 +757,71 @@ class Clusters(Segments):
       # grab the Chosen ROM to represent this cluster
       rom = self._clusterInfo['map'][cluster][clusterIndex] # the Chosen ROM
       # get the slice opject that picks out the history range associated to the Chosen Segment
-      delimiter = self._divisionInfo['delimiters'][segmentIndex]
-      picker = slice(delimiter[0], delimiter[-1] + 1)
+      #delimiter = self._divisionInfo['delimiters'][segmentIndex]
+      #picker = slice(delimiter[0], delimiter[-1] + 1)
       # evaluate the ROM
       subResults = rom.evaluate(evaluationDict)
+      pivotLen += len(subResults[pivotID])
+      # if we're getting ND objects, identify indices and target-index dependence
+      indexMap = subResults.pop('_indexMap', {})
+      allIndices = set()
+      for target, indices in indexMap.items():
+        allIndices.update(indices)
+      print('DEBUGG indices:', allIndices)
+      # populate results storage
       if result is None:
-        result = dict((target, []) for target in subResults)
+        result = dict((target, []) for target in subResults if target not in allIndices)
       # populate weights
       sampleWeights.append(np.ones(len(subResults[pivotID])) * len(self._clusterInfo['map'][cluster]))
       for target, values in subResults.items():
+        if target in allIndices:
+          continue
         result[target].append(values)
     # combine histories (we stored each one as a distinct array during collecting)
     for target, values in result.items():
-      result[target] = np.hstack(values)
-    result[pivotID] = self._indexValues[pivotID][:len(result[pivotID])]
+      stackIndex = indexMap.get(target, [pivotID]).index(pivotID)
+      # if target in indexMap:
+      #   stackIndex = indexMap[target].index(pivotID)
+      print('DEBUGG len values:', target, len(values))
+      result[target] = np.concatenate(values, axis=stackIndex)
+    # put in the indexes
+    for index in allIndices:
+      if index == pivotID:
+        result[pivotID] = self._indexValues[pivotID][:pivotLen]
+      else:
+        # NOTE this assumes all the non-pivot dimensions are synchronized between segments!!
+        result[index] = subResults[index]
+    result['_indexMap'] = indexMap
     # combine history weights
     sampleWeights = np.hstack(sampleWeights)
     sampleWeights /= sum(sampleWeights)
     return result, sampleWeights
+
+  def _extrapolateRequestedClusterFeatures(self, requests):
+    """
+      Extrapolates from user input (or similar) which clustering features should be used.
+      @ In, requests, list(str), requests from input as [featureSet.feature] <or> [featureSet]
+      @ Out, reqFeatures, dict(list), by featureSet which cluster features should be used
+    """
+    # extrapolate which parameters are going to be used in clustering
+    reqFeatures = defaultdict(list)
+    # this should end up looking like:
+    #   reqFeatures {'Fourier': [sin, cos],
+    #                'ARMA':    [arparams, maparams, sigma]
+    #               } etc
+    for feature in requests: # for example, Fourier.arparams, Fourier
+      hierarchy = feature.split('.')
+      featureSet = hierarchy[0].lower()
+      if len(hierarchy) == 1:
+        # we want the whole feature set
+        reqFeatures[featureSet] = 'all'
+      else:
+        subFeat = hierarchy[1].lower()
+        if reqFeatures[featureSet] == 'all':
+          # this is redundant, we already are doing "all", so ignore the request
+          continue
+        reqFeatures[featureSet].append(subFeat)
+    return reqFeatures
 
   def _getSegmentIndexFromClusterIndex(self, cluster, labelMap, clusterIndex=None, chooseRandom=False):
     """
@@ -783,7 +849,7 @@ class Clusters(Segments):
     segmentIndex = eligible[clusterIndex]
     return segmentIndex, clusterIndex
 
-  def _gatherClusterFeatures(self, roms, counter):
+  def _gatherClusterFeatures(self, roms, counter, clusterParams=None):
     """
       Collects features of the ROMs for clustering purposes
       @ In, roms, list, list of segmented SVL ROMs
@@ -799,7 +865,7 @@ class Clusters(Segments):
       ## NOTE assuming only "leftover" roms are at the end, so the rest are sequential and match "counters"
       picker = slice(counter[r][0], counter[r][-1]+1)
       # get ROM-specific metrics
-      romData = rom.getLocalRomClusterFeatures(self._featureTemplate, self._romGlobalAdjustments, picker=picker)
+      romData = rom.getLocalRomClusterFeatures(self._featureTemplate, self._romGlobalAdjustments, self._clusterFeatures, picker=picker)
       for feature, val in romData.items():
         clusterFeatures[feature].append(val)
     return clusterFeatures
@@ -839,6 +905,7 @@ class Clusters(Segments):
     self._clusterInfo['map']['unclustered'] = unclusteredROMs
 
   def _clusterSegments(self, roms, divisions):
+    print('DEBUGG len of precluster roms:', len(roms))
     counter, remainder = divisions
     # collect ROM features (basic stats, etc)
     clusterFeatures = self._gatherClusterFeatures(roms, counter)
@@ -855,6 +922,7 @@ class Clusters(Segments):
       # the same identifier might show up for multiple targets
       if ident not in hierarchFeatures[metric]:
         hierarchFeatures[metric].append(ident)
+      print('DEBUGG len cluster data:', feature, len(clusterFeatures[feature]))
     ## weighting strategy, TODO make optional for the user
     weightingStrategy = 'uniform'
     clusterFeatures = self._weightAndScaleClusters(features, hierarchFeatures, clusterFeatures, weightingStrategy)
@@ -865,6 +933,7 @@ class Clusters(Segments):
     self.raiseAMessage('Identified {} clusters while training clustered ROM "{}".'.format(len(uniqueLabels), self._romName))
     # make cluster information dict
     self._clusterInfo['labels'] = labels
+    print('DEBUGG len of labels:', len(labels))
     ## clustered
     print('DEBUGG roms:', type(roms))
     for label in uniqueLabels:

@@ -227,6 +227,7 @@ class DataSet(DataObject):
       self.raiseADebug('Variables provided:',rlz.keys())
       self.raiseAnError(KeyError,'Provided realization does not have all requisite values for object "{}": "{}"'.format(self.name,e.args[0]))
     # check consistency, but make it an assertion so it can be passed over
+    print('DEBUGG add rlz precheck:', rlz.get('Year', None))
     if not self._checkRealizationFormat(rlz, indexMap=indexMap):
       self.raiseAnError(SyntaxError,'Realization was not formatted correctly for "{}"! See warnings above.'.format(self.name))
     # format the data
@@ -863,6 +864,7 @@ class DataSet(DataObject):
       @ In, rlz, dict, realization with {key:value} pairs.
       @ Out, okay, bool, True if acceptable or False if not
     """
+    print('DEBUGG pre YEAR', rlz.get('Year', '(not applicable)'))
     if not isinstance(rlz,dict):
       self.raiseAWarning('Realization is not a "dict" instance!')
       return False
@@ -888,6 +890,7 @@ class DataSet(DataObject):
                                        vShape=rlz[var].shape,
                                        dim=dim,
                                        dShape=correctShape))
+            return False
         # if this variable depends on multiple dimensions, check shape
         elif len(dims) > 1:
           # the model should have provided an index map for the shaping of the variables
@@ -904,7 +907,11 @@ class DataSet(DataObject):
             return False
           # check that the realization is consistent
           ## TODO assumes indexes are single-dimensional, seems like a safe assumption for now
+          print('DEBUGG rlzDimOrder:', rlzDimOrder)
           correctShape = tuple(rlz[idx].size for idx in rlzDimOrder)
+          print('DEBUGG shape:', correctShape)
+          print('DEBUGG rlz:')
+          print('YEAR????', rlz['Year'])
           if rlz[var].shape != correctShape:
             self.raiseAWarning(('Variable "{}" with shape {} '+
                                 'is not consistent with respect its indices "{}" with shapes {}!')
