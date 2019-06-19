@@ -451,6 +451,7 @@ class ARMA(supervisedLearning):
       # high-dimensional indexing information
       finalResult['_indexMap'] = dict((target, ['Year', self.pivotParameterID]) for target in self.target if target != self.pivotParameterID)
       return finalResult
+
     else:
       return self._evaluateYear(featureVals)
 

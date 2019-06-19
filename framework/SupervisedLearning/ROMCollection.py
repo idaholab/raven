@@ -226,7 +226,6 @@ class Segments(Collection):
     """
     Collection.setAdditionalParams(self, params)
     for rom in self._roms:
-      print('DEBUGG setting rom:', rom)
       rom.setAdditionalParams(params)
 
   def train(self, tdict, skipAssembly=False):
@@ -867,6 +866,9 @@ class Clusters(Segments):
     # make cluster information dict
     self._clusterInfo['labels'] = labels
     ## clustered
+    print('DEBUGG roms:', type(roms))
+    for label in uniqueLabels:
+      print('   ',labels == label, len(roms[labels==label]))
     self._clusterInfo['map'] = dict((label, roms[labels == label]) for label in uniqueLabels)
     # TODO what about the unclustered ones? We throw them out in truncated representation, of necessity.
     self._roms = list(self._clusterInfo['map'][label][0] for label in uniqueLabels)
@@ -935,6 +937,7 @@ class Interpolated(supervisedLearning):
     for step in self._macroSteps.values():
       step.readAssembledObjects()
 
+  ############### TRAINING ####################
   def train(self, tdict):
     """
       Trains the SVL and its supporting SVLs etc. Overwrites base class behavior due to
@@ -953,16 +956,25 @@ class Interpolated(supervisedLearning):
 
     # train the existing steps
     for s, step in enumerate(self._macroSteps.values()):
-      self.raiseADebug('Training Statepoint Year {} ...'.format(s))
+      self.raiseADebug('Training Statepoinp t Year {} ...'.format(s))
       trainingData = dict((var, [tdict[var][s]]) for var in tdict.keys())
       step.train(trainingData, skipAssembly=True)
+      print('DEBUGG after training statepoints:', list(step._divisionInfo.keys()))
     # interpolate missing steps
-    self._interpolateSteps()
+    self._interpolateSteps(tdict)
+    self.amITrained = True
 
-  def _interpolateSteps(self):
+  def _interpolateSteps(self, trainingDict):
     """ Master method for interpolating missing ROMs for steps """
     # acquire interpolatable information
     exampleModel = list(self._macroSteps.values())[0]
+    print('DEBUGG top of interpolate steps:', list(exampleModel._divisionInfo.keys()))
+     ### TODO FIXME WORKING
+     # the exampleModel has self._divisionInfo, but the macroTemplate does not!
+    # HOWEVER, you can't currently retrain the macroTemplate, but the copied newModel
+    # interpolated ROMS don't have the divisionInfo! Apparently there's a missing step in
+    # here somewhere. Right now we raise an error with the already-trained Classifier,
+    # maybe we can just reset that sucker.
     exampleRoms = exampleModel.getSegmentRoms(full=True)
     numSegments = len(exampleModel._clusterInfo['labels'])
     ## TODO can we reduce the number of unique transitions between clusters?
@@ -974,7 +986,7 @@ class Interpolated(supervisedLearning):
     ## This could speed up the creation of the interpolated clustered ROMs possibly.
     ## Then, whenever we interpolate, we inquire from whom to whom?
     ## Wait, if you have more than 2 statepoints, this will probably not be worth it.
-    ##         - rambling thoughts, talbpw, 2019
+    ##         - rambling thoughts, talbpaul, 2019
     interps = [] # by segment, the interpreter to make new data
     ## NOTE interps[0] is the GLOBAL PARAMS interpolator!!!
     # statepoint years
@@ -998,7 +1010,7 @@ class Interpolated(supervisedLearning):
     ## need to make a new Cluster model and assign its subsequence ROMs (pre-clustering).
     years = list(self._macroSteps.keys())
     models = []
-    # TODO assuming integer years!
+    # TODO assuming integer years! And by years we mean MacroSteps, except we leave it as years right now!
     for y in range(min(years), max(years)):
       # don't replace statepoint years
       if y in years:
@@ -1006,11 +1018,10 @@ class Interpolated(supervisedLearning):
         continue
       # otherwise, create new instances
       else:
-        newModel = self._interpolateSVL(exampleRoms, exampleModel, self._macroTemplate, numSegments, globalInterp, interps, y)
+        newModel = self._interpolateSVL(trainingDict, exampleRoms, exampleModel, self._macroTemplate, numSegments, globalInterp, interps, y)
         models.append(newModel)
-    # fill missing steps
-    xxxxxxx
-    #
+        self._macroSteps[y] = newModel
+    # now what?
 
   def _createSVLInterpolater(self, modelDict, index=None):
     interp = {}
@@ -1037,9 +1048,11 @@ class Interpolated(supervisedLearning):
     interp['method'] = interp1d(df.index.values, data.transpose())
     return interp
 
-  def _interpolateSVL(self, exampleRoms, exampleModel, template, N, globalInterp, segmentInterps, index):
+  def _interpolateSVL(self, trainingDict, exampleRoms, exampleModel, template, N, globalInterp, segmentInterps, index):
+    print('DEBUGG temp, delims:', list(template._divisionInfo.keys()))
     newModel = copy.deepcopy(template)
-    segmentRoms = []
+    print('DEBUGG new, delims:', list(newModel._divisionInfo.keys()))
+    segmentRoms = [] # FIXME speedup, make it a numpy array from the start
     for segment in range(N):
       data = segmentInterps[segment]['method'](index)
       data = data.transpose()
@@ -1049,19 +1062,20 @@ class Interpolated(supervisedLearning):
       inputs = newRom.readFundamentalFeatures(params)
       newRom.setFundamentalFeatures(inputs)
       segmentRoms.append(newRom)
+    segmentRoms = np.asarray(segmentRoms)
     # add global params
     data = globalInterp['method'](index)
     data = data.transpose()
     headers = globalInterp['headers']
     params = dict((headers[d], data[d]) for d in range(len(data)))
-    print('DEBUGG pivot??')
-    print(exampleModel._templateROM.pivotParameterID)
-    print(exampleModel._templateROM.pivotParameterValues)
-    pivotValues = trainingDict[exampleModel._templateROM.pivotParameterID][indexNOPE] # FIXME pass through everything??
+    # TODO assuming histories!
+    pivotID = exampleModel._templateROM.pivotParameterID
+    pivotValues = trainingDict[pivotID][0] # FIXME assumes pivot is the same for each year # FIXME dimensionality?
     params = exampleModel._roms[0].setGlobalRomFeatures(params, pivotValues)
     newModel._romGlobalAdjustments = params
     # finish training by clustering
     newModel._clusterSegments(segmentRoms, exampleModel.divisions)
+    newModel.amITrained = True # template.amITrained
     return newModel
 
   def _copyAssembledModel(self, model):
@@ -1071,6 +1085,48 @@ class Interpolated(supervisedLearning):
     new.setAssembledObjects({})
     return new
 
+  ############### EVALUATING ####################
+  def evaluate(self, edict):
+    """
+      Evaluate the set of interpolated models
+    """
+    # can we run SupervisedLearning.evaluate? Should this be an evaluateLocal?
+    ## set up the results dict with the correct dimensionality
+    ### actually, let's wait for the first sample to come in.
+    self.raiseADebug('Evaluating interpolated ROM ...')
+    results = None
+    ## TODO set up right for ND??
+    numMacro = len(self._macroSteps)
+    for m, (macroStep, model) in enumerate(sorted(self._macroSteps.items(), key=lambda x: x[0])):
+      self.raiseADebug(' ... evaluating macro step "{}"'.format(macroStep))
+      subResult = model.evaluate(edict) # TODO same input for all macro steps? True for ARMA at least...
+      indexMap = subResult.get('_indexMap', {})
+      # if not set up yet, then frame results structure
+      if results is None:
+        results = {}
+        finalIndexMap = indexMap # in case every rlz doesn't use same order, which would be lame
+        pivotID = model._templateROM.pivotParameterID
+        pivotVals = subResult[pivotID]
+        numPivot = len(pivotVals)
+        for target, values in subResult.items():
+          # if an index, just set the values now # FIXME assuming always the same!
+          if target == pivotID or target in indexMap:
+            results[target] = values
+          else:
+            results[target] = np.zeros([numMacro] + list(values.shape))
+      # END setting up results structure, if needed
+      # FIXME reshape in case indexMap is not the same as finalIndexMap?
+      for target, values in subResult.items():
+        if target == pivotID or target in indexMap:
+          continue
+        indexer = tuple([m] + [None]*len(values.shape))
+        results[target][indexer] = values
+    if finalIndexMap is not None:
+      results['_indexMap'] = finalIndexMap
+    eeeeeeeee
+
+
+  ############### DUMMY ####################
   # dummy methods that are required by SVL and not generally used
   def __confidenceLocal__(self, featureVals):
     """
