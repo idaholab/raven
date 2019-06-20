@@ -605,8 +605,9 @@ class Clusters(Segments):
     else:
       inputRequests = inputRequestsNode.value
       userRequests = self._extrapolateRequestedClusterFeatures(inputRequests)
+      print('dasfskfhsehfglsegjlsegjlsbgljsbjlgbsjkbgjksdbgjksbgdjksgbs',userRequests)
     self._clusterFeatures = self._templateROM.checkRequestedClusterFeatures(userRequests)
-
+    print('gjygjyjyyfjyfjyfyjfjyfyjfjyf',self._clusterFeatures)
   def readAssembledObjects(self):
     """
       Collects the entities from the Assembler as needed.
@@ -676,7 +677,7 @@ class Clusters(Segments):
         rlz[varName] = np.asarray(self._clusterInfo['features'][scaling][name])
     varName = 'ClusterLabels'
     writeTo.addVariable(varName, np.array([]), classify='meta', indices=['segment_number'])
-    print('DEBUGG preprint cluster info:', len(self._clusterInfo['labels']))
+    # print('DEBUGG preprint cluster info:', len(self._clusterInfo['labels']))
     rlz[varName] = np.asarray(self._clusterInfo['labels'])
     writeTo.addRealization(rlz)
 
@@ -768,7 +769,7 @@ class Clusters(Segments):
       allIndices = set()
       for target, indices in indexMap.items():
         allIndices.update(indices)
-      print('DEBUGG indices:', allIndices)
+      # print('DEBUGG indices:', allIndices)
       # populate results storage
       if result is None:
         result = dict((target, []) for target in subResults if target not in allIndices)
@@ -783,7 +784,7 @@ class Clusters(Segments):
       stackIndex = indexMap.get(target, [pivotID]).index(pivotID)
       # if target in indexMap:
       #   stackIndex = indexMap[target].index(pivotID)
-      print('DEBUGG len values:', target, len(values))
+      # print('DEBUGG len values:', target, len(values))
       result[target] = np.concatenate(values, axis=stackIndex)
     # put in the indexes
     for index in allIndices:
@@ -906,7 +907,7 @@ class Clusters(Segments):
     self._clusterInfo['map']['unclustered'] = unclusteredROMs
 
   def _clusterSegments(self, roms, divisions):
-    print('DEBUGG len of precluster roms:', len(roms))
+    # print('DEBUGG len of precluster roms:', len(roms))
     counter, remainder = divisions
     # collect ROM features (basic stats, etc)
     clusterFeatures = self._gatherClusterFeatures(roms, counter)
@@ -923,7 +924,7 @@ class Clusters(Segments):
       # the same identifier might show up for multiple targets
       if ident not in hierarchFeatures[metric]:
         hierarchFeatures[metric].append(ident)
-      print('DEBUGG len cluster data:', feature, len(clusterFeatures[feature]))
+      # print('DEBUGG len cluster data:', feature, len(clusterFeatures[feature]))
     ## weighting strategy, TODO make optional for the user
     weightingStrategy = 'uniform'
     clusterFeatures = self._weightAndScaleClusters(features, hierarchFeatures, clusterFeatures, weightingStrategy)
@@ -934,7 +935,7 @@ class Clusters(Segments):
     self.raiseAMessage('Identified {} clusters while training clustered ROM "{}".'.format(len(uniqueLabels), self._romName))
     # make cluster information dict
     self._clusterInfo['labels'] = labels
-    print('DEBUGG len of labels:', len(labels))
+    # print('DEBUGG len of labels:', len(labels))
     ## clustered
     self._clusterInfo['map'] = dict((label, roms[labels == label]) for label in uniqueLabels)
     # TODO what about the unclustered ones? We throw them out in truncated representation, of necessity.
@@ -1123,9 +1124,9 @@ class Interpolated(supervisedLearning):
     data = data.transpose()
     headers = globalInterp['headers']
     params = dict((headers[d], data[d]) for d in range(len(data)))
-    print('DEBUGG pivot??')
-    print(exampleModel._templateROM.pivotParameterID)
-    print(exampleModel._templateROM.pivotParameterValues)
+    # print('DEBUGG pivot??')
+    # print(exampleModel._templateROM.pivotParameterID)
+    # print(exampleModel._templateROM.pivotParameterValues)
     pivotValues = trainingDict[exampleModel._templateROM.pivotParameterID][indexNOPE] # FIXME pass through everything??
     params = exampleModel._roms[0].setGlobalRomFeatures(params, pivotValues)
     newModel._romGlobalAdjustments = params

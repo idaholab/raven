@@ -75,10 +75,10 @@
       <P>0</P>
       <Q>1</Q>
       <reseedCopies>False</reseedCopies>
-      <Multiyear>
+      <!--Multiyear>
         <years>3</years>
         <growth targets="Speed" mode="exponential">10</growth>
-      </Multiyear>
+      </Multiyear-->
       <Segment>
         <subspace pivotLength="120" shift="first">Time</subspace>
       </Segment>
@@ -136,13 +136,13 @@
       <Input>scaling</Input>
       <Output>Speed</Output>
       <Index var="Time">Speed</Index>
-      <Index var="Year">Speed</Index>
+      <!--Index var="Year">Speed</Index-->
     </DataSet>
     <DataSet name="after_rom_data">
       <Input>Speed</Input>
       <Output>yearly_aggregate</Output>
       <Index var="Time">Speed</Index>
-      <Index var="Year">Speed, yearly_aggregate</Index>
+      <!--Index var="Year">Speed, yearly_aggregate</Index-->
     </DataSet>
     <HistorySet name="final_out">
       <Input>scaling</Input>

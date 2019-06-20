@@ -58,11 +58,25 @@ class ARMA(supervisedLearning):
   """
   # class attribute
   ## define the clusterable features for this ROM.
-  _clusterableFeatures = {'fourier': ['sin', 'cos'],
-                         'arma': ['sigma', 'p', 'q'],
-                          # NO CDF
-                         'peaks': ['probability', 'mean', 'sigma', 'index'],
-                        }
+  _clusterableFeatures =   {'global':['miu'],
+                            'fourier': ['equal','shorter'],
+                            #FIXME shorter fourier intepolation\\
+                            'arma': ['sigma', 'p', 'q'],
+                            # NO CDF
+                            'peaks': ['probability', 'mean', 'sigma', 'index'],
+                            }
+  _interpolationFeatures = {'global':['cdf'],
+                            'fourier': ['longer'],
+                            'arma': ['sigma', 'p', 'q'],
+                            'peaks': ['probability', 'inddist', 'ampdist'],
+                            }
+
+  _xmlFeatures =           {'global':['miu'],
+                            'fourier': ['longer','equal','shorter'],
+                            'arma': ['sigma'],
+                            'peaks': ['probability', 'indmode',
+                                      'ampmaen', 'ampsigma','ampmaxmin'],
+                            }
 
   ### INHERITED METHODS ###
   def __init__(self, messageHandler, **kwargs):
@@ -217,6 +231,7 @@ class ARMA(supervisedLearning):
         peak['period']=period
         # read the period for the peaks and store it in the dict
         windows=[]
+        nbin=5
         # creat an empty list to store the windows' information
         for cchild in child.subparts:
 
@@ -231,14 +246,12 @@ class ARMA(supervisedLearning):
             windows.append(tempDict)
           elif cchild.getName() == 'nbin':
             nbin=cchild.value
-
         peak['windows']=windows
         peak['nbin']=nbin
 
         target = child.parameterValues['target']
         # target is the key to reach each peak information
         self.peaks[target]=peak
-
     # read GENERAL parameters for Fourier detrending
     ## these apply to everyone without SpecificFourier nodes
     ## use basePeriods to check if Fourier node present
@@ -349,7 +362,7 @@ class ARMA(supervisedLearning):
       maskPeakRes = np.ones(len(timeSeriesData), dtype=bool)
       # Make a full mask
       if target in self.peaks:
-        print(self.peaks)
+        # print(self.peaks)
         # deltaT=self.pivotParameterValues[-1]-self.pivotParameterValues[0]
         # deltaT=deltaT/(len(self.pivotParameterValues)-1)
         # print(deltaT)
@@ -477,8 +490,8 @@ class ARMA(supervisedLearning):
           finalResult[target][y][:] = value # [:] is a size checker
       # high-dimensional indexing information
       finalResult['_indexMap'] = dict((target, ['Year', self.pivotParameterID]) for target in self.target if target != self.pivotParameterID)
-      print('DEBUGG finalResult for evaluate multiyear:')
-      pp.pprint(finalResult)
+      # print('DEBUGG finalResult for evaluate multiyear:')
+      # pp.pprint(finalResult)
       if len(finalResult['Year']) > 3:
         JZTopSingerNA
       return finalResult
@@ -1028,10 +1041,6 @@ class ARMA(supervisedLearning):
     mask = data < tol
     return mask
 
-  # def _peakPreparer(self,data):
-
-
-  #   return maskPeakRes
   def writePointwiseData(self, writeTo):
     """
       Writes pointwise data about this ROM to the data object.
@@ -1208,26 +1217,6 @@ class ARMA(supervisedLearning):
       results.append(res)
     return results
 
-  def _getPeakAmpHistBin(self,trainingDict,windowDict):
-    """
-    """
-    nbins=[]
-    if self.amITrained:
-      for t,target in enumerate(self.target):
-        if target in self.peaks:
-          targetVals = trainingDict[target][0]
-          low = windowDict['threshold']
-          period = windowDict['period']
-          timeInd=np.arange(len(self.pivotParameterValues))
-          ####FIXME
-          peak, height = self._peakPicker(targetVals, low=low)
-          #### FIXME
-          pdCount=timeInd[-1]//period
-          bins=int(np.ceil(np.sqrt(len(peak)/pdCount)))
-          bins=max(bins,2)
-          nbins.append=bins
-    return nbins
-
   def getLocalRomClusterFeatures(self, featureTemplate, settings, request, picker=None, **kwargs):
     """
       Provides metrics aka features on which clustering compatibility can be measured.
@@ -1320,15 +1309,25 @@ class ARMA(supervisedLearning):
           # feature = featureTemplate.format(target=target, metric='peak', id=ID)
           # features[feature] = lenWin
 
+          # prbability if this peak exist
           prbExist = len(group['Ind'])/lenWin
           ID = 'gp_{}_probExist'.format(g)
           feature = featureTemplate.format(target=target, metric='peak', id=ID)
           features[feature] = prbExist
-          ## most probabble index
+
+          ## IND
+          #most probabble index
           modeInd= stats.mode(group['Ind'])[0][0]
           ID = 'gp_{}_modeInd'.format(g)
           feature = featureTemplate.format(target=target, metric='peak', id=ID)
           features[feature] = modeInd
+          # index distribution
+          indBins=np.arange(peak['rangeWindow'][g]['end'][0]-peak['rangeWindow'][g]['bg'][0]-1)+1
+          indCounts, _ = np.histogram(group['Ind'], bins=indBins, density=False)
+          for c, count in enumerate(indCounts):
+            feature = featureTemplate.format(target=target, metric='peak', id='gp_{}_ind {}'.format(g,c))
+            features[feature] = count
+
           ## AMP
           #mean
           meanAmp=rv_histogram(np.histogram(group['Amp'])).mean()
@@ -1362,7 +1361,7 @@ class ARMA(supervisedLearning):
       #     print(maxAmp)
       #     print(minAmp)
       #     print(nBin)
-      # print(features)
+      # pp.pprint(features)
       # print('啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦 我是分界线2 啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦')
 
 
@@ -1424,9 +1423,13 @@ class ARMA(supervisedLearning):
           if 'ampCounts' not in peak[target][group]:
             peak[target][group]['ampCounts'] = {}
           peak[target][group]['ampCounts'][c] = val
+        elif realID.startswith('ind'):
+          c = int(realID.split(' ')[1])
+          if 'indCounts' not in peak[target][group]:
+            peak[target][group]['indCounts'] = {}
+          peak[target][group]['indCounts'][c] = val
         else:
           peak[target][group][realID]=val
-
       else:
         raise KeyError('Unrecognized metric: "{}"'.format(metric))
     return {'fourier': fourier,
@@ -1509,7 +1512,7 @@ class ARMA(supervisedLearning):
         groupWin.append({})
         g = int(g)
         lsCs=list(groupInfo['ampCounts'].items())
-        hisInd, hisCs = zip(*sorted(lsCs, key=lambda x: x[0]))
+        _, hisCs = zip(*sorted(lsCs, key=lambda x: x[0]))
         ampHisCs = np.asarray(hisCs)
         maxAmp=groupInfo['maxAmp']
         minAmp=groupInfo['minAmp']
@@ -1519,24 +1522,27 @@ class ARMA(supervisedLearning):
         probExist=groupInfo['probExist']
 
         ampLocal=dist.rvs(size=int(probExist*lenWin)).tolist()
-        modeInd=groupInfo['modeInd']
-        indLocal=[modeInd]*int(probExist*lenWin)
-        # maxAmp=groupInfo['ampCounts'].items()
+
+        lsIndCs=list(groupInfo['indCounts'].items())
+        _, hisIndCs = zip(*sorted(lsIndCs, key=lambda x: x[0]))
+        indHisCs = np.asarray(hisIndCs)
+        histogramInd = (indHisCs, np.arange(len(indHisCs)+1)+1)
+
+        distInd = stats.rv_histogram(histogramInd)
+        indLocal=distInd.rvs(size=int(probExist*lenWin)).tolist()
+        for indexOfIndex,valueOfIndex in enumerate(indLocal):
+          valueOfIndex=int(valueOfIndex)
+          indLocal[indexOfIndex]=valueOfIndex
+
         groupWin[g]['Ind']=indLocal
         groupWin[g]['Amp']=ampLocal
       self.peak[target]['groupWin']=groupWin
-      print('啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦 我是分界线2 啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦')
-      print(target)
-      print(info)
+      # print('啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦 我是分界线2 啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦')
+      # print(target)
+      # print(info)
       # Amplitude
-
       # probExit
-
       # most probable index
-
-
-
-
       # # counts
       # cs = list(info['counts'].items())
       # c_idx, c_vals = zip(*sorted(cs, key=lambda x: x[0]))

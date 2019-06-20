@@ -13,7 +13,7 @@
 
   <RunInfo>
     <WorkingDir>Peaks</WorkingDir>
-    <Sequence>read, train, printrom, sample,print</Sequence>
+    <Sequence>read, train,  sample,print</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
 
@@ -79,11 +79,16 @@
           ARMA.sigma, ARMA.p, ARMA.q,
           Peaks.probability, Peaks.mean, Peaks.sigma, Peaks.index
         </clusterFeatures>
+        <!--interpolationeatures>
+          ARMA.sigma, ARMA.p, ARMA.q,
+          Peaks.probability, Peaks.inddist, Peaks.ampdist
+        </interpolationeatures-->
       </Segment>
       <preserveInputCDF>True</preserveInputCDF>
       <Peaks target='Signal' threshold='2' period='24'>
         <window width='4' >-2,3</window>
         <window width='5' >12,16</window>
+        <nbin>5</nbin>
       </Peaks>
     </ROM>
     <PostProcessor name='classifier' subType='DataMining'>
