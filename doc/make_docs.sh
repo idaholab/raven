@@ -32,11 +32,12 @@ source ../scripts/establish_conda_env.sh --load --quiet
 #   (not the Unix-style ones used on other platforms).  This also means semi-colons need to be used
 #   to separate terms instead of the Unix colon.
 #
-if [ "$(expr substr $(uname -s) 1 5)" == "MINGW" ]  || [  "$(expr substr $(uname -s) 1 4)" == "MSYS" ]
+if [ "$(uname)" == "Darwin" ] || [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]
+then
+  export TEXINPUTS=.:$SCRIPT_DIR/tex_inputs/:$TEXINPUTS
+elif [ "$(expr substr $(uname -s) 1 5)" == "MINGW" ]  || [  "$(expr substr $(uname -s) 1 4)" == "MSYS" ]
 then
   export TEXINPUTS=.\;`cygpath -w $SCRIPT_DIR/tex_inputs`\;$TEXINPUTS
-else
-  export TEXINPUTS=.:$SCRIPT_DIR/tex_inputs/:$TEXINPUTS
 fi
 
 
@@ -56,7 +57,15 @@ fi
 for DIR in  user_manual user_guide theory_manual tests; do
     cd $DIR
     echo Building in $DIR...
-    if [ "$(expr substr $(uname -s) 1 5)" == "MINGW" ]  || [  "$(expr substr $(uname -s) 1 4)" == "MSYS" ]
+    if [ "$(uname)" == "Darwin" ] || [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]
+    then
+      if [[ 1 -eq $VERB ]]
+      then
+        make; MADE=$?
+      else
+        make > /dev/null; MADE=$?
+      fi    
+    elif [ "$(expr substr $(uname -s) 1 5)" == "MINGW" ]  || [  "$(expr substr $(uname -s) 1 4)" == "MSYS" ]
     then  
       if [[ 1 -eq $VERB ]]
       then
@@ -64,13 +73,6 @@ for DIR in  user_manual user_guide theory_manual tests; do
       else
         bash.exe make_win.sh > /dev/null; MADE=$?
       fi
-    else  
-      if [[ 1 -eq $VERB ]]
-      then
-        make; MADE=$?
-      else
-        make > /dev/null; MADE=$?
-      fi    
     fi
     if [[ 0 -eq $MADE ]]; then
         echo ...Successfully made docs in $DIR
