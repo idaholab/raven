@@ -35,13 +35,13 @@ def validateTests():
   res = [0, 0, 0] #run, pass, fail
   failed = {}
   devnull = open(os.devnull, "wb")
-  for dir, files in tests.items():
+  for dr, files in tests.items():
     #print directory being checked'
-    checkmsg = ' Directory: ' + dir
+    checkmsg = ' Directory: ' + dr
     print(colors.neutral + checkmsg.rjust(maxlen, '-'))
     #check files in directory
     for f in files:
-      fullpath = os.path.join(dir, f)
+      fullpath = os.path.join(dr, f)
       # check if input exists; if not, it probably gets created by something else, and can't get checked here
       if not os.path.isfile(fullpath):
         print('File "{}" does not exist; skipping validation test ...'.format(fullpath))
@@ -76,7 +76,7 @@ def validateTests():
         res[2] += 1
         endmsg = 'FAILED'
         endcolor = colors.fail
-        postprint = colors.fail+err
+        postprint = colors.fail+str(err)
         if dr not in failed.keys():
           failed[dr] = []
         failed[dr].append(f)

@@ -39,8 +39,6 @@ class Template(object):
     Intended to be used to read a template, be given instructions on how to fill it,
     and create a new set of input files.
   """
-  # generic class members
-
   # naming templates
   ## this dictionary of templates can be used to standardize naming throughout a template.
   ## for example, variables in a template might always have the form source_contents, e.g.
@@ -164,8 +162,10 @@ class Template(object):
       @ Out, None
     """
     entries = list(x.strip() for x in node.text.split(',')) if node.text is not None else []
+    # remove empty strings
+    entries = list(filter(None, entries))
     if position is not None:
-      if position < len(entries)-1:
+      if position < len(entries):
         entries.insert(position, new)
       else:
         entries.append(new)

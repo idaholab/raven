@@ -1,0 +1,6 @@
+[Tests]
+  [./ARMA]
+    type = 'RavenPython'
+    input = 'ARMA.py'
+  [../]
+[]

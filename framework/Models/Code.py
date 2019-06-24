@@ -184,10 +184,7 @@ class Code(Model):
           else:
             self.clargs['pre'] = arg
         elif argtype == 'python':
-          if sys.version_info.major > 2:
-            pythonName = "python3"
-          else:
-            pythonName = "python"
+          pythonName = utils.getPythonCommand()
           if 'pre' in self.clargs:
             self.clargs['pre'] = self.clargs['pre']+' '+pythonName
           else:
@@ -618,6 +615,8 @@ class Code(Model):
 
         csvLoader = CsvLoader.CsvLoader(self.messageHandler)
         csvData = csvLoader.loadCsvFile(outFile)
+        if np.isnan(csvData).all():
+          self.raiseAnError(IOError, 'The data collected from', outputFile+'.csv', 'only contain "NAN"')
         headers = csvLoader.getAllFieldNames()
 
         ## Numpy by default iterates over rows, thus we transpose the data and

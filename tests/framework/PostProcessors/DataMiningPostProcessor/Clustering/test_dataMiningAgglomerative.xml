@@ -101,7 +101,7 @@
     </PointSet>
     <PointSet name="dataOut">
       <Input>x1,x2,y1,y2,z1,z2</Input>
-      <Output>Output</Output>
+      <Output>Output,labels</Output>
     </PointSet>
     <PointSet name="clusterInfo">
       <Input>labels</Input>

@@ -204,7 +204,11 @@ def compare_unordered_element(a_element, b_element, **kwargs):
   note = ''
   for unmatched, close in matchvals.items():
     #print the path without a match
-    note += 'No match for '+'/'.join(list(m.tag for m in unmatched))+'\n'
+    path = '/'.join(list(m.tag for m in unmatched))
+    note += 'No match for gold node {}\n'.format(path)
+    note += '               tag: {}\n'.format(unmatched[-1].tag)
+    note += '              attr: {}\n'.format(unmatched[-1].attrib)
+    note += '              text: {}\n'.format(unmatched[-1].text)
     #print the tree of the nearest match
     note += '  Nearest unused match: '
     close = sorted(list(close.items()), key=lambda x: x[1], reverse=True)

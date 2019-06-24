@@ -25,15 +25,53 @@
   [./ARMAreseedPrecursor]
    type = 'RavenFramework'
    input = 'arma_reseed_precursor.xml'
-   output = 'ARMAparallel/arma.pk'
+   output = 'ARMAreseed/arma.pk'
+    [./romcsv]
+      type = OrderedCSV
+      output = 'ARMAreseed/rommeta.csv'
+      rel_err = 1e-5
+    [../]
+    [./romxml]
+      type = XML
+      unordered = true
+      output = 'ARMAreseed/rommeta.xml'
+      rel_err = 1e-5
+    [../]
+    [./signalexist]
+      type = Exists
+      output = 'ARMAreseed/signals_0.csv ARMAreseed/signals_1.csv ARMAreseed/signals_2.csv ARMAreseed/signals_3.csv ARMAreseed/signals.csv '
+    [../]
   [../]
   [./ARMAreseedTest]
    type = 'RavenFramework'
    input = 'arma_reseed_test.xml'
-   csv = 'ARMAparallel/results_0.csv'
-   expected_fail = true
+   output = 'ARMAreseed/results.csv '
+
    prereq = ARMAreseedPrecursor
-   skip = 'needs the new RNG entity'
+    [./romcsv0]
+      type = OrderedCSV
+      output = 'ARMAreseed/results_0.csv'
+      gold_files = 'ARMAreseed/signals_0.csv'
+      rel_err = 1e-5
+    [../]
+    [./romcsv1]
+      type = OrderedCSV
+      output = 'ARMAreseed/results_1.csv'
+      gold_files = 'ARMAreseed/signals_1.csv'
+      rel_err = 1e-5
+    [../]
+    [./romcsv2]
+      type = OrderedCSV
+      output = 'ARMAreseed/results_2.csv'
+      gold_files = 'ARMAreseed/signals_2.csv'
+      rel_err = 1e-5
+    [../]
+    [./romcsv3]
+      type = OrderedCSV
+      output = 'ARMAreseed/results_3.csv'
+      gold_files = 'ARMAreseed/signals_3.csv'
+      rel_err = 1e-5
+    [../]
   [../]
 
  [./SingleFourier]
@@ -62,10 +100,13 @@
   [./VARMA]
    type = 'RavenFramework'
    input = 'varma.xml'
-   output = 'VARMA/plot_VARMA.png VARMA/plot_input.png VARMA/samples.csv VARMA/samples_0.csv VARMA/stats.xml'
-   csv = 'VARMA/stats.csv'
-   rel_err = 1e-1
+   output = 'VARMA/plot_VARMA.png VARMA/plot_input.png VARMA/stats.xml VARMA/rommeta.xml VARMA/rommeta.csv VARMA/samples_0.csv'
    max_time = 500
+    [./stats]
+      type = OrderedCSV
+      output = 'VARMA/stats.csv'
+      rel_err = 1e-1
+    [../]
   [../]
 
   [./ZeroFilter]
@@ -80,9 +121,23 @@
   [./Segmented]
     type = 'RavenFramework'
     input = 'segmented.xml'
-    output = 'Segmented/synthetic.csv Segmented/synthetic_0.csv Segmented/synthetic.xml Segmented/stats.xml'
-    csv = 'Segmented/stats.csv'
-    rel_err = 1e-2
+    output = 'Segmented/synthetic.csv Segmented/synthetic.xml Segmented/synthetic_0.csv'
+    [./stats]
+      type = OrderedCSV
+      output = 'Segmented/stats.csv'
+      rel_err = 1e-2
+    [../]
+    [./romcsv]
+      type = OrderedCSV
+      output = 'Segmented/rommeta.csv'
+      rel_err = 1e-5
+    [../]
+    [./romxml]
+      type = XML
+      unordered = true
+      output = 'Segmented/rommeta.xml'
+      rel_err = 1e-5
+    [../]
   [../]
   [./Clustered]
     type = 'RavenFramework'

@@ -8,7 +8,14 @@
     <description>
       Tests clustering with the DBSCAN model.
     </description>
+    <revisions>
+      <revision author="wangc" date="2018-09-27">
+        As reported in issue #805, RAVEN will not allow input DataObject of PostProcessor to be output DataObject,
+        the output data object will be renamed, and the variable name of labels will be explicitly defined.
+      </revision>
+    </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>DBSCAN</WorkingDir>
     <Sequence>readIn,DBSCANBlobs,output</Sequence>
@@ -32,20 +39,20 @@
   <Steps>
     <IOStep name="readIn" pauseAtEnd="True">
       <Input class="Files" type="">DataSetsFile</Input>
-      <Output class="DataObjects" type="PointSet">DataSets</Output>
+      <Output class="DataObjects" type="PointSet">DataSetsRaw</Output>
     </IOStep>
     <IOStep name="output" pauseAtEnd="True">
-      <Input  class="DataObjects"   type="PointSet"  >DataSets</Input>
-      <Input  class="DataObjects"   type="PointSet"  >clusterInfo</Input>
-      <Output class="OutStreams"    type="Plot"      >PlotDBSCANBlobs</Output>
-      <Output class="OutStreams"    type="Print"     >info</Output>
+      <Input class="DataObjects" type="PointSet">DataSets</Input>
+      <Input class="DataObjects" type="PointSet">clusterInfo</Input>
+      <Output class="OutStreams" type="Plot">PlotDBSCANBlobs</Output>
+      <Output class="OutStreams" type="Print">info</Output>
     </IOStep>
     <PostProcess name="DBSCANBlobs" pauseAtEnd="True">
-      <Input          class="DataObjects"   type="PointSet"       >DataSets</Input>
-      <Model          class="Models"        type="PostProcessor"  >DBSCANBlobs</Model>
-      <SolutionExport class="DataObjects"   type="PointSet"       >clusterInfo</SolutionExport>
-      <Output         class="DataObjects"   type="PointSet"       >DataSets</Output>
-      <Output         class="OutStreams"    type="Print"          >dummy</Output>
+      <Input class="DataObjects" type="PointSet">DataSetsRaw</Input>
+      <Model class="Models" type="PostProcessor">DBSCANBlobs</Model>
+      <SolutionExport class="DataObjects" type="PointSet">clusterInfo</SolutionExport>
+      <Output class="DataObjects" type="PointSet">DataSets</Output>
+      <Output class="OutStreams" type="Print">dummy</Output>
     </PostProcess>
   </Steps>
 
@@ -59,7 +66,7 @@
       <source>DataSets</source>
       <what>Output|labels</what>
     </Print>
-    <Plot  name="PlotDBSCANBlobs" overwrite="false">
+    <Plot name="PlotDBSCANBlobs" overwrite="false">
       <plotSettings>
         <plot>
           <type>scatter</type>
@@ -82,11 +89,15 @@
   <DataObjects>
     <PointSet name="DataSets">
       <Input>x1,x2,y1,y2,z1,z2</Input>
-      <Output>Output</Output>
+      <Output>Output,labels</Output>
     </PointSet>
     <PointSet name="clusterInfo">
       <Input>labels</Input>
       <Output>x1,x2</Output>
+    </PointSet>
+    <PointSet name="DataSetsRaw">
+      <Input>x1,x2,y1,y2,z1,z2</Input>
+      <Output>Output</Output>
     </PointSet>
   </DataObjects>
 

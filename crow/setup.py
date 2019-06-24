@@ -13,16 +13,24 @@
 # limitations under the License.
 from distutils.core import setup, Extension
 import subprocess
+import sys
 try:
-  eigen_flags = subprocess.check_output(["./scripts/find_eigen.py"])
+  if sys.version_info.major > 2:
+    eigen_flags = subprocess.check_output(["./scripts/find_eigen.py"]).decode("ascii")
+  else:
+    eigen_flags = subprocess.check_output(["./scripts/find_eigen.py"])
 except:
   eigen_flags = ""
 include_dirs=['include/distributions','include/utilities','contrib/include']
 if eigen_flags.startswith("-I"):
   include_dirs.append(eigen_flags[2:].rstrip())
-swig_opts=['-c++','-Iinclude/distributions','-Iinclude/utilities']
+if sys.version_info.major > 2:
+  swig_opts=['-c++','-py3','-Iinclude/distributions','-Iinclude/utilities']
+  ext = 'py3'
+else:
+  swig_opts=['-c++','-Iinclude/distributions','-Iinclude/utilities']
+  ext = 'py2'
 extra_compile_args=['-std=c++11']
-ext = 'py2'
 setup(name='crow',
       version='0.8',
       ext_package='crow_modules',

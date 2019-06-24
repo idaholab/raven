@@ -23,7 +23,7 @@ done
 rm -Rvf sqa_built_documents
 mkdir sqa_built_documents
 # load raven libraries
-source ../scripts/establish_conda_env.sh --load --quiet
+source ../../scripts/establish_conda_env.sh --load --quiet
 
 # add custom, collective inputs to TEXINPUTS
 #
@@ -32,7 +32,7 @@ source ../scripts/establish_conda_env.sh --load --quiet
 #   (not the Unix-style ones used on other platforms).  This also means semi-colons need to be used
 #   to separate terms instead of the Unix colon.
 #
-if [ "$(expr substr $(uname -s) 1 5)" == "MINGW" ]
+if [ "$(expr substr $(uname -s) 1 5)" == "MINGW" ]  || [  "$(expr substr $(uname -s) 1 4)" == "MSYS" ]
 then
   export TEXINPUTS=.\;`cygpath -w $SCRIPT_DIR/tex_inputs`\;$TEXINPUTS
 else
@@ -43,7 +43,6 @@ fi
 cp sqap/*.pdf sqa_built_documents/
 cp sqap/*.docx sqa_built_documents/
 # Configuration Item list
-cp CIlist/*.pdf sqa_built_documents/
 cp CIlist/*.docx sqa_built_documents/
 # CR_scheme
 cp CR_scheme.pptx sqa_built_documents/
@@ -66,11 +65,21 @@ fi
 for DIR in  sdd rtr srs srs_rtr_combined; do
     cd $DIR
     echo Building in $DIR...
-    if [[ 1 -eq $VERB ]]
-    then
-      make; MADE=$?
-    else
-      make > /dev/null; MADE=$?
+    if [ "$(expr substr $(uname -s) 1 5)" == "MINGW" ]  || [  "$(expr substr $(uname -s) 1 4)" == "MSYS" ]
+    then  
+      if [[ 1 -eq $VERB ]]
+      then
+        bash.exe make_win.sh; MADE=$?
+      else
+        bash.exe make_win.sh > /dev/null; MADE=$?
+      fi
+    else  
+      if [[ 1 -eq $VERB ]]
+      then
+        make; MADE=$?
+      else
+        make > /dev/null; MADE=$?
+      fi    
     fi
     if [[ 0 -eq $MADE ]]; then
         echo ...Successfully made docs in $DIR

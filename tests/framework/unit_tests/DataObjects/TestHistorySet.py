@@ -698,6 +698,123 @@ checkRlz('Adding asynchronous histories, dataset[1]',data.realization(index=1),r
 #data._readMoreXML(xml)
 #checkFails('Expected error foulty realization (index/variable no matching shape), rlzFoulty', "SyntaxError: Realization was not formatted correctly", data.addRealization, args=(rlzFoulty,))
 
+######################################
+#   scalar and vector meta data      #
+######################################
+xml = createElement('HistorySet',attrib={'name':'test'})
+xml.append(createElement('Input',text='a,b'))
+xml.append(createElement('Output',text='y'))
+options = createElement('options')
+options.append(createElement('pivotParameter',text='Timelike'))
+xml.append(options)
+data = DataObjects.HistorySet()
+data.messageHandler = mh
+data._readMoreXML(xml)
+metavars = ['prefix', 'vectorMeta']
+params = {'vectorMeta':['Timelike']}
+data.addExpectedMeta(metavars, params)
+rlz1 = {'a': 1.0,
+        'b': 2.0,
+        'y': [5.0, 5.1, 5.2],
+        'prefix': 'first',
+        'vectorMeta':[1.1,1.2,1.3],
+        'Timelike':[3.1e-6,3.2e-6,3.3e-6],
+       }
+rlz2 = {'a' :11.0,
+        'b': 12.0,
+        'y': [15.0, 15.1, 15.2],
+        'prefix': 'second',
+        'vectorMeta':[2.1,2.2,2.3],
+        'Timelike':[13.1e-6,13.2e-6,13.3e-6],
+       }
+formatRealization(rlz1)
+formatRealization(rlz2)
+data.addRealization(rlz1)
+data.addRealization(rlz2)
+csvname = 'HSVectorMetaUnitTest'
+data.write(csvname,style='CSV',**{'what':'a,b,c,y,RAVEN_sample_ID,prefix,vectorMeta'})
+## test metadata written
+correct = ['<DataObjectMetadata name="HistorySet">',
+           '  <DataSet type="Static">',
+           '    <dims>',
+           '      <vectorMeta>Timelike</vectorMeta>',
+           '      <y>Timelike</y>',
+           '    </dims>',
+           '    <general>',
+           '      <inputs>a,b</inputs>',
+           '      <outputs>y</outputs>',
+           '      <pointwise_meta>prefix,vectorMeta</pointwise_meta>',
+           '      <sampleTag>RAVEN_sample_ID</sampleTag>',
+           '    </general>',
+           '  </DataSet>',
+           '  ',
+           '</DataObjectMetadata>']
+# read in XML
+lines = open(csvname+'.xml','r').readlines()
+# remove line endings
+for l,line in enumerate(lines):
+  lines[l] = line.rstrip(os.linesep).rstrip('\n')
+# check
+checkArray('CSV XML',lines,correct,str)
+## read from CSV/XML
+### create the data object
+xml = createElement('HistorySet',attrib={'name':'test'})
+xml.append(createElement('Input',text='a,b'))
+xml.append(createElement('Output',text='y'))
+options = createElement('options')
+options.append(createElement('pivotParameter',text='Timelike'))
+xml.append(options)
+dataCSV = DataObjects.HistorySet()
+dataCSV.messageHandler = mh
+dataCSV._readMoreXML(xml)
+### load the data (with both CSV, XML)
+dataCSV.load(csvname,style='CSV')
+for var in data.getVars():
+  if isinstance(data.getVarValues(var).item(0),(float,int)):
+    checkTrue('CSV var {}'.format(var),(dataCSV._data[var] - data._data[var]).sum()<1e-20) #necessary due to roundoff
+  else:
+    checkTrue('CSV var {}'.format(var),bool((dataCSV._data[var] == data._data[var]).prod()))
+os.remove(csvname+'.csv')
+os.remove(csvname+'_0.csv')
+os.remove(csvname+'_1.csv')
+
+csvname = 'HSVectorMetaUnitTest'
+dataCSV.write(csvname,style='CSV',**{'what':'a,b,c,y,RAVEN_sample_ID,prefix,vectorMeta'})
+# read in XML
+lines = open(csvname+'.xml','r').readlines()
+# remove line endings
+for l,line in enumerate(lines):
+  lines[l] = line.rstrip(os.linesep).rstrip('\n')
+# check
+checkArray('CSV XML',lines,correct,str)
+### also try without the XML metadata file, just the CSVs
+# get rid of the xml file
+os.remove(csvname+'.xml')
+dataCSV.reset()
+dataCSV.load(csvname,style='CSV')
+for var in data.getVars():
+  if isinstance(data.getVarValues(var).item(0),(float,int)):
+    checkTrue('CSV var {}'.format(var),(dataCSV._data[var] - data._data[var]).sum()<1e-20) #necessary due to roundoff
+  else:
+    checkTrue('CSV var {}'.format(var),bool((dataCSV._data[var] == data._data[var]).prod()))
+# clean up remaining temp files
+os.remove(csvname+'.csv')
+os.remove(csvname+'_0.csv')
+os.remove(csvname+'_1.csv')
+csvname = 'HSVectorMetaUnitTest'
+dataCSV.write(csvname,style='CSV',**{'what':'a,b,c,y,RAVEN_sample_ID,prefix,vectorMeta'})
+# read in XML
+lines = open(csvname+'.xml','r').readlines()
+# remove line endings
+for l,line in enumerate(lines):
+  lines[l] = line.rstrip(os.linesep).rstrip('\n')
+# check
+checkArray('CSV XML',lines,correct,str)
+os.remove(csvname+'.csv')
+os.remove(csvname+'_0.csv')
+os.remove(csvname+'_1.csv')
+os.remove(csvname+'.xml')
+
 print(results)
 
 sys.exit(results["fail"])
@@ -712,4 +829,3 @@ sys.exit(results["fail"])
     </description>
   </TestInfo>
 """
-

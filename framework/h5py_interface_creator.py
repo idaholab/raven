@@ -58,7 +58,10 @@ def _loads(val):
     @ Out, _loads, any, data decoded
   """
   if hasattr(val,'tostring'):
-    return pk.loads(val.tostring())
+    try:
+      return pk.loads(val.tostring())
+    except UnicodeDecodeError:
+      return pk.loads(val.tostring(),errors='backslashreplace')
   else:
     try:
       return pk.loads(val)
