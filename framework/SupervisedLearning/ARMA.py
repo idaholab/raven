@@ -75,7 +75,7 @@ class ARMA(supervisedLearning):
                             'fourier': ['longer','equal','shorter'],
                             'arma': ['sigma'],
                             'peaks': ['probability', 'indmode',
-                                      'ampmaen', 'ampsigma','ampmaxmin'],
+                                      'ampmaen', 'ampsigma', 'ampmaxmin'],
                             }
 
   ### INHERITED METHODS ###
@@ -495,6 +495,7 @@ class ARMA(supervisedLearning):
       if len(finalResult['Year']) > 3:
         JZTopSingerNA
       return finalResult
+
     else:
       return self._evaluateYear(featureVals)
 
