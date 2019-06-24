@@ -488,12 +488,12 @@ class ARMA(supervisedLearning):
           if target == self.pivotParameterID:
             continue
           finalResult[target][y][:] = value # [:] is a size checker
-      # high-dimensional indexing information
-      finalResult['_indexMap'] = dict((target, ['Year', self.pivotParameterID]) for target in self.target if target != self.pivotParameterID)
-      # print('DEBUGG finalResult for evaluate multiyear:')
-      # pp.pprint(finalResult)
-      if len(finalResult['Year']) > 3:
-        JZTopSingerNA
+        # high-dimensional indexing information
+        finalResult['_indexMap'] = dict((target, ['Year', self.pivotParameterID]) for target in self.target if target != self.pivotParameterID)
+        print('DEBUGG finalResult for evaluate multiyear:')
+        pp.pprint(finalResult)
+        if len(finalResult['Year']) > 3:
+          JZTopSingerNA # DEBUGG
       return finalResult
 
     else:
@@ -1154,7 +1154,7 @@ class ARMA(supervisedLearning):
     """
     if request is None:
       # since no special requests were made, we cluster on EV ER Y THING
-      return self.clusterableFeaters
+      return self._clusterableFeatures
     # otherwise we have to unpack the values as known to this ROM
     interpreted = collections.defaultdict(list)
     # create containers for unrecognized entries so we can report them all at once, bc WFFTU
