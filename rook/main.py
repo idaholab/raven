@@ -25,7 +25,11 @@ import inspect
 import time
 import threading
 
-import psutil
+try:
+  import psutil
+  psutil_avail = True
+except ImportError:
+  psutil_avail = False
 import pool
 import trees.TreeStructure
 from Tester import Tester, Differ
@@ -125,6 +129,9 @@ class LoadClass(threading.Thread):
     return smooth_avg
 
 if args.load_average > 0:
+  if not psutil_avail:
+    print("No module named 'psutil' and load average specified")
+    sys.exit(-1)
   load = LoadClass()
   load.start()
 
