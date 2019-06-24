@@ -1,19 +1,21 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework/ROM/TimeSeries/ARMA.Peaks</name>
-    <author>ZHOUJ</author>
-    <created>2019-05-29</created>
+    <name>framework/ROM/TimeSeries/ARMA.Multiyear</name>
+    <author>talbpaul</author>
+    <created>2019-05-14</created>
     <classesTested>SupervisedLearning.ARMA</classesTested>
     <description>
-       This test is aimed to check the possibility to train an ARMA+Fourier+Peaks model and its
-       capability to generate intrinsically stochastic time series
+       Tests sampling the ARMA with multiple years in each sample.
+       As a check, assure that for each realization, the ratio between the mean of years 1 and 0
+       should be near 1.5, and the ratio between years 2 and 0 should be 2.25.
+       Further, check that when ensembled the pass-through value is usable (mostly a check for ND data).
     </description>
   </TestInfo>
 
   <RunInfo>
-    <WorkingDir>Peaks</WorkingDir>
-    <Sequence>read, train, printrom, sample,print</Sequence>
+    <WorkingDir>Multiyear</WorkingDir>
+    <Sequence>read, train, print, pickle, sample, dump</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
 
@@ -26,33 +28,37 @@
       <Input class="DataObjects" type="HistorySet">rawData</Input>
       <Output class="Models" type="ROM">arma</Output>
     </RomTrainer>
-    <IOStep name="printrom">
+    <IOStep name="print">
       <Input class="Models" type="ROM">arma</Input>
       <Output class="DataObjects" type="DataSet">romMeta</Output>
       <Output class="OutStreams" type="Print">romMeta</Output>
     </IOStep>
+    <IOStep name='pickle'>
+      <Input class="Models" type="ROM">arma</Input>
+      <Output class="Files" type="">pk</Output>
+    </IOStep>
     <MultiRun name="sample">
       <Input class="DataObjects" type="PointSet">dataIn</Input>
-      <Model class="Models" type="ROM">arma</Model>
+      <Model class="Models" type="ROM">ens</Model>
       <Sampler class="Samplers" type="MonteCarlo">mcSampler</Sampler>
-      <Output class="DataObjects" type="HistorySet">synData</Output>
+      <Output class="DataObjects" type="DataSet">final_out</Output>
     </MultiRun>
-    <IOStep name="print">
-      <Input class="DataObjects" type="HistorySet">synData</Input>
-      <Output class="OutStreams" type="Print">synthetic</Output>
+    <IOStep name='dump'>
+      <Input class="DataObjects" type="DataSet">final_out</Input>
+      <Output class="OutStreams" type="Print">final_out</Output>
     </IOStep>
-
   </Steps>
 
   <Files>
     <Input name="rawDataFile">dataSet.csv</Input>
+    <Input name="pk">arma.pk</Input>
   </Files>
 
   <Samplers>
     <MonteCarlo name="mcSampler">
       <samplerInit>
-        <limit>5</limit>
-        <initialSeed>19901017</initialSeed>
+        <limit>3</limit>
+        <initialSeed>42</initialSeed>
       </samplerInit>
       <constant name="scaling">1.0</constant>
     </MonteCarlo>
@@ -60,38 +66,43 @@
 
   <Models>
     <ROM name="arma" subType="ARMA">
-      <Target>Signal,Time</Target>
+      <Target>Speed,Time</Target>
       <Features>scaling</Features>
       <pivotParameter>Time</pivotParameter>
-      <outTruncation domain="positive">Signal</outTruncation>
-      <P>1</P>
-      <Q>0</Q>
+      <outTruncation domain="positive">Speed</outTruncation>
+      <Fourier>168, 84, 24, 12</Fourier>
+      <seed>42</seed>
+      <P>0</P>
+      <Q>1</Q>
+      <reseedCopies>False</reseedCopies>
       <Multiyear>
         <years>3</years>
-        <growth targets='Signal' mode='linear'>10</growth>
+        <growth targets="Speed" mode="exponential">10</growth>
       </Multiyear>
-      <Segment grouping='cluster'>
-        <Classifier class='Models' type='PostProcessor'>classifier</Classifier>
+      <Segment>
         <subspace pivotLength="120" shift="first">Time</subspace>
-        <clusterFeatures>
-          Fourier,
-          Fourier.sin,
-          ARMA.sigma, ARMA.p, ARMA.q,
-          Peaks.probability, Peaks.mean, Peaks.sigma, Peaks.index
-        </clusterFeatures>
       </Segment>
       <preserveInputCDF>True</preserveInputCDF>
-      <Peaks target='Signal' threshold='2' period='24'>
+      <!--Peaks target='Speed' threshold='2' period='24'>
         <window width='4' >-2,3</window>
-        <window width='5' >12,16</window>
-      </Peaks>
+        <window width='5' >18,21</window>
+        <nbin>5</nbin>
+
+      </Peaks-->
     </ROM>
-    <PostProcessor name='classifier' subType='DataMining'>
-      <KDD labelFeature='labels' lib='SciKitLearn'>
-        <Features>Signal</Features>
-        <SKLtype>cluster|AffinityPropogation</SKLtype>
-      </KDD>
-    </PostProcessor>
+    <ExternalModel name='after_arma' subType='' ModuleToLoad='after_arma'>
+      <variables>Speed, Time, Year, yearly_aggregate</variables>
+    </ExternalModel>
+    <EnsembleModel name='ens' subType=''>
+      <Model class='Models' type='ROM'>arma
+        <Input class='DataObjects' type='PointSet'>dataIn</Input>
+        <TargetEvaluation class='DataObjects' type='DataSet'>synData</TargetEvaluation>
+      </Model>
+      <Model class='Models' type='ExternalModel'>after_arma
+        <Input class='DataObjects' type='PointSet'>afterIn</Input>
+        <TargetEvaluation class='DataObjects' type='DataSet'>after_rom_data</TargetEvaluation>
+      </Model>
+    </EnsembleModel>
   </Models>
 
   <OutStreams>
@@ -99,13 +110,10 @@
       <type>csv</type>
       <source>romMeta</source>
     </Print>
-
-    <Print name="synthetic">
+    <Print name="final_out">
       <type>csv</type>
-      <source>synData</source>
-      <what>input, output</what>
+      <source>final_out</source>
     </Print>
-
   </OutStreams>
 
   <DataObjects>
@@ -113,19 +121,36 @@
       <Input>scaling</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
+    <PointSet name="afterIn">
+      <Input>Speed</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
     <HistorySet name="rawData">
       <Input>scaling</Input>
-      <Output>Signal,Time</Output>
+      <Output>Speed,Time</Output>
       <options>
         <pivotParameter>Time</pivotParameter>
       </options>
     </HistorySet>
     <DataSet name="synData">
       <Input>scaling</Input>
-      <Output>Signal</Output>
-      <Index var="Time">Signal</Index>
-      <Index var="Year">Signal</Index>
+      <Output>Speed</Output>
+      <Index var="Time">Speed</Index>
+      <Index var="Year">Speed</Index>
     </DataSet>
+    <DataSet name="after_rom_data">
+      <Input>Speed</Input>
+      <Output>yearly_aggregate</Output>
+      <Index var="Time">Speed</Index>
+      <Index var="Year">Speed, yearly_aggregate</Index>
+    </DataSet>
+    <HistorySet name="final_out">
+      <Input>scaling</Input>
+      <Output>yearly_aggregate</Output>
+      <options>
+        <pivotParameter>Year</pivotParameter>
+      </options>
+    </HistorySet>
     <DataSet name="romMeta"/>
   </DataObjects>
 

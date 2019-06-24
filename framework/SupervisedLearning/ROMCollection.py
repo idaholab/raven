@@ -675,7 +675,6 @@ class Clusters(Segments):
         rlz[varName] = np.asarray(self._clusterInfo['features'][scaling][name])
     varName = 'ClusterLabels'
     writeTo.addVariable(varName, np.array([]), classify='meta', indices=['segment_number'])
-    print('DEBUGG preprint cluster info:', len(self._clusterInfo['labels']))
     rlz[varName] = np.asarray(self._clusterInfo['labels'])
     writeTo.addRealization(rlz)
 
@@ -717,12 +716,7 @@ class Clusters(Segments):
       @ In, clusterFeatures, dict, data on which to train classifier
       @ Out, labels, list(int), ordered list of labels corresponding to ROM subdomains
     """
-    # the actual classifying algorithms is the unSupervisedEngine of the QDataMining of the PP Model
-    ## get the instance
-    #print('DEBUGG classifier is:', classifier)
-    #print('DEBUGG              :', classifier.interface)
-    #print('DEBUGG              :', classifier.interface.unSupervisedEngine)
-    #classifier = classifier.interface.unSupervisedEngine
+    # "classifier" is a unSupervisedLearning object (i.e. SciKitLearn or similar)
     # update classifier features
     classifier.updateFeatures(features)
     # make the clustering instance)
@@ -767,7 +761,6 @@ class Clusters(Segments):
       allIndices = set()
       for target, indices in indexMap.items():
         allIndices.update(indices)
-      print('DEBUGG indices:', allIndices)
       # populate results storage
       if result is None:
         result = dict((target, []) for target in subResults if target not in allIndices)
@@ -782,7 +775,6 @@ class Clusters(Segments):
       stackIndex = indexMap.get(target, [pivotID]).index(pivotID)
       # if target in indexMap:
       #   stackIndex = indexMap[target].index(pivotID)
-      print('DEBUGG len values:', target, len(values))
       result[target] = np.concatenate(values, axis=stackIndex)
     # put in the indexes
     for index in allIndices:
@@ -791,7 +783,8 @@ class Clusters(Segments):
       else:
         # NOTE this assumes all the non-pivot dimensions are synchronized between segments!!
         result[index] = subResults[index]
-    result['_indexMap'] = indexMap
+    if indexMap:
+      result['_indexMap'] = indexMap
     # combine history weights
     sampleWeights = np.hstack(sampleWeights)
     sampleWeights /= sum(sampleWeights)
@@ -905,7 +898,6 @@ class Clusters(Segments):
     self._clusterInfo['map']['unclustered'] = unclusteredROMs
 
   def _clusterSegments(self, roms, divisions):
-    print('DEBUGG len of precluster roms:', len(roms))
     counter, remainder = divisions
     # collect ROM features (basic stats, etc)
     clusterFeatures = self._gatherClusterFeatures(roms, counter)
@@ -922,7 +914,6 @@ class Clusters(Segments):
       # the same identifier might show up for multiple targets
       if ident not in hierarchFeatures[metric]:
         hierarchFeatures[metric].append(ident)
-      print('DEBUGG len cluster data:', feature, len(clusterFeatures[feature]))
     ## weighting strategy, TODO make optional for the user
     weightingStrategy = 'uniform'
     clusterFeatures = self._weightAndScaleClusters(features, hierarchFeatures, clusterFeatures, weightingStrategy)
@@ -933,11 +924,7 @@ class Clusters(Segments):
     self.raiseAMessage('Identified {} clusters while training clustered ROM "{}".'.format(len(uniqueLabels), self._romName))
     # make cluster information dict
     self._clusterInfo['labels'] = labels
-    print('DEBUGG len of labels:', len(labels))
     ## clustered
-    print('DEBUGG roms:', type(roms))
-    for label in uniqueLabels:
-      print('   ',labels == label, len(roms[labels==label]))
     self._clusterInfo['map'] = dict((label, roms[labels == label]) for label in uniqueLabels)
     # TODO what about the unclustered ones? We throw them out in truncated representation, of necessity.
     self._roms = list(self._clusterInfo['map'][label][0] for label in uniqueLabels)
@@ -1036,10 +1023,10 @@ class Interpolated(supervisedLearning):
   def _interpolateSteps(self, trainingDict):
     """ Master method for interpolating missing ROMs for steps """
     # acquire interpolatable information
-    exampleModel = list(self._macroSteps.values())[0]
+    exampleModel = list(self._macroSteps.values())[0] # example MACRO model (e.g. example year)
     print('DEBUGG top of interpolate steps:', list(exampleModel._divisionInfo.keys()))
-     ### TODO FIXME WORKING
-     # the exampleModel has self._divisionInfo, but the macroTemplate does not!
+    ### TODO FIXME WORKING
+    # the exampleModel has self._divisionInfo, but the macroTemplate does not!
     # HOWEVER, you can't currently retrain the macroTemplate, but the copied newModel
     # interpolated ROMS don't have the divisionInfo! Apparently there's a missing step in
     # here somewhere. Right now we raise an error with the already-trained Classifier,
@@ -1103,7 +1090,7 @@ class Interpolated(supervisedLearning):
         params = model._roms[0].parametrizeGlobalRomFeatures(model._romGlobalAdjustments)
       # otherwise, need to capture segment information as well as the global information
       else:
-        params = model.getSegmentRoms(full=True)[index].getFundamentalFeatures()
+        params = model.getSegmentRoms(full=True)[index].getFundamentalFeatures(None)
       newDf = pd.DataFrame(params, index=[step])
       if df is None:
         df = newDf
@@ -1118,9 +1105,8 @@ class Interpolated(supervisedLearning):
     return interp
 
   def _interpolateSVL(self, trainingDict, exampleRoms, exampleModel, template, N, globalInterp, segmentInterps, index):
-    print('DEBUGG temp, delims:', list(template._divisionInfo.keys()))
-    newModel = copy.deepcopy(template)
-    print('DEBUGG new, delims:', list(newModel._divisionInfo.keys()))
+    """ interpolates a single engine for a single macro step (e.g. a single year) """
+    newModel = copy.deepcopy(exampleModel) #copy.deepcopy(template)
     segmentRoms = [] # FIXME speedup, make it a numpy array from the start
     for segment in range(N):
       data = segmentInterps[segment]['method'](index)
@@ -1167,32 +1153,41 @@ class Interpolated(supervisedLearning):
     ## TODO set up right for ND??
     numMacro = len(self._macroSteps)
     for m, (macroStep, model) in enumerate(sorted(self._macroSteps.items(), key=lambda x: x[0])):
-      self.raiseADebug(' ... evaluating macro step "{}"'.format(macroStep))
+      # m is an index of the macro step, in order of the macro values (e.g. in order of years)
+      # macroStep is the actual macro step value (e.g. the year)
+      # model is the ClusterROM instance for this macro step
+      self.raiseADebug(' ... evaluating macro step "{}" of "{}"'.format(macroStep+1, numMacro))
       subResult = model.evaluate(edict) # TODO same input for all macro steps? True for ARMA at least...
+      print('DEBUGG subResult:', subResult.keys())
       indexMap = subResult.get('_indexMap', {})
       # if not set up yet, then frame results structure
       if results is None:
         results = {}
         finalIndexMap = indexMap # in case every rlz doesn't use same order, which would be lame
         pivotID = model._templateROM.pivotParameterID
-        pivotVals = subResult[pivotID]
-        numPivot = len(pivotVals)
+        #pivotVals = subResult[pivotID]
+        #numPivot = len(pivotVals)
         for target, values in subResult.items():
           # if an index, just set the values now # FIXME assuming always the same!
-          if target == pivotID or target in indexMap:
+          ## FIXME thing is, they're not always the same, we're clustering, so sometimes there's diff num days!
+          ## TODO for now, we simply require using a classifier that always has the same number of entries.
+          if target in [pivotID, '_indexMap'] or target in indexMap:
             results[target] = values
           else:
             results[target] = np.zeros([numMacro] + list(values.shape))
       # END setting up results structure, if needed
       # FIXME reshape in case indexMap is not the same as finalIndexMap?
       for target, values in subResult.items():
-        if target == pivotID or target in indexMap:
+        if target in [pivotID, '_indexMap'] or target in indexMap:
           continue
         indexer = tuple([m] + [None]*len(values.shape))
-        results[target][indexer] = values
+        try:
+          results[target][indexer] = values
+        except ValueError:
+          self.raiseAnError(RuntimeError, 'The shape of the histories along the pivot parameter is not consistent! Try using a clustering classifier that always returns the same number of clusters.')
     if finalIndexMap is not None:
       results['_indexMap'] = finalIndexMap
-    eeeeeeeee
+    return results
 
 
   ############### DUMMY ####################
