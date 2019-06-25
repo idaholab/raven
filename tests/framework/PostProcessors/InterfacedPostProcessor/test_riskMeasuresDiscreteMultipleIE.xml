@@ -108,6 +108,7 @@
     <Print name="PrintPPS_dump">
       <type>csv</type>
       <source>outPPS</source>
+      <what>input,output</what>
     </Print>
   </OutStreams>
   
