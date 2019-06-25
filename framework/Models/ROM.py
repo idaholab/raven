@@ -225,9 +225,12 @@ class ROM(Dummy):
     inputSpecification.addSub(multiYear)
     ### ARMA peaks
     peaks = InputData.parameterInputFactory('Peaks')
+    nbin= InputData.parameterInputFactory('nbin',contentType=InputData.IntegerType)
     window = InputData.parameterInputFactory('window',contentType=InputData.FloatListType)
     window.addParam('width', InputData.FloatType, True)
     peaks.addSub(window)
+    peaks.addSub(nbin)
+
     peaks.addParam('threshold', InputData.FloatType)
     peaks.addParam('target', InputData.StringType)
     peaks.addParam('period', InputData.FloatType)
@@ -499,7 +502,7 @@ class ROM(Dummy):
     """
     inputToROM       = self._inputToInternal(request)
     outputEvaluation = self.supervisedEngine.evaluate(inputToROM)
-    print('DEBUGG ROM pre 1d eval:', outputEvaluation.get('Year', None))
+    # print('DEBUGG ROM pre 1d eval:', outputEvaluation.get('Year', None))
     # assure numpy array formatting # TODO can this be done in the supervised engine instead?
     for k,v in outputEvaluation.items():
       outputEvaluation[k] = np.atleast_1d(v)

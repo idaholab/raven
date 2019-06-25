@@ -606,8 +606,9 @@ class Clusters(Segments):
     else:
       inputRequests = inputRequestsNode.value
       userRequests = self._extrapolateRequestedClusterFeatures(inputRequests)
+      print('dasfskfhsehfglsegjlsegjlsbgljsbjlgbsjkbgjksdbgjksbgdjksgbs',userRequests)
     self._clusterFeatures = self._templateROM.checkRequestedClusterFeatures(userRequests)
-
+    print('gjygjyjyyfjyfjyfyjfjyfyjfjyf',self._clusterFeatures)
   def readAssembledObjects(self):
     """
       Collects the entities from the Assembler as needed.

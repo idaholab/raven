@@ -58,11 +58,14 @@ class ARMA(supervisedLearning):
   """
   # class attribute
   ## define the clusterable features for this ROM.
-  _clusterableFeatures = {'fourier': ['sin', 'cos'],
-                         'arma': ['sigma', 'p', 'q'],
-                          # NO CDF
-                         'peaks': ['probability', 'mean', 'sigma', 'index'],
-                        }
+  _clusterableFeatures =   {'global':['miu'],
+                            'fourier': ['equal','shorter'],
+                            #FIXME shorter fourier intepolation\\
+                            'arma': ['sigma', 'p', 'q'],
+                            # NO CDF
+                            'peaks': ['probability', 'mean', 'sigma', 'index'],
+                            }
+
 
   ### INHERITED METHODS ###
   def __init__(self, messageHandler, **kwargs):
@@ -217,8 +220,10 @@ class ARMA(supervisedLearning):
         peak['period']=period
         # read the period for the peaks and store it in the dict
         windows=[]
+        nbin=5
         # creat an empty list to store the windows' information
         for cchild in child.subparts:
+
           if cchild.getName() == 'window':
             tempDict={}
             window = cchild.value
@@ -228,11 +233,14 @@ class ARMA(supervisedLearning):
             # for each window in the windows, we create a dictionary. Then store the
             # peak's width, the index of stating point and ending point in time unit
             windows.append(tempDict)
+          elif cchild.getName() == 'nbin':
+            nbin=cchild.value
         peak['windows']=windows
+        peak['nbin']=nbin
+
         target = child.parameterValues['target']
         # target is the key to reach each peak information
         self.peaks[target]=peak
-
     # read GENERAL parameters for Fourier detrending
     ## these apply to everyone without SpecificFourier nodes
     ## use basePeriods to check if Fourier node present
@@ -343,19 +351,29 @@ class ARMA(supervisedLearning):
       maskPeakRes = np.ones(len(timeSeriesData), dtype=bool)
       # Make a full mask
       if target in self.peaks:
-        deltaT=self.pivotParameterValues[-1]-self.pivotParameterValues[0]
-        deltaT=deltaT/(len(self.pivotParameterValues)-1)
-        # change the peak information in self.peak from time unit into index by divided the timestep
-        # deltaT is the time step calculated by (ending point - stating point in time)/(len(time)-1)
-        self.peaks[target]['period']=int(self.peaks[target]['period']/deltaT)
-        for i in range(len(self.peaks[target]['windows'])):
-          self.peaks[target]['windows'][i]['window'][0]=int(self.peaks[target]['windows'][i]['window'][0]/deltaT)
-          self.peaks[target]['windows'][i]['window'][1]=int(self.peaks[target]['windows'][i]['window'][1]/deltaT)
-          self.peaks[target]['windows'][i]['width']=int(self.peaks[target]['windows'][i]['width']/deltaT)
-        groupWin , maskPeakRes=self._peakGroupWindow(timeSeriesData, windowDict=self.peaks[target] )
-        self.peaks[target]['groupWin']=groupWin
-        self.peaks[target]['mask']=maskPeakRes
+        # print(self.peaks)
+        # deltaT=self.pivotParameterValues[-1]-self.pivotParameterValues[0]
+        # deltaT=deltaT/(len(self.pivotParameterValues)-1)
+        # print(deltaT)
+        # # change the peak information in self.peak from time unit into index by divided the timestep
+        # # deltaT is the time step calculated by (ending point - stating point in time)/(len(time)-1)
+        # self.peaks[target]['period']=int(self.peaks[target]['period']/deltaT)
+        # for i in range(len(self.peaks[target]['windows'])):
+        #   self.peaks[target]['windows'][i]['window'][0]=int(self.peaks[target]['windows'][i]['window'][0]/deltaT)
+        #   self.peaks[target]['windows'][i]['window'][1]=int(self.peaks[target]['windows'][i]['window'][1]/deltaT)
+        #   self.peaks[target]['windows'][i]['width']=int(self.peaks[target]['windows'][i]['width']/deltaT)
+        # groupWin , maskPeakRes=self._peakGroupWindow(timeSeriesData, windowDict=self.peaks[target] )
+        # self.peaks[target]['groupWin']=groupWin
+        # self.peaks[target]['mask']=maskPeakRes
 
+        # rangeWindow = self.rangeWindow(windowDict=self.peaks[target])
+        # self.peaks[target]['rangeWindow']=rangeWindow
+        peakResults=self._trainPeak(timeSeriesData,windowDict=self.peaks[target])
+        self.peaks[target].update(peakResults)
+        maskPeakRes = peakResults['mask']
+
+
+        # print(peakResults)
       if target in self.fourierParams:
         self.raiseADebug('... analyzing Fourier signal  for target "{}" ...'.format(target))
         self.fourierResults[target] = self._trainFourier(self.pivotParameterValues,
@@ -847,6 +865,36 @@ class ARMA(supervisedLearning):
               #'cdfSearch':neighbors.NearestNeighbors(n_neighbors=2).fit([[c] for c in cdf])}
     return params
 
+  def _trainPeak(self,timeSeriesData,windowDict):
+    """
+      Generate peaks results from each target data
+      @ In, timeSeriesData, np.array, list of values for the dependent variable (signal to take fourier from)
+      @ In, windowDict, dict, dictionary for specefic target peaks
+      @ Out, peakResults, dict, results of this training in keys 'period', 'windows', 'groupWin', 'mask', 'rangeWindow'
+    """
+    peakResults={}
+    deltaT=self.pivotParameterValues[-1]-self.pivotParameterValues[0]
+    deltaT=deltaT/(len(self.pivotParameterValues)-1)
+    # change the peak information in self.peak from time unit into index by divided the timestep
+    # deltaT is the time step calculated by (ending point - stating point in time)/(len(time)-1)
+    peakResults['period']=int(windowDict['period']/deltaT)
+    windows=[]
+    for i in range(len(windowDict['windows'])):
+      window={}
+      window['window']=[int(windowDict['windows'][i]['window'][0]/deltaT),int(windowDict['windows'][i]['window'][1]/deltaT)]
+      window['width']=int(windowDict['windows'][i]['width']/deltaT)
+      windows.append(window)
+    peakResults['windows']=windows
+    groupWin , maskPeakRes=self._peakGroupWindow(timeSeriesData, windowDict = windowDict )
+    peakResults['groupWin']=groupWin
+    peakResults['mask']=maskPeakRes
+    peakResults['nbin']=windowDict['nbin']
+    rangeWindow = self.rangeWindow(windowDict=windowDict)
+    peakResults['rangeWindow']=rangeWindow
+    # print('gW',groupWin)
+    # print('rW',rangeWindow)
+    return peakResults
+
   def _trainFourier(self, pivotValues, periods, values, masks=None,zeroFilter=False):
     """
       Perform fitting of Fourier series on self.timeSeriesDatabase
@@ -1065,6 +1113,7 @@ class ARMA(supervisedLearning):
         for group in peakInfo['groupWin']:
           groupnode=xmlUtils.newNode('peak')
           groupnode.append(xmlUtils.newNode('Amplitude', text='{}'.format(np.array(group['Amp']).mean())))
+          #FIXME
           groupnode.append(xmlUtils.newNode('Index', text='{}'.format(np.array(group['Ind']).mean())))
           peakNode.append(groupnode)
 
@@ -1234,6 +1283,75 @@ class ARMA(supervisedLearning):
       for e, edge in enumerate(edges):
         feature = featureTemplate.format(target=target, metric='cdf', id='edges_{}'.format(e))
         features[feature] = edge
+
+    for target, peak in self.peaks.items():
+      # print('啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦 我是分界线1 啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦')
+      nBin = self.peaks[target]['nbin']
+      if 'groupWin' in peak.keys() and 'rangeWindow' in peak.keys():
+        for g , group in enumerate(peak['groupWin']):
+          ## prbExit
+          # g is the group of the peaks probExist is the exist probability for this type of peak
+          lenWin=min(len(peak['rangeWindow'][g]['bg']),len(peak['rangeWindow'][g]['end']))
+          # ID = 'gp_{}_lenWin'.format(g)
+          # feature = featureTemplate.format(target=target, metric='peak', id=ID)
+          # features[feature] = lenWin
+
+          # prbability if this peak exist
+          prbExist = len(group['Ind'])/lenWin
+          ID = 'gp_{}_probExist'.format(g)
+          feature = featureTemplate.format(target=target, metric='peak', id=ID)
+          features[feature] = prbExist
+
+          ## IND
+          #most probabble index
+          modeInd= stats.mode(group['Ind'])[0][0]
+          ID = 'gp_{}_modeInd'.format(g)
+          feature = featureTemplate.format(target=target, metric='peak', id=ID)
+          features[feature] = modeInd
+          # index distribution
+          indBins=np.arange(peak['rangeWindow'][g]['end'][0]-peak['rangeWindow'][g]['bg'][0]-1)+1
+          indCounts, _ = np.histogram(group['Ind'], bins=indBins, density=False)
+          for c, count in enumerate(indCounts):
+            feature = featureTemplate.format(target=target, metric='peak', id='gp_{}_ind {}'.format(g,c))
+            features[feature] = count
+
+          ## AMP
+          #mean
+          meanAmp=rv_histogram(np.histogram(group['Amp'])).mean()
+          feature = featureTemplate.format(target=target, metric='peak', id='gp_{}_meanAmp'.format(g))
+          features[feature] = meanAmp
+
+          ##std
+          stdAmp=rv_histogram(np.histogram(group['Amp'])).std()
+          feature = featureTemplate.format(target=target, metric='peak', id='gp_{}_stdAmp'.format(g))
+          features[feature] = stdAmp
+
+
+          maxAmp=max(group['Amp'])
+          feature = featureTemplate.format(target=target, metric='peak', id='gp_{}_maxAmp'.format(g))
+          features[feature] = maxAmp
+          minAmp=min(group['Amp'])
+          feature = featureTemplate.format(target=target, metric='peak', id='gp_{}_minAmp'.format(g))
+          features[feature] = minAmp
+          ## distribution on the Amp
+          ampCounts, _ = np.histogram(group['Amp'], bins = nBin,density = False)
+          #retn=np.linspace(minAmp, maxAmp, num=nBin+1)
+          for c, count in enumerate(ampCounts):
+            feature = featureTemplate.format(target=target, metric='peak', id='gp_{}_amp {}'.format(g,c))
+            features[feature] = count
+
+      #     print(g)
+      #     print(group['Ind'])
+      #     print(len(group['Ind']))
+      #     print(ampCounts)
+
+      #     print(maxAmp)
+      #     print(minAmp)
+      #     print(nBin)
+      # pp.pprint(features)
+      # print('啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦 我是分界线2 啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦')
+
+
     return features
 
   def readFundamentalFeatures(self, features):
@@ -1241,6 +1359,8 @@ class ARMA(supervisedLearning):
     fourier = collections.defaultdict(dict)
     arma = collections.defaultdict(dict)
     cdf = collections.defaultdict(dict)
+    peak = collections.defaultdict(dict)
+
     for feature, val in features.items():
       target, metric, ID = feature.split('|')
 
@@ -1280,17 +1400,38 @@ class ARMA(supervisedLearning):
             cdf[target]['edges'] = {}
           cdf[target]['edges'][e] = val
 
+      elif metric == 'peak':
+        _, group, realID = ID.split('_')
+        if group not in peak[target]:
+          peak[target][group] = {}
+        if realID.startswith('amp'):
+          c = int(realID.split(' ')[1])
+          if 'ampCounts' not in peak[target][group]:
+            peak[target][group]['ampCounts'] = {}
+          peak[target][group]['ampCounts'][c] = val
+        elif realID.startswith('ind'):
+          c = int(realID.split(' ')[1])
+          if 'indCounts' not in peak[target][group]:
+            peak[target][group]['indCounts'] = {}
+          peak[target][group]['indCounts'][c] = val
+        else:
+          peak[target][group][realID]=val
       else:
         raise KeyError('Unrecognized metric: "{}"'.format(metric))
     return {'fourier': fourier,
             'arma': arma,
-            'cdf': cdf}
+            'cdf': cdf,
+            'peak': peak}
 
   def setFundamentalFeatures(self, features):
-    """opposite of getFundamentalFeatures, expects results as from readFundamentalFeatures"""
+    """
+    opposite of getFundamentalFeatures, expects results as from readFundamentalFeatures
+    """
     self._setFourierResults(features.get('fourier', {}))
     self._setArmaResults(features.get('arma', {}))
     self._setCDFResults(features.get('cdf', {}))
+    self._setPeakResults(features.get('peak', {}))
+
     self.amITrained = True
 
   def _setFourierResults(self, paramDict):
@@ -1350,6 +1491,40 @@ class ARMA(supervisedLearning):
       dist = stats.rv_histogram(histogram)
       self._trainingCDF[target] = (dist, histogram)
 
+  def _setPeakResults(self, paramDict):
+    for target, info in paramDict.items():
+      groupWin=[]
+      for g, groupInfo in info.items():
+        lenWin=min(len(self.peak[target]['rangeWindow'][g]['bg']),len(self.peak[target]['rangeWindow'][g]['end']))
+        groupWin.append({})
+        g = int(g)
+        lsCs=list(groupInfo['ampCounts'].items())
+        _, hisCs = zip(*sorted(lsCs, key=lambda x: x[0]))
+        ampHisCs = np.asarray(hisCs)
+        maxAmp=groupInfo['maxAmp']
+        minAmp=groupInfo['minAmp']
+        ampHisEg=np.linspace(minAmp, maxAmp, num=len(ampHisCs)+1)
+        histogram = (ampHisCs, ampHisEg)
+        dist = stats.rv_histogram(histogram)
+        probExist=groupInfo['probExist']
+
+        ampLocal=dist.rvs(size=int(probExist*lenWin)).tolist()
+
+        lsIndCs=list(groupInfo['indCounts'].items())
+        _, hisIndCs = zip(*sorted(lsIndCs, key=lambda x: x[0]))
+        indHisCs = np.asarray(hisIndCs)
+        histogramInd = (indHisCs, np.arange(len(indHisCs)+1)+1)
+
+        distInd = stats.rv_histogram(histogramInd)
+        indLocal=distInd.rvs(size=int(probExist*lenWin)).tolist()
+        for indexOfIndex,valueOfIndex in enumerate(indLocal):
+          valueOfIndex=int(valueOfIndex)
+          indLocal[indexOfIndex]=valueOfIndex
+
+        groupWin[g]['Ind']=indLocal
+        groupWin[g]['Amp']=ampLocal
+      self.peak[target]['groupWin']=groupWin
+
   def getGlobalRomSegmentSettings(self, trainingDict, divisions):
     """
       Allows the ROM to perform some analysis before segmenting.
@@ -1362,6 +1537,7 @@ class ARMA(supervisedLearning):
     trainingDict = copy.deepcopy(trainingDict) # otherwise we destructively tamper with the input data object
     settings = {}
     targets = list(self.fourierParams.keys())
+
     # set up for input CDF preservation on a global scale
     if self.preserveInputCDF:
       inputDists = {}
@@ -1558,6 +1734,10 @@ class ARMA(supervisedLearning):
     if 'long Fourier signal' in settings:
       for target, signal in settings['long Fourier signal'].items():
         sig = signal['predict'][picker]
+        # print('ljsdlfjldjflsdjfglsjdgldjglsjdgljdsgklsjdgkljsdkg')
+        # print(picker)
+        # print('sig',np.shape(sig))
+        # print('ev',np.shape(evaluation[target][:,picker]))
         evaluation[target][picker] += sig
     return evaluation
 
@@ -1631,6 +1811,7 @@ class ARMA(supervisedLearning):
     rangeWindow = self.rangeWindow(windowDict)
     low = windowDict['threshold']
     windows = windowDict['windows']
+    period = windowDict['period']
     for i in range(len(windowDict['windows'])):
       bg  = rangeWindow[i]['bg']
       end = rangeWindow[i]['end']
@@ -1645,19 +1826,31 @@ class ARMA(supervisedLearning):
         # include all the posible windows
         bgLocal = bg[j]
         endLocal = end[j]
-        peak, height = self._peakPicker(signal[bgLocal:endLocal], low=low)
+        if bgLocal<endLocal:
+          peak, height = self._peakPicker(signal[bgLocal:endLocal], low=low)
+        else:
+          peak, height = self._peakPicker(np.concatenate([signal[bgLocal:], signal[:endLocal]]), low=low)
         if len(peak) ==1:
+          # print('test1',peak)
           indLocal.append(int(peak))
           ampLocal.append(float(height))
-          maskBg=int(peak)+bgLocal-int(np.floor(windows[i]['width']/2))
-          maskEnd=int(peak)+bgLocal+int(np.ceil(windows[i]['width']/2))
-          maskPeakRes[maskBg:maskEnd]=False
+          maskBg=int((int(peak)+bgLocal-int(np.floor(windows[i]['width']/2)))%len(self.pivotParameterValues))
+          maskEnd=int((int(peak)+bgLocal+int(np.ceil(windows[i]['width']/2)))%len(self.pivotParameterValues))
+          if maskBg>maskEnd:
+            maskPeakRes[maskBg:] = False
+            maskPeakRes[:maskEnd] = False
+          else:
+            maskPeakRes[maskBg:maskEnd] = False
         elif len(peak) >1:
           indLocal.append(int(peak[np.argmax(height)]))
           ampLocal.append(float(height[np.argmax(height)]))
-          maskBg=int(peak[np.argmax(height)])+bgLocal-int(np.floor(windows[i]['width']/2))
-          maskEnd=int(peak[np.argmax(height)])+bgLocal+int(np.ceil(windows[i]['width']/2))
-          maskPeakRes[maskBg:maskEnd]=False
+          maskBg=int((int(peak[np.argmax(height)])+bgLocal-int(np.floor(windows[i]['width']/2)))%len(self.pivotParameterValues))
+          maskEnd=int((int(peak[np.argmax(height)])+bgLocal+int(np.ceil(windows[i]['width']/2)))%len(self.pivotParameterValues))
+          if maskBg>maskEnd:
+            maskPeakRes[maskBg:] = False
+            maskPeakRes[:maskEnd] = False
+          else:
+            maskPeakRes[maskBg:maskEnd] = False
       peakInfo['Ind'] = indLocal
       peakInfo['Amp'] = ampLocal
       groupWin.append(peakInfo)
@@ -1691,21 +1884,31 @@ class ARMA(supervisedLearning):
           Amp = rv_histogram(histAmp).rvs()
           Ind = int(rv_histogram(histInd).rvs())
           # generate the amplitude and the relative position base on the distribution
-          SigInd = bgLocal+Ind
-          SigInd = int(SigInd%len(self.pivotParameterValues))
+          SigIndOrg = bgLocal+Ind
+          #signalOrg can be longer than the segment length
+          SigInd = int(SigIndOrg%len(self.pivotParameterValues))
           signal[SigInd] = Amp
           # replace the signal with peak in this window
           maskBg = SigInd-int(np.floor(windows[i]['width']/2))
+          ## peaks begin index can be negative end index can be more than the length of the segments
           maskEnd = SigInd+int(np.ceil(windows[i]['width']/2))
+          bgValue = signal[maskBg-1]
+          endVaue = signal[int((maskEnd+1)%len(self.pivotParameterValues))]
+          # valueBg=np.interp(range(maskBg,SigInd), [maskBg-1,SigInd], [bgValue,  Amp])
+          # valueEnd=np.interp(range(SigInd+1,maskEnd+1), [SigInd,maskEnd+1],   [Amp,endVaue])
+          valuePeak=np.interp(range(maskBg,maskEnd+1), [maskBg-1,SigInd,maskEnd+1],   [bgValue,Amp,endVaue])
+          maskBg=int(maskBg%len(self.pivotParameterValues))
+          maskEnd=int(maskEnd%len(self.pivotParameterValues))
+          # maskbg and end now can be used as index in segment
           # replace the signal inside the width of this peak by interpolation
-          if maskBg > 0 and maskEnd < len(self.pivotParameterValues)-1:
-            # make sure the window is inside the range of the signal
-            bgValue = signal[maskBg-1]
-            endVaue = signal[maskEnd+1]
-            valueBg=np.interp(range(maskBg,SigInd), [maskBg-1,SigInd], [bgValue,  Amp])
-            signal[maskBg:SigInd]=valueBg
-            valueEnd=np.interp(range(SigInd+1,maskEnd+1), [SigInd,maskEnd+1],   [Amp,endVaue])
-            signal[SigInd+1:maskEnd+1]=valueEnd
+          if maskEnd > maskBg:
+            signal[maskBg:maskEnd+1]=valuePeak
+          else:
+            localTailInd=list(range(maskBg, int(len(self.pivotParameterValues))))
+            localHeadInd=list(range(0, maskEnd+1))
+            actPeakInd=localTailInd+localHeadInd
+            for idd, ind in enumerate(actPeakInd):
+              signal[ind]=valuePeak[idd]
       return signal
 
   ### ESSENTIALLY UNUSED ###
