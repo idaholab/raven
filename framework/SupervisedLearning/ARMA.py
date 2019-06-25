@@ -461,10 +461,6 @@ class ARMA(supervisedLearning):
           finalResult[target][y][:] = value # [:] is a size checker
         # high-dimensional indexing information
         finalResult['_indexMap'] = dict((target, ['Year', self.pivotParameterID]) for target in self.target if target != self.pivotParameterID)
-        print('DEBUGG finalResult for evaluate multiyear:')
-        pp.pprint(finalResult)
-        if len(finalResult['Year']) > 3:
-          JZTopSingerNA # DEBUGG
       return finalResult
 
     else:
@@ -1129,7 +1125,7 @@ class ARMA(supervisedLearning):
 
     return interpreted
 
-  def  isClusterable(self):
+  def isClusterable(self):
     """
       Allows ROM to declare whether it has methods for clustring. Default is no.
       @ In, None
