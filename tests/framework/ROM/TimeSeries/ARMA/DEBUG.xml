@@ -81,33 +81,14 @@
       </Multiyear>
       <Segment>
         <subspace pivotLength="120" shift="first">Time</subspace>
-<<<<<<< HEAD
-        <clusterFeatures>
-          Fourier,
-          Fourier.sin,
-          ARMA.sigma, ARMA.p, ARMA.q,
-          Peaks.probability, Peaks.mean, Peaks.sigma, Peaks.index
-        </clusterFeatures>
-        <!--interpolationeatures>
-          ARMA.sigma, ARMA.p, ARMA.q,
-          Peaks.probability, Peaks.inddist, Peaks.ampdist
-        </interpolationeatures-->
-=======
->>>>>>> 8563fff6b2fe29899ba55b442a432601b52fc7c6
       </Segment>
       <preserveInputCDF>True</preserveInputCDF>
       <!--Peaks target='Speed' threshold='2' period='24'>
         <window width='4' >-2,3</window>
-<<<<<<< HEAD
-        <window width='5' >12,16</window>
-        <nbin>5</nbin>
-      </Peaks>
-=======
         <window width='5' >18,21</window>
         <nbin>5</nbin>
 
       </Peaks-->
->>>>>>> 8563fff6b2fe29899ba55b442a432601b52fc7c6
     </ROM>
     <ExternalModel name='after_arma' subType='' ModuleToLoad='after_arma'>
       <variables>Speed, Time, Year, yearly_aggregate</variables>
