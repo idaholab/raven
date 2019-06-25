@@ -65,18 +65,7 @@ class ARMA(supervisedLearning):
                             # NO CDF
                             'peaks': ['probability', 'mean', 'sigma', 'index'],
                             }
-  _interpolationFeatures = {'global':['cdf'],
-                            'fourier': ['longer'],
-                            'arma': ['sigma', 'p', 'q'],
-                            'peaks': ['probability', 'inddist', 'ampdist'],
-                            }
 
-  _xmlFeatures =           {'global':['miu'],
-                            'fourier': ['longer','equal','shorter'],
-                            'arma': ['sigma'],
-                            'peaks': ['probability', 'indmode',
-                                      'ampmaen', 'ampsigma', 'ampmaxmin'],
-                            }
 
   ### INHERITED METHODS ###
   def __init__(self, messageHandler, **kwargs):
