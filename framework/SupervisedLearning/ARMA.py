@@ -775,7 +775,7 @@ class ARMA(supervisedLearning):
     y[y <= 0.0] = np.finfo(float).eps
     return y
 
-  def _sampleICDF(self,x,params):
+  def _sampleICDF(self, x, params):
     """
       Samples the inverse CDF defined in 'params' to get values
       @ In, x, float, value at which to sample inverse CDF
@@ -803,7 +803,7 @@ class ARMA(supervisedLearning):
     y = self._interpolateDist(x,y,Xlow,Xhigh,Ylow,Yhigh,inMask)
     return y
 
-  def _trainARMA(self,data,masks=None):
+  def _trainARMA(self, data, masks=None):
     r"""
       Fit ARMA model: x_t = \sum_{i=1}^P \phi_i*x_{t-i} + \alpha_t + \sum_{j=1}^Q \theta_j*\alpha_{t-j}
       @ In, data, np.array(float), data on which to train
@@ -821,7 +821,7 @@ class ARMA(supervisedLearning):
     results = smARMA(data, order = (self.P, self.Q)).fit(disp = False)
     return results
 
-  def _trainCDF(self,data):
+  def _trainCDF(self, data):
     """
       Constructs a CDF from the given data
       @ In, data, np.array(float), values to fit to
@@ -839,6 +839,7 @@ class ARMA(supervisedLearning):
     #cdf = np.insert(cdf, 0, cdf[0]) # Jun
     cdf = np.insert(cdf, 0, 0) # trying something else
     # store parameters
+    # TODO FIXME WORKING also add the max, min, counts
     params = {'bins': edges,
               'pdf' : counts * nBins,
               'cdf' : cdf}

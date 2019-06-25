@@ -39,7 +39,7 @@
     </IOStep>
     <MultiRun name="sample">
       <Input class="DataObjects" type="PointSet">dataIn</Input>
-      <Model class="Models" type="ROM">ens</Model>
+      <Model class="Models" type="EnsembleModel">ens</Model>
       <Sampler class="Samplers" type="MonteCarlo">mcSampler</Sampler>
       <Output class="DataObjects" type="DataSet">final_out</Output>
     </MultiRun>

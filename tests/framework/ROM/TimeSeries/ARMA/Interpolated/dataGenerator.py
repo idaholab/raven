@@ -97,12 +97,12 @@ def generate(fname, fs, noiseScale):
 
 
 if __name__ == '__main__':
-  fouriers=[ [1./100., 0., 1.],
+  fouriers=[ [1./100., 0., 0.],
              [1./5., 2., 0.],
              [1./5., 0., 0.],
              [1./3., 3., 3.] ]
   generate('signal_0', fouriers, 0.1)
-  fouriers=[ [1./100., 1., 0.],
+  fouriers=[ [1./100., 0., 0.],
              [1./5., 0., 2.],
              [1./5., 1., 1.],
              [1./3., 0., 0.] ]
