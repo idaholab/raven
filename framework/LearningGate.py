@@ -60,6 +60,7 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta, BaseType), Mess
     self.printTag = 'SupervisedGate'
     self.messageHandler = messageHandler
     self.initializationOptions = kwargs
+    self.cvInstance = self.initializationOptions.pop('cvInstance', None)
     self.amITrained = False
     self.ROMclass = ROMclass
     # members for clustered roms

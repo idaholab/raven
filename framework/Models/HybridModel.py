@@ -66,10 +66,7 @@ class HybridModel(Dummy):
     targetEvaluationInput.addParam("class", InputData.StringType)
     targetEvaluationInput.addParam("type", InputData.StringType)
     inputSpecification.addSub(targetEvaluationInput)
-    cvInput = InputData.parameterInputFactory("CV", contentType=InputData.StringType)
-    cvInput.addParam("class", InputData.StringType)
-    cvInput.addParam("type", InputData.StringType)
-    inputSpecification.addSub(cvInput)
+
     # add settings block
     tolInput = InputData.parameterInputFactory("tolerance", contentType=InputData.FloatType)
     maxTrainStepInput = InputData.parameterInputFactory("maxTrainSize", contentType=InputData.IntegerType)
@@ -105,7 +102,7 @@ class HybridModel(Dummy):
     """
     Dummy.__init__(self,runInfoDict)
     self.modelInstance            = None             # Instance of given model
-    self.cvInstance               = None             # Instance of provided cross validation
+
     self.targetEvaluationInstance = None             # Instance of data object used to store the inputs and outputs of HybridModel
     self.tempTargetEvaluation     = None             # Instance of data object that are used to store the training set
     self.romsDictionary        = {}                  # dictionary of models that is going to be employed, i.e. {'romName':Instance}
@@ -124,12 +121,10 @@ class HybridModel(Dummy):
     self.tempOutputs           = {}                  # Indicators used to collect model inputs/outputs for rom training
     self.oldTrainingSize       = 0                   # The size of training set that is previous used to train the rom
     self.modelIndicator        = {}                  # a dict i.e. {jobPrefix: 1 or 0} used to indicate the runs: model or rom. '1' indicates ROM run, and '0' indicates Code run
-    self.metricCategories      = {'find_min':['explained_variance_score', 'r2_score'], 'find_max':['median_absolute_error', 'mean_squared_error', 'mean_absolute_error']}
     self.crowdingDistance      = None
     # assembler objects to be requested
     self.addAssemblerObject('Model','1',True)
     self.addAssemblerObject('ROM','n')
-    self.addAssemblerObject('CV','1')
     self.addAssemblerObject('TargetEvaluation','1')
 
   def localInputAndChecks(self,xmlNode):
@@ -147,8 +142,6 @@ class HybridModel(Dummy):
         self.modelInstance = child.value.strip()
         if child.parameterValues['type'] == 'Code':
           self.createWorkingDir = True
-      if child.getName() == 'CV':
-        self.cvInstance = child.value.strip()
       if child.getName() == 'TargetEvaluation':
         self.targetEvaluationInstance = child.value.strip()
       if child.getName() == 'ROM':
@@ -188,8 +181,7 @@ class HybridModel(Dummy):
         if isinstance(elem, Files.File):
           codeInput.append(elem)
       self.modelInstance.initialize(runInfo, codeInput, initDict)
-    self.cvInstance = self.retrieveObjectFromAssemblerDict('CV', self.cvInstance)
-    self.cvInstance.initialize(runInfo, inputs, initDict)
+
     self.targetEvaluationInstance = self.retrieveObjectFromAssemblerDict('TargetEvaluation', self.targetEvaluationInstance)
     if len(self.targetEvaluationInstance):
       self.raiseAWarning("The provided TargetEvaluation data object is not empty, the existing data will also be used to train the ROMs!")
@@ -197,8 +189,6 @@ class HybridModel(Dummy):
     self.tempTargetEvaluation = copy.deepcopy(self.targetEvaluationInstance)
     if self.modelInstance is None:
       self.raiseAnError(IOError,'Model XML block needs to be inputted!')
-    if self.cvInstance is None:
-      self.raiseAnError(IOError, 'CV XML block needs to be inputted!')
     if self.targetEvaluationInstance is None:
       self.raiseAnError(IOError, 'TargetEvaluation XML block needs to be inputted!')
     for romName, romInfo in self.romsDictionary.items():

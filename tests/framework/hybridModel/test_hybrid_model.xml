@@ -48,6 +48,7 @@
       <leaf_size>30</leaf_size>
       <metric>minkowski</metric>
       <p>2</p>
+      <CV class="Models" type="PostProcessor">pp1</CV>
     </ROM>
     <PostProcessor name="pp1" subType="CrossValidation">
         <SciKitLearn>
@@ -61,7 +62,6 @@
         <Model class="Models" type="ExternalModel">thermalConductivityComputation</Model>
         <ROM class="Models" type="ROM">knr</ROM>
         <TargetEvaluation class="DataObjects" type="PointSet">thermalConductivityComputationContainer</TargetEvaluation>
-        <CV class="Models" type="PostProcessor">pp1</CV>
         <settings>
             <tolerance>0.005</tolerance>
             <maxTrainSize>1000</maxTrainSize>
