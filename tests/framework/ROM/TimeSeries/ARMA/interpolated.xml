@@ -59,7 +59,7 @@
       <Input>scaling</Input>
       <Output>Signal</Output>
       <Index var="Time">Signal</Index>
-      <Index var="YearCluster">Signal</Index>
+      <Index var="Year">Signal</Index>
     </DataSet>
     <DataSet name="romMeta"/>
   </DataObjects>
@@ -72,19 +72,19 @@
       <P>0</P>
       <Q>0</Q>
       <Fourier>100, 5, 3</Fourier>
-      <preserveInputCDF>True</preserveInputCDF>
+      <preserveInputCDF>False</preserveInputCDF>
       <Segment grouping='interpolate'>
         <macroParameter>Year</macroParameter>
         <!--<clusterSpace>Fourier, Fourier.sin, Fourier.sine, ARMA.sigma, ARMA.arparams, Peaks.amplitude, Peaks.probability, mean, Peaks.amplitude.mean, Peaks.amplitude.histogram, Peaks.amplitude.</clusterSpace>-->
         <Classifier class='Models' type='PostProcessor'>classifier</Classifier>
-        <subspace divisions='10' shift='first'>Time</subspace>
+        <subspace divisions='10'>Time</subspace>
       </Segment>
     </ROM>
     <PostProcessor name="classifier" subType="DataMining">
       <KDD labelFeature="labels" lib="SciKitLearn">
         <Features>Signal</Features>
         <SKLtype>cluster|KMeans</SKLtype>
-        <n_clusters>4</n_clusters>
+        <n_clusters>3</n_clusters>
       </KDD>
     </PostProcessor>
   </Models>
@@ -109,7 +109,7 @@
   <Samplers>
     <MonteCarlo name="mc">
       <samplerInit>
-        <limit>2</limit>
+        <limit>10</limit>
         <initialSeed>42</initialSeed>
       </samplerInit>
       <constant name="scaling">1.0</constant>

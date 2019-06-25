@@ -32,27 +32,29 @@ def fourier(freq, a, b, x):
   return a * np.sin(sig) + b * np.cos(sig)
 
 def generate(fname, fs, noiseScale):
+
+  # script options
+  ## number of elements in history
+  N = 1000
+  m = 1000 // 10
+
+  ## noise scale
+  #noiseScale = 1.0
+
+  ## make plots?
+  plot = True
+
   # PLAN: A B A B C A A B B C
   ## Fourier Full: (1/100, 1, 1, t)
   ## Fourier A: (1/5, 2, 0, t)
   ## Fourier B: (1/5, 0, 2, t)
   ## Fourier C: (1/3, 2, 2, t)
-  plan = ['A']*10 + ['B']*10 + ['A']*10 + ['B']*10 + ['C']*10 + \
-         ['A']*10 + ['A']*10 + ['B']*10 + ['B']*10 + ['C']*10
+  plan = ['A']*m + ['B']*m + ['A']*m + ['B']*m + ['C']*m + \
+         ['A']*m + ['A']*m + ['B']*m + ['B']*m + ['C']*m
   plan = np.array(plan)
   maskA = plan == 'A'
   maskB = plan == 'B'
   maskC = plan == 'C'
-
-  # script options
-  ## number of elements in history
-  N = 100
-
-  ## noise scale
-  noiseScale = 1.0
-
-  ## make plots?
-  plot = True
 
   ## Fourier
   t = np.linspace(0, 100, N)
@@ -95,13 +97,13 @@ def generate(fname, fs, noiseScale):
 
 
 if __name__ == '__main__':
-  fouriers=[ [1./100., 1., 1.],
+  fouriers=[ [1./100., 0., 1.],
              [1./5., 2., 0.],
-             [1./5., 0., 1.],
+             [1./5., 0., 0.],
              [1./3., 3., 3.] ]
-  generate('signal_0', fouriers, 1.0)
+  generate('signal_0', fouriers, 0.1)
   fouriers=[ [1./100., 1., 0.],
+             [1./5., 0., 2.],
              [1./5., 1., 1.],
-             [1./5., 1., 0.],
-             [1./3., 3., 3.] ]
-  generate('signal_1', fouriers, 2.0)
+             [1./3., 0., 0.] ]
+  generate('signal_1', fouriers, 1.0)

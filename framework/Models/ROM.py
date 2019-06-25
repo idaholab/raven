@@ -506,9 +506,9 @@ class ROM(Dummy):
     # assure numpy array formatting # TODO can this be done in the supervised engine instead?
     for k,v in outputEvaluation.items():
       outputEvaluation[k] = np.atleast_1d(v)
-    # print('DEBUGG ROM eval:', outputEvaluation.get('Year', None))
-    if len(outputEvaluation.get('Year', [])) > 3:
-      JZTopSingerNA
+    print('DEBUGG ROM eval:', outputEvaluation)
+    #if len(outputEvaluation.get('Year', [])) > 3:
+    #  JZTopSingerNA
     return outputEvaluation
 
   def _externalRun(self,inRun):

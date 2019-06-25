@@ -479,10 +479,6 @@ class ARMA(supervisedLearning):
           finalResult[target][y][:] = value # [:] is a size checker
         # high-dimensional indexing information
         finalResult['_indexMap'] = dict((target, ['Year', self.pivotParameterID]) for target in self.target if target != self.pivotParameterID)
-        print('DEBUGG finalResult for evaluate multiyear:')
-        pp.pprint(finalResult)
-        if len(finalResult['Year']) > 3:
-          JZTopSingerNA # DEBUGG
       return finalResult
 
     else:
@@ -1178,7 +1174,7 @@ class ARMA(supervisedLearning):
 
     return interpreted
 
-  def  isClusterable(self):
+  def isClusterable(self):
     """
       Allows ROM to declare whether it has methods for clustring. Default is no.
       @ In, None
@@ -1355,7 +1351,6 @@ class ARMA(supervisedLearning):
       # print('啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦 我是分界线2 啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦')
 
 
-    # print(features)
     return features
 
   def readFundamentalFeatures(self, features):
@@ -1428,7 +1423,9 @@ class ARMA(supervisedLearning):
             'peak': peak}
 
   def setFundamentalFeatures(self, features):
-    """opposite of getFundamentalFeatures, expects results as from readFundamentalFeatures"""
+    """
+    opposite of getFundamentalFeatures, expects results as from readFundamentalFeatures
+    """
     self._setFourierResults(features.get('fourier', {}))
     self._setArmaResults(features.get('arma', {}))
     self._setCDFResults(features.get('cdf', {}))
@@ -1493,8 +1490,7 @@ class ARMA(supervisedLearning):
       dist = stats.rv_histogram(histogram)
       self._trainingCDF[target] = (dist, histogram)
 
-
-  def _setpeakResults(self, paramDict):
+  def _setPeakResults(self, paramDict):
     for target, info in paramDict.items():
       groupWin=[]
       for g, groupInfo in info.items():
@@ -1527,24 +1523,6 @@ class ARMA(supervisedLearning):
         groupWin[g]['Ind']=indLocal
         groupWin[g]['Amp']=ampLocal
       self.peak[target]['groupWin']=groupWin
-      # print('啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦 我是分界线2 啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦')
-      # print(target)
-      # print(info)
-      # Amplitude
-      # probExit
-      # most probable index
-      # # counts
-      # cs = list(info['counts'].items())
-      # c_idx, c_vals = zip(*sorted(cs, key=lambda x: x[0]))
-      # c_vals = np.asarray(c_vals)
-      # ## renormalize counts
-      # counts = c_vals / float(c_vals.sum())
-      # # edges
-      # es = list(info['edges'].items())
-      # e_idx, e_vals = zip(*sorted(es, key=lambda x: x[0]))
-      # histogram = (counts, e_vals)
-      # dist = stats.rv_histogram(histogram)
-      # self._trainingCDF[target] = (dist, histogram)
 
   def getGlobalRomSegmentSettings(self, trainingDict, divisions):
     """

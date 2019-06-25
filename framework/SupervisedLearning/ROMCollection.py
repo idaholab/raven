@@ -35,6 +35,8 @@ from scipy.interpolate import interp1d
 from utils import mathUtils, xmlUtils, randomUtils
 from .SupervisedLearning import supervisedLearning
 
+import pickle as pk # TODO remove me!
+
 warnings.simplefilter('default', DeprecationWarning)
 
 
@@ -1016,7 +1018,6 @@ class Interpolated(supervisedLearning):
       self.raiseADebug('Training Statepoinp t Year {} ...'.format(s))
       trainingData = dict((var, [tdict[var][s]]) for var in tdict.keys())
       step.train(trainingData, skipAssembly=True)
-      print('DEBUGG after training statepoints:', list(step._divisionInfo.keys()))
     # interpolate missing steps
     self._interpolateSteps(tdict)
     self.amITrained = True
@@ -1025,7 +1026,6 @@ class Interpolated(supervisedLearning):
     """ Master method for interpolating missing ROMs for steps """
     # acquire interpolatable information
     exampleModel = list(self._macroSteps.values())[0] # example MACRO model (e.g. example year)
-    print('DEBUGG top of interpolate steps:', list(exampleModel._divisionInfo.keys()))
     ### TODO FIXME WORKING
     # the exampleModel has self._divisionInfo, but the macroTemplate does not!
     # HOWEVER, you can't currently retrain the macroTemplate, but the copied newModel
@@ -1081,9 +1081,11 @@ class Interpolated(supervisedLearning):
     # now what?
 
   def _createSVLInterpolater(self, modelDict, index=None):
+    # index is the segment
     interp = {}
     df = None
     for step, model in modelDict.items():
+      # step is the macro step, e.g. year
       if index is None:
         raise NotImplementedError
       # if the input model is not clustered (maybe impossible currently?), no segmenting consideration
@@ -1100,9 +1102,19 @@ class Interpolated(supervisedLearning):
 
     df.fillna(0.0) # FIXME is 0 really the best for all signals??
     # create interpolators
-    data = df.values
-    interp['headers'] = list(params.keys())
-    interp['method'] = interp1d(df.index.values, data.transpose())
+    interp['method'] = {}
+    for header in params:
+      interp['method'][header] = interp1d(df.index.values, df[header].values)
+    fname = 'debug_statepoints_{}.pk'.format(index)
+    # DEBUGG
+    with open(fname, 'wb') as f:
+      df.index.name = 'year'
+      pk.dump(df, f)
+    print('DEBUGG interpolation data has been dumped to', fname)
+    #### OLD #### do it all at once
+    #data = df.values
+    #interp['headers'] = list(params.keys())
+    #interp['method'] = interp1d(df.index.values, data.transpose())
     return interp
 
   def _interpolateSVL(self, trainingDict, exampleRoms, exampleModel, template, N, globalInterp, segmentInterps, index):
@@ -1110,23 +1122,37 @@ class Interpolated(supervisedLearning):
     newModel = copy.deepcopy(exampleModel) #copy.deepcopy(template)
     segmentRoms = [] # FIXME speedup, make it a numpy array from the start
     for segment in range(N):
-      data = segmentInterps[segment]['method'](index)
-      data = data.transpose()
-      headers = segmentInterps[segment]['headers']
-      params = dict((headers[d], data[d]) for d in range(len(data)))
+      params = dict((param, interp(index)) for param, interp in segmentInterps[segment]['method'].items())
+      # DEBUGG
+      with open('debugg_interp_y{}_s{}.pk'.format(index, segment), 'wb') as f:
+        pk.dump(params, f)
+      #### OLD #### do it all at once
+      #for param, interp in segmentInterps[segment]['method'].items():
+      #  params[param] = interp(index)
+
+      #data = segmentInterps[segment]['method'](index)
+      #data = data.transpose()
+      #headers = segmentInterps[segment]['headers']
+      #params = dict((headers[d], data[d]) for d in range(len(data)))
+
       newRom = copy.deepcopy(exampleRoms[segment])
       inputs = newRom.readFundamentalFeatures(params)
       newRom.setFundamentalFeatures(inputs)
       segmentRoms.append(newRom)
     segmentRoms = np.asarray(segmentRoms)
     # add global params
-    data = globalInterp['method'](index)
-    data = data.transpose()
-    headers = globalInterp['headers']
-    params = dict((headers[d], data[d]) for d in range(len(data)))
+    params = dict((param, interp(index)) for param, interp in globalInterp['method'].items())
+    with open('debugg_interp_y{}_sglobal.pk'.format(index, segment), 'wb') as f:
+      pk.dump(params, f)
+
+    #### OLD #### do it all at once
+    #data = globalInterp['method'](index)
+    #data = data.transpose()
+    #headers = globalInterp['headers']
+    #params = dict((headers[d], data[d]) for d in range(len(data)))
     # TODO assuming histories!
     pivotID = exampleModel._templateROM.pivotParameterID
-    pivotValues = trainingDict[pivotID][0] # FIXME assumes pivot is the same for each year # FIXME dimensionality?
+    pivotValues = trainingDict[pivotID][0] # FIXME assumes pivot is the same for each year
     params = exampleModel._roms[0].setGlobalRomFeatures(params, pivotValues)
     newModel._romGlobalAdjustments = params
     # finish training by clustering
@@ -1153,26 +1179,30 @@ class Interpolated(supervisedLearning):
     results = None
     ## TODO set up right for ND??
     numMacro = len(self._macroSteps)
+    macroIndexValues = []
     for m, (macroStep, model) in enumerate(sorted(self._macroSteps.items(), key=lambda x: x[0])):
       # m is an index of the macro step, in order of the macro values (e.g. in order of years)
       # macroStep is the actual macro step value (e.g. the year)
       # model is the ClusterROM instance for this macro step
+      macroIndexValues.append(macroStep)
       self.raiseADebug(' ... evaluating macro step "{}" of "{}"'.format(macroStep+1, numMacro))
       subResult = model.evaluate(edict) # TODO same input for all macro steps? True for ARMA at least...
-      print('DEBUGG subResult:', subResult.keys())
       indexMap = subResult.get('_indexMap', {})
       # if not set up yet, then frame results structure
       if results is None:
         results = {}
         finalIndexMap = indexMap # in case every rlz doesn't use same order, which would be lame
         pivotID = model._templateROM.pivotParameterID
+        indices = set([pivotID, self._macroParameter])
+        for indexes in finalIndexMap.values():
+          indices.update(set(indexes))
         #pivotVals = subResult[pivotID]
         #numPivot = len(pivotVals)
         for target, values in subResult.items():
           # if an index, just set the values now # FIXME assuming always the same!
           ## FIXME thing is, they're not always the same, we're clustering, so sometimes there's diff num days!
           ## TODO for now, we simply require using a classifier that always has the same number of entries.
-          if target in [pivotID, '_indexMap'] or target in indexMap:
+          if target in [pivotID, '_indexMap'] or target in indices:
             results[target] = values
           else:
             results[target] = np.zeros([numMacro] + list(values.shape))
@@ -1186,8 +1216,12 @@ class Interpolated(supervisedLearning):
           results[target][indexer] = values
         except ValueError:
           self.raiseAnError(RuntimeError, 'The shape of the histories along the pivot parameter is not consistent! Try using a clustering classifier that always returns the same number of clusters.')
-    if finalIndexMap is not None:
-      results['_indexMap'] = finalIndexMap
+    results['_indexMap'] = {} #finalIndexMap
+    for target, vals in results.items():
+      if target not in indices and target not in ['_indexMap']:
+        default = [] if vals.size == 1 else [pivotID]
+        results['_indexMap'][target] = [self._macroParameter] + finalIndexMap.get(target, default)
+    results[self._macroParameter] = macroIndexValues
     return results
 
 
