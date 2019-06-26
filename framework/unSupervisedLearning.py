@@ -176,9 +176,12 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
       self.raiseAnError(IOError, msg)
 
     ## Check that all of the values have the same length
-    if not isinstance(utils.first(tdict.values()),dict):
-      for name,val in tdict.items():
+    if not isinstance(utils.first(tdict.values()), dict):
+      for name, val in tdict.items():
         if name in self.features and realizationCount != val.size:
+          print('DEBUGGGGG')
+          print('DEBUGG features:', name, val.shape)
+          print('DEBUGG rlzCount:', realizationCount)
           self.raiseAnError(IOError, ' In training set, the number of realizations are inconsistent among the requested features.')
 
     ## Check if a label feature is provided by the user and in the training data

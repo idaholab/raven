@@ -905,7 +905,8 @@ class Clusters(Segments):
     counter, remainder = divisions
     # collect ROM features (basic stats, etc)
     clusterFeatures = self._gatherClusterFeatures(roms, counter)
-    # pp.pprint(clusterFeatures)
+    print('DEBUGG cluster features:')
+    pp.pprint(clusterFeatures)
     # future: requested metrics
     ## TODO someday
     # store clustering info, unweighted
@@ -1076,10 +1077,12 @@ class Interpolated(supervisedLearning):
     for y in range(min(years), max(years)):
       # don't replace statepoint years
       if y in years:
+        self.raiseADebug('Year {} is a statepoint, so no interpolation needed.'.format(y))
         models.append(self._macroSteps[y])
         continue
       # otherwise, create new instances
       else:
+        self.raiseADebug('Interpolating year {}'.format(y))
         newModel = self._interpolateSVL(trainingDict, exampleRoms, exampleModel, self._macroTemplate, numSegments, globalInterp, interps, y)
         models.append(newModel)
         self._macroSteps[y] = newModel
@@ -1129,7 +1132,9 @@ class Interpolated(supervisedLearning):
     for segment in range(N):
       params = dict((param, interp(index)) for param, interp in segmentInterps[segment]['method'].items())
       # DEBUGG
-      with open('debugg_interp_y{}_s{}.pk'.format(index, segment), 'wb') as f:
+      fname = 'debugg_interp_y{}_s{}.pk'.format(index, segment)
+      with open(fname, 'wb') as f:
+        print('Dumping interpolated params to', fname)
         pk.dump(params, f)
       #### OLD #### do it all at once
       #for param, interp in segmentInterps[segment]['method'].items():
@@ -1142,12 +1147,14 @@ class Interpolated(supervisedLearning):
 
       newRom = copy.deepcopy(exampleRoms[segment])
       inputs = newRom.readFundamentalFeatures(params)
+      print('DEBUGG set params:')
+      pp.pprint(inputs)
       newRom.setFundamentalFeatures(inputs)
       segmentRoms.append(newRom)
     segmentRoms = np.asarray(segmentRoms)
     # add global params
     params = dict((param, interp(index)) for param, interp in globalInterp['method'].items())
-    with open('debugg_interp_y{}_sglobal.pk'.format(index, segment), 'wb') as f:
+    with open('debugg_interp_y{}_sglobal.pk'.format(index), 'wb') as f:
       pk.dump(params, f)
 
     #### OLD #### do it all at once
@@ -1158,6 +1165,8 @@ class Interpolated(supervisedLearning):
     # TODO assuming histories!
     pivotID = exampleModel._templateROM.pivotParameterID
     pivotValues = trainingDict[pivotID][0] # FIXME assumes pivot is the same for each year
+    print('DEBUGG setting global rom features:')
+    pp.pprint(params)
     params = exampleModel._roms[0].setGlobalRomFeatures(params, pivotValues)
     newModel._romGlobalAdjustments = params
     # finish training by clustering
