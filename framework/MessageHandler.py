@@ -304,7 +304,7 @@ class MessageHandler(object):
     """
     verbval = max(self.getDesiredVerbosity(caller),self.checkVerbosity(self.verbosity))
     self.message(caller,message,tag,verbosity,color=color)
-    if not self.suppressErrs:
+    if not self.suppressErrs: 
       self.printWarnings()
       # debug mode gets full traceback, others quieted
       if verbval<3:

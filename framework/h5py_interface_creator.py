@@ -498,15 +498,13 @@ class hdf5Database(MessageHandler.MessageUser):
       rname = utils.toString(rootName)
     if not self.fileOpen:
       self.__createObjFromFile() # Create the "self.allGroupPaths" list from the existing database
-    #if not rootName:
-    #  workingList = [utils.toString(k).split('/')[-1] for k, v in zip(self.allGroupPaths,self.allGroupEnds) if v ]
-    #else:
-    #  workingList = [utils.toString(k).split('/')[-1] for k, v in zip(self.allGroupPaths,self.allGroupEnds) if v and utils.toString(k).endswith(rname)]
     if not rootName:
-      workingList = [utils.toString(k).split('/')[-1] for k in self.allGroupPaths if '/' in k]
+      workingList = [utils.toString(k).split('/')[-1] for k in self.allGroupPaths if utils.toString(k).find('/') > -1 and 
+                     utils.toString(k).strip() not in ['/',self.parentGroupName]]
     else:
-      workingList = [utils.toString(k).split('/')[-1] for k in self.allGroupPaths if '/' in k and utils.toString(k).endswith(rname)]
-
+      workingList = [utils.toString(k).split('/')[-1] for k in self.allGroupPaths if utils.toString(k).find('/') > -1 and 
+                     utils.toString(k).endswith(utils.toString(rname)) and 
+                     utils.toString(k).strip() not in ['/',self.parentGroupName]]
     return workingList
 
   def __getListOfParentGroups(self, grp, backGroups = []):
@@ -529,9 +527,9 @@ class hdf5Database(MessageHandler.MessageUser):
       @ In, name, str, the group name
       @ Out, newData, dict, the dictionary with the data
     """
-    newData = {}
-    hasIntfloat = group.attrs['hasIntfloat']
-    hasOther    = group.attrs['hasOther']
+    newData = None
+    hasIntfloat = group.attrs.get('hasIntfloat',False)
+    hasOther    = group.attrs.get('hasOther',False)
     if hasIntfloat:
       dataSetIntFloat = group[name + "_dataIntFloat"]
       # Get some variables of interest
@@ -550,6 +548,7 @@ class hdf5Database(MessageHandler.MessageUser):
       varKeysOther    = _loads(group.attrs[b'data_namesOther'])
       begin, end       = _loads(group.attrs[b'data_begin_endOther'])
       # Reconstruct the dataset
+      newData = newData if newData is not None else {}
       newData.update({key : np.reshape(datasetOther[begin[cnt]:end[cnt]], varShapeOther[cnt]) for cnt,key in enumerate(varKeysOther)})
     return newData
 
@@ -572,12 +571,13 @@ class hdf5Database(MessageHandler.MessageUser):
     # Find the endGroup that coresponds to the given name
     path = self.__returnGroupPath(name)
     found = path != '-$'
-
     if found:
       # Grep only history from group "name"
       group = self.h5FileW.require_group(path)
       # Retrieve dataset
       newData = self.__getNewDataFromGroup(group, name)
+      if newData is None:
+        self.raiseAnError(IOError,'Group named ' + name + ' has not DATA in database "'+self.name+'"!')
       # Add the attributes
       attrs = {'nVars':len(newData.keys()),'varKeys':newData.keys()}
       # check the reconstruct flag
