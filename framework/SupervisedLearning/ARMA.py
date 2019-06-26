@@ -1548,6 +1548,7 @@ class ARMA(supervisedLearning):
         maxAmp=groupInfo['maxAmp']
         minAmp=groupInfo['minAmp']
         ampHisEg=np.linspace(minAmp, maxAmp, num=len(ampHisCs)+1)
+        print('dshflshfahlfhalhflasfhi',ampHisCs)
         histogram = (ampHisCs, ampHisEg)
         dist = stats.rv_histogram(histogram)
         probExist=groupInfo['probExist']
