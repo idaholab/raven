@@ -320,7 +320,7 @@ class OutStreamPlot(OutStreamManager):
             if xSplit[2].strip() not in self.sourceData[pltIndex].getVars(xSplit[1].lower())+outputIndexes:
               self.raiseAnError(IOError, 'Not found variable "'+ xSplit[2] + '" in "'+xSplit[1]+ '" of DataObject "'+ self.sourceData[pltIndex].name+'"!')
             # for variable from input space, it will return array(float), not 1d array
-            self.xValues[pltIndex][cnt].append(np.atleast_1d(dataSet.isel(False,RAVEN_sample_ID=cnt).dropna(pivotParam)[xSplit[2]].values.astype(float, copy=False)))
+            self.xValues[pltIndex][cnt].append(np.atleast_1d(dataSet.isel({'RAVEN_sample_ID':cnt},False).dropna(pivotParam)[xSplit[2]].values.astype(float, copy=False)))
             maxSize = self.xValues[pltIndex][cnt][-1].size if self.xValues[pltIndex][cnt][-1].size > maxSize else maxSize
           if self.yCoordinates :
             for i in range(len(self.yCoordinates [pltIndex])):
@@ -328,7 +328,7 @@ class OutStreamPlot(OutStreamManager):
               outputIndexes = self.sourceData[pltIndex].indexes if ySplit[1].lower() == 'output' else []
               if ySplit[2].strip() not in self.sourceData[pltIndex].getVars(ySplit[1].lower())+outputIndexes:
                 self.raiseAnError(IOError, 'Not found variable "'+ ySplit[2] + '" in "'+ySplit[1]+ '" of DataObject "'+ self.sourceData[pltIndex].name+'"!')
-              self.yValues[pltIndex][cnt].append(np.atleast_1d(dataSet.isel(False,RAVEN_sample_ID=cnt).dropna(pivotParam)[ySplit[2]].values.astype(float, copy=False)))
+              self.yValues[pltIndex][cnt].append(np.atleast_1d(dataSet.isel({'RAVEN_sample_ID':cnt},False).dropna(pivotParam)[ySplit[2]].values.astype(float, copy=False)))
               maxSize = self.yValues[pltIndex][cnt][-1].size if self.yValues[pltIndex][cnt][-1].size > maxSize else maxSize
           if self.zCoordinates  and self.dim > 2:
             for i in range(len(self.zCoordinates [pltIndex])):
@@ -336,7 +336,7 @@ class OutStreamPlot(OutStreamManager):
               outputIndexes = self.sourceData[pltIndex].indexes if zSplit[1].lower() == 'output' else []
               if zSplit[2].strip() not in self.sourceData[pltIndex].getVars(zSplit[1].lower())+outputIndexes:
                 self.raiseAnError(IOError, 'Not found variable "'+ zSplit[2] + '" in "'+zSplit[1]+ '" of DataObject "'+ self.sourceData[pltIndex].name+'"!')
-              self.zValues[pltIndex][cnt].append(np.atleast_1d(dataSet.isel(False,RAVEN_sample_ID=cnt).dropna(pivotParam)[zSplit[2]].values.astype(float, copy=False)))
+              self.zValues[pltIndex][cnt].append(np.atleast_1d(dataSet.isel({'RAVEN_sample_ID':cnt},False).dropna(pivotParam)[zSplit[2]].values.astype(float, copy=False)))
               maxSize = self.zValues[pltIndex][cnt][-1].size if self.zValues[pltIndex][cnt][-1].size > maxSize else maxSize
           if self.colorMapCoordinates[pltIndex] != None:
             for i in range(len(self.colorMapCoordinates[pltIndex])):
@@ -344,7 +344,7 @@ class OutStreamPlot(OutStreamManager):
               outputIndexes = self.sourceData[pltIndex].indexes if colorSplit[1].lower() == 'output' else []
               if colorSplit[2].strip() not in self.sourceData[pltIndex].getVars(colorSplit[1].lower())+outputIndexes:
                 self.raiseAnError(IOError, 'Not found variable "'+ colorSplit[2] + '" in "'+colorSplit[1]+ '" of DataObject "'+ self.sourceData[pltIndex].name+'"!')
-              self.colorMapValues[pltIndex][cnt].append(dataSet.isel(False,RAVEN_sample_ID=cnt).dropna(pivotParam)[colorSplit[2]].values.astype(float, copy=False))
+              self.colorMapValues[pltIndex][cnt].append(dataSet.isel({'RAVEN_sample_ID':cnt},False).dropna(pivotParam)[colorSplit[2]].values.astype(float, copy=False))
               maxSize = self.colorMapValues[pltIndex][cnt][-1].size if self.colorMapValues[pltIndex][cnt][-1].size > maxSize else maxSize
           # expand the scalars in case they need to be plotted against histories
           if self.xValues[pltIndex][cnt][-1].size == 1 and maxSize > 1:

@@ -148,7 +148,7 @@ class SciKitLearn(supervisedLearning):
   availImpl['tree']['ExtraTreeRegressor'                  ] = (tree.ExtraTreeRegressor                  , 'float' ,  True )# An extremely randomized tree regressor.
 
   availImpl['GaussianProcess'] = {}
-  availImpl['GaussianProcess']['GaussianProcess'          ] = (gaussian_process.GaussianProcess         , 'float' ,  False)
+  availImpl['GaussianProcess']['GaussianProcess'          ] = (gaussian_process.GaussianProcessRegressor         , 'float' ,  False)
   # Neural network models (supervised)
   # To be removed when the supported minimum version of sklearn is moved to 0.18
   if int(sklearn.__version__.split(".")[1]) > 17:
