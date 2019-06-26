@@ -859,6 +859,7 @@ class ARMA(supervisedLearning):
     # store parameters
     # TODO FIXME WORKING also add the max, min, counts
     params = {'bins': edges,
+              'counts':counts,
               'pdf' : counts * nBins,
               'cdf' : cdf}
               #'binSearch':neighbors.NearestNeighbors(n_neighbors=2).fit([[b] for b in edges]),
@@ -1288,6 +1289,7 @@ class ARMA(supervisedLearning):
       # print('啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦 我是分界线1 啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦')
 
       nBin = self.peaks[target]['nbin']
+      period = self.peaks[target]['period']
       if 'groupWin' in peak.keys() and 'rangeWindow' in peak.keys():
         for g , group in enumerate(peak['groupWin']):
           ## prbExit
@@ -1313,7 +1315,10 @@ class ARMA(supervisedLearning):
           feature = featureTemplate.format(target=target, metric='peak', id=ID)
           features[feature] = modeInd
           # index distribution
-          indBins=np.arange(peak['rangeWindow'][g]['end'][0]-peak['rangeWindow'][g]['bg'][0]-1)+1
+          if peak['rangeWindow'][g]['end'][0]>peak['rangeWindow'][g]['bg'][0]:
+            indBins=np.arange(peak['rangeWindow'][g]['end'][0]-peak['rangeWindow'][g]['bg'][0]-1)+1
+          else:
+            indBins=np.arange(peak['rangeWindow'][g]['end'][0]-peak['rangeWindow'][g]['bg'][0]-1+period)+1
           indCounts, _ = np.histogram(group['Ind'], bins=indBins, density=False)
           for c, count in enumerate(indCounts):
             feature = featureTemplate.format(target=target, metric='peak', id='gp_{}_ind {}'.format(g,c))
@@ -1322,10 +1327,21 @@ class ARMA(supervisedLearning):
           ## AMP
           #mean
           if len(group['Amp']):
-            meanAmp=rv_histogram(np.histogram(group['Amp'])).mean()
+            if np.isnan((group['Amp'][0])):
+              print('nanan')
+              meanAmp=np.mean(self._signalStorage[target]['original'])
+            else:
+              print(g)
+              print('  ga',group['Amp'])
+              print('  pe',prbExist)
+
+              meanAmp=rv_histogram(np.histogram(group['Amp'])).mean()
             feature = featureTemplate.format(target=target, metric='peak', id='gp_{}_meanAmp'.format(g))
             features[feature] = meanAmp
+
           else:
+            print(g)
+            print('  No group found')
             meanAmp=np.mean(self._signalStorage[target]['original'])
             feature = featureTemplate.format(target=target, metric='peak', id='gp_{}_meanAmp'.format(g))
             features[feature] = meanAmp
@@ -1341,14 +1357,25 @@ class ARMA(supervisedLearning):
             features[feature] = stdAmp
 
           if len(group['Amp']):
-            maxAmp=max(group['Amp'])
-            feature = featureTemplate.format(target=target, metric='peak', id='gp_{}_maxAmp'.format(g))
-            features[feature] = maxAmp
-            minAmp=min(group['Amp'])
-            feature = featureTemplate.format(target=target, metric='peak', id='gp_{}_minAmp'.format(g))
-            features[feature] = minAmp
+            if np.isnan((group['Amp'][0])):
+              maxAmp=max(self._signalStorage[target]['original'])
+              feature = featureTemplate.format(target=target, metric='peak', id='gp_{}_maxAmp'.format(g))
+              features[feature] = maxAmp
+              minAmp=min(self._signalStorage[target]['original'])
+              feature = featureTemplate.format(target=target, metric='peak', id='gp_{}_minAmp'.format(g))
+              features[feature] = minAmp
+            else:
+              maxAmp=max(group['Amp'])
+              feature = featureTemplate.format(target=target, metric='peak', id='gp_{}_maxAmp'.format(g))
+              features[feature] = maxAmp
+              minAmp=min(group['Amp'])
+              feature = featureTemplate.format(target=target, metric='peak', id='gp_{}_minAmp'.format(g))
+              features[feature] = minAmp
             ## distribution on the Amp
-            ampCounts, _ = np.histogram(group['Amp'], bins = nBin,density = False)
+            if np.isnan((group['Amp'][0])):
+              ampCounts, _ = np.histogram([], range=(minAmp,maxAmp),density = False)
+            else:
+              ampCounts, _ = np.histogram(group['Amp'], bins = nBin,density = False)
             #retn=np.linspace(minAmp, maxAmp, num=nBin+1)
             for c, count in enumerate(ampCounts):
               feature = featureTemplate.format(target=target, metric='peak', id='gp_{}_amp {}'.format(g,c))
@@ -1366,18 +1393,7 @@ class ARMA(supervisedLearning):
             for c, count in enumerate(ampCounts):
               feature = featureTemplate.format(target=target, metric='peak', id='gp_{}_amp {}'.format(g,c))
               features[feature] = count
-
-      #     print(g)
-      #     print(group['Ind'])
-      #     print(len(group['Ind']))
-      #     print(ampCounts)
-
-      #     print(maxAmp)
-      #     print(minAmp)
-      #     print(nBin)
-      # pp.pprint(features)
-      # print('啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦 我是分界线2 啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦')
-
+    # for target, peak in self.items():
 
     return features
 
@@ -1762,10 +1778,6 @@ class ARMA(supervisedLearning):
     if 'long Fourier signal' in settings:
       for target, signal in settings['long Fourier signal'].items():
         sig = signal['predict'][picker]
-        # print('ljsdlfjldjflsdjfglsjdgldjglsjdgljdsgklsjdgkljsdkg')
-        # print(picker)
-        # print('sig',np.shape(sig))
-        # print('ev',np.shape(evaluation[target][:,picker]))
         evaluation[target][picker] += sig
     return evaluation
 
@@ -1859,7 +1871,6 @@ class ARMA(supervisedLearning):
         else:
           peak, height = self._peakPicker(np.concatenate([signal[bgLocal:], signal[:endLocal]]), low=low)
         if len(peak) ==1:
-          # print('test1',peak)
           indLocal.append(int(peak))
           ampLocal.append(float(height))
           maskBg=int((int(peak)+bgLocal-int(np.floor(windows[i]['width']/2)))%len(self.pivotParameterValues))

@@ -1020,6 +1020,7 @@ class Interpolated(supervisedLearning):
       self.raiseADebug('Training Statepoinp t Year {} ...'.format(s))
       trainingData = dict((var, [tdict[var][s]]) for var in tdict.keys())
       step.train(trainingData, skipAssembly=True)
+    self.raiseADebug('  Statepoints trained ')
     # interpolate missing steps
     self._interpolateSteps(tdict)
     self.amITrained = True
@@ -1063,7 +1064,7 @@ class Interpolated(supervisedLearning):
         interp = self._createSVLInterpolater(self._macroSteps, index=segment)
         # store interpolators, by segment
         interps.append(interp)
-
+    self.raiseADebug('Interpolator trained')
     # interpolate new data
     ## now we have interpolators for every segment, so for each missing segment, we
     ## need to make a new Cluster model and assign its subsequence ROMs (pre-clustering).

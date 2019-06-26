@@ -73,9 +73,9 @@
       <Q>0</Q>
       <Fourier>100, 5, 3</Fourier>
       <preserveInputCDF>False</preserveInputCDF>
-      <Peaks target='Signal' threshold='2' period='24'>
-        <window width='4' >-2,3</window>
-        <window width='5' >12,16</window>
+      <Peaks target='Signal' threshold='-2' period='10'>
+        <window width='0.5' >-1,1</window>
+        <window width='0.55' >6,7</window>
         <!--nbin>5</nbin-->
       </Peaks>
       <Segment grouping='interpolate'>
