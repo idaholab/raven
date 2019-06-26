@@ -44,7 +44,7 @@ from __future__ import print_function
 
 import dis
 from functools import partial
-import imp
+import importlib as imp
 import io
 import itertools
 import opcode

@@ -576,12 +576,12 @@ def importFromPath(filename, printImporting = True):
   """
   if printImporting:
     print('(            ) '+UreturnPrintTag('UTILS') + ': '+UreturnPrintPostTag('Message')+ '      -> importing module '+ filename)
-  import imp, os.path
+  import os.path
   try:
-    (path, name) = os.path.split(filename)
-    (name, ext) = os.path.splitext(name)
-    (file, filename, data) = imp.find_module(name, [path])
-    importedModule = imp.load_module(name, file, filename, data)
+    (_, name) = os.path.split(filename)
+    spec = importlib.util.spec_from_file_location(name, filename)
+    importedModule = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(importedModule)
   except Exception as ae:
     raise Exception('(            ) '+ UreturnPrintTag('UTILS') + ': '+UreturnPrintPostTag('ERROR')+ '-> importing module '+ filename + ' at '+path+os.sep+name+' failed with error '+str(ae))
   return importedModule

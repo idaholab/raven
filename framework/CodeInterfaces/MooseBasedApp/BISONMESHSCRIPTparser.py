@@ -87,7 +87,7 @@ class BISONMESHSCRIPTparser():
           # Append string of non-varying parts of input file to file storage and reset the collection string
           if len(between_str) > 0:
             self.fileOrderStorage.append(between_str); between_str = ''
-          dictname, varname, varvalue = re.split("\['|'] = |'] =|']= ", line)
+          dictname, varname, varvalue = re.split(r"\['|'] = |'] =|']= ", line)
           if dictname in self.AllVarDict.keys():
             self.AllVarDict[dictname][varname] = varvalue.strip()
           else:
@@ -122,7 +122,7 @@ class BISONMESHSCRIPTparser():
             # Append string of non-varying parts of input file to file storage and reset the collection string
             if len(between_str) > 0:
               self.fileOrderStorage.append(between_str); between_str = ''
-            dictname, varname, varvalue = re.split("\['|'] = |'] =|']= ", line)
+            dictname, varname, varvalue = re.split(r"\['|'] = |'] =|']= ", line)
             if dictname in self.AllVarDict.keys():
               self.AllVarDict[dictname][varname] = varvalue.strip()
             else:

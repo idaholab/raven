@@ -262,8 +262,8 @@ class Dymola(CodeInterfaceBase):
     patterns = [# Dymola 1- or 2-line parameter specification
                 (r'(^\s*%s\s+)%s(\s+%s\s+%s\s+%s\s+%s\s*#\s*%s\s*$)'
                  % (i, f, f, f, u, u, '%s')),
-                (r'(^\s*)' + i + '(\s*#\s*%s)'),
-                (r'(^\s*)' + f + '(\s*#\s*%s)'),
+                (r'(^\s*)' + i + r'(\s*#\s*%s)'),
+                (r'(^\s*)' + f + r'(\s*#\s*%s)'),
                 # From Dymola:
                 # column 1: Type of initial value
                 #           = -2: special case: for continuing simulation

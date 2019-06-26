@@ -39,7 +39,7 @@ from SupervisedLearning import NDsplineRom
 
 
 class PolyExponential(supervisedLearning):
-  """
+  r"""
     This surrogate is aimed to construct a "time-dep" surrogate based on a polynomial sum of exponentials
     The surrogate will have the form:
     SM(X,z) = \sum_{i=1}^N P_i(X) \exp ( - Q_i(X) z )
@@ -87,7 +87,7 @@ class PolyExponential(supervisedLearning):
     self.muAndSigmaFeatures[feat] = (0.0,1.0)
 
   def __computeExpTerms(self, x, y, returnPredictDiff=True):
-    """
+    r"""
       Method to compute the coefficients of "n" exponential terms that minimize the
       difference between the training data and the "predicted" data
       y(x) = \sum_{i=1}^n a_i \exp ( - b_i x )
@@ -128,7 +128,7 @@ class PolyExponential(supervisedLearning):
     return fi, 1./taui, predictionErr
 
   def __evaluateExpTerm(self,x, a, b):
-    """
+    r"""
       Evaluate exponential term given x, a and b
       y(x) = \sum_{i=1}^n a_i \exp ( - b_i x )
       @ In, x, numpy.ndarray, the x values
@@ -239,12 +239,12 @@ class PolyExponential(supervisedLearning):
       @ Out, None
     """
     # add description
-    description  = " This XML file contains the main information of the PolyExponential ROM."
-    description += " If ``coefficients'' are dumped for each realization, the evaluation function (for each realization ``j'') is as follows:"
-    description += " $SM_{j}(z) = \sum_{i=1}^{N}f_{i}*exp^{-tau_{i}*z}$, with ``z'' beeing the monotonic variable and ``N'' the"
-    description += " number of exponential terms (expTerms). If the Polynomial coefficients ``poly\_coefficients'' are"
-    description += " dumped, the SM evaluation function is as follows:"
-    description += " $SM(X,z) = \sum_{i=1}^{N} P_{i}(X)*exp^{-Q_{i}(X)*z}$, with ``P'' and ``Q'' the polynomial expressions of the exponential terms."
+    description  = r" This XML file contains the main information of the PolyExponential ROM."
+    description += r" If ``coefficients'' are dumped for each realization, the evaluation function (for each realization ``j'') is as follows:"
+    description += r" $SM_{j}(z) = \sum_{i=1}^{N}f_{i}*exp^{-tau_{i}*z}$, with ``z'' beeing the monotonic variable and ``N'' the"
+    description += r" number of exponential terms (expTerms). If the Polynomial coefficients ``poly\_coefficients'' are"
+    description += r" dumped, the SM evaluation function is as follows:"
+    description += r" $SM(X,z) = \sum_{i=1}^{N} P_{i}(X)*exp^{-Q_{i}(X)*z}$, with ``P'' and ``Q'' the polynomial expressions of the exponential terms."
     writeTo.addScalar('ROM', "description", description)
 
   def writeXML(self, writeTo, targets = None, skip = None):

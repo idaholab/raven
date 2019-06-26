@@ -85,7 +85,7 @@ class RELAPparser():
       for lineNum, line in enumerate(self.deckLines[deck]):
         if all(foundAllCards[deck].values()):
           break
-        if not re.match('^\s*\n',line):
+        if not re.match(r'^\s*\n',line):
           readCard = line.split()[0].strip()
           if readCard in deckCards[deck].keys():
             foundWord = False
@@ -153,7 +153,7 @@ class RELAPparser():
       for lineNum, line in enumerate(temp):
         if all(foundAllCards.values()):
           break
-        if not re.match('^\s*\n',line):
+        if not re.match(r'^\s*\n',line):
           card = line.split()[0].strip()
           if card in modiDictionaryList.keys():
             cardLines[card] = {'lineNumber':lineNum,'numberOfLevels':1,'numberOfAvailableWords':self.countNumberOfWords(line)}

@@ -130,7 +130,7 @@ class Relap5(CodeInterfaceBase):
     #commandToRun = executable + ' -i ' + inputFiles[index].getFilename() + ' -o ' + outputfile  + '.o' + ' -r ' + outputfile  + '.r' + addflags
     commandToRun = executable + ' -i ' + inputFiles[index].getFilename() + ' -o ' + outputfile  + '.o ' +  addflags
     commandToRun = commandToRun.replace("\n"," ")
-    commandToRun  = re.sub("\s\s+" , " ", commandToRun )
+    commandToRun  = re.sub(r"\s\s+" , " ", commandToRun )
     returnCommand = [('parallel',commandToRun)], outputfile
     return returnCommand
 

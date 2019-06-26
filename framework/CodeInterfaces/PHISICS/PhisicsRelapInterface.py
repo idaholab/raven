@@ -125,7 +125,7 @@ class PhisicsRelap5(CodeInterfaceBase):
     self.outputExt = '.o'
     commandToRun = executable + ' -i ' +inputFiles[mapDict['relapInp'.lower()]].getFilename() + ' -o  ' + self.outFileName + self.outputExt
     commandToRun = commandToRun.replace("\n"," ")
-    commandToRun  = re.sub("\s\s+", " ",commandToRun)
+    commandToRun  = re.sub(r"\s\s+", " ",commandToRun)
     returnCommand = [('parallel',commandToRun)], outputfile
     return returnCommand
 

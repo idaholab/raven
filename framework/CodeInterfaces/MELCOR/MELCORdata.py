@@ -71,10 +71,10 @@ class MELCORdata:
       @ Out, functionValuesForEachTime, dict, {"time":{"functionName":"functionValue"}}
     """
     functionValuesForEachTime = {}
-    timeOneRegex_name = re.compile("^\s*CONTROL\s+FUNCTION\s+(?P<name>[^\(]*)\s+(\(.*\))?\s*IS\s+.+\s+TYPE.*$")
-    timeOneRegex_value = re.compile("^\s*VALUE\s+=\s+(?P<value>[^\s]*)")
-    startRegex = re.compile("\s*CONTROL\s*FUNCTION\s*NUMBER\s*CURRENT\s*VALUE")
-    regex = re.compile("^\s*(?P<name>( ?([0-9a-zA-Z-]+))*)\s+([0-9]+)\s*(?P<value>((([0-9.-]+)E(\+|-)[0-9][0-9])|((T|F))))\s*.*$")
+    timeOneRegex_name = re.compile(r"^\s*CONTROL\s+FUNCTION\s+(?P<name>[^\(]*)\s+(\(.*\))?\s*IS\s+.+\s+TYPE.*$")
+    timeOneRegex_value = re.compile(r"^\s*VALUE\s+=\s+(?P<value>[^\s]*)")
+    startRegex = re.compile(r"\s*CONTROL\s*FUNCTION\s*NUMBER\s*CURRENT\s*VALUE")
+    regex = re.compile(r"^\s*(?P<name>( ?([0-9a-zA-Z-]+))*)\s+([0-9]+)\s*(?P<value>((([0-9.-]+)E(\+|-)[0-9][0-9])|((T|F))))\s*.*$")
     for time,listOfLines in timeBlock.items():
       functionValues = {}
       start = -1
