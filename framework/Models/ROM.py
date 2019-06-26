@@ -290,7 +290,7 @@ class ROM(Dummy):
     # for Clustered ROM
     self.addAssemblerObject('Classifier','-1',True)
     self.addAssemblerObject('Metric','-n',True)
-    self.addAssemblerObject('CV','-1')
+    self.addAssemblerObject('CV','-1',True)
 
   def __getstate__(self):
     """
@@ -337,6 +337,7 @@ class ROM(Dummy):
     for child in paramInput.subparts:
       if child.getName() == 'CV':
         self.cvInstance = child.value.strip()
+        continue
       if len(child.parameterValues) > 0:
         if child.getName() == 'alias':
           continue
@@ -358,6 +359,7 @@ class ROM(Dummy):
     #the ROM is instanced and initialized
     self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(SupervisedLearning),True)) - set(self.mods))
     self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(LearningGate),True)) - set(self.mods))
+    self._initializeSupervisedGate(**self.initializationOptionDict)
 
   def initialize(self,runInfo,inputs,initDict=None):
     """
@@ -371,9 +373,7 @@ class ROM(Dummy):
       self.cvInstance = self.retrieveObjectFromAssemblerDict('CV', self.cvInstance)
       self.cvInstance.initialize(runInfo, inputs, initDict)
       self.initializationOptionDict['cvInstance'] = self.cvInstance
-    else:
-      self.initializationOptionDict['cvInstance'] = None
-    self._initializeSupervisedGate(**self.initializationOptionDict)
+      self._initializeSupervisedGate(**self.initializationOptionDict)
 
   def _initializeSupervisedGate(self,**initializationOptions):
     """
@@ -497,6 +497,12 @@ class ROM(Dummy):
     # update rlz with input space from inRun and output space from result
     rlz.update(dict((var,np.atleast_1d(inRun[var] if var in kwargs['SampledVars'] else result[var])) for var in set(itertools.chain(result.keys(),inRun.keys()))))
     return rlz
+
+  def crossValidation(self, trainingSet):
+    """
+    """
+    cvMetrics = self.supervisedEngine.crossValidation(trainingSet)
+    return cvMetrics
 
   def writePointwiseData(self, writeTo):
     """

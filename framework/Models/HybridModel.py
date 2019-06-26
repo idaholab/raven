@@ -305,6 +305,8 @@ class HybridModel(Dummy):
         return (codeInput, samplerType, newKwargs)
     return (myInput, samplerType, newKwargs)
 
+
+  #FIXME swith to ROM method
   def trainRom(self, samplerType, kwargs):
     """
       This function will train all ROMs if they are not converged
@@ -315,38 +317,17 @@ class HybridModel(Dummy):
     """
     self.raiseADebug("Start to train roms")
     for romInfo in self.romsDictionary.values():
-      # Should we check the size of existing data object self.tempTargetEvaluation
-      # and compared to the size of trainingSet in the ROM, the reason is that
-      # we may end up using the same data to train the rom, the outputs may not be
-      # collected yet!
-      # reset the rom
-      romInfo['Instance'].reset()
-      useCV = self.checkCV(len(self.tempTargetEvaluation))
-      if useCV:
-        # always train the rom even if the rom is converged, we assume the cross validation and rom train are relative cheap
-        outputMetrics = self.cvInstance.evaluateSample([romInfo['Instance'], self.tempTargetEvaluation], samplerType, kwargs)[1]
-        converged = self.isRomConverged(outputMetrics)
+      cvMetrics = romInfo['Instance'].crossValidation(self.tempTargetEvaluation)
+      if cvMetrics is not None:
+        converged = self.isRomConverged(cvMetrics)
         romInfo['Converged'] = converged
         if converged:
+          romInfo['Instance'].reset()
           romInfo['Instance'].train(self.tempTargetEvaluation)
           self.raiseADebug("ROM ", romInfo['Instance'].name, " is converged!")
       else:
         self.raiseAMessage("Minimum initial training size is met, but the training size is not enough to be used to perform cross validation")
     self.oldTrainingSize = len(self.tempTargetEvaluation)
-
-  def checkCV(self, trainingSize):
-    """
-      The function will check whether we can use Cross Validation or not
-      @ In, trainingSize, int, the size of current training size
-      @ Out, None
-    """
-    useCV = True
-    initDict =  self.cvInstance.interface.initializationOptionDict
-    if 'SciKitLearn' in initDict.keys() and 'n_splits' in initDict['SciKitLearn'].keys():
-      if trainingSize < utils.intConversion(initDict['SciKitLearn']['n_splits']):
-        useCV = False
-
-    return useCV
 
   def isRomConverged(self, outputDict):
     """
@@ -357,16 +338,8 @@ class HybridModel(Dummy):
     """
     converged = True
     # very temporary solution
-    exploredTargets = []
-    for cvKey, metricValues in outputDict.items():
-      #for targetName, metricInfo in outputDict.items():
-      # very temporary solution
-      info = self.cvInstance.interface._returnCharacteristicsOfCvGivenOutputName(cvKey)
-      if info['targetName'] in exploredTargets:
-        self.raiseAnError(IOError, "Multiple metrics are used in cross validation '", self.cvInstance.name, "'. Currently, this can not be processed by the HybridModel '", self.name, "'!")
-      exploredTargets.append(info['targetName'])
-      name = utils.first(self.cvInstance.interface.metricsDict.keys())
-      converged = self.checkErrors(info['metricType'], metricValues)
+    for romName, metricInfo in outputDict.items():
+      converged = self.checkErrors(metricInfo[0], metricInfo[1])
     return converged
 
   def checkErrors(self, metricType, metricResults):
