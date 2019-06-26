@@ -127,6 +127,7 @@
     <Print name="synced">
       <type>csv</type>
       <source>synced</source>
+      <what>input,output</what>
     </Print>
     <Print name="rom">
       <type>csv</type>
