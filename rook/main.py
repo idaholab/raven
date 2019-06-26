@@ -25,12 +25,26 @@ import inspect
 import time
 import threading
 
-import psutil
+try:
+  import psutil
+  psutil_avail = True
+except ImportError:
+  psutil_avail = False
 import pool
 import trees.TreeStructure
 from Tester import Tester, Differ
 
 warnings.simplefilter('default', DeprecationWarning)
+
+# set up colors
+# TODO add feature to turn coloring on and off
+norm_color = '\033[0m'  #reset color
+skip_color = '\033[90m' #dark grey
+fail_color = '\033[91m' #red
+pass_color = '\033[92m' #green
+name_color = '\033[93m' #yellow
+time_color = '\033[94m' #blue
+
 
 parser = argparse.ArgumentParser(description="Test Runner")
 parser.add_argument('-j', '--jobs', dest='number_jobs', type=int, default=1,
@@ -115,6 +129,9 @@ class LoadClass(threading.Thread):
     return smooth_avg
 
 if args.load_average > 0:
+  if not psutil_avail:
+    print("No module named 'psutil' and load average specified")
+    sys.exit(-1)
   load = LoadClass()
   load.start()
 
@@ -193,12 +210,6 @@ def process_result(index, _input_data, output_data):
   """
   group = output_data.group
   process_test_name = test_name_list[index]
-  # TODO add feature to turn coloring on and off
-  norm_color = '\033[0m'  #reset color
-  skip_color = '\033[90m' #dark grey
-  fail_color = '\033[91m' #red
-  pass_color = '\033[92m' #green
-  name_color = '\033[93m' #yellow
   if group == Tester.group_success:
     results["pass"] += 1
     for postreq in function_postreq.get(process_test_name, []):
@@ -219,12 +230,16 @@ def process_result(index, _input_data, output_data):
     print(output_data.message)
     okaycolor = fail_color
   number_done = sum(results.values())
-  print("({done}/{togo}) {statcolor}{status:7s}{normcolor} ({time}) {namecolor}{test}{normcolor}"
+  print(' '.join(["({done}/{togo})",
+                  "{statcolor}{status:7s}{normcolor}"
+                  "({timecolor}{time}{normcolor})"
+                  "{namecolor}{test}{normcolor}"])
         .format(done=number_done,
                 togo=len(function_list),
                 statcolor=okaycolor,
                 normcolor=norm_color,
                 namecolor=name_color,
+                timecolor=time_color,
                 status=Tester.get_group_name(group),
                 time=sec_format(output_data.runtime),
                 test=process_test_name))
@@ -349,9 +364,10 @@ if __name__ == "__main__":
   run_pool.wait()
 
   if results["fail"] > 0:
-    print("FAILED:")
+    print("{}FAILED:".format(fail_color))
   for path in failed_list:
     print(path)
+  print(norm_color)
 
   csv_report = open("test_report.csv", "w")
   csv_report.write(",".join(["name", "passed", "group", "time"])+"\n")
@@ -365,7 +381,7 @@ if __name__ == "__main__":
     csv_report.write(out_line+"\n")
   csv_report.close()
 
-  print("PASSED: ", results["pass"])
-  print("SKIPPED:", results["skipped"])
-  print("FAILED: ", results["fail"])
+  print("PASSED: {}{}{}".format(pass_color, results["pass"], norm_color))
+  print("SKIPPED: {}{}{}".format(skip_color, results["skipped"], norm_color))
+  print("FAILED: {}{}{}".format(fail_color, results["fail"], norm_color))
   sys.exit(results["fail"])

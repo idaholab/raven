@@ -188,11 +188,11 @@ class ROM(Dummy):
     InterpolationInput.addParam("weight", InputData.FloatType, False)
     inputSpecification.addSub(InterpolationInput)
     # ARMA
-    inputSpecification.addSub(InputData.parameterInputFactory('correlate', contentType=InputData.StringListType))
-    inputSpecification.addSub(InputData.parameterInputFactory("P", contentType=InputData.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("Q", contentType=InputData.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("seed", contentType=InputData.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("reseedCopies", contentType=InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory('correlate', InputData.StringListType))
+    inputSpecification.addSub(InputData.parameterInputFactory("P", InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("Q", InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("seed", InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("reseedCopies", InputData.BoolType))
     inputSpecification.addSub(InputData.parameterInputFactory("Fourier", contentType=InputData.FloatListType))
     inputSpecification.addSub(InputData.parameterInputFactory("preserveInputCDF", contentType=InputData.BoolType))
     ### ARMA zero filter
@@ -209,6 +209,15 @@ class ROM(Dummy):
     specFourier.addParam("variables", InputData.StringListType, True)
     specFourier.addSub(InputData.parameterInputFactory('periods', contentType=InputData.FloatListType))
     inputSpecification.addSub(specFourier)
+    ### ARMA peaks
+    peaks = InputData.parameterInputFactory('Peaks')
+    window = InputData.parameterInputFactory('window',contentType=InputData.FloatListType)
+    window.addParam('width', InputData.FloatType, True)
+    peaks.addSub(window)
+    peaks.addParam('threshold', InputData.FloatType)
+    peaks.addParam('target', InputData.StringType)
+    peaks.addParam('period', InputData.FloatType)
+    inputSpecification.addSub(peaks)
     # inputs for neural_network
     inputSpecification.addSub(InputData.parameterInputFactory("activation", contentType=InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("batch_size", contentType=InputData.StringType))

@@ -56,10 +56,10 @@
       <target>goalFunctionForLimitSurface</target>
       <outputName>EventProbability</outputName>
       <variable name="x0">
-        <distribution>x0_distrib</distribution>
+        <distribution class="Distributions" type="Normal">x0_distrib</distribution>
       </variable>
       <variable name="y0">
-        <distribution>y0_distrib</distribution>
+        <distribution class="Distributions" type="Normal">y0_distrib</distribution>
       </variable>
     </PostProcessor>
     <PostProcessor name="LimitSurfaceIntegralUnWeightedWithBounds" subType="LimitSurfaceIntegral">
@@ -88,7 +88,8 @@
   </Models>
 
   <Functions>
-    <External file="limitSurface_integral/goalFunctionTest" name="goalFunctionForLimitSurface">
+    <!--External file="limitSurface_integral/goalFunctionTest" name="goalFunctionForLimitSurface"-->
+    <External file="goalFunctionTest" name="goalFunctionForLimitSurface">
       <variables>z</variables>
     </External>
   </Functions>

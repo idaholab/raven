@@ -241,14 +241,19 @@ def findPathEllipsesParents(root, path, docLevel=0):
   curNode.append(foundNode)
   return newRoot
 
-def loadToTree(filename):
+def loadToTree(filename, preserveComments=False):
   """
     loads a file into an XML tree
     @ In, filename, string, the file to load
+    @ In, preserveComments, bool, optional, if True then preserve comments in XML tree
     @ Out, root, xml.etree.ElementTree.Element, root of tree
     @ Out, tree, xml.etree.ElementTree.ElementTree, tree read from file
   """
-  tree = ET.parse(filename)
+  if preserveComments:
+    parser = ET.XMLParser(target=CommentedTreeBuilder())
+  else:
+    parser = None
+  tree = ET.parse(filename, parser=parser)
   root = tree.getroot()
   return root, tree
 
@@ -368,7 +373,10 @@ def readVariableGroups(xmlNode, messageHandler, caller):
   for child in xmlNode:
     name = child.attrib['name']
     nodes[name] = child
-    needs = [s.strip().strip('-+^%') for s in child.text.split(',')]
+    if child.text is None:
+      needs = []
+    else:
+      needs = [s.strip().strip('-+^%') for s in child.text.split(',')]
     for n in needs:
       if n not in deps and n not in names:
         deps[n] = []
@@ -392,7 +400,28 @@ def readVariableGroups(xmlNode, messageHandler, caller):
 
   return varGroups
 
+#
+# XML Reader Customization
+#
+#
+class CommentedTreeBuilder(ET.TreeBuilder):
+  """
+    Comment-preserving tree reader.
+    Taken from https://stackoverflow.com/questions/33573807/faithfully-preserve-comments-in-parsed-xml-python-2-7
+  """
+  def __init__(self, *args, **kwargs):
+    super(CommentedTreeBuilder, self).__init__(*args, **kwargs)
+    # self._parser.CommentHandler = self.comment
 
+  def comment(self, data):
+    """
+      Typifies comments in the XML tree
+      @ In, data, instance, internal ElementTree data structure
+      @ Out, None
+    """
+    self.start(ET.Comment, {})
+    self.data(data)
+    self.end(ET.Comment)
 
 #
 # Classes for standardized RAVEN XML writing (outputs of DataObjects, ROMs, etc)

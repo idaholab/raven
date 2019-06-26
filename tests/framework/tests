@@ -219,19 +219,6 @@
    rel_err = 9.0E-4
  [../]
 
- [./safest_point_pp]
-  type = 'RavenFramework'
-  input = 'test_safest_point.xml'
-  csv = 'SafestPointPP/sfs_pnt_dmp.csv SafestPointPP/lmt_srf_dmp.csv'
- [../]
-
-
- [./safest_point_cdf_pp]
-  type = 'RavenFramework'
-  input = 'test_safest_point_cdf.xml'
-  csv = 'SafestPointPP_cdf/sfs_pnt_cdf_dmp.csv SafestPointPP_cdf/lmt_srf_dmp.csv'
- [../]
-
  [./ND_external_MC]
   #REQUIREMENT_TEST R-RE-2
   type = 'RavenFramework'
@@ -270,13 +257,6 @@
   type = 'RavenFramework'
   input = 'test_simple_ND_external_MC_MVN.xml'
   csv = 'ND_test_MC_MVN/testPrintPointSet_dump.csv'
- [../]
-
- [./test_comparison_statistics]
-   type = 'RavenFramework'
-   input = 'test_cc_stats.xml'
-   output = 'test_cc_stats/output.csv'
-   csv = 'test_cc_stats/output_fullprint_Pointset_outputs_normal1_0.csv test_cc_stats/output_fullprint_Pointset_outputs_normal1_1.csv test_cc_stats/output_fullprint_Pointset_outputs_normal2_0.csv test_cc_stats/output_fullprint_Pointset_outputs_normal2_1.csv test_cc_stats/output_fullprint_Pointset_outputs_uniform1_fullprint_Pointset_outputs_uniform2p_0.csv test_cc_stats/output_fullprint_Pointset_outputs_uniform1_fullprint_Pointset_outputs_uniform2p_1.csv'
  [../]
 
  [./dists_vars]

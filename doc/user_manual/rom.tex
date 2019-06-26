@@ -2987,9 +2987,14 @@ train. The Fourier trend will be stored in the trained ARMA model for data gener
 describes the detrending
 process.
 \begin{equation*}
-x_t = y_t - \sum_m\left\{a_m\sin(2\pi f_mt)+b_m\cos(2\pi f_mt)\right\},
+\begin{aligned}
+x_t &= y_t - \sum_m\left\{a_m\sin(2\pi f_mt)+b_m\cos(2\pi f_mt)\right\}  \\
+&=y_t - \sum_m\ c_m\sin(2\pi f_mt+\phi_m)
+\end{aligned}
 \end{equation*}
-where $1/f_m$ is defined by the user parameter \xmlNode{Fourier}.
+
+where $1/f_m$ is defined by the user parameter \xmlNode{Fourier}. \nb $a_m$ and $b_m$ will be calculated then transformed to 
+$c_m$ and $\phi$. The $c_m$ will be stored as \xmlString{amplitude}, and $\phi$ will be stored as \xmlString{phase}.
 
 By default, each target in the training will be considered independent and have an unique ARMA for each
 target.  Correlated targets can be specified through the \xmlNode{correlate} node, at which point
@@ -3017,10 +3022,20 @@ below).
     should be considered as influencing each other, and trained together instead of independently.  This node
     can only be listed once, so all variables that are desired for correlation should be included.  \nb The
     correlated VARMA takes notably longer to train than the independent ARMAs for the same number of targets.
-  \item \xmlNode{seed}, \xmlDesc{integer, optional field}, provides seed for ONLY the VARMA sampling.  Has no
-    effect on ARMA single-target sampling or other RAVEN entities.  Must be provided before training; it cannot
-    be changed once trained.
-  \default{True}
+  \item \xmlNode{seed}, \xmlDesc{integer, optional field}, provides seed for VARMA and ARMA sampling. 
+   Must be provided before training. If no seed is assigned, 
+   then a random number will be used.
+   
+   \item \xmlNode{reseedCopies}, \xmlDesc{boolean, optional field}, if \xmlString{True} then whenever the ARMA is loaded from file, a
+    random reseeding will be performed to ensure different histories. \nb If reproducible histories are desired for an ARMA loaded from file,
+    \xmlNode{reseedCopies} should be set to \xmlString{False}, and in the \xmlNode{RunInfo} block \xmlNode{batchSize} needs to be 1 
+    and \xmlNode{internalParallel} should be
+     \xmlString{False} for RAVEN runs sampling the trained ARMA model.
+
+If \xmlNode{InternalParallel} is \xmlString{True} and the ARMA has \xmlNode{reseedCopies} as \xmlString{False}, an identical ARMA history will always be provided regardless of how many samples are taken.
+
+If \xmlNode{InternalParallel} is \xmlString{False} and \xmlNode{batchSize} is more than 1, it is not possible to guarantee the order of RNG usage by the separate processes, so it is not possible to guarantee reproducible histories are generated.        \default{True}
+  
   \item \xmlNode{P}, \xmlDesc{integer, optional field}, defines the value of $p$.
   \default{3}
   \item \xmlNode{Q}, \xmlDesc{integer, optional field}, defines the value of $q$.
@@ -3035,6 +3050,43 @@ below).
     domain is strictly positive, the absolute value of the original negative value will be used instead, and
     similarly for the negative domain.
   \default{None}
+  
+  
+   \item \xmlNode{Peaks}, \xmlDesc{node, optional}, designed to estimate the peaks in signals that repeat with some frequency, 
+   often in periodic data. The \xmlNode{Peaks} node has the following attributes:  
+  	\begin{itemize}
+    		\item \xmlAttr{target}, \xmlDesc{required string attribute}, defines the name of one target (besides the 
+		pivot parameter) expected to have periodic peaks.
+    		\item \xmlAttr{threshold}, \xmlDesc{required float attribute}, user-defined minimum required 
+		height of peaks (absolute value).
+    		\item \xmlAttr{period}, \xmlDesc{required float attribute}, user-defined expected period for target variable.		
+	\end{itemize}
+
+    	For example, 
+	\begin{lstlisting}[style=XML,morekeywords={target,threshold,period}]
+	<Peaks target='Speed' threshold='0' period='86400'>
+	\end{lstlisting}
+	This means the \xmlString{Speed} signal is a daily signal, and the minimal height required to define a peak is 0.
+    Additionally, the \xmlNode{Peaks} requires the sub-node:
+    	\begin{itemize}
+      		 \item \xmlNode{window}, \xmlDesc{comma-separated floats, required field}, 
+		 lists the window of time within each period in which a peak should be discovered. 
+		 The text of this node is the upper and lower boundary of this 
+		 window \emph{relative to} the start of the period, separated by a comma.
+		 User can define the lower bound to be a negative
+		 number if the window passes through one side of one period. For example, if the period is 24
+		 hours, the window can be -2,2 which is equivalent to 22, 2.
+		 This node has one attribute:
+		 \begin{itemize}
+		  \item \xmlAttr{width}, \xmlDesc{required float attribute} which is the 
+		 user defined  width of peaks in that window. The width is in the unit of the signal as well.
+		 \end{itemize}
+		 The number of \xmlNode{window} is unlimited.
+       	\end{itemize}
+        
+
+  
+  
   \item \xmlNode{preserveInputCDF}, \xmlDesc{boolean, optional field}, enables a final transform on sampled
     data coercing it to have the same distribution as the original data. If \xmlString{True}, then every
     sample generated by this ARMA after training will have a distribution of values that conforms within
@@ -3050,9 +3102,6 @@ below).
     two distinct series: one containing times in which the original target is zero, and one in the remaining
     times. The results from separated ARMAs are recombined after sampling. This can be a methodology for
     treating histories with long zero-value segments punctuated periodically by peaks.
-  \item \xmlNode{reseedCopies}, \xmlDesc{boolean, optional field}, if True then whenever the ARMA is copied, a
-    random reseeding will be performed to ensure different histories.
-  \default{True}
   \item \xmlNode{SpecificFourier}, \xmlDesc{node, optional}, provides a means to specify different Fourier
     decomposition for different target variables.  Values given in the subnodes of this node will supercede
     the defaults set by the  \xmlNode{Fourier} and \xmlNode{FourierOrder} nodes.  This node accepts the
@@ -3070,7 +3119,7 @@ below).
 \end{itemize}
 
 \textbf{Example:}
-\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+\begin{lstlisting}[style=XML,morekeywords={name,subType,pivotLength,shift,target,threshold,period,width}]
 <Simulation>
   ...
   <Models>
@@ -3079,12 +3128,18 @@ below).
       <pivotParameter>Time</pivotParameter>
       <Features>scaling</Features>
       <Target>Speed1,Speed2</Target>
-      <Pmax>5</Pmax>
-      <Pmin>1</Pmin>
-      <Qmax>4</Qmax>
-      <Qmin>1</Qmin>
+      <P>5</P>
+      <Q>4</Q>
+      <Segment>
+        <subspace pivotLength="1296000" shift="first">Time</subspace>
+      </Segment>
+      <preserveInputCDF>True</preserveInputCDF>
       <Fourier>604800,86400</Fourier>
       <FourierOrder>2, 4</FourierOrder>
+      <Peaks target='Speed1' threshold='0.1' period='86400'>
+        <window width='14400' >-7200,10800</window>
+        <window width='18000' >64800,75600</window>
+      </Peaks>
      </ROM>
     ...
   </Models>

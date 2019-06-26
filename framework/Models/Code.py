@@ -615,6 +615,8 @@ class Code(Model):
 
         csvLoader = CsvLoader.CsvLoader(self.messageHandler)
         csvData = csvLoader.loadCsvFile(outFile)
+        if np.isnan(csvData).all():
+          self.raiseAnError(IOError, 'The data collected from', outputFile+'.csv', 'only contain "NAN"')
         headers = csvLoader.getAllFieldNames()
 
         ## Numpy by default iterates over rows, thus we transpose the data and

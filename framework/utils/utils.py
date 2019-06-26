@@ -1129,3 +1129,47 @@ def displayAvailable():
     else:
       display = False
   return display
+
+def which(cmd):
+  """
+    Emulate the which method in shutil.
+    Return the path to an executable which would be run if the given cmd was called.
+    If no cmd would be called, return None.
+    @ In, cmd, str, the exe to check
+    @ Out, which, str, the full path or None if not found
+  """
+  def _access_check(fn):
+    """
+      Just check if the path is executable
+      @ In, fn, string, the file to check
+      @ Out, _access_check, bool, if accessable or not?
+    """
+    return (os.path.exists(fn) and os.access(fn, os.X_OK) and not os.path.isdir(fn))
+  if os.path.dirname(cmd):
+    if _access_check(cmd):
+      return cmd
+    return None
+  path = os.environ.get("PATH", os.defpath)
+  if not path:
+    return None
+  path = path.split(os.pathsep)
+  if sys.platform == "win32":
+    if not os.curdir in path:
+      path.insert(0, os.curdir)
+    pathext = os.environ.get("PATHEXT", "").split(os.pathsep)
+    if any(cmd.lower().endswith(ext.lower()) for ext in pathext):
+      files = [cmd]
+    else:
+      files = [cmd + ext for ext in pathext]
+  else:
+    files = [cmd]
+  seen = set()
+  for dir in path:
+    normdir = os.path.normcase(dir)
+    if not normdir in seen:
+      seen.add(normdir)
+      for thefile in files:
+        name = os.path.join(dir, thefile)
+        if _access_check(name):
+          return name
+  return None
