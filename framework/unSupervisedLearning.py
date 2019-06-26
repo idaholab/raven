@@ -632,8 +632,8 @@ class SciKitLearn(unSupervisedLearning):
             center[cnt] = center[cnt] * sigma + mu
         self.metaDict['means'] = means
 
-      if hasattr(self.Method, 'covars_') :
-        covariance = copy.deepcopy(self.Method.covars_)
+      if hasattr(self.Method, 'covariances_') :
+        covariance = copy.deepcopy(self.Method.covariances_)
 
         for row, rowFeature in enumerate(self.features):
           rowSigma = self.muAndSigmaFeatures[rowFeature][1]

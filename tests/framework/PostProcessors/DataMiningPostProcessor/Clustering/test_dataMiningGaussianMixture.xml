@@ -13,6 +13,10 @@
         As reported in issue #805, RAVEN will not allow input DataObject of PostProcessor to be output DataObject,
         the output data object will be renamed, and the variable name of labels will be explicitly defined.
       </revision>
+      <revision author="alfoa" date="2019-06-25">
+          init\_param changed from wc to kmeans because the wc
+          option has been removed in scikitlearn v. 0.21
+      </revision>
     </revisions>
   </TestInfo>
 
@@ -35,7 +39,7 @@
         <random_state>0</random_state>
         <n_components>3</n_components>
         <n_iter>10000</n_iter>
-        <init_params>wc</init_params>
+        <init_params>kmeans</init_params>
       </KDD>
     </PostProcessor>
   </Models>
