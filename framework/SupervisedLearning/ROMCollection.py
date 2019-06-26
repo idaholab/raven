@@ -1108,7 +1108,12 @@ class Interpolated(supervisedLearning):
     df.fillna(0.0) # FIXME is 0 really the best for all signals??
     # create interpolators
     interp['method'] = {}
+    print('')
+    print(df.index.values)
     for header in params:
+      print(header)
+      print(df[header].values)
+
       interp['method'][header] = interp1d(df.index.values, df[header].values)
     fname = 'debug_statepoints_{}.pk'.format(index)
     # DEBUGG
