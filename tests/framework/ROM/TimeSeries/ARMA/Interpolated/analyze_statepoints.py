@@ -8,8 +8,11 @@ frames = []
 for s in ['global'] + list(range(10)):
   print('SEGMENT:', s)
   # load statepoint years
-  with open('debug_statepoints_{}.pk'.format(s), 'rb') as f:
-    df = pk.load(f)
+  try:
+    with open('debug_statepoints_{}.pk'.format(s), 'rb') as f:
+      df = pk.load(f)
+  except FileNotFoundError:
+    continue
   df['interped'] = np.asarray([False, False])
   # load interpolated years
   for y in range(1,9):
