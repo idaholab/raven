@@ -188,11 +188,11 @@ class ROM(Dummy):
     InterpolationInput.addParam("weight", InputData.FloatType, False)
     inputSpecification.addSub(InterpolationInput)
     # ARMA
-    inputSpecification.addSub(InputData.parameterInputFactory('correlate', InputData.StringListType))
-    inputSpecification.addSub(InputData.parameterInputFactory("P", InputData.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("Q", InputData.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("seed", InputData.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("reseedCopies", InputData.BoolType))
+    inputSpecification.addSub(InputData.parameterInputFactory('correlate', contentType=InputData.StringListType))
+    inputSpecification.addSub(InputData.parameterInputFactory("P", contentType=InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("Q", contentType=InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("seed", contentType=InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("reseedCopies", contentType=InputData.BoolType))
     inputSpecification.addSub(InputData.parameterInputFactory("Fourier", contentType=InputData.FloatListType))
     inputSpecification.addSub(InputData.parameterInputFactory("preserveInputCDF", contentType=InputData.BoolType))
     ### ARMA zero filter
