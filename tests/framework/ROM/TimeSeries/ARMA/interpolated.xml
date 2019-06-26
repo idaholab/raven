@@ -73,11 +73,11 @@
       <Q>0</Q>
       <Fourier>100, 5, 3</Fourier>
       <preserveInputCDF>False</preserveInputCDF>
-      <Peaks target='Signal' threshold='-2' period='10'>
+      <!--Peaks target='Signal' threshold='-2' period='10'>
         <window width='0.5' >-1,1</window>
         <window width='0.55' >6,7</window>
-        <!--nbin>5</nbin-->
-      </Peaks>
+        <nbin>5</nbin>
+      </Peaks-->
       <Segment grouping='interpolate'>
         <macroParameter>Year</macroParameter>
         <!--<clusterSpace>Fourier, Fourier.sin, Fourier.sine, ARMA.sigma, ARMA.arparams, Peaks.amplitude, Peaks.probability, mean, Peaks.amplitude.mean, Peaks.amplitude.histogram, Peaks.amplitude.</clusterSpace>-->
