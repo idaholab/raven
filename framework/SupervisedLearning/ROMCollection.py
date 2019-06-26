@@ -34,7 +34,8 @@ from scipy.interpolate import interp1d
 # internal libraries
 from utils import mathUtils, xmlUtils, randomUtils
 from .SupervisedLearning import supervisedLearning
-
+import pprint
+pp=pprint.PrettyPrinter(indent=2)
 import pickle as pk # TODO remove me!
 
 warnings.simplefilter('default', DeprecationWarning)
@@ -904,6 +905,7 @@ class Clusters(Segments):
     counter, remainder = divisions
     # collect ROM features (basic stats, etc)
     clusterFeatures = self._gatherClusterFeatures(roms, counter)
+    # pp.pprint(clusterFeatures)
     # future: requested metrics
     ## TODO someday
     # store clustering info, unweighted

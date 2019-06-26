@@ -79,6 +79,11 @@
         <years>3</years>
         <growth targets="Speed" mode="exponential">50</growth>
       </Multiyear>
+      <Peaks target='Speed' threshold='2' period='24'>
+        <window width='4' >-2,3</window>
+        <window width='5' >12,16</window>
+        <!--nbin>5</nbin-->
+      </Peaks>
     </ROM>
     <ExternalModel name='after_arma' subType='' ModuleToLoad='after_arma'>
       <variables>Speed, Time, Year, yearly_aggregate</variables>

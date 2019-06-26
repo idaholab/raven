@@ -885,11 +885,12 @@ class ARMA(supervisedLearning):
       window['width']=int(windowDict['windows'][i]['width']/deltaT)
       windows.append(window)
     peakResults['windows']=windows
-    groupWin , maskPeakRes=self._peakGroupWindow(timeSeriesData, windowDict = windowDict )
+    peakResults['threshold']=windowDict['threshold']
+    groupWin , maskPeakRes=self._peakGroupWindow(timeSeriesData, windowDict = peakResults )
     peakResults['groupWin']=groupWin
     peakResults['mask']=maskPeakRes
     peakResults['nbin']=windowDict['nbin']
-    rangeWindow = self.rangeWindow(windowDict=windowDict)
+    rangeWindow = self.rangeWindow(windowDict=peakResults)
     peakResults['rangeWindow']=rangeWindow
     # print('gW',groupWin)
     # print('rW',rangeWindow)
@@ -1283,9 +1284,9 @@ class ARMA(supervisedLearning):
       for e, edge in enumerate(edges):
         feature = featureTemplate.format(target=target, metric='cdf', id='edges_{}'.format(e))
         features[feature] = edge
-
     for target, peak in self.peaks.items():
       # print('啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦 我是分界线1 啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦')
+
       nBin = self.peaks[target]['nbin']
       if 'groupWin' in peak.keys() and 'rangeWindow' in peak.keys():
         for g , group in enumerate(peak['groupWin']):
@@ -1304,7 +1305,10 @@ class ARMA(supervisedLearning):
 
           ## IND
           #most probabble index
-          modeInd= stats.mode(group['Ind'])[0][0]
+          if len(group['Ind']):
+            modeInd= stats.mode(group['Ind'])[0][0]
+          else:
+            modeInd=0
           ID = 'gp_{}_modeInd'.format(g)
           feature = featureTemplate.format(target=target, metric='peak', id=ID)
           features[feature] = modeInd
@@ -1317,28 +1321,51 @@ class ARMA(supervisedLearning):
 
           ## AMP
           #mean
-          meanAmp=rv_histogram(np.histogram(group['Amp'])).mean()
-          feature = featureTemplate.format(target=target, metric='peak', id='gp_{}_meanAmp'.format(g))
-          features[feature] = meanAmp
+          if len(group['Amp']):
+            meanAmp=rv_histogram(np.histogram(group['Amp'])).mean()
+            feature = featureTemplate.format(target=target, metric='peak', id='gp_{}_meanAmp'.format(g))
+            features[feature] = meanAmp
+          else:
+            meanAmp=np.mean(self._signalStorage[target]['original'])
+            feature = featureTemplate.format(target=target, metric='peak', id='gp_{}_meanAmp'.format(g))
+            features[feature] = meanAmp
 
           ##std
-          stdAmp=rv_histogram(np.histogram(group['Amp'])).std()
-          feature = featureTemplate.format(target=target, metric='peak', id='gp_{}_stdAmp'.format(g))
-          features[feature] = stdAmp
+          if len(group['Amp'])>1:
+            stdAmp=rv_histogram(np.histogram(group['Amp'])).std()
+            feature = featureTemplate.format(target=target, metric='peak', id='gp_{}_stdAmp'.format(g))
+            features[feature] = stdAmp
+          else:
+            stdAmp=0
+            feature = featureTemplate.format(target=target, metric='peak', id='gp_{}_stdAmp'.format(g))
+            features[feature] = stdAmp
 
-
-          maxAmp=max(group['Amp'])
-          feature = featureTemplate.format(target=target, metric='peak', id='gp_{}_maxAmp'.format(g))
-          features[feature] = maxAmp
-          minAmp=min(group['Amp'])
-          feature = featureTemplate.format(target=target, metric='peak', id='gp_{}_minAmp'.format(g))
-          features[feature] = minAmp
-          ## distribution on the Amp
-          ampCounts, _ = np.histogram(group['Amp'], bins = nBin,density = False)
-          #retn=np.linspace(minAmp, maxAmp, num=nBin+1)
-          for c, count in enumerate(ampCounts):
-            feature = featureTemplate.format(target=target, metric='peak', id='gp_{}_amp {}'.format(g,c))
-            features[feature] = count
+          if len(group['Amp']):
+            maxAmp=max(group['Amp'])
+            feature = featureTemplate.format(target=target, metric='peak', id='gp_{}_maxAmp'.format(g))
+            features[feature] = maxAmp
+            minAmp=min(group['Amp'])
+            feature = featureTemplate.format(target=target, metric='peak', id='gp_{}_minAmp'.format(g))
+            features[feature] = minAmp
+            ## distribution on the Amp
+            ampCounts, _ = np.histogram(group['Amp'], bins = nBin,density = False)
+            #retn=np.linspace(minAmp, maxAmp, num=nBin+1)
+            for c, count in enumerate(ampCounts):
+              feature = featureTemplate.format(target=target, metric='peak', id='gp_{}_amp {}'.format(g,c))
+              features[feature] = count
+          else:
+            maxAmp=max(self._signalStorage[target]['original'])
+            feature = featureTemplate.format(target=target, metric='peak', id='gp_{}_maxAmp'.format(g))
+            features[feature] = maxAmp
+            minAmp=min(self._signalStorage[target]['original'])
+            feature = featureTemplate.format(target=target, metric='peak', id='gp_{}_minAmp'.format(g))
+            features[feature] = minAmp
+            ## distribution on the Amp
+            ampCounts, _ = np.histogram(group['Amp'], bins = nBin,density = False)
+            #retn=np.linspace(minAmp, maxAmp, num=nBin+1)
+            for c, count in enumerate(ampCounts):
+              feature = featureTemplate.format(target=target, metric='peak', id='gp_{}_amp {}'.format(g,c))
+              features[feature] = count
 
       #     print(g)
       #     print(group['Ind'])
@@ -1495,9 +1522,10 @@ class ARMA(supervisedLearning):
     for target, info in paramDict.items():
       groupWin=[]
       for g, groupInfo in info.items():
-        lenWin=min(len(self.peak[target]['rangeWindow'][g]['bg']),len(self.peak[target]['rangeWindow'][g]['end']))
-        groupWin.append({})
         g = int(g)
+        lenWin=min(len(self.peaks[target]['rangeWindow'][g]['bg']),len(self.peaks[target]['rangeWindow'][g]['end']))
+        groupWin.append({})
+
         lsCs=list(groupInfo['ampCounts'].items())
         _, hisCs = zip(*sorted(lsCs, key=lambda x: x[0]))
         ampHisCs = np.asarray(hisCs)
@@ -1523,7 +1551,7 @@ class ARMA(supervisedLearning):
 
         groupWin[g]['Ind']=indLocal
         groupWin[g]['Amp']=ampLocal
-      self.peak[target]['groupWin']=groupWin
+      self.peaks[target]['groupWin']=groupWin
 
   def getGlobalRomSegmentSettings(self, trainingDict, divisions):
     """
