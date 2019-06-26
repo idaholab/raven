@@ -192,7 +192,7 @@ class ROM(Dummy):
     inputSpecification.addSub(InputData.parameterInputFactory("P", contentType=InputData.IntegerType))
     inputSpecification.addSub(InputData.parameterInputFactory("Q", contentType=InputData.IntegerType))
     inputSpecification.addSub(InputData.parameterInputFactory("seed", contentType=InputData.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("reseedCopies", contentType=InputData.BoolType))
+    inputSpecification.addSub(InputData.parameterInputFactory("reseedCopies", contentType=InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("Fourier", contentType=InputData.FloatListType))
     inputSpecification.addSub(InputData.parameterInputFactory("preserveInputCDF", contentType=InputData.BoolType))
     ### ARMA zero filter
