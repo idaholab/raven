@@ -499,11 +499,11 @@ class hdf5Database(MessageHandler.MessageUser):
     if not self.fileOpen:
       self.__createObjFromFile() # Create the "self.allGroupPaths" list from the existing database
     if not rootName:
-      workingList = [utils.toString(k).split('/')[-1] for k in self.allGroupPaths if utils.toString(k).find('/') > -1 and 
+      workingList = [utils.toString(k).split('/')[-1] for k in self.allGroupPaths if utils.toString(k).find('/') > -1 and
                      utils.toString(k).strip() not in ['/',self.parentGroupName]]
     else:
-      workingList = [utils.toString(k).split('/')[-1] for k in self.allGroupPaths if utils.toString(k).find('/') > -1 and 
-                     utils.toString(k).endswith(utils.toString(rname)) and 
+      workingList = [utils.toString(k).split('/')[-1] for k in self.allGroupPaths if utils.toString(k).find('/') > -1 and
+                     utils.toString(k).endswith(utils.toString(rname)) and
                      utils.toString(k).strip() not in ['/',self.parentGroupName]]
     return workingList
 
