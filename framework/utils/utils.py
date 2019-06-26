@@ -578,8 +578,9 @@ def importFromPath(filename, printImporting = True):
     print('(            ) '+UreturnPrintTag('UTILS') + ': '+UreturnPrintPostTag('Message')+ '      -> importing module '+ filename)
   import os.path
   try:
-    (_, name) = os.path.split(filename)
-    spec = importlib.util.spec_from_file_location(name, filename)
+    (path, name) = os.path.split(filename)
+    filen = filename if filename.strip().endswith(".py") else filename.strip()+".py"
+    spec = importlib.util.spec_from_file_location(name, filen)
     importedModule = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(importedModule)
   except Exception as ae:
