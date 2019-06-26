@@ -1007,6 +1007,8 @@ class Interpolated(supervisedLearning):
       @ Out, None
     """
     # tdict should have two parameters, the pivotParameter and the macroParameter -> one step per realization
+    if self._macroParameter not in tdict:
+      self.raiseAnError(IOError, 'The <macroParameter> "{}" was not found in the training DataObject! Training is not possible.'.format(self._macroParameter))
     ## TODO how to handle multiple realizations that aren't progressive, e.g. sites???
     # create each progressive step
     self._macroTemplate.readAssembledObjects()
