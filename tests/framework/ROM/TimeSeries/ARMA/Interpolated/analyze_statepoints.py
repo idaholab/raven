@@ -16,8 +16,13 @@ for s in ['global'] + list(range(10)):
   df['interped'] = np.asarray([False, False])
   # load interpolated years
   for y in range(1,9):
-    with open('debugg_interp_y{}_s{}.pk'.format(y, s), 'rb') as f:
-      params = pk.load(f)
+    try:
+      fname = 'debugg_interp_y{}_s{}.pk'.format(y, s)
+      with open(fname, 'rb') as f:
+        params = pk.load(f)
+    except FileNotFoundError:
+      print('not found:',fname)
+      continue
     params = dict((param, np.atleast_1d(value)) for param, value in params.items())
     params['year'] = y
     params['interped'] = np.atleast_1d(True)
