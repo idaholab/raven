@@ -324,7 +324,7 @@ if __name__ == '__main__':
     # try to remove the versions for python2
     for i in range(len(__condaList)):
       if __condaList[i][0] != 'python':
-        __condaList[i][1] = ""
+        __condaList[i][1] = (__condaList[i][0],"")
     #__condaList.remove(("xarray", __lookup_preferred_version("xarray")))
     #__condaList.append(("xarray", "0.11.3"))
     #__condaList.remove(("matplotlib", __lookup_preferred_version("matplotlib")))
