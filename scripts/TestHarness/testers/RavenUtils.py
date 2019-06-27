@@ -325,10 +325,6 @@ if __name__ == '__main__':
     for i in range(len(__condaList)):
       if __condaList[i][0] != 'python':
         __condaList[i][1] = (__condaList[i][0],"")
-    #__condaList.remove(("xarray", __lookup_preferred_version("xarray")))
-    #__condaList.append(("xarray", "0.11.3"))
-    #__condaList.remove(("matplotlib", __lookup_preferred_version("matplotlib")))
-    #__condaList.append(("matplotlib", "2.2.3"))
 
   # check for environemnt definition of raven libs
   libName = os.getenv('RAVEN_LIBS_NAME', 'raven_libraries')
