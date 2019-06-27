@@ -22,6 +22,11 @@ warnings.simplefilter('default', DeprecationWarning)
 
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
+if int(np.__version__.split(".")[1]) >12:
+  isin = np.isin 
+else:
+  isin = lambda a, b: np.array([item in b for item in a])
+
 import copy
 from collections import OrderedDict
 #External Modules End--------------------------------------------------------------------------------
@@ -342,7 +347,6 @@ class LimitSurface(PostProcessor):
       # reset the output
       if len(output) > 0:
         self.raiseAnError(RuntimeError, 'The output DataObject "'+output.name+'" is not empty! Chose another one!')
-        #output.reset()
       # construct the realizations dict
       rlz = {varName: limitSurf[0][:,varIndex] for varIndex,varName in enumerate(self.axisName) }
       rlz[self.externalFunction.name] = limitSurf[1]
@@ -472,27 +476,32 @@ class LimitSurface(PostProcessor):
             myIdList[iVar] += 1
             if self.testMatrix[nodeName][tuple(myIdList)] * sign <= 0:
               putIt[iVar] = True
-              listSurfPoint.append(copy.copy(coordinate))
+              if not any(isin(listSurfPoint,coordinate)):
+                listSurfPoint.append(copy.copy(coordinate))
               break
             myIdList[iVar] -= 1
             if coordinate[iVar] > 0:
               myIdList[iVar] -= 1
               if self.testMatrix[nodeName][tuple(myIdList)] * sign <= 0:
                 putIt[iVar] = True
-                listSurfPoint.append(copy.copy(coordinate))
+                if not any(isin(listSurfPoint,coordinate)):
+                  listSurfPoint.append(copy.copy(coordinate))
                 break
               myIdList[iVar] += 1
           if coordinate[iVar] +1 == gridShape[iVar]:
             myIdList[iVar] -= 1
             if self.testMatrix[nodeName][tuple(myIdList)] * sign <= 0:
               putIt[iVar] = True
-              listSurfPoint.append(copy.copy(coordinate))
+              if not any(isin(listSurfPoint,coordinate)):
+                listSurfPoint.append(copy.copy(coordinate))
               break
             if coordinate[iVar] > 0:
               myIdList[iVar] += 1
               if self.testMatrix[nodeName][tuple(myIdList)] * sign <= 0:
                 putIt[iVar] = True
-                listSurfPoint.append(copy.copy(coordinate))
+                if not any(isin(listSurfPoint,coordinate)):
+                  listSurfPoint.append(copy.copy(coordinate))
                 break
-      if len(set(putIt)) == 1 and  list(set(putIt))[0] == True: listSurfPoint.append(copy.copy(coordinate))
+      if len(set(putIt)) == 1 and  list(set(putIt))[0] == True and not any(isin(listSurfPoint,coordinate)):
+        listSurfPoint.append(copy.copy(coordinate))
     return listSurfPoint
