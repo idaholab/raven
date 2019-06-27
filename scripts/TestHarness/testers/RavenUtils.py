@@ -324,7 +324,7 @@ if __name__ == '__main__':
     # try to remove the versions for python2
     for i in range(len(__condaList)):
       if __condaList[i][0] != 'python':
-        __condaList[i] = (__condaList[i][0],"")
+        __condaList[i] = (__condaList[i][0], "")
 
   # check for environemnt definition of raven libs
   libName = os.getenv('RAVEN_LIBS_NAME', 'raven_libraries')
