@@ -42,16 +42,15 @@ def in_python_3():
 #This list is made of (module, how to check the version, minimum version,
 # quality assurance module version, maximum version)
 # Deep learning requires Scikit-Learn version at least 0.18
-
 ## working Conda 4.5.4, May 2018
-modules_to_try = [("h5py", 'h5py.__version__', '2.9.0', '2.9.0', None), # 2.9.0
+modules_to_try = [("h5py", 'h5py.__version__', '2.7.1', '2.9.0', None), # 2.9.0
                   # numpy >=1.13.3 is required for tensorflow
                   # FIXME: numpy=1.13.3 with tensorflow library with cause a lot of tests timeout
-                  ("numpy", 'numpy.__version__', "1.16.4", "1.16.4", None),
-                  ("scipy", 'scipy.__version__', "1.2.1", "1.2.1", None),
-                  ("sklearn", 'sklearn.__version__', "0.21.2", "0.21.2", None),
-                  ("pandas", 'pandas.__version__', "0.24.2", "0.24.2", None),
-                  ("xarray", 'xarray.__version__', "0.12.1", "0.12.1", None),
+                  ("numpy", 'numpy.__version__', "1.14.0", "1.16.4", None),
+                  ("scipy", 'scipy.__version__', "1.1.0", "1.2.1", None),
+                  ("sklearn", 'sklearn.__version__', "0.19.1", "0.21.2", None),
+                  ("pandas", 'pandas.__version__', "0.20.3", "0.24.2", None),
+                  ("xarray", 'xarray.__version__', "0.10.3", "0.12.1", None),
                   ## NOTE there is a known bug in netCDF4 prior to 1.3.1 where
                   # having a path length of exactly 88 characters can create a
                   # seg fault.  However, h5py has no new libraries
@@ -60,9 +59,9 @@ modules_to_try = [("h5py", 'h5py.__version__', '2.9.0', '2.9.0', None), # 2.9.0
                   # For now, we avoid using netCDF
                   # until we transition from
                   # HDF5 databases and drop them like hot rocks.
-                  ("netCDF4", 'netCDF4.__version__', "1.4.2", "1.4.2", None), # 1.2.4
-                  ("statsmodels", 'statsmodels.__version__', "0.9.0", "0.9.0", None),
-                  ("matplotlib", 'matplotlib.__version__', "3.1.0", "3.1.0", None)]
+                  ("netCDF4", 'netCDF4.__version__', "1.4.0", "1.4.2", None), # 1.2.4
+                  ("statsmodels", 'statsmodels.__version__', "0.8.0", "0.9.0", None),
+                  ("matplotlib", 'matplotlib.__version__', "2.1.1", "3.1.0", None)]
 
 optional_test_libraries = [('pillow', 'PIL.__version__', "6.0.0", "6.0.0", None),
                            # On Windows conda, there are no Python 2.7-compatible
