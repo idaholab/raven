@@ -82,24 +82,42 @@ def __lookup_preferred_version(name, optional=False):
       return qa_ver
   return ""
 # libraries to install with Conda
-__condaList = [("h5py", __lookup_preferred_version("h5py")),
-               ("numpy", __lookup_preferred_version("numpy")),
-               ("scipy", __lookup_preferred_version("scipy")),
-               ("scikit-learn", __lookup_preferred_version("sklearn")),
-               ("pandas", __lookup_preferred_version("pandas")),
-               ("xarray", __lookup_preferred_version("xarray")),
-               ("netcdf4", __lookup_preferred_version("netCDF4")),
-               ("matplotlib", __lookup_preferred_version("matplotlib")),
-               ("statsmodels", __lookup_preferred_version("statsmodels")),
-               ("tensorflow", __lookup_preferred_version("tensorflow", optional=True)),
-               ("python", "2.7"),
-               ("hdf5", "1.10.4"),
-               ("swig", ""),
-               ("pylint", ""),
-               ("coverage", ""),
-               ("lxml", ""),
-               ("psutil", "")]
+__condaListPy3 = [("h5py", __lookup_preferred_version("h5py")),
+                  ("numpy", __lookup_preferred_version("numpy")),
+                  ("scipy", __lookup_preferred_version("scipy")),
+                  ("scikit-learn", __lookup_preferred_version("sklearn")),
+                  ("pandas", __lookup_preferred_version("pandas")),
+                  ("xarray", __lookup_preferred_version("xarray")),
+                  ("netcdf4", __lookup_preferred_version("netCDF4")),
+                  ("matplotlib", __lookup_preferred_version("matplotlib")),
+                  ("statsmodels", __lookup_preferred_version("statsmodels")),
+                  ("tensorflow", __lookup_preferred_version("tensorflow", optional=True)),
+                  ("python", "2.7"),
+                  ("hdf5", "1.10.4"),
+                  ("swig", ""),
+                  ("pylint", ""),
+                  ("coverage", ""),
+                  ("lxml", ""),
+                  ("psutil", "")]
 
+# Conda list for py 2 (to remove when we remove support)
+__condaListPy2 = [("h5py", "2.7.1"),
+                  ("numpy", "1.14.0"),
+                  ("scipy", "1.1.0"),
+                  ("scikit-learn", "0.19.1"),
+                  ("pandas", "0.20.3"),
+                  ("xarray", "0.10.3"),
+                  ("netcdf4", "1.4.0"),
+                  ("matplotlib", "2.1.1"),
+                  ("statsmodels", "0.8.0"),
+                  ("python", "2.7"),
+                  ("hdf5", "1.8.18"),
+                  ("swig", ""),
+                  ("pylint", ""),
+                  ("coverage", ""),
+                  ("lxml", ""),
+                  ("psutil", "")]
+__condaList = __condaListPy3
 # libraries to install with conda-forge
 __condaForgeList = [("pyside", ""),]
 # optional conda libraries
@@ -320,11 +338,7 @@ if __name__ == '__main__':
     __condaList[pythonIndex] = ("python", "3")
     __condaForgeList = [("pyside2", ""),]
   else:
-    __condaList.remove(("tensorflow", __lookup_preferred_version("tensorflow", optional=True)))
-    # try to remove the versions for python2
-    for i in range(len(__condaList)):
-      if __condaList[i][0] != 'python':
-        __condaList[i] = (__condaList[i][0], "")
+    __condaList = __condaListPy2
 
   # check for environemnt definition of raven libs
   libName = os.getenv('RAVEN_LIBS_NAME', 'raven_libraries')
