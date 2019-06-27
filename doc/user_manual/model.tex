@@ -105,6 +105,13 @@
   \ifthenelse{\equal{#1}{}}{}{\default{#1}}
 }
 
+\newcommand{\nIterNoChangeDescriptionA}[1]
+{
+  \xmlNode{n\_iter\_no\_change}, \xmlDesc{integer, optional field}, number of iterations with no improvement to wait before early stopping. 
+  %
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
+}
+
 \newcommand{\tolDescriptionA}[1]
 {
   \xmlNode{tol}, \xmlDesc{float, optional field}, stop the algorithm if the convergence error felt below the tolerance specified here.

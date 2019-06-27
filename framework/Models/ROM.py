@@ -96,6 +96,7 @@ class ROM(Dummy):
     inputSpecification.addSub(InputData.parameterInputFactory("p", contentType=InputData.IntegerType))
     inputSpecification.addSub(InputData.parameterInputFactory("SKLtype", contentType=InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("n_iter", contentType=InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("n_iter_no_change", contentType=InputData.IntegerType))
     inputSpecification.addSub(InputData.parameterInputFactory("tol", contentType=InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("alpha_1", contentType=InputData.FloatType))
     inputSpecification.addSub(InputData.parameterInputFactory("alpha_2", contentType=InputData.FloatType))

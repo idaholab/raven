@@ -1369,8 +1369,8 @@ Classifier}{linear\_model|PassiveAggressiveClassifier}
   \default{1.0}
   %
   \item \fitInterceptDescription{True}
-  \item \nIterDescriptionB{5}
   \item \shuffleDescription{True}
+  \item \nIterNoChangeDescriptionA{5}
   \item \randomStateDescription{None}
   \item \verDescriptionB{0}
   \item \xmlNode{loss}, \xmlDesc{string, optional field}, the loss function to
@@ -1450,7 +1450,7 @@ training set one at a time.
   %
   \default{0.0001}
   \item \fitInterceptDescription{True}
-  \item \nIterDescriptionB{5}
+  \item \nIterNoChangeDescriptionA{5}
   \item \shuffleDescription{True}
   \item \randomStateDescription{0}
   \item \verDescriptionB{0}
@@ -1498,6 +1498,7 @@ is a 2d-array of shape [n\_samples, n\_targets]).
   \default{1.0}
   %
   \item \fitInterceptDescription{True}
+  \item \nIterNoChangeDescriptionA{5}
   \item \maxIterDescription{determined by scipy.sparse.linalg.}
   \item \normalizeDescription{False}
   \item \solverDescription
@@ -1716,7 +1717,7 @@ training}{linear\_model|SGDClassifier}
   \default{0.15}
   %
   \item \fitInterceptDescription{True}
-  \item \nIterDescriptionB{5}
+  \item \nIterNoChangeDescriptionA{5}
   \item \shuffleDescription{True}
   \item \randomStateSVMDescription{None}
   \item \verDescriptionB{0}
@@ -1831,7 +1832,7 @@ floating point values for the features.
   \default{0.15}
   %
   \item \fitInterceptDescription{True}
-  \item \nIterDescriptionB{5}
+  \item \nIterNoChangeDescriptionA{5}
   \item \shuffleDescription{True}
   \item \randomStateDescription{None}
   \item \verDescriptionB{0}
@@ -2751,7 +2752,7 @@ The disadvantages of Gaussian Processes for Machine Learning include:
   %
 \end{itemize}
 
-\skltype{Gaussian Process Regressor}{GaussianProcess|GaussianProcess}
+\skltype{Gaussian Process Regressor}{GaussianProcess|GaussianProcessRegressor}
 
 \begin{itemize}
   \item \xmlNode{regr}, \xmlDesc{string, optional field}, is a regression
@@ -2846,7 +2847,7 @@ The disadvantages of Gaussian Processes for Machine Learning include:
   %
 \end{itemize}
 
-\zNormalizationNotPerformed{GaussianProcess}
+\zNormalizationNotPerformed{GaussianProcessRegressor}
 
 \textbf{Example:}
 \begin{lstlisting}[style=XML,morekeywords={name,subType}]
