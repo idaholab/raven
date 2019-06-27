@@ -321,6 +321,8 @@ if __name__ == '__main__':
     __condaForgeList = [("pyside2", ""),]
   else:
     __condaList.remove(("tensorflow", __lookup_preferred_version("tensorflow", optional=True)))
+    __condaList.remove(("xarray", __lookup_preferred_version("xarray")))
+    __condaList.append(("xarray", "0.11.3"))
 
   # check for environemnt definition of raven libs
   libName = os.getenv('RAVEN_LIBS_NAME', 'raven_libraries')
