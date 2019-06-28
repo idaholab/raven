@@ -102,27 +102,53 @@ function find_conda_defs ()
 function install_libraries()
 {
   if [[ $ECE_VERBOSE == 0 ]]; then echo Installing libraries ...; fi
-  local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_UTILS} --conda-install ${INSTALL_OPTIONAL} ${OSOPTION})`
-  echo ... conda command: ${COMMAND}
-  ${COMMAND}
-  # conda-forge
-  if [[ $ECE_VERBOSE == 0 ]]; then echo ... Installing libraries from conda-forge ...; fi
-  local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_UTILS} --conda-forge --conda-install ${INSTALL_OPTIONAL} ${OSOPTION})`
-  if [[ $ECE_VERBOSE == 0 ]]; then echo ... conda-forge command: ${COMMAND}; fi
-  ${COMMAND}
+  if [[ "$INSTALL_MANAGER" == "CONDA" ]];
+  then
+    local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_UTILS} --conda-install ${INSTALL_OPTIONAL} ${OSOPTION})`
+    echo ... conda command: ${COMMAND}
+    ${COMMAND}
+    # conda-forge
+    if [[ $ECE_VERBOSE == 0 ]]; then echo ... Installing libraries from conda-forge ...; fi
+    local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_UTILS} --conda-forge --conda-install ${INSTALL_OPTIONAL} ${OSOPTION})`
+    if [[ $ECE_VERBOSE == 0 ]]; then echo ... conda-forge command: ${COMMAND}; fi
+    ${COMMAND}
+  else
+    # activate the enviroment
+    activate_env
+    # pip install
+    if [[ $ECE_VERBOSE == 0 ]]; then echo ... Installing libraries from pip ...; fi
+    local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_UTILS} --pip-install ${INSTALL_OPTIONAL} ${OSOPTION})`
+    if [[ $ECE_VERBOSE == 0 ]]; then echo ... pip command: ${COMMAND}; fi
+    ${COMMAND}
+  fi
 }
 
 function create_libraries()
 {
   if [[ $ECE_VERBOSE == 0 ]]; then echo ... Installing libraries ...; fi
-  local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_UTILS} --conda-create ${INSTALL_OPTIONAL} ${OSOPTION})`
-  if [[ $ECE_VERBOSE == 0 ]]; then echo ... conda command: ${COMMAND}; fi
-  ${COMMAND}
-  # conda-forge
-  if [[ $ECE_VERBOSE == 0 ]]; then echo ... Installing libraries from conda-forge ...; fi
-  local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_UTILS} --conda-forge --conda-install ${INSTALL_OPTIONAL} ${OSOPTION})`
-  if [[ $ECE_VERBOSE == 0 ]]; then echo ... conda-forge command: ${COMMAND}; fi
-  ${COMMAND}
+  if [[ "$INSTALL_MANAGER" == "CONDA" ]];
+  then
+    local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_UTILS} --conda-create ${INSTALL_OPTIONAL} ${OSOPTION})`
+    if [[ $ECE_VERBOSE == 0 ]]; then echo ... conda command: ${COMMAND}; fi
+    ${COMMAND}
+    # conda-forge
+    if [[ $ECE_VERBOSE == 0 ]]; then echo ... Installing libraries from conda-forge ...; fi
+    local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_UTILS} --conda-forge --conda-install ${INSTALL_OPTIONAL} ${OSOPTION})`
+    if [[ $ECE_VERBOSE == 0 ]]; then echo ... conda-forge command: ${COMMAND}; fi
+    ${COMMAND}
+  else
+    #pip create virtual enviroment
+    local COMMAND=`echo virtualenv $PIP_ENV_LOCATION`
+    if [[ $ECE_VERBOSE == 0 ]]; then echo ... virtual enviroment command: ${COMMAND}; fi
+    ${COMMAND}
+    # activate the enviroment
+    activate_env
+    # pip install
+    if [[ $ECE_VERBOSE == 0 ]]; then echo ... Installing libraries from pip ...; fi
+    local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_UTILS} --pip-install ${INSTALL_OPTIONAL} ${OSOPTION})`
+    if [[ $ECE_VERBOSE == 0 ]]; then echo ... pip command: ${COMMAND}; fi
+    ${COMMAND}
+  fi
 }
 
 function display_usage()
@@ -144,6 +170,9 @@ function display_usage()
 	echo '    --help'
 	echo '      Displays this text and exits'
 	echo ''
+	echo '    --installation-manager'
+	echo '      Package installation manager. (CONDA, PIP). If not provided, default to CONDA'
+	echo ''
 	echo '    --install'
 	echo '      Installs current python library versions for this release of RAVEN using conda'
 	echo ''
@@ -159,11 +188,11 @@ function display_usage()
 	echo '    --py3'
 	echo '    When installing, make raven_libraries use Python 3'
 	echo ''
-        echo ''
-        echo '    --py2'
-        echo '    When installing, make raven_libraries use Python 2'
-        echo ''
-        echo ''
+    echo ''
+    echo '    --py2'
+    echo '    When installing, make raven_libraries use Python 2'
+    echo ''
+    echo ''
 	echo '    --quiet'
 	echo '      Runs script with minimal output'
 	echo ''
@@ -172,13 +201,18 @@ function display_usage()
 function activate_env()
 {
   if [[ $ECE_VERBOSE == 0 ]]; then echo ... Activating environment ...; fi
-  conda activate ${RAVEN_LIBS_NAME}
+  if [[ "$INSTALL_MANAGER" == "CONDA" ]];
+  then
+    conda activate ${RAVEN_LIBS_NAME}
+  else
+    source ${PIP_ENV_LOCATION}/bin/activate
+  fi
 }
 
 function set_install_settings()
 {
   if [[ $ECE_VERBOSE == 0 ]]; then echo ... Setting install variables ...; fi
-  local COMMAND="$PYTHON_COMMAND $ECE_SCRIPT_DIR/update_install_data.py --write --conda-defs ${CONDA_DEFS} --RAVEN_LIBS_NAME ${RAVEN_LIBS_NAME} --python-command ${PYTHON_COMMAND}"
+  local COMMAND="$PYTHON_COMMAND $ECE_SCRIPT_DIR/update_install_data.py --write --conda-defs ${CONDA_DEFS} --RAVEN_LIBS_NAME ${RAVEN_LIBS_NAME} --python-command ${PYTHON_COMMAND} --installation-manager ${INSTALL_MANAGER}"
   if [[ $ECE_VERBOSE == 0 ]]; then echo ... ${COMMAND}; fi
   ${COMMAND}
 }
@@ -191,6 +225,7 @@ ECE_MODE=1 # 1 for loading, 2 for install, 0 for help
 INSTALL_OPTIONAL="" # --optional if installing optional, otherwise blank
 ECE_VERBOSE=0 # 0 for printing, anything else for no printing
 ECE_CLEAN=0 # 0 for yes (remove raven libs env before installing), 1 for don't remove it
+INSTALL_MANAGER="CONDA" # CONDA (default) or PIP
 
 # parse command-line arguments
 while test $# -gt 0
@@ -199,6 +234,10 @@ do
     --help)
       display_usage
       return
+      ;;
+    --installation-manager)
+      shift
+      INSTALL_MANAGER=$1
       ;;
     --load)
       ECE_MODE=1
@@ -232,13 +271,26 @@ do
   shift
 done
 
+# get installation manager
+INSTALL_MANAGER="$(echo $INSTALL_MANAGER | tr '[a-z]' '[A-Z]')"
+echo $INSTALL_MANAGER
+if [[ "$INSTALL_MANAGER" != "CONDA" && "$INSTALL_MANAGER" != "PIP" ]];
+then
+  echo ... ERROR: installation-manager $INSTALL_MANAGER UNKNOWN. Available are [CONDA, PIP] !
+  exit
+fi
+
 if [[ $ECE_VERBOSE == 0 ]];
 then
   echo ... Run Options:
   echo ...    Mode: $ECE_MODE
   echo ...   Verbosity: $ECE_VERBOSE
   echo ...   Clean: $ECE_CLEAN
-  echo ...   Conda Defs: $CONDA_DEFS
+  echo ...    Mode: $INSTALL_MANAGER
+  if [[ "$INSTALL_MANAGER" != "CONDA" ]];
+  then
+    echo ...   Conda Defs: $CONDA_DEFS
+  fi
   if [[ $ECE_MODE == 1 ]];
   then
     echo ... Loading RAVEN libraries ...
@@ -290,31 +342,64 @@ else
     echo ... \>\> If this is not desired, then unset the variable before running.
   fi
 fi
-if [[ $ECE_VERBOSE == 0 ]]; then echo ... \>\> RAVEN conda environment is named \"${RAVEN_LIBS_NAME}\"; fi
+if [[ $ECE_VERBOSE == 0 ]]; then echo ... \>\> RAVEN environment is named \"${RAVEN_LIBS_NAME}\"; fi
 
-# establish conda function definitions (conda 4.4+ ONLY, 4.3 and before not supported)
-find_conda_defs
-if test -e ${CONDA_DEFS};
-then
-	if [[ $ECE_VERBOSE == 0 ]]; then echo ... Found conda definitions at ${CONDA_DEFS}; fi
-  source ${CONDA_DEFS}
+if [[ "$INSTALL_MANAGER" == "CONDA" ]];
+  then
+  # establish conda function definitions (conda 4.4+ ONLY, 4.3 and before not supported)
+  find_conda_defs
+  if test -e ${CONDA_DEFS};
+  then
+    if [[ $ECE_VERBOSE == 0 ]]; then echo ... Found conda definitions at ${CONDA_DEFS}; fi
+    source ${CONDA_DEFS}
+  else
+    echo ... Conda definitions not found at \"${CONDA_DEFS}\"!
+    echo ... \>\> Specify the location of miniconda3/etc/profile.d/conda.sh through the --conda-defs option.
+    exit 1
+  fi
 else
-  echo ... Conda definitions not found at \"${CONDA_DEFS}\"!
-  echo ... \>\> Specify the location of miniconda3/etc/profile.d/conda.sh through the --conda-defs option.
-  return 1
+  # check if pip exists
+  if ! pip_loc="$(type -p pip3)" || [[ -z $pip_loc ]]; then
+    echo ... PIP \(pip3\) command not found !!
+    echo ... \>\> Install PIP if you want to use it or CONDA as alternative installation manager!
+    exit 1
+  else
+    # install virtual env and upgrade pip
+    if ! ve_loc="$(type -p virtualenv)" || [[ -z $ve_loc ]]; then
+      pip3 install virtualenv
+    fi
+    # set PIP_ENV_LOCATION
+    PIP_ENV_LOCATION="$HOME/pip_envs"
+  fi
 fi
 
-# debug output conda version
-if [[ $ECE_VERBOSE == 0 ]]; then echo `conda -V`; fi
-
-# find RAVEN libraries environment
-if conda env list | grep ${RAVEN_LIBS_NAME};
-then
-  if [[ $ECE_VERBOSE == 0 ]]; then echo ... Found library environment ...; fi
-  LIBS_EXIST=0
+# if conda, find the raven libs
+if [[ "$INSTALL_MANAGER" == "CONDA" ]];
+  then
+  # debug output conda version
+  if [[ $ECE_VERBOSE == 0 ]]; then echo `conda -V`; fi
+  # find RAVEN libraries environment
+  if conda env list | grep ${RAVEN_LIBS_NAME};
+  then
+    if [[ $ECE_VERBOSE == 0 ]]; then echo ... Found library environment ...; fi
+    LIBS_EXIST=0
+  else
+    if [[ $ECE_VERBOSE == 0 ]]; then echo ... Did not find library environment ...; fi
+    LIBS_EXIST=1
+  fi
 else
-  if [[ $ECE_VERBOSE == 0 ]]; then echo ... Did not find library environment ...; fi
-  LIBS_EXIST=1
+  # debug output pip version
+  if [[ $ECE_VERBOSE == 0 ]]; then echo `pip -V`; fi
+  # find RAVEN libraries environment
+  PIP_ENV_LOCATION="$PIP_ENV_LOCATION/${RAVEN_LIBS_NAME}"
+  if [ -d "$PIP_ENV_LOCATION" ]
+  then
+    if [[ $ECE_VERBOSE == 0 ]]; then echo ... Found library environment ...; fi
+    LIBS_EXIST=0
+  else
+    if [[ $ECE_VERBOSE == 0 ]]; then echo ... Did not find library environment ...; fi
+    LIBS_EXIST=1
+  fi
 fi
 
 # take action depending on mode
@@ -327,9 +412,9 @@ then
     activate_env
   # if it doesn't exist, make some noise.
   else
-    echo conda environment ${RAVEN_LIBS_NAME} not found!
-    echo Please run "raven/establish_conda_env.sh" with argument "--install".
-    return 1
+    echo ${INSTALL_MANAGER} environment ${RAVEN_LIBS_NAME} not found!
+    echo Please run "raven/establish_conda_env.sh" with argument "--install" "--installation-manager $INSTALL_MANAGER".
+    exit 1
   fi
 fi
 
@@ -343,8 +428,13 @@ then
     if [[ $ECE_CLEAN == 0 ]];
     then
       if [[ $ECE_VERBOSE == 0 ]]; then echo ... Removing old environment ...; fi
-      conda deactivate
-      conda remove -n ${RAVEN_LIBS_NAME} --all -y
+      if [[ "$INSTALL_MANAGER" == "CONDA" ]];
+      then
+        conda deactivate
+        conda remove -n ${RAVEN_LIBS_NAME} --all -y
+      else
+        rm -rf ${PIP_ENV_LOCATION}
+      fi
       create_libraries
     # if libs exist, but not clean mode, install;
     else
