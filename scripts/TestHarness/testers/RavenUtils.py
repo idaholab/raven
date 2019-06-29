@@ -72,22 +72,22 @@ def __lookup_preferred_version(name, optional=False):
   return ""
 # libraries to install with Conda
 __condaList = [("h5py", __lookup_preferred_version("h5py")),
-                  ("numpy", __lookup_preferred_version("numpy")),
-                  ("scipy", __lookup_preferred_version("scipy")),
-                  ("scikit-learn", __lookup_preferred_version("sklearn")),
-                  ("pandas", __lookup_preferred_version("pandas")),
-                  ("xarray", __lookup_preferred_version("xarray")),
-                  ("netcdf4", __lookup_preferred_version("netCDF4")),
-                  ("matplotlib", __lookup_preferred_version("matplotlib")),
-                  ("statsmodels", __lookup_preferred_version("statsmodels")),
-                  ("tensorflow", __lookup_preferred_version("tensorflow", optional=True)),
-                  ("python", "3"),
-                  ("hdf5", "1.10.4"),
-                  ("swig", ""),
-                  ("pylint", ""),
-                  ("coverage", ""),
-                  ("lxml", ""),
-                  ("psutil", "")]
+               ("numpy", __lookup_preferred_version("numpy")),
+               ("scipy", __lookup_preferred_version("scipy")),
+               ("scikit-learn", __lookup_preferred_version("sklearn")),
+               ("pandas", __lookup_preferred_version("pandas")),
+               ("xarray", __lookup_preferred_version("xarray")),
+               ("netcdf4", __lookup_preferred_version("netCDF4")),
+               ("matplotlib", __lookup_preferred_version("matplotlib")),
+               ("statsmodels", __lookup_preferred_version("statsmodels")),
+               ("tensorflow", __lookup_preferred_version("tensorflow", optional=True)),
+               ("python", "3"),
+               ("hdf5", "1.10.4"),
+               ("swig", ""),
+               ("pylint", ""),
+               ("coverage", ""),
+               ("lxml", ""),
+               ("psutil", "")]
 # libraries to install with conda-forge
 __condaForgeList = [("pyside2", ""),]
 # optional conda libraries
