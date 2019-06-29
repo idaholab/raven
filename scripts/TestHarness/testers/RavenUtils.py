@@ -51,7 +51,8 @@ modules_to_try = [("h5py", 'h5py.__version__', "2.9.0", "2.9.0", None), # 2.9.0
                   ("xarray", 'xarray.__version__', "0.12.1", "0.12.1", None),
                   ("netCDF4", 'netCDF4.__version__', "1.4.2", "1.4.2", None),
                   ("statsmodels", 'statsmodels.__version__', "0.9.0", "0.9.0", None),
-                  ("matplotlib", 'matplotlib.__version__', "3.1.0", "3.1.0", None)]
+                  ("matplotlib", 'matplotlib.__version__', "3.1.0", "3.1.0", None)
+                  ("cloudpickle", 'cloudpickle.__version__', "1.2.1", "1.2.1", None)]
 
 optional_test_libraries = [('pillow', 'PIL.__version__', "6.0.0", "6.0.0", None),
                            # On Windows conda, there are no Python 2.7-compatible
@@ -81,6 +82,7 @@ __condaList = [("h5py", __lookup_preferred_version("h5py")),
                ("matplotlib", __lookup_preferred_version("matplotlib")),
                ("statsmodels", __lookup_preferred_version("statsmodels")),
                ("tensorflow", __lookup_preferred_version("tensorflow", optional=True)),
+               ("cloudpickle", __lookup_preferred_version("cloudpickle", optional=True)),
                ("python", "3"),
                ("hdf5", "1.10.4"),
                ("swig", ""),
@@ -93,7 +95,8 @@ __condaForgeList = [("pyside2", ""),]
 # optional conda libraries
 __condaOptional = [('pillow', __lookup_preferred_version("pillow"))]
 
-__pipList = [("numpy", __lookup_preferred_version("numpy")),
+__pipList = [("numpy", __lookup_preferred_version("numpy"))
+             ("cloudpickle", __lookup_preferred_version("cloudpickle")),
              ("h5py", __lookup_preferred_version("h5py")),
              ("scipy", __lookup_preferred_version("scipy")),
              ("scikit-learn", __lookup_preferred_version("sklearn")),
