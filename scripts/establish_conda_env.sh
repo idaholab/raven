@@ -250,12 +250,12 @@ do
       INSTALL_OPTIONAL="--optional $INSTALL_OPTIONAL"
       ;;
     --py3)
-      echo ... Creating Python 3 libraries ...
-      INSTALL_OPTIONAL="--py3 $INSTALL_OPTIONAL"
+      echo ... --py3 option detected. --pyX option DEPRECATED. Creating Python 3 libraries ...
+      INSTALL_OPTIONAL="$INSTALL_OPTIONAL"
       ;;
     --py2)
-      echo ... Creating Python 2 libraries ...
-      INSTALL_OPTIONAL="--py2 $INSTALL_OPTIONAL"
+      echo ... --py2 option detected. Python 2 is DEPRECATED. Continue creating Python 3 libraries ...
+      INSTALL_OPTIONAL="$INSTALL_OPTIONAL"
       ;;
     --quiet)
       ECE_VERBOSE=1

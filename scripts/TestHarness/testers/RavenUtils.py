@@ -43,25 +43,15 @@ def in_python_3():
 # quality assurance module version, maximum version)
 # Deep learning requires Scikit-Learn version at least 0.18
 ## working Conda 4.5.4, May 2018
-modules_to_try = [("h5py", 'h5py.__version__', '2.7.1', '2.9.0', None), # 2.9.0
-                  # numpy >=1.13.3 is required for tensorflow
-                  # FIXME: numpy=1.13.3 with tensorflow library with cause a lot of tests timeout
-                  ("numpy", 'numpy.__version__', "1.14.0", "1.16.4", None),
-                  ("scipy", 'scipy.__version__', "1.1.0", "1.2.1", None),
-                  ("sklearn", 'sklearn.__version__', "0.19.1", "0.21.2", None),
-                  ("pandas", 'pandas.__version__', "0.20.3", "0.24.2", None),
-                  ("xarray", 'xarray.__version__', "0.10.3", "0.12.1", None),
-                  ## NOTE there is a known bug in netCDF4 prior to 1.3.1 where
-                  # having a path length of exactly 88 characters can create a
-                  # seg fault.  However, h5py has no new libraries
-                  # after 2.7 and is not compatible with hdf5 greater than
-                  # 1.8.17, while netCDF4 requires hdf5 of at least 1.10.1.
-                  # For now, we avoid using netCDF
-                  # until we transition from
-                  # HDF5 databases and drop them like hot rocks.
-                  ("netCDF4", 'netCDF4.__version__', "1.4.0", "1.4.2", None), # 1.2.4
-                  ("statsmodels", 'statsmodels.__version__', "0.8.0", "0.9.0", None),
-                  ("matplotlib", 'matplotlib.__version__', "2.1.1", "3.1.0", None)]
+modules_to_try = [("h5py", 'h5py.__version__', "2.9.0", "2.9.0", None), # 2.9.0
+                  ("numpy", 'numpy.__version__', "1.16.4", "1.16.4", None),
+                  ("scipy", 'scipy.__version__', "1.2.1", "1.2.1", None),
+                  ("sklearn", 'sklearn.__version__', "0.21.2", "0.21.2", None),
+                  ("pandas", 'pandas.__version__', "0.24.2", "0.24.2", None),
+                  ("xarray", 'xarray.__version__', "0.12.1", "0.12.1", None),
+                  ("netCDF4", 'netCDF4.__version__', "1.4.2", "1.4.2", None),
+                  ("statsmodels", 'statsmodels.__version__', "0.9.0", "0.9.0", None),
+                  ("matplotlib", 'matplotlib.__version__', "3.1.0", "3.1.0", None)]
 
 optional_test_libraries = [('pillow', 'PIL.__version__', "6.0.0", "6.0.0", None),
                            # On Windows conda, there are no Python 2.7-compatible
@@ -81,7 +71,7 @@ def __lookup_preferred_version(name, optional=False):
       return qa_ver
   return ""
 # libraries to install with Conda
-__condaListPy3 = [("h5py", __lookup_preferred_version("h5py")),
+__condaList = [("h5py", __lookup_preferred_version("h5py")),
                   ("numpy", __lookup_preferred_version("numpy")),
                   ("scipy", __lookup_preferred_version("scipy")),
                   ("scikit-learn", __lookup_preferred_version("sklearn")),
@@ -91,37 +81,17 @@ __condaListPy3 = [("h5py", __lookup_preferred_version("h5py")),
                   ("matplotlib", __lookup_preferred_version("matplotlib")),
                   ("statsmodels", __lookup_preferred_version("statsmodels")),
                   ("tensorflow", __lookup_preferred_version("tensorflow", optional=True)),
-                  ("python", "2.7"),
+                  ("python", "3"),
                   ("hdf5", "1.10.4"),
                   ("swig", ""),
                   ("pylint", ""),
                   ("coverage", ""),
                   ("lxml", ""),
                   ("psutil", "")]
-
-# Conda list for py 2 (to remove when we remove support)
-__condaListPy2 = [("h5py", "2.7.1"),
-                  ("numpy", "1.14.0"),
-                  ("scipy", "1.1.0"),
-                  ("scikit-learn", "0.19.1"),
-                  ("pandas", "0.20.3"),
-                  ("xarray", "0.10.3"),
-                  ("netcdf4", "1.4.0"),
-                  ("matplotlib", "2.1.1"),
-                  ("statsmodels", "0.8.0"),
-                  ("python", "2.7"),
-                  ("hdf5", "1.8.18"),
-                  ("swig", ""),
-                  ("pylint", ""),
-                  ("coverage", ""),
-                  ("lxml", ""),
-                  ("psutil", "")]
-__condaList = __condaListPy3
 # libraries to install with conda-forge
-__condaForgeList = [("pyside", ""),]
+__condaForgeList = [("pyside2", ""),]
 # optional conda libraries
 __condaOptional = [('pillow', __lookup_preferred_version("pillow"))]
-
 
 __pipList = [("numpy", __lookup_preferred_version("numpy")),
              ("h5py", __lookup_preferred_version("h5py")),
@@ -131,7 +101,7 @@ __pipList = [("numpy", __lookup_preferred_version("numpy")),
              ("xarray", __lookup_preferred_version("xarray")),
              ("netCDF4", __lookup_preferred_version("netCDF4")),
              ("statsmodels", __lookup_preferred_version("statsmodels")),
-             #("tensorflow", __lookup_preferred_version("tensorflow")),
+             ("tensorflow", __lookup_preferred_version("tensorflow", optional=True)),
              ("pandas", __lookup_preferred_version("pandas"))]
 
 def module_report(module, version=''):
@@ -318,8 +288,10 @@ def parse_conda_for_os(libs, op_sys):
     libs.append(('numexpr', ''))
   return libs
 
-
 if __name__ == '__main__':
+  if not in_python_3():
+    raise EnvironmentError("Python 3.x not detected. RAVEN "+
+                           "deprecated Python 2.7! Please install Python 3.x distribution!")
   # allow the operating system to be specified
   op_sys_arg = None
   condaForge = False
@@ -332,13 +304,6 @@ if __name__ == '__main__':
   if '--conda-forge' in sys.argv:
     # just install command is generated
     condaForge = True
-  if '--py3' in sys.argv or '--py2' not in sys.argv:
-    pythonIndex = __condaList.index(("python", "2.7"))
-    __condaList[pythonIndex] = ("python", "3")
-    __condaForgeList = [("pyside2", ""),]
-  else:
-    __condaList = __condaListPy2
-
   # check for environemnt definition of raven libs
   libName = os.getenv('RAVEN_LIBS_NAME', 'raven_libraries')
   # what did the caller ask to do?
