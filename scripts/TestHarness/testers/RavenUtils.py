@@ -91,7 +91,7 @@ __condaList = [("h5py", __lookup_preferred_version("h5py")),
                ("lxml", ""),
                ("psutil", "")]
 # libraries to install with conda-forge
-__condaForgeList = [("pyside2", ""),]
+__condaForgeList = [("pyside2", ""),("pydoe2","")]
 # optional conda libraries
 __condaOptional = [('pillow', __lookup_preferred_version("pillow"))]
 
@@ -105,7 +105,8 @@ __pipList = [("numpy", __lookup_preferred_version("numpy")),
              ("netCDF4", __lookup_preferred_version("netCDF4")),
              ("statsmodels", __lookup_preferred_version("statsmodels")),
              ("tensorflow", __lookup_preferred_version("tensorflow", optional=True)),
-             ("pandas", __lookup_preferred_version("pandas"))]
+             ("pandas", __lookup_preferred_version("pandas")),
+             ("pydoe2", "")]
 
 def module_report(module, version=''):
   """

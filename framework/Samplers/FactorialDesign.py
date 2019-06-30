@@ -30,7 +30,7 @@ import sys
 
 #Internal Modules------------------------------------------------------------------------------------
 from .Grid import Grid
-import pyDOE as doe
+import pyDOE2 as doe
 from utils import InputData
 #Internal Modules End--------------------------------------------------------------------------------
 
