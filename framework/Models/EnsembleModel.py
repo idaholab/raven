@@ -442,15 +442,21 @@ class EnsembleModel(Dummy):
     joinedGeneralMetadata = {}
     targetEvaluationNames = {}
     optionalOutputNames = {}
+    joinedIndexMap = {} # collect all the index maps, then we can keep the ones we want?
     for modelIn in self.modelsDictionary.keys():
       targetEvaluationNames[self.modelsDictionary[modelIn]['TargetEvaluation']] = modelIn
       # collect data
+      newIndexMap = outcomes[modelIn]['response'].pop('_indexMap', None)
+      if newIndexMap:
+        joinedIndexMap.update(newIndexMap[0])
       joinedResponse.update(outcomes[modelIn]['response'])
       joinedGeneralMetadata.update(outcomes[modelIn]['general_metadata'])
       # collect the output of the STEP
       optionalOutputNames.update({outName : modelIn for outName in self.modelsDictionary[modelIn]['OutputObject']})
     # the prefix is re-set here
     joinedResponse['prefix'] = np.asarray([finishedJob.identifier])
+    if joinedIndexMap:
+      joinedResponse['_indexMap'] = np.atleast_1d(joinedIndexMap)
     if output.name not in optionalOutputNames:
       if output.name not in targetEvaluationNames.keys():
         output.addRealization(joinedResponse)
