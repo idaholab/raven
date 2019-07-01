@@ -51,7 +51,7 @@ modules_to_try = [("h5py", 'h5py.__version__', "2.9.0", "2.9.0", None), # 2.9.0
                   ("xarray", 'xarray.__version__', "0.12.1", "0.12.1", None),
                   ("netCDF4", 'netCDF4.__version__', "1.4.2", "1.4.2", None),
                   ("statsmodels", 'statsmodels.__version__', "0.9.0", "0.9.0", None),
-                  ("matplotlib", 'matplotlib.__version__', "3.1.0", "3.1.0", None),
+                  ("matplotlib", 'matplotlib.__version__', "3.0.3", "3.0.3", None),
                   ("cloudpickle", 'cloudpickle.__version__', "1.1.1", "1.2.1", None)]
 
 optional_test_libraries = [('pillow', 'PIL.__version__', "6.0.0", "6.0.0", None),
