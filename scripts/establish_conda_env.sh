@@ -212,13 +212,7 @@ function activate_env()
 function set_install_settings()
 {
   if [[ $ECE_VERBOSE == 0 ]]; then echo ... Setting install variables ...; fi
-  if [[ "$INSTALL_MANAGER" != "CONDA" ]];
-  then
-    local COMMAND="$PYTHON_COMMAND $ECE_SCRIPT_DIR/update_install_data.py --write --conda-defs ${CONDA_DEFS} --RAVEN_LIBS_NAME ${RAVEN_LIBS_NAME} --python-command ${PYTHON_COMMAND} --installation-manager ${INSTALL_MANAGER}"
-  else
-    local COMMAND="$PYTHON_COMMAND $ECE_SCRIPT_DIR/update_install_data.py --write --RAVEN_LIBS_NAME ${RAVEN_LIBS_NAME} --python-command ${PYTHON_COMMAND} --installation-manager ${INSTALL_MANAGER}"
-  fi
-
+  local COMMAND="$PYTHON_COMMAND $ECE_SCRIPT_DIR/update_install_data.py --write --conda-defs ${CONDA_DEFS} --RAVEN_LIBS_NAME ${RAVEN_LIBS_NAME} --python-command ${PYTHON_COMMAND} --installation-manager ${INSTALL_MANAGER}"
   if [[ $ECE_VERBOSE == 0 ]]; then echo ... ${COMMAND}; fi
   ${COMMAND}
 }

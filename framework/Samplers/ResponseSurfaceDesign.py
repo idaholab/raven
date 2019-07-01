@@ -31,7 +31,7 @@ from scipy.interpolate import InterpolatedUnivariateSpline
 
 #Internal Modules------------------------------------------------------------------------------------
 from .Grid import Grid
-import pyDOE2 as doe
+import pyDOE as doe
 from utils import InputData
 #Internal Modules End--------------------------------------------------------------------------------
 
