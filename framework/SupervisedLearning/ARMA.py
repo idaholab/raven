@@ -1285,6 +1285,7 @@ class ARMA(supervisedLearning):
       for e, edge in enumerate(edges):
         feature = featureTemplate.format(target=target, metric='cdf', id='edges_{}'.format(e))
         features[feature] = edge
+
     for target, peak in self.peaks.items():
       # print('啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦 我是分界线1 啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦')
 
@@ -1308,9 +1309,9 @@ class ARMA(supervisedLearning):
           ## IND
           #most probabble index
           if len(group['Ind']):
-            modeInd= stats.mode(group['Ind'])[0][0]
+            modeInd = stats.mode(group['Ind'])[0][0]
           else:
-            modeInd=0
+            modeInd = 0
           ID = 'gp_{}_modeInd'.format(g)
           feature = featureTemplate.format(target=target, metric='peak', id=ID)
           features[feature] = modeInd
@@ -1329,30 +1330,30 @@ class ARMA(supervisedLearning):
           if len(group['Amp']):
             if np.isnan((group['Amp'][0])):
               print('nanan')
-              meanAmp=np.mean(self._signalStorage[target]['original'])
+              meanAmp = np.mean(self._signalStorage[target]['original'])
             else:
               print(g)
-              print('  ga',group['Amp'])
-              print('  pe',prbExist)
+              print('  ga', group['Amp'])
+              print('  pe', prbExist)
 
-              meanAmp=rv_histogram(np.histogram(group['Amp'])).mean()
+              meanAmp = rv_histogram(np.histogram(group['Amp'])).mean()
             feature = featureTemplate.format(target=target, metric='peak', id='gp_{}_meanAmp'.format(g))
             features[feature] = meanAmp
 
           else:
             print(g)
             print('  No group found')
-            meanAmp=np.mean(self._signalStorage[target]['original'])
+            meanAmp = np.mean(self._signalStorage[target]['original'])
             feature = featureTemplate.format(target=target, metric='peak', id='gp_{}_meanAmp'.format(g))
             features[feature] = meanAmp
 
           ##std
           if len(group['Amp'])>1:
-            stdAmp=rv_histogram(np.histogram(group['Amp'])).std()
+            stdAmp = rv_histogram(np.histogram(group['Amp'])).std()
             feature = featureTemplate.format(target=target, metric='peak', id='gp_{}_stdAmp'.format(g))
             features[feature] = stdAmp
           else:
-            stdAmp=0
+            stdAmp = 0
             feature = featureTemplate.format(target=target, metric='peak', id='gp_{}_stdAmp'.format(g))
             features[feature] = stdAmp
 
