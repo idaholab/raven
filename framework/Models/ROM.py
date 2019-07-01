@@ -176,6 +176,9 @@ class ROM(Dummy):
     inputSpecification.addSub(InputData.parameterInputFactory("nugget", contentType=InputData.FloatType))
     inputSpecification.addSub(InputData.parameterInputFactory("optimizer", contentType=InputData.StringType)) #enum
     inputSpecification.addSub(InputData.parameterInputFactory("random_start", contentType=InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("alpha", contentType=InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("n_restarts_optimizer", contentType=InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("normalize_y", contentType=InputData.StringType))
     # GaussPolynomialROM and HDMRRom
     inputSpecification.addSub(InputData.parameterInputFactory("IndexPoints", contentType=InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("IndexSet",contentType=IndexSetInputType))

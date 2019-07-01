@@ -400,7 +400,7 @@ if isTensorflowAvailable():
       tval = np.asarray(values[names.index(self.target[0])])
       # FIXME: a better method may need to be added to process the labels
       # retrieve the most often used label
-      targetValues = stats.mode(tval,axis=-1)[0] if len(tval.shape) > 1 else tval
+      targetValues = stats.mode(tval,axis=len(tval.shape)-1)[0] if len(tval.shape) > 1 else tval
       #targetValues = list(val[-1] if len(tval.shape) > 1 else val for val in tval)
 
       # We need to 'one-hot-encode' our target variable if multi-classes are requested
