@@ -1810,7 +1810,7 @@ class ARMA(supervisedLearning):
     """
     peaks, properties = find_peaks(signal, height=low)
     heights = properties['peak_heights']
-    return peaks,heights
+    return peaks, heights
 
   def rangeWindow(self,windowDict):
     """
@@ -1871,7 +1871,7 @@ class ARMA(supervisedLearning):
           peak, height = self._peakPicker(signal[bgLocal:endLocal], low=low)
         else:
           peak, height = self._peakPicker(np.concatenate([signal[bgLocal:], signal[:endLocal]]), low=low)
-        if len(peak) ==1:
+        if len(peak) == 1:
           indLocal.append(int(peak))
           ampLocal.append(float(height))
           maskBg=int((int(peak)+bgLocal-int(np.floor(windows[i]['width']/2)))%len(self.pivotParameterValues))
@@ -1881,7 +1881,7 @@ class ARMA(supervisedLearning):
             maskPeakRes[:maskEnd] = False
           else:
             maskPeakRes[maskBg:maskEnd] = False
-        elif len(peak) >1:
+        elif len(peak) > 1:
           indLocal.append(int(peak[np.argmax(height)]))
           ampLocal.append(float(height[np.argmax(height)]))
           maskBg=int((int(peak[np.argmax(height)])+bgLocal-int(np.floor(windows[i]['width']/2)))%len(self.pivotParameterValues))
@@ -1891,6 +1891,7 @@ class ARMA(supervisedLearning):
             maskPeakRes[:maskEnd] = False
           else:
             maskPeakRes[maskBg:maskEnd] = False
+
       peakInfo['Ind'] = indLocal
       peakInfo['Amp'] = ampLocal
       groupWin.append(peakInfo)

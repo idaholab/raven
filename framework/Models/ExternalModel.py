@@ -226,7 +226,7 @@ class ExternalModel(Dummy):
 
     self.sim.run(externalSelf, InputDict)
 
-    for key in self.modelVariableType.keys():
+    for key in self.modelVariableType:
       try:
         CustomCommandExecuter.execCommand('object["'+key+'"]  = copy.copy(self.'+key+')',self=externalSelf,object=modelVariableValues) #exec('modelVariableValues[key]  = copy.copy(externalSelf.'+key+')') #self.__pointSolution()
       except (SyntaxError,AttributeError):
@@ -235,7 +235,7 @@ class ExternalModel(Dummy):
       CustomCommandExecuter.execCommand('self.' +key+' = copy.copy(object.'+key+')',self=self.initExtSelf,object=externalSelf) #exec('self.initExtSelf.' +key+' = copy.copy(externalSelf.'+key+')')
     if None in self.modelVariableType.values():
       errorFound = False
-      for key in self.modelVariableType.keys():
+      for key in self.modelVariableType:
         self.modelVariableType[key] = type(modelVariableValues[key]).__name__
         if self.modelVariableType[key] not in self._availableVariableTypes:
           if not errorFound:
@@ -243,16 +243,23 @@ class ExternalModel(Dummy):
           errorFound = True
           self.raiseADebug('variable '+ key+' has an unsupported type -> '+ self.modelVariableType[key],verbosity='silent')
       if errorFound:
-        self.raiseAnError(RuntimeError,'Errors detected. See above!!')
+        self.raiseAnError(RuntimeError, 'Errors detected. See above!!')
     outcomes = dict((k, modelVariableValues[k]) for k in self.listOfRavenAwareVars)
     # check type consistency... This is needed in order to keep under control the external model... In order to avoid problems in collecting the outputs in our internal structures
-    for key in self.modelVariableType.keys():
-      if not (utils.typeMatch(outcomes[key],self.modelVariableType[key])):
-        self.raiseAnError(RuntimeError,'type of variable '+ key + ' is ' + str(type(outcomes[key]))+' and mismatches with respect to the input ones (' + self.modelVariableType[key] +')!!!')
-    self._replaceVariablesNamesWithAliasSystem(outcomes,'inout',True)
-    # TODO slow conversion, but provides type consistency
-    outcomes = dict((k,np.atleast_1d(val)) for k,val in outcomes.items())
-    return outcomes,self
+    for key in self.modelVariableType:
+      if not utils.typeMatch(outcomes[key], self.modelVariableType[key]):
+        self.raiseAnError(RuntimeError, 'type of variable '+ key + ' is ' + str(type(outcomes[key]))+' and mismatches with respect to the input ones (' + self.modelVariableType[key] +')!!!')
+    self._replaceVariablesNamesWithAliasSystem(outcomes, 'inout', True)
+    # add the indexMap, if provided
+    indexMap = getattr(externalSelf, '_indexMap', None)
+    if indexMap:
+      outcomes['_indexMap'] = indexMap
+      print('DEBUGG extmod got index map!')
+    else:
+      print('DEBUGG extmod no index map!')
+    # TODO slow conversion, but provides type consistency --> TODO this doesn't mach up well with other models!
+    outcomes = dict((k, np.atleast_1d(val)) for k, val in outcomes.items())
+    return outcomes, self
 
   def evaluateSample(self, myInput, samplerType, kwargs):
     """

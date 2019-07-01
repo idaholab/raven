@@ -360,6 +360,9 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
       @ In, params, dict, parameters to set (dependent on ROM)
       @ Out, None
     """
+    newMH = params.pop('messageHandler', None)
+    if newMH:
+      self.messageHandler = newMH
     # reseeding is common to many
     seed = params.pop('reseedValue', None)
     if seed:

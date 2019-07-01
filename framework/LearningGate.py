@@ -139,9 +139,11 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta, BaseType), Mess
       @ In, params, dict, parameters to set (dependent on ROM)
       @ Out, None
     """
+    newMH = params.get('messageHandler', None)
+    if newMH:
+      self.messageHandler = newMH
     for rom in self.supervisedContainer:
       rom.setAdditionalParams(params)
-
 
   def reset(self):
     """
