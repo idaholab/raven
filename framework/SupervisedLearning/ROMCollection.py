@@ -880,7 +880,7 @@ class Clusters(Segments):
       ## NOTE assuming only "leftover" roms are at the end, so the rest are sequential and match "counters"
       picker = slice(counter[r][0], counter[r][-1]+1)
       # get ROM-specific metrics
-      # print('zj is in _gatherClusterFeatures')
+      # print('zj is in _gatherClusterFeatures self._clusterFeatures')
       # print(self._clusterFeatures)
       romData = rom.getLocalRomClusterFeatures(self._featureTemplate, self._romGlobalAdjustments, self._clusterFeatures, picker=picker)
 
@@ -932,8 +932,9 @@ class Clusters(Segments):
     # print(counter,remainder)
     # collect ROM features (basic stats, etc)
     clusterFeatures = self._gatherClusterFeatures(roms, counter)
-    # print('DEBUGG cluster features:')
-    # pp.pprint(clusterFeatures)
+    print('jz is a debugger in _clusterSegments')
+    print('DEBUGG cluster features:')
+    pp.pprint(clusterFeatures.keys())
     # future: requested metrics
     ## TODO someday
     # store clustering info, unweighted

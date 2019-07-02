@@ -63,9 +63,8 @@ class ARMA(supervisedLearning):
                             #FIXME shorter fourier intepolation\\
                             'arma': ['sigma', 'p', 'q'],
                             # NO CDF
-                            'peaks': ['probability', 'mean', 'sigma', 'index'],
+                            'peak': ['probability', 'mean', 'sigma', 'index'],
                             }
-
 
   ### INHERITED METHODS ###
   def __init__(self, messageHandler, **kwargs):
@@ -1221,6 +1220,7 @@ class ARMA(supervisedLearning):
       @ Out, features, dict, {target_metric: np.array(floats)} features to cluster on
     """
     # algorithm for providing Fourier series and ARMA white noise variance and #TODO covariance
+    # print('jz is inside arma getLocalRomClusterFeatures request', request)
     features = self.getFundamentalFeatures(request, featureTemplate=featureTemplate)
     # segment means
     # since we've already detrended globally, get the means from that (if present)
@@ -1244,6 +1244,7 @@ class ARMA(supervisedLearning):
     if featureTemplate is None:
       featureTemplate = '{target}|{metric}|{id}' # TODO this kind of has to be the format currently
     features = {}
+
     # include Fourier if available
     # TODO if not requestedFeatures or 'Fourier' in requestedFeatures: # TODO propagate requestedFeatures throughout method
     for target, fourier in self.fourierResults.items():
@@ -1395,8 +1396,21 @@ class ARMA(supervisedLearning):
               feature = featureTemplate.format(target=target, metric='peak', id='gp_{}_amp {}'.format(g,c))
               features[feature] = count
     # for target, peak in self.items():
-    # pp.pprint(features)
-    print()
+    if requestedFeatures is not None:
+      popFeatures=[]
+      for rq in features.keys():
+        tg, mtc, rid =rq.split('|')
+        if mtc not in requestedFeatures.keys():
+          #this apply to arma and fourier
+          popFeatures.append(rq)
+        elif mtc=='peak':
+          gp, gpid, rrid =rid.split('_')
+          if rrid.startswith('amp'):
+            popFeatures.append(rq)
+          elif rrid.startswith('ind'):
+            popFeatures.append(rq)
+      for p in popFeatures:
+        del features[p]
     return features
 
   def readFundamentalFeatures(self, features):
