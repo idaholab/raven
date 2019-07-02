@@ -781,6 +781,8 @@ class DataSet(DataObject):
       @ In, rlz, dict, single-sample realization
       @ Out, rlz, dict, same dict with _indexMap added if necessary
     """
+    if rlz is None:
+      return rlz
     need = any(len(val.shape) > 1 for val in rlz.values() if hasattr(val, 'shape'))
     if need:
       rlz['_indexMap'] = self.getDimensions()
@@ -1286,19 +1288,31 @@ class DataSet(DataObject):
     arrays = {}
     for var in self.getVars():
       if var in dims.keys():
-        data = df[[var,self.sampleTag]+dims[var]]
-        data.set_index(self.sampleTag,inplace=True)
+        varDims = dims[var]
+        data = df[[var, self.sampleTag] + dims[var]]
+        data.set_index(self.sampleTag, inplace=True)
         ndat = np.zeros(len(samples),dtype=object)
-        for s,sample in enumerate(samples):
+        for s, sample in enumerate(samples):
           # set dtype on first pass
           if s == 0:
             dtype = self._getCompatibleType(sample)
           places = data.index.get_loc(sample)
           vals = data[places].dropna().set_index(dims[var])
-          # TODO this needs to be improved before ND will work; we need the individual sub-indices (time, space, etc)
-          ndat[s] = xr.DataArray(vals.values[:,0],
-                                 dims=dims[var],
-                                 coords=dict((var,vals.index.values) for var in dims[var]))
+          if len(varDims) > 1:
+            useVals = vals.values.reshape(vals.index.levshape) #[:, 0], -> why :, 0??
+            coords = dict((dim, vals.index.levels[vals.index.names.index(dim)].values) for dim in dims[var])
+          else:
+            useVals = vals.values[:, 0]
+            coords = dict((var, vals.index.values) for var in varDims)
+          # slower, but more clear:
+          #coords = {}
+          #for dim in dims[var]:
+          #  pdIndexLevel = vals.index.names.index(dim)
+          #  coords[dim] = vals.index.levels[pdIndexLevel].values
+          # I think this is fixed now. - talbpw -> TODO this needs to be improved before ND will work; we need the individual sub-indices (time, space, etc)
+          ndat[s] = xr.DataArray(useVals,
+                                 dims=varDims,
+                                 coords=coords) #dict((var,vals.index.values) for var in dims[var]))
         # END for sample in samples
         arrays[var] = self._collapseNDtoDataArray(ndat,var,labels=samples,dtype=dtype)
       else:
