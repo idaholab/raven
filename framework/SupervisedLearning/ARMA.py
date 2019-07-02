@@ -1397,10 +1397,11 @@ class ARMA(supervisedLearning):
               features[feature] = count
     # for target, peak in self.items():
     if requestedFeatures is not None:
+      # print(requestedFeatures)
       popFeatures=[]
       for rq in features.keys():
         tg, mtc, rid =rq.split('|')
-        if mtc not in requestedFeatures.keys():
+        if mtc.lower() not in requestedFeatures.keys():
           #this apply to arma and fourier
           popFeatures.append(rq)
         elif mtc=='peak':
