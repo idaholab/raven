@@ -99,13 +99,17 @@ class RealizationAverager(PostProcessor):
                                  .format(self.name, currentInp.type))
     return currentInp
 
-  def run(self, inputIn):
+  def run(self, inputs):
     """
       This method executes the postprocessor action.
-      @ In, inputIn, object, object contained the data to process. (inputToInternal output)
+      @ In, inputs, list(object), objects containing the data to process.
       @ Out, realizations, list, list of realizations obtained
     """
-    dataSet = inputIn[0].asDataset()[self.targets] # we checked for singularity earlier, so this should be the only one
+    if not set(self.targets) <= set(inputs[0].getVars()):
+      self.raiseAnError(KeyError, 'The requested targets were not all found in the input data! ' +
+                        'Unused: {}. '.format(set(inputs[0].getVars()) - set(self.targets)) +
+                        'Missing: {}.'.format(set(self.targets) - set(inputs[0].getVars())))
+    dataSet = inputs[0].asDataset()[self.targets] # we checked for singularity earlier, so this should be the only one
     averaged = dataSet.mean(dim='RAVEN_sample_ID')
     averaged = averaged.expand_dims('RAVEN_sample_ID')
     averaged['RAVEN_sample_ID'] = [0]
