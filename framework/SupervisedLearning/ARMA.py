@@ -1341,8 +1341,8 @@ class ARMA(supervisedLearning):
             features[feature] = meanAmp
 
           else:
-            print(g)
-            print('  No group found')
+            # print(g)
+            # print('  No group found')
             meanAmp = np.mean(self._signalStorage[target]['original'])
             feature = featureTemplate.format(target=target, metric='peak', id='gp_{}_meanAmp'.format(g))
             features[feature] = meanAmp
@@ -1575,10 +1575,10 @@ class ARMA(supervisedLearning):
         for indexOfIndex,valueOfIndex in enumerate(indLocal):
           valueOfIndex=int(valueOfIndex)
           indLocal[indexOfIndex]=valueOfIndex
-        print('we are inside arma set peak results his',g,histogram)
-        print('pb',int(probExist*lenWin))
-        print('we are inside arma set peak results ind',g,indLocal)
-        print('we are inside arma set peak results amp',g,ampLocal)
+        # print('we are inside arma set peak results his',g,histogram)
+        # print('pb',int(probExist*lenWin))
+        # print('we are inside arma set peak results ind',g,indLocal)
+        # print('we are inside arma set peak results amp',g,ampLocal)
         groupWin[g]['Ind']=indLocal
         groupWin[g]['Amp']=ampLocal
       self.peaks[target]['groupWin']=groupWin

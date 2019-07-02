@@ -873,7 +873,7 @@ class Clusters(Segments):
     targets.remove(pivotID)
     clusterFeatures = defaultdict(list)
 
-    print('zj is a debugger inside _gatherClusterFeatures ')
+    # print('zj is a debugger inside _gatherClusterFeatures ')
     for r, rom in enumerate(roms):
       # print('rom',rom.peaks)
       # select pertinent data
@@ -881,12 +881,12 @@ class Clusters(Segments):
       picker = slice(counter[r][0], counter[r][-1]+1)
       # get ROM-specific metrics
       romData = rom.getLocalRomClusterFeatures(self._featureTemplate, self._romGlobalAdjustments, self._clusterFeatures, picker=picker)
-      print('zj is a debugger inside _gatherClusterFeatures 2')
-      print('r',r)
+      # print('zj is a debugger inside _gatherClusterFeatures 2')
+      # print('r',r)
       # pp.pprint(romData.items())
       for feature, val in romData.items():
         clusterFeatures[feature].append(val)
-      print('end of the _gatherClusterFeatures')
+      # print('end of the _gatherClusterFeatures')
     return clusterFeatures
 
   def _getSequentialRoms(self):
@@ -929,8 +929,8 @@ class Clusters(Segments):
     # print(counter,remainder)
     # collect ROM features (basic stats, etc)
     clusterFeatures = self._gatherClusterFeatures(roms, counter)
-    print('DEBUGG cluster features:')
-    pp.pprint(clusterFeatures)
+    # print('DEBUGG cluster features:')
+    # pp.pprint(clusterFeatures)
     # future: requested metrics
     ## TODO someday
     # store clustering info, unweighted
@@ -1120,7 +1120,7 @@ class Interpolated(supervisedLearning):
       # otherwise, create new instances
       else:
         self.raiseADebug('Interpolating year {}'.format(y))
-        print('zj is inside _interpolateSteps')
+        # print('zj is inside _interpolateSteps')
         newModel = self._interpolateSVL(trainingDict, exampleRoms, exampleModel, self._macroTemplate, numSegments, globalInterp, interps, y)
         models.append(newModel)
         self._macroSteps[y] = newModel
@@ -1167,17 +1167,17 @@ class Interpolated(supervisedLearning):
     """ interpolates a single engine for a single macro step (e.g. a single year) """
     newModel = copy.deepcopy(exampleModel) #copy.deepcopy(template)
     segmentRoms = [] # FIXME speedup, make it a numpy array from the start
-    print('jz is debugger level 0 in _interpolateSVL')
+    # print('jz is debugger level 0 in _interpolateSVL')
     for segment in range(N):
-      print('we are now inside segment', segment)
+      # print('we are now inside segment', segment)
 
       params = dict((param, interp(index)) for param, interp in segmentInterps[segment]['method'].items())
-      print('jz is a debugger params')
-      pp.pprint(params)
+      # print('jz is a debugger params')
+      # pp.pprint(params)
       # DEBUGG
       fname = 'debugg_interp_y{}_s{}.pk'.format(index, segment)
       with open(fname, 'wb') as f:
-        print('Dumping interpolated params to', fname)
+        # print('Dumping interpolated params to', fname)
         pk.dump(params, f)
       #### OLD #### do it all at once
       #for param, interp in segmentInterps[segment]['method'].items():
@@ -1190,14 +1190,14 @@ class Interpolated(supervisedLearning):
 
       newRom = copy.deepcopy(exampleRoms[segment])
       inputs = newRom.readFundamentalFeatures(params)
-      print('we are the input:')
-      pp.pprint(inputs)
-      newRom.setFundamentalFeatures(inputs)
-      print('zj is a debugger in here:')
+      # print('we are the input:')
+      # pp.pprint(inputs)
+      # newRom.setFundamentalFeatures(inputs)
+      # print('zj is a debugger in here:')
       segmentRoms.append(newRom)
 
-    print('we are inside _interpolateSVL after collect the segment rom')
-    print(segmentRoms[1].getFundamentalFeatures(None))
+    # print('we are inside _interpolateSVL after collect the segment rom')
+    # print(segmentRoms[1].getFundamentalFeatures(None))
     segmentRoms = np.asarray(segmentRoms)
     # add global params
     params = dict((param, interp(index)) for param, interp in globalInterp['method'].items())
@@ -1212,14 +1212,14 @@ class Interpolated(supervisedLearning):
     # TODO assuming histories!
     pivotID = exampleModel._templateROM.pivotParameterID
     pivotValues = trainingDict[pivotID][0] # FIXME assumes pivot is the same for each year
-    print('DEBUGG setting global rom features:')
+    # print('DEBUGG setting global rom features:')
     params = exampleModel._roms[0].setGlobalRomFeatures(params, pivotValues)
     newModel._romGlobalAdjustments = params
-    print('newModel',newModel)
+    # print('newModel',newModel)
     # finish training by clustering
-    print('zj is debugger inside _interpolateSVL')
+    # print('zj is debugger inside _interpolateSVL')
     newModel._clusterSegments(segmentRoms, exampleModel.divisions)
-    print('zj is after newModel._clusterSegments')
+    # print('zj is after newModel._clusterSegments')
     newModel.amITrained = True # template.amITrained
     return newModel
 

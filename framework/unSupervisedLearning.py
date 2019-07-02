@@ -152,10 +152,10 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
       @ In, tdict, dict, training dictionary
       @ Out, None
     """
-    print('jz is a debugger tdict.keys()')
-    # pp.pprint(tdict)
-    print('jz is a debugger self.features')
-    # pp.pprint(self.features)
+    # print('jz is a debugger tdict.keys()')
+    # # pp.pprint(tdict)
+    # print('jz is a debugger self.features')
+    # # pp.pprint(self.features)
     self.metric = metric
     if not isinstance(tdict, dict):
       self.raiseAnError(IOError, ' method "train". The training set needs to be provided through a dictionary. Type of the in-object is ' + str(type(tdict)))
