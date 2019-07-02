@@ -1287,6 +1287,7 @@ class ARMA(supervisedLearning):
       for e, edge in enumerate(edges):
         feature = featureTemplate.format(target=target, metric='cdf', id='edges_{}'.format(e))
         features[feature] = edge
+
     for target, peak in self.peaks.items():
       # print('啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦 我是分界线1 啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦')
       # pp.pprint(self.peaks)
@@ -1310,9 +1311,9 @@ class ARMA(supervisedLearning):
           ## IND
           #most probabble index
           if len(group['Ind']):
-            modeInd= stats.mode(group['Ind'])[0][0]
+            modeInd = stats.mode(group['Ind'])[0][0]
           else:
-            modeInd=0
+            modeInd = 0
           ID = 'gp_{}_modeInd'.format(g)
           feature = featureTemplate.format(target=target, metric='peak', id=ID)
           features[feature] = modeInd
@@ -1331,37 +1332,28 @@ class ARMA(supervisedLearning):
           if len(group['Amp']):
             if np.isnan((group['Amp'][0])):
               print('nanan')
-              print(np.mean(self._signalStorage[target]['original']))
-              print(np.max(self._signalStorage[target]['original']))
-              print(np.min(self._signalStorage[target]['original']))
-
-              meanAmp=np.mean(self._signalStorage[target]['original'])
+              meanAmp = np.mean(self._signalStorage[target]['original'])
             else:
-              print(g)
-              print('  ga',group['Amp'])
-              print('  pe',prbExist)
-
               # meanAmp=rv_histogram(np.histogram(group['Amp'])).mean()
               meanAmp=np.mean(group['Amp'])
 
-              print('  inside getfundamental mean', meanAmp)
             feature = featureTemplate.format(target=target, metric='peak', id='gp_{}_meanAmp'.format(g))
             features[feature] = meanAmp
 
           else:
             print(g)
             print('  No group found')
-            meanAmp=np.mean(self._signalStorage[target]['original'])
+            meanAmp = np.mean(self._signalStorage[target]['original'])
             feature = featureTemplate.format(target=target, metric='peak', id='gp_{}_meanAmp'.format(g))
             features[feature] = meanAmp
 
           ##std
           if len(group['Amp'])>1:
-            stdAmp=rv_histogram(np.histogram(group['Amp'])).std()
+            stdAmp = rv_histogram(np.histogram(group['Amp'])).std()
             feature = featureTemplate.format(target=target, metric='peak', id='gp_{}_stdAmp'.format(g))
             features[feature] = stdAmp
           else:
-            stdAmp=0
+            stdAmp = 0
             feature = featureTemplate.format(target=target, metric='peak', id='gp_{}_stdAmp'.format(g))
             features[feature] = stdAmp
 
@@ -1831,7 +1823,7 @@ class ARMA(supervisedLearning):
     """
     peaks, properties = find_peaks(signal, height=low)
     heights = properties['peak_heights']
-    return peaks,heights
+    return peaks, heights
 
   def rangeWindow(self,windowDict):
     """
@@ -1892,7 +1884,7 @@ class ARMA(supervisedLearning):
           peak, height = self._peakPicker(signal[bgLocal:endLocal], low=low)
         else:
           peak, height = self._peakPicker(np.concatenate([signal[bgLocal:], signal[:endLocal]]), low=low)
-        if len(peak) ==1:
+        if len(peak) == 1:
           indLocal.append(int(peak))
           ampLocal.append(float(height))
           maskBg=int((int(peak)+bgLocal-int(np.floor(windows[i]['width']/2)))%len(self.pivotParameterValues))
@@ -1902,7 +1894,7 @@ class ARMA(supervisedLearning):
             maskPeakRes[:maskEnd] = False
           else:
             maskPeakRes[maskBg:maskEnd] = False
-        elif len(peak) >1:
+        elif len(peak) > 1:
           indLocal.append(int(peak[np.argmax(height)]))
           ampLocal.append(float(height[np.argmax(height)]))
           maskBg=int((int(peak[np.argmax(height)])+bgLocal-int(np.floor(windows[i]['width']/2)))%len(self.pivotParameterValues))
@@ -1912,6 +1904,7 @@ class ARMA(supervisedLearning):
             maskPeakRes[:maskEnd] = False
           else:
             maskPeakRes[maskBg:maskEnd] = False
+
       peakInfo['Ind'] = indLocal
       peakInfo['Amp'] = ampLocal
       groupWin.append(peakInfo)

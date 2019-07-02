@@ -224,7 +224,7 @@ class DataSet(DataObject):
     try:
       rlz = dict((var,rlz[var]) for var in self.getVars()+self.indexes)
     except KeyError as e:
-      self.raiseADebug('Variables provided:',rlz.keys())
+      self.raiseAWarning('Variables provided:',rlz.keys())
       self.raiseAnError(KeyError,'Provided realization does not have all requisite values for object "{}": "{}"'.format(self.name,e.args[0]))
     # check consistency, but make it an assertion so it can be passed over
     # print('DEBUGG add rlz precheck:', rlz.get('Year', None))
@@ -865,12 +865,12 @@ class DataSet(DataObject):
       @ Out, okay, bool, True if acceptable or False if not
     """
     # print('DEBUGG pre YEAR', rlz.get('Year', '(not applicable)'))
-    if not isinstance(rlz,dict):
+    if not isinstance(rlz, dict):
       self.raiseAWarning('Realization is not a "dict" instance!')
       return False
     for var, value in rlz.items():
       #if not isinstance(value,(float,int,unicode,str,np.ndarray)): TODO someday be more flexible with entries?
-      if not isinstance(value,np.ndarray):
+      if not isinstance(value, np.ndarray):
         self.raiseAWarning('Variable "{}" is not an acceptable type: "{}"'.format(var, type(value)))
         return False
       # check if index-dependent variables have matching shapes
@@ -904,6 +904,8 @@ class DataSet(DataObject):
           except KeyError:
             self.raiseAWarning('Variable "{}" is multidimensional, but no entry '.format(var) +
                                'was given in the "_indexMap" for "{}" in the model realization!'.format(var))
+            self.raiseAWarning('Received entries for: {}'.format(list(indexMap.keys())))
+
             return False
           # check that the realization is consistent
           ## TODO assumes indexes are single-dimensional, seems like a safe assumption for now

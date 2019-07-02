@@ -996,9 +996,9 @@ class IOStep(Step):
         # train the ROM from the unpickled object
         outputs[i].train(unpickledObj)
         # reseed as requested
+        loadSettings['messageHandler'] = self.messageHandler
         print('DEBUGG load settings??', loadSettings.keys())
-        if loadSettings:
-          outputs[i].setAdditionalParams(loadSettings)
+        outputs[i].setAdditionalParams(loadSettings)
 
       elif self.actionType[i] == 'FILES-dataObjects':
         #inDictionary['Input'][i] is a Files, outputs[i] is PointSet

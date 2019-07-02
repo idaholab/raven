@@ -468,6 +468,7 @@ class ROM(Dummy):
       self.trainingSet              = copy.copy(trainingSet.trainingSet)
       self.amITrained               = copy.deepcopy(trainingSet.amITrained)
       self.supervisedEngine         = copy.deepcopy(trainingSet.supervisedEngine)
+      self.supervisedEngine.messageHandler = self.messageHandler
     else:
       # TODO: The following check may need to be moved to Dummy Class -- wangc 7/30/2018
       if type(trainingSet).__name__ != 'dict' and trainingSet.type == 'HistorySet':
@@ -502,13 +503,9 @@ class ROM(Dummy):
     """
     inputToROM       = self._inputToInternal(request)
     outputEvaluation = self.supervisedEngine.evaluate(inputToROM)
-    # print('DEBUGG ROM pre 1d eval:', outputEvaluation.get('Year', None))
     # assure numpy array formatting # TODO can this be done in the supervised engine instead?
     for k,v in outputEvaluation.items():
       outputEvaluation[k] = np.atleast_1d(v)
-    # print('DEBUGG ROM eval:', outputEvaluation)
-    #if len(outputEvaluation.get('Year', [])) > 3:
-    #  JZTopSingerNA
     return outputEvaluation
 
   def _externalRun(self,inRun):
