@@ -1409,6 +1409,10 @@ class ARMA(supervisedLearning):
             popFeatures.append(rq)
           elif rrid.startswith('ind'):
             popFeatures.append(rq)
+          elif rrid.startswith('max'):
+            popFeatures.append(rq)
+          elif rrid.startswith('min'):
+            popFeatures.append(rq)
       for p in popFeatures:
         del features[p]
     return features
