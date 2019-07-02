@@ -621,7 +621,7 @@ class Clusters(Segments):
     else:
       inputRequests = inputRequestsNode.value
       userRequests = self._extrapolateRequestedClusterFeatures(inputRequests)
-      print('dasfskfhsehfglsegjlsegjlsbgljsbjlgbsjkbgjksdbgjksbgdjksgbs',userRequests)
+      # print('dasfskfhsehfglsegjlsegjlsbgljsbjlgbsjkbgjksdbgjksbgdjksgbs',userRequests)
     self._clusterFeatures = self._templateROM.checkRequestedClusterFeatures(userRequests)
     # print('debuggggg_clusterFeatures',self._clusterFeatures)
   def readAssembledObjects(self):
@@ -880,7 +880,10 @@ class Clusters(Segments):
       ## NOTE assuming only "leftover" roms are at the end, so the rest are sequential and match "counters"
       picker = slice(counter[r][0], counter[r][-1]+1)
       # get ROM-specific metrics
+      # print('zj is in _gatherClusterFeatures')
+      # print(self._clusterFeatures)
       romData = rom.getLocalRomClusterFeatures(self._featureTemplate, self._romGlobalAdjustments, self._clusterFeatures, picker=picker)
+
       # print('zj is a debugger inside _gatherClusterFeatures 2')
       # print('r',r)
       # pp.pprint(romData.items())
@@ -1103,7 +1106,7 @@ class Interpolated(supervisedLearning):
         # store interpolators, by segment
         interps.append(interp)
     self.raiseADebug('Interpolator trained')
-    print('jz is a debugger interps')
+    # print('jz is a debugger interps')
     # pp.pprint(interps)
     # interpolate new data
     ## now we have interpolators for every segment, so for each missing segment, we
@@ -1177,7 +1180,7 @@ class Interpolated(supervisedLearning):
       # DEBUGG
       fname = 'debugg_interp_y{}_s{}.pk'.format(index, segment)
       with open(fname, 'wb') as f:
-        # print('Dumping interpolated params to', fname)
+        print('Dumping interpolated params to', fname)
         pk.dump(params, f)
       #### OLD #### do it all at once
       #for param, interp in segmentInterps[segment]['method'].items():
@@ -1360,7 +1363,7 @@ def _plotSignalsClustered(labels, clusterFeatures, slices, trainingSet):
   for target in trainingSet:
     if target in ['Time', 'scaling']:
       continue
-    print('')
+    # print('')
     print('DEBUGG plotting target "{}"'.format(target))
     fig, ax = plt.subplots(figsize=(12, 10))
     ymin = trainingSet[target][0].min()

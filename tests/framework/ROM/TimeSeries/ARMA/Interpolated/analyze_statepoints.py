@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 
 pd.set_option('line_width', 150)
-
+pd.set_option('display.max_columns', None)
 frames = []
 for s in ['global'] + list(range(10)):
   print('SEGMENT:', s)

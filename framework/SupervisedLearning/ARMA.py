@@ -1396,7 +1396,7 @@ class ARMA(supervisedLearning):
               features[feature] = count
     # for target, peak in self.items():
     # pp.pprint(features)
-
+    print()
     return features
 
   def readFundamentalFeatures(self, features):
@@ -1603,7 +1603,9 @@ class ARMA(supervisedLearning):
         if target == self.pivotParameterID:
           continue
         targetVals = trainingDict[target][0]
-        inputDists[target] = mathUtils.trainEmpiricalFunction(targetVals, minBins=self._minBins)
+        nbins=max(self._minBins,int(np.sqrt(len(targetVals))))
+
+        inputDists[target] = mathUtils.trainEmpiricalFunction(targetVals, bins=nbins)
       settings['input CDFs'] = inputDists
     # do global Fourier analysis on combined signal for all periods longer than the segment
     if self.fourierParams:
