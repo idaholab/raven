@@ -878,12 +878,15 @@ class ARMA(supervisedLearning):
     deltaT=deltaT/(len(self.pivotParameterValues)-1)
     # change the peak information in self.peak from time unit into index by divided the timestep
     # deltaT is the time step calculated by (ending point - stating point in time)/(len(time)-1)
-    peakResults['period']=int(windowDict['period']/deltaT)
+    peakResults['period']=int(round(windowDict['period']/deltaT))
     windows=[]
+    # pp.pprint(windowDict['windows'])
     for i in range(len(windowDict['windows'])):
       window={}
-      window['window']=[int(windowDict['windows'][i]['window'][0]/deltaT),int(windowDict['windows'][i]['window'][1]/deltaT)]
-      window['width']=int(windowDict['windows'][i]['width']/deltaT)
+      a = windowDict['windows'][i]['window'][0]
+      b = windowDict['windows'][i]['window'][1]
+      window['window']=[int(round(windowDict['windows'][i]['window'][0]/deltaT)),int(round(windowDict['windows'][i]['window'][1]/deltaT))]
+      window['width']=int(round(windowDict['windows'][i]['width']/deltaT))
       windows.append(window)
     peakResults['windows']=windows
     peakResults['threshold']=windowDict['threshold']
@@ -1219,7 +1222,6 @@ class ARMA(supervisedLearning):
     """
     # algorithm for providing Fourier series and ARMA white noise variance and #TODO covariance
     features = self.getFundamentalFeatures(request, featureTemplate=featureTemplate)
-
     # segment means
     # since we've already detrended globally, get the means from that (if present)
     if 'long Fourier signal' in settings:
@@ -1288,7 +1290,7 @@ class ARMA(supervisedLearning):
 
     for target, peak in self.peaks.items():
       # print('啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦 我是分界线1 啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦')
-
+      # pp.pprint(self.peaks)
       nBin = self.peaks[target]['nbin']
       period = self.peaks[target]['period']
       if 'groupWin' in peak.keys() and 'rangeWindow' in peak.keys():
@@ -1332,17 +1334,15 @@ class ARMA(supervisedLearning):
               print('nanan')
               meanAmp = np.mean(self._signalStorage[target]['original'])
             else:
-              print(g)
-              print('  ga', group['Amp'])
-              print('  pe', prbExist)
+              # meanAmp=rv_histogram(np.histogram(group['Amp'])).mean()
+              meanAmp=np.mean(group['Amp'])
 
-              meanAmp = rv_histogram(np.histogram(group['Amp'])).mean()
             feature = featureTemplate.format(target=target, metric='peak', id='gp_{}_meanAmp'.format(g))
             features[feature] = meanAmp
 
           else:
-            print(g)
-            print('  No group found')
+            # print(g)
+            # print('  No group found')
             meanAmp = np.mean(self._signalStorage[target]['original'])
             feature = featureTemplate.format(target=target, metric='peak', id='gp_{}_meanAmp'.format(g))
             features[feature] = meanAmp
@@ -1395,6 +1395,7 @@ class ARMA(supervisedLearning):
               feature = featureTemplate.format(target=target, metric='peak', id='gp_{}_amp {}'.format(g,c))
               features[feature] = count
     # for target, peak in self.items():
+    # pp.pprint(features)
 
     return features
 
@@ -1404,7 +1405,6 @@ class ARMA(supervisedLearning):
     arma = collections.defaultdict(dict)
     cdf = collections.defaultdict(dict)
     peak = collections.defaultdict(dict)
-
     for feature, val in features.items():
       target, metric, ID = feature.split('|')
 
@@ -1460,8 +1460,13 @@ class ARMA(supervisedLearning):
           peak[target][group]['indCounts'][c] = val
         else:
           peak[target][group][realID]=val
+
       else:
         raise KeyError('Unrecognized metric: "{}"'.format(metric))
+      # print('debuggggggg')
+      # pp.pprint(features)
+      # print('debuggggggggg')
+      # pp.pprint(peak)
     return {'fourier': fourier,
             'arma': arma,
             'cdf': cdf,
@@ -1548,14 +1553,19 @@ class ARMA(supervisedLearning):
         ampHisCs = np.asarray(hisCs)
         maxAmp=groupInfo['maxAmp']
         minAmp=groupInfo['minAmp']
-        ampHisEg=np.linspace(minAmp, maxAmp, num=len(ampHisCs)+1)
-        histogram = (ampHisCs, ampHisEg)
-        dist = stats.rv_histogram(histogram)
         probExist=groupInfo['probExist']
 
-        ampLocal=dist.rvs(size=int(probExist*lenWin)).tolist()
+        if maxAmp>minAmp:
+          ampHisEg=np.linspace(minAmp, maxAmp, num=len(ampHisCs)+1)
+        # print('dshflshfahlfhalhflasfhi',ampHisCs)
+          histogram = (ampHisCs, ampHisEg)
+          dist = stats.rv_histogram(histogram)
+          ampLocal=dist.rvs(size=int(round(probExist*lenWin))).tolist()
+        else:
+          histogram = None
+          ampLocal = [maxAmp]*int(round(probExist*lenWin))
 
-        lsIndCs=list(groupInfo['indCounts'].items())
+        lsIndCs = list(groupInfo['indCounts'].items())
         _, hisIndCs = zip(*sorted(lsIndCs, key=lambda x: x[0]))
         indHisCs = np.asarray(hisIndCs)
         histogramInd = (indHisCs, np.arange(len(indHisCs)+1)+1)
@@ -1565,7 +1575,10 @@ class ARMA(supervisedLearning):
         for indexOfIndex,valueOfIndex in enumerate(indLocal):
           valueOfIndex=int(valueOfIndex)
           indLocal[indexOfIndex]=valueOfIndex
-
+        # print('we are inside arma set peak results his',g,histogram)
+        # print('pb',int(probExist*lenWin))
+        # print('we are inside arma set peak results ind',g,indLocal)
+        # print('we are inside arma set peak results amp',g,ampLocal)
         groupWin[g]['Ind']=indLocal
         groupWin[g]['Amp']=ampLocal
       self.peaks[target]['groupWin']=groupWin

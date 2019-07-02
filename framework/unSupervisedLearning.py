@@ -37,6 +37,8 @@ import numpy as np
 import abc
 import ast
 import copy
+import pprint
+pp = pprint.PrettyPrinter(indent=2)
 #External Modules End-----------------------------------------------------------
 #Internal Modules---------------------------------------------------------------
 from utils import utils
@@ -150,7 +152,10 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
       @ In, tdict, dict, training dictionary
       @ Out, None
     """
-
+    # print('jz is a debugger tdict.keys()')
+    # # pp.pprint(tdict)
+    # print('jz is a debugger self.features')
+    # # pp.pprint(self.features)
     self.metric = metric
     if not isinstance(tdict, dict):
       self.raiseAnError(IOError, ' method "train". The training set needs to be provided through a dictionary. Type of the in-object is ' + str(type(tdict)))
@@ -177,6 +182,8 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
 
     ## Check that all of the values have the same length
     if not isinstance(utils.first(tdict.values()), dict):
+      # print('jz is a debugger self.features')
+      # pp.pprint(self.features)
       for name, val in tdict.items():
         if name in self.features and realizationCount != val.size:
           print('DEBUGGGGG')

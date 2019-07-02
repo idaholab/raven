@@ -428,22 +428,36 @@ class Segments(Collection):
         pivot = trainingSet[subspace][0]
         # find where the data passes the requested length, and make dividers
         floor = 0                # where does this pivot segment start?
-        nextOne = segmentValue   # how high should this pivot segment go?
+        nextOne = segmentValue + pivot[0]   # how high should this pivot segment go?
         counter = []
         # TODO speedup; can we do this without looping?
-        while pivot[floor] < pivot[-1]:
-          cross = np.searchsorted(pivot, nextOne)
+        dt = pivot[1] - pivot[0]
+        while floor < dataLen - 1:
+
+          cross = np.searchsorted(pivot, nextOne-0.5*dt) # half dt if for machine percision error
           # if the next crossing point is past the end, put the remainder piece
           ## into the "unclustered" grouping, since it might be very oddly sized
           ## and throw off segmentation (specifically for clustering)
           if cross == len(pivot):
-            unclustered.append((floor, cross - 1))
-            break
+            remaining = pivot[-1] - pivot[floor-1]
+            oneLess = pivot[-2] - pivot[floor-1]
+            test1 = abs(remaining-segmentValue)/segmentValue
+            test2 = abs(oneLess-segmentValue)/segmentValue
+            if not (test1 or test2):
+              unclustered.append((floor, cross - 1))
+              break
+            cross = len(pivot)
           # add this segment, only really need to know the first and last index (inclusive)
           counter.append((floor, cross - 1)) # Note: indices are INCLUSIVE
           # update search parameters
           floor = cross
-          nextOne += segmentValue
+          if floor >= len(pivot):
+            break
+          nextOne = pivot[floor] + segmentValue
+        # #
+        # if counter[-1][1] == dataLen-2:
+        #   counter[-1]=(counter[-1][0],counter[-1][1]+1)
+
       self.raiseADebug('Dividing {:^20s} into {:^5d} divisions for training ...'.format(subspace, len(counter) + len(unclustered)))
     # return the counter indicies as well as any odd-piece-out parts
     return counter, unclustered
@@ -609,7 +623,7 @@ class Clusters(Segments):
       userRequests = self._extrapolateRequestedClusterFeatures(inputRequests)
       print('dasfskfhsehfglsegjlsegjlsbgljsbjlgbsjkbgjksdbgjksbgdjksgbs',userRequests)
     self._clusterFeatures = self._templateROM.checkRequestedClusterFeatures(userRequests)
-    print('gjygjyjyyfjyfjyfyjfjyfyjfjyf',self._clusterFeatures)
+    # print('debuggggg_clusterFeatures',self._clusterFeatures)
   def readAssembledObjects(self):
     """
       Collects the entities from the Assembler as needed.
@@ -853,18 +867,26 @@ class Clusters(Segments):
       @ In, counter, list(tuple), instructions for dividing subspace into subdomains
       @ Out, clusterFeatures, dict, clusterable parameters as {feature: [rom values]}
     """
+
     targets = self._templateROM.target[:]
     pivotID = self._templateROM.pivotParameterID
     targets.remove(pivotID)
     clusterFeatures = defaultdict(list)
+
+    # print('zj is a debugger inside _gatherClusterFeatures ')
     for r, rom in enumerate(roms):
+      # print('rom',rom.peaks)
       # select pertinent data
       ## NOTE assuming only "leftover" roms are at the end, so the rest are sequential and match "counters"
       picker = slice(counter[r][0], counter[r][-1]+1)
       # get ROM-specific metrics
       romData = rom.getLocalRomClusterFeatures(self._featureTemplate, self._romGlobalAdjustments, self._clusterFeatures, picker=picker)
+      # print('zj is a debugger inside _gatherClusterFeatures 2')
+      # print('r',r)
+      # pp.pprint(romData.items())
       for feature, val in romData.items():
         clusterFeatures[feature].append(val)
+      # print('end of the _gatherClusterFeatures')
     return clusterFeatures
 
   def _getSequentialRoms(self):
@@ -903,10 +925,12 @@ class Clusters(Segments):
 
   def _clusterSegments(self, roms, divisions):
     counter, remainder = divisions
+    # print('zj is inside the _clusterSegments')
+    # print(counter,remainder)
     # collect ROM features (basic stats, etc)
     clusterFeatures = self._gatherClusterFeatures(roms, counter)
-    print('DEBUGG cluster features:')
-    pp.pprint(clusterFeatures)
+    # print('DEBUGG cluster features:')
+    # pp.pprint(clusterFeatures)
     # future: requested metrics
     ## TODO someday
     # store clustering info, unweighted
@@ -995,10 +1019,21 @@ class Interpolated(supervisedLearning):
     self._macroTemplate.setAssembledObjects(*args, **kwargs)
 
   def readAssembledObjects(self):
-    aaaaaaaaa # remove me
     for step in self._macroSteps.values():
       step.readAssembledObjects()
 
+  def writePointwiseData(self, writeTo):
+    """
+    Writes pointwise data about this ROM to the data object.
+    @ In, writeTo, DataObject, data structure into which data should be written
+    @ Out, None
+    """
+    # for year, model in self._macroSteps.items():
+    #   print('')
+    #   print('year indices',year)
+    #   iS, iE, pS, pE = model._getSegmentData() # (i)ndex | (p)ivot, (S)tarts | (E)nds
+    #   for i in range(len(iS)):
+    #     print(i, iS[i], iE[i], pS[i], pE[i])
   ############### TRAINING ####################
   def train(self, tdict):
     """
@@ -1068,6 +1103,8 @@ class Interpolated(supervisedLearning):
         # store interpolators, by segment
         interps.append(interp)
     self.raiseADebug('Interpolator trained')
+    print('jz is a debugger interps')
+    # pp.pprint(interps)
     # interpolate new data
     ## now we have interpolators for every segment, so for each missing segment, we
     ## need to make a new Cluster model and assign its subsequence ROMs (pre-clustering).
@@ -1083,6 +1120,7 @@ class Interpolated(supervisedLearning):
       # otherwise, create new instances
       else:
         self.raiseADebug('Interpolating year {}'.format(y))
+        # print('zj is inside _interpolateSteps')
         newModel = self._interpolateSVL(trainingDict, exampleRoms, exampleModel, self._macroTemplate, numSegments, globalInterp, interps, y)
         models.append(newModel)
         self._macroSteps[y] = newModel
@@ -1129,12 +1167,17 @@ class Interpolated(supervisedLearning):
     """ interpolates a single engine for a single macro step (e.g. a single year) """
     newModel = copy.deepcopy(exampleModel) #copy.deepcopy(template)
     segmentRoms = [] # FIXME speedup, make it a numpy array from the start
+    # print('jz is debugger level 0 in _interpolateSVL')
     for segment in range(N):
+      # print('we are now inside segment', segment)
+
       params = dict((param, interp(index)) for param, interp in segmentInterps[segment]['method'].items())
+      # print('jz is a debugger params')
+      # pp.pprint(params)
       # DEBUGG
       fname = 'debugg_interp_y{}_s{}.pk'.format(index, segment)
       with open(fname, 'wb') as f:
-        print('Dumping interpolated params to', fname)
+        # print('Dumping interpolated params to', fname)
         pk.dump(params, f)
       #### OLD #### do it all at once
       #for param, interp in segmentInterps[segment]['method'].items():
@@ -1147,10 +1190,14 @@ class Interpolated(supervisedLearning):
 
       newRom = copy.deepcopy(exampleRoms[segment])
       inputs = newRom.readFundamentalFeatures(params)
-      print('DEBUGG set params:')
-      pp.pprint(inputs)
-      newRom.setFundamentalFeatures(inputs)
+      # print('we are the input:')
+      # pp.pprint(inputs)
+      # newRom.setFundamentalFeatures(inputs)
+      # print('zj is a debugger in here:')
       segmentRoms.append(newRom)
+
+    # print('we are inside _interpolateSVL after collect the segment rom')
+    # print(segmentRoms[1].getFundamentalFeatures(None))
     segmentRoms = np.asarray(segmentRoms)
     # add global params
     params = dict((param, interp(index)) for param, interp in globalInterp['method'].items())
@@ -1165,12 +1212,14 @@ class Interpolated(supervisedLearning):
     # TODO assuming histories!
     pivotID = exampleModel._templateROM.pivotParameterID
     pivotValues = trainingDict[pivotID][0] # FIXME assumes pivot is the same for each year
-    print('DEBUGG setting global rom features:')
-    pp.pprint(params)
+    # print('DEBUGG setting global rom features:')
     params = exampleModel._roms[0].setGlobalRomFeatures(params, pivotValues)
     newModel._romGlobalAdjustments = params
+    # print('newModel',newModel)
     # finish training by clustering
+    # print('zj is debugger inside _interpolateSVL')
     newModel._clusterSegments(segmentRoms, exampleModel.divisions)
+    # print('zj is after newModel._clusterSegments')
     newModel.amITrained = True # template.amITrained
     return newModel
 

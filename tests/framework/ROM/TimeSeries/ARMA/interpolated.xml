@@ -114,7 +114,7 @@
   <Samplers>
     <MonteCarlo name="mc">
       <samplerInit>
-        <limit>10</limit>
+        <limit>1</limit>
         <initialSeed>42</initialSeed>
       </samplerInit>
       <constant name="scaling">1.0</constant>
