@@ -606,7 +606,11 @@ class Clusters(Segments):
     self._divisionClassifier = None      # Classifier to cluster subdomain ROMs
     self._metricClassifiers = None       # Metrics for clustering subdomain ROMs
     self._clusterInfo = {}               # contains all the useful clustering results
-    self._evaluationMode = 'truncated'   # TODO make user option, whether returning full histories or truncated ones
+    ##################
+    # self._evaluationMode = 'truncated'   # TODO make user option, whether returning full histories or truncated ones
+
+    self._evaluationMode = 'full'   # TODO changed here for Konor's case now
+    #########
     self._featureTemplate = '{target}|{metric}|{id}' # created feature ID template
     self._clusterFeatures = None         # dict of lists, features to cluster on
 

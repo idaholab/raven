@@ -397,7 +397,7 @@ class ARMA(supervisedLearning):
       # if target correlated with the zero-filter target, truncate the training material now?
       timeSeriesData = targetVals[:,t]
       self.raiseADebug('... analyzing ARMA properties for target "{}" ...'.format(target))
-      self.cdfParams[target] = self._trainCDF(timeSeriesData)
+      self.cdfParams[target] = self._trainCDF(timeSeriesData, binOps=2 )
       # normalize data
       normed = self._normalizeThroughCDF(timeSeriesData, self.cdfParams[target])
       self._signalStorage[target]['gaussianed'] = copy.deepcopy(normed[:])
@@ -633,7 +633,7 @@ class ARMA(supervisedLearning):
     self.seed=seed
 
   ### UTILITY METHODS ###
-  def _computeNumberOfBins(self,data):
+  def _computeNumberOfBins(self,data,binOps=None):
     """
       Uses the Freedman-Diaconis rule for histogram binning
       -> For relatively few samples, this can cause unnatural flat-lining on low, top end of CDF
@@ -641,7 +641,7 @@ class ARMA(supervisedLearning):
       @ Out, n, integer, number of bins
     """
     # leverage the math utils implementation
-    n, _ = mathUtils.numBinsDraconis(data, low=self._minBins, alternateOkay=True)
+    n, _ = mathUtils.numBinsDraconis(data, low=self._minBins, alternateOkay=True,binOps=binOps)
     return n
 
   def _denormalizeThroughCDF(self, data, params):
@@ -838,14 +838,16 @@ class ARMA(supervisedLearning):
     results = smARMA(data, order = (self.P, self.Q)).fit(disp = False)
     return results
 
-  def _trainCDF(self, data):
+  def _trainCDF(self, data,binOps=None):
     """
       Constructs a CDF from the given data
       @ In, data, np.array(float), values to fit to
       @ Out, params, dict, essential parameters for CDF
     """
     # caluclate number of bins
-    nBins = self._computeNumberOfBins(data)
+    # binOps=Length or value
+    nBins = self._computeNumberOfBins(data,binOps=binOps)
+    # print('jz is a debugger inside _trainCDF nbins',nBins)
     # construct histogram
     counts, edges = np.histogram(data, bins = nBins, density = False)
     counts = np.array(counts) / float(len(data))
@@ -857,6 +859,7 @@ class ARMA(supervisedLearning):
     cdf = np.insert(cdf, 0, 0) # trying something else
     # store parameters
     # TODO FIXME WORKING also add the max, min, counts
+    # miu sigma of data and counts edges
     params = {'bins': edges,
               'counts':counts,
               'pdf' : counts * nBins,
@@ -1278,7 +1281,19 @@ class ARMA(supervisedLearning):
       for q, val in enumerate(arma.maparams):
         feature = featureTemplate.format(target=target, metric='arma', id='MA_{}'.format(q))
         features[feature] = val
-
+      for target, cdfParam in self.cdfParams.items():
+        # print('jz is adebugger inside thecdfpara',target,cdfParam['bins'])
+        # print('jz is adebugger inside thecdfpara',target,cdfParam['counts'])
+        for e, edge in enumerate(cdfParam['bins']):
+          # print('jz is a debugger inside the cdfpara',e,edge)
+          feature = featureTemplate.format(target=target, metric='arma', id='bin_{}'.format(e))
+          features[feature] = edge
+        # print('jz is adebugger inside thecdfpara',target,cdfParam[1])
+        for c, count in enumerate(cdfParam['counts']):
+          # print('jz is a debugger inside the cdfpara',c,count)
+          feature = featureTemplate.format(target=target, metric='arma', id='counts_{}'.format(c))
+          features[feature] = count        # for paraId,paraVal in cdfParam.items():
+        #   print('jz is a debugger in gff cdfpara',paraId,paraVal)
     # CDF preservation if available
     for target, cdf in self._trainingCDF.items():
       _, (counts, edges) = cdf
@@ -1404,7 +1419,7 @@ class ARMA(supervisedLearning):
         if mtc.lower() not in requestedFeatures.keys():
           #this apply to arma and fourier
           popFeatures.append(rq)
-        elif mtc=='peak':
+        elif mtc.lower()=='peak':
           gp, gpid, rrid =rid.split('_')
           if rrid.startswith('amp'):
             popFeatures.append(rq)
@@ -1414,8 +1429,17 @@ class ARMA(supervisedLearning):
             popFeatures.append(rq)
           elif rrid.startswith('min'):
             popFeatures.append(rq)
+        elif mtc.lower()=='arma':
+          if rid.startswith('bin'):
+            popFeatures.append(rq)
+          elif rid.startswith('counts'):
+            popFeatures.append(rq)
+      # print(popFeatures)
+        # elif mtc=='arma':
       for p in popFeatures:
         del features[p]
+    #   pp.pprint(features)
+    # cccccccccc
     return features
 
   def readFundamentalFeatures(self, features):
